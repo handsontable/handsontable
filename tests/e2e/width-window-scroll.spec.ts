@@ -41,6 +41,7 @@ test.describe('width-only grid: holder scrolls columns, window scrolls rows', ()
   test('keeps the frozen columns pinned and the frozen rows aligned while the holder scrolls', async () => {
     const rootBefore = await grid.box(grid.grid);
     const inlineStartBefore = await grid.box(grid.inlineStartOverlay);
+    const columnsBefore = await grid.renderedColumns();
 
     await grid.scrollHolderBy(400);
 
@@ -53,9 +54,17 @@ test.describe('width-only grid: holder scrolls columns, window scrolls rows', ()
     expect(Math.abs(inlineStartAfter.x - rootBefore.x)).toBeLessThanOrEqual(1);
 
     // The frozen rows scrolled with the columns: a column rendered after the
-    // scroll sits at the same x in the top clone and in the master.
-    const topCell = grid.topCloneCell(0, 12);
-    const masterCell = grid.cell(5, 12);
+    // scroll sits at the same x in the top clone and in the master. The probe
+    // is the first column the scroll brought in — read from the DOM, because
+    // each theme's column widths put a different range behind the same 400px.
+    const columnsAfter = await grid.renderedColumns();
+    const lastColumnBefore = columnsBefore[columnsBefore.length - 1];
+    const [probeColumn] = columnsAfter.filter(column => column > lastColumnBefore);
+
+    expect(probeColumn).toBeGreaterThan(lastColumnBefore);
+
+    const topCell = grid.topCloneCell(0, probeColumn);
+    const masterCell = grid.cell(5, probeColumn);
 
     await expect(topCell).toBeVisible();
     await expect(masterCell).toBeVisible();
@@ -132,7 +141,11 @@ test.describe('width-only grid: holder scrolls columns, window scrolls rows', ()
     expect(extents.holderScrollWidth).toBeGreaterThan(extents.holderClientWidth);
     expect(extents.documentScrollWidth).toBeLessThanOrEqual(extents.documentClientWidth);
 
-    await grid.scrollHolderBy(2000);
+    // Scrolls to the end, not by a fixed distance. `main` and `classic` clamp
+    // a 2000px scroll to the end anyway; `horizon`, whose columns are widest,
+    // has 2027px of range, so it stopped 27px short — a margin a theme metric
+    // change could turn into a miss.
+    await grid.scrollHolderToEnd();
 
     await expect(grid.cell(3, 29)).toBeVisible();
   });

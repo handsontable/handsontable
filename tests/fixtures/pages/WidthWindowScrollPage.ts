@@ -94,6 +94,23 @@ export class WidthWindowScrollPage {
     }, x);
   }
 
+  /** Scrolls the master holder to its horizontal end and waits two frames. */
+  async scrollHolderToEnd(): Promise<void> {
+    await this.page.evaluate(() => {
+      const holder = document.querySelector('.ht_master .wtHolder');
+
+      if (!holder) {
+        throw new Error('holder is not rendered');
+      }
+
+      holder.scrollLeft = holder.scrollWidth;
+
+      return new Promise(resolve => {
+        requestAnimationFrame(() => requestAnimationFrame(resolve));
+      });
+    });
+  }
+
   /** Scrolls the window by a delta and waits two frames. */
   async scrollWindowBy(x: number, y: number): Promise<void> {
     await this.page.evaluate(([dx, dy]) => {
@@ -183,6 +200,18 @@ export class WidthWindowScrollPage {
       rows: document.querySelectorAll('.ht_master tbody tr').length,
       columns: document.querySelectorAll('.ht_master tbody tr:first-child td').length,
     }));
+  }
+
+  /**
+   * The column indexes the master currently renders, in DOM order. Each theme
+   * sizes the columns differently, so the same scroll offset puts a different
+   * range in the viewport — a spec reads its probe column from here instead of
+   * hardcoding an index that only exists on one theme.
+   */
+  async renderedColumns(): Promise<number[]> {
+    return this.page.evaluate(() => Array
+      .from(document.querySelectorAll('.ht_master tbody tr:first-child td[data-testid]'))
+      .map(td => Number(td.getAttribute('data-testid')?.split('-').pop())));
   }
 
   /** The count of `afterScrollVertically` calls since the last rebuild. */

@@ -17,6 +17,22 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   (`e2e-main` used to load `full.min` — never assume the hooks cover min.)
 - `handsontable.full.js` and `handsontable.min.js` are deliberately untested
   here — they belong to the nightly on develop (DEV-2058).
+- **Never hardcode a row or column index that sits near the edge of the
+  rendered band.** Each theme's padding feeds `autoColumnSize`, so the same
+  content measures differently: in `width-window-scroll.html` (500px wide, 30
+  columns) a data column is 63px on `classic`, 70px on `main`, and 78px on
+  `horizon`, so after the same 400px holder scroll the master renders columns
+  7–14, 6–12, and 6–11. Column 12 is the LAST one `main` renders there and does
+  not exist on `horizon` — and the local gates only run `e2e-main`, so the spec
+  went green locally and failed in CI with `element(s) not found`, which says
+  nothing about the behavior under test (DEV-2789). Read the rendered range out
+  of the DOM and pick from it (`WidthWindowScrollPage.renderedColumns()`), or
+  scroll to an edge so the target is the first or last index by construction
+  (`scrollHolderToEnd()`). Row heights are the same trap on the other axis,
+  with more room to spare: a window scroll far larger than the viewport leaves
+  the target row well inside the band on every theme, which is why `cell(40, 3)`
+  after an 800px window scroll in the same spec is safe. Distance from the
+  band's edge is what decides, not whether the index is written down.
 
 ## Fixture contract (never get these wrong)
 
