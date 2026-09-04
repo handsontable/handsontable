@@ -160,7 +160,7 @@ export abstract class ManualResizePage {
    * pulls its own copy, which outlasts the 10s `expect` timeout.
    */
   async awaitBundle(): Promise<void> {
-    await this.page.waitForFunction(() => 'Handsontable' in window);
+    await this.page.waitForFunction(() => 'Handsontable' in window, undefined, { polling: 100 });
   }
 
   /**

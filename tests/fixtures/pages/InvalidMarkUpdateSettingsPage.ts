@@ -40,7 +40,7 @@ export class InvalidMarkUpdateSettingsPage {
    */
   async goto(): Promise<void> {
     await this.page.goto(`/tests/fixtures/demo/invalid-mark-update-settings.html?theme=${this.theme}&bundle=${this.bundle}`);
-    await this.page.waitForFunction(() => 'Handsontable' in window);
+    await this.page.waitForFunction(() => 'Handsontable' in window, undefined, { polling: 100 });
     await expect(this.cell(0, 0)).toBeVisible();
   }
 
