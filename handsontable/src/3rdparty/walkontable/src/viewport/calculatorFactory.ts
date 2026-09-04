@@ -30,14 +30,17 @@ export type ViewportBand = 'render' | 'visible';
  * Calculator-creation queries, mixed into `Viewport`.
  */
 export interface CalculatorFactory {
-  createRowsCalculator(calculatorTypes?: string[], band?: ViewportBand): ViewportRowsCalculator;
-  createColumnsCalculator(calculatorTypes?: string[], band?: ViewportBand): ViewportColumnsCalculator;
+  createRowsCalculator(
+    calculatorTypes?: string[], band?: ViewportBand, options?: { proposeOnly?: boolean }): ViewportRowsCalculator;
+  createColumnsCalculator(
+    calculatorTypes?: string[], band?: ViewportBand, options?: { proposeOnly?: boolean }): ViewportColumnsCalculator;
   createCalculators(fastDraw?: boolean, options?: { stationaryBands?: boolean }): boolean;
   createVisibleCalculators(): void;
   usesLayoutSnapshotForCalculators(): boolean;
   allowsStationaryBands(): boolean;
   applyRenderedColumnsBandOverscan(renderedColumns: ColumnsCalculationType | null): void;
   applyRenderedRowsBandOverscan(renderedRows: RowsCalculationType | null): void;
+  extendRenderedRowsBandTo(startRow: number, endRow: number): void;
   stabilizeRenderedRowsBand(renderedRows: RowsCalculationType | null): void;
   stabilizeRenderedColumnsBand(renderedColumns: ColumnsCalculationType | null): void;
   areAllProposedVisibleRowsAlreadyRendered(
@@ -176,12 +179,19 @@ export const calculatorFactory: CalculatorFactory = {
    *
    * @this Viewport
    * @param {'rendered' | 'fullyVisible' | 'partiallyVisible'} calculatorTypes The list of the calculation types.
+   * @param {'render' | 'visible'} band The viewport box the calculator reads.
+   * @param {object} [options] The calculator-creation options.
+   * @param {boolean} [options.proposeOnly=false] When `true` (a propose-only build, e.g. the refill
+   * loop in `table/drawCycle.ts`), the `rowHeaderWidth` memo is NOT reset, so a build whose result
+   * is never assigned leaves no side effect — a declined refill then costs no header re-measure on
+   * the next `getRowHeaderWidth()`.
    * @returns {ViewportRowsCalculator}
    */
   createRowsCalculator(
     this: Viewport,
     calculatorTypes = ['rendered', 'fullyVisible', 'partiallyVisible'],
-    band: ViewportBand = 'visible'
+    band: ViewportBand = 'visible',
+    { proposeOnly = false }: { proposeOnly?: boolean } = {}
   ): ViewportRowsCalculator {
     const { wtSettings, wtTable } = this;
     const totalRows = wtSettings.getSetting<number>('totalRows');
@@ -203,7 +213,9 @@ export const calculatorFactory: CalculatorFactory = {
       height = this.getViewportHeight();
     }
 
-    this.rowHeaderWidth = NaN;
+    if (!proposeOnly) {
+      this.rowHeaderWidth = NaN;
+    }
 
     const topOverlay = this.deps.getTopOverlay();
     const bottomOverlay = this.deps.getBottomOverlay();
@@ -255,12 +267,17 @@ export const calculatorFactory: CalculatorFactory = {
    *
    * @this Viewport
    * @param {'rendered' | 'fullyVisible' | 'partiallyVisible'} calculatorTypes The list of the calculation types.
+   * @param {'render' | 'visible'} band The viewport box the calculator reads.
+   * @param {object} [options] The calculator-creation options.
+   * @param {boolean} [options.proposeOnly=false] When `true`, the `columnHeaderHeight` memo is NOT
+   * reset — the propose-only twin of the `createRowsCalculator` option, see there.
    * @returns {ViewportColumnsCalculator}
    */
   createColumnsCalculator(
     this: Viewport,
     calculatorTypes = ['rendered', 'fullyVisible', 'partiallyVisible'],
-    band: ViewportBand = 'visible'
+    band: ViewportBand = 'visible',
+    { proposeOnly = false }: { proposeOnly?: boolean } = {}
   ): ViewportColumnsCalculator {
     const { wtSettings, wtTable } = this;
     const inlineStartOverlay = this.deps.getInlineStartOverlay();
@@ -282,7 +299,9 @@ export const calculatorFactory: CalculatorFactory = {
 
     let pos = Math.abs(inlineStartOverlay.getScrollPosition()) - inlineStartOverlay.getTableParentOffset();
 
-    this.columnHeaderHeight = NaN;
+    if (!proposeOnly) {
+      this.columnHeaderHeight = NaN;
+    }
 
     const fixedColumnsStart = wtSettings.getSetting<number>('fixedColumnsStart');
 
@@ -583,6 +602,78 @@ export const calculatorFactory: CalculatorFactory = {
       renderedRows.count += plan.extension;
       renderedRows.rowStartOffset += plan.extension;
       renderedRows.startPosition = this.rowHeightCache.getOffset(renderedRows.startRow);
+    }
+  },
+
+  /**
+   * Extends the CURRENT rendered row band (`this.rowsRenderCalculator`) so that it covers at least
+   * the `[startRow, endRow]` range. The band never shrinks here: an edge that already lies outside
+   * the range stays where it is, which makes the resulting band the union of the two.
+   *
+   * The refill loop in `table/drawCycle.ts` (`refillRenderedRowsBandIfShrunk`, issue #6452, DEV-406)
+   * is the reason this exists. That loop proposes a fresh band from the heights the last render
+   * measured and assigns it with `createCalculators(false)`, and it takes a pass only when the
+   * proposal grows the BOTTOM edge. A proposal built from re-measured heights can still move the
+   * START edge inwards while `endRow` grows, and applying it wholesale would drop rows the DOM
+   * already shows. The refill calls this right after the recompute with the previous band's edges, so
+   * every row the DOM already showed stays inside the band; a row the fresh proposal dropped remains
+   * rendered as plain overscan.
+   *
+   * This does not make an earlier proposed `startRow` a reason to refill: that trigger belongs to the
+   * caller, and an earlier `startRow` alone is not one. It is the virtualized merged-cell signature —
+   * per-band `modifyRowHeightByOverlayName` heights plus rowspan-inflated `oversizedRows` records make
+   * every scroll draw of such a grid propose a band that starts one row earlier and ends far short of
+   * the rendered one, and refilling from that proposal is what broke
+   * `src/plugins/mergeCells/__tests__/selection.spec.js`.
+   *
+   * In practice only the START edge ever moves from that call site: the refill takes a pass only
+   * when the proposal's `endRow` already exceeds the previous band's, so the `endRow` this receives
+   * is always at or inside the band's bottom edge. The end-edge branch below is defensive — kept so
+   * the method honors its "covers at least `[startRow, endRow]`" contract for any future caller —
+   * and is pinned by direct unit tests rather than by the refill specs.
+   *
+   * The mutation updates the same fields as {@link CalculatorFactory#applyRenderedRowsBandOverscan},
+   * so `count`, `rowStartOffset`, `rowEndOffset`, and `startPosition` stay consistent with the moved
+   * edges — but unlike the overscan it carries no own magnitude cap. The growth is bounded by the
+   * caller instead: the refill declines any proposal that does not overlap (or touch) the previous
+   * band, so the union never exceeds the two bands' combined span. Growing `rowStartOffset` with the
+   * extension is deliberate, not just mirroring: the rows folded back into the band really are
+   * rendered above the viewport, so the `viewportRowRenderingThreshold` containment padding in
+   * {@link CalculatorFactory#areAllProposedVisibleRowsAlreadyRendered} and the
+   * {@link CalculatorFactory#stabilizeRenderedRowsBand} size baseline must both see them, exactly as
+   * they see overscan rows. It is a no-op for a band that renders all rows
+   * (`RenderedAllRowsCalculationType`), which has no edge to move.
+   *
+   * @this Viewport
+   * @param {number} startRow The first row the band must cover. Ignored when negative, which is what
+   * the range queries answer before the first render.
+   * @param {number} endRow The last row the band must cover. Clamped to the last row of the dataset.
+   */
+  extendRenderedRowsBandTo(this: Viewport, startRow: number, endRow: number): void {
+    const band = this.rowsRenderCalculator;
+
+    if (!(band instanceof RenderedRowsCalculationType) || band.startRow === null || band.endRow === null) {
+      return;
+    }
+
+    if (startRow >= 0 && startRow < band.startRow) {
+      const extension = band.startRow - startRow;
+
+      band.startRow -= extension;
+      band.count += extension;
+      band.rowStartOffset += extension;
+      band.startPosition = this.rowHeightCache.getOffset(band.startRow);
+    }
+
+    const lastRow = this.wtSettings.getSetting<number>('totalRows') - 1;
+    const clampedEndRow = Math.min(endRow, lastRow);
+
+    if (clampedEndRow > band.endRow) {
+      const extension = clampedEndRow - band.endRow;
+
+      band.endRow += extension;
+      band.count += extension;
+      band.rowEndOffset += extension;
     }
   },
 
