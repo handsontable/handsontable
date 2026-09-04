@@ -15,24 +15,13 @@ import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { resolve, dirname } from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
+import {
+  TEST_CALL_RE, countAssertions, countSkipFocus, countTableRows, matcherHistogram, matcherKind,
+} from '../.github/scripts/lib/test-weakening.mjs';
 
 // The handsontable package dir, resolved from THIS file's location (evals/) so
 // mutation runs work regardless of the caller's cwd.
 const HOT_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'handsontable');
-import { countAssertions, countSkipFocus } from '../.github/scripts/lib/test-weakening.mjs';
-
-/**
- * Matches the opening of a test block: `it(`, `test(`, the focused/skipped
- * prefix forms (`fit(`, `xit(`, `xtest(`), and the dot-modifier forms
- * (`it.only(`, `test.skip(`, `test.fixme(`, …). The lookbehind rejects member
- * accesses such as `/re/.test(` and `suite.it(`, and `describe`/`beforeEach`
- * never match because the `(` must follow immediately.
- */
-const TEST_MODIFIERS = 'only|skip|fixme|fails|failing|flaky|concurrent|serial|todo';
-const TEST_CALL_RE = new RegExp(
-  `(?<![\\w$.])(?:[xf](?:it|test)|(?:it|test)(?:\\.(?:${TEST_MODIFIERS}))?)\\s*\\(`,
-  'g',
-);
 
 /**
  * Skip a string literal (single, double, or template quote) starting at `start`.
@@ -130,18 +119,62 @@ export function scanBalanced(src, openIndex) {
 }
 
 /**
- * Extract every it()/test() block from a spec source, with its title and the
- * number of assertion-like calls inside its argument list (the assertion regex
- * is shared with the test-weakening detector).
+ * Index of the `(` that opens a parameterized block's title-and-body call — the
+ * one that follows the table in `it.each([...])(title, fn)`.
  *
  * @param {string} src The spec file contents.
- * @returns {{marker: string, title: string, assertions: number}[]} One entry per test block.
+ * @param {number} tableOpen Index of the `(` that opens the table.
+ * @returns {number} The index, or -1 when the table never closes or no call follows it.
+ */
+function skipEachTable(src, tableOpen) {
+  const closeTable = scanBalanced(src, tableOpen);
+
+  if (closeTable === -1) {
+    return -1;
+  }
+
+  let i = closeTable + 1;
+
+  while (i < src.length && /\s/.test(src[i])) {
+    i += 1;
+  }
+
+  return src[i] === '(' ? i : -1;
+}
+
+/**
+ * Extract every it()/test() block from a spec source, with its title, the
+ * number of assertion-like calls inside its argument list, and the number of
+ * tests it registers (`rows`: 1, or the row count of a parameterized table).
+ * The block opener (`TEST_CALL_RE`), the row counter, and the assertion regex
+ * are shared with the test-weakening detector, so its `tests-removed` count and
+ * the `rows` total of this list always agree.
+ *
+ * @param {string} src The spec file contents.
+ * @returns {{marker: string, title: string, assertions: number, rows: number}[]} One entry per test block.
  */
 export function extractTestBlocks(src) {
   const blocks = [];
 
   for (const match of src.matchAll(TEST_CALL_RE)) {
-    const openParen = match.index + match[0].length - 1;
+    let openParen = match.index + match[0].length - 1;
+    let rows = 1;
+
+    // A parameterized opener (`it.each([...])(title, fn)`) takes the table
+    // first; the title and the body follow in a second call. Skip the table so
+    // its rows are not read as the block's arguments — every table would come
+    // back untitled and hollow. A table with no call after it stays as it is:
+    // the runner registers no test for it, so "untitled, hollow" is the honest read.
+    if (match.groups.each) {
+      const callParen = skipEachTable(src, openParen);
+
+      rows = countTableRows(src, openParen + 1);
+
+      if (callParen !== -1) {
+        openParen = callParen;
+      }
+    }
+
     const closeParen = scanBalanced(src, openParen);
     const body = closeParen === -1 ? src.slice(openParen + 1) : src.slice(openParen + 1, closeParen);
     const titleMatch = body.match(/^\s*(['"`])((?:\\.|(?!\1).)*)\1/);
@@ -150,6 +183,7 @@ export function extractTestBlocks(src) {
       marker: match[0].replace(/\s*\($/, ''),
       title: titleMatch ? titleMatch[2] : '(untitled)',
       assertions: countAssertions(body),
+      rows,
     });
   }
 
@@ -410,8 +444,11 @@ export function runMutation(sourceFiles, deps = {}) {
   }
 
   const cwd = deps.cwd ?? HOT_DIR;
-  const run = deps.run ?? ((cmd) => execSync(cmd, { cwd, shell: '/bin/bash', stdio: 'pipe', encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
-  const readReport = deps.readReport ?? (() => JSON.parse(readFileSync(resolve(cwd, 'reports/mutation/mutation.json'), 'utf8')));
+  const run = deps.run ?? (cmd => execSync(cmd, {
+    cwd, shell: '/bin/bash', stdio: 'pipe', encoding: 'utf8', maxBuffer: 64 * 1024 * 1024,
+  }));
+  const readReport = deps.readReport
+    ?? (() => JSON.parse(readFileSync(resolve(cwd, 'reports/mutation/mutation.json'), 'utf8')));
 
   try {
     // Pinned Babel transform + commonjs env — Stryker's worker cwd breaks
@@ -423,6 +460,33 @@ export function runMutation(sourceFiles, deps = {}) {
   } catch (error) {
     return { available: true, reason: `stryker run failed: ${error.message.split('\n')[0]}` };
   }
+}
+
+/**
+ * Split a spec's matcher calls into the exact and bounded halves of the weakening
+ * detector's classification. The single-file counterpart of its
+ * `matcher-downgrade` finding: there is no base revision to diff, but a spec
+ * whose every assertion resolves to a bounded matcher is the shape a downgrade
+ * ends in. The histogram the totals were summed from comes back too, so a
+ * caller that needs the per-label detail does not run a second pass.
+ *
+ * @param {string} src The spec file contents.
+ * @returns {{exact: number, bounded: number, histogram: Record<string, number>}} How many
+ *   calls pin a value versus bound it, and the per-label histogram behind the totals.
+ */
+export function countMatchers(src) {
+  const histogram = matcherHistogram(src);
+  const totals = { exact: 0, bounded: 0 };
+
+  for (const [label, count] of Object.entries(histogram)) {
+    const kind = matcherKind(label);
+
+    if (kind) {
+      totals[kind] += count;
+    }
+  }
+
+  return { ...totals, histogram };
 }
 
 /**
@@ -440,8 +504,29 @@ export function scoreTestSource(src, options = {}) {
   const gamingSignals = findGamingSignals(src);
   const determinismSmells = findDeterminismSmells(src);
   const relevance = options.diff ? assessRelevance(src, options.diff) : null;
+  const assertions = countAssertions(src);
+  const { histogram, ...matchers } = countMatchers(src);
   const problems = [];
   const warnings = [];
+
+  // Warning-only: a relational assertion is the documented pattern for values no
+  // token derives. The bound-count must account for EVERY assertion, because a
+  // helper such as `grid.expectCell()` may pin a value the scorer cannot see.
+  // `toBeCloseTo` is bounded in the table, but it pins a float to N digits, so
+  // it does not make a spec "loose" — the detector's `precision-widened` owns
+  // its loosening.
+  const pinning = matchers.exact + (histogram.toBeCloseTo ?? 0);
+
+  if (pinning === 0 && matchers.bounded > 0 && matchers.bounded >= assertions) {
+    const used = Object.keys(histogram)
+      .filter(label => matcherKind(label) === 'bounded')
+      .map(label => `${label} ×${histogram[label]}`);
+
+    warnings.push({
+      type: 'loose-matchers-only',
+      detail: `every assertion uses a bounded matcher (${used.join(', ')}); nothing pins an exact value`,
+    });
+  }
 
   if (blocks.length === 0) {
     problems.push({ type: 'no-test-blocks', detail: 'no it()/test() block found' });
@@ -476,8 +561,11 @@ export function scoreTestSource(src, options = {}) {
   }
 
   return {
-    tests: blocks.length,
-    assertions: countAssertions(src),
+    // One per plain block, one per row of a parameterized table — the count the
+    // detector's `countTestBlocks` reports.
+    tests: blocks.reduce((sum, block) => sum + block.rows, 0),
+    assertions,
+    matchers,
     hollowTests,
     gamingSignals,
     determinismSmells,

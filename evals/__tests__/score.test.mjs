@@ -8,11 +8,13 @@ import {
   findDeterminismSmells,
   extractChangedSymbols,
   assessRelevance,
+  countMatchers,
   getMutationStatus,
   parseMutationReport,
   runMutation,
   scoreTestSource,
 } from '../score.mjs';
+import { countTestBlocks } from '../../.github/scripts/lib/test-weakening.mjs';
 
 const MUTATION_STUB = { available: false, reason: 'stryker not installed' };
 
@@ -53,6 +55,39 @@ test('extractTestBlocks ignores describe, hooks, and member calls such as regex 
   assert.equal(extractTestBlocks(src).length, 0);
 });
 
+test('extractTestBlocks reads a parameterized it.each table as one titled block that runs one test per row', () => {
+  // With the opener matched, the table used to be read as the block's argument
+  // list — every `it.each` came back untitled and hollow. The title and body sit
+  // in the second call; `rows` carries the table's row count so the score's
+  // `tests` agrees with the detector's `countTestBlocks`.
+  const src = `
+    it.each([
+      ['batched', true],
+      ['per-cell', false],
+    ])('translates columns (%s path)', (_path, rowIndependent) => {
+      expect(read(rowIndependent)).toBe(1);
+      expect(blank(rowIndependent)).toBe(2);
+    });
+    describe.each([[1], [2]])('suite %s', (n) => {
+      it('plain', () => { expect(n).toBeGreaterThan(0); });
+    });
+    it.each(cases)('hollow %s', (n) => { run(n); });
+  `;
+  const blocks = extractTestBlocks(src);
+
+  assert.deepEqual(blocks.map(b => [b.marker, b.title, b.assertions, b.rows]), [
+    ['it.each', 'translates columns (%s path)', 2, 2],
+    ['it', 'plain', 1, 1],
+    ['it.each', 'hollow %s', 0, 1],
+  ]);
+
+  const score = scoreTestSource(src, { mutation: MUTATION_STUB });
+
+  assert.equal(score.tests, countTestBlocks(src));
+  assert.equal(score.tests, 4);
+  assert.deepEqual(score.hollowTests, ['hollow %s']);
+});
+
 test('hollow detection flags an it() without any assertion', () => {
   const src = `
     it('does nothing', () => { render(); });
@@ -87,6 +122,27 @@ test('gaming signals: .only, xit, and it.flaky are detected', () => {
 
   const score = scoreTestSource(src, { mutation: MUTATION_STUB });
 
+  assert.equal(score.verdict, 'suspect');
+  assert.ok(score.problems.some(p => p.type === 'gaming-signals'));
+});
+
+test('gaming signals: a prefixed .each and a skip/only deep in a modifier chain are focus/skip markers', () => {
+  // The scorer shares `countSkipFocus` with the weakening detector; these five
+  // openers used to count as test blocks with no gaming signal at all.
+  const src = `
+    xit.each([[1]])('a', fn);
+    fit.each([[1]])('b', fn);
+    test.concurrent.only('c', () => { expect(a).toBe(1); });
+    test.concurrent.skip('d', () => { expect(b).toBe(2); });
+    test.concurrent.only.each([[1]])('e', fn);
+  `;
+  const byType = Object.fromEntries(findGamingSignals(src).map(s => [s.type, s.count]));
+
+  assert.equal(byType['skip-or-focus'], 5);
+
+  const score = scoreTestSource(src, { mutation: MUTATION_STUB });
+
+  assert.equal(score.tests, 5);
   assert.equal(score.verdict, 'suspect');
   assert.ok(score.problems.some(p => p.type === 'gaming-signals'));
 });
@@ -163,7 +219,108 @@ test('a clean, meaningful test scores clean', () => {
   assert.deepEqual(score.gamingSignals, []);
   assert.deepEqual(score.determinismSmells, []);
   assert.deepEqual(score.problems, []);
+  // Page-object helpers carry the assertions here, so no matcher is counted and
+  // the loose-matchers warning must stay quiet.
+  assert.deepEqual(score.matchers, { exact: 0, bounded: 0 });
+  assert.deepEqual(score.warnings, []);
   assert.equal(score.verdict, 'meaningful');
+});
+
+test('matchers breaks assertions down into exact and bounded matcher calls', () => {
+  const src = `
+    it('pins and bounds', () => {
+      expect(a).toBe(1);
+      expect(b).toEqual([1]);
+      expect(c).toBeGreaterThan(0);
+    });
+  `;
+  const score = scoreTestSource(src, { mutation: MUTATION_STUB });
+
+  assert.deepEqual(score.matchers, { exact: 2, bounded: 1 });
+  assert.deepEqual(score.warnings, []);
+});
+
+test('a test whose every assertion is a bounded matcher gets a loose-matchers-only warning', () => {
+  // The single-file analogue of the weakening detector's matcher downgrade: no
+  // base revision to diff, but a spec that pins nothing exactly is the shape a
+  // downgrade ends in. Warning-only — a relational assertion is legitimate for
+  // values no token derives — so the verdict is untouched.
+  const src = `
+    it('checks something exists', () => {
+      expect(result).toBeDefined();
+      expect(result.rows).toBeTruthy();
+      expect(result.rows.length).toBeGreaterThan(0);
+    });
+  `;
+  const score = scoreTestSource(src, { mutation: MUTATION_STUB });
+
+  assert.deepEqual(score.matchers, { exact: 0, bounded: 3 });
+  assert.equal(score.verdict, 'meaningful');
+  assert.equal(score.warnings.length, 1);
+  assert.equal(score.warnings[0].type, 'loose-matchers-only');
+  assert.match(score.warnings[0].detail, /toBeDefined/);
+  assert.match(score.warnings[0].detail, /toBeGreaterThan/);
+});
+
+test('loose-matchers-only stays quiet when an exact matcher or a helper assertion is present', () => {
+  const oneExact = 'it("x", () => { expect(a).toBe(1); expect(b).toBeGreaterThan(0); });';
+  // A helper carries one of the two assertions, so the bounded matcher does not
+  // account for every assertion — the scorer cannot tell what the helper pins.
+  const helperAndBounded = `
+    it('x', async() => { await grid.expectCell(0, 0, 'A1'); expect(n).toBeGreaterThan(0); });
+  `;
+
+  assert.deepEqual(scoreTestSource(oneExact, { mutation: MUTATION_STUB }).warnings, []);
+  assert.deepEqual(scoreTestSource(helperAndBounded, { mutation: MUTATION_STUB }).warnings, []);
+});
+
+test('countMatchers returns the histogram behind its totals, classified by the detector\'s matcherKind', () => {
+  // One regex pass: the scorer reads the per-label detail from the same
+  // histogram the totals were summed from.
+  const src = 'expect(a).toBe(1); expect(b).not.toBe(0); expect(fn).toThrow(); expect(c).toBeGreaterThan(0);';
+
+  assert.deepEqual(countMatchers(src), {
+    exact: 1,
+    bounded: 3,
+    histogram: { toBe: 1, 'not.toBe': 1, 'toThrow()': 1, toBeGreaterThan: 1 },
+  });
+  // The score object keeps the two totals only.
+  assert.deepEqual(scoreTestSource(src, { mutation: MUTATION_STUB }).matchers, { exact: 1, bounded: 3 });
+});
+
+test('loose-matchers-only is raised when the only exact-looking matcher is negated', () => {
+  // `.not.toBe(0)` rules one value out; it used to count as the exact `toBe` and
+  // suppress the warning.
+  const src = 'it("x", () => { expect(a).not.toBe(0); expect(b).toBeGreaterThan(0); });';
+  const score = scoreTestSource(src, { mutation: MUTATION_STUB });
+
+  assert.deepEqual(score.matchers, { exact: 0, bounded: 2 });
+  assert.equal(score.warnings.length, 1);
+  assert.equal(score.warnings[0].type, 'loose-matchers-only');
+  assert.match(score.warnings[0].detail, /not\.toBe ×1/);
+});
+
+test('loose-matchers-only stays quiet for a spec that pins a float with toBeCloseTo', () => {
+  // `toBeCloseTo` is bounded in the detector's table, but pinning a value to ten
+  // decimal places is the opposite of loose — the detector's `precision-widened`
+  // owns its loosening. It is the only sensible matcher in the dimension and
+  // export specs, so the warning would fire there constantly.
+  const src = 'it("x", () => { expect(w).toBeCloseTo(123.4567890123, 10); });';
+  const score = scoreTestSource(src, { mutation: MUTATION_STUB });
+
+  assert.deepEqual(score.matchers, { exact: 0, bounded: 1 });
+  assert.deepEqual(score.warnings, []);
+});
+
+test('loose-matchers-only stays quiet for a spec whose only matcher is a bare not.toThrow()', () => {
+  // `expect(fn).not.toThrow()` pins the one outcome "does not throw", the way
+  // the NEGATION_PINS do. It used to classify bounded, so a spec that proved
+  // only that a call is safe read as loose.
+  const src = 'it("x", () => { expect(() => f()).not.toThrow(); });';
+  const score = scoreTestSource(src, { mutation: MUTATION_STUB });
+
+  assert.deepEqual(score.matchers, { exact: 1, bounded: 0 });
+  assert.deepEqual(score.warnings, []);
 });
 
 test('extractChangedSymbols reads declarations, calls, and hunk-header context from a diff', () => {
@@ -236,7 +393,9 @@ test('runMutation scopes stryker with --mutate and parses the report (injected I
   const result = runMutation(['src/helpers/errors.ts'], {
     status: { available: true },
     run: cmd => calls.push(cmd),
-    readReport: () => ({ files: { 'src/helpers/errors.ts': { mutants: [{ status: 'Killed' }, { status: 'Killed' }] } } }),
+    readReport: () => ({
+      files: { 'src/helpers/errors.ts': { mutants: [{ status: 'Killed' }, { status: 'Killed' }] } },
+    }),
   });
 
   assert.match(calls[0], /--mutate 'src\/helpers\/errors\.ts'/);
@@ -256,7 +415,9 @@ test('runMutation refuses an unscoped (whole-tree) run', () => {
 test('runMutation surfaces a failed stryker run as a reason, not a throw', () => {
   const result = runMutation(['src/a.ts'], {
     status: { available: true },
-    run: () => { throw new Error('stryker exploded\nstack…'); },
+    run: () => {
+      throw new Error('stryker exploded\nstack…');
+    },
     readReport: () => ({}),
   });
 

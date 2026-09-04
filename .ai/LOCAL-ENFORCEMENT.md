@@ -41,6 +41,77 @@ executable lines the unit tests cover (`.github/scripts/diff-coverage-gate.mjs`,
 report-only at 80% until calibrated — a unit floor reads 0% for correctly
 E2E-tested changes, so it earns "blocking" only after the numbers are trusted).
 
+**The weakening detector is diff-based and warn-only.** `test-weakening-gate.mjs`
+compares every modified, added, or renamed `*.spec.*` / `*.unit.*` file against the
+merge-base and reports five kinds of finding, each a reviewer signal and never a
+block: `assertions-removed` (the `expect`/`assert*`/`verify*` count dropped),
+`tests-removed` (the `it()`/`test()` block count dropped while the file still
+exists — deleting the failing test and growing a survivor keeps the assertion
+count flat or rising, so nothing else sees it; a parameterized `it.each` table
+counts one block per row of its array literal, so folding tests into a table is
+quiet and deleting a row is not, and a table the scanner cannot read — a variable,
+a `.map()` call — counts as one; `assertions-removed` is not row-aware, so the
+fold of two `it()` into one still shows `expect` 2 → 1), `skip-or-focus-added`
+(an `x`/`f`-prefixed opener or a `skip`/`only` anywhere in an opener's modifier
+chain, read with the same opener grammar as the block count, so `xit.each(` and
+`test.concurrent.only(` count), `matcher-downgrade`, and `precision-widened`. The last two exist because counting
+alone misses the quieter loosening moves. A **matcher downgrade** is an *exact*
+matcher losing calls **and** a *bounded* one gaining calls in the same file, while
+the file's total exact count does not rise — `toHaveBeenCalledTimes(300)` becoming
+`toBeGreaterThanOrEqual(300)` while a third assertion is added makes the count
+rise; a committed-value `toBe` deleted while a `toBeDefined` is added keeps it
+flat; both read as a downgrade. The totals rule keeps a rename toward a MORE exact
+matcher quiet (42 `toBeGreaterThan` → `toBe` beside 11 `toEqual` → `toContain`
+pins more than before, and read as a downgrade while the labels were compared one
+by one); its price is that a downgrade beside a larger addition of exact matchers
+hides behind the rising total. The tables live in
+`.github/scripts/lib/test-weakening.mjs` and are the single source of truth for
+the evals scorer as well. `EXACT_MATCHERS` holds the Jest/Jasmine value pins
+(`toBe`, `toEqual`, `toStrictEqual`, `toHaveBeenCalledTimes`, `toHaveLength`,
+`toHaveBeenCalledWith`, `toHaveBeenLastCalledWith`) and the Playwright locator
+assertions that pin a value (`toHaveText`, `toHaveValue`, `toHaveCount`,
+`toHaveAttribute`, `toHaveClass`, `toHaveCSS`, `toHaveId`, `toHaveJSProperty`,
+`toHaveURL`, `toHaveTitle`). `BOUNDED_MATCHERS` holds the ranges, partial shapes,
+and presence checks (`toBeGreaterThanOrEqual`, `toBeLessThanOrEqual`,
+`toBeGreaterThan`, `toBeLessThan`, `toBeCloseTo`, `toBeTruthy`, `toBeFalsy`,
+`toBeDefined`, `toContain`, `toContainEqual`, `toMatch`, `toMatchObject`,
+`toHaveProperty`, `toHaveBeenCalled`, `toContainText`, `toContainClass`).
+`THROW_MATCHERS` (`toThrow`, `toThrowError`, `toThrowWithCause`) are exact with an
+argument and bounded when bare — `toThrow()` proves only that something threw —
+and negation flips the pair: a bare `not.toThrow()` pins the one outcome "does not
+throw" and is exact (179 bare calls in `handsontable/` — 172 `not.toThrow()`, 7
+`not.toThrowError()` — and none with an argument), while
+`not.toThrow('msg')` rules one error out and is bounded. Any other negated call
+(`.not.toBe(0)`) rules one value out and counts as bounded, except the two
+negations that pin a value (`not.toHaveBeenCalled()`, `not.toBeDefined()`;
+`NEGATION_PINS`), so `toHaveBeenCalledTimes(0)` → `not.toHaveBeenCalled()` is not
+a finding while `toBe(5)` → `not.toBe(0)` is. Pinning those negations as exact has
+a price: an exact → exact swap such as `expect(r).toBe(5)` →
+`expect(() => f()).not.toThrow()` is invisible to `matcher-downgrade`.
+Playwright's state-only assertions
+(`toBeVisible`, `toBeHidden`, `toBeEnabled`, …) are in no table: they assert a
+state, not a value, so a `toHaveText` → `toBeVisible` swap is invisible to this
+detector (a documented blind spot; see the module header). Either half alone is
+not a finding: a plain removal is already `assertions-removed`, and adding a
+relational assertion is the documented pattern for values no token derives.
+**Precision widening** is a `toBeCloseTo(x, digits)` argument going down; an
+omitted argument counts as the framework default of 2, comments between the
+arguments are skipped, an argument that is not an integer literal is never judged,
+and neither is a call whose argument list holds a regex literal in argument or
+operand position (after an operator, an opening bracket, or a keyword such as
+`return`) — the scanner cannot see the literal's brackets, and a misread list must
+never become a finding.
+Replayed over the last 300 `develop` commits (481 spec files compared,
+`origin/develop` at `69dab641b`): `matcher-downgrade` fired once (#13242,
+`toHaveBeenCalledTimes` 2 → 1 beside `toBeGreaterThanOrEqual` 0 → 1 — a real
+loosening), `precision-widened` never, and `tests-removed` 16 times — 15 on spec
+migrations and the skipped-test burn-down, one on a test deleted with the helper
+it covered (#13244) — 14 of them on files `assertions-removed` already flagged. Before the totals rule the downgrade kind
+fired twice, and the second hit (#13266) was the rename toward a more exact
+matcher above — a false positive. So a matcher finding is one for one on replayed
+history, worth a sentence in review and not a reflex, and a `tests-removed`
+finding mostly says "a test was deleted here", which the reviewer then judges.
+
 **Touched E2E specs run exactly once locally, whichever tool proves them first.**
 The Stop hook and pre-push share a green-run cache (`hot-e2e-green.json` in the
 checkout's git directory — `<root>/.git/` in a clone, `<main>/.git/worktrees/<name>/`
