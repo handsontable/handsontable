@@ -96,6 +96,26 @@ test.describe('width-only grid: holder scrolls columns, window scrolls rows', ()
     expect(await grid.verticalScrollCount()).toBeGreaterThan(countBefore);
   });
 
+  // Split mode sends `getRelativeCellPosition()` down the HOLDER path, because the holder owns one
+  // axis. That path subtracts the other axis' scroll position, which is the WINDOW scroll here —
+  // and the grid root moves with the page, so the subtraction is pure error. It is what places the
+  // resize handles (`manualRowResize` / `manualColumnResize`) over a frozen cell's border.
+  test('reports a frozen cell at its real position after a window scroll', async () => {
+    const errorBefore = await grid.frozenCellPositionError();
+
+    expect(Math.abs(errorBefore.top)).toBeLessThanOrEqual(1);
+    expect(Math.abs(errorBefore.start)).toBeLessThanOrEqual(1);
+
+    await grid.scrollWindowBy(0, 400);
+
+    expect((await grid.scrollExtents()).windowScrollY).toBeGreaterThan(0);
+
+    const errorAfter = await grid.frozenCellPositionError();
+
+    expect(Math.abs(errorAfter.top)).toBeLessThanOrEqual(1);
+    expect(Math.abs(errorAfter.start)).toBeLessThanOrEqual(1);
+  });
+
   test('mirrors the layout in RTL', async () => {
     await grid.rebuild({ layoutDirection: 'rtl' });
 

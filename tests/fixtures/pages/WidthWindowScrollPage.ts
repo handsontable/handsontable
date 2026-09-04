@@ -214,6 +214,46 @@ export class WidthWindowScrollPage {
       .map(td => Number(td.getAttribute('data-testid')?.split('-').pop())));
   }
 
+  /**
+   * How far the engine's `getRelativeCellPosition()` for a frozen-column cell sits from where that
+   * cell actually is, relative to the grid root. Both numbers are 0 when the two agree. The probe
+   * row is read from what the inline-start clone renders right now, so it survives the window
+   * scroll that virtualizes the rows away.
+   */
+  async frozenCellPositionError(): Promise<{ start: number, top: number }> {
+    return this.page.evaluate(() => {
+      const wt = (window as unknown as {
+        hot: { view: { _wt: {
+          wtTable: { wtRootElement: HTMLElement },
+          wtOverlays: { inlineStartOverlay: {
+            clone: { wtTable: {
+              getCell(coords: { row: number, col: number }): HTMLElement | number,
+              getFirstRenderedRow(): number,
+            } },
+            getRelativeCellPosition(
+              element: HTMLElement, row: number, column: number): { start: number, top: number },
+          } },
+        } } },
+      }).hot.view._wt;
+      const overlay = wt.wtOverlays.inlineStartOverlay;
+      const row = overlay.clone.wtTable.getFirstRenderedRow() + 3;
+      const cell = overlay.clone.wtTable.getCell({ row, col: 0 });
+
+      if (!(cell instanceof HTMLElement)) {
+        throw new Error(`row ${row} is not rendered in the inline-start clone`);
+      }
+
+      const reported = overlay.getRelativeCellPosition(cell, row, 0);
+      const cellBox = cell.getBoundingClientRect();
+      const rootBox = wt.wtTable.wtRootElement.getBoundingClientRect();
+
+      return {
+        start: reported.start - (cellBox.left - rootBox.left),
+        top: reported.top - (cellBox.top - rootBox.top),
+      };
+    });
+  }
+
   /** The count of `afterScrollVertically` calls since the last rebuild. */
   async verticalScrollCount(): Promise<number> {
     return this.page.evaluate(() => window.verticalScrollCount);

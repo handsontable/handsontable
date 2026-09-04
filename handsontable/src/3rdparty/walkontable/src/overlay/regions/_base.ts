@@ -290,7 +290,8 @@ export abstract class Overlay {
    * `"clip visible"`, which matches neither — the case this whole per-axis resolution exists for.
    *
    * The corners have no axis; they keep the single-answer form (the parent's `overflow` shorthand,
-   * then `preventOverflow`, then the scrollable ancestor).
+   * then the scrollable ancestor). `preventOverflow` has no say there: it names one axis, and a
+   * corner belongs to both.
    *
    * @returns {HTMLElement | Window}
    */
@@ -304,15 +305,8 @@ export abstract class Overlay {
     const traps = (value: string) => value === 'hidden' || value === 'clip';
 
     if (this.#axis === null) {
-      const preventOverflow = this.wtSettings.getSetting('preventOverflow');
-
       if (parentStyle && traps(parentStyle.getPropertyValue('overflow'))) {
         return wtTable.holder;
-      }
-
-      if (preventOverflow === 'horizontal' && this.type === CLONE_TOP ||
-          preventOverflow === 'vertical' && this.type === CLONE_INLINE_START) {
-        return rootWindow;
       }
 
       return getScrollableElement(wtTable.TABLE);
@@ -610,9 +604,15 @@ export abstract class Overlay {
   getRelativeCellPositionWithinHolder(
     onFixedRowTop: boolean, onFixedRowBottom: boolean, onFixedColumn: boolean,
     elementOffset: { start: number; top: number }, spreaderOffset: { start: number; top: number }) {
+    const wtViewport = this.#deps.getWtViewport();
+    const wtOverlays = this.#deps.getWtOverlays();
+    // The mirror of the guard in `getRelativeCellPositionWithinWindow`. This path runs whenever ANY
+    // axis is holder-owned, which in split mode includes a grid whose other axis scrolls with the
+    // window. That axis' `getScrollPosition()` returns the window scroll, and `wtRootElement` moves
+    // with the page too, so subtracting it would offset the result by the whole page scroll.
     const tableScrollPosition = {
-      horizontal: this.#deps.getWtOverlays().inlineStartOverlay.getScrollPosition(),
-      vertical: this.#deps.getWtOverlays().topOverlay.getScrollPosition()
+      horizontal: wtViewport.isHorizontallyScrollableByWindow() ? 0 : wtOverlays.inlineStartOverlay.getScrollPosition(),
+      vertical: wtViewport.isVerticallyScrollableByWindow() ? 0 : wtOverlays.topOverlay.getScrollPosition(),
     };
     let horizontalOffset = 0;
     let verticalOffset = 0;
