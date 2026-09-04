@@ -49,7 +49,11 @@ the way the Manual QA job does; locally the check is skipped silently — an
 answer on the line below the template line counts, a sibling item or the next
 heading does not), **RTL correlation** (source added `isRtl`/`layoutDirection`
 logic and no test-side line mentions RTL — a test file, or any file under
-`tests/**`, page objects and helpers included), and **Walkontable routing**
+`tests/**`, page objects and helpers included; the CLI's diff pathspec admits
+`tests/**` through `isAdvisoryPath()`, because the gate's own classifier calls
+those files `neither` and would otherwise drop them before the detector ran —
+`presence-gate-cli.test.mjs` runs the CLI against a throwaway repository to
+pin that plumbing), and **Walkontable routing**
 (engine source changed with nothing
 under `handsontable/src/3rdparty/walkontable/test/` or `tests/e2e/walkontable/`).
 In CI each one is also a `::warning` annotation. A new detector is a pure

@@ -256,10 +256,19 @@ export function findGamingSignals(src) {
 const DESCRIBE_CALL_RE = /(?<![\w$.])(?:[xf]describe|(?:test\.)?describe(?:\.(?!each\b)\w+)*)\s*\(/g;
 
 /**
- * A rendered-count read through the legacy-suite helpers: `countVisibleRows()`,
- * `countRenderedCols()`, `getRenderedRowsCount()`.
+ * A rendered-count read through the legacy-suite helpers, by exact name:
+ * `countVisibleRows()`, `countVisibleCols()`, `countRenderedRows()`,
+ * `countRenderedCols()`, `getRenderedRowsCount()`. Exact names rather than a
+ * `countVisible\w*` prefix — a page-object helper such as
+ * `countVisibleCustomBorders()` counts drawn borders, which no theme's row
+ * height can change.
  */
-const RENDERED_COUNT_HELPER_RE = /(?<![\w$])(?:countVisible\w*|countRendered\w*|getRendered\w*Count)\s*\(/g;
+const RENDERED_COUNT_HELPER_SOURCE = String.raw`(?<![\w$])(?:`
+  + String.raw`countVisible(?:Rows|Cols|Columns)`
+  + String.raw`|countRendered(?:Rows|Cols|Columns)`
+  + String.raw`|getRendered(?:Rows|Cols|Columns)Count`
+  + String.raw`)\s*\(`;
+const RENDERED_COUNT_HELPER_RE = new RegExp(RENDERED_COUNT_HELPER_SOURCE, 'g');
 
 /**
  * A `:visible` selector — the Playwright-tier way to name what is on screen.
@@ -270,22 +279,53 @@ const VISIBLE_SELECTOR_RE = /:visible\b/g;
 
 /**
  * A count taken inside one statement: the `toHaveCount(` matcher, a `.count()`
- * call, or a legacy `countVisible*()` helper.
+ * call, or a legacy rendered-count helper.
  */
-const COUNT_SHAPE_RE = /\btoHaveCount\s*\(|\.count\s*\(|(?<![\w$])countVisible\w*\s*\(/;
+const COUNT_SHAPE_RE = new RegExp(String.raw`\btoHaveCount\s*\(|\.count\s*\(|${RENDERED_COUNT_HELPER_SOURCE}`);
 
 /**
- * What pins a viewport so a rendered count is deterministic across themes:
- * an explicit `width:`/`height:` in the grid setup, or a `scrollViewportTo`.
- * `rowHeights:`/`colWidths:` do not match (case-sensitive, word-bounded).
+ * The one call that pins the viewport without naming a size.
  */
-const VIEWPORT_PIN_RE = /\b(?:width|height)\s*:|\bscrollViewportTo\b/;
+const SCROLL_PIN_RE = /\bscrollViewportTo\b/;
+
+/**
+ * A `width`/`height` key opening an object-literal entry, with a value after
+ * the colon rather than a TypeScript type (`{ width: number }` in a generic or
+ * a signature). The whitespace lives inside the lookahead so it cannot
+ * backtrack around the type name. Sticky: the caller positions it at a
+ * top-level key of an options object. `rowHeights:`/`colWidths:` never match
+ * (case-sensitive).
+ */
+const VIEWPORT_KEY_RE = /(?:width|height)\s*:(?!\s*(?:number|string|boolean|any|unknown)\b)/y;
+
+/**
+ * Any call: `handsontable(`, `grid.initGrid(`, `new Handsontable(host,`. The
+ * viewport scan looks inside every argument list and drops assertion calls by
+ * span, so no name list is needed here.
+ */
+const CALL_OPEN_RE = /[A-Za-z_$][\w$]*\s*\(/g;
+
+/**
+ * A local initialized with an object literal: `const ROOMY_VIEWPORT = {`.
+ */
+const OBJECT_INIT_RE = /(?<![\w$.])(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*\{/g;
+
+/**
+ * A local declaration with an initializer: `const tokens =`. The awaited
+ * capture below is the subset whose initializer starts with `await`.
+ */
+const DECLARATION_RE = /(?<![\w$.])(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=/g;
 
 /**
  * An awaited value captured into a plain identifier: `const x = await …`.
  * Destructuring captures are out of scope.
  */
 const AWAITED_CAPTURE_RE = /(?<![\w$.])(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*await\b/g;
+
+/**
+ * The receiver position of an assertion helper: `x.expectVisible(`.
+ */
+const RECEIVER_RE = /^\s*\??\.\s*(?:expect|assert|verify)\w*\s*\(/;
 
 /**
  * The start of an assertion call, including namespaced forms (`expect.poll(`,
@@ -374,10 +414,11 @@ function describeScopes(src) {
 }
 
 /**
- * Locate every test block as its title and body text.
+ * Locate every test block as its title, body text, and where the body starts
+ * in `src`.
  *
  * @param {string} src The spec file contents.
- * @returns {{title: string, body: string}[]} One entry per it()/test() block.
+ * @returns {{title: string, body: string, start: number}[]} One entry per it()/test() block.
  */
 function testBodies(src) {
   const bodies = [];
@@ -388,7 +429,7 @@ function testBodies(src) {
     const body = closeParen === -1 ? src.slice(openParen + 1) : src.slice(openParen + 1, closeParen);
     const titleMatch = body.match(/^\s*(['"`])((?:\\.|(?!\1).)*)\1/);
 
-    bodies.push({ title: titleMatch ? titleMatch[2] : '(untitled)', body });
+    bodies.push({ title: titleMatch ? titleMatch[2] : '(untitled)', body, start: openParen + 1 });
   }
 
   return bodies;
@@ -448,12 +489,111 @@ function isCountedVisibleSelector(code, index, scopeEnd) {
 }
 
 /**
+ * Does the bracketed region `[start, end)` hold a `width`/`height` key at the
+ * top level of an object literal? Inside a call's argument list that is depth
+ * one (the `{` is itself an argument); inside an object body it is depth zero.
+ * Strings are skipped, and anything nested deeper — `border: { width: 2 }`,
+ * `columns: [{ width: 100 }]`, an arrow function's own object — is not the
+ * grid's size.
+ *
+ * @param {string} code The source text (comments blanked).
+ * @param {number} start First index of the region.
+ * @param {number} end Index just past the region.
+ * @param {number} objectDepth Braces that must be open for a key to count: 1 in an argument list, 0 in an object body.
+ * @returns {boolean} True when a top-level viewport key is present.
+ */
+function hasTopLevelViewportKey(code, start, end, objectDepth) {
+  const stack = [];
+  let i = start;
+
+  while (i < end) {
+    const ch = code[i];
+
+    if (ch === '\'' || ch === '"' || ch === '`') {
+      i = skipString(code, i);
+      continue;
+    }
+
+    if (ch === '(' || ch === '[' || ch === '{') {
+      stack.push(ch);
+
+    } else if (ch === ')' || ch === ']' || ch === '}') {
+      stack.pop();
+
+    } else if (stack.length === objectDepth && stack.every(bracket => bracket === '{')
+      && !/[\w$.]/.test(code[i - 1] ?? '')) {
+      VIEWPORT_KEY_RE.lastIndex = i;
+
+      if (VIEWPORT_KEY_RE.test(code)) {
+        return true;
+      }
+    }
+    i += 1;
+  }
+
+  return false;
+}
+
+/**
+ * Does the text pin the viewport? A `scrollViewportTo` call, or a
+ * `width`/`height` key at the top level of an options object — one passed
+ * straight to a call (`handsontable({ width: 400 })`, `grid.initGrid({ height:
+ * 150 })`, `new Handsontable(host, { … })`), or one held in a local that is
+ * later passed to a call, whole or spread (`const ROOMY = { width: 900, height:
+ * 520 }` … `grid.initGrid(ROOMY)`). Anything inside an assertion call or its
+ * matcher chain is an expected value, not a setup — `toEqual({ width: 2, color:
+ * 'red' })` pins nothing — and a nested `width` (`border: { width: 2 }`,
+ * `columns: [{ width: 100 }]`) is not the grid's size.
+ *
+ * @param {string} text A describe body or the whole file (comments blanked).
+ * @returns {boolean} True when the viewport is pinned somewhere in the text.
+ */
+function hasViewportPin(text) {
+  if (SCROLL_PIN_RE.test(text)) {
+    return true;
+  }
+
+  const spans = assertionSpans(text);
+  const asserted = index => spans.some(([start, end]) => index >= start && index <= end);
+
+  for (const call of text.matchAll(CALL_OPEN_RE)) {
+    const open = call.index + call[0].length - 1;
+    const close = scanBalanced(text, open);
+
+    if (close !== -1 && !asserted(call.index) && hasTopLevelViewportKey(text, open + 1, close, 1)) {
+      return true;
+    }
+  }
+
+  for (const init of text.matchAll(OBJECT_INIT_RE)) {
+    const open = init.index + init[0].length - 1;
+    const close = scanBalanced(text, open);
+
+    if (close === -1 || !hasTopLevelViewportKey(text, open + 1, close, 0)) {
+      continue;
+    }
+
+    // Passed to a call as-is or spread into its options: `initGrid(ROOMY)`,
+    // `initGrid({ ...ROOMY, layoutDirection: 'rtl' })`. A property value
+    // (`top: GREEN_BORDER`) or an expected value (`toEqual(GREEN_BORDER)`) is not.
+    const passed = new RegExp(`\\(\\s*(?:\\{\\s*\\.\\.\\.\\s*)?${escapeRegExp(init[1])}(?![\\w$])`, 'g');
+
+    if ([...text.matchAll(passed)].some(use => !asserted(use.index))) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
  * Count rendered-count reads whose viewport is not pinned: no enclosing
- * describe (or, for a top-level test, the whole file) sets an explicit
- * `width`/`height` or scrolls with `scrollViewportTo`. Row heights differ per
- * theme (main/horizon/classic), so an unpinned "how many rows rendered" count
- * is a different number on each leg of the theme matrix. A read is a legacy
- * `count*`/`getRendered*Count` helper call or a `:visible` selector that
+ * describe (or, for a top-level test, the whole file) hands the grid setup an
+ * options object with a top-level `width`/`height`, or scrolls with
+ * `scrollViewportTo` (see `hasViewportPin`). Row heights differ per theme
+ * (main/horizon/classic), so an unpinned "how many rows rendered" count is a
+ * different number on each leg of the theme matrix. A read is one of the
+ * legacy `countVisibleRows`-family helpers or a `:visible` selector that
  * something counts.
  *
  * @param {string} src The spec file contents.
@@ -477,7 +617,7 @@ export function findViewportSmells(src) {
     const enclosing = enclosingOf(index);
     const texts = enclosing.length > 0 ? enclosing.map(scope => scope.body) : [code];
 
-    if (!texts.some(text => VIEWPORT_PIN_RE.test(text))) {
+    if (!texts.some(hasViewportPin)) {
       count += 1;
     }
   }
@@ -529,45 +669,114 @@ function assertionSpans(body) {
 }
 
 /**
- * Find awaited captures (`const x = await …`) inside test bodies whose
- * identifier never reaches an assertion: not inside an assertion call or its
- * matcher chain, and not the receiver of an assertion helper (`x.expectFoo(`).
- * A value fetched and then dropped is the shape of a test that runs code
- * without checking it.
+ * A whole-identifier match for `name`: not a prefix, suffix, or member.
+ *
+ * @param {string} name The identifier.
+ * @param {string} [flags] RegExp flags.
+ * @returns {RegExp} The pattern.
+ */
+function identifierRe(name, flags) {
+  return new RegExp(`(?<![\\w$.])${escapeRegExp(name)}(?![\\w$])`, flags);
+}
+
+/**
+ * Does `name`, used at or after `from`, reach an assertion in this body: a use
+ * inside an assertion call or its matcher chain, or as the receiver of an
+ * assertion helper (`x.expectVisible(`)?
+ *
+ * @param {string} body The test body.
+ * @param {[number, number][]} spans The body's assertion spans.
+ * @param {string} name The identifier.
+ * @param {number} from Index in `body` where the uses begin.
+ * @returns {boolean} True when one use is asserted.
+ */
+function isAssertedUse(body, spans, name, from) {
+  for (const use of body.slice(from).matchAll(identifierRe(name, 'g'))) {
+    const index = use.index + from;
+
+    if (spans.some(([start, end]) => index >= start && index <= end)
+      || RECEIVER_RE.test(body.slice(index + name.length))) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Locals declared after `from` whose initializer uses `name` — one level of
+ * derivation: `const tokens = String(className).split(' ')`, `const spilling =
+ * layouts.filter(…)`, `const borders = await lab.cellBorders(2, 2)`. An
+ * initializer runs to the next `;`; each derived name's own uses begin there.
+ *
+ * @param {string} body The test body.
+ * @param {string} name The captured identifier.
+ * @param {number} from Index in `body` just past the capture.
+ * @returns {{name: string, from: number}[]} The derived locals.
+ */
+function derivedDeclarations(body, name, from) {
+  const useRe = identifierRe(name);
+  const derived = [];
+
+  for (const declaration of body.slice(from).matchAll(DECLARATION_RE)) {
+    const start = from + declaration.index + declaration[0].length;
+    const [, end] = statementBounds(body, start);
+
+    if (useRe.test(body.slice(start, end))) {
+      derived.push({ name: declaration[1], from: end });
+    }
+  }
+
+  return derived;
+}
+
+/**
+ * Find awaited captures (`const x = await …`) inside test bodies whose value
+ * never reaches an assertion: neither the identifier itself nor a local
+ * derived from it in one step (`const tokens = String(x).split(' ')`) is used
+ * inside an assertion call or its matcher chain, or as the receiver of an
+ * assertion helper (`x.expectFoo(`). A value fetched and then dropped is the
+ * shape of a test that runs code without checking it.
+ *
+ * Each capture is reported once, under the innermost test that holds it. The
+ * bracket scanner does not know regex literals, so a `/inset\(/` in one test
+ * makes that body run on over the tests after it; without the guard every
+ * capture in those tests would be counted twice, once under the wrong title.
  *
  * @param {string} src The spec file contents.
- * @returns {{test: string, name: string}[]} One entry per unasserted capture.
+ * @returns {{test: string, name: string}[]} One entry per unasserted capture, in source order.
  */
 export function findUnassertedCaptures(src) {
   const captures = [];
+  const seen = new Set();
+  const bodies = testBodies(blankComments(src));
 
-  for (const { title, body } of testBodies(blankComments(src))) {
+  // Latest-starting body first: it is the innermost when bodies overlap.
+  for (const { title, body, start } of bodies.reverse()) {
     const spans = assertionSpans(body);
 
     for (const capture of body.matchAll(AWAITED_CAPTURE_RE)) {
+      const at = start + capture.index;
+
+      if (seen.has(at)) {
+        continue;
+      }
+      seen.add(at);
+
       const name = capture[1];
       const from = capture.index + capture[0].length;
-      const useRe = new RegExp(`(?<![\\w$.])${escapeRegExp(name)}(?![\\w$])`, 'g');
-      const receiverRe = /^\s*\??\.\s*(?:expect|assert|verify)\w*\s*\(/;
-      let asserted = false;
-
-      for (const use of body.slice(from).matchAll(useRe)) {
-        const index = use.index + from;
-
-        if (spans.some(([start, end]) => index >= start && index <= end)
-          || receiverRe.test(body.slice(index + name.length))) {
-          asserted = true;
-          break;
-        }
-      }
+      const asserted = isAssertedUse(body, spans, name, from)
+        || derivedDeclarations(body, name, from).some(local => isAssertedUse(body, spans, local.name, local.from));
 
       if (!asserted) {
-        captures.push({ test: title, name });
+        captures.push({ test: title, name, at });
       }
     }
   }
 
-  return captures;
+  return captures
+    .sort((a, b) => a.at - b.at)
+    .map(({ test, name }) => ({ test, name }));
 }
 
 /**
@@ -606,7 +815,11 @@ export function findDeterminismSmells(src) {
 
 /**
  * Detect structure smells — shapes that let a test run code without checking
- * it. Today: awaited captures that never reach an assertion.
+ * it. Today: awaited captures that never reach an assertion. Reported as a
+ * warning, not a problem, until its precision is measured: over the shipped
+ * Playwright specs the remaining hits are values fetched to drive an action (a
+ * bounding box for a pointer move, a count for a keyboard loop) whose outcome
+ * the test asserts by other means.
  *
  * @param {string} src The spec file contents.
  * @returns {{type: string, count: number, detail: string}[]} One entry per smell type found.
@@ -779,7 +992,8 @@ export function runMutation(sourceFiles, deps = {}) {
 
 /**
  * Score a test source for meaningfulness. `problems` fail the bar (verdict
- * `suspect`); `warnings` are informational.
+ * `suspect`); `warnings` are informational — the relevance signal and, while
+ * its precision is being measured, the `unasserted-capture` structure smell.
  *
  * @param {string} src The spec file contents.
  * @param {{diff?: string, mutation?: {available: boolean, reason: string}}} [options={}]
@@ -822,7 +1036,7 @@ export function scoreTestSource(src, options = {}) {
   }
 
   if (structureSmells.length > 0) {
-    problems.push({
+    warnings.push({
       type: 'structure-smells',
       detail: structureSmells.map(smell => `${smell.type}(${smell.count}): ${smell.detail}`).join('; '),
     });

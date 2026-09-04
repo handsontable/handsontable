@@ -26,8 +26,8 @@
  */
 import { execSync, execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
-import { evaluate, classify } from './lib/presence-gate.mjs';
-import { collectWarnings, renderWarnings } from './lib/presence-warnings.mjs';
+import { evaluate } from './lib/presence-gate.mjs';
+import { collectWarnings, renderWarnings, isAdvisoryPath } from './lib/presence-warnings.mjs';
 
 const base = process.env.GATE_BASE;
 const mode = process.env.GATE_MODE === 'block' ? 'block' : 'warn';
@@ -65,11 +65,14 @@ function readTrailers(range) {
 }
 
 /**
- * Read the unified diff of the source and test files in the change set — the
- * only files the advisory detectors look at. Limiting the pathspec keeps a
- * lockfile or a docs rewrite out of the buffer; `--unified=0` keeps it to the
- * changed lines. Both sides of a rename go into the pathspec so git can still
- * pair them.
+ * Read the unified diff of the files the advisory detectors look at: source,
+ * tests, and the whole Playwright package (`isAdvisoryPath`). The gate's own
+ * classifier calls a page object or helper under `tests/**` 'neither', yet the
+ * RTL detector pairs a source change with exactly those files — filtering on
+ * the classifier alone would drop them here and the warning would fire on a
+ * paired change. Limiting the pathspec keeps a lockfile or a docs rewrite out
+ * of the buffer; `--unified=0` keeps it to the changed lines. Both sides of a
+ * rename go into the pathspec so git can still pair them.
  *
  * @param {string} range The diff range, e.g. `<base>...HEAD`.
  * @param {{status: string, oldPath: string, path: string}[]} changes Parsed diff entries.
@@ -79,7 +82,7 @@ function readDiff(range, changes) {
   const paths = new Set();
 
   for (const change of changes) {
-    if (change.status !== 'D' && classify(change.path) !== 'neither') {
+    if (change.status !== 'D' && isAdvisoryPath(change.path)) {
       paths.add(change.path);
       paths.add(change.oldPath);
     }

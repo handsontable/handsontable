@@ -3,11 +3,12 @@
 // For every fixture case in evals/fixtures/ it scores the hand-written
 // reference test(s) — the harness self-test: every reference must clear the
 // meaningfulness bar — and any counterexample(s) — the other half of the
-// self-test: every counterexample must FAIL the bar, so the smell it
-// demonstrates is proven to fire — plus any candidate (agent-generated) file
-// passed via `--candidate <case> <file>`. Prints a table; exits 1 when a
-// reference fails its own bar, a counterexample passes it, or a fixture is
-// malformed; 2 on usage errors.
+// self-test: every counterexample must trip the smell it demonstrates (a
+// problem, or a warning-tier smell such as `unasserted-capture`), so the smell
+// is proven to fire — plus any candidate (agent-generated) file passed via
+// `--candidate <case> <file>`. Prints a table; exits 1 when a reference fails
+// its own bar, a counterexample trips nothing, or a fixture is malformed; 2 on
+// usage errors.
 //
 // Usage: node evals/run-eval.mjs [--candidate <case> <file>]... [--json]
 
@@ -195,10 +196,13 @@ if (parsed.json) {
 
 const references = results.filter(result => result.role === 'reference');
 const failedReferences = references.filter(result => result.score.verdict !== 'meaningful');
-// A counterexample demonstrates one smell; the scorer must catch it, or the
-// smell is documented without being detected.
+// A counterexample demonstrates one smell; the scorer must report it — as a
+// problem, or as a warning for a smell still calibrating outside the verdict
+// (`unasserted-capture`) — or the smell is documented without being detected.
+const smellReported = score => score.problems.length > 0
+  || score.warnings.some(warning => warning.type === 'structure-smells');
 const counterexamples = results.filter(result => result.role === 'counterexample');
-const uncaughtCounterexamples = counterexamples.filter(result => result.score.verdict === 'meaningful');
+const uncaughtCounterexamples = counterexamples.filter(result => !smellReported(result.score));
 const candidates = results.filter(result => result.role === 'candidate');
 const meaningfulCandidates = candidates.filter(result => result.score.verdict === 'meaningful');
 const selfTestPassed = failedReferences.length === 0
@@ -213,7 +217,7 @@ if (!parsed.json) {
   if (counterexamples.length > 0) {
     const caught = counterexamples.length - uncaughtCounterexamples.length;
 
-    console.log(`Counterexamples: ${caught}/${counterexamples.length} caught as suspect.`);
+    console.log(`Counterexamples: ${caught}/${counterexamples.length} caught (a problem, or a warning-tier smell).`);
   }
 
   if (candidates.length > 0) {

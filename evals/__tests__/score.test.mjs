@@ -423,8 +423,122 @@ test('viewport smell: comments neither pin the viewport nor count as a rendered-
   assert.equal(findViewportSmells('// tr:visible is what we count\nit("x", () => { expect(a).toBe(1); });'), 0);
 });
 
+// --- viewport smell: the customBorders shapes — a look-alike helper, nested widths, expected values ---
+test('viewport smell: only the exact rendered-count helper names read — countVisibleCustomBorders does not', () => {
+  const borders = `
+    test.describe('custom borders', () => {
+      test('draws one border', async({ page }) => {
+        const lab = await gotoLab(page);
+        await lab.createGrid({
+          dataRows: 10, dataCols: 6,
+          customBorders: [{ row: 1, col: 1, top: { width: 1, color: 'green' } }],
+        });
+        expect(await lab.countVisibleCustomBorders()).toBe(1);
+        expect(await lab.countVisibleBorderEdges()).toBe(4);
+      });
+    });
+  `;
+
+  assert.equal(findViewportSmells(borders), 0, 'a count of drawn borders has nothing to do with row height');
+
+  for (const helper of [
+    'countVisibleRows', 'countVisibleCols', 'countVisibleColumns',
+    'countRenderedRows', 'countRenderedCols', 'getRenderedRowsCount', 'getRenderedColsCount',
+  ]) {
+    assert.equal(findViewportSmells(`it('x', () => { expect(${helper}()).toBe(1); });`), 1, helper);
+  }
+
+  const prefixOnly = 'it(\'x\', () => { expect(countVisibleRowsInGroup()).toBe(1); });';
+
+  assert.equal(findViewportSmells(prefixOnly), 0, 'no prefix match');
+});
+
+test('viewport smell: a nested width (a border, a column) or an expected value is not a pinned viewport', () => {
+  const nestedBorder = `
+    test.describe('custom borders', () => {
+      test('counts rows', async({ page }) => {
+        await lab.createGrid({
+          dataRows: 10, dataCols: 6,
+          customBorders: [{
+            range: { from: { row: 3, col: 1 }, to: { row: 6, col: 4 } },
+            border: { width: 2, color: '#548235' },
+            top: {},
+          }],
+        });
+        expect(countVisibleRows()).toBe(10);
+      });
+    });
+  `;
+  const columnWidth = `
+    describe('columns', () => {
+      beforeEach(() => {
+        handsontable({ data: createSpreadsheetData(100, 10), columns: [{ width: 100 }, { width: 80 }] });
+      });
+      it('counts', () => { expect(countRenderedRows()).toBe(10); });
+    });
+  `;
+  const expectedValue = `
+    test.describe('borders', () => {
+      test('reads a border', async({ page }) => {
+        expect((await lab.cellBorders(1, 1))?.top).toEqual({ width: 2, color: '#548235' });
+        expect(await lab.cellRect(1, 1)).toMatchObject({ height: 23 });
+        await expect(page.locator('tbody tr:visible')).toHaveCount(12);
+      });
+    });
+  `;
+  const typedPromise = `
+    test('measures', async({ page }) => {
+      const size = await page.evaluate(() => new Promise<{ width: number, height: number }>((resolve) => {
+        resolve(measure());
+      }));
+      expect(size.width).toBeGreaterThan(0);
+      await expect(page.locator('tbody tr:visible')).toHaveCount(12);
+    });
+  `;
+
+  assert.equal(findViewportSmells(nestedBorder), 1, 'a border width is not the grid size');
+  assert.equal(findViewportSmells(columnWidth), 1, 'a column width is not the grid size');
+  assert.equal(findViewportSmells(expectedValue), 1, 'an expected value pins nothing');
+  assert.equal(findViewportSmells(typedPromise), 1, 'a TypeScript type is not a value');
+});
+
+test('viewport smell: the options object may be a later argument, or a local passed whole or spread', () => {
+  const secondArgument = `
+    test('renders', async({ page }) => {
+      await page.evaluate(() => {
+        new Handsontable(host, { data, colWidths: 90, width: 500, height: 260, rowHeaders: true });
+      });
+      await expect(page.locator('tbody tr:visible')).toHaveCount(8);
+    });
+  `;
+  const local = `
+    test.describe('handles', () => {
+      const ROOMY_VIEWPORT = { width: 900, height: 520 };
+      test('whole', async() => { await grid.initGrid(ROOMY_VIEWPORT); expect(countVisibleRows()).toBe(10); });
+      test('spread', async() => {
+        await grid.initGrid({ ...ROOMY_VIEWPORT, layoutDirection: 'rtl' });
+        expect(countVisibleRows()).toBe(10);
+      });
+    });
+  `;
+  const borderLocal = `
+    test.describe('borders', () => {
+      const GREEN_BORDER = { color: 'green', width: 1 };
+      test('draws', async() => {
+        await lab.createGrid({ customBorders: [{ row: 1, col: 0, top: GREEN_BORDER }] });
+        expect((await lab.cellBorders(1, 0))?.top).toEqual(GREEN_BORDER);
+        expect(countVisibleRows()).toBe(10);
+      });
+    });
+  `;
+
+  assert.equal(findViewportSmells(secondArgument), 0);
+  assert.equal(findViewportSmells(local), 0);
+  assert.equal(findViewportSmells(borderLocal), 1, 'a local used as a property or an expected value pins nothing');
+});
+
 // --- unasserted-capture: an awaited value that never reaches an assertion ---
-test('unasserted capture: a `const x = await …` never used in an assertion is flagged, by name', () => {
+test('unasserted capture: a `const x = await …` never used in an assertion is reported by name, as a warning', () => {
   const src = `
     test('reads the row count', async({ page }) => {
       const grid = new GridPage(page);
@@ -437,14 +551,78 @@ test('unasserted capture: a `const x = await …` never used in an assertion is 
   const captures = findUnassertedCaptures(src);
 
   assert.equal(captures.length, 2);
-  assert.deepEqual(captures.map(c => c.name).sort(), ['first', 'rows']);
+  assert.deepEqual(captures.map(c => c.name), ['rows', 'first'], 'source order');
   assert.equal(captures[0].test, 'reads the row count');
 
   const score = scoreTestSource(src, { mutation: MUTATION_STUB });
 
   assert.ok(score.structureSmells.some(s => s.type === 'unasserted-capture' && s.count === 2));
-  assert.equal(score.verdict, 'suspect');
-  assert.ok(score.problems.some(p => p.type === 'structure-smells' && /rows/.test(p.detail)));
+  // Warning-tier while its precision is measured: the verdict stays meaningful.
+  assert.equal(score.verdict, 'meaningful');
+  assert.deepEqual(score.problems, []);
+  const warning = score.warnings.find(w => w.type === 'structure-smells');
+
+  assert.ok(warning, 'reported as a warning');
+  assert.match(warning.detail, /`rows`/);
+  assert.match(warning.detail, /`first`/);
+});
+
+test('unasserted capture: a value reshaped into a second local that is asserted counts as asserted (one level)', () => {
+  const src = `
+    test('leaves the cell meta usable by addClass', async() => {
+      const className = await grid.cellMetaClassName(0, 0);
+      const tokens = Array.isArray(className) ? className : String(className).split(' ');
+      expect(tokens).toEqual(expect.arrayContaining(['a', 'b']));
+    });
+    test('keeps chips inside the cell', async() => {
+      const layouts = await grid.chipLayoutAcrossWidths(0, 0, widths);
+      const overflowing = layouts.filter(l => l.overflowing);
+      expect(overflowing.length).toBeGreaterThan(0);
+    });
+    test('keeps borders where ranges overlap', async({ page }) => {
+      const lab = await gotoLab(page);
+      await lab.createGrid({ dataRows: 6 });
+      const borders = await lab.cellBorders(2, 2);
+      expect(borders?.top).toEqual({ width: 2, color: 'green' });
+    });
+    test('drops the derived value too', async() => {
+      const count = await grid.rowCount();
+      const doubled = count * 2;
+      await grid.scrollToRow(doubled);
+      await expect(grid.cell(0, 0)).toBeVisible();
+    });
+    test('follows one level only', async() => {
+      const raw = await grid.read();
+      const trimmed = raw.trim();
+      const upper = trimmed.toUpperCase();
+      expect(upper).toBe('A');
+    });
+  `;
+
+  // The one-level limit is pinned on purpose: widening it is a deliberate change.
+  assert.deepEqual(findUnassertedCaptures(src).map(c => [c.test, c.name]), [
+    ['drops the derived value too', 'count'],
+    ['follows one level only', 'raw'],
+  ]);
+});
+
+test('unasserted capture: a regex literal that defeats the bracket scanner does not double-report a later test', () => {
+  // `/inset\\(/` carries a paren the scanner counts, so the first body runs on
+  // to the end of the file and swallows the second test.
+  const src = `
+    test('matches the model', async({ page }) => {
+      const clips = await page.evaluate(() => read());
+      const clipped = clips.filter(clip => /inset\\(/.test(clip));
+      expect(clipped).toEqual([]);
+    });
+    test('leaves the grid alone', async({ page }) => {
+      const box = await page.locator('#grid').boundingBox();
+      await page.mouse.move(box.x, box.y);
+      await expect(page.locator('.band')).toHaveCount(0);
+    });
+  `;
+
+  assert.deepEqual(findUnassertedCaptures(src), [{ test: 'leaves the grid alone', name: 'box' }]);
 });
 
 test('unasserted capture: a capture used inside expect(...), its matcher chain, or an assertion helper is fine', () => {

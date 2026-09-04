@@ -16,7 +16,12 @@ last row must be empty. Write the regression test.
   that *looks* like verification: `const before = await grid.rowCount();`
   followed by a click and a visibility check has exercised the code path
   without checking the row count at all. The scorer flags every such capture
-  as `unasserted-capture`, by name.
+  as `unasserted-capture`, by name. A local derived from the capture in one
+  step and then asserted (`const tokens = String(className).split(' ')`)
+  counts as asserted. The smell is a warning, not a problem, while its
+  precision over the shipped suite is measured — its known false positive is a
+  value that only drives a later action (a bounding box for a pointer move)
+  while the outcome is asserted by other means.
 - The reference feeds the captured count into the expectation (`before + 1`),
   so the assertion is anchored to the state the test observed — not to a
   literal that happens to match the fixture today.

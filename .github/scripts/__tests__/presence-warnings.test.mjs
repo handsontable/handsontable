@@ -14,6 +14,7 @@ import {
   walkontableRouting,
   collectWarnings,
   renderWarnings,
+  isAdvisoryPath,
 } from '../lib/presence-warnings.mjs';
 
 // Every warning here is advisory: the tests pin what fires, what stays silent,
@@ -289,6 +290,34 @@ test('RTL logic in source is paired by a Playwright page object or helper under 
   const docsOnly = parseUnifiedDiff([RTL_SOURCE, fileDiff('docs/content/guides/rtl.md', ['RTL layout'])].join('\n'));
 
   assert.ok(rtlCorrelation(docsOnly), 'a docs mention does not pair');
+});
+
+test('the advisory diff admits every file the RTL pairing can accept — tests/** included — and nothing else', () => {
+  // The CLI builds its `git diff` pathspec from this predicate. It must agree
+  // with isTestSide(): a page object the gate calls 'neither' still has to
+  // reach the parser, or the pairing the lib promises never happens in CI.
+  for (const path of [
+    'tests/fixtures/pages/GridPage.ts',
+    'tests/support/layout.ts',
+    'tests/e2e/overlays.spec.ts',
+    'handsontable/src/tableView.ts',
+    'handsontable/src/__tests__/core/rtl.spec.js',
+    'wrappers/react-wrapper/test/hotColumn.spec.tsx',
+  ]) {
+    assert.equal(isAdvisoryPath(path), true, `${path} feeds the detectors`);
+  }
+
+  assert.equal(classify('tests/fixtures/pages/GridPage.ts'), 'neither', 'the gate itself still does not count a page object');
+
+  for (const path of [
+    'docs/content/guides/rtl.md',
+    'pnpm-lock.yaml',
+    '.github/workflows/checks.yml',
+    'handsontable/CHANGELOG.md',
+    'visual-tests/src/config.mjs',
+  ]) {
+    assert.equal(isAdvisoryPath(path), false, `${path} stays out of the buffer`);
+  }
 });
 
 test('RTL correlation is silent when no source line mentions isRtl/layoutDirection, or only a test does', () => {

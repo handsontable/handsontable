@@ -19,7 +19,10 @@
  *   test-side line mentions RTL. Test-side is a file the gate classifies as
  *   'test' plus anything under `tests/**`: a Playwright page object or helper
  *   there is 'neither' to the gate (it is not coverage), yet it is where the
- *   RTL setup usually lands.
+ *   RTL setup usually lands. The CLI limits its diff to `isAdvisoryPath()`
+ *   files, which admits `tests/**` for exactly this reason — a pathspec built
+ *   from the gate's classifier alone would drop the page object before the
+ *   detector ever saw it, and the warning would fire on a paired change.
  * - Walkontable routing — engine source changed with no engine-tier test. It
  *   deliberately requires classify(path) === 'source' (a spec or helper under
  *   `walkontable/test/` is never "the engine changed") and ignores a D status
@@ -264,6 +267,20 @@ function hasContinuation(rest, indent) {
  */
 function isTestSide(path) {
   return classify(path) === 'test' || TESTS_PACKAGE_RE.test(path);
+}
+
+/**
+ * Does a changed file feed the diff-based detectors at all? Every file the gate
+ * classifies as source or test, plus the whole Playwright package — the same
+ * set `isTestSide()` accepts, so the CLI's pathspec and the RTL pairing agree
+ * on what a page object is. Lockfiles, docs, and CI files stay out of the
+ * buffer.
+ *
+ * @param {string} path Repo-relative path.
+ * @returns {boolean} True when the file belongs in the advisory diff.
+ */
+export function isAdvisoryPath(path) {
+  return classify(path) !== 'neither' || TESTS_PACKAGE_RE.test(path);
 }
 
 /**
