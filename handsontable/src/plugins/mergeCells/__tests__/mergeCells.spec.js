@@ -3237,6 +3237,58 @@ describe('MergeCells', () => {
       expect(collection.get(merge.row, merge.col)).toBe(false);
     });
 
+    it('should grow a merge made on a descending sort when a row is inserted inside it', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        columnSorting: true,
+        mergeCells: true,
+      });
+
+      // descending, so the merge's physical rows run the other way to its visual rows
+      getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+
+      await render();
+
+      getPlugin('mergeCells').merge(0, 1, 1, 1);
+
+      await render();
+
+      expect(merges()).toEqual([{ row: 0, col: 1, rowspan: 2, colspan: 1 }]);
+
+      // visual row 1 is strictly inside the merge, so the merge covers the new row — which comparing
+      // the anchor's physical rows against the insertion point gets backwards on a descending sort
+      await alter('insert_row_above', 1, 1);
+
+      expect(merges()).toEqual([{ row: 0, col: 1, rowspan: 3, colspan: 1 }]);
+    });
+
+    it('should not grow a merge made on a descending sort when a row is inserted outside it',
+      async() => {
+        handsontable({
+          data: createSpreadsheetData(10, 5),
+          columnSorting: true,
+          mergeCells: true,
+        });
+
+        getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+
+        await render();
+
+        // visual rows 7 and 8 hold A2 and A10, so the merge owns physical rows 1 and 9 — a pair with
+        // the whole grid between them
+        getPlugin('mergeCells').merge(7, 1, 8, 1);
+
+        await render();
+
+        expect(merges()).toEqual([{ row: 7, col: 1, rowspan: 2, colspan: 1 }]);
+
+        // visual row 0 is above the merge, so the merge must not cover the new row. Its physical row
+        // lands between the merge's two, which is what a physical comparison reads as "inside"
+        await alter('insert_row_above', 0, 1);
+
+        expect(merges()).toEqual([{ row: 8, col: 1, rowspan: 2, colspan: 1 }]);
+      });
+
     it('should keep the rows a merge owns when a column is moved while a filter hides some of them',
       async() => {
         handsontable({

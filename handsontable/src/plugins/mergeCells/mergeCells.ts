@@ -1004,19 +1004,40 @@ export class MergeCells extends BasePlugin {
    * active {@link MergeCells#captureAnchorOf} preserves the stored `physicalRows` verbatim, so the
    * structural edit's physical renumbering has to be mirrored onto the cache here or re-anchoring
    * would later target stale rows. Rows at or after the insertion point move down by `count`, and a
-   * merge that had rows on both sides of that point grows to cover the inserted ones — the physical
-   * mirror of the `indexOfChange > mergeStart` branch in {@link MergedCellCoords#shift}.
+   * merge with rows on both sides of the inserted block grows to cover it — the same rule as the
+   * `indexOfChange > mergeStart` branch in {@link MergedCellCoords#shift}.
+   *
+   * "Both sides" is measured in the **visual** order, as that branch measures it, not by comparing
+   * physical indexes against the pivot. A merge's physical rows ascend only while nothing has
+   * reordered them: after a sort they can run the other way, and a merge made over a filtered gap
+   * skips values. A physical comparison then grows a merge the new rows landed outside of, and leaves
+   * one they landed inside of alone.
    *
    * @param {number} pivot The physical row the new rows were inserted at.
    * @param {number} count The number of inserted rows.
+   * @param {number} insertedRow The visual row the new rows were inserted at.
    */
-  #remapRowAnchorsAfterInsert(pivot: number, count: number) {
+  #remapRowAnchorsAfterInsert(pivot: number, count: number, insertedRow: number) {
+    const lastInsertedRow = insertedRow + count - 1;
+
     this.#remapAnchors((physicalRows) => {
       const remapped = physicalRows.map(physicalRow => (physicalRow >= pivot ? physicalRow + count : physicalRow));
-      const growsOverInsertion = remapped.some(physicalRow => physicalRow < pivot) &&
-        remapped.some(physicalRow => physicalRow >= pivot + count);
+      let hasRowAbove = false;
+      let hasRowBelow = false;
 
-      if (!growsOverInsertion) {
+      remapped.forEach((physicalRow) => {
+        const visualRow = this.hot.toVisualRow(physicalRow);
+
+        // A trimmed row has no visual index, so it is on neither side of the inserted block.
+        if (visualRow === null) {
+          return;
+        }
+
+        hasRowAbove = hasRowAbove || visualRow < insertedRow;
+        hasRowBelow = hasRowBelow || visualRow > lastInsertedRow;
+      });
+
+      if (!hasRowAbove || !hasRowBelow) {
         return remapped;
       }
 
@@ -2003,7 +2024,7 @@ export class MergeCells extends BasePlugin {
     const pivot = this.hot.toPhysicalRow(row);
 
     if (pivot !== null) {
-      this.#remapRowAnchorsAfterInsert(pivot, count);
+      this.#remapRowAnchorsAfterInsert(pivot, count, row);
     }
 
     this.mergedCellsCollection.shiftCollections('down', row, count);
