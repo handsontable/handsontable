@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>preventCloseElement fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+    window.htOutsideClickDeselects =
+      ({ true: true, false: false })[htParams.get('outsideClickDeselects') ?? 'true'];
+    if (typeof window.htOutsideClickDeselects !== 'boolean') {
+      throw new Error(
+        'Unknown ?outsideClickDeselects= value: ' + JSON.stringify(htParams.get('outsideClickDeselects'))
+      );
+    }
+  </script>
+  <style>
+    /* The panel stands in for a third-party picker: outside the grid's root element, and outside
+       the editor's own container, exactly like flatpickr's calendar or Pickr's popup. */
+    #picker-panel {
+      position: fixed;
+      top: 300px;
+      left: 20px;
+      width: 220px;
+      padding: 8px;
+      border: 1px solid #999;
+      background: #fff;
+    }
+    #picker-panel [tabindex] {
+      display: block;
+      padding: 6px;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    // The value the panel writes into the editor, so a commit can be told apart from the cell
+    // keeping whatever it held before the edit.
+    const PANEL_VALUE = 'FROM_PANEL';
+
+    // A custom editor built the way the documented recipes build one: an `input` inside the
+    // editor's own container, plus a panel appended to the document BODY and declared as
+    // `preventCloseElement`. Nothing here stops event propagation - the whole point is that
+    // declaring the element is enough.
+    const pickerEditor = Handsontable.editors.editorFactory({
+      init(editor) {
+        editor.input = editor.hot.rootDocument.createElement('INPUT');
+        editor.input.setAttribute('data-testid', 'editor-input');
+
+        const panel = editor.hot.rootDocument.createElement('DIV');
+
+        panel.id = 'picker-panel';
+        panel.setAttribute('data-testid', 'picker-panel');
+        panel.style.display = 'none';
+
+        // A focusable NON-button: clicking it takes the browser focus, and a later Enter keystroke
+        // does not activate it the way it would activate a `<button>`.
+        const focusTarget = editor.hot.rootDocument.createElement('DIV');
+
+        focusTarget.setAttribute('data-testid', 'panel-focus');
+        focusTarget.setAttribute('tabindex', '0');
+        focusTarget.textContent = 'focus me';
+
+        const setValueTarget = editor.hot.rootDocument.createElement('DIV');
+
+        setValueTarget.setAttribute('data-testid', 'panel-set-value');
+        setValueTarget.setAttribute('tabindex', '0');
+        setValueTarget.textContent = 'write value';
+        setValueTarget.addEventListener('click', () => {
+          editor.input.value = PANEL_VALUE;
+        });
+
+        // Reports the picked value and ends the edit in one gesture, the way the documented
+        // `flatpickr` recipe does from the picker's own `onClose` callback.
+        const commitTarget = editor.hot.rootDocument.createElement('DIV');
+
+        commitTarget.setAttribute('data-testid', 'panel-commit');
+        commitTarget.setAttribute('tabindex', '0');
+        commitTarget.textContent = 'commit';
+        commitTarget.addEventListener('click', () => {
+          editor.finishEditing();
+        });
+
+        // A real picker's panel holds form controls, not only plain elements: flatpickr's calendar
+        // carries a year `<input>` and a month `<select>`. An INPUT outside the grid takes a
+        // different branch of the outside-click verdict (`isOutsideInput`), so the panel carries
+        // one to keep that branch covered.
+        const panelInput = editor.hot.rootDocument.createElement('INPUT');
+
+        panelInput.setAttribute('data-testid', 'panel-input');
+
+        panel.appendChild(focusTarget);
+        panel.appendChild(setValueTarget);
+        panel.appendChild(commitTarget);
+        panel.appendChild(panelInput);
+        editor.hot.rootDocument.body.appendChild(panel);
+
+        editor.picker = panel;
+        editor.preventCloseElement = panel;
+      },
+      afterOpen(editor) {
+        editor.picker.style.display = 'block';
+      },
+      afterClose(editor) {
+        editor.picker.style.display = 'none';
+      },
+      getValue(editor) {
+        return editor.input.value;
+      },
+      setValue(editor, value) {
+        editor.input.value = value === null || value === undefined ? '' : value;
+      },
+    });
+
+    // Records every committed change, so a spec can assert that NO commit happened. A poll on the
+    // data alone cannot do that: it passes on its first sample and races a deferred commit.
+    window.htChanges = [];
+
+    window.hot = new Handsontable(container, {
+      data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']],
+      colHeaders: true,
+      rowHeaders: true,
+      columns: [
+        {},
+        { editor: pickerEditor },
+      ],
+      outsideClickDeselects: window.htOutsideClickDeselects,
+      // Stamp test ids from `afterRenderer` rather than a grid-level `renderer`, which a column
+      // `type` would override.
+      afterRenderer(td, row, col) {
+        td.setAttribute('data-testid', `cell-${row}-${col}`);
+      },
+      afterChange(changes, source) {
+        if (changes) {
+          window.htChanges.push(...changes.map(change => change.concat(source)));
+        }
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>
