@@ -143,6 +143,31 @@ describe('computeMedianSnapshot', () => {
     assert.equal(result.scenarios.sorting.updateCounters.jsHeapMaxBytes, 2_000_002);
   });
 
+  test('medians the post-GC heap over the entries that carry it, and omits it when none do', () => {
+    const withField = computeMedianSnapshot([
+      snapshot('2026-08-28T00:00:00Z', {
+        sorting: { updateCounters: { ...DEFAULT_UPDATE_COUNTERS, jsHeapAfterGcBytes: 1_500_000 } },
+      }),
+      snapshot('2026-08-29T00:00:00Z', {
+        sorting: { updateCounters: { ...DEFAULT_UPDATE_COUNTERS, jsHeapAfterGcBytes: 1_700_000 } },
+      }),
+      // Recorded before the runner read the live heap: contributes to min/max, not to this field.
+      snapshot('2026-08-30T00:00:00Z'),
+    ]);
+
+    assert.equal(withField.scenarios.sorting.updateCounters.jsHeapAfterGcBytes, 1_600_000);
+    assert.equal(withField.scenarios.sorting.updateCounters.jsHeapAfterGcLabel, '1.6 MB');
+    assert.equal(withField.scenarios.sorting.updateCounters.jsHeapMaxBytes, 2_000_000);
+
+    const without = computeMedianSnapshot([
+      snapshot('2026-08-28T00:00:00Z'),
+      snapshot('2026-08-29T00:00:00Z'),
+    ]);
+
+    assert.equal('jsHeapAfterGcBytes' in without.scenarios.sorting.updateCounters, false);
+    assert.equal('jsHeapAfterGcLabel' in without.scenarios.sorting.updateCounters, false);
+  });
+
   test('regenerates the heap labels from the medianed bytes', () => {
     const result = computeMedianSnapshot([
       snapshot('2026-08-28T00:00:00Z'),
