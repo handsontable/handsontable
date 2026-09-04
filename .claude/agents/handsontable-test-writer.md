@@ -35,7 +35,7 @@ The authoritative, step-by-step conventions live in the testing skills. Read `te
 
 - File: `tests/e2e/*.spec.ts`; selectors and flows in a page object under `tests/fixtures/pages/`; import `test` from `tests/fixtures/test.ts` and pass `{ theme, bundle }` to the page object
 - Web-first waits only (`await expect(locator)…`, `expect.poll`) — never `sleep`/`waitForTimeout`; a page object's `waitForFunction` passes `{ polling }`, and a scroll method ends on a render-state probe (`handsontable-playwright-e2e/references/determinism.md`)
-- Run only the spec you changed: `cd tests && npx playwright test e2e/<spec>.spec.ts` (all theme × bundle legs; `failOnFlakyTests` is on)
+- Run only the spec you changed: `cd tests && npx playwright test e2e/<spec>.spec.ts` (all theme × bundle legs; `failOnFlakyTests` is on in CI, not locally — hammer with `--repeat-each` before calling it deterministic)
 
 ## Legacy E2E test conventions (Jasmine/Puppeteer — frozen, edit only)
 
