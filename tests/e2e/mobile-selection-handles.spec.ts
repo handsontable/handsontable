@@ -44,11 +44,28 @@ test.describe('mobile selection handles', () => {
     expect(secondBox).not.toEqual(firstBox);
   });
 
-  test('keep the top handle on the outer corner of a row-0 selection without frozen panes', async () => {
+  test('keep the top handle interactive for a row-0 selection with headers', async () => {
+    await mobileGrid.tapCell(0, 0);
+    await mobileGrid.expectHandlesVisible();
+
+    await expect.poll(() => mobileGrid.isTopHandleHitAreaAtHandleCenter()).toBe(true);
+  });
+
+  test('keep the top handle on the outer corner when no clone renders over it', async () => {
+    await mobileGrid.goto({ headers: false });
     await mobileGrid.tapCell(0, 0);
     await mobileGrid.expectHandlesVisible();
 
     await expect.poll(() => mobileGrid.isTopHandleOnCellOuterCorner(0, 0)).toBe(true);
+  });
+
+  test('keep the bottom handle interactive when a range ends on the bottom freeze line', async () => {
+    await mobileGrid.goto({ frozenBottom: true, rows: 'tall' });
+    await mobileGrid.tapCell(1, 1);
+    await mobileGrid.selectRange(1, 1, 37, 3);
+    await mobileGrid.expectHandlesVisible();
+
+    await expect.poll(() => mobileGrid.isBottomHandleHitAreaAtHandleCenter()).toBe(true);
   });
 
   test('keep the top handle interactive when a range starts at the frozen-pane boundaries', async () => {

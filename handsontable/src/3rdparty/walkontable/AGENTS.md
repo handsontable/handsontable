@@ -46,14 +46,28 @@ pane. `.ht_clone_master: 100` in the z-index map does **not** apply to the maste
 is stamped on the editor container by `src/editors/factory.ts`.
 
 Two related mechanisms that look like counter-examples and are not: the mobile selection handles take
-an inline `zIndex = '9999'` inside their table's stacking context (`border.ts`, legacy #9850). Because
-that value cannot clear a frozen overlay, a top handle on the `fixedRowsTop` or `fixedColumnsStart`
-boundary is repositioned into the scrollable pane. The fill handle is *repositioned* rather than
-re-layered at the `fixedRowsBottom` line
-(`isCornerLiftedAtBlockEnd`). Handles drawn by a frozen overlay itself need no such treatment: they
+an inline `zIndex = '9999'` inside their table's stacking context (`border.ts`, legacy #9850), and the
+fill handle is *repositioned* rather than re-layered at the `fixedRowsBottom` line
+(`isCornerLiftedAtBlockEnd`). Since the master became a stacking context, that 9999 can no longer
+clear a clone, so the master's mobile handles are repositioned instead: the top handle is inset by
+`isTopHandleOccludedByClone` and the bottom handle is lifted by `isBottomHandleOccludedByClone`.
+
+**The trigger for those two is clone presence, not the fixed-pane count, and the difference is not
+cosmetic.** `shouldRenderTopOverlay` is true for `colHeaders` alone, so with `fixedRowsTop: 0` a
+row-0 selection sits flush against the `top` clone exactly as row `fixedRowsTop` does with a frozen
+pane, and an outward-hanging handle dies under it either way. `isFrozenBoundaryEdge` answers the
+narrower "is this a freeze line" question and is the right helper for the fill handle and the
+boundary edges; routing the handle *position* through it silently drops the header case (and, on the
+other axis, `rowHeaders` plus `shouldRenderInlineStartOverlay`). Both helpers also return `false` off
+the master on purpose. Handles drawn by a frozen overlay itself need no treatment: they
 already land flush against the `.wtHolder` edge that clips them, which `border.spec.js` pins to the
 pixel on both axes. Note `.wtHolder` is the clipping box (`overflow: hidden`), while the clone element
 is `overflow: visible` and ends a few pixels earlier — measure the holder, not the clone.
+
+One case is *not* covered and is not a regression: with both headers off and no frozen panes, a row-0
+top handle is drawn at a negative offset and the master's `.wtHolder` clips it. It was invisible
+before the stacking context too, so it keeps the outer-corner placement
+(`mobile-selection-handles.spec.ts` pins that branch).
 
 The declarations live in `src/styles/base/_z-index-map.scss`, `css/walkontable.scss` (master and
 clone values, duplicated — keep in sync) and `src/styles/components/core/_selection.scss` (the

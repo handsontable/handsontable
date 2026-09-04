@@ -22,18 +22,24 @@ export class MobileHandlesPage {
   }
 
   /**
-   * Navigate to the fixture and wait for the grid to render. Frozen panes are off by default, so
-   * row 0 and column 0 stay ordinary edges unless `frozen` is set.
+   * Navigate to the fixture and wait for the grid to render. Frozen panes are off by default, and
+   * headers are on, which is the configuration most grids run with.
    */
-  async goto({ direction = 'ltr', frozen = false }: {
+  async goto({ direction = 'ltr', frozen = false, frozenBottom = false, headers = true, rows = 'short' }: {
     direction?: 'ltr' | 'rtl';
     frozen?: boolean;
+    frozenBottom?: boolean;
+    headers?: boolean;
+    rows?: 'short' | 'tall';
   } = {}): Promise<void> {
     const query = new URLSearchParams({
       theme: this.theme,
       bundle: this.bundle,
       direction,
       frozen: frozen ? '1' : '0',
+      frozenBottom: frozenBottom ? '2' : '0',
+      headers: headers ? 'on' : 'off',
+      rows,
     });
 
     await this.page.goto(`/tests/fixtures/demo/mobile-handles.html?${query}`);
@@ -110,9 +116,21 @@ export class MobileHandlesPage {
   }
 
   /**
+   * Returns whether the bottom handle owns the pixels at the center of its visible marker.
+   */
+  async isBottomHandleHitAreaAtHandleCenter(): Promise<boolean> {
+    return this.bottomHandle().evaluate((handle) => {
+      const { left, top, width, height } = handle.getBoundingClientRect();
+      const element = document.elementFromPoint(left + (width / 2), top + (height / 2));
+
+      return element?.closest('.bottomSelectionHandle-HitArea') !== null;
+    });
+  }
+
+  /**
    * Returns whether the top handle hangs off the cell's outer corner (LTR), which is where it
-   * belongs whenever no frozen pane covers that corner. The corner placement leaves the handle
-   * touching the cell edge, while the frozen-pane placement moves it a full handle inside, so
+   * belongs whenever no overlay clone renders over that corner. The corner placement leaves the
+   * handle touching the cell edge, while the clone placement moves it a full handle inside, so
    * half a handle separates the two.
    */
   async isTopHandleOnCellOuterCorner(row: number, col: number): Promise<boolean> {

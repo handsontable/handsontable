@@ -31,6 +31,26 @@
       throw new Error('Unknown ?frozen= value: ' + JSON.stringify(params.get('frozen')));
     }
 
+    // The bottom frozen pane is driven separately, because the bottom handle hangs past the
+    // opposite corner and so meets a different clone than the top handle does.
+    window.htFrozenBottom = ({ '0': 0, '2': 2 })[params.get('frozenBottom') ?? '0'];
+    if (window.htFrozenBottom === undefined) {
+      throw new Error('Unknown ?frozenBottom= value: ' + JSON.stringify(params.get('frozenBottom')));
+    }
+
+    // Headers are on by default. Turning them off removes the `top` and `inline_start` clones, which
+    // is what leaves row 0 and column 0 as ordinary edges with nothing to hide the handle.
+    window.htHeaders = ({ on: true, off: false })[params.get('headers') ?? 'on'];
+    if (window.htHeaders === undefined) {
+      throw new Error('Unknown ?headers= value: ' + JSON.stringify(params.get('headers')));
+    }
+
+    // A tall data set is needed for the bottom frozen pane and for the scrolled cases.
+    window.htRows = ({ short: 5, tall: 40 })[params.get('rows') ?? 'short'];
+    if (window.htRows === undefined) {
+      throw new Error('Unknown ?rows= value: ' + JSON.stringify(params.get('rows')));
+    }
+
     // Written into <head> so the themed stylesheet is present before first render.
     document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
   </script>
@@ -59,19 +79,16 @@
     };
 
     window.hot = new Handsontable(container, {
-      data: [
-        ['A1', 'B1', 'C1', 'D1', 'E1'],
-        ['A2', 'B2', 'C2', 'D2', 'E2'],
-        ['A3', 'B3', 'C3', 'D3', 'E3'],
-        ['A4', 'B4', 'C4', 'D4', 'E4'],
-        ['A5', 'B5', 'C5', 'D5', 'E5'],
-      ],
+      data: Array.from({ length: window.htRows }, (_, row) => (
+        ['A', 'B', 'C', 'D', 'E'].map(column => column + (row + 1))
+      )),
       width: 350,
       height: 300,
-      colHeaders: true,
-      rowHeaders: true,
+      colHeaders: window.htHeaders,
+      rowHeaders: window.htHeaders,
       fixedRowsTop: window.htFrozen,
       fixedColumnsStart: window.htFrozen,
+      fixedRowsBottom: window.htFrozenBottom,
       layoutDirection: window.htDirection,
       renderer: testIdRenderer,
       licenseKey: 'non-commercial-and-evaluation',
