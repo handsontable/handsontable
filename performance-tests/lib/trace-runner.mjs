@@ -273,39 +273,45 @@ export async function runTracedScenario({
     for (let i = 1; i <= iterations; i++) {
       // Clean slate: whatever the warmup or the previous reset left behind is collected here, on
       // no one's clock, rather than inside the window as a major GC billed to the action.
+      // Unguarded on purpose, unlike the readback below: this GC is part of what the timing
+      // numbers mean under HARNESS_VERSION 2, so a run that could not perform it must fail rather
+      // than publish numbers recorded under a different contract.
       await collectGarbage(control);
 
       process.stdout.write(`  Iteration ${i}/${iterations}: tracing`);
 
       const cdp = await startTracing(page);
 
-      // Heartbeat: print dots during actionFn to keep GH Actions log alive
+      // Heartbeat: print dots during actionFn to keep GH Actions log alive. Cleared in a finally
+      // so a throwing actionFn does not leave the interval printing into a dead run.
       const heartbeat = setInterval(() => process.stdout.write('.'), 5000);
 
-      // The mark is taken after CDP has already entered the isolate once, so the
-      // interrupt that carries it stays outside the window it opens.
-      await mark(page, MEASURE_START_MARK);
+      try {
+        // The mark is taken after CDP has already entered the isolate once, so the
+        // interrupt that carries it stays outside the window it opens.
+        await mark(page, MEASURE_START_MARK);
 
-      await actionFn(true);
+        await actionFn(true);
 
-      // Inside the window on purpose: the frame this waits for is the work being measured.
-      if (!skipSettle) {
-        await settle(`iteration ${i}`);
+        // Inside the window on purpose: the frame this waits for is the work being measured.
+        if (!skipSettle) {
+          await settle(`iteration ${i}`);
+        }
+
+        await mark(page, MEASURE_END_MARK);
+
+        // Outside the window: a readback here is harness overhead, not measured work.
+        if (afterActionFn) {
+          await afterActionFn();
+        }
+
+        // Also outside the window (the UpdateCounters extrema are taken over the marked samples
+        // only), and after the readbacks so the GC does not compete with them: what the action left
+        // alive, per iteration. Informational, so a failed readback records null and moves on.
+        heapAfterGc.push(await heapUsedAfterGc(control));
+      } finally {
+        clearInterval(heartbeat);
       }
-
-      await mark(page, MEASURE_END_MARK);
-
-      // Outside the window: a readback here is harness overhead, not measured work.
-      if (afterActionFn) {
-        await afterActionFn();
-      }
-
-      // Also outside the window (the UpdateCounters extrema are taken over the marked samples
-      // only), and after the readbacks so the GC does not compete with them: what the action left
-      // alive, per iteration.
-      heapAfterGc.push(await heapUsedAfterGc(control));
-
-      clearInterval(heartbeat);
 
       process.stdout.write(' stopping');
       const traceJson = await stopTracing(cdp);
@@ -321,6 +327,9 @@ export async function runTracedScenario({
       }
     }
   } finally {
+    // Swallowed on purpose: a detach that fails because the page or browser is already gone is
+    // exactly the case where an error is propagating out of the loop, and a second one here would
+    // replace it.
     await control.detach().catch(() => {});
   }
 
