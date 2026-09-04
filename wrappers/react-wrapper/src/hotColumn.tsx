@@ -24,7 +24,7 @@ const internalProps = ['_columnIndex', '_getOwnerDocument', 'children'];
 
 const HotColumn: FC<HotColumnProps> = (props) => {
   const { componentRendererColumns, emitColumnSettings, getRendererWrapper } = useHotTableContext();
-  const { columnIndex, getOwnerDocument } = useHotColumnContext();
+  const { columnIndex, getOwnerDocument, getEditorPortalHost } = useHotColumnContext();
 
   /**
    * Reference to component-based editor overridden hooks object.
@@ -93,7 +93,7 @@ const HotColumn: FC<HotColumnProps> = (props) => {
     }
   });
 
-  const editorPortal = createEditorPortal(getOwnerDocument(), props.editor);
+  const editorPortal = createEditorPortal(getOwnerDocument(), props.editor, getEditorPortalHost());
 
   /**
    * Render the portals of the editors, if there are any.
