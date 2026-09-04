@@ -5,6 +5,7 @@ description: Skip the render that follows a cell edit and run one cell's rendere
 permalink: /recipes/performance/repaint-single-cell
 canonicalUrl: /recipes/performance/repaint-single-cell
 tags:
+  - recipes
   - render
   - renderer
   - performance
@@ -12,6 +13,12 @@ tags:
   - skipRender
   - custom renderer
   - single cell
+react:
+  metaTitle: Repaint a single cell instead of the whole viewport - React Data Grid | Handsontable
+angular:
+  metaTitle: Repaint a single cell instead of the whole viewport - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Repaint a single cell instead of the whole viewport - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Performance
 type: how-to
@@ -40,7 +47,7 @@ Handsontable has no built-in per-cell render, and [`render()`](@/api/core.md#ren
 
 The default stops paying off when your renderers are expensive. Every redrawn cell runs its renderer and the [`cells`](@/api/options.md#cells) function again, so one edit re-runs work for the whole viewport. This recipe shows how to skip that render and repaint one cell instead.
 
-Click the two buttons in the example above and compare the renderer-call counts. One edit runs the renderer for every cell on screen -- dozens of them -- while the repaint runs it once. Widen the grid or the viewport and the gap grows with it, because the number of drawn cells is what the full render pays for.
+Click the two buttons in the example above and compare the renderer-call counts. One edit runs the renderer for every cell on screen -- dozens of them -- while the repaint runs it once per cell you selected. Widen the grid or the viewport and the gap grows with it, because the number of drawn cells is what the full render pays for.
 
 Select one or more cells, then click either button to write to all of them, and only them. Drag to select a block, or hold <kbd>Ctrl</kbd> (<kbd>Cmd</kbd> on macOS) to pick separate blocks. With nothing selected, the buttons pick a visible cell for you. Each button scrolls its first target into view before writing, leaving your selection exactly as you made it, so the readout never names a cell you cannot see. That matters here, because a cell scrolled out of view has no `td` to paint: the gate would turn the repaint down and Handsontable would render normally, which is correct but makes both buttons look alike.
 
@@ -51,7 +58,7 @@ This recipe is written for the JavaScript build. Read [Framework wrappers](#fram
 A product-inventory grid with a deliberately expensive cell renderer, and a `repaintCell()` helper that:
 
 - Cancels the render that follows [`setDataAtCell()`](@/api/core.md#setdataatcell), using the [`beforeViewRender`](@/api/hooks.md#beforeviewrender) hook.
-- Runs one cell's renderer against its `td`, reproducing what Handsontable's own render does to that element.
+- Runs one cell's renderer against its `td`, by calling the same per-cell function Handsontable's own render loop uses.
 - Repaints every cell a change touched, so writing a whole selection still costs one renderer call per cell.
 - Falls back to a normal render whenever the change is not safe to handle per cell.
 - Reports the renderer-call count for each update, so you can see the difference.
@@ -130,7 +137,7 @@ If your cells all use a renderer you wrote, and none of them need the state clas
 
 [`setDataAtCell()`](@/api/core.md#setdataatcell) always ends in a full render. To stop it, set `skipRender` on the object that [`beforeViewRender`](@/api/hooks.md#beforeviewrender) receives.
 
-**Repaint inside that same hook, not in [`afterChange`](@/api/hooks.md#afterchange).** Handsontable's order is: clear the `td`, run the renderer, then apply the selection classes. The selection is still drawn on the cancelled path, at the end of the same draw. A repaint that runs after the draw therefore clears the `class` attribute of a cell whose selection classes have already been applied, and nothing puts them back -- so the cell you just edited loses its highlight. Repainting inside the hook keeps Handsontable's order.
+**Repaint inside that same hook, not in [`afterChange`](@/api/hooks.md#afterchange).** Handsontable's order is: clear the `td`, run the renderer, then apply the selection classes. The selection is still drawn on the cancelled path, at the end of the same draw. A repaint that runs after the draw therefore clears the `class` attribute of a cell whose selection classes have already been applied, and nothing puts them back -- so the cell you edited loses its highlight. Repainting inside the hook keeps Handsontable's order.
 
 The data is already written by the time the hook runs, so the renderer reads the new value.
 
@@ -152,6 +159,13 @@ hot.addHook('beforeViewRender', (isForced, skipRenderObject) => {
     return;
   }
 
+  // Never cancel a draw that lays out a different band -- see below.
+  if (renderedBand !== null && bandOffset() !== renderedBand) {
+    pendingChanges = null;
+
+    return;
+  }
+
   skipRenderObject.skipRender = true;
 
   pendingChanges.forEach(([row, prop]) => {
@@ -161,6 +175,8 @@ hot.addHook('beforeViewRender', (isForced, skipRenderObject) => {
   pendingChanges = null;
 });
 ```
+
+`renderedBand` and `bandOffset()` come from [The viewport must not have moved](#the-viewport-must-not-have-moved), which explains why that check has to be here rather than in the gate.
 
 ## Step 4 -- Gate the cases you cannot handle
 
@@ -191,7 +207,7 @@ function isRepaintable(changes, changeSource) {
 }
 ```
 
-Two details are easy to get wrong. Compare with `!= null`, not `!== null`: [`getCell()`](@/api/core.md#getcell) can return `undefined` for a cell in an overlay that is not present, and a strict comparison lets that through -- the render is then cancelled and nothing is painted.
+Two details are commonly missed. Compare with `!= null`, not `!== null`: [`getCell()`](@/api/core.md#getcell) can return `undefined` for a cell in an overlay that is not present, and a strict comparison lets that through -- the render is then cancelled and nothing is painted.
 
 And decide from the change itself, through its `source`, rather than by setting a flag around the call. With a validator configured, Handsontable applies the change from an asynchronous callback, so a flag you set before [`setDataAtCell()`](@/api/core.md#setdataatcell) and clear on the next line is already cleared by the time the decision is made.
 
@@ -252,7 +268,7 @@ Setting `rowHeights` is not enough on its own. It is a floor, not a ceiling: a v
 
 ### Turn auto-sizing off, or the saving disappears
 
-[`autoRowSize`](@/api/options.md#autorowsize) and [`autoColumnSize`](@/api/options.md#autocolumnsize) measure by running your renderer against sample cells in an off-screen table. That sampling happens when a value changes, and it does not go through the render you just cancelled -- so your expensive renderer still runs dozens of times, and the repaint saves nothing.
+[`autoRowSize`](@/api/options.md#autorowsize) and [`autoColumnSize`](@/api/options.md#autocolumnsize) measure by running your renderer against sample cells in an off-screen table. That sampling happens when a value changes, and it does not go through the render you cancelled -- so your expensive renderer still runs dozens of times, and the repaint saves nothing.
 
 Both are off in the example. Set explicit [`rowHeights`](@/api/options.md#rowheights) and column widths instead. This is the same requirement as the row-height rule above, seen from the other side.
 
@@ -303,7 +319,7 @@ Use this recipe on the JavaScript build. If you need it under a wrapper, verify 
 1. You call [`setDataAtCell()`](@/api/core.md#setdataatcell) with the recipe's own `source`.
 2. `beforeChange` records the current row and column counts.
 3. Handsontable writes the value and calls `beforeChangeRender`, where the gate decides whether this change qualifies.
-4. Handsontable starts its render and fires `beforeViewRender`. If the change qualified, `skipRender` cancels the cell drawing and the repaint runs: clear the `td`, then hand it to the same per-cell function the render loop uses.
+4. Handsontable starts its render and fires `beforeViewRender`. If the change qualified **and this draw lays out the same band that is already on screen**, `skipRender` cancels the cell drawing and the repaint runs: clear the `td`, then hand it to the same per-cell function the render loop uses.
 5. The draw finishes. Overlay positions and the selection are applied on top of the freshly painted cell, in Handsontable's usual order.
 6. Anything the gate turned down skips steps 4 and 5 and renders normally.
 
