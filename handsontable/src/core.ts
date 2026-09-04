@@ -3316,7 +3316,10 @@ export default function Core(
    * suppresses the renders the CRUD operations would have triggered; it does not add one, so a callback
    * holding nothing but [setCellMeta()](@/api/core.md#setcellmeta) calls leaves the grid unpainted.
    *
-   * There is no API for rendering a single cell or a single row.
+   * There is no API for rendering a single cell or a single row. When a costly cell renderer makes
+   * the full repaint too expensive, the
+   * [Repaint a single cell](@/recipes/performance/repaint-single-cell/repaint-single-cell.md) recipe
+   * shows how to cancel the render and run one cell's renderer by hand, and what that gives up.
    *
    * To apply new configuration options, use [updateSettings()](@/api/core.md#updatesettings). To react to a
    * container that changed size, use [refreshDimensions()](@/api/core.md#refreshdimensions).
