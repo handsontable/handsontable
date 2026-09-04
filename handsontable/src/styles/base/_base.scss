@@ -375,6 +375,25 @@
       }
     }
 
+    // A row header owns the seam to column 0, and the corner owns the seam to the column-0 header, at
+    // every scroll position and in every overlay (#6673). Ownership has to cover the seam's COLOR too,
+    // and the `th:last-child` rule above would otherwise decide it: the overlay that renders nothing
+    // but the row-header column makes that `th` `:last-child` by structure rather than by position in
+    // the grid, so it would take the grid's outer-frame color there while the same grid with
+    // `fixedColumnsStart` kept the plain cell-border color — visibly different in a theme whose cell
+    // borders are transparent. `.emptyColumns` is the one case where the row header really is the
+    // grid's inline-end edge, and it keeps the frame rule. `ht__active_highlight-prev` is excluded so
+    // an active column-0 header still gets its inline-start accent from the corner, which is where
+    // that pixel now lives.
+    &.htRowHeaders {
+      .ht_master:not(.emptyColumns),
+      .ht_master:not(.emptyColumns) ~ .handsontable:not(.htGhostTable) {
+        :where(#{$grid-head-row}, #{$grid-body-row}) > th:first-child:not(.ht__active_highlight-prev) {
+          border-inline-end-color: var(--ht-cell-horizontal-border-color);
+        }
+      }
+    }
+
     // Header in Row — grid rows only, never a nested user table (#4363)
     :where(table.htCore, #{$ghost-table}) > tbody {
       > tr {

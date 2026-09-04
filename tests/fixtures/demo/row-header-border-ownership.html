@@ -77,6 +77,15 @@
   <h2>No row headers (control)</h2>
   <div id="control" data-testid="control"></div>
 
+  <!--
+    The second control: with no data columns at all, the row header IS the grid's inline-end edge,
+    so its inline-end border is the outer frame rather than a seam and keeps the frame color. That
+    is the one case the seam-color rule carves out, and `.emptyColumns` on `.ht_master` is the
+    signal it keys on.
+  -->
+  <h2>Row headers, no data columns</h2>
+  <div id="empty" data-testid="empty"></div>
+
   <script>
     // The bundle under test, selected above from the sanitized allowlist. The
     // closing tag is split so the HTML parser does not end THIS script block.
@@ -124,6 +133,7 @@
         ],
       }),
       control: buildGrid('control', { rowHeaders: false }),
+      empty: buildGrid('empty', { data: [[], [], []], columns: [] }),
     };
 
     /**

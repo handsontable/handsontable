@@ -117,6 +117,80 @@ test.describe('Row header border ownership', () => {
       .toEqual([declared - 1, declared - 1, declared - 1, declared - 1]);
   });
 
+  test('draws the seam in the cell-border color in every overlay shape', async () => {
+    // Ownership has to cover the seam's COLOR, not only which element draws it. The row header is
+    // `:last-child` in the overlay that renders nothing but the row-header column, and the
+    // outer-frame rule keyed on that would have given the seam the grid's frame color there while
+    // the same grid with `fixedColumnsStart` kept the cell-border color - two different lines for
+    // one gridline, and a line `horizon` never used to draw at all.
+    const reference = await grid.inlineEndBorderColor(grid.firstBodyCell('row-headers'));
+
+    expect(await grid.inlineEndBorderColor(grid.rowHeaderCell('row-headers'))).toBe(reference);
+    expect(await grid.inlineEndBorderColor(grid.rowHeaderCell('frozen'))).toBe(reference);
+    expect(await grid.inlineEndBorderColor(grid.cornerHeaderCell('row-headers'))).toBe(reference);
+    expect(await grid.inlineEndBorderColor(grid.cornerHeaderCell('frozen'))).toBe(reference);
+
+    // ...and it must not change by being scrolled, which is what the old design did.
+    await grid.scrollHorizontallyTo('rowHeaders', 'row-headers', 12);
+
+    expect(await grid.inlineEndBorderColor(grid.rowHeaderCell('row-headers'))).toBe(reference);
+  });
+
+  test('leaves the row header drawing the grid frame when there are no data columns', async () => {
+    // The carve-out of the rule above, and the reason it needs `.emptyColumns` rather than the
+    // `th`'s position among its siblings: with no column 0 to separate from, the row header's
+    // inline-end border IS the grid's inline-end frame. Both of its sides are frame then, which is
+    // what the first assertion says without naming a palette. The seam comparison is the complement
+    // of the test above, and only `horizon` can fail it - it is the one theme whose cell-border
+    // token differs from its frame token.
+    const rowHeader = grid.rowHeaderCell('empty');
+
+    expect(await grid.masterHasClass('empty', 'emptyColumns')).toBe(true);
+    expect(await grid.borders(rowHeader)).toEqual({ start: 1, end: 1 });
+    expect(await grid.inlineEndBorderColor(rowHeader)).toBe(await grid.inlineStartBorderColor(rowHeader));
+
+    if (grid.theme === 'horizon') {
+      expect(await grid.inlineEndBorderColor(rowHeader))
+        .not.toBe(await grid.inlineEndBorderColor(grid.rowHeaderCell('row-headers')));
+    }
+  });
+
+  test('keeps the selection edge on column 0 clear of the row header', async () => {
+    await grid.selectCell('rowHeaders', 1, 0);
+
+    // The row header owns the gridline in front of column 0, so the shared pixel belongs to the
+    // inline-start overlay - which paints at z-index 120 against the border layer's 10. An edge
+    // centred on it renders behind the row header, so it sits just inside the cell instead.
+    expect(await grid.selectionInlineStartEdgeOffset('row-headers', 1, 0)).toBe(0);
+    expect(await grid.selectionEdgeHiddenBehindRowHeader('row-headers')).toBe(false);
+
+    // A column with another CELL beside it keeps straddling the shared gridline: nothing paints
+    // above the border layer there, and this is what makes the column-0 offset a real distinction
+    // rather than a blanket rule.
+    await grid.selectCell('rowHeaders', 1, 3);
+
+    expect(await grid.selectionInlineStartEdgeOffset('row-headers', 1, 3)).toBe(-1);
+    expect(await grid.selectionEdgeHiddenBehindRowHeader('row-headers')).toBe(false);
+  });
+
+  test('keeps the selection edge on column 0 clear of the row header in RTL', async () => {
+    await grid.selectCell('rtl', 1, 0);
+
+    expect(await grid.selectionInlineStartEdgeOffset('rtl', 1, 0)).toBe(0);
+    expect(await grid.selectionEdgeHiddenBehindRowHeader('rtl')).toBe(false);
+  });
+
+  test('keeps the selection edge inside column 0 in the frozen column clone', async () => {
+    await grid.selectCell('frozen', 1, 0);
+
+    // The clone draws its own copy of every edge, and column 0 is inside it, so the master's edge
+    // being under the clone is by design here. What must hold is that both copies land on the
+    // cell's own boundary rather than on the row header's pixel.
+    expect(await grid.selectionInlineStartEdgeOffset('frozen', 1, 0)).toBe(0);
+    expect(await grid.selectionInlineStartEdgeOffset('frozen', 1, 0, '.ht_clone_inline_start'))
+      .toBe(0);
+  });
+
   test('still publishes the legacy inner-border classes once the grid is scrolled', async () => {
     // The classes drive no geometry any more, but they are part of the public DOM and third-party
     // styling keys off them, so they are kept. `innerBorderLeft` is the pre-logical-properties

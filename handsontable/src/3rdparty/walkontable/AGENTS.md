@@ -141,6 +141,23 @@ Consequences worth knowing:
   keys both the editor's width and its inline-start offset off the same computed border for exactly
   that reason — key them off different things and the editor is a pixel wider than where it starts,
   overhanging the next column.
+- **Reading the border is not enough for anything the overlays paint over.** The shared pixel in front
+  of column 0 belongs to the inline-start overlay, which is z-index 120 against the selection border
+  layer's 10, so an affordance centred on that gridline is *geometrically* right and *invisible*.
+  `Border#appear` therefore shifts the edge onto the cell's own boundary when the cell either owns an
+  inline-start border **or** has a row-header `th` as its previous sibling. That second test is what
+  keeps a selection on column 0 visible; without it the edge lands at `rowHeaderWidth - 1` and
+  disappears behind the row header. The `customBorders` specs cannot catch it — they count visible
+  elements, and the element is there, just covered.
+- **Ownership covers the seam's COLOR, not only which element draws it.** In the overlay that renders
+  nothing but the row-header column, the row header `th` is also `:last-child`, and the header rule
+  keyed on that paints the grid's OUTER frame color. So the same gridline came out
+  `--ht-border-color` with plain `rowHeaders` and `--ht-cell-horizontal-border-color` with
+  `fixedColumnsStart` — invisible in `horizon`, where the cell-border token is transparent, and
+  visible in the other shape. `_base.scss` pins both the body row header and the corner `th` to the
+  cell-border color under `.htRowHeaders`, with two carve-outs: `.emptyColumns`, where the row header
+  really is the grid's inline-end edge, and `ht__active_highlight-prev`, which is how an active
+  column-0 header now gets its inline-start accent (that pixel moved to the corner).
 - Without row headers, column 0 is the first cell of its row and still draws the grid's own
   inline-start frame inside its declared width. It stays 1px narrower than the rest — deliberately out
   of scope for #6673, and pinned as a control case in
