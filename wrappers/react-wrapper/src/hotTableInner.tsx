@@ -15,7 +15,8 @@ import { HotEditorHooks, HotTableProps, HotTableRef } from './types';
 import {
   HOT_DESTROYED_WARNING,
   AUTOSIZE_WARNING,
-  DEFAULT_CLASSNAME,
+  EDITOR_PORTAL_HOST_CLASSNAME,
+  MISSING_ROOT_PORTAL_WARNING,
   createEditorPortal,
   getContainerAttributesProps,
   isComponentEditor,
@@ -130,8 +131,11 @@ const HotTableInner = forwardRef<
     if (!editorPortalHostRef.current) {
       const host = doc.createElement('div');
 
-      host.className = DEFAULT_CLASSNAME;
+      host.className = EDITOR_PORTAL_HOST_CLASSNAME;
+      doc.body.appendChild(host);
       editorPortalHostRef.current = host;
+    } else if (!editorPortalHostRef.current.isConnected) {
+      doc.body.appendChild(editorPortalHostRef.current);
     }
 
     return editorPortalHostRef.current;
@@ -235,8 +239,12 @@ const HotTableInner = forwardRef<
     const portalHost = editorPortalHostRef.current;
     const rootPortalElement = __hotInstance.current.rootPortalElement;
 
-    if (portalHost && rootPortalElement && portalHost.parentNode !== rootPortalElement) {
-      rootPortalElement.appendChild(portalHost);
+    if (portalHost && rootPortalElement) {
+      if (portalHost.parentNode !== rootPortalElement) {
+        rootPortalElement.appendChild(portalHost);
+      }
+    } else if (portalHost && !rootPortalElement) {
+      warn(MISSING_ROOT_PORTAL_WARNING);
     }
 
     displayAutoSizeWarning(__hotInstance.current);

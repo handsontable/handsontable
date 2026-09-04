@@ -27,7 +27,7 @@ Each cell can have one editor — a class that manages the editor's DOM element,
 
 Use React components as editors with the `useHotEditor` hook. The hook returns `value`, `setValue`, and `finishEditing`, plus callbacks for the editor lifecycle (`onOpen`, `onClose`, `onPrepare`, `onFocus`).
 
-The wrapper mounts the editor in the grid portal, so a click on the editor does not deselect the cell. Still call `event.stopPropagation()` on the `mousedown` event of the editor's root element as a backup.
+The wrapper mounts the editor in the grid portal, so a click on the editor does not deselect the cell. Form controls in the editor inherit the grid theme `color-scheme`. The `value` from `useHotEditor` updates in the same render as `setValue`. Still call `event.stopPropagation()` on the `mousedown` event of the editor's root element as a backup.
 
 ::: example #example1 :react --js 1 --ts 2
 

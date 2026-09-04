@@ -223,8 +223,12 @@ describe('Editor configuration using React components', () => {
     ));
 
     const editorElement = document.querySelector('#editorComponentContainer')!;
+    const portalHost = hotTableComponent.hotInstance!.rootPortalElement
+      .querySelector('.hot-wrapper-editor-portal-host');
 
-    expect(hotTableComponent.hotInstance!.rootPortalElement.contains(editorElement)).toBe(true);
+    expect(portalHost).not.toBeNull();
+    expect(portalHost!.contains(editorElement)).toBe(true);
+    expect(portalHost!.classList.contains('hot-wrapper-editor-container')).toBe(false);
   });
 
   it('should use the editor component as Handsontable editor, when it\'s passed as component to HotColumn editor prop', async () => {

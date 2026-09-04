@@ -520,8 +520,12 @@ describe('Editor configuration using React components', () => {
     ));
 
     const editorElement = document.querySelector('#editorComponentContainer')!;
+    const portalHost = hotTableComponent.hotInstance!.rootPortalElement
+      .querySelector('.hot-wrapper-editor-portal-host');
 
-    expect(hotTableComponent.hotInstance!.rootPortalElement.contains(editorElement)).toBe(true);
+    expect(portalHost).not.toBeNull();
+    expect(portalHost!.contains(editorElement)).toBe(true);
+    expect(portalHost!.classList.contains('hot-wrapper-editor-container')).toBe(false);
   });
 
   it('should commit setValue after a real pointer sequence on the editor control', async () => {
@@ -554,6 +558,8 @@ describe('Editor configuration using React components', () => {
   });
 
   it('should update the hook value in the same turn as setValue', async () => {
+    // Documents the public `useHotEditor().value` contract after dropping
+    // `useDeferredValue`. This does not cover the GH-13374 commit path.
     const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
