@@ -275,7 +275,7 @@ Use the dropdown in the demo below to switch the grid's `width` and `height` bet
 
 ### Use `'auto'` sizing
 
-Set `height: 'auto'` to make the grid grow to match its content height. Handsontable writes `height: auto; overflow: clip;` as inline styles on the root element. No internal vertical scrollbar is created, so the page itself scrolls when the grid is taller than the viewport.
+Set `height: 'auto'` to make the grid behave like a plain block element. Handsontable writes `height: auto` as an inline style on the root element, and nothing else. The grid grows to fit its rows, the nearest scrolling ancestor or the page scrolls it, and off-screen rows stay virtualized.
 
 ::: only-for javascript
 
@@ -354,17 +354,39 @@ const hotSettings = ref({
 
 `height: 'auto'` is different from leaving `height` unset:
 
-| Setting            | Inline styles on root                                       | Scroll parent                                                                  | Row virtualization          |
-| ------------------ | ----------------------------------------------------------- | ------------------------------------------------------------------------------ | --------------------------- |
-| `height: 'auto'`   | `height: auto; overflow: clip;`                             | The page, outside the grid                                                     | Disabled, all rows render   |
-| `height: <number>` | `height: <n>px; overflow: clip;`                            | The grid itself                                                                | Enabled                     |
-| `height` unset     | None, Handsontable does not touch the root inline styles    | Nearest ancestor with `overflow: auto` or `overflow: hidden`, else the window  | Depends on the scroll parent |
+| Setting                         | Inline styles on root                                       | Scroll parent                                                                  | Row virtualization |
+| ------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------ | ------------------ |
+| `height: 'auto'`                | `height: auto;`                                             | Nearest ancestor with `overflow: auto` or `overflow: hidden`, else the window  | Enabled            |
+| `height: <number or CSS length>` | `height: <value>; overflow: clip;`                          | The grid itself                                                                | Enabled            |
+| `height` unset                  | None, Handsontable does not touch the root inline styles    | Nearest ancestor with `overflow: auto` or `overflow: hidden`, else the window  | Enabled            |
+
+The one difference between `'auto'` and an unset `height` is the inline `height: auto`, which overrides a `height` that a stylesheet sets on the root element.
 
 ::: tip
 
-With `height: 'auto'`, every row is laid out in the DOM at once. Avoid this value for large datasets. Set a numeric `height` instead so that Handsontable can virtualize off-screen rows.
+Inside a parent with a fixed height and `overflow: auto`, a grid with `height: 'auto'` fills the parent and scrolls inside it rather than growing past it.
 
 :::
+
+### Accepted values
+
+`width` and `height` accept the same set of values:
+
+| Value                                      | Example                                    |
+| ------------------------------------------ | ------------------------------------------ |
+| A number of pixels                         | `height: 500`                              |
+| A string with a number of pixels           | `height: '500'`, `height: '500px'`         |
+| A string with a CSS unit                   | `height: '50%'`, `height: '75vh'`          |
+| `'auto'`                                   | `height: 'auto'`                           |
+| A function that returns one of the above   | `height() { return 500; }`                 |
+
+Any other value the browser can read as a CSS length or expression (`'20em'`, `'calc(100% - 40px)'`, `'var(--grid-height)'`) is passed through as written.
+
+A value the browser cannot read as a size (`'abc'`, `-100`, `true`), and a CSS keyword that would collapse the grid (`'min-content'`, `'inherit'`), is ignored. The grid's size stays as it was, and Handsontable prints a warning once per grid and value.
+
+Passing `null` to either option through [`updateSettings()`](@/api/core.md#updatesettings) restores that axis to the root element's initial inline style and leaves the other axis in place.
+
+A definite `width` (a number, `'500px'`, `'20em'`) clips the grid horizontally, and the grid scrolls its columns inside that width on its own, with or without a `height`. A relative width (`'100%'`, `'80vw'`, `'var(--grid-width)'`) leaves the horizontal overflow to the page.
 
 ### Troubleshooting with 100% height
 

@@ -147,8 +147,8 @@ export interface GridSettings {
   density?: DensityType;
 
   // Dimensions
-  width?: number | string | (() => number | string);
-  height?: number | string | (() => number | string);
+  width?: number | 'auto' | (string & {}) | (() => number | string);
+  height?: number | 'auto' | (string & {}) | (() => number | string);
   colWidths?: number | number[] | string | ((column: number) => number | string) | Array<number | string>;
   rowHeights?: number | number[] | string | ((row: number) => number | string) | Array<number | string>;
   rowHeaderWidth?: number | number[] | string | Array<number | string>;

@@ -144,7 +144,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   hashLength: 8,
   hashRevealDelay: 1000,
   hashSymbol: '#',
-  height: oneOf(500, 'auto', '75vh', () => 500, () => 'auto'),
+  height: oneOf(500, 'auto', '250', '250px', '50%', '75vh', 'calc(100% - 40px)', () => 500, () => 'auto'),
   hiddenColumns: true,
   hiddenRows: true,
   initialState: {
@@ -369,7 +369,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   viewportColumnRenderingThreshold: oneOf(100, 'auto'),
   viewportRowRenderingThreshold: oneOf(100, 'auto'),
   visibleRows: 123,
-  width: oneOf(500, 'auto', '75vw', () => 500, () => 'auto'),
+  width: oneOf(500, 'auto', '250', '250px', '50%', '75vw', 'calc(100% - 40px)', () => 500, () => 'auto'),
   wordWrap: true,
 
   // Hooks via settings object

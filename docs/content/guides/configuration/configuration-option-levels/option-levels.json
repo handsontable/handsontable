@@ -8,8 +8,8 @@
   ],
   "total": 170,
   "counts": {
-    "grid": 106,
-    "grid columns cells cell": 59,
+    "grid": 107,
+    "grid columns cells cell": 58,
     "grid columns": 4,
     "columns": 1
   },
@@ -1705,10 +1705,7 @@
       "name": "width",
       "category": "Core",
       "levels": [
-        "grid",
-        "columns",
-        "cells",
-        "cell"
+        "grid"
       ],
       "since": null,
       "note": "Sets the grid width at the grid level and the column width inside `columns`. Only row 0 is read, so a `cells` or `cell` value must target row 0."

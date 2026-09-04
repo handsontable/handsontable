@@ -65,6 +65,19 @@ describe('Core_count', () => {
 
       expect(instance.countRenderedRows()).toEqual(-1);
     });
+
+    it('should return the window\'s band of rows, not every row, with `height: \'auto\'`', async() => {
+      const instance = handsontable({
+        data: createSpreadsheetData(500, 10),
+        height: 'auto',
+        viewportRowRenderingOffset: 0
+      });
+
+      // `'auto'` leaves the vertical axis to the window, so the rows stay virtualized.
+      expect(instance.view.isVerticallyScrollableByWindow()).toBe(true);
+      expect(instance.countRenderedRows()).toBeGreaterThan(0);
+      expect(instance.countRenderedRows()).toBeLessThan(500);
+    });
   });
 
   describe('countVisibleCols', () => {

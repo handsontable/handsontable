@@ -1087,3 +1087,56 @@ describe('Passing children', () => {
     expect(console.warn).toHaveBeenCalledWith(UNEXPECTED_HOTTABLE_CHILDREN_WARNING);
   });
 });
+
+describe('Root size options', () => {
+  /**
+   * The size warnings printed so far. jsdom prints an unrelated theme-stylesheet warning per grid,
+   * so the raw call count cannot be asserted.
+   */
+  function sizeWarnings(spy: jest.SpyInstance): string[] {
+    return spy.mock.calls
+      .map(([message]) => message)
+      .filter((message): message is string => typeof message === 'string')
+      .filter(message => message.includes('cannot be read as a size'));
+  }
+
+  it('should write `height="auto"` as inline `height: auto` with no overflow', async () => {
+    const hotTableRef = renderHotTableWithProps({
+      data: createSpreadsheetData(3, 3),
+      height: 'auto',
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const { rootElement } = hotTableRef.current!.hotInstance!;
+
+    expect(rootElement.style.height).toBe('auto');
+    expect(rootElement.style.overflowX).toBe('');
+    expect(rootElement.style.overflowY).toBe('');
+  });
+
+  it('should warn once for an unreadable size, even though every commit re-sends the same props', async () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const hotTableRef = renderHotTableWithProps({
+      data: createSpreadsheetData(3, 3),
+      height: 300,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const badProps: HotTableProps = {
+      data: createSpreadsheetData(3, 3),
+      height: 'abc',
+      licenseKey: 'non-commercial-and-evaluation',
+    };
+
+    renderHotTableWithProps(badProps, true, hotTableRef);
+    renderHotTableWithProps(badProps, true, hotTableRef);
+    renderHotTableWithProps(badProps, true, hotTableRef);
+
+    const { rootElement } = hotTableRef.current!.hotInstance!;
+
+    expect(rootElement.style.height).toBe('300px');
+    expect(sizeWarnings(warnSpy)).toHaveLength(1);
+    expect(sizeWarnings(warnSpy)[0]).toContain('"abc"');
+
+    warnSpy.mockRestore();
+  });
+});

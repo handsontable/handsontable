@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Unified the grid `width` and `height` options: `height: 'auto'` now writes inline `height: auto` only, so the page (or the nearest scrolling ancestor) scrolls the grid and the rows stay virtualized instead of the grid clipping itself and rendering every row; both options accept a number, a pixel string, a CSS length or expression, `'auto'`, or a function, and ignore an unreadable value or a collapsing keyword with a one-time warning; `null` resets its own axis only (`width: null` no longer writes `nullpx`); and a `var()` or container-query width is no longer clipped.",
+  "type": "changed",
+  "issueOrPR": 13381,
+  "breaking": true,
+  "framework": "none"
+}
