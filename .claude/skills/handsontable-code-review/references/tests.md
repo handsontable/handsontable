@@ -11,7 +11,7 @@ Review the tests a change ships — and the tests it should have shipped — wit
 
 2. **Run scoped mutation when unit tests changed.**
    - This is the one run a review makes. From `handsontable/`: `node ../evals/score.mjs <test.unit.js> --mutate <src.ts>` (`evals/README.md` has the setup). Always scope to the changed source — never the whole tree.
-   - In a `.claude/worktrees/` checkout that run dies with `env-cmd: command not found` (exit 127): the root `node_modules` is a symlink, so the package-local `.bin` is missing. That is the environment, not a verdict on the tests — run `node scripts/claude/setup-worktree.mjs` once, then rerun.
+   - In a `.claude/worktrees/` checkout that run dies with `env-cmd: command not found` (exit 127): the root `node_modules` is a symlink, so the package-local `.bin` is missing. `score.mjs` itself exits 0 and reports it as `mutation.reason: 'stryker run failed: Command failed: … npx env-cmd …'`, so that reason string is what you see. That is the environment, not a verdict on the tests — run `node scripts/claude/setup-worktree.mjs` once, then rerun.
    - A survived mutant is a behavior the new test executes without asserting. Report it with the mutant's location.
 
 3. **Flag near-duplicate DOM helpers for extraction.**

@@ -167,9 +167,10 @@ DEV-1234: <why>`), which keeps every parked test counted and attributable.
 Full rules: the `handsontable-playwright-e2e` skill and its
 `references/determinism.md`.
 
-The waits lint cannot see live in page objects — a timer in a fixture's inline
-script or a string-form `evaluate`, and the state a wait ends on. Six rules,
-one line each; the measured incident behind each one is in
+The waits lint cannot see live beyond the spec's own text — a timer in a
+fixture's inline script, a string-form `evaluate`, and the state a page-object
+wait ends on. Six rules, one line each; the measured incident behind each one
+is in
 `references/determinism.md`:
 
 - A `setTimeout` in the browser is `sleep()` moved into the page: probe the
