@@ -15,9 +15,15 @@ jobs:
   check:
     name: check
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # 15 minutes was lost on #13373 / #13375: GitHub reports a job timeout as
+    # `cancelled`, and CI Gate treats that as a failure. attw on every export
+    # path took ~8 minutes even when `npx -y` was fast; a cold npm day then
+    # spent another 4–7 minutes per tool. 30 minutes covers a slow download
+    # plus the analysis. Do not lower this without re-timing a cold run.
+    timeout-minutes: 30
     env:
       HOT_PREBUILT: ${{ inputs.hot-prebuilt }}
+      EMITTED_TYPES_TOOLS: ${{ runner.temp }}/emitted-types-tools
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
       - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # https://github.com/pnpm/action-setup/releases/tag/v6.0.8
@@ -53,6 +59,26 @@ jobs:
       - name: Build Handsontable (includes downlevel:types)
         if: env.HOT_PREBUILT != 'true'
         run: npm run build --prefix handsontable
+      # Three sequential `npx -y` downloads have no cache (setup-node caches
+      # pnpm, not ~/.npm). On a slow npm day each one took several minutes and
+      # left attw no time inside the old 15-minute budget. One install into
+      # $RUNNER_TEMP, plus an npm cache keyed on the three pins, is one
+      # download on a miss and a local reuse after that.
+      - name: Cache npm for the type-check tools
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # https://github.com/actions/cache/releases/tag/v5.0.3
+        with:
+          path: ~/.npm
+          key: emitted-types-npx-${{ runner.os }}-ts5.1.6-publint0.3.21-attw0.18.3
+      - name: Install type-check tools
+        run: |
+          mkdir -p "$EMITTED_TYPES_TOOLS"
+          cd "$EMITTED_TYPES_TOOLS"
+          npm init -y >/dev/null
+          npm install --no-package-lock \
+            typescript@5.1.6 \
+            publint@0.3.21 \
+            @arethetypeswrong/cli@0.18.3
+          echo "$EMITTED_TYPES_TOOLS/node_modules/.bin" >> "$GITHUB_PATH"
       - name: Type-check downleveled .d.ts with pinned TS 5.1.6
         run: |
           cd handsontable
@@ -70,16 +96,22 @@ jobs:
               include: ['tmp/**/*.d.ts']
             }, null, 2));
           "
-          npx -y -p typescript@5.1.6 tsc -p tsconfig.verify-types.json
+          tsc -p tsconfig.verify-types.json
           rm tsconfig.verify-types.json
       - name: Check package exports and well-formedness (publint)
         run: |
           cd handsontable/tmp
-          npx -y publint@0.3.21
+          publint
       - name: Check type-declaration resolution (attw)
         run: |
           cd handsontable/tmp
-          # false-export-default — Babel CJS interop; untyped-resolution — dist/
-          # UMD + languages ship no types; no-resolution — CSS/theme assets.
-          npx -y @arethetypeswrong/cli@0.18.3 --pack . --format table \
-            --ignore-rules false-export-default untyped-resolution no-resolution
+          # attw walks every exports path × several resolution modes. The
+          # package publishes ~200 of those (every plugin, language, theme,
+          # dist/ file). That analysis alone took ~8 minutes and, with a cold
+          # npx, blew the old 15-minute timeout. tsc already type-checks every
+          # emitted .d.ts and publint already lints the full exports map, so
+          # attw only needs the typed public roots — the dual-package pair
+          # plus settings. false-export-default is Babel CJS interop.
+          attw --pack . --format table \
+            --entrypoints . base registry settings \
+            --ignore-rules false-export-default
