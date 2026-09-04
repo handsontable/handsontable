@@ -1637,6 +1637,87 @@ describe('DomElement helper', () => {
 
       expect(getTrimmingContainer(base)).toBe(window);
     });
+
+    describe('per axis', () => {
+      // The per-axis form answers for one axis only, so the single-axis-clip exemption of the
+      // single-answer form does not apply: a root that clips the horizontal axis IS the horizontal
+      // trimming container, while the vertical axis keeps its own answer (here the window).
+      it('should resolve the two axes independently for an ancestor with `overflow-x: clip`', () => {
+        wrapper.style.overflowX = 'clip';
+        wrapper.style.overflowY = 'visible';
+
+        expect(getTrimmingContainer(base, 'x')).toBe(wrapper);
+        expect(getTrimmingContainer(base, 'y')).toBe(window);
+      });
+
+      it('should resolve the two axes independently for an ancestor with `overflow-y: clip`', () => {
+        wrapper.style.overflowX = 'visible';
+        wrapper.style.overflowY = 'clip';
+
+        expect(getTrimmingContainer(base, 'x')).toBe(window);
+        expect(getTrimmingContainer(base, 'y')).toBe(wrapper);
+      });
+
+      it('should resolve the two axes independently for the `clip visible` shorthand', () => {
+        wrapper.style.overflow = 'clip visible';
+
+        expect(getTrimmingContainer(base, 'x')).toBe(wrapper);
+        expect(getTrimmingContainer(base, 'y')).toBe(window);
+      });
+
+      it('should return the ancestor on both axes when it clips both (`overflow: clip`)', () => {
+        wrapper.style.overflow = 'clip';
+
+        expect(getTrimmingContainer(base, 'x')).toBe(wrapper);
+        expect(getTrimmingContainer(base, 'y')).toBe(wrapper);
+      });
+
+      it('should return the ancestor on both axes when it hides overflow (`overflow: hidden`)', () => {
+        wrapper.style.overflow = 'hidden';
+
+        expect(getTrimmingContainer(base, 'x')).toBe(wrapper);
+        expect(getTrimmingContainer(base, 'y')).toBe(wrapper);
+      });
+
+      it('should return the ancestor on both axes for the DEV-1777 container (`overflow-x: auto; overflow-y: hidden`)', () => {
+        // A single-axis scroll container next to a hidden axis traps on both, the same as the
+        // single-answer form says — only `clip` beside `visible` ever differs between the forms.
+        wrapper.style.overflowX = 'auto';
+        wrapper.style.overflowY = 'hidden';
+
+        expect(getTrimmingContainer(base, 'x')).toBe(wrapper);
+        expect(getTrimmingContainer(base, 'y')).toBe(wrapper);
+      });
+
+      it('should skip a nearer ancestor that traps only the other axis', () => {
+        // wrapper (overflow-x: clip) > middle (nothing) > base: the vertical answer walks past
+        // the wrapper to the outer scroller.
+        const outer = document.createElement('div');
+
+        outer.style.overflowY = 'auto';
+        outer.appendChild(wrapper);
+        document.body.appendChild(outer);
+        wrapper.style.overflowX = 'clip';
+
+        expect(getTrimmingContainer(base, 'x')).toBe(wrapper);
+        expect(getTrimmingContainer(base, 'y')).toBe(outer);
+
+        outer.parentNode.removeChild(outer);
+        document.body.appendChild(wrapper);
+      });
+
+      it('should return the window on both axes when no ancestor traps the element', () => {
+        expect(getTrimmingContainer(base, 'x')).toBe(window);
+        expect(getTrimmingContainer(base, 'y')).toBe(window);
+      });
+
+      it('should defer to computed style for a global `overflow` keyword on either axis', () => {
+        wrapper.style.overflow = 'inherit';
+
+        expect(getTrimmingContainer(base, 'x')).toBe(window);
+        expect(getTrimmingContainer(base, 'y')).toBe(window);
+      });
+    });
   });
 
   describe('observeVisibilityChangeOnce', () => {

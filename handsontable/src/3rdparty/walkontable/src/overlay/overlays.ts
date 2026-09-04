@@ -357,7 +357,7 @@ class Overlays {
    *
    * @param {boolean} [includeMaster = false] If set to `true`, the list will contain the master table as the last
    * element.
-   * @returns {(TopOverlay|TopInlineStartCornerOverlay|InlineStartOverlay|BottomOverlay|BottomInlineStartCornerOverlay)[]}
+   * @returns {(TopOverlay|BottomOverlay|InlineStartOverlay|TopInlineStartCornerOverlay|BottomInlineStartCornerOverlay)[]}
    */
   getOverlays(includeMaster = false) {
     const overlays: Array<Overlay | Table> = [...this.#overlays];
@@ -427,6 +427,13 @@ class Overlays {
     // actually rendered the band (a `skipRender` hook cancels one that got this far), so the drop is
     // simply retaken on the next draw that can re-measure.
     if (!this.isScrollDrivenDraw) {
+      // An axis owner can move without a settings change (a page rule that clips the root, a
+      // `width` that becomes definite). `adjustElementsSize` re-resolves the owners too, but only on
+      // a draw that moved the overlays or resized the spreader, and a removed clip changes neither –
+      // the overlay then keeps the element while `MasterTable#alignOverlaysWithTrimmingContainer`
+      // resolves the window for the same draw. Before `beginDrawLayout`, which reads the owners
+      // through the viewport predicates.
+      this.#refreshAxisOwners();
       this.#scrollSync.resetSizesMeasuredBeforeLayoutSettled();
     }
 
@@ -435,6 +442,15 @@ class Overlays {
     }, false));
 
     this.#overlays.forEach(overlay => overlay.updateStateOfRendering('before'));
+  }
+
+  /**
+   * Re-resolves the axis owners held by the three region overlays (the corners read those).
+   */
+  #refreshAxisOwners() {
+    this.topOverlay.updateTrimmingContainer();
+    this.inlineStartOverlay.updateTrimmingContainer();
+    this.bottomOverlay.updateTrimmingContainer();
   }
 
   /**
@@ -477,6 +493,9 @@ class Overlays {
     // either; the flag survives to the next full draw.
     if (!this.isScrollDrivenDraw) {
       this.#scrollSync.resolveProvisionalLayout();
+      // After the provisional pass, so a table that just settled is not rebound twice and keeps the
+      // size drop that pass schedules.
+      this.#scrollSync.resyncScrollableElementsWithOwners();
     }
   }
 

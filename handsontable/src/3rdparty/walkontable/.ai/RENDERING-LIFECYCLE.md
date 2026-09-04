@@ -103,12 +103,15 @@ Two gate levels decide how much of the snapshot a draw consumes:
 
 | Gate | Condition | What reads the snapshot |
 |---|---|---|
-| **Broad** (scroll detection) | `singlePassLayout && !isVerticallyScrollableByWindow()` | `hasVerticalScroll()` / `hasHorizontalScroll()` — `workspaceSize.ts:241,261` |
-| **Strict** (`usesLayoutSnapshotForCalculators`, `calculatorFactory.ts:280`) | broad **+** `!isHorizontallyScrollableByWindow() && rowHeightsUniform && columnWidthsUniform` | the row/column calculators + `getWorkspaceWidth/Height` + skip the second calculator pass |
+| **Broad** (scroll detection) | `singlePassLayout && !isVerticallyScrollableByWindow() && !isHorizontallyScrollableByWindow()` | `hasVerticalScroll()` / `hasHorizontalScroll()` — `workspaceSize.ts` |
+| **Strict** (`usesLayoutSnapshotForCalculators`, `calculatorFactory.ts`) | broad **+** `rowHeightsUniform && columnWidthsUniform` | the row/column calculators + `getWorkspaceWidth/Height` + skip the second calculator pass |
 
 Window-scrolled tables always measure: the document's scroll depends on other page content, so predicting
 it from this table's totals is unreliable (the `ghostTable` regression that scoped prediction to element
-mode). Non-uniform sizes fall back for the calculators because the content total is not exact up front.
+mode). The two axes are owned separately (`AGENTS.md`, "Per-axis trimming containers"), and the snapshot
+is built for one scroll mode on both, so a table with the window on either axis measures — including the
+split layout of a definite `width` with no sized `height`. Non-uniform sizes fall back for the calculators
+because the content total is not exact up front.
 
 ### The layout snapshot
 

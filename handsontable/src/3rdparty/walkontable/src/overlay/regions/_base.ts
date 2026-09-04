@@ -12,8 +12,10 @@ import {
   CLONE_TYPES,
   CLONE_CLASS_NAMES,
   CLONE_TOP,
+  CLONE_BOTTOM,
   CLONE_INLINE_START,
 } from '../constants';
+import { resolveAxisOwner, type OverflowAxis } from '../axisOwner';
 import Clone from '../../core/clone';
 import {
   applyOverlayScrollbarClearance,
@@ -173,11 +175,26 @@ export abstract class Overlay {
    */
   declare wtRootElement: HTMLElement;
   /**
-   * The trimming container.
+   * The element that owns scrolling on this overlay's axis, or the window. The top and bottom
+   * overlays carry the vertical owner and the inline-start overlay the horizontal one, so the two can
+   * differ: a root element with `overflow-x: clip` and no vertical clip owns the horizontal axis
+   * while the window owns the vertical one. A decision about the *other* axis must go through the
+   * viewport predicates (`isVerticallyScrollableByWindow()` / `isHorizontallyScrollableByWindow()`),
+   * never through this field. The corner overlays, which have no axis of their own, hold the
+   * single-answer trimming container of `getTrimmingContainer()` resolved at construction only – it
+   * is never refreshed – and position themselves from their two neighbours' owners, which
+   * `Overlays#beforeDraw` re-resolves on every full draw.
    *
    * @type {HTMLElement | Window}
    */
   declare trimmingContainer: HTMLElement | Window;
+  /**
+   * The scroll axis this overlay is pinned against: `'y'` for the top and bottom overlays, `'x'` for
+   * the inline-start overlay, `null` for the corners.
+   *
+   * @type {OverflowAxis | null}
+   */
+  #axis: OverflowAxis | null;
   /**
    * Flag indicating if full render is needed.
    *
@@ -223,9 +240,93 @@ export abstract class Overlay {
     this.spreader = spreader;
     this.holder = holder;
     this.wtRootElement = wtRootElement;
-    this.trimmingContainer = getTrimmingContainer((this.hider.parentNode?.parentNode ?? this.hider) as HTMLElement);
+    this.#axis = Overlay.axisOf(type);
+    this.trimmingContainer = this.#resolveTrimmingContainer();
     this.needFullRender = this.shouldBeRendered();
     this.clone = this.makeClone();
+  }
+
+  /**
+   * The scroll axis an overlay of the given type is pinned against.
+   *
+   * @param {string} type The overlay type name (clone name).
+   * @returns {OverflowAxis | null}
+   */
+  static axisOf(type: string): OverflowAxis | null {
+    if (type === CLONE_TOP || type === CLONE_BOTTOM) {
+      return 'y';
+    }
+
+    if (type === CLONE_INLINE_START) {
+      return 'x';
+    }
+
+    return null;
+  }
+
+  /**
+   * Resolves the owner of this overlay's axis (see `trimmingContainer`).
+   *
+   * @returns {HTMLElement | Window}
+   */
+  #resolveTrimmingContainer(): HTMLElement | Window {
+    const base = (this.hider.parentNode?.parentNode ?? this.hider) as HTMLElement;
+
+    if (this.#axis === null) {
+      return getTrimmingContainer(base);
+    }
+
+    return resolveAxisOwner(base, this.#axis, this.wtSettings.getSetting('preventOverflow'));
+  }
+
+  /**
+   * Computes the element that scrolls the table on this overlay's axis: the window when the window
+   * owns the axis, the master holder when the root's parent traps that axis, and otherwise the
+   * nearest scrollable ancestor of the master table (an owner that is an ancestor further up, or the
+   * cross-realm case documented in `AGENTS.md`, where the two helpers disagree).
+   *
+   * The parent's overflow is read per axis. The shorthand read the engine used to make here compares
+   * `overflow` against `'hidden'`/`'clip'`, and a root that clips one axis only computes to
+   * `"clip visible"`, which matches neither — the case this whole per-axis resolution exists for.
+   *
+   * The corners have no axis; they keep the single-answer form (the parent's `overflow` shorthand,
+   * then `preventOverflow`, then the scrollable ancestor).
+   *
+   * @returns {HTMLElement | Window}
+   */
+  #computeMainScrollableElement(): HTMLElement | Window {
+    const wtTable = this.#deps.getWtTable();
+    const { rootWindow, geometryReader } = this.#deps;
+    const tableParent = wtTable.wtRootElement.parentNode;
+    const parentStyle = tableParent && tableParent.nodeType === 1
+      ? geometryReader.getComputedStyle(tableParent as Element)
+      : null;
+    const traps = (value: string) => value === 'hidden' || value === 'clip';
+
+    if (this.#axis === null) {
+      const preventOverflow = this.wtSettings.getSetting('preventOverflow');
+
+      if (parentStyle && traps(parentStyle.getPropertyValue('overflow'))) {
+        return wtTable.holder;
+      }
+
+      if (preventOverflow === 'horizontal' && this.type === CLONE_TOP ||
+          preventOverflow === 'vertical' && this.type === CLONE_INLINE_START) {
+        return rootWindow;
+      }
+
+      return getScrollableElement(wtTable.TABLE);
+    }
+
+    if (this.trimmingContainer === rootWindow) {
+      return rootWindow;
+    }
+
+    if (parentStyle && traps(parentStyle.getPropertyValue(this.#axis === 'x' ? 'overflow-x' : 'overflow-y'))) {
+      return wtTable.holder;
+    }
+
+    return getScrollableElement(wtTable.TABLE);
   }
 
   abstract resetFixedPosition(): boolean;
@@ -357,36 +458,17 @@ export abstract class Overlay {
   }
 
   /**
-   * Update the trimming container.
+   * Update the trimming container (the owner of this overlay's axis).
    */
   updateTrimmingContainer() {
-    this.trimmingContainer = getTrimmingContainer((this.hider.parentNode?.parentNode ?? this.hider) as HTMLElement);
+    this.trimmingContainer = this.#resolveTrimmingContainer();
   }
 
   /**
    * Update the main scrollable element.
    */
   updateMainScrollableElement() {
-    const wtTable = this.#deps.getWtTable();
-    const { rootWindow } = this.#deps;
-    const computedOverflow = this.#deps.geometryReader
-      .getComputedStyle(wtTable.wtRootElement.parentNode as Element)
-      .getPropertyValue('overflow');
-
-    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
-
-    if (computedOverflow === 'hidden' || computedOverflow === 'clip') {
-      this.mainTableScrollableElement = this.#deps.getWtTable().holder;
-
-    } else if (
-      preventOverflow === 'horizontal' && this.type === CLONE_TOP ||
-      preventOverflow === 'vertical' && this.type === CLONE_INLINE_START
-    ) {
-      this.mainTableScrollableElement = rootWindow;
-
-    } else {
-      this.mainTableScrollableElement = getScrollableElement(wtTable.TABLE);
-    }
+    this.mainTableScrollableElement = this.#computeMainScrollableElement();
   }
 
   /**
@@ -469,15 +551,17 @@ export abstract class Overlay {
     onFixedRowTop: boolean, onFixedColumn: boolean,
     elementOffset: { start: number; top: number }, spreaderOffset: { start: number; top: number }) {
     const { geometryReader } = this.#deps;
+    const wtViewport = this.#deps.getWtViewport();
+    const wtOverlays = this.#deps.getWtOverlays();
     const absoluteRootElementPosition =
       geometryReader.getBoundingClientRect(this.#deps.getWtTable().wtRootElement);
-    // `preventOverflow` can force this overlay onto the window (see `makeClone()`) while the
-    // master still scrolls its holder. `wtRootElement` does not move with that scroll, so
-    // subtract the master scroll from spreader-based offsets to align with the visible cell (#10403).
-    const masterScrollsHolder = this.#deps.getWtOverlays().scrollableElement !== this.#deps.rootWindow;
+    // This overlay scrolls with the window on its own axis, but the master may still scroll its
+    // holder on the other one (a definite `width` with no sized `height`, or `preventOverflow`).
+    // `wtRootElement` does not move with that scroll, so subtract the master scroll from
+    // spreader-based offsets on every holder-owned axis to align with the visible cell (#10403).
     const tableScrollPosition = {
-      horizontal: masterScrollsHolder ? this.#deps.getWtOverlays().inlineStartOverlay.getScrollPosition() : 0,
-      vertical: masterScrollsHolder ? this.#deps.getWtOverlays().topOverlay.getScrollPosition() : 0,
+      horizontal: wtViewport.isHorizontallyScrollableByWindow() ? 0 : wtOverlays.inlineStartOverlay.getScrollPosition(),
+      vertical: wtViewport.isVerticallyScrollableByWindow() ? 0 : wtOverlays.topOverlay.getScrollPosition(),
     };
     let horizontalOffset = 0;
     let verticalOffset = 0;
@@ -567,7 +651,7 @@ export abstract class Overlay {
     }
     const wtTable = this.#deps.getWtTable();
     const { wtSettings } = this;
-    const { rootDocument, rootWindow } = this.#deps;
+    const { rootDocument } = this.#deps;
     const clone = rootDocument.createElement('div');
     const clonedTable = rootDocument.createElement('table');
     const tableParent = wtTable.wtRootElement.parentNode;
@@ -607,22 +691,7 @@ export abstract class Overlay {
 
     tableParent.appendChild(clone);
 
-    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
-    const computedOverflow = this.#deps.geometryReader.getComputedStyle(tableParent as Element)
-      .getPropertyValue('overflow');
-
-    if (computedOverflow === 'hidden' || computedOverflow === 'clip') {
-      this.mainTableScrollableElement = wtTable.holder;
-
-    } else if (
-      preventOverflow === 'horizontal' && this.type === CLONE_TOP ||
-      preventOverflow === 'vertical' && this.type === CLONE_INLINE_START
-    ) {
-      this.mainTableScrollableElement = rootWindow;
-
-    } else {
-      this.mainTableScrollableElement = getScrollableElement(wtTable.TABLE);
-    }
+    this.mainTableScrollableElement = this.#computeMainScrollableElement();
 
     // Create a new instance of the Walkontable class
     return new Clone(clonedTable, this.wtSettings, createCloneDeps(this.#deps, this)) as WalkontableInstance;

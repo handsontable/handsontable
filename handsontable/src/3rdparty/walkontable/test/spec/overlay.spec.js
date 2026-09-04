@@ -133,6 +133,120 @@ describe('WalkontableOverlay', () => {
     expect($(wt.wtOverlays.bottomOverlay.clone.wtTable.holder).height()).toBe(47);
   });
 
+  describe('with the horizontal axis clipped by the root and the vertical axis scrolled by the window', () => {
+    const ROOT_WIDTH = 300;
+
+    beforeEach(() => {
+      spec().$wrapper
+        .css('overflow', '')
+        .css('overflow-x', 'clip')
+        .css('width', `${ROOT_WIDTH}px`)
+        .css('height', '');
+    });
+
+    afterEach(() => {
+      window.scrollTo(0, 0);
+    });
+
+    it('should cloned overlays have to have proper dimensions', async() => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedColumnsStart: 2,
+        fixedRowsTop: 2,
+        fixedRowsBottom: 2,
+      });
+
+      wt.draw();
+
+      const hiderHeight = $(wt.wtTable.hider).height();
+
+      expect($(wt.wtTable.holder).width()).toBe(ROOT_WIDTH);
+      // The holder is at content height plus its own horizontal scrollbar, which is the whole
+      // point of this layout: the columns past the root's width scroll inside the holder.
+      expect($(wt.wtTable.holder).height()).toBe(hiderHeight + getScrollbarWidth());
+      expect(wt.wtTable.holder.scrollWidth).toBeGreaterThan(wt.wtTable.holder.clientWidth);
+      // The top clone spans the root's full width: the vertical scrollbar belongs to the page, not
+      // to the holder, so nothing is subtracted for it.
+      expect($(wt.wtOverlays.topOverlay.clone.wtTable.holder).width()).toBe(ROOT_WIDTH);
+      expect($(wt.wtOverlays.topOverlay.clone.wtTable.holder).height()).toBe(47);
+      expect($(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder).width()).toBe(100);
+      expect($(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder).height()).toBe(47);
+      expect($(wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder).width()).toBe(100);
+      // The frozen columns run the full content height, the way they do in window mode, and stop
+      // where the rows stop - above the holder's horizontal scrollbar, which they must not cover.
+      expect($(wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder).height()).toBe(hiderHeight);
+      expect($(wt.wtOverlays.bottomInlineStartCornerOverlay.clone.wtTable.holder).width()).toBe(100);
+      expect($(wt.wtOverlays.bottomInlineStartCornerOverlay.clone.wtTable.holder).height()).toBe(47);
+      expect($(wt.wtOverlays.bottomOverlay.clone.wtTable.holder).width()).toBe(ROOT_WIDTH);
+      expect($(wt.wtOverlays.bottomOverlay.clone.wtTable.holder).height()).toBe(47);
+    });
+
+    it('should scroll the columns with the holder and the rows with the window', async() => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedColumnsStart: 2,
+        fixedRowsTop: 2,
+      });
+
+      wt.draw();
+
+      expect(wt.wtOverlays.inlineStartOverlay.mainTableScrollableElement).toBe(wt.wtTable.holder);
+      expect(wt.wtOverlays.topOverlay.mainTableScrollableElement).toBe(window);
+      expect(wt.wtOverlays.scrollableElement).toBe(wt.wtTable.holder);
+    });
+
+    it('should keep the frozen columns pinned to the root edge while the holder scrolls', async() => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedColumnsStart: 2,
+        fixedRowsTop: 2,
+      });
+
+      wt.draw();
+      wt.wtTable.holder.scrollLeft = 400;
+      wt.draw();
+
+      const rootRect = spec().$wrapper[0].getBoundingClientRect();
+      const inlineStartRoot = wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder.parentNode;
+      const cornerRoot = wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder.parentNode;
+      const inlineStartRect = inlineStartRoot.getBoundingClientRect();
+      const cornerRect = cornerRoot.getBoundingClientRect();
+
+      expect(wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(400);
+      expect(inlineStartRect.left).toBe(rootRect.left);
+      expect(cornerRect.left).toBe(rootRect.left);
+    });
+
+    it('should keep the frozen rows pinned to the viewport top while the window scrolls', async() => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedColumnsStart: 2,
+        fixedRowsTop: 2,
+      });
+
+      wt.draw();
+      window.scrollTo(0, 300);
+      wt.draw();
+
+      const topRoot = wt.wtOverlays.topOverlay.clone.wtTable.holder.parentNode;
+      const cornerRoot = wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder.parentNode;
+      const topRect = topRoot.getBoundingClientRect();
+      const cornerRect = cornerRoot.getBoundingClientRect();
+
+      expect(wt.wtOverlays.topOverlay.getScrollPosition()).toBe(300);
+      expect(Math.round(topRect.top)).toBe(0);
+      expect(Math.round(cornerRect.top)).toBe(0);
+    });
+  });
+
   it('should cloned overlays have to have proper dimensions after table scroll (overflow hidden)', async() => {
     const wt = walkontable({
       data: getData,
@@ -1009,19 +1123,22 @@ describe('WalkontableOverlay', () => {
     const overlays = wtOverlaysRef.getOverlays();
     const overlaysWithMaster = wtOverlaysRef.getOverlays(true);
 
+    // Construction order (the corners come last because they are built from the region overlays).
+    // The list used to be asserted in the pre-#12951 order, and the failure went unreported: a failed
+    // `toEqual` on overlay objects could not cross the reporter bridge, so the spec was dropped.
     expect(overlays).toEqual([
       wtOverlaysRef.topOverlay,
-      wtOverlaysRef.topInlineStartCornerOverlay,
-      wtOverlaysRef.inlineStartOverlay,
       wtOverlaysRef.bottomOverlay,
+      wtOverlaysRef.inlineStartOverlay,
+      wtOverlaysRef.topInlineStartCornerOverlay,
       wtOverlaysRef.bottomInlineStartCornerOverlay
     ]);
 
     expect(overlaysWithMaster).toEqual([
       wtOverlaysRef.topOverlay,
-      wtOverlaysRef.topInlineStartCornerOverlay,
-      wtOverlaysRef.inlineStartOverlay,
       wtOverlaysRef.bottomOverlay,
+      wtOverlaysRef.inlineStartOverlay,
+      wtOverlaysRef.topInlineStartCornerOverlay,
       wtOverlaysRef.bottomInlineStartCornerOverlay,
       wtOverlaysRef.wtTable
     ]);

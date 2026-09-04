@@ -76,10 +76,9 @@ export class InlineStartOverlay extends Overlay {
 
     const { rootWindow } = this.deps;
     const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
-    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
     let overlayPosition = 0;
 
-    if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'horizontal')) {
+    if (this.trimmingContainer === rootWindow) {
       overlayPosition = this.getOverlayOffset() * (this.isRtl() ? -1 : 1);
       setOverlayPosition(overlayRoot, `${overlayPosition}px`, '0px');
 
@@ -191,12 +190,15 @@ export class InlineStartOverlay extends Overlay {
     const { rootDocument, rootWindow } = this.deps;
     const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
     const overlayRootStyle = overlayRoot.style;
-    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
+    // Height is a vertical question: this overlay is sized against the scrollport whenever an
+    // element owns the vertical axis, whichever owner its own (horizontal) axis has. Reading its own
+    // owner here would size the frozen-column clone to the full hider height on a grid that scrolls
+    // horizontally inside its box and vertically with the window.
+    const rootSized = !wtViewport.isVerticallyScrollableByWindow();
     // The master's horizontal scrollbar sits along the bottom edge this overlay covers. Only worth a
-    // strip when this overlay is sized against the scrollport - otherwise the page scrolls, the
-    // scrollbar is not under this overlay, and clipping would expose the master for nothing.
-    const rootSized = this.trimmingContainer !== rootWindow || preventOverflow === 'vertical';
+    // strip when the holder owns that scrollbar - otherwise the page scrolls, the scrollbar is not
+    // under this overlay, and clipping would expose the master for nothing.
     // A touch-only device has no pointer that could reach the scrollbar - see `canGrabScrollbar`.
     // Clip and band together, or not at all - see `TopOverlay#adjustRootElementSize`.
     const clearanceApplies = holderOwnsScrollbars(this.trimmingContainer, rootWindow);
@@ -212,7 +214,9 @@ export class InlineStartOverlay extends Overlay {
     if (rootSized) {
       let height = wtViewport.getWorkspaceHeight();
 
-      if (wtViewport.hasHorizontalScroll()) {
+      // Only the holder's own horizontal scrollbar takes height off this overlay; the page's
+      // scrollbar sits outside the grid's box.
+      if (wtViewport.hasHorizontalScroll() && !wtViewport.isHorizontallyScrollableByWindow()) {
         // The same rule the top and bottom overlays apply to widths - `clientHeight` accounts for the
         // horizontal scrollbar at the browser's sub-pixel accuracy, where a rounded
         // `getScrollbarWidth()` diverges under fractional zoom and gave the frozen overlay a different
@@ -408,10 +412,9 @@ export class InlineStartOverlay extends Overlay {
    */
   getOverlayOffset() {
     const { rootWindow } = this.deps;
-    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
     let overlayOffset = 0;
 
-    if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'horizontal')) {
+    if (this.trimmingContainer === rootWindow) {
       if (this.isRtl()) {
         overlayOffset = Math.abs(Math.min(this.getTableParentOffset() - this.getScrollPosition(), 0));
       } else {

@@ -1,8 +1,9 @@
 import type { TableDeps } from '../baseTable';
+import type { GeometryReader } from '../../domMeasure/geometryReader';
 import {
-  getTrimmingContainer,
   isVisible,
 } from '../../../../../helpers/dom/element';
+import { resolveAxisOwner } from '../../overlay/axisOwner';
 import Table from '../baseTable';
 import { rowRangeQuery, columnRangeQuery } from '../rangeQuery/virtualRange';
 import { mixin } from '../../../../../helpers/object';
@@ -29,6 +30,100 @@ interface TrimmingContainerCache {
   holderHeight: string;
   hasTableHeight: boolean;
   hasTableWidth: boolean;
+}
+
+/**
+ * Measures the height a container has on its own, without its content: an empty clone of it is
+ * laid out next to it and read. `0` means the container's height is driven entirely by its content
+ * (the grids inside it), and sizing the holder to that height in pixels feeds the container's height
+ * back into itself – with two grids sharing the container, each holder takes the sum of both and
+ * the container grows to the browser's CSS height limit (issue #3119). `null` when the container
+ * has no parent to lay the clone out in.
+ *
+ * @param {GeometryReader} geometryReader The geometry reader.
+ * @param {HTMLElement} element The container to probe.
+ * @returns {number | null}
+ */
+function measureIntrinsicHeight(geometryReader: GeometryReader, element: HTMLElement): number | null {
+  const { parentElement } = element;
+
+  if (!parentElement) {
+    return null;
+  }
+
+  const cloneNode = element.cloneNode(false) as HTMLElement;
+
+  // Before calculating the height of the trimming element, set overflow: auto to hide scrollbars.
+  // An issue occurred on Firefox, where an empty element with overflow: scroll returns an element height higher than 0px
+  // despite an empty content within.
+  cloneNode.style.overflow = 'auto';
+  // Issue #9545 shows problem with calculating height for HOT on Firefox while placing instance in some
+  // flex containers and setting overflow for some `div` section.
+  cloneNode.style.position = 'absolute';
+  // Reset border and padding so border-box sizing does not contribute to the measured height.
+  // Without this, a container with a visible border (e.g. border: 1px solid) produces
+  // cloneHeight = 2 even though it has no intrinsic height, preventing the zero-height
+  // detection that guards against the feedback-loop bug. See issue #3119.
+  cloneNode.style.border = '0';
+  cloneNode.style.padding = '0';
+
+  if (element.nextElementSibling) {
+    parentElement.insertBefore(cloneNode, element.nextElementSibling);
+  } else {
+    parentElement.appendChild(cloneNode);
+  }
+
+  const cloneHeight = parseInt(geometryReader.getComputedStyle(cloneNode).height, 10);
+
+  parentElement.removeChild(cloneNode);
+
+  return cloneHeight;
+}
+
+/**
+ * Lays the holder out for split axis owners. An element-owned axis gets the owner's box on that
+ * axis and the holder scrolls inside it; a window-owned axis is left to the DOM (block-fill width,
+ * content height), and the window scrolls it. The holder's overflow is cleared so the stylesheet's
+ * `.ht_master .wtHolder { overflow: auto }` applies; with a content-driven height the vertical
+ * axis has nothing to scroll, so `auto` on both axes is the mixed mode. `.ht_master` is cleared
+ * too, releasing the `overflow: visible` the window mode writes, so its stylesheet
+ * `overflow: hidden` clips the clones to the box.
+ *
+ * A vertical owner with no intrinsic height (a parent with `overflow-y: hidden` and no `height`)
+ * is content-driven as well: it gets `auto` like the window, not its own pixel height, which would
+ * be the #3119 feedback loop the element mode guards against. Probed on every full draw – this mode
+ * caches nothing, and the probe runs only when the vertical owner is an element.
+ *
+ * @param {Table} table The master table.
+ * @param {HTMLElement | Window} ownerX The owner of the horizontal axis.
+ * @param {HTMLElement | Window} ownerY The owner of the vertical axis.
+ */
+function alignHolderWithSplitOwners(table: Table, ownerX: HTMLElement | Window, ownerY: HTMLElement | Window) {
+  const { geometryReader } = table.deps;
+  const holderStyle = table.holder.style;
+
+  if (ownerX instanceof HTMLElement) {
+    const width = Math.min(geometryReader.offsetWidth(ownerX), geometryReader.scrollWidth(ownerX));
+
+    holderStyle.width = `${width}px`;
+    table.hasTableWidth = width > 0;
+  } else {
+    holderStyle.width = '';
+    table.hasTableWidth = true;
+  }
+
+  if (ownerY instanceof HTMLElement && measureIntrinsicHeight(geometryReader, ownerY) !== 0) {
+    const height = Math.min(geometryReader.offsetHeight(ownerY), geometryReader.scrollHeight(ownerY));
+
+    holderStyle.height = `${height}px`;
+    table.hasTableHeight = height > 0;
+  } else {
+    holderStyle.height = 'auto';
+    table.hasTableHeight = true;
+  }
+
+  holderStyle.overflow = '';
+  table.wtRootElement.style.overflow = '';
 }
 
 /**
@@ -92,17 +187,35 @@ class MasterTable extends Table {
     // reset and the trailing isVisible check) still run, matching the
     // pre-DEV-1777 behaviour and the side effects callers depend on.
     const fieldsInitialized = #trimmingCache in this;
-    const trimmingElement = getTrimmingContainer(this.wtRootElement);
+    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
+    // Each axis has its own owner (see `overlay/axisOwner.ts`). The overlays read the same two
+    // answers off their own `trimmingContainer` fields, so the holder laid out here and the
+    // predicates the rest of the engine reads cannot disagree.
+    const ownerX = resolveAxisOwner(this.wtRootElement, 'x', preventOverflow);
+    const ownerY = resolveAxisOwner(this.wtRootElement, 'y', preventOverflow);
+    const xIsElement = ownerX instanceof HTMLElement;
+    const yIsElement = ownerY instanceof HTMLElement;
+    const trimmingElement = ownerX;
     const { geometryReader } = this.deps;
 
-    if (!(trimmingElement instanceof HTMLElement)) {
-      const preventOverflow = this.wtSettings.getSetting('preventOverflow');
-
+    if (!xIsElement && !yIsElement) {
       if (!preventOverflow) {
         this.holder.style.overflow = 'visible';
         this.wtRootElement.style.overflow = 'visible';
       }
-    } else if (fieldsInitialized) {
+    } else if (!(xIsElement && yIsElement && ownerX === ownerY)) {
+      // Split owners: one axis scrolls inside an element and the other with the window (or with a
+      // different element). The holder is sized on each axis by that axis's owner alone. A free
+      // function, not a private method: this branch also runs from the base-class constructor,
+      // where a `#method` call fails the brand check the way a `#field` read does.
+      alignHolderWithSplitOwners(this, ownerX, ownerY);
+
+      if (fieldsInitialized) {
+        // Nothing is cached in this mode (there is no clone probe to save), and a cache left over
+        // from the single-owner mode must not be replayed when the grid returns to it.
+        this.#trimmingCache = null;
+      }
+    } else if (fieldsInitialized && trimmingElement instanceof HTMLElement) {
       // Bind ResizeObservers on the first call, and re-bind on the rare draw
       // where the trimming container has changed (HOT reparented in the DOM).
       // Each rebind also nulls the cache, since the previous measurement was
@@ -168,7 +281,6 @@ class MasterTable extends Table {
         // Slow path: full measurement of the trimming container. Runs on
         // the first draw, whenever the fingerprint no longer matches, and
         // whenever a ResizeObserver callback has nulled the cache.
-        const trimmingElementParent = trimmingElement.parentElement;
         const holderStyle = this.holder.style;
         let width = trimmingOffsetWidth;
         let height = trimmingOffsetHeight;
@@ -185,32 +297,8 @@ class MasterTable extends Table {
           ].some(v => v && overflowValues.includes(v));
         let useAutoHeight = (trimmingHeight === 'auto');
 
-        if (trimmingElementParent && hasScrollOverflow) {
-          const cloneNode = trimmingElement.cloneNode(false) as HTMLElement;
-
-          // Before calculating the height of the trimming element, set overflow: auto to hide scrollbars.
-          // An issue occurred on Firefox, where an empty element with overflow: scroll returns an element height higher than 0px
-          // despite an empty content within.
-          cloneNode.style.overflow = 'auto';
-          // Issue #9545 shows problem with calculating height for HOT on Firefox while placing instance in some
-          // flex containers and setting overflow for some `div` section.
-          cloneNode.style.position = 'absolute';
-          // Reset border and padding so border-box sizing does not contribute to the measured height.
-          // Without this, a container with a visible border (e.g. border: 1px solid) produces
-          // cloneHeight = 2 even though it has no intrinsic height, preventing the zero-height
-          // detection that guards against the feedback-loop bug. See issue #3119.
-          cloneNode.style.border = '0';
-          cloneNode.style.padding = '0';
-
-          if (trimmingElement.nextElementSibling) {
-            trimmingElementParent.insertBefore(cloneNode, trimmingElement.nextElementSibling);
-          } else {
-            trimmingElementParent.appendChild(cloneNode);
-          }
-
-          const cloneHeight = parseInt(geometryReader.getComputedStyle(cloneNode).height, 10);
-
-          trimmingElementParent.removeChild(cloneNode);
+        if (hasScrollOverflow) {
+          const cloneHeight = measureIntrinsicHeight(geometryReader, trimmingElement);
 
           if (cloneHeight === 0) {
             height = 0;

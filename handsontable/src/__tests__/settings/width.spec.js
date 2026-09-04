@@ -454,9 +454,9 @@ describe('settings', () => {
       it('should render vertically when `width` is narrower than the columns and `height` is omitted', async() => {
         // A width-constrained grid whose columns are wider than the width renders at content height
         // and scrolls vertically with the window (previously the whole grid collapsed to `0px`).
-        // Known limitation: the columns past the constrained width are clipped by the root's
-        // `overflow-x: clip` and are not reachable via a horizontal scrollbar — reaching them needs
-        // per-axis trimming (window vertical + element horizontal), tracked in a follow-up task.
+        // The root's `overflow-x: clip` makes the root the owner of the horizontal axis, so the
+        // columns past the constrained width are reached through the holder's own horizontal
+        // scrollbar while the window keeps the vertical axis.
         const hot = handsontable({
           data: createSpreadsheetData(8, 10),
           rowHeaders: true,
@@ -472,6 +472,29 @@ describe('settings', () => {
         // Not collapsed: the grid is visible and sizes vertically to its content.
         expect(holder.getBoundingClientRect().height).toBeGreaterThan(0);
         expect(hot.view.isVerticallyScrollableByWindow()).toBe(true);
+        expect(hot.view.isHorizontallyScrollableByWindow()).toBe(false);
+        expect(hot.view.hasHorizontalScroll()).toBe(true);
+        expect(holder.scrollWidth).toBeGreaterThan(holder.clientWidth);
+      });
+
+      it('should scroll the holder horizontally to a column past the constrained `width`', async() => {
+        const hot = handsontable({
+          data: createSpreadsheetData(8, 10),
+          rowHeaders: true,
+          colHeaders: true,
+          colWidths: 150,
+          width: 300,
+        });
+
+        const holder = hot.rootElement.querySelector('.ht_master .wtHolder');
+
+        await scrollViewportTo({
+          row: 0,
+          col: 9,
+        });
+
+        expect(holder.scrollLeft).toBeGreaterThan(0);
+        expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(holder.scrollLeft);
       });
 
       it('should not clip horizontally when `width` is a percentage and `height` is omitted', async() => {

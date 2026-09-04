@@ -95,7 +95,7 @@ function measureHasVerticalScroll(viewport: Viewport): boolean {
 function measureHasHorizontalScroll(viewport: Viewport): boolean {
   const { geometryReader } = viewport.deps;
 
-  if (viewport.isVerticallyScrollableByWindow()) {
+  if (viewport.isHorizontallyScrollableByWindow()) {
     const documentElement = viewport.deps.rootDocument.documentElement;
 
     return geometryReader.scrollWidth(documentElement) > geometryReader.clientWidth(documentElement);
@@ -103,7 +103,10 @@ function measureHasHorizontalScroll(viewport: Viewport): boolean {
 
   const { hider } = viewport.wtTable;
   const hiderOffsetWidth = geometryReader.offsetWidth(hider);
-  const scrollbarWidth = measureHasVerticalScroll(viewport) ? geometryReader.getScrollbarWidth() : 0;
+  // Only the holder's own vertical scrollbar narrows the horizontal scrollport. When the window owns
+  // the vertical axis its scrollbar sits outside the grid's box.
+  const holderHasVerticalScrollbar = !viewport.isVerticallyScrollableByWindow() && measureHasVerticalScroll(viewport);
+  const scrollbarWidth = holderHasVerticalScrollbar ? geometryReader.getScrollbarWidth() : 0;
 
   return hiderOffsetWidth > measureWorkspaceWidth(viewport) - scrollbarWidth;
 }
@@ -275,10 +278,12 @@ export const workspaceSize: WorkspaceSize = {
   hasVerticalScroll(this: Viewport): boolean {
     // Measure the rendered DOM (legacy V18 path) when either:
     //  - single-pass layout is off (escape hatch, e.g. mergeCells), or
-    //  - the table scrolls with the window: the document's scroll depends on other page content, so
-    //    predicting it from this table's content totals is unreliable. Single-pass prediction is
-    //    scoped to element mode, where content-vs-box is deterministic (and validated by test:walkontable).
-    if (!this.wtSettings.getSetting('singlePassLayout') || this.isVerticallyScrollableByWindow()) {
+    //  - the table scrolls with the window on either axis: the document's scroll depends on other
+    //    page content, so predicting it from this table's content totals is unreliable, and the
+    //    snapshot is built for one scroll mode on both axes. Single-pass prediction is scoped to
+    //    element mode, where content-vs-box is deterministic (and validated by test:walkontable).
+    if (!this.wtSettings.getSetting('singlePassLayout') ||
+        this.isVerticallyScrollableByWindow() || this.isHorizontallyScrollableByWindow()) {
       return measureHasVerticalScroll(this);
     }
 
@@ -295,9 +300,10 @@ export const workspaceSize: WorkspaceSize = {
    */
   hasHorizontalScroll(this: Viewport): boolean {
     // Measure the DOM (legacy) when single-pass is off (escape hatch) or the table scrolls with the
-    // window (document scroll is externally influenced); predict only in element mode. See
-    // `hasVerticalScroll` for the rationale.
-    if (!this.wtSettings.getSetting('singlePassLayout') || this.isVerticallyScrollableByWindow()) {
+    // window on either axis (document scroll is externally influenced); predict only in element
+    // mode. See `hasVerticalScroll` for the rationale.
+    if (!this.wtSettings.getSetting('singlePassLayout') ||
+        this.isVerticallyScrollableByWindow() || this.isHorizontallyScrollableByWindow()) {
       return measureHasHorizontalScroll(this);
     }
 
@@ -306,7 +312,9 @@ export const workspaceSize: WorkspaceSize = {
   },
 
   /**
-   * Checks if the table uses the window as a viewport and if there is a vertical scrollbar.
+   * Checks if the window owns the vertical axis: no ancestor of the table traps it vertically, so
+   * the page scrolls the rows. The answer is per axis and can differ from the horizontal one - the
+   * top overlay carries the vertical owner (see `Overlay#trimmingContainer`).
    *
    * @this Viewport
    * @returns {boolean}
@@ -316,7 +324,8 @@ export const workspaceSize: WorkspaceSize = {
   },
 
   /**
-   * Checks if the table uses the window as a viewport and if there is a horizontal scrollbar.
+   * Checks if the window owns the horizontal axis: no ancestor of the table traps it horizontally,
+   * so the page scrolls the columns. The inline-start overlay carries the horizontal owner.
    *
    * @this Viewport
    * @returns {boolean}
