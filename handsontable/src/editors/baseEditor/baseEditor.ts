@@ -93,6 +93,18 @@ export class BaseEditor {
    */
   TD: HTMLTableCellElement | null = null;
   /**
+   * An element the editor renders OUTSIDE its own container – a dropdown, popover or third-party
+   * picker appended to the document body. The grid treats this element and its whole subtree as a
+   * part of the editor, so neither a click landing in it nor the browser focus moving into it
+   * counts as a click or a focus loss outside the grid.
+   *
+   * Left UNINITIALIZED on purpose: an editor that never sets one must keep reading `undefined`,
+   * which is what it read while the property was declared on the factory's type alone.
+   *
+   * @type {HTMLElement}
+   */
+  preventCloseElement?: HTMLElement | null;
+  /**
    * Visual row index.
    *
    * @type {number}
