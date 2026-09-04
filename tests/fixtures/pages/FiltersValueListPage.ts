@@ -94,6 +94,35 @@ export class FiltersValueListPage {
     await expect(this.menu.locator('.htUIMultipleSelect')).toBeVisible();
   }
 
+  /** The list items that currently carry the grid's focus highlight. */
+  focusedListItems(): Locator {
+    return this.menu.locator('.htUIMultipleSelect .ht_master .htCore tbody td.current');
+  }
+
+  /**
+   * Opens the dropdown menu of the given column from the keyboard, the way a user reaches it without
+   * the mouse. The keyboard path keeps the by-value list alive across menu openings, which the click
+   * path does not, so a focus ring left in the list survives into the next opening.
+   *
+   * @param {number} row Visual row index to select first.
+   * @param {number} col Visual column index whose menu opens.
+   */
+  async openMenuWithKeyboard(row: number, col: number): Promise<void> {
+    await this.page.evaluate(([r, c]) => (window as unknown as {
+      hot: { selectCell: (row: number, column: number) => void }
+    }).hot.selectCell(r, c), [row, col]);
+    await this.page.keyboard.press('Alt+Shift+ArrowDown');
+
+    await expect(this.menu).toBeVisible();
+    await expect(this.valueList.first()).toBeVisible();
+  }
+
+  /** Close the menu with the Escape key and wait for it to go away. */
+  async escapeMenu(): Promise<void> {
+    await this.page.keyboard.press('Escape');
+    await expect(this.menu).toBeHidden();
+  }
+
   /** Confirm the menu with the "OK" button and wait for it to close. */
   async confirmMenu(): Promise<void> {
     await this.menu.locator('.htUIButtonOK input').click();

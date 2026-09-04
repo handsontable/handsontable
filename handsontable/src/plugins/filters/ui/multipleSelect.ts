@@ -422,6 +422,15 @@ export class MultipleSelectUI extends BaseUI {
   }
 
   /**
+   * Clears the list's cell selection, so a reopened menu shows no focus ring on the item the user
+   * left focused earlier. The checked values are untouched - only the highlight goes. Tabbing out of
+   * the list already does this; the menu closing is the other way the list stops being focused.
+   */
+  deselect() {
+    this.#itemsBox?.deselectCell();
+  }
+
+  /**
    * Reset DOM structure.
    */
   reset() {
