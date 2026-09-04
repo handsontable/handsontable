@@ -32,7 +32,7 @@ describe('Column header selection scroll (RTL mode)', () => {
       await scrollViewportHorizontally(25);
       await simulateClick(getCell(-1, 5));
 
-      expect(inlineStartOverlay().getScrollPosition()).toBe(51);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(50);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(-1, 5, true));
       expect(scrollIntoViewSpy).toHaveBeenCalledWith({
         block: 'nearest',
@@ -56,7 +56,7 @@ describe('Column header selection scroll (RTL mode)', () => {
       await keyDown('shift');
       await simulateClick(getCell(-1, 5));
 
-      expect(inlineStartOverlay().getScrollPosition()).toBe(51);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(50);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(-1, 4, true));
       expect(scrollIntoViewSpy.calls.thisFor(1)).toBe(getCell(-1, 5, true));
       expect(scrollIntoViewSpy).toHaveBeenCalledWith({
@@ -81,7 +81,7 @@ describe('Column header selection scroll (RTL mode)', () => {
       await selectColumns(4);
       await keyDownUp(['shift', 'arrowleft']);
 
-      expect(inlineStartOverlay().getScrollPosition()).toBe(51);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(50);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(-1, 4, true));
       expect(scrollIntoViewSpy.calls.thisFor(1)).toBe(getCell(-1, 5, true));
       expect(scrollIntoViewSpy).toHaveBeenCalledWith({
@@ -103,7 +103,7 @@ describe('Column header selection scroll (RTL mode)', () => {
       await scrollViewportHorizontally(25);
       await selectColumns(4, 5);
 
-      expect(inlineStartOverlay().getScrollPosition()).toBe(51);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(50);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(-1, 5, true));
       expect(scrollIntoViewSpy).toHaveBeenCalledWith({
         block: 'nearest',
@@ -124,7 +124,7 @@ describe('Column header selection scroll (RTL mode)', () => {
       await scrollViewportHorizontally(25);
       await selectColumns(5, 4);
 
-      expect(inlineStartOverlay().getScrollPosition()).toBe(51);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(50);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(-1, 5, true));
       expect(scrollIntoViewSpy).toHaveBeenCalledWith({
         block: 'nearest',
@@ -280,7 +280,7 @@ describe('Column header selection scroll (RTL mode)', () => {
     await scrollViewportHorizontally(100);
     await selectColumns(9, 0);
 
-    expect(inlineStartOverlay().getScrollPosition()).toBe(251);
+    expect(inlineStartOverlay().getScrollPosition()).toBe(250);
     expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(-1, 9, true));
     expect(scrollIntoViewSpy).toHaveBeenCalledWith({
       block: 'nearest',

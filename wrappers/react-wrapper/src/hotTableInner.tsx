@@ -15,6 +15,8 @@ import { HotEditorHooks, HotTableProps, HotTableRef } from './types';
 import {
   HOT_DESTROYED_WARNING,
   AUTOSIZE_WARNING,
+  EDITOR_PORTAL_HOST_CLASSNAME,
+  MISSING_ROOT_PORTAL_WARNING,
   createEditorPortal,
   getContainerAttributesProps,
   isComponentEditor,
@@ -56,6 +58,12 @@ const HotTableInner = forwardRef<
    * Reference to HOT-native custom editor class instance.
    */
   const globalEditorClassInstance = useRef<Handsontable.editors.BaseEditor | null>(null);
+
+  /**
+   * Stable host for React editor portals. Appended to `rootPortalElement` after init
+   * so core treats editor UI as inside the grid (see `#isPathWithinGrid`).
+   */
+  const editorPortalHostRef = useRef<HTMLElement | null>(null);
 
   /**
    * Reference to the previous props object.
@@ -107,6 +115,31 @@ const HotTableInner = forwardRef<
 
     return null;
   }, [hotElementRef]);
+
+  /**
+   * Get or create the stable editor portal host.
+   *
+   * @returns {HTMLElement | null} The host element, or `null` before a document is available.
+   */
+  const getEditorPortalHost = useCallback((): HTMLElement | null => {
+    const doc = getOwnerDocument();
+
+    if (!doc) {
+      return null;
+    }
+
+    if (!editorPortalHostRef.current) {
+      const host = doc.createElement('div');
+
+      host.className = EDITOR_PORTAL_HOST_CLASSNAME;
+      doc.body.appendChild(host);
+      editorPortalHostRef.current = host;
+    } else if (!editorPortalHostRef.current.isConnected) {
+      doc.body.appendChild(editorPortalHostRef.current);
+    }
+
+    return editorPortalHostRef.current;
+  }, [getOwnerDocument]);
 
   /**
    * Create a new settings object containing the column settings and global editors and renderers.
@@ -203,6 +236,17 @@ const HotTableInner = forwardRef<
 
     __hotInstance.current.init();
 
+    const portalHost = editorPortalHostRef.current;
+    const rootPortalElement = __hotInstance.current.rootPortalElement;
+
+    if (portalHost && rootPortalElement) {
+      if (portalHost.parentNode !== rootPortalElement) {
+        rootPortalElement.appendChild(portalHost);
+      }
+    } else if (portalHost && !rootPortalElement) {
+      warn(MISSING_ROOT_PORTAL_WARNING);
+    }
+
     displayAutoSizeWarning(__hotInstance.current);
 
     if (!displayObsoleteRenderersEditorsWarning(props.children)) {
@@ -213,6 +257,7 @@ const HotTableInner = forwardRef<
      * Destroy the Handsontable instance when the parent component unmounts.
      */
     return () => {
+      editorPortalHostRef.current?.remove();
       clearCache();
       getHotInstance()?.destroy();
     }
@@ -265,13 +310,14 @@ const HotTableInner = forwardRef<
     .map((childNode, columnIndex) => (
       <HotColumnContextProvider columnIndex={columnIndex}
                                 getOwnerDocument={getOwnerDocument}
+                                getEditorPortalHost={getEditorPortalHost}
                                 key={columnIndex}>
         {childNode}
       </HotColumnContextProvider>
     ));
 
   const containerProps = getContainerAttributesProps(props);
-  const editorPortal = createEditorPortal(getOwnerDocument(), props.editor);
+  const editorPortal = createEditorPortal(getOwnerDocument(), props.editor, getEditorPortalHost());
 
   return (
     <Fragment>

@@ -199,7 +199,8 @@ export default (): Record<string, unknown> => {
     /**
      * Information on which of the cell meta properties were set imperatively through `setCellMeta`
      * (for example, by the user or by the context menu). These properties are preserved across
-     * `updateSettings` calls, unlike the properties applied from the declarative `cell` option.
+     * `updateSettings` calls. Such a write wins over a `cell` option value the same key carried before -
+     * unless the call restates `cell`, which is applied last and wins over everything.
      *
      * @private
      * @type {Set}
@@ -208,8 +209,23 @@ export default (): Record<string, unknown> => {
     _userDefinedMetaProps: undefined,
 
     /**
-     * Information on which cell meta properties were set through `setCellMeta` - both imperatively
-     * (user, context menu) and declaratively (the `cell` option). Unlike values derived on demand by
+     * Information on which of the cell meta properties were applied from the declarative `cell` option.
+     * These properties are replayed across the cache reset that `updateSettings` performs, unless the call
+     * restates `cell` – restating it replaces every previously declared entry.
+     *
+     * Declarative writes a plugin makes through `Core#_setCellMetaDeclarative` are deliberately not tracked
+     * here: those plugins re-apply their meta from their own configuration after every update and rely on
+     * the reset dropping it.
+     *
+     * @private
+     * @type {Set}
+     * @default undefined
+     */
+    _cellOptionMetaProps: undefined,
+
+    /**
+     * Information on which cell meta properties were set through `setCellMeta` – imperatively (user,
+     * context menu) and declaratively alike, whatever the origin bucket. Unlike values derived on demand by
      * `getCellMeta` (the cascade, the `cells` function, `type` expansion), these are not rebuilt on
      * access, so the viewport-eviction pass keeps any cell whose set is non-empty.
      *
@@ -369,10 +385,17 @@ export default (): Record<string, unknown> => {
      * - An [autofill](@/guides/cell-features/autofill-values/autofill-values.md) that reaches past the last column stops
      *   at the last column.
      * - [`setDataAtCell()`](@/api/core.md#setdataatcell) and [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) no
-     *   longer create the missing columns when you write past the last column. The write still reaches the source data,
-     *   so [`getSourceData()`](@/api/core.md#getsourcedata) returns the value while the grid never displays it. This
-     *   bullet applies only when your [`data`](#data) is an array of arrays and you do not set the
-     *   [`columns`](#columns) option – in any other configuration these methods never add columns anyway.
+     *   longer create the missing columns when you write past the last column. The write still reaches the source
+     *   data, so [`getSourceData()`](@/api/core.md#getsourcedata) returns the value while the grid never displays it.
+     *   This bullet applies only when your [`data`](#data) is an array of arrays and you do not set the
+     *   [`columns`](#columns) option – in any other configuration these methods never add columns anyway, whatever
+     *   this option is set to.
+     *
+     * This option does not decide whether the value reaches the source data – the write path does. A paste or an
+     * autofill stops at the last column, so nothing is written there at all. A direct
+     * [`setDataAtCell()`](@/api/core.md#setdataatcell) or [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) call
+     * writes the value whatever this option is set to. On an object [`data`](#data) source that direct write is
+     * deprecated as of 18.2.0. See [`setDataAtCell()`](@/api/core.md#setdataatcell), which owns that rule.
      *
      * The option does not stop these ways of adding columns:
      * - The [`alter()`](@/api/core.md#alter) method, including its `insert_col_start` and `insert_col_end` actions.
@@ -773,6 +796,16 @@ export default (): Record<string, unknown> => {
      *
      * Each entry's `row` and `col` are **visual** indexes. This differs from the [`cells`](#cells)
      * option, whose `row` and `column` are physical indexes.
+     *
+     * The `cell` option persists across [`updateSettings()`](@/api/core.md#updatesettings) calls that do not
+     * mention it. Passing `cell` again replaces every previously declared entry, so `cell: []` removes them
+     * all. An entry follows its row through sorting and row moves, and a later
+     * [`setCellMeta()`](@/api/core.md#setcellmeta) call on the same property wins over the declared value -
+     * until the next call restates `cell`, which wins over everything.
+     *
+     * A value that is not an array is ignored, and reported in the console. It does not reach
+     * [`getSettings()`](@/api/core.md#getsettings) either, so the previously declared entries stay in place.
+     * Wrap a single entry in an array.
      *
      * Read more:
      * - [Setting options: Setting cell options](@/guides/configuration/configuration-options/configuration-options.md#set-cell-options)

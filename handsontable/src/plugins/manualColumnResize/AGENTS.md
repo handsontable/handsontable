@@ -69,6 +69,45 @@ outside the selection (or with no selection) resizes just that one.
 `shouldSkipResizeHandlePositioning()` / `shouldRefreshHandleAfterAutoResize()`, which encode the
 double-click-to-autofit behavior.
 
+## The handle and guide are attached lazily and must be detached on teardown
+
+Both elements are created in the constructor and appended to `hot.rootElement` lazily — the handle in
+`setupHandlePosition()` on `mouseover` over a header, the guide in `setupGuidePosition()` on `mousedown`
+over the handle. Four traps come with that (DEV-2719, and all four apply to the row plugin too):
+
+- **`hideHandleAndGuide()` does not detach anything.** It only strips the `active` class. For years the
+  context-menu handler was the only site that actually detached, so `disablePlugin()` and `destroy()` left
+  both elements in the application's container. `#detachHandleAndGuide()` is now the shared teardown for
+  all three sites.
+- **An orphaned handle swallows the click on the header underneath it.** It is `opacity: 0` at rest, so
+  nothing looks broken, but it keeps `z-index: 210`, `pointer-events: auto`, a resize cursor and
+  `opacity: 1` on `:hover` — and the core resolves a cell from `event.target`, so a click on the band hits
+  the orphan and selects nothing. The guide is inert by comparison (`display: none` without `active`).
+- **Do not move the detach into `hideHandleAndGuide()`.** `#onMouseUp()` calls it and then re-runs
+  `setupHandlePosition()`, which early-returns when `shouldSkipResizeHandlePositioning()` sees a click
+  count above one — exactly the second `mouseup` of a double-click. The handle would then be detached for
+  the 500ms until `afterMouseDownTimeout()` restores it, i.e. a flicker on every double-click autosize.
+  For the same reason a completed drag deliberately leaves both elements attached.
+- **`#pressed` must survive the update cycle.** `updatePlugin()` runs `disablePlugin(); enablePlugin();`
+  on any `updateSettings()` carrying the plugin's own key, which is what a framework wrapper sends on
+  every re-render. Resetting the flag in the shared teardown made the `mouseup` ending an in-flight drag
+  take the idle branch, dropping the drag with no `afterColumnResize` and the dragged size never
+  confirmed. The reset lives at the context-menu call site only. Known cost, pre-existing: on a *real*
+  disable the `mouseup` never arrives, so the flag latches true and a later re-enable reads plain pointer
+  movement as a drag. An `event.buttons === 0` check in `#onMouseMove` would close it, but the frozen
+  Jasmine helpers simulate `mousemove` without `buttons`, so it reds 41 of the 147 specs across the two
+  plugin suites — it needs a sweep of those helpers and inline simulations, not a drive-by.
+
+## `afterMouseDownTimeout()` can outlive the plugin
+
+`#onMouseDown` arms it through `hot._registerTimeout`, which is only cleared by `Core#destroy()` — never by
+`disablePlugin()`. So an `updateSettings({ manualColumnResize: false })` inside the 500ms window leaves the
+callback pending on a plugin that is already off, where it would run the resize hooks, write through
+`setManualSize()` into a widths map `disablePlugin()` has already **unregistered**, render, and re-append
+the handle into the container the teardown just cleaned. It therefore opens with an `if (!this.enabled)`
+bail that still resets `#autoresizeTimeout` and `#dblclick`, because `#onMouseDown` only arms a fresh timer
+while `#autoresizeTimeout` is null.
+
 ## Double-click autofit needs AutoColumnSize's listener
 
 `../autoColumnSize/` deliberately leaves its width-recalculation listener bound even when disabled, exactly

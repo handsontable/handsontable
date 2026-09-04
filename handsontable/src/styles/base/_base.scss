@@ -180,8 +180,14 @@
       height: 100%;
       width: 100%;
 
+      // A body cell draws the grid's inline-start frame only when it IS the first cell of its row,
+      // i.e. when no row-header `th` precedes it. With row headers the `th` owns the separator to
+      // column 0 (see the header rules further down), so the cell keeps the plain 0/1 border every
+      // other column has and its content box is the same width as theirs (#6673). `:first-child`,
+      // not `:first-of-type`: the latter also matched the first `td` sitting behind a `th`, which is
+      // what made column 0 carry two borders inside one `col` width.
       &:not(.htFirstDatasetColumnNotRendered) {
-        :where(#{$grid-body-row}) > td:first-of-type {
+        :where(#{$grid-body-row}) > td:first-child {
           border-inline-start-width: 1px;
         }
       }
@@ -322,8 +328,10 @@
         }
       }
 
-      &:first-child,
-      &:nth-child(2) {
+      // Only the first header cell of a row draws the inline-start frame. The second one used to as
+      // well, to give the column-0 header a border behind the row-header corner; that pixel now
+      // belongs to the corner's inline-end border, mirroring the body cells (#6673).
+      &:first-child {
         border-inline-start-width: 1px;
       }
 
@@ -347,7 +355,7 @@
         background-color: var(--ht-header-active-background-color);
       }
 
-      // An active header's inline-start edge has width 0 (only `:first-child`/`:nth-child(2)` reserve
+      // An active header's inline-start edge has width 0 (only `:first-child` reserves
       // it), so its accent went missing there while the inline-end side kept it — most visible on
       // frozen columns. Color the shared gridline on the inline-start neighbour instead, so every
       // active column header shows a matching inline-start accent. `SelectionManager` stamps the
@@ -364,6 +372,39 @@
       // header with this class so the seam gets the same accent.
       &.ht__active_highlight-seam {
         border-inline-end-color: var(--ht-header-active-border-color);
+      }
+    }
+
+    // A row header owns the seam to column 0, and the corner owns the seam to the column-0 header, at
+    // every scroll position and in every overlay (#6673). Ownership has to cover the seam's COLOR too,
+    // and the `th:last-child` rule above would otherwise decide it: the overlay that renders nothing
+    // but the row-header column makes that `th` `:last-child` by structure rather than by position in
+    // the grid, so it would take the grid's outer-frame color there while the same grid with
+    // `fixedColumnsStart` kept the plain cell-border color — visibly different in a theme whose cell
+    // borders are transparent.
+    // The BODY selector deliberately has no `:first-child`. Every `th` in a body row IS a row header
+    // (`afterGetRowHeaderRenderers` lets a grid carry several), and the one that owns the seam to
+    // column 0 is the LAST of them — which is exactly the one that goes `:last-child` in the
+    // row-header-only overlay. The inner ones need no override: they are never `:last-child`, so the
+    // base cell rule already gives them this color. In a HEAD row the corner cells cannot be counted
+    // in CSS, so that half stays keyed on `:first-child` and a grid with two or more row headers
+    // keeps drawing its head-row seam in the frame color, exactly as it does today — same value as
+    // before this change, not a new divergence.
+    // Two exclusions. `.emptyColumns` is the one case where the row header really is the grid's
+    // inline-end edge, so it keeps the frame rule. And an ACTIVE header keeps its accent: the seam is
+    // the active row header's own inline-end, and the active column-0 header's inline-start accent is
+    // drawn by the corner (`ht__active_highlight-prev`), which is where that pixel now lives. Without
+    // these two the accent went missing on the seam — and it went missing only in the shape with one
+    // row header, because a second one is not `:first-child`.
+    &.htRowHeaders {
+      .ht_master:not(.emptyColumns),
+      .ht_master:not(.emptyColumns) ~ .handsontable:not(.htGhostTable) {
+        $seam-owner: ":not(.ht__active_highlight):not(.ht__active_highlight-prev)";
+
+        :where(#{$grid-head-row}) > th:first-child#{$seam-owner},
+        :where(#{$grid-body-row}) > th#{$seam-owner} {
+          border-inline-end-color: var(--ht-cell-horizontal-border-color);
+        }
       }
     }
 
@@ -540,8 +581,9 @@
         }
       }
 
-      // Cell — grid cells only, never a nested user table (#4363)
-      :where(#{$grid-body-row}) > td:first-of-type {
+      // Cell — grid cells only, never a nested user table (#4363).
+      // `:first-child`, not `:first-of-type` — see the master's copy of this rule (#6673).
+      :where(#{$grid-body-row}) > td:first-child {
         border-inline-start-width: 1px;
       }
     }
@@ -663,33 +705,16 @@
       }
     }
 
-    // Visual fixes
-    // It removes double right border from first column header when row headers are disabled
-    // Header border fixes — grid headers only, never a nested user table (#4363).
-    // `:where(table.htCore …)` keeps each selector at its former specificity.
-    .ht_clone_top :where(table.htCore > thead > tr) > th:nth-child(2) {
-      border-inline-start-width: 0;
-      border-inline-end-width: 1px;
-    }
-
-    .ht_clone_top_inline_start_corner :where(table.htCore > thead > tr) > th:nth-child(2) {
-      border-inline-start-width: 0;
-      border-inline-end-width: 1px;
-    }
-
-    &.htRowHeaders :where(table.htCore) > thead > tr > th:nth-child(2) {
-      border-inline-start-width: 1px;
-    }
-
-    .ht_master:not(.innerBorderInlineStart):not(.emptyColumns) {
-      :where(table.htCore) > tbody > tr > th,
-      :where(table.htCore) > thead > tr > th:first-child,
-      ~ .handsontable:not(.htGhostTable) :where(table.htCore) > tbody > tr > th,
-      ~ .handsontable:not(.ht_clone_top):not(.htGhostTable) :where(table.htCore) > thead > tr > th:first-child {
-        border-inline-end-width: 0;
-        border-inline-start-width: 1px;
-      }
-    }
+    // Inline-start axis border ownership (#6673). A row header `th` always carries its 1px
+    // inline-end border — the separator to column 0 — at every scroll position, and no cell behind
+    // it carries an inline-start border. The `th` rules above already produce that, so the three
+    // `th:nth-child(2)` fixes and the `.ht_master:not(.innerBorderInlineStart)` block that used to
+    // trade the border between the two elements are gone. Trading it made the row header 1px wider
+    // once the grid scrolled (`correctHeaderWidth` in the engine) while column 0 held two borders
+    // inside one `col` width, so its content box was 1px narrower than every other column's.
+    // `innerBorderInlineStart`, `innerBorderLeft` and `emptyColumns` are still stamped on
+    // `.ht_master` for backward compatibility, but no rule reads them any more. The row axis
+    // (`innerBorderTop` / `innerBorderBottom`, below) still works the old way.
 
     //  innerBorderTop - Property controlled by top overlay
     //  innerBorderBottom - Property controlled by bottom overlay

@@ -56,6 +56,42 @@ mirroring the old comparison against `undefined`.
 - **The `TR` `background` property is modified so it can be changed asynchronously later.** Only the alpha
   changes, so it is invisible — the TDs' own background covers it. Do not remove it as dead styling.
 
+## The init draw is batched, and four things about it are load-bearing
+
+`#onAfterInit` applies the declared merges between a `suspendRender()` / `resumeRender()` pair (#5687).
+Before that it drew the grid twice — `generateFromSettings()` clears the cells each area covers through
+`setDataAtCell()`, which renders, and the handler then rendered again. Four rules come out of it, and
+each has a measured reason.
+
+- **Keep the explicit `this.hot.render()` inside the pair.** `resumeRender()` draws through
+  `TableView#render`, which picks fast-vs-full from `hot.forceFullRender`, and only `Core#render` sets that
+  flag. On the synchronous path the clearing write sets it for you, but with an async `validator` that
+  write lands *after* `afterInit` returns, so nothing has set the flag by the time `resumeRender()` draws —
+  without the explicit call that draw is a *fast* one, it skips the cell renderers, and the spans never
+  appear.
+- **Never gate that render on "the clearing write already rendered."** Same async `validator`, seen from
+  the other side: its deferred draw **reverses** the order of the two init draws, so the handler's render
+  becomes the one that puts the merges on screen. Gating on the write would leave such a grid unmerged
+  until validation resolves.
+- **Skip the work entirely when no area is declared.** `mergeCells: true` with no `cells` has nothing to
+  apply, and the initial render already shows the final grid, so a draw there repaints an identical table.
+  `resumeRender()` always draws once the pair is entered, so this has to be a check *around* it, not
+  inside.
+- **Do not collapse the pair back into `hot.batchRender()`.** That helper is `suspendRender(); fn();
+  resumeRender();` with **no `finally`** (`core.ts`), and the clearing write runs user code — a
+  `beforeChange` handler, a sync validator. A throw there would skip `resumeRender()` and leave
+  `renderSuspendedCounter` above zero for the rest of the instance's life, so every later `render()`
+  silently does nothing. The explicit `try`/`finally` here is that guard.
+
+Note what the guard does **not** do: the throw still propagates, so `#initialized` and the anchor capture
+are skipped either way. That is unchanged by #5687.
+
+Coverage: `tests/e2e/merge-cells-init-renders.spec.ts` pins the counts, both setting shapes (the array
+form and `{ cells: [...] }`, which reach the guard through different `getSetting()` branches) and the
+async-validator ordering.
+`updatePlugin()` is a separate path and is deliberately untouched — `updateSettings()` renders at the end
+regardless.
+
 ## `cellCoords.ts` handles six structural cases
 
 Adding rows/columns, removing rows/columns, removing the whole merge, removing partially-including-the-start,

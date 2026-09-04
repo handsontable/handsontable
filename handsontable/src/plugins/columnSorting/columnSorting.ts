@@ -673,7 +673,31 @@ export class ColumnSorting extends BasePlugin {
       return Math.max(0, (settings.maxRows ?? 0) - fixedRowsBottom);
     }
 
-    return Math.max(0, numberOfRows - (settings.minSpareRows ?? 0) - fixedRowsBottom);
+    const minSpareRows = settings.minSpareRows ?? 0;
+    // The spare rows are COUNTED, never assumed from the option. `minSpareRows` says how many
+    // trailing empty rows the Core tops the grid up to, not how many are on screen right now:
+    // a filter trims an empty spare row away like any other non-matching row, and nothing
+    // re-creates it while the filter is on. Subtracting the option there pinned the last N real
+    // data rows below the sortable range and left them unsorted (#5983). Counting also caps the
+    // other direction - trailing empty rows beyond `minSpareRows` are ordinary data and stay in
+    // the sort.
+    //
+    // The count stops at `minSpareRows` rather than going through `countEmptyRows(true)`, whose
+    // walk is uncapped: verifying that a row is empty reads every column of it, and this runs on
+    // every sort, so a grid with a large block of trailing empty rows (`minRows`, or a dataset
+    // that simply ends blank) would pay for rows the cap then discards. `adjustRowsAndCols()`
+    // caps its `minSpareCols` count the same way, for the same reason.
+    let spareRows = 0;
+
+    for (let row = numberOfRows - 1; row >= 0 && spareRows < minSpareRows; row--) {
+      if (!this.hot.isEmptyRow(row)) {
+        break;
+      }
+
+      spareRows += 1;
+    }
+
+    return Math.max(0, numberOfRows - spareRows - fixedRowsBottom);
   }
 
   /**
