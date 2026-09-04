@@ -217,12 +217,6 @@ class Table {
    */
   declare columnFilter: ColumnFilter | null;
   /**
-   * Indicates if the header width should be corrected.
-   *
-   * @type {boolean}
-   */
-  declare correctHeaderWidth: boolean;
-  /**
    * The row utilities.
    *
    * @type {RowUtils}
@@ -296,12 +290,12 @@ class Table {
 
     this.rowFilter = null; // TODO refactoring, eliminate all (re)creations of this object, then updates state when needed.
     this.columnFilter = null; // TODO refactoring, eliminate all (re)creations of this object, then updates state when needed.
-    this.correctHeaderWidth = false;
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const origRowHeaderWidth = this.wtSettings.getSettingPure('rowHeaderWidth');
 
-    // Fix for jumping row headers (https://github.com/handsontable/handsontable/issues/3850)
+    // Normalizes whatever the `rowHeaderWidth` setting resolves to (a function, a number, an array
+    // or nothing) into a usable width, falling back to `defaultColumnWidth`.
     this.wtSettings.update('rowHeaderWidth', () => this._modifyRowHeaderWidth(origRowHeaderWidth));
 
     this.rowUtils = new RowUtils(this.#deps);
@@ -368,22 +362,18 @@ class Table {
   }
 
   /**
-   * Correct row header width if necessary.
+   * Resolves a single row header width, falling back to the default column width when the setting
+   * did not provide a number. The width is scroll-position independent: the row header owns its
+   * inline-end border at every offset, so nothing is added here (#6673).
    *
    * @private
    * @param {number | null} width The width to process.
    * @returns {number}
    */
   _correctRowHeaderWidth(width: number | null) {
-    let rowHeaderWidth: number = typeof width === 'number'
+    return typeof width === 'number'
       ? width
       : this.wtSettings.getSetting<number>('defaultColumnWidth');
-
-    if (this.correctHeaderWidth) {
-      rowHeaderWidth += 1;
-    }
-
-    return rowHeaderWidth;
   }
 
   /**

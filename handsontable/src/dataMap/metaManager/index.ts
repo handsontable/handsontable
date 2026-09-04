@@ -46,6 +46,12 @@ interface MetaManagerLocalHooks {
  */
 export default class MetaManager {
   /**
+   * Counts structural changes (row and column inserts and removes). Read through
+   * `getStructureVersion()`.
+   */
+  #structureVersion = 0;
+
+  /**
    * The Handsontable instance passed to this manager on construction.
    */
   declare hot: unknown;
@@ -386,6 +392,61 @@ export default class MetaManager {
   }
 
   /**
+   * Returns the cell meta object only when one is already stored for that cell, and `undefined`
+   * otherwise. Nothing is created, so this is safe on a path that must not materialize meta - the
+   * validation flow uses it to find the cell's *current* meta object without turning a passing
+   * result into a retained object.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @param {number} physicalColumn The physical column index.
+   * @returns {object|undefined}
+   */
+  getCellMetaIfExists(physicalRow: number, physicalColumn: number) {
+    return this.cellMeta.getMetaIfExists(physicalRow, physicalColumn);
+  }
+
+  /**
+   * Returns a counter that changes whenever a captured cell coordinate pair stops meaning what it
+   * meant. Two things do that: a row or column insert or remove, because `LazyFactoryMap` re-keys the
+   * stored meta objects while the `row`/`col` fields stamped on them are not rewritten; and
+   * `clearCellsCache()`, because `loadData` replaces the whole dataset behind those coordinates and
+   * is documented to reset cell state.
+   *
+   * An async validation flow captures this at the start and compares it when the result arrives, so
+   * that a result whose coordinates can no longer be trusted is dropped rather than written onto the
+   * wrong cell - or onto data that has since been replaced.
+   *
+   * `clearCache()` deliberately does NOT bump it. That is the `updateSettings` path, where the rows
+   * and the data stay put and `restoreInvalidCellMetas()` puts the marks back, so an in-flight result
+   * still belongs to the cell it was started for.
+   *
+   * @returns {number}
+   */
+  getStructureVersion() {
+    return this.#structureVersion;
+  }
+
+  /**
+   * Returns the physical coordinates of every cell whose last validation failed. The validation flow
+   * writes `valid` directly onto the meta object, so `getUserDefinedCellMetas` does not cover it.
+   * Used to preserve the invalid-cell highlight across a `clearCache` call during `updateSettings`.
+   *
+   * @returns {{physicalRow: number, physicalColumn: number}[]}
+   */
+  getInvalidCellMetas() {
+    return this.cellMeta.getInvalidMetas();
+  }
+
+  /**
+   * Re-applies the failed validation results captured by `getInvalidCellMetas`.
+   *
+   * @param {{physicalRow: number, physicalColumn: number}[]} invalidCellMetas Coordinates to flag as invalid.
+   */
+  restoreInvalidCellMetas(invalidCellMetas: { physicalRow: number, physicalColumn: number }[]) {
+    this.cellMeta.restoreInvalidMetas(invalidCellMetas);
+  }
+
+  /**
    * Returns a flat snapshot of all cell meta properties applied from the declarative `cell` option, keyed by
    * physical coordinates. Used to replay the option across a `clearCache` call during `updateSettings`, so
    * it survives a call that changes `columns` or `cells` without restating `cell`.
@@ -436,6 +497,7 @@ export default class MetaManager {
    * @param {number} [amount=1] An amount of rows to add.
    */
   createRow(physicalRow: number | null, amount = 1) {
+    this.#structureVersion += 1;
     this.cellMeta.createRow(physicalRow, amount);
   }
 
@@ -446,6 +508,7 @@ export default class MetaManager {
    * @param {number} [amount=1] An amount rows to remove.
    */
   removeRow(physicalRow: number, amount = 1) {
+    this.#structureVersion += 1;
     this.cellMeta.removeRow(physicalRow, amount);
   }
 
@@ -457,6 +520,7 @@ export default class MetaManager {
    * @param {number} [amount=1] An amount of columns to add.
    */
   createColumn(physicalColumn: number | null, amount = 1) {
+    this.#structureVersion += 1;
     this.cellMeta.createColumn(physicalColumn, amount);
     this.columnMeta.createColumn(physicalColumn, amount);
   }
@@ -468,6 +532,7 @@ export default class MetaManager {
    * @param {number} [amount=1] An amount of columns to remove.
    */
   removeColumn(physicalColumn: number, amount = 1) {
+    this.#structureVersion += 1;
     this.cellMeta.removeColumn(physicalColumn, amount);
     this.columnMeta.removeColumn(physicalColumn, amount);
   }
@@ -476,6 +541,9 @@ export default class MetaManager {
    * Clears all saved cell meta objects. It keeps column meta, table meta, and global meta intact.
    */
   clearCellsCache() {
+    // `loadData` replaces the dataset behind every cell, so a coordinate pair captured before this
+    // no longer names the same data - see `getStructureVersion()`.
+    this.#structureVersion += 1;
     this.cellMeta.clearCache();
   }
 

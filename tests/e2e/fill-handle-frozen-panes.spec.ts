@@ -2,10 +2,8 @@ import { test, expect } from '../fixtures/test';
 import { SelectionFeaturesPage } from '../fixtures/pages/SelectionFeaturesPage';
 
 /**
- * The autofill fill handle (`.wtBorder.corner`) against the frozen panes. `.ht_master` declares no
- * z-index, so it opens no stacking context and every border inside it competes directly with the
- * overlay clones. A handle whose z-index reaches the clone range paints over a frozen pane the
- * selection has scrolled under, and wins hit-testing there.
+ * The autofill fill handle (`.wtBorder.corner`) against the frozen panes. `.ht_master` starts a
+ * stacking context below the overlay clones, and every frozen overlay draws its own handle.
  */
 test.describe('fill handle and frozen panes', () => {
   let grid: SelectionFeaturesPage;

@@ -96,32 +96,17 @@
   border-bottom: 1px solid #ccc;
 }
 
+/* Inline-start axis border ownership (#6673): only the first cell of a row draws the frame, so a
+   row header `th` keeps its inline-end border (the separator to column 0) at every scroll position
+   and no cell behind it adds one. `innerBorderInlineStart` / `emptyColumns` drive no geometry. */
 .handsontable th:first-child,
-.handsontable td:first-of-type {
-  border-inline-start: 1px solid #ccc;
-}
-
-/* It removes double right border from first column header when row headers are disabled */
-.handsontable .ht_clone_top th:nth-child(2) {
-  border-inline-start-width: 0;
-  border-inline-end: 1px solid #ccc;
-}
-
-.handsontable.htRowHeaders thead tr th:nth-child(2) {
+.handsontable td:first-child {
   border-inline-start: 1px solid #ccc;
 }
 
 .handsontable tr:first-child th,
 .handsontable tr:first-child td {
   border-top: 1px solid #ccc;
-}
-
-.ht_master:not(.innerBorderInlineStart):not(.emptyColumns) tbody tr th,
-.ht_master:not(.innerBorderInlineStart):not(.emptyColumns) thead tr th:first-child,
-.ht_master:not(.innerBorderInlineStart):not(.emptyColumns) ~ .handsontable:not(.htGhostTable) tbody tr th,
-.ht_master:not(.innerBorderInlineStart):not(.emptyColumns) ~ .handsontable:not(.ht_clone_top):not(.htGhostTable) thead tr th:first-child {
-  border-inline-end-width: 0;
-  border-inline-start: 1px solid #ccc;
 }
 
 /*
@@ -193,9 +178,14 @@ innerBorderBottom - Property controlled by bottom overlay
 /*
  * Overlay clone layers. Declared twice — here and in `src/styles/base/_z-index-map.scss`, which also
  * documents the 101–119 window reserved for selection affordances drawn inside an overlay. Keep the
- * two lists in sync, and keep every affordance below 120: `.ht_master` opens no stacking context, so
- * anything at or above that value paints over a frozen pane its cell has scrolled under.
+ * two lists in sync.
  */
+.ht_master {
+  // Keep the scrollable table and its browser-promoted scrolling layer below the frozen overlays.
+  // This is required when an ancestor's CSS transform creates a separate compositing context.
+  z-index: 0;
+}
+
 .ht_clone_master {
   z-index: 100;
 }

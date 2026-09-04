@@ -846,7 +846,12 @@ describe('AutoRowSize', () => {
 
     await scrollViewportHorizontally(500);
 
-    expect(getComputedStyle(getCell(0, 0, true)).borderLeftWidth).toBe('1px');
+    // The gridline between the row header and the frozen first column must still be drawn while
+    // `htFirstDatasetColumnNotRendered` is on the root element. Since #6673 the row header owns
+    // that gridline (its inline-end border) and the cell behind it draws none, so assert both
+    // sides - a missing seam and a doubled one are both failures.
+    expect(getComputedStyle(getCell(0, -1, true)).borderRightWidth).toBe('1px');
+    expect(getComputedStyle(getCell(0, 0, true)).borderLeftWidth).toBe('0px');
   });
 
   it('should add css class to the .ht-wrapper when plugin is enabled', async() => {
