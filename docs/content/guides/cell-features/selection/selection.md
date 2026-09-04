@@ -311,75 +311,7 @@ This option applies at the grid level and defaults to `false`.
 
 ## Move a selection by dragging
 
-When you set [`moveCells`](@/api/options.md#movecells) to `true`, hovering the border of a selected cell range shows a grab cursor. Dragging that border moves the block's data -- cell values and formatting -- to the new location. Hold <kbd>**Ctrl**</kbd> (Windows) or <kbd>⌘</kbd> (Mac) during the drag to copy instead of move. Press <kbd>**Escape**</kbd> to cancel a drag before releasing.
-
-When the [`formulas`](@/api/options.md#formulas) plugin is active, formula references adjust automatically on move -- the same way they do in Excel.
-
-To enable drag-to-move:
-
-```javascript
-moveCells: true,
-```
-
-This option applies at the grid level and defaults to `false`.
-
-**Limitations:**
-
-- Drag-to-move works on a single contiguous cell range only. It has no effect on full-row, full-column, select-all, or multiple selections.
-- The target must stay within the grid. Neither the target nor the source may overlap read-only cells, because a move has to clear the source. Copying with <kbd>**Ctrl**</kbd> or <kbd>⌘</kbd> leaves the source in place, so a read-only source cell blocks a move but not a copy.
-- Drag-to-move is hidden when [`disableVisualSelection`](@/api/options.md#disablevisualselection) is set.
-- A move that would split a merged cell is blocked.
-
-**Hooks:**
-
-- [`beforeMoveCells`](@/api/hooks.md#beforemovecells) fires before the data relocates. Return `false` from the handler to cancel the move.
-- [`afterMoveCells`](@/api/hooks.md#aftermovecells) fires after the data has been relocated.
-
-To move or copy a range programmatically, call `hot.getPlugin('moveCells').moveCellRange(sourceRange, targetTopLeft, isCopy)`.
-
-::: only-for javascript
-
-::: example #example8 --html 1 --js 2 --ts 3
-
-@[code](@/content/guides/cell-features/selection/javascript/example8.html)
-@[code](@/content/guides/cell-features/selection/javascript/example8.js)
-@[code](@/content/guides/cell-features/selection/javascript/example8.ts)
-
-:::
-
-:::
-
-::: only-for react
-
-::: example #example8 :react --js 1 --ts 2
-
-@[code](@/content/guides/cell-features/selection/react/example8.jsx)
-@[code](@/content/guides/cell-features/selection/react/example8.tsx)
-
-:::
-
-:::
-
-::: only-for angular
-
-::: example #example8 :angular --ts 1 --html 2
-
-@[code](@/content/guides/cell-features/selection/angular/example8.ts)
-@[code](@/content/guides/cell-features/selection/angular/example8.html)
-
-:::
-
-:::
-
-::: only-for vue
-
-::: example #example8 :vue3
-
-@[code](@/content/guides/cell-features/selection/vue/example8.vue)
-
-:::
-
-:::
+When you set [`moveCells`](@/api/options.md#movecells) to `true`, you can drag the border of a selected cell range to move or copy the range's data to a new location. For configuration details, limitations, hooks, and a live demo, see the [Move cells](@/guides/cell-features/move-cells/move-cells.md) guide. To move whole rows or columns instead, see the [Row moving](@/guides/rows/row-moving/row-moving.md) and [Column moving](@/guides/columns/column-moving/column-moving.md) guides.
 
 ## Select cells programmatically
 
@@ -590,3 +522,5 @@ Users can select cells using the configured mode -- single cell, range, or multi
 - [DragToScroll](@/api/dragToScroll.md)
 
 </div>
+
+Microsoft and Excel are registered trademarks of Microsoft Corporation. Google Sheets is a trademark of Google LLC.
