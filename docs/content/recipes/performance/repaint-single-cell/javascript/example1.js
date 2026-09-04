@@ -253,7 +253,14 @@ const hot = new Handsontable(document.querySelector('#example1'), {
   licenseKey: 'non-commercial-and-evaluation',
 });
 
-const singleCellRepaint = installSingleCellRepaint(hot, { source: REPAINT_SOURCE });
+// How many cells the gate will repaint in one change. Past this it hands the
+// change to a normal render, which is still correct -- only slower.
+const MAX_REPAINTED_CELLS = 8;
+
+const singleCellRepaint = installSingleCellRepaint(hot, {
+  source: REPAINT_SOURCE,
+  maxCells: MAX_REPAINTED_CELLS,
+});
 
 const output = document.querySelector('#repaint-output');
 
@@ -264,65 +271,100 @@ let counter = 0;
 const DEFAULT_COLUMN = 2;
 
 /**
- * Answers which cell to write to: the one you selected, or a visible cell if
- * you have not selected anything yet.
+ * Answers which cells to write to: every cell you selected, or a single visible
+ * cell if you have not selected anything yet.
  *
- * `highlight` is the cell you would call current. Reading the range's corners
- * instead would aim at wherever a drag began, which can be the far end.
+ * Handsontable reports one range per selected block, so a ctrl-selection of
+ * several blocks arrives as several ranges. They can overlap, hence the
+ * deduplication. Header coordinates are negative and are not cells.
  */
-function targetCell() {
-  const highlight = hot.getSelectedRangeLast()?.highlight;
+function targetCells() {
+  const ranges = hot.getSelectedRange();
 
-  if (highlight) {
-    return [highlight.row, highlight.col];
+  if (!ranges || ranges.length === 0) {
+    return [[Math.max(0, hot.getFirstFullyVisibleRow() ?? 0), DEFAULT_COLUMN]];
   }
 
-  return [Math.max(0, hot.getFirstFullyVisibleRow() ?? 0), DEFAULT_COLUMN];
+  const seen = new Set();
+  const cells = [];
+
+  ranges.forEach((range) => {
+    range.forAll((row, column) => {
+      if (row < 0 || column < 0) {
+        return;
+      }
+
+      const key = `${row},${column}`;
+
+      if (!seen.has(key)) {
+        seen.add(key);
+        cells.push([row, column]);
+      }
+    });
+  });
+
+  return cells;
 }
 
 /**
- * Writes a new value into the selected cell and reports what the write cost.
+ * Writes a new value into every selected cell and reports what the write cost.
  * The source decides which path the write takes -- there is no flag to toggle,
  * so an asynchronous validator cannot land after a window has closed again.
  */
 function updateCell(useRepaint) {
-  const [row, column] = targetCell();
+  const cells = targetCells();
+  const hadSelection = (hot.getSelectedRange() ?? []).length > 0;
+  const [firstRow, firstColumn] = cells[0];
 
   counter += 1;
 
-  // Select before writing, always. It is what makes the cell visible: a cell
-  // you scrolled away from is scrolled back into view, so the readout can never
-  // name a cell you cannot see.
-  hot.selectCell(row, column);
+  // Bring the first target into view, so the readout can never name a cell you
+  // cannot see. With a selection of your own, scroll to it rather than
+  // reselecting, which would collapse a multi-cell selection to one cell.
+  if (hadSelection) {
+    hot.scrollViewportTo({ row: firstRow, col: firstColumn });
+  } else {
+    hot.selectCell(firstRow, firstColumn);
+  }
 
-  // Reset the counter *after* selecting. Scrolling a cell into view is a real
+  // Reset the counter *after* scrolling. Bringing a cell into view is a real
   // render, and counting it would report the repaint as costing far more than
-  // the one call it actually makes.
+  // the one call per cell it actually makes.
   rendererCalls = 0;
 
   const startedAt = performance.now();
 
   hot.setDataAtCell(
-    row,
-    column,
-    `Updated (${counter})`,
+    cells.map(([row, column]) => [row, column, `Updated (${counter})`]),
+    null,
+    null,
     useRepaint ? REPAINT_SOURCE : 'edit'
   );
 
   const elapsed = performance.now() - startedAt;
   const cost = `${rendererCalls} renderer call${rendererCalls === 1 ? '' : 's'}, ` +
     `${elapsed.toFixed(1)} ms`;
-  const where = `row ${row + 1}, ${hot.getColHeader(column)}`;
+  const where = cells.length === 1
+    ? `row ${firstRow + 1}, ${hot.getColHeader(firstColumn)}`
+    : `${cells.length} cells`;
 
   if (useRepaint && singleCellRepaint.getLastOutcome() === 'declined') {
-    output.textContent = `Repaint declined for ${where} -- the gate turned that cell ` +
-      `down, so Handsontable rendered normally: ${cost}.`;
+    const reason = cells.length > MAX_REPAINTED_CELLS
+      ? `that is more than the ${MAX_REPAINTED_CELLS} cells the gate repaints in one change`
+      : 'the gate turned this change down';
+
+    output.textContent = `Repaint declined for ${where} -- ${reason}, ` +
+      `so Handsontable rendered normally: ${cost}.`;
 
     return;
   }
 
-  output.textContent = `${useRepaint ? 'Repaint one cell' : 'Full render'} ` +
-    `(${where}): ${cost}.`;
+  const label = useRepaint
+    ? `Repaint ${cells.length === 1 ? 'one cell' : `${cells.length} cells`}`
+    : `Full render${cells.length === 1 ? '' : ` of ${cells.length} cells`}`;
+
+  // Naming the cell only makes sense when there is exactly one of them.
+  output.textContent = `${label}${cells.length === 1 ? ` (${where})` : ''}: ${cost}.`;
 }
 
 document.querySelector('#full-render-btn')

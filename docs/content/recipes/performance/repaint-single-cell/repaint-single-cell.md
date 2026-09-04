@@ -42,7 +42,7 @@ The default stops paying off when your renderers are expensive. Every redrawn ce
 
 Click the two buttons in the example above and compare the renderer-call counts. One edit runs the renderer for every cell on screen -- dozens of them -- while the repaint runs it once. Widen the grid or the viewport and the gap grows with it, because the number of drawn cells is what the full render pays for.
 
-Select a cell, then click either button to write to it. With nothing selected, the buttons pick a visible cell for you. Each button selects its target before writing, so a cell you have scrolled away from is scrolled back into view -- the readout never names a cell you cannot see. That matters here, because a cell scrolled out of view has no `td` to paint: the gate would turn the repaint down and Handsontable would render normally, which is correct but makes both buttons look alike.
+Select one or more cells, then click either button to write to all of them, and only them. Drag to select a block, or hold <kbd>Ctrl</kbd> (<kbd>Cmd</kbd> on macOS) to pick separate blocks. With nothing selected, the buttons pick a visible cell for you. Each button scrolls its first target into view before writing, leaving your selection exactly as you made it, so the readout never names a cell you cannot see. That matters here, because a cell scrolled out of view has no `td` to paint: the gate would turn the repaint down and Handsontable would render normally, which is correct but makes both buttons look alike.
 
 This recipe is written for the JavaScript build. Read [Framework wrappers](#framework-wrappers-need-more-care) before porting it.
 
@@ -52,6 +52,7 @@ A product-inventory grid with a deliberately expensive cell renderer, and a `rep
 
 - Cancels the render that follows [`setDataAtCell()`](@/api/core.md#setdataatcell), using the [`beforeViewRender`](@/api/hooks.md#beforeviewrender) hook.
 - Runs one cell's renderer against its `td`, reproducing what Handsontable's own render does to that element.
+- Repaints every cell a change touched, so writing a whole selection still costs one renderer call per cell.
 - Falls back to a normal render whenever the change is not safe to handle per cell.
 - Reports the renderer-call count for each update, so you can see the difference.
 
