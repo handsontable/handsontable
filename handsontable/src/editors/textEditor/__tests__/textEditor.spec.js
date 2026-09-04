@@ -140,11 +140,9 @@ describe('TextEditor', () => {
 
     await keyDownUp('F2');
 
-    // Every cell here sits behind a row header, which owns the gridline on its inline-start
-    // side, so the editor starts 1px before the cell in order to cover it (#6673).
     expect({
       top: editor.offset().top,
-      left: editor.offset().left + 1,
+      left: editorInlineStartOffset(editor),
     }).toEqual($(getCell(0, 0)).offset());
   });
 
@@ -179,11 +177,9 @@ describe('TextEditor', () => {
 
     await keyDownUp('enter');
 
-    // Every cell here sits behind a row header, which owns the gridline on its inline-start
-    // side, so the editor starts 1px before the cell in order to cover it (#6673).
     const editorOffsetAtRowEdge = () => ({
       top: editor.offset().top,
-      left: editor.offset().left + 1,
+      left: editorInlineStartOffset(editor),
     });
 
     expect(editorOffsetAtRowEdge()).toEqual($(getCell(0, 0, true)).offset());
@@ -194,7 +190,7 @@ describe('TextEditor', () => {
     // Cells that do not touch the edges of the table also have an additional top border.
     const editorOffset = () => ({
       top: editor.offset().top + 1,
-      left: editor.offset().left + 1,
+      left: editorInlineStartOffset(editor),
     });
 
     expect(editorOffset()).toEqual($(getCell(1, 0, true)).offset());
@@ -247,11 +243,9 @@ describe('TextEditor', () => {
 
     await keyDownUp('enter');
 
-    // Every cell here sits behind a row header, which owns the gridline on its inline-start
-    // side, so the editor starts 1px before the cell in order to cover it (#6673).
     const editorOffset = () => ({
       top: editor.offset().top,
-      left: editor.offset().left + 1,
+      left: editorInlineStartOffset(editor),
     });
 
     expect(editorOffset()).toEqual($(getCell(0, 0, true)).offset());
@@ -311,11 +305,9 @@ describe('TextEditor', () => {
 
     await keyDownUp('enter');
 
-    // Every cell here sits behind a row header, which owns the gridline on its inline-start
-    // side, so the editor starts 1px before the cell in order to cover it (#6673).
     const editorOffsetAtRowEdge = () => ({
       top: editor.offset().top,
-      left: editor.offset().left + 1,
+      left: editorInlineStartOffset(editor),
     });
 
     // First renderable row index.
@@ -327,7 +319,7 @@ describe('TextEditor', () => {
     // Cells that do not touch the edges of the table also have an additional top border.
     const editorOffset = () => ({
       top: editor.offset().top + 1,
-      left: editor.offset().left + 1,
+      left: editorInlineStartOffset(editor),
     });
 
     expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
@@ -374,11 +366,9 @@ describe('TextEditor', () => {
 
     await keyDownUp('enter');
 
-    // Every cell here sits behind a row header, which owns the gridline on its inline-start
-    // side, so the editor starts 1px before the cell in order to cover it (#6673).
     const editorOffset = () => ({
       top: editor.offset().top,
-      left: editor.offset().left + 1,
+      left: editorInlineStartOffset(editor),
     });
 
     // First renderable column index.
