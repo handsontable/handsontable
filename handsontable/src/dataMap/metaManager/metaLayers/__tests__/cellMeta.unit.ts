@@ -5,6 +5,36 @@ import { registerAllCellTypes, getCellType } from '../../../../cellTypes';
 
 registerAllCellTypes();
 
+describe('CellMeta#extendMeta', () => {
+  it('should advance the render version only when a merged value differs', () => {
+    const meta = new CellMeta(new ColumnMeta(new GlobalMeta()));
+    const renderer = () => {};
+
+    meta.extendMeta(1, 1, { readOnly: true, renderer });
+    expect(meta.getMeta(1, 1)._renderVersion).toBe(1);
+
+    // The same result again (a fresh object, the same values) is not a change.
+    meta.extendMeta(1, 1, { readOnly: true, renderer });
+    expect(meta.getMeta(1, 1)._renderVersion).toBe(1);
+
+    meta.extendMeta(1, 1, { readOnly: false, renderer });
+    expect(meta.getMeta(1, 1)._renderVersion).toBe(2);
+
+    // A new function reference is a change, by identity.
+    meta.extendMeta(1, 1, { readOnly: false, renderer: () => {} });
+    expect(meta.getMeta(1, 1)._renderVersion).toBe(3);
+  });
+
+  it('should not advance the render version for an empty result', () => {
+    const meta = new CellMeta(new ColumnMeta(new GlobalMeta()));
+
+    meta.getMeta(0, 0);
+    meta.extendMeta(0, 0, {});
+
+    expect(meta.getMeta(0, 0)._renderVersion).toBeUndefined();
+  });
+});
+
 describe('ColumnMeta', () => {
   it('should reflect the changes in the cell meta when the global meta properties were changed', () => {
     const globalMeta = new GlobalMeta();

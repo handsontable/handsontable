@@ -139,7 +139,7 @@ export class DynamicCellMetaMod {
   /**
    * Extends a transient (not stored) cell meta object by the same user-specific properties as
    * `extendCellMeta`, with two deliberate differences. The `cells`/`type` settings are applied
-   * directly on the transient object - never through `updateCellMeta`, which would permanently
+   * directly on the transient object - never through `extendCellMeta`, which would permanently
    * materialize the cell. And `metaSyncMemo` is neither read nor written: the memo must reflect only
    * STORED meta objects, or a stored cell created later would skip its extension (a rendering bug),
    * and memo growth would defeat the point of a retention-free scan.
@@ -158,7 +158,7 @@ export class DynamicCellMetaMod {
    * `beforeGetCellMeta`, evaluates the `cells` function and the `type` value it (or the hook)
    * produced, hands the resulting settings to the caller-provided applier, and fires
    * `afterGetCellMeta`. The applier is the only step that differs between the stored path
-   * (persist through `updateCellMeta`) and the transient path (extend the throwaway object).
+   * (persist through `extendCellMeta`) and the transient path (extend the throwaway object).
    *
    * @param {object} cellMeta The cell meta object to extend.
    * @param {Function} applyCellSettings Receives the resolved `cells`/`type` settings object.

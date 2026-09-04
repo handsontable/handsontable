@@ -222,7 +222,9 @@ export class Formulas extends BasePlugin {
    * The cells rendered as hyperlinks, by physical coordinates (`row,column`). A `HYPERLINK` whose
    * URL argument lives in another cell keeps its label, so the engine reports no value change for
    * it; these cells are marked changed on every engine update instead, so a `renderMode: 'onChange'`
-   * cell rebuilds its `href`.
+   * cell rebuilds its `href`. The set is emptied whenever the physical indexes can shift or the
+   * rendered cells are all repainted anyway (data load, structural change, plugin disable); the next
+   * render fills it again.
    */
   #hyperlinkCells = new Set<string>();
 
@@ -777,6 +779,7 @@ export class Formulas extends BasePlugin {
    */
   disablePlugin() {
     this.#unwrapRenderedHyperlinks();
+    this.#hyperlinkCells.clear();
     this.unregisterShortcuts();
     this.#engineListeners?.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
 
@@ -2167,6 +2170,8 @@ export class Formulas extends BasePlugin {
    * @param {string} [source] Source of the call.
    */
   #onAfterLoadData = (sourceData: unknown[], initialLoad: boolean, source = '') => {
+    this.#hyperlinkCells.clear();
+
     if (source.includes(toUpperCaseFirst(PLUGIN_KEY))) {
       return;
     }
@@ -2868,6 +2873,9 @@ export class Formulas extends BasePlugin {
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    */
   #onAfterCreateRow = (visualRow: number, amount: number, source: string) => {
+    // Physical indexes shift; the repaint that follows the structural change re-registers the cells.
+    this.#hyperlinkCells.clear();
+
     if (isBlockedSource(source)) {
       return;
     }
@@ -2888,6 +2896,9 @@ export class Formulas extends BasePlugin {
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    */
   #onAfterCreateCol = (visualColumn: number, amount: number, source: string) => {
+    // Physical indexes shift; the repaint that follows the structural change re-registers the cells.
+    this.#hyperlinkCells.clear();
+
     if (isBlockedSource(source)) {
       return;
     }
@@ -2909,6 +2920,9 @@ export class Formulas extends BasePlugin {
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    */
   #onAfterRemoveRow = (row: number, amount: number, physicalRows: number[], source: string) => {
+    // Physical indexes shift; the repaint that follows the structural change re-registers the cells.
+    this.#hyperlinkCells.clear();
+
     if (isBlockedSource(source)) {
       return;
     }
@@ -2933,6 +2947,9 @@ export class Formulas extends BasePlugin {
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    */
   #onAfterRemoveCol = (col: number, amount: number, physicalColumns: number[], source: string) => {
+    // Physical indexes shift; the repaint that follows the structural change re-registers the cells.
+    this.#hyperlinkCells.clear();
+
     if (isBlockedSource(source)) {
       return;
     }

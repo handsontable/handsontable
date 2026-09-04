@@ -1,6 +1,6 @@
 import { extendByMetaType, assert, normalizeEditorSetting } from '../utils';
 import LazyFactoryMap from '../lazyFactoryMap';
-import { extend, hasOwnProperty } from '../../../helpers/object';
+import { extend, hasOwnProperty, objectEach } from '../../../helpers/object';
 import { isDefined } from '../../../helpers/mixed';
 import { isUnsignedNumber } from '../../../helpers/number';
 import type ColumnMeta from './columnMeta';
@@ -185,10 +185,12 @@ export default class CellMeta {
   }
 
   /**
-   * Merges settings into the cell meta object WITHOUT marking the cell as changed for the render.
-   * This is the path of the per-render dynamic extension (`cells` function, `type` expansion, the
-   * `beforeGetCellMeta`/`afterGetCellMeta` hooks), which re-applies its result on every full render:
-   * counting it as a change would make a `renderMode: 'onChange'` cell paint on every draw.
+   * Merges settings into the cell meta object and marks the cell as changed for the render only when
+   * a merged value differs from what the meta held (compared by identity). This is the path of the
+   * per-render dynamic extension (`cells` function, `type` expansion), which re-applies its result on
+   * every full render: counting an unchanged result as a change would make a `renderMode: 'onChange'`
+   * cell paint on every draw, while a result that did change (a `cells` function reading state
+   * outside the grid) has to be painted.
    *
    * @param {number} physicalRow The physical row index which points what cell meta object is updated.
    * @param {number} physicalColumn The physical column index which points what cell meta object is updated.
@@ -198,9 +200,20 @@ export default class CellMeta {
   extendMeta(physicalRow: number, physicalColumn: number, settings: Record<string, unknown>): CellProperties {
     const meta = this.getMeta(physicalRow, physicalColumn);
     const normalizedSettings = normalizeEditorSetting(settings);
+    let changed = false;
+
+    objectEach(normalizedSettings, (value: unknown, key: string) => {
+      if ((meta as Record<string, unknown>)[key] !== value) {
+        changed = true;
+      }
+    });
 
     extend(meta, normalizedSettings);
     extendByMetaType(meta, normalizedSettings);
+
+    if (changed) {
+      markCellMetaChanged(meta);
+    }
 
     return meta;
   }

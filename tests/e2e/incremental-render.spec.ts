@@ -208,6 +208,108 @@ test.describe('renderMode: onChange', () => {
   });
 });
 
+test.describe('renderMode: onChange, changes the render must see', () => {
+  test('repaints the cells whose `cells` function result changed', async({ page, theme, bundle }) => {
+    const grid = new IncrementalRenderPage(page, theme, bundle, 'cells-fn');
+    const count = (selector: string) => grid.read<number>(`document.querySelectorAll('${selector}').length`);
+
+    await grid.goto();
+    expect(await count('.ht_master tbody td.htDimmed')).toBe(0);
+
+    const renderedCells = await grid.read<number>('hot.countRenderedRows() * hot.countRenderedCols()');
+
+    await grid.run('window.htLocked = true; hot.render();');
+    expect(await count('.ht_master tbody td.htDimmed')).toBe(renderedCells);
+    expect((await grid.paintedCells()).length).toBe(renderedCells);
+    await grid.expectEqualToFullRepaint();
+
+    // The same result again paints nothing: the merged values are compared, not the object.
+    await grid.resetPaints();
+    await grid.run('hot.render();');
+    expect(await grid.paintedCells()).toEqual([]);
+
+    await grid.run('window.htLocked = false; hot.render();');
+    expect(await count('.ht_master tbody td.htDimmed')).toBe(0);
+    await grid.expectEqualToFullRepaint();
+  });
+
+  test('keeps the selection on live cells after the rendered band shrank and grew back', async({ page, theme, bundle }) => {
+    const grid = new IncrementalRenderPage(page, theme, bundle, 'resize');
+    const count = (selector: string) => grid.read<number>(`document.querySelectorAll('${selector}').length`);
+
+    const shrink = `
+      const resize = hot.getPlugin('manualRowResize');
+      for (let row = 0; row < 6; row++) { resize.setManualSize(row, 80); }
+      hot.render();
+    `;
+    // Restores the exact default height, so the band comes back with the same rows as before.
+    const grow = `
+      const resize = hot.getPlugin('manualRowResize');
+      for (let row = 0; row < 6; row++) { resize.setManualSize(row, hot.stylesHandler.getDefaultRowHeight()); }
+      hot.render();
+    `;
+
+    await grid.goto();
+
+    // Select a cell that is fully visible without scrolling, then empty the selection
+    // in place. The focus layer keeps its cached cell scan for that band.
+    await grid.run('hot.selectCell(5, 2); hot.deselectCell();');
+
+    const renderedRows = await grid.read<number>('hot.countRenderedRows()');
+
+    // Shrink the band through manual row sizes (no index-mapper change, so no render epoch change),
+    // then grow it back: the engine creates new cell elements for the rows that come back.
+    await grid.run(shrink);
+    expect(await grid.read<number>('hot.countRenderedRows()')).toBeLessThan(renderedRows);
+    await grid.run(grow);
+    expect(await grid.read<number>('hot.countRenderedRows()')).toBe(renderedRows);
+
+    await grid.run('hot.selectCell(5, 2);');
+    await expect(grid.cell(5, 2)).toHaveClass(/current/);
+    expect(await count('.ht_master tbody td.current')).toBe(1);
+    await grid.expectEqualToFullRepaint();
+  });
+
+  test('keeps the cell right of a merged block sized when only that cell repaints', async({ page, theme, bundle }) => {
+    const grid = new IncrementalRenderPage(page, theme, bundle, 'merge-height');
+    const neighborHeight = () => grid.read<string>('hot.getCell(2, 1).style.height');
+
+    await grid.goto();
+
+    const height = await neighborHeight();
+
+    expect(height).toMatch(/^\d+px$/);
+
+    // The neighbor changes, the merged origin does not: only the neighbor is painted.
+    await grid.run('hot.setDataAtCell(2, 1, "x");');
+    expect(await grid.paintedCells()).toEqual(['2,1']);
+    expect(await neighborHeight()).toBe(height);
+    await grid.expectEqualToFullRepaint();
+
+    await grid.run('hot.getPlugin("mergeCells").unmerge(2, 0, 3, 0);');
+    expect(await neighborHeight()).toBe('');
+    await grid.expectEqualToFullRepaint();
+  });
+
+  test('keeps a class named by beforeRemoveCellClassNames applied on a draw that skips the cell', async({ page, theme, bundle }) => {
+    const grid = new IncrementalRenderPage(page, theme, bundle, 'text');
+    const count = (selector: string) => grid.read<number>(`document.querySelectorAll('${selector}').length`);
+
+    await grid.goto();
+    await grid.run(`
+      hot.addHook('beforeRemoveCellClassNames', () => ['area']);
+      hot.selectCells([[1, 1, 2, 2]]);
+    `);
+    expect(await count('.ht_master tbody td.area')).toBe(4);
+
+    // A full draw in which the selected cells are skipped: the hook strips the class, the pass
+    // has to put it back.
+    await grid.run('hot.setDataAtCell(19, 9, "z");');
+    expect(await count('.ht_master tbody td.area')).toBe(4);
+    await grid.expectEqualToFullRepaint();
+  });
+});
+
 test.describe('renderMode: always (default)', () => {
   test('paints every rendered cell on every render', async({ page, theme, bundle }) => {
     const grid = new IncrementalRenderPage(page, theme, bundle, 'always');

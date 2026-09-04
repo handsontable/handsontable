@@ -51,6 +51,29 @@ describe('Core', () => {
     container.remove();
   });
 
+  describe('markCellChanged', () => {
+    it('should advance the render version of a stored cell meta and create none for an unstored one', () => {
+      const core = new Core(container, { data: [['a', 'b'], ['c', 'd']] });
+
+      core.init();
+
+      expect(core.getCellsMeta().length).toBe(0);
+
+      // Nothing is painted from an unstored meta, so there is nothing to mark.
+      core.markCellChanged(1, 1);
+      expect(core.getCellsMeta().length).toBe(0);
+
+      const cellMeta = core.getCellMeta(1, 1);
+
+      core.markCellChanged(1, 1);
+      expect(cellMeta._renderVersion).toBe(1);
+      core.markCellChanged(1, 1);
+      expect(cellMeta._renderVersion).toBe(2);
+
+      core.destroy();
+    });
+  });
+
   it('should reset cache only once after initialization with an Array of Arrays data source', () => {
     const core = new Core(container, {
       data: [['a'], ['b'], ['c']],

@@ -20,6 +20,7 @@ import type { CellScanResult } from './scanner';
 import {
   applySelection,
   buildSelectionSignature,
+  clearAppliedSelection,
   expandLayeredClassNames,
   getAppliedSelection,
   removeAppliedSelection,
@@ -204,6 +205,7 @@ export class SelectionManager {
   destroyBorders(selection: Selection) {
     this.#selectionBorders.get(selection)?.forEach(border => border.destroy());
     this.#selectionBorders.delete(selection);
+    this.#scanCache.delete(selection);
   }
 
   /**
@@ -264,6 +266,7 @@ export class SelectionManager {
       // is identical to letting `appear()` early-out, just without the O(all-borders) DOM.
       if (selectionType === CUSTOM_SELECTION_TYPE && this.#isCustomSelectionOffscreen(selection)) {
         this.#selectionBorders.get(selection)?.get(wot)?.disappear();
+        this.#scanCache.delete(selection);
 
         continue; // eslint-disable-line no-continue
       }
@@ -272,6 +275,9 @@ export class SelectionManager {
 
       if (selection.isEmpty()) {
         borderInstance?.disappear();
+        // A skipped layer's cached scan is not validated against the band; drop it, or the layer can
+        // come back under the same key onto elements the engine has since replaced.
+        this.#scanCache.delete(selection);
 
         continue; // eslint-disable-line no-continue
       }
@@ -453,6 +459,8 @@ export class SelectionManager {
 
       for (let i = 0; i < elements.length; i++) {
         (elements[i] as HTMLElement).classList.remove(className);
+        // The element no longer carries what its record says, so the diff must write it again.
+        clearAppliedSelection(elements[i] as HTMLElement);
       }
     });
   }

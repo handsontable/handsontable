@@ -89,9 +89,9 @@ export class CellPainter {
     const resolved = this.#resolve(renderedRow, renderedColumn);
     const pending: PendingPaint = { renderedRow, renderedColumn, resolved, stamp: null };
 
-    this.#pending = pending;
-
     if (resolved.cellProperties.renderMode !== RENDER_MODE_ON_CHANGE) {
+      this.#pending = pending;
+
       return true;
     }
 
@@ -107,7 +107,13 @@ export class CellPainter {
       renderer: resolved.renderer,
     };
 
-    return !isSameCellPaint(readCellPaintStamp(TD), pending.stamp);
+    const paintNeeded = !isSameCellPaint(readCellPaintStamp(TD), pending.stamp);
+
+    // A skipped cell leaves nothing behind: a later `paint()` for the same coordinates that comes
+    // without its own `shouldPaint()` (validation paints a cell directly) resolves the cell afresh.
+    this.#pending = paintNeeded ? pending : null;
+
+    return paintNeeded;
   }
 
   /**

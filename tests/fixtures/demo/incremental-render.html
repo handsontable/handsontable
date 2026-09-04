@@ -29,6 +29,7 @@
     // The grid shape under test, from a fixed allowlist for the same reason.
     window.htScenario = ({
       text: 'text', always: 'always', mixed: 'mixed', 'frozen-merge': 'frozen-merge', formulas: 'formulas', search: 'search',
+      'cells-fn': 'cells-fn', resize: 'resize', 'merge-height': 'merge-height',
     })[htParams.get('scenario') ?? 'text'];
     if (!window.htScenario) {
       throw new Error('Unknown ?scenario= value: ' + JSON.stringify(htParams.get('scenario')));
@@ -144,6 +145,25 @@
         formulas: { engine: HyperFormula, hyperlinks: true },
       }),
       search: () => ({ ...base, data: makeData(20, 6), renderMode: 'onChange', search: true }),
+      // The `cells` function reads a flag the test flips between renders.
+      'cells-fn': () => ({
+        ...base,
+        data: makeData(20, 4),
+        renderMode: 'onChange',
+        cells: () => ({ readOnly: window.htLocked === true }),
+      }),
+      // Manual row sizes change how many rows the band holds without touching the index mappers,
+      // so the rendered band can shrink and grow back without a render-epoch change.
+      resize: () => ({ ...base, data: makeData(200, 10), renderMode: 'onChange', manualRowResize: true }),
+      // No row headers: MergeCells then writes the row height on the cell right of a merged block.
+      'merge-height': () => ({
+        ...base,
+        data: makeData(20, 4),
+        renderMode: 'onChange',
+        rowHeaders: false,
+        rowHeights: 40,
+        mergeCells: [{ row: 2, col: 0, rowspan: 2, colspan: 1 }],
+      }),
     };
 
     window.hot = new Handsontable(container, scenarios[window.htScenario]());

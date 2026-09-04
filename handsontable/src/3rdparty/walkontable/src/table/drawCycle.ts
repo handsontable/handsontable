@@ -508,7 +508,6 @@ function renderCellBand(
  * reaches here; the master reaches here only when the fixed-position pass reported no 1px shift).
  *
  * @param {Table} table The table (master or clone).
- * @param {boolean} runFastDraw Whether this draw is a fast (reposition-only) draw.
  */
 function renderActiveSelections(table: Table): void {
   table.deps.getSelectionManager()

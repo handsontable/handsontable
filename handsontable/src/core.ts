@@ -3389,7 +3389,22 @@ export default function Core(
    * ```
    */
   this.markCellChanged = function(row: number, column: number) {
-    markCellMetaChanged(instance.getCellMeta(row, column));
+    const physicalRow = instance.toPhysicalRow(row);
+    const physicalColumn = instance.toPhysicalColumn(column);
+
+    if (physicalRow === null || physicalColumn === null) {
+      return;
+    }
+
+    // Only a stored meta object can back a painted element: the render path stores the meta of every
+    // cell it paints, eviction sweeps rows outside the rendered band only, and a fresh element carries
+    // no stamp. A cell without stored meta is painted nowhere, so marking it would only materialize
+    // its meta (and run the `cells` function and the meta hooks) for nothing.
+    const cellMeta = metaManager.getCellMetaIfExists(physicalRow, physicalColumn);
+
+    if (cellMeta) {
+      markCellMetaChanged(cellMeta);
+    }
   };
 
   /**

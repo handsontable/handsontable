@@ -198,10 +198,14 @@ columns: [
 
 Under `'onChange'`, a cell is painted only when the element it lands in showed something else after its last paint: another cell (the viewport scrolled), another value, another renderer, a changed cell meta, or a structural change of the grid such as a sort, a filter, an inserted row, a data reload, or a settings update. Everything the grid can see is covered, including a formula whose dependency changed, a validation result, a comment, and a merged cell.
 
-Two kinds of change are invisible to the grid, because nothing in it sees them:
+Some changes are invisible to the grid, because nothing in it sees them:
 
+- A meta object mutated directly, such as `hot.getCellMeta(row, col).readOnly = true`, including inside the [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta) and [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta) hooks. Use [`setCellMeta()`](@/api/core.md#setcellmeta) or the [`cells`](@/api/options.md#cells) function instead; both are detected.
 - A value object mutated in place. The grid compares values by identity, so `row.checked = true` on an object the cell already showed does not count.
 - State outside the grid that a renderer reads, such as a theme flag or a store.
+- A renderer that reads the data of other cells. The built-in checkbox renderer does this when [`label.property`](@/api/options.md#label) points at another column: editing that column does not repaint the checkbox cell.
+
+A [`cells`](@/api/options.md#cells) function result is compared value by value. Return the same references for an unchanged result: a renderer function created on every call counts as a change on every render.
 
 For such cells, keep `renderMode: 'always'` (the option cascades, so one column or one cell can opt out), or mark the cell before you render:
 

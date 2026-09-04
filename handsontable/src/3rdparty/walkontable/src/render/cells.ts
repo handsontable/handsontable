@@ -65,7 +65,10 @@ export class CellsRenderer extends BaseRenderer {
     const { rowsToRender, columnsToRender, rows, rowHeaders } = this.table;
     const { rowFilter, columnFilter, activeOverlayName } = this.table;
     // The identity of the rendered band: which source rows and columns the reused elements hold on
-    // this draw. The host compares it against the element's last paint.
+    // this draw. The host compares it against the element's last paint. The band size stays in it
+    // even though a reused element's own source indexes already move with the offsets: MergeCells
+    // clamps a merged cell's rowspan and colspan to the rendered band, so a cell whose indexes did
+    // not change still needs a paint when the band grows or shrinks.
     const band = [
       activeOverlayName, rowFilter?.offset ?? 0, rowsToRender, columnFilter?.offset ?? 0, columnsToRender,
     ].join(',');
@@ -104,9 +107,11 @@ export class CellsRenderer extends BaseRenderer {
 
         if (!hasClass(TD, 'hide')) { // Workaround for hidden columns plugin
           TD.className = '';
+          // The record of the selection classes goes with them. A `hide` cell keeps both, so the
+          // selection pass can still take them off when the cell leaves the selection.
+          clearAppliedSelection(TD);
         }
 
-        clearAppliedSelection(TD);
         TD.removeAttribute('style');
         TD.removeAttribute('dir');
 

@@ -5702,13 +5702,21 @@ export default (): Record<string, unknown> => {
      * | Setting              | Description                                                                                                                                                                                                   |
      * | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
      * | `'always'` (default) | The cell is painted on every render.                                                                                                                                                                          |
-     * | `'onChange'`         | The cell is painted only when the element it lands in showed something else after its last paint: another cell, another value, another renderer, a changed cell meta, or a structural change of the grid. |
+     * | `'onChange'`         | The cell is painted only when the element it lands in showed something else after its last paint: another cell, another value, another renderer, a changed cell meta (through [`setCellMeta()`](@/api/core.md#setcellmeta) or the [`cells`](#cells) function), or a structural change of the grid. |
      *
      * Under `'onChange'`, a render skips the cells whose paint would produce the same result as their
-     * last paint. Two kinds of change are not detected, because nothing in the grid sees them:
-     * a value object mutated in place (the grid compares values by identity), and state outside the
-     * grid that a renderer reads. Set `renderMode: 'always'` on such cells, or mark them with
-     * [`markCellChanged()`](@/api/core.md#markcellchanged) before rendering.
+     * last paint. Some changes are not detected, because nothing in the grid sees them:
+     * - a meta object mutated directly (`getCellMeta(row, col).x = y`, including inside the
+     * [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta) and [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta) hooks),
+     * - a value object mutated in place (the grid compares values by identity),
+     * - state outside the grid that a renderer reads,
+     * - a renderer that reads the data of other cells, such as the checkbox renderer with
+     * [`label.property`](#label).
+     *
+     * Set `renderMode: 'always'` on such cells, or mark them with
+     * [`markCellChanged()`](@/api/core.md#markcellchanged) before rendering. A [`cells`](#cells)
+     * function result is compared value by value, so return the same references for an unchanged
+     * result: a renderer function created on every call counts as a change on every render.
      *
      * The option cascades, so a single column of slow renderers can use `'onChange'` while the rest of
      * the grid keeps the default.

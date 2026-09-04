@@ -49,6 +49,18 @@ export class SelectionScanCache {
 
     perOverlay.set(wot, { key, result });
   }
+
+  /**
+   * Drops every overlay's cached scan of a layer. A draw that skips the layer (it is empty, or an
+   * off-screen custom selection) does not validate its cached elements, and the band's nodes can be
+   * replaced before the layer is scanned again under the same key - so the entry must not outlive
+   * such a draw.
+   *
+   * @param {Selection} selection The selection layer.
+   */
+  delete(selection: Selection): void {
+    this.#entries.delete(selection);
+  }
 }
 
 /**
