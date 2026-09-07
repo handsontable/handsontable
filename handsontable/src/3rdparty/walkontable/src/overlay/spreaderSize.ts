@@ -1,3 +1,4 @@
+import { getHiderHeightCompensation, snapUpToDevicePixel } from '../axisSizing/hiderCompensation';
 import type { EngineContext } from '../wire';
 import type { default as Overlays } from './overlays';
 
@@ -104,8 +105,18 @@ export class SpreaderSize {
     // as the flaw is embedded across multiple core modules and corresponding test cases.
     // This limitation does not affect when the external calculator is used (AutoRowSize), which
     // computes heights accurately, so no adjustment is required when using it.
-    const hiderHeightComp = wtSettings.getSetting('externalRowCalculator') ? 0 : 1;
-    const proposedHiderHeight = headerColumnSize + topOverlay.sumCellSizes(0, totalRows) + hiderHeightComp;
+    //
+    // Both terms carry their sub-pixel part: `getColumnHeaderHeight()` is an integer the calculators
+    // depend on, and the compensation is a real border the browser widens below 100% zoom. Dropping
+    // either left the hider short of the table it holds and the browser drew a scrollbar on a grid
+    // that needs none (DEV-2525). Both are 0 at 100% zoom. `gatherLayoutInput` folds in exactly the
+    // same two terms, so the predicted scroll boundary keeps matching what is written here.
+    const hiderHeightComp = getHiderHeightCompensation(wtSettings);
+    const proposedHiderHeight = snapUpToDevicePixel(
+      headerColumnSize + wtViewport.getColumnHeaderHeightFraction() +
+        topOverlay.sumCellSizes(0, totalRows) + hiderHeightComp,
+      rootWindow.devicePixelRatio
+    );
     const proposedHiderWidth = headerRowSize + inlineStartOverlay.sumCellSizes(0, totalColumns);
     const hiderElement = wtTable.hider;
     const hiderStyle = hiderElement.style;
@@ -140,6 +151,9 @@ export class SpreaderSize {
   expandHiderVerticallyBy(heightDelta: number) {
     const { hider } = this.#deps.wtTable;
 
-    hider.style.height = `${parseInt(hider.style.height, 10) + heightDelta}px`;
+    // `parseFloat`, not `parseInt`: below 100% zoom the height written above is fractional
+    // (e.g. "1209.1px"), and truncating it here would hand back the sub-pixel shortfall that
+    // `adjustElementsSize` just corrected.
+    hider.style.height = `${parseFloat(hider.style.height) + heightDelta}px`;
   }
 }

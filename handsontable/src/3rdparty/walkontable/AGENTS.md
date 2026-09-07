@@ -124,6 +124,49 @@ Three more things that pass every functional test and only show up in a profile 
 
 When you add a new content-driven measurement, ask which tables actually render the content — measuring the master alone is the trap both of these exist to work around.
 
+## The hider height is fractional below 100% zoom, and two coordinate spaces meet there
+
+`SpreaderSize#adjustElementsSize` writes the master hider's height, and below 100% browser zoom or
+display scaling it writes a **fractional** value (`"1210.45px"`). That element is what decides
+whether the grid shows a scrollbar: with `height: 'auto'` the holder keeps `style.height = 'auto'`
+and simply resolves to the hider, so a hider a fraction shorter than the table inside it is a
+vertical scrollbar on a grid that must never scroll — and, because `stretchH` already sized the
+columns against the full width, a horizontal one behind it (DEV-2525).
+
+Four rules come out of that, and each of them was a defect first.
+
+- **Never `parseInt` a value read back off `hider.style.height`.** It truncates the fraction and
+  hands back the shortfall. `expandHiderVerticallyBy` does `parseFloat`. (`topOverlay.ts`'s
+  `parseInt(holderParent.style.height, 10)` reads the *clone's* holder parent, a different element,
+  and is not this.)
+- **The sum's fixed terms must carry their fraction too.** `getHiderHeightCompensation`
+  (`axisSizing/hiderCompensation.ts`) reads the cells' *rendered* `border-bottom-width` — a browser
+  cannot paint a border thinner than one device pixel, so a declared `1px` resolves to 1.11111px at
+  90% and 1.49254px at 67% — and `Viewport#getColumnHeaderHeightFraction()` supplies what
+  `getColumnHeaderHeight()`'s integer `offsetHeight` rounded away. Both are 0 at 100%.
+- **`getBoundingClientRect()` and `offsetHeight` are NOT in the same coordinate space.** A rect is
+  scaled by an ancestor's CSS `zoom`; `offsetHeight`, `clientHeight` and the computed style are not.
+  Subtracting one from the other to get a fraction looks right under
+  `--force-device-scale-factor` (where they agree) and yields a large **negative** number under CSS
+  `zoom`, shrinking the hider instead of growing it. Take the fractional height from
+  `getComputedStyle(el).height`, which matches `offsetHeight`'s space at any zoom. The same trap
+  ruins measurements in tests — never compare a rect against a `clientHeight`.
+- **`gatherLayoutInput` re-derives the same total independently**, so both sites fold in the same two
+  terms and the same device-pixel rounding. A prediction built on whole pixels while the DOM carries
+  fractional ones disagrees exactly at the knife edge, which is a scrollbar the solver said would not
+  be there.
+
+`snapUpToDevicePixel()` rounds the finished total up to the next device pixel, because summing the
+rows reproduces the browser's own sub-pixel snapping only to about 0.02px and that is enough to
+summon a full-size bar on a small grid at 67%. It is a no-op at 100%, where the totals are whole
+pixels already.
+
+**`stylesHandler` is a user-supplied setting that defaults to `null`, and a standalone Walkontable
+host may implement only part of it** — the engine's own Puppeteer harness (`test/helpers/common.js`)
+does. `getStyleForTD` is therefore declared optional on the `StylesHandler` interface in `types.ts`,
+and calling it unguarded threw inside the draw and took out 695 of 816 specs. Guard every method you
+add a dependency on, and teach the harness stub the same method.
+
 ## Column-axis border ownership: the row header owns its gridline
 
 The two axes are NOT symmetric, and the column axis is the settled one. On the column axis a row

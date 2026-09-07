@@ -15,6 +15,7 @@
 import type { EngineContext } from '../../wire';
 import type { LayoutInput, OverflowMode } from './layoutSnapshot';
 import { measureWorkspaceWidth, measureWorkspaceHeight } from '../workspaceSize';
+import { getHiderHeightCompensation, snapUpToDevicePixel } from '../../axisSizing/hiderCompensation';
 
 /**
  * Narrows the engine context to the dependencies the layout slice reads.
@@ -83,14 +84,22 @@ export function gatherLayoutInput(deps: LayoutDeps): LayoutInput {
   const rowHeaderWidth = viewport.getRowHeaderWidth();
   const columnHeaderHeight = viewport.getColumnHeaderHeight();
   // Match the hider extent the engine actually renders into: the internal row-height calculator
-  // carries a known 1px miscalculation that `Overlays#adjustElementsSize` compensates for by adding
-  // 1px to the hider height (and does not when AutoRowSize supplies exact heights — the
-  // `externalRowCalculator` case). Fold the same compensation into the total so the predicted
-  // vertical-scroll boundary matches today's post-render measurement exactly.
-  const hiderHeightCompensation = wtSettings.getSetting<boolean>('externalRowCalculator') ? 0 : 1;
+  // carries a known miscalculation worth one cell bottom border that `Overlays#adjustElementsSize`
+  // compensates for when writing the hider height (and does not when AutoRowSize supplies exact
+  // heights — the `externalRowCalculator` case). Fold the same compensation into the total so the
+  // predicted vertical-scroll boundary matches the post-render measurement exactly.
+  //
+  // Both this and the column-header fraction are sub-pixel terms that are 0 at 100% zoom. They must
+  // stay identical to the ones `SpreaderSize#adjustElementsSize` writes — a prediction built on the
+  // whole-pixel values while the DOM carries the fractional ones disagrees at the knife edge, which
+  // is a scrollbar appearing where the solver said there would be none.
+  const hiderHeightCompensation = getHiderHeightCompensation(wtSettings);
   const totalContentWidth = rowHeaderWidth + viewport.columnWidthCache.getTotalSize();
-  const totalContentHeight = columnHeaderHeight + viewport.rowHeightCache.getTotalSize() +
-    hiderHeightCompensation;
+  const totalContentHeight = snapUpToDevicePixel(
+    columnHeaderHeight + viewport.getColumnHeaderHeightFraction() +
+      viewport.rowHeightCache.getTotalSize() + hiderHeightCompensation,
+    rootWindow.devicePixelRatio
+  );
 
   // The element whose overflow decides the scrollbars is the one that actually scrolls: the document
   // in window mode, the table `holder` in element mode. This is NOT the trimming container — a

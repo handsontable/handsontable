@@ -14,6 +14,23 @@
 import type { default as Viewport } from './viewport';
 
 /**
+ * The sub-pixel remainder between a used height read from the computed style and the whole-pixel
+ * value `offsetHeight` reported for the same element.
+ *
+ * Returns 0 for an unreadable style (`auto`, or an element with no layout), so a caller adding this
+ * to a total can never turn it into `NaN`.
+ *
+ * @param {string} usedHeight The computed `height`, e.g. `'29.0972px'`.
+ * @param {number} roundedHeight The whole-pixel height the same element reports.
+ * @returns {number} The remainder in CSS pixels.
+ */
+function measuredHeightFraction(usedHeight: string, roundedHeight: number): number {
+  const used = Number.parseFloat(usedHeight);
+
+  return Number.isFinite(used) ? used - roundedHeight : 0;
+}
+
+/**
  * Reduces a row-header width answer to the single number the viewport needs.
  *
  * The `modifyRowHeaderWidth` hook may answer per row header level - `AutoRowHeaderSize` does, so
@@ -186,6 +203,7 @@ export interface WorkspaceSize {
   sumColumnWidths(from: number, length: number): number;
   getWorkspaceOffset(): { left: number, top: number };
   getColumnHeaderHeight(): number;
+  getColumnHeaderHeightFraction(): number;
   getRowHeaderWidth(): number;
 }
 
@@ -364,12 +382,42 @@ export const workspaceSize: WorkspaceSize = {
 
     if (!columnHeaders.length) {
       this.columnHeaderHeight = 0;
+      this.columnHeaderHeightFraction = 0;
     } else if (isNaN(this.columnHeaderHeight)) {
-      this.columnHeaderHeight = this.wtTable.THEAD
-        ? this.deps.geometryReader.outerHeight(this.wtTable.THEAD) : 0;
+      const { THEAD } = this.wtTable;
+
+      this.columnHeaderHeight = THEAD ? this.deps.geometryReader.outerHeight(THEAD) : 0;
+      // `outerHeight` is `offsetHeight`, an integer, so below 100% zoom it drops up to a pixel of
+      // the header's real height. Record what it dropped, measured in the same pass so this costs
+      // one extra read per cache fill and none per draw. Only the hider/content total consumes it —
+      // the calculators keep the integer they have always been given.
+      //
+      // The used height comes from the computed style, NOT from `getBoundingClientRect()`. Both
+      // report the fraction, but a rect is scaled by an ancestor's CSS `zoom` while `offsetHeight`
+      // is not, so subtracting one from the other under CSS zoom yields a large negative number and
+      // shrinks the hider instead of growing it. The computed style is in the same space as
+      // `offsetHeight` at any zoom.
+      this.columnHeaderHeightFraction = THEAD
+        ? measuredHeightFraction(this.deps.geometryReader.getComputedStyle(THEAD).height,
+          this.columnHeaderHeight) : 0;
     }
 
     return this.columnHeaderHeight;
+  },
+
+  /**
+   * The sub-pixel part of the column header height that `getColumnHeaderHeight()` rounds away.
+   *
+   * Always `0` at 100% zoom, where the header lands on a whole pixel.
+   *
+   * @this Viewport
+   * @returns {number}
+   */
+  getColumnHeaderHeightFraction(this: Viewport): number {
+    // Fill the cache through the integer getter, which owns both values.
+    this.getColumnHeaderHeight();
+
+    return this.columnHeaderHeightFraction || 0;
   },
 
   /**
