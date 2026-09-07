@@ -57,6 +57,10 @@ export class RowHeadersRenderer extends BaseRenderer {
 
   /**
    * Renders the cells.
+   *
+   * Stamps no `htLastRowHeaderColumn` marker, unlike `ColumnHeadersRenderer#render`: the seam to
+   * column 0 needs one only in a HEAD row, where CSS cannot tell a corner `th` from a column
+   * header. Every `th` in a BODY row is a row header, so the theme rule matches them all.
    */
   render() {
     const { rowsToRender, rowHeaderFunctions, rowHeadersCount, rows, cells } = this.table;
@@ -109,13 +113,6 @@ export class RowHeadersRenderer extends BaseRenderer {
         }
 
         rowHeaderFunctions[visibleColumnIndex](sourceRowIndex, TH, visibleColumnIndex);
-
-        // No marker is stamped here on purpose. The theme rule that colors the seam to column 0
-        // needs one only for a HEAD row, where CSS cannot tell a corner `th` from a column header -
-        // see `ColumnHeadersRenderer#render`. In a BODY row every `th` IS a row header, so the rule
-        // matches them all and the inner ones need no override, being never `:last-child`. Marking
-        // the last one here too would put a class on every row header of every rendered row that no
-        // stylesheet reads.
       }
 
       orderView.end();

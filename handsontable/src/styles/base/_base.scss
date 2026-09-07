@@ -389,8 +389,8 @@
     // base cell rule already gives them this color.
     // The HEAD row keys on `.htLastRowHeaderColumn` instead, because CSS cannot pick the last corner
     // cell out of a head row — a corner is a `th` like the column headers beside it, and only the
-    // engine knows how many of them there are. `render/rowHeaders.ts` and `render/columnHeaders.ts`
-    // stamp that class on the last row-header column in every table. It used to key on
+    // engine knows how many of them there are. `render/columnHeaders.ts` stamps that class on the
+    // last corner cell of each head row, and only there. It used to key on
     // `:first-child`, which selects the same cell when there is one row header and the WRONG one
     // when there are more: the first corner, whose inline-end is an inner seam, while the real seam
     // fell through to the `th:last-child` frame rule above.

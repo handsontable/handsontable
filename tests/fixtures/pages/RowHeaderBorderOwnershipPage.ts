@@ -228,8 +228,8 @@ export class RowHeaderBorderOwnershipPage {
   }
 
   /**
-   * How many corner cells a head row renders, counted by the engine's marker being present on
-   * exactly one of them.
+   * How many `th`s in a head row carry the engine's marker. Exactly one when the grid has row
+   * headers, or the seam rule would color more than one gridline.
    *
    * @param {string} testId The grid's test id.
    * @param {string} overlay The overlay to count in.
