@@ -43,13 +43,6 @@ export default class RowUtils {
   }
 
   /**
-   * Whether the row renders at exactly its provided height. An exact row is never raised by the
-   * oversized-content measurement, and the renderer clips its content instead.
-   *
-   * @param {number} sourceIndex Row source index.
-   * @returns {boolean}
-   */
-  /**
    * Whether ANY row of this table could be exact. `false` when the mode cannot vary per row and is
    * the floor — which is every grid that never sets the mode — so a caller looping over rows can
    * skip the per-row `isExact` probe entirely. Reading it once per draw instead of once per row is
