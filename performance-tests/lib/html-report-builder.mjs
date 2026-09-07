@@ -5,6 +5,7 @@
 import {
   REGRESSION_CALLOUT_THRESHOLD_TIMING,
   CV_WARNING_THRESHOLD,
+  INCOMPARABLE_LABELS,
   TRACE_MISMATCH_REASONS,
   activeTotalsPerIteration,
   calcCv,
@@ -365,18 +366,24 @@ function buildMemoryMetrics(current, golden, isCrossWindow = false) {
     return [];
   }
 
+  // [label, display key, numeric key, informational]. An informational row states its delta without
+  // a verdict on it: no threshold has been derived for the live set yet, and colouring it on the
+  // heap band would paint a 7% move red beside a flat jsHeapMaxBytes.
   const pairs = [
-    ['Min JS heap', 'jsHeapMinLabel', 'jsHeapMinBytes'],
-    ['Max JS heap', 'jsHeapMaxLabel', 'jsHeapMaxBytes'],
-    ['Min Nodes', 'nodesMin', 'nodesMin'],
-    ['Max Nodes', 'nodesMax', 'nodesMax'],
-    ['Min Listeners', 'listenersMin', 'listenersMin'],
-    ['Max Listeners', 'listenersMax', 'listenersMax'],
+    ['Min JS heap', 'jsHeapMinLabel', 'jsHeapMinBytes', false],
+    ['Max JS heap', 'jsHeapMaxLabel', 'jsHeapMaxBytes', false],
+    // The live set after a forced GC (lib/heap-after-gc.mjs). Informational until enough goldens
+    // carry it to derive a threshold; the row is skipped for runs recorded before it existed.
+    ['JS heap after GC', 'jsHeapAfterGcLabel', 'jsHeapAfterGcBytes', true],
+    ['Min Nodes', 'nodesMin', 'nodesMin', false],
+    ['Max Nodes', 'nodesMax', 'nodesMax', false],
+    ['Min Listeners', 'listenersMin', 'listenersMin', false],
+    ['Max Listeners', 'listenersMax', 'listenersMax', false],
   ];
 
   const rows = [];
 
-  for (const [label, displayKey, numKey] of pairs) {
+  for (const [label, displayKey, numKey, neutral] of pairs) {
     const cDisplay = cUc[displayKey];
     const gDisplay = gUc?.[displayKey];
 
@@ -384,12 +391,22 @@ function buildMemoryMetrics(current, golden, isCrossWindow = false) {
       continue;
     }
 
+    // The baseline carries the metric and this run does not: a capture that failed, which must not
+    // look like a metric nobody measured. Named for the side that missed it, like the timing rows.
+    const currentMissing = cDisplay == null && gDisplay != null;
+    const incomplete = isCrossWindow || currentMissing;
+
     rows.push({
       label,
       currentDisplay: cDisplay != null ? String(cDisplay) : '--',
       baselineDisplay: gDisplay != null ? String(gDisplay) : '--',
-      change: isCrossWindow ? null : pctChange(gUc?.[numKey], cUc[numKey]),
-      incomplete: isCrossWindow,
+      change: incomplete ? null : pctChange(gUc?.[numKey], cUc[numKey]),
+      incomplete,
+      // The row's own label when the row, not the scenario, is what is incomplete.
+      incompleteLabel: currentMissing && !isCrossWindow
+        ? INCOMPARABLE_LABELS['current-incomplete']
+        : null,
+      neutral,
     });
   }
 
@@ -1301,12 +1318,15 @@ function buildScript() {
         tr.appendChild(elText('td', row.baselineDisplay, 'num'));
         tr.appendChild(elText('td', row.currentDisplay, 'num'));
         const changeTd = elText(
-          'td', row.incomplete ? scenario.incompleteLabel : fmtPct(row.change), 'num'
+          'td',
+          row.incomplete ? (row.incompleteLabel || scenario.incompleteLabel) : fmtPct(row.change),
+          'num'
         );
         // Memory is banded on the scenario's heap threshold, which is an order of magnitude tighter
         // than the timing one because heap barely moves run to run -- except on the scenarios whose
-        // peak heap depends on GC timing, which carry a wider band (heapThresholdFor).
-        changeTd.style.color = row.incomplete
+        // peak heap depends on GC timing, which carry a wider band (heapThresholdFor). An
+        // informational row (the live heap, no threshold derived yet) states its delta unbanded.
+        changeTd.style.color = row.incomplete || row.neutral
           ? statusColor('neutral')
           : statusColor(classifyChangeCss(row.change, scenario.heapThreshold));
         tr.appendChild(changeTd);

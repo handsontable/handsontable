@@ -7,7 +7,7 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildHtmlReport } from '../html-report-builder.mjs';
 import { buildReport } from '../report-builder.mjs';
-import { REGRESSION_CALLOUT_THRESHOLD_HEAP, heapThresholdFor } from '../thresholds.mjs';
+import { INCOMPARABLE_LABELS, REGRESSION_CALLOUT_THRESHOLD_HEAP, heapThresholdFor } from '../thresholds.mjs';
 
 /**
  * @param {string} html
@@ -155,6 +155,133 @@ describe('buildHtmlReport -- environment and refusal', () => {
     assert.equal(data.baseline, null);
     assert.equal(data.hasBaseline, false);
     assert.equal(data.meta.baselineUnavailable, reason);
+  });
+});
+
+describe('buildHtmlReport -- JS heap after GC', () => {
+  const withAfterGc = (bytes, label) => current(100, {
+    updateCounters: {
+      jsHeapMaxBytes: 100_000_000, jsHeapMaxLabel: '100 MB', jsHeapAfterGcBytes: bytes, jsHeapAfterGcLabel: label,
+    },
+  });
+
+  test('renders the live-heap row with its delta when both sides carry it', () => {
+    const data = payloadOf(buildHtmlReport(
+      { a: withAfterGc(55_000_000, '55.0 MB') },
+      {
+        timestamp: 't',
+        scenarios: {
+          a: golden({
+            updateCounters: {
+              jsHeapMaxBytes: 100_000_000,
+              jsHeapMaxLabel: '100 MB',
+              jsHeapAfterGcBytes: 50_000_000,
+              jsHeapAfterGcLabel: '50.0 MB',
+            },
+          }),
+        },
+      },
+      {}
+    ));
+    const row = data.scenarios[0].memory.find(r => r.label === 'JS heap after GC');
+
+    assert.equal(row.currentDisplay, '55.0 MB');
+    assert.equal(row.baselineDisplay, '50.0 MB');
+    assert.ok(Math.abs(row.change - 10) < 1e-9);
+  });
+
+  test('renders the row without a delta against a baseline recorded before the field existed', () => {
+    const data = payloadOf(buildHtmlReport(
+      { a: withAfterGc(55_000_000, '55.0 MB') }, { timestamp: 't', scenarios: { a: golden() } }, {}
+    ));
+    const row = data.scenarios[0].memory.find(r => r.label === 'JS heap after GC');
+
+    assert.equal(row.currentDisplay, '55.0 MB');
+    assert.equal(row.baselineDisplay, '--');
+    assert.equal(row.change, null);
+  });
+
+  test('the row is informational: it states its delta without a verdict', () => {
+    const data = payloadOf(buildHtmlReport(
+      { a: withAfterGc(57_000_000, '57.0 MB') },
+      {
+        timestamp: 't',
+        scenarios: {
+          a: golden({
+            updateCounters: {
+              jsHeapMaxBytes: 100_000_000,
+              jsHeapMaxLabel: '100 MB',
+              jsHeapAfterGcBytes: 50_000_000,
+              jsHeapAfterGcLabel: '50.0 MB',
+            },
+          }),
+        },
+      },
+      {}
+    ));
+    const rows = data.scenarios[0].memory;
+
+    // +14% on the live set, well past every heap band, and still neutral; the max row is not.
+    assert.equal(rows.find(r => r.label === 'JS heap after GC').neutral, true);
+    assert.equal(rows.find(r => r.label === 'Max JS heap').neutral, false);
+  });
+
+  test('a baseline that carries the field while this run does not is a failed capture, not a blank', () => {
+    const data = payloadOf(buildHtmlReport(
+      { a: current(100) },
+      {
+        timestamp: 't',
+        scenarios: {
+          a: golden({
+            updateCounters: {
+              jsHeapMaxBytes: 100_000_000,
+              jsHeapMaxLabel: '100 MB',
+              jsHeapAfterGcBytes: 50_000_000,
+              jsHeapAfterGcLabel: '50.0 MB',
+            },
+          }),
+        },
+      },
+      {}
+    ));
+    const row = data.scenarios[0].memory.find(r => r.label === 'JS heap after GC');
+
+    assert.equal(row.baselineDisplay, '50.0 MB');
+    assert.equal(row.currentDisplay, '--');
+    assert.equal(row.change, null);
+    assert.equal(row.incomplete, true);
+    assert.equal(row.incompleteLabel, INCOMPARABLE_LABELS['current-incomplete']);
+    // The scenario itself is still comparable: only this row's capture failed.
+    assert.equal(data.scenarios[0].baselineIncomplete, false);
+  });
+
+  test('omits the row when neither side carries it', () => {
+    const data = payloadOf(buildHtmlReport({ a: current(100) }, { timestamp: 't', scenarios: { a: golden() } }, {}));
+
+    assert.equal(data.scenarios[0].memory.some(r => r.label === 'JS heap after GC'), false);
+  });
+
+  test('the gate still runs on the windowed maximum, not on the live heap', () => {
+    // Live heap doubled, max flat: no regression is called.
+    const data = payloadOf(buildHtmlReport(
+      { a: withAfterGc(100_000_000, '100 MB') },
+      {
+        timestamp: 't',
+        scenarios: {
+          a: golden({
+            updateCounters: {
+              jsHeapMaxBytes: 100_000_000,
+              jsHeapMaxLabel: '100 MB',
+              jsHeapAfterGcBytes: 50_000_000,
+              jsHeapAfterGcLabel: '50.0 MB',
+            },
+          }),
+        },
+      },
+      {}
+    ));
+
+    assert.equal(data.scenarios[0].isRegression, false);
   });
 });
 

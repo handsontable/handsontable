@@ -5,8 +5,11 @@ import { readdir, readFile, writeFile, mkdir, copyFile } from 'node:fs/promises'
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-import { parseTrace, averageParsedTraces } from '../trace-parser.mjs';
+import { parseTrace, averageParsedTraces, formatHeapMaxBytesLabel } from '../trace-parser.mjs';
 import { exists } from './fs-utils.mjs';
+import { HEAP_AFTER_GC_FILE } from './heap-after-gc.mjs';
+import { HOOK_TIMING_FILE } from './hook-timing.mjs';
+import { readSidecar } from './sidecar.mjs';
 import { saveSnapshots, loadBaseline } from './snapshot-store.mjs';
 import { assessReport, buildReport, collectRegressions } from './report-builder.mjs';
 import { buildHtmlReport } from './html-report-builder.mjs';
@@ -142,13 +145,38 @@ async function collectScenarioResults() {
     averaged.measurementVersion = await measurementVersionOf(entry.name);
 
     // Load hook timing if saved alongside traces
-    const hookTimingPath = join(scenarioDir, 'hook-timing.json');
+    const hookData = await readSidecar(scenarioDir, HOOK_TIMING_FILE);
 
-    if (await exists(hookTimingPath)) {
-      const hookData = JSON.parse(await readFile(hookTimingPath, 'utf8'));
-
+    if (hookData) {
       averaged.hookTiming = hookData.averageDeltaMs ?? null;
       averaged._iterationValues.hookTiming = hookData.deltas ?? [];
+    }
+
+    // The live heap the runner read after each iteration's trace (lib/heap-after-gc.mjs). Folded
+    // into updateCounters beside the windowed extrema it is meant to eventually replace as the
+    // gate -- only when there are windowed extrema: a window that caught no UpdateCounters sample
+    // leaves updateCounters null, and a two-field object in its place would grow the memory table
+    // and stamp a zero sampleCount on the median.
+    const heapData = await readSidecar(scenarioDir, HEAP_AFTER_GC_FILE);
+    const afterGcBytes = typeof heapData?.averageBytes === 'number' ? heapData.averageBytes : null;
+
+    if (afterGcBytes !== null && averaged.updateCounters) {
+      const readCount = typeof heapData.readCount === 'number' ? heapData.readCount : null;
+
+      // The per-iteration readings stay in heap-after-gc.json (uploaded with the artifact); no
+      // report reads them yet, so they are not carried on _iterationValues. The count is, so a
+      // one-sample average is distinguishable from a five-sample one once this becomes a gate.
+      averaged.updateCounters = {
+        ...averaged.updateCounters,
+        jsHeapAfterGcBytes: afterGcBytes,
+        jsHeapAfterGcLabel: formatHeapMaxBytesLabel(afterGcBytes),
+        jsHeapAfterGcSamples: readCount,
+      };
+
+      if (readCount !== null && readCount < parsedResults.length) {
+        console.warn(`  WARN: ${entry.name} read the live heap on ${readCount} of ` +
+          `${parsedResults.length} iterations; jsHeapAfterGcBytes averages only those.`);
+      }
     }
 
     results[entry.name] = averaged;
