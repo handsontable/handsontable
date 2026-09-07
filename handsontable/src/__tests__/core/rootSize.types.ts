@@ -26,6 +26,14 @@ const widthCalc: GridSettings = { width: 'calc(100% - 40px)' };
 const widthAuto: GridSettings = { width: 'auto' };
 const widthFunction: GridSettings = { width: () => 500 };
 
+// `null` is the documented reset, on both axes and from a function too - it restores the root
+// element's initial inline value for that one property. The types excluded it at first, so the
+// documented call did not compile.
+const heightNull: GridSettings = { height: null };
+const widthNull: GridSettings = { width: null };
+const heightFunctionNull: GridSettings = { height: () => null };
+const widthFunctionNull: GridSettings = { width: () => null };
+
 // @ts-expect-error a boolean is not a size.
 const heightBoolean: GridSettings = { height: true };
 // @ts-expect-error an array is not a size.

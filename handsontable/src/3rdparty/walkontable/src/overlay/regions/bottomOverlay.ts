@@ -9,7 +9,7 @@ import BottomOverlayTable from '../../table/regions/bottomTable';
 import { Overlay, type OverlayDeps } from './_base';
 import {
   axisScrollbarClearance,
-  holderOwnsScrollbars,
+  holderOwnsAxisScrollbar,
   overlayExtentBesideScrollbar,
   reservedScrollbarSpace,
 } from '../scrollbarClearance';
@@ -229,15 +229,20 @@ export class BottomOverlay extends Overlay {
     // Width is a horizontal question: sized against the scrollport whenever an element owns the
     // horizontal axis (see `TopOverlay#adjustRootElementSize`).
     const rootSized = !wtViewport.isHorizontallyScrollableByWindow();
-    // Clip and band together, or not at all - see `TopOverlay#adjustRootElementSize`.
-    const clearanceApplies = holderOwnsScrollbars(this.trimmingContainer, rootWindow);
+    // Clip and band together, or not at all - see `TopOverlay#adjustRootElementSize`. This overlay
+    // spans both edges, so it asks per axis: the inline-end strip is the vertical scrollbar's and
+    // the bottom strip the horizontal one's, and with split owners only one of them may apply.
+    const verticalClearanceApplies =
+      holderOwnsAxisScrollbar(wtViewport.isVerticallyScrollableByWindow(), rootWindow);
+    const horizontalClearanceApplies =
+      holderOwnsAxisScrollbar(wtViewport.isHorizontallyScrollableByWindow(), rootWindow);
 
     // The master's vertical scrollbar sits along the inline-end edge this overlay spans.
     this.#holderClearance = axisScrollbarClearance(
       this.deps.geometryReader,
       wtTable.holder,
       this.deps.geometryReader.getScrollbarWidth(rootDocument),
-      clearanceApplies && wtViewport.hasVerticalScroll(),
+      verticalClearanceApplies && wtViewport.hasVerticalScroll(),
       'vertical'
     );
 
@@ -268,7 +273,7 @@ export class BottomOverlay extends Overlay {
       this.deps.geometryReader,
       wtTable.holder,
       this.deps.geometryReader.getScrollbarWidth(rootDocument),
-      clearanceApplies && wtViewport.hasHorizontalScroll() && wtViewport.hasVerticalScroll(),
+      horizontalClearanceApplies && wtViewport.hasHorizontalScroll() && wtViewport.hasVerticalScroll(),
       'horizontal'
     );
 

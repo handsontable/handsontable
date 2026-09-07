@@ -289,8 +289,11 @@ export abstract class Overlay {
    * `overflow` against `'hidden'`/`'clip'`, and a root that clips one axis only computes to
    * `"clip visible"`, which matches neither — the case this whole per-axis resolution exists for.
    *
-   * The corners have no axis; they keep the single-answer form (the parent's `overflow` shorthand,
-   * then `preventOverflow`, then the scrollable ancestor).
+   * A window-owned axis resolves to the window only while the holder cannot scroll that axis
+   * itself, and for the horizontal axis that is not always true — see `#ownsWindowScroll()`.
+   *
+   * The corners have no axis of their own, so they take the same answer as
+   * `ScrollSync#scrollableElement`: the holder as soon as the parent traps either axis.
    *
    * @returns {HTMLElement | Window}
    */
@@ -304,21 +307,15 @@ export abstract class Overlay {
     const traps = (value: string) => value === 'hidden' || value === 'clip';
 
     if (this.#axis === null) {
-      const preventOverflow = this.wtSettings.getSetting('preventOverflow');
-
-      if (parentStyle && traps(parentStyle.getPropertyValue('overflow'))) {
+      if (parentStyle &&
+          (traps(parentStyle.getPropertyValue('overflow-x')) || traps(parentStyle.getPropertyValue('overflow-y')))) {
         return wtTable.holder;
-      }
-
-      if (preventOverflow === 'horizontal' && this.type === CLONE_TOP ||
-          preventOverflow === 'vertical' && this.type === CLONE_INLINE_START) {
-        return rootWindow;
       }
 
       return getScrollableElement(wtTable.TABLE);
     }
 
-    if (this.trimmingContainer === rootWindow) {
+    if (this.trimmingContainer === rootWindow && this.#ownsWindowScroll()) {
       return rootWindow;
     }
 
@@ -327,6 +324,36 @@ export abstract class Overlay {
     }
 
     return getScrollableElement(wtTable.TABLE);
+  }
+
+  /**
+   * Tells whether the window really scrolls this overlay's axis, given that it owns it.
+   *
+   * It always does on the vertical axis: `alignHolderWithSplitOwners` leaves a window-owned axis to
+   * the DOM, which vertically means `height: auto` — a holder whose content is its own height and
+   * which therefore has nothing to scroll.
+   *
+   * Horizontally the same rule leaves a block-fill width, and the holder's stylesheet
+   * `overflow: auto` then does scroll it whenever the table is wider. That is the reverse split
+   * (`preventOverflow: 'vertical'`, or an ancestor clipping the vertical axis only): the holder
+   * takes the vertical owner's pixel height, so it is a real scroll port, and CSS cannot scroll one
+   * axis while letting the perpendicular one overflow visibly — `overflow: visible` beside an `auto`
+   * axis computes to `auto`. So the columns scroll inside the holder there whatever the owner says.
+   * In window mode the holder is unsized on both axes and `MasterTable` clears its overflow, so
+   * nothing scrolls inside it and the window is the answer for both axes.
+   *
+   * @returns {boolean}
+   */
+  #ownsWindowScroll(): boolean {
+    if (this.#axis === 'y') {
+      return true;
+    }
+
+    const verticalOwner = resolveAxisOwner(
+      this.wtRootElement, 'y', this.wtSettings.getSetting('preventOverflow')
+    );
+
+    return !(verticalOwner instanceof HTMLElement);
   }
 
   abstract resetFixedPosition(): boolean;
@@ -466,8 +493,14 @@ export abstract class Overlay {
 
   /**
    * Update the main scrollable element.
+   *
+   * The owner is re-resolved first, so the answer never rests on one a previous draw left behind.
+   * A draw refreshes the owners on its way in, but this is also reached from
+   * `updateSettings` — through `ScrollSync#updateMainScrollableElements()` — and a suspended render
+   * has drawn nothing in between.
    */
   updateMainScrollableElement() {
+    this.updateTrimmingContainer();
     this.mainTableScrollableElement = this.#computeMainScrollableElement();
   }
 

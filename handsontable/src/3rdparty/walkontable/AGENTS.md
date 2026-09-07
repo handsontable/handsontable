@@ -118,7 +118,7 @@ the holder scrolls the columns inside the root's box, and the page scrolls the r
 The owners live on the overlays: the top and bottom overlays carry the vertical owner in
 `trimmingContainer`, the inline-start overlay the horizontal one, and
 `isVerticallyScrollableByWindow()` / `isHorizontallyScrollableByWindow()` read exactly those two
-fields. Three rules follow.
+fields. Five rules follow.
 
 - **A decision about the other axis goes through the viewport predicate, never `this.trimmingContainer`.**
   The width of the top and bottom clones is a horizontal question and the height of the inline-start
@@ -126,7 +126,30 @@ fields. Three rules follow.
   the axis that scrollbar belongs to (`hasVerticalScroll() && !isVerticallyScrollableByWindow()`);
   the scrollbar clearance strips read the owner of the axis the strip lies on. Reading the overlay's
   own owner for any of those sized the frozen-column clone to the full hider height, or shrank the
-  top clone by a page scrollbar the holder does not have.
+  top clone by a page scrollbar the holder does not have. The clearance gate takes that answer as a
+  boolean — `holderOwnsAxisScrollbar(isVerticallyScrollableByWindow(), rootWindow)` for a strip on
+  the inline-end edge, `isHorizontallyScrollableByWindow()` for one on the bottom edge — so the axis
+  is named at the call site and cannot be inherited from the overlay by accident. `BottomOverlay`
+  spans both edges and needs both. Gating its bottom strip on its own (vertical) owner re-created
+  the #10370 notch in split mode, mirrored: the frozen columns clipped a bottom strip while the
+  frozen bottom rows and the corner over them published none.
+- **`syncScrollWithMaster` and `syncScrollPositions` read AND write per axis.** Each axis comes off
+  the `mainTableScrollableElement` of the overlay pinned against it, and a clone holder is only
+  offset on an axis an element scrolls — on a window-owned axis the clone's cells are placed by the
+  spreader, so a holder offset double-shifts them. Taking both axes off the top overlay made
+  `syncScrollWithMaster` return early whenever the window owned the vertical axis, which is the
+  headline split: a clone that began rendering while the holder was scrolled sideways
+  (`updateSettings({ fixedRowsTop: 1 })` on a scrolled grid) kept `scrollLeft: 0` and showed the
+  wrong columns, and `syncScrollPositions` could not repair it because the master's scroll had not
+  moved.
+- **The wheel handler may only swallow a gesture the grid can answer on every axis it names.**
+  `ScrollSync#scrollableElement` is the holder as soon as *either* axis is element-owned, so a plain
+  vertical wheel over a definite-`width`, free-`height` grid reaches the translation, nudges the
+  holder sideways by the stray `deltaX` a trackpad always carries, reports "scrolled" and would have
+  its default prevented — leaving the page unable to scroll at all under the pointer.
+  `NativeScrollInput#ownsWheelGesture()` refuses the `preventDefault` when a nonzero delta lands on a
+  window-owned axis. It is a no-op in element mode, where both axes are owned. Note the listeners are
+  correctly non-passive in split mode: a horizontal-only gesture there still has to be preventable.
 - **`preventOverflow` is an alias, not a mode.** `'horizontal'` forces the horizontal owner to the
   root's parent and `'vertical'` the vertical one; everything the option used to switch by string
   comparison now follows from the owners. Its only remaining reads are the window-mode overflow
@@ -154,6 +177,30 @@ never probes. `ScrollSync#scrollableElement` stays the holder
 whenever any axis is element-owned, so the wheel translation, the sticky scroll and the scrollbar
 bands keep treating the grid as one that scrolls inside its box; the per-axis scroll positions are
 read off each overlay's own `mainTableScrollableElement`.
+
+**"Left to the DOM" is not symmetric between the axes, and one place has to know it.** Vertically it
+means `height: auto` — the holder's content *is* its height, so it can never scroll and the window
+is the only candidate. Horizontally it means a block-fill width, and the holder's stylesheet
+`overflow: auto` then really does scroll the columns whenever the table is wider. CSS offers no way
+out: `overflow: visible` beside a non-`visible` axis computes to `auto`, so a holder that scrolls one
+axis scrolls both. This only bites the **reverse** split — an element owning the vertical axis and
+the window the horizontal one, which is `preventOverflow: 'vertical'`, or an ancestor clipping the
+vertical axis alone — where the holder takes a pixel height and becomes a real scroll port.
+`Overlay#ownsWindowScroll()` is where that asymmetry lives: a window-owned **vertical** axis always
+resolves to the window, a window-owned **horizontal** one only while the vertical axis is
+window-owned too (window mode, where the holder is unsized on both axes and `MasterTable` clears its
+overflow). Without it the horizontal listener bound to the window while the holder did the
+scrolling, and `syncScrollPositions` read `window.scrollX` forever — the column band stayed pinned at
+column 0. Leave `isHorizontallyScrollableByWindow()` alone in that mode: the owner really is the
+window, and the clone sizing that reads it must keep matching it.
+
+The same mode has a second trap, and it is about **how much the table overhangs its holder.** That
+measurement (`masterTableRect.bottom - masterHolderRect.bottom`) is the fractional-zoom rounding
+error the bottom overlay and the bottom corner subtract — but only while the holder's height is the
+DOM's to decide. Give the holder an owner's pixel height and the same subtraction returns the whole
+clipped remainder of the table, which threw the corner hundreds of pixels below the grid. So gate it
+on the **vertical** owner (`bottomOverlay.trimmingContainer === rootWindow`), not on the corner's
+`anyAxisOnWindow`, which the horizontal axis alone can satisfy.
 
 An owner can move without a settings change (a page rule that clips the root, a `width` that
 becomes definite). `Overlays#beforeDraw` re-resolves the three region overlays' owners on every

@@ -249,4 +249,97 @@ describe('root size options', () => {
       });
     });
   });
+
+  describe('an overflow that is not this module\'s to write', () => {
+    // Only two states put a foreign overflow on the root element, because a ROOT instance builds a
+    // fresh `<div>` for `rootElement` (`core.ts`) and a container the host page styled inline is its
+    // parent, never this element. The two are: a NESTED grid, whose `rootElement` is the container it
+    // was handed, and the `height: null` restore, which copies the initial style back onto it. Both
+    // are simulated here by writing the inline value the module has to leave alone.
+
+    it('should survive a sized height set through the option', () => {
+      // `hidden` clips as well as `clip` does, and unlike `clip` it stays programmatically
+      // scrollable - so replacing it takes a capability away for no gain.
+      const grid = buildGrid({ height: 300 });
+
+      grid.rootElement.style.overflowY = 'scroll';
+      grid.rootElement.style.overflowX = 'hidden';
+      grid.updateSettings({ height: 400 });
+
+      expect(inlineSize(grid)).toEqual({
+        height: '400px', width: '', overflowX: 'hidden', overflowY: 'scroll',
+      });
+    });
+
+    it('should be respected per axis, so an axis this module owns is still clipped', () => {
+      const grid = buildGrid({ height: 300 });
+
+      grid.rootElement.style.overflowY = 'scroll';
+      grid.updateSettings({ height: 400 });
+
+      expect(inlineSize(grid)).toEqual({
+        height: '400px', width: '', overflowX: 'clip', overflowY: 'scroll',
+      });
+    });
+
+    it('should survive the free-height path too, which clips the horizontal axis', () => {
+      const grid = buildGrid({ height: 300, width: 200 });
+
+      grid.rootElement.style.overflowX = 'auto';
+      grid.updateSettings({ height: 'auto' });
+
+      expect(inlineSize(grid)).toEqual({
+        height: 'auto', width: '200px', overflowX: 'auto', overflowY: '',
+      });
+    });
+
+    it('should be read through the `overflow` shorthand where the longhands are not set', () => {
+      // jsdom records `overflow: hidden` on the shorthand alone and leaves both longhands empty,
+      // while a browser expands it. Reading the longhand only, the check called the axis unset and
+      // wrote `clip` over the user's value - in jsdom, so every unit test agreed with it.
+      const grid = buildGrid({ height: 300 });
+
+      grid.rootElement.style.cssText = 'height: 300px; overflow: hidden';
+      grid.updateSettings({ width: 250 });
+
+      expect(grid.rootElement.style.overflow).toBe('hidden');
+      expect(inlineSize(grid)).toEqual({
+        height: '300px', width: '250px', overflowX: '', overflowY: '',
+      });
+    });
+
+    it('should come back with a `height: null` restore and survive the next sized height', () => {
+      // The reachable route on a root instance: the restore copies the initial style back, and the
+      // next payload must not undo it. A width-only payload reaches the sized-height path too,
+      // which matters because React and Angular re-send unchanged settings on every commit.
+      const grid = buildGrid({ height: 300, width: 200 });
+
+      grid.rootElement.dataset.initialstyle = 'overflow: hidden';
+      grid.updateSettings({ height: null });
+
+      expect(inlineSize(grid)).toEqual({
+        height: '', width: '200px', overflowX: 'hidden', overflowY: 'hidden',
+      });
+
+      grid.updateSettings({ width: 250 });
+
+      expect(inlineSize(grid)).toEqual({
+        height: '', width: '250px', overflowX: 'hidden', overflowY: 'hidden',
+      });
+
+      grid.updateSettings({ height: 400 });
+
+      expect(inlineSize(grid)).toEqual({
+        height: '400px', width: '250px', overflowX: 'hidden', overflowY: 'hidden',
+      });
+    });
+
+    it('should still clip a root element whose overflow this module owns', () => {
+      const grid = buildGrid({ height: 300 });
+
+      expect(inlineSize(grid)).toEqual({
+        height: '300px', width: '', overflowX: 'clip', overflowY: 'clip',
+      });
+    });
+  });
 });

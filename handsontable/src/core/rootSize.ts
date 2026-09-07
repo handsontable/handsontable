@@ -58,6 +58,22 @@ function isOwnedOverflow(overflowValue: string): boolean {
 }
 
 /**
+ * Reads the inline overflow in force on one axis.
+ *
+ * The `overflow` shorthand is the fallback, for the same reason `parseInitialStyle()` needs it: a
+ * browser expands the shorthand into the longhands, jsdom keeps the two apart. Without the fallback
+ * a user's `overflow: hidden` is invisible in jsdom and the ownership test above reads the axis as
+ * unset - which is how a value set on the container came to be overwritten there.
+ *
+ * @param {CSSStyleDeclaration} style The root element's inline style.
+ * @param {'overflowX'|'overflowY'} axis The longhand to read.
+ * @returns {string}
+ */
+function inlineOverflow(style: CSSStyleDeclaration, axis: 'overflowX' | 'overflowY'): string {
+  return style[axis] || style.overflow;
+}
+
+/**
  * Tells whether an inline height leaves the vertical axis to the page: unset, or `auto`.
  *
  * @param {InlineSizeState} state The classified inline height.
@@ -113,10 +129,10 @@ function resetAxis(rootElement: HTMLElement, axis: RootSizeAxis): void {
   style[axis] = initial[axis];
 
   if (axis === 'height') {
-    if (isOwnedOverflow(style.overflowY)) {
+    if (isOwnedOverflow(inlineOverflow(style, 'overflowY'))) {
       style.overflowY = initial.overflowY;
     }
-    if (isOwnedOverflow(style.overflowX)) {
+    if (isOwnedOverflow(inlineOverflow(style, 'overflowX'))) {
       style.overflowX = initial.overflowX;
     }
   }
@@ -196,15 +212,17 @@ function applyAxis(instance: HotInstance, axis: RootSizeAxis, rawValue: unknown,
  * - A free height with a free or container-driven width clips nothing: the page scrolls both axes,
  *   and a wider-than-page grid gives the page a horizontal scrollbar rather than hiding columns.
  *
- * Only the longhands this module owns (`clip` or unset) are ever written on the free-height paths.
- * The longhands are written on the sized path too, never the shorthand: a browser serializes two
+ * Only the longhands this module owns (`clip` or unset) are ever written, on every path. A value the
+ * user put there is theirs and is never touched — `overflow: hidden` on the container clips just as
+ * well, and replacing it with `clip` would take away a scroll port they can still scroll
+ * programmatically. The longhands are written rather than the shorthand: a browser serializes two
  * equal longhands back as `overflow: clip`, while jsdom keeps the shorthand and the longhands apart,
  * so writing the longhands is what reads back the same in both.
  *
  * @param {HTMLElement} rootElement The grid's root element.
  * @param {boolean} heightRestored `true` when the height was just reset to its initial inline value.
  * A restored sized height keeps the overflow restored with it, so the initial style comes back
- * whole; a sized height set through the option always clips.
+ * whole; a sized height set through the option clips whatever it owns.
  */
 function applyOverflow(rootElement: HTMLElement, heightRestored: boolean): void {
   const { style } = rootElement;
@@ -213,18 +231,22 @@ function applyOverflow(rootElement: HTMLElement, heightRestored: boolean): void 
 
   if (!isFreeHeight(heightState)) {
     if (!heightRestored) {
-      style.overflowX = 'clip';
-      style.overflowY = 'clip';
+      if (isOwnedOverflow(inlineOverflow(style, 'overflowX'))) {
+        style.overflowX = 'clip';
+      }
+      if (isOwnedOverflow(inlineOverflow(style, 'overflowY'))) {
+        style.overflowY = 'clip';
+      }
     }
 
     return;
   }
 
-  if (isOwnedOverflow(style.overflowY)) {
+  if (isOwnedOverflow(inlineOverflow(style, 'overflowY'))) {
     style.overflowY = '';
   }
 
-  if (isOwnedOverflow(style.overflowX)) {
+  if (isOwnedOverflow(inlineOverflow(style, 'overflowX'))) {
     style.overflowX = widthState === 'definite' ? 'clip' : '';
   }
 }

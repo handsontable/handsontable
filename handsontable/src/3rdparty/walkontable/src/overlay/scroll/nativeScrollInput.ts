@@ -26,6 +26,37 @@ function isWheelEventWithLegacyDelta(event: WheelEvent): event is WheelEventWith
 }
 
 /**
+ * Reads the scroll distance a wheel event asks for, in pixels on both axes.
+ *
+ * A free function so the scroll and the decision whether the grid may swallow the event read the
+ * same numbers - including the legacy and line-mode conversions, which `event.deltaX`/`deltaY`
+ * alone do not give.
+ *
+ * @param {WheelEvent} event The wheel event.
+ * @param {number} browserLineHeight The line height used to convert a line-mode delta.
+ * @returns {{ deltaX: number, deltaY: number }}
+ */
+function resolveWheelDeltas(event: WheelEvent, browserLineHeight: number): { deltaX: number, deltaY: number } {
+  let deltaY: number;
+  let deltaX: number;
+
+  if (isWheelEventWithLegacyDelta(event)) {
+    deltaY = isNaN(event.deltaY) ? (-1) * (event.wheelDeltaY ?? 0) : event.deltaY;
+    deltaX = isNaN(event.deltaX) ? (-1) * (event.wheelDeltaX ?? 0) : event.deltaX;
+  } else {
+    deltaY = event.deltaY;
+    deltaX = event.deltaX;
+  }
+
+  if (event.deltaMode === 1) {
+    deltaX += deltaX * browserLineHeight;
+    deltaY += deltaY * browserLineHeight;
+  }
+
+  return { deltaX, deltaY };
+}
+
+/**
  * Assembles the NativeScrollInput's dependencies. The overlays are resolved off the owning
  * coordinator (its own fields set by `initOverlays`), and the sticky-scroll strategy + resize monitor
  * are passed as the already-built instances so their listener hooks can be re-registered from here.
@@ -54,6 +85,7 @@ export function createNativeScrollInputDeps(
     notifyScrolledForScrollbarVisibility: () => overlays.notifyScrolledForScrollbarVisibility(),
     getTopOverlay: () => overlays.topOverlay,
     getInlineStartOverlay: () => overlays.inlineStartOverlay,
+    getWtViewport: ctx.getWtViewport,
     getCloneableOverlays: () => [
       overlays.topOverlay,
       overlays.bottomOverlay,
@@ -268,9 +300,38 @@ export class NativeScrollInput {
 
     const isScrollPossible = this.#translateMouseWheelToScroll(event);
 
-    if (preventDefault || (this.#deps.getScrollableElement() !== rootWindow && isScrollPossible)) {
+    if (preventDefault ||
+        (this.#deps.getScrollableElement() !== rootWindow && isScrollPossible && this.#ownsWheelGesture(event))) {
       event.preventDefault();
     }
+  }
+
+  /**
+   * Whether every axis this wheel event asks to scroll is one the grid scrolls itself.
+   *
+   * The grid may only swallow a gesture it can answer in full. With split axis owners it owns one
+   * axis and the page the other, and `scrollableElement` is the holder for the whole grid as soon as
+   * either axis is element-owned - so a plain vertical gesture over a grid with a definite `width`
+   * and no sized `height` reached here, nudged the holder sideways by the stray `deltaX` a trackpad
+   * always carries, reported "scrolled" and had its default prevented. The page then could not
+   * scroll at all while the pointer was over the grid.
+   *
+   * In element mode both axes are owned and the answer is always `true`, so nothing changes there:
+   * a gesture the grid cannot scroll any further still reports `isScrollPossible: false` and chains
+   * to the page as before.
+   *
+   * @param {WheelEvent} event The wheel event.
+   * @returns {boolean}
+   */
+  #ownsWheelGesture(event: WheelEvent): boolean {
+    const { deltaX, deltaY } = resolveWheelDeltas(event, this.#browserLineHeight);
+    const wtViewport = this.#deps.getWtViewport();
+
+    if (deltaY !== 0 && wtViewport.isVerticallyScrollableByWindow()) {
+      return false;
+    }
+
+    return !(deltaX !== 0 && wtViewport.isHorizontallyScrollableByWindow());
   }
 
   /**
@@ -296,21 +357,7 @@ export class NativeScrollInput {
    * @returns {boolean}
    */
   #translateMouseWheelToScroll(event: WheelEvent) {
-    let deltaY: number;
-    let deltaX: number;
-
-    if (isWheelEventWithLegacyDelta(event)) {
-      deltaY = isNaN(event.deltaY) ? (-1) * (event.wheelDeltaY ?? 0) : event.deltaY;
-      deltaX = isNaN(event.deltaX) ? (-1) * (event.wheelDeltaX ?? 0) : event.deltaX;
-    } else {
-      deltaY = event.deltaY;
-      deltaX = event.deltaX;
-    }
-
-    if (event.deltaMode === 1) {
-      deltaX += deltaX * this.#browserLineHeight;
-      deltaY += deltaY * this.#browserLineHeight;
-    }
+    const { deltaX, deltaY } = resolveWheelDeltas(event, this.#browserLineHeight);
 
     const isScrollVerticallyPossible = this.#deps.scrollVertically(deltaY);
     const isScrollHorizontallyPossible = this.#deps.scrollHorizontally(deltaX);

@@ -3698,7 +3698,8 @@ export default (): Record<string, unknown> => {
      *
      * A number or a CSS length sizes the grid's box. Handsontable writes
      * `height: <value>; overflow: clip;` as inline styles on the root element, and the grid
-     * scrolls its rows inside that box.
+     * scrolls its rows inside that box. An `overflow-x` or `overflow-y` you set yourself on the
+     * root element is left alone, on that axis, and clips the grid in its place.
      *
      * #### How `'auto'` differs from leaving `height` unset
      *
@@ -8007,14 +8008,11 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Grid size](@/guides/getting-started/grid-size/grid-size.md)
      *
-     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
-     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
-     *
      * @memberof Options#
      * @type {number|'auto'|string|Function}
      * @default undefined
      * @category Core
-     * @configScope grid
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js

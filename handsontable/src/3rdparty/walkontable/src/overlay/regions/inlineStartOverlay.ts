@@ -14,7 +14,7 @@ import {
   CLONE_INLINE_START,
 } from '../constants';
 import {
-  holderOwnsScrollbars,
+  holderOwnsAxisScrollbar,
   reservedScrollbarSpace,
   overlayExtentBesideScrollbar,
   axisScrollbarClearance,
@@ -201,7 +201,7 @@ export class InlineStartOverlay extends Overlay {
     // under this overlay, and clipping would expose the master for nothing.
     // A touch-only device has no pointer that could reach the scrollbar - see `canGrabScrollbar`.
     // Clip and band together, or not at all - see `TopOverlay#adjustRootElementSize`.
-    const clearanceApplies = holderOwnsScrollbars(this.trimmingContainer, rootWindow);
+    const clearanceApplies = holderOwnsAxisScrollbar(wtViewport.isHorizontallyScrollableByWindow(), rootWindow);
 
     this.#holderClearance = axisScrollbarClearance(
       this.deps.geometryReader,

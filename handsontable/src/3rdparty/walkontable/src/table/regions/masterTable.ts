@@ -199,8 +199,24 @@ class MasterTable extends Table {
     const { geometryReader } = this.deps;
 
     if (!xIsElement && !yIsElement) {
+      // Window mode sizes nothing, so a pixel size left on the holder by a previous element or split
+      // layout has to be dropped here - nothing else writes it back. A grid moved from `width: 500`
+      // to `width: '100%'` kept a 500px holder, and `measureWorkspaceWidth`'s window branch reads
+      // exactly that, so the columns went on stretching to the old width inside a full-width root.
+      const holderStyle = this.holder.style;
+
+      holderStyle.width = '';
+      holderStyle.height = '';
+      this.hasTableWidth = true;
+      this.hasTableHeight = true;
+
+      if (fieldsInitialized) {
+        // The measurement it holds was taken in another mode and must not be replayed on the way back.
+        this.#trimmingCache = null;
+      }
+
       if (!preventOverflow) {
-        this.holder.style.overflow = 'visible';
+        holderStyle.overflow = 'visible';
         this.wtRootElement.style.overflow = 'visible';
       }
     } else if (!(xIsElement && yIsElement && ownerX === ownerY)) {

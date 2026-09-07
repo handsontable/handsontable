@@ -12,7 +12,7 @@ import TopOverlayTable from '../../table/regions/topTable';
 import { Overlay, type OverlayDeps } from './_base';
 import {
   axisScrollbarClearance,
-  holderOwnsScrollbars,
+  holderOwnsAxisScrollbar,
   reservedScrollbarSpace,
   overlayExtentBesideScrollbar,
 } from '../scrollbarClearance';
@@ -218,7 +218,7 @@ export class TopOverlay extends Overlay {
     // left the vertical scrollbar covered on any grid with frozen columns but no frozen rows - the
     // commonest arrangement there is. The strips below are published only while the clone is
     // rendered, so nothing further has to be asked here.
-    const clearanceApplies = holderOwnsScrollbars(this.trimmingContainer, rootWindow);
+    const clearanceApplies = holderOwnsAxisScrollbar(wtViewport.isVerticallyScrollableByWindow(), rootWindow);
 
     this.#holderClearance = axisScrollbarClearance(
       this.deps.geometryReader,

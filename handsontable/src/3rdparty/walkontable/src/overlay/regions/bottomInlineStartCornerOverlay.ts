@@ -5,7 +5,7 @@ import {
 import BottomInlineStartCornerOverlayTable from '../../table/regions/bottomInlineStartCornerTable';
 import { Overlay, type OverlayDeps } from './_base';
 import {
-  holderOwnsScrollbars,
+  holderOwnsAxisScrollbar,
   axisScrollbarClearance,
   reservedScrollbarSpace,
 } from '../scrollbarClearance';
@@ -58,6 +58,24 @@ export class BottomInlineStartCornerOverlay extends Overlay {
   }
 
   /**
+   * How far the rendered master table reaches past the bottom of its holder.
+   *
+   * At fractional zoom the browser rounds each row's border to a physical pixel, so the table ends
+   * a fraction of a CSS pixel below the holder's integer height. Only meaningful while the holder's
+   * height is the DOM's to decide; against a holder sized in pixels by an element owner this is the
+   * whole clipped remainder of the table, not a rounding error.
+   *
+   * @returns {number}
+   */
+  #masterTableOverflow(): number {
+    const { geometryReader } = this.deps;
+    const masterTableRect = geometryReader.getBoundingClientRect(this.deps.getWtTable().TABLE);
+    const masterHolderRect = geometryReader.getBoundingClientRect(this.deps.getWtTable().holder);
+
+    return Math.max(0, masterTableRect.bottom - masterHolderRect.bottom);
+  }
+
+  /**
    * Updates the corner overlay position.
    *
    * @returns {boolean}
@@ -83,11 +101,16 @@ export class BottomInlineStartCornerOverlay extends Overlay {
 
     if (anyAxisOnWindow) {
       const inlineStartOffset = this.inlineStartOverlay.getOverlayOffset();
-      const { geometryReader } = this.deps;
-      const masterTableRect = geometryReader.getBoundingClientRect(this.deps.getWtTable().TABLE);
-      const masterHolderRect = geometryReader.getBoundingClientRect(this.deps.getWtTable().holder);
-      const masterTableOverflow = Math.max(0, masterTableRect.bottom - masterHolderRect.bottom);
-      const bottom = this.bottomOverlay.getOverlayOffset() - masterTableOverflow;
+      // The fractional-zoom correction belongs to the VERTICAL axis, and only while the window owns
+      // it - it is the same subtraction `BottomOverlay#resetFixedPosition` makes on its own window
+      // branch, against a holder whose height the DOM decides. When an element owns the vertical
+      // axis the holder has that owner's pixel height, the clipped table reaches far past it, and
+      // subtracting that overflow pushed this corner hundreds of pixels below the grid - reachable
+      // in the reverse split (`preventOverflow: 'vertical'` over a root with a CSS height), where
+      // the corner takes this branch on the strength of the horizontal axis alone.
+      const bottom = this.bottomOverlay.trimmingContainer === rootWindow
+        ? this.bottomOverlay.getOverlayOffset() - this.#masterTableOverflow()
+        : this.bottomOverlay.getOverlayOffset();
 
       overlayRoot.style[this.isRtl() ? 'right' : 'left'] = `${inlineStartOffset}px`;
       overlayRoot.style.bottom = `${bottom}px`;
@@ -122,9 +145,12 @@ export class BottomInlineStartCornerOverlay extends Overlay {
     //
     // A touch-only device has no pointer that could reach the scrollbar - see `canGrabScrollbar`.
     // Clip and band together, or not at all - see `TopOverlay#adjustRootElementSize`.
-    // Read off the frozen-bottom-rows overlay, whose axis this strip belongs to, so the two gates
-    // cannot disagree.
-    const clearanceApplies = holderOwnsScrollbars(this.bottomOverlay.trimmingContainer, rootWindow);
+    // This strip lies on the bottom edge, so it is the HORIZONTAL scrollbar's - the same axis the
+    // frozen bottom rows ask about, so the two gates cannot disagree. Reading the bottom overlay's
+    // own owner asked about the vertical axis instead, which left this corner publishing nothing
+    // while the frozen columns clipped a strip beside it.
+    const clearanceApplies =
+      holderOwnsAxisScrollbar(wtViewport.isHorizontallyScrollableByWindow(), rootWindow);
     const bottomClearance = this.needFullRender ? axisScrollbarClearance(
       this.deps.geometryReader,
       this.deps.getWtTable().holder,

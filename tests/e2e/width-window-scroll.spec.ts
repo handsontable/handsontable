@@ -175,6 +175,72 @@ test.describe('width-only grid: holder scrolls columns, window scrolls rows', ()
     expect((await grid.scrollExtents()).holderScrollLeft).toBeGreaterThan(0);
   });
 
+  // The grid may only swallow a wheel gesture it can answer on every axis the gesture names. Here it
+  // owns the columns and the page owns the rows, while `ScrollSync#scrollableElement` is the holder
+  // for the whole grid - so a vertical swipe reached the wheel translation, the stray `deltaX` a
+  // trackpad always carries scrolled the holder sideways, that counted as "scrolled", and the
+  // `preventDefault()` that followed left the page unable to scroll under the pointer at all.
+  //
+  // Asserted on `defaultPrevented`, which is precisely what the grid decides. The page's own scroll
+  // cannot be measured here: Chromium latches one CDP-dispatched wheel to the scroller under the
+  // pointer (the holder) and does not chain to the document within that single event, the way a real
+  // trackpad's event stream does.
+  test('leaves a vertical wheel to the page, despite the trackpad drift on the axis it owns', async () => {
+    await grid.watchWheelEvents();
+    await grid.wheelOverGrid(240);
+
+    const [gesture] = await grid.wheelLog();
+
+    expect(gesture.deltaY).toBe(240);
+    expect(gesture.defaultPrevented).toBe(false);
+    // The sideways drift was still applied to the axis the grid does own.
+    expect((await grid.scrollExtents()).holderScrollLeft).toBeGreaterThan(0);
+  });
+
+  test('still swallows a horizontal-only wheel, which is the axis it owns', async () => {
+    // The other half of the rule: with no vertical delta the grid answers the whole gesture, so it
+    // consumes it and the page keeps still.
+    await grid.watchWheelEvents();
+    await grid.wheelOverGrid(0, 160);
+
+    const [gesture] = await grid.wheelLog();
+
+    expect(gesture.defaultPrevented).toBe(true);
+
+    const after = await grid.scrollExtents();
+
+    expect(after.holderScrollLeft).toBeGreaterThan(0);
+    expect(after.windowScrollY).toBe(0);
+  });
+
+  // The wrapper re-send shape: React and Angular push every option on every commit, so `height`
+  // arrives again unchanged while `width` moves from container-driven to definite. `applyRootSize`
+  // reports no scroll-owner change for it - it compares the inline HEIGHT, which did not move - so
+  // core does not call `updateMainScrollableElements()`. The engine has to catch it on its own:
+  // `Overlays#beforeDraw` re-resolves the owners and `ScrollSync#resyncScrollableElementsWithOwners`
+  // rebinds the listeners in `afterDraw`, inside this same `updateSettings`. Without that the
+  // horizontal listener would stay on the window while the root clips the columns.
+  test('re-picks the scroll owner when only `width` moves and `height` is re-sent unchanged', async () => {
+    await grid.rebuild({ height: 'auto', width: '100%' });
+
+    expect((await grid.axisOwners()).horizontalByWindow).toBe(true);
+
+    await grid.updateSettings({ height: 'auto', width: 500 });
+
+    expect((await grid.axisOwners()).horizontalByWindow).toBe(false);
+    expect((await grid.rootState()).overflowX).toBe('clip');
+
+    // The listeners really did move: scrolling the holder drives the frozen rows with it.
+    await grid.scrollHolderBy(400);
+
+    expect((await grid.scrollExtents()).holderScrollLeft).toBeGreaterThan(0);
+
+    const topBox = await grid.box(grid.topCloneCell(0, 12));
+    const masterBox = await grid.box(grid.cell(5, 12));
+
+    expect(Math.abs(topBox.x - masterBox.x)).toBeLessThanOrEqual(2);
+  });
+
   test('keeps the legacy `preventOverflow: "horizontal"` alias on the same layout', async () => {
     await grid.rebuild({ width: undefined, preventOverflow: 'horizontal' }, '500px');
 
