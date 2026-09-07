@@ -603,6 +603,69 @@
       box-sizing: border-box;
     }
 
+    // Exact row heights: rows the engine pins at a provided height and clips. A table cell's
+    // `height` is a minimum in CSS table layout, so the content is taken out of flow — the wrapper
+    // fills the cell's padding box and clips, and the cell can then be shorter than its text.
+    // The wrapper resets its own box because it matches `$user-cell-content` and so is exempt from
+    // the normalize block below. The cell drops its own padding: a border-box cell can never be
+    // shorter than its padding plus border (17px in `horizon`), and the wrapper's insets carry the
+    // same padding, so the content keeps its place.
+    // The marker is on the ROW: the cell renderers reset every cell's class on each draw, and a
+    // per-cell class made the browser recompute the style of the whole band on every draw.
+    // `height: auto` releases the default minimum cell height, so the one cell carrying the
+    // row's height inline decides the row.
+    tr.htExactRow > td,
+    tr.htExactRow > th {
+      position: relative;
+      height: auto;
+    }
+
+    tr.htExactRow > td {
+      padding: 0;
+    }
+
+    tr.htExactRow > td > .htCellClip {
+      position: absolute;
+      inset: var(--ht-cell-vertical-padding) var(--ht-cell-horizontal-padding);
+      overflow: hidden;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      min-height: 0;
+      box-sizing: border-box;
+    }
+
+    // `vertical-align` on the cell no longer moves out-of-flow content; map it onto the wrapper.
+    // `align-content` on the block box, NOT `display: flex`: the indicator renderers place their
+    // arrows with floats, which a flex container ignores.
+    tr.htExactRow > td.htMiddle > .htCellClip {
+      align-content: center;
+    }
+
+    tr.htExactRow > td.htBottom > .htCellClip {
+      align-content: end;
+    }
+
+    // Row headers already wrap their content in `.relative`; take that out of flow instead of
+    // adding a wrapper. Only body rows are ever marked, so column headers keep their
+    // minimum-height semantics.
+    tr.htExactRow > th > .relative {
+      position: absolute;
+      inset: 0;
+      min-height: 0;
+    }
+
+    // Clip the header's own content, NEVER `.relative` or the `th`: the active-row accent bar is a
+    // `.relative::after` inset by -1px on three sides so it meets the gridlines, and a clip on
+    // either box cuts it off (a body-row `th` has `padding: 0`, so its padding box is its content
+    // box). A custom row-header renderer that builds no `.rowHeader` is unclipped and may paint
+    // over the row below; it can never grow the row, because `.relative` is out of flow.
+    tr.htExactRow > th > .relative > .rowHeader {
+      display: block;
+      height: 100%;
+      overflow: hidden;
+    }
+
     .wtHider {
       width: 0;
     }
