@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a custom editor closing and discarding its value when the browser focus moved into an element declared as `preventCloseElement`.",
+  "type": "fixed",
+  "issueOrPR": 13387,
+  "breaking": false,
+  "framework": "none"
+}
