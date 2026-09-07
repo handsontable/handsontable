@@ -16,6 +16,8 @@ function isPlainRecord(v: unknown): v is Record<string, unknown> {
   return isObject(v);
 }
 
+import { normalizeClassNames } from '../../helpers/dom/element';
+
 export const PLUGIN_KEY = 'search';
 export const PLUGIN_PRIORITY = 190;
 const DEFAULT_SEARCH_RESULT_CLASS = 'htSearchResult';
@@ -165,17 +167,12 @@ export class Search extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    const beforeRendererCallback = (
-      td: HTMLTableCellElement, row: number, col: number, prop: string | number,
-      value: string, cellProperties: Record<string, unknown>
-    ) => this.#onBeforeRenderer(td, row, col, prop, value, cellProperties);
-
-    this.hot.addHook('beforeRenderer', beforeRendererCallback);
-    this.hot.addHookOnce('afterViewRender', () => {
-      this.hot.removeHook('beforeRenderer', beforeRendererCallback);
-    });
-    // The one-shot hook above strips the result class while the cells paint, so under
-    // `renderMode: 'onChange'` the next render has to reach every cell.
+    // The class lives in the stored meta of every cell that was painted while it matched, on screen
+    // or scrolled away since. Strip it there, not through a render: a render reaches only the
+    // rendered band, and a match scrolled back into view later would still carry the class. The
+    // `isSearchResult` flag stays, so `updatePlugin()` (disable + enable) keeps the results, as it
+    // always did. Every cell then repaints from the stripped meta, under any `renderMode`.
+    this.#removeResultClassFromStoredMeta();
     this.hot.markAllCellsChanged();
 
     super.disablePlugin();
@@ -360,6 +357,19 @@ export class Search extends BasePlugin {
 
     cellProperties.className = classArray.join(' ');
   };
+
+  /**
+   * Removes the result class from the `className` of every stored cell meta that carries it.
+   */
+  #removeResultClassFromStoredMeta() {
+    this.hot.getCellsMeta().forEach((cellMeta: Record<string, unknown>) => {
+      const classNames = normalizeClassNames(cellMeta.className as string | string[] | undefined);
+
+      if (classNames.includes(this.searchResultClass)) {
+        cellMeta.className = classNames.filter(className => className !== this.searchResultClass).join(' ');
+      }
+    });
+  }
 
   /**
    * Destroys the plugin instance.

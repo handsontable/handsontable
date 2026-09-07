@@ -225,6 +225,17 @@ test.describe('renderMode: onChange', () => {
     await grid.run('hot.getPlugin("search").disablePlugin(); hot.render();');
     await expect(grid.cell(3, 3)).not.toHaveClass(/htSearchResult/);
     await grid.expectEqualToFullRepaint();
+
+    // A match painted while highlighted, then scrolled out of the rendered rows, is not painted by
+    // the disabling render. It must lose the class in its stored meta all the same, or scrolling it
+    // back into view shows a highlight for a disabled plugin.
+    await grid.run('hot.getPlugin("search").enablePlugin(); hot.getPlugin("search").query("r18c1"); hot.scrollViewportTo({ row: 19 });');
+    await expect(grid.cell(18, 1)).toHaveClass(/htSearchResult/);
+    await grid.run('hot.scrollViewportTo({ row: 0 });');
+    await expect(grid.cell(0, 0)).toBeVisible();
+    await grid.run('hot.getPlugin("search").disablePlugin(); hot.render(); hot.scrollViewportTo({ row: 19 });');
+    await expect(grid.cell(18, 1)).toBeVisible();
+    await expect(grid.cell(18, 1)).not.toHaveClass(/htSearchResult/);
   });
 });
 
