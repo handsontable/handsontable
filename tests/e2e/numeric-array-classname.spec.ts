@@ -11,8 +11,10 @@ import { NumericArrayClassNamePage } from '../fixtures/pages/NumericArrayClassNa
  * `className` through that prototype then picked them up, and a text column sharing the array
  * rendered right-aligned and numeric-styled.
  *
- * No hiding plugin is enabled on any grid in the fixture, deliberately: `hiddenRows` and
- * `hiddenColumns` normalize `className` to a string on the meta path, which masks the leak.
+ * No hiding plugin is enabled on any grid in the fixture, so each grid is about the renderer alone.
+ * That also matters historically: until DEV-2618, `hiddenRows` and `hiddenColumns` rewrote every
+ * array `className` they read into a string, which masked this leak — so it only reproduced without
+ * one. They no longer rewrite cells they have no marker on, so they would not mask it today either.
  */
 test.describe('numericRenderer with a shared array className', () => {
   let grid: NumericArrayClassNamePage;

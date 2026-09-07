@@ -41,8 +41,11 @@
     classes landed in the user's own array and every other cell reading through that prototype
     picked them up. A text column sharing the array rendered right-aligned and numeric-styled.
 
-    NO hiding plugin is enabled on any grid here, deliberately: `hiddenRows`/`hiddenColumns`
-    normalize `className` to a string on the meta path, which masks the leak.
+    NO hiding plugin is enabled on any grid here, so each grid is about the renderer alone. That
+    also matters historically: until DEV-2618, `hiddenRows`/`hiddenColumns` rewrote every array
+    `className` they read into a string, which MASKED this leak - so the defect only reproduced
+    without one. Those plugins no longer rewrite cells they have no marker on, so they would not
+    mask it today either.
   -->
   <div id="grid-level" class="grid" data-testid="grid-level"></div>
   <div id="column-level" class="grid" data-testid="column-level"></div>

@@ -52,19 +52,27 @@ Four rules, all visible in `#onAfterGetCellMeta`:
   chain.
 - **Compare before assigning.** This hook runs on **every** cell meta read, and an unconditional write
   materializes an own property that shadows the column-level and grid-level cascade.
-- **Test for the marker before doing the normalize, not after.** The removal branch runs for every cell
-  that has *any* `className`, which on a grid with a grid-level value is every cell in it — almost none of
-  them anywhere near a hidden column. So `indexOf('afterHiddenColumn')` comes first and the join, the
-  compare and the write are all inside that branch. Measured on an isolated re-implementation of the two
-  hook bodies (3M calls, node 22, **not** in-situ): ~106 ns/call before DEV-2604, ~79–84 ns/call after it,
-  ~38 ns/call with the marker test first. The correctness half matters more than the speed: normalizing a
-  cell you have no marker on writes an own string `className` that shadows the cascade, and for a value set
-  through `setCellMeta` (which records it in `_userDefinedMetaProps`) that string **permanently replaces the
-  user's array**, because `getUserDefinedMetas()` re-reads `className` at `updateSettings` time.
-  Compare-before-assign cannot catch either, because an array is always `!==` its joined form. This was
-  deliberately declined on PR #13235 and taken in DEV-2618, once `contextMenu`'s alignment helpers stopped
-  casting `className` to a string — leaving arrays in cell meta is only safe because no consumer
-  string-operates the value any more.
+- **Gate the join, the compare and the write on actually finding your marker.** The removal branch runs for
+  every cell that has *any* `className`, which on a grid with a grid-level value is every cell in it —
+  almost none of them anywhere near a hidden column. So `indexOf('afterHiddenColumn')` gates everything
+  after it. The `normalizeClassNames()` call still runs first, because the token test needs the array: read
+  the code, not this paragraph, for the order. A raw-string `includes()` pre-filter ahead of the normalize
+  would skip that allocation too — a substring miss guarantees a token miss, so it is sound as a *negative*
+  filter only — and is the next step if this path measures hot again. Measured on an isolated
+  re-implementation of the two hook bodies (3M calls, node 22, **not** in-situ): ~106 ns/call before
+  DEV-2604, ~79–84 ns/call after it, ~38 ns/call with the write gated.
+
+  The correctness half matters more than the speed: rewriting a cell you have no marker on puts an own
+  string `className` on it that shadows the cascade, and for a value set through `setCellMeta` (which
+  records it in `_userDefinedMetaProps`) that string **permanently replaces the user's array**, because
+  `getUserDefinedMetas()` re-reads `className` at `updateSettings` time. Compare-before-assign cannot catch
+  either, because an array is always `!==` its joined form. This was deliberately declined on PR #13235 and
+  taken in DEV-2618, once `contextMenu`'s alignment *helpers* stopped casting `className` to a string in
+  #13266 — leaving arrays in cell meta is safe because nothing in `src/` string-operates the value. Two
+  caveats that go with that. `predefinedItems/alignment.ts` still casts `as string` at seven call sites, so
+  an array now reaches the public `beforeCellAlignment` payload on a hiding-plugin grid (it always did on a
+  grid without one). And **the two unconditional writes in `numericRenderer` and `search` are still there** —
+  both predate this and are tracked in DEV-2803.
 - **Match a marker class by token, not substring.** `indexOf` on the joined string treats a user class named
   `afterHiddenColumnHighlight` as the marker already being present, so the real marker never gets added.
 

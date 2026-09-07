@@ -19,8 +19,13 @@ export class NumericArrayClassNamePage {
   /** A shared array that already carries an alignment class. */
   static readonly ALIGNED = 'aligned';
 
-  /** Every grid the fixture builds. */
-  static readonly ALL_GRIDS = ['grid-level', 'column-level', 'string-path', 'aligned'];
+  /** Every grid the fixture builds. Built from the ids above, so a renamed id cannot drift out. */
+  static readonly ALL_GRIDS = [
+    NumericArrayClassNamePage.GRID_LEVEL,
+    NumericArrayClassNamePage.COLUMN_LEVEL,
+    NumericArrayClassNamePage.STRING_PATH,
+    NumericArrayClassNamePage.ALIGNED,
+  ];
 
   /** The two classes the fixture passes as an array. */
   static readonly USER_CLASSES = ['shared', 'mark'];
@@ -43,6 +48,13 @@ export class NumericArrayClassNamePage {
     await this.page.goto(
       `/tests/fixtures/demo/numeric-array-classname.html?theme=${this.theme}&bundle=${this.bundle}`
     );
+
+    // Wait for the bundle before reading anything the page script produced. `dist/handsontable.js`
+    // is ~6 MB and every worker pulls its own copy, so under load `goto()` resolves while
+    // `Handsontable` is still undefined - and `data-init-error` would then read as "no error"
+    // simply because the script had not run. `expect` is the wrong tool here: its 10s timeout is
+    // shorter than a cold server takes, while `waitForFunction` polls against the test budget.
+    await this.page.waitForFunction(() => 'Handsontable' in window);
 
     // Report a constructor that threw as the error it threw, not as a visibility timeout. The
     // fixture stamps `data-init-error` synchronously while the page script runs, so by the time

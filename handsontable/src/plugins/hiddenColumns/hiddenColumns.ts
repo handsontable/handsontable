@@ -503,13 +503,9 @@ export class HiddenColumns extends BasePlugin {
       const classArr = normalizeClassNames(cellProperties.className);
       const containAfterHiddenColumn = classArr.indexOf('afterHiddenColumn');
 
-      // Everything below is skipped when there is no marker of ours to strip, which is every cell
-      // nowhere near a hidden column. Two reasons, and the second is not just about speed: this
-      // hook runs on every cell meta read, and leaving the value alone also leaves an array
-      // `className` an array, instead of writing an own string property onto a cell this plugin
-      // never marked - which shadows the column-level and grid-level cascade, and for a value set
-      // through `setCellMeta` is permanent, because `getUserDefinedMetas()` re-reads `className` at
-      // `updateSettings` time.
+      // Gated on the marker: this hook runs on every cell meta read, and rewriting a cell we never
+      // marked would replace a user's array with an own string that shadows the cascade. See
+      // `AGENTS.md` in this directory.
       if (containAfterHiddenColumn > -1) {
         classArr.splice(containAfterHiddenColumn, 1);
 
