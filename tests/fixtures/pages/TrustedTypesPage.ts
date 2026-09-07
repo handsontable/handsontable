@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 
 /**
  * A Content Security Policy violation as the fixture records it. `sample` is the
@@ -93,11 +94,7 @@ export class TrustedTypesPage {
     }
 
     await this.page.goto(`/tests/fixtures/demo/trusted-types.html?${params}`);
-    // The bundle load has to be awaited on its own budget, not the 10s `expect` timeout: the
-    // fixture injects `dist/handsontable.js` through `document.write`, every worker pulls its
-    // own ~6 MB copy, and on a cold server the first test outlasts `expect` and fails here
-    // rather than where the cause is.
-    await this.page.waitForFunction(() => 'Handsontable' in window, undefined, { polling: 100 });
+    await awaitBundle(this.page);
     await expect(this.status).not.toBeEmpty();
   }
 

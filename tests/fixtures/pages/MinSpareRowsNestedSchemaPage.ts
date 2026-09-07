@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 
 /**
  * Page object for the GH #5069 fixture: one grid with `minSpareRows` and a nested `dataSchema`
@@ -32,16 +33,10 @@ export class MinSpareRowsNestedSchemaPage {
   /**
    * Navigate to the fixture and wait for the grid to render (web-first wait on a real DOM
    * condition).
-   *
-   * The bundle is injected with `document.write`, so it loads separately from the block that
-   * builds the grid. Wait for `Handsontable` itself first, and with `waitForFunction` rather
-   * than `expect`: the plain UMD bundle is ~6 MB and every worker pulls its own copy, so a cold
-   * or busy server outlasts the 10s `expect` timeout while `waitForFunction` polls against the
-   * test budget. Without this the spec flakes on whichever leg happens to warm the server.
    */
   async goto(): Promise<void> {
     await this.page.goto(`/tests/fixtures/demo/min-spare-rows-nested-schema.html?theme=${this.theme}&bundle=${this.bundle}`);
-    await this.page.waitForFunction(() => 'Handsontable' in window, undefined, { polling: 100 });
+    await awaitBundle(this.page);
     await expect(this.cell(0, 0)).toBeVisible();
   }
 

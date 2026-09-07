@@ -1,4 +1,5 @@
 import { type Locator, type Page, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 
 interface FiltersPlugin {
   addCondition(column: number, name: string, args: unknown[]): void;
@@ -143,7 +144,7 @@ export class EditorTrimmedRowPage {
 
     // Wait for the bundle before the cell. The test id comes from the fixture's `afterRenderer`, so
     // "cell not found" alone cannot tell a slow bundle apart from a grid that failed to render.
-    await this.page.waitForFunction(() => 'Handsontable' in window, undefined, { polling: 100 });
+    await awaitBundle(this.page);
 
     await expect(this.cell(0, 0)).toBeVisible();
 
