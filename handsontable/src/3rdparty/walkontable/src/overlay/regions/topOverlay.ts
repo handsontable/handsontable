@@ -82,11 +82,10 @@ export class TopOverlay extends Overlay {
 
     const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
     const { rootWindow } = this.deps;
-    const preventOverflow: boolean | string = this.wtSettings.getSetting('preventOverflow');
     let overlayPosition = 0;
     let skipInnerBorderAdjusting = false;
 
-    if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
+    if (this.trimmingContainer === rootWindow) {
       const wtTable = this.deps.getWtTable();
       const { geometryReader } = this.deps;
       const hiderRect = geometryReader.getBoundingClientRect(wtTable.hider);
@@ -202,11 +201,12 @@ export class TopOverlay extends Overlay {
     const { rootDocument, rootWindow } = this.deps;
     const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
     const overlayRootStyle = overlayRoot.style;
-    const preventOverflow: boolean | string = this.wtSettings.getSetting('preventOverflow');
 
+    // Width is a horizontal question: this overlay is sized against the scrollport whenever an
+    // element owns the horizontal axis, whichever owner its own (vertical) axis has.
+    const rootSized = !wtViewport.isHorizontallyScrollableByWindow();
     // The master's vertical scrollbar sits along the inline-end edge this overlay spans. Only worth a
-    // strip when this overlay is sized against the scrollport - see `inlineStartOverlay`.
-    const rootSized = this.trimmingContainer !== rootWindow || preventOverflow === 'horizontal';
+    // strip when the holder owns that scrollbar - see `inlineStartOverlay`.
     // A touch-only device has no pointer that could reach the scrollbar - see `canGrabScrollbar`.
     // Clip and band together, or not at all. Every rendered clone has to be clipped or it covers the
     // scrollbar - but clipping one uncovers the master underneath, scrolled elsewhere, so a clip with
@@ -231,7 +231,10 @@ export class TopOverlay extends Overlay {
     if (rootSized) {
       let width = wtViewport.getWorkspaceWidth();
 
-      if (wtViewport.hasVerticalScroll()) {
+      // Only the holder's own vertical scrollbar takes width off this overlay. When the window owns
+      // the vertical axis, `hasVerticalScroll()` reports the page's scrollbar, which sits outside the
+      // grid's box.
+      if (wtViewport.hasVerticalScroll() && !wtViewport.isVerticallyScrollableByWindow()) {
         width = overlayExtentBesideScrollbar(
           width,
           this.deps.geometryReader.clientWidth(wtTable.holder),
@@ -468,10 +471,9 @@ export class TopOverlay extends Overlay {
    */
   getOverlayOffset() {
     const { rootWindow } = this.deps;
-    const preventOverflow: boolean | string = this.wtSettings.getSetting('preventOverflow');
     let overlayOffset = 0;
 
-    if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
+    if (this.trimmingContainer === rootWindow) {
       const rootHeight = this.deps.getWtTable().getTotalHeight();
       const overlayRootHeight = this.clone ? this.clone.wtTable.getTotalHeight() : 0;
       const maxOffset = rootHeight - overlayRootHeight;

@@ -221,3 +221,112 @@ describe('ScrollSync#resolveProvisionalLayout', () => {
     expect(counters.registerListeners).toBe(0);
   });
 });
+
+describe('ScrollSync#resyncScrollableElementsWithOwners', () => {
+  /**
+   * Builds a ScrollSync over two overlays whose axis owners a test can move, and counts the
+   * listener rebinds.
+   *
+   * @param {object} state The table state to report.
+   * @param {boolean} state.rendered Whether the table is in the layout at construction.
+   * @returns {object} The ScrollSync under test, the two overlays, and the rebind counter.
+   */
+  const createScrollSync = ({ rendered }: { rendered: boolean }) => {
+    const rootWindow = window;
+    const counters = { registerListeners: 0 };
+    const createOverlay = () => ({
+      updateMainScrollableElement: () => {},
+      needFullRender: false,
+      trimmingContainer: rootWindow as HTMLElement | Window,
+    });
+    const topOverlay = createOverlay();
+    const inlineStartOverlay = createOverlay();
+    const wtTable = {
+      wtRootElement: document.createElement('div'),
+      TABLE: document.createElement('table'),
+      holder: document.createElement('div'),
+    };
+    const deps = {
+      rootWindow,
+      wtTable,
+      geometryReader: {
+        isRendered: () => rendered,
+        getComputedStyle: (element: Element) => rootWindow.getComputedStyle(element),
+      },
+      eventManager: {
+        clearEvents: () => {},
+      },
+      registerListeners: () => {
+        counters.registerListeners += 1;
+      },
+      refreshAll: () => {},
+      getDestroyed: () => false,
+      getTopOverlay: () => topOverlay,
+      getInlineStartOverlay: () => inlineStartOverlay,
+      getBottomOverlay: () => createOverlay(),
+      getWtViewport: () => ({
+        resetAllOversizedRows: () => {},
+        invalidateColumnWidthCache: () => {},
+      }),
+    } as unknown as ScrollSyncDeps;
+
+    return {
+      scrollSync: new ScrollSync(deps),
+      topOverlay,
+      inlineStartOverlay,
+      counters,
+    };
+  };
+
+  it('should record the owners on the first pass without rebinding', () => {
+    const { scrollSync, counters } = createScrollSync({ rendered: true });
+
+    scrollSync.resyncScrollableElementsWithOwners();
+    scrollSync.resyncScrollableElementsWithOwners();
+
+    expect(counters.registerListeners).toBe(0);
+  });
+
+  it('should rebind once when an axis owner moves, then stay quiet', () => {
+    const { scrollSync, inlineStartOverlay, counters } = createScrollSync({ rendered: true });
+
+    scrollSync.resyncScrollableElementsWithOwners();
+
+    // A `width` that becomes definite hands the horizontal axis from the window to the root.
+    inlineStartOverlay.trimmingContainer = document.createElement('div');
+    scrollSync.resyncScrollableElementsWithOwners();
+
+    expect(counters.registerListeners).toBe(1);
+
+    scrollSync.resyncScrollableElementsWithOwners();
+    scrollSync.resyncScrollableElementsWithOwners();
+
+    expect(counters.registerListeners).toBe(1);
+  });
+
+  it('should treat a rebind requested elsewhere as the new baseline', () => {
+    const { scrollSync, topOverlay, counters } = createScrollSync({ rendered: true });
+
+    scrollSync.resyncScrollableElementsWithOwners();
+    topOverlay.trimmingContainer = document.createElement('div');
+    // Core's `updateSettings` calls this on a `height` change, after the owners moved.
+    scrollSync.updateMainScrollableElements();
+
+    expect(counters.registerListeners).toBe(1);
+
+    scrollSync.resyncScrollableElementsWithOwners();
+
+    expect(counters.registerListeners).toBe(1);
+  });
+
+  it('should leave a provisional answer to the provisional-layout pass', () => {
+    const { scrollSync, inlineStartOverlay, counters } = createScrollSync({ rendered: false });
+
+    expect(scrollSync.isScrollableElementProvisional).toBe(true);
+
+    inlineStartOverlay.trimmingContainer = document.createElement('div');
+    scrollSync.resyncScrollableElementsWithOwners();
+
+    expect(counters.registerListeners).toBe(0);
+  });
+});
