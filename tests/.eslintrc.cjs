@@ -74,18 +74,18 @@ module.exports = {
         // that literal wrapped in a type assertion (`as`, `satisfies`, `<T>`). Only a plain options
         // VARIABLE is not judged; a spread is flagged too, because the rule asks the call site to be
         // explicit about the interval.
-        selector: "CallExpression[callee.property.name='waitForFunction'][arguments.length<3]",
+        selector: 'CallExpression[callee.property.name="waitForFunction"][arguments.length<3]',
         message: WAIT_FOR_FUNCTION_POLLING,
       },
       {
-        selector: "CallExpression[callee.property.name='waitForFunction'] > ObjectExpression.arguments:nth-child(3)"
-          + ":not(:has(Property[key.name='polling'], Property[key.value='polling']))",
+        selector: 'CallExpression[callee.property.name="waitForFunction"] > ObjectExpression.arguments:nth-child(3)'
+          + ':not(:has(Property[key.name="polling"], Property[key.value="polling"]))',
         message: WAIT_FOR_FUNCTION_POLLING,
       },
       {
-        selector: "CallExpression[callee.property.name='waitForFunction']"
-          + " > :matches(TSAsExpression, TSSatisfiesExpression, TSTypeAssertion).arguments:nth-child(3)"
-          + " > ObjectExpression.expression:not(:has(Property[key.name='polling'], Property[key.value='polling']))",
+        selector: 'CallExpression[callee.property.name="waitForFunction"]'
+          + ' > :matches(TSAsExpression, TSSatisfiesExpression, TSTypeAssertion).arguments:nth-child(3)'
+          + ' > ObjectExpression.expression:not(:has(Property[key.name="polling"], Property[key.value="polling"]))',
         message: WAIT_FOR_FUNCTION_POLLING,
       },
     ],

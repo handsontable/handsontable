@@ -37,7 +37,7 @@ function waitForScrollbarClearanceToSettle(page: Page) {
       .some(el => getComputedStyle(el).clipPath !== 'none');
 
     return bands === 0 && !clipped;
-  }, undefined, { timeout: 5000 });
+  }, undefined, { timeout: 5000, polling: 100 });
   /* eslint-enable no-restricted-globals */
 }
 
