@@ -154,7 +154,7 @@ flat set: two merges in different columns can cover the same rows, and a shared 
 genuinely-single fragment of the merge that carries nothing, leaving a phantom `1x1` entry in both the list
 and the lookup matrix.
 
-**The hatch is wired to the row move only, and the column axis still loses those merges (DEV-2805).** The
+**The hatch is wired to the row move only, and the column axis still loses those merges.** The
 trimming re-anchor shrinks a merge's own `rowspan` to its visible count, so a merge trimmed to one visible
 row *is* `rowspan: 1` — and a column translation copies that shrunk value onto every fragment. A
 `colspan: 1` merge in that state is therefore dropped by any `manualColumnMove` or `manualColumnFreeze`,
