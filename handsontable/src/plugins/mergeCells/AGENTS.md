@@ -29,11 +29,61 @@ Two line-scan helpers encode the rest of that logic: the first merge-touched lin
 cells all agree on a single index at or past `visualIndex`, and the first merge-**free** line at or past it
 (which always emits its own index — cells covered by no merge contribute their line's own index).
 
-## Trimming re-anchors a merge
+## The anchor is the merge; its visual coordinates are derived
 
-The plugin listens for the **row trimming map** changing — Filters, `trimRows`, a NestedRows collapse — so a
-merge whose anchor row gets hidden is re-anchored onto the still-visible rows. A merge is not dropped
-because its anchor disappeared.
+Every merge carries an **anchor** (`#mergeAnchors` in `mergeCells.ts`): the list of **physical rows** it
+covers plus its physical left column. That is the authoritative description — physical indexes survive
+trimming and reordering. The merge's own `row`/`col`/`rowspan` are re-derived from it on every
+`rowIndexMapper` `cacheUpdated`, so treat them as a snapshot of how the merge currently *draws*, not as
+what it owns.
+
+The rows are an explicit list, not a `{ start, length }` range: merging on a sorted grid, or over a row a
+filter has hidden, gives a merge whose physical rows are not consecutive.
+
+## Trimming re-anchors a merge, and clips it
+
+The plugin listens for the **row trimming map** changing — Filters, `trimRows`, a NestedRows collapse — so
+a merge whose rows get trimmed follows the rows that stay visible. Two things happen, and the second one
+is the part that is easy to get wrong:
+
+- the merge moves to the visual position of the first of its rows that is still visible, and
+- its `rowspan` shrinks to the **number of its rows that are still visible**.
+
+**The anchor's row list is ordered by visual position, and every structural edit must preserve that.**
+That invariant is what makes "first in the list" mean "the top-left". The list is captured in visual
+order, so on a descending sort it runs the other way to the physical indexes — and `#remapRowAnchorsAfterInsert`
+therefore *splices* the rows an insert grew a merge by into their visual place rather than appending them.
+Appending was a real defect: a grown row that sits visually above the ones already listed ended up last,
+and once the head was trimmed away the merge re-anchored onto the wrong row.
+
+Do **not** "simplify" the derivation to take the smallest visual index instead. It looks equivalent and is
+not: it also re-anchors merges on a *sorted* grid, where the head of the list is the row that was the
+top-left when the merge was made. Pulling every merge up to its highest visible row lets two merges whose
+rows a sort interleaves collide in the lookup matrix — measured on the merged-cells demo, and pinned by
+`should not let a sort pull two merges onto the same rows in the lookup matrix`. `relocateInMatrix` has no
+overlap guard (unlike `add`, which runs `isOverlapping`), so the second footprint silently wins.
+
+The span is one continuous block downwards from that top-left, so a merge whose visible rows are
+non-contiguous in the visual order (sorting or a row move, never trimming alone) can still cover foreign
+rows. That is pre-existing and unchanged.
+
+The clipping is not cosmetic. A trimmed row has no visual index at all, so the visual row space is
+compressed; a merge that kept its declared span would reach past its own rows and onto whatever sits
+below, and two merges would claim the same rows in the lookup matrix. Hidden rows are different — they
+keep their visual index, so they do not shrink the span here, and the renderer clips them out of the
+rendered `rowspan` instead.
+
+A merge is never dropped because its rows were trimmed. When none of them is visible it is purged from
+the matrix but kept in the list, and it comes back whole once its rows do. Removing the last *visible*
+row of a partly trimmed merge does not delete it either: `#onAfterRemoveRow` remaps the anchors first,
+then drops the merges whose anchor is now empty itself and forbids `shiftCollections` to drop any of the
+rest. The decision cannot be left to the shift: it reads the merge's *visual* coordinates, which for a
+merge purged while all of its rows were trimmed are stale, frozen at the moment it was purged.
+
+The row insert/remove hooks mirror the physical renumbering onto the anchors themselves rather than
+re-deriving them from the merges. They have to: the index mapper emits its cache update **before**
+`afterCreateRow`/`afterRemoveRow`, so by the time those hooks run a re-anchor has already gone round once
+against a grid whose row count changed while the merges had not been shifted yet.
 
 ## `disablePlugin()` clears the field, so copy first
 
