@@ -6,9 +6,9 @@
     "cells",
     "cell"
   ],
-  "total": 171,
+  "total": 172,
   "counts": {
-    "grid": 106,
+    "grid": 107,
     "grid columns cells cell": 60,
     "grid columns": 4,
     "columns": 1
@@ -1327,6 +1327,15 @@
         "cell"
       ],
       "since": null,
+      "note": null
+    },
+    {
+      "name": "sheetsBar",
+      "category": "SheetsBar",
+      "levels": [
+        "grid"
+      ],
+      "since": "18.1.0",
       "note": null
     },
     {

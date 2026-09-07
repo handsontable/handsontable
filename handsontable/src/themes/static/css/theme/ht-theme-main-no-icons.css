@@ -314,6 +314,17 @@
   --ht-pagination-button-focus-border-color: var(--ht-accent-color);
   --ht-pagination-button-focus-foreground-color: var(--ht-foreground-color);
   --ht-pagination-button-focus-background-color: var(--ht-pagination-bar-background-color);
+  --ht-sheets-bar-tab-horizontal-padding: var(--ht-sizing-size-3);
+  --ht-sheets-bar-tab-vertical-padding: var(--ht-sizing-size-2);
+  --ht-sheets-bar-tab-foreground-color: var(--ht-bar-foreground-color);
+  --ht-sheets-bar-tab-background-color: var(--ht-bar-background-color);
+  --ht-sheets-bar-tab-hover-foreground-color: light-dark(var(--ht-colors-palette-950), var(--ht-colors-white));
+  --ht-sheets-bar-tab-hover-background-color: light-dark(var(--ht-colors-palette-100), var(--ht-colors-palette-700));
+  --ht-sheets-bar-tab-active-foreground-color: light-dark(var(--ht-colors-palette-950), var(--ht-colors-white));
+  --ht-sheets-bar-tab-active-background-color: var(--ht-accent-color);
+  --ht-sheets-bar-tab-active-background-opacity: 8%;
+  --ht-sheets-bar-tab-active-border-width: 1px;
+  --ht-sheets-bar-tab-active-border-color: var(--ht-cell-selection-border-color);
   --ht-dialog-semi-transparent-background-color: light-dark(var(--ht-colors-white), var(--ht-colors-palette-950));
   --ht-dialog-semi-transparent-background-opacity: 80%;
   --ht-dialog-solid-background-color: light-dark(var(--ht-colors-white), var(--ht-colors-palette-950));

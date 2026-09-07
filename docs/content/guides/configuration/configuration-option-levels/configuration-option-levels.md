@@ -232,6 +232,7 @@ Search for an option by name, or filter the list down to a single level.
 | <span data-option="selectionHandles" data-levels="grid"></span>[`selectionHandles`](@/api/options.md#selectionhandles) | Yes | No | No | No | Core |  |
 | <span data-option="selectionMode" data-levels="grid"></span>[`selectionMode`](@/api/options.md#selectionmode) | Yes | No | No | No | Core |  |
 | <span data-option="selectOptions" data-levels="grid columns cells cell"></span>[`selectOptions`](@/api/options.md#selectoptions) | Yes | Yes | Yes | Yes | Core |  |
+| <span data-option="sheetsBar" data-levels="grid"></span>[`sheetsBar`](@/api/options.md#sheetsbar) | Yes | No | No | No | SheetsBar |  |
 | <span data-option="skipColumnOnPaste" data-levels="grid columns cells cell"></span>[`skipColumnOnPaste`](@/api/options.md#skipcolumnonpaste) | Yes | Yes | Yes | Yes | Core |  |
 | <span data-option="skipRowOnPaste" data-levels="grid columns cells cell"></span>[`skipRowOnPaste`](@/api/options.md#skiprowonpaste) | Yes | Yes | Yes | Yes | Core |  |
 | <span data-option="sortByRelevance" data-levels="grid columns cells cell"></span>[`sortByRelevance`](@/api/options.md#sortbyrelevance) | Yes | Yes | Yes | Yes | Core |  |

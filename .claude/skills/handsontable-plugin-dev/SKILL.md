@@ -124,6 +124,25 @@ this.hot.suspendRender();
 this.hot.resumeRender();
 ```
 
+**Sliced per-unit settings** - When a plugin manages several logical units that each need their own partial configuration layered over the grid's base settings (for example, one sheet in a multi-sheet workbook), treat each unit's settings object as a partial slice: apply only the declared keys and leave every undeclared key at its current grid-level value. Apply the slice and its data together, batched into a single render:
+```ts
+#applySheet(sheet: Sheet, source: string) {
+  const apply = () => {
+    if (sheet.settings) {
+      this.hot.updateSettings(sheet.settings);  // only declared keys change
+    }
+    this.hot.loadData(sheet.data, `${source}.switch`);
+  };
+
+  if (this.hot.view) {
+    this.hot.batchRender(apply);
+  } else {
+    apply();  // view doesn't exist yet during initial plugin setup
+  }
+}
+```
+Reference implementation: `src/plugins/sheetsBar/sheetsBar.ts` (`#applySheet`). If the plugin also owns a layout slot for its UI (see `handsontable/AGENTS.md` "Wrapper UI placement"), register that UI once in `enablePlugin()` and let this method own only the settings/data swap, not the UI placement.
+
 ## Decoupling Rules
 
 - No direct cross-plugin imports. Use hooks or `hot.getPlugin('{Name}')`.

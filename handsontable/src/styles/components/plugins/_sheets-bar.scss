@@ -1,0 +1,362 @@
+@use "../../utils/mixins";
+
+// Sheets bar
+
+// The line along the bottom edge that marks the active tab. Shared, because the dragged tab has
+// to carry it alongside its own drop shadow.
+$active-marker: inset 0 calc(var(--ht-sheets-bar-tab-active-border-width) * -1) 0 0 var(--ht-sheets-bar-tab-active-border-color);
+
+// How many rows of the all-sheets menu stay visible before it starts to scroll.
+$all-sheets-visible-items: 8;
+
+@mixin output {
+  .handsontable {
+    // The all-sheets menu lists the whole workbook, which has no upper bound, so past roughly
+    // eight rows it scrolls rather than growing the full height of the viewport. The cap is
+    // derived from the item metrics rather than pinned, so it tracks the theme's density; both
+    // sheets bar menus carry it, and the tab menu's six fixed items never reach it.
+    // Walkontable forces `overflow: visible` onto the holder of any grid it finds no trimming
+    // ancestor for, which would spill the capped rows rather than scroll them. Clipping the menu
+    // container makes it that ancestor, so the rendering engine leaves the holder's overflow to
+    // the rule below.
+    &.htSheetsBarMenu {
+      overflow: hidden;
+    }
+
+    &.htSheetsBarMenu .ht_master .wtHolder {
+      // A row is its line box, its vertical padding, and the 1px bottom border every grid cell
+      // carries — the three together are what one menu item occupies.
+      max-height: calc(
+        #{$all-sheets-visible-items} * (var(--ht-line-height) + var(--ht-menu-item-vertical-padding) * 2 + 1px)
+      );
+      overflow-y: auto;
+
+      // The vertical scrollbar takes its width out of the holder wherever the platform draws a
+      // classic one, which leaves the item table a few pixels too wide and hands the menu a
+      // horizontal scrollbar it has no use for. The rows are sized to the menu, so there is
+      // never anything worth reaching sideways.
+      overflow-x: hidden;
+    }
+
+    // The shared menu styles paint the mark in the accent colour. That is the right colour in
+    // the themes whose selected-row language is the accent, but classic marks a selected row in
+    // grey and keeps a pale blue accent, which leaves the check barely legible against the row.
+    // Following the token that tints the row keeps the mark in whatever colour the theme already
+    // uses to say "this one", and is the accent again wherever that is what the theme means.
+    &.htSheetsBarMenu table tbody tr td .htItemWrapper span.selected::after {
+      color: var(--ht-menu-item-active-color, var(--ht-accent-color));
+    }
+
+    // The all-sheets rows go through a custom renderer, because a sheet name is user-supplied
+    // and must reach the DOM as text rather than as markup. That renderer marks the cell
+    // `htCustomMenuRenderer`, which the shared menu styles exclude from the item states — the
+    // exclusion exists for renderers that draw their own UI, such as the filters search box.
+    // These rows are plain text, so they take the states back.
+    &.htSheetsBarMenu table tbody tr td.htCustomMenuRenderer:not(.htDisabled) {
+      &:hover {
+        background: color-mix(
+          in srgb,
+          var(--ht-menu-item-hover-color) var(--ht-menu-item-hover-color-opacity, 100%),
+          transparent
+        ) !important;
+        cursor: pointer;
+      }
+
+      &.current {
+        box-shadow: inset 0 0 0 1px var(--ht-menu-item-active-color, var(--ht-accent-color));
+      }
+    }
+
+    &.ht-sheets-bar {
+      width: 100%;
+      color: var(--ht-bar-foreground-color);
+      background: var(--ht-bar-background-color);
+      font-size: var(--ht-font-size);
+      line-height: var(--ht-line-height);
+      box-sizing: border-box;
+
+      // In the bottom slot the border is provided by `.ht-slot-element`. A standalone
+      // sheets bar (custom `uiContainer`, no `ht-slot-element`) draws its own full border.
+      &:not(.ht-slot-element) {
+        border: 1px solid var(--ht-border-color);
+        border-radius: var(--ht-border-radius);
+      }
+
+      .ht-sheets-bar__inner {
+        display: flex;
+        align-items: stretch;
+        justify-content: space-between;
+        padding-inline: var(--ht-bar-horizontal-padding);
+      }
+
+      .ht-sheets-bar__controls,
+      .ht-sheets-bar__paging {
+        display: flex;
+        align-items: center;
+        flex: 0 0 auto;
+        gap: 1px;
+
+        // Both sections are shown/hidden via the `hidden` attribute; without this,
+        // `display: flex` above would win over the browser's `[hidden]` default.
+        &[hidden] {
+          display: none;
+        }
+      }
+
+      .ht-sheets-bar__controls {
+        padding-inline: calc(var(--ht-gap-size) * 2);
+      }
+
+      // Paired the way the add and all-sheets buttons are paired, so the two clusters read as
+      // the same kind of control rather than as two different ones. The leading rule stays: it
+      // separates the arrows from the tabs they scroll, which the other cluster has no need of.
+      .ht-sheets-bar__paging {
+        padding-inline-start: calc(var(--ht-gap-size) * 2);
+        border-inline-start: 1px solid var(--ht-border-color);
+      }
+
+      .ht-sheets-bar__button {
+        display: flex;
+        align-items: center;
+        font-size: inherit;
+        border: 1px solid var(--ht-pagination-button-border-color);
+        color: var(--ht-pagination-button-foreground-color);
+        background-color: var(--ht-pagination-button-background-color);
+        border-radius: var(--ht-icon-button-large-border-radius);
+        padding: var(--ht-icon-button-large-padding);
+        cursor: pointer;
+
+        &::before {
+          @include mixins.pseudo;
+        }
+
+        &:disabled,
+        &.ht-sheets-bar__button--disabled {
+          cursor: default;
+          pointer-events: none;
+          color: var(--ht-pagination-button-disabled-foreground-color);
+          background-color: var(--ht-pagination-button-disabled-background-color);
+          border-color: var(--ht-pagination-button-disabled-border-color);
+        }
+
+        &:hover:not(:disabled, .ht-sheets-bar__button--disabled) {
+          border-color: var(--ht-pagination-button-hover-border-color);
+          color: var(--ht-pagination-button-hover-foreground-color);
+          background-color: var(--ht-pagination-button-hover-background-color);
+        }
+
+        &:focus-visible {
+          outline: none;
+          border-color: var(--ht-pagination-button-focus-border-color);
+          color: var(--ht-pagination-button-focus-foreground-color);
+          background-color: var(--ht-pagination-button-focus-background-color);
+        }
+      }
+
+      .ht-sheets-bar__tabs {
+        display: flex;
+        align-items: stretch;
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+          display: none;
+        }
+      }
+
+      .ht-sheets-bar__tab {
+        position: relative;
+        display: flex;
+        cursor: pointer;
+        align-items: center;
+        flex: 0 0 auto;
+        gap: var(--ht-gap-size);
+        padding-inline: var(--ht-sheets-bar-tab-horizontal-padding);
+        padding-block: var(--ht-sheets-bar-tab-vertical-padding);
+        color: var(--ht-sheets-bar-tab-foreground-color);
+        background: var(--ht-sheets-bar-tab-background-color);
+
+        // A tab is a control, not prose: dragging one across the strip must move it rather than
+        // sweep a text selection through the names it passes. The rename input takes selection
+        // back for itself, since editing a name needs it.
+        user-select: none;
+
+        // The drag is pointer-events-based so it works with touch as well as a mouse, but on
+        // touch the default `touch-action: auto` lets the browser claim a horizontal gesture for
+        // panning and cancel the pointer stream mid-drag. `pan-y` hands horizontal gestures to
+        // us — which is what a tab drag is — while still leaving vertical page scrolling to the
+        // browser.
+        touch-action: pan-y;
+
+        // Carries the tabs the drag displaces back from where they were, so the strip makes room
+        // in a slide rather than a jump. The controller drives it; there is nothing to animate
+        // when no drag is in progress.
+        transition: transform 150ms ease-out;
+
+        @media (prefers-reduced-motion: reduce) {
+          transition: none;
+        }
+
+        &:hover {
+          color: var(--ht-sheets-bar-tab-hover-foreground-color);
+          background: var(--ht-sheets-bar-tab-hover-background-color);
+        }
+
+        &--active,
+        &--active:hover {
+          color: var(--ht-sheets-bar-tab-active-foreground-color);
+          background: color-mix(
+            in srgb,
+            var(--ht-sheets-bar-tab-active-background-color) var(--ht-sheets-bar-tab-active-background-opacity, 100%),
+            transparent
+          );
+          box-shadow: $active-marker;
+        }
+
+        // Lifted while dragging so it reads as detached from the strip and travels with the
+        // pointer. Pointer events are waved through so the tabs it passes over do not light up
+        // their hover state as it goes, and the surface is painted opaque so they pass behind
+        // it rather than through it.
+        &--dragging {
+          z-index: 1;
+          pointer-events: none;
+
+          // The pointer is on the tab for the whole gesture, but `pointer-events: none` means
+          // `:hover` never matches it. Wearing the hover surface directly is what keeps the tab
+          // looking held rather than dropping to its resting state the moment it is picked up.
+          // It is opaque, so it doubles as the backdrop the passing tabs travel behind.
+          color: var(--ht-sheets-bar-tab-hover-foreground-color);
+          background-color: var(--ht-sheets-bar-tab-hover-background-color);
+
+          // The dragged tab is positioned from the pointer on every move, so it must land where
+          // the pointer is now — not ease toward where it was.
+          transition: none;
+
+          @include mixins.box-shadow;
+        }
+
+        // The active tab keeps both of the things that mark it out while it travels. Its surface
+        // is a low-percentage tint over whatever is behind it, so compositing that tint over the
+        // hover background gives it the held look the other tabs get, opaquely, without losing
+        // the accent. Its bottom-edge line has to ride along with the drop shadow, because a
+        // `box-shadow` is a single list and the drag rule's shadow would otherwise replace the
+        // marker outright.
+        &--active.ht-sheets-bar__tab--dragging {
+          color: var(--ht-sheets-bar-tab-active-foreground-color);
+          background-color: color-mix(
+            in srgb,
+            var(--ht-sheets-bar-tab-active-background-color) var(--ht-sheets-bar-tab-active-background-opacity, 100%),
+            var(--ht-sheets-bar-tab-hover-background-color)
+          );
+          box-shadow: $active-marker, mixins.box-shadow-value();
+        }
+      }
+
+      .ht-sheets-bar__tab-label,
+      .ht-sheets-bar__tab-chevron {
+        border: none;
+        background: transparent;
+        color: inherit;
+        font-size: inherit;
+        line-height: inherit;
+        cursor: pointer;
+        padding: 0;
+      }
+
+      // The tab is the focus stop, so the ring belongs to the whole of it. Drawn inside, so a
+      // ring on the first or last tab is not clipped by the strip that scrolls them.
+      .ht-sheets-bar__tab:focus-visible {
+        outline: 1px solid var(--ht-pagination-button-focus-border-color);
+        outline-offset: -1px;
+      }
+
+      .ht-sheets-bar__tab-chevron {
+        display: flex;
+        align-items: center;
+        color: var(--ht-icon-button-icon-color);
+        border-radius: var(--ht-icon-button-border-radius);
+
+        // The glyph is small, so the target is grown around it and the growth is pulled back
+        // out of the layout: the tab keeps the width it had, and the padding becomes hit area
+        // rather than space between the name and the edge.
+        padding: var(--ht-gap-size);
+        margin-inline-end: calc(var(--ht-gap-size) * -1);
+        margin-block: calc(var(--ht-gap-size) * -1);
+
+        &::after {
+          @include mixins.pseudo;
+        }
+
+      }
+
+      // The hover treatment the header menu button uses: the glyph brightens and picks up the
+      // icon-button surface, so the trigger reads as hit-able. Only the active tab's trigger
+      // gets it — on any other tab the first click moves to that sheet rather than opening a
+      // menu, and a trigger that lights up would promise the wrong thing.
+      .ht-sheets-bar__tab--active .ht-sheets-bar__tab-chevron:hover,
+      .ht-sheets-bar__tab--active .ht-sheets-bar__tab-chevron:focus-visible {
+        color: var(--ht-icon-button-hover-icon-color);
+        background-color: var(--ht-icon-button-hover-background-color);
+        box-shadow: 0 0 0 1px var(--ht-icon-button-hover-border-color);
+      }
+
+      .ht-sheets-bar__tab--renaming .ht-sheets-bar__tab-chevron {
+        display: none;
+      }
+
+      .ht-sheets-bar__tab-rename {
+        font-size: inherit;
+        line-height: inherit;
+        color: var(--ht-cell-editor-foreground-color);
+        background: var(--ht-cell-editor-background-color);
+        user-select: text;
+        // Drawn as an inset shadow rather than a border: inputs are normalized to
+        // `content-box`, so a real border would add its two pixels to the field's height and
+        // make the whole bar grow the moment a rename starts. A shadow paints inside the box
+        // and takes no layout space, so the tab keeps the height its label had.
+        border: none;
+        box-shadow: inset 0 0 0 1px var(--ht-cell-editor-border-color);
+        border-radius: 0;
+        padding-inline: var(--ht-gap-size);
+        padding-block: 0;
+        // The width itself is measured and set inline while typing; these two bound it, so a
+        // one-character name stays clickable and a very long one cannot outgrow the bar.
+        min-width: var(--ht-sizing-size-10);
+        max-width: 40ch;
+      }
+
+      // Measures the rename value. It sits inside the tab to inherit the same typography as
+      // the input, and is taken out of the layout so it can never affect what is on screen.
+      // It carries no padding or border on purpose: `input` is normalized to `content-box`,
+      // so the width handed to it must be the text width alone.
+      .ht-sheets-bar__tab-rename-mirror {
+        position: absolute;
+        visibility: hidden;
+        pointer-events: none;
+        white-space: pre;
+        font-size: inherit;
+        line-height: inherit;
+        padding: 0;
+        border: none;
+      }
+
+      // The dragged tab is `pointer-events: none`, so the cursor over it comes from whatever sits
+      // underneath. Stamping the grab cursor on the bar for the length of the gesture is what
+      // keeps it steady wherever the pointer travels across the strip. Last in the block, so it
+      // outranks the pointer cursor the tabs and their buttons declare at the same specificity.
+      &.ht-sheets-bar-dragging,
+      &.ht-sheets-bar-dragging * {
+        @include mixins.cursor-grabbing;
+      }
+
+      // A drag reorders the strip continuously under a stationary pointer, so a hover
+      // highlight would light up whichever tab happened to slide beneath it. Muting pointer
+      // events for the length of the gesture keeps the dragged tab the only one that reacts.
+      &.ht-sheets-bar-dragging .ht-sheets-bar__tab {
+        pointer-events: none;
+      }
+    }
+  }
+}

@@ -131,6 +131,22 @@ const dictionary = {
   [C.PAGINATION_NEXT_PAGE]: 'Idi na sljedeću stranicu',
   [C.PAGINATION_LAST_PAGE]: 'Idi na posljednju stranicu',
 
+  [C.SHEETS_BAR_SECTION]: 'Listovi',
+  [C.SHEETS_BAR_ADD_SHEET]: 'Dodaj list',
+  [C.SHEETS_BAR_ALL_SHEETS]: 'Svi listovi',
+  [C.SHEETS_BAR_SHEET_MENU]: 'Radnje lista: [name]',
+  [C.SHEETS_BAR_RENAME_SHEET]: 'Naziv lista',
+  [C.SHEETS_BAR_ITEMS_DELETE]: 'Izbriši',
+  [C.SHEETS_BAR_ITEMS_DUPLICATE]: 'Dupliciraj',
+  [C.SHEETS_BAR_ITEMS_RENAME]: 'Preimenuj',
+  [C.SHEETS_BAR_ITEMS_MOVE_RIGHT]: 'Pomakni desno',
+  [C.SHEETS_BAR_ITEMS_MOVE_LEFT]: 'Pomakni lijevo',
+  [C.SHEETS_BAR_PAGE_PREV]: 'Pomakni listove unazad',
+  [C.SHEETS_BAR_PAGE_NEXT]: 'Pomakni listove naprijed',
+  [C.SHEETS_BAR_SHEET_CHANGED]: 'List [name] aktiviran',
+  [C.SHEETS_BAR_RENAME_REJECTED]: 'Naziv lista nije promijenjen: [name] se već koristi',
+  [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'List',
+
   [C.CHECKBOX_CHECKED]: 'Označeno',
   [C.CHECKBOX_UNCHECKED]: 'Nije označeno',
 

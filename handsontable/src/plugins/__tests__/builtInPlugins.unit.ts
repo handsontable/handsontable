@@ -44,6 +44,7 @@ describe('built-in plugins', () => {
       'EmptyDataState',
       'Notification',
       'Pagination',
+      'SheetsBar',
       'DataProvider',
       'UndoRedo',
     ]);

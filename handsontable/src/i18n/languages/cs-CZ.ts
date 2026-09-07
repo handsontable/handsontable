@@ -119,6 +119,22 @@ const dictionary = {
   [C.PAGINATION_NEXT_PAGE]: 'Přejít na další stránku',
   [C.PAGINATION_LAST_PAGE]: 'Přejít na poslední stránku',
 
+  [C.SHEETS_BAR_SECTION]: 'Listy',
+  [C.SHEETS_BAR_ADD_SHEET]: 'Přidat list',
+  [C.SHEETS_BAR_ALL_SHEETS]: 'Všechny listy',
+  [C.SHEETS_BAR_SHEET_MENU]: 'Akce listu: [name]',
+  [C.SHEETS_BAR_RENAME_SHEET]: 'Název listu',
+  [C.SHEETS_BAR_ITEMS_DELETE]: 'Odstranit',
+  [C.SHEETS_BAR_ITEMS_DUPLICATE]: 'Duplikovat',
+  [C.SHEETS_BAR_ITEMS_RENAME]: 'Přejmenovat',
+  [C.SHEETS_BAR_ITEMS_MOVE_RIGHT]: 'Přesunout doprava',
+  [C.SHEETS_BAR_ITEMS_MOVE_LEFT]: 'Přesunout doleva',
+  [C.SHEETS_BAR_PAGE_PREV]: 'Posunout listy zpět',
+  [C.SHEETS_BAR_PAGE_NEXT]: 'Posunout listy vpřed',
+  [C.SHEETS_BAR_SHEET_CHANGED]: 'List [name] aktivován',
+  [C.SHEETS_BAR_RENAME_REJECTED]: 'Název listu nebyl změněn: [name] se již používá',
+  [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'List',
+
   [C.LOADING_TITLE]: 'Načítání...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Zavřít',
 

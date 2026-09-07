@@ -121,6 +121,22 @@ const dictionary = {
   [C.PAGINATION_NEXT_PAGE]: 'Vai alla pagina successiva',
   [C.PAGINATION_LAST_PAGE]: 'Vai all\'ultima pagina',
 
+  [C.SHEETS_BAR_SECTION]: 'Fogli',
+  [C.SHEETS_BAR_ADD_SHEET]: 'Aggiungi foglio',
+  [C.SHEETS_BAR_ALL_SHEETS]: 'Tutti i fogli',
+  [C.SHEETS_BAR_SHEET_MENU]: 'Azioni foglio: [name]',
+  [C.SHEETS_BAR_RENAME_SHEET]: 'Nome del foglio',
+  [C.SHEETS_BAR_ITEMS_DELETE]: 'Elimina',
+  [C.SHEETS_BAR_ITEMS_DUPLICATE]: 'Duplica',
+  [C.SHEETS_BAR_ITEMS_RENAME]: 'Rinomina',
+  [C.SHEETS_BAR_ITEMS_MOVE_RIGHT]: 'Sposta a destra',
+  [C.SHEETS_BAR_ITEMS_MOVE_LEFT]: 'Sposta a sinistra',
+  [C.SHEETS_BAR_PAGE_PREV]: 'Scorri i fogli indietro',
+  [C.SHEETS_BAR_PAGE_NEXT]: 'Scorri i fogli avanti',
+  [C.SHEETS_BAR_SHEET_CHANGED]: 'Foglio [name] attivato',
+  [C.SHEETS_BAR_RENAME_REJECTED]: 'Nome del foglio non modificato: [name] è già in uso',
+  [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Foglio',
+
   [C.LOADING_TITLE]: 'Caricamento...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Chiudi',
 

@@ -111,7 +111,8 @@
     // Menu
     &.htDropdownMenu,
     &.htContextMenu,
-    &.htFiltersConditionsMenu {
+    &.htFiltersConditionsMenu,
+    &.htSheetsBarMenu {
       & > .ht_master {
         @include mixins.menu-box-shadow;
 
@@ -313,7 +314,8 @@
   [dir="rtl"].handsontable {
     &.htDropdownMenu,
     &.htContextMenu,
-    &.htFiltersConditionsMenu {
+    &.htFiltersConditionsMenu,
+    &.htSheetsBarMenu {
       table tbody tr td {
         &.htSubmenu {
           .htItemWrapper {

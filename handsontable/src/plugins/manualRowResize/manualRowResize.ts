@@ -318,6 +318,20 @@ export class ManualRowResize extends BasePlugin {
   }
 
   /**
+   * Returns the height set manually for the specified row, or `null` when the row was never
+   * resized by hand and takes its height from elsewhere.
+   *
+   * @param {number} row Visual row index.
+   * @returns {number|null}
+   */
+  getManualSize(row: number): number | null {
+    const physicalRow = this.hot.toPhysicalRow(row);
+    const value = physicalRow === null ? null : this.#rowHeightsMap.getValueAtIndex(physicalRow);
+
+    return typeof value === 'number' ? value : null;
+  }
+
+  /**
    * Clears the height stored for the specified row, so the row falls back to the height coming from
    * the [`rowHeights`](@/api/options.md#rowheights) option or from the theme. Call `render()`
    * afterwards to repaint the grid.

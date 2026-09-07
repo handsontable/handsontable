@@ -118,6 +118,22 @@ const dictionary = {
   [C.PAGINATION_NEXT_PAGE]: '다음 페이지로 이동',
   [C.PAGINATION_LAST_PAGE]: '마지막 페이지로 이동',
 
+  [C.SHEETS_BAR_SECTION]: '시트',
+  [C.SHEETS_BAR_ADD_SHEET]: '시트 추가',
+  [C.SHEETS_BAR_ALL_SHEETS]: '모든 시트',
+  [C.SHEETS_BAR_SHEET_MENU]: '시트 작업: [name]',
+  [C.SHEETS_BAR_RENAME_SHEET]: '시트 이름',
+  [C.SHEETS_BAR_ITEMS_DELETE]: '삭제',
+  [C.SHEETS_BAR_ITEMS_DUPLICATE]: '복제',
+  [C.SHEETS_BAR_ITEMS_RENAME]: '이름 바꾸기',
+  [C.SHEETS_BAR_ITEMS_MOVE_RIGHT]: '오른쪽으로 이동',
+  [C.SHEETS_BAR_ITEMS_MOVE_LEFT]: '왼쪽으로 이동',
+  [C.SHEETS_BAR_PAGE_PREV]: '시트 뒤로 스크롤',
+  [C.SHEETS_BAR_PAGE_NEXT]: '시트 앞으로 스크롤',
+  [C.SHEETS_BAR_SHEET_CHANGED]: '시트 [name] 활성화됨',
+  [C.SHEETS_BAR_RENAME_REJECTED]: '시트 이름이 변경되지 않았습니다: [name]은(는) 이미 사용 중입니다',
+  [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: '시트',
+
   [C.LOADING_TITLE]: '로딩 중...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: '닫기',
 

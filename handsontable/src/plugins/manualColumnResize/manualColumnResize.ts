@@ -322,6 +322,20 @@ export class ManualColumnResize extends BasePlugin {
   }
 
   /**
+   * Returns the width set manually for the specified column, or `null` when the column was never
+   * resized by hand and takes its width from elsewhere.
+   *
+   * @param {number} column Visual column index.
+   * @returns {number|null}
+   */
+  getManualSize(column: number): number | null {
+    const physicalColumn = this.hot.toPhysicalColumn(column);
+    const value = physicalColumn === null ? null : this.#columnWidthsMap.getValueAtIndex(physicalColumn);
+
+    return typeof value === 'number' ? value : null;
+  }
+
+  /**
    * Clears the width stored for the specified column, so the column falls back to the width coming
    * from the [`colWidths`](@/api/options.md#colwidths) option, or to the built-in default width.
    * Call `render()` afterwards to repaint the grid.

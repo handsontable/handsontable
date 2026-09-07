@@ -378,6 +378,18 @@ const VALID_TOKEN_KEYS = new Set([
   'paginationButtonFocusBorderColor',
   'paginationButtonFocusForegroundColor',
   'paginationButtonFocusBackgroundColor',
+  // Sheets bar
+  'sheetsBarTabHorizontalPadding',
+  'sheetsBarTabVerticalPadding',
+  'sheetsBarTabForegroundColor',
+  'sheetsBarTabBackgroundColor',
+  'sheetsBarTabHoverForegroundColor',
+  'sheetsBarTabHoverBackgroundColor',
+  'sheetsBarTabActiveForegroundColor',
+  'sheetsBarTabActiveBackgroundColor',
+  'sheetsBarTabActiveBackgroundOpacity',
+  'sheetsBarTabActiveBorderWidth',
+  'sheetsBarTabActiveBorderColor',
   // Multiselect
   'chipBackground',
   'chipBorderRadius',

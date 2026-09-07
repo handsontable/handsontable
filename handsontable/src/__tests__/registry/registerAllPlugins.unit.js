@@ -58,6 +58,7 @@ describe('`registerAllPlugins`', () => {
       'EmptyDataState',
       'Notification',
       'Pagination',
+      'SheetsBar',
       'DataProvider',
       'UndoRedo',
     ]);
