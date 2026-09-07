@@ -133,6 +133,22 @@ test('gaming signals: .only, xit, and it.flaky are detected', () => {
   assert.ok(score.problems.some(p => p.type === 'gaming-signals'));
 });
 
+test('extractTestBlocks finds the title call of an it.each table across a comment', () => {
+  // Only whitespace was skipped between the table's `)` and the title call's `(`, so a
+  // comment there made the table read as the body: a titled, asserting block came back
+  // untitled and hollow.
+  const src = `
+    it.each([[1], [2]]) // two rows
+    ('adds %i', (n) => { expect(n).toBe(n); });
+    it.each([[1]]) /* one row */ ('one %i', (n) => { expect(n).toBe(1); });
+  `;
+
+  assert.deepEqual(
+    extractTestBlocks(src).map(b => [b.title, b.assertions, b.rows]),
+    [['adds %i', 1, 2], ['one %i', 1, 1]],
+  );
+});
+
 test('gaming signals: a prefixed .each and a skip/only deep in a modifier chain are focus/skip markers', () => {
   // The scorer shares `countSkipFocus` with the weakening detector; these five
   // openers used to count as test blocks with no gaming signal at all.

@@ -135,8 +135,35 @@ function skipEachTable(src, tableOpen) {
 
   let i = closeTable + 1;
 
-  while (i < src.length && /\s/.test(src[i])) {
-    i += 1;
+  // Whitespace and comments may both sit between the table and the title call —
+  // `it.each([...]) // rows` followed by `('title', fn)` on the next line is legal —
+  // so skip both before looking for the second `(`.
+  for (;;) {
+    while (i < src.length && /\s/.test(src[i])) {
+      i += 1;
+    }
+
+    if (src.startsWith('//', i)) {
+      const eol = src.indexOf('\n', i);
+
+      if (eol === -1) {
+        return -1;
+      }
+      i = eol + 1;
+      continue;
+    }
+
+    if (src.startsWith('/*', i)) {
+      const end = src.indexOf('*/', i + 2);
+
+      if (end === -1) {
+        return -1;
+      }
+      i = end + 2;
+      continue;
+    }
+
+    break;
   }
 
   return src[i] === '(' ? i : -1;
