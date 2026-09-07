@@ -107,11 +107,33 @@ export class InlineStartBorderRefreshPage {
     }).scrollToColumn(0));
   }
 
-  /** The scroll-driven and reconciliation draws one round trip across offset 0 costs. */
-  async countDrawsAcrossOffsetZero(): Promise<DrawsAcrossOffsetZero> {
+  /**
+   * The scroll-driven and reconciliation draws one round trip across offset 0 costs.
+   *
+   * @param {string} [axis] `horizontal` (the axis this change touches) or `vertical` (the row axis,
+   *   which still shifts the layout and still feeds the flag).
+   */
+  async countDrawsAcrossOffsetZero(axis: 'horizontal' | 'vertical' = 'horizontal'):
+  Promise<DrawsAcrossOffsetZero> {
+    return this.page.evaluate(which => (window as unknown as {
+      countDrawsAcrossOffsetZero: (axis: string) => Promise<DrawsAcrossOffsetZero>
+    }).countDrawsAcrossOffsetZero(which), axis);
+  }
+
+  /**
+   * Crosses horizontal offset 0 on a draw whose cell render is cancelled, with the master's sizes
+   * either side of it.
+   */
+  async crossOffsetZeroWithRenderSkipped(): Promise<{
+    skipped: number,
+    before: OverlayMetrics,
+    after: OverlayMetrics,
+  }> {
     return this.page.evaluate(() => (window as unknown as {
-      countDrawsAcrossOffsetZero: () => Promise<DrawsAcrossOffsetZero>
-    }).countDrawsAcrossOffsetZero());
+      crossOffsetZeroWithRenderSkipped: () => Promise<{
+        skipped: number, before: OverlayMetrics, after: OverlayMetrics,
+      }>
+    }).crossOffsetZeroWithRenderSkipped());
   }
 
   /** The backward-compatibility classes on `.ht_master`. */

@@ -541,6 +541,13 @@ function placeFixedOverlays(table: Table, ctx: DrawContext): void {
 
   wtOverlays.inlineStartOverlay.resetFixedPosition();
 
+  // The two corner overlays' results are CONSTANTS - both `return true` unconditionally
+  // (`topInlineStartCornerOverlay`, `bottomInlineStartCornerOverlay`), because they satisfy the
+  // `boolean` the base class declares without having a border class to decide. Never OR either of
+  // them in to make this pass look symmetrical: `positionChanged` would then be `true` on every draw
+  // of any grid with row headers and frozen columns, and every draw would pay a nested `refreshAll()`
+  // over the master and every clone. Only an overlay that actually toggles a layout-shifting
+  // `innerBorder*` class may feed the flag, which today means the top and bottom overlays alone.
   if (wtOverlays.topInlineStartCornerOverlay) {
     wtOverlays.topInlineStartCornerOverlay.resetFixedPosition();
   }
