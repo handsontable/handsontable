@@ -555,7 +555,7 @@ You have two supported ways to make a visual change stick:
   hot.render();
   ```
 
-- Write a custom renderer. A renderer runs on every render, so what it writes is always reapplied.
+- Write a custom renderer. A renderer runs on every render, so what it writes is always reapplied. If your renderer reads state outside the grid and the grid uses [`renderMode: 'onChange'`](@/api/options.md#rendermode), set `renderMode: 'always'` on its cells, or call [`markCellChanged()`](@/api/core.md#markcellchanged) after that state changes.
 
 For the full picture of when a render happens and what it covers, see [Understanding rendering](@/guides/optimization/rendering/rendering.md).
 

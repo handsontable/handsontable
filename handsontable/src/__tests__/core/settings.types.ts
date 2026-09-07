@@ -220,6 +220,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   readOnlyCellClassName: 'foo',
   renderAllColumns: true,
   renderAllRows: true,
+  renderMode: 'onChange',
   renderer: oneOf(
     'autocomplete', 'checkbox', 'html', 'numeric', 'password', 'text', 'time', 'custom.renderer',
     (instance: Handsontable, TD: HTMLTableCellElement, row: number, col: number,

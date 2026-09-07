@@ -15,7 +15,9 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   computeMedianSnapshot,
+  explainMedianRefusal,
   isValidForMedian,
+  MEDIAN_REFUSAL,
   MEDIAN_WINDOW_SIZE,
   MIN_VALID_SNAPSHOTS,
 } from '../median-snapshot.mjs';
@@ -141,6 +143,46 @@ describe('computeMedianSnapshot', () => {
     // Byte counts stay exact, matching the existing per-iteration averaging behavior.
     assert.equal(result.scenarios.sorting.updateCounters.jsHeapMinBytes, 1_000_002);
     assert.equal(result.scenarios.sorting.updateCounters.jsHeapMaxBytes, 2_000_002);
+  });
+
+  test('medians the post-GC heap over the entries that carry it, and omits it when none do', () => {
+    const withField = computeMedianSnapshot([
+      snapshot('2026-08-28T00:00:00Z', {
+        sorting: { updateCounters: { ...DEFAULT_UPDATE_COUNTERS, jsHeapAfterGcBytes: 1_500_000 } },
+      }),
+      snapshot('2026-08-29T00:00:00Z', {
+        sorting: { updateCounters: { ...DEFAULT_UPDATE_COUNTERS, jsHeapAfterGcBytes: 1_700_000 } },
+      }),
+      // Recorded before the runner read the live heap: contributes to min/max, not to this field.
+      snapshot('2026-08-30T00:00:00Z'),
+    ]);
+
+    assert.equal(withField.scenarios.sorting.updateCounters.jsHeapAfterGcBytes, 1_600_000);
+    assert.equal(withField.scenarios.sorting.updateCounters.jsHeapAfterGcLabel, '1.6 MB');
+    assert.equal(withField.scenarios.sorting.updateCounters.jsHeapMaxBytes, 2_000_000);
+
+    const without = computeMedianSnapshot([
+      snapshot('2026-08-28T00:00:00Z'),
+      snapshot('2026-08-29T00:00:00Z'),
+    ]);
+
+    assert.equal('jsHeapAfterGcBytes' in without.scenarios.sorting.updateCounters, false);
+    assert.equal('jsHeapAfterGcLabel' in without.scenarios.sorting.updateCounters, false);
+  });
+
+  test('applies the MIN_VALID_SNAPSHOTS floor to the post-GC heap per field', () => {
+    // Four of five windowed goldens had failing readbacks: one run's live heap must not sit beside a
+    // true median of five for the max under a "median of 5" label.
+    const one = computeMedianSnapshot([
+      snapshot('2026-08-28T00:00:00Z', {
+        sorting: { updateCounters: { ...DEFAULT_UPDATE_COUNTERS, jsHeapAfterGcBytes: 1_500_000 } },
+      }),
+      snapshot('2026-08-29T00:00:00Z'),
+      snapshot('2026-08-30T00:00:00Z'),
+    ]);
+
+    assert.equal('jsHeapAfterGcBytes' in one.scenarios.sorting.updateCounters, false);
+    assert.equal(one.scenarios.sorting.updateCounters.jsHeapMaxBytes, 2_000_000);
   });
 
   test('regenerates the heap labels from the medianed bytes', () => {
@@ -281,5 +323,221 @@ describe('computeMedianSnapshot', () => {
     ]);
 
     assert.equal(result.scenarios.sorting.spread, 0);
+  });
+});
+
+describe('computeMedianSnapshot -- baseline compatibility key', () => {
+  const KEY = { chromium: '140.0.7339.16', harnessVersion: 1 };
+  const provenance = (chromium, harnessVersion = 1) => ({
+    environment: { chromium, cpuModel: 'any' },
+    harnessVersion,
+  });
+  const keyed = (timestamp, chromium, overrides) => ({
+    ...snapshot(timestamp, overrides),
+    ...provenance(chromium),
+  });
+  const sortingAt = scripting => ({ sorting: { categories: { scripting, rendering: 10, painting: 2 } } });
+
+  test('draws only on goldens with the same Chromium build and harness version', () => {
+    // The 09-03 Playwright bump, replayed: the two newest goldens are on the new Chromium, the
+    // three before them on the old one. A key-blind median would be the old browser's numbers.
+    const result = computeMedianSnapshot([
+      keyed('2026-09-03T10:49:00Z', '140.0.7339.16', sortingAt(120)),
+      keyed('2026-09-03T10:31:00Z', '140.0.7339.16', sortingAt(122)),
+      keyed('2026-09-03T10:08:00Z', '138.0.7204.23', sortingAt(150)),
+      keyed('2026-09-03T09:47:00Z', '138.0.7204.23', sortingAt(155)),
+      keyed('2026-09-03T08:22:00Z', '138.0.7204.23', sortingAt(152)),
+    ], { compatibleWith: { key: KEY } });
+
+    assert.equal(result.medianWindowSize, 2);
+    assert.deepEqual(result.medianSourceTimestamps, ['2026-09-03T10:49:00Z', '2026-09-03T10:31:00Z']);
+    assert.equal(result.scenarios.sorting.categories.scripting, 121);
+    assert.equal(result.excludedIncompatible, 3);
+    assert.equal(result.environment.chromium, '140.0.7339.16');
+    assert.equal(result.harnessVersion, 1);
+  });
+
+  test('returns null rather than a median of the other environment when too few match', () => {
+    const result = computeMedianSnapshot([
+      keyed('2026-09-03T10:31:00Z', '140.0.7339.16'),
+      keyed('2026-09-03T10:08:00Z', '138.0.7204.23'),
+      keyed('2026-09-03T09:47:00Z', '138.0.7204.23'),
+    ], { compatibleWith: { key: KEY } });
+
+    assert.equal(result, null);
+  });
+
+  test('excludes goldens with no provenance at all, by the absence of the fields', () => {
+    const result = computeMedianSnapshot([
+      keyed('2026-09-03T10:49:00Z', '140.0.7339.16'),
+      keyed('2026-09-03T10:31:00Z', '140.0.7339.16'),
+      snapshot('2026-08-28T00:00:00Z'),
+      snapshot('2026-08-27T00:00:00Z'),
+    ], { compatibleWith: { key: KEY } });
+
+    assert.equal(result.medianWindowSize, 2);
+    assert.equal(result.excludedIncompatible, 2);
+  });
+
+  test('a different harness version is a different measurement, whatever the browser', () => {
+    const result = computeMedianSnapshot([
+      { ...snapshot('2026-09-03T10:49:00Z'), ...provenance('140.0.7339.16', 2) },
+      { ...snapshot('2026-09-03T10:31:00Z'), ...provenance('140.0.7339.16', 2) },
+      keyed('2026-09-03T10:08:00Z', '140.0.7339.16'),
+    ], { compatibleWith: { key: KEY } });
+
+    assert.equal(result, null);
+  });
+
+  test('a redefined scenario drops its old entries without dropping the snapshot they came from', () => {
+    const filteringAt = scripting => ({
+      categories: { scripting, rendering: 5, painting: 1 }, windowSource: 'marks',
+    });
+    const result = computeMedianSnapshot([
+      keyed('2026-09-03T10:49:00Z', '140.0.7339.16', {
+        sorting: { measurementVersion: 2, categories: { scripting: 60, rendering: 10, painting: 2 } },
+        filtering: filteringAt(40),
+      }),
+      keyed('2026-09-03T10:31:00Z', '140.0.7339.16', {
+        sorting: { measurementVersion: 2, categories: { scripting: 62, rendering: 10, painting: 2 } },
+        filtering: filteringAt(42),
+      }),
+      keyed('2026-09-03T10:08:00Z', '140.0.7339.16', {
+        // measurementVersion absent: the pre-redefinition entry, at the default version 1.
+        sorting: { categories: { scripting: 120, rendering: 10, painting: 2 } },
+        filtering: filteringAt(44),
+      }),
+    ], { compatibleWith: { key: KEY, scenarioVersions: { sorting: 2 } } });
+
+    assert.equal(result.medianWindowSize, 3, 'the old snapshot still serves the unchanged scenario');
+    assert.equal(result.scenarios.sorting.categories.scripting, 61);
+    assert.equal(result.scenarios.sorting.measurementVersion, 2);
+    assert.equal(result.scenarios.filtering.categories.scripting, 42);
+    assert.equal(result.scenarios.filtering.measurementVersion, 1);
+  });
+
+  test('a scenario the current run measures at a new version, with too few matching entries, is omitted', () => {
+    const filtering = { categories: { scripting: 40, rendering: 5, painting: 1 }, windowSource: 'marks' };
+    const result = computeMedianSnapshot([
+      keyed('2026-09-03T10:49:00Z', '140.0.7339.16', { sorting: { measurementVersion: 2 }, filtering }),
+      keyed('2026-09-03T10:31:00Z', '140.0.7339.16', { filtering }),
+      keyed('2026-09-03T10:08:00Z', '140.0.7339.16', { filtering }),
+    ], { compatibleWith: { key: KEY, scenarioVersions: { sorting: 2, filtering: 1 } } });
+
+    assert.equal(result.medianWindowSize, 3);
+    assert.equal('sorting' in result.scenarios, false);
+    assert.equal('filtering' in result.scenarios, true);
+  });
+
+  test('returns null, not an empty median, when the version filter leaves no scenario', () => {
+    // Every scenario redefined since the goldens were recorded. A median with no scenarios would be
+    // reported as a baseline that was found, and the reports would render numbers with no reason.
+    const result = computeMedianSnapshot([
+      keyed('2026-09-03T10:49:00Z', '140.0.7339.16'),
+      keyed('2026-09-03T10:31:00Z', '140.0.7339.16'),
+      keyed('2026-09-03T10:08:00Z', '140.0.7339.16'),
+    ], { compatibleWith: { key: KEY, scenarioVersions: { sorting: 2 } } });
+
+    assert.equal(result, null);
+  });
+
+  test('without a key, a scenario is still medianed at a single version: the newest golden\'s', () => {
+    // Three unkeyed goldens, newest at version 2, older two at version 1. Mixing them would median
+    // two definitions of the scenario and hand the teardown a version that matches the current run.
+    const result = computeMedianSnapshot([
+      keyed('2026-09-03T10:49:00Z', '140.0.7339.16', {
+        sorting: { measurementVersion: 2, categories: { scripting: 60, rendering: 10, painting: 2 } },
+      }),
+      keyed('2026-09-03T10:31:00Z', '140.0.7339.16', {
+        sorting: { measurementVersion: 2, categories: { scripting: 64, rendering: 10, painting: 2 } },
+      }),
+      keyed('2026-09-03T10:08:00Z', '140.0.7339.16', sortingAt(120)),
+    ]);
+
+    assert.equal(result.scenarios.sorting.measurementVersion, 2);
+    assert.equal(result.scenarios.sorting.categories.scripting, 62, 'the version-1 entry is not medianed in');
+    assert.deepEqual(result.scenarioEntryCounts, { sorting: 2 });
+  });
+
+  test('without a key, behaves as before and reports nothing excluded', () => {
+    const result = computeMedianSnapshot([
+      keyed('2026-09-03T10:49:00Z', '140.0.7339.16'),
+      snapshot('2026-08-28T00:00:00Z'),
+    ]);
+
+    assert.equal(result.medianWindowSize, 2);
+    assert.equal(result.excludedIncompatible, 0);
+  });
+});
+
+describe('explainMedianRefusal', () => {
+  const KEY = { chromium: '140.0.7339.16', harnessVersion: 1 };
+  const keyed = (timestamp, chromium, overrides) => ({
+    ...snapshot(timestamp, overrides),
+    environment: { chromium },
+    harnessVersion: 1,
+  });
+
+  test('names an empty history', () => {
+    assert.deepEqual(explainMedianRefusal([], { compatibleWith: { key: KEY } }), {
+      reason: MEDIAN_REFUSAL.EMPTY_HISTORY, example: null,
+    });
+  });
+
+  test('names too few marks-valid goldens before it names anything about the key', () => {
+    const preMarks = snapshot('2026-07-01T00:00:00Z');
+
+    delete preMarks.scenarios.sorting.windowSource;
+
+    const refusal = explainMedianRefusal([preMarks, keyed('2026-09-03T10:49:00Z', '138.0.1')], {
+      compatibleWith: { key: KEY },
+    });
+
+    assert.equal(refusal.reason, MEDIAN_REFUSAL.NO_MARKS_VALID);
+  });
+
+  test('names a key mismatch with the newest marks-valid incompatible golden, never a pre-marks one', () => {
+    const preMarks = snapshot('2026-09-04T00:00:00Z');
+
+    delete preMarks.scenarios.sorting.windowSource;
+
+    const refusal = explainMedianRefusal([
+      preMarks,
+      keyed('2026-09-03T10:49:00Z', '138.0.7204.23'),
+      keyed('2026-09-03T10:31:00Z', '138.0.7204.23'),
+      keyed('2026-09-03T10:08:00Z', '140.0.7339.16'),
+    ], { compatibleWith: { key: KEY } });
+
+    assert.equal(refusal.reason, MEDIAN_REFUSAL.INCOMPATIBLE_KEY);
+    assert.equal(refusal.example.timestamp, '2026-09-03T10:49:00Z');
+    assert.equal(refusal.example.environment.chromium, '138.0.7204.23');
+  });
+
+  test('tells a redefinition from goldens that simply do not share the scenario', () => {
+    const goldens = [keyed('2026-09-03T10:49:00Z', KEY.chromium), keyed('2026-09-03T10:31:00Z', KEY.chromium)];
+
+    assert.equal(
+      explainMedianRefusal(goldens, { compatibleWith: { key: KEY, scenarioVersions: { sorting: 2 } } }).reason,
+      MEDIAN_REFUSAL.VERSION_MISMATCH
+    );
+
+    // Two compatible goldens with nothing in common: each scenario sits in one golden only, so
+    // none reaches MIN_VALID_SNAPSHOTS entries and the median is empty -- and no scenario the run
+    // measured is in the window at any version.
+    const only = name => ({ [name]: { categories: { scripting: 1 }, windowSource: 'marks' } });
+    const disjoint = [
+      { ...keyed('2026-09-03T10:49:00Z', KEY.chromium), scenarios: only('alpha') },
+      { ...keyed('2026-09-03T10:31:00Z', KEY.chromium), scenarios: only('beta') },
+    ];
+    const forSorting = { compatibleWith: { key: KEY, scenarioVersions: { sorting: 1 } } };
+
+    assert.equal(computeMedianSnapshot(disjoint, forSorting), null);
+    assert.equal(explainMedianRefusal(disjoint, forSorting).reason, MEDIAN_REFUSAL.DISJOINT_SCENARIOS);
+  });
+
+  test('is null when a median would have been produced', () => {
+    const goldens = [keyed('2026-09-03T10:49:00Z', KEY.chromium), keyed('2026-09-03T10:31:00Z', KEY.chromium)];
+
+    assert.equal(explainMedianRefusal(goldens, { compatibleWith: { key: KEY } }), null);
   });
 });

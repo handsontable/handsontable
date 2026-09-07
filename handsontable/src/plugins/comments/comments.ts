@@ -363,6 +363,9 @@ export class Comments extends BasePlugin {
    */
   disablePlugin(): void {
     this.unregisterShortcuts();
+    // The marker class is written on the element by `afterRenderer`, from the cell meta. Once the
+    // hook is gone only a paint removes it, so under `renderMode: 'onChange'` every cell must paint.
+    this.hot.markAllCellsChanged();
     super.disablePlugin();
   }
 
