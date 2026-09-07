@@ -12,15 +12,30 @@ export class FiltersValueListPage {
   readonly page: Page;
   readonly theme: string;
   readonly bundle: string;
+  readonly fixture: string;
   readonly menu: Locator;
   readonly valueList: Locator;
+  readonly valueLabels: Locator;
+  readonly searchInput: Locator;
 
-  constructor(page: Page, theme = 'main', bundle = 'umd') {
+  /**
+   * Builds the page object for one fixture, theme and bundle.
+   *
+   * @param {Page} page The Playwright page.
+   * @param {string} theme The active theme.
+   * @param {string} bundle The active bundle.
+   * @param {string} fixture The fixture file to open. The locale variant seeds Turkish values on a
+   *   `tr-TR` grid; everything else about the two pages is the same, so they share this object.
+   */
+  constructor(page: Page, theme = 'main', bundle = 'umd', fixture = 'filters-value-list.html') {
     this.page = page;
     this.theme = theme;
     this.bundle = bundle;
+    this.fixture = fixture;
     this.menu = page.locator('.htDropdownMenu');
     this.valueList = this.menu.locator('.htUIMultipleSelect .ht_master .htCore tbody tr');
+    this.valueLabels = this.menu.locator('.htUIMultipleSelect .ht_master .htCore tbody label');
+    this.searchInput = this.menu.locator('.htUIMultipleSelectSearch input');
   }
 
   /**
@@ -30,7 +45,7 @@ export class FiltersValueListPage {
    */
   async goto(): Promise<void> {
     await this.page.goto(
-      `/tests/fixtures/demo/filters-value-list.html?theme=${this.theme}&bundle=${this.bundle}`);
+      `/tests/fixtures/demo/${this.fixture}?theme=${this.theme}&bundle=${this.bundle}`);
     await expect(this.cell(0, 0)).toBeVisible();
   }
 
@@ -39,9 +54,14 @@ export class FiltersValueListPage {
     return this.page.getByTestId(`cell-${row}-${col}`);
   }
 
+  /** The data cells currently rendered in the given column, top to bottom. */
+  columnCells(col: number): Locator {
+    return this.page.locator(`.ht_master .htCore tbody td[data-testid$="-${col}"]`);
+  }
+
   /** The values currently rendered in the given column, top to bottom. */
   async columnValues(col: number): Promise<string[]> {
-    return this.page.locator(`.ht_master .htCore tbody td[data-testid$="-${col}"]`).allTextContents();
+    return this.columnCells(col).allTextContents();
   }
 
   /**
@@ -164,6 +184,19 @@ export class FiltersValueListPage {
   }
 
   /**
+   * Type a term into the value list's search box, narrowing the list to the values that contain it.
+   *
+   * The comparison is locale-aware on both sides — the term and every listed value are lowercased
+   * with the column's locale — so the caller waits on `valueLabels`, not on this call.
+   *
+   * @param {string} term The search term. Pass an empty string to clear the box.
+   */
+  async searchValues(term: string): Promise<void> {
+    // `MultipleSelectUI` reads the box on the native `input` event, which `fill()` dispatches.
+    await this.searchInput.fill(term);
+  }
+
+  /**
    * The "filter by value" list as `[checked, label]` pairs, in display order.
    *
    * @returns {Promise<Array>} One entry per listed value.
@@ -177,7 +210,16 @@ export class FiltersValueListPage {
     })));
   }
 
-  /** Check the "filter by value" item carrying the given label. */
+  /**
+   * Check the "filter by value" item carrying the given label.
+   *
+   * The value box is about 110px tall and virtualized, so it holds roughly four rows. Target a
+   * row in the first three: pressing one at or past the fold makes Playwright scroll the inner
+   * list first, the row moves out from under the pointer, and the press lands outside the menu
+   * and closes it — a flake that hits about two runs in three.
+   *
+   * @param {string} label The value's visible label.
+   */
   async checkValue(label: string): Promise<void> {
     const checkbox = this.valueList
       .filter({ has: this.page.locator('label', { hasText: new RegExp(`^${label}$`) }) })
@@ -226,7 +268,13 @@ export class FiltersValueListPage {
     await expect(this.valueList.first().locator('input[type="checkbox"]')).not.toBeChecked();
   }
 
-  /** Uncheck the "filter by value" item carrying the given label. */
+  /**
+   * Uncheck the "filter by value" item carrying the given label.
+   *
+   * Same fold hazard as `checkValue()` — target a row in the first three.
+   *
+   * @param {string} label The value's visible label.
+   */
   async uncheckValue(label: string): Promise<void> {
     const checkbox = this.valueList
       .filter({ has: this.page.locator('label', { hasText: new RegExp(`^${label}$`) }) })

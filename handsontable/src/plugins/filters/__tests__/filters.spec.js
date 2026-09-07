@@ -745,6 +745,9 @@ describe('Filters', () => {
           { checked: true, value: 'B2', visualValue: 'B2' },
           { checked: true, value: 'B3', visualValue: 'B3' },
         ],
+        // The column's locale rides along so confirming the menu cannot drop it - `saveState()`
+        // replaces the state entry `updateState()` wrote rather than merging into it (DEV-2666).
+        locale: 'en-US',
       });
     });
 
@@ -800,6 +803,9 @@ describe('Filters', () => {
           { checked: true, value: 'B2', visualValue: 'B2' },
           { checked: true, value: 'B3', visualValue: 'B3' },
         ],
+        // The column's locale rides along so confirming the menu cannot drop it - `saveState()`
+        // replaces the state entry `updateState()` wrote rather than merging into it (DEV-2666).
+        locale: 'en-US',
       });
     });
   });

@@ -159,9 +159,10 @@ export class ValueComponent extends BaseComponent {
   /**
    * Export state of the component (get selected filter and filter arguments).
    *
-   * @returns {object} Returns object where `command` key keeps used condition filter and `args` key its arguments.
+   * @returns {object} Returns object where `command` key keeps used condition filter and `args` key
+   * its arguments, plus the `itemsSnapshot` and `locale` the restored state needs.
    */
-  getState(): { command: { key: string }; args: unknown[]; itemsSnapshot: unknown[] } {
+  getState(): { command: { key: string }; args: unknown[]; itemsSnapshot: unknown[]; locale: string } {
     const select = this.getMultipleSelectElement();
     const availableItems = select.getItems();
 
@@ -171,7 +172,11 @@ export class ValueComponent extends BaseComponent {
     return {
       command: { key: select.isSelectedAllValues() ? CONDITION_NONE : CONDITION_BY_VALUE },
       args: [select.getValue()],
-      itemsSnapshot: availableItems
+      itemsSnapshot: availableItems,
+      // `saveState()` REPLACES the column's state entry, so every key `updateState()` stores has to
+      // be returned here too or confirming the menu drops it. Losing the locale leaves the search
+      // box comparing with the default one on the next opening (DEV-2666).
+      locale: select.getLocale()
     };
   }
 
