@@ -237,6 +237,135 @@ Switching a row back to the floor shape unwraps it once (a `WeakSet` of exact ro
 
 Pinned by `test/unit/axisSizing/rowHeightMode.unit.ts`, `test/unit/renderer/exactRowHeight.unit.ts`, and `tests/e2e/walkontable/exact-row-heights.spec.ts` (the fixture flips the mode on the engine directly; the `min`-mode case there is the precondition that a short provided height alone does not shrink a row).
 
+## Per-axis trimming containers
+
+Each scroll axis has its own **owner**: the nearest ancestor of `.ht_master` whose `overflow-x` (or
+`overflow-y`) is `scroll`, `hidden`, `auto`, or `clip`, else the window. The two answers can differ.
+A root with `overflow-x: clip` and nothing on the vertical axis — what core writes for a definite
+`width` with no sized `height` — owns the horizontal axis while the window owns the vertical one:
+the holder scrolls the columns inside the root's box, and the page scrolls the rows. Resolved by
+`resolveAxisOwner()` (`overlay/axisOwner.ts`) over the per-axis form of `getTrimmingContainer()`.
+
+The owners live on the overlays: the top and bottom overlays carry the vertical owner in
+`trimmingContainer`, the inline-start overlay the horizontal one, and
+`isVerticallyScrollableByWindow()` / `isHorizontallyScrollableByWindow()` read exactly those two
+fields. Three rules follow.
+
+- **A decision about the other axis goes through the viewport predicate, never `this.trimmingContainer`.**
+  The width of the top and bottom clones is a horizontal question and the height of the inline-start
+  clone a vertical one (`rootSized`); a scrollbar is subtracted from a clone only when the holder owns
+  the axis that scrollbar belongs to (`hasVerticalScroll() && !isVerticallyScrollableByWindow()`);
+  the scrollbar clearance strips read the owner of the axis the strip lies on. Reading the overlay's
+  own owner for any of those sized the frozen-column clone to the full hider height, or shrank the
+  top clone by a page scrollbar the holder does not have. An overlay that spans BOTH edges needs two
+  predicates, not one: `BottomOverlay`'s inline-end strip clears the vertical scrollbar and asks its
+  own (vertical) owner, while its bottom strip clears the horizontal one and asks the inline-start
+  overlay's. One predicate for both published 0 in split mode, and the frozen bottom rows painted over
+  the holder's horizontal scrollbar at the grid's end. A bottom strip also needs the clone to actually
+  REST on the holder's bottom edge — `hasVerticalScroll()` is not that question on a window-owned
+  vertical axis, where it stays true while the clone floats mid-page and `repositionOverlay` (which
+  lifts the clone clear in element mode) never runs; `BottomOverlay#restsOnHolderBottomEdge` answers
+  it per axis owner. **Compute that answer on every read, never cache it in the positioning pass:**
+  the sizing pass that consumes it (`adjustRootElementSize`, and the band `Overlays` derives from the
+  strip it publishes) runs from `Overlays#refresh` BEFORE `resetFixedPosition` in the same draw, so a
+  cached value is one draw behind exactly when the clone arrives on the edge or leaves it — and the
+  band would then disagree with the clip. **The bottom-inline-start corner reads that overlay's finished strip
+  through `getBottomClearance()` and never recomputes it** — it is drawn over the same edge, so two
+  gates that disagree leave a notch where the frozen columns stop and the frozen rows carry on
+  (#10370). The draw cycle positions the bottom overlay before the corner, which is what makes the
+  read safe.
+- **`preventOverflow` is an alias, not a mode.** `'horizontal'` forces the horizontal owner to the
+  root's parent and `'vertical'` the vertical one; everything the option used to switch by string
+  comparison now follows from the owners. Its only remaining reads are the window-mode overflow
+  reset in `MasterTable` (`true` still suppresses it), `InlineStartOverlay#getTableParentOffset`, and
+  the two header-border suppressions, which are visual rules pinned by
+  `src/__tests__/settings/preventOverflow.spec.js`. The option stays forever, without a warning.
+- **Never ask `instanceof HTMLElement` whether an axis owner is an element — use `isHTMLElement()`.**
+  `resolveAxisOwner` takes its realm from `ownerDocument`, so it correctly hands back an iframe's
+  element to a parent-realm caller; `instanceof` then fails to recognize it against the parent's
+  constructor, and the axis silently reads as window-owned. The two halves of the engine then
+  disagree about the same axis: `isHorizontallyScrollableByWindow()` answers `false` while the master
+  lays the holder out in window mode, so it is left `overflow: visible` and never sized, and the
+  columns past the width are unreachable — the exact defect this section exists to remove, one realm
+  over. Scroll offsets have the mirror of it: read them with `isHTMLElement(el) ? el.scrollLeft :
+  rootWindow.scrollX`, off the INJECTED `rootWindow`, because `instanceof Window` misses a
+  cross-realm window just as surely and a fall-through to `0` reports a motionless axis on every
+  frame — the scroll hooks then never fire. The shared helpers `getScrollTop` / `getScrollLeft`
+  (`helpers/dom/element.ts`) had the same shape and are what `Overlay#getScrollPosition` reads, so
+  the row calculators built the band from `undefined` and put it on the LAST rows of the grid at
+  page top; and the key-press guards in `NativeScrollInput` (`#onTableScroll`, `#onCloneWheel`) told
+  the holder from the window the same way, so an arrow-key scroll skipped `syncScrollPositions`
+  for the whole key press and the clones kept the old band. Pinned by
+  `tests/e2e/iframe-cross-realm-scroll.spec.ts`, which builds a grid in an iframe from the parent
+  page's constructor; nothing else in the suite crosses a realm, so an `instanceof` reintroduced
+  here stays green everywhere else. jsdom is a second such realm: its `window` fails
+  `instanceof Window` too, which is why `getScrollTop(window)` returned `undefined` in every unit
+  test and kept the window-scroll strategies' `scrollIntoView` call unreachable there — the
+  `Element.prototype.scrollIntoView` stub in `test/bootstrap.js` exists because the fix made it
+  reachable.
+- **Scroll offsets are read and written per axis, off each overlay's `mainTableScrollableElement`,
+  never off one shared element.** The inline-start overlay's element scrolls the horizontal axis
+  and the top overlay's the vertical one, and in split mode they are different things (the holder
+  and the window). Three paths follow that rule: `ScrollSync#syncScrollPositions` (the per-frame
+  direction flags), `ScrollSync#syncScrollWithMaster` (the offset handed to a clone whose render
+  state just changed) and `Overlays#scrollVertically` / `scrollHorizontally` (the wheel
+  translation). Each one used to read both axes off ONE element and reached three different dead
+  ends in split mode: the direction flags missed the window's vertical scroll, the clone sync read
+  the top overlay's element — the window — and gave up, so a `fixedRowsBottom` enabled after a
+  holder scroll came up a whole scroll away from the master, and the wheel translation consumed
+  the horizontal part on the holder and then cancelled the event, taking the window-owned vertical
+  part with it: a diagonal trackpad swipe moved the columns and not the page. A window-owned axis
+  is scrolled from the wheel path with `rootWindow.scrollBy({ behavior: 'instant' })`, so the event
+  is consumed on both axes and the offset is readable at once whatever `scroll-behavior` the page
+  sets; the clone sync skips it instead, because a clone holder must not accumulate the page offset.
+- **`ScrollSync#setRenderingStateChanged` latches until `syncScrollWithMaster` consumes it.** A
+  draw nests: the master `beforeDraw` hook can run a full draw of its own, and that draw's
+  `beforeDraw` fires before the outer `afterDraw`. The outer `beforeDraw` has already advanced the
+  overlays' render state, so the nested one sees no change — and an overwriting setter then wiped
+  the flag the outer one raised, so no `afterDraw` in the whole sequence synced the clone. The trace
+  reads `beforeDraw, beforeDraw, afterDraw(false), afterDraw(true)`; if you see that shape, the flag
+  was raised in the first call and must still be set in the last.
+- **The public, no-axis `getTrimmingContainer()` keeps the single-axis-clip exemption and must not be
+  used inside the engine.** It has to name one container for both axes, so it ignores an
+  `overflow-x: clip` next to a `visible` vertical axis (DEV-1025). Ask per axis instead.
+
+`MasterTable#alignOverlaysWithTrimmingContainer` lays the holder out from the same two owners: one
+element on both axes is the element mode, the window on both the window mode, and anything else the
+split mode — an element-owned axis gets the owner's box, a window-owned one is left to the DOM
+(`height: auto`, block-fill width), and the holder's inline overflow is cleared so the stylesheet's
+`overflow: auto` scrolls the element-owned axis. **Every mode must undo what the others wrote.** The
+window mode sizes nothing, because the page sizes it, so it has to CLEAR the pixel `width` and
+`height` split mode left on the holder — otherwise a grid that leaves split mode (a clip removed from
+an ancestor, `preventOverflow` switched off) stays pinned to the box it had there, and the stale box
+feeds the column calculators as well as the layout. Split mode caches nothing and is a **measured**
+mode: the broad and strict single-pass gates both fall back to DOM measurement when either axis is
+window-owned. A fourth rule applies there: **a vertical owner with no intrinsic height gets
+`height: auto`, never its own pixel height.** A parent with `overflow-y: hidden` and no `height` is
+sized by its content, which is the grids inside it, so a holder sized to that height in pixels
+feeds it back – with two grids in the parent each holder takes the sum of both and the parent grows
+to the CSS height limit (issue #3119, the same loop the element mode's clone probe guards
+against). `alignHolderWithSplitOwners` runs that probe (`measureIntrinsicHeight`) on every full
+draw whenever the vertical owner is an element; the common split layout (vertical owner = window)
+never probes. `ScrollSync#scrollableElement` stays the holder
+whenever any axis is element-owned, so the wheel translation, the sticky scroll and the scrollbar
+bands keep treating the grid as one that scrolls inside its box; the per-axis scroll positions are
+read off each overlay's own `mainTableScrollableElement`.
+
+An owner can move without a settings change (a page rule that clips the root, a `width` that
+becomes definite). `Overlays#beforeDraw` re-resolves the three region overlays' owners on every
+full draw – `adjustElementsSize` re-resolves them too, but only on a draw that moved the overlays or
+resized the spreader, and a removed clip changes neither, so an overlay kept the element while the
+master resolved the window for the same draw – and
+`ScrollSync#resyncScrollableElementsWithOwners` (run from `Overlays#beforeDraw` right after the
+owners are refreshed, AND from `Overlays#afterDraw` after the provisional-layout pass) re-picks the
+scrolling elements once when an owner's identity changed since the listeners were bound. Both call
+sites earn their place: only the `afterDraw` one can settle a provisional layout, and only the
+`beforeDraw` one is early enough for THIS draw's calculators — bound solely in `afterDraw`, the
+rebind is one draw late, the calculators read the offset off the element the owner moved away from,
+and the band the old scroller was scrolled to stays on screen until something else redraws. The call
+is idempotent, so running it twice costs a comparison — by identity, never by re-deriving the answer, because a cross-realm owner
+can disagree with the scrolling element for the instance's life (next section).
+
 ## A table built outside the layout cannot read its own styles
 
 A container that generates no boxes — detached from the document, or a light-DOM child of a shadow
@@ -260,13 +389,17 @@ the answer is still the window although an element trims the table, the layout h
 the pass is retried on the next draw — but only while the resolved element keeps changing. It is
 checked before anything is rebound, so a pass that cannot settle costs one style read. Two rules make
 that necessary: `getTrimmingContainer` counts `overflow: hidden` and `getScrollableElement` does not,
-so the two can disagree for good, and a table in an iframe driven from the parent realm does exactly
-that — `MasterTable#alignOverlaysWithTrimmingContainer` misses it through a realm-bound `instanceof`
-and leaves the holder `overflow: visible`. Retrying such a table forever rebinds every listener on
-every draw, which also drops whichever scroll event is in flight. Re-arming the flag (through the
+so the two can disagree for good. (An iframe driven from the parent realm used to be the second one:
+`MasterTable#alignOverlaysWithTrimmingContainer` judged the owner with a realm-bound `instanceof` and
+left the holder `overflow: visible`. That is fixed — see the realm rule in the per-axis section
+above.) Retrying such a table forever rebinds every listener on every draw, which also drops
+whichever scroll event is in flight. Re-arming the flag (through the
 public `updateMainScrollableElements`, which `updateSettings` calls whenever `height` moves to or from
-`''`) forgets the answer the previous series gave up on — otherwise the first retry of the new series
-matches its own stale answer and gives up at once, spending the retry the design counts on.
+`''`, and which the owner resync above calls when an axis owner moved) forgets the answer the
+previous series gave up on — otherwise the first retry of the new series matches its own stale
+answer and gives up at once, spending the retry the design counts on. The owner resync runs after
+the provisional pass and skips a provisional answer, so it never settles a layout in the provisional
+pass's place and never spends its retry.
 
 Only a **full** draw resolves it. A fast draw has aligned nothing, so it must not judge a table
 nothing has laid out; no such draw can currently precede the first full one (`refreshAll()` returns

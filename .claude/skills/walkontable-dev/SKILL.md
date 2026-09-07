@@ -146,6 +146,8 @@ For **layout-forcing DOM reads** this is not a preference but a hard, lint-enfor
 - Running Walkontable tests through the main E2E pipeline instead of the dedicated runner.
 - Not testing with frozen rows and columns, which misses overlay edge cases.
 - Forgetting `requestAnimationFrame` for scroll-related changes, causing layout thrashing.
+- Calling a `#method` of `MasterTable` from a path the base `Table` constructor reaches. `Table`'s constructor calls `alignOverlaysWithTrimmingContainer()` before `MasterTable`'s own fields exist, so a `#method` call there throws `Receiver must be an instance of class MasterTable` — the brand check fails exactly like a `#field` read does. Guard field reads with the existing `fieldsInitialized` check (`#trimmingCache in this`), and put the logic that must run on that path in a module-level function that takes the table (`alignHolderWithSplitOwners(table, …)` in `table/regions/masterTable.ts` is the pattern).
+- Reading `this.trimmingContainer` on an overlay to decide something about the *other* axis. Each region overlay holds the owner of its own axis only (top/bottom → vertical, inline-start → horizontal), and the two can differ; ask `wtViewport.isVerticallyScrollableByWindow()` / `isHorizontallyScrollableByWindow()` instead. Rules and the split mode: the "Per-axis trimming containers" section of `handsontable/src/3rdparty/walkontable/AGENTS.md`.
 
 For deeper context, see `handsontable/src/3rdparty/walkontable/.ai/ARCHITECTURE.md` and `handsontable/src/3rdparty/walkontable/.ai/CONCERNS.md` (DAO layer, overlay fragility).
 

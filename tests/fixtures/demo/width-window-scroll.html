@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Handsontable e2e fixture</title>
+  <title>Width-only grid window-scroll e2e fixture</title>
   <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
   <script>
     // Theme and bundle come from the ?theme=/?bundle= query params set by the
@@ -27,18 +27,20 @@
       throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
     }
   </script>
-  <style> body { font-family: sans-serif; margin: 1rem; } #toolbar { margin-bottom: .8rem; } </style>
+  <style> body { font-family: sans-serif; margin: 0; } </style>
 </head>
 <body>
   <!--
-    E2E fixture. Cells are stamped with data-testid via a renderer so tests hook
-    into them unambiguously (data-testid="cell-<row>-<col>") instead of brittle
-    structural selectors. This mirrors the convention the authoring skill teaches.
+    A grid with a definite `width` and NO `height`: the root clips the horizontal
+    axis only (`overflow-x: clip`), so the holder scrolls the columns inside the
+    root's box while the WINDOW scrolls the rows. Frozen rows and columns on
+    both axes so every overlay takes part. `initGrid()` rebuilds the grid for
+    the RTL twin and for the legacy `preventOverflow: 'horizontal'` alias
+    (which needs a sized parent instead of a `width`).
   -->
-  <div id="toolbar">
-    <button data-testid="add-row" type="button">Add row</button>
+  <div id="container">
+    <div id="grid" data-testid="grid"></div>
   </div>
-  <div id="grid" data-testid="grid"></div>
 
   <script>
     // The bundle under test, selected above from the sanitized allowlist. The
@@ -46,43 +48,55 @@
     document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
   </script>
   <script>
-    const container = document.querySelector('[data-testid="grid"]');
-
-    container.className = `ht-theme-${window.htTheme}`;
+    const data = Array.from({ length: 200 }, (_, r) =>
+      Array.from({ length: 30 }, (_, c) => `R${r + 1}C${c + 1}`));
 
     const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
       Handsontable.renderers.TextRenderer.apply(this, arguments);
       td.setAttribute('data-testid', `cell-${row}-${col}`);
     };
 
-    const hot = new Handsontable(container, {
-      data: [
-        ['A1', 'B1', 'C1'],
-        ['A2', 'B2', 'C2'],
-        ['A3', 'B3', 'C3'],
-        ['A4', 'B4', 'C4'],
-        ['A5', 'B5', 'C5'],
-      ],
-      colHeaders: true,
-      rowHeaders: true,
-      contextMenu: true,
-      renderer: testIdRenderer,
-      licenseKey: 'non-commercial-and-evaluation',
-    });
+    window.verticalScrollCount = 0;
 
-    document.querySelector('[data-testid="add-row"]').addEventListener('click', () => {
-      hot.alter('insert_row_below', hot.countRows() - 1);
-    });
+    /**
+     * Builds (or rebuilds) the grid. `containerWidth` sizes the parent instead of
+     * the grid, for the legacy `preventOverflow: 'horizontal'` leg.
+     */
+    window.initGrid = function(overrides = {}, containerWidth = '') {
+      if (window.hot) {
+        window.hot.destroy();
+      }
 
-    // How many times the plugin ran a paste to completion. CopyPaste binds its clipboard
-    // listeners on the document AND on the grid's own element (DEV-2795), so one Ctrl+V reaches
-    // the plugin twice even on a plain page, and only the event registry keeps the handler
-    // running once. Under the default `overwrite` paste mode a double paste writes the same
-    // values twice and looks identical, so counting the hook is the only way to see it.
-    window.__pasteHookCalls = 0;
-    hot.addHook('afterPaste', () => {
-      window.__pasteHookCalls += 1;
-    });
+      const container = document.getElementById('container');
+      const oldGrid = document.getElementById('grid');
+      const grid = document.createElement('div');
+
+      grid.id = 'grid';
+      grid.setAttribute('data-testid', 'grid');
+      grid.className = `ht-theme-${window.htTheme}`;
+      container.style.width = containerWidth;
+      oldGrid.replaceWith(grid);
+      window.verticalScrollCount = 0;
+
+      window.hot = new Handsontable(grid, {
+        data,
+        width: 500,
+        fixedRowsTop: 2,
+        fixedColumnsStart: 2,
+        rowHeaders: true,
+        colHeaders: true,
+        renderer: testIdRenderer,
+        licenseKey: 'non-commercial-and-evaluation',
+        afterScrollVertically() {
+          window.verticalScrollCount += 1;
+        },
+        ...overrides,
+      });
+
+      return true;
+    };
+
+    window.initGrid();
   </script>
 </body>
 </html>
