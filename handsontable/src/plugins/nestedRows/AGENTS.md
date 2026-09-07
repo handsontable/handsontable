@@ -109,14 +109,22 @@ They are written in different places and can drift. Keep this in mind:
   `requestAnimationFrame`. Never re-introduce the non-null assertion, and never feed the result
   straight into the trimming map — filter `null` out first.
 - **The hand-built tree operations have to shift the cell meta themselves.** `MetaManager` is kept in
-  step only by `DataMap#createRow`/`removeRow`, and `addChild`, `addChildAtIndex` and
-  `detachFromParent` reach neither — they splice `__children` and fire the row hooks by hand. So
+  step only by `DataMap#createRow`/`removeRow`, and `addChild`, `addChildAtIndex`,
+  `detachFromParent` and the row-move path reach neither — they splice `__children` and fire the row
+  hooks by hand. So
   stored meta (comments, `className`, everything) stays on the old physical rows and lands on the
   wrong cells: #7727 for the insert side, DEV-2626 for the detach side, same context menu. Use
-  `dataManager.shiftCellsMeta()` for an insert and `moveCellsMeta()` for a move. Both take
-  **physical** indexes, which is what `getRowIndex()` already returns, so never pass the result
+  `dataManager.shiftCellsMeta()` for an insert and `dataManager.moveCellsMeta()` for a move. Both
+  take **physical** indexes, which is what `getRowIndex()` already returns, so never pass the result
   through `toPhysicalRow()` and never use `hot.spliceCellsMeta()`, which takes a **visual** index and
-  would translate a second time. Three traps ride along, one per fix. Read the destination with
+  would translate a second time. Qualify the class when you name the mover: `RowMoveController` has
+  its own, unrelated `moveCellsMeta()` for the row-move path, and the two are not interchangeable —
+  it *preserves* the moved rows' meta (snapshot through `getCellMetaAtRow()`, re-insert through
+  `spliceCellsMeta()`) where the `DataManager` one blanks it. That one is also the standing example
+  of the double translation this rule forbids: it reads physical (`getCellMetaAtRow()`) and writes
+  visual (`spliceCellsMeta()`) with the same indexes, so its meta lands on the wrong rows as soon as
+  a collapsed or trimmed row makes visual and physical diverge. Do not copy it, and do not "fix" the
+  `DataManager` side to match it. Three traps ride along, one per fix. Read the destination with
   `getRowIndex(element)` **after** the last `rewriteCache()` — never derive it arithmetically from the
   parent position, because a sibling that owns descendants breaks any `parentIndex + n` formula.
   Keep the raw `getRowIndex()` result out of the `?? 0` fallback the hook arguments use: as a meta

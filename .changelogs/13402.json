@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed a bug where detaching a row from its parent left cell metadata, such as comments and custom class names, on the wrong rows.",
+  "title": "Fixed a bug where detaching a row from its parent left cell metadata, such as comments and custom class names, on the wrong rows. The detached row's own metadata is now cleared instead of being left behind on another row.",
   "type": "fixed",
   "issueOrPR": 13402,
   "breaking": false,

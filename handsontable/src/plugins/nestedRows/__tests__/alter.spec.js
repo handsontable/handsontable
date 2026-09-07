@@ -343,8 +343,8 @@ describe('NestedRows', () => {
 
     /**
      * Marks one cell above the detached row and one below it, so an assertion can tell a correct
-     * shift from a shift at the wrong index. Detaching moves the rows in between UP - the opposite
-     * direction to an insert - so the row above must stay exactly where it is.
+     * shift from a shift at the wrong index. Detaching moves the rows in between UP – the opposite
+     * direction to an insert – so the row above must stay exactly where it is.
      *
      * @param {number} aboveRow Visual row above the detached row.
      * @param {number} belowRow Visual row below the detached row.
@@ -375,6 +375,11 @@ describe('NestedRows', () => {
       // level, where it is appended last, so rows 3-5 move up by one.
       const { aboveValue, belowValue } = await markCells(1, 3, 2);
 
+      // The detached row is marked too, or the reset assertion at the end of this test is vacuous.
+      await setCellMeta(2, 2, 'className', 'detached-cell');
+
+      const detachedValue = getDataAtCell(2, 2);
+
       await detachViaContextMenu(2);
 
       // The row above the detached one does not move, and neither does its meta.
@@ -389,9 +394,14 @@ describe('NestedRows', () => {
       expect(getCellMeta(3, 2).comment).toBeUndefined();
 
       // The detached row's own meta is reset, not carried across: `LazyFactoryMap` has no move
-      // primitive, so the block is removed and re-inserted blank. Before the fix the meta stayed
-      // on the old physical row, which by then held a different record.
+      // primitive, so the block is removed and re-inserted blank. This pins that choice – an
+      // implementation that preserved the meta would land `detached-cell` on the row below.
+      expect(getDataAtCell(countRows() - 1, 2)).toBe(detachedValue);
       expect(getCellMeta(countRows() - 1, 2).className).toBeUndefined();
+
+      // And it must not stay behind on the index the detached row used to occupy. Before the fix
+      // that is exactly where it sat, so row 2 wore `detached-cell` instead of `below-cell`.
+      expect(getCellMeta(2, 2).className).not.toBe('detached-cell');
     });
 
     it('nestedRows ON, a deep subtree sits below the detached row', async() => {
@@ -404,8 +414,8 @@ describe('NestedRows', () => {
       });
 
       // Flattened: 0 a0, 1 a0-a0, 2 a0-a1, 3 a0-a2, 4 a0-a2-a0, 5 a0-a2-a0-a0, 6 a0-a3, 7 a1, 8 a2.
-      // Detaching `a0-a1` moves it to the root level, so rows 3-6 - the whole `a0-a2` subtree
-      // included - move up by one.
+      // Detaching `a0-a1` moves it to the root level, so rows 3-6 – the whole `a0-a2` subtree
+      // included – move up by one.
       const { aboveValue, belowValue } = await markCells(1, 5, 0);
 
       await detachViaContextMenu(2);
@@ -444,10 +454,44 @@ describe('NestedRows', () => {
       expect(getCellMeta(3, 0).className).toBe('below-cell');
       expect(getCellMeta(3, 0).comment).toEqual({ value: 'below-comment' });
 
-      // Row 6 is where the meta sat before the fix, and it now holds `a2-a0` - a row from a
+      // Row 6 is where the meta sat before the fix, and it now holds `a2-a0` – a row from a
       // different parent. Asserting row 4 instead would prove nothing: it holds `a1`, which never
       // carried meta either way.
       expect(getCellMeta(6, 0).className).toBeUndefined();
+    });
+
+    it('nestedRows ON, the row re-parents to a grandparent instead of the root', async() => {
+      handsontable({
+        data: getMoreComplexNestedData(),
+        nestedRows: true,
+        comments: true,
+        contextMenu: true,
+        rowHeaders: true,
+      });
+
+      // The other moving tests all detach a child of a ROOT parent, so the element is appended to
+      // the end of the grid. This one has a grandparent (`a0-a2-a0`'s parent `a0-a2` is itself a
+      // child of `a0`), so the block is re-inserted mid-grid instead: `a0-a2-a0` owns rows 4-5 and
+      // re-parents to `a0`, landing at rows 5-6, which moves `a0-a3` from row 6 up to row 4.
+      const { aboveValue, belowValue } = await markCells(3, 6, 0);
+
+      await detachViaContextMenu(4);
+
+      // `a0-a2` is the detached row's own parent and sits above it, so it must not move.
+      expect(getDataAtCell(3, 0)).toBe('a0-a2');
+      expect(getDataAtCell(3, 0)).toBe(aboveValue);
+      expect(getCellMeta(3, 0).className).toBe('above-cell');
+
+      expect(getDataAtCell(4, 0)).toBe('a0-a3');
+      expect(getDataAtCell(4, 0)).toBe(belowValue);
+      expect(getCellMeta(4, 0).className).toBe('below-cell');
+      expect(getCellMeta(4, 0).comment).toEqual({ value: 'below-comment' });
+
+      // Rows 5-6 are the two-row block that moved, and row 7 is `a1`, which never held meta.
+      expect(getDataAtCell(5, 0)).toBe('a0-a2-a0');
+      expect(getDataAtCell(6, 0)).toBe('a0-a2-a0-a0');
+      expect(getCellMeta(6, 0).className).toBeUndefined();
+      expect(getDataAtCell(7, 0)).toBe('a1');
     });
 
     // Guards the fix against over-reaching rather than the original bug: this one passed before the

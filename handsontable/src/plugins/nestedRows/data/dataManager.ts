@@ -614,14 +614,14 @@ class DataManager {
    * returns, and neither call renders.
    *
    * The moved block's own meta is reset rather than carried across. `LazyFactoryMap` has no move
-   * primitive, and the alternative - snapshotting through `getCellMetas()` - takes visual indexes,
+   * primitive, and the alternative – snapshotting through `getCellMetas()` – takes visual indexes,
    * materializes meta for every column, and fires `afterSetCellMeta` per cell. Leaving the meta
    * behind is worse than resetting it: it would land on whatever row took the old index.
    *
    * @param {number|null} fromPhysicalRow Physical index the block sat at before the move.
    * @param {number|null} toPhysicalRow Physical index the block sits at after the move. A `null` on
    * either side skips the move, so an unknown row object cannot splice meta from index 0. An
-   * unchanged index also skips it - nothing shifted, so resetting the block's meta would drop meta
+   * unchanged index also skips it – nothing shifted, so resetting the block's meta would drop meta
    * that is still on the right cells.
    * @param {number} amount Number of rows in the moved block.
    */
@@ -766,6 +766,10 @@ class DataManager {
     const grandparent = this.getRowParent(parent!);
     const grandparentRowIndex = this.getRowIndex(grandparent) ?? 0;
     let movedElementRowIndex: number | null = null;
+    // Set inside the branch that actually restructures the tree, so the cell meta move below can
+    // never run on its own. Re-testing `indexWithinParent` there would be a second copy of this
+    // condition, free to drift away from the one the data operation is gated on.
+    let hasMovedTheRow = false;
 
     this.hot.runHooks('beforeDetachChild', parent, element);
 
@@ -810,14 +814,16 @@ class DataManager {
 
         this.data!.push(element);
       }
+
+      hasMovedTheRow = true;
     }
 
     this.rewriteCache();
 
-    if (indexWithinParent !== null && indexWithinParent !== undefined) {
+    if (hasMovedTheRow) {
       // Read the destination instead of reusing `movedElementRowIndex`: that one is derived
-      // arithmetically from the grandparent position, and a sibling with descendants breaks the
-      // formula. This is the same index the `afterDetachChild` hook below reports.
+      // arithmetically from the grandparent position, and a sibling that owns descendants breaks
+      // the formula.
       this.moveCellsMeta(childPhysicalIndex, this.getRowIndex(element), childCount + 1);
     }
 
