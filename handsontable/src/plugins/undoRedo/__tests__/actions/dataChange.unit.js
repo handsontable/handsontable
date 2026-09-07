@@ -248,6 +248,30 @@ describe('UndoRedo -> DataChange action', () => {
       expect(hot.getSourceDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5']);
     });
 
+    it('should keep the rows a lifted trim revealed when it removes the created ones', () => {
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [['A1'], ['A2'], ['A3'], ['A4'], ['A5']],
+        trimRows: true,
+        undo: true,
+      });
+
+      hot.getPlugin('trimRows').trimRows([0, 1]);
+
+      // Three rows are visible, so this lands past the last one and appends a sixth source row.
+      hot.setDataAtCell(3, 0, 'x');
+
+      expect(hot.countSourceRows()).toBe(6);
+
+      hot.getPlugin('trimRows').untrimAll();
+
+      hot.getPlugin('undoRedo').undo();
+
+      // The visible row count went 3 -> 6 because the trim was lifted, so a guard measured in
+      // visible rows wants three rows removed and takes A4 and A5 with the created one.
+      expect(hot.getSourceDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5']);
+    });
+
     it('should not remove a populated row in place of a created row that is trimmed', () => {
       hot = new Handsontable(container, {
         licenseKey: 'non-commercial-and-evaluation',
@@ -268,6 +292,33 @@ describe('UndoRedo -> DataChange action', () => {
       // visible row" instead takes A3, which this change never touched.
       expect(hot.getSourceDataAtCell(2, 0)).toBe('A3');
       expect(hot.countSourceRows()).toBe(4);
+    });
+
+    it('should not blank a pre-existing record the stale visual index slid onto', () => {
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [['A1'], ['A2'], ['A3'], ['A4'], ['A5']],
+        trimRows: true,
+        undo: true,
+      });
+
+      hot.getPlugin('trimRows').trimRows([0, 1, 2, 3]);
+
+      // One row is visible, so this lands past it and appends a sixth source row. The row did not
+      // exist when the change was recorded, so it carries no physical index - only visual row 1.
+      hot.setDataAtCell(1, 0, 'x');
+
+      expect(hot.countSourceRows()).toBe(6);
+
+      // Lifting the trim pushes four rows back into the visual space, so visual row 1 now names
+      // A2 - a record that existed all along.
+      hot.getPlugin('trimRows').untrimAll();
+
+      expect(hot.toPhysicalRow(1)).toBe(1);
+
+      hot.getPlugin('undoRedo').undo();
+
+      expect(hot.getSourceDataAtCell(1, 0)).toBe('A2');
     });
 
     it('should not run a row removal when no created row is reachable', () => {
@@ -318,21 +369,24 @@ describe('UndoRedo -> DataChange action', () => {
       expect(hot.getSourceDataAtCell(3, 0)).toBe(null);
     });
 
-    it('should still remove the rows that a write past the last row created', () => {
-      hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
-        data: [['A1'], ['A2'], ['A3']],
-        undo: true,
-      });
+  });
 
-      hot.setDataAtCell([[3, 0, 'x'], [4, 0, 'y']]);
-
-      expect(hot.countSourceRows()).toBe(5);
-
-      hot.getPlugin('undoRedo').undo();
-
-      expect(hot.countSourceRows()).toBe(3);
-      expect(hot.getSourceDataAtCol(0)).toEqual(['A1', 'A2', 'A3']);
+  // Nothing is trimmed here, so this passes with or without the physical-row addressing. It guards
+  // the plain case of the row removal the undo performs, which the DEV-2665 cases above rewrote.
+  it('should remove the rows that a write past the last row created', () => {
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      data: [['A1'], ['A2'], ['A3']],
+      undo: true,
     });
+
+    hot.setDataAtCell([[3, 0, 'x'], [4, 0, 'y']]);
+
+    expect(hot.countSourceRows()).toBe(5);
+
+    hot.getPlugin('undoRedo').undo();
+
+    expect(hot.countSourceRows()).toBe(3);
+    expect(hot.getSourceDataAtCol(0)).toEqual(['A1', 'A2', 'A3']);
   });
 });

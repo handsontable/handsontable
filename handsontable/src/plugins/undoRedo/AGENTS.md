@@ -117,16 +117,26 @@ rediscovering them.
   one step further out: LIFO puts a recorded removal's own undo first, so it bites only a removal
   performed with a blocked source. Do not read the field as an ID, and do not write "a removed row's
   value is discarded" anywhere — that only holds for a removal at the very **end** of the dataset.
-- **The data is restored physically, the selection still visually.** After a reorder this action did not
-  record, the values land on the right records while `selectCells(this.selected)` highlights whatever now
-  sits at the recorded visual coordinates. `remergeCellsGeometryOnly` carries the same issue, narrower
-  (paste source only). Fixing it needs a physical form for a *range*, which `CellRange` cannot describe.
+- **The data is restored physically, the selection and the merge geometry still visually.** After a
+  reorder this action did not record, the values land on the right records while
+  `selectCells(this.selected)` highlights whatever now sits at the recorded visual coordinates.
+  `remergeCellsGeometryOnly` carries the same issue and one of its own: it runs *after*
+  `#collectCreatedRows()` has removed rows, so a paste that destroyed a merge, appended rows and was
+  followed by a reorder can re-merge at shifted coordinates. Both need a physical form for a *range*,
+  which `CellRange` cannot describe.
 - **`allowInvalid: false` can still strand the stack.** When a validator rejects every grid change,
   `validateChanges` splices them all out, `applyChanges` fires no `afterChange`, and the settle never
   runs — so `ignoreNewActions` stays on for the rest of the session. Pre-existing, and the `try/catch` in
-  `#replay()` does **not** cover it (nothing throws). What this rewrite added is that the source writes
-  have already landed by then, so such an action is now stranded *and* half-applied. A real fix needs a
-  completion signal from Core that survives an all-rejected validation round.
+  `#replay()` does **not** cover it (nothing throws). The action is at least no longer *half*-applied:
+  the source writes are held inside the settle path, behind that same `afterChange`, so a rejected grid
+  write leaves nothing written. Do not hoist them back ahead of `setDataAtCell()`. A real fix for the
+  stranding needs a completion signal from Core that survives an all-rejected validation round.
+- **A row that never existed is replayed at its recorded visual index, and that index can drift.**
+  There is nothing to re-derive — the row had no physical index when `beforeChange` recorded it. The
+  index is trusted only while it still names a row this change appended, or no row at all; a trim
+  lifted since then can slide it onto a record that existed all along, and `#collectWrites()` drops the
+  change rather than blanking that record. Dropping it means a past-the-end edit is not reverted in
+  that case, which is the lesser of the two.
 - **The column half of the guard still counts visible columns.** `countCols()` is
   `min(maxCols, notTrimmedColumns)`, so a `maxCols` raised since the edit reads as columns this change
   added. It is the same defect the row half above fixed, left alone because the column axis is outside

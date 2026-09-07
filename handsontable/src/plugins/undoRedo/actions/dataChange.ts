@@ -193,7 +193,18 @@ export class DataChangeAction extends BaseAction {
       const physicalRow = this.physicalRows?.[index] ?? null;
 
       if (physicalRow === null) {
-        gridChanges.push([change[0], visualColumn, value]);
+        // Nothing to re-derive here - the row had no physical index to record. The stale visual
+        // index is all there is, and writing at it is what re-creates the row. It is only trusted
+        // while it still names a row this change appended (or no row at all, which is the state a
+        // redo starts from): anything that pushed rows into the visual space since - a trim lifted,
+        // an unrecorded insert - can slide it onto a record that existed all along, and blanking
+        // that record is worse than not replaying the change at all.
+        const targetRow = hot.toPhysicalRow(change[0] as number) as number | null;
+
+        if (targetRow === null || !Number.isInteger(this.countSourceRows) ||
+            targetRow >= this.countSourceRows!) {
+          gridChanges.push([change[0], visualColumn, value]);
+        }
 
         return;
       }
@@ -250,11 +261,16 @@ export class DataChangeAction extends BaseAction {
   /**
    * Replays both write lists and settles the action exactly once.
    *
-   * The source-data writes run first, so the settle callback - which rides on the grid write's
-   * `afterChange` - runs once the whole replay has landed. With no grid write to make, that hook
-   * would never fire and the action has to settle from here instead. Leaving it armed would settle
-   * this action on the next unrelated change, and until then `ignoreNewActions` stays on, dropping
-   * every action the user performs in between.
+   * The grid write goes first and the source writes are held back until it has actually landed. Two
+   * things ride on that order. A validator that rejects every grid change under `allowInvalid: false`
+   * fires no `afterChange`, so nothing after it runs and the action stays entirely un-applied rather
+   * than half-applied. And the settle callback, which rides on that same `afterChange`, runs once the
+   * whole replay is in place rather than in the middle of it.
+   *
+   * With no grid write to make there is no `afterChange` to wait for, so the source writes and the
+   * settle both run from here. Leaving the hook armed instead would settle this action on the next
+   * unrelated change, and until then `ignoreNewActions` stays on, dropping every action the user
+   * performs in between.
    *
    * @param {Core} hot The Handsontable instance.
    * @param {Array} gridChanges Changes to write through the grid, as `[visualRow, visualColumn, value]`.
@@ -265,24 +281,30 @@ export class DataChangeAction extends BaseAction {
   #replay(
     hot: HotInstance, gridChanges: unknown[][], sourceChanges: unknown[][], source: string, settle: () => void
   ) {
-    if (sourceChanges.length > 0) {
-      hot.setSourceDataAtCell(sourceChanges, undefined, undefined, source);
-    }
+    const finish = () => {
+      // Before `settle()`, never after: the undo's tail removes the rows this change appended, and
+      // these writes address rows by a physical index taken before that removal.
+      if (sourceChanges.length > 0) {
+        hot.setSourceDataAtCell(sourceChanges, undefined, undefined, source);
+      }
+
+      settle();
+    };
 
     if (gridChanges.length === 0) {
-      settle();
+      finish();
 
       return;
     }
 
-    hot.addHookOnce('afterChange', settle);
+    hot.addHookOnce('afterChange', finish);
 
     try {
       hot.setDataAtCell(gridChanges, null, null, source);
     } catch (error) {
-      // The write threw, so `afterChange` never fires. An armed hook would settle this half-applied
-      // action on the next change to reach the grid - see `RemoveRowAction#undo`.
-      hot.removeHook('afterChange', settle);
+      // The write threw, so `afterChange` never fires. An armed hook would settle this action on the
+      // next change to reach the grid - see `RemoveRowAction#undo`.
+      hot.removeHook('afterChange', finish);
 
       throw error;
     }
