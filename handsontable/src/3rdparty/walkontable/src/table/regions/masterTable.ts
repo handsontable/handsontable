@@ -200,6 +200,16 @@ class MasterTable extends Table {
     const { geometryReader } = this.deps;
 
     if (!xIsElement && !yIsElement) {
+      // Nothing sizes the holder here - the page scrolls both axes, so it is left to the DOM. A grid
+      // that ARRIVED from the split mode still carries the pixel `width` and the `height` that mode
+      // wrote (a clip removed from an ancestor, a `width` that stopped being definite), and those
+      // would pin the holder to the old box while the page is supposed to size it. Clearing them is
+      // the whole of this mode's sizing.
+      this.holder.style.width = '';
+      this.holder.style.height = '';
+      this.hasTableWidth = true;
+      this.hasTableHeight = true;
+
       if (!preventOverflow) {
         this.holder.style.overflow = 'visible';
         this.wtRootElement.style.overflow = 'visible';

@@ -333,7 +333,11 @@ fields. Three rules follow.
 element on both axes is the element mode, the window on both the window mode, and anything else the
 split mode — an element-owned axis gets the owner's box, a window-owned one is left to the DOM
 (`height: auto`, block-fill width), and the holder's inline overflow is cleared so the stylesheet's
-`overflow: auto` scrolls the element-owned axis. Split mode caches nothing and is a **measured**
+`overflow: auto` scrolls the element-owned axis. **Every mode must undo what the others wrote.** The
+window mode sizes nothing, because the page sizes it, so it has to CLEAR the pixel `width` and
+`height` split mode left on the holder — otherwise a grid that leaves split mode (a clip removed from
+an ancestor, `preventOverflow` switched off) stays pinned to the box it had there, and the stale box
+feeds the column calculators as well as the layout. Split mode caches nothing and is a **measured**
 mode: the broad and strict single-pass gates both fall back to DOM measurement when either axis is
 window-owned. A fourth rule applies there: **a vertical owner with no intrinsic height gets
 `height: auto`, never its own pixel height.** A parent with `overflow-y: hidden` and no `height` is
@@ -352,9 +356,14 @@ becomes definite). `Overlays#beforeDraw` re-resolves the three region overlays' 
 full draw – `adjustElementsSize` re-resolves them too, but only on a draw that moved the overlays or
 resized the spreader, and a removed clip changes neither, so an overlay kept the element while the
 master resolved the window for the same draw – and
-`ScrollSync#resyncScrollableElementsWithOwners` (run from `Overlays#afterDraw`, after the
-provisional-layout pass) re-picks the scrolling elements once when an owner's identity changed since
-the listeners were bound — by identity, never by re-deriving the answer, because a cross-realm owner
+`ScrollSync#resyncScrollableElementsWithOwners` (run from `Overlays#beforeDraw` right after the
+owners are refreshed, AND from `Overlays#afterDraw` after the provisional-layout pass) re-picks the
+scrolling elements once when an owner's identity changed since the listeners were bound. Both call
+sites earn their place: only the `afterDraw` one can settle a provisional layout, and only the
+`beforeDraw` one is early enough for THIS draw's calculators — bound solely in `afterDraw`, the
+rebind is one draw late, the calculators read the offset off the element the owner moved away from,
+and the band the old scroller was scrolled to stays on screen until something else redraws. The call
+is idempotent, so running it twice costs a comparison — by identity, never by re-deriving the answer, because a cross-realm owner
 can disagree with the scrolling element for the instance's life (next section).
 
 ## A table built outside the layout cannot read its own styles

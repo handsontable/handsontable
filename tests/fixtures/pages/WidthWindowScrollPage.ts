@@ -316,6 +316,28 @@ export class WidthWindowScrollPage {
     }), pagePosition);
   }
 
+  /**
+   * The holder's own inline sizing, plus the column band the master renders. Split mode pins the
+   * holder to its owner's box in pixels; window mode must leave both to the DOM, or a grid that
+   * left split mode stays boxed at the size it had there.
+   */
+  async holderSizing(): Promise<{ width: string, height: string, firstColumn: number }> {
+    return this.page.evaluate(() => {
+      const holder = document.querySelector('.ht_master .wtHolder') as HTMLElement | null;
+      const firstCell = document.querySelector('.ht_master tbody tr:first-child td[data-testid]');
+
+      if (!holder || !firstCell) {
+        throw new Error('the master is not rendered');
+      }
+
+      return {
+        width: holder.style.width,
+        height: holder.style.height,
+        firstColumn: Number(firstCell.getAttribute('data-testid')?.split('-').pop()),
+      };
+    });
+  }
+
   /** The count of `afterScrollVertically` calls since the last rebuild. */
   async verticalScrollCount(): Promise<number> {
     return this.page.evaluate(() => window.verticalScrollCount);

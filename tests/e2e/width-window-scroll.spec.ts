@@ -191,6 +191,34 @@ test.describe('width-only grid: holder scrolls columns, window scrolls rows', ()
     expect(midPage.clips.corner).toBe('none');
   });
 
+  // Leaving split mode has to undo its sizing. That mode pins the holder to its owner's box in
+  // pixels; the window mode that follows sizes nothing, because the page sizes it — so the pixel
+  // width stayed behind and kept the holder at the old box. The stale box also fed the column
+  // calculators, which went on rendering the band the holder had been scrolled to.
+  test('drops the split-mode holder size when both axes go back to the window', async () => {
+    await grid.rebuild({ width: undefined, preventOverflow: 'horizontal' }, '500px');
+
+    expect((await grid.axisOwners()).horizontalByWindow).toBe(false);
+
+    await grid.scrollHolderBy(600);
+
+    const inSplitMode = await grid.holderSizing();
+
+    expect(inSplitMode.width).toMatch(/px$/);
+    expect(inSplitMode.firstColumn).toBeGreaterThan(1);
+
+    await grid.updateSettings({ preventOverflow: false });
+
+    expect((await grid.axisOwners()).horizontalByWindow).toBe(true);
+
+    const inWindowMode = await grid.holderSizing();
+
+    expect(inWindowMode.width).toBe('');
+    expect(inWindowMode.height).toBe('');
+    // The band follows the holder's real width, not the box split mode left behind.
+    expect(inWindowMode.firstColumn).toBe(1);
+  });
+
   test('mirrors the layout in RTL', async () => {
     await grid.rebuild({ layoutDirection: 'rtl' });
 

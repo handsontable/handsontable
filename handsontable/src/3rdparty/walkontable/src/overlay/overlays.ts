@@ -440,6 +440,15 @@ class Overlays {
       // resolves the window for the same draw. Before `beginDrawLayout`, which reads the owners
       // through the viewport predicates.
       this.#refreshAxisOwners();
+      // Re-pick the scrolling elements against the owners just resolved, BEFORE this draw builds its
+      // calculators. `Overlays#afterDraw` runs this too, and has to: only there is a provisional
+      // layout settled, and this call skips a provisional answer. But a rebind that happens only
+      // there is one draw late — the calculators have already read the offset off the element the
+      // owner moved AWAY from, so the band drawn is the one the old scroller was scrolled to and it
+      // stays on screen until something else redraws (measured: an owner moved from the holder to
+      // the window left the master on the scrolled band with every input already reporting 0).
+      // Idempotent: it compares the owners against the bound ones and returns when they agree.
+      this.#scrollSync.resyncScrollableElementsWithOwners();
       this.#scrollSync.resetSizesMeasuredBeforeLayoutSettled();
     }
 
