@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the gridline between the row headers and the first column drawing in the wrong color in the header row when a grid has more than one row header.",
+  "type": "fixed",
+  "issueOrPR": 13399,
+  "breaking": false,
+  "framework": "none"
+}
