@@ -149,6 +149,35 @@ Consequences worth knowing:
   reads them any more. `innerBorderInlineStart` also only toggles when the grid has row headers and NO
   frozen columns, so it is not a usable "has scrolled" signal in a test — poll the holder's
   `scrollLeft` instead.
+- **`InlineStartOverlay#resetFixedPosition` reports `false` unconditionally**, and `placeFixedOverlays`
+  no longer ORs it into `ctx.positionChanged` — only the top and bottom overlays feed that flag now.
+  The class shifts no layout, so the flag's one job (reconciling a 1px shift) had nothing to do, yet
+  every scroll crossing horizontal offset 0 ran `refreshAll()`: a nested `wot.draw(true)` over the
+  master and every clone. Grids on the single-pass path did not pay it, because `prepareHeaderBorders`
+  applies the class before the cells render and the post-render toggle then finds it already in place.
+  Those two gates line up exactly, which is worth knowing before you assume a window-scrolled grid slips
+  between them: `usesLayoutSnapshotForCalculators()` requires `!isHorizontallyScrollableByWindow()`,
+  that predicate IS `inlineStartOverlay.trimmingContainer === rootWindow`, and `prepareHeaderBorders`
+  bails on the same test against the same overlay — so anything passing the single-pass gate is
+  element-scrolled and never bails. `preventOverflow` does not enter into it; it changes how
+  `resetFixedPosition` uses the trimming container, not what the container is. The cost therefore
+  landed on the grids that drop off that path, and there are TWO ways to do that, both of which paid:
+  breaking the uniform-size requirement (`colWidths` as an array, or an active `manualColumnResize`),
+  and breaking the element-mode requirement (a window-scrolled grid, i.e. no `width`/`height`). The
+  window shape is the harsher one, since `prepareHeaderBorders` bails on it outright and so could
+  never have pre-applied the class whatever the other settings said. Both have a leg in
+  `tests/e2e/walkontable/inline-start-border-refresh.spec.ts`.
+- **Counting `refreshAll` cannot measure a reconciliation draw on its own.** `ScrollSync` calls
+  `refreshAll` once per scroll event as the normal response to a scroll (`overlay/scroll/scrollSync.ts`),
+  so a per-crossing count is at least 1 whether or not anything reconciled, and that baseline hides the
+  difference. The reconciliation is the **re-entrant** call: the scroll-driven one runs `wot.draw(true)`,
+  and a draw that sees `positionChanged` calls `refreshAll` again from inside it. Count by nesting depth
+  **on `refreshAll` itself**, which is reachable: `ScrollSync` holds it as a late-bound closure
+  (`refreshAll: () => overlays.refreshAll()`), so replacing the method is observed through that call too.
+  Do **not** try to get the depth by patching `draw` on the instance `hot.view._wt` hands you:
+  `wtOverlays.wot !== hot.view._wt`, so a patched `_wt.draw` counts **zero** calls even for a
+  `refreshAll()` invoked directly, which definitely runs `this.wot.draw(true)`.
+  `tests/e2e/walkontable/inline-start-border-refresh.spec.ts` measures it this way.
 - **The row axis is unchanged.** `innerBorderTop` / `innerBorderBottom` still shift the layout by 1px,
   which is what `positionChanged` and the reconciliation draw in `table/drawCycle.ts` exist for, and
   `columnHeaderBorderCompensation` in `topOverlay`/`spreaderSize` is the vertical twin that stayed.
