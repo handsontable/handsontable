@@ -62,7 +62,14 @@ describe('An Angular component editor whose input takes the browser focus', () =
 
   it('should keep the grid listening', () => {
     instance.selectCell(0, 0);
-    instance.getActiveEditor()!.beginEditing();
+
+    const editor = instance.getActiveEditor();
+
+    if (!editor) {
+      throw new Error('No editor was prepared for the selected cell');
+    }
+
+    editor.beginEditing();
 
     const field = instance.rootElement.querySelector('#ngEditorField') as HTMLInputElement;
 
