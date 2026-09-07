@@ -210,6 +210,49 @@ describe('numericRenderer', () => {
         expect(cellMeta.className).toBe(undefined);
       });
 
+      it('should add default class names when `className` is an array', () => {
+        const TD = document.createElement('td');
+        const instance = getInstance();
+        const cellMeta = {
+          instance,
+          className: ['foo', 'bar'],
+        };
+        const cellValue = 1;
+        const formattedValue = numericRenderer.valueFormatter(cellValue, cellMeta);
+
+        spyOn(instance, 'getDataAtCell').and.returnValue(cellValue);
+
+        numericRenderer(instance, TD, undefined, undefined, undefined, formattedValue, cellMeta);
+
+        expect(TD.outerHTML).toMatchHTML('<td dir="ltr">1</td>', toMatchHTMLConfig);
+        expect(cellMeta.className).toBe('foo bar htRight htNumeric');
+      });
+
+      it('should not mutate an array `className` inherited through the cell meta prototype chain', () => {
+        const instance = getInstance();
+        // A grid-level or column-level `className` array is one instance that every cell meta reads
+        // through its prototype (`dataMap/metaManager/metaLayers/cellMeta.ts`). Pushing into the value
+        // the renderer was handed leaks the numeric classes onto every cell sharing that array.
+        const sharedClassName = ['foo', 'bar'];
+        const higherLayerMeta = {
+          instance,
+          className: sharedClassName,
+        };
+        const numericCellMeta = Object.create(higherLayerMeta);
+        const siblingCellMeta = Object.create(higherLayerMeta);
+
+        spyOn(instance, 'getDataAtCell').and.returnValue(1);
+
+        numericRenderer(
+          instance, document.createElement('td'), 0, 0, undefined,
+          numericRenderer.valueFormatter(1, numericCellMeta), numericCellMeta
+        );
+
+        expect(numericCellMeta.className).toBe('foo bar htRight htNumeric');
+        expect(sharedClassName).toEqual(['foo', 'bar']);
+        expect(siblingCellMeta.className).toBe(sharedClassName);
+      });
+
       it('should add only htNumeric class name if any alignment was defined', () => {
         const TD = document.createElement('td');
         const instance = getInstance();
