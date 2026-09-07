@@ -1981,14 +1981,15 @@ class TableView {
    * `rootElement`. The test is deliberately not per-cell: it does not try to prove the field
    * belongs to the edited cell, only that it is not the page's.
    *
-   * That is a real widening over the reported case, and the reachable shape is a Shift+Click:
-   * `core.ts` skips `editorManager.closeEditor()` when the selection source is `'shift'`, so
-   * extending a selection onto a checkbox cell leaves the text editor open while the focus moves
-   * onto the checkbox renderer's own unstamped `<input>` - which this test then answers `true`
-   * for. The outcome is the same either way: before, that `mouseup` unlistened and the checkbox
-   * renderer's `setTimeout(instance.listen, 10)` listened again 10ms later; now the round trip is
-   * skipped. Nothing else in that handler fires - `isFocusLostToOutside` is `false` (the focus is
-   * inside `rootElement`), and the selection is set, so the third disjunct is `false` too.
+   * On paper that widens the answer to an unstamped input the grid renders in some OTHER cell - a
+   * checkbox renderer's `<input>`, say - while an editor is open elsewhere. Measured, that shape
+   * does not occur: a press which moves the focus onto another cell's input also changes the
+   * selection, and the selection change closes the editor in the same local hook that runs
+   * `afterSelection` (its exclusion list covers data-driven sources such as `'shift'`, the
+   * row/column SHIFT an insert or a remove performs, not a mouse press). By the time the `mouseup`
+   * verdict runs, `isCellEdited()` is already false and this test is never consulted for that
+   * input. `tests/e2e/editor-open-checkbox-focus.spec.ts` pins that, and goes red if an editor
+   * ever survives the selection change - which is when the widening would start to matter.
    *
    * Walks with `closest()`, not `Node#contains()`, mirroring `#isFocusWithinEditorSurface()`:
    * the element comes from `getDeepActiveElement()`, which reaches into shadow roots, while
