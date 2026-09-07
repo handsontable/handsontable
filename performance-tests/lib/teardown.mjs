@@ -8,7 +8,7 @@ import { pathToFileURL } from 'node:url';
 import { parseTrace, averageParsedTraces } from '../trace-parser.mjs';
 import { exists } from './fs-utils.mjs';
 import { saveSnapshots, loadBaseline } from './snapshot-store.mjs';
-import { buildReport, collectRegressions } from './report-builder.mjs';
+import { assessReport, buildReport, collectRegressions } from './report-builder.mjs';
 import { buildHtmlReport } from './html-report-builder.mjs';
 import { HARNESS_VERSION } from './trace-runner.mjs';
 import {
@@ -290,15 +290,15 @@ export default async function teardown() {
   // letting the sticky comment publish four-figure percentages as regressions.
   const windowSourceOf = scenario => scenario.windowSource ?? 'auto-zoom';
   const versionOf = scenario => scenario.measurementVersion ?? DEFAULT_MEASUREMENT_VERSION;
-  // A scenario redefined since the baseline was recorded (another `measurementVersion`) is the same
-  // situation as a window mismatch -- the two sides measured different quantities under one name --
-  // and is withheld through the same path. The median already filters these out per scenario; this
-  // catches the single-file fallback, which is one whole golden and cannot.
+  // Two trace-level mismatches, each withheld under its own name so a redefined scenario is not
+  // reported as a window bug. The median already filters versions per scenario; this catches the
+  // single-file fallback, which is one whole golden and cannot.
   const crossWindow = (current, baseline) => Object.keys(current)
-    .filter(name => baseline?.[name] && (
-      windowSourceOf(baseline[name]) !== windowSourceOf(current[name])
-      || versionOf(baseline[name]) !== versionOf(current[name])
-    ));
+    .filter(name => baseline?.[name] && windowSourceOf(baseline[name]) !== windowSourceOf(current[name]));
+  const versionMismatch = (current, baseline) => Object.keys(current)
+    .filter(name => baseline?.[name]
+      && windowSourceOf(baseline[name]) === windowSourceOf(current[name])
+      && versionOf(baseline[name]) !== versionOf(current[name]));
 
   // Load golden for comparison
   let golden = null;
@@ -359,13 +359,22 @@ export default async function teardown() {
   }
 
   const mismatched = golden ? crossWindow(scenarioResults, golden.scenarios || {}) : [];
+  const redefined = golden ? versionMismatch(scenarioResults, golden.scenarios || {}) : [];
 
   if (mismatched.length > 0) {
     console.warn(
       `\n  WARN: ${mismatched.length} scenario(s) are being compared against a baseline measured ` +
-      `over a different window or at a different measurementVersion -- ${mismatched.join(', ')}. ` +
+      `over a different window -- ${mismatched.join(', ')}. ` +
       'The deltas below are not measurements of a code change; they are the two windows disagreeing. ' +
       'A fresh golden run on develop clears this.\n'
+    );
+  }
+
+  if (redefined.length > 0) {
+    console.warn(
+      `\n  WARN: ${redefined.length} scenario(s) were redefined since the baseline was recorded ` +
+      `(different measurementVersion) -- ${redefined.join(', ')}. Their deltas are withheld; ` +
+      'they resume once develop has recorded the current definition.\n'
     );
   }
 
@@ -376,6 +385,7 @@ export default async function teardown() {
     baseBranch: 'develop',
     pagesUrl: process.env.PAGES_URL || null,
     crossWindowScenarios: mismatched,
+    versionMismatchScenarios: redefined,
     // PERF_COMMIT_SHA is the PR head on the pull_request path, where GITHUB_SHA is the ephemeral
     // merge commit that exists on no branch. See the env block in performance-tests.yml.
     commit: process.env.PERF_COMMIT_SHA || process.env.GITHUB_SHA || null,
@@ -384,7 +394,9 @@ export default async function teardown() {
     baselineUnavailable,
   };
 
-  const report = buildReport(scenarioResults, golden, meta);
+  // Every verdict decided once; the comment renders from it and the annotations list from it.
+  const assessment = assessReport(scenarioResults, golden, meta);
+  const report = buildReport(scenarioResults, golden, meta, assessment);
   const htmlReport = buildHtmlReport(scenarioResults, golden, meta);
 
   // Write to output/
@@ -395,7 +407,7 @@ export default async function teardown() {
   // On develop, a regression against the trailing median is the develop push's own news. Annotate
   // the run so it is seen where it happened; the snapshot is still deployed as recorded.
   if (mode === 'golden' && golden) {
-    annotateRegressions(collectRegressions(scenarioResults, golden, meta), golden);
+    annotateRegressions(collectRegressions(scenarioResults, golden, meta, assessment), golden);
   }
 
   console.log('\nReports written to output/result.md and output/report.html\n');

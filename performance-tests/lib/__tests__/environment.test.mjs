@@ -154,7 +154,8 @@ describe('describeKey / describeKeyMismatch / formatEnvironment', () => {
 
     assert.ok(text.includes('Chromium 138.0.1 -> 140.0.1'));
     assert.ok(!text.includes('harness'), 'the harness did not change, so it is not named');
-    assert.ok(text.includes('two develop pushes'));
+    // One compatible golden already serves as the single-file baseline; only the median needs two.
+    assert.ok(text.includes('deltas resume with the next develop push, and as a median once two have run'));
   });
 
   test('a golden without provenance reads as unknown -> current on both fields', () => {

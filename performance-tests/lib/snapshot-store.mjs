@@ -5,23 +5,37 @@ import { join } from 'node:path';
 
 import { exists } from './fs-utils.mjs';
 import {
-  computeMedianSnapshot, isValidForMedian, MEDIAN_WINDOW_SIZE, MIN_VALID_SNAPSHOTS,
+  MEDIAN_REFUSAL,
+  MEDIAN_WINDOW_SIZE,
+  computeMedianSnapshot,
+  explainMedianRefusal,
 } from './median-snapshot.mjs';
 import {
   DEFAULT_MEASUREMENT_VERSION,
+  RESUME_NOTE,
   baselineKey,
   describeKeyMismatch,
   isCompatibleBaseline,
-  isCompleteKey,
 } from './environment.mjs';
 
-// The refusal when the goldens match this run's browser and harness but measure every scenario at
-// another `measurementVersion` -- each scenario redefined since they were recorded.
-export const SCENARIO_VERSIONS_MISMATCH_REASON = 'the compatible develop goldens measure every '
-  + 'scenario at a different version than this run (the scenarios were redefined); deltas resume '
-  + 'once two develop pushes have run with the current definitions';
-
 const DEFAULT_GOLDEN_DIR = join(import.meta.dirname, '..', 'golden');
+
+// The refusals a reader can act on, one sentence each. The key mismatch is worded by
+// describeKeyMismatch() because it names the two environments; everything else is fixed text.
+export const BASELINE_REFUSALS = Object.freeze({
+  [MEDIAN_REFUSAL.EMPTY_HISTORY]: 'no develop goldens were available to compare against (the history '
+    + `fetch returned nothing); ${RESUME_NOTE}`,
+  [MEDIAN_REFUSAL.NO_MARKS_VALID]: 'too few develop goldens carry a marked trace window on every '
+    + `scenario; ${RESUME_NOTE}`,
+  [MEDIAN_REFUSAL.VERSION_MISMATCH]: 'the compatible develop goldens measure every scenario at a '
+    + `different version than this run (the scenarios were redefined); ${RESUME_NOTE}`,
+  [MEDIAN_REFUSAL.DISJOINT_SCENARIOS]: 'the compatible develop goldens contain none of the scenarios '
+    + `this run measured; ${RESUME_NOTE}`,
+  'empty-golden': `the single-file develop golden carries no scenarios (a deploy cut short); ${RESUME_NOTE}`,
+});
+
+// Kept as a named export because the loader's tests and the teardown's footer both cite it.
+export const SCENARIO_VERSIONS_MISMATCH_REASON = BASELINE_REFUSALS[MEDIAN_REFUSAL.VERSION_MISMATCH];
 
 /**
  * @param {string} goldenDir
@@ -68,8 +82,10 @@ export async function saveSnapshots(scenarioResults, metadata = {}, goldenDir = 
  *
  * A baseline that exists but is incompatible is refused, not returned: a delta against a golden
  * from another Chromium is the two browsers disagreeing, and publishing it is the defect that made
- * the 09-03 Playwright bump read as a regression on five days of pull requests. The refusal is
- * returned as a reason so the report can print it instead of a self-comparison nobody can read.
+ * the 09-03 Playwright bump read as a regression on five days of pull requests. Every refusal comes
+ * back as a reason so the report can print it instead of a self-comparison nobody can read --
+ * including "there was nothing to compare against at all", which in golden mode has no other
+ * surface than the footer.
  *
  * @param {string} [goldenDir] -- override for tests; defaults to the real golden dir
  * @param {object} [options]
@@ -84,8 +100,7 @@ export async function loadBaseline(
 ) {
   const { goldenPath, historyDir } = paths(goldenDir);
   const goldenPathExists = allowSingleFile && await exists(goldenPath);
-  let incompatible = null;
-  let versionsMismatch = false;
+  let historyRefusal = null;
 
   if (await exists(historyDir)) {
     const median = await loadMedianFromHistory(historyDir, goldenPathExists, compatibleWith);
@@ -94,12 +109,11 @@ export async function loadBaseline(
       return { snapshot: median.snapshot, unavailableReason: null };
     }
 
-    incompatible = median.incompatibleExample;
-    versionsMismatch = median.versionsMismatch;
+    historyRefusal = median.refusal;
   }
 
   if (!goldenPathExists) {
-    return { snapshot: null, unavailableReason: reasonFor(compatibleWith, incompatible, versionsMismatch) };
+    return { snapshot: null, unavailableReason: refusalText(historyRefusal, compatibleWith) };
   }
 
   let single;
@@ -112,43 +126,33 @@ export async function loadBaseline(
     return { snapshot: null, unavailableReason: null };
   }
 
+  // A latest.json cut short by a failed deploy: the key fields are there, the scenarios are not.
+  // Returned as-is it would be a truthy baseline with nothing in it, and the comment would carry raw
+  // numbers with no baseline line at all.
+  if (Object.keys(single.scenarios || {}).length === 0) {
+    return { snapshot: null, unavailableReason: BASELINE_REFUSALS['empty-golden'] };
+  }
+
   if (compatibleWith && !isCompatibleBaseline(single, compatibleWith.key)) {
-    return { snapshot: null, unavailableReason: reasonFor(compatibleWith, single, false) };
+    return {
+      snapshot: null,
+      unavailableReason: describeKeyMismatch(compatibleWith.key, baselineKey(single)),
+    };
   }
 
   // Same browser and harness, but no scenario at a version this run measures: nothing in it can be
   // compared. A partial overlap is returned; the teardown withholds the mismatched scenarios one by
   // one, the way it does for a window mismatch.
   if (compatibleWith && !sharesAnyScenarioVersion(single, compatibleWith.scenarioVersions)) {
-    return { snapshot: null, unavailableReason: reasonFor(compatibleWith, null, true) };
+    return { snapshot: null, unavailableReason: SCENARIO_VERSIONS_MISMATCH_REASON };
   }
 
   return { snapshot: single, unavailableReason: null };
 }
 
 /**
- * @param {object} snapshot
- * @param {Record<string, number> | undefined} scenarioVersions -- the current run's, per scenario
- * @returns {boolean} whether at least one scenario in the snapshot is at the version this run measures
- */
-function sharesAnyScenarioVersion(snapshot, scenarioVersions) {
-  if (!scenarioVersions) {
-    return true;
-  }
-
-  return Object.entries(snapshot.scenarios || {}).some(([name, entry]) => {
-    if (!(name in scenarioVersions)) {
-      // A scenario this run did not measure has no version to disagree with; it is neither a match
-      // nor a mismatch, so it does not decide the answer.
-      return false;
-    }
-
-    return (entry?.measurementVersion ?? DEFAULT_MEASUREMENT_VERSION) === scenarioVersions[name];
-  }) || Object.keys(snapshot.scenarios || {}).every(name => !(name in scenarioVersions));
-}
-
-/**
- * Backwards-compatible shape: the snapshot alone, or null.
+ * The snapshot alone, or null. Kept for the existing tests and for any caller that predates
+ * `loadBaseline`; new code calls `loadBaseline` and reads the refusal reason with the snapshot.
  *
  * @param {string} [goldenDir]
  * @param {object} [options] -- as for loadBaseline
@@ -161,25 +165,45 @@ export async function loadSnapshots(goldenDir = DEFAULT_GOLDEN_DIR, options = {}
 }
 
 /**
+ * @param {object} snapshot
+ * @param {Record<string, number> | undefined} scenarioVersions -- the current run's, per scenario
+ * @returns {boolean} whether at least one scenario in the snapshot is at the version this run measures
+ */
+function sharesAnyScenarioVersion(snapshot, scenarioVersions) {
+  if (!scenarioVersions) {
+    return true;
+  }
+
+  const entries = Object.entries(snapshot.scenarios || {});
+  const shared = entries.filter(([name]) => name in scenarioVersions);
+
+  // Nothing in common by name: the run measured scenarios this golden does not know. That is the
+  // "no baseline yet" case per scenario, not a version conflict, so the golden is returned.
+  if (shared.length === 0) {
+    return true;
+  }
+
+  return shared.some(([name, entry]) =>
+    (entry?.measurementVersion ?? DEFAULT_MEASUREMENT_VERSION) === scenarioVersions[name]);
+}
+
+/**
+ * @param {{ reason: string, example: object | null } | null} refusal -- from explainMedianRefusal
  * @param {{ key: object } | null} compatibleWith
- * @param {object | null} incompatible -- a golden that was refused for its key, if one was seen
- * @param {boolean} versionsMismatch -- goldens matched the key but no scenario matched its version
  * @returns {string | null}
  */
-function reasonFor(compatibleWith, incompatible, versionsMismatch) {
-  if (!compatibleWith) {
+function refusalText(refusal, compatibleWith) {
+  if (!refusal) {
     return null;
   }
 
-  if (versionsMismatch) {
-    return SCENARIO_VERSIONS_MISMATCH_REASON;
+  if (refusal.reason === MEDIAN_REFUSAL.INCOMPATIBLE_KEY) {
+    return refusal.example
+      ? describeKeyMismatch(compatibleWith.key, baselineKey(refusal.example))
+      : describeKeyMismatch(compatibleWith.key, { chromium: null, harnessVersion: null });
   }
 
-  if (!incompatible) {
-    return null;
-  }
-
-  return describeKeyMismatch(compatibleWith.key, baselineKey(incompatible));
+  return BASELINE_REFUSALS[refusal.reason] ?? null;
 }
 
 /**
@@ -201,8 +225,7 @@ function envWindowSize() {
  * @param {string} historyDir
  * @param {boolean} goldenPathExists -- whether a single-file golden is actually there to fall back to
  * @param {{ key: object, scenarioVersions?: Record<string, number> } | null} compatibleWith
- * @returns {Promise<{ snapshot: object | null, incompatibleExample: object | null,
- *   versionsMismatch: boolean }>}
+ * @returns {Promise<{ snapshot: object | null, refusal: { reason: string, example: object | null } | null }>}
  */
 async function loadMedianFromHistory(historyDir, goldenPathExists, compatibleWith) {
   const files = (await readdir(historyDir)).filter(name => name.endsWith('.json'));
@@ -229,36 +252,16 @@ async function loadMedianFromHistory(historyDir, goldenPathExists, compatibleWit
       );
     }
 
-    return { snapshot: median, incompatibleExample: null, versionsMismatch: false };
+    return { snapshot: median, refusal: null };
   }
 
-  const keyed = compatibleWith && isCompleteKey(compatibleWith.key);
-  // Enough goldens matched the key, yet no median came out: the per-scenario version filter
-  // emptied it. That is a different message from "wrong browser", and it must not be silent.
-  const versionsMismatch = !!keyed
-    && snapshots.filter(s => isValidForMedian(s) && isCompatibleBaseline(s, compatibleWith.key)).length
-      >= MIN_VALID_SNAPSHOTS;
-  // The newest golden that was refused for its key, so the report can name what changed.
-  const incompatibleExample = keyed && !versionsMismatch
-    ? snapshots
-      .filter(s => !isCompatibleBaseline(s, compatibleWith.key))
-      .sort((a, b) => Date.parse(b.timestamp || 0) - Date.parse(a.timestamp || 0))[0] ?? null
-    : null;
+  // The median module says why it refused; nothing is inferred from counts here.
+  const refusal = explainMedianRefusal(snapshots, { windowSize, compatibleWith });
+  const fallback = goldenPathExists
+    ? 'falling back to latest.json if it is compatible'
+    : 'no single-file golden either, running without baseline';
 
-  if (snapshots.length > 0) {
-    const fallback = goldenPathExists
-      ? 'falling back to latest.json if it is compatible'
-      : 'no single-file golden either, running without baseline';
-    let cause = 'not enough snapshots had a marked trace window on every scenario';
+  console.warn(`Golden history yielded no median (${refusal?.reason ?? 'unknown'}) -- ${fallback}`);
 
-    if (versionsMismatch) {
-      cause = 'the snapshots matching this run\'s environment measure every scenario at another version';
-    } else if (incompatibleExample) {
-      cause = 'not enough snapshots matched this run\'s Chromium build and harness version';
-    }
-
-    console.warn(`Golden history present but ${cause} -- ${fallback}`);
-  }
-
-  return { snapshot: null, incompatibleExample, versionsMismatch };
+  return { snapshot: null, refusal };
 }

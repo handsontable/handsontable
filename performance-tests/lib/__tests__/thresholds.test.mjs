@@ -18,11 +18,14 @@ import {
   BASELINE_INCOMPLETE_LABEL,
   ACTIVE_CATEGORIES,
   HEAP_THRESHOLDS_BY_SCENARIO,
+  INCOMPARABLE_LABELS,
   RUN_SHIFT_MIN_ROWS,
+  TRACE_MISMATCH_REASONS,
   activeTotalsPerIteration,
   heapThresholdFor,
   relativeToShift,
   runShift,
+  traceMismatches,
   calcCv,
   comparability,
   classifyChange,
@@ -400,6 +403,39 @@ describe('activeTotalsPerIteration', () => {
       activeTotalsPerIteration({ scripting: [10, 10], idle: [900, 900], other: [50, 50] }),
       [10, 10]
     );
+  });
+});
+
+describe('comparability -- version mismatch', () => {
+  test('a redefined scenario is withheld under its own name, not as a window bug', () => {
+    const verdict = comparability({ scripting: 10 }, { scripting: 12 }, 'version-mismatch');
+
+    assert.equal(verdict.comparable, false);
+    assert.equal(verdict.reason, 'version-mismatch');
+    assert.equal(verdict.shortLabel, INCOMPARABLE_LABELS['version-mismatch']);
+    assert.ok(verdict.label.includes('redefined'));
+    assert.ok(!verdict.label.includes('window'), 'both sides used marks, so no window is blamed');
+    assert.deepEqual(verdict.incompleteCategories, [...ACTIVE_CATEGORIES]);
+  });
+
+  test('the boolean form still means the window mismatch', () => {
+    assert.equal(comparability({ scripting: 10 }, { scripting: 12 }, true).reason, 'window-mismatch');
+    assert.equal(comparability({ scripting: 10 }, { scripting: 12 }, 'window-mismatch').reason, 'window-mismatch');
+  });
+
+  test('the two trace mismatch reasons are the exported set', () => {
+    assert.deepEqual([...TRACE_MISMATCH_REASONS].sort(), ['version-mismatch', 'window-mismatch']);
+  });
+});
+
+describe('traceMismatches', () => {
+  test('maps both meta lists to their reason, with the window mismatch winning a tie', () => {
+    assert.deepEqual(
+      traceMismatches({ crossWindowScenarios: ['a', 'both'], versionMismatchScenarios: ['b', 'both'] }),
+      { a: 'window-mismatch', b: 'version-mismatch', both: 'window-mismatch' }
+    );
+    assert.deepEqual(traceMismatches({}), {});
+    assert.deepEqual(traceMismatches(), {});
   });
 });
 

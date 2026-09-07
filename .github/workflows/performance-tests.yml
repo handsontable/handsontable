@@ -140,14 +140,25 @@ jobs:
           retention-days: 14
           if-no-files-found: warn
 
+      # Both modes, same shape as the composite's step: a run that died before the teardown still
+      # gets a body saying so, in the job summary and (on a pull request) in the sticky comment.
+      - name: Ensure the report body exists
+        if: always()
+        run: |
+          mkdir -p performance-tests/output
+          if [ ! -f performance-tests/output/result.md ]; then
+            {
+              echo '## Performance tests'
+              echo
+              echo 'No result.md was generated. Check the workflow log and downloaded artifacts.'
+            } > performance-tests/output/result.md
+          fi
+
       # Token-free, both modes: on the develop push this is where the run's comparison against
       # the trailing median is read (the sticky comment below is pull-request only).
       - name: Write the performance summary to the job summary
         if: always()
-        run: |
-          if [ -f performance-tests/output/result.md ]; then
-            cat performance-tests/output/result.md >> "$GITHUB_STEP_SUMMARY"
-          fi
+        run: cat performance-tests/output/result.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Deploy golden to GitHub Pages
         if: always() && env.PERF_MODE == 'golden'
@@ -256,18 +267,6 @@ jobs:
 
           cd -
           git worktree remove "$WORK_DIR" --force
-
-      - name: Ensure PR comment body exists
-        if: always() && github.event_name == 'pull_request'
-        run: |
-          mkdir -p performance-tests/output
-          if [ ! -f performance-tests/output/result.md ]; then
-            {
-              echo '## Performance tests'
-              echo
-              echo 'No result.md was generated. Check the workflow log and downloaded artifacts.'
-            } > performance-tests/output/result.md
-          fi
 
       - name: Post performance summary to pull request
         if: always() && github.event_name == 'pull_request'

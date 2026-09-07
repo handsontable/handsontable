@@ -4,8 +4,8 @@
 
 import {
   REGRESSION_CALLOUT_THRESHOLD_TIMING,
-  REGRESSION_CALLOUT_THRESHOLD_HEAP,
   CV_WARNING_THRESHOLD,
+  TRACE_MISMATCH_REASONS,
   activeTotalsPerIteration,
   calcCv,
   classifyChange,
@@ -15,10 +15,12 @@ import {
   runShift,
   sumActive,
   comparability,
+  traceMismatches,
   NO_BASELINE_VERDICT,
   formatTitle,
 } from './thresholds.mjs';
 import { formatEnvironment } from './environment.mjs';
+import { escapeHtml } from './html-utils.mjs';
 
 /**
  * @param {Record<string, object>} scenarioResults -- keyed by scenario name
@@ -67,20 +69,6 @@ function serializePayload(payload) {
   return JSON.stringify(payload).replace(/</g, '\\u003c');
 }
 
-/**
- * Escapes a value interpolated into markup rather than into the JSON payload.
- *
- * @param {string} value
- * @returns {string}
- */
-function escapeHtml(value) {
-  return String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
 // --- data payload ---
 
 /**
@@ -105,7 +93,7 @@ function categoryMetric(key, gCats, cCats, verdict) {
 
 function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta, goldenSnapshots) {
   const scenarios = [];
-  const crossWindow = new Set(meta.crossWindowScenarios || []);
+  const mismatches = traceMismatches(meta);
 
   for (const [name, current] of Object.entries(scenarioResults)) {
     const golden = goldenScenarios[name] || null;
@@ -114,13 +102,14 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta, goldenS
     const currentTotal = sumActive(cCats);
     const goldenTotal = golden ? sumActive(gCats) : null;
     // A baseline that missed a category the current run recorded cannot be divided into, and a
-    // baseline measured through a different trace window is not the same quantity at all. Either
-    // way the total delta is withheld rather than published.
-    const isCrossWindow = crossWindow.has(name);
+    // baseline measured through a different trace window, or under a different definition of the
+    // scenario, is not the same quantity at all. Either way the total delta is withheld.
+    const mismatch = mismatches[name] ?? false;
+    const isCrossWindow = !!mismatch;
     // Only ask the question when there is something to compare against. Running the check against
     // an absent baseline reports every category as uncaptured, which the markdown path avoids by
     // returning early -- so the two reports disagreed on a scenario that is simply new.
-    const verdict = golden ? comparability(gCats, cCats, isCrossWindow) : NO_BASELINE_VERDICT;
+    const verdict = golden ? comparability(gCats, cCats, mismatch) : NO_BASELINE_VERDICT;
     const baselineIncomplete = !!golden && !verdict.comparable;
     const totalChange = baselineIncomplete ? null : pctChange(goldenTotal, currentTotal);
     // Heap is derived from the same trace window, so a window mismatch invalidates it too. It is
@@ -240,10 +229,11 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta, goldenS
       : null,
     runShift: shift,
     // Serialized rather than restated in the client script, so the colour bands and the callout
-    // thresholds cannot drift apart.
+    // thresholds cannot drift apart. No heap entry: the heap band is per scenario (`heapThreshold`
+    // on each scenario below), and a shared number here would be reached for and get the wrong
+    // band on the two scroll scenarios that carry a wider one.
     thresholds: {
       timing: REGRESSION_CALLOUT_THRESHOLD_TIMING,
-      heap: REGRESSION_CALLOUT_THRESHOLD_HEAP,
       cvWarning: CV_WARNING_THRESHOLD,
     },
     summary: {
@@ -274,9 +264,9 @@ function buildDetailedMetrics(current, golden, verdict) {
   const baselineIncomplete = !!golden && !verdict.comparable;
   const { incompleteCategories } = verdict;
   // Only the active categories participate in the comparability verdict. The others (loading,
-  // other, experience, idle) are reported but never summed into a total, so a window mismatch is
-  // the only thing that invalidates them.
-  const isCrossWindow = verdict.reason === 'window-mismatch';
+  // other, experience, idle) are reported but never summed into a total, so a trace-level mismatch
+  // (window or scenario version) is the only thing that invalidates them.
+  const isCrossWindow = TRACE_MISMATCH_REASONS.includes(verdict.reason);
 
   for (const key of ['scripting', 'rendering', 'painting', 'loading', 'other', 'experience', 'idle']) {
     const c = cCats[key];
@@ -333,12 +323,28 @@ function buildDetailedMetrics(current, golden, verdict) {
     change: pctChange(golden?.rangeEnd, current.rangeEnd),
     cv: calcCv(current._iterationValues?.rangeEnd),
     neutral: true,
-    // Deliberately still printed on a window mismatch, and the one percentage that is: this row is
+    // Deliberately still printed on a trace mismatch, and the one percentage that is: this row is
     // the size of the two windows, so it explains the mismatch the other rows are withheld for.
-    note: isCrossWindow ? 'harness wall clock; the windows differ' : 'harness wall clock',
+    note: traceWindowNote(verdict.reason),
   });
 
   return rows;
+}
+
+/**
+ * @param {string | null} reason -- the verdict's reason
+ * @returns {string}
+ */
+function traceWindowNote(reason) {
+  if (reason === 'window-mismatch') {
+    return 'harness wall clock; the windows differ';
+  }
+
+  if (reason === 'version-mismatch') {
+    return 'harness wall clock; the scenario was redefined';
+  }
+
+  return 'harness wall clock';
 }
 
 /**
@@ -1015,8 +1021,9 @@ function buildScript() {
     }
 
     // The delta with the run's common shift removed, beside the raw one the badge carries. Neutral
-    // styling on purpose: it informs the reading of the badge, it does not compete with it.
-    if (data.hasBaseline && scenario.totalChangeVsShift != null && !scenario.badgeIsHeap) {
+    // styling on purpose: it informs the reading of the badge, it does not compete with it. Shown
+    // for every row that has one, heap-only regressions included, as the markdown table does.
+    if (data.hasBaseline && scenario.totalChangeVsShift != null) {
       const vsShift = elText('span', 'vs shift ' + fmtPct(scenario.totalChangeVsShift), 'baseline-spread');
       vsShift.title = 'Total delta relative to this run\\'s shift of ' + fmtPct(data.runShift);
       right.appendChild(vsShift);

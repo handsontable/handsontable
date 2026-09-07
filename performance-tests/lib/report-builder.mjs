@@ -15,6 +15,7 @@ import {
   sumActive,
   comparability,
   sumActiveComparable,
+  traceMismatches,
   fmtMs,
   fmtPct,
   fmtPctWithEmoji,
@@ -23,22 +24,43 @@ import {
 import { formatEnvironment } from './environment.mjs';
 
 /**
+ * Decides every verdict the comment makes, once. `buildReport` renders from it and
+ * `collectRegressions` lists from it, and the teardown passes the same object to both -- deciding it
+ * per render site is how the table and the callouts once disagreed on one run.
+ *
  * @param {Record<string, object>} allScenarioResults -- keyed by scenario name
- * @param {object | null} goldenSnapshots -- golden baseline (or null to self-compare)
- * @param {object} [meta] -- { pagesUrl, crossWindowScenarios, commit, runId, environment,
- *   baselineUnavailable }
- * @returns {string} full markdown report
+ * @param {object | null} goldenSnapshots
+ * @param {object} [meta] -- see buildReport
+ * @returns {{ assessments: Array<object>, shift: number | null, hasGolden: boolean }}
  */
-export function buildReport(allScenarioResults, goldenSnapshots, meta = {}) {
+export function assessReport(allScenarioResults, goldenSnapshots, meta = {}) {
   const goldenScenarios = goldenSnapshots?.scenarios || {};
   const hasGolden = Object.keys(goldenScenarios).length > 0;
-  const crossWindow = new Set(meta.crossWindowScenarios || []);
-  const assessments = assessScenarios(allScenarioResults, goldenScenarios, crossWindow);
+  const assessments = assessScenarios(allScenarioResults, goldenScenarios, traceMismatches(meta));
   // Not on a self-comparison: every delta is 0 there, and a shift of 0.0% would read as a
   // measurement of the runner.
   const shift = hasGolden && !goldenSnapshots?.isSelfCompare
     ? runShift(assessments.map(a => a.totalPct))
     : null;
+
+  return { assessments, shift, hasGolden };
+}
+
+/**
+ * @param {Record<string, object>} allScenarioResults -- keyed by scenario name
+ * @param {object | null} goldenSnapshots -- golden baseline (or null to self-compare)
+ * @param {object} [meta] -- { pagesUrl, crossWindowScenarios, versionMismatchScenarios, commit,
+ *   runId, environment, baselineUnavailable }
+ * @param {{ assessments: Array<object>, shift: number | null, hasGolden: boolean }} [assessment]
+ *   -- from assessReport; computed here when the caller has no other use for it
+ * @returns {string} full markdown report
+ */
+export function buildReport(
+  allScenarioResults, goldenSnapshots, meta = {},
+  assessment = assessReport(allScenarioResults, goldenSnapshots, meta)
+) {
+  const goldenScenarios = goldenSnapshots?.scenarios || {};
+  const { assessments, shift, hasGolden } = assessment;
   const sections = [];
 
   // Summary table
@@ -84,18 +106,21 @@ export function buildReport(allScenarioResults, goldenSnapshots, meta = {}) {
  * @param {Record<string, object>} allScenarioResults
  * @param {object | null} goldenSnapshots
  * @param {object} [meta]
+ * @param {{ assessments: Array<object>, shift: number | null }} [assessment] -- from assessReport,
+ *   the same object the report was rendered from
  * @returns {Array<{ name: string, title: string, totalPct: number | null, heapPct: number | null,
  *   timingRegressed: boolean, heapRegressed: boolean, shift: number | null,
  *   relativePct: number | null }>}
  */
-export function collectRegressions(allScenarioResults, goldenSnapshots, meta = {}) {
+export function collectRegressions(
+  allScenarioResults, goldenSnapshots, meta = {},
+  assessment = assessReport(allScenarioResults, goldenSnapshots, meta)
+) {
   if (!goldenSnapshots || goldenSnapshots.isSelfCompare) {
     return [];
   }
 
-  const crossWindow = new Set(meta.crossWindowScenarios || []);
-  const assessments = assessScenarios(allScenarioResults, goldenSnapshots.scenarios || {}, crossWindow);
-  const shift = runShift(assessments.map(a => a.totalPct));
+  const { assessments, shift } = assessment;
 
   return assessments
     .filter(a => a.timingRegressed || a.heapRegressed)
@@ -146,15 +171,15 @@ function orderedScenarioEntries(results) {
  *
  * @param {object} current
  * @param {object | undefined} golden
- * @param {boolean} isCrossWindow
+ * @param {false | 'window-mismatch' | 'version-mismatch'} mismatch
  * @returns {{ change: number | null, incomplete: boolean }}
  */
-function totalDelta(current, golden, isCrossWindow) {
+function totalDelta(current, golden, mismatch) {
   if (!golden) {
     return { change: null, incomplete: false, label: null, shortLabel: null };
   }
 
-  const verdict = comparability(golden.categories, current.categories, isCrossWindow);
+  const verdict = comparability(golden.categories, current.categories, mismatch);
 
   if (!verdict.comparable) {
     return {
@@ -178,18 +203,20 @@ function totalDelta(current, golden, isCrossWindow) {
  *
  * @param {Record<string, object>} results
  * @param {Record<string, object>} goldenScenarios
- * @param {Set<string>} crossWindow
+ * @param {Record<string, 'window-mismatch' | 'version-mismatch'>} mismatches -- per scenario name
  * @returns {Array<object>}
  */
-function assessScenarios(results, goldenScenarios, crossWindow) {
+function assessScenarios(results, goldenScenarios, mismatches) {
   return orderedScenarioEntries(results).map(([name, current]) => {
     const golden = goldenScenarios[name];
-    const isCrossWindow = crossWindow.has(name);
-    const { change: totalPct, incomplete, label, shortLabel } = totalDelta(current, golden, isCrossWindow);
+    // A trace-level mismatch: the two sides bracket different slices (window) or different
+    // definitions of the scenario (version). Both withhold everything derived from the trace.
+    const traceMismatch = mismatches[name] ?? false;
+    const { change: totalPct, incomplete, label, shortLabel } = totalDelta(current, golden, traceMismatch);
     // Heap survives a missed timing category -- the two are measured independently -- but not a
-    // window mismatch: jsHeapMaxBytes is a maximum over the samples inside the window, so two
-    // windows sample two different things.
-    const heapPct = !golden || isCrossWindow
+    // trace mismatch: jsHeapMaxBytes is a maximum over the samples inside the window, so two
+    // windows (or two definitions) sample two different things.
+    const heapPct = !golden || traceMismatch
       ? null
       : pctChange(golden.updateCounters?.jsHeapMaxBytes, current.updateCounters?.jsHeapMaxBytes);
     const heapThreshold = heapThresholdFor(name);
@@ -199,7 +226,7 @@ function assessScenarios(results, goldenScenarios, crossWindow) {
       title: formatTitle(name),
       current,
       golden,
-      isCrossWindow,
+      traceMismatch,
       totalPct,
       incomplete,
       label,
@@ -233,9 +260,13 @@ function reliabilityCell(current, golden) {
 }
 
 function buildSummaryTable(assessments, hasGolden, shift) {
+  // The column only when a shift was estimated, on the same condition as its legend: on a
+  // self-comparison or a thin table every cell would read "--" with nothing explaining what it is.
+  const hasShift = hasGolden && shift != null;
   const headers = hasGolden
     ? [
-      'Scenario', 'Scripting', 'Rendering', 'Painting', 'Total', 'Δ Total', 'Δ vs shift',
+      'Scenario', 'Scripting', 'Rendering', 'Painting', 'Total', 'Δ Total',
+      ...(hasShift ? ['Δ vs shift'] : []),
       'CV run / base', 'JS Heap', 'Δ Heap',
     ]
     : ['Scenario', 'Scripting', 'Rendering', 'Painting', 'Total', 'CV run', 'JS Heap'];
@@ -254,19 +285,20 @@ function buildSummaryTable(assessments, hasGolden, shift) {
       const totalChange = a.incomplete ? a.shortLabel : fmtPctWithEmoji(a.totalPct);
       // Informational, no emoji: the callout gate runs on the raw delta and a second set of colours
       // here would let the two columns reach opposite verdicts on one row.
-      const vsShift = fmtPct(relativeToShift(a.totalPct, shift));
+      const vsShift = hasShift ? [fmtPct(relativeToShift(a.totalPct, shift))] : [];
       // Gated here as well as in the callouts, so the table and the callout below it cannot reach
       // opposite verdicts on the same run.
-      const heapChange = a.isCrossWindow
-        // Not the baseline-side label: the heap cell is only ever withheld for a window mismatch,
-        // where the baseline captured everything and it is the windows that differ. Saying
-        // "baseline incomplete" here gives one row two explanations for one cause.
-        ? INCOMPARABLE_LABELS['window-mismatch']
+      const heapChange = a.traceMismatch
+        // The mismatch's own label, not the baseline-side one: the heap cell is only ever withheld
+        // for a trace mismatch, where the baseline captured everything and it is the windows or
+        // the definitions that differ. "baseline incomplete" here would give one row two
+        // explanations for one cause.
+        ? INCOMPARABLE_LABELS[a.traceMismatch]
         : fmtPctWithEmoji(a.heapPct, a.heapThreshold);
 
       rows.push([
         a.title, fmtMs(cats.scripting), fmtMs(cats.rendering),
-        fmtMs(cats.painting), fmtMs(total), totalChange, vsShift,
+        fmtMs(cats.painting), fmtMs(total), totalChange, ...vsShift,
         reliabilityCell(current, golden), heap, heapChange,
       ]);
     } else {
@@ -278,9 +310,8 @@ function buildSummaryTable(assessments, hasGolden, shift) {
     }
   }
 
-  // The shift sentence only when a shift was estimated; on a self-comparison or a thin table the
-  // column reads "--" and the footer says nothing about it either.
-  const shiftLegend = shift != null
+  // The shift sentence on the same condition as the column.
+  const shiftLegend = hasShift
     ? '`Δ vs shift`: the delta with this run\'s common shift against the baseline removed (see the '
       + 'footer); callouts use the raw `Δ Total`. '
     : '';
@@ -369,10 +400,10 @@ function buildRegressionCallouts(assessments, shift) {
     }
 
     if (a.incomplete) {
-      // A window mismatch withholds heap too (jsHeapMaxBytes is a maximum over the samples inside
-      // the parsed window, invalid across two different windows), so a reader must not conclude
-      // heap was still assessed just because it isn't called out separately below.
-      const heapNote = a.isCrossWindow ? '; heap also not assessed' : '';
+      // A trace mismatch withholds heap too (jsHeapMaxBytes is a maximum over the samples inside
+      // the parsed window, invalid across two different windows or definitions), so a reader must
+      // not conclude heap was still assessed just because it isn't called out separately below.
+      const heapNote = a.traceMismatch ? '; heap also not assessed' : '';
 
       skipped.push(`${a.title} (${a.label}${heapNote})`);
     }

@@ -47,12 +47,18 @@ The suite measures whatever Chromium the `@playwright/test` pin ships, and every
 snapshot records which one (`environment.chromium`, captured by the Playwright
 `globalSetup` in `lib/setup.mjs`). The baseline is a median over develop goldens
 with the **same Chromium build and harness version** only, so after a Playwright
-bump the first PR runs report "no comparable baseline" with the reason, and deltas
-resume once two develop pushes have run on the new engine. The comment's `Δ vs
+bump the first PR run reports "no comparable baseline" with the reason. Deltas
+resume with the next develop push (against that single run, and the footer says
+so), and as a median once two have run on the new engine. The comment's `Δ vs
 shift` column and `Run shift` footer name how much faster or slower the CI runner
 was than the baseline's, which every scenario shares; callouts still fire on the
 raw delta. A golden (develop-push) run is compared against the trailing median
-too, and annotates its own run with a `::warning` per regressed scenario.
+too, and annotates its own run with a `::warning` per regressed scenario. Expect
+noise there: replaying 42 develop goldens, 8% of no-change rows crossed the 15%
+threshold, and with nine rows per push roughly two develop pushes in five carry
+a warning that measured the runner rather than the code. Read a warning against
+the `Run shift` in the job summary, and re-derive the threshold with
+`scripts/replay-goldens.mjs` before trusting a single one.
 
 ### Linting and type checking
 

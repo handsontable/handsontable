@@ -51,10 +51,46 @@ export const CV_WARNING_THRESHOLD = 15;
 // re-run develop for nothing.
 export const INCOMPARABLE_LABELS = {
   'window-mismatch': 'window mismatch',
+  'version-mismatch': 'measurement changed',
   'baseline-incomplete': 'baseline incomplete',
   'current-incomplete': 'capture incomplete',
   'both-incomplete': 'capture incomplete',
 };
+
+// The two reasons under which nothing derived from the trace is comparable -- timing, heap and DOM
+// extrema alike -- because the two sides measured different things under one scenario name. A
+// window mismatch is the pre-marks fallback against a marked run; a version mismatch is a scenario
+// whose spec changed what its window contains (`measurementVersion`, see lib/environment.mjs).
+export const TRACE_MISMATCH_REASONS = Object.freeze(['window-mismatch', 'version-mismatch']);
+
+const TRACE_MISMATCH_TEXT = {
+  'window-mismatch': 'the two sides were measured over different trace windows',
+  'version-mismatch': 'the scenario was redefined since the baseline was recorded (different '
+    + 'measurementVersion), so the two sides measure different things',
+};
+
+/**
+ * The per-scenario trace mismatch the teardown detected, keyed by scenario name, from the two lists
+ * it puts on the report meta. Stated once here so both report builders read the same map.
+ *
+ * @param {{ crossWindowScenarios?: string[], versionMismatchScenarios?: string[] }} meta
+ * @returns {Record<string, 'window-mismatch' | 'version-mismatch'>}
+ */
+export function traceMismatches(meta = {}) {
+  const map = {};
+
+  for (const name of meta.versionMismatchScenarios || []) {
+    map[name] = 'version-mismatch';
+  }
+
+  // A window mismatch is the stronger statement (the sides do not even bracket the same slice), so
+  // it wins when a scenario is on both lists.
+  for (const name of meta.crossWindowScenarios || []) {
+    map[name] = 'window-mismatch';
+  }
+
+  return map;
+}
 
 // The baseline-side label, kept as a named export because it is the case the task filed.
 export const BASELINE_INCOMPLETE_LABEL = INCOMPARABLE_LABELS['baseline-incomplete'];
@@ -196,18 +232,22 @@ function joinList(items) {
  *
  * @param {object | null | undefined} baselineCategories
  * @param {object | null | undefined} currentCategories
- * @param {boolean} [isCrossWindow] -- the two sides were measured over different trace windows
+ * @param {boolean | 'window-mismatch' | 'version-mismatch'} [mismatch] -- a trace-level mismatch
+ *   between the two sides; `true` is the window mismatch, kept for callers that predate the second
+ *   reason
  * @returns {{ comparable: boolean, reason: string | null, label: string | null }}
  */
-export function comparability(baselineCategories, currentCategories, isCrossWindow = false) {
-  // A window mismatch invalidates every quantity derived from the trace, including the heap and
-  // DOM extrema, which are taken over the samples inside the window.
-  if (isCrossWindow) {
+export function comparability(baselineCategories, currentCategories, mismatch = false) {
+  const traceReason = mismatch === true ? 'window-mismatch' : mismatch;
+
+  // Either trace mismatch invalidates every quantity derived from the trace, including the heap
+  // and DOM extrema, which are taken over the samples inside the window.
+  if (TRACE_MISMATCH_REASONS.includes(traceReason)) {
     return {
       comparable: false,
-      reason: 'window-mismatch',
-      shortLabel: INCOMPARABLE_LABELS['window-mismatch'],
-      label: 'the two sides were measured over different trace windows',
+      reason: traceReason,
+      shortLabel: INCOMPARABLE_LABELS[traceReason],
+      label: TRACE_MISMATCH_TEXT[traceReason],
       // Nothing derived from the trace is comparable, so no category is exempt.
       incompleteCategories: [...ACTIVE_CATEGORIES],
     };

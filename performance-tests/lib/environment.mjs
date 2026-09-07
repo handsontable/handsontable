@@ -24,6 +24,10 @@ export const ENVIRONMENT_FILE = 'environment.json';
 // scenario.config.mjs anyway, so the field is discoverable where it has to be bumped.
 export const DEFAULT_MEASUREMENT_VERSION = 1;
 
+// Appended to every refusal. Accurate about the wait: one compatible golden already serves as the
+// single-file baseline on the next PR run (labelled "single develop run"), and the median needs two.
+export const RESUME_NOTE = 'deltas resume with the next develop push, and as a median once two have run';
+
 /**
  * Describes the machine and browser a run executed on.
  *
@@ -160,8 +164,7 @@ export function describeKeyMismatch(current, baseline) {
 
   const change = differs.length > 0 ? differs.join(', ') : 'provenance differs';
 
-  return `the develop goldens were recorded on a different environment (${change}); `
-    + 'deltas resume once two develop pushes have run on the current one';
+  return `the develop goldens were recorded on a different environment (${change}); ${RESUME_NOTE}`;
 }
 
 /**

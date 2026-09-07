@@ -10,7 +10,7 @@ import { rm, mkdir, mkdtemp, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
-  saveSnapshots, loadSnapshots, loadBaseline, SCENARIO_VERSIONS_MISMATCH_REASON,
+  saveSnapshots, loadSnapshots, loadBaseline, BASELINE_REFUSALS, SCENARIO_VERSIONS_MISMATCH_REASON,
 } from '../snapshot-store.mjs';
 
 let baseDir;
@@ -204,7 +204,57 @@ describe('loadSnapshots (history-median path)', () => {
 
     assert.equal(snapshot, null);
     assert.ok(unavailableReason.includes('Chromium 138.0.1 -> 140.0.1'));
-    assert.ok(unavailableReason.includes('two develop pushes'));
+    assert.ok(unavailableReason.includes('next develop push'));
+  });
+
+  test('an empty history directory is a stated refusal, not a silent absence', async() => {
+    // Golden mode has no single-file fallback and no self-comparison, so without this the develop
+    // job summary shows raw numbers with nothing saying the comparison did not happen.
+    await mkdir(historyDir, { recursive: true });
+
+    const { snapshot, unavailableReason } = await loadBaseline(baseDir, {
+      compatibleWith: { key: { chromium: '140.0.1', harnessVersion: 1 } },
+      allowSingleFile: false,
+    });
+
+    assert.equal(snapshot, null);
+    assert.equal(unavailableReason, BASELINE_REFUSALS['empty-history']);
+  });
+
+  test('a single-file golden with no scenarios is refused rather than returned as a baseline', async() => {
+    // A latest.json cut short by a failed deploy: key fields present, scenarios empty.
+    await writeFile(goldenPath, JSON.stringify({
+      timestamp: '2026-09-03T10:31:00Z', environment: { chromium: '140.0.1' }, harnessVersion: 1, scenarios: {},
+    }), 'utf8');
+
+    const { snapshot, unavailableReason } = await loadBaseline(baseDir, {
+      compatibleWith: { key: { chromium: '140.0.1', harnessVersion: 1 }, scenarioVersions: { sorting: 1 } },
+    });
+
+    assert.equal(snapshot, null);
+    assert.equal(unavailableReason, BASELINE_REFUSALS['empty-golden']);
+  });
+
+  test('compatible goldens with disjoint scenario sets are not blamed on a redefinition', async() => {
+    await mkdir(historyDir, { recursive: true });
+
+    const goldens = [['a.json', '2026-09-03T10:49:00Z', 'alpha'], ['b.json', '2026-09-03T10:31:00Z', 'beta']];
+
+    for (const [file, timestamp, name] of goldens) {
+      await writeFile(join(historyDir, file), JSON.stringify({
+        timestamp,
+        environment: { chromium: '140.0.1' },
+        harnessVersion: 1,
+        scenarios: { [name]: { categories: { scripting: 80 }, windowSource: 'marks' } },
+      }), 'utf8');
+    }
+
+    const { snapshot, unavailableReason } = await loadBaseline(baseDir, {
+      compatibleWith: { key: { chromium: '140.0.1', harnessVersion: 1 }, scenarioVersions: { sorting: 1 } },
+    });
+
+    assert.equal(snapshot, null);
+    assert.equal(unavailableReason, BASELINE_REFUSALS['disjoint-scenarios']);
   });
 
   test('goldens on the right environment but at other scenario versions are refused with their own reason', async() => {

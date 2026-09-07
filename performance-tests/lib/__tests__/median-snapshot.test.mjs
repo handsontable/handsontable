@@ -15,7 +15,9 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   computeMedianSnapshot,
+  explainMedianRefusal,
   isValidForMedian,
+  MEDIAN_REFUSAL,
   MEDIAN_WINDOW_SIZE,
   MIN_VALID_SNAPSHOTS,
 } from '../median-snapshot.mjs';
@@ -399,6 +401,24 @@ describe('computeMedianSnapshot -- baseline compatibility key', () => {
     assert.equal(result, null);
   });
 
+  test('without a key, a scenario is still medianed at a single version: the newest golden\'s', () => {
+    // Three unkeyed goldens, newest at version 2, older two at version 1. Mixing them would median
+    // two definitions of the scenario and hand the teardown a version that matches the current run.
+    const result = computeMedianSnapshot([
+      keyed('2026-09-03T10:49:00Z', '140.0.7339.16', {
+        sorting: { measurementVersion: 2, categories: { scripting: 60, rendering: 10, painting: 2 } },
+      }),
+      keyed('2026-09-03T10:31:00Z', '140.0.7339.16', {
+        sorting: { measurementVersion: 2, categories: { scripting: 64, rendering: 10, painting: 2 } },
+      }),
+      keyed('2026-09-03T10:08:00Z', '140.0.7339.16', sortingAt(120)),
+    ]);
+
+    assert.equal(result.scenarios.sorting.measurementVersion, 2);
+    assert.equal(result.scenarios.sorting.categories.scripting, 62, 'the version-1 entry is not medianed in');
+    assert.deepEqual(result.scenarioEntryCounts, { sorting: 2 });
+  });
+
   test('without a key, behaves as before and reports nothing excluded', () => {
     const result = computeMedianSnapshot([
       keyed('2026-09-03T10:49:00Z', '140.0.7339.16'),
@@ -407,5 +427,77 @@ describe('computeMedianSnapshot -- baseline compatibility key', () => {
 
     assert.equal(result.medianWindowSize, 2);
     assert.equal(result.excludedIncompatible, 0);
+  });
+});
+
+describe('explainMedianRefusal', () => {
+  const KEY = { chromium: '140.0.7339.16', harnessVersion: 1 };
+  const keyed = (timestamp, chromium, overrides) => ({
+    ...snapshot(timestamp, overrides),
+    environment: { chromium },
+    harnessVersion: 1,
+  });
+
+  test('names an empty history', () => {
+    assert.deepEqual(explainMedianRefusal([], { compatibleWith: { key: KEY } }), {
+      reason: MEDIAN_REFUSAL.EMPTY_HISTORY, example: null,
+    });
+  });
+
+  test('names too few marks-valid goldens before it names anything about the key', () => {
+    const preMarks = snapshot('2026-07-01T00:00:00Z');
+
+    delete preMarks.scenarios.sorting.windowSource;
+
+    const refusal = explainMedianRefusal([preMarks, keyed('2026-09-03T10:49:00Z', '138.0.1')], {
+      compatibleWith: { key: KEY },
+    });
+
+    assert.equal(refusal.reason, MEDIAN_REFUSAL.NO_MARKS_VALID);
+  });
+
+  test('names a key mismatch with the newest marks-valid incompatible golden, never a pre-marks one', () => {
+    const preMarks = snapshot('2026-09-04T00:00:00Z');
+
+    delete preMarks.scenarios.sorting.windowSource;
+
+    const refusal = explainMedianRefusal([
+      preMarks,
+      keyed('2026-09-03T10:49:00Z', '138.0.7204.23'),
+      keyed('2026-09-03T10:31:00Z', '138.0.7204.23'),
+      keyed('2026-09-03T10:08:00Z', '140.0.7339.16'),
+    ], { compatibleWith: { key: KEY } });
+
+    assert.equal(refusal.reason, MEDIAN_REFUSAL.INCOMPATIBLE_KEY);
+    assert.equal(refusal.example.timestamp, '2026-09-03T10:49:00Z');
+    assert.equal(refusal.example.environment.chromium, '138.0.7204.23');
+  });
+
+  test('tells a redefinition from goldens that simply do not share the scenario', () => {
+    const goldens = [keyed('2026-09-03T10:49:00Z', KEY.chromium), keyed('2026-09-03T10:31:00Z', KEY.chromium)];
+
+    assert.equal(
+      explainMedianRefusal(goldens, { compatibleWith: { key: KEY, scenarioVersions: { sorting: 2 } } }).reason,
+      MEDIAN_REFUSAL.VERSION_MISMATCH
+    );
+
+    // Two compatible goldens with nothing in common: each scenario sits in one golden only, so
+    // none reaches MIN_VALID_SNAPSHOTS entries and the median is empty -- and no scenario the run
+    // measured is in the window at any version.
+    const only = name => ({ [name]: { categories: { scripting: 1 }, windowSource: 'marks' } });
+    const disjoint = [
+      { ...keyed('2026-09-03T10:49:00Z', KEY.chromium), scenarios: only('alpha') },
+      { ...keyed('2026-09-03T10:31:00Z', KEY.chromium), scenarios: only('beta') },
+    ];
+    const forSorting = { compatibleWith: { key: KEY, scenarioVersions: { sorting: 1 } } };
+
+    assert.equal(computeMedianSnapshot(disjoint, forSorting), null);
+    assert.equal(explainMedianRefusal(disjoint, forSorting).reason, MEDIAN_REFUSAL.DISJOINT_SCENARIOS);
+  });
+
+  test('is null when a median would have been produced', () => {
+    const goldens = [keyed('2026-09-03T10:49:00Z', KEY.chromium), keyed('2026-09-03T10:31:00Z', KEY.chromium)];
+
+    assert.equal(explainMedianRefusal(goldens, { compatibleWith: { key: KEY } }), null);
   });
 });

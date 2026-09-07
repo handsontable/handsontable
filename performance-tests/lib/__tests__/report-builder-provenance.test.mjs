@@ -9,8 +9,9 @@
 
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildReport, collectRegressions } from '../report-builder.mjs';
+import { assessReport, buildReport, collectRegressions } from '../report-builder.mjs';
 import {
+  INCOMPARABLE_LABELS,
   REGRESSION_CALLOUT_THRESHOLD_HEAP,
   REGRESSION_CALLOUT_THRESHOLD_TIMING,
   heapThresholdFor,
@@ -145,7 +146,41 @@ describe('buildReport -- run shift', () => {
     );
 
     assert.ok(!few.includes('Run shift'));
-    assert.match(few, /\| Sorting .*-20\.0% 🟢 \| -- /, 'the column reads -- rather than a number');
+    assert.ok(!few.includes('Δ vs shift'), 'the column is absent, on the same condition as its legend');
+    assert.ok(!selfCompare.includes('Δ vs shift'));
+  });
+
+  test('renders from a precomputed assessment, identically to computing its own', () => {
+    const { results, snapshot } = run(0.8, { filtering: 1.8 });
+    const assessment = assessReport(results, snapshot, {});
+    const fromAssessment = buildReport(results, snapshot, {}, assessment);
+
+    assert.equal(fromAssessment, buildReport(results, snapshot, {}));
+    assert.ok(Math.abs(assessment.shift - -20) < 1e-9);
+    assert.equal(assessment.hasGolden, true);
+    assert.equal(assessment.assessments.length, 9);
+
+    const regressions = collectRegressions(results, snapshot, {}, assessment);
+
+    assert.deepEqual(regressions.map(r => r.name), ['filtering']);
+    assert.ok(Math.abs(regressions[0].shift - assessment.shift) < 1e-9);
+  });
+});
+
+describe('buildReport -- redefined scenario', () => {
+  test('a version mismatch is withheld under its own label, not as a window mismatch', () => {
+    const { results, snapshot } = run(1, { sorting: 1.5 });
+    const report = buildReport(results, snapshot, { versionMismatchScenarios: ['sorting'] });
+    const row = report.split('\n').find(line => line.startsWith('| Sorting'));
+
+    assert.ok(row.includes(INCOMPARABLE_LABELS['version-mismatch']));
+    assert.ok(!row.includes(INCOMPARABLE_LABELS['window-mismatch']));
+    // Heap is withheld under the same label, and the callout note names the redefinition.
+    assert.equal(row.split(INCOMPARABLE_LABELS['version-mismatch']).length - 1, 2);
+    assert.ok(report.includes(
+      'Sorting (the scenario was redefined since the baseline was recorded'
+    ));
+    assert.ok(!report.includes('**Sorting** regressed'));
   });
 });
 

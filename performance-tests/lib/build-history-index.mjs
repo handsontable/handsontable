@@ -11,6 +11,8 @@
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
+import { escapeHtml } from './html-utils.mjs';
+
 const developDir = process.argv[2];
 
 if (!developDir) {
@@ -26,18 +28,6 @@ const runs = entries
   .map(e => e.name)
   .sort()
   .reverse(); // newest first
-
-/**
- * @param {string} value
- * @returns {string}
- */
-function escapeHtml(value) {
-  return String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
 
 /**
  * @param {string} name -- the run directory
@@ -61,25 +51,27 @@ async function provenanceOf(name) {
   }
 }
 
-const rows = [];
+// In parallel: the directory gains one entry per develop push and nothing prunes it, so this runs
+// inside every deploy over a list that only grows.
+const provenance = await Promise.all(runs.map(provenanceOf));
 
-for (const name of runs) {
+const rows = runs.map((name, index) => {
   // Parse timestamp back to readable format
   // 2026-04-08T10-15-30Z → 2026-04-08 10:15:30 UTC
   const readable = name
     .replace('Z', '')
     .replace('T', ' ')
     .replace(/ (\d{2})-(\d{2})-(\d{2})$/, ' $1:$2:$3 UTC');
-  const { commit, chromium, cpu } = await provenanceOf(name);
+  const { commit, chromium, cpu } = provenance[index];
 
-  rows.push(`      <tr>
+  return `      <tr>
         <td><a href="${name}/">${readable}</a></td>
         <td><code>${escapeHtml(commit)}</code></td>
         <td>${escapeHtml(chromium)}</td>
         <td>${escapeHtml(cpu)}</td>
         <td><a href="${name}/snapshots.json">JSON</a></td>
-      </tr>`);
-}
+      </tr>`;
+});
 
 const html = `<!DOCTYPE html>
 <html lang="en">
