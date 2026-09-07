@@ -51,6 +51,22 @@ describe('Core', () => {
     container.remove();
   });
 
+  describe('updateData', () => {
+    it('should advance the render epoch even when the dataset keeps its size', () => {
+      const core = new Core(container, { data: [['a', 'b'], ['c', 'd']] });
+
+      core.init();
+
+      const epochBefore = core.renderChangeTracker.epoch;
+
+      core.updateData([['e', 'f'], ['g', 'h']]);
+
+      expect(core.renderChangeTracker.epoch).toBeGreaterThan(epochBefore);
+
+      core.destroy();
+    });
+  });
+
   describe('markCellChanged', () => {
     it('should advance the render version of a stored cell meta and create none for an unstored one', () => {
       const core = new Core(container, { data: [['a', 'b'], ['c', 'd']] });

@@ -3710,6 +3710,10 @@ export default function Core(
       (newDataMap: DataMapInstance) => {
         datamap = newDataMap;
 
+        // The whole dataset is replaced, so every cell repaints, as after `loadData()`. A same-size
+        // update changes no index-mapper cache, which is what would otherwise advance the epoch.
+        instance.renderChangeTracker.markAllChanged();
+
         // `fitToLength()` strands an open editor the same way `alter()`'s removal does (a
         // shrinking dataset renumbers the physical space under it), and `selection.refresh()`
         // below is this operation's re-prepare chance - so the same structural-change scope

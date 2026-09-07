@@ -174,6 +174,9 @@ export class Search extends BasePlugin {
     this.hot.addHookOnce('afterViewRender', () => {
       this.hot.removeHook('beforeRenderer', beforeRendererCallback);
     });
+    // The one-shot hook above strips the result class while the cells paint, so under
+    // `renderMode: 'onChange'` the next render has to reach every cell.
+    this.hot.markAllCellsChanged();
 
     super.disablePlugin();
   }
@@ -344,7 +347,9 @@ export class Search extends BasePlugin {
     // here is enough; no separate match-coordinate set is needed.
     const isSearchResult = cellProperties.isSearchResult;
 
-    if (this.isEnabled() && isSearchResult) {
+    // The plugin's runtime state, not the `search` setting: a direct `disablePlugin()` leaves the
+    // setting as it was, and its one-shot pass through this hook exists to strip the class.
+    if (this.enabled && isSearchResult) {
       if (!classArray.includes(this.searchResultClass)) {
         classArray.push(`${this.searchResultClass}`);
       }

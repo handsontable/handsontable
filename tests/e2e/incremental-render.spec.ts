@@ -195,6 +195,15 @@ test.describe('renderMode: onChange', () => {
     await grid.run('hot.setDataAtCell(0, 3, "http://b/");');
     await expect(grid.cell(0, 2).locator('a')).toHaveAttribute('href', 'http://b/');
     await grid.expectEqualToFullRepaint();
+
+    // A same-size updateData() replaces the data without a structural change. The hyperlink
+    // registry is emptied on it, so every cell must repaint for the anchors to register again.
+    await grid.run(`hot.updateData([
+      ['=B1*2', 7, '=HYPERLINK(D1, "label")', 'http://b/'], [1, 2, 3, 4], ['=SUM(B1:B2)', 0, 0, 0],
+    ]);`);
+    await grid.run('hot.setDataAtCell(0, 3, "http://c/");');
+    await expect(grid.cell(0, 2).locator('a')).toHaveAttribute('href', 'http://c/');
+    await grid.expectEqualToFullRepaint();
   });
 
   test('shows and clears Search results', async({ page, theme, bundle }) => {
@@ -206,6 +215,14 @@ test.describe('renderMode: onChange', () => {
     await grid.expectEqualToFullRepaint();
 
     await grid.run('hot.getPlugin("search").query("nothing"); hot.render();');
+    await expect(grid.cell(3, 3)).not.toHaveClass(/htSearchResult/);
+    await grid.expectEqualToFullRepaint();
+
+    // Disabling the plugin directly strips the class through a one-shot hook on the next render,
+    // so that render must reach the marked cells.
+    await grid.run('hot.getPlugin("search").query("r3c3"); hot.render();');
+    await expect(grid.cell(3, 3)).toHaveClass(/htSearchResult/);
+    await grid.run('hot.getPlugin("search").disablePlugin(); hot.render();');
     await expect(grid.cell(3, 3)).not.toHaveClass(/htSearchResult/);
     await grid.expectEqualToFullRepaint();
   });
