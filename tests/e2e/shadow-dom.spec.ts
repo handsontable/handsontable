@@ -57,6 +57,9 @@ test.describe('grid inside a native shadow root', () => {
     await grid.page.keyboard.press('ControlOrMeta+v');
 
     await grid.expectCell(4, 2, 'A1');
+    // Under the default delivery mode the events do travel out to the document. This is the
+    // positive control for the recorder the container-only tests below assert stays empty.
+    expect(await grid.clipboardEventsSeenAtDocument()).toContain('paste');
   });
 
   test('does not steal focus back when typing into an input outside the shadow host', async () => {
@@ -191,5 +194,50 @@ test.describe('grid inside a native shadow root', () => {
     await grid.outsideTextarea.click();
 
     await expect.poll(() => grid.selected()).toBeNull();
+  });
+});
+
+/**
+ * Clipboard events that never leave the grid's container (DEV-2795, #13388). Salesforce
+ * Lightning Web Security hands them only to listeners bound at or below the grid's own
+ * element, so the two binding points CopyPaste had — the document and the grid's shadow root
+ * — both went unused and copy, cut and paste silently did nothing in a Lightning Web
+ * Component. The fixture reproduces that reach by stopping the events at the container.
+ *
+ * These tests cover the delivery shape, not LWS itself: a real org also runs the grid behind
+ * a sandbox membrane, which no fixture here can stand in for.
+ */
+test.describe('grid whose clipboard events reach only its own container', () => {
+  let grid: ShadowGridPage;
+
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new ShadowGridPage(page, theme, bundle, 'container-only');
+    await grid.goto();
+  });
+
+  test('copies and pastes between cells with keyboard shortcuts', async () => {
+    await grid.cell(0, 0).click();
+    await grid.page.keyboard.press('ControlOrMeta+c');
+
+    await grid.cell(4, 2).click();
+    await grid.page.keyboard.press('ControlOrMeta+v');
+
+    await grid.expectCell(4, 2, 'A1');
+    // The paste landed without the document ever seeing the event, so only a listener bound
+    // at or below the container can have driven it.
+    expect(await grid.clipboardEventsSeenAtDocument()).toEqual([]);
+  });
+
+  test('cuts and pastes between cells with keyboard shortcuts', async () => {
+    await grid.cell(0, 1).click();
+    await grid.page.keyboard.press('ControlOrMeta+x');
+
+    await grid.expectCell(0, 1, '');
+
+    await grid.cell(3, 0).click();
+    await grid.page.keyboard.press('ControlOrMeta+v');
+
+    await grid.expectCell(3, 0, 'B1');
+    expect(await grid.clipboardEventsSeenAtDocument()).toEqual([]);
   });
 });

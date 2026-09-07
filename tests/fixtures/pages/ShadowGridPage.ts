@@ -12,6 +12,8 @@ export class ShadowGridPage {
   readonly page: Page;
   readonly theme: string;
   readonly bundle: string;
+  /** Clipboard-event delivery mode: `'normal'`, or `'container-only'` to stand in for LWS. */
+  readonly delivery: string;
   readonly grid: Locator;
   readonly outsideTextarea: Locator;
   readonly outsideInput: Locator;
@@ -21,10 +23,11 @@ export class ShadowGridPage {
   readonly commentTooltipInput: Locator;
   readonly otherShadowContent: Locator;
 
-  constructor(page: Page, theme = 'main', bundle = 'umd') {
+  constructor(page: Page, theme = 'main', bundle = 'umd', delivery = 'normal') {
     this.page = page;
     this.theme = theme;
     this.bundle = bundle;
+    this.delivery = delivery;
     this.grid = page.getByTestId('grid');
     this.outsideTextarea = page.getByTestId('outside-textarea');
     this.outsideInput = page.getByTestId('outside-input');
@@ -44,8 +47,18 @@ export class ShadowGridPage {
    * readiness flags.
    */
   async goto(): Promise<void> {
-    await this.page.goto(`/tests/fixtures/demo/shadow-dom.html?theme=${this.theme}&bundle=${this.bundle}`);
+    await this.page.goto(
+      `/tests/fixtures/demo/shadow-dom.html?theme=${this.theme}&bundle=${this.bundle}&delivery=${this.delivery}`
+    );
     await expect(this.cell(0, 0)).toBeVisible();
+  }
+
+  /**
+   * Names of the clipboard events that reached the document (fixture probe). Empty under the
+   * `container-only` delivery mode, where the fixture stops them at the grid's container.
+   */
+  async clipboardEventsSeenAtDocument(): Promise<string[]> {
+    return this.page.evaluate(() => (window as any).__hotProbe.clipboardEventsSeenAtDocument());
   }
 
   /** A single data cell, by visual row/column, via its stable test id. */

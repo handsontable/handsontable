@@ -7,16 +7,39 @@ The `copyPaste` plugin owns copy, cut and paste. Read this before touching `copy
 too, because native text selection and clipboard handling compete for the same events. See
 `../base/AGENTS.md` for what listing a foreign key implies.
 
-## Listeners go on the document, not the root element
+## Three binding points, because a clipboard event arrives three ways
 
-That is deliberate, for Chrome 133 and lower to copy/paste/cut correctly (DEV-2277). Do not "scope them
-properly" to `rootElement`.
+`copy`/`cut`/`paste` are bound on **all three** of these, through one `bindClipboardListeners()` helper:
 
-**Inside a Shadow DOM tree the same listeners are attached to the grid's shadow root as well.** Sandboxed
-hosts (Salesforce Lightning Web Security) retarget events observed at the document level, which hides the
-grid internals from the document listeners; listeners bound inside the grid's own shadow tree still receive
-the untouched event path. `#processedClipboardEvents` is the registry that prevents double handling when
-both listeners receive the same event — the same pattern the Comments plugin uses for hover.
+| Target | Why it exists | Ticket |
+|---|---|---|
+| `rootDocument` | Events targeting `document.body` — outside the grid, so nothing bound below would see them — and Chrome 133 and lower needs it to copy/cut/paste at all | DEV-2277 |
+| `rootElement` | Salesforce Lightning Web Security delivers clipboard events **only** to listeners bound at or below the element the grid owns | DEV-2795 / #13388 |
+| the grid's shadow root, when it has one | Sandboxed hosts retarget events seen at the document level, which hides the grid internals from the document listeners; a listener inside the grid's own shadow tree still gets the untouched path | DEV-1619 |
+
+**Never drop the document one** — do not "scope the listeners properly" to `rootElement`. The `rootElement`
+one does not replace it: outside a sandbox it merely sees an in-grid event first.
+
+`#processedClipboardEvents` is the registry that keeps the handler running once when several of these see
+the same event — the same pattern the Comments plugin uses for hover. It is a `WeakSet` keyed on event
+**identity**, which holds because `EventManager`'s `extendEvent()` mutates and returns the same event
+object rather than wrapping it. A change there breaks dedupe silently, into double paste.
+
+Under LWS only one listener fires anyway, so dedupe is not what carries that case — but the membrane's
+event identity is unverified, so do not lean on it there.
+
+### Testing the LWS shape
+
+`tests/e2e/shadow-dom.spec.ts` drives it through the `?delivery=container-only` mode of
+`tests/fixtures/demo/shadow-dom.html`, which stops clipboard events at the grid's container with
+`stopPropagation` — the same reach LWS has, since listeners **on** the container still fire. It must not be
+`stopImmediatePropagation` (that would cut off the plugin's own container listener) and it must not sit on
+the shadow root (the plugin binds there too, so the test would pass without the fix). The fixture also
+records what reached the document, and the tests assert that list is empty.
+
+**This reproduces LWS's delivery shape, not LWS.** A real org also runs the grid behind a sandbox membrane
+that proxies the DOM, which no fixture here stands in for — the same caveat #13227 carried. Changes to this
+area still want confirmation in an actual org.
 
 ## Two Safari workarounds, both still needed
 

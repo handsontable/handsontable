@@ -21,6 +21,14 @@
     if (!window.htBundle) {
       throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
     }
+
+    // How far a clipboard event is allowed to travel out of the grid's container.
+    // `container-only` stands in for Salesforce Lightning Web Security (DEV-2795) — see the
+    // block that installs it below. Same fail-loud allowlist as the two params above.
+    window.htDelivery = ({ normal: 'normal', 'container-only': 'container-only' })[htParams.get('delivery') ?? 'normal'];
+    if (!window.htDelivery) {
+      throw new Error('Unknown ?delivery= value: ' + JSON.stringify(htParams.get('delivery')));
+    }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } #outside-area { margin-top: .8rem; } </style>
   <!--
@@ -83,6 +91,30 @@
     container.className = `ht-theme-${window.htTheme}`;
     container.setAttribute('data-testid', 'grid');
     shadowRoot.appendChild(container);
+
+    // Every clipboard event that makes it out to the document, recorded. In the default
+    // delivery mode this fills up; under `container-only` it must stay empty, which is what
+    // proves the grid was driven by a listener the event reached before the document.
+    window.__clipboardAtDocument = [];
+    ['copy', 'cut', 'paste'].forEach((eventName) => {
+      document.addEventListener(eventName, () => window.__clipboardAtDocument.push(eventName));
+    });
+
+    // Salesforce Lightning Web Security (DEV-2795, #13388) delivers clipboard events only to
+    // listeners bound at or below the grid's own container — the listeners CopyPaste binds on
+    // the shadow root and on the document never run. `stopPropagation` on the container has
+    // exactly that reach: every listener ON the container still fires (only
+    // `stopImmediatePropagation` would cut those off, whatever the registration order), while
+    // the shadow root and the document above it stop seeing the event. Installed before the
+    // grid exists, so it cannot depend on the plugin's own listener order.
+    //
+    // It stands in for LWS's delivery shape, not for LWS: a real org also runs the grid behind
+    // a membrane that proxies the DOM. Only an org can confirm the whole picture.
+    if (window.htDelivery === 'container-only') {
+      ['copy', 'cut', 'paste'].forEach((eventName) => {
+        container.addEventListener(eventName, (event) => event.stopPropagation());
+      });
+    }
 
     const shadowSibling = document.createElement('div');
     shadowSibling.setAttribute('data-testid', 'shadow-sibling');
@@ -147,6 +179,7 @@
         window.__outsideClickTargets = targets;
       },
       outsideClickTargets: () => window.__outsideClickTargets,
+      clipboardEventsSeenAtDocument: () => window.__clipboardAtDocument,
     };
   </script>
 </body>
