@@ -20,8 +20,7 @@ import type { ColumnsCalculationType, RowsCalculationType } from '../calculator/
 
 /**
  * The state that describes what is actually rendered in the TBODY/THEAD right now: the rendered
- * row/column bands (held by the viewport), the render filters derived from them, and the
- * `correctHeaderWidth` flag that describes the row-header width the DOM was rendered with. Captured
+ * row/column bands (held by the viewport) and the render filters derived from them. Captured
  * before the draw resolves the new band, so the master's `skipRender` gate can put it back — see
  * {@link restoreRenderedStateIfSafe}.
  */
@@ -30,7 +29,6 @@ interface RenderedState {
   columnsRenderCalculator: ColumnsCalculationType | null;
   rowFilter: RowFilter | null;
   columnFilter: ColumnFilter | null;
-  correctHeaderWidth: boolean;
 }
 
 /**
@@ -149,17 +147,6 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
     stationaryBands: wtOverlays.isScrollDrivenDraw && wtViewport.allowsStationaryBands(),
   });
 
-  if (ctx.rowHeadersCount && !wtSettings.getSetting('fixedColumnsStart')) {
-    const leftScrollPos = wtOverlays.inlineStartOverlay.getScrollPosition();
-    const previousState = table.correctHeaderWidth;
-
-    table.correctHeaderWidth = leftScrollPos !== 0;
-
-    if (previousState !== table.correctHeaderWidth) {
-      ctx.runFastDraw = false;
-    }
-  }
-
   if (ctx.runFastDraw) {
     wtOverlays.refresh(true);
     // Fast (scroll) draws skip the full-render header-height pass below, so the master/top
@@ -270,8 +257,10 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
   if (ctx.positionChanged) {
     if (ctx.performRedraw) {
       // It refreshes the cells borders caused by a 1px shift (introduced by overlays which add or
-      // remove `innerBorderTop` and `innerBorderInlineStart` CSS classes to the DOM element. This happens
-      // when there is a switch between rendering from 0 to N rows/columns and vice versa).
+      // remove the `innerBorderTop` / `innerBorderBottom` CSS classes on the DOM element. This
+      // happens when there is a switch between rendering from 0 to N rows and vice versa). The
+      // inline-start class is still toggled for backward compatibility but no longer shifts the
+      // layout — the row header owns its inline-end border at every scroll position (#6673).
       wtOverlays.refreshAll(); // `refreshAll()` internally already calls `refreshSelections()` method
     } else {
       // A skipped render must not run the nested reconciliation draw above (`refreshAll` is
@@ -362,9 +351,9 @@ function buildRenderFilters(table: Table, ctx: DrawContext): { rowFilter: RowFil
 }
 
 /**
- * Captures the rendered row/column bands, the render filters, and the `correctHeaderWidth` flag,
- * i.e. everything that describes which source rows and columns the current DOM holds and how it was
- * rendered. Master-only: the `skipRender` gate it serves is master-only.
+ * Captures the rendered row/column bands and the render filters, i.e. everything that describes
+ * which source rows and columns the current DOM holds. Master-only: the `skipRender` gate it serves
+ * is master-only.
  *
  * @param {Table} table The master table.
  * @param {Viewport} wtViewport The viewport that owns the rendered bands.
@@ -376,7 +365,6 @@ function captureRenderedState(table: Table, wtViewport: Viewport): RenderedState
     columnsRenderCalculator: wtViewport.columnsRenderCalculator,
     rowFilter: table.rowFilter,
     columnFilter: table.columnFilter,
-    correctHeaderWidth: table.correctHeaderWidth,
   };
 }
 
@@ -408,10 +396,6 @@ function captureRenderedState(table: Table, wtViewport: Viewport): RenderedState
  *   just-built filters are kept instead, because filter consumers (`getRowHeader`, `getTrForRow`,
  *   the selection scanner's header loop) read `rowFilter!` unguarded and must never see `null`
  *   after a completed draw.
- * - `correctHeaderWidth` is restored whenever no render happened, regardless of the totals gates:
- *   the flag describes the row-header width the DOM was rendered with, and that DOM did not change.
- *   Leaving it advanced would make the next draw see "no change" and never re-render the corrected
- *   header width.
  * - The visible-row/column calculators are deliberately NOT restored: they describe what the user
  *   can see (scroll position), not what the DOM holds. After a skipped draw the visible band may
  *   therefore extend past the rendered band — unlike a fast draw, which guarantees the visible band
@@ -434,8 +418,6 @@ function restoreRenderedStateIfSafe(
   if (wtViewport.renderCycleSeq !== renderCycleSeqBeforeHook) {
     return;
   }
-
-  table.correctHeaderWidth = state.correctHeaderWidth;
 
   if (state.rowFilter === null || state.rowFilter.total === wtSettings.getSetting<number>('totalRows')) {
     wtViewport.rowsRenderCalculator = state.rowsRenderCalculator;

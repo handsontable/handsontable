@@ -32,7 +32,11 @@ when every height is already cached.
 ## Two DOM details
 
 - **`htFirstDatasetColumnNotRendered`** is a class this plugin puts on the root element and must remove in
-  `disablePlugin()`.
+  `disablePlugin()`. It suppresses the inline-start border on the first rendered data cell, and since
+  #6673 that border only exists when the grid has **no** row headers — with row headers the header
+  owns the gridline and no cell behind it draws one, so the class is inert there. Do not read it as
+  "column 0 has no border": ask the cell's computed border instead (see
+  `handsontable/src/3rdparty/walkontable/AGENTS.md`, "Column-axis border ownership").
 - **The first rendered row gets +1px** to compensate for its `border-top-width`. That compensation is
   per-render, not baked into the cached height.
 

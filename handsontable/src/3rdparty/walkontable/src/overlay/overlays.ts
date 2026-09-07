@@ -899,15 +899,6 @@ class Overlays {
   }
 
   /**
-   * Expand the hider horizontally element by the provided delta value.
-   *
-   * @param {number} widthDelta The delta value to expand the hider element by.
-   */
-  expandHiderHorizontallyBy(widthDelta: number) {
-    this.#spreaderSize.expandHiderHorizontallyBy(widthDelta);
-  }
-
-  /**
    *
    */
   applyToDOM() {

@@ -110,6 +110,10 @@ Verified method names and signatures (`index.ts`):
 | `clearCache()` | — | void. Drops all cell and column meta objects. |
 | `getUserDefinedCellMetas()` | — | Flat snapshot of every property set imperatively through `setCellMeta`, by physical coordinates. |
 | `getCellOptionCellMetas()` | — | Flat snapshot of every property applied from the declarative `cell` option, by physical coordinates. |
+| `getCellMetaIfExists(physicalRow, physicalColumn)` | `(number, number)` | The stored cell meta object, or `undefined` when the cell has none. Creates nothing — a peek for paths that must not materialize meta (the validation flow uses it to find a cell's current meta object after a cache clear detached the one it was given). |
+| `getStructureVersion()` | — | A counter that changes whenever a captured cell coordinate pair stops meaning what it meant: a row/column insert or remove (`LazyFactoryMap` re-keys stored metas, but the `row`/`col` stamped on them are not rewritten) **and** `clearCellsCache()` (`loadData` replaces the data behind those coordinates). `clearCache()` deliberately does not bump it — that is the `updateSettings` path, where rows and data stay put. The async validation flow captures it at the start and drops a result whose coordinates can no longer be trusted. |
+| `getInvalidCellMetas()` | — | Physical coordinates of every cell whose own last validation failed, as `{ physicalRow, physicalColumn }`. The validation flow writes `valid` directly, so `getUserDefinedCellMetas()` cannot see it. Own-property read, `valid === false` only — the same predicate `evictRow()` uses. |
+| `restoreInvalidCellMetas(invalidCellMetas)` | `({ physicalRow, physicalColumn }[])` | void. Re-applies the failures captured by `getInvalidCellMetas()`, by direct property write — never through `setCellMeta`, which would record `valid` as user-defined and replay a stale `false` onto a corrected cell (GitHub issue #7553). |
 | `startCellOptionMetaRecording()` / `endCellOptionMetaRecording()` | — | void. Opens/closes a scope in which `setCellMeta` writes are filed as applied from the `cell` option. Nests. |
 | `enableUserDefinedMetaRecording()` / `disableUserDefinedMetaRecording()` | — | void. Resumes/suspends filing `setCellMeta` writes as imperative. Nests. |
 
@@ -122,8 +126,11 @@ Verified method names and signatures (`index.ts`):
 | Imperative `setCellMeta` | none | `_userDefinedMetaProps` | yes — replayed |
 | Declarative `cell` option | `startCellOptionMetaRecording()` | `_cellOptionMetaProps` | yes — replayed, unless the call restates `cell` |
 | Plugin-declarative (`Core#_setCellMetaDeclarative`) | `disableUserDefinedMetaRecording()` | none | no — dropped, and the plugin re-applies it |
+| Failed validation (`valid === false`) | not a `setMeta` write at all | none | yes — its own snapshot pair |
 
-Both replays run before the `columns` and `cell` re-application, and use the physical coordinates read from the storage keys — so a value returns to the record it was resolved to, not to whatever record now sits at the same visual position. Restating `cell` replaces every previously declared entry (`cell: []` removes them all), which is why its bucket is skipped on those calls.
+The first two replays run before the `columns` and `cell` re-application, and use the physical coordinates read from the storage keys — so a value returns to the record it was resolved to, not to whatever record now sits at the same visual position. Restating `cell` replaces every previously declared entry (`cell: []` removes them all), which is why its bucket is skipped on those calls.
+
+The last row is the odd one out and the reason a fourth mechanism exists. The validation flow writes `valid` **straight onto the meta object**, never through `setMeta`, so it lands in no bookkeeping set and neither snapshot above can see it — it needs `getInvalidCellMetas()` / `restoreInvalidCellMetas()` (GitHub issue #7553). That restore runs last and is itself a direct write, so it neither files `valid` under an origin nor competes with the two replays. Any future state written directly onto a cell meta object needs the same treatment, plus its own keep condition in `evictRow()`.
 
 `MetaManager` mixes in `localHooks` (`mixin(MetaManager, localHooks)`), so it exposes `addLocalHook`, `removeLocalHook`, `runLocalHooks`, and `clearLocalHooks`. The dynamic-meta modifier uses these.
 

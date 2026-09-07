@@ -36,7 +36,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div id="example8">
+  <div id="example1">
     <HotTable ref="hotTableRef" :settings="hotSettings" />
   </div>
 </template>

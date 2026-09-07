@@ -798,6 +798,45 @@ export class SelectionFeaturesPage {
   }
 
   /**
+   * The visible edges of the autofill "fill" border in the master overlay — the dashed preview
+   * that follows the pointer while the fill handle is dragged. Empty once no fill gesture is
+   * in progress.
+   */
+  visibleFillBorders(): Locator {
+    return this.page.locator('.ht_master .wtBorder.fill:visible');
+  }
+
+  /**
+   * Double-click the fill handle with the real pointer (the copy-down gesture). A real
+   * double-click, not a dispatched `dblclick`: Walkontable synthesizes its own double-click
+   * from the mousedown/mouseup pairs, and the browser decides in which order the grid's
+   * `mouseup` listeners run.
+   */
+  async doubleClickFillHandle(): Promise<void> {
+    await this.fillHandle().dblclick();
+  }
+
+  /** Drag the fill handle with the real pointer onto the given cell and release. */
+  async dragFillHandleTo(row: number, col: number): Promise<void> {
+    const handleBox = await this.fillHandle().boundingBox();
+    const targetBox = await this.cell(row, col).boundingBox();
+
+    if (!handleBox || !targetBox) {
+      throw new Error('The fill handle or the target cell is not rendered.');
+    }
+
+    await this.page.mouse.move(handleBox.x + handleBox.width / 2, handleBox.y + handleBox.height / 2);
+    await this.page.mouse.down();
+    await this.page.mouse.move(targetBox.x + targetBox.width / 2, targetBox.y + targetBox.height / 2, { steps: 8 });
+    await this.page.mouse.up();
+  }
+
+  /** Whether the Autofill plugin still believes the fill handle is pressed. */
+  async isFillHandlePressed(): Promise<boolean> {
+    return this.page.evaluate(() => window.hot.getPlugin('autofill').mouseDownOnCellCorner);
+  }
+
+  /**
    * The fill handle drawn by the frozen-columns overlay — a selection ending inside that pane is
    * rendered by the clone, not by the master.
    */

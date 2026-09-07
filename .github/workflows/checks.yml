@@ -164,6 +164,7 @@ jobs:
               - './performance-tests/**'
             verify-types:
               - './handsontable/**'
+              - './.github/workflows/emitted-types.yml'
             docs-angular:
               - './docs/content/**/angular/*.ts'
               - './docs/angular-type-check/**'
