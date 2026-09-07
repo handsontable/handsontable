@@ -127,7 +127,12 @@ Seven things about this pipeline are worth knowing before changing it.
   render is deterministic and the golden record is the odd one out — neither pull request is at fault, and
   `visual-approved` on one of them fixes nothing for the others. Confirmed on `columns-filter-2` under
   WebKit, where the poisoned record carried a stray browser text-selection highlight on a column header;
-  `test-runner.ts` now clears that selection before every capture.
+  `test-runner.ts` now clears that selection before every capture. **`visual.handsontable.com` is behind a
+  CDN, so reading a golden record back can hand you a stale copy** — during that investigation it served
+  the superseded image for nearly an hour after `develop` had reseeded, which reads exactly like a
+  baseline nobody has fixed yet. Always bust the cache before concluding anything from a golden record:
+  `curl -H 'Cache-Control: no-cache' '<url>?cb=$RANDOM'`. The reg-suit reports are per-commit paths and
+  never restated, so only the `base/<branch>/` prefix has this problem.
 
 Snapshot keys, set in `.github/workflows/visual.yml`:
 
