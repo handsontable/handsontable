@@ -185,5 +185,11 @@ describe('row height mode', () => {
     it('should be false for a function, which may answer differently per row', () => {
       expect(new DefaultRowSizeSource(fakeSettings({ rowHeightMode: () => 'exact' })).isModeUniform()).toBe(false);
     });
+
+    it('should be false for an array, which `getSetting` indexes by the row', () => {
+      const source = new DefaultRowSizeSource(fakeSettings({ rowHeightMode: ['exact', 'min'] }));
+
+      expect(source.isModeUniform()).toBe(false);
+    });
   });
 });

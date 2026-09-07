@@ -157,6 +157,35 @@ describe('applyRowHeight', () => {
       expect(TD2.style.height).toBe('10px');
     });
 
+    it('should put the height on the row when no cell can carry it', () => {
+      // Every cell hidden by a merge or spanning several rows. The stylesheet has already released
+      // the cells' minimum height, so a row with no height anywhere would collapse.
+      const TR = createRow(['a', 'b'], { rowHeader: false });
+      const [covered, spanning] = cellsOf(TR);
+
+      covered.style.display = 'none';
+      spanning.setAttribute('rowspan', '3');
+
+      applyRowHeight(TR, 10, true, true);
+
+      expect(TR.style.height).toBe('10px');
+    });
+
+    it('should clear the height left on a cell that stopped being the carrier', () => {
+      const TR = createRow(['a', 'b'], { rowHeader: false });
+      const [first, second] = cellsOf(TR);
+
+      applyRowHeight(TR, 10, true, true);
+      expect(first.style.height).toBe('10px');
+
+      // A merge appears over the first cell, so the carrier moves to the second.
+      first.style.display = 'none';
+      applyRowHeight(TR, 10, true, true);
+
+      expect(first.style.height).toBe('');
+      expect(second.style.height).toBe('10px');
+    });
+
     it('should re-apply the height after the renderers reset the cell, and the class after a hook overwrote it', () => {
       const TR = createRow(['a']);
 
@@ -257,6 +286,33 @@ describe('applyRowHeight', () => {
       expect(TD1.childNodes.length).toBe(1);
       expect(TD1.textContent).toBe('a');
       expect(TD2.textContent).toBe('b');
+    });
+
+    it('should unwrap a cell whose wrapper is not the first child', () => {
+      // A renderer inserted a node before the wrapper. Missing it here would strand the wrapper:
+      // the row leaves the tracking set on this same call.
+      const TR = createRow(['a'], { rowHeader: false });
+      const TD = cellsOf(TR)[0];
+
+      applyRowHeight(TR, 10, true, true);
+      TD.insertBefore(document.createElement('span'), TD.firstChild);
+
+      applyRowHeight(TR, 40, false, true);
+
+      expect(TR.querySelector(`.${CELL_CLIP_CLASS}`)).toBe(null);
+      expect(TD.textContent).toBe('a');
+    });
+
+    it('should clear the row height it wrote when no cell could carry it', () => {
+      const TR = createRow(['a'], { rowHeader: false });
+
+      cellsOf(TR)[0].setAttribute('rowspan', '3');
+      applyRowHeight(TR, 10, true, true);
+      expect(TR.style.height).toBe('10px');
+
+      applyRowHeight(TR, 40, false, true);
+
+      expect(TR.style.height).toBe('');
     });
 
     it('should clear the height of a carrier that was not the first cell', () => {

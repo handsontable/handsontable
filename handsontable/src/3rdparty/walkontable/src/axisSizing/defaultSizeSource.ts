@@ -51,8 +51,11 @@ export class DefaultRowSizeSource implements RowSizeSource {
    * @returns {boolean}
    */
   isModeUniform(): boolean {
-    // A literal applies to every row; a function may answer differently per row.
-    return typeof this.#wtSettings.getSettingPure('rowHeightMode') !== 'function';
+    // A literal applies to every row. Both of the per-row shapes `getSetting` supports — a function
+    // and an array indexed by the row — may answer differently per row.
+    const mode = this.#wtSettings.getSettingPure<unknown>('rowHeightMode');
+
+    return typeof mode !== 'function' && !Array.isArray(mode);
   }
 
   /**

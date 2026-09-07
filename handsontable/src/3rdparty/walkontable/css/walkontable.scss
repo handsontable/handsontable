@@ -98,11 +98,6 @@
   padding: 0;
 }
 
-/* The row header clips at the cell, not at its wrapper (mirrors `_base.scss`). */
-.handsontable tr.htExactRow > th {
-  overflow: hidden;
-}
-
 /* The insets mirror the cells' own padding above (`0 4px`, no vertical padding). */
 .handsontable tr.htExactRow > td > .htCellClip {
   position: absolute;
@@ -128,6 +123,14 @@
   position: absolute;
   inset: 0;
   min-height: 0;
+}
+
+/* Clip the header's own content, not `.relative` (mirrors `_base.scss`, where a clip there would
+   cut the active-row accent bar drawn as `.relative::after`). */
+.handsontable tbody tr.htExactRow > th > .relative > .rowHeader {
+  display: block;
+  height: 100%;
+  overflow: hidden;
 }
 
 .handsontable th:last-child {

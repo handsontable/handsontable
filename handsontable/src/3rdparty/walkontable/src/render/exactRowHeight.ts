@@ -109,9 +109,12 @@ function ensureClipWrapper(TD: HTMLElement): void {
  * @param {HTMLElement} TD The data cell.
  */
 function removeClipWrapper(TD: HTMLElement): void {
-  const wrapper = TD.firstChild;
+  // Search the children, not just the first one: a renderer can insert a node before the wrapper
+  // (`ensureClipWrapper` folds that back in on the next draw), and a wrapper missed here would be
+  // stranded in the cell for good — the row is dropped from the tracking set right after.
+  const wrapper = Array.from(TD.childNodes).find(isClipWrapper);
 
-  if (!isClipWrapper(wrapper)) {
+  if (wrapper === undefined) {
     return;
   }
 
@@ -152,6 +155,7 @@ function applyExactShape(TR: HTMLElement, pixelHeight: string): void {
   exactRows.add(TR);
 
   const cells = TR.children;
+  const carried: HTMLElement[] = [];
   let heightCarrier: HTMLElement | null = null;
 
   for (let index = 0; index < cells.length; index++) {
@@ -163,6 +167,11 @@ function applyExactShape(TR: HTMLElement, pixelHeight: string): void {
 
     if (heightCarrier === null && canCarryHeight(cell)) {
       heightCarrier = cell;
+    } else if (cell.style.height !== '') {
+      // The carrier is chosen per draw, so it moves when a merge appears or goes away. A height
+      // left on the previous carrier would win over the current one on the out-of-render path,
+      // where no renderer resets the cells.
+      carried.push(cell);
     }
 
     if (cell.tagName === 'TD') {
@@ -170,9 +179,14 @@ function applyExactShape(TR: HTMLElement, pixelHeight: string): void {
     }
   }
 
-  if (heightCarrier !== null) {
-    heightCarrier.style.height = pixelHeight;
-  }
+  carried.forEach((cell) => {
+    cell.style.height = '';
+  });
+
+  // With no carrier at all — every cell hidden by a merge or spanning several rows — the height
+  // goes on the row itself. The stylesheet has already released the cells' minimum height, so
+  // without it the row would collapse to its borders.
+  (heightCarrier ?? TR).style.height = pixelHeight;
 }
 
 /**
@@ -199,6 +213,7 @@ function releaseExactShape(TR: HTMLElement): void {
     }
   }
 
+  TR.style.height = '';
   removeClass(TR, EXACT_ROW_CLASS);
   exactRows.delete(TR);
 }

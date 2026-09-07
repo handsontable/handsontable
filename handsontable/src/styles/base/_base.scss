@@ -624,14 +624,6 @@
       padding: 0;
     }
 
-    // The row header clips at the cell, not at its `.relative` wrapper: the active-row accent bar
-    // (`.ht__highlight .relative::after`) overhangs the wrapper by 1px on three sides to meet the
-    // gridlines, and a clip on the wrapper would cut it off. The cell's box keeps the bottom and
-    // end overhangs; the top one is covered by the row above's own bar.
-    tr.htExactRow > th {
-      overflow: hidden;
-    }
-
     tr.htExactRow > td > .htCellClip {
       position: absolute;
       inset: var(--ht-cell-vertical-padding) var(--ht-cell-horizontal-padding);
@@ -655,12 +647,23 @@
     }
 
     // Row headers already wrap their content in `.relative`; take that out of flow instead of
-    // adding a wrapper (the cell clips, see above). Only body rows are ever marked, so column
-    // headers keep their minimum-height semantics.
+    // adding a wrapper. Only body rows are ever marked, so column headers keep their
+    // minimum-height semantics.
     tr.htExactRow > th > .relative {
       position: absolute;
       inset: 0;
       min-height: 0;
+    }
+
+    // Clip the header's own content, NEVER `.relative` or the `th`: the active-row accent bar is a
+    // `.relative::after` inset by -1px on three sides so it meets the gridlines, and a clip on
+    // either box cuts it off (a body-row `th` has `padding: 0`, so its padding box is its content
+    // box). A custom row-header renderer that builds no `.rowHeader` is unclipped and may paint
+    // over the row below; it can never grow the row, because `.relative` is out of flow.
+    tr.htExactRow > th > .relative > .rowHeader {
+      display: block;
+      height: 100%;
+      overflow: hidden;
     }
 
     .wtHider {

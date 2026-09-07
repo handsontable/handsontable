@@ -564,9 +564,10 @@ export function markOversizedRows(
   // compares the band against the DEFAULT height, which an exact band never matches. One row can
   // stand for the band only when BOTH the sizes and the mode are uniform — `isUniform()` describes
   // the size source alone, and a per-row mode could leave a floor row in the band unmeasured.
-  const isExactBand = rowCount > 0 && table.deps.rowSizeSource.isUniform() &&
-    table.deps.rowSizeSource.isModeUniform() &&
-    rowUtils.isExact(table.rowFilter!.renderedToSource(0));
+  // The exactness probe goes first: it is one constant settings read on a default grid, while
+  // `isUniform()` is a host callback (in Handsontable it reads the settings and asks for a hook).
+  const isExactBand = rowCount > 0 && rowUtils.isExact(table.rowFilter!.renderedToSource(0)) &&
+    table.deps.rowSizeSource.isUniform() && table.deps.rowSizeSource.isModeUniform();
   const expectedTableHeight = rowCount * stylesHandler.getDefaultRowHeight();
   const actualTableHeight = isExactBand
     ? expectedTableHeight
