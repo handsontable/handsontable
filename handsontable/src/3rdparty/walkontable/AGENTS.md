@@ -160,9 +160,13 @@ Consequences worth knowing:
   that predicate IS `inlineStartOverlay.trimmingContainer === rootWindow`, and `prepareHeaderBorders`
   bails on the same test against the same overlay — so anything passing the single-pass gate is
   element-scrolled and never bails. `preventOverflow` does not enter into it; it changes how
-  `resetFixedPosition` uses the trimming container, not what the container is. The cost therefore landed
-  on the grids that drop off that path, which `colWidths` as an array or an active `manualColumnResize`
-  is enough to do.
+  `resetFixedPosition` uses the trimming container, not what the container is. The cost therefore
+  landed on the grids that drop off that path, and there are TWO ways to do that, both of which paid:
+  breaking the uniform-size requirement (`colWidths` as an array, or an active `manualColumnResize`),
+  and breaking the element-mode requirement (a window-scrolled grid, i.e. no `width`/`height`). The
+  window shape is the harsher one, since `prepareHeaderBorders` bails on it outright and so could
+  never have pre-applied the class whatever the other settings said. Both have a leg in
+  `tests/e2e/walkontable/inline-start-border-refresh.spec.ts`.
 - **Counting `refreshAll` cannot measure a reconciliation draw on its own.** `ScrollSync` calls
   `refreshAll` once per scroll event as the normal response to a scroll (`overlay/scroll/scrollSync.ts`),
   so a per-crossing count is at least 1 whether or not anything reconciled, and that baseline hides the

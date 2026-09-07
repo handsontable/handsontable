@@ -66,9 +66,14 @@ export class InlineStartBorderRefreshPage {
    * Navigate and wait for the grid to render (a real DOM condition, no sleep).
    *
    * @param {object} [options] Fixture options. `colWidths` picks one declared width (`uniform`,
-   *   the single-pass layout path) or a per-column array (`varied`, off that path).
+   *   the single-pass layout path) or a per-column array (`varied`, off that path). `scroll` picks
+   *   whether the grid scrolls inside its own holder (`element`) or the page scrolls (`window`),
+   *   which is the other way off that path and the one `prepareHeaderBorders` bails on.
    */
-  async goto(options: { colWidths?: 'uniform' | 'varied' } = {}): Promise<void> {
+  async goto(options: {
+    colWidths?: 'uniform' | 'varied',
+    scroll?: 'element' | 'window',
+  } = {}): Promise<void> {
     const params = new URLSearchParams({ theme: this.theme, bundle: this.bundle });
 
     Object.entries(options).forEach(([key, value]) => params.set(key, String(value)));

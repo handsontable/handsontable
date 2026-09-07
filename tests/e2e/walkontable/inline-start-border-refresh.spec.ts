@@ -46,6 +46,47 @@ test.describe('walkontable inline-start header border refresh', { tag: '@walkont
     });
   });
 
+  // There are two ways off the single-pass path, and both used to pay the reconciliation, so both
+  // get a leg. A `colWidths` array breaks the uniform-size requirement. Window scrolling breaks the
+  // element-mode requirement, and it is the harsher of the two: `prepareHeaderBorders` bails
+  // outright on `trimmingContainer === rootWindow`, so that shape could never have had its class
+  // pre-applied whatever the other settings said.
+  test.describe('with the window as the scroll container (off the single-pass layout path)', () => {
+    test.beforeEach(async ({ page, theme, bundle }) => {
+      wt = new InlineStartBorderRefreshPage(page, theme, bundle);
+      await wt.goto({ colWidths: 'uniform', scroll: 'window' });
+    });
+
+    test('drops off the single-pass calculator path', async () => {
+      // Uniform widths here, so the gate can only be failing on the window-mode term.
+      expect(await wt.usesSinglePassPath()).toBe(false);
+    });
+
+    test('costs no reconciliation draw when the grid crosses horizontal offset 0', async () => {
+      const draws = await wt.countDrawsAcrossOffsetZero();
+
+      expect(draws.leavingOffsetZero.reconciliation).toBe(0);
+      expect(draws.returningToOffsetZero.reconciliation).toBe(0);
+      expect(draws.leavingOffsetZero.scrollDriven).toBeGreaterThanOrEqual(1);
+      expect(draws.returningToOffsetZero.scrollDriven).toBeGreaterThanOrEqual(1);
+    });
+
+    test('keeps stamping the backward-compatibility classes on the master', async () => {
+      expect(await wt.masterBorderClasses())
+        .toEqual({ innerBorderInlineStart: false, innerBorderLeft: false });
+
+      await wt.scrollAwayFromOffsetZero();
+
+      expect(await wt.masterBorderClasses())
+        .toEqual({ innerBorderInlineStart: true, innerBorderLeft: true });
+
+      await wt.scrollToOffsetZero();
+
+      expect(await wt.masterBorderClasses())
+        .toEqual({ innerBorderInlineStart: false, innerBorderLeft: false });
+    });
+  });
+
   test.describe('with a colWidths array (off the single-pass layout path)', () => {
     test.beforeEach(async ({ page, theme, bundle }) => {
       wt = new InlineStartBorderRefreshPage(page, theme, bundle);
@@ -59,11 +100,11 @@ test.describe('walkontable inline-start header border refresh', { tag: '@walkont
     });
 
     test('costs no reconciliation draw when the grid crosses horizontal offset 0', async () => {
-      // THE regression assertion. Off the single-pass path the class is toggled after the cells
-      // render, so the overlay reported a position change and the draw ran the 1px reconciliation:
-      // one re-entrant `refreshAll` on each crossing, a full nested draw over the master and every
-      // clone, for a shift that cannot happen since #6673. This is the assertion that fails without
-      // the source change.
+      // THE regression assertion, together with its twin in the window-mode block. Off the
+      // single-pass path the class is toggled after the cells render, so the overlay reported a
+      // position change and the draw ran the 1px reconciliation: one re-entrant `refreshAll` on each
+      // crossing, a full nested draw over the master and every clone, for a shift that cannot happen
+      // since #6673. This is the assertion that fails without the source change.
       const draws = await wt.countDrawsAcrossOffsetZero();
 
       expect(draws.leavingOffsetZero.reconciliation).toBe(0);

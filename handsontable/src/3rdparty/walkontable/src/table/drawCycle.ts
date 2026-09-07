@@ -523,9 +523,9 @@ function renderActiveSelections(table: Table, runFastDraw: boolean): void {
  *
  * Only the TOP and BOTTOM overlays contribute to the flag. The corners never did, and the
  * inline-start overlay no longer does: its `innerBorderInlineStart` class shifts no layout since
- * #6673, so it always reported `false` while still forcing the OR - and on the draws where the class
- * did toggle, a nested reconciliation draw over the master and every clone for a 1px shift that
- * cannot happen. It is still repositioned here, its result is just not read.
+ * #6673, so its report meant nothing — `false` on most draws, and `true` on the draws where the
+ * class toggled, which cost a nested reconciliation draw over the master and every clone for a 1px
+ * shift that cannot happen. It is still repositioned here, its result is just not read.
  *
  * @param {Table} table The master table.
  * @param {DrawContext} ctx The per-draw scratch (receives `positionChanged`).

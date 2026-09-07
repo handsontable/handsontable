@@ -34,6 +34,15 @@
     if (!window.htColWidthsMode) {
       throw new Error('Unknown ?colWidths= value: ' + JSON.stringify(htParams.get('colWidths')));
     }
+    // `element` gives the grid a width/height so it scrolls inside its own
+    // holder; `window` omits both, which makes the window the trimming
+    // container. That is the SECOND way off the single-pass path, and the one
+    // `prepareHeaderBorders` bails on outright, so it toggled the class after
+    // the render on every crossing. Unknown values THROW.
+    window.htScrollMode = ({ element: 'element', window: 'window' })[htParams.get('scroll') ?? 'element'];
+    if (!window.htScrollMode) {
+      throw new Error('Unknown ?scroll= value: ' + JSON.stringify(htParams.get('scroll')));
+    }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
 </head>
@@ -65,11 +74,18 @@
     // The column to scroll to when leaving offset 0. Far enough in that the rendered band no longer
     // contains column 0, so the draw is a real band change rather than a reposition.
     const FAR_COLUMN = 12;
+    // The page offset window mode scrolls to instead, chosen to land well past column 0's band for
+    // the same reason. 30 columns at ~75px leaves plenty of document to the right of it.
+    const WINDOW_FAR_OFFSET = 900;
+
+    // Element mode sizes the grid so it scrolls inside its own holder. Window mode declares neither
+    // width nor height, which is what makes the window the trimming container - the columns then
+    // overflow the viewport and the PAGE scrolls.
+    const scrollBox = window.htScrollMode === 'window' ? {} : { width: 500, height: 300 };
 
     const hot = new Handsontable(container, {
       data: Handsontable.helper.createSpreadsheetData(20, TOTAL_COLUMNS),
-      width: 500,
-      height: 300,
+      ...scrollBox,
       // The shape under test: a row header, and NO frozen columns. The overlay only toggles
       // `innerBorderInlineStart` in exactly this combination.
       rowHeaders: true,
@@ -105,18 +121,37 @@
     };
 
     /**
+     * The grid's horizontal scroll offset, read from whichever element actually scrolls. In window
+     * mode the PAGE scrolls and the holder's own `scrollLeft` stays 0 forever, so keying the wait on
+     * the holder there would return immediately and the draw would not have happened yet.
+     */
+    const horizontalOffset = () => (
+      window.htScrollMode === 'window' ? window.scrollX : holder().scrollLeft
+    );
+
+    /**
      * Scrolls so `column` sits at the inline start and waits for the draw.
      *
-     * The wait is on the master holder's own `scrollLeft` rather than on the class: whether
+     * The wait is on the real scroll offset rather than on the class: whether
      * `innerBorderInlineStart` appears is the thing under test, so waiting on it would make the
      * test depend on its own conclusion.
+     *
+     * Window mode drives the PAGE scroll directly instead of going through `scrollViewportTo`.
+     * Asking that API for column 0 there targets the grid's own document origin, which is NOT
+     * `scrollX === 0` - the body margin and the heading above the grid put the table a little way
+     * into the page - so the offset the border state is derived from never returns to zero and the
+     * crossing never happens. A page scroll to 0 is both unambiguous and what a user does.
      */
     const scrollToColumn = async (column) => {
-      hot.scrollViewportTo({ col: column, horizontalSnap: 'start' });
+      if (window.htScrollMode === 'window') {
+        window.scrollTo(column === 0 ? 0 : WINDOW_FAR_OFFSET, window.scrollY);
+      } else {
+        hot.scrollViewportTo({ col: column, horizontalSnap: 'start' });
+      }
 
       await waitFor(
-        () => (column === 0 ? holder().scrollLeft === 0 : holder().scrollLeft !== 0),
-        `the master to scroll to column ${column}`
+        () => (column === 0 ? horizontalOffset() === 0 : horizontalOffset() !== 0),
+        `the grid to scroll to column ${column}`
       );
     };
 
