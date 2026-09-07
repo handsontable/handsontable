@@ -42,12 +42,49 @@ function waitForScrollbarClearanceToSettle(page: Page) {
 }
 
 /**
- * Makes every `screenshot()` on this page wait for that settle first. Wrapping the page is what makes
- * it uniform: the specs call `tablePage.screenshot()` directly, in a few hundred places.
+ * Drops the browser's own text-selection highlight, which a click sequence can leave behind.
  *
- * A timeout does not fail the test. The band is held open for as long as a pointer rests beside the
+ * A filter flow can end with the column header's label selected - seen on `columns-filter-2` under
+ * WebKit - and nothing in the grid takes it away: `clearTextSelection()` runs on a mousedown inside
+ * the grid, and the last click of that flow lands in the dropdown menu. The highlight paints the
+ * browser default over whatever text it covers, so the same spec publishes two correct-looking
+ * images on nothing but where the run happened to leave the caret.
+ *
+ * Handsontable's own cell selection is drawn by the grid and is untouched.
+ *
+ * A focused editor is left alone. `removeAllRanges()` also collapses the selection inside a focused
+ * text control, and `DateEditor#focus()` selects its value on purpose, so a screenshot of an open
+ * editor would lose the highlight it exists to capture. An empty control - the grid's own focus
+ * catcher - has nothing to lose and must not block the clear.
+ *
+ * @param {Page} page The page about to be captured.
+ * @returns {Promise<void>} Resolves once no stray native selection is left.
+ */
+function clearNativeTextSelection(page: Page) {
+  // The callback runs in the browser, where `window` and `document` are the right globals to use.
+  /* eslint-disable no-restricted-globals */
+  return page.evaluate(() => {
+    const active = document.activeElement;
+    const isTextControl = active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement;
+
+    if (isTextControl && active.value !== '') {
+      return;
+    }
+
+    window.getSelection()?.removeAllRanges();
+  });
+  /* eslint-enable no-restricted-globals */
+}
+
+/**
+ * Makes every `screenshot()` on this page wait for that settle first, and drop any stray native text
+ * selection. Wrapping the page is what makes it uniform: the specs call `tablePage.screenshot()`
+ * directly, in a few hundred places.
+ *
+ * Neither step fails the test. The band is held open for as long as a pointer rests beside the
  * scrollbar, and a spec that leaves the mouse there would otherwise turn a visual check into a hang -
- * so a stuck band costs the old flaky screenshot, not a red suite.
+ * so a stuck band costs the old flaky screenshot, not a red suite. The selection clear is best-effort
+ * for the same reason: a page torn down mid-capture must not turn into a failure.
  *
  * @param {Page} page The page to instrument.
  */
@@ -63,6 +100,7 @@ function installScrollbarClearanceSettle(page: Page) {
   // eslint-disable-next-line no-param-reassign
   page.screenshot = (async(options?: Parameters<Page['screenshot']>[0]) => {
     await waitForScrollbarClearanceToSettle(page).catch(() => {});
+    await clearNativeTextSelection(page).catch(() => {});
 
     return capture(options);
   }) as Page['screenshot'];
