@@ -97,6 +97,16 @@ describe('resolveRootSize', () => {
     ])('should reject `%s` even when the oracle accepts it', (keyword) => {
       expect(resolveRootSize(keyword, () => true).kind).toBe('invalid');
     });
+
+    // The prefixed synonyms of `stretch`. They match no length grammar and no container-driven
+    // pattern, so an oracle that accepts them (every browser does) would resolve a container-FILLING
+    // width as a definite one, and the applier would clip the columns past the container with no
+    // scrollbar. `-webkit-fill-available` is the common iOS Safari fill idiom.
+    it.each([
+      '-webkit-fill-available', '-moz-available', '-WEBKIT-FILL-AVAILABLE',
+    ])('should reject the container-filling synonym `%s`', (keyword) => {
+      expect(resolveRootSize(keyword, () => true).kind).toBe('invalid');
+    });
   });
 
   describe('unreadable values', () => {

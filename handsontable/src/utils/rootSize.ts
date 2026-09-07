@@ -68,10 +68,17 @@ const CONTAINER_DRIVEN_PATTERN = /%|\d[sld]?v(?:w|h|min|max|i|b)\b|\dcq(?:w|h|i|
 /**
  * CSS keywords the browser accepts for a size but which collapse or unsize the grid. They are
  * rejected before the oracle sees them, because `CSS.supports` would accept every one.
+ *
+ * `-webkit-fill-available` and `-moz-available` are the prefixed synonyms of `stretch` and have to
+ * be listed with it. They match neither the length grammar nor `CONTAINER_DRIVEN_PATTERN`, so
+ * without an entry here the oracle accepts them, the value resolves as a definite width, and
+ * `overflow-x: clip` is written over a root that in fact fills its container - the columns past the
+ * container's width are then clipped with no scrollbar anywhere, which is the failure the relative
+ * widths are exempted to avoid. `-webkit-fill-available` is the common iOS Safari fill idiom.
  */
 const REJECTED_KEYWORDS = new Set([
   'fit-content', 'min-content', 'max-content', 'inherit', 'initial', 'unset', 'revert',
-  'revert-layer', 'stretch', 'none', 'normal',
+  'revert-layer', 'stretch', '-webkit-fill-available', '-moz-available', 'none', 'normal',
 ]);
 
 /**
