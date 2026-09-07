@@ -200,10 +200,12 @@ class MasterTable extends Table {
     const { geometryReader } = this.deps;
 
     if (!xIsElement && !yIsElement) {
-      // Window mode sizes nothing, so a pixel size left on the holder by a previous element or split
-      // layout has to be dropped here - nothing else writes it back. A grid moved from `width: 500`
-      // to `width: '100%'` kept a 500px holder, and `measureWorkspaceWidth`'s window branch reads
-      // exactly that, so the columns went on stretching to the old width inside a full-width root.
+      // Nothing sizes the holder here - the page scrolls both axes, so it is left to the DOM. A grid
+      // that ARRIVED from the split mode still carries the pixel `width` and the `height` that mode
+      // wrote (a clip removed from an ancestor, a `width` that stopped being definite), and those
+      // would pin the holder to the old box while the page is supposed to size it. Clearing them is
+      // the whole of this mode's sizing. `measureWorkspaceWidth`'s window branch reads the holder
+      // width, so a stale one also kept the columns stretching to the old box.
       const holderStyle = this.holder.style;
 
       holderStyle.width = '';

@@ -1,7 +1,14 @@
 import type { HotInstance } from '../../core/types';
 import type { CellProperties } from '../../settings';
 import EventManager from '../../eventManager';
-import { empty, addClass, eventTargetEl, setAttribute, isHTMLElement } from '../../helpers/dom/element';
+import {
+  empty,
+  addClass,
+  eventTargetEl,
+  setAttribute,
+  isHTMLElement,
+  getCellContentRoot,
+} from '../../helpers/dom/element';
 import { isEmpty, stringify } from '../../helpers/mixed';
 import { localeLowerCase } from '../../helpers/string';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
@@ -75,7 +82,10 @@ export function checkboxRenderer(
     cellProperties.uncheckedTemplate = false;
   }
 
-  empty(TD); // TODO identify under what circumstances this line can be removed
+  // Written through the content root so an exact-height row's clipping wrapper survives the redraw.
+  const contentRoot = getCellContentRoot(TD);
+
+  empty(contentRoot); // TODO identify under what circumstances this line can be removed
 
   const locale = cellProperties.locale as string | undefined;
 
@@ -145,8 +155,8 @@ export function checkboxRenderer(
 
       if (labelOptions.position === 'before') {
         if (labelOptions.separated) {
-          TD.appendChild(label);
-          TD.appendChild(input);
+          contentRoot.appendChild(label);
+          contentRoot.appendChild(input);
 
         } else {
           label.appendChild(input);
@@ -154,8 +164,8 @@ export function checkboxRenderer(
         }
       } else if (!labelOptions.position || labelOptions.position === 'after') {
         if (labelOptions.separated) {
-          TD.appendChild(input);
-          TD.appendChild(label);
+          contentRoot.appendChild(input);
+          contentRoot.appendChild(label);
 
         } else {
           label.insertBefore(input, label.firstChild);
@@ -166,11 +176,11 @@ export function checkboxRenderer(
   }
 
   if (!labelOptions || (labelOptions && !labelOptions.separated)) {
-    TD.appendChild(inputOrWrapper);
+    contentRoot.appendChild(inputOrWrapper);
   }
 
   if (badValue) {
-    TD.appendChild(rootDocument.createTextNode(BAD_VALUE_TEXT));
+    contentRoot.appendChild(rootDocument.createTextNode(BAD_VALUE_TEXT));
   }
 
   if (!isListeningKeyDownEvent.has(hotInstance)) {

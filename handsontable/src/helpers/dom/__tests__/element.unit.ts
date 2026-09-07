@@ -5,6 +5,8 @@ import {
   closestDown,
   getParent,
   getScrollbarWidth,
+  getScrollLeft,
+  getScrollTop,
   getFractionalScalingCompensation,
   hasClass,
   isInput,
@@ -15,6 +17,8 @@ import {
   setAttribute,
   fastInnerHTML,
   fastInnerText,
+  getCellContentRoot,
+  CELL_CLIP_CLASS,
   HTML_CHARACTERS,
   isVisible,
   findFirstParentWithClass,
@@ -1189,6 +1193,58 @@ describe('DomElement helper', () => {
       expect(element.querySelector('b')).toBe(null);
       expect(element.textContent).toBe('<b>ID</b>');
     });
+
+    it('should write into the clipping wrapper when the element holds one', () => {
+      const element = document.createElement('td');
+
+      element.innerHTML = `<div class="${CELL_CLIP_CLASS}">old</div>`;
+
+      const wrapper = element.firstElementChild;
+
+      fastInnerText(element, 'new');
+
+      expect(element.childNodes.length).toBe(1);
+      expect(element.firstElementChild).toBe(wrapper);
+      expect(wrapper?.childNodes.length).toBe(1);
+      expect(wrapper?.textContent).toBe('new');
+    });
+  });
+
+  //
+  // Handsontable.helper.getCellContentRoot
+  //
+  describe('getCellContentRoot', () => {
+    it('should return the element itself when it holds no wrapper', () => {
+      const element = document.createElement('td');
+
+      element.textContent = 'text';
+
+      expect(getCellContentRoot(element)).toBe(element);
+    });
+
+    it('should return the wrapper when it is the only child', () => {
+      const element = document.createElement('td');
+
+      element.innerHTML = `<div class="${CELL_CLIP_CLASS}">text</div>`;
+
+      expect(getCellContentRoot(element)).toBe(element.firstElementChild);
+    });
+
+    it('should return the element itself when the wrapper has siblings', () => {
+      const element = document.createElement('td');
+
+      element.innerHTML = `<i>x</i><div class="${CELL_CLIP_CLASS}">text</div>`;
+
+      expect(getCellContentRoot(element)).toBe(element);
+    });
+
+    it('should not mistake another div for the wrapper', () => {
+      const element = document.createElement('td');
+
+      element.innerHTML = '<div class="other">text</div>';
+
+      expect(getCellContentRoot(element)).toBe(element);
+    });
   });
 
   //
@@ -1292,6 +1348,39 @@ describe('DomElement helper', () => {
 
     it('should return `false` for a window, which is not an element on any realm', () => {
       expect(isHTMLElement(window)).toBe(false);
+    });
+  });
+
+  //
+  // Handsontable.helper.getScrollTop / getScrollLeft
+  //
+  describe('getScrollTop / getScrollLeft', () => {
+    it('should read the offsets off an element', () => {
+      const element = document.createElement('div');
+
+      element.scrollTop = 12;
+      element.scrollLeft = 34;
+
+      expect(getScrollTop(element, window)).toBe(12);
+      expect(getScrollLeft(element, window)).toBe(34);
+    });
+
+    it('should read the offsets off the root window when the element IS a window', () => {
+      const rootWindow = { scrollY: 56, scrollX: 78 } as unknown as Window;
+
+      expect(getScrollTop(window, rootWindow)).toBe(56);
+      expect(getScrollLeft(window, rootWindow)).toBe(78);
+    });
+
+    it('should read the offsets off the root window for a window from another realm', () => {
+      // A window built by another realm (an iframe driven from the parent page) is not
+      // `instanceof` this realm's `Window`. A realm-bound test then fell through to reading
+      // `window.scrollTop`, which is `undefined`, and the row calculators built the band from it.
+      const foreignWindow = { scrollY: 56, scrollX: 78 } as unknown as Window;
+
+      expect(foreignWindow instanceof Window).toBe(false);
+      expect(getScrollTop(foreignWindow, foreignWindow)).toBe(56);
+      expect(getScrollLeft(foreignWindow, foreignWindow)).toBe(78);
     });
   });
 

@@ -78,4 +78,38 @@ test.describe('cross-realm width-only grid: the engine must agree with itself ab
 
     await expect.poll(async () => (await grid.holderState()).scrollLeft).toBeGreaterThan(0);
   });
+
+  // The vertical axis is the iframe's window, and the engine reads its offset through
+  // `getScrollTop(owner, rootWindow)`. That helper told a window from an element with `instanceof
+  // Window`, which a cross-realm window fails, so it fell through to `window.scrollTop` — which is
+  // `undefined` — and the row calculators put the band on the LAST rows of the grid at page top.
+  // Nothing in this file had asked which rows render, so the wrong band went unnoticed.
+  test('renders the first rows at the top of the page and follows the window scroll', async () => {
+    expect((await grid.masterRowBand()).first).toBeLessThanOrEqual(2);
+
+    await grid.scrollFrameWindowBy(0, 800);
+
+    await expect.poll(async () => (await grid.masterRowBand()).first).toBeGreaterThan(10);
+  });
+
+  // While an arrow key is held, `#onTableScroll` syncs the clones only when the scroll came from
+  // the holder itself — and it told the holder from the window with `instanceof HTMLElement`. A
+  // cross-realm holder failed that, so the sync was skipped for the whole key press and the top
+  // clone kept the band it had before the scroll. The key is released before the read, because
+  // nothing re-syncs on keyup: the misalignment is what the user is left with.
+  test('keeps the top clone aligned while an arrow key scrolls the holder', async () => {
+    const columns = (await grid.renderedColumns()).master;
+    const row = (await grid.masterRowBand()).first + 3;
+
+    // The last-but-one rendered column: one step right lands on a partly visible column, and
+    // bringing it fully into view is what scrolls the holder.
+    await grid.clickMasterCell(row, columns[columns.length - 2]);
+    await grid.page.keyboard.down('ArrowRight');
+    await expect.poll(async () => (await grid.holderState()).scrollLeft).toBeGreaterThan(0);
+    await grid.page.keyboard.up('ArrowRight');
+
+    const alignment = await grid.columnAlignment();
+
+    expect(Math.abs(alignment.topCloneX - alignment.masterX)).toBeLessThanOrEqual(2);
+  });
 });

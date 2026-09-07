@@ -153,6 +153,82 @@ test.describe('width-only grid: holder scrolls columns, window scrolls rows', ()
     await expect.poll(async () => (await grid.scrollExtents()).windowScrollY).toBeGreaterThan(0);
   });
 
+  // The bottom clearance strip (#10370) clears the holder's HORIZONTAL scrollbar, so it has to ask
+  // the horizontal axis owner — and in this layout that is the holder while the bottom overlay's own
+  // owner is the window. One predicate taken from the vertical owner said "the window's scrollbar" for
+  // both strips and published 0, so at the grid's end the frozen bottom rows rested on the holder's
+  // bottom edge and painted over its floating scrollbar. The strip is also only wanted ON that edge:
+  // mid-page the rows float over live cells, and a strip there is a clipped clone plus a band over
+  // nothing. Classic scrollbars take their own space, so nothing may be clipped in that regime (the
+  // existing contract of `overlay-scrollbar-clearance.spec.ts`); CI's headless Chromium is floating.
+  test('clears the holder\'s horizontal scrollbar under the frozen bottom rows only at the grid\'s end', async () => {
+    await grid.updateSettings({ fixedRowsBottom: 2 });
+
+    const atEnd = await grid.bottomEdgeState('end');
+
+    expect(atEnd.windowAtEnd).toBe(true);
+    // The frozen columns span the holder's full height here, so they cover the edge in both regimes'
+    // terms — that is the precondition that the strip machinery is alive on this layout at all.
+    expect(atEnd.coversBottomEdge.frozenColumns).toBe(atEnd.gutterY === 0);
+
+    if (atEnd.gutterY === 0) {
+      expect(atEnd.coversBottomEdge.bottomRows).toBe(true);
+      expect(atEnd.coversBottomEdge.corner).toBe(true);
+      expect(atEnd.clips.bottomRows).toMatch(/inset\(/);
+      expect(atEnd.clips.corner).toMatch(/inset\(/);
+      expect(atEnd.bands).toBeGreaterThan(0);
+    } else {
+      expect(atEnd.coversBottomEdge.bottomRows).toBe(false);
+      expect(atEnd.clips.bottomRows).toBe('none');
+    }
+
+    const midPage = await grid.bottomEdgeState('middle');
+
+    expect(midPage.windowAtEnd).toBe(false);
+    expect(midPage.coversBottomEdge.bottomRows).toBe(false);
+    expect(midPage.coversBottomEdge.corner).toBe(false);
+    expect(midPage.clips.bottomRows).toBe('none');
+    expect(midPage.clips.corner).toBe('none');
+  });
+
+  // Leaving split mode has to undo its sizing. That mode pins the holder to its owner's box in
+  // pixels; the window mode that follows sizes nothing, because the page sizes it — so the pixel
+  // width stayed behind and kept the holder at the old box. The stale box also fed the column
+  // calculators, which went on rendering the band the holder had been scrolled to.
+  test('drops the split-mode holder size when both axes go back to the window', async () => {
+    await grid.rebuild({ width: undefined, preventOverflow: 'horizontal' }, '500px');
+
+    expect((await grid.axisOwners()).horizontalByWindow).toBe(false);
+
+    // The band the holder shows before it is scrolled. Read, never hardcoded: each theme sizes the
+    // columns differently, so the same holder width holds a different number of them.
+    const bandAtRest = await grid.renderedColumns();
+
+    await grid.scrollHolderBy(600);
+
+    const inSplitMode = await grid.holderSizing();
+    const bandScrolled = await grid.renderedColumns();
+
+    expect(inSplitMode.width).toMatch(/px$/);
+    // The viewport moved clear of where it started — every column on screen is past the last one
+    // that was there before. Stronger than "the first index grew", and still theme-independent.
+    expect(bandScrolled[0]).toBeGreaterThan(bandAtRest[bandAtRest.length - 1]);
+
+    await grid.updateSettings({ preventOverflow: false });
+
+    expect((await grid.axisOwners()).horizontalByWindow).toBe(true);
+
+    const inWindowMode = await grid.holderSizing();
+
+    expect(inWindowMode.width).toBe('');
+    expect(inWindowMode.height).toBe('');
+    // Back to the band the grid renders when nothing has scrolled it. The holder now spans the page,
+    // so it holds MORE columns than at rest — the start is what says the scroll was let go of, and
+    // it is the stale pixel width that used to keep it stuck on the scrolled band.
+    expect(inWindowMode.firstColumn).toBe(bandAtRest[0]);
+    expect((await grid.renderedColumns()).length).toBeGreaterThan(bandAtRest.length);
+  });
+
   test('mirrors the layout in RTL', async () => {
     await grid.rebuild({ layoutDirection: 'rtl' });
 

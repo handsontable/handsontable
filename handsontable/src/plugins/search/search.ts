@@ -1,5 +1,7 @@
 import type { HotInstance } from '../../core/types';
+import type { CellProperties } from '../../settings';
 import { BasePlugin } from '../base';
+import { normalizeClassNames } from '../../helpers/dom/element';
 import { isObject } from '../../helpers/object';
 import { rangeEach } from '../../helpers/number';
 import { isUndefined } from '../../helpers/mixed';
@@ -165,15 +167,13 @@ export class Search extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    const beforeRendererCallback = (
-      td: HTMLTableCellElement, row: number, col: number, prop: string | number,
-      value: string, cellProperties: Record<string, unknown>
-    ) => this.#onBeforeRenderer(td, row, col, prop, value, cellProperties);
-
-    this.hot.addHook('beforeRenderer', beforeRendererCallback);
-    this.hot.addHookOnce('afterViewRender', () => {
-      this.hot.removeHook('beforeRenderer', beforeRendererCallback);
-    });
+    // The class lives in the stored meta of every cell that was painted while it matched, on screen
+    // or scrolled away since. Strip it there, not through a render: a render reaches only the
+    // rendered band, and a match scrolled back into view later would still carry the class. The
+    // `isSearchResult` flag stays, so `updatePlugin()` (disable + enable) keeps the results, as it
+    // always did. Every cell then repaints from the stripped meta, under any `renderMode`.
+    this.#removeResultClassFromStoredMeta();
+    this.hot.markAllCellsChanged();
 
     super.disablePlugin();
   }
@@ -230,6 +230,10 @@ export class Search extends BasePlugin {
         }
       });
     });
+
+    // The result class is applied inside `beforeRenderer`, from state only this plugin holds, so a
+    // `renderMode: 'onChange'` cell would keep the previous query's class. Every cell has to paint.
+    this.hot.markAllCellsChanged();
 
     return queryResult;
   }
@@ -322,25 +326,22 @@ export class Search extends BasePlugin {
    */
   #onBeforeRenderer = (
     TD: HTMLTableCellElement, row: number, col: number, prop: string | number,
-    value: string, cellProperties: Record<string, unknown>
+    value: string, cellProperties: CellProperties
   ) => {
     // TODO: #4972
-    const className = cellProperties.className || [];
-    let classArray = [];
-
-    if (typeof className === 'string') {
-      classArray = className.split(' ');
-
-    } else if (Array.isArray(className)) {
-      classArray.push(...className);
-    }
+    // `className` is publicly typed `string | string[]`. `normalizeClassNames()` returns a fresh
+    // array, so the push and splice below never reach a grid-level or column-level array - that is
+    // one instance shared by every cell through the cell meta prototype chain.
+    const classArray = normalizeClassNames(cellProperties.className);
 
     // `isSearchResult` is recorded in `_persistedMetaProps` for matches (see the default callback), so
     // it survives viewport meta eviction and shifts with the cell on row/column changes - reading it
     // here is enough; no separate match-coordinate set is needed.
     const isSearchResult = cellProperties.isSearchResult;
 
-    if (this.isEnabled() && isSearchResult) {
+    // The plugin's runtime state, not the `search` setting: a direct `disablePlugin()` leaves the
+    // setting as it was, and its one-shot pass through this hook exists to strip the class.
+    if (this.enabled && isSearchResult) {
       if (!classArray.includes(this.searchResultClass)) {
         classArray.push(`${this.searchResultClass}`);
       }
@@ -351,6 +352,19 @@ export class Search extends BasePlugin {
 
     cellProperties.className = classArray.join(' ');
   };
+
+  /**
+   * Removes the result class from the `className` of every stored cell meta that carries it.
+   */
+  #removeResultClassFromStoredMeta() {
+    this.hot.getCellsMeta().forEach((cellMeta: Record<string, unknown>) => {
+      const classNames = normalizeClassNames(cellMeta.className as string | string[] | undefined);
+
+      if (classNames.includes(this.searchResultClass)) {
+        cellMeta.className = classNames.filter(className => className !== this.searchResultClass).join(' ');
+      }
+    });
+  }
 
   /**
    * Destroys the plugin instance.

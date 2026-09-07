@@ -89,6 +89,50 @@
   white-space: pre-wrap;
 }
 
+/* Exact row heights: the engine pins the row at its provided height and clips the content (a table
+   cell cannot be shorter than its in-flow content, so the wrapper is taken out of flow). */
+.handsontable tr.htExactRow > td,
+.handsontable tr.htExactRow > th {
+  position: relative;
+  height: auto;
+  padding: 0;
+}
+
+/* The insets mirror the cells' own padding above (`0 4px`, no vertical padding). */
+.handsontable tr.htExactRow > td > .htCellClip {
+  position: absolute;
+  inset: 0 4px;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-height: 0;
+  box-sizing: border-box;
+}
+
+/* `align-content` on the block box, not flex: the indicator renderers float their arrows. */
+.handsontable tr.htExactRow > td.htMiddle > .htCellClip {
+  align-content: center;
+}
+
+.handsontable tr.htExactRow > td.htBottom > .htCellClip {
+  align-content: end;
+}
+
+.handsontable tbody tr.htExactRow > th > .relative {
+  position: absolute;
+  inset: 0;
+  min-height: 0;
+}
+
+/* Clip the header's own content, not `.relative` (mirrors `_base.scss`, where a clip there would
+   cut the active-row accent bar drawn as `.relative::after`). */
+.handsontable tbody tr.htExactRow > th > .relative > .rowHeader {
+  display: block;
+  height: 100%;
+  overflow: hidden;
+}
+
 .handsontable th:last-child {
   /* Foundation framework fix */
   border-inline-start: none;
@@ -178,9 +222,14 @@ innerBorderBottom - Property controlled by bottom overlay
 /*
  * Overlay clone layers. Declared twice — here and in `src/styles/base/_z-index-map.scss`, which also
  * documents the 101–119 window reserved for selection affordances drawn inside an overlay. Keep the
- * two lists in sync, and keep every affordance below 120: `.ht_master` opens no stacking context, so
- * anything at or above that value paints over a frozen pane its cell has scrolled under.
+ * two lists in sync.
  */
+.ht_master {
+  // Keep the scrollable table and its browser-promoted scrolling layer below the frozen overlays.
+  // This is required when an ancestor's CSS transform creates a separate compositing context.
+  z-index: 0;
+}
+
 .ht_clone_master {
   z-index: 100;
 }

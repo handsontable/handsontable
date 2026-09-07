@@ -4,9 +4,8 @@ import {
 } from '../../../../../helpers/dom/element';
 import BottomInlineStartCornerOverlayTable from '../../table/regions/bottomInlineStartCornerTable';
 import { Overlay, type OverlayDeps } from './_base';
+import type { BottomOverlay } from './bottomOverlay';
 import {
-  holderOwnsAxisScrollbar,
-  axisScrollbarClearance,
   reservedScrollbarSpace,
 } from '../scrollbarClearance';
 import {
@@ -20,7 +19,7 @@ export class BottomInlineStartCornerOverlay extends Overlay {
   /**
    * @type {Overlay}
    */
-  declare bottomOverlay: Overlay;
+  declare bottomOverlay: BottomOverlay;
   /**
    * @type {Overlay}
    */
@@ -30,7 +29,7 @@ export class BottomInlineStartCornerOverlay extends Overlay {
    * @param {BottomOverlay} bottomOverlay The instance of the Top overlay.
    * @param {InlineStartOverlay} inlineStartOverlay The instance of the InlineStart overlay.
    */
-  constructor(deps: OverlayDeps, bottomOverlay: Overlay, inlineStartOverlay: Overlay) {
+  constructor(deps: OverlayDeps, bottomOverlay: BottomOverlay, inlineStartOverlay: Overlay) {
     super(deps, CLONE_BOTTOM_INLINE_START_CORNER);
     this.bottomOverlay = bottomOverlay;
     this.inlineStartOverlay = inlineStartOverlay;
@@ -129,35 +128,18 @@ export class BottomInlineStartCornerOverlay extends Overlay {
 
     // This corner is drawn over the bottom edge, on top of both the frozen-column and frozen-bottom-row
     // overlays, so it would re-cover the strip they leave clear for an overlay scrollbar (#10370).
-    // Gated on both axes for the same reason as the frozen bottom rows: without a vertical scroll this
-    // corner is lifted clear of the horizontal scrollbar anyway.
-    const wtViewport = this.deps.getWtViewport();
     // Only while this corner is actually painting. Its `clone` exists either way, and unlike its
     // siblings it still has to be repositioned when it is not rendering (four positioning specs pin
     // that), so the guard belongs on the clearance rather than on the whole method. Without it the
     // corner recomputed a live strip on a dead overlay every draw, and went on reporting the bottom
     // edge as covered - which is what decides whether a band is drawn at all.
-    // The same gate the frozen bottom rows use, and it has to be the same one: this corner is drawn
-    // over that overlay, so if the two disagree the band is left half-covered. Under window trimming
-    // the scrollbar belongs to the window, `BottomOverlay` publishes 0, and a corner that published 16
-    // anyway was clipped out of a strip its neighbour still painted into - a notch along the bottom
-    // edge where the frozen columns stop and the frozen rows carry on.
-    //
-    // A touch-only device has no pointer that could reach the scrollbar - see `canGrabScrollbar`.
-    // Clip and band together, or not at all - see `TopOverlay#adjustRootElementSize`.
-    // This strip lies on the bottom edge, so it is the HORIZONTAL scrollbar's - the same axis the
-    // frozen bottom rows ask about, so the two gates cannot disagree. Reading the bottom overlay's
-    // own owner asked about the vertical axis instead, which left this corner publishing nothing
-    // while the frozen columns clipped a strip beside it.
-    const clearanceApplies =
-      holderOwnsAxisScrollbar(wtViewport.isHorizontallyScrollableByWindow(), rootWindow);
-    const bottomClearance = this.needFullRender ? axisScrollbarClearance(
-      this.deps.geometryReader,
-      this.deps.getWtTable().holder,
-      this.deps.geometryReader.getScrollbarWidth(this.deps.rootDocument),
-      clearanceApplies && wtViewport.hasHorizontalScroll() && wtViewport.hasVerticalScroll(),
-      'horizontal'
-    ) : 0;
+    // The strip is the frozen-bottom-rows overlay's own, read rather than recomputed: this corner is
+    // drawn over that overlay, so if the two disagree the band is left half-covered - a notch along
+    // the bottom edge where the frozen columns stop and the frozen rows carry on. That overlay keys
+    // the strip on the HORIZONTAL axis owner (the scrollbar it clears is the horizontal one; its own
+    // `trimmingContainer` is the vertical owner, and in split mode that is the window) and on
+    // whether it rests on the holder's bottom edge, and the draw cycle positions it before this corner.
+    const bottomClearance = this.needFullRender ? this.bottomOverlay.getBottomClearance() : 0;
 
     overlayRoot.style.height = `${tableHeight}px`;
     overlayRoot.style.width = `${tableWidth}px`;

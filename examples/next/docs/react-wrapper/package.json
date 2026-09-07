@@ -4,5 +4,11 @@
   "private": true,
   "workspaces": [
     "@(!(node_modules))/"
-  ]
+  ],
+  "overrides": {
+    "minimatch@9": "^9.0.7",
+    "postcss": "^8.5.18",
+    "serialize-javascript": "^7.0.3",
+    "underscore": "^1.13.8"
+  }
 }

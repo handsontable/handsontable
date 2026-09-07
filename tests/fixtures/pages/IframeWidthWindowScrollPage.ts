@@ -111,6 +111,71 @@ export class IframeWidthWindowScrollPage {
   }
 
   /**
+   * The rows the master renders right now, read off the engine. Which BAND renders is the vertical
+   * axis' answer to "where is the window scrolled to", and a window the engine cannot recognize
+   * answered it with `undefined` — the band then landed on the last rows of the grid.
+   */
+  async masterRowBand(): Promise<{ first: number, last: number }> {
+    return this.page.evaluate(() => {
+      const wtTable = (window as unknown as { hot: { view: { _wt: { wtTable: {
+        getFirstRenderedRow(): number,
+        getLastRenderedRow(): number,
+      } } } } }).hot.view._wt.wtTable;
+
+      return { first: wtTable.getFirstRenderedRow(), last: wtTable.getLastRenderedRow() };
+    });
+  }
+
+  /** Scrolls the IFRAME's window by a delta and waits two of its frames. */
+  async scrollFrameWindowBy(x: number, y: number): Promise<void> {
+    await this.page.evaluate(([dx, dy]) => {
+      const win = (window as unknown as { frameWin: Window }).frameWin;
+
+      win.scrollBy(dx, dy);
+
+      return new Promise(resolve => {
+        win.requestAnimationFrame(() => win.requestAnimationFrame(resolve));
+      });
+    }, [x, y]);
+  }
+
+  /** Clicks a master cell INSIDE the iframe — an input, so it goes through a `frameLocator`. */
+  async clickMasterCell(row: number, col: number): Promise<void> {
+    await this.page.frameLocator('#frame').locator('.ht_master').getByTestId(`cell-${row}-${col}`).click();
+  }
+
+  /**
+   * Where one rendered column sits in the master and in the top clone, inside the iframe's own
+   * coordinate space. The two must agree: the top clone follows the master's horizontal scroll,
+   * and nothing else keeps the frozen rows over their columns.
+   */
+  async columnAlignment(): Promise<{ column: number, masterX: number, topCloneX: number }> {
+    return this.page.evaluate(() => {
+      const doc = (window as unknown as { frameDoc: Document }).frameDoc;
+      const firstRow = doc.querySelector('.ht_master tbody tr:first-child');
+      const cells = Array.from(firstRow?.querySelectorAll('td[data-testid]') ?? []);
+      const probe = cells[Math.floor(cells.length / 2)];
+
+      if (!probe) {
+        throw new Error('the master renders no columns');
+      }
+
+      const [, row, column] = (probe.getAttribute('data-testid') ?? '').split('-').map(Number);
+      const topCell = doc.querySelector(`.ht_clone_top [data-testid="cell-0-${column}"]`);
+
+      if (!topCell) {
+        throw new Error(`column ${column} is not rendered in the top clone`);
+      }
+
+      return {
+        column,
+        masterX: doc.querySelector(`.ht_master [data-testid="cell-${row}-${column}"]`)!.getBoundingClientRect().x,
+        topCloneX: topCell.getBoundingClientRect().x,
+      };
+    });
+  }
+
+  /**
    * How many times the grid's scroll hooks fired since the last build. They are driven by the
    * engine's per-frame scroll-direction flags, which are computed from the offsets read off each
    * axis' owner — the one thing in the engine that ONLY those reads decide.

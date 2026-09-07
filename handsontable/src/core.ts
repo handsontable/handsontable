@@ -1,4 +1,5 @@
 import { addClass, empty, isShadowRoot, observeVisibilityChangeOnce, removeClass } from './helpers/dom/element';
+import { RenderChangeTracker, markCellMetaChanged } from './core/incrementalRender/renderChangeTracker';
 import { isFunction } from './helpers/function';
 import { isDefined, isUndefined, isRegExp, isEmpty } from './helpers/mixed';
 import { isMobileBrowser, isIpadOS } from './helpers/browser';
@@ -648,6 +649,8 @@ export default function Core(
     DynamicCellMetaMod,
     ExtendMetaPropertiesMod,
   ]);
+
+  this.renderChangeTracker = new RenderChangeTracker();
   const tableMeta = metaManager.getTableMeta() as Record<string, unknown> & {
     fixedRowsTop: number;
     fixedRowsBottom: number;
@@ -1035,6 +1038,8 @@ export default function Core(
   );
 
   this.columnIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: IndexesChangesState) => {
+    this.renderChangeTracker.markAllChanged();
+
     const hadOpenEditor = onIndexMapperCacheUpdate(indexesChangesState, 'column');
     // Read and RECORDED before the public hook, both for the same reason: what a consumer does must
     // not rewrite this update's answer, and must not be undone by it either. A consumer calling
@@ -1061,6 +1066,8 @@ export default function Core(
   });
 
   this.rowIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: IndexesChangesState) => {
+    this.renderChangeTracker.markAllChanged();
+
     const hadOpenEditor = onIndexMapperCacheUpdate(indexesChangesState, 'row');
     const indexCount = this.rowIndexMapper.getNumberOfIndexes();
     const isStructuralChange = indexCount !== lastRowIndexCount;
@@ -2585,13 +2592,17 @@ export default function Core(
 
     if (storedCellProperties !== undefined) {
       (storedCellProperties as { valid?: boolean }).valid = valid;
+      markCellMetaChanged(storedCellProperties);
 
     } else if (valid === false) {
-      (metaManager.getCellMeta(physicalRow as number, physicalColumn as number, {
+      const materializedCellProperties = metaManager.getCellMeta(physicalRow as number, physicalColumn as number, {
         visualRow: cellProperties.visualRow as number,
         visualColumn: cellProperties.visualCol as number,
         skipMetaExtension: true,
-      }) as { valid?: boolean }).valid = valid;
+      }) as { valid?: boolean };
+
+      materializedCellProperties.valid = valid;
+      markCellMetaChanged(materializedCellProperties);
     }
   }
 
@@ -2675,6 +2686,7 @@ export default function Core(
           valid = instance
             .runHooks('afterValidate', valid, value, cellProperties.visualRow, colArg, source);
           cellProperties.valid = valid;
+          markCellMetaChanged(cellProperties);
 
           persistValidationResult(cellProperties, valid, structureVersion);
 
@@ -2689,6 +2701,7 @@ export default function Core(
       // resolve callback even if validator function was not found
       instance._registerMicrotask(() => {
         cellProperties.valid = true;
+        markCellMetaChanged(cellProperties);
         done(cellProperties.valid, false);
       });
     }
@@ -3357,6 +3370,63 @@ export default function Core(
   };
 
   /**
+   * Marks one cell as changed, so the next render paints it even when its
+   * [`renderMode`](@/api/options.md#rendermode) is `'onChange'` and neither its value nor its meta
+   * changed. Use it for a renderer that reads state outside the grid, after that state changes. The
+   * method does not render; call [`render()`](#render) afterwards.
+   *
+   * Under the default `renderMode: 'always'` every render paints every cell, so the call is a no-op.
+   *
+   * @memberof Core#
+   * @function markCellChanged
+   * @since 18.2.0
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @example
+   * ```js
+   * theme = 'dark'; // state the renderer of cell (0, 0) reads
+   * hot.markCellChanged(0, 0);
+   * hot.render();
+   * ```
+   */
+  this.markCellChanged = function(row: number, column: number) {
+    const physicalRow = instance.toPhysicalRow(row);
+    const physicalColumn = instance.toPhysicalColumn(column);
+
+    if (physicalRow === null || physicalColumn === null) {
+      return;
+    }
+
+    // Only a stored meta object can back a painted element: the render path stores the meta of every
+    // cell it paints, eviction sweeps rows outside the rendered band only, and a fresh element carries
+    // no stamp. A cell without stored meta is painted nowhere, so marking it would only materialize
+    // its meta (and run the `cells` function and the meta hooks) for nothing.
+    const cellMeta = metaManager.getCellMetaIfExists(physicalRow, physicalColumn);
+
+    if (cellMeta) {
+      markCellMetaChanged(cellMeta);
+    }
+  };
+
+  /**
+   * Marks every cell as changed, so the next render paints all of them regardless of their
+   * [`renderMode`](@/api/options.md#rendermode). The method does not render; call
+   * [`render()`](#render) afterwards.
+   *
+   * @memberof Core#
+   * @function markAllCellsChanged
+   * @since 18.2.0
+   * @example
+   * ```js
+   * hot.markAllCellsChanged();
+   * hot.render(); // repaints every rendered cell, as a render does under `renderMode: 'always'`
+   * ```
+   */
+  this.markAllCellsChanged = function() {
+    instance.renderChangeTracker.markAllChanged();
+  };
+
+  /**
    * The method aggregates multi-line API calls into a callback and postpones the
    * table rendering process. After the execution of the operations, the table is
    * rendered once. As a result, it improves the performance of wrapped operations.
@@ -3641,6 +3711,10 @@ export default function Core(
       (newDataMap: DataMapInstance) => {
         datamap = newDataMap;
 
+        // The whole dataset is replaced, so every cell repaints, as after `loadData()`. A same-size
+        // update changes no index-mapper cache, which is what would otherwise advance the epoch.
+        instance.renderChangeTracker.markAllChanged();
+
         // `fitToLength()` strands an open editor the same way `alter()`'s removal does (a
         // shrinking dataset renumbers the physical space under it), and `selection.refresh()`
         // below is this operation's re-prepare chance - so the same structural-change scope
@@ -3698,6 +3772,7 @@ export default function Core(
         datamap = newDataMap;
       },
       () => {
+        instance.renderChangeTracker.markAllChanged();
         metaManager.clearCellsCache();
         instance.initIndexMappers();
         grid.adjustRowsAndCols();
@@ -4294,6 +4369,7 @@ export default function Core(
       }
 
       selection.updateHighlightClassNames();
+      instance.renderChangeTracker.markAllChanged();
       instance.runHooks('afterUpdateSettings', settings);
     }
 
@@ -5243,6 +5319,9 @@ export default function Core(
    * (grid, column, and cell levels). To read global grid settings only, use {@link Core#getSettings}.
    * To read column-level meta, use {@link Core#getColumnMeta}.
    *
+   * For a read-only bulk scan over many cells, use {@link Core#getCellMetaTransient} instead: it
+   * returns the same data without permanently caching a meta object per cell.
+   *
    * @memberof Core#
    * @function getCellMeta
    * @param {number} row Visual row index.
@@ -5594,7 +5673,10 @@ export default function Core(
             // `validateCell` now makes the same write, for the same reason plus the async-detach
             // case - this one is kept so the guarantee does not depend on that call site, and both
             // write the identical value on the identical object.
-            instance.getCellMeta(row, column, { skipMetaExtension: true }).valid = false;
+            const storedCellMeta = instance.getCellMeta(row, column, { skipMetaExtension: true });
+
+            storedCellMeta.valid = false;
+            markCellMetaChanged(storedCellMeta);
           }
           waitingForValidator.removeValidatorFormQueue();
         }, 'validateCells');

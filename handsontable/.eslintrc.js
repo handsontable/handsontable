@@ -184,6 +184,29 @@ module.exports = {
         'import/no-relative-packages': 'off',
       }
     },
+    // The custom ESLint rules' own RuleTester tests run as ESM under `node --test`
+    // (`npm run test:eslint-rules`; CI's `Lint / core` job), so a relative import must carry the
+    // extension Node's ESM resolver requires — the same form the root config uses for
+    // `scripts/**` and `evals/**`. Per-extension values are plain 'always' | 'never' strings:
+    // eslint-plugin-import compares them with `===`, so an array value would be silently ignored
+    // and the override would enforce nothing (the root config carried that broken form until the
+    // review of the change that added this override caught it).
+    {
+      files: ['.config/plugin/eslint/__tests__/*.mjs'],
+      rules: {
+        'import/extensions': [
+          'error',
+          'never',
+          {
+            pattern: {
+              js: 'always',
+              mjs: 'always',
+            },
+            ignorePackages: true,
+          }
+        ],
+      }
+    },
     {
       files: [
         'test/**',
@@ -221,8 +244,11 @@ module.exports = {
         'brace-style': ['error', '1tbs', { allowSingleLine: true }],
       }
     },
+    // Every Jasmine spec and every Jest unit test, in both languages: the 217 `*.unit.ts` files
+    // sat outside this override until review found `src/helpers/__tests__/function.unit.ts`
+    // carrying eleven sleep() calls the rule never saw.
     {
-      files: ['*.unit.js', '*.spec.js'],
+      files: ['*.unit.js', '*.unit.ts', '*.spec.js'],
       rules: {
         'no-undef': 'off',
         'jsdoc/require-jsdoc': 'off',
@@ -231,16 +257,23 @@ module.exports = {
         'jsdoc/require-returns': 'off',
         'handsontable/restricted-module-imports': 'off',
         'handsontable/require-async-in-it': 'error',
-        // Determinism guards for the frozen Jasmine suite. WARN, not error: the
-        // existing sleep()/it.flaky() debt must surface without red-walling CI.
-        // Escalation to error happens in the flip-to-blocking task once the
-        // debt is burned down. New E2E belongs in Playwright (tests/e2e).
+        // Determinism guards for the frozen Jasmine suite and the Jest unit tests. WARN, not
+        // error: the existing sleep()/setTimeout(fn, <ms>)/waitForNextAnimationFrames()/
+        // it.flaky() debt must surface without red-walling CI. The condition-based replacement
+        // is the `waitUntil()` spec global (test/helpers/common.js). Escalation to
+        // error happens in the flip-to-blocking task once the debt is burned down.
+        // New E2E belongs in Playwright (tests/e2e).
+        // A NEW occurrence on a line a branch adds is already blocked: the
+        // diff-scoped ratchet (.github/scripts/lint-ratchet.mjs, pre-push + CI
+        // lint) fails on these three warn rules wherever they hit an added line.
+        // Keep its RATCHETED_RULES list in step with the levels here.
         'handsontable/no-fixed-sleep-in-spec': 'warn',
         'handsontable/no-new-it-flaky': 'warn',
         // Anti-gaming (green-for-the-sake-of-green) guards. Focus is ERROR — a
         // committed .only/fit silently drops the suite and there are 0 today.
-        // Skip is WARN — 21 existing .skip must not red-wall; new skips are caught
-        // by the diff-based test-weakening detector.
+        // Skip is WARN — 21 existing .skip must not red-wall. A NEW skip on a line
+        // a branch adds is blocked by the same diff-scoped ratchet as the sleep
+        // rules above (exit 1 at pre-push, red in the CI lint job).
         'handsontable/no-focused-test': 'error',
         'handsontable/no-skipped-test': 'warn',
         // A test with no assertion is hollow coverage. WARN — heuristic (a test may

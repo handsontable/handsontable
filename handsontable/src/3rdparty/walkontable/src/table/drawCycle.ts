@@ -123,9 +123,10 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
   // (`innerBorderTop` / `innerBorderInlineStart`) BEFORE resolving the snapshot and rendering the
   // cells, from the pre-render scroll position + settings. Cells then render in their final
   // position, so the post-render `resetFixedPosition` toggle is a no-op (`positionChanged` stays
-  // `false`) and the nested `wot.draw(true)` re-render never fires. Element mode only (guaranteed
-  // by the gate); the border box is thus present when `beginDrawLayout` measures the workspace,
-  // matching a steady-state scrolled draw.
+  // `false`) and the nested `wot.draw(true)` re-render never fires. That saving is `innerBorderTop`'s
+  // alone — the inline-start class shifts no layout and reports nothing whenever it is applied
+  // (#6673). Element mode only (guaranteed by the gate); the border box is thus present when
+  // `beginDrawLayout` measures the workspace, matching a steady-state scrolled draw.
   if (wtViewport.usesLayoutSnapshotForCalculators()) {
     wtOverlays.prepareHeaderBorders();
   }
@@ -271,7 +272,7 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
       // layout — it converges, because the second border-state check finds the class already in
       // place — and render the selections that `refreshAll` would have refreshed.
       placeFixedOverlays(table, ctx);
-      renderActiveSelections(table, ctx.runFastDraw);
+      renderActiveSelections(table);
     }
 
     // Outside the render gate on purpose: the master hider/spreader size is written ONLY here on the
@@ -281,7 +282,7 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
     // full draw.
     wtOverlays.adjustElementsSize();
   } else {
-    renderActiveSelections(table, ctx.runFastDraw);
+    renderActiveSelections(table);
   }
 
   wtOverlays.afterDraw(!ctx.runFastDraw && ctx.performRedraw);
@@ -320,7 +321,7 @@ function runCloneDrawCycle(table: Table, ctx: DrawContext): void {
     }
   }
 
-  renderActiveSelections(table, ctx.runFastDraw);
+  renderActiveSelections(table);
 
   table.deps.setDrawn(true);
 }
@@ -508,18 +509,22 @@ function renderCellBand(
  * reaches here; the master reaches here only when the fixed-position pass reported no 1px shift).
  *
  * @param {Table} table The table (master or clone).
- * @param {boolean} runFastDraw Whether this draw is a fast (reposition-only) draw.
  */
-function renderActiveSelections(table: Table, runFastDraw: boolean): void {
+function renderActiveSelections(table: Table): void {
   table.deps.getSelectionManager()
     .setActiveOverlay(table.facadeGetter())
-    .render(runFastDraw);
+    .render();
 }
 
 /**
  * Master-only fixed-position pass: repositions the top / bottom / inline-start / corner overlays and
- * records in `ctx.positionChanged` whether an `innerBorder*` toggle shifted the layout by 1px (the
- * corners do not contribute to the flag, matching the original).
+ * records in `ctx.positionChanged` whether an `innerBorder*` toggle shifted the layout by 1px.
+ *
+ * Only the TOP and BOTTOM overlays contribute to the flag. The corners never did, and the
+ * inline-start overlay no longer does: its `innerBorderInlineStart` class shifts no layout since
+ * #6673, so its report meant nothing — `false` on most draws, and `true` on the draws where the
+ * class toggled, which cost a nested reconciliation draw over the master and every clone for a 1px
+ * shift that cannot happen. It is still repositioned here, its result is just not read.
  *
  * @param {Table} table The master table.
  * @param {DrawContext} ctx The per-draw scratch (receives `positionChanged`).
@@ -533,8 +538,15 @@ function placeFixedOverlays(table: Table, ctx: DrawContext): void {
     ctx.positionChanged = wtOverlays.bottomOverlay.resetFixedPosition() || ctx.positionChanged;
   }
 
-  ctx.positionChanged = wtOverlays.inlineStartOverlay.resetFixedPosition() || ctx.positionChanged;
+  wtOverlays.inlineStartOverlay.resetFixedPosition();
 
+  // The two corner overlays' results are CONSTANTS - both `return true` unconditionally
+  // (`topInlineStartCornerOverlay`, `bottomInlineStartCornerOverlay`), because they satisfy the
+  // `boolean` the base class declares without having a border class to decide. Never OR either of
+  // them in to make this pass look symmetrical: `positionChanged` would then be `true` on every draw
+  // of any grid with row headers and frozen columns, and every draw would pay a nested `refreshAll()`
+  // over the master and every clone. Only an overlay that actually toggles a layout-shifting
+  // `innerBorder*` class may feed the flag, which today means the top and bottom overlays alone.
   if (wtOverlays.topInlineStartCornerOverlay) {
     wtOverlays.topInlineStartCornerOverlay.resetFixedPosition();
   }
