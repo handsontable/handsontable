@@ -44,17 +44,6 @@ export class BottomOverlay extends Overlay {
   #bottomClearance = 0;
 
   /**
-   * Whether this clone rests on the master holder's bottom edge, where the holder's horizontal
-   * scrollbar is painted. Written by `resetFixedPosition` on both of its paths: on the window-owned
-   * vertical axis the clone floats at the viewport's bottom while the page scrolls and reaches the
-   * holder's edge only once the page is scrolled to the grid's end (`getOverlayOffset()` is 0
-   * there); on an element-owned one `repositionOverlay` lifts it to where the rows end whenever the
-   * holder does not scroll vertically. Read by the bottom clearance strip, which is pointless — a
-   * clipped clone and a band painted over live cells — anywhere but on that edge.
-   */
-  #restsOnHolderBottomEdge = false;
-
-  /**
    */
   constructor(deps: OverlayDeps) {
     super(deps, CLONE_BOTTOM);
@@ -100,7 +89,6 @@ export class BottomOverlay extends Overlay {
 
     if (this.trimmingContainer === rootWindow) {
       overlayPosition = this.getOverlayOffset();
-      this.#restsOnHolderBottomEdge = overlayPosition === 0;
 
       // At non-integer zoom levels (e.g. 90%) the browser physically rounds each row's
       // border to the nearest physical pixel, causing the rendered TABLE to extend a
@@ -116,7 +104,6 @@ export class BottomOverlay extends Overlay {
 
     } else {
       overlayPosition = this.getScrollPosition();
-      this.#restsOnHolderBottomEdge = this.deps.getWtViewport().hasVerticalScroll();
       this.repositionOverlay();
     }
 
@@ -240,6 +227,33 @@ export class BottomOverlay extends Overlay {
   }
 
   /**
+   * Whether this clone rests on the master holder's bottom edge, where the holder's horizontal
+   * scrollbar is painted. Anywhere else the clone floats over live cells, and a clearance strip
+   * there is a clipped clone plus a band filling in for nothing.
+   *
+   * Computed on every read, never cached. The sizing pass that consumes it runs from
+   * `Overlays#refresh` BEFORE `resetFixedPosition` in the same draw, so a value written by the
+   * positioning pass would be one draw behind exactly when the clone has just arrived on the edge
+   * or just left it — and the band, which `Overlays#syncScrollbarTrackBands` derives from the
+   * published strip during that same earlier pass, would then disagree with the clip. Clip and band
+   * together, or not at all (#10370).
+   *
+   * The two paths mirror `resetFixedPosition`: with the window scrolling the rows the clone floats at
+   * the viewport's bottom and reaches the holder's edge only once the page is at the grid's end,
+   * which is what a zero overlay offset means; with an element scrolling them `repositionOverlay`
+   * lifts the clone to where the rows end whenever the holder itself does not scroll.
+   *
+   * @returns {boolean}
+   */
+  #restsOnHolderBottomEdge(): boolean {
+    if (this.trimmingContainer === this.deps.rootWindow) {
+      return this.getOverlayOffset() === 0;
+    }
+
+    return this.deps.getWtViewport().hasVerticalScroll();
+  }
+
+  /**
    * Adjust overlay root element size (width and height).
    */
   adjustRootElementSize() {
@@ -266,7 +280,7 @@ export class BottomOverlay extends Overlay {
     const inlineEndClearanceApplies = holderOwnsScrollbars(this.trimmingContainer, rootWindow);
     const bottomClearanceApplies = holderOwnsScrollbars(
       this.wot.wtOverlays.inlineStartOverlay.trimmingContainer, rootWindow
-    ) && this.#restsOnHolderBottomEdge;
+    ) && this.#restsOnHolderBottomEdge();
 
     // The master's vertical scrollbar sits along the inline-end edge this overlay spans.
     this.#holderClearance = axisScrollbarClearance(

@@ -235,8 +235,12 @@ fields. Three rules follow.
   the holder's horizontal scrollbar at the grid's end. A bottom strip also needs the clone to actually
   REST on the holder's bottom edge — `hasVerticalScroll()` is not that question on a window-owned
   vertical axis, where it stays true while the clone floats mid-page and `repositionOverlay` (which
-  lifts the clone clear in element mode) never runs; `BottomOverlay` records the answer per draw in
-  `#restsOnHolderBottomEdge`. **The bottom-inline-start corner reads that overlay's finished strip
+  lifts the clone clear in element mode) never runs; `BottomOverlay#restsOnHolderBottomEdge` answers
+  it per axis owner. **Compute that answer on every read, never cache it in the positioning pass:**
+  the sizing pass that consumes it (`adjustRootElementSize`, and the band `Overlays` derives from the
+  strip it publishes) runs from `Overlays#refresh` BEFORE `resetFixedPosition` in the same draw, so a
+  cached value is one draw behind exactly when the clone arrives on the edge or leaves it — and the
+  band would then disagree with the clip. **The bottom-inline-start corner reads that overlay's finished strip
   through `getBottomClearance()` and never recomputes it** — it is drawn over the same edge, so two
   gates that disagree leave a notch where the frozen columns stop and the frozen rows carry on
   (#10370). The draw cycle positions the bottom overlay before the corner, which is what makes the
