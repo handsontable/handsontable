@@ -69,7 +69,11 @@ test('every job that runs postbuild:partial also builds the type declarations an
       // `languages/all.js`, which only `build:languages` writes, and the UMD artifact carries
       // dist/ and styles/ only. Checked per shell block (the text up to the next `fi`), because
       // the UMD fallback in the same job already names `build:languages` and would mask a gap.
-      for (const block of job.body.split(/^\s*fi\s*$/m)) {
+      for (const rawBlock of job.body.split(/^\s*fi\s*$/m)) {
+        // Comments in the workflow name the tasks too, so only command lines count:
+        // a block whose `npm run` lines were deleted must not pass on its comment.
+        const block = rawBlock.split('\n').filter(line => !/^\s*#/.test(line)).join('\n');
+
         if (!/\bbuild:es\b/.test(block)) {
           continue;
         }
