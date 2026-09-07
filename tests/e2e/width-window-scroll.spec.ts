@@ -200,12 +200,19 @@ test.describe('width-only grid: holder scrolls columns, window scrolls rows', ()
 
     expect((await grid.axisOwners()).horizontalByWindow).toBe(false);
 
+    // The band the holder shows before it is scrolled. Read, never hardcoded: each theme sizes the
+    // columns differently, so the same holder width holds a different number of them.
+    const bandAtRest = await grid.renderedColumns();
+
     await grid.scrollHolderBy(600);
 
     const inSplitMode = await grid.holderSizing();
+    const bandScrolled = await grid.renderedColumns();
 
     expect(inSplitMode.width).toMatch(/px$/);
-    expect(inSplitMode.firstColumn).toBeGreaterThan(1);
+    // The viewport moved clear of where it started — every column on screen is past the last one
+    // that was there before. Stronger than "the first index grew", and still theme-independent.
+    expect(bandScrolled[0]).toBeGreaterThan(bandAtRest[bandAtRest.length - 1]);
 
     await grid.updateSettings({ preventOverflow: false });
 
@@ -215,8 +222,11 @@ test.describe('width-only grid: holder scrolls columns, window scrolls rows', ()
 
     expect(inWindowMode.width).toBe('');
     expect(inWindowMode.height).toBe('');
-    // The band follows the holder's real width, not the box split mode left behind.
-    expect(inWindowMode.firstColumn).toBe(1);
+    // Back to the band the grid renders when nothing has scrolled it. The holder now spans the page,
+    // so it holds MORE columns than at rest — the start is what says the scroll was let go of, and
+    // it is the stale pixel width that used to keep it stuck on the scrolled band.
+    expect(inWindowMode.firstColumn).toBe(bandAtRest[0]);
+    expect((await grid.renderedColumns()).length).toBeGreaterThan(bandAtRest.length);
   });
 
   test('mirrors the layout in RTL', async () => {
