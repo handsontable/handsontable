@@ -755,8 +755,9 @@ class DataManager {
       return;
     }
 
-    // Kept separate from `childRowIndex`: the `?? 0` fallback below is safe for the hook arguments,
-    // but as a meta index it would splice the meta from the top of the grid on an unknown row.
+    // Kept separate from `childRowIndex`: that `?? 0` fallback is pre-existing and is left reporting
+    // the hook arguments exactly as it did. As a meta index the `0` would splice from the top of the
+    // grid, so `moveCellsMeta()` reads the raw result instead.
     const childPhysicalIndex = this.getRowIndex(element);
     const childRowIndex = childPhysicalIndex ?? 0;
     const childCount = this.countChildren(element);

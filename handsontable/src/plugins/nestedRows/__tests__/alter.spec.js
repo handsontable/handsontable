@@ -443,7 +443,11 @@ describe('NestedRows', () => {
       expect(getDataAtCell(3, 0)).toBe(belowValue);
       expect(getCellMeta(3, 0).className).toBe('below-cell');
       expect(getCellMeta(3, 0).comment).toEqual({ value: 'below-comment' });
-      expect(getCellMeta(4, 0).className).toBeUndefined();
+
+      // Row 6 is where the meta sat before the fix, and it now holds `a2-a0` - a row from a
+      // different parent. Asserting row 4 instead would prove nothing: it holds `a1`, which never
+      // carried meta either way.
+      expect(getCellMeta(6, 0).className).toBeUndefined();
     });
 
     // Guards the fix against over-reaching rather than the original bug: this one passed before the
