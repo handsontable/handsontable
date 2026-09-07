@@ -123,9 +123,10 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
   // (`innerBorderTop` / `innerBorderInlineStart`) BEFORE resolving the snapshot and rendering the
   // cells, from the pre-render scroll position + settings. Cells then render in their final
   // position, so the post-render `resetFixedPosition` toggle is a no-op (`positionChanged` stays
-  // `false`) and the nested `wot.draw(true)` re-render never fires. Element mode only (guaranteed
-  // by the gate); the border box is thus present when `beginDrawLayout` measures the workspace,
-  // matching a steady-state scrolled draw.
+  // `false`) and the nested `wot.draw(true)` re-render never fires. That saving is `innerBorderTop`'s
+  // alone — the inline-start class shifts no layout and reports nothing whenever it is applied
+  // (#6673). Element mode only (guaranteed by the gate); the border box is thus present when
+  // `beginDrawLayout` measures the workspace, matching a steady-state scrolled draw.
   if (wtViewport.usesLayoutSnapshotForCalculators()) {
     wtOverlays.prepareHeaderBorders();
   }
@@ -518,8 +519,13 @@ function renderActiveSelections(table: Table, runFastDraw: boolean): void {
 
 /**
  * Master-only fixed-position pass: repositions the top / bottom / inline-start / corner overlays and
- * records in `ctx.positionChanged` whether an `innerBorder*` toggle shifted the layout by 1px (the
- * corners do not contribute to the flag, matching the original).
+ * records in `ctx.positionChanged` whether an `innerBorder*` toggle shifted the layout by 1px.
+ *
+ * Only the TOP and BOTTOM overlays contribute to the flag. The corners never did, and the
+ * inline-start overlay no longer does: its `innerBorderInlineStart` class shifts no layout since
+ * #6673, so it always reported `false` while still forcing the OR - and on the draws where the class
+ * did toggle, a nested reconciliation draw over the master and every clone for a 1px shift that
+ * cannot happen. It is still repositioned here, its result is just not read.
  *
  * @param {Table} table The master table.
  * @param {DrawContext} ctx The per-draw scratch (receives `positionChanged`).
@@ -533,7 +539,7 @@ function placeFixedOverlays(table: Table, ctx: DrawContext): void {
     ctx.positionChanged = wtOverlays.bottomOverlay.resetFixedPosition() || ctx.positionChanged;
   }
 
-  ctx.positionChanged = wtOverlays.inlineStartOverlay.resetFixedPosition() || ctx.positionChanged;
+  wtOverlays.inlineStartOverlay.resetFixedPosition();
 
   if (wtOverlays.topInlineStartCornerOverlay) {
     wtOverlays.topInlineStartCornerOverlay.resetFixedPosition();
