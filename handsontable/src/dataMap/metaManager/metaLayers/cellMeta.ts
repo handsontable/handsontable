@@ -1,10 +1,11 @@
 import { extendByMetaType, assert, normalizeEditorSetting } from '../utils';
 import LazyFactoryMap from '../lazyFactoryMap';
-import { extend, hasOwnProperty } from '../../../helpers/object';
+import { extend, hasOwnProperty, objectEach } from '../../../helpers/object';
 import { isDefined } from '../../../helpers/mixed';
 import { isUnsignedNumber } from '../../../helpers/number';
 import type ColumnMeta from './columnMeta';
 import type { CellProperties } from '../../../settings';
+import { markCellMetaChanged } from '../../../core/incrementalRender/renderChangeTracker';
 
 /**
  * Tells whether the cell's own last validation failed. The validation flow writes `valid` straight
@@ -178,11 +179,43 @@ export default class CellMeta {
    * @param {object} settings An object to merge with.
    */
   updateMeta(physicalRow: number, physicalColumn: number, settings: Record<string, unknown>) {
+    const meta = this.extendMeta(physicalRow, physicalColumn, settings);
+
+    markCellMetaChanged(meta);
+  }
+
+  /**
+   * Merges settings into the cell meta object and marks the cell as changed for the render only when
+   * a merged value differs from what the meta held (compared by identity). This is the path of the
+   * per-render dynamic extension (`cells` function, `type` expansion), which re-applies its result on
+   * every full render: counting an unchanged result as a change would make a `renderMode: 'onChange'`
+   * cell paint on every draw, while a result that did change (a `cells` function reading state
+   * outside the grid) has to be painted.
+   *
+   * @param {number} physicalRow The physical row index which points what cell meta object is updated.
+   * @param {number} physicalColumn The physical column index which points what cell meta object is updated.
+   * @param {object} settings An object to merge with.
+   * @returns {object} The cell meta object.
+   */
+  extendMeta(physicalRow: number, physicalColumn: number, settings: Record<string, unknown>): CellProperties {
     const meta = this.getMeta(physicalRow, physicalColumn);
     const normalizedSettings = normalizeEditorSetting(settings);
+    let changed = false;
+
+    objectEach(normalizedSettings, (value: unknown, key: string) => {
+      if ((meta as Record<string, unknown>)[key] !== value) {
+        changed = true;
+      }
+    });
 
     extend(meta, normalizedSettings);
     extendByMetaType(meta, normalizedSettings);
+
+    if (changed) {
+      markCellMetaChanged(meta);
+    }
+
+    return meta;
   }
 
   /**
@@ -312,6 +345,8 @@ export default class CellMeta {
   setMeta(physicalRow: number, physicalColumn: number, key: string, value: unknown) {
     const cellMeta = this.metas.obtain(physicalRow).obtain(physicalColumn);
 
+    markCellMetaChanged(cellMeta);
+
     // An `editor` of `true` names no editor, so it reads as "the setting was not passed". Dropping
     // the own property lets the cell keep the editor its `type` expands to, or the one inherited
     // from the column and grid layers. Storing the boolean instead would hand a bare `true` to
@@ -399,6 +434,7 @@ export default class CellMeta {
     (cellMeta._userDefinedMetaProps as Set<string> | undefined)?.delete(key);
     (cellMeta._cellOptionMetaProps as Set<string> | undefined)?.delete(key);
     (cellMeta._persistedMetaProps as Set<string> | undefined)?.delete(key);
+    markCellMetaChanged(cellMeta);
   }
 
   /**
@@ -535,7 +571,10 @@ export default class CellMeta {
    */
   restoreInvalidMetas(invalidMetas: { physicalRow: number, physicalColumn: number }[]) {
     invalidMetas.forEach(({ physicalRow, physicalColumn }) => {
-      this.getMeta(physicalRow, physicalColumn).valid = false;
+      const cellMeta = this.getMeta(physicalRow, physicalColumn);
+
+      cellMeta.valid = false;
+      markCellMetaChanged(cellMeta);
     });
   }
 
