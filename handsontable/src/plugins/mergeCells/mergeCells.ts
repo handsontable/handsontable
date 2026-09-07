@@ -1210,21 +1210,57 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
+   * Splits a merge's rows into the runs the row index sequence puts them in: a maximal set of the
+   * merge's own rows with no other row sitting between them.
+   *
+   * A run is the unit a trimmed row may travel within. Distance alone is not enough to place one: a
+   * row the merge does not own can sit between two of the rows it does own, and pairing them across
+   * that row builds an anchor the merge cannot draw. The span is one continuous block from its
+   * top-left, so once trimming is lifted the block covers the foreign row and stops short of the
+   * merge's own row beyond it. Rows are never paired across a run boundary for that reason.
+   *
+   * @param {number[]} physicalRows The anchor's physical rows.
+   * @param {number[]} rowSequencePositions Physical row -> its slot in the row index sequence.
+   * @returns {number[][]} The runs, each ordered by sequence position.
+   */
+  #groupRowsBySequenceRuns(physicalRows: number[], rowSequencePositions: number[]): number[][] {
+    const ordered = physicalRows
+      .filter(physicalRow => rowSequencePositions[physicalRow] !== undefined)
+      .slice()
+      .sort((rowA, rowB) => rowSequencePositions[rowA] - rowSequencePositions[rowB]);
+    const runs: number[][] = [];
+
+    ordered.forEach((physicalRow, index) => {
+      const isAdjacent = index > 0
+        && rowSequencePositions[physicalRow] === rowSequencePositions[ordered[index - 1]] + 1;
+
+      if (isAdjacent) {
+        runs[runs.length - 1].push(physicalRow);
+      } else {
+        runs.push([physicalRow]);
+      }
+    });
+
+    return runs;
+  }
+
+  /**
    * Decides which visible row of a merge each of its trimmed rows travels with when a row move splits
-   * the merge: the visible owned row nearest to it in the row index sequence, the row above winning a
-   * tie.
+   * the merge. A trimmed row travels within its sequence run, and every visible row of a run ends up
+   * in the same fragment — a run has no foreign row inside it, so its visible rows are visually
+   * adjacent — which means the run, not the individual row, is what the answer turns on. Each run's
+   * trimmed rows are therefore handed to the first visible row of that run, and the fragment picks
+   * them up from it. A run with no visible row cannot be placed at all, and its rows are dropped,
+   * which is what the merge did with every one of them before.
    *
-   * Physical distance cannot answer this. A trimmed row usually sits one physical index away from two
-   * of its neighbors, so the distance ties, and it says nothing about the move — `moveIndexes` leaves
+   * Distance inside a run is deliberately not measured. Two carriers of one run cannot end up in
+   * different fragments, so a nearest-carrier rule would compute a choice that nothing can observe,
+   * and its tie-break would be a branch no test could ever pin.
+   *
+   * The row sequence, rather than the physical index, is what defines a run. `moveIndexes` leaves
    * every row it did not move where it was in the sequence and re-inserts the moved ones among the
-   * rows that are not trimmed, so the sequence is exactly the order the rows come back in.
-   *
-   * The tie-break is there to make the result independent of the order the rows are listed in, and no
-   * spec depends on which side it picks. A tie needs two carriers the same distance away in the
-   * sequence, which asks for carriers that are not visually adjacent to begin with — the scattered
-   * shape {@link MergeCells#describesOwnRows} keeps out of both the split and the retention. Keep the
-   * rule anyway: that reasoning holds for the moves that exist today, not for every one that could be
-   * added.
+   * rows that are not trimmed, so the sequence is exactly the order the rows come back in. Physical
+   * distance says nothing about the move, and ties in the ordinary case.
    *
    * @param {number[]} physicalRows The anchor's physical rows.
    * @param {number[]} rowSequencePositions Physical row -> its slot in the row index sequence.
@@ -1232,35 +1268,30 @@ export class MergeCells extends BasePlugin {
    */
   #attributeTrimmedRows(physicalRows: number[], rowSequencePositions: number[]): Map<number, number[]> {
     const trimmedRowsByCarrier = new Map<number, number[]>();
-    const visibleRows = physicalRows.filter(physicalRow => this.hot.toVisualRow(physicalRow) !== null);
 
-    visibleRows.forEach(physicalRow => trimmedRowsByCarrier.set(physicalRow, []));
+    physicalRows.forEach((physicalRow) => {
+      if (this.hot.toVisualRow(physicalRow) !== null) {
+        trimmedRowsByCarrier.set(physicalRow, []);
+      }
+    });
 
-    if (visibleRows.length === 0) {
-      return trimmedRowsByCarrier;
-    }
+    this.#groupRowsBySequenceRuns(physicalRows, rowSequencePositions).forEach((run) => {
+      const carrierRow = run.find(physicalRow => trimmedRowsByCarrier.has(physicalRow));
 
-    physicalRows
-      .filter(physicalRow => this.hot.toVisualRow(physicalRow) === null)
-      .forEach((trimmedRow) => {
-        const trimmedPosition = rowSequencePositions[trimmedRow];
-        const carrierRow = visibleRows.reduce((nearest, candidate) => {
-          const nearestDistance = Math.abs(rowSequencePositions[nearest] - trimmedPosition);
-          const candidateDistance = Math.abs(rowSequencePositions[candidate] - trimmedPosition);
-          const isCandidateAbove = rowSequencePositions[candidate] < trimmedPosition;
+      if (carrierRow === undefined) {
+        return;
+      }
 
-          if (candidateDistance < nearestDistance
-            || (candidateDistance === nearestDistance && isCandidateAbove)) {
-            return candidate;
-          }
+      const carriedRows = trimmedRowsByCarrier.get(carrierRow) ?? [];
 
-          return nearest;
-        }, visibleRows[0]);
-        const carriedRows = trimmedRowsByCarrier.get(carrierRow) ?? [];
-
-        carriedRows.push(trimmedRow);
-        trimmedRowsByCarrier.set(carrierRow, carriedRows);
+      run.forEach((physicalRow) => {
+        if (!trimmedRowsByCarrier.has(physicalRow)) {
+          carriedRows.push(physicalRow);
+        }
       });
+
+      trimmedRowsByCarrier.set(carrierRow, carriedRows);
+    });
 
     return trimmedRowsByCarrier;
   }
@@ -1280,9 +1311,10 @@ export class MergeCells extends BasePlugin {
    * @returns {boolean}
    */
   #describesOwnRows(drawnRows: number[], trimmedRowsByCarrier: Map<number, number[]>): boolean {
-    const presentRows = drawnRows.filter(physicalRow => physicalRow !== null && physicalRow >= 0);
+    const presentRows = drawnRows.filter(physicalRow => physicalRow !== null);
 
-    return presentRows.length === trimmedRowsByCarrier.size
+    return presentRows.length > 0
+      && presentRows.length === trimmedRowsByCarrier.size
       && presentRows.every(physicalRow => trimmedRowsByCarrier.has(physicalRow));
   }
 
@@ -1296,7 +1328,7 @@ export class MergeCells extends BasePlugin {
   #countVisualRuns(physicalRows: number[]): number {
     const visualRows = physicalRows
       .map(physicalRow => this.hot.toVisualRow(physicalRow))
-      .filter(visualRow => visualRow !== null && visualRow >= 0)
+      .filter(visualRow => visualRow !== null)
       .sort((rowA, rowB) => rowA - rowB);
 
     return MergedCellsCollection.detectContiguousRuns(visualRows).length;
@@ -1401,6 +1433,13 @@ export class MergeCells extends BasePlugin {
 
       rangeEach(fragment.rowspan - 1, (offset) => {
         const physicalRow = this.hot.toPhysicalRow(fragment.row + offset);
+
+        // A fragment's own rows are in range by construction, but the mapper answers a row it cannot
+        // resolve with `null`, and letting that through would put `NaN` in the comparator below and
+        // leave the sort order to the engine — which the re-anchor then reads a top-left from.
+        if (physicalRow === null) {
+          return;
+        }
 
         physicalRows.push(physicalRow);
         (plan.trimmedRowsByCarrier.get(physicalRow) ?? [])
@@ -2577,10 +2616,16 @@ export class MergeCells extends BasePlugin {
       return;
     }
 
-    const { context, carriers } = this.#planRowMoveTranslation(snapshot, this.#buildRowSequencePositions());
+    // Nothing to plan without a merge that owns a trimmed row, and the plan walks the whole row
+    // sequence to build its position map — which on a large grid is real allocation on every drop.
+    // Skipping it leaves the split on the path it took before, which is the right answer when no row
+    // is trimmed: a fragment then draws exactly the rows it owns.
+    const plan = this.mergedCellsCollection.mergedCells.length > 0 && this.#isRowTrimmingActive()
+      ? this.#planRowMoveTranslation(snapshot, this.#buildRowSequencePositions())
+      : null;
 
     this.#transferAnchorsAfterAxisMove(
-      this.mergedCellsCollection.translateAfterAxisMove('row', snapshot, carriers), 'row', context);
+      this.mergedCellsCollection.translateAfterAxisMove('row', snapshot, plan?.carriers), 'row', plan?.context);
     this.#captureMergeAnchors();
     this.hot.render();
   };

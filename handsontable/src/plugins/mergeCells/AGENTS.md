@@ -89,20 +89,41 @@ against a grid whose row count changed while the merges had not been shifted yet
 
 A row move can leave a merge's rows in more than one contiguous visual run, and `translateAfterAxisMove`
 then replaces the merge with one fragment per run. A trimmed row has no visual index, so it belongs to no
-run, and the rule that places it is: **the fragment holding the visible owned row nearest to it in the row
-index sequence, the row above winning a tie.**
+run, and the rule that places it is: **it travels within its run of the row index sequence, and that run's
+trimmed rows go to the run's first visible row.** A run here is a maximal set of the merge's *own* rows
+with no other row between them in the sequence, cut by `#groupRowsBySequenceRuns`.
 
-The *sequence*, not the physical index, is what decides. `IndexMapper#moveIndexes` removes the moved rows
-from the full sequence and re-inserts them at a position computed among the rows that are **not** trimmed,
-so every row it did not move keeps its slot — which makes the sequence exactly the order the rows take
-once trimming is lifted. Physical distance answers nothing here: a trimmed row usually sits one physical
-index from two of its neighbors, so the distance ties, and it does not see the move at all.
+The run, not the row, is what the answer turns on, and both halves of that matter.
+
+- **A trimmed row must never be paired across a row the merge does not own.** The span is one continuous
+  block from its top-left, so an anchor pairing rows across a foreign row cannot be drawn: once trimming is
+  lifted the block covers that foreign row and stops short of the merge's own row beyond it. Nearest-in-
+  sequence without this check shipped that defect — a 12-row grid, `{ row: 2, rowspan: 5 }`, `trimRows([3,
+  4, 5])`, `moveRow(6, 3)` produced a fragment covering physical 9 while leaving the merge's own physical 6
+  outside it. Pinned by `should not send a trimmed row across a row the merge does not own when a move
+  splits it`. A run with no visible row cannot be placed at all, and its rows are dropped.
+- **Distance inside a run is deliberately not measured.** A run contains no foreign row, so its visible
+  rows are visually adjacent and always land in the *same* fragment — a nearest-carrier rule would compute
+  a choice nothing can observe, and its tie-break would be a branch no test could pin. Do not add one back.
+
+The *sequence*, not the physical index, is what defines a run. `IndexMapper#moveIndexes` removes the moved
+rows from the full sequence and re-inserts them at a position computed among the rows that are **not**
+trimmed, so every row it did not move keeps its slot — which makes the sequence exactly the order the rows
+take once trimming is lifted. Physical distance answers nothing here: a trimmed row usually sits one
+physical index from two of its neighbors, so the distance ties, and it does not see the move at all.
 
 Three parts of `mergeCells.ts` carry this, and each has a reason that is easy to undo by accident.
 
 - **The attribution is computed in `#onAfterRowMove`, not `#onBeforeRowMove`.** It reads the sequence the
   move produced. `#planRowMoveTranslation` runs before `translateAfterAxisMove` replaces the merge objects,
   because it is keyed on the merges that still exist.
+- **The plan is skipped unless a merge exists and a row is trimmed.** `#buildRowSequencePositions` walks
+  the whole row sequence, which is real allocation per drop on a large grid, and with nothing trimmed the
+  answer is the one the old path already gave: a fragment draws exactly the rows it owns. `nestedRows` is
+  the reason to keep the guard cheap rather than clever — its `rowMoveController` reorders the source data
+  and fires `afterRowMove` by hand while its `beforeRowMove` returns `false`, so `moveIndexes` never runs
+  and the sequence the plan would read is the pre-move one. Nothing splits on that path today, so the plan
+  is never read there; do not start depending on it without a spec for that path.
 - **The split is read from the plan, never from how many fragments came back.** `#countVisualRuns` counts
   the runs through `MergedCellsCollection.detectContiguousRuns`, the same helper the split uses, so the two
   cannot disagree. Counting fragments is wrong for a merge broken into a real run plus a single cell: the
@@ -132,6 +153,13 @@ for a fragment whose other rows are merely trimmed: it is a merge again the mome
 flat set: two merges in different columns can cover the same rows, and a shared set would keep the
 genuinely-single fragment of the merge that carries nothing, leaving a phantom `1x1` entry in both the list
 and the lookup matrix.
+
+Retention is keyed on the carrier, so a split leaving two single cells where only one of them owns trimmed
+rows keeps that one and drops its sibling. That asymmetry is the rule working, not a wrinkle in it: the
+sibling is a genuine single cell and the survivor is a merge with its other rows away. Which one survives
+is therefore decided by where the trimmed rows are reachable from, never by anything about the drag.
+`should keep a single-column merge alive through a split when the surviving cell owns a trimmed row` pins
+exactly that pair.
 
 The retention is deliberately **not** gated on the merge having been split. A merge trimmed down to one
 visible cell already draws a single cell without any help from the move, so gating it there let any row

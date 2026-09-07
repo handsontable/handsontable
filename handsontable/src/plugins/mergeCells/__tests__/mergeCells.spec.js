@@ -3762,6 +3762,41 @@ describe('MergeCells', () => {
       expect(merges()).toEqual([{ row: 3, col: 0, rowspan: 2, colspan: 1 }]);
     });
 
+    it('should not send a trimmed row across a row the merge does not own when a move splits it', async() => {
+      handsontable({
+        data: createSpreadsheetData(12, 3),
+        trimRows: true,
+        manualRowMove: true,
+        mergeCells: [{ row: 2, col: 0, rowspan: 5, colspan: 2 }], // physical rows 2,3,4,5,6
+      });
+      const trimRows = getPlugin('trimRows');
+
+      trimRows.trimRows([3, 4, 5]);
+
+      await render();
+
+      expect(merges()).toEqual([{ row: 2, col: 0, rowspan: 2, colspan: 2 }]);
+
+      // the move drops physical 9 between the merge's physical 5 and 6 in the row order, so the
+      // trimmed physical 5 cannot reach 6 without crossing a row the merge does not own
+      getPlugin('manualRowMove').moveRow(6, 3);
+
+      await render();
+
+      trimRows.untrimAll();
+
+      await render();
+
+      expect(toPhysicalRow(6)).toBe(9);
+      expect(toPhysicalRow(7)).toBe(6);
+
+      // each fragment covers only rows the merge owns: 2,3,4,5 above the foreign row, 6 below it
+      expect(merges()).toEqual([
+        { row: 2, col: 0, rowspan: 4, colspan: 2 },
+        { row: 7, col: 0, rowspan: 1, colspan: 2 },
+      ]);
+    });
+
     it('should leave a merge whose rows a sort scattered on the unsplit path when a row move breaks its block', async() => {
       const sortKey = [0, 4, 2, 1, 3, 5, 6, 7];
 
