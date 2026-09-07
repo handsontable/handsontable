@@ -68,13 +68,23 @@ describe('ContextMenu', () => {
         await waitForNextAnimationFrames(2);
 
         const cell = hot.getCell(2, 2);
+
         // Use direct simulation instead of the `contextMenu()` helper: that helper wraps in
         // `waitOnScroll`, which patches the iframe HoT's scroll functions and later calls
         // `hot().view.render()`. In this nested-iframe setup the render dispatches synthetic
         // keyboard events cross-realm that confuse the recorder's listener cleanup logic.
+        $(cell).simulate('mousedown', { button: 2 });
+        await waitForNextAnimationFrames(2);
+
+        // Read the cell's position AFTER the mousedown, the way a real `contextmenu` event carries
+        // the pointer's current coordinates. The mousedown selects the cell, and the selection's
+        // window-scroll strategy calls `scrollIntoView` on it, which scrolls the frames the cell
+        // sits outside of — this grid is driven from the parent realm, and the engine reads its
+        // window's scroll offset correctly now, so that strategy runs here as it does for a grid
+        // built in its own realm. Coordinates taken before the mousedown point at where the cell
+        // was, and the menu then opens there, 104px from where the cell is.
         const cellOffset = $(cell).offset();
 
-        $(cell).simulate('mousedown', { button: 2 });
         $(cell).simulate('contextmenu', {
           clientX: cellOffset.left - Handsontable.dom.getWindowScrollLeft(hot.rootWindow),
           clientY: cellOffset.top - Handsontable.dom.getWindowScrollTop(hot.rootWindow),
