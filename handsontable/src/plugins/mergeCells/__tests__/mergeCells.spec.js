@@ -3804,6 +3804,46 @@ describe('MergeCells', () => {
         { row: 7, col: 0, rowspan: 1, colspan: 2 },
       ]);
     });
+
+    it('should not retain a single-cell fragment of a merge whose rows a sort scattered', async() => {
+      const sortKey = [0, 4, 2, 1, 3, 5, 6, 7];
+
+      handsontable({
+        data: sortKey.map((key, row) => [`A${row}`, `B${row}`, key]),
+        columnSorting: true,
+        manualRowMove: true,
+        trimRows: true,
+        mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 1 }], // physical rows 0,1,2
+      });
+
+      getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
+
+      await render();
+
+      getPlugin('trimRows').trimRows([2]);
+
+      await render();
+
+      expect(toPhysicalRow(1)).toBe(3);
+      expect(merges()).toEqual([{ row: 0, col: 0, rowspan: 2, colspan: 1 }]);
+
+      // Both fragments this move produces are single cells, and the merge owns a trimmed row, so the
+      // retention would keep the one the merge still draws. That is the shape to refuse: a scattered
+      // merge is reported unsplit, so keeping the fragment hands it to the path that copies the whole
+      // anchor onto it, and the merge would then draw its full span from that one cell, over rows it
+      // does not own. It is dropped instead, as it was before the split learned to keep trimmed rows.
+      getPlugin('manualRowMove').moveRow(1, 6);
+
+      await render();
+
+      expect(merges()).toEqual([]);
+
+      getPlugin('trimRows').untrimAll();
+
+      await render();
+
+      expect(merges()).toEqual([]);
+    });
   });
 
   describe('nested rows — merge re-anchoring on collapse', () => {

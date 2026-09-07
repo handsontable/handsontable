@@ -138,6 +138,14 @@ visible cell already draws a single cell without any help from the move, so gati
 move — even one that never touched the merge — delete it (both shapes are pinned in the trimming describe
 of `mergeCells.spec.js`, and the per-merge keying in `cellsCollection.unit.ts`).
 
+**It is gated on `#describesOwnRows`, though — the same guard the split uses, and for a sharper reason.**
+Retaining a *scattered* merge's single cell leaves one fragment, which reads as unsplit, which sends it
+down the path that copies the **whole** anchor onto it: the merge then draws its full span from a cell that
+is only one of the places its rows sit, over rows it does not own, and drops the ones it does. That is
+strictly worse than the singleton drop it replaced, so such a fragment is left to be dropped. Pinned by
+`should not retain a single-cell fragment of a merge whose rows a sort scattered`; the two guards have to
+move together, and removing either one turns a spec red.
+
 ## `disablePlugin()` clears the field, so copy first
 
 `generateFromSettings()` needs to tell a **re-applied** area from a **newly declared** one, so the previous

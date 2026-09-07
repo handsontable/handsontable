@@ -1220,10 +1220,11 @@ export class MergeCells extends BasePlugin {
    * rows that are not trimmed, so the sequence is exactly the order the rows come back in.
    *
    * The tie-break is there to make the result independent of the order the rows are listed in, and no
-   * spec exercises it: a tie needs two carriers the same distance away in the sequence, which asks for
-   * carriers that are already not visually adjacent before the move — and
-   * {@link MergeCells#describesOwnRows} sends that merge down the unsplit path instead. Keep the rule
-   * anyway; the reasoning holds for the moves that exist today, not for every one that could be added.
+   * spec depends on which side it picks. A tie needs two carriers the same distance away in the
+   * sequence, which asks for carriers that are not visually adjacent to begin with — the scattered
+   * shape {@link MergeCells#describesOwnRows} keeps out of both the split and the retention. Keep the
+   * rule anyway: that reasoning holds for the moves that exist today, not for every one that could be
+   * added.
    *
    * @param {number[]} physicalRows The anchor's physical rows.
    * @param {number[]} rowSequencePositions Physical row -> its slot in the row index sequence.
@@ -1254,7 +1255,7 @@ export class MergeCells extends BasePlugin {
           }
 
           return nearest;
-        });
+        }, visibleRows[0]);
         const carriedRows = trimmedRowsByCarrier.get(carrierRow) ?? [];
 
         carriedRows.push(trimmedRow);
@@ -1334,17 +1335,21 @@ export class MergeCells extends BasePlugin {
       // over rows it does not own. Its fragments would then be anchored onto those foreign rows, so
       // such a merge is reported as unsplit and left to the guarded single-fragment path, exactly as
       // it was before the split learned to distribute trimmed rows.
-      const isSplit = this.#describesOwnRows(physicalRows, trimmedRowsByCarrier)
-        && this.#countVisualRuns(physicalRows) > 1;
+      const describesOwnRows = this.#describesOwnRows(physicalRows, trimmedRowsByCarrier);
+      const isSplit = describesOwnRows && this.#countVisualRuns(physicalRows) > 1;
 
       plans.set(merge, { trimmedRowsByCarrier, isSplit });
 
       const carrierRows = this.#carrierRowsOf(trimmedRowsByCarrier);
 
-      // Not gated on `isSplit`: a merge trimmed down to one visible cell draws a single cell without
-      // any help from the move, and the collection would drop it as a singleton on a move that does
-      // not even touch it.
-      if (carrierRows.size > 0) {
+      // Retention needs the same guard as the split, and for a sharper reason. It is deliberately not
+      // gated on `isSplit` — a merge trimmed down to one visible cell draws a single cell without any
+      // help from the move, and the collection would drop it as a singleton on a move that does not
+      // even touch it. But retaining a *scattered* merge's single cell hands it to the unsplit path,
+      // which copies the whole anchor onto it, and the merge then draws its full span from a cell that
+      // is one of several its rows are spread across — over rows it does not own. Such a fragment is
+      // left to be dropped, as it was before any of this.
+      if (describesOwnRows && carrierRows.size > 0) {
         carriers.set(merge, carrierRows);
       }
     });
@@ -1402,9 +1407,10 @@ export class MergeCells extends BasePlugin {
           .forEach(trimmedRow => physicalRows.push(trimmedRow));
       });
 
+      physicalRows.sort((rowA, rowB) => rowSequencePositions[rowA] - rowSequencePositions[rowB]);
+
       this.#mergeAnchors.set(fragment, {
-        physicalRows: physicalRows
-          .sort((rowA, rowB) => rowSequencePositions[rowA] - rowSequencePositions[rowB]),
+        physicalRows,
         physicalColumn: anchor.physicalColumn,
       });
     });
