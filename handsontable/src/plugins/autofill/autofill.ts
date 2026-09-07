@@ -4,7 +4,7 @@ import type { CellProperties } from '../../settings';
 import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import { offset, outerHeight, outerWidth } from '../../helpers/dom/element';
-import { isObject } from '../../helpers/object';
+import { isObject, isObjectEqual } from '../../helpers/object';
 import { arrayEach, arrayMap } from '../../helpers/array';
 import { isEmpty } from '../../helpers/mixed';
 import { getCellCoordsFromMousePosition } from '../../helpers/dom/cellCoords';
@@ -139,6 +139,8 @@ export class Autofill extends BasePlugin {
    * Whether the plugin is being torn down and rebuilt by `updatePlugin()` rather than genuinely
    * disabled. `updateSettings()` reaches `updatePlugin()` whenever `fillHandle` is merely *present*
    * in the payload, unchanged value included, so this must not end a live gesture.
+   *
+   * @type {boolean}
    */
   #isReconfiguring = false;
   /**
@@ -209,6 +211,9 @@ export class Autofill extends BasePlugin {
    *  - [`fillHandle`](@/api/options.md#fillhandle)
    */
   updatePlugin(): void {
+    const previousDirections = this.directions;
+    const previousAutoInsertRow = this.autoInsertRow;
+
     this.#isReconfiguring = true;
 
     try {
@@ -216,6 +221,18 @@ export class Autofill extends BasePlugin {
       this.enablePlugin();
     } finally {
       this.#isReconfiguring = false;
+    }
+
+    // A reconfiguration that changes what a fill is allowed to do must still end the gesture it
+    // interrupted, or `#onMouseUp` commits it under the rules it was drawn with - a drag started
+    // while both axes were allowed would fill vertically after the update narrowed it to
+    // `horizontal`. The comparison is on the resolved configuration, so re-sending the same value
+    // in another shape (`'vertical'` against `{ direction: 'vertical' }`) still counts as no change.
+    if (
+      this.autoInsertRow !== previousAutoInsertRow ||
+      !isObjectEqual(previousDirections, this.directions)
+    ) {
+      this.#resetDragState();
     }
 
     super.updatePlugin();

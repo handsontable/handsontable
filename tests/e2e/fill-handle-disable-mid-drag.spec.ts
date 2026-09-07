@@ -23,8 +23,15 @@ test.describe('fill handle disabled mid-drag', () => {
     await grid.selectCells(0, 0, 0, 0);
     await grid.pressFillHandle();
 
+    // Drag one cell first, so the fill border is actually painted when the plugin is disabled. That
+    // is the damaging half of the bug: the old code left the dashed border on screen as well as the
+    // gesture armed, and a disable that never drew one cannot tell the two teardowns apart.
+    await grid.dragPointerToCell(2, 0);
+    await expect(grid.visibleFillBorders()).not.toHaveCount(0);
+
     await grid.setFillHandleEnabled(false);
     await expect(grid.fillHandle()).toHaveCount(0);
+    await expect(grid.visibleFillBorders()).toHaveCount(0);
 
     await grid.releasePointer();
     await grid.setFillHandleEnabled(true);
@@ -66,7 +73,7 @@ test.describe('fill handle disabled mid-drag', () => {
     await grid.pressFillHandle();
     await grid.dragPointerToCell(2, 0);
 
-    await grid.setFillHandleEnabled(true);
+    await grid.resendFillHandleSetting();
 
     await grid.dragPointerToCell(3, 0);
     await grid.releasePointer();
@@ -74,6 +81,24 @@ test.describe('fill handle disabled mid-drag', () => {
     // The drag was never interrupted, so the fill commits over the whole dragged extent.
     await expect(grid.cell(2, 0)).toHaveText('A1');
     await expect(grid.cell(3, 0)).toHaveText('A1');
+    await expect(grid.visibleFillBorders()).toHaveCount(0);
+    expect(await grid.isFillHandlePressed()).toBe(false);
+  });
+
+  // The limit of the carve-out above. A reconfiguration that genuinely changes what a fill may do
+  // still has to end the gesture, or the drag commits under the rules it was drawn with.
+  test('ends the drag when updateSettings narrows the allowed direction mid-drag', async () => {
+    await grid.selectCells(0, 0, 0, 0);
+    await grid.pressFillHandle();
+    await grid.dragPointerToCell(2, 0);
+
+    await grid.setFillHandleDirection('horizontal');
+
+    await grid.releasePointer();
+
+    // The vertical drag is abandoned rather than committed against the now horizontal-only setting.
+    await expect(grid.cell(1, 0)).toHaveText('A2');
+    await expect(grid.cell(2, 0)).toHaveText('A3');
     await expect(grid.visibleFillBorders()).toHaveCount(0);
     expect(await grid.isFillHandlePressed()).toBe(false);
   });

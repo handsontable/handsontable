@@ -863,6 +863,25 @@ export class SelectionFeaturesPage {
   }
 
   /**
+   * Re-send the grid's current `fillHandle` value through `updateSettings`, changing nothing. This
+   * is the shape a framework wrapper produces on an unrelated re-render, when it forwards every
+   * declared prop back into the grid.
+   */
+  async resendFillHandleSetting(): Promise<void> {
+    await this.page.evaluate(() => {
+      window.hot.updateSettings({ fillHandle: window.hot.getSettings().fillHandle });
+    });
+  }
+
+  /**
+   * Narrow the fill handle to one axis through `updateSettings` — a reconfiguration that changes
+   * what a fill is allowed to do, as opposed to a re-send of the same value.
+   */
+  async setFillHandleDirection(direction: 'vertical' | 'horizontal'): Promise<void> {
+    await this.page.evaluate(value => window.hot.updateSettings({ fillHandle: value }), direction);
+  }
+
+  /**
    * The fill handle drawn by the frozen-columns overlay — a selection ending inside that pane is
    * rendered by the clone, not by the master.
    */

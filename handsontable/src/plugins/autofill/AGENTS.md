@@ -79,8 +79,17 @@ therefore cancelled a live drag on an ordinary re-render. `#isReconfiguring` is 
 `updatePlugin()` raises it around its disable/enable pair, and the reset is skipped while it is set,
 because the `mouseup` listener is re-registered in the same tick and the gesture is genuinely still
 live. Any future teardown added to `disablePlugin()` has to respect that flag, or it re-creates the
-regression. `tests/e2e/fill-handle-disable-mid-drag.spec.ts` pins both halves: the disable ends the
-gesture, the same-value re-send does not.
+regression.
+
+The carve-out is scoped to a reconfiguration that **changes nothing**, and that is not the same as
+"any `updatePlugin()` pass". A pass that genuinely narrows what a fill may do has to end the gesture
+as well, or `#onMouseUp` commits it under the rules it was drawn with: drag down with both axes
+allowed, send `fillHandle: 'horizontal'`, release without moving, and the abandoned vertical drag
+fills anyway. So `updatePlugin()` compares the **resolved** configuration (`directions`,
+`autoInsertRow`) across its disable/enable pair and resets when it moved. Resolved, not raw, because
+`'vertical'` and `{ direction: 'vertical' }` are the same configuration and neither should end a
+drag. `tests/e2e/fill-handle-disable-mid-drag.spec.ts` pins all three outcomes: the disable ends the
+gesture, the same-value re-send does not, the direction change does.
 
 ## Auto-inserting rows
 
