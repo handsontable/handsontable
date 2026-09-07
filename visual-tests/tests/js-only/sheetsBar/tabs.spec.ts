@@ -36,6 +36,8 @@ test(__filename, async({ goto, tablePage }) => {
 
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
-  await bar.locator('.ht-sheets-bar__page-next').click();
+  // adding a sheet activates it, which scrolls the strip to its far end — so the arrow with
+  // room to move is the previous one, and the next arrow renders in its disabled state
+  await bar.locator('.ht-sheets-bar__page-prev').click();
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });
