@@ -205,6 +205,32 @@ describe('Renderer configuration using React components', () => {
 });
 
 describe('Editor configuration using React components', () => {
+  it('should mount a column editor component inside the Handsontable root portal', async () => {
+    const hotTableComponent = mountComponentWithRef<HotTableRef>((
+      <HotTable licenseKey="non-commercial-and-evaluation"
+                id="test-hot"
+                data={createSpreadsheetData(3, 2)}
+                width={300}
+                height={300}
+                rowHeights={23}
+                colWidths={50}
+                init={function () {
+                  mockElementDimensions(this.rootElement, 300, 300);
+                }}>
+        <HotColumn/>
+        <HotColumn editor={EditorComponent} />
+      </HotTable>
+    ));
+
+    const editorElement = document.querySelector('#editorComponentContainer')!;
+    const portalHost = hotTableComponent.hotInstance!.rootPortalElement
+      .querySelector('.hot-wrapper-editor-portal-host');
+
+    expect(portalHost).not.toBeNull();
+    expect(portalHost!.contains(editorElement)).toBe(true);
+    expect(portalHost!.classList.contains('hot-wrapper-editor-container')).toBe(false);
+  });
+
   it('should use the editor component as Handsontable editor, when it\'s passed as component to HotColumn editor prop', async () => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"

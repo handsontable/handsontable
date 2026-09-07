@@ -15,6 +15,7 @@ export class WidthWindowScrollPage {
   readonly master: Locator;
   readonly holder: Locator;
   readonly topOverlay: Locator;
+  readonly bottomOverlay: Locator;
   readonly inlineStartOverlay: Locator;
   readonly topCorner: Locator;
 
@@ -26,6 +27,7 @@ export class WidthWindowScrollPage {
     this.master = this.grid.locator('.ht_master');
     this.holder = this.master.locator('.wtHolder');
     this.topOverlay = this.grid.locator('.ht_clone_top');
+    this.bottomOverlay = this.grid.locator('.ht_clone_bottom');
     this.inlineStartOverlay = this.grid.locator('.ht_clone_inline_start');
     this.topCorner = this.grid.locator('.ht_clone_top_inline_start_corner');
   }
@@ -65,6 +67,11 @@ export class WidthWindowScrollPage {
   /** A frozen-row cell in the top clone. */
   topCloneCell(row: number, col: number): Locator {
     return this.topOverlay.getByTestId(`cell-${row}-${col}`);
+  }
+
+  /** A frozen-row cell in the bottom clone. */
+  bottomCloneCell(row: number, col: number): Locator {
+    return this.bottomOverlay.getByTestId(`cell-${row}-${col}`);
   }
 
   /** A frozen-column cell in the inline-start clone. */
@@ -142,6 +149,33 @@ export class WidthWindowScrollPage {
     await this.page.evaluate(() => new Promise(resolve => {
       requestAnimationFrame(() => requestAnimationFrame(resolve));
     }));
+  }
+
+  /** Scrolls the master holder to its horizontal end and waits two frames. */
+  async scrollHolderToEnd(): Promise<void> {
+    await this.page.evaluate(() => {
+      const holder = document.querySelector('.ht_master .wtHolder');
+
+      if (!holder) {
+        throw new Error('holder is not rendered');
+      }
+
+      holder.scrollLeft = holder.scrollWidth;
+
+      return new Promise(resolve => {
+        requestAnimationFrame(() => requestAnimationFrame(resolve));
+      });
+    });
+  }
+
+  /**
+   * Turns the wheel over an element, the way a trackpad does. The deltas reach the grid's own wheel
+   * listener (bound on the root and on every clone holder), which is what decides whether to
+   * translate them itself or leave them to the browser.
+   */
+  async wheelOver(target: Locator, deltaX: number, deltaY: number): Promise<void> {
+    await target.hover();
+    await this.page.mouse.wheel(deltaX, deltaY);
   }
 
   /** Scrolls the window by a delta and waits two frames. */
@@ -233,6 +267,58 @@ export class WidthWindowScrollPage {
       rows: document.querySelectorAll('.ht_master tbody tr').length,
       columns: document.querySelectorAll('.ht_master tbody tr:first-child td').length,
     }));
+  }
+
+  /**
+   * The column indexes the master currently renders, in DOM order. Each theme
+   * sizes the columns differently, so the same scroll offset puts a different
+   * range in the viewport — a spec reads its probe column from here instead of
+   * hardcoding an index that only exists on one theme.
+   */
+  async renderedColumns(): Promise<number[]> {
+    return this.page.evaluate(() => Array
+      .from(document.querySelectorAll('.ht_master tbody tr:first-child td[data-testid]'))
+      .map(td => Number(td.getAttribute('data-testid')?.split('-').pop())));
+  }
+
+  /**
+   * How far the engine's `getRelativeCellPosition()` for a frozen-column cell sits from where that
+   * cell actually is, relative to the grid root. Both numbers are 0 when the two agree. The probe
+   * row is read from what the inline-start clone renders right now, so it survives the window
+   * scroll that virtualizes the rows away.
+   */
+  async frozenCellPositionError(): Promise<{ start: number, top: number }> {
+    return this.page.evaluate(() => {
+      const wt = (window as unknown as {
+        hot: { view: { _wt: {
+          wtTable: { wtRootElement: HTMLElement },
+          wtOverlays: { inlineStartOverlay: {
+            clone: { wtTable: {
+              getCell(coords: { row: number, col: number }): HTMLElement | number,
+              getFirstRenderedRow(): number,
+            } },
+            getRelativeCellPosition(
+              element: HTMLElement, row: number, column: number): { start: number, top: number },
+          } },
+        } } },
+      }).hot.view._wt;
+      const overlay = wt.wtOverlays.inlineStartOverlay;
+      const row = overlay.clone.wtTable.getFirstRenderedRow() + 3;
+      const cell = overlay.clone.wtTable.getCell({ row, col: 0 });
+
+      if (!(cell instanceof HTMLElement)) {
+        throw new Error(`row ${row} is not rendered in the inline-start clone`);
+      }
+
+      const reported = overlay.getRelativeCellPosition(cell, row, 0);
+      const cellBox = cell.getBoundingClientRect();
+      const rootBox = wt.wtTable.wtRootElement.getBoundingClientRect();
+
+      return {
+        start: reported.start - (cellBox.left - rootBox.left),
+        top: reported.top - (cellBox.top - rootBox.top),
+      };
+    });
   }
 
   /** The count of `afterScrollVertically` calls since the last rebuild. */

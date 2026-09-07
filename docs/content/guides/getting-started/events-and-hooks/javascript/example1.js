@@ -26,6 +26,7 @@ const config = {
     comments: true,
     manualColumnMove: true,
     manualRowMove: true,
+    moveCells: true,
     licenseKey: 'non-commercial-and-evaluation',
 };
 const example1Events = document.getElementById('example1_events');

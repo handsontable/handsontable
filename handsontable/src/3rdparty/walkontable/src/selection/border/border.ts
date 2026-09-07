@@ -1475,7 +1475,18 @@ class Border {
       top += 1;
       height = height > 0 ? height - 1 : 0;
     }
-    if (parseInt(style[isRtl ? 'borderRightWidth' : 'borderLeftWidth'], 10) > 0) {
+    // The inline-start gridline sits INSIDE the cell when the cell draws its own start border, so the
+    // edge has to move onto it. A cell standing behind a row header draws no start border - the row
+    // header owns that gridline (#6673) - and the shared pixel is then the last pixel of the
+    // inline-start overlay, which paints at z-index 120 against this layer's 10. An edge left centred
+    // on it would be hidden behind the row header, so both cases put the visible edge at the cell's
+    // own inline-start boundary. Read from the DOM, not from a column index: with row headers no cell
+    // owns that border, and `htFirstDatasetColumnNotRendered` takes it off the first rendered column
+    // too.
+    const ownsInlineStartBorder = parseInt(style[isRtl ? 'borderRightWidth' : 'borderLeftWidth'], 10) > 0;
+    const standsBehindRowHeader = fromTDEl.previousElementSibling?.nodeName === 'TH';
+
+    if (ownsInlineStartBorder || standsBehindRowHeader) {
       inlineStartPos += 1;
       width = width > 0 ? width - 1 : 0;
     }

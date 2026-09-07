@@ -17,6 +17,10 @@ describe('preventOverflow option', () => {
       $('.wtHolder').remove();
     }
 
+    // Unconditionally, not at the end of the spec that scrolls: a spec awaiting a scroll callback
+    // that never fires times out with the page still scrolled, and every later spec in the suite
+    // then starts at that offset.
+    window.scrollTo(0, 0);
     this.$wrapper.remove();
     this.wotInstance.destroy();
   });
@@ -138,7 +142,5 @@ describe('preventOverflow option', () => {
     expect(scrollVertically.calls.count()).toBe(1);
     expect(scrollHorizontally.calls.count()).toBe(0);
     expect(wt.wtOverlays.topOverlay.getScrollPosition()).toBe(200);
-
-    window.scrollTo(0, 0);
   });
 });

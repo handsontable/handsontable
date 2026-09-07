@@ -1,9 +1,4 @@
-import {
-  getScrollLeft,
-  getScrollTop,
-  getScrollableElement,
-  isHTMLElement,
-} from '../../../../../helpers/dom/element';
+import { getScrollableElement, isHTMLElement } from '../../../../../helpers/dom/element';
 import type { EngineContext } from '../../wire';
 import type { default as Overlays } from '../overlays';
 import type { StickyScrollStrategy } from '../strategies/stickyScrollStrategy';
@@ -48,6 +43,37 @@ export function createScrollSyncDeps(ctx: EngineContext, overlays: Overlays, sti
  * The ScrollSync dependencies, inferred from `createScrollSyncDeps`.
  */
 export type ScrollSyncDeps = ReturnType<typeof createScrollSyncDeps>;
+
+/**
+ * Reads the horizontal scroll offset of the element that scrolls an axis. Scroll positions are cheap
+ * reads and are taken directly (see `walkontable-dev`). Signed, so an RTL holder keeps its negative
+ * `scrollLeft` when it is mirrored onto the clones.
+ *
+ * The element test is `isHTMLElement`, not `instanceof`: a grid whose DOM is in an iframe driven from
+ * the parent realm holds nodes built by another realm's constructor, and `instanceof HTMLElement`
+ * is false for every one of them. The window offset comes from the injected `rootWindow` for the
+ * same reason — `instanceof Window` misses a cross-realm window just as surely, and a helper that
+ * fell through to `0` reported "not scrolling" on every frame, so the clones never followed.
+ *
+ * @param {HTMLElement | Window} element The scrolling element or the window.
+ * @param {Window} rootWindow The grid's own window.
+ * @returns {number}
+ */
+function readScrollLeft(element: HTMLElement | Window, rootWindow: Window): number {
+  return isHTMLElement(element) ? element.scrollLeft : rootWindow.scrollX;
+}
+
+/**
+ * Reads the vertical scroll offset of the element that scrolls an axis. Cross-realm safe, for the
+ * reasons given on `readScrollLeft`.
+ *
+ * @param {HTMLElement | Window} element The scrolling element or the window.
+ * @param {Window} rootWindow The grid's own window.
+ * @returns {number}
+ */
+function readScrollTop(element: HTMLElement | Window, rootWindow: Window): number {
+  return isHTMLElement(element) ? element.scrollTop : rootWindow.scrollY;
+}
 
 /**
  * Owns the scroll state shared across the overlays and the master<->clone scroll synchronization:
@@ -242,12 +268,19 @@ export class ScrollSync {
 
   /**
    * Records whether any overlay's rendering state changed in the current draw. Set from the
-   * coordinator's `beforeDraw`; consumed by `syncScrollWithMaster`.
+   * coordinator's `beforeDraw`; consumed (and cleared) by `syncScrollWithMaster`.
+   *
+   * It latches rather than overwrites. A draw can nest: the master's `beforeDraw` hook may run a
+   * full draw of its own, whose `beforeDraw` fires BEFORE the outer draw's `afterDraw`. By then the
+   * overlays' render state has already been advanced by the outer `beforeDraw`, so the nested one
+   * sees no change and, writing `false`, wiped the flag the outer one had just raised — no draw
+   * ever synced the clone, and a `fixedRowsBottom` enabled after a holder scroll came up a whole
+   * scroll away from the master.
    *
    * @param {boolean} value Whether any overlay's rendering state changed.
    */
   setRenderingStateChanged(value: boolean) {
-    this.#hasRenderingStateChanged = value;
+    this.#hasRenderingStateChanged = this.#hasRenderingStateChanged || value;
   }
 
   /**
@@ -277,11 +310,9 @@ export class ScrollSync {
     // holds: the window when it owns the axis, the master holder otherwise. Reading both off one
     // element missed the window's vertical scroll whenever the holder owned the horizontal axis
     // (`preventOverflow: 'horizontal'`, or a definite `width` with no sized `height`), so the
-    // vertical scroll callbacks never fired on a page scroll. Signed, so an RTL holder keeps its
-    // negative `scrollLeft` when it is mirrored onto the clones.
-    const { rootWindow } = this.#deps;
-    const scrollX = getScrollLeft(inlineStartOverlay.mainTableScrollableElement, rootWindow);
-    const scrollY = getScrollTop(topOverlay.mainTableScrollableElement, rootWindow);
+    // vertical scroll callbacks never fired on a page scroll.
+    const scrollX = readScrollLeft(inlineStartOverlay.mainTableScrollableElement, this.#deps.rootWindow);
+    const scrollY = readScrollTop(topOverlay.mainTableScrollableElement, this.#deps.rootWindow);
 
     this.#horizontalScrolling = this.#lastScrollX !== scrollX;
     this.#verticalScrolling = this.#lastScrollY !== scrollY;
@@ -340,17 +371,6 @@ export class ScrollSync {
 
   /**
    * Synchronize overlay scrollbars with the master scrollbar.
-   *
-   * Read and written per axis, off the element that scrolls that axis. Taking both off the top
-   * overlay's element gave up entirely when the window owned the vertical axis, which is the
-   * headline split (a definite `width` with no sized `height`): a clone that started rendering
-   * while the holder was scrolled horizontally - `updateSettings({ fixedRowsTop: 1 })` on a
-   * scrolled grid - kept its holder at `scrollLeft: 0` and showed the wrong columns.
-   * `syncScrollPositions` could not repair it either, because the master's scroll had not moved.
-   *
-   * A clone is written only for an axis an element scrolls. On a window-owned axis the clone's
-   * cells are positioned by the spreader instead, and a holder offset there would double-shift them
-   * (the rule spelled out in `syncScrollPositions`).
    */
   syncScrollWithMaster() {
     if (!this.#hasRenderingStateChanged) {
@@ -360,11 +380,18 @@ export class ScrollSync {
     const topOverlay = this.#deps.getTopOverlay();
     const bottomOverlay = this.#deps.getBottomOverlay();
     const inlineStartOverlay = this.#deps.getInlineStartOverlay();
-    const horizontalScrollable = inlineStartOverlay.mainTableScrollableElement;
-    const verticalScrollable = topOverlay.mainTableScrollableElement;
+    // Per axis, as `syncScrollPositions` reads them: the horizontal offset lives on whatever scrolls
+    // the horizontal axis and the vertical one on whatever scrolls the vertical axis, and in split
+    // mode those are two different things. Reading both off the top overlay's element gave up here
+    // whenever that element was the window, so a clone shown after a holder scroll (`fixedRowsBottom`
+    // set at runtime) rendered its band a whole scroll away from the master until the next scroll.
+    // An axis the window owns is skipped: a clone holder must not accumulate the page offset (see
+    // `syncScrollPositions`). Cross-realm safe through `isHTMLElement`.
+    const horizontalOwner = inlineStartOverlay.mainTableScrollableElement;
+    const verticalOwner = topOverlay.mainTableScrollableElement;
 
-    if (isHTMLElement(horizontalScrollable)) {
-      const { scrollLeft } = horizontalScrollable;
+    if (isHTMLElement(horizontalOwner)) {
+      const { scrollLeft } = horizontalOwner;
 
       if (topOverlay.needFullRender && topOverlay.clone) {
         topOverlay.clone.wtTable.holder.scrollLeft = scrollLeft; // todo rethink, *overlay.setScroll*()
@@ -374,9 +401,8 @@ export class ScrollSync {
       }
     }
 
-    if (isHTMLElement(verticalScrollable) && inlineStartOverlay.needFullRender && inlineStartOverlay.clone) {
-      // todo rethink, *overlay.setScroll*()
-      inlineStartOverlay.clone.wtTable.holder.scrollTop = verticalScrollable.scrollTop;
+    if (isHTMLElement(verticalOwner) && inlineStartOverlay.needFullRender && inlineStartOverlay.clone) {
+      inlineStartOverlay.clone.wtTable.holder.scrollTop = verticalOwner.scrollTop; // todo rethink, *overlay.setScroll*()
     }
 
     this.#hasRenderingStateChanged = false;

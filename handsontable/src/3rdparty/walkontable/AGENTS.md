@@ -106,6 +106,75 @@ Three more things that pass every functional test and only show up in a profile 
 
 When you add a new content-driven measurement, ask which tables actually render the content — measuring the master alone is the trap both of these exist to work around.
 
+## Column-axis border ownership: the row header owns its gridline
+
+The two axes are NOT symmetric, and the column axis is the settled one. On the column axis a row
+header `th` carries its own `border-inline-end` at **every** scroll position, and no `td` standing
+behind a row header carries a `border-inline-start`. So one declared `colWidths` produces one content
+width in every column, and `col.rowHeader` is written verbatim from the `rowHeaderWidth` setting
+whatever the scroll offset (`render/colGroup.ts`).
+
+It used to work the other way round, and that was issue #6673. `td:first-of-type` was given an
+inline-start border on top of the inline-end border every cell has, and `box-sizing: border-box` took
+both out of the same `col` width — so column 0's content box was 1px narrower than everybody else's.
+The row header then dropped its own inline-end border at offset 0 to keep the seam from doubling, and
+a `correctHeaderWidth` flag widened the row header by 1px the moment the grid scrolled, with matching
+compensations in `inlineStartOverlay#scrollTo`, the hider width (`spreaderSize`) and the two column
+calculators (`viewportWidth + 1`). The table therefore changed width by being scrolled. All of that is
+gone; do not reintroduce a scroll-dependent header width or a per-axis `+ 1` in a column calculator —
+`getViewportWidth()` is exact at every offset now.
+
+Consequences worth knowing:
+
+- **`innerBorderInlineStart`, `innerBorderLeft` and `emptyColumns` still get stamped on `.ht_master`**
+  (`overlay/regions/inlineStartOverlay.ts`) and are kept for backward compatibility, but no stylesheet
+  reads them any more. `innerBorderInlineStart` also only toggles when the grid has row headers and NO
+  frozen columns, so it is not a usable "has scrolled" signal in a test — poll the holder's
+  `scrollLeft` instead.
+- **The row axis is unchanged.** `innerBorderTop` / `innerBorderBottom` still shift the layout by 1px,
+  which is what `positionChanged` and the reconciliation draw in `table/drawCycle.ts` exist for, and
+  `columnHeaderBorderCompensation` in `topOverlay`/`spreaderSize` is the vertical twin that stayed.
+  Bringing the row axis into line is a separate change.
+- **Anything positioning an element over a cell must read the cell's border, not its index.** Which
+  cells own an inline-start border is no longer "column 0": with row headers none of them do, and
+  `htFirstDatasetColumnNotRendered` takes it off the first rendered column too. `BaseEditor#getEditedCellRect`
+  keys both the editor's width and its inline-start offset off the same computed border for exactly
+  that reason — key them off different things and the editor is a pixel wider than where it starts,
+  overhanging the next column.
+- **Reading the border is not enough for anything the overlays paint over.** The shared pixel in front
+  of column 0 belongs to the inline-start overlay, which is z-index 120 against the selection border
+  layer's 10, so an affordance centred on that gridline is *geometrically* right and *invisible*.
+  `Border#appear` therefore shifts the edge onto the cell's own boundary when the cell either owns an
+  inline-start border **or** has a row-header `th` as its previous sibling. That second test is what
+  keeps a selection on column 0 visible; without it the edge lands at `rowHeaderWidth - 1` and
+  disappears behind the row header. The `customBorders` specs cannot catch it — they count visible
+  elements, and the element is there, just covered.
+- **Ownership covers the seam's COLOR, not only which element draws it.** In the overlay that renders
+  nothing but the row-header column, the row header `th` is also `:last-child`, and the header rule
+  keyed on that paints the grid's OUTER frame color. So the same gridline came out
+  `--ht-border-color` with plain `rowHeaders` and `--ht-cell-horizontal-border-color` with
+  `fixedColumnsStart` — invisible in `horizon`, where the cell-border token is transparent, and
+  visible in the other shape. `_base.scss` pins the seam owner to the cell-border color under
+  `.htRowHeaders`, with three carve-outs: `.emptyColumns`, where the row header really is the grid's
+  inline-end edge; `ht__active_highlight-prev`, which is how an active column-0 header gets its
+  inline-start accent (that pixel moved to the corner); and `ht__active_highlight`, because the seam
+  is the active row header's own inline-end and the accent has to win there. The grid managed that
+  last one only when scrolled before, since the border was 0px at horizontal offset 0.
+- **A grid can carry more than one row header column**, and then the seam to column 0 is the LAST
+  one's `border-inline-end`. `afterGetRowHeaderRenderers` is a documented hook that appends
+  renderers, and `autoRowHeaderSize` measures each of them, so this is a supported shape rather than
+  a curiosity. The body selector therefore matches every `th` in a body row - all of them are row
+  headers - rather than `th:first-child`; the inner ones need no override because they are never
+  `:last-child`. The HEAD row cannot be handled the same way: CSS cannot count how many corner cells
+  precede the first column header, so that half stays on `:first-child` and a grid with two or more
+  row headers keeps drawing its head-row seam in the frame color. That is what it does today too, so
+  it is a pre-existing quirk this change neither fixes nor worsens - fixing it needs a marker class
+  from the engine on the last row header.
+- Without row headers, column 0 is the first cell of its row and still draws the grid's own
+  inline-start frame inside its declared width. It stays 1px narrower than the rest — deliberately out
+  of scope for #6673, and pinned as a control case in
+  `tests/e2e/row-header-border-ownership.spec.ts`.
+
 ## Per-axis trimming containers
 
 Each scroll axis has its own **owner**: the nearest ancestor of `.ht_master` whose `overflow-x` (or
@@ -118,7 +187,7 @@ the holder scrolls the columns inside the root's box, and the page scrolls the r
 The owners live on the overlays: the top and bottom overlays carry the vertical owner in
 `trimmingContainer`, the inline-start overlay the horizontal one, and
 `isVerticallyScrollableByWindow()` / `isHorizontallyScrollableByWindow()` read exactly those two
-fields. Five rules follow.
+fields. Seven rules follow.
 
 - **A decision about the other axis goes through the viewport predicate, never `this.trimmingContainer`.**
   The width of the top and bottom clones is a horizontal question and the height of the inline-start
@@ -133,15 +202,6 @@ fields. Five rules follow.
   spans both edges and needs both. Gating its bottom strip on its own (vertical) owner re-created
   the #10370 notch in split mode, mirrored: the frozen columns clipped a bottom strip while the
   frozen bottom rows and the corner over them published none.
-- **`syncScrollWithMaster` and `syncScrollPositions` read AND write per axis.** Each axis comes off
-  the `mainTableScrollableElement` of the overlay pinned against it, and a clone holder is only
-  offset on an axis an element scrolls — on a window-owned axis the clone's cells are placed by the
-  spreader, so a holder offset double-shifts them. Taking both axes off the top overlay made
-  `syncScrollWithMaster` return early whenever the window owned the vertical axis, which is the
-  headline split: a clone that began rendering while the holder was scrolled sideways
-  (`updateSettings({ fixedRowsTop: 1 })` on a scrolled grid) kept `scrollLeft: 0` and showed the
-  wrong columns, and `syncScrollPositions` could not repair it because the master's scroll had not
-  moved.
 - **The wheel handler may only swallow a gesture the grid can answer on every axis it names.**
   `ScrollSync#scrollableElement` is the holder as soon as *either* axis is element-owned, so a plain
   vertical wheel over a definite-`width`, free-`height` grid reaches the translation, nudges the
@@ -156,6 +216,43 @@ fields. Five rules follow.
   reset in `MasterTable` (`true` still suppresses it), `InlineStartOverlay#getTableParentOffset`, and
   the two header-border suppressions, which are visual rules pinned by
   `src/__tests__/settings/preventOverflow.spec.js`. The option stays forever, without a warning.
+- **Never ask `instanceof HTMLElement` whether an axis owner is an element — use `isHTMLElement()`.**
+  `resolveAxisOwner` takes its realm from `ownerDocument`, so it correctly hands back an iframe's
+  element to a parent-realm caller; `instanceof` then fails to recognize it against the parent's
+  constructor, and the axis silently reads as window-owned. The two halves of the engine then
+  disagree about the same axis: `isHorizontallyScrollableByWindow()` answers `false` while the master
+  lays the holder out in window mode, so it is left `overflow: visible` and never sized, and the
+  columns past the width are unreachable — the exact defect this section exists to remove, one realm
+  over. Scroll offsets have the mirror of it: read them with `isHTMLElement(el) ? el.scrollLeft :
+  rootWindow.scrollX`, off the INJECTED `rootWindow`, because `instanceof Window` misses a
+  cross-realm window just as surely and a fall-through to `0` reports a motionless axis on every
+  frame — the scroll hooks then never fire. Pinned by `tests/e2e/iframe-cross-realm-scroll.spec.ts`,
+  which builds a grid in an iframe from the parent page's constructor; nothing else in the suite
+  crosses a realm, so an `instanceof` reintroduced here stays green everywhere else.
+- **Scroll offsets are read and written per axis, off each overlay's `mainTableScrollableElement`,
+  never off one shared element.** The inline-start overlay's element scrolls the horizontal axis
+  and the top overlay's the vertical one, and in split mode they are different things (the holder
+  and the window). Three paths follow that rule: `ScrollSync#syncScrollPositions` (the per-frame
+  direction flags), `ScrollSync#syncScrollWithMaster` (the offset handed to a clone whose render
+  state just changed) and `Overlays#scrollVertically` / `scrollHorizontally` (the wheel
+  translation). Each one used to read both axes off ONE element and reached three different dead
+  ends in split mode: the direction flags missed the window's vertical scroll, the clone sync read
+  the top overlay's element — the window — and gave up, so a `fixedRowsBottom` enabled after a
+  holder scroll came up a whole scroll away from the master, and the wheel translation consumed
+  the horizontal part on the holder and then cancelled the event, taking the window-owned vertical
+  part with it: a diagonal trackpad swipe moved the columns and not the page. A window-owned axis
+  is scrolled from the wheel path with `rootWindow.scrollBy({ behavior: 'instant' })`, so the event
+  is consumed on both axes and the offset is readable at once whatever `scroll-behavior` the page
+  sets; the clone sync skips it instead, because a clone holder must not accumulate the page offset:
+  on a window-owned axis the clone's cells are placed by the spreader, so a holder offset would
+  double-shift them.
+- **`ScrollSync#setRenderingStateChanged` latches until `syncScrollWithMaster` consumes it.** A
+  draw nests: the master `beforeDraw` hook can run a full draw of its own, and that draw's
+  `beforeDraw` fires before the outer `afterDraw`. The outer `beforeDraw` has already advanced the
+  overlays' render state, so the nested one sees no change — and an overwriting setter then wiped
+  the flag the outer one raised, so no `afterDraw` in the whole sequence synced the clone. The trace
+  reads `beforeDraw, beforeDraw, afterDraw(false), afterDraw(true)`; if you see that shape, the flag
+  was raised in the first call and must still be set in the last.
 - **The public, no-axis `getTrimmingContainer()` keeps the single-axis-clip exemption and must not be
   used inside the engine.** It has to name one container for both axes, so it ignores an
   `overflow-x: clip` next to a `visible` vertical axis (DEV-1025). Ask per axis instead.
@@ -235,10 +332,11 @@ the answer is still the window although an element trims the table, the layout h
 the pass is retried on the next draw — but only while the resolved element keeps changing. It is
 checked before anything is rebound, so a pass that cannot settle costs one style read. Two rules make
 that necessary: `getTrimmingContainer` counts `overflow: hidden` and `getScrollableElement` does not,
-so the two can disagree for good, and a table in an iframe driven from the parent realm does exactly
-that — `MasterTable#alignOverlaysWithTrimmingContainer` misses it through a realm-bound `instanceof`
-and leaves the holder `overflow: visible`. Retrying such a table forever rebinds every listener on
-every draw, which also drops whichever scroll event is in flight. Re-arming the flag (through the
+so the two can disagree for good. (An iframe driven from the parent realm used to be the second one:
+`MasterTable#alignOverlaysWithTrimmingContainer` judged the owner with a realm-bound `instanceof` and
+left the holder `overflow: visible`. That is fixed — see the realm rule in the per-axis section
+above.) Retrying such a table forever rebinds every listener on every draw, which also drops
+whichever scroll event is in flight. Re-arming the flag (through the
 public `updateMainScrollableElements`, which `updateSettings` calls whenever `height` moves to or from
 `''`, and which the owner resync above calls when an axis owner moved) forgets the answer the
 previous series gave up on — otherwise the first retry of the new series matches its own stale

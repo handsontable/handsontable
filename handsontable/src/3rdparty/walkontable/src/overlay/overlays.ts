@@ -6,6 +6,7 @@ import type { Overlay } from './regions/_base';
 import type EventManager from '../../../../eventManager';
 import { debounce } from '../../../../helpers/function';
 import { arrayEach } from '../../../../helpers/array';
+import { isHTMLElement } from '../../../../helpers/dom/element';
 import {
   InlineStartOverlay,
   TopOverlay,
@@ -655,41 +656,70 @@ class Overlays {
   }
 
   /**
-   * Scrolls main scrollable element vertically.
+   * Scrolls the vertical axis by a delta, on whatever owns that axis: the top overlay's scrolling
+   * element — the holder (or a scrollable ancestor) when an element owns the axis, the window when
+   * the page does. Reports whether the position moved, which is what the wheel listener uses to
+   * decide whether it consumed the event.
+   *
+   * Driving the axis owner rather than the single `scrollableElement` matters in split mode, where
+   * that element is the holder while the window owns the vertical axis: a wheel that moved the
+   * holder's `scrollLeft` was cancelled, and the window-owned vertical part went with it — the
+   * columns moved, the page did not. Scrolling the window from here consumes both axes at once.
    *
    * @param {number} delta Relative value to scroll.
    * @returns {boolean}
    */
   scrollVertically(delta: number) {
-    if (!(this.scrollableElement instanceof HTMLElement)) {
-      return false;
-    }
-
-    const el = this.scrollableElement;
-    const previousScroll = el.scrollTop;
-
-    el.scrollTop += delta;
-
-    return previousScroll !== el.scrollTop;
+    return this.#scrollAxisOwnerBy(this.topOverlay.mainTableScrollableElement, 'y', delta);
   }
 
   /**
-   * Scrolls main scrollable element horizontally.
+   * Scrolls the horizontal axis by a delta, on whatever owns that axis (the inline-start overlay's
+   * scrolling element). See `scrollVertically`.
    *
    * @param {number} delta Relative value to scroll.
    * @returns {boolean}
    */
   scrollHorizontally(delta: number) {
-    if (!(this.scrollableElement instanceof HTMLElement)) {
-      return false;
+    return this.#scrollAxisOwnerBy(this.inlineStartOverlay.mainTableScrollableElement, 'x', delta);
+  }
+
+  /**
+   * Moves one axis of its owner by a delta and reports whether the position changed.
+   *
+   * The element test is `isHTMLElement`, never `instanceof`: an owner from an iframe's realm fails
+   * `instanceof HTMLElement` against this realm's constructor, and the old guard then reported "not
+   * scrolled", so a wheel over a clone could not reach the columns at all. A window owner is scrolled
+   * with `behavior: 'instant'` so the offset is readable on the next line whatever `scroll-behavior`
+   * the page sets — a smooth scroll would read as unmoved, the event would not be consumed, and the
+   * browser's own scroll would land on top of it.
+   *
+   * @param {HTMLElement | Window} owner The element (or window) that scrolls the axis.
+   * @param {'x' | 'y'} axis The axis to move.
+   * @param {number} delta Relative value to scroll.
+   * @returns {boolean}
+   */
+  #scrollAxisOwnerBy(owner: HTMLElement | Window, axis: 'x' | 'y', delta: number): boolean {
+    if (isHTMLElement(owner)) {
+      const property = axis === 'x' ? 'scrollLeft' : 'scrollTop';
+      const previous = owner[property];
+
+      owner[property] += delta;
+
+      return previous !== owner[property];
     }
 
-    const el = this.scrollableElement;
-    const previousScroll = el.scrollLeft;
+    const { rootWindow } = this.#deps;
+    const read = () => (axis === 'x' ? rootWindow.scrollX : rootWindow.scrollY);
+    const previous = read();
 
-    el.scrollLeft += delta;
+    rootWindow.scrollBy({
+      left: axis === 'x' ? delta : 0,
+      top: axis === 'y' ? delta : 0,
+      behavior: 'instant',
+    });
 
-    return previousScroll !== el.scrollLeft;
+    return previous !== read();
   }
 
   /**
@@ -915,15 +945,6 @@ class Overlays {
    */
   expandHiderVerticallyBy(heightDelta: number) {
     this.#spreaderSize.expandHiderVerticallyBy(heightDelta);
-  }
-
-  /**
-   * Expand the hider horizontally element by the provided delta value.
-   *
-   * @param {number} widthDelta The delta value to expand the hider element by.
-   */
-  expandHiderHorizontallyBy(widthDelta: number) {
-    this.#spreaderSize.expandHiderHorizontallyBy(widthDelta);
   }
 
   /**
