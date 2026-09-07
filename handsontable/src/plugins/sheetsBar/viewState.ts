@@ -469,13 +469,18 @@ function createNeutralViewState(): ViewState {
 /**
  * Returns the grid to a neutral baseline. Switching to a sheet that carries no captured
  * view state must not inherit the previous sheet's filters, hidden or trimmed indexes,
- * sort, merges, borders, or manual sizes: `loadData` resets the index mappers and
+ * sort, merges, borders, manual sizes, or a freeze set at runtime (`fixedColumnsStart`
+ * carries the value the grid started with): `loadData` resets the index mappers and
  * ColumnSorting clears itself on `afterLoadData`, but every other collection survives it.
  */
-export function resetViewState(hot: HotInstance): void {
+export function resetViewState(hot: HotInstance, fixedColumnsStart?: number): void {
   const state = createNeutralViewState();
 
   hot.batch(() => {
+    if (fixedColumnsStart !== undefined && hot.getSettings().fixedColumnsStart !== fixedColumnsStart) {
+      hot.updateSettings({ fixedColumnsStart });
+    }
+
     getSortingPlugin(hot)?.sort([]);
     restoreFilterConditions(hot, state);
     restoreTrimmedState(hot, state);

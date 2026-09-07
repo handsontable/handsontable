@@ -1,5 +1,7 @@
 import HyperFormula from 'hyperformula';
 import Handsontable from '../../../base';
+import { registerLanguageDictionary } from '../../../i18n/registry';
+import plPL from '../../../i18n/languages/pl-PL';
 import { registerPlugin } from '../../registry';
 import { SheetsBar } from '../sheetsBar';
 import { ManualRowResize } from '../../manualRowResize/manualRowResize';
@@ -945,6 +947,97 @@ describe('SheetsBar plugin', () => {
     });
 
     expect(warned.mock.calls.some(call => String(call[0]).includes('shared engine instance'))).toBe(true);
+  });
+
+  it('re-feeds the engine when a rebuilt workbook reuses its sheet names', () => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+    const build = rate => new Handsontable(document.body.appendChild(document.createElement('div')), {
+      licenseKey: 'non-commercial-and-evaluation',
+      sheetsBar: {
+        sheets: [
+          {
+            name: 'Budget',
+            data: [[100, '=A1*Rates!A1']],
+            settings: { formulas: { engine, sheetName: 'Budget' } },
+          },
+          {
+            name: 'Rates',
+            data: [[rate]],
+            settings: { formulas: { engine, sheetName: 'Rates' } },
+          },
+        ],
+      },
+    });
+    const first = build(0.23);
+
+    expect(first.getDataAtCell(0, 1)).toBe(23);
+    first.destroy();
+
+    const second = build(0.5);
+
+    expect(second.getDataAtCell(0, 1)).toBe(50);
+    second.destroy();
+  });
+
+  it('removes a deleted sheet from the engine and frees its name', () => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'Rates', data: [[0.23]], settings: { formulas: { engine, sheetName: 'Rates' } } },
+          { name: 'Old', data: [[1]], settings: { formulas: { engine, sheetName: 'Old' } } },
+          { name: 'Other', data: [['x']] },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+
+    expect(sheetsBar.removeSheet(sheetsBar.getSheets()[1].id)).toBe(true);
+    expect(engine.getSheetNames()).toEqual(['Rates']);
+
+    expect(sheetsBar.renameSheet(sheetsBar.getSheets()[0].id, 'Old')).toBe(true);
+    expect(engine.getSheetNames()).toEqual(['Old']);
+  });
+
+  it('retranslates the control labels when the language changes', () => {
+    registerLanguageDictionary(plPL);
+
+    hot = new Handsontable(container, {
+      sheetsBar: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const addButton = hot.rootWrapperElement.querySelector('.ht-sheets-bar__add');
+
+    expect(addButton.getAttribute('aria-label')).toBe('Add sheet');
+
+    hot.updateSettings({ language: 'pl-PL' });
+
+    expect(hot.rootWrapperElement.querySelector('.ht-sheets-bar__add').getAttribute('aria-label'))
+      .toBe('Dodaj arkusz');
+  });
+
+  it('does not carry a runtime freeze onto a sheet that was never visited', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'A', data: [['a', 'b', 'c']] },
+          { name: 'B', data: [['x', 'y', 'z']] },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+
+    hot.updateSettings({ fixedColumnsStart: 2 });
+    sheetsBar.setActiveSheet('B');
+
+    expect(hot.getSettings().fixedColumnsStart).toBe(0);
+
+    sheetsBar.setActiveSheet('A');
+
+    expect(hot.getSettings().fixedColumnsStart).toBe(2);
   });
 
   it('restores a sheet without throwing when manual row resizing is on', () => {

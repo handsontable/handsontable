@@ -120,6 +120,7 @@ interface SheetFormulas {
     doesSheetExist?: (name: string) => boolean;
     addSheet?: (name: string) => string;
     renameSheet?: (sheetId: number, name: string) => void;
+    removeSheet?: (sheetId: number) => void;
     getSheetId?: (name: string) => number | undefined;
     setSheetContent?: (sheetId: number, content: unknown[][]) => void;
     getSheetSerialized?: (sheetId: number) => unknown[][];
@@ -291,6 +292,14 @@ export class SheetsBar extends BasePlugin {
    * @type {boolean}
    */
   #hasFocusScope = false;
+  /**
+   * The grid-level `fixedColumnsStart` as it stood before any sheet was applied. A sheet with
+   * no captured view state opens with this freeze, so a freeze set at runtime on one sheet
+   * does not follow the user onto a sheet they have never visited.
+   *
+   * @type {number|undefined}
+   */
+  #neutralFixedColumnsStart: number | undefined;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings.
@@ -308,6 +317,8 @@ export class SheetsBar extends BasePlugin {
     if (this.enabled || this.#isInitializing) {
       return;
     }
+
+    this.#neutralFixedColumnsStart = this.hot.getSettings().fixedColumnsStart as number | undefined;
 
     if (this.#preservedState) {
       this.#model = this.#preservedState.model;
@@ -711,7 +722,7 @@ export class SheetsBar extends BasePlugin {
       if (viewState) {
         restoreViewState(this.hot, viewState);
       } else {
-        resetViewState(this.hot);
+        resetViewState(this.hot, this.#neutralFixedColumnsStart);
       }
     };
 
@@ -1015,8 +1026,14 @@ export class SheetsBar extends BasePlugin {
           }
         }
 
+        const removedSheet = model.getSheetById(id);
+
         if (!model.removeSheet(id)) {
           return false;
+        }
+
+        if (removedSheet) {
+          this.#removeFormulaSheet(removedSheet);
         }
 
         this.#refreshUI();
@@ -1262,8 +1279,29 @@ export class SheetsBar extends BasePlugin {
 
     if (!engine.doesSheetExist!(formulas.sheetName)) {
       engine.addSheet!(formulas.sheetName);
-      engine.setSheetContent!(engine.getSheetId!(formulas.sheetName) as number, sheet.data);
     }
+
+    // Fed on every registration, not only when the sheet is new to the engine: a rebuilt
+    // workbook can reuse the names with new data, and an engine sheet left on its old content
+    // would keep feeding stale values into the cross-sheet formulas until each sheet is
+    // visited once.
+    engine.setSheetContent!(engine.getSheetId!(formulas.sheetName) as number, sheet.data);
+  }
+
+  /**
+   * Takes a removed sheet out of the formula engine it was bound to, so formulas on the
+   * remaining sheets stop calculating against data that no longer has a tab, and the name
+   * becomes free for a later sheet or rename to take.
+   */
+  #removeFormulaSheet(sheet: Sheet) {
+    const formulas = formulasSettingOf(sheet);
+    const engine = formulas?.engine;
+
+    if (!formulas?.sheetName || !isEngineInstance(engine) || !engine!.doesSheetExist!(formulas.sheetName)) {
+      return;
+    }
+
+    engine!.removeSheet!(engine!.getSheetId!(formulas.sheetName) as number);
   }
 
   /**
@@ -1333,6 +1371,7 @@ export class SheetsBar extends BasePlugin {
    * Re-renders the bar's translated labels and tabs when the grid's language changes.
    */
   #onAfterLanguageChange = () => {
+    this.#ui?.refreshLabels();
     this.#refreshUI();
   };
 

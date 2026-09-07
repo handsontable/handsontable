@@ -186,6 +186,23 @@ export class SheetsBarUI {
   }
 
   /**
+   * Re-applies the translated control labels, for a grid whose language changed after the
+   * bar was built.
+   */
+  refreshLabels(): void {
+    const { addButton, allButton, tabStrip, pagePrev, pageNext } = this.#refs as SheetsBarRefs;
+
+    setAttribute(addButton, [A11Y_LABEL(this.translate(C.SHEETS_BAR_ADD_SHEET))]);
+    setAttribute(allButton, [A11Y_LABEL(this.translate(C.SHEETS_BAR_ALL_SHEETS))]);
+    setAttribute(pagePrev, [A11Y_LABEL(this.translate(C.SHEETS_BAR_PAGE_PREV))]);
+    setAttribute(pageNext, [A11Y_LABEL(this.translate(C.SHEETS_BAR_PAGE_NEXT))]);
+
+    if (this.#ariaTags) {
+      setAttribute(tabStrip, [A11Y_LABEL(this.translate(C.SHEETS_BAR_SECTION))]);
+    }
+  }
+
+  /**
    * Toggles the `+` / `≡` controls section.
    */
   setControlsVisible(visible: boolean): void {
