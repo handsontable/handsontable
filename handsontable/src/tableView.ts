@@ -620,20 +620,23 @@ class TableView {
 
       const activeElement = getDeepActiveElement(rootDocument);
       const activeHTMLElement = isHTMLElement(activeElement) ? activeElement : null;
-      const isOutsideInputElement = activeHTMLElement !== null && isOutsideInput(activeHTMLElement);
+      // Resolved once and handed to both verdicts below. Each one needs it, and the test walks the
+      // focused element's ancestors up to the open editor's `preventCloseElement` - work worth
+      // doing once per event on a listener that runs for every `mouseup` on the document.
+      const isFocusInEditorSurface = this.#isFocusWithinEditorSurface(activeHTMLElement);
+      const isForeignInputElement = this.#isForeignInput(activeHTMLElement, isFocusInEditorSurface);
 
-      if (activeHTMLElement !== null && isInput(activeHTMLElement) && !isOutsideInputElement) {
+      if (activeHTMLElement !== null && isInput(activeHTMLElement) && !isForeignInputElement) {
         return;
       }
 
       const eventPath = event.composedPath();
-      const isPathThroughGridUi = eventPath.includes(rootWrapperElement ?? rootElement) ||
-        (this.hot.rootPortalElement && eventPath.includes(this.hot.rootPortalElement));
-      const isFocusLostToOutside = !this.#isFocusWithinEditorSurface(activeHTMLElement) &&
+      const isPathThroughGridUi = this.#getGridUiRoots().some(root => eventPath.includes(root));
+      const isFocusLostToOutside = !isFocusInEditorSurface &&
         (this.hot.getFocusManager().isForeignFocusTarget(activeHTMLElement) ||
         (!wasInsideGridClick && !this.hot.getFocusManager().hasBrowserFocus() && !isPathThroughGridUi));
 
-      if (isOutsideInputElement || isFocusLostToOutside ||
+      if (isForeignInputElement || isFocusLostToOutside ||
           (!selection.isSelected() && !selection.isSelectedByAnyHeader() &&
           !this.#isPathWithinGrid(eventPath) && !isRightClick(event))) {
         this.hot.unlisten();
@@ -1911,6 +1914,119 @@ class TableView {
     }
 
     return editor.preventCloseElement;
+  }
+
+  /**
+   * Decides whether the focused input belongs to the page rather than to the grid.
+   *
+   * `isOutsideInput()` answers that question from the `data-hot-input` stamp alone, which the grid
+   * puts on the inputs it builds itself (the text editor's textarea, the select editor's `select`,
+   * the filters and pagination controls). An editor supplied by a user - the React and Angular
+   * component editors, and every hand-written native one (which is how a Vue editor is written,
+   * that wrapper having no component-editor API) - renders a plain `<input>` with no stamp, and
+   * the raw helper then reads it as a page input while it holds the focus. On the
+   * document's `mouseup` that verdict is what unlistens the grid, and `unlisten()` blocks EVERY
+   * `table`-scoped shortcut context (see the `handleEvent` callback in `core.ts`), the `editor`
+   * one included - so the editor loses its own Enter, Escape and Tab (DEV-2787). A LEFT press
+   * hides how bad that is: the focus scope manager re-listens on the `click` that closes the
+   * gesture, so the grid is deaf only between the two events. A RIGHT press ends in `contextmenu`
+   * and no `click`, and the grid then stays deaf for the rest of the edit.
+   *
+   * The stamp is therefore treated as one of two ways to prove ownership, containment being the
+   * other, and `isOutsideInput()` itself is left alone: it has four other call sites, and
+   * `FocusGridManager#focusCell()` BLURS the element it answers `true` for, so widening the helper
+   * would blur a component editor's field on every selection change.
+   *
+   * Answering `false` also takes the early return above, which skips the `outsideClickDeselects`
+   * block further down - the same treatment the guard has always given the grid's own stamped
+   * textarea. That block was already unreachable in every case this predicate newly answers
+   * `false` for, so the deselect is unchanged rather than newly suppressed: it needs
+   * `isFocusLostToOutside`, and the focus sits either inside a grid focus root (where
+   * `isForeignFocusTarget()` reads `false` and `hasBrowserFocus()` reads `true`, since
+   * `FocusGridManager` registers `focusin` on both `rootWrapperElement` and `rootPortalElement`)
+   * or inside the editor surface (where `#isFocusWithinEditorSurface()` gates it away). The one
+   * shape where the two could part is a host that retargets focus events away from the grid's
+   * roots (Salesforce Lightning Web Security), which would leave `hasBrowserFocus()` false; no
+   * spec covers it, and unlisten - not the deselect - is what this predicate is written for.
+   *
+   * @private
+   * @param {HTMLElement|null} element The deepest reachable focused element.
+   * @param {boolean} isFocusInEditorSurface Whether that element sits inside the open editor's
+   *                                         `preventCloseElement` subtree. Passed in rather than
+   *                                         resolved here because the caller needs the same answer
+   *                                         for its own focus verdict.
+   * @returns {boolean}
+   */
+  #isForeignInput(element: HTMLElement | null, isFocusInEditorSurface: boolean): boolean {
+    if (element === null || !isOutsideInput(element)) {
+      return false;
+    }
+
+    return !this.#isWithinOpenEditorDom(element) && !isFocusInEditorSurface;
+  }
+
+  /**
+   * Checks whether the given element sits in the grid's own DOM while an editor is OPEN.
+   *
+   * Gated on the open editor on purpose, and that gate is what keeps the change narrow: an input
+   * the grid renders INSIDE a cell must keep counting as the page's. A custom renderer that puts
+   * an `<input>` in its TD relies on the grid unlistening while that field holds the focus -
+   * otherwise the arrow keys would move the selection while they move the caret - and the
+   * checkbox renderer's own `setTimeout(instance.listen)` exists to re-listen after exactly that.
+   * With no editor open, none of that changes. With one open, an input inside the grid's own DOM
+   * is the grid's, and the grid must keep listening for the editor's sake - whichever root the
+   * editor mounted into: `editorFactory` appends the container to `rootPortalElement` for
+   * `position: 'portal'` and to `rootElement` otherwise, the React wrapper's editor portal host
+   * lives in `rootPortalElement`, and the Angular adapter appends its placeholder to
+   * `rootElement`. The test is deliberately not per-cell: it does not try to prove the field
+   * belongs to the edited cell, only that it is not the page's.
+   *
+   * That is a real widening over the reported case, and the reachable shape is a Shift+Click:
+   * `core.ts` skips `editorManager.closeEditor()` when the selection source is `'shift'`, so
+   * extending a selection onto a checkbox cell leaves the text editor open while the focus moves
+   * onto the checkbox renderer's own unstamped `<input>` - which this test then answers `true`
+   * for. The outcome is the same either way: before, that `mouseup` unlistened and the checkbox
+   * renderer's `setTimeout(instance.listen, 10)` listened again 10ms later; now the round trip is
+   * skipped. Nothing else in that handler fires - `isFocusLostToOutside` is `false` (the focus is
+   * inside `rootElement`), and the selection is set, so the third disjunct is `false` too.
+   *
+   * Walks with `closest()`, not `Node#contains()`, mirroring `#isFocusWithinEditorSurface()`:
+   * the element comes from `getDeepActiveElement()`, which reaches into shadow roots, while
+   * `contains()` stops at a shadow boundary - so an editor rendering its field inside a web
+   * component would read as outside the grid. No spec discriminates the two (the fixture's
+   * `host=shadow` variant puts the GRID in a shadow root, which a plain parent walk still
+   * covers), so treat the choice as convention rather than as pinned behavior.
+   *
+   * @private
+   * @param {HTMLElement} element The deepest reachable focused element.
+   * @returns {boolean}
+   */
+  #isWithinOpenEditorDom(element: HTMLElement): boolean {
+    if (!this.isCellEdited()) {
+      return false;
+    }
+
+    return closest(element, this.#getGridUiRoots()) !== null;
+  }
+
+  /**
+   * The elements that hold the grid's own UI: the root wrapper (the grid, plus whatever a plugin
+   * renders into its layout slots and overlay layer) and the portal layer (menus, dialogs, every
+   * `position: 'portal'` editor container, the React wrapper's editor portal host).
+   *
+   * Shared by the two `mouseup` tests that ask "is this the grid's own UI" of an element or an
+   * event path, so a new mount root has one place to be added. Deliberately NOT shared with
+   * `#isPathWithinGrid()`, which tests a different list - `rootElement` rather than the wrapper,
+   * plus the open editor's surface - and folding the two together would change what that method
+   * accepts.
+   *
+   * @private
+   * @returns {HTMLElement[]}
+   */
+  #getGridUiRoots(): HTMLElement[] {
+    const { rootElement, rootWrapperElement, rootPortalElement } = this.hot;
+
+    return [rootWrapperElement ?? rootElement, rootPortalElement].filter(root => isHTMLElement(root));
   }
 
   /**

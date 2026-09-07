@@ -163,6 +163,22 @@ ratio faithfully but never inflates the border, so a test built on it is vacuous
 undefined` in `test.use` does not clear it, and `launchOptions` is rejected inside a
 `describe` — it forces its own worker).
 
+## Observing `unlisten()`
+
+`hot.isListening()` read at the END of a gesture cannot see an `unlisten()` that
+happened inside it. The focus scope manager re-listens on the `click` that follows
+the `mouseup` whenever the press landed inside the grid or its portal, so the state
+heals before the assertion runs, and a spec built on it goes green against a real
+defect (that is one of the two reasons DEV-2787 escaped this tier; the other is
+that no case asserted the listening state at all). Count `afterUnlisten` calls
+over the named gesture instead — `EditorPreventCloseElementPage.startUnlistenCounter()` is
+the pattern. Two gestures do NOT heal and are the ones to reach for when the spec
+needs a user-visible symptom rather than a counter: a RIGHT click (it ends in
+`contextmenu`, no `click`), and a press whose focus target sits outside the grid's
+portal (nothing re-listens, and there the scope manager unlistens by design — so a
+counter cannot tell the two mechanisms apart, and an `isListening()` assertion
+there pins the scope manager, not the mouseup verdict).
+
 ## The server port
 
 The webServer binds `8123` and has `reuseExistingServer` on outside CI, so a second

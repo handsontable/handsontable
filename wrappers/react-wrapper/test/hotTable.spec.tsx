@@ -9,6 +9,7 @@ import {
   EditorComponent,
   ImmediateValueEditor,
   PointerCommitEditor,
+  TextInputEditor,
   sleep,
   simulateKeyboardEvent,
   simulateMouseEvent,
@@ -555,6 +556,61 @@ describe('Editor configuration using React components', () => {
     });
 
     expect(hotInstance.getDataAtCell(0, 0)).toEqual('new-value');
+  });
+
+  it('should not unlisten the grid when a pointer gesture lands in the editor\'s own input', async () => {
+    // DEV-2787. The document `mouseup` verdict reads a focused plain `<input>` as a page input,
+    // because ownership is decided by the `data-hot-input` stamp the grid puts on the inputs it
+    // builds itself - and a component editor's field carries none. `unlisten()` blocks EVERY
+    // `table`-scoped shortcut context (see the `handleEvent` callback in core), the `editor` one
+    // included, so the editor's own Enter, Escape and Tab die with it.
+    //
+    // Counted through `afterUnlisten` rather than read from `isListening()` at the end of the
+    // gesture: the focus scope manager re-listens on the `click` that follows the `mouseup`, so
+    // the state has already healed itself by the time a full gesture returns. The hook is what
+    // still sees the call - and a listener on it is the shape of user code this defect reaches.
+    const hotInstance = mountComponentWithRef<HotTableRef>((
+      <HotTable licenseKey="non-commercial-and-evaluation"
+                id="test-hot"
+                data={createSpreadsheetData(3, 3)}
+                width={300}
+                height={300}
+                rowHeights={23}
+                colWidths={50}
+                init={function () {
+                  mockElementDimensions(this.rootElement, 300, 300);
+                }}
+                editor={TextInputEditor} />
+    )).hotInstance!;
+
+    await act(async () => {
+      hotInstance.selectCell(0, 0);
+      simulateKeyboardEvent('keydown', 13);
+    });
+
+    // Scoped to the live instance's portal. A StrictMode remount leaves the previous editor portal
+    // host behind on `document.body`, and a document-wide query can hit that stale copy instead.
+    const field = hotInstance.rootPortalElement
+      .querySelector('#textInputEditorField') as HTMLInputElement;
+
+    expect(field).not.toBeNull();
+    expect(hotInstance.isListening()).toBe(true);
+
+    let unlistenCount = 0;
+
+    hotInstance.addHook('afterUnlisten', () => {
+      unlistenCount += 1;
+    });
+
+    await act(async () => {
+      simulatePointerActivation(field);
+    });
+
+    // The precondition the case rests on: without the focus actually sitting in the field, the
+    // verdict never reaches the `isOutsideInput` branch and the case would pin nothing.
+    expect(document.activeElement).toBe(field);
+    expect(unlistenCount).toBe(0);
+    expect(hotInstance.isListening()).toBe(true);
   });
 
   it('should update the hook value in the same turn as setValue', async () => {
