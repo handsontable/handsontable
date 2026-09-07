@@ -1904,6 +1904,14 @@ class TableView {
     // visible to blame it on. The option names an element the editor renders OUTSIDE its container,
     // so an ancestor of the grid can never be a legitimate answer.
     //
+    // Refusing it here does NOT unbind `editorFactory`'s own `mousedown` `stopPropagation`, which
+    // is already attached to whatever the editor named. On an ancestor of the grid that listener
+    // swallows every `mousedown` on the page before this handler sees it (measured: the document
+    // listener does not fire at all while such a surface is set), so the edit ends on the `mouseup`
+    // path instead - the press blurs the editor's input, `hasBrowserFocus()` goes false, and the
+    // second clause of `isFocusLostToOutside` carries it. Outside clicks therefore keep closing the
+    // editor, one event later than usual.
+    //
     // Walked from the ROOT upwards with `closest()`, not `surface.contains(rootElement)`, for the
     // same reason `#isFocusWithinEditorSurface()` does: `contains()` stops at a shadow boundary. A
     // grid rendered inside a shadow root is not a `contains()` descendant of anything outside that

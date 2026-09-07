@@ -151,6 +151,12 @@ test.describe('An editor with a preventCloseElement outside the grid', () => {
    * taking it at face value would silently disable outside-click deselect for as long as that
    * editor stays open, with nothing visible to blame. The mistake is reported once per instance
    * rather than swallowed.
+   *
+   * The close arrives on the `mouseup` path, not `mousedown`: `editorFactory` has already bound its
+   * own `mousedown` `stopPropagation` to whatever the editor named, and on an ancestor of the grid
+   * that swallows every press on the page before the document handler sees it. Refusing the surface
+   * in the view does not unbind that listener. What ends the edit is the press blurring the editor's
+   * input, which drops `hasBrowserFocus()` and trips the second clause of `isFocusLostToOutside`.
    */
   test('ignores a surface that contains the grid, and says so once', async({ page, theme, bundle }) => {
     const grid = new EditorPreventCloseElementPage(page, theme, bundle, { surfaceElement: 'body' });
