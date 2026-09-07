@@ -68,7 +68,19 @@ belongs to a live corner gesture belongs in it. One field deliberately stays out
 a pending `addRow()` timeout registered through `_registerTimeout`, that timeout still fires after the
 plugin is disabled and clears the flag itself, so resetting it early lets a re-enabled drag schedule a
 second `addRow()` and insert two rows. Cancel the timer if that ever has to change.
-`tests/e2e/fill-handle-disable-mid-drag.spec.ts` pins the lifecycle path.
+
+**A reconfiguration is not a disable, and the difference is load-bearing.** `updatePlugin()` calls
+`disablePlugin()` too, and `BasePlugin#isRelevantToSettings()` tests whether a `SETTING_KEYS` entry is
+**present** in the payload, not whether its value changed – so `updateSettings({ fillHandle: true })`
+reaches `updatePlugin()` with the value unchanged. That is not a rare shape: the React wrapper forwards
+every declared prop on every re-render (`fillHandle` is not in its `DEEP_COMPARABLE_SETTINGS`), so any
+sibling state change re-sends it, mid-drag included. Resetting unconditionally in `disablePlugin()`
+therefore cancelled a live drag on an ordinary re-render. `#isReconfiguring` is the carve-out:
+`updatePlugin()` raises it around its disable/enable pair, and the reset is skipped while it is set,
+because the `mouseup` listener is re-registered in the same tick and the gesture is genuinely still
+live. Any future teardown added to `disablePlugin()` has to respect that flag, or it re-creates the
+regression. `tests/e2e/fill-handle-disable-mid-drag.spec.ts` pins both halves: the disable ends the
+gesture, the same-value re-send does not.
 
 ## Auto-inserting rows
 

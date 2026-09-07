@@ -846,6 +846,14 @@ export class SelectionFeaturesPage {
   }
 
   /**
+   * Move the held pointer onto a cell without releasing it, continuing whatever drag is in
+   * progress.
+   */
+  async dragPointerToCell(row: number, col: number): Promise<void> {
+    await this.#movePointerToCell(row, col);
+  }
+
+  /**
    * Turn the fill handle on or off through `updateSettings`, the way an application toggles it at
    * runtime. Goes through the settings path on purpose: that is what routes the plugin through
    * `disablePlugin()` alone, without the `enablePlugin()` that `updatePlugin()` pairs it with.

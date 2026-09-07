@@ -38,6 +38,9 @@ test.describe('fill handle disabled mid-drag', () => {
     expect(await grid.isFillHandlePressed()).toBe(false);
   });
 
+  // Not a regression test for DEV-2782 (every corner mousedown re-arms the drag state, so it passes
+  // on the unfixed code too). It guards the teardown against over-resetting: a fix that tore down
+  // more than the gesture owns would break the very next drag-fill.
   test('keeps the fill handle usable for a drag after it was disabled mid-gesture and re-enabled', async () => {
     await grid.selectCells(0, 0, 0, 0);
     await grid.pressFillHandle();
@@ -50,6 +53,27 @@ test.describe('fill handle disabled mid-drag', () => {
 
     await expect(grid.cell(1, 1)).toHaveText('A2');
     await expect(grid.cell(1, 2)).toHaveText('A2');
+    await expect(grid.visibleFillBorders()).toHaveCount(0);
+    expect(await grid.isFillHandlePressed()).toBe(false);
+  });
+
+  // The other half of the teardown rule. `updateSettings` reaches the plugin whenever `fillHandle` is
+  // merely present in the payload, unchanged value included, and the React wrapper re-sends every
+  // declared prop on every re-render. That routes through `updatePlugin()`, which disables and
+  // re-enables the plugin in the same tick, so the gesture it belongs to has to survive.
+  test('keeps a drag alive when updateSettings re-sends the same fillHandle value mid-drag', async () => {
+    await grid.selectCells(0, 0, 0, 0);
+    await grid.pressFillHandle();
+    await grid.dragPointerToCell(2, 0);
+
+    await grid.setFillHandleEnabled(true);
+
+    await grid.dragPointerToCell(3, 0);
+    await grid.releasePointer();
+
+    // The drag was never interrupted, so the fill commits over the whole dragged extent.
+    await expect(grid.cell(2, 0)).toHaveText('A1');
+    await expect(grid.cell(3, 0)).toHaveText('A1');
     await expect(grid.visibleFillBorders()).toHaveCount(0);
     expect(await grid.isFillHandlePressed()).toBe(false);
   });

@@ -136,6 +136,12 @@ export class Autofill extends BasePlugin {
    */
   #currentDragDirection: string | null = null;
   /**
+   * Whether the plugin is being torn down and rebuilt by `updatePlugin()` rather than genuinely
+   * disabled. `updateSettings()` reaches `updatePlugin()` whenever `fillHandle` is merely *present*
+   * in the payload, unchanged value included, so this must not end a live gesture.
+   */
+  #isReconfiguring = false;
+  /**
    * Last mouse client position. Stays `null` until the first `mousemove` of a drag, so a scroll
    * that happens after pressing the fill handle but before any drag move is not replayed with a
    * stale or default position.
@@ -203,8 +209,15 @@ export class Autofill extends BasePlugin {
    *  - [`fillHandle`](@/api/options.md#fillhandle)
    */
   updatePlugin(): void {
-    this.disablePlugin();
-    this.enablePlugin();
+    this.#isReconfiguring = true;
+
+    try {
+      this.disablePlugin();
+      this.enablePlugin();
+    } finally {
+      this.#isReconfiguring = false;
+    }
+
     super.updatePlugin();
   }
 
@@ -215,7 +228,12 @@ export class Autofill extends BasePlugin {
     // The base class drops the `documentElement` `mouseup` listener that owns the drag teardown,
     // so a gesture that is in progress when the plugin is disabled would otherwise stay armed
     // until the next `enablePlugin()` picks it up (DEV-2782, the lifecycle twin of GitHub #13370).
-    this.#resetDragState();
+    // A reconfiguration re-registers that listener in the same tick, so the gesture it belongs to
+    // is still live and must survive - see `updatePlugin()`.
+    if (!this.#isReconfiguring) {
+      this.#resetDragState();
+    }
+
     super.disablePlugin();
   }
 
