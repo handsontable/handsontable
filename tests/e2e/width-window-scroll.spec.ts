@@ -116,6 +116,43 @@ test.describe('width-only grid: holder scrolls columns, window scrolls rows', ()
     expect(Math.abs(errorAfter.start)).toBeLessThanOrEqual(1);
   });
 
+  // A clone that appears AFTER the holder scrolled has to be handed the holder's offset at once:
+  // `syncScrollWithMaster` runs on that render-state change, and it used to read both axes off the
+  // top overlay's scrolling element — the window here — and give up. The clone then rendered its
+  // band from offset 0, a full scroll away from the master, until the next horizontal scroll.
+  test('aligns a bottom clone shown after the holder scrolled', async () => {
+    await grid.scrollHolderBy(400);
+    await grid.updateSettings({ fixedRowsBottom: 2 });
+
+    const [column] = await grid.renderedColumns();
+    const masterCell = grid.cell(5, column);
+    const bottomCell = grid.bottomCloneCell(199, column);
+
+    await expect(masterCell).toBeVisible();
+    await expect(bottomCell).toBeVisible();
+
+    const masterBox = await grid.box(masterCell);
+    const bottomBox = await grid.box(bottomCell);
+
+    expect(Math.abs(bottomBox.x - masterBox.x)).toBeLessThanOrEqual(2);
+  });
+
+  test('lets a wheel over the frozen rows scroll the page', async () => {
+    await grid.wheelOver(grid.topCloneCell(0, 3), 0, 300);
+
+    await expect.poll(async () => (await grid.scrollExtents()).windowScrollY).toBeGreaterThan(0);
+  });
+
+  // A trackpad swipe is rarely axis-pure. The grid consumes the horizontal part on the holder and
+  // then cancels the event, which used to take the window-owned vertical part down with it: the
+  // columns moved, the page did not. Both axes have to move from one event.
+  test('lets a diagonal wheel over the frozen rows scroll the page and the columns at once', async () => {
+    await grid.wheelOver(grid.topCloneCell(0, 3), 120, 300);
+
+    await expect.poll(async () => (await grid.scrollExtents()).holderScrollLeft).toBeGreaterThan(0);
+    await expect.poll(async () => (await grid.scrollExtents()).windowScrollY).toBeGreaterThan(0);
+  });
+
   test('mirrors the layout in RTL', async () => {
     await grid.rebuild({ layoutDirection: 'rtl' });
 

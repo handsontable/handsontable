@@ -215,6 +215,28 @@ fields. Three rules follow.
   frame — the scroll hooks then never fire. Pinned by `tests/e2e/iframe-cross-realm-scroll.spec.ts`,
   which builds a grid in an iframe from the parent page's constructor; nothing else in the suite
   crosses a realm, so an `instanceof` reintroduced here stays green everywhere else.
+- **Scroll offsets are read and written per axis, off each overlay's `mainTableScrollableElement`,
+  never off one shared element.** The inline-start overlay's element scrolls the horizontal axis
+  and the top overlay's the vertical one, and in split mode they are different things (the holder
+  and the window). Three paths follow that rule: `ScrollSync#syncScrollPositions` (the per-frame
+  direction flags), `ScrollSync#syncScrollWithMaster` (the offset handed to a clone whose render
+  state just changed) and `Overlays#scrollVertically` / `scrollHorizontally` (the wheel
+  translation). Each one used to read both axes off ONE element and reached three different dead
+  ends in split mode: the direction flags missed the window's vertical scroll, the clone sync read
+  the top overlay's element — the window — and gave up, so a `fixedRowsBottom` enabled after a
+  holder scroll came up a whole scroll away from the master, and the wheel translation consumed
+  the horizontal part on the holder and then cancelled the event, taking the window-owned vertical
+  part with it: a diagonal trackpad swipe moved the columns and not the page. A window-owned axis
+  is scrolled from the wheel path with `rootWindow.scrollBy({ behavior: 'instant' })`, so the event
+  is consumed on both axes and the offset is readable at once whatever `scroll-behavior` the page
+  sets; the clone sync skips it instead, because a clone holder must not accumulate the page offset.
+- **`ScrollSync#setRenderingStateChanged` latches until `syncScrollWithMaster` consumes it.** A
+  draw nests: the master `beforeDraw` hook can run a full draw of its own, and that draw's
+  `beforeDraw` fires before the outer `afterDraw`. The outer `beforeDraw` has already advanced the
+  overlays' render state, so the nested one sees no change — and an overwriting setter then wiped
+  the flag the outer one raised, so no `afterDraw` in the whole sequence synced the clone. The trace
+  reads `beforeDraw, beforeDraw, afterDraw(false), afterDraw(true)`; if you see that shape, the flag
+  was raised in the first call and must still be set in the last.
 - **The public, no-axis `getTrimmingContainer()` keeps the single-axis-clip exemption and must not be
   used inside the engine.** It has to name one container for both axes, so it ignores an
   `overflow-x: clip` next to a `visible` vertical axis (DEV-1025). Ask per axis instead.

@@ -15,6 +15,7 @@ export class WidthWindowScrollPage {
   readonly master: Locator;
   readonly holder: Locator;
   readonly topOverlay: Locator;
+  readonly bottomOverlay: Locator;
   readonly inlineStartOverlay: Locator;
   readonly topCorner: Locator;
 
@@ -26,6 +27,7 @@ export class WidthWindowScrollPage {
     this.master = this.grid.locator('.ht_master');
     this.holder = this.master.locator('.wtHolder');
     this.topOverlay = this.grid.locator('.ht_clone_top');
+    this.bottomOverlay = this.grid.locator('.ht_clone_bottom');
     this.inlineStartOverlay = this.grid.locator('.ht_clone_inline_start');
     this.topCorner = this.grid.locator('.ht_clone_top_inline_start_corner');
   }
@@ -65,6 +67,11 @@ export class WidthWindowScrollPage {
   /** A frozen-row cell in the top clone. */
   topCloneCell(row: number, col: number): Locator {
     return this.topOverlay.getByTestId(`cell-${row}-${col}`);
+  }
+
+  /** A frozen-row cell in the bottom clone. */
+  bottomCloneCell(row: number, col: number): Locator {
+    return this.bottomOverlay.getByTestId(`cell-${row}-${col}`);
   }
 
   /** A frozen-column cell in the inline-start clone. */
@@ -109,6 +116,16 @@ export class WidthWindowScrollPage {
         requestAnimationFrame(() => requestAnimationFrame(resolve));
       });
     });
+  }
+
+  /**
+   * Turns the wheel over an element, the way a trackpad does. The deltas reach the grid's own wheel
+   * listener (bound on the root and on every clone holder), which is what decides whether to
+   * translate them itself or leave them to the browser.
+   */
+  async wheelOver(target: Locator, deltaX: number, deltaY: number): Promise<void> {
+    await target.hover();
+    await this.page.mouse.wheel(deltaX, deltaY);
   }
 
   /** Scrolls the window by a delta and waits two frames. */

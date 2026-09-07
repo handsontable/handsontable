@@ -268,12 +268,19 @@ export class ScrollSync {
 
   /**
    * Records whether any overlay's rendering state changed in the current draw. Set from the
-   * coordinator's `beforeDraw`; consumed by `syncScrollWithMaster`.
+   * coordinator's `beforeDraw`; consumed (and cleared) by `syncScrollWithMaster`.
+   *
+   * It latches rather than overwrites. A draw can nest: the master's `beforeDraw` hook may run a
+   * full draw of its own, whose `beforeDraw` fires BEFORE the outer draw's `afterDraw`. By then the
+   * overlays' render state has already been advanced by the outer `beforeDraw`, so the nested one
+   * sees no change and, writing `false`, wiped the flag the outer one had just raised — no draw
+   * ever synced the clone, and a `fixedRowsBottom` enabled after a holder scroll came up a whole
+   * scroll away from the master.
    *
    * @param {boolean} value Whether any overlay's rendering state changed.
    */
   setRenderingStateChanged(value: boolean) {
-    this.#hasRenderingStateChanged = value;
+    this.#hasRenderingStateChanged = this.#hasRenderingStateChanged || value;
   }
 
   /**
@@ -373,24 +380,29 @@ export class ScrollSync {
     const topOverlay = this.#deps.getTopOverlay();
     const bottomOverlay = this.#deps.getBottomOverlay();
     const inlineStartOverlay = this.#deps.getInlineStartOverlay();
-    const masterScrollable = topOverlay.mainTableScrollableElement;
+    // Per axis, as `syncScrollPositions` reads them: the horizontal offset lives on whatever scrolls
+    // the horizontal axis and the vertical one on whatever scrolls the vertical axis, and in split
+    // mode those are two different things. Reading both off the top overlay's element gave up here
+    // whenever that element was the window, so a clone shown after a holder scroll (`fixedRowsBottom`
+    // set at runtime) rendered its band a whole scroll away from the master until the next scroll.
+    // An axis the window owns is skipped: a clone holder must not accumulate the page offset (see
+    // `syncScrollPositions`). Cross-realm safe through `isHTMLElement`.
+    const horizontalOwner = inlineStartOverlay.mainTableScrollableElement;
+    const verticalOwner = topOverlay.mainTableScrollableElement;
 
-    // Cross-realm safe, like the readers above: this guard used to return early for an iframe's
-    // holder, which skipped the clone sync for the instance's whole life.
-    if (!isHTMLElement(masterScrollable)) {
-      return;
+    if (isHTMLElement(horizontalOwner)) {
+      const { scrollLeft } = horizontalOwner;
+
+      if (topOverlay.needFullRender && topOverlay.clone) {
+        topOverlay.clone.wtTable.holder.scrollLeft = scrollLeft; // todo rethink, *overlay.setScroll*()
+      }
+      if (bottomOverlay.needFullRender && bottomOverlay.clone) {
+        bottomOverlay.clone.wtTable.holder.scrollLeft = scrollLeft; // todo rethink, *overlay.setScroll*()
+      }
     }
 
-    const { scrollLeft, scrollTop } = masterScrollable;
-
-    if (topOverlay.needFullRender && topOverlay.clone) {
-      topOverlay.clone.wtTable.holder.scrollLeft = scrollLeft; // todo rethink, *overlay.setScroll*()
-    }
-    if (bottomOverlay.needFullRender && bottomOverlay.clone) {
-      bottomOverlay.clone.wtTable.holder.scrollLeft = scrollLeft; // todo rethink, *overlay.setScroll*()
-    }
-    if (inlineStartOverlay.needFullRender && inlineStartOverlay.clone) {
-      inlineStartOverlay.clone.wtTable.holder.scrollTop = scrollTop; // todo rethink, *overlay.setScroll*()
+    if (isHTMLElement(verticalOwner) && inlineStartOverlay.needFullRender && inlineStartOverlay.clone) {
+      inlineStartOverlay.clone.wtTable.holder.scrollTop = verticalOwner.scrollTop; // todo rethink, *overlay.setScroll*()
     }
 
     this.#hasRenderingStateChanged = false;

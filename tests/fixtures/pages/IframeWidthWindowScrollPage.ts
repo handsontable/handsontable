@@ -101,6 +101,16 @@ export class IframeWidthWindowScrollPage {
   }
 
   /**
+   * Turns the wheel over a frozen-row cell INSIDE the iframe. The one place this page object goes
+   * through a `frameLocator`: the pointer has to land on the iframe's node, and that is an input,
+   * not a read of the engine's state.
+   */
+  async wheelOverFrozenRow(deltaX: number, deltaY: number): Promise<void> {
+    await this.page.frameLocator('#frame').locator('.ht_clone_top').getByTestId('cell-0-3').hover();
+    await this.page.mouse.wheel(deltaX, deltaY);
+  }
+
+  /**
    * How many times the grid's scroll hooks fired since the last build. They are driven by the
    * engine's per-frame scroll-direction flags, which are computed from the offsets read off each
    * axis' owner — the one thing in the engine that ONLY those reads decide.

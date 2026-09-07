@@ -68,4 +68,14 @@ test.describe('cross-realm width-only grid: the engine must agree with itself ab
 
     await expect.poll(async () => (await grid.scrollHookCounts()).horizontal).toBeGreaterThan(0);
   });
+
+  // The wheel over a clone is translated by the engine, never by the browser: the clone is a
+  // sibling of the master holder, so a native wheel scroll would chain past it to the page. The
+  // translation asks whether the axis owner is an element, and a cross-realm holder used to fail
+  // that test, so the columns could not be reached from over the frozen rows at all.
+  test('scrolls the columns from a wheel over the frozen rows', async () => {
+    await grid.wheelOverFrozenRow(200, 0);
+
+    await expect.poll(async () => (await grid.holderState()).scrollLeft).toBeGreaterThan(0);
+  });
 });
