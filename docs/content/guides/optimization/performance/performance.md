@@ -26,6 +26,21 @@ Handsontable performs multiple calculations to display the grid properly. The mo
 
 The optimizations on this page come from measuring Handsontable's execution times in various configurations. Each one applies only in certain cases. Check which ones fit your application. To see how those measurements work, browse the [performance test suite](https://github.com/handsontable/handsontable/tree/develop/performance-tests) in the Handsontable repository. It runs scripted interactions in a real browser and records the timings.
 
+## Measure render performance in the console
+
+To check how many times the grid renders and how long each render takes, log it from the [`afterRender`](@/api/hooks.md#afterrender) hook instead of reading a generic browser profiler. This logs one line per render cycle directly in your browser console, scoped to Handsontable:
+
+```js
+let renderCount = 0;
+
+hot.addHook('afterRender', () => {
+  renderCount += 1;
+  console.log(`Render #${renderCount} at`, performance.now(), 'ms since page load');
+});
+```
+
+For per-cell timing, use the [`afterRenderer`](@/api/hooks.md#afterrenderer) hook instead - it runs once for every rendered cell.
+
 ## Set constant row and column sizes
 
 Configure your [column widths](@/guides/columns/column-width/column-width.md) and [row heights](@/guides/rows/row-height/row-height.md) in advance. This way, Handsontable doesn't have to calculate them.
