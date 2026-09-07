@@ -17,11 +17,13 @@ This is the core data grid package. **TypeScript** - source files in `src/` are 
 - No direct cross-plugin imports - use hooks for inter-plugin communication, or `hot.getPlugin('Name')` if API access is required
 - Never use raw `setTimeout` - use `this.hot._registerTimeout(fn, delay)` instead; it auto-clears on `hot.destroy()`, preventing memory leaks
 - DRY: reuse existing helpers and mixins; if code repeats, extract a generic helper rather than duplicating
+- Plugin file doing more than two things → split it (see `src/plugins/sheetsBar/` for the sliced layout)
 - Method ordering: public methods first, then private listeners
 - In text and comments, always write `Handsontable`, never `HOT` (a `hot` variable holding an instance is fine)
 - Never call `String.prototype.toLocaleLowerCase`/`toLocaleUpperCase` directly — use `localeLowerCase()` from `helpers/string` (faster, locale-correct, crash-safe). Enforced by `no-restricted-syntax`. See `.ai/CONVENTIONS.md`.
 - Never call a JavaScript method newer than `../browser-targets.js` (Chrome >= 130, Edge >= 130, Firefox >= 132, Safari >= 18.2, iOS >= 18.2 — the pinned Baseline 2024 set). swc lowers syntax only and adds no core-js polyfills, so such a call throws `X is not a function` on a supported browser. Two gates catch this: `tsconfig.json` pins `lib` to `ES_TARGET` (`es2024`) from `../browser-targets.js`, so an above-floor built-in is a type error in `.ts` files; `no-restricted-syntax` covers the same methods plus the 12 remaining `.js` files in `src/` (`allowJs` is off). That rule bans one name, `with` → `arr.slice()` plus an index assignment, and it is above the floor on two engines at once: `core-js-compat` puts `Array#with` at Firefox 140 (against our 132) and `TypedArray#with` at Safari/iOS 26.0 (against our 18.2). Verify any new method's floor against `core-js-compat`'s `data.json` before using it, and add it to the rule when it sits above the floor.
 - `throwWithCause()` assigns `cause` after construction instead of passing the constructor options bag. The options-bag overload is ES2022 (Chrome 94 / Firefox 91 / Safari 15.0) and now sits well inside the floor, so this is no longer a compatibility requirement — it is kept because an engine that accepts the options bag and drops it silently leaves `error.cause` undefined and breaks `error.cause?.handsontable === true` detection with no visible failure. Do not "simplify" it back to `new Error(msg, { cause })` without adding a test that would catch that.
+- `IndexMapper#getIndexesSequence()` returns the mapper's live internal array, not a copy — always copy it with `.slice()` before storing or caching it (`src/plugins/sheetsBar/viewState.ts`), or a later reorder silently corrupts the stored snapshot.
 
 ## Plugin Lifecycle
 
@@ -172,6 +174,7 @@ Source `.ts` files (`src/**/*.ts`, excluding walkontable and test/type files) an
 | `window.scrollTo(...)` | `this.hot.rootWindow.scrollTo(...)` |
 | `document.querySelector(...)` | `this.hot.rootDocument.querySelector(...)` |
 | `console.warn(...)` | `import { warn } from 'helpers/console'; warn(...);` |
+| `this.hot.addHook(...)` inside `enablePlugin()` | `this.addHook(...)` — tracked hooks are removed by `disablePlugin()`; enforced by `handsontable/require-tracked-hook-in-enable` (lexical match only; aliases/helpers are not caught). Rule tests: `npm run test:eslint-rules` in `handsontable/` (run by the Lint core CI job — RuleTester imports `eslint`, so the dependency-free root `test:tooling` job cannot run them) |
 | Missing JSDoc comment (`jsdoc/require-jsdoc`) on a class/method/field/function | Add a multiline block above it with a blank line before `/**` and after `*/` — `/**` on its own line, then ` * Description.`, then ` */`; no `@private` tag on `#`-fields; no `@param`/`@returns` in `.ts` files |
 
 ## Build

@@ -19,6 +19,7 @@ module.exports = {
   rules: {
     'compat/compat': 'error',
     'handsontable/no-native-error-throw': 'error',
+    'handsontable/require-tracked-hook-in-enable': 'error',
     'no-restricted-syntax': [
       'error',
       'ForInStatement',

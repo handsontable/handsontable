@@ -317,7 +317,7 @@ export class Comments extends BasePlugin {
       this.#editor = new CommentEditor(this.hot.rootDocument, this.hot.isRtl(), this.hot.rootPortalElement);
       this.#editor?.addLocalHook('resize',
         (width: number, height: number) => this.#onEditorResize(width, height));
-      this.hot.addHook('afterSetTheme', (themeName: string, firstRun: boolean) => {
+      this.addHook('afterSetTheme', (themeName: string, firstRun: boolean) => {
         if (!firstRun) {
           this.hide();
         }
@@ -362,6 +362,14 @@ export class Comments extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin(): void {
+    const manager = this.hot.getShortcutManager();
+
+    this.hide();
+
+    if (manager.getActiveContextName() === SHORTCUTS_CONTEXT_NAME) {
+      manager.setActiveContextName('grid');
+    }
+
     this.unregisterShortcuts();
     // The marker class is written on the element by `afterRenderer`, from the cell meta. Once the
     // hook is gone only a paint removes it, so under `renderMode: 'onChange'` every cell must paint.
@@ -377,7 +385,7 @@ export class Comments extends BasePlugin {
   registerShortcuts() {
     const manager = this.hot.getShortcutManager();
     const gridContext = manager.getContext('grid');
-    const pluginContext = manager.addContext(SHORTCUTS_CONTEXT_NAME);
+    const pluginContext = manager.getOrCreateContext(SHORTCUTS_CONTEXT_NAME);
 
     gridContext?.addShortcut({
       keys: [['Control', 'Alt', 'M']],
@@ -445,9 +453,14 @@ export class Comments extends BasePlugin {
    * @private
    */
   unregisterShortcuts() {
-    this.hot.getShortcutManager()
-      .getContext('grid')
-      ?.removeShortcutsByGroup(SHORTCUTS_GROUP);
+    const manager = this.hot.getShortcutManager();
+
+    manager.getContext('grid')?.removeShortcutsByGroup(SHORTCUTS_GROUP);
+
+    // The plugin's own context outlives a disable — the manager has no way to drop one — so its
+    // shortcuts are cleared here as well. Re-enabling reuses the context, and without this it
+    // would carry a second copy of every shortcut in it.
+    manager.getContext(SHORTCUTS_CONTEXT_NAME)?.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**
