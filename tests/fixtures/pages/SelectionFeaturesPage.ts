@@ -837,6 +837,24 @@ export class SelectionFeaturesPage {
   }
 
   /**
+   * Press the fill handle with the real pointer and keep the button held. The caller owns the
+   * release (`releasePointer()`), which is what lets a test slip a settings update inside the
+   * gesture.
+   */
+  async pressFillHandle(): Promise<void> {
+    await this.#pressElementCenter(this.fillHandle());
+  }
+
+  /**
+   * Turn the fill handle on or off through `updateSettings`, the way an application toggles it at
+   * runtime. Goes through the settings path on purpose: that is what routes the plugin through
+   * `disablePlugin()` alone, without the `enablePlugin()` that `updatePlugin()` pairs it with.
+   */
+  async setFillHandleEnabled(enabled: boolean): Promise<void> {
+    await this.page.evaluate(isEnabled => window.hot.updateSettings({ fillHandle: isEnabled }), enabled);
+  }
+
+  /**
    * The fill handle drawn by the frozen-columns overlay — a selection ending inside that pane is
    * rendered by the clone, not by the master.
    */

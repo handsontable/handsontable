@@ -212,6 +212,10 @@ export class Autofill extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin(): void {
+    // The base class drops the `documentElement` `mouseup` listener that owns the drag teardown,
+    // so a gesture that is in progress when the plugin is disabled would otherwise stay armed
+    // until the next `enablePlugin()` picks it up (DEV-2782, the lifecycle twin of GitHub #13370).
+    this.#resetDragState();
     super.disablePlugin();
   }
 
@@ -880,10 +884,20 @@ export class Autofill extends BasePlugin {
         this.fillIn();
       }
 
-      this.handleDraggedCells = 0;
-      this.mouseDownOnCellCorner = false;
-      this.#currentDragDirection = null;
+      this.#resetDragState();
     }
+  }
+
+  /**
+   * Ends the corner gesture: clears the drag flag, the step counter, the drag direction, and the
+   * fill preview border. Shared by the `mouseup` teardown and `disablePlugin()`.
+   */
+  #resetDragState() {
+    this.resetSelectionOfDraggedArea();
+    this.mouseDownOnCellCorner = false;
+    this.mouseDragOutside = false;
+    this.#currentDragDirection = null;
+    this.#lastMouseClientPosition = null;
   }
 
   /**

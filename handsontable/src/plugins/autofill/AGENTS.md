@@ -58,6 +58,18 @@ on the counter skipped it and left `mouseDownOnCellCorner` stuck, so `#onMouseMo
 fill border under a released pointer. Gate any teardown on the flag, never on the counter.
 `tests/e2e/fill-handle-double-click.spec.ts` pins it with a real-pointer double-click.
 
+**The teardown rule covers the lifecycle path, not just `mouseup` (DEV-2782).** `disablePlugin()` is the
+second way a gesture ends: `updateSettings({ fillHandle: false })` routes through
+`BasePlugin.onUpdateSettings`, which calls `disablePlugin()` **alone** – no `enablePlugin()` follows, the
+way it does inside `updatePlugin()`. The base class then clears the event manager, so the
+`documentElement` `mouseup` listener that owns the teardown is gone before the button is released and
+`#onMouseUp` never runs. Both teardown paths therefore share `#resetDragState()`, and any new field that
+belongs to a live corner gesture belongs in it. One field deliberately stays out: `addingStarted` mirrors
+a pending `addRow()` timeout registered through `_registerTimeout`, that timeout still fires after the
+plugin is disabled and clears the flag itself, so resetting it early lets a re-enabled drag schedule a
+second `addRow()` and insert two rows. Cancel the timer if that ever has to change.
+`tests/e2e/fill-handle-disable-mid-drag.spec.ts` pins the lifecycle path.
+
 ## Auto-inserting rows
 
 With `autoInsertRow: true`, dragging past the last row inserts rows (`insert_row_below`) on a 200 ms
