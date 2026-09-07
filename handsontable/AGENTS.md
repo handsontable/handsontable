@@ -186,6 +186,8 @@ Source `.ts` files (`src/**/*.ts`, excluding walkontable and test/type files) an
 
 Two build variants: `handsontable.js` (base, external deps) and `handsontable.full.js` (includes HyperFormula). The E2E runner loads `dist/handsontable.js` - rebuild after changing `src/`.
 
+**A stylesheet change is not applied until the BUNDLE is rebuilt too, and skipping that fails silently.** `build:styles` compiles the SCSS into `styles/` **and** regenerates `src/styles/handsontableStyles.ts`, which exports the whole base stylesheet as a string; `build:umd` then bundles that string into `dist/`, and the grid injects it at runtime. So a `_base.scss` edit followed by `build:styles` + `build:themes-css` alone leaves the OLD rules being injected from a stale bundle, on top of the freshly built `styles/*.css` the page also links - and the injected copy can win. Nothing errors, and grepping `styles/handsontable.css` for the change reports success while the browser still applies the old rule. The failure mode that costs the most is a **negative control that passes**: reverting a CSS fix and re-running without `build:umd` re-tests the fix and reports the test as unable to catch the bug. After touching any `src/styles/**`, rebuild `build:umd` (and `build:umd.min` for the `-min` legs), or just run the full `npm run build`.
+
 ## Build and test scripts
 
 All `npm run` entries are thin shims that delegate to `scripts/run.mjs`. Task commands and pipeline dependency graphs live in `scripts/tasks.json` - edit that file to add, remove, or modify any build/lint/test step. The dispatcher supports three modes:
