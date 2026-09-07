@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a merged cell reduced to one visible row by trimming or filtering being deleted by a column move or a column freeze.",
+  "type": "fixed",
+  "issueOrPR": 13403,
+  "breaking": false,
+  "framework": "none"
+}
