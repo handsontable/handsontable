@@ -909,6 +909,53 @@ test('viewport smell: a nested width (a border, a column) or an expected value i
   assert.equal(findViewportSmells(typedPromise), 1, 'a TypeScript type is not a value');
 });
 
+test('viewport smell: only a declaration carries over from file scope, never a whole pin', () => {
+  // The file-scope text is searched with each suite so a shared `const` can pin it, but it must
+  // contribute the DECLARATION only: a sized grid built by a file-scope helper, or a stray
+  // scrollViewportTo out there, says nothing about a suite that never calls either.
+  const helperAtFileScope = `
+    async function buildRoomyGrid() {
+      await grid.initGrid({ width: 900, height: 520 });
+    }
+
+    describe('rows', () => {
+      it('counts them', async() => {
+        await grid.initGrid({ data });
+        expect(countVisibleRows()).toBe(10);
+      });
+    });
+  `;
+
+  assert.equal(findViewportSmells(helperAtFileScope), 1, 'a sized grid built elsewhere pins nothing here');
+
+  const scrollAtFileScope = helperAtFileScope.replace(
+    'await grid.initGrid({ width: 900, height: 520 });',
+    'await wt.scrollViewportTo({ row: 40 });'
+  );
+
+  assert.equal(findViewportSmells(scrollAtFileScope), 1, 'a scroll out there is not this suite\'s scroll');
+
+  // A `describe.each` body is not a recognized suite, so its text lands in the file-scope
+  // prefix too — the same declaration-only rule keeps its pin from reaching a sibling suite.
+  const parameterizedNeighbour = `
+    describe.each([['main'], ['horizon']])('theme %s', (theme) => {
+      it('is pinned here', async() => {
+        await grid.initGrid({ width: 900, height: 520, theme });
+        expect(countVisibleRows()).toBe(10);
+      });
+    });
+
+    describe('rows', () => {
+      it('is not pinned here', async() => {
+        await grid.initGrid({ data });
+        expect(countVisibleRows()).toBe(10);
+      });
+    });
+  `;
+
+  assert.equal(findViewportSmells(parameterizedNeighbour), 1, 'the parameterized suite pins only itself');
+});
+
 test('viewport smell: a viewport local declared at file scope pins the suites below it', () => {
   // The pin's declaration sits outside every describe while the call that uses it sits inside
   // one, so neither text holds both halves; only the describe body was searched, and the file's

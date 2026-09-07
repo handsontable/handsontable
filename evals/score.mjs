@@ -662,25 +662,37 @@ function hasViewportPin(text) {
 }
 
 /**
- * The source with every describe body cut out: what is left is the file's own top-level code,
- * where a shared viewport constant is usually declared.
+ * The viewport-sizing locals declared outside every recognized describe, as a list of their
+ * declarations (`const ROOMY = { width: 900, height: 520 };`).
+ *
+ * Only the declarations carry over to a suite, never the surrounding code: a pin needs a
+ * declaration AND a call that passes it, so a suite that never names the local stays unpinned.
+ * Handing over the raw top-level text instead would let a complete pin out there — a file-scope
+ * helper that builds a sized grid, a stray `scrollViewportTo`, or a `describe.each` body, which
+ * `DESCRIBE_CALL_RE` does not treat as a suite — silence the smell in every sibling suite.
  *
  * @param {string} code The source text (comments blanked).
  * @param {{start: number, end: number}[]} scopes Every describe range, innermost ones included.
- * @returns {string} The text outside all of them.
+ * @returns {string} The declarations, one per line; empty when there are none.
  */
-function outsideDescribes(code, scopes) {
+function fileScopeViewportLocals(code, scopes) {
   const outermost = scopes.filter(scope => !scopes.some(other => other !== scope
     && other.start < scope.start && scope.end <= other.end));
-  let text = '';
-  let cursor = 0;
+  const inSuite = index => outermost.some(scope => scope.start <= index && index <= scope.end);
+  const declarations = [];
 
-  for (const scope of [...outermost].sort((a, b) => a.start - b.start)) {
-    text += code.slice(cursor, scope.start);
-    cursor = Math.min(code.length, scope.end + 1);
+  for (const init of code.matchAll(OBJECT_INIT_RE)) {
+    const open = init.index + init[0].length - 1;
+    const close = scanBalanced(code, open);
+
+    if (close === -1 || inSuite(init.index) || !hasTopLevelViewportKey(code, open + 1, close, 0)) {
+      continue;
+    }
+
+    declarations.push(`${code.slice(init.index, close + 1)};`);
   }
 
-  return text + code.slice(cursor);
+  return declarations.join('\n');
 }
 
 /**
@@ -719,10 +731,10 @@ export function findViewportSmells(src) {
   let count = 0;
 
   // A pin's two halves can sit in different scopes: `const ROOMY = { width: 900 }` at file
-  // scope, `initGrid(ROOMY)` inside a suite. Neither text holds both, so each enclosing suite
-  // is searched with the file's own top-level code (every describe body removed) in front of
-  // it. Without the removal a pin inside one suite would silently pin every other suite too.
-  const topLevel = outsideDescribes(code, scopes);
+  // scope, `initGrid(ROOMY)` inside a suite. Neither text holds both, so each suite is searched
+  // with the file-scope viewport DECLARATIONS in front of it — the declarations only, so a
+  // complete pin outside the suites cannot silence one that never uses it.
+  const topLevel = fileScopeViewportLocals(code, scopes);
 
   for (const index of [...helperReads, ...visibleReads]) {
     const enclosing = enclosingOf(index);
