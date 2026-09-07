@@ -58,6 +58,39 @@ on the counter skipped it and left `mouseDownOnCellCorner` stuck, so `#onMouseMo
 fill border under a released pointer. Gate any teardown on the flag, never on the counter.
 `tests/e2e/fill-handle-double-click.spec.ts` pins it with a real-pointer double-click.
 
+**The teardown rule covers the lifecycle path, not just `mouseup` (DEV-2782).** `disablePlugin()` is the
+second way a gesture ends: `updateSettings({ fillHandle: false })` routes through
+`BasePlugin.onUpdateSettings`, which calls `disablePlugin()` **alone** – no `enablePlugin()` follows, the
+way it does inside `updatePlugin()`. The base class then clears the event manager, so the
+`documentElement` `mouseup` listener that owns the teardown is gone before the button is released and
+`#onMouseUp` never runs. Both teardown paths therefore share `#resetDragState()`, and any new field that
+belongs to a live corner gesture belongs in it. One field deliberately stays out: `addingStarted` mirrors
+a pending `addRow()` timeout registered through `_registerTimeout`, that timeout still fires after the
+plugin is disabled and clears the flag itself, so resetting it early lets a re-enabled drag schedule a
+second `addRow()` and insert two rows. Cancel the timer if that ever has to change.
+
+**A reconfiguration is not a disable, and the difference is load-bearing.** `updatePlugin()` calls
+`disablePlugin()` too, and `BasePlugin#isRelevantToSettings()` tests whether a `SETTING_KEYS` entry is
+**present** in the payload, not whether its value changed – so `updateSettings({ fillHandle: true })`
+reaches `updatePlugin()` with the value unchanged. That is not a rare shape: the React wrapper forwards
+every declared prop on every re-render (`fillHandle` is not in its `DEEP_COMPARABLE_SETTINGS`), so any
+sibling state change re-sends it, mid-drag included. Resetting unconditionally in `disablePlugin()`
+therefore cancelled a live drag on an ordinary re-render. `#isReconfiguring` is the carve-out:
+`updatePlugin()` raises it around its disable/enable pair, and the reset is skipped while it is set,
+because the `mouseup` listener is re-registered in the same tick and the gesture is genuinely still
+live. Any future teardown added to `disablePlugin()` has to respect that flag, or it re-creates the
+regression.
+
+The carve-out is scoped to a reconfiguration that **changes nothing**, and that is not the same as
+"any `updatePlugin()` pass". A pass that genuinely narrows what a fill may do has to end the gesture
+as well, or `#onMouseUp` commits it under the rules it was drawn with: drag down with both axes
+allowed, send `fillHandle: 'horizontal'`, release without moving, and the abandoned vertical drag
+fills anyway. So `updatePlugin()` compares the **resolved** configuration (`directions`,
+`autoInsertRow`) across its disable/enable pair and resets when it moved. Resolved, not raw, because
+`'vertical'` and `{ direction: 'vertical' }` are the same configuration and neither should end a
+drag. `tests/e2e/fill-handle-disable-mid-drag.spec.ts` pins all three outcomes: the disable ends the
+gesture, the same-value re-send does not, the direction change does.
+
 ## Auto-inserting rows
 
 With `autoInsertRow: true`, dragging past the last row inserts rows (`insert_row_below`) on a 200 ms
