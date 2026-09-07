@@ -108,6 +108,24 @@ They are written in different places and can drift. Keep this in mind:
   `TypeError: Cannot read properties of undefined`, which is what forced one customer to retry inside
   `requestAnimationFrame`. Never re-introduce the non-null assertion, and never feed the result
   straight into the trimming map — filter `null` out first.
+- **The hand-built tree operations have to shift the cell meta themselves.** `MetaManager` is kept in
+  step only by `DataMap#createRow`/`removeRow`, and `addChild`, `addChildAtIndex` and
+  `detachFromParent` reach neither — they splice `__children` and fire the row hooks by hand. So
+  stored meta (comments, `className`, everything) stays on the old physical rows and lands on the
+  wrong cells: #7727 for the insert side, DEV-2626 for the detach side, same context menu. Use
+  `dataManager.shiftCellsMeta()` for an insert and `moveCellsMeta()` for a move. Both take
+  **physical** indexes, which is what `getRowIndex()` already returns, so never pass the result
+  through `toPhysicalRow()` and never use `hot.spliceCellsMeta()`, which takes a **visual** index and
+  would translate a second time. Three traps ride along, one per fix. Read the destination with
+  `getRowIndex(element)` **after** the last `rewriteCache()` — never derive it arithmetically from the
+  parent position, because a sibling that owns descendants breaks any `parentIndex + n` formula.
+  Keep the raw `getRowIndex()` result out of the `?? 0` fallback the hook arguments use: as a meta
+  index that `0` splices from the top of the grid whenever the cache does not know the row object.
+  And skip the move when the block lands back on its own index — detaching the last child of a last
+  child re-parents it without moving any row, and a remove plus re-insert there would blank meta that
+  is still on the right cell. `moveCellsMeta()` resets the moved block's own meta rather than carrying
+  it across, because `LazyFactoryMap` has no move primitive; the alternative, `getCellMetas()`, takes
+  visual indexes, materializes meta for every column and fires `afterSetCellMeta` per cell.
 - **`collapseRow()` and `expandRow()` are dead code.** They delegate with `doTrimming` defaulting to
   `false`, so they neither trim nor render. Do not expose them and do not copy their names.
 - **`updatePlugin()` rebuilds everything.** It unregisters the trimming map and constructs a new
