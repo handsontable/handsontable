@@ -687,12 +687,14 @@ class DataManager {
       // maps in three different places. Normalize once, here, and use it for both halves.
       const topLevelIndex = Math.max(index, 0);
       const finalRowIndex = this.getTopLevelInsertionRow(topLevelIndex);
-      // Read before the splice, so it still means the row the new one displaces. The index maps
-      // count in visual indexes; the cell meta counts in physical ones. A row another plugin
-      // trimmed has no visual index, and no visual index resolves back to it either, so the maps
-      // cannot be addressed for it at all - see the plugin's `AGENTS.md`.
-      const visualRowIndex = this.hot.rowIndexMapper.getVisualFromPhysicalIndex(finalRowIndex)
-        ?? finalRowIndex;
+      // Read before the splice, so both still mean the row the new one displaces. The index maps
+      // count in visual indexes; the cell meta counts in physical ones. Appending is its own case:
+      // no physical row holds `finalRowIndex` yet, so it has no visual index to read, and the new
+      // row goes one past the last *visible* row rather than past the physical count. A displaced
+      // row that is itself trimmed cannot be addressed at all - see the plugin's `AGENTS.md`.
+      const visualRowIndex = topLevelIndex >= this.data!.length
+        ? this.hot.countRows()
+        : (this.hot.rowIndexMapper.getVisualFromPhysicalIndex(finalRowIndex) ?? finalRowIndex);
 
       // A `false` here cancels the insert, and it has to keep doing so: `Formulas` answers `false`
       // whenever HyperFormula cannot extend the sheet, and its own `afterCreateRow` listener would

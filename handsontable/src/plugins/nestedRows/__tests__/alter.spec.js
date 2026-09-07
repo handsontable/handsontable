@@ -542,6 +542,35 @@ describe('NestedRows', () => {
         expect(getDataAtCell(13, 0)).toBe('Best Rock Song');
       });
 
+      it('reports the appended row at its visible index when another plugin trims a row', async() => {
+        handsontable({
+          data: getSimplerNestedData(),
+          nestedRows: true,
+          contextMenu: true,
+          rowHeaders: true,
+          trimRows: [1],
+        });
+
+        // With physical row 1 trimmed, 17 of the 18 rows are visible and the third parent sits at
+        // visual row 11. Inserting below it appends past the end, where no physical row holds the
+        // new index yet - so the visible row count is the only thing that says where it lands.
+        expect(countRows()).toBe(17);
+
+        await insertRowViaContextMenu(11, 'Insert row below');
+
+        expect(countRows()).toBe(18);
+        expect(getPlugin('nestedRows').dataManager.getData().length).toBe(4);
+
+        // `UndoRedo` stores the index `afterCreateRow` reported and removes that row again, so the
+        // reported index has to be the new row's own visible index, not the physical row count. One
+        // past the visible end resolves to no row at all, and `#onBeforeRemoveRow` then expands it
+        // into a whole parent's subtree - undo deleted the last parent and its five children.
+        getPlugin('undoRedo').undo();
+
+        expect(countRows()).toBe(17);
+        expect(getPlugin('nestedRows').dataManager.getData().length).toBe(3);
+      });
+
       it('shifts the cell meta when another plugin trims a row above the insertion point', async() => {
         handsontable({
           data: getSimplerNestedData(),

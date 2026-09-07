@@ -138,10 +138,16 @@ They are written in different places and can drift. Keep this in mind:
   foreign trimming map above the insertion point the maps then insert one slot past the data, so the
   trim flag of the displaced row lands on the newly inserted one. The existing
   `another plugin trims a row above the insertion point` spec passes only because both slots hold
-  `false` there. The top-level branch translates, and hits the remaining hole in the same mechanism:
-  when the **displaced row itself** is trimmed it has no visual index, and none resolves back to it,
-  so `insertIndexes()` cannot address that slot at all — the fallback to the physical index is off by
-  the number of trimmed rows above it. Fixing that case means writing the maps directly.
+  `false` there. The top-level branch translates, and two things about that translation are worth
+  knowing. **Appending has no row to translate**, because no physical row holds the new index yet, so
+  it must be read from the visible row count (`countRows()`) and never from `countAllRows()`, which
+  walks the tree and so ignores trimming. Getting that wrong is not an off-by-one: an index one past
+  the visible end resolves to no row, `#onBeforeRemoveRow` expands it into a whole parent's subtree,
+  and undoing the insert then deleted the last parent **and its five children** (18 rows → 13, caught
+  in review on #13401). And the remaining hole is the mirror case: when the **displaced row itself**
+  is trimmed it has no visual index, none resolves back to it, so `insertIndexes()` cannot address
+  that slot at all — the fallback to the physical index is off by the number of trimmed rows above it.
+  Fixing that one means writing the maps directly.
 - **`onBeforeDataSplice()` hands the core a grid-row index for a top-level row, and that is still
   broken.** It routes a splice into `DataManager#spliceData()` — which does translate a grid row into
   the right `(parent, indexWithinParent)` pair — but short-circuits with `return true` when
