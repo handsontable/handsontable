@@ -274,14 +274,20 @@ fields. Seven rules follow.
   gates that disagree leave a notch where the frozen columns stop and the frozen rows carry on
   (#10370). The draw cycle positions the bottom overlay before the corner, which is what makes the
   read safe.
-- **The wheel handler may only swallow a gesture the grid can answer on every axis it names.**
-  `ScrollSync#scrollableElement` is the holder as soon as *either* axis is element-owned, so a plain
-  vertical wheel over a definite-`width`, free-`height` grid reaches the translation, nudges the
-  holder sideways by the stray `deltaX` a trackpad always carries, reports "scrolled" and would have
-  its default prevented — leaving the page unable to scroll at all under the pointer.
-  `NativeScrollInput#ownsWheelGesture()` refuses the `preventDefault` when a nonzero delta lands on a
-  window-owned axis. It is a no-op in element mode, where both axes are owned. Note the listeners are
-  correctly non-passive in split mode: a horizontal-only gesture there still has to be preventable.
+- **A wheel gesture must move each axis exactly once, so the grid scrolls BOTH axes itself and then
+  always consumes the event.** `Overlays#scrollVertically` / `scrollHorizontally` move whatever owns
+  the axis, and for a window owner that means `rootWindow.scrollBy({ behavior: 'instant' })` — the
+  page is scrolled by the grid, not by the browser. So `NativeScrollInput#onWheel` calls
+  `preventDefault()` on any gesture the translation reports as scrolled, in every mode. **Do not add
+  a guard that refuses `preventDefault` when a named axis is window-owned.** That was tried on the
+  root-size branch, to stop the page freezing under the pointer while `scrollableElement` is the
+  holder for the whole grid — a real defect, but one `scrollBy` had already fixed. With the delta
+  written by the grid AND the event left unconsumed, the browser applied the same delta a second
+  time: a diagonal trackpad swipe moved the columns 200px for a 100px `deltaX`, and the page 480px
+  for a 240px `deltaY`. The listeners are correctly non-passive in split mode, because a
+  horizontal-only gesture there still has to be preventable. Pinned by the two exact-distance wheel
+  tests in `tests/e2e/width-window-scroll.spec.ts`; a "moved more than zero" assertion cannot see a
+  doubling, which is how this survived a full review round.
 - **`preventOverflow` is an alias, not a mode.** `'horizontal'` forces the horizontal owner to the
   root's parent and `'vertical'` the vertical one; everything the option used to switch by string
   comparison now follows from the owners. Its only remaining reads are the window-mode overflow

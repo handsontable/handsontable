@@ -321,41 +321,45 @@ test.describe('width-only grid: holder scrolls columns, window scrolls rows', ()
     expect((await grid.scrollExtents()).holderScrollLeft).toBeGreaterThan(0);
   });
 
-  // The grid may only swallow a wheel gesture it can answer on every axis the gesture names. Here it
-  // owns the columns and the page owns the rows, while `ScrollSync#scrollableElement` is the holder
-  // for the whole grid - so a vertical swipe reached the wheel translation, the stray `deltaX` a
-  // trackpad always carries scrolled the holder sideways, that counted as "scrolled", and the
-  // `preventDefault()` that followed left the page unable to scroll under the pointer at all.
-  //
-  // Asserted on `defaultPrevented`, which is precisely what the grid decides. The page's own scroll
-  // cannot be measured here: Chromium latches one CDP-dispatched wheel to the scroller under the
-  // pointer (the holder) and does not chain to the document within that single event, the way a real
-  // trackpad's event stream does.
-  test('leaves a vertical wheel to the page, despite the trackpad drift on the axis it owns', async () => {
+  // A wheel gesture over a split-owner grid must move each axis EXACTLY once. The grid scrolls both
+  // itself - the holder for the columns, and the window for the rows, through
+  // `Overlays#scrollVertically` and `rootWindow.scrollBy({ behavior: 'instant' })` - so it has to
+  // consume the event. An earlier version of this branch refused `preventDefault` whenever a named
+  // axis was window-owned, to stop the page freezing under the pointer. That reason is gone (the
+  // grid now scrolls the page itself), and the refusal let the browser apply the SAME deltas a
+  // second time: a diagonal swipe moved the columns 200px for a 100px `deltaX`. A "moved more than
+  // zero" assertion cannot see that, which is how it went unnoticed - assert the exact distance.
+  test('moves each axis exactly once for a diagonal wheel, and scrolls the page itself', async () => {
     await grid.watchWheelEvents();
-    await grid.wheelOverGrid(240);
+
+    const before = (await grid.scrollExtents()).holderScrollLeft;
+
+    await grid.wheelOverGrid(240, 100);
 
     const [gesture] = await grid.wheelLog();
+    const after = await grid.scrollExtents();
 
     expect(gesture.deltaY).toBe(240);
-    expect(gesture.defaultPrevented).toBe(false);
-    // The sideways drift was still applied to the axis the grid does own.
-    expect((await grid.scrollExtents()).holderScrollLeft).toBeGreaterThan(0);
+    // Consumed, because the grid answered both axes itself.
+    expect(gesture.defaultPrevented).toBe(true);
+    // Exactly the gesture's `deltaX`, never twice it.
+    expect(after.holderScrollLeft - before).toBe(100);
+    // The rows are the window's axis, and the grid scrolled it instead of freezing the page.
+    expect(after.windowScrollY).toBe(240);
   });
 
-  test('still swallows a horizontal-only wheel, which is the axis it owns', async () => {
-    // The other half of the rule: with no vertical delta the grid answers the whole gesture, so it
-    // consumes it and the page keeps still.
+  test('moves the columns exactly once for a horizontal-only wheel and leaves the page still', async () => {
     await grid.watchWheelEvents();
+
+    const before = (await grid.scrollExtents()).holderScrollLeft;
+
     await grid.wheelOverGrid(0, 160);
 
     const [gesture] = await grid.wheelLog();
-
-    expect(gesture.defaultPrevented).toBe(true);
-
     const after = await grid.scrollExtents();
 
-    expect(after.holderScrollLeft).toBeGreaterThan(0);
+    expect(gesture.defaultPrevented).toBe(true);
+    expect(after.holderScrollLeft - before).toBe(160);
     expect(after.windowScrollY).toBe(0);
   });
 

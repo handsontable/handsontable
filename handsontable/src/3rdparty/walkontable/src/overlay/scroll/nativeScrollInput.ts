@@ -85,7 +85,6 @@ export function createNativeScrollInputDeps(
     notifyScrolledForScrollbarVisibility: () => overlays.notifyScrolledForScrollbarVisibility(),
     getTopOverlay: () => overlays.topOverlay,
     getInlineStartOverlay: () => overlays.inlineStartOverlay,
-    getWtViewport: ctx.getWtViewport,
     getCloneableOverlays: () => [
       overlays.topOverlay,
       overlays.bottomOverlay,
@@ -311,38 +310,9 @@ export class NativeScrollInput {
 
     const isScrollPossible = this.#translateMouseWheelToScroll(event);
 
-    if (preventDefault ||
-        (this.#deps.getScrollableElement() !== rootWindow && isScrollPossible && this.#ownsWheelGesture(event))) {
+    if (preventDefault || (this.#deps.getScrollableElement() !== rootWindow && isScrollPossible)) {
       event.preventDefault();
     }
-  }
-
-  /**
-   * Whether every axis this wheel event asks to scroll is one the grid scrolls itself.
-   *
-   * The grid may only swallow a gesture it can answer in full. With split axis owners it owns one
-   * axis and the page the other, and `scrollableElement` is the holder for the whole grid as soon as
-   * either axis is element-owned - so a plain vertical gesture over a grid with a definite `width`
-   * and no sized `height` reached here, nudged the holder sideways by the stray `deltaX` a trackpad
-   * always carries, reported "scrolled" and had its default prevented. The page then could not
-   * scroll at all while the pointer was over the grid.
-   *
-   * In element mode both axes are owned and the answer is always `true`, so nothing changes there:
-   * a gesture the grid cannot scroll any further still reports `isScrollPossible: false` and chains
-   * to the page as before.
-   *
-   * @param {WheelEvent} event The wheel event.
-   * @returns {boolean}
-   */
-  #ownsWheelGesture(event: WheelEvent): boolean {
-    const { deltaX, deltaY } = resolveWheelDeltas(event, this.#browserLineHeight);
-    const wtViewport = this.#deps.getWtViewport();
-
-    if (deltaY !== 0 && wtViewport.isVerticallyScrollableByWindow()) {
-      return false;
-    }
-
-    return !(deltaX !== 0 && wtViewport.isHorizontallyScrollableByWindow());
   }
 
   /**
