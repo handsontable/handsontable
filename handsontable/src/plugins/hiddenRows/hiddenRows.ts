@@ -492,14 +492,21 @@ export class HiddenRows extends BasePlugin {
       const classArr = normalizeClassNames(cellProperties.className);
       const containAfterHiddenRow = classArr.indexOf('afterHiddenRow');
 
+      // Everything below is skipped when there is no marker of ours to strip, which is every cell
+      // nowhere near a hidden row. Two reasons, and the second is not just about speed: this hook
+      // runs on every cell meta read, and leaving the value alone also leaves an array `className`
+      // an array, instead of writing an own string property onto a cell this plugin never marked -
+      // which shadows the column-level and grid-level cascade, and for a value set through
+      // `setCellMeta` is permanent, because `getUserDefinedMetas()` re-reads `className` at
+      // `updateSettings` time.
       if (containAfterHiddenRow > -1) {
         classArr.splice(containAfterHiddenRow, 1);
-      }
 
-      const className = classArr.join(' ');
+        const className = classArr.join(' ');
 
-      if (cellProperties.className !== className) {
-        cellProperties.className = className;
+        if (cellProperties.className !== className) {
+          cellProperties.className = className;
+        }
       }
     }
   };
