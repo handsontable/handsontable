@@ -214,13 +214,19 @@ Consequences worth knowing:
   headers - rather than `th:first-child`; the inner ones need no override because they are never
   `:last-child`. The HEAD row cannot be keyed the same way, because CSS cannot count how many corner
   cells precede the first column header - a corner is a `th` like the column headers beside it. It
-  keys on **`htLastRowHeaderColumn`** instead, a marker the engine stamps on the last row-header
-  column in `render/rowHeaders.ts` (body rows) and `render/columnHeaders.ts` (head rows, where the
-  marked cell is the last CORNER cell). Both renderers run once per `Table`, so the marker lands in
-  every clone with no extra wiring, exactly as `htLastVisibleHeader` does. It is stamped AFTER the
-  header renderer runs - `TH.className` is reset first and a renderer may assign to it - and needs no
-  clearing pass, because that reset runs per cell per render and the marked index is deterministic
-  (`htLastVisibleHeader` needs its backward walk only because `hiddenHeader` moves between draws).
+  keys on **`htLastRowHeaderColumn`** instead, a marker the engine stamps in `render/columnHeaders.ts`
+  on the last CORNER cell of each head row. **Head rows only** - a body row needs no marker, since
+  every `th` there is a row header and the rule matches them all, so stamping one in
+  `render/rowHeaders.ts` would put a class no stylesheet reads on every row header of every rendered
+  row (and it broke a dozen exact-markup specs when it was tried). That renderer runs once per
+  `Table`, so the marker lands in every clone with no extra wiring, exactly as `htLastVisibleHeader`
+  does. It is stamped AFTER the header renderer runs - `TH.className` is reset first and a renderer
+  may assign to it. No clearing pass is needed, and the invariant behind that is `orderView.start()`:
+  it sizes the root to exactly the nodes the view owns and the loop then visits every one of them,
+  resetting `className` before deciding, so nothing can keep a marker from a previous draw. Gating
+  that reset the way `render/cells.ts` gates its own behind `shouldPaintCell()` would break it, and
+  would have to bring a clearing pass along. (`htLastVisibleHeader` needs its backward walk for a
+  different reason: `hiddenHeader` moves between draws.)
   Before the marker this half keyed on `:first-child`, which picks the same cell with one row header
   and the WRONG one with more: the first corner, whose inline-end is an inner seam, while the real
   seam fell through to the `th:last-child` frame rule. Only `horizon` could see it, since `main` and

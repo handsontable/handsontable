@@ -178,7 +178,7 @@ test.describe('Row header border ownership', () => {
       .toEqual([declared - 1, declared - 1, declared - 1, declared - 1]);
   });
 
-  test('marks the last row-header column in every table that renders one', async () => {
+  test('marks the last corner cell of every head row, and no body cell', async () => {
     // The structural half, and the only half `main` and `classic` can see: both map
     // `--ht-cell-horizontal-border-color` to `--ht-border-color`, so the color assertion below is
     // true there whichever cell the rule picks. This one is not - it pins WHICH cell carries the
@@ -191,15 +191,15 @@ test.describe('Row header border ownership', () => {
     const cornerRow = '.ht_clone_top_inline_start_corner table.htCore > thead > tr:last-child';
     const topRow = '.ht_clone_top table.htCore > thead > tr:last-child';
 
-    // One row header: the marker is on the only one, which is what `:first-child` used to select -
-    // so this shape's rendered output is unchanged by the re-key.
-    for (const row of [bodyRow, cornerRow, topRow]) {
+    // One row header: the marker is on the only corner cell, which is what `:first-child` used to
+    // select - so this shape's rendered output is unchanged by the re-key.
+    for (const row of [cornerRow, topRow]) {
       expect(await grid.markedCellIndex('row-headers', row)).toBe(0);
     }
 
-    // Two row headers: the marker moves to the second, in the body and in both head-row overlays.
+    // Two row headers: the marker moves to the second corner cell, in both head-row overlays.
     for (const testId of ['multi-row-headers', 'multi-frozen']) {
-      for (const row of [bodyRow, cornerRow, topRow]) {
+      for (const row of [cornerRow, topRow]) {
         expect(await grid.markedCellIndex(testId, row)).toBe(1);
       }
     }
@@ -207,6 +207,14 @@ test.describe('Row header border ownership', () => {
     // Exactly one per row, or the seam rule would color more than one gridline.
     expect(await grid.markedHeaderCellCount('multi-row-headers')).toBe(1);
     expect(await grid.markedHeaderCellCount('multi-row-headers', '.ht_clone_top')).toBe(1);
+
+    // HEAD rows only. A body row needs no marker - every `th` there is a row header, so the seam
+    // rule matches them all and the inner ones fall through to the same color anyway. Marking them
+    // would put a class no stylesheet reads on every row header of every rendered row, which is
+    // what the exact-markup specs in `hiddenRows` and `nestedHeaders` caught when it was tried.
+    for (const testId of ['row-headers', 'multi-row-headers', 'multi-frozen']) {
+      expect(await grid.markedCellIndex(testId, bodyRow)).toBe(-1);
+    }
 
     // No row headers, no marker.
     expect(await grid.markedCellIndex('control', topRow)).toBe(-1);
