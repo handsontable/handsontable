@@ -628,25 +628,12 @@ class DataManager {
   }
 
   /**
-   * Translate the physical row a new row takes into the visual index the row index maps expect.
-   *
-   * @private
-   * @param {number} physicalRow Physical row index the new row takes.
-   * @returns {number} Visual row index, or the physical one when the row has no visual index.
-   */
-  toVisualInsertionRow(physicalRow: number): number {
-    // A row another plugin trimmed has no visual index at all. The physical index is the closest
-    // thing left, and it is what the parent branch of `addChildAtIndex()` passes as well.
-    return this.hot.rowIndexMapper.getVisualFromPhysicalIndex(physicalRow) ?? physicalRow;
-  }
-
-  /**
    * Add a child node to the provided parent at a specified index.
    *
    * A row with no parent is a top-level row, and that branch builds the insert by hand rather than
    * through `hot.alter()`, which cannot serve both halves of it. `hot.alter()` also used to fire
-   * `beforeAlter` here, and to let `beforeCreateRow` cancel the insert; neither happens any more.
-   * The plugin's `AGENTS.md` holds why.
+   * `beforeAlter` and `beforeDataSplice` here; neither does any more. The plugin's `AGENTS.md`
+   * holds why, and what is still wrong next door.
    *
    * @param {object} parent Parent node.
    * @param {number} index Index to insert the child element at.
@@ -694,16 +681,33 @@ class DataManager {
       flattenedIndex = finalChildIndex;
 
     } else {
-      const finalRowIndex = this.getTopLevelInsertionRow(index);
+      // `Array#splice` reads a negative index from the end, while everything below reports an
+      // append, so a caller that lost track of its row - `getRowIndexWithinParent()` answers -1 for
+      // a row object the cache does not know - would otherwise put the data, the meta and the index
+      // maps in three different places. Normalize once, here, and use it for both halves.
+      const topLevelIndex = Math.max(index, 0);
+      const finalRowIndex = this.getTopLevelInsertionRow(topLevelIndex);
       // Read before the splice, so it still means the row the new one displaces. The index maps
-      // count in visual indexes; the cell meta counts in physical ones.
-      const visualRowIndex = this.toVisualInsertionRow(finalRowIndex);
+      // count in visual indexes; the cell meta counts in physical ones. A row another plugin
+      // trimmed has no visual index, and no visual index resolves back to it either, so the maps
+      // cannot be addressed for it at all - see the plugin's `AGENTS.md`.
+      const visualRowIndex = this.hot.rowIndexMapper.getVisualFromPhysicalIndex(finalRowIndex)
+        ?? finalRowIndex;
 
-      this.hot.runHooks('beforeCreateRow', visualRowIndex, 1, 'NestedRows.addChildAtIndex');
+      // A `false` here cancels the insert, and it has to keep doing so: `Formulas` answers `false`
+      // whenever HyperFormula cannot extend the sheet, and its own `afterCreateRow` listener would
+      // then call `engine.addRows()` on the state HyperFormula just refused. `afterAddChild` still
+      // has to fire - `beforeAddChild` opened the collapsed-rows stash, and only that hook closes
+      // it again, so returning without it leaves the grid expanded for the rest of its life.
+      if (this.hot.runHooks('beforeCreateRow', visualRowIndex, 1, 'NestedRows.addChildAtIndex') === false) {
+        this.hot.runHooks('afterAddChild', parent, null, index);
+
+        return;
+      }
 
       // `this.data` is the source array itself, so this splice already is the source data change -
       // no `setSourceDataAtCell()` needed, unlike the branch above, which writes a `__children` key.
-      this.data!.splice(index, 0, childElement);
+      this.data!.splice(topLevelIndex, 0, childElement);
 
       this.rewriteCache();
 

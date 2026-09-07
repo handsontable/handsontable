@@ -343,14 +343,20 @@ describe('NestedRows', () => {
           rowHeaders: true,
           // A hidden row keeps its visual index, so hiding one renumbers nothing. Row 3 sits between
           // the top-level position of row 6 (2) and its real insertion point (12), which is the only
-          // place where the two can be told apart.
-          hiddenRows: { rows: [3] },
+          // place where the two can be told apart. Row 13 sits below the insertion point, so it has
+          // to move - without it the spec would also pass if the maps were never shifted at all.
+          hiddenRows: { rows: [3, 13] },
         });
 
         await insertRowViaContextMenu(6, 'Insert row below');
 
+        // Above the insertion point: stays put.
         expect(getPlugin('hiddenRows').isHidden(3)).toBe(true);
         expect(getPlugin('hiddenRows').isHidden(4)).toBe(false);
+
+        // Below it: moves down by one, along with the row it belongs to.
+        expect(getPlugin('hiddenRows').isHidden(14)).toBe(true);
+        expect(getPlugin('hiddenRows').isHidden(13)).toBe(false);
       });
 
       it('inserts the new row into the top-level array', async() => {
@@ -406,6 +412,32 @@ describe('NestedRows', () => {
         expect(getDataAtCell(6, 2)).toBe('Custer');
         expect(getDataAtCell(7, 2)).toBe(null);
         expect(getDataAtCell(8, 0)).toBe('Best Rock Song');
+      });
+
+      it('cancels the insert when a `beforeCreateRow` listener returns `false`', async() => {
+        handsontable({
+          data: getSimplerNestedData(),
+          nestedRows: true,
+          contextMenu: true,
+          rowHeaders: true,
+          // What the `formulas` plugin answers whenever HyperFormula cannot extend the sheet. Its
+          // own `afterCreateRow` listener calls `engine.addRows()` regardless of the source, so an
+          // insert that runs anyway desyncs the engine from the grid.
+          beforeCreateRow: () => false,
+        });
+
+        // Collapsed, so the assertion below can tell whether `afterAddChild` ran: it is the hook
+        // that closes the collapsed-rows stash, and a cancel that skips it leaves the grid expanded
+        // for the rest of its life.
+        getPlugin('nestedRows').collapseParent(0);
+
+        expect(countRows()).toBe(13);
+
+        await insertRowViaContextMenu(1, 'Insert row below');
+
+        expect(getPlugin('nestedRows').dataManager.getData().length).toBe(3);
+        expect(getPlugin('nestedRows').isParentCollapsed(0)).toBe(true);
+        expect(countRows()).toBe(13);
       });
 
       it('undoes the insert by removing the row it added', async() => {
