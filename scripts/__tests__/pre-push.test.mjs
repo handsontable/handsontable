@@ -4,6 +4,7 @@ import {
   changedPlaywrightSpecs,
   changedUnitTests,
   unitTestPattern,
+  needsDeterminismRatchet,
   isJestInfraFailure,
   isSpawnInfraFailure,
   condenseTestOutput,
@@ -58,6 +59,29 @@ test('unitTestPattern is a single shell-safe handsontable-relative path (never a
   // (regex alternation) would be read as a shell pipe (the exit-126 bug). Never
   // emit one — the hooks run one jest per file instead.
   assert.ok(!unitTestPattern('handsontable/src/plugins/filters/__tests__/dataFilter.unit.ts').includes('|'));
+});
+
+test('the determinism ratchet is skipped (never spawned) when the push touches no spec/unit file', () => {
+  // The skip path: source, Playwright, wrapper and docs changes carry nothing the
+  // ratcheted rules apply to, so pre-push must not pay for a node + ESLint spawn.
+  assert.equal(needsDeterminismRatchet([
+    'handsontable/src/core.ts',
+    'handsontable/src/plugins/filters/filters.ts',
+    'tests/e2e/filters/menu.spec.ts', // Playwright bans sleep at error on its own
+    'wrappers/react-wrapper/test/hotTable.spec.tsx',
+    'handsontable/test/helpers/common.js', // a helper, not a spec
+    'handsontable/tmp/plugins/filters/__tests__/filters.spec.js', // build output
+    'docs/content/guides/foo.md',
+  ]), false);
+});
+
+test('the determinism ratchet runs when a frozen-suite spec or a unit test changed', () => {
+  assert.equal(needsDeterminismRatchet([
+    'handsontable/src/core.ts',
+    'handsontable/src/plugins/filters/__tests__/filters.spec.js',
+  ]), true);
+  assert.equal(needsDeterminismRatchet(['handsontable/src/helpers/__tests__/number.unit.js']), true);
+  assert.equal(needsDeterminismRatchet(['handsontable/src/3rdparty/walkontable/test/spec/table.spec.js']), true);
 });
 
 test('treats a jest config/module-resolution failure as infra (non-blocking), not a test failure', () => {

@@ -406,6 +406,11 @@ class Overlays {
    * the cell render, so the post-render `resetFixedPosition` toggle is a no-op and the nested
    * `wot.draw(true)` re-render is skipped. Called from the master draw on the single-pass gated path,
    * before `beginDrawLayout`. Mirrors the overlay set used by the post-render position pass.
+   *
+   * The skipped re-render is `innerBorderTop`'s alone. The inline-start class shifts no layout since
+   * #6673, so that overlay reports no position change whether or not this pass applied its class;
+   * pre-applying it only keeps a `beforeViewRender` listener from seeing a stale value. See
+   * `InlineStartOverlay#prepareHeaderBorders`.
    */
   prepareHeaderBorders() {
     this.topOverlay.prepareHeaderBorders();
