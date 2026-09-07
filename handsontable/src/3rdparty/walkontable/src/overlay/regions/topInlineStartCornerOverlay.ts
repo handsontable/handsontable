@@ -125,16 +125,18 @@ export class TopInlineStartCornerOverlay extends Overlay {
    * @returns {boolean}
    */
   resetFixedPosition() {
-    this.updateTrimmingContainer();
-
     if (!(this.deps.getWtTable().holder.parentNode as HTMLElement) || !this.clone) {
       // removed from DOM
       return false;
     }
 
     const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
+    const { rootWindow } = this.deps;
 
-    if (this.trimmingContainer === this.deps.rootWindow) {
+    // The corner follows the window on whichever axis the window owns; a neighbour whose axis is
+    // owned by an element reports a 0 offset on that axis, so the positioned form is right whenever
+    // at least one axis scrolls with the window.
+    if (this.topOverlay.trimmingContainer === rootWindow || this.inlineStartOverlay.trimmingContainer === rootWindow) {
       const left = this.inlineStartOverlay.getOverlayOffset() * (this.isRtl() ? -1 : 1);
       const top = this.topOverlay.getOverlayOffset();
 

@@ -169,6 +169,86 @@ describe('WalkontableViewport', () => {
     });
   });
 
+  describe('with an ancestor that clips the horizontal axis only', () => {
+    // The shape core produces for a definite `width` with no sized `height`: the root gets
+    // `overflow-x: clip` and nothing on the vertical axis. Each axis is then owned separately - the
+    // root scrolls the columns inside its box while the window scrolls the rows.
+    beforeEach(() => {
+      spec().$wrapper
+        .css('overflow', '')
+        .css('overflow-x', 'clip')
+        .css('width', '300px')
+        .css('height', '');
+    });
+
+    it('should measure the workspace width against the clipping root and the height against the window', async() => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+
+      wt.draw();
+
+      expect(wt.wtViewport.getWorkspaceWidth()).toBe(300);
+      expect(wt.wtViewport.getWorkspaceHeight()).toBe(document.documentElement.clientHeight);
+    });
+
+    it('should report the window as the owner of the vertical axis only', async() => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+
+      wt.draw();
+
+      expect(wt.wtViewport.isHorizontallyScrollableByWindow()).toBe(false);
+      expect(wt.wtViewport.isVerticallyScrollableByWindow()).toBe(true);
+    });
+
+    it('should report a horizontal scroll when the columns are wider than the root', async() => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+
+      wt.draw();
+
+      // 200 columns of 50px against a 300px root. The old single-answer resolution read the
+      // document's scroll width here and answered `false` although the holder scrolled.
+      expect(wt.wtViewport.hasHorizontalScroll()).toBe(true);
+    });
+
+    it('should virtualize the rows against the window', async() => {
+      createDataArray(1000, 10);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+
+      wt.draw();
+
+      expect(wt.wtTable.getRenderedRowsCount()).toBeLessThan(100);
+    });
+
+    it('should virtualize the columns against the root width', async() => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+
+      wt.draw();
+
+      // 300px / 50px = 6 columns in view; the overscan adds a few, never anything near the 200 total.
+      expect(wt.wtTable.getRenderedColumnsCount()).toBeLessThan(20);
+    });
+  });
+
   describe('getViewportWidth()', () => {
     it('should return correct viewport width in case when the root element has defined size', async() => {
       const wt = walkontable({

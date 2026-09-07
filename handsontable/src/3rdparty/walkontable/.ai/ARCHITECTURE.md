@@ -64,6 +64,8 @@ Walkontable renders frozen (fixed) rows and columns as separate **overlay clone 
 
 Each overlay is backed by a Walkontable clone (`core/clone.ts`) rendering the matching table subclass under `table/regions/`. Corner overlays are created lazily. `overlay/overlays.ts` coordinates them and keeps their scroll positions aligned with the master. The overlay class family mirrors the table family: `overlay/regions/*Overlay.ts` (positioning half) pairs with `table/regions/*Table.ts` (DOM half).
 
+Each overlay is pinned against one scroll axis and carries that axis's **owner** in `trimmingContainer` — the top and bottom overlays the vertical owner, the inline-start overlay the horizontal one — resolved per axis by `overlay/axisOwner.ts`. The two can differ: the grid `width`/`height` options map to per-axis overflow on the root (`overflow: clip` for a sized height, `overflow-x: clip` alone for a definite width with no sized height, nothing otherwise), so a definite width with an auto height scrolls horizontally inside the root and vertically with the window. The master table lays the holder out from the same two owners. Rules and traps: `AGENTS.md`, "Per-axis trimming containers".
+
 This is a **fragile area** — positioning logic is intricate, RTL adds mirroring, and overlay boundaries are prone to visual artifacts. See `handsontable/src/3rdparty/walkontable/.ai/CONCERNS.md`.
 
 ## Viewport Calculation
