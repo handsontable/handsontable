@@ -2,9 +2,13 @@ tmp/
 dist
 .angular
 
-# see the explanation about package-lock.json in /examples/README.md
-*/docs/angular/*/package-lock.json
-*/docs/js/*/package-lock.json
-*/docs/react/*/package-lock.json
-*/docs/ts/*/package-lock.json
-*/docs/vue/*/package-lock.json
+# Per-example lockfiles, created by running `npm install` inside an example folder. Only the
+# shared framework-level lockfile is tracked. See the explanation in /examples/README.md.
+#
+# Ignore every lockfile under `examples/`, then re-include the shared framework-level ones --
+# the only lockfiles that sit at exactly `<version>/<category>/<framework>/`. Written as a pair
+# so a new framework or category directory needs no edit here: the install globs accept any
+# `angular-*` and `vue*` name, and a name with no rule puts its leaf lockfiles back within
+# reach of the release job's bare `git add .`.
+**/package-lock.json
+!*/*/*/package-lock.json

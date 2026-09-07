@@ -136,6 +136,12 @@
       "deps": ["downlevel:types"],
       "mode": "inherit"
     },
+    "test:eslint-rules": {
+      "cmd": "node --test .config/plugin/eslint/__tests__/no-fixed-sleep-in-spec.test.mjs",
+      "deps": [],
+      "mode": "inherit",
+      "note": "RuleTester coverage of the custom ESLint rules. Imports `eslint`, so it needs this package's node_modules — that is why it is NOT in the root `test:tooling` glob (CI's `tooling tests` job installs nothing); the `Lint / core` job runs it. Literal paths only, no glob: `node --test` exits 1 (`Could not find`) only when nothing in the list matched AND no pattern is a glob — a glob anywhere turns a missing path into a green `tests 0`, and a second literal file that still exists masks a renamed first one the same way, so a rename would leave the step passing with nothing, or less, run. Add a new rule's test file here by name; test/__tests__/eslintRulesTask.unit.js pins the list in both directions (every file in __tests__ named, every named file present) and bans glob characters."
+    },
     "test:e2e.dump": {
       "cmd": "npm --silent run build:styles && cross-env-shell BABEL_ENV=commonjs_e2e NODE_ENV=test-e2e env-cmd -f ../hot.config.js rspack ./test/helpers/index.js ./test/e2e/index.js",
       "deps": [],

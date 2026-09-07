@@ -23,7 +23,9 @@ Hooks.getSingleton().register('afterRedo');
  * @description
  * Handsontable UndoRedo plugin allows to undo and redo certain actions done in the table.
  *
- * __Note__, that not all actions are currently undo-able. The UndoRedo plugin is enabled by default.
+ * The plugin is enabled by default. It doesn't track every grid operation. For the list of tracked
+ * actions and the known limitations, see
+ * [Undo and redo](@/guides/accessories-and-menus/undo-redo/undo-redo.md).
  * @example
  * ```js
  * undo: true

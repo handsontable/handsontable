@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MergeCells init render-count fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+    // HOW `mergeCells` is configured at construction time - the axis the render count depends on.
+    // `async-validator` is `areas` plus an async validator on every column, which defers the
+    // merge-clearing write and so reverses the order of the plugin's two init draws (#5687).
+    window.htScenario = ({
+      none: 'none',
+      enabled: 'enabled',
+      areas: 'areas',
+      'object-form': 'object-form',
+      'async-validator': 'async-validator',
+    })[htParams.get('scenario') ?? 'none'];
+    if (!window.htScenario) {
+      throw new Error('Unknown ?scenario= value: ' + JSON.stringify(htParams.get('scenario')));
+    }
+  </script>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    // Two areas, so a merge is proven by exactly two spanned cells in the master table.
+    const AREAS = [
+      { row: 1, col: 1, rowspan: 2, colspan: 2 },
+      { row: 5, col: 3, rowspan: 3, colspan: 2 },
+    ];
+    // `object-form` declares the same areas the long way. It resolves through a different
+    // `getSetting()` branch than the array form (base.ts reads `settings[cells]` for an object and
+    // the settings value itself for an array), which is the input the init guard reads.
+    const MERGE_CELLS = {
+      none: undefined,
+      enabled: true,
+      areas: AREAS,
+      'object-form': { cells: AREAS },
+      'async-validator': AREAS,
+    }[window.htScenario];
+
+    // Counted from the settings object, so the very first draw is included. `afterRender` fires
+    // once per draw; `afterRenderer` once per rendered cell.
+    window.htRenderCounts = { afterRender: 0, afterRenderer: 0 };
+
+    const settings = {
+      data: Array.from({ length: 10 }, (unused, row) =>
+        Array.from({ length: 10 }, (unusedCol, column) => `${row}-${column}`)),
+      // Fixed box and no headers, so nothing is stretched or measured from the container and no
+      // resize-driven redraw can perturb the count. The height clears 10 rows on the TALLEST
+      // theme with room to spare - measured: horizon 38px rows = 371px total, main 30px = 291px,
+      // classic 27px = 261px - so every cell really is rendered on all three. At 300 the horizon
+      // rows overflowed and the count only held up because of the row-band overscan.
+      width: 700,
+      height: 500,
+      colWidths: 60,
+      rowHeaders: false,
+      colHeaders: false,
+      afterRender() {
+        window.htRenderCounts.afterRender += 1;
+      },
+      afterRenderer(td, row, col) {
+        window.htRenderCounts.afterRenderer += 1;
+        td.setAttribute('data-testid', `cell-${row}-${col}`);
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    };
+
+    if (MERGE_CELLS !== undefined) {
+      settings.mergeCells = MERGE_CELLS;
+    }
+
+    if (window.htScenario === 'async-validator') {
+      settings.columns = Array.from({ length: 10 }, () => ({
+        validator(value, callback) {
+          setTimeout(() => callback(true), 0);
+        },
+      }));
+    }
+
+    /**
+     * Counts the cells the master table currently spans across rows or columns.
+     */
+    const countSpannedCells = () =>
+      document.querySelectorAll('.ht_master td[rowspan], .ht_master td[colspan]').length;
+
+    // Built loudly: a constructor throw is captured where the page object can read and rethrow it.
+    try {
+      window.hot = new Handsontable(container, settings);
+    } catch (error) {
+      window.htBuildError = String((error && error.stack) || error);
+      throw error;
+    }
+
+    // Snapshotted the instant the constructor returns, before any deferred work can add a draw.
+    // This is what the render-count assertions read - a count sampled later would fold in async
+    // redraws that have nothing to do with the plugin.
+    window.htAfterConstruct = {
+      afterRender: window.htRenderCounts.afterRender,
+      afterRenderer: window.htRenderCounts.afterRenderer,
+      spannedCells: countSpannedCells(),
+    };
+
+    window.htCountSpannedCells = countSpannedCells;
+  </script>
+</body>
+</html>

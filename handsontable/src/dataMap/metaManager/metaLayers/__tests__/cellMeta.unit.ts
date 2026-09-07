@@ -5,6 +5,36 @@ import { registerAllCellTypes, getCellType } from '../../../../cellTypes';
 
 registerAllCellTypes();
 
+describe('CellMeta#extendMeta', () => {
+  it('should advance the render version only when a merged value differs', () => {
+    const meta = new CellMeta(new ColumnMeta(new GlobalMeta()));
+    const renderer = () => {};
+
+    meta.extendMeta(1, 1, { readOnly: true, renderer });
+    expect(meta.getMeta(1, 1)._renderVersion).toBe(1);
+
+    // The same result again (a fresh object, the same values) is not a change.
+    meta.extendMeta(1, 1, { readOnly: true, renderer });
+    expect(meta.getMeta(1, 1)._renderVersion).toBe(1);
+
+    meta.extendMeta(1, 1, { readOnly: false, renderer });
+    expect(meta.getMeta(1, 1)._renderVersion).toBe(2);
+
+    // A new function reference is a change, by identity.
+    meta.extendMeta(1, 1, { readOnly: false, renderer: () => {} });
+    expect(meta.getMeta(1, 1)._renderVersion).toBe(3);
+  });
+
+  it('should not advance the render version for an empty result', () => {
+    const meta = new CellMeta(new ColumnMeta(new GlobalMeta()));
+
+    meta.getMeta(0, 0);
+    meta.extendMeta(0, 0, {});
+
+    expect(meta.getMeta(0, 0)._renderVersion).toBeUndefined();
+  });
+});
+
 describe('ColumnMeta', () => {
   it('should reflect the changes in the cell meta when the global meta properties were changed', () => {
     const globalMeta = new GlobalMeta();
@@ -781,6 +811,163 @@ describe('ColumnMeta', () => {
       meta.enableUserDefinedMetaRecording(); // closing the outer scope re-enables recording
       meta.setMeta(1, 1, 'className', 'htRight'); // tracked
 
+      expect(meta.getUserDefinedMetas()).toEqual([
+        { physicalRow: 1, physicalColumn: 1, key: 'className', value: 'htRight' },
+      ]);
+    });
+  });
+
+  describe('`cell` option meta recording', () => {
+    it('should track a property set through `setMeta` inside a `cell` option recording scope', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      meta.startCellOptionMetaRecording();
+      meta.setMeta(0, 0, 'readOnly', true);
+      meta.endCellOptionMetaRecording();
+
+      expect(meta.getCellOptionMetas()).toEqual([
+        { physicalRow: 0, physicalColumn: 0, key: 'readOnly', value: true },
+      ]);
+      // A `cell` option write is declarative, so it is never user-defined as well.
+      expect(meta.getUserDefinedMetas()).toEqual([]);
+    });
+
+    it('should not track a property set while only user-defined recording is suspended', () => {
+      // The `_setCellMetaDeclarative` path built-in plugins use. Those writes must belong to no bucket:
+      // the plugin re-applies them from its own configuration and relies on the cache reset dropping them.
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      meta.disableUserDefinedMetaRecording();
+      meta.setMeta(0, 0, 'className', 'columnSummaryResult');
+      meta.enableUserDefinedMetaRecording();
+
+      expect(meta.getMeta(0, 0).className).toBe('columnSummaryResult');
+      expect(meta.getCellOptionMetas()).toEqual([]);
+      expect(meta.getUserDefinedMetas()).toEqual([]);
+    });
+
+    it('should move a key out of the `cell` option bucket when it is overwritten imperatively', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      meta.startCellOptionMetaRecording();
+      meta.setMeta(0, 0, 'readOnly', true);
+      meta.endCellOptionMetaRecording();
+
+      meta.setMeta(0, 0, 'readOnly', false);
+
+      expect(meta.getCellOptionMetas()).toEqual([]);
+      expect(meta.getUserDefinedMetas()).toEqual([
+        { physicalRow: 0, physicalColumn: 0, key: 'readOnly', value: false },
+      ]);
+    });
+
+    it('should move a key out of the user-defined bucket when it is overwritten by the `cell` option', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      meta.setMeta(0, 0, 'className', 'from-set-cell-meta');
+
+      meta.startCellOptionMetaRecording();
+      meta.setMeta(0, 0, 'className', 'from-cell-option');
+      meta.endCellOptionMetaRecording();
+
+      expect(meta.getUserDefinedMetas()).toEqual([]);
+      expect(meta.getCellOptionMetas()).toEqual([
+        { physicalRow: 0, physicalColumn: 0, key: 'className', value: 'from-cell-option' },
+      ]);
+    });
+
+    it('should stop tracking a `cell` option property after it is removed', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      meta.startCellOptionMetaRecording();
+      meta.setMeta(0, 0, 'readOnly', true);
+      meta.endCellOptionMetaRecording();
+
+      meta.removeMeta(0, 0, 'readOnly');
+
+      expect(meta.getCellOptionMetas()).toEqual([]);
+    });
+
+    it('should file a plugin-declarative write nested inside a `cell` option scope as neither origin', () => {
+      // Reachable: applying the `cell` option fires `beforeSetCellMeta`/`afterSetCellMeta`, and a listener
+      // can reach a plugin path that uses `_setCellMetaDeclarative`. Filing it as a `cell`-option write
+      // would replay it forever - the stranded stale value the third bucket exists to prevent.
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      meta.startCellOptionMetaRecording();
+      meta.disableUserDefinedMetaRecording(); // the plugin's own scope, nested inside
+      meta.setMeta(0, 0, 'className', 'columnSummaryResult');
+      meta.enableUserDefinedMetaRecording();
+      meta.setMeta(1, 1, 'readOnly', true); // back in the `cell` option scope
+      meta.endCellOptionMetaRecording();
+
+      expect(meta.getCellOptionMetas()).toEqual([
+        { physicalRow: 1, physicalColumn: 1, key: 'readOnly', value: true },
+      ]);
+      expect(meta.getUserDefinedMetas()).toEqual([]);
+    });
+
+    it('should not lift a plugin suspension when `end` is called without a matching `start`', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      meta.disableUserDefinedMetaRecording(); // a plugin's scope
+      meta.endCellOptionMetaRecording(); // unbalanced - must not close it
+      meta.setMeta(0, 0, 'className', 'columnSummaryResult');
+      meta.enableUserDefinedMetaRecording();
+
+      expect(meta.getUserDefinedMetas()).toEqual([]);
+      expect(meta.getCellOptionMetas()).toEqual([]);
+    });
+
+    it('should drop a `cell` option key from its bucket once a plugin writes the same key', () => {
+      // A documented consequence of the snapshot reading current values: keeping the key would replay the
+      // plugin's value as if the option had declared it, which is worse. The declared value is lost until
+      // `cell` is restated - the same as before the option became sticky.
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      meta.startCellOptionMetaRecording();
+      meta.setMeta(0, 0, 'className', 'from-cell-option');
+      meta.endCellOptionMetaRecording();
+
+      meta.disableUserDefinedMetaRecording();
+      meta.setMeta(0, 0, 'className', 'columnSummaryResult');
+      meta.enableUserDefinedMetaRecording();
+
+      expect(meta.getCellOptionMetas()).toEqual([]);
+      expect(meta.getUserDefinedMetas()).toEqual([]);
+    });
+
+    it('should keep the scope open until every start call is balanced by an end call', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      meta.startCellOptionMetaRecording(); // outer scope
+      meta.startCellOptionMetaRecording(); // nested scope (for example, a re-entrant updateSettings)
+      meta.endCellOptionMetaRecording(); // closing the nested scope must not close the outer one
+      meta.setMeta(0, 0, 'readOnly', true); // still declarative
+      meta.endCellOptionMetaRecording(); // closing the outer scope
+      meta.setMeta(1, 1, 'className', 'htRight'); // imperative again
+
+      expect(meta.getCellOptionMetas()).toEqual([
+        { physicalRow: 0, physicalColumn: 0, key: 'readOnly', value: true },
+      ]);
       expect(meta.getUserDefinedMetas()).toEqual([
         { physicalRow: 1, physicalColumn: 1, key: 'className', value: 'htRight' },
       ]);

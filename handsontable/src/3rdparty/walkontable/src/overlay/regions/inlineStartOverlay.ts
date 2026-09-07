@@ -325,17 +325,9 @@ export class InlineStartOverlay extends Overlay {
    * @returns {boolean}
    */
   scrollTo(sourceCol: number, beyondRendered: boolean) {
-    const { wtSettings } = this;
     const { geometryReader } = this.deps;
-    const rowHeaders = wtSettings.getSetting('rowHeaders') as ((...args: unknown[]) => unknown)[];
-    const fixedColumnsStart = wtSettings.getSetting<number>('fixedColumnsStart');
     const sourceInstance = this.wot.cloneSource ? this.wot.cloneSource : this.wot;
     const mainHolder = sourceInstance.wtTable.holder;
-    const rowHeaderBorderCompensation = (
-      fixedColumnsStart === 0 &&
-      rowHeaders.length > 0 &&
-      !hasClass(mainHolder.parentNode as HTMLElement, 'innerBorderInlineStart')
-    ) ? 1 : 0;
     let newX = this.getTableParentOffset();
     let scrollbarCompensation = 0;
 
@@ -354,24 +346,12 @@ export class InlineStartOverlay extends Overlay {
     if (beyondRendered) {
       newX += this.sumCellSizes(0, sourceCol + 1);
       newX -= this.deps.getWtViewport().getViewportWidth();
-      // Compensate for the right header border if scrolled from the absolute left.
-      newX += rowHeaderBorderCompensation;
 
     } else {
       newX += this.sumCellSizes(this.wtSettings.getSetting<number>('fixedColumnsStart'), sourceCol);
     }
 
     newX += scrollbarCompensation;
-
-    // If the table is scrolled all the way left when starting the scroll and going to be scrolled to the far right,
-    // we need to compensate for the potential header border width.
-    if (
-      geometryReader.getMaximumScrollLeft(this.mainTableScrollableElement as HTMLElement)
-        === newX - rowHeaderBorderCompensation &&
-      rowHeaderBorderCompensation > 0
-    ) {
-      this.deps.getWtOverlays().expandHiderHorizontallyBy(rowHeaderBorderCompensation);
-    }
 
     return this.setScrollPosition(newX);
   }

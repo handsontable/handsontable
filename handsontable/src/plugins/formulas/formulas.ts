@@ -219,6 +219,16 @@ export class Formulas extends BasePlugin {
   #hyperlinksEnabled = false;
 
   /**
+   * The cells rendered as hyperlinks, by physical coordinates (`row,column`). A `HYPERLINK` whose
+   * URL argument lives in another cell keeps its label, so the engine reports no value change for
+   * it; these cells are marked changed on every engine update instead, so a `renderMode: 'onChange'`
+   * cell rebuilds its `href`. The set is emptied whenever the physical indexes can shift or the
+   * rendered cells are all repainted anyway (data load, structural change, plugin disable); the next
+   * render fills it again.
+   */
+  #hyperlinkCells = new Set<string>();
+
+  /**
    * Flag needed to mark if Handsontable was initialized with no data.
    * (Required to work around the fact, that Handsontable auto-generates sample data, when no data is provided).
    *
@@ -404,8 +414,54 @@ export class Formulas extends BasePlugin {
       change as { address?: { sheet: number; row: number; col: number }; newValue: unknown }
     ));
 
+    this.#invalidateHyperlinkCells();
+    this.#markCellsThatBecameHyperlinks(changes);
     this.hot.runHooks('afterFormulasValuesUpdate', exportedChanges);
   };
+
+  /**
+   * Marks the updated cells that resolve to a hyperlink now. A cell that became a `HYPERLINK` while
+   * keeping the label it already showed changes nothing a `renderMode: 'onChange'` paint compares -
+   * not its formatted value, meta, renderer, or the render epoch - and it is not yet in
+   * `#hyperlinkCells`, so the engine update is the only signal that it needs an anchor.
+   *
+   * @param {Array} changes The engine's change list.
+   */
+  #markCellsThatBecameHyperlinks(changes: unknown[]) {
+    if (!this.#hyperlinksEnabled || !this.rowAxisSyncer || !this.columnAxisSyncer) {
+      return;
+    }
+
+    changes.forEach((change) => {
+      const address = (change as { address?: { sheet: number; row: number; col: number } }).address;
+
+      if (!address || address.sheet !== this.sheetId) {
+        return;
+      }
+
+      const visualRow = this.rowAxisSyncer!.getVisualIndexFromHfIndex(address.row);
+      const visualColumn = this.columnAxisSyncer!.getVisualIndexFromHfIndex(address.col);
+
+      if (visualRow >= 0 && visualColumn >= 0 && this.#getHyperlinkHref(visualRow, visualColumn) !== null) {
+        this.hot.markCellChanged(visualRow, visualColumn);
+      }
+    });
+  }
+
+  /**
+   * Marks every cell rendered as a hyperlink as changed, so its `href` is rebuilt on the next render.
+   */
+  #invalidateHyperlinkCells() {
+    this.#hyperlinkCells.forEach((key) => {
+      const [physicalRow, physicalColumn] = key.split(',').map(Number);
+      const visualRow = this.hot.toVisualRow(physicalRow);
+      const visualColumn = this.hot.toVisualColumn(physicalColumn);
+
+      if (visualRow !== null && visualColumn !== null) {
+        this.hot.markCellChanged(visualRow, visualColumn);
+      }
+    });
+  }
 
   /**
    * Called when a named expression is added to the engine instance.
@@ -753,6 +809,7 @@ export class Formulas extends BasePlugin {
    */
   disablePlugin() {
     this.#unwrapRenderedHyperlinks();
+    this.#hyperlinkCells.clear();
     this.unregisterShortcuts();
     this.#engineListeners?.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
 
@@ -2143,6 +2200,8 @@ export class Formulas extends BasePlugin {
    * @param {string} [source] Source of the call.
    */
   #onAfterLoadData = (sourceData: unknown[], initialLoad: boolean, source = '') => {
+    this.#hyperlinkCells.clear();
+
     if (source.includes(toUpperCaseFirst(PLUGIN_KEY))) {
       return;
     }
@@ -2285,10 +2344,15 @@ export class Formulas extends BasePlugin {
     this.#unwrapHyperlink(TD);
 
     const href = this.#getHyperlinkHref(row, column);
+    const hyperlinkKey = `${this.hot.toPhysicalRow(row)},${this.hot.toPhysicalColumn(column)}`;
 
     if (href === null) {
+      this.#hyperlinkCells.delete(hyperlinkKey);
+
       return;
     }
+
+    this.#hyperlinkCells.add(hyperlinkKey);
 
     const link = this.hot.rootDocument.createElement('a');
 
@@ -2839,6 +2903,9 @@ export class Formulas extends BasePlugin {
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    */
   #onAfterCreateRow = (visualRow: number, amount: number, source: string) => {
+    // Physical indexes shift; the repaint that follows the structural change re-registers the cells.
+    this.#hyperlinkCells.clear();
+
     if (isBlockedSource(source)) {
       return;
     }
@@ -2859,6 +2926,9 @@ export class Formulas extends BasePlugin {
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    */
   #onAfterCreateCol = (visualColumn: number, amount: number, source: string) => {
+    // Physical indexes shift; the repaint that follows the structural change re-registers the cells.
+    this.#hyperlinkCells.clear();
+
     if (isBlockedSource(source)) {
       return;
     }
@@ -2880,6 +2950,9 @@ export class Formulas extends BasePlugin {
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    */
   #onAfterRemoveRow = (row: number, amount: number, physicalRows: number[], source: string) => {
+    // Physical indexes shift; the repaint that follows the structural change re-registers the cells.
+    this.#hyperlinkCells.clear();
+
     if (isBlockedSource(source)) {
       return;
     }
@@ -2904,6 +2977,9 @@ export class Formulas extends BasePlugin {
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    */
   #onAfterRemoveCol = (col: number, amount: number, physicalColumns: number[], source: string) => {
+    // Physical indexes shift; the repaint that follows the structural change re-registers the cells.
+    this.#hyperlinkCells.clear();
+
     if (isBlockedSource(source)) {
       return;
     }

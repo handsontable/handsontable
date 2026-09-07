@@ -4,6 +4,12 @@ name: Lint
 # when its scope changed; the determinism ratchet (a step of `core`) only when
 # a handsontable spec/unit tree changed. Called by test.yml on PRs (a merged PR
 # already proved lint, so no trunk runs).
+#
+# The core job also runs the custom ESLint rules' own RuleTester tests
+# (`handsontable/.config/plugin/eslint/__tests__/`). They import `eslint`, so
+# they cannot join the root `test:tooling` glob — the `tooling tests` job in
+# checks.yml installs no dependencies — and this is the job that already has the
+# core package installed and whose scope (`outside-ci`) covers a rule edit.
 on:
   workflow_call:
     inputs:
@@ -33,6 +39,8 @@ jobs:
         run: npm run lint
       - name: CSS lint
         run: npm run in handsontable stylelint
+      - name: Custom ESLint rule tests (RuleTester)
+        run: npm run in handsontable test:eslint-rules
 
       # The frozen Jasmine suite's determinism rules (no-fixed-sleep-in-spec,
       # no-new-it-flaky, no-skipped-test) are `warn`, and `npm run lint` above

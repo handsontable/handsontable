@@ -55,11 +55,9 @@ export class FullyVisibleColumnsCalculationType {
       columnWidth,
     } = viewportCalculator;
 
-    const compensatedViewportWidth = zeroBasedScrollOffset > 0 ? viewportWidth + 1 : viewportWidth;
-
     if (
       totalCalculatedWidth >= zeroBasedScrollOffset &&
-      totalCalculatedWidth + columnWidth <= zeroBasedScrollOffset + compensatedViewportWidth
+      totalCalculatedWidth + columnWidth <= zeroBasedScrollOffset + viewportWidth
     ) {
       if (this.startColumn === null || this.startColumn === undefined) {
         this.startColumn = column;
@@ -79,7 +77,6 @@ export class FullyVisibleColumnsCalculationType {
       scrollOffset,
       viewportWidth,
       inlineStartOffset,
-      zeroBasedScrollOffset,
       totalColumns,
       needReverse,
       positionCache,
@@ -112,14 +109,14 @@ export class FullyVisibleColumnsCalculationType {
 
     this.startPosition = this.startColumn !== null ? positionCache.getOffset(this.startColumn) : null;
 
-    const compensatedViewportWidth = zeroBasedScrollOffset > 0 ? viewportWidth + 1 : viewportWidth;
-    const mostRightScrollOffset = scrollOffset + viewportWidth - compensatedViewportWidth;
     const inlineStartColumnOffset = this.startColumn === null ? 0 : viewportCalculator.getColumnWidth(this.startColumn);
 
     if (
-      // the table is to the left of the viewport
+      // the table is to the left of the viewport. `scrollOffset` is compared as-is: the row header
+      // carries its inline-end border at every scroll position, so the viewport width is exact
+      // whether or not the table is scrolled and needs no 1px compensation (#6673).
       (
-        mostRightScrollOffset < (-1) * inlineStartOffset ||
+        scrollOffset < (-1) * inlineStartOffset ||
         scrollOffset > positionCache.getOffset(viewportCalculator.lastProcessedIndex)
       ) ||
       // the table is to the right of the viewport

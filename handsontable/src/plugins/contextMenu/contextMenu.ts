@@ -403,7 +403,7 @@ export class ContextMenu extends BasePlugin {
    * @fires Hooks#beforeContextMenuSetItems
    */
   prepareMenuItems() {
-    this.itemsFactory = new ItemsFactory(this.hot, ContextMenu.DEFAULT_ITEMS);
+    this.itemsFactory = new ItemsFactory(this.hot, ContextMenu.DEFAULT_ITEMS, PLUGIN_KEY);
 
     const settings = this.hot.getSettings()[PLUGIN_KEY];
     const predefinedItems = {

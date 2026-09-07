@@ -92,22 +92,24 @@
     "tslib": "^2.3.0",
     "typescript": "^4.0.0",
     "vue": "^3.2.22",
-    "vue-eslint-parser": "^8.0.1"
+    "vue-eslint-parser": "^8.0.1",
+    "vue-tsc": "^1.8.27"
   },
   "scripts": {
     "lint": "eslint --ext .js,.ts,.vue src test",
-    "build": "npm run clean && npm run build:commonjs && npm run build:es && npm run build:umd && npm run build:min",
+    "build": "npm run clean && npm run build:commonjs && npm run build:es && npm run build:umd && npm run build:min && npm run prepare:types",
     "build:commonjs": "cross-env NODE_ENV=cjs rollup -c --bundleConfigAsCjs",
     "build:umd": "cross-env NODE_ENV=umd rollup -c --bundleConfigAsCjs",
     "build:es": "cross-env NODE_ENV=es rollup -c --bundleConfigAsCjs",
     "build:min": "cross-env NODE_ENV=min rollup -c --bundleConfigAsCjs",
-    "build:esDts": "cross-env NODE_ENV=esDts rollup -c && rimraf ./buildTemp/",
+    "prepare:types": "node scripts/prepare-types.mjs",
     "watch:commonjs": "cross-env NODE_ENV=cjs rollup -c --watch",
     "watch:es": "cross-env NODE_ENV=es rollup -c --watch",
     "watch:umd": "cross-env NODE_ENV=umd rollup -c --watch",
-    "clean": "rimraf ./es/ && rimraf ./commonjs/ && rimraf ./dist/ && rimraf ./*.d.ts",
+    "clean": "rimraf ./es/ && rimraf ./commonjs/ && rimraf ./dist/ && rimraf ./types/ && rimraf ./*.d.ts",
     "publish-package": "npm publish",
     "create-package": "npm pack",
-    "test": "jest"
+    "test": "jest",
+    "test:types": "tsc --noEmit -p test/types/tsconfig.json"
   }
 }

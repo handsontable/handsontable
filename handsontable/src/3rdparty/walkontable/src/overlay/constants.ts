@@ -69,6 +69,45 @@ export const OVERLAY_SCROLLBAR_FILLER_HOST_CLASS = 'htScrollbarClearanceFillers'
  */
 export const OVERLAY_SCROLLBAR_FILLER_CLASS = 'htScrollbarClearanceFiller';
 
+/**
+ * How many `ResizeObserver` deliveries in direct succession make the callback a self-sustaining loop
+ * rather than a burst of real resizes. A parent sized in dynamic units (`dvh`) can be re-sized by the
+ * very refresh the previous delivery triggered, and that cycle never ends on its own (#11021).
+ *
+ * The number is counted in DELIVERY CYCLES, not in wall-clock time. An observer delivers at most once
+ * per rendering frame, so a self-sustaining loop occupies every frame whatever the machine is doing:
+ * load changes how long 300 takes to arrive, never whether it arrives. The count it replaced was reset
+ * after 100 ms of wall-clock quiet, which under CPU contention (frames stretched past 100 ms) reset
+ * before the threshold on every single loop - the guard was disabled in exactly the machine state it
+ * exists for (DEV-2740).
+ *
+ * 300 is kept from the shipped guard, where it was raised from 100 (#11612) because a legitimate
+ * resize stream reached the lower value.
+ */
+export const RESIZE_LOOP_GUARD_THRESHOLD = 300;
+
+/**
+ * How long the loop guard leaves the observer disconnected before observing again, in milliseconds.
+ *
+ * The disconnect used to be permanent, which killed container-resize reactivity for the grid's whole
+ * lifetime once the guard fired - and the guard can fire on a legitimate stream too, since a gap-free
+ * multi-second drag of a splitter around the grid also occupies every frame. Reconnecting turns that
+ * permanent kill into a duty cycle: a grid whose stream was legitimate resumes reacting, while a page
+ * with a real loop is throttled instead of frozen.
+ *
+ * Two seconds, so a test that samples the callback count after the warning has a wide margin to read a
+ * frozen count in. `setTimeout` under load fires late, never early, so load only widens that window.
+ */
+export const RESIZE_LOOP_GUARD_RECONNECT_DELAY = 2000;
+
+/**
+ * The ceiling for the reconnect delay, in milliseconds. Each trip that is not separated from the last
+ * one by a quiet frame doubles the delay, so a page whose loop never goes away backs off toward one
+ * burst per 30 seconds instead of running continuously. A single quiet frame returns the delay to
+ * `RESIZE_LOOP_GUARD_RECONNECT_DELAY` - a grid that proved itself quiet must not inherit the backoff.
+ */
+export const RESIZE_LOOP_GUARD_RECONNECT_MAX_DELAY = 30000;
+
 export const CLONE_CLASS_NAMES = new Map([
   [CLONE_TOP, `ht_clone_${CLONE_TOP}`],
   [CLONE_BOTTOM, `ht_clone_${CLONE_BOTTOM}`],

@@ -273,7 +273,7 @@ export class DropdownMenu extends BasePlugin {
       return;
     }
 
-    this.itemsFactory = new ItemsFactory(this.hot, DropdownMenu.DEFAULT_ITEMS);
+    this.itemsFactory = new ItemsFactory(this.hot, DropdownMenu.DEFAULT_ITEMS, PLUGIN_KEY);
 
     const settings = this.hot.getSettings()[PLUGIN_KEY];
     const predefinedItems = {
@@ -598,9 +598,12 @@ export class DropdownMenu extends BasePlugin {
     // Only an unknown one: rebuilding on every call would fire both item hooks per command, which
     // a listener would see as noise. And never while the menu is open — it was just built, and a
     // rebuild would swap the items out from under the click that is running this command.
-    const [primaryCommandName] = commandName.split(':');
-
-    if (!this.commandExecutor.commands[primaryCommandName] && !this.menu?.isOpened()) {
+    // A command can also be registered under a key that itself contains a colon, so both names
+    // count as known here. `hasCommand()` is the boolean form of the resolution rule `execute()`
+    // applies, and asking it keeps the two from drifting apart. Testing only the primary name
+    // would rebuild the list on every colon-keyed command, which is exactly the per-call hook
+    // noise this check exists to avoid.
+    if (!this.commandExecutor.hasCommand(commandName) && !this.menu?.isOpened()) {
       this.prepareMenuItems();
     }
 

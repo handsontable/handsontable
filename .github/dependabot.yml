@@ -1,7 +1,16 @@
 version: 2
 updates:
+  # @playwright/test is declared once, in the pnpm catalog (pnpm-workspace.yaml),
+  # and the only lockfile is the root pnpm-lock.yaml — so Dependabot must watch
+  # the workspace root, not a leaf package (a leaf directory has no lockfile,
+  # which made Dependabot open manifest-only PRs that failed the frozen-lockfile
+  # install; see PR #13152). Merging a Playwright bump requires moving the
+  # container tag in .github/workflows/e2e.yml (mcr.microsoft.com/playwright)
+  # to the same version in the same PR — the catalog and the image bump
+  # together, never apart. performance-tests/ (npm-managed, own package-lock)
+  # is bumped by hand in lockstep.
   - package-ecosystem: "npm"
-    directory: "/visual-tests"
+    directory: "/"
     schedule:
       interval: "weekly"
     allow:
