@@ -13,6 +13,7 @@ import { jsdocLinksFixer } from './postProcessors/jsdocLinksFixer.mjs';
 import { isJsdocPlugin } from './predictors.mjs';
 import { buildHeaderWriter } from './seo.mjs';
 import { removeInternals } from './preProcessors/removeInternals.mjs';
+import { applyConfigScope } from './preProcessors/applyConfigScope.mjs';
 import { jsdocReturnsLinksFixer } from './postProcessors/jsdocReturnsLinksFixer.mjs';
 
 export const buildRenderer = ({ dist, generateMarkdown, configuration, logger }) =>
@@ -38,6 +39,7 @@ export const buildRenderer = ({ dist, generateMarkdown, configuration, logger })
 
     const preProcessor = buildPreProcessor([
       removeInternals,
+      applyConfigScope,
       sortJsdocMembers,
       applyLinkToSource,
       ...applyOptionsToPlugins,

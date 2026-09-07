@@ -23,7 +23,9 @@ Hooks.getSingleton().register('afterRedo');
  * @description
  * Handsontable UndoRedo plugin allows to undo and redo certain actions done in the table.
  *
- * __Note__, that not all actions are currently undo-able. The UndoRedo plugin is enabled by default.
+ * The plugin is enabled by default. It doesn't track every grid operation. For the list of tracked
+ * actions and the known limitations, see
+ * [Undo and redo](@/guides/accessories-and-menus/undo-redo/undo-redo.md).
  * @example
  * ```js
  * undo: true
@@ -264,10 +266,20 @@ export class UndoRedo extends BasePlugin {
 
     this.hot.runHooks('beforeRedoStackChange', undoneActionsCopy);
 
-    (action as { undo: (hot: HotInstance, callback: () => void) => void }).undo(this.hot, () => {
+    try {
+      (action as { undo: (hot: HotInstance, callback: () => void) => void }).undo(this.hot, () => {
+        this.ignoreNewActions = false;
+        this.undoneActions.push(action);
+      });
+
+    } catch (error) {
+      // An action that throws never reaches its settle callback. Without this reset every later
+      // user action would be silently dropped from the stack for the rest of the session. The
+      // popped action itself is deliberately discarded: it applied only partially, so neither
+      // replaying its undo nor redoing it can be trusted to land on a consistent grid.
       this.ignoreNewActions = false;
-      this.undoneActions.push(action);
-    });
+      throw error;
+    }
 
     this.hot.runHooks('afterRedoStackChange', undoneActionsCopy, this.undoneActions.slice());
     this.hot.runHooks('afterUndo', actionClone);
@@ -317,15 +329,23 @@ export class UndoRedo extends BasePlugin {
       redo: (hot: HotInstance, callback: (result?: { wasRedone?: boolean }) => void) => void
     };
 
-    redo.redo(this.hot, (result) => {
-      this.ignoreNewActions = false;
+    try {
+      redo.redo(this.hot, (result) => {
+        this.ignoreNewActions = false;
 
-      if (result?.wasRedone === false) {
-        this.undoneActions.push(action);
-      } else {
-        this.doneActions.push(action);
-      }
-    });
+        if (result?.wasRedone === false) {
+          this.undoneActions.push(action);
+        } else {
+          this.doneActions.push(action);
+        }
+      });
+
+    } catch (error) {
+      // Same contract as `undo()`: reset the flag and deliberately discard the partially applied
+      // action rather than pushing it back onto either stack.
+      this.ignoreNewActions = false;
+      throw error;
+    }
 
     this.hot.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions.slice());
     this.hot.runHooks('afterRedo', actionClone);

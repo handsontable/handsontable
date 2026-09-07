@@ -797,11 +797,11 @@ function computeProfileCallScripting(events, mainPid, mainTid, windowMinUs, wind
   return profileCallScriptingUs / 1000; // convert to ms
 }
 
-function formatHeapMinBytesLabel(bytes) {
+export function formatHeapMinBytesLabel(bytes) {
   return `${Math.round(bytes / 1000)} kB`;
 }
 
-function formatHeapMaxBytesLabel(bytes) {
+export function formatHeapMaxBytesLabel(bytes) {
   if (bytes >= 1_000_000) {
     return `${(bytes / 1_000_000).toFixed(1)} MB`;
   }

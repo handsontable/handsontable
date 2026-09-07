@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Improved the performance of bulk grid alterations: removing many rows or columns, inserting multiple columns, pasting data that extends the grid, and edits with the `minSpareCols` or `minCols` options on large datasets.",
-  "type": "changed",
-  "issueOrPR": 13091,
-  "breaking": false,
-  "framework": "none"
-}

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Editor with a trimmed row fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+    window.htSorting = ({ true: true, false: false })[htParams.get('sorting') ?? 'false'];
+    if (window.htSorting === undefined) {
+      throw new Error('Unknown ?sorting= value: ' + JSON.stringify(htParams.get('sorting')));
+    }
+    window.htScenario = ({ small: 'small', tall: 'tall' })[htParams.get('scenario') ?? 'small'];
+    if (!window.htScenario) {
+      throw new Error('Unknown ?scenario= value: ' + JSON.stringify(htParams.get('scenario')));
+    }
+    window.htEditor = ({ text: 'text', dropdown: 'dropdown' })[htParams.get('editor') ?? 'text'];
+    if (!window.htEditor) {
+      throw new Error('Unknown ?editor= value: ' + JSON.stringify(htParams.get('editor')));
+    }
+    window.htHeaders = ({ on: true, off: false })[htParams.get('headers') ?? 'on'];
+    if (window.htHeaders === undefined) {
+      throw new Error('Unknown ?headers= value: ' + JSON.stringify(htParams.get('headers')));
+    }
+  </script>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    // Two columns, so a case can pin that the untouched column survives a filter run intact. Every
+    // value is distinct: these assertions are all about WHICH record a write landed on, and a
+    // repeated value would hide a write that went to the wrong one.
+    const DATA = [
+      ['A0', 'B0'],
+      ['A1', 'B1'],
+      ['A2', 'B2'],
+      ['A3', 'B3'],
+      ['A4', 'B4'],
+    ];
+
+    // Records every committed change so a spec can assert that NO commit happened, which a poll on
+    // the data alone cannot do: expect.poll passes on its first sample and would race a commit.
+    window.htChanges = [];
+
+    // Records the index-map cache updates so a spec can assert the guard's TRIGGER actually fired.
+    // A trimming change reports `trimmedIndexesChanged` and never `hiddenIndexesChanged`, which is
+    // exactly why the hiding-map guard cannot see any of these cases.
+    window.htCacheUpdates = { row: [], column: [] };
+
+    // `tall` exists only so a cell can be scrolled out of the rendered viewport while its editor
+    // stays open. `EditorManager#prepareEditor()` skips its work when the cell has no rendered `TD`,
+    // so that state is the one place the captured record and the active editor could drift apart.
+    const scenarioSettings = window.htScenario === 'tall' ? {
+      data: Array.from({ length: 100 }, (unused, row) => [`A${row}`, `B${row}`]),
+      height: 150,
+    } : {
+      data: DATA,
+    };
+
+    window.hot = new Handsontable(container, Object.assign({
+      // `?headers=off` drops both header rails. That is the DEFAULT Handsontable shape, and the one
+      // where `selectColumns()` anchors its range at row 0 instead of a negative header row.
+      colHeaders: window.htHeaders ? ['A', 'B'] : false,
+      rowHeaders: window.htHeaders,
+      // Both plugins register a TRIMMING index map, and they reach the editor by different routes:
+      // `filter()` re-selects and renders before it returns, `trimRows()` does neither.
+      filters: true,
+      dropdownMenu: true,
+      trimRows: [],
+      // Registers a HIDING map, which is the control group: a hidden row keeps its place in the
+      // visual space, so a coordinate over it never strands. Empty, and inert until a case hides
+      // something.
+      hiddenRows: true,
+      // One of the two plugins that stash the selection, deselect, and put it back, and the only
+      // one a test can drive directly - `emptyDataState` shows itself. Inert until a case opens it.
+      dialog: true,
+      columnSorting: window.htSorting,
+      // Sorting and row moving rearrange the visual space without trimming anything - they report
+      // `indexesSequenceChanged`, not `trimmedIndexesChanged`. Enabled unconditionally; inert until
+      // a case drives them.
+      manualRowMove: true,
+      // The column axis has its own permutation producers, and no core plugin trims columns - so
+      // this is the only way to exercise the column half of the repair.
+      manualColumnMove: true,
+      // `dropdown` extends `autocomplete`, whose `finishEditing()` rewrites a commit into a discard
+      // when the active range no longer contains the editor's coordinates. That is the shape the
+      // rebind cannot rescue, and a case pins it rather than leaving it to a JSDoc claim.
+      columns: window.htEditor === 'dropdown'
+        ? [{ type: 'dropdown', source: ['A0', 'A1', 'A2', 'A3', 'A4', 'EDITED'] }, {}]
+        : undefined,
+      // Stamp test ids from `afterRenderer` rather than a grid-level `renderer`, so a column `type`
+      // cannot override it and leave the typed column with no test id.
+      afterRenderer(td, row, col) {
+        td.setAttribute('data-testid', `cell-${row}-${col}`);
+      },
+      afterChange(changes, source) {
+        if (changes) {
+          window.htChanges.push(...changes.map(change => change.concat(source)));
+        }
+      },
+      afterRowSequenceCacheUpdate(state) {
+        window.htCacheUpdates.row.push(state);
+      },
+      afterColumnSequenceCacheUpdate(state) {
+        window.htCacheUpdates.column.push(state);
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    }, scenarioSettings));
+  </script>
+</body>
+</html>

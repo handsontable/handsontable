@@ -319,6 +319,10 @@ export class TextEditor extends BaseEditor {
     this.originalValue = sourceData;
 
     this.setValue(sourceData);
+    // The editor now shows the cell's own value again, so the unchanged-edit baseline has to follow
+    // it. Leaving the opening value in place would compare the user's next confirm against content
+    // the editor no longer holds.
+    this.resetValueBeforeEdit();
     this.refreshDimensions();
   }
 

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed the `ContextMenu.SEPARATOR` constant missing from the TypeScript type declarations.",
-  "type": "fixed",
-  "issueOrPR": 13037,
-  "breaking": false,
-  "framework": "none"
-}

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed custom editors created with `editorFactory` throwing an error when `shortcuts` were defined without `shortcutsGroup`.",
-  "type": "fixed",
-  "issueOrPR": 13130,
-  "breaking": false,
-  "framework": "none"
-}

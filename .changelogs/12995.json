@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Improved vertical scrolling performance by re-rendering only the rows entering the viewport and reusing the rows that stay.",
-  "type": "changed",
-  "issueOrPR": 12995,
-  "breaking": false,
-  "framework": "none"
-}

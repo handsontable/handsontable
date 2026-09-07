@@ -376,7 +376,8 @@
 }
 
 [class*=ht-theme-horizon] .htUISelectCaption::after,
-.htAutocompleteArrow::after {
+.htAutocompleteArrow::after,
+[class*=ht-theme-horizon] .ht-multi-select-arrow::after {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   -webkit-mask-size: contain;

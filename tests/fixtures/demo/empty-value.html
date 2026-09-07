@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture — null vs empty string</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD); an unknown value
+    // THROWS instead of falling back — a typo in the project config must be one
+    // red leg, never a silently mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+
+    // Which `emptyValue` the grid is built with. Same fail-loud shape: absent
+    // keeps the library default, an unknown value throws.
+    const emptyValueParam = htParams.get('emptyValue') ?? 'default';
+
+    if (emptyValueParam !== 'default' && emptyValueParam !== 'null') {
+      throw new Error('Unknown ?emptyValue= value: ' + JSON.stringify(emptyValueParam));
+    }
+    window.htEmptyValue = emptyValueParam;
+
+    // `strict=on` builds the grid with `allowInvalid: false` + `allowEmpty: false`, so an empty cell
+    // FAILS validation and the editor is reopened on confirm. That is the only way to reach a second
+    // confirm of the same editor session.
+    const strictParam = htParams.get('strict') ?? 'off';
+
+    if (strictParam !== 'off' && strictParam !== 'on') {
+      throw new Error('Unknown ?strict= value: ' + JSON.stringify(strictParam));
+    }
+    window.htStrict = strictParam;
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    // Row 0 is all `null` — the state both reported issues start from. Row 1 carries
+    // real values so a spec can also empty a populated cell.
+    //
+    // The last column is `text` but holds NON-string values. That combination is what
+    // exposes the stringifying half of the no-op bug: a text column ships no `valueSetter`,
+    // so nothing parses the editor's string back, and a number confirmed unchanged there
+    // used to be written back as a string. In a `numeric` column the same edit round-trips
+    // through that type's own `valueSetter` and looks fine, which is why asserting on a
+    // numeric cell would prove nothing.
+    const settings = {
+      data: [
+        [null, null, null, null],
+        ['abc', 5, '2024-01-01', 5],
+        [null, null, null, true],
+        // Row 3 carries a REAL `''`, put there by loading rather than by a write. Loading bypasses
+        // `emptyValue`, so this `''` survives even under `emptyValue: null` - which makes it the only
+        // way to prove undo restores what the cell held instead of remapping it.
+        ['', null, null, ''],
+      ],
+      columns: [
+        { type: 'text', renderer: testIdRenderer },
+        { type: 'numeric', renderer: testIdRenderer },
+        { type: 'date', dateFormat: 'YYYY-MM-DD', renderer: testIdRenderer },
+        { type: 'text', renderer: testIdRenderer },
+      ],
+      colHeaders: ['text', 'numeric', 'date', 'untyped'],
+      rowHeaders: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    };
+
+    if (window.htEmptyValue === 'null') {
+      settings.emptyValue = null;
+    }
+
+    if (window.htStrict === 'on') {
+      settings.allowInvalid = false;
+      // Rejects `null` but ACCEPTS `''`. That asymmetry is what makes the second confirm dangerous:
+      // the first confirm is rejected and reopens the editor, and a second confirm that fell back to
+      // the old save path would write the editor's `''` — which this validator happily accepts,
+      // destroying the `null` for good. A validator that rejected `''` too would mask the bug,
+      // because the bad write would simply be refused.
+      settings.validator = function(value, callback) {
+        callback(value !== null && value !== undefined);
+      };
+    }
+
+    // Recorded so a spec can assert that a confirm which changed nothing also fired
+    // no change event — the dirty-state half of the bug.
+    window.htChanges = [];
+    settings.afterChange = function(changes, source) {
+      if (source !== 'loadData' && changes) {
+        window.htChanges = window.htChanges.concat(changes);
+      }
+    };
+
+    const hot = new Handsontable(container, settings);
+
+    window.hot = hot;
+
+    /**
+     * Describes what the DATA SOURCE holds, not what the cell displays. `null` and `''`
+     * render identically, so a spec asserting on rendered text could never tell the two
+     * apart — which is the whole subject of these tests.
+     */
+    window.htSourceAt = function(row, col) {
+      // The page object hands us a VISUAL row; `getSourceDataAtCell` takes a PHYSICAL one. They match
+      // in this fixture only because nothing sorts, trims or moves rows — convert anyway, so adding
+      // such a case here cannot silently read the wrong record.
+      const value = hot.getSourceDataAtCell(hot.toPhysicalRow(row), col);
+
+      if (value === null) return 'null';
+      if (value === undefined) return 'undefined';
+      if (value === '') return 'empty-string';
+
+      return `${typeof value}:${value}`;
+    };
+
+    /** Number of change events recorded since load (or since the last reset). */
+    window.htChangeCount = function() {
+      return window.htChanges.length;
+    };
+
+    /** Selects a cell through the API. See the spec for why this is not a click. */
+    window.htSelect = function(row, col) {
+      hot.selectCell(row, col);
+    };
+
+    /** Selects a rectangular range, so a spec can exercise Ctrl+Enter over more than one cell. */
+    window.htSelectRange = function(fromRow, fromCol, toRow, toCol) {
+      hot.selectCell(fromRow, fromCol, toRow, toCol);
+    };
+
+    /**
+     * Confirms the open editor the way Ctrl/Cmd + Enter does — `finishEditing(false, ctrlDown)` is
+     * exactly what the `editorCloseAndSaveByEnter` command calls.
+     *
+     * Driven through the API rather than the keyboard because Playwright's synthetic Ctrl/Meta +
+     * Enter never reaches the shortcut: the key arrives with the modifier set, but the editor stays
+     * open and nothing is saved — verified with a REAL edit, which never reaches the unchanged-edit
+     * guard, so it is not something this change introduced. The keyboard route is covered by the
+     * Jasmine `BaseEditor` specs.
+     */
+    window.htConfirmWithCtrl = function() {
+      hot.getActiveEditor().finishEditing(false, true);
+    };
+
+    /**
+     * The same Ctrl/Cmd + Enter confirm, but with no active selection range.
+     *
+     * The grid always has a range while an editor is open, so the only way to reach the editor's
+     * missing-range branch from a spec is to take the range away for the length of the call.
+     */
+    window.htConfirmWithCtrlNoRange = function() {
+      const original = hot.getSelectedRangeActive;
+
+      hot.getSelectedRangeActive = function() {
+        return undefined;
+      };
+
+      try {
+        hot.getActiveEditor().finishEditing(false, true);
+      } finally {
+        hot.getSelectedRangeActive = original;
+      }
+    };
+
+    /** Removes one row, so a spec can undo the removal afterwards. */
+    window.htRemoveRow = function(row) {
+      hot.alter('remove_row', row);
+    };
+
+    /** Undoes the last action. Undo restores removed data through `setSourceDataAtCell`. */
+    window.htUndo = function() {
+      hot.getPlugin('undoRedo').undo();
+    };
+
+    /** Pastes clipboard text into the current selection through the CopyPaste plugin. */
+    window.htPaste = function(text) {
+      hot.getPlugin('copyPaste').paste(text);
+    };
+  </script>
+</body>
+</html>

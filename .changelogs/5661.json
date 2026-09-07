@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed a bug where the `cell` option was erased when `updateSettings()` was called with the `columns` or `cells` option. Values declared through `cell` now persist across such calls, and follow their row through sorting and row moves. Passing `cell` again still replaces every previously declared entry, and a later `setCellMeta()` call still wins over the declared value.",
+  "type": "fixed",
+  "issueOrPR": 5661,
+  "breaking": false,
+  "framework": "none"
+}

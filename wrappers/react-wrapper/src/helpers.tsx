@@ -55,6 +55,17 @@ export const HOT_DESTROYED_WARNING = 'The Handsontable instance bound to this co
 export const DEFAULT_CLASSNAME = 'hot-wrapper-editor-container';
 
 /**
+ * Classname for the stable host that holds React editor portals.
+ * Distinct from `DEFAULT_CLASSNAME` so page CSS and `querySelector` do not hit both nodes.
+ */
+export const EDITOR_PORTAL_HOST_CLASSNAME = 'hot-wrapper-editor-portal-host';
+
+/**
+ * Warning when the editor portal host cannot be moved into `rootPortalElement`.
+ */
+export const MISSING_ROOT_PORTAL_WARNING = 'The React editor portal host could not be attached to `rootPortalElement`. The editor stays on `document.body` and clicks on it may fail to commit.';
+
+/**
  * Logs warn to the console if the `console` object is exposed.
  *
  * @param {...*} args Values which will be logged.
@@ -189,10 +200,15 @@ export function resolveEditorSetting(
  *
  * @param {Document} doc Document to be used.
  * @param {ComponentType} Editor Editor component or render function.
+ * @param {HTMLElement} portalHost Host element to portal into. Required – do not fall back to `doc.body`.
  * @returns {ReactPortal} The portal for the editor.
  */
-export function createEditorPortal(doc: Document | null, Editor: HotTableProps['editor'] | undefined | boolean): ReactPortal | null {
-  if (!doc || !Editor || typeof Editor === 'boolean') {
+export function createEditorPortal(
+  doc: Document | null,
+  Editor: HotTableProps['editor'] | undefined | boolean,
+  portalHost?: HTMLElement | null
+): ReactPortal | null {
+  if (!doc || !Editor || typeof Editor === 'boolean' || !portalHost) {
     return null;
   }
 
@@ -205,7 +221,7 @@ export function createEditorPortal(doc: Document | null, Editor: HotTableProps['
     <div {...containerProps}>
       {editorElement}
     </div>
-    , doc.body);
+    , portalHost);
 }
 
 /**

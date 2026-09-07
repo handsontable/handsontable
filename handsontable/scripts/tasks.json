@@ -11,7 +11,7 @@
     "prepare-package-for-publish.partial": {
       "cmd": "node scripts/prepare-package-for-publish.mjs --partial",
       "deps": [],
-      "note": "Composes the package without the strict completeness checks. Only the ES + CJS build job may use it – it runs before the UMD bundles and the theme stylesheets exist."
+      "note": "Composes the package without the strict completeness checks. Only a tree that never reaches a registry may use it – today the ES + CJS build job (it runs before the UMD bundles and the theme stylesheets exist) and the visual screenshot runs. Both call-site lists are pinned by test/__tests__/previewPackaging.unit.js."
     },
 
     "build:styles": {
@@ -199,6 +199,11 @@
     },
     "measure:module-sizes": {
       "cmd": "node scripts/measure-module-sizes.mjs",
+      "deps": [],
+      "mode": "inherit"
+    },
+    "generate:option-levels": {
+      "cmd": "node scripts/generate-option-levels.mjs",
       "deps": [],
       "mode": "inherit"
     }

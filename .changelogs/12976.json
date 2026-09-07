@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed date filter conditions returning no results by rendering native date and time inputs in the filter menu instead of free-text fields.",
-  "type": "fixed",
-  "issueOrPR": 12976,
-  "breaking": false,
-  "framework": "none"
-}

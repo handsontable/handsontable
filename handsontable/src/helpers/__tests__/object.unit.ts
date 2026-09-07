@@ -495,6 +495,88 @@ describe('Object helper', () => {
 
       expect(testObject).toEqual({ prop1: 0 });
     });
+
+    it('should call the setter of a non-configurable accessor property instead of redefining it', () => {
+      const target: Record<string, unknown> = {};
+      let stored = 0;
+
+      Object.defineProperty(target, 'value', {
+        get: () => stored,
+        set: (next: number) => { stored = next; },
+        enumerable: true,
+        // configurable defaults to false
+      });
+
+      expect(() => setProperty(target, 'value', 42)).not.toThrow();
+      expect(stored).toBe(42);
+      expect(Object.getOwnPropertyDescriptor(target, 'value')?.set).toBeDefined();
+    });
+
+    it('should leave a non-configurable getter-only property untouched', () => {
+      const target: Record<string, unknown> = { a: 1, b: 2 };
+
+      Object.defineProperty(target, 'sum', {
+        get() { return (this as { a: number, b: number }).a + (this as { a: number, b: number }).b; },
+        enumerable: true,
+      });
+
+      expect(() => setProperty(target, 'sum', 999)).not.toThrow();
+      expect(target.sum).toBe(3);
+    });
+
+    it('should assign to a non-configurable but writable data property', () => {
+      const target: Record<string, unknown> = {};
+
+      Object.defineProperty(target, 'count', { value: 1, writable: true, enumerable: true });
+
+      expect(() => setProperty(target, 'count', 5)).not.toThrow();
+      expect(target.count).toBe(5);
+    });
+
+    it('should leave a non-configurable, non-writable data property untouched', () => {
+      const target: Record<string, unknown> = {};
+
+      Object.defineProperty(target, 'frozen', { value: 'x', enumerable: true });
+
+      expect(() => setProperty(target, 'frozen', 'y')).not.toThrow();
+      expect(target.frozen).toBe('x');
+    });
+
+    it('should keep a configurable getter-only property (object-literal getter) deriving', () => {
+      const target: Record<string, unknown> = { a: 1, b: 2, get sum() { return this.a + this.b; } };
+
+      expect(() => setProperty(target, 'sum', 99)).not.toThrow();
+
+      // The getter must survive – redefining it into a data property would freeze `sum` forever.
+      expect(Object.getOwnPropertyDescriptor(target, 'sum')?.get).toBeDefined();
+      expect(target.sum).toBe(3);
+
+      target.a = 100;
+
+      expect(target.sum).toBe(102);
+    });
+
+    it('should call the setter of a configurable accessor property instead of redefining it', () => {
+      let stored = 0;
+      const target: Record<string, unknown> = {
+        get value() { return stored; },
+        set value(next: number) { stored = next; },
+      };
+
+      setProperty(target, 'value', 42);
+
+      expect(stored).toBe(42);
+      expect(Object.getOwnPropertyDescriptor(target, 'value')?.set).toBeDefined();
+    });
+
+    it('should not write through an own `__proto__` accessor', () => {
+      const target: Record<string, unknown> = {};
+
+      setProperty(target, '__proto__', { polluted: true });
+
+      expect(({} as Record<string, unknown>).polluted).toBeUndefined();
+      expect(Object.prototype.hasOwnProperty.call(target, '__proto__')).toBe(false);
+    });
   });
 
   describe('assignObjectDefaults', () => {

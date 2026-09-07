@@ -16,14 +16,37 @@ const modifierKeysObserver = createKeysObserver();
 const modKeyListenerRefs = new WeakMap<HTMLElement, number>();
 
 /**
- * `KeyboardEvent`'s callback function for observing the pressed state of the mod keys.
+ * Re-syncs the observer with the modifier keys that the event reports as held.
+ *
+ * The OS can consume a modifier key's `keyup` (e.g. the macOS Cmd+Shift+4 screenshot shortcut),
+ * which would otherwise leave that key marked as held forever. Every key event carries the current
+ * state of the four modifier keys, so the event is the authoritative source. Consequently a
+ * synthetic event dispatched without those flags set releases the modifier keys.
+ *
+ * @param {KeyboardEvent} event The event object
+ */
+const syncModifierKeysState = (event: KeyboardEvent) => {
+  modifierKeysObserver.setPressed('alt', event.altKey);
+  modifierKeysObserver.setPressed('control', event.ctrlKey);
+  modifierKeysObserver.setPressed('meta', event.metaKey);
+  modifierKeysObserver.setPressed('shift', event.shiftKey);
+};
+
+/**
+ * `KeyboardEvent`'s callback function for observing the state of the mod keys on key press.
  *
  * @param {KeyboardEvent} event The event object
  */
 const onkeydownForModKeys = (event: KeyboardEvent) => {
+  // Guarded because an event without a string `key` (#dev-2096) carries no modifier flags either,
+  // so syncing from it would release every modifier key. A genuine `KeyboardEvent` always has one.
   if (typeof event.key === 'string') {
+    syncModifierKeysState(event);
+
     const pressedKey = normalizeEventKey(event);
 
+    // Runs after the sync on purpose. A browser that does not set the matching flag on a modifier
+    // key's own `keydown` would have had that key released above, so press it back here.
     if (isModifierKey(pressedKey)) {
       modifierKeysObserver.press(pressedKey);
     }
@@ -31,12 +54,14 @@ const onkeydownForModKeys = (event: KeyboardEvent) => {
 };
 
 /**
- * `KeyboardEvent`'s callback function for observing the released state of the mod keys.
+ * `KeyboardEvent`'s callback function for observing the state of the mod keys on key release.
  *
  * @param {KeyboardEvent} event The event object
  */
 const onkeyupForModKeys = (event: KeyboardEvent) => {
   if (typeof event.key === 'string') {
+    syncModifierKeysState(event);
+
     const pressedKey = normalizeEventKey(event);
 
     if (isModifierKey(pressedKey)) {

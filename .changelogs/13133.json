@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed a failed `fetchRows` call in the `dataProvider` plugin surfacing as an unhandled promise rejection.",
-  "type": "fixed",
-  "issueOrPR": 13133,
-  "breaking": false,
-  "framework": "none"
-}

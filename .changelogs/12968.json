@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed the `multiselect` cell type not firing `beforeChange` and `afterChange` (or running validation) when a value was removed by clicking the chip's X icon.",
-  "type": "fixed",
-  "issueOrPR": 12968,
-  "breaking": false,
-  "framework": "none"
-}

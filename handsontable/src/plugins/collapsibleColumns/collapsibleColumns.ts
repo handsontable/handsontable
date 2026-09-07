@@ -62,7 +62,7 @@ const actionDictionary = new Map([
  *
  * Read more:
  * - [Guides: Column groups](@/guides/columns/column-groups/column-groups.md#collapsible-headers)
- * - [Configuration options: `collapsibleColumns`](@/api/options.md#collapsiblecolumns)
+ * - [Setting options: `collapsibleColumns`](@/api/options.md#collapsiblecolumns)
  *
  * @example
  * ::: only-for javascript

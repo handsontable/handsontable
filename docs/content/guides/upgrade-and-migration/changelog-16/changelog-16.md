@@ -1,16 +1,16 @@
 ---
 type: reference
-title: Changelog 16.0
-metaTitle: Changelog 16.0 - JavaScript Data Grid | Handsontable
-description: See the full history of changes made to Handsontable 16.0 in each minor and patch release.
+title: Changelog 16.x
+metaTitle: Changelog 16.x - JavaScript Data Grid | Handsontable
+description: See the full history of changes made to Handsontable 16.x in each minor and patch release.
 permalink: /changelog-16
 canonicalUrl: /changelog-16
 react:
-  metaTitle: Changelog 16.0 - React Data Grid | Handsontable
+  metaTitle: Changelog 16.x - React Data Grid | Handsontable
 angular:
-  metaTitle: Changelog 16.0 - Angular Data Grid | Handsontable
+  metaTitle: Changelog 16.x - Angular Data Grid | Handsontable
 vue:
-  metaTitle: Changelog 16.0 - Vue Data Grid | Handsontable
+  metaTitle: Changelog 16.x - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---
@@ -118,7 +118,6 @@ For more information about this release see:
 - Fixed incorrect resizing behavior when auto-sizing rows or columns by double-clicking separators. [#11671](https://github.com/handsontable/handsontable/pull/11671)
 - Fixed mouse wheel zooming issues on Windows. [#11680](https://github.com/handsontable/handsontable/pull/11680)
 - Fixed autocomplete sorting and option highlighting issues. [#11708](https://github.com/handsontable/handsontable/pull/11708)
-- Fixed a missing `touchend` handler that prevented editors from opening on mobile devices. [#11729](https://github.com/handsontable/handsontable/pull/11729)
 - Fixed misalignment between rows and row headers when using `autoRowSize`. [#11736](https://github.com/handsontable/handsontable/pull/11736)
 - Fixed layout inconsistencies caused by browser zoom and scaling. [#11739](https://github.com/handsontable/handsontable/pull/11739)
 - Fixed an issue with the root-wrapper height calculation. [#11769](https://github.com/handsontable/handsontable/pull/11769)
@@ -137,6 +136,7 @@ For more information about this release see:
 #### Deprecated
 - Deprecated the legacy style (to be removed in version `17.0.0`). [#11790](https://github.com/handsontable/handsontable/pull/11790)
 - Deprecated the PersistentState plugin (to be removed in version `17.0.0`). [#11835](https://github.com/handsontable/handsontable/pull/11835)
+- Deprecated the `@handsontable/vue` wrapper. [#11839](https://github.com/handsontable/handsontable/pull/11839)
 
 ## 16.0.1
 

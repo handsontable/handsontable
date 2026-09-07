@@ -16,8 +16,10 @@ import { rangeEach } from '../../helpers/number';
 import { deprecatedWarnOnce } from '../../helpers/console';
 import type { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import {
+  ROW_SIZE_OPTIONS,
   getElementScaleFactor,
   normalizeVisualDelta,
+  redeclaresManualSizes,
   shouldRefreshHandleAfterAutoResize,
   shouldSkipResizeHandlePositioning,
 } from '../manualResize/utils';
@@ -51,6 +53,17 @@ export class ManualRowResize extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the setting keys that trigger a plugin update after an `updateSettings()` call. The
+   * `rowHeights` option is listed alongside the plugin's own key, so that re-declaring the row
+   * heights discards the heights kept from earlier manual resizing.
+   *
+   * @returns {string[]}
+   */
+  static get SETTING_KEYS(): string[] {
+    return [PLUGIN_KEY, ...ROW_SIZE_OPTIONS];
   }
 
   /**
@@ -196,18 +209,45 @@ export class ManualRowResize extends BasePlugin {
    *
    * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
    *  - [`manualRowResize`](@/api/options.md#manualrowresize)
+   *  - [`rowHeights`](@/api/options.md#rowheights)
+   *
+   * Passing `rowHeights` re-declares the row heights, so the heights kept from earlier manual
+   * resizing are discarded. A grid whose `manualRowResize` option is an array keeps that array
+   * instead, whether the array arrives in this call or was set when the grid was built.
+   *
+   * @param {object} [newSettings] The config object passed to `updateSettings()`.
    */
-  updatePlugin() {
-    this.disablePlugin();
-    this.enablePlugin();
+  updatePlugin(newSettings?: Record<string, unknown>) {
+    // Re-initialize only when the plugin's own option was declared. `#onMapInit` replays the
+    // declared `manualRowResize` array, so re-initializing on a `rowHeights`-only update would
+    // revert a row the user had since dragged to the array's height - neither the dragged height
+    // nor the one being requested.
+    if (newSettings === undefined || newSettings[PLUGIN_KEY] !== undefined) {
+      this.disablePlugin();
+      this.enablePlugin();
 
-    super.updatePlugin();
+    } else {
+      // `BasePlugin#onUpdateSettings` feeds `updatePluginSettings()` with `newSettings[PLUGIN_KEY]`,
+      // which a `rowHeights`-only update does not carry. Restore the option from the merged settings
+      // so `getSetting()` keeps reporting it.
+      this.updatePluginSettings(this.hot.getSettings()[PLUGIN_KEY]);
+    }
+
+    // Runs after the re-initialization, so that the heights replayed on the map's `init` hook are
+    // discarded too.
+    if (redeclaresManualSizes(newSettings, ROW_SIZE_OPTIONS, this.hot.getSettings()[PLUGIN_KEY])) {
+      this.clearManualSizes();
+    }
+
+    super.updatePlugin(newSettings);
   }
 
   /**
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    this.#detachHandleAndGuide();
+
     if (this.#disposeMapObserver) {
       this.#disposeMapObserver();
       this.#disposeMapObserver = null;
@@ -275,6 +315,56 @@ export class ManualRowResize extends BasePlugin {
     }
 
     return newHeight;
+  }
+
+  /**
+   * Clears the height stored for the specified row, so the row falls back to the height coming from
+   * the [`rowHeights`](@/api/options.md#rowheights) option or from the theme. Call `render()`
+   * afterwards to repaint the grid.
+   *
+   * @example
+   * ```js
+   * const resizePlugin = hot.getPlugin('manualRowResize');
+   *
+   * resizePlugin.clearManualSize(0);
+   * hot.render();
+   * ```
+   *
+   * @param {number} row Visual row index.
+   */
+  clearManualSize(row: number): void {
+    // The map only exists while the plugin is enabled, and a disabled plugin stores no heights.
+    if (!this.enabled) {
+      return;
+    }
+
+    const physicalRow = this.hot.toPhysicalRow(row);
+
+    if (physicalRow !== null) {
+      this.#rowHeightsMap.setValueAtIndex(physicalRow, null);
+    }
+  }
+
+  /**
+   * Clears the heights stored for every row, so the rows fall back to the heights coming from the
+   * [`rowHeights`](@/api/options.md#rowheights) option or from the theme. Call `render()` afterwards
+   * to repaint the grid.
+   *
+   * @example
+   * ```js
+   * const resizePlugin = hot.getPlugin('manualRowResize');
+   *
+   * resizePlugin.clearManualSizes();
+   * hot.render();
+   * ```
+   */
+  clearManualSizes(): void {
+    this.#config = [];
+
+    // The map only exists while the plugin is enabled, and a disabled plugin stores no heights.
+    if (this.enabled) {
+      this.#rowHeightsMap.clear();
+    }
   }
 
   /**
@@ -445,6 +535,41 @@ export class ManualRowResize extends BasePlugin {
   }
 
   /**
+   * Detaches the resize handle and the resize guide from the root element and clears their active
+   * state. Shared by the context menu handler, `disablePlugin()` and `destroy()`, so a plugin that
+   * is turned off leaves nothing of its own in the container.
+   *
+   * Both elements are detached with `remove()`, which is a no-op on an element that has no
+   * parent. The guide is attached only once a "mousedown" over the handle reaches
+   * `#onMouseDown`, so a context menu opened over a merely hovered handle reaches a guide that
+   * was never attached, and `removeChild` threw there (DEV-2708).
+   *
+   * The pressed flag is deliberately NOT reset here, and that is a trade rather than a safe
+   * default. `updatePlugin()` runs `disablePlugin(); enablePlugin();` on any `updateSettings()`
+   * carrying the plugin's own key, which is what a framework wrapper sends on every re-render -
+   * clearing the flag there would make the "mouseup" that ends an in-flight drag take the idle
+   * branch, so the drag would be dropped with no `afterRowResize` and the dragged size never confirmed.
+   * That path is common, so it wins. The context menu handler resets the flag at its own call
+   * site, where aborting the drag is the point.
+   *
+   * Two consequences to know, neither introduced here. On a real disable - `manualRowResize: false`
+   * rather than a re-init - `super.disablePlugin()` clears the events, so the "mouseup" never
+   * arrives and the flag stays latched true; after a later re-enable `#onMouseMove` then reads
+   * plain pointer movement as a drag and writes sizes from a stale start offset. And a drag in
+   * flight when the re-init fires loses both elements until its "mouseup" calls
+   * `setupHandlePosition()` again, because `enablePlugin()` does not re-attach them and
+   * `#onMouseOver` early-returns while the flag is set - the resize itself still lands, so that
+   * one is visual only. An `event.buttons === 0` check in `#onMouseMove` would close the latch,
+   * but the frozen Jasmine helpers simulate "mousemove" without `buttons`, so it reds 41 of the
+   * 147 specs in the two plugin suites and belongs with a sweep of those instead.
+   */
+  #detachHandleAndGuide() {
+    this.hideHandleAndGuide();
+    this.#handle.remove();
+    this.#guide.remove();
+  }
+
+  /**
    * Checks if provided element is considered as a row header.
    *
    * @private
@@ -540,6 +665,21 @@ export class ManualRowResize extends BasePlugin {
    * @fires Hooks#afterRowResize
    */
   afterMouseDownTimeout() {
+    // A double-click arms this through `hot._registerTimeout`, which is only cleared by
+    // `Core#destroy()` - so an `updateSettings({ manualRowResize: false })` landing inside the
+    // 500ms window leaves it pending on a plugin that is already off. Everything below would then
+    // be wrong: it runs the resize hooks, writes through `setManualSize()` into a row heights map
+    // `disablePlugin()` has already unregistered, renders, and ends by appending the handle back
+    // into the container the teardown just cleaned. Reset the state the way a completed run does,
+    // so `#onMouseDown` can arm a fresh timer after a re-enable - it only does so while
+    // `#autoresizeTimeout` is null.
+    if (!this.enabled) {
+      this.#autoresizeTimeout = null;
+      this.#dblclick = 0;
+
+      return;
+    }
+
     const shouldRefreshHandlePosition = shouldRefreshHandleAfterAutoResize(
       this.#currentTH,
       this.#dblclick,
@@ -694,9 +834,7 @@ export class ManualRowResize extends BasePlugin {
    * Callback for "contextmenu" event triggered on element showing move handle. It removes handle and guide elements.
    */
   #onContextMenu() {
-    this.hideHandleAndGuide();
-    this.hot.rootElement.removeChild(this.#handle);
-    this.hot.rootElement.removeChild(this.#guide);
+    this.#detachHandleAndGuide();
 
     this.#pressed = false;
     this.#isTriggeredByRMB = true;
@@ -777,6 +915,7 @@ export class ManualRowResize extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
+    this.#detachHandleAndGuide();
     super.destroy();
   }
 }

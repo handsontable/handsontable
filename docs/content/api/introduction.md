@@ -50,6 +50,6 @@ If you need help using the API reference, please [contact our Support](https://h
 
 ## Related
 
-- [Configuration options](@/guides/getting-started/configuration-options/configuration-options.md)
+- [Setting options](@/guides/configuration/configuration-options/configuration-options.md)
 - [Events and hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md)
 - [Plugins](@/api/plugins.md)

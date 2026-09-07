@@ -35,10 +35,29 @@ const SCOPES = [
 const LINTABLE = /\.(js|ts|mjs|tsx|vue)$/;
 // Any dotfile or dot-directory segment (".eslintrc.js", ".config/…", ".github/…").
 const DOT_SEGMENT = /(^|\/)\.[^/]+(\/|$)/;
+// Paths that sit inside a scope directory but that the owning package's own
+// `.eslintignore` excludes. The hook runs ESLint from the repo root, where that
+// ignore file does not apply, so without this the hook lints a file CI never lints —
+// exactly the false block this module exists to prevent. The figma templates are
+// verbatim TS stencils outside any tsconfig project, so ESLint answers with a
+// PARSING error; that is reported as a lint error (exit 1), not as the config gap
+// (exit 2) `runEslint` tolerates, and it would block the commit.
+// Mirrors every `handsontable/.eslintignore` entry that falls inside a scope above. Entries the
+// scopes never reach (`dist/*`, `tmp/*`, `node_modules`) need no row here. `wrappers/vue3` has an
+// entry of the same shape (`src/lib/lru`) but that directory no longer exists.
+const PACKAGE_IGNORED = [
+  // "Verbatim TS stencil copied into generated theme output; not lintable source."
+  /^handsontable\/scripts\/themes\/figma\/templates\//,
+  // Vendored test libraries (jquery and friends) and built test bundles: third-party or generated
+  // code that would fail rules CI never runs on it.
+  /^handsontable\/test\/(lib|dist)\//,
+  /^handsontable\/src\/3rdparty\/autoResize\//,
+  /^handsontable\/src\/3rdparty\/walkontable\/test\/(lib|dist)\//,
+];
 
 /**
- * Keep only files the hook may lint: lintable extension, inside a CI lint scope,
- * and not under a dotfile/dot-directory path.
+ * Keep only files the hook may lint: lintable extension, inside a CI lint scope, not
+ * under a dotfile/dot-directory path, and not excluded by the owning package.
  *
  * @param {string[]} files Repo-relative paths.
  * @returns {string[]} The safe-to-lint subset (a strict subset of what CI lints).
@@ -46,6 +65,7 @@ const DOT_SEGMENT = /(^|\/)\.[^/]+(\/|$)/;
 export function lintable(files) {
   return files.filter(f => LINTABLE.test(f)
     && !DOT_SEGMENT.test(f)
+    && !PACKAGE_IGNORED.some(ignored => ignored.test(f))
     && SCOPES.some(scope => scope.test(f)));
 }
 

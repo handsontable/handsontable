@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Added the `singlePassLayout` option, which renders the grid in a single pass by predicting whether scrollbars will appear before rendering.",
-  "type": "added",
-  "issueOrPR": 12951,
-  "breaking": false,
-  "framework": "none"
-}

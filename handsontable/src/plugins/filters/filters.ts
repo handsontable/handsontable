@@ -18,8 +18,7 @@ import { ActionBarComponent } from './component/actionBar';
 import ConditionCollection from './conditionCollection';
 import DataFilter from './dataFilter';
 import ConditionUpdateObserver from './conditionUpdateObserver';
-import { createArrayAssertion, toEmptyString, unifyColumnValues } from './utils';
-import { getSortComparatorForMeta } from './sortComparators';
+import { createArrayAssertion, toEmptyString } from './utils';
 import { createMenuFocusController } from './menu/focusController';
 import type { Menu } from '../contextMenu/menu/menu';
 import type { DropdownMenu } from '../dropdownMenu/dropdownMenu';
@@ -207,7 +206,7 @@ export class Filters extends BasePlugin {
   #previousConditionStack: ColumnConditions[] = [];
 
   /**
-   * Snapshot of [[#previousConditionStack]] at the start of [[filter]] when the DataProvider plugin is active.
+   * Snapshot of `#previousConditionStack` at the start of `filter()` when the DataProvider plugin is active.
    * Used to restore filter UI after `fetchRows` fails (the fetch request used the in-collection state; this holds the last committed stack).
    *
    * @type {Array}
@@ -1001,6 +1000,16 @@ export class Filters extends BasePlugin {
       this.#previousConditionStack
     );
 
+    // Captured BEFORE the branch chain below, which is where the trimming map is written
+    // (`setValues()` on the filtering branch, `clear()` on the nothing-to-filter one). Writing the
+    // map fires the index mapper's cache update, and the Core drops a selection that the trim left
+    // pointing at a record that is no longer there - so by the time the re-selection at the end of
+    // this method runs, there may be no selection left to read the column from. Reading it here
+    // also keeps the `beforeFilter` hook able to move the selection, which a consumer may
+    // legitimately do.
+    const selectedHighlightColumn = this.hot.getSelectedRangeActive()?.highlight.col;
+    let isSelectionDropped = false;
+
     if (allowFiltering !== false && needToFilter) {
       const dataFilter = this._createDataFilter();
       const rowIndexesToShow = arrayMap(dataFilter.filter(),
@@ -1023,6 +1032,7 @@ export class Filters extends BasePlugin {
 
       if (!navigableHeaders && !rowIndexesToShow.length) {
         this.hot.deselectCell();
+        isSelectionDropped = true;
       }
 
       this.#previousConditionStack = this.exportConditions();
@@ -1038,15 +1048,25 @@ export class Filters extends BasePlugin {
       this.importConditions(this.#previousConditionStack);
     }
 
-    if (this.hot.selection.isSelected()) {
-      const highlightCol = this.hot.getSelectedRangeActive()?.highlight.col;
+    // The selection is read again here, and the captured value is only a FALLBACK. Both halves
+    // earn their place. A selection can arrive during the call - `emptyDataState` restores the one
+    // it stashed when the grid emptied, which is why the state at entry cannot be the only source -
+    // and a selection can disappear during it, dropped by the Core when the trim strands it, which
+    // is why the state at exit cannot be either.
+    // The captured column is a FALLBACK, and it deliberately outranks a deselect that happened
+    // during the call, because the Core drops a selection this filter's own trim stranded and the
+    // re-selection below is what puts the user back on the column they were working in. The cost is
+    // that a consumer deselecting from `beforeFilter` or a cache-update hook is overruled; a
+    // consumer that wants the grid deselected after filtering should do it from `afterFilter`,
+    // which runs last.
+    const currentHighlightColumn = this.hot.getSelectedRangeActive()?.highlight.col;
+    const columnToSelect = currentHighlightColumn ?? selectedHighlightColumn;
 
-      if (highlightCol !== null && highlightCol !== undefined) {
-        this.hot.selectCell(
-          navigableHeaders ? -1 : 0,
-          highlightCol,
-        );
-      }
+    if (!isSelectionDropped && columnToSelect !== null && columnToSelect !== undefined) {
+      this.hot.selectCell(
+        navigableHeaders ? -1 : 0,
+        columnToSelect,
+      );
     }
 
     if (allowFiltering !== false) {
@@ -1153,19 +1173,21 @@ export class Filters extends BasePlugin {
   };
 
   /**
-   * Update the condition of ValueComponent, based on the handled changes.
+   * Refreshes the "filter by value" list of a column whose data changed, leaving the user's
+   * selection alone.
+   *
+   * A data change must never re-select values on the user's behalf. The list is rebuilt from the
+   * rows surviving the *other* columns' conditions, so a value typed into a filtered column appears
+   * in the list unchecked instead of being added to the condition (issue #6471).
+   *
+   * The columns filtered after this one are refreshed too, so their lists follow the new data. Their
+   * selections survive that refresh, including the values their lists cannot show.
    *
    * @private
    * @param {number} columnIndex Physical column index of handled ValueComponent condition.
    */
   updateValueComponentCondition(columnIndex: number) {
-    const visualColumnIndex = this.hot.toVisualColumn(columnIndex);
-    const dataAtCol = this.hot.getDataAtCol(visualColumnIndex);
-    const columnMeta = this.hot.countRows() > 0 ? this.hot.getCellMetaTransient(0, visualColumnIndex) : null;
-    const comparator = getSortComparatorForMeta(columnMeta);
-    const selectedValues = unifyColumnValues(dataAtCol, comparator);
-
-    this.conditionUpdateObserver?.updateStatesAtColumn(columnIndex, selectedValues);
+    this.conditionUpdateObserver?.updateStatesAtColumn(columnIndex);
   }
 
   /**
@@ -1255,6 +1277,9 @@ export class Filters extends BasePlugin {
       ?.getSelectElement()?.closeOptions();
     (this.components.get('filter_by_condition2') as ConditionComponent | null | undefined)
       ?.getSelectElement()?.closeOptions();
+    // The by-value list is a grid of its own and keeps its selection while the menu is hidden, so a
+    // reopened menu would show a focus ring on an item while the focus is elsewhere.
+    this.#getValueComponent()?.getMultipleSelectElement().deselect();
   };
 
   /**
@@ -1548,23 +1573,9 @@ export class Filters extends BasePlugin {
     const editedStack = conditionsState.editedConditionStack as Record<string, unknown>;
     const conditions = editedStack.conditions as unknown[];
     const column = editedStack.column as number;
-    const conditionArgsChange = conditionsState.conditionArgsChange;
 
-    if (Array.isArray(conditionArgsChange)) {
-      // update the previous condition stack (only for 'by_value' condition) on each dataset
-      // change to make the undo/redo work properly
-      this.#previousConditionStack = this.#previousConditionStack.map((stack) => {
-        if (stack.column === column && conditions.length > 0) {
-          stack.conditions.forEach((condition) => {
-            if (condition.name === 'by_value') {
-              condition.args = [[...(conditionArgsChange as unknown[])]];
-            }
-          });
-        }
-
-        return stack;
-      });
-    }
+    // `#previousConditionStack` needs no re-sync here: a data change no longer rewrites the live
+    // `by_value` args, so the snapshot taken by the last `filter()` still matches the collection.
 
     const conditionsByValue = conditions.filter(
       condition => (condition as Record<string, unknown>).name === CONDITION_BY_VALUE);

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture - sorting a filtered grid with minSpareRows</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    E2E fixture for GH #5983: sorting a FILTERED grid that has `minSpareRows` set.
+
+    A filter trims every row that fails its conditions, and a spare row is empty, so an
+    ordinary condition trims the spare rows away too - nothing re-creates them while the
+    filter is on. ColumnSorting used to subtract `minSpareRows` from the visible row count
+    regardless, so the last N real data rows were pinned below the sort range.
+
+    The grid is rebuilt per test through `window.initSortingSpareRowsGrid`, so one test
+    cannot leak its sort or filter state into the next, and the `multiColumnSorting`
+    variant (which inherits the same range calculation) is one override rather than a
+    second fixture.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    var container = document.querySelector('[data-testid="grid"]');
+
+    container.className = 'ht-theme-' + window.htTheme;
+
+    window.initSortingSpareRowsGrid = function(overrides) {
+      if (window.hot) {
+        window.hot.destroy();
+      }
+
+      window.hot = new Handsontable(container, Object.assign({
+        // 13 rows, so a plain-text sort of column A puts A13 first descending - the value
+        // the report names as stuck at the bottom.
+        data: Handsontable.helper.createSpreadsheetData(13, 5),
+        colHeaders: true,
+        rowHeaders: true,
+        columnSorting: true,
+        // No `dropdownMenu`: the spec drives filtering through the plugin API, the way the
+        // reported repro's button does, and the menu's `.changeType` button would sit right
+        // next to the `span.colHeader` the sort clicks on a 50px column.
+        filters: true,
+        minSpareRows: 1,
+        // Stamped from a hook rather than a renderer so every cell type keeps its own
+        // renderer and still gets an id.
+        afterRenderer: function(td, row, col) {
+          td.setAttribute('data-testid', 'cell-' + row + '-' + col);
+        },
+        afterGetColHeader: function(col, TH) {
+          if (col >= 0) {
+            TH.setAttribute('data-testid', 'col-header-' + col);
+          }
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      }, overrides || {}));
+
+      return true;
+    };
+
+    window.initSortingSpareRowsGrid();
+  </script>
+</body>
+</html>

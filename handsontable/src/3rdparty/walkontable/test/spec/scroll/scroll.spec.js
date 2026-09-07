@@ -180,12 +180,14 @@ describe('WalkontableScroll', () => {
       const firstRow = getTableMaster().find('tbody tr:first');
       const lastRow = getTableMaster().find('tbody tr:last');
 
-      expect(firstRow.find('td:first').text()).toBe('I1');
-      // The scroll target (K) sticks to the right edge; the stationary-band path keeps the band at
-      // its pre-scroll size, so one overscan column (L) renders just past the edge (clipped).
-      expect(firstRow.find('td:last').text()).toBe('L1');
-      expect(lastRow.find('td:first').text()).toBe('I8');
-      expect(lastRow.find('td:last').text()).toBe('L8');
+      // The scroll target (K) sticks to the right edge and is the last column rendered. Before
+      // #6673 the scroll landed 1px further right (compensating for a row header that grew by 1px
+      // once the table scrolled), which revealed a sliver of the next column (L) and pushed the
+      // band's start one column along.
+      expect(firstRow.find('td:first').text()).toBe('H1');
+      expect(firstRow.find('td:last').text()).toBe('K1');
+      expect(lastRow.find('td:first').text()).toBe('H8');
+      expect(lastRow.find('td:last').text()).toBe('K8');
     });
 
     it('should scroll to the cell so that it sticks to the right edge of the viewport (forced by method flag)', async() => {
@@ -251,10 +253,13 @@ describe('WalkontableScroll', () => {
       const firstRow = getTableMaster().find('tbody tr:first');
       const lastRow = getTableMaster().find('tbody tr:last');
 
+      // The scroll target (K) sticks to the left edge. The band reaches one column further than
+      // before #6673: the row header no longer takes an extra pixel from the viewport width once
+      // the table is scrolled, so one more column fits in the rendered band.
       expect(firstRow.find('td:first').text()).toBe('K1');
-      expect(firstRow.find('td:last').text()).toBe('M1');
+      expect(firstRow.find('td:last').text()).toBe('N1');
       expect(lastRow.find('td:first').text()).toBe('K8');
-      expect(lastRow.find('td:last').text()).toBe('M8');
+      expect(lastRow.find('td:last').text()).toBe('N8');
     });
 
     it('should scroll to the cell so that it sticks to the left edge of the viewport (forced by method flag)', async() => {
@@ -1081,8 +1086,8 @@ describe('WalkontableScroll', () => {
       expect(scrollHorizontally.calls.count()).toBe(1);
     });
 
-    it('should add the "innerBorderInlineStart" CSS class (compensation for 1px border bug) to the root element when ' +
-       'the table is horizontally scrolled', async() => {
+    it('should add the "innerBorderInlineStart" CSS class (kept for backward compatibility) to the root ' +
+       'element when the table is horizontally scrolled', async() => {
       spec().$wrapper.width(186 + getScrollbarWidth()).height(186 + getScrollbarWidth());
       const wt = walkontable({
         data: getData,

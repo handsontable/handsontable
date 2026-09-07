@@ -198,6 +198,29 @@ export function simulateMouseEvent(element: Element | null, type: string): void 
   element!.dispatchEvent(event);
 }
 
+/**
+ * Dispatch a full pointer sequence on a focusable control.
+ *
+ * A synthetic `click` alone does not reproduce the 18.1 document-mouseup
+ * deselect path that closes a body-mounted React editor before `setValue`.
+ */
+export function simulatePointerActivation(element: Element | null): void {
+  if (!element || !(element instanceof HTMLElement)) {
+    return;
+  }
+
+  element.focus();
+
+  (['mousedown', 'mouseup', 'click'] as const).forEach((type) => {
+    element.dispatchEvent(new MouseEvent(type, {
+      bubbles: true,
+      cancelable: true,
+      view: window,
+      buttons: type === 'mousedown' ? 1 : 0,
+    }));
+  });
+}
+
 export const RendererComponent: React.FC<HotRendererProps & { tap?: (props: HotRendererProps) => void }> = ({ tap, ...props }) => {
   tap?.(props);
 
@@ -249,6 +272,49 @@ export const EditorComponent: React.FC<EditorComponentProps> = ({ tap, ...props 
   return (
     <div style={containerStyle} ref={mainElementRef} id="editorComponentContainer" className={props.className}>
       <button onClick={setNewValue}></button>
+    </div>
+  );
+};
+
+/**
+ * Official-demo-style editor: `mousedown` stopPropagation plus a commit button.
+ * Used to reproduce GH-13374 when the portal is still mounted on `document.body`.
+ */
+export const PointerCommitEditor: React.FC = () => {
+  const mainElementRef = React.useRef<HTMLDivElement>(null);
+  const { setValue, finishEditing } = useHotEditor({
+    onOpen() {
+      mainElementRef.current!.style.display = 'block';
+    },
+    onClose() {
+      mainElementRef.current!.style.display = 'none';
+    }
+  });
+
+  const setNewValue = React.useCallback(() => {
+    setValue('new-value');
+    finishEditing();
+  }, [setValue, finishEditing]);
+
+  return (
+    <div
+      id="pointerCommitEditor"
+      ref={mainElementRef}
+      style={{ display: 'none' }}
+      onMouseDown={(event) => event.stopPropagation()}
+    >
+      <button type="button" onClick={setNewValue}>commit</button>
+    </div>
+  );
+};
+
+export const ImmediateValueEditor: React.FC = () => {
+  const { value, setValue } = useHotEditor<string>();
+
+  return (
+    <div id="immediateValueEditor">
+      <span id="immediateValueDisplay">{value}</span>
+      <button type="button" id="immediateValueSet" onClick={() => setValue('typed')}>set</button>
     </div>
   );
 };

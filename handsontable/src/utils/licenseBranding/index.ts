@@ -19,8 +19,23 @@ import type { HotInstance } from '../../core/types';
  * running subscription and a covered perpetual license render nothing here; their console message
  * and any bottom bar come from `initLicenseNotification`.
  *
- * A key carrying `no-ui-warns` renders nothing at all - the flag closes this whole surface, which is
- * what keeps a licensed SaaS application from showing license copy to its own end users.
+ * A key carrying `no-ui-warns` renders no WARNING surface - no badge and no popover - which is what
+ * keeps a licensed SaaS application from showing license copy to its own end users. It does NOT
+ * suppress the lock screen: the flag covers UI *warnings* (S2.3), while the hard stop is the
+ * *enforcement* of a license that has stopped. The lock is therefore routed BEFORE the channel gate
+ * below.
+ *
+ * Scope of the change: only `trial_hard_stop` is affected. A lapsed SUBSCRIPTION (`usage_hard_stop`)
+ * has no `LOCK_CONTENT` entry and blocks nothing by product decision, and `release_expired` never
+ * blocks either - so what this fixed is external/SaaS TRIALS, which were the only externally-issued
+ * keys that could ever have been blocked. `invalid` and `missing` describe keys whose flags could
+ * not be read, and both resolve to open channels, so they reached the lock either way.
+ *
+ * This is a product decision recorded under DEV-2709, NOT a reading the specification states. S4.1
+ * heads its behavior column "Behaviour (unless `silent`)" over a hard-stop row that says
+ * "Trial: block", which read literally puts the block inside the silenced set; S2.3's `trial` row
+ * ("Trial messages + hard-stop block") separates the two. The split below is the answer to that
+ * ambiguity and the specification still needs amending to match - do not revert this from S4.1 alone.
  *
  * @param {HotInstance} hotInstance The root Handsontable instance.
  * @param {ReturnType<typeof _getLicenseState>} descriptor The resolved license state descriptor.
@@ -31,16 +46,15 @@ function mountBrandingSurface(
   descriptor: ReturnType<typeof _getLicenseState>,
 ): void {
   const { lifecycle, channels } = descriptor;
-
-  if (!channels.ui) {
-    return;
-  }
-
   const buildLockContent = LOCK_CONTENT[lifecycle.state];
 
   if (buildLockContent) {
     mountLicenseLock(hotInstance, buildLockContent(lifecycle));
 
+    return;
+  }
+
+  if (!channels.ui) {
     return;
   }
 

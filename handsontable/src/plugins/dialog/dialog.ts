@@ -7,7 +7,7 @@ import { isButtonType } from '../../helpers/uiButton';
 import { getSanitizer } from '../../utils/sanitizer';
 import { isRootInstance } from '../../utils/rootInstance';
 import * as C from '../../i18n/constants';
-import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
+import type { SelectionState } from '../../selection/types';
 
 export const PLUGIN_KEY = 'dialog';
 export const PLUGIN_PRIORITY = 360;
@@ -251,10 +251,7 @@ export class Dialog extends BasePlugin {
    *
    * @type {SelectionState | null}
    */
-  #selectionState: {
-    ranges: CellRange[]; activeRange: CellRange | undefined; activeSelectionLayer: number;
-    selectedByRowHeader: number[]; selectedByColumnHeader: number[]; disableHeadersHighlight: boolean;
-  } | null = null;
+  #selectionState: SelectionState | null = null;
 
   /**
    * Check if the plugin is enabled in the handsontable settings.
@@ -405,13 +402,12 @@ export class Dialog extends BasePlugin {
     if (this.#selectionState && this.#selectionState.ranges.length > 0 && this.#selectionState.activeRange) {
       const state = this.#selectionState;
 
+      // Spread rather than enumerated: the exported state carries the grid-span flags that tell the
+      // next trim to clamp a full-column or select-all extent instead of dropping it, and a
+      // hand-written field list silently leaves them behind.
       this.hot.selection.importSelection({
-        ranges: state.ranges,
+        ...state,
         activeRange: state.activeRange!,
-        activeSelectionLayer: state.activeSelectionLayer,
-        selectedByRowHeader: state.selectedByRowHeader,
-        selectedByColumnHeader: state.selectedByColumnHeader,
-        disableHeadersHighlight: state.disableHeadersHighlight,
       });
       this.hot.view.render();
       this.#selectionState = null;

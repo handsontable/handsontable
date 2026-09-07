@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed selection-dependent cell edits being lost when trimming moved their records.",
+  "type": "fixed",
+  "issueOrPR": 13304,
+  "breaking": false,
+  "framework": "none"
+}

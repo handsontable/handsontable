@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the grid failing to construct under a Content Security Policy that enforces Trusted Types (`require-trusted-types-for 'script'`). Handsontable now builds its own markup as DOM nodes, so it needs no Trusted Types policy and no entry in your `trusted-types` directive, and the `sanitizer` option may return a `TrustedHTML`. One surface is not converted yet: the context menu marking an item as selected still needs a policy-backed sanitizer. Three behavior changes come with it: the paste path hands your sanitizer the clipboard payload unchanged and flattens its result afterwards, `toHTML()` now sanitizes column and row headers, and character references outside a fixed set of names are no longer decoded in dialog copy or in cell text read through `toTableElement()`. See the migration guide for details.",
+  "type": "fixed",
+  "issueOrPR": 13244,
+  "breaking": false,
+  "framework": "none"
+}

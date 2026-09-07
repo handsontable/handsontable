@@ -7,6 +7,8 @@ import {
   isJSON,
   toHyphen,
   localeLowerCase,
+  decodeHtmlEntities,
+  htmlToPlainText,
 } from 'handsontable/helpers/string';
 import { _resetDeprecationWarnings } from 'handsontable/helpers/console';
 
@@ -227,6 +229,62 @@ describe('String helper', () => {
       expect(localeLowerCase('I', '')).toBe('i');
       expect(localeLowerCase('I', 'en_US')).toBe('i');
       expect(localeLowerCase('ABC', 'not a locale!!')).toBe('abc');
+    });
+  });
+
+  describe('decodeHtmlEntities', () => {
+    it('should decode the named references that appear in prose', () => {
+      expect(decodeHtmlEntities('&lt;&gt;&amp;&quot;&apos;')).toBe('<>&"\'');
+      expect(decodeHtmlEntities('a&nbsp;b')).toBe('a\xA0b');
+    });
+
+    it('should decode decimal and hexadecimal numeric references', () => {
+      expect(decodeHtmlEntities('&#39;&#60;&#62;')).toBe('\'<>');
+      expect(decodeHtmlEntities('&#x27;&#X3C;')).toBe('\'<');
+    });
+
+    it('should decode in a single pass so a decoded ampersand cannot start another reference', () => {
+      // The HTML parser produces `&lt;` here, not `<`. Decoding twice would differ from what the
+      // surfaces rendered before they stopped going through `innerHTML`.
+      expect(decodeHtmlEntities('&amp;lt;')).toBe('&lt;');
+    });
+
+    it('should leave anything outside the supported set as written', () => {
+      expect(decodeHtmlEntities('&hearts;&notareference;')).toBe('&hearts;&notareference;');
+      expect(decodeHtmlEntities('5 & 6 &#; &#x;')).toBe('5 & 6 &#; &#x;');
+    });
+
+    it('should leave an out-of-range code point as written', () => {
+      expect(decodeHtmlEntities('&#1114112;')).toBe('&#1114112;');
+    });
+
+    it('should replace NUL and lone surrogates with U+FFFD, as the parser does', () => {
+      // `parseInt` succeeds on both, so the finite/range guard cannot catch them. A lone surrogate
+      // passed through is invalid UTF-16 in cell data, which a later JSON or CSV write inherits.
+      expect(decodeHtmlEntities('&#0;')).toBe('\uFFFD');
+      expect(decodeHtmlEntities('&#xD800;')).toBe('\uFFFD');
+      expect(decodeHtmlEntities('&#57343;')).toBe('\uFFFD');
+      // a valid astral code point still resolves, so the guard is not over-broad
+      expect(decodeHtmlEntities('&#x1F600;')).toBe('\u{1F600}');
+    });
+
+    it('should leave an upper-case named reference as written', () => {
+      // HTML5 defines `&AMP;` and `&COPY;`, so the parser decoded them. This lookup is
+      // case-sensitive, which is a documented limit rather than an accident.
+      expect(decodeHtmlEntities('&AMP;&COPY;')).toBe('&AMP;&COPY;');
+    });
+  });
+
+  describe('htmlToPlainText', () => {
+    it('should strip tags and then decode what is left', () => {
+      // Reproduces what these surfaces produced when the string was assigned to `innerHTML` and
+      // read back as `textContent`.
+      expect(htmlToPlainText('Title with <strong>HTML</strong> & special chars: &lt;&gt;&amp;'))
+        .toBe('Title with HTML & special chars: <>&');
+    });
+
+    it('should not let a decoded reference reintroduce a tag', () => {
+      expect(htmlToPlainText('&lt;script&gt;alert(1)&lt;/script&gt;')).toBe('<script>alert(1)</script>');
     });
   });
 });

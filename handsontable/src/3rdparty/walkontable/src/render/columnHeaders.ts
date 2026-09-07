@@ -7,6 +7,7 @@ import {
 } from '../../../../helpers/dom/element';
 import { BaseRenderer } from './_base';
 import { OrderView } from '../utils/orderView';
+import { clearAppliedSelection } from '../selection/appliedSelection';
 import {
   A11Y_COLINDEX,
   A11Y_COLUMNHEADER,
@@ -96,6 +97,7 @@ export class ColumnHeadersRenderer extends BaseRenderer {
         }
 
         TH.className = '';
+        clearAppliedSelection(TH);
         TH.removeAttribute('style');
 
         // Remove all accessibility-related attributes for the header to start fresh.

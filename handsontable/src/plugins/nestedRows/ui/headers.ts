@@ -2,7 +2,7 @@ import type { HotInstance } from '../../../core/types';
 import type { NestedRows } from '../nestedRows';
 import { arrayEach } from '../../../helpers/array';
 import { rangeEach } from '../../../helpers/number';
-import { addClass, setAttribute } from '../../../helpers/dom/element';
+import { addClass, setAttribute, empty } from '../../../helpers/dom/element';
 import BaseUI from './_base';
 import { A11Y_EXPANDED, A11Y_HIDDEN } from '../../../helpers/a11y';
 
@@ -131,7 +131,7 @@ class HeadersUI extends BaseUI {
       const { rootDocument } = this.hot;
       const initialContent = innerSpan!.cloneNode(true);
 
-      innerDiv.innerHTML = '';
+      empty(innerDiv);
 
       rangeEach(0, rowLevel - 1, () => {
         const levelIndicator = rootDocument.createElement('SPAN');

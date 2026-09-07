@@ -44,7 +44,7 @@ Thank you for your contribution!
 
 ## Contributor License Agreement
 
-Handsoncode publishes the code it merges — in open-source releases and in commercial products. Doing that requires the right to use, relicense, and distribute your contribution, and the Contributor License Agreement (CLA) is the record of that permission. You keep the copyright to your work; the CLA grants Handsoncode a licence to it.
+Handsoncode publishes the code it merges — in open-source releases and in commercial products. Doing that requires the right to use, relicense, and distribute your contribution, and the Contributor License Agreement (CLA) is the record of that permission. You keep the copyright to your work; the CLA grants Handsoncode a license to it.
 
 **Sign it once, for every project.** The signature is recorded against your GitHub account, not against a repository, and covers both [Handsontable](https://github.com/handsontable/handsontable) and [HyperFormula](https://github.com/handsontable/hyperformula). If you have already signed for either one, you are done.
 
@@ -82,7 +82,7 @@ Running `pnpm install` wires the git hooks (via [lefthook](https://github.com/ev
 - an `it()` with no assertion,
 - fixed `sleep()` delays in place of waiting for a condition.
 
-**The tracked human exception.** When automated coverage genuinely cannot judge a change (a subtle UX or visual nuance, a high-risk area), tick **"This change needs a manual QA pass"** in the PR template and say what to check. The manual-QA check then stays red until someone who is **not** the PR author confirms with a `/manual-qa passed` comment. This *adds* a recorded human pass — it never replaces the test requirement.
+**The tracked human exception.** When automated coverage genuinely cannot judge a change (a subtle UX or visual nuance, a high-risk area), tick **"MANUAL QA NEEDED"** in the PR description (the template carries the line) and say in one line what to check. Also add the red **`Manual QA required`** label so the request is visible in the PR list. The Tests pipeline then holds its **`Manual QA / sign-off`** job until a designated reviewer approves the run (the **Review pending deployments** button on the workflow run) — the approver is recorded by GitHub, and self-approval is blocked. Unticked PRs skip the job. The box is read once per run, so if you tick or untick it after the pipeline has run, press **"Re-run all jobs"** to re-decide. This *adds* a recorded human pass — it never replaces the test requirement.
 
 The full local rules live in [`.ai/LOCAL-ENFORCEMENT.md`](https://github.com/handsontable/handsontable/blob/develop/.ai/LOCAL-ENFORCEMENT.md); the test-kind decision rules in [`handsontable/.ai/TESTING.md`](https://github.com/handsontable/handsontable/blob/develop/handsontable/.ai/TESTING.md).
 

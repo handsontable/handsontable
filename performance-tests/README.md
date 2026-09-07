@@ -43,6 +43,23 @@ PERF_MODE=golden node scripts/run.mjs
 PERF_MODE=compare node scripts/run.mjs
 ```
 
+The suite measures whatever Chromium the `@playwright/test` pin ships, and every
+snapshot records which one (`environment.chromium`, captured by the Playwright
+`globalSetup` in `lib/setup.mjs`). The baseline is a median over develop goldens
+with the **same Chromium build and harness version** only, so after a Playwright
+bump the first PR run reports "no comparable baseline" with the reason. Deltas
+resume with the next develop push (against that single run, and the footer says
+so), and as a median once two have run on the new engine. The comment's `Δ vs
+shift` column and `Run shift` footer name how much faster or slower the CI runner
+was than the baseline's, which every scenario shares; callouts still fire on the
+raw delta. A golden (develop-push) run is compared against the trailing median
+too, and annotates its own run with a `::warning` per regressed scenario. Expect
+noise there: replaying 42 develop goldens, 8% of no-change rows crossed the 15%
+threshold, and with nine rows per push roughly two develop pushes in five carry
+a warning that measured the runner rather than the code. Read a warning against
+the `Run shift` in the job summary, and re-derive the threshold with
+`scripts/replay-goldens.mjs` before trusting a single one.
+
 ### Linting and type checking
 
 ```bash
@@ -56,15 +73,17 @@ Each scenario measures a specific user interaction pattern:
 
 | Scenario | Grid size | Action | Notes |
 |---|---|---|---|
-| **scroll-down** | 5000 x 10 | `mouse.wheel(0, 350)` x 500 | Vertical scroll from top |
-| **scroll-up** | 5000 x 10 | `mouse.wheel(0, -350)` x 500 | Pre-scrolls to bottom, then scrolls up |
+| **scroll-down** | 10000 x 50 | `mouse.wheel(0, 350)` x 500 | Vertical scroll from top |
+| **scroll-up** | 10000 x 50 | `mouse.wheel(0, -350)` x 500 | Pre-scrolls to bottom, then scrolls up |
 | **scroll-right** | 10 x 5000 | `mouse.wheel(350, 0)` x 500 | Horizontal scroll from left |
 | **scroll-left** | 10 x 5000 | `mouse.wheel(-350, 0)` x 500 | Pre-scrolls to right, then scrolls left |
-| **filtering** | 1000 x 1000 | `filters.addCondition()` + `filter()` | Hook timing: beforeFilter -> afterFilter |
-| **sorting** | 1000 x 1000 | `columnSorting.sort()` | Hook timing: beforeColumnSort -> afterColumnSort |
+| **filtering** | 100000 x 100 | `filters.addCondition()` + `filter()` | Hook timing: beforeFilter -> afterFilter |
+| **sorting** | 100000 x 100 | `columnSorting.sort()` | Hook timing: beforeColumnSort -> afterColumnSort |
 | **cell-editing** | 5000 x 10 | selectCell + Enter + type + Enter x 20 | Sequential cell edits |
+| **initial-load** | 100000 x 100 | `new Handsontable(...)` | Grid construction only |
+| **source-data-validator-load** | 100000 x 100 | `new Handsontable(...)` with `sourceDataValidator` | Same fixture as initial-load plus the one option |
 
-Each scenario runs **1 warmup iteration** (discarded) followed by **3 measured iterations** with CDP tracing.
+Each scenario runs **1 warmup iteration** (discarded) followed by **3 measured iterations** with CDP tracing. Four scenarios (filtering, sorting, initial-load, source-data-validator-load) run **5**; each states its own reason in its `scenario.config.mjs` (short windows on a 300 to 350 MB heap where one GC pause moves a mean of three by 10 to 20%; for `source-data-validator-load`, a 20% run-to-run spread after removing the runner factor), and their iterations cost seconds next to the fixture load. The runner forces a full GC before every measured iteration, so garbage from the previous reset is never collected inside the next window, and reads the live heap after every end mark (`jsHeapAfterGcBytes`, recorded beside the windowed extrema).
 
 ## Project structure
 
@@ -76,9 +95,11 @@ performance-tests/
   trace-parser.mjs             # CDP trace -> DevTools category breakdown
   .eslintrc.js                 # ESLint config (extends root)
   lib/
-    trace-runner.mjs           # CDP Tracing.start/stop + warmup/iteration loop
+    setup.mjs                  # Playwright globalSetup: Chromium build + machine -> output/environment.json
+    environment.mjs            # Run provenance and the baseline compatibility key
+    trace-runner.mjs           # CDP Tracing.start/stop + warmup/iteration loop; owns HARNESS_VERSION
     hook-timing.mjs            # performance.now() on before/after hook pairs + save
-    snapshot-store.mjs         # Golden baseline save/load/compare
+    snapshot-store.mjs         # Golden baseline save/load; refuses an incompatible baseline
     thresholds.mjs             # Shared classification (regression/improvement %)
     chart-generator.mjs        # Inline SVG bar charts for reports
     report-builder.mjs         # Compact markdown PR comment
@@ -89,7 +110,7 @@ performance-tests/
     scroll-utils.mjs           # Scroll-and-wait helpers for scroll scenarios
   scenarios/
     <name>/
-      scenario.config.mjs      # { name, warmupRuns, iterations }
+      scenario.config.mjs      # { name, warmupRuns, iterations, measurementVersion }
       fixture.html              # Standalone HTML loading HOT UMD
       <name>.spec.ts            # Playwright test using runTracedScenario()
   fixtures/                     # Built JS/CSS (gitignored, copied by run.mjs)
@@ -137,18 +158,19 @@ Two rules follow for anyone writing or changing a scenario:
   `scrollToColumn` wait on trimming, not scroll position, so they return before the scroll
   has rendered; the settle is what makes those resets deterministic.
 
-A category measured as exactly `0`, or a CV of `141.42%` (the CV of `{x, 0, 0}` at three
-iterations), means the window is wrong -- not that the operation was cheap.
+A category measured as exactly `0`, or a CV of `sqrt(n) × 100%` (one nonzero iteration among
+zeros, with the sample standard deviation `calcCv` uses: `173.21%` at three iterations, `223.61%`
+at five), means the window is wrong -- not that the operation was cheap.
 
 ### Golden baseline workflow
 
 The CI workflow (`.github/workflows/performance-tests.yml`) operates in two modes:
 
-- **On push to `develop`** (`PERF_MODE=golden`): Runs all scenarios, saves the averaged results as `golden/snapshots.json`, and deploys them to the `gh-pages` branch under `performance-reports/develop/<timestamp>/`. A `latest.json` pointer is updated for PR comparisons. A history index page lists all past runs.
+- **On push to `develop`** (`PERF_MODE=golden`): Runs all scenarios, saves the averaged results as `golden/snapshots.json` with their provenance (commit, run, Chromium build, CPU, harness version), and deploys them to the `gh-pages` branch under `performance-reports/develop/<timestamp>/`. A `latest.json` pointer is updated for PR comparisons. A history index page lists all past runs with their commit, Chromium build and CPU. The run is also compared against the trailing median of compatible develop goldens: the report goes to the job summary and each regressed scenario becomes a `::warning` annotation on the run, so a shift on develop is seen where it happened. The saved snapshot is never derived from history.
 
-- **On pull request** (`PERF_MODE=compare`): Fetches `latest.json` from the `gh-pages` branch, runs all scenarios, and generates a delta report. The markdown summary is posted as a sticky PR comment; the full HTML report is deployed to GitHub Pages at `performance-reports/<branch-slug>/`.
+- **On pull request** (`PERF_MODE=compare`): Fetches the last 20 develop goldens from `gh-pages` into `golden/history/` (and `latest.json` as a single-file fallback), runs all scenarios, and generates a delta report against a median of the newest 5 goldens that share this run's Chromium build and harness version. The markdown summary is posted as a sticky PR comment; the full HTML report is deployed to GitHub Pages at `performance-reports/<branch-slug>/`.
 
-If no golden baseline exists (first run, or `gh-pages` branch not yet created), the report shows raw metrics in self-compare mode.
+If no compatible golden baseline exists (first run, `gh-pages` branch not yet created, or fewer than two develop pushes since the Chromium or harness changed), the report shows raw metrics in self-compare mode and states why.
 
 ### Metrics
 
@@ -164,11 +186,82 @@ The report includes these categories (matching the DevTools Performance panel):
 | **Idle** | Time between tasks |
 
 Additional metrics from `UpdateCounters`:
-- JS heap size (min/max)
+- JS heap size (min/max), plus the live heap after a forced GC once the end mark is down (`JS heap after GC` in the HTML memory table; informational until enough goldens carry it to derive a threshold, the gate stays on the max)
 - DOM node count (min/max)
 - Event listener count (min/max)
 
-**CV%** (coefficient of variation) is shown per metric. Values above 15% are flagged with `!!!` -- these indicate unstable measurements that may not be reliable for comparison.
+### Reading a delta
+
+Two spreads appear beside every delta, and they answer different questions. Both are a coefficient
+of variation over the sample standard deviation, and both are flagged above `CV_WARNING_THRESHOLD`
+(15%).
+
+| Column | What it measures | Typical value |
+|---|---|---|
+| **CV run** | How much the iterations of this one run disagreed | under 4% on most scenarios |
+| **CV base** | How far apart the develop runs behind the median baseline sit | 11-19% |
+
+A tight `CV run` says the run measured itself consistently. It says nothing about whether the run is
+comparable to the baseline, which is what `CV base` reports. When the second number is wide, the
+delta beside it is measured against a moving target.
+
+A third figure, **`Δ vs shift`**, is the row's delta with the run's common shift removed. The
+footer's `Run shift` is the median delta across scenarios: how much faster or slower this CI runner
+ran than the baseline's, which every scenario shares (the per-run factor spans 0.63x-1.12x across
+develop goldens, and it is what makes a whole table read -25% green or +12% yellow). A row at
+`+18%` raw and `+2%` vs shift moved with the runner; a row at `+45%` raw and `+40%` vs shift moved
+on its own. The callouts fire on the raw delta regardless, because a change that slows every
+scenario alike is exactly what a median across scenarios cannot see.
+
+`n/a` means the spread is genuinely unknown, not zero. The baseline spread is absent in golden mode,
+in the self-compare fallback, in the single-run `latest.json` fallback (fewer than
+`MIN_VALID_SNAPSHOTS` qualifying develop snapshots, so `computeMedianSnapshot` returns `null`), and
+whenever the history window is too thin for a median.
+
+### Thresholds
+
+Timing and heap are called out on separate thresholds, in `lib/thresholds.mjs`:
+
+| Constant | Value | Why |
+|---|---|---|
+| `REGRESSION_CALLOUT_THRESHOLD_TIMING` | 15 | Timing's run-to-run CV is 11-19%, so a lower bar fires mostly on noise |
+| `REGRESSION_CALLOUT_THRESHOLD_HEAP` | 5 | Heap's run-to-run CV is 0.4-3.6%, so it can be judged an order of magnitude tighter |
+
+Neither number is a guess, and neither should be changed by eye. Both come from replaying every
+develop golden against a median of the goldens before it: every such comparison measures develop
+against develop, so every delta it produces is noise, and the rate at which a threshold fires on
+that set is its false-positive rate. Reproduce it with:
+
+```bash
+git fetch origin gh-pages
+node scripts/replay-goldens.mjs --since 2026-08-27
+```
+
+The script prints the curve for both metrics and marks the value currently in force. Re-run it after
+any change to how the suite measures or to which baseline it compares against, and move each
+constant to the knee of its curve.
+
+### What the report refuses to publish
+
+A percentage is withheld when the comparison cannot support one. The label names the cause --
+`baseline incomplete`, `capture incomplete`, or `window mismatch` -- and the reasons are:
+
+- The baseline recorded zero for an active category that the current run did record
+  (`baseline incomplete`). That is a failed capture, not a cheap operation, and dividing into it is
+  what produced the `+115.7%` regressions this reporting layer was rewritten to stop.
+- This run recorded zero for an active category that the baseline did record (`capture incomplete`).
+  The mirror case: a capture failure on this run's side is no more supportable than one on the
+  baseline's, and would otherwise publish a fake win a reader cannot tell from a real one.
+- The two sides were measured through different trace windows (`windowSource` disagrees, rendered
+  `window mismatch`). After the measurement fix this is a safety net rather than a common case.
+
+Such a scenario is listed under "Not assessed" in the HTML report (the markdown comment says "Total
+delta not assessed") rather than folded into "within tolerance": it was neither cleared nor flagged,
+and the comment says so.
+
+The **Trace window** row is informational and never coloured. After the measurement fix it is
+mark-to-mark harness wall clock, which on the scroll scenarios is 500 sequential wheel round trips
+sitting at a run-to-run CV of 0.0-0.2% regardless of what the grid does.
 
 ## Adding a new scenario
 

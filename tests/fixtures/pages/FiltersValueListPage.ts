@@ -44,6 +44,24 @@ export class FiltersValueListPage {
     return this.page.locator(`.ht_master .htCore tbody td[data-testid$="-${col}"]`).allTextContents();
   }
 
+  /**
+   * Type a value into a data cell, replacing what it held.
+   *
+   * Typing straight onto a selected cell starts a fresh edit, so the new value replaces the old
+   * one. Opening the editor with a double click would keep the old text and append to it instead.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @param {string} value The value to type.
+   */
+  async typeIntoCell(row: number, col: number, value: string): Promise<void> {
+    await this.cell(row, col).click();
+    await this.page.keyboard.type(value);
+    await this.page.keyboard.press('Enter');
+
+    await expect(this.cell(row, col)).toHaveText(value);
+  }
+
   /** Open the dropdown menu of the column with the given header label. */
   async openMenu(headerLabel: string): Promise<void> {
     await this.page
@@ -54,6 +72,55 @@ export class FiltersValueListPage {
 
     await expect(this.menu).toBeVisible();
     await expect(this.valueList.first()).toBeVisible();
+  }
+
+  /**
+   * Open the dropdown menu of a column whose value list is empty.
+   *
+   * A column that is not filtered itself builds its list from the rows still on screen, so another
+   * column's filter can leave it with nothing to list. `openMenu()` waits for a first row and would
+   * time out here, so this variant waits for the list container instead.
+   *
+   * @param {string} headerLabel The column header's visible label.
+   */
+  async openEmptyMenu(headerLabel: string): Promise<void> {
+    await this.page
+      .locator('.ht_clone_top th')
+      .filter({ hasText: new RegExp(`^${headerLabel}$`) })
+      .locator('.changeType')
+      .click();
+
+    await expect(this.menu).toBeVisible();
+    await expect(this.menu.locator('.htUIMultipleSelect')).toBeVisible();
+  }
+
+  /** The list items that currently carry the grid's focus highlight. */
+  focusedListItems(): Locator {
+    return this.menu.locator('.htUIMultipleSelect .ht_master .htCore tbody td.current');
+  }
+
+  /**
+   * Opens the dropdown menu of the given column from the keyboard, the way a user reaches it without
+   * the mouse. The keyboard path keeps the by-value list alive across menu openings, which the click
+   * path does not, so a focus ring left in the list survives into the next opening.
+   *
+   * @param {number} row Visual row index to select first.
+   * @param {number} col Visual column index whose menu opens.
+   */
+  async openMenuWithKeyboard(row: number, col: number): Promise<void> {
+    await this.page.evaluate(([r, c]) => (window as unknown as {
+      hot: { selectCell: (row: number, column: number) => void }
+    }).hot.selectCell(r, c), [row, col]);
+    await this.page.keyboard.press('Alt+Shift+ArrowDown');
+
+    await expect(this.menu).toBeVisible();
+    await expect(this.valueList.first()).toBeVisible();
+  }
+
+  /** Close the menu with the Escape key and wait for it to go away. */
+  async escapeMenu(): Promise<void> {
+    await this.page.keyboard.press('Escape');
+    await expect(this.menu).toBeHidden();
   }
 
   /** Confirm the menu with the "OK" button and wait for it to close. */
@@ -108,6 +175,55 @@ export class FiltersValueListPage {
       checked: await row.locator('input[type="checkbox"]').isChecked(),
       label: (await row.locator('label').innerText()).trim(),
     })));
+  }
+
+  /** Check the "filter by value" item carrying the given label. */
+  async checkValue(label: string): Promise<void> {
+    const checkbox = this.valueList
+      .filter({ has: this.page.locator('label', { hasText: new RegExp(`^${label}$`) }) })
+      .locator('input[type="checkbox"]');
+
+    await checkbox.click();
+    await expect(checkbox).toBeChecked();
+  }
+
+  /**
+   * The filter conditions the grid currently holds, as the plugin exports them. Some defects only
+   * show here — a condition naming a value that no longer exists matches nothing, so the rows on
+   * screen look correct while the column still reads as filtered.
+   *
+   * @returns {Promise<Array>} One entry per filtered column.
+   */
+  async exportedConditions(): Promise<unknown[]> {
+    return this.page.evaluate(() => (window as unknown as {
+      hot: { getPlugin(name: string): { exportConditions(): unknown[] } };
+    }).hot.getPlugin('filters').exportConditions());
+  }
+
+  /** Click the "Select all" link, which checks every value the filter holds. */
+  async selectAllValues(): Promise<void> {
+    await this.menu.locator('.htUIMultipleSelect a', { hasText: /^Select all$/ }).click();
+
+    await expect(this.valueList.first().locator('input[type="checkbox"]')).toBeChecked();
+  }
+
+  /**
+   * Click the "Clear" link, which unchecks every value the filter holds.
+   *
+   * @param {object} [options] Options.
+   * @param {boolean} [options.expectEmptyList] Set when the list holds no values, so there are no
+   *   checkboxes to wait for.
+   */
+  async clearAllValues({ expectEmptyList = false } = {}): Promise<void> {
+    await this.menu.locator('.htUIMultipleSelect a', { hasText: /^Clear$/ }).click();
+
+    if (expectEmptyList) {
+      return;
+    }
+
+    // The inner list is its own Handsontable, so wait for it to repaint before the caller confirms
+    // the menu - otherwise OK can read the pre-clear checkboxes.
+    await expect(this.valueList.first().locator('input[type="checkbox"]')).not.toBeChecked();
   }
 
   /** Uncheck the "filter by value" item carrying the given label. */

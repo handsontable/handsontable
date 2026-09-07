@@ -2,7 +2,7 @@
  * This script:
  * - Runs a background `http-server` for each framework example.
  * - Runs Handsontable's visual tests.
- * - Takes screenshots and prepares them for upload to an external service (Argos).
+ * - Takes screenshots and prepares them for comparison against the golden records.
  */
 import path from 'path';
 import execa from 'execa';
@@ -114,7 +114,7 @@ if (isReferenceBranch()) {
     throw new Error(`Directory \`${dirs.screenshots}/${REFERENCE_FRAMEWORK}\` doesn't exist.`);
   }
 
-  // Argos compares screenshot files of the same name and path,
+  // The comparison matches screenshot files by the same name and path,
   // so we need to make sure the paths are the same
   for (let i = 0; i < WRAPPERS.length; ++i) {
     fse.copySync(

@@ -14,12 +14,14 @@ import { runSourceDataValidators } from '../sourceDataValidator';
  * @param {object} [options.settings] The settings returned by `getSettings`.
  * @param {Function} [options.getValue] Maps `(row, col)` to a source value.
  * @param {Function} [options.toVisualRow] Maps a physical row to its visual index (or `null`).
+ * @param {Function} [options.toVisualColumn] Maps a physical column to its visual index (or `null`).
+ * @param {Function} [options.colToProp] Maps a visual column to its source property.
  * @param {Array} [options.userDefinedCellMetas] Imperatively-set cell metas (`setCellMeta`) to report.
  * @returns {object} The mock and its spies.
  */
 function createMockHot({
   rows, cols, validator, allowInvalid, settings = {}, getValue, toVisualRow = row => row,
-  userDefinedCellMetas = [],
+  toVisualColumn = col => col, colToProp = col => col, userDefinedCellMetas = [],
 } = {}) {
   const getCellMetaUncached = jest.fn((physicalRow, physicalColumn, { visualRow, visualColumn }) => {
     const meta = {
@@ -41,21 +43,31 @@ function createMockHot({
     return meta;
   });
   const getAtCell = jest.fn((row, col) => (getValue ? getValue(row, col) : `${row}-${col}`));
+  const modifyRowData = jest.fn(row => ({ row }));
+  const getAtPhysicalCell = jest.fn((row, col) => getAtCell(row, col));
+  // Mirrors the real `DataSource#getAtCellByProp`, which is the validator's only read entry point
+  // and delegates to the `@private` `getAtPhysicalCell`, resolving the row itself when not given one.
+  const getAtCellByProp = jest.fn((row, prop, dataRow) => getAtPhysicalCell(
+    row, prop, dataRow === undefined ? modifyRowData(row) : dataRow
+  ));
   const setAtCell = jest.fn();
   const hot = {
     countSourceRows: () => rows,
     countSourceCols: () => cols,
     getSettings: () => settings,
-    _getDataSource: () => ({ getAtCell, setAtCell }),
+    _getDataSource: () => ({ modifyRowData, getAtPhysicalCell, getAtCellByProp, setAtCell }),
+    colToProp,
     rowIndexMapper: { getVisualFromPhysicalIndex: toVisualRow },
-    columnIndexMapper: { getVisualFromPhysicalIndex: col => col },
+    columnIndexMapper: { getVisualFromPhysicalIndex: toVisualColumn },
     _getMetaManager: () => ({
       getCellMetaUncached,
       getUserDefinedCellMetas: () => userDefinedCellMetas,
     }),
   };
 
-  return { hot, getCellMetaUncached, getAtCell, setAtCell };
+  return {
+    hot, getCellMetaUncached, getAtCell, getAtPhysicalCell, getAtCellByProp, modifyRowData, setAtCell,
+  };
 }
 
 /**
@@ -242,6 +254,207 @@ describe('runSourceDataValidators', () => {
 
     expect(setAtCell).toHaveBeenCalledTimes(1);
     expect(setAtCell).toHaveBeenCalledWith(1, 1, null);
+  });
+
+  it.each([
+    ['batched', true],
+    ['per-cell', false],
+  ])('should translate columns when reading and blanking source values (%s path)', (_path, rowIndependent) => {
+    const validator = makeValidator(rowIndependent, () => false);
+    const toVisualColumn = jest.fn(physicalColumn => 1 - physicalColumn);
+    const colToProp = jest.fn(visualColumn => (visualColumn === 0 ? 'second' : 'first'));
+    const { hot, getAtCell, getAtPhysicalCell, modifyRowData, setAtCell } = createMockHot({
+      rows: 2,
+      cols: 2,
+      validator,
+      allowInvalid: false,
+      toVisualColumn,
+      colToProp,
+    });
+
+    runSourceDataValidators(hot, 'init');
+
+    expect(getAtCell.mock.calls).toEqual([
+      [0, 'first'],
+      [0, 'second'],
+      [1, 'first'],
+      [1, 'second'],
+    ]);
+    expect(getAtPhysicalCell.mock.calls).toEqual([
+      [0, 'first', { row: 0 }],
+      [0, 'second', { row: 0 }],
+      [1, 'first', { row: 1 }],
+      [1, 'second', { row: 1 }],
+    ]);
+    expect(setAtCell.mock.calls).toEqual([
+      [0, 'first', null],
+      [0, 'second', null],
+      [1, 'first', null],
+      [1, 'second', null],
+    ]);
+    expect(modifyRowData).toHaveBeenCalledTimes(2);
+    expect(toVisualColumn).toHaveBeenCalledTimes(2);
+    expect(colToProp).toHaveBeenCalledTimes(2);
+  });
+
+  it('should read and blank at the column source address when `columns[].data` remaps it (batched path)', () => {
+    const validator = makeValidator(true, value => value !== 'bad');
+    const { hot, setAtCell, getAtCellByProp } = createMockHot({
+      rows: 2,
+      cols: 2,
+      validator,
+      allowInvalid: false,
+      colToProp: column => column + 2,
+      getValue: (r, prop) => (r === 1 && prop === 2 ? 'bad' : 'ok'),
+    });
+
+    runSourceDataValidators(hot, 'init');
+
+    expect(getAtCellByProp).toHaveBeenCalledWith(1, 2, expect.anything());
+    expect(setAtCell).toHaveBeenCalledTimes(1);
+    // Source index 2, not the physical column 0 the meta belongs to.
+    expect(setAtCell).toHaveBeenCalledWith(1, 2, null);
+  });
+
+  it('should read and blank at the column source address when `columns[].data` remaps it (per-cell path)', () => {
+    const validator = makeValidator(false, value => value !== 'bad');
+    const { hot, setAtCell, getAtCellByProp } = createMockHot({
+      rows: 2,
+      cols: 2,
+      validator,
+      allowInvalid: false,
+      settings: { cell: [{ row: 0, col: 0 }] },
+      colToProp: column => column + 2,
+      getValue: (r, prop) => (r === 0 && prop === 3 ? 'bad' : 'ok'),
+    });
+
+    runSourceDataValidators(hot, 'init');
+
+    expect(getAtCellByProp).toHaveBeenCalledWith(0, 3, expect.anything());
+    expect(setAtCell).toHaveBeenCalledTimes(1);
+    expect(setAtCell).toHaveBeenCalledWith(0, 3, null);
+  });
+
+  // A `columns[].data` accessor function is a third address shape: `colToProp()` hands back the
+  // function itself, and both the read and the write go through it rather than through a key.
+  it('should read and blank through a `columns[].data` accessor function (batched path)', () => {
+    // Each accessor owns one key: it reads with no value, writes with one.
+    const makeAccessor = key => (row, value) => {
+      if (value === undefined) {
+        return row[key];
+      }
+
+      row[key] = value;
+    };
+    const accessors = [makeAccessor('name'), makeAccessor('city')];
+    const validator = makeValidator(true, value => value !== 'bad');
+    const { hot, setAtCell, getAtCellByProp } = createMockHot({
+      rows: 2,
+      cols: 2,
+      validator,
+      allowInvalid: false,
+      colToProp: column => accessors[column],
+      getValue: (r, prop) => (r === 1 && prop === accessors[1] ? 'bad' : 'ok'),
+    });
+
+    runSourceDataValidators(hot, 'init');
+
+    expect(getAtCellByProp).toHaveBeenCalledWith(1, accessors[1], expect.anything());
+    expect(setAtCell).toHaveBeenCalledTimes(1);
+    // The accessor itself is the address — it owns both the read and the write.
+    expect(setAtCell).toHaveBeenCalledWith(1, accessors[1], null);
+  });
+
+  it('should read and blank through a `columns[].data` accessor function (per-cell path)', () => {
+    // Each accessor owns one key: it reads with no value, writes with one.
+    const makeAccessor = key => (row, value) => {
+      if (value === undefined) {
+        return row[key];
+      }
+
+      row[key] = value;
+    };
+    const accessors = [makeAccessor('name'), makeAccessor('city')];
+    const validator = makeValidator(false, value => value !== 'bad');
+    const { hot, setAtCell, getAtCellByProp } = createMockHot({
+      rows: 2,
+      cols: 2,
+      validator,
+      allowInvalid: false,
+      settings: { cell: [{ row: 0, col: 0 }] },
+      colToProp: column => accessors[column],
+      getValue: (r, prop) => (r === 0 && prop === accessors[0] ? 'bad' : 'ok'),
+    });
+
+    runSourceDataValidators(hot, 'init');
+
+    expect(getAtCellByProp).toHaveBeenCalledWith(0, accessors[0], expect.anything());
+    expect(setAtCell).toHaveBeenCalledTimes(1);
+    expect(setAtCell).toHaveBeenCalledWith(0, accessors[0], null);
+  });
+
+  it('should run `modifyRowData` once per row, not once per column (batched path)', () => {
+    // The row representation depends only on the row, and resolving it runs a hook — so a
+    // 10-column row must not pay for it ten times.
+    const validator = makeValidator(true);
+    const { hot, modifyRowData, getAtCellByProp } = createMockHot({ rows: 5, cols: 10, validator });
+
+    runSourceDataValidators(hot, 'init');
+
+    expect(getAtCellByProp).toHaveBeenCalledTimes(5 * 10);
+    expect(modifyRowData).toHaveBeenCalledTimes(5);
+    // Every column of a row is read against that row's single representation.
+    expect(getAtCellByProp).toHaveBeenCalledWith(0, 0, { row: 0 });
+    expect(getAtCellByProp).toHaveBeenCalledWith(0, 9, { row: 0 });
+  });
+
+  it('should run `modifyRowData` once per row on the per-cell path, and skip rows it never reads', () => {
+    // Every visible row resolves its row representation exactly once, however many columns it
+    // validates — and the trimmed row 3 never resolves one at all.
+    const validator = makeValidator(false);
+    const { hot, modifyRowData } = createMockHot({
+      rows: 4,
+      cols: 3,
+      validator,
+      settings: { cell: [{ row: 0, col: 0 }] },
+      toVisualRow: row => (row === 3 ? null : row),
+    });
+
+    runSourceDataValidators(hot, 'init');
+
+    // Rows 0-2 are read once each; the trimmed row 3 never resolves one.
+    expect(modifyRowData).toHaveBeenCalledTimes(3);
+  });
+
+  it('should not run `modifyRowData` for rows whose cells carry no validator (per-cell path)', () => {
+    // A per-cell scan with no validator anywhere reads nothing, so no row representation is built.
+    const { hot, modifyRowData, getAtCellByProp } = createMockHot({
+      rows: 20,
+      cols: 3,
+      settings: { cell: [{ row: 5, col: 1 }] },
+    });
+
+    runSourceDataValidators(hot, 'init');
+
+    expect(getAtCellByProp).not.toHaveBeenCalled();
+    expect(modifyRowData).not.toHaveBeenCalled();
+  });
+
+  it('should address string props for object data', () => {
+    const validator = makeValidator(true, value => value !== 'bad');
+    const { hot, setAtCell } = createMockHot({
+      rows: 2,
+      cols: 2,
+      validator,
+      allowInvalid: false,
+      colToProp: column => ['name', 'city'][column],
+      getValue: (r, prop) => (r === 0 && prop === 'city' ? 'bad' : 'ok'),
+    });
+
+    runSourceDataValidators(hot, 'init');
+
+    expect(setAtCell).toHaveBeenCalledTimes(1);
+    expect(setAtCell).toHaveBeenCalledWith(0, 'city', null);
   });
 
   it('should not blank invalid values when allowInvalid is true (batched path)', () => {

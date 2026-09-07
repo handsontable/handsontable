@@ -66,12 +66,14 @@ describe('Core.batch', () => {
       indexesSequenceChanged: true,
       trimmedIndexesChanged: false,
       hiddenIndexesChanged: false,
+      indexesChangeSource: 'update',
     });
     expect(rowIndexCacheUpdated).toHaveBeenCalledTimes(3);
     expect(rowIndexCacheUpdated).toHaveBeenCalledWith({
       indexesSequenceChanged: true,
       trimmedIndexesChanged: false,
       hiddenIndexesChanged: false,
+      indexesChangeSource: 'update',
     });
   });
 

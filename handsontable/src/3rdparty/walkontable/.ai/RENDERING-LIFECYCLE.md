@@ -234,8 +234,6 @@ All line numbers are in `table.ts` unless noted. "Master only" = guarded by `thi
   when the captured ones are non-null (a skipped FIRST draw keeps the just-built filters — several
   consumers read `rowFilter!` unguarded once the table is drawn; the overlays' `applyToDOM` treats
   the restored `null` calculators as the nothing-rendered spreader offset instead of throwing);
-  `correctHeaderWidth` is restored whenever no render happened, regardless of the totals gates (the
-  DOM header width did not change, and an advanced flag would suppress the corrective full draw);
   and the fully/partially-**visible** calculators are deliberately NOT restored: they describe the
   scroll position, not the DOM contents — so after a skipped draw the visible band may extend past
   the rendered band (unlike a fast draw), and `getCell` answers those rows with exit codes. A
@@ -278,7 +276,9 @@ All line numbers are in `table.ts` unless noted. "Master only" = guarded by `thi
 - Call `resetFixedPosition()` on top (`624`), bottom-if-cloned (`626–628`), inline-start (`630`), and
   corner overlays (`632–638`). Each positions its clone and, for top/bottom/inline-start, decides the
   `innerBorderTop` / `innerBorderInlineStart` / `innerBorderBottom` class via `adjustHeaderBordersPosition`.
-  Those calls OR-together into `positionChanged`.
+  Those calls OR-together into `positionChanged`. Only the two ROW-axis classes still shift the layout;
+  `innerBorderInlineStart` is stamped for backward compatibility and drives no geometry since #6673
+  (see AGENTS.md, "Column-axis border ownership").
 - **S16a seam:** the border decision is now a pure `#computeHeaderBordersState(...)` separated from its
   DOM write in `overlay/regions/topOverlay.ts` / `inlineStartOverlay.ts` / `bottomOverlay.ts` — so S16b
   can move the decision pre-render. Behavior today is unchanged (compute + apply still called in

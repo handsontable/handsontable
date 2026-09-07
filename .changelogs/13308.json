@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the `textExtractor` option, which writes column and row headers to an exported file, and column headers to the clipboard, as the text the grid displays instead of their raw HTML.",
+  "type": "added",
+  "issueOrPR": 13308,
+  "breaking": false,
+  "framework": "none"
+}

@@ -8,6 +8,29 @@
       overflow: hidden;
     }
 
+    // Dropdown indicator. Mirrors .htAutocompleteArrow so multiselect cells carry the same
+    // affordance as the other list cell types; the glyph comes from the theme icons layer.
+    .ht-multi-select-arrow {
+      position: relative;
+      cursor: default;
+      width: var(--ht-icon-size);
+      height: var(--ht-icon-size);
+      font-size: 0;
+      float: right;
+      top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
+      margin-inline-start: calc(var(--ht-gap-size) * 2);
+      margin-inline-end: 1px;
+
+      &::after {
+        @include mixins.pseudo;
+
+        position: absolute;
+        top: 0;
+        left: 0;
+        opacity: 0.6;
+      }
+    }
+
     .ht-multi-select-chips-container {
       display: flex;
       flex-wrap: nowrap;
@@ -79,6 +102,12 @@
       color: var(--ht-foreground-color);
       white-space: nowrap;
       flex-shrink: 0;
+    }
+  }
+
+  [dir="rtl"].handsontable {
+    .ht-multi-select-arrow {
+      float: left;
     }
   }
 }

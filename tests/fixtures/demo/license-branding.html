@@ -59,10 +59,14 @@
     // neither parsed nor checksummed, so the block reads identically.
     //
     //   trial                 — usage_until 2026-09-26, notice 45, grace 15, flag `trial`
+    //   trial-external        — the same, with `no-ui-warns` added
     //   subscription          — usage_until 2027-08-12, notice 60, grace 90, no flags
     //   subscription-external — the same, with `no-console-warns` + `no-ui-warns`
     const LICENSE_KEYS = {
       trial: '[eyJwcm9kdWN0cyI6eyJoYW5kc29udGFibGUiOnsiY2FwYWJpbGl0aWVzIjpbImNvcmUiXSwidXNhZ2VfdW50aWwiOiIyMDI2LTA5LTI2Iiwibm90aWNlIjo0NSwiZ3JhY2UiOjE1LCJmbGFncyI6WyJ0cmlhbCJdfX19a687a9f4d0d496c1ec86d97d58e971b458995f1a68ca117a6b406fa2f179923dcd42a789e3c56426690cf12c89e70abfbb6f45b96ba55fe49386d9e1b0080f2c]',
+      // A trial issued for external use. `no-ui-warns` must silence the badge and the bar, and must
+      // NOT silence the hard-stop lock - the flag suppresses warnings, not enforcement.
+      'trial-external': '[eyJwcm9kdWN0cyI6eyJoYW5kc29udGFibGUiOnsiY2FwYWJpbGl0aWVzIjpbImNvcmUiXSwidXNhZ2VfdW50aWwiOiIyMDI2LTA5LTI2Iiwibm90aWNlIjo0NSwiZ3JhY2UiOjE1LCJmbGFncyI6WyJ0cmlhbCIsIm5vLXVpLXdhcm5zIl19fX0dbeff87ec565b90d59175cd5aa86b93abd4164fc2967f9156e289f5db90f0b8c19ddfb44efd92a165b2d1c568c0097c78c243701acf200487372dc8b45a0f1be]',
       subscription: '[eyJwcm9kdWN0cyI6eyJoYW5kc29udGFibGUiOnsiY2FwYWJpbGl0aWVzIjpbImNvcmUiXSwidXNhZ2VfdW50aWwiOiIyMDI3LTA4LTEyIiwibm90aWNlIjo2MCwiZ3JhY2UiOjkwLCJmbGFncyI6W119fX03de5d59e480be17d3c8cd340cb242cab64cac7888cbfba6c975c194f6613b8103792a6929f66852d18c7ac27c8c25fa9ab8a25b5e25f331669746c833a4f8361]',
       'subscription-external': '[eyJwcm9kdWN0cyI6eyJoYW5kc29udGFibGUiOnsiY2FwYWJpbGl0aWVzIjpbImNvcmUiXSwidXNhZ2VfdW50aWwiOiIyMDI3LTA4LTEyIiwibm90aWNlIjo2MCwiZ3JhY2UiOjkwLCJmbGFncyI6WyJuby1jb25zb2xlLXdhcm5zIiwibm8tdWktd2FybnMiXX19fQbf6f3e8356a12fe1b2553ccd263dbc9a6f94c1fdc1aab949b3550865cb150c79027aa06a11c7618d5cbd1e14c4b73dc35f6bb81cd8c33c474194d082e2951106]',
       // The two install faults, which block from 18.1 on: the subscription key with its checksum

@@ -134,23 +134,6 @@ class SelectionCalculations {
 
     return true;
   }
-
-  /**
-   * Generate an array of the entirely-selected merged cells' class names.
-   *
-   * @returns {string[]} An `Array` of `String`s. Each of these strings will act like class names to be removed from all the cells in the table.
-   */
-  getSelectedMergedCellClassNameToRemove() {
-    const classNames = [];
-
-    for (let i = 0; i <= 7; i += 1) {
-      classNames.push(`${this.fullySelectedMergedCellClassName}-${i}`);
-    }
-
-    classNames.push(`${this.fullySelectedMergedCellClassName}-multiple`);
-
-    return classNames;
-  }
 }
 
 export default SelectionCalculations;

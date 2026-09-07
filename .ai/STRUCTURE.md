@@ -62,7 +62,7 @@ packages:
 | `wrappers/react-wrapper/` | `@handsontable/react-wrapper` | React component wrapper |
 | `wrappers/angular-wrapper/` | `@handsontable/angular-wrapper` | Angular component wrapper |
 | `wrappers/vue3/` | `@handsontable/vue3` | Vue 3 component wrapper |
-| `visual-tests/` | `handsontable-visual-tests` | Playwright/Argos visual regression suite |
+| `visual-tests/` | `handsontable-visual-tests` | Playwright/reg-suit visual regression suite |
 | `examples/` | `handsontable-examples-internal` | Code examples for documentation |
 | `docs/` | `handsontable-documentation` | Astro/Starlight documentation site (Node 20) |
 | `docs/angular-type-check/` | `docs-angular-type-check` | Internal Angular type-check workspace for the docs site |

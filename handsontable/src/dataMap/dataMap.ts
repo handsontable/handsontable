@@ -1,5 +1,6 @@
 import type { HotInstance } from '../core/types';
 import type { default as MetaManager } from './metaManager';
+import type { DataAccessorFn } from './dataSource';
 import { stringify } from '../3rdparty/SheetClip';
 import {
   countFirstRowKeys
@@ -89,7 +90,8 @@ class DataMap {
   tableMeta: Record<string, unknown> & {
     maxRows?: number;
     maxCols?: number;
-    columns?: ((column: number) => Record<string, unknown>) | Record<string, unknown>[];
+    columns?: ((column: number) => Record<string, unknown> & { data?: string | number | DataAccessorFn })
+      | (Record<string, unknown> & { data?: string | number | DataAccessorFn })[];
     dataSchema?: unknown;
     startRows?: number;
     startCols?: number;
@@ -115,13 +117,13 @@ class DataMap {
    *
    * @type {Array}
    */
-  declare colToPropCache: (string | number)[];
+  declare colToPropCache: (string | number | DataAccessorFn)[];
   /**
    * Cached map of properties to columns.
    *
    * @type {Map}
    */
-  declare propToColCache: Map<string | number, number> | undefined;
+  declare propToColCache: Map<string | number | DataAccessorFn, number> | undefined;
 
   /**
    * @param {object} hotInstance Instance of Handsontable.
@@ -169,7 +171,8 @@ class DataMap {
    * @param {unknown} schema The current data schema.
    */
   #buildColumnCache(
-    columns: ((column: number) => Record<string, unknown>) | Record<string, unknown>[],
+    columns: ((column: number) => Record<string, unknown> & { data?: string | number | DataAccessorFn })
+      | (Record<string, unknown> & { data?: string | number | DataAccessorFn })[],
     schema: unknown
   ) {
     let columnsLen = 0;
@@ -189,12 +192,13 @@ class DataMap {
 
     for (let i = 0; i < columnsLen; i++) {
       const column = isColumnsFn
-        ? (columns as (index: number) => Record<string, unknown>)(i) : columns[i];
+        ? (columns as (index: number) => Record<string, unknown> & { data?: string | number | DataAccessorFn })(i)
+        : columns[i];
 
       if (isObject(column)) {
         if (typeof column.data !== 'undefined') {
           const index = isColumnsFn ? filteredIndex : i;
-          const columnData = column.data as string | number;
+          const columnData = column.data;
 
           this.colToPropCache[index] = columnData;
           this.propToColCache!.set(columnData, index);
@@ -247,10 +251,17 @@ class DataMap {
   /**
    * Returns property name that corresponds with the given column index.
    *
+   * The declared return type is the `string|number` shape `Core#colToProp` has always exposed, so
+   * widening it does not leak into consumer code. A `columns[].data` accessor function is handed
+   * back as-is at runtime – code that has to handle it reads the result through `unknown` and
+   * `isDataAccessorFn()`.
+   *
    * @param {string|number} column Visual column index or another passed argument.
-   * @returns {string|number} Column property, physical column index or passed argument.
+   * @returns {string|number} Column property, physical column index, or the passed argument.
    */
-  colToProp(column: number) {
+  colToProp(column: number): string | number;
+  /* eslint-disable jsdoc/require-jsdoc -- the implementation shares the JSDoc of the overload above */
+  colToProp(column: number): string | number | DataAccessorFn {
     // TODO: Should it work? Please, look at the test:
     // "it should return the provided property name, when the user passes a property name as a column number".
     if (Number.isInteger(column) === false) {
@@ -271,14 +282,16 @@ class DataMap {
 
     return physicalColumn;
   }
+  /* eslint-enable jsdoc/require-jsdoc */
 
   /**
    * Translates property into visual column index.
    *
-   * @param {string|number} prop Column property which may be also a physical column index.
-   * @returns {string|number} Visual column index or passed argument.
+   * @param {string|number|Function} prop Column property, a physical column index, or a
+   *   `columns[].data` accessor function.
+   * @returns {string|number|Function} Visual column index or the passed argument.
    */
-  propToCol(prop: string | number) {
+  propToCol(prop: string | number | DataAccessorFn) {
     const cachedPhysicalIndex = this.propToColCache!.get(prop);
 
     if (cachedPhysicalIndex !== undefined) {
@@ -857,10 +870,10 @@ class DataMap {
    * Returns single value from the data array.
    *
    * @param {number} row Visual row index.
-   * @param {number} prop The column property.
+   * @param {number|string|Function} prop The column property, or a `columns[].data` accessor function.
    * @returns {*}
    */
-  get(row: number, prop: string | number) {
+  get(row: number, prop: string | number | DataAccessorFn) {
     const physicalRow = this.hot!.toPhysicalRow(row);
 
     let dataRow: Record<string | number, unknown> = this.dataSource![physicalRow] as Record<string | number, unknown>;
@@ -874,7 +887,7 @@ class DataMap {
     let value: unknown = null;
 
     // try to get value under property `prop` (includes dot)
-    if (dataRow && hasOwnProperty(dataRow, prop)) {
+    if (dataRow && typeof prop !== 'function' && hasOwnProperty(dataRow, prop)) {
       value = dataRow[prop];
 
     } else if (dataDotNotation && typeof prop === 'string' && prop.indexOf('.') > -1) {
@@ -897,7 +910,14 @@ class DataMap {
       value = out;
 
     } else if (typeof prop === 'function') {
-      value = (prop as (row: unknown) => unknown)(this.dataSource!.slice(physicalRow, physicalRow + 1)[0]);
+      // `dataRow` already reflects the `modifyRowData` hook (e.g. `nestedRows` swaps the row),
+      // so the accessor must read through it like every other branch. It is also `undefined` for
+      // a row index that is mapped but not (yet) backed by source data – e.g. mid-way through an
+      // undo of a row removal – which must read as empty instead of handing `undefined` to user
+      // code.
+      if (dataRow) {
+        value = prop(dataRow);
+      }
     }
 
     const visualColumnIndex = this.propToCol(prop);
@@ -935,10 +955,10 @@ class DataMap {
    * Returns single value from the data array (intended for clipboard copy to an external application).
    *
    * @param {number} row Visual row index.
-   * @param {number} prop The column property.
+   * @param {number|string|Function} prop The column property, or a `columns[].data` accessor function.
    * @returns {string}
    */
-  getCopyable(row: number, prop: string | number) {
+  getCopyable(row: number, prop: string | number | DataAccessorFn) {
     const colIndex = this.propToCol(prop);
 
     // The transient read honors a `cells()`-driven `copyable: false` (the dynamic extension
@@ -955,10 +975,10 @@ class DataMap {
    * Saves single value to the data array.
    *
    * @param {number} row Visual row index.
-   * @param {number|string} prop The column property.
+   * @param {number|string|Function} prop The column property, or a `columns[].data` accessor function.
    * @param {string} value The value to set.
    */
-  set(row: number, prop: string | number, value: unknown) {
+  set(row: number, prop: string | number | DataAccessorFn, value: unknown) {
     const physicalRow = this.hot!.toPhysicalRow(row);
     let newValue = value;
     let dataRow: Record<string | number, unknown> = this.dataSource![physicalRow] as Record<string | number, unknown>;
@@ -981,7 +1001,7 @@ class DataMap {
     const { dataDotNotation } = this.hot!.getSettings();
 
     // try to set value under property `prop` (includes dot)
-    if (dataRow && hasOwnProperty(dataRow, prop)) {
+    if (dataRow && typeof prop !== 'function' && hasOwnProperty(dataRow, prop)) {
       dataRow[prop] = newValue;
 
     } else if (dataDotNotation && typeof prop === 'string' && prop.indexOf('.') > -1) {
@@ -1005,8 +1025,12 @@ class DataMap {
 
       out[sliced[i]] = newValue;
     } else if (typeof prop === 'function') {
-      (prop as (row: unknown, value: unknown) => void)(
-        this.dataSource!.slice(physicalRow, physicalRow + 1)[0], newValue);
+      // Mirrors the `get()` guard: read through the `modifyRowData`-aware `dataRow`, and skip the
+      // write when the row index is mapped but not (yet) backed by source data – calling the
+      // accessor with `undefined` would throw inside user code.
+      if (dataRow) {
+        (prop as (row: unknown, value: unknown) => void)(dataRow, newValue);
+      }
 
     } else {
       if (prop === '__proto__' || prop === 'constructor' || prop === 'prototype') {

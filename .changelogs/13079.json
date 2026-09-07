@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed the `Events` type resolving every hook callback to `any`, so callbacks typed through `Events[hookName]` and `addHook` now get correct parameter types and autocomplete.",
-  "type": "fixed",
-  "issueOrPR": 13079,
-  "breaking": false,
-  "framework": "none"
-}

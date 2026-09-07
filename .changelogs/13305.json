@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added a searchable matrix of which configuration levels each option takes effect at, and the same information to every option in the API reference.",
+  "type": "added",
+  "issueOrPR": 13305,
+  "breaking": false,
+  "framework": "none"
+}

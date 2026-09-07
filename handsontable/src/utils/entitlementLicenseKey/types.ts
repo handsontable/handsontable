@@ -77,9 +77,15 @@ export interface LicenseLifecycle {
 
 /**
  * Which notification channels the license leaves open. A product entry may
- * carry `no-console-warns` (nothing reaches the console) and `no-ui-warns`
- * (nothing is rendered on top of the grid); both are the default for a key
- * issued for external, end-user-facing use.
+ * carry `no-console-warns` (nothing reaches the console) and `no-ui-warns` (no
+ * WARNING is rendered on top of the grid - no badge, no popover, no bottom
+ * bar); both are the default for a key issued for external, end-user-facing
+ * use.
+ *
+ * `ui` governs warnings only. The hard-stop lock screen is enforcement and is
+ * mounted regardless - see `NO_UI_WARNS_FLAG` in `./constants` and the routing
+ * note in `utils/licenseBranding/index.ts`. A new surface reading this field
+ * has to decide which of the two it is before honoring it.
  */
 export interface LicenseChannels {
   console: boolean;

@@ -65,3 +65,34 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CF_PROJECT_NAME: handsontable-docs-staging
+
+  purge-visual-screenshots:
+    name: Purge visual screenshots
+    # Same-repo only. A fork or Dependabot run gets no secrets, so `aws s3 rm`
+    # would hard-fail -- and it would be a no-op anyway, because the credentialed
+    # publish steps in visual.yml are themselves same-repo-guarded and
+    # compare-fork.mjs never writes to R2, so no `pr-<n>/` prefix exists. One
+    # exception: a human pushing to a Dependabot branch flips the actor and
+    # re-enables the publish, yet Dependabot closes its own PR, so that tree is
+    # left to the 30-day R2 lifecycle rule.
+    if: github.event_name == 'pull_request'
+      && (github.event.pull_request.head.repo.full_name == github.repository
+          && github.actor != 'dependabot[bot]')
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
+    env:
+      R2_BUCKET_NAME: handsontable-visual
+    steps:
+      # The AWS CLI ships on the runner image. `wrangler r2 object delete` has no
+      # recursive mode, so the S3 API is the practical way to drop a prefix.
+      - name: Delete this pull request's screenshots from R2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+        run: |
+          aws s3 rm "s3://$R2_BUCKET_NAME/pr-${{ github.event.number }}/" \
+            --recursive \
+            --endpoint-url "https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com"

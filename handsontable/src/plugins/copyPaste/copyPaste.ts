@@ -13,6 +13,8 @@ import {
   isShadowRoot,
 } from '../../helpers/dom/element';
 import { sanitizeHTML } from '../../utils/sanitizer';
+import { warnOnce } from '../../helpers/console';
+import { extractText, getTextExtractor } from '../../utils/textExtractor';
 import { isSafari } from '../../helpers/browser';
 import copyItem from './contextMenuItem/copy';
 import copyColumnHeadersOnlyItem from './contextMenuItem/copyColumnHeadersOnly';
@@ -71,6 +73,42 @@ function padRowsToWidest(data: unknown[][]) {
   });
 }
 
+/**
+ * `warnOnce` key for a clipboard payload the HTML parser refused.
+ *
+ * Distinct from `SANITIZER_WARN_KEY` on purpose. The case that needs this message most - a
+ * `sanitizer` that is configured but returns a plain string under `require-trusted-types-for
+ * 'script'` - is exactly the case where the missing-sanitizer warning does not fire, so sharing a
+ * key would let one suppress the other.
+ */
+const CLIPBOARD_PARSE_WARN_KEY = 'copyPaste.clipboardParse';
+
+/**
+ * Reads the `text/plain` clipboard flavour.
+ *
+ * Shared by the no-table branch and by the fallback taken when the HTML parse throws, so the two
+ * cannot drift on the trailing-newline rule below.
+ *
+ * The `typeof` test is not redundant: `ClipboardData.getData()` is declared `string | undefined`,
+ * and `onPaste` treats `undefined` as "no paste" while an empty string would parse into a single
+ * blank cell and clear the target.
+ *
+ * Typed to the one method it uses, so it accepts both a real `DataTransfer` and the `PasteEvent`
+ * stand-in the public `paste()` method builds.
+ *
+ * @param {object} clipboardData The event's clipboard.
+ * @returns {unknown} The plain-text payload, with a single trailing newline removed.
+ */
+function readPlainText(clipboardData: { getData(type: string): string | undefined }): unknown {
+  const text = clipboardData.getData('text/plain');
+
+  // Excel terminates every row (including the last) with a CRLF. For a single-cell copy that
+  // produces a trailing newline, which `SheetClip.parse` would read as a row separator and emit
+  // an extra empty row, blanking the cell below the paste target. Treat a single trailing
+  // newline as a terminator, not a separator.
+  return typeof text === 'string' ? text.replace(/(\r\n|\r|\n)$/, '') : text;
+}
+
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
 /**
@@ -86,7 +124,7 @@ function padRowsToWidest(data: unknown[][]) {
  *
  * Read more:
  * - [Guides: Clipboard](@/guides/cell-features/clipboard/clipboard.md)
- * - [Configuration options: `copyPaste`](@/api/options.md#copypaste)
+ * - [Setting options: `copyPaste`](@/api/options.md#copypaste)
  *
  * @example
  * ```js
@@ -822,10 +860,12 @@ export class CopyPaste extends BasePlugin {
     const rangedSourceData = this.getRangedData(this.copyableRanges, true);
 
     const copiedHeadersCount = this.#countCopiedHeaders(this.copyableRanges);
+    // Captured before `beforeCopy`, which may reshape the array. Identity is what survives that.
+    const headerRows = new Set(rangedData.slice(0, copiedHeadersCount.columnHeadersCount));
     const allowCopying = !!this.hot.runHooks('beforeCopy', rangedData, this.copyableRanges, copiedHeadersCount);
 
     if (allowCopying) {
-      this.#setClipboardData(event, rangedData, rangedSourceData);
+      this.#setClipboardData(event, rangedData, rangedSourceData, headerRows);
 
       this.hot.runHooks('afterCopy', rangedData, this.copyableRanges, copiedHeadersCount);
     }
@@ -964,32 +1004,72 @@ export class CopyPaste extends BasePlugin {
       // sanitizer. Sharing one context would force that choice on everyone and would also run the
       // sanitizer twice over the same cells on an internal paste, since both clipboard types carry
       // a full table.
+      //
+      // Normalizing runs INSIDE the parse, on the sanitizer's output, and only when that output is
+      // a string - which is what `options.normalize` below selects. Two constraints meet here.
+      // `replaceTdCellsWithTextContent()` is a string rewrite, so a `TrustedHTML` cannot pass
+      // through it without collapsing back to a plain string the parser then rejects; and running
+      // it before the sanitizer instead would hand cell values to the grid exactly as the sanitizer
+      // left them, so a lenient sanitizer's markup would reach the `html` cell type. Normalizing
+      // after keeps that flattening for every sanitizer that returns a string, and skips it only
+      // for the `TrustedHTML` case where it is impossible.
+      //
+      // It cannot run on both sides: `replaceTdCellsWithTextContent()` is not idempotent (a cell
+      // built from `<p>a</p><p>&nbsp;</p>` keeps a trailing newline after one pass and loses it
+      // after two), so a second pass would silently rewrite cell values.
       const sourceDataHTML = sanitizeHTML(
-        this.hot, clipboardData.getData(SOURCE_DATA_HTML_MIME_TYPE) ?? '', 'CopyPaste.paste.sourceData'
+        this.hot,
+        clipboardData.getData(SOURCE_DATA_HTML_MIME_TYPE) ?? '',
+        'CopyPaste.paste.sourceData'
       );
 
       if (sourceDataHTML) {
-        const parsedSourceConfig = htmlToGridSettings(sourceDataHTML, this.hot.rootDocument);
+        // Every HTML parse entry point is a Trusted Types sink, so `parseFromString` throws under
+        // `require-trusted-types-for 'script'` unless the value came from a policy - which it did
+        // not when no `sanitizer` is configured, or when one is configured and returns a plain
+        // string. Losing the source-data flavour costs object-key fidelity on an internal paste;
+        // letting the throw escape would kill the paste outright.
+        try {
+          const parsedSourceConfig = htmlToGridSettings(
+            sourceDataHTML, this.hot.rootDocument, { normalize: typeof sourceDataHTML === 'string' }
+          );
 
-        pastedSourceData = parsedSourceConfig?.data;
+          pastedSourceData = parsedSourceConfig?.data;
+        } catch (error) {
+          this.#warnClipboardParseRefused(error);
+        }
       }
 
       const textHTML = sanitizeHTML(this.hot, clipboardData.getData('text/html') ?? '', 'CopyPaste.paste');
 
-      if (textHTML && /(<table)|(<TABLE)/g.test(textHTML)) {
-        const parsedConfig = htmlToGridSettings(textHTML, this.hot.rootDocument);
+      // `String()` builds a throwaway copy for the test only. `textHTML` itself is passed on as it
+      // was returned, so a `TrustedHTML` keeps its trust.
+      if (textHTML && /(<table)|(<TABLE)/g.test(String(textHTML))) {
+        // Same sink as the source-data parse above. Falling back to `text/plain` is what the
+        // no-table branch below already does, so a page enforcing Trusted Types with no policy of
+        // its own still pastes - it pastes the plain-text flavour, losing only the cell types and
+        // styling the HTML flavour carried.
+        try {
+          const parsedConfig = htmlToGridSettings(textHTML, this.hot.rootDocument, {
+            normalize: typeof textHTML === 'string',
+          });
 
-        pastedData = parsedConfig?.data;
-      } else {
-        pastedData = clipboardData.getData('text/plain');
+          pastedData = parsedConfig?.data;
+        } catch (error) {
+          this.#warnClipboardParseRefused(error);
 
-        // Excel terminates every row (including the last) with a CRLF. For a single-cell copy that
-        // produces a trailing newline, which `SheetClip.parse` would read as a row separator and emit
-        // an extra empty row, blanking the cell below the paste target. Treat a single trailing
-        // newline as a terminator, not a separator.
-        if (typeof pastedData === 'string') {
-          pastedData = pastedData.replace(/(\r\n|\r|\n)$/, '');
+          const plainText = readPlainText(clipboardData);
+
+          // Only when there is something to fall back TO. An empty `text/plain` flavour parses
+          // into `[['']]`, which the guard in `onPaste` does not stop, so assigning it would blank
+          // the target cell - a worse outcome than the no-op that `undefined` produces, and this
+          // payload was valid markup the parser simply would not accept.
+          if (plainText) {
+            pastedData = plainText;
+          }
         }
+      } else {
+        pastedData = readPlainText(clipboardData);
       }
 
     } else if (typeof ClipboardEvent === 'undefined' &&
@@ -1001,17 +1081,83 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Sets the clipboard data.
+   * Warns once that a clipboard payload could not be parsed, and why that is usually Trusted Types.
+   *
+   * Deliberately says nothing about which flavour landed. Both parse sites share this message and
+   * one `warnOnce` key, and their consequences differ: a refused `text/html` payload falls back to
+   * `text/plain`, while a refused source-data payload costs only object-key fidelity and leaves the
+   * paste itself intact. Naming one outcome would print a false statement whenever the other site
+   * warned first, and splitting the key would print two messages for a single paste.
+   *
+   * @param {unknown} error The error the parser threw.
+   */
+  #warnClipboardParseRefused(error: unknown) {
+    warnOnce(
+      this.hot.rootElement,
+      CLIPBOARD_PARSE_WARN_KEY,
+      'Handsontable could not parse an HTML flavour of the clipboard, and pasted what it could ' +
+      'read instead, so some formatting or source-data fidelity was lost. Under a Content ' +
+      'Security Policy that enforces Trusted Types (`require-trusted-types-for \'script\'`), the ' +
+      'parser only accepts a `TrustedHTML`, so the `sanitizer` option has to return the output of ' +
+      'your own policy. See https://handsontable.com/docs/javascript-data-grid/security/',
+      error
+    );
+  }
+
+  /**
+   * Projects copied column headers into text, following the grid-level `textExtractor` option.
+   *
+   * Both the `text/plain` and the `text/html` flavours are affected. `_dataToHTML` escapes the
+   * values it writes, so an unprojected header reaches a rich-text target as the visible characters
+   * `<b>Total</b>` rather than as bold text - the same mismatch the option exists to remove.
+   *
+   * The source-data flavour is left alone. It carries the values behind the cells so that a copy
+   * between grids restores them exactly, and a projection would corrupt that round trip.
+   *
+   * The rows are mapped rather than mutated, so the array handed to `beforeCopy` and `afterCopy`
+   * still holds the values those hooks have always received.
+   *
+   * The header rows are identified by reference rather than by position, because `beforeCopy` runs
+   * before this and may reshape the array. A listener that drops the header row would leave a
+   * positional count pointing at what is now the first data row, and parsing a data value such as
+   * `a<b` as HTML would destroy it. Matching on identity keeps the projection on the rows that are
+   * still headers, whatever the listener did to the array around them.
+   *
+   * @param {Array[]} rangedData The copied data.
+   * @param {Set} headerRows The row arrays that were column headers when the copy was assembled.
+   * @returns {Array[]} The data with its header rows projected into text.
+   */
+  #extractHeaderText(rangedData: unknown[][], headerRows: Set<unknown[]>): unknown[][] {
+    if (headerRows.size === 0 || getTextExtractor(this.hot) === false) {
+      return rangedData;
+    }
+
+    return rangedData.map(row => (
+      headerRows.has(row)
+        ? row.map(value => extractText(this.hot, value, 'CopyPaste.columnHeader'))
+        : row
+    ));
+  }
+
+  /**
+   * Sets the clipboard data for the given event.
    *
    * @param {ClipboardEvent} event The Clipboard event.
    * @param {Array} rangedData Ranged data to set to the clipboard.
    * @param {Array} rangedSourceData Ranged source data to set to the clipboard.
+   * @param {Set} [headerRows] The row arrays of `rangedData` that are column headers.
    */
-  #setClipboardData(event: ClipboardEvent, rangedData: unknown[][], rangedSourceData: unknown[][]) {
-    const textPlain = stringify(rangedData);
+  #setClipboardData(
+    event: ClipboardEvent,
+    rangedData: unknown[][],
+    rangedSourceData: unknown[][],
+    headerRows: Set<unknown[]> = new Set()
+  ) {
+    const projectedData = this.#extractHeaderText(rangedData, headerRows);
+    const textPlain = stringify(projectedData);
 
     if (event && event.clipboardData) {
-      const textHTML = _dataToHTML(rangedData);
+      const textHTML = _dataToHTML(projectedData);
       const textSourceDataHTML = _dataToHTML(rangedSourceData);
 
       event.clipboardData.setData('text/plain', textPlain);

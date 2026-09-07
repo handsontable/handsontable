@@ -1,13 +1,77 @@
 import { isEmpty } from '../../helpers/mixed';
-import { isObjectEqual } from '../../helpers/object';
+import { hasOwnProperty, isObjectEqual } from '../../helpers/object';
 import type { HotInstance } from '../../core/types';
+
+/**
+ * Reads a column's default value out of the data schema.
+ *
+ * A column bound to a nested property (`{ data: 'meta.active' }`) has a dot-separated
+ * `colToProp()`, and the cell behind it is read by walking that path. The schema default has to
+ * be read the same way, or the two are not comparable: a flat `schema[prop]` lookup resolves to
+ * `undefined`, so a spare row holding nothing but schema defaults never counts as empty and
+ * `minSpareRows` appends a fresh batch of rows on every change (GH #5069).
+ *
+ * The value under comparison comes from `Core#getDataAtCell` -> `DataMap#get`, so this mirrors
+ * that reader's precedence exactly: **an own key wins over the walk**, even a literal dotted one,
+ * and even while `dataDotNotation` is on. Reading a dotted prop as a path unconditionally breaks
+ * `dataSchema: { 'meta.active': false }`, where the value side resolves the literal key and only
+ * the default side would walk — reintroducing the very growth this helper exists to stop.
+ *
+ * The walk is confined to an explicit `dataSchema`. Without one, `Core#getSchema` returns the
+ * duck-schema, and resolving a dotted path inside it would newly report a row whose nested object
+ * holds only `null` leaves as empty — a behavior change for grids that never set `dataSchema`,
+ * and outside this fix's scope.
+ *
+ * Unlike `getProperty()`, a path that runs into `null` resolves to `undefined` rather than
+ * throwing, because a schema may stop short of the depth a column asks for.
+ *
+ * A function `columns[].data` accessor is read flat, so it resolves to `undefined` — the schema
+ * is a plain template and no accessor is applied to it. That matches the behavior before this
+ * helper existed; such a column is never treated as holding its default.
+ *
+ * @param {object|Array} schema The data schema, as returned by `Core#getSchema`.
+ * @param {string|number} prop Column property, or a physical column index.
+ * @param {boolean|undefined} dataDotNotation Whether a dotted property is a path or a literal
+ *   key. Read for truthiness, matching how `DataMap#get` reads the same setting.
+ * @param {boolean} hasExplicitSchema Whether a `dataSchema` was configured.
+ * @returns {*} The schema default, or `undefined` when the path resolves to nothing.
+ */
+function getSchemaDefault(
+  schema: Record<string | number, unknown>,
+  prop: string | number,
+  dataDotNotation: boolean | undefined,
+  hasExplicitSchema: boolean
+): unknown {
+  // An own key wins, exactly as in `DataMap#get`, so a literal dotted key resolves here too.
+  if (hasOwnProperty(schema, prop)) {
+    return schema[prop];
+  }
+
+  if (!hasExplicitSchema || !dataDotNotation || typeof prop !== 'string' || prop.indexOf('.') === -1) {
+    return schema[prop];
+  }
+
+  let result: unknown = schema;
+
+  for (const name of prop.split('.')) {
+    if (result === null || result === undefined) {
+      return undefined;
+    }
+
+    // The nullish check above is the narrowing; `isObject()` is not a type guard, so there is no
+    // predicate to narrow `unknown` to something indexable. Same shape as `getProperty()`.
+    result = (result as Record<string, unknown>)[name];
+  }
+
+  return result;
+}
 
 /**
  * @alias Options
  * @class Options
  * @description
  *
- * [Configuration options](@/guides/getting-started/configuration-options/configuration-options.md) let you heavily customize your Handsontable instance. For example, you can:
+ * [Setting options](@/guides/configuration/configuration-options/configuration-options.md) let you heavily customize your Handsontable instance. For example, you can:
  *
  * - Enable and disable built-in features
  * - Enable and configure additional [plugins](@/api/plugins.md)
@@ -17,11 +81,11 @@ import type { HotInstance } from '../../core/types';
  *
  * ::: only-for javascript
  *
- * To apply [configuration options](@/guides/getting-started/configuration-options/configuration-options.md), pass them as
+ * To apply [configuration options](@/guides/configuration/configuration-options/configuration-options.md), pass them as
  * a second argument of the [Handsontable constructor](@/guides/getting-started/installation/installation.md#initialize-handsontable),
  * using the [object literal notation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer):
  *
- * Read more on the [Configuration options](@/guides/getting-started/configuration-options/configuration-options.md) page.
+ * Read more on the [Setting options](@/guides/configuration/configuration-options/configuration-options.md) page.
  *
  * ```js
  * const container = document.getElementById('example');
@@ -55,7 +119,7 @@ import type { HotInstance } from '../../core/types';
  * of the [`HotTable`](@/guides/getting-started/installation/installation.md#_4-use-the-hottable-component)
  * or [`HotColumn`](@/guides/columns/react-hot-column/react-hot-column.md) components.
  *
- * Read more on the [Configuration options](@/guides/getting-started/configuration-options/configuration-options.md) page.
+ * Read more on the [Setting options](@/guides/configuration/configuration-options/configuration-options.md) page.
  *
  * ```jsx
  * <HotTable
@@ -109,14 +173,14 @@ import type { HotInstance } from '../../core/types';
  * :::
  *
  * Depending on your needs, you can apply [configuration options](@/api/options.md) to different elements of your grid:
- * - [The entire grid](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options)
- * - [Individual columns](@/guides/getting-started/configuration-options/configuration-options.md#set-column-options)
- * - [Individual rows](@/guides/getting-started/configuration-options/configuration-options.md#set-row-options)
- * - [Individual cells](@/guides/getting-started/configuration-options/configuration-options.md#set-cell-options)
- * - [Individual grid elements, based on any logic you implement](@/guides/getting-started/configuration-options/configuration-options.md#implementing-custom-logic)
+ * - [The entire grid](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options)
+ * - [Individual columns](@/guides/configuration/configuration-options/configuration-options.md#set-column-options)
+ * - [Individual rows](@/guides/configuration/configuration-options/configuration-options.md#set-row-options)
+ * - [Individual cells](@/guides/configuration/configuration-options/configuration-options.md#set-cell-options)
+ * - [Individual grid elements, based on any logic you implement](@/guides/configuration/configuration-options/configuration-options.md#implement-custom-logic)
  *
  * Read more:
- * - [Configuration options](@/guides/getting-started/configuration-options/configuration-options.md)
+ * - [Setting options](@/guides/configuration/configuration-options/configuration-options.md)
  */
 export default (): Record<string, unknown> => {
   return {
@@ -135,7 +199,8 @@ export default (): Record<string, unknown> => {
     /**
      * Information on which of the cell meta properties were set imperatively through `setCellMeta`
      * (for example, by the user or by the context menu). These properties are preserved across
-     * `updateSettings` calls, unlike the properties applied from the declarative `cell` option.
+     * `updateSettings` calls. Such a write wins over a `cell` option value the same key carried before -
+     * unless the call restates `cell`, which is applied last and wins over everything.
      *
      * @private
      * @type {Set}
@@ -144,8 +209,23 @@ export default (): Record<string, unknown> => {
     _userDefinedMetaProps: undefined,
 
     /**
-     * Information on which cell meta properties were set through `setCellMeta` - both imperatively
-     * (user, context menu) and declaratively (the `cell` option). Unlike values derived on demand by
+     * Information on which of the cell meta properties were applied from the declarative `cell` option.
+     * These properties are replayed across the cache reset that `updateSettings` performs, unless the call
+     * restates `cell` – restating it replaces every previously declared entry.
+     *
+     * Declarative writes a plugin makes through `Core#_setCellMetaDeclarative` are deliberately not tracked
+     * here: those plugins re-apply their meta from their own configuration after every update and rely on
+     * the reset dropping it.
+     *
+     * @private
+     * @type {Set}
+     * @default undefined
+     */
+    _cellOptionMetaProps: undefined,
+
+    /**
+     * Information on which cell meta properties were set through `setCellMeta` – imperatively (user,
+     * context menu) and declaratively alike, whatever the origin bucket. Unlike values derived on demand by
      * `getCellMeta` (the cascade, the `cells` function, `type` expansion), these are not rebuilt on
      * access, so the viewport-eviction pass keeps any cell whose set is non-empty.
      *
@@ -159,7 +239,7 @@ export default (): Record<string, unknown> => {
      * The `activeHeaderClassName` option lets you add a CSS class name
      * to every currently-active, currently-selected header (when a whole column or row is selected).
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * Read more:
@@ -178,6 +258,7 @@ export default (): Record<string, unknown> => {
      * @since 0.38.2
      * @default 'ht__active_highlight'
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -209,13 +290,14 @@ export default (): Record<string, unknown> => {
      * ignore the `allowEmpty` option unless you also set a `validator`.
      * :::
      *
-     * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
-     * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
+     * This option can be set at any level of the [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration):
+     * the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
      *
      * @memberof Options#
      * @type {boolean}
      * @default true
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -268,6 +350,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean}
      * @default false
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -286,42 +369,108 @@ export default (): Record<string, unknown> => {
     allowHtml: false,
 
     /**
-     * If set to `true`, the `allowInsertColumn` option adds the following menu items to the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md):
+     * The `allowInsertColumn` option controls two things: the insert items in the menus, and whether
+     * the grid may add columns on its own.
+     *
+     * If set to `true`, the option adds the following menu items to the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md)
+     * and to the [column menu](@/guides/accessories-and-menus/column-menu/column-menu.md):
      * - **Insert column left**
      * - **Insert column right**
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * If set to `false`, the option also stops the grid from adding columns on its own:
+     * - A [paste](@/guides/cell-features/clipboard/clipboard.md) that is wider than the columns left to the right of the
+     *   selection stops at the last column. Handsontable drops the extra values, and reports no error. In the
+     *   `shift_right` [`pasteMode`](@/api/copyPaste.md) the values pushed past the last column are **lost**, because no
+     *   column is created to receive them.
+     * - An [autofill](@/guides/cell-features/autofill-values/autofill-values.md) that reaches past the last column stops
+     *   at the last column.
+     * - [`setDataAtCell()`](@/api/core.md#setdataatcell) and [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) no
+     *   longer create the missing columns when you write past the last column. The write still reaches the source
+     *   data, so [`getSourceData()`](@/api/core.md#getsourcedata) returns the value while the grid never displays it.
+     *   This bullet applies only when your [`data`](#data) is an array of arrays and you do not set the
+     *   [`columns`](#columns) option – in any other configuration these methods never add columns anyway, whatever
+     *   this option is set to.
+     *
+     * This option does not decide whether the value reaches the source data – the write path does. A paste or an
+     * autofill stops at the last column, so nothing is written there at all. A direct
+     * [`setDataAtCell()`](@/api/core.md#setdataatcell) or [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) call
+     * writes the value whatever this option is set to. On an object [`data`](#data) source that direct write is
+     * deprecated as of 18.2.0. See [`setDataAtCell()`](@/api/core.md#setdataatcell), which owns that rule.
+     *
+     * The option does not stop these ways of adding columns:
+     * - The [`alter()`](@/api/core.md#alter) method, including its `insert_col_start` and `insert_col_end` actions.
+     * - The [`minCols`](#minCols) and [`minSpareCols`](#minSpareCols) options. Both are themselves skipped when the
+     *   [`columns`](#columns) option is set, and `minSpareCols` also requires [`data`](#data) to be an array of arrays.
+     * - Undo and redo.
+     * - Pressing <kbd>**Enter**</kbd> at the last column, when [`minSpareCols`](#minSpareCols) is above `0` and
+     *   [`enterMoves`](#enterMoves) is set to move the column. The default `enterMoves` moves the row only, so this
+     *   does not happen out of the box.
+     *
+     * To cap the number of columns whatever the source, use [`maxCols`](#maxCols) as well.
+     *
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean}
      * @default true
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
-     * // hide the 'Insert column left' and 'Insert column right' menu items from the context menu
+     * // hide the 'Insert column left' and 'Insert column right' menu items,
+     * // and stop the grid from adding columns during paste, autofill, and `setDataAtCell()`
      * allowInsertColumn: false,
      * ```
      */
     allowInsertColumn: true,
 
     /**
-     * If set to `true`, the `allowInsertRow` option adds the following menu items to the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md):
+     * The `allowInsertRow` option controls two things: the insert items in the context menu, and whether
+     * the grid may add rows on its own.
+     *
+     * If set to `true`, the option adds the following menu items to the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md):
      * - **Insert row above**
      * - **Insert row below**
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * If set to `false`, the option also stops the grid from adding rows on its own:
+     * - A [paste](@/guides/cell-features/clipboard/clipboard.md) that is taller than the rows left below the selection
+     *   stops at the last row. Handsontable drops the extra values, and reports no error. In the
+     *   `shift_down` [`pasteMode`](@/api/copyPaste.md) the rows pushed past the last row are **lost**, because no row is
+     *   created to receive them.
+     * - An [autofill](@/guides/cell-features/autofill-values/autofill-values.md) whose fill reaches past the last row
+     *   stops at the last row, unless the [`fillHandle`](#fillHandle) option's `autoInsertRow` setting has already
+     *   appended rows to take it – see the next list.
+     * - [`setDataAtCell()`](@/api/core.md#setdataatcell) and [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) do
+     *   not create the missing rows when you write below the last row. Both currently **throw a `TypeError`** in that
+     *   case, so guard the call, or keep the row index within [`countRows()`](@/api/core.md#countrows).
+     *
+     * The option does not stop these ways of adding rows:
+     * - The [`alter()`](@/api/core.md#alter) method, including its `insert_row_above` and `insert_row_below` actions.
+     * - The [`minRows`](#minRows) and [`minSpareRows`](#minSpareRows) options.
+     * - Undo and redo.
+     * - The fill handle appending rows when you drag it below the last row. That is governed solely by the
+     *   [`fillHandle`](#fillHandle) option's `autoInsertRow` setting, which ignores `allowInsertRow`. It applies only
+     *   when you set [`fillHandle`](#fillHandle) explicitly – left unset, the grid does not append rows this way.
+     * - Pressing <kbd>**Enter**</kbd> at the last row, when [`minSpareRows`](#minSpareRows) is above `0`. Only
+     *   <kbd>**Enter**</kbd> does this – the arrow keys and <kbd>**Tab**</kbd> never create a row.
+     *
+     * To cap the number of rows whatever the source, use [`maxRows`](#maxRows) as well.
+     *
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean}
      * @default true
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
-     * // hide the 'Insert row above' and 'Insert row below' menu items from the context menu
+     * // hide the 'Insert row above' and 'Insert row below' menu items from the context menu,
+     * // and stop the grid from adding rows during paste, autofill, and `setDataAtCell()`
      * allowInsertRow: false,
      * ```
      */
@@ -349,6 +498,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean}
      * @default true
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -361,10 +511,17 @@ export default (): Record<string, unknown> => {
     allowInvalid: true,
 
     /**
-     * If set to `true`, the `allowRemoveColumn` option adds the following menu items to the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md):
+     * If set to `true`, the `allowRemoveColumn` option adds the following menu item to the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md)
+     * and to the [column menu](@/guides/accessories-and-menus/column-menu/column-menu.md):
      * - **Remove column**
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * The option hides that menu item only. It does not stop the [`alter()`](@/api/core.md#alter) method's
+     * `remove_col` action, and it does not stop undo or redo. To block a removal, return `false` from the
+     * [`beforeRemoveCol`](@/api/hooks.md#beforeremovecol) hook – that is the only lever that stops one.
+     * [`minCols`](#minCols) does not: it appends an empty column afterwards to restore the count, and the removed data
+     * is already gone.
+     *
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * Read more:
@@ -374,29 +531,37 @@ export default (): Record<string, unknown> => {
      * @type {boolean}
      * @default true
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
-     * // hide the 'Remove column' menu item from the context menu
+     * // hide the 'Remove column' menu item from the context menu and the column menu
      * allowRemoveColumn: false,
      * ```
      */
     allowRemoveColumn: true,
 
     /**
-     * If set to `true`, the `allowRemoveRow` option adds the following menu items to the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md):
+     * If set to `true`, the `allowRemoveRow` option adds the following menu item to the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md):
      * - **Remove row**
+     *
+     * The option hides that menu item only. It does not stop the [`alter()`](@/api/core.md#alter) method's
+     * `remove_row` action, and it does not stop undo or redo. To block a removal, return `false` from the
+     * [`beforeRemoveRow`](@/api/hooks.md#beforeremoverow) hook – that is the only lever that stops one.
+     * [`minRows`](#minRows) does not: it appends an empty row afterwards to restore the count, and the removed data
+     * is already gone.
      *
      * Read more:
      * - [Context menu](@/guides/accessories-and-menus/context-menu/context-menu.md)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean}
      * @default true
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -415,6 +580,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean}
      * @default true
      * @category Core
+     * @configScope grid
      * @since 14.0.0
      */
     ariaTags: true,
@@ -449,13 +615,14 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Plugins: `AutoColumnSize`](@/api/autoColumnSize.md)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {object|boolean}
      * @default undefined
      * @category AutoColumnSize
+     * @configScope grid
      *
      * @example
      * ```js
@@ -504,13 +671,14 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Plugins: `AutoRowSize`](@/api/autoRowSize.md)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {object|boolean}
      * @default undefined
      * @category AutoRowSize
+     * @configScope grid
      *
      * @example
      * ```js
@@ -532,13 +700,14 @@ export default (): Record<string, unknown> => {
      * | `false` (default) | When you select a bottom-most cell, pressing <kbd>**↓**</kbd> doesn't do anything.<br><br>When you select a top-most cell, pressing <kbd>**↑**</kbd> doesn't do anything.                                                                    |
      * | `true`            | When you select a bottom-most cell, pressing <kbd>**↓**</kbd> takes you to the top-most cell of the next column.<br><br>When you select a top-most cell, pressing <kbd>**↑**</kbd> takes you to the bottom-most cell of the previous column. |
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean}
      * @default false
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -562,13 +731,14 @@ export default (): Record<string, unknown> => {
      * \* The exact key depends on your [`layoutDirection`](#layoutdirection) configuration.<br>
      * \*\* Unless [`tabNavigation`](#tabnavigation) is set to `false`.
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean}
      * @default false
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -598,7 +768,7 @@ export default (): Record<string, unknown> => {
      * | `false` | Disable the the [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md) plugin |
      * | `true`  | Enable the the [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md) plugin  |
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * Read more:
@@ -608,6 +778,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean|string}
      * @default undefined
      * @category BindRowsWithHeaders
+     * @configScope grid
      *
      * @example
      * ```js
@@ -618,26 +789,37 @@ export default (): Record<string, unknown> => {
     bindRowsWithHeaders: undefined,
 
     /**
-     * The `cell` option lets you apply [configuration options](@/guides/getting-started/configuration-options/configuration-options.md) to individual cells.
+     * The `cell` option lets you apply [configuration options](@/guides/configuration/configuration-options/configuration-options.md) to individual cells.
      *
-     * The `cell` option overwrites the [top-level grid options](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options),
+     * The `cell` option overwrites the [top-level grid options](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options),
      * and the [`columns`](#columns) options.
      *
      * Each entry's `row` and `col` are **visual** indexes. This differs from the [`cells`](#cells)
      * option, whose `row` and `column` are physical indexes.
      *
+     * The `cell` option persists across [`updateSettings()`](@/api/core.md#updatesettings) calls that do not
+     * mention it. Passing `cell` again replaces every previously declared entry, so `cell: []` removes them
+     * all. An entry follows its row through sorting and row moves, and a later
+     * [`setCellMeta()`](@/api/core.md#setcellmeta) call on the same property wins over the declared value -
+     * until the next call restates `cell`, which wins over everything.
+     *
+     * A value that is not an array is ignored, and reported in the console. It does not reach
+     * [`getSettings()`](@/api/core.md#getsettings) either, so the previously declared entries stay in place.
+     * Wrap a single entry in an array.
+     *
      * Read more:
-     * - [Configuration options: Setting cell options](@/guides/getting-started/configuration-options/configuration-options.md#set-cell-options)
+     * - [Setting options: Setting cell options](@/guides/configuration/configuration-options/configuration-options.md#set-cell-options)
      * - [`columns`](#columns)
      * - [`cells`](#cells)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {Array[]}
      * @default []
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -656,7 +838,7 @@ export default (): Record<string, unknown> => {
 
     /**
      * @description
-     * The `cells` option lets you apply any other [configuration options](@/guides/getting-started/configuration-options/configuration-options.md) to
+     * The `cells` option lets you apply any other [configuration options](@/guides/configuration/configuration-options/configuration-options.md) to
      * individual grid elements (columns, rows, cells), based on any logic you implement.
      *
      * The `cells` option overwrites all other options (including options set by [`columns`](#columns) and [`cell`](#cell)).
@@ -675,8 +857,8 @@ export default (): Record<string, unknown> => {
      * `this.instance` is not available inside them – use a regular or shorthand function instead.
      *
      * Read more:
-     * - [Configuration options: Implementing custom logic](@/guides/getting-started/configuration-options/configuration-options.md#implement-custom-logic)
-     * - [Configuration options: Setting row options](@/guides/getting-started/configuration-options/configuration-options.md#set-row-options)
+     * - [Setting options: Implementing custom logic](@/guides/configuration/configuration-options/configuration-options.md#implement-custom-logic)
+     * - [Setting options: Setting row options](@/guides/configuration/configuration-options/configuration-options.md#set-row-options)
      * - [`columns`](#columns)
      * - [`cell`](#cell)
      *
@@ -684,6 +866,7 @@ export default (): Record<string, unknown> => {
      * @type {Function}
      * @default undefined
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -722,8 +905,8 @@ export default (): Record<string, unknown> => {
      * Pair `checkedTemplate` with [`uncheckedTemplate`](#uncheckedTemplate) to define both states explicitly.
      * :::
      *
-     * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
-     * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
+     * This option can be set at any level of the [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration):
+     * the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
      *
      * Read more:
      * - [Checkbox cell type: Checkbox template](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md#checkbox-template)
@@ -734,6 +917,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean|string|number}
      * @default true
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -772,10 +956,48 @@ export default (): Record<string, unknown> => {
      * To style the summary row, use the class name assigned automatically by the [`ColumnSummary`](@/api/columnSummary.md) plugin: `columnSummaryResult`.
      * :::
      *
-     * To apply different CSS class names on different levels, use Handsontable's [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration).
+     * #### Where Handsontable adds the class names
+     *
+     * The target depends on the level at which you set the option:
+     *
+     * | Level                                | Container element | Cells                |
+     * | ------------------------------------ | ----------------- | -------------------- |
+     * | Grid                                 | Yes               | Every cell           |
+     * | [`columns`](#columns)                | No                | Cells of that column |
+     * | [`cells`](#cells) or [`cell`](#cell) | No                | The matching cells   |
+     *
+     * At the grid level, Handsontable adds the class names to two places. It adds them to the
+     * container element – the element that holds the grid – and, through
+     * [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration),
+     * to every cell. To add class names to the `<table>` element instead, use [`tableClassName`](#tableClassName).
+     *
+     * To style the container element alone, set `className` at the grid level and clear it at the
+     * cell level:
+     *
+     * ```js
+     * const hot = new Handsontable(container, {
+     *   className: 'your-class-name',
+     *   // the container element keeps `your-class-name`, the cells don't receive it
+     *   cells() {
+     *     return { className: '' };
+     *   },
+     * });
+     * ```
+     *
+     * A `className` set at a lower level replaces the value from a higher level. It doesn't merge
+     * with it. To keep a class name from a higher level, repeat it at the lower level.
+     *
+     * #### Custom renderers
+     *
+     * Handsontable adds these class names to a cell even when the cell uses a custom
+     * [renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md) that calls no built-in
+     * renderer. Handsontable runs `baseRenderer` after your renderer whenever your renderer didn't
+     * run it. Before version 17.0.0, such a cell received no class names.
+     *
+     * To apply different CSS class names on different levels, use Handsontable's [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration).
      *
      * Read more:
-     * - [Configuration options: Cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
+     * - [Setting options: Cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
      * - [`currentRowClassName`](#currentRowClassName)
      * - [`currentColClassName`](#currentColClassName)
      * - [`currentHeaderClassName`](#currentHeaderClassName)
@@ -791,6 +1013,7 @@ export default (): Record<string, unknown> => {
      * @type {string|string[]}
      * @default undefined
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -821,13 +1044,14 @@ export default (): Record<string, unknown> => {
      * - [Column header](@/guides/columns/column-header/column-header.md)
      * - [`title`](#title)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean|string[]|Function}
      * @default null
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -862,7 +1086,7 @@ export default (): Record<string, unknown> => {
      * `-1` is the header row closest to the data, `-2` is one level above, and so on.
      * This option requires the [`nestedHeaders`](#nestedHeaders) plugin to be configured.
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * Read more:
@@ -874,6 +1098,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean|object[]}
      * @default undefined
      * @category CollapsibleColumns
+     * @configScope grid
      *
      * @example
      * ```js
@@ -895,23 +1120,37 @@ export default (): Record<string, unknown> => {
      *
      * You can set the `columnHeaderHeight` option to one of the following:
      *
-     * | Setting  | Description                                         |
-     * | -------- | --------------------------------------------------- |
-     * | A number | Set the same height for every column header         |
-     * | An array | Set different heights for individual column headers |
+     * | Setting  | Description                                                     |
+     * | -------- | --------------------------------------------------------------- |
+     * | A number | Set the same height for every column header                     |
+     * | A string | Set the same height, written as a pixel size (`'25'`, `'25px'`)  |
+     * | An array | Set different heights for individual column headers             |
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * The height is a number of pixels. A string that states a pixel size works too, either as a bare
+     * number (`'25'`) or with the unit (`'25px'`), so a value coming from an attribute or a JSON
+     * config still applies. Both forms may be mixed inside the array. A value that is not a pixel
+     * size, such as `'50%'` or `'20em'`, is ignored and the default height is used instead.
+     *
+     * A negative number is kept as it is, because numbers keep the behavior they had before this
+     * option read strings at all. A negative string is rejected instead, so a typo cannot collapse
+     * the header.
+     *
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
-     * @type {number|number[]}
+     * @type {number|number[]|string|string[]|Array<number|string>}
      * @default undefined
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
      * // set the same height for every column header
      * columnHeaderHeight: 25,
+     *
+     * // set the same height, written as a pixel size
+     * columnHeaderHeight: '25px',
      *
      * // set different heights for individual column headers
      * columnHeaderHeight: [25, 30, 55],
@@ -921,30 +1160,31 @@ export default (): Record<string, unknown> => {
 
     /**
      * @description
-     * The `columns` option lets you apply any other [configuration options](@/guides/getting-started/configuration-options/configuration-options.md) to individual columns (or ranges of columns).
+     * The `columns` option lets you apply any other [configuration options](@/guides/configuration/configuration-options/configuration-options.md) to individual columns (or ranges of columns).
      *
      * You can set the `columns` option to one of the following:
      * - An array of objects (each object represents one column)
      * - A function that returns an array of objects
      *
-     * The `columns` option overwrites the [top-level grid options](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * The `columns` option overwrites the [top-level grid options](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      *
      * When you use `columns`, the [`startCols`](#startCols), [`minCols`](#minCols), and [`maxCols`](#maxCols) options are ignored.
      *
      * Read more:
-     * - [Configuration options: Setting column options](@/guides/getting-started/configuration-options/configuration-options.md#set-column-options)
+     * - [Setting options: Setting column options](@/guides/configuration/configuration-options/configuration-options.md#set-column-options)
      * - [`startCols`](#startCols)
      * - [`minCols`](#minCols)
      * - [`maxCols`](#maxCols)
      * - [`data`](#data)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {object[]|Function}
      * @default undefined
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -1020,6 +1260,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean|object}
      * @default undefined
      * @category ColumnSorting
+     * @configScope grid columns
      *
      * @example
      * ```js
@@ -1079,13 +1320,14 @@ export default (): Record<string, unknown> => {
      * - [Column summary](@/guides/columns/column-summary/column-summary.md)
      * - [Plugins: `ColumnSummary`](@/api/columnSummary.md)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {object[]|Function}
      * @default undefined
      * @category ColumnSummary
+     * @configScope grid
      *
      * @example
      * ```js
@@ -1130,18 +1372,39 @@ export default (): Record<string, unknown> => {
      * of your columns. Otherwise, every column with an undefined width defaults back to 50px,
      * which may cut longer columns names.
      *
+     * A column resized by dragging keeps its width until the width is re-declared. Passing
+     * `colWidths` to [`updateSettings()`](@/api/core.md#updatesettings) re-declares the widths and
+     * discards the ones stored by the {@link ManualColumnResize} plugin. To keep the stored widths,
+     * leave `colWidths` out of the call.
+     *
+     * Passing [`manualColumnResize`](#manualColumnResize) as an array in the same call **replaces**
+     * the stored widths with that array rather than keeping them.
+     *
+     * These cases never discard the stored widths:
+     *
+     * - A `colWidths` **function**. It states no fixed width, so it is left alone.
+     * - A grid whose `manualColumnResize` option is already a non-empty array. The plugin replays
+     *   that array, so the stored widths stay.
+     * - The React, Angular and Vue wrappers, when the `colWidths` prop did not change. An unchanged
+     *   prop is not forwarded, so re-applying the same value resets nothing.
+     *
+     * In each case, call
+     * [`ManualColumnResize#clearManualSizes()`](@/api/manualColumnResize.md#clearmanualsizes)
+     * followed by `render()`.
+     *
      * Read more:
      * - [Column width](@/guides/columns/column-width/column-width.md)
      * - [Hooks: `modifyColWidth`](@/api/hooks.md#modifyColWidth)
      * - [`autoColumnSize`](#autoColumnSize)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {number|number[]|string|string[]|Array<undefined>|Function}
      * @default undefined
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -1187,6 +1450,7 @@ export default (): Record<string, unknown> => {
      * @type {string}
      * @default 'htCommentCell'
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -1225,13 +1489,14 @@ export default (): Record<string, unknown> => {
      * - [`readOnly`](#readOnly)
      * - [`commentedCellClassName`](#commentedCellClassName)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean|object[]}
      * @default false
      * @category Comments
+     * @configScope grid
      *
      * @example
      * ```js
@@ -1275,13 +1540,14 @@ export default (): Record<string, unknown> => {
      * - [Context menu: Context menu with fully custom configuration options](@/guides/accessories-and-menus/context-menu/context-menu.md#context-menu-with-a-fully-custom-configuration)
      * - [Plugins: `ContextMenu`](@/api/contextMenu.md)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean|string[]|object}
      * @default undefined
      * @category ContextMenu
+     * @configScope grid
      *
      * @example
      * ```js
@@ -1334,13 +1600,14 @@ export default (): Record<string, unknown> => {
      *
      * Read more:
      * - [Clipboard](@/guides/cell-features/clipboard/clipboard.md)
-     * - [Configuration options: Cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
+     * - [Setting options: Cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
      * - [Password cell type](@/guides/cell-types/password-cell-type/password-cell-type.md)
      *
      * @memberof Options#
      * @type {boolean}
      * @default true
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -1401,13 +1668,14 @@ export default (): Record<string, unknown> => {
      * - [Plugins: `CopyPaste`](@/api/copyPaste.md)
      * - [Guides: Clipboard](@/guides/cell-features/clipboard/clipboard.md)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {object|boolean}
      * @default true
      * @category CopyPaste
+     * @configScope grid
      *
      * @example
      * ```js
@@ -1460,13 +1728,14 @@ export default (): Record<string, unknown> => {
      * - [`TableClassName`](#TableClassName)
      * - [`className`](#className)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {string}
      * @default undefined
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -1492,13 +1761,14 @@ export default (): Record<string, unknown> => {
      * - [`TableClassName`](#TableClassName)
      * - [`className`](#className)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {string}
      * @default 'ht__highlight'
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -1525,13 +1795,14 @@ export default (): Record<string, unknown> => {
      * - [`TableClassName`](#TableClassName)
      * - [`className`](#className)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {string}
      * @default undefined
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -1584,13 +1855,14 @@ export default (): Record<string, unknown> => {
      * - [Layout direction](@/guides/internationalization/layout-direction/layout-direction.md)
      * - [`layoutDirection`](#layoutDirection)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean|object[]}
      * @default false
      * @category CustomBorders
+     * @configScope grid
      *
      * @example
      * ```js
@@ -1681,6 +1953,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean|object}
      * @default false
      * @category CustomBorders
+     * @configScope grid
      *
      * @example
      * ```js
@@ -1716,13 +1989,14 @@ export default (): Record<string, unknown> => {
      * - [`startRows`](#startRows)
      * - [`startCols`](#startCols)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {Array[]|object[]}
      * @default undefined
      * @category Core
+     * @configScope grid columns
      *
      * @example
      * ```js
@@ -1759,7 +2033,7 @@ export default (): Record<string, unknown> => {
      * map cleanly to your backend. Pair with **`pagination`** for server-side paging.
      * Valid cell edits apply at once; if **`onRowsUpdate`** fails or **`beforeRowsMutation`** blocks the update, affected cells roll back.
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @since 17.1.0
@@ -1767,6 +2041,7 @@ export default (): Record<string, unknown> => {
      * @type {object}
      * @default undefined
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -1801,7 +2076,7 @@ export default (): Record<string, unknown> => {
      *
      * The option only works when defined in the global table settings.
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @since 14.4.0
@@ -1809,6 +2084,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean}
      * @default true
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -1852,13 +2128,14 @@ export default (): Record<string, unknown> => {
      * - [Binding to data: Function data source and schema](@/guides/getting-started/binding-to-data/binding-to-data.md#function-data-source-and-schema)
      * - [`data`](#data)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {object|Function}
      * @default undefined
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -1940,6 +2217,7 @@ export default (): Record<string, unknown> => {
      * @type {Intl.DateTimeFormatOptions}
      * @default { year: 'numeric', month: '2-digit', day: '2-digit' }
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -2004,6 +2282,7 @@ export default (): Record<string, unknown> => {
      * @type {object}
      * @default { hour: '2-digit', minute: '2-digit' }
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -2044,6 +2323,7 @@ export default (): Record<string, unknown> => {
      * @type {object}
      * @default { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -2081,8 +2361,8 @@ export default (): Record<string, unknown> => {
      * until the user confirms a selection.
      * :::
      *
-     * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
-     * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
+     * This option can be set at any level of the [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration):
+     * the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
      *
      * Read more:
      * - [Date cell type](@/guides/cell-types/date-cell-type/date-cell-type.md)
@@ -2092,6 +2372,7 @@ export default (): Record<string, unknown> => {
      * @type {string}
      * @default undefined
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -2133,6 +2414,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean|string|string[]}
      * @default false
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -2192,7 +2474,7 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Plugins: `Dialog`](@/api/dialog.md)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * The dialog is available on the main grid only. In a grid nested in a cell, that is a cell of the
@@ -2206,6 +2488,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean|object}
      * @default false
      * @category Dialog
+     * @configScope grid
      *
      * @example
      * ::: only-for javascript
@@ -2359,13 +2642,14 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Plugins: `DragToScroll`](@/api/dragToScroll.md)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean|object}
      * @default true
      * @category DragToScroll
+     * @configScope grid
      *
      * @example
      * ```js
@@ -2396,7 +2680,7 @@ export default (): Record<string, unknown> => {
      * | An array  | - Enable the [`DropdownMenu`](@/api/dropdownMenu.md) plugin<br>- Modify [individual context menu options](@/guides/accessories-and-menus/context-menu/context-menu.md#context-menu-with-specific-options) |
      * | An object | - Enable the [`DropdownMenu`](@/api/dropdownMenu.md) plugin<br>- Apply a custom dropdown menu configuration                                                                                  |
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It is not possible to show or hide the dropdown menu icon for individual columns using this option.
      *
      * Read more:
@@ -2407,6 +2691,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean|object|string[]}
      * @default undefined
      * @category DropdownMenu
+     * @configScope grid
      *
      * @example
      * ```js
@@ -2480,6 +2765,10 @@ export default (): Record<string, unknown> => {
      * | `Delete` / `Backspace`                  | Clear the contents of the selected cells                    |
      * | `Ctrl` + `Enter` / `Cmd` + `Enter`      | Fill selected cells with the value of the active cell       |
      *
+     * Setting the `editor` option to `true` names no editor, so Handsontable treats it as if the
+     * option was not set at all. The cell keeps the editor that its [`type`](#type) provides, or the
+     * editor inherited from a higher configuration level.
+     *
      * To set the [`editor`](#editor), [`renderer`](#renderer), and [`validator`](#validator)
      * options all at once, use the [`type`](#type) option.
      *
@@ -2487,13 +2776,14 @@ export default (): Record<string, unknown> => {
      * - [Keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md)
      * - [Cell editor](@/guides/cell-functions/cell-editor/cell-editor.md)
      * - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
-     * - [Configuration options: Cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
+     * - [Setting options: Cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
      * - [`type`](#type)
      *
      * @memberof Options#
      * @type {string|Function|boolean}
      * @default undefined
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -2543,9 +2833,9 @@ export default (): Record<string, unknown> => {
      * | `loading`     | `boolean`       | When `true`, shows a loading spinner (used for server fetch state). |
      *
      * If you set the `message` option to a function, the `source` argument can be `"unknown"`, `"filters"`, or `"loading"`.
-     * With [[Options#dataProvider]], the `"loading"` branch follows DataProvider fetch hooks (`beforeDataProviderFetch`,
+     * With {@link Options#dataProvider}, the `"loading"` branch follows DataProvider fetch hooks (`beforeDataProviderFetch`,
      * `afterDataProviderFetch`, and related hooks) using the same rules as server-backed loading in the DataProvider plugin.
-     * Internal refetches (for example after column sort or CRUD) set `skipLoading` on [[Hooks#beforeDataProviderFetch]] so the
+     * Internal refetches (for example after column sort or CRUD) set `skipLoading` on {@link Hooks#beforeDataProviderFetch} so the
      * EmptyDataState plugin can omit the loading overlay for those requests.
      *
      * If you set the `buttons` option to an array, each item requires following properties:
@@ -2559,7 +2849,7 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Plugins: `EmptyDataState`](@/api/emptyDataState.md)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * The empty data state is available on the main grid only. In a grid nested in a cell, that is a
@@ -2574,6 +2864,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean|object}
      * @default false
      * @category EmptyDataState
+     * @configScope grid
      *
      * @example
      * ```js
@@ -2634,13 +2925,14 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [`enterMoves`](#enterMoves)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean}
      * @default true
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -2662,6 +2954,7 @@ export default (): Record<string, unknown> => {
      * @default true
      * @since 17.0.0
      * @category Core
+     * @configScope grid columns cells cell
      * @example
      * ```js
      * columns: [{
@@ -2698,13 +2991,14 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [`enterBeginsEditing`](#enterBeginsEditing)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {object|Function}
      * @default {col: 0, row: 1}
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -2747,6 +3041,7 @@ export default (): Record<string, unknown> => {
      * @default undefined
      * @since 17.1.0
      * @category ExportFile
+     * @configScope grid
      *
      * @example
      * ```js
@@ -2780,16 +3075,23 @@ export default (): Record<string, unknown> => {
      * | `autoInsertRow` | `true` (default) \| `false`    | `true`: When you reach the grid's bottom, add new rows<br>`false`: When you reach the grid's bottom, stop |
      * | `direction`     | `'vertical'` \| `'horizontal'` | `'vertical'`: Enable vertical autofill<br>`'horizontal'`: Enable horizontal autofill                      |
      *
+     * The `autoInsertRow` default above applies once you set `fillHandle` yourself, to any of the values in the first
+     * table. Leave `fillHandle` unset and the grid does not append rows when you drag the fill handle below the last
+     * row. Setting `direction` to `'horizontal'` also turns `autoInsertRow` off.
+     *
+     * Rows appended this way bypass [`allowInsertRow`](#allowInsertRow): only `autoInsertRow` governs them.
+     *
      * Read more:
      * - [AutoFill values](@/guides/cell-features/autofill-values/autofill-values.md)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean|string|object}
-     * @default true
+     * @default { autoInsertRow: false }
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -2843,6 +3145,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean}
      * @default true
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -2879,6 +3182,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean}
      * @default false
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -2924,13 +3228,14 @@ export default (): Record<string, unknown> => {
      * - [Plugins: `Filters`](@/api/filters.md)
      * - [`dropdownMenu`](#dropdownMenu)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean}
      * @default undefined
      * @category Filters
+     * @configScope grid
      *
      * @example
      * ```js
@@ -2947,6 +3252,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean}
      * @default true
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -2970,13 +3276,14 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [`fixedColumnsStart`](#fixedcolumnsstart)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {number}
      * @default 0
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -2991,19 +3298,26 @@ export default (): Record<string, unknown> => {
      *
      * If your grid's [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is RTL, the `fixedColumnsStart` option sets the number of [frozen columns](@/guides/columns/column-freezing/column-freezing.md) at the right-hand edge of the grid.
      *
+     * ::: tip
+     * Freeze only as many columns as fit within the grid's width. Frozen columns are always drawn in full.
+     * If they need more space than the grid has, they cover the whole grid. You can then no longer scroll
+     * the remaining columns into view.
+     * :::
+     *
      * Read more:
      * - [Column freezing](@/guides/columns/column-freezing/column-freezing.md)
      * - [Layout direction](@/guides/internationalization/layout-direction/layout-direction.md)
      * - [`fixedColumnsLeft`](#fixedcolumnsleft)
      * - [`layoutDirection`](#layoutDirection)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {number}
      * @default 0
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -3038,17 +3352,24 @@ export default (): Record<string, unknown> => {
      * no vertical scrollbar is created and the fixed bottom rows area is not displayed.
      * :::
      *
+     * ::: tip
+     * Freeze only as many rows as fit within the grid's height. Frozen rows are always drawn in full.
+     * If they need more space than the grid has, they cover the whole grid. You can then no longer scroll
+     * the remaining rows into view.
+     * :::
+     *
      * Read more:
      * - [Row freezing](@/guides/rows/row-freezing/row-freezing.md)
      * - [`height`](#height)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {number}
      * @default 0
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -3067,17 +3388,24 @@ export default (): Record<string, unknown> => {
      * no vertical scrollbar is created and the fixed top rows area is not displayed.
      * :::
      *
+     * ::: tip
+     * Freeze only as many rows as fit within the grid's height. Frozen rows are always drawn in full.
+     * If they need more space than the grid has, they cover the whole grid. You can then no longer scroll
+     * the remaining rows into view.
+     * :::
+     *
      * Read more:
      * - [Row freezing](@/guides/rows/row-freezing/row-freezing.md)
      * - [`height`](#height)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {number}
      * @default 0
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -3119,13 +3447,14 @@ export default (): Record<string, unknown> => {
      * - [HyperFormula documentation: Client-side installation](https://handsontable.github.io/hyperformula/guide/client-side-installation)
      * - [HyperFormula documentation: Configuration options](https://handsontable.github.io/hyperformula/api/interfaces/configparams.html)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {object}
      * @default undefined
      * @category Formulas
+     * @configScope grid
      *
      * @example
      * ```js
@@ -3219,13 +3548,20 @@ export default (): Record<string, unknown> => {
      * When [`selectionMode`](@/api/options.md#selectionmode) is set to `'single'`, copying is
      * limited to a single cell.
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * A text selection cannot span a frozen area and the rest of the grid, because the two are
+     * rendered as separate tables. Selecting text inside a frozen row or column works, but as soon
+     * as you drag the pointer out of the area you started in, the selection is cleared.
+     *
+     * Headers are not selectable, whether or not they are frozen.
+     *
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean|string}
      * @default false
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -3249,6 +3585,7 @@ export default (): Record<string, unknown> => {
      * @type {number}
      * @default undefined
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -3275,6 +3612,7 @@ export default (): Record<string, unknown> => {
      * @type {number}
      * @default undefined
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -3298,6 +3636,7 @@ export default (): Record<string, unknown> => {
      * @type {string}
      * @default '*'
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -3321,6 +3660,7 @@ export default (): Record<string, unknown> => {
      * @type {string}
      * @default undefined
      * @category Core
+     * @configScope grid columns
      *
      * @example
      * ```js
@@ -3349,7 +3689,7 @@ export default (): Record<string, unknown> => {
      * | `'auto'`                                                                   | `height: 'auto'`           |
      * | A function that returns a valid number or string                           | `height() { return 500; }` |
      *
-     * ### How `'auto'` differs from leaving `height` unset
+     * #### How `'auto'` differs from leaving `height` unset
      *
      * When you set `height: 'auto'`, Handsontable writes `height: auto; overflow: clip;`
      * as inline styles on the root element. The grid then grows to match its content height.
@@ -3371,13 +3711,14 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Grid size](@/guides/getting-started/grid-size/grid-size.md)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {number|'auto'|string|Function}
      * @default undefined
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -3421,13 +3762,14 @@ export default (): Record<string, unknown> => {
      * - [Plugins: `HiddenColumns`](@/api/hiddenColumns.md)
      * - [Column hiding](@/guides/columns/column-hiding/column-hiding.md)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean|object}
      * @default undefined
      * @category HiddenColumns
+     * @configScope grid
      *
      * @example
      * ```js
@@ -3470,13 +3812,14 @@ export default (): Record<string, unknown> => {
      * - [Plugins: `HiddenRows`](@/api/hiddenRows.md)
      * - [Row hiding](@/guides/rows/row-hiding/row-hiding.md)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean|object}
      * @default undefined
      * @category HiddenRows
+     * @configScope grid
      *
      * @example
      * ```js
@@ -3503,7 +3846,7 @@ export default (): Record<string, unknown> => {
      * Note: The `initialState` option is ignored when passed to the
      * [`updateSettings()`](@/api/core.md#updatesettings) method.
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @since 16.1.0
@@ -3511,6 +3854,7 @@ export default (): Record<string, unknown> => {
      * @type {object | undefined}
      * @default undefined
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -3542,6 +3886,7 @@ export default (): Record<string, unknown> => {
      * @type {string}
      * @default 'htInvalid'
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -3558,13 +3903,14 @@ export default (): Record<string, unknown> => {
      *
      * Enabling this option can make a negative impact on how some screen readers handle reading the table cells.
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @since 14.0.0
      * @memberof Options#
      * @type {boolean}
      * @category Core
+     * @configScope grid
      */
     imeFastEdit: false,
 
@@ -3575,7 +3921,7 @@ export default (): Record<string, unknown> => {
      * The `isEmptyCol` setting overwrites the built-in [`isEmptyCol`](@/api/core.md#isEmptyCol) method.
      * The function receives a visual column index and must return a `boolean`.
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
@@ -3583,6 +3929,7 @@ export default (): Record<string, unknown> => {
      * @param {number} col Visual column index.
      * @returns {boolean}
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -3596,24 +3943,26 @@ export default (): Record<string, unknown> => {
     isEmptyCol(this: HotInstance, col: number) {
       let row;
       let value;
-      const hasExplicitSchema = !!this.getSettings().dataSchema;
+      const { dataSchema, dataDotNotation } = this.getSettings();
+      const hasExplicitSchema = !!dataSchema;
       const schema = this.getSchema() as Record<string | number, unknown>;
       const prop = this.colToProp(col);
       const rowLen = this.countRows();
+      const schemaDefault = getSchemaDefault(schema, prop, dataDotNotation, hasExplicitSchema);
 
       for (row = 0; row < rowLen; row++) {
         value = this.getDataAtCell(row, col);
 
         if (isEmpty(value) === false) {
           if (typeof value === 'object') {
-            if (isObjectEqual(schema[prop] as object | unknown[], value as object | unknown[]) === false) {
+            if (isObjectEqual(schemaDefault, value) === false) {
               return false;
             }
 
             continue;
           }
 
-          if (hasExplicitSchema && schema[prop] === value) {
+          if (hasExplicitSchema && schemaDefault === value) {
             continue;
           }
 
@@ -3631,7 +3980,7 @@ export default (): Record<string, unknown> => {
      * The `isEmptyRow` setting overwrites the built-in [`isEmptyRow`](@/api/core.md#isEmptyRow) method.
      * The function receives a visual row index and must return a `boolean`.
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
@@ -3639,6 +3988,7 @@ export default (): Record<string, unknown> => {
      * @param {number} row Visual row index.
      * @returns {boolean}
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -3652,7 +4002,8 @@ export default (): Record<string, unknown> => {
     isEmptyRow(this: HotInstance, row: number) {
       let col;
       let value;
-      const hasExplicitSchema = !!this.getSettings().dataSchema;
+      const { dataSchema, dataDotNotation } = this.getSettings();
+      const hasExplicitSchema = !!dataSchema;
       const schema = this.getSchema() as Record<string | number, unknown>;
       const colLen = this.countCols();
 
@@ -3661,16 +4012,17 @@ export default (): Record<string, unknown> => {
 
         if (isEmpty(value) === false) {
           const prop = this.colToProp(col);
+          const schemaDefault = getSchemaDefault(schema, prop, dataDotNotation, hasExplicitSchema);
 
           if (typeof value === 'object') {
-            if (isObjectEqual(schema[prop] as object | unknown[], value as object | unknown[]) === false) {
+            if (isObjectEqual(schemaDefault, value) === false) {
               return false;
             }
 
             continue;
           }
 
-          if (hasExplicitSchema && schema[prop] === value) {
+          if (hasExplicitSchema && schemaDefault === value) {
             continue;
           }
 
@@ -3701,6 +4053,7 @@ export default (): Record<string, unknown> => {
      * @type {object}
      * @default undefined
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -3720,7 +4073,7 @@ export default (): Record<string, unknown> => {
      * column sorting labels, validation messages, and other user-visible text. It does not affect the locale
      * used for number or date formatting - use the [`locale`](#locale) option for that.
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * You can set the `language` option to one of the following:
@@ -3758,6 +4111,7 @@ export default (): Record<string, unknown> => {
      * @type {string}
      * @default 'en-US'
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -3772,7 +4126,7 @@ export default (): Record<string, unknown> => {
      *
      * You can set the layout direction only at Handsontable's [initialization](@/guides/getting-started/installation/installation.md#initialize-handsontable). Any change of the `layoutDirection` option after the initialization (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method) is ignored.
      *
-     * You can set the `layoutDirection` option only [for the entire grid](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * You can set the `layoutDirection` option only [for the entire grid](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * You can't set it for individual columns, rows, or cells.
      *
      * You can set the `layoutDirection` option to one of the following strings:
@@ -3791,13 +4145,14 @@ export default (): Record<string, unknown> => {
      * - [`fixedColumnsStart`](#fixedcolumnsstart)
      * - [`customBorders`](#customBorders)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {string}
      * @default 'inherit'
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -3824,7 +4179,7 @@ export default (): Record<string, unknown> => {
      * modal layer, such as the dialog) are not orderable through this option. The license
      * notification is not orderable either; it always renders last in the `bottom` slot.
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @since 18.0.0
@@ -3832,6 +4187,7 @@ export default (): Record<string, unknown> => {
      * @type {object}
      * @default undefined
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -3857,13 +4213,14 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [License key](@/guides/getting-started/license-key/license-key.md)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {string}
      * @default undefined
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -3896,6 +4253,7 @@ export default (): Record<string, unknown> => {
      * @type {string}
      * @default 'en-US'
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -3945,7 +4303,7 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Plugins: `Loading`](@/api/loading.md)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * The loading indicator is available on the main grid only. In a grid nested in a cell, that is a
@@ -3960,6 +4318,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean|object}
      * @default false
      * @category Loading
+     * @configScope grid
      *
      * @example
      * ```js
@@ -3998,7 +4357,7 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Plugins: `Notification`](@/api/notification.md)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * Notifications are available on the main grid only. In a grid nested in a cell, that is a cell of
@@ -4012,6 +4371,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean|object}
      * @default false
      * @category Notification
+     * @configScope grid
      *
      * @example
      * ```js
@@ -4033,13 +4393,14 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Column freezing](@/guides/columns/column-freezing/column-freezing.md#user-triggered-freeze)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean}
      * @default undefined
      * @category ManualColumnFreeze
+     * @configScope grid
      *
      * @example
      * ```js
@@ -4063,13 +4424,14 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Column moving](@/guides/columns/column-moving/column-moving.md)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean|number[]}
      * @default undefined
      * @category ManualColumnMove
+     * @configScope grid
      *
      * @example
      * ```js
@@ -4104,13 +4466,14 @@ export default (): Record<string, unknown> => {
      * When you set initial widths through the array form, those columns are excluded from
      * [`stretchH`](#stretchh) redistribution. Only the columns without a pre-defined width are stretched.
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean|number[]}
      * @default undefined
      * @category ManualColumnResize
+     * @configScope grid
      *
      * @example
      * ```js
@@ -4141,13 +4504,14 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Row moving](@/guides/rows/row-moving/row-moving.md)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean|number[]}
      * @default undefined
      * @category ManualRowMove
+     * @configScope grid
      *
      * @example
      * ```js
@@ -4178,13 +4542,14 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Row height: Adjust the row height manually](@/guides/rows/row-height/row-height.md#adjust-the-row-height-manually)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean|number[]}
      * @default undefined
      * @category ManualRowResize
+     * @configScope grid
      *
      * @example
      * ```js
@@ -4208,13 +4573,14 @@ export default (): Record<string, unknown> => {
      * Handsontable trims columns from the right.
      * - At runtime: for example, when inserting columns.
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {number}
      * @default Infinity
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -4232,13 +4598,14 @@ export default (): Record<string, unknown> => {
      * Handsontable trims rows from the bottom.
      * - At runtime: for example, when inserting rows.
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {number}
      * @default Infinity
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -4256,6 +4623,7 @@ export default (): Record<string, unknown> => {
      * @type {number}
      * @default undefined
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -4293,8 +4661,16 @@ export default (): Record<string, unknown> => {
      * | `rowspan` | The width (as a number of rows) of the merged section      |
      * | `colspan` | The height (as a number of columns ) of the merged section |
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * A merged range clears the cells it covers. Re-applying the same value through
+     * [`updateSettings()`](@/api/core.md#updatesettings) clears only the cells that still hold a
+     * value, so a range that is already empty fires no `beforeChange` or `afterChange` event. Values
+     * that come back into a covered range — through new `data`, a sort, a filter, or a row move — are
+     * cleared on the next re-apply, as before. This assumes the clearing write reaches the data:
+     * cancel it (a `beforeChange` returning `false`, or a validator rejecting `null`) and every
+     * re-apply tries again.
      *
      * Read more:
      * - [Merge cells](@/guides/cell-features/merge-cells/merge-cells.md)
@@ -4303,6 +4679,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean|object[]}
      * @default false
      * @category MergeCells
+     * @configScope grid
      *
      * @example
      * ```js
@@ -4352,13 +4729,14 @@ export default (): Record<string, unknown> => {
      * - The [`dataSchema`](#dataSchema) option
      * - The [`columns`](#columns) option
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {number}
      * @default 0
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -4373,7 +4751,7 @@ export default (): Record<string, unknown> => {
      *
      * See the [`rowHeights`](#rowHeights) option description for more information.
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @since 16.2.0
@@ -4381,6 +4759,7 @@ export default (): Record<string, unknown> => {
      * @type {number|number[]|string|string[]|Array<undefined>|Function}
      * @default undefined
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -4411,13 +4790,14 @@ export default (): Record<string, unknown> => {
      * Handsontable adds empty rows at the bottom.
      * - At runtime: for example, when removing rows.
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {number}
      * @default 0
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -4443,13 +4823,14 @@ export default (): Record<string, unknown> => {
      * - The [`dataSchema`](#dataSchema) option
      * - The [`columns`](#columns) option
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {number}
      * @default 0
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -4468,13 +4849,14 @@ export default (): Record<string, unknown> => {
      *
      * The total number of rows can't exceed the [`maxRows`](#maxRows) value.
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {number}
      * @default 0
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -4524,6 +4906,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean|object}
      * @default undefined
      * @category MultiColumnSorting
+     * @configScope grid columns
      *
      * @example
      * ```js
@@ -4561,7 +4944,7 @@ export default (): Record<string, unknown> => {
     /**
      * When set to `true`, the `navigableHeaders` option lets you navigate [row headers](@/guides/rows/row-header/row-header.md) and [column headers](@/guides/columns/column-header/column-header.md), using the arrow keys or the <kbd>**Tab**</kbd> key (if the [`tabNavigation`](#tabNavigation) option is set to `true`).
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @since 14.0.0
@@ -4569,6 +4952,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean}
      * @default false
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -4587,7 +4971,7 @@ export default (): Record<string, unknown> => {
      * no more captures that shortcuts to make the grid navigation available (`tabNavigation: true`)
      * but returns control to the browser so the native page navigation is possible.
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @since 14.0.0
@@ -4595,6 +4979,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean}
      * @default true
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -4664,13 +5049,14 @@ export default (): Record<string, unknown> => {
      * - [Column groups: Nested headers](@/guides/columns/column-groups/column-groups.md#nested-headers)
      * - [Column groups: Choose which columns stay visible when collapsed](@/guides/columns/column-groups/column-groups.md#choose-which-columns-stay-visible-when-collapsed)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean|Array[]}
      * @default undefined
      * @category NestedHeaders
+     * @configScope grid
      *
      * @example
      * ```js
@@ -4706,7 +5092,7 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Plugins: `NestedRows`](@/guides/rows/row-parent-child/row-parent-child.md)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @example
@@ -4719,6 +5105,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean}
      * @default false
      * @category NestedRows
+     * @configScope grid
      */
     nestedRows: undefined,
 
@@ -4742,6 +5129,7 @@ export default (): Record<string, unknown> => {
      * @type {string}
      * @default 'htNoWrap'
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -4828,6 +5216,7 @@ export default (): Record<string, unknown> => {
      * @type {object}
      * @default undefined
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -4874,6 +5263,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean}
      * @default false
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -4897,13 +5287,14 @@ export default (): Record<string, unknown> => {
      * Handsontable automatically triggers a rerender to ensure correct layout and dimensions.
      * Set this option to `false` if you want to control rendering manually (e.g. by calling `render()` yourself).
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean}
      * @default true
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -4925,13 +5316,14 @@ export default (): Record<string, unknown> => {
      * | `false`          | On a mouse click outside of the grid, keep the current [selection](@/guides/cell-features/selection/selection.md)  |
      * | A function       | A function that takes the click event target and returns a boolean                                       |
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean|Function}
      * @default true
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -4983,7 +5375,7 @@ export default (): Record<string, unknown> => {
      * - [Rows pagination](@/guides/rows/rows-pagination/rows-pagination.md)
      * - [Plugins: `Pagination`](@/api/pagination.md)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * Pagination is available on the main grid only. In a grid nested in a cell, that is a cell of the
@@ -4997,6 +5389,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean}
      * @default undefined
      * @category Pagination
+     * @configScope grid
      *
      * @example
      * ```js
@@ -5023,6 +5416,7 @@ export default (): Record<string, unknown> => {
      * @type {string}
      * @default undefined
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -5065,6 +5459,7 @@ export default (): Record<string, unknown> => {
      * @type {string}
      * @default 'htPlaceholder'
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -5109,6 +5504,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean}
      * @default false
      * @category Formulas
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -5139,13 +5535,14 @@ export default (): Record<string, unknown> => {
      * | `'horizontal'`      | Prevent horizontal overflowing |
      * | `'vertical'`        | Prevent vertical overflowing   |
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {string|boolean}
      * @default false
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -5171,6 +5568,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean}
      * @default false
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -5195,12 +5593,13 @@ export default (): Record<string, unknown> => {
      *
      * Read more:
      * - [Read-only cells](@/guides/cell-features/read-only-cells/read-only-cells.md)
-     * - [Configuration options: Cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
+     * - [Setting options: Cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
      *
      * @memberof Options#
      * @type {boolean}
      * @default false
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -5252,6 +5651,7 @@ export default (): Record<string, unknown> => {
      * @type {string}
      * @default 'htDimmed'
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -5276,13 +5676,14 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Row virtualization](@/guides/rows/row-virtualization/row-virtualization.md)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean}
      * @default false
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -5291,6 +5692,63 @@ export default (): Record<string, unknown> => {
      * ```
      */
     renderAllRows: false,
+
+    /**
+     * @description
+     * The `renderMode` option decides when a cell is painted during a render.
+     *
+     * You can set the `renderMode` option to one of the following:
+     *
+     * | Setting              | Description                                                                                                                                                                                                   |
+     * | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `'always'` (default) | The cell is painted on every render.                                                                                                                                                                          |
+     * | `'onChange'`         | The cell is painted only when the element it lands in showed something else after its last paint: another cell, another value, another renderer, a changed cell meta (through [`setCellMeta()`](@/api/core.md#setcellmeta) or the [`cells`](#cells) function), or a structural change of the grid. |
+     *
+     * Under `'onChange'`, a render skips the cells whose paint would produce the same result as their
+     * last paint. Some changes are not detected, because nothing in the grid sees them:
+     * - a meta object mutated directly (`getCellMeta(row, col).x = y`, including inside the
+     * [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta) and [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta) hooks),
+     * - a value object mutated in place (the grid compares values by identity),
+     * - state outside the grid that a renderer reads,
+     * - a renderer that reads the data of other cells, such as the checkbox renderer with
+     * [`label.property`](#label).
+     *
+     * Set `renderMode: 'always'` on such cells, or mark them with
+     * [`markCellChanged()`](@/api/core.md#markcellchanged) before rendering. A [`cells`](#cells)
+     * function result is compared value by value, so return the same references for an unchanged
+     * result: a renderer function created on every call counts as a change on every render.
+     *
+     * The option cascades, so a single column of slow renderers can use `'onChange'` while the rest of
+     * the grid keeps the default.
+     *
+     * Read more:
+     * - [Understanding rendering](@/guides/optimization/rendering/rendering.md)
+     * - [`markCellChanged()`](@/api/core.md#markcellchanged)
+     * - [`markAllCellsChanged()`](@/api/core.md#markallcellschanged)
+     *
+     * @memberof Options#
+     * @type {string}
+     * @default 'always'
+     * @category Core
+     * @configScope grid columns cells cell
+     * @since 18.2.0
+     *
+     * @example
+     * ```js
+     * // paint every cell on every render (default)
+     * renderMode: 'always',
+     *
+     * // paint only the cells that changed
+     * renderMode: 'onChange',
+     *
+     * // skip unchanged cells in one slow column only
+     * columns: [
+     *   { data: 'chart', renderer: chartRenderer, renderMode: 'onChange' },
+     *   { data: 'name' },
+     * ],
+     * ```
+     */
+    renderMode: 'always',
 
     /**
      * The `renderAllColumns` option configures Handsontable's [column virtualization](@/guides/columns/column-virtualization/column-virtualization.md).
@@ -5307,7 +5765,7 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Column virtualization](@/guides/columns/column-virtualization/column-virtualization.md)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @since 14.1.0
@@ -5315,6 +5773,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean}
      * @default false
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -5354,13 +5813,14 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md)
      * - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
-     * - [Configuration options: Cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
+     * - [Setting options: Cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
      * - [`type`](#type)
      *
      * @memberof Options#
      * @type {string|Function}
      * @default undefined
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -5426,13 +5886,14 @@ export default (): Record<string, unknown> => {
      *
      * Read more:
      * - [Cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md)
-     * - [Configuration options: Cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
+     * - [Setting options: Cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
      *
      * @memberof Options#
      * @since 17.0.0
      * @type {Function}
      * @default undefined
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -5508,13 +5969,14 @@ export default (): Record<string, unknown> => {
      * - [`renderer`](#renderer)
      * - [`valueFormatter`](#valueformatter)
      * - [`sourceDataValidator`](#sourcedatavalidator)
-     * - [Configuration options: Cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
+     * - [Setting options: Cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
      *
      * @memberof Options#
      * @since 17.0.0
      * @type {Function}
      * @default undefined
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -5564,13 +6026,14 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Row header](@/guides/rows/row-header/row-header.md)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean|string[]|Function}
      * @default undefined
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -5594,28 +6057,45 @@ export default (): Record<string, unknown> => {
      *
      * You can set the `rowHeaderWidth` option to one of the following:
      *
-     * | Setting  | Description                                     |
-     * | -------- | ----------------------------------------------- |
-     * | A number | Set the same width for every row header         |
-     * | An array | Set different widths for individual row headers |
+     * | Setting  | Description                                                    |
+     * | -------- | -------------------------------------------------------------- |
+     * | A number | Set the same width for every row header                        |
+     * | A string | Set the same width, written as a pixel size (`'25'`, `'25px'`) |
+     * | An array | Set different widths for individual row headers                |
+     *
+     * The width is a number of pixels. A string that states a pixel size works too, either as a bare
+     * number (`'25'`) or with the unit (`'25px'`), so a value coming from an attribute or a JSON
+     * config still applies. Both forms may be mixed inside the array.
+     *
+     * A value that is not a pixel size, such as `'50%'` or `'20em'`, is ignored and the default width
+     * is used instead. Inside an array, that applies per level, so one unreadable entry does not
+     * disturb the levels around it.
+     *
+     * A negative number is kept as it is, because numbers keep the behavior they had before this
+     * option read strings at all. A negative string is rejected instead, so a typo cannot collapse
+     * the header.
      *
      * Row headers have a fixed width. A label longer than that width is clipped, and unlike column
      * headers, the header does not grow to fit it. To size the header to its content instead, turn
      * on the [`autoRowHeaderSize`](#autoRowHeaderSize) plugin - it takes the width over, and this
      * option is then ignored.
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
-     * @type {number|number[]}
+     * @type {number|number[]|string|string[]|Array<number|string>}
      * @default undefined
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
      * // set the same width for every row header
      * rowHeaderWidth: 25,
+     *
+     * // set the same width, written as a pixel size
+     * rowHeaderWidth: '25px',
      *
      * // set different widths for individual row headers
      * rowHeaderWidth: [25, 30, 55],
@@ -5679,7 +6159,7 @@ export default (): Record<string, unknown> => {
      * grouped by length and only `samplingRatio` of each group are measured, so with the default of
      * `3` a fourth copy of the same label is still left out, however deep it sits.
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @since 18.2.0
@@ -5687,6 +6167,7 @@ export default (): Record<string, unknown> => {
      * @type {object|boolean}
      * @default undefined
      * @category AutoRowHeaderSize
+     * @configScope grid
      *
      * @example
      * ```js
@@ -5716,19 +6197,41 @@ export default (): Record<string, unknown> => {
      * | A function  | Set row heights dynamically,<br>on each render                                                      | `rowHeights(visualRowIndex) { return visualRowIndex * 10; }` |
      * | `undefined` | Used by the [modifyRowHeight](@/api/hooks.md#modifyRowHeight) hook,<br>to detect row height changes | `rowHeights: undefined`                                      |
      *
-     * The `rowHeights` option also sets the minimum row height that can be set
-     * via the {@link ManualRowResize} and {@link AutoRowSize} plugins (if they are enabled).
+     * When the {@link AutoRowSize} plugin is enabled, `rowHeights` sets the minimum row height, so a
+     * row still grows to fit its content.
+     *
+     * When {@link AutoRowSize} is disabled, a row resized by dragging keeps its height until the
+     * height is re-declared. Passing `rowHeights` or [`minRowHeights`](#minRowHeights) to
+     * [`updateSettings()`](@/api/core.md#updatesettings) re-declares the heights and discards the
+     * ones stored by the {@link ManualRowResize} plugin. To keep the stored heights, leave both
+     * options out of the call.
+     *
+     * Passing [`manualRowResize`](#manualRowResize) as an array in the same call **replaces** the
+     * stored heights with that array rather than keeping them.
+     *
+     * These cases never discard the stored heights:
+     *
+     * - A `rowHeights` **function**. It states no fixed height, so it is left alone.
+     * - A grid whose `manualRowResize` option is already a non-empty array. The plugin replays that
+     *   array, so the stored heights stay.
+     * - The React, Angular and Vue wrappers, when the `rowHeights` prop did not change. An unchanged
+     *   prop is not forwarded, so re-applying the same value resets nothing.
+     *
+     * In each case, call
+     * [`ManualRowResize#clearManualSizes()`](@/api/manualRowResize.md#clearmanualsizes) followed by
+     * `render()`.
      *
      * Read more:
      * - [Row height](@/guides/rows/row-height/row-height.md)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {number|number[]|string|string[]|Array<undefined>|Function}
      * @default undefined
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -5788,6 +6291,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean|object}
      * @default false
      * @category Search
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -5839,6 +6343,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean}
      * @default true
      * @category Core
+     * @configScope grid columns cells cell
      * @example
      * ```js
      * columns: [{
@@ -5868,13 +6373,14 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Selection: Selecting ranges](@/guides/cell-features/selection/selection.md#select-ranges)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {string}
      * @default 'multiple'
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -5902,13 +6408,14 @@ export default (): Record<string, unknown> => {
      * [`fixedRowsBottom`](#fixedrowsbottom), [`fixedColumnsStart`](#fixedcolumnsstart)). The option
      * has no effect when [`selectionMode`](#selectionmode) is `'single'`.
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      *
      * @since 18.1.0
      * @memberof Options#
      * @type {boolean}
      * @default false
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -5933,13 +6440,14 @@ export default (): Record<string, unknown> => {
      * the source may overlap read-only cells, because a move has to clear the source — a copy leaves the
      * source in place, so a read-only source cell blocks a move but not a copy.
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      *
      * @since 18.1.0
      * @memberof Options#
      * @type {boolean}
      * @default false
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -5967,6 +6475,7 @@ export default (): Record<string, unknown> => {
      * @type {string[]|object|Function}
      * @default undefined
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -6021,12 +6530,13 @@ export default (): Record<string, unknown> => {
      * | `true`            | - Disable pasting data into this column<br>- On pasting, paste data into the next column to the right |
      *
      * Read more:
-     * - [Configuration options: Setting column options](@/guides/getting-started/configuration-options/configuration-options.md#set-column-options)
+     * - [Setting options: Setting column options](@/guides/configuration/configuration-options/configuration-options.md#set-column-options)
      *
      * @memberof Options#
      * @type {boolean}
      * @default false
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -6055,12 +6565,13 @@ export default (): Record<string, unknown> => {
      * | `true`            | - Disable pasting data into this row<br>- On pasting, paste data into the row below |
      *
      * Read more:
-     * - [Configuration options: Setting row options](@/guides/getting-started/configuration-options/configuration-options.md#set-row-options)
+     * - [Setting options: Setting row options](@/guides/configuration/configuration-options/configuration-options.md#set-row-options)
      *
      * @memberof Options#
      * @type {boolean}
      * @default false
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -6097,6 +6608,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean}
      * @default true
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -6120,6 +6632,7 @@ export default (): Record<string, unknown> => {
      * @type {Function}
      * @default undefined
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -6150,6 +6663,10 @@ export default (): Record<string, unknown> => {
      * Note: When defining the `source` option as an array of objects with `key` and `value` properties, the data format for that cell
      * needs to be an object with `key` and `value` properties as well.
      *
+     * Note: When `source` is a function, Handsontable ignores a response that arrives after the editor closed - including
+     * a close you may not notice, such as scrolling the edited cell out of view - and it ignores a response that a newer
+     * query has superseded, which happens as you type. Call the callback whenever the request completes, even late.
+     *
      * Read more:
      * - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
      * - [Dropdown cell type](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md)
@@ -6162,6 +6679,7 @@ export default (): Record<string, unknown> => {
      * @type {Array|Function}
      * @default undefined
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -6214,13 +6732,14 @@ export default (): Record<string, unknown> => {
      * `startCols` and `minSpareCols`.
      * :::
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {number}
      * @default 5
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -6242,13 +6761,14 @@ export default (): Record<string, unknown> => {
      * `startRows` and `minSpareRows`.
      * :::
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {number}
      * @default 5
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -6279,13 +6799,14 @@ export default (): Record<string, unknown> => {
      * through pre-defined manual sizes are excluded from stretching. Only the remaining columns
      * are stretched to fill the container.
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {string}
      * @default 'none'
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -6306,8 +6827,8 @@ export default (): Record<string, unknown> => {
      * | `true`  | [Strict mode](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md#autocomplete-strict-mode)         | The end user:<br>- Can only choose one of suggested values<br>- Can't enter a custom value |
      * | `false` | [Flexible mode](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md#autocomplete-flexible-mode)     | The end user:<br>- Can choose one of suggested values<br>- Can enter a custom value        |
      *
-     * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
-     * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
+     * This option can be set at any level of the [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration):
+     * the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
      *
      * Read more:
      * - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
@@ -6317,6 +6838,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean}
      * @default undefined
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -6357,13 +6879,14 @@ export default (): Record<string, unknown> => {
      * - [`commentedCellClassName`](#commentedCellClassName)
      * - [`className`](#className)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {string|string[]}
      * @default undefined
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -6393,6 +6916,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean}
      * @default false
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -6416,13 +6940,14 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Themes](@/guides/styling/themes/themes.md)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {string|undefined}
      * @default undefined
      * @category Core
+     * @configScope grid
      * @since 15.0.0
      *
      * @example
@@ -6456,13 +6981,14 @@ export default (): Record<string, unknown> => {
      * - [Themes](@/guides/styling/themes/themes.md)
      * - [`themeName`](#themeName)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {ThemeBuilder|string|undefined}
      * @default undefined
      * @category Core
+     * @configScope grid
      * @since 17.0.0
      *
      * @example
@@ -6530,13 +7056,14 @@ export default (): Record<string, unknown> => {
      * - [`density`](#density)
      * - [`theme`](#theme)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {string|undefined}
      * @default undefined
      * @category Core
+     * @configScope grid
      * @since 18.1.0
      *
      * @example
@@ -6583,13 +7110,14 @@ export default (): Record<string, unknown> => {
      * - [`colorScheme`](#colorScheme)
      * - [`theme`](#theme)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {string|undefined}
      * @default undefined
      * @category Core
+     * @configScope grid
      * @since 18.1.0
      *
      * @example
@@ -6622,13 +7150,14 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Themes](@/guides/styling/themes/themes.md)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean}
      * @default true
      * @category Core
+     * @configScope grid
      * @since 17.0.0
      *
      * @example
@@ -6653,13 +7182,14 @@ export default (): Record<string, unknown> => {
      * | `row`    | Number | - On pressing <kbd>**Tab**</kbd>, move selection `row` rows down<br>- On pressing <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>, move selection `row` rows up              |
      * | `col`    | Number | - On pressing <kbd>**Tab**</kbd>, move selection `col` columns right<br>- On pressing <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>, move selection `col` columns left     |
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {object|Function}
      * @default {row: 0, col: 1}
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -6697,6 +7227,7 @@ export default (): Record<string, unknown> => {
      * @type {string}
      * @default undefined
      * @category Core
+     * @configScope columns
      *
      * @example
      * ```js
@@ -6731,8 +7262,8 @@ export default (): Record<string, unknown> => {
      * | `true` (default) | Make the dropdown/autocomplete list's width the same as the edited cell's width |
      * | `false`          | Expand the list to its content, but keep it at least as wide as the edited cell |
      *
-     * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
-     * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
+     * This option can be set at any level of the [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration):
+     * the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
      *
      * Read more:
      * - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
@@ -6742,6 +7273,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean}
      * @default true
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -6779,13 +7311,14 @@ export default (): Record<string, unknown> => {
      * - [Plugins: `TrimRows`](@/api/trimRows.md)
      * - [Row trimming](@/guides/rows/row-trimming/row-trimming.md)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean|number[]}
      * @default undefined
      * @category TrimRows
+     * @configScope grid
      *
      * @example
      * ```js
@@ -6814,6 +7347,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean}
      * @default true
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -6856,7 +7390,7 @@ export default (): Record<string, unknown> => {
      * - [Cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md)
      * - [Cell editor](@/guides/cell-functions/cell-editor/cell-editor.md)
      * - [Cell validator](@/guides/cell-functions/cell-validator/cell-validator.md)
-     * - [Configuration options: Cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
+     * - [Setting options: Cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
      * - [`renderer`](#renderer)
      * - [`editor`](#editor)
      * - [`validator`](#validator)
@@ -6867,6 +7401,7 @@ export default (): Record<string, unknown> => {
      * @type {string}
      * @default 'text'
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -6905,8 +7440,8 @@ export default (): Record<string, unknown> => {
      * Pair `uncheckedTemplate` with [`checkedTemplate`](#checkedTemplate) to define both states explicitly.
      * :::
      *
-     * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
-     * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
+     * This option can be set at any level of the [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration):
+     * the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
      *
      * Read more:
      * - [Checkbox cell type: Checkbox template](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md#checkbox-template)
@@ -6917,6 +7452,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean|string|number}
      * @default false
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -6957,13 +7493,14 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Undo and redo](@/guides/accessories-and-menus/undo-redo/undo-redo.md)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean}
      * @default undefined
      * @category UndoRedo
+     * @configScope grid
      *
      * @example
      * ```js
@@ -6985,8 +7522,8 @@ export default (): Record<string, unknown> => {
      * | A function           | Your [custom cell validator function](@/guides/cell-functions/cell-validator/cell-validator.md) |
      * | A regular expression | A regular expression used for cell validation                                    |
      *
-     * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
-     * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
+     * This option can be set at any level of the [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration):
+     * the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
      *
      * By setting the `validator` option to a string,
      * you can use one of the following [cell validator aliases](@/guides/cell-functions/cell-validator/cell-validator.md):
@@ -7008,13 +7545,14 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Cell validator](@/guides/cell-functions/cell-validator/cell-validator.md)
      * - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
-     * - [Configuration options: Cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
+     * - [Setting options: Cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)
      * - [`type`](#type)
      *
      * @memberof Options#
      * @type {Function|RegExp|string}
      * @default undefined
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -7085,6 +7623,7 @@ export default (): Record<string, unknown> => {
      * @type {function(*, CellMeta): (boolean)}
      * @default undefined
      * @category Core
+     * @configScope grid columns cells cell
      */
     sourceDataValidator: undefined,
 
@@ -7103,6 +7642,7 @@ export default (): Record<string, unknown> => {
      * @type {string}
      * @default undefined
      * @category Core
+     * @configScope grid columns cells cell
      */
     sourceDataWarningMessage: undefined,
 
@@ -7128,6 +7668,7 @@ export default (): Record<string, unknown> => {
      * @since 16.1.0
      * @default undefined
      * @category Core
+     * @configScope grid columns cells cell
      */
     valueGetter: undefined,
 
@@ -7153,8 +7694,97 @@ export default (): Record<string, unknown> => {
      * @since 16.1.0
      * @default undefined
      * @category Core
+     * @configScope grid columns cells cell
      */
     valueSetter: undefined,
+
+    /**
+     * @description
+     * The `emptyValue` option sets the value stored when a cell ends up empty.
+     *
+     * A cell can be emptied in several ways, and by default they do not agree on what to store. The
+     * <kbd>**Delete**</kbd> key, the [`setDataAtCell()`](@/api/core.md#setdataatcell) method, filling
+     * a blank cell across a range, and merging cells over data all store `null`. Clearing the
+     * [cell editor](@/guides/cell-functions/cell-editor/cell-editor.md) and confirming, or pasting a
+     * blank cell, store an empty string (`''`). Set `emptyValue` to `null` to make every one of those
+     * paths agree on `null`.
+     *
+     * The mapping is one-way: it rewrites an empty string to the value you set, and never the other
+     * way round. Paths that already store `null` are untouched.
+     *
+     * | Setting                 | Description                                                     |
+     * | ----------------------- | --------------------------------------------------------------- |
+     * | `''` (default)          | Leave an emptied cell as the empty string the write produced    |
+     * | `null`                  | Store `null` instead                                            |
+     * | `undefined`             | Same as the default — the option counts as unset                |
+     * | Any other value         | Store that value instead                                        |
+     *
+     * Set `emptyValue: null` when the cell's value leaves the grid — saved to a server, written to a
+     * database, or read by a formula. An empty string in a `numeric`, `date` or `time` column is a
+     * string where a number, a date or nothing at all is expected, and `''` is not the same value as
+     * `NULL` to a database. It also matches how spreadsheets tell a blank cell from an empty string:
+     * `ISBLANK()` is `true` for `null` and `false` for `''`.
+     *
+     * The option applies to every **write** path: the editor, a paste, a fill,
+     * [`setDataAtCell()`](@/api/core.md#setdataatcell) and
+     * [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell). Writing `''` through either API
+     * with `emptyValue: null` set stores `null`.
+     *
+     * ::: tip
+     * Loading data is not a write. [`loadData()`](@/api/core.md#loaddata),
+     * [`updateData()`](@/api/core.md#updatedata), the initial [`data`](#data) and
+     * `updateSettings({ data })` all bypass this option, so an `''` already present in the data you
+     * load stays an `''`. A grid can therefore hold both `''` and `null` at once. Normalize the data
+     * before you load it if that matters to you.
+     *
+     * Undo and redo are exempt too: they restore what the cell held before, verbatim.
+     * :::
+     *
+     * A [`valueSetter`](#valuesetter) runs first, so a custom setter that returns `''` still means
+     * "empty" and is mapped as well.
+     *
+     * A column whose configuration already gives `''` a meaning keeps it. In a `checkbox` column, an
+     * `''` used as [`checkedTemplate`](#checkedtemplate) or [`uncheckedTemplate`](#uncheckedtemplate)
+     * is one of the two states the column defines, not an empty cell. In an `autocomplete` or
+     * `dropdown` column, an `''` listed in [`source`](#source) is an option you can pick. Both keep
+     * storing `''`.
+     *
+     * ::: tip
+     * Only an array [`source`](#source) is checked this way. A function `source` answers through a
+     * callback, and the value is stored before that callback runs, so a blank option it returns goes
+     * unnoticed and `emptyValue` applies to the column like any other.
+     * :::
+     *
+     * ::: tip
+     * Pasting from outside the grid cannot preserve this distinction. A clipboard holding text or HTML
+     * has no way to mark a cell as `null`, so an empty pasted cell follows the `emptyValue` setting
+     * like any other emptied cell.
+     * :::
+     *
+     * This option can be set at any level of the [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration):
+     * the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
+     *
+     * @memberof Options#
+     * @since 18.3.0
+     * @type {*}
+     * @default ''
+     * @category Core
+     * @configScope grid columns cells cell
+     *
+     * @example
+     * ```js
+     * // store `null` in every emptied cell of the grid
+     * emptyValue: null,
+     *
+     * // or per column: keep text columns storing `''`, and store `null` in the typed ones
+     * columns: [
+     *   { data: 'name' },
+     *   { data: 'amount', type: 'numeric', emptyValue: null },
+     *   { data: 'due', type: 'date', emptyValue: null }
+     * ]
+     * ```
+     */
+    emptyValue: '',
 
     /**
      * @description
@@ -7188,13 +7818,14 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Performance: Define the number of pre-rendered rows and columns](@/guides/optimization/performance/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {number|'auto'}
      * @default 'auto'
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -7237,13 +7868,14 @@ export default (): Record<string, unknown> => {
      * - [Performance: Define the number of pre-rendered rows and columns](@/guides/optimization/performance/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
      * - [Column virtualization](@/guides/columns/column-virtualization/column-virtualization.md)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {number|'auto'}
      * @default 'auto'
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -7271,7 +7903,7 @@ export default (): Record<string, unknown> => {
      * - [Performance: Define the number of pre-rendered rows and columns](@/guides/optimization/performance/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
      * - [Column virtualization](@/guides/columns/column-virtualization/column-virtualization.md)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
@@ -7279,6 +7911,7 @@ export default (): Record<string, unknown> => {
      * @type {number|'auto'}
      * @default 0
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -7308,7 +7941,7 @@ export default (): Record<string, unknown> => {
      * - [Performance: Define the number of pre-rendered rows and columns](@/guides/optimization/performance/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
      * - [Row virtualization](@/guides/rows/row-virtualization/row-virtualization.md)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
@@ -7316,6 +7949,7 @@ export default (): Record<string, unknown> => {
      * @type {number|'auto'}
      * @default 0
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -7338,8 +7972,8 @@ export default (): Record<string, unknown> => {
      * space and show fewer rows than the `visibleRows` value. In such cases, the list is clipped to fit within the grid.
      * :::
      *
-     * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
-     * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
+     * This option can be set at any level of the [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration):
+     * the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
      *
      * Read more:
      * - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
@@ -7350,6 +7984,7 @@ export default (): Record<string, unknown> => {
      * @type {number}
      * @default 10
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -7407,6 +8042,7 @@ export default (): Record<string, unknown> => {
      * @type {number|'auto'|string|Function}
      * @default undefined
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -7445,8 +8081,8 @@ export default (): Record<string, unknown> => {
      * regardless of this setting.
      * :::
      *
-     * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
-     * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
+     * This option can be set at any level of the [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration):
+     * the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
      *
      * Read more:
      * - [`noWordWrapClassName`](#noWordWrapClassName)
@@ -7455,6 +8091,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean}
      * @default true
      * @category Core
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js
@@ -7502,7 +8139,9 @@ export default (): Record<string, unknown> => {
      * The function receives the raw HTML string and a second argument (source) naming the write surface
      * (`'header'`, `'password'`, `'contextMenu'`, `'selectEditor'`, `'dialog'`, `'notification'`,
      * `'CopyPaste.paste'`, `'CopyPaste.paste.sourceData'`), so you can apply different rules per source.
-     * It must return a string that is safe to assign to `innerHTML`.
+     * It must return a string that is safe to assign to `innerHTML`, or a `TrustedHTML` when the page
+     * enforces [Trusted Types](@/guides/security/security/security.md#trusted-types-and-csp). Handsontable
+     * passes the returned value to the DOM unchanged, so a `TrustedHTML` keeps its trust.
      *
      * In TypeScript, annotate that parameter with the exported `SanitizerContext` type
      * (see [TypeScript types](@/guides/tools-and-building/typescript-types/typescript-types.md))
@@ -7517,7 +8156,7 @@ export default (): Record<string, unknown> => {
      * This option is only respected when set in the table settings. It does not work when defined per column
      * or per cell (e.g. in `columns` or cell meta).
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @since 17.0.0
@@ -7525,6 +8164,7 @@ export default (): Record<string, unknown> => {
      * @type {function(string, SanitizerContext): string}
      * @default undefined
      * @category Core
+     * @configScope grid
      *
      * @example
      * ```js
@@ -7553,9 +8193,11 @@ export default (): Record<string, unknown> => {
      *
      * @example
      * ```js
-     * // Trusted Types: wrap sanitization in a policy so the sink accepts the result.
-     * // Add the policy name to the CSP trusted-types directive (e.g. trusted-types default handsontable).
-     * const policy = window.trustedTypes?.createPolicy('handsontable', {
+     * // Trusted Types: wrap sanitization in a policy so the sink accepts the result. Handsontable
+     * // needs no policy of its own - it builds its own markup as DOM nodes - so the directive only
+     * // has to name yours (e.g. trusted-types my-app-sanitizer). Name it after your application:
+     * // `createPolicy` throws when the same name is created twice.
+     * const policy = window.trustedTypes?.createPolicy('my-app-sanitizer', {
      *   createHTML: (input) => myLibrary.sanitize(input),
      * });
      *
@@ -7564,6 +8206,85 @@ export default (): Record<string, unknown> => {
      * ```
      */
     sanitizer: undefined,
+
+    /**
+     * The `textExtractor` option configures how grid content is turned into plain text for consumers
+     * that do not write to the DOM, such as an exported file.
+     *
+     * It is the counterpart to [`sanitizer`](#sanitizer). Read the pair as one idea:
+     *
+     * - `sanitizer` decides how content is written **to the screen** (HTML in, HTML out).
+     * - `textExtractor` decides how the same content becomes **text everywhere else** (HTML in, text out).
+     *
+     * The option exists because a header setting is also its display string. A header of
+     * `'<b>Total</b>'` renders as **Total** in the grid, and without this option the same header
+     * reaches a CSV file as the literal `<b>Total</b>`, so the file disagrees with the screen.
+     * Copying a header row to the clipboard carries the same markup.
+     *
+     * By default (when no extractor is set) content is exported exactly as it is stored, which is the
+     * behavior of every earlier version.
+     *
+     * Set `true` to use the built-in extraction, which returns the text the grid displays:
+     *
+     * ```js
+     * textExtractor: true,
+     * ```
+     *
+     * `false` behaves the same as leaving the option out, so you can pass a flag straight through
+     * without a ternary.
+     *
+     * Set a function for full control. It receives the content and the consumer surface, so you can
+     * apply different rules per surface. In TypeScript, annotate the second parameter with the
+     * exported `TextExtractorContext` type
+     * (see [TypeScript types](@/guides/tools-and-building/typescript-types/typescript-types.md))
+     * to get editor completion on the values below.
+     *
+     * The surfaces that pass a context today are `'ExportFile.columnHeader'`, `'ExportFile.rowHeader'`
+     * and `'CopyPaste.columnHeader'`. A plugin may pass a surface of its own, so treat the list as open.
+     *
+     * The built-in extraction runs a configured [`sanitizer`](#sanitizer) first, under the `'header'`
+     * surface, then reduces the result to text. That order matters: a sanitizer may remove content
+     * rather than only unwrap it, so extracting text from the unsanitized value would put content in
+     * a file that the grid never displayed. Parsing is also what turns entities back into the
+     * characters they stand for, so a header shown as `Tom & Jerry` is written to a file as
+     * `Tom & Jerry` rather than `Tom &amp; Jerry`.
+     *
+     * Values that are not strings are never passed to the extractor. A numeric header stays a number,
+     * so a spreadsheet still reads it as one.
+     *
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * @since 18.2.0
+     * @memberof Options#
+     * @type {boolean|function(string, TextExtractorContext): string}
+     * @default undefined
+     * @category Core
+     * @configScope grid
+     *
+     * @example
+     * ```js
+     * // Export headers as the text the grid displays
+     * textExtractor: true,
+     * ```
+     *
+     * @example
+     * ```js
+     * // Keep row headers as they are, reduce column headers to text
+     * textExtractor: (content, source) => {
+     *   if (source === 'ExportFile.rowHeader') {
+     *     return content;
+     *   }
+     *
+     *   const tpl = document.createElement('template');
+     *
+     *   tpl.innerHTML = content;
+     *
+     *   return tpl.content.textContent ?? '';
+     * },
+     * ```
+     */
+    textExtractor: undefined,
 
     /**
      * The `parsePastedValue` option determines how pasted content is written to cells when the user pastes
@@ -7591,6 +8312,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean}
      * @default false
      * @category CopyPaste
+     * @configScope grid columns cells cell
      *
      * @example
      * ```js

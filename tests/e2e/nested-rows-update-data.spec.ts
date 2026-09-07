@@ -174,7 +174,7 @@ test.describe('NestedRows collapsed parents across a data replacement', () => {
     expect(await nestedRows.visibleNames()).toEqual(['Root A', 'A-1', 'A-2', 'A-3']);
   });
 
-  test('leaves the selection inside the grid after the replay trims rows', async({ page, theme }) => {
+  test('never leaves the selection past the last row after the replay trims rows', async({ page, theme }) => {
     const nestedRows = new NestedRowsPage(page, theme);
 
     await nestedRows.goto();
@@ -186,11 +186,11 @@ test.describe('NestedRows collapsed parents across a data replacement', () => {
     // re-clamp it, so the highlight could end up past the last row.
     await nestedRows.updateData(tree(['A-2-a'], ['B-1']));
 
-    const highlightedRow = await nestedRows.highlightedRow();
-
-    expect(highlightedRow).not.toBeNull();
-    expect(highlightedRow).toBeLessThan(await nestedRows.countRows());
-    expect(await page.evaluate(row => window.hot.toPhysicalRow(row as number), highlightedRow)).not.toBeNull();
+    // The replay collapses the parents again, which trims the highlighted record away. The Core
+    // then DROPS the selection rather than sliding it onto whichever record inherited the
+    // coordinate - a write through a coordinate whose record is gone is what appends rows to the
+    // data set. See `tests/e2e/selection-trimmed-row.spec.ts` for the rule itself.
+    expect(await nestedRows.highlightedRow()).toBeNull();
   });
 
   test('keeps the collapsed parents when the data is replaced from inside an add-child', async({ page, theme }) => {

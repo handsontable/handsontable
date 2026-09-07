@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>fragmentSelection e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    // Null-prototype maps, so an inherited key ('constructor', 'toString', ...) cannot pass as a value.
+    const htThemes = Object.assign(Object.create(null), { main: 'main', horizon: 'horizon', classic: 'classic' });
+    const htBundles = Object.assign(Object.create(null), { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' });
+
+    window.htTheme = htThemes[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = htBundles[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+    /* Wide enough that a drag across a cell's text stays inside one cell on every theme. */
+    #grid { width: 620px; }
+  </style>
+</head>
+<body>
+  <!--
+    `fragmentSelection` lets the user select a fragment of a cell's text with the mouse. Frozen rows
+    and columns are rendered in overlay clones that sit BESIDE the master table in the DOM, so a
+    membership test against the master table alone rejects every frozen cell (#4980). Each cell holds
+    a long sentence so a drag has text to sweep across.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const SENTENCE = 'The quick brown fox jumps over the lazy dog';
+
+    const DATA = Array.from({ length: 6 }, (unusedRow, row) =>
+      Array.from({ length: 8 }, (unusedCol, col) => `R${row}C${col} ${SENTENCE}`));
+
+    // Stamps every cell so a locator can address it, in the master table and in every clone alike.
+    // Frozen cells therefore match twice — the page object scopes each lookup to one overlay.
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    let hot = null;
+
+    /**
+     * Rebuilds the grid so each test gets a fresh instance with no leftover selection state.
+     */
+    window.initFragmentSelectionGrid = function(overrides) {
+      if (hot) {
+        hot.destroy();
+      }
+
+      hot = new Handsontable(container, Object.assign({
+        data: DATA,
+        // Fixed sizes keep a cell wide and tall enough for a text drag on every theme.
+        colWidths: 200,
+        rowHeights: 40,
+        height: 300,
+        renderer: testIdRenderer,
+        licenseKey: 'non-commercial-and-evaluation',
+      }, overrides));
+
+      window.hot = hot;
+
+      return true;
+    };
+
+    /**
+     * Returns the text the browser currently reports as selected.
+     */
+    window.readTextSelection = function() {
+      return window.getSelection().toString();
+    };
+
+    /**
+     * Drops any existing text selection so a drag starts from a known state.
+     */
+    window.clearTextSelection = function() {
+      window.getSelection().removeAllRanges();
+
+      return true;
+    };
+
+    /**
+     * Forces a hit test at a point, which is how a drag gets paced.
+     *
+     * Playwright's synthetic mouse moves are fast enough that the browser merges them, and without a
+     * pause in between the selection border between two cells never becomes a move's target. Calling
+     * this after each step is what makes the drag behave like a real user's.
+     */
+    window.elementUnder = function(x, y) {
+      const el = document.elementFromPoint(x, y);
+
+      if (!el) {
+        return 'none';
+      }
+
+      if (String(el.className).indexOf('wtBorder') > -1) {
+        return 'border';
+      }
+
+      return el.closest('td') ? 'cell' : 'other';
+    };
+
+    let borderMoveCount = 0;
+
+    // Counts the mouse moves whose target was a selection border.
+    //
+    // A drag across a cell boundary passes over the border div that sits between the cells, and that
+    // element — rendered beside the table rather than inside it — is what a containment test can
+    // wrongly reject. The count is taken from the real `mousemove` targets, not from a hit test at
+    // the step positions: the border is crossed at an intermediate move, so sampling the steps
+    // reports zero even on a drag that did cross it. A test asserts this is above zero, so a gesture
+    // that stops reaching the border fails loudly instead of passing while covering nothing.
+    document.addEventListener('mousemove', (event) => {
+      const className = event.target && event.target.className ? String(event.target.className) : '';
+
+      if (className.indexOf('wtBorder') > -1) {
+        borderMoveCount += 1;
+      }
+    }, true);
+
+    /**
+     * Resets the count of mouse moves that landed on a selection border.
+     */
+    window.resetBorderMoveCount = function() {
+      borderMoveCount = 0;
+
+      return true;
+    };
+
+    /**
+     * Returns how many mouse moves have landed on a selection border since the last reset.
+     */
+    window.getBorderMoveCount = function() {
+      return borderMoveCount;
+    };
+
+    // Built on `load`, not during parsing. A container that still measures zero when Handsontable
+    // is constructed sends it down the hidden-init path, where the first render waits on an
+    // observer that never fires for an element that was visible all along — the grid then stays
+    // empty. `page.goto()` resolves on `load`, so the grid exists by the time a test runs.
+    window.addEventListener('load', () => window.initFragmentSelectionGrid({}));
+  </script>
+</body>
+</html>

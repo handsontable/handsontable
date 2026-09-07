@@ -234,7 +234,7 @@ export class App {
 
 ## Result
 
-Handsontable is installed and running in your Angular application. You can now [configure options](@/guides/getting-started/configuration-options/configuration-options.md) or [import only the modules you need](@/guides/tools-and-building/modules/modules.md) to reduce your bundle size.
+Handsontable is installed and running in your Angular application. You can now [configure options](@/guides/configuration/configuration-options/configuration-options.md) or [import only the modules you need](@/guides/tools-and-building/modules/modules.md) to reduce your bundle size.
 
 :::
 
@@ -429,7 +429,7 @@ The main Handsontable component is called `HotTable`.
 import { HotTable } from '@handsontable/react-wrapper';
 ```
 
-To set Handsontable's [configuration options](@/guides/getting-started/configuration-options/configuration-options.md), use `HotTable`'s props. For example:
+To set Handsontable's [configuration options](@/guides/configuration/configuration-options/configuration-options.md), use `HotTable`'s props. For example:
 
 ```jsx
 <HotTable
@@ -528,7 +528,7 @@ The main Handsontable component is called `HotTable`.
 import { HotTable } from '@handsontable/vue3';
 ```
 
-To set Handsontable's [configuration options](@/guides/getting-started/configuration-options/configuration-options.md), use `HotTable`'s props. For example:
+To set Handsontable's [configuration options](@/guides/configuration/configuration-options/configuration-options.md), use `HotTable`'s props. For example:
 
 ```html
 <HotTable

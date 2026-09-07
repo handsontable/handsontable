@@ -19,10 +19,12 @@ const {
  * `handsontable.exports` are the single definition of what that tree holds and how it is
  * addressed. By default the script enforces that definition and fails on an incomplete tree.
  *
- * `--partial` downgrades the completeness checks to warnings. Exactly one caller composes an
- * intentionally incomplete tree (the ES + CJS build job, which runs before the UMD bundles and
- * the theme stylesheets exist); everything else must build the whole package. Skipping the
- * checks is what let a preview package ship 18 stylesheets with 2 of them in the exports map.
+ * `--partial` downgrades the completeness checks to warnings. Only a tree that never reaches a
+ * registry may skip them – today the ES + CJS build job (it runs before the UMD bundles and the
+ * theme stylesheets exist) and the visual screenshot runs (they compose from whichever artifacts
+ * a given run has). Anything that publishes composes the whole package. Skipping the checks is
+ * what let a preview package ship 18 stylesheets with 2 of them in the exports map. Both call-site
+ * lists – strict and partial – are pinned by `test/__tests__/previewPackaging.unit.js`.
  */
 const IS_PARTIAL = process.argv.includes('--partial');
 const COMPLETENESS_ERRORS = [];
@@ -73,6 +75,56 @@ glob.sync('./**/*.d.ts', { cwd: TARGET_PATH, nodir: true }).forEach((dtsFile) =>
 });
 
 /**
+ * Translate a copy pattern into the pattern its files are addressed by inside the composed tree,
+ * by dropping the leading segments `pathSlice` drops off each matched path.
+ *
+ * `pathSlice` counts segments of a matched *path*, not of the pattern, so the two only line up
+ * while the sliced-off prefix is literal. Two constructs break the count outright: one `**` stands
+ * for any number of path segments, so a pattern sliced through it says nothing about where its
+ * files land; and a brace expands before the pattern is read segment by segment, so it may hold a
+ * separator that the split above shreds – `{types/a,b}` is not the two segments that split
+ * reports. The guard is deliberately broader than those two – it refuses any wildcard in the
+ * sliced prefix, `*`, `?` and a character class included, though none of them matches a separator
+ * and all of them do keep the count aligned. A wildcard prefix is not a known prefix, and this
+ * check exists to refuse what it cannot decide rather than to decide as much as it could.
+ *
+ * A pattern can also slice away to nothing, with a fully literal prefix – `types` at `pathSlice`
+ * 1 leaves no segment, and the copy step drops such a match into the root of the tree unnamed, so
+ * there is no pattern its files are addressed by either.
+ *
+ * Both cases are refusals – unverifiable rather than wrongly verified – and they are told apart,
+ * because a caller reporting the wildcard reason for a literal prefix would send a reader looking
+ * for a wildcard that is not there.
+ *
+ * @param {string} pattern The `handsontable.copy` pattern, e.g. a declaration glob under `types/`.
+ * @param {number} pathSlice How many leading path segments the copy step slices off.
+ * @returns {{pattern: string}|{refusal: string}} Either the translated pattern, or the reason it
+ * cannot be translated, phrased to follow a `because`.
+ */
+function toTargetPattern(pattern, pathSlice) {
+  const segments = pattern.split(/[\\/]/).filter(segment => segment !== '' && segment !== '.');
+
+  if (segments.slice(0, pathSlice).some(segment => /[*?[{]/.test(segment))) {
+    return { refusal: `its first ${pathSlice} sliced segment(s) are not literal` };
+  }
+
+  const targetSegments = segments.slice(pathSlice);
+
+  // The copy step builds its destination the same way round: it slices the matched path first and
+  // drops a single leading `../` only afterwards, that being the only position where it means
+  // anything.
+  if (targetSegments[0] === '..') {
+    targetSegments.shift();
+  }
+
+  if (targetSegments.length === 0) {
+    return { refusal: `slicing its first ${pathSlice} segment(s) leaves nothing to address the files by` };
+  }
+
+  return { pattern: targetSegments.join('/') };
+}
+
+/**
  * Copy necessary files we don't need to process.
  */
 FILES_TO_COPY.forEach((fileToCopy) => {
@@ -83,8 +135,32 @@ FILES_TO_COPY.forEach((fileToCopy) => {
   if (isPatternMode) {
     foundFiles = glob.sync(fileToCopy.pattern);
     // slice a path off the bottom of the paths e.g. for value 1 it
-    // slices path from `./types/base.d.ts` to `./base.d.ts`.
-    pathSlice = fileToCopy.pathSlice;
+    // slices path from `./types/base.d.ts` to `./base.d.ts`. The field is optional, and it is
+    // normalized here rather than read raw: `slice(undefined)` drops nothing while
+    // `slice(0, undefined)` keeps everything, so the two readings of the same entry disagree.
+    pathSlice = fileToCopy.pathSlice ?? 0;
+
+    if (foundFiles.length === 0) {
+      // No match means no destination is recorded, so the check below cannot see this entry at
+      // all. Ask the destination side instead: the tree may already carry the files from an
+      // artifact built elsewhere (the preview job extracts a `tmp/` composed in another job),
+      // which is legitimate; holding nothing addressed the way this entry addresses its files
+      // is an incomplete package. The source is absent by definition here, so this confirms the
+      // addressing, never that the files are the ones the entry meant.
+      const target = toTargetPattern(fileToCopy.pattern, pathSlice);
+
+      if (target.refusal) {
+        reportIncompleteness(
+          'The copy pattern matches nothing and cannot be checked against the package, because ' +
+          `${target.refusal}: ${fileToCopy.pattern}`
+        );
+
+      } else if (glob.sync(target.pattern, { cwd: TARGET_PATH, nodir: true }).length === 0) {
+        reportIncompleteness(
+          `The package holds no file the copy pattern declares: ${fileToCopy.pattern}`
+        );
+      }
+    }
   }
 
   foundFiles.forEach((file) => {

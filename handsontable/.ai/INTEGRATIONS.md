@@ -53,7 +53,7 @@ Handsontable is a frontend-only library with no built-in external API integratio
 - Key workflows: `test.yml`, `build-all.yml`, `code-quality.yml`, `publish.yml`
 
 **Visual Regression Testing:**
-- Argos CI (`@argos-ci/core` ^5.1.1) - Screenshot comparison service used in `visual-tests/`
+- reg-suit (`reg-suit` ^0.14.5) - Screenshot comparison used in `visual-tests/`; golden records and HTML diff reports are stored in Cloudflare R2
 - Playwright for screenshot capture
 
 **Documentation Search:**

@@ -38,7 +38,7 @@
 
 **Testing:**
 - Jest 27 - Unit tests (`handsontable/jest.config.js`, `*.unit.js` files, jsdom environment, `jest-jasmine2` runner)
-- Playwright 1.61 - **E2E (the paradigm for new tests, `tests/e2e/`)** and visual regression (`visual-tests/`, migrating into `tests/visual/`). One version across the monorepo via a pnpm catalog; CI runs the matching container image.
+- Playwright 1.62.1 - **E2E (the paradigm for new tests, `tests/e2e/`)** and visual regression (`visual-tests/`, migrating into `tests/visual/`). One version across the monorepo via a pnpm catalog; CI runs the matching container image (drift is caught by `playwright-version-sync.test.mjs` in the tooling gate).
 - Jasmine 3.4 + Puppeteer 24 - **LEGACY (frozen) E2E** browser tests (`*.spec.js`, headless Chrome). Add no new specs; migrate broken ones to Playwright. Walkontable (`test/spec/**`) is frozen the same way and has a Playwright home at `tests/e2e/walkontable/`; its Jasmine job and the Playwright e2e job run in parallel in CI.
 - `@testing-library/react` 14 - React wrapper tests
 - `@vue/test-utils` 2.0.0-rc.16 - Vue 3 wrapper tests
@@ -184,7 +184,8 @@
 - `manual-qa.yml` - the human merge gate, and a `CI Gate` dependency like every module above
 - `integration.yml` - wrapper tests, ESM/CJS format checks, pkg.pr.new PR package preview
 - `performance.yml` (PR) / `performance-tests.yml` (develop golden baseline) - the CDP perf suite
-- `visual.yml` - visual regression render matrix plus the Argos upload
+- `visual.yml` - visual regression render matrix plus the reg-suit comparison and approval gate
+- `visual-cleanup.yml` - clears the `visual-approved` label on new commits (the R2 screenshot purge lives in `pr-cleanup.yml`)
 - `publish.yml` - package publishing pipeline to npm (the only workflow npm trusted publishing trusts)
 - `docs.yml` / `docs-staging.yml` / `docs-production.yml` - docs gates and deployment (Cloudflare Pages)
 - `docs-visual-tests.yml` - visual regression testing for docs

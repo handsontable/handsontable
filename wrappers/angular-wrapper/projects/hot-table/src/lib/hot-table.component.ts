@@ -24,6 +24,37 @@ import { skip } from 'rxjs/operators';
 
 export const HOT_DESTROYED_WARNING = 'The Handsontable instance bound to this component was destroyed and cannot be' + ' used properly.';
 
+/**
+ * The size options that discard the sizes stored by the manual resize plugins when they are passed
+ * to `updateSettings()`.
+ */
+const SIZE_SETTING_KEYS = new Set<string>(['rowHeights', 'minRowHeights', 'colWidths']);
+
+/**
+ * Compares two size option values. Both hold a number, a string, a function or an array of numbers
+ * or strings, so an element-wise walk is enough - and it is what makes a value written inline in a
+ * template, which is a new array on every change detection run, compare as unchanged.
+ *
+ * A function is compared by reference only. It states no fixed size, and the core plugins ignore it
+ * when deciding whether the sizes were re-declared, so forwarding it changes nothing either way.
+ *
+ * @param currentValue The value the grid currently holds.
+ * @param newValue The value coming from the `settings` input.
+ * @returns `true` when the two state the same sizes.
+ */
+function isSameSizeSetting(currentValue: unknown, newValue: unknown): boolean {
+  if (currentValue === newValue) {
+    return true;
+  }
+
+  if (Array.isArray(currentValue) && Array.isArray(newValue)) {
+    return currentValue.length === newValue.length &&
+      currentValue.every((value, index) => value === newValue[index]);
+  }
+
+  return false;
+}
+
 @Component({
   selector: 'hot-table',
   template: '<div #container></div>',
@@ -189,15 +220,28 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
       return;
     }
 
+    const currentSettings = this.hotInstance.getSettings();
     const initOnlySettingKeys = new Set<string>(
-      (this.hotInstance.getSettings() as any)?._initOnlySettings ?? []
+      (currentSettings as any)?._initOnlySettings ?? []
     );
     const filteredSettings: Handsontable.GridSettings = {};
 
     for (const key of Object.keys(newSettings)) {
-      if (!initOnlySettingKeys.has(key)) {
-        (filteredSettings as any)[key] = (newSettings as any)[key];
+      if (initOnlySettingKeys.has(key)) {
+        continue;
       }
+
+      // `ngOnChanges` fires for the whole settings object, so every key is re-passed whenever any
+      // one of them changes. Passing `rowHeights` or `colWidths` re-declares the sizes and discards
+      // the ones the user produced by dragging, so an unchanged value must not be forwarded.
+      if (
+        SIZE_SETTING_KEYS.has(key) &&
+        isSameSizeSetting((currentSettings as any)?.[key], (newSettings as any)[key])
+      ) {
+        continue;
+      }
+
+      (filteredSettings as any)[key] = (newSettings as any)[key];
     }
 
     this.ngZone.runOutsideAngular(() => {

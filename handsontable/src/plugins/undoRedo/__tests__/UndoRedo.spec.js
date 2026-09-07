@@ -1660,17 +1660,20 @@ describe('UndoRedo', () => {
     }
 
     describe('undo', () => {
+      // Addressed by the object's own key. Passing `0` here used to write a literal `"0"` key while
+      // the old value was read from `name`, so the assertions passed without `name` ever changing.
       it('should undo single change', async() => {
         handsontable({
           data: createObjectData()
         });
 
-        await setDataAtRowProp(0, 0, 'Pearce');
+        await setDataAtRowProp(0, 'name', 'Pearce');
 
-        expect(getDataAtRowProp(0, 0)).toBe('Pearce');
+        expect(getDataAtRowProp(0, 'name')).toBe('Pearce');
 
         getPlugin('undoRedo').undo();
         expect(getDataAtCell(0, 0)).toBe('Timothy');
+        expect(getSourceDataAtRow(0)).toEqual({ name: 'Timothy', surname: 'Dalton' });
       });
 
       it('should undo creation of a single row', async() => {
@@ -2108,14 +2111,15 @@ describe('UndoRedo', () => {
     });
 
     describe('redo', () => {
+      // Addressed by the object's own key, for the same reason as the matching `undo` test above.
       it('should redo single change', async() => {
         handsontable({
           data: createObjectData()
         });
 
-        await setDataAtRowProp(0, 0, 'Pearce');
+        await setDataAtRowProp(0, 'name', 'Pearce');
 
-        expect(getDataAtRowProp(0, 0)).toBe('Pearce');
+        expect(getDataAtRowProp(0, 'name')).toBe('Pearce');
 
         getPlugin('undoRedo').undo();
 
@@ -2123,7 +2127,8 @@ describe('UndoRedo', () => {
 
         getPlugin('undoRedo').redo();
 
-        expect(getDataAtRowProp(0, 0)).toBe('Pearce');
+        expect(getDataAtRowProp(0, 'name')).toBe('Pearce');
+        expect(getSourceDataAtRow(0)).toEqual({ name: 'Pearce', surname: 'Dalton' });
       });
 
       it('should redo creation of a single row', async() => {

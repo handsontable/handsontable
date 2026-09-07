@@ -23,6 +23,35 @@ the `-min` legs are CI-only. To run all legs locally for one spec, drop the
 in `tests/` (the whole suite × all themes) locally = wasted minutes, never
 required evidence.
 
+### Check port 8123 before you believe a local result
+
+The `webServer` config uses `reuseExistingServer`, so Playwright attaches to
+**whatever already listens on port 8123** instead of starting its own. A second
+checkout — a worktree beside the main clone, or another session's leftover
+`support/static-server.mjs` — therefore serves *its* `handsontable/dist/`, and
+your specs silently exercise a build you did not make. Nothing in the output says
+so: the run just passes, or fails for reasons your diff cannot explain.
+
+Check first, every time you run locally:
+
+```bash
+lsof -nP -i :8123 | grep LISTEN     # empty = free, safe to run
+```
+
+If something is listening and it is not yours, do not kill it — another session
+may be mid-run. Give your run its own port instead:
+
+```bash
+cd tests && HOT_TEST_PORT=8131 npx playwright test --project=e2e-main e2e/<your-spec>.spec.ts
+```
+
+`HOT_TEST_PORT` is read by `tests/playwright.config.ts` and passed explicitly to
+both the server and the base URL. It throws on a malformed or empty value rather
+than falling back to 8123 — the collision it exists to escape. This knob is the
+**functional suite only**; the visual suite's port is owned by
+`visual-tests/src/config.mjs` plus two hardcoded `app.listen(8082)` demo servers,
+so it cannot be moved this way.
+
 ## Four rules (non-negotiable)
 
 1. **Page Object Model.** A spec expresses intent; selectors and interactions live in a page object under `tests/fixtures/pages/`. Never put raw selectors or multi-step flows in a spec — when the DOM shifts, one file changes.

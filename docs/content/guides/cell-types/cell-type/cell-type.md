@@ -620,7 +620,7 @@ const hotSettings = ref({
 
 :::
 
-Using [cascade configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration) we define a table with two columns, with [`validator`](@/api/options.md#validator) set to `customValidator` function. The s[`type`](@/api/options.md#type) of the first column is set to `password`. The `Password` cell type does not define a validator function:
+Using [cascade configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration) we define a table with two columns, with [`validator`](@/api/options.md#validator) set to `customValidator` function. The s[`type`](@/api/options.md#type) of the first column is set to `password`. The `Password` cell type does not define a validator function:
 
 ```js
 {

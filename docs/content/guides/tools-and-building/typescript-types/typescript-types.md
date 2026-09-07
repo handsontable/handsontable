@@ -70,6 +70,7 @@ These types describe the settings object you pass to `new Handsontable()` or `up
 | `CellMeta` | Mutable per-cell metadata stored in `hot.getCellMeta()`. Extends `CellProperties`. |
 | `Events` | All hook callback signatures, keyed by hook name. Use to type individual hook functions. |
 | `SanitizerContext` | The write surfaces the grid passes to the [`sanitizer`](@/api/options.md#sanitizer) option. Annotate the option's second parameter with it to get completion on those values. |
+| `TextExtractorContext` | The consumer surfaces the grid passes to the [`textExtractor`](@/api/options.md#textextractor) option. Annotate the option's second parameter with it to get completion on those values. |
 
 ```typescript
 import type { GridSettings, ColumnSettings } from 'handsontable';
@@ -97,6 +98,7 @@ These types describe the values that move in and out of the grid.
 | `RowObject` | A data row as a plain object, used when `data` is an array of objects. |
 | `ChangeSource` | A string union of all built-in change source identifiers (e.g. `'edit'`, `'loadData'`, `'UndoRedo.undo'`). |
 | `SourceRowData` | A row from the original source data before any index translation. |
+| `ColumnDataGetterSetterFunction` | A column's [`data`](@/api/options.md#data) option as a getter/setter function. Change hooks pass it as `prop` when you use a [function data source](@/guides/getting-started/binding-to-data/binding-to-data.md#function-data-source-and-schema). |
 | `SelectOptionsObject` | An option entry for the `select` and `autocomplete` cell types: `{ value, label }`. |
 | `RangeType` | A cell range descriptor: `{ from: CellCoords, to: CellCoords }`. |
 

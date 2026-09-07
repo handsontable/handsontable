@@ -59,9 +59,15 @@ export const TRIAL_FLAG = 'trial';
 export const NO_CONSOLE_WARNS_FLAG = 'no-console-warns';
 
 /**
- * Closes the UI channel: no badge, no bar, no lock screen. Both this flag and
- * the one above are the default for a key issued for external, end-user-facing
- * use.
+ * Closes the UI WARNING surfaces: no badge, no popover, no bottom bar. Both
+ * this flag and the one above are the default for a key issued for external,
+ * end-user-facing use.
+ *
+ * It does NOT close the hard-stop lock screen. The lock is enforcement rather
+ * than a warning, so `mountBrandingSurface` (`utils/licenseBranding/index.ts`)
+ * routes it BEFORE reading this channel - see the note there. Product decision
+ * under DEV-2709; the specification's S4.1 table header does not yet record the
+ * split, so do not "restore" the old behavior from the spec alone.
  *
  * @type {string}
  */

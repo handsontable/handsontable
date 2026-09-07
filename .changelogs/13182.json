@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a formula cell staying marked as invalid after an undo or redo restored a correct value.",
-  "type": "fixed",
-  "issueOrPR": 13182,
-  "breaking": false,
-  "framework": "none"
-}

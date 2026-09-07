@@ -1,5 +1,8 @@
 import type { HotInstance } from '../core/types';
 import { isEmpty } from './../helpers/mixed';
+import { decodeHtmlEntities } from '../helpers/string';
+import { fastInnerHTML, HTML_CHARACTERS } from '../helpers/dom/element';
+import { getSanitizer, sanitizeHTML } from './sanitizer';
 
 const ESCAPED_HTML_CHARS: Record<string, string> = {
   '&nbsp;': '\x20',
@@ -17,6 +20,38 @@ const regEscapedChars = new RegExp(Object.keys(ESCAPED_HTML_CHARS).map(key => `(
  */
 function isHTMLTable(element: HTMLElement): boolean {
   return (element && element.nodeName || '') === 'TABLE';
+}
+
+/**
+ * Puts a header value through the configured sanitizer, for the two surfaces that render headers as
+ * markup.
+ *
+ * `instanceToTableElement()` writes headers through `fastInnerHTML`, which sanitizes. `toHTML()`
+ * interpolated them raw, so with `colHeaders: ['<b>ID</b>']` and a stripping sanitizer the two
+ * public methods described the same grid differently. They agree here instead.
+ *
+ * A `TrustedHTML` return is stringified by the interpolation, which collapses the trust - correct
+ * for this function, whose contract is to return a string, and the reason the DOM builder cannot
+ * share this path. Do not "fix" it into passing the value through.
+ *
+ * The warning is suppressed: both callers are read-only APIs, so the message's "HTML content is
+ * being written to the DOM" would name a surface the user never looked at.
+ *
+ * The markup test is applied here rather than left to `sanitizeHTML()`, which documents that a
+ * caller needing to match `fastInnerHTML` has to do it itself. Without it, a sanitizer that
+ * rewrites plain text - a length cap, whitespace cleanup, an audit log - would see every header
+ * from `toHTML()` and none from `toTableElement()`, which is the same divergence one level down.
+ *
+ * @param {object} instance The Handsontable instance.
+ * @param {*} headerValue The header value.
+ * @returns {string} The sanitized header, as a string.
+ */
+function sanitizeHeader(instance: HotInstance, headerValue: unknown): string {
+  const header = String(headerValue);
+
+  return HTML_CHARACTERS.test(header)
+    ? String(sanitizeHTML(instance, header, 'header', false))
+    : header;
 }
 
 /**
@@ -52,10 +87,10 @@ export function instanceToHTML(instance: HotInstance): string {
       let cell = '';
 
       if (isColumnHeadersRow) {
-        cell = `<th>${instance.getColHeader(column - rowModifier)}</th>`;
+        cell = `<th>${sanitizeHeader(instance, instance.getColHeader(column - rowModifier))}</th>`;
 
       } else if (isRowHeadersColumn) {
-        cell = `<th>${instance.getRowHeader(row - columnModifier)}</th>`;
+        cell = `<th>${sanitizeHeader(instance, instance.getRowHeader(row - columnModifier))}</th>`;
 
       } else {
         const cellData = data[row][column];
@@ -100,6 +135,158 @@ export function instanceToHTML(instance: HotInstance): string {
   TABLE.splice(1, 0, THEAD.join(''), TBODY.join(''));
 
   return TABLE.join('');
+}
+
+/**
+ * Reproduces, for one line of cell text, what `instanceToHTML()` encoded and what parsing it then
+ * undid.
+ *
+ * In order: spaces were encoded as `&nbsp;` BEFORE parsing, so a space already written as `&#32;`
+ * stayed an ordinary space - which is why the substitution runs before decoding, not after. A lone
+ * carriage return was left alone by the encoder and normalized to a newline by the parser; that too
+ * happens before decoding, because the parser normalizes newlines before it resolves references.
+ * Tabs need no substitution: the encoder wrote `&#9;` and the parser turned it straight back.
+ *
+ * At module scope because it captures nothing, and `instanceToTableElement()` calls it once per
+ * non-empty cell - on a large grid that is one throwaway closure per cell for a pure function.
+ *
+ * @param {string} text One line of cell text.
+ * @returns {string} The text as the parsed string form carried it.
+ */
+function encodeCellLine(text: string): string {
+  return decodeHtmlEntities(text.replaceAll('\x20', '\xA0').replaceAll('\r', '\n'));
+}
+
+/**
+ * Converts a Handsontable instance into an `HTMLTableElement`, built as DOM nodes.
+ *
+ * The element used to be produced by feeding `instanceToHTML()` to `insertAdjacentHTML`, which is
+ * a Trusted Types sink: `toTableElement()` threw under `require-trusted-types-for 'script'`.
+ * Building the nodes touches no sink.
+ *
+ * The result matches parsing `instanceToHTML()` node for node, which
+ * `src/utils/__tests__/parseTable.unit.ts` pins by comparing the two. That is why the cell text is
+ * written the way it is: `instanceToHTML` escapes `<`/`>` and then encodes spaces as `&nbsp;` and
+ * tabs as `&#9;`, so the parsed text carried non-breaking spaces and real tabs. Newlines became
+ * `<br>` elements each followed by a newline. The encoder writes "\r\n" after the tag, but the HTML
+ * parser normalizes CRLF to LF in text, so the DOM the string form produced carried a bare "\n" -
+ * which is what this builds. That test caught the difference.
+ *
+ * The match has one documented limit, on cell text only: `decodeHtmlEntities()` knows a fixed set
+ * of named references where the parser knows the whole HTML5 table, so a cell holding
+ * `a &hearts; b` used to come back decoded and now stays literal. Numeric references are unaffected.
+ *
+ * @param {object} instance The Handsontable instance.
+ * @param {Document} rootDocument The document to build the nodes in.
+ * @returns {HTMLTableElement} The table element.
+ */
+export function instanceToTableElement(instance: HotInstance, rootDocument: Document): HTMLTableElement {
+  const hasColumnHeaders = instance.hasColHeaders();
+  const hasRowHeaders = instance.hasRowHeaders();
+  const coords = [
+    hasColumnHeaders ? -1 : 0,
+    hasRowHeaders ? -1 : 0,
+    instance.countRows() - 1,
+    instance.countCols() - 1,
+  ];
+  const data = instance.getData(...coords);
+  const countRows = data.length;
+  const countCols = countRows > 0 ? data[0].length : 0;
+  const rowModifier = hasRowHeaders ? 1 : 0;
+  const columnModifier = hasColumnHeaders ? 1 : 0;
+  const table = rootDocument.createElement('table');
+  const thead = rootDocument.createElement('thead');
+  const tbody = rootDocument.createElement('tbody');
+
+  /**
+   * Writes a header value, preserving any markup it carries.
+   *
+   * @param {HTMLElement} cell The header cell to fill.
+   * @param {*} headerValue The header value.
+   */
+  const appendHeader = (cell: HTMLElement, headerValue: unknown) => {
+    fastInnerHTML(cell, String(headerValue), getSanitizer(instance, false), 'header', instance.rootElement);
+  };
+
+  /**
+   * Writes a cell value as text and `<br>` nodes, mirroring the encoder's output.
+   *
+   * @param {HTMLElement} cell The cell to fill.
+   * @param {*} cellData The raw cell value.
+   */
+  const appendCellValue = (cell: HTMLElement, cellData: unknown) => {
+    String(cellData).split(/\r\n|\n/).forEach((line, index) => {
+      if (index > 0) {
+        cell.appendChild(rootDocument.createElement('br'));
+        cell.appendChild(rootDocument.createTextNode(`\n${encodeCellLine(line)}`));
+
+        return;
+      }
+
+      cell.appendChild(rootDocument.createTextNode(encodeCellLine(line)));
+    });
+  };
+
+  for (let row = 0; row < countRows; row += 1) {
+    const isColumnHeadersRow = hasColumnHeaders && row === 0;
+    const tr = rootDocument.createElement('tr');
+
+    for (let column = 0; column < countCols; column += 1) {
+      const isRowHeadersColumn = !isColumnHeadersRow && hasRowHeaders && column === 0;
+
+      if (isColumnHeadersRow) {
+        const th = rootDocument.createElement('th');
+
+        // Headers may legitimately carry markup - `colHeaders: ['<b>ID</b>']` is a documented
+        // pattern - and the string form interpolated them raw, so the parsed table contained real
+        // elements. Writing `textContent` here would render the tags as literal text instead.
+        // `fastInnerHTML` keeps that markup and routes it through the configured sanitizer under
+        // the `'header'` context, the same way the grid renders the header itself.
+        appendHeader(th, instance.getColHeader(column - rowModifier));
+        tr.appendChild(th);
+
+      } else if (isRowHeadersColumn) {
+        const th = rootDocument.createElement('th');
+
+        appendHeader(th, instance.getRowHeader(row - columnModifier));
+        tr.appendChild(th);
+
+      } else {
+        const cellData = data[row][column];
+        const { hidden, rowspan, colspan } = instance.getCellMetaTransient(row - columnModifier, column - rowModifier);
+
+        if (!hidden) {
+          const td = rootDocument.createElement('td');
+
+          if (rowspan) {
+            td.setAttribute('rowspan', String(rowspan));
+          }
+          if (colspan) {
+            td.setAttribute('colspan', String(colspan));
+          }
+          if (!isEmpty(cellData)) {
+            appendCellValue(td, cellData);
+          }
+
+          tr.appendChild(td);
+        }
+      }
+    }
+
+    if (isColumnHeadersRow) {
+      thead.appendChild(tr);
+    } else {
+      tbody.appendChild(tr);
+    }
+  }
+
+  if (hasColumnHeaders) {
+    table.appendChild(thead);
+  }
+
+  table.appendChild(tbody);
+
+  return table;
 }
 
 /**
@@ -324,23 +511,45 @@ function countTableColumns(table: HTMLTableElement): number {
 /**
  * Converts HTMLTable or string into Handsontable configuration object.
  *
- * @param {Element|string} element Node element which should contain `<table>...</table>`.
+ * @param {Element|string} element Node element which should contain `<table>...</table>`. May also
+ * be a `TrustedHTML`, which is what a page enforcing Trusted Types gets back from its sanitizer;
+ * it is handed to the parser untouched.
  * @param {Document} [rootDocument] The document window owner.
+ * @param {object} [options] Parsing options.
+ * @param {boolean} [options.normalize=true] Whether to run `replaceTdCellsWithTextContent()` on the
+ * markup first. Pass `false` for a payload that must not be rewritten - the clipboard path passes
+ * `typeof value === 'string'`, so a sanitizer's string output is still flattened here while a
+ * `TrustedHTML` is left alone, because a string rewrite would strip the trust the parser needs.
  * @returns {object} Return configuration object. Contains keys as DefaultSettings.
  */
-// eslint-disable-next-line no-restricted-globals
-export function htmlToGridSettings(element: HTMLTableElement | string, rootDocument: Document = document) {
+export function htmlToGridSettings(
+  element: HTMLTableElement | string | { toString(): string },
+  // eslint-disable-next-line no-restricted-globals
+  rootDocument: Document = document,
+  options: { normalize?: boolean } = {}
+) {
   const settingsObj: Record<string, unknown> = {};
 
-  let checkElement: HTMLTableElement | string | null = element;
+  let checkElement: HTMLTableElement | string | { toString(): string } | null = element;
   // Root the sibling-node lookups below (currently only the generator `<meta>`) at the parsed
   // markup. Stays `null` when a live element is passed in, which is what the previous
   // implementation effectively did - the scratch element it searched was empty in that case.
   let parsedRoot: Document | null = null;
 
-  if (typeof checkElement === 'string') {
-    // Use replaceTdCellsWithTextContent so nested <td> (e.g. Excel shape cells) are matched correctly
-    const normalizedHTML = replaceTdCellsWithTextContent(checkElement);
+  // Anything that is not a live node is markup to parse. Tested by the absence of `nodeType`
+  // rather than `typeof === 'string'`, because a `TrustedHTML` is an object: the string test sent
+  // it down the element branch instead, where it matched no table and the paste silently produced
+  // nothing.
+  if (checkElement !== null && checkElement !== undefined &&
+      (typeof checkElement === 'string' || !(checkElement as Node).nodeType)) {
+    // Use replaceTdCellsWithTextContent so nested <td> (e.g. Excel shape cells) are matched
+    // correctly. Skipped when the caller normalized already - see `options.normalize`.
+    // Only a string can be normalized. `replaceTdCellsWithTextContent()` walks `html.length`, and a
+    // `TrustedHTML` has none, so it would silently return an empty string and the parse would find
+    // no table at all.
+    const normalizedHTML = options.normalize === false || typeof checkElement !== 'string'
+      ? checkElement as string
+      : replaceTdCellsWithTextContent(checkElement);
 
     // `DOMParser` builds a document with no browsing context, so reading the pasted markup cannot
     // run any of it: no image fetch, no `onerror`, no script. Writing the same string into a

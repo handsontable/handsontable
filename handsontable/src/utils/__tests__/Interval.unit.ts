@@ -1,6 +1,18 @@
 import Interval from '../interval';
 
+// Fake timers drive the whole loop deterministically: `Interval` ticks on `requestAnimationFrame`
+// (read from `window` at call time, so the mocked one) and gates on `Date.now()` elapsed time,
+// both of which `advanceTimersByTime()` moves in lockstep. The previous real-`setTimeout`
+// checkpoints raced the event loop - a 50 ms stall on a loaded runner flipped them (DEV-2746,
+// from DEV-2668's flake data).
 describe('Interval', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
 
   it('should create instance of Interval object', () => {
     const i = Interval.create(() => {}, 10);
@@ -15,73 +27,70 @@ describe('Interval', () => {
   });
 
   it('should create object with delay passed as a number of FPS', () => {
-    const i = Interval.create(() => {}, '60fps');
+    const i = Interval.create(() => {}, '60fps' as unknown as number);
 
     expect(i.delay).toBe(1000 / 60);
   });
 
-  it('should create interval object which is stopped by default', (done) => {
-    const spy = jasmine.createSpy();
+  it('should create interval object which is stopped by default', () => {
+    const spy = jest.fn();
 
-    Interval.create(spy);
+    Interval.create(spy, 100);
 
-    setTimeout(() => {
-      expect(spy).not.toHaveBeenCalled();
-      done();
-    }, 100);
+    jest.advanceTimersByTime(1000);
+
+    expect(spy).not.toHaveBeenCalled();
   });
 
-  it('should repeatedly invoke callback function after calling `start` method', (done) => {
-    const spy = jasmine.createSpy();
+  it('should repeatedly invoke callback function after calling `start` method', () => {
+    const spy = jest.fn();
     const i = Interval.create(spy, 100);
 
     i.start();
 
-    setTimeout(() => {
-      expect(spy).not.toHaveBeenCalled();
-    }, 50);
+    jest.advanceTimersByTime(50);
 
-    setTimeout(() => {
-      expect(spy.calls.count()).toBe(1);
-    }, 150);
+    expect(spy).not.toHaveBeenCalled();
 
-    setTimeout(() => {
-      expect(spy.calls.count()).toBe(2);
-    }, 250);
+    jest.advanceTimersByTime(100); // t = 150
 
-    setTimeout(() => {
-      expect(spy.calls.count()).toBe(3);
-      i.stop();
-      done();
-    }, 350);
+    expect(spy).toHaveBeenCalledTimes(1);
+
+    jest.advanceTimersByTime(100); // t = 250
+
+    expect(spy).toHaveBeenCalledTimes(2);
+
+    jest.advanceTimersByTime(100); // t = 350
+
+    expect(spy).toHaveBeenCalledTimes(3);
+
+    i.stop();
   });
 
-  it('should stop repeatedly invoking callback function after calling `stop` method', (done) => {
-    const spy = jasmine.createSpy();
+  it('should stop repeatedly invoking callback function after calling `stop` method', () => {
+    const spy = jest.fn();
     const i = Interval.create(spy, 100);
 
     i.start();
 
-    setTimeout(() => {
-      expect(spy).not.toHaveBeenCalled();
-    }, 50);
+    jest.advanceTimersByTime(50);
 
-    setTimeout(() => {
-      expect(spy.calls.count()).toBe(1);
-      i.stop();
-    }, 150);
+    expect(spy).not.toHaveBeenCalled();
 
-    setTimeout(() => {
-      expect(spy.calls.count()).toBe(1);
-      i.start();
-    }, 250);
+    jest.advanceTimersByTime(100); // t = 150
 
-    setTimeout(() => {
-      // Allow 2 or 3 calls: timing can vary (100ms interval may fire once or twice in 150ms window)
-      expect(spy.calls.count()).toBeGreaterThanOrEqual(2);
-      expect(spy.calls.count()).toBeLessThanOrEqual(3);
-      i.stop();
-      done();
-    }, 400);
+    expect(spy).toHaveBeenCalledTimes(1);
+
+    i.stop();
+    jest.advanceTimersByTime(100); // t = 250: stopped, so nothing may fire
+
+    expect(spy).toHaveBeenCalledTimes(1);
+
+    i.start();
+    jest.advanceTimersByTime(150); // t = 400: one full 100 ms interval since the restart
+
+    expect(spy).toHaveBeenCalledTimes(2);
+
+    i.stop();
   });
 });

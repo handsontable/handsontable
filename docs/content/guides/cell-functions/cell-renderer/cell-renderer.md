@@ -365,13 +365,13 @@ When your custom renderer should preserve the default text output, call the buil
 
 ## Extend a built-in renderer
 
-When you build on top of a built-in renderer, Handsontable does not call that base renderer for you. You call it inside your custom renderer before your extra logic.
+When you build on top of a built-in renderer such as `textRenderer` or `htmlRenderer`, Handsontable doesn't call it for you. You call it inside your custom renderer, before your extra logic.
 
-Use `textRenderer` as the base when you want plain-text output and then apply styling or additional DOM changes.
+Use `textRenderer` when you want plain-text output and then apply styling or additional DOM changes.
 
-Use `htmlRenderer` as the base when your output is trusted HTML and you intentionally render with `innerHTML`.
+Use `htmlRenderer` when your output is trusted HTML and you intentionally render with `innerHTML`.
 
-Skip a base renderer when your renderer fully controls cell output from scratch, for example the image-based `coverRenderer` in [Render custom HTML in cells](#render-custom-html-in-cells).
+Skip the built-in renderer when your renderer fully controls cell output from scratch, for example the image-based `coverRenderer` in [Render custom HTML in cells](#render-custom-html-in-cells).
 
 Both of the following call styles are valid:
 
@@ -382,6 +382,14 @@ textRenderer.apply(this, arguments);
 // Direct invocation style, common in ESM and TypeScript examples.
 textRenderer(instance, td, row, column, prop, value, cellProperties);
 ```
+
+### Handsontable runs `baseRenderer` for you
+
+`baseRenderer` is a separate renderer, and it isn't one of the renderers described above. It adds the cell's class names and ARIA attributes, including [`className`](@/api/options.md#classname), [`readOnly`](@/api/options.md#readonly), and the invalid-cell class.
+
+Since version 17.0.0, Handsontable runs `baseRenderer` for you. It runs after your custom renderer, whenever your renderer didn't run it. Your cells keep their class names even when your renderer calls no built-in renderer at all. Before version 17.0.0, such cells received no class names.
+
+Call `baseRenderer` yourself when you need it to run before your changes -- for example, when your renderer sets a class that `baseRenderer` also manages, such as the invalid-cell class. A `baseRenderer` that runs last removes that class.
 
 ## Render custom HTML in cells
 
@@ -522,6 +530,34 @@ This is because Handsontable:
 Before deciding to attach an event listener in cell renderer make sure, that there is no [Handsontable event](@/guides/getting-started/events-and-hooks/events-and-hooks.md) that suits your needs. Using _Handsontable events_ system is the safest way to respond to user actions.
 
 If you did't find a suitable _Handsontable event_ put the cell content into a wrapping `<div>`, attach the event listener to the wrapper and then put it into the table cell.
+
+## Changes made outside a renderer do not survive
+
+Handsontable resets a cell's `td` element before it runs a renderer, so only what a renderer writes back survives. [Understanding rendering](@/guides/optimization/rendering/rendering.md#why-direct-dom-changes-disappear) lists exactly what the reset clears.
+
+::: warning
+
+Anything you write straight onto a cell's DOM node disappears at the next render:
+
+```js
+// Do not do this. The next render removes the class.
+hot.getCell(0, 0).classList.add('my-highlight');
+```
+
+:::
+
+You have two supported ways to make a visual change stick:
+
+- Store it in the cell's metadata, so that a built-in renderer reapplies it on every render. Because [`setCellMeta()`](@/api/core.md#setcellmeta) does not repaint the grid, follow it with [`render()`](@/api/core.md#render):
+
+  ```js
+  hot.setCellMeta(0, 0, 'className', 'my-highlight');
+  hot.render();
+  ```
+
+- Write a custom renderer. A renderer runs on every render, so what it writes is always reapplied. If your renderer reads state outside the grid and the grid uses [`renderMode: 'onChange'`](@/api/options.md#rendermode), set `renderMode: 'always'` on its cells, or call [`markCellChanged()`](@/api/core.md#markcellchanged) after that state changes.
+
+For the full picture of when a render happens and what it covers, see [Understanding rendering](@/guides/optimization/rendering/rendering.md).
 
 ## Performance considerations
 

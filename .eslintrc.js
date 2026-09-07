@@ -127,6 +127,9 @@ module.exports = {
           'core',
           'TODO',
           'category',
+          // Lists the configuration levels an option takes effect at. Read by
+          // handsontable/scripts/generate-option-levels.mjs and by the docs API reference.
+          'configScope',
           'package',
           'template',
         ]

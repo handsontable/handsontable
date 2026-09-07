@@ -76,14 +76,33 @@ Full discipline: the `test-writing-discipline` skill.
 ### The tracked human exception (the manual-QA tickbox)
 
 When automated coverage genuinely cannot judge a change (subtle UX, a visual
-nuance no snapshot covers, a high-risk area), tick **"This change needs a
-manual QA pass"** in the PR description (the template carries it) and say what
-to check. The `[CHECK] Manual QA` job in the Tests pipeline then stays RED
-until a human who is **not** the PR author comments **`/manual-qa passed`**
-(comment authorship is API-verified identity) and the job is re-run — it reads
-the live body + comments, not the frozen event payload. Unticked PRs pass
-immediately. This **adds** a recorded human pass; it never replaces the
-presence gate or the test requirement. Do not use it to dodge writing tests.
+nuance no snapshot covers, a high-risk area — or a QA-owned pass such as an
+RC adversarial sweep or a screen-reader check), tick **"MANUAL QA NEEDED"**
+in the PR description (author or agent may tick it; the template carries the
+line, and its wording is machine-read — keep it verbatim) and say in one line
+what to check, and add the red **`Manual QA required`** label so the request
+is visible in the PR list (applied by hand, like every other label here — the
+`pr-creation` skill instructs it; it is a marker, never the trigger). The
+Checks scope router
+reads the box live and routes the Manual QA module only when ticked; its
+`sign-off` job then waits on the **`manual-qa` environment approval**: a
+designated reviewer (the environment's required-reviewers list; self-review
+is blocked — and an agent can request a check but never clear one) clicks
+Approve on the workflow run, and GitHub records the approver as the
+sign-off. While it waits, CI Gate cannot report, so the merge stays blocked
+without any job going red; a rejection turns CI Gate red. Unticked PRs
+*skip* the module — shown as skipped, never as a misleading green "passed",
+with no runner spent. Approval is per run: a new push re-asks the reviewers.
+Enforcement is decided per run too — the box is evaluated when the scope router
+runs — so changing it afterwards needs a **"Re-run all jobs"** to re-decide, in
+either direction. A box ticked after a green run therefore leaves the PR
+mergeable until someone re-runs it; that is a known limitation, accepted in
+exchange for having no labelling or re-running automation at all. The sign-off
+job does fail closed: it asserts that an approval is actually recorded for the
+run, so a missing or drifted `manual-qa` environment turns CI Gate red instead
+of passing silently. This **adds** a recorded human pass; it
+never replaces the presence gate or the test requirement. Do not use it to
+dodge writing tests.
 
 ## 2. Creating or changing enforcement hooks (git + agent) — exact rules
 

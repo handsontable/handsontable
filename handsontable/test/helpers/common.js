@@ -159,6 +159,41 @@ export async function waitForNameAnimationFrames(framesToWait = 1) {
 }
 
 /**
+ * Polls the provided condition on every animation frame until it returns a truthy value, or
+ * rejects after `timeout` milliseconds. The condition-based replacement for a fixed `sleep()` or
+ * a frame-count wait: it resolves as soon as the observable state is really there, and a state
+ * that never arrives fails with a named reason instead of passing a stale assertion later.
+ *
+ * @param {Function} condition A function returning a truthy value once the awaited state is reached.
+ * @param {number} [timeout=4000] How long to keep polling, in milliseconds.
+ * @returns {Promise<void>}
+ */
+export function waitUntil(condition, timeout = 4000) {
+  const startTime = Date.now();
+  const requestFrame = window.requestAnimationFrame ?? (callback => window.setTimeout(callback, 16));
+
+  return new Promise((resolve, reject) => {
+    const check = () => {
+      if (condition()) {
+        resolve();
+
+        return;
+      }
+
+      if (Date.now() - startTime > timeout) {
+        reject(new Error(`waitUntil: the condition was not met within ${timeout}ms`));
+
+        return;
+      }
+
+      requestFrame(check);
+    };
+
+    check();
+  });
+}
+
+/**
  * Normalize frame count input.
  *
  * @param {number} framesToWait The number of frames to normalize.
@@ -589,6 +624,35 @@ export function getInnerEditorListBox() {
     settingsWidth: inner.getSettings().width,
     settingsHeight: inner.getSettings().height,
   };
+}
+
+/**
+ * The active editor's inline-start offset, corrected onto the edited cell's own boundary so it can
+ * be compared against `$(getCell(row, col)).offset()`.
+ *
+ * `BaseEditor#getEditedCellRect` moves the editor 1px towards the inline start whenever the edited
+ * cell draws no inline-start border of its own, so that the editor covers the gridline its
+ * inline-start neighbour draws. With row headers on that is EVERY cell, because the row header owns
+ * the gridline in front of column 0 (#6673), and `htFirstDatasetColumnNotRendered` takes the border
+ * off the first rendered column too. The rule is read off the edited cell's computed border, exactly
+ * as the editor reads it, so no spec has to restate which columns it applies to.
+ *
+ * The top axis is deliberately left to the caller: `getEditedCellRect` decides that one from the
+ * row's position in the overlays, not from a border, so there is no single value to fold in here.
+ *
+ * @param {object} $editor The jQuery-wrapped editor element (`getActiveEditor().TEXTAREA_PARENT`).
+ * @returns {number} The editor's `offset().left`, plus the pixel the editor was shifted by.
+ */
+export function editorInlineStartOffset($editor) {
+  const { TD } = getActiveEditor();
+  const style = getComputedStyle(TD);
+
+  if (style.direction === 'rtl') {
+    throw new Error('editorInlineStartOffset() corrects the physical left edge, which is the ' +
+      'inline start only in LTR. The RTL specs mirror the offset themselves.');
+  }
+
+  return $editor.offset().left + (Number.parseInt(style.borderLeftWidth, 10) > 0 ? 0 : 1);
 }
 
 /**

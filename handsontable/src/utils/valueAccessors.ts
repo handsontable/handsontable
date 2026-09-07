@@ -1,20 +1,83 @@
 import { isFunction } from '../helpers/function';
 
 /**
+ * Reports whether the cell's own configuration gives an empty string a meaning of its own, which
+ * `emptyValue` must then leave alone.
+ *
+ * A `checkbox` names its two states itself, so an `''` used as either template is one of them and not
+ * an empty cell. With `checkedTemplate: ''` a stored `null` would even render as CHECKED: the
+ * renderer falls back to comparing `stringify(value)` with `stringify(template)`, and `stringify()`
+ * turns `null` into `''`, so the two match.
+ *
+ * An `autocomplete` or `dropdown` names its values in `source`, and `dropdown` sets `strict: true` by
+ * default, so every stored value is meant to come from that list. A blank entry is a real option the
+ * user can pick, and remapping it would leave the cell holding a value the list does not offer. The
+ * validator does not catch that - it turns `null` back into `''` before it ever looks at `source`,
+ * and answers with `allowEmpty` - so this is about the data matching its own list, not validation.
+ *
+ * Only an ARRAY `source` can be read here. A function `source` resolves asynchronously and cannot be
+ * consulted on a synchronous write, so a blank option it yields is invisible and `emptyValue` still
+ * applies to that column. Documented on the option.
+ *
+ * Read off the cell's declared `type`, not off whichever template keys happen to be on the cascading
+ * meta: an `uncheckedTemplate` set once at grid level would otherwise switch `emptyValue` off for
+ * every column in the grid, including the ones that hold no checkboxes.
+ *
+ * @param {object} cellMeta The cell meta object.
+ * @returns {boolean}
+ */
+function isEmptyStringConfigured(cellMeta: Record<string, unknown>): boolean {
+  const { type } = cellMeta;
+
+  if (type === 'checkbox') {
+    return cellMeta.checkedTemplate === '' || cellMeta.uncheckedTemplate === '';
+  }
+
+  if (type === 'autocomplete' || type === 'dropdown') {
+    return Array.isArray(cellMeta.source) && cellMeta.source.includes('');
+  }
+
+  return false;
+}
+
+/**
  * Get the value to be set in the cell.
  *
  * @param {*} value Initial value.
  * @param {object} cellMeta The cell meta object.
  * @returns {*} The value to be set in the cell.
  */
-export function getValueSetterValue(value: unknown, cellMeta: Record<string, unknown>) {
-  const { instance, visualRow, visualCol, valueSetter } = cellMeta;
+export function getValueSetterValue(value: unknown, cellMeta: Record<string, unknown>, source?: string) {
+  const { instance, visualRow, visualCol, valueSetter, emptyValue } = cellMeta;
+  let newValue = value;
 
   if (isFunction(valueSetter)) {
-    return valueSetter.call(instance, value, visualRow, visualCol, cellMeta);
+    newValue = valueSetter.call(instance, value, visualRow, visualCol, cellMeta);
   }
 
-  return value;
+  // `emptyValue` spells out what an emptied cell stores. It runs after `valueSetter` so a cell that
+  // ends up empty lands on the same value whichever path emptied it - the editor, a paste, a fill or
+  // `setDataAtCell()` - and so a custom `valueSetter` returning `''` still means "empty" here.
+  if (newValue !== '' || emptyValue === '' || emptyValue === undefined) {
+    return newValue;
+  }
+
+  // Undo and redo restore what the cell held before, verbatim. Remapping here would make an `''` that
+  // legitimately predates the setting - `loadData` never passes through this function - impossible to
+  // restore, so the user would watch undo produce a different value than the one they undid to.
+  if (typeof source === 'string' && source.startsWith('UndoRedo.')) {
+    return newValue;
+  }
+
+  // `''` is left alone where the cell's own configuration gives it a meaning: a checkbox storing it
+  // as `uncheckedTemplate` would end up matching neither template, rendering `#bad-value#` and
+  // refusing to toggle, and a choice list offering it as a blank option would fail its own validator
+  // under `strict: true`, because `null` is not in `source`.
+  if (isEmptyStringConfigured(cellMeta)) {
+    return newValue;
+  }
+
+  return emptyValue;
 }
 
 /**

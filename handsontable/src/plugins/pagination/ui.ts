@@ -1,4 +1,4 @@
-import { html } from '../../helpers/templateLiteralTag';
+import { buildTemplate, type TemplateSpec } from '../../helpers/dom/template';
 import { mixin } from '../../helpers/object';
 import localHooks from '../../mixins/localHooks';
 import * as C from '../../i18n/constants';
@@ -9,26 +9,47 @@ import {
 } from '../../helpers/dom/element';
 import { A11Y_DISABLED, A11Y_LABEL } from '../../helpers/a11y';
 
-const TEMPLATE = `
-<div data-ref="container" class="ht-pagination handsontable">
-  <div class="ht-pagination__inner">
-    <div data-ref="pageSizeSection" class="ht-page-size-section">
-      <span data-ref="pageSizeLabel" class="ht-page-size-section__label"></span>
-      <div class="ht-page-size-section__select-wrapper">
-        <select data-ref="pageSizeSelect" name="pageSize" data-hot-input></select>
-      </div>
-    </div>
-    <div data-ref="pageCounterSection" class="ht-page-counter-section"></div>
-    <nav data-ref="pageNavSection" class="ht-page-navigation-section">
-      <button data-ref="first" class="ht-page-navigation-section__button ht-page-first"></button>
-      <button data-ref="prev" class="ht-page-navigation-section__button ht-page-prev"></button>
-      <span data-ref="pageNavLabel" class="ht-page-navigation-section__label"></span>
-      <button data-ref="next" class="ht-page-navigation-section__button ht-page-next"></button>
-      <button data-ref="last" class="ht-page-navigation-section__button ht-page-last"></button>
-    </nav>
-  </div>
-</div>
-`;
+const TEMPLATE: TemplateSpec = {
+  tag: 'div',
+  ref: 'container',
+  className: 'ht-pagination handsontable',
+  children: [{
+    tag: 'div',
+    className: 'ht-pagination__inner',
+    children: [
+      {
+        tag: 'div',
+        ref: 'pageSizeSection',
+        className: 'ht-page-size-section',
+        children: [
+          { tag: 'span', ref: 'pageSizeLabel', className: 'ht-page-size-section__label' },
+          {
+            tag: 'div',
+            className: 'ht-page-size-section__select-wrapper',
+            children: [{
+              tag: 'select',
+              ref: 'pageSizeSelect',
+              attrs: { name: 'pageSize', 'data-hot-input': '' },
+            }],
+          },
+        ],
+      },
+      { tag: 'div', ref: 'pageCounterSection', className: 'ht-page-counter-section' },
+      {
+        tag: 'nav',
+        ref: 'pageNavSection',
+        className: 'ht-page-navigation-section',
+        children: [
+          { tag: 'button', ref: 'first', className: 'ht-page-navigation-section__button ht-page-first' },
+          { tag: 'button', ref: 'prev', className: 'ht-page-navigation-section__button ht-page-prev' },
+          { tag: 'span', ref: 'pageNavLabel', className: 'ht-page-navigation-section__label' },
+          { tag: 'button', ref: 'next', className: 'ht-page-navigation-section__button ht-page-next' },
+          { tag: 'button', ref: 'last', className: 'ht-page-navigation-section__button ht-page-last' },
+        ],
+      },
+    ],
+  }],
+};
 
 interface PaginationRefs {
   container: HTMLDivElement;
@@ -134,7 +155,7 @@ export class PaginationUI {
       return;
     }
 
-    const elements = html`${TEMPLATE}`;
+    const elements = buildTemplate(TEMPLATE, this.#rootElement.ownerDocument);
     const {
       container,
       first,

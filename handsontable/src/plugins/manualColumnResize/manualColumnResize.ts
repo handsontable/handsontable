@@ -16,8 +16,10 @@ import { rangeEach } from '../../helpers/number';
 import { deprecatedWarnOnce } from '../../helpers/console';
 import type { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import {
+  COLUMN_SIZE_OPTIONS,
   getElementScaleFactor,
   normalizeVisualDelta,
+  redeclaresManualSizes,
   shouldRefreshHandleAfterAutoResize,
   shouldSkipResizeHandlePositioning,
 } from './utils';
@@ -49,6 +51,17 @@ export class ManualColumnResize extends BasePlugin {
    */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
+  }
+
+  /**
+   * Returns the setting keys that trigger a plugin update after an `updateSettings()` call. The
+   * `colWidths` option is listed alongside the plugin's own key, so that re-declaring the column
+   * widths discards the widths kept from earlier manual resizing.
+   *
+   * @returns {string[]}
+   */
+  static get SETTING_KEYS(): string[] {
+    return [PLUGIN_KEY, ...COLUMN_SIZE_OPTIONS];
   }
 
   /**
@@ -203,18 +216,45 @@ export class ManualColumnResize extends BasePlugin {
    *
    * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
    *  - [`manualColumnResize`](@/api/options.md#manualcolumnresize)
+   *  - [`colWidths`](@/api/options.md#colwidths)
+   *
+   * Passing `colWidths` re-declares the column widths, so the widths kept from earlier manual
+   * resizing are discarded. A grid whose `manualColumnResize` option is an array keeps that array
+   * instead, whether the array arrives in this call or was set when the grid was built.
+   *
+   * @param {object} [newSettings] The config object passed to `updateSettings()`.
    */
-  updatePlugin() {
-    this.disablePlugin();
-    this.enablePlugin();
+  updatePlugin(newSettings?: Record<string, unknown>) {
+    // Re-initialize only when the plugin's own option was declared. `#onMapInit` replays the
+    // declared `manualColumnResize` array, so re-initializing on a `colWidths`-only update would
+    // revert a column the user had since dragged to the array's width - neither the dragged width
+    // nor the one being requested.
+    if (newSettings === undefined || newSettings[PLUGIN_KEY] !== undefined) {
+      this.disablePlugin();
+      this.enablePlugin();
 
-    super.updatePlugin();
+    } else {
+      // `BasePlugin#onUpdateSettings` feeds `updatePluginSettings()` with `newSettings[PLUGIN_KEY]`,
+      // which a `colWidths`-only update does not carry. Restore the option from the merged settings
+      // so `getSetting()` keeps reporting it.
+      this.updatePluginSettings(this.hot.getSettings()[PLUGIN_KEY]);
+    }
+
+    // Runs after the re-initialization, so that the widths replayed on the map's `init` hook are
+    // discarded too.
+    if (redeclaresManualSizes(newSettings, COLUMN_SIZE_OPTIONS, this.hot.getSettings()[PLUGIN_KEY])) {
+      this.clearManualSizes();
+    }
+
+    super.updatePlugin(newSettings);
   }
 
   /**
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    this.#detachHandleAndGuide();
+
     if (this.#disposeMapObserver) {
       this.#disposeMapObserver();
       this.#disposeMapObserver = null;
@@ -282,14 +322,55 @@ export class ManualColumnResize extends BasePlugin {
   }
 
   /**
-   * Clears the cache for the specified column index.
+   * Clears the width stored for the specified column, so the column falls back to the width coming
+   * from the [`colWidths`](@/api/options.md#colwidths) option, or to the built-in default width.
+   * Call `render()` afterwards to repaint the grid.
+   *
+   * @example
+   * ```js
+   * const resizePlugin = hot.getPlugin('manualColumnResize');
+   *
+   * resizePlugin.clearManualSize(0);
+   * hot.render();
+   * ```
    *
    * @param {number} column Visual column index.
    */
   clearManualSize(column: number): void {
+    // The map only exists while the plugin is enabled, and a disabled plugin stores no widths.
+    if (!this.enabled) {
+      return;
+    }
+
     const physicalColumn = this.hot.toPhysicalColumn(column);
 
-    this.#columnWidthsMap.setValueAtIndex(physicalColumn, null);
+    // An out-of-range visual index resolves to `null`, which would write an entry under the string
+    // "null" and invalidate the width cache for nothing.
+    if (physicalColumn !== null) {
+      this.#columnWidthsMap.setValueAtIndex(physicalColumn, null);
+    }
+  }
+
+  /**
+   * Clears the widths stored for every column, so the columns fall back to the widths coming from
+   * the [`colWidths`](@/api/options.md#colwidths) option, or to the built-in default width. Call
+   * `render()` afterwards to repaint the grid.
+   *
+   * @example
+   * ```js
+   * const resizePlugin = hot.getPlugin('manualColumnResize');
+   *
+   * resizePlugin.clearManualSizes();
+   * hot.render();
+   * ```
+   */
+  clearManualSizes(): void {
+    this.#config = [];
+
+    // The map only exists while the plugin is enabled, and a disabled plugin stores no widths.
+    if (this.enabled) {
+      this.#columnWidthsMap.clear();
+    }
   }
 
   /**
@@ -470,6 +551,41 @@ export class ManualColumnResize extends BasePlugin {
   }
 
   /**
+   * Detaches the resize handle and the resize guide from the root element and clears their active
+   * state. Shared by the context menu handler, `disablePlugin()` and `destroy()`, so a plugin that
+   * is turned off leaves nothing of its own in the container.
+   *
+   * Both elements are detached with `remove()`, which is a no-op on an element that has no
+   * parent. The guide is attached only once a "mousedown" over the handle reaches
+   * `#onMouseDown`, so a context menu opened over a merely hovered handle reaches a guide that
+   * was never attached, and `removeChild` threw there (DEV-2708).
+   *
+   * The pressed flag is deliberately NOT reset here, and that is a trade rather than a safe
+   * default. `updatePlugin()` runs `disablePlugin(); enablePlugin();` on any `updateSettings()`
+   * carrying the plugin's own key, which is what a framework wrapper sends on every re-render -
+   * clearing the flag there would make the "mouseup" that ends an in-flight drag take the idle
+   * branch, so the drag would be dropped with no `afterColumnResize` and the dragged size never confirmed.
+   * That path is common, so it wins. The context menu handler resets the flag at its own call
+   * site, where aborting the drag is the point.
+   *
+   * Two consequences to know, neither introduced here. On a real disable - `manualColumnResize: false`
+   * rather than a re-init - `super.disablePlugin()` clears the events, so the "mouseup" never
+   * arrives and the flag stays latched true; after a later re-enable `#onMouseMove` then reads
+   * plain pointer movement as a drag and writes sizes from a stale start offset. And a drag in
+   * flight when the re-init fires loses both elements until its "mouseup" calls
+   * `setupHandlePosition()` again, because `enablePlugin()` does not re-attach them and
+   * `#onMouseOver` early-returns while the flag is set - the resize itself still lands, so that
+   * one is visual only. An `event.buttons === 0` check in `#onMouseMove` would close the latch,
+   * but the frozen Jasmine helpers simulate "mousemove" without `buttons`, so it reds 41 of the
+   * 147 specs in the two plugin suites and belongs with a sweep of those instead.
+   */
+  #detachHandleAndGuide() {
+    this.hideHandleAndGuide();
+    this.#handle.remove();
+    this.#guide.remove();
+  }
+
+  /**
    * Checks if provided element is considered a column header.
    *
    * @private
@@ -547,6 +663,21 @@ export class ManualColumnResize extends BasePlugin {
    * @fires Hooks#afterColumnResize
    */
   afterMouseDownTimeout() {
+    // A double-click arms this through `hot._registerTimeout`, which is only cleared by
+    // `Core#destroy()` - so an `updateSettings({ manualColumnResize: false })` landing inside the
+    // 500ms window leaves it pending on a plugin that is already off. Everything below would then
+    // be wrong: it runs the resize hooks, writes through `setManualSize()` into a column widths map
+    // `disablePlugin()` has already unregistered, renders, and ends by appending the handle back
+    // into the container the teardown just cleaned. Reset the state the way a completed run does,
+    // so `#onMouseDown` can arm a fresh timer after a re-enable - it only does so while
+    // `#autoresizeTimeout` is null.
+    if (!this.enabled) {
+      this.#autoresizeTimeout = null;
+      this.#dblclick = 0;
+
+      return;
+    }
+
     const shouldRefreshHandlePosition = shouldRefreshHandleAfterAutoResize(
       this.#currentTH,
       this.#dblclick,
@@ -703,9 +834,7 @@ export class ManualColumnResize extends BasePlugin {
    * Callback for "contextmenu" event triggered on element showing move handle. It removes handle and guide elements.
    */
   #onContextMenu() {
-    this.hideHandleAndGuide();
-    this.hot.rootElement.removeChild(this.#handle);
-    this.hot.rootElement.removeChild(this.#guide);
+    this.#detachHandleAndGuide();
 
     this.#pressed = false;
     this.#isTriggeredByRMB = true;
@@ -783,6 +912,7 @@ export class ManualColumnResize extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
+    this.#detachHandleAndGuide();
     super.destroy();
   }
 }

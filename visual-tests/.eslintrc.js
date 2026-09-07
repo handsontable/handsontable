@@ -3,12 +3,6 @@ module.exports = {
     '../.eslintrc.js',
     'plugin:import/typescript'
   ],
-  rules: {
-    // @argos-ci/core is an ESM-only package that uses the `exports` field in package.json.
-    // The default eslint-import-resolver-node does not support the `exports` field, so the
-    // module cannot be resolved statically even though it is installed correctly.
-    'import/no-unresolved': ['error', { ignore: ['@argos-ci/core'] }],
-  },
   overrides: [
     {
       files: ['*.ts'],
@@ -25,6 +19,24 @@ module.exports = {
           variables: true,
           typedefs: false
         }]
+      }
+    },
+    {
+      // Same treatment the root config gives `scripts/**/*.mjs`: Node ESM needs
+      // the file extension on relative imports, which the base config forbids.
+      files: ['lib/**/*.mjs'],
+      rules: {
+        'import/extensions': [
+          'error',
+          'never',
+          {
+            js: ['error', 'always'],
+            mjs: ['error', 'always'],
+            json: ['error', 'always'],
+          }
+        ],
+        'no-restricted-globals': 'off',
+        'no-console': 'off',
       }
     }
   ]

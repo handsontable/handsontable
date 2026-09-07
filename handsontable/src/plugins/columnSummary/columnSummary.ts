@@ -2,11 +2,16 @@ import { BasePlugin } from '../base';
 import { objectEach } from '../../helpers/object';
 import Endpoints, { type EndpointConfig } from './endpoints';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
-import { isNullishOrNaN } from './utils';
+import { holdsNoNumber } from './utils';
 import { throwWithCause } from '../../helpers/errors';
 
 export const PLUGIN_KEY = 'columnSummary';
 export const PLUGIN_PRIORITY = 220;
+
+/**
+ * Result shown when a range holds no value to calculate from.
+ */
+const NOT_ENOUGH_DATA = 'Not enough data';
 
 export interface SummaryEndpoint {
   ranges?: number[][];
@@ -328,7 +333,7 @@ export class ColumnSummary extends BasePlugin {
     do {
       const rawValue = this.getCellValue(i, col);
 
-      cellValue = isNullishOrNaN(rawValue) ? null : Number(rawValue);
+      cellValue = holdsNoNumber(rawValue) ? null : Number(rawValue);
 
       if (cellValue !== null) {
         const decimalPlaces = (((`${cellValue}`).split('.')[1] || []).length) || 1;
@@ -378,7 +383,7 @@ export class ColumnSummary extends BasePlugin {
       }
     }
 
-    return result === null ? 'Not enough data' : result;
+    return result === null ? NOT_ENOUGH_DATA : result;
   }
 
   /**
@@ -398,7 +403,7 @@ export class ColumnSummary extends BasePlugin {
     do {
       const rawValue = this.getCellValue(i, col);
 
-      cellValue = isNullishOrNaN(rawValue) ? null : Number(rawValue);
+      cellValue = holdsNoNumber(rawValue) ? null : Number(rawValue);
 
       if (result === null) {
         result = cellValue;
@@ -437,7 +442,7 @@ export class ColumnSummary extends BasePlugin {
 
     do {
       cellValue = this.getCellValue(i, col);
-      cellValue = isNullishOrNaN(cellValue) ? null : cellValue;
+      cellValue = holdsNoNumber(cellValue) ? null : cellValue;
 
       if (cellValue === null) {
         counter += 1;
@@ -450,7 +455,7 @@ export class ColumnSummary extends BasePlugin {
   }
 
   /**
-   * Counts non-empty cells in the provided row range.
+   * Counts the cells that hold a number in the provided row range.
    *
    * @private
    * @param {object} endpoint Contains the endpoint information.
@@ -476,13 +481,18 @@ export class ColumnSummary extends BasePlugin {
    *
    * @private
    * @param {object} endpoint Contains the endpoint information.
-   * @returns {number} Avarage value.
+   * @returns {number|string} Average value, or `'Not enough data'` when the range holds no entries.
    */
-  calculateAverage(endpoint: SummaryEndpoint): number {
-    const sum = this.calculateSum(endpoint);
+  calculateAverage(endpoint: SummaryEndpoint): number | string {
     const entriesCount = this.countEntries(endpoint);
 
-    return sum / entriesCount;
+    // An all-empty range divides by zero, and a malformed range bound makes the count negative or
+    // `NaN`. Report all of them the way `min` and `max` do instead of letting `NaN` reach the cell.
+    if (!Number.isFinite(entriesCount) || entriesCount <= 0) {
+      return NOT_ENOUGH_DATA;
+    }
+
+    return this.calculateSum(endpoint) / entriesCount;
   }
 
   /**
