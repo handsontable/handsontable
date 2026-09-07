@@ -72,4 +72,21 @@ describe('Comments plugin lifecycle', () => {
 
     expect(manager.getActiveContextName()).toBe('grid');
   });
+
+  it('keeps hiding the editor on theme changes after a disable/enable round trip', () => {
+    hot = new Handsontable(container, {
+      data: [['a']],
+      comments: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    hot.updateSettings({ comments: false });
+    hot.updateSettings({ comments: true });
+
+    const hide = jest.spyOn(hot.getPlugin('comments'), 'hide');
+
+    hot.runHooks('afterSetTheme', 'ht-theme-main', false);
+
+    expect(hide).toHaveBeenCalledTimes(1);
+  });
 });

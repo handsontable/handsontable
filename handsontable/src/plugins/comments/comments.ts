@@ -317,12 +317,16 @@ export class Comments extends BasePlugin {
       this.#editor = new CommentEditor(this.hot.rootDocument, this.hot.isRtl(), this.hot.rootPortalElement);
       this.#editor?.addLocalHook('resize',
         (width: number, height: number) => this.#onEditorResize(width, height));
-      this.addHook('afterSetTheme', (themeName: string, firstRun: boolean) => {
-        if (!firstRun) {
-          this.hide();
-        }
-      });
     }
+
+    // Registered on every enable, not only when the editor is first built: tracked hooks are
+    // removed by disablePlugin() while the editor instance survives it, so a hook inside the
+    // first-create guard would be gone for good after one disable/enable round trip.
+    this.addHook('afterSetTheme', (themeName: string, firstRun: boolean) => {
+      if (!firstRun) {
+        this.hide();
+      }
+    });
 
     if (!this.#displaySwitch) {
       this.#displaySwitch = new DisplaySwitch(this.getSetting<number>('displayDelay'));
