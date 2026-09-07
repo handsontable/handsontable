@@ -328,6 +328,23 @@ export class AutoRowSize extends BasePlugin {
    * @type {boolean}
    */
   #columnResizeRecalcScheduled = false;
+  /**
+   * `true` when a full `clearCache()` wiped every measured height and the replacement pass has not
+   * run yet.
+   *
+   * Only a render measures rows, and it measures just the visible band, so an emptied cache leaves
+   * every row below the fold unmeasured for good. Such a row falls back to the default height,
+   * which its own cell then refuses to honour once a wide wrapping column scrolls into view - a
+   * cell never renders shorter than its text - while the row header, having nothing to push it
+   * taller, does honour it. The two tables drift apart from there.
+   *
+   * The flag makes the next render restore the measurements the way `#onInit` does. Deferring
+   * rather than measuring inside `clearCache()` keeps repeated calls down to one recalculation and
+   * leaves `clearCache()` as cheap as it has always been.
+   *
+   * @type {boolean}
+   */
+  #fullRecalculationScheduled = false;
 
   /**
    * Initializes the plugin, registers the row heights map, and sets up the row resize hook.
@@ -717,6 +734,12 @@ export class AutoRowSize extends BasePlugin {
 
     } else {
       this.rowHeightsMap.clear();
+      // Nothing is measured any more, so the next render owes a full recalculation - see
+      // `#fullRecalculationScheduled`. The selective form above is deliberately left out: it clears
+      // named rows only, and recalculating the whole grid for them would be a far bigger pass than
+      // the caller asked for.
+      this.measuredRows = 0;
+      this.#fullRecalculationScheduled = true;
     }
   }
 
@@ -780,6 +803,19 @@ export class AutoRowSize extends BasePlugin {
    * changes before the next render.
    */
   #onBeforeRender = () => {
+    // A wiped cache is restored in full before anything else, so the rows below the fold are
+    // measured too and not just the visible band. The flag is held until a render that can actually
+    // measure: `recalculateAllRowsHeight()` is a no-op while the grid is hidden, and consuming it
+    // there would leave the cache empty for good.
+    if (this.#fullRecalculationScheduled && this.hot.view.isVisible()) {
+      this.#fullRecalculationScheduled = false;
+      // The full pass overwrites every height, so anything queued by a data change is covered.
+      this.#visualRowsToRefresh = [];
+      this.recalculateAllRowsHeight();
+
+      return;
+    }
+
     this.calculateVisibleRowsHeight();
 
     if (!this.inProgress) {
