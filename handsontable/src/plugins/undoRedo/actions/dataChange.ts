@@ -43,9 +43,10 @@ export class DataChangeAction extends BaseAction {
   /**
    * @param {number} countSourceRows The number of source rows before data change. This is what the
    *   undo measures the dataset against, because `countRows` counts only the rows a filter or a
-   *   trim leaves visible - see `undo()`.
+   *   trim leaves visible - see `undo()`. Absent on an action built without it, and the undo then
+   *   removes no rows at all rather than measuring against a count of something else.
    */
-  declare countSourceRows: number;
+  declare countSourceRows: number | undefined;
   /**
    * @param {Array} mergedCells Merge areas this change destroyed, as `{ row, col, rowspan, colspan }`
    *   objects captured before the change landed. Empty for every change that destroys no merge.
@@ -63,7 +64,7 @@ export class DataChangeAction extends BaseAction {
    * Initializes the data change action with the recorded cell changes, selection state, and grid dimensions at the time of the change.
    */
   constructor({
-    changes, selected, countCols, countRows, countSourceRows = countRows, mergedCells = [], physicalRows = []
+    changes, selected, countCols, countRows, countSourceRows, mergedCells = [], physicalRows = []
   }: {
     changes: unknown[][], selected: unknown[], countCols: number, countRows: number,
     countSourceRows?: number, mergedCells?: MergeAreaGeometry[], physicalRows?: (number | null)[]
@@ -160,12 +161,17 @@ export class DataChangeAction extends BaseAction {
    *   the normal path, and it keeps everything a grid write brings with it: the validators, the
    *   `afterChange` hook the settle callback rides on, and the editor refresh;
    * - the row exists but is trimmed away (a filter, `trimRows`), so it has no visual index at all
-   *   and the grid cannot address it. It is written straight to the source data instead. A row
-   *   removed since the change takes the same branch, and `dataSource.setAtCell()` drops a write
-   *   past the last source row - so the value goes nowhere instead of onto a surviving row;
+   *   and the grid cannot address it. It is written straight to the source data instead;
    * - the row had no physical index when the change was recorded, which means it did not exist yet.
    *   The recorded visual index is all there is, and writing there is what re-creates the row, so
    *   this case keeps addressing the grid visually.
+   *
+   * A physical row is a **position** in the source array, not a record identity, so a row removal the
+   * undo stack never recorded shifts it. Removing a row below the recorded one leaves this correct;
+   * removing one above it slides the index onto a neighbouring record, and the write then lands there.
+   * LIFO covers the ordinary case, because a recorded removal is undone before this action is reached.
+   * The same shift is why `dataSource.setAtCell()` dropping a write past the last source row cannot be
+   * read as "a removed row's value is discarded" - that only holds for a removal at the very end.
    *
    * @param {Core} hot The Handsontable instance.
    * @param {number} valueIndex Index of the value to replay within a change entry - `2` for the old
@@ -204,6 +210,41 @@ export class DataChangeAction extends BaseAction {
     });
 
     return { gridChanges, sourceChanges };
+  }
+
+  /**
+   * Names the rows this change appended to the source data, as `alter()`'s `[visualRow, amount]`
+   * groups, so each one is removed by its own index instead of by an amount counted from the last
+   * visible row.
+   *
+   * A trailing row that is trimmed away is skipped: it has no visual index, and `alter()` addresses
+   * rows visually. Skipping it leaves an empty row behind, which is what happened before the guard
+   * could see the source data at all - and far better than the alternative, which is removing
+   * whichever record happens to sit at the end of the visible range instead.
+   *
+   * @param {Core} hot The Handsontable instance.
+   * @returns {Array} The `[visualRow, amount]` groups to remove, possibly empty.
+   */
+  #collectCreatedRows(hot: HotInstance) {
+    const recordedSourceRows = this.countSourceRows;
+    const createdRows: number[][] = [];
+
+    // An action built by an external `done()` caller carries no source-row baseline. The removal is
+    // then skipped rather than measured against `countRows`, which counts a different thing - mixing
+    // the two deletes rows purely because a filter is active.
+    if (!Number.isInteger(recordedSourceRows)) {
+      return createdRows;
+    }
+
+    for (let physicalRow = recordedSourceRows!; physicalRow < hot.countSourceRows(); physicalRow++) {
+      const visualRow = hot.toVisualRow(physicalRow) as number | null;
+
+      if (visualRow !== null) {
+        createdRows.push([visualRow, 1]);
+      }
+    }
+
+    return createdRows;
   }
 
   /**
@@ -256,14 +297,20 @@ export class DataChangeAction extends BaseAction {
 
     this.#replay(hot, gridChanges, sourceChanges, 'UndoRedo.undo', () => {
       // Rows the change grew the dataset by - a write past the last row creates the rows it needs,
-      // and filling the last spare row makes `minSpareRows` top them up again. Measured in *source*
-      // rows, not the `countRows` this action also records: that one counts only what a filter or a
-      // trim leaves visible, so it reads a filter applied or dropped since the change as rows this
-      // action added, and then deletes that many rows of the user's data off the end (DEV-2665).
-      const rowsToRemove = hot.countSourceRows() - this.countSourceRows;
+      // and filling the last spare row makes `minSpareRows` top them up again. They are the trailing
+      // *source* rows, not a count of visible ones: `countRows()` counts only what a filter or a trim
+      // leaves visible, so measuring against it reads a filter applied or dropped since the change as
+      // rows this action added, and then deletes that many rows of the user's data (DEV-2665).
+      //
+      // Each one is named by its own visual index rather than by an amount, because `alter()` counts
+      // an amount from the last VISIBLE row - a different row as soon as anything is trimmed, so an
+      // amount measured in source rows would delete a record this change never touched. A trailing
+      // row that is trimmed has no visual index at all and cannot be addressed; it is left in place,
+      // which is what happened before this guard could see it.
+      const createdRows = this.#collectCreatedRows(hot);
 
-      if (rowsToRemove > 0) {
-        hot.alter('remove_row', undefined, rowsToRemove, 'UndoRedo.undo');
+      if (createdRows.length > 0) {
+        hot.alter('remove_row', createdRows, undefined, 'UndoRedo.undo');
       }
 
       const columnsToRemove = hot.countCols() - this.countCols;

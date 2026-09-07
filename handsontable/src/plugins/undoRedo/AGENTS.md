@@ -89,24 +89,48 @@ Three traps come with it, and each one has a measured defect behind it.
    settles itself when the grid-write list comes out empty, and the source writes go **first** so the
    `afterChange` settle still runs after the whole replay landed. An armed hook left behind is not a
    cosmetic leak: `ignoreNewActions` stays on until it fires, so **every action the user performs in
-   between is silently dropped from the stack**, and the action then settles on an unrelated change. Keep
-   the two write lists in one `setDataAtCell` call for the same reason — two calls settle on the first.
-3. **The row-count guard measures `countSourceRows`, not `countRows`.** Its job is to remove the rows the
-   change grew the dataset by: the rows a past-the-end write created, *and* the ones `minSpareRows` topped
-   up when the edit filled the last spare row (that second one is why gating the guard on "some change was
-   past the end" is not enough — `UndoRedo.spec.js` pins it). `countRows()` counts only what a filter or a
-   trim leaves visible, so comparing it read a trim *lifted* since the edit as rows to delete, and took
-   that many rows of the user's data off the end. `countRows` is still recorded, because it is part of the
-   payload `beforeUndo`/`afterUndo` hand to listeners.
+   between is silently dropped from the stack**, and the action then settles on an unrelated change. The
+   grid list therefore has to stay **one** `setDataAtCell` call — split it in two and the settle runs on
+   the first one's `afterChange`, while the second is still to come.
+3. **The rows the change created are named INDIVIDUALLY, and measured in source rows.** Two separate
+   mistakes are already burned in here. Measuring against `countRows()` is wrong because it counts only
+   what a filter or a trim leaves visible, so a trim *lifted* since the edit reads as rows to delete —
+   and gating the guard on "some change was past the end" instead does not work either, because
+   `minSpareRows` tops the spares up when an edit fills the last spare row and grows the dataset with no
+   change addressing a new row at all (`UndoRedo.spec.js`'s minSpareRows case pins that). And passing an
+   **amount** to `alter('remove_row', undefined, n)` is wrong even with the right number, because
+   `alter()` counts an amount back from the last **visible** row: with anything trimmed that is a
+   different record, so it deleted a row the change never touched, and with everything trimmed it handed
+   listeners a `beforeRemoveRow(NaN, 0, [])` round. Hence `#collectCreatedRows()` — one
+   `[visualRow, 1]` group per trailing source row, trimmed ones skipped because they have no visual
+   index. `countRows` is still recorded, because it is part of the payload `beforeUndo`/`afterUndo` hand
+   to listeners.
 
 Formulas needs no change for the source path: it already ignores `UndoRedo.*` sources on
 `afterSetSourceDataAtCell` and resolves a trimmed row's engine index physically — see `../formulas/AGENTS.md`.
 
-One gap stays open, deliberately. `physicalRows` holds a **position in the source array, not a record
-identity**, so a row removal that is not on the undo stack shifts every entry below it and the replay
-lands one row off. That is the same class of gap the visual index had, one step further out: LIFO puts a
-recorded removal's own undo first, so it only bites a removal performed with a blocked source. Do not read
-the field as an ID.
+Four gaps stay open, deliberately. Each one is a known defect, not an oversight — say so rather than
+rediscovering them.
+
+- **`physicalRows` is a position, not an identity.** A row removal that is not on the undo stack shifts
+  every entry below it, and the replay then lands one row off. Same class of gap the visual index had,
+  one step further out: LIFO puts a recorded removal's own undo first, so it bites only a removal
+  performed with a blocked source. Do not read the field as an ID, and do not write "a removed row's
+  value is discarded" anywhere — that only holds for a removal at the very **end** of the dataset.
+- **The data is restored physically, the selection still visually.** After a reorder this action did not
+  record, the values land on the right records while `selectCells(this.selected)` highlights whatever now
+  sits at the recorded visual coordinates. `remergeCellsGeometryOnly` carries the same issue, narrower
+  (paste source only). Fixing it needs a physical form for a *range*, which `CellRange` cannot describe.
+- **`allowInvalid: false` can still strand the stack.** When a validator rejects every grid change,
+  `validateChanges` splices them all out, `applyChanges` fires no `afterChange`, and the settle never
+  runs — so `ignoreNewActions` stays on for the rest of the session. Pre-existing, and the `try/catch` in
+  `#replay()` does **not** cover it (nothing throws). What this rewrite added is that the source writes
+  have already landed by then, so such an action is now stranded *and* half-applied. A real fix needs a
+  completion signal from Core that survives an all-rejected validation round.
+- **The column half of the guard still counts visible columns.** `countCols()` is
+  `min(maxCols, notTrimmedColumns)`, so a `maxCols` raised since the edit reads as columns this change
+  added. It is the same defect the row half above fixed, left alone because the column axis is outside
+  DEV-2665 and `countSourceCols()` reads the first row's keys, which is not a reliable count.
 
 ## `CellAlignmentAction` restores an ABSENT value as absent
 

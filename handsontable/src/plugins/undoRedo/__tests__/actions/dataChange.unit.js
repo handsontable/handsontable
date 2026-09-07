@@ -248,6 +248,76 @@ describe('UndoRedo -> DataChange action', () => {
       expect(hot.getSourceDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5']);
     });
 
+    it('should not remove a populated row in place of a created row that is trimmed', () => {
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [['A1'], ['A2'], ['A3']],
+        trimRows: true,
+        undo: true,
+      });
+
+      hot.setDataAtCell(3, 0, 'x');
+
+      expect(hot.countSourceRows()).toBe(4);
+
+      hot.getPlugin('trimRows').trimRows([3]);
+
+      hot.getPlugin('undoRedo').undo();
+
+      // The created row has no visual index left, so it cannot be removed. Removing "the last
+      // visible row" instead takes A3, which this change never touched.
+      expect(hot.getSourceDataAtCell(2, 0)).toBe('A3');
+      expect(hot.countSourceRows()).toBe(4);
+    });
+
+    it('should not run a row removal when no created row is reachable', () => {
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [['A1'], ['A2'], ['A3']],
+        trimRows: true,
+        undo: true,
+      });
+
+      hot.setDataAtCell(3, 0, 'x');
+      hot.getPlugin('trimRows').trimRows([0, 1, 2, 3]);
+
+      expect(hot.countRows()).toBe(0);
+
+      const beforeRemoveRow = jest.fn();
+
+      hot.addHook('beforeRemoveRow', beforeRemoveRow);
+
+      hot.getPlugin('undoRedo').undo();
+
+      // With no visible row to address, `alter('remove_row')` resolves an empty index list and a
+      // `NaN` row index. Listeners must not be handed that round at all.
+      expect(beforeRemoveRow).not.toHaveBeenCalled();
+      expect(hot.countSourceRows()).toBe(4);
+    });
+
+    it('should remove the created rows measured in source rows, not visible ones', () => {
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [['A1'], ['A2'], ['A3']],
+        minSpareRows: 1,
+        trimRows: true,
+        undo: true,
+      });
+
+      // The grid carries one spare row, so this fills it and `minSpareRows` tops it up again.
+      hot.setDataAtCell(3, 0, 'typed');
+
+      expect(hot.countSourceRows()).toBe(5);
+
+      // What a filter excluding empty values does to the two trailing rows.
+      hot.getPlugin('trimRows').trimRows([3, 4]);
+
+      hot.getPlugin('undoRedo').undo();
+
+      expect(hot.getSourceDataAtCell(2, 0)).toBe('A3');
+      expect(hot.getSourceDataAtCell(3, 0)).toBe(null);
+    });
+
     it('should still remove the rows that a write past the last row created', () => {
       hot = new Handsontable(container, {
         licenseKey: 'non-commercial-and-evaluation',
