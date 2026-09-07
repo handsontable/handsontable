@@ -180,11 +180,18 @@ unwanted scrollbar for another. Deciding the rounding from the holder's own heig
 it either: with `height: 'auto'` the holder resolves FROM the hider being written, so the test would
 read the previous draw's height.
 
-**A whole-pixel total is returned untouched**, which is every total at 100% zoom. Besides being
-unnecessary there, the total has a second consumer: `resolveLayout`'s window-mode prediction adds it
-to `documentScrollHeight` after subtracting the hider's INTEGER `offsetHeight`, so an unconditional
-slack leaves the prediction 0.05px over on a page whose document does not scroll — enough for a `>`
-test to invent a window scrollbar at the default zoom.
+**A whole-pixel total is returned untouched**, which is every total at 100% zoom — there is no
+sub-pixel residue to cover when nothing was measured in fractions.
+
+**Only the hider write gets the slack; `gatherLayoutInput` deliberately does not.** The two ask
+different questions. The slack stops the hider ELEMENT falling a hair short of the table inside it,
+a comparison the browser makes and rounds to device pixels. The solver asks whether the content
+overflows the workspace, and both of its tests are an exact `>` — element mode against
+`workspaceHeight`, window mode against `documentClientHeight` after subtracting the hider's INTEGER
+`offsetHeight`. A deliberate 0.05px overshoot fed into an exact comparison models nothing the browser
+can see and can only flip the verdict the wrong way: the solver reserves a vertical bar, `stretchH`
+shrinks the columns to make room, and no bar is ever painted. The two shared sub-pixel terms (the
+border inflation and the header fraction) still go into both, because those describe real height.
 
 **`stylesHandler` is a user-supplied setting that defaults to `null`, and a standalone Walkontable
 host may implement only part of it** — the engine's own Puppeteer harness (`test/helpers/common.js`)
