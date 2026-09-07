@@ -3762,6 +3762,100 @@ describe('MergeCells', () => {
       expect(merges()).toEqual([{ row: 3, col: 0, rowspan: 2, colspan: 1 }]);
     });
 
+    it('should not drop a merge trimmed down to one visible cell when an unrelated column is moved', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        trimRows: true,
+        manualColumnMove: true,
+        mergeCells: [{ row: 2, col: 0, rowspan: 2, colspan: 1 }], // physical rows 2,3
+      });
+      const trimRows = getPlugin('trimRows');
+
+      trimRows.trimRows([3]);
+
+      await render();
+
+      expect(merges()).toEqual([{ row: 2, col: 0, rowspan: 1, colspan: 1 }]);
+
+      // the move touches none of the merge's columns, so the single cell it draws must not be read
+      // as a singleton fragment and dropped
+      getPlugin('manualColumnMove').moveColumn(4, 1);
+
+      await render();
+
+      expect(merges()).toEqual([{ row: 2, col: 0, rowspan: 1, colspan: 1 }]);
+
+      trimRows.untrimAll();
+
+      await render();
+
+      expect(merges()).toEqual([{ row: 2, col: 0, rowspan: 2, colspan: 1 }]);
+    });
+
+    it('should not drop a merge trimmed down to one visible cell when a column is frozen', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        trimRows: true,
+        manualColumnFreeze: true,
+        mergeCells: [{ row: 2, col: 2, rowspan: 2, colspan: 1 }], // physical rows 2,3
+      });
+      const trimRows = getPlugin('trimRows');
+
+      trimRows.trimRows([3]);
+
+      await render();
+
+      expect(merges()).toEqual([{ row: 2, col: 2, rowspan: 1, colspan: 1 }]);
+
+      getPlugin('manualColumnFreeze').freezeColumn(2);
+
+      await render();
+
+      expect(merges()).toEqual([{ row: 2, col: 0, rowspan: 1, colspan: 1 }]);
+
+      trimRows.untrimAll();
+
+      await render();
+
+      expect(merges()).toEqual([{ row: 2, col: 0, rowspan: 2, colspan: 1 }]);
+    });
+
+    it('should keep the single-column fragment of a merge trimmed down to one visible row when a column move splits it', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        trimRows: true,
+        manualColumnMove: true,
+        mergeCells: [{ row: 2, col: 1, rowspan: 2, colspan: 3 }], // physical rows 2,3; columns 1,2,3
+      });
+      const trimRows = getPlugin('trimRows');
+
+      trimRows.trimRows([3]);
+
+      await render();
+
+      expect(merges()).toEqual([{ row: 2, col: 1, rowspan: 1, colspan: 3 }]);
+
+      // column 1 leaves the block, so the merge splits into a single column at visual 4 and a
+      // two-column run at visual 1..2; both fragments still own the trimmed physical row 3
+      getPlugin('manualColumnMove').moveColumn(1, 4);
+
+      await render();
+
+      expect(merges()).toEqual([
+        { row: 2, col: 1, rowspan: 1, colspan: 2 },
+        { row: 2, col: 4, rowspan: 1, colspan: 1 },
+      ]);
+
+      trimRows.untrimAll();
+
+      await render();
+
+      expect(merges()).toEqual([
+        { row: 2, col: 1, rowspan: 2, colspan: 2 },
+        { row: 2, col: 4, rowspan: 2, colspan: 1 },
+      ]);
+    });
+
     it('should not send a trimmed row across a row the merge does not own when a move splits it', async() => {
       handsontable({
         data: createSpreadsheetData(12, 3),

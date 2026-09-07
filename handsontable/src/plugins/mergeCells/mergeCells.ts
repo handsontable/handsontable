@@ -1389,6 +1389,45 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
+   * Picks out, per merge, the physical columns whose single-cell fragment has to survive the
+   * collection's singleton drop after a column reorder, because the merge still owns trimmed rows.
+   *
+   * The trimming re-anchor shrinks a merge's own `rowspan` to its visible count, so a merge trimmed
+   * down to one visible row *is* `rowspan: 1`, and a column translation copies that value onto every
+   * fragment it produces. A `colspan: 1` fragment of such a merge then reads as a singleton, even when
+   * the reorder touched none of the merge's columns. It is a merge again the moment its rows come
+   * back, so every physical column of a merge that owns a trimmed row is retained.
+   *
+   * Unlike the row move, no attribution and no ownership guard is needed here. A column reorder never
+   * changes which rows a merge covers, so {@link MergeCells#transferAnchorsAfterAxisMove} hands every
+   * fragment the whole anchor either way, and a retained single cell is treated exactly like a wider
+   * fragment of the same merge.
+   *
+   * @param {Map<MergedCellCoords, number[]>} snapshot The pre-reorder physical columns of every merge.
+   * @returns {Map<MergedCellCoords, Set<number>>} All physical columns of every merge that owns a
+   * trimmed row. Empty when no row is trimmed.
+   */
+  #planColumnMoveRetention(snapshot: Map<MergedCellCoords, number[]>): Map<MergedCellCoords, Set<number>> {
+    const retained = new Map<MergedCellCoords, Set<number>>();
+
+    if (!this.#isRowTrimmingActive()) {
+      return retained;
+    }
+
+    snapshot.forEach((physicalColumns, merge) => {
+      const anchor = this.#mergeAnchors.get(merge);
+      const ownsTrimmedRow = anchor?.physicalRows
+        .some(physicalRow => this.hot.toVisualRow(physicalRow) === null) ?? false;
+
+      if (ownsTrimmedRow) {
+        retained.set(merge, new Set(physicalColumns));
+      }
+    });
+
+    return retained;
+  }
+
+  /**
    * Picks out the rows that actually carry a trimmed row.
    *
    * @param {Map<number, number[]>} trimmedRowsByCarrier Visible physical row -> the rows it carries.
@@ -2559,7 +2598,8 @@ export class MergeCells extends BasePlugin {
     }
 
     this.#transferAnchorsAfterAxisMove(
-      this.mergedCellsCollection.translateAfterAxisMove('column', snapshot), 'column');
+      this.mergedCellsCollection.translateAfterAxisMove(
+        'column', snapshot, this.#planColumnMoveRetention(snapshot)), 'column');
     this.#captureMergeAnchors();
     this.hot.render();
   };
@@ -2663,7 +2703,8 @@ export class MergeCells extends BasePlugin {
     }
 
     this.#transferAnchorsAfterAxisMove(
-      this.mergedCellsCollection.translateAfterAxisMove('column', snapshot), 'column');
+      this.mergedCellsCollection.translateAfterAxisMove(
+        'column', snapshot, this.#planColumnMoveRetention(snapshot)), 'column');
     this.#captureMergeAnchors();
     this.hot.render();
   };
