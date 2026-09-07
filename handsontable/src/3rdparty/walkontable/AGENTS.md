@@ -212,11 +212,19 @@ Consequences worth knowing:
   renderers, and `autoRowHeaderSize` measures each of them, so this is a supported shape rather than
   a curiosity. The body selector therefore matches every `th` in a body row - all of them are row
   headers - rather than `th:first-child`; the inner ones need no override because they are never
-  `:last-child`. The HEAD row cannot be handled the same way: CSS cannot count how many corner cells
-  precede the first column header, so that half stays on `:first-child` and a grid with two or more
-  row headers keeps drawing its head-row seam in the frame color. That is what it does today too, so
-  it is a pre-existing quirk this change neither fixes nor worsens - fixing it needs a marker class
-  from the engine on the last row header.
+  `:last-child`. The HEAD row cannot be keyed the same way, because CSS cannot count how many corner
+  cells precede the first column header - a corner is a `th` like the column headers beside it. It
+  keys on **`htLastRowHeaderColumn`** instead, a marker the engine stamps on the last row-header
+  column in `render/rowHeaders.ts` (body rows) and `render/columnHeaders.ts` (head rows, where the
+  marked cell is the last CORNER cell). Both renderers run once per `Table`, so the marker lands in
+  every clone with no extra wiring, exactly as `htLastVisibleHeader` does. It is stamped AFTER the
+  header renderer runs - `TH.className` is reset first and a renderer may assign to it - and needs no
+  clearing pass, because that reset runs per cell per render and the marked index is deterministic
+  (`htLastVisibleHeader` needs its backward walk only because `hiddenHeader` moves between draws).
+  Before the marker this half keyed on `:first-child`, which picks the same cell with one row header
+  and the WRONG one with more: the first corner, whose inline-end is an inner seam, while the real
+  seam fell through to the `th:last-child` frame rule. Only `horizon` could see it, since `main` and
+  `classic` map the cell-border token to the frame token.
 - Without row headers, column 0 is the first cell of its row and still draws the grid's own
   inline-start frame inside its declared width. It stays 1px narrower than the rest — deliberately out
   of scope for #6673, and pinned as a control case in

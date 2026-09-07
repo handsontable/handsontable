@@ -1,6 +1,6 @@
 import { SharedOrderView } from '../utils/orderView';
 import { BaseRenderer } from './_base';
-import { setAttribute, removeAttribute } from '../../../../helpers/dom/element';
+import { addClass, setAttribute, removeAttribute } from '../../../../helpers/dom/element';
 import { clearAppliedSelection } from '../selection/appliedSelection';
 import {
   A11Y_COLINDEX,
@@ -109,6 +109,17 @@ export class RowHeadersRenderer extends BaseRenderer {
         }
 
         rowHeaderFunctions[visibleColumnIndex](sourceRowIndex, TH, visibleColumnIndex);
+
+        // Marks the row header that owns the seam to column 0, for the theme rule that colors it.
+        // A grid can carry several row header columns (`afterGetRowHeaderRenderers`), and the seam
+        // is the LAST one's inline-end - which CSS cannot select, because the count is knowable
+        // only here. Stamped AFTER the header renderer runs: `TH.className` is reset above and a
+        // renderer is free to assign to it, which would wipe a marker applied earlier. No clearing
+        // pass is needed either, unlike `htLastVisibleHeader` - that reset runs per cell per
+        // render and this index is deterministic, so a stale marker cannot survive.
+        if (visibleColumnIndex === rowHeadersCount - 1) {
+          addClass(TH, 'htLastRowHeaderColumn');
+        }
       }
 
       orderView.end();

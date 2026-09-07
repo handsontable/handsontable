@@ -62,12 +62,12 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
     expect(rootNode.outerHTML).toMatchHTML(`
       <thead>
         <tr>
-          <th class="">1</th>
+          <th class="htLastRowHeaderColumn">1</th>
           <th class="">1</th>
           <th class="htLastVisibleHeader">1</th>
         </tr>
         <tr>
-          <th class="">1</th>
+          <th class="htLastRowHeaderColumn">1</th>
           <th class="">1</th>
           <th class="htLastVisibleHeader">1</th>
         </tr>
@@ -86,7 +86,7 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
     expect(rootNode.outerHTML).toMatchHTML(`
       <thead>
         <tr>
-          <th class="">2</th>
+          <th class="htLastRowHeaderColumn">2</th>
           <th class="htLastVisibleHeader">2</th>
         </tr>
       </thead>
@@ -162,12 +162,12 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
     expect(rootNode.outerHTML).toMatchHTML(`
       <thead>
         <tr>
-          <th class="">1</th>
+          <th class="htLastRowHeaderColumn">1</th>
           <th class="">1</th>
           <th class="htLastVisibleHeader">1</th>
         </tr>
         <tr>
-          <th class="">1</th>
+          <th class="htLastRowHeaderColumn">1</th>
           <th class="">1</th>
           <th class="htLastVisibleHeader">1</th>
         </tr>
@@ -208,12 +208,12 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
     expect(rootNode.outerHTML).toMatchHTML(`
       <thead>
         <tr>
-          <th class=""></th>
+          <th class="htLastRowHeaderColumn"></th>
           <th class=""></th>
           <th class="htLastVisibleHeader"></th>
         </tr>
         <tr>
-          <th class=""></th>
+          <th class="htLastRowHeaderColumn"></th>
           <th class=""></th>
           <th class="htLastVisibleHeader"></th>
         </tr>

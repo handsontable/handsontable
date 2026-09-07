@@ -123,6 +123,15 @@ export class ColumnHeadersRenderer extends BaseRenderer {
         }
 
         columnHeaderFunctions[visibleRowIndex](sourceColumnIndex, TH, visibleRowIndex);
+
+        // The head-row half of the same marker - see `RowHeadersRenderer#render`. The first
+        // `rowHeadersCount` cells of this row are the CORNER cells, and the last of them sits above
+        // the row header that owns the seam to column 0, so it owns the head row's copy of that
+        // seam. CSS cannot count corner cells (they are `th` like the column headers beside them),
+        // which is the whole reason the theme rule needs this class rather than `:first-child`.
+        if (rowHeadersCount > 0 && visibleColumnIndex === rowHeadersCount - 1) {
+          addClass(TH, 'htLastRowHeaderColumn');
+        }
       }
 
       orderView.end();
