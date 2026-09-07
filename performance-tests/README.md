@@ -158,9 +158,9 @@ Two rules follow for anyone writing or changing a scenario:
   `scrollToColumn` wait on trimming, not scroll position, so they return before the scroll
   has rendered; the settle is what makes those resets deterministic.
 
-A category measured as exactly `0`, or a CV of `sqrt(n - 1) × 100%` (one nonzero iteration among
-zeros: `141.42%` at three iterations, `200%` at five), means the window is wrong -- not that the
-operation was cheap.
+A category measured as exactly `0`, or a CV of `sqrt(n) × 100%` (one nonzero iteration among
+zeros, with the sample standard deviation `calcCv` uses: `173.21%` at three iterations, `223.61%`
+at five), means the window is wrong -- not that the operation was cheap.
 
 ### Golden baseline workflow
 

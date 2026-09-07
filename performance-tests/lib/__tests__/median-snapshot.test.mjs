@@ -170,6 +170,21 @@ describe('computeMedianSnapshot', () => {
     assert.equal('jsHeapAfterGcLabel' in without.scenarios.sorting.updateCounters, false);
   });
 
+  test('applies the MIN_VALID_SNAPSHOTS floor to the post-GC heap per field', () => {
+    // Four of five windowed goldens had failing readbacks: one run's live heap must not sit beside a
+    // true median of five for the max under a "median of 5" label.
+    const one = computeMedianSnapshot([
+      snapshot('2026-08-28T00:00:00Z', {
+        sorting: { updateCounters: { ...DEFAULT_UPDATE_COUNTERS, jsHeapAfterGcBytes: 1_500_000 } },
+      }),
+      snapshot('2026-08-29T00:00:00Z'),
+      snapshot('2026-08-30T00:00:00Z'),
+    ]);
+
+    assert.equal('jsHeapAfterGcBytes' in one.scenarios.sorting.updateCounters, false);
+    assert.equal(one.scenarios.sorting.updateCounters.jsHeapMaxBytes, 2_000_000);
+  });
+
   test('regenerates the heap labels from the medianed bytes', () => {
     const result = computeMedianSnapshot([
       snapshot('2026-08-28T00:00:00Z'),

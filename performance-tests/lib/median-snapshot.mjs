@@ -91,9 +91,14 @@ function medianScenario(entries) {
   if (updateCounterEntries.length > 0) {
     const jsHeapMinBytes = median(updateCounterEntries.map(uc => uc.jsHeapMinBytes));
     const jsHeapMaxBytes = median(updateCounterEntries.map(uc => uc.jsHeapMaxBytes));
-    // Absent on goldens recorded before the runner read the live heap; median() skips those, so a
-    // window mixing old and new entries medians only the ones that have it.
-    const jsHeapAfterGcBytes = median(updateCounterEntries.map(uc => uc.jsHeapAfterGcBytes));
+    // Absent on goldens recorded before the runner read the live heap. Medianed only when at least
+    // MIN_VALID_SNAPSHOTS entries carry it -- the same floor the whole median has, applied per field,
+    // so a baseline labelled "median of 5" never carries one run's live heap beside a true median of
+    // five for the max.
+    const afterGcValues = updateCounterEntries
+      .map(uc => uc.jsHeapAfterGcBytes)
+      .filter(v => typeof v === 'number' && Number.isFinite(v));
+    const jsHeapAfterGcBytes = afterGcValues.length >= MIN_VALID_SNAPSHOTS ? median(afterGcValues) : null;
 
     updateCounters = {
       sampleCount: medianRounded(updateCounterEntries.map(uc => uc.sampleCount)) ?? 0,

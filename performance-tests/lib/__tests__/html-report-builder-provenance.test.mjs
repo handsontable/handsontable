@@ -7,7 +7,7 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildHtmlReport } from '../html-report-builder.mjs';
 import { buildReport } from '../report-builder.mjs';
-import { REGRESSION_CALLOUT_THRESHOLD_HEAP, heapThresholdFor } from '../thresholds.mjs';
+import { INCOMPARABLE_LABELS, REGRESSION_CALLOUT_THRESHOLD_HEAP, heapThresholdFor } from '../thresholds.mjs';
 
 /**
  * @param {string} html
@@ -199,6 +199,60 @@ describe('buildHtmlReport -- JS heap after GC', () => {
     assert.equal(row.currentDisplay, '55.0 MB');
     assert.equal(row.baselineDisplay, '--');
     assert.equal(row.change, null);
+  });
+
+  test('the row is informational: it states its delta without a verdict', () => {
+    const data = payloadOf(buildHtmlReport(
+      { a: withAfterGc(57_000_000, '57.0 MB') },
+      {
+        timestamp: 't',
+        scenarios: {
+          a: golden({
+            updateCounters: {
+              jsHeapMaxBytes: 100_000_000,
+              jsHeapMaxLabel: '100 MB',
+              jsHeapAfterGcBytes: 50_000_000,
+              jsHeapAfterGcLabel: '50.0 MB',
+            },
+          }),
+        },
+      },
+      {}
+    ));
+    const rows = data.scenarios[0].memory;
+
+    // +14% on the live set, well past every heap band, and still neutral; the max row is not.
+    assert.equal(rows.find(r => r.label === 'JS heap after GC').neutral, true);
+    assert.equal(rows.find(r => r.label === 'Max JS heap').neutral, false);
+  });
+
+  test('a baseline that carries the field while this run does not is a failed capture, not a blank', () => {
+    const data = payloadOf(buildHtmlReport(
+      { a: current(100) },
+      {
+        timestamp: 't',
+        scenarios: {
+          a: golden({
+            updateCounters: {
+              jsHeapMaxBytes: 100_000_000,
+              jsHeapMaxLabel: '100 MB',
+              jsHeapAfterGcBytes: 50_000_000,
+              jsHeapAfterGcLabel: '50.0 MB',
+            },
+          }),
+        },
+      },
+      {}
+    ));
+    const row = data.scenarios[0].memory.find(r => r.label === 'JS heap after GC');
+
+    assert.equal(row.baselineDisplay, '50.0 MB');
+    assert.equal(row.currentDisplay, '--');
+    assert.equal(row.change, null);
+    assert.equal(row.incomplete, true);
+    assert.equal(row.incompleteLabel, INCOMPARABLE_LABELS['current-incomplete']);
+    // The scenario itself is still comparable: only this row's capture failed.
+    assert.equal(data.scenarios[0].baselineIncomplete, false);
   });
 
   test('omits the row when neither side carries it', () => {

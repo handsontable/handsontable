@@ -281,40 +281,50 @@ export async function runTracedScenario({
       process.stdout.write(`  Iteration ${i}/${iterations}: tracing`);
 
       const cdp = await startTracing(page);
-
-      // Heartbeat: print dots during actionFn to keep GH Actions log alive. Cleared in a finally
-      // so a throwing actionFn does not leave the interval printing into a dead run.
-      const heartbeat = setInterval(() => process.stdout.write('.'), 5000);
+      let traceJson;
 
       try {
-        // The mark is taken after CDP has already entered the isolate once, so the
-        // interrupt that carries it stays outside the window it opens.
-        await mark(page, MEASURE_START_MARK);
+        // Heartbeat: print dots during actionFn to keep GH Actions log alive. Cleared in a finally
+        // so a throwing actionFn does not leave the interval printing into a dead run.
+        const heartbeat = setInterval(() => process.stdout.write('.'), 5000);
 
-        await actionFn(true);
+        try {
+          // The mark is taken after CDP has already entered the isolate once, so the
+          // interrupt that carries it stays outside the window it opens.
+          await mark(page, MEASURE_START_MARK);
 
-        // Inside the window on purpose: the frame this waits for is the work being measured.
-        if (!skipSettle) {
-          await settle(`iteration ${i}`);
+          await actionFn(true);
+
+          // Inside the window on purpose: the frame this waits for is the work being measured.
+          if (!skipSettle) {
+            await settle(`iteration ${i}`);
+          }
+
+          await mark(page, MEASURE_END_MARK);
+
+          // Outside the window: a readback here is harness overhead, not measured work.
+          if (afterActionFn) {
+            await afterActionFn();
+          }
+        } finally {
+          clearInterval(heartbeat);
         }
 
-        await mark(page, MEASURE_END_MARK);
-
-        // Outside the window: a readback here is harness overhead, not measured work.
-        if (afterActionFn) {
-          await afterActionFn();
-        }
-
-        // Also outside the window (the UpdateCounters extrema are taken over the marked samples
-        // only), and after the readbacks so the GC does not compete with them: what the action left
-        // alive, per iteration. Informational, so a failed readback records null and moves on.
-        heapAfterGc.push(await heapUsedAfterGc(control));
+        process.stdout.write(' stopping');
+        traceJson = await stopTracing(cdp);
       } finally {
-        clearInterval(heartbeat);
+        // The session that held the recording, released whether or not the iteration completed.
+        // Swallowed on purpose: a detach that fails because the page is already gone is exactly
+        // the case where an error is propagating out of the loop, and a second one would replace it.
+        await cdp.detach().catch(() => {});
       }
 
-      process.stdout.write(' stopping');
-      const traceJson = await stopTracing(cdp);
+      // After the trace is stopped, so the forced major GC on a 300 to 350 MB heap is in no saved
+      // trace: the marked window would exclude it anyway, but an iteration that lost its marks falls
+      // back to the auto-zoomed window, and a major GC is exactly the busiest region that fallback
+      // would pick. Stopping the trace does not touch page state, so the reading is the same. What
+      // the action left alive, per iteration; informational, so a failed readback records null.
+      heapAfterGc.push(await heapUsedAfterGc(control));
 
       const outPath = join(outputDir, `iteration-${i}.json`);
 

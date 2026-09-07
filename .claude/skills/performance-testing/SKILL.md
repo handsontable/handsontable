@@ -59,11 +59,14 @@ export default {
   name: 'my-scenario',
   warmupRuns: 1,
   iterations: 3,
-  // Bump when this spec changes what the marked window contains: the median baseline only draws on
-  // develop goldens recorded at the same version (see lib/environment.mjs).
+  // Bump when this spec changes what the marked window contains, or when `iterations` changes: the
+  // median baseline only draws on develop goldens recorded at the same version (see
+  // lib/environment.mjs).
   measurementVersion: 1,
 };
 ```
+
+`measurementVersion` covers everything scenario-local that changes the published number or its spread: the window's contents, and the iteration count (a mean of five and a mean of three have the same expected value but different spreads, and `CV run` would mean something different per row). `HARNESS_VERSION` covers runner-wide changes. When both change in one PR, the harness bump already restarts the whole golden pool and the scenario bump is not needed on top; say so in the config comment.
 
 The `name` must match the directory name -- it determines the `output/<name>/` subdirectory, and the teardown reads `measurementVersion` from the config by that name. Add a comment documenting the grid size and why it was chosen.
 
@@ -266,9 +269,9 @@ Everything published describes the slice between the two `performance.mark`s tha
   `scrollToRow`/`scrollToColumn` report trimming, not scroll position, so their
   `waitForFunction` returns before the scroll has rendered.
 
-A category measured as exactly `0`, or a CV of `sqrt(n - 1) × 100%` (one nonzero iteration among
-zeros: `141.42%` at three iterations, `200%` at five), means the window is wrong -- not that the
-operation was cheap.
+A category measured as exactly `0`, or a CV of `sqrt(n) × 100%` (one nonzero iteration among
+zeros, with the sample standard deviation `calcCv` uses: `173.21%` at three iterations, `223.61%`
+at five), means the window is wrong -- not that the operation was cheap.
 
 1. **Spec** calls `runTracedScenario()` -> forced GC (over a control CDP session), CDP `Tracing.start`, start mark, action, settle, end mark, `afterActionFn`, forced GC + `Runtime.getHeapUsage` readback, `Tracing.end` -> raw JSON per iteration, plus `heap-after-gc.json` for the scenario. The GC before tracing keeps the previous reset's garbage out of the window (initial-load's third iteration read ~50% slower than its first two before it); the readback after the end mark is the live set, recorded as `updateCounters.jsHeapAfterGcBytes`. Both are part of `HARNESS_VERSION` 2.
 2. **Teardown** (`lib/teardown.mjs`) discovers `output/*/iteration-*.json`, calls `parseTrace()` from `trace-parser.mjs`

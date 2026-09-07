@@ -14,15 +14,19 @@ import { join } from 'node:path';
 import { HEAP_AFTER_GC_FILE, saveHeapAfterGc, summarizeHeapAfterGc } from '../heap-after-gc.mjs';
 
 describe('summarizeHeapAfterGc', () => {
-  test('averages the finite readings and keeps every per-iteration value, nulls included', () => {
+  test('averages the finite readings, counts them, and keeps every per-iteration value, nulls included', () => {
     const summary = summarizeHeapAfterGc([100, null, 200]);
 
     assert.equal(summary.averageBytes, 150);
+    // Two of three: a consumer can tell this from a three-sample average, which the average alone
+    // cannot say.
+    assert.equal(summary.readCount, 2);
     assert.deepEqual(summary.values, [100, null, 200]);
   });
 
-  test('has no average when nothing was read', () => {
+  test('has no average and a zero count when nothing was read', () => {
     assert.equal(summarizeHeapAfterGc([null, null]).averageBytes, null);
+    assert.equal(summarizeHeapAfterGc([null, null]).readCount, 0);
     assert.equal(summarizeHeapAfterGc([]).averageBytes, null);
     assert.equal(summarizeHeapAfterGc(undefined).averageBytes, null);
   });
@@ -46,6 +50,7 @@ describe('saveHeapAfterGc', () => {
       const saved = JSON.parse(await readFile(join(dir, HEAP_AFTER_GC_FILE), 'utf8'));
 
       assert.equal(saved.averageBytes, 3_250_000);
+      assert.equal(saved.readCount, 2);
       assert.deepEqual(saved.values, [3_000_000, 3_500_000]);
     } finally {
       await rm(dir, { recursive: true, force: true });

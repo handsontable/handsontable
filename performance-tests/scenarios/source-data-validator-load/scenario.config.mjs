@@ -8,7 +8,8 @@ export default {
   // Five, not three: run-to-run spread of the validator pass over 10 million cells was 20% after
   // removing the runner factor. The iterations are cheap next to the fixture load.
   iterations: 5,
-  // Bump when this spec changes what the marked window contains: the median baseline only draws on
-  // develop goldens recorded at the same version (see lib/environment.mjs).
+  // Bump when this spec changes what the marked window contains, or when `iterations` changes. Not
+  // bumped for the 3 -> 5 change above: HARNESS_VERSION 2 landed in the same change and already
+  // restarts the whole golden pool (see lib/environment.mjs).
   measurementVersion: 1,
 };
