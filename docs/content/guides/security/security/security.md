@@ -122,6 +122,24 @@ new Handsontable(container, {
 });
 ```
 
+### Upgrading from v18.0 to v18.1
+
+If your sanitizer branches on its second argument, two `source` values changed in v18.1:
+
+- `'innerHTML'` is no longer passed by any part of the grid. The offscreen pass that measures [`nestedHeaders`](@/api/options.md#nestedheaders) widths now reports `'header'`, the same value as the rendered header, so one label no longer reaches your sanitizer under two different names.
+- `'dialog'` is now passed for [dialog](@/api/dialog.md) content. In v18.0, that content arrived with `source` set to `undefined`, so it moves out of whatever branch handled `undefined` -- usually the default one -- and into a `'dialog'` branch you may not have written.
+
+A sanitizer that ignores its second argument needs no changes.
+
+v18.1 also added sanitization to two surfaces that were previously written without consulting the sanitizer:
+
+- `'password'` -- content rendered by the [`password`](@/guides/cell-types/password-cell-type/password-cell-type.md) cell type.
+- `'CopyPaste.paste.sourceData'` -- Handsontable's own clipboard payload, used when copying and pasting between two grid instances. See [the note on this source](#what-the-sanitizer-does-not-cover) before deciding how to treat it.
+
+Additionally, as of v18.1, pasted markup is read through `DOMParser`, which builds a document with no browsing context -- HTML pasted from the clipboard cannot load resources or run scripts while it is parsed, regardless of the `sanitizer` configuration.
+
+For step-by-step instructions and code examples, see the [migration guide](@/guides/upgrade-and-migration/migrating-from-18.0-to-18.1/migrating-from-18.0-to-18.1.md).
+
 ### Trusted Types and CSP
 
 The [Trusted Types API](https://developer.mozilla.org/en-US/docs/Web/API/Trusted_Types_API) enforces that values reaching a DOM sink came from a policy you wrote. It is not a sanitizer, and it does not replace one. It can require that a sanitizer exists; it cannot be one. A policy such as `createHTML: (input) => input` satisfies the browser and provides no protection at all. What sanitizes is the function you call inside the policy.
