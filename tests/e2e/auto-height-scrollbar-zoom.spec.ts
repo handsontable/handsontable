@@ -66,37 +66,29 @@ test.describe('auto-height grid below 100% zoom', () => {
 
   for (const zoom of ZOOMS) {
     for (const rows of [5, 40]) {
-      test(`no vertical scrollbar at ${zoom * 100}% with ${rows} rows`, async() => {
+      // One navigation per case, four measurements on it. None of them mutates the page, and each
+      // `goto` is a document load plus a bundle parse plus a grid construction — split across four
+      // tests that was 32 grid builds per project, and six projects run this file.
+      test(`${zoom * 100}% zoom with ${rows} rows scrolls in neither direction`, async() => {
         await grid.goto(zoom, rows);
 
-        expect((await grid.scrollbarSizes()).vertical).toBe(0);
-      });
+        const { vertical, horizontal } = await grid.scrollbarSizes();
 
-      test(`no horizontal scrollbar at ${zoom * 100}% with ${rows} rows`, async() => {
+        expect(vertical, 'vertical scrollbar width').toBe(0);
         // The second half of the symptom, and the one the reporters saw first: the columns are
-        // stretched to the width left over after a vertical scrollbar, so an unwanted vertical
-        // bar drags a horizontal one in behind it.
-        await grid.goto(zoom, rows);
+        // stretched to the width left over after a vertical scrollbar, so an unwanted vertical bar
+        // drags a horizontal one in behind it.
+        expect(horizontal, 'horizontal scrollbar height').toBe(0);
 
-        expect((await grid.scrollbarSizes()).horizontal).toBe(0);
-      });
+        // The mechanism itself, measured directly, and the assertion that actually discriminates
+        // this fix. Any positive number is a box shorter than its own content.
+        expect(await grid.tableOverflowBelowScrollBox(), 'table height beyond the scroll box')
+          .toBeLessThanOrEqual(0);
 
-      test(`the scroll box holds the whole table at ${zoom * 100}% with ${rows} rows`, async() => {
-        // The mechanism itself, measured directly. Any positive number here is a box shorter than
-        // its own content, which is what the browser turns into a scrollbar.
-        await grid.goto(zoom, rows);
-
-        expect(await grid.tableOverflowBelowScrollBox()).toBeLessThanOrEqual(0);
-      });
-
-      test(`the correction leaves no visible gap at ${zoom * 100}% with ${rows} rows`, async() => {
-        // The other edge. The box is rounded up to the next device pixel, so the slack it adds is
-        // bounded by one physical pixel — the smallest distance a screen can show. A tolerance of
-        // 2 CSS px keeps this honest at 67%, where one device pixel is ~1.5 CSS px, while still
-        // failing a correction that overshot by a whole row.
-        await grid.goto(zoom, rows);
-
-        expect(await grid.deadSpaceBelowTable()).toBeLessThanOrEqual(2);
+        // The other edge. The correction adds a fixed sub-pixel slack, so a whole pixel of dead
+        // space below the last row would mean it overshot.
+        expect(await grid.deadSpaceBelowTable(), 'dead space below the last row')
+          .toBeLessThanOrEqual(1);
       });
     }
   }

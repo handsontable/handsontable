@@ -29,6 +29,12 @@ export class AutoHeightScrollbarZoomPage {
       `/tests/fixtures/demo/auto-height-scrollbar-zoom.html` +
       `?theme=${this.theme}&bundle=${this.bundle}&zoom=${zoom}&rows=${rows}`
     );
+    // Wait for the bundle itself before anything else. The `document.write`-injected script and the
+    // block that constructs the grid are separate, so a page can look ready while `Handsontable` is
+    // still undefined, and the failure then surfaces inside a later `page.evaluate` far from its
+    // cause. `waitForFunction`, not `expect`: the plain UMD bundle is ~6 MB and every worker pulls
+    // its own copy, which outlasts the 10s `expect` timeout on a cold server.
+    await this.page.waitForFunction(() => 'Handsontable' in window);
     await expect(this.cell(0, 0)).toBeVisible();
     await expect(this.lastRow()).toBeAttached();
   }

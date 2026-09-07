@@ -20,14 +20,30 @@ import type { default as Viewport } from './viewport';
  * Returns 0 for an unreadable style (`auto`, or an element with no layout), so a caller adding this
  * to a total can never turn it into `NaN`.
  *
+ * **Clamped to one pixel either way, and that is load-bearing.** The computed `height` is the
+ * CONTENT box while `offsetHeight` is the BORDER box, so the subtraction is a rounding remainder
+ * only while the element carries no vertical border or padding. That holds for the grid's own THEAD
+ * — those borders live on the `th` — but a host page's CSS reset or table framework can put a
+ * border on `thead`, and the difference would then be several whole pixels of real box, not a
+ * fraction. Subtracted from a content total it would leave the scroll box shorter than the table
+ * and clip the last row: the very defect this fraction exists to prevent, and one no rounding
+ * afterwards could recover. A true remainder is always inside (-1, 1), so anything outside it is
+ * not a remainder and is discarded.
+ *
  * @param {string} usedHeight The computed `height`, e.g. `'29.0972px'`.
  * @param {number} roundedHeight The whole-pixel height the same element reports.
- * @returns {number} The remainder in CSS pixels.
+ * @returns {number} The remainder in CSS pixels, or 0 if it is not one.
  */
 function measuredHeightFraction(usedHeight: string, roundedHeight: number): number {
   const used = Number.parseFloat(usedHeight);
 
-  return Number.isFinite(used) ? used - roundedHeight : 0;
+  if (!Number.isFinite(used)) {
+    return 0;
+  }
+
+  const remainder = used - roundedHeight;
+
+  return Math.abs(remainder) < 1 ? remainder : 0;
 }
 
 /**
@@ -388,9 +404,17 @@ export const workspaceSize: WorkspaceSize = {
 
       this.columnHeaderHeight = THEAD ? this.deps.geometryReader.outerHeight(THEAD) : 0;
       // `outerHeight` is `offsetHeight`, an integer, so below 100% zoom it drops up to a pixel of
-      // the header's real height. Record what it dropped, measured in the same pass so this costs
-      // one extra read per cache fill and none per draw. Only the hider/content total consumes it —
+      // the header's real height. Record what it dropped. Only the hider/content total consumes it —
       // the calculators keep the integer they have always been given.
+      //
+      // Cost: this branch is NOT once per grid. `createColumnsCalculator` resets the height to `NaN`,
+      // and the draw cycle creates calculators two to four times per master draw, so the branch runs
+      // on every draw. What it adds over the `outerHeight` above is one resolved style declaration,
+      // not a second reflow — `outerHeight` has already flushed layout and nothing invalidates it in
+      // between, so the read lands on clean layout. Keying it on a cache that survives the reset was
+      // considered and rejected: the fraction can move while the integer does not (29.0972px and
+      // 29.4776px both report 29), so the key would have to carry `devicePixelRatio` too, and a stale
+      // fraction reintroduces the scrollbar this exists to prevent.
       //
       // The used height comes from the computed style, NOT from `getBoundingClientRect()`. Both
       // report the fraction, but a rect is scaled by an ancestor's CSS `zoom` while `offsetHeight`
@@ -417,6 +441,12 @@ export const workspaceSize: WorkspaceSize = {
     // Fill the cache through the integer getter, which owns both values.
     this.getColumnHeaderHeight();
 
+    // The two are written together at every site that writes either — the zero-header branch and
+    // the measure branch above, and the reset in `CalculatorFactory#createColumnsCalculator` — and
+    // only the integer gates the refill, so a site that ever assigns the height alone would strand
+    // this one. The coalesce keeps a stranded or not-yet-filled value out of a content total, where
+    // `NaN` would propagate into the hider height and size the grid to nothing; it is a floor, not
+    // a substitute for keeping the pair in lockstep.
     return this.columnHeaderHeightFraction || 0;
   },
 

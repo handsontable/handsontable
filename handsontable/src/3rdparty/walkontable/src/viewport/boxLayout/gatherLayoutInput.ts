@@ -15,7 +15,7 @@
 import type { EngineContext } from '../../wire';
 import type { LayoutInput, OverflowMode } from './layoutSnapshot';
 import { measureWorkspaceWidth, measureWorkspaceHeight } from '../workspaceSize';
-import { getHiderHeightCompensation, snapUpToDevicePixel } from '../../axisSizing/hiderCompensation';
+import { getHiderHeightCompensation, addContentHeightSlack } from '../../axisSizing/hiderCompensation';
 
 /**
  * Narrows the engine context to the dependencies the layout slice reads.
@@ -95,10 +95,9 @@ export function gatherLayoutInput(deps: LayoutDeps): LayoutInput {
   // is a scrollbar appearing where the solver said there would be none.
   const hiderHeightCompensation = getHiderHeightCompensation(wtSettings);
   const totalContentWidth = rowHeaderWidth + viewport.columnWidthCache.getTotalSize();
-  const totalContentHeight = snapUpToDevicePixel(
+  const totalContentHeight = addContentHeightSlack(
     columnHeaderHeight + viewport.getColumnHeaderHeightFraction() +
-      viewport.rowHeightCache.getTotalSize() + hiderHeightCompensation,
-    rootWindow.devicePixelRatio
+      viewport.rowHeightCache.getTotalSize() + hiderHeightCompensation
   );
 
   // The element whose overflow decides the scrollbars is the one that actually scrolls: the document

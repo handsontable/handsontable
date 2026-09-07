@@ -1,4 +1,4 @@
-import { getHiderHeightCompensation, snapUpToDevicePixel } from '../axisSizing/hiderCompensation';
+import { getHiderHeightCompensation, addContentHeightSlack } from '../axisSizing/hiderCompensation';
 import type { EngineContext } from '../wire';
 import type { default as Overlays } from './overlays';
 
@@ -112,11 +112,8 @@ export class SpreaderSize {
     // that needs none (DEV-2525). Both are 0 at 100% zoom. `gatherLayoutInput` folds in exactly the
     // same two terms, so the predicted scroll boundary keeps matching what is written here.
     const hiderHeightComp = getHiderHeightCompensation(wtSettings);
-    const proposedHiderHeight = snapUpToDevicePixel(
-      headerColumnSize + wtViewport.getColumnHeaderHeightFraction() +
-        topOverlay.sumCellSizes(0, totalRows) + hiderHeightComp,
-      rootWindow.devicePixelRatio
-    );
+    const summedHiderHeight = headerColumnSize + wtViewport.getColumnHeaderHeightFraction() +
+      topOverlay.sumCellSizes(0, totalRows) + hiderHeightComp;
     const proposedHiderWidth = headerRowSize + inlineStartOverlay.sumCellSizes(0, totalColumns);
     const hiderElement = wtTable.hider;
     const hiderStyle = hiderElement.style;
@@ -126,9 +123,15 @@ export class SpreaderSize {
       }
 
       return scrollableElement.scrollTop >
-        Math.max(0, proposedHiderHeight - geometryReader.clientHeight(wtTable.holder));
+        Math.max(0, summedHiderHeight - geometryReader.clientHeight(wtTable.holder));
     };
     const columnHeaderBorderCompensation = isScrolledBeyondHiderHeight() ? 1 : 0;
+    // The slack goes on last, over the scroll compensation too, so the height that actually reaches
+    // the DOM is the one that carries it. The scroll test above reads the plain sum on purpose: it
+    // asks how far this element can scroll, which is the content total, not the written height.
+    const proposedHiderHeight = addContentHeightSlack(
+      summedHiderHeight + columnHeaderBorderCompensation
+    );
 
     // If the elements are being adjusted after scrolling the table from the very beginning to the very end,
     // we need to adjust the hider height by the column header border size.
@@ -136,7 +139,7 @@ export class SpreaderSize {
     // The width needs no such compensation: the row header carries its inline-end border at every
     // scroll position, so the horizontal total never changes by scrolling (#6673).
     hiderStyle.width = `${proposedHiderWidth}px`;
-    hiderStyle.height = `${proposedHiderHeight + columnHeaderBorderCompensation}px`;
+    hiderStyle.height = `${proposedHiderHeight}px`;
 
     topOverlay.adjustElementsSize();
     inlineStartOverlay.adjustElementsSize();

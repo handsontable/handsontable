@@ -1,4 +1,4 @@
-import { getHiderHeightCompensation, snapUpToDevicePixel } from '../../../src/axisSizing/hiderCompensation';
+import { getHiderHeightCompensation, addContentHeightSlack } from '../../../src/axisSizing/hiderCompensation';
 
 /**
  * Builds a settings double exposing only the two keys the compensation reads.
@@ -31,16 +31,36 @@ describe('getHiderHeightCompensation', () => {
   });
 
   // The whole defect: below 100% the browser cannot paint a border thinner than one device pixel,
-  // so it widens the declared 1px and the row is that much taller than the theme asked for. The
-  // compensation has to follow, or the hider ends up short of the table and grows a scrollbar.
+  // so it widens the declared 1px and every row renders that much taller than the sum accounted
+  // for. The compensation carries the excess, or the hider ends up short of the table and the
+  // browser draws a scrollbar.
   it.each([
     ['90%', '1.11111px', 1.11111],
     ['80%', '1.25px', 1.25],
     ['75%', '1.33333px', 1.33333],
     ['67%', '1.49254px', 1.49254],
-    ['50%', '2px', 2],
-  ])('should carry the rendered border width at %s zoom', (_zoom, computed, expected) => {
+  ])('should add the border inflation at %s zoom', (_zoom, computed, expected) => {
     expect(getHiderHeightCompensation(settingsMock({ borderBottomWidth: computed }))).toBeCloseTo(expected, 5);
+  });
+
+  // Nothing was inflated in these three, so the compensation must stay the historical `1`.
+  // Returning the border itself instead changed the hider by a whole pixel at 100% zoom — on a
+  // borderless surface by -1, at 50% zoom by +1 — which is what the row sum already accounts for.
+  it.each([
+    ['a border on a whole number of device pixels (50% zoom)', '2px'],
+    ['a border narrower than its declared pixel (125% zoom)', '0.8px'],
+    ['a surface that removes the border entirely', '0px'],
+  ])('should keep the declared 1px for %s', (_label, computed) => {
+    expect(getHiderHeightCompensation(settingsMock({ borderBottomWidth: computed }))).toBe(1);
+  });
+
+  // The menu grids and the Filters by-value list drop all four borders on `td:first-child`, and
+  // `StylesHandler`'s probe cell IS a `td:first-child` inside them, so it reads `0px` there at
+  // 100% zoom on every platform. Compensating with the border itself would have resized those
+  // grids by a pixel — a change at the default zoom, which this fix must not make.
+  it('should not change a borderless surface at 100% zoom', () => {
+    expect(getHiderHeightCompensation(settingsMock({ borderBottomWidth: '0px' })))
+      .toBe(getHiderHeightCompensation(settingsMock({ borderBottomWidth: '1px' })));
   });
 
   it('should not compensate when AutoRowSize supplies exact heights', () => {
@@ -48,12 +68,6 @@ describe('getHiderHeightCompensation', () => {
       externalRowCalculator: true,
       borderBottomWidth: '1.25px',
     }))).toBe(0);
-  });
-
-  // A surface that removes the border (the Filters by-value list) reports `0px`, and that is the
-  // right answer — not a missing reading to fall back from.
-  it('should keep a genuine zero border', () => {
-    expect(getHiderHeightCompensation(settingsMock({ borderBottomWidth: '0px' }))).toBe(0);
   });
 
   it.each([
@@ -82,53 +96,56 @@ describe('getHiderHeightCompensation', () => {
   });
 });
 
-describe('snapUpToDevicePixel', () => {
-  // The no-op that matters most: at 100% zoom the totals are whole pixels already, so the grid
-  // must be sized exactly as it was before this rounding existed.
-  it.each([0, 1, 175, 1190, 1204])('should leave the whole pixel %p unchanged at ratio 1', (value) => {
-    expect(snapUpToDevicePixel(value, 1)).toBe(value);
-  });
+describe('addContentHeightSlack', () => {
+  // The residue it exists for: summing the rows reproduces the browser's own snapping only to about
+  // 0.024px, and a hider that far under its table still gets a full-size scrollbar at 67% zoom.
+  it('should cover the largest arithmetic residue measured', () => {
+    const largestResidueMeasured = 0.024;
 
-  it('should leave a total that already lands on a device pixel unchanged', () => {
-    // 1198.75 * 0.8 = 959 exactly.
-    expect(snapUpToDevicePixel(1198.75, 0.8)).toBeCloseTo(1198.75, 6);
-  });
-
-  it.each([
-    [0.9, 1194.097, 1194.4444],
-    [0.8, 1199.219, 1200],
-    [0.67, 1210.075, 1210.4478],
-  ])('should round up to the next device pixel at ratio %p', (ratio, value, expected) => {
-    expect(snapUpToDevicePixel(value, ratio)).toBeCloseTo(expected, 3);
+    expect(addContentHeightSlack(1210.075) - 1210.075).toBeGreaterThan(largestResidueMeasured);
   });
 
   it('should never return less than the value it was given', () => {
-    for (const ratio of [0.5, 0.67, 0.75, 0.8, 0.9, 1, 1.25, 2]) {
-      for (const value of [0.5, 29.0972, 175.694, 1194.097, 1210.075]) {
-        expect(snapUpToDevicePixel(value, ratio)).toBeGreaterThanOrEqual(value);
-      }
+    for (const value of [0, 0.5, 29.0972, 175.694, 1194.097, 1210.075]) {
+      expect(addContentHeightSlack(value)).toBeGreaterThanOrEqual(value);
     }
   });
 
-  // The slack has to stay under one device pixel, or the grid gains a visible strip of dead space
-  // below its last row.
-  it('should add less than one device pixel of slack', () => {
-    for (const ratio of [0.5, 0.67, 0.75, 0.8, 0.9, 1, 1.25, 2]) {
-      for (const value of [29.0972, 175.694, 1194.097, 1210.075]) {
-        expect(snapUpToDevicePixel(value, ratio) - value).toBeLessThan(1 / ratio);
-      }
+  // The whole point of a sub-pixel slack rather than a device-pixel rounding: it must be far too
+  // small to decide a scrollbar the browser was not already going to draw. One device pixel is
+  // 1.49px at 67% zoom and 1px at 100%, the two extremes the grid is supported at.
+  it('should stay an order of magnitude below one device pixel at every supported zoom', () => {
+    const smallestDevicePixel = 1;
+
+    for (const value of [29.0972, 175.694, 1194.097, 1210.075]) {
+      expect(addContentHeightSlack(value) - value).toBeLessThan(smallestDevicePixel / 10);
     }
   });
 
-  it.each([
-    ['a zero ratio', 100, 0],
-    ['a negative ratio', 100, -1],
-    ['an unreadable ratio', 100, NaN],
-  ])('should pass the value through for %s', (_label, value, ratio) => {
-    expect(snapUpToDevicePixel(value, ratio)).toBe(value);
+  it('should add the same amount whatever the magnitude of the total', () => {
+    const added = v => addContentHeightSlack(v) - v;
+
+    expect(added(1)).toBeCloseTo(added(100000), 9);
+  });
+
+  // The no-op that matters most. At 100% zoom with no display scaling every total is whole pixels,
+  // so the grid must be sized exactly as it was before this correction existed — and the layout
+  // solver's window-mode prediction, which subtracts the hider's integer `offsetHeight` before
+  // adding this total back, must not be left a fraction over either.
+  it.each([0, 1, 175, 262, 1190, 1204])('should leave the whole pixel %p untouched', (value) => {
+    expect(addContentHeightSlack(value)).toBe(value);
+  });
+
+  it('should treat a whole pixel reached by repeated addition as whole', () => {
+    // What summing forty row heights actually produces.
+    expect(addContentHeightSlack(1189.9999999999998)).toBe(1189.9999999999998);
+  });
+
+  it.each([1194.097, 1199.219, 1210.075, 175.694])('should add the slack to the fraction %p', (value) => {
+    expect(addContentHeightSlack(value)).toBeGreaterThan(value);
   });
 
   it('should pass a non-finite value through', () => {
-    expect(snapUpToDevicePixel(NaN, 0.8)).toBeNaN();
+    expect(addContentHeightSlack(NaN)).toBeNaN();
   });
 });

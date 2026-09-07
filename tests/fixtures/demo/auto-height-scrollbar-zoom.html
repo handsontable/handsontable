@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Handsontable e2e fixture — spurious scrollbars on an auto-height grid below 100% zoom</title>
+  <title>Handsontable e2e fixture — unwanted scrollbars on an auto-height grid below 100% zoom</title>
   <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
   <script>
     // Theme and bundle come from the ?theme=/?bundle= query params set by the Playwright
@@ -12,16 +12,26 @@
     // in the project config must be one red leg, never a silently mislabeled green one.
     const htParams = new URLSearchParams(location.search);
 
-    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
-    if (!window.htTheme) {
-      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
-    }
+    // `Object.hasOwn`, not a bare lookup: a plain object inherits `constructor`, `toString` and
+    // `__proto__`, so `?theme=constructor` would resolve to a truthy inherited value, sail past the
+    // guard below and be written into the document - the silently mislabeled leg this is meant to
+    // prevent. Only the map's own keys are allowed.
+    const htPick = (map, value, fallback, label) => {
+      const key = value ?? fallback;
+
+      if (!Object.hasOwn(map, key)) {
+        throw new Error('Unknown ?' + label + '= value: ' + JSON.stringify(value));
+      }
+
+      return map[key];
+    };
+
+    window.htTheme = htPick(
+      { main: 'main', horizon: 'horizon', classic: 'classic' }, htParams.get('theme'), 'main', 'theme');
     document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
 
-    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
-    if (!window.htBundle) {
-      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
-    }
+    window.htBundle = htPick(
+      { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' }, htParams.get('bundle'), 'umd', 'bundle');
 
     // Sub-100% rendering through CSS zoom on the root element, the same mechanism
     // `row-height-device-scale.html` uses and for the same reasons: Chrome routes CSS zoom
