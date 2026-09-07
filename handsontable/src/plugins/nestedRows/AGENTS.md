@@ -108,6 +108,37 @@ They are written in different places and can drift. Keep this in mind:
   `TypeError: Cannot read properties of undefined`, which is what forced one customer to retry inside
   `requestAnimationFrame`. Never re-introduce the non-null assertion, and never feed the result
   straight into the trimming map — filter `null` out first.
+- **A position inside a parent is not a grid row index, and `hot.alter()` cannot bridge the two.**
+  `addChildAtIndex()` takes an index *within the parent*, so for a top-level row that is a position in
+  `dataManager.data` — and every preceding parent's subtree sits between it and the row's real place
+  in the grid. They agree only while no preceding top-level row has children, which is why this
+  survived for years: an insert next to the *first* parent is correct by coincidence, and both shared
+  fixtures put that parent at row 0. `hot.alter('insert_row_above', …)` cannot be handed either index,
+  because it derives the whole insert from one: `DataMap#createRow()` splices the top-level array at
+  the **top-level** position, while the row index maps, the cell meta, and the
+  `beforeCreateRow`/`afterCreateRow` hooks all count in **grid rows**. So both branches of
+  `addChildAtIndex()` build the insert by hand — splice, `rewriteCache()`,
+  `rowIndexMapper.insertIndexes()` (visual), `shiftCellsMeta()` (physical), then the hooks. Two things
+  come with that. `disableCoreAPIModifiers()` around such an insert is not a safety measure but the
+  thing that **hid** the mistake: with the modifiers off, `Core#countSourceRows()` reports the
+  top-level count, so a grid-row index above it is silently clamped instead of failing. And the
+  `beforeAlter` hook no longer fires for a top-level insert, nor can any hook cancel one — the
+  `beforeCreateRow` veto used to be honored here through `DataMap#createRow()`, but only halfway: the
+  cancelled insert still shifted the collapsed-rows stash by a row that was never added. Neither the
+  parent branch nor `addChild()` ever had either. (DEV-2625, following #7727 / DEV-2605.)
+- **`onBeforeDataSplice()` hands the core a grid-row index for a top-level row, and that is still
+  broken.** It routes a splice into `DataManager#spliceData()` — which does translate a grid row into
+  the right `(parent, indexWithinParent)` pair — but short-circuits with `return true` when
+  `isRowHighestLevel(index)`, letting `DataMap#spliceData()` splice the raw top-level array at a grid
+  row index. Measured on `getSimplerNestedData()`: `hot.alter('insert_row_above', 12, 1)` **appends**
+  the new row at top-level position 3 (grid row 18), because `Array#splice` clamps 12 against a
+  three-element array, while the cell meta and the index maps shift at row 12 — so the meta desyncs
+  from data that never moved. The context-menu path no longer reaches this (see the bullet above), so
+  it is now the public `alter()` API only. Fixing it means dropping that short-circuit **and** the
+  `[element]` re-wrap on the line below it (`elements` is already an array, so `spliceData` currently
+  inserts `[row]` as the row object), which also makes the path inherit `spliceData`'s "the row above
+  is an empty parent, so adopt the new row as its child" rule. Assert the new row's **shape**, not
+  just `countRows()` — the re-wrap leaves the count right and the row an array.
 - **`collapseRow()` and `expandRow()` are dead code.** They delegate with `doTrimming` defaulting to
   `false`, so they neither trim nor render. Do not expose them and do not copy their names.
 - **`updatePlugin()` rebuilds everything.** It unregisters the trimming map and constructs a new

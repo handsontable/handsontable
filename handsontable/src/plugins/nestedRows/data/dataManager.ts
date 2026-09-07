@@ -605,7 +605,48 @@ class DataManager {
   }
 
   /**
+   * Find the physical row a new top-level row inserted at the provided top-level position lands on.
+   *
+   * A top-level row does not sit in the grid at the position it holds in the top-level array: every
+   * preceding parent's subtree sits between the two. The two agree only while no preceding top-level
+   * row has children, which is why a top-level position cannot be handed to anything that counts in
+   * grid rows (#7727, DEV-2625).
+   *
+   * @private
+   * @param {number} topLevelIndex Position within the top-level array.
+   * @returns {number} Physical row index the new row takes.
+   */
+  getTopLevelInsertionRow(topLevelIndex: number): number {
+    const displacedRow = this.data![topLevelIndex];
+
+    // Past the last top-level row there is nothing to displace, so the new row goes to the end.
+    if (displacedRow === null || displacedRow === undefined) {
+      return this.countAllRows();
+    }
+
+    return this.getRowIndex(displacedRow) ?? 0;
+  }
+
+  /**
+   * Translate the physical row a new row takes into the visual index the row index maps expect.
+   *
+   * @private
+   * @param {number} physicalRow Physical row index the new row takes.
+   * @returns {number} Visual row index, or the physical one when the row has no visual index.
+   */
+  toVisualInsertionRow(physicalRow: number): number {
+    // A row another plugin trimmed has no visual index at all. The physical index is the closest
+    // thing left, and it is what the parent branch of `addChildAtIndex()` passes as well.
+    return this.hot.rowIndexMapper.getVisualFromPhysicalIndex(physicalRow) ?? physicalRow;
+  }
+
+  /**
    * Add a child node to the provided parent at a specified index.
+   *
+   * A row with no parent is a top-level row, and that branch builds the insert by hand rather than
+   * through `hot.alter()`, which cannot serve both halves of it. `hot.alter()` also used to fire
+   * `beforeAlter` here, and to let `beforeCreateRow` cancel the insert; neither happens any more.
+   * The plugin's `AGENTS.md` holds why.
    *
    * @param {object} parent Parent node.
    * @param {number} index Index to insert the child element at.
@@ -653,11 +694,30 @@ class DataManager {
       flattenedIndex = finalChildIndex;
 
     } else {
-      this.plugin.disableCoreAPIModifiers();
-      this.hot.alter('insert_row_above', index, 1, 'NestedRows.addChildAtIndex');
-      this.plugin.enableCoreAPIModifiers();
+      const finalRowIndex = this.getTopLevelInsertionRow(index);
+      // Read before the splice, so it still means the row the new one displaces. The index maps
+      // count in visual indexes; the cell meta counts in physical ones.
+      const visualRowIndex = this.toVisualInsertionRow(finalRowIndex);
 
-      flattenedIndex = this.getRowIndex(this.data![index]) ?? 0;
+      this.hot.runHooks('beforeCreateRow', visualRowIndex, 1, 'NestedRows.addChildAtIndex');
+
+      // `this.data` is the source array itself, so this splice already is the source data change -
+      // no `setSourceDataAtCell()` needed, unlike the branch above, which writes a `__children` key.
+      this.data!.splice(index, 0, childElement);
+
+      this.rewriteCache();
+
+      this.hot.rowIndexMapper.insertIndexes(visualRowIndex, 1);
+
+      this.shiftCellsMeta(this.getRowIndex(childElement));
+
+      this.hot.runHooks('afterCreateRow', visualRowIndex, 1, 'NestedRows.addChildAtIndex');
+
+      // Kept from `hot.alter()`, now with the right index: a selection at or below the new row still
+      // addresses the same rows.
+      this.hot.selection.shiftRows(visualRowIndex, 1);
+
+      flattenedIndex = finalRowIndex;
     }
 
     // Workaround for refreshing cache losing the reference to the mocked row.
