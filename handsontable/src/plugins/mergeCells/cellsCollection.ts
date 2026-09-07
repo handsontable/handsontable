@@ -740,7 +740,9 @@ class MergedCellsCollection {
    * Note: single-cell fragments (`colspan === 1 && rowspan === 1`) are dropped because
    * they no longer represent a merge. The user-facing behavior (auto-split + silent drop
    * of singletons) is documented in `docs/content/guides/cell-features/merge-cells/merge-cells.md`
-   * under "Behavior during row/column reorder and column freeze".
+   * under "Behavior during row/column reorder and column freeze". The one exception is a fragment
+   * the caller lists in `retainedIndexes`: it shows one cell only because the rest of its rows are
+   * trimmed, so it is a merge again as soon as they come back.
    *
    * Every merge is replaced by a new object, so the returned map tells the caller which merges came
    * out of which — the plugin uses it to carry each merge's physical anchor onto its replacements
@@ -748,12 +750,17 @@ class MergedCellsCollection {
    *
    * @param {'column' | 'row'} axis Axis that was reordered.
    * @param {Map<MergedCellCoords, number[]>} snapshot Snapshot taken before the reorder.
+   * @param {Map<MergedCellCoords, Set<number>>} [retainedIndexes] Per merge, the physical indexes
+   * along `axis` whose single-cell fragment must survive the singleton drop. Keyed per merge because
+   * two merges in different columns can cover the same rows, and only one of them may be carrying
+   * trimmed rows.
    * @returns {Map<MergedCellCoords, MergedCellCoords[]>} Map of the merge before the reorder -> the
    * merges that replaced it. A merge the reorder dropped entirely maps to an empty array.
    */
   translateAfterAxisMove(
     axis: 'column' | 'row',
-    snapshot: Map<MergedCellCoords, number[]>
+    snapshot: Map<MergedCellCoords, number[]>,
+    retainedIndexes: Map<MergedCellCoords, Set<number>> = new Map()
   ): Map<MergedCellCoords, MergedCellCoords[]> {
     const isColumn = axis === 'column';
     const indexProp = isColumn ? 'col' : 'row';
@@ -763,6 +770,9 @@ class MergedCellsCollection {
     const toVisual = isColumn
       ? (physicalIndex: number) => this.hot.toVisualColumn(physicalIndex)
       : (physicalIndex: number) => this.hot.toVisualRow(physicalIndex);
+    const toPhysical = isColumn
+      ? (visualIndex: number) => this.hot.toPhysicalColumn(visualIndex)
+      : (visualIndex: number) => this.hot.toPhysicalRow(visualIndex);
     const replacements: Array<{
       source: MergedCellCoords,
       info: { row: number; col: number; rowspan: number; colspan: number },
@@ -794,6 +804,8 @@ class MergedCellsCollection {
         return;
       }
 
+      const retained = retainedIndexes.get(merge);
+
       MergedCellsCollection.detectContiguousRuns(newVisuals).forEach((run) => {
         const replacement = {
           [indexProp]: run.start,
@@ -802,7 +814,8 @@ class MergedCellsCollection {
           [otherSpanProp]: merge[otherSpanProp],
         };
 
-        if (replacement.colspan === 1 && replacement.rowspan === 1) {
+        if (replacement.colspan === 1 && replacement.rowspan === 1
+          && !retained?.has(toPhysical(run.start))) {
           return;
         }
 

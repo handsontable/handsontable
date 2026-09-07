@@ -3619,6 +3619,266 @@ describe('MergeCells', () => {
       // the two rows the merge kept are visible again, and it spans exactly them
       expect(merges()).toEqual([{ row: 2, col: 2, rowspan: 2, colspan: 3 }]);
     });
+
+    it('should keep a trimmed row with the fragment above it when a row move splits the merge below it', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        trimRows: true,
+        manualRowMove: true,
+        mergeCells: [{ row: 2, col: 0, rowspan: 3, colspan: 2 }], // physical rows 2,3,4
+      });
+      const trimRows = getPlugin('trimRows');
+
+      trimRows.trimRows([3]);
+
+      await render();
+
+      // physical 2 and 4 are visible at visual 2 and 3, the merge still owns physical 3
+      expect(merges()).toEqual([{ row: 2, col: 0, rowspan: 2, colspan: 2 }]);
+
+      // move the merge's lower visible row (physical 4) to the bottom: the merge splits into two
+      // fragments, and the trimmed row 3 stays in the row order right below physical 2
+      getPlugin('manualRowMove').moveRow(3, 8);
+
+      await render();
+
+      expect(merges()).toEqual([
+        { row: 2, col: 0, rowspan: 1, colspan: 2 },
+        { row: 8, col: 0, rowspan: 1, colspan: 2 },
+      ]);
+
+      trimRows.untrimAll();
+
+      await render();
+
+      // physical 3 is back, right below physical 2, so the upper fragment grows over it
+      expect(toPhysicalRow(2)).toBe(2);
+      expect(toPhysicalRow(3)).toBe(3);
+      expect(toPhysicalRow(9)).toBe(4);
+      expect(merges()).toEqual([
+        { row: 2, col: 0, rowspan: 2, colspan: 2 },
+        { row: 9, col: 0, rowspan: 1, colspan: 2 },
+      ]);
+    });
+
+    it('should keep a trimmed row with the fragment below it when a row move splits the merge above it', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        trimRows: true,
+        manualRowMove: true,
+        mergeCells: [{ row: 2, col: 0, rowspan: 3, colspan: 2 }], // physical rows 2,3,4
+      });
+      const trimRows = getPlugin('trimRows');
+
+      trimRows.trimRows([3]);
+
+      await render();
+
+      expect(merges()).toEqual([{ row: 2, col: 0, rowspan: 2, colspan: 2 }]);
+
+      // move the merge's upper visible row (physical 2) to the bottom: the trimmed row 3 now sits in
+      // the row order right above physical 4
+      getPlugin('manualRowMove').moveRow(2, 8);
+
+      await render();
+
+      expect(merges()).toEqual([
+        { row: 2, col: 0, rowspan: 1, colspan: 2 },
+        { row: 8, col: 0, rowspan: 1, colspan: 2 },
+      ]);
+
+      trimRows.untrimAll();
+
+      await render();
+
+      // physical 3 is back, right above physical 4, so the lower fragment grows over it
+      expect(toPhysicalRow(2)).toBe(3);
+      expect(toPhysicalRow(3)).toBe(4);
+      expect(toPhysicalRow(9)).toBe(2);
+      expect(merges()).toEqual([
+        { row: 2, col: 0, rowspan: 2, colspan: 2 },
+        { row: 9, col: 0, rowspan: 1, colspan: 2 },
+      ]);
+    });
+
+    it('should keep a single-column merge alive through a split when the surviving cell owns a trimmed row', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        trimRows: true,
+        manualRowMove: true,
+        mergeCells: [{ row: 2, col: 0, rowspan: 3, colspan: 1 }], // physical rows 2,3,4
+      });
+      const trimRows = getPlugin('trimRows');
+
+      trimRows.trimRows([3]);
+
+      await render();
+
+      expect(merges()).toEqual([{ row: 2, col: 0, rowspan: 2, colspan: 1 }]);
+
+      // physical 4 leaves, so both fragments draw one cell: the one left at physical 2 still owns the
+      // trimmed physical 3 and must survive the singleton drop, while physical 4's is a true single
+      // cell and is dropped as it always was
+      getPlugin('manualRowMove').moveRow(3, 8);
+
+      await render();
+
+      expect(merges()).toEqual([{ row: 2, col: 0, rowspan: 1, colspan: 1 }]);
+
+      trimRows.untrimAll();
+
+      await render();
+
+      expect(merges()).toEqual([{ row: 2, col: 0, rowspan: 2, colspan: 1 }]);
+    });
+
+    it('should not drop a merge trimmed down to one visible cell when an unrelated row is moved', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        trimRows: true,
+        manualRowMove: true,
+        mergeCells: [{ row: 2, col: 0, rowspan: 2, colspan: 1 }], // physical rows 2,3
+      });
+      const trimRows = getPlugin('trimRows');
+
+      trimRows.trimRows([3]);
+
+      await render();
+
+      expect(merges()).toEqual([{ row: 2, col: 0, rowspan: 1, colspan: 1 }]);
+
+      // the move does not touch the merge at all, so the single cell it draws must not be read as a
+      // singleton fragment and dropped
+      getPlugin('manualRowMove').moveRow(7, 0);
+
+      await render();
+
+      expect(merges()).toEqual([{ row: 3, col: 0, rowspan: 1, colspan: 1 }]);
+
+      trimRows.untrimAll();
+
+      await render();
+
+      expect(merges()).toEqual([{ row: 3, col: 0, rowspan: 2, colspan: 1 }]);
+    });
+
+    it('should not send a trimmed row across a row the merge does not own when a move splits it', async() => {
+      handsontable({
+        data: createSpreadsheetData(12, 3),
+        trimRows: true,
+        manualRowMove: true,
+        mergeCells: [{ row: 2, col: 0, rowspan: 5, colspan: 2 }], // physical rows 2,3,4,5,6
+      });
+      const trimRows = getPlugin('trimRows');
+
+      trimRows.trimRows([3, 4, 5]);
+
+      await render();
+
+      expect(merges()).toEqual([{ row: 2, col: 0, rowspan: 2, colspan: 2 }]);
+
+      // the move drops physical 9 between the merge's physical 5 and 6 in the row order, so the
+      // trimmed physical 5 cannot reach 6 without crossing a row the merge does not own
+      getPlugin('manualRowMove').moveRow(6, 3);
+
+      await render();
+
+      trimRows.untrimAll();
+
+      await render();
+
+      expect(toPhysicalRow(6)).toBe(9);
+      expect(toPhysicalRow(7)).toBe(6);
+
+      // each fragment covers only rows the merge owns: 2,3,4,5 above the foreign row, 6 below it
+      expect(merges()).toEqual([
+        { row: 2, col: 0, rowspan: 4, colspan: 2 },
+        { row: 7, col: 0, rowspan: 1, colspan: 2 },
+      ]);
+    });
+
+    it('should leave a merge whose rows a sort scattered on the unsplit path when a row move breaks its block', async() => {
+      const sortKey = [0, 4, 2, 1, 3, 5, 6, 7];
+
+      handsontable({
+        data: sortKey.map((key, row) => [`A${row}`, `B${row}`, key]),
+        columnSorting: true,
+        manualRowMove: true,
+        trimRows: true,
+        mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 2 }], // physical rows 0,1,2
+      });
+
+      getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
+
+      await render();
+
+      getPlugin('trimRows').trimRows([2]);
+
+      await render();
+
+      // the sort put the merge's own rows at visual 0 and 3, so the block it draws reaches over
+      // visual 1 — a row it does not own
+      expect(toPhysicalRow(1)).toBe(3);
+      expect(merges()).toEqual([{ row: 0, col: 0, rowspan: 2, colspan: 2 }]);
+
+      getPlugin('manualRowMove').moveRow(1, 6);
+
+      await render();
+
+      getPlugin('trimRows').untrimAll();
+
+      await render();
+
+      // The move breaks that block in two, and the fragments are cut from the block, so one of them
+      // is made of a row the merge never owned. Distributing the trimmed row across them means
+      // sorting a fragment's rows, which can pull a fragment's head onto a foreign row — the
+      // collision this plugin refuses. Such a merge is therefore left exactly where it was before the
+      // split learned to distribute trimmed rows: re-anchored from what is visible, trimmed row lost.
+      expect(merges()).toEqual([
+        { row: 0, col: 0, rowspan: 1, colspan: 2 },
+        { row: 7, col: 0, rowspan: 1, colspan: 2 },
+      ]);
+    });
+
+    it('should not retain a single-cell fragment of a merge whose rows a sort scattered', async() => {
+      const sortKey = [0, 4, 2, 1, 3, 5, 6, 7];
+
+      handsontable({
+        data: sortKey.map((key, row) => [`A${row}`, `B${row}`, key]),
+        columnSorting: true,
+        manualRowMove: true,
+        trimRows: true,
+        mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 1 }], // physical rows 0,1,2
+      });
+
+      getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
+
+      await render();
+
+      getPlugin('trimRows').trimRows([2]);
+
+      await render();
+
+      expect(toPhysicalRow(1)).toBe(3);
+      expect(merges()).toEqual([{ row: 0, col: 0, rowspan: 2, colspan: 1 }]);
+
+      // Both fragments this move produces are single cells, and the merge owns a trimmed row, so the
+      // retention would keep the one the merge still draws. That is the shape to refuse: a scattered
+      // merge is reported unsplit, so keeping the fragment hands it to the path that copies the whole
+      // anchor onto it, and the merge would then draw its full span from that one cell, over rows it
+      // does not own. It is dropped instead, as it was before the split learned to keep trimmed rows.
+      getPlugin('manualRowMove').moveRow(1, 6);
+
+      await render();
+
+      expect(merges()).toEqual([]);
+
+      getPlugin('trimRows').untrimAll();
+
+      await render();
+
+      expect(merges()).toEqual([]);
+    });
   });
 
   describe('nested rows — merge re-anchoring on collapse', () => {
