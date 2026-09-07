@@ -257,7 +257,7 @@ export class RowHeaderBorderOwnershipPage {
    */
   async markedCellIndex(testId: string, rowSelector: string): Promise<number> {
     return this.grid(testId).locator(rowSelector).evaluate((row) => {
-      const cells = Array.from((row as HTMLElement).children);
+      const cells = Array.from(row.children);
 
       return cells.findIndex(cell => cell.classList.contains('htLastRowHeaderColumn'));
     });

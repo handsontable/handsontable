@@ -124,12 +124,16 @@ export class ColumnHeadersRenderer extends BaseRenderer {
 
         columnHeaderFunctions[visibleRowIndex](sourceColumnIndex, TH, visibleRowIndex);
 
-        // The head-row half of the same marker - see `RowHeadersRenderer#render`. The first
-        // `rowHeadersCount` cells of this row are the CORNER cells, and the last of them sits above
-        // the row header that owns the seam to column 0, so it owns the head row's copy of that
-        // seam. CSS cannot count corner cells (they are `th` like the column headers beside them),
-        // which is the whole reason the theme rule needs this class rather than `:first-child`.
-        if (rowHeadersCount > 0 && visibleColumnIndex === rowHeadersCount - 1) {
+        // The head-row half of the same marker - see `RowHeadersRenderer#render`, which carries the
+        // reason no clearing pass is needed. The first `rowHeadersCount` cells of this row are the
+        // CORNER cells, and the last of them sits above the row header that owns the seam to
+        // column 0, so it owns the head row's copy of that seam. CSS cannot count corner cells
+        // (they are `th` like the column headers beside them), which is the whole reason the theme
+        // rule needs this class rather than `:first-child`.
+        //
+        // The index test alone covers `rowHeadersCount === 0`: the target is then -1 and this loop
+        // only ever counts up from 0, so a row with no corner cells marks nothing.
+        if (visibleColumnIndex === rowHeadersCount - 1) {
           addClass(TH, 'htLastRowHeaderColumn');
         }
       }

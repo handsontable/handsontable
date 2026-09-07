@@ -114,9 +114,15 @@ export class RowHeadersRenderer extends BaseRenderer {
         // A grid can carry several row header columns (`afterGetRowHeaderRenderers`), and the seam
         // is the LAST one's inline-end - which CSS cannot select, because the count is knowable
         // only here. Stamped AFTER the header renderer runs: `TH.className` is reset above and a
-        // renderer is free to assign to it, which would wipe a marker applied earlier. No clearing
-        // pass is needed either, unlike `htLastVisibleHeader` - that reset runs per cell per
-        // render and this index is deterministic, so a stale marker cannot survive.
+        // renderer is free to assign to it, which would wipe a marker applied earlier.
+        //
+        // No clearing pass is needed, unlike `htLastVisibleHeader`, and the invariant that makes
+        // that safe is `orderView.start()`: it sizes the root to exactly the nodes this view owns,
+        // and the loop then visits every one of them and resets `className` before deciding. So no
+        // node can keep a marker from a previous draw - on a shrink included, where the node that
+        // survives may be the one that carried it. What would break this is gating the reset the
+        // way `render/cells.ts` gates its own behind `shouldPaintCell()`: a skipped header cell
+        // would keep a stale marker, so a clearing pass has to arrive with any such gate.
         if (visibleColumnIndex === rowHeadersCount - 1) {
           addClass(TH, 'htLastRowHeaderColumn');
         }
