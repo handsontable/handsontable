@@ -161,8 +161,11 @@ in that state reaches the singleton guard already at `1x1`, so without retention
 `manualColumnFreeze` deleted it, including one that touched none of its own columns, and
 `translateAfterAxisMove` had already cleared `mergedCells` by then, so the rows returning brought nothing
 back (DEV-2805). `#onAfterColumnMove` and `#onAfterColumnFreeze` therefore pass
-`#planColumnMoveRetention(snapshot)`: every physical column of every merge that owns a trimmed row. The
-column axis needs no attribution and no `#describesOwnRows` guard — a column reorder never changes which
+`#planColumnMoveRetention(snapshot)`: every physical column of every merge that owns **more than one**
+row, at least one of them trimmed. The floor matters: a `rowspan: 1` merge whose only row is trimmed has
+nothing to come back, so its one-column fragment is a genuine single cell and is dropped as on `develop`
+(pinned by `should drop the single-column fragment of a one-row merge whose row is trimmed when a column
+move splits it`). The column axis needs no attribution and no `#describesOwnRows` guard — a column reorder never changes which
 rows a merge covers, so `#transferAnchorsAfterAxisMove` hands every fragment the whole anchor either way,
 and a retained single cell is treated exactly like a wider fragment of the same merge. Pinned by the three
 column specs next to the row-move ones in the trimming describe (unrelated move, freeze, and a split that
@@ -174,9 +177,10 @@ trimmed comes back into the matrix at its stale visual coordinates, over whateve
 there, and the replacement is a new object that `#purgedMerges` (a `WeakSet` keyed on identity) knows
 nothing about. On the row axis the mapper's `cacheUpdated` re-anchor ran *before* `afterRowMove`, so it
 could not see the replacements; on the column axis it never runs at all. Every axis-move handler therefore
-calls `#purgeInvisibleMergesAfterAxisMove()` after `#captureMergeAnchors()`, which re-runs the re-anchor:
-fully trimmed merges are purged and flagged again, and the visible ones are left alone because their
-replacements already sit where the re-anchor would put them. Two shapes reach this: a merge trimmed in
+calls `#reanchorMergesToVisibleRows()` once more after `#captureMergeAnchors()`, gated on
+`#isRowTrimmingActive()`: fully trimmed merges are purged and flagged again, and the visible ones are left
+alone because their replacements already sit where the re-anchor would put them. The gate keeps the pass
+off the untrimmed column-move path, where nothing can be purged. Two shapes reach this: a merge trimmed in
 one go keeps `rowspan >= 2` and drew a phantom multi-row merge over foreign rows (pre-existing on both
 axes), and a merge trimmed one row at a time is `rowspan: 1` when the last row goes, so the column
 retention above keeps its `1x1` fragment and it would have drawn a phantom single cell. Pinned by the

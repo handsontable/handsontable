@@ -3856,6 +3856,37 @@ describe('MergeCells', () => {
       ]);
     });
 
+    it('should drop the single-column fragment of a one-row merge whose row is trimmed when a column move splits it', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        trimRows: true,
+        manualColumnMove: true,
+        mergeCells: [{ row: 2, col: 1, rowspan: 1, colspan: 3 }], // physical row 2 only; columns 1,2,3
+      });
+      const trimRows = getPlugin('trimRows');
+      const collection = getPlugin('mergeCells').mergedCellsCollection;
+
+      trimRows.trimRows([2]);
+
+      await render();
+
+      expect(merges()).toEqual([{ row: 2, col: 1, rowspan: 1, colspan: 3 }]);
+      expect(collection.get(2, 1)).toBe(false);
+
+      // the merge owns no row below its only one, so the fragment column 1 leaves as is a genuine
+      // single cell and must be dropped, as it is when no row is trimmed
+      getPlugin('manualColumnMove').moveColumn(1, 4);
+
+      await render();
+
+      trimRows.untrimAll();
+
+      await render();
+
+      expect(merges()).toEqual([{ row: 2, col: 1, rowspan: 1, colspan: 2 }]);
+      expect(collection.get(2, 4)).toBe(false);
+    });
+
     it('should keep a merge purged by an incremental trim out of the lookup matrix across a column move', async() => {
       handsontable({
         data: createSpreadsheetData(10, 5),

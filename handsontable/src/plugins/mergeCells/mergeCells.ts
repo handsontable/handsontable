@@ -1402,12 +1402,14 @@ export class MergeCells extends BasePlugin {
    * changes which rows a merge covers, so {@link MergeCells#transferAnchorsAfterAxisMove} hands every
    * fragment the whole anchor either way, and a retained single cell is treated exactly like a wider
    * fragment of the same merge. A merge with *no* visible row is retained too when an incremental trim
-   * left it at `rowspan: 1`; {@link MergeCells#purgeInvisibleMergesAfterAxisMove} keeps it out of the
-   * lookup matrix afterwards, as it keeps every other fully trimmed merge.
+   * left it at `rowspan: 1`; the re-anchor pass the handlers run afterwards keeps it out of the lookup
+   * matrix, as it keeps every other fully trimmed merge. A merge that owns a single row is never
+   * retained: with nothing trimmed *below* its one row, a one-column fragment of it is a genuine
+   * single cell.
    *
    * @param {Map<MergedCellCoords, number[]>} snapshot The pre-reorder physical columns of every merge.
-   * @returns {Map<MergedCellCoords, Set<number>>} All physical columns of every merge that owns a
-   * trimmed row. Empty when no row is trimmed.
+   * @returns {Map<MergedCellCoords, Set<number>>} All physical columns of every merge that owns more
+   * than one row, at least one of them trimmed. Empty when no row is trimmed.
    */
   #planColumnMoveRetention(snapshot: Map<MergedCellCoords, number[]>): Map<MergedCellCoords, Set<number>> {
     const retained = new Map<MergedCellCoords, Set<number>>();
@@ -1417,9 +1419,12 @@ export class MergeCells extends BasePlugin {
     }
 
     snapshot.forEach((physicalColumns, merge) => {
-      const anchor = this.#mergeAnchors.get(merge);
-      const ownsTrimmedRow = anchor?.physicalRows
-        .some(physicalRow => this.hot.toVisualRow(physicalRow) === null) ?? false;
+      const anchorRows = this.#mergeAnchors.get(merge)?.physicalRows ?? [];
+      // A merge that owns a single row has nothing to come back: its one-column fragment is a genuine
+      // single cell, as it is on the row axis, where retention needs a visible row still carrying
+      // trimmed ones.
+      const ownsTrimmedRow = anchorRows.length > 1
+        && anchorRows.some(physicalRow => this.hot.toVisualRow(physicalRow) === null);
 
       if (ownsTrimmedRow) {
         retained.set(merge, new Set(physicalColumns));
@@ -1427,25 +1432,6 @@ export class MergeCells extends BasePlugin {
     });
 
     return retained;
-  }
-
-  /**
-   * Takes the merges with no visible top-left back out of the lookup matrix after a reorder.
-   *
-   * `translateAfterAxisMove` rebuilds the matrix from every replacement it produces, and a merge whose
-   * rows are all trimmed is replaced like any other: its stale visual coordinates are written back
-   * into the matrix, where they now describe whatever physical rows surfaced at that slot, and the
-   * replacement is a new object, so the `#purgedMerges` flag that would force it back into the matrix
-   * once its rows return is lost with the old one. Nothing else repairs that after a column reorder,
-   * which never touches the row index mapper, so the re-anchor is run here by hand: it purges every
-   * merge without a visible top-left (every row trimmed, or the anchor column hidden), flags it, and
-   * leaves the visible ones alone, since their replacements already sit on the coordinates the
-   * re-anchor would derive.
-   *
-   * Run after {@link MergeCells#captureMergeAnchors}, so the re-anchor reads the carried anchors.
-   */
-  #purgeInvisibleMergesAfterAxisMove() {
-    this.#reanchorMergesToVisibleRows();
   }
 
   /**
@@ -1652,6 +1638,16 @@ export class MergeCells extends BasePlugin {
    * every row trimmed have no visible top-left, so they are purged from the lookup matrix (and
    * re-added once they become visible again) to avoid leaving a stale entry that a later filter could
    * resolve to as a phantom merge.
+   *
+   * The axis-move handlers call this once more, by hand, after the anchors are carried over.
+   * `translateAfterAxisMove` rebuilds the matrix from every replacement it produces, and a merge whose
+   * rows are all trimmed is replaced like any other: its stale visual coordinates are written back
+   * into the matrix, where they now describe whatever physical rows surfaced at that slot, and the
+   * replacement is a new object, so the `#purgedMerges` flag that would force it back into the matrix
+   * once its rows return is lost with the old one. The row index mapper's `cacheUpdated` pass ran
+   * before `afterRowMove` and could not see the replacements, and a column reorder never fires it at
+   * all. The extra pass purges and re-flags every merge without a visible top-left and leaves the
+   * visible ones alone, since their replacements already sit on the coordinates derived here.
    *
    * "First in the list" is the merge's top-left because the list is kept in **visual order**: it is
    * captured in that order, and every structural edit that adds to it preserves it (see
@@ -2622,7 +2618,13 @@ export class MergeCells extends BasePlugin {
       this.mergedCellsCollection.translateAfterAxisMove(
         'column', snapshot, this.#planColumnMoveRetention(snapshot)), 'column');
     this.#captureMergeAnchors();
-    this.#purgeInvisibleMergesAfterAxisMove();
+
+    // `translateAfterAxisMove` wrote every fully trimmed merge back into the lookup matrix; see the
+    // re-anchor's note on why nothing else takes it out again after a reorder.
+    if (this.#isRowTrimmingActive()) {
+      this.#reanchorMergesToVisibleRows();
+    }
+
     this.hot.render();
   };
 
@@ -2688,7 +2690,13 @@ export class MergeCells extends BasePlugin {
     this.#transferAnchorsAfterAxisMove(
       this.mergedCellsCollection.translateAfterAxisMove('row', snapshot, plan?.carriers), 'row', plan?.context);
     this.#captureMergeAnchors();
-    this.#purgeInvisibleMergesAfterAxisMove();
+
+    // `translateAfterAxisMove` wrote every fully trimmed merge back into the lookup matrix; see the
+    // re-anchor's note on why nothing else takes it out again after a reorder.
+    if (this.#isRowTrimmingActive()) {
+      this.#reanchorMergesToVisibleRows();
+    }
+
     this.hot.render();
   };
 
@@ -2729,7 +2737,13 @@ export class MergeCells extends BasePlugin {
       this.mergedCellsCollection.translateAfterAxisMove(
         'column', snapshot, this.#planColumnMoveRetention(snapshot)), 'column');
     this.#captureMergeAnchors();
-    this.#purgeInvisibleMergesAfterAxisMove();
+
+    // `translateAfterAxisMove` wrote every fully trimmed merge back into the lookup matrix; see the
+    // re-anchor's note on why nothing else takes it out again after a reorder.
+    if (this.#isRowTrimmingActive()) {
+      this.#reanchorMergesToVisibleRows();
+    }
+
     this.hot.render();
   };
 
