@@ -1213,6 +1213,9 @@ export class MergeCells extends BasePlugin {
    * trimmed entry in the slot it already occupies. Only the visible entries can be placed, since a
    * trimmed row has no visual index to sort by, and only they decide the merge's top-left.
    *
+   * The list is returned untouched unless those visible rows form one unbroken visual run — see the
+   * note inside.
+   *
    * @param {number[]} physicalRows The anchor's physical rows.
    * @returns {number[]}
    */
@@ -1220,6 +1223,20 @@ export class MergeCells extends BasePlugin {
     const visible = physicalRows
       .filter(physicalRow => this.hot.toVisualRow(physicalRow) !== null)
       .sort((rowA, rowB) => (this.hot.toVisualRow(rowA) as number) - (this.hot.toVisualRow(rowB) as number));
+
+    // Only a merge whose visible rows sit in one unbroken run may be re-ordered. Such a merge draws
+    // exactly the rows it owns, so putting its topmost first is simply the truth. A merge whose rows
+    // a sort has scattered draws a block that reaches over rows it does not own, and moving its head
+    // onto the topmost of them would drag that block up the grid — the derivation this plugin refuses
+    // precisely because it lets two merges claim the same cells (see the re-anchor's own note).
+    const isUnbrokenRun = visible.every((physicalRow, offset) => (
+      offset === 0 ||
+      (this.hot.toVisualRow(physicalRow) as number) === (this.hot.toVisualRow(visible[offset - 1]) as number) + 1
+    ));
+
+    if (!isUnbrokenRun) {
+      return [...physicalRows];
+    }
 
     let next = 0;
 

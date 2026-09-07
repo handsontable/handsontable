@@ -3373,6 +3373,47 @@ describe('MergeCells', () => {
       expect(covered.slice().sort()).toEqual([2, 3, 4]);
     });
 
+    it('should not re-anchor a merge whose rows a sort scattered when a row is moved', async() => {
+      const sortKey = [6, 1, 3, 2, 0, 4, 5, 7];
+
+      handsontable({
+        data: sortKey.map((key, row) => [`A${row}`, `B${row}`, key]),
+        columnSorting: true,
+        manualRowMove: true,
+        trimRows: [7], // trimming active, so the carried anchor order is preserved
+        mergeCells: [
+          { row: 0, col: 0, rowspan: 2, colspan: 2 }, // physical rows 0,1 — the sort scatters these
+          { row: 2, col: 0, rowspan: 2, colspan: 2 }, // physical rows 2,3 — these stay adjacent
+        ],
+      });
+
+      getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
+
+      await render();
+
+      getPlugin('manualRowMove').moveRow(0, 1);
+
+      await render();
+
+      getPlugin('trimRows').untrimAll();
+
+      await render();
+
+      // The move re-orders a carried anchor into visual order, but only for a merge whose rows still
+      // form one unbroken run. The first merge's rows sit at visual 6 and 0 with the grid between
+      // them, so it keeps the head it was created with — re-anchoring it onto its topmost row is the
+      // derivation that lets two merges claim the same cells.
+      expect(toVisualRow(0)).toBe(6);
+      expect(toVisualRow(1)).toBe(0);
+      expect(merges()[0]).toEqual({ row: 6, col: 0, rowspan: 2, colspan: 2 });
+
+      // the second merge's rows are adjacent (visual 2 and 3), so it is re-ordered and covers them
+      const second = merges()[1];
+      const covered = Array.from({ length: second.rowspan }, (_, offset) => toPhysicalRow(second.row + offset));
+
+      expect(covered.slice().sort()).toEqual([2, 3]);
+    });
+
     it('should not let a sort pull two merges onto the same rows in the lookup matrix', async() => {
       // column 2 is the sort key, chosen so that ascending order sends the merges' rows to:
       //   merge A, physical 0 and 1 -> visual 6 and 1
