@@ -15,6 +15,8 @@ import {
   setAttribute,
   fastInnerHTML,
   fastInnerText,
+  getCellContentRoot,
+  CELL_CLIP_CLASS,
   HTML_CHARACTERS,
   isVisible,
   findFirstParentWithClass,
@@ -1188,6 +1190,58 @@ describe('DomElement helper', () => {
 
       expect(element.querySelector('b')).toBe(null);
       expect(element.textContent).toBe('<b>ID</b>');
+    });
+
+    it('should write into the clipping wrapper when the element holds one', () => {
+      const element = document.createElement('td');
+
+      element.innerHTML = `<div class="${CELL_CLIP_CLASS}">old</div>`;
+
+      const wrapper = element.firstElementChild;
+
+      fastInnerText(element, 'new');
+
+      expect(element.childNodes.length).toBe(1);
+      expect(element.firstElementChild).toBe(wrapper);
+      expect(wrapper?.childNodes.length).toBe(1);
+      expect(wrapper?.textContent).toBe('new');
+    });
+  });
+
+  //
+  // Handsontable.helper.getCellContentRoot
+  //
+  describe('getCellContentRoot', () => {
+    it('should return the element itself when it holds no wrapper', () => {
+      const element = document.createElement('td');
+
+      element.textContent = 'text';
+
+      expect(getCellContentRoot(element)).toBe(element);
+    });
+
+    it('should return the wrapper when it is the only child', () => {
+      const element = document.createElement('td');
+
+      element.innerHTML = `<div class="${CELL_CLIP_CLASS}">text</div>`;
+
+      expect(getCellContentRoot(element)).toBe(element.firstElementChild);
+    });
+
+    it('should return the element itself when the wrapper has siblings', () => {
+      const element = document.createElement('td');
+
+      element.innerHTML = `<i>x</i><div class="${CELL_CLIP_CLASS}">text</div>`;
+
+      expect(getCellContentRoot(element)).toBe(element);
+    });
+
+    it('should not mistake another div for the wrapper', () => {
+      const element = document.createElement('td');
+
+      element.innerHTML = '<div class="other">text</div>';
+
+      expect(getCellContentRoot(element)).toBe(element);
     });
   });
 

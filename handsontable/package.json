@@ -49,6 +49,7 @@
     "test:unit.watch": "node scripts/run.mjs --sequential test:unit -- --watch",
     "test:mobile.dump": "node scripts/run.mjs test:mobile.dump",
     "test:types": "node scripts/run.mjs test:types",
+    "test:eslint-rules": "node scripts/run.mjs test:eslint-rules",
     "watch": "node scripts/run.mjs --sequential watch",
     "build": "node scripts/run.mjs --parallel build",
     "postbuild": "node scripts/run.mjs prepare-package-for-publish",

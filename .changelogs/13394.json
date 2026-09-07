@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a merged cell losing the rows that a filter or the `trimRows` plugin had removed from view when a row move split that merged cell, and a merged cell left with a single row in view being removed by any row move.",
+  "type": "fixed",
+  "issueOrPR": 13394,
+  "breaking": false,
+  "framework": "none"
+}

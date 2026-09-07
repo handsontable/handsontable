@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>numericRenderer + array className e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+    .grid { margin-bottom: 1.5rem; }
+  </style>
+</head>
+<body>
+  <!--
+    DEV-2618, follow-up to GitHub #7427 / DEV-2604.
+
+    `numericRenderer` used to alias the `className` it was handed - `classArr = cellProperties
+    .className` - and then push `htRight` and `htNumeric` into it. A grid-level or column-level
+    array is ONE instance shared by every cell through the cell meta prototype chain, so those two
+    classes landed in the user's own array and every other cell reading through that prototype
+    picked them up. A text column sharing the array rendered right-aligned and numeric-styled.
+
+    NO hiding plugin is enabled on any grid here, so each grid is about the renderer alone. That
+    also matters historically: until DEV-2618, `hiddenRows`/`hiddenColumns` rewrote every array
+    `className` they read into a string, which MASKED this leak - so the defect only reproduced
+    without one. Those plugins no longer rewrite cells they have no marker on, so they would not
+    mask it today either.
+  -->
+  <div id="grid-level" class="grid" data-testid="grid-level"></div>
+  <div id="column-level" class="grid" data-testid="column-level"></div>
+  <div id="string-path" class="grid" data-testid="string-path"></div>
+  <div id="aligned" class="grid" data-testid="aligned"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    // Each grid gets its OWN array instance, and each is exposed, so a test can assert per grid
+    // that the renderer left the array the user passed in untouched. Two entries, so an accidental
+    // toString() coercion would be visible as a single `a,b` token.
+    const GRID_LEVEL_CLASS_NAME = ['shared', 'mark'];
+    const COLUMN_LEVEL_CLASS_NAME = ['shared', 'mark'];
+    const ALIGNED_CLASS_NAME = ['shared', 'htCenter'];
+
+    window.sourceArrays = {
+      'grid-level': GRID_LEVEL_CLASS_NAME,
+      'column-level': COLUMN_LEVEL_CLASS_NAME,
+      aligned: ALIGNED_CLASS_NAME,
+    };
+
+    // The test ids are stamped from `afterRenderer`, NOT from a custom `renderer`. A global
+    // `renderer` would replace `numericRenderer` and there would be nothing left to test.
+    const baseSettings = {
+      colHeaders: true,
+      rowHeaders: true,
+      afterRenderer(td, row, col) {
+        td.setAttribute('data-testid', `cell-${row}-${col}`);
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    };
+
+    /**
+     * Build one grid. A constructor that throws must not take the whole page down with it —
+     * otherwise the later grids never render and every test fails for the same reason, hiding
+     * which scenario actually broke. The thrown message is stamped on the container so a failure
+     * reads as the real error instead of a bare "element not visible".
+     */
+    function build(testId, settings) {
+      const container = document.querySelector(`[data-testid="${testId}"]`);
+
+      container.className = `grid ht-theme-${window.htTheme}`;
+
+      try {
+        return new Handsontable(container, Object.assign({}, baseSettings, settings));
+      } catch (error) {
+        container.setAttribute('data-init-error', String(error && error.message));
+
+        return null;
+      }
+    }
+
+    window.hots = {
+      // Grid-level array shared by BOTH columns. Column 0 is numeric, column 1 is text; the
+      // numeric cells used to push `htRight`/`htNumeric` into the shared array, so the text
+      // column rendered with them too.
+      'grid-level': build('grid-level', {
+        data: [[1, 'A1'], [2, 'A2'], [3, 'A3']],
+        className: GRID_LEVEL_CLASS_NAME,
+        columns: [{ type: 'numeric' }, { type: 'text' }],
+      }),
+      // The same array instance handed to two columns explicitly, which is the shape the report
+      // describes: "a non-numeric column sharing that array picks up the numeric classes".
+      'column-level': build('column-level', {
+        data: [[1, 'A1'], [2, 'A2']],
+        columns: [
+          { type: 'numeric', className: COLUMN_LEVEL_CLASS_NAME },
+          { type: 'text', className: COLUMN_LEVEL_CLASS_NAME },
+        ],
+      }),
+      // The plain string path, unchanged by this fix. A string is copied by `split(' ')` under both
+      // the old and the new code, so it never leaked - it is here as regression cover.
+      'string-path': build('string-path', {
+        data: [[1, 'A1'], [2, 'A2']],
+        className: 'shared mark',
+        columns: [{ type: 'numeric' }, { type: 'text' }],
+      }),
+      // An alignment class already present in the shared array: `htRight` must NOT be added, and
+      // `htCenter` must survive. Guards the alignment check against being fed a stale array.
+      aligned: build('aligned', {
+        data: [[1, 'A1'], [2, 'A2']],
+        className: ALIGNED_CLASS_NAME,
+        columns: [{ type: 'numeric' }, { type: 'text' }],
+      }),
+    };
+  </script>
+</body>
+</html>
