@@ -1,5 +1,9 @@
 describe('Walkontable.Renderer.CellsRenderer', () => {
   class TableRendererMock {
+    shouldPaintCell() {
+      return true;
+    }
+
     constructor() {
       this.rootDocument = document;
     }
