@@ -662,6 +662,28 @@ function hasViewportPin(text) {
 }
 
 /**
+ * The source with every describe body cut out: what is left is the file's own top-level code,
+ * where a shared viewport constant is usually declared.
+ *
+ * @param {string} code The source text (comments blanked).
+ * @param {{start: number, end: number}[]} scopes Every describe range, innermost ones included.
+ * @returns {string} The text outside all of them.
+ */
+function outsideDescribes(code, scopes) {
+  const outermost = scopes.filter(scope => !scopes.some(other => other !== scope
+    && other.start < scope.start && scope.end <= other.end));
+  let text = '';
+  let cursor = 0;
+
+  for (const scope of [...outermost].sort((a, b) => a.start - b.start)) {
+    text += code.slice(cursor, scope.start);
+    cursor = Math.min(code.length, scope.end + 1);
+  }
+
+  return text + code.slice(cursor);
+}
+
+/**
  * Count rendered-count reads whose viewport is not pinned: no enclosing
  * describe (or, for a top-level test, the whole file) hands the grid setup an
  * options object with a top-level `width`/`height`, or scrolls with
@@ -696,9 +718,15 @@ export function findViewportSmells(src) {
     });
   let count = 0;
 
+  // A pin's two halves can sit in different scopes: `const ROOMY = { width: 900 }` at file
+  // scope, `initGrid(ROOMY)` inside a suite. Neither text holds both, so each enclosing suite
+  // is searched with the file's own top-level code (every describe body removed) in front of
+  // it. Without the removal a pin inside one suite would silently pin every other suite too.
+  const topLevel = outsideDescribes(code, scopes);
+
   for (const index of [...helperReads, ...visibleReads]) {
     const enclosing = enclosingOf(index);
-    const texts = enclosing.length > 0 ? enclosing.map(scope => scope.body) : [code];
+    const texts = enclosing.length > 0 ? enclosing.map(scope => `${topLevel}\n${scope.body}`) : [code];
 
     if (!texts.some(hasViewportPin)) {
       count += 1;

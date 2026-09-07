@@ -909,6 +909,36 @@ test('viewport smell: a nested width (a border, a column) or an expected value i
   assert.equal(findViewportSmells(typedPromise), 1, 'a TypeScript type is not a value');
 });
 
+test('viewport smell: a viewport local declared at file scope pins the suites below it', () => {
+  // The pin's declaration sits outside every describe while the call that uses it sits inside
+  // one, so neither text holds both halves; only the describe body was searched, and the file's
+  // own `const` never appeared there.
+  const fileScope = `
+    const ROOMY_VIEWPORT = { width: 900, height: 520 };
+
+    describe('rows', () => {
+      it('counts them', async() => {
+        await grid.initGrid(ROOMY_VIEWPORT);
+        expect(countVisibleRows()).toBe(10);
+      });
+    });
+  `;
+
+  assert.equal(findViewportSmells(fileScope), 0, 'a file-scope viewport local is a pin');
+
+  const spread = fileScope.replace(
+    'initGrid(ROOMY_VIEWPORT)',
+    'initGrid({ ...ROOMY_VIEWPORT, layoutDirection: \'rtl\' })'
+  );
+
+  assert.equal(findViewportSmells(spread), 0, 'spread into the options object, the same pin');
+
+  // A file-scope local that pins nothing must still leave the read unpinned.
+  const borderAtFileScope = fileScope.replace('{ width: 900, height: 520 }', '{ border: { width: 2 } }');
+
+  assert.equal(findViewportSmells(borderAtFileScope), 1, 'a nested border width is not the grid size');
+});
+
 test('viewport smell: the options object may be a later argument, or a local passed whole or spread', () => {
   const secondArgument = `
     test('renders', async({ page }) => {
