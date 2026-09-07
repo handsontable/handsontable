@@ -92,7 +92,10 @@ export default class RowUtils {
     let height = this.#rowSizeSource.getSizeForOverlay(sourceIndex, overlayName);
 
     if (isExact) {
-      return height;
+      // Exactness was decided from the row's own height. An overlay listener that answers nothing
+      // for this overlay must not drop the row to the floor shape there, while the row-height cache
+      // (built from `getHeight`) still carries the exact value: the row's own height applies.
+      return hasProvidedHeight(height) ? height : this.#rowSizeSource.getSize(sourceIndex);
     }
 
     const oversizedHeight = this.#deps.getWtViewport().oversizedRows[sourceIndex];

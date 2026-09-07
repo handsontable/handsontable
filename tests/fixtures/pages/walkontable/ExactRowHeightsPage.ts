@@ -160,24 +160,28 @@ export class ExactRowHeightsPage {
     await expect.poll(async () => this.holder().evaluate(el => el.scrollLeft)).toBe(left);
   }
 
-  /**
-   * The lowest column index the master actually renders, read from the rendered
-   * cell text (`R<row>C<col>`, 1-based) of a text cell in the first body row.
-   */
+  /** The lowest column index the master's band actually starts at, read from the engine. */
   async masterFirstRenderedColumn(): Promise<number> {
-    const text = await this.master.locator('tbody > tr').first().locator('td').last().innerText();
-
-    return Number(/C(\d+)$/.exec(text.trim())?.[1] ?? 0) - 1;
+    return this.page.evaluate(() => (window as unknown as {
+      hot: { view: { _wt: { wtTable: { getFirstRenderedColumn: () => number } } } }
+    }).hot.view._wt.wtTable.getFirstRenderedColumn());
   }
 
   /**
-   * Whether the engine sees a UNIFORM row-size source — the handle `markOversizedRows` reads for
-   * its uniform-band shortcut. `false` whenever a `modifyRowHeight` hook is registered.
+   * Whether the engine sees a UNIFORM row-size source in both its sizes and its mode — the two
+   * handles `markOversizedRows` reads for its uniform-band shortcut. The sizes are non-uniform
+   * whenever a `modifyRowHeight` hook is registered; the mode whenever it is a function.
    */
   async isRowSizeSourceUniform(): Promise<boolean> {
-    return this.page.evaluate(() => (window as unknown as {
-      hot: { view: { _wt: { wtTable: { deps: { rowSizeSource: { isUniform: () => boolean } } } } } }
-    }).hot.view._wt.wtTable.deps.rowSizeSource.isUniform());
+    return this.page.evaluate(() => {
+      const { rowSizeSource } = (window as unknown as {
+        hot: { view: { _wt: { wtTable: { deps: {
+          rowSizeSource: { isUniform: () => boolean, isModeUniform: () => boolean }
+        } } } } }
+      }).hot.view._wt.wtTable.deps;
+
+      return rowSizeSource.isUniform() && rowSizeSource.isModeUniform();
+    });
   }
 
   /** How many times `renders` full draws invalidate the row-height cache. */

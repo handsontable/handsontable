@@ -16,9 +16,10 @@
  *
  * The marker sits on the row, not on the cells, on purpose: the cell renderers reset every cell's
  * class and inline style on each draw, and re-marking every cell made the browser recompute the
- * style of the whole band on every draw. The row renderer leaves the row's class alone, so the
- * class is written once and the per-draw work is one inline height per row (the same write the
- * floor shape makes) plus one property read per data cell to confirm its wrapper is in place.
+ * style of the whole band on every draw. The row renderer leaves the row's class alone, so
+ * re-asserting the marker costs nothing (adding a class that is present is a no-op, with no style
+ * invalidation) and the per-draw work is one inline height per row (the same write the floor
+ * shape makes) plus one property read per data cell to confirm its wrapper is in place.
  *
  * The wrapper is kept across draws because the built-in renderers write through
  * `getCellContentRoot()`. A renderer that wipes the cell costs one re-wrap per draw, on exact rows
@@ -122,19 +123,33 @@ function removeClipWrapper(TD: HTMLElement): void {
 }
 
 /**
- * Applies the exact shape: the class on the row (once), the height on the first cell that spans a
- * single row, the wrapper in every data cell. A cell spanning several rows (a merged cell) never
- * carries the height — a single row's height is meaningless for it and the span's rows size it —
- * but it is still wrapped, so content taller than the whole span is clipped to the span.
+ * Whether the cell can carry the row's height: one that spans a single row and is rendered. A cell
+ * spanning several rows (a merged cell) never carries it — a single row's height is meaningless for
+ * it and the span's rows size it. A cell MergeCells covers has its `rowspan` removed and is
+ * `display: none`; a height on it holds nothing up.
+ *
+ * @param {HTMLElement} cell The cell.
+ * @returns {boolean}
+ */
+function canCarryHeight(cell: HTMLElement): boolean {
+  return cell.style.display !== 'none' && Number(cell.getAttribute('rowspan') ?? 1) <= 1;
+}
+
+/**
+ * Applies the exact shape: the class on the row, the height on the first cell that can carry it,
+ * the wrapper in every data cell. A spanning cell is still wrapped, so content taller than the
+ * whole span is clipped to the span.
+ *
+ * The class is re-asserted on every draw rather than gated on the tracking set: `addClass` on a
+ * row that already carries it is a no-op, and it heals a row whose class a hook rewrote through
+ * `className =`. The set only tracks which rows need the release.
  *
  * @param {HTMLElement} TR The row element.
  * @param {string} pixelHeight The height to write, as a CSS length.
  */
 function applyExactShape(TR: HTMLElement, pixelHeight: string): void {
-  if (!exactRows.has(TR)) {
-    addClass(TR, EXACT_ROW_CLASS);
-    exactRows.add(TR);
-  }
+  addClass(TR, EXACT_ROW_CLASS);
+  exactRows.add(TR);
 
   const cells = TR.children;
   let heightCarrier: HTMLElement | null = null;
@@ -146,7 +161,7 @@ function applyExactShape(TR: HTMLElement, pixelHeight: string): void {
       continue; // eslint-disable-line no-continue
     }
 
-    if (heightCarrier === null && Number(cell.getAttribute('rowspan') ?? 1) <= 1) {
+    if (heightCarrier === null && canCarryHeight(cell)) {
       heightCarrier = cell;
     }
 
@@ -161,9 +176,9 @@ function applyExactShape(TR: HTMLElement, pixelHeight: string): void {
 }
 
 /**
- * Undoes the exact shape on a row that is back on the floor path: the row class and the wrappers.
- * The inline height needs no care — the cell renderers reset it on every draw, and the floor path
- * writes its own.
+ * Undoes the exact shape on a row that is back on the floor path: the row class, the wrappers, and
+ * the inline height of every cell. The height must be cleared here: the carrier need not have been
+ * the first cell, and on the out-of-render path (the frozen-column row sync) no renderer resets it.
  *
  * @param {HTMLElement} TR The row element.
  */
@@ -173,7 +188,13 @@ function releaseExactShape(TR: HTMLElement): void {
   for (let index = 0; index < cells.length; index++) {
     const cell = cells[index];
 
-    if (isHTMLElement(cell) && cell.tagName === 'TD') {
+    if (!isHTMLElement(cell)) {
+      continue; // eslint-disable-line no-continue
+    }
+
+    cell.style.height = '';
+
+    if (cell.tagName === 'TD') {
       removeClipWrapper(cell);
     }
   }
@@ -216,9 +237,10 @@ export function applyRowHeight(
     return;
   }
 
-  firstChild.style.height = pixelHeight;
-
+  // Release first: it clears every cell's inline height, and the floor height goes on after.
   if (exactRows.has(TR)) {
     releaseExactShape(TR);
   }
+
+  firstChild.style.height = pixelHeight;
 }

@@ -17,6 +17,9 @@ function fakeSettings(values: Record<string, unknown>): Settings {
 
       return typeof value === 'function' ? value(...args) : value;
     },
+    getSettingPure(key: string): unknown {
+      return values[key];
+    },
   } as unknown as Settings;
 }
 
@@ -141,6 +144,23 @@ describe('row height mode', () => {
       expect(rowUtils.getHeightByOverlayName(3, 'master')).toBe(20);
     });
 
+    it('should fall back to the row\'s own height when an overlay answers nothing for an exact row', () => {
+      // The row-height cache (from `getHeight`) carries the exact value; an overlay that reports no
+      // height must not render that row in the floor shape while the cache says otherwise.
+      const deps = fakeDeps({
+        wtSettings: fakeSettings({
+          rowHeight: () => 20,
+          rowHeightByOverlayName: (...args: unknown[]) => (args[1] === 'top' ? undefined : 0),
+          rowHeightMode: () => 'exact',
+        }),
+        oversizedRows: { 3: 60 },
+      });
+      const rowUtils = new RowUtils(deps);
+
+      expect(rowUtils.getHeightByOverlayName(3, 'top')).toBe(20);
+      expect(rowUtils.getHeightByOverlayName(3, 'master')).toBe(20);
+    });
+
     it('should still merge the oversized height in the `min` mode', () => {
       const deps = fakeDeps({
         wtSettings: fakeSettings({
@@ -152,6 +172,18 @@ describe('row height mode', () => {
       });
 
       expect(new RowUtils(deps).getHeightByOverlayName(3, 'master')).toBe(60);
+    });
+  });
+
+  describe('DefaultRowSizeSource.isModeUniform', () => {
+    it('should be true for a literal mode and for the absent (default) mode', () => {
+      expect(new DefaultRowSizeSource(fakeSettings({ rowHeightMode: 'exact' })).isModeUniform()).toBe(true);
+      expect(new DefaultRowSizeSource(fakeSettings({ rowHeightMode: 'min' })).isModeUniform()).toBe(true);
+      expect(new DefaultRowSizeSource(fakeSettings({})).isModeUniform()).toBe(true);
+    });
+
+    it('should be false for a function, which may answer differently per row', () => {
+      expect(new DefaultRowSizeSource(fakeSettings({ rowHeightMode: () => 'exact' })).isModeUniform()).toBe(false);
     });
   });
 });

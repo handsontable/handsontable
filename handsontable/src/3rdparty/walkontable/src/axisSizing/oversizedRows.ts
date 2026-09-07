@@ -561,8 +561,11 @@ export function markOversizedRows(
   // A uniform exact band has nothing to measure: every row is pinned at its provided height and its
   // content is clipped, so the DOM can never be taller than the records. Decided before the
   // geometry read so the band pays no reflow, and needed on its own: the uniform fast path below
-  // compares the band against the DEFAULT height, which an exact band never matches.
+  // compares the band against the DEFAULT height, which an exact band never matches. One row can
+  // stand for the band only when BOTH the sizes and the mode are uniform — `isUniform()` describes
+  // the size source alone, and a per-row mode could leave a floor row in the band unmeasured.
   const isExactBand = rowCount > 0 && table.deps.rowSizeSource.isUniform() &&
+    table.deps.rowSizeSource.isModeUniform() &&
     rowUtils.isExact(table.rowFilter!.renderedToSource(0));
   const expectedTableHeight = rowCount * stylesHandler.getDefaultRowHeight();
   const actualTableHeight = isExactBand

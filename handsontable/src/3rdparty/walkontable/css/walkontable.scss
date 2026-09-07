@@ -98,6 +98,12 @@
   padding: 0;
 }
 
+/* The row header clips at the cell, not at its wrapper (mirrors `_base.scss`). */
+.handsontable tr.htExactRow > th {
+  overflow: hidden;
+}
+
+/* The insets mirror the cells' own padding above (`0 4px`, no vertical padding). */
 .handsontable tr.htExactRow > td > .htCellClip {
   position: absolute;
   inset: 0 4px;
@@ -109,11 +115,19 @@
   box-sizing: border-box;
 }
 
+/* `align-content` on the block box, not flex: the indicator renderers float their arrows. */
+.handsontable tr.htExactRow > td.htMiddle > .htCellClip {
+  align-content: center;
+}
+
+.handsontable tr.htExactRow > td.htBottom > .htCellClip {
+  align-content: end;
+}
+
 .handsontable tbody tr.htExactRow > th > .relative {
   position: absolute;
   inset: 0;
   min-height: 0;
-  overflow: hidden;
 }
 
 .handsontable th:last-child {

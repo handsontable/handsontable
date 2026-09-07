@@ -61,6 +61,15 @@ export interface RowSizeSource extends AxisSizeSource {
   getMode(sourceIndex: number): RowHeightMode;
 
   /**
+   * Whether every row is guaranteed to share one mode. Together with `isUniform()` it lets the
+   * oversized-rows measurement treat the rendered band as one exact block. Must be conservative —
+   * `false` whenever the mode may vary per row.
+   *
+   * @returns {boolean}
+   */
+  isModeUniform(): boolean;
+
+  /**
    * The provided height in px for one row within a specific overlay, or `undefined` when none is
    * provided. Lets a plugin vary a row's height per overlay (top/bottom/master).
    *

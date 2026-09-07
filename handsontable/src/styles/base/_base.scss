@@ -582,6 +582,14 @@
       padding: 0;
     }
 
+    // The row header clips at the cell, not at its `.relative` wrapper: the active-row accent bar
+    // (`.ht__highlight .relative::after`) overhangs the wrapper by 1px on three sides to meet the
+    // gridlines, and a clip on the wrapper would cut it off. The cell's box keeps the bottom and
+    // end overhangs; the top one is covered by the row above's own bar.
+    tr.htExactRow > th {
+      overflow: hidden;
+    }
+
     tr.htExactRow > td > .htCellClip {
       position: absolute;
       inset: var(--ht-cell-vertical-padding) var(--ht-cell-horizontal-padding);
@@ -594,27 +602,23 @@
     }
 
     // `vertical-align` on the cell no longer moves out-of-flow content; map it onto the wrapper.
-    tr.htExactRow > td.htMiddle > .htCellClip,
-    tr.htExactRow > td.htBottom > .htCellClip {
-      display: flex;
-      flex-direction: column;
-    }
-
+    // `align-content` on the block box, NOT `display: flex`: the indicator renderers place their
+    // arrows with floats, which a flex container ignores.
     tr.htExactRow > td.htMiddle > .htCellClip {
-      justify-content: center;
+      align-content: center;
     }
 
     tr.htExactRow > td.htBottom > .htCellClip {
-      justify-content: flex-end;
+      align-content: end;
     }
 
-    // Row headers already wrap their content in `.relative`; clip that instead of adding a wrapper.
-    // Only body rows are ever marked, so column headers keep their minimum-height semantics.
+    // Row headers already wrap their content in `.relative`; take that out of flow instead of
+    // adding a wrapper (the cell clips, see above). Only body rows are ever marked, so column
+    // headers keep their minimum-height semantics.
     tr.htExactRow > th > .relative {
       position: absolute;
       inset: 0;
       min-height: 0;
-      overflow: hidden;
     }
 
     .wtHider {

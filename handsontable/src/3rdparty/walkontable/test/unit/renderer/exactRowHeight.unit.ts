@@ -144,21 +144,34 @@ describe('applyRowHeight', () => {
       expect(TD2.style.height).toBe('10px');
     });
 
-    it('should re-apply the height after the renderers reset the cell, without touching the row class again', () => {
+    it('should not carry the height on a cell a merge hides', () => {
+      const TR = createRow(['a', 'b'], { rowHeader: false });
+      const [covered, TD2] = cellsOf(TR);
+
+      // What the MergeCells renderer does to a covered cell: no `rowspan`, not rendered.
+      covered.style.display = 'none';
+
+      applyRowHeight(TR, 10, true, true);
+
+      expect(covered.style.height).toBe('');
+      expect(TD2.style.height).toBe('10px');
+    });
+
+    it('should re-apply the height after the renderers reset the cell, and the class after a hook overwrote it', () => {
       const TR = createRow(['a']);
 
       applyRowHeight(TR, 10, true, true);
 
       const TH = cellsOf(TR)[0];
 
-      // What the renderers do on every draw.
+      // What the renderers do on every draw, plus a hook that assigned `className` outright.
       TH.removeAttribute('style');
       TR.className = 'custom';
       applyRowHeight(TR, 10, true, true);
 
       expect(TH.style.height).toBe('10px');
-      // A row already tracked as exact is not re-marked: the first application wrote the class.
-      expect(TR.className).toBe('custom');
+      expect(TR.classList.contains(EXACT_ROW_CLASS)).toBe(true);
+      expect(TR.classList.contains('custom')).toBe(true);
     });
 
     it('should keep the same wrapper node across draws', () => {
@@ -244,6 +257,21 @@ describe('applyRowHeight', () => {
       expect(TD1.childNodes.length).toBe(1);
       expect(TD1.textContent).toBe('a');
       expect(TD2.textContent).toBe('b');
+    });
+
+    it('should clear the height of a carrier that was not the first cell', () => {
+      // On the out-of-render path no renderer resets the cells, so the release must do it.
+      const TR = createRow(['a', 'b'], { rowHeader: false });
+      const [spanning, TD2] = cellsOf(TR);
+
+      spanning.setAttribute('rowspan', '3');
+      applyRowHeight(TR, 10, true, true);
+      expect(TD2.style.height).toBe('10px');
+
+      applyRowHeight(TR, 40, false, true);
+
+      expect(spanning.style.height).toBe('40px');
+      expect(TD2.style.height).toBe('');
     });
   });
 });

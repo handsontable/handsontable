@@ -756,11 +756,14 @@ export const CELL_CLIP_CLASS = 'htCellClip';
 export function getCellContentRoot(element: HTMLElement): HTMLElement {
   const child = element.firstChild;
 
-  if (isHTMLElement(child) && child.nextSibling === null && hasClass(child, CELL_CLIP_CLASS)) {
-    return child;
+  // Cheap checks first: this runs for every cell on every draw. A text node (the common case) and a
+  // cell with several children exit on integer compares before the type guard runs. A falsy check
+  // rather than `=== null`: a bare object standing in for an element (tests) has no `firstChild`.
+  if (!child || child.nodeType !== Node.ELEMENT_NODE || child.nextSibling !== null) {
+    return element;
   }
 
-  return element;
+  return isHTMLElement(child) && hasClass(child, CELL_CLIP_CLASS) ? child : element;
 }
 
 /**

@@ -125,9 +125,10 @@
     });
 
     // Flips the engine's row-height mode. Overlay clones share the master's settings object, so
-    // one update reaches every table.
+    // one update reaches every table. A LITERAL, not a function: a literal is a uniform mode, which
+    // the uniform-band shortcut in `markOversizedRows` requires on top of uniform sizes.
     window.setRowHeightMode = (mode) => {
-      hot.view._wt.wtSettings.update('rowHeightMode', () => mode);
+      hot.view._wt.wtSettings.update('rowHeightMode', mode);
       hot.render();
     };
 

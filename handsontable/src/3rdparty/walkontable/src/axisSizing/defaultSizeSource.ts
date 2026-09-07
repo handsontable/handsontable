@@ -48,6 +48,14 @@ export class DefaultRowSizeSource implements RowSizeSource {
   }
 
   /**
+   * @returns {boolean}
+   */
+  isModeUniform(): boolean {
+    // A literal applies to every row; a function may answer differently per row.
+    return typeof this.#wtSettings.getSettingPure('rowHeightMode') !== 'function';
+  }
+
+  /**
    * @returns {number}
    */
   getDefaultSize(): number {
