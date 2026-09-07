@@ -44,6 +44,17 @@ export class FiltersValueListPage {
    * and Handsontable build.
    */
   async goto(): Promise<void> {
+    // `theme`, `bundle` and `fixture` are three same-typed positional arguments, so passing the
+    // fixture in the bundle's slot is a one-token slip. The fixture's head script does throw on an
+    // unknown `?bundle=`, but it throws before `window.htBundle` is set, so the body still injects
+    // `/handsontable/dist/undefined` and the spec dies 10s later on a missing cell with nothing
+    // naming the cause. Fail here instead, where the message says what happened.
+    if (this.bundle !== 'umd' && this.bundle !== 'full-min') {
+      throw new Error(
+        `Unknown bundle ${JSON.stringify(this.bundle)} - expected 'umd' or 'full-min'. ` +
+        'Check the argument order: (page, theme, bundle, fixture).');
+    }
+
     await this.page.goto(
       `/tests/fixtures/demo/${this.fixture}?theme=${this.theme}&bundle=${this.bundle}`);
     await expect(this.cell(0, 0)).toBeVisible();
@@ -54,7 +65,12 @@ export class FiltersValueListPage {
     return this.page.getByTestId(`cell-${row}-${col}`);
   }
 
-  /** The data cells currently rendered in the given column, top to bottom. */
+  /**
+   * The data cells currently rendered in the given column, top to bottom.
+   *
+   * @param {number} col The visual column index.
+   * @returns {Locator} One element per rendered cell.
+   */
   columnCells(col: number): Locator {
     return this.page.locator(`.ht_master .htCore tbody td[data-testid$="-${col}"]`);
   }
@@ -178,9 +194,20 @@ export class FiltersValueListPage {
     const input = this.menu.locator('.htFiltersMenuCondition .htUIInput input').first();
 
     await expect(input).toBeVisible();
+    // `InputUI` syncs its value on `input` as well as on `keyup` and `change`, and `fill()`
+    // dispatches `input` - so no trailing key press is needed to commit the value.
     await input.fill(value);
-    // `InputUI` syncs its value on `keyup`, so a plain `fill()` alone is not enough.
-    await input.press('End');
+  }
+
+  /**
+   * Change the grid's `locale` setting after construction.
+   *
+   * @param {string} locale A BCP 47 tag, e.g. `en-US`.
+   */
+  async setLocale(locale: string): Promise<void> {
+    await this.page.evaluate(tag => (window as unknown as {
+      hot: { updateSettings(settings: { locale: string }): void };
+    }).hot.updateSettings({ locale: tag }), locale);
   }
 
   /**

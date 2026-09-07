@@ -18,6 +18,11 @@ const LOCALE_FIXTURE = 'filters-value-list-locale.html';
  * restored that entry and the search fell back to the default locale.
  */
 test.describe('Filters — "filter by value" locale-aware search', () => {
+  // Pin the browser's locale. When the search box loses the column's locale it falls back to the
+  // HOST default, so on a Turkish, Azeri or Lithuanian machine the broken path lowercases `İ` the
+  // same way the fixed one does and every assertion below passes against unfixed code.
+  test.use({ locale: 'en-US' });
+
   test('searches with the column locale on the first opening', async({ page, theme, bundle }) => {
     const grid = new FiltersValueListPage(page, theme, bundle, LOCALE_FIXTURE);
 
@@ -57,5 +62,33 @@ test.describe('Filters — "filter by value" locale-aware search', () => {
       await grid.searchValues('inanç');
 
       await expect(grid.valueLabels).toHaveText(['Furkan İnanç']);
+    });
+
+  // This one guards the WRONG fix rather than the original bug. Re-supplying the locale from
+  // `getState()` also makes the test above pass, but `getState()`'s only source is the select that
+  // `setState()` had just loaded from the stored value — so the column would be pinned to the
+  // locale it carried when the filter was first confirmed. It fails against that fix and passes
+  // against the original bug, where the locale was always absent; the pair pins both sides.
+  test('follows the column locale when it changes while the filter is applied',
+    async({ page, theme, bundle }) => {
+      const grid = new FiltersValueListPage(page, theme, bundle, LOCALE_FIXTURE);
+
+      await grid.goto();
+
+      await grid.openMenu('Name');
+      await grid.uncheckValue('Abubekir Kılıç');
+      await grid.confirmMenu();
+
+      // `locale` is not one of the Filters plugin's `SETTING_KEYS`, so this never reaches
+      // `updatePlugin()` and the saved component state survives the call.
+      await grid.setLocale('en-US');
+
+      // Under `en-US`, `İ` lowercases to an `i` followed by a combining dot above, which `inanç`
+      // does not contain - so the search must now match nothing. A stored locale that outlives the
+      // column's own is exactly what makes this list keep answering in Turkish.
+      await grid.openMenu('Name');
+      await grid.searchValues('inanç');
+
+      await expect(grid.valueLabels).toHaveCount(0);
     });
 });

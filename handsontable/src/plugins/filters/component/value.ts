@@ -132,7 +132,7 @@ export class ValueComponent extends BaseComponent {
    * @param {object} value The component value.
    */
   setState(value?: {
-    command: { key: string }; args: unknown[]; itemsSnapshot: Record<string, unknown>[]; locale: string;
+    command: { key: string }; args: unknown[]; itemsSnapshot: Record<string, unknown>[];
   }) {
     if (value && value.command.key === CONDITION_BY_VALUE) {
       // The snapshot replaces the list, so only the surrounding UI is reset - rebuilding the list
@@ -148,7 +148,11 @@ export class ValueComponent extends BaseComponent {
       // `reset()` runs for a column carrying no condition, where an empty list means the opposite
       // and must not turn a column the user never filtered into one that hides every row.
       select.setCleared(Array.isArray(value.args[0]) && (value.args[0] as unknown[]).length === 0);
-      select.setLocale(value.locale);
+      // Read from the column, never from the restored state. `saveState()` REPLACES the entry
+      // `updateState()` wrote, so a locale carried in the state would have to be re-supplied by
+      // `getState()`, whose only source is the select this line just set - a loop that pins the
+      // column to whatever locale it had when the filter was first confirmed (DEV-2666).
+      this.#applyColumnLocale();
 
       return;
     }
@@ -159,10 +163,9 @@ export class ValueComponent extends BaseComponent {
   /**
    * Export state of the component (get selected filter and filter arguments).
    *
-   * @returns {object} Returns object where `command` key keeps used condition filter and `args` key
-   * its arguments, plus the `itemsSnapshot` and `locale` the restored state needs.
+   * @returns {object} Returns object where `command` key keeps used condition filter and `args` key its arguments.
    */
-  getState(): { command: { key: string }; args: unknown[]; itemsSnapshot: unknown[]; locale: string } {
+  getState(): { command: { key: string }; args: unknown[]; itemsSnapshot: unknown[] } {
     const select = this.getMultipleSelectElement();
     const availableItems = select.getItems();
 
@@ -172,12 +175,26 @@ export class ValueComponent extends BaseComponent {
     return {
       command: { key: select.isSelectedAllValues() ? CONDITION_NONE : CONDITION_BY_VALUE },
       args: [select.getValue()],
-      itemsSnapshot: availableItems,
-      // `saveState()` REPLACES the column's state entry, so every key `updateState()` stores has to
-      // be returned here too or confirming the menu drops it. Losing the locale leaves the search
-      // box comparing with the default one on the next opening (DEV-2666).
-      locale: select.getLocale()
+      itemsSnapshot: availableItems
     };
+  }
+
+  /**
+   * Points the value list at the locale of the column whose menu is open, which is the only column
+   * this component ever displays.
+   *
+   * The list lowercases the search term and every listed value with it, so it has to track the
+   * column's current `locale` rather than one recorded earlier - `updateSettings({ locale })` does
+   * not reach the plugin (`locale` is not one of its `SETTING_KEYS`), so nothing would refresh a
+   * stored copy.
+   */
+  #applyColumnLocale() {
+    const selectedColumn = this.hot?.getPlugin('filters').getSelectedColumn() ?? null;
+
+    if (selectedColumn !== null) {
+      this.getMultipleSelectElement()
+        .setLocale(this.hot?.getCellMetaTransient(0, selectedColumn.visualIndex).locale as string);
+    }
   }
 
   /**
@@ -203,12 +220,6 @@ export class ValueComponent extends BaseComponent {
         const selectedArgs = firstByValueCondition.args[0] as unknown[];
         const { itemsSnapshot } = this.#buildItemsSnapshot(filteredRows, selectedArgs);
 
-        // Read from the column being refreshed, not from the edited one - this runs for the
-        // dependent column too. `getCellMetaTransient` takes VISUAL coordinates, while every column
-        // index in this file is physical.
-        const visualColumn = this.hot?.toVisualColumn(physicalColumn) ?? physicalColumn;
-
-        state.locale = this.hot?.getCellMetaTransient(0, visualColumn).locale;
         // The whole selection, minus the values that have left the column altogether, and copied so
         // the component state, `options.value` and the condition collection stop sharing one array.
         // `itemsSnapshot` already carries the checked flags for the visible values; the rest has to
@@ -391,13 +402,7 @@ export class ValueComponent extends BaseComponent {
     this.getMultipleSelectElement().setItems(items);
     super.reset();
     this.getMultipleSelectElement().setValue(values);
-
-    const selectedColumn = this.hot?.getPlugin('filters').getSelectedColumn() ?? null;
-
-    if (selectedColumn !== null) {
-      this.getMultipleSelectElement()
-        .setLocale(this.hot?.getCellMetaTransient(0, selectedColumn.visualIndex).locale as string);
-    }
+    this.#applyColumnLocale();
   }
 
   /**
