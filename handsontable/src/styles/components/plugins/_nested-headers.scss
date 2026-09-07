@@ -2,10 +2,6 @@
 
 @mixin output {
   .handsontable {
-    thead th.htRowspanHeader + th {
-      border-inline-start-width: 0;
-    }
-
     thead th.htRowspanHeader {
       height: auto;
       vertical-align: bottom;

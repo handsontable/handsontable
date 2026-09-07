@@ -612,8 +612,9 @@ describe('WalkontableOverlay', () => {
 
     const clientWidth = document.body.clientWidth;
     const clientHeight = document.body.clientHeight;
-    // total columns * 50px (cell width) + 50px (row header) + 1px (header border left width)
-    const totalColumnsWidth = (getTotalColumns() * 50) + 50 + 1;
+    // total columns * 50px (cell width) + 50px (row header). The row header no longer grows by
+    // 1px once the table is scrolled - it owns its inline-end border at every offset (#6673).
+    const totalColumnsWidth = (getTotalColumns() * 50) + 50;
 
     expect($(wt.wtTable.holder).width()).toBe(clientWidth);
     expect($(wt.wtTable.holder).height()).toBe(clientHeight);

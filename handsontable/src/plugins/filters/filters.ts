@@ -206,7 +206,7 @@ export class Filters extends BasePlugin {
   #previousConditionStack: ColumnConditions[] = [];
 
   /**
-   * Snapshot of [[#previousConditionStack]] at the start of [[filter]] when the DataProvider plugin is active.
+   * Snapshot of `#previousConditionStack` at the start of `filter()` when the DataProvider plugin is active.
    * Used to restore filter UI after `fetchRows` fails (the fetch request used the in-collection state; this holds the last committed stack).
    *
    * @type {Array}
@@ -1277,6 +1277,9 @@ export class Filters extends BasePlugin {
       ?.getSelectElement()?.closeOptions();
     (this.components.get('filter_by_condition2') as ConditionComponent | null | undefined)
       ?.getSelectElement()?.closeOptions();
+    // The by-value list is a grid of its own and keeps its selection while the menu is hidden, so a
+    // reopened menu would show a focus ring on an item while the focus is elsewhere.
+    this.#getValueComponent()?.getMultipleSelectElement().deselect();
   };
 
   /**

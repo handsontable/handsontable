@@ -37,7 +37,7 @@ export function cloneDataProviderFiltersPayload(filters: FilterPayloadColumn[] |
 
 /**
  * Converts Filters plugin condition stack (physical column indexes) to query filters (prop = column data key).
- * Expects the same shape as [[Filters#exportConditions]] returns.
+ * Expects the same shape as {@link Filters#exportConditions} returns.
  *
  * @param {Core} hot Handsontable instance.
  * @param {Array} conditionsStack Array of { column, operation, conditions } (same shape as exportConditions).
@@ -76,11 +76,11 @@ export function conditionsStackToFiltersPayload(
 
 /**
  * Converts DataProvider `fetchRows` filter payload (prop keys) back to a Filters plugin condition stack (physical columns).
- * Inverse of [[conditionsStackToFiltersPayload]] for restoring UI state after a successful fetch.
+ * Inverse of `conditionsStackToFiltersPayload()` for restoring UI state after a successful fetch.
  *
  * @param {object} hot Handsontable instance.
- * @param {Array<{ prop: string, operation: string, conditions: Array<{ name?: string, args: Array<*> }> }>|null} filtersPayload Filters from [[DataProviderQueryParameters]], or `null` when no column filters.
- * @returns {Array<{ column: number, operation: string, conditions: Array<{ name: string, args: Array<*> }> }>} Shape accepted by [[Filters#importConditions]].
+ * @param {Array<{ prop: string, operation: string, conditions: Array<{ name?: string, args: Array<*> }> }>|null} filtersPayload Filters from `DataProviderQueryParameters`, or `null` when no column filters.
+ * @returns {Array<{ column: number, operation: string, conditions: Array<{ name: string, args: Array<*> }> }>} Shape accepted by {@link Filters#importConditions}.
  */
 export function filtersPayloadToConditionsStack(
   hot: HotInstance, filtersPayload: FilterPayloadColumn[] | null | undefined
@@ -120,7 +120,7 @@ export function filtersPayloadToConditionsStack(
 
 /**
  * When `getFetchFn()` returns a function and the Filters plugin is enabled, sets `queryParameters.filters` from
- * [[Filters#exportConditions]] (same mapping as server-side `beforeFilter`).
+ * {@link Filters#exportConditions} (same mapping as server-side `beforeFilter`).
  *
  * @param {Core} hot Handsontable instance.
  * @param {{ filters: * }} queryParameters Target object (mutated).
@@ -156,7 +156,7 @@ export function applyFiltersFromFiltersPluginToQueryParameters(
  * @param {object} ctx Hook context.
  * @param {Core} ctx.hot Handsontable instance.
  * @param {function(): boolean} ctx.hasFetchFn Whether `fetchRows` is configured.
- * @param {function(Array|null): void} ctx.applyFiltersAndRefetch Receives payload from [[conditionsStackToFiltersPayload]] (or null), updates query and refetches.
+ * @param {function(Array|null): void} ctx.applyFiltersAndRefetch Receives payload from `conditionsStackToFiltersPayload()` (or null), updates query and refetches.
  * @param {Array} conditionsStack Exported filter conditions (column = physical index).
  * @returns {boolean|void} False when the server path handled the filter.
  */

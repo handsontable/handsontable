@@ -4,7 +4,7 @@ import type { CellProperties } from '../../settings';
 import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import { offset, outerHeight, outerWidth } from '../../helpers/dom/element';
-import { isObject } from '../../helpers/object';
+import { isObject, isObjectEqual } from '../../helpers/object';
 import { arrayEach, arrayMap } from '../../helpers/array';
 import { isEmpty } from '../../helpers/mixed';
 import { getCellCoordsFromMousePosition } from '../../helpers/dom/cellCoords';
@@ -112,7 +112,7 @@ export class Autofill extends BasePlugin {
    * Specifies how many cell levels were dragged using the handle.
    *
    * @private
-   * @type {boolean}
+   * @type {number}
    */
   handleDraggedCells = 0;
   /**
@@ -135,6 +135,14 @@ export class Autofill extends BasePlugin {
    * @type {string|null}
    */
   #currentDragDirection: string | null = null;
+  /**
+   * Whether the plugin is being torn down and rebuilt by `updatePlugin()` rather than genuinely
+   * disabled. `updateSettings()` reaches `updatePlugin()` whenever `fillHandle` is merely *present*
+   * in the payload, unchanged value included, so this must not end a live gesture.
+   *
+   * @type {boolean}
+   */
+  #isReconfiguring = false;
   /**
    * Last mouse client position. Stays `null` until the first `mousemove` of a drag, so a scroll
    * that happens after pressing the fill handle but before any drag move is not replayed with a
@@ -203,8 +211,30 @@ export class Autofill extends BasePlugin {
    *  - [`fillHandle`](@/api/options.md#fillhandle)
    */
   updatePlugin(): void {
-    this.disablePlugin();
-    this.enablePlugin();
+    const previousDirections = this.directions;
+    const previousAutoInsertRow = this.autoInsertRow;
+
+    this.#isReconfiguring = true;
+
+    try {
+      this.disablePlugin();
+      this.enablePlugin();
+    } finally {
+      this.#isReconfiguring = false;
+    }
+
+    // A reconfiguration that changes what a fill is allowed to do must still end the gesture it
+    // interrupted, or `#onMouseUp` commits it under the rules it was drawn with - a drag started
+    // while both axes were allowed would fill vertically after the update narrowed it to
+    // `horizontal`. The comparison is on the resolved configuration, so re-sending the same value
+    // in another shape (`'vertical'` against `{ direction: 'vertical' }`) still counts as no change.
+    if (
+      this.autoInsertRow !== previousAutoInsertRow ||
+      !isObjectEqual(previousDirections, this.directions)
+    ) {
+      this.#resetDragState();
+    }
+
     super.updatePlugin();
   }
 
@@ -212,6 +242,15 @@ export class Autofill extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin(): void {
+    // The base class drops the `documentElement` `mouseup` listener that owns the drag teardown,
+    // so a gesture that is in progress when the plugin is disabled would otherwise stay armed
+    // until the next `enablePlugin()` picks it up (DEV-2782, the lifecycle twin of GitHub #13370).
+    // A reconfiguration re-registers that listener in the same tick, so the gesture it belongs to
+    // is still live and must survive - see `updatePlugin()`.
+    if (!this.#isReconfiguring) {
+      this.#resetDragState();
+    }
+
     super.disablePlugin();
   }
 
@@ -873,15 +912,27 @@ export class Autofill extends BasePlugin {
    * On mouse up listener.
    */
   #onMouseUp() {
-    if (this.handleDraggedCells) {
+    // Gate on the gesture flag, not on the drag-step counter. See this plugin's AGENTS.md
+    // ("Two drag-state fields, one sentinel") for why the counter is already 0 here (GitHub #13370).
+    if (this.mouseDownOnCellCorner) {
       if (this.handleDraggedCells > 1) {
         this.fillIn();
       }
 
-      this.handleDraggedCells = 0;
-      this.mouseDownOnCellCorner = false;
-      this.#currentDragDirection = null;
+      this.#resetDragState();
     }
+  }
+
+  /**
+   * Ends the corner gesture: clears the drag flag, the step counter, the drag direction, and the
+   * fill preview border. Shared by the `mouseup` teardown and `disablePlugin()`.
+   */
+  #resetDragState() {
+    this.resetSelectionOfDraggedArea();
+    this.mouseDownOnCellCorner = false;
+    this.mouseDragOutside = false;
+    this.#currentDragDirection = null;
+    this.#lastMouseClientPosition = null;
   }
 
   /**

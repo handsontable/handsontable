@@ -798,6 +798,90 @@ export class SelectionFeaturesPage {
   }
 
   /**
+   * The visible edges of the autofill "fill" border in the master overlay — the dashed preview
+   * that follows the pointer while the fill handle is dragged. Empty once no fill gesture is
+   * in progress.
+   */
+  visibleFillBorders(): Locator {
+    return this.page.locator('.ht_master .wtBorder.fill:visible');
+  }
+
+  /**
+   * Double-click the fill handle with the real pointer (the copy-down gesture). A real
+   * double-click, not a dispatched `dblclick`: Walkontable synthesizes its own double-click
+   * from the mousedown/mouseup pairs, and the browser decides in which order the grid's
+   * `mouseup` listeners run.
+   */
+  async doubleClickFillHandle(): Promise<void> {
+    await this.fillHandle().dblclick();
+  }
+
+  /** Drag the fill handle with the real pointer onto the given cell and release. */
+  async dragFillHandleTo(row: number, col: number): Promise<void> {
+    const handleBox = await this.fillHandle().boundingBox();
+    const targetBox = await this.cell(row, col).boundingBox();
+
+    if (!handleBox || !targetBox) {
+      throw new Error('The fill handle or the target cell is not rendered.');
+    }
+
+    await this.page.mouse.move(handleBox.x + handleBox.width / 2, handleBox.y + handleBox.height / 2);
+    await this.page.mouse.down();
+    await this.page.mouse.move(targetBox.x + targetBox.width / 2, targetBox.y + targetBox.height / 2, { steps: 8 });
+    await this.page.mouse.up();
+  }
+
+  /** Whether the Autofill plugin still believes the fill handle is pressed. */
+  async isFillHandlePressed(): Promise<boolean> {
+    return this.page.evaluate(() => window.hot.getPlugin('autofill').mouseDownOnCellCorner);
+  }
+
+  /**
+   * Press the fill handle with the real pointer and keep the button held. The caller owns the
+   * release (`releasePointer()`), which is what lets a test slip a settings update inside the
+   * gesture.
+   */
+  async pressFillHandle(): Promise<void> {
+    await this.#pressElementCenter(this.fillHandle());
+  }
+
+  /**
+   * Move the held pointer onto a cell without releasing it, continuing whatever drag is in
+   * progress.
+   */
+  async dragPointerToCell(row: number, col: number): Promise<void> {
+    await this.#movePointerToCell(row, col);
+  }
+
+  /**
+   * Turn the fill handle on or off through `updateSettings`, the way an application toggles it at
+   * runtime. Goes through the settings path on purpose: that is what routes the plugin through
+   * `disablePlugin()` alone, without the `enablePlugin()` that `updatePlugin()` pairs it with.
+   */
+  async setFillHandleEnabled(enabled: boolean): Promise<void> {
+    await this.page.evaluate(isEnabled => window.hot.updateSettings({ fillHandle: isEnabled }), enabled);
+  }
+
+  /**
+   * Re-send the grid's current `fillHandle` value through `updateSettings`, changing nothing. This
+   * is the shape a framework wrapper produces on an unrelated re-render, when it forwards every
+   * declared prop back into the grid.
+   */
+  async resendFillHandleSetting(): Promise<void> {
+    await this.page.evaluate(() => {
+      window.hot.updateSettings({ fillHandle: window.hot.getSettings().fillHandle });
+    });
+  }
+
+  /**
+   * Narrow the fill handle to one axis through `updateSettings` — a reconfiguration that changes
+   * what a fill is allowed to do, as opposed to a re-send of the same value.
+   */
+  async setFillHandleDirection(direction: 'vertical' | 'horizontal'): Promise<void> {
+    await this.page.evaluate(value => window.hot.updateSettings({ fillHandle: value }), direction);
+  }
+
+  /**
    * The fill handle drawn by the frozen-columns overlay — a selection ending inside that pane is
    * rendered by the clone, not by the master.
    */

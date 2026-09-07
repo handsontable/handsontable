@@ -2,19 +2,23 @@
 //
 // For every fixture case in evals/fixtures/ it scores the hand-written
 // reference test(s) — the harness self-test: every reference must clear the
-// meaningfulness bar — and any counterexample(s) — the other half of the
-// self-test: every counterexample must trip the smell it demonstrates (a
-// problem, or a warning-tier smell such as `unasserted-capture`), so the smell
-// is proven to fire — plus any candidate (agent-generated) file passed via
-// `--candidate <case> <file>`. Prints a table; exits 1 when a reference fails
-// its own bar, a counterexample trips nothing, or a fixture is malformed; 2 on
-// usage errors.
+// meaningfulness bar — and the optional counterexample(s) — the self-test's
+// other half: every counterexample must be caught for the one smell its file
+// name declares (`<scenario>.<smell>.spec.ts`, see lib/counterexamples.mjs),
+// whether that smell is a problem (a determinism smell fails the bar) or a
+// warning (a structure smell such as `unasserted-capture`, still calibrating
+// outside the verdict) — or the scorer has lost that signal — plus any
+// candidate (agent-generated) file passed via `--candidate <case> <file>`.
+// Prints a table; exits 1 when a reference fails its own bar, a counterexample
+// is not caught for its declared smell, or a fixture is malformed; 2 on usage
+// errors.
 //
 // Usage: node evals/run-eval.mjs [--candidate <case> <file>]... [--json]
 
 import { readdir, access } from 'node:fs/promises';
 import { join, basename } from 'node:path';
 import { scoreTestFile } from './score.mjs';
+import { expectedSmellOf, missReason } from './lib/counterexamples.mjs';
 
 const EVALS_DIR = import.meta.dirname;
 const FIXTURES_DIR = join(EVALS_DIR, 'fixtures');
@@ -28,12 +32,12 @@ const FIXTURES_DIR = join(EVALS_DIR, 'fixtures');
 const exists = async path => access(path).then(() => true, () => false);
 
 /**
- * List the plain files in a directory, sorted; an absent directory is empty.
+ * List the files of a fixture-case subdirectory (`reference/`, `counterexamples/`), sorted.
  *
- * @param {string} dir The directory to list.
- * @returns {Promise<string[]>} Absolute file paths.
+ * @param {string} dir The subdirectory path.
+ * @returns {Promise<string[]>} The file paths, or an empty list when the directory is absent.
  */
-async function listFiles(dir) {
+async function listFixtureFiles(dir) {
   if (!await exists(dir)) {
     return [];
   }
@@ -129,8 +133,8 @@ for (const caseName of caseNames) {
 
   const diffPath = join(caseDir, 'change.diff');
   const diffOptions = await exists(diffPath) ? { diffPath } : {};
-  const referenceFiles = await listFiles(join(caseDir, 'reference'));
-  const counterexampleFiles = await listFiles(join(caseDir, 'counterexample'));
+  const referenceFiles = await listFixtureFiles(join(caseDir, 'reference'));
+  const counterexampleFiles = await listFixtureFiles(join(caseDir, 'counterexamples'));
 
   if (referenceFiles.length === 0) {
     structuralErrors.push(`${caseName}: no reference test in reference/`);
@@ -141,7 +145,21 @@ for (const caseName of caseNames) {
   }
 
   for (const file of counterexampleFiles) {
-    results.push({ caseName, role: 'counterexample', score: await scoreTestFile(file, diffOptions) });
+    const expected = expectedSmellOf(basename(file));
+
+    // A file that does not declare a known smell is not a counterexample — it cannot be
+    // "caught", so it must not count as one (a stray README would otherwise pass as caught).
+    if (expected.error) {
+      structuralErrors.push(`${caseName}/counterexamples: ${expected.error}`);
+      continue;
+    }
+
+    results.push({
+      caseName,
+      role: 'counterexample',
+      expectedSmell: expected.smell,
+      score: await scoreTestFile(file, diffOptions),
+    });
   }
 
   for (const candidate of parsed.candidates.filter(c => c.caseName === caseName)) {
@@ -170,14 +188,16 @@ if (parsed.json) {
     score.verdict,
   ]);
 
-  console.log('Test-generation eval — references (must score clean) and counterexamples (must be caught) '
-    + 'are the harness self-test; candidates are agent output.\n');
+  console.log('Test-generation eval — references must score meaningful and counterexamples must be '
+    + 'caught for their declared smell (the harness self-test); candidates are agent output.\n');
   console.log(renderTable(
     ['Case', 'Role', 'File', 'Tests', 'Asserts', 'Hollow', 'Gaming', 'Determ', 'Struct', 'Verdict'],
     rows,
   ));
 
-  const noisy = results.filter(({ score }) => score.problems.length > 0 || score.warnings.length > 0);
+  // A counterexample's problems and warnings are its point — list only the unexpected output.
+  const noisy = results.filter(({ role, score }) => role !== 'counterexample'
+    && (score.problems.length > 0 || score.warnings.length > 0));
 
   if (noisy.length > 0) {
     console.log('');
@@ -196,28 +216,29 @@ if (parsed.json) {
 
 const references = results.filter(result => result.role === 'reference');
 const failedReferences = references.filter(result => result.score.verdict !== 'meaningful');
-// A counterexample demonstrates one smell; the scorer must report it — as a
-// problem, or as a warning for a smell still calibrating outside the verdict
-// (`unasserted-capture`) — or the smell is documented without being detected.
-const smellReported = score => score.problems.length > 0
-  || score.warnings.some(warning => warning.type === 'structure-smells');
 const counterexamples = results.filter(result => result.role === 'counterexample');
-const uncaughtCounterexamples = counterexamples.filter(result => !smellReported(result.score));
+// A counterexample is caught only when the scorer flags the one smell its name declares, and
+// nothing else — as a problem (a determinism smell) or as a warning (a structure smell still
+// calibrating outside the verdict). A verdict of `suspect` alone would also be reached
+// through a hollow test or a `.skip`, with the declared signal already lost.
+const missedCounterexamples = counterexamples
+  .map(result => ({ ...result, reason: missReason(result.score, result.expectedSmell) }))
+  .filter(result => result.reason !== null);
 const candidates = results.filter(result => result.role === 'candidate');
 const meaningfulCandidates = candidates.filter(result => result.score.verdict === 'meaningful');
 const selfTestPassed = failedReferences.length === 0
-  && uncaughtCounterexamples.length === 0
+  && missedCounterexamples.length === 0
   && structuralErrors.length === 0;
 
 if (!parsed.json) {
   console.log('');
-  console.log(`References: ${references.length - failedReferences.length}/${references.length} meaningful`
+  console.log(`References: ${references.length - failedReferences.length}/${references.length} meaningful;`
+    + ` counterexamples: ${counterexamples.length - missedCounterexamples.length}/${counterexamples.length} caught`
+    + ' (a problem, or a warning-tier smell)'
     + ` — harness self-test ${selfTestPassed ? 'PASSED' : 'FAILED'}.`);
 
-  if (counterexamples.length > 0) {
-    const caught = counterexamples.length - uncaughtCounterexamples.length;
-
-    console.log(`Counterexamples: ${caught}/${counterexamples.length} caught (a problem, or a warning-tier smell).`);
+  for (const { caseName, score, reason } of missedCounterexamples) {
+    console.log(`  missed counterexample  ${caseName}/${basename(score.file)}: ${reason}`);
   }
 
   if (candidates.length > 0) {

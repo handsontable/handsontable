@@ -39,6 +39,10 @@ An expired key still does not block anything. Neither does a lapsed subscription
 expiration date the console reports an error and every feature keeps working, so a paying customer
 is never locked out.
 
+**If you already have a valid license key**, no action is needed: an existing key that is valid
+under 18.0 continues to work unchanged after upgrading to 18.1. Key validity depends only on the
+key's own expiration date, not on the Handsontable version you run.
+
 ### Who is affected
 
 You are affected if a Handsontable instance runs anywhere without a valid key. In practice that

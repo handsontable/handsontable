@@ -371,6 +371,61 @@ hot.updateSettings({
 hot.getDataAtCell(0, 1); // -> null, cleared as usual
 ```
 
+## Copying and pasting over merged cells
+
+Pasting a block of more than one cell over a merged range unmerges that range, and every pasted value becomes visible. Excel and Google Sheets behave the same way: a block with its own rows and columns cannot fit inside a single merged cell, so the merge gives way.
+
+Every merged range the pasted block reaches is unmerged, not only the one you selected. A paste fills the larger of the copied block and the selected range, so it can reach past your selection and clip a neighboring merge.
+
+Pasting a single value leaves the merge in place. A single value carries no structure of its own, so it lands in the merged range's top-left cell and the covered cells stay empty.
+
+The merge geometry travels with the paste's own undo entry, so [`undo()`](@/api/core.md#undo) restores the pasted values and the merged ranges together rather than in two steps. A validator that corrects a pasted value adds an undo entry of its own for each cell it corrects, as it does for any other write; those entries revert only their value and leave the merged ranges alone.
+
+One thing this does not do: **copying does not carry the merge.** A merged range copies as its top-left value plus empty cells, so pasting it elsewhere creates no merge. Pasted HTML `rowspan` and `colspan` attributes are flattened the same way: the value lands in the top-left cell of the span and the covered cells are set to `null`.
+
+To keep a merged range intact, cancel the paste from [`beforePaste`](@/api/hooks.md#beforepaste). Returning `false` there stops the whole paste, so nothing is written and no merge is dropped:
+
+```js
+new Handsontable(container, {
+  mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 2 }],
+  beforePaste(data, coords) {
+    const isSingleValue = data.length === 1 && data[0].length === 1;
+
+    if (isSingleValue) {
+      return; // a single value never breaks a merge, so let it through
+    }
+
+    const clipboardRows = data.length;
+    const clipboardColumns = Math.max(...data.map(row => row.length));
+
+    // Measure the area the paste writes, not the selected area: a paste fills the larger of the
+    // copied block and the selection on each axis, so it can reach past the selection. Scan every
+    // cell of that area, because `rowspan` and `colspan` are set only on a merged range's
+    // top-left cell.
+    const touchesMergedRange = coords.some(({ startRow, startCol, endRow, endCol }) => {
+      const lastRow = startRow + Math.max(clipboardRows, endRow - startRow + 1) - 1;
+      const lastColumn = startCol + Math.max(clipboardColumns, endCol - startCol + 1) - 1;
+
+      for (let row = startRow; row <= lastRow; row += 1) {
+        for (let col = startCol; col <= lastColumn; col += 1) {
+          const { rowspan, colspan } = this.getCellMetaTransient(row, col);
+
+          if (rowspan > 1 || colspan > 1) {
+            return true;
+          }
+        }
+      }
+
+      return false;
+    });
+
+    if (touchesMergedRange) {
+      return false;
+    }
+  },
+});
+```
+
 ## Effect on viewport getter methods
 
 With merged cells, the rendered range extends to fit any merged cell that crosses the viewport edge. This is the same expansion that the `virtualized` option turns off. As a result, the rendered-range getters can return indexes beyond what you see on the screen:
@@ -396,6 +451,18 @@ When a merged cell's underlying rows or columns are reordered (through [`manualC
 - **Silent drop of single-cell fragments**: any resulting fragment that ends up as a single cell (`rowspan === 1 && colspan === 1`) is removed, because a single cell is no longer a merge. The [`afterMergeCells`](@/api/hooks.md#aftermergecells) hook is not fired for the dropped fragment.
 
 [`undo`](@/api/options.md#undo) and [`redo`](@/api/options.md#redo) restore the pre-move state, including any merges that were split or dropped by the reorder.
+
+## Behavior when rows inside a merge are removed from view
+
+Some features remove rows from the grid entirely: [`filters`](@/api/options.md#filters), [`trimRows`](@/api/options.md#trimrows), and collapsing a parent row of [`nestedRows`](@/api/options.md#nestedrows). A removed row has no position in the grid at all, so a merged cell that covers one spans fewer rows than it did:
+
+- The merged cell moves to the first of its rows that is still shown, and spans only the rows of its own that remain. It never grows over the rows below it.
+- When none of its rows is shown, the merged cell is not displayed.
+- When the rows come back, the merged cell spans them again. Nothing about the merge is lost while its rows are away. A merged cell you create while rows are already removed from view covers only the rows you could see, and does not grow when the rest come back.
+
+[`hiddenRows`](@/api/options.md#hiddenrows) works differently. A hidden row keeps its position, so a merged cell spanning one keeps its configured `rowspan` and simply draws over less space.
+
+One limitation applies to [`undo`](@/api/options.md#undo). Unmerging a merged cell whose rows are all hidden but one records only the single cell you can see, which is not a merged cell, so undoing that unmerge restores nothing. Expand or unfilter the rows first if you want the unmerge to be reversible.
 
 ## Result
 
@@ -439,3 +506,5 @@ Cells at the configured positions are now merged. Users see a single cell spanni
 - [MergeCells](@/api/mergeCells.md)
 
 </div>
+
+Microsoft and Excel are registered trademarks of Microsoft Corporation. Google Sheets is a trademark of Google LLC.

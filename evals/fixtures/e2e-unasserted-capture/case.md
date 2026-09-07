@@ -25,6 +25,7 @@ last row must be empty. Write the regression test.
 - The reference feeds the captured count into the expectation (`before + 1`),
   so the assertion is anchored to the state the test observed — not to a
   literal that happens to match the fixture today.
-- `counterexample/` captures the count and only navigates with it — so
+- `counterexamples/add-row-drops-count.unasserted-capture.spec.ts` captures the
+  count and only navigates with it — so
   `no-unused-vars` is quiet — while its only assertion is that the button is
   still visible. Lint cannot see that gap; the scorer can.

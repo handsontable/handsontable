@@ -77,12 +77,12 @@ const HotTable = defineComponent({
   data() {
     return {
       /* eslint-disable vue/no-reserved-keys */
-      __hotInstance: null as Handsontable,
+      __hotInstance: null as Handsontable | null,
       /* eslint-enable vue/no-reserved-keys */
       miscCache: {
         currentSourceColumns: null,
       },
-      columnSettings: null as HotTableProps[],
+      columnSettings: null as HotTableProps[] | null,
       columnsCache: new Map<VNode, HotTableProps>(),
       columnsRefreshScheduled: false,
       get hotInstance(): Handsontable | null {
@@ -98,7 +98,7 @@ const HotTable = defineComponent({
           return null;
         }
       },
-      set hotInstance(hotInstance: Handsontable) {
+      set hotInstance(hotInstance: Handsontable | null) {
         this.__hotInstance = hotInstance;
       },
     };

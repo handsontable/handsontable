@@ -25,6 +25,7 @@ change the size of that window.
   data length; the window keeps its size after a scroll) rather than a literal
   count that only one theme produces — or derive the literal from the theme's
   row height.
-- `reference/` pins the viewport; `counterexample/` reads the same count with
+- `reference/` pins the viewport; `counterexamples/rendered-rows-auto-height.theme-sensitive-viewport.spec.ts`
+  reads the same count with
   the default auto-height and a one-theme literal — the scorer flags it as
   `theme-sensitive-viewport`.
