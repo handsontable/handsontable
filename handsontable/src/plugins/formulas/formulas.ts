@@ -415,8 +415,38 @@ export class Formulas extends BasePlugin {
     ));
 
     this.#invalidateHyperlinkCells();
+    this.#markCellsThatBecameHyperlinks(changes);
     this.hot.runHooks('afterFormulasValuesUpdate', exportedChanges);
   };
+
+  /**
+   * Marks the updated cells that resolve to a hyperlink now. A cell that became a `HYPERLINK` while
+   * keeping the label it already showed changes nothing a `renderMode: 'onChange'` paint compares -
+   * not its formatted value, meta, renderer, or the render epoch - and it is not yet in
+   * `#hyperlinkCells`, so the engine update is the only signal that it needs an anchor.
+   *
+   * @param {Array} changes The engine's change list.
+   */
+  #markCellsThatBecameHyperlinks(changes: unknown[]) {
+    if (!this.#hyperlinksEnabled || !this.rowAxisSyncer || !this.columnAxisSyncer) {
+      return;
+    }
+
+    changes.forEach((change) => {
+      const address = (change as { address?: { sheet: number; row: number; col: number } }).address;
+
+      if (!address || address.sheet !== this.sheetId) {
+        return;
+      }
+
+      const visualRow = this.rowAxisSyncer!.getVisualIndexFromHfIndex(address.row);
+      const visualColumn = this.columnAxisSyncer!.getVisualIndexFromHfIndex(address.col);
+
+      if (visualRow >= 0 && visualColumn >= 0 && this.#getHyperlinkHref(visualRow, visualColumn) !== null) {
+        this.hot.markCellChanged(visualRow, visualColumn);
+      }
+    });
+  }
 
   /**
    * Marks every cell rendered as a hyperlink as changed, so its `href` is rebuilt on the next render.

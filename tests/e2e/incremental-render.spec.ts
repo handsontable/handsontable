@@ -204,6 +204,14 @@ test.describe('renderMode: onChange', () => {
     await grid.run('hot.setDataAtCell(0, 3, "http://c/");');
     await expect(grid.cell(0, 2).locator('a')).toHaveAttribute('href', 'http://c/');
     await grid.expectEqualToFullRepaint();
+
+    // A cell that becomes a HYPERLINK with the label it already showed: its formatted value does not
+    // change, so the engine update is the only signal that it needs an anchor now.
+    await grid.run('hot.setDataAtCell(1, 1, "label");');
+    await expect(grid.cell(1, 1)).toHaveText('label');
+    await grid.run('hot.setSourceDataAtCell(1, 1, \'=HYPERLINK(D1, "label")\'); hot.render();');
+    await expect(grid.cell(1, 1).locator('a')).toHaveAttribute('href', 'http://c/');
+    await grid.expectEqualToFullRepaint();
   });
 
   test('shows and clears Search results', async({ page, theme, bundle }) => {
@@ -337,6 +345,17 @@ test.describe('renderMode: onChange, changes the render must see', () => {
     // has to put it back.
     await grid.run('hot.setDataAtCell(19, 9, "z");');
     expect(await count('.ht_master tbody td.area')).toBe(4);
+    await grid.expectEqualToFullRepaint();
+  });
+
+  test('drops the comment marker when the Comments plugin is disabled directly', async({ page, theme, bundle }) => {
+    const grid = new IncrementalRenderPage(page, theme, bundle, 'comments');
+
+    await grid.goto();
+    await expect(grid.cell(1, 1)).toHaveClass(/htCommentCell/);
+
+    await grid.run('hot.getPlugin("comments").disablePlugin(); hot.render();');
+    await expect(grid.cell(1, 1)).not.toHaveClass(/htCommentCell/);
     await grid.expectEqualToFullRepaint();
   });
 });

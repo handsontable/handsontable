@@ -1,7 +1,7 @@
 import { type Locator, type Page, expect } from '@playwright/test';
 
 export type IncrementalRenderScenario =
-  'text' | 'always' | 'mixed' | 'frozen-merge' | 'formulas' | 'search' | 'cells-fn' | 'resize' | 'merge-height';
+  'text' | 'always' | 'mixed' | 'frozen-merge' | 'formulas' | 'search' | 'cells-fn' | 'resize' | 'merge-height' | 'comments';
 
 /**
  * Page Object for the `renderMode` fixture. Every probe reads the grid through the fixture's own
