@@ -249,9 +249,11 @@ export class CopyPaste extends BasePlugin {
    */
   #copyMode = 'cells-only';
   /**
-   * Registry of the clipboard events that were already processed. When the grid lives inside
-   * a Shadow DOM tree, the clipboard listeners are bound both to the document and to the
-   * grid's shadow root, so the same event instance can reach the plugin twice.
+   * Registry of the clipboard events that were already processed. The clipboard listeners are
+   * bound to the document, to the grid's own element, and - when the grid lives inside a Shadow
+   * DOM tree - to its shadow root, so the same event instance reaches the plugin more than once
+   * for every grid, not just a grid inside a shadow tree. Keyed on event identity, which holds
+   * because `EventManager` hands every listener the same event object.
    *
    * @type {WeakSet<object>}
    */

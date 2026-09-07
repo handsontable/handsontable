@@ -12,7 +12,7 @@ export class ShadowGridPage {
   readonly page: Page;
   readonly theme: string;
   readonly bundle: string;
-  /** Clipboard-event delivery mode: `'normal'`, or `'container-only'` to stand in for LWS. */
+  /** Clipboard-event delivery mode: `'normal'`, or `'lws-shape'` to stand in for LWS. */
   readonly delivery: string;
   readonly grid: Locator;
   readonly outsideTextarea: Locator;
@@ -55,10 +55,18 @@ export class ShadowGridPage {
 
   /**
    * Names of the clipboard events that reached the document (fixture probe). Empty under the
-   * `container-only` delivery mode, where the fixture stops them at the grid's container.
+   * `lws-shape` delivery mode, where the fixture stops them at the grid's container.
    */
   async clipboardEventsSeenAtDocument(): Promise<string[]> {
     return this.page.evaluate(() => (window as any).__hotProbe.clipboardEventsSeenAtDocument());
+  }
+
+  /**
+   * How many times the plugin ran a paste to completion, counted through `afterPaste` (fixture
+   * probe). One Ctrl+V must produce exactly one, however many listeners saw the event.
+   */
+  async pasteHookCalls(): Promise<number> {
+    return this.page.evaluate(() => (window as any).__hotProbe.pasteHookCalls());
   }
 
   /** A single data cell, by visual row/column, via its stable test id. */

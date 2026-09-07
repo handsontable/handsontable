@@ -58,8 +58,11 @@ test.describe('grid inside a native shadow root', () => {
 
     await grid.expectCell(4, 2, 'A1');
     // Under the default delivery mode the events do travel out to the document. This is the
-    // positive control for the recorder the container-only tests below assert stays empty.
+    // positive control for the recorder the `lws-shape` tests below assert stays empty.
     expect(await grid.clipboardEventsSeenAtDocument()).toContain('paste');
+    // This is also the mode where all three listeners see the event, so it is where a broken
+    // event registry would show up as the plugin pasting more than once.
+    expect(await grid.pasteHookCalls()).toBe(1);
   });
 
   test('does not steal focus back when typing into an input outside the shadow host', async () => {
@@ -198,34 +201,39 @@ test.describe('grid inside a native shadow root', () => {
 });
 
 /**
- * Clipboard events that never leave the grid's container (DEV-2795, #13388). Salesforce
- * Lightning Web Security hands them only to listeners bound at or below the grid's own
- * element, so the two binding points CopyPaste had — the document and the grid's shadow root
- * — both went unused and copy, cut and paste silently did nothing in a Lightning Web
- * Component. The fixture reproduces that reach by stopping the events at the container.
+ * Clipboard events shaped the way Salesforce Lightning Web Security shapes them (DEV-2795,
+ * #13388). LWS hands them only to listeners bound at or below the grid's own element, so the
+ * two binding points CopyPaste had — the document and the grid's shadow root — both went
+ * unused and copy, cut and paste silently did nothing in a Lightning Web Component. It also
+ * collapses `composedPath()` to the shadow host chain, which is what makes the plugin resolve
+ * the event's source from the retargeted `target` instead. The fixture reproduces both.
  *
- * These tests cover the delivery shape, not LWS itself: a real org also runs the grid behind
- * a sandbox membrane, which no fixture here can stand in for.
+ * These tests cover that shape, not LWS itself: a real org also runs the grid behind a sandbox
+ * membrane, which no fixture here can stand in for.
  */
-test.describe('grid whose clipboard events reach only its own container', () => {
+test.describe('grid whose clipboard events arrive the way LWS delivers them', () => {
   let grid: ShadowGridPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {
-    grid = new ShadowGridPage(page, theme, bundle, 'container-only');
+    grid = new ShadowGridPage(page, theme, bundle, 'lws-shape');
     await grid.goto();
   });
 
+  // C3 is copied by no other test in this file. The browser clipboard outlives a test — each
+  // test gets a fresh context, not a fresh clipboard — so reusing a value an earlier test
+  // copied would let a broken copy still paste that leftover and pass.
   test('copies and pastes between cells with keyboard shortcuts', async () => {
-    await grid.cell(0, 0).click();
+    await grid.cell(2, 2).click();
     await grid.page.keyboard.press('ControlOrMeta+c');
 
-    await grid.cell(4, 2).click();
+    await grid.cell(4, 0).click();
     await grid.page.keyboard.press('ControlOrMeta+v');
 
-    await grid.expectCell(4, 2, 'A1');
+    await grid.expectCell(4, 0, 'C3');
     // The paste landed without the document ever seeing the event, so only a listener bound
     // at or below the container can have driven it.
     expect(await grid.clipboardEventsSeenAtDocument()).toEqual([]);
+    expect(await grid.pasteHookCalls()).toBe(1);
   });
 
   test('cuts and pastes between cells with keyboard shortcuts', async () => {
@@ -239,5 +247,6 @@ test.describe('grid whose clipboard events reach only its own container', () => 
 
     await grid.expectCell(3, 0, 'B1');
     expect(await grid.clipboardEventsSeenAtDocument()).toEqual([]);
+    expect(await grid.pasteHookCalls()).toBe(1);
   });
 });
