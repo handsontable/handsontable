@@ -5328,6 +5328,9 @@ export default function Core(
    * (grid, column, and cell levels). To read global grid settings only, use {@link Core#getSettings}.
    * To read column-level meta, use {@link Core#getColumnMeta}.
    *
+   * For a read-only bulk scan over many cells, use {@link Core#getCellMetaTransient} instead: it
+   * returns the same data without permanently caching a meta object per cell.
+   *
    * @memberof Core#
    * @function getCellMeta
    * @param {number} row Visual row index.
