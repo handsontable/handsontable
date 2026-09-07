@@ -41,24 +41,41 @@ export class DataChangeAction extends BaseAction {
    */
   declare countRows: number;
   /**
+   * @param {number} countSourceRows The number of source rows before data change. This is what the
+   *   undo measures the dataset against, because `countRows` counts only the rows a filter or a
+   *   trim leaves visible - see `undo()`.
+   */
+  declare countSourceRows: number;
+  /**
    * @param {Array} mergedCells Merge areas this change destroyed, as `{ row, col, rowspan, colspan }`
    *   objects captured before the change landed. Empty for every change that destroys no merge.
    */
   declare mergedCells: MergeAreaGeometry[];
+  /**
+   * @param {Array} physicalRows The physical row of every entry in `changes`, in the same order,
+   *   read when the change was recorded. `null` marks a change whose row did not exist yet - this
+   *   is recorded from `beforeChange`, which runs before `applyChanges()` creates the rows a write
+   *   past the last row needs.
+   */
+  declare physicalRows: (number | null)[];
 
   /**
    * Initializes the data change action with the recorded cell changes, selection state, and grid dimensions at the time of the change.
    */
-  constructor({ changes, selected, countCols, countRows, mergedCells = [] }: {
+  constructor({
+    changes, selected, countCols, countRows, countSourceRows = countRows, mergedCells = [], physicalRows = []
+  }: {
     changes: unknown[][], selected: unknown[], countCols: number, countRows: number,
-    mergedCells?: MergeAreaGeometry[]
+    countSourceRows?: number, mergedCells?: MergeAreaGeometry[], physicalRows?: (number | null)[]
   }) {
     super('change');
     this.changes = changes;
     this.selected = selected;
     this.countCols = countCols;
     this.countRows = countRows;
+    this.countSourceRows = countSourceRows;
     this.mergedCells = mergedCells;
+    this.physicalRows = physicalRows;
   }
 
   /**
@@ -96,6 +113,14 @@ export class DataChangeAction extends BaseAction {
         const clonedChanges = effectiveChanges.map(
           (change: unknown[]) => [...change]
         );
+        // Read now, alongside the visual row, because the visual row only describes the grid state
+        // this edit happened in - a filter or a trim applied afterwards puts another row at that
+        // index, or no row at all (DEV-2665). A row that does not exist yet has no physical index:
+        // this hook runs before `applyChanges()` creates the rows a write past the last row needs,
+        // and `null` is what tells the replay to address such a change visually.
+        const physicalRows = clonedChanges.map(
+          (change: unknown[]) => hot.toPhysicalRow(change[0] as number) as number | null
+        );
 
         clonedChanges.forEach((change: unknown[]) => {
           change[1] = hot.propToCol(change[1] as string | number);
@@ -107,9 +132,11 @@ export class DataChangeAction extends BaseAction {
 
         return new DataChangeAction({
           changes: clonedChanges,
+          physicalRows,
           selected,
           countCols: hot.countCols(),
           countRows: hot.countRows(),
+          countSourceRows: hot.countSourceRows(),
           // Merge areas this change is about to destroy. Carried inside this action so a single
           // undo step puts back both the data and the geometry - see the MergeCells plugin, which
           // records them from its own `beforeChange` listener at an earlier priority than this one.
@@ -124,18 +151,116 @@ export class DataChangeAction extends BaseAction {
   }
 
   /**
+   * Routes every recorded change to the write path that can still reach the row it was recorded on.
+   *
+   * The row is addressed physically, so a change lands back on its own record rather than on
+   * whatever row now sits at the recorded visual index. Three cases come out of that:
+   *
+   * - the row is visible, so it is written through the grid at its **current** visual index. This is
+   *   the normal path, and it keeps everything a grid write brings with it: the validators, the
+   *   `afterChange` hook the settle callback rides on, and the editor refresh;
+   * - the row exists but is trimmed away (a filter, `trimRows`), so it has no visual index at all
+   *   and the grid cannot address it. It is written straight to the source data instead. A row
+   *   removed since the change takes the same branch, and `dataSource.setAtCell()` drops a write
+   *   past the last source row - so the value goes nowhere instead of onto a surviving row;
+   * - the row had no physical index when the change was recorded, which means it did not exist yet.
+   *   The recorded visual index is all there is, and writing there is what re-creates the row, so
+   *   this case keeps addressing the grid visually.
+   *
+   * @param {Core} hot The Handsontable instance.
+   * @param {number} valueIndex Index of the value to replay within a change entry - `2` for the old
+   *   value (undo), `3` for the new one (redo).
+   * @returns {{gridChanges: Array, sourceChanges: Array}}
+   */
+  #collectWrites(hot: HotInstance, valueIndex: number) {
+    // Cloned for the reason the whole change set used to be: a replayed object value has to be a
+    // copy, so that mutating the cell afterwards cannot reach back into the stack.
+    const data = deepClone(this.changes) as unknown[][];
+    const gridChanges: unknown[][] = [];
+    const sourceChanges: unknown[][] = [];
+
+    data.forEach((change: unknown[], index: number) => {
+      const visualColumn = change[1] as number;
+      const value = change[valueIndex];
+      // An action recorded before this field existed, or one built by hand, carries no entry here.
+      // Every change then falls back to its recorded visual row, which is what used to happen.
+      const physicalRow = this.physicalRows?.[index] ?? null;
+
+      if (physicalRow === null) {
+        gridChanges.push([change[0], visualColumn, value]);
+
+        return;
+      }
+
+      const visualRow = hot.toVisualRow(physicalRow) as number | null;
+
+      if (visualRow === null) {
+        sourceChanges.push([physicalRow, hot.colToProp(visualColumn), value]);
+
+        return;
+      }
+
+      gridChanges.push([visualRow, visualColumn, value]);
+    });
+
+    return { gridChanges, sourceChanges };
+  }
+
+  /**
+   * Replays both write lists and settles the action exactly once.
+   *
+   * The source-data writes run first, so the settle callback - which rides on the grid write's
+   * `afterChange` - runs once the whole replay has landed. With no grid write to make, that hook
+   * would never fire and the action has to settle from here instead. Leaving it armed would settle
+   * this action on the next unrelated change, and until then `ignoreNewActions` stays on, dropping
+   * every action the user performs in between.
+   *
+   * @param {Core} hot The Handsontable instance.
+   * @param {Array} gridChanges Changes to write through the grid, as `[visualRow, visualColumn, value]`.
+   * @param {Array} sourceChanges Changes to write to the source data, as `[physicalRow, prop, value]`.
+   * @param {string} source The source string the writes carry.
+   * @param {function(): void} settle Runs once the replay has landed.
+   */
+  #replay(
+    hot: HotInstance, gridChanges: unknown[][], sourceChanges: unknown[][], source: string, settle: () => void
+  ) {
+    if (sourceChanges.length > 0) {
+      hot.setSourceDataAtCell(sourceChanges, undefined, undefined, source);
+    }
+
+    if (gridChanges.length === 0) {
+      settle();
+
+      return;
+    }
+
+    hot.addHookOnce('afterChange', settle);
+
+    try {
+      hot.setDataAtCell(gridChanges, null, null, source);
+    } catch (error) {
+      // The write threw, so `afterChange` never fires. An armed hook would settle this half-applied
+      // action on the next change to reach the grid - see `RemoveRowAction#undo`.
+      hot.removeHook('afterChange', settle);
+
+      throw error;
+    }
+  }
+
+  /**
    * @param {Core} hot The Handsontable instance.
    * @param {function(): void} undoneCallback The callback to be called after the action is undone.
    */
   undo(hot: HotInstance, undoneCallback: HookCallback) {
-    const data = deepClone(this.changes) as unknown[][];
+    const { gridChanges, sourceChanges } = this.#collectWrites(hot, 2);
 
-    for (let i = 0, len = data.length; i < len; i++) {
-      data[i].splice(3, 1);
-    }
-
-    hot.addHookOnce('afterChange', () => {
-      const rowsToRemove = hot.countRows() - this.countRows;
+    this.#replay(hot, gridChanges, sourceChanges, 'UndoRedo.undo', () => {
+      // Rows the change grew the dataset by - a write past the last row creates the rows it needs,
+      // and filling the last spare row makes `minSpareRows` top them up again. Measured in *source*
+      // rows, not the `countRows` this action also records: that one counts only what a filter or a
+      // trim leaves visible, so it reads a filter applied or dropped since the change as rows this
+      // action added, and then deletes that many rows of the user's data off the end (DEV-2665).
+      const rowsToRemove = hot.countSourceRows() - this.countSourceRows;
 
       if (rowsToRemove > 0) {
         hot.alter('remove_row', undefined, rowsToRemove, 'UndoRedo.undo');
@@ -156,7 +281,6 @@ export class DataChangeAction extends BaseAction {
 
       undoneCallback();
     });
-    hot.setDataAtCell(data, null, null, 'UndoRedo.undo');
   }
 
   /**
@@ -164,13 +288,9 @@ export class DataChangeAction extends BaseAction {
    * @param {function(): void} redoneCallback The callback to be called after the action is redone.
    */
   redo(hot: HotInstance, redoneCallback: HookCallback) {
-    const data = deepClone(this.changes) as unknown[][];
+    const { gridChanges, sourceChanges } = this.#collectWrites(hot, 3);
 
-    for (let i = 0, len = data.length; i < len; i++) {
-      data[i].splice(2, 1);
-    }
-
-    hot.addHookOnce('afterChange', () => {
+    this.#replay(hot, gridChanges, sourceChanges, 'UndoRedo.redo', () => {
       // The redo write carries the `UndoRedo.redo` source, so the MergeCells plugin's own paste
       // path does not run - the merges it dropped have to be dropped again from here.
       unmergeCellsGeometryOnly(hot, this.mergedCells);
@@ -179,6 +299,5 @@ export class DataChangeAction extends BaseAction {
 
       redoneCallback();
     });
-    hot.setDataAtCell(data, null, null, 'UndoRedo.redo');
   }
 }

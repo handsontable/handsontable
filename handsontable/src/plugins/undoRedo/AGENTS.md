@@ -71,6 +71,43 @@ It is registered to run **after** other `beforeChange` hooks (including the user
 entries and records **only effective changes** — a listener setting `changes[i] = null` must not leave a
 phantom entry on the stack.
 
+## `DataChangeAction` addresses rows PHYSICALLY, and that shaped three things (DEV-2665)
+
+The action records a `physicalRows` array alongside `changes`, and the replay routes each change by it.
+A visible row is written through `setDataAtCell` at its **current** visual index; a trimmed one has no
+visual index at all and is written with `setSourceDataAtCell`. Do not "simplify" this back to replaying
+the recorded visual row — that row index only describes the grid state the edit happened in, and a filter
+applied since puts another record there (it grew a phantom row, or silently did nothing).
+
+Three traps come with it, and each one has a measured defect behind it.
+
+1. **`beforeChange` runs before the rows exist.** A write past the last row is recorded while
+   `applyChanges()` has not created its rows yet, so `toPhysicalRow()` returns `null` for it. `null` is
+   therefore *meaningful*: it is what makes the replay address the grid visually, which is what re-creates
+   the row. Do not coerce it to a number, and do not treat it as "no row".
+2. **The settle callback rides on `afterChange`, which a source-only replay never fires.** So `#replay()`
+   settles itself when the grid-write list comes out empty, and the source writes go **first** so the
+   `afterChange` settle still runs after the whole replay landed. An armed hook left behind is not a
+   cosmetic leak: `ignoreNewActions` stays on until it fires, so **every action the user performs in
+   between is silently dropped from the stack**, and the action then settles on an unrelated change. Keep
+   the two write lists in one `setDataAtCell` call for the same reason — two calls settle on the first.
+3. **The row-count guard measures `countSourceRows`, not `countRows`.** Its job is to remove the rows the
+   change grew the dataset by: the rows a past-the-end write created, *and* the ones `minSpareRows` topped
+   up when the edit filled the last spare row (that second one is why gating the guard on "some change was
+   past the end" is not enough — `UndoRedo.spec.js` pins it). `countRows()` counts only what a filter or a
+   trim leaves visible, so comparing it read a trim *lifted* since the edit as rows to delete, and took
+   that many rows of the user's data off the end. `countRows` is still recorded, because it is part of the
+   payload `beforeUndo`/`afterUndo` hand to listeners.
+
+Formulas needs no change for the source path: it already ignores `UndoRedo.*` sources on
+`afterSetSourceDataAtCell` and resolves a trimmed row's engine index physically — see `../formulas/AGENTS.md`.
+
+One gap stays open, deliberately. `physicalRows` holds a **position in the source array, not a record
+identity**, so a row removal that is not on the undo stack shifts every entry below it and the replay
+lands one row off. That is the same class of gap the visual index had, one step further out: LIFO puts a
+recorded removal's own undo first, so it only bites a removal performed with a blocked source. Do not read
+the field as an ID.
+
 ## `CellAlignmentAction` restores an ABSENT value as absent
 
 Falling back to a horizontal alignment when nothing was recorded used to leave the cell aligned left after

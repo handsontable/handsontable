@@ -29,9 +29,15 @@ describe('UndoRedo -> DataChange action', () => {
     expect(afterUndo).toHaveBeenCalledWith({
       actionType: 'change',
       changes: [[1, 2, 'C2', 'test']],
+      // The physical row of each entry in `changes`. This is what the replay addresses, so that a
+      // filter or a trim applied between the edit and the undo cannot send it to another row.
+      physicalRows: [1],
       selected: [[1, 2]],
       countCols: 5,
       countRows: 5,
+      // The undo measures how far the change grew the dataset against this, not against
+      // `countRows` - that one counts only the rows a filter or a trim leaves visible.
+      countSourceRows: 5,
       // Merge areas the change destroyed. Empty here: the MergeCells plugin is not enabled, and an
       // ordinary edit destroys no merge even when it is.
       mergedCells: [],
