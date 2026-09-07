@@ -594,6 +594,7 @@ describe('Editor configuration using React components', () => {
       .querySelector('#textInputEditorField') as HTMLInputElement;
 
     expect(field).not.toBeNull();
+    // A starting-state check, not an assertion about the fix (see the note below the gesture).
     expect(hotInstance.isListening()).toBe(true);
 
     let unlistenCount = 0;
@@ -609,6 +610,10 @@ describe('Editor configuration using React components', () => {
     // The precondition the case rests on: without the focus actually sitting in the field, the
     // verdict never reaches the `isOutsideInput` branch and the case would pin nothing.
     expect(document.activeElement).toBe(field);
+
+    // The count is what carries this case. The `isListening()` line below cannot: the gesture
+    // ends in a `click`, and the focus scope manager re-listens on that, so it stays green even
+    // when the `mouseup` unlistened. It is kept as an end-state sanity check only.
     expect(unlistenCount).toBe(0);
     expect(hotInstance.isListening()).toBe(true);
   });

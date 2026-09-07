@@ -620,18 +620,22 @@ class TableView {
 
       const activeElement = getDeepActiveElement(rootDocument);
       const activeHTMLElement = isHTMLElement(activeElement) ? activeElement : null;
-      // Resolved once and handed to both verdicts below. Each one needs it, and the test walks the
-      // focused element's ancestors up to the open editor's `preventCloseElement` - work worth
-      // doing once per event on a listener that runs for every `mouseup` on the document.
+      // Both resolved once and handed to the verdicts below. Each is needed twice, and this
+      // listener runs for every `mouseup` on the document: the surface test walks the focused
+      // element's ancestors up to the open editor's `preventCloseElement`, and the roots are an
+      // array that would otherwise be rebuilt per call.
       const isFocusInEditorSurface = this.#isFocusWithinEditorSurface(activeHTMLElement);
-      const isForeignInputElement = this.#isForeignInput(activeHTMLElement, isFocusInEditorSurface);
+      const gridUiRoots = this.#getGridUiRoots();
+      const isForeignInputElement = this.#isForeignInput(
+        activeHTMLElement, isFocusInEditorSurface, gridUiRoots
+      );
 
       if (activeHTMLElement !== null && isInput(activeHTMLElement) && !isForeignInputElement) {
         return;
       }
 
       const eventPath = event.composedPath();
-      const isPathThroughGridUi = this.#getGridUiRoots().some(root => eventPath.includes(root));
+      const isPathThroughGridUi = gridUiRoots.some(root => eventPath.includes(root));
       const isFocusLostToOutside = !isFocusInEditorSurface &&
         (this.hot.getFocusManager().isForeignFocusTarget(activeHTMLElement) ||
         (!wasInsideGridClick && !this.hot.getFocusManager().hasBrowserFocus() && !isPathThroughGridUi));
@@ -1939,15 +1943,12 @@ class TableView {
    *
    * Answering `false` also takes the early return above, which skips the `outsideClickDeselects`
    * block further down - the same treatment the guard has always given the grid's own stamped
-   * textarea. That block was already unreachable in every case this predicate newly answers
-   * `false` for, so the deselect is unchanged rather than newly suppressed: it needs
-   * `isFocusLostToOutside`, and the focus sits either inside a grid focus root (where
-   * `isForeignFocusTarget()` reads `false` and `hasBrowserFocus()` reads `true`, since
-   * `FocusGridManager` registers `focusin` on both `rootWrapperElement` and `rootPortalElement`)
-   * or inside the editor surface (where `#isFocusWithinEditorSurface()` gates it away). The one
-   * shape where the two could part is a host that retargets focus events away from the grid's
-   * roots (Salesforce Lightning Web Security), which would leave `hasBrowserFocus()` false; no
-   * spec covers it, and unlisten - not the deselect - is what this predicate is written for.
+   * textarea. The deselect is unchanged rather than newly suppressed, and the reason is the two
+   * guards that block already carries, neither of which depends on where the focus sits: a press
+   * OUTSIDE the grid has set `#outsideClickHandled` on the `mousedown` (that path does its own
+   * deselect or `destroyEditor()`), which this handler reads as `wasOutsideClickHandled`; and a
+   * press INSIDE the grid fails the block's `!#isPathWithinGrid(eventPath)` test. Unlisten, not
+   * the deselect, is what this predicate is written for.
    *
    * @private
    * @param {HTMLElement|null} element The deepest reachable focused element.
@@ -1955,14 +1956,19 @@ class TableView {
    *                                         `preventCloseElement` subtree. Passed in rather than
    *                                         resolved here because the caller needs the same answer
    *                                         for its own focus verdict.
+   * @param {HTMLElement[]} gridUiRoots The grid's own UI roots, from `#getGridUiRoots()`. Passed
+   *                                    in for the same reason: the caller tests the event path
+   *                                    against the same list.
    * @returns {boolean}
    */
-  #isForeignInput(element: HTMLElement | null, isFocusInEditorSurface: boolean): boolean {
+  #isForeignInput(
+    element: HTMLElement | null, isFocusInEditorSurface: boolean, gridUiRoots: HTMLElement[]
+  ): boolean {
     if (element === null || !isOutsideInput(element)) {
       return false;
     }
 
-    return !this.#isWithinOpenEditorDom(element) && !isFocusInEditorSurface;
+    return !this.#isWithinOpenEditorDom(element, gridUiRoots) && !isFocusInEditorSurface;
   }
 
   /**
@@ -1983,13 +1989,15 @@ class TableView {
    *
    * On paper that widens the answer to an unstamped input the grid renders in some OTHER cell - a
    * checkbox renderer's `<input>`, say - while an editor is open elsewhere. Measured, that shape
-   * does not occur: a press which moves the focus onto another cell's input also changes the
-   * selection, and the selection change closes the editor in the same local hook that runs
-   * `afterSelection` (its exclusion list covers data-driven sources such as `'shift'`, the
-   * row/column SHIFT an insert or a remove performs, not a mouse press). By the time the `mouseup`
-   * verdict runs, `isCellEdited()` is already false and this test is never consulted for that
-   * input. `tests/e2e/editor-open-checkbox-focus.spec.ts` pins that, and goes red if an editor
-   * ever survives the selection change - which is when the widening would start to matter.
+   * does not occur for a pointer gesture: a press which moves the focus onto another cell's input
+   * also changes the selection, and the selection change closes the editor in the same local hook
+   * that runs `afterSelection`. That hook skips the close for five selection sources - `'shift'`
+   * (the row/column SHIFT an insert or a remove performs), `'refresh'`, `'loadData'`,
+   * `'updateData'` and `'deselect'` - and every one of them is data-driven, so none coincides with
+   * the press that would have to move the focus. By the time the `mouseup` verdict runs,
+   * `isCellEdited()` is already false and this test is never consulted for that input.
+   * `tests/e2e/editor-open-checkbox-focus.spec.ts` pins that, and goes red if an editor ever
+   * survives the selection change - which is when the widening would start to matter.
    *
    * Walks with `closest()`, not `Node#contains()`, mirroring `#isFocusWithinEditorSurface()`:
    * the element comes from `getDeepActiveElement()`, which reaches into shadow roots, while
@@ -2000,14 +2008,15 @@ class TableView {
    *
    * @private
    * @param {HTMLElement} element The deepest reachable focused element.
+   * @param {HTMLElement[]} gridUiRoots The grid's own UI roots, from `#getGridUiRoots()`.
    * @returns {boolean}
    */
-  #isWithinOpenEditorDom(element: HTMLElement): boolean {
+  #isWithinOpenEditorDom(element: HTMLElement, gridUiRoots: HTMLElement[]): boolean {
     if (!this.isCellEdited()) {
       return false;
     }
 
-    return closest(element, this.#getGridUiRoots()) !== null;
+    return closest(element, gridUiRoots) !== null;
   }
 
   /**
@@ -2016,10 +2025,15 @@ class TableView {
    * `position: 'portal'` editor container, the React wrapper's editor portal host).
    *
    * Shared by the two `mouseup` tests that ask "is this the grid's own UI" of an element or an
-   * event path, so a new mount root has one place to be added. Deliberately NOT shared with
-   * `#isPathWithinGrid()`, which tests a different list - `rootElement` rather than the wrapper,
-   * plus the open editor's surface - and folding the two together would change what that method
-   * accepts.
+   * event path. It is NOT the only copy: `FocusGridManager` builds the same pair, with the same
+   * `rootWrapperElement ?? rootElement` fallback and the same `isHTMLElement` filter, to bind its
+   * `focusin`/`focusout` listeners - and `isForeignFocusTarget()`/`hasBrowserFocus()`, which
+   * answer the other half of this same verdict, read from that copy. A new mount root has to be
+   * added in both places, and the two drifting apart would split the verdict against itself.
+   *
+   * Deliberately NOT shared with `#isPathWithinGrid()`, which tests a different list -
+   * `rootElement` rather than the wrapper, plus the open editor's surface - and folding the two
+   * together would change what that method accepts.
    *
    * @private
    * @returns {HTMLElement[]}
