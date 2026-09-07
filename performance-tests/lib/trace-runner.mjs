@@ -6,6 +6,19 @@ import { join } from 'node:path';
 import { MEASURE_START_MARK, MEASURE_END_MARK } from '../trace-parser.mjs';
 
 /**
+ * Version of the measurement contract this runner implements: what the marked window contains,
+ * how iterations are settled, what runs between them.
+ *
+ * Bump it whenever a change here alters the number a scenario publishes for the same grid code --
+ * moving work in or out of the window, forcing a GC between iterations, changing the settle. It is
+ * stamped on every snapshot, and the median baseline only draws on goldens that carry the same
+ * value (see lib/environment.mjs), so the window restarts cleanly instead of averaging two
+ * definitions of the same scenario for five develop pushes. A scenario-level redefinition that
+ * leaves the runner alone bumps `measurementVersion` in its own scenario.config.mjs instead.
+ */
+export const HARNESS_VERSION = 1;
+
+/**
  * @param {import('@playwright/test').Page} page
  * @returns {Promise<import('playwright-core').CDPSession>} CDP session handle
  */

@@ -3,6 +3,7 @@
 
 import { formatHeapMinBytesLabel, formatHeapMaxBytesLabel } from '../trace-parser.mjs';
 import { calcCv, sumActive } from './thresholds.mjs';
+import { DEFAULT_MEASUREMENT_VERSION, isCompatibleBaseline } from './environment.mjs';
 
 // How many of the newest marks-valid develop snapshots to median over. Small
 // enough that a real regression introduced mid-window isn't diluted by twice
@@ -109,6 +110,10 @@ function medianScenario(entries) {
   const hookTimingValues = entries.map(entry => entry.hookTiming).filter(v => v !== undefined && v !== null);
 
   return {
+    // computeMedianSnapshot filters the entries to a single version before they get here (the
+    // current run's, or the newest golden's when no key was given), so the first one's is the
+    // median's. The teardown reads this to withhold a redefined scenario.
+    measurementVersion: entries[0].measurementVersion ?? DEFAULT_MEASUREMENT_VERSION,
     categories,
     // Rounded, like averageParsedTraces (trace-parser.mjs) rounds these on a real
     // snapshot -- an even window would otherwise produce e.g. rangeEnd: 92.5, a shape
@@ -136,11 +141,23 @@ function medianScenario(entries) {
  * @param {Array<object>} snapshots -- already-parsed golden snapshot JSON objects, any order
  * @param {object} [options]
  * @param {number} [options.windowSize]
+ * @param {{ key: { chromium: string | null, harnessVersion: number | null },
+ *   scenarioVersions?: Record<string, number> } | null} [options.compatibleWith] -- the run the
+ *   median is a baseline for. When given, only goldens with the same compatibility key (Chromium
+ *   build and harness version, see lib/environment.mjs) enter the window, and within a scenario only
+ *   entries with the same `measurementVersion` as the current run's (`scenarioVersions`, per
+ *   scenario name; a scenario absent there is taken at the default). Omit it to median over
+ *   everything marks-valid, which is what the replay does for goldens without provenance.
  * @returns {object | null} a snapshot-shaped object, or null if nothing qualifies
  */
-export function computeMedianSnapshot(snapshots, { windowSize = MEDIAN_WINDOW_SIZE } = {}) {
-  const valid = (snapshots || [])
-    .filter(isValidForMedian)
+export function computeMedianSnapshot(
+  snapshots, { windowSize = MEDIAN_WINDOW_SIZE, compatibleWith = null } = {}
+) {
+  const marksValid = (snapshots || []).filter(isValidForMedian);
+  const compatible = compatibleWith
+    ? marksValid.filter(snapshot => isCompatibleBaseline(snapshot, compatibleWith.key))
+    : marksValid;
+  const valid = compatible
     // isValidForMedian already rejected anything with an unparseable timestamp, so
     // this subtraction is never NaN here.
     .sort((a, b) => Date.parse(b.timestamp) - Date.parse(a.timestamp))
@@ -157,7 +174,18 @@ export function computeMedianSnapshot(snapshots, { windowSize = MEDIAN_WINDOW_SI
   const scenarios = {};
 
   for (const name of scenarioNames) {
-    const entries = valid.map(snapshot => snapshot.scenarios[name]).filter(Boolean);
+    const present = valid.map(snapshot => snapshot.scenarios[name]).filter(Boolean);
+    // The version this median measures: the current run's when a key was given, otherwise the
+    // newest golden's (`valid` is newest first). Either way a median is never a mix of two
+    // definitions of the scenario, so the teardown can trust the version it reads off it.
+    const wanted = compatibleWith?.scenarioVersions?.[name]
+      ?? present[0]?.measurementVersion
+      ?? DEFAULT_MEASUREMENT_VERSION;
+    // A scenario redefined since a golden was recorded (its spec moved work in or out of the
+    // window) measures a different quantity under the same name. Its old entries are dropped
+    // here; the snapshot they came from still serves the scenarios that did not change.
+    const entries = present
+      .filter(entry => (entry.measurementVersion ?? DEFAULT_MEASUREMENT_VERSION) === wanted);
 
     // A scenario present in only a few of the windowed snapshots (e.g. one just added)
     // would otherwise get a "median" computed from fewer than MIN_VALID_SNAPSHOTS
@@ -169,7 +197,27 @@ export function computeMedianSnapshot(snapshots, { windowSize = MEDIAN_WINDOW_SI
       continue;
     }
 
-    scenarios[name] = medianScenario(entries);
+    scenarios[name] = { ...medianScenario(entries), _entryCount: entries.length };
+  }
+
+  // Every scenario dropped by the per-scenario filters (redefined since the windowed goldens were
+  // recorded, or present in too few of them). A median with no scenarios is not a baseline, and
+  // returning one would let the loader report a baseline was found and the reports render raw
+  // numbers with no reason -- the silent case this module's key exists to prevent. Why it was
+  // refused is a separate question, answered by explainMedianRefusal().
+  if (Object.keys(scenarios).length === 0) {
+    return null;
+  }
+
+  // Fewer entries than the window behind a scenario means that scenario was missing from, or at
+  // another version in, some of the windowed goldens. The reports label the whole baseline a
+  // median of `medianWindowSize`, so this says where that label overstates.
+  const scenarioEntryCounts = Object.fromEntries(
+    Object.entries(scenarios).map(([name, entry]) => [name, entry._entryCount])
+  );
+
+  for (const entry of Object.values(scenarios)) {
+    delete entry._entryCount;
   }
 
   return {
@@ -177,6 +225,86 @@ export function computeMedianSnapshot(snapshots, { windowSize = MEDIAN_WINDOW_SI
     isMedian: true,
     medianWindowSize: valid.length,
     medianSourceTimestamps: valid.map(snapshot => snapshot.timestamp),
+    scenarioEntryCounts,
+    // The newest golden's, which every other one in the window shares when a key was required.
+    // Carried so the footer can state what environment the baseline was recorded on.
+    environment: valid[0].environment ?? null,
+    harnessVersion: valid[0].harnessVersion ?? null,
+    // How many marks-valid goldens were passed over for a different key. Zero when no key was
+    // asked for. Lets the teardown say "20 goldens fetched, 18 on another Chromium".
+    excludedIncompatible: marksValid.length - compatible.length,
     scenarios,
+  };
+}
+
+// Why computeMedianSnapshot() returned null, as a discriminated reason. Decided here, next to the
+// selection it explains, rather than inferred from counts by the loader -- an inference from "enough
+// compatible goldens, yet no median" has two causes (redefined scenarios, or goldens with disjoint
+// scenario sets) and blaming the wrong one sends a maintainer to the wrong place.
+export const MEDIAN_REFUSAL = Object.freeze({
+  EMPTY_HISTORY: 'empty-history',
+  NO_MARKS_VALID: 'no-marks-valid',
+  INCOMPATIBLE_KEY: 'incompatible-key',
+  VERSION_MISMATCH: 'version-mismatch',
+  DISJOINT_SCENARIOS: 'disjoint-scenarios',
+});
+
+/**
+ * Explains a refusal. Only meaningful after computeMedianSnapshot() returned null for the same
+ * arguments; on inputs that do produce a median the answer is null.
+ *
+ * @param {Array<object>} snapshots
+ * @param {object} [options] -- as for computeMedianSnapshot
+ * @param {number} [options.windowSize]
+ * @param {object | null} [options.compatibleWith]
+ * @returns {{ reason: string, example: object | null } | null} `example` is the newest marks-valid
+ *   golden that was refused for its key, for the loader to name what changed
+ */
+export function explainMedianRefusal(
+  snapshots, { windowSize = MEDIAN_WINDOW_SIZE, compatibleWith = null } = {}
+) {
+  const all = snapshots || [];
+
+  if (all.length === 0) {
+    return { reason: MEDIAN_REFUSAL.EMPTY_HISTORY, example: null };
+  }
+
+  const marksValid = all
+    .filter(isValidForMedian)
+    .sort((a, b) => Date.parse(b.timestamp) - Date.parse(a.timestamp));
+
+  if (marksValid.length < MIN_VALID_SNAPSHOTS) {
+    return { reason: MEDIAN_REFUSAL.NO_MARKS_VALID, example: null };
+  }
+
+  const compatible = compatibleWith
+    ? marksValid.filter(snapshot => isCompatibleBaseline(snapshot, compatibleWith.key))
+    : marksValid;
+
+  if (compatible.length < MIN_VALID_SNAPSHOTS) {
+    // Named among the marks-valid goldens only: a history where most goldens failed their marks
+    // must not read as a browser change.
+    return {
+      reason: MEDIAN_REFUSAL.INCOMPATIBLE_KEY,
+      example: marksValid.find(snapshot => !isCompatibleBaseline(snapshot, compatibleWith.key)) ?? null,
+    };
+  }
+
+  if (computeMedianSnapshot(all, { windowSize, compatibleWith }) !== null) {
+    return null;
+  }
+
+  // Enough compatible goldens, no median: either the scenarios this run measures sit in the window
+  // at another version, or they are not in the window at all.
+  const window = compatible.slice(0, windowSize);
+  const currentNames = Object.keys(compatibleWith?.scenarioVersions || {});
+  const windowNames = new Set(window.flatMap(snapshot => Object.keys(snapshot.scenarios)));
+  const overlap = currentNames.length === 0
+    ? windowNames.size > 0
+    : currentNames.some(name => windowNames.has(name));
+
+  return {
+    reason: overlap ? MEDIAN_REFUSAL.VERSION_MISMATCH : MEDIAN_REFUSAL.DISJOINT_SCENARIOS,
+    example: null,
   };
 }

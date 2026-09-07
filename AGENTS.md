@@ -27,6 +27,7 @@ Route to the lowest correct scope. `AGENTS.md` answers "what must I never get wr
 | Vue 3 wrapper | `wrappers/vue3/AGENTS.md` |
 | Visual regression tests | `visual-tests/AGENTS.md` |
 | Playwright functional E2E tier (`tests/`) | `tests/AGENTS.md` |
+| Performance suite (`performance-tests/`, the PR perf comment, gh-pages goldens) | the `performance-testing` skill; `performance-tests/README.md` |
 | Test-generation evals (meaningfulness scorer + fixtures) | `evals/README.md` |
 | Step-by-step task workflows | `.claude/skills/` (e.g., `handsontable-dev`, `handsontable-plugin-dev`, `handsontable-code-review`, `pr-creation`) |
 
