@@ -2,7 +2,6 @@ import type { TableDeps } from '../../table/baseTable';
 import {
   addClass,
   getScrollLeft,
-  hasClass,
   removeClass,
   setOverlayPosition,
   resetCssTransform,
@@ -60,7 +59,8 @@ export class InlineStartOverlay extends Overlay {
   /**
    * Updates the left overlay position.
    *
-   * @returns {boolean}
+   * @returns {boolean} Always `false` - this overlay's header-border classes shift no layout, so it
+   * never reports a position change. See `InlineStartOverlay#adjustHeaderBordersPosition`.
    */
   resetFixedPosition() {
     const wtTable = this.deps.getWtTable();
@@ -88,11 +88,11 @@ export class InlineStartOverlay extends Overlay {
       resetCssTransform(overlayRoot);
     }
 
-    const positionChanged = this.adjustHeaderBordersPosition(overlayPosition);
+    this.adjustHeaderBordersPosition(overlayPosition);
 
     this.adjustElementsSize();
 
-    return positionChanged;
+    return false;
   }
 
   /**
@@ -410,9 +410,10 @@ export class InlineStartOverlay extends Overlay {
   }
 
   /**
-   * Pre-applies the `innerBorderInlineStart` class before the cell render (single-pass gated
-   * path), so the post-render `resetFixedPosition` toggle is a no-op and the nested re-draw is
-   * skipped. Element mode only — see `TopOverlay#prepareHeaderBorders`.
+   * Pre-applies the `innerBorderInlineStart` class before the cell render (single-pass gated path),
+   * so a `beforeViewRender` listener sees the class in the state this draw ends in. Unlike the top
+   * overlay's copy, this one saves no re-draw: the class shifts no layout, so the post-render toggle
+   * reports nothing either way. Element mode only — see `TopOverlay#prepareHeaderBorders`.
    */
   prepareHeaderBorders() {
     if (!this.needFullRender || !this.shouldBeRendered() ||
@@ -425,10 +426,17 @@ export class InlineStartOverlay extends Overlay {
   }
 
   /**
-   * Adds css classes to hide the header border's header (cell-selection border hiding issue).
+   * Stamps the `innerBorderInlineStart` / `innerBorderLeft` / `emptyRows` classes on the master.
+   *
+   * Always reports `false`: the row header carries its inline-end border at every scroll position
+   * and no cell behind it carries an inline-start border (#6673), so none of these classes moves the
+   * layout by a pixel and no stylesheet reads them. They are stamped for backward compatibility
+   * only. Reporting a position change made every scroll crossing horizontal offset 0 run
+   * `refreshAll()` - a nested `wot.draw(true)` over the master and every clone - to reconcile a
+   * 1px shift that cannot happen.
    *
    * @param {number} position Header X position if trimming container is window or scroll top if not.
-   * @returns {boolean}
+   * @returns {boolean} Always `false`.
    */
   adjustHeaderBordersPosition(position: number) {
     const masterParent = this.deps.getWtTable().holder.parentNode as HTMLElement;
@@ -447,45 +455,38 @@ export class InlineStartOverlay extends Overlay {
       removeClass(masterParent, 'innerBorderLeft innerBorderInlineStart');
     }
 
-    return state.positionChanged;
+    return false;
   }
 
   /**
    * Computes the inline-start overlay's header-border state without mutating the DOM. Pure: reads
-   * settings and the current class state only. Splitting the decision from the write lets the
-   * single-pass draw resolve the `innerBorderInlineStart` toggle before rendering, instead of after.
+   * the settings only. Splitting the decision from the write lets the single-pass draw resolve the
+   * `innerBorderInlineStart` toggle before rendering, instead of after.
+   *
+   * Reports no position change, which is why it does not read the current class state either: the
+   * class shifts nothing. See `InlineStartOverlay#adjustHeaderBordersPosition`.
    *
    * @param {number} position The overlay offset that decides whether the inline-start border is shown.
-   * @returns {{ hasEmptyRows: boolean, innerBorder: string, positionChanged: boolean }}
+   * @returns {{ hasEmptyRows: boolean, innerBorder: string }}
    */
   #computeHeaderBordersState(position: number) {
     const { wtSettings } = this;
-    const masterParent = this.deps.getWtTable().holder.parentNode as HTMLElement;
     const rowHeaders = wtSettings.getSetting('rowHeaders') as ((...args: unknown[]) => unknown)[];
     const fixedColumnsStart = wtSettings.getSetting<number>('fixedColumnsStart');
     const totalRows = wtSettings.getSetting<number>('totalRows');
     const preventVerticalOverflow = wtSettings.getSetting('preventOverflow') === 'vertical';
     const hasEmptyRows = !totalRows;
     let innerBorder = 'keep';
-    let positionChanged = false;
 
     if (!preventVerticalOverflow) {
       if (fixedColumnsStart && !rowHeaders.length) {
         innerBorder = 'add';
 
       } else if (!fixedColumnsStart && rowHeaders.length) {
-        const previousState = hasClass(masterParent, 'innerBorderInlineStart');
-
-        if (position) {
-          innerBorder = 'add';
-          positionChanged = !previousState;
-        } else {
-          innerBorder = 'remove';
-          positionChanged = previousState;
-        }
+        innerBorder = position ? 'add' : 'remove';
       }
     }
 
-    return { hasEmptyRows, innerBorder, positionChanged };
+    return { hasEmptyRows, innerBorder };
   }
 }
