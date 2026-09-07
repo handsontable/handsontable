@@ -819,12 +819,18 @@ describe('MergeCells', () => {
        *
        */
       function createHot(physicalToVisual) {
+        const visualToPhysical = new Map();
+
+        physicalToVisual.forEach((visual, physical) => {
+          visualToPhysical.set(visual, physical);
+        });
+
         return {
           ...hotMock,
           toVisualColumn: physical => (physicalToVisual.has(physical) ? physicalToVisual.get(physical) : -1),
-          toPhysicalColumn: visual => visual,
+          toPhysicalColumn: visual => (visualToPhysical.has(visual) ? visualToPhysical.get(visual) : -1),
           toVisualRow: physical => (physicalToVisual.has(physical) ? physicalToVisual.get(physical) : -1),
-          toPhysicalRow: visual => visual,
+          toPhysicalRow: visual => (visualToPhysical.has(visual) ? visualToPhysical.get(visual) : -1),
         };
       }
 
@@ -885,6 +891,46 @@ describe('MergeCells', () => {
         collection.translateAfterAxisMove('column', snapshot);
 
         expect(collection.mergedCells.length).toBe(0);
+      });
+
+      it('should keep a single-cell fragment whose physical index the caller retained', () => {
+        const collection = new MergedCellsCollection({
+          hot: createHot(new Map([[2, 5], [3, 1]])),
+        });
+
+        collection.add({ row: 2, col: 0, rowspan: 2, colspan: 1 });
+
+        const merge = collection.mergedCells[0];
+        const snapshot = new Map([[merge, [2, 3]]]);
+        const retained = new Map([[merge, new Set([2])]]);
+
+        collection.translateAfterAxisMove('row', snapshot, retained);
+
+        expect(collection.mergedCells.length).toBe(1);
+        expect(collection.mergedCells[0].row).toBe(5);
+        expect(collection.mergedCells[0].rowspan).toBe(1);
+        expect(collection.mergedCells[0].colspan).toBe(1);
+      });
+
+      it('should not let one merge\'s retained index keep another merge\'s single-cell fragment', () => {
+        const collection = new MergedCellsCollection({
+          hot: createHot(new Map([[2, 5], [3, 1]])),
+        });
+
+        // both merges cover physical rows 2 and 3, in different columns, so a retained index shared
+        // between them would keep a fragment of the merge that retained nothing
+        collection.add({ row: 2, col: 0, rowspan: 2, colspan: 1 });
+        collection.add({ row: 2, col: 2, rowspan: 2, colspan: 1 });
+
+        const [notRetaining, retaining] = collection.mergedCells;
+        const snapshot = new Map([[notRetaining, [2, 3]], [retaining, [2, 3]]]);
+        const retained = new Map([[retaining, new Set([2])]]);
+
+        collection.translateAfterAxisMove('row', snapshot, retained);
+
+        expect(collection.mergedCells.length).toBe(1);
+        expect(collection.mergedCells[0].col).toBe(2);
+        expect(collection.mergedCells[0].row).toBe(5);
       });
 
       it('should drop a merge whose physical indexes are all unmapped', () => {
