@@ -174,6 +174,7 @@ without a priority in registration order. Registering two plugins on the same pr
 | 150 | mergeCells | 370 | emptyDataState |
 | 155 | stretchColumns | 375 | notification |
 | 160 | multipleSelectionHandles | 900 | pagination |
+| | | 910 | sheetsBar |
 | | | 950 | dataProvider |
 | | | 1000 | undoRedo |
 

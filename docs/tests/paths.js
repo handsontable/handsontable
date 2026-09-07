@@ -413,6 +413,7 @@ const vuePaths = [
   { path: 'guides/accessories-and-menus/icon-pack/icon-pack' },
   { path: 'guides/accessories-and-menus/use-icons-in-cells/use-icons-in-cells' },
   { path: 'guides/accessories-and-menus/empty-data-state/empty-data-state' },
+  { path: 'guides/accessories-and-menus/sheets-bar/sheets-bar' },
   { path: 'guides/dialog/dialog/dialog' },
   { path: 'guides/dialog/loading/loading' },
   { path: 'guides/dialog/notification/notification' },
