@@ -212,9 +212,19 @@ fields. Three rules follow.
   over. Scroll offsets have the mirror of it: read them with `isHTMLElement(el) ? el.scrollLeft :
   rootWindow.scrollX`, off the INJECTED `rootWindow`, because `instanceof Window` misses a
   cross-realm window just as surely and a fall-through to `0` reports a motionless axis on every
-  frame — the scroll hooks then never fire. Pinned by `tests/e2e/iframe-cross-realm-scroll.spec.ts`,
-  which builds a grid in an iframe from the parent page's constructor; nothing else in the suite
-  crosses a realm, so an `instanceof` reintroduced here stays green everywhere else.
+  frame — the scroll hooks then never fire. The shared helpers `getScrollTop` / `getScrollLeft`
+  (`helpers/dom/element.ts`) had the same shape and are what `Overlay#getScrollPosition` reads, so
+  the row calculators built the band from `undefined` and put it on the LAST rows of the grid at
+  page top; and the key-press guards in `NativeScrollInput` (`#onTableScroll`, `#onCloneWheel`) told
+  the holder from the window the same way, so an arrow-key scroll skipped `syncScrollPositions`
+  for the whole key press and the clones kept the old band. Pinned by
+  `tests/e2e/iframe-cross-realm-scroll.spec.ts`, which builds a grid in an iframe from the parent
+  page's constructor; nothing else in the suite crosses a realm, so an `instanceof` reintroduced
+  here stays green everywhere else. jsdom is a second such realm: its `window` fails
+  `instanceof Window` too, which is why `getScrollTop(window)` returned `undefined` in every unit
+  test and kept the window-scroll strategies' `scrollIntoView` call unreachable there — the
+  `Element.prototype.scrollIntoView` stub in `test/bootstrap.js` exists because the fix made it
+  reachable.
 - **Scroll offsets are read and written per axis, off each overlay's `mainTableScrollableElement`,
   never off one shared element.** The inline-start overlay's element scrolls the horizontal axis
   and the top overlay's the vertical one, and in split mode they are different things (the holder

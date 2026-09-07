@@ -133,7 +133,11 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   object reads state through the parent (`window.frameDoc`, `window.hot`),
   not through a Playwright `frameLocator`, because the state under test is the
   engine's — which element it thinks owns an axis — not the rendered
-  document's. Reference: `e2e/iframe-cross-realm-scroll.spec.ts`.
+  document's. One more: **assert which ROWS render, not only which columns.**
+  The fixture's master rendered rows 186–199 at page top for two rounds of
+  review, because every assertion read columns and the top clone's rows, and
+  nothing asked the master where its band was. Reference:
+  `e2e/iframe-cross-realm-scroll.spec.ts` (`masterRowBand()`).
 
 ## Touch and mobile specs
 

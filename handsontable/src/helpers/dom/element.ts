@@ -895,11 +895,14 @@ export function getWindowScrollLeft(rootWindow: Window = window): number {
  */
 // eslint-disable-next-line no-restricted-globals
 export function getScrollTop(element: HTMLElement | Window, rootWindow: Window = window): number {
-  if (element instanceof Window) {
-    return getWindowScrollTop(rootWindow);
+  // `isHTMLElement`, not `instanceof Window`: a window from another realm (an iframe driven from
+  // the parent page) fails the realm-bound test, fell through to `window.scrollTop`, and returned
+  // `undefined` — the row calculators then built the band from it, on the last rows of the grid.
+  if (isHTMLElement(element)) {
+    return element.scrollTop;
   }
 
-  return element.scrollTop;
+  return getWindowScrollTop(rootWindow);
 }
 
 /**
@@ -911,11 +914,12 @@ export function getScrollTop(element: HTMLElement | Window, rootWindow: Window =
  */
 // eslint-disable-next-line no-restricted-globals
 export function getScrollLeft(element: HTMLElement | Window, rootWindow: Window = window): number {
-  if (element instanceof Window) {
-    return getWindowScrollLeft(rootWindow);
+  // Cross-realm safe for the reason given on `getScrollTop`.
+  if (isHTMLElement(element)) {
+    return element.scrollLeft;
   }
 
-  return element.scrollLeft;
+  return getWindowScrollLeft(rootWindow);
 }
 
 /**

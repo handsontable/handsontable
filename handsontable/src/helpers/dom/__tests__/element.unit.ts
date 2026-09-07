@@ -5,6 +5,8 @@ import {
   closestDown,
   getParent,
   getScrollbarWidth,
+  getScrollLeft,
+  getScrollTop,
   getFractionalScalingCompensation,
   hasClass,
   isInput,
@@ -1269,6 +1271,39 @@ describe('DomElement helper', () => {
       const element = document.createElement('div');
 
       expect(isHTMLElement(element)).toBe(true);
+    });
+  });
+
+  //
+  // Handsontable.helper.getScrollTop / getScrollLeft
+  //
+  describe('getScrollTop / getScrollLeft', () => {
+    it('should read the offsets off an element', () => {
+      const element = document.createElement('div');
+
+      element.scrollTop = 12;
+      element.scrollLeft = 34;
+
+      expect(getScrollTop(element, window)).toBe(12);
+      expect(getScrollLeft(element, window)).toBe(34);
+    });
+
+    it('should read the offsets off the root window when the element IS a window', () => {
+      const rootWindow = { scrollY: 56, scrollX: 78 } as unknown as Window;
+
+      expect(getScrollTop(window, rootWindow)).toBe(56);
+      expect(getScrollLeft(window, rootWindow)).toBe(78);
+    });
+
+    it('should read the offsets off the root window for a window from another realm', () => {
+      // A window built by another realm (an iframe driven from the parent page) is not
+      // `instanceof` this realm's `Window`. A realm-bound test then fell through to reading
+      // `window.scrollTop`, which is `undefined`, and the row calculators built the band from it.
+      const foreignWindow = { scrollY: 56, scrollX: 78 } as unknown as Window;
+
+      expect(foreignWindow instanceof Window).toBe(false);
+      expect(getScrollTop(foreignWindow, foreignWindow)).toBe(56);
+      expect(getScrollLeft(foreignWindow, foreignWindow)).toBe(78);
     });
   });
 
