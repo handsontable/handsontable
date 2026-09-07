@@ -45,6 +45,13 @@
         'Unknown ?surfaceElement= value: ' + JSON.stringify(htParams.get('surfaceElement'))
       );
     }
+    // Where the GRID lives. Inside a shadow root, an ancestor outside that root is not a
+    // `Node#contains()` descendant relation away from it, so the ancestor guard has to cross the
+    // boundary to see it - while `composedPath()` carries that ancestor regardless.
+    window.htHost = ({ document: 'document', shadow: 'shadow' })[htParams.get('host') ?? 'document'];
+    if (!window.htHost) {
+      throw new Error('Unknown ?host= value: ' + JSON.stringify(htParams.get('host')));
+    }
   </script>
   <style>
     /* The panel stands in for a third-party picker: outside the grid's root element, and outside
@@ -63,16 +70,50 @@
       padding: 6px;
       border: 1px solid #ccc;
     }
+    /* A real element inside `body`, clear of both the grid and the panel, for the negative-control
+       case to press. Pressing bare page background is not equivalent: the browser resolves such a
+       point to `<html>`, whose `composedPath()` does NOT carry `document.body` - so a surface
+       wrongly set to `body` would never appear in the path and the case would pass vacuously. */
+    #outside-target {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      width: 160px;
+      height: 80px;
+      background: #ddd;
+    }
   </style>
 </head>
 <body>
   <div id="grid" data-testid="grid"></div>
+  <div id="shadow-host" data-testid="shadow-host"></div>
+  <div id="outside-target" data-testid="outside-target">outside</div>
 
   <script>
     document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
   </script>
   <script>
-    const container = document.querySelector('[data-testid="grid"]');
+    let container = document.querySelector('[data-testid="grid"]');
+
+    if (window.htHost === 'shadow') {
+      const shadowRoot = document.querySelector('[data-testid="shadow-host"]')
+        .attachShadow({ mode: 'open' });
+
+      const baseCss = document.createElement('link');
+
+      baseCss.rel = 'stylesheet';
+      baseCss.href = '/handsontable/styles/handsontable.min.css';
+      shadowRoot.appendChild(baseCss);
+
+      const themeCss = document.createElement('link');
+
+      themeCss.rel = 'stylesheet';
+      themeCss.href = `/handsontable/styles/ht-theme-${window.htTheme}.min.css`;
+      shadowRoot.appendChild(themeCss);
+
+      container.remove();
+      shadowRoot.appendChild(container);
+    }
 
     container.className = `ht-theme-${window.htTheme}`;
 

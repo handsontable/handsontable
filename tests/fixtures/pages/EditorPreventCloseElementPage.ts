@@ -19,6 +19,7 @@ interface PageOptions {
   outsideClickDeselects?: boolean;
   surfaceAssignedIn?: 'init' | 'afterOpen';
   surfaceElement?: 'panel' | 'body';
+  host?: 'document' | 'shadow';
 }
 
 /**
@@ -32,6 +33,7 @@ export class EditorPreventCloseElementPage {
   readonly outsideClickDeselects: boolean;
   readonly surfaceAssignedIn: string;
   readonly surfaceElement: string;
+  readonly host: string;
   readonly panel: Locator;
   readonly panelFocusTarget: Locator;
   readonly panelSetValueTarget: Locator;
@@ -46,6 +48,7 @@ export class EditorPreventCloseElementPage {
     this.outsideClickDeselects = options.outsideClickDeselects ?? true;
     this.surfaceAssignedIn = options.surfaceAssignedIn ?? 'init';
     this.surfaceElement = options.surfaceElement ?? 'panel';
+    this.host = options.host ?? 'document';
     this.panel = page.getByTestId('picker-panel');
     this.panelFocusTarget = page.getByTestId('panel-focus');
     this.panelSetValueTarget = page.getByTestId('panel-set-value');
@@ -61,7 +64,8 @@ export class EditorPreventCloseElementPage {
     const query = `theme=${this.theme}&bundle=${this.bundle}` +
       `&outsideClickDeselects=${this.outsideClickDeselects}` +
       `&surfaceAssignedIn=${this.surfaceAssignedIn}` +
-      `&surfaceElement=${this.surfaceElement}`;
+      `&surfaceElement=${this.surfaceElement}` +
+      `&host=${this.host}`;
 
     await this.page.goto(`/tests/fixtures/demo/editor-prevent-close-element.html?${query}`);
 
@@ -133,44 +137,38 @@ export class EditorPreventCloseElementPage {
   }
 
   /**
-   * Clicks a point that is outside BOTH the grid and the picker panel, derived from their measured
-   * boxes rather than hardcoded. A magic coordinate silently stops being outside when the fixture's
-   * layout or the panel's rendered height changes, and the case would then pass for the wrong
-   * reason - it is the negative control for the guard, so it has to keep landing nowhere.
+   * Presses the fixture's dedicated out-of-grid target, an ordinary element inside `body` clear of
+   * both the grid and the panel.
+   *
+   * Deliberately NOT a measured point on the page background. The browser resolves such a point to
+   * `<html>`, and `composedPath()` for an event on `<html>` does not carry `document.body` - so a
+   * surface wrongly set to `body` would never turn up in the path and every case built on that
+   * press would pass whether the guard works or not. That is exactly how the shadow-boundary case
+   * here first went green against the defect it was written for.
+   *
+   * The element's identity is asserted through `elementFromPoint` before the press, so a later
+   * layout edit that slides the grid or the panel over it fails loudly instead of quietly pressing
+   * the wrong thing.
    */
   async clickOutsideEverything(): Promise<void> {
-    const gridBox = await this.page.getByTestId('grid').boundingBox();
-    const panelBox = await this.panel.boundingBox();
+    const landsOutside = await this.page.evaluate(() => {
+      const outside = document.querySelector('[data-testid="outside-target"]');
 
-    if (!gridBox || !panelBox) {
-      throw new Error('The grid or the picker panel is not rendered');
-    }
+      if (outside === null) {
+        return false;
+      }
 
-    // Below both boxes, not beside them: the grid's container is a block element spanning the
-    // page, so there is no room to its right.
-    const y = Math.max(gridBox.y + gridBox.height, panelBox.y + panelBox.height) + 40;
-    const viewport = this.page.viewportSize();
-    const x = viewport === null ? gridBox.x + (gridBox.width / 2) : viewport.width / 2;
+      const box = outside.getBoundingClientRect();
+      const target = document.elementFromPoint(box.x + (box.width / 2), box.y + (box.height / 2));
 
-    if (viewport !== null && y >= viewport.height) {
-      throw new Error(`No clickable point below the grid and the panel at y=${y}`);
-    }
-
-    // The measurement above is geometry; this asserts what the browser will actually hit, so the
-    // case cannot quietly start pressing the grid or the panel after a fixture edit.
-    const landsOutside = await this.page.evaluate(([pointX, pointY]) => {
-      const target = document.elementFromPoint(pointX, pointY);
-      const grid = document.querySelector('[data-testid="grid"]');
-      const panel = document.querySelector('[data-testid="picker-panel"]');
-
-      return target !== null && grid?.contains(target) === false && panel?.contains(target) === false;
-    }, [x, y]);
+      return target === outside;
+    });
 
     if (!landsOutside) {
-      throw new Error(`The point (${x}, ${y}) is not outside the grid and the panel`);
+      throw new Error('The out-of-grid target is covered by something else');
     }
 
-    await this.page.mouse.click(x, y);
+    await this.page.getByTestId('outside-target').click();
   }
 
   /**

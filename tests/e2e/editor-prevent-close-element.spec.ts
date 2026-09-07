@@ -171,6 +171,28 @@ test.describe('An editor with a preventCloseElement outside the grid', () => {
   });
 
   /**
+   * The same guard with the grid inside a SHADOW ROOT, which is where a `Node#contains()` test
+   * silently fails: an ancestor outside the shadow root is not a `contains()` descendant relation
+   * away from the grid, so `document.body.contains(rootElement)` reads `false` and the ancestor
+   * would be honored - while `composedPath()` carries it on every click regardless, which is the
+   * whole failure the guard exists to prevent. Caught by Bugbot on the first version of the guard.
+   */
+  test('ignores a grid-containing surface across a shadow boundary too', async({ page, theme, bundle }) => {
+    const grid = new EditorPreventCloseElementPage(page, theme, bundle, {
+      surfaceElement: 'body',
+      host: 'shadow',
+    });
+
+    await grid.goto();
+    await grid.openEditor(0, 1);
+
+    await grid.clickOutsideEverything();
+
+    await expect.poll(() => grid.isEditorOpen()).toBe(false);
+    await expect.poll(() => grid.selected()).toBe(null);
+  });
+
+  /**
    * The guard must not swallow a genuine outside click. The panel is the only element outside the
    * grid that counts as its own, so a press on the page background still ends the edit.
    */

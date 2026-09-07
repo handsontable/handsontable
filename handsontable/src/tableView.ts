@@ -1903,7 +1903,14 @@ class TableView {
     // outside-click deselect would stop working for as long as that editor is open, with nothing
     // visible to blame it on. The option names an element the editor renders OUTSIDE its container,
     // so an ancestor of the grid can never be a legitimate answer.
-    if (editor.preventCloseElement.contains(this.hot.rootElement)) {
+    //
+    // Walked from the ROOT upwards with `closest()`, not `surface.contains(rootElement)`, for the
+    // same reason `#isFocusWithinEditorSurface()` does: `contains()` stops at a shadow boundary. A
+    // grid rendered inside a shadow root is not a `contains()` descendant of anything outside that
+    // root, so `document.body.contains(rootElement)` reads `false` there and the ancestor would be
+    // honored – while `composedPath()` still carries it on every click, which is precisely the
+    // failure this guard exists to prevent.
+    if (closest(this.hot.rootElement, [editor.preventCloseElement]) !== null) {
       warnOnce(
         this.hot.rootElement,
         'TableView.preventCloseElementContainsGrid',
