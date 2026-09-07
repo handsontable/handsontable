@@ -44,6 +44,17 @@ export class BottomOverlay extends Overlay {
   #bottomClearance = 0;
 
   /**
+   * Whether this clone rests on the master holder's bottom edge, where the holder's horizontal
+   * scrollbar is painted. Written by `resetFixedPosition` on both of its paths: on the window-owned
+   * vertical axis the clone floats at the viewport's bottom while the page scrolls and reaches the
+   * holder's edge only once the page is scrolled to the grid's end (`getOverlayOffset()` is 0
+   * there); on an element-owned one `repositionOverlay` lifts it to where the rows end whenever the
+   * holder does not scroll vertically. Read by the bottom clearance strip, which is pointless — a
+   * clipped clone and a band painted over live cells — anywhere but on that edge.
+   */
+  #restsOnHolderBottomEdge = false;
+
+  /**
    */
   constructor(deps: OverlayDeps) {
     super(deps, CLONE_BOTTOM);
@@ -89,6 +100,7 @@ export class BottomOverlay extends Overlay {
 
     if (this.trimmingContainer === rootWindow) {
       overlayPosition = this.getOverlayOffset();
+      this.#restsOnHolderBottomEdge = overlayPosition === 0;
 
       // At non-integer zoom levels (e.g. 90%) the browser physically rounds each row's
       // border to the nearest physical pixel, causing the rendered TABLE to extend a
@@ -104,6 +116,7 @@ export class BottomOverlay extends Overlay {
 
     } else {
       overlayPosition = this.getScrollPosition();
+      this.#restsOnHolderBottomEdge = this.deps.getWtViewport().hasVerticalScroll();
       this.repositionOverlay();
     }
 
@@ -208,8 +221,22 @@ export class BottomOverlay extends Overlay {
     } else if (this.clone) {
       // Stopped rendering - `fixedRowsBottom` set back to 0, say. Nothing below sizes this overlay any
       // more, so drop its clearance here or the filler stays behind as an opaque strip over live cells.
+      this.#bottomClearance = 0;
       this.clearScrollbarClearance();
     }
+  }
+
+  /**
+   * The bottom clearance strip this overlay last computed, in pixels (0 when none applies). The
+   * bottom-inline-start corner is drawn over this overlay's bottom edge and must clip exactly the
+   * same strip - a corner that decides on its own can disagree by one gate and leave a notch where
+   * the frozen columns stop and the frozen rows carry on (#10370) - so it reads the value from here
+   * instead of recomputing it. The draw cycle positions this overlay before the corner.
+   *
+   * @returns {number}
+   */
+  getBottomClearance(): number {
+    return this.#bottomClearance;
   }
 
   /**
@@ -229,15 +256,24 @@ export class BottomOverlay extends Overlay {
     // Width is a horizontal question: sized against the scrollport whenever an element owns the
     // horizontal axis (see `TopOverlay#adjustRootElementSize`).
     const rootSized = !wtViewport.isHorizontallyScrollableByWindow();
-    // Clip and band together, or not at all - see `TopOverlay#adjustRootElementSize`.
-    const clearanceApplies = holderOwnsScrollbars(this.trimmingContainer, rootWindow);
+    // Each strip reads the owner of the axis it lies on. The inline-end strip clears the master's
+    // VERTICAL scrollbar, so it asks this overlay's own (vertical) owner; the bottom strip clears the
+    // HORIZONTAL one, so it asks the inline-start overlay's. In split mode the two differ - the window
+    // owns the rows, the holder owns the columns - and one predicate taken from the vertical owner
+    // said "the window's scrollbar" for both, leaving the holder's horizontal scrollbar under the
+    // frozen bottom rows at the grid's end. Clip and band together, or not at all - see
+    // `TopOverlay#adjustRootElementSize`.
+    const inlineEndClearanceApplies = holderOwnsScrollbars(this.trimmingContainer, rootWindow);
+    const bottomClearanceApplies = holderOwnsScrollbars(
+      this.wot.wtOverlays.inlineStartOverlay.trimmingContainer, rootWindow
+    ) && this.#restsOnHolderBottomEdge;
 
     // The master's vertical scrollbar sits along the inline-end edge this overlay spans.
     this.#holderClearance = axisScrollbarClearance(
       this.deps.geometryReader,
       wtTable.holder,
       this.deps.geometryReader.getScrollbarWidth(rootDocument),
-      clearanceApplies && wtViewport.hasVerticalScroll(),
+      inlineEndClearanceApplies && wtViewport.hasVerticalScroll(),
       'vertical'
     );
 
@@ -262,13 +298,16 @@ export class BottomOverlay extends Overlay {
     }
 
     // This overlay also spans the bottom edge, where the horizontal scrollbar is painted - but only
-    // while it actually sits on that edge. Without a vertical scroll `repositionOverlay` lifts it to
-    // where the rows end, clear of the scrollbar, so no strip is needed then.
+    // while it actually rests on that edge (`#restsOnHolderBottomEdge`, folded into the predicate
+    // above). `hasVerticalScroll()` used to stand in for that, and it is the wrong question on the
+    // window-owned vertical axis: the page scrolls, so it answers `true` while the clone floats
+    // mid-page over live cells, and `repositionOverlay` - which lifts the clone clear of the
+    // scrollbar in element mode - never runs on that path at all.
     this.#bottomClearance = axisScrollbarClearance(
       this.deps.geometryReader,
       wtTable.holder,
       this.deps.geometryReader.getScrollbarWidth(rootDocument),
-      clearanceApplies && wtViewport.hasHorizontalScroll() && wtViewport.hasVerticalScroll(),
+      bottomClearanceApplies && wtViewport.hasHorizontalScroll(),
       'horizontal'
     );
 

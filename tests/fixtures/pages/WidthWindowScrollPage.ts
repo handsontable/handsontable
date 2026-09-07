@@ -271,6 +271,51 @@ export class WidthWindowScrollPage {
     });
   }
 
+  /**
+   * Puts the page at `end` (the frozen bottom rows come to rest on the holder's bottom edge, where the
+   * holder's horizontal scrollbar is painted) or mid-page (they float over live cells), scrolls the
+   * holder horizontally so a floating horizontal scrollbar is on screen, waits for that scroll to be
+   * PROCESSED, and snapshots the bottom edge — all inside one page call, because the band closes on
+   * its own a second after the scroll and separate round-trips would race it. `coversBottomEdge` is
+   * the engine's own answer per overlay, `clips` the computed `clip-path` it wrote; `gutterY` tells
+   * a classic scrollbar (space-taking) from a floating one.
+   */
+  async bottomEdgeState(pagePosition: 'end' | 'middle'): Promise<{
+    gutterY: number,
+    windowAtEnd: boolean,
+    coversBottomEdge: { bottomRows: boolean, corner: boolean, frozenColumns: boolean },
+    clips: { bottomRows: string, corner: string },
+    bands: number,
+  }> {
+    return this.page.evaluate((position) => new Promise((resolve) => {
+      const wt = (window as unknown as { hot: { view: { _wt: { wtOverlays: {
+        bottomOverlay: { coversScrollbarEdge(edge: 'bottom'): boolean },
+        bottomInlineStartCornerOverlay: { coversScrollbarEdge(edge: 'bottom'): boolean },
+        inlineStartOverlay: { coversScrollbarEdge(edge: 'bottom'): boolean },
+      } } } } }).hot.view._wt;
+      const holder = document.querySelector('.ht_master .wtHolder') as HTMLElement;
+      const clip = (selector: string) => getComputedStyle(document.querySelector(selector)!).clipPath;
+      const twoFrames = (fn: () => void) => requestAnimationFrame(() => requestAnimationFrame(fn));
+
+      window.scrollTo(0, position === 'end' ? document.documentElement.scrollHeight : 800);
+
+      twoFrames(() => {
+        holder.addEventListener('scroll', () => twoFrames(() => resolve({
+          gutterY: holder.offsetHeight - holder.clientHeight,
+          windowAtEnd: Math.round(window.scrollY + window.innerHeight) >= document.documentElement.scrollHeight - 1,
+          coversBottomEdge: {
+            bottomRows: wt.wtOverlays.bottomOverlay.coversScrollbarEdge('bottom'),
+            corner: wt.wtOverlays.bottomInlineStartCornerOverlay.coversScrollbarEdge('bottom'),
+            frozenColumns: wt.wtOverlays.inlineStartOverlay.coversScrollbarEdge('bottom'),
+          },
+          clips: { bottomRows: clip('.ht_clone_bottom'), corner: clip('.ht_clone_bottom_inline_start_corner') },
+          bands: document.querySelectorAll('.htScrollbarClearanceFiller').length,
+        })), { once: true });
+        holder.scrollLeft += 160;
+      });
+    }), pagePosition);
+  }
+
   /** The count of `afterScrollVertically` calls since the last rebuild. */
   async verticalScrollCount(): Promise<number> {
     return this.page.evaluate(() => window.verticalScrollCount);

@@ -234,7 +234,7 @@ class Overlays {
    * @protected
    * @type {BottomOverlay}
    */
-  declare bottomOverlay: Overlay;
+  declare bottomOverlay: BottomOverlay;
 
   /**
    * Refer to the InlineStartOverlay or instance.

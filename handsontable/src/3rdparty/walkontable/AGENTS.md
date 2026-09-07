@@ -228,7 +228,19 @@ fields. Three rules follow.
   the axis that scrollbar belongs to (`hasVerticalScroll() && !isVerticallyScrollableByWindow()`);
   the scrollbar clearance strips read the owner of the axis the strip lies on. Reading the overlay's
   own owner for any of those sized the frozen-column clone to the full hider height, or shrank the
-  top clone by a page scrollbar the holder does not have.
+  top clone by a page scrollbar the holder does not have. An overlay that spans BOTH edges needs two
+  predicates, not one: `BottomOverlay`'s inline-end strip clears the vertical scrollbar and asks its
+  own (vertical) owner, while its bottom strip clears the horizontal one and asks the inline-start
+  overlay's. One predicate for both published 0 in split mode, and the frozen bottom rows painted over
+  the holder's horizontal scrollbar at the grid's end. A bottom strip also needs the clone to actually
+  REST on the holder's bottom edge — `hasVerticalScroll()` is not that question on a window-owned
+  vertical axis, where it stays true while the clone floats mid-page and `repositionOverlay` (which
+  lifts the clone clear in element mode) never runs; `BottomOverlay` records the answer per draw in
+  `#restsOnHolderBottomEdge`. **The bottom-inline-start corner reads that overlay's finished strip
+  through `getBottomClearance()` and never recomputes it** — it is drawn over the same edge, so two
+  gates that disagree leave a notch where the frozen columns stop and the frozen rows carry on
+  (#10370). The draw cycle positions the bottom overlay before the corner, which is what makes the
+  read safe.
 - **`preventOverflow` is an alias, not a mode.** `'horizontal'` forces the horizontal owner to the
   root's parent and `'vertical'` the vertical one; everything the option used to switch by string
   comparison now follows from the owners. Its only remaining reads are the window-mode overflow

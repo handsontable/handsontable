@@ -153,6 +153,44 @@ test.describe('width-only grid: holder scrolls columns, window scrolls rows', ()
     await expect.poll(async () => (await grid.scrollExtents()).windowScrollY).toBeGreaterThan(0);
   });
 
+  // The bottom clearance strip (#10370) clears the holder's HORIZONTAL scrollbar, so it has to ask
+  // the horizontal axis owner — and in this layout that is the holder while the bottom overlay's own
+  // owner is the window. One predicate taken from the vertical owner said "the window's scrollbar" for
+  // both strips and published 0, so at the grid's end the frozen bottom rows rested on the holder's
+  // bottom edge and painted over its floating scrollbar. The strip is also only wanted ON that edge:
+  // mid-page the rows float over live cells, and a strip there is a clipped clone plus a band over
+  // nothing. Classic scrollbars take their own space, so nothing may be clipped in that regime (the
+  // existing contract of `overlay-scrollbar-clearance.spec.ts`); CI's headless Chromium is floating.
+  test('clears the holder\'s horizontal scrollbar under the frozen bottom rows only at the grid\'s end', async () => {
+    await grid.updateSettings({ fixedRowsBottom: 2 });
+
+    const atEnd = await grid.bottomEdgeState('end');
+
+    expect(atEnd.windowAtEnd).toBe(true);
+    // The frozen columns span the holder's full height here, so they cover the edge in both regimes'
+    // terms — that is the precondition that the strip machinery is alive on this layout at all.
+    expect(atEnd.coversBottomEdge.frozenColumns).toBe(atEnd.gutterY === 0);
+
+    if (atEnd.gutterY === 0) {
+      expect(atEnd.coversBottomEdge.bottomRows).toBe(true);
+      expect(atEnd.coversBottomEdge.corner).toBe(true);
+      expect(atEnd.clips.bottomRows).toMatch(/inset\(/);
+      expect(atEnd.clips.corner).toMatch(/inset\(/);
+      expect(atEnd.bands).toBeGreaterThan(0);
+    } else {
+      expect(atEnd.coversBottomEdge.bottomRows).toBe(false);
+      expect(atEnd.clips.bottomRows).toBe('none');
+    }
+
+    const midPage = await grid.bottomEdgeState('middle');
+
+    expect(midPage.windowAtEnd).toBe(false);
+    expect(midPage.coversBottomEdge.bottomRows).toBe(false);
+    expect(midPage.coversBottomEdge.corner).toBe(false);
+    expect(midPage.clips.bottomRows).toBe('none');
+    expect(midPage.clips.corner).toBe('none');
+  });
+
   test('mirrors the layout in RTL', async () => {
     await grid.rebuild({ layoutDirection: 'rtl' });
 
