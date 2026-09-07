@@ -1028,14 +1028,9 @@ export class MergeCells extends BasePlugin {
    * active {@link MergeCells#captureAnchorOf} preserves the stored `physicalRows` verbatim, so the
    * structural edit's physical renumbering has to be mirrored onto the cache here or re-anchoring
    * would later target stale rows. Rows at or after the insertion point move down by `count`, and a
-   * merge with rows on both sides of the inserted block grows to cover it — the same rule as the
-   * `indexOfChange > mergeStart` branch in {@link MergedCellCoords#shift}.
-   *
-   * "Both sides" is measured in the **visual** order, as that branch measures it, not by comparing
-   * physical indexes against the pivot. A merge's physical rows ascend only while nothing has
-   * reordered them: after a sort they can run the other way, and a merge made over a filtered gap
-   * skips values. A physical comparison then grows a merge the new rows landed outside of, and leaves
-   * one they landed inside of alone.
+   * merge the new rows landed strictly inside of grows to cover them — the same test as the
+   * `indexOfChange > mergeStart` branch in {@link MergedCellCoords#shift}, against the same visual
+   * geometry, so the anchor and the shift can never disagree about whether a merge grew.
    *
    * The grown rows are spliced into the list in visual order rather than appended. The list is ordered
    * by visual position and {@link MergeCells#reanchorMergesToVisibleRows} reads its first still-visible
@@ -1051,31 +1046,46 @@ export class MergeCells extends BasePlugin {
 
     this.#remapAnchors((physicalRows) => {
       const remapped = physicalRows.map(physicalRow => (physicalRow >= pivot ? physicalRow + count : physicalRow));
-      const visualRows = remapped.map(physicalRow => this.hot.toVisualRow(physicalRow));
-      let hasRowAbove = false;
-      let hasRowBelow = false;
+      let drawnTop: number | null = null;
+      let drawnSpan = 0;
 
-      visualRows.forEach((visualRow) => {
-        // A trimmed row has no visual index, so it is on neither side of the inserted block.
+      remapped.forEach((physicalRow) => {
+        const visualRow = this.hot.toVisualRow(physicalRow);
+
         if (visualRow === null) {
           return;
         }
 
-        hasRowAbove = hasRowAbove || visualRow < insertedRow;
-        hasRowBelow = hasRowBelow || visualRow > lastInsertedRow;
+        if (drawnTop === null) {
+          drawnTop = visualRow;
+        }
+
+        drawnSpan += 1;
       });
 
-      if (!hasRowAbove || !hasRowBelow) {
+      // Whether the new rows landed inside the merge is decided by the block the merge *draws* —
+      // derived here the same way {@link MergeCells#reanchorMergesToVisibleRows} derives it, rather
+      // than read from `row`/`rowspan`, which are mid-edit: the index mapper has already re-anchored
+      // against the new row count while the merges have not been shifted yet.
+      //
+      // The merge's own rows cannot answer it. A sort scatters them, and "one of them is above the
+      // new rows and another is below" is then true for an insert that landed in a gap between two
+      // of them, far outside the block the merge draws — which grew the merge over rows it does not
+      // own and dragged its top-left up to them.
+      if (drawnTop === null || insertedRow <= drawnTop || insertedRow > drawnTop + drawnSpan - 1) {
         return remapped;
       }
 
       const inserted = Array.from({ length: count }, (_, offset) => pivot + offset);
       // The new rows occupy one unbroken visual block, so they belong just before the first row the
       // merge already owned that sits below that block. Splicing there rather than appending is what
-      // keeps the list in visual order, which is the order the top-left is read from.
+      // keeps the list in visual order, which is the order the top-left is read from. A trimmed row
+      // has no visual index, so it cannot decide the splice point.
       let insertAt = remapped.length;
 
-      visualRows.some((visualRow, index) => {
+      remapped.some((physicalRow, index) => {
+        const visualRow = this.hot.toVisualRow(physicalRow);
+
         if (visualRow === null || visualRow <= lastInsertedRow) {
           return false;
         }
@@ -1137,9 +1147,10 @@ export class MergeCells extends BasePlugin {
    * Applies a remapping function to the cached physical rows of every merge's anchor. Merges with no
    * anchor are left untouched.
    *
-   * @param {function(number[]): number[]} mapPhysicalRows Maps the old physical rows to the new ones.
+   * @param {function(number[], MergedCellCoords): number[]} mapPhysicalRows Maps the old physical rows
+   * to the new ones, given the merge they belong to.
    */
-  #remapAnchors(mapPhysicalRows: (physicalRows: number[]) => number[]) {
+  #remapAnchors(mapPhysicalRows: (physicalRows: number[], merge: MergedCellCoords) => number[]) {
     this.mergedCellsCollection.mergedCells.forEach((merge) => {
       const anchor = this.#mergeAnchors.get(merge);
 
@@ -1148,7 +1159,7 @@ export class MergeCells extends BasePlugin {
       }
 
       this.#mergeAnchors.set(merge, {
-        physicalRows: mapPhysicalRows(anchor.physicalRows),
+        physicalRows: mapPhysicalRows(anchor.physicalRows, merge),
         physicalColumn: anchor.physicalColumn,
       });
     });
@@ -1166,6 +1177,12 @@ export class MergeCells extends BasePlugin {
    * there is no way to tell which fragment a trimmed row belongs to, so only an unsplit merge carries
    * its rows over; a split one is re-anchored from what is visible, as it was before.
    *
+   * A row reorder can also swap two of the rows a merge keeps, so the carried list is re-ordered to
+   * match the new visual order. Carrying it verbatim leaves the list's head on a row that is no longer
+   * the topmost, and while trimming is active {@link MergeCells#captureAnchorOf} preserves that stale
+   * order rather than re-deriving it — the next re-anchor then reads the wrong row as the top-left and
+   * drops the merge a row too low, over one it does not own.
+   *
    * @param {Map<MergedCellCoords, MergedCellCoords[]>} replacements Map of the merge before the
    * reorder -> the merges that replaced it.
    * @param {'column' | 'row'} axis The reordered axis.
@@ -1178,12 +1195,44 @@ export class MergeCells extends BasePlugin {
         return;
       }
 
+      const physicalRows = axis === 'row'
+        ? this.#sortVisibleRowsByVisualOrder(anchor.physicalRows)
+        : [...anchor.physicalRows];
+
       newMerges.forEach((merge) => {
         this.#mergeAnchors.set(merge, {
-          physicalRows: [...anchor.physicalRows],
+          physicalRows: [...physicalRows],
           physicalColumn: anchor.physicalColumn,
         });
       });
+    });
+  }
+
+  /**
+   * Re-orders the visible entries of an anchor's row list into ascending visual order, leaving every
+   * trimmed entry in the slot it already occupies. Only the visible entries can be placed, since a
+   * trimmed row has no visual index to sort by, and only they decide the merge's top-left.
+   *
+   * @param {number[]} physicalRows The anchor's physical rows.
+   * @returns {number[]}
+   */
+  #sortVisibleRowsByVisualOrder(physicalRows: number[]): number[] {
+    const visible = physicalRows
+      .filter(physicalRow => this.hot.toVisualRow(physicalRow) !== null)
+      .sort((rowA, rowB) => (this.hot.toVisualRow(rowA) as number) - (this.hot.toVisualRow(rowB) as number));
+
+    let next = 0;
+
+    return physicalRows.map((physicalRow) => {
+      if (this.hot.toVisualRow(physicalRow) === null) {
+        return physicalRow;
+      }
+
+      const placed = visible[next];
+
+      next += 1;
+
+      return placed;
     });
   }
 

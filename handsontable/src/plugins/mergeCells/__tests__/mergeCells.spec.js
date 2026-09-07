@@ -3321,6 +3321,58 @@ describe('MergeCells', () => {
         expect(merges()).toEqual([{ row: 1, col: 0, rowspan: 4, colspan: 1 }]);
       });
 
+    it('should not grow a merge when a row is inserted in a gap between its sorted rows', async() => {
+      // ascending order on column 2 sends the merge's two rows to visual 1 and 6, with the whole
+      // grid between them, so an insert can land between them while sitting outside the merge
+      const sortKey = [6, 1, 3, 2, 0, 4, 5, 7];
+
+      handsontable({
+        data: sortKey.map((key, row) => [`A${row}`, `B${row}`, key]),
+        columnSorting: true,
+        mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 2 }], // physical rows 0,1
+      });
+
+      getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
+
+      await render();
+
+      expect(merges()).toEqual([{ row: 6, col: 0, rowspan: 2, colspan: 2 }]);
+
+      // visual row 3 is between the merge's own two rows but well above the block it draws, so the
+      // merge must only be pushed down by the insert, never grown over it
+      await alter('insert_row_above', 3, 1);
+
+      expect(merges()).toEqual([{ row: 7, col: 0, rowspan: 2, colspan: 2 }]);
+    });
+
+    it('should re-order the anchor when a row move swaps two of the rows a merge keeps', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        trimRows: [9], // trimming active, outside the merge, so the anchor is preserved not re-derived
+        manualRowMove: true,
+        mergeCells: [{ row: 2, col: 0, rowspan: 3, colspan: 2 }], // physical rows 2,3,4
+      });
+
+      // the merge's last row becomes its first: the rows stay contiguous, but the one that heads the
+      // anchor is no longer the topmost
+      getPlugin('manualRowMove').moveRow(4, 2);
+
+      await render();
+
+      expect(merges()).toEqual([{ row: 2, col: 0, rowspan: 3, colspan: 2 }]);
+
+      // the stale order only decides the top-left on the next cache update
+      getPlugin('trimRows').untrimAll();
+
+      await render();
+
+      const merge = merges()[0];
+      const covered = Array.from({ length: merge.rowspan }, (_, offset) => toPhysicalRow(merge.row + offset));
+
+      expect(merge).toEqual({ row: 2, col: 0, rowspan: 3, colspan: 2 });
+      expect(covered.slice().sort()).toEqual([2, 3, 4]);
+    });
+
     it('should not let a sort pull two merges onto the same rows in the lookup matrix', async() => {
       // column 2 is the sort key, chosen so that ascending order sends the merges' rows to:
       //   merge A, physical 0 and 1 -> visual 6 and 1
