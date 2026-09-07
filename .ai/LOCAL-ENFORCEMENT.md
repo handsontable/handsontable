@@ -80,7 +80,7 @@ nuance no snapshot covers, a high-risk area — or a QA-owned pass such as an
 RC adversarial sweep or a screen-reader check), tick **"MANUAL QA NEEDED"**
 in the PR description (author or agent may tick it; the template carries the
 line, and its wording is machine-read — keep it verbatim) and say in one line
-what to check, and add the red **`Manual QA required`** label so the request
+what to check, and add the red **`Requires Manual QA`** label so the request
 is visible in the PR list (applied by hand, like every other label here — the
 `pr-creation` skill instructs it; it is a marker, never the trigger). The
 Checks scope router
