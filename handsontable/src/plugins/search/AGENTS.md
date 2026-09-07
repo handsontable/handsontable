@@ -52,11 +52,17 @@ instead of throwing.
 
 ## `beforeRenderer` and the `className` union
 
-The hook normalizes `cellProperties.className`, which is publicly `string | string[]`. This plugin stores
-the normalized form back as a **string**, which is the shape the rest of the codebase expects —
-`numericRenderer`, `../hiddenColumns/` and `../hiddenRows/` all do the same, and their comments name this
-plugin as the reference. `../hiddenColumns/AGENTS.md` documents the full rule and its three shipped failure
-modes.
+The hook normalizes `cellProperties.className`, which is publicly `string | string[]`, through the shared
+`normalizeClassNames()` helper (`helpers/dom/element`) — the same one `#removeResultClassFromStoredMeta()`
+uses, so both paths in this file agree on what counts as a class. It stores the normalized form back as a
+**string**, which is the shape the rest of the codebase expects — `numericRenderer`, `../hiddenColumns/` and
+`../hiddenRows/` all do the same. `../hiddenColumns/AGENTS.md` documents the full rule and its three shipped
+failure modes.
+
+The write at the end of the hook is **unconditional**, so every rendered cell gets an own string `className`
+even when nothing changed. On a grid-level or column-level array that stops the value cascading, and a value
+set through `setCellMeta` is replaced permanently via the `_userDefinedMetaProps` replay. Pre-existing, and
+tracked with the rest of the family in DEV-2803 — do not copy this hook as the reference for that part.
 
 There is a standing `// TODO: #4972` on this handler.
 
@@ -74,3 +80,7 @@ There is a standing `// TODO: #4972` on this handler.
 - `npm run test:e2e --prefix handsontable -- --testPathPattern='search'`
 
 A change to the eviction interaction needs a spec that **scrolls away and back**, not just one that queries.
+
+## Every `query()` invalidates every cell
+
+The result class is applied inside `beforeRenderer`, from the plugin's own state, with no cell meta write. Under `renderMode: 'onChange'` a cell whose value did not change would keep the previous query's class, so `query()` ends with `hot.markAllCellsChanged()`, and so does `disablePlugin()`. Disabling strips the class from the `className` of every STORED cell meta (`#removeResultClassFromStoredMeta`), not through a render: a render reaches only the rendered band, and a match painted while highlighted and then scrolled away keeps the class in its meta until it scrolls back (the one-shot `beforeRenderer` that used to do the stripping had exactly that hole, and read `isEnabled()` - the `search` setting, still `true` after a direct `disablePlugin()` - so on that path it re-added the class instead). `isSearchResult` is deliberately left in place: `updatePlugin()` is disable + enable, and the results survive an `updateSettings({ search })` as they always did. `#onBeforeRenderer` decides by `this.enabled`, the runtime state, never by the setting. Do not "optimize" either to the matched cells only: the cells that *stopped* matching need the repaint too.

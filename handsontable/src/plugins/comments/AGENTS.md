@@ -91,3 +91,7 @@ clears that flag — which is exactly the shadow-DOM double-binding failure abov
 
 - `npm run test:e2e --prefix handsontable -- --testPathPattern='comments'`
 - `npm run test:unit --prefix handsontable -- --testPathPattern='comments'`
+
+## `renderMode: 'onChange'`
+
+- The `htCommentCell` marker is written on the ELEMENT by `#onAfterRenderer`, from the cell meta, so a paint is the only thing that adds or removes it. `setComment`/`removeComment` write the meta through `setCellMeta`, which advances the cell's render version, and `updateSettings({ comments })` advances the render epoch - both repaint. A direct `disablePlugin()` does neither, so it calls `hot.markAllCellsChanged()` itself, or a skipped cell keeps the marker after the plugin is off.

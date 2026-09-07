@@ -6,10 +6,10 @@
     "cells",
     "cell"
   ],
-  "total": 170,
+  "total": 171,
   "counts": {
     "grid": 106,
-    "grid columns cells cell": 59,
+    "grid columns cells cell": 60,
     "grid columns": 4,
     "columns": 1
   },
@@ -1225,6 +1225,18 @@
         "cell"
       ],
       "since": null,
+      "note": null
+    },
+    {
+      "name": "renderMode",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": "18.2.0",
       "note": null
     },
     {
