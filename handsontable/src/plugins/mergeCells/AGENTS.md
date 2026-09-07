@@ -154,6 +154,16 @@ flat set: two merges in different columns can cover the same rows, and a shared 
 genuinely-single fragment of the merge that carries nothing, leaving a phantom `1x1` entry in both the list
 and the lookup matrix.
 
+**The hatch is wired to the row move only, and the column axis still loses those merges (DEV-2805).** The
+trimming re-anchor shrinks a merge's own `rowspan` to its visible count, so a merge trimmed to one visible
+row *is* `rowspan: 1` — and a column translation copies that shrunk value onto every fragment. A
+`colspan: 1` merge in that state is therefore dropped by any `manualColumnMove` or `manualColumnFreeze`,
+including one that touches none of its own columns, and `translateAfterAxisMove` has already cleared
+`mergedCells` by then, so the rows returning bring nothing back. Verified on all three shapes; pre-existing
+on `develop`, which is why it is a separate task rather than part of this change. The column axis needs no
+attribution to fix it — every fragment there covers the same rows — so it can retain all of a merge's
+physical columns whenever the merge owns a trimmed row.
+
 Retention is keyed on the carrier, so a split leaving two single cells where only one of them owns trimmed
 rows keeps that one and drops its sibling. That asymmetry is the rule working, not a wrinkle in it: the
 sibling is a genuine single cell and the survivor is a merge with its other rows away. Which one survives
