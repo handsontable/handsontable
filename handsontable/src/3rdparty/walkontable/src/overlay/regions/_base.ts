@@ -4,6 +4,7 @@ import type Settings from '../../settings';
 import {
   getScrollableElement,
   getTrimmingContainer,
+  isHTMLElement,
   setAttribute,
 } from '../../../../../helpers/dom/element';
 import { defineGetter } from '../../../../../helpers/object';
@@ -342,6 +343,11 @@ export abstract class Overlay {
    * In window mode the holder is unsized on both axes and `MasterTable` clears its overflow, so
    * nothing scrolls inside it and the window is the answer for both axes.
    *
+   * Narrowed with `isHTMLElement()`, never `instanceof HTMLElement`: the latter is bound to this
+   * module's realm, so for a grid rendered into an iframe it reports `false` for a real element
+   * owner, the window shortcut is taken, and the horizontal listener binds to the window while the
+   * holder scrolls the columns — the exact failure this method exists to stop.
+   *
    * @returns {boolean}
    */
   #ownsWindowScroll(): boolean {
@@ -353,7 +359,7 @@ export abstract class Overlay {
       this.wtRootElement, 'y', this.wtSettings.getSetting('preventOverflow')
     );
 
-    return !(verticalOwner instanceof HTMLElement);
+    return !isHTMLElement(verticalOwner);
   }
 
   abstract resetFixedPosition(): boolean;

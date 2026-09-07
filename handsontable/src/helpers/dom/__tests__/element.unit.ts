@@ -1270,6 +1270,29 @@ describe('DomElement helper', () => {
 
       expect(isHTMLElement(element)).toBe(true);
     });
+
+    it('should return `true` for an element built in another realm, where `instanceof` fails', () => {
+      // The whole reason this helper exists. `instanceof HTMLElement` is bound to the realm the
+      // calling module was loaded in, so it reports `false` for an element from an iframe - and a
+      // grid rendered into an iframe is driven from the parent realm. Callers that narrow an
+      // element-or-window with a bare `instanceof` therefore read a real element as "the window";
+      // `Overlay#ownsWindowScroll()` did, and bound the horizontal scroll listener to the window
+      // while the grid's holder was scrolling the columns.
+      const frame = document.createElement('iframe');
+
+      document.body.appendChild(frame);
+
+      const foreignElement = frame.contentDocument!.createElement('div');
+
+      expect(foreignElement instanceof HTMLElement).toBe(false);
+      expect(isHTMLElement(foreignElement)).toBe(true);
+
+      document.body.removeChild(frame);
+    });
+
+    it('should return `false` for a window, which is not an element on any realm', () => {
+      expect(isHTMLElement(window)).toBe(false);
+    });
   });
 
   //
