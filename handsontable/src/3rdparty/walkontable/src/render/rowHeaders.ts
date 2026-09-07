@@ -57,6 +57,10 @@ export class RowHeadersRenderer extends BaseRenderer {
 
   /**
    * Renders the cells.
+   *
+   * Stamps no `htLastRowHeaderColumn` marker, unlike `ColumnHeadersRenderer#render`: the seam to
+   * column 0 needs one only in a HEAD row, where CSS cannot tell a corner `th` from a column
+   * header. Every `th` in a BODY row is a row header, so the theme rule matches them all.
    */
   render() {
     const { rowsToRender, rowHeaderFunctions, rowHeadersCount, rows, cells } = this.table;
