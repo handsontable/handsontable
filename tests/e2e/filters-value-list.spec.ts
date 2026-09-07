@@ -369,3 +369,22 @@ test.describe('Filters — "filter by value" list', () => {
     ]);
   });
 });
+
+test('leaves no focus highlight in the value list after the menu is reopened', async({ page, theme, bundle }) => {
+  const grid = new FiltersValueListPage(page, theme, bundle);
+
+  await grid.goto();
+  await grid.openMenuWithKeyboard(0, 1);
+
+  // Reach the list through the search input, the way Tab and ArrowDown do, and focus an item.
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('ArrowDown');
+  await expect(grid.focusedListItems()).toHaveCount(1);
+
+  await grid.escapeMenu();
+  await grid.openMenuWithKeyboard(0, 1);
+
+  // The list is not the focused component any more, so it must show no focus ring.
+  await expect(grid.focusedListItems()).toHaveCount(0);
+});
