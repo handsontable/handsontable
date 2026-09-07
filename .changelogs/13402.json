@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a bug where detaching a row from its parent left cell metadata, such as comments and custom class names, on the wrong rows.",
+  "type": "fixed",
+  "issueOrPR": 13402,
+  "breaking": false,
+  "framework": "none"
+}
