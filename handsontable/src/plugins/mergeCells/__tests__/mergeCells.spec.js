@@ -3856,6 +3856,116 @@ describe('MergeCells', () => {
       ]);
     });
 
+    it('should keep a merge purged by an incremental trim out of the lookup matrix across a column move', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        trimRows: true,
+        manualColumnMove: true,
+        mergeCells: [{ row: 2, col: 0, rowspan: 2, colspan: 1 }], // physical rows 2,3
+      });
+      const trimRows = getPlugin('trimRows');
+      const collection = getPlugin('mergeCells').mergedCellsCollection;
+
+      // one row at a time: the first trim shrinks the merge to `rowspan: 1`, the second purges it
+      // from the matrix with that shrunk span, so it is `1x1` while owning only trimmed rows
+      trimRows.trimRows([3]);
+
+      await render();
+
+      trimRows.trimRows([2]);
+
+      await render();
+
+      expect(merges()).toEqual([{ row: 2, col: 0, rowspan: 1, colspan: 1 }]);
+      expect(collection.get(2, 0)).toBe(false);
+
+      getPlugin('manualColumnMove').moveColumn(4, 1);
+
+      await render();
+
+      // the merge survives in the list, but physical row 4 now sits at visual row 2 and must not
+      // resolve to it as a phantom merge
+      expect(merges()).toEqual([{ row: 2, col: 0, rowspan: 1, colspan: 1 }]);
+      expect(collection.get(2, 0)).toBe(false);
+      expect(getCell(2, 0).getAttribute('rowspan')).toBe(null);
+
+      trimRows.untrimAll();
+
+      await render();
+
+      expect(merges()).toEqual([{ row: 2, col: 0, rowspan: 2, colspan: 1 }]);
+      expect(collection.get(2, 0)).not.toBe(false);
+    });
+
+    it('should keep a fully trimmed merge out of the lookup matrix across a column move and bring it back whole', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        trimRows: true,
+        manualColumnMove: true,
+        mergeCells: [{ row: 2, col: 0, rowspan: 2, colspan: 2 }], // physical rows 2,3
+      });
+      const trimRows = getPlugin('trimRows');
+      const collection = getPlugin('mergeCells').mergedCellsCollection;
+
+      // both rows at once: the merge keeps `rowspan: 2` and is purged from the matrix
+      trimRows.trimRows([2, 3]);
+
+      await render();
+
+      expect(merges()).toEqual([{ row: 2, col: 0, rowspan: 2, colspan: 2 }]);
+      expect(collection.get(2, 0)).toBe(false);
+
+      getPlugin('manualColumnMove').moveColumn(4, 2);
+
+      await render();
+
+      // stale visual coordinates now describe physical rows 4 and 5, which the merge does not own
+      expect(collection.get(2, 0)).toBe(false);
+      expect(getCell(2, 0).getAttribute('rowspan')).toBe(null);
+
+      trimRows.untrimAll();
+
+      await render();
+
+      // the merge lands back on the exact visual coordinates it was purged at, and must still be
+      // re-added to the matrix
+      expect(merges()).toEqual([{ row: 2, col: 0, rowspan: 2, colspan: 2 }]);
+      expect(collection.get(2, 0)).not.toBe(false);
+      expect(getCell(2, 0).getAttribute('rowspan')).toBe('2');
+    });
+
+    it('should keep a fully trimmed merge out of the lookup matrix across a row move and bring it back whole', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        trimRows: true,
+        manualRowMove: true,
+        mergeCells: [{ row: 2, col: 0, rowspan: 2, colspan: 2 }], // physical rows 2,3
+      });
+      const trimRows = getPlugin('trimRows');
+      const collection = getPlugin('mergeCells').mergedCellsCollection;
+
+      trimRows.trimRows([2, 3]);
+
+      await render();
+
+      expect(collection.get(2, 0)).toBe(false);
+
+      // the move does not touch the merge's own rows
+      getPlugin('manualRowMove').moveRow(7, 0);
+
+      await render();
+
+      expect(collection.mergedCells.length).toBe(1);
+      expect(collection.get(merges()[0].row, merges()[0].col)).toBe(false);
+
+      trimRows.untrimAll();
+
+      await render();
+
+      expect(merges()).toEqual([{ row: 3, col: 0, rowspan: 2, colspan: 2 }]);
+      expect(collection.get(3, 0)).not.toBe(false);
+    });
+
     it('should not send a trimmed row across a row the merge does not own when a move splits it', async() => {
       handsontable({
         data: createSpreadsheetData(12, 3),

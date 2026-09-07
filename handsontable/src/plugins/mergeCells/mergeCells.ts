@@ -1401,7 +1401,9 @@ export class MergeCells extends BasePlugin {
    * Unlike the row move, no attribution and no ownership guard is needed here. A column reorder never
    * changes which rows a merge covers, so {@link MergeCells#transferAnchorsAfterAxisMove} hands every
    * fragment the whole anchor either way, and a retained single cell is treated exactly like a wider
-   * fragment of the same merge.
+   * fragment of the same merge. A merge with *no* visible row is retained too when an incremental trim
+   * left it at `rowspan: 1`; {@link MergeCells#purgeInvisibleMergesAfterAxisMove} keeps it out of the
+   * lookup matrix afterwards, as it keeps every other fully trimmed merge.
    *
    * @param {Map<MergedCellCoords, number[]>} snapshot The pre-reorder physical columns of every merge.
    * @returns {Map<MergedCellCoords, Set<number>>} All physical columns of every merge that owns a
@@ -1425,6 +1427,25 @@ export class MergeCells extends BasePlugin {
     });
 
     return retained;
+  }
+
+  /**
+   * Takes the merges with no visible top-left back out of the lookup matrix after a reorder.
+   *
+   * `translateAfterAxisMove` rebuilds the matrix from every replacement it produces, and a merge whose
+   * rows are all trimmed is replaced like any other: its stale visual coordinates are written back
+   * into the matrix, where they now describe whatever physical rows surfaced at that slot, and the
+   * replacement is a new object, so the `#purgedMerges` flag that would force it back into the matrix
+   * once its rows return is lost with the old one. Nothing else repairs that after a column reorder,
+   * which never touches the row index mapper, so the re-anchor is run here by hand: it purges every
+   * merge without a visible top-left (every row trimmed, or the anchor column hidden), flags it, and
+   * leaves the visible ones alone, since their replacements already sit on the coordinates the
+   * re-anchor would derive.
+   *
+   * Run after {@link MergeCells#captureMergeAnchors}, so the re-anchor reads the carried anchors.
+   */
+  #purgeInvisibleMergesAfterAxisMove() {
+    this.#reanchorMergesToVisibleRows();
   }
 
   /**
@@ -2601,6 +2622,7 @@ export class MergeCells extends BasePlugin {
       this.mergedCellsCollection.translateAfterAxisMove(
         'column', snapshot, this.#planColumnMoveRetention(snapshot)), 'column');
     this.#captureMergeAnchors();
+    this.#purgeInvisibleMergesAfterAxisMove();
     this.hot.render();
   };
 
@@ -2666,6 +2688,7 @@ export class MergeCells extends BasePlugin {
     this.#transferAnchorsAfterAxisMove(
       this.mergedCellsCollection.translateAfterAxisMove('row', snapshot, plan?.carriers), 'row', plan?.context);
     this.#captureMergeAnchors();
+    this.#purgeInvisibleMergesAfterAxisMove();
     this.hot.render();
   };
 
@@ -2706,6 +2729,7 @@ export class MergeCells extends BasePlugin {
       this.mergedCellsCollection.translateAfterAxisMove(
         'column', snapshot, this.#planColumnMoveRetention(snapshot)), 'column');
     this.#captureMergeAnchors();
+    this.#purgeInvisibleMergesAfterAxisMove();
     this.hot.render();
   };
 

@@ -166,8 +166,21 @@ column axis needs no attribution and no `#describesOwnRows` guard — a column r
 rows a merge covers, so `#transferAnchorsAfterAxisMove` hands every fragment the whole anchor either way,
 and a retained single cell is treated exactly like a wider fragment of the same merge. Pinned by the three
 column specs next to the row-move ones in the trimming describe (unrelated move, freeze, and a split that
-leaves a single-column fragment). A merge with **no** visible row never needs it: the re-anchor returns
-before `relocate()`, so its `rowspan` stays above 1.
+leaves a single-column fragment).
+
+**`translateAfterAxisMove` re-adds purged merges to the matrix, and the purged flag dies with the old
+object.** The collection rebuilds the lookup matrix from every replacement, so a merge whose rows are all
+trimmed comes back into the matrix at its stale visual coordinates, over whatever physical rows now sit
+there, and the replacement is a new object that `#purgedMerges` (a `WeakSet` keyed on identity) knows
+nothing about. On the row axis the mapper's `cacheUpdated` re-anchor ran *before* `afterRowMove`, so it
+could not see the replacements; on the column axis it never runs at all. Every axis-move handler therefore
+calls `#purgeInvisibleMergesAfterAxisMove()` after `#captureMergeAnchors()`, which re-runs the re-anchor:
+fully trimmed merges are purged and flagged again, and the visible ones are left alone because their
+replacements already sit where the re-anchor would put them. Two shapes reach this: a merge trimmed in
+one go keeps `rowspan >= 2` and drew a phantom multi-row merge over foreign rows (pre-existing on both
+axes), and a merge trimmed one row at a time is `rowspan: 1` when the last row goes, so the column
+retention above keeps its `1x1` fragment and it would have drawn a phantom single cell. Pinned by the
+three `should keep a ... merge out of the lookup matrix across a ... move` specs in the trimming describe.
 
 Retention is keyed on the carrier, so a split leaving two single cells where only one of them owns trimmed
 rows keeps that one and drops its sibling. That asymmetry is the rule working, not a wrinkle in it: the
