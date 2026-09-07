@@ -22,6 +22,29 @@
         'Unknown ?outsideClickDeselects= value: ' + JSON.stringify(htParams.get('outsideClickDeselects'))
       );
     }
+    // WHERE the editor assigns `preventCloseElement` decides which half of the grid's protection is
+    // under test. Assigned in `init`, `editorFactory` also wires its own `mousedown`
+    // `stopPropagation` listener, so a press on the panel never reaches the document handler at all.
+    // Assigned in `afterOpen`, that listener does not exist (it is wired once, right after `init`
+    // returns), so the press does reach the document handler and `#isPathWithinGrid` is the only
+    // thing standing between it and a deselect.
+    window.htSurfaceAssignedIn =
+      ({ init: 'init', afterOpen: 'afterOpen' })[htParams.get('surfaceAssignedIn') ?? 'init'];
+    if (!window.htSurfaceAssignedIn) {
+      throw new Error(
+        'Unknown ?surfaceAssignedIn= value: ' + JSON.stringify(htParams.get('surfaceAssignedIn'))
+      );
+    }
+    // `body` is the footgun: a picker library that hands back its root rather than its popup makes
+    // an ancestor of the grid an easy value to assign, and honoring it would make every click on
+    // the page count as a click inside the grid.
+    window.htSurfaceElement =
+      ({ panel: 'panel', body: 'body' })[htParams.get('surfaceElement') ?? 'panel'];
+    if (!window.htSurfaceElement) {
+      throw new Error(
+        'Unknown ?surfaceElement= value: ' + JSON.stringify(htParams.get('surfaceElement'))
+      );
+    }
   </script>
   <style>
     /* The panel stands in for a third-party picker: outside the grid's root element, and outside
@@ -115,9 +138,19 @@
         editor.hot.rootDocument.body.appendChild(panel);
 
         editor.picker = panel;
-        editor.preventCloseElement = panel;
+        editor.surface = window.htSurfaceElement === 'body'
+          ? editor.hot.rootDocument.body
+          : panel;
+
+        if (window.htSurfaceAssignedIn === 'init') {
+          editor.preventCloseElement = editor.surface;
+        }
       },
       afterOpen(editor) {
+        if (window.htSurfaceAssignedIn === 'afterOpen') {
+          editor.preventCloseElement = editor.surface;
+        }
+
         editor.picker.style.display = 'block';
       },
       afterClose(editor) {
@@ -134,6 +167,18 @@
     // Records every committed change, so a spec can assert that NO commit happened. A poll on the
     // data alone cannot do that: it passes on its first sample and races a deferred commit.
     window.htChanges = [];
+
+    // Every `console.warn` the library printed. Wrapped rather than listened for through
+    // Playwright's console event, so a spec polls the page for it in the same round trip it polls
+    // the grid state with, and can never miss one emitted before a listener attached.
+    window.htWarnLog = [];
+
+    const nativeWarn = console.warn.bind(console);
+
+    console.warn = (...args) => {
+      window.htWarnLog.push(args.join(' '));
+      nativeWarn(...args);
+    };
 
     window.hot = new Handsontable(container, {
       data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']],

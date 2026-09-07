@@ -1854,11 +1854,19 @@ class TableView {
    */
   #isPathWithinGrid(eventPath: EventTarget[]): boolean {
     const { rootElement, rootPortalElement } = this.hot;
-    const editorSurface = this.#getActiveEditorSurface();
 
     if (eventPath.includes(rootElement) ||
-        (!!rootPortalElement && eventPath.includes(rootPortalElement)) ||
-        (editorSurface !== null && eventPath.includes(editorSurface))) {
+        (!!rootPortalElement && eventPath.includes(rootPortalElement))) {
+      return true;
+    }
+
+    // Resolved only after the two checks above have failed, so the common path (a press inside the
+    // grid) still costs two `includes` and nothing else. Must stay ABOVE the ShadowRoot bail-out: a
+    // complete path that crosses shadow boundaries can carry the surface, and bailing first would
+    // read that as an outside click.
+    const editorSurface = this.#getActiveEditorSurface();
+
+    if (editorSurface !== null && eventPath.includes(editorSurface)) {
       return true;
     }
 
@@ -1889,6 +1897,24 @@ class TableView {
       return null;
     }
 
+    // A surface that CONTAINS the grid is refused rather than honored. A picker library that hands
+    // back its root instead of its popup makes `document.body` an easy value to assign, and taking
+    // it at face value would make every click on the page count as a click inside the grid – the
+    // outside-click deselect would stop working for as long as that editor is open, with nothing
+    // visible to blame it on. The option names an element the editor renders OUTSIDE its container,
+    // so an ancestor of the grid can never be a legitimate answer.
+    if (editor.preventCloseElement.contains(this.hot.rootElement)) {
+      warnOnce(
+        this.hot.rootElement,
+        'TableView.preventCloseElementContainsGrid',
+        'The editor\'s `preventCloseElement` contains the grid, so it cannot be told apart from ' +
+        'the page. Assign the picker\'s own popup element instead of an ancestor of the grid. The ' +
+        'element is ignored, and clicks outside the grid keep closing the editor.'
+      );
+
+      return null;
+    }
+
     return editor.preventCloseElement;
   }
 
@@ -1900,6 +1926,12 @@ class TableView {
    * focus (flatpickr moves it into its calendar) makes the next `mouseup` anywhere read as a focus
    * loss to the outside and deselect the cell, committing the editor's pre-edit value.
    *
+   * Walks with `closest()`, not `Node#contains()`. The element comes from `getDeepActiveElement()`,
+   * which reaches into shadow roots, while `contains()` stops at a shadow boundary – so a picker
+   * built as a web component would put the focus on a node inside its own shadow root and read as
+   * outside the surface, reproducing this defect with a different picker library. `closest()`
+   * follows `.host` across those boundaries.
+   *
    * @private
    * @param {HTMLElement|null} element The deepest reachable focused element.
    * @returns {boolean}
@@ -1907,7 +1939,7 @@ class TableView {
   #isFocusWithinEditorSurface(element: HTMLElement | null): boolean {
     const surface = this.#getActiveEditorSurface();
 
-    return surface !== null && element !== null && surface.contains(element);
+    return surface !== null && element !== null && closest(element, [surface]) !== null;
   }
 
   /**

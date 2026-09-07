@@ -6,13 +6,19 @@ interface HandsontableFixture {
   getDataAtCell(row: number, col: number): unknown;
 }
 
-interface FixtureWindow extends Window {
+// Deliberately not `extends Window`: `windowTypes.ts` already declares `hot` globally with the full
+// instance type, and narrowing it here to the members these probes use would be a TS2430 conflict.
+// Every access goes through an explicit cast anyway.
+interface FixtureWindow {
   hot: HandsontableFixture;
   htChanges: unknown[][];
+  htWarnLog: string[];
 }
 
 interface PageOptions {
   outsideClickDeselects?: boolean;
+  surfaceAssignedIn?: 'init' | 'afterOpen';
+  surfaceElement?: 'panel' | 'body';
 }
 
 /**
@@ -24,6 +30,8 @@ export class EditorPreventCloseElementPage {
   readonly theme: string;
   readonly bundle: string;
   readonly outsideClickDeselects: boolean;
+  readonly surfaceAssignedIn: string;
+  readonly surfaceElement: string;
   readonly panel: Locator;
   readonly panelFocusTarget: Locator;
   readonly panelSetValueTarget: Locator;
@@ -36,6 +44,8 @@ export class EditorPreventCloseElementPage {
     this.theme = theme;
     this.bundle = bundle;
     this.outsideClickDeselects = options.outsideClickDeselects ?? true;
+    this.surfaceAssignedIn = options.surfaceAssignedIn ?? 'init';
+    this.surfaceElement = options.surfaceElement ?? 'panel';
     this.panel = page.getByTestId('picker-panel');
     this.panelFocusTarget = page.getByTestId('panel-focus');
     this.panelSetValueTarget = page.getByTestId('panel-set-value');
@@ -49,7 +59,9 @@ export class EditorPreventCloseElementPage {
    */
   async goto(): Promise<void> {
     const query = `theme=${this.theme}&bundle=${this.bundle}` +
-      `&outsideClickDeselects=${this.outsideClickDeselects}`;
+      `&outsideClickDeselects=${this.outsideClickDeselects}` +
+      `&surfaceAssignedIn=${this.surfaceAssignedIn}` +
+      `&surfaceElement=${this.surfaceElement}`;
 
     await this.page.goto(`/tests/fixtures/demo/editor-prevent-close-element.html?${query}`);
 
@@ -94,10 +106,13 @@ export class EditorPreventCloseElementPage {
    * Clicks the panel's focusable element and reports whether the browser focus actually landed
    * inside the panel.
    *
-   * The precondition matters more than it looks. A popup that keeps the focus in the editor's own
-   * input never reaches the focus-driven outside-click path at all - `tableView`'s `mouseup`
-   * handler returns early while an input holds the focus - which is why the `color-picker` recipe
-   * survives the defect this suite covers and the `flatpickr` one does not. Without asserting the
+   * The precondition matters more than it looks. A popup that leaves the focus on the editor's own
+   * input never reaches the focus-driven outside-click verdict, because that input sits inside
+   * `rootElement` and `isForeignFocusTarget()` therefore reads `false` - which is why the
+   * `color-picker` recipe survives the defect this suite covers and the `flatpickr` one does not.
+   * (Not because `tableView`'s `mouseup` handler returns early on a focused input: that return
+   * needs `!isOutsideInput(element)`, and `isOutsideInput` is only `false` for an element carrying
+   * `data-hot-input`, which `editorFactory` never stamps on `editor.input`.) Without asserting the
    * focus move, a spec here would go green on unfixed code and pin nothing.
    */
   async clickPanelFocusTarget(): Promise<boolean> {
@@ -156,6 +171,42 @@ export class EditorPreventCloseElementPage {
     }
 
     await this.page.mouse.click(x, y);
+  }
+
+  /**
+   * Presses inside the panel and releases the pointer OUTSIDE it, the gesture a real picker's
+   * slider produces (dragging Pickr's hue bar past its edge, for one).
+   *
+   * This is what tells the fix's two halves apart. The press is swallowed by the factory's own
+   * `mousedown` `stopPropagation`, so only the release reaches the document handler - and its
+   * event path runs through the page, not through the panel, so `#isPathWithinGrid()` cannot
+   * recognize it. The focused element still sits in the panel, which leaves
+   * `#isFocusWithinEditorSurface()` as the only thing preventing a deselect.
+   *
+   * @returns {Promise<boolean>} Whether the browser focus is inside the panel at release time.
+   */
+  async dragFromPanelToOutside(): Promise<boolean> {
+    const box = await this.panelFocusTarget.boundingBox();
+
+    if (!box) {
+      throw new Error('The panel focus target is not rendered');
+    }
+
+    await this.page.mouse.move(box.x + (box.width / 2), box.y + (box.height / 2));
+    await this.page.mouse.down();
+
+    const focusMoved = await this.#isFocusInsidePanel();
+
+    const panelBox = await this.panel.boundingBox();
+
+    if (!panelBox) {
+      throw new Error('The picker panel is not rendered');
+    }
+
+    await this.page.mouse.move(panelBox.x + panelBox.width + 60, panelBox.y + panelBox.height + 60);
+    await this.page.mouse.up();
+
+    return focusMoved;
   }
 
   /**
@@ -227,6 +278,13 @@ export class EditorPreventCloseElementPage {
       ),
       [row, col],
     );
+  }
+
+  /**
+   * Returns every `console.warn` the library printed, captured by the fixture.
+   */
+  async warnings(): Promise<string[]> {
+    return this.page.evaluate(() => (window as unknown as FixtureWindow).htWarnLog);
   }
 
   /**

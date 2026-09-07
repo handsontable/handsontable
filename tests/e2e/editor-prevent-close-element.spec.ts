@@ -99,6 +99,78 @@ test.describe('An editor with a preventCloseElement outside the grid', () => {
   });
 
   /**
+   * Tells the fix's two halves apart, part 1: the EVENT-PATH half.
+   *
+   * With the surface assigned in `afterOpen`, `editorFactory`'s own `mousedown` `stopPropagation`
+   * listener does not exist - it is wired once, right after `init` returns - so the press reaches
+   * the document handler and `#isPathWithinGrid()` is the only thing between it and a deselect.
+   * Verified: red with the `#isPathWithinGrid()` branch reverted, green with only the focus guard
+   * reverted. Both are documented lifecycle hooks for assigning the element, so this is a shape
+   * the contract has to cover, not a synthetic one.
+   */
+  test('survives a press on a surface that was assigned in afterOpen', async({ page, theme, bundle }) => {
+    const grid = new EditorPreventCloseElementPage(page, theme, bundle, { surfaceAssignedIn: 'afterOpen' });
+
+    await grid.goto();
+    await grid.openEditor(0, 1);
+
+    expect(await grid.clickPanelFocusTarget()).toBe(true);
+
+    expect(await grid.isEditorOpen()).toBe(true);
+    expect(await grid.editorState()).toBe('STATE_EDITING');
+    expect(await grid.selected()).toEqual([[0, 1, 0, 1]]);
+    expect(await grid.committedChanges()).toEqual([]);
+  });
+
+  /**
+   * Tells the fix's two halves apart, part 2: the FOCUS half.
+   *
+   * A press inside the panel released outside it - a picker's slider dragged past its edge. The
+   * release's event path runs through the page rather than the panel, so `#isPathWithinGrid()`
+   * cannot recognize it, and the focused element still sitting in the panel is the only thing left
+   * to go on. Verified: red with the focus guard reverted, green with only the
+   * `#isPathWithinGrid()` branch reverted.
+   */
+  test('survives a press inside the surface released outside it', async({ page, theme, bundle }) => {
+    const grid = new EditorPreventCloseElementPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.openEditor(0, 1);
+
+    expect(await grid.dragFromPanelToOutside()).toBe(true);
+
+    expect(await grid.isEditorOpen()).toBe(true);
+    expect(await grid.editorState()).toBe('STATE_EDITING');
+    expect(await grid.selected()).toEqual([[0, 1, 0, 1]]);
+    expect(await grid.committedChanges()).toEqual([]);
+  });
+
+  /**
+   * The guard refuses a surface that CONTAINS the grid instead of honoring it. A picker library
+   * that returns its root rather than its popup makes `document.body` an easy value to assign, and
+   * taking it at face value would silently disable outside-click deselect for as long as that
+   * editor stays open, with nothing visible to blame. The mistake is reported once per instance
+   * rather than swallowed.
+   */
+  test('ignores a surface that contains the grid, and says so once', async({ page, theme, bundle }) => {
+    const grid = new EditorPreventCloseElementPage(page, theme, bundle, { surfaceElement: 'body' });
+
+    await grid.goto();
+    await grid.openEditor(0, 1);
+
+    await grid.clickOutsideEverything();
+
+    await expect.poll(() => grid.isEditorOpen()).toBe(false);
+    await expect.poll(() => grid.selected()).toBe(null);
+
+    expect(await grid.warnings()).toContain(
+      'The editor\'s `preventCloseElement` contains the grid, so it cannot be told apart from the ' +
+      'page. Assign the picker\'s own popup element instead of an ancestor of the grid. The element ' +
+      'is ignored, and clicks outside the grid keep closing the editor.'
+    );
+  });
+
+  /**
    * The guard must not swallow a genuine outside click. The panel is the only element outside the
    * grid that counts as its own, so a press on the page background still ends the edit.
    */
