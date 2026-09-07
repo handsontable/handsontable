@@ -561,6 +561,37 @@ test('viewport smell: colWidths/rowHeights are not a viewport, and Playwright :v
   assert.equal(findViewportSmells(dataCount), 0, 'a data count is not a rendered count');
 });
 
+test('viewport smell: the follow-up search for a captured locator stays inside its own test', () => {
+  // The follow-up walk ran to the end of the enclosing describe, so a later sibling test
+  // counting a same-named locator made an earlier test's plain click read as a count.
+  const siblings = `
+    describe('rows', () => {
+      it('clicks the first visible row', async() => {
+        const rows = page.locator('tr:visible');
+        await rows.first().click();
+      });
+      it('counts the visible rows', async() => {
+        const rows = page.locator('tr:visible');
+        expect(await rows.count()).toBe(10);
+      });
+    });
+  `;
+
+  assert.equal(findViewportSmells(siblings), 1, 'only the test that counts holds a read');
+
+  // A describe-level capture that a test counts still reaches across the describe.
+  const shared = `
+    describe('rows', () => {
+      const rows = page.locator('tr:visible');
+      it('counts the visible rows', async() => {
+        expect(await rows.count()).toBe(10);
+      });
+    });
+  `;
+
+  assert.equal(findViewportSmells(shared), 1, 'a describe-level capture counted by a test is a read');
+});
+
 test('viewport smell: a `:visible` selector is a rendered-count read only when something counts it', () => {
   // Interaction and single-element reads on a visible-filtered locator count nothing.
   const clicks = `

@@ -462,7 +462,7 @@ function statementBounds(code, index) {
  *
  * @param {string} code The source text (comments blanked).
  * @param {number} index Index of the `:visible` match.
- * @param {number} scopeEnd End index of the innermost enclosing describe (or the text).
+ * @param {number} scopeEnd End index of the test body holding the selector, or of the innermost enclosing describe (or the text) when the selector sits outside any test.
  * @returns {boolean} True when the selector feeds a count.
  */
 function isCountedVisibleSelector(code, index, scopeEnd) {
@@ -602,12 +602,20 @@ function hasViewportPin(text) {
 export function findViewportSmells(src) {
   const code = blankComments(src);
   const scopes = describeScopes(code);
+  const bodies = testBodies(code);
   const enclosingOf = index => scopes.filter(scope => scope.start <= index && index <= scope.end);
   const helperReads = [...code.matchAll(RENDERED_COUNT_HELPER_RE)].map(match => match.index);
   const visibleReads = [...code.matchAll(VISIBLE_SELECTOR_RE)]
     .map(match => match.index)
     .filter((index) => {
-      const scopeEnd = Math.min(code.length, ...enclosingOf(index).map(scope => scope.end));
+      // A captured locator is followed up only inside the test that captured it: a
+      // sibling test counting a same-named locator says nothing about this one. A
+      // capture outside any test (a describe-level const) is shared by the tests
+      // below it, so there the describe scope is the right reach.
+      const test = bodies.find(body => body.start <= index && index < body.start + body.body.length);
+      const scopeEnd = test
+        ? test.start + test.body.length
+        : Math.min(code.length, ...enclosingOf(index).map(scope => scope.end));
 
       return isCountedVisibleSelector(code, index, scopeEnd);
     });
