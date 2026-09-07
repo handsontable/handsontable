@@ -605,6 +605,38 @@ class DataManager {
   }
 
   /**
+   * Moves the cell meta of a relocated block of rows, so meta stored between the block's old and
+   * new position moves with its data.
+   *
+   * `detachFromParent` restructures the tree by hand, so it needs both halves of the move, not just
+   * the insert side `shiftCellsMeta` covers: the block is removed at its old physical index and
+   * re-inserted at its new one. `MetaManager` takes physical indexes, which is what `getRowIndex()`
+   * returns, and neither call renders.
+   *
+   * The moved block's own meta is reset rather than carried across. `LazyFactoryMap` has no move
+   * primitive, and the alternative – snapshotting through `getCellMetas()` – takes visual indexes,
+   * materializes meta for every column, and fires `afterSetCellMeta` per cell. Leaving the meta
+   * behind is worse than resetting it: it would land on whatever row took the old index.
+   *
+   * @param {number|null} fromPhysicalRow Physical index the block sat at before the move.
+   * @param {number|null} toPhysicalRow Physical index the block sits at after the move. A `null` on
+   * either side skips the move, so an unknown row object cannot splice meta from index 0. An
+   * unchanged index also skips it – nothing shifted, so resetting the block's meta would drop meta
+   * that is still on the right cells.
+   * @param {number} amount Number of rows in the moved block.
+   */
+  moveCellsMeta(fromPhysicalRow: number | null, toPhysicalRow: number | null, amount: number) {
+    if (fromPhysicalRow === null || toPhysicalRow === null || fromPhysicalRow === toPhysicalRow) {
+      return;
+    }
+
+    const metaManager = this.hot._getMetaManager();
+
+    metaManager.removeRow(fromPhysicalRow, amount);
+    metaManager.createRow(toPhysicalRow, amount);
+  }
+
+  /**
    * Add a child node to the provided parent at a specified index.
    *
    * @param {object} parent Parent node.
@@ -723,13 +755,21 @@ class DataManager {
       return;
     }
 
-    const childRowIndex = this.getRowIndex(element) ?? 0;
+    // Kept separate from `childRowIndex`: that `?? 0` fallback is pre-existing and is left reporting
+    // the hook arguments exactly as it did. As a meta index the `0` would splice from the top of the
+    // grid, so `moveCellsMeta()` reads the raw result instead.
+    const childPhysicalIndex = this.getRowIndex(element);
+    const childRowIndex = childPhysicalIndex ?? 0;
     const childCount = this.countChildren(element);
     const indexWithinParent = this.getRowIndexWithinParent(element);
     const parent = this.getRowParent(element);
     const grandparent = this.getRowParent(parent!);
     const grandparentRowIndex = this.getRowIndex(grandparent) ?? 0;
     let movedElementRowIndex: number | null = null;
+    // Set inside the branch that actually restructures the tree, so the cell meta move below can
+    // never run on its own. Re-testing `indexWithinParent` there would be a second copy of this
+    // condition, free to drift away from the one the data operation is gated on.
+    let hasMovedTheRow = false;
 
     this.hot.runHooks('beforeDetachChild', parent, element);
 
@@ -774,9 +814,18 @@ class DataManager {
 
         this.data!.push(element);
       }
+
+      hasMovedTheRow = true;
     }
 
     this.rewriteCache();
+
+    if (hasMovedTheRow) {
+      // Read the destination instead of reusing `movedElementRowIndex`: that one is derived
+      // arithmetically from the grandparent position, and a sibling that owns descendants breaks
+      // the formula.
+      this.moveCellsMeta(childPhysicalIndex, this.getRowIndex(element), childCount + 1);
+    }
 
     this.hot.runHooks('afterCreateRow', movedElementRowIndex! - 2, childCount + 1, this.plugin.pluginName);
 
