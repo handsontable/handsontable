@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed a bug where a cell holding an empty string counted as the number zero in a column summary, so `min`, `max`, `count`, and `average` changed when a cell was blank. Such a cell is now skipped, matching a cell cleared with the Delete key.",
+  "type": "fixed",
+  "issueOrPR": 5905,
+  "breaking": false,
+  "framework": "none"
+}

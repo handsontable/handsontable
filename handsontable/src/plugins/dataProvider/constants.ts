@@ -82,7 +82,7 @@ export function dataProviderErrorRemoveMissingRowId(visualIndex: number): string
 }
 
 /**
- * Thrown by [[DataProvider#updateRows]] when an entry has no `id`.
+ * Thrown by {@link DataProvider#updateRows} when an entry has no `id`.
  *
  * @package
  */
@@ -90,7 +90,7 @@ export const DATA_PROVIDER_ERROR_UPDATE_ROWS_MISSING_ID =
   'DataProvider: `updateRows` requires every entry to include a non-null `id`.';
 
 /**
- * Thrown by [[DataProvider#removeRows]] when an id is null or undefined.
+ * Thrown by {@link DataProvider#removeRows} when an id is null or undefined.
  *
  * @package
  */

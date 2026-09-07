@@ -29,15 +29,16 @@ Self-contained rendering engine for viewport calculation, DOM rendering, scroll 
 
 `Border` in `src/selection/border/border.ts` has TWO distinct handle systems: `selectionHandles` (mobile touch handles, created by `createMultipleSelectorHandles()`, CSS classes `topSelectionHandle`/`bottomSelectionHandle`) and `adjustHandles` (desktop drag-to-resize handles added in 18.0.0, CSS class `.wtSelectionHandle`, controlled by the `selectionHandles` grid option). Do not conflate them.
 
-## Selection affordances must stay under the overlay clones (z-index < 120)
+## The master table must remain a stacking context below overlay clones
 
-`.ht_master` is `position: relative` with no z-index, so it opens **no stacking context** and every
-element inside it competes directly with the overlay clone divs (`inline_start` 120, `bottom` 130,
-`bottom_inline_start_corner` 150, `top` 160, `top_inline_start_corner` 180). An affordance drawn
-inside the master at 120 or above therefore paints on top of a frozen pane once its cell scrolls
-under one, and wins hit-testing there — the crosshair and the drag are stolen from the frozen cells.
+`.ht_master` is `position: relative` with `z-index: 0`. The explicit zero is load-bearing: it traps
+the scroll holder and every browser-promoted scrolling layer below the overlay clone divs
+(`inline_start` 120, `bottom` 130, `bottom_inline_start_corner` 150, `top` 160,
+`top_inline_start_corner` 180). Removing the stacking context lets the holder compete directly with
+the clones. Under a transformed ancestor, mobile browsers can then composite the scrolling master
+above the frozen panes.
 
-The window 101–119 is reserved for these: the `moveCells` bands (100, inlined by `createMoveZone`),
+The window 101–119 remains reserved for these: the `moveCells` bands (100, inlined by `createMoveZone`),
 the autofill fill handle (`.wtBorder.corner`, 110) and the desktop resize handles
 (`.wtSelectionHandle`, 115). Do not raise any of them to clear something else — every frozen overlay
 draws its own copy of each affordance, so none of them needs to outrank a clone to appear inside a
@@ -45,15 +46,32 @@ pane. `.ht_clone_master: 100` in the z-index map does **not** apply to the maste
 is stamped on the editor container by `src/editors/factory.ts`.
 
 Two related mechanisms that look like counter-examples and are not: the mobile selection handles take
-an inline `zIndex = '9999'` when a selection edge lands on a freeze line (`border.ts`, legacy #9850),
-and the fill handle is *repositioned* rather than re-layered at the `fixedRowsBottom` line
-(`isCornerLiftedAtBlockEnd`). Handles drawn by a frozen overlay itself need no such treatment: they
+an inline `zIndex = '9999'` inside their table's stacking context (`border.ts`, legacy #9850), and the
+fill handle is *repositioned* rather than re-layered at the `fixedRowsBottom` line
+(`isCornerLiftedAtBlockEnd`). Since the master became a stacking context, that 9999 can no longer
+clear a clone, so the master's mobile handles are repositioned instead: the top handle is inset by
+`isTopHandleOccludedByClone` and the bottom handle is lifted by `isBottomHandleOccludedByClone`.
+
+**The trigger for those two is clone presence, not the fixed-pane count, and the difference is not
+cosmetic.** `shouldRenderTopOverlay` is true for `colHeaders` alone, so with `fixedRowsTop: 0` a
+row-0 selection sits flush against the `top` clone exactly as row `fixedRowsTop` does with a frozen
+pane, and an outward-hanging handle dies under it either way. `isFrozenBoundaryEdge` answers the
+narrower "is this a freeze line" question and is the right helper for the fill handle and the
+boundary edges; routing the handle *position* through it silently drops the header case (and, on the
+other axis, `rowHeaders` plus `shouldRenderInlineStartOverlay`). Both helpers also return `false` off
+the master on purpose. Handles drawn by a frozen overlay itself need no treatment: they
 already land flush against the `.wtHolder` edge that clips them, which `border.spec.js` pins to the
 pixel on both axes. Note `.wtHolder` is the clipping box (`overflow: hidden`), while the clone element
 is `overflow: visible` and ends a few pixels earlier — measure the holder, not the clone.
 
-The declarations live in `src/styles/base/_z-index-map.scss`, `css/walkontable.scss` (clone values,
-duplicated — keep in sync) and `src/styles/components/core/_selection.scss` (the affordances).
+One case is *not* covered and is not a regression: with both headers off and no frozen panes, a row-0
+top handle is drawn at a negative offset and the master's `.wtHolder` clips it. It was invisible
+before the stacking context too, so it keeps the outer-corner placement
+(`mobile-selection-handles.spec.ts` pins that branch).
+
+The declarations live in `src/styles/base/_z-index-map.scss`, `css/walkontable.scss` (master and
+clone values, duplicated — keep in sync) and `src/styles/components/core/_selection.scss` (the
+affordances).
 
 ## Naming gotcha: `moveCells` grid option vs. HyperFormula engine method
 
@@ -105,6 +123,90 @@ Three more things that pass every functional test and only show up in a profile 
 - **Steady state must cost zero row-height cache invalidations.** Each one drops the per-draw layout snapshot as well, and with a non-uniform row-size source (`rowHeights`/`minRowHeights` as an array or function, or any non-AutoRowSize `modifyRowHeight` hook) `PositionCache` has no sparse path, so a rebuild is a full prefix-sum walk over every row. Verified by counting: 0 invalidations/draw and an unchanged `createVisibleCalculators` count in every configuration. Two specs in `tests/e2e/walkontable/frozen-column-row-heights.spec.ts` pin the invalidation count at 0 through the fixture's `countRowCacheInvalidations` — the only way to see this class of bug, since the rows stay aligned and every visual assertion passes while it happens.
 
 When you add a new content-driven measurement, ask which tables actually render the content — measuring the master alone is the trap both of these exist to work around.
+
+## Column-axis border ownership: the row header owns its gridline
+
+The two axes are NOT symmetric, and the column axis is the settled one. On the column axis a row
+header `th` carries its own `border-inline-end` at **every** scroll position, and no `td` standing
+behind a row header carries a `border-inline-start`. So one declared `colWidths` produces one content
+width in every column, and `col.rowHeader` is written verbatim from the `rowHeaderWidth` setting
+whatever the scroll offset (`render/colGroup.ts`).
+
+It used to work the other way round, and that was issue #6673. `td:first-of-type` was given an
+inline-start border on top of the inline-end border every cell has, and `box-sizing: border-box` took
+both out of the same `col` width — so column 0's content box was 1px narrower than everybody else's.
+The row header then dropped its own inline-end border at offset 0 to keep the seam from doubling, and
+a `correctHeaderWidth` flag widened the row header by 1px the moment the grid scrolled, with matching
+compensations in `inlineStartOverlay#scrollTo`, the hider width (`spreaderSize`) and the two column
+calculators (`viewportWidth + 1`). The table therefore changed width by being scrolled. All of that is
+gone; do not reintroduce a scroll-dependent header width or a per-axis `+ 1` in a column calculator —
+`getViewportWidth()` is exact at every offset now.
+
+Consequences worth knowing:
+
+- **`innerBorderInlineStart`, `innerBorderLeft` and `emptyColumns` still get stamped on `.ht_master`**
+  (`overlay/regions/inlineStartOverlay.ts`) and are kept for backward compatibility, but no stylesheet
+  reads them any more. `innerBorderInlineStart` also only toggles when the grid has row headers and NO
+  frozen columns, so it is not a usable "has scrolled" signal in a test — poll the holder's
+  `scrollLeft` instead.
+- **The row axis is unchanged.** `innerBorderTop` / `innerBorderBottom` still shift the layout by 1px,
+  which is what `positionChanged` and the reconciliation draw in `table/drawCycle.ts` exist for, and
+  `columnHeaderBorderCompensation` in `topOverlay`/`spreaderSize` is the vertical twin that stayed.
+  Bringing the row axis into line is a separate change.
+- **Anything positioning an element over a cell must read the cell's border, not its index.** Which
+  cells own an inline-start border is no longer "column 0": with row headers none of them do, and
+  `htFirstDatasetColumnNotRendered` takes it off the first rendered column too. `BaseEditor#getEditedCellRect`
+  keys both the editor's width and its inline-start offset off the same computed border for exactly
+  that reason — key them off different things and the editor is a pixel wider than where it starts,
+  overhanging the next column.
+- **Reading the border is not enough for anything the overlays paint over.** The shared pixel in front
+  of column 0 belongs to the inline-start overlay, which is z-index 120 against the selection border
+  layer's 10, so an affordance centred on that gridline is *geometrically* right and *invisible*.
+  `Border#appear` therefore shifts the edge onto the cell's own boundary when the cell either owns an
+  inline-start border **or** has a row-header `th` as its previous sibling. That second test is what
+  keeps a selection on column 0 visible; without it the edge lands at `rowHeaderWidth - 1` and
+  disappears behind the row header. The `customBorders` specs cannot catch it — they count visible
+  elements, and the element is there, just covered.
+- **Ownership covers the seam's COLOR, not only which element draws it.** In the overlay that renders
+  nothing but the row-header column, the row header `th` is also `:last-child`, and the header rule
+  keyed on that paints the grid's OUTER frame color. So the same gridline came out
+  `--ht-border-color` with plain `rowHeaders` and `--ht-cell-horizontal-border-color` with
+  `fixedColumnsStart` — invisible in `horizon`, where the cell-border token is transparent, and
+  visible in the other shape. `_base.scss` pins the seam owner to the cell-border color under
+  `.htRowHeaders`, with three carve-outs: `.emptyColumns`, where the row header really is the grid's
+  inline-end edge; `ht__active_highlight-prev`, which is how an active column-0 header gets its
+  inline-start accent (that pixel moved to the corner); and `ht__active_highlight`, because the seam
+  is the active row header's own inline-end and the accent has to win there. The grid managed that
+  last one only when scrolled before, since the border was 0px at horizontal offset 0.
+- **A grid can carry more than one row header column**, and then the seam to column 0 is the LAST
+  one's `border-inline-end`. `afterGetRowHeaderRenderers` is a documented hook that appends
+  renderers, and `autoRowHeaderSize` measures each of them, so this is a supported shape rather than
+  a curiosity. The body selector therefore matches every `th` in a body row - all of them are row
+  headers - rather than `th:first-child`; the inner ones need no override because they are never
+  `:last-child`. The HEAD row cannot be handled the same way: CSS cannot count how many corner cells
+  precede the first column header, so that half stays on `:first-child` and a grid with two or more
+  row headers keeps drawing its head-row seam in the frame color. That is what it does today too, so
+  it is a pre-existing quirk this change neither fixes nor worsens - fixing it needs a marker class
+  from the engine on the last row header.
+- Without row headers, column 0 is the first cell of its row and still draws the grid's own
+  inline-start frame inside its declared width. It stays 1px narrower than the rest — deliberately out
+  of scope for #6673, and pinned as a control case in
+  `tests/e2e/row-header-border-ownership.spec.ts`.
+
+## Exact row heights
+
+A provided row height has two possible meanings, chosen per row by the `rowHeightMode` setting (`'min'` by default; the `RowSizeSource#getMode` port, resolved once in `RowUtils#isExact`): a **floor** the content may grow past (the historical behavior, every path above), or an **exact** height the row renders at, with taller content clipped. A row is exact only when the mode says so AND it has a positive provided height — `0` and `undefined` are "no height", so a hidden row's `0` never becomes a 0px exact row, and `rowHeights: 0` falls through to the default like `colWidths: 0`. **`isExact` reads the mode before the size, and the order is load-bearing**: the size read is the host's whole row-height funnel (every `modifyRowHeight` hook in Handsontable), while the mode is a literal `'min'` until a host supplies a function, so a default grid must never reach the size read from there. **Every loop over rows asks `RowUtils#mayHaveExactRows()` once and skips the per-row probe when it is `false`** — the render loop, the measurement walk and the re-apply pass all do. Without it a grid that never sets the mode paid one settings read per rendered row per table per draw (measured: 61 per draw on a 30-row band, against 3 with it). The render loop also resolves exactness once per row and hands it to `getHeightByOverlayName`, so the funnel runs no extra time in either mode; measured on the fixture, a draw costs 3 `modifyRowHeight` calls per rendered row in `min` mode (the same as before the mode existed) and 5 in `exact` mode. Measured against the pre-change bundle on a 100k-row grid with a 570-cell viewport, a default grid's draw time is unchanged (2.2ms full draw, 10ms scroll step on both), and the exact mode matches it.
+
+Four things hold a row up, and exactness has to defeat each of them:
+
+1. **The DOM read-back.** `markOversizedRows` skips exact rows (before the geometry read, so they cost nothing), `RowUtils` returns the provided height without the `Math.max` against `oversizedRows`, and a record an exact row may still hold from before it became exact stays wiped so the shrink detection reports the change. The frozen sync inherits the skip because it calls `markOversizedRows`. A **uniform exact band skips the walk outright**: the uniform early-out compares the TBODY against `rowCount * defaultRowHeight`, which an exact band never matches, so without the shortcut the most common exact configuration (`rowHeights: <number>`) would walk every rendered row on every draw. The shortcut needs the sizes AND the mode to be uniform (`RowSizeSource#isModeUniform`: the setting is a literal — neither a function nor an array, both of which `getSetting` resolves per row) — `isUniform()` describes the size source alone, and one row's mode cannot stand for the band's otherwise, so a host that wants the shortcut passes a literal mode when it applies to every row. On an exact row, `getHeightByOverlayName` falls back to the row's own height when an overlay listener answers nothing, so no overlay can drop to the floor shape while the row-height cache carries the exact value.
+2. **The cells the height is not written to.** The floor shape writes the height to `TR.firstChild` only. That is enough for a floor, and it is why the stylesheet's default `height` on every `td`/`th` holds an exact row up even when the cells are empty. The exact shape (`render/exactRowHeight.ts`, used by both the render loop and `applyRowHeightsToRenderedRows`) marks the **row** with `htExactRow`, and the stylesheet releases the cells' minimum height through that class (`tr.htExactRow > td { height: auto }`), so the height still goes on one cell only — the first that spans a single row and is rendered; a cell spanning several rows (a merged cell) never carries it, the span sizes it, and a cell MergeCells covers is `display: none` with its `rowspan` removed, so a height on it would hold nothing up. When no cell can carry it at all (every cell covered or spanning) the height goes on the `tr` instead, or the row would collapse to its borders now that the stylesheet released the cells' minimum. **The marker must stay on the row, not the cells.** The cell renderers reset every cell's class and inline style on each draw, and a per-cell marker was measured at +2.2 ms of style recalculation per draw on 462 cells (the browser recomputed the whole band); the row renderer leaves the row's class alone, so re-asserting the row marker each draw costs nothing (adding a present class is a no-op) and heals a hook that rewrote `className`. The release clears every cell's inline height, because the carrier need not be the first cell and the out-of-render path has no renderer to reset it.
+3. **CSS table layout.** A table cell's `height` is a minimum, full stop: `overflow: hidden` on the cell does not shrink it, and a `height: 100%` child resolves to the content height (measured, not guessed). The only thing that works is taking the content out of flow: each data cell's content is moved into `div.htCellClip`, which the stylesheet positions absolutely over the cell's padding box and clips; the cell drops its own padding through the row class (a border-box cell cannot be shorter than its padding plus border — 17px in `horizon`), while the wrapper's insets carry the same padding so the text does not move. Row headers keep their `.relative` wrapper (taken out of flow the same way; it must stay `TH.firstChild` or `appendRowHeader` rebuilds it every draw) and the header's own `span.rowHeader` clips — never `.relative` and never the `th`: the active-row accent bar is a `.relative::after` inset by -1px on three sides to meet the gridlines, and a clip on either box cuts it off (a body-row `th` has `padding: 0`, so its padding box is its content box). A custom row-header renderer that builds no `.rowHeader` is simply unclipped; it can never grow the row, because `.relative` is out of flow. Vertical alignment (`htMiddle`/`htBottom`) maps onto the wrapper through `align-content` on the block box, never `display: flex` — the indicator renderers float their arrows, and a flex container ignores floats.
+4. **The renderers.** The cell renderer resets a painted cell's class and inline style, so the one inline height is re-applied on every draw (the reason the height pass must stay after `cells.render()`). The pass runs for every rendered row whatever the cell painter decided, which is what keeps it correct under `renderMode: 'onChange'`: a cell the diffing pass skips keeps its wrapper and its height, and re-applying them is idempotent. The painter reads its own stamps and never inspects cell DOM, so the wrapper is invisible to it. The wrapper is the expensive part: `fastInnerText`'s fast lane needs `firstChild` to be a text node, and `empty(TD)`/`innerHTML` wipe it. Every built-in renderer therefore writes through `getCellContentRoot(TD)` (`helpers/dom/element.ts`), which returns the wrapper when it is the cell's only child, and `fastInnerText`/`fastInnerHTML` do the same — so the wrapper survives a redraw and the row-height pass sees "already wrapped" and does nothing. A custom renderer that wipes the cell costs one re-wrap per draw, on exact rows only; that is the accepted cost, and it is the exception to the "no structural DOM mutation per draw" rule in `tableRenderer.ts`. A renderer that inserts a node **next to** the wrapper (the old `TD.insertBefore(ARROW, TD.firstChild)` shape) grows the row back — in-flow content outside the wrapper counts — which is why the arrow renderers went through the content root too.
+
+Switching a row back to the floor shape unwraps it once (a `WeakSet` of exact rows, so floor rows are never inspected). Column headers are out of scope on purpose: `adjustColumnHeaderHeights` writes a minimum by design.
+
+Pinned by `test/unit/axisSizing/rowHeightMode.unit.ts`, `test/unit/renderer/exactRowHeight.unit.ts`, and `tests/e2e/walkontable/exact-row-heights.spec.ts` (the fixture flips the mode on the engine directly; the `min`-mode case there is the precondition that a short provided height alone does not shrink a row).
 
 ## A table built outside the layout cannot read its own styles
 
@@ -190,6 +292,95 @@ Never guess a container from an empty style read, and never cache a layout decis
 - **Touch double-taps are paired independently of the mouse double-click slots.** `#handleTouchTap()` tracks `#lastTapCoords`/`#lastTapAt` and fires the double-click callbacks when a second tap lands on the same coordinates within `TOUCH_DBLTAP_TIMEOUT` (1000 ms); a long-press, a tap outside the cells, or a tap on different coordinates resets the detector. Coordinates, not the resolved TD, because Walkontable recycles TD elements across scrolls and re-renders (DEV-2687 review). Touch taps never arm `#dblClickOrigin` — only a mouse `mousedown` with `button === 0` does — so a real mouse click right after a tap cannot complete a double-click by pairing with it. Mouse double-click timing (`DBLCLICK_MOUSEDOWN_TIMEOUT` 1000 ms / `DBLCLICK_MOUSEUP_TIMEOUT` 500 ms) is unchanged. `touchcancel` resets the per-gesture state (`onTouchCancel`) — `touchApplied`, the mouse-down flag, the long-press timer, and the pending synthesized pair — so a cancelled gesture cannot leave `touchApplied` stuck and route real mouse events into the tap detector, leave drag-selection armed with no `mouseup` coming, or leave an earlier tap's pending flag dropping the next real mouse pair inside the ceiling.
 - **Before 18.1, a tap on an already-selected cell opened the editor** on these devices (the unsuppressed synthesized pair completed a second double-click match; a first tap on an unselected cell is `preventDefault`-ed and synthesizes nothing). That was a side effect, not a feature; do not "restore" it.
 - Test it in Playwright with `test.use({ ...devices['Desktop Chrome'], hasTouch: true, browserName: 'chromium' })` (`tests/e2e/touch-tap-to-edit.spec.ts`); Chromium synthesizes the same mouse sequence after `locator.tap()`. Use `page.clock` to drive the pairing timers. Script-dispatched `MouseEvent`s have `sourceCapabilities === null` and exercise the WebKit fallback.
+
+## The ResizeObserver loop guard counts frames, not milliseconds
+
+`overlay/resizeMonitor.ts` guards against a parent sized in dynamic units (`dvh`) whose size the grid's
+own dimensions refresh feeds back into — a callback that re-triggers itself forever. Two properties of
+that guard are load-bearing, and both were defects until DEV-2740.
+
+**Never reset the succession on a wall-clock timer.** A `ResizeObserver` delivers at most once per
+rendering frame, so a self-sustaining loop occupies every frame whatever the machine is doing, while the
+frame *interval* stretches without bound under CPU contention. The original guard counted 300 consecutive
+deliveries and zeroed the count after 100 ms of wall-clock quiet, which made the trip a function of CPU
+speed: on a loaded machine every frame outlasted the reset, so the count never reached the threshold and
+the loop ran forever — the guard was disabled in exactly the state it exists for. The count is now reset
+only when a whole frame passes with **no** delivery, which a loop cannot produce.
+
+**Record the delivery synchronously in the observer callback.** Within one frame the browser runs the
+animation-frame callbacks, then style and layout, then delivers the `ResizeObserver` callbacks, then
+paints; and a callback registered during a frame's animation-frame phase lands in the *next* frame's
+list, in registration order. So the quiet-frame watchdog — itself an animation-frame callback — runs
+BEFORE a callback registered by that same frame's observer delivery. Setting the "delivered" flag from
+inside the deferred (rAF) part of the observer callback therefore lets the watchdog read it one frame too
+early and call a busy frame quiet. Only the setting fire may be deferred.
+
+**The disconnect is a cooldown, not a kill.** The guard cannot tell a feedback loop from a gap-free
+legitimate stream — dragging a splitter around the grid for a few seconds also occupies every frame — so
+a permanent disconnect silently ended container-resize reactivity for the instance's lifetime. The
+observer is observed again after a delay that doubles on every trip no quiet frame separated from the
+last one, capped at `RESIZE_LOOP_GUARD_RECONNECT_MAX_DELAY`, and returns to base on the first quiet
+frame. Consequences: the public `observe()` must cancel a pending reconnect (`NativeScrollInput`
+re-registers its listeners whenever the scrollable element changes, so an explicit re-observe can land
+mid-cooldown); a reconnect that finds the wrapper DETACHED must schedule another one rather than give
+up, or a host that parks the grid's subtree outside the document (a framework re-render, a
+`keep-alive` cache, a tab that caches its panel) can land its detach on the timer and restore the
+permanent disconnect through DOM timing alone; and `destroy()` must cancel **three** handles, not
+two - the reconnect timeout, the watchdog frame, and the deferred `onContainerElementResize` fire. All three outlive a task boundary,
+and the third is the easy one to miss: `getSetting()` on a function-valued key invokes the setting
+synchronously, so a delivery that landed one frame before the teardown refreshes the dimensions of a
+torn-down grid. Core's own handler happens to guard `isDestroyed`, which is what keeps that from
+throwing today - do not rely on it. An `#isDestroyed` flag backs the cancels up, because an observer
+entry carries the state from its own snapshot and can be dispatched after the disconnect.
+
+Everything the guard uses comes off the injected `rootWindow` - the timers, the animation frames AND
+the `ResizeObserver` itself. That last one is not cosmetic: for a grid whose document is an iframe's,
+the page-global constructor belongs to another window and delivers observations on that window's
+rendering, which decouples the deliveries from the frames this guard counts and breaks the
+one-delivery-per-frame invariant the whole design rests on. It is built in the constructor rather than
+as a class field, because a field initializer runs before `#deps` is assigned.
+
+The warning text is printed once per instance and pinned verbatim by two specs -
+`tests/e2e/refresh-dimensions.spec.ts` and `test/unit/overlay/resizeMonitor.unit.ts`. Reword it and
+both specs together, never alone. It ends "disconnected and reconnected after a short delay" because
+the original "will be disconnected" described the permanent kill and stopped being true when the
+cooldown replaced it.
+
+## The selection pass is a diff, and every wipe must clear the applied record
+
+`selection/manager.ts` no longer resets selection classes by querying the table. It collects, per
+element, the classes and attributes every layer wants, then applies that as a **diff** against the
+signature each element carried after the previous pass (`selection/appliedSelection.ts`, a
+`WeakMap` keyed by element). An unchanged element is not touched, which is what keeps a full draw
+from toggling the classes of every selected cell — on 40000 selected cells that toggle cost ~800 ms
+of style recalculation, not JavaScript. Three consequences:
+
+- **A renderer that resets an element's classes MUST call `clearAppliedSelection(element)`** right
+  after (`render/cells.ts`, `render/rowHeaders.ts`, `render/columnHeaders.ts` do). Without it
+  the record says "applied" while the DOM is blank, and the element stays unselected until the
+  selection changes.
+- **The cell-range scan is cached** per layer and overlay (`selection/scanCache.ts`) under the
+  layer's corners, the rendered band (offsets, counts, header counts), and the host's `renderEpoch`
+  setting. Header scans are not cached: the `onBeforeHighlightingRowHeader`/`ColumnHeader` settings
+  run inside them and plugins redirect headers through those. Anything that changes which cell an
+  element holds without moving the band must advance the epoch — core does it on every index-mapper
+  cache update, data reload, settings update, and `markAllCellsChanged()`.
+- The `onAfterDrawSelection` extra class (MergeCells) is **asked on every draw, for every source
+  coordinate that resolved to an element** — the cached scan keeps the coordinates per element for
+  exactly this. The answer depends on plugin state (MergeCells answers only for a block's first
+  renderable coordinate, and only when every layer covers the block), so it can never be cached,
+  and a merged block reached from several coordinates must be asked for each of them. The class
+  then joins the diff like any other. The query reset survives only for
+  `onBeforeRemoveCellClassNames`, a public hook that predates the diff, and runs only when a
+  plugin returns class names from it.
+
+## `shouldPaintCell`: the host may keep a cell element untouched
+
+`render/cells.ts` asks the `shouldPaintCell` setting before it resets and paints a cell element.
+`false` skips the reset, the `cellRenderer` call, and the ARIA re-stamp for that element. The
+engine keeps no per-cell state of its own here; the host (`TableView` through `CellPainter`) owns
+the stamps and answers from the cell's `renderMode`. The default answers `true`, so a Walkontable
+built without the setting behaves as before. A renderer spec's `TableRendererMock` must provide it.
 
 ## Known Tech Debt
 

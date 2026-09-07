@@ -118,10 +118,15 @@ jobs:
         id: cache
         uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # https://github.com/actions/cache/releases/tag/v5.0.3
         with:
-          key: plawyright-cache/${{github.repository}}/${{github.ref}}-${{ github.run_id }}
+          # The lockfile hash keys the snapshots to the browser build that
+          # rendered them: after a Playwright bump the old-engine snapshots
+          # must never restore (they would fail every test on font/AA pixel
+          # differences) — a miss routes into "Initialize snapshots" below,
+          # which re-baselines automatically.
+          key: plawyright-cache/${{github.repository}}/${{ hashFiles('pnpm-lock.yaml') }}/${{github.ref}}-${{ github.run_id }}
           restore-keys: |
-            plawyright-cache/${{github.repository}}/${{github.ref}}
-            plawyright-cache/${{github.repository}}/refs/heads/develop
+            plawyright-cache/${{github.repository}}/${{ hashFiles('pnpm-lock.yaml') }}/${{github.ref}}
+            plawyright-cache/${{github.repository}}/${{ hashFiles('pnpm-lock.yaml') }}/refs/heads/develop
           path: docs/tests/test-artifacts
 
       - name: Check if cache was restored
@@ -145,7 +150,7 @@ jobs:
         if: ${{!cancelled() && (env.cache-restored != 'true' || inputs.update-snapshots == true)}}
         uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # https://github.com/actions/cache/releases/tag/v5.0.3
         with:
-          key: plawyright-cache/${{github.repository}}/${{github.ref}}-${{ github.run_id }}
+          key: plawyright-cache/${{github.repository}}/${{ hashFiles('pnpm-lock.yaml') }}/${{github.ref}}-${{ github.run_id }}
           path: docs/tests/test-artifacts
 
       - name: Upload test report

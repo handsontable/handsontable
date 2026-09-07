@@ -128,6 +128,25 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   `e2e/touch-tap-to-edit.spec.ts` (page object in `fixtures/pages/`, not `fixtures/pages/mobile/`,
   because the fixture is not a mobile-UA grid).
 
+## Real-mouse gestures
+
+- `boundingBox()` ignores overflow clipping, and `toBeVisible()` passes for a fully clipped
+  element. Never aim a real-mouse press or drag at box-derived coordinates without first
+  wheel-scrolling the target into the holder's PRESSABLE area (the holder minus the sticky
+  header clones painted over its top/start strips), the way a user reaches off-screen content.
+  A point past the fold silently presses the page body or a header clone, and mid-drag it means
+  "extend the selection past the edge" — drag-to-scroll fires and the selection overshoots the
+  intended range. This class of spec ships green by luck and breaks on a 1px browser row-metric
+  shift (the Playwright 1.62 bump broke exactly one theme this way). Pattern: `FormulasGridPage`.
+- After a drag-select, assert the achieved range (`getSelectedRangeLast()` via `page.evaluate`).
+  Wheel by the EXACT remaining distance — a fixed step turns the poll budget into a hidden reach
+  cap, and a fixed minimum over-corrects few-px overflows and ping-pongs when nearby targets need
+  opposite nudges. Bound waits on the timer-driven auto-scroll by TIME (`expect.poll`), never by
+  a fixed number of pumped mousemoves — an iteration count is a hidden wall-clock budget that
+  shrinks with every Playwright/CDP speedup. Size the poll budgets so goto + gestures + every
+  poll fit the 20s test timeout, or an exhausted wait surfaces as a locationless "Test timeout"
+  instead of its message.
+
 ## Rendering below 100% (zoom / display scaling)
 
 Reach for **CSS `zoom` on the root element**, applied by the fixture before the grid is
@@ -157,10 +176,20 @@ result, check who owns the port with `lsof -i :8123`. Background in
 ## Determinism
 
 Ships at `error` in `.eslintrc.cjs`: no `waitForTimeout`, `sleep`,
-`networkidle`, `.only`, `.skip`, or bare `test.fixme` in specs. Wait on
-web-first assertions; `expect.poll` for data probes. `test.fixme` is the
-tracked exception for a real product bug: it requires an eslint-disable line
-naming the task (`// eslint-disable-next-line no-restricted-syntax --
-DEV-1234: <why>`), which keeps every parked test counted and attributable.
-Full rules: the `handsontable-playwright-e2e` skill and its
-`references/determinism.md`.
+`setTimeout` (the global timer only — bare, `window.setTimeout`, or
+`globalThis.setTimeout` — and inside `page.evaluate` too, which is where a
+banned `waitForTimeout` usually reappears; `test.setTimeout(ms)` and
+`testInfo.setTimeout(ms)` set a budget, not a wait, and stay legal),
+`networkidle`, `.only`, `.skip`, or bare `test.fixme` in specs **and page
+objects** — the lint script covers `e2e` and `fixtures`, so a timer moved into
+the page object a spec drives is the same fixed wait and is caught there. Wait on web-first assertions;
+`expect.poll` for data probes. `test.fixme` is the tracked exception for a real
+product bug: it requires an eslint-disable line naming the task
+(`// eslint-disable-next-line no-restricted-syntax -- DEV-1234: <why>`), which
+keeps every parked test counted and attributable. A `setTimeout` that is a
+**scheduling barrier** rather than a duration (a chain of 0ms macrotasks that
+lets a negative assertion prove "nothing else fired" — `expect.poll` cannot
+prove a negative) takes the same disable line, naming the owning work and
+carrying a TODO for the probe that will replace it; `e2e/customBorders.spec.ts`
+`macrotaskBarrier()` is the one such site. Full rules: the
+`handsontable-playwright-e2e` skill and its `references/determinism.md`.

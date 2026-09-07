@@ -1,7 +1,7 @@
 import type { HotInstance } from '../../core/types';
 import type { CellProperties } from '../../settings';
 import { baseRenderer } from '../baseRenderer';
-import { addClass, empty, fastInnerText } from '../../helpers/dom/element';
+import { addClass, empty, fastInnerText, getCellContentRoot } from '../../helpers/dom/element';
 import { isEmpty, stringify } from '../../helpers/mixed';
 import {
   parseValue,
@@ -44,9 +44,12 @@ function renderDropdownIndicator(
   col: number,
   isAriaEnabled: boolean
 ): void {
-  TD.insertBefore(
+  // Inside the content root so an exact-height row's clipping wrapper keeps the indicator too.
+  const contentRoot = getCellContentRoot(TD);
+
+  contentRoot.insertBefore(
     createDropdownIndicator(hotInstance.rootDocument, isAriaEnabled, row, col),
-    TD.firstChild
+    contentRoot.firstChild
   );
 
   registerDropdownIndicatorEvents(hotInstance);
@@ -84,11 +87,14 @@ export function multiSelectRenderer(
   const sourceData = hotInstance.getSourceDataAtCell(physicalRow, col);
   const values = parseValue(sourceData);
 
-  empty(TD);
+  // Written through the content root so an exact-height row's clipping wrapper survives the redraw.
+  const contentRoot = getCellContentRoot(TD);
+
+  empty(contentRoot);
   addClass(TD, MULTISELECT_RENDERER_CLASS);
 
   if (values.length === 0) {
-    TD.appendChild(rootDocument.createTextNode(''));
+    contentRoot.appendChild(rootDocument.createTextNode(''));
     renderDropdownIndicator(hotInstance, TD, row, col, isAriaEnabled);
 
     return;
@@ -104,7 +110,7 @@ export function multiSelectRenderer(
     chipsContainer.appendChild(chip);
   });
 
-  TD.appendChild(chipsContainer);
+  contentRoot.appendChild(chipsContainer);
 
   registerChipRemovingEvents(hotInstance, RENDERER_TYPE);
 

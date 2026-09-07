@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed sorting leaving the last rows of a filtered grid unsorted when `minSpareRows` was set.",
+  "type": "fixed",
+  "issueOrPR": 5983,
+  "breaking": false,
+  "framework": "none"
+}

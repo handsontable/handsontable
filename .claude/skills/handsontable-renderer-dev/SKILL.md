@@ -23,6 +23,7 @@ Always call `baseRenderer` first. It applies common properties: readonly CSS cla
 
 - **Stateless and read-only.** Renderers only modify the TD element's DOM content and attributes. Never store state, attach event listeners, or mutate data.
 - **Use `fastInnerText(TD, value)`** from `src/helpers/dom/element.ts` for setting cell text content. It is XSS-safe and cross-browser optimized.
+- **Append or clear through `getCellContentRoot(TD)`**, never `TD` itself, when a renderer manages the cell's children (`empty(...)`, `appendChild(...)`, `insertBefore(x, root.firstChild)`). A row rendered at an exact height keeps the content in a `div.htCellClip` wrapper (a table cell cannot be shorter than its in-flow content); the helper returns that wrapper when present and the cell otherwise. `fastInnerText`/`fastInnerHTML` do this on their own. Models: `checkboxRenderer`, `autocompleteRenderer`, `multiSelectRenderer`.
 - **Never use `innerHTML`** without sanitization. All user-provided content must be escaped to prevent XSS.
 - **No event listeners.** If you need interactivity, that belongs in an editor or a plugin, not a renderer.
 - **ARIA attributes.** `baseRenderer` handles standard ARIA. If your renderer changes the cell's role or state, update ARIA attributes accordingly.
@@ -64,5 +65,6 @@ Renderers are called **for every cell in the viewport on every render cycle** (b
 - Forgetting to call `baseRenderer` first, which skips readonly/invalid CSS and ARIA setup.
 - Adding event listeners in a renderer (use editors or plugins instead).
 - Using `innerHTML` with unsanitized user input.
+- Writing children straight into `TD` (`TD.appendChild`, `TD.insertBefore(x, TD.firstChild)`, `empty(TD)`) instead of `getCellContentRoot(TD)` — on an exact-height row the clipping wrapper is then rebuilt every draw, and a node left outside it grows the row back.
 - Mutating `cellProperties` or source data inside a renderer.
 - Not handling `null` or `undefined` values gracefully.

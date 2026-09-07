@@ -2,7 +2,7 @@ import { BasePlugin } from '../base';
 import { objectEach } from '../../helpers/object';
 import Endpoints, { type EndpointConfig } from './endpoints';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
-import { isNullishOrNaN } from './utils';
+import { holdsNoNumber } from './utils';
 import { throwWithCause } from '../../helpers/errors';
 
 export const PLUGIN_KEY = 'columnSummary';
@@ -333,7 +333,7 @@ export class ColumnSummary extends BasePlugin {
     do {
       const rawValue = this.getCellValue(i, col);
 
-      cellValue = isNullishOrNaN(rawValue) ? null : Number(rawValue);
+      cellValue = holdsNoNumber(rawValue) ? null : Number(rawValue);
 
       if (cellValue !== null) {
         const decimalPlaces = (((`${cellValue}`).split('.')[1] || []).length) || 1;
@@ -403,7 +403,7 @@ export class ColumnSummary extends BasePlugin {
     do {
       const rawValue = this.getCellValue(i, col);
 
-      cellValue = isNullishOrNaN(rawValue) ? null : Number(rawValue);
+      cellValue = holdsNoNumber(rawValue) ? null : Number(rawValue);
 
       if (result === null) {
         result = cellValue;
@@ -442,7 +442,7 @@ export class ColumnSummary extends BasePlugin {
 
     do {
       cellValue = this.getCellValue(i, col);
-      cellValue = isNullishOrNaN(cellValue) ? null : cellValue;
+      cellValue = holdsNoNumber(cellValue) ? null : cellValue;
 
       if (cellValue === null) {
         counter += 1;
@@ -455,7 +455,7 @@ export class ColumnSummary extends BasePlugin {
   }
 
   /**
-   * Counts non-empty cells in the provided row range.
+   * Counts the cells that hold a number in the provided row range.
    *
    * @private
    * @param {object} endpoint Contains the endpoint information.

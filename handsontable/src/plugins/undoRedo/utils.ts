@@ -1,5 +1,6 @@
 import type { HotInstance } from '../../core/types';
 import { rangeEach } from '../../helpers/number';
+import { toMergeAreaRange, type MergeAreaGeometry as MergedCell } from '../../utils/mergeAreas';
 
 /**
  * Gets all cell metas from the provided range.
@@ -23,13 +24,6 @@ export function getCellMetas(hot: HotInstance, fromRow: number, toRow: number, f
   });
 
   return cellMetas;
-}
-
-interface MergedCell {
-  row: number;
-  col: number;
-  rowspan: number;
-  colspan: number;
 }
 
 /**
@@ -68,6 +62,115 @@ export function collectAffectedMergedCells(hot: HotInstance, axis: 'row' | 'col'
   });
 
   return affected;
+}
+
+/**
+ * The change source that owns the merge-geometry snapshot. Only a paste destroys merge areas, so
+ * only a paste's own action may carry the geometry.
+ */
+const SNAPSHOT_OWNER_SOURCE = 'CopyPaste.paste';
+
+/**
+ * Collects the merge areas a data change is about to destroy, as recorded by the MergeCells plugin
+ * itself. Only a multi-cell paste over a merged area reports anything here; every other change
+ * yields an empty list, so an ordinary edit never re-merges on undo.
+ *
+ * The source check is what keeps the snapshot attached to the change that caused it. MergeCells
+ * reads the same field from its own `afterChange`, so the read cannot consume it, and a paste's
+ * validation window is wide enough for other changes to arrive in between: a validator that
+ * corrects a value writes through `setDataAtCell` with its own `*Validator` source, once per
+ * corrected cell, and each of those raises a `beforeChange` of its own. Without this check every
+ * one of them recorded the paste's geometry, so undoing a single correction re-formed the merge on
+ * top of the values the paste had already written - the very defect this geometry exists to avoid.
+ *
+ * @param {Core} hot The Handsontable instance.
+ * @param {string} source The change source, as passed to the `beforeChange` hook.
+ * @returns {Array} Array of `{ row, col, rowspan, colspan }` objects.
+ */
+export function collectMergedCellsDestroyedByChange(hot: HotInstance, source: string) {
+  if (source !== SNAPSHOT_OWNER_SOURCE) {
+    return [];
+  }
+
+  const mergeCellsPlugin = hot.getPlugin('mergeCells');
+
+  if (!mergeCellsPlugin?.enabled) {
+    return [];
+  }
+
+  return mergeCellsPlugin.getPasteUnmergeSnapshot();
+}
+
+/**
+ * Re-applies merge areas that a data change destroyed, restoring their geometry only.
+ *
+ * Unlike {@link restoreMergedCells} this must not repopulate the covered cells: the caller has just
+ * written the pre-change values back, and `mergeRange`'s default population would null them out
+ * again. `preventPopulation` returns the cleared data instead of writing it, and `auto` skips the
+ * settings validation and the overlap check - the geometry came from the grid's own collection, and
+ * the undo entry for it is the caller's own data-change action.
+ *
+ * @param {Core} hot The Handsontable instance.
+ * @param {Array} mergedCells Array of `{ row, col, rowspan, colspan }` objects.
+ */
+export function remergeCellsGeometryOnly(hot: HotInstance, mergedCells: MergedCell[]) {
+  if (!mergedCells || mergedCells.length === 0) {
+    return;
+  }
+
+  const mergeCellsPlugin = hot.getPlugin('mergeCells');
+
+  if (!mergeCellsPlugin?.enabled) {
+    return;
+  }
+
+  // `unmergeRange` renders on its own, so without suspending, an N-merge undo redraws N times.
+  // `batchRender` cannot be used: it has no `try`/`finally`, and both `unmergeRange` and
+  // `mergeRange` run their hooks whether `auto` is set or not. One throwing user listener would
+  // otherwise skip `resumeRender()` and leave the grid permanently undrawn.
+  hot.suspendRender();
+
+  try {
+    mergedCells.forEach((mergedCell: MergedCell) => {
+      const range = toMergeAreaRange(hot, mergedCell);
+
+      mergeCellsPlugin.unmergeRange(range, true);
+      mergeCellsPlugin.mergeRange(range, true, true);
+    });
+  } finally {
+    hot.resumeRender();
+  }
+
+  hot.render();
+}
+
+/**
+ * Drops merge areas again after a redo has re-applied the data change that destroyed them.
+ *
+ * @param {Core} hot The Handsontable instance.
+ * @param {Array} mergedCells Array of `{ row, col, rowspan, colspan }` objects.
+ */
+export function unmergeCellsGeometryOnly(hot: HotInstance, mergedCells: MergedCell[]) {
+  if (!mergedCells || mergedCells.length === 0) {
+    return;
+  }
+
+  const mergeCellsPlugin = hot.getPlugin('mergeCells');
+
+  if (!mergeCellsPlugin?.enabled) {
+    return;
+  }
+
+  // Same suspend-in-`finally` as above, and for the same reason.
+  hot.suspendRender();
+
+  try {
+    mergedCells.forEach((mergedCell: MergedCell) => {
+      mergeCellsPlugin.unmergeRange(toMergeAreaRange(hot, mergedCell), true);
+    });
+  } finally {
+    hot.resumeRender();
+  }
 }
 
 /**

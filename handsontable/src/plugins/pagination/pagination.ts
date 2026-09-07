@@ -291,7 +291,7 @@ export class Pagination extends BasePlugin {
   }
 
   /**
-   * @param {object} result [[Hooks#afterDataProviderFetch]] payload.
+   * @param {object} result {@link Hooks#afterDataProviderFetch} payload.
    * @param {{ page: number, pageSize: number, sort: *, filters: * }} result.queryParameters Query parameters for the completed fetch.
    * @param {number} result.totalRows Total row count from the provider response.
    * @returns {void}

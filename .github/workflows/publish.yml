@@ -331,6 +331,28 @@ jobs:
       - name: Generate version highlights scaffold
         run: node docs/scripts/generate-version-highlights.mjs '${{ steps.version.outputs.rc-version }}'
 
+      # The float gate below covers `pnpm-lock.yaml` only. This job is also the
+      # only automated writer of the nine tracked example lockfiles (through
+      # `examples:install` above), and the `git add .` further down commits them.
+      # Report-only on purpose: those trees build documentation demos and
+      # visual-test fixtures and ship in no bundle, so a transitive bump there
+      # must not red a release candidate. It must not be invisible either.
+      # Must stay ABOVE the float gate: `release-lockfile.test.mjs` asserts the
+      # gate is the step immediately before `Commit and push`.
+      #
+      # Runs even after a failed step, because the lockfiles are a candidate
+      # cause: if the examples install or build broke, the diff is the first
+      # thing the operator needs, and a step that only runs on the happy path
+      # would have nothing to say exactly when it matters. The job still fails.
+      - name: Report example lockfile changes
+        if: ${{ !cancelled() }}
+        env:
+          # On a job that is already red, a half-finished install can leave all nine lockfiles
+          # dirty, and auditing each of them (up to 60s apiece) would add minutes of waiting for
+          # advisory counts taken from a broken tree. The diff is the half worth having there.
+          SKIP_AUDIT: ${{ job.status != 'success' && '1' || '' }}
+        run: node .github/scripts/example-lockfile-report.mjs
+
       # Re-check right before `git add .`, because this job builds every package
       # and installs the examples between the bump and the commit. Unlike the
       # later RC cuts, that span has never been observed clean: the first-RC job
