@@ -49,6 +49,25 @@ export default class RowUtils {
    * @param {number} sourceIndex Row source index.
    * @returns {boolean}
    */
+  /**
+   * Whether ANY row of this table could be exact. `false` when the mode cannot vary per row and is
+   * the floor — which is every grid that never sets the mode — so a caller looping over rows can
+   * skip the per-row `isExact` probe entirely. Reading it once per draw instead of once per row is
+   * what keeps a default grid paying nothing for the mode.
+   *
+   * @returns {boolean}
+   */
+  mayHaveExactRows(): boolean {
+    // A uniform mode ignores the index, so any index answers for the whole table.
+    return !this.#rowSizeSource.isModeUniform() || this.#rowSizeSource.getMode(0) === 'exact';
+  }
+
+  /**
+   * Whether one row renders at exactly its provided height, with taller content clipped.
+   *
+   * @param {number} sourceIndex Row source index.
+   * @returns {boolean}
+   */
   isExact(sourceIndex: number): boolean {
     // The mode first: in the (default) `min` mode it is a constant read, whereas the size read runs
     // the host's whole row-height funnel (the `modifyRowHeight` hooks in Handsontable). Reading the

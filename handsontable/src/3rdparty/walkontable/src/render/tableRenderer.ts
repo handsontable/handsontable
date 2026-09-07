@@ -428,13 +428,17 @@ export class TableRenderer {
     // Fix for multi-line content and for supporting `rowHeights` option. Must stay after
     // `cells.render()`: the cell renderer resets every cell's inline style and class on each draw.
     const rowUtils = this.rowUtils!;
+    // Asked once per draw, not once per row: on a grid that never sets the mode this is one
+    // constant settings read for the whole band instead of one per rendered row. Kept behind the
+    // row count so a table with nothing to render still touches nothing.
+    const mayHaveExactRows = rowsToRender > 0 && rowUtils.mayHaveExactRows();
 
     for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       const TR = rows!.getRenderedNode(visibleRowIndex);
 
       if (TR) {
         const sourceRowIndex = this.renderedRowToSource(visibleRowIndex);
-        const isExact = rowUtils.isExact(sourceRowIndex);
+        const isExact = mayHaveExactRows && rowUtils.isExact(sourceRowIndex);
 
         applyRowHeight(
           TR,

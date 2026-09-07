@@ -175,6 +175,40 @@ describe('row height mode', () => {
     });
   });
 
+  describe('RowUtils.mayHaveExactRows', () => {
+    it('should be false for the default mode, so no row is probed on an ordinary grid', () => {
+      const deps = fakeDeps({ wtSettings: fakeSettings({ rowHeight: () => 20 }) });
+
+      expect(new RowUtils(deps).mayHaveExactRows()).toBe(false);
+    });
+
+    it('should be false for a literal `min`', () => {
+      const deps = fakeDeps({ wtSettings: fakeSettings({ rowHeight: () => 20, rowHeightMode: 'min' }) });
+
+      expect(new RowUtils(deps).mayHaveExactRows()).toBe(false);
+    });
+
+    it('should be true for a literal `exact`', () => {
+      const deps = fakeDeps({ wtSettings: fakeSettings({ rowHeight: () => 20, rowHeightMode: 'exact' }) });
+
+      expect(new RowUtils(deps).mayHaveExactRows()).toBe(true);
+    });
+
+    it('should be true for the per-row shapes, whatever they answer for one row', () => {
+      // A function and an array can both name an exact row further down the band, so every row has
+      // to be probed — the answer for row 0 says nothing about the rest.
+      const asFunction = fakeDeps({
+        wtSettings: fakeSettings({ rowHeight: () => 20, rowHeightMode: () => 'min' }),
+      });
+      const asArray = fakeDeps({
+        wtSettings: fakeSettings({ rowHeight: () => 20, rowHeightMode: ['min', 'exact'] }),
+      });
+
+      expect(new RowUtils(asFunction).mayHaveExactRows()).toBe(true);
+      expect(new RowUtils(asArray).mayHaveExactRows()).toBe(true);
+    });
+  });
+
   describe('DefaultRowSizeSource.isModeUniform', () => {
     it('should be true for a literal mode and for the absent (default) mode', () => {
       expect(new DefaultRowSizeSource(fakeSettings({ rowHeightMode: 'exact' })).isModeUniform()).toBe(true);

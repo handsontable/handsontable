@@ -158,6 +158,8 @@ function applyRowHeightsToRenderedRows(table: Table): void {
 
   const borderBoxSizing = table.wtSettings.getSetting('stylesHandler').areCellsBorderBox();
   const renderedRows = TBODY.childNodes;
+  // Once per call rather than once per row (see `RowUtils#mayHaveExactRows`).
+  const mayHaveExactRows = table.rowUtils.mayHaveExactRows();
 
   for (let renderedRowIndex = 0; renderedRowIndex < renderedRows.length; renderedRowIndex++) {
     const TR = renderedRows[renderedRowIndex];
@@ -167,7 +169,7 @@ function applyRowHeightsToRenderedRows(table: Table): void {
     }
 
     const sourceRowIndex = rowFilter.renderedToSource(renderedRowIndex);
-    const isExact = table.rowUtils.isExact(sourceRowIndex);
+    const isExact = mayHaveExactRows && table.rowUtils.isExact(sourceRowIndex);
 
     applyRowHeight(
       TR,
@@ -564,10 +566,12 @@ export function markOversizedRows(
   // compares the band against the DEFAULT height, which an exact band never matches. One row can
   // stand for the band only when BOTH the sizes and the mode are uniform — `isUniform()` describes
   // the size source alone, and a per-row mode could leave a floor row in the band unmeasured.
-  // The exactness probe goes first: it is one constant settings read on a default grid, while
-  // `isUniform()` is a host callback (in Handsontable it reads the settings and asks for a hook).
-  const isExactBand = rowCount > 0 && rowUtils.isExact(table.rowFilter!.renderedToSource(0)) &&
-    table.deps.rowSizeSource.isUniform() && table.deps.rowSizeSource.isModeUniform();
+  // Asked once for the whole band rather than once per row: `false` means no row can be exact, so
+  // the per-row probe in the walk below is skipped entirely — the default configuration.
+  const mayHaveExactRows = rowUtils.mayHaveExactRows();
+  const isExactBand = mayHaveExactRows && rowCount > 0 &&
+    table.deps.rowSizeSource.isUniform() && table.deps.rowSizeSource.isModeUniform() &&
+    rowUtils.isExact(table.rowFilter!.renderedToSource(0));
   const expectedTableHeight = rowCount * stylesHandler.getDefaultRowHeight();
   const actualTableHeight = isExactBand
     ? expectedTableHeight
@@ -614,7 +618,7 @@ export function markOversizedRows(
     // An exact row is never raised by what it renders — its content is clipped to the provided
     // height. A record it may still hold (from before it became exact) stays wiped, so the
     // shrink detection below reports the change.
-    if (rowUtils.isExact(sourceRowIndex)) {
+    if (mayHaveExactRows && rowUtils.isExact(sourceRowIndex)) {
       continue; // eslint-disable-line no-continue
     }
 

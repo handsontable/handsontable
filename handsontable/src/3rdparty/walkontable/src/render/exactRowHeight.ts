@@ -185,8 +185,15 @@ function applyExactShape(TR: HTMLElement, pixelHeight: string): void {
 
   // With no carrier at all — every cell hidden by a merge or spanning several rows — the height
   // goes on the row itself. The stylesheet has already released the cells' minimum height, so
-  // without it the row would collapse to its borders.
-  (heightCarrier ?? TR).style.height = pixelHeight;
+  // without it the row would collapse to its borders. The `tr` height is cleared as soon as a cell
+  // can carry it again: a row height is a minimum in CSS table layout, so one left behind from an
+  // earlier draw would stop the row shrinking after the merge goes away.
+  if (heightCarrier === null) {
+    TR.style.height = pixelHeight;
+  } else {
+    TR.style.height = '';
+    heightCarrier.style.height = pixelHeight;
+  }
 }
 
 /**

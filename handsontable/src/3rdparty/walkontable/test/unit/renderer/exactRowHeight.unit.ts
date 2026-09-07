@@ -171,6 +171,23 @@ describe('applyRowHeight', () => {
       expect(TR.style.height).toBe('10px');
     });
 
+    it('should clear the row height once a cell can carry it again', () => {
+      // A row height is a minimum in CSS table layout, so one left over from a draw that had no
+      // carrier would stop the row shrinking after the merge goes away.
+      const TR = createRow(['a'], { rowHeader: false });
+      const only = cellsOf(TR)[0];
+
+      only.setAttribute('rowspan', '3');
+      applyRowHeight(TR, 30, true, true);
+      expect(TR.style.height).toBe('30px');
+
+      only.removeAttribute('rowspan');
+      applyRowHeight(TR, 10, true, true);
+
+      expect(TR.style.height).toBe('');
+      expect(only.style.height).toBe('10px');
+    });
+
     it('should clear the height left on a cell that stopped being the carrier', () => {
       const TR = createRow(['a', 'b'], { rowHeader: false });
       const [first, second] = cellsOf(TR);
