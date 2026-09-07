@@ -503,14 +503,17 @@ export class HiddenColumns extends BasePlugin {
       const classArr = normalizeClassNames(cellProperties.className);
       const containAfterHiddenColumn = classArr.indexOf('afterHiddenColumn');
 
+      // Gated on the marker: this hook runs on every cell meta read, and rewriting a cell we never
+      // marked would replace a user's array with an own string that shadows the cascade. See
+      // `AGENTS.md` in this directory.
       if (containAfterHiddenColumn > -1) {
         classArr.splice(containAfterHiddenColumn, 1);
-      }
 
-      const className = classArr.join(' ');
+        const className = classArr.join(' ');
 
-      if (cellProperties.className !== className) {
-        cellProperties.className = className;
+        if (cellProperties.className !== className) {
+          cellProperties.className = className;
+        }
       }
     }
   };
