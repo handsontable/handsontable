@@ -41,6 +41,32 @@ interface MergeAnchor {
 }
 
 /**
+ * What a row move does to one merge, decided before the move's fragments exist.
+ *
+ * `trimmedRowsByCarrier` maps each row of the merge that is still visible to the trimmed rows of the
+ * merge that travel with it. It is computed for every merge, not only a split one: a merge trimmed
+ * down to one visible cell needs its carriers named so the collection does not drop it as a singleton.
+ *
+ * `isSplit` says whether the move leaves the merge's rows in more than one contiguous visual run, and
+ * is `false` for a merge whose drawn block is not its own rows (see
+ * {@link MergeCells#describesOwnRows}).
+ */
+interface RowMoveTranslation {
+  trimmedRowsByCarrier: Map<number, number[]>;
+  isSplit: boolean;
+}
+
+/**
+ * The pre-computed answer for a whole row move: one {@link RowMoveTranslation} per merge, plus each
+ * physical row's slot in the row index sequence, which is the order the rows take once trimming is
+ * lifted.
+ */
+interface RowMoveContext {
+  plans: Map<MergedCellCoords, RowMoveTranslation>;
+  positions: number[];
+}
+
+/**
  * Counts how many of the ascending `values` are smaller than `value`.
  *
  * @param {number[]} values Values sorted in ascending order.
@@ -1166,6 +1192,225 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
+   * Maps every physical row to its slot in the row index sequence. Trimming does not remove a row
+   * from that sequence, so the slot is where a trimmed row reappears once trimming is lifted, and
+   * comparing slots is the only way to measure how far apart two rows are when one of them has no
+   * visual index.
+   *
+   * @returns {number[]} Physical row index -> its position in the row index sequence.
+   */
+  #buildRowSequencePositions(): number[] {
+    const positions: number[] = [];
+
+    this.hot.rowIndexMapper.getIndexesSequence().forEach((physicalRow, position) => {
+      positions[physicalRow] = position;
+    });
+
+    return positions;
+  }
+
+  /**
+   * Decides which visible row of a merge each of its trimmed rows travels with when a row move splits
+   * the merge: the visible owned row nearest to it in the row index sequence, the row above winning a
+   * tie.
+   *
+   * Physical distance cannot answer this. A trimmed row usually sits one physical index away from two
+   * of its neighbors, so the distance ties, and it says nothing about the move — `moveIndexes` leaves
+   * every row it did not move where it was in the sequence and re-inserts the moved ones among the
+   * rows that are not trimmed, so the sequence is exactly the order the rows come back in.
+   *
+   * The tie-break is there to make the result independent of the order the rows are listed in, and no
+   * spec exercises it: a tie needs two carriers the same distance away in the sequence, which asks for
+   * carriers that are already not visually adjacent before the move — and
+   * {@link MergeCells#describesOwnRows} sends that merge down the unsplit path instead. Keep the rule
+   * anyway; the reasoning holds for the moves that exist today, not for every one that could be added.
+   *
+   * @param {number[]} physicalRows The anchor's physical rows.
+   * @param {number[]} rowSequencePositions Physical row -> its slot in the row index sequence.
+   * @returns {Map<number, number[]>} Visible physical row -> the trimmed physical rows it carries.
+   */
+  #attributeTrimmedRows(physicalRows: number[], rowSequencePositions: number[]): Map<number, number[]> {
+    const trimmedRowsByCarrier = new Map<number, number[]>();
+    const visibleRows = physicalRows.filter(physicalRow => this.hot.toVisualRow(physicalRow) !== null);
+
+    visibleRows.forEach(physicalRow => trimmedRowsByCarrier.set(physicalRow, []));
+
+    if (visibleRows.length === 0) {
+      return trimmedRowsByCarrier;
+    }
+
+    physicalRows
+      .filter(physicalRow => this.hot.toVisualRow(physicalRow) === null)
+      .forEach((trimmedRow) => {
+        const trimmedPosition = rowSequencePositions[trimmedRow];
+        const carrierRow = visibleRows.reduce((nearest, candidate) => {
+          const nearestDistance = Math.abs(rowSequencePositions[nearest] - trimmedPosition);
+          const candidateDistance = Math.abs(rowSequencePositions[candidate] - trimmedPosition);
+          const isCandidateAbove = rowSequencePositions[candidate] < trimmedPosition;
+
+          if (candidateDistance < nearestDistance
+            || (candidateDistance === nearestDistance && isCandidateAbove)) {
+            return candidate;
+          }
+
+          return nearest;
+        });
+        const carriedRows = trimmedRowsByCarrier.get(carrierRow) ?? [];
+
+        carriedRows.push(trimmedRow);
+        trimmedRowsByCarrier.set(carrierRow, carriedRows);
+      });
+
+    return trimmedRowsByCarrier;
+  }
+
+  /**
+   * Whether the block a merge draws describes exactly the rows it owns and can see. It does for every
+   * merge whose visible rows sit in one visual run, and it does not for a merge whose rows a sort
+   * scattered: the span is one continuous block from its top-left, so it reaches over rows belonging
+   * to whatever sits between them.
+   *
+   * The distinction matters because the fragments of a split are cut from the drawn block. Only when
+   * the block is the merge's own rows is a fragment's content its own by construction, which is what
+   * lets {@link MergeCells#reanchorFragmentsAfterSplit} anchor a fragment from the rows it draws.
+   *
+   * @param {number[]} drawnRows Physical rows the merge drew before the move.
+   * @param {Map<number, number[]>} trimmedRowsByCarrier Keyed by the merge's visible own rows.
+   * @returns {boolean}
+   */
+  #describesOwnRows(drawnRows: number[], trimmedRowsByCarrier: Map<number, number[]>): boolean {
+    const presentRows = drawnRows.filter(physicalRow => physicalRow !== null && physicalRow >= 0);
+
+    return presentRows.length === trimmedRowsByCarrier.size
+      && presentRows.every(physicalRow => trimmedRowsByCarrier.has(physicalRow));
+  }
+
+  /**
+   * Counts the contiguous visual runs a merge's rows form after the move, through the same helper the
+   * collection splits by, so the plugin and the split can never disagree about whether a merge broke.
+   *
+   * @param {number[]} physicalRows Physical rows the merge covered before the move.
+   * @returns {number} How many runs those rows form in the new visual order.
+   */
+  #countVisualRuns(physicalRows: number[]): number {
+    const visualRows = physicalRows
+      .map(physicalRow => this.hot.toVisualRow(physicalRow))
+      .filter(visualRow => visualRow !== null && visualRow >= 0)
+      .sort((rowA, rowB) => rowA - rowB);
+
+    return MergedCellsCollection.detectContiguousRuns(visualRows).length;
+  }
+
+  /**
+   * Works out what the row move now in progress does to every merge, before
+   * `translateAfterAxisMove` replaces the merge objects. Two answers come out of it: the trimmed-row
+   * attribution each merge's fragments will need, and the rows whose single-cell fragment has to
+   * survive the collection's singleton drop because it still carries trimmed rows.
+   *
+   * The attribution has to be computed here rather than in `beforeRowMove`, because it reads the row
+   * sequence the move produced.
+   *
+   * @param {Map<MergedCellCoords, number[]>} snapshot The pre-move physical spans.
+   * @param {number[]} rowSequencePositions Physical row -> its slot in the row index sequence.
+   * @returns {{ context: RowMoveContext, carriers: Map<MergedCellCoords, Set<number>> }}
+   */
+  #planRowMoveTranslation(
+    snapshot: Map<MergedCellCoords, number[]>,
+    rowSequencePositions: number[]
+  ): { context: RowMoveContext, carriers: Map<MergedCellCoords, Set<number>> } {
+    const plans = new Map<MergedCellCoords, RowMoveTranslation>();
+    const carriers = new Map<MergedCellCoords, Set<number>>();
+
+    this.mergedCellsCollection.mergedCells.forEach((merge) => {
+      const anchor = this.#mergeAnchors.get(merge);
+      const physicalRows = snapshot.get(merge);
+
+      if (!anchor || !physicalRows) {
+        return;
+      }
+
+      const trimmedRowsByCarrier = this.#attributeTrimmedRows(anchor.physicalRows, rowSequencePositions);
+      // The snapshot is the merge's drawn block, which for a merge whose rows a sort scattered reaches
+      // over rows it does not own. Its fragments would then be anchored onto those foreign rows, so
+      // such a merge is reported as unsplit and left to the guarded single-fragment path, exactly as
+      // it was before the split learned to distribute trimmed rows.
+      const isSplit = this.#describesOwnRows(physicalRows, trimmedRowsByCarrier)
+        && this.#countVisualRuns(physicalRows) > 1;
+
+      plans.set(merge, { trimmedRowsByCarrier, isSplit });
+
+      const carrierRows = this.#carrierRowsOf(trimmedRowsByCarrier);
+
+      // Not gated on `isSplit`: a merge trimmed down to one visible cell draws a single cell without
+      // any help from the move, and the collection would drop it as a singleton on a move that does
+      // not even touch it.
+      if (carrierRows.size > 0) {
+        carriers.set(merge, carrierRows);
+      }
+    });
+
+    return { context: { plans, positions: rowSequencePositions }, carriers };
+  }
+
+  /**
+   * Picks out the rows that actually carry a trimmed row.
+   *
+   * @param {Map<number, number[]>} trimmedRowsByCarrier Visible physical row -> the rows it carries.
+   * @returns {Set<number>} The rows whose carried list is not empty.
+   */
+  #carrierRowsOf(trimmedRowsByCarrier: Map<number, number[]>): Set<number> {
+    const carrierRows = new Set<number>();
+
+    trimmedRowsByCarrier.forEach((trimmedRows, carrierRow) => {
+      if (trimmedRows.length > 0) {
+        carrierRows.add(carrierRow);
+      }
+    });
+
+    return carrierRows;
+  }
+
+  /**
+   * Anchors every fragment a split row move produced. Each fragment gets the rows it draws — which for
+   * a fragment are its own by construction — plus the trimmed rows attributed to them.
+   *
+   * The list is ordered by row-sequence slot, and that sort is load-bearing rather than cosmetic. When
+   * a trimmed row's nearest carrier sits *below* it, appending the carried rows leaves the carrier at
+   * the head of the list, and {@link MergeCells#reanchorMergesToVisibleRows} reads the head as the
+   * merge's top-left — so the merge would come back one row too low, over a row it does not own. That
+   * is the same defect the row-insert remap avoids by splicing rather than appending.
+   *
+   * @param {MergedCellCoords[]} fragments The merges the split produced.
+   * @param {MergeAnchor} anchor The anchor of the merge they came from.
+   * @param {RowMoveTranslation} plan What the move does to that merge.
+   * @param {number[]} rowSequencePositions Physical row -> its slot in the row index sequence.
+   */
+  #reanchorFragmentsAfterSplit(
+    fragments: MergedCellCoords[],
+    anchor: MergeAnchor,
+    plan: RowMoveTranslation,
+    rowSequencePositions: number[]
+  ) {
+    fragments.forEach((fragment) => {
+      const physicalRows: number[] = [];
+
+      rangeEach(fragment.rowspan - 1, (offset) => {
+        const physicalRow = this.hot.toPhysicalRow(fragment.row + offset);
+
+        physicalRows.push(physicalRow);
+        (plan.trimmedRowsByCarrier.get(physicalRow) ?? [])
+          .forEach(trimmedRow => physicalRows.push(trimmedRow));
+      });
+
+      this.#mergeAnchors.set(fragment, {
+        physicalRows: physicalRows
+          .sort((rowA, rowB) => rowSequencePositions[rowA] - rowSequencePositions[rowB]),
+        physicalColumn: anchor.physicalColumn,
+      });
+    });
+  }
+
+  /**
    * Carries the physical anchors across a reorder. `translateAfterAxisMove` replaces every merge with
    * a new object, and the anchors are keyed on object identity, so without this the replacements would
    * be anchored from their post-move visual coordinates — which, while rows are trimmed, describe only
@@ -1173,9 +1418,14 @@ export class MergeCells extends BasePlugin {
    * filter would no longer restore the merge.
    *
    * A column reorder never changes which rows a merge covers, so every fragment it produces inherits
-   * the rows of the merge it came from. A row reorder does change them, and when it splits a merge
-   * there is no way to tell which fragment a trimmed row belongs to, so only an unsplit merge carries
-   * its rows over; a split one is re-anchored from what is visible, as it was before.
+   * the rows of the merge it came from. A row reorder does change them: an unsplit merge carries its
+   * whole list over, and a split one hands each fragment the rows it draws plus the trimmed rows
+   * {@link MergeCells#attributeTrimmedRows} attributed to them.
+   *
+   * The split is read from the plan, not from the number of fragments received. A merge the move broke
+   * into a two-row run and a single cell comes back as one fragment, because the collection drops the
+   * single cell — carrying the whole anchor onto that survivor would give it the dropped fragment's
+   * rows as well, and the merge would reach over them once trimming is lifted.
    *
    * A row reorder can also swap two of the rows a merge keeps, so the carried list is re-ordered to
    * match the new visual order. Carrying it verbatim leaves the list's head on a row that is no longer
@@ -1186,12 +1436,30 @@ export class MergeCells extends BasePlugin {
    * @param {Map<MergedCellCoords, MergedCellCoords[]>} replacements Map of the merge before the
    * reorder -> the merges that replaced it.
    * @param {'column' | 'row'} axis The reordered axis.
+   * @param {RowMoveContext} [rowMoveContext] What the move does to each merge, computed by
+   * {@link MergeCells#planRowMoveTranslation} before the fragments existed. Row moves only.
    */
-  #transferAnchorsAfterAxisMove(replacements: Map<MergedCellCoords, MergedCellCoords[]>, axis: 'column' | 'row') {
+  #transferAnchorsAfterAxisMove(
+    replacements: Map<MergedCellCoords, MergedCellCoords[]>,
+    axis: 'column' | 'row',
+    rowMoveContext: RowMoveContext | null = null
+  ) {
     replacements.forEach((newMerges, source) => {
       const anchor = this.#mergeAnchors.get(source);
 
-      if (!anchor || (axis === 'row' && newMerges.length !== 1)) {
+      if (!anchor) {
+        return;
+      }
+
+      const plan = rowMoveContext?.plans.get(source);
+
+      if (axis === 'row' && rowMoveContext && plan?.isSplit) {
+        this.#reanchorFragmentsAfterSplit(newMerges, anchor, plan, rowMoveContext.positions);
+
+        return;
+      }
+
+      if (axis === 'row' && newMerges.length !== 1) {
         return;
       }
 
@@ -2283,6 +2551,9 @@ export class MergeCells extends BasePlugin {
    * and the now-updated row index mapping. Auto-splits merges whose physical
    * rows are no longer contiguous.
    *
+   * The trimmed rows of a merge the move splits are attributed to its fragments here, and not in
+   * `beforeRowMove`, because the attribution is read from the row sequence the move produced.
+   *
    * @param {number[]} rows Visual row indexes that were moved.
    * @param {number} finalIndex Drop target visual index.
    * @param {number} dropIndex Drop index from drag.
@@ -2300,8 +2571,10 @@ export class MergeCells extends BasePlugin {
       return;
     }
 
+    const { context, carriers } = this.#planRowMoveTranslation(snapshot, this.#buildRowSequencePositions());
+
     this.#transferAnchorsAfterAxisMove(
-      this.mergedCellsCollection.translateAfterAxisMove('row', snapshot), 'row');
+      this.mergedCellsCollection.translateAfterAxisMove('row', snapshot, carriers), 'row', context);
     this.#captureMergeAnchors();
     this.hot.render();
   };

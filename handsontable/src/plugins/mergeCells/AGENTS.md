@@ -85,6 +85,59 @@ re-deriving them from the merges. They have to: the index mapper emits its cache
 `afterCreateRow`/`afterRemoveRow`, so by the time those hooks run a re-anchor has already gone round once
 against a grid whose row count changed while the merges had not been shifted yet.
 
+## A row move that splits a merge distributes its trimmed rows
+
+A row move can leave a merge's rows in more than one contiguous visual run, and `translateAfterAxisMove`
+then replaces the merge with one fragment per run. A trimmed row has no visual index, so it belongs to no
+run, and the rule that places it is: **the fragment holding the visible owned row nearest to it in the row
+index sequence, the row above winning a tie.**
+
+The *sequence*, not the physical index, is what decides. `IndexMapper#moveIndexes` removes the moved rows
+from the full sequence and re-inserts them at a position computed among the rows that are **not** trimmed,
+so every row it did not move keeps its slot — which makes the sequence exactly the order the rows take
+once trimming is lifted. Physical distance answers nothing here: a trimmed row usually sits one physical
+index from two of its neighbors, so the distance ties, and it does not see the move at all.
+
+Three parts of `mergeCells.ts` carry this, and each has a reason that is easy to undo by accident.
+
+- **The attribution is computed in `#onAfterRowMove`, not `#onBeforeRowMove`.** It reads the sequence the
+  move produced. `#planRowMoveTranslation` runs before `translateAfterAxisMove` replaces the merge objects,
+  because it is keyed on the merges that still exist.
+- **The split is read from the plan, never from how many fragments came back.** `#countVisualRuns` counts
+  the runs through `MergedCellsCollection.detectContiguousRuns`, the same helper the split uses, so the two
+  cannot disagree. Counting fragments is wrong for a merge broken into a real run plus a single cell: the
+  collection drops the single cell, one fragment comes back, and carrying the whole anchor onto that
+  survivor would hand it the dropped fragment's rows as well.
+- **`#reanchorFragmentsAfterSplit` sorts each fragment's rows by sequence slot, and that sort is
+  load-bearing.** When a trimmed row's nearest carrier sits *below* it, appending leaves the carrier at the
+  head of the list, and the re-anchor reads the head as the top-left — so the merge would come back one row
+  too low, over a row it does not own. Same defect `#remapRowAnchorsAfterInsert` avoids by splicing rather
+  than appending.
+
+**A merge whose rows a sort scattered is excluded from all of this, and `#describesOwnRows` is what
+excludes it.** The split cuts its fragments out of the merge's *drawn* block, and for a scattered merge that
+block reaches over rows it does not own — so a fragment can be made of foreign rows, and the sort above
+would then pull that fragment's head onto one, which is exactly the collision `#sortVisibleRowsByVisualOrder`
+refuses (and `relocateInMatrix` has no overlap guard to catch). The two inputs disagree only for this shape:
+`isSplit` is measured on the drawn block, the attribution on the owned rows. So such a merge is reported
+unsplit, falls through to the guarded single-fragment path, and keeps the behavior it had before any of
+this — re-anchored from what is visible, trimmed row lost. Pinned by `should leave a merge whose rows a sort
+scattered on the unsplit path when a row move breaks its block`; deleting the guard turns that spec red.
+
+## A fragment that draws one cell but owns trimmed rows is not a singleton
+
+`translateAfterAxisMove` drops a `1x1` fragment because a single cell is no longer a merge. That is wrong
+for a fragment whose other rows are merely trimmed: it is a merge again the moment they come back. So
+`#onAfterRowMove` passes `retainedIndexes` — **per merge**, `Map<MergedCellCoords, Set<number>>`, never one
+flat set: two merges in different columns can cover the same rows, and a shared set would keep the
+genuinely-single fragment of the merge that carries nothing, leaving a phantom `1x1` entry in both the list
+and the lookup matrix.
+
+The retention is deliberately **not** gated on the merge having been split. A merge trimmed down to one
+visible cell already draws a single cell without any help from the move, so gating it there let any row
+move — even one that never touched the merge — delete it (both shapes are pinned in the trimming describe
+of `mergeCells.spec.js`, and the per-merge keying in `cellsCollection.unit.ts`).
+
 ## `disablePlugin()` clears the field, so copy first
 
 `generateFromSettings()` needs to tell a **re-applied** area from a **newly declared** one, so the previous
