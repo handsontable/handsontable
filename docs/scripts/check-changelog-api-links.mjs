@@ -3,7 +3,9 @@
 //
 // The check is build-free on purpose: docs/content/api/*.md is generated from handsontable/tmp/
 // and gitignored, so no pull-request job has it. Option, hook and plugin names are read from the
-// committed core sources instead, and the api/*.md file slugs from docs/content/api/sidebar.js.
+// committed core sources instead, and the api/*.md file slugs from docs/content/api/sidebar.js plus
+// the plugin directories, since the generator emits a page per plugin whether the sidebar lists it
+// or not.
 //
 // It is report-only and always exits 0. The candidate set is a heuristic - a backticked word that
 // happens to match an option name is not proof the entry introduced that option - so a finding is
@@ -137,6 +139,25 @@ export function extractApiFileSlugs(source) {
   });
 
   return slugs;
+}
+
+/**
+ * Lists every api file slug a link may point at.
+ *
+ * `sidebar.js` describes the reference *navigation*, and the generator emits a page for every
+ * plugin whether the sidebar lists it or not - `api/dataProvider.md` is generated and reachable at
+ * its own permalink, but no sidebar entry names it. Taking the union keeps a link to such a page
+ * from being reported as unresolvable.
+ *
+ * @param {string} sidebarSource Contents of `docs/content/api/sidebar.js`.
+ * @param {string} pluginsSource Contents of `handsontable/src/plugins/index.ts`.
+ * @returns {Set<string>} File slugs, without the `.md` extension.
+ */
+export function buildKnownFileSlugs(sidebarSource, pluginsSource) {
+  return new Set([
+    ...extractApiFileSlugs(sidebarSource),
+    ...extractPluginNames(pluginsSource).values(),
+  ]);
 }
 
 /**
@@ -331,7 +352,7 @@ export function findBrokenApiLinks(markdown, { optionNames, hookNames, fileSlugs
       const report = reason => findings.push({ line: index + 1, link, reason });
 
       if (!fileSlugs.has(file)) {
-        report(`api/${file}.md is not listed in docs/content/api/sidebar.js`);
+        report(`api/${file}.md is neither an api sidebar entry nor a plugin`);
 
         return;
       }
@@ -380,7 +401,10 @@ export function checkChangelogPages({ directory = CHANGELOGS_DIR } = {}) {
     optionNames: extractOptionNames(readFileSync(METASCHEMA, 'utf8')),
     hookNames: extractHookNames(readFileSync(HOOK_CONSTANTS, 'utf8')),
     pluginNames: extractPluginNames(readFileSync(PLUGINS_INDEX, 'utf8')),
-    fileSlugs: extractApiFileSlugs(readFileSync(API_SIDEBAR, 'utf8')),
+    fileSlugs: buildKnownFileSlugs(
+      readFileSync(API_SIDEBAR, 'utf8'),
+      readFileSync(PLUGINS_INDEX, 'utf8'),
+    ),
   };
   const unlinked = [];
   const broken = [];

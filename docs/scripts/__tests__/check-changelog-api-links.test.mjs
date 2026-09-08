@@ -5,6 +5,7 @@ import {
   extractHookNames,
   extractPluginNames,
   extractApiFileSlugs,
+  buildKnownFileSlugs,
   collectAddedSectionLines,
   collectBullets,
   resolveApiTarget,
@@ -100,6 +101,14 @@ test('extractApiFileSlugs reads every children list of the api sidebar', () => {
   ].join('\n');
 
   assert.deepEqual([...extractApiFileSlugs(source)], ['core', 'hooks', 'options', 'autofill', 'comments']);
+});
+
+test('buildKnownFileSlugs accepts a plugin page the api sidebar does not list', () => {
+  const sidebar = "sidebar: [{ title: 'Core API', children: ['core', 'options'] }]";
+  const plugins = "import { DataProvider } from './dataProvider';";
+  const slugs = buildKnownFileSlugs(sidebar, plugins);
+
+  assert.deepEqual([...slugs].sort(), ['core', 'dataProvider', 'options']);
 });
 
 test('collectAddedSectionLines keeps only the Added section and stops at the next heading', () => {
@@ -247,12 +256,12 @@ test('findBrokenApiLinks accepts a link whose file and anchor both resolve', () 
   assert.deepEqual(findBrokenApiLinks(markdown, api), []);
 });
 
-test('findBrokenApiLinks reports a file slug that the api sidebar does not list', () => {
+test('findBrokenApiLinks reports a file slug that is neither a sidebar entry nor a plugin', () => {
   const markdown = '- Added [`thing`](@/api/notAPage.md#thing).';
   const findings = findBrokenApiLinks(markdown, api);
 
   assert.equal(findings.length, 1);
-  assert.match(findings[0].reason, /not listed in docs\/content\/api\/sidebar\.js/);
+  assert.match(findings[0].reason, /neither an api sidebar entry nor a plugin/);
 });
 
 test('findBrokenApiLinks reports an anchor that is not lowercase', () => {
