@@ -45,12 +45,13 @@ function request(path, cookie, method = 'GET') {
  *
  * @param {string} host
  * @param {string} path
+ * @param {string} [method]
  * @returns {object} A minimal Request stand-in.
  */
-function requestOn(host, path) {
+function requestOn(host, path, method = 'GET') {
   return {
     url: `https://${host}${path}`,
-    method: 'GET',
+    method,
     headers: { get: () => null },
   };
 }
@@ -556,6 +557,23 @@ test('an uppercase legacy hostname is collapsed (the parser normalises case)', a
   );
 });
 
+test('a HEAD request on the legacy host collapses like a GET', async() => {
+  const worker = loadWorker();
+  const response = await worker.fetch(
+    requestOn('docs.handsontable.com', '/docs/angular-data-grid/row-parent-child/', 'HEAD'),
+    env,
+  );
+
+  // Rule 12a's predicate is GET-or-HEAD, and the POST test below covers only
+  // the rejecting side of it. Without this, half the method restriction was
+  // unasserted: narrowing the rule to GET alone would still have passed.
+  assert.equal(response.status, 301);
+  assert.equal(
+    response.headers.get('location'),
+    'https://handsontable.com/docs/angular-data-grid/row-parent-child/',
+  );
+});
+
 test('the saving-data POST mock still answers on the legacy host', async() => {
   const worker = loadWorker();
   const response = await worker.fetch(
@@ -575,6 +593,27 @@ test('the saving-data POST mock still answers on the legacy host', async() => {
   const body = await response.json();
 
   assert.equal(body.result, 'ok');
+});
+
+test('a legacy-host redirect still carries HSTS, but not the document-only headers', async() => {
+  const worker = loadWorker();
+  const response = await worker.fetch(
+    requestOn('docs.handsontable.com', '/docs/angular-data-grid/row-parent-child/'),
+    env,
+  );
+
+  // Every GET/HEAD on the legacy host is a redirect now, so if redirects were
+  // left bare the host would stop refreshing its own HSTS pin and the promise
+  // would age out. The apex sends includeSubDomains, which covers the
+  // subdomain, but that would leave this host relying on apex config.
+  assert.equal(
+    response.headers.get('Strict-Transport-Security'),
+    'max-age=31536000; includeSubDomains; preload',
+  );
+
+  // A redirect has no body, so these have nothing to act on.
+  assert.equal(response.headers.get('Content-Security-Policy'), null);
+  assert.equal(response.headers.get('X-Frame-Options'), null);
 });
 
 test('the canonical host is never collapsed, and its path rules still run', async() => {
