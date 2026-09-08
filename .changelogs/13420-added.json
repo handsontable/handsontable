@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Added a `checked` option to a context menu and column menu item. It draws the check mark Handsontable uses for its own toggles and announces the item as a checkbox to assistive technology. It takes a boolean or a function returning one, called with the Handsontable instance as `this`. Note that `checked` is now a reserved item property: a custom item that already carries one holding a boolean or a function is now drawn with the check mark and announced as a checkbox. Rename the property to opt out, and drop any mark you drew inside `name` yourself or the item shows two. See the migration guide.",
-  "type": "added",
-  "issueOrPR": 13420,
-  "breaking": false,
-  "framework": "none"
-}
