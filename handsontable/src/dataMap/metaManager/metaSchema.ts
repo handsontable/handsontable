@@ -6453,7 +6453,7 @@ export default (): Record<string, unknown> => {
      * | Option        | Possible settings                                  | Description                                                                                 |
      * | ------------- | --------------------------------------------------- | --------------------------------------------------------------------------------------------- |
      * | `sheets`      | An array of `{ name, data, settings }` objects, or `null` | Defines the initial workbook. When omitted, the grid's own data becomes a single `Sheet1`     |
-     * | `activeSheet` | A number (default: `0`)                              | The index (within `sheets`) of the sheet to activate on initialization                        |
+     * | `activeSheet` | A number (default: `0`)                              | The index (within `sheets`) of the sheet to activate on initialization. Passed later through [`updateSettings()`](@/api/core.md#updatesettings) with a changed value, it switches the active sheet without rebuilding the workbook; a re-passed identical value is ignored |
      * | `controls`    | Boolean (default: `true`)                            | Controls visibility of the add-sheet and sheet-menu controls                                  |
      * | `paging`      | Boolean (default: `true`)                            | Controls visibility of the tab-scrolling controls, shown when tabs overflow the bar's width    |
      * | `position`    | `'top'` \| `'bottom'` (default: `'bottom'`)          | The edge of the grid the bar renders on                                                        |

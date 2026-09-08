@@ -106,7 +106,9 @@ const configurationOptions = {
       { name: 'Notes', data: [['Draft']] },
     ],
     // Set the index (within `sheets`) of the sheet to activate
-    // on initialization
+    // on initialization. Passed later through `updateSettings()`
+    // with a changed value, it switches the active sheet without
+    // rebuilding the workbook
     activeSheet: 0,
     // Show or hide the add-sheet and all-sheets menu controls
     controls: true,
@@ -321,8 +323,10 @@ A sheet added at runtime -- through the bar's add button, or through `addSheet()
 ## Known limitations
 
 - Only one sheet's data and settings are loaded into the grid at a time.
-- Passing a changed `sheetsBar` value through [`updateSettings()`](@/api/core.md#updatesettings) rebuilds the whole workbook, discarding any sheets you added at runtime with `addSheet()`. A re-passed value counts as unchanged when its scalar options match, each sheet's `settings` are structurally equal, and each sheet's `data` is the same array reference. A framework wrapper that re-emits a fresh settings literal on every render therefore keeps the workbook, as long as the `data` arrays are stable references - inline data literals recreated on each render reset it. A rebuild keeps the active sheet selected by name when the new workbook still contains it and the `activeSheet` option did not change.
+- Passing a changed `sheets` value through [`updateSettings()`](@/api/core.md#updatesettings) rebuilds the whole workbook, discarding any sheets you added at runtime with `addSheet()`. A re-passed value counts as unchanged when each sheet's `settings` are structurally equal and each sheet's `data` is the same array reference. A framework wrapper that re-emits a fresh settings literal on every render therefore keeps the workbook, as long as the `data` arrays are stable references - inline data literals recreated on each render reset it. A rebuild keeps the active sheet selected by name when the new workbook still contains it and the `activeSheet` option did not change. Changing only the bar's UI options (`controls`, `paging`, `position`) never rebuilds the workbook.
 - Switching sheets calls [`loadData()`](@/api/core.md#loaddata) internally, which clears the [`UndoRedo`](@/api/undoRedo.md) plugin's undo and redo stacks.
+- Cell meta set with [`setCellMeta()`](@/api/core.md#setcellmeta) survives a switch round trip, except the `valid` flag - validation results are recomputed by the next validation rather than restored.
+- Give the grid an explicit [`height`](@/api/options.md#height) when the container scrolls or is sized in CSS only. Without one, the table renders at its full content height and the bar sits below the last row - inside a scrollable container it can end up clipped out of reach. The [`Pagination`](@/api/pagination.md) bar behaves the same way; a shared fix is tracked as a follow-up.
 
 ## Related keyboard shortcuts
 
