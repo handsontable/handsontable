@@ -6435,7 +6435,8 @@ export default (): Record<string, unknown> => {
 
     /**
      * The `sheetsBar` option configures the [`SheetsBar`](@/api/sheetsBar.md) plugin, which renders a tab bar
-     * below the grid and lets the user switch between the sheets of a multi-sheet workbook.
+     * below the grid — or above it, with the `position` option — and lets the user
+     * switch between the sheets of a multi-sheet workbook.
      *
      * You can set the `sheetsBar` option to one of the following:
      *

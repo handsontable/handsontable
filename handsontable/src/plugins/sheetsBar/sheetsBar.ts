@@ -160,7 +160,8 @@ interface PreservedState {
  * @class SheetsBar
  *
  * @description
- * The plugin renders a tab bar below the grid and lets the user switch between the
+ * The plugin renders a tab bar below the grid — or above it, with the `position`
+ * setting — and lets the user switch between the
  * sheets of a multi-sheet workbook. Each sheet owns its data, its optional settings,
  * and its runtime view state.
  */

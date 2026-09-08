@@ -2,7 +2,7 @@
 type: reference
 title: Sheets bar
 metaTitle: Sheets bar - JavaScript Data Grid | Handsontable
-description: Render a tab bar below the grid and let users switch between the sheets of a multi-sheet workbook.
+description: Render a tab bar above or below the grid and let users switch between the sheets of a multi-sheet workbook.
 permalink: /sheets-bar
 canonicalUrl: /sheets-bar
 tags:
@@ -21,13 +21,13 @@ category: Accessories and menus
 menuTag: new
 ---
 
-Render a tab bar below the grid and let users switch between the sheets of a multi-sheet workbook.
+Render a tab bar above or below the grid and let users switch between the sheets of a multi-sheet workbook.
 
 [[toc]]
 
 ## Overview
 
-The [`SheetsBar`](@/api/sheetsBar.md) plugin renders a tab bar below the grid. Each tab represents one sheet, and clicking a tab switches the grid to that sheet's data. Every sheet owns its own data, its own configuration overrides, and its own runtime view state, such as scroll position and selection.
+The [`SheetsBar`](@/api/sheetsBar.md) plugin renders a tab bar below the grid, or above it with the `position` option. Each tab represents one sheet, and clicking a tab switches the grid to that sheet's data. Every sheet owns its own data, its own configuration overrides, and its own runtime view state, such as scroll position and selection.
 
 The plugin is disabled by default. Enable it with the [`sheetsBar`](@/api/options.md#sheetsbar) option.
 
