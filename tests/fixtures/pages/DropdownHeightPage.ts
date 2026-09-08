@@ -94,12 +94,14 @@ export class DropdownHeightPage {
   /**
    * How much of the option row is genuinely on screen, in CSS pixels.
    *
-   * The row is intersected with EVERY clipping ancestor, not just the list's own
-   * holder. That holder is a descendant of the grid's root element, which carries
-   * `overflow: clip` whenever a `height` setting is applied, and the holder can hang
-   * past the root's bottom edge - so measuring the row against the holder alone
-   * reports a row as visible after the grid root has already cut it away. Playwright's
-   * `toBeVisible()` has the same blind spot: it only needs a non-empty bounding box.
+   * The row is intersected with every clipping ancestor up to the nearest `position: fixed`
+   * one, then with the viewport. A clip only reaches descendants whose containing block sits
+   * under it, and a `fixed` box's containing block is the viewport - so the list (positioned
+   * `fixed` since #8688) is bounded by its own holder and the window, never by the grid root's
+   * `overflow: clip`, which still sits above it in the DOM. Walking past the `fixed` element
+   * would intersect the row with that root and call an option the user can read clipped away.
+   * Playwright's `toBeVisible()` has the opposite blind spot: it only needs a non-empty
+   * bounding box.
    */
   async visibleHeightOfOption(label: string, gridTestId = 'grid'): Promise<number> {
     return this.optionByText(label, gridTestId).evaluate((element: Element) => {
@@ -115,11 +117,20 @@ export class DropdownHeightPage {
       let ancestor = element.parentElement;
 
       while (ancestor && ancestor !== element.ownerDocument.body) {
-        if (view.getComputedStyle(ancestor).overflowY !== 'visible') {
+        const style = view.getComputedStyle(ancestor);
+
+        if (style.overflowY !== 'visible') {
           const box = ancestor.getBoundingClientRect();
 
           top = Math.max(top, box.top);
           bottom = Math.min(bottom, box.bottom);
+        }
+
+        // A `fixed` box escapes every ancestor above it; only the viewport bounds it from here.
+        if (style.position === 'fixed') {
+          top = Math.max(top, 0);
+          bottom = Math.min(bottom, view.innerHeight);
+          break;
         }
 
         ancestor = ancestor.parentElement;

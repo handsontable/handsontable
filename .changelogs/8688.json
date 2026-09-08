@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed the `autocomplete`, `dropdown`, `handsontable`, and `multiselect` editors' lists being cut off by the grid's edge or by a scrolling parent, and trimmed to as few as two choices to fit inside it: the lists are now positioned against the box they are laid out in - the browser window, or the nearest ancestor that is the containing block for a fixed element - so every choice that fits on screen is shown. A list can therefore paint outside the grid's box, and whether it opens above or below the cell now follows the space left in that box rather than the space left inside the grid.",
+  "type": "fixed",
+  "issueOrPR": 8688,
+  "breaking": true,
+  "framework": "none"
+}

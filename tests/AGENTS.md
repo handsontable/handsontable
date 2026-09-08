@@ -33,6 +33,18 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   the target row well inside the band on every theme, which is why `cell(40, 3)`
   after an 800px window scroll in the same spec is safe. Distance from the
   band's edge is what decides, not whether the index is written down.
+- **The same trap applies to any assertion about WHICH SIDE a popup opens on.**
+  A dropdown editor's list is as tall as its rows, so the theme decides whether
+  it fits below the cell or has to flip above it: the same grid flips on
+  `horizon` and does not on `main`. Because every local gate is pinned to
+  `e2e-main` (and the legacy Jasmine runner defaults to `main`), a spec that
+  pins the side goes green locally and reds exactly one CI leg, with a message
+  full of coordinates that says nothing about the cause — that is how
+  `E2E / UMD (theme: horizon)` went red on #13417 while the other two themes
+  passed. Assert **adjacency** instead: the popup touches the cell on one side
+  or the other. Leave "which side, and does it leave the grid" to a spec whose
+  grid is deliberately shaped to force that outcome on all three themes, and
+  run it on all three (`--theme=horizon`, `--project=e2e-horizon`).
 
 ## Fixture contract (never get these wrong)
 

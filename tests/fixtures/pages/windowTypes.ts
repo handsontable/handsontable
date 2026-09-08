@@ -100,6 +100,14 @@ export interface FixtureHotInstance {
     isOpened(): boolean,
     beginEditing(): void,
     finishEditing(restoreOriginalValue?: boolean): void,
+    /** The `<td>` currently being edited. Throws once the grid is destroyed. */
+    getEditedCell(): HTMLTableCellElement,
+    /** The option list's container, on the `handsontable` / `autocomplete` / `dropdown` family. */
+    htContainer?: HTMLElement,
+    /** Whether that family's list is rendered above the edited cell. */
+    isFlippedVertically?: boolean,
+    /** The multiselect editor keeps its own flip state on this controller instead. */
+    dropdownController?: { isFlippedVertically(): boolean },
   } | undefined;
   render(): void;
   listen(): void;
@@ -159,6 +167,10 @@ declare global {
   interface Window {
     /** The fixture's live Handsontable instance. */
     hot: FixtureHotInstance;
+    /** `dropdown-editor-clip` fixture: rebuilds the grid, optionally inside a named parent layout. */
+    initDropdownClipGrid(settings?: Record<string, unknown>, containerClass?: string): boolean;
+    /** `dropdown-editor-clip` fixture: the option set fed to the editor under test. */
+    htDropdownOptions: string[];
     /** #5833 fixture: the "getter" grid – constructor rows with a non-configurable derived getter. */
     hotGetter: FixtureHotInstance;
     /** #5833 fixture: the "accessor" grid – the docs' function-data-source pattern (function `columns[].data`). */

@@ -307,3 +307,48 @@ Two smaller changes ship with this one:
 - `width: null` clears the inline width, the way `height: null` clears the height. It used to write
   `width: nullpx`. Both resets restore their own property only, so `height: null` no longer removes a
   `width` set through the option.
+
+## 8. Dropdown editor lists are no longer confined to the grid
+
+The lists of the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md),
+[`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), `handsontable`, and
+`multiselect` cell types used to be positioned inside the grid's root element. Whenever a `height`
+was set, that root clipped its own content, so a list opened near the bottom row was cut off at the
+grid's edge. The editor tried to compensate by trimming the list to the rows that fit the space left
+inside the grid, which on a short grid left as few as two choices visible.
+
+Those lists are now positioned against the viewport. The grid's edge no longer cuts them, and they
+are no longer trimmed to fit inside it, so every choice that fits on screen is shown.
+
+### Who is affected
+
+Anyone rendering `autocomplete`, `dropdown`, `handsontable`, or `multiselect` cells, in particular:
+
+- a grid with a set `height` whose last rows carry one of those editors
+- a grid inside a parent with a fixed height and `overflow: auto` or `overflow: hidden`
+- code or tests that read the list's position, or that assert it opens above the edited cell when the
+  grid has no room below
+
+### How to migrate
+
+For the common case, nothing. The list opens in the same place and simply is not cut off.
+
+What changed in detail:
+
+- The list can now paint outside the grid's box. Whether it paints over what sits next to it
+  depends on the page: the list still belongs to the grid's stacking context, so a host page that
+  puts the grid inside its own layer keeps its own chrome on top. If the list has to stay inside a
+  specific area, size that area rather than the grid.
+- One ancestor property changes where the list is anchored, and the grid reads it for you. An
+  element with a `transform`, `perspective`, `filter`, `backdrop-filter`, a `will-change` naming
+  one of those, `contain: paint`, or a `container-type` becomes the box the list is laid out in,
+  instead of the browser window. A centred modal written `transform: translate(-50%, -50%)` is the
+  common case. The list is placed and bounded against that element, so it cannot leave it, and a
+  list taller than the modal is trimmed to fit and scrolls. Give such a container room if you want
+  the whole list visible.
+- Whether the list opens above or below the cell is decided by the space left in the **viewport**,
+  not the space left inside the grid. A list that used to flip above the cell to fit inside a short
+  grid now opens downwards and overhangs the grid instead. Sideways placement is unchanged: it is
+  still decided by the grid's own width.
+- The list is no longer trimmed to the space inside the grid, so it can render more choices than
+  before. [`visibleRows`](@/api/options.md#visiblerows) still caps it.

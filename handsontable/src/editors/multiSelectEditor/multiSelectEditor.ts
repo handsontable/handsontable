@@ -4,7 +4,13 @@ import { BaseEditor } from '../baseEditor';
 import EventManager from '../../eventManager';
 import { DropdownController, type DropdownEntry } from './controllers/dropdownController';
 import { SelectedItemsController } from './controllers/selectedItemsController';
-import { addClass, getDeepActiveElement, setAttribute } from '../../helpers/dom/element';
+import {
+  addClass,
+  getDeepActiveElement,
+  getFixedContainingBlockRect,
+  isHTMLElement,
+  setAttribute,
+} from '../../helpers/dom/element';
 import { isPrintableChar } from '../../helpers/unicode';
 import { localeLowerCase } from '../../helpers/string';
 import { A11Y_LABEL, A11Y_GROUP } from '../../helpers/a11y';
@@ -56,6 +62,11 @@ export class MultiSelectEditor extends BaseEditor {
    * The event manager used to register and clean up DOM event listeners.
    */
   declare eventManager: InstanceType<typeof EventManager>;
+
+  /**
+   * Whether the document scroll listener that keeps the list on its cell is bound.
+   */
+  #scrollFollowBound = false;
 
   /**
    * Returns the unique editor type identifier for the multiselect editor.
@@ -203,7 +214,7 @@ export class MultiSelectEditor extends BaseEditor {
     this.dropdownController!.getInputController()!.listen();
 
     this.dropdownController!.updateDimensions(this.#getAvailableSpace());
-
+    this.#bindScrollFollow();
   }
 
   /**
@@ -239,11 +250,35 @@ export class MultiSelectEditor extends BaseEditor {
       return;
     }
 
+    // Positioned `fixed`: the container stays a child of the grid root in the DOM, but the
+    // root's `overflow: clip` and any scrolling ancestor can no longer cut the list (#8688).
+    //
+    // The origin is the grid root's own rendered box plus the root-relative offset
+    // `getEditedCellRect()` returns, NOT the cell's `getBoundingClientRect()`. That offset
+    // carries a conditional 1px inline-start compensation - cancelled for a cell that draws its
+    // own inline-start border, which depends on row headers and on which columns are rendered -
+    // and a top border compensation. Reading the cell's rect directly drops both, which shifts
+    // this container relative to 18.1 on some columns and puts it a pixel out of line with the
+    // `handsontable` editor's list on the same grid.
     const { top, start, height } = this.getEditedCellRect()!;
+    const rootRect = this.hot.rootElement.getBoundingClientRect();
+    const block = getFixedContainingBlockRect(this.#editorContainer!);
     const editorStyle = this.#editorContainer!.style;
 
-    editorStyle.top = `${top + height}px`;
-    editorStyle[this.hot.isRtl() ? 'right' : 'left'] = `${start}px`;
+    editorStyle.position = 'fixed';
+    editorStyle.top = `${(rootRect.top + top + height) - block.top}px`;
+
+    if (this.hot.isRtl()) {
+      // `start` is measured from the root's inline-start edge, which in RTL is its right edge.
+      // Resolved against the containing block's right edge, never `documentElement.clientWidth`:
+      // on an RTL page with classic scrollbars the gutter sits on the left, inside the rect
+      // origin, so mixing the two moves the container by the scrollbar's width.
+      editorStyle.left = '';
+      editorStyle.right = `${((block.left + block.width) - rootRect.right) + start}px`;
+    } else {
+      editorStyle.right = '';
+      editorStyle.left = `${(rootRect.left + start) - block.left}px`;
+    }
 
     addClass(this.#editorContainer!, EDITOR_VISIBLE_CLASS_NAME);
   }
@@ -272,6 +307,11 @@ export class MultiSelectEditor extends BaseEditor {
   destroy(): void {
     this.close();
     this.dropdownController!.reset();
+    // The editor's own DOM listeners - the document `scroll` follow this editor registers on
+    // `open()`. Nothing used this event manager before that listener existed, which is why
+    // destroying it was not needed here until now; without it the listener outlives the grid
+    // and `MemoryLeakTest` counts it.
+    this.eventManager.destroy();
   }
 
   /**
@@ -401,26 +441,72 @@ export class MultiSelectEditor extends BaseEditor {
   }
 
   /**
+   * Keeps the `fixed` container attached to its cell while something outside the grid scrolls:
+   * the page, or an ancestor of the grid. The grid's own scroll already reaches
+   * `refreshDimensions()` through the `afterScroll*` hooks. Capture phase, because `scroll` does
+   * not bubble. Bound once for the editor's life and gated on the editor being open, because
+   * `refreshDimensions()` also shows the container. Gated on the grid being alive too: tearing
+   * the grid down shrinks the document, the window's scroll position clamps, and the resulting
+   * `scroll` event reaches this listener before the event manager releases it - and
+   * `getEditedCell()` throws on a destroyed instance.
+   */
+  #bindScrollFollow(): void {
+    if (this.#scrollFollowBound) {
+      return;
+    }
+
+    const follow = (event?: Event) => {
+      // The grid's own scroll already reaches `refreshDimensions()` through the `afterScroll*`
+      // hooks, and a capture listener runs BEFORE the target-phase handler that re-places the
+      // grid, so acting on it would position from a stale rect and then do it again.
+      // `isHTMLElement()`, not `instanceof Node`: the check has to hold for a node from another
+      // realm - a grid built inside an iframe from the parent's constructor - and a bare
+      // `instanceof` is bound to the realm this file was compiled in, so it answers `false`
+      // there and the skip silently stops working.
+      const target = event?.target;
+
+      if (isHTMLElement(target) && this.hot.rootElement.contains(target)) {
+        return;
+      }
+
+      if (this.hot.isDestroyed || !this.isOpened()) {
+        return;
+      }
+
+      this.refreshDimensions();
+      // Re-clamp the height and the flip: the cell moves relative to the containing block as the
+      // page scrolls, so a list that fitted below its cell when it opened can stop fitting.
+      // Without this the container is moved but keeps a height sized for its opening position,
+      // and the lower entries end up past the box's edge where nothing can reach them.
+      this.dropdownController!.updateDimensions(this.#getAvailableSpace());
+    };
+
+    this.eventManager.addEventListener(this.hot.rootDocument, 'scroll', follow, {
+      capture: true,
+      passive: true,
+    });
+    // A resize or a device rotation moves the cell without scrolling anything, which strands a
+    // `fixed` container - an `absolute` one rode along with the grid for free.
+    this.eventManager.addEventListener(this.hot.rootWindow, 'resize', () => follow(), { passive: true });
+    this.#scrollFollowBound = true;
+  }
+
+  /**
    * Calculates the available vertical space above and below the edited cell for positioning the dropdown.
    */
   #getAvailableSpace(): { spaceAbove: number; spaceBelow: number; cellHeight: number } {
-    const cellRect = this.getEditedCellRect()!;
-    const isVerticallyScrollableByWindow = this.hot.view.isVerticallyScrollableByWindow();
-    const workspaceHeight = this.hot.view.getWorkspaceHeight();
-
-    let spaceAbove = cellRect.top;
-
-    if (isVerticallyScrollableByWindow) {
-      const topOffset = this.hot.view.getTableOffset().top - this.hot.rootWindow.scrollY;
-
-      spaceAbove = Math.max(spaceAbove + topOffset, 0);
-    }
-
-    const spaceBelow = workspaceHeight - spaceAbove - cellRect.height;
+    // The container is positioned `fixed` (see `refreshDimensions()`), so the grid's workspace no
+    // longer bounds the list. What does is the box a fixed box is laid out in: the viewport, or
+    // an ancestor that establishes a containing block for it. Never `rootWindow.innerHeight` -
+    // that counts the classic scrollbar's gutter and, on mobile, the area under collapsible
+    // browser chrome and the software keyboard, which is up precisely because a text editor has
+    // focus.
+    const cellRect = this.getEditedCell()!.getBoundingClientRect();
+    const block = getFixedContainingBlockRect(this.#editorContainer!);
 
     return {
-      spaceAbove,
-      spaceBelow,
+      spaceAbove: Math.max(cellRect.top - block.top, 0),
+      spaceBelow: Math.max((block.top + block.height) - cellRect.bottom, 0),
       cellHeight: cellRect.height,
     };
   }

@@ -237,7 +237,7 @@ describe('MultiSelectEditor', () => {
             .toBeGreaterThan($(getCell(0, 0)).offset().top);
         });
 
-      it('should open the editor upwards when there\'s more space above than below the edited cell',
+      it('should open the editor downwards and past a scrolling parent when the viewport has room below',
         async() => {
           spec().$container.css('height', '400px').css('overflow', 'auto');
 
@@ -261,9 +261,17 @@ describe('MultiSelectEditor', () => {
           await keyDownUp('enter');
           await sleep(10);
 
-          expect(getActiveEditor().dropdownController.isFlippedVertically()).toBe(true);
-          expect($('.ht-multi-select-editor').offset().top)
-            .toBeLessThan(await $(getCell(10, 0)).offset().top);
+          const listRect = $('.ht-multi-select-editor')[0].getBoundingClientRect();
+          const cellRect = getCell(10, 0).getBoundingClientRect();
+          const parentRect = spec().$container[0].getBoundingClientRect();
+
+          // #8688: the list is positioned against the VIEWPORT, so the 400px scrolling parent no
+          // longer decides which way it opens. There is room below the cell on screen, so it
+          // opens downwards and hangs past that parent instead of being cut off by it. The flip
+          // is now driven by the viewport - see `tests/e2e/dropdown-editor-clip.spec.ts`.
+          expect(getActiveEditor().dropdownController.isFlippedVertically()).toBe(false);
+          expect(listRect.top).toBeGreaterThanOrEqual(cellRect.bottom - 1);
+          expect(listRect.bottom).toBeGreaterThan(parentRect.bottom);
         });
 
       describe('re-opening the editor after closing with ESC', () => {

@@ -668,10 +668,11 @@ export class AutocompleteEditor extends HandsontableEditor {
       // every choice - the flexbox-squeezed grids reported in #8872. The MultiSelect editor's
       // dropdown clamps to one entry the same way (`dropdownController.updateDimensions()`).
       //
-      // A caveat this cannot solve here: the grid's root element gets `overflow: clip` whenever a
-      // `height` is set, so when the free space is narrower than the forced row, that row is
-      // partly clipped by the grid's bottom edge - fully so when the space reaches 0. Making it
-      // readable in those extremes needs the dropdown to escape the clipping root (DEV-1656).
+      // The grid's own edge no longer bounds the free space: the list is positioned `fixed`, so
+      // `spaceAvailable` is measured against the box a fixed box is laid out in - the viewport,
+      // or an ancestor that establishes a containing block for it (#8688). A grid inside a small
+      // transformed modal is the case where trimming still bites, because CSS gives the list no
+      // way out of that ancestor.
       //
       // No border compensation here, unlike `getTargetDropdownHeight()`'s `getTableHeight() + 1`.
       // Adding it was measured and changes nothing a user sees: the clipping root, not the list's
@@ -681,12 +682,20 @@ export class AutocompleteEditor extends HandsontableEditor {
       const rowsThatFit = Math.max(Math.ceil(spaceAvailable / rowHeight) - 1, 1);
       const height = rowsThatFit * rowHeight;
 
-      if (this.isFlippedVertically) {
-        this.htEditor.rootElement.style.top =
-          `${parseInt(this.htEditor.rootElement.style.top, 10) + dropdownHeight - height}px`;
-      }
-
       this.setDropdownHeight(height);
+
+      // Re-place the list now that it is shorter. This used to add the freed height to
+      // `style.top` by hand, for the flipped case only; it goes back through the flip writers
+      // instead, because they resolve the coordinate against the list's containing block and
+      // clamp it to that box - both of which need the NEW height, and neither of which a
+      // hand-edited `top` can express. Reading the flag rather than re-deciding: the caller has
+      // just decided the flip from the untrimmed height, and re-deciding here on the trimmed one
+      // could disagree with the space figure it passed in.
+      if (this.isFlippedVertically) {
+        this.flipDropdownVertically();
+      } else {
+        this.unflipDropdownVertically();
+      }
     }
   }
 
