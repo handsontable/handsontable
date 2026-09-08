@@ -521,3 +521,47 @@ describe('Non-HOT based CRUD actions', () => {
     testWrapper.unmount();
   });
 });
+
+describe('Root size options', () => {
+  it('should write `height: "auto"` as inline `height: auto` with no overflow', async() => {
+    const testWrapper = mount(HotTable, {
+      props: {
+        data: createSampleData(3, 3),
+        height: 'auto',
+        licenseKey: 'non-commercial-and-evaluation',
+      },
+    });
+
+    const { rootElement } = testWrapper.getComponent(HotTable).vm.hotInstance;
+
+    expect(rootElement.style.height).toBe('auto');
+    expect(rootElement.style.overflowX).toBe('');
+    expect(rootElement.style.overflowY).toBe('');
+
+    testWrapper.unmount();
+  });
+
+  it('should ignore an unreadable size with a warning and keep the height', async() => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const testWrapper = mount(HotTable, {
+      props: {
+        data: createSampleData(3, 3),
+        height: 300,
+        licenseKey: 'non-commercial-and-evaluation',
+      },
+    });
+
+    await testWrapper.setProps({ height: 'abc' });
+
+    const { rootElement } = testWrapper.getComponent(HotTable).vm.hotInstance;
+    const sizeWarnings = warnSpy.mock.calls
+      .map(([message]) => message)
+      .filter(message => typeof message === 'string' && message.includes('cannot be read as a size'));
+
+    expect(rootElement.style.height).toBe('300px');
+    expect(sizeWarnings).toHaveLength(1);
+
+    warnSpy.mockRestore();
+    testWrapper.unmount();
+  });
+});

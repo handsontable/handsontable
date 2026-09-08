@@ -26,6 +26,37 @@ function isWheelEventWithLegacyDelta(event: WheelEvent): event is WheelEventWith
 }
 
 /**
+ * Reads the scroll distance a wheel event asks for, in pixels on both axes.
+ *
+ * A free function so the scroll and the decision whether the grid may swallow the event read the
+ * same numbers - including the legacy and line-mode conversions, which `event.deltaX`/`deltaY`
+ * alone do not give.
+ *
+ * @param {WheelEvent} event The wheel event.
+ * @param {number} browserLineHeight The line height used to convert a line-mode delta.
+ * @returns {{ deltaX: number, deltaY: number }}
+ */
+function resolveWheelDeltas(event: WheelEvent, browserLineHeight: number): { deltaX: number, deltaY: number } {
+  let deltaY: number;
+  let deltaX: number;
+
+  if (isWheelEventWithLegacyDelta(event)) {
+    deltaY = isNaN(event.deltaY) ? (-1) * (event.wheelDeltaY ?? 0) : event.deltaY;
+    deltaX = isNaN(event.deltaX) ? (-1) * (event.wheelDeltaX ?? 0) : event.deltaX;
+  } else {
+    deltaY = event.deltaY;
+    deltaX = event.deltaX;
+  }
+
+  if (event.deltaMode === 1) {
+    deltaX += deltaX * browserLineHeight;
+    deltaY += deltaY * browserLineHeight;
+  }
+
+  return { deltaX, deltaY };
+}
+
+/**
  * Assembles the NativeScrollInput's dependencies. The overlays are resolved off the owning
  * coordinator (its own fields set by `initOverlays`), and the sticky-scroll strategy + resize monitor
  * are passed as the already-built instances so their listener hooks can be re-registered from here.
@@ -307,21 +338,7 @@ export class NativeScrollInput {
    * @returns {boolean}
    */
   #translateMouseWheelToScroll(event: WheelEvent) {
-    let deltaY: number;
-    let deltaX: number;
-
-    if (isWheelEventWithLegacyDelta(event)) {
-      deltaY = isNaN(event.deltaY) ? (-1) * (event.wheelDeltaY ?? 0) : event.deltaY;
-      deltaX = isNaN(event.deltaX) ? (-1) * (event.wheelDeltaX ?? 0) : event.deltaX;
-    } else {
-      deltaY = event.deltaY;
-      deltaX = event.deltaX;
-    }
-
-    if (event.deltaMode === 1) {
-      deltaX += deltaX * this.#browserLineHeight;
-      deltaY += deltaY * this.#browserLineHeight;
-    }
+    const { deltaX, deltaY } = resolveWheelDeltas(event, this.#browserLineHeight);
 
     const isScrollVerticallyPossible = this.#deps.scrollVertically(deltaY);
     const isScrollHorizontallyPossible = this.#deps.scrollHorizontally(deltaX);

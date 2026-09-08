@@ -1098,9 +1098,17 @@ function elementTrapsAxis(el: HTMLElement, axis: OverflowAxis, rootWindow: Windo
     return OVERFLOW_TRIMMING_VALUES.includes(axes[axis]);
   }
 
-  const inlineAxis = axis === 'x' ? el.style.overflowX : el.style.overflowY;
+  // No window to compute against, so only the inline style can be read - and the `overflow`
+  // shorthand has to be split the way `resolveOverflowAxes` splits it. Comparing the whole string
+  // matched nothing for a two-value shorthand (`overflow: clip visible`), which is exactly the
+  // shape the per-axis form exists to resolve.
+  const shorthand = el.style.overflow.split(/\s+/).filter(Boolean);
+  const [shorthandX = '', shorthandY = shorthandX] = shorthand;
+  const inlineAxis = axis === 'x'
+    ? el.style.overflowX || shorthandX
+    : el.style.overflowY || shorthandY;
 
-  return OVERFLOW_TRIMMING_VALUES.includes(inlineAxis || el.style.overflow);
+  return OVERFLOW_TRIMMING_VALUES.includes(inlineAxis);
 }
 
 /**

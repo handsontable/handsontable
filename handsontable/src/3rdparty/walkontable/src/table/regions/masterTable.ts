@@ -204,14 +204,22 @@ class MasterTable extends Table {
       // that ARRIVED from the split mode still carries the pixel `width` and the `height` that mode
       // wrote (a clip removed from an ancestor, a `width` that stopped being definite), and those
       // would pin the holder to the old box while the page is supposed to size it. Clearing them is
-      // the whole of this mode's sizing.
-      this.holder.style.width = '';
-      this.holder.style.height = '';
+      // the whole of this mode's sizing. `measureWorkspaceWidth`'s window branch reads the holder
+      // width, so a stale one also kept the columns stretching to the old box.
+      const holderStyle = this.holder.style;
+
+      holderStyle.width = '';
+      holderStyle.height = '';
       this.hasTableWidth = true;
       this.hasTableHeight = true;
 
+      if (fieldsInitialized) {
+        // The measurement it holds was taken in another mode and must not be replayed on the way back.
+        this.#trimmingCache = null;
+      }
+
       if (!preventOverflow) {
-        this.holder.style.overflow = 'visible';
+        holderStyle.overflow = 'visible';
         this.wtRootElement.style.overflow = 'visible';
       }
     } else if (!(xIsElement && yIsElement && ownerX === ownerY)) {

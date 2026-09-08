@@ -269,3 +269,41 @@ Two kinds of reference now render as written:
   written. Use the lower-case spelling.
 
 If either appears in your copy, write the character itself, or use a numeric reference.
+
+## 7. `height: 'auto'` no longer clips the grid
+
+`height: 'auto'` used to write `height: auto; overflow: clip;` on the grid's root element. The clip
+made the root the element the grid scrolled in, so every row rendered at once, and a dropdown editor
+on the last row was cut off at the grid's edge.
+
+`height: 'auto'` now writes `height: auto` and nothing else. The grid behaves like a plain block
+element: it grows to fit its rows, the nearest scrolling ancestor or the page scrolls it, and
+off-screen rows stay virtualized.
+
+### Who is affected
+
+Anyone using `height: 'auto'`, in particular with:
+
+- a fixed `width`, which now clips the horizontal axis only, so the grid scrolls its columns inside
+  that width while the page scrolls its rows
+- the [`EmptyDataState`](@/api/emptyDataState.md) or [`StretchColumns`](@/api/stretchColumns.md)
+  plugins, which read where the grid scrolls
+- code that reads `hot.view.isVerticallyScrollableByWindow()`, which now returns `true` for
+  `height: 'auto'`
+
+### How to migrate
+
+For the common case, nothing. The grid still grows to fit its rows and the page still scrolls it.
+
+To keep an internal vertical scrollbar, set a numeric `height`, or place the grid inside a parent
+with a fixed height and `overflow: auto`. Inside such a parent, a grid with `height: 'auto'` fills
+the parent and scrolls inside it.
+
+Two smaller changes ship with this one:
+
+- A `width` or `height` value the browser cannot read as a size (`'abc'`, `-100`, `true`), or a CSS
+  keyword that would collapse the grid (`'min-content'`, `'inherit'`), is ignored with a one-time
+  console warning. It used to be written to the root element as it was.
+- `width: null` clears the inline width, the way `height: null` clears the height. It used to write
+  `width: nullpx`. Both resets restore their own property only, so `height: null` no longer removes a
+  `width` set through the option.

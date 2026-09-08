@@ -260,19 +260,21 @@ describe('settings', () => {
           height: 'auto',
         });
 
-        // `'auto'` is a free height: the root owns the horizontal axis through the `overflow-x`
-        // longhand, the same contract an unset height writes. The `overflow` shorthand still
-        // clips both axes here (the `'auto'` semantics change is a separate step); the longhand
-        // is what keeps the columns reachable once the shorthand goes.
+        // `'auto'` is a free height like an unset one: the root owns the horizontal axis through
+        // the `overflow-x` longhand only, and the vertical axis belongs to the page.
         expect(hot.rootElement.style.overflowX).toBe('clip');
-        expect(hot.rootElement.style.overflow).toBe('clip');
+        expect(hot.rootElement.style.overflowY).toBe('');
+        expect(hot.rootElement.style.overflow).toBe('');
+        expect(hot.view.isHorizontallyScrollableByWindow()).toBe(false);
+        expect(hot.view.isVerticallyScrollableByWindow()).toBe(true);
 
         const holder = hot.rootElement.querySelector('.wtHolder');
 
         expect(holder.scrollWidth).toBeGreaterThan(holder.clientWidth);
+        expect(hot.countRenderedRows()).toBeLessThan(100);
       });
 
-      it('should keep the whole `overflow` shorthand for `height: \'auto\'` and a relative width', async() => {
+      it('should clip nothing for `height: \'auto\'` and a relative width', async() => {
         const hot = handsontable({
           data: createSpreadsheetData(5, 5),
           rowHeaders: true,
@@ -281,10 +283,40 @@ describe('settings', () => {
           height: 'auto',
         });
 
-        // A relative width clears the longhand only for an UNSET height. For `'auto'` that would
-        // reduce the shorthand to the vertical axis and change today's layout.
-        expect(hot.rootElement.style.overflow).toBe('clip');
-        expect(window.getComputedStyle(hot.rootElement).overflowX).toBe('clip');
+        expect(hot.rootElement.style.overflow).toBe('');
+        expect(hot.rootElement.style.overflowX).toBe('');
+        expect(window.getComputedStyle(hot.rootElement).overflowX).toBe('visible');
+        expect(hot.view.isHorizontallyScrollableByWindow()).toBe(true);
+        expect(hot.view.isVerticallyScrollableByWindow()).toBe(true);
+      });
+
+      it('should write `width: null` as an empty inline width, never as `nullpx`', async() => {
+        const hot = handsontable({
+          data: createSpreadsheetData(5, 5),
+          width: 200,
+        });
+
+        expect(hot.rootElement.style.overflowX).toBe('clip');
+
+        await updateSettings({ width: null });
+
+        expect(hot.rootElement.style.width).toBe('');
+        expect(hot.rootElement.style.overflowX).toBe('');
+      });
+
+      it('should not clip when `width` is a `var()` or a container-query unit and `height` is omitted', async() => {
+        const hot = handsontable({
+          data: createSpreadsheetData(5, 5),
+          width: 'var(--grid-width, 50%)',
+        });
+
+        expect(hot.rootElement.style.width).toBe('var(--grid-width, 50%)');
+        expect(hot.rootElement.style.overflowX).toBe('');
+
+        await updateSettings({ width: '50cqw' });
+
+        expect(hot.rootElement.style.width).toBe('50cqw');
+        expect(hot.rootElement.style.overflowX).toBe('');
       });
 
       it('should not apply overflow clipping when `width` is `auto` and `height` is not provided', async() => {

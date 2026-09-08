@@ -9,7 +9,7 @@ import BottomOverlayTable from '../../table/regions/bottomTable';
 import { Overlay, type OverlayDeps } from './_base';
 import {
   axisScrollbarClearance,
-  holderOwnsScrollbars,
+  holderOwnsAxisScrollbar,
   overlayExtentBesideScrollbar,
   reservedScrollbarSpace,
 } from '../scrollbarClearance';
@@ -271,23 +271,25 @@ export class BottomOverlay extends Overlay {
     // horizontal axis (see `TopOverlay#adjustRootElementSize`).
     const rootSized = !wtViewport.isHorizontallyScrollableByWindow();
     // Each strip reads the owner of the axis it lies on. The inline-end strip clears the master's
-    // VERTICAL scrollbar, so it asks this overlay's own (vertical) owner; the bottom strip clears the
-    // HORIZONTAL one, so it asks the inline-start overlay's. In split mode the two differ - the window
-    // owns the rows, the holder owns the columns - and one predicate taken from the vertical owner
-    // said "the window's scrollbar" for both, leaving the holder's horizontal scrollbar under the
-    // frozen bottom rows at the grid's end. Clip and band together, or not at all - see
+    // VERTICAL scrollbar, so it asks the vertical owner; the bottom strip clears the HORIZONTAL one,
+    // so it asks the horizontal owner. In split mode the two differ - the window owns the rows, the
+    // holder owns the columns - and one predicate taken from the vertical owner said "the window's
+    // scrollbar" for both, leaving the holder's horizontal scrollbar under the frozen bottom rows at
+    // the grid's end. The axis is named at the call site rather than read off this overlay, which
+    // holds the vertical owner only. Clip and band together, or not at all - see
     // `TopOverlay#adjustRootElementSize`.
-    const inlineEndClearanceApplies = holderOwnsScrollbars(this.trimmingContainer, rootWindow);
-    const bottomClearanceApplies = holderOwnsScrollbars(
-      this.wot.wtOverlays.inlineStartOverlay.trimmingContainer, rootWindow
-    ) && this.#restsOnHolderBottomEdge();
+    const verticalClearanceApplies =
+      holderOwnsAxisScrollbar(wtViewport.isVerticallyScrollableByWindow(), rootWindow);
+    const horizontalClearanceApplies =
+      holderOwnsAxisScrollbar(wtViewport.isHorizontallyScrollableByWindow(), rootWindow) &&
+      this.#restsOnHolderBottomEdge();
 
     // The master's vertical scrollbar sits along the inline-end edge this overlay spans.
     this.#holderClearance = axisScrollbarClearance(
       this.deps.geometryReader,
       wtTable.holder,
       this.deps.geometryReader.getScrollbarWidth(rootDocument),
-      inlineEndClearanceApplies && wtViewport.hasVerticalScroll(),
+      verticalClearanceApplies && wtViewport.hasVerticalScroll(),
       'vertical'
     );
 
@@ -321,7 +323,7 @@ export class BottomOverlay extends Overlay {
       this.deps.geometryReader,
       wtTable.holder,
       this.deps.geometryReader.getScrollbarWidth(rootDocument),
-      bottomClearanceApplies && wtViewport.hasHorizontalScroll(),
+      horizontalClearanceApplies && wtViewport.hasHorizontalScroll(),
       'horizontal'
     );
 

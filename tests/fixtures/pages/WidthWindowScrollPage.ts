@@ -101,6 +101,56 @@ export class WidthWindowScrollPage {
     }, x);
   }
 
+  /**
+   * Starts recording the wheel events the page sees, so a spec can tell whether the grid swallowed
+   * one.
+   *
+   * The listener is on the WINDOW in the bubble phase, which is what makes `defaultPrevented`
+   * meaningful: the grid's own handler sits on `.ht_master` and the clone holders, so it has already
+   * run by the time this fires. A capture-phase listener runs first and always reports `false`.
+   */
+  async watchWheelEvents(): Promise<void> {
+    await this.page.evaluate(() => {
+      window.wheelLog = [];
+      window.addEventListener('wheel', (event) => {
+        window.wheelLog.push({
+          deltaX: event.deltaX,
+          deltaY: event.deltaY,
+          defaultPrevented: event.defaultPrevented,
+        });
+      }, { passive: true });
+    });
+  }
+
+  /** The wheel events recorded since `watchWheelEvents()`. */
+  async wheelLog(): Promise<Array<{ deltaX: number, deltaY: number, defaultPrevented: boolean }>> {
+    return this.page.evaluate(() => window.wheelLog);
+  }
+
+  /**
+   * Sends a real wheel gesture over the middle of the grid and waits two frames.
+   *
+   * A trusted event, so the grid's `preventDefault()` really does suppress the browser's own scroll.
+   * `deltaX` defaults to the small sideways drift a trackpad carries on an ordinary vertical swipe.
+   */
+  async wheelOverGrid(deltaY: number, deltaX = 2): Promise<void> {
+    // The ROOT's box, not the `#grid` container's: the container is full page width while the root
+    // carries the 500px `width`, so the container's centre is beside the grid, over the wrapper, and
+    // the wheel listeners (on `.ht_master` and the clone holders) never see the event.
+    const box = await this.rootBox();
+    const viewport = this.page.viewportSize();
+    // A grid with no `height` is far taller than the viewport, and once the page has scrolled its
+    // box starts above it - so aim at the middle of the part that is on screen right now.
+    const top = Math.max(box.y, 0);
+    const bottom = viewport ? Math.min(box.y + box.height, viewport.height) : box.y + box.height;
+
+    await this.page.mouse.move(box.x + (box.width / 2), (top + bottom) / 2);
+    await this.page.mouse.wheel(deltaX, deltaY);
+    await this.page.evaluate(() => new Promise(resolve => {
+      requestAnimationFrame(() => requestAnimationFrame(resolve));
+    }));
+  }
+
   /** Scrolls the master holder to its horizontal end and waits two frames. */
   async scrollHolderToEnd(): Promise<void> {
     await this.page.evaluate(() => {

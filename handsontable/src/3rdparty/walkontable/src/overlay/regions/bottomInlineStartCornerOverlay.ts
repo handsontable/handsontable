@@ -57,6 +57,24 @@ export class BottomInlineStartCornerOverlay extends Overlay {
   }
 
   /**
+   * How far the rendered master table reaches past the bottom of its holder.
+   *
+   * At fractional zoom the browser rounds each row's border to a physical pixel, so the table ends
+   * a fraction of a CSS pixel below the holder's integer height. Only meaningful while the holder's
+   * height is the DOM's to decide; against a holder sized in pixels by an element owner this is the
+   * whole clipped remainder of the table, not a rounding error.
+   *
+   * @returns {number}
+   */
+  #masterTableOverflow(): number {
+    const { geometryReader } = this.deps;
+    const masterTableRect = geometryReader.getBoundingClientRect(this.deps.getWtTable().TABLE);
+    const masterHolderRect = geometryReader.getBoundingClientRect(this.deps.getWtTable().holder);
+
+    return Math.max(0, masterTableRect.bottom - masterHolderRect.bottom);
+  }
+
+  /**
    * Updates the corner overlay position.
    *
    * @returns {boolean}
@@ -82,11 +100,16 @@ export class BottomInlineStartCornerOverlay extends Overlay {
 
     if (anyAxisOnWindow) {
       const inlineStartOffset = this.inlineStartOverlay.getOverlayOffset();
-      const { geometryReader } = this.deps;
-      const masterTableRect = geometryReader.getBoundingClientRect(this.deps.getWtTable().TABLE);
-      const masterHolderRect = geometryReader.getBoundingClientRect(this.deps.getWtTable().holder);
-      const masterTableOverflow = Math.max(0, masterTableRect.bottom - masterHolderRect.bottom);
-      const bottom = this.bottomOverlay.getOverlayOffset() - masterTableOverflow;
+      // The fractional-zoom correction belongs to the VERTICAL axis, and only while the window owns
+      // it - it is the same subtraction `BottomOverlay#resetFixedPosition` makes on its own window
+      // branch, against a holder whose height the DOM decides. When an element owns the vertical
+      // axis the holder has that owner's pixel height, the clipped table reaches far past it, and
+      // subtracting that overflow pushed this corner hundreds of pixels below the grid - reachable
+      // in the reverse split (`preventOverflow: 'vertical'` over a root with a CSS height), where
+      // the corner takes this branch on the strength of the horizontal axis alone.
+      const bottom = this.bottomOverlay.trimmingContainer === rootWindow
+        ? this.bottomOverlay.getOverlayOffset() - this.#masterTableOverflow()
+        : this.bottomOverlay.getOverlayOffset();
 
       overlayRoot.style[this.isRtl() ? 'right' : 'left'] = `${inlineStartOffset}px`;
       overlayRoot.style.bottom = `${bottom}px`;

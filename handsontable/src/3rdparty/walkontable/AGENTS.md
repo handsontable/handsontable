@@ -263,7 +263,7 @@ the holder scrolls the columns inside the root's box, and the page scrolls the r
 The owners live on the overlays: the top and bottom overlays carry the vertical owner in
 `trimmingContainer`, the inline-start overlay the horizontal one, and
 `isVerticallyScrollableByWindow()` / `isHorizontallyScrollableByWindow()` read exactly those two
-fields. Three rules follow.
+fields. Seven rules follow.
 
 - **A decision about the other axis goes through the viewport predicate, never `this.trimmingContainer`.**
   The width of the top and bottom clones is a horizontal question and the height of the inline-start
@@ -288,6 +288,20 @@ fields. Three rules follow.
   gates that disagree leave a notch where the frozen columns stop and the frozen rows carry on
   (#10370). The draw cycle positions the bottom overlay before the corner, which is what makes the
   read safe.
+- **A wheel gesture must move each axis exactly once, so the grid scrolls BOTH axes itself and then
+  always consumes the event.** `Overlays#scrollVertically` / `scrollHorizontally` move whatever owns
+  the axis, and for a window owner that means `rootWindow.scrollBy({ behavior: 'instant' })` — the
+  page is scrolled by the grid, not by the browser. So `NativeScrollInput#onWheel` calls
+  `preventDefault()` on any gesture the translation reports as scrolled, in every mode. **Do not add
+  a guard that refuses `preventDefault` when a named axis is window-owned.** That was tried on the
+  root-size branch, to stop the page freezing under the pointer while `scrollableElement` is the
+  holder for the whole grid — a real defect, but one `scrollBy` had already fixed. With the delta
+  written by the grid AND the event left unconsumed, the browser applied the same delta a second
+  time: a diagonal trackpad swipe moved the columns 200px for a 100px `deltaX`, and the page 480px
+  for a 240px `deltaY`. The listeners are correctly non-passive in split mode, because a
+  horizontal-only gesture there still has to be preventable. Pinned by the two exact-distance wheel
+  tests in `tests/e2e/width-window-scroll.spec.ts`; a "moved more than zero" assertion cannot see a
+  doubling, which is how this survived a full review round.
 - **`preventOverflow` is an alias, not a mode.** `'horizontal'` forces the horizontal owner to the
   root's parent and `'vertical'` the vertical one; everything the option used to switch by string
   comparison now follows from the owners. Its only remaining reads are the window-mode overflow
@@ -331,7 +345,9 @@ fields. Three rules follow.
   part with it: a diagonal trackpad swipe moved the columns and not the page. A window-owned axis
   is scrolled from the wheel path with `rootWindow.scrollBy({ behavior: 'instant' })`, so the event
   is consumed on both axes and the offset is readable at once whatever `scroll-behavior` the page
-  sets; the clone sync skips it instead, because a clone holder must not accumulate the page offset.
+  sets; the clone sync skips it instead, because a clone holder must not accumulate the page offset:
+  on a window-owned axis the clone's cells are placed by the spreader, so a holder offset would
+  double-shift them.
 - **`ScrollSync#setRenderingStateChanged` latches until `syncScrollWithMaster` consumes it.** A
   draw nests: the master `beforeDraw` hook can run a full draw of its own, and that draw's
   `beforeDraw` fires before the outer `afterDraw`. The outer `beforeDraw` has already advanced the
@@ -364,6 +380,30 @@ never probes. `ScrollSync#scrollableElement` stays the holder
 whenever any axis is element-owned, so the wheel translation, the sticky scroll and the scrollbar
 bands keep treating the grid as one that scrolls inside its box; the per-axis scroll positions are
 read off each overlay's own `mainTableScrollableElement`.
+
+**"Left to the DOM" is not symmetric between the axes, and one place has to know it.** Vertically it
+means `height: auto` — the holder's content *is* its height, so it can never scroll and the window
+is the only candidate. Horizontally it means a block-fill width, and the holder's stylesheet
+`overflow: auto` then really does scroll the columns whenever the table is wider. CSS offers no way
+out: `overflow: visible` beside a non-`visible` axis computes to `auto`, so a holder that scrolls one
+axis scrolls both. This only bites the **reverse** split — an element owning the vertical axis and
+the window the horizontal one, which is `preventOverflow: 'vertical'`, or an ancestor clipping the
+vertical axis alone — where the holder takes a pixel height and becomes a real scroll port.
+`Overlay#ownsWindowScroll()` is where that asymmetry lives: a window-owned **vertical** axis always
+resolves to the window, a window-owned **horizontal** one only while the vertical axis is
+window-owned too (window mode, where the holder is unsized on both axes and `MasterTable` clears its
+overflow). Without it the horizontal listener bound to the window while the holder did the
+scrolling, and `syncScrollPositions` read `window.scrollX` forever — the column band stayed pinned at
+column 0. Leave `isHorizontallyScrollableByWindow()` alone in that mode: the owner really is the
+window, and the clone sizing that reads it must keep matching it.
+
+The same mode has a second trap, and it is about **how much the table overhangs its holder.** That
+measurement (`masterTableRect.bottom - masterHolderRect.bottom`) is the fractional-zoom rounding
+error the bottom overlay and the bottom corner subtract — but only while the holder's height is the
+DOM's to decide. Give the holder an owner's pixel height and the same subtraction returns the whole
+clipped remainder of the table, which threw the corner hundreds of pixels below the grid. So gate it
+on the **vertical** owner (`bottomOverlay.trimmingContainer === rootWindow`), not on the corner's
+`anyAxisOnWindow`, which the horizontal axis alone can satisfy.
 
 An owner can move without a settings change (a page rule that clips the root, a `width` that
 becomes definite). `Overlays#beforeDraw` re-resolves the three region overlays' owners on every

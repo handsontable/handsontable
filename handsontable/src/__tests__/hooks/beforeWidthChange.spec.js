@@ -77,5 +77,24 @@ describe('Hook', () => {
 
       expect(tableView().getViewportWidth()).toBe(115);
     });
+
+    it('should validate the value the hook returns, ignoring one that cannot be read as a size', async() => {
+      spyOn(console, 'warn');
+
+      const hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+        width: 100,
+        height: 100,
+        beforeWidthChange() {
+          return 'inherit';
+        },
+      });
+
+      // The hook replaced `100` with a keyword that would collapse the grid, so nothing was written.
+      expect(hot.rootElement.style.width).toBe('');
+      expect(console.warn).toHaveBeenCalledTimes(1);
+      expect(console.warn.calls.argsFor(0)[0]).toContain('`width` option');
+      expect(console.warn.calls.argsFor(0)[0]).toContain('"inherit"');
+    });
   });
 });
