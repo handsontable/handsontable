@@ -325,7 +325,7 @@ function commonJsonIntegration() {
   const matter = _require('gray-matter');
   const semver = _require('semver');
   const contentDir = resolve(__dirname, 'content');
-  const PREFIXES = ['javascript-data-grid', 'react-data-grid', 'angular-data-grid'];
+  const PREFIXES = ['javascript-data-grid', 'react-data-grid', 'angular-data-grid', 'vue-data-grid'];
   const MIN_DOCS_VERSION = '9.0';
 
   // ── Version helpers ──────────────────────────────────────────────────────
@@ -578,7 +578,7 @@ function markdownRoutesIntegration() {
   const matter = _require('gray-matter');
   const contentDir = resolve(__dirname, 'content');
   const publicMdDir = resolve(__dirname, 'public', '_md');
-  const PREFIXES = ['javascript-data-grid', 'react-data-grid', 'angular-data-grid'];
+  const PREFIXES = ['javascript-data-grid', 'react-data-grid', 'angular-data-grid', 'vue-data-grid'];
 
   /**
    * Assembles one output file: an H1 from the frontmatter title, then the body
