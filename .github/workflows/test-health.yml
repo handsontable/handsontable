@@ -1,0 +1,152 @@
+# The cross-run flake ledger.
+#
+# Runs after every completed `Tests` or `Develop` run and, when that run was red,
+# collects every flaky or failed test it left behind as artifacts — the Playwright
+# JSON report of each failed leg (`playwright-report-*`) and the Puppeteer runner's
+# failed-specs record (`puppeteer-failed-specs-*`) — into a ledger on `gh-pages`:
+#
+#   https://handsontable.github.io/handsontable/test-health/
+#
+# The page shows, per test, how often it flaked in the last 7 and 30 days, on
+# which legs, when it was last seen, and whether it has crossed the playbook's
+# "needs a ticket" line (2+ distinct runs in 30 days).
+#
+# `workflow_run` on purpose, not a step inside `Tests`: this workflow runs in the
+# BASE repository's context with a write token whatever started the run, so a
+# fork or Dependabot pull request's flakes are recorded without a fork guard.
+# The cost is the usual one for `workflow_run`: the copy on the DEFAULT branch
+# runs, so a change to this file is only exercised after it lands on develop.
+# `workflow_dispatch` with a run id exists for that, and for backfilling a run
+# whose artifacts still exist (they expire after 3 days).
+#
+# The publish step re-reads `gh-pages` and re-runs the (idempotent) collector on
+# every push attempt, so two runs completing at once cannot lose each other's
+# entries. No `concurrency` group: GitHub keeps at most one pending run per
+# group and CANCELS the rest, which would drop collections when several runs
+# finish together.
+
+name: Test health
+
+on:
+  workflow_run:
+    workflows: ['Tests', 'Develop']
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      run-id:
+        description: 'Id of the Tests or Develop run to collect (backfill, or testing a change to this workflow)'
+        required: true
+        type: string
+
+permissions:
+  contents: write   # the gh-pages push
+  actions: read     # downloading another run's artifacts
+
+env:
+  PAGE_URL: https://handsontable.github.io/handsontable/test-health/
+
+jobs:
+  collect:
+    name: Collect
+    runs-on: ubuntu-latest
+    # A green run left nothing to collect (a flaky Playwright test fails its leg
+    # under `failOnFlakyTests`, a failed Jasmine spec fails its leg). A cancelled
+    # run's artifacts are incomplete by definition.
+    if: >-
+      github.event_name == 'workflow_dispatch'
+      || github.event.workflow_run.conclusion == 'failure'
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+
+      - name: Use Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
+        with:
+          node-version-file: .nvmrc
+
+      # The payload is the snapshot of the attempt that just completed. The runs
+      # API answers with the LATEST attempt, which may already be a re-run of it,
+      # so the payload wins whenever there is one.
+      - name: Describe the run
+        env:
+          RUN_JSON: ${{ toJSON(github.event.workflow_run) }}
+          DISPATCH_RUN_ID: ${{ inputs.run-id }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -n "$DISPATCH_RUN_ID" ]; then
+            gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${DISPATCH_RUN_ID}" > run.json
+          else
+            printf '%s' "$RUN_JSON" > run.json
+          fi
+          RUN_ID=$(node -p 'JSON.parse(require("fs").readFileSync("run.json", "utf8")).id')
+          echo "RUN_ID=${RUN_ID}" >> "$GITHUB_ENV"
+          echo "Collecting run ${RUN_ID} ($(node -p 'const r = JSON.parse(require("fs").readFileSync("run.json", "utf8")); `${r.name} · ${r.head_branch} · attempt ${r.run_attempt} · ${r.conclusion}`'))"
+
+      # Only the two artifact families the ledger reads, one directory each. An
+      # expired or vanished artifact is a warning, never a failure: the other
+      # legs of the run still get recorded.
+      - name: Download the run's test artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p artifacts
+          gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/artifacts?per_page=100" \
+            --jq '.artifacts[] | select(.expired == false) | select(.name | test("^(playwright-report-|puppeteer-failed-specs-)")) | .name' \
+            > artifact-names.txt
+          if [ ! -s artifact-names.txt ]; then
+            echo "No test artifacts on run ${RUN_ID}; the ledger is rewritten for the moving windows only."
+          fi
+          while IFS= read -r name; do
+            [ -z "$name" ] && continue
+            if gh run download "$RUN_ID" -R "$GITHUB_REPOSITORY" -n "$name" -D "artifacts/${name}"; then
+              echo "Downloaded ${name}"
+            else
+              echo "::warning title=Test health::Could not download artifact ${name} of run ${RUN_ID}; its tests are not recorded."
+            fi
+          done < artifact-names.txt
+
+      # Re-reads gh-pages and re-runs the collector before every push attempt.
+      # The collector is idempotent (an observation is keyed by test, leg, run
+      # and attempt), so a rebase-by-redo can never duplicate or lose entries.
+      - name: Update the ledger on GitHub Pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          WORK_DIR=$(mktemp -d)
+          git fetch origin gh-pages
+          git worktree add "$WORK_DIR" gh-pages
+
+          pushed=false
+          for attempt in 1 2 3 4 5; do
+            (
+              cd "$WORK_DIR"
+              git fetch origin gh-pages
+              git reset -q --hard origin/gh-pages
+            )
+            node .github/scripts/test-health-collect.mjs \
+              --run run.json \
+              --artifacts artifacts \
+              --ledger-dir "${WORK_DIR}/test-health" \
+              --seed .github/test-health/seed.json \
+              --template .github/test-health/index.template.html \
+              --page-url "$PAGE_URL" \
+              > step-summary.md
+            (
+              cd "$WORK_DIR"
+              git add test-health/
+              if git diff --cached --quiet; then
+                echo "Ledger unchanged"
+                exit 0
+              fi
+              git commit -q -m "test-health: record run ${RUN_ID}"
+              git push origin gh-pages
+            ) && pushed=true && break
+            echo "Push attempt ${attempt} did not land; re-reading gh-pages and retrying"
+            sleep $((attempt * 5))
+          done
+
+          cat step-summary.md >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$pushed" = false ]; then
+            echo "::warning title=Test health::The ledger update for run ${RUN_ID} could not be pushed after 5 attempts; re-run this workflow with run-id ${RUN_ID} to record it."
+          fi
