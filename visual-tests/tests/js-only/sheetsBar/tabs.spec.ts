@@ -23,8 +23,8 @@ test(__filename, async({ goto, tablePage }) => {
   await bar.locator('.ht-sheets-bar__tab-label').nth(1).click();
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
-  // open a tab's menu
-  await bar.locator('.ht-sheets-bar__tab-chevron').first().click();
+  // open a tab's menu — the chevron answers on the active tab only, which is now the second one
+  await bar.locator('.ht-sheets-bar__tab-chevron').nth(1).click();
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
   await tablePage.keyboard.press('Escape');
