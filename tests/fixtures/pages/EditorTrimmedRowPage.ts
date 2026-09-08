@@ -387,6 +387,96 @@ export class EditorTrimmedRowPage {
   }
 
   /**
+   * Removes a row, and from inside the removal's own cache update calls `alter()` AGAIN - the
+   * nesting DEV-2755 is about. The nested call's selection repair runs while the outer removal's
+   * repair is still pending, so on unfixed code the two adjust the open editor one after the other
+   * and the commit lands one record above the one it was typed into.
+   *
+   * `nestedAmount` of `0` removes nothing at all: the nested call still runs `alter()`'s selection
+   * machinery, which is the whole mechanism, with no second removal to reason about.
+   *
+   * `trimAfter` adds a trimming-map write behind the nested call, still inside the listener. That
+   * puts a THIRD selection repair in the same window - the trim captures and restores the selection
+   * in physical coordinates - so it pins that the composed shift and the trim's own repair agree.
+   */
+  async removeRowAlteringFromCacheUpdate(
+    removeIndex: number, nestedIndex: number, nestedAmount: number,
+    trimAfter: number[] = []): Promise<void> {
+    await this.page.evaluate(([target, nestedTarget, nested, trimmed]) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+      let fired = false;
+
+      hot.addHook('afterRowSequenceCacheUpdate', (state) => {
+        const source = (state as { indexesChangeSource?: string } | undefined)?.indexesChangeSource;
+
+        if (fired || source !== 'remove') {
+          return;
+        }
+
+        fired = true;
+
+        hot.alter('remove_row', nestedTarget as number, nested as number);
+
+        if ((trimmed as number[]).length > 0) {
+          hot.getPlugin('trimRows').trimRows(trimmed as number[]);
+        }
+      });
+      hot.alter('remove_row', target as number, 1);
+    }, [removeIndex, nestedIndex, nestedAmount, trimAfter] as [number, number, number, number[]]);
+  }
+
+  /**
+   * Inserts a row, and from inside `beforeCreateRow` - which fires BEFORE the insertion touches the
+   * data - removes one. The nested change therefore lands FIRST, the opposite order from a nested
+   * call fired by a cache update, and nothing is owed to the selection while it runs.
+   *
+   * The composition has to follow the DATA order rather than the nesting order, or this shape moves
+   * the selection the wrong way (DEV-2755 review).
+   */
+  async insertRowRemovingFromBeforeHook(insertIndex: number, removeIndex: number): Promise<void> {
+    await this.page.evaluate(([target, removed]) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+      let fired = false;
+
+      hot.addHook('beforeCreateRow', () => {
+        if (fired) {
+          return;
+        }
+
+        fired = true;
+
+        hot.alter('remove_row', removed as number, 1);
+      });
+      hot.alter('insert_row_above', target as number, 1);
+    }, [insertIndex, removeIndex] as [number, number]);
+  }
+
+  /**
+   * The column axis's version of `removeRowAlteringFromCacheUpdate()`: removes a column, and from
+   * inside that removal's own cache update calls `alter()` again.
+   */
+  async removeColumnAlteringFromCacheUpdate(
+    removeIndex: number, nestedIndex: number, nestedAmount: number): Promise<void> {
+    await this.page.evaluate(([target, nestedTarget, nested]) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+      let fired = false;
+
+      hot.addHook('afterColumnSequenceCacheUpdate', (state) => {
+        const source = (state as { indexesChangeSource?: string } | undefined)?.indexesChangeSource;
+
+        if (fired || source !== 'remove') {
+          return;
+        }
+
+        fired = true;
+
+        hot.alter('remove_col', nestedTarget as number, nested as number);
+      });
+      hot.alter('remove_col', target as number, 1);
+    }, [removeIndex, nestedIndex, nestedAmount] as [number, number, number]);
+  }
+
+  /**
    * Removes a row and filters in ONE synchronous block, with no task boundary between the two -
    * the shape plain application code produces with `hot.alter('remove_row', 1);
    * hot.getPlugin('filters').filter();`. A strand window that outlives `alter()` leaks into the
