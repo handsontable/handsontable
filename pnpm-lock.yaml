@@ -254,6 +254,15 @@ importers:
       jspdf-autotable:
         specifier: ^5.0.7
         version: 5.0.8(jspdf@4.2.1)
+      lucide:
+        specifier: ^1.43.0
+        version: 1.43.0
+      lucide-angular:
+        specifier: ^1.0.0
+        version: 1.0.0(@angular/common@19.2.25(@angular/core@19.2.25(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.25(rxjs@7.8.2)(zone.js@0.15.1))
+      lucide-react:
+        specifier: ^1.43.0
+        version: 1.43.0(react@18.3.1)
       moment:
         specifier: ^2.30.1
         version: 2.30.1
@@ -10270,6 +10279,21 @@ packages:
   lru-cache@7.18.3:
     resolution: {integrity: sha512-jumlc0BIUrS3qJGgIkWZsyfAM7NCWiBcCDhnd+3NNM5KbBmLTgHVfWBcg6W+rLUsIpzpERPsvwUP7CckAQSOoA==}
     engines: {node: '>=12'}
+
+  lucide-angular@1.0.0:
+    resolution: {integrity: sha512-YxCNEXHUz2IzAZIlxU4CkD55ljMjOlm3/am4eqadX/qkFszyGDzZwtbWOP1wj6vlbn/BNL4RhJeXbusLz96ajg==}
+    deprecated: Package deprecated. Please use @lucide/angular instead.
+    peerDependencies:
+      '@angular/common': ^19.2.20
+      '@angular/core': ^19.2.20
+
+  lucide-react@1.43.0:
+    resolution: {integrity: sha512-ubtnda1fVK5ky0PNEpOmB0wiwhpZUyJiol4K14KCm+QKvuCkfUu54Et/rIjyupJpwiJ5Hg+BLQE86/GEsS+IgQ==}
+    peerDependencies:
+      react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
+
+  lucide@1.43.0:
+    resolution: {integrity: sha512-koRMVADN3XR9zte+NHXFHuJM4ejAqvwu/6DMf2O40jl2rMlhzu3t2mHSd3ugXnmTm5HIMUbOexhC/nClhetbGg==}
 
   lz-string@1.5.0:
     resolution: {integrity: sha512-h5bgJWpxJNswbU7qCrV0tIKQCaS3blPDrqKWx+QxzuzL1zGUzij9XCWLrSLsJPu5t+eWA/ycetzYAO5IOMcWAQ==}
@@ -25343,6 +25367,18 @@ snapshots:
       yallist: 4.0.0
 
   lru-cache@7.18.3: {}
+
+  lucide-angular@1.0.0(@angular/common@19.2.25(@angular/core@19.2.25(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.25(rxjs@7.8.2)(zone.js@0.15.1)):
+    dependencies:
+      '@angular/common': 19.2.25(@angular/core@19.2.25(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2)
+      '@angular/core': 19.2.25(rxjs@7.8.2)(zone.js@0.15.1)
+      tslib: 2.8.1
+
+  lucide-react@1.43.0(react@18.3.1):
+    dependencies:
+      react: 18.3.1
+
+  lucide@1.43.0: {}
 
   lz-string@1.5.0: {}
 

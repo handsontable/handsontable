@@ -204,13 +204,13 @@ starlight-toc {
 }
 
 /* Generated recipe steps emit Starlight's `.sl-steps` markup without instantiating
-   the `<Steps>` component, so keep the component's global marker styles here. */
+   the `<Steps>` component, so keep the component's global marker styles here.
+
+   This rule stays unlayered on purpose: `.sl-container > * + *` above is unlayered
+   too and has the same specificity, so a layered `.sl-steps` would lose to it and
+   the list would take a 3rem top margin instead. */
 .sl-steps {
   margin-top: 2rem;
-}
-
-.sl-steps > li > * + * {
-  margin-top: var(--sl-content-gap-y);
 }
 
 @layer starlight.components {
@@ -227,7 +227,12 @@ starlight-toc {
     counter-increment: steps-counter;
     position: relative;
     padding-inline-start: calc(var(--bullet-size) + 1rem);
-    padding-bottom: 2rem;
+    /* Upstream's value, and it is load-bearing: `li::after` (the hairline
+       connector) is anchored to the padding box, so a larger padding runs the
+       line past the item's content - including on the last item, which has
+       nothing to connect to. The 1px keeps a child's `margin-bottom` inside
+       the padding box instead, which is what closes the gaps in the line. */
+    padding-bottom: 1px;
     min-height: calc(var(--bullet-size) + var(--bullet-margin));
   }
 
@@ -266,6 +271,10 @@ starlight-toc {
 }
 
 @layer starlight.content {
+  .sl-steps > li > * + * {
+    margin-top: var(--sl-content-gap-y);
+  }
+
   .sl-steps > li > :first-child {
     --lh: calc(1em * var(--sl-line-height));
     --shift-y: calc(0.5 * (var(--bullet-size) - var(--lh)));
