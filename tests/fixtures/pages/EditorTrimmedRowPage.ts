@@ -404,6 +404,49 @@ export class EditorTrimmedRowPage {
   }
 
   /**
+   * Strands the editor with a removal, then fires an `alter()` a `beforeAlter` hook VETOES, then
+   * filters - all in one synchronous block.
+   *
+   * The vetoed call is the point: `alter()` opens its structural-change scope before running
+   * `beforeAlter`, so a veto returns out of the function without ever closing it. The scope then
+   * covers the filter, which finds the editor stranded by the FIRST removal, skips the discard
+   * because the scope reads as open, and commits through the stale coordinates.
+   */
+  async vetoedAlterBetweenStrandAndFilterSameTask(
+    strandRow: number, column: number, values: string[]
+  ): Promise<void> {
+    await this.page.evaluate(([target, targetColumn, targetValues]) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+      const filters = hot.getPlugin('filters');
+
+      hot.alter('remove_row', target as number, 1);
+      hot.addHook('beforeAlter', () => false);
+      hot.alter('remove_row', 0, 1);
+      filters.addCondition(targetColumn as number, 'by_value', [targetValues]);
+      filters.filter();
+    }, [strandRow, column, values] as [number, number, string[]]);
+  }
+
+  /**
+   * Replaces the data set and filters in ONE synchronous block, the `updateData()` counterpart of
+   * `removeRowThenFilterSameTask()` - the shape a wrapper produces when a new `data` prop and a
+   * filter land in the same commit. `updateData()`'s structural-change scope has to be closed by
+   * the time it returns, or the filter skips the discard and commits the stranded editor.
+   */
+  async updateDataThenFilterSameTask(
+    data: unknown[][], column: number, values: string[]
+  ): Promise<void> {
+    await this.page.evaluate(([next, targetColumn, targetValues]) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+      const filters = hot.getPlugin('filters');
+
+      hot.updateData(next as unknown[][]);
+      filters.addCondition(targetColumn as number, 'by_value', [targetValues]);
+      filters.filter();
+    }, [data, column, values] as [unknown[][], number, string[]]);
+  }
+
+  /**
    * Removes rows through `alter()`. This shifts PHYSICAL indexes, unlike a trimming map, and still
    * emits a trimming-map change - the one way the captured record can go stale without the guard
    * being able to tell.

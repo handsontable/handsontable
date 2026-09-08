@@ -231,6 +231,12 @@ class EditorManager {
    * cannot lift the outer call's protection when its own scope ends. A scope is synchronous by
    * contract; the zero-delay timeout heals a scope a thrown hook aborted before its
    * `resumeStrandDiscards()` ran, bounding a leaked suspension to the current task.
+   *
+   * That timer covers a THROW only. An early `return` between the two calls is ordinary control
+   * flow - `alter()` reaches one whenever `beforeAlter` vetoes or `maxRows` is already met - and it
+   * has to call `resumeStrandDiscards()` on its way out. Left to the timer, the scope stays open
+   * for the rest of the task, and a trimming change that follows in it skips the discard and
+   * appends records (DEV-2831).
    */
   suspendStrandDiscards(): void {
     this.#strandDiscardsSuspended += 1;

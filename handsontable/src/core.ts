@@ -1265,7 +1265,14 @@ export default function Core(
 
       const skipAlter = instance.runHooks('beforeAlter', action, index, amount, source, keepEmptyRows);
 
+      // Every early exit below has to close the scope on its way out. A THROWN hook is already
+      // covered - the zero-delay timeout heals that - but a `return` is ordinary control flow a
+      // veto reaches on purpose, and leaving the scope open makes the rest of the task skip the
+      // discard: a `beforeAlter` veto followed by `Filters#filter()` in the same task then commits
+      // an editor an EARLIER structural change stranded, and appends records (DEV-2831).
       if (skipAlter === false) {
+        editorManager.resumeStrandDiscards();
+
         return;
       }
 
@@ -1277,6 +1284,8 @@ export default function Core(
           const numberOfSourceRows = instance.countSourceRows();
 
           if (tableMeta.maxRows === numberOfSourceRows) {
+            editorManager.resumeStrandDiscards();
+
             return;
           }
 

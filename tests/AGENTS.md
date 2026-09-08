@@ -17,6 +17,20 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   (`e2e-main` used to load `full.min` — never assume the hooks cover min.)
 - `handsontable.full.js` and `handsontable.min.js` are deliberately untested
   here — they belong to the nightly on develop (DEV-2058).
+- **A PARTIAL build leaves the `-min` legs on the PREVIOUS bundle, and they
+  fail without saying so.** `npm run build:umd` writes `dist/handsontable.js`
+  only; `dist/handsontable.full.min.js` comes from the separate
+  `build:umd.min`. So after `build:umd` the three `umd` legs carry the change
+  and the three `-min` legs still run the code from before it — same spec, same
+  machine, opposite verdicts. Read the failures PER LEG before calling anything
+  a race: `45 failed / 90` on `--repeat-each=15` is not "50% flaky", it is
+  3 legs × 15 failing every time, and the arithmetic is the tell (any multiple
+  of the repeat count is). That misread cost DEV-2756 a ticket — a
+  deterministic `-min` failure was filed as load-dependent nondeterminism in
+  code that turned out to be correct. Always `npm --prefix handsontable run
+  build` (the full task, which also runs the strict `postbuild`) before a
+  cross-leg run, and confirm both files moved with
+  `ls -l handsontable/dist/handsontable.js handsontable/dist/handsontable.full.min.js`.
 - **Never hardcode a row or column index that sits near the edge of the
   rendered band.** Each theme's padding feeds `autoColumnSize`, so the same
   content measures differently: in `width-window-scroll.html` (500px wide, 30
