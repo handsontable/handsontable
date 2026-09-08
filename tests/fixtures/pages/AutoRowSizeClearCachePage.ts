@@ -170,11 +170,9 @@ export class AutoRowSizeClearCachePage {
     await this.page.goto(
       `/tests/fixtures/demo/auto-row-size-clear-cache.html?theme=${this.theme}&bundle=${this.bundle}`
     );
-    // The bundle first, through the shared helper: the dist file is several megabytes and every
-    // worker pulls its own copy, so a cold server outlasts the 10s `expect` timeout and the leg
-    // would fail pointing at an overlay class instead of the real cause. The helper is also where
-    // the polling interval lives - the rAF default is starved by parallel workers, which is why
-    // an inline `waitForFunction` here is a lint error.
+    // The bundle first, or the leg would fail pointing at an overlay class instead of the real
+    // cause. `awaitBundle()` owns both the `waitForFunction`-over-`expect` choice and the polling
+    // interval, so the wait is not re-inlined here - see its docstring for why each one matters.
     await awaitBundle(this.page);
     await expect(this.inlineStartOverlay).toBeVisible();
     await expect(this.grid.locator('.ht_master tbody tr').first()).toBeVisible();
