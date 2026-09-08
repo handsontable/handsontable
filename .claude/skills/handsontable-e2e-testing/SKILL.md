@@ -5,7 +5,7 @@ description: Use ONLY when maintaining the FROZEN legacy Jasmine/Puppeteer E2E s
 
 # Handsontable E2E Testing Guide (legacy Jasmine/Puppeteer — frozen)
 
-> **This suite is frozen.** New E2E tests are **Playwright** — use the `handsontable-playwright-e2e` skill and put them in `tests/e2e/`. This guide is for *maintaining* existing `*.spec.js` files. The presence gate blocks a newly added `*.spec.js`. If a legacy spec is broken or flaky, **migrate it to Playwright** rather than patching it here.
+> **This suite is frozen.** New E2E tests are **Playwright** — use the `handsontable-playwright-e2e` skill and put them in `tests/e2e/`. This guide is for *maintaining* existing `*.spec.js` files. The presence gate blocks a newly added `*.spec.js`, and appending three or more new `it` blocks to a modified frozen spec draws its non-blocking `frozen-suite-growth` advisory — state the justification in the PR if the frozen tier is right. If a legacy spec is broken or flaky, **migrate it to Playwright** rather than patching it here.
 
 ## Standard boilerplate (MUST follow)
 
