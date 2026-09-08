@@ -9,7 +9,7 @@
     {
       "prNumber": 12951,
       "tagline": "Single-pass rendering",
-      "whyItMatters": "The grid predicts whether scrollbars will appear instead of rendering, measuring, and re-rendering, which cuts the work of the initial render and of every scroll step. It is one of over 20 performance changes in 18.1 that also cover sorting, filtering, index translation, and cell metadata memory - use the new `modifySinglePassLayout` hook to keep a table on the previous layout path."
+      "whyItMatters": "The grid predicts whether scrollbars will appear instead of rendering, measuring, and re-rendering, which cuts the work of the initial render and of every scroll step. It is one of over 20 performance changes in 18.1 that also cover sorting, filtering, index translation, and cell metadata memory. Use the new `modifySinglePassLayout` hook to keep a table on the previous layout path."
     },
     {
       "prNumber": 13076,

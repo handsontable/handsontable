@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { ChangeCategory, FilterKind, ReleaseSummary, VersionComparisonData, VersionEntry } from './types';
+import { isFeatured, matchesFilter, partitionEntries } from './featuredEntries';
 
 function readData(): VersionComparisonData {
   const el = document.getElementById('version-comparison-data');
@@ -131,38 +132,6 @@ const FILTER_LABELS: Record<FilterKind, string> = {
   breaking: 'Breaking',
   all: 'All',
 };
-
-function matchesFilter(entry: VersionEntry, filter: FilterKind): boolean {
-  switch (filter) {
-    case 'all': return true;
-    case 'breaking': return entry.breaking;
-    case 'deprecated': return entry.category === 'deprecated' && !entry.breaking;
-    case 'new': return entry.category === 'added' && !entry.breaking;
-    case 'fixed': return entry.category === 'fixed' && !entry.breaking;
-  }
-}
-
-// Every highlight is also surfaced on the New tab, so a release's headline
-// features stay visible on the default landing view whichever changelog section
-// they were filed under. An author picks at most five highlights per release
-// (see docs/scripts/validate-version-highlights.mjs), and the section a feature
-// lands in is an implementation detail of the changelog: 18.1's Shadow DOM
-// support sits under Fixed and its single-pass rendering under Changed. Set this
-// to false to revert to showing a highlight only on All and on the tab matching
-// its own category.
-const SHOW_HIGHLIGHTS_ON_NEW = true;
-
-// Whether a highlighted entry renders as a featured card under the active filter.
-// A highlight always shows on All and on the tab matching its own category
-// (a deprecated highlight on Deprecated, a breaking one on Breaking, and so on),
-// so it never leaks onto an unrelated tab. The one exception is the revertable
-// rule above that also promotes every highlight onto New.
-function isFeatured(entry: VersionEntry, filter: FilterKind): boolean {
-  if (!entry.highlighted) return false;
-  if (filter === 'all') return true;
-  if (matchesFilter(entry, filter)) return true;
-  return SHOW_HIGHLIGHTS_ON_NEW && filter === 'new';
-}
 
 interface FilterTabsProps {
   value: FilterKind;
@@ -300,27 +269,7 @@ const COMPACT_THRESHOLD = 5;
 
 function ReleaseGroup({ version, entries, filter }: { version: string; entries: VersionEntry[]; filter: FilterKind }) {
   const [expanded, setExpanded] = useState(false);
-  // One PR can be cited by two changelog bullets in different sections (18.1's
-  // #12951 is both an `added` hook and a `changed` render path; 16.1's #11790 is
-  // both `added` and `deprecated`). Both bullets carry the same highlight, so
-  // only the first renders as a featured card and the other keeps its place in
-  // the compact list - but only on a tab its own category belongs to, so a
-  // promoted highlight does not drag a second bullet onto the New tab.
-  const featured: VersionEntry[] = [];
-  const compact: VersionEntry[] = [];
-  const featuredPrNumbers = new Set<number>();
-
-  for (const entry of entries) {
-    const alreadyFeatured = entry.prNumber !== null && featuredPrNumbers.has(entry.prNumber);
-
-    if (isFeatured(entry, filter) && !alreadyFeatured) {
-      if (entry.prNumber !== null) featuredPrNumbers.add(entry.prNumber);
-      featured.push(entry);
-    } else if (!alreadyFeatured || matchesFilter(entry, filter)) {
-      compact.push(entry);
-    }
-  }
-
+  const { featured, compact } = partitionEntries(entries, filter);
   const isCollapsible = compact.length > COMPACT_THRESHOLD;
   const shown = !isCollapsible || expanded
     ? compact
