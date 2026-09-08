@@ -57,20 +57,27 @@
       td.setAttribute('data-testid', `cell-${row}-${col}`);
     };
 
-    window.hot = new Handsontable(container, {
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
-      renderer: testIdRenderer,
-      rowHeaders: true,
-      colHeaders: true,
-      // Pinned so the rendered window is the same on every theme - a taller row must not push the
-      // cell these tests address out of view.
-      width: 700,
-      height: 400,
-      contextMenu: true,
-      customBorders: true,
-      comments: true,
-      licenseKey: 'non-commercial-and-evaluation',
-    });
+    // Fail loud: a constructor that throws must not leave the page looking like a grid that simply
+    // has not rendered yet. The message is stamped on the container and the page object rethrows it,
+    // so a broken build reads as its own error instead of a cell that never appeared.
+    try {
+      window.hot = new Handsontable(container, {
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        renderer: testIdRenderer,
+        rowHeaders: true,
+        colHeaders: true,
+        // Pinned so the rendered window is the same on every theme - a taller row must not push the
+        // cell these tests address out of view.
+        width: 700,
+        height: 400,
+        contextMenu: true,
+        customBorders: true,
+        comments: true,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      container.setAttribute('data-init-error', String(error && error.message));
+    }
 
     /**
      * Put cell (0, 0) into the state that lights up every check mark under test: a top border, a

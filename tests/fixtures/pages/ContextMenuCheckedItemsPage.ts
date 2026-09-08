@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 
 /**
  * What one menu item reports about its checked state, read straight off the rendered DOM.
@@ -40,6 +41,18 @@ export class ContextMenuCheckedItemsPage {
   async goto(): Promise<void> {
     await this.page.goto(
       `/tests/fixtures/demo/context-menu-checked-items.html?theme=${this.theme}&bundle=${this.bundle}`);
+    // The bundle first, or a slow leg fails pointing at a missing cell instead of the real cause.
+    // `awaitBundle()` owns both the `waitForFunction`-over-`expect` choice and the polling interval.
+    await awaitBundle(this.page);
+
+    // Rethrow a constructor failure as itself. The fixture catches the throw and stamps it, so a
+    // grid that never built reads as its own error rather than as a cell that never appeared.
+    const initError = await this.grid.getAttribute('data-init-error');
+
+    if (initError) {
+      throw new Error(`Fixture failed to build the grid: ${initError}`);
+    }
+
     await expect(this.cell(0, 0)).toBeVisible();
   }
 
