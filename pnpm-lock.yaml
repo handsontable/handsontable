@@ -246,8 +246,8 @@ importers:
         specifier: ^4.0.3
         version: 4.0.3
       hyperformula:
-        specifier: ^3.2.0
-        version: 3.3.0
+        specifier: ^3.4.0
+        version: 3.4.0
       jspdf:
         specifier: ^4.2.1
         version: 4.2.1
