@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the first row rendering a pixel taller than the rest, and the grid's height changing when it was scrolled, on grids with column headers.",
+  "type": "fixed",
+  "issueOrPR": 13418,
+  "breaking": false,
+  "framework": "none"
+}
