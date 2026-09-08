@@ -36,28 +36,3 @@ export function getRowBorderCompensation(isBorderBox: boolean): number {
 export function getBoxAdjustedRowHeight(logicalHeight: number, isBorderBox: boolean): number {
   return logicalHeight - getRowBorderCompensation(isBorderBox);
 }
-
-/**
- * The pixels the summed row heights fall short of the rendered body's real height, because the FIRST
- * rendered body row draws its own 1px `border-top` and the sum reports every row at its logical
- * height.
- *
- * `1` only when that border exists: a grid with column headers hands the gridline under the header
- * to the header's own `border-bottom` at every scroll position (DEV-2786), so no body row draws a top
- * border; and AutoRowSize (`externalRowCalculator`) measures rendered heights, so the pixel is
- * already in its sums either way.
- *
- * Two call sites must agree on this to the pixel or a grid predicts a scrollbar it does not get:
- * `SpreaderSize#adjustElementsSize`, which writes the hider height, and `gatherLayoutInput`, which
- * predicts the scrollbars from the same total before the DOM is written.
- *
- * @param {boolean} hasExternalRowCalculator The `externalRowCalculator` setting (AutoRowSize).
- * @param {boolean} hasColumnHeaders Whether the grid renders any column header row.
- * @returns {number}
- */
-export function getFirstRowBorderCompensation(
-  hasExternalRowCalculator: boolean,
-  hasColumnHeaders: boolean
-): number {
-  return (hasExternalRowCalculator || hasColumnHeaders) ? 0 : 1;
-}

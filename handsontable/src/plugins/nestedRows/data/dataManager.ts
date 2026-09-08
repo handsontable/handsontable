@@ -637,7 +637,35 @@ class DataManager {
   }
 
   /**
+   * Find the physical row a new top-level row inserted at the provided top-level position lands on.
+   *
+   * A top-level row does not sit in the grid at the position it holds in the top-level array: every
+   * preceding parent's subtree sits between the two. The two agree only while no preceding top-level
+   * row has children, which is why a top-level position cannot be handed to anything that counts in
+   * grid rows (#7727, DEV-2625).
+   *
+   * @private
+   * @param {number} topLevelIndex Position within the top-level array.
+   * @returns {number} Physical row index the new row takes.
+   */
+  getTopLevelInsertionRow(topLevelIndex: number): number {
+    const displacedRow = this.data![topLevelIndex];
+
+    // Past the last top-level row there is nothing to displace, so the new row goes to the end.
+    if (displacedRow === null || displacedRow === undefined) {
+      return this.countAllRows();
+    }
+
+    return this.getRowIndex(displacedRow) ?? 0;
+  }
+
+  /**
    * Add a child node to the provided parent at a specified index.
+   *
+   * A row with no parent is a top-level row, and that branch builds the insert by hand rather than
+   * through `hot.alter()`, which cannot serve both halves of it. `hot.alter()` also used to fire
+   * `beforeAlter` and `beforeDataSplice` here; neither does any more. The plugin's `AGENTS.md`
+   * holds why, and what is still wrong next door.
    *
    * @param {object} parent Parent node.
    * @param {number} index Index to insert the child element at.
@@ -685,11 +713,49 @@ class DataManager {
       flattenedIndex = finalChildIndex;
 
     } else {
-      this.plugin.disableCoreAPIModifiers();
-      this.hot.alter('insert_row_above', index, 1, 'NestedRows.addChildAtIndex');
-      this.plugin.enableCoreAPIModifiers();
+      // `Array#splice` reads a negative index from the end, while everything below reports an
+      // append, so a caller that lost track of its row - `getRowIndexWithinParent()` answers -1 for
+      // a row object the cache does not know - would otherwise put the data, the meta and the index
+      // maps in three different places. Normalize once, here, and use it for both halves.
+      const topLevelIndex = Math.max(index, 0);
+      const finalRowIndex = this.getTopLevelInsertionRow(topLevelIndex);
+      // Read before the splice, so both still mean the row the new one displaces. The index maps
+      // count in visual indexes; the cell meta counts in physical ones. Appending is its own case:
+      // no physical row holds `finalRowIndex` yet, so it has no visual index to read, and the new
+      // row goes one past the last *visible* row rather than past the physical count. A displaced
+      // row that is itself trimmed cannot be addressed at all - see the plugin's `AGENTS.md`.
+      const visualRowIndex = topLevelIndex >= this.data!.length
+        ? this.hot.countRows()
+        : (this.hot.rowIndexMapper.getVisualFromPhysicalIndex(finalRowIndex) ?? finalRowIndex);
 
-      flattenedIndex = this.getRowIndex(this.data![index]) ?? 0;
+      // A `false` here cancels the insert, and it has to keep doing so: `Formulas` answers `false`
+      // whenever HyperFormula cannot extend the sheet, and its own `afterCreateRow` listener would
+      // then call `engine.addRows()` on the state HyperFormula just refused. `afterAddChild` still
+      // has to fire - `beforeAddChild` opened the collapsed-rows stash, and only that hook closes
+      // it again, so returning without it leaves the grid expanded for the rest of its life.
+      if (this.hot.runHooks('beforeCreateRow', visualRowIndex, 1, 'NestedRows.addChildAtIndex') === false) {
+        this.hot.runHooks('afterAddChild', parent, null, index);
+
+        return;
+      }
+
+      // `this.data` is the source array itself, so this splice already is the source data change -
+      // no `setSourceDataAtCell()` needed, unlike the branch above, which writes a `__children` key.
+      this.data!.splice(topLevelIndex, 0, childElement);
+
+      this.rewriteCache();
+
+      this.hot.rowIndexMapper.insertIndexes(visualRowIndex, 1);
+
+      this.shiftCellsMeta(this.getRowIndex(childElement));
+
+      this.hot.runHooks('afterCreateRow', visualRowIndex, 1, 'NestedRows.addChildAtIndex');
+
+      // Kept from `hot.alter()`, now with the right index: a selection at or below the new row still
+      // addresses the same rows.
+      this.hot.selection.shiftRows(visualRowIndex, 1);
+
+      flattenedIndex = finalRowIndex;
     }
 
     // Workaround for refreshing cache losing the reference to the mocked row.

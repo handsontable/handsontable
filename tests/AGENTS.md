@@ -54,11 +54,15 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   `Handsontable` is still undefined. The spec then fails inside its first
   `page.evaluate()` with a bare `Handsontable is not defined` — far from the
   cause, and only under load. Wait for the bundle itself in `goto()`, with
-  `await page.waitForFunction(() => 'Handsontable' in window)`, before
-  asserting on any fixture status. `expect` is the wrong tool for that wait:
-  `dist/handsontable.js` is ~6 MB uncompressed and every worker pulls its own
-  copy, so a cold or busy server outlasts the 10s `expect` timeout, while
-  `waitForFunction` polls against the test budget.
+  `await awaitBundle(this.page)` from `fixtures/bundle.ts`, before asserting
+  on any fixture status. The helper is the one place the wait is spelled out:
+  `waitForFunction` rather than `expect` (`dist/handsontable.js` is ~6 MB
+  uncompressed and every worker pulls its own copy, so a cold or busy server
+  outlasts the 10s `expect` timeout, while `waitForFunction` polls against the
+  test budget), with the interval in `BUNDLE_POLLING_MS` — see Determinism
+  below for why the rAF default times out on a healthy page. Do not inline a
+  copy: the lint catches a missing `{ polling }`, but only the helper keeps
+  the value from drifting between page objects.
 - The `umd` legs run the BASE bundle: **no HyperFormula** (a formulas fixture
   loads HF as an external script beside the bundle, or the plugin logs a
   warning and silently stays off) and **no languages pack** (an i18n fixture
@@ -233,7 +237,11 @@ banned `waitForTimeout` usually reappears; `test.setTimeout(ms)` and
 `testInfo.setTimeout(ms)` set a budget, not a wait, and stay legal),
 `networkidle`, `.only`, `.skip`, or bare `test.fixme` in specs **and page
 objects** — the lint script covers `e2e` and `fixtures`, so a timer moved into
-the page object a spec drives is the same fixed wait and is caught there. Wait on web-first assertions;
+the page object a spec drives is the same fixed wait and is caught there — and
+no `waitForFunction()` without an explicit `{ polling }`: the rAF default is
+starved under parallel-worker load and times out on a healthy page, so the
+call site states the interval (an options literal, also when wrapped in a
+type assertion, is judged; a plain options variable is not). Wait on web-first assertions;
 `expect.poll` for data probes. `test.fixme` is the tracked exception for a real
 product bug: it requires an eslint-disable line naming the task
 (`// eslint-disable-next-line no-restricted-syntax -- DEV-1234: <why>`), which

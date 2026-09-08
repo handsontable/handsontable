@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 import { type CellValue } from './windowTypes';
 
 /** Which sorting plugin the grid is built with. Both share the sortable-range calculation. */
@@ -41,17 +42,11 @@ export class SortingFilteredSpareRowsPage {
 
   /**
    * Navigate to the fixture and wait for the grid to render.
-   *
-   * The bundle is injected with `document.write`, so it loads separately from the block that
-   * builds the grid. Wait for `Handsontable` itself first, and with `waitForFunction` rather
-   * than `expect`: the plain UMD bundle is ~6 MB and every worker pulls its own copy, so a cold
-   * or busy server outlasts the 10s `expect` timeout while `waitForFunction` polls against the
-   * test budget.
    */
   async goto(): Promise<void> {
     await this.page.goto(
       `/tests/fixtures/demo/sorting-filtered-spare-rows.html?theme=${this.theme}&bundle=${this.bundle}`);
-    await this.page.waitForFunction(() => 'Handsontable' in window);
+    await awaitBundle(this.page);
     await expect(this.cell(0, 0)).toBeVisible();
   }
 

@@ -1,8 +1,4 @@
-import {
-  getRowBorderCompensation,
-  getBoxAdjustedRowHeight,
-  getFirstRowBorderCompensation,
-} from '../../../src/axisSizing/boxModel';
+import { getRowBorderCompensation, getBoxAdjustedRowHeight } from '../../../src/axisSizing/boxModel';
 
 // `isBorderBox` is the theme axis: the classic theme uses content-box cells (compensation 1), the new
 // themes use border-box cells (compensation 0). Both values are exercised here.
@@ -39,32 +35,6 @@ describe('boxModel', () => {
       const borderBoxWritten = getBoxAdjustedRowHeight(logical, true);
 
       expect(borderBoxWritten + getRowBorderCompensation(true)).toBe(logical);
-    });
-  });
-
-  // The FIRST rendered body row is a separate question from the per-row one above: it is about the
-  // `border-top` that row draws, not about where each row's own `border-bottom` is accounted. Two
-  // call sites read this - `SpreaderSize#adjustElementsSize`, which writes the hider height, and
-  // `gatherLayoutInput`, which predicts the scrollbars before the DOM is written - and they must
-  // agree to the pixel or the grid predicts a scrollbar it does not get.
-  describe('getFirstRowBorderCompensation', () => {
-    it('should compensate 1px on a plain grid, where the first row draws the top frame', () => {
-      expect(getFirstRowBorderCompensation(false, false)).toBe(1);
-    });
-
-    it('should not compensate when column headers own the seam', () => {
-      // The header carries its `border-bottom` at every scroll position, so no body row abutting it
-      // draws a `border-top` and there is no missing pixel to add back.
-      expect(getFirstRowBorderCompensation(false, true)).toBe(0);
-    });
-
-    it('should not compensate when AutoRowSize measures the rendered heights', () => {
-      // `externalRowCalculator` sums measured heights, which already contain the pixel.
-      expect(getFirstRowBorderCompensation(true, false)).toBe(0);
-    });
-
-    it('should not compensate when both hold, rather than subtracting twice', () => {
-      expect(getFirstRowBorderCompensation(true, true)).toBe(0);
     });
   });
 });
