@@ -137,6 +137,37 @@ describe('AutoRowSize selective cache clearing', () => {
   // measures a cleared row whether or not it was queued. It is covered in
   // `tests/e2e/auto-row-size-clear-cache.spec.ts`, against a real viewport with a real fold.
 
+  it('should keep cleared rows queued rather than measuring them on a column-less grid', () => {
+    // With no columns there is nothing to measure, but the pass still writes a height - and once a
+    // row holds a number instead of `null` it is never measured again, so it stays at the default
+    // height for good when the columns come back. The queue is held instead, not drained.
+    const { hot, container } = buildAttachedGrid();
+    const plugin = hot.getPlugin('autoRowSize');
+
+    hot.updateSettings({ columns: [] });
+
+    expect(hot.countCols()).toBe(0);
+
+    plugin.clearCache([5]);
+    hot.render();
+
+    expect(plugin.rowHeightsMap.getValueAtIndex(5)).toBe(null);
+
+    // The row was held, not dropped: with a column back, it is measured.
+    hot.updateSettings({ columns: [{ data: 0 }] });
+    hot.render();
+
+    expect(plugin.rowHeightsMap.getValueAtIndex(5)).not.toBe(null);
+
+    hot.destroy();
+    container.remove();
+  });
+
+  // The other half of `#drainRowRefreshQueue()` - that a queue held back while a sweep is running
+  // is drained when the sweep ends - has no unit test, and cannot have one here: jsdom reports no
+  // layout, so every row falls inside the rendered band and the ordinary visible-band pass measures
+  // a queued row whether or not the queue was drained. The two states are indistinguishable.
+
   it('should still owe the full recalculation after a render whose measurement threw', () => {
     // The ghost table runs the real renderers, so a renderer that throws aborts the sweep. Spending
     // the flag there would leave every unmeasured row at the default height for good.

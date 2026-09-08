@@ -572,6 +572,11 @@ export class AutoRowSize extends BasePlugin {
         this.#idleSweepTimer = 0;
         this.inProgress = false;
 
+        // Rows queued while this sweep was running were held back, because the two share one ghost
+        // table. The sweep ends without a render of its own, so nothing else would pick them up
+        // until the next full render - which never comes on a grid the user only scrolls.
+        this.#drainRowRefreshQueue();
+
         // @TODO Should call once per render cycle, currently fired separately in different plugins
         this.hot.view.adjustElementsSize();
       }
@@ -591,6 +596,32 @@ export class AutoRowSize extends BasePlugin {
       this.inProgress = false;
       this.hot.view.adjustElementsSize();
     }
+  }
+
+  /**
+   * Measures the rows waiting in the refresh queue, if this moment can measure them at all.
+   *
+   * Two moments cannot, and both KEEP the queue rather than dropping it, so the rows are measured
+   * at the first moment that can:
+   *
+   * - while a full sweep is running, because the sweep and this pass share one ghost table;
+   * - while the grid has no columns, because the measurement would then write a near-empty height
+   *   which, no longer being `null`, is never re-measured when the columns come back. That is the
+   *   same trap the scheduled full recalculation is guarded against.
+   *
+   * Called from the render, and again when a sweep finishes - a sweep ends without a render of its
+   * own, so without that second call a queue held back by the first condition would wait for the
+   * next full render, which on a grid the user only scrolls never comes.
+   */
+  #drainRowRefreshQueue(): void {
+    if (this.inProgress || this.hot.countCols() === 0 || this.#visualRowsToRefresh.length === 0) {
+      return;
+    }
+
+    // Cleared after the call, not before: a measurement that throws leaves the rows queued for the
+    // next attempt rather than dropping them.
+    this.#calculateSpecificRowsHeight(this.#visualRowsToRefresh);
+    this.#visualRowsToRefresh = [];
   }
 
   /**
@@ -868,11 +899,7 @@ export class AutoRowSize extends BasePlugin {
    */
   #onBeforeRender = () => {
     this.calculateVisibleRowsHeight();
-
-    if (!this.inProgress) {
-      this.#calculateSpecificRowsHeight(this.#visualRowsToRefresh);
-      this.#visualRowsToRefresh = [];
-    }
+    this.#drainRowRefreshQueue();
 
     // A wiped cache is restored in full, so the rows below the fold are measured too and not just
     // the visible band - see `#fullRecalculationScheduled`. It runs AFTER the visible band above,

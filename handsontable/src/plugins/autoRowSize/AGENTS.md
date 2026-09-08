@@ -87,6 +87,21 @@ drained in one synchronous pass, so clearing a very large range buys a correspon
 the next render — the same shape `#onBeforeChange` has always had, and the honest cost of the call the caller
 made. A physical row with no visual index (outside the dataset, or hidden by a trimming map) is skipped.
 
+## The refresh queue is held back, never dropped
+
+`#drainRowRefreshQueue()` is the single place the queue is measured, and it refuses two moments — **keeping**
+the queue both times, so the rows land at the first moment that can measure them:
+
+- **while a sweep is running**, because the sweep and this pass share one ghost table;
+- **while the grid has no columns**, because the measurement writes a near-empty height that, no longer being
+  `null`, is never re-measured once the columns come back. That is the same trap the scheduled full
+  recalculation is guarded against, and it reached the selective path first: `clearCache([5])` on a
+  column-less grid used to leave row 5 holding `0` for good.
+
+It is called from the render **and** from the sweep's completion branch. A sweep ends without a render of its
+own, so a queue held back by the first condition would otherwise wait for the next full render — which on a
+grid the user only scrolls never arrives.
+
 ## One sweep at a time
 
 `calculateAllRowsHeight()` cancels any sweep still in flight before starting its own, through the
