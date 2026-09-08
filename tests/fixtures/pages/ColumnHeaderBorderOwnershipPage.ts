@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 
 /** The block-start and block-end border widths of one cell, in CSS pixels. */
 export interface BlockBorders {
@@ -162,8 +163,10 @@ export class ColumnHeaderBorderOwnershipPage {
       [name, row]
     );
 
-    await expect.poll(() => this.grid(testId).locator('.ht_master .wtHolder')
-      .evaluate(holder => holder.scrollTop)).toBeGreaterThan(0);
+    // End on the RENDER state, never on `scrollTop`: the offset is applied synchronously while the
+    // redraw it triggers is coalesced into a later animation frame, so a settled offset does not
+    // mean the band the assertions read has moved yet.
+    await expect.poll(() => this.#firstRenderedRow(name)).toBeGreaterThan(0);
   }
 
   /**
@@ -184,9 +187,33 @@ export class ColumnHeaderBorderOwnershipPage {
       hot.scrollViewportTo({ row: hot.countRows() - 1, verticalSnap: 'bottom' });
     }, name);
 
-    await expect.poll(() => this.grid(testId).locator('.ht_master .wtHolder')
-      .evaluate(holder => holder.scrollHeight - holder.clientHeight - holder.scrollTop))
-      .toBeLessThanOrEqual(0);
+    // Same rule as above: the end state is the band holding the last row, not the scroll offset.
+    await expect.poll(() => this.#lastRowIsRendered(name)).toBe(true);
+  }
+
+  /**
+   * The lowest row index the named grid's master renders.
+   *
+   * @param {string} name The grid's key in `window.grids`.
+   * @returns {Promise<number>}
+   */
+  async #firstRenderedRow(name: string): Promise<number> {
+    return this.page.evaluate(gridName => (window as any)
+      .grids[gridName].view._wt.wtTable.getFirstRenderedRow(), name);
+  }
+
+  /**
+   * Whether the named grid's master renders its very last row.
+   *
+   * @param {string} name The grid's key in `window.grids`.
+   * @returns {Promise<boolean>}
+   */
+  async #lastRowIsRendered(name: string): Promise<boolean> {
+    return this.page.evaluate((gridName) => {
+      const hot = (window as any).grids[gridName];
+
+      return hot.view._wt.wtTable.getLastRenderedRow() === hot.countRows() - 1;
+    }, name);
   }
 
   /**
@@ -432,6 +459,9 @@ export class ColumnHeaderBorderOwnershipPage {
     await this.page.goto(
       `/tests/fixtures/demo/column-header-border-ownership.html?theme=${this.theme}&bundle=${this.bundle}`
     );
+    // The bundle first, or a leg fails pointing at a missing overlay class instead of the real
+    // cause. The helper owns the `waitForFunction`-over-`expect` choice and the polling interval.
+    await awaitBundle(this.page);
 
     // The control grid has no column headers, so its top clone renders nothing and stays collapsed.
     for (const testId of ColumnHeaderBorderOwnershipPage.HEADER_GRID_IDS) {

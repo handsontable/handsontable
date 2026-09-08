@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 
 /**
  * Page Object for the window-scrolled half of the column-header border-ownership fixture: one grid
@@ -31,9 +32,9 @@ export class ColumnHeaderWindowScrollPage {
     await this.page.goto(
       `/tests/fixtures/demo/column-header-window-scroll.html?theme=${this.theme}&bundle=${this.bundle}`
     );
-    // Explicit polling interval: the default polls on `requestAnimationFrame`, which parallel
-    // workers starve, so a healthy page times out with nothing wrong on it (DEV-2769).
-    await this.page.waitForFunction(() => 'Handsontable' in window, undefined, { polling: 100 });
+    // The bundle first, through the shared helper: it owns both the `waitForFunction`-over-`expect`
+    // choice and the polling interval, so neither is re-inlined here.
+    await awaitBundle(this.page);
     await expect(this.master.locator('tbody > tr').first()).toBeVisible();
   }
 
@@ -62,17 +63,36 @@ export class ColumnHeaderWindowScrollPage {
       (window as any).scrollRowToBottomEdge(target);
     }, row);
 
-    // The scroll is applied synchronously but the redraw it triggers is coalesced into a later
-    // animation frame, so wait for the offset to stop moving rather than reading straight after.
+    // End on the RENDER state, never on `scrollY`: the offset is applied synchronously while the
+    // redraw it triggers is coalesced into a later animation frame, so a settled offset does not
+    // mean the band every assertion here reads has caught up.
+    let previous: string | null = null;
+
     await expect.poll(async() => {
-      const first = await this.page.evaluate(() => window.scrollY);
+      const current = await this.#renderState(row);
+      const settled = current === previous && current.endsWith('|rendered');
 
-      await this.page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => {
-        requestAnimationFrame(resolve);
-      })));
+      previous = current;
 
-      return await this.page.evaluate(() => window.scrollY) === first;
+      return settled;
     }).toBe(true);
+  }
+
+  /**
+   * The master's rendered row band, plus whether `row` sits inside it. The state the assertions
+   * read, so it is the state a scroll has to settle on.
+   *
+   * @param {number} row The visual row index.
+   * @returns {Promise<string>}
+   */
+  async #renderState(row: number): Promise<string> {
+    return this.page.evaluate((target) => {
+      const { hot } = window as any;
+      const { wtTable } = hot.view._wt;
+
+      return `${wtTable.getFirstRenderedRow()}..${wtTable.getLastRenderedRow()}|${
+        hot.getCell(target, 0) ? 'rendered' : 'absent'}`;
+    }, row);
   }
 
   /**
