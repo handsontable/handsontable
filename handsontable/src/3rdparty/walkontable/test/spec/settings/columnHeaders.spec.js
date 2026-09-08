@@ -85,7 +85,9 @@ describe('columnHeaders option', () => {
 
     wt.draw();
 
-    expect(spec().$wrapper.find('.ht_clone_top thead tr').height()).toBe(43);
+    // Two wrapped lines + the header's own 1px border-bottom, which it carries at every scroll
+    // position since DEV-2786.
+    expect(spec().$wrapper.find('.ht_clone_top thead tr').height()).toBe(44);
     style.remove();
   });
 
@@ -102,7 +104,9 @@ describe('columnHeaders option', () => {
 
     wt.draw();
 
-    expect(spec().$wrapper.find('.ht_clone_top thead tr').height()).toBe(23);
+    // 23px + the header's own 1px border-bottom, which it carries at every scroll position
+    // since DEV-2786.
+    expect(spec().$wrapper.find('.ht_clone_top thead tr').height()).toBe(24);
   });
 
   it('should generate column headers from function', async() => {

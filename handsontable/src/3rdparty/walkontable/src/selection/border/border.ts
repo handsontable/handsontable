@@ -11,7 +11,7 @@ import {
 } from '../../../../../helpers/dom/element';
 import { stopImmediatePropagation, isRightClick } from '../../../../../helpers/dom/event';
 import { isMobileBrowser } from '../../../../../helpers/browser';
-import { getCornerStyle } from './utils';
+import { getCornerStyle, standsBelowColumnHeader } from './utils';
 import { CUSTOM_SELECTION_TYPE } from '../constants';
 
 const BORDER_STYLE_CLASS_PREFIX = 'ht-border-style-';
@@ -1543,7 +1543,14 @@ class Border {
 
     const style = geometryReader.getComputedStyle(fromTDEl);
 
-    if (parseInt(style.borderTopWidth, 10) > 0) {
+    // The top gridline sits INSIDE the cell when the cell draws its own top border, so the edge has
+    // to move onto it. A cell in the first body row of a table that renders a head row draws no top
+    // border - the column header owns that gridline (DEV-2786) - and the shared pixel is then the
+    // last pixel of the top overlay, which paints at z-index 160 against this layer's 10. An edge
+    // left centred on it loses half its thickness behind the column header, so both cases put the
+    // visible edge at the cell's own top boundary. The row axis's twin of the inline-start case
+    // below; `standsBelowColumnHeader` explains why it is read from the DOM.
+    if (parseInt(style.borderTopWidth, 10) > 0 || standsBelowColumnHeader(fromTDEl)) {
       top += 1;
       height = height > 0 ? height - 1 : 0;
     }
