@@ -1067,6 +1067,18 @@ export default function Core(
   this.rowIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: IndexesChangesState) => {
     this.renderChangeTracker.markAllChanged();
 
+    // The engine's row-height prefix-sum cache is keyed by RENDER row, while the heights behind it
+    // (`modifyRowHeight`, so AutoRowSize and ManualRowResize) resolve per PHYSICAL row. A pure
+    // permutation - sorting, a row move - repoints every render row at a different physical row and
+    // so changes the height at nearly every render index, while leaving the row COUNT alone. The
+    // count is the only staleness test `PositionCache#isCurrent()` applies, so without this the
+    // cached offsets keep describing the previous order: the viewport calculator then picks the
+    // wrong rows for the scroll position and the grid renders short, leaving blank space below the
+    // last rendered row. Trimming and hiding change the count, so they are already covered.
+    if (indexesChangesState.indexesSequenceChanged) {
+      this.view?.invalidateRowHeightCache();
+    }
+
     const hadOpenEditor = onIndexMapperCacheUpdate(indexesChangesState, 'row');
     const indexCount = this.rowIndexMapper.getNumberOfIndexes();
     const isStructuralChange = indexCount !== lastRowIndexCount;

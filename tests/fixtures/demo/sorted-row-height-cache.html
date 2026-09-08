@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture - row height cache after sorting</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    Fixture for DEV-2823: the row-height prefix-sum cache going stale after a sort.
+
+    The grid declares NO `height`, so the WINDOW is the scrolling container - the shape the bug was
+    reported on. `autoRowSize` measures each row from its wrapped text, so a row's height follows its
+    PHYSICAL row, while the engine's row-height cache is keyed by RENDER row. Sorting is a pure
+    permutation: it changes the height at nearly every render index while leaving the row COUNT
+    alone, and the count is the only staleness test the cache applies.
+
+    The `size` column is seeded so that the row order and the height order disagree sharply: sorting
+    by `size` ascending brings the SHORTEST rows to the top, where the unsorted order had tall ones.
+    That is what makes a stale cache overstate the early offsets and render the grid short, leaving
+    blank space below the last rendered row.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const ROWS = 120;
+    const data = [];
+
+    for (let i = 0; i < ROWS; i += 1) {
+      // 1..40 lines of text, scrambled against the row index so sorting really reorders heights.
+      const lines = ((i * 17) % 40) + 1;
+
+      data.push({
+        size: lines,
+        text: new Array(lines).fill('lorem ipsum dolor sit amet consectetur').join(' '),
+      });
+    }
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    window.hot = new Handsontable(container, {
+      data,
+      colHeaders: ['Size', 'Text'],
+      // Both columns are plain, so the global `renderer` above stamps the test id on every cell -
+      // a `type` would install its own renderer and silently drop the stamp. Sorting runs on the
+      // TEXT column: every value is the same phrase repeated, so a shorter one is a prefix of a
+      // longer one and an ascending sort puts the shortest (and so the shortest-height) rows first.
+      columns: [{ data: 'size' }, { data: 'text' }],
+      // Narrow enough that the text wraps to many lines, which is what gives the rows their
+      // wildly different heights.
+      colWidths: [80, 420],
+      autoRowSize: true,
+      columnSorting: true,
+      renderAllColumns: true,
+      renderer: testIdRenderer,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    /**
+     * The blank-space probe. Compares the painted master table against the slice of the virtual grid
+     * (`.wtHider`, which spans the full scroll range) that is currently inside the window viewport.
+     * Anything the table does not cover is blank space the user sees, which is the reported symptom.
+     */
+    window.htGap = function() {
+      const hider = container.querySelector('.ht_master .wtHider');
+      const table = container.querySelector('.ht_master table.htCore');
+
+      if (!hider || !table) {
+        return { gapTop: 0, gapBottom: 0 };
+      }
+
+      const viewportHeight = window.innerHeight;
+      const hiderRect = hider.getBoundingClientRect();
+      const tableRect = table.getBoundingClientRect();
+      const wantTop = Math.max(hiderRect.top, 0);
+      const wantBottom = Math.min(hiderRect.bottom, viewportHeight);
+
+      if (wantBottom <= wantTop) {
+        return { gapTop: 0, gapBottom: 0 };
+      }
+
+      return {
+        gapTop: Math.round(Math.max(0, Math.min(tableRect.top, wantBottom) - wantTop)),
+        gapBottom: Math.round(Math.max(0, wantBottom - Math.max(tableRect.bottom, wantTop))),
+      };
+    };
+
+    window.htReady = true;
+  </script>
+</body>
+</html>
