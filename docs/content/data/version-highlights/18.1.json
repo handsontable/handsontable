@@ -1,4 +1,25 @@
 {
   "version": "18.1",
-  "highlighted": []
+  "highlighted": [
+    {
+      "prNumber": 13194,
+      "tagline": "Shadow DOM and Salesforce support",
+      "whyItMatters": "The grid now works inside Shadow DOM and sandboxed hosts such as Salesforce Lightning Web Components: the cell editor stays open when clicked, copy and paste work, focus is released when it leaves the grid, an outside click clears the selection, and the grid's z-index values no longer paint over the host page's UI."
+    },
+    {
+      "prNumber": 12951,
+      "tagline": "Single-pass rendering",
+      "whyItMatters": "The grid predicts whether scrollbars will appear instead of rendering, measuring, and re-rendering, which cuts the work of the initial render and of every scroll step. It is one of over 20 performance changes in 18.1 that also cover sorting, filtering, index translation, and cell metadata memory - use the new `modifySinglePassLayout` hook to keep a table on the previous layout path."
+    },
+    {
+      "prNumber": 13076,
+      "tagline": "Resize and move a selection by dragging",
+      "whyItMatters": "The `selectionHandles` option shows draggable handles at each edge midpoint of a selected range, so you can resize the selection with a pointer. The `moveCells` option lets you drag a selection's border to move its cells to another location."
+    },
+    {
+      "prNumber": 13151,
+      "tagline": "New intl-datetime cell type",
+      "whyItMatters": "The `intl-datetime` cell type edits dates and times in one cell with a native date-time picker, and displays them through `Intl.DateTimeFormat` with the new `dateTimeFormat` option. Column sorting, filtering, and XLSX export work with it out of the box."
+    }
+  ]
 }
