@@ -185,9 +185,15 @@ export class SortedRowHeightCachePage {
       }).hot;
       const plugin = hot.getPlugin('hiddenRows');
 
+      // SHOW first, then hide. The order decides whether this is one cache update or two:
+      // `hideRow` force-flushes the index mapper even inside `batchExecution`, so hiding first
+      // lands the hide on its own (count -1) and the show after it (count +1). Each of those
+      // changes the count, so `PositionCache` invalidates itself on the way through and the case
+      // under test never runs, even though the final count matches. Showing first keeps both
+      // writes in the one flush, which is the same-count update the gate has to notice.
       hot.batchExecution(() => {
-        plugin.hideRow(toHide);
         plugin.showRow(toShow);
+        plugin.hideRow(toHide);
       }, true);
     }, [hide, show]);
   }
