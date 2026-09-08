@@ -5,6 +5,12 @@
  * and _redirects is ignored. This worker is the sole, hand-maintained authority
  * for every redirect rule below - there is no generator.
  *
+ * Legacy-host handling is orthogonal to the path rules below, so it is not a
+ * numbered rule. `abs()` swaps in the canonical origin for a legacy host, so
+ * each rule below redirects cross-host in one hop; anything the rules do not
+ * redirect is caught by the legacy-host catch-all in the `fetch` export. See
+ * LEGACY_DOCS_HOSTS.
+ *
  * Redirect priority order (first match wins):
  *   1. /docs/next/:splat                   → /docs/:splat
  *  1a. /docs/sitemap.xml                   → /docs/sitemap-index.xml
@@ -77,6 +83,44 @@ function getCookie(request, name) {
 }
 
 // ---------------------------------------------------------------------------
+// Data: canonical host and the legacy hosts that collapse onto it
+// ---------------------------------------------------------------------------
+
+// The canonical origin for every documentation page. Astro already emits a
+// matching `<link rel="canonical">`, but a canonical tag is only a hint: a
+// duplicate host that answers 200 stays crawlable, so both URLs can sit in the
+// index and each copy burns crawl budget. The rules below turn the hint into a
+// permanent redirect.
+const CANONICAL_DOCS_ORIGIN = 'https://handsontable.com';
+
+// Hosts whose every URL must end up on CANONICAL_DOCS_ORIGIN.
+//
+// This is an exact-match allowlist, and deliberately NOT "any host that is not
+// handsontable.com". The same worker serves staging and every PR preview from
+// `handsontable-docs-staging.pages.dev` and its per-branch subdomains, so a
+// negative match would 301 all of them into production and break docs review
+// with no visible error. The production Pages apex
+// (`handsontable-docs.pages.dev`) is left out too - it is the documented way
+// to verify a production deploy directly (see `docs/README-DEPLOYMENT.md`).
+const LEGACY_DOCS_HOSTS = new Set([
+  // The pre-Astro documentation home, still bound to the production Pages
+  // project as a custom domain. Without the rules below it answers 200 for the
+  // whole `/docs` tree - a byte-identical duplicate of handsontable.com/docs.
+  'docs.handsontable.com',
+]);
+
+/**
+ * Returns true when the request arrived on a legacy host that must be
+ * collapsed onto the canonical one.
+ *
+ * @param {URL} url
+ * @returns {boolean}
+ */
+function isLegacyDocsHost(url) {
+  return LEGACY_DOCS_HOSTS.has(url.hostname);
+}
+
+// ---------------------------------------------------------------------------
 // Redirect helpers
 // ---------------------------------------------------------------------------
 
@@ -101,15 +145,23 @@ function redirect302(destination) {
 }
 
 /**
- * Builds an absolute URL string from a path relative to the original request
- * origin.
+ * Builds an absolute URL string from a path, relative to the request origin.
+ *
+ * Staging and preview hosts keep their own origin, so a redirect matched there
+ * stays inside the deployment under review. A legacy host instead gets the
+ * canonical origin, which is what lets every path rule below double as a
+ * one-hop cross-host redirect: the rule resolves what the path MEANS, and the
+ * reader lands on that page's real URL on handsontable.com rather than being
+ * bounced to the same stale path twice.
  *
  * @param {string} path  – must begin with /
  * @param {URL} base
  * @returns {string}
  */
 function abs(path, base) {
-  return `${base.origin}${path}`;
+  const origin = isLegacyDocsHost(base) ? CANONICAL_DOCS_ORIGIN : base.origin;
+
+  return `${origin}${path}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -1284,6 +1336,26 @@ async function route(request, env) {
 
 export default {
   async fetch(request, env) {
-    return withSecurityHeaders(await route(request, env));
+    const response = await route(request, env);
+    const url = new URL(request.url);
+
+    // Legacy-host catch-all. `abs()` already sends every MATCHED rule to the
+    // canonical origin, so this only catches what no rule redirected - chiefly
+    // the static-asset fallback, which would otherwise answer with a
+    // byte-identical copy of the canonical page and keep the legacy host
+    // indexable. Placed here rather than next to the fallback so no future
+    // rule that serves content can leak a 200 on a legacy host.
+    //
+    // The test is the ABSENCE of a Location header, not a status range: the
+    // asset fallback answers a conditional request with 304, which carries no
+    // Location and would slip through a `status < 300 || status >= 400` check.
+    // Those 304s are exactly the already-indexed, unchanged pages this fix is
+    // for - Pages etags are content hashes, so they survive a deploy, and a
+    // recrawl sending If-None-Match would never have seen the redirect.
+    if (isLegacyDocsHost(url) && !response.headers.get('location')) {
+      return redirect301(`${CANONICAL_DOCS_ORIGIN}${url.pathname}${url.search}`);
+    }
+
+    return withSecurityHeaders(response);
   },
 };

@@ -15,6 +15,8 @@ Two Cloudflare Pages projects back the documentation:
 | `handsontable-docs` | `handsontable-docs.pages.dev` (custom domain: [handsontable.com/docs](https://handsontable.com/docs)) | Production |
 | `handsontable-docs-staging` | `handsontable-docs-staging.pages.dev` | Staging (`develop`) and per-PR previews |
 
+`docs.handsontable.com` is a legacy custom domain on the `handsontable-docs` project. It pre-dates the move to `handsontable.com/docs` and is kept working for old bookmarks and inbound links, but every URL on it answers with a `301` to the matching page on `handsontable.com`. The redirect is implemented in `docs/cloudflare/_worker.js` (see `LEGACY_DOCS_HOSTS`) rather than in the Cloudflare dashboard, so it stays in version control with the rest of the routing rules. Do not add a `*.pages.dev` apex to that list - the staging apex and the per-PR previews are served from the same worker, and redirecting them would break documentation review.
+
 A Cloudflare Pages deployment is served at the apex `<project>.pages.dev` only when its `wrangler --branch` matches the project's production branch label (a stable label, not a git branch). Production uses the label `production`; staging uses `develop`. Per-PR builds deploy to the branch `pr-<N>`, served as an isolated preview at `pr-<N>.handsontable-docs-staging.pages.dev`.
 
 The build scripts that assemble the multi-version documentation site live in the `docs/deploy/` directory. The redirect and rewrite logic is implemented in the Cloudflare Pages worker at `docs/cloudflare/_worker.js`.

@@ -33,6 +33,23 @@ function request(path, cookie, method = 'GET') {
   };
 }
 
+/**
+ * Same shape as `request()`, but on an arbitrary hostname. The host-collapse
+ * rule is the only rule that reads `url.hostname`, so it is the only one that
+ * cannot be exercised through the handsontable.com-pinned helper above.
+ *
+ * @param {string} host
+ * @param {string} path
+ * @returns {object} A minimal Request stand-in.
+ */
+function requestOn(host, path) {
+  return {
+    url: `https://${host}${path}`,
+    method: 'GET',
+    headers: { get: () => null },
+  };
+}
+
 const env = { ASSETS: { fetch: async() => new Response('static-asset-passthrough') } };
 
 async function redirectLocationOf(worker, path, cookie) {
@@ -313,5 +330,175 @@ test('still maps cell-type recipes that have a framework-specific counterpart pa
     worker,
     '/docs/angular-data-grid/recipes/cell-types/react-rating/',
     '/docs/angular-data-grid/recipes/cell-types/rating/',
+  );
+});
+
+
+// ---------------------------------------------------------------------------
+// Legacy hostname collapse (docs.handsontable.com → handsontable.com)
+// ---------------------------------------------------------------------------
+
+/**
+ * The legacy host must never answer with content, only with a 301 onto the
+ * canonical host.
+ *
+ * @param {{fetch: Function}} worker
+ * @param {string} path
+ * @param {string} destination – expected absolute Location value.
+ */
+async function assertLegacyCollapse(worker, path, destination) {
+  const response = await worker.fetch(requestOn('docs.handsontable.com', path), env);
+
+  assert.equal(response.status, 301, `${path} must be a permanent redirect`);
+  assert.equal(response.headers.get('location'), destination);
+}
+
+test('the legacy docs host 301s a content page to the same path on the canonical host', async() => {
+  const worker = loadWorker();
+
+  // Before this, the legacy host answered 200 with a byte-identical copy of
+  // the canonical page, leaving the whole /docs tree live on two hostnames.
+  await assertLegacyCollapse(
+    worker,
+    '/docs/angular-data-grid/row-parent-child/',
+    'https://handsontable.com/docs/angular-data-grid/row-parent-child/',
+  );
+});
+
+test('the legacy host collapse keeps the query string', async() => {
+  const worker = loadWorker();
+
+  await assertLegacyCollapse(
+    worker,
+    '/docs/javascript-data-grid/?foo=1&bar=2',
+    'https://handsontable.com/docs/javascript-data-grid/?foo=1&bar=2',
+  );
+});
+
+test('a path rule matched on the legacy host resolves the path AND crosses hosts in one hop', async() => {
+  const worker = loadWorker();
+
+  // This is the whole point of canonicalising the origin inside `abs()`
+  // instead of collapsing the host before the path rules run. Sending
+  // `/docs/next/x` to `handsontable.com/docs/next/x` would be a plain
+  // host swap; the reader must land on the page the path actually means.
+  await assertLegacyCollapse(
+    worker,
+    '/docs/next/javascript-data-grid/',
+    'https://handsontable.com/docs/javascript-data-grid/',
+  );
+});
+
+test('legacy non-/docs paths keep working, because only /docs reaches this worker on the canonical host', async() => {
+  const worker = loadWorker();
+
+  // handsontable.com serves the marketing site everywhere except /docs, so
+  // these paths 404 there. Collapsing the host before the path rules ran
+  // would have bounced each of them onto a marketing 404 - the legacy URLs
+  // have to be resolved to their real destination on the way out.
+  await assertLegacyCollapse(worker, '/', 'https://handsontable.com/docs');
+  await assertLegacyCollapse(
+    worker,
+    '/0.8.0/',
+    'https://handsontable.com/docs/javascript-data-grid/changelog',
+  );
+  await assertLegacyCollapse(worker, '/demo/foo', 'https://handsontable.com/demo');
+  await assertLegacyCollapse(worker, '/customers/foo', 'https://handsontable.com/customers/');
+});
+
+test('an unmatched path on the legacy host is caught rather than served as a 200', async() => {
+  const worker = loadWorker();
+
+  // The catch-all lives in the `fetch` export, after `route()`, so a path
+  // that reaches the static-asset fallback cannot leak content on this host.
+  await assertLegacyCollapse(
+    worker,
+    '/i18n/missing-language-code',
+    'https://handsontable.com/i18n/missing-language-code',
+  );
+});
+
+test('a 304 from the asset fallback on the legacy host is still redirected', async() => {
+  const worker = loadWorker();
+  // Cloudflare Pages answers a conditional request with 304 and no body. Its
+  // etags are content hashes, so an unchanged page keeps its etag across the
+  // deploy that ships this fix - a returning browser or a recrawl sending
+  // If-None-Match would hit this path. Verified against the live host.
+  const notModified = { ASSETS: { fetch: async() => new Response(null, { status: 304 }) } };
+  const response = await worker.fetch(
+    requestOn('docs.handsontable.com', '/docs/angular-data-grid/row-parent-child/'),
+    notModified,
+  );
+
+  assert.equal(response.status, 301);
+  assert.equal(
+    response.headers.get('location'),
+    'https://handsontable.com/docs/angular-data-grid/row-parent-child/',
+  );
+});
+
+test('the external HyperFormula redirect survives the legacy host untouched', async() => {
+  const worker = loadWorker();
+  const response = await worker.fetch(
+    requestOn('docs.handsontable.com', '/docs/hyperformula/guide/basic-usage'),
+    env,
+  );
+
+  // That rule builds a full external URL instead of going through `abs()`,
+  // and the catch-all only fires on non-3xx, so neither piece of the legacy
+  // host handling may rewrite it onto handsontable.com.
+  assert.equal(response.status, 301);
+  assert.equal(
+    response.headers.get('location'),
+    'https://hyperformula.handsontable.com/guide/basic-usage',
+  );
+});
+
+test('the canonical host is never collapsed, and its path rules still run', async() => {
+  const worker = loadWorker();
+
+  await assertRedirect(worker, '/docs/next/javascript-data-grid/', '/docs/javascript-data-grid/');
+});
+
+test('staging, preview and production apex hosts serve their own content untouched', async() => {
+  const worker = loadWorker();
+
+  // The allowlist is exact-match on purpose. A negative match ("any host that
+  // is not handsontable.com") would 301 every one of these into production and
+  // silently break docs review.
+  const untouched = [
+    'handsontable-docs-staging.pages.dev',
+    'develop.handsontable-docs-staging.pages.dev',
+    'pr-13414.handsontable-docs-staging.pages.dev',
+    'rc-18.1.0.handsontable-docs-staging.pages.dev',
+    'handsontable-docs.pages.dev',
+  ];
+
+  for (const host of untouched) {
+    const response = await worker.fetch(
+      requestOn(host, '/docs/angular-data-grid/row-parent-child/'),
+      env,
+    );
+
+    assert.equal(response.status, 200, `${host} must still serve its own content`);
+    assert.equal(
+      response.headers.get('location'),
+      null,
+      `${host} must not be redirected anywhere`,
+    );
+  }
+});
+
+test('a path rule matched on a preview host stays on that host', async() => {
+  const worker = loadWorker();
+  const response = await worker.fetch(
+    requestOn('pr-13414.handsontable-docs-staging.pages.dev', '/docs/next/javascript-data-grid/'),
+    env,
+  );
+
+  assert.equal(response.status, 301);
+  assert.equal(
+    response.headers.get('location'),
+    'https://pr-13414.handsontable-docs-staging.pages.dev/docs/javascript-data-grid/',
   );
 });
