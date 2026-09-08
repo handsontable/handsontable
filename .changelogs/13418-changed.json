@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "The `columnHeaderHeight` option now resolves to the same height at every scroll position. It is a border-box height that includes the header's 1px top and bottom borders, so `columnHeaderHeight: 40` leaves a 38px content box instead of 39px on an unscrolled grid.",
+  "type": "changed",
+  "issueOrPR": 13418,
+  "breaking": false,
+  "framework": "none"
+}
