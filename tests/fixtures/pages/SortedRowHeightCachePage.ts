@@ -1,4 +1,5 @@
 import { type Page, expect } from '@playwright/test';
+import { awaitBundle, BUNDLE_POLLING_MS } from '../bundle';
 
 interface GapProbe {
   gapTop: number;
@@ -30,8 +31,12 @@ export class SortedRowHeightCachePage {
 
     // Wait for the bundle before the cell. The test id comes from the fixture's renderer, so
     // "cell not found" alone cannot tell a slow bundle apart from a grid that failed to render.
-    await this.page.waitForFunction(() => 'Handsontable' in window);
-    await this.page.waitForFunction(() => (window as unknown as { htReady?: boolean }).htReady === true);
+    await awaitBundle(this.page);
+    await this.page.waitForFunction(
+      () => (window as unknown as { htReady?: boolean }).htReady === true,
+      undefined,
+      { polling: BUNDLE_POLLING_MS }
+    );
 
     await expect(this.page.locator('.ht_master').getByTestId('cell-0-0')).toBeVisible();
 
@@ -62,8 +67,8 @@ export class SortedRowHeightCachePage {
    *
    * The budget is deliberately small: several of these run per test against a 20s test timeout, so
    * a generous one here would surface as a locationless "Test timeout" instead of this wait's own
-   * failure. `autoRowSize` measures in chunks, so the settle needs consecutive equal frames rather
-   * than a single equal reading.
+   * failure. `autoRowSize` measures in chunks, so the settle needs consecutive equal readings rather
+   * than a single one — three at the 100ms poll, so about 300ms of an unchanging scroll range.
    */
   async waitForStableScrollRange(): Promise<void> {
     await this.page.waitForFunction(() => {
@@ -77,8 +82,8 @@ export class SortedRowHeightCachePage {
         w.__htStableFor = 0;
       }
 
-      return (w.__htStableFor ?? 0) >= 5;
-    }, null, { timeout: 4000 });
+      return (w.__htStableFor ?? 0) >= 3;
+    }, undefined, { timeout: 4000, polling: 100 });
 
     await this.page.evaluate(() => {
       const w = window as unknown as { __htLastHeight?: number, __htStableFor?: number };
