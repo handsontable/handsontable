@@ -711,6 +711,56 @@ export class SelectionFeaturesPage {
     await this.page.evaluate(layers => window.hot.selectCells(layers), ranges);
   }
 
+  /**
+   * Ctrl/Cmd+clicks a cell, the way a user adds one to a multiple selection.
+   *
+   * The modifier is pressed as a real key event, not passed as an event property: the held-modifier
+   * state comes from the key recorder, so a synthesized `metaKey` alone would not register.
+   * `ControlOrMeta` maps to Cmd on macOS and Ctrl elsewhere.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} col Visual column index.
+   */
+  async ctrlClickCell(row: number, col: number): Promise<void> {
+    await this.cell(row, col).click({ modifiers: ['ControlOrMeta'] });
+  }
+
+  /**
+   * Ctrl/Cmd+double-clicks a cell. Both mousedowns add a layer, so this is the gesture that tells
+   * a genuine second click apart from the two clicks inside one double-click.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} col Visual column index.
+   */
+  async ctrlDoubleClickCell(row: number, col: number): Promise<void> {
+    await this.cell(row, col).dblclick({ modifiers: ['ControlOrMeta'] });
+  }
+
+  /**
+   * Ctrl/Cmd+clicks a row header, which adds the whole row as a range layer.
+   *
+   * Scoped to the inline-start overlay, where the row headers the user actually clicks are
+   * rendered; the master table holds a second copy of them.
+   *
+   * @param {number} row Visual row index.
+   */
+  async ctrlClickRowHeader(row: number): Promise<void> {
+    await this.page
+      .locator('.ht_clone_inline_start tbody tr')
+      .nth(row)
+      .locator('th')
+      .click({ modifiers: ['ControlOrMeta'] });
+  }
+
+  /**
+   * How many selection layers exist, and `0` when nothing is selected at all.
+   *
+   * @returns {Promise<number>}
+   */
+  async selectedLayerCount(): Promise<number> {
+    return this.page.evaluate(() => window.hot.getSelected()?.length ?? 0);
+  }
+
   /** Select whole columns through the instance API. */
   async selectColumns(fromCol: number, toCol: number): Promise<void> {
     await this.page.evaluate(([from, to]) => window.hot.selectColumns(from, to), [fromCol, toCol]);
