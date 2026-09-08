@@ -30,7 +30,10 @@ function createHotStub(cellMeta = {}) {
   return {
     getSelectedRange: () => [singleCellRange()],
     getCellMetaTransient: () => cellMeta,
-    getCellMeta: () => cellMeta,
+    // Deliberately no `getCellMeta`. Every one of these factories must read transiently - they
+    // walk the whole selection on each menu draw - so a regression back to the materializing read
+    // throws here instead of passing silently. Returning the same object from both would make the
+    // switch unobservable, which is what the first version of this stub did.
     getTranslatedPhrase: phrase => phrase,
     isRtl: () => false,
   };
@@ -39,9 +42,9 @@ function createHotStub(cellMeta = {}) {
 /**
  * Every item that draws a check mark, with the cell meta that should light it up.
  *
- * `readOnlyComment` takes the Comments plugin rather than reading cell meta, so it carries its own
- * factory arguments. The custom-borders items take the plugin only for `hot.isRtl()` and
- * `prepareBorder`, neither of which `checked()` touches.
+ * `readOnlyComment` takes the Comments plugin instance, but `checked()` no longer reads through it
+ * - the state comes from the cell's own meta. The custom-borders items take the plugin only for
+ * `hot.isRtl()` and `prepareBorder`, neither of which `checked()` touches.
  */
 const CHECKED_ITEMS = [
   {
@@ -53,9 +56,9 @@ const CHECKED_ITEMS = [
   {
     label: 'commentsReadOnly',
     build: plugin => readOnlyCommentItem(plugin),
-    plugin: checked => ({ getCommentMeta: () => checked }),
-    checkedMeta: {},
-    uncheckedMeta: {},
+    plugin: () => ({}),
+    checkedMeta: { comment: { value: 'a note', readOnly: true } },
+    uncheckedMeta: { comment: { value: 'a note' } },
   },
   {
     label: 'borders:top',
@@ -92,7 +95,7 @@ const CHECKED_ITEMS = [
  */
 function buildItem(spec, checked) {
   const hot = createHotStub(checked ? spec.checkedMeta : spec.uncheckedMeta);
-  const item = spec.plugin ? spec.build(spec.plugin(checked), hot) : spec.build(hot);
+  const item = spec.plugin ? spec.build(spec.plugin(), hot) : spec.build(hot);
 
   return { item, hot };
 }
