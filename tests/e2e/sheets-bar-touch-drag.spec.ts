@@ -79,14 +79,22 @@ test.describe('sheets bar touch drag', () => {
       touchPoints: [{ x: active.x + (active.width / 2), y: active.y + (active.height / 2) }],
     });
 
-    // Chromium's gesture recognizer raises `contextmenu` on its own long-press timer while the
-    // finger stays down; the web-first wait below is what paces the hold.
-    await expect(page.locator('.htSheetsBarMenu:visible')).toHaveCount(1);
-    await expect(page.locator('.htSheetsBarMenu td.current')).toHaveCount(0);
+    // Chromium recognizes the long-press on release, not while the finger rests, so the hold
+    // is paced by the poll's own intervals: the first attempt after the hold interval lifts
+    // the finger, the following ones watch for the menu the release-time gesture raises.
+    let lifted = false;
 
-    await cdp.send('Input.dispatchTouchEvent', {
-      type: 'touchEnd',
-      touchPoints: [],
-    });
+    await expect.poll(async () => {
+      if (!lifted) {
+        lifted = true;
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+
+        return 0;
+      }
+
+      return page.locator('.htSheetsBarMenu:visible').count();
+    }, { intervals: [800, 250] }).toBe(1);
+
+    await expect(page.locator('.htSheetsBarMenu td.current')).toHaveCount(0);
   });
 });
