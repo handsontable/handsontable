@@ -2,8 +2,8 @@ import type { HotInstance } from '../../core/types';
 
 /**
  * One tracked explicit cell-meta write. The indexes are physical: a visual index only means
- * something against the row and column order in force when it was read, and the replay runs
- * after that order has been restored.
+ * something against the row and column order in force when it was read, and the entries are
+ * served lazily against whatever order is in force when the cell's meta is next read.
  */
 export interface TrackedCellMeta {
   row: number;
@@ -421,26 +421,15 @@ function restoreCustomBorders(hot: HotInstance, state: ViewState) {
 }
 
 /**
- * Replays the tracked explicit cell-meta writes. Entries are stored with physical indexes and
- * `setCellMeta` takes visual ones, so each is translated against the just-restored order; an
- * entry whose cell has since left the visual space (trimmed, or the data shrank) is skipped.
- */
-function restoreCellMeta(hot: HotInstance, state: ViewState) {
-  state.cellMeta.forEach(({ row, col, key, value }) => {
-    const visualRow = hot.toVisualRow(row);
-    const visualCol = hot.toVisualColumn(col);
-
-    if (visualRow !== null && visualCol !== null) {
-      hot.setCellMeta(visualRow, visualCol, key, value);
-    }
-  });
-}
-
-/**
  * Restores a previously captured view state. Order matters: row/column order and sort first,
  * since later steps address cells by that reordered position; then filters and trimming,
  * which decide the visual space; then the hidden sets, which are addressed in it; then
- * sizes, merges, freeze, borders, and cell meta, none of which depend on each other.
+ * sizes, merges, freeze, and borders, none of which depend on each other.
+ *
+ * The tracked cell meta (`state.cellMeta`) is deliberately not replayed here: the plugin
+ * serves it lazily from its `afterGetCellMeta` hook, so a switch pays nothing per entry and
+ * no meta object is materialized for a cell nobody reads — replaying 130k validated-sheet
+ * entries eagerly made a switch measurably slower and tripled the heap.
  *
  * The selection and the scroll position are left to {@link restoreViewport}: both need the
  * grid painted with the arriving sheet's sizes, and this runs inside a render batch.
@@ -461,7 +450,6 @@ export function restoreViewState(hot: HotInstance, state: ViewState): void {
     }
 
     restoreCustomBorders(hot, state);
-    restoreCellMeta(hot, state);
   });
 
   hot.render();

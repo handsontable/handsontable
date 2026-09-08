@@ -79,11 +79,26 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   model told apart. `sheetModel.duplicateSheet` keeps
   `settings.formulas` out of the deep clone — a cloned engine instance is a broken object and
   the clone recurses forever.
-- **Cell meta is tracked per cell and property** (`Map` keyed `row:col:key`, last write wins) —
-  an append-only list grows without bound under validators toggling `valid`. Entries are
-  stored with physical indexes (`afterSetCellMeta` hands over visual ones) and translated back
-  at replay, so a reorder between the write and the switch cannot land the meta on the wrong
-  cell.
+- **Cell meta is tracked per cell and property and served lazily, never replayed eagerly.**
+  `#trackedCellMeta` holds one bucket per physical cell (last write per key wins);
+  `#onAfterGetCellMeta` serves the bucket the moment a cell's meta is actually read, so a
+  switch pays nothing per entry and no meta object is materialized for cells nobody asks
+  about — the eager replay cost one `setCellMeta` and one stored meta object per entry
+  (130k on a validated 5,000-row sheet: +42% switch time, +126 MB over ten switches). The
+  serve hook runs on the hottest read path: keep the `size === 0` bail-out first and only
+  write differing values. `valid` is not tracked at all (`UNTRACKED_META_KEYS`) — the next
+  validation recomputes it, and it is what made the map balloon. Entries are stored with
+  physical indexes (`afterSetCellMeta` hands over visual ones) and translated at serve time,
+  so a reorder between the write and the read cannot land the meta on the wrong cell.
+- **A declared workbook wins the initial data load.** `#onBeforeLoadData` redirects the init
+  load at the active sheet's array (warning once about a clashing top-level `data`): the grid's
+  init pass loads `data` after the plugin already applied its sheet, and without the redirect
+  the first switch-away would capture the host array over the sheet's declared rows —
+  destroying them.
+- **`removeSheet` prunes the declared entry out of the configured `sheets` arrays**
+  (`#pruneDeclaredSheet`, entries mapped per sheet id in `#declaredEntries`), mirroring how
+  `Core` keeps `settings.data` in sync on `loadData` — the settings object would otherwise
+  keep a removed sheet's rows resident for the grid's life.
 - **Never wrap host-reachable code in `Core#batch`/`batchRender`** — neither resumes in a
   `finally`, and a listener throwing mid-switch would leave the grid render-suspended for
   life. The plugin's `#batchRender` and `viewState.ts`'s `safeBatch` are the guarded forms

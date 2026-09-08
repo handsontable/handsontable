@@ -472,12 +472,61 @@ describe('SheetsBar plugin', () => {
     });
 
     for (let i = 0; i < 100; i += 1) {
-      hot.setCellMeta(0, 0, 'valid', i % 2 === 0);
+      hot.setCellMeta(0, 0, 'className', i % 2 === 0 ? 'even' : 'odd');
     }
 
     hot.getPlugin('sheetsBar').setActiveSheet('B');
 
-    expect(captured.cellMeta).toEqual([{ row: 0, col: 0, key: 'valid', value: false }]);
+    expect(captured.cellMeta).toEqual([{ row: 0, col: 0, key: 'className', value: 'odd' }]);
+  });
+
+  it('does not track the `valid` flag — the next validation recomputes it', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    let captured = null;
+
+    hot.addHook('afterSheetTabStateCapture', (id, viewState) => {
+      captured = viewState;
+    });
+
+    hot.setCellMeta(0, 0, 'valid', false);
+    hot.setCellMeta(0, 0, 'readOnly', true);
+
+    const sheetsBar = hot.getPlugin('sheetsBar');
+
+    sheetsBar.setActiveSheet('B');
+
+    expect(captured.cellMeta).toEqual([{ row: 0, col: 0, key: 'readOnly', value: true }]);
+
+    sheetsBar.setActiveSheet('A');
+
+    expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
+    expect(hot.getCellMeta(0, 0).valid).not.toBe(false);
+  });
+
+  it('serves tracked meta lazily through the meta-read path after a round trip', () => {
+    const data = Array.from({ length: 200 }, (_, r) => [`a${r}`, `b${r}`]);
+
+    hot = new Handsontable(container, {
+      sheetsBar: { sheets: [{ name: 'A', data }, { name: 'B', data: [['x']] }] },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+
+    hot.setCellMeta(0, 0, 'readOnly', true);
+    hot.setCellMeta(150, 1, 'className', 'marked');
+    sheetsBar.setActiveSheet('B');
+    sheetsBar.setActiveSheet('A');
+
+    // Nothing was replayed eagerly on the switch; the answers come from the meta-read path
+    // the moment each cell is asked about — the far-off-screen cell included, so a paste or
+    // an editor reaching it gets the same verdict the renderer would.
+    expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
+    expect(hot.getCellMeta(150, 1).className).toBe('marked');
+    expect(hot.getCellMetaTransient(150, 1).className).toBe('marked');
+    expect(hot.getCellMeta(1, 0).readOnly).not.toBe(true);
   });
 
   it('starts a reconfigured workbook from the grid settings, not from the old baseline', () => {
@@ -616,7 +665,34 @@ describe('SheetsBar plugin', () => {
 
     expect(bar.querySelector('.ht-sheets-bar__page-prev').getAttribute('aria-disabled')).toBe(null);
     expect(bar.querySelector('.ht-sheets-bar__page-next').getAttribute('aria-disabled')).toBe(null);
-    expect(bar.querySelector('.ht-sheets-bar__all').getAttribute('aria-expanded')).toBe(null);
+
+    // Actually opening both menus is what reaches the menu-side `aria-expanded` writers — the
+    // template writes its initial value behind its own guard, so an unopened bar proves nothing.
+    jest.spyOn(Menu.prototype, 'open').mockImplementation(() => {});
+    jest.spyOn(Menu.prototype, 'setPosition').mockImplementation(() => {});
+
+    bar.querySelector('.ht-sheets-bar__tab--active')
+      .dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, button: 2 }));
+    bar.querySelector('.ht-sheets-bar__all').click();
+
+    expect(bar.querySelectorAll('[aria-expanded]').length).toBe(0);
+  });
+
+  it('marks the menu anchor expanded on opening when ariaTags is on', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: { sheets: [{ name: 'A', data: [['a']] }] },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const bar = hot.rootWrapperElement.querySelector('.ht-sheets-bar');
+
+    jest.spyOn(Menu.prototype, 'open').mockImplementation(() => {});
+    jest.spyOn(Menu.prototype, 'setPosition').mockImplementation(() => {});
+
+    const allButton = bar.querySelector('.ht-sheets-bar__all');
+
+    allButton.click();
+
+    expect(allButton.getAttribute('aria-expanded')).toBe('true');
   });
 
   it('registers a focus scope that walks the focus into the bar from either side', () => {
@@ -2514,6 +2590,105 @@ describe('SheetsBar plugin', () => {
     });
 
     expect(hot.getPlugin('sheetsBar').getSheets().map(s => s.name)).toEqual(['A']);
+  });
+
+  it('loads the declared active sheet when a top-level `data` setting is also present', () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    hot = new Handsontable(container, {
+      data: [[]],
+      sheetsBar: {
+        sheets: [
+          { name: 'Alpha', data: [['A-0-0', 'A-0-1'], ['A-1-0', 'A-1-1']] },
+          { name: 'Beta', data: [['B-0-0', 'B-0-1']] },
+        ],
+        activeSheet: 0,
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    expect(hot.getDataAtCell(0, 0)).toBe('A-0-0');
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('`data` setting is ignored'));
+
+    const sheetsBar = hot.getPlugin('sheetsBar');
+
+    sheetsBar.setActiveSheet('Beta');
+
+    expect(hot.getDataAtCell(0, 0)).toBe('B-0-0');
+
+    sheetsBar.setActiveSheet('Alpha');
+
+    expect(hot.getDataAtCell(0, 0)).toBe('A-0-0');
+    expect(hot.getDataAtCell(1, 1)).toBe('A-1-1');
+  });
+
+  it('prunes a removed sheet\'s declared entry out of the configured sheets arrays', () => {
+    const sheets = [
+      { name: 'A', data: [['a']] },
+      { name: 'B', data: [['b']] },
+    ];
+
+    hot = new Handsontable(container, {
+      sheetsBar: { sheets },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const idB = sheetsBar.getSheets()[1].id;
+
+    expect(sheetsBar.removeSheet(idB)).toBe(true);
+    expect(sheets.map(entry => entry.name)).toEqual(['A']);
+    expect(hot.getSettings().sheetsBar.sheets.map(entry => entry.name)).toEqual(['A']);
+  });
+
+  it('restores the grid\'s own freeze when the plugin is disabled', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'A', data: [['a', 'b', 'c']], settings: { fixedColumnsStart: 2 } },
+          { name: 'B', data: [['x', 'y', 'z']] },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    expect(hot.getSettings().fixedColumnsStart).toBe(2);
+
+    hot.updateSettings({ sheetsBar: false });
+
+    expect(hot.getSettings().fixedColumnsStart).toBe(0);
+    expect(hot.getPlugin('sheetsBar').enabled).toBe(false);
+  });
+
+  it('does not carry a runtime freeze into a rebuilt workbook', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: { sheets: [{ name: 'A', data: [['a', 'b', 'c']] }, { name: 'B', data: [['x', 'y', 'z']] }] },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    hot.updateSettings({ fixedColumnsStart: 2 });
+    hot.updateSettings({
+      sheetsBar: { sheets: [{ name: 'C', data: [['c1', 'c2', 'c3']] }, { name: 'D', data: [['d1', 'd2', 'd3']] }] },
+    });
+
+    expect(hot.getSettings().fixedColumnsStart).toBe(0);
+
+    hot.getPlugin('sheetsBar').setActiveSheet('D');
+
+    expect(hot.getSettings().fixedColumnsStart).toBe(0);
+  });
+
+  it('switches back to a previously requested activeSheet through a partial payload', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+
+    sheetsBar.setActiveSheet('B');
+    hot.updateSettings({ sheetsBar: { activeSheet: 0 } });
+
+    expect(sheetsBar.getSheets()[0].isActive).toBe(true);
+    expect(hot.getDataAtCell(0, 0)).toBe('a');
   });
 
   it('keeps the workbook when a partial updateSettings payload only touches a UI key', () => {

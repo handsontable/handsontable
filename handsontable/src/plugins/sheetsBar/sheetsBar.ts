@@ -56,11 +56,20 @@ export interface SheetsBarSettings {
 }
 
 /**
- * The key a tracked cell-meta write is stored under: one slot per cell and property.
+ * The key a cell's tracked meta bucket is stored under — one bucket per physical cell, so the
+ * meta-read path can answer "does this cell carry tracked writes" with a single lookup.
  */
-function trackedCellMetaKey({ row, col, key }: TrackedCellMeta): string {
-  return `${row}:${col}:${key}`;
+function trackedCellKey(row: number, col: number): string {
+  return `${row}:${col}`;
 }
+
+/**
+ * Tracked cell-meta keys that are derived state rather than configuration: the next validation
+ * recomputes them from the data, so replaying a captured value after a switch would restore a
+ * stale verdict — and a validated sheet writes one such entry per cell, which is what made the
+ * tracking balloon to six figures on large sheets.
+ */
+const UNTRACKED_META_KEYS = new Set(['valid']);
 
 /**
  * Compares two values structurally, with two deliberate reference-equality floors: arrays are
@@ -184,8 +193,9 @@ function freeEngineName(engine: NonNullable<SheetFormulas['engine']>, requested:
  */
 interface PreservedState {
   model: SheetModel;
-  trackedCellMeta: Map<string, TrackedCellMeta>;
+  trackedCellMeta: Map<string, Map<string, unknown>>;
   settingsBaseline: Map<string, unknown>;
+  declaredEntries: Map<number, SheetsBarSheetConfig>;
 }
 
 /**
@@ -286,15 +296,42 @@ export class SheetsBar extends BasePlugin {
    */
   #tabStrip: TabStrip | null = null;
   /**
-   * Explicit `setCellMeta` writes made while the active sheet is applied, tracked so they
-   * can be replayed after the sheet is switched back to. Keyed by cell and property, so a
-   * property written many times — a validator flipping `valid`, a renderer toggling a class —
-   * costs one entry holding the last value rather than one per write. Cleared and reloaded
-   * from the target sheet's captured view state on every switch.
+   * Explicit `setCellMeta` writes made while the active sheet is applied, kept so they survive
+   * a switch round trip. One bucket per physical cell, one slot per property inside it, so a
+   * property written many times costs one slot holding the last value. Derived keys (`valid`)
+   * are not tracked at all — see {@link UNTRACKED_META_KEYS}. Cleared and reloaded from the
+   * target sheet's captured view state on every switch.
    *
-   * @type {Map<string, TrackedCellMeta>}
+   * The entries are never replayed eagerly: `#onAfterGetCellMeta` serves them the moment a
+   * cell's meta is actually read — the renderer for the ~viewport, `getCellMeta` for any API
+   * consumer — so a switch costs nothing per entry and no meta object is materialized for a
+   * cell nobody asks about.
+   *
+   * @type {Map<string, Map<string, unknown>>}
    */
-  #trackedCellMeta = new Map<string, TrackedCellMeta>();
+  #trackedCellMeta = new Map<string, Map<string, unknown>>();
+  /**
+   * The declared `sheets` entry each built sheet came from, so removing a sheet can prune its
+   * entry out of the configured arrays — the settings object would otherwise keep the removed
+   * sheet's rows resident for the grid's life.
+   *
+   * @type {Map<number, object>}
+   */
+  #declaredEntries = new Map<number, SheetsBarSheetConfig>();
+  /**
+   * Whether the top-level `data` / `sheets` clash has been reported, so a workbook that keeps
+   * loading is warned about once rather than on every switch.
+   *
+   * @type {boolean}
+   */
+  #warnedAboutTopLevelData = false;
+  /**
+   * The tab name to re-activate after a workbook rebuild, or `null` when the rebuild should
+   * follow the `activeSheet` setting. Set by `updatePlugin` for the window of one rebuild.
+   *
+   * @type {string|null}
+   */
+  #retainActiveName: string | null = null;
   /**
    * Owns the per-tab and all-sheets dropdown menus.
    *
@@ -382,6 +419,7 @@ export class SheetsBar extends BasePlugin {
       this.#model = this.#preservedState.model;
       this.#trackedCellMeta = this.#preservedState.trackedCellMeta;
       this.#settingsBaseline = this.#preservedState.settingsBaseline;
+      this.#declaredEntries = this.#preservedState.declaredEntries;
     } else {
       try {
         this.#isInitializing = true;
@@ -496,6 +534,8 @@ export class SheetsBar extends BasePlugin {
     this.addHook('afterSetTheme', this.#onAfterSetTheme);
     this.addHook('afterLanguageChange', this.#onAfterLanguageChange);
     this.addHook('afterSetCellMeta', this.#onAfterSetCellMeta);
+    this.addHook('afterGetCellMeta', this.#onAfterGetCellMeta);
+    this.addHook('beforeLoadData', this.#onBeforeLoadData);
 
     this.#refreshUI();
 
@@ -505,16 +545,28 @@ export class SheetsBar extends BasePlugin {
   /**
    * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
-  updatePlugin() {
+  updatePlugin(newSettings?: Record<string, unknown>) {
     // Read through `getSetting()`, not the raw grid settings: `updateSettings` replaces the
     // grid-level `sheetsBar` object wholesale, so a partial payload such as
     // `{ sheetsBar: { paging: false } }` carries no `sheets` key there — while the plugin's own
     // merged settings still do. Only a genuinely different `sheets` value is a new workbook.
     const preservedState = this.#model !== null && isSameSheetsList(this.getSetting('sheets'), this.#lastBuiltSheets)
-      ? { model: this.#model, trackedCellMeta: this.#trackedCellMeta, settingsBaseline: this.#settingsBaseline }
+      ? {
+        model: this.#model,
+        trackedCellMeta: this.#trackedCellMeta,
+        settingsBaseline: this.#settingsBaseline,
+        declaredEntries: this.#declaredEntries,
+      }
       : null;
     const activeSheetSettingBefore = this.#lastActiveSheetSetting;
-    const activeNameBeforeRebuild = preservedState ? null : this.#model?.getActiveSheet()?.name ?? null;
+
+    // A rebuild discards the runtime state by contract, but it does not have to flip the sheet
+    // in front of the user: when the `activeSheet` setting itself did not change, the rebuilt
+    // workbook activates the sheet of that name directly — inside the build, so no vetoable
+    // switch runs and the sheet's data is loaded once, not twice.
+    if (preservedState === null && this.getSetting('activeSheet') === activeSheetSettingBefore) {
+      this.#retainActiveName = this.#model?.getActiveSheet()?.name ?? null;
+    }
 
     // Assigned before the disable, which restores the settings baseline to the grid on a
     // genuine teardown and must stand aside on a preserved one.
@@ -525,19 +577,11 @@ export class SheetsBar extends BasePlugin {
       this.enablePlugin();
     } finally {
       this.#preservedState = null;
+      this.#retainActiveName = null;
     }
 
     if (preservedState) {
-      this.#applyActiveSheetSetting();
-    } else if (activeNameBeforeRebuild !== null && this.getSetting('activeSheet') === activeSheetSettingBefore) {
-      // A rebuild discards the runtime state by contract, but it does not have to flip the
-      // sheet in front of the user: when the `activeSheet` setting itself did not change, the
-      // sheet they were on is re-activated by name when the new workbook still carries it.
-      const target = this.getSheets().find(sheet => sheet.name === activeNameBeforeRebuild);
-
-      if (target && !target.isActive) {
-        this.setActiveSheet(target.id);
-      }
+      this.#applyActiveSheetSetting(newSettings?.[PLUGIN_KEY]);
     }
 
     super.updatePlugin();
@@ -545,13 +589,16 @@ export class SheetsBar extends BasePlugin {
 
   /**
    * Acts on an `activeSheet` value that arrived through a workbook-preserving `updateSettings`
-   * call. A value equal to the last one acted on is a wrapper re-emitting its configuration and
-   * changes nothing; a new value is an explicit switch request.
+   * call. A partial payload that names `activeSheet` without redeclaring `sheets` cannot be a
+   * wrapper re-emitting its whole configuration, so it is always an explicit switch request —
+   * including back to a value that was acted on before. A full re-emit is judged by value: one
+   * equal to the last acted-on value changes nothing, a new one switches.
    */
-  #applyActiveSheetSetting() {
+  #applyActiveSheetSetting(payload: unknown) {
     const wanted = this.getSetting('activeSheet');
+    const isExplicitRequest = isPlainObject(payload) && 'activeSheet' in payload && !('sheets' in payload);
 
-    if (wanted === this.#lastActiveSheetSetting) {
+    if (!isExplicitRequest && wanted === this.#lastActiveSheetSetting) {
       return;
     }
 
@@ -585,9 +632,14 @@ export class SheetsBar extends BasePlugin {
    * Writes the captured grid-level value of every setting any sheet overrode back into the
    * grid. `undefined` baselines are written as `null`, because `updateSettings` reads
    * `undefined` as "not provided" and would leave the sheet's value in force.
+   *
+   * The freeze is restored on top of the baseline: a `fixedColumnsStart` set at runtime is
+   * written to the grid by the view-state machinery directly and never enters the baseline
+   * map, so on a workbook where no sheet declares `settings` the map alone would restore
+   * nothing and the next enable would adopt the runtime freeze as neutral.
    */
   #restoreBaselineToGrid() {
-    if (this.#settingsBaseline.size === 0 || this.hot.isDestroyed) {
+    if (this.hot.isDestroyed) {
       return;
     }
 
@@ -597,9 +649,19 @@ export class SheetsBar extends BasePlugin {
       restored[key] = value === undefined ? null : value;
     });
 
+    if (!('fixedColumnsStart' in restored)
+      && (this.hot.getSettings().fixedColumnsStart ?? 0) !== (this.#neutralFixedColumnsStart ?? 0)) {
+      restored.fixedColumnsStart = this.#neutralFixedColumnsStart ?? 0;
+    }
+
+    if (Object.keys(restored).length === 0) {
+      return;
+    }
+
     // Emptied before the write: `updateSettings` re-enters `BasePlugin#onUpdateSettings`, and
     // on a `sheetsBar: false` teardown that call reaches `disablePlugin()` again — the empty
-    // baseline is what stops the second pass from restoring in a loop.
+    // baseline (and the freeze now matching neutral) is what stops the second pass from
+    // restoring in a loop.
     this.#settingsBaseline = new Map();
 
     this.hot.updateSettings(restored);
@@ -632,6 +694,7 @@ export class SheetsBar extends BasePlugin {
 
     this.#model = null;
     this.#trackedCellMeta = new Map();
+    this.#declaredEntries = new Map();
     this.#settingsBaseline = new Map();
     this.#lastBuiltSheets = undefined;
     this.#isSwitching = false;
@@ -659,7 +722,8 @@ export class SheetsBar extends BasePlugin {
    * Renames a sheet.
    *
    * Rejected — and reported as `false` — when the name is blank, unchanged, already taken by
-   * another sheet, or a `beforeSheetTabRename` listener cancels it.
+   * another sheet, already identifying a different sheet in the sheet's formula engine, or a
+   * `beforeSheetTabRename` listener cancels it.
    *
    * @param {number} id The sheet's id.
    * @param {string} name The new name. Trimmed, and cut to the name length limit.
@@ -726,7 +790,7 @@ export class SheetsBar extends BasePlugin {
 
         if (oldSheet) {
           this.#syncActiveSheetData();
-          oldSheet.viewState = captureViewState(this.hot, Array.from(this.#trackedCellMeta.values())) as
+          oldSheet.viewState = captureViewState(this.hot, this.#flattenTrackedCellMeta()) as
             unknown as Record<string, unknown>;
           this.hot.runHooks('afterSheetTabStateCapture', oldId, oldSheet.viewState, source);
         }
@@ -899,9 +963,8 @@ export class SheetsBar extends BasePlugin {
 
     const newSheet = model.getSheetById(newId) as Sheet;
 
-    this.#trackedCellMeta = new Map(
-      ((newSheet.viewState?.cellMeta as TrackedCellMeta[] | undefined) ?? [])
-        .map(entry => [trackedCellMetaKey(entry), entry]),
+    this.#trackedCellMeta = SheetsBar.#groupTrackedCellMeta(
+      (newSheet.viewState?.cellMeta as TrackedCellMeta[] | undefined) ?? [],
     );
 
     // The whole switch paints once. Applying the sheet, restoring its view state, re-selecting
@@ -952,13 +1015,21 @@ export class SheetsBar extends BasePlugin {
       Array<{ name?: string, data?: unknown[][], settings?: Record<string, unknown> }> | null;
 
     if (Array.isArray(sheetsSetting) && sheetsSetting.length > 0) {
+      this.#declaredEntries = new Map();
+
       sheetsSetting.forEach((entry) => {
-        this.#registerFormulaSheet(model.addSheet(entry.name ?? null, entry.data, entry.settings));
+        const sheet = model.addSheet(entry.name ?? null, entry.data, entry.settings);
+
+        this.#declaredEntries.set(sheet.id, entry);
+        this.#registerFormulaSheet(sheet);
       });
 
       const activeIndex = this.getSetting<number>('activeSheet') ?? 0;
       const descriptors = model.getSheets();
-      const target = descriptors[activeIndex] ?? descriptors[0];
+      const retained = this.#retainActiveName === null
+        ? undefined
+        : descriptors.find(descriptor => descriptor.name === this.#retainActiveName);
+      const target = retained ?? descriptors[activeIndex] ?? descriptors[0];
 
       model.setActiveSheet(target.id);
       this.#applySheet(model.getSheetById(target.id) as Sheet, SOURCE_API);
@@ -1154,9 +1225,9 @@ export class SheetsBar extends BasePlugin {
 
   /**
    * Commits an inline tab rename coming from the tab strip. Rejects (and just
-   * restores the tab strip's rendered state) when the name is blank, unchanged, a
-   * `beforeSheetTabRename` listener cancels, or the model rejects the name
-   * (collision with another sheet).
+   * restores the tab strip's rendered state) when the name is blank, unchanged, already
+   * identifying a different sheet in the formula engine, a `beforeSheetTabRename` listener
+   * cancels, or the model rejects the name (collision with another sheet).
    */
   #commitRename(id: number, newName: string, source: string = SOURCE_UI): boolean {
     const model = this.#model as SheetModel;
@@ -1235,6 +1306,7 @@ export class SheetsBar extends BasePlugin {
           this.#removeFormulaSheet(removedSheet);
         }
 
+        this.#pruneDeclaredSheet(id);
         this.#refreshUI();
 
         return true;
@@ -1245,6 +1317,42 @@ export class SheetsBar extends BasePlugin {
     );
 
     return removed !== false;
+  }
+
+  /**
+   * Takes a removed sheet's declared entry out of the configured `sheets` arrays, so its rows
+   * do not stay resident for the grid's life — the model drops its reference, but the settings
+   * object would keep holding the data the way `Core` would without its own `loadData` sync of
+   * the `data` setting. The grid-level and the plugin-level array are usually one object;
+   * both are pruned when they are not.
+   */
+  #pruneDeclaredSheet(id: number) {
+    const entry = this.#declaredEntries.get(id);
+
+    if (!entry) {
+      return;
+    }
+
+    this.#declaredEntries.delete(id);
+
+    const prune = (sheets: unknown) => {
+      if (Array.isArray(sheets)) {
+        const index = sheets.indexOf(entry);
+
+        if (index !== -1) {
+          sheets.splice(index, 1);
+        }
+      }
+    };
+    const rawSetting = this.hot.getSettings()[PLUGIN_KEY] as { sheets?: unknown } | boolean | undefined;
+    const rawSheets = isPlainObject(rawSetting) ? (rawSetting as { sheets?: unknown }).sheets : undefined;
+    const mergedSheets = this.getSetting('sheets');
+
+    prune(rawSheets);
+
+    if (mergedSheets !== rawSheets) {
+      prune(mergedSheets);
+    }
   }
 
   /**
@@ -1662,17 +1770,18 @@ export class SheetsBar extends BasePlugin {
   };
 
   /**
-   * Tracks explicit cell-meta writes for the active sheet so they can be replayed
-   * after a switch round-trip. Writes performed by the plugin's own restore pass
-   * are skipped via the switching guard.
+   * Tracks explicit cell-meta writes for the active sheet so they survive a switch
+   * round-trip. Writes performed while a switch is applying state are skipped via the
+   * switching guard, and derived keys (`valid`) are not tracked at all — the next validation
+   * recomputes them, and a validated sheet writes one per cell.
    *
    * The hook hands over visual indexes, which only mean something against the row and column
-   * order in force at write time — a write made before a sort would replay onto whatever cell
-   * sits at that visual spot after the restore. Entries are therefore stored physical, and
-   * translated back when they are replayed.
+   * order in force at write time — a write made before a sort would land on whatever cell
+   * sits at that visual spot after a restore. Entries are therefore stored physical, and
+   * translated back when they are served.
    */
   #onAfterSetCellMeta = (row: number, col: number, key: string, value: unknown) => {
-    if (this.#isSwitching) {
+    if (this.#isSwitching || UNTRACKED_META_KEYS.has(key)) {
       return;
     }
 
@@ -1683,8 +1792,110 @@ export class SheetsBar extends BasePlugin {
       return;
     }
 
-    const entry = { row: physicalRow, col: physicalCol, key, value };
+    const cellKey = trackedCellKey(physicalRow, physicalCol);
+    let bucket = this.#trackedCellMeta.get(cellKey);
 
-    this.#trackedCellMeta.set(trackedCellMetaKey(entry), entry);
+    if (!bucket) {
+      bucket = new Map();
+      this.#trackedCellMeta.set(cellKey, bucket);
+    }
+
+    bucket.set(key, value);
   };
+
+  /**
+   * Serves the tracked cell-meta writes lazily, the moment a cell's meta is actually read —
+   * the renderer for the viewport, `getCellMeta` for a paste, an editor, or any API consumer.
+   * Replaying the whole map eagerly on every switch cost one `setCellMeta` call and one
+   * permanently stored meta object per entry; serving on read costs one lookup per asked-about
+   * cell and materializes nothing for cells nobody asks about.
+   *
+   * This runs on the hottest read path in the grid, so it bails out first thing when nothing
+   * is tracked, and it only writes a property whose value actually differs — an unconditional
+   * write would shadow the column- and grid-level cascade for no reason.
+   */
+  #onAfterGetCellMeta = (row: number, col: number, cellProperties: Record<string, unknown>) => {
+    if (this.#trackedCellMeta.size === 0 || row < 0 || col < 0) {
+      return;
+    }
+
+    const physicalRow = this.hot.toPhysicalRow(row);
+    const physicalCol = this.hot.toPhysicalColumn(col);
+
+    if (physicalRow === null || physicalCol === null) {
+      return;
+    }
+
+    const bucket = this.#trackedCellMeta.get(trackedCellKey(physicalRow, physicalCol));
+
+    bucket?.forEach((value, key) => {
+      if (cellProperties[key] !== value) {
+        cellProperties[key] = value;
+      }
+    });
+  };
+
+  /**
+   * Makes the declared workbook win the initial data load. The plugin applies the active
+   * sheet's data while the plugins are initialized, but the grid's own init pass then loads
+   * whatever the top-level `data` setting declares — which would leave the active sheet never
+   * loaded, and the first switch away would capture the host array over the sheet's declared
+   * rows, destroying them. With a declared workbook, each sheet owns its data, so the initial
+   * load is redirected at the active sheet's array and a clashing top-level `data` is
+   * reported once.
+   */
+  #onBeforeLoadData = (sourceData: unknown[][], initialLoad: boolean) => {
+    const activeId = this.#model?.getActiveSheet()?.id ?? null;
+    const activeSheet = activeId === null ? null : this.#model?.getSheetById(activeId);
+
+    if (!initialLoad || !activeSheet || this.#declaredEntries.size === 0 || sourceData === activeSheet.data) {
+      return;
+    }
+
+    if (!this.#warnedAboutTopLevelData) {
+      this.#warnedAboutTopLevelData = true;
+      warn('The `data` setting is ignored when `sheetsBar.sheets` declares a workbook — each ' +
+        'sheet declares its own data.');
+    }
+
+    return activeSheet.data;
+  };
+
+  /**
+   * Flattens the per-cell buckets into the flat entry list the captured view state carries.
+   */
+  #flattenTrackedCellMeta(): TrackedCellMeta[] {
+    const entries: TrackedCellMeta[] = [];
+
+    this.#trackedCellMeta.forEach((bucket, cellKey) => {
+      const [row, col] = cellKey.split(':').map(Number);
+
+      bucket.forEach((value, key) => {
+        entries.push({ row, col, key, value });
+      });
+    });
+
+    return entries;
+  }
+
+  /**
+   * Groups a captured flat entry list back into per-cell buckets.
+   */
+  static #groupTrackedCellMeta(entries: TrackedCellMeta[]): Map<string, Map<string, unknown>> {
+    const grouped = new Map<string, Map<string, unknown>>();
+
+    entries.forEach(({ row, col, key, value }) => {
+      const cellKey = trackedCellKey(row, col);
+      let bucket = grouped.get(cellKey);
+
+      if (!bucket) {
+        bucket = new Map();
+        grouped.set(cellKey, bucket);
+      }
+
+      bucket.set(key, value);
+    });
+
+    return grouped;
+  }
 }
