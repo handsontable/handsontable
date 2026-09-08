@@ -73,6 +73,9 @@ test.describe('markdown prose spacing', () => {
     await page.goto(`${baseURL}${PAGE}`);
 
     const contentGap = await resolveCssLength(page, 'var(--sl-content-gap-y)');
+
+    expect(parseFloat(contentGap)).toBeGreaterThan(0);
+
     const codeBlock = page.locator('.sl-markdown-content p + .expressive-code').first();
 
     await expect(codeBlock).toBeVisible();

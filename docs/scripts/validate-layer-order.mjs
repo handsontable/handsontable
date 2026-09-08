@@ -20,6 +20,7 @@
  */
 import { readFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 /**
  * Starlight's declared order, from `@astrojs/starlight/style/layers.css`.
@@ -268,6 +269,19 @@ export async function validateBuiltPages(distDir) {
       pageLayers.push(...sheetLayers.filter((layer) => !pageLayers.includes(layer)));
     }
 
+    // A page whose stylesheets all failed to resolve would otherwise pass with
+    // an empty layer list: no violation to find, and only a warning to show it.
+    // These two layers are the ones this check exists for, so their absence
+    // means the check read nothing, not that the order is fine.
+    for (const required of ['starlight.reset', 'starlight.content']) {
+      if (!pageLayers.includes(required)) {
+        errors.push(
+          `${page}: none of its stylesheets declare ${required}, so this check read nothing. ` +
+            'PAGES or the asset paths are stale.'
+        );
+      }
+    }
+
     const pageViolation = findOrderViolation(pageLayers);
 
     if (pageViolation) {
@@ -281,7 +295,14 @@ export async function validateBuiltPages(distDir) {
   return { errors: [...new Set(errors)], checked, skipped: [...new Set(skipped)] };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// process.argv[1] is not resolved to an absolute path when the script is
+// invoked with a relative one, and a hand-built `file://` string also misses on
+// a path needing percent-encoding or on Windows. pathToFileURL() resolves it the
+// same way Node resolves import.meta.url. A miss here is silent - the gate would
+// simply not run - so this comparison must not be approximate.
+const isMainModule = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+
+if (isMainModule) {
   const distDir = resolve(process.cwd(), 'dist');
   const { errors, checked, skipped } = await validateBuiltPages(distDir);
 

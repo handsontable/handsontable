@@ -87,6 +87,23 @@ test('the layer statement comes before any other rule in custom.css', () => {
   );
 });
 
+test('custom.css stays the first customCss entry', () => {
+  // The statement only orders the layers while it precedes every @layer block
+  // in the bundle, and what puts it there is custom.css being bundled first.
+  // Move it down the customCss array, or put a stylesheet with a
+  // `@layer starlight.*` block ahead of it, and lightningcss drops the
+  // statement again with every other test in this file still green.
+  const config = readFileSync(join(__dirname, '../../../astro.config.mjs'), 'utf8');
+  const list = /customCss:\s*\[([\s\S]*?)\]/.exec(config);
+
+  assert.ok(list, 'astro.config.mjs has no customCss array');
+  assert.match(
+    list[1].trimStart(),
+    /^'\.\/src\/styles\/custom\.css'/,
+    'custom.css must be bundled first, or its @layer statement lands after a layer block'
+  );
+});
+
 test('no docs stylesheet writes into an undeclared starlight layer', () => {
   const statement = findLayerStatement(customCss);
   const files = [...walk(stylesDir, ['.css']), ...walk(componentsDir, ['.astro'])];

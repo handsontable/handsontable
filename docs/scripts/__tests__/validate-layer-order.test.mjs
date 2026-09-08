@@ -214,3 +214,28 @@ test('validateBuiltPages tolerates one missing page but not all of them', async(
   assert.equal(empty.checked.length, 0);
   assert.match(empty.errors[0], /none of the checked pages exist/);
 });
+
+test('validateBuiltPages fails when a page\'s stylesheets read nothing', async() => {
+  // With build.assetsPrefix set, every href is an absolute CDN URL: no
+  // candidate path, no warning, and an empty layer list that no order check
+  // can fault. The gate must say it read nothing rather than report a pass.
+  const distDir = await writeDist({
+    [GUIDE_PAGE]: '<link rel="stylesheet" href="https://cdn.example.com/_astro/common.abc.css">',
+  });
+  const { errors, skipped } = await validateBuiltPages(distDir);
+
+  assert.deepEqual(skipped, []);
+  assert.equal(errors.length, 2, errors.join('\n'));
+  assert.match(errors[0], /none of its stylesheets declare starlight\.reset, so this check read nothing/);
+  assert.match(errors[1], /none of its stylesheets declare starlight\.content/);
+});
+
+test('validateBuiltPages fails when every stylesheet is missing from the output', async() => {
+  const distDir = await writeDist({
+    [GUIDE_PAGE]: '<link rel="stylesheet" href="/docs/_astro/gone.abc.css">',
+  });
+  const { errors, skipped } = await validateBuiltPages(distDir);
+
+  assert.deepEqual(skipped, ['/docs/_astro/gone.abc.css']);
+  assert.match(errors[0], /so this check read nothing/);
+});
