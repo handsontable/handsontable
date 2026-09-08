@@ -849,6 +849,11 @@ These variables style the [Notification](@/guides/dialog/notification/notificati
 | <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-button-focus-border-color` </div><div class="variables-table__item"><span>JS:</span> `paginationButtonFocusBorderColor` </div>   | Border color of pagination navigation button on focus |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-button-focus-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `paginationButtonFocusForegroundColor` </div>   | Icon color of pagination navigation button on focus |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-button-focus-background-color` </div><div class="variables-table__item"><span>JS:</span> `paginationButtonFocusBackgroundColor` </div>   | Background color of pagination navigation button on focus |
+
+#### Sheets bar variables
+
+| Variable | Description                          |
+| -------- | ------------------------------------ |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-sheets-bar-tab-horizontal-padding` </div><div class="variables-table__item"><span>JS:</span> `sheetsBarTabHorizontalPadding` </div>   | Horizontal padding of a sheets bar tab |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-sheets-bar-tab-vertical-padding` </div><div class="variables-table__item"><span>JS:</span> `sheetsBarTabVerticalPadding` </div>   | Vertical padding of a sheets bar tab |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-sheets-bar-tab-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `sheetsBarTabForegroundColor` </div>   | Text color of a sheets bar tab |

@@ -321,7 +321,7 @@ A sheet added at runtime -- through the bar's add button, or through `addSheet()
 ## Known limitations
 
 - Only one sheet's data and settings are loaded into the grid at a time.
-- Passing a changed `sheetsBar` value through [`updateSettings()`](@/api/core.md#updatesettings) rebuilds the whole workbook, discarding any sheets you added at runtime with `addSheet()`. A re-passed value counts as unchanged when its scalar options match, each sheet's `settings` are structurally equal, and each sheet's `data` is the same array reference. A framework wrapper that re-emits a fresh settings literal on every render therefore keeps the workbook, as long as the `data` arrays are stable references - inline data literals recreated on each render reset it.
+- Passing a changed `sheetsBar` value through [`updateSettings()`](@/api/core.md#updatesettings) rebuilds the whole workbook, discarding any sheets you added at runtime with `addSheet()`. A re-passed value counts as unchanged when its scalar options match, each sheet's `settings` are structurally equal, and each sheet's `data` is the same array reference. A framework wrapper that re-emits a fresh settings literal on every render therefore keeps the workbook, as long as the `data` arrays are stable references - inline data literals recreated on each render reset it. A rebuild keeps the active sheet selected by name when the new workbook still contains it and the `activeSheet` option did not change.
 - Switching sheets calls [`loadData()`](@/api/core.md#loaddata) internally, which clears the [`UndoRedo`](@/api/undoRedo.md) plugin's undo and redo stacks.
 
 ## Related keyboard shortcuts
