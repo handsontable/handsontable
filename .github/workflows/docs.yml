@@ -30,6 +30,9 @@ jobs:
       - uses: ./.github/actions/setup-workspace
       - name: Test plugins
         run: npm run docs:test:plugins --prefix docs
+      # Report-only: always exits 0, writes its findings to the step summary.
+      - name: Check changelog API reference links
+        run: npm run docs:validate-changelog-links --prefix docs
 
   angular-types:
     name: Angular types

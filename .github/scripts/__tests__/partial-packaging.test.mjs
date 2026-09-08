@@ -41,7 +41,7 @@ function jobsOf(source) {
     .map(block => ({ name: block.split(':')[0].trim(), body: block }));
 }
 
-test('every job that runs postbuild:partial also builds the type declarations', () => {
+test('every job that runs postbuild:partial also builds the type declarations and the language packs', () => {
   const checked = [];
 
   for (const file of readdirSync(WORKFLOWS).filter(name => name.endsWith('.yml'))) {
@@ -64,6 +64,26 @@ test('every job that runs postbuild:partial also builds the type declarations', 
         `${file} job \`${job.name}\` runs postbuild:partial without downlevel:types, so the `
           + '.d.mts half of every exports rule is missing'
       );
+      // Every branch that composes the ES + CJS tree itself (it runs `build:es`) must also
+      // emit the language packs: the exports map's `./languages/all` require target is
+      // `languages/all.js`, which only `build:languages` writes, and the UMD artifact carries
+      // dist/ and styles/ only. Checked per shell block (the text up to the next `fi`), because
+      // the UMD fallback in the same job already names `build:languages` and would mask a gap.
+      for (const rawBlock of job.body.split(/^\s*fi\s*$/m)) {
+        // Comments in the workflow name the tasks too, so only command lines count:
+        // a block whose `npm run` lines were deleted must not pass on its comment.
+        const block = rawBlock.split('\n').filter(line => !/^\s*#/.test(line)).join('\n');
+
+        if (!/\bbuild:es\b/.test(block)) {
+          continue;
+        }
+
+        assert.ok(
+          /build:languages(?![.\w])/.test(block),
+          `${file} job \`${job.name}\` builds the ES + CJS tree without build:languages, so `
+            + '`languages/all.js` (the `./languages/all` require target) is missing from tmp/'
+        );
+      }
     }
   }
 

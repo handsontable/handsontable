@@ -1,4 +1,5 @@
 import { type Locator, type Page } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 
 export interface FirstColumnCell {
   covered: boolean;
@@ -37,10 +38,7 @@ export class MergeCellsNestedRowsCollapsePage {
       `?theme=${this.theme}&bundle=${this.bundle}`,
     );
 
-    // The bundle script and the block that builds the grid are separate, so waiting on the
-    // fixture's own state without this can fail inside the first evaluate with a bare
-    // `Handsontable is not defined`.
-    await this.page.waitForFunction(() => 'Handsontable' in window, undefined, { polling: 100 });
+    await awaitBundle(this.page);
     await this.page.waitForFunction(
       () => 'htReady' in window || 'htBuildError' in window, undefined, { polling: 100 },
     );

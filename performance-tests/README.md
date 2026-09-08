@@ -311,6 +311,7 @@ Important:
 - Always set `autoRowSize: false` and `autoColumnSize: false` -- these async plugins interfere with trace measurements.
 - The CSS file is `handsontable.css` (not `handsontable.full.css`).
 - Always expose the instance as `window.__hot`.
+- Every `waitForFunction()` passes an explicit `{ polling }` (the tier's lint enforces it): the default polls on `requestAnimationFrame`, which a loaded machine starves, so a healthy page can time out.
 
 ### 3. `<name>.spec.ts`
 
@@ -324,7 +325,7 @@ const fixturePath = path.resolve(import.meta.dirname, 'fixture.html');
 
 test(config.name, async({ page }) => {
   await page.goto(`file://${fixturePath}`);
-  await page.waitForFunction(() => (window as any).__hot);
+  await page.waitForFunction(() => (window as any).__hot, undefined, { polling: 100 });
 
   await runTracedScenario({
     page,

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed merged cells whose rows are trimmed or filtered out being deleted by a column move or a column freeze, or drawn over the wrong rows after a row or column move.",
+  "type": "fixed",
+  "issueOrPR": 13403,
+  "breaking": false,
+  "framework": "none"
+}

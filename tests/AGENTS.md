@@ -54,11 +54,15 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   `Handsontable` is still undefined. The spec then fails inside its first
   `page.evaluate()` with a bare `Handsontable is not defined` — far from the
   cause, and only under load. Wait for the bundle itself in `goto()`, with
-  `await page.waitForFunction(() => 'Handsontable' in window)`, before
-  asserting on any fixture status. `expect` is the wrong tool for that wait:
-  `dist/handsontable.js` is ~6 MB uncompressed and every worker pulls its own
-  copy, so a cold or busy server outlasts the 10s `expect` timeout, while
-  `waitForFunction` polls against the test budget.
+  `await awaitBundle(this.page)` from `fixtures/bundle.ts`, before asserting
+  on any fixture status. The helper is the one place the wait is spelled out:
+  `waitForFunction` rather than `expect` (`dist/handsontable.js` is ~6 MB
+  uncompressed and every worker pulls its own copy, so a cold or busy server
+  outlasts the 10s `expect` timeout, while `waitForFunction` polls against the
+  test budget), with the interval in `BUNDLE_POLLING_MS` — see Determinism
+  below for why the rAF default times out on a healthy page. Do not inline a
+  copy: the lint catches a missing `{ polling }`, but only the helper keeps
+  the value from drifting between page objects.
 - The `umd` legs run the BASE bundle: **no HyperFormula** (a formulas fixture
   loads HF as an external script beside the bundle, or the plugin logs a
   warning and silently stays off) and **no languages pack** (an i18n fixture
@@ -198,6 +202,22 @@ ratio faithfully but never inflates the border, so a test built on it is vacuous
 undefined` in `test.use` does not clear it, and `launchOptions` is rejected inside a
 `describe` — it forces its own worker).
 
+## Observing `unlisten()`
+
+`hot.isListening()` read at the END of a gesture cannot see an `unlisten()` that
+happened inside it. The focus scope manager re-listens on the `click` that follows
+the `mouseup` whenever the press landed inside the grid or its portal, so the state
+heals before the assertion runs, and a spec built on it goes green against a real
+defect (that is one of the two reasons DEV-2787 escaped this tier; the other is
+that no case asserted the listening state at all). Count `afterUnlisten` calls
+over the named gesture instead — `EditorPreventCloseElementPage.startUnlistenCounter()` is
+the pattern. Two gestures do NOT heal and are the ones to reach for when the spec
+needs a user-visible symptom rather than a counter: a RIGHT click (it ends in
+`contextmenu`, no `click`), and a press whose focus target sits outside the grid's
+portal (nothing re-listens, and there the scope manager unlistens by design — so a
+counter cannot tell the two mechanisms apart, and an `isListening()` assertion
+there pins the scope manager, not the mouseup verdict).
+
 ## The server port
 
 The webServer binds `8123` and has `reuseExistingServer` on outside CI, so a second
@@ -217,7 +237,11 @@ banned `waitForTimeout` usually reappears; `test.setTimeout(ms)` and
 `testInfo.setTimeout(ms)` set a budget, not a wait, and stay legal),
 `networkidle`, `.only`, `.skip`, or bare `test.fixme` in specs **and page
 objects** — the lint script covers `e2e` and `fixtures`, so a timer moved into
-the page object a spec drives is the same fixed wait and is caught there. Wait on web-first assertions;
+the page object a spec drives is the same fixed wait and is caught there — and
+no `waitForFunction()` without an explicit `{ polling }`: the rAF default is
+starved under parallel-worker load and times out on a healthy page, so the
+call site states the interval (an options literal, also when wrapped in a
+type assertion, is judged; a plain options variable is not). Wait on web-first assertions;
 `expect.poll` for data probes. `test.fixme` is the tracked exception for a real
 product bug: it requires an eslint-disable line naming the task
 (`// eslint-disable-next-line no-restricted-syntax -- DEV-1234: <why>`), which
@@ -228,3 +252,22 @@ prove a negative) takes the same disable line, naming the owning work and
 carrying a TODO for the probe that will replace it; `e2e/customBorders.spec.ts`
 `macrotaskBarrier()` is the one such site. Full rules: the
 `handsontable-playwright-e2e` skill and its `references/determinism.md`.
+
+The waits lint cannot see live beyond the spec's own text — a timer in a
+fixture's inline script, a string-form `evaluate`, and the state a page-object
+wait ends on. Six rules, one line each; the measured incident behind each one
+is in
+`references/determinism.md`:
+
+- A `setTimeout` in the browser is `sleep()` moved into the page: probe the
+  state and `expect.poll` it from the spec.
+- `page.waitForFunction()` passes `{ polling: <ms> }`; a page object takes it
+  from `awaitBundle()` (`fixtures/bundle.ts`), the one place the interval lives.
+- A method that scrolls or mutates the grid ends on a render-state probe (first
+  rendered row, draw counter), never on `scrollTop`/`scrollLeft`.
+- A trigger that can deliver more than once is asserted on the LATEST entry of
+  its kind, inside one `expect.poll`.
+- A fixture build fails loud: the fixture captures the constructor throw, and
+  `goto()` rethrows it.
+- A negative assertion ("nothing fired") uses a bounded settle ONLY beside a
+  positive control in the same test.
