@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { ChangeCategory, FilterKind, ReleaseSummary, VersionComparisonData, VersionEntry } from './types';
+import { isFeatured, matchesFilter, partitionEntries } from './featuredEntries';
 
 function readData(): VersionComparisonData {
   const el = document.getElementById('version-comparison-data');
@@ -131,34 +132,6 @@ const FILTER_LABELS: Record<FilterKind, string> = {
   breaking: 'Breaking',
   all: 'All',
 };
-
-function matchesFilter(entry: VersionEntry, filter: FilterKind): boolean {
-  switch (filter) {
-    case 'all': return true;
-    case 'breaking': return entry.breaking;
-    case 'deprecated': return entry.category === 'deprecated' && !entry.breaking;
-    case 'new': return entry.category === 'added' && !entry.breaking;
-    case 'fixed': return entry.category === 'fixed' && !entry.breaking;
-  }
-}
-
-// Breaking highlights are also surfaced on the New tab for now, so a major
-// release's headline features (often breaking, e.g. a TypeScript migration or a
-// new layout system) stay visible on the default landing view. Set this to false
-// to revert to showing breaking highlights only on the Breaking and All tabs.
-const SHOW_BREAKING_HIGHLIGHTS_ON_NEW = true;
-
-// Whether a highlighted entry renders as a featured card under the active filter.
-// A highlight always shows on All and on the tab matching its own category
-// (a deprecated highlight on Deprecated, a breaking one on Breaking, and so on),
-// so it never leaks onto an unrelated tab. The one exception is the revertable
-// rule above that also promotes breaking highlights onto New.
-function isFeatured(entry: VersionEntry, filter: FilterKind): boolean {
-  if (!entry.highlighted) return false;
-  if (filter === 'all') return true;
-  if (matchesFilter(entry, filter)) return true;
-  return SHOW_BREAKING_HIGHLIGHTS_ON_NEW && filter === 'new' && entry.breaking;
-}
 
 interface FilterTabsProps {
   value: FilterKind;
@@ -296,8 +269,7 @@ const COMPACT_THRESHOLD = 5;
 
 function ReleaseGroup({ version, entries, filter }: { version: string; entries: VersionEntry[]; filter: FilterKind }) {
   const [expanded, setExpanded] = useState(false);
-  const featured = entries.filter((e) => isFeatured(e, filter));
-  const compact = entries.filter((e) => !isFeatured(e, filter));
+  const { featured, compact } = partitionEntries(entries, filter);
   const isCollapsible = compact.length > COMPACT_THRESHOLD;
   const shown = !isCollapsible || expanded
     ? compact

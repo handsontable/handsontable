@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../../bundle';
 
 /** The two kinds of draw one crossing of horizontal offset 0 costs. */
 export interface DrawCounts {
@@ -81,7 +82,7 @@ export class InlineStartBorderRefreshPage {
     await this.page.goto(`/tests/fixtures/demo/walkontable/inline-start-border-refresh.html?${params}`);
     // The bundle is injected with `document.write`, separately from the block that installs these
     // helpers, so a visible grid is not proof either has run.
-    await this.page.waitForFunction(() => 'Handsontable' in window);
+    await awaitBundle(this.page);
     await expect(this.master).toBeVisible();
     await expect(this.inlineStartOverlay).toBeVisible();
   }

@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 
 /**
  * Page Object for the "`numericRenderer` receives a shared array `className`" fixture (DEV-2618,
@@ -54,7 +55,7 @@ export class NumericArrayClassNamePage {
     // `Handsontable` is still undefined - and `data-init-error` would then read as "no error"
     // simply because the script had not run. `expect` is the wrong tool here: its 10s timeout is
     // shorter than a cold server takes, while `waitForFunction` polls against the test budget.
-    await this.page.waitForFunction(() => 'Handsontable' in window);
+    await awaitBundle(this.page);
 
     // Report a constructor that threw as the error it threw, not as a visibility timeout. The
     // fixture stamps `data-init-error` synchronously while the page script runs, so by the time

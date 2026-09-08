@@ -94,6 +94,31 @@ hook-spawned test run also passes `TEST_RUN_MAX_BUFFER` (64 MB) so the run reach
 its summary rather than dying on Node's 1 MB default. The trade-off is deliberate:
 a genuinely failing run whose output overflows stops blocking locally, and CI
 catches it.
+**The presence gate also prints advisory warnings — never a block.** Below its
+verdict the CLI (`.github/scripts/test-presence-gate.mjs`; detectors in
+`.github/scripts/lib/presence-warnings.mjs`) lists heuristic signals that leave
+the exit code untouched in either `GATE_MODE` (pre-push `block` included):
+**frozen-suite growth** (≥3 new `it`/`it.each`/`fit` blocks appended to *modified*
+Jasmine specs — the gate counts an edited `*.spec.js` as coverage, so this is the
+only place appended blocks surface; state the justification in the PR if the
+frozen tier is right), the **empty red-spec field** (the PR ticks "Bug fix" but
+leaves the template's "spec that fails without this fix" line blank — CI only: the
+`presence` job in `checks.yml` fetches the *live* body into `GATE_PR_BODY_FILE`
+the way the Manual QA job does; locally the check is skipped silently — an
+answer on the line below the template line counts, a sibling item or the next
+heading does not), **RTL correlation** (source added `isRtl`/`layoutDirection`
+logic and no test-side line mentions RTL — a test file, or any file under
+`tests/**`, page objects and helpers included; the CLI's diff pathspec admits
+`tests/**` through `isAdvisoryPath()`, because the gate's own classifier calls
+those files `neither` and would otherwise drop them before the detector ran —
+`presence-gate-cli.test.mjs` runs the CLI against a throwaway repository to
+pin that plumbing), and **Walkontable routing**
+(engine source changed with nothing
+under `handsontable/src/3rdparty/walkontable/test/` or `tests/e2e/walkontable/`).
+In CI each one is also a `::warning` annotation. A new detector is a pure
+function in that lib plus a `node --test` case in
+`.github/scripts/__tests__/presence-warnings.test.mjs`; a gap in the input (no
+body, no diff) must be silence, never a finding.
 **Coverage is a CI floor, not a hook** (it needs a full instrumented run, too slow
 for a hook): the `[CHECK] Coverage floor` job measures the percent of *added*
 executable lines the unit tests cover (`.github/scripts/diff-coverage-gate.mjs`,
@@ -212,7 +237,7 @@ agree on what a "fixed wait" is:
 |---|---|---|---|
 | Playwright (`tests/`) | `tests/.eslintrc.cjs` (`no-restricted-syntax`) | **error** | `waitForTimeout(`, `sleep(`, `setTimeout(` (the global timer only — bare, `window.`, or `globalThis.` — inside `page.evaluate` too; `test.setTimeout(ms)` / `testInfo.setTimeout(ms)` set a budget, not a wait, and pass), `'networkidle'`, `.only`, `.skip`, bare `test.fixme` |
 | Frozen Jasmine + Jest (`*.spec.js`, `*.unit.js`, `*.unit.ts`) | `handsontable/no-fixed-sleep-in-spec` (`handsontable/.config/plugin/eslint/rules/`) | warn | `sleep(` (`noSleep`), `setTimeout(fn, <non-zero numeric literal>)` on the global timer (`noSetTimeout` — a literal `0` is a macrotask hand-off, not a wait, and passes), `waitForNextAnimationFrames(` (`noFrameWait` — a literal `0` resolves at once and passes too) |
-| Evals scorer | `evals/score.mjs` `findDeterminismSmells()` | verdict `suspect` | `sleep-call`, `wait-for-timeout`, `network-idle`, `set-timeout`, `fixed-frame-wait` — with the frozen rule's exemptions: the global timer only, a non-zero numeric-literal delay only, a literal `0` frame count passes |
+| Evals scorer | `evals/score.mjs` `findDeterminismSmells()` | verdict `suspect` | `sleep-call`, `wait-for-timeout`, `network-idle`, `set-timeout`, `fixed-frame-wait` — with the frozen rule's exemptions: the global timer only, a non-zero numeric-literal delay only, a literal `0` frame count passes — plus `theme-sensitive-viewport`, a rendered-row count read from a grid with no pinned viewport (a different number on each leg of the theme matrix) |
 
 The replacement is always a condition: a web-first assertion or `expect.poll` on
 the Playwright tier, the `waitUntil(condition, timeout)` spec global
@@ -226,9 +251,12 @@ not a gate. The rule's RuleTester coverage lives in
 `npm run test:eslint-rules` in `handsontable/` (CI: the `Lint / core` job). Every
 **determinism-smell** signal has a fixture under
 `evals/fixtures/<case>/counterexamples/` — named `<scenario>.<smell>.spec.ts` — that
-must score `suspect` for exactly that smell; the hollow-test and gaming signals are
-covered by the inline-source unit tests in `evals/__tests__/score.test.mjs` only. All
-of it runs under the root `npm run test:tooling` (CI: `Checks / tooling tests`).
+must score `suspect` for exactly that smell; the warning-tier `unasserted-capture`
+**structure smell** has one too, caught as the `structure-smells` warning rather than
+a verdict flip (the contract: `evals/lib/counterexamples.mjs`); the hollow-test and
+gaming signals are covered by the inline-source unit tests in
+`evals/__tests__/score.test.mjs` only. All of it runs under the root
+`npm run test:tooling` (CI: `Checks / tooling tests`).
 
 ### The tracked human exception (the manual-QA tickbox)
 
@@ -263,9 +291,9 @@ dodge writing tests.
 
 ## 2. Creating or changing enforcement hooks (git + agent) — exact rules
 
-- **Location.** Git hooks → `lefthook.yml` + `scripts/` (`pre-push.mjs`, `lint-staged.mjs`, `lint-files.mjs`). Agent hooks → `scripts/claude/` (`post-tool-use.mjs`, `stop.mjs`, `session.mjs`), wired in `.claude/settings.json`. Shared, pure classifiers and layout helpers → `.github/scripts/lib/` (`presence-gate.mjs`, `test-weakening.mjs`, `lint-ratchet.mjs`, `repo-root.mjs`).
+- **Location.** Git hooks → `lefthook.yml` + `scripts/` (`pre-push.mjs`, `lint-staged.mjs`, `lint-files.mjs`). Agent hooks → `scripts/claude/` (`post-tool-use.mjs`, `stop.mjs`, `session.mjs`), wired in `.claude/settings.json`. Shared, pure classifiers and layout helpers → `.github/scripts/lib/` (`presence-gate.mjs`, `presence-warnings.mjs`, `test-weakening.mjs`, `lint-ratchet.mjs`, `repo-root.mjs`).
 - **Must work in a linked worktree.** Agent-driven work runs in `git worktree` checkouts, so never derive the repo layout from git or the cwd: take the root from `repoRoot()` (`.github/scripts/lib/repo-root.mjs`) and per-checkout state from `gitDir(root)`. A hook exports `GIT_DIR`, and with it set `git rev-parse --show-toplevel` returns the *cwd*, not the work tree; in a worktree `<root>/.git` is a **file**, so writing under it fails with ENOTDIR. Strip `GIT_DIR`/`GIT_WORK_TREE` from the environment of any child you spawn with an explicit `cwd`.
-- **Pure + tested.** Put the decision logic in a **pure function** in a lib and **unit-test it** (`scripts/__tests__/`, `.github/scripts/__tests__/`, run with `node --test`). **A hook change ships a test change** — this rule applies to the enforcement machinery too. A custom ESLint rule is machinery as well: it gets RuleTester coverage in `handsontable/.config/plugin/eslint/__tests__/*.test.mjs` (ESLint's `RuleTester` pointed at `node:test`'s `describe`/`it`), run by `npm run test:eslint-rules` in `handsontable/` (a `scripts/tasks.json` task) from CI's `Lint / core` job — **not** from the root `test:tooling` glob. That script backs the `Checks / tooling tests` job, which is checkout + Node only, so a test that imports `eslint` dies there with `ERR_MODULE_NOT_FOUND` and red-walls every PR; keep the root glob dependency-free. Name every test file in that task as a literal path, with **no glob**: `node --test` exits 1 (`Could not find`) only when nothing in the list matched *and* every pattern is literal — a glob anywhere, even next to an explicit path, turns a missing file into a green `tests 0`, and a second literal file that still exists masks a renamed first one the same way, so a rename would leave the step passing with nothing, or less, run (`handsontable/test/__tests__/eslintRulesTask.unit.js` pins the list in both directions — every file in the directory named, every named file present — and bans glob characters). A determinism-smell scorer signal gets a `counterexamples/` fixture named after the smell (`evals/README.md`), and `evals/__tests__/` is in the root glob. A new test directory that is in neither script never runs anywhere.
+- **Pure + tested.** Put the decision logic in a **pure function** in a lib and **unit-test it** (`scripts/__tests__/`, `.github/scripts/__tests__/`, run with `node --test`). **A hook change ships a test change** — this rule applies to the enforcement machinery too. A custom ESLint rule is machinery as well: it gets RuleTester coverage in `handsontable/.config/plugin/eslint/__tests__/*.test.mjs` (ESLint's `RuleTester` pointed at `node:test`'s `describe`/`it`), run by `npm run test:eslint-rules` in `handsontable/` (a `scripts/tasks.json` task) from CI's `Lint / core` job — **not** from the root `test:tooling` glob. That script backs the `Checks / tooling tests` job, which is checkout + Node only, so a test that imports `eslint` dies there with `ERR_MODULE_NOT_FOUND` and red-walls every PR; keep the root glob dependency-free. Name every test file in that task as a literal path, with **no glob**: `node --test` exits 1 (`Could not find`) only when nothing in the list matched *and* every pattern is literal — a glob anywhere, even next to an explicit path, turns a missing file into a green `tests 0`, and a second literal file that still exists masks a renamed first one the same way, so a rename would leave the step passing with nothing, or less, run (`handsontable/test/__tests__/eslintRulesTask.unit.js` pins the list in both directions — every file in the directory named, every named file present — and bans glob characters). A scorer smell signal — a determinism smell or a warning-tier structure smell — gets a `counterexamples/` fixture named after the smell (`evals/README.md`), and `evals/__tests__/` is in the root glob. A new test directory that is in neither script never runs anywhere.
 - **A custom ESLint rule edit is live only while its hard link holds.** `eslint-plugin-handsontable` is a `file:` dependency, and pnpm materializes it under `node_modules/.pnpm/` as **hard links** to the source files (same inode, link count 2 — check with `stat`), not a symlink to the directory. An edit that writes the file **in place** is therefore live at once, with no reinstall. The trap is the write that replaces the inode: an editor's save-then-rename (atomic save), `sed -i`, a branch switch or `git checkout` that rewrites the file, a fresh worktree, and always a **brand-new rule file**, which the store has never seen. After any of those, every lint run — the hooks, `npm run lint`, a `--format json` debt count — executes the rule as it was at the last install, while the RuleTester tests (which import the source file) already pass. `pnpm install --frozen-lockfile --offline` (under a minute) relinks it; verify with `stat` (same inode) or `diff` against the store copy before trusting a lint result that disagrees with the tests.
 - **Must not false-block.** Skip config/parse gaps (ESLint exit 2), record only **repo-relative, in-repo** paths (never scratchpad/out-of-repo), tolerate a missing base ref. In CI, a blocking diff gate takes its base from the merge-base with the base branch's **live tip** (`origin/<base.ref>`, fetched in the job), never from the payload's frozen `base.sha` — see the ratchet's *Which base* above. A hook that fires on a false positive gets disabled — that is worse than no hook.
 - **Must stay fast.** No build in the pre-push or agent hooks; run only the **changed scope**. Heavy/full-suite work is CI's job.

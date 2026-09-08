@@ -108,6 +108,62 @@ They are written in different places and can drift. Keep this in mind:
   `TypeError: Cannot read properties of undefined`, which is what forced one customer to retry inside
   `requestAnimationFrame`. Never re-introduce the non-null assertion, and never feed the result
   straight into the trimming map — filter `null` out first.
+- **A position inside a parent is not a grid row index, and `hot.alter()` cannot bridge the two.**
+  `addChildAtIndex()` takes an index *within the parent*, so for a top-level row that is a position in
+  `dataManager.data` — and every preceding parent's subtree sits between it and the row's real place
+  in the grid. They agree only while no preceding top-level row has children, which is why this
+  survived for years: an insert next to the *first* parent is correct by coincidence, and both shared
+  fixtures put that parent at row 0. `hot.alter('insert_row_above', …)` cannot be handed either index,
+  because it derives the whole insert from one: `DataMap#createRow()` splices the top-level array at
+  the **top-level** position, while the row index maps, the cell meta, and the
+  `beforeCreateRow`/`afterCreateRow` hooks all count in **grid rows**. So both branches of
+  `addChildAtIndex()` build the insert by hand — splice, `rewriteCache()`,
+  `rowIndexMapper.insertIndexes()`, `shiftCellsMeta()` (physical), then the hooks. Three things come
+  with that. `disableCoreAPIModifiers()` around such an insert is not a safety measure but the thing
+  that **hid** the mistake: with the modifiers off, `Core#countSourceRows()` reports the top-level
+  count, so a grid-row index above it is silently clamped instead of failing. The `beforeAlter` and
+  `beforeDataSplice` hooks no longer fire for a top-level insert, which neither the parent branch nor
+  `addChild()` ever fired either. And `beforeCreateRow`'s **veto has to keep being honored** in any
+  hand-built insert: `Formulas#onBeforeCreateRow` answers `false` whenever HyperFormula cannot extend
+  the sheet, and `'NestedRows.*'` is not in that plugin's `isBlockedSource`, so its own
+  `afterCreateRow` listener then calls `engine.addRows()` on the state HyperFormula just refused —
+  which throws out of `runHooks`, skips `afterAddChild`, and leaves the collapsed-rows stash open for
+  the grid's whole life. A cancel must therefore still fire `afterAddChild` (with a `null` element,
+  which `#onAfterAddChild` already tolerates) to close that stash. **The parent branch and
+  `addChild()` still ignore that veto** — pre-existing, and a separate behavior change to fix, because
+  a cancel there would start actually cancelling. (DEV-2625, following #7727 / DEV-2605.)
+- **Only the top-level branch translates its index for `insertIndexes()`.** `insertIndexes()` takes a
+  **visual** index and resolves it through `getNotTrimmedIndexes()[arg]`, but the parent branch passes
+  `finalChildIndex` and `addChild()` passes `getRowIndex(childElement)` — both **physical**. With a
+  foreign trimming map above the insertion point the maps then insert one slot past the data, so the
+  trim flag of the displaced row lands on the newly inserted one. The existing
+  `another plugin trims a row above the insertion point` spec passes only because both slots hold
+  `false` there. The top-level branch translates, and two things about that translation are worth
+  knowing. **Appending has no row to translate**, because no physical row holds the new index yet, so
+  it must be read from the visible row count (`countRows()`) and never from `countAllRows()`, which
+  walks the tree and so ignores trimming. Getting that wrong is not an off-by-one: an index one past
+  the visible end resolves to no row, `#onBeforeRemoveRow` expands it into a whole parent's subtree,
+  and undoing the insert then deleted the last parent **and its five children** (18 rows → 13, caught
+  in review on #13401). And the remaining hole is the mirror case: when the **displaced row itself**
+  is trimmed it has no visual index, none resolves back to it, so `insertIndexes()` cannot address
+  that slot at all — the fallback to the physical index is off by the number of trimmed rows above it.
+  Fixing that one means writing the maps directly.
+- **`onBeforeDataSplice()` hands the core a grid-row index for a top-level row, and that is still
+  broken.** It routes a splice into `DataManager#spliceData()` — which does translate a grid row into
+  the right `(parent, indexWithinParent)` pair — but short-circuits with `return true` when
+  `isRowHighestLevel(index)`, letting `DataMap#spliceData()` splice the raw top-level array at a grid
+  row index. Measured on `getSimplerNestedData()`: `hot.alter('insert_row_above', 12, 1)` **appends**
+  the new row at top-level position 3 (grid row 18), because `Array#splice` clamps 12 against a
+  three-element array, while the cell meta and the index maps shift at row 12 — so the meta desyncs
+  from data that never moved. The context menu no longer reaches it *directly* (see the bullet above),
+  but **redo still does**: `CreateRowAction#redo()` replays the insert as
+  `hot.alter('insert_row_above', <the grid row afterCreateRow reported>, ...)`, so redoing a
+  context-menu insert next to a top-level row lands straight on this path. Fixing it means dropping
+  that short-circuit **and** the
+  `[element]` re-wrap on the line below it (`elements` is already an array, so `spliceData` currently
+  inserts `[row]` as the row object), which also makes the path inherit `spliceData`'s "the row above
+  is an empty parent, so adopt the new row as its child" rule. Assert the new row's **shape**, not
+  just `countRows()` — the re-wrap leaves the count right and the row an array.
 - **The hand-built tree operations have to shift the cell meta themselves.** `MetaManager` is kept in
   step only by `DataMap#createRow`/`removeRow`, and `addChild`, `addChildAtIndex`,
   `detachFromParent` and the row-move path reach neither — they splice `__children` and fire the row
@@ -175,6 +231,18 @@ They are written in different places and can drift. Keep this in mind:
 - **`collapsedRowsStash.stash()` temporarily expands everything.** Any operation wrapped in
   stash/applyStash briefly un-trims all rows. It is used around add child, detach child, row move,
   and filtering.
+- **So every visual index an insert computes is measured in the *expanded* space, and any listener
+  that replays it later addresses a different row.** `beforeAddChild` opens the stash and
+  `afterAddChild` closes it, which puts the whole of `addChildAtIndex()` and `addChild()` inside a
+  window where nothing is trimmed. `afterCreateRow` fires in there, so with a collapsed parent above
+  the insertion point `UndoRedo`'s `CreateRowAction` stores an expanded-space row and undoes with
+  `alter('remove_row', <that row>)` **after** `applyStash()` re-trimmed — deleting a row the user
+  never inserted. `selection.shiftRows()` in the top-level branch is measured the same way, so a
+  selection between the collapsed-space and expanded-space insertion points does not follow the rows
+  that moved. Both are pre-existing in class (the old top-level index was wrong in the collapsed
+  space too) and both are still open: repairing them means expressing the index in the space the app
+  sees, which is only knowable after `applyStash()`. Do not add a collapsed-parent case to a spec
+  here and assume it passes — check which space the number is in first.
 - **Construction order matters.** `CollapsingUI`, `HeadersUI`, `ContextMenuUI`, and
   `RowMoveController` all capture `plugin.dataManager` (and some capture `plugin.collapsingUI`) in
   their constructors. Reassigning `plugin.dataManager` later leaves four stale references.
