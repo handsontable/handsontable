@@ -558,10 +558,19 @@ export class AutoRowSize extends BasePlugin {
         return;
       }
 
-      this.calculateRowsHeight({
-        from: current,
-        to: Math.min(current + AutoRowSize.CALCULATION_STEP, length)
-      }, colRange, overwriteCache);
+      try {
+        this.calculateRowsHeight({
+          from: current,
+          to: Math.min(current + AutoRowSize.CALCULATION_STEP, length)
+        }, colRange, overwriteCache);
+      } catch (error) {
+        // This runs inside an idle task, so the throw escapes whatever called
+        // `calculateAllRowsHeight()` - no caller's try/catch can see it. Leave the plugin
+        // recoverable before it goes.
+        this.#abandonSweep();
+
+        throw error;
+      }
 
       current = current + AutoRowSize.CALCULATION_STEP + 1;
 
@@ -586,7 +595,14 @@ export class AutoRowSize extends BasePlugin {
 
     // sync
     if (syncLimit >= 0) {
-      this.calculateRowsHeight({ from: 0, to: syncLimit }, colRange, overwriteCache);
+      try {
+        this.calculateRowsHeight({ from: 0, to: syncLimit }, colRange, overwriteCache);
+      } catch (error) {
+        this.#abandonSweep();
+
+        throw error;
+      }
+
       current = syncLimit + 1;
     }
     // async
@@ -594,8 +610,29 @@ export class AutoRowSize extends BasePlugin {
       loop();
     } else {
       this.inProgress = false;
+
+      // The whole grid fitted inside the sync limit, so `loop()` never ran and its completion
+      // branch - the other place the queue is drained - was never reached.
+      this.#drainRowRefreshQueue();
+
       this.hot.view.adjustElementsSize();
     }
+  }
+
+  /**
+   * Puts the plugin back into a state the next render can recover from, after a measurement threw
+   * part way through a sweep.
+   *
+   * Without it `inProgress` stays `true` for the instance's life, which does more than leave the
+   * heights half measured: `#drainRowRefreshQueue()` refuses to run while a sweep is in flight, so
+   * the refresh queue is silently disabled too. The full recalculation is re-owed, so the next
+   * render starts over.
+   */
+  #abandonSweep(): void {
+    cancelIdleTask(this.#idleSweepTimer);
+    this.#idleSweepTimer = 0;
+    this.inProgress = false;
+    this.#fullRecalculationScheduled = true;
   }
 
   /**
@@ -847,7 +884,10 @@ export class AutoRowSize extends BasePlugin {
       const visualRow = this.hot.toVisualRow(physicalRow);
 
       // A row outside the dataset, or one a trimming map hides, has no visual index to measure.
-      if (visualRow !== null) {
+      // Duplicates are skipped, the way the other producers of this queue do it: while the queue is
+      // held back (a column-less grid, or a sweep in flight) overlapping calls would otherwise pile
+      // the same row up and measure it once per copy.
+      if (visualRow !== null && !this.#visualRowsToRefresh.includes(visualRow)) {
         this.#visualRowsToRefresh.push(visualRow);
       }
     });
@@ -910,7 +950,9 @@ export class AutoRowSize extends BasePlugin {
     // The flag is held rather than consumed whenever this render cannot measure: while the grid is
     // hidden `recalculateAllRowsHeight()` is a no-op, and with no columns the measurement writes a
     // near-empty height for every row that nothing would ever correct (the same reason
-    // `calculateVisibleRowsHeight()` bails out on a column-less grid).
+    // `calculateVisibleRowsHeight()` bails out on a column-less grid). The row count is checked for
+    // the same shape of reason, though nothing is at stake: a sweep over no rows measures nothing,
+    // so holding the flag just keeps the work owed until there is something to measure.
     if (this.#fullRecalculationScheduled &&
         this.hot.countCols() > 0 &&
         this.hot.countRows() > 0 &&

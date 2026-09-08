@@ -74,6 +74,13 @@ Three rules ride along:
   would let a re-entrant render reach the branch with the flag still set and recurse; spending it outright
   would leave every unmeasured row at the default height for the instance's life when a renderer throws (the
   ghost table runs the real renderers). Clearing it first and restoring it in a `catch` gets both.
+  That `catch` in `#onBeforeRender` covers only the **inline** phase. The sweep hands everything past
+  `syncLimit` to an idle task, which is a separate turn no caller's `try` can see, so `calculateAllRowsHeight()`
+  guards **both** its phases itself and calls `#abandonSweep()`. Skipping the async one leaves `inProgress`
+  stuck at `true` for the instance's life — which silently disables the refresh queue too, since
+  `#drainRowRefreshQueue()` refuses to run while a sweep is in flight.
+- **A guard on the row count rides along with the column one.** Nothing is at stake there — a sweep over no
+  rows measures nothing — but holding the flag keeps the work owed until there is something to measure.
 
 `clearCache()` must **not** zero `measuredRows`: the public `isNeedRecalculate()` slices the height map by it,
 so zeroing it makes that method answer "nothing to recalculate" at the exact moment every height was dropped.
@@ -98,9 +105,16 @@ the queue both times, so the rows land at the first moment that can measure them
   recalculation is guarded against, and it reached the selective path first: `clearCache([5])` on a
   column-less grid used to leave row 5 holding `0` for good.
 
-It is called from the render **and** from the sweep's completion branch. A sweep ends without a render of its
-own, so a queue held back by the first condition would otherwise wait for the next full render — which on a
-grid the user only scrolls never arrives.
+It is called from the render **and** from `calculateAllRowsHeight()` — from `loop()`'s completion branch, and
+from the top-level `else` that runs when the whole grid fitted inside `syncLimit` and `loop()` never ran at
+all. A sweep ends without a render of its own, so a queue held back by the first condition would otherwise
+wait for the next full render, which on a grid the user only scrolls never arrives. Both exits need the call:
+covering only one leaves the contract true on some grid sizes and false on others.
+
+`#queueClearedRowsForRefresh()` skips a row already in the queue, the way the other producers do
+(`#onBeforeChange` collects into a `Set`, `#onAfterFormulasValuesUpdate` checks before pushing). While the
+queue is held back, overlapping `clearCache` calls would otherwise pile the same row up and measure it once
+per copy.
 
 ## One sweep at a time
 

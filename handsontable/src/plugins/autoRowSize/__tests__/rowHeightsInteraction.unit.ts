@@ -163,6 +163,71 @@ describe('AutoRowSize selective cache clearing', () => {
     container.remove();
   });
 
+  it('should recover when a measurement throws in the idle part of a sweep', () => {
+    // The sweep measures `SYNC_CALCULATION_LIMIT` rows inline and hands the rest to an idle task,
+    // which is a separate turn - no caller's try/catch can see a throw from there. Left alone,
+    // `inProgress` would stay `true` for the instance's life, which also disables the refresh queue,
+    // and the recalculation would never be re-owed.
+    const container = document.createElement('div');
+
+    document.body.appendChild(container);
+
+    // 600 rows against a sync limit of 3 leaves plenty for the idle continuation, which measures
+    // `CALCULATION_STEP` (50) rows a turn.
+    const hot = new Handsontable(container, {
+      data: Array.from({ length: 600 }, (_, row) => [`r${row}`]),
+      autoRowSize: { syncLimit: 3 },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const plugin = hot.getPlugin('autoRowSize');
+    const measure = plugin.calculateRowsHeight.bind(plugin);
+    let calls = 0;
+
+    plugin.calculateRowsHeight = (...args: unknown[]) => {
+      calls += 1;
+
+      // Not the inline pass and not the first idle turn - a later one, well inside the async phase.
+      if (calls === 4) {
+        throw new Error('renderer blew up mid-sweep');
+      }
+
+      return (measure as (...a: unknown[]) => void)(...args);
+    };
+
+    // `requestIdleTask` falls back to `requestAnimationFrame`, so running that straight away turns
+    // the idle continuation into a direct call. The continuation is still the code path under test -
+    // the recovery has to live inside `loop()` either way - and driving it here keeps the test off
+    // a fixed timer.
+    const originalRequestAnimationFrame = window.requestAnimationFrame;
+
+    window.requestAnimationFrame = ((callback: FrameRequestCallback) => {
+      callback(0);
+
+      return 0;
+    }) as typeof window.requestAnimationFrame;
+
+    try {
+      expect(() => plugin.recalculateAllRowsHeight()).toThrow('renderer blew up mid-sweep');
+    } finally {
+      window.requestAnimationFrame = originalRequestAnimationFrame;
+    }
+
+    // The throw landed in the continuation, not the inline pass.
+    expect(calls).toBeGreaterThanOrEqual(4);
+    // The sweep is no longer believed to be running, so the refresh queue works again.
+    expect(plugin.inProgress).toBe(false);
+
+    // The unfinished measurement is owed to the next render, which starts a fresh sweep - and this
+    // grid is far larger than its sync limit, so that sweep goes async and says so.
+    plugin.calculateRowsHeight = measure;
+    hot.render();
+
+    expect(plugin.inProgress).toBe(true);
+
+    hot.destroy();
+    container.remove();
+  });
+
   // The other half of `#drainRowRefreshQueue()` - that a queue held back while a sweep is running
   // is drained when the sweep ends - has no unit test, and cannot have one here: jsdom reports no
   // layout, so every row falls inside the rendered band and the ordinary visible-band pass measures
