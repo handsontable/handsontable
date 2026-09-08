@@ -103,9 +103,11 @@ describe('SheetsBar plugin', () => {
 
   afterAll(() => {
     delete Element.prototype.scrollIntoView;
+    TabStrip.prototype.render = renderTabStrip;
   });
 
   beforeEach(() => {
+    renderedTabStrips.length = 0;
     container = document.createElement('div');
     document.body.appendChild(container);
   });
@@ -866,6 +868,33 @@ describe('SheetsBar plugin', () => {
     expect(hot.getDataAtCell(0, 1)).toBe(23);
   });
 
+  it('binds a runtime-added sheet to the workbook\'s shared engine under its own name', () => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          {
+            name: 'Budget',
+            data: [[100]],
+            settings: { formulas: { engine, sheetName: 'Budget' } },
+          },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+
+    const added = sheetsBar.addSheet('Fees', [[0.23, '=Budget!A1*A1']]);
+
+    expect(added).not.toBe(null);
+    expect(engine.getSheetNames()).toEqual(['Budget', 'Fees']);
+
+    sheetsBar.setActiveSheet('Fees');
+
+    expect(hot.getDataAtCell(0, 1)).toBe(23);
+  });
+
   it('renames the engine sheet with the tab and rewrites the references to it', () => {
     const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
 
@@ -1038,6 +1067,22 @@ describe('SheetsBar plugin', () => {
     sheetsBar.setActiveSheet('A');
 
     expect(hot.getSettings().fixedColumnsStart).toBe(2);
+  });
+
+  it('keeps the freeze a never-visited sheet declares in its own settings', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'A', data: [['a', 'b', 'c']] },
+          { name: 'B', data: [['x', 'y', 'z']], settings: { fixedColumnsStart: 1 } },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    hot.getPlugin('sheetsBar').setActiveSheet('B');
+
+    expect(hot.getSettings().fixedColumnsStart).toBe(1);
   });
 
   it('renders the bar on the edge the position setting names, and moves with it', () => {
@@ -2339,6 +2384,49 @@ describe('SheetsBar plugin', () => {
     hot.updateSettings({ sheetsBar: { sheets: [...sheets] } });
 
     expect(hot.getPlugin('sheetsBar').getSheets().map(s => s.name)).toEqual(['A', 'B', 'Extra']);
+  });
+
+  it('keeps a runtime-added sheet when a re-emit rebuilds the per-sheet settings literals', () => {
+    const dataA = [['a']];
+    const dataB = [['b']];
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'A', data: dataA, settings: { readOnly: true, colWidths: [120] } },
+          { name: 'B', data: dataB },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    hot.getPlugin('sheetsBar').addSheet('Extra');
+    hot.updateSettings({
+      sheetsBar: {
+        sheets: [
+          { name: 'A', data: dataA, settings: { readOnly: true, colWidths: [120] } },
+          { name: 'B', data: dataB },
+        ],
+      },
+    });
+
+    expect(hot.getPlugin('sheetsBar').getSheets().map(s => s.name)).toEqual(['A', 'B', 'Extra']);
+  });
+
+  it('rebuilds the workbook when a re-emitted sheet declares different settings', () => {
+    const dataA = [['a']];
+
+    hot = new Handsontable(container, {
+      sheetsBar: { sheets: [{ name: 'A', data: dataA, settings: { readOnly: true } }] },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    hot.getPlugin('sheetsBar').addSheet('Extra');
+    hot.updateSettings({
+      sheetsBar: { sheets: [{ name: 'A', data: dataA, settings: { readOnly: false } }] },
+    });
+
+    expect(hot.getPlugin('sheetsBar').getSheets().map(s => s.name)).toEqual(['A']);
   });
 
   it('rebuilds the workbook when the sheetsBar setting genuinely changes', () => {

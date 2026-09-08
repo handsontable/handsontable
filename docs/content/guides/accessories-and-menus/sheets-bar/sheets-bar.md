@@ -316,10 +316,12 @@ Editing a value on one sheet recalculates the formulas that reference it on the 
 
 One thing to keep in mind: pass a built engine instance (`HyperFormula.buildEmpty()`), not the `HyperFormula` class. The class builds a separate engine for each sheet, and separate engines can't see each other's data. The plugin warns in the console when a `sheetName` rides on the class.
 
+A sheet added at runtime -- through the bar's add button, or through `addSheet()` without a `settings` argument -- joins the workbook's shared engine under its own name, so formulas work on it and cross-sheet references can reach it right away. Pass a `settings` argument to `addSheet()` to configure the new sheet yourself.
+
 ## Known limitations
 
 - Only one sheet's data and settings are loaded into the grid at a time.
-- Passing a changed `sheetsBar` value through [`updateSettings()`](@/api/core.md#updatesettings) rebuilds the whole workbook, discarding any sheets you added at runtime with `addSheet()`. Re-passing the same value leaves the workbook untouched, so a framework wrapper that re-emits its full settings object on every render does not reset it.
+- Passing a changed `sheetsBar` value through [`updateSettings()`](@/api/core.md#updatesettings) rebuilds the whole workbook, discarding any sheets you added at runtime with `addSheet()`. A re-passed value counts as unchanged when its scalar options match, each sheet's `settings` are structurally equal, and each sheet's `data` is the same array reference. A framework wrapper that re-emits a fresh settings literal on every render therefore keeps the workbook, as long as the `data` arrays are stable references - inline data literals recreated on each render reset it.
 - Switching sheets calls [`loadData()`](@/api/core.md#loaddata) internally, which clears the [`UndoRedo`](@/api/undoRedo.md) plugin's undo and redo stacks.
 
 ## Related keyboard shortcuts

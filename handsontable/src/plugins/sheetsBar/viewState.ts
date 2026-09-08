@@ -1,7 +1,9 @@
 import type { HotInstance } from '../../core/types';
 
 /**
- * One tracked explicit cell-meta write.
+ * One tracked explicit cell-meta write. The indexes are physical: a visual index only means
+ * something against the row and column order in force when it was read, and the replay runs
+ * after that order has been restored.
  */
 export interface TrackedCellMeta {
   row: number;
@@ -11,7 +13,9 @@ export interface TrackedCellMeta {
 }
 
 /**
- * Snapshot of the runtime-mutable view state of one sheet.
+ * Snapshot of the runtime-mutable view state of one sheet. The manual size overrides are
+ * sparse `[index, size]` pairs — a dense array the length of the row count would retain one
+ * slot per row per sheet for the session.
  */
 export interface ViewState {
   rowSequence: number[];
@@ -20,8 +24,8 @@ export interface ViewState {
   hiddenRows: number[];
   hiddenColumns: number[];
   trimmedRows: number[];
-  colWidths: Array<number | null>;
-  rowHeights: Array<number | null>;
+  colWidths: Array<[number, number]>;
+  rowHeights: Array<[number, number]>;
   sortConfig: unknown;
   filterConditions: unknown[] | null;
   mergedCells: Array<{ row: number, col: number, rowspan: number, colspan: number }>;
@@ -30,6 +34,24 @@ export interface ViewState {
   cellMeta: TrackedCellMeta[];
   selection: number[][] | undefined;
   scroll: { row: number, col: number };
+}
+
+/**
+ * Runs an operation with rendering and index-cache recalculation suspended, resuming both in a
+ * `finally` — `Core#batch` has no such guard, and the restore runs host code through the
+ * filters and sorting plugins, whose hooks a listener can throw from. Left un-resumed, the
+ * grid would silently skip every later render.
+ */
+function safeBatch(hot: HotInstance, operations: () => void) {
+  hot.suspendRender();
+  hot.suspendExecution();
+
+  try {
+    operations();
+  } finally {
+    hot.resumeExecution();
+    hot.resumeRender();
+  }
 }
 
 /**
@@ -108,23 +130,31 @@ function getResizePlugin(hot: HotInstance, axis: 'column' | 'row') {
 }
 
 /**
- * Captures the manual column width and row height overrides, leaving every
- * non-resized index as `null`. Only the plugins' own overrides are read — capturing the
- * effective `getColWidth`/`getRowHeight` would pin every column as manually sized and stop
+ * Captures the manual column width and row height overrides as sparse `[index, size]` pairs.
+ * Only the plugins' own overrides are read — capturing the effective
+ * `getColWidth`/`getRowHeight` would pin every column as manually sized and stop
  * AutoColumnSize and StretchColumns from adapting after a switch.
  */
 function captureSizes(hot: HotInstance) {
-  const colWidths: Array<number | null> = [];
-  const rowHeights: Array<number | null> = [];
+  const colWidths: Array<[number, number]> = [];
+  const rowHeights: Array<[number, number]> = [];
   const columnResize = getResizePlugin(hot, 'column');
   const rowResize = getResizePlugin(hot, 'row');
 
   for (let col = 0; col < hot.countCols(); col += 1) {
-    colWidths.push(columnResize?.getManualSize(col) ?? null);
+    const width = columnResize?.getManualSize(col);
+
+    if (typeof width === 'number') {
+      colWidths.push([col, width]);
+    }
   }
 
   for (let row = 0; row < hot.countRows(); row += 1) {
-    rowHeights.push(rowResize?.getManualSize(row) ?? null);
+    const height = rowResize?.getManualSize(row);
+
+    if (typeof height === 'number') {
+      rowHeights.push([row, height]);
+    }
   }
 
   return { colWidths, rowHeights };
@@ -264,6 +294,11 @@ function restoreAxisState(hot: HotInstance, state: ViewState) {
   const sorting = getSortingPlugin(hot);
   const hasSortConfig = Array.isArray(state.sortConfig) ? state.sortConfig.length > 0 : Boolean(state.sortConfig);
 
+  // The column order goes first: the sort config addresses its column visually, so re-applying
+  // the sort against the order `loadData` reset would sort the wrong physical column on a
+  // sheet whose columns were manually moved.
+  restoreSequence(hot.columnIndexMapper, state.columnSequence);
+
   if (sorting) {
     sorting.sort([]);
 
@@ -274,35 +309,31 @@ function restoreAxisState(hot: HotInstance, state: ViewState) {
   }
 
   restoreSequence(hot.rowIndexMapper, state.rowSequence);
-  restoreSequence(hot.columnIndexMapper, state.columnSequence);
 }
 
 /**
- * Drops every manual column width and row height override, so a sheet that was never
- * resized does not inherit the previous sheet's sizes.
+ * Drops every manual column width and row height override through the plugins' own bulk
+ * clears, so a sheet that was never resized does not inherit the previous sheet's sizes.
+ * The bulk call empties the whole map at once — a per-index loop over `countRows()` would
+ * both cost one call per row on the switch path and miss every index the arriving sheet
+ * trims out of the count.
  */
 function clearManualSizes(hot: HotInstance) {
   const manualColumnResize = getEnabledPlugin(hot, 'manualColumnResize') as
-    { clearManualSize: (col: number) => void } | undefined;
+    { clearManualSizes: () => void } | undefined;
   const manualRowResize = getEnabledPlugin(hot, 'manualRowResize') as
-    { clearManualSize: (row: number) => void } | undefined;
+    { clearManualSizes: () => void } | undefined;
 
-  if (manualColumnResize) {
-    for (let col = 0; col < hot.countCols(); col += 1) {
-      manualColumnResize.clearManualSize(col);
-    }
-  }
-
-  if (manualRowResize) {
-    for (let row = 0; row < hot.countRows(); row += 1) {
-      manualRowResize.clearManualSize(row);
-    }
-  }
+  manualColumnResize?.clearManualSizes();
+  manualRowResize?.clearManualSizes();
 }
 
 /**
  * Restores manual column widths and row heights, dropping the overrides carried over
- * from the previously active sheet first.
+ * from the previously active sheet first. An index at or past the current count is skipped:
+ * the host may have shortened the sheet's data while another sheet was in front, and
+ * `setManualSize` resolves an out-of-range visual index to `null`, which would write an
+ * entry under the string "null".
  */
 function restoreSizes(hot: HotInstance, state: ViewState) {
   const manualColumnResize = getEnabledPlugin(hot, 'manualColumnResize') as
@@ -312,14 +343,14 @@ function restoreSizes(hot: HotInstance, state: ViewState) {
 
   clearManualSizes(hot);
 
-  state.colWidths.forEach((width, col) => {
-    if (typeof width === 'number') {
+  state.colWidths.forEach(([col, width]) => {
+    if (col < hot.countCols()) {
       manualColumnResize?.setManualSize(col, width);
     }
   });
 
-  state.rowHeights.forEach((height, row) => {
-    if (typeof height === 'number') {
+  state.rowHeights.forEach(([row, height]) => {
+    if (row < hot.countRows()) {
       manualRowResize?.setManualSize(row, height);
     }
   });
@@ -390,11 +421,18 @@ function restoreCustomBorders(hot: HotInstance, state: ViewState) {
 }
 
 /**
- * Replays the tracked explicit cell-meta writes.
+ * Replays the tracked explicit cell-meta writes. Entries are stored with physical indexes and
+ * `setCellMeta` takes visual ones, so each is translated against the just-restored order; an
+ * entry whose cell has since left the visual space (trimmed, or the data shrank) is skipped.
  */
 function restoreCellMeta(hot: HotInstance, state: ViewState) {
   state.cellMeta.forEach(({ row, col, key, value }) => {
-    hot.setCellMeta(row, col, key, value);
+    const visualRow = hot.toVisualRow(row);
+    const visualCol = hot.toVisualColumn(col);
+
+    if (visualRow !== null && visualCol !== null) {
+      hot.setCellMeta(visualRow, visualCol, key, value);
+    }
   });
 }
 
@@ -408,7 +446,7 @@ function restoreCellMeta(hot: HotInstance, state: ViewState) {
  * grid painted with the arriving sheet's sizes, and this runs inside a render batch.
  */
 export function restoreViewState(hot: HotInstance, state: ViewState): void {
-  hot.batch(() => {
+  safeBatch(hot, () => {
     restoreAxisState(hot, state);
     restoreFilterConditions(hot, state);
     restoreTrimmedState(hot, state);
@@ -416,8 +454,10 @@ export function restoreViewState(hot: HotInstance, state: ViewState): void {
     restoreSizes(hot, state);
     restoreMergedCells(hot, state);
 
-    if (state.fixedColumnsStart !== undefined && state.fixedColumnsStart !== hot.getSettings().fixedColumnsStart) {
-      hot.updateSettings({ fixedColumnsStart: state.fixedColumnsStart });
+    // A captured `undefined` means no freeze was configured when the sheet was captured, so a
+    // freeze another sheet set at runtime is cleared back to none rather than left in force.
+    if ((state.fixedColumnsStart ?? 0) !== (hot.getSettings().fixedColumnsStart ?? 0)) {
+      hot.updateSettings({ fixedColumnsStart: state.fixedColumnsStart ?? 0 });
     }
 
     restoreCustomBorders(hot, state);
@@ -476,9 +516,13 @@ function createNeutralViewState(): ViewState {
 export function resetViewState(hot: HotInstance, fixedColumnsStart?: number): void {
   const state = createNeutralViewState();
 
-  hot.batch(() => {
-    if (fixedColumnsStart !== undefined && hot.getSettings().fixedColumnsStart !== fixedColumnsStart) {
-      hot.updateSettings({ fixedColumnsStart });
+  safeBatch(hot, () => {
+    // An `undefined` neutral value means the grid never configured a freeze, so a freeze set at
+    // runtime on another sheet is cleared back to none rather than left in force.
+    const targetFreeze = fixedColumnsStart ?? 0;
+
+    if ((hot.getSettings().fixedColumnsStart ?? 0) !== targetFreeze) {
+      hot.updateSettings({ fixedColumnsStart: targetFreeze });
     }
 
     getSortingPlugin(hot)?.sort([]);

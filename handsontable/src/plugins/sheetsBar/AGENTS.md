@@ -13,11 +13,14 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   clusters (`Intl.Segmenter`), not UTF-16 units — the rename input enforces the same limit in
   its `input` handler, never through `maxlength`.
 - `viewState.ts` — capture/restore of one sheet's runtime view state. **Order is load-bearing**:
-  sort is cleared and re-applied around the row order (the sorting plugin resets rows to its
-  own pre-sort cache on every `sort()`), filters and trimming re-apply before the hidden sets
-  (hidden indexes are stored as physical), and the selection and scroll run through
-  `restoreViewport()` **after** the render batch, once the arriving sheet is painted at its own
-  sizes. A stored order whose length no longer matches the data is skipped.
+  the column order goes before the sort re-apply (the sort config addresses its column
+  visually), sort is cleared and re-applied around the row order (the sorting plugin resets
+  rows to its own pre-sort cache on every `sort()`), filters and trimming re-apply before the
+  hidden sets (hidden indexes are stored as physical, and so are the tracked cell-meta
+  entries), and the selection and scroll run through `restoreViewport()` **after** the render
+  batch, once the arriving sheet is painted at its own sizes. A stored order whose length no
+  longer matches the data is skipped. Manual sizes are stored as sparse `[index, size]` pairs
+  and cleared through the resize plugins' bulk `clearManualSizes()`.
 - `ui/` — `bar.ts` (DOM via `buildTemplate`, labels re-applied by `refreshLabels()` on language
   change), `tabStrip.ts` (tabs, inline rename, focus capture/restore across repaints),
   `tabDrag.ts` (pointer drag + FLIP), `menus.ts` (two `Menu` instances built once and refilled
@@ -43,17 +46,32 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   (`#withBaselineFor`); `undefined` baselines are restored as `null`, because `updateSettings`
   reads `undefined` as "not provided". The baseline and the model travel across an
   `updatePlugin` that re-emits a structurally identical `sheetsBar` value, and are dropped on a
-  genuine reconfiguration. A sheet's own `settings` cannot carry a `sheetsBar` key.
+  genuine reconfiguration. "Structurally identical" compares each sheet's `settings` by
+  content and its `data` by reference — an equal fresh literal with stable data references
+  keeps the workbook; recreated data arrays rebuild it. A sheet's own `settings` cannot carry
+  a `sheetsBar` key. The neutral `fixedColumnsStart` is captured only on a non-preserved
+  enable, or a wrapper re-emit would adopt the active sheet's runtime freeze as neutral.
 - **Formulas cooperation is by engine instance + `sheetName`.** Every bound sheet is registered
   in the engine up front and re-fed on every registration (a rebuilt workbook reusing names
   must not leave stale engine content); a tab rename renames the engine sheet and writes the
   engine's rewritten formula strings back into every bound sheet's data (HyperFormula rewrites
   references only inside itself — the raw arrays would resurrect the old name on the next
-  switch); a removed sheet is removed from the engine; a duplicate binds to an engine sheet of
-  its own. `sheetModel.duplicateSheet` keeps `settings.formulas` out of the deep clone — a
-  cloned engine instance is a broken object and the clone recurses forever.
+  switch, with the active sheet's rewrites going through `setDataAtCell()` so `afterChange`
+  fires and the grid repaints); a removed sheet is removed from the engine; a duplicate binds
+  to an engine sheet of its own; a runtime-added sheet with no `settings` inherits the shared
+  engine under its own name. The binding follows the name `engine.addSheet()` reports back —
+  the engine can normalize a name the model told apart. `sheetModel.duplicateSheet` keeps
+  `settings.formulas` out of the deep clone — a cloned engine instance is a broken object and
+  the clone recurses forever.
 - **Cell meta is tracked per cell and property** (`Map` keyed `row:col:key`, last write wins) —
-  an append-only list grows without bound under validators toggling `valid`.
+  an append-only list grows without bound under validators toggling `valid`. Entries are
+  stored with physical indexes (`afterSetCellMeta` hands over visual ones) and translated back
+  at replay, so a reorder between the write and the switch cannot land the meta on the wrong
+  cell.
+- **Never wrap host-reachable code in `Core#batch`/`batchRender`** — neither resumes in a
+  `finally`, and a listener throwing mid-switch would leave the grid render-suspended for
+  life. The plugin's `#batchRender` and `viewState.ts`'s `safeBatch` are the guarded forms
+  (same reasoning as MergeCells).
 - Switching calls `loadData()`, which clears the UndoRedo stacks; the state-restore hook and
   the announced switch fire after the batch, and switch announcements are made for the bar's
   own gestures only (`SOURCE_UI`).

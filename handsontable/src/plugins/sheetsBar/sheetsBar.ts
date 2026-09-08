@@ -63,10 +63,36 @@ function trackedCellMetaKey({ row, col, key }: TrackedCellMeta): string {
 }
 
 /**
- * Compares two entries of the `sheets` setting. Entries are equal when they carry the
- * same name and hand over the same `data` and `settings` objects — the arrays are
- * compared by reference on purpose, since a workbook's data can be arbitrarily large
- * and a framework wrapper re-emits the same references on every render.
+ * Compares two values structurally, with two deliberate reference-equality floors: arrays are
+ * compared element by element, plain objects key by key, and everything else — a class
+ * instance such as a HyperFormula engine, a function, a DOM element — by reference, since a
+ * copy of those is a different thing, not an equal one.
+ */
+function isStructurallyEqual(a: unknown, b: unknown): boolean {
+  if (a === b) {
+    return true;
+  }
+
+  if (Array.isArray(a) && Array.isArray(b)) {
+    return a.length === b.length && a.every((entry, index) => isStructurallyEqual(entry, b[index]));
+  }
+
+  if (isPlainObject(a) && isPlainObject(b)) {
+    const aKeys = Object.keys(a);
+
+    return aKeys.length === Object.keys(b).length
+      && aKeys.every(key => key in b && isStructurallyEqual(a[key], (b as Record<string, unknown>)[key]));
+  }
+
+  return false;
+}
+
+/**
+ * Compares two entries of the `sheets` setting. Entries are equal when they carry the same
+ * name, hand over the same `data` array, and declare structurally equal `settings`. The data
+ * arrays are compared by reference on purpose — a workbook's data can be arbitrarily large —
+ * while the settings objects are compared by content, so a framework wrapper re-emitting a
+ * fresh-but-identical settings literal on every render does not read as a new workbook.
  */
 function isSameSheetConfig(a: unknown, b: unknown): boolean {
   if (a === b) {
@@ -77,7 +103,7 @@ function isSameSheetConfig(a: unknown, b: unknown): boolean {
     return false;
   }
 
-  return a.name === b.name && a.data === b.data && a.settings === b.settings;
+  return a.name === b.name && a.data === b.data && isStructurallyEqual(a.settings, b.settings);
 }
 
 /**
@@ -329,7 +355,12 @@ export class SheetsBar extends BasePlugin {
       return;
     }
 
-    this.#neutralFixedColumnsStart = this.hot.getSettings().fixedColumnsStart as number | undefined;
+    // A preserved re-enable is the framework-wrapper re-emit path, where the active sheet's own
+    // freeze is currently applied to the grid — re-reading it here would adopt that freeze as
+    // the neutral value and leak it onto never-visited sheets.
+    if (this.#preservedState === null) {
+      this.#neutralFixedColumnsStart = this.hot.getSettings().fixedColumnsStart as number | undefined;
+    }
 
     if (this.#preservedState) {
       this.#model = this.#preservedState.model;
@@ -363,7 +394,7 @@ export class SheetsBar extends BasePlugin {
         // the user asked for a new sheet in order to work in it. The API `addSheet()` stays
         // silent, so a script building a workbook does not walk the grid through every sheet.
         .addLocalHook('addSheetClick', () => {
-          const added = this.addSheet(undefined, undefined, SOURCE_UI);
+          const added = this.addSheet(undefined, undefined, undefined, SOURCE_UI);
 
           if (added !== null) {
             this.setActiveSheet(added.id, SOURCE_UI);
@@ -657,12 +688,23 @@ export class SheetsBar extends BasePlugin {
    * Appends a sheet and returns its descriptor, or `null` when a `beforeSheetTabAdd`
    * listener canceled the operation.
    *
+   * When no `settings` are given and the workbook's sheets share a formula engine, the new
+   * sheet joins it under its own name — the way a spreadsheet's new sheet does — so formulas
+   * work on it and cross-sheet references can reach it right away.
+   *
    * @param {string} [name] The sheet's name. Omitted, the next free `Sheet{n}` is used.
    * @param {Array[]} [data] The sheet's data. Omitted, the sheet starts blank.
+   * @param {object} [settings] The sheet's settings. Omitted, the sheet inherits the
+   * workbook's shared formula engine when one is configured.
    * @param {string} [source='SheetsBar.api'] Operation source tag, passed on to the hooks.
    * @returns {object|null} A descriptor for the new sheet, or `null`.
    */
-  addSheet(name?: string, data?: unknown[][], source: string = SOURCE_API): SheetDescriptor | null {
+  addSheet(
+    name?: string,
+    data?: unknown[][],
+    settings?: Record<string, unknown>,
+    source: string = SOURCE_API,
+  ): SheetDescriptor | null {
     const model = this.#model;
 
     if (model === null) {
@@ -673,8 +715,17 @@ export class SheetsBar extends BasePlugin {
       'beforeSheetTabAdd',
       [name ?? null],
       () => {
-        const added = model.addSheet(name ?? null, data);
+        const added = model.addSheet(name ?? null, data, settings);
 
+        if (!added.settings) {
+          const inherited = this.#inheritedFormulaSettings(added.name);
+
+          if (inherited) {
+            added.settings = inherited;
+          }
+        }
+
+        this.#registerFormulaSheet(added);
         this.#refreshUI();
 
         return added;
@@ -685,6 +736,40 @@ export class SheetsBar extends BasePlugin {
     );
 
     return sheet === false ? null : { id: sheet.id, name: sheet.name, isActive: false };
+  }
+
+  /**
+   * Builds the settings a runtime-added sheet starts with in a workbook whose sheets share a
+   * formula engine: the shared engine, bound under the new sheet's own name. Returns `null`
+   * when no sheet hands over a built engine instance.
+   */
+  #inheritedFormulaSettings(sheetName: string): Record<string, unknown> | null {
+    for (const { id } of this.getSheets()) {
+      const sheet = this.#model?.getSheetById(id);
+      const formulas = sheet ? formulasSettingOf(sheet) : null;
+
+      if (formulas?.sheetName && isEngineInstance(formulas.engine)) {
+        return { formulas: { ...formulas, sheetName } };
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Runs an operation with rendering suspended, resuming in a `finally` so a listener that
+   * throws mid-switch — a `beforeLoadData` hook, a settings validator — cannot leave the grid
+   * render-suspended for the rest of its life. `Core#batchRender` has no such guard, and a
+   * sheet switch runs host code through `updateSettings` and `loadData`.
+   */
+  #batchRender(operations: () => void) {
+    this.hot.suspendRender();
+
+    try {
+      operations();
+    } finally {
+      this.hot.resumeRender();
+    }
   }
 
   /**
@@ -738,12 +823,17 @@ export class SheetsBar extends BasePlugin {
       if (viewState) {
         restoreViewState(this.hot, viewState);
       } else {
-        resetViewState(this.hot, this.#neutralFixedColumnsStart);
+        // A sheet that declares its own freeze in `settings` keeps it — `#applySheet` has just
+        // applied it, and resetting to the neutral value would undo the sheet's configuration.
+        resetViewState(
+          this.hot,
+          (newSheet.settings?.fixedColumnsStart as number | undefined) ?? this.#neutralFixedColumnsStart,
+        );
       }
     };
 
     if (this.hot.view) {
-      this.hot.batchRender(switchSheet);
+      this.#batchRender(switchSheet);
     } else {
       switchSheet();
     }
@@ -753,7 +843,7 @@ export class SheetsBar extends BasePlugin {
     // hook has to see the sheet it is being told about.
     if (viewState) {
       if (this.hot.view) {
-        this.hot.batchRender(() => restoreViewport(this.hot, viewState));
+        this.#batchRender(() => restoreViewport(this.hot, viewState));
       }
 
       this.hot.runHooks('afterSheetTabStateRestore', newId, newSheet.viewState, source);
@@ -802,7 +892,7 @@ export class SheetsBar extends BasePlugin {
     };
 
     if (this.hot.view) {
-      this.hot.batchRender(apply);
+      this.#batchRender(apply);
     } else {
       apply();
     }
@@ -998,7 +1088,7 @@ export class SheetsBar extends BasePlugin {
           return false;
         }
 
-        this.#renameFormulaSheet(sheet, oldName, trimmed);
+        this.#renameFormulaSheet(sheet, oldName, trimmed, source);
         this.#refreshUI();
 
         return trimmed;
@@ -1292,16 +1382,28 @@ export class SheetsBar extends BasePlugin {
     }
 
     const engine = formulas.engine!;
+    let engineName = formulas.sheetName;
 
-    if (!engine.doesSheetExist!(formulas.sheetName)) {
-      engine.addSheet!(formulas.sheetName);
+    if (!engine.doesSheetExist!(engineName)) {
+      // The engine may normalize the name it is asked for — two tabs the model tells apart can
+      // be one sheet to the engine — so the binding follows the name `addSheet()` reports back,
+      // or the id lookups below would come up empty.
+      engineName = engine.addSheet!(engineName);
+
+      if (engineName !== formulas.sheetName) {
+        sheet.settings = { ...sheet.settings, formulas: { ...formulas, sheetName: engineName } };
+      }
     }
+
+    const sheetId = engine.getSheetId!(engineName);
 
     // Fed on every registration, not only when the sheet is new to the engine: a rebuilt
     // workbook can reuse the names with new data, and an engine sheet left on its old content
     // would keep feeding stale values into the cross-sheet formulas until each sheet is
     // visited once.
-    engine.setSheetContent!(engine.getSheetId!(formulas.sheetName) as number, sheet.data);
+    if (typeof sheetId === 'number') {
+      engine.setSheetContent!(sheetId, sheet.data);
+    }
   }
 
   /**
@@ -1317,7 +1419,11 @@ export class SheetsBar extends BasePlugin {
       return;
     }
 
-    engine!.removeSheet!(engine!.getSheetId!(formulas.sheetName) as number);
+    const sheetId = engine!.getSheetId!(formulas.sheetName);
+
+    if (typeof sheetId === 'number') {
+      engine!.removeSheet!(sheetId);
+    }
   }
 
   /**
@@ -1327,7 +1433,7 @@ export class SheetsBar extends BasePlugin {
    * the workbook becomes `=New!A1` by itself. A binding whose `sheetName` never matched the tab
    * name is deliberately left alone — the formulas reference the engine name, not the tab.
    */
-  #renameFormulaSheet(sheet: Sheet, oldName: string, newName: string) {
+  #renameFormulaSheet(sheet: Sheet, oldName: string, newName: string, source: string) {
     const formulas = formulasSettingOf(sheet);
     const engine = formulas?.engine;
 
@@ -1338,9 +1444,15 @@ export class SheetsBar extends BasePlugin {
       return;
     }
 
-    engine!.renameSheet!(engine!.getSheetId!(oldName) as number, newName);
+    const sheetId = engine!.getSheetId!(oldName);
+
+    if (typeof sheetId !== 'number') {
+      return;
+    }
+
+    engine!.renameSheet!(sheetId, newName);
     sheet.settings = { ...sheet.settings, formulas: { ...formulas, sheetName: newName } };
-    this.#syncFormulaDataFromEngine(engine!);
+    this.#syncFormulaDataFromEngine(engine!, source);
   }
 
   /**
@@ -1350,29 +1462,50 @@ export class SheetsBar extends BasePlugin {
    * carries the strings it was written with, and the next switch would feed those back and
    * resurrect the old name as a `#REF!`. Only formula cells are touched — values stay the
    * caller's own.
+   *
+   * The active sheet's rewrites go through `setDataAtCell()`: its data array is the one the
+   * grid renders from, so a direct write would repaint nothing and fire no `afterChange` — a
+   * host saving the workbook off that hook would never learn the strings moved. A cell the
+   * grid cannot address (a trimmed row) is written directly; it is not rendered anyway.
    */
-  #syncFormulaDataFromEngine(engine: NonNullable<SheetFormulas['engine']>) {
+  #syncFormulaDataFromEngine(engine: NonNullable<SheetFormulas['engine']>, source: string) {
+    const activeId = this.#model?.getActiveSheet()?.id ?? null;
+
     this.getSheets().forEach(({ id }) => {
       const sheet = this.#model?.getSheetById(id);
       const formulas = sheet ? formulasSettingOf(sheet) : null;
+      const sheetId = formulas?.sheetName ? engine.getSheetId!(formulas.sheetName) : undefined;
 
-      if (!sheet || formulas?.engine !== engine || !formulas.sheetName
-        || !engine.doesSheetExist!(formulas.sheetName)) {
+      if (!sheet || formulas?.engine !== engine || typeof sheetId !== 'number') {
         return;
       }
 
-      const serialized = engine.getSheetSerialized!(engine.getSheetId!(formulas.sheetName) as number);
+      const serialized = engine.getSheetSerialized!(sheetId);
+      const changes: Array<[number, number, string]> = [];
 
       sheet.data.forEach((row, rowIndex) => {
         (row as unknown[]).forEach((cell, columnIndex) => {
           const current = typeof cell === 'string' ? cell : null;
           const fromEngine = serialized[rowIndex]?.[columnIndex];
 
-          if (current?.startsWith('=') && typeof fromEngine === 'string' && fromEngine !== current) {
+          if (!current?.startsWith('=') || typeof fromEngine !== 'string' || fromEngine === current) {
+            return;
+          }
+
+          const visualRow = id === activeId ? this.hot.toVisualRow(rowIndex) : null;
+          const visualColumn = id === activeId ? this.hot.toVisualColumn(columnIndex) : null;
+
+          if (visualRow !== null && visualColumn !== null) {
+            changes.push([visualRow, visualColumn, fromEngine]);
+          } else {
             (row as unknown[])[columnIndex] = fromEngine;
           }
         });
       });
+
+      if (changes.length > 0) {
+        this.hot.setDataAtCell(changes, `${source}.rename`);
+      }
     });
   }
 
@@ -1395,12 +1528,26 @@ export class SheetsBar extends BasePlugin {
    * Tracks explicit cell-meta writes for the active sheet so they can be replayed
    * after a switch round-trip. Writes performed by the plugin's own restore pass
    * are skipped via the switching guard.
+   *
+   * The hook hands over visual indexes, which only mean something against the row and column
+   * order in force at write time — a write made before a sort would replay onto whatever cell
+   * sits at that visual spot after the restore. Entries are therefore stored physical, and
+   * translated back when they are replayed.
    */
   #onAfterSetCellMeta = (row: number, col: number, key: string, value: unknown) => {
-    if (!this.#isSwitching) {
-      const entry = { row, col, key, value };
-
-      this.#trackedCellMeta.set(trackedCellMetaKey(entry), entry);
+    if (this.#isSwitching) {
+      return;
     }
+
+    const physicalRow = this.hot.toPhysicalRow(row);
+    const physicalCol = this.hot.toPhysicalColumn(col);
+
+    if (physicalRow === null || physicalCol === null) {
+      return;
+    }
+
+    const entry = { row: physicalRow, col: physicalCol, key, value };
+
+    this.#trackedCellMeta.set(trackedCellMetaKey(entry), entry);
   };
 }

@@ -50,7 +50,7 @@ describe('SheetsBar view state', () => {
 
     const state = captureViewState(hot, []);
 
-    expect(state.colWidths[0]).toBe(260);
+    expect(state.colWidths).toEqual([[0, 260]]);
 
     hot.getPlugin('manualColumnResize').setManualSize(0, 100);
     restoreViewState(hot, state);
@@ -108,7 +108,7 @@ describe('SheetsBar view state', () => {
     expect(hot.getColWidth(0)).toBe(260);
   });
 
-  it('captures only manual overrides, leaving unresized columns unpinned', () => {
+  it('captures only manual overrides, as sparse index-size pairs', () => {
     hot = new Handsontable(container, {
       data: [['a', 'b', 'c']],
       manualColumnResize: true,
@@ -120,10 +120,10 @@ describe('SheetsBar view state', () => {
 
     const state = captureViewState(hot, []);
 
-    expect(state.colWidths).toEqual([null, 260, null]);
+    expect(state.colWidths).toEqual([[1, 260]]);
   });
 
-  it('captures null row heights for rows with no manual override', () => {
+  it('captures no row heights for rows with no manual override', () => {
     hot = new Handsontable(container, {
       data: [['a'], ['b']],
       manualRowResize: true,
@@ -132,7 +132,7 @@ describe('SheetsBar view state', () => {
 
     const state = captureViewState(hot, []);
 
-    expect(state.rowHeights).toEqual([null, null]);
+    expect(state.rowHeights).toEqual([]);
   });
 
   it('drops the previous sheet manual widths when restoring a sheet that has none', () => {
