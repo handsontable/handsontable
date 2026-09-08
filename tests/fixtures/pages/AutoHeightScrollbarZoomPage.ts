@@ -30,6 +30,10 @@ export class AutoHeightScrollbarZoomPage {
       `/tests/fixtures/demo/auto-height-scrollbar-zoom.html` +
       `?theme=${this.theme}&bundle=${this.bundle}&zoom=${zoom}&rows=${rows}`
     );
+    // Wait for the bundle itself before anything else: the `document.write`-injected script and the
+    // block that constructs the grid are separate, so a page can look ready while `Handsontable` is
+    // still undefined, and the failure then surfaces inside a later `page.evaluate` far from its
+    // cause. The helper owns the reasoning and the polling interval.
     await awaitBundle(this.page);
     await expect(this.cell(0, 0)).toBeVisible();
     await expect(this.lastRow()).toBeAttached();

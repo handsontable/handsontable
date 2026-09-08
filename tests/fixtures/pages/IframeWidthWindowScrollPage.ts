@@ -1,5 +1,5 @@
 import { type Page, expect } from '@playwright/test';
-import { awaitBundle } from '../bundle';
+import { BUNDLE_POLLING_MS, awaitBundle } from '../bundle';
 
 /**
  * Page Object for the cross-realm fixture: the grid's DOM lives in an iframe while the
@@ -30,8 +30,13 @@ export class IframeWidthWindowScrollPage {
     await this.page.goto(
       `/tests/fixtures/demo/iframe-width-window-scroll.html?theme=${this.theme}&bundle=${this.bundle}`);
     await awaitBundle(this.page);
+    // The fixture's own flag, on the same interval: it builds the grid asynchronously, so `ready`
+    // is what says the iframe's stylesheets applied and the first render ran.
     await this.page.waitForFunction(
-      () => (window as unknown as { ready: boolean }).ready === true, undefined, { polling: 100 });
+      () => (window as unknown as { ready: boolean }).ready === true,
+      undefined,
+      { polling: BUNDLE_POLLING_MS },
+    );
     await expect
       .poll(async () => (await this.holderState()).scrollWidth)
       .toBeGreaterThan(0);

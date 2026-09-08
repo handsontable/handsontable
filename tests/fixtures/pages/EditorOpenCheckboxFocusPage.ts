@@ -37,6 +37,9 @@ export class EditorOpenCheckboxFocusPage {
       `/tests/fixtures/demo/editor-open-checkbox-focus.html?theme=${this.theme}&bundle=${this.bundle}`
     );
 
+    // Waiting for the bundle itself, not only for a cell: the injected bundle script and the
+    // block that builds the grid are separate, so a cell that is missing cannot otherwise be told
+    // apart from a bundle that has not arrived yet.
     await awaitBundle(this.page);
 
     await expect(this.cell(0, 0)).toBeVisible();
