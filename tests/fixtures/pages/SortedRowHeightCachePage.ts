@@ -131,8 +131,41 @@ export class SortedRowHeightCachePage {
   }
 
   /**
+   * How many rows are currently renderable. This is the number `PositionCache#isCurrent()` compares,
+   * so a spec asserts it is UNCHANGED across a swap to prove the swap really is same-count — without
+   * that check the swap can quietly become an ordinary hide, which the count alone would invalidate.
+   */
+  async renderableRowCount(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as {
+      hot: { rowIndexMapper: { getRenderableIndexesLength: () => number } },
+    }).hot.rowIndexMapper.getRenderableIndexesLength());
+  }
+
+  /**
+   * Hides one row on its own, which changes how many rows are renderable.
+   *
+   * @param {number} row The row to hide.
+   */
+  async hideRow(row: number): Promise<void> {
+    await this.page.evaluate((target) => {
+      const hot = (window as unknown as {
+        hot: {
+          batchExecution: (fn: () => void, flush: boolean) => void,
+          getPlugin: (n: string) => { hideRow: (r: number) => void },
+        },
+      }).hot;
+
+      hot.batchExecution(() => hot.getPlugin('hiddenRows').hideRow(target), true);
+    }, row);
+  }
+
+  /**
    * Hides one row and shows another in a single batch, so the number of renderable rows is
    * unchanged while WHICH rows are excluded changes.
+   *
+   * Pass two DIFFERENT rows, and pass a `show` row that is currently hidden. Hiding and showing the
+   * same row cancels out, and showing an already-visible row makes this a plain hide — either way
+   * the count moves and the case under test is not exercised.
    *
    * @param {number} hide The row to hide.
    * @param {number} show The row to show.

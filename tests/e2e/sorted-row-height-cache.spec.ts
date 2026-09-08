@@ -73,16 +73,25 @@ test.describe('Axis size caches after an index rearrangement (DEV-2823)', () => 
 
     expect(Math.abs(await grid.offsetDrift('row', 12))).toBeLessThanOrEqual(2);
 
-    // Hiding a row changes how many rows are renderable, so this step self-invalidates.
-    await grid.swapHiddenRows(3, 3);
+    // Hiding a row on its own changes how many rows are renderable, so this step self-invalidates
+    // through the count and proves nothing on its own. It is here to put row 3 out of view so the
+    // swap below has something to bring back.
+    await grid.hideRow(3);
     await grid.waitForStableScrollRange();
 
     expect(Math.abs(await grid.offsetDrift('row', 12))).toBeLessThanOrEqual(2);
 
-    // This one does not: it swaps WHICH rows are hidden while keeping HOW MANY the same. It is the
-    // shape the first version of this fix missed, because it was gated on `indexesSequenceChanged`.
+    // This is the case under test: hide row 9 and show row 3 together, so WHICH rows are excluded
+    // changes while HOW MANY does not. It is the shape the first version of this fix missed, being
+    // gated on `indexesSequenceChanged`.
+    const countBefore = await grid.renderableRowCount();
+
     await grid.swapHiddenRows(9, 3);
     await grid.waitForStableScrollRange();
+
+    // Precondition, not decoration. If the swap ever stops being same-count, the cache invalidates
+    // on the count instead and the assertion below would pass with the hidden/trimmed gate removed.
+    expect(await grid.renderableRowCount()).toBe(countBefore);
 
     expect(Math.abs(await grid.offsetDrift('row', 12))).toBeLessThanOrEqual(2);
   });
