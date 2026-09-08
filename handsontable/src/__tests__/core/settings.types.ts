@@ -1044,6 +1044,7 @@ hot.updateSettings({
     activeSheet: 0,
     controls: true,
     paging: false,
+    position: 'top',
     uiContainer: document.createElement('div'),
   },
   beforeSheetTabChange: (oldSheetId, newSheetId, source) => false,

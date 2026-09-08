@@ -51,6 +51,7 @@ export interface SheetsBarSettings {
   activeSheet?: number;
   controls?: boolean;
   paging?: boolean;
+  position?: 'top' | 'bottom';
   uiContainer?: HTMLElement | null;
 }
 
@@ -93,7 +94,7 @@ function isSameSheetsBarSetting(a: unknown, b: unknown): boolean {
     return false;
   }
 
-  const scalarKeys = ['activeSheet', 'controls', 'paging', 'uiContainer'];
+  const scalarKeys = ['activeSheet', 'controls', 'paging', 'position', 'uiContainer'];
 
   if (scalarKeys.some(key => a[key] !== b[key])) {
     return false;
@@ -187,6 +188,7 @@ export class SheetsBar extends BasePlugin {
       activeSheet: 0,
       controls: true,
       paging: true,
+      position: 'bottom',
       uiContainer: null as unknown,
     };
   }
@@ -200,6 +202,7 @@ export class SheetsBar extends BasePlugin {
       activeSheet: (value: unknown) => typeof value === 'number',
       controls: (value: unknown) => typeof value === 'boolean',
       paging: (value: unknown) => typeof value === 'boolean',
+      position: (value: unknown) => value === 'top' || value === 'bottom',
       uiContainer: (value: unknown) => value === null || value === undefined || isHTMLElement(value),
     };
   }
@@ -292,6 +295,13 @@ export class SheetsBar extends BasePlugin {
    * @type {boolean}
    */
   #hasFocusScope = false;
+  /**
+   * The layout side the bar was registered on, so teardown unregisters the same slot the
+   * setup filled — the `position` setting may already read differently by then.
+   *
+   * @type {'top'|'bottom'|null}
+   */
+  #registeredSide: 'top' | 'bottom' | null = null;
   /**
    * The grid-level `fixedColumnsStart` as it stood before any sheet was applied. A sheet with
    * no captured view state opens with this freeze, so a freeze set at runtime on one sheet
@@ -424,8 +434,9 @@ export class SheetsBar extends BasePlugin {
     }
 
     if (!this.getSetting('uiContainer')) {
+      this.#registeredSide = this.getSetting('position') === 'top' ? 'top' : 'bottom';
       this.hot.getLayoutManager()
-        .register(PLUGIN_KEY, this.#ui.getContainer(), { side: 'bottom', weight: LAYOUT_WEIGHT });
+        .register(PLUGIN_KEY, this.#ui.getContainer(), { side: this.#registeredSide, weight: LAYOUT_WEIGHT });
     }
 
     this.#registerFocusScope();
@@ -486,7 +497,11 @@ export class SheetsBar extends BasePlugin {
    */
   #releaseState() {
     if (isRootInstance(this.hot)) {
-      this.hot.getLayoutManager().unregister(PLUGIN_KEY, 'bottom');
+      if (this.#registeredSide) {
+        this.hot.getLayoutManager().unregister(PLUGIN_KEY, this.#registeredSide);
+        this.#registeredSide = null;
+      }
+
       this.#unregisterFocusScope();
       this.#unregisterShortcuts();
     }

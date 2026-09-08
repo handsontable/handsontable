@@ -113,9 +113,11 @@ const configurationOptions = {
     // Show or hide the tab-scrolling arrows that appear when tabs
     // overflow the bar's width
     paging: true,
+    // Render the bar above or below the grid
+    position: 'bottom',
     // Custom container where the sheets bar UI will be injected
-    // (optional). When omitted, the bar renders below the grid, in
-    // the `bottom` layout slot.
+    // (optional). When omitted, the bar renders in the layout slot
+    // the `position` option names.
     uiContainer: null,
   }
 };

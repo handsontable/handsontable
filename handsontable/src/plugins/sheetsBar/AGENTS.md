@@ -1,6 +1,7 @@
 # SheetsBar
 
-A tab bar below the grid (bottom layout slot, weight 50) for switching between the sheets of a
+A tab bar above or below the grid (`position` picks the layout slot, `'bottom'` by default,
+weight 50) for switching between the sheets of a
 multi-sheet workbook. `PLUGIN_PRIORITY` 910 — the `900`+ band, because a switch applies another
 sheet's settings and data, so every other plugin must already be enabled. Root instance only
 (`isEnabled()` gates on `isRootInstance`).

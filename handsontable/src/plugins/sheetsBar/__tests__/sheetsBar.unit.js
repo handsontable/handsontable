@@ -1040,6 +1040,25 @@ describe('SheetsBar plugin', () => {
     expect(hot.getSettings().fixedColumnsStart).toBe(2);
   });
 
+  it('renders the bar on the edge the position setting names, and moves with it', () => {
+    hot = new Handsontable(container, {
+      data: [['a']],
+      sheetsBar: { position: 'top' },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const slotOf = () => hot.rootWrapperElement.querySelector('.ht-sheets-bar').parentElement.className;
+
+    expect(slotOf()).toContain('ht-slot-top');
+
+    hot.updateSettings({ sheetsBar: { position: 'bottom' } });
+
+    expect(slotOf()).toContain('ht-slot-bottom');
+
+    hot.updateSettings({ sheetsBar: true });
+
+    expect(slotOf()).toContain('ht-slot-bottom');
+  });
+
   it('restores a sheet without throwing when manual row resizing is on', () => {
     hot = new Handsontable(container, {
       manualRowResize: true,

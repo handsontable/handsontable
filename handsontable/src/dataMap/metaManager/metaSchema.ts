@@ -6455,6 +6455,7 @@ export default (): Record<string, unknown> => {
      * | `activeSheet` | A number (default: `0`)                              | The index (within `sheets`) of the sheet to activate on initialization                        |
      * | `controls`    | Boolean (default: `true`)                            | Controls visibility of the add-sheet and sheet-menu controls                                  |
      * | `paging`      | Boolean (default: `true`)                            | Controls visibility of the tab-scrolling controls, shown when tabs overflow the bar's width    |
+     * | `position`    | `'top'` \| `'bottom'` (default: `'bottom'`)          | The edge of the grid the bar renders on                                                        |
      * | `uiContainer` | An HTML element (default: `null`)                    | The container element where the sheets bar UI will be installed. If not provided, the bar is injected below the root table element |
      *
      * Read more:
