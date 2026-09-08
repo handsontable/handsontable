@@ -188,6 +188,52 @@ export class SortedRowHeightCachePage {
   }
 
   /**
+   * Trims one row on its own, which changes how many rows are renderable.
+   *
+   * Trimming raises `trimmedIndexesChanged`, a different flag from the one hiding raises, so the
+   * two need separate coverage.
+   *
+   * @param {number} row The row to trim.
+   */
+  async trimRow(row: number): Promise<void> {
+    await this.page.evaluate((target) => {
+      const hot = (window as unknown as {
+        hot: {
+          batchExecution: (fn: () => void, flush: boolean) => void,
+          getPlugin: (n: string) => { trimRow: (r: number) => void },
+        },
+      }).hot;
+
+      hot.batchExecution(() => hot.getPlugin('trimRows').trimRow(target), true);
+    }, row);
+  }
+
+  /**
+   * Trims one row and untrims another in a single batch, so the number of renderable rows is
+   * unchanged while WHICH rows are excluded changes. Pass an `untrim` row that is currently trimmed,
+   * or the count moves and the case under test is not exercised.
+   *
+   * @param {number} trim The row to trim.
+   * @param {number} untrim The row to untrim.
+   */
+  async swapTrimmedRows(trim: number, untrim: number): Promise<void> {
+    await this.page.evaluate(([toTrim, toUntrim]) => {
+      const hot = (window as unknown as {
+        hot: {
+          batchExecution: (fn: () => void, flush: boolean) => void,
+          getPlugin: (n: string) => { trimRow: (r: number) => void, untrimRow: (r: number) => void },
+        },
+      }).hot;
+      const plugin = hot.getPlugin('trimRows');
+
+      hot.batchExecution(() => {
+        plugin.untrimRow(toUntrim);
+        plugin.trimRow(toTrim);
+      }, true);
+    }, [trim, untrim]);
+  }
+
+  /**
    * Moves a column, which permutes the width axis without changing the column count.
    *
    * @param {number} from The column to move.

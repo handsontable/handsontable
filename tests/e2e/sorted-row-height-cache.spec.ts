@@ -96,6 +96,28 @@ test.describe('Axis size caches after an index rearrangement (DEV-2823)', () => 
     expect(Math.abs(await grid.offsetDrift('row', 12))).toBeLessThanOrEqual(2);
   });
 
+  test('keeps the cached row offsets true after a same-count trim swap', async({ page, theme, bundle }) => {
+    const grid = new SortedRowHeightCachePage(page, theme, bundle);
+
+    await grid.goto();
+
+    // Trimming raises `trimmedIndexesChanged` on its own, with the sequence and hidden flags false.
+    // Without this case, dropping that one flag from the gate would still pass every other test.
+    await grid.trimRow(3);
+    await grid.waitForStableScrollRange();
+
+    expect(Math.abs(await grid.offsetDrift('row', 12))).toBeLessThanOrEqual(2);
+
+    const countBefore = await grid.renderableRowCount();
+
+    await grid.swapTrimmedRows(9, 3);
+    await grid.waitForStableScrollRange();
+
+    expect(await grid.renderableRowCount()).toBe(countBefore);
+
+    expect(Math.abs(await grid.offsetDrift('row', 12))).toBeLessThanOrEqual(2);
+  });
+
   test('keeps the cached column offsets true after a column move', async({ page, theme, bundle }) => {
     const grid = new SortedRowHeightCachePage(page, theme, bundle);
 

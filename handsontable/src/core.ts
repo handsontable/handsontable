@@ -914,10 +914,13 @@ export default function Core(
     // broken. All three flags have to invalidate; where the count also changed the cache would
     // rebuild on its own anyway, so those cost nothing.
     //
-    // It is a gate rather than an unconditional call because `updateCache(force = true)` reaches
-    // here with every flag false and nothing rearranged. `invalidateRowHeightCache()` also drops the
-    // layout, so paying that on each forced no-op update is what pushed the DataProvider's
-    // repeated `updateSettings` cycles past their timeout.
+    // It is a gate rather than an unconditional call only because `updateCache(force = true)`
+    // reaches here with every flag false and nothing rearranged - two call sites do that today,
+    // `pagination.ts` when there is nothing to page and the DataProvider. Skipping those saves a
+    // cache drop and a layout drop that cannot change anything. No measured slowdown justifies it:
+    // an earlier version of this comment blamed a unit-test timeout on the unconditional call, and
+    // that did not hold up - the full suite passes either way, and the timeout was machine load
+    // from a concurrent Playwright run.
     //
     // This does not touch the per-render caching #13078 added - that is about renders, edits and
     // scroll steps, none of which come through here.

@@ -90,8 +90,8 @@ The caches are keyed by **render** index while the sizes behind them resolve per
 
 The invalidation is therefore explicit, in one place for both axes: `onIndexMapperCacheUpdate(state, axis)` in `src/core.ts` calls `view.invalidateRowHeightCache()` or `view.invalidateColumnWidthCache()` whenever **any** of the three change flags is set. Two ways to get that gate wrong, both hit during DEV-2823:
 
-- Gating on `indexesSequenceChanged` alone — the first version of the fix, which left the same-count trim/hide swap broken.
-- Dropping the gate entirely — `updateCache(force = true)` reaches here with every flag false and nothing rearranged, and since `invalidateRowHeightCache()` also drops the layout, paying it per forced no-op update pushed the DataProvider's repeated `updateSettings` cycles past their test timeout.
+- Gating on `indexesSequenceChanged` alone — the first version of the fix, which left the same-count trim/hide swap broken. This is the one that matters: it is a correctness bug, and each of the three flags needs its own test or a dropped flag ships green.
+- Dropping the gate entirely — `updateCache(force = true)` reaches here with every flag false and nothing rearranged (`pagination.ts` when there is nothing to page, and the DataProvider), so skipping those saves a cache and layout drop that cannot change anything. This one is only tidiness, **not** a measured win: an earlier version of this note blamed a unit-test timeout on the unconditional call, and re-running it showed the full suite passes either way — the timeout was machine load from a concurrent Playwright run.
 
 (`AutoColumnSize#onColumnIndexMapperCacheUpdate` clearing `#columnSamplesCache` is a *different* cache and does not cover this.)
 

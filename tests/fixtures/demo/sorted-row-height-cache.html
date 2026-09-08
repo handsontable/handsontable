@@ -97,6 +97,10 @@
       autoRowSize: true,
       columnSorting: true,
       hiddenRows: { rows: [], indicators: false },
+      // `trimRows` and `hiddenRows` raise DIFFERENT flags on the index mapper -
+      // `trimmedIndexesChanged` and `hiddenIndexesChanged`. Both are here so a spec can exercise
+      // each one on its own, because the invalidation gate reads all three flags separately.
+      trimRows: [],
       manualColumnMove: true,
       renderAllColumns: true,
       renderer: testIdRenderer,
