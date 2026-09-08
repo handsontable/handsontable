@@ -57,12 +57,13 @@ One thing a rebuild does **not** cover: `CommandExecutor` never evicts a command
 
 `menuItemRenderer` writes an item's resolved `name` through `fastInnerHTML`, which is a Trusted Types sink. Anything an item bakes into that string as markup therefore takes the whole menu down under a CSP carrying `require-trusted-types-for 'script'`, and it is the grid's own markup, so no `sanitizer` should be needed for it.
 
-That is what DEV-2650 fixed. `markLabelAsSelected()` (`contextMenu/utils.ts`) and its byte-for-byte copy `markSelected()` (`customBorders/utils.ts`) prefixed a label with `<span class="selected">✓</span>`, so a read-only selection or a bordered one threw. Both are gone. An item declares `checked` instead — `boolean` or a function, resolved by `isItemChecked()` in `menu/utils.ts` the same way `isItemDisabled` resolves `disabled` — and the renderer builds the span with `createElement`.
+That is what DEV-2650 fixed. `markLabelAsSelected()` (`contextMenu/utils.ts`) and its byte-for-byte copy `markSelected()` (`customBorders/utils.ts`) prefixed a label with `<span class="selected">✓</span>`, so a read-only selection or a bordered one threw. Neither is used any more, and both were kept as legacy exports — their modules ship a declaration file, so a consumer on `moduleResolution: node` can import them whatever the `exports` map says. An item declares `checked` instead — `boolean` or a function, resolved by `isItemChecked()` in `menu/utils.ts` the same way `isItemDisabled` resolves `disabled` — and the renderer builds the span with `createElement`.
 
-Three things to keep right when touching this:
+Four things to keep right when touching this:
 
 - **Insert the mark AFTER calling `fastInnerHTML`.** It replaces everything the wrapper holds, so a span appended first is wiped. The rendered DOM must stay `[span.selected, text]`; four legacy positioning specs measure that span's offset.
-- **`checked` also feeds `aria-checked`** on an item that sets `checkable`, so the visible mark and the accessible state cannot disagree. An explicit `ariaChecked` still wins, and predates the flag.
+- **Declaring `checked` makes an item checkable**, so it is announced as `menuitemcheckbox` and carries `aria-checked`. That is not a convenience: `aria-checked` is invalid on a plain `menuitem`, so leaving these items as menu items would draw a mark a screen reader cannot perceive — worse than the markup-in-the-label it replaced, which at least reached the accessible name. Five of the six in-tree items rely on this; only `make_read_only` declares `checkable` itself. An explicit `ariaChecked` still wins, and predates the flag, so that is the one way the mark and the announced state can still be made to disagree.
+- **The checkbox branch labels from `ariaLabel ?? itemValue`.** These five items declare no `ariaLabel`, and reading one unconditionally would write the string `"undefined"` as the accessible name.
 - **Returning a node from `name` does not work.** The renderer does `String(itemValue)`, and `name` is publicly documented as a string or a function returning one. A new item property is the additive route; widening `name` is not.
 
 ## `className` is `string | string[]` — never do string surgery on it

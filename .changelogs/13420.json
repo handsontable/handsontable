@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed the context menu throwing under a Content Security Policy that enforces Trusted Types (`require-trusted-types-for 'script'`) when an item showed a check mark, which happened for \"Read only\", \"Read-only comment\", and any border already applied to the selection. The mark was built as an HTML string and written through `innerHTML`; it is now built as a DOM node, so the menu needs no Trusted Types policy and no `sanitizer`. A custom menu item can now show the same mark through a new `checked` option, which takes a boolean or a function returning one, and which also sets the item's `aria-checked` state when the item is `checkable`.",
+  "title": "Fixed the context menu throwing under a Content Security Policy that enforces Trusted Types (`require-trusted-types-for 'script'`) when an item showed a check mark, which happened for \"Read only\", \"Read-only comment\", and any border already applied to the selection. The mark was built as an HTML string and written through `innerHTML`; it is now built as a DOM node, so the menu needs no Trusted Types policy and no `sanitizer`. Those items are also announced to assistive technology as checkboxes now, so their state is read out and not only drawn.",
   "type": "fixed",
   "issueOrPR": 13420,
   "breaking": false,

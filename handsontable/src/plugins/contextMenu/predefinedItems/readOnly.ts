@@ -26,16 +26,14 @@ export default function readOnlyItem() {
     key: KEY,
     checkable: true,
 
-    // Drives both the check mark the item renderer draws and the item's `aria-checked` state,
-    // so the two can never disagree.
+    // The single source for both the check mark the renderer draws and the item's `aria-checked`
+    // state, which is why this item declares no `ariaChecked` of its own any more.
     checked(this: HotInstance) {
       return hasReadOnlyCell(this);
     },
 
-    ariaLabel(this: HotInstance): string {
-      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY) as string;
-    },
-
+    // No `ariaLabel`: the renderer falls back to the item's label, and these two were the same
+    // translated phrase once the check mark stopped living inside the name.
     name(this: HotInstance): string {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY) as string;
     },

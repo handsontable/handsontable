@@ -163,8 +163,7 @@ test.describe('Trusted Types enforcement', () => {
     // through `fastInnerHTML`, and `HTML_CHARACTERS` sends only a label shaped like markup - a
     // tag, a markup declaration, or a character reference - down the `innerHTML` path; everything
     // else takes `textContent`. These tests pin the boundary and its remedy, so neither can rot
-    // unnoticed the way the original documented claim did. The context menu cases sit here because
-    // this is where the menu's own gap was pinned while it was still open (DEV-2650).
+    // unnoticed the way the original documented claim did.
 
     test('throws for a header holding markup when no sanitizer is configured', async () => {
       await grid.goto({ colHeader: 'markup' });
@@ -192,31 +191,6 @@ test.describe('Trusted Types enforcement', () => {
         await expect(grid.cell(0, 0)).toHaveCount(1);
       });
 
-    test('marks a context menu item as checked with no sanitizer configured', async () => {
-      await grid.goto();
-      await grid.contextMenuButton.click();
-
-      // DEV-2650. This case asserted a throw until the check mark stopped being a `<span>` baked
-      // into the item's label: the label reached `fastInnerHTML` carrying the grid's own markup,
-      // so a read-only selection took the whole menu down under enforcement. The item now carries
-      // its state in a `checked` flag and the renderer builds the span with `createElement`, so
-      // the label is plain text and never reaches the sink.
-      //
-      // The count is the load-bearing part. `MENU: 1 checkmark` reads `span.selected` inside the
-      // item wrapper, so a fix that silently dropped the mark - or that rendered the label but
-      // lost the span - fails here rather than passing as "no violation".
-      await expect(grid.status).toHaveText('MENU: 1 checkmark');
-      await grid.expectNoViolations();
-    });
-
-    test('renders the context menu through a sanitizer that returns a TrustedHTML', async () => {
-      await grid.goto({ trustedSanitizer: true });
-      await grid.contextMenuButton.click();
-
-      await expect(grid.status).toHaveText('MENU: 1 checkmark');
-      await grid.expectNoViolations();
-    });
-
     test('renders both header shapes through a sanitizer that returns a TrustedHTML', async () => {
       await grid.goto({ colHeader: 'markup', trustedSanitizer: true });
 
@@ -231,6 +205,32 @@ test.describe('Trusted Types enforcement', () => {
 
       await expect(grid.cell(0, 0)).toHaveText('A1');
       await grid.expectNoViolations();
+    });
+  });
+
+  test.describe('the converted sink: the context menu check mark', () => {
+    // DEV-2650. This block asserted a throw until the check mark stopped being a `<span>` baked
+    // into a menu item's label: the label reached `fastInnerHTML` carrying the grid's own markup,
+    // so a read-only selection took the whole menu down under enforcement. The item now declares
+    // `checked` and the renderer builds the span with `createElement`, so the label is plain text
+    // and never reaches the sink.
+
+    test('marks an item as checked whether or not a sanitizer is configured', async () => {
+      // Run twice on purpose, and asserted to be identical. With the label on the text path the
+      // sanitizer is never consulted for a menu item at all, so a `trustedSanitizer` variant that
+      // only repeated the assertions below would be a title-only duplicate of the no-sanitizer
+      // case - green even if the sanitizer plumbing were deleted. What is worth pinning is that
+      // the two configurations agree, which is the user-visible claim: the menu needs no policy.
+      for (const trustedSanitizer of [false, true]) {
+        await grid.goto(trustedSanitizer ? { trustedSanitizer: true } : {});
+        await grid.contextMenuButton.click();
+
+        // The count is the load-bearing part. `MENU: 1 checkmark` reads `span.selected` inside the
+        // item wrapper, so a fix that silently dropped the mark - or that rendered the label but
+        // lost the span - fails here rather than passing as "no violation".
+        await expect(grid.status).toHaveText('MENU: 1 checkmark');
+        await grid.expectNoViolations();
+      }
     });
   });
 });

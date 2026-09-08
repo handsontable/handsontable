@@ -191,11 +191,24 @@ export function filterSeparators(items: MenuItemLike[], separator: string = SEPA
 /**
  * Check if the provided element presents the checkboxable menu item.
  *
+ * Declaring `checked` is enough. An item that draws a check mark has to be announced as a
+ * checkbox, or the mark is visible with nothing behind it: `aria-checked` is only valid on
+ * `menuitemcheckbox`, so leaving such an item as a plain `menuitem` makes its two states
+ * indistinguishable to a screen reader.
+ *
  * @param {object} itemToTest Item element.
  * @returns {boolean}
  */
 export function isItemCheckable(itemToTest: MenuItemLike) {
-  return itemToTest.checkable === true;
+  const { checked } = itemToTest;
+
+  // Tested by type rather than by presence, and not by the resolved value. By presence, a custom
+  // item carrying an unrelated property named `checked` (a string, say) would change role on
+  // upgrade; by resolved value, an item would be a checkbox only while it happened to be checked,
+  // so unchecking it would drop the `aria-checked="false"` that conveys the state.
+  return itemToTest.checkable === true ||
+         typeof checked === 'boolean' ||
+         typeof checked === 'function';
 }
 
 /**

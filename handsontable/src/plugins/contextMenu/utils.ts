@@ -189,3 +189,20 @@ export function getAlignmentComparatorByClass(htClassName: string) {
     return normalizeClassNames(className).includes(htClassName);
   };
 }
+
+/**
+ * Prefixes a label with the check mark the context menu draws for a checked item.
+ *
+ * Legacy, and unused by Handsontable itself: a menu item carries its state in the `checked` option
+ * and the item renderer builds the mark as a DOM node, because a label built here reaches
+ * `innerHTML` and throws under a CSP enforcing Trusted Types (DEV-2650). Kept, and not deprecated,
+ * because this module ships with a declaration file next to it, so `moduleResolution: node`
+ * resolves it whatever the package `exports` map says - a caller cannot be assumed not to exist.
+ *
+ * @param {string} label The label text.
+ * @returns {string}
+ */
+export function markLabelAsSelected(label: string) {
+  // workaround for https://github.com/handsontable/handsontable/issues/1946
+  return `<span class="selected">${String.fromCharCode(10003)}</span>${label}`;
+}
