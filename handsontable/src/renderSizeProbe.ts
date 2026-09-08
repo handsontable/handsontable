@@ -143,10 +143,11 @@ export class RenderSizeProbe {
   }
 
   /**
-   * Measures the rendered column-header heights per level. Matches
-   * `Table.markIfOversizedColumnHeader`, which reads `innerHeight` of each header CELL (TH) and keeps
-   * the tallest per level — not the THEAD row height, which is a border taller. Each THEAD child is a
-   * header row (one per level); its TH cells are the per-column headers.
+   * Measures the rendered column-header heights per level, in the shape the engine's own
+   * `adjustColumnHeaderHeights` consumes: the tallest header CELL (TH) per level, read as a
+   * BORDER-BOX height, never the THEAD row height. Each THEAD child is a header row (one per
+   * level); its TH cells are the per-column headers. The measurement below says why the read is
+   * `outerHeight` rather than `innerHeight`.
    *
    * @param {object} wtTable The master engine table whose THEAD is measured.
    */

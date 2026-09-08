@@ -140,16 +140,18 @@ test.describe('walkontable inline-start header border refresh', { tag: '@walkont
 
     test('leaves the master sizes alone when the crossing draw skips its render', async () => {
       // The one shape the metrics above cannot reach: they come only from draws that rendered. A
-      // skipped draw used to get the master `adjustElementsSize()` from the `positionChanged` branch
-      // and now takes the plain `else`, so this is where that would show up.
+      // skipped draw used to reach the master `adjustElementsSize()` only when the `positionChanged`
+      // branch ran; DEV-2786 removed that branch and hoisted the call into the skip path, so every
+      // skipped draw now sizes the master. This is where a size that moved would show up.
       const { skipped, before, after } = await wt.crossOffsetZeroWithRenderSkipped();
 
       // Precondition. Without it the rest passes on a draw that rendered normally.
       expect(skipped).toBeGreaterThanOrEqual(1);
 
       // Only the size fields: a skipped render rolls the rendered band back, so row offsets within
-      // the table legitimately differ. A horizontal crossing changes no master size since #6673,
-      // which is exactly why dropping the extra `adjustElementsSize()` is safe here.
+      // the table legitimately differ. A horizontal crossing changes no master size since #6673, so
+      // the now-unconditional `adjustElementsSize()` has to be a no-op here - which is what makes
+      // running it on every skipped draw safe.
       expect(after.hiderWidth).toBe(before.hiderWidth);
       expect(after.hiderHeight).toBe(before.hiderHeight);
       expect(after.masterScrollWidth).toBe(before.masterScrollWidth);
