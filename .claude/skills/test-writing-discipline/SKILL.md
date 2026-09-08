@@ -32,11 +32,26 @@ Never reach green by any of these — they defeat the point of the test:
 
 The Stop hook and pre-push run the test you touched and block on red — that forces you to *reconcile* red, it does **not** authorize you to make it green by weakening it. Reconcile by fixing the right thing.
 
+### Weakening over an admitted race needs a ticket in the same PR
+
+An assertion weakened or deleted with a race as the reason — "held 15/15 locally", "flakes on classic", "racy on develop" — descopes a product defect; it does not fix a test. It ships only with a filed ticket in the **same** PR, named beside the change. "Still open, no ticket" is a review blocker. The strand-window fix (#13332) descoped two racy shapes that way, and the tickets are the only thing that keeps them from vanishing into a green run.
+
+### "Passes on retry" and "passes in isolation" are not determinism evidence
+
+- A test that passed on its second attempt, or alone after failing inside the suite, has shown you the flake — not its absence. Before you call it deterministic, hammer it focused across every leg: `cd tests && npx playwright test e2e/<spec>.spec.ts --repeat-each 20` (no `--project` filter, so all six theme × bundle legs run). The hidden-init migration needed ~700 such runs to expose three rAF-starvation timeouts that any single green run hid.
+- A test that fails about half the time under that load on **unchanged** develop is reporting a product race. File a product ticket and keep the assertion — softening it to green certifies the race.
+
 ## Bug fixes: write the failing test first
 
 1. Reproduce the bug as a test and **watch it fail — for the right reason** (the missing behavior, not a typo or a bad selector).
 2. Then apply the fix and watch the same test pass.
 3. A regression test that was never red proves nothing. On a bugfix PR, name the spec that fails without the fix.
+
+## Cover what the change actually adds
+
+- **A timing-semantics claim is verified against the primitive that implements it.** A JSDoc that says "closes when the task ends" above a `setTimeout(0)` is wrong: `setTimeout(0)` is the *next macrotask*, not end-of-task, so a synchronous caller in the same task runs inside the window the comment calls closed. That mismatch shipped a data-corruption bug — an editor stranded by `alter()` committed through stale coordinates and appended records (#13332). Read the primitive (`setTimeout`, `queueMicrotask`, `requestAnimationFrame`, a hook's call site) and write the test from what it does, not from what the comment says.
+- **A dedicated X-during-Y path requires a test that drives X during Y.** `flush`, `drain`, `cancel`, `pending`, `suspend`, a depth counter — those names are the tell that the code handles one operation landing inside another. A test that runs X and Y in sequence never enters that path. Fire X from inside Y: a hook callback, a nested `alter()`, an edit inside a batch.
+- **Every documented form of a new option executes at least once** — the guide's lead form especially. The shorthand a guide opens with is the form users try first, and the one most often left untested.
 
 ## Verify before you say "done"
 

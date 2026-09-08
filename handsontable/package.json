@@ -172,7 +172,7 @@
       "../CHANGELOG.md",
       "../handsontable-non-commercial-license.pdf",
       "../LICENSE.txt",
-      "README.md"
+      "../README.md"
     ],
     "exports": [
       "./cellTypes/*/index.*",
