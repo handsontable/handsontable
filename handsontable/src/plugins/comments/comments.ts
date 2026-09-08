@@ -330,6 +330,8 @@ export class Comments extends BasePlugin {
 
     if (!this.#displaySwitch) {
       this.#displaySwitch = new DisplaySwitch(this.getSetting<number>('displayDelay'));
+      this.#displaySwitch.addLocalHook('hide', () => this.hide());
+      this.#displaySwitch.addLocalHook('show', (row: number, col: number) => this.showAtCell(row, col));
     }
 
     this.addHook('afterContextMenuDefaultOptions',
@@ -342,9 +344,6 @@ export class Comments extends BasePlugin {
     this.addHook('afterBeginEditing', () => this.hide());
     this.addHook('afterDocumentKeyDown', this.#onAfterDocumentKeyDown);
     this.addHook('beforeCompositionStart', this.#onAfterDocumentKeyDown);
-
-    this.#displaySwitch?.addLocalHook('hide', () => this.hide());
-    this.#displaySwitch?.addLocalHook('show', (row: number, col: number) => this.showAtCell(row, col));
 
     this.registerShortcuts();
     this.registerListeners();
