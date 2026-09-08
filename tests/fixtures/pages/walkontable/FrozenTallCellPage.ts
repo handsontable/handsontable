@@ -114,7 +114,9 @@ export class FrozenTallCellPage {
   }
 
   /**
-   * The rendered height of one row in one table, or 0 when that table does not render it.
+   * The rendered height of one row in one table, or `NaN` when that table does not render it — a
+   * value no comparison accepts, so a row that left the rendered band fails loudly instead of
+   * passing as 0 (a "taller than 0" check would accept anything).
    *
    * Read in ONE evaluation on the table's root, never through `row().boundingBox()`: a locator's
    * `boundingBox()` resolves the node in one round trip and reads its box in another, and
@@ -127,7 +129,7 @@ export class FrozenTallCellPage {
     return table.evaluate((root, target) => {
       const tr = root.querySelector(`tbody [data-testid="row-${target}"]`);
 
-      return tr ? tr.getBoundingClientRect().height : 0;
+      return tr ? tr.getBoundingClientRect().height : NaN;
     }, row);
   }
 
@@ -138,7 +140,7 @@ export class FrozenTallCellPage {
   async rowHeights(row: number): Promise<{ master: number, overlay: number }> {
     return this.grid.evaluate((grid, target) => {
       const read = (table: string) => grid
-        .querySelector(`${table} tbody [data-testid="row-${target}"]`)?.getBoundingClientRect().height ?? 0;
+        .querySelector(`${table} tbody [data-testid="row-${target}"]`)?.getBoundingClientRect().height ?? NaN;
 
       return { master: read('.ht_master'), overlay: read('.ht_clone_inline_start') };
     }, row);
@@ -148,10 +150,15 @@ export class FrozenTallCellPage {
    * The height of a tall row once the master and the inline-start overlay agree on it and it
    * exceeds a normal row's — established by polling, not caught by a single read that may land
    * before the draw that puts both tables there. The value to pin later assertions to.
+   *
+   * `normalRow` is the baseline and must be a normal row that is rendered wherever the band
+   * currently is: row 1 (`normalRowHeight()`) leaves the band once the grid scrolls, and a baseline
+   * read off an unrendered row is `NaN`, which makes the poll fail rather than accept the provided
+   * height as "tall". The row after the tall one is rendered whenever the tall one is.
    */
-  async settledTallRowHeight(row: number): Promise<number> {
-    const normalHeight = await this.normalRowHeight();
-    let settled = 0;
+  async settledTallRowHeight(row: number, normalRow = row + 1): Promise<number> {
+    const normalHeight = await this.rowHeight(this.master, normalRow);
+    let settled = NaN;
 
     await expect.poll(async () => {
       const { master, overlay } = await this.rowHeights(row);
@@ -160,15 +167,17 @@ export class FrozenTallCellPage {
 
       return master === overlay && master > normalHeight;
     }, {
-      message: `row ${row} to settle at one tall height in both the master and the inline-start overlay`,
+      message: `row ${row} to settle at one height in both the master and the inline-start overlay, `
+        + `above the ${normalHeight}px of normal row ${normalRow}`,
     }).toBe(true);
 
     return settled;
   }
 
   /**
-   * The height of a normal, single-line row. Row 0 is deliberately not used as the
-   * baseline: the rendered band's first row carries an extra 1px top border.
+   * The height of a normal, single-line row while the band starts at the top of the grid. Row 0 is
+   * deliberately not used as the baseline: the rendered band's first row carries an extra 1px top
+   * border. After a scroll, row 1 may have left the band (`NaN`); read an explicit rendered row then.
    */
   async normalRowHeight(): Promise<number> {
     return this.rowHeight(this.master, 1);
