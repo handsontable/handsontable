@@ -15,7 +15,7 @@ import type { ColumnConditions } from '../plugins/filters';
 import type { LayoutConfig } from './layout';
 import type { PredefinedMenuItemKey, MenuItemConfig, ContextMenu } from '../plugins/contextMenu';
 import type { DropdownMenu } from '../plugins/dropdownMenu';
-import type { SheetsBarSettings } from '../plugins/sheetsBar';
+import type { SheetsBarSettings, SheetsBarViewState } from '../plugins/sheetsBar';
 import type { ColumnSortingConfig } from '../plugins/columnSorting';
 import type { NestedHeader } from '../plugins/nestedHeaders';
 import type { UndoRedoAction } from '../plugins/undoRedo';
@@ -527,8 +527,8 @@ export interface GridSettings {
   afterSheetTabMove?: (sheetId: number, finalIndex: number, source: string) => void;
   afterSheetTabRemove?: (sheetId: number, source: string) => void;
   afterSheetTabRename?: (sheetId: number, oldName: string, newName: string, source: string) => void;
-  afterSheetTabStateCapture?: (sheetId: number, viewState: Record<string, unknown>, source: string) => void;
-  afterSheetTabStateRestore?: (sheetId: number, viewState: Record<string, unknown>, source: string) => void;
+  afterSheetTabStateCapture?: (sheetId: number, viewState: SheetsBarViewState, source: string) => void;
+  afterSheetTabStateRestore?: (sheetId: number, viewState: SheetsBarViewState, source: string) => void;
   afterTrimRow?: (currentTrimConfig: number[], destinationTrimConfig?: number[],
     actionPossible?: boolean, stateChanged?: boolean) => void;
   afterUndo?: (action: UndoRedoAction) => void;
