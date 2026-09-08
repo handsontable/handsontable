@@ -1257,6 +1257,37 @@ export default function Core(
      * @param {boolean} [keepEmptyRows] Optional. Flag for skipping the post-alter empty row and column adjustment.
      */
     alter(action: string, index: number | number[][] | undefined, amount = 1, source: string, keepEmptyRows: boolean) {
+      // The index space is renumbered before the selection is repaired, so an `alter()` a hook
+      // fires from inside that window works on a selection that is stale for THIS call too. Its own
+      // repair would then clamp the range back into the grid - doing this call's job - and the
+      // shift below would land one row further than the records moved (DEV-2755). The scope lets
+      // `Selection` hold the nested repair back and compose it with this one.
+      //
+      // The action itself is split out so this closes on every exit, the action's own early returns
+      // and a throwing hook included. A scope left open stops the selection repairing at all.
+      selection.suspendShifts();
+
+      try {
+        grid.runAlter(action, index, amount, source, keepEmptyRows);
+      } finally {
+        selection.resumeShifts();
+      }
+    },
+
+    /**
+     * Performs one `alter()` action. Never call this directly - `alter()` owns the scope that keeps
+     * a nested call's selection repair from being applied twice.
+     *
+     * @private
+     * @param {string} action Possible values: "insert_row_above", "insert_row_below", "insert_col_start", "insert_col_end",
+     *                        "remove_row", "remove_col".
+     * @param {number|Array} index Row or column visual index which from the alter action will be triggered.
+     * @param {number} [amount=1] Amount of rows or columns to remove.
+     * @param {string} [source] Optional. Source indicator passed to related hooks.
+     * @param {boolean} [keepEmptyRows] Optional. Flag for skipping the post-alter empty row and column adjustment.
+     */
+    runAlter(action: string, index: number | number[][] | undefined, amount = 1, source: string,
+             keepEmptyRows: boolean) {
       // A structural change strands an open editor between its cache update and its selection
       // repair (`shiftRows()`/`shiftColumns()` below); until this call's own tail, a reconcile
       // must tolerate the stranded editor rather than discard the pending edit. Depth-counted,
