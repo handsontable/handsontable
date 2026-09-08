@@ -52,14 +52,20 @@ test('require-tracked-hook-in-enable', () => {
             }
           }
         `,
-        output: `
+        output: null,
+        errors: [{
+          messageId: 'useTrackedAddHook',
+          suggestions: [{
+            messageId: 'replaceWithTrackedAddHook',
+            output: `
           class P {
             enablePlugin() {
               this.addHook('afterInit', () => {});
             }
           }
         `,
-        errors: [{ messageId: 'useTrackedAddHook' }],
+          }],
+        }],
       },
       {
         code: `
@@ -74,7 +80,12 @@ test('require-tracked-hook-in-enable', () => {
             }
           }
         `,
-        output: `
+        output: null,
+        errors: [{
+          messageId: 'useTrackedAddHook',
+          suggestions: [{
+            messageId: 'replaceWithTrackedAddHook',
+            output: `
           class P {
             enablePlugin() {
               if (this.enabled) {
@@ -86,7 +97,8 @@ test('require-tracked-hook-in-enable', () => {
             }
           }
         `,
-        errors: [{ messageId: 'useTrackedAddHook' }],
+          }],
+        }],
       },
     ],
   });

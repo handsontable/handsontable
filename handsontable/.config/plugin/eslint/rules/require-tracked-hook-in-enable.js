@@ -8,7 +8,7 @@ module.exports = {
       recommended: false,
     },
 
-    fixable: 'code',
+    hasSuggestions: true,
 
     messages: {
       useTrackedAddHook: 'Use this.addHook() rather than this.hot.addHook() inside enablePlugin(). ' +
@@ -16,6 +16,7 @@ module.exports = {
         'instance keeps running after the plugin is disabled — usually against state the plugin ' +
         'has already torn down. Register it in the constructor or init() when it genuinely has to ' +
         'outlive a disable.',
+      replaceWithTrackedAddHook: 'Replace this.hot.addHook() with the tracked this.addHook().',
     },
 
     schema: [],
@@ -62,9 +63,12 @@ module.exports = {
         context.report({
           node,
           messageId: 'useTrackedAddHook',
-          fix(fixer) {
-            return fixer.replaceText(callee.object, 'this');
-          },
+          suggest: [{
+            messageId: 'replaceWithTrackedAddHook',
+            fix(fixer) {
+              return fixer.replaceText(callee.object, 'this');
+            },
+          }],
         });
       },
     };
