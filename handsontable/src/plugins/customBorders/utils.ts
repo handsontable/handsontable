@@ -396,16 +396,6 @@ export function checkSelectionBorders(hot: HotInstance, direction?: string) {
 }
 
 /**
- * Mark label in contextMenu as selected.
- *
- * @param {string} label The label text.
- * @returns {string}
- */
-export function markSelected(label: string) {
-  return `<span class="selected">${String.fromCharCode(10003)}</span>${label}`; // workaround for https://github.com/handsontable/handsontable/issues/1946
-}
-
-/**
  * Checks if in the borders config there are defined "left" or "right" border properties.
  *
  * @param {object[]} borders The custom border plugin's options.

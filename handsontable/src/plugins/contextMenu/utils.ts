@@ -126,15 +126,6 @@ function applyAlignClassName(
 }
 
 /**
- * @param {string} label The label text.
- * @returns {string}
- */
-export function markLabelAsSelected(label: string) {
-  // workaround for https://github.com/handsontable/handsontable/issues/1946
-  return `<span class="selected">${String.fromCharCode(10003)}</span>${label}`;
-}
-
-/**
  * @param {CellRange[]} ranges An array of the cell ranges.
  * @param {Function} comparator The comparator function.
  * @returns {boolean}

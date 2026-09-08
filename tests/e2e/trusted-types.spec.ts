@@ -157,12 +157,14 @@ test.describe('Trusted Types enforcement', () => {
   });
 
   test.describe('the surviving sink: header content', () => {
-    // Cell data is not in scope here and cannot be: `textRenderer` writes through `fastInnerText`,
-    // so it never reaches a sink whatever it contains. Headers go through `fastInnerHTML`, and
-    // `HTML_CHARACTERS` sends only a label shaped like markup - a tag, a markup declaration, or a
-    // character reference - down the `innerHTML` path; everything else takes `textContent`. These
-    // two tests pin the boundary and its remedy, so neither can rot unnoticed the way the original
-    // documented claim did.
+    // Header content is the only surface left that reaches a sink, and it is the user's own data
+    // rather than the grid's markup. Cell data is not in scope here and cannot be: `textRenderer`
+    // writes through `fastInnerText`, so it never reaches a sink whatever it contains. Headers go
+    // through `fastInnerHTML`, and `HTML_CHARACTERS` sends only a label shaped like markup - a
+    // tag, a markup declaration, or a character reference - down the `innerHTML` path; everything
+    // else takes `textContent`. These tests pin the boundary and its remedy, so neither can rot
+    // unnoticed the way the original documented claim did. The context menu cases sit here because
+    // this is where the menu's own gap was pinned while it was still open (DEV-2650).
 
     test('throws for a header holding markup when no sanitizer is configured', async () => {
       await grid.goto({ colHeader: 'markup' });
@@ -190,18 +192,21 @@ test.describe('Trusted Types enforcement', () => {
         await expect(grid.cell(0, 0)).toHaveCount(1);
       });
 
-    test('throws when the context menu marks an item as selected', async () => {
+    test('marks a context menu item as checked with no sanitizer configured', async () => {
       await grid.goto();
       await grid.contextMenuButton.click();
 
-      // `markLabelAsSelected` (`contextMenu/utils.ts`) prefixes the label with
-      // `<span class="selected">` and the item renderer writes the result through
-      // `fastInnerHTML`. Unlike a header this is not the user's data - it is the grid's own
-      // markup - so it is a genuine gap in the no-policy claim rather than a documented boundary.
-      // Tracked separately; converting it means changing how a menu item carries its selected
-      // state, which the `name` option's string contract does not currently allow.
-      expect(await grid.statusText()).toContain('MENU-THREW');
-      expect(await grid.statusText()).toContain('TrustedHTML');
+      // DEV-2650. This case asserted a throw until the check mark stopped being a `<span>` baked
+      // into the item's label: the label reached `fastInnerHTML` carrying the grid's own markup,
+      // so a read-only selection took the whole menu down under enforcement. The item now carries
+      // its state in a `checked` flag and the renderer builds the span with `createElement`, so
+      // the label is plain text and never reaches the sink.
+      //
+      // The count is the load-bearing part. `MENU: 1 checkmark` reads `span.selected` inside the
+      // item wrapper, so a fix that silently dropped the mark - or that rendered the label but
+      // lost the span - fails here rather than passing as "no violation".
+      await expect(grid.status).toHaveText('MENU: 1 checkmark');
+      await grid.expectNoViolations();
     });
 
     test('renders the context menu through a sanitizer that returns a TrustedHTML', async () => {

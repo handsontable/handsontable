@@ -15,6 +15,7 @@ export interface MenuItemLike {
   submenu?: Record<string, unknown>;
   hidden?: boolean | (() => boolean);
   checkable?: boolean;
+  checked?: boolean | (() => boolean);
   [key: string]: unknown;
 }
 
@@ -195,4 +196,16 @@ export function filterSeparators(items: MenuItemLike[], separator: string = SEPA
  */
 export function isItemCheckable(itemToTest: MenuItemLike) {
   return itemToTest.checkable === true;
+}
+
+/**
+ * Check if the provided element presents the menu item that is currently checked.
+ *
+ * @param {object} itemToTest Item element.
+ * @param {object} hot The context for the item function.
+ * @returns {boolean}
+ */
+export function isItemChecked(itemToTest: MenuItemLike, hot: Record<string, unknown>) {
+  return itemToTest.checked === true ||
+         (typeof itemToTest.checked === 'function' && itemToTest.checked.call(hot) === true);
 }

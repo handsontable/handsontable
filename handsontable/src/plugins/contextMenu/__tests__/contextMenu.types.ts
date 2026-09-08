@@ -46,6 +46,9 @@ new Handsontable(document.createElement('div'), {
         disabled() {
           return !!(this as any).getSelectedLast();
         },
+        checked() {
+          return !!(this as any).getSelectedLast();
+        },
         disableSelection: true,
         isCommand: false,
         callback(key: string, selection: unknown, clickEvent: MouseEvent) {
@@ -88,6 +91,7 @@ new Handsontable(document.createElement('div'), {
         key: 'name',
         hidden: false,
         disabled: false,
+        checked: true,
       }
     }
   }

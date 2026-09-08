@@ -1,6 +1,6 @@
 import type { HotInstance } from '../../../core/types';
 import * as C from '../../../i18n/constants';
-import { checkSelectionConsistency, markLabelAsSelected } from '../../contextMenu/utils';
+import { checkSelectionConsistency } from '../../contextMenu/utils';
 import { META_READONLY, type Comments } from '../comments';
 
 /**
@@ -11,12 +11,12 @@ export default function readOnlyCommentItem(plugin: Comments) {
   return {
     key: 'commentsReadOnly',
     name(this: HotInstance): string {
-      const label: string = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT);
-      const areReadOnly = checkSelectionConsistency(this.getSelectedRange() ?? [], (row: number, col: number) => {
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT);
+    },
+    checked(this: HotInstance) {
+      return checkSelectionConsistency(this.getSelectedRange() ?? [], (row: number, col: number) => {
         return !!(plugin.getCommentMeta(row, col, META_READONLY));
       });
-
-      return areReadOnly ? markLabelAsSelected(label) : label;
     },
     callback(this: HotInstance) {
       const range = this.getSelectedRangeActive();

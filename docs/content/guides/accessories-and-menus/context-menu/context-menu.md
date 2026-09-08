@@ -384,6 +384,7 @@ Each configuration object in `items` can have these properties:
 | `name` | The label shown in the menu. Can be a `string` or a function returning a string. Supports HTML -- see the note below. When a function, `this` refers to the Handsontable instance. |
 | `disabled` | Whether the item is grayed out and non-clickable. Can be a `boolean` or a function returning a boolean. When a function, `this` refers to the Handsontable instance. |
 | `hidden` | Whether the item is hidden from the menu entirely. Can be a `boolean` or a function returning a boolean. When a function, `this` refers to the Handsontable instance. |
+| `checked` | Whether the item is marked with a check mark. Can be a `boolean` or a function returning a boolean. When a function, `this` refers to the Handsontable instance. |
 | `callback` | A function called when the item is clicked. Receives `key`, `selection`, and `clickEvent` as arguments. |
 | `submenu` | Defines a nested submenu. Takes an object with an `items` array. Each submenu item's `key` must follow the `parent_key:child_key` format. |
 | `renderer` | A custom function for rendering the item's HTML. Must return an `HTMLElement`. |
