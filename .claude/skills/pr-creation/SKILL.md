@@ -105,16 +105,29 @@ gh pr create --draft --base develop \
   --body-file /tmp/pr-body-DEV-xxx.md
 ```
 
+**Start from the live template, every time.** Run `cat .github/PULL_REQUEST_TEMPLATE.md` and mirror every `###` heading and every checklist line it carries — including `MANUAL QA NEEDED`, left unticked when no manual QA is needed. That line is machine-read by the Checks scope router (`checks.yml`), so keep its wording, and its absence means the gate can never be armed on that PR without editing the description. The copy below is a convenience: `.github/scripts/__tests__/pr-template-skill-sync.test.mjs` pins its headings and checklist lines to the template, and when the two disagree the template wins.
+
 The body file template (write this with the Write tool, backticks and all, no escaping):
 
-```markdown
+````markdown
 ### Context
 
-<why this change is needed; link the task and explain the problem>
+The PR fixes/adds/changes <what>. <Why the change is needed; link the task and explain the problem.>
 
-### How has this been tested?
+### Test evidence (required for source changes)
 
-- <tests you added or ran, with commands>
+- Unit tests added/modified (`*.unit.js`): <paths, or "none — covered by <path>">
+- E2E tests added/modified (Playwright `tests/e2e/*.spec.ts`): <paths>
+- Type tests (`*.types.ts`) updated if public API changed: <paths, or "none">
+- For a bug fix — the spec that fails without this fix: <name>
+- Demo page / recorded trace (for UI changes): <link, or "none">
+
+### Commands run
+
+```bash
+<the test commands you ran, one per block>
+```
+<their final output lines>
 
 ### Types of changes
 
@@ -139,9 +152,10 @@ The body file template (write this with the Write tool, backticks and all, no es
 - [x] I have reviewed the guidelines about [Contributing to Handsontable](https://github.com/handsontable/handsontable/blob/master/CONTRIBUTING.md) and I confirm that my code follows the code style of this project.
 - [x] I have signed the [Contributor License Agreement](https://cla.handsontable.com/sign) — one signature covers both Handsontable and HyperFormula; the `cla/signed` check on this PR confirms it.
 - [ ] My change requires a change to the documentation.
+- [ ] MANUAL QA NEEDED — <!-- one line: WHAT to check and why automation can't judge it. Also add the red `Requires Manual QA` label (that exact name — it already exists; `QA needed` and `Verified by QA` are different labels). Ticking holds the Tests run for a manual-qa environment approval by a designated reviewer (never whoever triggered the run). The box is read once per run, so if you change it after the pipeline ran, press "Re-run all jobs". This line is machine-read — keep its wording. -->
 
 ClickUp task: https://app.clickup.com/t/9015210959/DEV-xxx
-```
+````
 
 - **Commit messages:** Descriptive, max 80 characters. Include task ID (e.g. `DEV-627: Fix filter column index`).
 - Include the ClickUp task ID in the PR title when applicable.
