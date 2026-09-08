@@ -202,8 +202,25 @@ test.describe('walkontable row heights with frozen columns', { tag: '@walkontabl
     // And back off the boundary again — the 1px must not be left behind.
     await wt.scrollVerticallyTo(0);
 
-    expect(await wt.rowHeight(wt.master, BOUNDARY_ROW))
-      .toBe(await wt.rowHeight(wt.inlineStartOverlay, BOUNDARY_ROW));
+    // Polled, not read once: `scrollVerticallyTo` waits for `scrollTop`, which the DOM satisfies the
+    // moment it is assigned, while the redraw it triggers is coalesced into a later animation frame.
+    // Reading the two tables straight after therefore samples them mid-draw under load, and the
+    // clone reports the row at its default height before the record is re-applied to it (seen once
+    // on `e2e-main-min` in a full-suite run: master 69, clone 29). The poll asserts the settled
+    // state, which is what the test is about; it cannot mask a genuine mismatch, because a real one
+    // never converges.
+    await expect.poll(async() => {
+      const [master, clone] = await Promise.all([
+        wt.rowHeight(wt.master, BOUNDARY_ROW),
+        wt.rowHeight(wt.inlineStartOverlay, BOUNDARY_ROW),
+      ]);
+
+      return master === clone;
+    }, { message: 'the panes never came back into alignment after scrolling off the boundary' })
+      .toBe(true);
+
+    // And the settled height is the tall one, not the two tables agreeing on a wrong value.
+    expect(await wt.rowHeight(wt.master, BOUNDARY_ROW)).toBe(restingHeight);
   });
 
   test('keeps the scroll range whole when the BOTTOM clone invalidates the cache mid-draw', async () => {

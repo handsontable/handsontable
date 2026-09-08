@@ -335,7 +335,10 @@ describe('WalkontableViewport', () => {
 
       wt.draw();
 
-      expect(wt.wtViewport.getViewportHeight()).toBe(154);
+      // One pixel less than before DEV-2786: the two header rows carry their own `border-bottom` at
+      // every scroll position, so the header takes that pixel out of the viewport instead of the
+      // first body row taking it out of its own height.
+      expect(wt.wtViewport.getViewportHeight()).toBe(153);
     });
 
     it('should return correct viewport height in case when the table has not defined size', async() => {

@@ -259,7 +259,7 @@ describe('HiddenRows', () => {
       |===|
       | A |
       `).toBeMatchToSelectionPattern();
-      expect($leftBorderArea.height()).toBe(getThemeLayout().firstRenderedRowDefaultHeight);
+      expect($leftBorderArea.height()).toBe(getThemeLayout().defaultDataRowHeight);
       expect($topBorderArea.width()).toBe(50);
     });
 

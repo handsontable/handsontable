@@ -475,6 +475,9 @@ export function getDefaultRowHeight() {
 }
 
 /**
+ * Only for a grid with NO column headers — see `firstRenderedRowDefaultHeight` in
+ * `themeLayoutFromTokens`. With column headers every body row is `getDefaultRowHeight()`.
+ *
  * @returns {number} Returns the default row height for the first rendered row.
  */
 export function getFirstRenderedRowDefaultHeight() {
@@ -493,6 +496,18 @@ export function getDefaultColumnWidth() {
  */
 export function getDefaultColumnHeaderHeight() {
   return getThemeLayout().defaultColumnHeaderHeight;
+}
+
+/**
+ * The rendered height of a column-header band — see `columnHeaderBandHeight` in
+ * `themeLayoutFromTokens`. Use this, not `getDefaultColumnHeaderHeight()`, whenever the number has
+ * to describe the space the header occupies in the layout.
+ *
+ * @param {number} [levels=1] Number of column-header levels.
+ * @returns {number} Height in pixels.
+ */
+export function getColumnHeaderBandHeight(levels = 1) {
+  return getThemeLayout().columnHeaderBandHeight(levels);
 }
 
 /**
