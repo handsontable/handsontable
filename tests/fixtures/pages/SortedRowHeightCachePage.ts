@@ -59,6 +59,11 @@ export class SortedRowHeightCachePage {
   /**
    * Waits until the page's scroll range stops changing, which is how a caller knows `autoRowSize`
    * has finished measuring and the row-height cache has settled.
+   *
+   * The budget is deliberately small: several of these run per test against a 20s test timeout, so
+   * a generous one here would surface as a locationless "Test timeout" instead of this wait's own
+   * failure. `autoRowSize` measures in chunks, so the settle needs consecutive equal frames rather
+   * than a single equal reading.
    */
   async waitForStableScrollRange(): Promise<void> {
     await this.page.waitForFunction(() => {
@@ -72,8 +77,8 @@ export class SortedRowHeightCachePage {
         w.__htStableFor = 0;
       }
 
-      return (w.__htStableFor ?? 0) >= 3;
-    }, null, { timeout: 15000 });
+      return (w.__htStableFor ?? 0) >= 5;
+    }, null, { timeout: 4000 });
 
     await this.page.evaluate(() => {
       const w = window as unknown as { __htLastHeight?: number, __htStableFor?: number };
@@ -81,6 +86,86 @@ export class SortedRowHeightCachePage {
       w.__htLastHeight = undefined;
       w.__htStableFor = undefined;
     });
+  }
+
+  /**
+   * Sorts the text column the way a user does: a click on the header LABEL. Since #13184 sorting
+   * fires on mouse up over the label (and its sort indicator) only, so a press anywhere else in the
+   * header does not sort.
+   */
+  async sortByHeaderClick(): Promise<void> {
+    const label = this.page.locator('.ht_clone_top thead th').nth(1).locator('span.colHeader');
+
+    await label.click();
+    await expect(label).toHaveClass(/ascending|descending/);
+
+    await this.waitForStableScrollRange();
+  }
+
+  /**
+   * The heights the grid currently reports for the first `count` rows.
+   *
+   * @param {number} count How many rows to read.
+   */
+  async rowHeights(count: number): Promise<number[]> {
+    return this.page.evaluate(
+      n => (window as unknown as { htRowHeights: (c: number) => number[] }).htRowHeights(n),
+      count
+    );
+  }
+
+  /**
+   * How far the cached offset for an axis has drifted from the sizes the grid reports now, in
+   * pixels. Zero means the cache describes the current layout.
+   *
+   * @param {'row'|'column'} axis Which axis to measure.
+   * @param {number} count How many leading tracks to sum.
+   */
+  async offsetDrift(axis: 'row' | 'column', count: number): Promise<number> {
+    return this.page.evaluate(
+      ([a, n]) => (window as unknown as {
+        htOffsetDrift: (x: string, c: number) => number,
+      }).htOffsetDrift(a as 'row' | 'column', n as number),
+      [axis, count] as [string, number]
+    );
+  }
+
+  /**
+   * Hides one row and shows another in a single batch, so the number of renderable rows is
+   * unchanged while WHICH rows are excluded changes.
+   *
+   * @param {number} hide The row to hide.
+   * @param {number} show The row to show.
+   */
+  async swapHiddenRows(hide: number, show: number): Promise<void> {
+    await this.page.evaluate(([toHide, toShow]) => {
+      const hot = (window as unknown as {
+        hot: {
+          batchExecution: (fn: () => void, flush: boolean) => void,
+          getPlugin: (n: string) => { hideRow: (r: number) => void, showRow: (r: number) => void },
+        },
+      }).hot;
+      const plugin = hot.getPlugin('hiddenRows');
+
+      hot.batchExecution(() => {
+        plugin.hideRow(toHide);
+        plugin.showRow(toShow);
+      }, true);
+    }, [hide, show]);
+  }
+
+  /**
+   * Moves a column, which permutes the width axis without changing the column count.
+   *
+   * @param {number} from The column to move.
+   * @param {number} to Its target index.
+   */
+  async moveColumn(from: number, to: number): Promise<void> {
+    await this.page.evaluate(([source, target]) => {
+      (window as unknown as {
+        hot: { getPlugin: (n: string) => { moveColumn: (a: number, b: number) => void }, render: () => void },
+      }).hot.getPlugin('manualColumnMove').moveColumn(source, target);
+    }, [from, to]);
   }
 
   /**

@@ -39,10 +39,17 @@
     permutation: it changes the height at nearly every render index while leaving the row COUNT
     alone, and the count is the only staleness test the cache applies.
 
-    The `size` column is seeded so that the row order and the height order disagree sharply: sorting
-    by `size` ascending brings the SHORTEST rows to the top, where the unsorted order had tall ones.
-    That is what makes a stale cache overstate the early offsets and render the grid short, leaving
-    blank space below the last rendered row.
+    The seeding scrambles row heights against the row index, so a reorder really does change the
+    height at nearly every render index. The specs sort the TEXT column: every value is the same
+    phrase repeated, so a shorter value is a prefix of a longer one and lexicographic order equals
+    height order — ascending brings the SHORTEST rows to the top, where the unsorted order had tall
+    ones. That is what makes a stale cache overstate the early offsets and render the grid short,
+    leaving blank space below the last rendered row. The `size` column is a readable label only; no
+    spec sorts it.
+
+    The same staleness has two more shapes, both covered by the cache-currency specs here: a
+    trim/hide update that swaps WHICH rows are excluded without changing HOW MANY, and a column
+    move on the width axis.
   -->
   <div id="grid" data-testid="grid"></div>
 
@@ -81,12 +88,16 @@
       // a `type` would install its own renderer and silently drop the stamp. Sorting runs on the
       // TEXT column: every value is the same phrase repeated, so a shorter one is a prefix of a
       // longer one and an ascending sort puts the shortest (and so the shortest-height) rows first.
-      columns: [{ data: 'size' }, { data: 'text' }],
-      // Narrow enough that the text wraps to many lines, which is what gives the rows their
-      // wildly different heights.
-      colWidths: [80, 420],
+      // The width lives on the COLUMN (resolved through `getCellMeta`, so per physical column)
+      // rather than in a positional `colWidths` array, which is what lets a column move carry a
+      // width with it and so exercise the width cache the same way a sort exercises the height one.
+      // 420px is narrow enough that the text wraps to many lines, which is what gives the rows
+      // their wildly different heights.
+      columns: [{ data: 'size', width: 80 }, { data: 'text', width: 420 }],
       autoRowSize: true,
       columnSorting: true,
+      hiddenRows: { rows: [], indicators: false },
+      manualColumnMove: true,
       renderAllColumns: true,
       renderer: testIdRenderer,
       licenseKey: 'non-commercial-and-evaluation',
@@ -101,8 +112,10 @@
       const hider = container.querySelector('.ht_master .wtHider');
       const table = container.querySelector('.ht_master table.htCore');
 
+      // Fail LOUD. Returning a zero gap when the probe cannot find the grid would make every
+      // assertion in the specs pass while measuring nothing at all.
       if (!hider || !table) {
-        return { gapTop: 0, gapBottom: 0 };
+        throw new Error('htGap: the master table is missing (.wtHider / table.htCore not found)');
       }
 
       const viewportHeight = window.innerHeight;
@@ -119,6 +132,66 @@
         gapTop: Math.round(Math.max(0, Math.min(tableRect.top, wantBottom) - wantTop)),
         gapBottom: Math.round(Math.max(0, wantBottom - Math.max(tableRect.bottom, wantTop))),
       };
+    };
+
+    /**
+     * How far the engine's cached offset for an axis has drifted from the truth, in pixels:
+     * `cache.getOffset(count)` minus the same offset summed from the sizes the grid reports RIGHT
+     * NOW. Zero when the cache describes the current layout; non-zero exactly when it is still
+     * describing a previous one, which is the defect.
+     *
+     * This is the assertion to make, not `isCurrent()`: the render that follows an operation
+     * rebuilds the cache and legitimately sets that flag back to `true`, so it cannot distinguish a
+     * cache that was correctly rebuilt from one that was never invalidated. The offsets can.
+     *
+     * Hidden rows are skipped, because the cache is indexed by RENDERABLE index.
+     *
+     * @param {'row'|'column'} axis Which axis to measure.
+     * @param {number} count How many leading tracks to sum.
+     */
+    window.htOffsetDrift = function(axis, count) {
+      const hot = window.hot;
+      const viewport = hot.view._wt.wtViewport;
+      const cache = axis === 'row' ? viewport.rowHeightCache : viewport.columnWidthCache;
+
+      cache.ensureBuilt();
+
+      let truth = 0;
+
+      if (axis === 'column') {
+        for (let i = 0; i < count; i += 1) {
+          truth += hot.getColWidth(i);
+        }
+      } else {
+        const hidden = hot.getPlugin('hiddenRows');
+        let counted = 0;
+
+        for (let visual = 0; counted < count && visual < hot.countRows(); visual += 1) {
+          if (!hidden.isHidden(visual)) {
+            truth += hot.getRowHeight(visual);
+            counted += 1;
+          }
+        }
+      }
+
+      return Math.round(cache.getOffset(count) - truth);
+    };
+
+    /**
+     * The heights of the first `count` rows as the grid reports them right now. A spec asserts these
+     * both VARY (otherwise every row is the default height and a stale cache would agree with a
+     * fresh one, so the test would prove nothing) and CHANGE across a sort.
+     *
+     * @param {number} count How many rows to read.
+     */
+    window.htRowHeights = function(count) {
+      const heights = [];
+
+      for (let i = 0; i < count; i += 1) {
+        heights.push(window.hot.getRowHeight(i));
+      }
+
+      return heights;
     };
 
     window.htReady = true;

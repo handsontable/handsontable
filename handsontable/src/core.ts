@@ -899,6 +899,39 @@ export default function Core(
 
     this.forceFullRender = true;
 
+    // Both axis size caches (`Viewport#rowHeightCache` / `#columnWidthCache`) are prefix sums keyed
+    // by RENDER index, while the sizes behind them resolve per PHYSICAL index - `modifyRowHeight`
+    // (AutoRowSize, ManualRowResize) and the per-column `width`. `PositionCache#isCurrent()` only
+    // re-checks the item COUNT, so it cannot see an update that rearranges which physical index
+    // each render index points at while the count stays the same. Two shapes do exactly that: a
+    // pure permutation (sorting, a row or column move), and a trim/hide update that swaps which
+    // indexes are excluded without changing how many. Both leave the cached offsets describing the
+    // previous layout, so the viewport calculator picks the wrong band and the grid renders short,
+    // leaving blank space past the last rendered row or column.
+    //
+    // The gate is "did the mapping actually change", NOT `indexesSequenceChanged` - gating on the
+    // sequence alone was the first version of this fix and it left the same-count trim/hide swap
+    // broken. All three flags have to invalidate; where the count also changed the cache would
+    // rebuild on its own anyway, so those cost nothing.
+    //
+    // It is a gate rather than an unconditional call because `updateCache(force = true)` reaches
+    // here with every flag false and nothing rearranged. `invalidateRowHeightCache()` also drops the
+    // layout, so paying that on each forced no-op update is what pushed the DataProvider's
+    // repeated `updateSettings` cycles past their timeout.
+    //
+    // This does not touch the per-render caching #13078 added - that is about renders, edits and
+    // scroll steps, none of which come through here.
+    const mappingChanged = indexesChangesState.indexesSequenceChanged ||
+      trimmedIndexesChanged || hiddenIndexesChanged;
+
+    if (mappingChanged) {
+      if (axis === 'row') {
+        this.view?.invalidateRowHeightCache();
+      } else {
+        this.view?.invalidateColumnWidthCache();
+      }
+    }
+
     // Sampled HERE, before the public cache-update hooks run, because `EditorManager` discards a
     // stranded editor inside those hooks - by the time the selection repair reads this, an editor
     // that was open when the trim landed is already gone.
@@ -1066,18 +1099,6 @@ export default function Core(
 
   this.rowIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState: IndexesChangesState) => {
     this.renderChangeTracker.markAllChanged();
-
-    // The engine's row-height prefix-sum cache is keyed by RENDER row, while the heights behind it
-    // (`modifyRowHeight`, so AutoRowSize and ManualRowResize) resolve per PHYSICAL row. A pure
-    // permutation - sorting, a row move - repoints every render row at a different physical row and
-    // so changes the height at nearly every render index, while leaving the row COUNT alone. The
-    // count is the only staleness test `PositionCache#isCurrent()` applies, so without this the
-    // cached offsets keep describing the previous order: the viewport calculator then picks the
-    // wrong rows for the scroll position and the grid renders short, leaving blank space below the
-    // last rendered row. Trimming and hiding change the count, so they are already covered.
-    if (indexesChangesState.indexesSequenceChanged) {
-      this.view?.invalidateRowHeightCache();
-    }
 
     const hadOpenEditor = onIndexMapperCacheUpdate(indexesChangesState, 'row');
     const indexCount = this.rowIndexMapper.getNumberOfIndexes();

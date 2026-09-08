@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed a sorted grid with `autoRowSize` rendering too few rows while scrolling, which left blank space below the last row and made rows appear repeated or out of order.",
+  "title": "Fixed a grid with custom row heights or column widths rendering too few rows or columns after sorting, moving, or filtering, which left blank space in the viewport and made rows appear repeated or out of order.",
   "type": "fixed",
   "issueOrPR": 13413,
   "breaking": false,

@@ -77,13 +77,25 @@ affordances).
 
 The Handsontable `moveCells` grid option (added 18.0.0) enables drag-to-move for selections. HyperFormula exposes an identically named `engine.moveCells()` method that the `Formulas` plugin calls internally to relocate formula references. They are unrelated -- do not confuse the user-facing option with the HyperFormula engine API.
 
-## A position cache only notices a changed item COUNT, never a reordering
+## A size cache only notices a changed item COUNT, never a rearrangement
 
-`PositionCache#isCurrent()` (`axisSizing/positionCache/`) tests one thing: `totalItems === totalItemsFn()`. That makes a **pure permutation invisible to it**. Sorting rows, or moving them, repoints every render index at a different physical index — so the size at nearly every index changes — while the count stays put, and the cache keeps serving the previous order's offsets. The viewport calculator then maps a scroll offset onto the wrong row range and the grid renders short, leaving blank space below the last rendered row (DEV-2823, a client-visible 18.1.0 regression). Trimming and hiding are safe by accident: they change the count, so they self-invalidate.
+`PositionCache#isCurrent()` (`axisSizing/positionCache/`) tests one thing: `totalItems === totalItemsFn()`. So **any update that keeps the count but changes which physical index each render index points at is invisible to it**, and the cache goes on serving the previous layout's offsets. The viewport calculator then maps a scroll offset onto the wrong band and the grid renders short, leaving blank space past the last rendered track — DEV-2823, a client-visible 18.1.0 regression.
 
-The axis caches are keyed by **render** index while the sizes behind them resolve per **physical** index (`sizeFn` → `wtTable.getRowHeight` → `modifyRowHeight` → AutoRowSize / ManualRowResize). Any consumer holding per-physical sizes is therefore blind here too: AutoRowSize invalidates through `observeMapChange(rowHeightsMap, …)`, and `rowHeightsMap` is keyed by physical row, so a sort changes no value in it and the observer never fires.
+Two shapes do that, and **both** were measured stale before the fix:
 
-So a reorder must be invalidated explicitly, from the index mapper's `cacheUpdated` when `indexesSequenceChanged` is set. Two sites do it today, one per axis: `Core`'s `rowIndexMapper` listener calls `view.invalidateRowHeightCache()`, and `AutoColumnSize#onColumnIndexMapperCacheUpdate` clears its column samples cache. Note the column axis's own `columnWidthCache` has the same shape and is **not** yet covered — a manual column move is the untested case.
+- a **pure permutation** — sorting rows, moving a row or column (820px of row drift after a sort; 617px of column drift after a move);
+- a **trim/hide swap** that changes *which* indexes are excluded without changing *how many* (120px of row drift). Trimming and hiding are **not** safe by accident — only the ones that happen to change the count are.
+
+The caches are keyed by **render** index while the sizes behind them resolve per **physical** index (`sizeFn` → `wtTable.getRowHeight` → `modifyRowHeight` → AutoRowSize / ManualRowResize; per-column `width` through `getCellMeta`). Any consumer holding per-physical sizes is blind in the same way: AutoRowSize invalidates through `observeMapChange(rowHeightsMap, …)` and that map is keyed by physical row, so a sort changes no value in it and the observer never fires.
+
+The invalidation is therefore explicit, in one place for both axes: `onIndexMapperCacheUpdate(state, axis)` in `src/core.ts` calls `view.invalidateRowHeightCache()` or `view.invalidateColumnWidthCache()` whenever **any** of the three change flags is set. Two ways to get that gate wrong, both hit during DEV-2823:
+
+- Gating on `indexesSequenceChanged` alone — the first version of the fix, which left the same-count trim/hide swap broken.
+- Dropping the gate entirely — `updateCache(force = true)` reaches here with every flag false and nothing rearranged, and since `invalidateRowHeightCache()` also drops the layout, paying it per forced no-op update pushed the DataProvider's repeated `updateSettings` cycles past their test timeout.
+
+(`AutoColumnSize#onColumnIndexMapperCacheUpdate` clearing `#columnSamplesCache` is a *different* cache and does not cover this.)
+
+**The position cache is not the only reorder-blind cache.** `wtViewport.oversizedRows` is keyed by renderable row too, and `resetOversizedRows` (`axisSizing/oversizedRows.ts`) deliberately wipes only the rendered band, so on a reorder every index outside that band keeps the previous order's measurement and the rebuilt prefix sums inherit it. That matters when walkontable measures the rows itself rather than a `modifyRowHeight` provider supplying them; `resetAllOversizedRows()` is the call that clears it. Not addressed by DEV-2823 and not yet reproduced — flagged here so the next person does not assume invalidating the position cache is sufficient.
 
 Before trusting a size cache across an operation, ask whether the operation changes the item count. If it does not, nothing invalidates for you.
 
