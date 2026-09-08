@@ -199,11 +199,20 @@ test.describe('walkontable row heights with frozen columns', { tag: '@walkontabl
         .toBe(await wt.rowOffsetWithinTable(wt.inlineStartOverlay, row));
     }
 
-    // And back off the boundary again — the 1px must not be left behind.
+    // And back off the boundary again — the 1px must not be left behind. Read it web-first: a
+    // frozen-derived height reaches the master one draw AFTER the band moves (the master renders
+    // its band before the frozen overlays are measured, and `drawCycle.ts` documents that draw as
+    // a self-correcting transient), so a single read right after the scroll can catch the master
+    // still at its provided height while the overlay already shows the tall one. Frame-sampled over
+    // 120 runs, the two agreed again within 50 ms and never diverged afterwards; a one-shot read
+    // here failed 3 of 150 runs on two legs. Both heights are polled against the resting height, so
+    // a transient equality (both tables mid-update) cannot pass either.
     await wt.scrollVerticallyTo(0);
 
-    expect(await wt.rowHeight(wt.master, BOUNDARY_ROW))
-      .toBe(await wt.rowHeight(wt.inlineStartOverlay, BOUNDARY_ROW));
+    await expect.poll(async() => ({
+      master: await wt.rowHeight(wt.master, BOUNDARY_ROW),
+      overlay: await wt.rowHeight(wt.inlineStartOverlay, BOUNDARY_ROW),
+    })).toEqual({ master: restingHeight, overlay: restingHeight });
   });
 
   test('keeps the scroll range whole when the BOTTOM clone invalidates the cache mid-draw', async () => {
