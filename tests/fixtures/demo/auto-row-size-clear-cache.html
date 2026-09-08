@@ -113,6 +113,27 @@
       hot.getPlugin('autoRowSize').clearCache();
       hot.render();
     };
+
+    /**
+     * The selective form of the same call: drops the heights of named rows only.
+     *
+     * @param {number[]} rows Physical row indexes to drop.
+     */
+    window.wipeRowHeightCacheForRows = function(rows) {
+      hot.getPlugin('autoRowSize').clearCache(rows);
+      hot.render();
+    };
+
+    /**
+     * The range form.
+     *
+     * @param {number} from First physical row index.
+     * @param {number} to Last physical row index.
+     */
+    window.wipeRowHeightCacheByRange = function(from, to) {
+      hot.getPlugin('autoRowSize').clearCacheByRange({ from: from, to: to });
+      hot.render();
+    };
   </script>
 </body>
 </html>

@@ -48,6 +48,30 @@ test.describe('AutoRowSize after clearCache()', () => {
     expect(await grid.unmeasuredRenderedRows()).toBe(0);
   });
 
+  test('re-measures rows that clearCache(rows) dropped below the fold', async() => {
+    // The selective form has the same hole as the full one: a render measures only the band it
+    // draws, so a row cleared while it is off-screen would keep the default height until something
+    // drew it - and scrolling to it is not a render in that sense, so nothing ever does. The
+    // cleared rows are queued instead, and measured from the data.
+    //
+    // The rows cleared here are the last ones, and the scroll below goes to the very bottom, so
+    // they are certainly on screen when the measurement is checked. Clearing rows that the scroll
+    // never reaches makes this pass on unfixed code.
+    await grid.wipeRowHeightCacheForRows([35, 36, 37, 38, 39]);
+    await grid.scrollTo(100000, 100000);
+
+    expect(await grid.unmeasuredRenderedRows()).toBe(0);
+    expect(await grid.worstRowHeaderDrift()).toBeLessThanOrEqual(1);
+  });
+
+  test('re-measures rows that clearCacheByRange() dropped below the fold', async() => {
+    await grid.wipeRowHeightCacheByRange(35, 39);
+    await grid.scrollTo(100000, 100000);
+
+    expect(await grid.unmeasuredRenderedRows()).toBe(0);
+    expect(await grid.worstRowHeaderDrift()).toBeLessThanOrEqual(1);
+  });
+
   test('still lines up on a grid whose cache was never touched', async() => {
     // The control. A grid nobody wipes has always been correct, and it must stay that way - the
     // fix adds work to the render path, so this is what would catch it breaking the ordinary case.

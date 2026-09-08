@@ -110,6 +110,70 @@ describe('AutoRowSize#clearCache', () => {
   });
 });
 
+describe('AutoRowSize selective cache clearing', () => {
+  /**
+   * Builds a grid attached to the document, so `isVisible()` answers `true` and the render path
+   * under test is actually reached.
+   *
+   * @param {number} rows How many rows the grid holds.
+   * @returns {object} The instance and its container.
+   */
+  function buildAttachedGrid(rows = 30) {
+    const container = document.createElement('div');
+
+    document.body.appendChild(container);
+
+    const hot = new Handsontable(container, {
+      data: Array.from({ length: rows }, (_, row) => [`r${row}`]),
+      autoRowSize: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    return { hot, container };
+  }
+
+  // The "off-screen row gets re-measured" half of the selective forms is NOT asserted here: jsdom
+  // has no layout, so every row falls inside the rendered band and the ordinary visible-band pass
+  // measures a cleared row whether or not it was queued. It is covered in
+  // `tests/e2e/auto-row-size-clear-cache.spec.ts`, against a real viewport with a real fold.
+
+  it('should still owe the full recalculation after a render whose measurement threw', () => {
+    // The ghost table runs the real renderers, so a renderer that throws aborts the sweep. Spending
+    // the flag there would leave every unmeasured row at the default height for good.
+    //
+    // Asserted by counting the sweeps rather than by looking at the heights: the ordinary
+    // visible-band pass measures rows on the second render either way, and in jsdom - which reports
+    // no layout, so every row falls inside the rendered band - that would make this pass with the
+    // flag spent.
+    const { hot, container } = buildAttachedGrid();
+    const plugin = hot.getPlugin('autoRowSize');
+    let sweeps = 0;
+    let shouldThrow = true;
+
+    plugin.recalculateAllRowsHeight = () => {
+      sweeps += 1;
+
+      if (shouldThrow) {
+        throw new Error('renderer blew up mid-sweep');
+      }
+    };
+
+    plugin.clearCache();
+
+    expect(() => hot.render()).toThrow('renderer blew up mid-sweep');
+    expect(sweeps).toBe(1);
+
+    // The next render must attempt the sweep again, which only happens if the throw re-owed it.
+    shouldThrow = false;
+    hot.render();
+
+    expect(sweeps).toBe(2);
+
+    hot.destroy();
+    container.remove();
+  });
+});
+
 describe('AutoRowSize default settings', () => {
   it('should not declare a `useHeaders` setting, because it never reads one', () => {
     // AutoColumnSize does read `useHeaders` - it decides whether a column header is rendered beside

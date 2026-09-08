@@ -34,6 +34,35 @@ export class AutoRowSizeClearCachePage {
   }
 
   /**
+   * Drops the heights of named rows only, then redraws - `clearCache(rows)`.
+   *
+   * @param {number[]} rows Physical row indexes to drop.
+   */
+  async wipeRowHeightCacheForRows(rows: number[]): Promise<void> {
+    await this.page.evaluate(
+      (target) => (window as unknown as {
+        wipeRowHeightCacheForRows: (rows: number[]) => void
+      }).wipeRowHeightCacheForRows(target),
+      rows
+    );
+  }
+
+  /**
+   * Drops the heights of a row range, then redraws - `clearCacheByRange()`.
+   *
+   * @param {number} from First physical row index.
+   * @param {number} to Last physical row index.
+   */
+  async wipeRowHeightCacheByRange(from: number, to: number): Promise<void> {
+    await this.page.evaluate(
+      ([f, t]) => (window as unknown as {
+        wipeRowHeightCacheByRange: (from: number, to: number) => void
+      }).wipeRowHeightCacheByRange(f, t),
+      [from, to]
+    );
+  }
+
+  /**
    * Scrolls the grid and lets the browser paint before anything is measured.
    *
    * Each offset is clamped to the grid's own range, so a caller can ask for "as far as it goes"

@@ -349,6 +349,15 @@ export class AutoRowSize extends BasePlugin {
    * @type {boolean}
    */
   #fullRecalculationScheduled = false;
+  /**
+   * Handle of the idle task driving the in-flight full sweep, or `0` when none is running.
+   *
+   * Held on the instance rather than in `calculateAllRowsHeight()`'s closure so a new sweep can
+   * abandon the one before it - see the cancellation there.
+   *
+   * @type {number}
+   */
+  #idleSweepTimer = 0;
 
   /**
    * Initializes the plugin, registers the row heights map, and sets up the row resize hook.
@@ -528,14 +537,22 @@ export class AutoRowSize extends BasePlugin {
   ): void {
     let current = 0;
     const length = this.hot.countRows() - 1;
-    let timer = 0;
+
+    // A sweep already walking the grid is abandoned rather than left to run beside this one. Every
+    // sweep starts at row 0 and covers every row, so the new one measures everything the old one
+    // still had left. Two in flight would double the work and, worse, race on `inProgress`:
+    // whichever finished first would clear it while the other was still writing heights, and
+    // `#onBeforeRender` reads that flag to decide whether the refresh queue is safe to drain.
+    cancelIdleTask(this.#idleSweepTimer);
+    this.#idleSweepTimer = 0;
 
     this.inProgress = true;
 
     const loop = () => {
       // When hot was destroyed after calculating finished cancel frame
       if (!this.hot) {
-        cancelIdleTask(timer);
+        cancelIdleTask(this.#idleSweepTimer);
+        this.#idleSweepTimer = 0;
         this.inProgress = false;
 
         return;
@@ -549,9 +566,10 @@ export class AutoRowSize extends BasePlugin {
       current = current + AutoRowSize.CALCULATION_STEP + 1;
 
       if (current < length) {
-        timer = requestIdleTask(loop);
+        this.#idleSweepTimer = requestIdleTask(loop);
       } else {
-        cancelIdleTask(timer);
+        cancelIdleTask(this.#idleSweepTimer);
+        this.#idleSweepTimer = 0;
         this.inProgress = false;
 
         // @TODO Should call once per render cycle, currently fired separately in different plugins
@@ -728,9 +746,8 @@ export class AutoRowSize extends BasePlugin {
    * that a scroll is not a render in this sense - pair the call with {@link Core#render} the way the
    * examples do, or the heights are not rebuilt.
    *
-   * Passing an array clears those rows only and schedules nothing; call
-   * {@link AutoRowSize#recalculateAllRowsHeight} yourself if they must be re-measured before they
-   * are next drawn.
+   * Passing an array clears those rows only, and queues exactly those rows for re-measurement on
+   * the next render.
    *
    * @param {number[]} [physicalRows] List of physical row indexes to clear.
    */
@@ -743,6 +760,8 @@ export class AutoRowSize extends BasePlugin {
           this.rowHeightsMap.setValueAtIndex(physicalIndex, null);
         });
       }, true);
+
+      this.#queueClearedRowsForRefresh(physicalRows);
 
     } else {
       this.rowHeightsMap.clear();
@@ -758,18 +777,49 @@ export class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Clears cache by range.
+   * Clears cache by range. The cleared rows are queued for re-measurement on the next render.
    *
    * @param {object|number} range Row index or an object with `from` and `to` properties which define row range.
    */
   clearCacheByRange(range: number | { from: number, to: number }): void {
     const { from, to } = typeof range === 'number' ? { from: range, to: range } : range;
+    const clearedRows: number[] = [];
 
     this.hot.batchExecution(() => {
       rangeEach(Math.min(from, to), Math.max(from, to), (row) => {
         this.rowHeightsMap.setValueAtIndex(row, null);
+        clearedRows.push(row);
       });
     }, true);
+
+    this.#queueClearedRowsForRefresh(clearedRows);
+  }
+
+  /**
+   * Queues rows whose cached height was just dropped, so the next render measures them again.
+   *
+   * Without this they are only measured if and when they are drawn, and a render measures only the
+   * band it draws - so a cleared row below the fold keeps the default height, and once a wide
+   * wrapping column is scrolled into view its cell renders taller than the row header, which is the
+   * misalignment `#fullRecalculationScheduled` exists to prevent. `#calculateSpecificRowsHeight()`
+   * reads a row from the data rather than from the screen, so being off-screen is no obstacle.
+   *
+   * The queue is the same one data changes use, and it is drained in one synchronous pass, so
+   * clearing a very large range costs a correspondingly large measurement on the next render. That
+   * matches what the caller asked for, and it is the shape `#onBeforeChange` has always had; the
+   * alternative - leaving the rows silently wrong - is the defect.
+   *
+   * @param {number[]} physicalRows Physical row indexes whose heights were cleared.
+   */
+  #queueClearedRowsForRefresh(physicalRows: number[]): void {
+    physicalRows.forEach((physicalRow) => {
+      const visualRow = this.hot.toVisualRow(physicalRow);
+
+      // A row outside the dataset, or one a trimming map hides, has no visual index to measure.
+      if (visualRow !== null) {
+        this.#visualRowsToRefresh.push(visualRow);
+      }
+    });
   }
 
   /**
@@ -839,9 +889,18 @@ export class AutoRowSize extends BasePlugin {
         this.hot.countRows() > 0 &&
         this.hot.view.isVisible()) {
       // Consumed before the call, not after: the sweep resizes the overlays, and a re-entrant
-      // render reaching this branch with the flag still set would recurse.
+      // render reaching this branch with the flag still set would recurse. It is re-owed if the
+      // sweep throws - the ghost table runs the real renderers, so a renderer that throws would
+      // otherwise leave every unmeasured row at the default height for the instance's life.
       this.#fullRecalculationScheduled = false;
-      this.recalculateAllRowsHeight();
+
+      try {
+        this.recalculateAllRowsHeight();
+      } catch (error) {
+        this.#fullRecalculationScheduled = true;
+
+        throw error;
+      }
     }
   };
 

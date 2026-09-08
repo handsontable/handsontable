@@ -70,19 +70,32 @@ Three rules ride along:
   nothing later corrects (`calculateVisibleRowsHeight()` bails out on that grid for the same reason, with the
   comment "Keep last row heights unchanged for situation when all columns was deleted or trimmed"). Consuming
   the flag in either case would leave the cache empty permanently.
-- **The flag is consumed before the sweep, not after.** The sweep resizes the overlays, and a re-entrant
-  render reaching the branch with the flag still set would recurse. The cost is that a renderer that throws
-  mid-sweep spends the flag — acceptable, since a throwing renderer has already broken the draw.
+- **The flag is consumed before the sweep, then re-owed if the sweep throws.** Holding it across the call
+  would let a re-entrant render reach the branch with the flag still set and recurse; spending it outright
+  would leave every unmeasured row at the default height for the instance's life when a renderer throws (the
+  ghost table runs the real renderers). Clearing it first and restoring it in a `catch` gets both.
 
 `clearCache()` must **not** zero `measuredRows`: the public `isNeedRecalculate()` slices the height map by it,
 so zeroing it makes that method answer "nothing to recalculate" at the exact moment every height was dropped.
 `AutoColumnSize#clearCache()` leaves its counterpart alone too.
 
-**Known gap:** the selective forms — `clearCache([rows])` and `clearCacheByRange()` — have the same
-below-the-fold hole and schedule nothing. `#calculateSpecificRowsHeight()` measures named rows from the data
-without needing them on screen, so queueing them on `#visualRowsToRefresh` is the shape of the fix; it was
-left out of DEV-2812 because an unbounded range would then be measured synchronously in one render, which
-needs its own sizing decision. Tracked separately.
+The **selective** forms — `clearCache([rows])` and `clearCacheByRange()` — have the same below-the-fold hole,
+and close it differently: they push the cleared rows onto `#visualRowsToRefresh` through
+`#queueClearedRowsForRefresh()`, so only those rows are re-measured rather than the whole grid.
+`#calculateSpecificRowsHeight()` reads a row from the data, so an off-screen row is no obstacle. That queue is
+drained in one synchronous pass, so clearing a very large range buys a correspondingly large measurement on
+the next render — the same shape `#onBeforeChange` has always had, and the honest cost of the call the caller
+made. A physical row with no visual index (outside the dataset, or hidden by a trimming map) is skipped.
+
+## One sweep at a time
+
+`calculateAllRowsHeight()` cancels any sweep still in flight before starting its own, through the
+instance-held `#idleSweepTimer`. Every sweep starts at row 0 and covers every row, so the new one subsumes
+whatever the old one had left. Two running together would double the work and race on `inProgress`: whichever
+finished first would clear it while the other was still writing heights, and `#onBeforeRender` reads that flag
+to decide whether the refresh queue is safe to drain. Entry points that can overlap in one frame: `#onInit`,
+`#onAfterLoadData`, the column-resize gesture, an explicit `recalculateAllRowsHeight()`, and now a
+`clearCache()` that schedules one.
 
 ## Listeners stay bound while disabled — deliberately
 
