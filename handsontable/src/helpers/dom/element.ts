@@ -1112,6 +1112,137 @@ function elementTrapsAxis(el: HTMLElement, axis: OverflowAxis, rootWindow: Windo
 }
 
 /**
+ * The CSS properties whose presence on an element makes it the containing block for its
+ * `position: fixed` descendants, instead of the viewport.
+ *
+ * Every one of them is checked because any single one is enough: a grid inside a centred modal
+ * (`transform: translate(-50%, -50%)`) is the common case, and `filter`, `backdrop-filter`,
+ * `perspective`, `contain` and the matching `will-change` hints all do the same thing.
+ */
+const FIXED_CONTAINING_BLOCK_PROPS = [
+  'transform',
+  'translate',
+  'rotate',
+  'scale',
+  'perspective',
+  'filter',
+  'backdropFilter',
+] as const;
+
+/**
+ * The `contain` values that make an element the containing block for fixed descendants. `size` and
+ * `inline-size` alone do not.
+ */
+const FIXED_CONTAINING_BLOCK_CONTAIN = ['paint', 'layout', 'strict', 'content'];
+
+/**
+ * The `will-change` hints that make an element the containing block for fixed descendants, even
+ * while the property they name is still `none`.
+ */
+const FIXED_CONTAINING_BLOCK_WILL_CHANGE = ['transform', 'perspective', 'filter'];
+
+/**
+ * Tells whether an element is the containing block for its `position: fixed` descendants.
+ *
+ * @param {CSSStyleDeclaration} style The element's computed style.
+ * @returns {boolean}
+ */
+function establishesFixedContainingBlock(style: CSSStyleDeclaration): boolean {
+  const hasProp = FIXED_CONTAINING_BLOCK_PROPS.some((prop) => {
+    const value = (style as unknown as Record<string, string>)[prop];
+
+    return value !== undefined && value !== '' && value !== 'none';
+  });
+
+  if (hasProp) {
+    return true;
+  }
+
+  const containValue = style.contain ?? '';
+
+  if (FIXED_CONTAINING_BLOCK_CONTAIN.some(token => containValue.split(/\s+/).includes(token))) {
+    return true;
+  }
+
+  const willChange = style.willChange ?? '';
+
+  if (FIXED_CONTAINING_BLOCK_WILL_CHANGE.some(token => willChange.split(/[\s,]+/).includes(token))) {
+    return true;
+  }
+
+  // A container-query container contains its layout, which has the same effect.
+  const containerType = (style as unknown as Record<string, string>).containerType ?? '';
+
+  return containerType !== '' && containerType !== 'normal';
+}
+
+/**
+ * Returns the box a `position: fixed` descendant of `base` is actually laid out in, in viewport
+ * coordinates.
+ *
+ * `position: fixed` resolves against the viewport only while no ancestor establishes a containing
+ * block for it. The moment one does - and `transform` is the everyday case, because a centred
+ * modal is written `transform: translate(-50%, -50%)` - `top` and `left` resolve against that
+ * ancestor's PADDING box instead, and coordinates read from `getBoundingClientRect()` land the
+ * element wherever that ancestor happens to sit. Measured on a centred modal, a list positioned
+ * from raw viewport coordinates drifted 313px down and 384px right of its cell.
+ *
+ * The returned box answers all three questions such a caller has: subtract `top`/`left` to turn a
+ * viewport coordinate into the value the element must be given, and use `width`/`height` as the
+ * bounds the element has to stay inside.
+ *
+ * Falls back to the viewport, so a caller can use the result unconditionally. The viewport's own
+ * size is read from `documentElement.clientWidth`/`clientHeight`, which is what a fixed box is
+ * laid out in - `innerWidth`/`innerHeight` include the classic scrollbar gutters and, on mobile,
+ * the area under collapsible browser chrome.
+ *
+ * @param {HTMLElement} base The `position: fixed` element, or any element in its subtree.
+ * @returns {{ top: number, left: number, width: number, height: number }}
+ */
+export function getFixedContainingBlockRect(
+  base: HTMLElement
+): { top: number, left: number, width: number, height: number } {
+  const rootDocument = base.ownerDocument;
+  const rootWindow = rootDocument.defaultView;
+  const viewport = {
+    top: 0,
+    left: 0,
+    width: rootDocument.documentElement.clientWidth,
+    height: rootDocument.documentElement.clientHeight,
+  };
+
+  if (!rootWindow) {
+    return viewport;
+  }
+
+  let el: HTMLElement | null = base.parentElement;
+
+  while (el && el !== rootDocument.documentElement) {
+    const style = rootWindow.getComputedStyle(el);
+
+    if (establishesFixedContainingBlock(style)) {
+      const rect = el.getBoundingClientRect();
+      const borderTop = parseFloat(style.borderTopWidth) || 0;
+      const borderLeft = parseFloat(style.borderLeftWidth) || 0;
+      const borderBottom = parseFloat(style.borderBottomWidth) || 0;
+      const borderRight = parseFloat(style.borderRightWidth) || 0;
+
+      // The containing block is the PADDING box, so the borders are not part of it.
+      return {
+        top: rect.top + borderTop,
+        left: rect.left + borderLeft,
+        width: Math.max(rect.width - borderLeft - borderRight, 0),
+        height: Math.max(rect.height - borderTop - borderBottom, 0),
+      };
+    }
+
+    el = el.parentElement;
+  }
+
+  return viewport;
+}
+
+/**
  * Returns a DOM element responsible for trimming the provided element.
  *
  * Without `axis`, one container is named for both axes: the nearest ancestor that traps on either

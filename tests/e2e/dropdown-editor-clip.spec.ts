@@ -1,200 +1,166 @@
-import type { Page } from '@playwright/test';
 import { test, expect } from '../fixtures/test';
-import { RootSizeOptionsPage } from '../fixtures/pages/RootSizeOptionsPage';
+import { DropdownEditorClipPage, type PlacementBoxes } from '../fixtures/pages/DropdownEditorClipPage';
 
 /**
- * #8688: the dropdown editor's list used to be cut off by the grid root's `overflow: clip` (any
- * sized `height`, and `height: 'auto'` before DEV-2789) or by a scrolling ancestor. The list is
- * now positioned against the viewport, so the only edge that can cut it is the window's.
+ * Asserts the list sits against one of the edited cell's horizontal edges - directly below it, or
+ * directly above it when flipped.
  *
- * Every case hit-tests the options instead of counting them: under a clip an option cell exists
- * and has a size while nothing on screen can reach it, so `toBeVisible()` and `toHaveCount()`
- * both pass on the broken build. Only `elementFromPoint` tells the two apart.
+ * Which of the two a given grid picks is theme-dependent, because each theme's row height decides
+ * how tall the list is and therefore whether it fits below the cell (`tests/AGENTS.md`). Asserting
+ * "the top is at the cell's bottom" makes a spec pass on `main` and fail on `horizon` for a reason
+ * that has nothing to do with the behavior under test.
  */
+function expectAnchoredToCell({ list, cell }: PlacementBoxes): void {
+  const below = Math.abs(list.top - cell.bottom) <= 1;
+  const above = Math.abs(list.bottom - cell.top) <= 1;
 
-const OPTIONS = ['One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight'];
-
-interface Box { top: number; bottom: number; left: number; right: number }
-
-interface Rects { list: Box; cell: Box; root: Box; container: Box }
-
-/**
- * How many options a pointer can actually reach.
- */
-async function reachableOptions(page: Page): Promise<number> {
-  return page.evaluate(() => {
-    const list = document.querySelector('.handsontableEditor');
-    const cells = document.querySelectorAll('.handsontableEditor .ht_master tbody td');
-    let reached = 0;
-
-    cells.forEach((td) => {
-      const r = td.getBoundingClientRect();
-      const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
-
-      if (hit && list?.contains(hit)) {
-        reached += 1;
-      }
-    });
-
-    return reached;
-  });
+  expect(below || above,
+    `the list should touch the cell: list ${list.top}..${list.bottom}, cell ${cell.top}..${cell.bottom}`)
+    .toBe(true);
 }
 
 /**
- * Opens the editor through the keyboard: a centred click on a dropdown cell can land on its
- * arrow and open the list by itself, so the Enter would then close it (`tests/AGENTS.md`).
+ * #8688: the dropdown editors' option lists were cut off by the grid root's `overflow: clip`
+ * (written for any sized `height`) or by a scrolling ancestor, and trimmed to the rows that fit
+ * the space left inside the grid - as few as two of eight choices on a short grid. The lists are
+ * now positioned `fixed`, so the box they are laid out in bounds them instead.
+ *
+ * Every case counts options with `elementFromPoint()` rather than `toHaveCount()` or
+ * `toBeVisible()`: under a clip an option exists at full size while nothing on screen can reach
+ * it, so both of those pass on the broken build.
+ *
+ * The box a `fixed` list is laid out in is the viewport only while no ancestor establishes a
+ * containing block for it, which is why the `modal` and `contained` cases exist - a `transform`
+ * or a `contain: paint` on any host-page ancestor moves the origin, and reading coordinates
+ * straight off the viewport put the list 313px below and 384px across from its cell.
  */
-async function openDropdown(page: Page, row: number, col: number): Promise<void> {
-  await page.evaluate(([r, c]) => window.hot.selectCell(r, c), [row, col] as const);
-  await page.keyboard.press('Enter');
-  await expect(page.locator('.handsontableEditor .ht_master tbody td')).toHaveCount(OPTIONS.length);
-}
-
-/**
- * The list, the edited cell, the grid root, and the fixture's parent container, in viewport
- * coordinates.
- */
-async function rects(page: Page): Promise<Rects> {
-  return page.evaluate(() => {
-    const toBox = (r: DOMRect) => ({ top: r.top, bottom: r.bottom, left: r.left, right: r.right });
-    const editor = window.hot.getActiveEditor();
-    const container = document.getElementById('container');
-
-    if (!container) {
-      throw new Error('container is not rendered');
-    }
-
-    return {
-      list: toBox(editor.htContainer.getBoundingClientRect()),
-      cell: toBox(editor.getEditedCell().getBoundingClientRect()),
-      root: toBox(window.hot.rootElement.getBoundingClientRect()),
-      container: toBox(container.getBoundingClientRect()),
-    };
-  });
-}
-
 test.describe('dropdown editor list escapes the grid clip (#8688)', () => {
-  let grid: RootSizeOptionsPage;
+  let grid: DropdownEditorClipPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {
-    grid = new RootSizeOptionsPage(page, theme, bundle);
+    grid = new DropdownEditorClipPage(page, theme, bundle);
     await grid.goto();
   });
 
-  test('shows every option on a `height: "auto"` grid shorter than the list (the reported shape)',
-    async ({ page }) => {
-      await grid.rebuild({
-        height: 'auto',
-        data: [['', ''], ['', ''], ['', '']],
-        columns: [{}, { type: 'dropdown', source: OPTIONS }],
+  test.describe('the list is no longer bounded by the grid', () => {
+    test('shows every option on a `height: "auto"` grid shorter than the list (the reported shape)',
+      async () => {
+        await grid.rebuild({ height: 'auto' });
+        await grid.openEditor(2, 1);
+
+        const { list, cell, root } = await grid.boxes();
+
+        expect(await grid.reachableOptions()).toBe(await grid.optionCount());
+        expect(list.top).toBeCloseTo(cell.bottom, 0);
+        // The point of the fix: the list is taller than the grid and hangs below it.
+        expect(list.bottom).toBeGreaterThan(root.bottom);
       });
-      await openDropdown(page, 2, 1);
 
-      const { list, cell, root } = await rects(page);
+    test('shows every option on a grid with a fixed `height` that clips its root', async ({ page }) => {
+      await grid.rebuild({ height: 150 });
 
-      expect(await reachableOptions(page)).toBe(OPTIONS.length);
-      // The whole point: the list is taller than the grid and hangs below it.
-      expect(list.top).toBeGreaterThanOrEqual(cell.bottom - 1);
+      const overflowY = await page.evaluate(() => getComputedStyle(window.hot.rootElement).overflowY);
+
+      expect(overflowY).toBe('clip');
+
+      await grid.openEditor(2, 1);
+
+      const { list, cell, root } = await grid.boxes();
+
+      expect(await grid.reachableOptions()).toBe(await grid.optionCount());
+      expect(list.top).toBeCloseTo(cell.bottom, 0);
       expect(list.bottom).toBeGreaterThan(root.bottom);
     });
 
-  test('shows every option on a grid with a fixed `height` that clips its root', async ({ page }) => {
-    await grid.rebuild({
-      height: 150,
-      data: [['', ''], ['', ''], ['', '']],
-      columns: [{}, { type: 'dropdown', source: OPTIONS }],
+    test('shows every option on a grid inside a scrolling parent', async () => {
+      await grid.rebuild({ height: 'auto', rows: 12 }, 'bounded');
+
+      const row = await grid.page.evaluate(() => window.hot.getLastFullyVisibleRow());
+
+      await grid.openEditor(row, 1);
+
+      const { list, cell, container } = await grid.boxes();
+
+      expect(await grid.reachableOptions()).toBe(await grid.optionCount());
+      expect(list.top).toBeCloseTo(cell.bottom, 0);
+      expect(list.bottom).toBeGreaterThan(container.bottom);
     });
 
-    expect((await grid.rootState()).computedOverflowY).toBe('clip');
+    test('shows every option of a `multiselect` editor', async () => {
+      await grid.rebuild({ height: 150, editorType: 'multiselect' });
+      await grid.openEditor(2, 1);
 
-    await openDropdown(page, 2, 1);
+      const { list, cell, root } = await grid.boxes();
 
-    const { list, cell, root } = await rects(page);
-
-    expect(await reachableOptions(page)).toBe(OPTIONS.length);
-    expect(list.top).toBeGreaterThanOrEqual(cell.bottom - 1);
-    expect(list.bottom).toBeGreaterThan(root.bottom);
+      expect(await grid.reachableOptions()).toBe(await grid.optionCount());
+      expect(list.top).toBeGreaterThanOrEqual(cell.bottom - 1);
+      expect(list.bottom).toBeGreaterThan(root.bottom);
+    });
   });
 
-  test('shows every option on a `height: "auto"` grid inside a scrolling parent', async ({ page }) => {
-    await grid.rebuild({
-      height: 'auto',
-      columns: [{}, { type: 'dropdown', source: OPTIONS }],
-    }, 'bounded');
+  test.describe('an ancestor that is the containing block for a fixed box', () => {
+    for (const layout of ['modal', 'contained'] as const) {
+      test(`places the list on its cell inside a \`${layout}\` ancestor`, async () => {
+        await grid.rebuild({ height: 150 }, layout);
+        await grid.openEditor(2, 1);
 
-    // The last row the 300px parent shows in full, asked of the grid rather than hardcoded: the
-    // row band depends on the theme's row height (`tests/AGENTS.md`).
-    const row = await page.evaluate(() => window.hot.getLastFullyVisibleRow());
+        const { list, cell, container } = await grid.boxes();
 
-    await openDropdown(page, row, 1);
-
-    const { list, cell, container } = await rects(page);
-
-    expect(await reachableOptions(page)).toBe(OPTIONS.length);
-    expect(list.top).toBeGreaterThanOrEqual(cell.bottom - 1);
-    expect(list.bottom).toBeGreaterThan(container.bottom);
-  });
-
-  test('follows the cell when the page scrolls', async ({ page }) => {
-    // A spacer pushes the page past the viewport so the window can scroll.
-    await page.evaluate(() => {
-      const spacer = document.createElement('div');
-
-      spacer.style.height = '2000px';
-      document.body.appendChild(spacer);
-    });
-    await grid.rebuild({
-      height: 150,
-      data: [['', ''], ['', ''], ['', '']],
-      columns: [{}, { type: 'dropdown', source: OPTIONS }],
-    });
-    await openDropdown(page, 2, 1);
-
-    const before = await rects(page);
-
-    await page.evaluate(() => {
-      window.scrollBy(0, 80);
-
-      return new Promise(resolve => {
-        requestAnimationFrame(() => requestAnimationFrame(resolve));
+        // Without the containing-block correction the list lands hundreds of pixels away,
+        // wherever the ancestor happens to sit in the viewport.
+        expect(list.top).toBeCloseTo(cell.bottom, 0);
+        expect(list.left).toBeCloseTo(cell.left - 1, 0);
+        expect(await grid.reachableOptions()).toBe(await grid.optionCount());
+        // CSS gives a fixed box no way out of such an ancestor, so the list has to fit inside it.
+        expect(list.bottom).toBeLessThanOrEqual(container.bottom + 1);
       });
-    });
-
-    const after = await rects(page);
-
-    // The cell moved with the page; the list moved with the cell.
-    expect(after.cell.bottom).toBeCloseTo(before.cell.bottom - 80, 0);
-    expect(after.list.top - after.cell.bottom).toBeCloseTo(before.list.top - before.cell.bottom, 0);
-    expect(await reachableOptions(page)).toBe(OPTIONS.length);
+    }
   });
 
-  test('flips above the cell when the viewport below is too short, and stays reachable', async ({ page }) => {
-    const viewport = page.viewportSize();
+  test.describe('following the cell', () => {
+    test('stays on the cell when the page scrolls', async () => {
+      // Room above the grid, so the scroll below moves the cell without taking it off screen -
+      // otherwise the list correctly clamps to the viewport's top edge and this would measure
+      // the clamp rather than the follow.
+      await grid.rebuild({ height: 150 }, 'pushed-down');
+      await grid.openEditor(2, 1);
 
-    if (!viewport) {
-      throw new Error('viewport size is not set');
-    }
+      const before = await grid.boxes();
 
-    // Park the grid at the bottom of the viewport so the list has to go up.
-    await page.evaluate((h) => {
-      const container = document.getElementById('container');
+      expectAnchoredToCell(before);
 
-      if (container) {
-        container.style.marginTop = `${h - 120}px`;
-      }
-    }, viewport.height);
-    await grid.rebuild({
-      height: 100,
-      data: [['', ''], ['', ''], ['', '']],
-      columns: [{}, { type: 'dropdown', source: OPTIONS }],
+      await grid.scrollWindowBy(120);
+
+      const after = await grid.boxes();
+
+      // The cell moved with the page, and the list moved with it. Asserted as "still touching the
+      // cell" rather than "the same gap as before", because the flip is re-decided on every
+      // scroll, and which side the list takes is theme-dependent to begin with.
+      expect(after.cell.bottom).toBeCloseTo(before.cell.bottom - 120, 0);
+      expectAnchoredToCell(after);
+      expect(await grid.reachableOptions()).toBe(await grid.optionCount());
     });
-    await openDropdown(page, 0, 1);
 
-    const { list, cell, root } = await rects(page);
+    test('re-decides the flip on scroll instead of riding off the viewport', async () => {
+      // Park the grid low enough that the list must flip upwards to fit.
+      await grid.rebuild({ height: 150 }, 'at-viewport-bottom');
+      await grid.openEditor(0, 1);
 
-    expect(list.bottom).toBeLessThanOrEqual(cell.top + 1);
-    expect(list.top).toBeLessThan(root.top);
-    expect(list.top).toBeGreaterThanOrEqual(0);
-    expect(await reachableOptions(page)).toBeGreaterThan(0);
+      expect(await grid.isFlippedVertically()).toBe(true);
+
+      const flipped = await grid.boxes();
+
+      expect(flipped.list.bottom).toBeLessThanOrEqual(flipped.cell.top + 1);
+
+      // Scrolling the page down lifts the cell, which would push a flipped list off the top edge
+      // if the flip were merely re-applied rather than re-decided. A `fixed` box adds no
+      // scrollable overflow, so options above the edge would be unreachable with no scrollbar.
+      await grid.scrollWindowBy(600);
+
+      const { list } = await grid.boxes();
+
+      expect(list.top).toBeGreaterThanOrEqual(0);
+      expect(await grid.reachableOptions()).toBe(await grid.optionCount());
+    });
   });
 });

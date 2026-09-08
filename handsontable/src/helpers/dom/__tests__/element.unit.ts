@@ -31,6 +31,7 @@ import {
   outerHeight,
   outerWidth,
   getTrimmingContainer,
+  getFixedContainingBlockRect,
   observeVisibilityChangeOnce,
 } from 'handsontable/helpers/dom/element';
 import { setPlatformMeta } from 'handsontable/helpers/browser';
@@ -1934,4 +1935,130 @@ describe('DomElement helper', () => {
       expect(IntersectionObserverStub.instances[0].disconnectCount).toBe(1);
     });
   });
+
+  describe('getFixedContainingBlockRect', () => {
+    /**
+     * jsdom reports every rect as zero, so an ancestor is stubbed with the box it would measure.
+     * What is under test is WHICH ancestor is chosen and how its padding box is derived, not the
+     * browser's own layout.
+     *
+     * @param {HTMLElement} element The element to stub.
+     * @param {object} box The rect it should report.
+     */
+    function stubRect(element, box) {
+      element.getBoundingClientRect = () => ({
+        top: box.top,
+        left: box.left,
+        width: box.width,
+        height: box.height,
+        right: box.left + box.width,
+        bottom: box.top + box.height,
+        x: box.left,
+        y: box.top,
+        toJSON() {},
+      });
+    }
+
+    it('should fall back to the viewport when no ancestor establishes a containing block', () => {
+      const parent = document.createElement('div');
+      const child = document.createElement('div');
+
+      parent.appendChild(child);
+      document.body.appendChild(parent);
+
+      const rect = getFixedContainingBlockRect(child);
+
+      expect(rect.top).toBe(0);
+      expect(rect.left).toBe(0);
+      expect(rect.width).toBe(document.documentElement.clientWidth);
+      expect(rect.height).toBe(document.documentElement.clientHeight);
+
+      parent.remove();
+    });
+
+    // Only the properties jsdom carries through to `getComputedStyle`. It drops `perspective`,
+    // `backdrop-filter` and `container-type` from the cascade entirely (the inline value is kept,
+    // the computed one comes back empty), so those three cannot be exercised here even though
+    // every browser honours them and the helper checks them. `tests/e2e/dropdown-editor-clip.spec.ts`
+    // covers the real behavior in a browser.
+    it.each([
+      ['transform', 'translate(-50%, -50%)'],
+      ['filter', 'saturate(1.2)'],
+      ['willChange', 'transform'],
+      ['contain', 'paint'],
+    ])('should return the padding box of an ancestor with %s', (prop, value) => {
+      const ancestor = document.createElement('div');
+      const child = document.createElement('div');
+
+      ancestor.style[prop] = value;
+      ancestor.style.borderStyle = 'solid';
+      ancestor.style.borderTopWidth = '3px';
+      ancestor.style.borderLeftWidth = '5px';
+      ancestor.style.borderBottomWidth = '3px';
+      ancestor.style.borderRightWidth = '5px';
+      ancestor.appendChild(child);
+      document.body.appendChild(ancestor);
+      stubRect(ancestor, { top: 100, left: 200, width: 400, height: 300 });
+
+      const rect = getFixedContainingBlockRect(child);
+
+      // The border is not part of the containing block, so it is peeled off every side.
+      expect(rect.top).toBe(103);
+      expect(rect.left).toBe(205);
+      expect(rect.width).toBe(390);
+      expect(rect.height).toBe(294);
+
+      ancestor.remove();
+    });
+
+    it('should ignore a `contain` value that contains neither layout nor paint', () => {
+      const ancestor = document.createElement('div');
+      const child = document.createElement('div');
+
+      ancestor.style.contain = 'size';
+      ancestor.appendChild(child);
+      document.body.appendChild(ancestor);
+      stubRect(ancestor, { top: 100, left: 200, width: 400, height: 300 });
+
+      expect(getFixedContainingBlockRect(child).top).toBe(0);
+
+      ancestor.remove();
+    });
+
+    it('should ignore a `will-change` hint that names no containing-block property', () => {
+      const ancestor = document.createElement('div');
+      const child = document.createElement('div');
+
+      ancestor.style.willChange = 'opacity';
+      ancestor.appendChild(child);
+      document.body.appendChild(ancestor);
+      stubRect(ancestor, { top: 100, left: 200, width: 400, height: 300 });
+
+      expect(getFixedContainingBlockRect(child).top).toBe(0);
+
+      ancestor.remove();
+    });
+
+    it('should pick the NEAREST establishing ancestor', () => {
+      const outer = document.createElement('div');
+      const inner = document.createElement('div');
+      const child = document.createElement('div');
+
+      outer.style.transform = 'translateX(10px)';
+      inner.style.filter = 'blur(1px)';
+      outer.appendChild(inner);
+      inner.appendChild(child);
+      document.body.appendChild(outer);
+      stubRect(outer, { top: 10, left: 10, width: 900, height: 900 });
+      stubRect(inner, { top: 50, left: 60, width: 300, height: 200 });
+
+      const rect = getFixedContainingBlockRect(child);
+
+      expect(rect.top).toBe(50);
+      expect(rect.left).toBe(60);
+
+      outer.remove();
+    });
+  });
+
 });

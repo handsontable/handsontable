@@ -335,8 +335,17 @@ For the common case, nothing. The list opens in the same place and simply is not
 
 What changed in detail:
 
-- The list can now paint outside the grid's box, and over whatever sits next to the grid on the page.
-  If it has to stay inside a specific area, size that area rather than the grid.
+- The list can now paint outside the grid's box. Whether it paints over what sits next to it
+  depends on the page: the list still belongs to the grid's stacking context, so a host page that
+  puts the grid inside its own layer keeps its own chrome on top. If the list has to stay inside a
+  specific area, size that area rather than the grid.
+- One ancestor property changes where the list is anchored, and the grid reads it for you. An
+  element with a `transform`, `perspective`, `filter`, `backdrop-filter`, a `will-change` naming
+  one of those, `contain: paint`, or a `container-type` becomes the box the list is laid out in,
+  instead of the browser window. A centred modal written `transform: translate(-50%, -50%)` is the
+  common case. The list is placed and bounded against that element, so it cannot leave it, and a
+  list taller than the modal is trimmed to fit and scrolls. Give such a container room if you want
+  the whole list visible.
 - Whether the list opens above or below the cell is decided by the space left in the **viewport**,
   not the space left inside the grid. A list that used to flip above the cell to fit inside a short
   grid now opens downwards and overhangs the grid instead. Sideways placement is unchanged: it is

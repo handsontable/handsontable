@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture — dropdown editor clip</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 0; }
+    /* Room below the grid so a list opening downwards has somewhere to go, and so the
+       page can scroll without the grid leaving the viewport. */
+    #tail { height: 1600px; }
+
+    /* The parent layouts a case can ask for by name. */
+    /* A parent that scrolls: its overflow used to cut the list exactly as the grid's own
+       clip did. */
+    #container.bounded { height: 300px; overflow: auto; }
+    /* A centred modal. `transform` makes this element the containing block for the list's
+       `position: fixed`, so coordinates read straight off the viewport land the list
+       wherever the modal happens to sit - measured at 313px down and 384px across before
+       `getFixedContainingBlockRect()` corrected for it. Tall enough for the whole list,
+       because CSS gives a fixed box no way out of this ancestor. */
+    #container.modal {
+      position: fixed;
+      inset-inline-start: 40px;
+      top: 20px;
+      width: 460px;
+      height: 560px;
+      transform: translateX(0);
+      background: #fff;
+      border: 3px solid #06c;
+      padding: 12px;
+    }
+    /* The same trap without a transform: `contain: paint` establishes it too, and so do
+       `filter`, `backdrop-filter`, `perspective` and a `will-change` naming any of them. */
+    #container.contained {
+      position: relative;
+      width: 460px;
+      height: 560px;
+      contain: paint;
+      background: #fff;
+    }
+    /* Pushes the grid to the bottom of the viewport so the list has to flip upwards. */
+    #container.at-viewport-bottom { margin-top: 78vh; }
+    /* Leaves room above the grid so the page can be scrolled without the edited cell leaving
+       the viewport - otherwise the list clamps to the top edge and a "follows the cell"
+       assertion measures the clamp instead. */
+    #container.pushed-down { margin-top: 300px; }
+  </style>
+</head>
+<body>
+  <!--
+    ONE grid, rebuilt per case by `initDropdownClipGrid()`, so every case is measured at
+    the same place on the page. Which parent layout wraps it is chosen per case by class
+    name from the stylesheet above.
+  -->
+  <div id="container">
+    <div id="grid" data-testid="grid"></div>
+  </div>
+  <div id="tail"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    // Short values on purpose: the list's width then comes from the column, so a case can
+    // reason about horizontal placement without the theme's font metrics deciding it.
+    window.htDropdownOptions = ['One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight'];
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    /**
+     * Builds (or rebuilds) the grid. `containerClass` picks one of the parent layouts
+     * declared in the stylesheet above; an empty string leaves the parent unstyled.
+     *
+     * Column 0 is a plain column and column 1 carries the editor, so the test-id renderer
+     * still marks a cell the page object can wait on: an editor column renders its own
+     * arrow and would be the wrong thing to wait for.
+     */
+    window.initDropdownClipGrid = function(overrides = {}, containerClass = '') {
+      if (window.hot) {
+        window.hot.destroy();
+      }
+
+      const container = document.getElementById('container');
+      const oldGrid = document.getElementById('grid');
+      const grid = document.createElement('div');
+
+      grid.id = 'grid';
+      grid.setAttribute('data-testid', 'grid');
+      grid.className = `ht-theme-${window.htTheme}`;
+      container.className = containerClass;
+      oldGrid.replaceWith(grid);
+      window.scrollTo(0, 0);
+
+      const editorType = overrides.editorType ?? 'dropdown';
+      const rows = overrides.rows ?? 3;
+      const settings = { ...overrides };
+
+      delete settings.editorType;
+      delete settings.rows;
+
+      window.hot = new Handsontable(grid, {
+        data: Array.from({ length: rows }, (_, r) => [`R${r + 1}`, '']),
+        colHeaders: ['Name', 'Choice'],
+        colWidths: [90, 110],
+        renderer: testIdRenderer,
+        columns: [{}, { type: editorType, source: window.htDropdownOptions }],
+        licenseKey: 'non-commercial-and-evaluation',
+        ...settings,
+      });
+
+      return true;
+    };
+
+    window.initDropdownClipGrid({ height: 150 });
+  </script>
+</body>
+</html>
