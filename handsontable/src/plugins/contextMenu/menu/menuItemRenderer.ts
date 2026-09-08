@@ -26,8 +26,8 @@ import {
 import { getSanitizer } from '../../../utils/sanitizer';
 
 /**
- * The mark a checked menu item is prefixed with. Kept as a character code rather than a literal
- * so the source file stays ASCII.
+ * The mark a checked menu item is prefixed with. Kept as a character code, as the label string it
+ * replaced was - see https://github.com/handsontable/handsontable/issues/1946.
  */
 const CHECK_MARK = String.fromCharCode(10003);
 

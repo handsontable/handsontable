@@ -53,6 +53,18 @@ Both menus now rebuild their item list on every `open()` (`prepareMenuItems()`),
 
 One thing a rebuild does **not** cover: `CommandExecutor` never evicts a command it registered, and `execute()` gates on `disabled`, not `hidden`. So an item contributed by a plugin that is now off is still reachable through `plugin.executeCommand(key)`. An item whose availability depends on its plugin being enabled needs that check on **both** `hidden()` and `disabled()`.
 
+## A menu item's state goes on the item, never inside its `name`
+
+`menuItemRenderer` writes an item's resolved `name` through `fastInnerHTML`, which is a Trusted Types sink. Anything an item bakes into that string as markup therefore takes the whole menu down under a CSP carrying `require-trusted-types-for 'script'`, and it is the grid's own markup, so no `sanitizer` should be needed for it.
+
+That is what DEV-2650 fixed. `markLabelAsSelected()` (`contextMenu/utils.ts`) and its byte-for-byte copy `markSelected()` (`customBorders/utils.ts`) prefixed a label with `<span class="selected">✓</span>`, so a read-only selection or a bordered one threw. Both are gone. An item declares `checked` instead — `boolean` or a function, resolved by `isItemChecked()` in `menu/utils.ts` the same way `isItemDisabled` resolves `disabled` — and the renderer builds the span with `createElement`.
+
+Three things to keep right when touching this:
+
+- **Insert the mark AFTER calling `fastInnerHTML`.** It replaces everything the wrapper holds, so a span appended first is wiped. The rendered DOM must stay `[span.selected, text]`; four legacy positioning specs measure that span's offset.
+- **`checked` also feeds `aria-checked`** on an item that sets `checkable`, so the visible mark and the accessible state cannot disagree. An explicit `ariaChecked` still wins, and predates the flag.
+- **Returning a node from `name` does not work.** The renderer does `String(itemValue)`, and `name` is publicly documented as a string or a function returning one. A new item property is the additive route; widening `name` is not.
+
 ## `className` is `string | string[]` — never do string surgery on it
 
 The `className` cell meta accepts a space-separated string **or** an array (both are documented in `metaSchema`). Always normalize it with `normalizeClassNames()` from `handsontable/src/helpers/dom/element.ts` and then work on whole tokens.
