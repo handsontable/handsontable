@@ -56,9 +56,12 @@ export class ContextMenuCheckedItemsPage {
     await expect(this.cell(0, 0)).toBeVisible();
   }
 
-  /** A data cell in the master overlay. */
+  /**
+   * A data cell in the master overlay, scoped through the grid container. The menu locators below
+   * deliberately are not: the context menu renders in its own element outside this container.
+   */
   cell(row: number, col: number): Locator {
-    return this.page.locator('.ht_master').getByTestId(`cell-${row}-${col}`);
+    return this.grid.locator('.ht_master').getByTestId(`cell-${row}-${col}`);
   }
 
   /**
