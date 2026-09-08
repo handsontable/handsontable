@@ -137,6 +137,10 @@ export class TabStrip {
   render(sheets: SheetDescriptor[]): void {
     this.#drag.abort();
     this.#cancelRename?.(true);
+    // A repaint can replace the pressed tab before its `pointerup` arrives — a right-click on
+    // an inactive tab switches sheets mid-press — and the flag would then stick and misread
+    // the next keyboard-raised `contextmenu` as a pointer one.
+    this.#pointerHeldOnTab = false;
 
     const focused = this.#capturedFocus();
 
@@ -231,7 +235,9 @@ export class TabStrip {
     // Menu key — and only then does the menu open with an item preselected. `button` alone
     // cannot tell those apart: a touch long-press and a macOS Ctrl+click both report
     // `button: 0`, so the keyboard is recognized by no button being held and no pointer
-    // having gone down on the tab.
+    // having gone down on the tab. The long-press half is pinned by a Playwright touch test;
+    // a genuine macOS Ctrl+click cannot be synthesized from Playwright, so that half rides on
+    // the same flag untested.
     tab.addEventListener('contextmenu', (event) => {
       if (this.#isWithinRenameInput(event)) {
         return;
