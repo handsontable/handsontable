@@ -1,4 +1,5 @@
 import { type Locator, type Page } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 
 export type MergeCellsScenario = 'none' | 'enabled' | 'areas' | 'object-form' | 'async-validator';
 
@@ -48,7 +49,7 @@ export class MergeCellsInitRendersPage {
     // run only in CI, where a bare `waitForFunction` timeout cannot be told apart from a bundle
     // that never loaded.
     try {
-      await this.page.waitForFunction(() => 'Handsontable' in window, undefined, { polling: 100 });
+      await awaitBundle(this.page);
 
       await this.page.waitForFunction(
         () => 'htAfterConstruct' in window || 'htBuildError' in window, undefined, { polling: 100 },

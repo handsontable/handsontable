@@ -8,7 +8,7 @@ const fixturePath = path.resolve(import.meta.dirname, 'fixture.html');
 
 test(config.name, async({ page }) => {
   await page.goto(`file://${fixturePath}`);
-  await page.waitForFunction(() => (window as any).__hot);
+  await page.waitForFunction(() => (window as any).__hot, undefined, { polling: 100 });
 
   const holder = page.locator('.ht_master .wtHolder');
 

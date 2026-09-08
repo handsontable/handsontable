@@ -4581,9 +4581,11 @@ describe('Formulas general', () => {
       ]);
       expect(formulasPlugin.engine.getSheetValues(formulasPlugin.sheetId)[1]).toEqual([123456]);
 
-      // Detaching the child moves it below its former parent's block, so it becomes physical row 3
-      // – the preserved text cell. The `cell` markings stay with their physical coordinates, they do
-      // not follow the moved row.
+      // Detaching the child shifts every row below it up by one, and since DEV-2626 the cell meta
+      // moves with them: the marking follows `parent2` from physical row 3 to row 2, so its value
+      // stays escaped. The detached child is appended last and lands on physical row 3, but it was
+      // never marked and now gets fresh meta there, so it is NOT escaped – before DEV-2626 it
+      // inherited the marking left behind on the index it happened to land on.
       getPlugin('nestedRows').dataManager.detachFromParent(
         getPlugin('nestedRows').dataManager.getDataObject(1)
       );
@@ -4592,7 +4594,7 @@ describe('Formulas general', () => {
         ['parent1'],
         ['child2'],
         ['\'parent2'],
-        ['\'0123456'],
+        ['0123456'],
       ]);
     });
 

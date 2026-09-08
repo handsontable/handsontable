@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../../bundle';
 
 /**
  * Page Object for the "exact row heights" Walkontable fixture.
@@ -60,7 +61,7 @@ export class ExactRowHeightsPage {
     Object.entries(options).forEach(([key, value]) => params.set(key, String(value)));
 
     await this.page.goto(`/tests/fixtures/demo/walkontable/exact-row-heights.html?${params}`);
-    await this.page.waitForFunction(() => 'Handsontable' in window);
+    await awaitBundle(this.page);
     await expect(this.master).toBeVisible();
     await expect(this.row(this.master, 1)).toBeAttached();
   }

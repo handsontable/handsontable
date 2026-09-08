@@ -1,4 +1,5 @@
 import { type Locator, type Page, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 
 export type IncrementalRenderScenario =
   'text' | 'always' | 'mixed' | 'frozen-merge' | 'formulas' | 'search' | 'cells-fn' | 'resize' | 'merge-height' | 'comments';
@@ -31,8 +32,8 @@ export class IncrementalRenderPage {
 
     // Wait for the bundle before the cell. The test id comes from the fixture's renderer, so
     // "cell not found" alone cannot tell a slow bundle apart from a grid that failed to render.
-    await this.page.waitForFunction(() => 'Handsontable' in window);
-    await this.page.waitForFunction(() => (window as unknown as { htReady?: boolean }).htReady === true);
+    await awaitBundle(this.page);
+    await this.page.waitForFunction(() => (window as unknown as { htReady?: boolean }).htReady === true, undefined, { polling: 100 });
 
     // The first cell, wherever it renders: with frozen rows and columns the master table's band can
     // start past row 0, and the cell then exists only in the overlay clones.

@@ -146,6 +146,81 @@ Three more things that pass every functional test and only show up in a profile 
 
 When you add a new content-driven measurement, ask which tables actually render the content — measuring the master alone is the trap both of these exist to work around.
 
+## The hider height is fractional below 100% zoom, and two coordinate spaces meet there
+
+`SpreaderSize#adjustElementsSize` writes the master hider's height, and below 100% browser zoom or
+display scaling it writes a **fractional** value (`"1210.45px"`). That element is what decides
+whether the grid shows a scrollbar: with `height: 'auto'` the holder keeps `style.height = 'auto'`
+and simply resolves to the hider, so a hider a fraction shorter than the table inside it is a
+vertical scrollbar on a grid that must never scroll — and, because `stretchH` already sized the
+columns against the full width, a horizontal one behind it (DEV-2525).
+
+Four rules come out of that, and each of them was a defect first.
+
+- **Never `parseInt` a value read back off `hider.style.height`.** It truncates the fraction and
+  hands back the shortfall. `expandHiderVerticallyBy` does `parseFloat`. (`topOverlay.ts`'s
+  `parseInt(holderParent.style.height, 10)` reads the *clone's* holder parent, a different element,
+  and is not this.)
+- **The sum's fixed terms must carry their fraction too.** `getHiderHeightCompensation`
+  (`axisSizing/hiderCompensation.ts`) adds the amount by which the browser *inflated* the cells'
+  bottom border past the whole pixel the row heights were summed with — a browser cannot paint a
+  border thinner than one device pixel, so a declared `1px` resolves to 1.11111px at 90% and
+  1.49254px at 67% — and `Viewport#getColumnHeaderHeightFraction()` supplies what
+  `getColumnHeaderHeight()`'s integer `offsetHeight` rounded away. Both are 0 at 100%.
+- **Add the inflation to the historical `1`; never return the border itself.** The menu grids and
+  the Filters by-value list drop all four borders on `td:first-child`
+  (`.handsontable.htDropdownMenu table tbody tr td:first-child` and its two siblings), and
+  `StylesHandler`'s probe cell IS a `td:first-child` inside them, so the border reads `0px` there —
+  at 100% zoom, on every platform. Returning it would have resized those grids by a whole pixel at
+  the default zoom. The same trap runs the other way at 50% (`2px`) and above 100% (`0.8px`), where
+  the row sum already accounts for the whole pixel. The `> Math.round(…)` gate is deliberately the
+  one `StylesHandler#calculateRowHeight` uses, because the two have to agree about which borders the
+  rows already carry.
+- **`getBoundingClientRect()` and `offsetHeight` are NOT in the same coordinate space.** A rect is
+  scaled by an ancestor's CSS `zoom`; `offsetHeight`, `clientHeight` and the computed style are not.
+  Subtracting one from the other to get a fraction looks right under
+  `--force-device-scale-factor` (where they agree) and yields a large **negative** number under CSS
+  `zoom`, shrinking the hider instead of growing it. Take the fractional height from
+  `getComputedStyle(el).height`, which matches `offsetHeight`'s space at any zoom. The same trap
+  ruins measurements in tests — never compare a rect against a `clientHeight`.
+- **`gatherLayoutInput` re-derives the same total independently**, so both sites fold in the same two
+  terms and the same device-pixel rounding. A prediction built on whole pixels while the DOM carries
+  fractional ones disagrees exactly at the knife edge, which is a scrollbar the solver said would not
+  be there.
+
+`addContentHeightSlack()` adds a fixed 0.05px to a *fractional* total, because summing the rows
+reproduces the browser's own sub-pixel snapping only to about 0.024px and that is enough to summon a
+full-size bar on a small grid at 67%. Two things about it are load-bearing and were both learned the
+hard way.
+
+**Do not round up to the device-pixel grid instead.** It reads as the principled choice — one device
+pixel is the smallest distance a screen can show, so the added height is invisible — but this total
+is also what the browser weighs against a fixed `height` setting. A 264px box holding 264.22px of
+rows at 80% zoom shows no scrollbar, because the browser rounds that deficit away; inflating the
+content by most of a device pixel pushes it over and produces a full 15px bar. That trades one
+unwanted scrollbar for another. Deciding the rounding from the holder's own height does not rescue
+it either: with `height: 'auto'` the holder resolves FROM the hider being written, so the test would
+read the previous draw's height.
+
+**A whole-pixel total is returned untouched**, which is every total at 100% zoom — there is no
+sub-pixel residue to cover when nothing was measured in fractions.
+
+**Only the hider write gets the slack; `gatherLayoutInput` deliberately does not.** The two ask
+different questions. The slack stops the hider ELEMENT falling a hair short of the table inside it,
+a comparison the browser makes and rounds to device pixels. The solver asks whether the content
+overflows the workspace, and both of its tests are an exact `>` — element mode against
+`workspaceHeight`, window mode against `documentClientHeight` after subtracting the hider's INTEGER
+`offsetHeight`. A deliberate 0.05px overshoot fed into an exact comparison models nothing the browser
+can see and can only flip the verdict the wrong way: the solver reserves a vertical bar, `stretchH`
+shrinks the columns to make room, and no bar is ever painted. The two shared sub-pixel terms (the
+border inflation and the header fraction) still go into both, because those describe real height.
+
+**`stylesHandler` is a user-supplied setting that defaults to `null`, and a standalone Walkontable
+host may implement only part of it** — the engine's own Puppeteer harness (`test/helpers/common.js`)
+does. `getStyleForTD` is therefore declared optional on the `StylesHandler` interface in `types.ts`,
+and calling it unguarded threw inside the draw and took out 695 of 816 specs. Guard every method you
+add a dependency on, and teach the harness stub the same method.
+
 ## Column-axis border ownership: the row header owns its gridline
 
 The two axes are NOT symmetric, and the column axis is the settled one. On the column axis a row
@@ -234,11 +309,25 @@ Consequences worth knowing:
   renderers, and `autoRowHeaderSize` measures each of them, so this is a supported shape rather than
   a curiosity. The body selector therefore matches every `th` in a body row - all of them are row
   headers - rather than `th:first-child`; the inner ones need no override because they are never
-  `:last-child`. The HEAD row cannot be handled the same way: CSS cannot count how many corner cells
-  precede the first column header, so that half stays on `:first-child` and a grid with two or more
-  row headers keeps drawing its head-row seam in the frame color. That is what it does today too, so
-  it is a pre-existing quirk this change neither fixes nor worsens - fixing it needs a marker class
-  from the engine on the last row header.
+  `:last-child`. The HEAD row cannot be keyed the same way, because CSS cannot count how many corner
+  cells precede the first column header - a corner is a `th` like the column headers beside it. It
+  keys on **`htLastRowHeaderColumn`** instead, a marker the engine stamps in `render/columnHeaders.ts`
+  on the last CORNER cell of each head row. **Head rows only** - a body row needs no marker, since
+  every `th` there is a row header and the rule matches them all, so stamping one in
+  `render/rowHeaders.ts` would put a class no stylesheet reads on every row header of every rendered
+  row (and it broke a dozen exact-markup specs when it was tried). That renderer runs once per
+  `Table`, so the marker lands in every clone with no extra wiring, exactly as `htLastVisibleHeader`
+  does. It is stamped AFTER the header renderer runs - `TH.className` is reset first and a renderer
+  may assign to it. No clearing pass is needed, and the invariant behind that is `orderView.start()`:
+  it sizes the root to exactly the nodes the view owns and the loop then visits every one of them,
+  resetting `className` before deciding, so nothing can keep a marker from a previous draw. Gating
+  that reset the way `render/cells.ts` gates its own behind `shouldPaintCell()` would break it, and
+  would have to bring a clearing pass along. (`htLastVisibleHeader` needs its backward walk for a
+  different reason: `hiddenHeader` moves between draws.)
+  Before the marker this half keyed on `:first-child`, which picks the same cell with one row header
+  and the WRONG one with more: the first corner, whose inline-end is an inner seam, while the real
+  seam fell through to the `th:last-child` frame rule. Only `horizon` could see it, since `main` and
+  `classic` map the cell-border token to the frame token.
 - Without row headers, column 0 is the first cell of its row and still draws the grid's own
   inline-start frame inside its declared width. It stays 1px narrower than the rest — deliberately out
   of scope for #6673, and pinned as a control case in
@@ -586,6 +675,9 @@ Separate test runner - do NOT mix with main E2E tests:
 `npm run test:walkontable --prefix handsontable`
 
 Tests in: `src/3rdparty/walkontable/test/`
+
+New engine coverage is Playwright: `tests/e2e/walkontable/*.spec.ts`, page objects in
+`tests/fixtures/pages/walkontable/`. The Jasmine specs here may be edited, not added to.
 
 For detailed guidance: use skills `walkontable-dev`, `walkontable-testing`
 
