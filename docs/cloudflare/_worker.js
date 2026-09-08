@@ -5,43 +5,49 @@
  * and _redirects is ignored. This worker is the sole, hand-maintained authority
  * for every redirect rule below - there is no generator.
  *
- * Legacy-host handling is orthogonal to the path rules below, so it is not a
- * numbered rule. `abs()` swaps in the canonical origin for a legacy host, so
- * each rule below redirects cross-host in one hop; anything the rules do not
- * redirect is caught by the legacy-host catch-all in the `fetch` export. See
- * LEGACY_DOCS_HOSTS.
+ * Legacy hostnames (see LEGACY_DOCS_HOSTS) collapse onto handsontable.com.
+ * That is rule 12a, and its placement is load-bearing - read its comment
+ * before moving it. `abs()` also swaps in the canonical origin for a legacy
+ * host, so every rule above 12a redirects cross-host in a single hop with the
+ * path's meaning resolved; rule 18 sits below the cut and so takes two.
  *
- * Redirect priority order (first match wins):
+ * A rule that SERVES content rather than redirecting must stay below 12a, or
+ * it answers 200 on a legacy host and keeps that host indexable.
+ *
+ * Redirect priority order (first match wins). Keep these numbers in step with
+ * the `// -- N.` markers in route() - this list is the documented authority
+ * (docs/cloudflare/README.md), and a stale entry here has already produced a
+ * wrong code-review finding:
  *   1. /docs/next/:splat                   → /docs/:splat
  *  1a. /docs/sitemap.xml                   → /docs/sitemap-index.xml
  *  1b. /docs/{LATEST_VERSION}/:splat       → /docs/:splat
- *   2. / → /docs
+ *   2. /{/}                                → /docs
  *  2a. /0.8.0/*                            → /docs/javascript-data-grid/changelog
  *  2b. /docs/redirect?pageId=*             → /docs/javascript-data-grid/changelog
  *  2c. Blog article redirects              → /blog/... or /blog
  *  2d. /demo/*                             → /demo
  *  2e. /customers/*                        → /customers/
  *   3. Legacy versioned angular-data-grid  → /docs/angular-data-grid/ or /docs/javascript-data-grid/
- *   3. /docs/hyperformula[/*]              → external hyperformula site
- *   4. Exact versioned HTML redirects      → framework-specific pages
- *   5. /docs/:ver/:page.html               → versioned framework pages (cookie)
- *   6. /docs/(javascript|angular|react)-data-grid/(row-sorting|column-sorting|release-notes)
- *   7. Cross-framework page fixes (angular/react wrong-prefix pages)
- *  7a. Vue 3 legacy page redirects      → /docs/vue-data-grid/*
+ *   4. /docs/hyperformula[/*]              → external hyperformula site
+ *   5. Exact versioned HTML redirects      → framework-specific pages
+ *   6. Cross-framework page fixes (angular/react wrong-prefix pages)
+ *   7. /docs/(javascript|angular|react)-data-grid/(row-sorting|column-sorting|release-notes)
+ *  7a. Vue 3 legacy page redirects         → /docs/vue-data-grid/*
+ *  7b. Versioned Vue 3 legacy pages        → /docs/:ver/vue-data-grid/*
  *   8. Recipe cell-type slug mismatches
- *   9. Angular-only recipe redirects for React/JS
- *  10. JS/React-only recipe redirects for Angular/React
- *  11. Flat /docs/react-* redirects        → /docs/react-data-grid/*
- *  12. Tutorial flat redirects             → /docs/javascript-data-grid/*
- *  13. Versioned /docs/:ver/react-*        → /docs/:ver/react-data-grid/*
- *  14. /docs/:ver{/}                       → version root or framework home
- *  15. /docs/(page).html                   → framework page (cookie)
- *  16. /docs/(page){/}                     → framework page (cookie)
- *  17. /docs/react, /docs/angular, etc.    → framework homes
- *  18. /{/}                               → /docs
- *  19. /docs{/}                           → /docs/(framework)/ (cookie)
- * 19a. POST /docs/scripts/json/save.json  → mock 200 JSON (saving-data demo)
- *  20. Static asset fallback (env.ASSETS)
+ *   9. Flat /docs/react-data-grid/row-sorting etc.
+ *  10. Flat /docs/react-*                  → /docs/react-data-grid/*
+ *  11. Tutorial flat redirects             → /docs/javascript-data-grid/*
+ *  12. Framework shorthand redirects       → framework homes
+ * 12a. Legacy hostname (GET/HEAD)          → same path on handsontable.com (301)
+ *  13. /docs/:ver/:page.html               → versioned framework pages (cookie, 302)
+ *  14. /docs/:ver{/}                       → version root or framework home (cookie, 302)
+ *  15. /docs/(page).html                   → flat framework page (cookie, 302)
+ *  16. /docs/(page){/}                     → flat framework page (cookie, 302)
+ *  17. /docs{/}                            → /docs/(framework)/ (cookie, 302)
+ *  18. Versioned /docs/:ver/react-*        → /docs/:ver/react-data-grid/*
+ * 18a. POST /docs/scripts/json/save.json   → mock 200 JSON (saving-data demo)
+ *  19. Static asset fallback (env.ASSETS)
  */
 
 // ---------------------------------------------------------------------------
@@ -117,7 +123,10 @@ const LEGACY_DOCS_HOSTS = new Set([
  * @returns {boolean}
  */
 function isLegacyDocsHost(url) {
-  return LEGACY_DOCS_HOSTS.has(url.hostname);
+  // The URL parser lowercases a hostname but keeps a fully-qualified trailing
+  // dot, so `docs.handsontable.com.` would miss an exact-match Set and serve
+  // 200 - the classic allowlist bypass on a CDN-fronted host.
+  return LEGACY_DOCS_HOSTS.has(url.hostname.replace(/\.$/, ''));
 }
 
 // ---------------------------------------------------------------------------
@@ -1147,6 +1156,38 @@ async function route(request, env) {
       }
     }
 
+    // -- 12a. Legacy hostname → canonical hostname (GET/HEAD) ---------------
+    // The cut lands here, immediately before the first cookie-reading rule,
+    // for two reasons.
+    //
+    // Rules 13-17 answer with a 302, because their destination depends on the
+    // `docs_fw` cookie and must not be cached as permanent. A 302 is not a
+    // canonicalisation signal, so a legacy URL answered by one would never
+    // leave the search index - which is the entire point of this collapse.
+    // Before this rule existed, `/docs`, `/docs/`, `/docs/{ver}` and every
+    // flat slug took that path and stayed indexed on the legacy host.
+    //
+    // And cookies are host-scoped, so the reader's saved framework preference
+    // lives on handsontable.com, not here. Deciding the framework from this
+    // host's cookie jar would silently default a React reader to the
+    // JavaScript page. Handing the bare path to the canonical host fixes both
+    // at once: this hop is a 301, and the origin that owns the cookie makes
+    // the framework decision.
+    //
+    // Everything above this line runs first on purpose - those rules resolve
+    // a path whose meaning differs from what it says, and `abs()` has already
+    // pointed them at the canonical origin, so they cross hosts in one hop
+    // with the destination resolved. Collapsing the host before them would
+    // send `/` to the marketing homepage and `/0.8.0/` to a 404, because only
+    // `/docs/*` reaches this worker on handsontable.com.
+    //
+    // GET/HEAD only, so the rule 18a POST mock still answers on this host: a
+    // 301 is downgraded to GET by every client and loses the body, and a POST
+    // is never indexed, so there is nothing to canonicalise.
+    if (isLegacyDocsHost(url) && (request.method === 'GET' || request.method === 'HEAD')) {
+      return redirect301(abs(`${path}${url.search}`, url));
+    }
+
     // -- 13. /docs/{ver}/{page}.html → versioned framework page (cookie) -----
     {
       const m = path.match(/^\/docs\/(\d+)\.(\d+)\/([^/]+)\.html$/);
@@ -1336,26 +1377,6 @@ async function route(request, env) {
 
 export default {
   async fetch(request, env) {
-    const response = await route(request, env);
-    const url = new URL(request.url);
-
-    // Legacy-host catch-all. `abs()` already sends every MATCHED rule to the
-    // canonical origin, so this only catches what no rule redirected - chiefly
-    // the static-asset fallback, which would otherwise answer with a
-    // byte-identical copy of the canonical page and keep the legacy host
-    // indexable. Placed here rather than next to the fallback so no future
-    // rule that serves content can leak a 200 on a legacy host.
-    //
-    // The test is the ABSENCE of a Location header, not a status range: the
-    // asset fallback answers a conditional request with 304, which carries no
-    // Location and would slip through a `status < 300 || status >= 400` check.
-    // Those 304s are exactly the already-indexed, unchanged pages this fix is
-    // for - Pages etags are content hashes, so they survive a deploy, and a
-    // recrawl sending If-None-Match would never have seen the redirect.
-    if (isLegacyDocsHost(url) && !response.headers.get('location')) {
-      return redirect301(`${CANONICAL_DOCS_ORIGIN}${url.pathname}${url.search}`);
-    }
-
-    return withSecurityHeaders(response);
+    return withSecurityHeaders(await route(request, env));
   },
 };

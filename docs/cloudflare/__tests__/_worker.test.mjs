@@ -16,7 +16,12 @@ import { fileURLToPath } from 'node:url';
 function loadWorker() {
   const workerPath = fileURLToPath(new URL('../_worker.js', import.meta.url));
   const source = readFileSync(workerPath, 'utf8')
-    .replace('__LATEST_DOCS_VERSION__', '99.9') // Arbitrary version outside every range under test.
+    // replaceAll, not replace: the placeholder appears in the comment above
+    // the declaration as well, so a single replacement substituted the prose
+    // and left LATEST_VERSION as the literal placeholder - which made rule 1b
+    // silently untestable. Production uses `sed ... /g`, so it was never hit
+    // there. Arbitrary version, outside every range under test.
+    .replaceAll('__LATEST_DOCS_VERSION__', '99.9')
     .replace('export default {', 'module.exports = {');
   const module = { exports: {} };
 
@@ -420,10 +425,13 @@ test('an unmatched path on the legacy host is caught rather than served as a 200
 
 test('a 304 from the asset fallback on the legacy host is still redirected', async() => {
   const worker = loadWorker();
-  // Cloudflare Pages answers a conditional request with 304 and no body. Its
-  // etags are content hashes, so an unchanged page keeps its etag across the
-  // deploy that ships this fix - a returning browser or a recrawl sending
-  // If-None-Match would hit this path. Verified against the live host.
+  // Placement sentinel for rule 12a. The rule sits above the asset fallback,
+  // so a GET on a legacy host is redirected before ASSETS is ever consulted
+  // and this 304 mock is never reached. Move 12a below the fallback and the
+  // 304 escapes (it carries no Location) and this goes red. Cloudflare Pages
+  // really does answer a conditional request with 304 - verified against the
+  // live host - and its etags are content hashes that survive a deploy, so a
+  // recrawl sending If-None-Match would take exactly that path.
   const notModified = { ASSETS: { fetch: async() => new Response(null, { status: 304 }) } };
   const response = await worker.fetch(
     requestOn('docs.handsontable.com', '/docs/angular-data-grid/row-parent-child/'),
@@ -444,14 +452,129 @@ test('the external HyperFormula redirect survives the legacy host untouched', as
     env,
   );
 
-  // That rule builds a full external URL instead of going through `abs()`,
-  // and the catch-all only fires on non-3xx, so neither piece of the legacy
-  // host handling may rewrite it onto handsontable.com.
+  // Rule 4 builds a full external URL instead of going through `abs()`, and
+  // it sits above rule 12a, so the host collapse never sees this request.
+  // Neither piece of the legacy-host handling may rewrite it onto
+  // handsontable.com.
   assert.equal(response.status, 301);
   assert.equal(
     response.headers.get('location'),
     'https://hyperformula.handsontable.com/guide/basic-usage',
   );
+});
+
+test('the cookie-reading rules 13-17 answer the legacy host with a 301, not their usual 302', async() => {
+  const worker = loadWorker();
+
+  // Regression for the review finding on this PR's first commit: rules 13-17
+  // deliberately use 302 (their destination depends on the docs_fw cookie),
+  // and with the collapse done only at the end of the pipeline these paths
+  // reached those rules and left the legacy host with a 302. A 302 is not a
+  // canonicalisation signal, so `/docs`, `/docs/` and every flat slug - the
+  // most commonly linked legacy URLs - would have stayed in the index.
+  await assertLegacyCollapse(worker, '/docs', 'https://handsontable.com/docs');
+  await assertLegacyCollapse(worker, '/docs/', 'https://handsontable.com/docs/');
+  await assertLegacyCollapse(worker, '/docs/14.4', 'https://handsontable.com/docs/14.4');
+  await assertLegacyCollapse(
+    worker,
+    '/docs/installation',
+    'https://handsontable.com/docs/installation',
+  );
+});
+
+test('the legacy host ignores the framework cookie and lets the canonical host decide', async() => {
+  const worker = loadWorker();
+  const withCookie = {
+    url: 'https://docs.handsontable.com/docs/installation',
+    method: 'GET',
+    headers: { get: (name) => (name === 'Cookie' ? 'docs_fw=react' : null) },
+  };
+  const response = await worker.fetch(withCookie, env);
+
+  // Cookies are host-scoped, so a preference saved on handsontable.com is not
+  // readable here. Resolving the framework from this host's jar would default
+  // a React reader to the JavaScript page; the bare path plus a 301 hands the
+  // decision to the origin that actually holds the cookie.
+  assert.equal(response.status, 301);
+  assert.equal(response.headers.get('location'), 'https://handsontable.com/docs/installation');
+});
+
+test('rule 1b resolves the version on the legacy host in one hop', async() => {
+  const worker = loadWorker();
+
+  // Only reachable now that loadWorker() substitutes LATEST_VERSION with
+  // replaceAll - a single replace() left the placeholder in place and this
+  // assertion could not fail.
+  await assertLegacyCollapse(
+    worker,
+    '/docs/99.9/javascript-data-grid/',
+    'https://handsontable.com/docs/javascript-data-grid/',
+  );
+});
+
+test('rule 18 still leaves the legacy host, in two hops rather than one', async() => {
+  const worker = loadWorker();
+
+  // Rule 18 sits below the 12a cut, so the first hop is a plain host swap and
+  // the canonical host then applies rule 18. Two 301s, which passes link
+  // equity and terminates - the cost of not reordering rule 18 above the cut,
+  // where it would take precedence over rule 13 for a `.html` path.
+  await assertLegacyCollapse(
+    worker,
+    '/docs/14.4/react-installation',
+    'https://handsontable.com/docs/14.4/react-installation',
+  );
+});
+
+test('a trailing-dot legacy hostname is collapsed too', async() => {
+  const worker = loadWorker();
+  const response = await worker.fetch(
+    requestOn('docs.handsontable.com.', '/docs/javascript-data-grid/'),
+    env,
+  );
+
+  // The URL parser lowercases the host but preserves the fully-qualified
+  // trailing dot, so an exact-match Set lookup missed it and served 200.
+  assert.equal(response.status, 301);
+  assert.equal(
+    response.headers.get('location'),
+    'https://handsontable.com/docs/javascript-data-grid/',
+  );
+});
+
+test('an uppercase legacy hostname is collapsed (the parser normalises case)', async() => {
+  const worker = loadWorker();
+  const response = await worker.fetch(
+    requestOn('DOCS.Handsontable.com', '/docs/javascript-data-grid/'),
+    env,
+  );
+
+  assert.equal(response.status, 301);
+  assert.equal(
+    response.headers.get('location'),
+    'https://handsontable.com/docs/javascript-data-grid/',
+  );
+});
+
+test('the saving-data POST mock still answers on the legacy host', async() => {
+  const worker = loadWorker();
+  const response = await worker.fetch(
+    {
+      url: 'https://docs.handsontable.com/docs/scripts/json/save.json',
+      method: 'POST',
+      headers: { get: () => null },
+    },
+    env,
+  );
+
+  // Rule 12a is GET/HEAD only. A 301 is downgraded to GET by every client and
+  // loses the request body, and a POST is never indexed, so there is nothing
+  // to canonicalise here.
+  assert.equal(response.status, 200);
+
+  const body = await response.json();
+
+  assert.equal(body.result, 'ok');
 });
 
 test('the canonical host is never collapsed, and its path rules still run', async() => {
