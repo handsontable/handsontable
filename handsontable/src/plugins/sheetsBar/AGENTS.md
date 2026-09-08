@@ -57,10 +57,14 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   engine's rewritten formula strings back into every bound sheet's data (HyperFormula rewrites
   references only inside itself — the raw arrays would resurrect the old name on the next
   switch, with the active sheet's rewrites going through `setDataAtCell()` so `afterChange`
-  fires and the grid repaints); a removed sheet is removed from the engine; a duplicate binds
-  to an engine sheet of its own; a runtime-added sheet with no `settings` inherits the shared
-  engine under its own name. The binding follows the name `engine.addSheet()` reports back —
-  the engine can normalize a name the model told apart. `sheetModel.duplicateSheet` keeps
+  fires and the grid repaints — wrapped in `#withoutUndoEntry`, because the engine rename is
+  not undoable and an undone rewrite would resolve to `#REF!`); a removed sheet is removed
+  from the engine; a duplicate binds to an engine sheet of its own; a runtime-added sheet with
+  no `settings` inherits the shared engine under its own name. A brand-new binding (add,
+  duplicate) goes through `freeEngineName()` — a `sheetName` may differ from its tab name, so
+  a free tab label can still identify another sheet's engine data, and reusing it would
+  overwrite that data. The binding follows the name `engine.addSheet()` reports back — the
+  engine can normalize a name the model told apart. `sheetModel.duplicateSheet` keeps
   `settings.formulas` out of the deep clone — a cloned engine instance is a broken object and
   the clone recurses forever.
 - **Cell meta is tracked per cell and property** (`Map` keyed `row:col:key`, last write wins) —

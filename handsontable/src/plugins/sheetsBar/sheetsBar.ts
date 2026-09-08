@@ -173,6 +173,25 @@ function isEngineInstance(engine: SheetFormulas['engine']): boolean {
 }
 
 /**
+ * Returns a name the engine has no sheet under yet, counting up from the requested one. A
+ * brand-new binding — a runtime-added sheet, a duplicate — must never adopt an engine sheet
+ * that already exists: a `sheetName` is allowed to differ from its tab's name, so a free tab
+ * label can still identify another sheet's engine data, and registering under it would
+ * overwrite that data and fuse the two tabs onto one engine sheet.
+ */
+function freeEngineName(engine: NonNullable<SheetFormulas['engine']>, requested: string): string {
+  let candidate = requested;
+  let counter = 2;
+
+  while (engine.doesSheetExist!(candidate)) {
+    candidate = `${requested} (${counter})`;
+    counter += 1;
+  }
+
+  return candidate;
+}
+
+/**
  * What survives an `updatePlugin` round trip that keeps the workbook.
  */
 interface PreservedState {
@@ -749,7 +768,7 @@ export class SheetsBar extends BasePlugin {
       const formulas = sheet ? formulasSettingOf(sheet) : null;
 
       if (formulas?.sheetName && isEngineInstance(formulas.engine)) {
-        return { formulas: { ...formulas, sheetName } };
+        return { formulas: { ...formulas, sheetName: freeEngineName(formulas.engine!, sheetName) } };
       }
     }
 
@@ -1241,7 +1260,10 @@ export class SheetsBar extends BasePlugin {
         const formulas = formulasSettingOf(sheet);
 
         if (formulas?.sheetName && isEngineInstance(formulas.engine)) {
-          sheet.settings = { ...sheet.settings, formulas: { ...formulas, sheetName: sheet.name } };
+          sheet.settings = {
+            ...sheet.settings,
+            formulas: { ...formulas, sheetName: freeEngineName(formulas.engine!, sheet.name) },
+          };
           this.#registerFormulaSheet(sheet);
         }
 
@@ -1504,9 +1526,34 @@ export class SheetsBar extends BasePlugin {
       });
 
       if (changes.length > 0) {
-        this.hot.setDataAtCell(changes, `${source}.rename`);
+        this.#withoutUndoEntry(() => this.hot.setDataAtCell(changes, `${source}.rename`));
       }
     });
+  }
+
+  /**
+   * Runs a data write without recording it on the undo stack. The rename rewrites travel
+   * through `setDataAtCell` so `afterChange` fires and the grid repaints, but the engine
+   * rename they follow is not an undoable action — an undo restoring the old reference
+   * strings against the already-renamed engine sheet would resolve them to `#REF!`.
+   */
+  #withoutUndoEntry(write: () => void) {
+    const undoRedo = this.hot.getPlugin('undoRedo') as
+      { enabled?: boolean, ignoreNewActions: boolean } | undefined;
+
+    if (!undoRedo?.enabled || undoRedo.ignoreNewActions) {
+      write();
+
+      return;
+    }
+
+    undoRedo.ignoreNewActions = true;
+
+    try {
+      write();
+    } finally {
+      undoRedo.ignoreNewActions = false;
+    }
   }
 
   /**

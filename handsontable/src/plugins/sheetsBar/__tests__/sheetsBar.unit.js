@@ -11,6 +11,7 @@ import { ColumnSorting } from '../../columnSorting/columnSorting';
 import { Formulas } from '../../formulas/formulas';
 import { HiddenRows } from '../../hiddenRows/hiddenRows';
 import { TrimRows } from '../../trimRows/trimRows';
+import { UndoRedo } from '../../undoRedo/undoRedo';
 import { SheetsBarMenus } from '../ui/menus';
 import { Menu } from '../../contextMenu/menu';
 import { SheetsBarUI } from '../ui/bar';
@@ -98,6 +99,7 @@ describe('SheetsBar plugin', () => {
     registerPlugin(Formulas);
     registerPlugin(HiddenRows);
     registerPlugin(TrimRows);
+    registerPlugin(UndoRedo);
     Object.defineProperty(Element.prototype, 'scrollIntoView', { configurable: true, value: () => {} });
   });
 
@@ -892,6 +894,62 @@ describe('SheetsBar plugin', () => {
 
     sheetsBar.setActiveSheet('Fees');
 
+    expect(hot.getDataAtCell(0, 1)).toBe(23);
+  });
+
+  it('gives a runtime-added sheet a fresh engine sheet when its tab name is taken in the engine', () => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          {
+            name: 'Data',
+            data: [[0.23]],
+            settings: { formulas: { engine, sheetName: 'Rates' } },
+          },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    hot.getPlugin('sheetsBar').addSheet('Rates', [[1]]);
+
+    expect(engine.getSheetNames()).toEqual(['Rates', 'Rates (2)']);
+    expect(engine.getSheetSerialized(engine.getSheetId('Rates'))).toEqual([[0.23]]);
+  });
+
+  it('keeps a rename\'s formula rewrites off the undo stack', () => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          {
+            name: 'Budget',
+            data: [[100, '=A1*Rates!A1']],
+            settings: { formulas: { engine, sheetName: 'Budget' } },
+          },
+          {
+            name: 'Rates',
+            data: [[0.23]],
+            settings: { formulas: { engine, sheetName: 'Rates' } },
+          },
+        ],
+      },
+      undo: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const ratesId = sheetsBar.getSheets()[1].id;
+
+    sheetsBar.renameSheet(ratesId, 'Fees');
+
+    expect(hot.getSourceDataAtCell(0, 1)).toBe('=A1*Fees!A1');
+
+    hot.getPlugin('undoRedo').undo();
+
+    expect(hot.getSourceDataAtCell(0, 1)).toBe('=A1*Fees!A1');
     expect(hot.getDataAtCell(0, 1)).toBe(23);
   });
 
