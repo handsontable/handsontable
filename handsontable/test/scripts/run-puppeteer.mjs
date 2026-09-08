@@ -5,6 +5,17 @@ import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 import { createServer } from 'http-server';
 import JasmineReporter from 'jasmine-terminal-reporter';
+import {
+  ISOLATION_PROBE_MAX_FILES,
+  describeVerdict,
+  failedFiles,
+  formatAnnotation,
+  formatPageErrorAnnotation,
+  renderSummary,
+  specFileFilter,
+  toFailedSpec,
+  toRecord,
+} from './lib/failed-specs.mjs';
 
 const require = createRequire(import.meta.url);
 const { computeRunId, readRunIdInputsFromEnv } = require('../../.config/helper/run-id');
@@ -61,6 +72,11 @@ function listenOnFreePort(server, startPort) {
 const IS_CI = process.env.CI;
 const IS_TTY = process.stdout.isTTY;
 const CI_DOTS_PER_LINE = 120;
+// A failing spec file re-run alone that takes longer than this is reported as
+// unprobeable instead of hanging the job.
+const ISOLATION_PROBE_TIMEOUT_MS = 5 * 60 * 1000;
+// Where a red run leaves its failed-specs record (gitignored; CI uploads it).
+const RESULTS_DIR = 'test/e2e-results';
 
 // Separate positional args (runner HTML path) from flag args (--random,
 // --verbose, --seed=..., --hotVersion=...). Without this split, a flag-only
@@ -113,13 +129,23 @@ if (flags) {
   }
 
   // Support --spec=<pattern> to filter test files at runtime (e.g., --spec=i18n or --spec="i18n/index").
+  // Jasmine's boot reads the same `spec` parameter as a filter on spec names, so the pattern has to
+  // match both a file path and the names of the specs in it. --specFile=<pattern> filters the files
+  // only (e.g. --specFile="core/alter\.spec\.js$"), which is what re-running one file alone needs.
   const specFlag = flagArgs.find(a => a.startsWith('--spec='));
+  const specFileFlag = flagArgs.find(a => a.startsWith('--specFile='));
 
   if (specFlag) {
     const specPattern = specFlag.replace('--spec=', '');
 
     params.push(`spec=${encodeURIComponent(specPattern)}`);
     console.log(`Filtering tests with pattern: ${specPattern}`);
+  }
+  if (specFileFlag) {
+    const specFilePattern = specFileFlag.replace('--specFile=', '');
+
+    params.push(`specFile=${encodeURIComponent(specFilePattern)}`);
+    console.log(`Filtering spec files with pattern: ${specFilePattern}`);
   }
 
   if (params.length > 0) {
@@ -170,6 +196,16 @@ page.setViewport({
 });
 
 const cleanup = cleanupFactory(browser, server);
+const packagePath = path.relative(rootPath, process.cwd());
+const runnerUrl = query => `http://localhost:${PORT}/${packagePath}/${originalPath}${query}`;
+// The main run's query (`seed`, `random`, `hotVersion`, `spec`), carried into
+// the probe runs minus the ordering flags: a file re-run alone runs in its
+// natural order, so the verdict describes the file, not one shuffle of it.
+// `specFile` (the file filter) is replaced with the probed file's own.
+const mainQuery = htmlPath.slice(originalPath.length + 1);
+const leg = process.env.HOT_E2E_LEG
+  ? `${process.env.HOT_E2E_LEG} (theme: ${runIdInputs.theme})`
+  : `theme: ${runIdInputs.theme}`;
 
 const reporter = new JasmineReporter({
   colors: 1,
@@ -181,8 +217,19 @@ const reporter = new JasmineReporter({
   includeStackTrace: true,
 });
 let errorCount = 0;
+// Every failed spec of the main run, as data. After the run their files are
+// re-run alone (the isolation probe) and the report below names each of them.
+const failedSpecs = [];
+// 'main' while the whole runner page runs, 'probe' while one failing spec file
+// is re-run alone. The bridge callbacks branch on it: a probe run only counts
+// its failures into `probe`, and the terminal reporter never sees it.
+let phase = 'main';
+let probe = null;
 
 await page.exposeFunction('jasmineStarted', (specInfo) => {
+  if (phase === 'probe') {
+    return;
+  }
   if (specInfo.order.random) {
     process.stdout.write(`Randomized with seed ${specInfo.order.seed}\n`);
   }
@@ -190,11 +237,29 @@ await page.exposeFunction('jasmineStarted', (specInfo) => {
   reporter.jasmineStarted(specInfo);
 });
 await page.exposeFunction('jasmineSpecStarted', () => {});
-await page.exposeFunction('jasmineSuiteStarted', suite => reporter.suiteStarted(suite));
-await page.exposeFunction('jasmineSuiteDone', () => reporter.suiteDone());
+await page.exposeFunction('jasmineSuiteStarted', (suite) => {
+  if (phase === 'main') {
+    reporter.suiteStarted(suite);
+  }
+});
+await page.exposeFunction('jasmineSuiteDone', () => {
+  if (phase === 'main') {
+    reporter.suiteDone();
+  }
+});
 await page.exposeFunction('jasmineSpecDone', (result) => {
+  if (phase === 'probe') {
+    if (result.status === 'failed') {
+      probe.failed += 1;
+    }
+
+    return;
+  }
   if (result.failedExpectations.length) {
     errorCount += result.failedExpectations.length;
+  }
+  if (result.status === 'failed') {
+    failedSpecs.push(toFailedSpec(result));
   }
   reporter.specDone(result);
 
@@ -208,9 +273,14 @@ await page.exposeFunction('jasmineSpecDone', (result) => {
   }
 });
 await page.exposeFunction('jasmineDone', async() => {
+  if (phase === 'probe') {
+    probe.resolve();
+
+    return;
+  }
   reporter.jasmineDone();
 
-  await cleanup(errorCount === 0 ? 0 : 1);
+  await finish();
 });
 
 await page.exposeFunction('getEventListeners', async(selector) => {
@@ -245,8 +315,23 @@ await page.exposeFunction('setDeviceScaleFactor', async(scaleFactor) => {
 });
 
 page.on('pageerror', async(msg) => {
+  if (phase === 'probe') {
+    probe.error = `page error: ${String(msg).split('\n')[0]}`;
+    probe.resolve();
+
+    return;
+  }
   /* eslint-disable no-console */
   console.log(msg);
+
+  // An uncaught error aborts the whole run, so the specs after it never ran.
+  // Say so on the checks tab, and keep what did fail before it.
+  if (process.env.GITHUB_ACTIONS === 'true') {
+    console.error(formatPageErrorAnnotation(String(msg), leg));
+  }
+  if (failedSpecs.length > 0) {
+    report(new Map());
+  }
   await cleanup(1);
 });
 
@@ -257,10 +342,128 @@ page.on('console', (msg) => {
   }
 });
 
-const packagePath = path.relative(rootPath, process.cwd());
+/**
+ * Re-runs one failing spec file alone by reloading the runner page with a
+ * `specFile=` filter that selects only that file. The bridge callbacks count that
+ * run's failures into `probe`; a page error, a navigation error, or a timeout
+ * ends the run with an error verdict instead.
+ *
+ * @param {string} file The repo-relative spec file.
+ * @returns {Promise<{failed: number, error?: string}>} The verdict for the file.
+ */
+async function probeFile(file) {
+  const query = new URLSearchParams(mainQuery);
+
+  query.delete('random');
+  query.delete('seed');
+  query.set('specFile', specFileFilter(file));
+
+  await new Promise((resolve) => {
+    const timer = setTimeout(() => {
+      probe.error = `timed out after ${ISOLATION_PROBE_TIMEOUT_MS / 1000}s`;
+      resolve();
+    }, ISOLATION_PROBE_TIMEOUT_MS);
+
+    probe = {
+      failed: 0,
+      error: null,
+      resolve: () => {
+        clearTimeout(timer);
+        resolve();
+      },
+    };
+
+    page.goto(runnerUrl(`?${query.toString()}`)).catch((error) => {
+      probe.error = `navigation failed: ${error.message || error}`;
+      probe.resolve();
+    });
+  });
+
+  return probe.error ? { failed: probe.failed, error: probe.error } : { failed: probe.failed };
+}
+
+/**
+ * Re-runs each failing spec file alone, up to `ISOLATION_PROBE_MAX_FILES` of
+ * them, to tell a failure caused by the specs that ran before it from one
+ * that fails by itself.
+ *
+ * @param {string[]} files The repo-relative spec files that had failures.
+ * @returns {Promise<Map<string, {failed: number, error?: string}>>} The verdict per probed file.
+ */
+async function runIsolationProbes(files) {
+  const verdicts = new Map();
+  const targets = files.slice(0, ISOLATION_PROBE_MAX_FILES);
+
+  if (targets.length === 0) {
+    return verdicts;
+  }
+
+  console.log(`\nRe-running ${targets.length} failing spec file(s) alone, to tell a failure caused by the `
+    + 'specs that ran before it from one that fails by itself:');
+  phase = 'probe';
+
+  for (const file of targets) {
+    // Sequential on purpose: the probes share the one page.
+    // eslint-disable-next-line no-await-in-loop
+    const verdict = await probeFile(file);
+
+    verdicts.set(file, verdict);
+    console.log(`  ${file}: ${describeVerdict(verdict)}`);
+  }
+
+  return verdicts;
+}
+
+/**
+ * Writes the report of a red run: the JSON record in `test/e2e-results/`, one
+ * `::error` annotation per failed spec (on GitHub Actions), and the Markdown
+ * step summary (when the job provides one).
+ *
+ * @param {Map<string, {failed: number, error?: string}>} probes The isolation verdicts per file.
+ */
+function report(probes) {
+  const runId = computeRunId(runIdInputs);
+  const skippedFiles = Math.max(0, failedFiles(failedSpecs).length - probes.size);
+  const recordPath = path.join(RESULTS_DIR, `failed-specs-${runId}.json`);
+  const record = toRecord({ leg, theme: runIdInputs.theme, runId }, failedSpecs, probes);
+
+  fs.mkdirSync(RESULTS_DIR, { recursive: true });
+  fs.writeFileSync(recordPath, `${JSON.stringify(record, null, 2)}\n`);
+  console.log(`\nFailed-specs record: ${recordPath}`);
+
+  if (process.env.GITHUB_ACTIONS === 'true') {
+    failedSpecs.forEach((spec) => {
+      const verdict = spec.filePath && probes.has(spec.filePath)
+        ? describeVerdict(probes.get(spec.filePath))
+        : undefined;
+
+      console.error(formatAnnotation(spec, leg, verdict));
+    });
+  }
+  if (process.env.GITHUB_STEP_SUMMARY) {
+    fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, renderSummary(failedSpecs, leg, probes, skippedFiles));
+  }
+}
+
+/**
+ * Ends the main run: a green run exits at once; a red one re-runs the failing
+ * files alone, reports, and exits 1.
+ */
+async function finish() {
+  if (failedSpecs.length === 0) {
+    await cleanup(errorCount === 0 ? 0 : 1);
+
+    return;
+  }
+
+  const probes = await runIsolationProbes(failedFiles(failedSpecs));
+
+  report(probes);
+  await cleanup(1);
+}
 
 try {
-  await page.goto(`http://localhost:${PORT}/${packagePath}/${htmlPath}`);
+  await page.goto(runnerUrl(htmlPath.slice(originalPath.length)));
 } catch (error) {
   /* eslint-disable no-console */
   console.log(error);

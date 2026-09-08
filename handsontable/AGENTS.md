@@ -69,8 +69,10 @@ Gotcha: Filters `conditionCollection` uses physical indexes, `getDataAtCol()` us
 - Targeted unit: `npm run test:unit --testPathPattern=<regex>` or `npm run test:unit -- --testPathPattern=<regex>` (regex matched against file paths, e.g. `filters`, `ghostTable.unit`)
 - Targeted e2e: `npm run test:e2e --testPathPattern=<regex>` or `npm run test:e2e -- --testPathPattern=<regex>` (e.g. `collapsibleColumns`, `textEditor`, `nestedHeaders/__tests__/hidingColumns`)
 - E2E with theme: `npm run test:e2e --testPathPattern=<regex> --theme=horizon` (themes: `classic`, `main`, `horizon`; default: `main`)
+- Re-run one spec file alone against an existing dump: `npm run test:e2e.puppeteer -- --specFile=<path-pattern>` (files only; `--spec=<pattern>` must match the spec names too, because Jasmine's boot reads it as a name filter)
 - **Rebuild before E2E:** E2E runner loads `dist/handsontable.js` - rebuild after changing `src/`
 - Verify no exceptions appear in the console during tests
+- **A red Puppeteer run reports its failed specs as data, not only as a log.** `test/scripts/run-puppeteer.mjs` receives every Jasmine result through the page bridge. On a red run it re-runs each failing spec file alone (up to 5, `ISOLATION_PROBE_MAX_FILES`), then writes `test/e2e-results/failed-specs-<runId>.json`, prints one `::error` annotation per failed spec on GitHub Actions (attached to the spec file), and appends a step-summary block. A file that **passes alone** failed because of the specs that ran before it; one that **fails alone** is broken on its own. The spec file is known because `test/e2e/index.js` records which `require.context` key added each top-level suite (`window.__hotSpecFiles`) and the bridge reporter stamps it on every result as `filePath` — a top-level `it()` outside any `describe`, and `MemoryLeakTest`, have none. The pure helpers live in `test/scripts/lib/failed-specs.mjs` (node:test, part of the root `test:tooling`). Details: `.ai/TESTING.md`, "What a red run leaves behind".
 
 ## Common Pitfalls
 
