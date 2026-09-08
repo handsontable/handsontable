@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 
 /**
  * Page Object for the width-only window-scroll fixture: a grid with a definite
@@ -38,7 +39,7 @@ export class WidthWindowScrollPage {
    */
   async goto(): Promise<void> {
     await this.page.goto(`/tests/fixtures/demo/width-window-scroll.html?theme=${this.theme}&bundle=${this.bundle}`);
-    await this.page.waitForFunction(() => 'Handsontable' in window);
+    await awaitBundle(this.page);
     await this.waitForRender();
   }
 
