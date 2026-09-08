@@ -12,7 +12,7 @@ import { replaceTemplateVariables } from './src/plugins/template-variables.mjs';
 import { rehypeTableWrapper } from './src/plugins/rehype-table-wrapper.mjs';
 import { rehypeMigrationSteps } from './src/plugins/rehype-migration-steps.mjs';
 import { replaceHasSelectors } from './src/plugins/replace-has-selectors.mjs';
-import { buildAllSidebars, buildAllValidUrls } from './src/sidebar.mjs';
+import { buildAllSidebars, buildAllValidUrls, buildSidebar } from './src/sidebar.mjs';
 import { resolveHotVersion } from './src/lib/hot-version.mjs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -596,6 +596,9 @@ function markdownRoutesIntegration() {
 
   function buildRouteMap() {
     const routeMap = new Map();
+    // Per-page frontmatter, keyed by the bare slug (no framework prefix, no
+    // trailing slash). Feeds the llms.txt link descriptions.
+    const pageMeta = new Map();
 
     function scanDir(dir) {
       for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -632,6 +635,8 @@ function markdownRoutesIntegration() {
         const slug = data.permalink.replace(/^\//, '').replace(/\/$/, '') || 'index';
         const md = buildMarkdown(data.title, content);
 
+        pageMeta.set(slug, { title: data.title, description: data.description || '' });
+
         for (const prefix of PREFIXES) {
           routeMap.set(`${prefix}/${slug}.md`, md);
         }
@@ -640,11 +645,157 @@ function markdownRoutesIntegration() {
 
     scanDir(contentDir);
 
-    return routeMap;
+    return { routeMap, pageMeta };
+  }
+
+  const SITE_URL = 'https://handsontable.com';
+  const CANONICAL_PREFIX = 'javascript-data-grid';
+
+  /**
+   * Flattens a Starlight sidebar section into [{label, slug}] entries, where
+   * slug is the bare page slug (framework prefix and slashes stripped). Nested
+   * groups are walked; external links and non-canonical prefixes are skipped.
+   */
+  function flattenSectionItems(items, acc = []) {
+    for (const item of items || []) {
+      if (item.items) {
+        flattenSectionItems(item.items, acc);
+        continue;
+      }
+
+      if (typeof item.link !== 'string' || !item.link.startsWith(`/${CANONICAL_PREFIX}/`)) continue;
+
+      const slug = item.link.slice(`/${CANONICAL_PREFIX}/`.length).replace(/\/$/, '');
+
+      if (slug) acc.push({ label: item.label, slug });
+    }
+
+    return acc;
+  }
+
+  /**
+   * The llms.txt sections built from the site's own information architecture:
+   * the guide sidebar sections plus the migration guides. API pages are
+   * deliberately summarized as one section rather than listed per page — the
+   * sitemap and the `.md` URL pattern already enumerate them, and ~200 entries
+   * would drown the index.
+   */
+  function buildLlmsSections() {
+    const sidebar = buildSidebar('javascript', CANONICAL_PREFIX);
+    const changelog = buildAllSidebars().javascriptChangelog || [];
+    const sections = [];
+
+    for (const section of sidebar) {
+      if (section.label === 'API reference') continue;
+
+      const items = flattenSectionItems(section.items);
+
+      if (items.length) sections.push({ label: section.label, items });
+    }
+
+    const migration = changelog.find((s) => s.label === 'Migration guides');
+
+    if (migration) {
+      const items = flattenSectionItems(migration.items);
+
+      if (items.length) sections.push({ label: 'Migration guides', items });
+    }
+
+    return sections;
+  }
+
+  /**
+   * Builds /docs/llms.txt — the discovery index for AI agents, following the
+   * shape HyperFormula already ships (H1, `>` summary, sectioned link lists).
+   */
+  function buildLlmsIndex(pageMeta, sections) {
+    const lines = [
+      '# Handsontable',
+      '',
+      '> Handsontable is a JavaScript data grid component with spreadsheet-like UX, available for React, Angular, Vue, and vanilla JavaScript. It ships editing, sorting, filtering, validation, and Excel-compatible formulas (via HyperFormula) as one embeddable component.',
+      '',
+      'Handsontable is developed by Handsoncode. The documentation below covers the JavaScript data grid and its framework wrappers; every guide exists in a JavaScript, React, Angular, and Vue variant — swap the framework segment of a URL to switch.',
+      '',
+      '## Site',
+      '',
+      `- [Landing page](${SITE_URL}/): Product overview and pricing`,
+      `- [Documentation home](${SITE_URL}/docs/): Guides, API reference, and examples`,
+      `- [Sitemap](${SITE_URL}/docs/sitemap-index.xml): XML sitemap of all docs URLs`,
+      `- [robots.txt](${SITE_URL}/robots.txt): Crawl policy`,
+      '',
+      '## Documentation for agents',
+      '',
+      `- [Full guides corpus (Markdown)](${SITE_URL}/docs/llms-full.txt): Every guide page concatenated into one plain-text file`,
+      `- [Docs pages as Markdown](${SITE_URL}/docs/_md/${CANONICAL_PREFIX}/installation.md): Every docs page, guides and API alike, has a Markdown twin at /docs/_md/{framework}/{slug}.md`,
+      `- [Skills for Claude Code](${SITE_URL}/docs/${CANONICAL_PREFIX}/skills-for-claude-code/): Versioned skills for Handsontable and HyperFormula (repo: https://github.com/handsontable/handsontable-skills)`,
+      '',
+      '## API reference',
+      '',
+      `- [API introduction](${SITE_URL}/docs/${CANONICAL_PREFIX}/api/): Entry point to the API reference`,
+      `- [Configuration options](${SITE_URL}/docs/${CANONICAL_PREFIX}/api/options/): Every grid option`,
+      `- [Core methods](${SITE_URL}/docs/${CANONICAL_PREFIX}/api/core/): Instance methods`,
+      `- [Hooks](${SITE_URL}/docs/${CANONICAL_PREFIX}/api/hooks/): Lifecycle and event hooks`,
+    ];
+
+    for (const section of sections) {
+      lines.push('', `## ${section.label}`, '');
+
+      for (const { label, slug } of section.items) {
+        const meta = pageMeta.get(slug);
+        const desc = meta?.description ? `: ${meta.description}` : '';
+
+        lines.push(`- [${label}](${SITE_URL}/docs/${CANONICAL_PREFIX}/${slug}/)${desc}`);
+      }
+    }
+
+    lines.push(
+      '',
+      '## Source',
+      '',
+      '- [GitHub repository](https://github.com/handsontable/handsontable): Source code, issues, releases',
+      '- [npm package](https://www.npmjs.com/package/handsontable): Published package',
+      '',
+      '## Licensing',
+      '',
+      `- [License key guide](${SITE_URL}/docs/${CANONICAL_PREFIX}/license-key/): How to apply a commercial or non-commercial key`,
+      `- [Pricing](${SITE_URL}/pricing): Commercial plans`,
+      `- [Contact sales](${SITE_URL}/get-a-quote): Get a quote for commercial use`,
+      ''
+    );
+
+    return lines.join('\n');
+  }
+
+  /**
+   * Builds /docs/llms-full.txt — the guide pages concatenated in sidebar
+   * order, one canonical (JavaScript) copy per page, in the format
+   * HyperFormula's corpus uses (## slug header, URL line, page body).
+   */
+  function buildLlmsFull(routeMap, sections) {
+    const parts = [
+      '# Handsontable Documentation',
+      '',
+      '> Full guides corpus for LLM consumption. One canonical copy per page (JavaScript variant);',
+      '> React, Angular, and Vue variants exist at the same slug under their own framework prefix.',
+      '> Each page is also served individually at /docs/_md/{framework}/{slug}.md.',
+      '',
+    ];
+
+    for (const section of sections) {
+      for (const { slug } of section.items) {
+        const md = routeMap.get(`${CANONICAL_PREFIX}/${slug}.md`);
+
+        if (!md) continue;
+
+        parts.push('---', '', `## /${slug}`, '', `URL: ${SITE_URL}/docs/${CANONICAL_PREFIX}/${slug}/`, '', md, '');
+      }
+    }
+
+    return parts.join('\n');
   }
 
   function writeFiles(outDir) {
-    const routeMap = buildRouteMap();
+    const { routeMap, pageMeta } = buildRouteMap();
 
     for (const [filePath, md] of routeMap) {
       const dest = resolve(outDir, filePath);
@@ -653,6 +804,13 @@ function markdownRoutesIntegration() {
       mkdirSync(destDir, { recursive: true });
       writeFileSync(dest, md, 'utf-8');
     }
+
+    // The llms files live one level above _md, at the site root (/docs/).
+    const sections = buildLlmsSections();
+    const rootDir = dirname(outDir);
+
+    writeFileSync(resolve(rootDir, 'llms.txt'), buildLlmsIndex(pageMeta, sections), 'utf-8');
+    writeFileSync(resolve(rootDir, 'llms-full.txt'), buildLlmsFull(routeMap, sections), 'utf-8');
 
     return routeMap.size;
   }

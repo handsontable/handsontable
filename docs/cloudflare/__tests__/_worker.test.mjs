@@ -664,3 +664,68 @@ test('a path rule matched on a preview host stays on that host', async() => {
     'https://pr-13414.handsontable-docs-staging.pages.dev/docs/javascript-data-grid/',
   );
 });
+
+// ---------------------------------------------------------------------------
+// Rule 18b: agent-facing text files are served as text/plain
+// ---------------------------------------------------------------------------
+
+/**
+ * ASSETS mock that serves every request as `text/markdown`, the content type
+ * Cloudflare Pages assigns to .md assets — the exact behavior rule 18b exists
+ * to override.
+ *
+ * @param {number} [status]
+ * @returns {object}
+ */
+function markdownAssetsEnv(status = 200) {
+  return {
+    ASSETS: {
+      fetch: async() => new Response(status === 200 ? '# Installation' : 'not found', {
+        status,
+        headers: { 'Content-Type': 'text/markdown; charset=utf-8' },
+      }),
+    },
+  };
+}
+
+test('a /docs/_md/ Markdown twin is served as text/plain (rule 18b)', async() => {
+  const worker = loadWorker();
+  const response = await worker.fetch(
+    request('/docs/_md/react-data-grid/installation.md'),
+    markdownAssetsEnv(),
+  );
+
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('content-type'), 'text/plain; charset=utf-8');
+  assert.equal(await response.text(), '# Installation');
+});
+
+test('llms.txt and llms-full.txt are served as text/plain (rule 18b)', async() => {
+  const worker = loadWorker();
+
+  for (const path of ['/docs/llms.txt', '/docs/llms-full.txt']) {
+    const response = await worker.fetch(request(path), markdownAssetsEnv());
+
+    assert.equal(response.status, 200, `${path} must serve`);
+    assert.equal(response.headers.get('content-type'), 'text/plain; charset=utf-8', path);
+  }
+});
+
+test('a missing _md twin passes the 404 through without a content-type override', async() => {
+  const worker = loadWorker();
+  const response = await worker.fetch(
+    request('/docs/_md/react-data-grid/no-such-page.md'),
+    markdownAssetsEnv(404),
+  );
+
+  assert.equal(response.status, 404);
+  assert.equal(response.headers.get('content-type'), 'text/markdown; charset=utf-8');
+});
+
+test('non-agent assets keep the content type Pages assigned them', async() => {
+  const worker = loadWorker();
+  const response = await worker.fetch(request('/docs/some-page.md.png'), markdownAssetsEnv());
+
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('content-type'), 'text/markdown; charset=utf-8');
+});
