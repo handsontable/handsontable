@@ -121,7 +121,7 @@ const fixturePath = path.resolve(import.meta.dirname, 'fixture.html');
 
 test(config.name, async({ page }) => {
   await page.goto(`file://${fixturePath}`);
-  await page.waitForFunction(() => (window as any).__hot);
+  await page.waitForFunction(() => (window as any).__hot, undefined, { polling: 100 });
 
   // Optional pre-trace setup (e.g., scroll to position)
 
@@ -315,6 +315,7 @@ All `.mjs` files in this package follow the `node-scripts-dev` skill conventions
 | Using sync fs APIs in `.mjs` files | Use `node:fs/promises` async APIs |
 | Missing `window.__hot` in fixture | The spec's `waitForFunction` and `page.evaluate` depend on it |
 | Forgetting `resetFn` when measuring repeatable actions | Without reset, iterations 2+ start from the end state of iteration 1 |
+| `waitForFunction()` without `{ polling }` | The rAF default is starved on a loaded machine and times out on a healthy page. Pass `undefined, { polling: 100 }`; the tier's eslint config bans the default |
 | Using `waitForTimeout()` for scroll/render waits | Use `scrollToRow()` / `scrollToColumn()` from `lib/scroll-utils.mjs`, or `waitForFunction` with a renderable index check |
 | Manually writing `hook-timing.json` with `writeFile` | Use `saveHookTimings(outputDir, deltas)` from `lib/hook-timing.mjs` |
 | Using TypeScript syntax (`as any`) in `.mjs` files | Use JSDoc casts: `/** @type {any} */ (window)` -- `.mjs` is not transpiled |

@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 
 type RendererCall = {
   renderer: string;
@@ -53,9 +54,7 @@ export class UpdateSettingsColumnShrinkPage {
     await this.page.goto(
       `/tests/fixtures/demo/update-settings-column-shrink.html?theme=${this.theme}&bundle=${this.bundle}`
     );
-    // The bundle script and the block that builds the grid are separate, so wait
-    // for the library itself before asserting on anything the fixture exposes.
-    await this.page.waitForFunction(() => 'Handsontable' in window);
+    await awaitBundle(this.page);
     await expect(this.cell(0, 0)).toBeVisible();
   }
 
