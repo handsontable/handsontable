@@ -334,13 +334,17 @@ export class AutoRowSize extends BasePlugin {
    *
    * Only a render measures rows, and it measures just the visible band, so an emptied cache leaves
    * every row below the fold unmeasured for good. Such a row falls back to the default height,
-   * which its own cell then refuses to honour once a wide wrapping column scrolls into view - a
+   * which its own cell then refuses to honor once a wide wrapping column scrolls into view - a
    * cell never renders shorter than its text - while the row header, having nothing to push it
-   * taller, does honour it. The two tables drift apart from there.
+   * taller, does honor it. The two tables drift apart from there.
    *
    * The flag makes the next render restore the measurements the way `#onInit` does. Deferring
    * rather than measuring inside `clearCache()` keeps repeated calls down to one recalculation and
    * leaves `clearCache()` as cheap as it has always been.
+   *
+   * "The next render" means a full one: `beforeRender` is raised by `TableView#render()`, not by
+   * the engine's scroll draw, so a caller that clears the cache and then only scrolls gets nothing.
+   * Every documented use of `clearCache()` pairs it with a redraw.
    *
    * @type {boolean}
    */
@@ -720,6 +724,14 @@ export class AutoRowSize extends BasePlugin {
    * Clears cache of calculated row heights. If you want to clear only selected rows pass an array with their indexes.
    * Otherwise whole cache will be cleared.
    *
+   * Clearing the whole cache schedules a full re-measurement, which runs on the next render. Note
+   * that a scroll is not a render in this sense - pair the call with {@link Core#render} the way the
+   * examples do, or the heights are not rebuilt.
+   *
+   * Passing an array clears those rows only and schedules nothing; call
+   * {@link AutoRowSize#recalculateAllRowsHeight} yourself if they must be re-measured before they
+   * are next drawn.
+   *
    * @param {number[]} [physicalRows] List of physical row indexes to clear.
    */
   clearCache(physicalRows?: number[]): void {
@@ -735,10 +747,12 @@ export class AutoRowSize extends BasePlugin {
     } else {
       this.rowHeightsMap.clear();
       // Nothing is measured any more, so the next render owes a full recalculation - see
-      // `#fullRecalculationScheduled`. The selective form above is deliberately left out: it clears
-      // named rows only, and recalculating the whole grid for them would be a far bigger pass than
-      // the caller asked for.
-      this.measuredRows = 0;
+      // `#fullRecalculationScheduled`.
+      //
+      // `measuredRows` is deliberately left alone. It is what the public `isNeedRecalculate()`
+      // slices, and zeroing it makes that method answer "nothing to recalculate" at the exact
+      // moment every height was dropped. AutoColumnSize leaves its counterpart alone for the same
+      // reason.
       this.#fullRecalculationScheduled = true;
     }
   }
@@ -803,24 +817,31 @@ export class AutoRowSize extends BasePlugin {
    * changes before the next render.
    */
   #onBeforeRender = () => {
-    // A wiped cache is restored in full before anything else, so the rows below the fold are
-    // measured too and not just the visible band. The flag is held until a render that can actually
-    // measure: `recalculateAllRowsHeight()` is a no-op while the grid is hidden, and consuming it
-    // there would leave the cache empty for good.
-    if (this.#fullRecalculationScheduled && this.hot.view.isVisible()) {
-      this.#fullRecalculationScheduled = false;
-      // The full pass overwrites every height, so anything queued by a data change is covered.
-      this.#visualRowsToRefresh = [];
-      this.recalculateAllRowsHeight();
-
-      return;
-    }
-
     this.calculateVisibleRowsHeight();
 
     if (!this.inProgress) {
       this.#calculateSpecificRowsHeight(this.#visualRowsToRefresh);
       this.#visualRowsToRefresh = [];
+    }
+
+    // A wiped cache is restored in full, so the rows below the fold are measured too and not just
+    // the visible band - see `#fullRecalculationScheduled`. It runs AFTER the visible band above,
+    // never instead of it: `calculateAllRowsHeight()` only measures up to `syncLimit` rows
+    // synchronously and leaves the rest to an idle sweep, so on a grid scrolled past that limit the
+    // band on screen would otherwise draw unmeasured, which is the very defect this repairs.
+    //
+    // The flag is held rather than consumed whenever this render cannot measure: while the grid is
+    // hidden `recalculateAllRowsHeight()` is a no-op, and with no columns the measurement writes a
+    // near-empty height for every row that nothing would ever correct (the same reason
+    // `calculateVisibleRowsHeight()` bails out on a column-less grid).
+    if (this.#fullRecalculationScheduled &&
+        this.hot.countCols() > 0 &&
+        this.hot.countRows() > 0 &&
+        this.hot.view.isVisible()) {
+      // Consumed before the call, not after: the sweep resizes the overlays, and a re-entrant
+      // render reaching this branch with the flag still set would recurse.
+      this.#fullRecalculationScheduled = false;
+      this.recalculateAllRowsHeight();
     }
   };
 

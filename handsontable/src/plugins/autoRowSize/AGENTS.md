@@ -46,6 +46,44 @@ Changing `wordWrap`, `textEllipsis` or a renderer changes row heights, but `upda
 re-measure. Callers must follow it with `recalculateAllRowsHeight()`. That is documented in the class JSDoc
 and in the guides — it is the contract, not a bug.
 
+## Only a full render measures rows, and it measures only the visible band
+
+`calculateVisibleRowsHeight()` hangs off **`beforeRender`**, which `TableView#render()` raises — the engine's
+scroll draw does not. So scrolling measures nothing, and a render measures only the rows it draws. On an
+ordinary grid that is invisible, because `#onInit` sweeps every row up front through `calculateAllRowsHeight()`.
+
+Anything that empties the cache has to put that sweep back, or every row below the fold keeps the default
+height for good. That is not a cosmetic default: once a wide wrapping column is scrolled into view the data
+cell renders at its content height (a cell never renders shorter than its own text) while the row header
+honors the default, so the row headers slide out of alignment and the gap accumulates down the grid
+(DEV-2812, reported as DEV-2718).
+
+`clearCache()` with no argument therefore sets `#fullRecalculationScheduled`, and `#onBeforeRender` honors it.
+Three rules ride along:
+
+- **The full sweep runs *after* `calculateVisibleRowsHeight()`, never instead of it.**
+  `calculateAllRowsHeight()` measures only up to `syncLimit` rows synchronously and leaves the rest to an
+  idle sweep that schedules no redraw of its own, so a grid scrolled past that limit would draw its visible
+  band unmeasured — re-creating the defect on the frame that was supposed to repair it.
+- **The flag is held, not consumed, when the render cannot measure.** `recalculateAllRowsHeight()` is a no-op
+  on a hidden grid, and on a column-less one the measurement writes a near-empty height for every row that
+  nothing later corrects (`calculateVisibleRowsHeight()` bails out on that grid for the same reason, with the
+  comment "Keep last row heights unchanged for situation when all columns was deleted or trimmed"). Consuming
+  the flag in either case would leave the cache empty permanently.
+- **The flag is consumed before the sweep, not after.** The sweep resizes the overlays, and a re-entrant
+  render reaching the branch with the flag still set would recurse. The cost is that a renderer that throws
+  mid-sweep spends the flag — acceptable, since a throwing renderer has already broken the draw.
+
+`clearCache()` must **not** zero `measuredRows`: the public `isNeedRecalculate()` slices the height map by it,
+so zeroing it makes that method answer "nothing to recalculate" at the exact moment every height was dropped.
+`AutoColumnSize#clearCache()` leaves its counterpart alone too.
+
+**Known gap:** the selective forms — `clearCache([rows])` and `clearCacheByRange()` — have the same
+below-the-fold hole and schedule nothing. `#calculateSpecificRowsHeight()` measures named rows from the data
+without needing them on screen, so queueing them on `#visualRowsToRefresh` is the shape of the fix; it was
+left out of DEV-2812 because an unbounded range would then be measured synchronously in one render, which
+needs its own sizing decision. Tracked separately.
+
 ## Listeners stay bound while disabled — deliberately
 
 `disablePlugin()` leaves the height-recalculation listener active, because ManualRowResize's

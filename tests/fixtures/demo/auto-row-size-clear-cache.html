@@ -97,6 +97,14 @@
 
     window.hot = hot;
 
+    // Counts draws so a test can wait for the grid to have actually repainted after a scroll.
+    // The rendered band cannot serve as that signal here: all four columns are always rendered, so
+    // a horizontal scroll leaves the band untouched while still repainting.
+    window.renderCount = 0;
+    hot.addHook('afterViewRender', function() {
+      window.renderCount += 1;
+    });
+
     /**
      * Reproduces the reported call: drop every measured height, then ask for a redraw. An
      * application does this to force the grid to re-measure after it has changed how cells render.

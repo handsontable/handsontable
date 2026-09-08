@@ -34,28 +34,31 @@ export class AutoRowSizeClearCachePage {
   }
 
   /**
-   * Scrolls the grid, then waits for the scroll to have actually landed and been drawn.
+   * Scrolls the grid and lets the browser paint before anything is measured.
    *
    * Each offset is clamped to the grid's own range, so a caller can ask for "as far as it goes"
    * with a large number and not depend on a total width that differs per theme.
+   *
+   * This waits on animation frames rather than polling a condition, and that is deliberate: there
+   * is no condition left to poll. The browser clamps `scrollTop`/`scrollLeft` during the assignment,
+   * so they read back final on the very next line; Handsontable applies the scroll inside its own
+   * synchronous handler; the rendered band never moves horizontally here, because all four columns
+   * of this fixture are always rendered; and a horizontal scroll raises no `afterViewRender` at all.
+   * What is left to wait for is the paint itself, and a frame is the unit that names it. The
+   * measurements are exact once it has passed, since `getBoundingClientRect` forces layout.
    *
    * @param {number} top Vertical offset, in pixels.
    * @param {number} left Horizontal offset, in pixels.
    */
   async scrollTo(top: number, left: number): Promise<void> {
-    const landed = await this.holder.evaluate((holder, [t, l]) => {
+    await this.holder.evaluate((holder, [t, l]) => {
       holder.scrollTop = Math.min(t as number, holder.scrollHeight - holder.clientHeight);
       holder.scrollLeft = Math.min(l as number, holder.scrollWidth - holder.clientWidth);
-
-      return [holder.scrollTop, holder.scrollLeft];
     }, [top, left]);
 
-    // A real DOM condition rather than a sleep: the scroll has landed and a frame has been painted.
-    await expect.poll(() => this.holder.evaluate(h => [h.scrollTop, h.scrollLeft]))
-      .toEqual(landed);
-    await this.page.evaluate(
-      () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
-    );
+    await this.page.evaluate(() => new Promise((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(resolve));
+    }));
   }
 
   /**
@@ -71,9 +74,22 @@ export class AutoRowSizeClearCachePage {
     return this.grid.evaluate((root) => {
       const masterRows = [...root.querySelectorAll('.ht_master .wtHolder table tbody tr')];
       const cloneRows = [...root.querySelectorAll('.ht_clone_inline_start .wtHolder table tbody tr')];
+
+      // Without this, an empty or short clone list would skip the loop and report a drift of 0 -
+      // the assertions would pass while measuring nothing, the control test included.
+      if (masterRows.length === 0) {
+        throw new Error('No master rows rendered; the drift measurement would be vacuous.');
+      }
+      if (masterRows.length !== cloneRows.length) {
+        throw new Error(
+          `Master rendered ${masterRows.length} rows but the row-header overlay rendered ` +
+          `${cloneRows.length}; the two tables cannot be compared row by row.`
+        );
+      }
+
       let worst = 0;
 
-      for (let i = 0; i < masterRows.length && i < cloneRows.length; i++) {
+      for (let i = 0; i < masterRows.length; i++) {
         const master = masterRows[i].getBoundingClientRect();
         const clone = cloneRows[i].getBoundingClientRect();
 
@@ -124,6 +140,10 @@ export class AutoRowSizeClearCachePage {
     await this.page.goto(
       `/tests/fixtures/demo/auto-row-size-clear-cache.html?theme=${this.theme}&bundle=${this.bundle}`
     );
+    // The bundle first, and with `waitForFunction` rather than `expect`: the dist file is several
+    // megabytes and every worker pulls its own copy, so a cold server outlasts the 10s `expect`
+    // timeout and the leg would fail pointing at an overlay class instead of the real cause.
+    await this.page.waitForFunction(() => 'Handsontable' in window);
     await expect(this.inlineStartOverlay).toBeVisible();
     await expect(this.grid.locator('.ht_master tbody tr').first()).toBeVisible();
   }
