@@ -621,3 +621,26 @@ The install does not need a re-entry flag today. The site does not use `<ClientR
 The live guard is in `src/components/Head.astro`; its regression test is `src/components/__tests__/head-starlight-toc-has-guard.test.mjs`, which extracts the shipped script, asserts `Head.astro` holds exactly one guard script, and runs the guard against a double that replicates the class-field shape. It runs under `npm run docs:test:plugins`. Any claim that such a patch works needs a browser check of the *instance* property, not just the absence of a local error.
 
 Unrelated to this: `src/plugins/replace-has-selectors.mjs` and `src/plugins/has-fallback-runtime.mjs` rewrite `:has()` in **stylesheets** for performance. They do not touch selector strings passed to `querySelectorAll` inside third-party bundles.
+
+---
+
+## 2.15 Cascade layers in the docs CSS
+
+Starlight puts its own styles in cascade sublayers - `starlight.base`, `starlight.reset`, `starlight.core`, `starlight.content`, `starlight.components`, `starlight.utils`, in that order - and `starlight.reset` carries `* { margin: 0 }` while `starlight.content` carries the markdown spacing (`--sl-content-gap-y`). Later layers beat earlier ones regardless of specificity, so if `reset` ends up after `content`, every gap between paragraphs, code blocks, lists and asides collapses to zero on every page. Unlayered rules (most of `src/styles/base/typography.css`) beat all layers, so headings keep their margins and the breakage reads as "the prose is cramped" rather than "the CSS is broken" (DEV-2742).
+
+Two things establish that order, and both matter:
+
+- **`src/styles/custom.css` opens with an `@layer` statement** listing all six sublayers plus `rapide`. Keep it first in the file. Starlight ships the same statement in `@astrojs/starlight/style/layers.css`, but that copy is inert: the `customCss` stylesheets are bundled ahead of Starlight's own, so by the time `layers.css` appears the layers it names are already established.
+- **Position decides whether a statement does anything.** Astro's `astro:css-target-lowering` plugin runs each emitted stylesheet through lightningcss, which resolves an `@layer a, b;` statement by physically reordering the blocks that follow it, then drops the statement. A statement that lands *after* a block for a layer it names cannot reorder that layer, so lightningcss drops it and changes nothing. Never expect to find the statement in `dist/_astro/*.css` - the invariant that ships is the order of the `@layer` blocks.
+
+So an `@layer starlight.<name>` block in a docs stylesheet (`src/styles/**`) or in a component `<style>` block (`src/components/*.astro`) is only safe while `custom.css` lists that layer. Adding one that it does not list makes that layer's first appearance land wherever the bundler happens to put it.
+
+Both halves are guarded, on three different triggers - know which one you are relying on:
+
+| Guard | What it checks | Runs |
+|---|---|---|
+| `src/lib/__tests__/cascade-layer-order.test.mjs` | the authoring rules: statement first, full order, no undeclared layer anywhere in the docs CSS | every PR, via `docs.yml`'s `plugins` job (`npm run docs:test:plugins`) |
+| `scripts/validate-layer-order.mjs` | the built pages' stylesheets in document order (links and inline `<style>`), failing when the block order deviates | `npm run build`, after `astro build` - so every same-repo PR through the `preview` job, but **not** on a fork or Dependabot PR, where `preview` is guarded off |
+| `tests/markdownProseSpacing.spec.ts` | the reader-visible gap on a built page | only when the PR carries the `run-docs-visual` label - it lives in `testDir: './tests'`, the opt-in visual suite |
+
+So the label-gated spec is a backstop, not a gate. The first two are what actually hold the line on a normal PR.
