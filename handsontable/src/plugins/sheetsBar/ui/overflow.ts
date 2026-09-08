@@ -52,6 +52,11 @@ export class OverflowController {
    * Observes strip size changes.
    */
   #resizeObserver: ResizeObserver | null = null;
+  /**
+   * The pending animation frame deferring a resize-driven refresh, so it can be canceled on
+   * teardown.
+   */
+  #refreshFrame: number | null = null;
 
   /**
    * Wires the controller to the strip and arrow elements.
@@ -86,10 +91,25 @@ export class OverflowController {
   }
 
   /**
-   * Starts observing the strip for size and content changes.
+   * Starts observing the strip for size and content changes. The observer's refresh is
+   * deferred to the next animation frame: `refresh()` toggles the paging section, which
+   * changes the observed strip's own width in the same flex row — a synchronous write to
+   * observed geometry from inside the observer's callback (the same reason
+   * StretchColumns defers its ResizeObserver work).
    */
   attach(): void {
-    this.#resizeObserver = new ResizeObserver(() => this.refresh());
+    this.#resizeObserver = new ResizeObserver(() => {
+      const view = this.#strip.ownerDocument.defaultView;
+
+      if (this.#refreshFrame !== null || !view) {
+        return;
+      }
+
+      this.#refreshFrame = view.requestAnimationFrame(() => {
+        this.#refreshFrame = null;
+        this.refresh();
+      });
+    });
     this.#resizeObserver.observe(this.#strip);
     this.#strip.addEventListener('scroll', this.#onScroll);
     this.refresh();
@@ -98,9 +118,14 @@ export class OverflowController {
   /**
    * Recomputes arrow visibility from the current overflow state, and whether each arrow still
    * has strip left to scroll.
+   *
+   * Overflow is measured against the width the strip would have with the paging section
+   * hidden. The arrows take their room from the strip itself, so measuring the shrunken strip
+   * would keep them shown once tabs fit again without them — a state they could never leave.
    */
   refresh(): void {
-    const overflows = this.#strip.scrollWidth > this.#strip.clientWidth;
+    const pagingWidth = this.#pagingSection.hidden ? 0 : this.#pagingSection.offsetWidth;
+    const overflows = this.#strip.scrollWidth > this.#strip.clientWidth + pagingWidth;
 
     this.#pagingSection.hidden = !(this.#pagingEnabled && overflows);
 
@@ -135,6 +160,11 @@ export class OverflowController {
    * Stops observing.
    */
   destroy(): void {
+    if (this.#refreshFrame !== null) {
+      this.#strip.ownerDocument.defaultView?.cancelAnimationFrame(this.#refreshFrame);
+      this.#refreshFrame = null;
+    }
+
     this.#resizeObserver?.disconnect();
     this.#resizeObserver = null;
     this.#strip.removeEventListener('scroll', this.#onScroll);

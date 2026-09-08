@@ -35,6 +35,13 @@ export const NEW_SHEET_ROW_COUNT = 1000;
 export const MAX_SHEET_NAME_LENGTH = 50;
 
 /**
+ * The shared grapheme segmenter, built on first use. The constructor is one of the pricier
+ * `Intl` ones, the instance keeps no state between calls, and name clamping runs on every
+ * rename-input keystroke and once per candidate in the unique-name loop.
+ */
+let segmenter: Intl.Segmenter | null = null;
+
+/**
  * Splits a string into the characters a reader sees — grapheme clusters, so a flag or a
  * family emoji or a letter with a combining mark is one character, not two or seven.
  *
@@ -42,7 +49,9 @@ export const MAX_SHEET_NAME_LENGTH = 50;
  * @returns {string[]} The characters.
  */
 function toCharacters(text: string): string[] {
-  return Array.from(new Intl.Segmenter().segment(text), segment => segment.segment);
+  segmenter ??= new Intl.Segmenter();
+
+  return Array.from(segmenter.segment(text), segment => segment.segment);
 }
 
 /**
