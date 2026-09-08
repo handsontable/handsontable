@@ -61,4 +61,32 @@ test.describe('sheets bar touch drag', () => {
 
     await expect.poll(names).toEqual(['Beta', 'Gamma', 'Alpha']);
   });
+
+  // A long-press raises `contextmenu` with `button: 0`, like the keyboard's Shift+F10 — the
+  // strip tells them apart by the pointer being down on the tab, so a long-press must open the
+  // menu with no item preselected. (The other `button: 0` pointer opener, macOS Ctrl+click,
+  // cannot be synthesized from Playwright and rides on the same flag.)
+  test('a touch long-press opens the active tab menu with no item preselected', async ({ page, theme, bundle }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+
+    await bar.goto();
+
+    const active = (await bar.tab(0).boundingBox())!;
+    const cdp = await page.context().newCDPSession(page);
+
+    await cdp.send('Input.dispatchTouchEvent', {
+      type: 'touchStart',
+      touchPoints: [{ x: active.x + (active.width / 2), y: active.y + (active.height / 2) }],
+    });
+
+    // Chromium's gesture recognizer raises `contextmenu` on its own long-press timer while the
+    // finger stays down; the web-first wait below is what paces the hold.
+    await expect(page.locator('.htSheetsBarMenu:visible')).toHaveCount(1);
+    await expect(page.locator('.htSheetsBarMenu td.current')).toHaveCount(0);
+
+    await cdp.send('Input.dispatchTouchEvent', {
+      type: 'touchEnd',
+      touchPoints: [],
+    });
+  });
 });
