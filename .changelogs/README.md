@@ -120,6 +120,59 @@ This command "consumes" all changelog entries, asserts that they're all valid, f
 It is side-effect free (as in it does nothing outside of your local copy of this repository), to undo just checkout the old versions of `.changelogs` and `CHANGELOG.md`.
 
 
+## Publishing to the docs changelog page
+
+`consume` and `sync` write the root `CHANGELOG.md`, and the release workflow copies that version's
+section into `docs/content/guides/upgrade-and-migration/changelog/changelog.md`. **Nothing writes the
+per-major page** `docs/content/guides/upgrade-and-migration/changelog-<N>/changelog-<N>.md`. Someone
+copies the section there by hand, demoting `###` to `####`, and that page is what the docs site and
+the version-comparison UI read.
+
+That hand step owns one editorial rule, and it is the reason this section exists: **every new option,
+hook, method, and plugin named in an `Added` entry links to its reference page.** The practice ran
+from 10.0.0 to 14.2.0, was never written down, and lapsed at 14.3.0 when the person doing it left
+(DEV-2790).
+
+Use the bracketed form, with a lowercase anchor:
+
+```markdown
+- Added an Enter key handler and a new [`searchMode`](@/api/options.md#searchmode) option to the
+  [`Filters`](@/api/filters.md) plugin. [#11871](https://github.com/handsontable/handsontable/pull/11871)
+```
+
+| Named thing | Link target |
+|---|---|
+| configuration option | `@/api/options.md#<lowercased name>` |
+| hook | `@/api/hooks.md#<lowercased name>` |
+| Core method | `@/api/core.md#<lowercased name>` |
+| plugin, or a plugin method | `@/api/<pluginName>.md`, `@/api/<pluginName>.md#<lowercased method>` |
+
+Anchors are the plain lowercased member name, because the reference page emits the name verbatim as a
+heading. `#minRowHeights` never resolves; `#minrowheights` does.
+
+Leave unlinked anything that has no reference page: theme tokens and CSS class names, TypeScript type
+names, external APIs such as `Intl.NumberFormat`, object keys that are not API members, and wrapper
+package names. A link to a page that does not document the name is worse than no link.
+
+`npm run docs:validate-changelog-links --prefix docs` lists the candidates and flags `@/api/` links
+whose file or anchor cannot resolve. It is report-only, runs on every docs pull request, and its
+candidate set is a heuristic: a backticked word that happens to match an option name is not proof the
+entry introduced that option. Judge each finding.
+
+It sees options, hooks, plugin classes, and `Core` members. **It does not see plugin methods**, and
+cannot: a bare `collapseAll()` belongs to both the `CollapsibleColumns` and the `NestedRows` plugin,
+and only the sentence around it says which. Link those by hand.
+
+### Why the link cannot live in the entry `title`
+
+`bin/changelog` renders `title` verbatim into four destinations: the root `CHANGELOG.md`, the GitHub
+release body, the docs changelog page, and the version-comparison UI. Only the docs page resolves
+`@/api/` links. On GitHub the same text renders as a link to a literal `@/api/...` path, which 404s,
+and the version-comparison UI drops the link and keeps the text. So an entry title that needs a docs
+link uses an absolute `https://handsontable.com/docs/...` URL, and reference linking happens later,
+on the docs page.
+
+
 ## No entry may be published twice
 
 `consume` and `sync` both check a pending entry against what `CHANGELOG.md` already publishes, and refuse to compile it when that match is conclusive; a less certain match only warns. Without that check the same change gets announced in two consecutive releases, which happened at most releases up to 18.1.0.

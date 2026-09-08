@@ -742,7 +742,8 @@ class MergedCellsCollection {
    * of singletons) is documented in `docs/content/guides/cell-features/merge-cells/merge-cells.md`
    * under "Behavior during row/column reorder and column freeze". The one exception is a fragment
    * the caller lists in `retainedIndexes`: it shows one cell only because the rest of its rows are
-   * trimmed, so it is a merge again as soon as they come back.
+   * trimmed, so it is a merge again as soon as they come back. Both the row and the column callers
+   * pass it, since a merge trimmed to one visible row is already `rowspan: 1` before any column move.
    *
    * Every merge is replaced by a new object, so the returned map tells the caller which merges came
    * out of which — the plugin uses it to carry each merge's physical anchor onto its replacements

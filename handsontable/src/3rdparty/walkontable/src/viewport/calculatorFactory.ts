@@ -283,6 +283,7 @@ export const calculatorFactory: CalculatorFactory = {
     let pos = Math.abs(inlineStartOverlay.getScrollPosition()) - inlineStartOverlay.getTableParentOffset();
 
     this.columnHeaderHeight = NaN;
+    this.columnHeaderHeightFraction = NaN;
 
     const fixedColumnsStart = wtSettings.getSetting<number>('fixedColumnsStart');
 
