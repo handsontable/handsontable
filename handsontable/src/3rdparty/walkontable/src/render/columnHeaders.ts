@@ -123,6 +123,17 @@ export class ColumnHeadersRenderer extends BaseRenderer {
         }
 
         columnHeaderFunctions[visibleRowIndex](sourceColumnIndex, TH, visibleRowIndex);
+
+        // The LAST of this row's `rowHeadersCount` corner cells: it owns the head row's copy of the
+        // seam to column 0, which the theme rule colors. CSS cannot pick it out - a corner is a `th`
+        // like the column headers beside it - so `:first-child` was the rule's old key and it selects
+        // the wrong corner once there are two. `rowHeadersCount === 0` needs no guard: the target is
+        // then -1 and this loop counts up from 0. Stamped after the header renderer runs, which is
+        // free to assign to `TH.className`. Why no clearing pass, and what would need one:
+        // AGENTS.md, "Column-axis border ownership".
+        if (visibleColumnIndex === rowHeadersCount - 1) {
+          addClass(TH, 'htLastRowHeaderColumn');
+        }
       }
 
       orderView.end();

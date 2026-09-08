@@ -90,11 +90,13 @@ The class also applies `isolation: isolate` to the wrapper. Without it, the grid
 
 Some platforms wrap the DOM APIs in a security sandbox. Salesforce Lightning Web Security (LWS) filters `Event#composedPath()` and limits `document.activeElement` resolution for the sandboxed code. Handsontable falls back to signals that stay reliable in such environments: per-listener event targets and focus tracking within its own DOM tree. Cell editing, selection, keyboard handling, and copy and paste work under LWS without wrapper-side workarounds.
 
+A sandbox can also narrow how far a clipboard event travels before your code sees it. Handsontable binds its `copy`, `cut`, and `paste` listeners on the grid's own element, on the document, and on the grid's shadow root, so the shortcuts work whichever of those the host delivers to. You don't need to forward clipboard events to the grid yourself.
+
 Salesforce Lightning Experience renders Lightning Web Components with its synthetic Shadow DOM polyfill by default. Handsontable works in that default mode. It also works with the native opt-in (`static shadowSupportMode = 'native'`), with one requirement: Salesforce's `loadStyle` injects CSS into the document head, which a native shadow root ignores. Inject both Handsontable stylesheets into the component's shadow tree instead - for example, append the `<link>` elements inside the `lwc:dom="manual"` container and wait for their `load` events before you create the grid.
 
 ## Known limitations
 
-- Handsontable checks the container's root node only when the instance is created. That check controls three things: the `ht-shadow-dom` class, the shadow-root clipboard listeners that copy and paste rely on in sandboxed hosts, and the shadow-root mouse listeners the comment tooltip uses to react to hovering. If you move a live grid into or out of a shadow root, destroy the instance and create it again.
+- Handsontable checks the container's root node only when the instance is created. That check controls three things: the `ht-shadow-dom` class, the shadow-root clipboard listeners, and the shadow-root mouse listeners the comment tooltip uses to react to hovering. If you move a live grid into or out of a shadow root, destroy the instance and create it again.
 - The cell editor doesn't leave the grid's stacking context. In a tight layout, an editor that overflows the grid's wrapper can paint under the host page content that creates its own stacking context.
 
 ## Related guides

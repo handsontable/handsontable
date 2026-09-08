@@ -242,4 +242,189 @@ describe('MasterTable.alignOverlaysWithTrimmingContainer', () => {
       expect(holder.style.height).toBe('0px');
     });
   });
+
+  // The horizontal axis owned by the root (`overflow-x: clip`) and the vertical one by a parent that
+  // hides its overflow but has no height of its own. The parent's height is its content – the grids –
+  // so a holder sized to it in pixels feeds that height back into the parent: with two grids each
+  // holder takes the sum of both and the parent grows to the CSS height limit (issue #3119, which the
+  // element mode guards against with the same probe).
+  describe('with a vertical owner that has no intrinsic height (#3119)', () => {
+    const debug = false;
+
+    beforeEach(function() {
+      this.$outerWrapper = $('<div></div>').css({ 'overflow-y': 'hidden' });
+      this.$wrapper = $('<div></div>').addClass('handsontable').css({ 'overflow-x': 'clip', width: '350px' });
+      this.$secondWrapper = $('<div></div>').addClass('handsontable').css({ 'overflow-x': 'clip', width: '350px' });
+      this.$container = $('<div></div>');
+      this.$secondContainer = $('<div></div>');
+      this.$table = $('<table></table>').addClass('htCore');
+      this.$secondTable = $('<table></table>').addClass('htCore');
+
+      this.$outerWrapper
+        .append(this.$wrapper.append(this.$container.append(this.$table)))
+        .append(this.$secondWrapper.append(this.$secondContainer.append(this.$secondTable)));
+      this.$outerWrapper.appendTo('body');
+
+      createDataArray(5, 4);
+    });
+
+    afterEach(function() {
+      if (!debug) {
+        $('.wtHolder').remove();
+      }
+
+      this.secondInstance.destroy();
+      this.$outerWrapper.remove();
+      this.wotInstance.destroy();
+    });
+
+    it('should leave the holder height to the content instead of feeding the parent its own height', async() => {
+      const options = {
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      };
+      const wt = walkontable({ ...options }, spec().$table[0]);
+      const secondWt = walkontable({ ...options }, spec().$secondTable[0]);
+
+      spec().secondInstance = secondWt;
+      spec().wotInstance = wt;
+
+      wt.draw();
+      secondWt.draw();
+      wt.draw();
+      secondWt.draw();
+
+      expect(wt.wtTable.holder.style.height).toBe('auto');
+      expect(secondWt.wtTable.holder.style.height).toBe('auto');
+      expect(wt.wtTable.holder.style.width).toBe('350px');
+      expect(wt.wtTable.hasDefinedSize()).toBe(true);
+      expect(wt.wtViewport.isHorizontallyScrollableByWindow()).toBe(false);
+      expect(wt.wtViewport.isVerticallyScrollableByWindow()).toBe(false);
+      expect(spec().$outerWrapper[0].offsetHeight).toBeLessThan(window.innerHeight * 2);
+    });
+
+    it('should size the holder to the vertical owner when it has a height of its own', async() => {
+      spec().$outerWrapper.css({ height: '120px' });
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      }, spec().$table[0]);
+
+      spec().secondInstance = { destroy() {} };
+
+      wt.draw();
+      wt.draw();
+
+      expect(wt.wtTable.holder.style.height).toBe('120px');
+      expect(wt.wtTable.holder.style.width).toBe('350px');
+      expect(wt.wtTable.hasDefinedSize()).toBe(true);
+    });
+  });
+
+  // One axis owned by an element, the other by the window: a root with `overflow-x: clip` and no
+  // vertical clip (a definite `width` with no sized `height`). The holder takes the root's width and
+  // scrolls horizontally inside it, and is left at its content height for the window to scroll.
+  describe('with an ancestor that clips the horizontal axis only', () => {
+    const debug = false;
+
+    beforeEach(function() {
+      this.$wrapper = $('<div></div>').addClass('handsontable').css({ 'overflow-x': 'clip', width: '300px' });
+      this.$container = $('<div></div>');
+      this.$table = $('<table></table>').addClass('htCore');
+      this.$wrapper.append(this.$container);
+      this.$container.append(this.$table);
+      this.$wrapper.appendTo('body');
+      createDataArray(20, 20);
+    });
+
+    afterEach(function() {
+      if (!debug) {
+        $('.wtHolder').remove();
+      }
+      this.$wrapper.remove();
+      this.wotInstance.destroy();
+    });
+
+    it('should size the holder to the root width and leave its height to the content', async() => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+
+      wt.draw();
+
+      expect(wt.wtTable.holder.style.width).toBe('300px');
+      expect(wt.wtTable.holder.style.height).toBe('auto');
+      expect(wt.wtTable.hasDefinedSize()).toBe(true);
+    });
+
+    it('should let the stylesheet scroll the holder and clip the master', async() => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+
+      wt.draw();
+
+      // No inline overflow: `.ht_master .wtHolder { overflow: auto }` scrolls the columns and
+      // `.ht_master { overflow: hidden }` clips the clones to the box. The window mode's inline
+      // `visible` must not be left on either.
+      expect(wt.wtTable.holder.style.overflow).toBe('');
+      expect(wt.wtTable.wtRootElement.style.overflow).toBe('');
+      expect(getComputedStyle(wt.wtTable.holder).overflowX).toBe('auto');
+      expect(getComputedStyle(wt.wtTable.wtRootElement).overflowX).toBe('hidden');
+      expect(wt.wtTable.holder.scrollWidth).toBeGreaterThan(wt.wtTable.holder.clientWidth);
+    });
+
+    it('should not probe the container with a clone on a repeated draw', async() => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+
+      wt.draw();
+      wt.draw();
+
+      let cloneCallCount = 0;
+
+      spyOn(spec().$wrapper[0], 'cloneNode').and.callFake(function(...args) {
+        cloneCallCount += 1;
+
+        return HTMLElement.prototype.cloneNode.apply(this, args);
+      });
+
+      wt.draw();
+
+      expect(cloneCallCount).toBe(0);
+    });
+
+    it('should hand both axes back to the window when the clip is removed', async() => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+
+      wt.draw();
+
+      expect(wt.wtViewport.isHorizontallyScrollableByWindow()).toBe(false);
+
+      spec().$wrapper[0].style.overflowX = '';
+      wt.draw();
+
+      expect(spec().$wrapper[0].style.overflow).toBe('');
+      expect(getComputedStyle(spec().$wrapper[0]).overflowX).toBe('visible');
+      expect(wt.wtOverlays.inlineStartOverlay.trimmingContainer).toBe(window);
+      expect(wt.wtViewport.isHorizontallyScrollableByWindow()).toBe(true);
+      expect(wt.wtViewport.isVerticallyScrollableByWindow()).toBe(true);
+      expect(wt.wtTable.holder.style.overflow).toBe('visible');
+      expect(wt.wtTable.wtRootElement.style.overflow).toBe('visible');
+    });
+  });
 });

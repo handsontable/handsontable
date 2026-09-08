@@ -54,6 +54,23 @@ test.describe('clipboard', () => {
   });
 
   /**
+   * CopyPaste binds its clipboard listeners on the document and on the grid's own element, so
+   * one Ctrl+V reaches the plugin twice on an ordinary page too, and only `#processedClipboardEvents`
+   * keeps the handler running once (DEV-2795). Every other assertion in this file is a final cell
+   * value under the default `overwrite` paste mode, which looks the same whether the paste ran
+   * once or twice — so a broken registry would silently double-paste and nothing here would see
+   * it. With `pasteMode: 'shift_down'` the same fault would insert the rows twice.
+   */
+  test('handles one paste exactly once', async ({ page }) => {
+    await grid.selectCell(0, 0);
+    await grid.writeClipboardText('x');
+    await page.keyboard.press('ControlOrMeta+v');
+
+    await grid.expectCell(0, 0, 'x');
+    await expect.poll(() => grid.pasteHookCalls()).toBe(1);
+  });
+
+  /**
    * A clipboard whose first row is narrower than a later one used to be cut down to the
    * first row's width, dropping the surplus cells with no warning (#7389).
    */
