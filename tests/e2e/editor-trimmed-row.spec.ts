@@ -1258,6 +1258,13 @@ test.describe('a data swap that strands the editor', () => {
         [['X0', 'Y0'], ['X1', 'Y1'], ['X2', 'Y2']], 0, ['X2']
       );
 
+      // The filter's trimming map really was written, so the discard was reached. Without this the
+      // assertions below are all satisfied by "no editor was ever open" - the premise pinned above
+      // rules that out going in, and this rules out the trigger never firing.
+      expect(await grid.sawTrimmingCacheUpdate('row')).toBe(true);
+      // Deliberately NOT asserting the editor reference is gone. Whether a fresh editor is
+      // prepared at row 0 behind the discard differs between the plain and the full bundle
+      // (`editorRow()` is `null` on `umd`, `0` on `full-min`), and it is not what this pins.
       expect(await grid.committedChangeCount()).toBe(0);
       expect(await grid.sourceRowCount()).toBe(3);
       expect(await grid.sourceData()).toEqual([
@@ -1303,6 +1310,40 @@ test.describe('a vetoed alter between a strand and a filter', () => {
       ['A4', 'B4'],
     ]);
   });
+
+  /**
+   * The same leak through the other kind of exit. A zero-delay timeout does NOT stand in for the
+   * resume here: it runs in the next task, and the filter that reads the scope runs in this one.
+   * `alter()` throwing is reachable without anything unusual from the caller - `UndoRedo` catches
+   * around its own `alter()` calls, and any `beforeAlter` / `afterCreateRow` / `afterRemoveRow`
+   * hook can throw.
+   */
+  test('closes its scope when the alter throws instead of returning',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+
+      await grid.selectRangeWithFocusAt([0, 0, 4, 0], 4, 0);
+      await grid.typeOnSelection('EDITED');
+
+      await expect.poll(() => grid.editorRow()).toBe(4);
+      expect(await grid.sourceRowCount()).toBe(5);
+
+      await grid.throwingAlterBetweenStrandAndFilterSameTask(1, 0, ['A2']);
+
+      // The filter really did write a trimming map, so the discard was reached rather than skipped
+      // over by a trigger that never fired.
+      expect(await grid.sawTrimmingCacheUpdate('row')).toBe(true);
+      expect(await grid.committedChangeCount()).toBe(0);
+      expect(await grid.sourceRowCount()).toBe(4);
+      expect(await grid.sourceData()).toEqual([
+        ['A0', 'B0'],
+        ['A2', 'B2'],
+        ['A3', 'B3'],
+        ['A4', 'B4'],
+      ]);
+    });
 });
 
 /**

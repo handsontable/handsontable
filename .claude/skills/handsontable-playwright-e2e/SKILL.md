@@ -55,21 +55,19 @@ so it cannot be moved this way.
 ### Rebuild BOTH bundles before an all-legs run
 
 `npm run build:umd` writes `dist/handsontable.js` only — the minified bundle the
-three `-min` legs load comes from the separate `build:umd.min`. After a partial
-build the `umd` legs carry your change and the `-min` legs still run the code
-from before it, so one spec gets opposite verdicts on the same machine. Use the
-full task, then check that both files actually moved:
+three `-min` legs load comes from the separate `build:umd.min`, so a partial
+build leaves the `-min` legs on your previous code. Use the full task, then
+check that both files actually moved:
 
 ```bash
 npm --prefix handsontable run build
 ls -l handsontable/dist/handsontable.js handsontable/dist/handsontable.full.min.js
 ```
 
-Read a mixed result PER LEG before calling it a race. `45 failed / 90` under
-`--repeat-each=15` is not "50% flaky" — it is 3 legs failing 15/15, and any
-failure count that is a multiple of the repeat count is that same tell. DEV-2756
-was filed as load-dependent nondeterminism on exactly this arithmetic; the code
-was correct and the `-min` bundle was stale. Full note: `tests/AGENTS.md`.
+And read a mixed result PER LEG before calling it a race — a split that falls
+exactly along the bundle axis is about the bundles, not about timing. Why that
+happens, how to tell a stale bundle from a genuine `full.min` difference, and
+what it cost: `tests/AGENTS.md`.
 
 ## Four rules (non-negotiable)
 

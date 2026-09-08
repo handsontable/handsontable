@@ -104,7 +104,8 @@ class EditorManager {
    * The suspension must not outlive the outermost scope: still suspended when a later trimming
    * change arrives, the discard is skipped and that change's own selection work commits through
    * the stranded coordinates and APPENDS records – `alter('remove_row', ...)` followed by
-   * `Filters#filter()` in the same task (DEV-2739).
+   * `Filters#filter()` in the same task (DEV-2739). "Outlive" means the rest of the CURRENT task,
+   * which is why the pairing has to be a `finally` and cannot be a timer (DEV-2831).
    *
    * A structural cache update fired with NO scope open (a caller core does not wrap) gets no
    * suspension: the next reconcile discards a stranded editor immediately, which loses the pending
@@ -228,22 +229,21 @@ class EditorManager {
    * coordinates.
    *
    * The scopes are depth-counted, so an `alter()` fired from a hook inside another `alter()`
-   * cannot lift the outer call's protection when its own scope ends. A scope is synchronous by
-   * contract; the zero-delay timeout heals a scope a thrown hook aborted before its
-   * `resumeStrandDiscards()` ran, bounding a leaked suspension to the current task.
+   * cannot lift the outer call's protection when its own scope ends.
    *
-   * That timer covers a THROW only. An early `return` between the two calls is ordinary control
-   * flow - `alter()` reaches one whenever `beforeAlter` vetoes or `maxRows` is already met - and it
-   * has to call `resumeStrandDiscards()` on its way out. Left to the timer, the scope stays open
-   * for the rest of the task, and a trimming change that follows in it skips the discard and
-   * appends records (DEV-2831).
+   * **Every caller must pair this with `resumeStrandDiscards()` in a `finally`.** A scope left
+   * open covers the rest of the task, and a trimming change that follows in it skips the discard
+   * and appends records – so the pairing has to survive every exit, not just the ordinary one.
+   * `alter()` alone has four: a `beforeAlter` veto, the `maxRows` guard, the switch's default
+   * `throwWithCause()` and its own tail (DEV-2831).
+   *
+   * There is deliberately NO self-healing timer behind that contract. A zero-delay timeout was
+   * tried and does not work: it runs in the NEXT task, while the `Filters#filter()` that reads
+   * the scope and appends runs in THIS one, so it healed nothing that mattered while retaining a
+   * timeout handle per call for the instance's life (`_registerTimeout` never prunes).
    */
   suspendStrandDiscards(): void {
     this.#strandDiscardsSuspended += 1;
-
-    this.hot._registerTimeout(() => {
-      this.#strandDiscardsSuspended = 0;
-    }, 0);
   }
 
   /**

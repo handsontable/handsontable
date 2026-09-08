@@ -428,6 +428,36 @@ export class EditorTrimmedRowPage {
   }
 
   /**
+   * Strands the editor with a removal, then fires an `alter()` that THROWS, catches it, then
+   * filters - all in one synchronous block.
+   *
+   * The throw is the point. It leaves `alter()` between its `suspendStrandDiscards()` and the
+   * matching resume just as a vetoed call does, and the self-heal timeout does not help: a
+   * zero-delay timer runs in the NEXT task, while the filter that reads the scope runs in THIS
+   * one. Callers do catch - `UndoRedo` wraps its `alter()` calls in `try`/`catch` - so this is
+   * reachable without the caller doing anything unusual.
+   */
+  async throwingAlterBetweenStrandAndFilterSameTask(
+    strandRow: number, column: number, values: string[]
+  ): Promise<void> {
+    await this.page.evaluate(([target, targetColumn, targetValues]) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+      const filters = hot.getPlugin('filters');
+
+      hot.alter('remove_row', target as number, 1);
+
+      try {
+        hot.alter('no_such_action', 0, 1);
+      } catch {
+        // Swallowed the way `UndoRedo` swallows an `alter()` that fails.
+      }
+
+      filters.addCondition(targetColumn as number, 'by_value', [targetValues]);
+      filters.filter();
+    }, [strandRow, column, values] as [number, number, string[]]);
+  }
+
+  /**
    * Replaces the data set and filters in ONE synchronous block, the `updateData()` counterpart of
    * `removeRowThenFilterSameTask()` - the shape a wrapper produces when a new `data` prop and a
    * filter land in the same commit. `updateData()`'s structural-change scope has to be closed by
