@@ -50,12 +50,22 @@ function waitForScrollbarClearanceToSettle(page: Page) {
  * browser default over whatever text it covers, so the same spec publishes two correct-looking
  * images on nothing but where the run happened to leave the caret.
  *
- * Handsontable's own cell selection is drawn by the grid and is untouched.
+ * The grid's own cell selection is drawn by Handsontable and is not a native selection - with one
+ * exception. `CopyPaste` puts a real TD into a native range for its Safari clipboard path
+ * (`makeElementContentEditableAndSelectItsContent`), so this does reach it. That range carries the
+ * `invisibleSelection` class, which hides it, so clearing it changes no pixel today.
  *
- * A focused editor is left alone. `removeAllRanges()` also collapses the selection inside a focused
- * text control, and `DateEditor#focus()` selects its value on purpose, so a screenshot of an open
- * editor would lose the highlight it exists to capture. An empty control - the grid's own focus
- * catcher - has nothing to lose and must not block the clear.
+ * `fragmentSelection` is the case to watch. It is a real setting whose whole point is a visible
+ * native selection spanning TDs (`tableView.ts`), and no visual spec turns it on. A spec that did
+ * would need this clear skipped, or its selection is stripped before the capture with nothing on
+ * screen to explain why.
+ *
+ * A focused text control is left alone, because `removeAllRanges()` collapses the selection inside
+ * one and an open editor is often captured with its value selected. The test is `selectionStart`
+ * being a number, which holds only for controls that own a text selection. Reading `value` instead
+ * would skip the clear whenever a checkbox, radio, range or color input has focus - each of those
+ * reports a non-empty default (`"on"`, `"50"`, `"#000000"`) - and a stray selection elsewhere on the
+ * page would then survive into the screenshot.
  *
  * @param {Page} page The page about to be captured.
  * @returns {Promise<void>} Resolves once no stray native selection is left.
@@ -65,9 +75,11 @@ function clearNativeTextSelection(page: Page) {
   /* eslint-disable no-restricted-globals */
   return page.evaluate(() => {
     const active = document.activeElement;
-    const isTextControl = active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement;
+    const ownsTextSelection =
+      (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement) &&
+      typeof active.selectionStart === 'number';
 
-    if (isTextControl && active.value !== '') {
+    if (ownsTextSelection) {
       return;
     }
 
