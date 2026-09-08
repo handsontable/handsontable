@@ -228,6 +228,63 @@ describe('AutoRowSize selective cache clearing', () => {
     container.remove();
   });
 
+  it('should leave the ghost table clean when a renderer throws mid-sweep', () => {
+    // The realistic shape of the throw above: it comes from a renderer, which the ghost table runs
+    // itself. `GhostTable#addRow` pushes its row object BEFORE running them and fills in `.table`
+    // only once they have returned, so a throw leaves a half-built entry behind - and `getHeights()`
+    // reads `.table` on every row it holds. Left there, the retry sweep dies on that leftover
+    // instead of measuring, and so does every sweep after it: the grid never recovers.
+    const container = document.createElement('div');
+
+    document.body.appendChild(container);
+
+    // Armed only after the grid is built: jsdom reports no layout, so the master draw renders every
+    // row, and a renderer that throws from the start takes the constructor down instead.
+    let failing = false;
+
+    const hot = new Handsontable(container, {
+      data: Array.from({ length: 600 }, (_, row) => [`r${row}`]),
+      autoRowSize: { syncLimit: 3 },
+      renderer(instance: unknown, td: HTMLElement, row: number, ...rest: unknown[]) {
+        if (failing && row === 100) {
+          throw new Error('renderer blew up mid-sweep');
+        }
+
+        td.textContent = String(rest[2] ?? '');
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const plugin = hot.getPlugin('autoRowSize');
+
+    // Row 100 lands in the idle continuation: the inline pass stops at `syncLimit`, and each turn
+    // after it covers `CALCULATION_STEP` rows.
+    failing = true;
+    const originalRequestAnimationFrame = window.requestAnimationFrame;
+
+    window.requestAnimationFrame = ((callback: FrameRequestCallback) => {
+      callback(0);
+
+      return 0;
+    }) as typeof window.requestAnimationFrame;
+
+    try {
+      expect(() => plugin.recalculateAllRowsHeight()).toThrow('renderer blew up mid-sweep');
+
+      // Nothing half-built is left behind, so the next pass has a table it can measure.
+      expect(plugin.ghostTable.rows).toHaveLength(0);
+
+      // The retry must actually measure, not die on a leftover row.
+      failing = false;
+
+      expect(() => plugin.recalculateAllRowsHeight()).not.toThrow();
+    } finally {
+      window.requestAnimationFrame = originalRequestAnimationFrame;
+    }
+
+    hot.destroy();
+    container.remove();
+  });
+
   // The other half of `#drainRowRefreshQueue()` - that a queue held back while a sweep is running
   // is drained when the sweep ends - has no unit test, and cannot have one here: jsdom reports no
   // layout, so every row falls inside the rendered band and the ordinary visible-band pass measures

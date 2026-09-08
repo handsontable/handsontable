@@ -79,6 +79,12 @@ Three rules ride along:
   guards **both** its phases itself and calls `#abandonSweep()`. Skipping the async one leaves `inProgress`
   stuck at `true` for the instance's life — which silently disables the refresh queue too, since
   `#drainRowRefreshQueue()` refuses to run while a sweep is in flight.
+- **`#abandonSweep()` must empty the ghost table, or the retry it enables dies on arrival.**
+  `GhostTable#addRow()` pushes its row object **before** it runs the renderers and fills in `.table` only
+  once they have all returned, so a renderer that throws leaves a half-built entry behind —
+  `{ row: 100 }` with no `table`. `getHeights()` reads `.table` on every row it holds, and only the success
+  path calls `clean()`. Left there, the next sweep throws on that leftover instead of measuring, and so does
+  every sweep after it. Measured: one throw left 46 stale rows in the table.
 - **A guard on the row count rides along with the column one.** Nothing is at stake there — a sweep over no
   rows measures nothing — but holding the flag keeps the work owed until there is something to measure.
 

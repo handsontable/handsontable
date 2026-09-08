@@ -633,6 +633,13 @@ export class AutoRowSize extends BasePlugin {
     this.#idleSweepTimer = 0;
     this.inProgress = false;
     this.#fullRecalculationScheduled = true;
+
+    // The ghost table has to be emptied too, or the retry above dies on arrival. `GhostTable#addRow`
+    // pushes its row object BEFORE it runs the renderers and only fills in `.table` once they have
+    // all returned, so a renderer that throws leaves a half-built entry behind - and `getHeights()`
+    // reads `.table` on every row it holds. Only the success path calls `clean()`, so without this
+    // the next sweep throws on that leftover, and so does the one after it.
+    this.ghostTable.clean();
   }
 
   /**
