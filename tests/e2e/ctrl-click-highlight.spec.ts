@@ -169,15 +169,15 @@ test.describe('Ctrl+click inside a multiple selection', () => {
   });
 
   test('deselects the only selected cell whether the two clicks are fast or slow', async() => {
-    // Keying the rule on `event.detail` made this depend on the OS double-click threshold: the
-    // fast pair reported `detail: 2`, skipped the toggle, and left the cell selected while the
-    // slow pair cleared it. Both cadences must land in the same place.
+    // The two cadences differ only in what the second mouseup reports: separate clicks send
+    // `detail: 1` twice, a double-click sends 1 then 2. Keying the rule on `detail` made only the
+    // slow one work, so the fast pair left the cell selected. Both must land in the same place.
     await grid.cell(2, 2).click();
     await grid.ctrlClickCell(2, 2);
 
     expect(await grid.selectedLayerCount()).toBe(0);
 
-    await grid.ctrlClickTwiceFast(3, 3);
+    await grid.ctrlDoubleClickCell(3, 3);
 
     expect(await grid.selectedLayerCount()).toBe(0);
   });

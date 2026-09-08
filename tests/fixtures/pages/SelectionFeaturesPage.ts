@@ -735,42 +735,15 @@ export class SelectionFeaturesPage {
   /**
    * Ctrl/Cmd+double-clicks a cell — two clicks inside the OS double-click window.
    *
+   * This is also the only Playwright gesture that reproduces a real fast click pair: `dblclick()`
+   * escalates `clickCount`, so the two mouseups report `detail` 1 then 2, while two `click()` calls
+   * report 1 twice however quickly they land.
+   *
    * @param {number} row Visual row index.
    * @param {number} col Visual column index.
    */
   async ctrlDoubleClickCell(row: number, col: number): Promise<void> {
     await this.cell(row, col).dblclick({ modifiers: ['ControlOrMeta'] });
-  }
-
-  /**
-   * Ctrl/Cmd+clicks a cell twice at double-click speed, reporting `detail: 2` on the second
-   * mouseup the way a real browser does.
-   *
-   * `locator.click()` cannot express this: Playwright pins `clickCount` to 1 on every call, so two
-   * of them in a row look like two unrelated clicks no matter how fast they land, and a handler
-   * that keys on `detail` is invisible to them. The selection rule must not depend on click speed,
-   * and this is what proves it.
-   *
-   * @param {number} row Visual row index.
-   * @param {number} col Visual column index.
-   */
-  async ctrlClickTwiceFast(row: number, col: number): Promise<void> {
-    const box = await this.cell(row, col).boundingBox();
-
-    if (!box) {
-      throw new Error(`Cell ${row},${col} has no layout box`);
-    }
-
-    const x = box.x + (box.width / 2);
-    const y = box.y + (box.height / 2);
-
-    await this.page.keyboard.down('ControlOrMeta');
-    await this.page.mouse.move(x, y);
-    await this.page.mouse.down({ clickCount: 1 });
-    await this.page.mouse.up({ clickCount: 1 });
-    await this.page.mouse.down({ clickCount: 2 });
-    await this.page.mouse.up({ clickCount: 2 });
-    await this.page.keyboard.up('ControlOrMeta');
   }
 
   /**
