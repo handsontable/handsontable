@@ -456,6 +456,38 @@ Exception: the `server-side-*` recipes keep `tree/master/server-examples/...`.
 major, and receives no per-major repair, so a `prod-examples/<major>` copy of it
 would be a frozen unmaintained snapshot.
 
+### Reference links in changelog pages
+
+`content/guides/upgrade-and-migration/changelog-<N>/changelog-<N>.md` is hand-written: the release
+workflow writes the root `CHANGELOG.md` and the rolling `changelog/changelog.md`, and someone copies
+the version's section into the per-major page by hand, demoting `###` to `####`.
+
+When you edit a changelog page, **link every new option, hook, method, and plugin that an `Added`
+entry names**:
+
+```markdown
+- Added an Enter key handler and a new [`searchMode`](@/api/options.md#searchmode) option to the
+  [`Filters`](@/api/filters.md) plugin. [#11871](https://github.com/handsontable/handsontable/pull/11871)
+```
+
+Options go to `@/api/options.md`, hooks to `@/api/hooks.md`, Core methods to `@/api/core.md`, and a
+plugin or its method to `@/api/<pluginName>.md`. The anchor is the plain lowercased member name, so
+`#minRowHeights` never resolves and `#minrowheights` does.
+
+Leave unlinked whatever has no reference page - theme tokens, CSS class names, TypeScript type names,
+external APIs such as `Intl.NumberFormat`, object keys that are not API members, and wrapper package
+names. A link to a page that does not document the name is worse than no link.
+
+Run `npm run docs:validate-changelog-links` to list the candidates and to catch an `@/api/` link
+whose file or anchor cannot resolve. It is report-only, and its candidate set is a heuristic, so judge
+each finding rather than applying it blindly.
+
+The link cannot come from the `.changelogs/*.json` entry instead. `bin/changelog` renders an entry
+title verbatim into four destinations, and only the docs page resolves `@/api/` links: on GitHub the
+root `CHANGELOG.md` and the release body render a link to a literal `@/api/...` path, and the
+version-comparison UI drops the link and keeps the text. An entry title that needs a docs link uses
+an absolute `https://handsontable.com/docs/...` URL. Full rule: `.changelogs/README.md`.
+
 ---
 
 ## 2.8 Trademark Notices

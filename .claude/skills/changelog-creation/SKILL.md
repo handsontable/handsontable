@@ -77,6 +77,12 @@ Getting this wrong is not fatal — GitHub redirects `/issues/<n>` to `/pull/<n>
 - **Be specific.** Instead of "Fixed a bug", write "Fixed cell editor closing unexpectedly on scroll."
 - **Do not reference internal code.** Avoid titles like "Refactored DataMap" or "Updated metaSchema.js". Users do not know these internals.
 - **End with a period.**
+- **Never put an `@/api/...` docs link in the title.** That syntax resolves only on the docs site, and
+  `bin/changelog` renders the title verbatim into the root `CHANGELOG.md` and the GitHub release body
+  too, where it links to a literal `@/api/...` path and 404s. When a title needs a docs link, use an
+  absolute `https://handsontable.com/docs/...` URL. Reference linking for new options, hooks, methods,
+  and plugins happens later, on the docs changelog page - see
+  [`.changelogs/README.md`](../../../.changelogs/README.md).
 - **Breaking changes** (`"breaking": true`) appear first in the generated changelog. Make the title clearly describe what breaks and what to do instead.
 
 ## Framework Field
