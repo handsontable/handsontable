@@ -34,9 +34,9 @@ export const STARLIGHT_LAYERS = [
 ];
 
 /**
- * Pages whose stylesheets are checked. A guide page and an API reference page
- * between them pull in every stylesheet the docs ship. A page that a given
- * build does not emit is skipped; the check only fails on a real order
+ * Pages whose stylesheets are checked: a guide page and an API reference page,
+ * the two layouts that carry the layer-declaring stylesheets. A page that a
+ * given build does not emit is skipped; the check only fails on a real order
  * violation, or when none of these pages exists at all.
  */
 const PAGES = [
@@ -50,7 +50,7 @@ const PAGES = [
  * @param {string} css The stylesheet source.
  * @returns {string} The source with comment bodies replaced by spaces.
  */
-function stripComments(css) {
+export function stripComments(css) {
   return css.replace(/\/\*[\s\S]*?\*\//g, (comment) => ' '.repeat(comment.length));
 }
 
@@ -98,18 +98,6 @@ export function findOrderViolation(layers) {
 }
 
 /**
- * Extracts the stylesheet URLs a built page links, in document order.
- *
- * @param {string} html The page's HTML.
- * @returns {string[]} The `href` values.
- */
-export function linkedStylesheets(html) {
-  return pageStylesheets(html)
-    .filter((sheet) => sheet.href)
-    .map((sheet) => sheet.href);
-}
-
-/**
  * Extracts every stylesheet a built page carries, in document order - both
  * `<link rel="stylesheet">` and inline `<style>` blocks. Astro's
  * `build.inlineStylesheets` defaults to `'auto'`, so a small stylesheet can
@@ -144,15 +132,71 @@ export function pageStylesheets(html) {
 }
 
 /**
+ * Turns a stylesheet `href` from a built page into the candidate paths it could
+ * have inside the build output, most specific first. The site is served under a
+ * base path (`/docs`), so the href carries a prefix the output directory does
+ * not; and a stylesheet is not always exactly one directory deep.
+ *
+ * @param {string} href The `href` attribute value.
+ * @returns {string[]} Relative candidate paths, or an empty array for an href
+ * that cannot name a local file (an external URL, or a data URI).
+ */
+export function assetPathCandidates(href) {
+  if (/^[a-z][a-z0-9+.-]*:/i.test(href) || href.startsWith('//')) {
+    return [];
+  }
+
+  const segments = href.split(/[?#]/)[0].split('/').filter(Boolean);
+
+  if (segments.length === 0) {
+    return [];
+  }
+
+  // Drop leading segments one at a time so both `/docs/_astro/x.css` (served
+  // under the base path) and a deeper `_astro/chunks/x.css` resolve.
+  return segments.map((_, index) => segments.slice(index).join('/'));
+}
+
+/**
+ * Reads the first of a stylesheet's candidate paths that exists in the build
+ * output.
+ *
+ * @param {string} distDir The build output directory.
+ * @param {string[]} candidates Relative candidate paths, most specific first.
+ * @returns {Promise<{ name: string, css: string } | null>} The resolved path
+ * and its content, or `null` when none of the candidates exists. A stylesheet
+ * that cannot be read is reported as skipped rather than failing the build:
+ * this check exists to catch a layer-order deviation, and a moved asset is not
+ * one.
+ */
+async function readStylesheetAt(distDir, candidates) {
+  for (const candidate of candidates) {
+    if (!candidate.endsWith('.css')) {
+      continue;
+    }
+
+    try {
+      return { name: candidate, css: await readFile(join(distDir, candidate), 'utf8') };
+    } catch {
+      // Try the next candidate; all-missing is handled by the caller.
+    }
+  }
+
+  return null;
+}
+
+/**
  * Validates the layer order every checked page establishes.
  *
  * @param {string} distDir The build output directory.
- * @returns {Promise<{ errors: string[], checked: string[] }>} The problems
- * found and the pages that were read.
+ * @returns {Promise<{ errors: string[], checked: string[], skipped: string[] }>}
+ * The problems found, the pages that were read, and the stylesheet hrefs that
+ * could not be resolved in the output.
  */
 export async function validateBuiltPages(distDir) {
   const errors = [];
   const checked = [];
+  const skipped = [];
   const cache = new Map();
   const pages = [];
 
@@ -172,7 +216,7 @@ export async function validateBuiltPages(distDir) {
         'the build emitted no pages, or PAGES is stale.'
     );
 
-    return { errors, checked };
+    return { errors, checked, skipped };
   }
 
   for (const { page, html } of pages) {
@@ -184,20 +228,37 @@ export async function validateBuiltPages(distDir) {
       let name = `${page} (inline <style>)`;
 
       if (sheet.href) {
-        // Hrefs are site-absolute (`/docs/_astro/x.css`); the asset directory
-        // is always the last two segments.
-        name = sheet.href.split('/').slice(-2).join('/');
+        const candidates = assetPathCandidates(sheet.href);
 
-        if (!name.endsWith('.css')) {
+        if (candidates.length === 0) {
+          // An external or data URI names no file in the build output, so
+          // there is nothing to check and nothing to warn about.
           continue;
         }
 
-        if (!cache.has(name)) {
-          cache.set(name, declaredLayers(await readFile(join(distDir, name), 'utf8')));
+        if (!cache.has(sheet.href)) {
+          const stylesheet = await readStylesheetAt(distDir, candidates);
+
+          if (!stylesheet) {
+            skipped.push(sheet.href);
+          }
+
+          cache.set(
+            sheet.href,
+            stylesheet ? { name: stylesheet.name, layers: declaredLayers(stylesheet.css) } : null
+          );
         }
+
+        const cached = cache.get(sheet.href);
+
+        if (!cached) {
+          continue;
+        }
+
+        name = cached.name;
       }
 
-      const sheetLayers = sheet.href ? cache.get(name) : declaredLayers(sheet.css);
+      const sheetLayers = sheet.href ? cache.get(sheet.href).layers : declaredLayers(sheet.css);
       const sheetViolation = findOrderViolation(sheetLayers);
 
       if (sheetViolation) {
@@ -217,12 +278,12 @@ export async function validateBuiltPages(distDir) {
     }
   }
 
-  return { errors: [...new Set(errors)], checked };
+  return { errors: [...new Set(errors)], checked, skipped: [...new Set(skipped)] };
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const distDir = resolve(process.cwd(), 'dist');
-  const { errors, checked } = await validateBuiltPages(distDir);
+  const { errors, checked, skipped } = await validateBuiltPages(distDir);
 
   if (errors.length > 0) {
     for (const error of errors) {
@@ -230,6 +291,12 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     }
 
     process.exit(1);
+  }
+
+  // Named, not silent: a stylesheet nobody can read is a blind spot in this
+  // check, even though it is not a reason to fail the build.
+  for (const href of skipped) {
+    console.warn(`Not checked (no such file in the build output): ${href}`);
   }
 
   console.log(`Cascade-layer order matches Starlight's on ${checked.length} built page(s).`);

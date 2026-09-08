@@ -3,35 +3,14 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, extname, join } from 'node:path';
 import test from 'node:test';
+// Shared with the built-output gate on purpose: one copy of the order, one
+// comment-stripping rule, so the two guards cannot drift apart.
+import { STARLIGHT_LAYERS, stripComments } from '../../../scripts/validate-layer-order.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const stylesDir = join(__dirname, '../../styles');
 const componentsDir = join(__dirname, '../../components');
-/**
- * Blanks out CSS comments, keeping every byte offset intact so positions stay
- * comparable. Several docs stylesheets quote `@layer ...` inside a comment.
- *
- * @param {string} css The stylesheet source.
- * @returns {string} The source with comment bodies replaced by spaces.
- */
-function stripComments(css) {
-  return css.replace(/\/\*[\s\S]*?\*\//g, (comment) => ' '.repeat(comment.length));
-}
-
 const customCss = stripComments(readFileSync(join(stylesDir, 'custom.css'), 'utf8'));
-
-/**
- * Starlight's own order, from `@astrojs/starlight/style/layers.css`. The build
- * drops that statement, so `custom.css` has to restate it.
- */
-const STARLIGHT_LAYERS = [
-  'starlight.base',
-  'starlight.reset',
-  'starlight.core',
-  'starlight.content',
-  'starlight.components',
-  'starlight.utils',
-];
 
 /**
  * Reads the `@layer a, b, c;` statement (a layer list with no block) from a

@@ -621,4 +621,12 @@ Two things establish that order, and both matter:
 
 So an `@layer starlight.<name>` block in a docs stylesheet (`src/styles/**`) or in a component `<style>` block (`src/components/*.astro`) is only safe while `custom.css` lists that layer. Adding one that it does not list makes that layer's first appearance land wherever the bundler happens to put it.
 
-Both halves are guarded, and both run in CI: `src/lib/__tests__/cascade-layer-order.test.mjs` checks the authoring rules (statement first, full order, no undeclared layer anywhere in the docs CSS) under `npm run docs:test:plugins`, and `scripts/validate-layer-order.mjs` reads the built pages' stylesheets in link order and fails the build when the block order deviates - it runs from `npm run build`, after `astro build`. `tests/markdownProseSpacing.spec.ts` asserts the reader-visible gap on a built page.
+Both halves are guarded, on three different triggers - know which one you are relying on:
+
+| Guard | What it checks | Runs |
+|---|---|---|
+| `src/lib/__tests__/cascade-layer-order.test.mjs` | the authoring rules: statement first, full order, no undeclared layer anywhere in the docs CSS | every PR, via `docs.yml`'s `plugins` job (`npm run docs:test:plugins`) |
+| `scripts/validate-layer-order.mjs` | the built pages' stylesheets in document order (links and inline `<style>`), failing when the block order deviates | `npm run build`, after `astro build` - so every same-repo PR through the `preview` job, but **not** on a fork or Dependabot PR, where `preview` is guarded off |
+| `tests/markdownProseSpacing.spec.ts` | the reader-visible gap on a built page | only when the PR carries the `run-docs-visual` label - it lives in `testDir: './tests'`, the opt-in visual suite |
+
+So the label-gated spec is a backstop, not a gate. The first two are what actually hold the line on a normal PR.
