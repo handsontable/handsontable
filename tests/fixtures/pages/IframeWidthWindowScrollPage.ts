@@ -28,8 +28,10 @@ export class IframeWidthWindowScrollPage {
   async goto(): Promise<void> {
     await this.page.goto(
       `/tests/fixtures/demo/iframe-width-window-scroll.html?theme=${this.theme}&bundle=${this.bundle}`);
-    await this.page.waitForFunction(() => 'Handsontable' in window);
-    await this.page.waitForFunction(() => (window as unknown as { ready: boolean }).ready === true);
+    await this.page.waitForFunction(() => 'Handsontable' in window, undefined, { polling: 100 });
+    await this.page.waitForFunction(
+      () => (window as unknown as { ready: boolean }).ready === true, undefined, { polling: 100 },
+    );
     await expect
       .poll(async () => (await this.holderState()).scrollWidth)
       .toBeGreaterThan(0);
