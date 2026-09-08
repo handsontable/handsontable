@@ -107,34 +107,22 @@ function isSameSheetConfig(a: unknown, b: unknown): boolean {
 }
 
 /**
- * Compares two values of the `sheetsBar` setting structurally. Used to tell an
- * `updateSettings` call that merely re-emits the same configuration from a framework
- * wrapper apart from one that genuinely declares a different workbook.
+ * Compares two values of the `sheets` setting. Used to tell an `updateSettings` call that
+ * re-emits or leaves out the workbook — a framework wrapper's full re-emit, or a partial
+ * payload changing a UI-only key — apart from one that genuinely declares a different
+ * workbook. Only `sheets` decides the workbook's identity: the UI keys are re-read on every
+ * enable, so changing them must not discard the runtime sheets and their view state.
  */
-function isSameSheetsBarSetting(a: unknown, b: unknown): boolean {
-  if (a === b) {
+function isSameSheetsList(a: unknown, b: unknown): boolean {
+  if ((a ?? null) === (b ?? null)) {
     return true;
   }
 
-  if (!isPlainObject(a) || !isPlainObject(b)) {
+  if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) {
     return false;
   }
 
-  const scalarKeys = ['activeSheet', 'controls', 'paging', 'position', 'uiContainer'];
-
-  if (scalarKeys.some(key => a[key] !== b[key])) {
-    return false;
-  }
-
-  if (a.sheets === b.sheets) {
-    return true;
-  }
-
-  if (!Array.isArray(a.sheets) || !Array.isArray(b.sheets) || a.sheets.length !== b.sheets.length) {
-    return false;
-  }
-
-  return a.sheets.every((entry, index) => isSameSheetConfig(entry, (b.sheets as unknown[])[index]));
+  return a.every((entry, index) => isSameSheetConfig(entry, b[index]));
 }
 
 /**
@@ -244,7 +232,8 @@ export class SheetsBar extends BasePlugin {
    */
   static get SETTINGS_VALIDATORS() {
     return {
-      sheets: (value: unknown) => value === null || value === undefined || Array.isArray(value),
+      sheets: (value: unknown) => value === null || value === undefined
+        || (Array.isArray(value) && value.every(isPlainObject)),
       activeSheet: (value: unknown) => typeof value === 'number',
       controls: (value: unknown) => typeof value === 'boolean',
       paging: (value: unknown) => typeof value === 'boolean',
@@ -319,13 +308,21 @@ export class SheetsBar extends BasePlugin {
    */
   #overflow: OverflowController | null = null;
   /**
-   * The `sheetsBar` setting value the current workbook was built from, kept so
-   * `updatePlugin` can tell a genuine reconfiguration apart from a settings object that
-   * a framework wrapper re-emitted unchanged.
+   * The `sheets` setting value the current workbook was built from, kept so `updatePlugin`
+   * can tell a genuine reconfiguration apart from a settings object that a framework wrapper
+   * re-emitted unchanged or a partial payload that only touched a UI key.
    *
    * @type {unknown}
    */
-  #lastBuiltSetting: unknown = undefined;
+  #lastBuiltSheets: unknown = undefined;
+  /**
+   * The `activeSheet` setting as it was last acted on, so a preserved re-enable can tell an
+   * explicit switch request (`updateSettings({ sheetsBar: { activeSheet: 2 } })`) apart from a
+   * wrapper re-emitting the value the workbook was built with.
+   *
+   * @type {unknown}
+   */
+  #lastActiveSheetSetting: unknown = undefined;
   /**
    * The model, the tracked cell meta, and the settings baseline carried across an
    * `updatePlugin` teardown when the incoming `sheetsBar` setting is structurally unchanged.
@@ -393,9 +390,11 @@ export class SheetsBar extends BasePlugin {
       } finally {
         this.#isInitializing = false;
       }
+
+      this.#lastActiveSheetSetting = this.getSetting('activeSheet');
     }
 
-    this.#lastBuiltSetting = this.hot.getSettings()[PLUGIN_KEY];
+    this.#lastBuiltSheets = this.getSetting('sheets');
 
     if (!this.#ui) {
       this.#ui = new SheetsBarUI({
@@ -476,6 +475,7 @@ export class SheetsBar extends BasePlugin {
         pageNext: refs.pageNext,
         pagingEnabled: this.getSetting<boolean>('paging') !== false,
         isRtl: this.hot.isRtl(),
+        ariaTags: this.hot.getSettings().ariaTags !== false,
       });
       this.#overflow.attach();
     }
@@ -506,30 +506,103 @@ export class SheetsBar extends BasePlugin {
    * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
-    const incoming = this.hot.getSettings()[PLUGIN_KEY];
-    const preservedState = this.#model !== null && isSameSheetsBarSetting(incoming, this.#lastBuiltSetting)
+    // Read through `getSetting()`, not the raw grid settings: `updateSettings` replaces the
+    // grid-level `sheetsBar` object wholesale, so a partial payload such as
+    // `{ sheetsBar: { paging: false } }` carries no `sheets` key there — while the plugin's own
+    // merged settings still do. Only a genuinely different `sheets` value is a new workbook.
+    const preservedState = this.#model !== null && isSameSheetsList(this.getSetting('sheets'), this.#lastBuiltSheets)
       ? { model: this.#model, trackedCellMeta: this.#trackedCellMeta, settingsBaseline: this.#settingsBaseline }
       : null;
+    const activeSheetSettingBefore = this.#lastActiveSheetSetting;
+    const activeNameBeforeRebuild = preservedState ? null : this.#model?.getActiveSheet()?.name ?? null;
 
-    this.disablePlugin();
-
+    // Assigned before the disable, which restores the settings baseline to the grid on a
+    // genuine teardown and must stand aside on a preserved one.
     this.#preservedState = preservedState;
 
     try {
+      this.disablePlugin();
       this.enablePlugin();
     } finally {
       this.#preservedState = null;
+    }
+
+    if (preservedState) {
+      this.#applyActiveSheetSetting();
+    } else if (activeNameBeforeRebuild !== null && this.getSetting('activeSheet') === activeSheetSettingBefore) {
+      // A rebuild discards the runtime state by contract, but it does not have to flip the
+      // sheet in front of the user: when the `activeSheet` setting itself did not change, the
+      // sheet they were on is re-activated by name when the new workbook still carries it.
+      const target = this.getSheets().find(sheet => sheet.name === activeNameBeforeRebuild);
+
+      if (target && !target.isActive) {
+        this.setActiveSheet(target.id);
+      }
     }
 
     super.updatePlugin();
   }
 
   /**
+   * Acts on an `activeSheet` value that arrived through a workbook-preserving `updateSettings`
+   * call. A value equal to the last one acted on is a wrapper re-emitting its configuration and
+   * changes nothing; a new value is an explicit switch request.
+   */
+  #applyActiveSheetSetting() {
+    const wanted = this.getSetting('activeSheet');
+
+    if (wanted === this.#lastActiveSheetSetting) {
+      return;
+    }
+
+    this.#lastActiveSheetSetting = wanted;
+
+    const target = typeof wanted === 'number' ? this.getSheets()[wanted] : undefined;
+
+    if (target && !target.isActive) {
+      this.setActiveSheet(target.id);
+    }
+  }
+
+  /**
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    // A genuine teardown puts the grid-level settings back before the baseline is dropped:
+    // the active sheet's own settings are applied to the grid at this point, and leaving them
+    // there would make the next enable read a polluted grid as its neutral state — a sheet's
+    // `fixedColumnsStart` or `columns` would follow the user into the rebuilt workbook. A
+    // preserved re-enable keeps the active sheet applied, so it must not restore.
+    if (this.#preservedState === null) {
+      this.#restoreBaselineToGrid();
+    }
+
     super.disablePlugin();
     this.#releaseState();
+  }
+
+  /**
+   * Writes the captured grid-level value of every setting any sheet overrode back into the
+   * grid. `undefined` baselines are written as `null`, because `updateSettings` reads
+   * `undefined` as "not provided" and would leave the sheet's value in force.
+   */
+  #restoreBaselineToGrid() {
+    if (this.#settingsBaseline.size === 0 || this.hot.isDestroyed) {
+      return;
+    }
+
+    const restored: Record<string, unknown> = {};
+
+    this.#settingsBaseline.forEach((value, key) => {
+      restored[key] = value === undefined ? null : value;
+    });
+
+    // Emptied before the write: `updateSettings` re-enters `BasePlugin#onUpdateSettings`, and
+    // on a `sheetsBar: false` teardown that call reaches `disablePlugin()` again — the empty
+    // baseline is what stops the second pass from restoring in a loop.
+    this.#settingsBaseline = new Map();
+
+    this.hot.updateSettings(restored);
   }
 
   /**
@@ -560,7 +633,7 @@ export class SheetsBar extends BasePlugin {
     this.#model = null;
     this.#trackedCellMeta = new Map();
     this.#settingsBaseline = new Map();
-    this.#lastBuiltSetting = undefined;
+    this.#lastBuiltSheets = undefined;
     this.#isSwitching = false;
     this.#isInitializing = false;
     this.#tabStrip?.destroy();
@@ -1097,7 +1170,8 @@ export class SheetsBar extends BasePlugin {
     // up with.
     const oldName = sheet.name;
     const trimmed = clampSheetName(newName);
-    const canAttempt = trimmed !== '' && trimmed !== oldName;
+    const canAttempt = trimmed !== '' && trimmed !== oldName
+      && !this.#renameCollidesInEngine(sheet, oldName, trimmed);
 
     const committed = canAttempt && this.#commit(
       'beforeSheetTabRename',
@@ -1446,6 +1520,22 @@ export class SheetsBar extends BasePlugin {
     if (typeof sheetId === 'number') {
       engine!.removeSheet!(sheetId);
     }
+  }
+
+  /**
+   * Whether renaming the tab would strand its engine binding: the sheet is bound under its tab
+   * name, and the engine already holds a different sheet under the requested name. The engine
+   * rename would be refused, leaving a tab that shows the new name while its formulas keep
+   * resolving against the old one — so the rename is rejected up front instead, the way a
+   * collision with another tab already is.
+   */
+  #renameCollidesInEngine(sheet: Sheet, oldName: string, newName: string): boolean {
+    const formulas = formulasSettingOf(sheet);
+
+    return formulas?.sheetName === oldName
+      && isEngineInstance(formulas.engine)
+      && formulas.engine!.doesSheetExist!(oldName)
+      && formulas.engine!.doesSheetExist!(newName);
   }
 
   /**

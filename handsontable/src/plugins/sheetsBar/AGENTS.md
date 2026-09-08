@@ -45,12 +45,21 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   of every key any sheet overrides is captured the first time that key is applied
   (`#withBaselineFor`); `undefined` baselines are restored as `null`, because `updateSettings`
   reads `undefined` as "not provided". The baseline and the model travel across an
-  `updatePlugin` that re-emits a structurally identical `sheetsBar` value, and are dropped on a
-  genuine reconfiguration. "Structurally identical" compares each sheet's `settings` by
-  content and its `data` by reference — an equal fresh literal with stable data references
-  keeps the workbook; recreated data arrays rebuild it. A sheet's own `settings` cannot carry
-  a `sheetsBar` key. The neutral `fixedColumnsStart` is captured only on a non-preserved
-  enable, or a wrapper re-emit would adopt the active sheet's runtime freeze as neutral.
+  `updatePlugin` whose `sheets` value is structurally unchanged, and are dropped on a genuine
+  reconfiguration. Only `sheets` decides the workbook's identity — `updateSettings` replaces
+  the grid-level `sheetsBar` object wholesale, so a partial payload (`{ paging: false }`,
+  `{ activeSheet: 2 }`) must be judged through the plugin's merged `getSetting('sheets')`, not
+  the raw grid value, or every UI tweak would rebuild the workbook. "Structurally unchanged"
+  compares each sheet's `settings` by content and its `data` by reference — an equal fresh
+  literal with stable data references keeps the workbook; recreated data arrays rebuild it (a
+  rebuild re-activates the previous sheet by name when `activeSheet` itself did not change). A
+  changed `activeSheet` on a preserved cycle is an explicit switch request. A sheet's own
+  `settings` cannot carry a `sheetsBar` key. The neutral `fixedColumnsStart` is captured only
+  on a non-preserved enable, and a genuine teardown first restores the settings baseline to
+  the grid (`#restoreBaselineToGrid`, which empties the baseline before its `updateSettings`
+  call — the write re-enters `disablePlugin` on a `sheetsBar: false` teardown, and the empty
+  map is the recursion stop), so the next enable never reads the departing sheet's settings as
+  the grid's own.
 - **Formulas cooperation is by engine instance + `sheetName`.** Every bound sheet is registered
   in the engine up front and re-fed on every registration (a rebuilt workbook reusing names
   must not leave stale engine content); a tab rename renames the engine sheet and writes the
@@ -63,8 +72,11 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   no `settings` inherits the shared engine under its own name. A brand-new binding (add,
   duplicate) goes through `freeEngineName()` — a `sheetName` may differ from its tab name, so
   a free tab label can still identify another sheet's engine data, and reusing it would
-  overwrite that data. The binding follows the name `engine.addSheet()` reports back — the
-  engine can normalize a name the model told apart. `sheetModel.duplicateSheet` keeps
+  overwrite that data. A rename whose new name already identifies another engine sheet is
+  rejected up front (`#renameCollidesInEngine`), the way a tab-name collision is — committing
+  the tab first would leave it showing a name its formulas do not resolve against. The binding
+  follows the name `engine.addSheet()` reports back — the engine can normalize a name the
+  model told apart. `sheetModel.duplicateSheet` keeps
   `settings.formulas` out of the deep clone — a cloned engine instance is a broken object and
   the clone recurses forever.
 - **Cell meta is tracked per cell and property** (`Map` keyed `row:col:key`, last write wins) —
@@ -76,6 +88,17 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   `finally`, and a listener throwing mid-switch would leave the grid render-suspended for
   life. The plugin's `#batchRender` and `viewState.ts`'s `safeBatch` are the guarded forms
   (same reasoning as MergeCells).
+- **`ariaTags: false` keeps every ARIA state attribute off the bar.** The paging arrows' real
+  disabled state is the `ht-sheets-bar__button--disabled` class (`DISABLED_CLASS` in
+  `overflow.ts`); `aria-disabled` and the anchors' `aria-expanded` are mirrors written only
+  while ARIA is on, and `isArrowEnabled()`/`getFocusableElements()` read the class.
+- **A `button: 0` `contextmenu` is not necessarily the keyboard.** A touch long-press and a
+  macOS Ctrl+click report it too; the strip tells them apart by `buttons === 0` plus no
+  pointer being down on the tab (`#pointerHeldOnTab`). Focus restores in `menus.ts` go through
+  `getDeepActiveElement()` — the raw `activeElement` collapses to the host in a shadow root.
+- **`render()` cancels an in-flight rename silently.** The cancel-hook handler repaints the
+  strip, and dispatching it from inside `render()` re-enters the render pass — the outer pass
+  then restores focus and scroll against tabs the inner pass replaced.
 - Switching calls `loadData()`, which clears the UndoRedo stacks; the state-restore hook and
   the announced switch fire after the batch, and switch announcements are made for the bar's
   own gestures only (`SOURCE_UI`).
