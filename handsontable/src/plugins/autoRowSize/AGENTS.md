@@ -46,6 +46,92 @@ Changing `wordWrap`, `textEllipsis` or a renderer changes row heights, but `upda
 re-measure. Callers must follow it with `recalculateAllRowsHeight()`. That is documented in the class JSDoc
 and in the guides — it is the contract, not a bug.
 
+## Only a full render measures rows, and it measures only the visible band
+
+`calculateVisibleRowsHeight()` hangs off **`beforeRender`**, which `TableView#render()` raises — the engine's
+scroll draw does not. So scrolling measures nothing, and a render measures only the rows it draws. On an
+ordinary grid that is invisible, because `#onInit` sweeps every row up front through `calculateAllRowsHeight()`.
+
+Anything that empties the cache has to put that sweep back, or every row below the fold keeps the default
+height for good. That is not a cosmetic default: once a wide wrapping column is scrolled into view the data
+cell renders at its content height (a cell never renders shorter than its own text) while the row header
+honors the default, so the row headers slide out of alignment and the gap accumulates down the grid
+(DEV-2812, reported as DEV-2718).
+
+`clearCache()` with no argument therefore sets `#fullRecalculationScheduled`, and `#onBeforeRender` honors it.
+Three rules ride along:
+
+- **The full sweep runs *after* `calculateVisibleRowsHeight()`, never instead of it.**
+  `calculateAllRowsHeight()` measures only up to `syncLimit` rows synchronously and leaves the rest to an
+  idle sweep that schedules no redraw of its own, so a grid scrolled past that limit would draw its visible
+  band unmeasured — re-creating the defect on the frame that was supposed to repair it.
+- **The flag is held, not consumed, when the render cannot measure.** `recalculateAllRowsHeight()` is a no-op
+  on a hidden grid, and on a column-less one the measurement writes a near-empty height for every row that
+  nothing later corrects (`calculateVisibleRowsHeight()` bails out on that grid for the same reason, with the
+  comment "Keep last row heights unchanged for situation when all columns was deleted or trimmed"). Consuming
+  the flag in either case would leave the cache empty permanently.
+- **The flag is consumed before the sweep, then re-owed if the sweep throws.** Holding it across the call
+  would let a re-entrant render reach the branch with the flag still set and recurse; spending it outright
+  would leave every unmeasured row at the default height for the instance's life when a renderer throws (the
+  ghost table runs the real renderers). Clearing it first and restoring it in a `catch` gets both.
+  That `catch` in `#onBeforeRender` covers only the **inline** phase. The sweep hands everything past
+  `syncLimit` to an idle task, which is a separate turn no caller's `try` can see, so `calculateAllRowsHeight()`
+  guards **both** its phases itself and calls `#abandonSweep()`. Skipping the async one leaves `inProgress`
+  stuck at `true` for the instance's life — which silently disables the refresh queue too, since
+  `#drainRowRefreshQueue()` refuses to run while a sweep is in flight.
+- **`#abandonSweep()` must empty the ghost table, or the retry it enables dies on arrival.**
+  `GhostTable#addRow()` pushes its row object **before** it runs the renderers and fills in `.table` only
+  once they have all returned, so a renderer that throws leaves a half-built entry behind —
+  `{ row: 100 }` with no `table`. `getHeights()` reads `.table` on every row it holds, and only the success
+  path calls `clean()`. Left there, the next sweep throws on that leftover instead of measuring, and so does
+  every sweep after it. Measured: one throw left 46 stale rows in the table.
+- **A guard on the row count rides along with the column one.** Nothing is at stake there — a sweep over no
+  rows measures nothing — but holding the flag keeps the work owed until there is something to measure.
+
+`clearCache()` must **not** zero `measuredRows`: the public `isNeedRecalculate()` slices the height map by it,
+so zeroing it makes that method answer "nothing to recalculate" at the exact moment every height was dropped.
+`AutoColumnSize#clearCache()` leaves its counterpart alone too.
+
+The **selective** forms — `clearCache([rows])` and `clearCacheByRange()` — have the same below-the-fold hole,
+and close it differently: they push the cleared rows onto `#visualRowsToRefresh` through
+`#queueClearedRowsForRefresh()`, so only those rows are re-measured rather than the whole grid.
+`#calculateSpecificRowsHeight()` reads a row from the data, so an off-screen row is no obstacle. That queue is
+drained in one synchronous pass, so clearing a very large range buys a correspondingly large measurement on
+the next render — the same shape `#onBeforeChange` has always had, and the honest cost of the call the caller
+made. A physical row with no visual index (outside the dataset, or hidden by a trimming map) is skipped.
+
+## The refresh queue is held back, never dropped
+
+`#drainRowRefreshQueue()` is the single place the queue is measured, and it refuses two moments — **keeping**
+the queue both times, so the rows land at the first moment that can measure them:
+
+- **while a sweep is running**, because the sweep and this pass share one ghost table;
+- **while the grid has no columns**, because the measurement writes a near-empty height that, no longer being
+  `null`, is never re-measured once the columns come back. That is the same trap the scheduled full
+  recalculation is guarded against, and it reached the selective path first: `clearCache([5])` on a
+  column-less grid used to leave row 5 holding `0` for good.
+
+It is called from the render **and** from `calculateAllRowsHeight()` — from `loop()`'s completion branch, and
+from the top-level `else` that runs when the whole grid fitted inside `syncLimit` and `loop()` never ran at
+all. A sweep ends without a render of its own, so a queue held back by the first condition would otherwise
+wait for the next full render, which on a grid the user only scrolls never arrives. Both exits need the call:
+covering only one leaves the contract true on some grid sizes and false on others.
+
+`#queueClearedRowsForRefresh()` skips a row already in the queue, the way the other producers do
+(`#onBeforeChange` collects into a `Set`, `#onAfterFormulasValuesUpdate` checks before pushing). While the
+queue is held back, overlapping `clearCache` calls would otherwise pile the same row up and measure it once
+per copy.
+
+## One sweep at a time
+
+`calculateAllRowsHeight()` cancels any sweep still in flight before starting its own, through the
+instance-held `#idleSweepTimer`. Every sweep starts at row 0 and covers every row, so the new one subsumes
+whatever the old one had left. Two running together would double the work and race on `inProgress`: whichever
+finished first would clear it while the other was still writing heights, and `#onBeforeRender` reads that flag
+to decide whether the refresh queue is safe to drain. Entry points that can overlap in one frame: `#onInit`,
+`#onAfterLoadData`, the column-resize gesture, an explicit `recalculateAllRowsHeight()`, and now a
+`clearCache()` that schedules one.
+
 ## Listeners stay bound while disabled — deliberately
 
 `disablePlugin()` leaves the height-recalculation listener active, because ManualRowResize's

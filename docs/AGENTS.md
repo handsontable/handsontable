@@ -564,6 +564,20 @@ The custom loader (`src/plugins/framework-loader.mjs`) renders every source page
 - `npm run dev` must work with the default Node heap. Do not add `NODE_OPTIONS=--max-old-space-size` workarounds; shrink the data store instead.
 - Plugin unit tests run with `node --test src/plugins/__tests__/*.test.mjs`.
 
+### Starting the dev server from an agent session
+
+`npm run dev` dies with `Dev server failed to start within 30s.` and exit 1 in every agent session, and the message is a lie - nothing in the config is broken. Astro 7's `astro dev` calls `isRunByAgent()`, and on a hit it force-enables **background mode**: it spawns a detached child, polls for that child's lock file for 30 seconds, then SIGTERMs the child and exits non-zero. This docs config never boots that fast, so the wrapper always kills a server that was on its way up. Run the server process itself instead:
+
+```bash
+ASTRO_DEV_BACKGROUND=1 npx astro dev
+```
+
+That env var is what the spawned child receives, so setting it makes the foreground process *be* the server and skips the timeout wrapper entirely. Do not raise the timeout (it is hardcoded in `astro/dist/cli/dev/background.js`) and do not conclude the config is at fault.
+
+### The dev server 500s in a fresh worktree until the core CSS exists
+
+Every page returns HTTP 500 with `[postcss] ENOENT: no such file or directory, open '../../../handsontable/styles/handsontable.min.css'`. `src/styles/handsontable-import.css` imports the **built** stylesheet from the core package, and `git worktree` materializes tracked files only, so a new worktree has no `handsontable/styles/`. Build the core package, or copy `handsontable/styles/` in from a checkout that already has it. Then **restart the dev server** - postcss caches the resolution failure, so a running server keeps 500ing after the file appears.
+
 ---
 
 ## 2.13 Example-Runner Error Handling
