@@ -58,6 +58,11 @@ export class MultiSelectEditor extends BaseEditor {
   declare eventManager: InstanceType<typeof EventManager>;
 
   /**
+   * Whether the document scroll listener that keeps the list on its cell is bound.
+   */
+  #scrollFollowBound = false;
+
+  /**
    * Returns the unique editor type identifier for the multiselect editor.
    */
   static get EDITOR_TYPE() {
@@ -203,7 +208,7 @@ export class MultiSelectEditor extends BaseEditor {
     this.dropdownController!.getInputController()!.listen();
 
     this.dropdownController!.updateDimensions(this.#getAvailableSpace());
-
+    this.#bindScrollFollow();
   }
 
   /**
@@ -239,11 +244,23 @@ export class MultiSelectEditor extends BaseEditor {
       return;
     }
 
-    const { top, start, height } = this.getEditedCellRect()!;
+    // Positioned `fixed` at the cell's viewport rect: the container stays a child of the grid
+    // root in the DOM, but the root's `overflow: clip` and any scrolling ancestor can no longer
+    // cut the list (#8688). `getEditedCellRect()` answers relative to the root, so it is not
+    // used here. RTL keeps `right`, resolved against the viewport's inline-end edge.
+    const cellRect = this.getEditedCell()!.getBoundingClientRect();
     const editorStyle = this.#editorContainer!.style;
 
-    editorStyle.top = `${top + height}px`;
-    editorStyle[this.hot.isRtl() ? 'right' : 'left'] = `${start}px`;
+    editorStyle.position = 'fixed';
+    editorStyle.top = `${cellRect.bottom}px`;
+
+    if (this.hot.isRtl()) {
+      editorStyle.left = '';
+      editorStyle.right = `${this.hot.rootDocument.documentElement.clientWidth - cellRect.right}px`;
+    } else {
+      editorStyle.right = '';
+      editorStyle.left = `${cellRect.left}px`;
+    }
 
     addClass(this.#editorContainer!, EDITOR_VISIBLE_CLASS_NAME);
   }
@@ -272,6 +289,11 @@ export class MultiSelectEditor extends BaseEditor {
   destroy(): void {
     this.close();
     this.dropdownController!.reset();
+    // The editor's own DOM listeners - the document `scroll` follow this editor registers on
+    // `open()`. Nothing used this event manager before that listener existed, which is why
+    // destroying it was not needed here until now; without it the listener outlives the grid
+    // and `MemoryLeakTest` counts it.
+    this.eventManager.destroy();
   }
 
   /**
@@ -401,26 +423,39 @@ export class MultiSelectEditor extends BaseEditor {
   }
 
   /**
+   * Keeps the `fixed` container attached to its cell while something outside the grid scrolls:
+   * the page, or an ancestor of the grid. The grid's own scroll already reaches
+   * `refreshDimensions()` through the `afterScroll*` hooks. Capture phase, because `scroll` does
+   * not bubble. Bound once for the editor's life and gated on the editor being open, because
+   * `refreshDimensions()` also shows the container. Gated on the grid being alive too: tearing
+   * the grid down shrinks the document, the window's scroll position clamps, and the resulting
+   * `scroll` event reaches this listener before the event manager releases it - and
+   * `getEditedCell()` throws on a destroyed instance.
+   */
+  #bindScrollFollow(): void {
+    if (this.#scrollFollowBound) {
+      return;
+    }
+
+    this.eventManager.addEventListener(this.hot.rootDocument, 'scroll', () => {
+      if (!this.hot.isDestroyed && this.isOpened()) {
+        this.refreshDimensions();
+      }
+    }, { capture: true, passive: true });
+    this.#scrollFollowBound = true;
+  }
+
+  /**
    * Calculates the available vertical space above and below the edited cell for positioning the dropdown.
    */
   #getAvailableSpace(): { spaceAbove: number; spaceBelow: number; cellHeight: number } {
-    const cellRect = this.getEditedCellRect()!;
-    const isVerticallyScrollableByWindow = this.hot.view.isVerticallyScrollableByWindow();
-    const workspaceHeight = this.hot.view.getWorkspaceHeight();
-
-    let spaceAbove = cellRect.top;
-
-    if (isVerticallyScrollableByWindow) {
-      const topOffset = this.hot.view.getTableOffset().top - this.hot.rootWindow.scrollY;
-
-      spaceAbove = Math.max(spaceAbove + topOffset, 0);
-    }
-
-    const spaceBelow = workspaceHeight - spaceAbove - cellRect.height;
+    // The container is positioned `fixed` (see `refreshDimensions()`), so the viewport's edges
+    // are the only ones that can cut the list - not the grid's workspace.
+    const cellRect = this.getEditedCell()!.getBoundingClientRect();
 
     return {
-      spaceAbove,
-      spaceBelow,
+      spaceAbove: Math.max(cellRect.top, 0),
+      spaceBelow: Math.max(this.hot.rootWindow.innerHeight - cellRect.bottom, 0),
       cellHeight: cellRect.height,
     };
   }

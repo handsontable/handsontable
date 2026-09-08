@@ -307,3 +307,39 @@ Two smaller changes ship with this one:
 - `width: null` clears the inline width, the way `height: null` clears the height. It used to write
   `width: nullpx`. Both resets restore their own property only, so `height: null` no longer removes a
   `width` set through the option.
+
+## 8. Dropdown editor lists are no longer confined to the grid
+
+The lists of the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md),
+[`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), `handsontable`, and
+`multiselect` cell types used to be positioned inside the grid's root element. Whenever a `height`
+was set, that root clipped its own content, so a list opened near the bottom row was cut off at the
+grid's edge. The editor tried to compensate by trimming the list to the rows that fit the space left
+inside the grid, which on a short grid left as few as two choices visible.
+
+Those lists are now positioned against the viewport. The grid's edge no longer cuts them, and they
+are no longer trimmed to fit inside it, so every choice that fits on screen is shown.
+
+### Who is affected
+
+Anyone rendering `autocomplete`, `dropdown`, `handsontable`, or `multiselect` cells, in particular:
+
+- a grid with a set `height` whose last rows carry one of those editors
+- a grid inside a parent with a fixed height and `overflow: auto` or `overflow: hidden`
+- code or tests that read the list's position, or that assert it opens above the edited cell when the
+  grid has no room below
+
+### How to migrate
+
+For the common case, nothing. The list opens in the same place and simply is not cut off.
+
+What changed in detail:
+
+- The list can now paint outside the grid's box, and over whatever sits next to the grid on the page.
+  If it has to stay inside a specific area, size that area rather than the grid.
+- Whether the list opens above or below the cell is decided by the space left in the **viewport**,
+  not the space left inside the grid. A list that used to flip above the cell to fit inside a short
+  grid now opens downwards and overhangs the grid instead. Sideways placement is unchanged: it is
+  still decided by the grid's own width.
+- The list is no longer trimmed to the space inside the grid, so it can render more choices than
+  before. [`visibleRows`](@/api/options.md#visiblerows) still caps it.

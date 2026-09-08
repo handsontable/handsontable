@@ -78,6 +78,11 @@ export class HandsontableEditor extends TextEditor {
   protected innerSelectionOrigin: 'user' | 'auto' | null = null;
 
   /**
+   * Whether the document scroll listener that keeps the list on its cell is bound.
+   */
+  #scrollFollowBound = false;
+
+  /**
    * The value the inner grid contributes to the commit, or `undefined` to leave the typed value
    * alone.
    *
@@ -142,6 +147,7 @@ export class HandsontableEditor extends TextEditor {
     this.refreshDimensions();
     this.flipDropdownVerticallyIfNeeded();
     this.flipDropdownHorizontallyIfNeeded();
+    this.#bindScrollFollow();
   }
 
   /**
@@ -274,29 +280,77 @@ export class HandsontableEditor extends TextEditor {
   }
 
   /**
+   * The edited cell's rectangle in viewport coordinates - the frame the list is positioned in.
+   * `getEditedCellRect()` answers relative to the grid root, which the list's box no longer
+   * follows: the list stays a child of the editor holder in the DOM (focus, ARIA, and
+   * outside-click handling are untouched), but it is positioned `fixed`, so the grid root's
+   * `overflow: clip` and any scrolling ancestor cannot cut it (#8688).
+   *
+   * @returns {DOMRect | undefined}
+   */
+  #getCellViewportRect(): DOMRect | undefined {
+    return this.getEditedCell()?.getBoundingClientRect();
+  }
+
+  /**
+   * Re-applies the current flip state's coordinates so the list follows the edited cell after
+   * a scroll. Deliberately not the `...IfNeeded()` pair: those re-measure and, in the
+   * autocomplete editor, re-clamp the list through `updateSettings()` - a full sub-grid render
+   * per scroll event. A follow only moves the box the flip already decided.
+   */
+  #repositionDropdown(): void {
+    // `isDestroyed` first: tearing the grid down shrinks the document, the window's scroll
+    // position clamps, and that `scroll` event reaches the follow listener before the event
+    // manager releases it - and `getEditedCell()` throws on a destroyed instance.
+    if (this.hot.isDestroyed || !this.htEditor || this.htEditor.rootElement.style.display === 'none'
+      || !this.getEditedCell()) {
+      return;
+    }
+
+    if (this.isFlippedVertically) {
+      this.flipDropdownVertically();
+    } else {
+      this.unflipDropdownVertically();
+    }
+
+    if (this.isFlippedHorizontally) {
+      this.flipDropdownHorizontally();
+    } else {
+      this.unflipDropdownHorizontally();
+    }
+  }
+
+  /**
+   * Refreshes the editor's size and position, then moves the list along with it.
+   *
+   * @private
+   * @param {boolean} force Indicates if the refreshing editor dimensions should be triggered.
+   */
+  refreshDimensions(force: boolean = false): void {
+    super.refreshDimensions(force);
+    this.#repositionDropdown();
+  }
+
+  /**
    * Calculates the space above and below the editor and flips it vertically if needed.
+   *
+   * The list is positioned `fixed`, so the only edge that can cut it is the viewport's - not
+   * the grid root's clip and not a scrolling ancestor. Free space is measured against the
+   * window on both sides, not against the grid's workspace.
    *
    * @private
    * @returns {{ isFlipped: boolean, spaceAbove: number, spaceBelow: number}}
    */
   flipDropdownVerticallyIfNeeded(): { isFlipped: boolean, spaceAbove: number, spaceBelow: number } {
-    const { view } = this.hot;
-    const cellRect = this.getEditedCellRect();
+    const cellRect = this.#getCellViewportRect();
 
     if (!cellRect) {
       return { isFlipped: false, spaceAbove: 0, spaceBelow: 0 };
     }
 
-    let spaceAbove = cellRect.top;
-
-    if (view.isVerticallyScrollableByWindow()) {
-      const topOffset = view.getTableOffset().top - this.hot.rootWindow.scrollY;
-
-      spaceAbove = Math.max(spaceAbove + topOffset, 0);
-    }
-
+    const spaceAbove = Math.max(cellRect.top, 0);
+    const spaceBelow = Math.max(this.hot.rootWindow.innerHeight - cellRect.bottom, 0);
     const dropdownTargetHeight = this.getDropdownHeight();
-    const spaceBelow = view.getWorkspaceHeight() - spaceAbove - cellRect.height;
     const flipNeeded = dropdownTargetHeight > spaceBelow && spaceAbove > spaceBelow + cellRect.height;
 
     if (flipNeeded) {
@@ -321,8 +375,10 @@ export class HandsontableEditor extends TextEditor {
   flipDropdownVertically(): void {
     const dropdownStyle = this.htEditor.rootElement.style;
 
-    dropdownStyle.position = 'absolute';
-    dropdownStyle.top = `${-this.getDropdownHeight()}px`;
+    // The old `absolute` rule was `top: -dropdownHeight` against the holder - see
+    // `#dropdownOriginLeft()` for why the holder, not the cell, is the origin.
+    dropdownStyle.position = 'fixed';
+    dropdownStyle.top = `${this.#holderRect().top - this.getDropdownHeight()}px`;
 
     this.isFlippedVertically = true;
   }
@@ -336,8 +392,10 @@ export class HandsontableEditor extends TextEditor {
   unflipDropdownVertically(): void {
     const dropdownStyle = this.htEditor.rootElement.style;
 
-    dropdownStyle.position = 'absolute';
-    dropdownStyle.top = '';
+    // The old `absolute` rule cleared `top`, leaving the list at its static position inside the
+    // holder - directly under the textarea, which is the holder's own bottom edge.
+    dropdownStyle.position = 'fixed';
+    dropdownStyle.top = `${this.#holderRect().bottom}px`;
 
     this.isFlippedVertically = false;
   }
@@ -356,6 +414,10 @@ export class HandsontableEditor extends TextEditor {
       return { isFlipped: false, spaceInlineStart: 0, spaceInlineEnd: 0 };
     }
 
+    // Deliberately still measured against the GRID's workspace, unlike the vertical axis. #8688 is
+    // a vertical defect: the list was cut off below the cell. Sideways the old rule already put the
+    // list where it fits, and a list kept inside the grid's width is inside the viewport too, so
+    // widening this to the viewport would only let the list hang off the grid's side for no gain.
     let spaceInlineStart = cellRect.start + cellRect.width;
     let workspaceWidth = view.getWorkspaceWidth();
 
@@ -392,11 +454,11 @@ export class HandsontableEditor extends TextEditor {
    * @private
    */
   flipDropdownHorizontally(): void {
-    const dropdownStyle = this.htEditor.rootElement.style;
     const { width } = this.getEditedCellRect() ?? { width: 0 };
 
-    dropdownStyle.position = 'absolute';
-    dropdownStyle[this.hot.isRtl() ? 'right' : 'left'] = `${-(this.getDropdownWidth() - width)}px`;
+    // The same offset the old `absolute` rule used: `-(dropdownWidth - cellWidth)` on the
+    // inline-start property, which moves the list back by everything it overhangs the cell by.
+    this.#writeDropdownInlineStart(-(this.getDropdownWidth() - width));
 
     this.isFlippedHorizontally = true;
   }
@@ -408,12 +470,81 @@ export class HandsontableEditor extends TextEditor {
    * @private
    */
   unflipDropdownHorizontally(): void {
-    const dropdownStyle = this.htEditor.rootElement.style;
-
-    dropdownStyle.position = 'absolute';
-    dropdownStyle[this.hot.isRtl() ? 'right' : 'left'] = '';
+    // The old `absolute` rule cleared the offset, leaving the list on the holder's own
+    // inline-start edge.
+    this.#writeDropdownInlineStart(0);
 
     this.isFlippedHorizontally = false;
+  }
+
+  /**
+   * Places the list's inline-start edge `offset` pixels from the holder's inline-start edge -
+   * the same quantity the old `absolute` rules wrote, resolved against the viewport.
+   *
+   * Writes the same physical property the old rules did: `left` under LTR, `right` under RTL.
+   * Mirroring RTL into a `left` value instead would have to assume the holder is exactly as wide
+   * as the cell, which is what put the flipped list 2px off its edge. Only one of the two is ever
+   * set; the other is cleared, or a stale value from the previous direction fights the new one.
+   *
+   * @param {number} offset Pixels from the holder's inline-start edge; negative moves the list
+   *                        back towards the inline end, which is how a flip is expressed.
+   */
+  #writeDropdownInlineStart(offset: number): void {
+    const dropdownStyle = this.htEditor.rootElement.style;
+    const holderRect = this.#holderRect();
+
+    dropdownStyle.position = 'fixed';
+
+    if (this.hot.isRtl()) {
+      const viewportWidth = this.hot.rootDocument.documentElement.clientWidth;
+
+      // `right: offset` against the holder put the list's right edge `offset` px LEFT of the
+      // holder's, so the viewport distance grows with the offset - the opposite sign to `left`.
+      dropdownStyle.left = '';
+      dropdownStyle.right = `${viewportWidth - holderRect.right + offset}px`;
+
+      return;
+    }
+
+    dropdownStyle.right = '';
+    dropdownStyle.left = `${holderRect.left + offset}px`;
+  }
+
+  /**
+   * Keeps the `fixed` list attached to its cell while something outside the grid scrolls: the
+   * page, or an ancestor of the grid. The grid's own scroll already reaches `refreshDimensions()`
+   * through the `afterScroll*` hooks. Capture phase, because `scroll` does not bubble. Bound once
+   * for the editor's life; `#repositionDropdown()` is a no-op while the list is hidden, and the
+   * event manager releases the listener with the editor.
+   */
+  #bindScrollFollow(): void {
+    if (this.#scrollFollowBound) {
+      return;
+    }
+
+    this.eventManager.addEventListener(this.hot.rootDocument, 'scroll', () => this.#repositionDropdown(), {
+      capture: true,
+      passive: true,
+    });
+    this.#scrollFollowBound = true;
+  }
+
+  /**
+   * The editor holder's box in viewport coordinates - the origin every list coordinate is
+   * resolved against.
+   *
+   * The holder, not the cell. `TextEditor#refreshDimensions()` has already placed the holder at
+   * exactly the offset the old `absolute` rules resolved against, border compensation included,
+   * so reading it keeps the list's geometry identical to what those rules produced and only
+   * changes the coordinate space. That compensation is conditional
+   * (`BaseEditor#getEditedCellRect()` cancels a 1px shift for a cell that draws its own
+   * inline-start border, which depends on row headers and on which columns are rendered), so a
+   * hardcoded 1px against the cell lands the list a pixel off on some columns and not others.
+   *
+   * @returns {DOMRect}
+   */
+  #holderRect(): DOMRect {
+    return this.TEXTAREA_PARENT.getBoundingClientRect();
   }
 
   /**

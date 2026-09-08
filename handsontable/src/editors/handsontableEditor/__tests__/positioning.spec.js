@@ -94,7 +94,7 @@ describe('HandsontableEditor positioning', () => {
     }
   });
 
-  it('should render the editors dropdown above the cell when there is no space left below', async() => {
+  it('should render the editors dropdown below the cell and past the table\'s edge when there is no space left below inside the table', async() => {
     handsontable({
       data: createSpreadsheetData(25, 25),
       colWidths: 80,
@@ -125,7 +125,8 @@ describe('HandsontableEditor positioning', () => {
     }
 
     await keyDownUp('escape');
-    // scroll so cell 11 is near the bottom of the viewport -- no space below for the dropdown
+    // scroll so cell 11 is near the bottom of the table -- no space below for the dropdown
+    // INSIDE the table, though the viewport still has room under the table itself
     await scrollViewportVertically(0);
     await selectCell(11, 1);
     await keyDownUp('enter');
@@ -133,15 +134,20 @@ describe('HandsontableEditor positioning', () => {
     {
       const relativeRect = getCell(11, 1).getBoundingClientRect();
       const containerRect = getActiveEditor().htContainer.getBoundingClientRect();
+      const rootRect = getActiveEditor().hot.rootElement.getBoundingClientRect();
 
-      // Dropdown is rendered above the edited cell.
+      // #8688: the list is positioned against the VIEWPORT, so running out of room inside the
+      // table no longer flips it above the cell. It still opens downwards and simply hangs past
+      // the table's bottom edge, which no longer clips it. The flip is now driven by the
+      // viewport, and `tests/e2e/dropdown-editor-clip.spec.ts` covers that case.
       expect({
         top: containerRect.top,
         left: containerRect.left,
       }).toEqual({
-        top: relativeRect.top - containerRect.height - 1,
+        top: relativeRect.bottom,
         left: relativeRect.left - 1,
       });
+      expect(containerRect.bottom).toBeGreaterThan(rootRect.bottom);
     }
   });
 });
