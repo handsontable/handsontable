@@ -1,4 +1,5 @@
 import { type Locator, type Page, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 
 // Deliberately not `extends Window`: `windowTypes.ts` already declares `hot` globally with the
 // full instance type, and narrowing it here would be a TS2430 conflict. Every access is cast.
@@ -39,7 +40,7 @@ export class EditorOpenCheckboxFocusPage {
     // Waiting for the bundle itself, not only for a cell: the injected bundle script and the
     // block that builds the grid are separate, so a cell that is missing cannot otherwise be told
     // apart from a bundle that has not arrived yet.
-    await this.page.waitForFunction(() => 'Handsontable' in window);
+    await awaitBundle(this.page);
 
     await expect(this.cell(0, 0)).toBeVisible();
   }
