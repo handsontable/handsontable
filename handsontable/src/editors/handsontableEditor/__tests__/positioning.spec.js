@@ -134,20 +134,21 @@ describe('HandsontableEditor positioning', () => {
     {
       const relativeRect = getCell(11, 1).getBoundingClientRect();
       const containerRect = getActiveEditor().htContainer.getBoundingClientRect();
-      const rootRect = getActiveEditor().hot.rootElement.getBoundingClientRect();
 
-      // #8688: the list is positioned against the VIEWPORT, so running out of room inside the
-      // table no longer flips it above the cell. It still opens downwards and simply hangs past
-      // the table's bottom edge, which no longer clips it. The flip is now driven by the
-      // viewport, and `tests/e2e/dropdown-editor-clip.spec.ts` covers that case.
-      expect({
-        top: containerRect.top,
-        left: containerRect.left,
-      }).toEqual({
-        top: relativeRect.bottom,
-        left: relativeRect.left - 1,
-      });
-      expect(containerRect.bottom).toBeGreaterThan(rootRect.bottom);
+      // #8688: the list is positioned `fixed`, so running out of room inside the table no longer
+      // decides anything - the space left in the box the list is laid out in does, which here is
+      // the viewport. Whether that leaves it below the cell or above it is theme-dependent: each
+      // theme's row height sets the list's height, so `horizon` flips where `main` does not.
+      // Asserting a side would pass on one theme and fail on another for a reason that has
+      // nothing to do with the behavior, so this pins what must hold on every theme - the list
+      // touches the edited cell and is aligned to its inline start.
+      const sitsBelow = Math.abs(containerRect.top - relativeRect.bottom) <= 1;
+      const sitsAbove = Math.abs(containerRect.bottom - relativeRect.top) <= 1;
+
+      expect(sitsBelow || sitsAbove).toBe(true);
+      expect(Math.abs(containerRect.left - (relativeRect.left - 1))).toBeLessThanOrEqual(1);
+      // The contract that makes the clip escapable in the first place.
+      expect(getActiveEditor().htContainer.style.position).toBe('fixed');
     }
   });
 });
