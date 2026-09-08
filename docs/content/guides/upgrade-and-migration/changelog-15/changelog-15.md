@@ -32,7 +32,7 @@ For more information about this release see:
 
 #### Added
 - Added a missing boolean type to the editor in the React wrapper. [#11514](https://github.com/handsontable/handsontable/pull/11514)
-- Fixed the Comments plugin for IME editing and added a new `beforeCompositionstart` hook. [#11521](https://github.com/handsontable/handsontable/pull/11521)
+- Fixed the Comments plugin for IME editing and added a new [`beforeCompositionStart`](@/api/hooks.md#beforecompositionstart) hook. [#11521](https://github.com/handsontable/handsontable/pull/11521)
 - Added horizontal scroll to the Filter's "by value" component. [#11561](https://github.com/handsontable/handsontable/pull/11561)
 - Added optional formula sanitization for CSV export to prevent CSV Injection attacks. [#11592](https://github.com/handsontable/handsontable/pull/11592)
 
@@ -91,7 +91,7 @@ For more information about this release see:
 - Updated the Italian translation for the new Context Menu labels. [#11436](https://github.com/handsontable/handsontable/pull/11436)
 - Updated the Serbian translation for the new Context Menu labels. [#11437](https://github.com/handsontable/handsontable/pull/11437)
 - Added the mobile cell handle CSS variables to the themes. [#11479](https://github.com/handsontable/handsontable/pull/11479)
-- Improved the execution flow of the Filters plugin and added two new methods (`importConditions` and `exportConditions`). [#11488](https://github.com/handsontable/handsontable/pull/11488)
+- Improved the execution flow of the [`Filters`](@/api/filters.md) plugin and added two new methods ([`importConditions()`](@/api/filters.md#importconditions) and [`exportConditions()`](@/api/filters.md#exportconditions)). [#11488](https://github.com/handsontable/handsontable/pull/11488)
 
 #### Changed
 - Sped up the rendering performance for themes. [#11443](https://github.com/handsontable/handsontable/pull/11443)
