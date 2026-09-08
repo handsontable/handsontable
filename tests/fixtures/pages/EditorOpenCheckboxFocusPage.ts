@@ -39,7 +39,7 @@ export class EditorOpenCheckboxFocusPage {
     // Waiting for the bundle itself, not only for a cell: the injected bundle script and the
     // block that builds the grid are separate, so a cell that is missing cannot otherwise be told
     // apart from a bundle that has not arrived yet.
-    await this.page.waitForFunction(() => 'Handsontable' in window);
+    await this.page.waitForFunction(() => 'Handsontable' in window, undefined, { polling: 100 });
 
     await expect(this.cell(0, 0)).toBeVisible();
   }

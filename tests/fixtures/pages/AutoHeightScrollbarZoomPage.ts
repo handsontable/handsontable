@@ -34,7 +34,7 @@ export class AutoHeightScrollbarZoomPage {
     // still undefined, and the failure then surfaces inside a later `page.evaluate` far from its
     // cause. `waitForFunction`, not `expect`: the plain UMD bundle is ~6 MB and every worker pulls
     // its own copy, which outlasts the 10s `expect` timeout on a cold server.
-    await this.page.waitForFunction(() => 'Handsontable' in window);
+    await this.page.waitForFunction(() => 'Handsontable' in window, undefined, { polling: 100 });
     await expect(this.cell(0, 0)).toBeVisible();
     await expect(this.lastRow()).toBeAttached();
   }
