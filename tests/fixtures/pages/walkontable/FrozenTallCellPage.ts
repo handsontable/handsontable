@@ -113,11 +113,57 @@ export class FrozenTallCellPage {
     return table.locator('tbody').getByTestId(`row-${row}`);
   }
 
-  /** The rendered height of one row in one table. */
+  /**
+   * The rendered height of one row in one table, or 0 when that table does not render it.
+   *
+   * Read in ONE evaluation on the table's root, never through `row().boundingBox()`: a locator's
+   * `boundingBox()` resolves the node in one round trip and reads its box in another, and
+   * Walkontable recycles the same `<tr>` nodes across a re-render. A node resolved as the boundary
+   * row before a scroll-driven draw is row 0 after it, and the read then reports a normal row's
+   * height for the tall one (`Expected: 69, Received: 30`). The table's root is never recycled, so
+   * resolving it first and querying the row inside the evaluation cannot straddle a draw.
+   */
   async rowHeight(table: Locator, row: number): Promise<number> {
-    const box = await this.row(table, row).boundingBox();
+    return table.evaluate((root, target) => {
+      const tr = root.querySelector(`tbody [data-testid="row-${target}"]`);
 
-    return box?.height ?? 0;
+      return tr ? tr.getBoundingClientRect().height : 0;
+    }, row);
+  }
+
+  /**
+   * The height of one row in the master AND in the inline-start overlay, read in one evaluation so
+   * no draw can land between the two. The pair a comparison needs, read as a pair.
+   */
+  async rowHeights(row: number): Promise<{ master: number, overlay: number }> {
+    return this.grid.evaluate((grid, target) => {
+      const read = (table: string) => grid
+        .querySelector(`${table} tbody [data-testid="row-${target}"]`)?.getBoundingClientRect().height ?? 0;
+
+      return { master: read('.ht_master'), overlay: read('.ht_clone_inline_start') };
+    }, row);
+  }
+
+  /**
+   * The height of a tall row once the master and the inline-start overlay agree on it and it
+   * exceeds a normal row's — established by polling, not caught by a single read that may land
+   * before the draw that puts both tables there. The value to pin later assertions to.
+   */
+  async settledTallRowHeight(row: number): Promise<number> {
+    const normalHeight = await this.normalRowHeight();
+    let settled = 0;
+
+    await expect.poll(async () => {
+      const { master, overlay } = await this.rowHeights(row);
+
+      settled = master;
+
+      return master === overlay && master > normalHeight;
+    }, {
+      message: `row ${row} to settle at one tall height in both the master and the inline-start overlay`,
+    }).toBe(true);
+
+    return settled;
   }
 
   /**
@@ -131,12 +177,32 @@ export class FrozenTallCellPage {
   /**
    * The vertical offset of a row relative to its own table's body, so the master
    * and a clone are comparable even though they sit at different page positions.
+   * One evaluation per read, for the reason `rowHeight()` gives.
    */
   async rowOffsetWithinTable(table: Locator, row: number): Promise<number> {
-    const rowBox = await this.row(table, row).boundingBox();
-    const bodyBox = await table.locator('tbody').boundingBox();
+    return table.evaluate((root, target) => {
+      const tr = root.querySelector(`tbody [data-testid="row-${target}"]`);
+      const body = root.querySelector('tbody');
 
-    return (rowBox?.y ?? 0) - (bodyBox?.y ?? 0);
+      return tr && body ? tr.getBoundingClientRect().top - body.getBoundingClientRect().top : 0;
+    }, row);
+  }
+
+  /**
+   * How far each given row's offset in the master differs from its offset in the inline-start
+   * overlay, all read in one evaluation. Zeroes mean the panes are aligned.
+   */
+  async rowOffsetDrift(rows: number[]): Promise<number[]> {
+    return this.grid.evaluate((grid, targets) => {
+      const offset = (table: string, row: number) => {
+        const tr = grid.querySelector(`${table} tbody [data-testid="row-${row}"]`);
+        const body = grid.querySelector(`${table} tbody`);
+
+        return tr && body ? tr.getBoundingClientRect().top - body.getBoundingClientRect().top : NaN;
+      };
+
+      return targets.map(row => offset('.ht_master', row) - offset('.ht_clone_inline_start', row));
+    }, rows);
   }
 
   /**

@@ -252,3 +252,18 @@ prove a negative) takes the same disable line, naming the owning work and
 carrying a TODO for the probe that will replace it; `e2e/customBorders.spec.ts`
 `macrotaskBarrier()` is the one such site. Full rules: the
 `handsontable-playwright-e2e` skill and its `references/determinism.md`.
+
+**A geometry read is two round trips, and the grid recycles its rows.**
+`locator.boundingBox()` and `locator.evaluate()` resolve the node in one round
+trip and act on it in another (`innerText()` and `getAttribute()` do both in one
+injected call and are safe), and Walkontable reuses the same `<tr>`/`<td>` nodes
+across a re-render. A node resolved as row 4 before a
+scroll-driven draw is row 0 after it, so the read reports a normal row's height
+for the tall one — `frozen-column-row-heights.spec.ts` failed 3 of 150 runs
+under load with `Expected: 69, Received: 30` while the DOM was consistent at
+every task boundary (traced in DEV-2827, after the flake had first been blamed
+on the engine). Query and measure inside ONE `evaluate` on a node that is never
+recycled (the table's root, the grid), read every value a comparison needs in
+that same evaluation (`FrozenTallCellPage.rowHeights()`), and poll a pinned
+expected value rather than comparing two reads with each other — two reads
+that both landed before the draw agree with each other and prove nothing.

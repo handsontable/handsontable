@@ -166,8 +166,10 @@ test.describe('walkontable row heights with frozen columns', { tag: '@walkontabl
     await wt.setTallCell(true);
 
     await expect.poll(() => wt.masterFirstRenderedRow()).toBe(BOUNDARY_ROW);
-    expect(await wt.rowHeight(wt.master, BOUNDARY_ROW))
-      .toBe(await wt.rowHeight(wt.inlineStartOverlay, BOUNDARY_ROW));
+    // Polled until both tables agree on a height ABOVE a normal row's: a plain compare between two
+    // reads also passes while both still show the provided height, or when the two reads straddle
+    // the draw that follows the growth (the holder's scroll range changes with it).
+    await wt.settledTallRowHeight(BOUNDARY_ROW);
     expect(await wt.countRowCacheInvalidations(3)).toBe(0);
   });
 
@@ -184,35 +186,37 @@ test.describe('walkontable row heights with frozen columns', { tag: '@walkontabl
 
     await wt.goto({ tallRow: BOUNDARY_ROW, rows: 100 });
 
-    const restingHeight = await wt.rowHeight(wt.master, BOUNDARY_ROW);
-
-    expect(restingHeight).toBeGreaterThan(await wt.normalRowHeight());
+    // Established, not caught: the value every assertion below is pinned to is the first height both
+    // tables agree on above a normal row's, so a read that lands before the draw settles them cannot
+    // become the reference.
+    const restingHeight = await wt.settledTallRowHeight(BOUNDARY_ROW);
 
     await wt.scrollToRowAtTop(BOUNDARY_ROW + 1);
 
     await expect.poll(() => wt.masterFirstRenderedRow()).toBe(BOUNDARY_ROW);
-    expect(await wt.rowHeight(wt.master, BOUNDARY_ROW))
-      .toBe(await wt.rowHeight(wt.inlineStartOverlay, BOUNDARY_ROW));
+    // At the boundary both tables must land on exactly the resting height plus the band's 1px top
+    // border. Pinned, because a compare between the two tables alone also passes while both still
+    // show the provided height.
+    await expect.poll(() => wt.rowHeights(BOUNDARY_ROW))
+      .toEqual({ master: restingHeight + 1, overlay: restingHeight + 1 });
+    await expect.poll(() => wt.rowOffsetDrift([BOUNDARY_ROW + 1, BOUNDARY_ROW + 2, BOUNDARY_ROW + 3]))
+      .toEqual([0, 0, 0]);
 
-    for (const row of [BOUNDARY_ROW + 1, BOUNDARY_ROW + 2, BOUNDARY_ROW + 3]) {
-      expect(await wt.rowOffsetWithinTable(wt.master, row))
-        .toBe(await wt.rowOffsetWithinTable(wt.inlineStartOverlay, row));
-    }
-
-    // And back off the boundary again — the 1px must not be left behind. Read it web-first: a
-    // frozen-derived height reaches the master one draw AFTER the band moves (the master renders
-    // its band before the frozen overlays are measured, and `drawCycle.ts` documents that draw as
-    // a self-correcting transient), so a single read right after the scroll can catch the master
-    // still at its provided height while the overlay already shows the tall one. Frame-sampled over
-    // 120 runs, the two agreed again within 50 ms and never diverged afterwards; a one-shot read
-    // here failed 3 of 150 runs on two legs. Both heights are polled against the resting height, so
-    // a transient equality (both tables mid-update) cannot pass either.
+    // And back off the boundary again — the 1px must not be left behind. Polled, and pinned to the
+    // resting height rather than compared between the tables.
+    //
+    // The draw that moves the band is one synchronous task and leaves BOTH tables at the resting
+    // height: the frozen overlay is measured and the master's rows are re-sized inside that same
+    // draw (`syncOversizedRowsWithFrozenOverlays` in `drawCycle.ts`), and mutation-level traces of
+    // 148 scroll-backs never showed the two apart at any task boundary. What this assertion used to
+    // catch (3 of 150 runs under load, `Expected: 69, Received: 30`) was the reader: a locator's
+    // `boundingBox()` resolves the node and reads its box in two round trips, Walkontable recycles
+    // the same <tr> nodes across the re-render, and a node resolved as the boundary row before the
+    // draw is row 0 after it — 30 is a normal row's height. `rowHeights()` reads both tables in one
+    // evaluation; the poll absorbs a read that lands before the draw.
     await wt.scrollVerticallyTo(0);
 
-    await expect.poll(async() => ({
-      master: await wt.rowHeight(wt.master, BOUNDARY_ROW),
-      overlay: await wt.rowHeight(wt.inlineStartOverlay, BOUNDARY_ROW),
-    })).toEqual({ master: restingHeight, overlay: restingHeight });
+    await expect.poll(() => wt.rowHeights(BOUNDARY_ROW)).toEqual({ master: restingHeight, overlay: restingHeight });
   });
 
   test('keeps the scroll range whole when the BOTTOM clone invalidates the cache mid-draw', async () => {
