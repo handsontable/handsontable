@@ -43,7 +43,7 @@ describe('Plugin hooks released on disable', () => {
     ['formulas', { formulas: { engine: HyperFormula } }, 'afterRowMove'],
     ['comments', { comments: true }, 'afterSetTheme'],
     ['loading', { loading: true }, 'afterDialogFocus'],
-  ])('removes the hooks the %s plugin registered when it is disabled', (pluginKey, settings, hookName) => {
+  ])('releases the hooks the %s plugin owns on disable and registers them again', (pluginKey, settings, hookName) => {
     hot = new Handsontable(container, {
       data: [['1', '2']],
       licenseKey: 'non-commercial-and-evaluation',
@@ -58,5 +58,9 @@ describe('Plugin hooks released on disable', () => {
     hot.updateSettings({ [pluginKey]: false });
 
     expect(hookCount(hookName)).toBe(before);
+
+    hot.updateSettings(settings);
+
+    expect(hookCount(hookName)).toBeGreaterThan(before);
   });
 });
