@@ -5,6 +5,7 @@ import * as C from '../../../i18n/constants';
 import { addClass, setAttribute } from '../../../helpers/dom/element';
 import { A11Y_GROUP, A11Y_LABEL } from '../../../helpers/a11y';
 import { isKeyboardActivation } from './activation';
+import { DISABLED_CLASS } from './overflow';
 
 const TEMPLATE: TemplateSpec = {
   tag: 'div',
@@ -161,7 +162,7 @@ export class SheetsBarUI {
    */
   getFocusableElements(): HTMLElement[] {
     return Array.from(this.getContainer().querySelectorAll<HTMLElement>('button, .ht-sheets-bar__tab'))
-      .filter(element => element.closest('[hidden]') === null && element.getAttribute('aria-disabled') !== 'true');
+      .filter(element => element.closest('[hidden]') === null && !element.classList.contains(DISABLED_CLASS));
   }
 
   /**

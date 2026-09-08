@@ -103,9 +103,18 @@ export class TabStrip {
   #revealedId = -1;
   /**
    * Ends the rename in progress without committing it, or `null` when none is in progress. A
-   * repaint that replaces the tabs would otherwise take the input away silently.
+   * repaint that replaces the tabs would otherwise take the input away silently. The `silent`
+   * flag skips the `tabRenameCancel` dispatch for the cancel `render()` itself performs — the
+   * hook's handler repaints the strip, and re-entering `render()` from inside a render pass
+   * leaves the outer pass restoring focus and scroll against tabs the inner pass has replaced.
    */
-  #cancelRename: (() => void) | null = null;
+  #cancelRename: ((silent?: boolean) => void) | null = null;
+  /**
+   * Whether a pointer went down on a tab and has not been lifted, so a `contextmenu` raised by
+   * a touch long-press or a macOS Ctrl+click — both reporting `button: 0`, like the keyboard —
+   * is not read as a keyboard opening.
+   */
+  #pointerHeldOnTab = false;
 
   /**
    * Binds the strip to its host element.
@@ -127,7 +136,7 @@ export class TabStrip {
    */
   render(sheets: SheetDescriptor[]): void {
     this.#drag.abort();
-    this.#cancelRename?.();
+    this.#cancelRename?.(true);
 
     const focused = this.#capturedFocus();
 
@@ -202,24 +211,37 @@ export class TabStrip {
       }
     });
     tab.addEventListener('pointerdown', (event) => {
+      this.#pointerHeldOnTab = true;
+
       if (event.button === 0 && !this.#isWithinRenameInput(event)) {
         this.#drag.start(event, tab, sheet.id);
       }
+    });
+    tab.addEventListener('pointerup', () => {
+      this.#pointerHeldOnTab = false;
+    });
+    tab.addEventListener('pointercancel', () => {
+      this.#pointerHeldOnTab = false;
     });
 
     // Right-clicking a tab opens the same menu, which is what a spreadsheet user expects.
     // On another sheet it moves there first — the menu acts on a sheet, so it has to be the
     // sheet in front of you. The rename input keeps the browser's own menu; that one is for
     // editing text, not for the sheet. The keyboard raises the same event — Shift+F10, the
-    // Menu key — with no button pressed, and then the menu has to open with an item selected.
+    // Menu key — and only then does the menu open with an item preselected. `button` alone
+    // cannot tell those apart: a touch long-press and a macOS Ctrl+click both report
+    // `button: 0`, so the keyboard is recognized by no button being held and no pointer
+    // having gone down on the tab.
     tab.addEventListener('contextmenu', (event) => {
       if (this.#isWithinRenameInput(event)) {
         return;
       }
 
+      const fromKeyboard = event.button === 0 && event.buttons === 0 && !this.#pointerHeldOnTab;
+
       event.preventDefault();
       event.stopPropagation();
-      this.#openMenuFor(sheet, event.button !== 2);
+      this.#openMenuFor(sheet, fromKeyboard);
     });
 
     tab.appendChild(label);
@@ -465,7 +487,7 @@ export class TabStrip {
     const tabWidthBeforeEdit = tab.getBoundingClientRect().width;
     let finished = false;
     let widthFloor = 0;
-    const finish = (commit: boolean, restoreFocus: boolean) => {
+    const finish = (commit: boolean, restoreFocus: boolean, silent = false) => {
       if (finished) {
         return;
       }
@@ -476,12 +498,12 @@ export class TabStrip {
 
       if (commit) {
         this.runLocalHooks('tabRenameCommit', id, input.value, restoreFocus);
-      } else {
+      } else if (!silent) {
         this.runLocalHooks('tabRenameCancel', id, restoreFocus);
       }
     };
 
-    this.#cancelRename = () => finish(false, false);
+    this.#cancelRename = (silent = false) => finish(false, false, silent);
 
     input.className = 'ht-sheets-bar__tab-rename';
     input.value = label.textContent ?? '';

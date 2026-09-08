@@ -1,7 +1,7 @@
 import { Menu } from '../../contextMenu/menu';
 import { SEPARATOR } from '../../contextMenu/predefinedItems';
 import { getDocumentOffsetByElement } from '../../contextMenu/utils';
-import { setAttribute } from '../../../helpers/dom/element';
+import { setAttribute, getDeepActiveElement } from '../../../helpers/dom/element';
 import { A11Y_LABEL } from '../../../helpers/a11y';
 import * as C from '../../../i18n/constants';
 import type { HotInstance } from '../../../core/types';
@@ -250,7 +250,7 @@ export class SheetsBarMenus {
 
       this.#open = null;
 
-      if (open.state.anchor.isConnected) {
+      if (open.state.anchor.isConnected && this.#hot.getSettings().ariaTags) {
         open.state.anchor.setAttribute('aria-expanded', 'false');
       }
 
@@ -281,7 +281,10 @@ export class SheetsBarMenus {
 
     this.#open = { menu, state };
     menu.setMenuItems(state.items);
-    state.anchor.setAttribute('aria-expanded', 'true');
+
+    if (this.#hot.getSettings().ariaTags) {
+      state.anchor.setAttribute('aria-expanded', 'true');
+    }
 
     const offset = getDocumentOffsetByElement(menu.container, this.#hot.rootDocument);
     const rect = positionTarget.getBoundingClientRect();
@@ -319,7 +322,9 @@ export class SheetsBarMenus {
       return;
     }
 
-    const activeElement = this.#hot.rootDocument.activeElement;
+    // The deep lookup matters in a shadow root, where the raw `activeElement` collapses to the
+    // outermost host — which reads as "claimed elsewhere" and would skip every restore there.
+    const activeElement = getDeepActiveElement(this.#hot.rootDocument);
     const claimedElsewhere = activeElement !== null
       && activeElement !== this.#hot.rootDocument.body
       && !menu.container?.contains(activeElement);

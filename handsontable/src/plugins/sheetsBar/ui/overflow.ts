@@ -11,11 +11,13 @@ import { A11Y_DISABLED } from '../../../helpers/a11y';
 const SCROLL_END_TOLERANCE = 1;
 
 /**
- * The class an arrow wears when it has run out of strip in its direction.
+ * The class an arrow wears when it has run out of strip in its direction. It is the source of
+ * truth for the disabled state — `aria-disabled` only mirrors it, and only while the `ariaTags`
+ * setting keeps ARIA on — so `isArrowEnabled()` and the bar's focus walk read this class.
  *
  * @type {string}
  */
-const DISABLED_CLASS = 'ht-sheets-bar__button--disabled';
+export const DISABLED_CLASS = 'ht-sheets-bar__button--disabled';
 
 /**
  * Watches the tab strip for horizontal overflow and drives the paging arrows.
@@ -49,6 +51,10 @@ export class OverflowController {
    */
   readonly #isRtl: boolean;
   /**
+   * Whether ARIA attributes may be written at all — the grid's `ariaTags` setting.
+   */
+  readonly #ariaTags: boolean;
+  /**
    * Observes strip size changes.
    */
   #resizeObserver: ResizeObserver | null = null;
@@ -61,13 +67,14 @@ export class OverflowController {
   /**
    * Wires the controller to the strip and arrow elements.
    */
-  constructor({ strip, pagingSection, pagePrev, pageNext, pagingEnabled, isRtl }: {
+  constructor({ strip, pagingSection, pagePrev, pageNext, pagingEnabled, isRtl, ariaTags }: {
     strip: HTMLElement,
     pagingSection: HTMLElement,
     pagePrev: HTMLButtonElement,
     pageNext: HTMLButtonElement,
     pagingEnabled: boolean,
     isRtl: boolean,
+    ariaTags: boolean,
   }) {
     this.#strip = strip;
     this.#pagingSection = pagingSection;
@@ -75,6 +82,7 @@ export class OverflowController {
     this.#pageNext = pageNext;
     this.#pagingEnabled = pagingEnabled;
     this.#isRtl = isRtl;
+    this.#ariaTags = ariaTags;
 
     pagePrev.addEventListener('click', () => this.#scrollByStep(-1));
     pageNext.addEventListener('click', () => this.#scrollByStep(1));
@@ -87,7 +95,7 @@ export class OverflowController {
    * @returns {boolean} `true` when a press would move the strip.
    */
   isArrowEnabled(arrow: HTMLButtonElement): boolean {
-    return arrow.getAttribute('aria-disabled') !== 'true';
+    return !arrow.classList.contains(DISABLED_CLASS);
   }
 
   /**
@@ -147,7 +155,9 @@ export class OverflowController {
    * @param {boolean} enabled Whether it still has strip to scroll.
    */
   #setArrowEnabled(arrow: HTMLButtonElement, enabled: boolean): void {
-    setAttribute(arrow, [A11Y_DISABLED(!enabled)]);
+    if (this.#ariaTags) {
+      setAttribute(arrow, [A11Y_DISABLED(!enabled)]);
+    }
 
     if (enabled) {
       removeClass(arrow, DISABLED_CLASS);
