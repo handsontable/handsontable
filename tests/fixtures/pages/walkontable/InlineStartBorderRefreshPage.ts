@@ -68,7 +68,8 @@ export class InlineStartBorderRefreshPage {
    * @param {object} [options] Fixture options. `colWidths` picks one declared width (`uniform`,
    *   the single-pass layout path) or a per-column array (`varied`, off that path). `scroll` picks
    *   whether the grid scrolls inside its own holder (`element`) or the page scrolls (`window`),
-   *   which is the other way off that path and the one `prepareHeaderBorders` bails on.
+   *   which is the other way off that path, and the one the removed `prepareHeaderBorders` pass
+   *   bailed on outright.
    */
   async goto(options: {
     colWidths?: 'uniform' | 'varied',

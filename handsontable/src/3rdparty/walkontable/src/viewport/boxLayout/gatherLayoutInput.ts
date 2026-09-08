@@ -15,6 +15,7 @@
 import type { EngineContext } from '../../wire';
 import type { LayoutInput, OverflowMode } from './layoutSnapshot';
 import { measureWorkspaceWidth, measureWorkspaceHeight } from '../workspaceSize';
+import { getFirstRowBorderCompensation } from '../../axisSizing/boxModel';
 
 /**
  * Narrows the engine context to the dependencies the layout slice reads.
@@ -82,12 +83,12 @@ export function gatherLayoutInput(deps: LayoutDeps): LayoutInput {
 
   const rowHeaderWidth = viewport.getRowHeaderWidth();
   const columnHeaderHeight = viewport.getColumnHeaderHeight();
-  // Match the hider extent the engine actually renders into: the internal row-height calculator
-  // carries a known 1px miscalculation that `Overlays#adjustElementsSize` compensates for by adding
-  // 1px to the hider height (and does not when AutoRowSize supplies exact heights — the
-  // `externalRowCalculator` case). Fold the same compensation into the total so the predicted
-  // vertical-scroll boundary matches today's post-render measurement exactly.
-  const hiderHeightCompensation = wtSettings.getSetting<boolean>('externalRowCalculator') ? 0 : 1;
+  // Match the hider extent the engine actually renders into. The rule lives in `axisSizing/boxModel`
+  // so this prediction and the hider write in `SpreaderSize#adjustElementsSize` cannot drift.
+  const hiderHeightCompensation = getFirstRowBorderCompensation(
+    wtSettings.getSetting<boolean>('externalRowCalculator'),
+    (wtSettings.getSetting('columnHeaders') as unknown[]).length > 0
+  );
   const totalContentWidth = rowHeaderWidth + viewport.columnWidthCache.getTotalSize();
   const totalContentHeight = columnHeaderHeight + viewport.rowHeightCache.getTotalSize() +
     hiderHeightCompensation;

@@ -169,8 +169,14 @@ export class RenderSizeProbe {
         // Skip cells that span more than one header row (nested-header rowspan). Their height covers
         // several levels, so measuring it as this level's height would push the lower levels down.
         // Only single-row header cells carry a content-driven per-level height.
+        // `outerHeight`, not `innerHeight`: the value measured here goes back into the
+        // `columnHeaderHeight` funnel and `adjustColumnHeaderHeights` writes it as `style.height` on
+        // a `box-sizing: border-box` header cell, so it has to be a border-box height or the round
+        // trip loses the cell's own borders. It loses exactly one pixel since DEV-2786, where the
+        // header gained a permanent `border-bottom` - which left the master's content-driven header
+        // row a pixel taller than the height written to the frozen overlays' corner cell.
         if (cell instanceof HTMLTableCellElement && cell.rowSpan <= 1) {
-          const cellHeight = innerHeight(cell);
+          const cellHeight = outerHeight(cell);
 
           if (maxHeight === undefined || cellHeight > maxHeight) {
             maxHeight = cellHeight;
