@@ -80,6 +80,9 @@ jobs:
           name: puppeteer-failed-specs-${{ matrix.bundle.label }}-${{ matrix.theme }}
           path: handsontable/test/e2e-results/
           if-no-files-found: ignore
+          # A re-run attempt that fails again replaces the record; without this
+          # the upload 409s on the name and the newer record is lost.
+          overwrite: true
 
   # Runs inside the pinned Playwright container so the engine + browsers match
   # local and baseline generation. One leg per theme × bundle — the same matrix
