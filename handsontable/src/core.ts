@@ -1051,6 +1051,14 @@ export default function Core(
 
     lastColumnIndexCount = indexCount;
 
+    // Stamped BEFORE the public hook, so an `alter()` a consumer of it fires sees this change as
+    // already landed and lets its own selection repair wait for ours. One fired from a `before*`
+    // hook runs before this line and correctly does not wait (DEV-2755 review).
+
+    if (isStructuralChange) {
+      this.selection.markStructuralIndexChange();
+    }
+
     // Deferred to HERE, not sent from the restore: `afterDeselect` closes the editor, and closing it
     // saves - so it must not run until `EditorManager` has discarded the editor whose record the
     // trim removed, which it does inside the hook above. In a `finally` because a consumer of that
@@ -1072,6 +1080,14 @@ export default function Core(
     const isStructuralChange = indexCount !== lastRowIndexCount;
 
     lastRowIndexCount = indexCount;
+
+    // Stamped BEFORE the public hook, so an `alter()` a consumer of it fires sees this change as
+    // already landed and lets its own selection repair wait for ours. One fired from a `before*`
+    // hook runs before this line and correctly does not wait (DEV-2755 review).
+
+    if (isStructuralChange) {
+      this.selection.markStructuralIndexChange();
+    }
 
     try {
       this.runHooks('afterRowSequenceCacheUpdate', indexesChangesState);

@@ -1310,6 +1310,57 @@ test.describe('an index-map change nested inside a removal', () => {
     });
 
   /**
+   * The nesting the other way round. `beforeCreateRow` fires BEFORE the insertion touches the data,
+   * so the nested removal's change lands FIRST and the outer call owes the selection nothing while
+   * the nested one runs. Composing by nesting order rather than by the order the changes landed
+   * moves the selection the wrong way here - it applies the outer insert to a range the nested
+   * removal had not yet pulled up, and then pulls it up afterwards.
+   *
+   * Asserted on the SELECTION rather than a commit: with nothing owed, this shape is not a bug on
+   * develop at all, and the case exists to keep it that way.
+   */
+  test('follows the data order when the nested change lands first',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.selectCell(3, 0);
+
+      await grid.insertRowRemovingFromBeforeHook(3, 0);
+
+      // The nested removal pulls the selection up to row 2; the outer insert at row 3 is then below
+      // it and moves nothing.
+      expect(await grid.selected()).toEqual([[2, 0, 2, 0]]);
+    });
+
+  /**
+   * The column axis. Nothing in core trims columns, so this half of the repair is reachable only
+   * through `alter('remove_col')` - and it was rewritten alongside the row half, so it needs its own
+   * case rather than an argument by symmetry.
+   */
+  test('commits to the record it was typed into when the nested alter is on the column axis',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.openEditorAndType(4, 1, 'EDITED');
+
+      await grid.removeColumnAlteringFromCacheUpdate(0, 0, 0);
+
+      await expect.poll(() => grid.editorState()).toBe('STATE_EDITING');
+
+      await grid.commitWithEnter();
+
+      await expect.poll(() => grid.sourceData()).toEqual([
+        ['B0'],
+        ['B1'],
+        ['B2'],
+        ['B3'],
+        ['EDITED'],
+      ]);
+    });
+
+  /**
    * The control: the same nesting with the edited record NOT at the end, which develop already gets
    * right. Both shifts are real there and both must keep applying - a fix that suppressed the nested
    * call's shift instead of composing it would land the edit on `'A4'` here and still pass the two
