@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the cell highlight jumping to a previously clicked cell when you Ctrl/Cmd+click a cell that is already selected. Ctrl/Cmd+click now moves the highlight to that cell and deselects it only when it already holds the highlight.",
+  "type": "fixed",
+  "issueOrPR": 13412,
+  "breaking": true,
+  "framework": "none"
+}
