@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed a bug where inserting a row next to a top-level row through the `nestedRows` context menu moved cell meta and row states off the rows they belonged to. `Insert row above` and `Insert row below` counted the position within the top-level rows rather than the row's position in the grid, so comments, cell classes, hidden and trimmed row states, and the row that undo removed all landed on the wrong row whenever an earlier top-level row had children. Inserting next to a row that sits inside a collapsed parent still reports the wrong row to undo.",
+  "title": "Fixed a bug where inserting a row next to a top-level row through the `nestedRows` context menu moved cell meta and row states off the rows they belonged to. `Insert row above` and `Insert row below` counted the position within the top-level rows rather than the row's position in the grid, so comments, cell classes, hidden and trimmed row states, and the row that undo removed all landed on the wrong row whenever an earlier top-level row had children. That insert no longer runs through `alter()`, so `beforeAlter` and `beforeDataSplice` no longer fire for it, matching the `Insert child row` and nested-child paths, which never fired them. Inserting next to a row that sits inside a collapsed parent still reports the wrong row to undo.",
   "type": "fixed",
   "issueOrPR": 13401,
   "breaking": false,

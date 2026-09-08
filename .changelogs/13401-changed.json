@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Changed which hooks report a row inserted next to a top-level row through the `nestedRows` context menu. That insert no longer runs through `alter()`, so `beforeAlter` and `beforeDataSplice` no longer fire for it, matching the `Insert child row` and nested-child paths, which never fired them. `beforeCreateRow`, `afterCreateRow` and `beforeAddChild`/`afterAddChild` are unaffected, and returning `false` from `beforeCreateRow` still cancels the insert.",
-  "type": "changed",
-  "issueOrPR": 13401,
-  "breaking": false,
-  "framework": "none"
-}
