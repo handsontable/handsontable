@@ -1,7 +1,7 @@
 import type { HotInstance } from '../../core/types';
 import type { CellProperties } from '../../settings';
 import { TextEditor } from '../textEditor';
-import { setCaretPosition, getFixedContainingBlockRect } from '../../helpers/dom/element';
+import { setCaretPosition, getFixedContainingBlockRect, isHTMLElement } from '../../helpers/dom/element';
 import {
   stopImmediatePropagation,
 } from '../../helpers/dom/event';
@@ -570,7 +570,11 @@ export class HandsontableEditor extends TextEditor {
       // hooks. A capture listener on the document is on the propagation path for it too, and it
       // runs BEFORE the target-phase handler that re-places the holder, so acting on it would
       // reposition from a stale holder rect and then immediately do it again.
-      if (event.target instanceof Node && this.hot.rootElement.contains(event.target)) {
+      // `isHTMLElement()`, not `instanceof Node`: the check has to hold for a node from another
+      // realm - a grid built inside an iframe from the parent's constructor - and a bare
+      // `instanceof` is bound to the realm this file was compiled in, so it answers `false`
+      // there and the skip silently stops working.
+      if (isHTMLElement(event.target) && this.hot.rootElement.contains(event.target)) {
         return;
       }
 

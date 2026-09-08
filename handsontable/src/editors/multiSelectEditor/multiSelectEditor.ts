@@ -8,6 +8,7 @@ import {
   addClass,
   getDeepActiveElement,
   getFixedContainingBlockRect,
+  isHTMLElement,
   setAttribute,
 } from '../../helpers/dom/element';
 import { isPrintableChar } from '../../helpers/unicode';
@@ -458,7 +459,13 @@ export class MultiSelectEditor extends BaseEditor {
       // The grid's own scroll already reaches `refreshDimensions()` through the `afterScroll*`
       // hooks, and a capture listener runs BEFORE the target-phase handler that re-places the
       // grid, so acting on it would position from a stale rect and then do it again.
-      if (event?.target instanceof Node && this.hot.rootElement.contains(event.target)) {
+      // `isHTMLElement()`, not `instanceof Node`: the check has to hold for a node from another
+      // realm - a grid built inside an iframe from the parent's constructor - and a bare
+      // `instanceof` is bound to the realm this file was compiled in, so it answers `false`
+      // there and the skip silently stops working.
+      const target = event?.target;
+
+      if (isHTMLElement(target) && this.hot.rootElement.contains(target)) {
         return;
       }
 

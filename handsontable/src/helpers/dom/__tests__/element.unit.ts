@@ -2039,6 +2039,32 @@ describe('DomElement helper', () => {
       ancestor.remove();
     });
 
+    it('should cross a shadow boundary to reach a host-page ancestor', () => {
+      // The case core stamps `ht-shadow-dom` for. `parentElement` returns null at a ShadowRoot,
+      // so a walk built on it would stop inside the shadow tree and miss the modal entirely.
+      const modal = document.createElement('div');
+      const host = document.createElement('div');
+
+      modal.style.transform = 'translate(-50%, -50%)';
+      modal.appendChild(host);
+      document.body.appendChild(modal);
+      stubRect(modal, { top: 100, left: 200, width: 400, height: 300 });
+
+      const shadow = host.attachShadow({ mode: 'open' });
+      const inner = document.createElement('div');
+
+      shadow.appendChild(inner);
+
+      const rect = getFixedContainingBlockRect(inner);
+
+      expect(rect.top).toBe(100);
+      expect(rect.left).toBe(200);
+      expect(rect.width).toBe(400);
+      expect(rect.height).toBe(300);
+
+      modal.remove();
+    });
+
     it('should pick the NEAREST establishing ancestor', () => {
       const outer = document.createElement('div');
       const inner = document.createElement('div');

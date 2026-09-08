@@ -1215,9 +1215,27 @@ export function getFixedContainingBlockRect(
     return viewport;
   }
 
-  let el: HTMLElement | null = base.parentElement;
+  // Walked with `parentNode` plus an explicit hop over a shadow boundary, the way `getParent()`
+  // and `closest()` do. `parentElement` returns `null` at a `ShadowRoot` (it is not an Element),
+  // so a grid embedded in a web component - the case core stamps `ht-shadow-dom` for - would
+  // stop the walk inside its own shadow tree and never see the host page's transformed modal,
+  // which is exactly the misplacement this function exists to prevent.
+  let node: Node | null = base.parentNode;
 
-  while (el && el !== rootDocument.documentElement) {
+  while (node && node !== rootDocument.documentElement) {
+    if (isShadowRoot(node)) {
+      node = node.host;
+
+      continue;
+    }
+
+    if (!isHTMLElement(node)) {
+      node = node.parentNode;
+
+      continue;
+    }
+
+    const el = node;
     const style = rootWindow.getComputedStyle(el);
 
     if (establishesFixedContainingBlock(style)) {
@@ -1236,7 +1254,7 @@ export function getFixedContainingBlockRect(
       };
     }
 
-    el = el.parentElement;
+    node = el.parentNode;
   }
 
   return viewport;
