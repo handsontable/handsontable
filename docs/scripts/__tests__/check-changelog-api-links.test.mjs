@@ -5,6 +5,7 @@ import {
   extractHookNames,
   extractPluginNames,
   extractApiFileSlugs,
+  extractCoreMemberNames,
   buildKnownFileSlugs,
   collectAddedSectionLines,
   collectBullets,
@@ -19,6 +20,7 @@ const api = {
   optionNames: new Set(['renderAllColumns', 'minRowHeights', 'rowHeights', 'filters']),
   hookNames: new Set(['beforeBeginEditing', 'beforeCompositionStart']),
   pluginNames: new Map([['Filters', 'filters'], ['NestedRows', 'nestedRows']]),
+  coreNames: new Set(['updateData', 'updateSettings']),
   fileSlugs: new Set(['options', 'hooks', 'core', 'filters', 'nestedRows']),
 };
 
@@ -80,14 +82,66 @@ test('extractHookNames takes REGISTERED_HOOKS and ignores quoted words inside it
   assert.deepEqual([...extractHookNames(source)], ['afterChange', 'beforeChange']);
 });
 
-test('extractPluginNames maps a class name to its directory, for both import and export forms', () => {
+test('extractPluginNames maps a class name to its page slug, for both import and export forms', () => {
   const source = [
     "import { AutoColumnSize } from './autoColumnSize';",
-    "export { BasePlugin } from './base';",
     "import { registerPlugin } from '../plugins';",
   ].join('\n');
 
-  assert.deepEqual([...extractPluginNames(source)], [['AutoColumnSize', 'autoColumnSize'], ['BasePlugin', 'base']]);
+  assert.deepEqual([...extractPluginNames(source)], [['AutoColumnSize', 'autoColumnSize']]);
+});
+
+test('extractPluginNames derives the slug from the class, not the directory', () => {
+  // `BasePlugin` comes from `./base`, and its page is `api/basePlugin.md`; `api/base.md` does not exist.
+  const slugs = extractPluginNames("export { BasePlugin } from './base';");
+
+  assert.equal(slugs.get('BasePlugin'), 'basePlugin');
+});
+
+test('extractCoreMemberNames takes a @memberof Core# block and skips a private one', () => {
+  const source = [
+    '  /**',
+    '   * Updates the grid data.',
+    '   *',
+    '   * @memberof Core#',
+    '   * @function updateData',
+    '   */',
+    '  this.updateData = function() {};',
+    '',
+    '  /**',
+    '   * @memberof Core#',
+    '   * @member isDestroyed',
+    '   * @type {boolean}',
+    '   */',
+    '  this.isDestroyed = false;',
+    '',
+    '  /**',
+    '   * @memberof Core#',
+    '   * @function repairSelection',
+    '   * @private',
+    '   */',
+    '  this.repairSelection = function() {};',
+  ].join('\n');
+
+  assert.deepEqual([...extractCoreMemberNames(source)].sort(), ['isDestroyed', 'updateData']);
+});
+
+test('resolveApiTarget resolves a Core member, after options and hooks', () => {
+  assert.deepEqual(resolveApiTarget('updateData', api), { file: 'core', anchor: 'updatedata' });
+});
+
+test('findUnlinkedApiNames reports a Core method named with call parentheses', () => {
+  const markdown = [
+    '#### Added',
+    '- Added a flag that survives an `updateSettings()` call.',
+  ].join('\n');
+
+  assert.deepEqual(findUnlinkedApiNames(markdown, api), [{
+    line: 2,
+    name: 'updateSettings',
+    misspelled: false,
+    suggestion: '[`updateSettings()`](@/api/core.md#updatesettings)',
+  }]);
 });
 
 test('extractApiFileSlugs reads every children list of the api sidebar', () => {

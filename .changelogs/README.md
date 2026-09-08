@@ -159,6 +159,10 @@ whose file or anchor cannot resolve. It is report-only, runs on every docs pull 
 candidate set is a heuristic: a backticked word that happens to match an option name is not proof the
 entry introduced that option. Judge each finding.
 
+It sees options, hooks, plugin classes, and `Core` members. **It does not see plugin methods**, and
+cannot: a bare `collapseAll()` belongs to both the `CollapsibleColumns` and the `NestedRows` plugin,
+and only the sentence around it says which. Link those by hand.
+
 ### Why the link cannot live in the entry `title`
 
 `bin/changelog` renders `title` verbatim into four destinations: the root `CHANGELOG.md`, the GitHub

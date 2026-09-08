@@ -15,6 +15,7 @@
 
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const DOCS_ROOT = resolve(import.meta.dirname, '..');
 const REPO_ROOT = resolve(DOCS_ROOT, '..');
@@ -22,6 +23,7 @@ const CHANGELOGS_DIR = join(DOCS_ROOT, 'content/guides/upgrade-and-migration');
 const METASCHEMA = join(REPO_ROOT, 'handsontable/src/dataMap/metaManager/metaSchema.ts');
 const HOOK_CONSTANTS = join(REPO_ROOT, 'handsontable/src/core/hooks/constants.ts');
 const PLUGINS_INDEX = join(REPO_ROOT, 'handsontable/src/plugins/index.ts');
+const CORE = join(REPO_ROOT, 'handsontable/src/core.ts');
 const API_SIDEBAR = join(DOCS_ROOT, 'content/api/sidebar.js');
 
 /**
@@ -104,21 +106,58 @@ export function extractHookNames(source) {
 }
 
 /**
- * Reads the plugin class names out of `plugins/index.ts`, paired with the directory name that the
- * reference page is generated from.
+ * Reads the plugin class names out of `plugins/index.ts`, paired with the api file slug of the page
+ * generated for each.
+ *
+ * The slug follows the **class** name with its first letter lowercased, not the directory. The two
+ * usually coincide, but `BasePlugin` is exported from `./base` and its page is `api/basePlugin.md`;
+ * `api/base.md` does not exist, and suggesting it would break the very rule this check enforces.
  *
  * @param {string} source Contents of `plugins/index.ts`.
  * @returns {Map<string, string>} Class name to api file slug, for example `Filters` to `filters`.
  */
 export function extractPluginNames(source) {
   const plugins = new Map();
-  const pattern = /^(?:import|export)\s*\{\s*([A-Z][\w]*)\s*\}\s*from\s*'\.\/([\w]+)'/gm;
+  const pattern = /^(?:import|export)\s*\{\s*([A-Z][\w]*)\s*\}\s*from\s*'\.\/[\w]+'/gm;
 
-  Array.from(source.matchAll(pattern)).forEach(([, className, directory]) => {
-    plugins.set(className, directory);
+  Array.from(source.matchAll(pattern)).forEach(([, className]) => {
+    plugins.set(className, `${className[0].toLowerCase()}${className.slice(1)}`);
   });
 
   return plugins;
+}
+
+/**
+ * Reads the `Core` members out of `core.ts`.
+ *
+ * Every one is declared with `@memberof Core#` plus a `@function` or `@member` tag naming it, and
+ * `api/core.md` emits that name verbatim as a heading. The extraction is deliberately conservative:
+ * measured against a generated `core.md` it finds 145 of the members it documents and invents none,
+ * because the page also carries every configuration option and a handful of internal members. That
+ * makes it safe to *suggest* a `core.md` link from, and unsafe to *reject* one with, which is why
+ * {@link findBrokenApiLinks} never validates a `core.md` anchor.
+ *
+ * @param {string} source Contents of `core.ts`.
+ * @returns {Set<string>} Core member names.
+ */
+export function extractCoreMemberNames(source) {
+  const names = new Set();
+
+  source.split('/**').slice(1).forEach((block) => {
+    const body = block.split('*/')[0];
+
+    if (!body.includes('@memberof Core#') || body.includes('@private')) {
+      return;
+    }
+
+    const named = body.match(/@(?:function|member)\s+([A-Za-z_$][\w$]*)/);
+
+    if (named) {
+      names.add(named[1]);
+    }
+  });
+
+  return names;
 }
 
 /**
@@ -235,10 +274,16 @@ export function collectBullets(lines) {
  * @param {Set<string>} api.optionNames Option names.
  * @param {Set<string>} api.hookNames Hook names.
  * @param {Map<string, string>} api.pluginNames Plugin class name to api file slug.
+ * @param {Set<string>} [api.coreNames] `Core` member names.
  * @returns {{ file: string, anchor: string }|null} Link target, or `null` when the name is not a
  * documented API member.
+ *
+ * A **plugin method** never resolves here, and cannot: a bare `collapseAll()` belongs to both the
+ * `CollapsibleColumns` and the `NestedRows` plugin, and only the sentence around it says which. The
+ * check therefore does not see plugin methods at all, and a human editing a changelog page still
+ * has to link those by hand. This is the one documented blind spot.
  */
-export function resolveApiTarget(name, { optionNames, hookNames, pluginNames }) {
+export function resolveApiTarget(name, { optionNames, hookNames, pluginNames, coreNames }) {
   if (pluginNames.has(name)) {
     return { file: pluginNames.get(name), anchor: '' };
   }
@@ -249,6 +294,10 @@ export function resolveApiTarget(name, { optionNames, hookNames, pluginNames }) 
 
   if (hookNames.has(name)) {
     return { file: 'hooks', anchor: name.toLowerCase() };
+  }
+
+  if (coreNames !== undefined && coreNames.has(name)) {
+    return { file: 'core', anchor: name.toLowerCase() };
   }
 
   return null;
@@ -271,6 +320,7 @@ export function resolveMisspelledApiTarget(name, api) {
     ...api.pluginNames.keys(),
     ...api.optionNames,
     ...api.hookNames,
+    ...(api.coreNames ?? []),
   ];
   const canonicalName = candidates.find(candidate => candidate.toLowerCase() === name.toLowerCase());
 
@@ -401,6 +451,7 @@ export function checkChangelogPages({ directory = CHANGELOGS_DIR } = {}) {
     optionNames: extractOptionNames(readFileSync(METASCHEMA, 'utf8')),
     hookNames: extractHookNames(readFileSync(HOOK_CONSTANTS, 'utf8')),
     pluginNames: extractPluginNames(readFileSync(PLUGINS_INDEX, 'utf8')),
+    coreNames: extractCoreMemberNames(readFileSync(CORE, 'utf8')),
     fileSlugs: buildKnownFileSlugs(
       readFileSync(API_SIDEBAR, 'utf8'),
       readFileSync(PLUGINS_INDEX, 'utf8'),
@@ -466,7 +517,7 @@ export function formatSummary({ unlinked, broken }) {
   return `${lines.join('\n')}\n`;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const { appendFileSync } = await import('node:fs');
   const findings = checkChangelogPages();
   const { unlinked, broken } = findings;

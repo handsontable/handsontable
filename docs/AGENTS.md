@@ -480,7 +480,9 @@ names. A link to a page that does not document the name is worse than no link.
 
 Run `npm run docs:validate-changelog-links` to list the candidates and to catch an `@/api/` link
 whose file or anchor cannot resolve. It is report-only, and its candidate set is a heuristic, so judge
-each finding rather than applying it blindly.
+each finding rather than applying it blindly. It sees options, hooks, plugin classes, and `Core`
+members; **it does not see plugin methods**, because a bare `collapseAll()` belongs to two plugins and
+only the sentence says which, so link those by hand.
 
 The link cannot come from the `.changelogs/*.json` entry instead. `bin/changelog` renders an entry
 title verbatim into four destinations, and only the docs page resolves `@/api/` links: on GitHub the
