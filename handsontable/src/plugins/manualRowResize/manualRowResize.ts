@@ -325,6 +325,11 @@ export class ManualRowResize extends BasePlugin {
    * @returns {number|null}
    */
   getManualSize(row: number): number | null {
+    // The map only exists while the plugin is enabled, and a disabled plugin stores no heights.
+    if (!this.enabled) {
+      return null;
+    }
+
     const physicalRow = this.hot.toPhysicalRow(row);
     const value = physicalRow === null ? null : this.#rowHeightsMap.getValueAtIndex(physicalRow);
 

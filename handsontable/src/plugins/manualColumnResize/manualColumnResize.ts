@@ -329,6 +329,11 @@ export class ManualColumnResize extends BasePlugin {
    * @returns {number|null}
    */
   getManualSize(column: number): number | null {
+    // The map only exists while the plugin is enabled, and a disabled plugin stores no widths.
+    if (!this.enabled) {
+      return null;
+    }
+
     const physicalColumn = this.hot.toPhysicalColumn(column);
     const value = physicalColumn === null ? null : this.#columnWidthsMap.getValueAtIndex(physicalColumn);
 
