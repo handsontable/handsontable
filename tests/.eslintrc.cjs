@@ -70,6 +70,10 @@ module.exports = {
         message: 'test.fixme() parks a known product bug and is allowed ONLY with an eslint-disable line naming the tracking task (`// eslint-disable-next-line no-restricted-syntax -- DEV-1234: <why>`), so the exception stays counted and attributable. See tests/AGENTS.md.',
       },
       {
+        selector: "Literal[value='@quarantine']",
+        message: 'A bare @quarantine tag carries no owner and no expiry, and the quarantine reporter fails the run on it. Park a flaky test with quarantined(\'DEV-1234\', \'YYYY-MM-DD\', why) from fixtures/quarantine instead. See tests/AGENTS.md (Quarantine).',
+      },
+      {
         // Three shapes of the same miss: no options argument, an options literal without `polling`, and
         // that literal wrapped in a type assertion (`as`, `satisfies`, `<T>`). Only a plain options
         // VARIABLE is not judged; a spread is flagged too, because the rule asks the call site to be

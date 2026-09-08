@@ -93,9 +93,17 @@ export default defineConfig<TestOptions>({
   // the cross-run flake ledger reads (`.github/workflows/test-health.yml`; the
   // path is pinned by `.github/scripts/lib/test-health.mjs` and asserted in its
   // tests). Blob is only for sharded runs, which this suite does not use.
+  // The quarantine reporter (`reporters/quarantine.ts`) runs last and sets the
+  // exit status: a flaky test under a live quarantine reports without failing
+  // the run, an expired or over-cap quarantine fails it. See tests/AGENTS.md.
   reporter: process.env.CI
-    ? [['html', { open: 'never' }], ['github'], ['json', { outputFile: 'test-results/report.json' }]]
-    : 'html',
+    ? [
+      ['html', { open: 'never' }],
+      ['github'],
+      ['json', { outputFile: 'test-results/report.json' }],
+      ['./reporters/quarantine.ts'],
+    ]
+    : [['html'], ['./reporters/quarantine.ts']],
   use: {
     baseURL: `http://localhost:${PORT}`,
     trace: 'on-first-retry',

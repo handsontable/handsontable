@@ -1,8 +1,9 @@
 # The cross-run flake ledger.
 #
-# Runs after every completed `Tests` or `Develop` run and, when that run was red,
-# collects every flaky or failed test it left behind as artifacts — the Playwright
-# JSON report of each failed leg (`playwright-report-*`) and the Puppeteer runner's
+# Runs after every completed `Tests` or `Develop` run and collects every flaky or
+# failed test it left behind as artifacts — the Playwright
+# JSON report of each failed leg (`playwright-report-*`, which a green leg uploads
+# too when a flaky test was under quarantine) and the Puppeteer runner's
 # failed-specs record (`puppeteer-failed-specs-*`) — into a ledger on `gh-pages`:
 #
 #   https://handsontable.github.io/handsontable/test-health/
@@ -49,12 +50,14 @@ jobs:
   collect:
     name: Collect
     runs-on: ubuntu-latest
-    # A green run left nothing to collect (a flaky Playwright test fails its leg
-    # under `failOnFlakyTests`, a failed Jasmine spec fails its leg). A cancelled
-    # run's artifacts are incomplete by definition.
+    # A cancelled run's artifacts are incomplete by definition. Every other run
+    # is worth a look: a red one for its failures, a green one for a flaky test
+    # under quarantine, which keeps its leg green but still uploads its report.
+    # A run with no test artifacts costs one API call and changes nothing.
     if: >-
       github.event_name == 'workflow_dispatch'
-      || github.event.workflow_run.conclusion == 'failure'
+      || (github.event.workflow_run.conclusion != 'cancelled'
+          && github.event.workflow_run.conclusion != 'skipped')
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
 
@@ -93,7 +96,7 @@ jobs:
             --jq '.artifacts[] | select(.expired == false) | select(.name | test("^(playwright-report-|puppeteer-failed-specs-)")) | .name' \
             > artifact-names.txt
           if [ ! -s artifact-names.txt ]; then
-            echo "No test artifacts on run ${RUN_ID}; the ledger is rewritten for the moving windows only."
+            echo "No test artifacts on run ${RUN_ID}: nothing flaky or failed to record."
           fi
           while IFS= read -r name; do
             [ -z "$name" ] && continue

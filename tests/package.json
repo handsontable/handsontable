@@ -7,7 +7,7 @@
     "test": "playwright test",
     "test:e2e": "playwright test --project=e2e-main",
     "report": "playwright show-report",
-    "lint": "eslint --ext .ts e2e fixtures"
+    "lint": "eslint --ext .ts e2e fixtures reporters"
   },
   "devDependencies": {
     "@playwright/test": "catalog:",

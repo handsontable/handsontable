@@ -28,6 +28,7 @@ const NOW = new Date('2026-09-08T12:00:00Z');
 const TALL_FROZEN_TITLE = 'walkontable exact row heights › in the `exact` mode › '
   + 'keeps a row with a tall frozen cell at the provided height in both tables';
 const TIMEOUT_MESSAGE = 'Timed out 10000ms waiting for expect(locator).toBeVisible()';
+const QUARANTINE_NOTE = 'DEV-1234 until 2026-10-08 — height read one draw early';
 
 const RUN = {
   id: 34121444051,
@@ -78,6 +79,7 @@ const PLAYWRIGHT_REPORT = {
           tests: [{
             projectName: 'e2e-classic-min',
             status: 'flaky',
+            annotations: [{ type: 'quarantine', description: QUARANTINE_NOTE }],
             results: [
               { status: 'failed', retry: 0, error: { message: '[31mExpected 30 to be 69[39m\n\n  at line 61' } },
               { status: 'passed', retry: 1 },
@@ -177,6 +179,8 @@ test('parsePlaywrightReport keeps flaky and failed tests with their title path, 
   assert.equal(entries[0].tier, 'playwright');
   assert.equal(entries[0].source, 'ci');
   assert.equal(entries[0].isolation, null);
+  assert.equal(entries[0].quarantine, QUARANTINE_NOTE, 'the quarantine travels');
+  assert.equal(entries[1].quarantine, null);
   assert.equal(entries[0].runId, '34121444051', 'every entry carries the run');
 });
 
@@ -193,6 +197,7 @@ test('parseJasmineRecord keeps every failed spec with its file, message and isol
   );
   assert.equal(entries[0].tier, 'jasmine');
   assert.equal(entries[0].line, null);
+  assert.equal(entries[0].quarantine, null, 'the frozen suite has no quarantine');
 });
 
 test('collectArtifactFiles reads only report and record files, skips broken JSON, notes an HTML-only report', () => {
@@ -255,6 +260,15 @@ test('mergeLedger de-duplicates by entry key, prunes past the retention window, 
   ], 'newest first; the stale copy is gone');
   assert.equal(ledger.entries[1].error, 'newer copy', 'a re-collected attempt replaces the earlier copy');
   assert.deepEqual(mergeLedger(null, [], { now: NOW }).ledger.entries, [], 'no ledger yet is an empty ledger');
+
+  const later = new Date(NOW.getTime() + 3600000);
+  const again = mergeLedger(ledger, [entries[0]], { now: later });
+
+  assert.equal(again.changed, false, 'the same observation again changes nothing');
+  assert.equal(again.pruned, 0);
+  assert.equal(again.ledger.updatedAt, NOW.toISOString(), 'an unchanged ledger keeps its change time');
+  assert.equal(aggregate(again.ledger, { now: later }).generatedAt, NOW.toISOString(),
+    'and so does the summary, so nothing is republished');
 });
 
 test('aggregate counts per test over both windows, counts distinct runs, and draws the ticket line', () => {
@@ -273,7 +287,7 @@ test('aggregate counts per test over both windows, counts distinct runs, and dra
   const summary = aggregate({ ...emptyLedger(), entries }, { now: NOW });
 
   assert.equal(summary.ticketThresholdRuns, TICKET_THRESHOLD_RUNS);
-  assert.deepEqual(summary.totals, { tests: 4, needsTicket: 1, entries: 7 });
+  assert.deepEqual(summary.totals, { tests: 4, needsTicket: 1, quarantined: 1, entries: 7 });
 
   const [first, ...rest] = summary.rows;
 
@@ -284,6 +298,7 @@ test('aggregate counts per test over both windows, counts distinct runs, and dra
   assert.equal(first.runs30, 2, 'two legs of one run are one run');
   assert.deepEqual(first.legs, ['e2e-classic-min', 'e2e-main']);
   assert.equal(first.needsTicket, true);
+  assert.equal(first.quarantine, QUARANTINE_NOTE);
   assert.equal(first.lastSeen.seenAt, at(1));
   assert.ok(rest.every(row => !row.needsTicket), 'one run each: below the line');
 
@@ -312,7 +327,8 @@ test('renderStepSummary lists what the run added, the tests over the line, the n
   assert.match(markdown, /^## Test health — run 34121444051 \(attempt 1, `feature\/X-1_Some-branch`\)\n/);
   assert.match(markdown, /Recorded 5 new observation\(s\):/);
   assert.ok(markdown.includes(`- **flaky** on \`e2e-classic-min\`: ${TALL_FROZEN_TITLE} `
-    + '(`e2e/walkontable/exact-row-heights.spec.ts:57`)\n'));
+    + '(`e2e/walkontable/exact-row-heights.spec.ts:57`), '
+    + `quarantined (${QUARANTINE_NOTE})\n`));
   assert.ok(markdown.includes('- **failed** on `UMD (theme: main)`: Core_alter remove_row should remove one row '
     + '(`handsontable/test/e2e/core/alter.spec.js`), in isolation: passes alone\n'));
   assert.ok(markdown.includes('1 test(s) have flaked in 2+ distinct runs in the last 30 days '
