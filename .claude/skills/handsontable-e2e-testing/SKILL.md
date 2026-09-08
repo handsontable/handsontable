@@ -5,7 +5,7 @@ description: Use ONLY when maintaining the FROZEN legacy Jasmine/Puppeteer E2E s
 
 # Handsontable E2E Testing Guide (legacy Jasmine/Puppeteer — frozen)
 
-> **This suite is frozen.** New E2E tests are **Playwright** — use the `handsontable-playwright-e2e` skill and put them in `tests/e2e/`. This guide is for *maintaining* existing `*.spec.js` files. The presence gate blocks a newly added `*.spec.js`. If a legacy spec is broken or flaky, **migrate it to Playwright** rather than patching it here.
+> **This suite is frozen.** New E2E tests are **Playwright** — use the `handsontable-playwright-e2e` skill and put them in `tests/e2e/`. This guide is for *maintaining* existing `*.spec.js` files. The presence gate blocks a newly added `*.spec.js`, and appending three or more new `it` blocks to a modified frozen spec draws its non-blocking `frozen-suite-growth` advisory — state the justification in the PR if the frozen tier is right. If a legacy spec is broken or flaky, **migrate it to Playwright** rather than patching it here.
 
 ## Standard boilerplate (MUST follow)
 
@@ -207,5 +207,6 @@ See `src/plugins/pagination/__tests__/` for reference - separate dirs for option
 - Not testing the `updateSettings()` cycle.
 - Missing edge cases: large datasets, coordinate boundaries, enable/disable cycles.
 - Not testing both keyboard navigation modes (spreadsheet + data grid).
+- Trusting the spec count. Until the bridge reporter sanitized failed expectations (`test/helpers/jasmine-bridge-reporter.js`, shared with the Walkontable runner), a failing spec whose `expected` or `actual` was a cyclic object (`toBe(window)`, `toEqual([overlay, …])`) could not cross the Puppeteer bridge and was dropped from the run: `Running N specs.` in `--verbose` mode, `N-1 specs, 0 failures` at the end, exit code 0. The bridge now reports such a spec as a normal failure with the value described (`[unserializable Window]`); if a count ever comes up short again, compare the `Running N specs.` line against the summary line with `npm run test:e2e -- --testPathPattern=<file> --verbose`.
 
 Reference `handsontable/.ai/TESTING.md` for full testing docs. Key files: `test/helpers/common.js`, `test/helpers/mouseEvents.js`, `test/helpers/keyboardEvents.js`.

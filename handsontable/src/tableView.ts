@@ -1,6 +1,4 @@
 import type { HotInstance } from './core/types';
-import type { BaseRenderer } from './renderers/baseRenderer';
-import type { CellProperties } from './settings';
 import type { IndexMapper } from './translations';
 import type { WalkontableInstance } from './3rdparty/walkontable/src/types';
 import type { RowsCalculationType, ColumnsCalculationType } from './3rdparty/walkontable/src/calculator/viewportBase';
@@ -27,7 +25,7 @@ import {
   getParentWindow,
 } from './helpers/dom/element';
 import EventManager from './eventManager';
-import { formatCellValue, renderCell } from './renderers/renderCell';
+import { CellPainter } from './core/incrementalRender/cellPainter';
 import { RenderSizeProbe } from './renderSizeProbe';
 import {
   isImmediatePropagationStopped,
@@ -349,12 +347,24 @@ class TableView {
    */
   #recentTouchEndTimeout: ReturnType<typeof setTimeout> | null = null;
   /**
+   * Paints cells for the rendering engine and decides which of them need painting.
+   *
+   * @type {CellPainter}
+   */
+  #cellPainter: CellPainter;
+
+  /**
    * @param {Hanstontable} hotInstance Instance of {@link Handsontable}.
    */
   constructor(hotInstance: HotInstance) {
     this.hot = hotInstance;
     this.eventManager = new EventManager(this.hot);
     this.settings = this.hot.getSettings();
+    this.#cellPainter = new CellPainter(
+      this.hot,
+      this.hot.renderChangeTracker,
+      (renderedRow, renderedColumn) => this.translateFromRenderableToVisualIndex(renderedRow, renderedColumn),
+    );
 
     this.createElements();
     this.registerEvents();
@@ -610,19 +620,27 @@ class TableView {
 
       const activeElement = getDeepActiveElement(rootDocument);
       const activeHTMLElement = isHTMLElement(activeElement) ? activeElement : null;
-      const isOutsideInputElement = activeHTMLElement !== null && isOutsideInput(activeHTMLElement);
+      // Both resolved once and handed to the verdicts below. Each is needed twice, and this
+      // listener runs for every `mouseup` on the document: the surface test walks the focused
+      // element's ancestors up to the open editor's `preventCloseElement`, and the roots are an
+      // array that would otherwise be rebuilt per call.
+      const isFocusInEditorSurface = this.#isFocusWithinEditorSurface(activeHTMLElement);
+      const gridUiRoots = this.#getGridUiRoots();
+      const isForeignInputElement = this.#isForeignInput(
+        activeHTMLElement, isFocusInEditorSurface, gridUiRoots
+      );
 
-      if (activeHTMLElement !== null && isInput(activeHTMLElement) && !isOutsideInputElement) {
+      if (activeHTMLElement !== null && isInput(activeHTMLElement) && !isForeignInputElement) {
         return;
       }
 
       const eventPath = event.composedPath();
-      const isPathThroughGridUi = eventPath.includes(rootWrapperElement ?? rootElement) ||
-        (this.hot.rootPortalElement && eventPath.includes(this.hot.rootPortalElement));
-      const isFocusLostToOutside = this.hot.getFocusManager().isForeignFocusTarget(activeHTMLElement) ||
-        (!wasInsideGridClick && !this.hot.getFocusManager().hasBrowserFocus() && !isPathThroughGridUi);
+      const isPathThroughGridUi = gridUiRoots.some(root => eventPath.includes(root));
+      const isFocusLostToOutside = !isFocusInEditorSurface &&
+        (this.hot.getFocusManager().isForeignFocusTarget(activeHTMLElement) ||
+        (!wasInsideGridClick && !this.hot.getFocusManager().hasBrowserFocus() && !isPathThroughGridUi));
 
-      if (isOutsideInputElement || isFocusLostToOutside ||
+      if (isForeignInputElement || isFocusLostToOutside ||
           (!selection.isSelected() && !selection.isSelectedByAnyHeader() &&
           !this.#isPathWithinGrid(eventPath) && !isRightClick(event))) {
         this.hot.unlisten();
@@ -1126,48 +1144,13 @@ class TableView {
         return isUniformSizeSetting(this.hot.getSettings().colWidths) &&
           !this.hot.hasHook('modifyColWidth');
       },
+      shouldPaintCell: (
+        renderedRowIndex: number, renderedColumnIndex: number, TD: HTMLTableCellElement, band: string
+      ) => this.#cellPainter.shouldPaint(renderedRowIndex, renderedColumnIndex, TD, band),
       cellRenderer: (renderedRowIndex: number, renderedColumnIndex: number, TD: HTMLTableCellElement) => {
-        const [visualRowIndex, visualColumnIndex] = this
-          .translateFromRenderableToVisualIndex(renderedRowIndex, renderedColumnIndex);
-
-        // Coords may be modified. For example, by the `MergeCells` plugin. It should affect cell value and cell meta.
-        const modifiedCellCoords = this.hot
-          .runHooks('modifyGetCellCoords', visualRowIndex, visualColumnIndex, false, 'meta');
-
-        let visualRowToCheck = visualRowIndex;
-        let visualColumnToCheck = visualColumnIndex;
-
-        if (Array.isArray(modifiedCellCoords)) {
-          [visualRowToCheck, visualColumnToCheck] = modifiedCellCoords as [number, number];
-        }
-
-        const cellProperties = this.hot.getCellMeta<CellProperties>(visualRowToCheck, visualColumnToCheck);
-        const prop = this.hot.colToProp(visualColumnToCheck) as string;
-        let value = this.hot.getDataAtRowProp(visualRowToCheck, prop);
-
-        if (this.hot.hasHook('beforeValueRender')) {
-          value = this.hot.runHooks('beforeValueRender', value, cellProperties);
-        }
-
-        const renderer = this.hot.getCellRenderer(cellProperties);
-        const formattedValue = formatCellValue(value, cellProperties, renderer);
-
-        this.hot.runHooks('beforeRenderer', TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
-
-        const rendererArgs: Parameters<BaseRenderer> = [
-          this.hot as HotInstance,
-          TD,
-          visualRowIndex,
-          visualColumnIndex,
-          prop,
-          formattedValue,
-          cellProperties,
-        ];
-
-        renderCell(renderer, rendererArgs);
-
-        this.hot.runHooks('afterRenderer', TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
+        this.#cellPainter.paint(renderedRowIndex, renderedColumnIndex, TD);
       },
+      renderEpoch: () => this.hot.renderChangeTracker.epoch,
       selections: this.hot.selection.highlight,
       hideBorderOnMouseDownOver: () => this.settings.fragmentSelection,
       onWindowResize: () => {
@@ -1456,6 +1439,11 @@ class TableView {
         return newVisualColumn;
       },
       onAfterDrawSelection: (currentRow: number, currentColumn: number, layerLevel: number) => {
+        // Asked once per selected cell per draw, so the hook system is entered only when it has to be.
+        if (!this.hot.hasHook('afterDrawSelection')) {
+          return undefined;
+        }
+
         let cornersOfSelection;
         const [visualRowIndex, visualColumnIndex] =
           this.translateFromRenderableToVisualIndex(currentRow, currentColumn);
@@ -1824,12 +1812,28 @@ class TableView {
 
   /**
    * Checks whether the event path points into the grid. The path counts as internal when it
-   * contains the grid's root element or its portal element. A complete path (one that crosses
-   * shadow boundaries and therefore contains ShadowRoot entries) is trusted as-is - a miss
-   * means a genuine outside click, even when the path shares the grid's shadow hosts. Only a
-   * filtered path (no ShadowRoot entries) falls back to the shadow host chain check, which
+   * contains the grid's root element, its portal element, or the open editor's
+   * `preventCloseElement` – the element an editor renders outside its own container, which the
+   * grid counts as a part of the editor (see `#getActiveEditorSurface()`). A complete path (one
+   * that crosses shadow boundaries and therefore contains ShadowRoot entries) is trusted as-is
+   * – a miss means a genuine outside click, even when the path shares the grid's shadow hosts.
+   * Only a filtered path (no ShadowRoot entries) falls back to the shadow host chain check, which
    * matters for sandboxed hosts (e.g. Salesforce Lightning Web Security) that collapse paths
    * observed at the document level to the visible host chain, hiding the grid internals.
+   *
+   * The editor-surface test is NOT redundant with `editorFactory`'s own `mousedown`
+   * `stopPropagation` listener, which never reaches this handler for the shapes it covers. That
+   * listener is wired exactly once, immediately after the editor's `init`/`afterInit` returns, so
+   * it does not exist at all for a `preventCloseElement` assigned later in `beforeOpen`/`afterOpen`
+   * (both documented hooks), nor for an editor that rebuilds its picker element on every open –
+   * the listener then stays bound to a detached node. This branch is the only mousedown-side
+   * protection in both cases, so do not remove it as duplicated work.
+   *
+   * Known limitation: the shadow-host fallback below is keyed on the ROOT element's host chain, so
+   * it covers a surface living in the grid's own shadow tree but not one in a different shadow tree
+   * under a path-filtering host. Unverified and unreachable without such a host, so no guard is
+   * written for it – the focus-side test (`#isFocusWithinEditorSurface()`) is what carries the
+   * reported case.
    *
    * @param {EventTarget[]} eventPath The event propagation path (`event.composedPath()`).
    * @private
@@ -1843,11 +1847,225 @@ class TableView {
       return true;
     }
 
+    // Resolved only after the two checks above have failed, so the common path (a press inside the
+    // grid) still costs two `includes` and nothing else. Must stay ABOVE the ShadowRoot bail-out: a
+    // complete path that crosses shadow boundaries can carry the surface, and bailing first would
+    // read that as an outside click.
+    const editorSurface = this.#getActiveEditorSurface();
+
+    if (editorSurface !== null && eventPath.includes(editorSurface)) {
+      return true;
+    }
+
     if (eventPath.some(entry => isShadowRoot(entry))) {
       return false;
     }
 
     return getShadowHostChain(rootElement).some(host => eventPath.includes(host));
+  }
+
+  /**
+   * Reads the OPEN editor's `preventCloseElement` - the element it renders outside its own
+   * container (a dropdown, popover or third-party picker appended to the document body). The grid
+   * counts that element and its subtree as a part of the editor.
+   *
+   * Gated on `isOpened()` on purpose. `getActiveEditor()` also answers for an editor that is merely
+   * PREPARED (`prepareEditor()` runs on every cell selection), and editor instances are cached per
+   * class per grid – so a picker parked in the document body by an earlier edit would otherwise
+   * suppress genuine outside clicks for the rest of the instance's life.
+   *
+   * @private
+   * @returns {HTMLElement|null}
+   */
+  #getActiveEditorSurface(): HTMLElement | null {
+    const editor = this.hot.getActiveEditor();
+
+    if (!editor?.isOpened() || !isHTMLElement(editor.preventCloseElement)) {
+      return null;
+    }
+
+    // A surface that CONTAINS the grid is refused rather than honored. A picker library that hands
+    // back its root instead of its popup makes `document.body` an easy value to assign, and taking
+    // it at face value would make every click on the page count as a click inside the grid – the
+    // outside-click deselect would stop working for as long as that editor is open, with nothing
+    // visible to blame it on. The option names an element the editor renders OUTSIDE its container,
+    // so an ancestor of the grid can never be a legitimate answer.
+    //
+    // Refusing it here does NOT unbind `editorFactory`'s own `mousedown` `stopPropagation`, which
+    // is already attached to whatever the editor named. On an ancestor of the grid that listener
+    // swallows every `mousedown` on the page before this handler sees it (measured: the document
+    // listener does not fire at all while such a surface is set), so the edit ends on the `mouseup`
+    // path instead - the press blurs the editor's input, `hasBrowserFocus()` goes false, and the
+    // second clause of `isFocusLostToOutside` carries it. Outside clicks therefore keep closing the
+    // editor, one event later than usual.
+    //
+    // Walked from the ROOT upwards with `closest()`, not `surface.contains(rootElement)`, for the
+    // same reason `#isFocusWithinEditorSurface()` does: `contains()` stops at a shadow boundary. A
+    // grid rendered inside a shadow root is not a `contains()` descendant of anything outside that
+    // root, so `document.body.contains(rootElement)` reads `false` there and the ancestor would be
+    // honored – while `composedPath()` still carries it on every click, which is precisely the
+    // failure this guard exists to prevent.
+    if (closest(this.hot.rootElement, [editor.preventCloseElement]) !== null) {
+      warnOnce(
+        this.hot.rootElement,
+        'TableView.preventCloseElementContainsGrid',
+        'The editor\'s `preventCloseElement` contains the grid, so it cannot be told apart from ' +
+        'the page. Assign the picker\'s own popup element instead of an ancestor of the grid. The ' +
+        'element is ignored, and clicks outside the grid keep closing the editor.'
+      );
+
+      return null;
+    }
+
+    return editor.preventCloseElement;
+  }
+
+  /**
+   * Decides whether the focused input belongs to the page rather than to the grid.
+   *
+   * `isOutsideInput()` answers that question from the `data-hot-input` stamp alone, which the grid
+   * puts on the inputs it builds itself (the text editor's textarea, the select editor's `select`,
+   * the filters and pagination controls). An editor supplied by a user - the React and Angular
+   * component editors, and every hand-written native one (which is how a Vue editor is written,
+   * that wrapper having no component-editor API) - renders a plain `<input>` with no stamp, and
+   * the raw helper then reads it as a page input while it holds the focus. On the
+   * document's `mouseup` that verdict is what unlistens the grid, and `unlisten()` blocks EVERY
+   * `table`-scoped shortcut context (see the `handleEvent` callback in `core.ts`), the `editor`
+   * one included - so the editor loses its own Enter, Escape and Tab (DEV-2787). A LEFT press
+   * hides how bad that is: the focus scope manager re-listens on the `click` that closes the
+   * gesture, so the grid is deaf only between the two events. A RIGHT press ends in `contextmenu`
+   * and no `click`, and the grid then stays deaf for the rest of the edit.
+   *
+   * The stamp is therefore treated as one of two ways to prove ownership, containment being the
+   * other, and `isOutsideInput()` itself is left alone: it has four other call sites, and
+   * `FocusGridManager#focusCell()` BLURS the element it answers `true` for, so widening the helper
+   * would blur a component editor's field on every selection change.
+   *
+   * Answering `false` also takes the early return above, which skips the `outsideClickDeselects`
+   * block further down - the same treatment the guard has always given the grid's own stamped
+   * textarea. The deselect is unchanged rather than newly suppressed, and the reason is the two
+   * guards that block already carries, neither of which depends on where the focus sits: a press
+   * OUTSIDE the grid has set `#outsideClickHandled` on the `mousedown` (that path does its own
+   * deselect or `destroyEditor()`), which this handler reads as `wasOutsideClickHandled`; and a
+   * press INSIDE the grid fails the block's `!#isPathWithinGrid(eventPath)` test. Unlisten, not
+   * the deselect, is what this predicate is written for.
+   *
+   * @private
+   * @param {HTMLElement|null} element The deepest reachable focused element.
+   * @param {boolean} isFocusInEditorSurface Whether that element sits inside the open editor's
+   *                                         `preventCloseElement` subtree. Passed in rather than
+   *                                         resolved here because the caller needs the same answer
+   *                                         for its own focus verdict.
+   * @param {HTMLElement[]} gridUiRoots The grid's own UI roots, from `#getGridUiRoots()`. Passed
+   *                                    in for the same reason: the caller tests the event path
+   *                                    against the same list.
+   * @returns {boolean}
+   */
+  #isForeignInput(
+    element: HTMLElement | null, isFocusInEditorSurface: boolean, gridUiRoots: HTMLElement[]
+  ): boolean {
+    if (element === null || !isOutsideInput(element)) {
+      return false;
+    }
+
+    return !this.#isWithinOpenEditorDom(element, gridUiRoots) && !isFocusInEditorSurface;
+  }
+
+  /**
+   * Checks whether the given element sits in the grid's own DOM while an editor is OPEN.
+   *
+   * Gated on the open editor on purpose, and that gate is what keeps the change narrow: an input
+   * the grid renders INSIDE a cell must keep counting as the page's. A custom renderer that puts
+   * an `<input>` in its TD relies on the grid unlistening while that field holds the focus -
+   * otherwise the arrow keys would move the selection while they move the caret - and the
+   * checkbox renderer's own `setTimeout(instance.listen)` exists to re-listen after exactly that.
+   * With no editor open, none of that changes. With one open, an input inside the grid's own DOM
+   * is the grid's, and the grid must keep listening for the editor's sake - whichever root the
+   * editor mounted into: `editorFactory` appends the container to `rootPortalElement` for
+   * `position: 'portal'` and to `rootElement` otherwise, the React wrapper's editor portal host
+   * lives in `rootPortalElement`, and the Angular adapter appends its placeholder to
+   * `rootElement`. The test is deliberately not per-cell: it does not try to prove the field
+   * belongs to the edited cell, only that it is not the page's.
+   *
+   * On paper that widens the answer to an unstamped input the grid renders in some OTHER cell - a
+   * checkbox renderer's `<input>`, say - while an editor is open elsewhere. Measured, that shape
+   * does not occur for a pointer gesture: a press which moves the focus onto another cell's input
+   * also changes the selection, and the selection change closes the editor in the same local hook
+   * that runs `afterSelection`. That hook skips the close for five selection sources - `'shift'`
+   * (the row/column SHIFT an insert or a remove performs), `'refresh'`, `'loadData'`,
+   * `'updateData'` and `'deselect'` - and every one of them is data-driven, so none coincides with
+   * the press that would have to move the focus. By the time the `mouseup` verdict runs,
+   * `isCellEdited()` is already false and this test is never consulted for that input.
+   * `tests/e2e/editor-open-checkbox-focus.spec.ts` pins that, and goes red if an editor ever
+   * survives the selection change - which is when the widening would start to matter.
+   *
+   * Walks with `closest()`, not `Node#contains()`, mirroring `#isFocusWithinEditorSurface()`:
+   * the element comes from `getDeepActiveElement()`, which reaches into shadow roots, while
+   * `contains()` stops at a shadow boundary - so an editor rendering its field inside a web
+   * component would read as outside the grid. No spec discriminates the two (the fixture's
+   * `host=shadow` variant puts the GRID in a shadow root, which a plain parent walk still
+   * covers), so treat the choice as convention rather than as pinned behavior.
+   *
+   * @private
+   * @param {HTMLElement} element The deepest reachable focused element.
+   * @param {HTMLElement[]} gridUiRoots The grid's own UI roots, from `#getGridUiRoots()`.
+   * @returns {boolean}
+   */
+  #isWithinOpenEditorDom(element: HTMLElement, gridUiRoots: HTMLElement[]): boolean {
+    if (!this.isCellEdited()) {
+      return false;
+    }
+
+    return closest(element, gridUiRoots) !== null;
+  }
+
+  /**
+   * The elements that hold the grid's own UI: the root wrapper (the grid, plus whatever a plugin
+   * renders into its layout slots and overlay layer) and the portal layer (menus, dialogs, every
+   * `position: 'portal'` editor container, the React wrapper's editor portal host).
+   *
+   * Shared by the two `mouseup` tests that ask "is this the grid's own UI" of an element or an
+   * event path. It is NOT the only copy: `FocusGridManager` builds the same pair, with the same
+   * `rootWrapperElement ?? rootElement` fallback and the same `isHTMLElement` filter, to bind its
+   * `focusin`/`focusout` listeners - and `isForeignFocusTarget()`/`hasBrowserFocus()`, which
+   * answer the other half of this same verdict, read from that copy. A new mount root has to be
+   * added in both places, and the two drifting apart would split the verdict against itself.
+   *
+   * Deliberately NOT shared with `#isPathWithinGrid()`, which tests a different list -
+   * `rootElement` rather than the wrapper, plus the open editor's surface - and folding the two
+   * together would change what that method accepts.
+   *
+   * @private
+   * @returns {HTMLElement[]}
+   */
+  #getGridUiRoots(): HTMLElement[] {
+    const { rootElement, rootWrapperElement, rootPortalElement } = this.hot;
+
+    return [rootWrapperElement ?? rootElement, rootPortalElement].filter(root => isHTMLElement(root));
+  }
+
+  /**
+   * Checks whether the browser focus sits inside the open editor's `preventCloseElement` subtree.
+   *
+   * `FocusGridManager#isForeignFocusTarget()` answers `true` for anything outside the grid's root,
+   * which such an element is by definition – so without this test, opening a picker that takes the
+   * focus (flatpickr moves it into its calendar) makes the next `mouseup` anywhere read as a focus
+   * loss to the outside and deselect the cell, committing the editor's pre-edit value.
+   *
+   * Walks with `closest()`, not `Node#contains()`. The element comes from `getDeepActiveElement()`,
+   * which reaches into shadow roots, while `contains()` stops at a shadow boundary – so a picker
+   * built as a web component would put the focus on a node inside its own shadow root and read as
+   * outside the surface, reproducing this defect with a different picker library. `closest()`
+   * follows `.host` across those boundaries.
+   *
+   * @private
+   * @param {HTMLElement|null} element The deepest reachable focused element.
+   * @returns {boolean}
+   */
+  #isFocusWithinEditorSurface(element: HTMLElement | null): boolean {
+    const surface = this.#getActiveEditorSurface();
+
+    return surface !== null && element !== null && closest(element, [surface]) !== null;
   }
 
   /**

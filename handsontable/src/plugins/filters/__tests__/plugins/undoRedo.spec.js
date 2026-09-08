@@ -200,4 +200,63 @@ describe('Filters UI cooperation with UndoRedo', () => {
 
     expect(getDataAtCol(2)).toEqual(['Jenkinsville', null, 'Saranap', 'Cascades', 'Soham']);
   });
+
+  it('should undo and redo a change to a row the filter no longer matches (#dev-2665)', async() => {
+    handsontable({
+      data: getDataForFilters().splice(0, 5),
+      columns: getColumnsForFilters().splice(0, 3),
+      dropdownMenu: true,
+      filters: true,
+      width: 500,
+      height: 300
+    });
+    const undoPlugin = getPlugin('undoRedo');
+    const filtersPlugin = getPlugin('filters');
+
+    // The narrow seed the test above deliberately widens: only the value the row starts with is
+    // selected, so the edit below makes the row stop matching. That is the case the widened seed
+    // stopped covering, and pinning it needs the undo to address the row physically - once the
+    // condition is restored, the edited row is trimmed away and has no visual index at all.
+    filtersPlugin.addCondition(2, 'by_value', [['Gardiner']]);
+    filtersPlugin.filter();
+
+    expect(getDataAtCol(2)).toEqual(['Gardiner']);
+
+    await setDataAtCell(0, 2, null);
+
+    filtersPlugin.removeConditions(2);
+    filtersPlugin.filter();
+
+    expect(getDataAtCol(2)).toEqual(['Jenkinsville', null, 'Saranap', 'Cascades', 'Soham']);
+
+    undoPlugin.undo();
+
+    // The condition is back and nothing matches it any more, so the grid shows no rows.
+    expect(countRows()).toBe(0);
+
+    undoPlugin.undo();
+
+    // Restoring a trimmed row writes to the source data, which does not re-run the filter - so the
+    // grid still shows no rows. What matters is that the value went back to its own record, and
+    // that no row was invented to hold it.
+    expect(countRows()).toBe(0);
+    expect(countSourceRows()).toBe(5);
+
+    undoPlugin.undo();
+
+    expect(getDataAtCol(2)).toEqual(['Jenkinsville', 'Gardiner', 'Saranap', 'Cascades', 'Soham']);
+
+    undoPlugin.redo();
+
+    expect(getDataAtCol(2)).toEqual(['Gardiner']);
+
+    undoPlugin.redo();
+
+    expect(getDataAtCol(2)).toEqual([null]);
+    expect(countSourceRows()).toBe(5);
+
+    undoPlugin.redo();
+
+    expect(getDataAtCol(2)).toEqual(['Jenkinsville', null, 'Saranap', 'Cascades', 'Soham']);
+  });
 });

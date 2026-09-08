@@ -124,6 +124,81 @@ Three more things that pass every functional test and only show up in a profile 
 
 When you add a new content-driven measurement, ask which tables actually render the content — measuring the master alone is the trap both of these exist to work around.
 
+## The hider height is fractional below 100% zoom, and two coordinate spaces meet there
+
+`SpreaderSize#adjustElementsSize` writes the master hider's height, and below 100% browser zoom or
+display scaling it writes a **fractional** value (`"1210.45px"`). That element is what decides
+whether the grid shows a scrollbar: with `height: 'auto'` the holder keeps `style.height = 'auto'`
+and simply resolves to the hider, so a hider a fraction shorter than the table inside it is a
+vertical scrollbar on a grid that must never scroll — and, because `stretchH` already sized the
+columns against the full width, a horizontal one behind it (DEV-2525).
+
+Four rules come out of that, and each of them was a defect first.
+
+- **Never `parseInt` a value read back off `hider.style.height`.** It truncates the fraction and
+  hands back the shortfall. `expandHiderVerticallyBy` does `parseFloat`. (`topOverlay.ts`'s
+  `parseInt(holderParent.style.height, 10)` reads the *clone's* holder parent, a different element,
+  and is not this.)
+- **The sum's fixed terms must carry their fraction too.** `getHiderHeightCompensation`
+  (`axisSizing/hiderCompensation.ts`) adds the amount by which the browser *inflated* the cells'
+  bottom border past the whole pixel the row heights were summed with — a browser cannot paint a
+  border thinner than one device pixel, so a declared `1px` resolves to 1.11111px at 90% and
+  1.49254px at 67% — and `Viewport#getColumnHeaderHeightFraction()` supplies what
+  `getColumnHeaderHeight()`'s integer `offsetHeight` rounded away. Both are 0 at 100%.
+- **Add the inflation to the historical `1`; never return the border itself.** The menu grids and
+  the Filters by-value list drop all four borders on `td:first-child`
+  (`.handsontable.htDropdownMenu table tbody tr td:first-child` and its two siblings), and
+  `StylesHandler`'s probe cell IS a `td:first-child` inside them, so the border reads `0px` there —
+  at 100% zoom, on every platform. Returning it would have resized those grids by a whole pixel at
+  the default zoom. The same trap runs the other way at 50% (`2px`) and above 100% (`0.8px`), where
+  the row sum already accounts for the whole pixel. The `> Math.round(…)` gate is deliberately the
+  one `StylesHandler#calculateRowHeight` uses, because the two have to agree about which borders the
+  rows already carry.
+- **`getBoundingClientRect()` and `offsetHeight` are NOT in the same coordinate space.** A rect is
+  scaled by an ancestor's CSS `zoom`; `offsetHeight`, `clientHeight` and the computed style are not.
+  Subtracting one from the other to get a fraction looks right under
+  `--force-device-scale-factor` (where they agree) and yields a large **negative** number under CSS
+  `zoom`, shrinking the hider instead of growing it. Take the fractional height from
+  `getComputedStyle(el).height`, which matches `offsetHeight`'s space at any zoom. The same trap
+  ruins measurements in tests — never compare a rect against a `clientHeight`.
+- **`gatherLayoutInput` re-derives the same total independently**, so both sites fold in the same two
+  terms and the same device-pixel rounding. A prediction built on whole pixels while the DOM carries
+  fractional ones disagrees exactly at the knife edge, which is a scrollbar the solver said would not
+  be there.
+
+`addContentHeightSlack()` adds a fixed 0.05px to a *fractional* total, because summing the rows
+reproduces the browser's own sub-pixel snapping only to about 0.024px and that is enough to summon a
+full-size bar on a small grid at 67%. Two things about it are load-bearing and were both learned the
+hard way.
+
+**Do not round up to the device-pixel grid instead.** It reads as the principled choice — one device
+pixel is the smallest distance a screen can show, so the added height is invisible — but this total
+is also what the browser weighs against a fixed `height` setting. A 264px box holding 264.22px of
+rows at 80% zoom shows no scrollbar, because the browser rounds that deficit away; inflating the
+content by most of a device pixel pushes it over and produces a full 15px bar. That trades one
+unwanted scrollbar for another. Deciding the rounding from the holder's own height does not rescue
+it either: with `height: 'auto'` the holder resolves FROM the hider being written, so the test would
+read the previous draw's height.
+
+**A whole-pixel total is returned untouched**, which is every total at 100% zoom — there is no
+sub-pixel residue to cover when nothing was measured in fractions.
+
+**Only the hider write gets the slack; `gatherLayoutInput` deliberately does not.** The two ask
+different questions. The slack stops the hider ELEMENT falling a hair short of the table inside it,
+a comparison the browser makes and rounds to device pixels. The solver asks whether the content
+overflows the workspace, and both of its tests are an exact `>` — element mode against
+`workspaceHeight`, window mode against `documentClientHeight` after subtracting the hider's INTEGER
+`offsetHeight`. A deliberate 0.05px overshoot fed into an exact comparison models nothing the browser
+can see and can only flip the verdict the wrong way: the solver reserves a vertical bar, `stretchH`
+shrinks the columns to make room, and no bar is ever painted. The two shared sub-pixel terms (the
+border inflation and the header fraction) still go into both, because those describe real height.
+
+**`stylesHandler` is a user-supplied setting that defaults to `null`, and a standalone Walkontable
+host may implement only part of it** — the engine's own Puppeteer harness (`test/helpers/common.js`)
+does. `getStyleForTD` is therefore declared optional on the `StylesHandler` interface in `types.ts`,
+and calling it unguarded threw inside the draw and took out 695 of 816 specs. Guard every method you
+add a dependency on, and teach the harness stub the same method.
+
 ## Column-axis border ownership: the row header owns its gridline
 
 The two axes are NOT symmetric, and the column axis is the settled one. On the column axis a row
@@ -149,6 +224,35 @@ Consequences worth knowing:
   reads them any more. `innerBorderInlineStart` also only toggles when the grid has row headers and NO
   frozen columns, so it is not a usable "has scrolled" signal in a test — poll the holder's
   `scrollLeft` instead.
+- **`InlineStartOverlay#resetFixedPosition` reports `false` unconditionally**, and `placeFixedOverlays`
+  no longer ORs it into `ctx.positionChanged` — only the top and bottom overlays feed that flag now.
+  The class shifts no layout, so the flag's one job (reconciling a 1px shift) had nothing to do, yet
+  every scroll crossing horizontal offset 0 ran `refreshAll()`: a nested `wot.draw(true)` over the
+  master and every clone. Grids on the single-pass path did not pay it, because `prepareHeaderBorders`
+  applies the class before the cells render and the post-render toggle then finds it already in place.
+  Those two gates line up exactly, which is worth knowing before you assume a window-scrolled grid slips
+  between them: `usesLayoutSnapshotForCalculators()` requires `!isHorizontallyScrollableByWindow()`,
+  that predicate IS `inlineStartOverlay.trimmingContainer === rootWindow`, and `prepareHeaderBorders`
+  bails on the same test against the same overlay — so anything passing the single-pass gate is
+  element-scrolled and never bails. `preventOverflow` does not enter into it; it changes how
+  `resetFixedPosition` uses the trimming container, not what the container is. The cost therefore
+  landed on the grids that drop off that path, and there are TWO ways to do that, both of which paid:
+  breaking the uniform-size requirement (`colWidths` as an array, or an active `manualColumnResize`),
+  and breaking the element-mode requirement (a window-scrolled grid, i.e. no `width`/`height`). The
+  window shape is the harsher one, since `prepareHeaderBorders` bails on it outright and so could
+  never have pre-applied the class whatever the other settings said. Both have a leg in
+  `tests/e2e/walkontable/inline-start-border-refresh.spec.ts`.
+- **Counting `refreshAll` cannot measure a reconciliation draw on its own.** `ScrollSync` calls
+  `refreshAll` once per scroll event as the normal response to a scroll (`overlay/scroll/scrollSync.ts`),
+  so a per-crossing count is at least 1 whether or not anything reconciled, and that baseline hides the
+  difference. The reconciliation is the **re-entrant** call: the scroll-driven one runs `wot.draw(true)`,
+  and a draw that sees `positionChanged` calls `refreshAll` again from inside it. Count by nesting depth
+  **on `refreshAll` itself**, which is reachable: `ScrollSync` holds it as a late-bound closure
+  (`refreshAll: () => overlays.refreshAll()`), so replacing the method is observed through that call too.
+  Do **not** try to get the depth by patching `draw` on the instance `hot.view._wt` hands you:
+  `wtOverlays.wot !== hot.view._wt`, so a patched `_wt.draw` counts **zero** calls even for a
+  `refreshAll()` invoked directly, which definitely runs `this.wot.draw(true)`.
+  `tests/e2e/walkontable/inline-start-border-refresh.spec.ts` measures it this way.
 - **The row axis is unchanged.** `innerBorderTop` / `innerBorderBottom` still shift the layout by 1px,
   which is what `positionChanged` and the reconciliation draw in `table/drawCycle.ts` exist for, and
   `columnHeaderBorderCompensation` in `topOverlay`/`spreaderSize` is the vertical twin that stayed.
@@ -183,15 +287,173 @@ Consequences worth knowing:
   renderers, and `autoRowHeaderSize` measures each of them, so this is a supported shape rather than
   a curiosity. The body selector therefore matches every `th` in a body row - all of them are row
   headers - rather than `th:first-child`; the inner ones need no override because they are never
-  `:last-child`. The HEAD row cannot be handled the same way: CSS cannot count how many corner cells
-  precede the first column header, so that half stays on `:first-child` and a grid with two or more
-  row headers keeps drawing its head-row seam in the frame color. That is what it does today too, so
-  it is a pre-existing quirk this change neither fixes nor worsens - fixing it needs a marker class
-  from the engine on the last row header.
+  `:last-child`. The HEAD row cannot be keyed the same way, because CSS cannot count how many corner
+  cells precede the first column header - a corner is a `th` like the column headers beside it. It
+  keys on **`htLastRowHeaderColumn`** instead, a marker the engine stamps in `render/columnHeaders.ts`
+  on the last CORNER cell of each head row. **Head rows only** - a body row needs no marker, since
+  every `th` there is a row header and the rule matches them all, so stamping one in
+  `render/rowHeaders.ts` would put a class no stylesheet reads on every row header of every rendered
+  row (and it broke a dozen exact-markup specs when it was tried). That renderer runs once per
+  `Table`, so the marker lands in every clone with no extra wiring, exactly as `htLastVisibleHeader`
+  does. It is stamped AFTER the header renderer runs - `TH.className` is reset first and a renderer
+  may assign to it. No clearing pass is needed, and the invariant behind that is `orderView.start()`:
+  it sizes the root to exactly the nodes the view owns and the loop then visits every one of them,
+  resetting `className` before deciding, so nothing can keep a marker from a previous draw. Gating
+  that reset the way `render/cells.ts` gates its own behind `shouldPaintCell()` would break it, and
+  would have to bring a clearing pass along. (`htLastVisibleHeader` needs its backward walk for a
+  different reason: `hiddenHeader` moves between draws.)
+  Before the marker this half keyed on `:first-child`, which picks the same cell with one row header
+  and the WRONG one with more: the first corner, whose inline-end is an inner seam, while the real
+  seam fell through to the `th:last-child` frame rule. Only `horizon` could see it, since `main` and
+  `classic` map the cell-border token to the frame token.
 - Without row headers, column 0 is the first cell of its row and still draws the grid's own
   inline-start frame inside its declared width. It stays 1px narrower than the rest — deliberately out
   of scope for #6673, and pinned as a control case in
   `tests/e2e/row-header-border-ownership.spec.ts`.
+
+## Exact row heights
+
+A provided row height has two possible meanings, chosen per row by the `rowHeightMode` setting (`'min'` by default; the `RowSizeSource#getMode` port, resolved once in `RowUtils#isExact`): a **floor** the content may grow past (the historical behavior, every path above), or an **exact** height the row renders at, with taller content clipped. A row is exact only when the mode says so AND it has a positive provided height — `0` and `undefined` are "no height", so a hidden row's `0` never becomes a 0px exact row, and `rowHeights: 0` falls through to the default like `colWidths: 0`. **`isExact` reads the mode before the size, and the order is load-bearing**: the size read is the host's whole row-height funnel (every `modifyRowHeight` hook in Handsontable), while the mode is a literal `'min'` until a host supplies a function, so a default grid must never reach the size read from there. **Every loop over rows asks `RowUtils#mayHaveExactRows()` once and skips the per-row probe when it is `false`** — the render loop, the measurement walk and the re-apply pass all do. Without it a grid that never sets the mode paid one settings read per rendered row per table per draw (measured: 61 per draw on a 30-row band, against 3 with it). The render loop also resolves exactness once per row and hands it to `getHeightByOverlayName`, so the funnel runs no extra time in either mode; measured on the fixture, a draw costs 3 `modifyRowHeight` calls per rendered row in `min` mode (the same as before the mode existed) and 5 in `exact` mode. Measured against the pre-change bundle on a 100k-row grid with a 570-cell viewport, a default grid's draw time is unchanged (2.2ms full draw, 10ms scroll step on both), and the exact mode matches it.
+
+Four things hold a row up, and exactness has to defeat each of them:
+
+1. **The DOM read-back.** `markOversizedRows` skips exact rows (before the geometry read, so they cost nothing), `RowUtils` returns the provided height without the `Math.max` against `oversizedRows`, and a record an exact row may still hold from before it became exact stays wiped so the shrink detection reports the change. The frozen sync inherits the skip because it calls `markOversizedRows`. A **uniform exact band skips the walk outright**: the uniform early-out compares the TBODY against `rowCount * defaultRowHeight`, which an exact band never matches, so without the shortcut the most common exact configuration (`rowHeights: <number>`) would walk every rendered row on every draw. The shortcut needs the sizes AND the mode to be uniform (`RowSizeSource#isModeUniform`: the setting is a literal — neither a function nor an array, both of which `getSetting` resolves per row) — `isUniform()` describes the size source alone, and one row's mode cannot stand for the band's otherwise, so a host that wants the shortcut passes a literal mode when it applies to every row. On an exact row, `getHeightByOverlayName` falls back to the row's own height when an overlay listener answers nothing, so no overlay can drop to the floor shape while the row-height cache carries the exact value.
+2. **The cells the height is not written to.** The floor shape writes the height to `TR.firstChild` only. That is enough for a floor, and it is why the stylesheet's default `height` on every `td`/`th` holds an exact row up even when the cells are empty. The exact shape (`render/exactRowHeight.ts`, used by both the render loop and `applyRowHeightsToRenderedRows`) marks the **row** with `htExactRow`, and the stylesheet releases the cells' minimum height through that class (`tr.htExactRow > td { height: auto }`), so the height still goes on one cell only — the first that spans a single row and is rendered; a cell spanning several rows (a merged cell) never carries it, the span sizes it, and a cell MergeCells covers is `display: none` with its `rowspan` removed, so a height on it would hold nothing up. When no cell can carry it at all (every cell covered or spanning) the height goes on the `tr` instead, or the row would collapse to its borders now that the stylesheet released the cells' minimum. **The marker must stay on the row, not the cells.** The cell renderers reset every cell's class and inline style on each draw, and a per-cell marker was measured at +2.2 ms of style recalculation per draw on 462 cells (the browser recomputed the whole band); the row renderer leaves the row's class alone, so re-asserting the row marker each draw costs nothing (adding a present class is a no-op) and heals a hook that rewrote `className`. The release clears every cell's inline height, because the carrier need not be the first cell and the out-of-render path has no renderer to reset it.
+3. **CSS table layout.** A table cell's `height` is a minimum, full stop: `overflow: hidden` on the cell does not shrink it, and a `height: 100%` child resolves to the content height (measured, not guessed). The only thing that works is taking the content out of flow: each data cell's content is moved into `div.htCellClip`, which the stylesheet positions absolutely over the cell's padding box and clips; the cell drops its own padding through the row class (a border-box cell cannot be shorter than its padding plus border — 17px in `horizon`), while the wrapper's insets carry the same padding so the text does not move. Row headers keep their `.relative` wrapper (taken out of flow the same way; it must stay `TH.firstChild` or `appendRowHeader` rebuilds it every draw) and the header's own `span.rowHeader` clips — never `.relative` and never the `th`: the active-row accent bar is a `.relative::after` inset by -1px on three sides to meet the gridlines, and a clip on either box cuts it off (a body-row `th` has `padding: 0`, so its padding box is its content box). A custom row-header renderer that builds no `.rowHeader` is simply unclipped; it can never grow the row, because `.relative` is out of flow. Vertical alignment (`htMiddle`/`htBottom`) maps onto the wrapper through `align-content` on the block box, never `display: flex` — the indicator renderers float their arrows, and a flex container ignores floats.
+4. **The renderers.** The cell renderer resets a painted cell's class and inline style, so the one inline height is re-applied on every draw (the reason the height pass must stay after `cells.render()`). The pass runs for every rendered row whatever the cell painter decided, which is what keeps it correct under `renderMode: 'onChange'`: a cell the diffing pass skips keeps its wrapper and its height, and re-applying them is idempotent. The painter reads its own stamps and never inspects cell DOM, so the wrapper is invisible to it. The wrapper is the expensive part: `fastInnerText`'s fast lane needs `firstChild` to be a text node, and `empty(TD)`/`innerHTML` wipe it. Every built-in renderer therefore writes through `getCellContentRoot(TD)` (`helpers/dom/element.ts`), which returns the wrapper when it is the cell's only child, and `fastInnerText`/`fastInnerHTML` do the same — so the wrapper survives a redraw and the row-height pass sees "already wrapped" and does nothing. A custom renderer that wipes the cell costs one re-wrap per draw, on exact rows only; that is the accepted cost, and it is the exception to the "no structural DOM mutation per draw" rule in `tableRenderer.ts`. A renderer that inserts a node **next to** the wrapper (the old `TD.insertBefore(ARROW, TD.firstChild)` shape) grows the row back — in-flow content outside the wrapper counts — which is why the arrow renderers went through the content root too.
+
+Switching a row back to the floor shape unwraps it once (a `WeakSet` of exact rows, so floor rows are never inspected). Column headers are out of scope on purpose: `adjustColumnHeaderHeights` writes a minimum by design.
+
+Pinned by `test/unit/axisSizing/rowHeightMode.unit.ts`, `test/unit/renderer/exactRowHeight.unit.ts`, and `tests/e2e/walkontable/exact-row-heights.spec.ts` (the fixture flips the mode on the engine directly; the `min`-mode case there is the precondition that a short provided height alone does not shrink a row).
+
+## Per-axis trimming containers
+
+Each scroll axis has its own **owner**: the nearest ancestor of `.ht_master` whose `overflow-x` (or
+`overflow-y`) is `scroll`, `hidden`, `auto`, or `clip`, else the window. The two answers can differ.
+A root with `overflow-x: clip` and nothing on the vertical axis — what core writes for a definite
+`width` with no sized `height` — owns the horizontal axis while the window owns the vertical one:
+the holder scrolls the columns inside the root's box, and the page scrolls the rows. Resolved by
+`resolveAxisOwner()` (`overlay/axisOwner.ts`) over the per-axis form of `getTrimmingContainer()`.
+
+The owners live on the overlays: the top and bottom overlays carry the vertical owner in
+`trimmingContainer`, the inline-start overlay the horizontal one, and
+`isVerticallyScrollableByWindow()` / `isHorizontallyScrollableByWindow()` read exactly those two
+fields. Three rules follow.
+
+- **A decision about the other axis goes through the viewport predicate, never `this.trimmingContainer`.**
+  The width of the top and bottom clones is a horizontal question and the height of the inline-start
+  clone a vertical one (`rootSized`); a scrollbar is subtracted from a clone only when the holder owns
+  the axis that scrollbar belongs to (`hasVerticalScroll() && !isVerticallyScrollableByWindow()`);
+  the scrollbar clearance strips read the owner of the axis the strip lies on. Reading the overlay's
+  own owner for any of those sized the frozen-column clone to the full hider height, or shrank the
+  top clone by a page scrollbar the holder does not have. An overlay that spans BOTH edges needs two
+  predicates, not one: `BottomOverlay`'s inline-end strip clears the vertical scrollbar and asks its
+  own (vertical) owner, while its bottom strip clears the horizontal one and asks the inline-start
+  overlay's. One predicate for both published 0 in split mode, and the frozen bottom rows painted over
+  the holder's horizontal scrollbar at the grid's end. A bottom strip also needs the clone to actually
+  REST on the holder's bottom edge — `hasVerticalScroll()` is not that question on a window-owned
+  vertical axis, where it stays true while the clone floats mid-page and `repositionOverlay` (which
+  lifts the clone clear in element mode) never runs; `BottomOverlay#restsOnHolderBottomEdge` answers
+  it per axis owner. **Compute that answer on every read, never cache it in the positioning pass:**
+  the sizing pass that consumes it (`adjustRootElementSize`, and the band `Overlays` derives from the
+  strip it publishes) runs from `Overlays#refresh` BEFORE `resetFixedPosition` in the same draw, so a
+  cached value is one draw behind exactly when the clone arrives on the edge or leaves it — and the
+  band would then disagree with the clip. **The bottom-inline-start corner reads that overlay's finished strip
+  through `getBottomClearance()` and never recomputes it** — it is drawn over the same edge, so two
+  gates that disagree leave a notch where the frozen columns stop and the frozen rows carry on
+  (#10370). The draw cycle positions the bottom overlay before the corner, which is what makes the
+  read safe.
+- **`preventOverflow` is an alias, not a mode.** `'horizontal'` forces the horizontal owner to the
+  root's parent and `'vertical'` the vertical one; everything the option used to switch by string
+  comparison now follows from the owners. Its only remaining reads are the window-mode overflow
+  reset in `MasterTable` (`true` still suppresses it), `InlineStartOverlay#getTableParentOffset`, and
+  the two header-border suppressions, which are visual rules pinned by
+  `src/__tests__/settings/preventOverflow.spec.js`. The option stays forever, without a warning.
+- **Never ask `instanceof HTMLElement` whether an axis owner is an element — use `isHTMLElement()`.**
+  `resolveAxisOwner` takes its realm from `ownerDocument`, so it correctly hands back an iframe's
+  element to a parent-realm caller; `instanceof` then fails to recognize it against the parent's
+  constructor, and the axis silently reads as window-owned. The two halves of the engine then
+  disagree about the same axis: `isHorizontallyScrollableByWindow()` answers `false` while the master
+  lays the holder out in window mode, so it is left `overflow: visible` and never sized, and the
+  columns past the width are unreachable — the exact defect this section exists to remove, one realm
+  over. Scroll offsets have the mirror of it: read them with `isHTMLElement(el) ? el.scrollLeft :
+  rootWindow.scrollX`, off the INJECTED `rootWindow`, because `instanceof Window` misses a
+  cross-realm window just as surely and a fall-through to `0` reports a motionless axis on every
+  frame — the scroll hooks then never fire. The shared helpers `getScrollTop` / `getScrollLeft`
+  (`helpers/dom/element.ts`) had the same shape and are what `Overlay#getScrollPosition` reads, so
+  the row calculators built the band from `undefined` and put it on the LAST rows of the grid at
+  page top; and the key-press guards in `NativeScrollInput` (`#onTableScroll`, `#onCloneWheel`) told
+  the holder from the window the same way, so an arrow-key scroll skipped `syncScrollPositions`
+  for the whole key press and the clones kept the old band. Pinned by
+  `tests/e2e/iframe-cross-realm-scroll.spec.ts`, which builds a grid in an iframe from the parent
+  page's constructor; nothing else in the suite crosses a realm, so an `instanceof` reintroduced
+  here stays green everywhere else. jsdom is a second such realm: its `window` fails
+  `instanceof Window` too, which is why `getScrollTop(window)` returned `undefined` in every unit
+  test and kept the window-scroll strategies' `scrollIntoView` call unreachable there — the
+  `Element.prototype.scrollIntoView` stub in `test/bootstrap.js` exists because the fix made it
+  reachable.
+- **Scroll offsets are read and written per axis, off each overlay's `mainTableScrollableElement`,
+  never off one shared element.** The inline-start overlay's element scrolls the horizontal axis
+  and the top overlay's the vertical one, and in split mode they are different things (the holder
+  and the window). Three paths follow that rule: `ScrollSync#syncScrollPositions` (the per-frame
+  direction flags), `ScrollSync#syncScrollWithMaster` (the offset handed to a clone whose render
+  state just changed) and `Overlays#scrollVertically` / `scrollHorizontally` (the wheel
+  translation). Each one used to read both axes off ONE element and reached three different dead
+  ends in split mode: the direction flags missed the window's vertical scroll, the clone sync read
+  the top overlay's element — the window — and gave up, so a `fixedRowsBottom` enabled after a
+  holder scroll came up a whole scroll away from the master, and the wheel translation consumed
+  the horizontal part on the holder and then cancelled the event, taking the window-owned vertical
+  part with it: a diagonal trackpad swipe moved the columns and not the page. A window-owned axis
+  is scrolled from the wheel path with `rootWindow.scrollBy({ behavior: 'instant' })`, so the event
+  is consumed on both axes and the offset is readable at once whatever `scroll-behavior` the page
+  sets; the clone sync skips it instead, because a clone holder must not accumulate the page offset.
+- **`ScrollSync#setRenderingStateChanged` latches until `syncScrollWithMaster` consumes it.** A
+  draw nests: the master `beforeDraw` hook can run a full draw of its own, and that draw's
+  `beforeDraw` fires before the outer `afterDraw`. The outer `beforeDraw` has already advanced the
+  overlays' render state, so the nested one sees no change — and an overwriting setter then wiped
+  the flag the outer one raised, so no `afterDraw` in the whole sequence synced the clone. The trace
+  reads `beforeDraw, beforeDraw, afterDraw(false), afterDraw(true)`; if you see that shape, the flag
+  was raised in the first call and must still be set in the last.
+- **The public, no-axis `getTrimmingContainer()` keeps the single-axis-clip exemption and must not be
+  used inside the engine.** It has to name one container for both axes, so it ignores an
+  `overflow-x: clip` next to a `visible` vertical axis (DEV-1025). Ask per axis instead.
+
+`MasterTable#alignOverlaysWithTrimmingContainer` lays the holder out from the same two owners: one
+element on both axes is the element mode, the window on both the window mode, and anything else the
+split mode — an element-owned axis gets the owner's box, a window-owned one is left to the DOM
+(`height: auto`, block-fill width), and the holder's inline overflow is cleared so the stylesheet's
+`overflow: auto` scrolls the element-owned axis. **Every mode must undo what the others wrote.** The
+window mode sizes nothing, because the page sizes it, so it has to CLEAR the pixel `width` and
+`height` split mode left on the holder — otherwise a grid that leaves split mode (a clip removed from
+an ancestor, `preventOverflow` switched off) stays pinned to the box it had there, and the stale box
+feeds the column calculators as well as the layout. Split mode caches nothing and is a **measured**
+mode: the broad and strict single-pass gates both fall back to DOM measurement when either axis is
+window-owned. A fourth rule applies there: **a vertical owner with no intrinsic height gets
+`height: auto`, never its own pixel height.** A parent with `overflow-y: hidden` and no `height` is
+sized by its content, which is the grids inside it, so a holder sized to that height in pixels
+feeds it back – with two grids in the parent each holder takes the sum of both and the parent grows
+to the CSS height limit (issue #3119, the same loop the element mode's clone probe guards
+against). `alignHolderWithSplitOwners` runs that probe (`measureIntrinsicHeight`) on every full
+draw whenever the vertical owner is an element; the common split layout (vertical owner = window)
+never probes. `ScrollSync#scrollableElement` stays the holder
+whenever any axis is element-owned, so the wheel translation, the sticky scroll and the scrollbar
+bands keep treating the grid as one that scrolls inside its box; the per-axis scroll positions are
+read off each overlay's own `mainTableScrollableElement`.
+
+An owner can move without a settings change (a page rule that clips the root, a `width` that
+becomes definite). `Overlays#beforeDraw` re-resolves the three region overlays' owners on every
+full draw – `adjustElementsSize` re-resolves them too, but only on a draw that moved the overlays or
+resized the spreader, and a removed clip changes neither, so an overlay kept the element while the
+master resolved the window for the same draw – and
+`ScrollSync#resyncScrollableElementsWithOwners` (run from `Overlays#beforeDraw` right after the
+owners are refreshed, AND from `Overlays#afterDraw` after the provisional-layout pass) re-picks the
+scrolling elements once when an owner's identity changed since the listeners were bound. Both call
+sites earn their place: only the `afterDraw` one can settle a provisional layout, and only the
+`beforeDraw` one is early enough for THIS draw's calculators — bound solely in `afterDraw`, the
+rebind is one draw late, the calculators read the offset off the element the owner moved away from,
+and the band the old scroller was scrolled to stays on screen until something else redraws. The call
+is idempotent, so running it twice costs a comparison — by identity, never by re-deriving the answer, because a cross-realm owner
+can disagree with the scrolling element for the instance's life (next section).
 
 ## A table built outside the layout cannot read its own styles
 
@@ -216,13 +478,17 @@ the answer is still the window although an element trims the table, the layout h
 the pass is retried on the next draw — but only while the resolved element keeps changing. It is
 checked before anything is rebound, so a pass that cannot settle costs one style read. Two rules make
 that necessary: `getTrimmingContainer` counts `overflow: hidden` and `getScrollableElement` does not,
-so the two can disagree for good, and a table in an iframe driven from the parent realm does exactly
-that — `MasterTable#alignOverlaysWithTrimmingContainer` misses it through a realm-bound `instanceof`
-and leaves the holder `overflow: visible`. Retrying such a table forever rebinds every listener on
-every draw, which also drops whichever scroll event is in flight. Re-arming the flag (through the
+so the two can disagree for good. (An iframe driven from the parent realm used to be the second one:
+`MasterTable#alignOverlaysWithTrimmingContainer` judged the owner with a realm-bound `instanceof` and
+left the holder `overflow: visible`. That is fixed — see the realm rule in the per-axis section
+above.) Retrying such a table forever rebinds every listener on every draw, which also drops
+whichever scroll event is in flight. Re-arming the flag (through the
 public `updateMainScrollableElements`, which `updateSettings` calls whenever `height` moves to or from
-`''`) forgets the answer the previous series gave up on — otherwise the first retry of the new series
-matches its own stale answer and gives up at once, spending the retry the design counts on.
+`''`, and which the owner resync above calls when an axis owner moved) forgets the answer the
+previous series gave up on — otherwise the first retry of the new series matches its own stale
+answer and gives up at once, spending the retry the design counts on. The owner resync runs after
+the provisional pass and skips a provisional answer, so it never settles a layout in the provisional
+pass's place and never spends its retry.
 
 Only a **full** draw resolves it. A fast draw has aligned nothing, so it must not judge a table
 nothing has laid out; no such draw can currently precede the first full one (`refreshAll()` returns
@@ -330,6 +596,42 @@ The warning text is printed once per instance and pinned verbatim by two specs -
 both specs together, never alone. It ends "disconnected and reconnected after a short delay" because
 the original "will be disconnected" described the permanent kill and stopped being true when the
 cooldown replaced it.
+
+## The selection pass is a diff, and every wipe must clear the applied record
+
+`selection/manager.ts` no longer resets selection classes by querying the table. It collects, per
+element, the classes and attributes every layer wants, then applies that as a **diff** against the
+signature each element carried after the previous pass (`selection/appliedSelection.ts`, a
+`WeakMap` keyed by element). An unchanged element is not touched, which is what keeps a full draw
+from toggling the classes of every selected cell — on 40000 selected cells that toggle cost ~800 ms
+of style recalculation, not JavaScript. Three consequences:
+
+- **A renderer that resets an element's classes MUST call `clearAppliedSelection(element)`** right
+  after (`render/cells.ts`, `render/rowHeaders.ts`, `render/columnHeaders.ts` do). Without it
+  the record says "applied" while the DOM is blank, and the element stays unselected until the
+  selection changes.
+- **The cell-range scan is cached** per layer and overlay (`selection/scanCache.ts`) under the
+  layer's corners, the rendered band (offsets, counts, header counts), and the host's `renderEpoch`
+  setting. Header scans are not cached: the `onBeforeHighlightingRowHeader`/`ColumnHeader` settings
+  run inside them and plugins redirect headers through those. Anything that changes which cell an
+  element holds without moving the band must advance the epoch — core does it on every index-mapper
+  cache update, data reload, settings update, and `markAllCellsChanged()`.
+- The `onAfterDrawSelection` extra class (MergeCells) is **asked on every draw, for every source
+  coordinate that resolved to an element** — the cached scan keeps the coordinates per element for
+  exactly this. The answer depends on plugin state (MergeCells answers only for a block's first
+  renderable coordinate, and only when every layer covers the block), so it can never be cached,
+  and a merged block reached from several coordinates must be asked for each of them. The class
+  then joins the diff like any other. The query reset survives only for
+  `onBeforeRemoveCellClassNames`, a public hook that predates the diff, and runs only when a
+  plugin returns class names from it.
+
+## `shouldPaintCell`: the host may keep a cell element untouched
+
+`render/cells.ts` asks the `shouldPaintCell` setting before it resets and paints a cell element.
+`false` skips the reset, the `cellRenderer` call, and the ARIA re-stamp for that element. The
+engine keeps no per-cell state of its own here; the host (`TableView` through `CellPainter`) owns
+the stamps and answers from the cell's `renderMode`. The default answers `true`, so a Walkontable
+built without the setting behaves as before. A renderer spec's `TableRendererMock` must provide it.
 
 ## Known Tech Debt
 

@@ -1,18 +1,30 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import { existsSync, readdirSync } from 'node:fs';
+import { basename, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
+  DETERMINISM_SIGNALS,
+  STRUCTURE_SIGNALS,
   scanBalanced,
   extractTestBlocks,
   findCatchSwallows,
   findGamingSignals,
   findDeterminismSmells,
+  findViewportSmells,
+  findUnassertedCaptures,
   extractChangedSymbols,
   assessRelevance,
+  countMatchers,
   getMutationStatus,
   parseMutationReport,
   runMutation,
   scoreTestSource,
+  scoreTestFile,
 } from '../score.mjs';
+import { countTestBlocks } from '../../.github/scripts/lib/test-weakening.mjs';
+import { expectedSmellOf, missReason } from '../lib/counterexamples.mjs';
 
 const MUTATION_STUB = { available: false, reason: 'stryker not installed' };
 
@@ -53,6 +65,39 @@ test('extractTestBlocks ignores describe, hooks, and member calls such as regex 
   assert.equal(extractTestBlocks(src).length, 0);
 });
 
+test('extractTestBlocks reads a parameterized it.each table as one titled block that runs one test per row', () => {
+  // With the opener matched, the table used to be read as the block's argument
+  // list — every `it.each` came back untitled and hollow. The title and body sit
+  // in the second call; `rows` carries the table's row count so the score's
+  // `tests` agrees with the detector's `countTestBlocks`.
+  const src = `
+    it.each([
+      ['batched', true],
+      ['per-cell', false],
+    ])('translates columns (%s path)', (_path, rowIndependent) => {
+      expect(read(rowIndependent)).toBe(1);
+      expect(blank(rowIndependent)).toBe(2);
+    });
+    describe.each([[1], [2]])('suite %s', (n) => {
+      it('plain', () => { expect(n).toBeGreaterThan(0); });
+    });
+    it.each(cases)('hollow %s', (n) => { run(n); });
+  `;
+  const blocks = extractTestBlocks(src);
+
+  assert.deepEqual(blocks.map(b => [b.marker, b.title, b.assertions, b.rows]), [
+    ['it.each', 'translates columns (%s path)', 2, 2],
+    ['it', 'plain', 1, 1],
+    ['it.each', 'hollow %s', 0, 1],
+  ]);
+
+  const score = scoreTestSource(src, { mutation: MUTATION_STUB });
+
+  assert.equal(score.tests, countTestBlocks(src));
+  assert.equal(score.tests, 4);
+  assert.deepEqual(score.hollowTests, ['hollow %s']);
+});
+
 test('hollow detection flags an it() without any assertion', () => {
   const src = `
     it('does nothing', () => { render(); });
@@ -87,6 +132,43 @@ test('gaming signals: .only, xit, and it.flaky are detected', () => {
 
   const score = scoreTestSource(src, { mutation: MUTATION_STUB });
 
+  assert.equal(score.verdict, 'suspect');
+  assert.ok(score.problems.some(p => p.type === 'gaming-signals'));
+});
+
+test('extractTestBlocks finds the title call of an it.each table across a comment', () => {
+  // Only whitespace was skipped between the table's `)` and the title call's `(`, so a
+  // comment there made the table read as the body: a titled, asserting block came back
+  // untitled and hollow.
+  const src = `
+    it.each([[1], [2]]) // two rows
+    ('adds %i', (n) => { expect(n).toBe(n); });
+    it.each([[1]]) /* one row */ ('one %i', (n) => { expect(n).toBe(1); });
+  `;
+
+  assert.deepEqual(
+    extractTestBlocks(src).map(b => [b.title, b.assertions, b.rows]),
+    [['adds %i', 1, 2], ['one %i', 1, 1]],
+  );
+});
+
+test('gaming signals: a prefixed .each and a skip/only deep in a modifier chain are focus/skip markers', () => {
+  // The scorer shares `countSkipFocus` with the weakening detector; these five
+  // openers used to count as test blocks with no gaming signal at all.
+  const src = `
+    xit.each([[1]])('a', fn);
+    fit.each([[1]])('b', fn);
+    test.concurrent.only('c', () => { expect(a).toBe(1); });
+    test.concurrent.skip('d', () => { expect(b).toBe(2); });
+    test.concurrent.only.each([[1]])('e', fn);
+  `;
+  const byType = Object.fromEntries(findGamingSignals(src).map(s => [s.type, s.count]));
+
+  assert.equal(byType['skip-or-focus'], 5);
+
+  const score = scoreTestSource(src, { mutation: MUTATION_STUB });
+
+  assert.equal(score.tests, 5);
   assert.equal(score.verdict, 'suspect');
   assert.ok(score.problems.some(p => p.type === 'gaming-signals'));
 });
@@ -136,6 +218,197 @@ test('determinism smells: sleep(, waitForTimeout, and networkidle are detected',
   assert.ok(score.problems.some(p => p.type === 'determinism-smells'));
 });
 
+test('determinism smells: setTimeout( and waitForNextAnimationFrames( are detected', () => {
+  const src = `
+    it('waits blindly, in disguise', async() => {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      await page.evaluate(() => new Promise(resolve => window.setTimeout(resolve, 50)));
+      await waitForNextAnimationFrames(2);
+      expect(x).toBe(1);
+    });
+  `;
+  const smells = findDeterminismSmells(src);
+  const byType = Object.fromEntries(smells.map(s => [s.type, s.count]));
+
+  assert.deepEqual(byType, { 'set-timeout': 2, 'fixed-frame-wait': 1 });
+
+  const score = scoreTestSource(src, { mutation: MUTATION_STUB });
+
+  assert.equal(score.verdict, 'suspect');
+  assert.ok(score.problems.some(p => p.type === 'determinism-smells'));
+});
+
+test('determinism smells: timer look-alikes and the condition-based waiters are not smells', () => {
+  const src = `
+    it('waits on the condition', async() => {
+      hot._registerTimeout(callback, 100);
+      clearTimeout(timerId);
+      await waitUntil(() => spy.calls.count() === 1);
+      await waitForNextAnimationFramesToSettle();
+      await expect.poll(() => grid.rowCount()).toBe(5);
+      expect(x).toBe(1);
+    });
+  `;
+
+  assert.deepEqual(findDeterminismSmells(src), []);
+});
+
+test('set-timeout mirrors the lint bans: a setTimeout method on any other object is that object\'s contract', () => {
+  // Playwright's budgets, a wrapper, a fake-timer facade — none is a wait on the page.
+  const src = `
+    test.setTimeout(30_000);
+    test.describe('slow suite', () => {
+      test('has a budget', async({ page }, testInfo) => {
+        testInfo.setTimeout(60000);
+        scheduler.setTimeout(callback, 100);
+        this.timers.setTimeout(callback, 250);
+        expect(x).toBe(1);
+      });
+    });
+  `;
+
+  assert.deepEqual(findDeterminismSmells(src), []);
+});
+
+test('set-timeout mirrors the lint bans: a literal 0 is a hand-off and a computed delay is not judged', () => {
+  const src = `
+    setTimeout(done);
+    setTimeout(done, 0);
+    window.setTimeout(resolve, 0);
+    await new Promise(resolve => setTimeout(resolve, 0));
+    setTimeout(callback, delay);
+    window.setTimeout(callback, hot.getSettings().debounce);
+    setTimeout(() => setTimeout(() => setTimeout(resolve, 0), 0), 0);
+  `;
+
+  assert.deepEqual(findDeterminismSmells(src), []);
+});
+
+test('set-timeout mirrors the lint bans: the global timer with a non-zero literal delay, in every spelling', () => {
+  const src = `
+    setTimeout(fn, 100);
+    window.setTimeout(fn, 100);
+    globalThis.setTimeout(fn, 100);
+    setTimeout(() => done(), 1);
+    setTimeout(resolve, 1_000);
+    setTimeout(resolve, 1e3);
+    await page.evaluate(() => new Promise((resolve) => {
+      setTimeout(resolve, 300);
+    }));
+  `;
+
+  assert.deepEqual(findDeterminismSmells(src), [{ type: 'set-timeout', count: 7 }]);
+});
+
+test('set-timeout: a nested timer counts once per fixed delay, and the arguments are split at the top level', () => {
+  // The outer delay is the fixed one; the inner 0 ms hand-off and the comma inside the arrow
+  // body must not confuse the argument split.
+  const src = 'setTimeout(() => { setTimeout(resolve, 0); log("a, b"); }, 100);';
+
+  assert.deepEqual(findDeterminismSmells(src), [{ type: 'set-timeout', count: 1 }]);
+});
+
+test('set-timeout: comments beside the delay are stripped, an unbalanced call is a smell', () => {
+  // Comments are stripped from each argument before it is read as a literal — `100 /* ms */` is
+  // still a fixed 100 ms wait and `0 /* hand-off */` is still the exempt zero. A regex literal
+  // holding a bracket defeats the balanced scan; such a call cannot be proven harmless from the
+  // text, so it counts rather than silently passing (the AST-based lint tiers judge the real call).
+  assert.deepEqual(findDeterminismSmells('setTimeout(fn, 100 /* ms */);'), [{ type: 'set-timeout', count: 1 }]);
+  assert.deepEqual(findDeterminismSmells('setTimeout(fn, /* fast */ 100);'), [{ type: 'set-timeout', count: 1 }]);
+  assert.deepEqual(findDeterminismSmells('setTimeout(fn, // settle\n  100);'), [{ type: 'set-timeout', count: 1 }]);
+  assert.deepEqual(findDeterminismSmells('setTimeout(fn, 0 /* hand-off */);'), []);
+  assert.deepEqual(findDeterminismSmells('setTimeout(fn, "100 // not a comment".length);'), []);
+  assert.deepEqual(
+    findDeterminismSmells('setTimeout(() => /\\(/.test(x), 100);'),
+    [{ type: 'set-timeout', count: 1 }],
+  );
+});
+
+test('fixed-frame-wait mirrors the lint bans: a literal 0 resolves at once, anything else is a frame wait', () => {
+  const oneFrameWait = [{ type: 'fixed-frame-wait', count: 1 }];
+
+  assert.deepEqual(findDeterminismSmells('await waitForNextAnimationFrames(0);'), []);
+  assert.deepEqual(findDeterminismSmells('await waitForNextAnimationFrames();'), oneFrameWait);
+  assert.deepEqual(findDeterminismSmells('await waitForNextAnimationFrames(2);'), oneFrameWait);
+  assert.deepEqual(findDeterminismSmells('await waitForNextAnimationFrames(frames);'), oneFrameWait);
+});
+
+test('the counterexample fixtures cover every signal the scorer knows, each with exactly its one smell', async() => {
+  // Every case's counterexamples/ folder: the fixed-wait smells live under
+  // e2e-escape-cancels-edit, the viewport and capture smells under their own cases.
+  const fixtures = fileURLToPath(new URL('../fixtures/', import.meta.url));
+  const files = readdirSync(fixtures, { withFileTypes: true })
+    .filter(entry => entry.isDirectory())
+    .flatMap((caseDir) => {
+      const dir = join(fixtures, caseDir.name, 'counterexamples');
+
+      return existsSync(dir) ? readdirSync(dir).map(file => join(dir, file)) : [];
+    });
+  const smellByFile = Object.fromEntries(files.map((file) => {
+    const expected = expectedSmellOf(basename(file));
+
+    assert.equal(expected.error, undefined, `${file}: ${expected.error}`);
+
+    return [file, expected.smell];
+  }));
+
+  // Both signal lists are exported from the scorer, so a signal added to either table fails
+  // here until the fixture that proves it fires exists.
+  assert.deepEqual(
+    Object.values(smellByFile).sort(),
+    [...DETERMINISM_SIGNALS, ...STRUCTURE_SIGNALS].sort(),
+    'one counterexample per signal, so every signal is proven to fire on its own',
+  );
+
+  for (const [file, type] of Object.entries(smellByFile)) {
+    const score = await scoreTestFile(file);
+    const smells = [...score.determinismSmells, ...score.structureSmells].map(smell => [smell.type, smell.count]);
+
+    assert.deepEqual(smells, [[type, 1]], `${file}: exactly its one smell, once`);
+
+    if (DETERMINISM_SIGNALS.includes(type)) {
+      // A determinism smell is a problem: the verdict flips.
+      assert.equal(score.verdict, 'suspect', file);
+      assert.deepEqual(score.problems.map(p => p.type), ['determinism-smells'], file);
+    } else {
+      // A structure smell is a warning while its precision is measured: the verdict holds.
+      assert.equal(score.verdict, 'meaningful', file);
+      assert.deepEqual(score.problems, [], file);
+      assert.ok(score.warnings.some(w => w.type === 'structure-smells'), `${file}: reported as a warning`);
+    }
+    assert.equal(missReason(score, type), null, file);
+  }
+});
+
+test('run-eval: every reference scores meaningful and every counterexample is caught for its declared smell', () => {
+  const runEval = fileURLToPath(new URL('../run-eval.mjs', import.meta.url));
+  const output = execFileSync(process.execPath, [runEval, '--json'], { encoding: 'utf8' });
+  const { results, structuralErrors } = JSON.parse(output);
+  const byRole = role => results.filter(result => result.role === role);
+  const counterexamples = byRole('counterexample');
+
+  assert.deepEqual(structuralErrors, []);
+  assert.ok(byRole('reference').length >= 5, 'the five reference cases are scored');
+  assert.ok(byRole('reference').every(result => result.score.verdict === 'meaningful'));
+
+  assert.deepEqual(
+    [...new Set(counterexamples.map(result => result.expectedSmell))].sort(),
+    [...DETERMINISM_SIGNALS, ...STRUCTURE_SIGNALS].sort(),
+    'the counterexamples declare every signal between them — the determinism smells and the structure smells',
+  );
+
+  for (const { caseName, expectedSmell, score } of counterexamples) {
+    // Caught in whichever tier the smell lives in — a problem for a determinism smell, the
+    // structure-smells warning for a structure smell — and for no other smell.
+    assert.deepEqual(
+      [...score.determinismSmells, ...score.structureSmells].map(smell => smell.type),
+      [expectedSmell],
+      `${caseName}/${score.file}: caught for the smell its name declares, and no other`,
+    );
+    assert.equal(missReason(score, expectedSmell), null, `${caseName}/${score.file}`);
+  }
+});
+
 test('a clean, meaningful test scores clean', () => {
   const src = `
     import { test, expect } from '@playwright/test';
@@ -163,7 +436,108 @@ test('a clean, meaningful test scores clean', () => {
   assert.deepEqual(score.gamingSignals, []);
   assert.deepEqual(score.determinismSmells, []);
   assert.deepEqual(score.problems, []);
+  // Page-object helpers carry the assertions here, so no matcher is counted and
+  // the loose-matchers warning must stay quiet.
+  assert.deepEqual(score.matchers, { exact: 0, bounded: 0 });
+  assert.deepEqual(score.warnings, []);
   assert.equal(score.verdict, 'meaningful');
+});
+
+test('matchers breaks assertions down into exact and bounded matcher calls', () => {
+  const src = `
+    it('pins and bounds', () => {
+      expect(a).toBe(1);
+      expect(b).toEqual([1]);
+      expect(c).toBeGreaterThan(0);
+    });
+  `;
+  const score = scoreTestSource(src, { mutation: MUTATION_STUB });
+
+  assert.deepEqual(score.matchers, { exact: 2, bounded: 1 });
+  assert.deepEqual(score.warnings, []);
+});
+
+test('a test whose every assertion is a bounded matcher gets a loose-matchers-only warning', () => {
+  // The single-file analogue of the weakening detector's matcher downgrade: no
+  // base revision to diff, but a spec that pins nothing exactly is the shape a
+  // downgrade ends in. Warning-only — a relational assertion is legitimate for
+  // values no token derives — so the verdict is untouched.
+  const src = `
+    it('checks something exists', () => {
+      expect(result).toBeDefined();
+      expect(result.rows).toBeTruthy();
+      expect(result.rows.length).toBeGreaterThan(0);
+    });
+  `;
+  const score = scoreTestSource(src, { mutation: MUTATION_STUB });
+
+  assert.deepEqual(score.matchers, { exact: 0, bounded: 3 });
+  assert.equal(score.verdict, 'meaningful');
+  assert.equal(score.warnings.length, 1);
+  assert.equal(score.warnings[0].type, 'loose-matchers-only');
+  assert.match(score.warnings[0].detail, /toBeDefined/);
+  assert.match(score.warnings[0].detail, /toBeGreaterThan/);
+});
+
+test('loose-matchers-only stays quiet when an exact matcher or a helper assertion is present', () => {
+  const oneExact = 'it("x", () => { expect(a).toBe(1); expect(b).toBeGreaterThan(0); });';
+  // A helper carries one of the two assertions, so the bounded matcher does not
+  // account for every assertion — the scorer cannot tell what the helper pins.
+  const helperAndBounded = `
+    it('x', async() => { await grid.expectCell(0, 0, 'A1'); expect(n).toBeGreaterThan(0); });
+  `;
+
+  assert.deepEqual(scoreTestSource(oneExact, { mutation: MUTATION_STUB }).warnings, []);
+  assert.deepEqual(scoreTestSource(helperAndBounded, { mutation: MUTATION_STUB }).warnings, []);
+});
+
+test('countMatchers returns the histogram behind its totals, classified by the detector\'s matcherKind', () => {
+  // One regex pass: the scorer reads the per-label detail from the same
+  // histogram the totals were summed from.
+  const src = 'expect(a).toBe(1); expect(b).not.toBe(0); expect(fn).toThrow(); expect(c).toBeGreaterThan(0);';
+
+  assert.deepEqual(countMatchers(src), {
+    exact: 1,
+    bounded: 3,
+    histogram: { toBe: 1, 'not.toBe': 1, 'toThrow()': 1, toBeGreaterThan: 1 },
+  });
+  // The score object keeps the two totals only.
+  assert.deepEqual(scoreTestSource(src, { mutation: MUTATION_STUB }).matchers, { exact: 1, bounded: 3 });
+});
+
+test('loose-matchers-only is raised when the only exact-looking matcher is negated', () => {
+  // `.not.toBe(0)` rules one value out; it used to count as the exact `toBe` and
+  // suppress the warning.
+  const src = 'it("x", () => { expect(a).not.toBe(0); expect(b).toBeGreaterThan(0); });';
+  const score = scoreTestSource(src, { mutation: MUTATION_STUB });
+
+  assert.deepEqual(score.matchers, { exact: 0, bounded: 2 });
+  assert.equal(score.warnings.length, 1);
+  assert.equal(score.warnings[0].type, 'loose-matchers-only');
+  assert.match(score.warnings[0].detail, /not\.toBe ×1/);
+});
+
+test('loose-matchers-only stays quiet for a spec that pins a float with toBeCloseTo', () => {
+  // `toBeCloseTo` is bounded in the detector's table, but pinning a value to ten
+  // decimal places is the opposite of loose — the detector's `precision-widened`
+  // owns its loosening. It is the only sensible matcher in the dimension and
+  // export specs, so the warning would fire there constantly.
+  const src = 'it("x", () => { expect(w).toBeCloseTo(123.4567890123, 10); });';
+  const score = scoreTestSource(src, { mutation: MUTATION_STUB });
+
+  assert.deepEqual(score.matchers, { exact: 0, bounded: 1 });
+  assert.deepEqual(score.warnings, []);
+});
+
+test('loose-matchers-only stays quiet for a spec whose only matcher is a bare not.toThrow()', () => {
+  // `expect(fn).not.toThrow()` pins the one outcome "does not throw", the way
+  // the NEGATION_PINS do. It used to classify bounded, so a spec that proved
+  // only that a call is safe read as loose.
+  const src = 'it("x", () => { expect(() => f()).not.toThrow(); });';
+  const score = scoreTestSource(src, { mutation: MUTATION_STUB });
+
+  assert.deepEqual(score.matchers, { exact: 1, bounded: 0 });
+  assert.deepEqual(score.warnings, []);
 });
 
 test('extractChangedSymbols reads declarations, calls, and hunk-header context from a diff', () => {
@@ -236,7 +610,9 @@ test('runMutation scopes stryker with --mutate and parses the report (injected I
   const result = runMutation(['src/helpers/errors.ts'], {
     status: { available: true },
     run: cmd => calls.push(cmd),
-    readReport: () => ({ files: { 'src/helpers/errors.ts': { mutants: [{ status: 'Killed' }, { status: 'Killed' }] } } }),
+    readReport: () => ({
+      files: { 'src/helpers/errors.ts': { mutants: [{ status: 'Killed' }, { status: 'Killed' }] } },
+    }),
   });
 
   assert.match(calls[0], /--mutate 'src\/helpers\/errors\.ts'/);
@@ -256,10 +632,591 @@ test('runMutation refuses an unscoped (whole-tree) run', () => {
 test('runMutation surfaces a failed stryker run as a reason, not a throw', () => {
   const result = runMutation(['src/a.ts'], {
     status: { available: true },
-    run: () => { throw new Error('stryker exploded\nstack…'); },
+    run: () => {
+      throw new Error('stryker exploded\nstack…');
+    },
     readReport: () => ({}),
   });
 
   assert.equal(result.available, true);
   assert.match(result.reason, /stryker run failed: stryker exploded/);
+});
+
+// --- theme-sensitive-viewport: a rendered-row count without a pinned viewport ---
+test('viewport smell: a rendered-count assertion in a describe with no width/height and no scroll is flagged', () => {
+  const src = `
+    describe('virtual rendering', () => {
+      beforeEach(async() => {
+        handsontable({ data: createSpreadsheetData(100, 10) });
+      });
+
+      it('renders only the visible rows', async() => {
+        expect(countVisibleRows()).toBe(10);
+        expect(getRenderedRowsCount()).toBe(12);
+      });
+    });
+  `;
+
+  assert.equal(findViewportSmells(src), 2);
+
+  const score = scoreTestSource(src, { mutation: MUTATION_STUB });
+
+  assert.ok(score.determinismSmells.some(s => s.type === 'theme-sensitive-viewport' && s.count === 2));
+  assert.equal(score.verdict, 'suspect');
+  assert.ok(score.problems.some(p => p.type === 'determinism-smells' && /theme-sensitive-viewport/.test(p.detail)));
+});
+
+test('viewport smell: an explicit width/height or a scrollViewportTo in the describe pins the viewport', () => {
+  const pinned = `
+    describe('virtual rendering', () => {
+      beforeEach(async() => {
+        handsontable({ data: createSpreadsheetData(100, 10), width: 400, height: 200 });
+      });
+      it('renders only the visible rows', async() => {
+        expect(countVisibleRows()).toBe(10);
+      });
+    });
+  `;
+  const scrolled = `
+    describe('virtual rendering', () => {
+      it('renders the rows around the scroll target', async() => {
+        handsontable({ data: createSpreadsheetData(100, 10) });
+        await scrollViewportTo({ row: 50, verticalSnap: 'top' });
+        expect(getRenderedRowsCount()).toBeGreaterThan(0);
+      });
+    });
+  `;
+
+  assert.equal(findViewportSmells(pinned), 0);
+  assert.equal(findViewportSmells(scrolled), 0);
+});
+
+test('viewport smell: a viewport pinned in an OUTER describe covers the nested describe', () => {
+  const src = `
+    describe('pagination', () => {
+      beforeEach(async() => {
+        handsontable({ data: createSpreadsheetData(100, 10), height: 300 });
+      });
+      describe('page size', () => {
+        it('shows one page of rows', async() => {
+          expect(countVisibleRows()).toBe(10);
+        });
+      });
+    });
+  `;
+
+  assert.equal(findViewportSmells(src), 0);
+});
+
+test('viewport smell: colWidths/rowHeights are not a viewport, and Playwright :visible counts are covered', () => {
+  const sized = `
+    describe('rows', () => {
+      beforeEach(async() => {
+        handsontable({ data: createSpreadsheetData(100, 10), rowHeights: 23, colWidths: 50 });
+      });
+      it('counts', async() => { expect(countRenderedRows()).toBe(10); });
+    });
+  `;
+  const playwright = `
+    test.describe('virtual rows', () => {
+      test('renders a window of rows', async({ page }) => {
+        const grid = new GridPage(page);
+        await grid.goto();
+        await expect(page.locator('.ht_master tbody tr:visible')).toHaveCount(12);
+      });
+    });
+  `;
+
+  assert.equal(findViewportSmells(sized), 1, 'rowHeights/colWidths do not pin the viewport');
+  assert.equal(findViewportSmells(playwright), 1);
+  const dataCount = 'it("plain", () => { expect(countRows()).toBe(3); });';
+
+  assert.equal(findViewportSmells(dataCount), 0, 'a data count is not a rendered count');
+});
+
+test('viewport smell: the follow-up search for a captured locator stays inside its own test', () => {
+  // The follow-up walk ran to the end of the enclosing describe, so a later sibling test
+  // counting a same-named locator made an earlier test's plain click read as a count.
+  const siblings = `
+    describe('rows', () => {
+      it('clicks the first visible row', async() => {
+        const rows = page.locator('tr:visible');
+        await rows.first().click();
+      });
+      it('counts the visible rows', async() => {
+        const rows = page.locator('tr:visible');
+        expect(await rows.count()).toBe(10);
+      });
+    });
+  `;
+
+  assert.equal(findViewportSmells(siblings), 1, 'only the test that counts holds a read');
+
+  // A describe-level capture that a test counts still reaches across the describe.
+  const shared = `
+    describe('rows', () => {
+      const rows = page.locator('tr:visible');
+      it('counts the visible rows', async() => {
+        expect(await rows.count()).toBe(10);
+      });
+    });
+  `;
+
+  assert.equal(findViewportSmells(shared), 1, 'a describe-level capture counted by a test is a read');
+});
+
+test('viewport smell: a `:visible` selector is a rendered-count read only when something counts it', () => {
+  // Interaction and single-element reads on a visible-filtered locator count nothing.
+  const clicks = `
+    test.describe('context menu', () => {
+      test('opens on the visible cell', async({ page }) => {
+        await page.locator('td:visible').click();
+        const corner = page.locator('.wtBorder.corner:visible').first();
+        await expect(corner).toBeVisible();
+        await expect(page.locator('.htContextMenu:visible')).toBeVisible();
+      });
+    });
+  `;
+
+  assert.equal(findViewportSmells(clicks), 0, 'a bare :visible click or .first() is not a count');
+
+  // The same selectors become rendered counts when a count is taken on them.
+  const counted = `
+    test.describe('virtual rows', () => {
+      test('counts inline', async({ page }) => {
+        await expect(page.locator('tbody tr:visible')).toHaveCount(12);
+      });
+      test('counts a captured locator', async({ page }) => {
+        const rows = page.locator('tbody tr:visible');
+        const before = await rows.count();
+        await page.mouse.wheel(0, 3000);
+        await expect(rows).not.toHaveCount(before + 1);
+      });
+      test('counts by expect().count', async({ page }) => {
+        const cells = page.locator('td:visible');
+        expect(await cells.count()).toBeGreaterThan(0);
+      });
+    });
+  `;
+
+  assert.equal(findViewportSmells(counted), 3, 'one read per counted :visible selector');
+
+  // A captured locator that is only interacted with later stays a non-count.
+  const capturedClick = `
+    test('captures then clicks', async({ page }) => {
+      const cell = page.locator('td:visible');
+      await cell.click();
+      await expect(cell).toBeFocused();
+    });
+  `;
+
+  assert.equal(findViewportSmells(capturedClick), 0);
+});
+
+test('viewport smell: comments neither pin the viewport nor count as a rendered-count read', () => {
+  // The words `height:` and `:visible` appear only in prose here — the grid setup itself pins nothing.
+  const proseOnly = `
+    describe('rows', () => {
+      beforeEach(async() => {
+        // No width/height: the grid takes the page layout's size.
+        handsontable({ data: createSpreadsheetData(100, 10) });
+      });
+      /* a :visible count follows */
+      it('counts', async() => { expect(countVisibleRows()).toBe(27); });
+    });
+  `;
+
+  assert.equal(findViewportSmells(proseOnly), 1, 'the comment must not read as a pinned viewport');
+  assert.equal(findViewportSmells('// tr:visible is what we count\nit("x", () => { expect(a).toBe(1); });'), 0);
+});
+
+// --- viewport smell: the customBorders shapes — a look-alike helper, nested widths, expected values ---
+test('viewport smell: only the exact rendered-count helper names read — countVisibleCustomBorders does not', () => {
+  const borders = `
+    test.describe('custom borders', () => {
+      test('draws one border', async({ page }) => {
+        const lab = await gotoLab(page);
+        await lab.createGrid({
+          dataRows: 10, dataCols: 6,
+          customBorders: [{ row: 1, col: 1, top: { width: 1, color: 'green' } }],
+        });
+        expect(await lab.countVisibleCustomBorders()).toBe(1);
+        expect(await lab.countVisibleBorderEdges()).toBe(4);
+      });
+    });
+  `;
+
+  assert.equal(findViewportSmells(borders), 0, 'a count of drawn borders has nothing to do with row height');
+
+  for (const helper of [
+    'countVisibleRows', 'countVisibleCols', 'countVisibleColumns',
+    'countRenderedRows', 'countRenderedCols', 'getRenderedRowsCount', 'getRenderedColsCount',
+  ]) {
+    assert.equal(findViewportSmells(`it('x', () => { expect(${helper}()).toBe(1); });`), 1, helper);
+  }
+
+  const prefixOnly = 'it(\'x\', () => { expect(countVisibleRowsInGroup()).toBe(1); });';
+
+  assert.equal(findViewportSmells(prefixOnly), 0, 'no prefix match');
+});
+
+test('viewport smell: a nested width (a border, a column) or an expected value is not a pinned viewport', () => {
+  const nestedBorder = `
+    test.describe('custom borders', () => {
+      test('counts rows', async({ page }) => {
+        await lab.createGrid({
+          dataRows: 10, dataCols: 6,
+          customBorders: [{
+            range: { from: { row: 3, col: 1 }, to: { row: 6, col: 4 } },
+            border: { width: 2, color: '#548235' },
+            top: {},
+          }],
+        });
+        expect(countVisibleRows()).toBe(10);
+      });
+    });
+  `;
+  const columnWidth = `
+    describe('columns', () => {
+      beforeEach(() => {
+        handsontable({ data: createSpreadsheetData(100, 10), columns: [{ width: 100 }, { width: 80 }] });
+      });
+      it('counts', () => { expect(countRenderedRows()).toBe(10); });
+    });
+  `;
+  const expectedValue = `
+    test.describe('borders', () => {
+      test('reads a border', async({ page }) => {
+        expect((await lab.cellBorders(1, 1))?.top).toEqual({ width: 2, color: '#548235' });
+        expect(await lab.cellRect(1, 1)).toMatchObject({ height: 23 });
+        await expect(page.locator('tbody tr:visible')).toHaveCount(12);
+      });
+    });
+  `;
+  const typedPromise = `
+    test('measures', async({ page }) => {
+      const size = await page.evaluate(() => new Promise<{ width: number, height: number }>((resolve) => {
+        resolve(measure());
+      }));
+      expect(size.width).toBeGreaterThan(0);
+      await expect(page.locator('tbody tr:visible')).toHaveCount(12);
+    });
+  `;
+
+  assert.equal(findViewportSmells(nestedBorder), 1, 'a border width is not the grid size');
+  assert.equal(findViewportSmells(columnWidth), 1, 'a column width is not the grid size');
+  assert.equal(findViewportSmells(expectedValue), 1, 'an expected value pins nothing');
+  assert.equal(findViewportSmells(typedPromise), 1, 'a TypeScript type is not a value');
+});
+
+test('viewport smell: only a declaration carries over from file scope, never a whole pin', () => {
+  // The file-scope text is searched with each suite so a shared `const` can pin it, but it must
+  // contribute the DECLARATION only: a sized grid built by a file-scope helper, or a stray
+  // scrollViewportTo out there, says nothing about a suite that never calls either.
+  const helperAtFileScope = `
+    async function buildRoomyGrid() {
+      await grid.initGrid({ width: 900, height: 520 });
+    }
+
+    describe('rows', () => {
+      it('counts them', async() => {
+        await grid.initGrid({ data });
+        expect(countVisibleRows()).toBe(10);
+      });
+    });
+  `;
+
+  assert.equal(findViewportSmells(helperAtFileScope), 1, 'a sized grid built elsewhere pins nothing here');
+
+  const scrollAtFileScope = helperAtFileScope.replace(
+    'await grid.initGrid({ width: 900, height: 520 });',
+    'await wt.scrollViewportTo({ row: 40 });'
+  );
+
+  assert.equal(findViewportSmells(scrollAtFileScope), 1, 'a scroll out there is not this suite\'s scroll');
+
+  // A `describe.each` body is not a recognized suite, so its text lands in the file-scope
+  // prefix too — the same declaration-only rule keeps its pin from reaching a sibling suite.
+  const parameterizedNeighbour = `
+    describe.each([['main'], ['horizon']])('theme %s', (theme) => {
+      it('is pinned here', async() => {
+        await grid.initGrid({ width: 900, height: 520, theme });
+        expect(countVisibleRows()).toBe(10);
+      });
+    });
+
+    describe('rows', () => {
+      it('is not pinned here', async() => {
+        await grid.initGrid({ data });
+        expect(countVisibleRows()).toBe(10);
+      });
+    });
+  `;
+
+  assert.equal(findViewportSmells(parameterizedNeighbour), 1, 'the parameterized suite pins only itself');
+});
+
+test('viewport smell: a viewport local declared at file scope pins the suites below it', () => {
+  // The pin's declaration sits outside every describe while the call that uses it sits inside
+  // one, so neither text holds both halves; only the describe body was searched, and the file's
+  // own `const` never appeared there.
+  const fileScope = `
+    const ROOMY_VIEWPORT = { width: 900, height: 520 };
+
+    describe('rows', () => {
+      it('counts them', async() => {
+        await grid.initGrid(ROOMY_VIEWPORT);
+        expect(countVisibleRows()).toBe(10);
+      });
+    });
+  `;
+
+  assert.equal(findViewportSmells(fileScope), 0, 'a file-scope viewport local is a pin');
+
+  const spread = fileScope.replace(
+    'initGrid(ROOMY_VIEWPORT)',
+    'initGrid({ ...ROOMY_VIEWPORT, layoutDirection: \'rtl\' })'
+  );
+
+  assert.equal(findViewportSmells(spread), 0, 'spread into the options object, the same pin');
+
+  // A file-scope local that pins nothing must still leave the read unpinned.
+  const borderAtFileScope = fileScope.replace('{ width: 900, height: 520 }', '{ border: { width: 2 } }');
+
+  assert.equal(findViewportSmells(borderAtFileScope), 1, 'a nested border width is not the grid size');
+});
+
+test('viewport smell: the options object may be a later argument, or a local passed whole or spread', () => {
+  const secondArgument = `
+    test('renders', async({ page }) => {
+      await page.evaluate(() => {
+        new Handsontable(host, { data, colWidths: 90, width: 500, height: 260, rowHeaders: true });
+      });
+      await expect(page.locator('tbody tr:visible')).toHaveCount(8);
+    });
+  `;
+  const local = `
+    test.describe('handles', () => {
+      const ROOMY_VIEWPORT = { width: 900, height: 520 };
+      test('whole', async() => { await grid.initGrid(ROOMY_VIEWPORT); expect(countVisibleRows()).toBe(10); });
+      test('spread', async() => {
+        await grid.initGrid({ ...ROOMY_VIEWPORT, layoutDirection: 'rtl' });
+        expect(countVisibleRows()).toBe(10);
+      });
+    });
+  `;
+  const borderLocal = `
+    test.describe('borders', () => {
+      const GREEN_BORDER = { color: 'green', width: 1 };
+      test('draws', async() => {
+        await lab.createGrid({ customBorders: [{ row: 1, col: 0, top: GREEN_BORDER }] });
+        expect((await lab.cellBorders(1, 0))?.top).toEqual(GREEN_BORDER);
+        expect(countVisibleRows()).toBe(10);
+      });
+    });
+  `;
+
+  assert.equal(findViewportSmells(secondArgument), 0);
+  assert.equal(findViewportSmells(local), 0);
+  assert.equal(findViewportSmells(borderLocal), 1, 'a local used as a property or an expected value pins nothing');
+});
+
+// --- unasserted-capture: an awaited value that never reaches an assertion ---
+test('unasserted capture: a `const x = await …` never used in an assertion is reported by name, as a warning', () => {
+  const src = `
+    test('reads the row count', async({ page }) => {
+      const grid = new GridPage(page);
+      await grid.goto();
+      const rows = await grid.rowCount();
+      const first = await grid.cell(0, 0).textContent();
+      await expect(grid.cell(0, 0)).toBeVisible();
+    });
+  `;
+  const captures = findUnassertedCaptures(src);
+
+  assert.equal(captures.length, 2);
+  assert.deepEqual(captures.map(c => c.name), ['rows', 'first'], 'source order');
+  assert.equal(captures[0].test, 'reads the row count');
+
+  const score = scoreTestSource(src, { mutation: MUTATION_STUB });
+
+  assert.ok(score.structureSmells.some(s => s.type === 'unasserted-capture' && s.count === 2));
+  // Warning-tier while its precision is measured: the verdict stays meaningful.
+  assert.equal(score.verdict, 'meaningful');
+  assert.deepEqual(score.problems, []);
+  const warning = score.warnings.find(w => w.type === 'structure-smells');
+
+  assert.ok(warning, 'reported as a warning');
+  assert.match(warning.detail, /`rows`/);
+  assert.match(warning.detail, /`first`/);
+});
+
+test('unasserted capture: a value reshaped into a second local that is asserted counts as asserted (one level)', () => {
+  const src = `
+    test('leaves the cell meta usable by addClass', async() => {
+      const className = await grid.cellMetaClassName(0, 0);
+      const tokens = Array.isArray(className) ? className : String(className).split(' ');
+      expect(tokens).toEqual(expect.arrayContaining(['a', 'b']));
+    });
+    test('keeps chips inside the cell', async() => {
+      const layouts = await grid.chipLayoutAcrossWidths(0, 0, widths);
+      const overflowing = layouts.filter(l => l.overflowing);
+      expect(overflowing.length).toBeGreaterThan(0);
+    });
+    test('keeps borders where ranges overlap', async({ page }) => {
+      const lab = await gotoLab(page);
+      await lab.createGrid({ dataRows: 6 });
+      const borders = await lab.cellBorders(2, 2);
+      expect(borders?.top).toEqual({ width: 2, color: 'green' });
+    });
+    test('drops the derived value too', async() => {
+      const count = await grid.rowCount();
+      const doubled = count * 2;
+      await grid.scrollToRow(doubled);
+      await expect(grid.cell(0, 0)).toBeVisible();
+    });
+    test('follows one level only', async() => {
+      const raw = await grid.read();
+      const trimmed = raw.trim();
+      const upper = trimmed.toUpperCase();
+      expect(upper).toBe('A');
+    });
+  `;
+
+  // The one-level limit is pinned on purpose: widening it is a deliberate change.
+  assert.deepEqual(findUnassertedCaptures(src).map(c => [c.test, c.name]), [
+    ['drops the derived value too', 'count'],
+    ['follows one level only', 'raw'],
+  ]);
+});
+
+test('unasserted capture: a regex literal that defeats the bracket scanner does not double-report a later test', () => {
+  // `/inset\\(/` carries a paren the scanner counts, so the first body runs on
+  // to the end of the file and swallows the second test.
+  const src = `
+    test('matches the model', async({ page }) => {
+      const clips = await page.evaluate(() => read());
+      const clipped = clips.filter(clip => /inset\\(/.test(clip));
+      expect(clipped).toEqual([]);
+    });
+    test('leaves the grid alone', async({ page }) => {
+      const box = await page.locator('#grid').boundingBox();
+      await page.mouse.move(box.x, box.y);
+      await expect(page.locator('.band')).toHaveCount(0);
+    });
+  `;
+
+  assert.deepEqual(findUnassertedCaptures(src), [{ test: 'leaves the grid alone', name: 'box' }]);
+});
+
+test('unasserted capture: an it.each body is scanned past its table, under the title the second call gives it', () => {
+  // The shared opener matches `it.each(` at the table's `(`. Without skipping the
+  // table it read as the body: its captures unseen, the block untitled. A comment
+  // between the table and the title call is skipped the way `extractTestBlocks` does.
+  const src = `
+    it.each([
+      ['a stringy row', 1],
+      ['another', 2],
+    ])('renders %s', async({ page }, n) => {
+      const box = await page.locator('td').boundingBox();
+      await page.mouse.move(box.x, box.y);
+      expect(n).toBe(n);
+    });
+    it.each([[1]]) // one row
+    ('keeps nothing %i', async({ page }) => {
+      const text = await page.textContent('td');
+      expect(text).toBe('A1');
+    });
+  `;
+
+  assert.deepEqual(findUnassertedCaptures(src), [{ test: 'renders %s', name: 'box' }]);
+});
+
+test('viewport smell: a captured locator inside an it.each body is followed up within that body only', () => {
+  // With the table read as the body, the click's `:visible` sat in no test body and
+  // the follow-up walk ran to the end of the describe, where a sibling counts it.
+  const src = `
+    describe('rows', () => {
+      it.each([[1], [2]])('clicks row %i', async() => {
+        const rows = page.locator('tr:visible');
+        await rows.first().click();
+      });
+      it('counts the visible rows', async() => {
+        const rows = page.locator('tr:visible');
+        expect(await rows.count()).toBe(10);
+      });
+    });
+  `;
+
+  assert.equal(findViewportSmells(src), 1, 'only the test that counts holds a read');
+});
+
+test('unasserted capture: a capture used inside expect(...), its matcher chain, or an assertion helper is fine', () => {
+  const src = `
+    it('asserts every capture', async() => {
+      const rows = await grid.rowCount();
+      const expected = await readExpected();
+      const editor = await grid.openEditor(1, 1);
+      const cell = await grid.cellLocator(0, 0);
+      expect(rows).toBe(expected);
+      await editor.expectVisible();
+      await expect(cell).toHaveText('A1');
+    });
+  `;
+
+  assert.deepEqual(findUnassertedCaptures(src), []);
+  assert.deepEqual(scoreTestSource(src, { mutation: MUTATION_STUB }).structureSmells, []);
+});
+
+test('unasserted capture: only awaited captures count, the scope is the test body, and comments do not assert', () => {
+  const src = `
+    const shared = await setup();
+    it('one', async() => {
+      const grid = new GridPage(page);
+      let count = await grid.rowCount();
+      expect(count).toBe(5);
+    });
+    it('two', async() => {
+      const other = await grid.rowCount();
+      // expect(other).toBe(5);
+      expect(1).toBe(1);
+    });
+  `;
+  const captures = findUnassertedCaptures(src);
+
+  assert.deepEqual(captures.map(c => [c.test, c.name]), [['two', 'other']]);
+});
+
+test('unasserted capture: a `$`-bearing identifier is matched literally, so its assertion is found', () => {
+  // `$` is the one regex metacharacter an identifier can carry; escaped, `$rows`
+  // finds its use inside expect(); unescaped it would read as an end anchor and
+  // every `$`-named capture would be reported as unasserted.
+  const src = `
+    it('uses dollar names', async() => {
+      const $rows = await grid.rowCount();
+      const $$total = await grid.totalRows();
+      const $dropped = await grid.cell(0, 0).textContent();
+      expect($rows).toBe($$total);
+    });
+  `;
+
+  assert.deepEqual(findUnassertedCaptures(src).map(c => c.name), ['$dropped']);
+});
+
+test('the new smells leave a clean, meaningful test clean', () => {
+  const src = `
+    test.describe('virtual rendering', () => {
+      test('renders a window of rows', async({ page }) => {
+        const grid = new GridPage(page);
+        await grid.goto({ width: 400, height: 300 });
+        const rows = await grid.renderedRowCount();
+        expect(rows).toBe(12);
+      });
+    });
+  `;
+  const score = scoreTestSource(src, { mutation: MUTATION_STUB });
+
+  assert.deepEqual(score.determinismSmells, []);
+  assert.deepEqual(score.structureSmells, []);
+  assert.equal(score.verdict, 'meaningful');
 });

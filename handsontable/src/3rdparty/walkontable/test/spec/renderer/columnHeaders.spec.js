@@ -1,5 +1,9 @@
 describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
   class TableRendererMock {
+    shouldPaintCell() {
+      return true;
+    }
+
     constructor() {
       this.rootDocument = document;
     }
@@ -58,12 +62,12 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
     expect(rootNode.outerHTML).toMatchHTML(`
       <thead>
         <tr>
-          <th class="">1</th>
+          <th class="htLastRowHeaderColumn">1</th>
           <th class="">1</th>
           <th class="htLastVisibleHeader">1</th>
         </tr>
         <tr>
-          <th class="">1</th>
+          <th class="htLastRowHeaderColumn">1</th>
           <th class="">1</th>
           <th class="htLastVisibleHeader">1</th>
         </tr>
@@ -82,7 +86,7 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
     expect(rootNode.outerHTML).toMatchHTML(`
       <thead>
         <tr>
-          <th class="">2</th>
+          <th class="htLastRowHeaderColumn">2</th>
           <th class="htLastVisibleHeader">2</th>
         </tr>
       </thead>
@@ -158,12 +162,12 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
     expect(rootNode.outerHTML).toMatchHTML(`
       <thead>
         <tr>
-          <th class="">1</th>
+          <th class="htLastRowHeaderColumn">1</th>
           <th class="">1</th>
           <th class="htLastVisibleHeader">1</th>
         </tr>
         <tr>
-          <th class="">1</th>
+          <th class="htLastRowHeaderColumn">1</th>
           <th class="">1</th>
           <th class="htLastVisibleHeader">1</th>
         </tr>
@@ -204,12 +208,12 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
     expect(rootNode.outerHTML).toMatchHTML(`
       <thead>
         <tr>
-          <th class=""></th>
+          <th class="htLastRowHeaderColumn"></th>
           <th class=""></th>
           <th class="htLastVisibleHeader"></th>
         </tr>
         <tr>
-          <th class=""></th>
+          <th class="htLastRowHeaderColumn"></th>
           <th class=""></th>
           <th class="htLastVisibleHeader"></th>
         </tr>
@@ -313,6 +317,73 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
 
     expect(rootNode.querySelectorAll('.htLastVisibleHeader').length).toBe(1);
     expect(rootNode.querySelector('.htLastVisibleHeader').textContent).toBe('1');
+  });
+
+  it('should stamp the `htLastRowHeaderColumn` class on the LAST corner cell, not the first', async() => {
+    const renderers = createRenderer();
+    const { tableMock, rootNode } = renderers;
+
+    // Two row headers, which `afterGetRowHeaderRenderers` makes a supported shape. This is the case
+    // the marker exists for: with one row header the marked cell is index 0, which the rule's old
+    // `:first-child` key also picked, so every other expectation in this file would still pass
+    // against that old key. Only this one separates them.
+    tableMock.columnsToRender = 2;
+    tableMock.columnHeadersCount = 1;
+    tableMock.rowHeadersCount = 2;
+    tableMock.columnHeaderFunctions = [
+      (sourceColumnIndex, TH) => { TH.innerHTML = `${sourceColumnIndex}`; },
+    ];
+
+    renderAll(renderers);
+
+    expect(rootNode.outerHTML).toMatchHTML(`
+      <thead>
+        <tr>
+          <th class="">-2</th>
+          <th class="htLastRowHeaderColumn">-1</th>
+          <th class="">0</th>
+          <th class="htLastVisibleHeader">1</th>
+        </tr>
+      </thead>
+      `);
+
+    expect(rootNode.querySelectorAll('.htLastRowHeaderColumn').length).toBe(1);
+  });
+
+  it('should move the `htLastRowHeaderColumn` class when the row header count drops on the next render cycle', async() => {
+    const renderers = createRenderer();
+    const { tableMock, rootNode } = renderers;
+
+    tableMock.columnsToRender = 2;
+    tableMock.columnHeadersCount = 1;
+    tableMock.rowHeadersCount = 2;
+    tableMock.columnHeaderFunctions = [
+      (sourceColumnIndex, TH) => { TH.innerHTML = `${sourceColumnIndex}`; },
+    ];
+
+    renderAll(renderers);
+
+    expect(rootNode.querySelector('.htLastRowHeaderColumn').textContent).toBe('-1');
+
+    // Dropping to one row header must move the marker back to index 0 and leave nothing behind.
+    // This is the direct proof of the renderer's no-clearing-pass claim: `orderView.start()` sizes
+    // the row to exactly the cells it owns and the loop resets every one of their class names, so a
+    // node that carried the marker on the previous cycle cannot keep it.
+    tableMock.rowHeadersCount = 1;
+
+    renderAll(renderers);
+
+    expect(rootNode.outerHTML).toMatchHTML(`
+      <thead>
+        <tr>
+          <th class="htLastRowHeaderColumn">-1</th>
+          <th class="">0</th>
+          <th class="htLastVisibleHeader">1</th>
+        </tr>
+      </thead>
+      `);
+
+    expect(rootNode.querySelectorAll('.htLastRowHeaderColumn').length).toBe(1);
   });
 
   it('should call column headers renderers with valid arguments', async() => {

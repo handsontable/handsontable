@@ -5,6 +5,8 @@ import {
   closestDown,
   getParent,
   getScrollbarWidth,
+  getScrollLeft,
+  getScrollTop,
   getFractionalScalingCompensation,
   hasClass,
   isInput,
@@ -15,6 +17,8 @@ import {
   setAttribute,
   fastInnerHTML,
   fastInnerText,
+  getCellContentRoot,
+  CELL_CLIP_CLASS,
   HTML_CHARACTERS,
   isVisible,
   findFirstParentWithClass,
@@ -1189,6 +1193,58 @@ describe('DomElement helper', () => {
       expect(element.querySelector('b')).toBe(null);
       expect(element.textContent).toBe('<b>ID</b>');
     });
+
+    it('should write into the clipping wrapper when the element holds one', () => {
+      const element = document.createElement('td');
+
+      element.innerHTML = `<div class="${CELL_CLIP_CLASS}">old</div>`;
+
+      const wrapper = element.firstElementChild;
+
+      fastInnerText(element, 'new');
+
+      expect(element.childNodes.length).toBe(1);
+      expect(element.firstElementChild).toBe(wrapper);
+      expect(wrapper?.childNodes.length).toBe(1);
+      expect(wrapper?.textContent).toBe('new');
+    });
+  });
+
+  //
+  // Handsontable.helper.getCellContentRoot
+  //
+  describe('getCellContentRoot', () => {
+    it('should return the element itself when it holds no wrapper', () => {
+      const element = document.createElement('td');
+
+      element.textContent = 'text';
+
+      expect(getCellContentRoot(element)).toBe(element);
+    });
+
+    it('should return the wrapper when it is the only child', () => {
+      const element = document.createElement('td');
+
+      element.innerHTML = `<div class="${CELL_CLIP_CLASS}">text</div>`;
+
+      expect(getCellContentRoot(element)).toBe(element.firstElementChild);
+    });
+
+    it('should return the element itself when the wrapper has siblings', () => {
+      const element = document.createElement('td');
+
+      element.innerHTML = `<i>x</i><div class="${CELL_CLIP_CLASS}">text</div>`;
+
+      expect(getCellContentRoot(element)).toBe(element);
+    });
+
+    it('should not mistake another div for the wrapper', () => {
+      const element = document.createElement('td');
+
+      element.innerHTML = '<div class="other">text</div>';
+
+      expect(getCellContentRoot(element)).toBe(element);
+    });
   });
 
   //
@@ -1269,6 +1325,39 @@ describe('DomElement helper', () => {
       const element = document.createElement('div');
 
       expect(isHTMLElement(element)).toBe(true);
+    });
+  });
+
+  //
+  // Handsontable.helper.getScrollTop / getScrollLeft
+  //
+  describe('getScrollTop / getScrollLeft', () => {
+    it('should read the offsets off an element', () => {
+      const element = document.createElement('div');
+
+      element.scrollTop = 12;
+      element.scrollLeft = 34;
+
+      expect(getScrollTop(element, window)).toBe(12);
+      expect(getScrollLeft(element, window)).toBe(34);
+    });
+
+    it('should read the offsets off the root window when the element IS a window', () => {
+      const rootWindow = { scrollY: 56, scrollX: 78 } as unknown as Window;
+
+      expect(getScrollTop(window, rootWindow)).toBe(56);
+      expect(getScrollLeft(window, rootWindow)).toBe(78);
+    });
+
+    it('should read the offsets off the root window for a window from another realm', () => {
+      // A window built by another realm (an iframe driven from the parent page) is not
+      // `instanceof` this realm's `Window`. A realm-bound test then fell through to reading
+      // `window.scrollTop`, which is `undefined`, and the row calculators built the band from it.
+      const foreignWindow = { scrollY: 56, scrollX: 78 } as unknown as Window;
+
+      expect(foreignWindow instanceof Window).toBe(false);
+      expect(getScrollTop(foreignWindow, foreignWindow)).toBe(56);
+      expect(getScrollLeft(foreignWindow, foreignWindow)).toBe(78);
     });
   });
 
@@ -1636,6 +1725,87 @@ describe('DomElement helper', () => {
       wrapper.style.overflow = 'inherit';
 
       expect(getTrimmingContainer(base)).toBe(window);
+    });
+
+    describe('per axis', () => {
+      // The per-axis form answers for one axis only, so the single-axis-clip exemption of the
+      // single-answer form does not apply: a root that clips the horizontal axis IS the horizontal
+      // trimming container, while the vertical axis keeps its own answer (here the window).
+      it('should resolve the two axes independently for an ancestor with `overflow-x: clip`', () => {
+        wrapper.style.overflowX = 'clip';
+        wrapper.style.overflowY = 'visible';
+
+        expect(getTrimmingContainer(base, 'x')).toBe(wrapper);
+        expect(getTrimmingContainer(base, 'y')).toBe(window);
+      });
+
+      it('should resolve the two axes independently for an ancestor with `overflow-y: clip`', () => {
+        wrapper.style.overflowX = 'visible';
+        wrapper.style.overflowY = 'clip';
+
+        expect(getTrimmingContainer(base, 'x')).toBe(window);
+        expect(getTrimmingContainer(base, 'y')).toBe(wrapper);
+      });
+
+      it('should resolve the two axes independently for the `clip visible` shorthand', () => {
+        wrapper.style.overflow = 'clip visible';
+
+        expect(getTrimmingContainer(base, 'x')).toBe(wrapper);
+        expect(getTrimmingContainer(base, 'y')).toBe(window);
+      });
+
+      it('should return the ancestor on both axes when it clips both (`overflow: clip`)', () => {
+        wrapper.style.overflow = 'clip';
+
+        expect(getTrimmingContainer(base, 'x')).toBe(wrapper);
+        expect(getTrimmingContainer(base, 'y')).toBe(wrapper);
+      });
+
+      it('should return the ancestor on both axes when it hides overflow (`overflow: hidden`)', () => {
+        wrapper.style.overflow = 'hidden';
+
+        expect(getTrimmingContainer(base, 'x')).toBe(wrapper);
+        expect(getTrimmingContainer(base, 'y')).toBe(wrapper);
+      });
+
+      it('should return the ancestor on both axes for the DEV-1777 container (`overflow-x: auto; overflow-y: hidden`)', () => {
+        // A single-axis scroll container next to a hidden axis traps on both, the same as the
+        // single-answer form says — only `clip` beside `visible` ever differs between the forms.
+        wrapper.style.overflowX = 'auto';
+        wrapper.style.overflowY = 'hidden';
+
+        expect(getTrimmingContainer(base, 'x')).toBe(wrapper);
+        expect(getTrimmingContainer(base, 'y')).toBe(wrapper);
+      });
+
+      it('should skip a nearer ancestor that traps only the other axis', () => {
+        // wrapper (overflow-x: clip) > middle (nothing) > base: the vertical answer walks past
+        // the wrapper to the outer scroller.
+        const outer = document.createElement('div');
+
+        outer.style.overflowY = 'auto';
+        outer.appendChild(wrapper);
+        document.body.appendChild(outer);
+        wrapper.style.overflowX = 'clip';
+
+        expect(getTrimmingContainer(base, 'x')).toBe(wrapper);
+        expect(getTrimmingContainer(base, 'y')).toBe(outer);
+
+        outer.parentNode.removeChild(outer);
+        document.body.appendChild(wrapper);
+      });
+
+      it('should return the window on both axes when no ancestor traps the element', () => {
+        expect(getTrimmingContainer(base, 'x')).toBe(window);
+        expect(getTrimmingContainer(base, 'y')).toBe(window);
+      });
+
+      it('should defer to computed style for a global `overflow` keyword on either axis', () => {
+        wrapper.style.overflow = 'inherit';
+
+        expect(getTrimmingContainer(base, 'x')).toBe(window);
+        expect(getTrimmingContainer(base, 'y')).toBe(window);
+      });
     });
   });
 

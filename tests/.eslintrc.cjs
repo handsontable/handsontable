@@ -3,15 +3,25 @@
 // legacy config loader requires CJS.
 //
 // This tier is greenfield — there is no legacy debt to baseline — so the
-// determinism bans ship at `error`, not `warn`. A fixed delay or a
-// `networkidle` wait must never enter a Playwright spec: wait for a
-// condition (a web-first assertion, a locator state) instead.
+// determinism bans ship at `error`, not `warn`. A fixed delay (`waitForTimeout`,
+// `sleep`, a `setTimeout` — including one hidden inside `page.evaluate`) or a
+// `networkidle` wait must never enter a Playwright spec: wait for a condition
+// (a web-first assertion, a locator state, `expect.poll` on a data probe) instead.
+// The bans are not scoped to `*.spec.ts`: the lint script covers `e2e` and
+// `fixtures`, so a page object is in scope on purpose — a timer moved from a spec
+// into the page object it drives is the same fixed wait, one file further away.
+// (The `.html` fixtures that drive timers deliberately are not linted here.)
 //
 // Scope is deliberately minimal: the @typescript-eslint PARSER (so `.ts`
 // specs parse) plus core `no-restricted-syntax` bans. It does NOT pull in
 // eslint-plugin-playwright — that richer ruleset is a new third-party
 // dependency and is gated on the team-discussion required by the
 // minimal-dependency policy (see tests/README.md).
+const WAIT_FOR_FUNCTION_POLLING = 'waitForFunction() needs an explicit polling interval — pass `undefined, '
+  + '{ polling: 100 }` (or another interval) as the options argument. The default polls on requestAnimationFrame, '
+  + 'which parallel workers starve, so a healthy page times out with nothing wrong on it. See tests/AGENTS.md '
+  + '(Determinism).';
+
 module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
@@ -36,6 +46,14 @@ module.exports = {
         message: 'No fixed sleep() delay — wait for a condition instead. See .claude/skills/handsontable-playwright-e2e/references/determinism.md.',
       },
       {
+        // The global timer only: bare `setTimeout(`, `window.setTimeout(`, and `globalThis.setTimeout(` —
+        // the usual disguise is a timer inside `page.evaluate` once `waitForTimeout` is banned. The member
+        // form is pinned to the global object on purpose: Playwright's `test.setTimeout(ms)` and
+        // `testInfo.setTimeout(ms)` set a budget, not a wait, and must stay legal.
+        selector: "CallExpression[callee.name='setTimeout'], CallExpression[callee.object.name='window'][callee.property.name='setTimeout'], CallExpression[callee.object.name='globalThis'][callee.property.name='setTimeout']",
+        message: 'No setTimeout() in a spec or a page object — a fixed timer is not a wait, wherever it lives. Poll a data probe with expect.poll, or use a web-first assertion. The one justified exception is a scheduling barrier — a 0 ms hand-off that lets a negative assertion prove nothing else fired — never a duration; it carries the same eslint-disable line as test.fixme below (`// eslint-disable-next-line no-restricted-syntax -- DEV-1234: <why>`), naming the owning task, so it stays counted and attributable. See tests/AGENTS.md.',
+      },
+      {
         selector: "Literal[value='networkidle']",
         message: "No 'networkidle' wait — it is flaky and deprecated for web apps. Assert on a locator or response instead. See .claude/skills/handsontable-playwright-e2e/references/determinism.md.",
       },
@@ -50,6 +68,25 @@ module.exports = {
       {
         selector: "CallExpression[callee.property.name='fixme']",
         message: 'test.fixme() parks a known product bug and is allowed ONLY with an eslint-disable line naming the tracking task (`// eslint-disable-next-line no-restricted-syntax -- DEV-1234: <why>`), so the exception stays counted and attributable. See tests/AGENTS.md.',
+      },
+      {
+        // Three shapes of the same miss: no options argument, an options literal without `polling`, and
+        // that literal wrapped in a type assertion (`as`, `satisfies`, `<T>`). Only a plain options
+        // VARIABLE is not judged; a spread is flagged too, because the rule asks the call site to be
+        // explicit about the interval.
+        selector: 'CallExpression[callee.property.name="waitForFunction"][arguments.length<3]',
+        message: WAIT_FOR_FUNCTION_POLLING,
+      },
+      {
+        selector: 'CallExpression[callee.property.name="waitForFunction"] > ObjectExpression.arguments:nth-child(3)'
+          + ':not(:has(Property[key.name="polling"], Property[key.value="polling"]))',
+        message: WAIT_FOR_FUNCTION_POLLING,
+      },
+      {
+        selector: 'CallExpression[callee.property.name="waitForFunction"]'
+          + ' > :matches(TSAsExpression, TSSatisfiesExpression, TSTypeAssertion).arguments:nth-child(3)'
+          + ' > ObjectExpression.expression:not(:has(Property[key.name="polling"], Property[key.value="polling"]))',
+        message: WAIT_FOR_FUNCTION_POLLING,
       },
     ],
   },

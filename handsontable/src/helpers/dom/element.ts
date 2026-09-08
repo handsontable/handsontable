@@ -693,12 +693,14 @@ export function fastInnerHTML(
       sanitized = content;
     }
 
+    const target = getCellContentRoot(element);
+
     if (sanitized === '') {
       // A sanitizer that stripped the payload entirely leaves nothing to write. Clearing the
       // element is not the same as assigning `''` to `innerHTML`: that is a Trusted Types sink
       // whatever the value, so under `require-trusted-types-for 'script'` the empty string throws
       // and a stripped cell takes the grid down instead of rendering blank.
-      empty(element);
+      empty(target);
 
       return;
     }
@@ -707,7 +709,7 @@ export function fastInnerHTML(
     // hands back a `TrustedHTML`, which the sink accepts and a plain string is rejected in place
     // of - so this must never coerce, concatenate, or re-test the value. The cast is only for the
     // DOM lib's `string` typing; `TrustedHTML` is absent from it at this TypeScript version.
-    element.innerHTML = sanitized as string;
+    target.innerHTML = sanitized as string;
   } else {
     fastInnerText(element, content);
   }
@@ -720,7 +722,8 @@ export function fastInnerHTML(
  * @param {string} content The text to write.
  */
 export function fastInnerText(element: HTMLElement, content: string): void {
-  const child = element.firstChild;
+  const target = getCellContentRoot(element);
+  const child = target.firstChild;
 
   if (child && child.nodeType === 3 && child.nextSibling === null) {
     // fast lane - replace existing text node
@@ -728,9 +731,39 @@ export function fastInnerText(element: HTMLElement, content: string): void {
 
   } else {
     // slow lane - empty element and insert a text node
-    empty(element);
-    element.appendChild(element.ownerDocument.createTextNode(content));
+    empty(target);
+    target.appendChild(target.ownerDocument.createTextNode(content));
   }
+}
+
+/**
+ * The class of the clipping wrapper the rendering engine places inside a cell whose row has an
+ * exact height. A table cell cannot be shorter than its content, so the engine moves the content
+ * into this wrapper, which is taken out of flow and clipped to the cell's padding box.
+ *
+ * @type {string}
+ */
+export const CELL_CLIP_CLASS = 'htCellClip';
+
+/**
+ * Returns the element a cell's content belongs in: the engine's clipping wrapper when the cell
+ * holds one (and nothing else), otherwise the cell itself. Renderers write through this so the
+ * wrapper survives a redraw instead of being wiped and rebuilt on every draw.
+ *
+ * @param {HTMLElement} element The cell element (or any element, which is then returned as-is).
+ * @returns {HTMLElement}
+ */
+export function getCellContentRoot(element: HTMLElement): HTMLElement {
+  const child = element.firstChild;
+
+  // Cheap checks first: this runs for every cell on every draw. A text node (the common case) and a
+  // cell with several children exit on integer compares before the type guard runs. A falsy check
+  // rather than `=== null`: a bare object standing in for an element (tests) has no `firstChild`.
+  if (!child || child.nodeType !== Node.ELEMENT_NODE || child.nextSibling !== null) {
+    return element;
+  }
+
+  return isHTMLElement(child) && hasClass(child, CELL_CLIP_CLASS) ? child : element;
 }
 
 /**
@@ -895,11 +928,14 @@ export function getWindowScrollLeft(rootWindow: Window = window): number {
  */
 // eslint-disable-next-line no-restricted-globals
 export function getScrollTop(element: HTMLElement | Window, rootWindow: Window = window): number {
-  if (element instanceof Window) {
-    return getWindowScrollTop(rootWindow);
+  // `isHTMLElement`, not `instanceof Window`: a window from another realm (an iframe driven from
+  // the parent page) fails the realm-bound test, fell through to `window.scrollTop`, and returned
+  // `undefined` — the row calculators then built the band from it, on the last rows of the grid.
+  if (isHTMLElement(element)) {
+    return element.scrollTop;
   }
 
-  return element.scrollTop;
+  return getWindowScrollTop(rootWindow);
 }
 
 /**
@@ -911,11 +947,12 @@ export function getScrollTop(element: HTMLElement | Window, rootWindow: Window =
  */
 // eslint-disable-next-line no-restricted-globals
 export function getScrollLeft(element: HTMLElement | Window, rootWindow: Window = window): number {
-  if (element instanceof Window) {
-    return getWindowScrollLeft(rootWindow);
+  // Cross-realm safe for the reason given on `getScrollTop`.
+  if (isHTMLElement(element)) {
+    return element.scrollLeft;
   }
 
-  return element.scrollLeft;
+  return getWindowScrollLeft(rootWindow);
 }
 
 /**
@@ -985,14 +1022,25 @@ const OVERFLOW_TRIMMING_VALUES = ['scroll', 'hidden', 'auto', 'clip'];
 const OVERFLOW_CONCRETE_VALUES = ['visible', 'clip', 'hidden', 'scroll', 'auto', 'overlay'];
 
 /**
- * Checks whether a single overflow axis traps the table on that axis.
+ * One of the two overflow axes an element can trim on.
+ */
+export type OverflowAxis = 'x' | 'y';
+
+/**
+ * Checks whether a single overflow axis traps the table on that axis, for the single-answer form of
+ * `getTrimmingContainer()` (no `axis` argument).
  *
  * `overflow: clip` establishes no scroll port. When an axis is `clip` while the perpendicular axis
  * stays `visible`, it does not trap the table's scroll — the table still scrolls with the window on
  * the visible axis. A width-constrained, window-scrolled table sets `overflow-x: clip` on its root
- * (see core.ts, DEV-1025); treating that root as the trimming container drops the overlays out of
- * window-scroll mode (frozen rows stop pinning, vertical virtualization stops). Such a single-axis
- * clip must not qualify the axis as trimming.
+ * (see core.ts, DEV-1025). The single-answer form has to name one container for both axes, so
+ * treating that root as the trimming container would drop the overlays out of window-scroll mode
+ * (frozen rows stop pinning, vertical virtualization stops). Such a single-axis clip must not
+ * qualify the axis as trimming there.
+ *
+ * The per-axis form of `getTrimmingContainer()` does not use this exemption: asked about the
+ * horizontal axis alone, an `overflow-x: clip` ancestor is the correct answer, and the vertical axis
+ * gets its own, separate answer.
  *
  * @param {string} axis The `overflow-x`/`overflow-y` value of the axis being tested.
  * @param {string} perpendicular The `overflow` value of the other axis.
@@ -1034,19 +1082,55 @@ function resolveOverflowAxes(el: HTMLElement, computedStyle: CSSStyleDeclaration
 }
 
 /**
+ * Checks whether the element trims the table on the given axis, for the per-axis form of
+ * `getTrimmingContainer()`. Any trapping value on that axis counts; the perpendicular axis is
+ * irrelevant, because the caller resolves it separately.
+ *
+ * @param {HTMLElement} el The element to test.
+ * @param {OverflowAxis} axis The axis to test.
+ * @param {Window | null} rootWindow The element's window, or `null` for a detached document.
+ * @returns {boolean}
+ */
+function elementTrapsAxis(el: HTMLElement, axis: OverflowAxis, rootWindow: Window | null): boolean {
+  if (rootWindow) {
+    const axes = resolveOverflowAxes(el, rootWindow.getComputedStyle(el));
+
+    return OVERFLOW_TRIMMING_VALUES.includes(axes[axis]);
+  }
+
+  const inlineAxis = axis === 'x' ? el.style.overflowX : el.style.overflowY;
+
+  return OVERFLOW_TRIMMING_VALUES.includes(inlineAxis || el.style.overflow);
+}
+
+/**
  * Returns a DOM element responsible for trimming the provided element.
  *
+ * Without `axis`, one container is named for both axes: the nearest ancestor that traps on either
+ * axis, where a single-axis `clip` next to a `visible` axis does not count (see `overflowAxisTraps`).
+ * This is the public `Handsontable.dom.getTrimmingContainer()` contract.
+ *
+ * With `axis`, the answer is per axis: the nearest ancestor whose `overflow-x` (or `overflow-y`) is
+ * `scroll`, `hidden`, `auto`, or `clip`, regardless of the other axis. The two axes can resolve to
+ * different containers — a root with `overflow-x: clip` and no vertical clip trims horizontally
+ * while the window still owns the vertical axis. The rendering engine asks per axis.
+ *
  * @param {HTMLElement} base Base element.
+ * @param {OverflowAxis} [axis] The axis to resolve. Omit for the single-answer form.
  * @returns {HTMLElement} Base element's trimming parent.
  */
-export function getTrimmingContainer(base: HTMLElement): HTMLElement | Window {
+export function getTrimmingContainer(base: HTMLElement, axis?: OverflowAxis): HTMLElement | Window {
   const rootDocument = base.ownerDocument;
   const rootWindow = rootDocument.defaultView;
 
   let el: HTMLElement | null = base.parentElement;
 
   while (el && el.style && rootDocument.body !== el) {
-    if (rootWindow) {
+    if (axis !== undefined) {
+      if (elementTrapsAxis(el, axis, rootWindow)) {
+        return el;
+      }
+    } else if (rootWindow) {
       const { x, y } = resolveOverflowAxes(el, rootWindow.getComputedStyle(el));
 
       if (overflowAxisTraps(x, y) || overflowAxisTraps(y, x)) {

@@ -17,6 +17,22 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   (`e2e-main` used to load `full.min` — never assume the hooks cover min.)
 - `handsontable.full.js` and `handsontable.min.js` are deliberately untested
   here — they belong to the nightly on develop (DEV-2058).
+- **Never hardcode a row or column index that sits near the edge of the
+  rendered band.** Each theme's padding feeds `autoColumnSize`, so the same
+  content measures differently: in `width-window-scroll.html` (500px wide, 30
+  columns) a data column is 63px on `classic`, 70px on `main`, and 78px on
+  `horizon`, so after the same 400px holder scroll the master renders columns
+  7–14, 6–12, and 6–11. Column 12 is the LAST one `main` renders there and does
+  not exist on `horizon` — and the local gates only run `e2e-main`, so the spec
+  went green locally and failed in CI with `element(s) not found`, which says
+  nothing about the behavior under test (DEV-2789). Read the rendered range out
+  of the DOM and pick from it (`WidthWindowScrollPage.renderedColumns()`), or
+  scroll to an edge so the target is the first or last index by construction
+  (`scrollHolderToEnd()`). Row heights are the same trap on the other axis,
+  with more room to spare: a window scroll far larger than the viewport leaves
+  the target row well inside the band on every theme, which is why `cell(40, 3)`
+  after an 800px window scroll in the same spec is safe. Distance from the
+  band's edge is what decides, not whether the index is written down.
 
 ## Fixture contract (never get these wrong)
 
@@ -38,13 +54,15 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   `Handsontable` is still undefined. The spec then fails inside its first
   `page.evaluate()` with a bare `Handsontable is not defined` — far from the
   cause, and only under load. Wait for the bundle itself in `goto()`, with
-  `await page.waitForFunction(() => 'Handsontable' in window, undefined,
-  { polling: 100 })`, before asserting on any fixture status. `expect` is the
-  wrong tool for that wait: `dist/handsontable.js` is ~6 MB uncompressed and
-  every worker pulls its own copy, so a cold or busy server outlasts the 10s
-  `expect` timeout, while `waitForFunction` polls against the test budget. The
-  explicit `{ polling }` is not optional — see Determinism below for why the
-  rAF default times out on a healthy page.
+  `await awaitBundle(this.page)` from `fixtures/bundle.ts`, before asserting
+  on any fixture status. The helper is the one place the wait is spelled out:
+  `waitForFunction` rather than `expect` (`dist/handsontable.js` is ~6 MB
+  uncompressed and every worker pulls its own copy, so a cold or busy server
+  outlasts the 10s `expect` timeout, while `waitForFunction` polls against the
+  test budget), with the interval in `BUNDLE_POLLING_MS` — see Determinism
+  below for why the rAF default times out on a healthy page. Do not inline a
+  copy: the lint catches a missing `{ polling }`, but only the helper keeps
+  the value from drifting between page objects.
 - The `umd` legs run the BASE bundle: **no HyperFormula** (a formulas fixture
   loads HF as an external script beside the bundle, or the plugin logs a
   warning and silently stays off) and **no languages pack** (an i18n fixture
@@ -105,6 +123,25 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   fixture-served HyperFormula artifact + `tests/package.json`, and every file
   under `fixtures/`; rebuilding a bundle or reinstalling the engine re-runs
   affected specs. Do not narrow that hash.
+- **A cross-realm fixture builds the grid INSIDE an iframe from the PARENT's
+  `Handsontable`** (`demo/iframe-width-window-scroll.html`). It is the only
+  fixture that crosses a realm, and it exists because nothing else does: every
+  other fixture passes a node built by the same constructor the engine was
+  compiled against, so a realm-bound `instanceof` in the engine stays green on
+  all of them. Three things follow. The bundle still loads in the PARENT — the
+  fixture is testing that the parent's constructor drives another document's
+  nodes, so loading it inside the iframe would test nothing. The stylesheets go
+  into the IFRAME, after `doc.open()`/`doc.close()` (which replaces the
+  document), and the grid waits for their `load` events — a link that has not
+  applied yet sizes every row and column from an unthemed table. And the page
+  object reads state through the parent (`window.frameDoc`, `window.hot`),
+  not through a Playwright `frameLocator`, because the state under test is the
+  engine's — which element it thinks owns an axis — not the rendered
+  document's. One more: **assert which ROWS render, not only which columns.**
+  The fixture's master rendered rows 186–199 at page top for two rounds of
+  review, because every assertion read columns and the top clone's rows, and
+  nothing asked the master where its band was. Reference:
+  `e2e/iframe-cross-realm-scroll.spec.ts` (`masterRowBand()`).
 
 ## Touch and mobile specs
 
@@ -165,6 +202,22 @@ ratio faithfully but never inflates the border, so a test built on it is vacuous
 undefined` in `test.use` does not clear it, and `launchOptions` is rejected inside a
 `describe` — it forces its own worker).
 
+## Observing `unlisten()`
+
+`hot.isListening()` read at the END of a gesture cannot see an `unlisten()` that
+happened inside it. The focus scope manager re-listens on the `click` that follows
+the `mouseup` whenever the press landed inside the grid or its portal, so the state
+heals before the assertion runs, and a spec built on it goes green against a real
+defect (that is one of the two reasons DEV-2787 escaped this tier; the other is
+that no case asserted the listening state at all). Count `afterUnlisten` calls
+over the named gesture instead — `EditorPreventCloseElementPage.startUnlistenCounter()` is
+the pattern. Two gestures do NOT heal and are the ones to reach for when the spec
+needs a user-visible symptom rather than a counter: a RIGHT click (it ends in
+`contextmenu`, no `click`), and a press whose focus target sits outside the grid's
+portal (nothing re-listens, and there the scope manager unlistens by design — so a
+counter cannot tell the two mechanisms apart, and an `isListening()` assertion
+there pins the scope manager, not the mouseup verdict).
+
 ## The server port
 
 The webServer binds `8123` and has `reuseExistingServer` on outside CI, so a second
@@ -178,13 +231,27 @@ result, check who owns the port with `lsof -i :8123`. Background in
 ## Determinism
 
 Ships at `error` in `.eslintrc.cjs`: no `waitForTimeout`, `sleep`,
-`networkidle`, `.only`, `.skip`, or bare `test.fixme` in specs. Wait on
-web-first assertions; `expect.poll` for data probes. `test.fixme` is the
-tracked exception for a real product bug: it requires an eslint-disable line
-naming the task (`// eslint-disable-next-line no-restricted-syntax --
-DEV-1234: <why>`), which keeps every parked test counted and attributable.
-Full rules: the `handsontable-playwright-e2e` skill and its
-`references/determinism.md`.
+`setTimeout` (the global timer only — bare, `window.setTimeout`, or
+`globalThis.setTimeout` — and inside `page.evaluate` too, which is where a
+banned `waitForTimeout` usually reappears; `test.setTimeout(ms)` and
+`testInfo.setTimeout(ms)` set a budget, not a wait, and stay legal),
+`networkidle`, `.only`, `.skip`, or bare `test.fixme` in specs **and page
+objects** — the lint script covers `e2e` and `fixtures`, so a timer moved into
+the page object a spec drives is the same fixed wait and is caught there — and
+no `waitForFunction()` without an explicit `{ polling }`: the rAF default is
+starved under parallel-worker load and times out on a healthy page, so the
+call site states the interval (an options literal, also when wrapped in a
+type assertion, is judged; a plain options variable is not). Wait on web-first assertions;
+`expect.poll` for data probes. `test.fixme` is the tracked exception for a real
+product bug: it requires an eslint-disable line naming the task
+(`// eslint-disable-next-line no-restricted-syntax -- DEV-1234: <why>`), which
+keeps every parked test counted and attributable. A `setTimeout` that is a
+**scheduling barrier** rather than a duration (a chain of 0ms macrotasks that
+lets a negative assertion prove "nothing else fired" — `expect.poll` cannot
+prove a negative) takes the same disable line, naming the owning work and
+carrying a TODO for the probe that will replace it; `e2e/customBorders.spec.ts`
+`macrotaskBarrier()` is the one such site. Full rules: the
+`handsontable-playwright-e2e` skill and its `references/determinism.md`.
 
 The waits lint cannot see live beyond the spec's own text — a timer in a
 fixture's inline script, a string-form `evaluate`, and the state a page-object
@@ -194,8 +261,8 @@ is in
 
 - A `setTimeout` in the browser is `sleep()` moved into the page: probe the
   state and `expect.poll` it from the spec.
-- `page.waitForFunction()` passes `{ polling: <ms> }` — every page object does
-  since the sweep in #13364, and `.eslintrc.cjs` errors on one without it.
+- `page.waitForFunction()` passes `{ polling: <ms> }`; a page object takes it
+  from `awaitBundle()` (`fixtures/bundle.ts`), the one place the interval lives.
 - A method that scrolls or mutates the grid ends on a render-state probe (first
   rendered row, draw counter), never on `scrollTop`/`scrollLeft`.
 - A trigger that can deliver more than once is asserted on the LATEST entry of

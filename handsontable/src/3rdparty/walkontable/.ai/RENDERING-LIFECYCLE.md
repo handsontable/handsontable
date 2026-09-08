@@ -103,12 +103,15 @@ Two gate levels decide how much of the snapshot a draw consumes:
 
 | Gate | Condition | What reads the snapshot |
 |---|---|---|
-| **Broad** (scroll detection) | `singlePassLayout && !isVerticallyScrollableByWindow()` | `hasVerticalScroll()` / `hasHorizontalScroll()` — `workspaceSize.ts:241,261` |
-| **Strict** (`usesLayoutSnapshotForCalculators`, `calculatorFactory.ts:280`) | broad **+** `!isHorizontallyScrollableByWindow() && rowHeightsUniform && columnWidthsUniform` | the row/column calculators + `getWorkspaceWidth/Height` + skip the second calculator pass |
+| **Broad** (scroll detection) | `singlePassLayout && !isVerticallyScrollableByWindow() && !isHorizontallyScrollableByWindow()` | `hasVerticalScroll()` / `hasHorizontalScroll()` — `workspaceSize.ts` |
+| **Strict** (`usesLayoutSnapshotForCalculators`, `calculatorFactory.ts`) | broad **+** `rowHeightsUniform && columnWidthsUniform` | the row/column calculators + `getWorkspaceWidth/Height` + skip the second calculator pass |
 
 Window-scrolled tables always measure: the document's scroll depends on other page content, so predicting
 it from this table's totals is unreliable (the `ghostTable` regression that scoped prediction to element
-mode). Non-uniform sizes fall back for the calculators because the content total is not exact up front.
+mode). The two axes are owned separately (`AGENTS.md`, "Per-axis trimming containers"), and the snapshot
+is built for one scroll mode on both, so a table with the window on either axis measures — including the
+split layout of a definite `width` with no sized `height`. Non-uniform sizes fall back for the calculators
+because the content total is not exact up front.
 
 ### The layout snapshot
 
@@ -276,9 +279,12 @@ All line numbers are in `table.ts` unless noted. "Master only" = guarded by `thi
 - Call `resetFixedPosition()` on top (`624`), bottom-if-cloned (`626–628`), inline-start (`630`), and
   corner overlays (`632–638`). Each positions its clone and, for top/bottom/inline-start, decides the
   `innerBorderTop` / `innerBorderInlineStart` / `innerBorderBottom` class via `adjustHeaderBordersPosition`.
-  Those calls OR-together into `positionChanged`. Only the two ROW-axis classes still shift the layout;
-  `innerBorderInlineStart` is stamped for backward compatibility and drives no geometry since #6673
-  (see AGENTS.md, "Column-axis border ownership").
+  Only the TOP and BOTTOM results OR-together into `positionChanged`, because only the two ROW-axis
+  classes still shift the layout. `innerBorderInlineStart` is stamped for backward compatibility and
+  drives no geometry since #6673, so the inline-start overlay reports `false` unconditionally and its
+  result is not read at all; the corner overlays never contributed and return a constant `true` that
+  must never be ORed in (see AGENTS.md, "Column-axis border ownership", and the comment in
+  `placeFixedOverlays`).
 - **S16a seam:** the border decision is now a pure `#computeHeaderBordersState(...)` separated from its
   DOM write in `overlay/regions/topOverlay.ts` / `inlineStartOverlay.ts` / `bottomOverlay.ts` — so S16b
   can move the decision pre-render. Behavior today is unchanged (compute + apply still called in

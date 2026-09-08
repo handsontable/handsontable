@@ -6,6 +6,7 @@ import type { Overlay } from './regions/_base';
 import type EventManager from '../../../../eventManager';
 import { debounce } from '../../../../helpers/function';
 import { arrayEach } from '../../../../helpers/array';
+import { isHTMLElement } from '../../../../helpers/dom/element';
 import {
   InlineStartOverlay,
   TopOverlay,
@@ -233,7 +234,7 @@ class Overlays {
    * @protected
    * @type {BottomOverlay}
    */
-  declare bottomOverlay: Overlay;
+  declare bottomOverlay: BottomOverlay;
 
   /**
    * Refer to the InlineStartOverlay or instance.
@@ -357,7 +358,7 @@ class Overlays {
    *
    * @param {boolean} [includeMaster = false] If set to `true`, the list will contain the master table as the last
    * element.
-   * @returns {(TopOverlay|TopInlineStartCornerOverlay|InlineStartOverlay|BottomOverlay|BottomInlineStartCornerOverlay)[]}
+   * @returns {(TopOverlay|BottomOverlay|InlineStartOverlay|TopInlineStartCornerOverlay|BottomInlineStartCornerOverlay)[]}
    */
   getOverlays(includeMaster = false) {
     const overlays: Array<Overlay | Table> = [...this.#overlays];
@@ -405,6 +406,11 @@ class Overlays {
    * the cell render, so the post-render `resetFixedPosition` toggle is a no-op and the nested
    * `wot.draw(true)` re-render is skipped. Called from the master draw on the single-pass gated path,
    * before `beginDrawLayout`. Mirrors the overlay set used by the post-render position pass.
+   *
+   * The skipped re-render is `innerBorderTop`'s alone. The inline-start class shifts no layout since
+   * #6673, so that overlay reports no position change whether or not this pass applied its class;
+   * pre-applying it only keeps a `beforeViewRender` listener from seeing a stale value. See
+   * `InlineStartOverlay#prepareHeaderBorders`.
    */
   prepareHeaderBorders() {
     this.topOverlay.prepareHeaderBorders();
@@ -427,6 +433,22 @@ class Overlays {
     // actually rendered the band (a `skipRender` hook cancels one that got this far), so the drop is
     // simply retaken on the next draw that can re-measure.
     if (!this.isScrollDrivenDraw) {
+      // An axis owner can move without a settings change (a page rule that clips the root, a
+      // `width` that becomes definite). `adjustElementsSize` re-resolves the owners too, but only on
+      // a draw that moved the overlays or resized the spreader, and a removed clip changes neither –
+      // the overlay then keeps the element while `MasterTable#alignOverlaysWithTrimmingContainer`
+      // resolves the window for the same draw. Before `beginDrawLayout`, which reads the owners
+      // through the viewport predicates.
+      this.#refreshAxisOwners();
+      // Re-pick the scrolling elements against the owners just resolved, BEFORE this draw builds its
+      // calculators. `Overlays#afterDraw` runs this too, and has to: only there is a provisional
+      // layout settled, and this call skips a provisional answer. But a rebind that happens only
+      // there is one draw late — the calculators have already read the offset off the element the
+      // owner moved AWAY from, so the band drawn is the one the old scroller was scrolled to and it
+      // stays on screen until something else redraws (measured: an owner moved from the holder to
+      // the window left the master on the scrolled band with every input already reporting 0).
+      // Idempotent: it compares the owners against the bound ones and returns when they agree.
+      this.#scrollSync.resyncScrollableElementsWithOwners();
       this.#scrollSync.resetSizesMeasuredBeforeLayoutSettled();
     }
 
@@ -435,6 +457,15 @@ class Overlays {
     }, false));
 
     this.#overlays.forEach(overlay => overlay.updateStateOfRendering('before'));
+  }
+
+  /**
+   * Re-resolves the axis owners held by the three region overlays (the corners read those).
+   */
+  #refreshAxisOwners() {
+    this.topOverlay.updateTrimmingContainer();
+    this.inlineStartOverlay.updateTrimmingContainer();
+    this.bottomOverlay.updateTrimmingContainer();
   }
 
   /**
@@ -477,6 +508,9 @@ class Overlays {
     // either; the flag survives to the next full draw.
     if (!this.isScrollDrivenDraw) {
       this.#scrollSync.resolveProvisionalLayout();
+      // After the provisional pass, so a table that just settled is not rebound twice and keeps the
+      // size drop that pass schedules.
+      this.#scrollSync.resyncScrollableElementsWithOwners();
     }
   }
 
@@ -636,41 +670,70 @@ class Overlays {
   }
 
   /**
-   * Scrolls main scrollable element vertically.
+   * Scrolls the vertical axis by a delta, on whatever owns that axis: the top overlay's scrolling
+   * element — the holder (or a scrollable ancestor) when an element owns the axis, the window when
+   * the page does. Reports whether the position moved, which is what the wheel listener uses to
+   * decide whether it consumed the event.
+   *
+   * Driving the axis owner rather than the single `scrollableElement` matters in split mode, where
+   * that element is the holder while the window owns the vertical axis: a wheel that moved the
+   * holder's `scrollLeft` was cancelled, and the window-owned vertical part went with it — the
+   * columns moved, the page did not. Scrolling the window from here consumes both axes at once.
    *
    * @param {number} delta Relative value to scroll.
    * @returns {boolean}
    */
   scrollVertically(delta: number) {
-    if (!(this.scrollableElement instanceof HTMLElement)) {
-      return false;
-    }
-
-    const el = this.scrollableElement;
-    const previousScroll = el.scrollTop;
-
-    el.scrollTop += delta;
-
-    return previousScroll !== el.scrollTop;
+    return this.#scrollAxisOwnerBy(this.topOverlay.mainTableScrollableElement, 'y', delta);
   }
 
   /**
-   * Scrolls main scrollable element horizontally.
+   * Scrolls the horizontal axis by a delta, on whatever owns that axis (the inline-start overlay's
+   * scrolling element). See `scrollVertically`.
    *
    * @param {number} delta Relative value to scroll.
    * @returns {boolean}
    */
   scrollHorizontally(delta: number) {
-    if (!(this.scrollableElement instanceof HTMLElement)) {
-      return false;
+    return this.#scrollAxisOwnerBy(this.inlineStartOverlay.mainTableScrollableElement, 'x', delta);
+  }
+
+  /**
+   * Moves one axis of its owner by a delta and reports whether the position changed.
+   *
+   * The element test is `isHTMLElement`, never `instanceof`: an owner from an iframe's realm fails
+   * `instanceof HTMLElement` against this realm's constructor, and the old guard then reported "not
+   * scrolled", so a wheel over a clone could not reach the columns at all. A window owner is scrolled
+   * with `behavior: 'instant'` so the offset is readable on the next line whatever `scroll-behavior`
+   * the page sets — a smooth scroll would read as unmoved, the event would not be consumed, and the
+   * browser's own scroll would land on top of it.
+   *
+   * @param {HTMLElement | Window} owner The element (or window) that scrolls the axis.
+   * @param {'x' | 'y'} axis The axis to move.
+   * @param {number} delta Relative value to scroll.
+   * @returns {boolean}
+   */
+  #scrollAxisOwnerBy(owner: HTMLElement | Window, axis: 'x' | 'y', delta: number): boolean {
+    if (isHTMLElement(owner)) {
+      const property = axis === 'x' ? 'scrollLeft' : 'scrollTop';
+      const previous = owner[property];
+
+      owner[property] += delta;
+
+      return previous !== owner[property];
     }
 
-    const el = this.scrollableElement;
-    const previousScroll = el.scrollLeft;
+    const { rootWindow } = this.#deps;
+    const read = () => (axis === 'x' ? rootWindow.scrollX : rootWindow.scrollY);
+    const previous = read();
 
-    el.scrollLeft += delta;
+    rootWindow.scrollBy({
+      left: axis === 'x' ? delta : 0,
+      top: axis === 'y' ? delta : 0,
+      behavior: 'instant',
+    });
 
-    return previousScroll !== el.scrollLeft;
+    return previous !== read();
   }
 
   /**

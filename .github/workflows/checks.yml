@@ -38,6 +38,10 @@ on:
       # True when the PR touches anything outside the CI pipeline (.github/**).
       # Lint + the code-quality scans gate on it, so a pipeline-only PR skips them.
       outside-ci: { value: '${{ jobs.scope.outputs.outside-ci }}' }
+      # True when a handsontable spec/unit file may have changed — the trees the
+      # determinism ratchet (lint.yml) reads. Same trees as RATCHETED_FILES in
+      # .github/scripts/lib/lint-ratchet.mjs.
+      lint-ratchet: { value: '${{ jobs.scope.outputs.lint-ratchet }}' }
       # Precomputed here so the Integration wrapper matrix fans out with NO
       # per-module setup job (matrix context is illegal in a job-level if).
       wrapper-matrix: { value: '${{ jobs.scope.outputs.wrapper-matrix }}' }
@@ -68,6 +72,7 @@ jobs:
       pkg-preview: ${{ steps.path-filter.outputs.pkg-preview }}
       docs: ${{ steps.path-filter.outputs.docs }}
       outside-ci: ${{ steps.path-filter.outputs.outside-ci }}
+      lint-ratchet: ${{ steps.path-filter.outputs.lint-ratchet }}
       wrapper-matrix: ${{ steps.wrappers.outputs.list }}
       manual-qa: ${{ steps.manual-qa.outputs.requested }}
     steps:
@@ -207,6 +212,13 @@ jobs:
             # make it match nearly everything.
             outside-ci:
               - '!./.github/{workflows,actions}/**'
+            # The two trees the handsontable lint task covers and specs live in
+            # (`src/` holds the co-located `__tests__/`, `test/` the rest). The
+            # ratchet script re-selects `*.spec.js` / `*.unit.{js,ts}` itself and
+            # exits 0 when the PR gained no such line, so this only saves a runner.
+            lint-ratchet:
+              - './handsontable/src/**'
+              - './handsontable/test/**'
 
       # Build the Integration wrapper matrix from the scope flags (run-all → all
       # three). Emitting it here means the wrapper job fans out with no extra
@@ -262,11 +274,41 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
         with:
           fetch-depth: 0
+      # The gate's advisory red-spec check reads the LIVE body (the way the
+      # Manual QA job does), not the frozen event payload, so an author who
+      # fills the field after opening the PR is heard on the next run. A
+      # read-only call, so it works on the fork/Dependabot token too; any
+      # failure only skips that one advisory check — the script catches API
+      # errors, `continue-on-error` covers an action-runtime failure the script
+      # cannot catch (so it can never fail this job and, through test.yml's
+      # needs, the CI Gate), and the gate reads the file when it exists and
+      # stays silent when it does not.
+      - name: Read the live pull-request body
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # https://github.com/actions/github-script/releases/tag/v8.0.0
+        continue-on-error: true
+        env:
+          BODY_FILE: ${{ runner.temp }}/pr-body.md
+        with:
+          script: |
+            try {
+              const { data: pr } = await github.rest.pulls.get({
+                owner: context.repo.owner, repo: context.repo.repo,
+                pull_number: context.payload.pull_request.number,
+              });
+              require('node:fs').writeFileSync(process.env.BODY_FILE, pr.body || '');
+            } catch (error) {
+              core.warning(`Could not read the live PR body (${error.message}); the red-spec advisory check is skipped.`);
+            }
+      # Prints the verdict plus the ADVISORY warnings (frozen-suite growth,
+      # empty red-spec field, RTL correlation, Walkontable routing) as Markdown
+      # into the step summary; in Actions each warning is also a `::warning`
+      # annotation. The advisories never change the exit code.
       - name: Evaluate test-presence gate (warn)
         run: set -o pipefail; node .github/scripts/test-presence-gate.mjs | tee -a "$GITHUB_STEP_SUMMARY"
         env:
           GATE_MODE: warn
           GATE_BASE: ${{ github.event.pull_request.base.sha }}
+          GATE_PR_BODY_FILE: ${{ runner.temp }}/pr-body.md
       - name: Detect weakened specs (warn)
         run: set -o pipefail; node .github/scripts/test-weakening-gate.mjs | tee -a "$GITHUB_STEP_SUMMARY"
         env:

@@ -9,7 +9,15 @@ import type ColumnFilter from '../filter/column';
 import type RowUtils from '../axisSizing/rowUtils';
 import type ColumnUtils from '../axisSizing/columnUtils';
 import type { StylesHandler } from '../types';
-import { getBoxAdjustedRowHeight } from '../axisSizing/boxModel';
+import { applyRowHeight } from './exactRowHeight';
+
+/**
+ * Asked for every cell in the rendered band before the cell element is reset and painted.
+ * Answering `false` leaves the element exactly as the previous draw left it.
+ */
+export type ShouldPaintCell = (
+  sourceRow: number, sourceColumn: number, TD: HTMLTableCellElement, band: string
+) => boolean;
 
 /**
  * TableRenderer class collects all renderers and properties necessary for table creation. It's
@@ -171,6 +179,13 @@ export class TableRenderer {
    */
   declare cellRenderer: Function;
   /**
+   * Tells whether a cell element has to be reset and painted on this draw (see the
+   * `shouldPaintCell` setting).
+   *
+   * @type {Function}
+   */
+  declare shouldPaintCell: ShouldPaintCell;
+  /**
    * Holds the name of the currently active overlay.
    *
    * @type {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'|'master'}
@@ -225,14 +240,20 @@ export class TableRenderer {
    * @param {HTMLTableElement} rootNode The HTML table element to use as the root node for rendering.
    * @param {object} options The configuration options.
    * @param {Function} [options.cellRenderer] The cell renderer function.
+   * @param {Function} [options.shouldPaintCell] The per-cell paint gate.
    * @param {StylesHandler} [options.stylesHandler] The styles handler instance.
    */
   constructor(
     rootNode: HTMLTableElement,
-    { cellRenderer, stylesHandler }: { cellRenderer?: Function; stylesHandler?: StylesHandler } = {}) {
+    { cellRenderer, shouldPaintCell, stylesHandler }: {
+      cellRenderer?: Function;
+      shouldPaintCell?: ShouldPaintCell;
+      stylesHandler?: StylesHandler;
+    } = {}) {
     this.rootNode = rootNode;
     this.rootDocument = this.rootNode.ownerDocument;
     this.cellRenderer = cellRenderer!;
+    this.shouldPaintCell = shouldPaintCell ?? (() => true);
     this.stylesHandler = stylesHandler!;
   }
 
@@ -425,25 +446,27 @@ export class TableRenderer {
 
     const { rowsToRender, rows } = this;
 
-    // Fix for multi-line content and for supporting `rowHeights` option.
+    // Fix for multi-line content and for supporting `rowHeights` option. Must stay after
+    // `cells.render()`: the cell renderer resets every cell's inline style and class on each draw.
+    const rowUtils = this.rowUtils!;
+    // Asked once per draw, not once per row: on a grid that never sets the mode this is one
+    // constant settings read for the whole band instead of one per rendered row. Kept behind the
+    // row count so a table with nothing to render still touches nothing.
+    const mayHaveExactRows = rowsToRender > 0 && rowUtils.mayHaveExactRows();
+
     for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       const TR = rows!.getRenderedNode(visibleRowIndex);
-      const rowUtils = this.rowUtils;
 
-      if (TR && TR.firstChild) {
+      if (TR) {
         const sourceRowIndex = this.renderedRowToSource(visibleRowIndex);
-        const rowHeight = rowUtils!.getHeightByOverlayName(sourceRowIndex, this.activeOverlayName);
+        const isExact = mayHaveExactRows && rowUtils.isExact(sourceRowIndex);
 
-        if (rowHeight) {
-          // Convert the logical row height to the pixel height written to the DOM. In content-box mode
-          // 1px is "replaced" by the row's 1px top border; the shared helper keeps that constant in one
-          // place (see axisSizing/boxModel.ts).
-          const pixelHeight = getBoxAdjustedRowHeight(rowHeight, this.stylesHandler.areCellsBorderBox());
-
-          (TR.firstChild as HTMLElement).style.height = `${pixelHeight}px`;
-        } else {
-          (TR.firstChild as HTMLElement).style.height = '';
-        }
+        applyRowHeight(
+          TR,
+          rowUtils.getHeightByOverlayName(sourceRowIndex, this.activeOverlayName, isExact),
+          isExact,
+          this.stylesHandler.areCellsBorderBox(),
+        );
       }
     }
   }

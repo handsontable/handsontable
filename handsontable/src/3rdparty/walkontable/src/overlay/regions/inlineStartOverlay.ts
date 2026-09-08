@@ -2,7 +2,6 @@ import type { TableDeps } from '../../table/baseTable';
 import {
   addClass,
   getScrollLeft,
-  hasClass,
   removeClass,
   setOverlayPosition,
   resetCssTransform,
@@ -60,7 +59,8 @@ export class InlineStartOverlay extends Overlay {
   /**
    * Updates the left overlay position.
    *
-   * @returns {boolean}
+   * @returns {boolean} Always `false` - this overlay's header-border classes shift no layout, so it
+   * never reports a position change. See `InlineStartOverlay#adjustHeaderBordersPosition`.
    */
   resetFixedPosition() {
     const wtTable = this.deps.getWtTable();
@@ -76,10 +76,9 @@ export class InlineStartOverlay extends Overlay {
 
     const { rootWindow } = this.deps;
     const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
-    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
     let overlayPosition = 0;
 
-    if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'horizontal')) {
+    if (this.trimmingContainer === rootWindow) {
       overlayPosition = this.getOverlayOffset() * (this.isRtl() ? -1 : 1);
       setOverlayPosition(overlayRoot, `${overlayPosition}px`, '0px');
 
@@ -88,11 +87,11 @@ export class InlineStartOverlay extends Overlay {
       resetCssTransform(overlayRoot);
     }
 
-    const positionChanged = this.adjustHeaderBordersPosition(overlayPosition);
+    this.adjustHeaderBordersPosition(overlayPosition);
 
     this.adjustElementsSize();
 
-    return positionChanged;
+    return false;
   }
 
   /**
@@ -191,12 +190,15 @@ export class InlineStartOverlay extends Overlay {
     const { rootDocument, rootWindow } = this.deps;
     const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
     const overlayRootStyle = overlayRoot.style;
-    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
+    // Height is a vertical question: this overlay is sized against the scrollport whenever an
+    // element owns the vertical axis, whichever owner its own (horizontal) axis has. Reading its own
+    // owner here would size the frozen-column clone to the full hider height on a grid that scrolls
+    // horizontally inside its box and vertically with the window.
+    const rootSized = !wtViewport.isVerticallyScrollableByWindow();
     // The master's horizontal scrollbar sits along the bottom edge this overlay covers. Only worth a
-    // strip when this overlay is sized against the scrollport - otherwise the page scrolls, the
-    // scrollbar is not under this overlay, and clipping would expose the master for nothing.
-    const rootSized = this.trimmingContainer !== rootWindow || preventOverflow === 'vertical';
+    // strip when the holder owns that scrollbar - otherwise the page scrolls, the scrollbar is not
+    // under this overlay, and clipping would expose the master for nothing.
     // A touch-only device has no pointer that could reach the scrollbar - see `canGrabScrollbar`.
     // Clip and band together, or not at all - see `TopOverlay#adjustRootElementSize`.
     const clearanceApplies = holderOwnsScrollbars(this.trimmingContainer, rootWindow);
@@ -212,7 +214,9 @@ export class InlineStartOverlay extends Overlay {
     if (rootSized) {
       let height = wtViewport.getWorkspaceHeight();
 
-      if (wtViewport.hasHorizontalScroll()) {
+      // Only the holder's own horizontal scrollbar takes height off this overlay; the page's
+      // scrollbar sits outside the grid's box.
+      if (wtViewport.hasHorizontalScroll() && !wtViewport.isHorizontallyScrollableByWindow()) {
         // The same rule the top and bottom overlays apply to widths - `clientHeight` accounts for the
         // horizontal scrollbar at the browser's sub-pixel accuracy, where a rounded
         // `getScrollbarWidth()` diverges under fractional zoom and gave the frozen overlay a different
@@ -388,10 +392,9 @@ export class InlineStartOverlay extends Overlay {
    */
   getOverlayOffset() {
     const { rootWindow } = this.deps;
-    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
     let overlayOffset = 0;
 
-    if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'horizontal')) {
+    if (this.trimmingContainer === rootWindow) {
       if (this.isRtl()) {
         overlayOffset = Math.abs(Math.min(this.getTableParentOffset() - this.getScrollPosition(), 0));
       } else {
@@ -410,9 +413,10 @@ export class InlineStartOverlay extends Overlay {
   }
 
   /**
-   * Pre-applies the `innerBorderInlineStart` class before the cell render (single-pass gated
-   * path), so the post-render `resetFixedPosition` toggle is a no-op and the nested re-draw is
-   * skipped. Element mode only — see `TopOverlay#prepareHeaderBorders`.
+   * Pre-applies the `innerBorderInlineStart` class before the cell render (single-pass gated path),
+   * so a `beforeViewRender` listener sees the class in the state this draw ends in. Unlike the top
+   * overlay's copy, this one saves no re-draw: the class shifts no layout, so the post-render toggle
+   * reports nothing either way. Element mode only — see `TopOverlay#prepareHeaderBorders`.
    */
   prepareHeaderBorders() {
     if (!this.needFullRender || !this.shouldBeRendered() ||
@@ -425,10 +429,17 @@ export class InlineStartOverlay extends Overlay {
   }
 
   /**
-   * Adds css classes to hide the header border's header (cell-selection border hiding issue).
+   * Stamps the `innerBorderInlineStart` / `innerBorderLeft` / `emptyRows` classes on the master.
+   *
+   * Always reports `false`: the row header carries its inline-end border at every scroll position
+   * and no cell behind it carries an inline-start border (#6673), so none of these classes moves the
+   * layout by a pixel and no stylesheet reads them. They are stamped for backward compatibility
+   * only. Reporting a position change made every scroll crossing horizontal offset 0 run
+   * `refreshAll()` - a nested `wot.draw(true)` over the master and every clone - to reconcile a
+   * 1px shift that cannot happen.
    *
    * @param {number} position Header X position if trimming container is window or scroll top if not.
-   * @returns {boolean}
+   * @returns {boolean} Always `false`.
    */
   adjustHeaderBordersPosition(position: number) {
     const masterParent = this.deps.getWtTable().holder.parentNode as HTMLElement;
@@ -447,45 +458,38 @@ export class InlineStartOverlay extends Overlay {
       removeClass(masterParent, 'innerBorderLeft innerBorderInlineStart');
     }
 
-    return state.positionChanged;
+    return false;
   }
 
   /**
    * Computes the inline-start overlay's header-border state without mutating the DOM. Pure: reads
-   * settings and the current class state only. Splitting the decision from the write lets the
-   * single-pass draw resolve the `innerBorderInlineStart` toggle before rendering, instead of after.
+   * the settings only. Splitting the decision from the write lets the single-pass draw resolve the
+   * `innerBorderInlineStart` toggle before rendering, instead of after.
+   *
+   * Reports no position change, which is why it does not read the current class state either: the
+   * class shifts nothing. See `InlineStartOverlay#adjustHeaderBordersPosition`.
    *
    * @param {number} position The overlay offset that decides whether the inline-start border is shown.
-   * @returns {{ hasEmptyRows: boolean, innerBorder: string, positionChanged: boolean }}
+   * @returns {{ hasEmptyRows: boolean, innerBorder: string }}
    */
   #computeHeaderBordersState(position: number) {
     const { wtSettings } = this;
-    const masterParent = this.deps.getWtTable().holder.parentNode as HTMLElement;
     const rowHeaders = wtSettings.getSetting('rowHeaders') as ((...args: unknown[]) => unknown)[];
     const fixedColumnsStart = wtSettings.getSetting<number>('fixedColumnsStart');
     const totalRows = wtSettings.getSetting<number>('totalRows');
     const preventVerticalOverflow = wtSettings.getSetting('preventOverflow') === 'vertical';
     const hasEmptyRows = !totalRows;
     let innerBorder = 'keep';
-    let positionChanged = false;
 
     if (!preventVerticalOverflow) {
       if (fixedColumnsStart && !rowHeaders.length) {
         innerBorder = 'add';
 
       } else if (!fixedColumnsStart && rowHeaders.length) {
-        const previousState = hasClass(masterParent, 'innerBorderInlineStart');
-
-        if (position) {
-          innerBorder = 'add';
-          positionChanged = !previousState;
-        } else {
-          innerBorder = 'remove';
-          positionChanged = previousState;
-        }
+        innerBorder = position ? 'add' : 'remove';
       }
     }
 
-    return { hasEmptyRows, innerBorder, positionChanged };
+    return { hasEmptyRows, innerBorder };
   }
 }

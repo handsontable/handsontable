@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the `renderMode` option, which lets a grid, column, or cell skip repainting cells that did not change since their last render, together with the `markCellChanged()` and `markAllCellsChanged()` methods, and made the selection pass update only the cells whose selection state changed.",
+  "type": "added",
+  "issueOrPR": 13384,
+  "breaking": false,
+  "framework": "none"
+}

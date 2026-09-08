@@ -280,7 +280,7 @@ await waitUntil(() => onAfterValidate.calls.count() === 1); // a spy having fire
 await sleep(...);                                   // ← never; root-cause it and name the condition
 await waitForNextAnimationFrames(2);                // ← never; a frame count is a delay, not a state
 ```
-For new Playwright tests use web-first, auto-retrying assertions (`await expect(locator).toBeVisible()`); see the `handsontable-playwright-e2e` skill. Every `sleep()` call warns today — `handsontable/no-fixed-sleep-in-spec` runs at warn level so the existing debt surfaces without red-walling CI — and the diff-scoped ratchet (#13350) fails a NEW `sleep()` on a line your branch adds, in pre-push and CI. A broken or flaky legacy test is a signal to migrate it (see below), not to add another delay.
+`waitUntil(condition, timeout = 4000)` (`test/helpers/common.js`) resolves as soon as the condition is truthy and rejects with a named reason when it never arrives, so a state that is genuinely missing fails the test instead of passing a stale assertion later. All three fixed-delay shapes are flagged by `handsontable/no-fixed-sleep-in-spec` in `*.spec.js`, `*.unit.js`, and `*.unit.ts` (at `warn`, so the existing debt surfaces without blocking); the two zero-duration hand-offs — `setTimeout(fn, 0)` and `waitForNextAnimationFrames(0)` — pass, because neither waits any time. For new Playwright tests use web-first, auto-retrying assertions (`await expect(locator).toBeVisible()`, `expect.poll`); see the `handsontable-playwright-e2e` skill. Existing sites are baselined by lint (`warn`), but a `sleep()`, `setTimeout(fn, <ms>)`, `waitForNextAnimationFrames()`, `it.flaky()`, or skip on a line your branch **adds** fails pre-push and CI — the determinism ratchet, `.ai/LOCAL-ENFORCEMENT.md`. A broken or flaky legacy test is a signal to migrate it (see below), not to add another delay.
 
 **Unit tests are synchronous:** `handsontable/require-async-in-it` and `handsontable/require-await` are both off for `*.unit.js`.
 
@@ -338,8 +338,8 @@ handsontable({
 });
 
 await setDataAtCell(2, 0, 123);
-await sleep(100); // ⚠️ legacy pattern only — a NEW/edited test must wait on the condition
-                  // (the spy firing), never a fixed delay. See the "Waiting" rule above.
+// Wait on the condition (the spy firing), never on a fixed delay — see the "Waiting" rule above.
+await waitUntil(() => onAfterValidate.calls.count() === 1);
 
 expect(onAfterValidate).toHaveBeenCalledWith(true, 123, 2, 'id');
 ```
@@ -644,8 +644,9 @@ it('should maintain selections after render', async() => {
 - `createSpreadsheetData(rows, cols)` -- Grid with coordinates as values ('A1', 'B2', etc.)
 
 **Async Utilities:**
-- `waitUntil(condition, timeout = 4000)` -- Polls `condition` every frame; rejects with a named reason on timeout. The replacement for `sleep()` and `waitForNextAnimationFrames()` in an edited spec
-- `sleep(delay = 100)` -- Promise-based delay (every call lint-warns today, and the diff-scoped ratchet, #13350, fails a new one on an added line; never add one)
+- `waitUntil(condition, timeout = 4000)` -- Poll `condition` every animation frame until truthy; reject with a named reason after `timeout`. The condition-based replacement for every fixed delay below.
+- `sleep(delay = 100)` -- Promise-based delay. Legacy; every call lint-warns, and the diff-scoped ratchet fails a new one on a line your branch adds — never add one
+- `waitForNextAnimationFrames(framesToWait = 1)` -- Frame-count delay. Legacy; lint-warns and ratchets the same way (a literal `0` is a hand-off, not a wait, and passes)
 - `promisfy(fn)` -- Convert callback to Promise
 
 **DOM Event Helpers** (from `test/helpers/mouseEvents.js`):

@@ -449,8 +449,23 @@ When a merged cell's underlying rows or columns are reordered (through [`manualC
 
 - **Auto-split**: if the move bisects a merge so the underlying cells are no longer contiguous in the new visual order, the merge is split into separate merges, one per contiguous run. The cross-axis span (`rowspan` for column moves, `colspan` for row moves) is preserved on every fragment.
 - **Silent drop of single-cell fragments**: any resulting fragment that ends up as a single cell (`rowspan === 1 && colspan === 1`) is removed, because a single cell is no longer a merge. The [`afterMergeCells`](@/api/hooks.md#aftermergecells) hook is not fired for the dropped fragment.
+- **Rows removed from view count as spanned**: a fragment that shows a single cell only because the rest of its rows are removed from view is kept, and it spans them again when they come back. This holds for [`manualRowMove`](@/api/options.md#manualrowmove), [`manualColumnMove`](@/api/options.md#manualcolumnmove), and [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze) alike. The one exception is a row move of a merged cell whose rows a sort has separated (see the next section).
 
-[`undo`](@/api/options.md#undo) and [`redo`](@/api/options.md#redo) restore the pre-move state, including any merges that were split or dropped by the reorder.
+[`undo`](@/api/options.md#undo) and [`redo`](@/api/options.md#redo) restore the row and column order the reorder changed. They do not restore merged cells: an [`undo`](@/api/options.md#undo) replays the opposite move, so a merged cell the reorder split stays split, and one it dropped stays dropped. Merge the cells again if you need the original merged cell back.
+
+## Behavior when rows inside a merge are removed from view
+
+Some features remove rows from the grid entirely: [`filters`](@/api/options.md#filters), [`trimRows`](@/api/options.md#trimrows), and collapsing a parent row of [`nestedRows`](@/api/options.md#nestedrows). A removed row has no position in the grid at all, so a merged cell that covers one spans fewer rows than it did:
+
+- The merged cell moves to the first of its rows that is still shown, and spans only the rows of its own that remain. It never grows over the rows below it.
+- When none of its rows is shown, the merged cell is not displayed.
+- When the rows come back, the merged cell spans them again. Nothing about the merge is lost while its rows are away. A merged cell you create while rows are already removed from view covers only the rows you could see, and does not grow when the rest come back.
+- When a row move splits a merged cell while some of its rows are removed from view, each removed row stays with the fragment holding the merged cell's own rows next to it in the grid's row order, which is the order the rows take when they come back. A removed row never crosses a row the merged cell does not cover: when the move places such a row between the merged cell's own rows, the removed rows on each side of it stay on that side, and a removed row with no fragment reachable that way is lost.
+- A merged cell whose rows a sort has separated is the exception. It still spans one block, so that block reaches over rows the merged cell does not cover, and a row move that breaks the block cannot tell which fragment owns which row. Each fragment then covers only the rows it shows, and the rows removed from view are not restored. A single-column merged cell disappears altogether in this case, because every fragment it leaves behind is a single cell. Sort the column back, or clear the filter, before you move the rows.
+
+[`hiddenRows`](@/api/options.md#hiddenrows) works differently. A hidden row keeps its position, so a merged cell spanning one keeps its configured `rowspan` and simply draws over less space.
+
+One limitation applies to [`undo`](@/api/options.md#undo). Unmerging a merged cell whose rows are all hidden but one records only the single cell you can see, which is not a merged cell, so undoing that unmerge restores nothing. Expand or unfilter the rows first if you want the unmerge to be reversible.
 
 ## Result
 
