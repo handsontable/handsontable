@@ -187,9 +187,9 @@ export class StylesHandler {
    * declared none, and NestedHeaders does exactly that whenever it holds a layer, without consulting
    * `colHeaders`. Such a grid has a non-empty `thead`, so the CSS rule fires and its first body row
    * draws no top border, while `hasColHeaders()` still reports `false` - and every caller then
-   * compensates for a pixel that is not there. The engine side asks the same question the same way
-   * (`getFirstRowBorderCompensation` takes the length of the resolved `columnHeaders` array), which
-   * is what keeps the two in step.
+   * compensates for a pixel that is not there. The engine side asks the same question the same way -
+   * `getHiderHeightCompensation` in `axisSizing/hiderCompensation.ts` takes the length of the
+   * resolved `columnHeaders` array - which is what keeps the two in step.
    *
    * @returns {boolean}
    */

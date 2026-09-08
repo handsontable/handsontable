@@ -272,8 +272,9 @@ Consequences worth knowing:
   reimplemented independently in `StylesHandler#getDefaultRowHeight`, `AutoRowSize` and
   `ManualRowMove`'s drop guideline; they all now route through
   `StylesHandler#firstRenderedRowDrawsTopBorder()`. In the engine the same question is
-  `getFirstRowBorderCompensation(externalRowCalculator, hasColumnHeaders)` in `axisSizing/boxModel.ts`,
-  read by `SpreaderSize#adjustElementsSize` (which writes the hider height) and by `gatherLayoutInput`
+  `getHiderHeightCompensation(wtSettings)` in `axisSizing/hiderCompensation.ts`, which reads the
+  `externalRowCalculator` and `columnHeaders` settings itself. It is read by
+  `SpreaderSize#adjustElementsSize` (which writes the hider height) and by `gatherLayoutInput`
   (which predicts the scrollbars from the same total before the DOM is written). Those two must agree
   to the pixel or a grid predicts a scrollbar it does not get — that is how a StretchColumns spec
   failed on a layout snapshot describing a scrollbar the DOM never grew. Do not add a fifth copy.
