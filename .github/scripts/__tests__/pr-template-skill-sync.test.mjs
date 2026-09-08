@@ -12,10 +12,13 @@ const root = repoRoot();
 const template = readFileSync(path.join(root, '.github/PULL_REQUEST_TEMPLATE.md'), 'utf8');
 const skill = readFileSync(path.join(root, '.claude/skills/pr-creation/SKILL.md'), 'utf8');
 
-const stripComments = text => text.replace(/<!--[\s\S]*?-->/g, '').trim();
+// A checklist line's HTML comment (the template's instructions) trails the text, so the text is
+// whatever precedes the first `<!--`. Cut, not regex-stripped: this is a comparison of two documents
+// the repository owns, not a sanitizer, and the comment never has to be removed from the middle.
+const withoutComment = line => line.split('<!--')[0].trimEnd();
 const checklistLines = text => text.split('\n')
   .filter(line => /^- \[[ xX]\] /.test(line))
-  .map(line => stripComments(line.replace(/^- \[[ xX]\] /, '- [ ] ')));
+  .map(line => withoutComment(line.replace(/^- \[[ xX]\] /, '- [ ] ')));
 
 test('every heading of the PR template appears in the pr-creation skill', () => {
   const headings = template.match(/^### .*$/gm) ?? [];
