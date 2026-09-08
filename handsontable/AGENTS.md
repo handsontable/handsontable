@@ -172,6 +172,7 @@ Source `.ts` files (`src/**/*.ts`, excluding walkontable and test/type files) an
 | `window.scrollTo(...)` | `this.hot.rootWindow.scrollTo(...)` |
 | `document.querySelector(...)` | `this.hot.rootDocument.querySelector(...)` |
 | `console.warn(...)` | `import { warn } from 'helpers/console'; warn(...);` |
+| `this.hot.addHook(...)` inside `enablePlugin()` | `this.addHook(...)` — tracked hooks are removed by `disablePlugin()`; enforced by `handsontable/require-tracked-hook-in-enable` (lexical match only: an alias, a helper, or `this.hot.addHookOnce()` is not caught — `BasePlugin` has no tracked `addHookOnce`, so a `once` hook registered in `enablePlugin()` has to be reasoned about by hand). Rule tests: `npm run test:eslint-rules` in `handsontable/` (run by the Lint core CI job — RuleTester imports `eslint`, so the dependency-free root `test:tooling` job cannot run them) |
 | Missing JSDoc comment (`jsdoc/require-jsdoc`) on a class/method/field/function | Add a multiline block above it with a blank line before `/**` and after `*/` — `/**` on its own line, then ` * Description.`, then ` */`; no `@private` tag on `#`-fields; no `@param`/`@returns` in `.ts` files |
 
 ## Build
