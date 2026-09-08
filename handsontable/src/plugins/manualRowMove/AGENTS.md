@@ -76,3 +76,20 @@ configuration, **DataProvider** is the plugin that stays disabled. See `../base/
 
 `__tests__/` splits into `manualRowMove.spec.js`, `manualRowMoveUI.spec.js`, `API.spec.js`,
 `positioning.spec.js`, `scrolling.spec.js` and `ui/`.
+
+Two theme traps live in these specs, and both only ever showed up on `horizon`, whose 37px rows are
+the tallest. Run every drag spec on all three themes (`--theme=classic|main|horizon`), not just the
+default.
+
+- **A drop point must be derived from the row's own height, never written as a literal.** The plugin
+  decides the drop index by comparing the pointer against the hovered row's MIDDLE, so a hardcoded
+  `offset().top + 18` is half a pixel above the midpoint on `horizon` and lands on the hovered row
+  instead of the one below. Say `offset().top + outerHeight() - 2` when the spec means "the lower
+  half". `nestedRows/__tests__/integration/manualRowMove.spec.js` carried two of these.
+- **A row index near the edge of the rendered band is not portable across themes.** Taller rows fit
+  fewer rows in the same fixture, and scrolled to the bottom `scrollTop` sits at its clamp, so a
+  one-pixel change in total content height moves which row the band starts on. Give the fixture
+  enough height to hold three body rows below any frozen pane on the tallest theme, and read the row
+  from the viewport. Use `getFirstFullyVisibleRow()`, **not** the master's first RENDERED row: the
+  master also renders the rows hidden behind the frozen pane, and hovering one of those scrolls the
+  viewport, which is the very thing `scrolling.spec.js` asserts does not happen.
