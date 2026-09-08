@@ -288,11 +288,9 @@ What the click does now depends on where the highlight is:
   cell this way still clears the selection.
 
 Two <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + clicks on the same cell therefore still deselect it. The
-first moves the highlight there, and the second removes it.
-
-One related change: a <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + double-click on a selected cell no
-longer deselects it. Both halves of a double-click used to count as separate clicks, so the second one
-removed the cell the user was reaching for.
+first moves the highlight there, and the second removes it. How quickly you click makes no
+difference, so a <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + double-click does the same thing as those
+two clicks: it moves the highlight onto the cell and then removes it.
 
 ### Who is affected
 

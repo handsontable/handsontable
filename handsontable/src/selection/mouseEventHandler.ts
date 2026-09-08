@@ -154,7 +154,6 @@ export function mouseOver({ isLeftClick, coords, selection, controller, cellCoor
 
 interface MouseUpOptions {
   isLeftClick: boolean;
-  isDoubleClick: boolean;
   selection: SelectionManager;
   cellRangeMapper: { toRenderable: (range: CellRange) => CellRange };
 }
@@ -178,12 +177,11 @@ function refreshLayers(selection: SelectionManager) {
  *
  * @param {object} options The handler options.
  * @param {boolean} options.isLeftClick Indicates that event was fired using the left mouse button.
- * @param {boolean} options.isDoubleClick Indicates that event closed a double-click.
  * @param {Selection} options.selection The Selection class instance.
  * @param {CellRangeToRenderableMapper} options.cellRangeMapper Mapper for converting cell ranges
  * to renderable indexes.
  */
-export function mouseUp({ isLeftClick, isDoubleClick, selection, cellRangeMapper }: MouseUpOptions) {
+export function mouseUp({ isLeftClick, selection, cellRangeMapper }: MouseUpOptions) {
   const sel = selection;
   const focusedBefore = focusBeforeMouseDown.get(sel) ?? null;
 
@@ -234,13 +232,15 @@ export function mouseUp({ isLeftClick, isDoubleClick, selection, cellRangeMapper
 
     if (duplicateLayerIndexes.length >= 2) {
       const clickedCell = selectionRange.current()?.highlight;
-      // The closing mouseup of a double-click must never deselect. Its mousedown already moved
-      // the focus onto the clicked cell, so the "toggling it off" test below would match and
-      // double-clicking a selected cell would drop it.
+      // Deliberately blind to how fast the clicks arrive. `event.detail` would tell a double-click
+      // apart, but it cannot tell one from a user clicking twice quickly on purpose, so keying on
+      // it made "two ctrl+clicks deselect" depend on the OS double-click threshold. Every click is
+      // judged the same way instead, which makes a ctrl+double-click behave as the two ctrl+clicks
+      // it is.
+      //
       // `isSet()` matters: `isEqual` compares the raw row and col, so two coordinates that carry
       // no position at all would read as equal to each other.
-      const isTogglingOff = !isDoubleClick &&
-        focusedBefore !== null &&
+      const isTogglingOff = focusedBefore !== null &&
         clickedCell?.isSet() === true &&
         focusedBefore.isEqual(clickedCell);
 
@@ -299,9 +299,6 @@ export function handleMouseEvent(event: Event, options: Record<string, unknown>)
       isShiftKey: (event as KeyboardEvent).shiftKey,
       isLeftClick: isLeftClickEvent(event) || event.type === 'touchstart',
       isRightClick: isRightClickEvent(event),
-      // `detail` counts the clicks in the current sequence, so it is 2 on the mouseup that closes
-      // a double-click. Touch events report 0.
-      isDoubleClick: ((event as MouseEvent).detail ?? 0) > 1,
       ...options,
     });
   }

@@ -683,7 +683,14 @@ export class SelectionFeaturesPage {
    */
   async focusCell(): Promise<{ row: number, col: number }> {
     return this.page.evaluate(() => {
-      const highlight = window.hot.getSelectedRangeLast().highlight;
+      // The ACTIVE range, not the last one. Keyboard navigation can rotate the focus onto a layer
+      // that is not on top, and `getSelectedRangeLast()` would then report the wrong cell — which
+      // is exactly the state the ctrl+click rule has to read correctly.
+      const highlight = window.hot.getSelectedRangeActive()?.highlight;
+
+      if (!highlight) {
+        return { row: -1, col: -1 };
+      }
 
       return { row: highlight.row ?? -1, col: highlight.col ?? -1 };
     });
@@ -726,8 +733,7 @@ export class SelectionFeaturesPage {
   }
 
   /**
-   * Ctrl/Cmd+double-clicks a cell. Both mousedowns add a layer, so this is the gesture that tells
-   * a genuine second click apart from the two clicks inside one double-click.
+   * Ctrl/Cmd+double-clicks a cell — two clicks inside the OS double-click window.
    *
    * @param {number} row Visual row index.
    * @param {number} col Visual column index.
@@ -737,19 +743,59 @@ export class SelectionFeaturesPage {
   }
 
   /**
+   * Ctrl/Cmd+clicks a cell twice at double-click speed, reporting `detail: 2` on the second
+   * mouseup the way a real browser does.
+   *
+   * `locator.click()` cannot express this: Playwright pins `clickCount` to 1 on every call, so two
+   * of them in a row look like two unrelated clicks no matter how fast they land, and a handler
+   * that keys on `detail` is invisible to them. The selection rule must not depend on click speed,
+   * and this is what proves it.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} col Visual column index.
+   */
+  async ctrlClickTwiceFast(row: number, col: number): Promise<void> {
+    const box = await this.cell(row, col).boundingBox();
+
+    if (!box) {
+      throw new Error(`Cell ${row},${col} has no layout box`);
+    }
+
+    const x = box.x + (box.width / 2);
+    const y = box.y + (box.height / 2);
+
+    await this.page.keyboard.down('ControlOrMeta');
+    await this.page.mouse.move(x, y);
+    await this.page.mouse.down({ clickCount: 1 });
+    await this.page.mouse.up({ clickCount: 1 });
+    await this.page.mouse.down({ clickCount: 2 });
+    await this.page.mouse.up({ clickCount: 2 });
+    await this.page.keyboard.up('ControlOrMeta');
+  }
+
+  /**
    * Ctrl/Cmd+clicks a row header, which adds the whole row as a range layer.
    *
-   * Scoped to the inline-start overlay, where the row headers the user actually clicks are
-   * rendered; the master table holds a second copy of them.
+   * Resolved through the row's own cell so the lookup names a visual row rather than a position in
+   * the rendered rows, which a scrolled grid renumbers. Scoped to the grid, and to the
+   * inline-start overlay where the headers the user actually clicks are rendered — the master
+   * table holds a second copy of them.
    *
    * @param {number} row Visual row index.
    */
   async ctrlClickRowHeader(row: number): Promise<void> {
-    await this.page
-      .locator('.ht_clone_inline_start tbody tr')
-      .nth(row)
-      .locator('th')
-      .click({ modifiers: ['ControlOrMeta'] });
+    const cellBox = await this.cell(row, 0).boundingBox();
+    const headerBox = await this.grid.locator('.ht_clone_inline_start tbody th').first().boundingBox();
+
+    if (!cellBox || !headerBox) {
+      throw new Error(`Row ${row} or its header column is not rendered, so it cannot be clicked`);
+    }
+
+    // The row comes from its own cell and the column from the header strip, so neither depends on
+    // a position in the rendered rows — which a scrolled grid renumbers.
+    await this.page.keyboard.down('ControlOrMeta');
+    await this.page.mouse.click(headerBox.x + (headerBox.width / 2), cellBox.y + (cellBox.height / 2));
+    await this.page.keyboard.up('ControlOrMeta');
   }
 
   /**

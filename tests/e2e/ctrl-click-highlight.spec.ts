@@ -104,13 +104,6 @@ test.describe('Ctrl+click inside a multiple selection', () => {
     expect(await grid.focusCell()).toEqual({ row: 0, col: 0 });
   });
 
-  test('clears the selection when the last highlighted cell is ctrl+clicked', async() => {
-    await grid.cell(2, 2).click();
-    await grid.ctrlClickCell(2, 2);
-
-    expect(await grid.selectedLayerCount()).toBe(0);
-  });
-
   test('two ctrl+clicks on the same unfocused cell still deselect it', async() => {
     await grid.cell(0, 0).click();
     await grid.ctrlClickCell(1, 1);
@@ -132,20 +125,60 @@ test.describe('Ctrl+click inside a multiple selection', () => {
     ]);
   });
 
-  test('keeps a selected cell when it is ctrl+double-clicked', async() => {
+  test('treats a ctrl+double-click as the two ctrl+clicks it is', async() => {
     await grid.cell(0, 0).click();
     await grid.ctrlClickCell(1, 0);
 
-    // Both mousedowns of a double-click add a layer, so the closing mouseup sees the highlight
-    // already sitting on the clicked cell. Read as a genuine second click it would deselect the
-    // cell the user was reaching for.
+    // (0,0) does not hold the highlight, so the first click of the pair moves it there and the
+    // second lands on the highlighted cell and removes it — the same two steps a user would get
+    // clicking slowly. The rule must not read the gap between the clicks.
     await grid.ctrlDoubleClickCell(0, 0);
 
+    expect(await grid.selectedLayerCount()).toBe(1);
+    expect(await grid.allSelectedBounds()).toEqual([{ top: 1, start: 0, bottom: 1, end: 0 }]);
+    expect(await grid.focusCell()).toEqual({ row: 1, col: 0 });
+  });
+
+  test('reads the focus from the active layer, not the last one', async({ page }) => {
+    // `setRangeFocus` records an active layer index without reordering the layers, and keyboard
+    // wrapping rotates it, so the focused layer need not be the top one. Reading `current()` here
+    // instead of the active range would see (1,1) and treat this click as a focus move, leaving
+    // the cell selected.
+    await grid.initGrid({
+      selectionMode: 'multiple',
+      disableVisualSelection: 'area',
+      moveCells: false,
+      selectionHandles: false,
+      autoWrapRow: true,
+    });
+
+    await grid.selectLayers([[0, 0, 0, 0], [1, 1, 1, 1]]);
+
+    expect(await grid.focusCell()).toEqual({ row: 1, col: 1 });
+
+    // Each layer is one cell, so the next step wraps out of the last layer onto the first one.
+    await page.keyboard.press('Enter');
+
     expect(await grid.focusCell()).toEqual({ row: 0, col: 0 });
-    expect(await grid.selectedLayerCount()).toBe(2);
-    expect(await grid.allSelectedBounds()).toEqual([
-      { top: 1, start: 0, bottom: 1, end: 0 },
-      { top: 0, start: 0, bottom: 0, end: 0 },
-    ]);
+
+    // (0,0) now holds the focus while still sitting on the layer below the top one.
+    await grid.ctrlClickCell(0, 0);
+
+    expect(await grid.selectedLayerCount()).toBe(1);
+    expect(await grid.allSelectedBounds()).toEqual([{ top: 1, start: 1, bottom: 1, end: 1 }]);
+  });
+
+  test('deselects the only selected cell whether the two clicks are fast or slow', async() => {
+    // Keying the rule on `event.detail` made this depend on the OS double-click threshold: the
+    // fast pair reported `detail: 2`, skipped the toggle, and left the cell selected while the
+    // slow pair cleared it. Both cadences must land in the same place.
+    await grid.cell(2, 2).click();
+    await grid.ctrlClickCell(2, 2);
+
+    expect(await grid.selectedLayerCount()).toBe(0);
+
+    await grid.ctrlClickTwiceFast(3, 3);
+
+    expect(await grid.selectedLayerCount()).toBe(0);
   });
 });

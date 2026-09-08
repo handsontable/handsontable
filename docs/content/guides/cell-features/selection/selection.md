@@ -58,7 +58,9 @@ where the highlight is:
   clears the selection.
 
 Two <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + clicks on the same cell therefore still deselect it: the
-first click moves the highlight there, and the second removes it.
+first click moves the highlight there, and the second removes it. How quickly you click makes no
+difference, so a <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + double-click has the same effect as those
+two clicks.
 
 The rule reads where the highlight is, not whether you can see it, so it works the same way when
 [`disableVisualSelection`](@/api/options.md#disablevisualselection) hides the highlight.

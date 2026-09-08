@@ -484,7 +484,6 @@ describe('Selection using mouse interaction (cell deselect)', () => {
       await simulateClick(getCell(1, 0));
       await keyUp('control/meta');
 
-      // Ctrl+clicking an already-selected cell removes it regardless of disableVisualSelection.
       // (1,1) held the focus, so clicking the already-selected (1,0) moves the focus there and
       // keeps it selected. `disableVisualSelection` only hides highlights; it must not change this.
       expect(getSelectedRange()).toEqualCellRange([
