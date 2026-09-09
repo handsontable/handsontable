@@ -142,6 +142,13 @@ test.describe('autoLink', () => {
     await expect(grid.anyLinks(1, 5)).toHaveAttribute('href', 'https://example.com/raw');
     await expect(grid.anyLinks(0, 5)).toHaveCount(1);
     await expect(grid.anyLinks(0, 5)).toHaveClass('ht-link ht-hyperlink');
+
+    // A HYPERLINK whose URL argument uses a `mailto:` scheme is the case AutoLink would have hidden
+    // the scheme prefix for. A HYPERLINK label renders verbatim regardless: the prefix stays visible.
+    await expect(grid.anyLinks(2, 5)).toHaveCount(1);
+    await expect(grid.anyLinks(2, 5)).toHaveClass('ht-link ht-hyperlink');
+    await expect(grid.anyLinks(2, 5)).toHaveText('mailto:hf@example.com', { useInnerText: true });
+    await expect(grid.cell(2, 5).locator('.ht-link-scheme')).toHaveCount(0);
   });
 
   test('converges on one anchor when Formulas is re-enabled after AutoLink', async({ page, theme, bundle }) => {
@@ -153,6 +160,12 @@ test.describe('autoLink', () => {
     await grid.setFormulasEnabled(false);
     await expect(grid.links(1, 5)).toHaveCount(1);
 
+    // With Formulas off, the `mailto:` HYPERLINK label is plain text too, so AutoLink links it and
+    // hides its scheme prefix the same way it does for any other `mailto:` value.
+    await expect(grid.links(2, 5)).toHaveCount(1);
+    await expect(grid.links(2, 5)).toHaveText('hf@example.com', { useInnerText: true });
+    await expect(grid.links(2, 5).locator('.ht-link-scheme')).toBeHidden();
+
     // Turning Formulas back on registers its afterRenderer AFTER AutoLink's: the reversed order.
     await grid.setFormulasEnabled(true);
     await expect(grid.cell(0, 5)).toHaveText('HF label');
@@ -162,6 +175,14 @@ test.describe('autoLink', () => {
     await expect(grid.anyLinks(1, 5)).toHaveClass('ht-link ht-hyperlink');
     await expect(grid.cell(1, 5).locator('a a')).toHaveCount(0);
     await expect(grid.links(0, 0)).toHaveCount(1);
+
+    // The reversed order used to leave AutoLink's hidden scheme span stranded inside the HYPERLINK
+    // anchor, so the label rendered with the prefix hidden. It must render exactly as the formula
+    // returns it, whichever `afterRenderer` ran first.
+    await expect(grid.anyLinks(2, 5)).toHaveCount(1);
+    await expect(grid.anyLinks(2, 5)).toHaveClass('ht-link ht-hyperlink');
+    await expect(grid.anyLinks(2, 5)).toHaveText('mailto:hf@example.com', { useInnerText: true });
+    await expect(grid.cell(2, 5).locator('.ht-link-scheme')).toHaveCount(0);
   });
 
   test('links only a whole-cell URL when `inline` is `false`', async({ page, theme, bundle }) => {

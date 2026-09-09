@@ -23,6 +23,7 @@ import {
 } from './utils';
 import {
   LINK_CLASS_NAME,
+  LINK_SCHEME_CLASS_NAME,
   createLinkElement,
   normalizeSchemes,
   resolveLinkUrl,
@@ -2286,7 +2287,11 @@ export class Formulas extends BasePlugin {
 
     // A HYPERLINK cell is the formula's link and nothing else: any other grid-made anchor in it (an
     // `autoLink` anchor around a URL-shaped label, for instance) is unwrapped so the two features
-    // converge on one anchor regardless of which `afterRenderer` callback ran first.
+    // converge on one anchor regardless of which `afterRenderer` callback ran first. The scheme span
+    // AutoLink hid must be unwrapped first, while it is still inside its own anchor - unwrapping the
+    // anchor alone would carry it, still hidden, into the HYPERLINK anchor built below, so a HYPERLINK
+    // label renders exactly as the formula returns it whichever `afterRenderer` ran first.
+    unwrapLinks(TD, `a.${LINK_CLASS_NAME} .${LINK_SCHEME_CLASS_NAME}`);
     unwrapLinks(TD, `a.${LINK_CLASS_NAME}`);
 
     this.#hyperlinkCells.add(hyperlinkKey);

@@ -132,6 +132,10 @@ and the cell does not become a link. Two deliberate choices:
   `AutoLink` through `updateSettings`, so `#onAfterRenderer` must converge from both orders: it always unwraps its
   own `a.ht-hyperlink` first, and when the cell resolves to a link it unwraps every `a.ht-link` before wrapping. When
   the cell resolves to no link it leaves foreign anchors alone. `AutoLink` skips any TD that already holds an `<a>`.
+  Unwrapping `a.ht-link` alone is not enough: it leaves behind any `span.ht-link-scheme` `AutoLink` hid inside that
+  anchor (`hideSchemePrefix()` in `../../utils/cellLinks/linkElement.ts`), and the wrap that follows would then carry
+  that hidden span into the HYPERLINK anchor. So `#onAfterRenderer` unwraps `a.ht-link .ht-link-scheme` FIRST, while
+  it is still inside its own anchor — a HYPERLINK label always renders verbatim, whichever `afterRenderer` ran first.
 
 ## Testing
 
