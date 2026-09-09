@@ -70,6 +70,22 @@ export class CommentsEditorResizePage {
   }
 
   /**
+   * Moves the pointer onto a cell that carries no comment, to make the plugin arm a hide.
+   *
+   * The cell is picked so that no theme can move it out of reach, which one earlier choice did:
+   * `cell(5, 3)` sits below the fold of this fixture's 260px grid on `classic`, `hover()` scrolls a
+   * target into view, and the scroll pushed row 1 out of the rendered band - so a later hover over
+   * the commented cell found no element at all and timed out 20s later, far from the cause. Row 2 is
+   * inside the rendered band on every theme and clear of the column-header clone, and column 1 is
+   * the commented cell's OWN column: the editor opens at that cell's right edge and grows right and
+   * down, so this cell is never underneath it however far the drag went. A cell the editor covers
+   * cannot receive the pointer, which fails the same way.
+   */
+  async hoverCellWithoutComment(): Promise<void> {
+    await this.cell(2, 1).hover();
+  }
+
+  /**
    * Opens the fixture.
    */
   async goto(): Promise<void> {

@@ -102,7 +102,7 @@ test.describe('Comment editor resizing', () => {
   test('still hides the editor when the pointer moves to a cell without a comment', async ({ page }) => {
     await grid.openEditorByHover(1, 1);
 
-    await grid.cell(5, 3).hover();
+    await grid.hoverCellWithoutComment();
     await page.clock.runFor(400);
 
     await expect(grid.editor).toBeHidden();
@@ -121,7 +121,7 @@ test.describe('Comment editor resizing', () => {
 
     // The drag holds the editor open through a flag that the document's "mouseup" clears. If it
     // were left set, the editor would never hide again and hover switching would be dead.
-    await grid.cell(5, 3).hover();
+    await grid.hoverCellWithoutComment();
     await page.clock.runFor(400);
 
     await expect(grid.editor).toBeHidden();
@@ -142,7 +142,7 @@ test.describe('Comment editor resizing', () => {
 
     await expect(grid.editor).toBeVisible();
 
-    await grid.cell(4, 2).hover();
+    await grid.hoverCellWithoutComment();
     await page.clock.runFor(400);
 
     await expect(grid.editor).toBeHidden();
@@ -156,7 +156,7 @@ test.describe('Comment editor resizing', () => {
     await grid.dragPointerTo(grip.x + 180, grip.y + 120);
     await grid.releasePointer();
 
-    await grid.cell(5, 3).hover();
+    await grid.hoverCellWithoutComment();
     await page.clock.runFor(400);
     await expect(grid.editor).toBeHidden();
 
