@@ -20,13 +20,16 @@ import { CommentsEditorResizePage } from '../fixtures/pages/CommentsEditorResize
  * produces the stray event; a drag in steps narrower than the grab inset keeps the pointer inside
  * the old box, arms nothing, and passes against unfixed code.
  *
- * Three of the seven tests are red on unfixed code, and each says below why it is red or why it is
- * not. The growing drag and the leave-and-return case fail on the behavior they name; the
- * "still hides after a resize" case fails at its own precondition, because the editor is already
- * gone by the time it looks. The other four are pins: a SHRINKING drag never leaves the box, so it
- * passed before the fix and is here to keep passing, and the three hide cases pin behavior the fix
- * had to preserve - the editor must still go away when the pointer genuinely leaves, and the drag
- * must leave neither the hold flag nor the hit-test state behind.
+ * Each test says below whether it is red on unfixed code and why. Three cover the reported defect
+ * itself. Three more cover defects the FIX introduced, all found in review and all invisible to the
+ * happy path: the editor stuck open when the pointer returned to the cell it left the editor for,
+ * the editor swapping to another cell's comment, and a press with no release killing hover
+ * switching. The rest are pins on behavior the fix had to preserve.
+ *
+ * Two gestures do NOT do what their names suggest, and the comments say so where it matters: the
+ * browser's resizer keeps the grab offset, so the pointer stays inside the textarea for a whole
+ * drag however far it travels, and reaching a release over a CELL takes an explicit move off the
+ * corner first.
  */
 test.describe('Comment editor resizing', () => {
   let grid: CommentsEditorResizePage;
@@ -70,8 +73,11 @@ test.describe('Comment editor resizing', () => {
     // A PIN, green before the fix: shrinking keeps the pointer inside the box, because the box
     // follows it inward, so no stray event is ever produced. It is here because the fix holds the
     // editor open for the whole gesture, and this is the case that would notice if that hold were
-    // ever keyed on the pointer still being over the textarea at release time. Shrinking drags the
-    // corner back over the grid, so the release lands on a cell rather than on the editor.
+    // ever keyed on the pointer still being over the textarea at release time.
+    //
+    // The release itself lands INSIDE the textarea, not on a cell: the browser's resizer keeps the
+    // grab offset, so the corner tracks GRAB_INSET outside the pointer for the whole drag. The
+    // release-over-a-cell case is the test below, which moves the pointer off the corner first.
     await grid.dragPointerTo(grip.x - 60, grip.y - 30);
     await grid.releasePointer();
 
@@ -127,25 +133,93 @@ test.describe('Comment editor resizing', () => {
     await expect(grid.editor).toBeHidden();
   });
 
-  test('still hides the editor after a shrinking drag released over the grid', async ({ page }) => {
+  test('still hides the editor after a drag released over a cell', async ({ page }) => {
+    await grid.openEditorByHover(1, 1);
+
+    // Measured before the press: mid-drag the resizer holds the pointer, so the cell has to be
+    // aimed at by coordinate rather than through `hover()`.
+    const cellPoint = await grid.cellWithoutCommentPoint();
+    const grip = await grid.pressResizeGrip();
+
+    // Shrink first, then step the pointer off the corner onto a comment-less cell BEFORE releasing.
+    // Dragging alone never gets there - the resizer keeps the grab offset, so the pointer stays
+    // inside the textarea for the whole drag - and this is the gesture that ends with the hold flag
+    // cleared while the pointer sits on a cell, which is where a stale `#cellBelowCursor` would
+    // swallow that cell's hide.
+    await grid.dragPointerTo(grip.x - 120, grip.y - 50);
+    await grid.dragPointerTo(cellPoint.x, cellPoint.y);
+    await grid.releasePointer();
+    await page.clock.runFor(400);
+
+    // Still open, and correctly so: the release itself is not a pointer move, so nothing has asked
+    // for a hide yet. The editor goes away on the next move, which is the assertion that matters.
+    await expect(grid.editor).toBeVisible();
+
+    // A different cell, because the pointer is already resting on the one the drag ended over.
+    await grid.hoverOtherCellWithoutComment();
+    await page.clock.runFor(400);
+
+    await expect(grid.editor).toBeHidden();
+  });
+
+  test('hides the editor when the pointer returns to the same cell it left the editor for', async ({ page }) => {
+    await grid.openEditorByHover(1, 1);
+
+    // RED before the `#cellBelowCursor = null` in the textarea branch. The early return that cancels
+    // the hide also skips the field's write, so it kept naming this cell; coming back to it matched
+    // the `=== target` short circuit, armed no hide, and the editor stayed open indefinitely. Going
+    // to a DIFFERENT cell always worked, which is what made it easy to miss.
+    await grid.hoverCellWithoutComment();
+    await page.clock.runFor(100);
+    await grid.hoverEditor();
+    await page.clock.runFor(100);
+    await grid.hoverCellWithoutComment();
+
+    await page.clock.runFor(400);
+
+    await expect(grid.editor).toBeHidden();
+  });
+
+  test('does not swap to another cell comment when the pointer rests on the editor', async ({ page }) => {
+    await grid.openEditorByHover(1, 1);
+
+    const firstComment = await grid.editorValue();
+
+    // RED before `keepVisible()`. Arm a show for the second commented cell, overrule it with a hide
+    // from a comment-less cell, then land on the editor inside the same delay: cancelling the hide
+    // set `wasLastActionShow` back to `true`, which revived that show, and the editor swapped to the
+    // other cell's comment and jumped to it while the pointer rested on it.
+    await grid.cell(3, 0).hover();
+    await page.clock.runFor(60);
+    await grid.hoverCellWithoutComment();
+    await page.clock.runFor(60);
+    await grid.hoverEditor();
+
+    await page.clock.runFor(600);
+
+    await expect(grid.editor).toBeVisible();
+    expect(await grid.editorValue()).toBe(firstComment);
+  });
+
+  test('keeps the editor open while the grip is held, without focusing it', async ({ page }) => {
     await grid.openEditorByHover(1, 1);
 
     const grip = await grid.pressResizeGrip();
 
-    // Shrinking releases the pointer over the grid rather than over the editor, so this is the
-    // gesture that could leave hit-test state pointing at a cell. `#cellBelowCursor` feeds a
-    // `=== target` short circuit, and a value left over from the gesture would swallow the hide
-    // for whichever cell it named.
-    await grid.dragPointerTo(grip.x - 120, grip.y - 50);
-    await grid.releasePointer();
+    // The PREMISE of the whole hold-flag half of the fix, and the reason it is needed at all: a
+    // press on the resizer does NOT focus the textarea. A focused editor is held open by the
+    // `isFocused()` short circuit at the top of `#onMouseOver` and needs nothing else - so if the
+    // grip press focused it, the flag would be dead weight. Every OTHER press on the editor does
+    // focus it, which is why no test here can observe a stranded flag: focus holds the editor open
+    // in exactly those cases anyway.
+    expect(await grid.editorIsFocused()).toBe(false);
+
+    await grid.dragPointerTo(grip.x + 180, grip.y + 120);
     await page.clock.runFor(400);
 
     await expect(grid.editor).toBeVisible();
 
-    await grid.hoverCellWithoutComment();
-    await page.clock.runFor(400);
-
-    await expect(grid.editor).toBeHidden();
+    await grid.releasePointer();
   });
 
   test('still opens the editor on hover after a resize drag', async ({ page }) => {

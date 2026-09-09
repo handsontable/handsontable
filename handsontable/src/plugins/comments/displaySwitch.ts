@@ -36,7 +36,7 @@ class DisplaySwitch {
    *
    * @type {Function}
    */
-  showDebounced: Function | null = null;
+  showDebounced: (((...args: unknown[]) => unknown) & { cancel: () => void }) | null = null;
   /**
    * Reference to timer, run by `setTimeout`, which is hiding comment.
    *
@@ -82,6 +82,22 @@ class DisplaySwitch {
 
     clearTimeout(this.hidingTimer ?? undefined);
     this.hidingTimer = null;
+  }
+
+  /**
+   * Keeps the comment that is on screen on screen: cancels a pending hide, and drops a pending
+   * show as well.
+   *
+   * Dropping the show is what separates this from `cancelHiding()`, and it is required rather than
+   * tidy. `cancelHiding()` also sets `wasLastActionShow` back to `true`, which is the only thing
+   * suppressing a show that a `hide()` had already overruled - so cancelling a hide on its own
+   * revives that show, and the comment on screen is replaced by another cell's a moment later.
+   * The caller here is reacting to the pointer resting ON the editor, where the comment already
+   * displayed is the one that belongs there.
+   */
+  keepVisible() {
+    this.showDebounced?.cancel();
+    this.cancelHiding();
   }
 
   /**

@@ -90,19 +90,42 @@ DEV-2871 (reported as DEV-65), and a resizer drag is the way users met it:
 - **`#preventEditorAutoSwitch` is live again**, and it is set in **`#onInputElementMouseDown`**, never in
   `#onMouseDown`: that handler calls `event.stopPropagation()`, so a mousedown on the textarea never
   reaches the document-level one. It holds the editor open for the whole gesture, and the document's
-  `mouseup` clears it. The flag gates the *show* branch too, so if a `mouseup` never arrives (the button is
-  released outside the window) hover switching stays off until the user's next click anywhere, which is
-  where it heals. The two sites that used to set this flag were deleted with
+  `mouseup` clears it. The two sites that used to set this flag were deleted with
   `onContextMenuAddComment()`/`onContextMenuRemoveComment()` in the accessibility epic; the deleted
   `onContextMenuAddComment` set it beside a `cancelHiding()`, the same pair used here.
 
-One consequence of that ordering is worth knowing before you reshuffle it: **both new early returns sit in
-front of the `#cellBelowCursor` write**, so during a drag that field is frozen at whatever it held before the
-`mousedown` — the commented cell's own `td`. That is why no gesture-boundary reset is needed. The only action
-the stale value can swallow afterwards is a *show* for the cell whose editor is already open, which is
-invisible. Move the guard block above the textarea branch, or drop the hold flag, and the field starts
-tracking again mid-drag, at which point a value naming a plain cell could swallow that cell's hide. The
-shrink-release test pins the user-visible half of this.
+  **A press on the resizer does not focus the textarea, and that is the whole reason the flag exists.**
+  Measured in Chrome: a primary press on the grip leaves the focus on `body`, while a press anywhere else
+  on the textarea — primary or secondary — focuses it. A focused editor is already held open by the
+  `isFocused()` short circuit, so the grip press is the one gesture that had nothing holding it.
+
+  That also bounds how bad a stranded flag can be, and it is easy to overestimate. The flag gates the
+  *show* branch too, and `#onMouseDown` reads it, so a stuck `true` would suppress hover switching and the
+  click-outside hide — but every press that could strand one **except** the grip press has focused the
+  textarea, and focus suppresses the same things by design. So there is no reachable case where the flag
+  is the visible cause, and no test here can honestly pin one. Two guards are kept as hygiene rather than
+  as fixes: only the **primary button** sets it, and **`disablePlugin()` clears it** (the field is an
+  instance field that `enablePlugin()` never touches, and a disable tears down the event manager that
+  owned the pending `mouseup`). The remaining case, a grip release genuinely outside the browser window,
+  heals on the user's next click anywhere.
+
+Two things follow from that ordering, and both cost a round of review to find.
+
+**The early return skips the `#cellBelowCursor` write, so the branch has to clear the field itself.** Left
+alone, the field keeps naming the cell the pointer left the editor *for* — routinely a plain, comment-less
+cell. Moving back onto that same cell then matches the `=== target` short circuit, no hide is ever armed, and
+the editor stays open until some *other* cell is visited. Setting it to `null` keeps the short circuit doing
+only its own job (dropping a repeated event for one cell) across a trip over the editor.
+
+**Cancelling a hide also revives a show, so the hold uses `keepVisible()` and not `cancelHiding()`.**
+`cancelHiding()` sets `wasLastActionShow` back to `true`, and that flag is the only thing suppressing a
+debounced show that a later `hide()` had already overruled — `hide()` never clears the pending show, and
+cannot, because the show is what a hover asked for. So a plain `cancelHiding()` here lets a show armed for
+*another* commented cell fire a moment later, and the comment on screen is replaced while the pointer rests
+on the editor. Measured with three pointer moves inside one 250 ms window. `keepVisible()` drops the pending
+show first (the `debounce` helper returns a function carrying `cancel()`), then cancels the hide.
+
+Both are pinned by `tests/e2e/comments-editor-resize.spec.ts`.
 
 Testing it needs a real browser — the stray event comes from the browser's hit-testing order and jsdom never
 produces it. `tests/e2e/comments-editor-resize.spec.ts` owns it, and **its drag step must stay larger than

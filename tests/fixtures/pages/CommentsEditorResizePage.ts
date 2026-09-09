@@ -86,6 +86,54 @@ export class CommentsEditorResizePage {
   }
 
   /**
+   * Moves the pointer onto a SECOND comment-less cell, for a test that has to arm a hide while the
+   * pointer is already resting on the first one - `hover()` on the cell the pointer already sits on
+   * produces no "mouseover", so it arms nothing.
+   *
+   * Column 0 keeps it to the left of the editor, on the same reasoning as the cell above.
+   */
+  async hoverOtherCellWithoutComment(): Promise<void> {
+    await this.cell(2, 0).hover();
+  }
+
+  /**
+   * The centre of that same comment-less cell, as page coordinates.
+   *
+   * A drag has to move the pointer with `mouse.move`, not with `hover()`: the browser's resizer
+   * holds the pointer for the duration, so `hover()` never passes its own actionability check and
+   * times out. Read this BEFORE pressing, so the box is measured while the layout is still still.
+   *
+   * @returns {Promise<{x: number, y: number}>}
+   */
+  async cellWithoutCommentPoint(): Promise<{ x: number, y: number }> {
+    return this.cellPoint(2, 1);
+  }
+
+  /**
+   * The centre of the commented cell the specs open the editor from, as page coordinates.
+   *
+   * @returns {Promise<{x: number, y: number}>}
+   */
+  async commentedCellPoint(): Promise<{ x: number, y: number }> {
+    return this.cellPoint(1, 1);
+  }
+
+  /**
+   * The centre of a cell, as page coordinates.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @returns {Promise<{x: number, y: number}>}
+   */
+  async cellPoint(row: number, col: number): Promise<{ x: number, y: number }> {
+    const box = await this.cell(row, col).boundingBox();
+
+    expect(box, `cell ${row},${col} must be rendered before it can be aimed at`).not.toBeNull();
+
+    return { x: box!.x + box!.width / 2, y: box!.y + box!.height / 2 };
+  }
+
+  /**
    * Opens the fixture.
    */
   async goto(): Promise<void> {
@@ -159,6 +207,39 @@ export class CommentsEditorResizePage {
    */
   async releasePointer(): Promise<void> {
     await this.page.mouse.up();
+  }
+
+  /**
+   * Whether the editor's textarea currently holds the focus.
+   *
+   * This decides which half of the plugin is keeping the editor open: a focused editor is held by
+   * the `isFocused()` short circuit in `#onMouseOver` and needs no flag.
+   *
+   * @returns {Promise<boolean>}
+   */
+  async editorIsFocused(): Promise<boolean> {
+    return this.textarea.evaluate(el => el.ownerDocument.activeElement === el);
+  }
+
+  /**
+   * Moves the pointer onto the editor's textarea, well inside its box.
+   */
+  async hoverEditor(): Promise<void> {
+    const box = await this.textarea.boundingBox();
+
+    expect(box, 'the editor must be on screen before the pointer can rest on it').not.toBeNull();
+
+    await this.page.mouse.move(box!.x + 40, box!.y + 20);
+  }
+
+  /**
+   * The comment text the editor is currently showing, which is how a spec sees it swap from one
+   * cell's comment to another's.
+   *
+   * @returns {Promise<string>}
+   */
+  async editorValue(): Promise<string> {
+    return this.textarea.inputValue();
   }
 
   /**

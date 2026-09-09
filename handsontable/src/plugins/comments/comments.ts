@@ -369,6 +369,12 @@ export class Comments extends BasePlugin {
 
     this.hide();
 
+    // The hold flag outlives a disable, because it is an instance field and `enablePlugin()` never
+    // touches it. A disable that lands between the editor's own "mousedown" and the document's
+    // "mouseup" - the event manager is torn down in between, so that release never arrives - would
+    // otherwise hand the re-enabled plugin a stuck `true`, with hover switching dead from the start.
+    this.#preventEditorAutoSwitch = false;
+
     if (manager.getActiveContextName() === SHORTCUTS_CONTEXT_NAME) {
       manager.setActiveContextName('grid');
     }
@@ -980,13 +986,20 @@ export class Comments extends BasePlugin {
   #onInputElementMouseDown = (event: Event) => {
     event.stopPropagation();
 
+    // Only the primary button starts a gesture the editor has to survive. The flag below is
+    // cleared by the document's "mouseup", and a secondary-button press is the shape most likely
+    // not to deliver one - a right press opens the platform's own menu - which would strand the
+    // flag and leave hover switching and the click-outside hide dead until the next click.
+    if ((event as MouseEvent).button !== 0) {
+      return;
+    }
+
     // A resizer drag is one such gesture. The cancel in `#onMouseOver` closes the gap one event at
     // a time; this closes it for the whole drag, so the editor cannot vanish between a stray event
-    // and the cancel that follows it. `#onMouseUp` on the document clears the flag on release.
-    // This handler is the only place the flag can be set: the document-level `#onMouseDown` never
-    // sees this event, because of the `stopPropagation()` above.
+    // and the cancel that follows it. This handler is the only place the flag can be set: the
+    // document-level `#onMouseDown` never sees this event, because of the `stopPropagation()`.
     this.#preventEditorAutoSwitch = true;
-    this.#displaySwitch?.cancelHiding();
+    this.#displaySwitch?.keepVisible();
   };
 
   /**
@@ -995,13 +1008,12 @@ export class Comments extends BasePlugin {
    * @param {Event} event The `mouseover` event.
    */
   #onMouseOver = (event: Event) => {
-    const { rootDocument } = this.hot;
-
-    const target = eventTargetEl(event)!;
-
     if (!this.#editor) {
       return;
     }
+
+    const { rootDocument } = this.hot;
+    const target = eventTargetEl(event)!;
 
     // The pointer is over the editor, so a hide armed by an earlier event has to be called off.
     // This has to run BEFORE the short circuits below, because the resizer drag reaches the
@@ -1010,7 +1022,13 @@ export class Comments extends BasePlugin {
     // `elementFromPoint` already resolves to the resized textarea, so the next event - the one
     // over the textarea - matches and would return before cancelling anything.
     if (this.targetIsCommentTextArea(event)) {
-      this.#displaySwitch?.cancelHiding();
+      this.#displaySwitch?.keepVisible();
+      // Returning early skips the `#cellBelowCursor` write below, so the field would keep naming
+      // the cell the pointer left the editor FOR. Moving back onto that same cell then matches the
+      // `=== target` short circuit, no hide is armed, and the editor stays open until some other
+      // cell is visited. Clearing it keeps the short circuit doing only its own job - dropping a
+      // repeated event for one cell - across a trip over the editor.
+      this.#cellBelowCursor = null;
 
       return;
     }

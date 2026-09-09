@@ -64,6 +64,12 @@
       },
       cell: [
         { row: 1, col: 1, comment: { value: 'A comment that has to stay visible while it is resized.' } },
+        // A SECOND commented cell, which is what lets a spec see the editor swap from one cell's
+        // comment to another's. Column 0 puts it to the LEFT of the first editor, which opens at
+        // the commented cell's right edge - a commented cell underneath the open editor cannot be
+        // hovered at all. It also has to stay inside the rendered band on every theme, or hovering
+        // it scrolls the grid and unrenders the rows the rest of the spec needs.
+        { row: 3, col: 0, comment: { value: 'SECOND comment, on another cell.' } },
       ],
       licenseKey: 'non-commercial-and-evaluation',
     });
