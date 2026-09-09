@@ -1,6 +1,6 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 import { awaitBundle } from '../bundle';
-import { afterAnimationFrames } from '../frames';
+import { afterAtLeast } from '../frames';
 
 /**
  * A rectangle in viewport coordinates, plus the vertical middle of each row it contains.
@@ -148,12 +148,37 @@ export class SubmenuHoverDelayPage {
   }
 
   /**
-   * The bounded settle used before every survival assertion here: 40 frames is roughly 660 ms at
-   * 60fps, comfortably past the 300 ms hover delay. Delegates to the shared helper so the rAF pump
-   * cannot drift between page objects.
+   * The bounded settle used before every survival assertion here. Measured in milliseconds, not in
+   * frames: the thing being outlasted is a `setTimeout`, and a frame count that clears 300 ms on a
+   * 60Hz display does not clear it on a 144Hz one.
    */
-  async afterAnimationFrames(count: number): Promise<void> {
-    await afterAnimationFrames(this.page, count);
+  async settlePastHoverDelay(): Promise<void> {
+    await afterAtLeast(this.page, 750);
+  }
+
+  /**
+   * The key of the menu item the keyboard selection currently sits on, or `undefined`.
+   */
+  async keyboardSelection(): Promise<string | undefined> {
+    return this.page.evaluate(() => (window as unknown as {
+      hot: { getPlugin: (n: string) => { menu: { getSelectedItem: () => { key?: string } | undefined } } };
+    }).hot.getPlugin('contextMenu').menu.getSelectedItem()?.key);
+  }
+
+  /**
+   * Walks the keyboard selection down to the item with the given key, and fails loudly if it never
+   * arrives — otherwise a later assertion blames the submenu for navigation that never got there.
+   */
+  async selectItemWithKeyboard(key: string): Promise<void> {
+    for (let i = 0; i < 20; i++) {
+      await this.page.keyboard.press('ArrowDown');
+
+      if (await this.keyboardSelection() === key) {
+        return;
+      }
+    }
+
+    throw new Error(`ArrowDown never reached the ${JSON.stringify(key)} item`);
   }
 
   /**

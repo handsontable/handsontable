@@ -18,7 +18,8 @@ import { SubmenuHoverDelayPage } from '../fixtures/pages/SubmenuHoverDelayPage';
  *    element and cannot express a path at all, which is why this is Playwright-only.
  * 2. Settle past the delay before asserting survival. A `toBeVisible()` that resolves on its first
  *    poll runs ~50 ms after the pointer arrives, long before the 300 ms timer it claims to test.
- *    `afterAnimationFrames(40)` is ~660 ms at 60fps.
+ *    The settle is measured in milliseconds, not frames — a frame count that clears 300 ms on a
+ *    60Hz display is only ~278 ms on a 144Hz one.
  *
  * The survival tests also stamp the container and read the stamp back, because `toBeVisible()`
  * cannot tell a submenu that survived from one that was closed and instantly recreated.
@@ -47,7 +48,7 @@ test.describe('context menu submenu hover delay', () => {
       const target = await menu.submenuItemPoint(label);
 
       await menu.travelTo(target.x, target.y);
-      await menu.afterAnimationFrames(40);
+      await menu.settlePastHoverDelay();
 
       // Before the fix this held for "Left" alone — every other item sits far enough below the
       // anchor row that the diagonal crosses "Copy" and "Cut" and killed the submenu on the way.
@@ -85,7 +86,7 @@ test.describe('context menu submenu hover delay', () => {
 
     await menu.travelTo(anchor.left + 20, parentMenu.bottom + 40);
     await menu.travelTo(bottomItem.x, bottomItem.y);
-    await menu.afterAnimationFrames(40);
+    await menu.settlePastHoverDelay();
 
     await expect(menu.alignmentSubmenu).toBeVisible();
     expect(await menu.submenuMark()).toBe('original');
@@ -118,7 +119,7 @@ test.describe('context menu submenu hover delay', () => {
     await menu.travelTo(anchor.left + 30, anchorMiddle);
     await menu.travelTo(parentMenu.left - 60, anchorMiddle);
 
-    await menu.afterAnimationFrames(40);
+    await menu.settlePastHoverDelay();
 
     await expect(menu.alignmentSubmenu).toHaveCount(0);
 
@@ -159,6 +160,39 @@ test.describe('context menu submenu hover delay', () => {
     await expect(menu.alignmentSubmenu).toBeVisible();
   });
 
+  test('keeps a keyboard-opened submenu when the pointer rests on another row', async ({ page }) => {
+    await menu.openMenu();
+
+    const copy = await menu.itemBox('Copy');
+
+    await menu.selectItemWithKeyboard('alignment');
+
+    // Open and close from the keyboard. ArrowLeft hands focus back to the parent menu, so the
+    // parent is what handles the next key — and it keeps the closed submenu's `hotSubMenus` entry,
+    // which is what makes the hover below arm a switch rather than an open.
+    await page.keyboard.press('ArrowRight');
+    await expect(menu.alignmentSubmenu).toBeVisible();
+
+    await page.keyboard.press('ArrowLeft');
+    await expect(menu.alignmentSubmenu).toBeHidden();
+
+    // Rest the pointer on another row. Hovering never moves the menu selection, so the pointer and
+    // the selection now point at different rows.
+    await menu.travelTo(copy.left + 20, (copy.top + copy.bottom) / 2);
+
+    // Reopen from the keyboard while that switch is still pending.
+    await page.keyboard.press('ArrowRight');
+
+    await expect(menu.alignmentSubmenu).toBeVisible();
+
+    // The deliberate keyboard open has to win. Without clearing the hover timers inside
+    // `openSubMenu()`, the switch armed by "Copy" fires 300 ms later and tears it down.
+    await menu.settlePastHoverDelay();
+
+    await expect(menu.alignmentSubmenu,
+      'a pending hover switch must not close what the keyboard just opened').toBeVisible();
+  });
+
   test('opens the submenu with no delay when the keyboard asks for it', async ({ page }) => {
     await menu.openMenu();
 
@@ -167,23 +201,9 @@ test.describe('context menu submenu hover delay', () => {
     // the middle of the keyboard run below.
     await menu.parkPointerAwayFromMenu();
 
-    let selected: string | undefined;
-
-    for (let i = 0; i < 20; i++) {
-      await page.keyboard.press('ArrowDown');
-
-      selected = await page.evaluate(() => (window as unknown as {
-        hot: { getPlugin: (name: string) => { menu: { getSelectedItem: () => { key?: string } | undefined } } };
-      }).hot.getPlugin('contextMenu').menu.getSelectedItem()?.key);
-
-      if (selected === 'alignment') {
-        break;
-      }
-    }
-
-    // Without this the loop could exhaust silently and the failure below would name the submenu
-    // rather than the navigation that never reached the item.
-    expect(selected, 'ArrowDown never reached the Alignment item').toBe('alignment');
+    // Throws if the navigation never reaches the item, so the failure below cannot blame the
+    // submenu for something that went wrong earlier.
+    await menu.selectItemWithKeyboard('alignment');
 
     // The delay belongs to the hover handler only. The keyboard calls `openSubMenu` directly and
     // must stay instant, so this asserts with no settle between the key and the assertion.

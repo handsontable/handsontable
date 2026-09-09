@@ -771,6 +771,13 @@ export class Menu {
       return false;
     }
 
+    // Opening a sub-menu — from the keyboard, or because a hover timer just fired — settles what
+    // the hover timers were still deciding, so neither may outlive it. The keyboard is the case
+    // that matters: hovering does not move the menu selection, so the pointer can be resting on
+    // another row (with its switch armed) while ArrowRight or Enter opens the selected row's
+    // sub-menu. Left armed, that switch fires 300ms later and tears down what the key just opened.
+    this.#clearHoverSubMenuTimers();
+
     const cell = this.hotMenu.getCell(row, 0);
 
     this.closeAllSubMenus();

@@ -131,6 +131,14 @@ of them has a measured failure behind it.
   sub-menu, so its `eventManager` listeners leak and `test/e2e/MemoryLeakTest.js` goes red with a
   non-zero listener count — measured, 24 of them.
 
+- **`openSubMenu()` clears both hover timers on the way in.** Opening settles what they were still
+  deciding, so neither may outlive it. The case that bites is the keyboard: hovering moves the page
+  cursor but never the menu selection, so the pointer can rest on one row while ArrowRight or Enter
+  opens the selected row's sub-menu. The route is real — open with ArrowRight, close with ArrowLeft
+  (focus returns to the parent, and the `hotSubMenus` entry stays), rest the pointer on another row
+  so a switch is armed, then press ArrowRight again. Without the clear, that switch fires 300ms
+  later and tears down what the key just opened.
+
 Resting on a plain row for longer than the delay still closes the sub-menu — the delay is a delay,
 not a block. Coverage is `tests/e2e/submenu-hover-delay.spec.ts`; it must move the pointer with
 `steps` and settle past 300ms before asserting survival, or it passes on a build with the cancels
