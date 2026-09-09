@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the context menu and column menu submenus closing while the pointer was still moving towards them.",
+  "type": "fixed",
+  "issueOrPR": 13445,
+  "breaking": false,
+  "framework": "none"
+}
