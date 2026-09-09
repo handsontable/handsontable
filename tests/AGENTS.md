@@ -252,3 +252,22 @@ prove a negative) takes the same disable line, naming the owning work and
 carrying a TODO for the probe that will replace it; `e2e/customBorders.spec.ts`
 `macrotaskBarrier()` is the one such site. Full rules: the
 `handsontable-playwright-e2e` skill and its `references/determinism.md`.
+
+The waits lint cannot see live beyond the spec's own text — a timer in a
+fixture's inline script, a string-form `evaluate`, and the state a page-object
+wait ends on. Six rules, one line each; the measured incident behind each one
+is in
+`references/determinism.md`:
+
+- A `setTimeout` in the browser is `sleep()` moved into the page: probe the
+  state and `expect.poll` it from the spec.
+- `page.waitForFunction()` passes `{ polling: <ms> }`; a page object takes it
+  from `awaitBundle()` (`fixtures/bundle.ts`), the one place the interval lives.
+- A method that scrolls or mutates the grid ends on a render-state probe (first
+  rendered row, draw counter), never on `scrollTop`/`scrollLeft`.
+- A trigger that can deliver more than once is asserted on the LATEST entry of
+  its kind, inside one `expect.poll`.
+- A fixture build fails loud: the fixture captures the constructor throw, and
+  `goto()` rethrows it.
+- A negative assertion ("nothing fired") uses a bounded settle ONLY beside a
+  positive control in the same test.

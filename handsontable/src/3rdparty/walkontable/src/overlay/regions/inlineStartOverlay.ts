@@ -413,22 +413,6 @@ export class InlineStartOverlay extends Overlay {
   }
 
   /**
-   * Pre-applies the `innerBorderInlineStart` class before the cell render (single-pass gated path),
-   * so a `beforeViewRender` listener sees the class in the state this draw ends in. Unlike the top
-   * overlay's copy, this one saves no re-draw: the class shifts no layout, so the post-render toggle
-   * reports nothing either way. Element mode only — see `TopOverlay#prepareHeaderBorders`.
-   */
-  prepareHeaderBorders() {
-    if (!this.needFullRender || !this.shouldBeRendered() ||
-        !this.deps.getWtTable().holder.parentNode || !this.clone ||
-        this.trimmingContainer === this.deps.rootWindow) {
-      return;
-    }
-
-    this.adjustHeaderBordersPosition(this.getScrollPosition());
-  }
-
-  /**
    * Stamps the `innerBorderInlineStart` / `innerBorderLeft` / `emptyRows` classes on the master.
    *
    * Always reports `false`: the row header carries its inline-end border at every scroll position

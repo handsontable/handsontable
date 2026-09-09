@@ -57,7 +57,7 @@ export function createOverlaysDeps(ctx: EngineContext) {
     makeStickyScrollDeps: (overlays: Overlays) => createStickyScrollStrategyDeps(ctx, overlays),
     makeResizeMonitorDeps: () => createResizeMonitorDeps(ctx),
     makeScrollbarVisibilityDeps: () => createScrollbarVisibilityDeps(ctx),
-    makeSpreaderSizeDeps: (overlays: Overlays) => createSpreaderSizeDeps(ctx, overlays),
+    makeSpreaderSizeDeps: () => createSpreaderSizeDeps(ctx),
     makeScrollSyncDeps: (overlays: Overlays, stickyScroll: StickyScrollStrategy) =>
       createScrollSyncDeps(ctx, overlays, stickyScroll),
     makeNativeScrollInputDeps: (overlays: Overlays, stickyScroll: StickyScrollStrategy, resizeMonitor: ResizeMonitor) =>
@@ -347,7 +347,7 @@ class Overlays {
       this.#deps.makeScrollbarVisibilityDeps(),
       () => this.#refreshScrollbarClearance()
     );
-    this.#spreaderSize = new SpreaderSize(this.#deps.makeSpreaderSizeDeps(this));
+    this.#spreaderSize = new SpreaderSize(this.#deps.makeSpreaderSizeDeps());
     this.#scrollSync = new ScrollSync(this.#deps.makeScrollSyncDeps(this, this.#stickyScroll));
     this.#nativeScrollInput = new NativeScrollInput(
       this.#deps.makeNativeScrollInputDeps(this, this.#stickyScroll, this.#resizeMonitor)
@@ -407,27 +407,6 @@ class Overlays {
       this.topInlineStartCornerOverlay,
       this.bottomInlineStartCornerOverlay,
     ];
-  }
-
-  /**
-   * Pre-applies the header-border classes (`innerBorderTop` / `innerBorderInlineStart`) before
-   * the cell render, so the post-render `resetFixedPosition` toggle is a no-op and the nested
-   * `wot.draw(true)` re-render is skipped. Called from the master draw on the single-pass gated path,
-   * before `beginDrawLayout`. Mirrors the overlay set used by the post-render position pass.
-   *
-   * The skipped re-render is `innerBorderTop`'s alone. The inline-start class shifts no layout since
-   * #6673, so that overlay reports no position change whether or not this pass applied its class;
-   * pre-applying it only keeps a `beforeViewRender` listener from seeing a stale value. See
-   * `InlineStartOverlay#prepareHeaderBorders`.
-   */
-  prepareHeaderBorders() {
-    this.topOverlay.prepareHeaderBorders();
-
-    if (this.bottomOverlay.clone) {
-      this.bottomOverlay.prepareHeaderBorders();
-    }
-
-    this.inlineStartOverlay.prepareHeaderBorders();
   }
 
   /**
@@ -868,7 +847,11 @@ class Overlays {
       }
     });
     syncOversizedColumnHeadersWithFrozenOverlays(this.wot.wtTable);
-    this.adjustElementsSize();
+    // Through the gate, not straight to the writer. `TableView#afterRender` calls this on every draw
+    // of any grid whose column header is taller than a row - which is most grids with headers - and
+    // the writes above are idempotent, so on a steady grid there is nothing for a resize to do. Going
+    // direct cost one full resize per draw on exactly the common case the gate exists to protect.
+    this.#adjustElementsSizeIfNeeded();
   }
 
   /**
@@ -876,9 +859,10 @@ class Overlays {
    */
   adjustElementsSize() {
     // Captured here rather than in the gate, because several paths reach this writer directly and
-    // bypass the gate entirely: `markOversizedRows`, the 1px-shift branch of the draw cycle, the
-    // bottom clone's draw, and `refreshColumnHeaderHeights` below. Recording it in the gate would
-    // leave the stored value stale after any of them and cost one redundant resize on the next draw.
+    // bypass the gate entirely: `markOversizedRows`, the `skipRender` path of the draw cycle (the
+    // one master draw that never reaches `refresh()`), the bottom clone's draw, and
+    // `refreshColumnHeaderHeights` below. Recording it in the gate would leave the stored value
+    // stale after any of them and cost one redundant resize on the next draw.
     this.#lastAppliedSignature = this.#currentLayoutSignature();
 
     this.#spreaderSize.adjustElementsSize();
@@ -964,15 +948,6 @@ class Overlays {
       scrollportWidth: geometryReader.clientWidth(holder),
       scrollportHeight: geometryReader.clientHeight(holder),
     }, open);
-  }
-
-  /**
-   * Expand the hider vertically element by the provided delta value.
-   *
-   * @param {number} heightDelta The delta value to expand the hider element by.
-   */
-  expandHiderVerticallyBy(heightDelta: number) {
-    this.#spreaderSize.expandHiderVerticallyBy(heightDelta);
   }
 
   /**
@@ -1091,16 +1066,15 @@ class Overlays {
    * that the hider size does not imply: the scrollport box and its scrollbars, which clones render
    * at all, and how deep the frozen regions reach.
    *
-   * Cost, stated honestly: the old gate did two forced layout reads per draw (the spreader's
-   * `clientWidth` and `clientHeight` — `LiveGeometryReader` caches nothing). This does one, plus an
-   * O(columns) walk. `getLayout()` returns the snapshot `Viewport#beginDrawLayout` already resolved
-   * for this draw, `getRowHeaderWidth()` is memoized on the viewport, and every row sum is O(1) off
-   * the prefix-sum cache — but `getProposedHiderSize()` sums the column widths by walking them, and
-   * its scroll-end test reads `clientHeight` on the holder. Both are what the write itself does, and
-   * matching the write is the point: a gate built on a cheaper approximation drifts from the writer,
-   * and every drift is a missed or wasted resize. The column walk in particular must stay live —
-   * `stretchH` derives from the workspace width, which derives from the column sum, so caching that
-   * sum freezes the cycle (see the Performance section of `walkontable/AGENTS.md`).
+   * Cost: no forced layout read at all, against the two the old gate did on every draw (the
+   * spreader's `clientWidth` and `clientHeight` — `LiveGeometryReader` caches nothing). `getLayout()`
+   * returns the snapshot `Viewport#beginDrawLayout` already resolved for this draw,
+   * `getRowHeaderWidth()` is memoized on the viewport, and every row sum is O(1) off the prefix-sum
+   * cache. The one non-constant part is the column walk inside `getProposedHiderSize()`, and that is
+   * what the write itself does — matching the write is the point, because a gate built on a cheaper
+   * approximation drifts from the writer and every drift is a missed or wasted resize. The walk must
+   * also stay live: `stretchH` derives from the workspace width, which derives from the column sum,
+   * so caching that sum freezes the cycle (see the Performance section of `walkontable/AGENTS.md`).
    *
    * @returns {string}
    */

@@ -5,37 +5,49 @@
  * and _redirects is ignored. This worker is the sole, hand-maintained authority
  * for every redirect rule below - there is no generator.
  *
- * Redirect priority order (first match wins):
+ * Legacy hostnames (see LEGACY_DOCS_HOSTS) collapse onto handsontable.com.
+ * That is rule 12a, and its placement is load-bearing - read its comment
+ * before moving it. `abs()` also swaps in the canonical origin for a legacy
+ * host, so every rule above 12a redirects cross-host in a single hop with the
+ * path's meaning resolved; rule 18 sits below the cut and so takes two.
+ *
+ * A rule that SERVES content rather than redirecting must stay below 12a, or
+ * it answers 200 on a legacy host and keeps that host indexable.
+ *
+ * Redirect priority order (first match wins). Keep these numbers in step with
+ * the `// -- N.` markers in route() - this list is the documented authority
+ * (docs/cloudflare/README.md), and a stale entry here has already produced a
+ * wrong code-review finding:
  *   1. /docs/next/:splat                   → /docs/:splat
  *  1a. /docs/sitemap.xml                   → /docs/sitemap-index.xml
  *  1b. /docs/{LATEST_VERSION}/:splat       → /docs/:splat
- *   2. / → /docs
+ *   2. /{/}                                → /docs
  *  2a. /0.8.0/*                            → /docs/javascript-data-grid/changelog
  *  2b. /docs/redirect?pageId=*             → /docs/javascript-data-grid/changelog
  *  2c. Blog article redirects              → /blog/... or /blog
  *  2d. /demo/*                             → /demo
  *  2e. /customers/*                        → /customers/
  *   3. Legacy versioned angular-data-grid  → /docs/angular-data-grid/ or /docs/javascript-data-grid/
- *   3. /docs/hyperformula[/*]              → external hyperformula site
- *   4. Exact versioned HTML redirects      → framework-specific pages
- *   5. /docs/:ver/:page.html               → versioned framework pages (cookie)
- *   6. /docs/(javascript|angular|react)-data-grid/(row-sorting|column-sorting|release-notes)
- *   7. Cross-framework page fixes (angular/react wrong-prefix pages)
- *  7a. Vue 3 legacy page redirects      → /docs/vue-data-grid/*
+ *   4. /docs/hyperformula[/*]              → external hyperformula site
+ *   5. Exact versioned HTML redirects      → framework-specific pages
+ *   6. Cross-framework page fixes (angular/react wrong-prefix pages)
+ *   7. /docs/(javascript|angular|react)-data-grid/(row-sorting|column-sorting|release-notes)
+ *  7a. Vue 3 legacy page redirects         → /docs/vue-data-grid/*
+ *  7b. Versioned Vue 3 legacy pages        → /docs/:ver/vue-data-grid/*
  *   8. Recipe cell-type slug mismatches
- *   9. Angular-only recipe redirects for React/JS
- *  10. JS/React-only recipe redirects for Angular/React
- *  11. Flat /docs/react-* redirects        → /docs/react-data-grid/*
- *  12. Tutorial flat redirects             → /docs/javascript-data-grid/*
- *  13. Versioned /docs/:ver/react-*        → /docs/:ver/react-data-grid/*
- *  14. /docs/:ver{/}                       → version root or framework home
- *  15. /docs/(page).html                   → framework page (cookie)
- *  16. /docs/(page){/}                     → framework page (cookie)
- *  17. /docs/react, /docs/angular, etc.    → framework homes
- *  18. /{/}                               → /docs
- *  19. /docs{/}                           → /docs/(framework)/ (cookie)
- * 19a. POST /docs/scripts/json/save.json  → mock 200 JSON (saving-data demo)
- *  20. Static asset fallback (env.ASSETS)
+ *   9. Flat /docs/react-data-grid/row-sorting etc.
+ *  10. Flat /docs/react-*                  → /docs/react-data-grid/*
+ *  11. Tutorial flat redirects             → /docs/javascript-data-grid/*
+ *  12. Framework shorthand redirects       → framework homes
+ * 12a. Legacy hostname (GET/HEAD)          → same path on handsontable.com (301)
+ *  13. /docs/:ver/:page.html               → versioned framework pages (cookie, 302)
+ *  14. /docs/:ver{/}                       → version root or framework home (cookie, 302)
+ *  15. /docs/(page).html                   → flat framework page (cookie, 302)
+ *  16. /docs/(page){/}                     → flat framework page (cookie, 302)
+ *  17. /docs{/}                            → /docs/(framework)/ (cookie, 302)
+ *  18. Versioned /docs/:ver/react-*        → /docs/:ver/react-data-grid/*
+ * 18a. POST /docs/scripts/json/save.json   → mock 200 JSON (saving-data demo)
+ *  19. Static asset fallback (env.ASSETS)
  */
 
 // ---------------------------------------------------------------------------
@@ -77,6 +89,47 @@ function getCookie(request, name) {
 }
 
 // ---------------------------------------------------------------------------
+// Data: canonical host and the legacy hosts that collapse onto it
+// ---------------------------------------------------------------------------
+
+// The canonical origin for every documentation page. Astro already emits a
+// matching `<link rel="canonical">`, but a canonical tag is only a hint: a
+// duplicate host that answers 200 stays crawlable, so both URLs can sit in the
+// index and each copy burns crawl budget. The rules below turn the hint into a
+// permanent redirect.
+const CANONICAL_DOCS_ORIGIN = 'https://handsontable.com';
+
+// Hosts whose every URL must end up on CANONICAL_DOCS_ORIGIN.
+//
+// This is an exact-match allowlist, and deliberately NOT "any host that is not
+// handsontable.com". The same worker serves staging and every PR preview from
+// `handsontable-docs-staging.pages.dev` and its per-branch subdomains, so a
+// negative match would 301 all of them into production and break docs review
+// with no visible error. The production Pages apex
+// (`handsontable-docs.pages.dev`) is left out too - it is the documented way
+// to verify a production deploy directly (see `docs/README-DEPLOYMENT.md`).
+const LEGACY_DOCS_HOSTS = new Set([
+  // The pre-Astro documentation home, still bound to the production Pages
+  // project as a custom domain. Without the rules below it answers 200 for the
+  // whole `/docs` tree - a byte-identical duplicate of handsontable.com/docs.
+  'docs.handsontable.com',
+]);
+
+/**
+ * Returns true when the request arrived on a legacy host that must be
+ * collapsed onto the canonical one.
+ *
+ * @param {URL} url
+ * @returns {boolean}
+ */
+function isLegacyDocsHost(url) {
+  // The URL parser lowercases a hostname but keeps a fully-qualified trailing
+  // dot, so `docs.handsontable.com.` would miss an exact-match Set and serve
+  // 200 - the classic allowlist bypass on a CDN-fronted host.
+  return LEGACY_DOCS_HOSTS.has(url.hostname.replace(/\.$/, ''));
+}
+
+// ---------------------------------------------------------------------------
 // Redirect helpers
 // ---------------------------------------------------------------------------
 
@@ -101,15 +154,23 @@ function redirect302(destination) {
 }
 
 /**
- * Builds an absolute URL string from a path relative to the original request
- * origin.
+ * Builds an absolute URL string from a path, relative to the request origin.
+ *
+ * Staging and preview hosts keep their own origin, so a redirect matched there
+ * stays inside the deployment under review. A legacy host instead gets the
+ * canonical origin, which is what lets every path rule below double as a
+ * one-hop cross-host redirect: the rule resolves what the path MEANS, and the
+ * reader lands on that page's real URL on handsontable.com rather than being
+ * bounced to the same stale path twice.
  *
  * @param {string} path  – must begin with /
  * @param {URL} base
  * @returns {string}
  */
 function abs(path, base) {
-  return `${base.origin}${path}`;
+  const origin = isLegacyDocsHost(base) ? CANONICAL_DOCS_ORIGIN : base.origin;
+
+  return `${origin}${path}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -755,7 +816,7 @@ const VUE3_LEGACY_PAGES = {
 // Set here rather than in a Pages `_headers` file because the policy exceeds the
 // 2000-character-per-line `_headers` limit and a CSP cannot be split across
 // multiple Content-Security-Policy lines.
-const CONTENT_SECURITY_POLICY = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://google.com https://js-eu1.hsforms.net https://static.reo.dev/ https://static.hsappstatic.net https://js-eu1.hs-analytics.net https://js-eu1.hsadspixel.net https://js-eu1.hscollectedforms.net https://js-eu1.hs-banner.com https://js-eu1.hs-scripts.com https://www.redditstatic.com https://bat.bing.com https://bat.bing.net https://dev.visualwebsiteoptimizer.com https://analytics.ahrefs.com https://*.cloudflareinsights.com https://sbl.onfastspring.com https://plausible.io https://*.typeform.com https://*.zendesk.com https://*.zdassets.com https://*.hotjar.com https://snap.licdn.com https://static.ads-twitter.com https://analytics.twitter.com https://consentcdn.cookiebot.com https://consent.cookiebot.com https://handsontable.piwik.pro https://handsontable.containers.piwik.pro https://*.list-manage.com https://docs.handsontable.com https://s3.amazonaws.com https://unpkg.com https://cdn.jsdelivr.net https://buttons.github.io https://code.jquery.com https://cdn.headwayapp.co https://www.google.com https://www.gstatic.com https://www.googleadservices.com https://www.googletagmanager.com https://*.google-analytics.com https://tagmanager.google.com https://script.crazyegg.com https://*.cloudfront.net https://*.cloudflare.com https://*.s3.amazonaws.com https://*.doubleclick.net https://connect.facebook.net https://*.sentry-cdn.com; img-src * 'self' data: https:; style-src 'self' 'unsafe-inline' https://sbl.onfastspring.com https://plausible.io https://*.typeform.com https://*.zendesk.com https://*.zdassets.com https://www.googletagmanager.com https://*.hotjar.com https://*.cloudflare.com https://fonts.googleapis.com https://tagmanager.google.com https://cdn.jsdelivr.net; font-src 'self' data: https://*.zendesk.com https://*.zdassets.com https://*.hotjar.com https://fonts.gstatic.com; frame-src 'self' 'unsafe-inline' https://google.com https://js-eu1.hsforms.net https://handsontablestore.onfastspring.com https://handsontablestore.test.onfastspring.com https://*.doubleclick.net https://plausible.io https://*.typeform.com https://*.zendesk.com https://*.zdassets.com https://examples.handsontable.com https://demos.handsontable.com https://handsontable.github.io https://*.hotjar.com https://consentcdn.cookiebot.com https://www.google.com https://headway-widget.net https://www.youtube.com https://player.vimeo.com https://codesandbox.io https://www.youtube-nocookie.com https://www.facebook.com https://www.googletagmanager.com/ https://embed.figma.com; object-src 'self'; connect-src 'self' https://hot-docs-assistant.netlify.app https://hot-docs-assistant-dev.handsontable-sandbox.workers.dev https://hot-docs-assistant.handsontable-sandbox.workers.dev https://*.algolia.net https://*.algolianet.com https://browser.sentry-cdn.com https://api.reo.dev https://api-eu1.hubapi.com https://static.hsappstatic.net https://forms-eu1.hscollectedforms.net https://ads.reddit.com https://www.redditstatic.com https://pixel-config.reddit.com https://www.googleadservices.com https://bat.bing.net https://bat.bing.com https://dev.visualwebsiteoptimizer.com https://api.github.com https://analytics.ahrefs.com https://ingesteer.services-prod.nsvcs.net https://plausible.io https://*.linkedin.com https://*.zendesk.com https://adservice.google.com https://*.zdassets.com https://*.hotjar.com https://*.hotjar.io wss://*.hotjar.com https://consentcdn.cookiebot.com https://cdn.linkedin.oribi.io https://www.google.com https://google.com https://stats.g.doubleclick.net https://googleads.g.doubleclick.net https://*.doubleclick.net https://www.google.pl https://*.google-analytics.com https://*.analytics.google.com https://*.googlesyndication.com https://*.handsontable.com https://www.googletagmanager.com https://handsontable.com https://handsontablestore.test.onfastspring.com https://handsontablestore.onfastspring.com https://snap.licdn.com https://www.facebook.com https://*.sentry.io https://jsonplaceholder.typicode.com https://graphqlzero.almansi.me; worker-src 'self' blob:; frame-ancestors 'self';";
+const CONTENT_SECURITY_POLICY = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://google.com https://js-eu1.hsforms.net https://static.reo.dev/ https://static.hsappstatic.net https://js-eu1.hs-analytics.net https://js-eu1.hsadspixel.net https://js-eu1.hscollectedforms.net https://js-eu1.hs-banner.com https://js-eu1.hs-scripts.com https://www.redditstatic.com https://bat.bing.com https://bat.bing.net https://dev.visualwebsiteoptimizer.com https://analytics.ahrefs.com https://*.cloudflareinsights.com https://sbl.onfastspring.com https://plausible.io https://*.typeform.com https://*.zendesk.com https://*.zdassets.com https://*.hotjar.com https://snap.licdn.com https://static.ads-twitter.com https://analytics.twitter.com https://consentcdn.cookiebot.com https://consent.cookiebot.com https://handsontable.piwik.pro https://handsontable.containers.piwik.pro https://*.list-manage.com https://s3.amazonaws.com https://unpkg.com https://cdn.jsdelivr.net https://buttons.github.io https://code.jquery.com https://cdn.headwayapp.co https://www.google.com https://www.gstatic.com https://www.googleadservices.com https://www.googletagmanager.com https://*.google-analytics.com https://tagmanager.google.com https://script.crazyegg.com https://*.cloudfront.net https://*.cloudflare.com https://*.s3.amazonaws.com https://*.doubleclick.net https://connect.facebook.net https://*.sentry-cdn.com; img-src * 'self' data: https:; style-src 'self' 'unsafe-inline' https://sbl.onfastspring.com https://plausible.io https://*.typeform.com https://*.zendesk.com https://*.zdassets.com https://www.googletagmanager.com https://*.hotjar.com https://*.cloudflare.com https://fonts.googleapis.com https://tagmanager.google.com https://cdn.jsdelivr.net; font-src 'self' data: https://*.zendesk.com https://*.zdassets.com https://*.hotjar.com https://fonts.gstatic.com; frame-src 'self' 'unsafe-inline' https://google.com https://js-eu1.hsforms.net https://handsontablestore.onfastspring.com https://handsontablestore.test.onfastspring.com https://*.doubleclick.net https://plausible.io https://*.typeform.com https://*.zendesk.com https://*.zdassets.com https://examples.handsontable.com https://demos.handsontable.com https://handsontable.github.io https://*.hotjar.com https://consentcdn.cookiebot.com https://www.google.com https://headway-widget.net https://www.youtube.com https://player.vimeo.com https://codesandbox.io https://www.youtube-nocookie.com https://www.facebook.com https://www.googletagmanager.com/ https://embed.figma.com; object-src 'self'; connect-src 'self' https://hot-docs-assistant.netlify.app https://hot-docs-assistant-dev.handsontable-sandbox.workers.dev https://hot-docs-assistant.handsontable-sandbox.workers.dev https://*.algolia.net https://*.algolianet.com https://browser.sentry-cdn.com https://api.reo.dev https://api-eu1.hubapi.com https://static.hsappstatic.net https://forms-eu1.hscollectedforms.net https://ads.reddit.com https://www.redditstatic.com https://pixel-config.reddit.com https://www.googleadservices.com https://bat.bing.net https://bat.bing.com https://dev.visualwebsiteoptimizer.com https://api.github.com https://analytics.ahrefs.com https://ingesteer.services-prod.nsvcs.net https://plausible.io https://*.linkedin.com https://*.zendesk.com https://adservice.google.com https://*.zdassets.com https://*.hotjar.com https://*.hotjar.io wss://*.hotjar.com https://consentcdn.cookiebot.com https://cdn.linkedin.oribi.io https://www.google.com https://google.com https://stats.g.doubleclick.net https://googleads.g.doubleclick.net https://*.doubleclick.net https://www.google.pl https://*.google-analytics.com https://*.analytics.google.com https://*.googlesyndication.com https://*.handsontable.com https://www.googletagmanager.com https://handsontable.com https://handsontablestore.test.onfastspring.com https://handsontablestore.onfastspring.com https://snap.licdn.com https://www.facebook.com https://*.sentry.io https://jsonplaceholder.typicode.com https://graphqlzero.almansi.me; worker-src 'self' blob:; frame-ancestors 'self';";
 
 const SECURITY_HEADERS = {
   'Content-Security-Policy': CONTENT_SECURITY_POLICY,
@@ -765,17 +826,24 @@ const SECURITY_HEADERS = {
   'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
 };
 
-// Apply the security headers to served documents/assets. Redirects (3xx) are
-// passed through untouched.
+// Apply the security headers to served documents/assets.
+//
+// A redirect carries no body, so the document-scoped headers (CSP, framing,
+// sniffing, referrer) have nothing to act on and are skipped. HSTS is the one
+// exception, because it is a promise about the HOST rather than about this
+// response: since rule 12a every GET/HEAD on a legacy host is a redirect, so
+// leaving redirects bare would stop that host from refreshing its own pin and
+// let a year-long promise age out with no renewal. The apex does send
+// `includeSubDomains`, which covers the subdomain, but relying on it would
+// make the legacy host's transport security depend on apex configuration.
 function withSecurityHeaders(response) {
-  if (response.status >= 300 && response.status < 400) {
-    return response;
-  }
-
   const decorated = new Response(response.body, response);
+  const isRedirect = response.status >= 300 && response.status < 400;
 
   for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
-    decorated.headers.set(name, value);
+    if (!isRedirect || name === 'Strict-Transport-Security') {
+      decorated.headers.set(name, value);
+    }
   }
 
   return decorated;
@@ -1093,6 +1161,38 @@ async function route(request, env) {
       if (Object.prototype.hasOwnProperty.call(shortcuts, path)) {
         return redirect301(abs(shortcuts[path], url));
       }
+    }
+
+    // -- 12a. Legacy hostname → canonical hostname (GET/HEAD) ---------------
+    // The cut lands here, immediately before the first cookie-reading rule,
+    // for two reasons.
+    //
+    // Rules 13-17 answer with a 302, because their destination depends on the
+    // `docs_fw` cookie and must not be cached as permanent. A 302 is not a
+    // canonicalisation signal, so a legacy URL answered by one would never
+    // leave the search index - which is the entire point of this collapse.
+    // Before this rule existed, `/docs`, `/docs/`, `/docs/{ver}` and every
+    // flat slug took that path and stayed indexed on the legacy host.
+    //
+    // And cookies are host-scoped, so the reader's saved framework preference
+    // lives on handsontable.com, not here. Deciding the framework from this
+    // host's cookie jar would silently default a React reader to the
+    // JavaScript page. Handing the bare path to the canonical host fixes both
+    // at once: this hop is a 301, and the origin that owns the cookie makes
+    // the framework decision.
+    //
+    // Everything above this line runs first on purpose - those rules resolve
+    // a path whose meaning differs from what it says, and `abs()` has already
+    // pointed them at the canonical origin, so they cross hosts in one hop
+    // with the destination resolved. Collapsing the host before them would
+    // send `/` to the marketing homepage and `/0.8.0/` to a 404, because only
+    // `/docs/*` reaches this worker on handsontable.com.
+    //
+    // GET/HEAD only, so the rule 18a POST mock still answers on this host: a
+    // 301 is downgraded to GET by every client and loses the body, and a POST
+    // is never indexed, so there is nothing to canonicalise.
+    if (isLegacyDocsHost(url) && (request.method === 'GET' || request.method === 'HEAD')) {
+      return redirect301(abs(`${path}${url.search}`, url));
     }
 
     // -- 13. /docs/{ver}/{page}.html → versioned framework page (cookie) -----

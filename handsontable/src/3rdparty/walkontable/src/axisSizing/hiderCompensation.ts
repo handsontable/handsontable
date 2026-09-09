@@ -2,17 +2,21 @@ import type { default as Settings } from '../settings';
 import type { StylesHandler } from '../types';
 
 /**
- * The width the theme declares for a cell's bottom border, in CSS pixels.
+ * The width the theme declares for the one horizontal gridline the summed row heights do not
+ * account for, in CSS pixels. See `getHiderHeightCompensation` for which gridline that is.
  */
-const DECLARED_BOTTOM_BORDER_WIDTH = 1;
+const DECLARED_UNCOUNTED_GRIDLINE_WIDTH = 1;
 
 /**
  * The compensation added to the summed row heights to get the height the table actually renders at.
  *
- * The internal row-height calculator carries a known miscalculation worth one cell bottom border,
- * which both the hider write (`SpreaderSize#adjustElementsSize`) and the single-pass layout
- * prediction (`gatherLayoutInput`) have to fold in. It is not needed when AutoRowSize supplies exact
- * heights — the `externalRowCalculator` case.
+ * The summed row heights fall one whole pixel short of the band the table renders, because the
+ * FIRST rendered body row draws the grid's own top frame as a `border-top` that the per-row heights
+ * never counted. Both the hider write (`SpreaderSize#adjustElementsSize`) and the single-pass layout
+ * prediction (`gatherLayoutInput`) have to fold that pixel back in. Two cases have no shortfall at
+ * all and return 0: AutoRowSize supplying exact heights (the `externalRowCalculator` case), and a
+ * grid that renders a column header, which since DEV-2786 owns that gridline on the last head row's
+ * `th` so no body row draws a top border. The early returns below are those two, in that order.
  *
  * The compensation is the declared `1` **plus** the sub-pixel amount by which the browser inflated
  * the cells' bottom border beyond the whole-pixel value the row heights were summed with. Below 100%
@@ -45,6 +49,25 @@ export function getHiderHeightCompensation(wtSettings: Settings): number {
     return 0;
   }
 
+  // The pixel the declared `1` below stands for is the FIRST rendered body row's own `border-top`,
+  // and since DEV-2786 a grid that renders a column header does not have one: the last head row's
+  // `th` carries that gridline at every scroll position instead, so no body row abutting it draws a
+  // top border and the summed row heights are not short. Keeping the `1` here made the hider a pixel
+  // taller than its table, and `gatherLayoutInput` then predicted a vertical scrollbar the DOM never
+  // grew - which is a StretchColumns failure, because the solver shrinks the columns to make room
+  // for a bar that is never painted.
+  //
+  // The sub-pixel inflation is not carried over into this branch. The header's own fractional share
+  // is accounted separately, by `Viewport#getColumnHeaderHeightFraction()` at both call sites.
+  //
+  // Read defensively: a standalone Walkontable host may not declare `columnHeaders` at all, the same
+  // reason the styles-handler read below is guarded.
+  const columnHeaders = wtSettings.getSetting<unknown[] | undefined>('columnHeaders');
+
+  if (Array.isArray(columnHeaders) && columnHeaders.length > 0) {
+    return 0;
+  }
+
   const stylesHandler = wtSettings.getSetting<StylesHandler | null>('stylesHandler');
   // A standalone Walkontable host may supply no styles handler at all, or one implementing only
   // part of the class Handsontable passes in — the engine's own test harness does exactly that.
@@ -54,14 +77,14 @@ export function getHiderHeightCompensation(wtSettings: Settings): number {
   );
 
   if (!Number.isFinite(renderedBorderWidth)) {
-    return DECLARED_BOTTOM_BORDER_WIDTH;
+    return DECLARED_UNCOUNTED_GRIDLINE_WIDTH;
   }
 
   const wholePixelWidth = Math.round(renderedBorderWidth);
   const inflation = renderedBorderWidth > wholePixelWidth
     ? renderedBorderWidth - wholePixelWidth : 0;
 
-  return DECLARED_BOTTOM_BORDER_WIDTH + inflation;
+  return DECLARED_UNCOUNTED_GRIDLINE_WIDTH + inflation;
 }
 
 /**

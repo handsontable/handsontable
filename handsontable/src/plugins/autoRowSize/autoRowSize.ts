@@ -328,6 +328,36 @@ export class AutoRowSize extends BasePlugin {
    * @type {boolean}
    */
   #columnResizeRecalcScheduled = false;
+  /**
+   * `true` when a full `clearCache()` wiped every measured height and the replacement pass has not
+   * run yet.
+   *
+   * Only a render measures rows, and it measures just the visible band, so an emptied cache leaves
+   * every row below the fold unmeasured for good. Such a row falls back to the default height,
+   * which its own cell then refuses to honor once a wide wrapping column scrolls into view - a
+   * cell never renders shorter than its text - while the row header, having nothing to push it
+   * taller, does honor it. The two tables drift apart from there.
+   *
+   * The flag makes the next render restore the measurements the way `#onInit` does. Deferring
+   * rather than measuring inside `clearCache()` keeps repeated calls down to one recalculation and
+   * leaves `clearCache()` as cheap as it has always been.
+   *
+   * "The next render" means a full one: `beforeRender` is raised by `TableView#render()`, not by
+   * the engine's scroll draw, so a caller that clears the cache and then only scrolls gets nothing.
+   * Every documented use of `clearCache()` pairs it with a redraw.
+   *
+   * @type {boolean}
+   */
+  #fullRecalculationScheduled = false;
+  /**
+   * Handle of the idle task driving the in-flight full sweep, or `0` when none is running.
+   *
+   * Held on the instance rather than in `calculateAllRowsHeight()`'s closure so a new sweep can
+   * abandon the one before it - see the cancellation there.
+   *
+   * @type {number}
+   */
+  #idleSweepTimer = 0;
 
   /**
    * Initializes the plugin, registers the row heights map, and sets up the row resize hook.
@@ -507,31 +537,54 @@ export class AutoRowSize extends BasePlugin {
   ): void {
     let current = 0;
     const length = this.hot.countRows() - 1;
-    let timer = 0;
+
+    // A sweep already walking the grid is abandoned rather than left to run beside this one. Every
+    // sweep starts at row 0 and covers every row, so the new one measures everything the old one
+    // still had left. Two in flight would double the work and, worse, race on `inProgress`:
+    // whichever finished first would clear it while the other was still writing heights, and
+    // `#onBeforeRender` reads that flag to decide whether the refresh queue is safe to drain.
+    cancelIdleTask(this.#idleSweepTimer);
+    this.#idleSweepTimer = 0;
 
     this.inProgress = true;
 
     const loop = () => {
       // When hot was destroyed after calculating finished cancel frame
       if (!this.hot) {
-        cancelIdleTask(timer);
+        cancelIdleTask(this.#idleSweepTimer);
+        this.#idleSweepTimer = 0;
         this.inProgress = false;
 
         return;
       }
 
-      this.calculateRowsHeight({
-        from: current,
-        to: Math.min(current + AutoRowSize.CALCULATION_STEP, length)
-      }, colRange, overwriteCache);
+      try {
+        this.calculateRowsHeight({
+          from: current,
+          to: Math.min(current + AutoRowSize.CALCULATION_STEP, length)
+        }, colRange, overwriteCache);
+      } catch (error) {
+        // This runs inside an idle task, so the throw escapes whatever called
+        // `calculateAllRowsHeight()` - no caller's try/catch can see it. Leave the plugin
+        // recoverable before it goes.
+        this.#abandonSweep();
+
+        throw error;
+      }
 
       current = current + AutoRowSize.CALCULATION_STEP + 1;
 
       if (current < length) {
-        timer = requestIdleTask(loop);
+        this.#idleSweepTimer = requestIdleTask(loop);
       } else {
-        cancelIdleTask(timer);
+        cancelIdleTask(this.#idleSweepTimer);
+        this.#idleSweepTimer = 0;
         this.inProgress = false;
+
+        // Rows queued while this sweep was running were held back, because the two share one ghost
+        // table. The sweep ends without a render of its own, so nothing else would pick them up
+        // until the next full render - which never comes on a grid the user only scrolls.
+        this.#drainRowRefreshQueue();
       }
     };
 
@@ -539,7 +592,14 @@ export class AutoRowSize extends BasePlugin {
 
     // sync
     if (syncLimit >= 0) {
-      this.calculateRowsHeight({ from: 0, to: syncLimit }, colRange, overwriteCache);
+      try {
+        this.calculateRowsHeight({ from: 0, to: syncLimit }, colRange, overwriteCache);
+      } catch (error) {
+        this.#abandonSweep();
+
+        throw error;
+      }
+
       current = syncLimit + 1;
     }
     // async
@@ -547,7 +607,60 @@ export class AutoRowSize extends BasePlugin {
       loop();
     } else {
       this.inProgress = false;
+
+      // The whole grid fitted inside the sync limit, so `loop()` never ran and its completion
+      // branch - the other place the queue is drained - was never reached.
+      this.#drainRowRefreshQueue();
     }
+  }
+
+  /**
+   * Puts the plugin back into a state the next render can recover from, after a measurement threw
+   * part way through a sweep.
+   *
+   * Without it `inProgress` stays `true` for the instance's life, which does more than leave the
+   * heights half measured: `#drainRowRefreshQueue()` refuses to run while a sweep is in flight, so
+   * the refresh queue is silently disabled too. The full recalculation is re-owed, so the next
+   * render starts over.
+   */
+  #abandonSweep(): void {
+    cancelIdleTask(this.#idleSweepTimer);
+    this.#idleSweepTimer = 0;
+    this.inProgress = false;
+    this.#fullRecalculationScheduled = true;
+
+    // The ghost table has to be emptied too, or the retry above dies on arrival. `GhostTable#addRow`
+    // pushes its row object BEFORE it runs the renderers and only fills in `.table` once they have
+    // all returned, so a renderer that throws leaves a half-built entry behind - and `getHeights()`
+    // reads `.table` on every row it holds. Only the success path calls `clean()`, so without this
+    // the next sweep throws on that leftover, and so does the one after it.
+    this.ghostTable.clean();
+  }
+
+  /**
+   * Measures the rows waiting in the refresh queue, if this moment can measure them at all.
+   *
+   * Two moments cannot, and both KEEP the queue rather than dropping it, so the rows are measured
+   * at the first moment that can:
+   *
+   * - while a full sweep is running, because the sweep and this pass share one ghost table;
+   * - while the grid has no columns, because the measurement would then write a near-empty height
+   *   which, no longer being `null`, is never re-measured when the columns come back. That is the
+   *   same trap the scheduled full recalculation is guarded against.
+   *
+   * Called from the render, and again when a sweep finishes - a sweep ends without a render of its
+   * own, so without that second call a queue held back by the first condition would wait for the
+   * next full render, which on a grid the user only scrolls never comes.
+   */
+  #drainRowRefreshQueue(): void {
+    if (this.inProgress || this.hot.countCols() === 0 || this.#visualRowsToRefresh.length === 0) {
+      return;
+    }
+
+    // Cleared after the call, not before: a measurement that throws leaves the rows queued for the
+    // next attempt rather than dropping them.
+    this.#calculateSpecificRowsHeight(this.#visualRowsToRefresh);
+    this.#visualRowsToRefresh = [];
   }
 
   /**
@@ -649,7 +762,10 @@ export class AutoRowSize extends BasePlugin {
     if (cachedHeight !== undefined && cachedHeight !== null && cachedHeight > defaultHeight) {
       height = cachedHeight;
 
-      if (row === this.hot.view.getFirstRenderedVisibleRow()) {
+      if (
+        this.hot.stylesHandler.firstRenderedRowDrawsTopBorder() &&
+        row === this.hot.view.getFirstRenderedVisibleRow()
+      ) {
         // add 1px border-top-width compensation for the first rendered row
         height += 1;
       }
@@ -699,6 +815,13 @@ export class AutoRowSize extends BasePlugin {
    * Clears cache of calculated row heights. If you want to clear only selected rows pass an array with their indexes.
    * Otherwise whole cache will be cleared.
    *
+   * Clearing the whole cache schedules a full re-measurement, which runs on the next render. Note
+   * that a scroll is not a render in this sense - pair the call with {@link Core#render} the way the
+   * examples do, or the heights are not rebuilt.
+   *
+   * Passing an array clears those rows only, and queues exactly those rows for re-measurement on
+   * the next render.
+   *
    * @param {number[]} [physicalRows] List of physical row indexes to clear.
    */
   clearCache(physicalRows?: number[]): void {
@@ -711,24 +834,68 @@ export class AutoRowSize extends BasePlugin {
         });
       }, true);
 
+      this.#queueClearedRowsForRefresh(physicalRows);
+
     } else {
       this.rowHeightsMap.clear();
+      // Nothing is measured any more, so the next render owes a full recalculation - see
+      // `#fullRecalculationScheduled`.
+      //
+      // `measuredRows` is deliberately left alone. It is what the public `isNeedRecalculate()`
+      // slices, and zeroing it makes that method answer "nothing to recalculate" at the exact
+      // moment every height was dropped. AutoColumnSize leaves its counterpart alone for the same
+      // reason.
+      this.#fullRecalculationScheduled = true;
     }
   }
 
   /**
-   * Clears cache by range.
+   * Clears cache by range. The cleared rows are queued for re-measurement on the next render.
    *
    * @param {object|number} range Row index or an object with `from` and `to` properties which define row range.
    */
   clearCacheByRange(range: number | { from: number, to: number }): void {
     const { from, to } = typeof range === 'number' ? { from: range, to: range } : range;
+    const clearedRows: number[] = [];
 
     this.hot.batchExecution(() => {
       rangeEach(Math.min(from, to), Math.max(from, to), (row) => {
         this.rowHeightsMap.setValueAtIndex(row, null);
+        clearedRows.push(row);
       });
     }, true);
+
+    this.#queueClearedRowsForRefresh(clearedRows);
+  }
+
+  /**
+   * Queues rows whose cached height was just dropped, so the next render measures them again.
+   *
+   * Without this they are only measured if and when they are drawn, and a render measures only the
+   * band it draws - so a cleared row below the fold keeps the default height, and once a wide
+   * wrapping column is scrolled into view its cell renders taller than the row header, which is the
+   * misalignment `#fullRecalculationScheduled` exists to prevent. `#calculateSpecificRowsHeight()`
+   * reads a row from the data rather than from the screen, so being off-screen is no obstacle.
+   *
+   * The queue is the same one data changes use, and it is drained in one synchronous pass, so
+   * clearing a very large range costs a correspondingly large measurement on the next render. That
+   * matches what the caller asked for, and it is the shape `#onBeforeChange` has always had; the
+   * alternative - leaving the rows silently wrong - is the defect.
+   *
+   * @param {number[]} physicalRows Physical row indexes whose heights were cleared.
+   */
+  #queueClearedRowsForRefresh(physicalRows: number[]): void {
+    physicalRows.forEach((physicalRow) => {
+      const visualRow = this.hot.toVisualRow(physicalRow);
+
+      // A row outside the dataset, or one a trimming map hides, has no visual index to measure.
+      // Duplicates are skipped, the way the other producers of this queue do it: while the queue is
+      // held back (a column-less grid, or a sweep in flight) overlapping calls would otherwise pile
+      // the same row up and measure it once per copy.
+      if (visualRow !== null && !this.#visualRowsToRefresh.includes(visualRow)) {
+        this.#visualRowsToRefresh.push(visualRow);
+      }
+    });
   }
 
   /**
@@ -777,10 +944,37 @@ export class AutoRowSize extends BasePlugin {
    */
   #onBeforeRender = () => {
     this.calculateVisibleRowsHeight();
+    this.#drainRowRefreshQueue();
 
-    if (!this.inProgress) {
-      this.#calculateSpecificRowsHeight(this.#visualRowsToRefresh);
-      this.#visualRowsToRefresh = [];
+    // A wiped cache is restored in full, so the rows below the fold are measured too and not just
+    // the visible band - see `#fullRecalculationScheduled`. It runs AFTER the visible band above,
+    // never instead of it: `calculateAllRowsHeight()` only measures up to `syncLimit` rows
+    // synchronously and leaves the rest to an idle sweep, so on a grid scrolled past that limit the
+    // band on screen would otherwise draw unmeasured, which is the very defect this repairs.
+    //
+    // The flag is held rather than consumed whenever this render cannot measure: while the grid is
+    // hidden `recalculateAllRowsHeight()` is a no-op, and with no columns the measurement writes a
+    // near-empty height for every row that nothing would ever correct (the same reason
+    // `calculateVisibleRowsHeight()` bails out on a column-less grid). The row count is checked for
+    // the same shape of reason, though nothing is at stake: a sweep over no rows measures nothing,
+    // so holding the flag just keeps the work owed until there is something to measure.
+    if (this.#fullRecalculationScheduled &&
+        this.hot.countCols() > 0 &&
+        this.hot.countRows() > 0 &&
+        this.hot.view.isVisible()) {
+      // Consumed before the call, not after: the sweep resizes the overlays, and a re-entrant
+      // render reaching this branch with the flag still set would recurse. It is re-owed if the
+      // sweep throws - the ghost table runs the real renderers, so a renderer that throws would
+      // otherwise leave every unmeasured row at the default height for the instance's life.
+      this.#fullRecalculationScheduled = false;
+
+      try {
+        this.recalculateAllRowsHeight();
+      } catch (error) {
+        this.#fullRecalculationScheduled = true;
+
+        throw error;
+      }
     }
   };
 

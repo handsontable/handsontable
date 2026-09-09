@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Column header border ownership, window-scroll mode</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+  </style>
+</head>
+<body>
+  <!--
+    The window-scroll half of DEV-2786. The main fixture builds every grid with an explicit
+    `width`/`height`, which is element-scroll mode: the holder scrolls and the browser clamps
+    `scrollTop` to the holder's own range, so a scroll target that overshoots the end is absorbed and
+    can never be observed.
+
+    This grid declares NEITHER, so the WINDOW owns both axes. `TopOverlay#scrollTo` deliberately
+    overshoots a bottom-edge scroll by one pixel (`newY += 1`) so the target row is fully revealed
+    rather than clipped by its own bottom border - that term is row-border accounting and is needed
+    on a grid with no headers at all - and here nothing clamps it. So this is the shape where a
+    bottom-edge scroll can actually be checked against the viewport.
+  -->
+  <h2>Column headers, window-scrolled (no width, no height)</h2>
+  <div id="window-scroll" data-testid="window-scroll"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const TOTAL_ROWS = 80;
+    const container = document.querySelector('[data-testid="window-scroll"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    window.hot = new Handsontable(container, {
+      data: Handsontable.helper.createSpreadsheetData(TOTAL_ROWS, 6),
+      colHeaders: true,
+      rowHeaders: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    window.lastRow = TOTAL_ROWS - 1;
+
+    /**
+     * Scrolls so the given row is snapped to the BOTTOM edge of the viewport, which is the branch
+     * of `TopOverlay#scrollTo` that carries the overshoot.
+     *
+     * @param {number} row The visual row index.
+     */
+    window.scrollRowToBottomEdge = function(row) {
+      window.hot.scrollViewportTo({ row, verticalSnap: 'bottom' });
+    };
+  </script>
+</body>
+</html>

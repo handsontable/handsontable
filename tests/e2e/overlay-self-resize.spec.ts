@@ -148,12 +148,12 @@ test.describe('overlay self-resize', () => {
     expect(counters.externalRequests).toBe(0);
   });
 
-  test('resizes once when scrolling off the top, then not again', async () => {
-    // Scrolling away from row 0 makes the top overlay add its `innerBorderTop` class, which grows
-    // the column header by 1px — a real change the hider has to follow. So the honest contract is
-    // not "scrolling never resizes": it is that the border transition costs ONE resize and every
-    // scroll after it costs none. Scrolling is the hottest path in the grid, so a per-frame resize
-    // here would be the most expensive place to get this wrong.
+  test('does not resize while scrolling, at any offset', async () => {
+    // Scrolling moves the viewport, never the totals — since DEV-2786 not even by the 1px the
+    // `innerBorderTop` toggle used to add to the column header, because the header now owns that
+    // gridline at every offset. So the contract is a flat zero, including the very first scroll off
+    // row 0, which is where the old 1px change happened. Scrolling is the hottest path in the grid,
+    // so a resize here would be the most expensive place to get this wrong.
     await grid.renderWithoutChanges(); // settle the header measurement
     await grid.resetCounters();
 
@@ -167,8 +167,8 @@ test.describe('overlay self-resize', () => {
 
     const afterMoreScrolling = await grid.counters();
 
-    expect(afterFirstScroll.engineResizes).toBe(1);
-    expect(afterMoreScrolling.engineResizes).toBe(1);
+    expect(afterFirstScroll.engineResizes).toBe(0);
+    expect(afterMoreScrolling.engineResizes).toBe(0);
     expect(afterMoreScrolling.externalRequests).toBe(0);
   });
 });

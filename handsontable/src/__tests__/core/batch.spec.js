@@ -99,9 +99,9 @@ describe('Core.batch', () => {
     });
 
     expect(getTopClone().width()).toBe(300);
-    expect(getTopClone().height()).toBe(layout.defaultDataRowHeight);
+    expect(getTopClone().height()).toBe(layout.columnHeaderBandHeight());
     expect(getTopInlineStartClone().width()).toBe(50);
-    expect(getTopInlineStartClone().height()).toBe(layout.defaultDataRowHeight);
+    expect(getTopInlineStartClone().height()).toBe(layout.columnHeaderBandHeight());
     expect(getInlineStartClone().width()).toBe(50);
     expect(getInlineStartClone().height())
       .toBe(layout.overlayHeight({ rows: 5 }) + layout.cellBorderWidth + layout.defaultColumnHeaderHeight);

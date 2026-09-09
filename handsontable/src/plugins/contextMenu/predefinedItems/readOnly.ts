@@ -1,8 +1,22 @@
 import type { HotInstance } from '../../../core/types';
-import { checkSelectionConsistency, markLabelAsSelected } from '../utils';
+import { checkSelectionConsistency } from '../utils';
 import * as C from '../../../i18n/constants';
 
 export const KEY = 'make_read_only';
+
+/**
+ * Checks whether any cell in the current selection is already read-only.
+ *
+ * @param {Core} hot The Handsontable instance.
+ * @param {CellRange[]} [ranges] The ranges to check. Defaults to the whole selection.
+ * @returns {boolean}
+ */
+function hasReadOnlyCell(hot: HotInstance, ranges = hot.getSelectedRange() ?? []) {
+  return checkSelectionConsistency(
+    ranges,
+    (row: number, col: number) => Boolean(hot.getCellMetaTransient(row, col).readOnly)
+  );
+}
 
 /**
  * @returns {object}
@@ -11,38 +25,21 @@ export default function readOnlyItem() {
   return {
     key: KEY,
     checkable: true,
-    ariaChecked(this: HotInstance) {
-      const atLeastOneReadOnly = checkSelectionConsistency(
-        this.getSelectedRange() ?? [],
-        (row: number, col: number) => Boolean(this.getCellMetaTransient(row, col).readOnly)
-      );
 
-      return atLeastOneReadOnly;
+    // The single source for both the check mark the renderer draws and the item's `aria-checked`
+    // state, which is why this item declares no `ariaChecked` of its own any more.
+    checked(this: HotInstance) {
+      return hasReadOnlyCell(this);
     },
 
-    ariaLabel(this: HotInstance): string {
-      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY) as string;
-    },
-
+    // No `ariaLabel`: the renderer falls back to the item's label, and these two were the same
+    // translated phrase once the check mark stopped living inside the name.
     name(this: HotInstance): string {
-      let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY) as string;
-      const atLeastOneReadOnly = checkSelectionConsistency(
-        this.getSelectedRange() ?? [],
-        (row: number, col: number) => Boolean(this.getCellMetaTransient(row, col).readOnly)
-      );
-
-      if (atLeastOneReadOnly) {
-        label = markLabelAsSelected(label);
-      }
-
-      return label;
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY) as string;
     },
     callback(this: HotInstance) {
       const ranges = this.getSelectedRange() ?? [];
-      const atLeastOneReadOnly = checkSelectionConsistency(
-        ranges,
-        (row: number, col: number) => Boolean(this.getCellMetaTransient(row, col).readOnly)
-      );
+      const atLeastOneReadOnly = hasReadOnlyCell(this, ranges);
 
       for (const range of ranges) {
         range.forAll((row: number, col: number) => {

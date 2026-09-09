@@ -143,10 +143,11 @@ export class RenderSizeProbe {
   }
 
   /**
-   * Measures the rendered column-header heights per level. Matches
-   * `Table.markIfOversizedColumnHeader`, which reads `innerHeight` of each header CELL (TH) and keeps
-   * the tallest per level — not the THEAD row height, which is a border taller. Each THEAD child is a
-   * header row (one per level); its TH cells are the per-column headers.
+   * Measures the rendered column-header heights per level, in the shape the engine's own
+   * `adjustColumnHeaderHeights` consumes: the tallest header CELL (TH) per level, read as a
+   * BORDER-BOX height, never the THEAD row height. Each THEAD child is a header row (one per
+   * level); its TH cells are the per-column headers. The measurement below says why the read is
+   * `outerHeight` rather than `innerHeight`.
    *
    * @param {object} wtTable The master engine table whose THEAD is measured.
    */
@@ -169,8 +170,14 @@ export class RenderSizeProbe {
         // Skip cells that span more than one header row (nested-header rowspan). Their height covers
         // several levels, so measuring it as this level's height would push the lower levels down.
         // Only single-row header cells carry a content-driven per-level height.
+        // `outerHeight`, not `innerHeight`: the value measured here goes back into the
+        // `columnHeaderHeight` funnel and `adjustColumnHeaderHeights` writes it as `style.height` on
+        // a `box-sizing: border-box` header cell, so it has to be a border-box height or the round
+        // trip loses the cell's own borders. It loses exactly one pixel since DEV-2786, where the
+        // header gained a permanent `border-bottom` - which left the master's content-driven header
+        // row a pixel taller than the height written to the frozen overlays' corner cell.
         if (cell instanceof HTMLTableCellElement && cell.rowSpan <= 1) {
-          const cellHeight = innerHeight(cell);
+          const cellHeight = outerHeight(cell);
 
           if (maxHeight === undefined || cellHeight > maxHeight) {
             maxHeight = cellHeight;

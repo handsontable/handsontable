@@ -62,7 +62,10 @@ test.describe('walkontable exact row heights', { tag: '@walkontable' }, () => {
 
       await wt.scrollHorizontallyTo(500);
 
-      expect(await wt.masterFirstRenderedColumn()).toBeGreaterThan(0);
+      // Poll: the holder's `scrollLeft` settles synchronously but the redraw it triggers is
+      // scheduled in `requestAnimationFrame` (`nativeScrollInput.ts`), so a read straight after
+      // the scroll can still see column 0. Pre-existing flake, not a change in behavior.
+      await expect.poll(async() => wt.masterFirstRenderedColumn()).toBeGreaterThan(0);
       expect(await wt.rowHeight(wt.master, TALL_FROZEN_ROW)).toBe(ROW_HEIGHT);
       expect(await wt.rowOffsetWithinTable(wt.master, TALL_FROZEN_ROW + 2))
         .toBe(await wt.rowOffsetWithinTable(wt.inlineStartOverlay, TALL_FROZEN_ROW + 2));
