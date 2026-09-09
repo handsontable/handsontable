@@ -47,6 +47,7 @@ describe('`registerAllPlugins`', () => {
       'ExportFile',
       'Filters',
       'Formulas',
+      'AutoLink',
       'NestedHeaders',
       'CollapsibleColumns',
       'NestedRows',
