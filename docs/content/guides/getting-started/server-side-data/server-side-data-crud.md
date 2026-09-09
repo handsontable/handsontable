@@ -2,7 +2,7 @@
 type: reference
 title: Server-side CRUD
 metaTitle: Server-side CRUD - JavaScript Data Grid | Handsontable
-description: Handsontable dataProvider create, update, and remove—onRowsCreate, onRowsUpdate, onRowsRemove, mutation hooks, optimistic UI, validators, and programmatic CRUD.
+description: Handsontable dataProvider create, update, and remove -- onRowsCreate, onRowsUpdate, onRowsRemove, mutation hooks, optimistic UI, validators, and programmatic CRUD.
 permalink: /server-side-data-crud
 canonicalUrl: /server-side-data-crud
 tags:

@@ -23,19 +23,19 @@
  *   7. Cross-framework page fixes (angular/react wrong-prefix pages)
  *  7a. Vue 3 legacy page redirects      → /docs/vue-data-grid/*
  *   8. Recipe cell-type slug mismatches
- *   9. Angular-only recipe redirects for React/JS
- *  10. JS/React-only recipe redirects for Angular/React
- *  11. Flat /docs/react-* redirects        → /docs/react-data-grid/*
- *  12. Tutorial flat redirects             → /docs/javascript-data-grid/*
- *  13. Versioned /docs/:ver/react-*        → /docs/:ver/react-data-grid/*
- *  14. /docs/:ver{/}                       → version root or framework home
- *  15. /docs/(page).html                   → framework page (cookie)
- *  16. /docs/(page){/}                     → framework page (cookie)
- *  17. /docs/react, /docs/angular, etc.    → framework homes
- *  18. /{/}                               → /docs
- *  19. /docs{/}                           → /docs/(framework)/ (cookie)
- * 19a. POST /docs/scripts/json/save.json  → mock 200 JSON (saving-data demo)
- *  20. Static asset fallback (env.ASSETS)
+ *   9. Flat /docs/react-data-grid/row-sorting etc.
+ *  10. Flat /docs/react-*                  → /docs/react-data-grid/*
+ *  11. Tutorial flat redirects             → /docs/javascript-data-grid/*
+ *  12. Framework shorthand redirects       → framework homes
+ *  13. /docs/:ver/:page.html               → versioned framework pages (cookie, 302)
+ *  14. /docs/:ver{/}                       → version root or framework home (cookie, 302)
+ *  15. /docs/(page).html                   → flat framework page (cookie, 302)
+ *  16. /docs/(page){/}                     → flat framework page (cookie, 302)
+ *  17. /docs{/}                            → /docs/(framework)/ (cookie, 302)
+ *  18. Versioned /docs/:ver/react-*        → /docs/:ver/react-data-grid/*
+ * 18a. POST /docs/scripts/json/save.json   → mock 200 JSON (saving-data demo)
+ * 18b. /docs/_md/**.md, /docs/llms*.txt   → served from assets as text/plain
+ *  19. Static asset fallback (env.ASSETS)
  */
 
 // ---------------------------------------------------------------------------
@@ -1276,6 +1276,26 @@ async function route(request, env) {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
       });
+    }
+
+    // -- 18b. Agent-facing text files: force text/plain -----------------------
+    // The Markdown twins under /docs/_md/ and the llms.txt indexes exist for
+    // AI agents, but Pages serves .md as `text/markdown` — a content type
+    // OpenAI's web-search fetch tool refuses to parse (verified 2026-09-08:
+    // the tool fetched a twin, reported "unsupported content type", and fell
+    // back to the HTML page). `text/plain` is what raw.githubusercontent.com
+    // and hyperformula.handsontable.com/llms.txt serve, and every major agent
+    // stack consumes it. Serving content, so this must stay below every redirect rule.
+    if (/^\/docs\/(?:_md\/.+\.md|llms(?:-full)?\.txt)$/.test(path)) {
+      const assetResponse = await env.ASSETS.fetch(request);
+
+      if (assetResponse.status !== 200) return assetResponse;
+
+      const decorated = new Response(assetResponse.body, assetResponse);
+
+      decorated.headers.set('Content-Type', 'text/plain; charset=utf-8');
+
+      return decorated;
     }
 
     // -- 19. Fallback: serve static assets via env.ASSETS --------------------
