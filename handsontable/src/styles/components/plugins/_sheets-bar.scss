@@ -271,11 +271,7 @@ $all-sheets-visible-items: 8;
         &--active,
         &--active:hover {
           color: var(--ht-sheets-bar-tab-active-foreground-color);
-          background: color-mix(
-            in srgb,
-            var(--ht-sheets-bar-tab-active-background-color) var(--ht-sheets-bar-tab-active-background-opacity, 100%),
-            transparent
-          );
+          background: var(--ht-sheets-bar-tab-active-background-color);
           box-shadow: $active-marker;
         }
 
@@ -301,19 +297,13 @@ $all-sheets-visible-items: 8;
           @include mixins.box-shadow;
         }
 
-        // The active tab keeps both of the things that mark it out while it travels. Its surface
-        // is a low-percentage tint over whatever is behind it, so compositing that tint over the
-        // hover background gives it the held look the other tabs get, opaquely, without losing
-        // the accent. Its bottom-edge line has to ride along with the drop shadow, because a
-        // `box-shadow` is a single list and the drag rule's shadow would otherwise replace the
-        // marker outright.
+        // The active tab keeps both of the things that mark it out while it travels: its own
+        // opaque surface, and its bottom-edge line — which has to ride along with the drop
+        // shadow, because a `box-shadow` is a single list and the drag rule's shadow would
+        // otherwise replace the marker outright.
         &--active.ht-sheets-bar__tab--dragging {
           color: var(--ht-sheets-bar-tab-active-foreground-color);
-          background-color: color-mix(
-            in srgb,
-            var(--ht-sheets-bar-tab-active-background-color) var(--ht-sheets-bar-tab-active-background-opacity, 100%),
-            var(--ht-sheets-bar-tab-hover-background-color)
-          );
+          background-color: var(--ht-sheets-bar-tab-active-background-color);
           box-shadow: $active-marker, mixins.box-shadow-value();
         }
       }
@@ -385,6 +375,11 @@ $all-sheets-visible-items: 8;
         border-radius: 0;
         padding-inline: var(--ht-gap-size);
         padding-block: 0;
+        // The field fills most of the tab's height, the way the design system draws it: the
+        // negative block margin reaches into the tab's own padding, leaving a gap-sized inset
+        // from the bar's edges instead of a text-height sliver floating in the middle.
+        align-self: stretch;
+        margin-block: calc(var(--ht-gap-size) - var(--ht-sheets-bar-tab-vertical-padding));
         // The accent border is the focus indication, exactly like the cell editor it borrows
         // its tokens from — the browser's own focus ring drew a second, rounded outline around
         // the field (UX review: "like the design system").

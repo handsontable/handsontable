@@ -169,7 +169,7 @@
   --ht-icon-button-hit-area-size: var(--ht-sizing-size-6);
   --ht-icon-button-hover-border-color: light-dark(var(--ht-colors-palette-100), var(--ht-colors-palette-700));
   --ht-icon-button-hover-background-color: light-dark(var(--ht-colors-palette-100), var(--ht-colors-palette-700));
-  --ht-icon-button-hover-icon-color: light-dark(var(--ht-colors-palette-300), var(--ht-colors-palette-400));
+  --ht-icon-button-hover-icon-color: light-dark(var(--ht-colors-palette-400), var(--ht-colors-palette-300));
   --ht-icon-button-active-border-color: light-dark(var(--ht-colors-primary-400), var(--ht-colors-primary-200));
   --ht-icon-button-active-background-color: var(--ht-accent-color);
   --ht-icon-button-active-icon-color: var(--ht-colors-white);
@@ -321,8 +321,7 @@
   --ht-sheets-bar-tab-hover-foreground-color: light-dark(var(--ht-colors-palette-950), var(--ht-colors-white));
   --ht-sheets-bar-tab-hover-background-color: light-dark(var(--ht-colors-palette-100), var(--ht-colors-palette-700));
   --ht-sheets-bar-tab-active-foreground-color: light-dark(var(--ht-colors-palette-950), var(--ht-colors-white));
-  --ht-sheets-bar-tab-active-background-color: var(--ht-accent-color);
-  --ht-sheets-bar-tab-active-background-opacity: 8%;
+  --ht-sheets-bar-tab-active-background-color: light-dark(var(--ht-colors-palette-100), var(--ht-colors-palette-700));
   --ht-sheets-bar-tab-active-border-width: 1px;
   --ht-sheets-bar-tab-active-border-color: var(--ht-cell-selection-border-color);
   --ht-dialog-semi-transparent-background-color: light-dark(var(--ht-colors-white), var(--ht-colors-palette-950));

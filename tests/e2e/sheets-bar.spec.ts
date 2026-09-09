@@ -1061,46 +1061,28 @@ test.describe('sheets bar', () => {
       element => getComputedStyle(element).backgroundColor,
     );
 
-    // The active tab is the one that needs proving: hovering it normally changes nothing,
-    // because its hover surface is defined as its active surface.
-    const resting = await surfaceOf(bar.tab(0));
+    // A plain tab is the proving case: its resting surface differs from its hover surface, so
+    // a dragged tab that dropped to its resting look — pointer events are off for the whole
+    // gesture, so `:hover` never matches it — would be caught. The active tab cannot prove
+    // this any more: by design its resting, hover, and dragged surfaces are one solid color.
+    const resting = await surfaceOf(bar.tab(1));
 
-    await bar.tab(0).hover();
+    await bar.tab(1).hover();
 
-    expect(await surfaceOf(bar.tab(0))).toEqual(resting);
+    const hovered = await surfaceOf(bar.tab(1));
 
-    const box = (await bar.tab(0).boundingBox())!;
+    expect(hovered).not.toEqual(resting);
+
+    const box = (await bar.tab(1).boundingBox())!;
     const middle = box.y + (box.height / 2);
 
     await page.mouse.move(box.x + (box.width / 2), middle);
     await page.mouse.down();
     await page.mouse.move(box.x + (box.width / 2) + 10, middle);
 
-    // The exact surface the rule promises: the active tint composited over the hover
-    // background, rather than over the bar's plain one.
-    const expected = await page.evaluate(() => {
-      const strip = document.querySelector('.ht-sheets-bar') as HTMLElement;
-      const tokens = getComputedStyle(strip);
-      const probe = document.createElement('div');
-
-      probe.style.backgroundColor = `color-mix(in srgb, ${
-        tokens.getPropertyValue('--ht-sheets-bar-tab-active-background-color')} ${
-        tokens.getPropertyValue('--ht-sheets-bar-tab-active-background-opacity')}, ${
-        tokens.getPropertyValue('--ht-sheets-bar-tab-hover-background-color')})`;
-      strip.appendChild(probe);
-
-      const surface = getComputedStyle(probe).backgroundColor;
-
-      probe.remove();
-
-      return surface;
-    });
-
-    expect(expected).not.toEqual(resting);
-
     await expect.poll(
       () => surfaceOf(page.locator('.ht-sheets-bar__tab--dragging')),
-    ).toEqual(expected);
+    ).toEqual(hovered);
 
     await page.mouse.up();
   });

@@ -391,6 +391,23 @@ const tokensKeys = [
   'pagination-button-focus-foreground-color',
   'pagination-button-focus-background-color',
 
+  // Sheets Bar Variables
+  // The design-system file currently exports these under `component/tabs/tab-*` and
+  // `component/sheets/sheets-bar-*`; the export must carry the `sheets-bar-tab-*` names below
+  // (matching the shipped CSS API) for the generator to pick them up — flag the rename to the
+  // design side before the next tokens.json export. The bar's own padding and background ride
+  // on the shared `bar-*` tokens, so only the tab-level keys are listed.
+  'sheets-bar-tab-horizontal-padding',
+  'sheets-bar-tab-vertical-padding',
+  'sheets-bar-tab-foreground-color',
+  'sheets-bar-tab-background-color',
+  'sheets-bar-tab-hover-foreground-color',
+  'sheets-bar-tab-hover-background-color',
+  'sheets-bar-tab-active-foreground-color',
+  'sheets-bar-tab-active-background-color',
+  'sheets-bar-tab-active-border-width',
+  'sheets-bar-tab-active-border-color',
+
   // Dialog Variables
   'dialog-semi-transparent-background-color',
   'dialog-semi-transparent-background-opacity',
