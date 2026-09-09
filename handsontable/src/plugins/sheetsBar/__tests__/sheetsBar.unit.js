@@ -764,25 +764,26 @@ describe('SheetsBar plugin', () => {
     expect(bar.classList.contains('ht-sheets-bar-pressing')).toBe(false);
   });
 
-  it('marks the strip scrolled once it moves away from its start', () => {
+  it('marks the bar scrolled once the strip moves away from its start', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
       licenseKey: 'non-commercial-and-evaluation',
     });
-    const strip = hot.rootWrapperElement.querySelector('.ht-sheets-bar__tabs');
+    const bar = hot.rootWrapperElement.querySelector('.ht-sheets-bar');
+    const strip = bar.querySelector('.ht-sheets-bar__tabs');
 
     strip.scrollLeft = 40;
     strip.dispatchEvent(new Event('scroll'));
 
-    expect(strip.classList.contains('ht-sheets-bar__tabs--scrolled')).toBe(true);
+    expect(bar.classList.contains('ht-sheets-bar--strip-scrolled')).toBe(true);
 
     strip.scrollLeft = 0;
     strip.dispatchEvent(new Event('scroll'));
 
-    expect(strip.classList.contains('ht-sheets-bar__tabs--scrolled')).toBe(false);
+    expect(bar.classList.contains('ht-sheets-bar--strip-scrolled')).toBe(false);
   });
 
-  it('carries the full sheet name in the label title, for names the cap ellipsizes', () => {
+  it('carries the full sheet name in the label title', () => {
     const name = 'A very long sheet name that the strip cannot show whole';
 
     hot = new Handsontable(container, {

@@ -20,13 +20,23 @@ const SCROLL_END_TOLERANCE = 1;
 export const DISABLED_CLASS = 'ht-sheets-bar__button--disabled';
 
 /**
- * The class the strip wears once it has scrolled away from its start. The stylesheet draws a
- * divider between the fixed controls and the tabs sliding under them, the way Google Sheets
- * marks the same state.
+ * The class the bar wears once the strip has scrolled away from its start. The stylesheet
+ * draws a divider between the fixed controls and the tabs sliding under them, the way Google
+ * Sheets marks the same state. It lives on the bar, not the strip: painted on the scroll
+ * container itself, the tabs' opaque backgrounds cover it.
  *
  * @type {string}
  */
-export const SCROLLED_CLASS = 'ht-sheets-bar__tabs--scrolled';
+export const SCROLLED_CLASS = 'ht-sheets-bar--strip-scrolled';
+
+/**
+ * The class the bar wears while tabs still continue past the strip's end. The stylesheet keys
+ * the paging cluster's divider off it, so the rule fades once the strip is scrolled all the
+ * way — a divider next to nothing would claim there is more to scroll to.
+ *
+ * @type {string}
+ */
+export const MORE_END_CLASS = 'ht-sheets-bar--strip-more-end';
 
 /**
  * Watches the tab strip for horizontal overflow and drives the paging arrows.
@@ -150,15 +160,26 @@ export class OverflowController {
     // `scrollLeft`, so the magnitude is what both ends have in common.
     const travelled = Math.abs(this.#strip.scrollLeft);
     const total = this.#strip.scrollWidth - this.#strip.clientWidth;
+    const barElement = this.#strip.closest('.ht-sheets-bar');
 
-    if (travelled > SCROLL_END_TOLERANCE) {
-      addClass(this.#strip, SCROLLED_CLASS);
-    } else {
-      removeClass(this.#strip, SCROLLED_CLASS);
+    if (barElement) {
+      this.#toggleClass(barElement, SCROLLED_CLASS, travelled > SCROLL_END_TOLERANCE);
+      this.#toggleClass(barElement, MORE_END_CLASS, overflows && travelled < total - SCROLL_END_TOLERANCE);
     }
 
     this.#setArrowEnabled(this.#pagePrev, travelled > SCROLL_END_TOLERANCE);
     this.#setArrowEnabled(this.#pageNext, travelled < total - SCROLL_END_TOLERANCE);
+  }
+
+  /**
+   * Adds or removes a class from the current state.
+   */
+  #toggleClass(element: Element, className: string, on: boolean): void {
+    if (on) {
+      addClass(element as HTMLElement, className);
+    } else {
+      removeClass(element as HTMLElement, className);
+    }
   }
 
   /**

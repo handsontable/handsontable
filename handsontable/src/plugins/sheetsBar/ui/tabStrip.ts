@@ -183,8 +183,8 @@ export class TabStrip {
 
     label.className = 'ht-sheets-bar__tab-label';
     label.textContent = sheet.name;
-    // The label caps its width and ellipsizes long names, so the full name stays reachable on
-    // hover.
+    // The menus ellipsize long names and the strip can scroll a tab half out of view, so the
+    // full name stays reachable on hover.
     label.title = sheet.name;
     label.dir = 'auto';
 

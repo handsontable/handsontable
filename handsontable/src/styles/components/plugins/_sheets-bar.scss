@@ -126,15 +126,47 @@ $all-sheets-visible-items: 8;
       }
 
       .ht-sheets-bar__controls {
+        position: relative;
         padding-inline: calc(var(--ht-gap-size) * 2);
       }
 
+      // Once the strip has scrolled away from its start, a divider separates the fixed
+      // controls from the tabs sliding under them — the way Google Sheets marks the same
+      // state (UX review). Drawn as a positioned overlay on the controls cluster: a border
+      // is layout (its 1px shift broke the reveal-scroll), and a shadow on the scroll
+      // container is painted under the tabs' opaque backgrounds.
+      &.ht-sheets-bar--strip-scrolled .ht-sheets-bar__controls::after {
+        content: "";
+        position: absolute;
+        inset-inline-end: 0;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        background: var(--ht-border-color);
+        z-index: 1;
+        pointer-events: none;
+      }
+
       // Paired the way the add and all-sheets buttons are paired, so the two clusters read as
-      // the same kind of control rather than as two different ones. The leading rule stays: it
-      // separates the arrows from the tabs they scroll, which the other cluster has no need of.
+      // the same kind of control rather than as two different ones.
       .ht-sheets-bar__paging {
+        position: relative;
         padding-inline-start: calc(var(--ht-gap-size) * 2);
-        border-inline-start: 1px solid var(--ht-border-color);
+      }
+
+      // The paging cluster's divider mirrors the controls' one: it shows only while tabs still
+      // continue past the strip's end, and fades once the strip is scrolled all the way — a
+      // rule separating the arrows from nothing would claim there is more to scroll to.
+      &.ht-sheets-bar--strip-more-end .ht-sheets-bar__paging::before {
+        content: "";
+        position: absolute;
+        inset-inline-start: 0;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        background: var(--ht-border-color);
+        z-index: 1;
+        pointer-events: none;
       }
 
       .ht-sheets-bar__button {
@@ -186,20 +218,6 @@ $all-sheets-visible-items: 8;
         &::-webkit-scrollbar {
           display: none;
         }
-
-        // Once the strip has scrolled away from its start, a divider separates it from the
-        // fixed controls — the way Google Sheets marks that tabs have slid under them
-        // (UX review). Painted as an inset shadow, not a border: a border is layout, and the
-        // 1px shift it caused left the reveal-scroll unable to settle the strip back on zero.
-        &--scrolled {
-          box-shadow: inset 1px 0 0 0 var(--ht-border-color);
-        }
-      }
-
-      // Box shadows know no writing direction, so the divider flips by hand under RTL, where
-      // the strip's start edge is the right one.
-      &[dir="rtl"] .ht-sheets-bar__tabs--scrolled {
-        box-shadow: inset -1px 0 0 0 var(--ht-border-color);
       }
 
       .ht-sheets-bar__tab {
@@ -299,17 +317,6 @@ $all-sheets-visible-items: 8;
         line-height: inherit;
         cursor: pointer;
         padding: 0;
-      }
-
-      // A name has a length limit of fifty characters, and a tab that renders all of them
-      // dominates the strip — the cap keeps every tab graspable and the tail reads as an
-      // ellipsis (UX review). The full name stays reachable through the tab's title attribute
-      // and the rename input.
-      .ht-sheets-bar__tab-label {
-        max-width: 20ch;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
       }
 
       // The tab is the focus stop, so the ring belongs to the whole of it. Drawn inside, so a
