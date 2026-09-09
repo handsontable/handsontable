@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture — comment editor resize</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    /* The grid sits top-left with the rest of the viewport free, so a resize drag that grows the
+       editor by ~200px has somewhere to go without leaving the window. */
+    body { font-family: sans-serif; margin: 0; padding: 8px; }
+    #grid { width: 420px; height: 260px; overflow: hidden; }
+  </style>
+</head>
+<body>
+  <!--
+    Fixture for DEV-2871: the comment editor must stay open while its textarea is resized.
+
+    The comment sits on a cell near the top-left so the editor opens to the right of it with room
+    to grow. `displayDelay` is left at the default, because the spec drives both the show delay and
+    the 250ms hide delay through `page.clock` rather than by waiting.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const hot = new Handsontable(container, {
+      data: Handsontable.helper.createSpreadsheetData(20, 6),
+      colHeaders: true,
+      rowHeaders: true,
+      comments: true,
+      afterRenderer: (td, row, col) => {
+        td.setAttribute('data-testid', `cell-${row}-${col}`);
+      },
+      cell: [
+        { row: 1, col: 1, comment: { value: 'A comment that has to stay visible while it is resized.' } },
+      ],
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    window.hot = hot;
+
+    /**
+     * The comment's persisted size, or undefined while the user has not resized it. The plugin
+     * writes it from the editor's `ResizeObserver`, so it is how the spec proves a drag actually
+     * reached the resizer instead of pressing an inert pixel.
+     */
+    window.commentStyle = (row, col) => {
+      const comment = hot.getCellMeta(row, col).comment;
+
+      return comment ? comment.style : undefined;
+    };
+  </script>
+</body>
+</html>

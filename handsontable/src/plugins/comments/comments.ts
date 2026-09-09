@@ -972,12 +972,21 @@ export class Comments extends BasePlugin {
   };
 
   /**
-   * Prevent recognizing clicking on the comment editor as clicking outside of table.
+   * Prevent recognizing clicking on the comment editor as clicking outside of table, and hold the
+   * editor open for the rest of the pointer gesture.
    *
    * @param {Event} event The `mousedown` event.
    */
   #onInputElementMouseDown = (event: Event) => {
     event.stopPropagation();
+
+    // A resizer drag is one such gesture. The cancel in `#onMouseOver` closes the gap one event at
+    // a time; this closes it for the whole drag, so the editor cannot vanish between a stray event
+    // and the cancel that follows it. `#onMouseUp` on the document clears the flag on release.
+    // This handler is the only place the flag can be set: the document-level `#onMouseDown` never
+    // sees this event, because of the `stopPropagation()` above.
+    this.#preventEditorAutoSwitch = true;
+    this.#displaySwitch?.cancelHiding();
   };
 
   /**
@@ -990,8 +999,24 @@ export class Comments extends BasePlugin {
 
     const target = eventTargetEl(event)!;
 
-    if (this.#preventEditorAutoSwitch || this.#editor?.isFocused() || hasClass(target, 'wtBorder')
-        || this.#cellBelowCursor === target || !this.#editor) {
+    if (!this.#editor) {
+      return;
+    }
+
+    // The pointer is over the editor, so a hide armed by an earlier event has to be called off.
+    // This has to run BEFORE the short circuits below, because the resizer drag reaches the
+    // `#cellBelowCursor === target` one: the drag lands an event on the element underneath the
+    // pointer (the browser hit-tests each "mousemove" against the textarea's pre-resize box) and
+    // `elementFromPoint` already resolves to the resized textarea, so the next event - the one
+    // over the textarea - matches and would return before cancelling anything.
+    if (this.targetIsCommentTextArea(event)) {
+      this.#displaySwitch?.cancelHiding();
+
+      return;
+    }
+
+    if (this.#preventEditorAutoSwitch || this.#editor.isFocused() || hasClass(target, 'wtBorder')
+        || this.#cellBelowCursor === target) {
       return;
     }
 
@@ -1012,7 +1037,7 @@ export class Comments extends BasePlugin {
         this.#displaySwitch?.show(range);
       }
 
-    } else if (this.#isInRenderedTree(target) && !this.targetIsCommentTextArea(event)) {
+    } else if (this.#isInRenderedTree(target)) {
       this.#displaySwitch?.hide();
     }
   };
