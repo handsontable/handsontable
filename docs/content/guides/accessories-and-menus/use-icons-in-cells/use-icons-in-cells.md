@@ -28,7 +28,7 @@ Render an icon from the [icon pack](@/guides/accessories-and-menus/icon-pack/ico
 
 - A grid with a [custom cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md).
 - The [`@handsontable/spreadsheet-icons`](https://github.com/handsontable/spreadsheet-icons) package, or any inline SVG icon of your own.
-- For the third-party example at the end of this guide, a [Lucide](https://lucide.dev) package.
+- For the [third-party icon set](#use-a-third-party-icon-set) section, a [Lucide](https://lucide.dev) package.
 
 ## Steps
 
@@ -135,10 +135,10 @@ The component receives the cell's value and coordinates, so the icon goes in as 
 Install the Angular package, then pass a renderer component to the column:
 
 ```bash
-npm install lucide-angular
+npm install @lucide/angular
 ```
 
-The component extends [`HotCellRendererComponent`](@/guides/cell-functions/cell-renderer/cell-renderer.md) and receives the cell's value and coordinates as inputs, so the icon goes in the template and no `createIcons()` scan runs at all.
+The component extends [`HotCellRendererComponent`](@/guides/cell-functions/cell-renderer/cell-renderer.md) and receives the cell's value and coordinates as inputs, so the icon goes in the template and no `createIcons()` scan runs at all. Each Lucide icon is its own standalone component applied as an attribute on an `<svg>` element, so import the icons you use and list them in the component's `imports`.
 
 ::: example #example2 :angular --ts 1 --html 2
 @[code](@/content/guides/accessories-and-menus/use-icons-in-cells/angular/example2.ts)

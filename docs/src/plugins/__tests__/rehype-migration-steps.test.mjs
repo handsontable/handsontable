@@ -102,7 +102,45 @@ test('the heading-based wrapping still works alongside it', () => {
   );
 });
 
-test('a `## Steps` heading whose steps are numbered headings is not double-processed', () => {
+test('an `<ol start>` offset is handed to the counter through --sl-steps-start', () => {
+  const tree = run([
+    el('h2', [text('Steps')]),
+    el('ol', [el('li', [text('Render the icon.')])], { start: 3 }),
+  ]);
+  const list = tree.children[1];
+
+  // The bullets come from a CSS counter, so without this the markup would say
+  // 3 while the rendered badge said 1.
+  assert.match(String(list.properties.style), /--sl-steps-start:\s*2/);
+});
+
+test('an existing inline style on the list survives the start offset', () => {
+  const tree = run([
+    el('h2', [text('Steps')]),
+    el('ol', [el('li', [text('Render the icon.')])], { start: 2, style: 'color: red' }),
+  ]);
+
+  assert.match(String(tree.children[1].properties.style), /--sl-steps-start:\s*1;color: red/);
+});
+
+test('a list without a start attribute gets no inline style', () => {
+  const tree = run([el('h2', [text('Steps')]), el('ol', [el('li', [text('Render the icon.')])])]);
+
+  assert.equal(tree.children[1].properties.style, undefined);
+});
+
+test('running the plugin twice over the same tree changes nothing', () => {
+  const tree = { type: 'root', children: [el('h2', [text('Steps')]), el('ol', [el('li', [text('One.')])])] };
+
+  rehypeMigrationSteps()(tree);
+  const afterFirst = JSON.stringify(tree);
+
+  rehypeMigrationSteps()(tree);
+
+  assert.equal(JSON.stringify(tree), afterFirst);
+});
+
+test('numbered headings under a `## Steps` heading still go through the heading wrapper', () => {
   const tree = run([
     el('h2', [text('Steps')]),
     el('h3', [text('1. Define a store')]),

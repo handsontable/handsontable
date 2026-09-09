@@ -1,7 +1,7 @@
 /* file: app.component.ts */
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { GridSettings, HotCellRendererComponent, HotTableModule } from '@handsontable/angular-wrapper';
-import { Flag, FlagOff, LucideAngularModule } from 'lucide-angular';
+import { LucideFlag, LucideFlagOff } from '@lucide/angular';
 
 interface Task {
   task: string;
@@ -16,10 +16,11 @@ interface Task {
 @Component({
   selector: 'app-flag-renderer',
   standalone: true,
-  imports: [LucideAngularModule],
-  // The icon has no accessible name, so the button carries an `aria-label`
-  // that describes what clicking it does. `currentColor` is Lucide's default
-  // stroke, so the icon stays visible in both light and dark themes.
+  imports: [LucideFlag, LucideFlagOff],
+  // Each icon is its own standalone component, applied as an attribute on an
+  // `<svg>` element. The icon has no accessible name, so the button carries an
+  // `aria-label` that describes what clicking it does. `currentColor` is
+  // Lucide's default stroke, so the icon stays visible in both themes.
   template: `
     <button
       type="button"
@@ -27,15 +28,16 @@ interface Task {
       style="background: none; border: none; cursor: pointer; padding: 0.25rem;"
       (click)="toggle()"
     >
-      <lucide-icon [img]="value ? flagIcon : flagOffIcon" [size]="18"></lucide-icon>
+      @if (value) {
+        <svg lucideFlag size="18"></svg>
+      } @else {
+        <svg lucideFlagOff size="18"></svg>
+      }
     </button>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FlagRendererComponent extends HotCellRendererComponent<boolean> {
-  readonly flagIcon = Flag;
-  readonly flagOffIcon = FlagOff;
-
   get label(): string {
     const taskName = String(this.instance.getDataAtCell(this.row, 0));
 

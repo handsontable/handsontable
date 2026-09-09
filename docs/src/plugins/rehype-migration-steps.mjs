@@ -206,6 +206,20 @@ function markStepsListAfterHeading(tree) {
       // component uses.
       role: 'list',
     };
+
+    // The bullets are drawn by a CSS counter, so an `<ol start="3">` would
+    // still count from 1. Starlight's own rehype-steps.ts hands the offset to
+    // the stylesheet through `--sl-steps-start`, which `page.css` reads; do
+    // the same, and keep any style the list already carries.
+    const start = list.properties.start;
+
+    if (typeof start === 'number') {
+      const styles = [`--sl-steps-start: ${start - 1}`];
+
+      if (list.properties.style) styles.push(String(list.properties.style));
+
+      list.properties.style = styles.join(';');
+    }
   });
 }
 

@@ -215,6 +215,9 @@ importers:
       '@liveblocks/react-ui':
         specifier: ^3.22.0
         version: 3.22.0(@types/json-schema@7.0.15)(@types/react-dom@18.3.7(@types/react@18.3.31))(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@lucide/angular':
+        specifier: ^1.43.0
+        version: 1.43.0(@angular/common@19.2.25(@angular/core@19.2.25(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.25(rxjs@7.8.2)(zone.js@0.15.1))
       '@simonwep/pickr':
         specifier: ^1.9.1
         version: 1.9.1
@@ -257,9 +260,6 @@ importers:
       lucide:
         specifier: ^1.43.0
         version: 1.43.0
-      lucide-angular:
-        specifier: ^1.0.0
-        version: 1.0.0(@angular/common@19.2.25(@angular/core@19.2.25(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.25(rxjs@7.8.2)(zone.js@0.15.1))
       lucide-react:
         specifier: ^1.43.0
         version: 1.43.0(react@18.3.1)
@@ -411,6 +411,9 @@ importers:
       '@handsontable/angular-wrapper':
         specifier: link:../../wrappers/angular-wrapper/dist/hot-table
         version: link:../../wrappers/angular-wrapper/dist/hot-table
+      '@lucide/angular':
+        specifier: ^1.43.0
+        version: 1.43.0(@angular/common@19.2.25(@angular/core@19.2.25(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.25(rxjs@7.8.2)(zone.js@0.15.1))
       '@simonwep/pickr':
         specifier: latest
         version: 1.9.1
@@ -3834,6 +3837,12 @@ packages:
     resolution: {integrity: sha512-XlqVtILonQnG+9fH2N3Aytria7P/1fwDgDhl29rde96uH2sLB8CHORIf2PfuLVzFQJ7Uqp8py9AYwr3ZUCFfWg==}
     cpu: [x64]
     os: [win32]
+
+  '@lucide/angular@1.43.0':
+    resolution: {integrity: sha512-SAEKkf1QzSHrkshJzVYmFKm643xfaD1NLFk6kOajR2mT04j9QyH1UI81IXlAC8QJ9rSO+nCiPy1jWg9DM9vakg==}
+    peerDependencies:
+      '@angular/common': ^19.2.20
+      '@angular/core': ^19.2.20
 
   '@mdn/browser-compat-data@5.7.6':
     resolution: {integrity: sha512-7xdrMX0Wk7grrTZQwAoy1GkvPMFoizStUoL+VmtUkAxegbCCec+3FKwOM6yc/uGU5+BEczQHXAlWiqvM8JeENg==}
@@ -10279,13 +10288,6 @@ packages:
   lru-cache@7.18.3:
     resolution: {integrity: sha512-jumlc0BIUrS3qJGgIkWZsyfAM7NCWiBcCDhnd+3NNM5KbBmLTgHVfWBcg6W+rLUsIpzpERPsvwUP7CckAQSOoA==}
     engines: {node: '>=12'}
-
-  lucide-angular@1.0.0:
-    resolution: {integrity: sha512-YxCNEXHUz2IzAZIlxU4CkD55ljMjOlm3/am4eqadX/qkFszyGDzZwtbWOP1wj6vlbn/BNL4RhJeXbusLz96ajg==}
-    deprecated: Package deprecated. Please use @lucide/angular instead.
-    peerDependencies:
-      '@angular/common': ^19.2.20
-      '@angular/core': ^19.2.20
 
   lucide-react@1.43.0:
     resolution: {integrity: sha512-ubtnda1fVK5ky0PNEpOmB0wiwhpZUyJiol4K14KCm+QKvuCkfUu54Et/rIjyupJpwiJ5Hg+BLQE86/GEsS+IgQ==}
@@ -17323,6 +17325,12 @@ snapshots:
 
   '@lmdb/lmdb-win32-x64@3.2.6':
     optional: true
+
+  '@lucide/angular@1.43.0(@angular/common@19.2.25(@angular/core@19.2.25(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.25(rxjs@7.8.2)(zone.js@0.15.1))':
+    dependencies:
+      '@angular/common': 19.2.25(@angular/core@19.2.25(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2)
+      '@angular/core': 19.2.25(rxjs@7.8.2)(zone.js@0.15.1)
+      tslib: 2.8.1
 
   '@mdn/browser-compat-data@5.7.6': {}
 
@@ -25367,12 +25375,6 @@ snapshots:
       yallist: 4.0.0
 
   lru-cache@7.18.3: {}
-
-  lucide-angular@1.0.0(@angular/common@19.2.25(@angular/core@19.2.25(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.25(rxjs@7.8.2)(zone.js@0.15.1)):
-    dependencies:
-      '@angular/common': 19.2.25(@angular/core@19.2.25(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2)
-      '@angular/core': 19.2.25(rxjs@7.8.2)(zone.js@0.15.1)
-      tslib: 2.8.1
 
   lucide-react@1.43.0(react@18.3.1):
     dependencies:
