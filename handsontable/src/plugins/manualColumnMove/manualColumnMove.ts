@@ -376,7 +376,6 @@ export class ManualColumnMove extends BasePlugin {
 
     if (Array.isArray(pluginSettings)) {
       this.moveColumns(pluginSettings, 0);
-
     }
   }
 
@@ -806,7 +805,6 @@ export class ManualColumnMove extends BasePlugin {
     this.#columnsToMove.length = 0;
 
     if (movePerformed === true) {
-      this.hot.view.adjustElementsSize();
       this.hot.render();
 
       const selectionStart = this.hot.toVisualColumn(firstMovedPhysicalColumn);

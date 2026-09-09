@@ -27,7 +27,6 @@ describe('StretchColumns cooperation with hidden rows', () => {
     columnMapper.setValueAtIndex(4, true);
     columnMapper.setValueAtIndex(6, true);
     columnMapper.setValueAtIndex(8, true);
-    hot().view.adjustElementsSize();
     await render();
 
     expect(getColWidth(6)).toBe(150);

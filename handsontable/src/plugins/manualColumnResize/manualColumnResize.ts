@@ -683,7 +683,6 @@ export class ManualColumnResize extends BasePlugin {
       this.#dblclick,
     );
     const render = () => {
-      this.hot.view.adjustElementsSize();
       this.hot.render();
     };
     const resize = (column: number, forceRender?: boolean) => {
@@ -782,7 +781,6 @@ export class ManualColumnResize extends BasePlugin {
    */
   #onMouseUp() {
     const render = () => {
-      this.hot.view.adjustElementsSize();
       this.hot.render();
     };
     const resize = (column: number, forceRender?: boolean) => {

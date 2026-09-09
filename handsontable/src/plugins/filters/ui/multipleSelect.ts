@@ -508,7 +508,6 @@ export class MultipleSelectUI extends BaseUI {
       if (hiddenRows) {
         hiddenRows.hideRows(rowsToHide);
       }
-      this.#itemsBox?.view.adjustElementsSize();
       this.#itemsBox?.render();
     } else {
       let filteredItems;

@@ -683,7 +683,14 @@ export class SelectionFeaturesPage {
    */
   async focusCell(): Promise<{ row: number, col: number }> {
     return this.page.evaluate(() => {
-      const highlight = window.hot.getSelectedRangeLast().highlight;
+      // The ACTIVE range, not the last one. Keyboard navigation can rotate the focus onto a layer
+      // that is not on top, and `getSelectedRangeLast()` would then report the wrong cell — which
+      // is exactly the state the ctrl+click rule has to read correctly.
+      const highlight = window.hot.getSelectedRangeActive()?.highlight;
+
+      if (!highlight) {
+        return { row: -1, col: -1 };
+      }
 
       return { row: highlight.row ?? -1, col: highlight.col ?? -1 };
     });
@@ -709,6 +716,68 @@ export class SelectionFeaturesPage {
   /** Select several disjoint ranges as separate selection layers. */
   async selectLayers(ranges: [number, number, number, number][]): Promise<void> {
     await this.page.evaluate(layers => window.hot.selectCells(layers), ranges);
+  }
+
+  /**
+   * Ctrl/Cmd+clicks a cell, the way a user adds one to a multiple selection.
+   *
+   * The modifier is pressed as a real key event, not passed as an event property: the held-modifier
+   * state comes from the key recorder, so a synthesized `metaKey` alone would not register.
+   * `ControlOrMeta` maps to Cmd on macOS and Ctrl elsewhere.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} col Visual column index.
+   */
+  async ctrlClickCell(row: number, col: number): Promise<void> {
+    await this.cell(row, col).click({ modifiers: ['ControlOrMeta'] });
+  }
+
+  /**
+   * Ctrl/Cmd+double-clicks a cell — two clicks inside the OS double-click window.
+   *
+   * This is also the only Playwright gesture that reproduces a real fast click pair: `dblclick()`
+   * escalates `clickCount`, so the two mouseups report `detail` 1 then 2, while two `click()` calls
+   * report 1 twice however quickly they land.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} col Visual column index.
+   */
+  async ctrlDoubleClickCell(row: number, col: number): Promise<void> {
+    await this.cell(row, col).dblclick({ modifiers: ['ControlOrMeta'] });
+  }
+
+  /**
+   * Ctrl/Cmd+clicks a row header, which adds the whole row as a range layer.
+   *
+   * Resolved through the row's own cell so the lookup names a visual row rather than a position in
+   * the rendered rows, which a scrolled grid renumbers. Scoped to the grid, and to the
+   * inline-start overlay where the headers the user actually clicks are rendered — the master
+   * table holds a second copy of them.
+   *
+   * @param {number} row Visual row index.
+   */
+  async ctrlClickRowHeader(row: number): Promise<void> {
+    const cellBox = await this.cell(row, 0).boundingBox();
+    const headerBox = await this.grid.locator('.ht_clone_inline_start tbody th').first().boundingBox();
+
+    if (!cellBox || !headerBox) {
+      throw new Error(`Row ${row} or its header column is not rendered, so it cannot be clicked`);
+    }
+
+    // The row comes from its own cell and the column from the header strip, so neither depends on
+    // a position in the rendered rows — which a scrolled grid renumbers.
+    await this.page.keyboard.down('ControlOrMeta');
+    await this.page.mouse.click(headerBox.x + (headerBox.width / 2), cellBox.y + (cellBox.height / 2));
+    await this.page.keyboard.up('ControlOrMeta');
+  }
+
+  /**
+   * How many selection layers exist, and `0` when nothing is selected at all.
+   *
+   * @returns {Promise<number>}
+   */
+  async selectedLayerCount(): Promise<number> {
+    return this.page.evaluate(() => window.hot.getSelected()?.length ?? 0);
   }
 
   /** Select whole columns through the instance API. */

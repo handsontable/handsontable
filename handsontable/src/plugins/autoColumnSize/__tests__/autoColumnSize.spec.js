@@ -518,7 +518,7 @@ describe('AutoColumnSize', () => {
     expect(width1).toBeLessThan(width2);
   });
 
-  it(`should keep proper topOverlay size after render() -> adjustElementSize() -> updateSettings
+  it(`should keep proper topOverlay size after render() -> updateSettings
       with a different set of colHeaders`, async() => {
     const getHeaders = () => [
       'A_longer',
@@ -537,11 +537,10 @@ describe('AutoColumnSize', () => {
     const topOverlay = spec().$container.find('.ht_clone_top .wtHider');
     const topOverlayWidthBefore = topOverlay.width();
 
-    // Simulates a sequence of methods used in contextMenu commands for plugins like Hidden*, Freeze*
-    // or internal plugins' methods like Filters, Manual*Move, Manual*Resize.
+    // Simulates what contextMenu commands for plugins like Hidden*, Freeze* and the internal methods
+    // of Filters, Manual*Move and Manual*Resize do: render, then change the headers. Those plugins
+    // used to force a resize between the two steps; since DEV-19 the engine notices for itself.
     await render();
-
-    tableView().adjustElementsSize();
 
     await updateSettings({
       colHeaders: getHeaders().reverse(),

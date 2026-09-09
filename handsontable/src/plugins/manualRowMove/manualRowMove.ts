@@ -665,7 +665,6 @@ export class ManualRowMove extends BasePlugin {
     this.#rowsToMove.length = 0;
 
     if (movePerformed === true) {
-      this.hot.view.adjustElementsSize();
       this.hot.render();
 
       const selectionStart = this.hot.toVisualRow(firstMovedPhysicalRow);
