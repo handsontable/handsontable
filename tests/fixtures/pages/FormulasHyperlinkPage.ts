@@ -37,7 +37,7 @@ export class FormulasHyperlinkPage {
 
   /** The anchor a `HYPERLINK` cell renders, if any. */
   link(row: number, col: number): Locator {
-    return this.cell(row, col).locator('a.ht-hyperlink');
+    return this.cell(row, col).locator('a.ht-link.ht-hyperlink');
   }
 
   /** The element the fixture's custom renderer writes into column B. */
@@ -45,19 +45,19 @@ export class FormulasHyperlinkPage {
     return this.cell(row, 1).locator('span.custom-mark');
   }
 
-  /** Turn the `hyperlinks` sub-option on or off through `updateSettings`. */
-  async setHyperlinks(enabled: boolean): Promise<void> {
-    await this.page.evaluate((hyperlinks) => {
+  /** Set the `hyperlinks` sub-option through `updateSettings`: a boolean or the `{ target, schemes }` object. */
+  async setHyperlinks(hyperlinks: boolean | { target?: string; schemes?: string[] }): Promise<void> {
+    await this.page.evaluate((value) => {
       const hot = (window as any).hot;
 
       hot.updateSettings({
         formulas: {
           engine: (window as any).HyperFormula,
           sheetName: 'Sheet1',
-          hyperlinks,
+          hyperlinks: value,
         },
       });
-    }, enabled);
+    }, hyperlinks);
   }
 
   /** Write a raw value into a cell, replacing whatever formula it held. */

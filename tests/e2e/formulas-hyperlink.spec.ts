@@ -290,4 +290,36 @@ test.describe('formulas: HYPERLINK rendering', () => {
 
     await expect(grid.openedUrls()).resolves.toEqual([]);
   });
+
+  test('carries the shared `ht-link` class next to `ht-hyperlink`', async({ page, theme, bundle }) => {
+    const grid = new FormulasHyperlinkPage(page, theme, bundle);
+
+    await grid.goto();
+
+    await expect(grid.cell(0, 0).locator('a')).toHaveClass('ht-link ht-hyperlink');
+  });
+
+  test('opens in the current tab when `hyperlinks.target` is `_self`', async({ page, theme, bundle }) => {
+    const grid = new FormulasHyperlinkPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.setHyperlinks({ target: '_self' });
+
+    await expect(grid.link(0, 0)).toHaveAttribute('target', '_self');
+    await expect(grid.link(0, 0)).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+
+  test('refuses a scheme left out of `hyperlinks.schemes`', async({ page, theme, bundle }) => {
+    const grid = new FormulasHyperlinkPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.setHyperlinks({ schemes: ['mailto', 'tel'] });
+
+    await expect(grid.link(0, 0)).toHaveCount(0);
+    await expect(grid.cell(0, 0)).toHaveText('Example one');
+
+    await grid.setHyperlinks({ schemes: ['https'] });
+
+    await expect(grid.link(0, 0)).toHaveCount(1);
+  });
 });

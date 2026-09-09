@@ -3438,16 +3438,22 @@ export default (): Record<string, unknown> => {
      * | `sheetId`   | A number                                                                                                                                                                                                               |
      * | `sheetName` | A string                                                                                                                                                                                                               |
      * | `language`  | A [HyperFormula language pack](https://handsontable.github.io/hyperformula/guide/localizing-functions.html), imported from `hyperformula/es/i18n/languages`                                                          |
-     * | `hyperlinks` | `true` \|<br>`false` (default)                                                                                                                                                                                        |
+     * | `hyperlinks` | `true` \|<br>`false` (default) \|<br>An object with `target` and `schemes`                                                                                                                                                   |
      *
      * Set `hyperlinks` to `true` to render a cell whose formula is `HYPERLINK()` as a link. The cell
      * keeps its own renderer, and the link label is the value the formula returns. Only a cell whose
      * root expression is `HYPERLINK()` becomes a link, so a nested call such as
      * `=CONCATENATE("see ", HYPERLINK("https://example.com"))` renders as plain text.
      *
+     * Set `hyperlinks` to an object to configure the links: `target` is `'_blank'` (default) or
+     * `'_self'`, and `schemes` narrows the allowed URL schemes to a subset of `'http'`, `'https'`,
+     * `'mailto'`, and `'tel'`.
+     *
      * A link is created only for the `http`, `https`, `mailto` and `tel` schemes. Any other scheme,
      * `javascript:` included, renders the label as plain text instead. Press
-     * <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd> to open the link of the selected cell.
+     * <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd> to open the link of the selected cell. Each link
+     * element gets the `ht-link` and `ht-hyperlink` classes. To link plain URLs in cell values, see
+     * [`autoLink`](#autoLink).
      *
      * Read more:
      * - [Plugins: `Formulas`](@/api/formulas.md)
@@ -3478,6 +3484,15 @@ export default (): Record<string, unknown> => {
      * formulas: {
      *   engine: HyperFormula,
      *   hyperlinks: true
+     * }
+     *
+     * // or, open `HYPERLINK()` links in the same tab and link only web URLs
+     * formulas: {
+     *   engine: HyperFormula,
+     *   hyperlinks: {
+     *     target: '_self',
+     *     schemes: ['http', 'https']
+     *   }
      * }
      *
      * // or, add a HyperFormula instance

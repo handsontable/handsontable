@@ -21,7 +21,15 @@ import {
   unescapeEngineBoundValue,
   unescapeFormulaExpression,
 } from './utils';
-import { resolveLinkUrl } from '../../utils/cellLinks';
+import {
+  LINK_CLASS_NAME,
+  createLinkElement,
+  normalizeSchemes,
+  resolveLinkUrl,
+  unwrapLinks,
+  type LinkScheme,
+  type LinkTarget,
+} from '../../utils/cellLinks';
 import { getEngineSettingsWithOverrides, haveEngineSettingsChanged } from './engine/settings';
 import { isArrayOfArrays } from '../../helpers/data';
 import { toUpperCaseFirst } from '../../helpers/string';
@@ -75,12 +83,20 @@ interface MoveCellsRect {
 }
 
 /**
+ * The object form of the `formulas.hyperlinks` setting.
+ */
+export interface FormulasHyperlinkSettings {
+  target?: LinkTarget;
+  schemes?: LinkScheme[];
+}
+
+/**
  * The expected shape of the `formulas` plugin settings object (the non-boolean form).
  */
 interface FormulasPluginSettings {
   sheetName?: string;
   engine: unknown;
-  hyperlinks?: boolean;
+  hyperlinks?: boolean | FormulasHyperlinkSettings;
 }
 
 /**
@@ -161,8 +177,8 @@ const REF_ERROR_PATTERN = /#REF!/;
 // Group under which the plugin's grid shortcuts are registered, so `disablePlugin` can drop them all.
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 
-// Class name of the anchor that wraps the content of a `HYPERLINK` cell. It is also the marker that
-// keeps the wrapping idempotent when a renderer leaves the previous DOM in place.
+// Class name of the anchor that wraps the content of a HYPERLINK cell, next to the shared ht-link.
+// It is also the marker that keeps the wrapping idempotent when a renderer leaves the previous DOM in place.
 const HYPERLINK_CLASS_NAME = 'ht-hyperlink';
 
 // `warnOnce` key for a `HYPERLINK` URL refused by the protocol allowlist. Warning per cell would
@@ -217,6 +233,15 @@ export class Formulas extends BasePlugin {
    * because it is read once per rendered cell.
    */
   #hyperlinksEnabled = false;
+
+  /**
+   * Where a `HYPERLINK` anchor opens. Read from the `hyperlinks` object form, `_blank` otherwise.
+   */
+  #hyperlinkTarget: LinkTarget = '_blank';
+  /**
+   * The schemes a `HYPERLINK` cell may link to. A subset of the fixed allowlist, never wider.
+   */
+  #hyperlinkSchemes: LinkScheme[] = normalizeSchemes(undefined);
 
   /**
    * The cells rendered as hyperlinks, by physical coordinates (`row,column`). A `HYPERLINK` whose
@@ -1089,17 +1114,20 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * Reads the `hyperlinks` plugin setting into the cached flag.
+   * Reads the `hyperlinks` plugin setting into the cached flag, target, and scheme list.
    */
   #refreshHyperlinksSetting() {
     const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
     const wasEnabled = this.#hyperlinksEnabled;
+    const hyperlinks = isFormulasSettingsObject(pluginSettings) ? pluginSettings.hyperlinks : undefined;
+    const isObjectForm = typeof hyperlinks === 'object' && hyperlinks !== null;
 
-    this.#hyperlinksEnabled = isFormulasSettingsObject(pluginSettings) && pluginSettings.hyperlinks === true;
+    this.#hyperlinksEnabled = hyperlinks === true || isObjectForm;
+    this.#hyperlinkTarget = isObjectForm && hyperlinks.target === '_self' ? '_self' : '_blank';
+    this.#hyperlinkSchemes = normalizeSchemes(isObjectForm ? hyperlinks.schemes : undefined);
 
-    // Turning the option off is the moment to clean up, not every subsequent draw: a renderer that
+    // Turning the option off removes nothing by itself: the hook stays registered, but a renderer that
     // leaves its previous DOM in place would keep an anchor that no later render pass rewrites.
-    // Doing it here keeps the per-cell path free for the default, disabled case.
     if (wasEnabled && !this.#hyperlinksEnabled) {
       this.#unwrapRenderedHyperlinks();
     }
@@ -1110,52 +1138,11 @@ export class Formulas extends BasePlugin {
    *
    * Disabling the plugin removes the `afterRenderer` hook, so a renderer that leaves its previous
    * DOM in place would keep its cells clickable with nothing left to clean them up. The anchors are
-   * matched by the plugin's own class, so no knowledge of the rendering internals is needed.
+   * matched by the plugin's own class, so another feature's cell links are left alone.
    */
   #unwrapRenderedHyperlinks() {
-    this.hot.rootElement
-      ?.querySelectorAll<HTMLElement>(`a.${HYPERLINK_CLASS_NAME}`)
-      .forEach(link => this.#unwrapLink(link));
-  }
-
-  /**
-   * Moves an anchor's content up into the anchor's own parent and drops the anchor.
-   *
-   * The insertion goes through `link.parentNode` rather than the cell: a renderer that leaves the
-   * previous DOM in place can wrap an existing anchor, leaving it as `TD > div > a` instead of a
-   * direct child. Inserting relative to the cell would then throw `NotFoundError` and, because this
-   * runs inside `afterRenderer`, take the whole draw down with it.
-   *
-   * @param {Element} link The anchor to unwrap.
-   */
-  #unwrapLink(link: Element) {
-    const { parentNode } = link;
-
-    while (link.firstChild) {
-      parentNode?.insertBefore(link.firstChild, link);
-    }
-
-    link.remove();
-  }
-
-  /**
-   * Moves the content of a cell's `HYPERLINK` anchor back into the cell and drops the anchor. Loops
-   * so that anchors nested by an older render pass are unwrapped as well.
-   *
-   * @param {HTMLTableCellElement} TD The rendered cell element.
-   */
-  #unwrapHyperlink(TD: HTMLTableCellElement) {
-    // A cell rendered as plain text has no element children at all, which is the overwhelmingly
-    // common case and the one that must not pay for a selector query on every render pass.
-    if (TD.firstElementChild === null) {
-      return;
-    }
-
-    let link = TD.querySelector(`a.${HYPERLINK_CLASS_NAME}`);
-
-    while (link !== null) {
-      this.#unwrapLink(link);
-      link = TD.querySelector(`a.${HYPERLINK_CLASS_NAME}`);
+    if (this.hot.rootElement) {
+      unwrapLinks(this.hot.rootElement, `a.${HYPERLINK_CLASS_NAME}`);
     }
   }
 
@@ -1190,7 +1177,7 @@ export class Formulas extends BasePlugin {
       return null;
     }
 
-    const href = resolveLinkUrl(url, this.hot.rootDocument.baseURI);
+    const href = resolveLinkUrl(url, this.hot.rootDocument.baseURI, this.#hyperlinkSchemes);
 
     if (href === null) {
       warnOnce(this, HYPERLINK_WARN_KEY,
@@ -2337,11 +2324,9 @@ export class Formulas extends BasePlugin {
     }
 
     // Walkontable recycles TD elements, and a renderer is free to leave its previous DOM in place.
-    // Unwrapping first keeps this idempotent by construction: no anchor nests inside another one
-    // across render passes, and the `href` is always rebuilt from the current formula instead of
-    // inherited from whatever the previous pass resolved. Cleanup for the option being turned off
-    // happens once, in `#refreshHyperlinksSetting`, so this path never runs for a disabled grid.
-    this.#unwrapHyperlink(TD);
+    // Unwrapping this plugin's own anchor first keeps the pass idempotent and rebuilds the `href`
+    // from the current formula instead of inheriting whatever the previous pass resolved.
+    unwrapLinks(TD, `a.${HYPERLINK_CLASS_NAME}`);
 
     const href = this.#getHyperlinkHref(row, column);
     const hyperlinkKey = `${this.hot.toPhysicalRow(row)},${this.hot.toPhysicalColumn(column)}`;
@@ -2352,16 +2337,18 @@ export class Formulas extends BasePlugin {
       return;
     }
 
+    // A HYPERLINK cell is the formula's link and nothing else: any other grid-made anchor in it (an
+    // `autoLink` anchor around a URL-shaped label, for instance) is unwrapped so the two features
+    // converge on one anchor regardless of which `afterRenderer` callback ran first.
+    unwrapLinks(TD, `a.${LINK_CLASS_NAME}`);
+
     this.#hyperlinkCells.add(hyperlinkKey);
 
-    const link = this.hot.rootDocument.createElement('a');
-
-    link.className = HYPERLINK_CLASS_NAME;
-    link.href = href;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    // Cell content stays out of the grid's tab order; `Alt`+`Enter` is the keyboard path instead.
-    link.tabIndex = -1;
+    const link = createLinkElement(this.hot.rootDocument, {
+      href,
+      target: this.#hyperlinkTarget,
+      classNames: [HYPERLINK_CLASS_NAME],
+    });
 
     // The nodes are moved, never re-serialized, so a label containing markup stays text.
     while (TD.firstChild) {
