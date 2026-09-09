@@ -23,9 +23,19 @@ $all-sheets-visible-items: 8;
       overflow: hidden;
     }
 
+    // The shared menu styles put the vertical padding on `.ht_master`, which wraps the
+    // scrolling holder — the scrollbar then starts below the padding and reads as shrunken.
+    // Moving the same padding inside the holder keeps the spacing and lets the scrollbar span
+    // the menu's full height.
+    &.htSheetsBarMenu > .ht_master {
+      padding-block: 0;
+    }
+
     &.htSheetsBarMenu .ht_master .wtHolder {
+      padding-block: var(--ht-menu-vertical-padding, 8px);
       // A row is its line box, its vertical padding, and the 1px bottom border every grid cell
-      // carries — the three together are what one menu item occupies.
+      // carries — the three together are what one menu item occupies. The holder is
+      // content-box, so its own block padding sits outside this cap and needs no term here.
       max-height: calc(
         #{$all-sheets-visible-items} * (var(--ht-line-height) + var(--ht-menu-item-vertical-padding) * 2 + 1px)
       );

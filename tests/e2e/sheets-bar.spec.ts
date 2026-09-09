@@ -493,10 +493,14 @@ test.describe('sheets bar', () => {
     const metrics = () => page.evaluate(() => {
       const holder = document.querySelector('.htSheetsBarMenu .ht_master .wtHolder') as HTMLElement;
       const row = document.querySelector('.htSheetsBarMenu .ht_master tbody tr') as HTMLElement;
+      const style = getComputedStyle(holder);
+      // The menu's vertical padding lives inside the holder, so the scrollbar spans the menu's
+      // full height; the row budget is the client height with that padding taken back out.
+      const padding = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
 
       return {
-        visible: holder.clientHeight,
-        content: holder.scrollHeight,
+        visible: holder.clientHeight - padding,
+        content: holder.scrollHeight - padding,
         rowHeight: row.getBoundingClientRect().height,
         scrollTop: holder.scrollTop,
       };
