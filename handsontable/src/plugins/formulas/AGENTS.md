@@ -120,6 +120,19 @@ and the cell does not become a link. Two deliberate choices:
 - Exporting formulas rather than values: `../exportFile/AGENTS.md` (`exportFormulas`).
 - Plugin contract, lifecycle, priorities: `../base/AGENTS.md`.
 
+## `HYPERLINK` anchors share plumbing with `autoLink`
+
+- The anchor is built by `createLinkElement()` from `../../utils/cellLinks/` and carries `ht-link ht-hyperlink`.
+  `ht-hyperlink` shipped in 18.1.0 and stays forever; `ht-link` is the shared marker the styles and the
+  Alt+Enter command key on. Do not build an `<a>` by hand here.
+- **Alt+Enter is not registered by this plugin.** It is a core grid command (`shortcuts/contexts/commands/openCellLink.ts`)
+  that reads `a.ht-link` from the selected cell's rendered TD. Registering the chord here again would run two
+  callbacks per keypress: the shortcut manager appends duplicate key combinations, it does not reject them.
+- **Order rule against `autoLink`.** Hook callbacks run in registration order, and `Formulas` can be enabled after
+  `AutoLink` through `updateSettings`, so `#onAfterRenderer` must converge from both orders: it always unwraps its
+  own `a.ht-hyperlink` first, and when the cell resolves to a link it unwraps every `a.ht-link` before wrapping. When
+  the cell resolves to no link it leaves foreign anchors alone. `AutoLink` skips any TD that already holds an `<a>`.
+
 ## Testing
 
 - `npm run test:e2e --prefix handsontable -- --testPathPattern='formulas'`

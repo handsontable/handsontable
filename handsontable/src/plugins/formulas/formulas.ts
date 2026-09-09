@@ -174,9 +174,6 @@ const REMOVAL_SPANS_CHUNK_SIZE = 1000;
 // cells may put one into the source data - see `#syncFormulasToSourceData`.
 const REF_ERROR_PATTERN = /#REF!/;
 
-// Group under which the plugin's grid shortcuts are registered, so `disablePlugin` can drop them all.
-const SHORTCUTS_GROUP = PLUGIN_KEY;
-
 // Class name of the anchor that wraps the content of a HYPERLINK cell, next to the shared ht-link.
 // It is also the marker that keeps the wrapping idempotent when a renderer leaves the previous DOM in place.
 const HYPERLINK_CLASS_NAME = 'ht-hyperlink';
@@ -824,7 +821,6 @@ export class Formulas extends BasePlugin {
     this.#engineListeners?.forEach(([eventName, listener]) => this.engine!.on(eventName, listener));
 
     this.#refreshHyperlinksSetting();
-    this.registerShortcuts();
 
     super.enablePlugin();
   }
@@ -835,7 +831,6 @@ export class Formulas extends BasePlugin {
   disablePlugin() {
     this.#unwrapRenderedHyperlinks();
     this.#hyperlinkCells.clear();
-    this.unregisterShortcuts();
     this.#engineListeners?.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
 
     if (this.engine) {
@@ -1058,59 +1053,6 @@ export class Formulas extends BasePlugin {
       row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(row),
       col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(column),
     });
-  }
-
-  /**
-   * Registers the shortcut that opens the link of the selected `HYPERLINK` cell. The anchor is kept
-   * out of the tab order, so this is the only keyboard path to the link.
-   *
-   * @private
-   */
-  registerShortcuts() {
-    this.hot.getShortcutManager()
-      .getContext('grid')
-      ?.addShortcut({
-        keys: [['Alt', 'Enter']],
-        callback: () => {
-          const highlight = this.hot.getSelectedRangeActive()?.highlight;
-
-          if (!highlight || highlight.row === null || highlight.col === null) {
-            return;
-          }
-
-          const href = this.#getHyperlinkHref(highlight.row, highlight.col);
-
-          if (href !== null) {
-            this.hot.rootWindow.open(href, '_blank', 'noopener,noreferrer');
-          }
-        },
-        stopPropagation: true,
-        // The shortcut prevents the default action and stops propagation whenever `runOnlyIf`
-        // passes, so it must claim the chord only for a cell that actually resolves to a link.
-        // Testing just `isCell()` would swallow `Alt`+`Enter` grid-wide and break a host
-        // application's own handler for it.
-        runOnlyIf: (): boolean => {
-          const highlight = this.hot.getSelectedRangeActive()?.highlight;
-
-          return this.#hyperlinksEnabled &&
-            !!highlight?.isCell() &&
-            highlight.row !== null &&
-            highlight.col !== null &&
-            this.#getHyperlinkHref(highlight.row, highlight.col) !== null;
-        },
-        group: SHORTCUTS_GROUP,
-      });
-  }
-
-  /**
-   * Removes the shortcuts registered by the plugin.
-   *
-   * @private
-   */
-  unregisterShortcuts() {
-    this.hot.getShortcutManager()
-      .getContext('grid')
-      ?.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**
