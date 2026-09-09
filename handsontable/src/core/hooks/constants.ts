@@ -1319,7 +1319,7 @@ export const REGISTERED_HOOKS = [
    * [`afterSetDataAtRowProp`](@/api/hooks.md#aftersetdataatrowprop) instead — never both for the same change.
    *
    * @event Hooks#afterSetDataAtCell
-   * @param {Array} changes An array of changes in format `[[row, column, oldValue, value], ...]`.
+   * @param {Array} changes An array of changes in format `[[row, prop, oldValue, value], ...]`.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    */
