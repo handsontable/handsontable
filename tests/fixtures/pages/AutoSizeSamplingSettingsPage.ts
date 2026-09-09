@@ -168,7 +168,37 @@ export class AutoSizeSamplingSettingsPage {
     // The bundle first, or the leg would fail pointing at an overlay class instead of the real
     // cause. `awaitBundle()` owns both the `waitForFunction`-over-`expect` choice and the polling
     // interval - see its docstring for why each one matters.
-    await awaitBundle(this.page);
+    //
+    // Then wait for the fixture to have finished building, either way, and rethrow a constructor
+    // throw with its own message. Without this a failed build reads as a `toBeVisible()` timeout
+    // on the overlay below, which points nowhere near the cause.
+    try {
+      await awaitBundle(this.page);
+
+      await this.page.waitForFunction(
+        () => 'hot' in window || 'htBuildError' in window,
+        undefined,
+        { polling: BUNDLE_POLLING_MS }
+      );
+    } catch (timeoutError) {
+      const snapshot = await this.page.evaluate(() => ({
+        readyState: document.readyState,
+        handsontable: typeof (window as { Handsontable?: unknown }).Handsontable,
+        stylesheets: document.styleSheets.length,
+      })).catch(() => 'page unreachable');
+
+      throw new Error(`The fixture never built its grid; page snapshot: ${JSON.stringify(snapshot)}`,
+        { cause: timeoutError });
+    }
+
+    const buildError = await this.page.evaluate(
+      () => (window as { htBuildError?: string }).htBuildError ?? null
+    );
+
+    if (buildError !== null) {
+      throw new Error(`Handsontable constructor threw in the fixture:\n${buildError}`);
+    }
+
     await expect(this.inlineStartOverlay).toBeVisible();
     await expect(this.grid.locator('.ht_master tbody tr').first()).toBeVisible();
   }

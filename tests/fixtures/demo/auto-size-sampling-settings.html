@@ -82,19 +82,29 @@
       ['r3 a', 'r3 b', 'r3 c', 'r3 d'],
     ];
 
-    const hot = new Handsontable(container, {
-      data,
-      width: 1120,
-      height: 400,
-      rowHeaders: true,
-      colHeaders: true,
-      wordWrap: true,
-      autoRowSize: true,
-      // The last column is the narrow one, so it is the only column whose text wraps - and it is
-      // also the one the default sampling drops.
-      colWidths: [320, 320, 320, 70],
-      licenseKey: 'non-commercial-and-evaluation',
-    });
+    let hot;
+
+    // Built loudly: a constructor throw is captured where the page object can read and rethrow it.
+    // Without this it would surface as a `toBeVisible()` timeout on an overlay locator, which says
+    // nothing about the real cause.
+    try {
+      hot = new Handsontable(container, {
+        data,
+        width: 1120,
+        height: 400,
+        rowHeaders: true,
+        colHeaders: true,
+        wordWrap: true,
+        autoRowSize: true,
+        // The last column is the narrow one, so it is the only column whose text wraps - and it is
+        // also the one the default sampling drops.
+        colWidths: [320, 320, 320, 70],
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      window.htBuildError = String((error && error.stack) || error);
+      throw error;
+    }
 
     window.hot = hot;
 
