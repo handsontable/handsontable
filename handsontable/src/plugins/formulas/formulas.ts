@@ -674,50 +674,50 @@ export class Formulas extends BasePlugin {
     this.rowAxisSyncer = this.indexSyncer.getForAxis('row');
     this.columnAxisSyncer = this.indexSyncer.getForAxis('column');
 
-    this.hot.addHook('afterRowSequenceChange', this.rowAxisSyncer!.getIndexesChangeSyncMethod());
-    this.hot.addHook('afterColumnSequenceChange', this.columnAxisSyncer!.getIndexesChangeSyncMethod());
+    this.addHook('afterRowSequenceChange', this.rowAxisSyncer!.getIndexesChangeSyncMethod());
+    this.addHook('afterColumnSequenceChange', this.columnAxisSyncer!.getIndexesChangeSyncMethod());
 
-    this.hot.addHook('beforeRowMove',
+    this.addHook('beforeRowMove',
       (movedRows: number[], finalIndex: number, _dropIndex: number | undefined, movePossible: boolean) => {
         this.rowAxisSyncer!.storeMovesInformation(movedRows, finalIndex, movePossible);
       });
 
-    this.hot.addHook('beforeColumnMove',
+    this.addHook('beforeColumnMove',
       (movedColumns: number[], finalIndex: number, _dropIndex: number | undefined, movePossible: boolean) => {
         this.columnAxisSyncer!.storeMovesInformation(movedColumns, finalIndex, movePossible);
       });
 
-    this.hot.addHook('afterRowMove',
+    this.addHook('afterRowMove',
       (_movedRows: number[], _finalIndex: number, _dropIndex: number | undefined,
        movePossible: boolean, orderChanged: boolean) => {
         this.rowAxisSyncer!.calculateAndSyncMoves(movePossible, orderChanged);
       });
 
-    this.hot.addHook('afterColumnMove',
+    this.addHook('afterColumnMove',
       (_movedColumns: number[], _finalIndex: number, _dropIndex: number | undefined,
        movePossible: boolean, orderChanged: boolean) => {
         this.columnAxisSyncer!.calculateAndSyncMoves(movePossible, orderChanged);
       });
 
-    this.hot.addHook('beforeColumnFreeze', (column: number, freezePerformed: boolean) => {
+    this.addHook('beforeColumnFreeze', (column: number, freezePerformed: boolean) => {
       const fixedColumnsStart = this.hot.getSettings().fixedColumnsStart;
 
       this.columnAxisSyncer!.storeMovesInformation(
         [column], fixedColumnsStart!, freezePerformed);
     });
 
-    this.hot.addHook('afterColumnFreeze', (_column: number, freezePerformed: boolean) => {
+    this.addHook('afterColumnFreeze', (_column: number, freezePerformed: boolean) => {
       this.columnAxisSyncer!.calculateAndSyncMoves(freezePerformed, freezePerformed);
     });
 
-    this.hot.addHook('beforeColumnUnfreeze', (column: number, unfreezePerformed: boolean) => {
+    this.addHook('beforeColumnUnfreeze', (column: number, unfreezePerformed: boolean) => {
       const fixedColumnsStart = this.hot.getSettings().fixedColumnsStart;
 
       this.columnAxisSyncer!.storeMovesInformation(
         [column], fixedColumnsStart! - 1, unfreezePerformed);
     });
 
-    this.hot.addHook('afterColumnUnfreeze', (_column: number, unfreezePerformed: boolean) => {
+    this.addHook('afterColumnUnfreeze', (_column: number, unfreezePerformed: boolean) => {
       this.columnAxisSyncer!.calculateAndSyncMoves(unfreezePerformed, unfreezePerformed);
     });
 

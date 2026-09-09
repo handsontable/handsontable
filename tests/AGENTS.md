@@ -253,6 +253,40 @@ carrying a TODO for the probe that will replace it; `e2e/customBorders.spec.ts`
 `macrotaskBarrier()` is the one such site. Full rules: the
 `handsontable-playwright-e2e` skill and its `references/determinism.md`.
 
+The waits lint cannot see live beyond the spec's own text — a timer in a
+fixture's inline script, a string-form `evaluate`, and the state a page-object
+wait ends on. Six rules, one line each; the measured incident behind each one
+is in
+`references/determinism.md`:
+
+- A `setTimeout` in the browser is `sleep()` moved into the page: probe the
+  state and `expect.poll` it from the spec.
+- `page.waitForFunction()` passes `{ polling: <ms> }`; a page object takes it
+  from `awaitBundle()` (`fixtures/bundle.ts`), the one place the interval lives.
+- A method that scrolls or mutates the grid ends on a render-state probe (first
+  rendered row, draw counter), never on `scrollTop`/`scrollLeft`.
+- A trigger that can deliver more than once is asserted on the LATEST entry of
+  its kind, inside one `expect.poll`.
+- A fixture build fails loud: the fixture captures the constructor throw, and
+  `goto()` rethrows it.
+- A negative assertion ("nothing fired") uses a bounded settle ONLY beside a
+  positive control in the same test.
+
+**A geometry read is two round trips, and the grid recycles its rows.**
+`locator.boundingBox()` and `locator.evaluate()` resolve the node in one round
+trip and act on it in another (`innerText()` and `getAttribute()` do both in one
+injected call and are safe), and Walkontable reuses the same `<tr>`/`<td>` nodes
+across a re-render. A node resolved as row 4 before a
+scroll-driven draw is row 0 after it, so the read reports a normal row's height
+for the tall one — `frozen-column-row-heights.spec.ts` failed 3 of 150 runs
+under load with `Expected: 69, Received: 30` while the DOM was consistent at
+every task boundary (traced in DEV-2827, after the flake had first been blamed
+on the engine). Query and measure inside ONE `evaluate` on a node that is never
+recycled (the table's root, the grid), read every value a comparison needs in
+that same evaluation (`FrozenTallCellPage.rowHeights()`), and poll a pinned
+expected value rather than comparing two reads with each other — two reads
+that both landed before the draw agree with each other and prove nothing.
+
 **Where a flake goes.** In CI the config adds a `json` reporter
 (`test-results/report.json`, shipped inside the `playwright-report-*` failure
 artifact), and `.github/workflows/test-health.yml` collects every `flaky` or
