@@ -32,11 +32,12 @@ test.describe('walkontable inline-start header border refresh', { tag: '@walkont
     });
 
     test('costs no reconciliation draw when the grid crosses horizontal offset 0', async () => {
-      // A CONTROL, not the regression: this configuration already cost nothing, because
-      // `prepareHeaderBorders` applies the class before the cells render, so the post-render toggle
-      // found it already in place and reported no change. It is here to pin that, and to show the
-      // scroll-driven refresh is still counted on a path where the reconciliation never ran - so a
-      // zero in the varied block below cannot be read as the counter being broken.
+      // A CONTROL, not the regression: this configuration already cost nothing when the file was
+      // written, because `prepareHeaderBorders` applied the class before the cells rendered and the
+      // post-render toggle then found it already in place and reported no change. That machinery is
+      // gone now, but the leg stays: it shows the scroll-driven refresh is still counted on a path
+      // that never reconciled, so a zero in the varied block below cannot be read as the counter
+      // being broken.
       const draws = await wt.countDrawsAcrossOffsetZero();
 
       expect(draws.leavingOffsetZero.reconciliation).toBe(0);
@@ -48,9 +49,10 @@ test.describe('walkontable inline-start header border refresh', { tag: '@walkont
 
   // There are two ways off the single-pass path, and both used to pay the reconciliation, so both
   // get a leg. A `colWidths` array breaks the uniform-size requirement. Window scrolling breaks the
-  // element-mode requirement, and it is the harsher of the two: `prepareHeaderBorders` bails
+  // element-mode requirement, and it was the harsher of the two: `prepareHeaderBorders` bailed
   // outright on `trimmingContainer === rootWindow`, so that shape could never have had its class
-  // pre-applied whatever the other settings said.
+  // pre-applied whatever the other settings said. Both legs stay now that the pre-render pass is
+  // gone - they are the two shapes that paid, so they are the two that must read zero.
   test.describe('with the window as the scroll container (off the single-pass layout path)', () => {
     test.beforeEach(async ({ page, theme, bundle }) => {
       wt = new InlineStartBorderRefreshPage(page, theme, bundle);
@@ -116,34 +118,40 @@ test.describe('walkontable inline-start header border refresh', { tag: '@walkont
       expect(draws.returningToOffsetZero.scrollDriven).toBeGreaterThanOrEqual(1);
     });
 
-    test('still pays exactly one reconciliation draw on a VERTICAL crossing', async () => {
-      // The positive assertion, and the reason this file cannot pass vacuously. Every other
-      // reconciliation expectation here is `toBe(0)`, so a later change that deleted
-      // `ctx.positionChanged` and its whole branch would keep all of them green. The row axis still
-      // shifts the layout by 1px and still feeds the flag, so a vertical crossing off the
-      // single-pass path must cost exactly one re-entrant `refreshAll` - no more, and crucially no
-      // fewer. This is the assertion that fails if the flag is removed rather than narrowed.
+    test('costs no reconciliation draw on a VERTICAL crossing either', async () => {
+      // This expectation was `toBe(1)` when the file was written, and deliberately so: it was the
+      // positive assertion that kept the rest from passing vacuously, because the row axis still
+      // shifted the layout by 1px and still fed `ctx.positionChanged`. DEV-2786 brought that axis
+      // into line - the column header carries its `border-bottom` at every scroll position, the flag
+      // and its branch are gone - so it is 0 like the others now, as the note here predicted.
       //
-      // It also marks the boundary of this change: bringing the row axis into line is separate work,
-      // and when that lands this expectation becomes 0 like the others.
+      // What keeps this file non-vacuous instead is the walkontable spec that owns the row axis
+      // (`overlay.spec.js`, "should keep the column header height and run no nested re-draw when
+      // crossing the top edge"): it asserts the header's height is unchanged across the same
+      // crossing, which fails if the border is traded again.
       const draws = await wt.countDrawsAcrossOffsetZero('vertical');
 
-      expect(draws.leavingOffsetZero.reconciliation).toBe(1);
-      expect(draws.returningToOffsetZero.reconciliation).toBe(1);
+      expect(draws.leavingOffsetZero.reconciliation).toBe(0);
+      expect(draws.returningToOffsetZero.reconciliation).toBe(0);
+
+      expect(draws.leavingOffsetZero.scrollDriven).toBeGreaterThanOrEqual(1);
+      expect(draws.returningToOffsetZero.scrollDriven).toBeGreaterThanOrEqual(1);
     });
 
     test('leaves the master sizes alone when the crossing draw skips its render', async () => {
       // The one shape the metrics above cannot reach: they come only from draws that rendered. A
-      // skipped draw used to get the master `adjustElementsSize()` from the `positionChanged` branch
-      // and now takes the plain `else`, so this is where that would show up.
+      // skipped draw used to reach the master `adjustElementsSize()` only when the `positionChanged`
+      // branch ran; DEV-2786 removed that branch and hoisted the call into the skip path, so every
+      // skipped draw now sizes the master. This is where a size that moved would show up.
       const { skipped, before, after } = await wt.crossOffsetZeroWithRenderSkipped();
 
       // Precondition. Without it the rest passes on a draw that rendered normally.
       expect(skipped).toBeGreaterThanOrEqual(1);
 
       // Only the size fields: a skipped render rolls the rendered band back, so row offsets within
-      // the table legitimately differ. A horizontal crossing changes no master size since #6673,
-      // which is exactly why dropping the extra `adjustElementsSize()` is safe here.
+      // the table legitimately differ. A horizontal crossing changes no master size since #6673, so
+      // the now-unconditional `adjustElementsSize()` has to be a no-op here - which is what makes
+      // running it on every skipped draw safe.
       expect(after.hiderWidth).toBe(before.hiderWidth);
       expect(after.hiderHeight).toBe(before.hiderHeight);
       expect(after.masterScrollWidth).toBe(before.masterScrollWidth);

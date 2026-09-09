@@ -572,16 +572,25 @@ export function markOversizedRows(
   const isExactBand = mayHaveExactRows && rowCount > 0 &&
     table.deps.rowSizeSource.isUniform() && table.deps.rowSizeSource.isModeUniform() &&
     rowUtils.isExact(table.rowFilter!.renderedToSource(0));
+  // Whether THIS table's first rendered `<tr>` draws its own 1px `border-top`, which makes it render
+  // one pixel taller than the rest of the band. It does only when the table renders no head row: the
+  // `thead:not(:empty) + tbody > tr:first-child` rule in `styles/base/_base.scss` hands the seam
+  // under a column header to the header's own `border-bottom` (DEV-2786), so a body row abutting one
+  // has no top border to account for. Per TABLE, not per grid, and it has to be: the bottom clone
+  // renders no head row, so its first row keeps the border — there it is the bottom-freeze seam.
+  // `StylesHandler#firstRenderedRowDrawsTopBorder` is the grid-level form of the same question, for
+  // the master's own row heights.
+  const drawsFirstRowTopBorder = !table.THEAD?.hasChildNodes();
   const expectedTableHeight = rowCount * stylesHandler.getDefaultRowHeight();
   const actualTableHeight = isExactBand
     ? expectedTableHeight
-    : table.deps.geometryReader.innerHeight(table.TBODY!) - 1;
+    : table.deps.geometryReader.innerHeight(table.TBODY!) - (drawsFirstRowTopBorder ? 1 : 0);
   const borderBoxSizing = stylesHandler.areCellsBorderBox();
   const rowHeightFn = borderBoxSizing
     ? (element: HTMLElement) => table.deps.geometryReader.outerHeight(element)
     : (element: HTMLElement) => table.deps.geometryReader.innerHeight(element);
   const borderCompensation = borderBoxSizing ? 0 : 1;
-  const firstRowBorderCompensation = borderBoxSizing ? 1 : 0;
+  const firstRowBorderCompensation = (borderBoxSizing && drawsFirstRowTopBorder) ? 1 : 0;
   let previousRowHeight;
   let rowCurrentHeight;
   let sourceRowIndex;
@@ -628,8 +637,9 @@ export function markOversizedRows(
 
     // Use the rendered row index (rowCount === 0 is always the first <tr> in this tbody),
     // not the source row index (which would be wrong for clones whose first rendered row
-    // has a different source index). Any tbody's first <tr> gets border-top: 1px from the
-    // tr:first-child CSS rule, so the compensation applies regardless of source identity.
+    // has a different source index). The tr:first-child CSS rule gives a tbody's first <tr>
+    // border-top: 1px whatever its source identity — but only in a table that renders no head
+    // row, which `firstRowBorderCompensation` already accounts for.
     const topBorderCompensation = rowCount === 0 ? firstRowBorderCompensation : 0;
 
     if (rowHeader) {
@@ -664,6 +674,13 @@ export function markOversizedRows(
       // the measured value alternates between the two, so counting 1px as a change invalidates the
       // row-height cache on every single draw for as long as the row sits there. The DOM side of the
       // flip is handled separately, by re-applying the current record to every table below.
+      //
+      // Since DEV-2786 the flip only happens on a table with NO head row of its own: there the
+      // border is the grid's top frame and still moves with the band. A table that renders a
+      // column header hands that gridline to the header at every scroll position, so its first
+      // row's height no longer depends on where the band starts and this tolerance costs it
+      // nothing. Narrowing it to that case would still be wrong - it is per table, and the
+      // headerless one has to keep it.
       if (wipedHeight === undefined || Math.abs(rowCurrentHeight - wipedHeight) > 1) {
         hasChanges = true;
       }

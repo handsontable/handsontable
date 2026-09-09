@@ -153,15 +153,14 @@
   border-top: 1px solid #ccc;
 }
 
-/*
-innerBorderTop - Property controlled by top overlay
-innerBorderBottom - Property controlled by bottom overlay
- */
-.ht_master:not(.innerBorderTop):not(.innerBorderBottom) thead tr:last-child th,
-.ht_master:not(.innerBorderTop):not(.innerBorderBottom) ~ .handsontable thead tr:last-child th,
-.ht_master:not(.innerBorderTop):not(.innerBorderBottom) thead tr.lastChild th,
-.ht_master:not(.innerBorderTop):not(.innerBorderBottom) ~ .handsontable thead tr.lastChild th {
-  border-bottom-width: 0;
+/* Row axis border ownership (DEV-2786), the twin of #6673 above: a head row's `th` keeps its
+   `border-bottom` at every scroll position, so a body row directly under one draws no `border-top`.
+   Per-table, because every overlay clone carries its own `thead` and only the ones rendering the head
+   row have a non-empty one — the bottom clones' first row keeps its border, which is the
+   bottom-freeze seam. `innerBorderTop` / `innerBorderBottom` / `emptyRows` drive no geometry. */
+.handsontable thead:not(:empty) + tbody > tr:first-child > th,
+.handsontable thead:not(:empty) + tbody > tr:first-child > td {
+  border-top-width: 0;
 }
 
 .handsontable th {

@@ -55,7 +55,11 @@ function resolveSizingRef(ref) {
 
 /**
  * Calculate overlay height for a section with the given row counts.
- * The first rendered row in any overlay section gets +1px border compensation.
+ *
+ * The first rendered row of an overlay section gets +1px only when it draws its own `border-top`,
+ * which since DEV-2786 means a table that renders no head row above it: with column headers the head
+ * row owns that gridline at every scroll position, and the body rows are all the same height. Pass
+ * `includeFirstRowCompensation: false` for such a section.
  *
  * @param {object} primitives Token primitives (`defaultDataRowHeight`, `firstRenderedRowDefaultHeight`).
  * @param {object} options Options.
@@ -117,6 +121,10 @@ export function createThemeLayoutCore(themeName) {
   const cellContentHeight = lineHeight + (2 * cellVerticalPadding);
   const defaultDataRowHeight = cellContentHeight + cellBorderWidth;
   const defaultColumnHeaderHeight = cellContentHeight;
+  // The height of the first rendered BODY row of a table that renders no head row above it — where
+  // that row draws its own 1px `border-top`, the grid's top frame. With column headers the head row
+  // owns the gridline below it at every scroll position (DEV-2786) and every body row is
+  // `defaultDataRowHeight`, so a spec with `colHeaders` must not reach for this primitive.
   const firstRenderedRowDefaultHeight = defaultDataRowHeight + cellBorderWidth;
   // Walkontable defaults row-header column width to the same constant as data columns
   // (rendering engine convention -- see src/3rdparty/walkontable/src/settings.js).
@@ -153,6 +161,25 @@ export function createThemeLayoutCore(themeName) {
      */
     overlayHeight(options) {
       return overlayHeight(primitives, options);
+    },
+
+    /**
+     * Outer height of a rendered column-header band, i.e. what the top (or top inline-start corner)
+     * overlay measures when it renders nothing but the head rows.
+     *
+     * Each head row carries its own 1px `border-bottom` at every scroll position (DEV-2786), and the
+     * first one carries the grid's 1px top frame on top of that.
+     *
+     * @param {number} [levels=1] Number of column-header levels.
+     * @returns {number} Height in pixels.
+     */
+    columnHeaderBandHeight(levels = 1) {
+      if (levels === 0) {
+        return 0;
+      }
+
+      return (levels * (primitives.cellContentHeight + primitives.cellBorderWidth)) +
+        primitives.cellBorderWidth;
     },
 
     /**
@@ -233,12 +260,13 @@ function buildThemeLayoutE2eHelpers(core) {
     },
 
     /**
-     * TEXTAREA parent top for first data row under a column title row (outer row height).
+     * TEXTAREA parent top for the first data row under a column title row, i.e. the rendered height
+     * of the one-level column-header band (`columnHeaderBandHeight()`).
      *
      * @returns {string}
      */
     e2eTextEditorTextareaParentTopPx() {
-      return `${defaultDataRowHeight}px`;
+      return `${core.columnHeaderBandHeight()}px`;
     },
 
     /**
