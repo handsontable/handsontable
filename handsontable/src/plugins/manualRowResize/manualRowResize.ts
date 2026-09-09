@@ -605,7 +605,6 @@ export class ManualRowResize extends BasePlugin {
       }
 
       return this.getClosestTHParent(element.parentNode as HTMLElement);
-
     }
 
     return null;
@@ -685,7 +684,6 @@ export class ManualRowResize extends BasePlugin {
       this.#dblclick,
     );
     const render = () => {
-      this.hot.view.adjustElementsSize();
       this.hot.render();
     };
     const resize = (row: number, forceRender?: unknown) => {
@@ -784,7 +782,6 @@ export class ManualRowResize extends BasePlugin {
    */
   #onMouseUp() {
     const render = () => {
-      this.hot.view.adjustElementsSize();
       this.hot.render();
     };
     const runHooks = (row: number, forceRender?: unknown) => {
@@ -896,7 +893,6 @@ export class ManualRowResize extends BasePlugin {
 
     this.hot.batchExecution(() => {
       if (Array.isArray(initialSetting)) {
-
         initialSetting.forEach((height, index) => {
           this.#rowHeightsMap.setValueAtIndex(index, height);
         });

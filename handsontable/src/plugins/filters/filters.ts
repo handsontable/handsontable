@@ -1071,7 +1071,6 @@ export class Filters extends BasePlugin {
 
     if (allowFiltering !== false) {
       this.hot.runHooks('afterFilter', conditions);
-      this.hot.view.adjustElementsSize();
       this.hot.render();
     }
   }

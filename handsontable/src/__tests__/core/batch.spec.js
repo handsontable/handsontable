@@ -25,7 +25,6 @@ describe('Core.batch', () => {
     spyOn(hot, 'resumeExecution').and.callThrough();
     spyOn(hot, 'resumeRender').and.callThrough();
     spyOn(hot.view._wt, 'draw');
-    spyOn(hot.view._wt.wtOverlays, 'adjustElementsSize');
 
     const columnIndexCacheUpdated = jasmine.createSpy('columnIndexCacheUpdated');
     const rowIndexCacheUpdated = jasmine.createSpy('rowIndexCacheUpdated');
@@ -59,7 +58,6 @@ describe('Core.batch', () => {
     expect(hot.resumeExecution).toHaveBeenCalledBefore(hot.resumeRender);
     expect(hot.resumeRender).toHaveBeenCalledOnceWith();
     expect(hot.view._wt.draw).toHaveBeenCalledOnceWith(false); // fast redraw?
-    expect(hot.view._wt.wtOverlays.adjustElementsSize).toHaveBeenCalledTimes(1);
     expect(columnIndexCacheUpdated).toHaveBeenCalledTimes(3);
 
     expect(columnIndexCacheUpdated).toHaveBeenCalledWith({

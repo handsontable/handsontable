@@ -94,9 +94,13 @@ and the indicator classes) must not survive the plugin.
 
 ## Known concern
 
-`../../../.ai/CONCERNS.md` records that this plugin, `autoColumnSize` and `autoRowSize` each trigger the
-same per-render work separately — `@TODO Should call once per render cycle`. It also lists
-`showColumn.ts`'s `arr.push(...largeArray)` as a stack-overflow risk at large scale; use a loop.
+`../../../.ai/CONCERNS.md` lists `showColumn.ts`'s `arr.push(...largeArray)` as a stack-overflow risk at
+large scale; use a loop.
+
+This plugin used to ask the view to resize the overlays after hiding or showing a column, with a
+`@TODO Should call once per render cycle` on it, as did `autoColumnSize` and `autoRowSize`. Walkontable
+decides for itself now — see "The engine decides for itself when the overlays need resizing" in
+`../../3rdparty/walkontable/AGENTS.md`, and do not add the call back.
 
 ## Where to look next
 

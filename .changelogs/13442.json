@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the overlays not being resized when the grid's total size changed but the rendered rows did not, for example after hiding columns or filtering rows.",
+  "type": "fixed",
+  "issueOrPR": 13442,
+  "breaking": false,
+  "framework": "none"
+}

@@ -97,13 +97,6 @@ export class NestedRows extends BasePlugin {
    */
   #skipCoreAPIModifiers = false;
   /**
-   * State of the first render.
-   *
-   * @type {boolean}
-   */
-  #isFirstRender = true;
-
-  /**
    * Tree paths of the parents that were collapsed when `updateData()` started, kept only until the
    * new structure is cached and they can be collapsed again.
    *
@@ -148,7 +141,6 @@ export class NestedRows extends BasePlugin {
     );
 
     this.addHook('afterInit', this.#onAfterInit);
-    this.addHook('afterRender', this.#onAfterRender);
     this.addHook('beforeViewRender', this.#onBeforeViewRender);
     this.addHook('modifyRowData', this.onModifyRowData.bind(this));
     this.addHook('modifySourceLength', this.onModifySourceLength.bind(this));
@@ -925,22 +917,6 @@ export class NestedRows extends BasePlugin {
    */
   #onAfterInit = () => {
     this.headersUI!.updateRowHeaderWidth(undefined);
-  };
-
-  /**
-   * `afterRender` hook callback.
-   * Recalculates table dimensions after the first render. Fixes the wtHider size being too small on initial display.
-   */
-  #onAfterRender = () => {
-    if (this.#isFirstRender && this.hot.view) {
-      this.#isFirstRender = false;
-
-      this.hot.rootWindow.requestAnimationFrame(() => {
-        if (this.hot && this.hot.view && !this.hot.isDestroyed) {
-          this.hot.view.adjustElementsSize(true);
-        }
-      });
-    }
   };
 
   /**

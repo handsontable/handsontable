@@ -156,6 +156,23 @@ export class NestedRowsPage {
   }
 
   /**
+   * The master hider's height against the height of the table inside it.
+   *
+   * The hider is the element that gives the grid its scroll range, so it must never be shorter than
+   * the table it holds - a short hider clips the last rows and the scrollbar stops early.
+   */
+  async masterHiderVsTable(): Promise<{ hiderHeight: number; tableHeight: number }> {
+    return this.page.evaluate(() => {
+      const master = document.querySelector('.ht_master') as HTMLElement;
+
+      return {
+        hiderHeight: (master.querySelector('.wtHider') as HTMLElement).offsetHeight,
+        tableHeight: (master.querySelector('table.htCore') as HTMLElement).offsetHeight,
+      };
+    });
+  }
+
+  /**
    * Call one of the plugin's public methods in the page and return its result.
    *
    * Kept generic so the spec reads as the API call it is making, rather than growing one
