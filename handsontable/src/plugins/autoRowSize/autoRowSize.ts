@@ -395,13 +395,7 @@ export class AutoRowSize extends BasePlugin {
       return;
     }
 
-    this.samplesGenerator.setAllowDuplicates(this.getSetting<boolean>('allowSampleDuplicates'));
-
-    const samplingRatio = this.getSetting<number | null>('samplingRatio');
-
-    if (samplingRatio && !isNaN(samplingRatio)) {
-      this.samplesGenerator.setSampleCount(samplingRatio);
-    }
+    this.#applySamplingSettings();
 
     this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('beforeChangeRender', this.#onBeforeChange);
@@ -421,6 +415,40 @@ export class AutoRowSize extends BasePlugin {
     addClass(this.hot.rootElement, AUTO_ROW_SIZE_CLASS_NAME);
 
     super.enablePlugin();
+  }
+
+  /**
+   * Updates the plugin's state after the table settings change.
+   *
+   * The sampling settings have to be re-read here, not only in `enablePlugin`: that method returns
+   * early on an already-enabled plugin, and `BasePlugin` only re-runs the enable/disable pair when
+   * the plugin's enabled state itself changed. Without this, `samplingRatio` and
+   * `allowSampleDuplicates` were silently ignored whenever they arrived through `updateSettings`.
+   *
+   * The measured heights are dropped only when a sampling setting actually changed. The framework
+   * wrappers re-send unchanged settings on every update (React on every commit), so clearing the
+   * cache unconditionally would re-measure every row on each of them.
+   */
+  updatePlugin(): void {
+    if (this.#applySamplingSettings()) {
+      this.clearCache();
+    }
+
+    super.updatePlugin();
+  }
+
+  /**
+   * Reads the sampling-related settings and applies them to the samples generator.
+   *
+   * @returns {boolean} `true` when a setting changed, which means the measured heights are stale.
+   */
+  #applySamplingSettings(): boolean {
+    const samplingRatio = this.getSetting<number | null>('samplingRatio');
+
+    return this.samplesGenerator.applySamplingOptions({
+      sampleCount: samplingRatio && !isNaN(samplingRatio) ? samplingRatio : null,
+      allowDuplicates: this.getSetting<boolean>('allowSampleDuplicates'),
+    });
   }
 
   /**

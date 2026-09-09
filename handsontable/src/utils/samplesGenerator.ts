@@ -7,6 +7,7 @@ type DataFactoryResult = false | { value: unknown; bundleSeed?: string };
 type DataFactory = (row: number, col: number, instance: SamplesGenerator) => DataFactoryResult;
 type SampleEntry = { needed: number; strings: Array<{ value: unknown; col?: number; row?: number }> };
 type SampleRange = { from: number; to: number } | number[];
+type SamplingOptions = { sampleCount: number | null; allowDuplicates: boolean };
 
 /**
  * @class SamplesGenerator
@@ -91,6 +92,31 @@ class SamplesGenerator {
    */
   setAllowDuplicates(allowDuplicates: boolean) {
     this.allowDuplicates = allowDuplicates as boolean;
+  }
+
+  /**
+   * Applies both sampling options at once and reports whether either of them changed.
+   *
+   * Callers use the return value to decide whether the sizes they measured earlier are still
+   * usable. Both options change which cells end up in a sample, so a size measured under the
+   * previous options cannot be trusted once they change - the auto-size plugins answer a `true`
+   * here by clearing their size cache.
+   *
+   * Passing `null` as `sampleCount` restores the default, {@link SamplesGenerator.SAMPLE_COUNT}.
+   *
+   * @param {object} options The sampling options to apply.
+   * @param {number|null} options.sampleCount Number of samples to collect per value length, or
+   * `null` for the default.
+   * @param {boolean} options.allowDuplicates `true` to allow duplicate values.
+   * @returns {boolean} `true` when at least one option changed its value.
+   */
+  applySamplingOptions({ sampleCount, allowDuplicates }: SamplingOptions): boolean {
+    const hasChanged = sampleCount !== this.customSampleCount || allowDuplicates !== this.allowDuplicates;
+
+    this.customSampleCount = sampleCount;
+    this.allowDuplicates = allowDuplicates;
+
+    return hasChanged;
   }
 
   /**

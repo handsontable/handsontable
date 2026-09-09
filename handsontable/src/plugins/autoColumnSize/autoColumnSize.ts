@@ -392,14 +392,7 @@ export class AutoColumnSize extends BasePlugin {
       return;
     }
 
-    this.ghostTable.setSetting('useHeaders', this.getSetting('useHeaders'));
-    this.samplesGenerator.setAllowDuplicates(this.getSetting<boolean>('allowSampleDuplicates'));
-
-    const samplingRatio = this.getSetting<number | null>('samplingRatio');
-
-    if (samplingRatio && !isNaN(samplingRatio)) {
-      this.samplesGenerator.setSampleCount(parseInt(String(samplingRatio), 10));
-    }
+    this.#applySamplingSettings();
 
     this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('beforeChangeRender', this.#onBeforeChange);
@@ -428,10 +421,45 @@ export class AutoColumnSize extends BasePlugin {
     this.findColumnsWhereHeaderWasChanged().forEach((visualColumn) => {
       this.#columnWidthsToRefresh.set(visualColumn, null);
     });
+
+    // The sampling settings have to be re-read here, not only in `enablePlugin`: that method
+    // returns early on an already-enabled plugin, and `BasePlugin` only re-runs the enable/disable
+    // pair when the plugin's enabled state itself changed. Without this, `samplingRatio`,
+    // `allowSampleDuplicates` and `useHeaders` were silently ignored whenever they arrived through
+    // `updateSettings`.
+    //
+    // The measured widths are dropped only when one of them actually changed. The framework
+    // wrappers re-send unchanged settings on every update (React on every commit), so clearing the
+    // cache unconditionally would re-measure every column on each of them.
+    if (this.#applySamplingSettings()) {
+      this.clearCache();
+    }
+
     // Settings may remap the data that feeds the samples (e.g. a new `columns` definition), so
     // the cached samples cannot be trusted — the next re-measure falls back to a full scan.
     this.#columnSamplesCache.clear();
     super.updatePlugin();
+  }
+
+  /**
+   * Reads the sampling-related settings and applies them to the samples generator and the ghost
+   * table.
+   *
+   * @returns {boolean} `true` when a setting changed, which means the measured widths are stale.
+   */
+  #applySamplingSettings(): boolean {
+    const samplingRatio = this.getSetting<number | null>('samplingRatio');
+    const useHeaders = this.getSetting('useHeaders');
+    const hasHeadersChanged = this.ghostTable.getSetting('useHeaders') !== useHeaders;
+
+    this.ghostTable.setSetting('useHeaders', useHeaders);
+
+    const hasSamplingChanged = this.samplesGenerator.applySamplingOptions({
+      sampleCount: samplingRatio && !isNaN(samplingRatio) ? parseInt(String(samplingRatio), 10) : null,
+      allowDuplicates: this.getSetting<boolean>('allowSampleDuplicates'),
+    });
+
+    return hasHeadersChanged || hasSamplingChanged;
   }
 
   /**

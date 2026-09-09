@@ -44,6 +44,25 @@ over the whole row range, **before the first paint**. Everything past the limit 
 
 The async loop must cancel its frame when the instance was destroyed mid-calculation.
 
+## The sampling settings are re-read in `updatePlugin()`, and only a real change clears the cache
+
+`samplingRatio`, `allowSampleDuplicates` and `useHeaders` are applied in `#applySamplingSettings()`, called
+from **both** `enablePlugin()` and `updatePlugin()`. Reading them in `enablePlugin()` alone is not enough:
+that method returns early on an already-enabled plugin, and `BasePlugin` only re-runs the enable/disable pair
+when the plugin's enabled state itself changed — so a plain settings change never reaches it. All three were
+silently ignored when they arrived through `updateSettings()` (DEV-2850).
+
+When one of them actually changed, `updatePlugin()` calls `clearCache()`: the three decide *which cells get
+measured at all*, so widths measured under the previous values describe a different sample.
+
+**Clear only on a real change.** `SETTING_KEYS` is `true` here, so `updatePlugin()` runs on *every*
+`updateSettings()` call, and the React and Angular wrappers re-send unchanged settings on every update (React
+on every commit). An unconditional `clearCache()` would re-measure every column on each of them — which the
+`skipUnchangedWrites` rule below exists to avoid in the first place.
+`SamplesGenerator#applySamplingOptions()` reports whether either sampling option changed, and `useHeaders` is
+compared against `ghostTable.getSetting('useHeaders')`. `AutoRowSize` follows the same shape; its own
+`AGENTS.md` carries the note about the `updateSettings`-does-not-recalculate contract this sits under.
+
 ## The refresh queue avoids full rescans (DEV-2097)
 
 An edit does not automatically rescan its column. Changed cells are queued as width probes, and a full

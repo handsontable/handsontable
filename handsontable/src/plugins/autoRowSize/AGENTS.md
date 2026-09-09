@@ -40,11 +40,29 @@ when every height is already cached.
 - **The first rendered row gets +1px** to compensate for its `border-top-width`. That compensation is
   per-render, not baked into the cached height.
 
-## `updateSettings` does not recalculate
+## `updateSettings` does not recalculate — with one exception
 
 Changing `wordWrap`, `textEllipsis` or a renderer changes row heights, but `updateSettings()` alone does not
 re-measure. Callers must follow it with `recalculateAllRowsHeight()`. That is documented in the class JSDoc
 and in the guides — it is the contract, not a bug.
+
+**The exception is this plugin's own sampling settings.** `updatePlugin()` re-reads `samplingRatio` and
+`allowSampleDuplicates` and, when either actually changed, calls `clearCache()` — which schedules the full
+recalculation. That is not a widening of the rule above: those two settings decide *which cells get measured
+at all*, so heights measured under the previous values describe a different sample and cannot be kept.
+Leaving them applied only to rows measured after the change is what made the setting look inert (DEV-2850).
+
+Two rules hold that in place, and both are load-bearing:
+
+- **The settings must be re-read in `updatePlugin()`, not only in `enablePlugin()`.** `enablePlugin()`
+  returns early on an already-enabled plugin, and `BasePlugin` only re-runs the enable/disable pair when the
+  plugin's enabled state itself changed — so a plain settings change never reaches it. This is exactly how
+  `samplingRatio` came to be silently ignored on every `updateSettings()` call.
+- **Clear the cache only when a value actually changed.** `SETTING_KEYS` is `true` here, so `updatePlugin()`
+  runs on *every* `updateSettings()` call, and the React and Angular wrappers re-send unchanged settings on
+  every update (React on every commit). An unconditional `clearCache()` would therefore re-measure every row
+  on every commit. `SamplesGenerator#applySamplingOptions()` returns whether anything changed, which is what
+  that decision reads; `AutoColumnSize` uses the same method for the same reason.
 
 ## Only a full render measures rows, and it measures only the visible band
 

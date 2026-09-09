@@ -25,6 +25,50 @@ describe('SamplesGenerator', () => {
     expect(sg.allowDuplicates).toBe(true);
   });
 
+  describe('applySamplingOptions', () => {
+    it('should apply both options', () => {
+      const sg = new SamplesGenerator();
+
+      sg.applySamplingOptions({ sampleCount: 10, allowDuplicates: true });
+
+      expect(sg.getSampleCount()).toBe(10);
+      expect(sg.allowDuplicates).toBe(true);
+    });
+
+    it('should restore the default sample count when `sampleCount` is `null`', () => {
+      const sg = new SamplesGenerator();
+
+      sg.applySamplingOptions({ sampleCount: 10, allowDuplicates: false });
+      sg.applySamplingOptions({ sampleCount: null, allowDuplicates: false });
+
+      expect(sg.getSampleCount()).toBe(SamplesGenerator.SAMPLE_COUNT);
+    });
+
+    it('should report `true` when the sample count changes', () => {
+      const sg = new SamplesGenerator();
+
+      expect(sg.applySamplingOptions({ sampleCount: 6, allowDuplicates: false })).toBe(true);
+    });
+
+    it('should report `true` when the duplicates policy changes', () => {
+      const sg = new SamplesGenerator();
+
+      expect(sg.applySamplingOptions({ sampleCount: null, allowDuplicates: true })).toBe(true);
+    });
+
+    it('should report `false` when neither option changes', () => {
+      const sg = new SamplesGenerator();
+
+      sg.applySamplingOptions({ sampleCount: 6, allowDuplicates: true });
+
+      // The auto-size plugins clear their measured sizes on a `true`, and they re-apply these
+      // options on every `updateSettings` call. Re-sending the same values must not report a
+      // change, or the wrappers (which re-send unchanged settings) would force a re-measure on
+      // every update.
+      expect(sg.applySamplingOptions({ sampleCount: 6, allowDuplicates: true })).toBe(false);
+    });
+  });
+
   it('should internally call `generateSamples` when calling `generateRowSamples`', () => {
     const sg = new SamplesGenerator();
 
