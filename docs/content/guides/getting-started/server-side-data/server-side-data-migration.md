@@ -2,7 +2,7 @@
 type: how-to
 title: Migrate to server-side data
 metaTitle: Migrate to server-side data - JavaScript Data Grid | Handsontable
-description: Move from a full in-memory data array and afterChange saves to Handsontable dataProvider—stable row ids, fetchRows, CRUD callbacks, pagination, and filters.
+description: Move from a full in-memory data array and afterChange saves to Handsontable dataProvider -- stable row ids, fetchRows, CRUD callbacks, pagination, and filters.
 permalink: /server-side-data-migration
 canonicalUrl: /server-side-data-migration
 tags:
