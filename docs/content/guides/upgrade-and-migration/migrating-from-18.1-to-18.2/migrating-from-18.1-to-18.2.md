@@ -21,7 +21,7 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 [[toc]]
 
-Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not.
+Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode).
 
 ## 1. `date` cells reach the formula engine the same way on every data path
 
@@ -269,3 +269,89 @@ Two kinds of reference now render as written:
   written. Use the lower-case spelling.
 
 If either appears in your copy, write the character itself, or use a numeric reference.
+
+## 7. `checked` is a reserved context menu item property
+
+This section applies only if you build your own
+[context menu](@/guides/accessories-and-menus/context-menu/context-menu.md) or
+[column menu](@/guides/accessories-and-menus/column-menu/column-menu.md) items.
+
+Handsontable marks its own toggle items with a check mark: "Read only", "Read-only comment", and the
+four border items. That mark used to be an HTML string built into the item's `name`, which a page
+enforcing `require-trusted-types-for 'script'` rejected. Each item now declares its state in a
+`checked` option, and Handsontable builds the mark as a DOM node.
+
+`checked` is therefore read on every menu item. An item of your own that already carries a property
+of that name, holding a boolean or a function returning one, now does two things it did not do
+before:
+
+- it draws a check mark before its label whenever the value resolves to `true`
+- it is announced to assistive technology as a checkbox with a state, rather than as a plain menu
+  item
+
+A property named `checked` holding anything else, such as a string or a number, is ignored.
+
+If the property was your own bookkeeping and you want neither effect, rename it:
+
+```js
+// Before
+{ name: 'Sync', checked: isSyncing, callback() { /* ... */ } }
+
+// After
+{ name: 'Sync', syncing: isSyncing, callback() { /* ... */ } }
+```
+
+If you drew the mark yourself inside `name`, use the option instead. An item that does both gets two
+marks, because Handsontable adds its own in front of the label you built:
+
+```js
+// Before
+{ name: () => `<span class="selected">&#10003;</span>My toggle`, checked: myState }
+
+// After
+{ name: 'My toggle', checked: () => myState }
+```
+
+The second form also needs no [`sanitizer`](@/api/options.md#sanitizer). A `name` containing markup
+is written through `innerHTML`, so under Trusted Types it needs a policy-backed sanitizer; a plain
+label does not.
+
+## 8. <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click on a selected cell moves the highlight
+
+This applies to every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode) of
+`multiple`.
+
+Since 16.0.0, <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + clicking a cell that was already part of the
+selection removed it, wherever the highlight happened to be. The cell you just clicked therefore
+stopped being selected, and the highlight fell back to another layer, so it appeared to jump to a cell
+you clicked earlier. Moving the highlight around inside a multi-cell selection was not possible.
+
+What the click does now depends on where the highlight is:
+
+- The clicked cell does not hold the highlight: the highlight moves to it, and it stays selected. So
+  does every other selected cell.
+- The clicked cell already holds the highlight: the cell is deselected. Clicking the last remaining
+  cell this way still clears the selection.
+
+Two <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + clicks on the same cell therefore still deselect it. The
+first moves the highlight there, and the second removes it. How quickly you click makes no
+difference, so a <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + double-click does the same thing as those
+two clicks: it moves the highlight onto the cell and then removes it.
+
+### Who is affected
+
+- You rely on a single <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click removing a cell from the
+  selection without regard to the highlight. It now takes two clicks unless the cell is already
+  highlighted.
+- You count [`afterDeselect`](@/api/hooks.md#afterdeselect) events, or read
+  [`getSelected()`](@/api/core.md#getselected) after such a click. A click that moves the highlight
+  keeps the layer instead of dropping it, and no longer clears the selection.
+
+A grid with `selectionMode` set to `single` or `range` is unaffected, because neither supports more
+than one selection layer.
+
+### How to migrate
+
+Nothing to change in most cases, because the gesture now does what the highlight shows. If your own
+code removed a selection layer in response to such a click, drop that workaround: the grid no longer
+removes the layer for you.
