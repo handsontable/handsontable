@@ -722,7 +722,7 @@ straight away if the geometry really differs and costs nothing if it does not. `
 gate and resizes unconditionally. No plugin and no core path calls either form; a handful of specs
 still do, deliberately, to pin that the escape hatch keeps working
 (`__tests__/core/resumeRender.spec.js`, `__tests__/settings/fixedRowsTop.spec.js`,
-`__tests__/settings/fixedColumnsStart.spec.js`). `tests/e2e/overlay-self-resize.spec.ts` asserts that
+`__tests__/settings/fixedColumnsStart.spec.js`). `tests/e2e/walkontable/overlay-self-resize.spec.ts` asserts that
 none of the deleted plugin paths ask for a resize on its fixture.
 
 ## Known Tech Debt

@@ -1,5 +1,5 @@
-import { test, expect } from '../fixtures/test';
-import { OverlaySelfResizePage } from '../fixtures/pages/OverlaySelfResizePage';
+import { test, expect } from '../../fixtures/test';
+import { OverlaySelfResizePage } from '../../fixtures/pages/walkontable/OverlaySelfResizePage';
 
 /**
  * DEV-19 — Walkontable notices for itself when the overlays need resizing.
@@ -22,7 +22,7 @@ import { OverlaySelfResizePage } from '../fixtures/pages/OverlaySelfResizePage';
  * outside this gate. So a zero below means the master write and the band sync were skipped — never
  * that nothing in the grid was resized.
  */
-test.describe('overlay self-resize', () => {
+test.describe('walkontable overlay self-resize', { tag: '@walkontable' }, () => {
   let grid: OverlaySelfResizePage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

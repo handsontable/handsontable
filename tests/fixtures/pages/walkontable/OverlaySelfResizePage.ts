@@ -64,7 +64,7 @@ export class OverlaySelfResizePage {
    */
   async goto(): Promise<void> {
     await this.page.goto(
-      `/tests/fixtures/demo/overlay-self-resize.html?theme=${this.theme}&bundle=${this.bundle}`
+      `/tests/fixtures/demo/walkontable/overlay-self-resize.html?theme=${this.theme}&bundle=${this.bundle}`
     );
     await expect(this.grid.locator('.ht_master .wtHider')).toBeVisible();
     await this.page.waitForFunction(

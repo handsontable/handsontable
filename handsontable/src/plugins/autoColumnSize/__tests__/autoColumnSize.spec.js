@@ -518,7 +518,7 @@ describe('AutoColumnSize', () => {
     expect(width1).toBeLessThan(width2);
   });
 
-  it(`should keep proper topOverlay size after render() -> adjustElementSize() -> updateSettings
+  it(`should keep proper topOverlay size after render() -> updateSettings
       with a different set of colHeaders`, async() => {
     const getHeaders = () => [
       'A_longer',

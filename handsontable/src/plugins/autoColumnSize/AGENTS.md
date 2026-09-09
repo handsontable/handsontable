@@ -76,9 +76,10 @@ width.
 
 ## Known concerns
 
-- `@TODO Should call once per render cycle, currently fired separately in different plugins` — this plugin,
-  `autoRowSize` and `hiddenColumns` each trigger the same per-render work. Catalogued in
-  `../../../.ai/CONCERNS.md`.
+- This plugin no longer asks the view to resize the overlays. It used to, beside `autoRowSize` and
+  `hiddenColumns`, each with a `@TODO Should call once per render cycle` on it. Walkontable decides for
+  itself now — see "The engine decides for itself when the overlays need resizing" in
+  `../../3rdparty/walkontable/AGENTS.md`, and do not add the call back.
 - `requestAnimationFrame` batching in the codebase is thin, and this is one of the few files using it.
 
 ## Notes for docs
