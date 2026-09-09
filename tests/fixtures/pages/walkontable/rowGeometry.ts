@@ -10,8 +10,10 @@ import type { Locator } from '@playwright/test';
  * load, while the DOM was consistent at every task boundary. Every helper here therefore resolves a
  * node that is never recycled (a table's root, the grid) and queries and measures the row inside ONE
  * evaluation; the paired helpers read every value a comparison needs in that same evaluation, so no
- * draw can land between the two sides. A row a table does not render reads as `NaN`, which no
- * comparison accepts — a row that left the rendered band fails loudly instead of passing as 0.
+ * draw can land between the two sides. A row a table does not render reads as `NaN`, which compares
+ * unequal to every real height or offset, so a row that left the rendered band fails a pinned check
+ * instead of passing as 0. (`toBe`/`toEqual` use `Object.is`, under which `NaN` does equal `NaN` — so
+ * never pin an expectation to `NaN`; the guarantee is only that it matches no real value.)
  * Rules: `tests/AGENTS.md`, Determinism.
  */
 

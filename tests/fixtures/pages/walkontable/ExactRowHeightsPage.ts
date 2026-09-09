@@ -92,14 +92,6 @@ export class ExactRowHeightsPage {
     return geometry.rowHeights(this.grid, row);
   }
 
-  /**
-   * The vertical offset of a row relative to its own table's body, so the master
-   * and a clone are comparable even though they sit at different page positions.
-   */
-  async rowOffsetWithinTable(table: Locator, row: number): Promise<number> {
-    return geometry.rowOffsetWithinTable(table, row);
-  }
-
   /** How far each row's offset in the master differs from the inline-start overlay's; zeroes = aligned. */
   async rowOffsetDrift(rows: number[]): Promise<number[]> {
     return geometry.rowOffsetDrift(this.grid, rows);
