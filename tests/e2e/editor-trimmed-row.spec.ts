@@ -1227,13 +1227,165 @@ test.describe('an index-map change nested inside a removal', () => {
   // permanently racy against a defect this suite's subject neither causes nor fixes.
 });
 
-// `updateData()` strands an editor through the same mechanism as a removal - `fitToLength()`
-// renumbers the physical space under it - so its completion callback carries the same
-// structural-change scope `alter()` does (DEV-2739 review). A case asserting the same-task
-// `updateData()` + `filter()` end state deliberately does NOT live here: with the scope in
-// place the calm path discards, but under load the operation's own refresh-vs-resume timing
-// still lets the commit through ~50% of the time on unchanged develop - DEV-2756 owns that
-// nondeterminism and carries the repro.
+/**
+ * `updateData()` strands an editor through the same mechanism as a removal - `fitToLength()`
+ * renumbers the physical space under it - so its completion callback carries the same
+ * structural-change scope `alter()` does (DEV-2739 review).
+ *
+ * Everything here runs in ONE synchronous block, `replaceData()`'s completion callback included, so
+ * there is no task boundary for the scope to leak across and nothing for a re-prepare to race: a
+ * scope closed on a zero-delay timeout instead of inline would be open when the filter reconciles,
+ * skip the discard, and append a fourth record (DEV-2756).
+ */
+test.describe('a data swap that strands the editor', () => {
+  test('discards when the filter lands in the same task as the swap',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+
+      // A focus parked below the range's top-start corner is what `selection.refresh()` leaves
+      // stranded rather than re-preparing, so the editor is still at visual row 4 when the
+      // three-row data set arrives.
+      await grid.selectRangeWithFocusAt([0, 0, 4, 0], 4, 0);
+      await grid.typeOnSelection('EDITED');
+
+      // The strand premise, pinned before the combined action.
+      await expect.poll(() => grid.editorRow()).toBe(4);
+      expect(await grid.sourceRowCount()).toBe(5);
+
+      await grid.updateDataThenFilterSameTask(
+        [['X0', 'Y0'], ['X1', 'Y1'], ['X2', 'Y2']], 0, ['X2']
+      );
+
+      // The filter's trimming map really was written, so the discard was reached. Without this the
+      // assertions below are all satisfied by "no editor was ever open" - the premise pinned above
+      // rules that out going in, and this rules out the trigger never firing.
+      expect(await grid.sawTrimmingCacheUpdate('row')).toBe(true);
+      // Deliberately NOT asserting the editor reference is gone. Whether a fresh editor is
+      // prepared at row 0 behind the discard differs between the plain and the full bundle
+      // (`editorRow()` is `null` on `umd`, `0` on `full-min`), and it is not what this pins.
+      // The fixture enables no Formulas, so that split is a defect of its own - DEV-2862.
+      expect(await grid.committedChangeCount()).toBe(0);
+      expect(await grid.sourceRowCount()).toBe(3);
+      expect(await grid.sourceData()).toEqual([
+        ['X0', 'Y0'],
+        ['X1', 'Y1'],
+        ['X2', 'Y2'],
+      ]);
+    });
+});
+
+/**
+ * `alter()` opens its structural-change scope BEFORE it runs `beforeAlter`, so a hook that vetoes
+ * the change returns out of the function with the scope still open. Nothing closes it for the rest
+ * of the task, and the next trimming change in that task reads the scope as open and skips the
+ * discard - the DEV-2739 append, reached through a vetoed call instead of a leaked timer
+ * (DEV-2831).
+ *
+ * It takes an EARLIER structural change to bite: the veto itself writes no index map, so the
+ * captured record survives and guides the repair on its own. The removal below is what clears it
+ * and leaves the editor's stale coordinates as the only thing left to read.
+ */
+test.describe('a vetoed alter between a strand and a filter', () => {
+  test('closes its scope so the filter still discards', async({ page, theme, bundle }) => {
+    const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+    await grid.goto();
+
+    await grid.selectRangeWithFocusAt([0, 0, 4, 0], 4, 0);
+    await grid.typeOnSelection('EDITED');
+
+    await expect.poll(() => grid.editorRow()).toBe(4);
+    expect(await grid.sourceRowCount()).toBe(5);
+
+    await grid.vetoedAlterBetweenStrandAndFilterSameTask(1, 0, ['A2']);
+
+    // Four rows, because the vetoed second removal changed nothing - and no fifth appended record.
+    expect(await grid.committedChangeCount()).toBe(0);
+    expect(await grid.sourceRowCount()).toBe(4);
+    expect(await grid.sourceData()).toEqual([
+      ['A0', 'B0'],
+      ['A2', 'B2'],
+      ['A3', 'B3'],
+      ['A4', 'B4'],
+    ]);
+  });
+
+  /**
+   * The same leak through the other kind of exit. A zero-delay timeout does NOT stand in for the
+   * resume here: it runs in the next task, and the filter that reads the scope runs in this one.
+   * `alter()` throwing is reachable without anything unusual from the caller - `UndoRedo` catches
+   * around its own `alter()` calls, and any `beforeAlter` / `afterCreateRow` / `afterRemoveRow`
+   * hook can throw.
+   */
+  test('closes its scope when the alter throws instead of returning',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+
+      await grid.selectRangeWithFocusAt([0, 0, 4, 0], 4, 0);
+      await grid.typeOnSelection('EDITED');
+
+      await expect.poll(() => grid.editorRow()).toBe(4);
+      expect(await grid.sourceRowCount()).toBe(5);
+
+      await grid.throwingAlterBetweenStrandAndFilterSameTask(1, 0, ['A2']);
+
+      // The filter really did write a trimming map, so the discard was reached rather than skipped
+      // over by a trigger that never fired.
+      expect(await grid.sawTrimmingCacheUpdate('row')).toBe(true);
+      expect(await grid.committedChangeCount()).toBe(0);
+      expect(await grid.sourceRowCount()).toBe(4);
+      expect(await grid.sourceData()).toEqual([
+        ['A0', 'B0'],
+        ['A2', 'B2'],
+        ['A3', 'B3'],
+        ['A4', 'B4'],
+      ]);
+    });
+});
+
+/**
+ * The strand-discard scope is not the only thing `updateData()` opens and has to close. It brackets
+ * `selection.refresh()` with `markSource('updateData')` and `markEndSource()`, and `refresh()`
+ * clears that source itself only on its normal path - so a hook that throws part-way through leaves
+ * it reading `updateData` for the rest of the instance's life.
+ *
+ * That is worse than a wrong label. `afterSetRangeEnd` reads the source and treats `updateData` as
+ * "this selection came from a data replacement, do nothing extra", so every later selection skips
+ * its scroll, skips closing an open editor, and skips `prepareEditor()`. The grid then looks alive
+ * but takes no typing at all (DEV-2831 review).
+ */
+test.describe('a data replacement whose selection repair throws', () => {
+  test('ends the selection source it began, so the grid still takes typing',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+
+      // `refresh()` returns early unless something is selected, so the throw needs a selection to
+      // reach - without this the hook never fires and the test would pass on nothing happening.
+      await grid.selectRangeWithFocusAt([1, 0, 1, 0], 1, 0);
+
+      const { threw, selectionSource } = await grid.updateDataWithThrowingRefresh([
+        ['X0', 'Y0'],
+        ['X1', 'Y1'],
+        ['X2', 'Y2'],
+      ]);
+
+      // The premise: the hook really did throw out of `updateData()`.
+      expect(threw).toBe(true);
+      // The fix, read directly. `refresh` is also fine here - anything but `updateData`.
+      expect(selectionSource).not.toBe('updateData');
+
+      // The same thing at the level a user feels it. `openEditorAndType()` asserts the editor
+      // opened and holds the text, and both of those need the `prepareEditor()` that a source
+      // stuck at `updateData` skips.
+      await grid.openEditorAndType(0, 0, 'AFTER');
+    });
+});
 
 /**
  * Whether a layer's extent TRACKS THE GRID rather than naming records decides whether the restore

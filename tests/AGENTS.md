@@ -17,6 +17,37 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   (`e2e-main` used to load `full.min` — never assume the hooks cover min.)
 - `handsontable.full.js` and `handsontable.min.js` are deliberately untested
   here — they belong to the nightly on develop (DEV-2058).
+- **A PARTIAL build leaves the `-min` legs on the PREVIOUS bundle, and they
+  fail without saying so.** `npm run build:umd` writes `dist/handsontable.js`
+  only; `dist/handsontable.full.min.js` comes from the separate
+  `build:umd.min`. So after `build:umd` the three `umd` legs carry the change
+  and the three `-min` legs still run the code from before it — same spec, same
+  machine, opposite verdicts. **Read the failures PER LEG before calling
+  anything a race:** `45 failed / 90` on `--repeat-each=15` is not "50% flaky",
+  it is 3 legs × 15 failing every time. A failure count that is a multiple of
+  the repeat count is worth checking per leg for exactly that shape — it is a
+  prompt to look, not a verdict, since a genuine one-in-three race across 90
+  runs lands on 30 often enough. Always `npm --prefix handsontable run build`
+  (the full task, which also runs the strict `postbuild`) before a cross-leg
+  run, and confirm both files moved with
+  `ls -l handsontable/dist/handsontable.js handsontable/dist/handsontable.full.min.js`.
+  Then **re-run before concluding "the code was fine"**: a clean 3-red/3-green
+  split by bundle is equally consistent with a real difference in bundle
+  CONTENT, because the `-min` legs load `handsontable.full.min.js` with
+  HyperFormula and Formulas registered. Only the same legs going green on a
+  verified full build separates staleness from a genuine full-bundle
+  difference. Both shapes were seen on one ticket. The staleness one cost
+  DEV-2756 a ticket — a deterministic `-min` failure filed as load-dependent
+  nondeterminism, where a full build then passed 90/90 on all six legs. The
+  content one showed up on the same branch minutes later, on a verified full
+  build: after `updateData()` discards a stranded editor, `getActiveEditor()`
+  is `null` on `umd` and a fresh editor at row 0 on `full-min`, so an assertion
+  on the editor reference split exactly along the bundle axis with nothing
+  stale involved. **Assert the observable outcome** — committed changes, source
+  data — rather than which internal objects survived, and where a difference is
+  real, say so in the test instead of pinning one bundle's answer. A real one is
+  still a defect: that editor split is tracked as DEV-2862, since the fixture
+  enables no Formulas and only the bundle differs.
 - **Never hardcode a row or column index that sits near the edge of the
   rendered band.** Each theme's padding feeds `autoColumnSize`, so the same
   content measures differently: in `width-window-scroll.html` (500px wide, 30

@@ -1259,262 +1259,270 @@ export default function Core(
       // so an `alter()` a hook fires from inside this one cannot lift this call's protection.
       editorManager.suspendStrandDiscards();
 
-      const skipAlter = instance.runHooks('beforeAlter', action, index, amount, source, keepEmptyRows);
+      // Everything down to the `finally` runs inside the scope, and the `finally` is what closes
+      // it. A resume written at each exit by hand is not enough here: besides the `beforeAlter`
+      // veto and the `maxRows` guard below, the switch's default `throwWithCause()` and any hook
+      // that throws leave the same window open, and the self-heal timeout does not stand in for
+      // them – it runs in the NEXT task, while the `Filters#filter()` that skips the discard and
+      // appends records runs in THIS one (DEV-2831).
+      try {
+        const skipAlter = instance.runHooks('beforeAlter', action, index, amount, source, keepEmptyRows);
 
-      if (skipAlter === false) {
-        return;
-      }
+        if (skipAlter === false) {
+          return;
+        }
 
-      /* eslint-disable no-case-declarations */
-      switch (action) {
-        case 'insert_row_below':
-        case 'insert_row_above':
+        /* eslint-disable no-case-declarations */
+        switch (action) {
+          case 'insert_row_below':
+          case 'insert_row_above':
 
-          const numberOfSourceRows = instance.countSourceRows();
+            const numberOfSourceRows = instance.countSourceRows();
 
-          if (tableMeta.maxRows === numberOfSourceRows) {
-            return;
-          }
-
-          // `above` is the default behavior for creating new rows
-
-          const insertRowMode = action === 'insert_row_below' ? 'below' : 'above';
-
-          // Calling the `insert_row_above` action adds a new row at the beginning of the data set.
-
-          const defaultRowIndex = insertRowMode === 'below' ? numberOfSourceRows : 0;
-
-          const rowIndex = typeof index === 'number' ? index : defaultRowIndex;
-
-          const {
-            delta: rowDelta,
-            startPhysicalIndex: startRowPhysicalIndex,
-          } = datamap.createRow(rowIndex, amount, { source, mode: insertRowMode });
-
-          selection.shiftRows(instance.toVisualRow(startRowPhysicalIndex!), rowDelta as number);
-          break;
-
-        case 'insert_col_start':
-        case 'insert_col_end':
-          // "start" is a default behavior for creating new columns
-
-          const insertColumnMode = action === 'insert_col_end' ? 'end' : 'start';
-
-          // Calling the `insert_col_start` action adds a new column to the left of the data set.
-
-          const defaultColIndex = insertColumnMode === 'end' ? instance.countSourceCols() : 0;
-
-          const colIndex = typeof index === 'number' ? index : defaultColIndex;
-
-          const {
-            delta: colDelta,
-            startPhysicalIndex: startColumnPhysicalIndex,
-          } = datamap.createCol(colIndex, amount, { source, mode: insertColumnMode });
-
-          if (colDelta) {
-            if (Array.isArray(tableMeta.colHeaders)) {
-              const spliceArray = [instance.toVisualColumn(startColumnPhysicalIndex!), 0];
-
-              spliceArray.length += colDelta as number; // inserts empty (undefined) elements at the end of an array
-              Array.prototype.splice.apply(tableMeta.colHeaders, spliceArray as [number, number]); // inserts empty (undefined) elements into the colHeader array
+            if (tableMeta.maxRows === numberOfSourceRows) {
+              return;
             }
 
-            selection.shiftColumns(instance.toVisualColumn(startColumnPhysicalIndex!), colDelta as number);
-          }
-          break;
+            // `above` is the default behavior for creating new rows
 
-        case 'remove_row':
+            const insertRowMode = action === 'insert_row_below' ? 'below' : 'above';
 
-          const removeRow = (indexes: number[][]) => {
-            let offset = 0;
+            // Calling the `insert_row_above` action adds a new row at the beginning of the data set.
 
-            // Normalize the {index, amount} groups into bigger groups.
-            arrayEach(indexes, ([groupIndex, groupAmount]) => {
-              const calcIndex = isEmpty(groupIndex) ? instance.countRows() - 1 : Math.max(groupIndex - offset, 0);
+            const defaultRowIndex = insertRowMode === 'below' ? numberOfSourceRows : 0;
 
-              // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
-              // compatible with datamap.removeCol method.
-              if (Number.isInteger(groupIndex)) {
-                groupIndex = Math.max(groupIndex - offset, 0);
-              }
+            const rowIndex = typeof index === 'number' ? index : defaultRowIndex;
 
-              const totalRowsBefore = instance.countRows();
+            const {
+              delta: rowDelta,
+              startPhysicalIndex: startRowPhysicalIndex,
+            } = datamap.createRow(rowIndex, amount, { source, mode: insertRowMode });
 
-              // TODO: for datamap.removeRow index should be passed as it is (with undefined and null values). If not, the logic
-              // inside the datamap.removeRow breaks the removing functionality.
-              const wasRemoved = datamap.removeRow(groupIndex, groupAmount, source);
+            selection.shiftRows(instance.toVisualRow(startRowPhysicalIndex!), rowDelta as number);
+            break;
 
-              if (!wasRemoved) {
-                return;
-              }
+          case 'insert_col_start':
+          case 'insert_col_end':
+            // "start" is a default behavior for creating new columns
 
-              if (selection.isSelected()) {
-                const { row } = instance.getSelectedRangeActive()!.highlight;
+            const insertColumnMode = action === 'insert_col_end' ? 'end' : 'start';
 
-                if (row! >= groupIndex && row! <= groupIndex + groupAmount - 1) {
-                  editorManager.closeEditor(true);
-                }
-              }
+            // Calling the `insert_col_start` action adds a new column to the left of the data set.
 
-              const totalRows = instance.countRows();
-              const fixedRowsTop = tableMeta.fixedRowsTop;
+            const defaultColIndex = insertColumnMode === 'end' ? instance.countSourceCols() : 0;
 
-              if (fixedRowsTop >= calcIndex + 1) {
-                tableMeta.fixedRowsTop -= Math.min(groupAmount, fixedRowsTop - calcIndex);
-              }
+            const colIndex = typeof index === 'number' ? index : defaultColIndex;
 
-              const fixedRowsBottom = tableMeta.fixedRowsBottom;
+            const {
+              delta: colDelta,
+              startPhysicalIndex: startColumnPhysicalIndex,
+            } = datamap.createCol(colIndex, amount, { source, mode: insertColumnMode });
 
-              if (fixedRowsBottom) {
-                // Count how many of the removed rows belonged to the bottom fixed rows. Those rows occupied
-                // the `[totalRowsBefore - fixedRowsBottom, totalRowsBefore - 1]` range, so the boundary has
-                // to be compared with the row count from *before* the removal. Rows removed above that
-                // range keep the setting untouched (DEV-2551).
-                const removedRowsCount = totalRowsBefore - totalRows;
-                // With no index passed, `datamap.removeRow` takes the rows from the end, so the removal
-                // starts that many rows before the last one. `calcIndex` points at the last row then, not
-                // at the first removed one.
-                const firstRemovedRowIndex = Number.isInteger(groupIndex)
-                  ? calcIndex
-                  : Math.max(totalRowsBefore - removedRowsCount, 0);
-                const firstFixedRowIndex = totalRowsBefore - fixedRowsBottom;
-                const lastRemovedRowIndex =
-                  Math.min(firstRemovedRowIndex + removedRowsCount - 1, totalRowsBefore - 1);
-                const removedFixedRowsCount =
-                  lastRemovedRowIndex - Math.max(firstRemovedRowIndex, firstFixedRowIndex) + 1;
-
-                if (removedFixedRowsCount > 0) {
-                  tableMeta.fixedRowsBottom -= Math.min(removedFixedRowsCount, fixedRowsBottom);
-                }
-              }
-
-              if (totalRows === 0) {
-                selection.deselect();
-
-              } else if (source === 'ContextMenu.removeRow') {
-                const selectionRange = selection.getSelectedRange()!;
-                const lastSelection = selectionRange.pop()!;
-
-                selectionRange
-                  .clear()
-                  .set(lastSelection.from)
-                  .current()!
-                  .setTo(lastSelection.to);
-
-                selection.refresh();
-
-              } else {
-                selection.shiftRows(groupIndex, -groupAmount);
-              }
-
-              offset += groupAmount;
-            });
-          };
-
-          if (Array.isArray(index)) {
-            removeRow(normalizeIndexesGroup(index));
-          } else {
-            removeRow([[index as number, amount]]);
-          }
-          break;
-
-        case 'remove_col':
-
-          const removeCol = (indexes: number[][]) => {
-            let offset = 0;
-
-            // Normalize the {index, amount} groups into bigger groups.
-            arrayEach(indexes, ([groupIndex, groupAmount]) => {
-              const calcIndex = isEmpty(groupIndex) ? instance.countCols() - 1 : Math.max(groupIndex - offset, 0);
-
-              let physicalColumnIndex = instance.toPhysicalColumn(calcIndex);
-
-              // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
-              // compatible with datamap.removeCol method.
-              if (Number.isInteger(groupIndex)) {
-                groupIndex = Math.max(groupIndex - offset, 0);
-              }
-
-              // TODO: for datamap.removeCol index should be passed as it is (with undefined and null values). If not, the logic
-              // inside the datamap.removeCol breaks the removing functionality.
-              const wasRemoved = datamap.removeCol(groupIndex, groupAmount, source);
-
-              if (!wasRemoved) {
-                return;
-              }
-
-              if (selection.isSelected()) {
-                const { col } = instance.getSelectedRangeActive()!.highlight;
-
-                if (col! >= groupIndex && col! <= groupIndex + groupAmount - 1) {
-                  editorManager.closeEditor(true);
-                }
-              }
-
-              const totalColumns = instance.countCols();
-
-              if (totalColumns === 0) {
-                selection.deselect();
-
-              } else if (source === 'ContextMenu.removeColumn') {
-                const selectionRange = selection.getSelectedRange()!;
-                const lastSelection = selectionRange.pop()!;
-
-                selectionRange
-                  .clear()
-                  .set(lastSelection.from)
-                  .current()!
-                  .setTo(lastSelection.to);
-
-                selection.refresh();
-
-              } else {
-                selection.shiftColumns(groupIndex, -groupAmount);
-              }
-
-              const fixedColumnsStart = tableMeta.fixedColumnsStart;
-
-              if (fixedColumnsStart >= calcIndex + 1) {
-                // Since 12.0.0, the "fixedColumnsLeft" is replaced with the "fixedColumnsStart" option.
-                // However, keeping the old name still in effect. When both option names are used together,
-                // the error is thrown. To prevent that, the engine needs to modify the original option key
-                // to bypass the validation.
-                (tableMeta as unknown as { _fixedColumnsStart: number })._fixedColumnsStart -=
-                  Math.min(groupAmount, fixedColumnsStart - calcIndex);
-              }
-
+            if (colDelta) {
               if (Array.isArray(tableMeta.colHeaders)) {
-                if (typeof physicalColumnIndex === 'undefined') {
-                  physicalColumnIndex = -1;
-                }
-                tableMeta.colHeaders.splice(physicalColumnIndex!, groupAmount);
+                const spliceArray = [instance.toVisualColumn(startColumnPhysicalIndex!), 0];
+
+                spliceArray.length += colDelta as number; // inserts empty (undefined) elements at the end of an array
+                Array.prototype.splice.apply(tableMeta.colHeaders, spliceArray as [number, number]); // inserts empty (undefined) elements into the colHeader array
               }
 
-              offset += groupAmount;
-            });
-          };
+              selection.shiftColumns(instance.toVisualColumn(startColumnPhysicalIndex!), colDelta as number);
+            }
+            break;
 
-          if (Array.isArray(index)) {
-            removeCol(normalizeIndexesGroup(index));
-          } else {
-            removeCol([[index as number, amount]]);
-          }
-          break;
-        default:
-          throwWithCause(`There is no such action "${action}"`);
+          case 'remove_row':
+
+            const removeRow = (indexes: number[][]) => {
+              let offset = 0;
+
+              // Normalize the {index, amount} groups into bigger groups.
+              arrayEach(indexes, ([groupIndex, groupAmount]) => {
+                const calcIndex = isEmpty(groupIndex) ? instance.countRows() - 1 : Math.max(groupIndex - offset, 0);
+
+                // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
+                // compatible with datamap.removeCol method.
+                if (Number.isInteger(groupIndex)) {
+                  groupIndex = Math.max(groupIndex - offset, 0);
+                }
+
+                const totalRowsBefore = instance.countRows();
+
+                // TODO: for datamap.removeRow index should be passed as it is (with undefined and null values). If not, the logic
+                // inside the datamap.removeRow breaks the removing functionality.
+                const wasRemoved = datamap.removeRow(groupIndex, groupAmount, source);
+
+                if (!wasRemoved) {
+                  return;
+                }
+
+                if (selection.isSelected()) {
+                  const { row } = instance.getSelectedRangeActive()!.highlight;
+
+                  if (row! >= groupIndex && row! <= groupIndex + groupAmount - 1) {
+                    editorManager.closeEditor(true);
+                  }
+                }
+
+                const totalRows = instance.countRows();
+                const fixedRowsTop = tableMeta.fixedRowsTop;
+
+                if (fixedRowsTop >= calcIndex + 1) {
+                  tableMeta.fixedRowsTop -= Math.min(groupAmount, fixedRowsTop - calcIndex);
+                }
+
+                const fixedRowsBottom = tableMeta.fixedRowsBottom;
+
+                if (fixedRowsBottom) {
+                  // Count how many of the removed rows belonged to the bottom fixed rows. Those rows occupied
+                  // the `[totalRowsBefore - fixedRowsBottom, totalRowsBefore - 1]` range, so the boundary has
+                  // to be compared with the row count from *before* the removal. Rows removed above that
+                  // range keep the setting untouched (DEV-2551).
+                  const removedRowsCount = totalRowsBefore - totalRows;
+                  // With no index passed, `datamap.removeRow` takes the rows from the end, so the removal
+                  // starts that many rows before the last one. `calcIndex` points at the last row then, not
+                  // at the first removed one.
+                  const firstRemovedRowIndex = Number.isInteger(groupIndex)
+                    ? calcIndex
+                    : Math.max(totalRowsBefore - removedRowsCount, 0);
+                  const firstFixedRowIndex = totalRowsBefore - fixedRowsBottom;
+                  const lastRemovedRowIndex =
+                    Math.min(firstRemovedRowIndex + removedRowsCount - 1, totalRowsBefore - 1);
+                  const removedFixedRowsCount =
+                    lastRemovedRowIndex - Math.max(firstRemovedRowIndex, firstFixedRowIndex) + 1;
+
+                  if (removedFixedRowsCount > 0) {
+                    tableMeta.fixedRowsBottom -= Math.min(removedFixedRowsCount, fixedRowsBottom);
+                  }
+                }
+
+                if (totalRows === 0) {
+                  selection.deselect();
+
+                } else if (source === 'ContextMenu.removeRow') {
+                  const selectionRange = selection.getSelectedRange()!;
+                  const lastSelection = selectionRange.pop()!;
+
+                  selectionRange
+                    .clear()
+                    .set(lastSelection.from)
+                    .current()!
+                    .setTo(lastSelection.to);
+
+                  selection.refresh();
+
+                } else {
+                  selection.shiftRows(groupIndex, -groupAmount);
+                }
+
+                offset += groupAmount;
+              });
+            };
+
+            if (Array.isArray(index)) {
+              removeRow(normalizeIndexesGroup(index));
+            } else {
+              removeRow([[index as number, amount]]);
+            }
+            break;
+
+          case 'remove_col':
+
+            const removeCol = (indexes: number[][]) => {
+              let offset = 0;
+
+              // Normalize the {index, amount} groups into bigger groups.
+              arrayEach(indexes, ([groupIndex, groupAmount]) => {
+                const calcIndex = isEmpty(groupIndex) ? instance.countCols() - 1 : Math.max(groupIndex - offset, 0);
+
+                let physicalColumnIndex = instance.toPhysicalColumn(calcIndex);
+
+                // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
+                // compatible with datamap.removeCol method.
+                if (Number.isInteger(groupIndex)) {
+                  groupIndex = Math.max(groupIndex - offset, 0);
+                }
+
+                // TODO: for datamap.removeCol index should be passed as it is (with undefined and null values). If not, the logic
+                // inside the datamap.removeCol breaks the removing functionality.
+                const wasRemoved = datamap.removeCol(groupIndex, groupAmount, source);
+
+                if (!wasRemoved) {
+                  return;
+                }
+
+                if (selection.isSelected()) {
+                  const { col } = instance.getSelectedRangeActive()!.highlight;
+
+                  if (col! >= groupIndex && col! <= groupIndex + groupAmount - 1) {
+                    editorManager.closeEditor(true);
+                  }
+                }
+
+                const totalColumns = instance.countCols();
+
+                if (totalColumns === 0) {
+                  selection.deselect();
+
+                } else if (source === 'ContextMenu.removeColumn') {
+                  const selectionRange = selection.getSelectedRange()!;
+                  const lastSelection = selectionRange.pop()!;
+
+                  selectionRange
+                    .clear()
+                    .set(lastSelection.from)
+                    .current()!
+                    .setTo(lastSelection.to);
+
+                  selection.refresh();
+
+                } else {
+                  selection.shiftColumns(groupIndex, -groupAmount);
+                }
+
+                const fixedColumnsStart = tableMeta.fixedColumnsStart;
+
+                if (fixedColumnsStart >= calcIndex + 1) {
+                  // Since 12.0.0, the "fixedColumnsLeft" is replaced with the "fixedColumnsStart" option.
+                  // However, keeping the old name still in effect. When both option names are used together,
+                  // the error is thrown. To prevent that, the engine needs to modify the original option key
+                  // to bypass the validation.
+                  (tableMeta as unknown as { _fixedColumnsStart: number })._fixedColumnsStart -=
+                    Math.min(groupAmount, fixedColumnsStart - calcIndex);
+                }
+
+                if (Array.isArray(tableMeta.colHeaders)) {
+                  if (typeof physicalColumnIndex === 'undefined') {
+                    physicalColumnIndex = -1;
+                  }
+                  tableMeta.colHeaders.splice(physicalColumnIndex!, groupAmount);
+                }
+
+                offset += groupAmount;
+              });
+            };
+
+            if (Array.isArray(index)) {
+              removeCol(normalizeIndexesGroup(index));
+            } else {
+              removeCol([[index as number, amount]]);
+            }
+            break;
+          default:
+            throwWithCause(`There is no such action "${action}"`);
+        }
+
+        if (!keepEmptyRows) {
+          grid.adjustRowsAndCols(); // makes sure that we did not add rows that will be removed in next refresh
+        }
+      } finally {
+        // The alter's synchronous work is done: `selection.shiftRows()` (or `shiftColumns()`, for
+        // the column actions - `#recaptureEditedRecord()` opens the scope on either axis) has had
+        // its chance to re-prepare an editor the change stranded. Closing the scope here rather
+        // than on a deferred timeout is what lets a trimming change that follows in the SAME task -
+        // `alter('remove_row', ...)` and then `Filters#filter()` - discard the stranded edit
+        // instead of committing through it and appending records (DEV-2739).
+        editorManager.resumeStrandDiscards();
       }
-
-      if (!keepEmptyRows) {
-        grid.adjustRowsAndCols(); // makes sure that we did not add rows that will be removed in next refresh
-      }
-
-      // The alter's synchronous work is done: `selection.shiftRows()` (or `shiftColumns()`, for
-      // the column actions - `#recaptureEditedRecord()` opens the scope on either axis) has had
-      // its chance to re-prepare an editor the change stranded. Closing the scope here rather
-      // than on a deferred timeout is what lets a trimming change that follows in the SAME task -
-      // `alter('remove_row', ...)` and then `Filters#filter()` - discard the stranded edit
-      // instead of committing through it and appending records (DEV-2739).
-      editorManager.resumeStrandDiscards();
 
       instance.view.render();
     },
@@ -3699,15 +3707,28 @@ export default function Core(
         // and appends records (DEV-2739 review).
         editorManager.suspendStrandDiscards();
 
-        instance.columnIndexMapper.fitToLength(this.getInitialColumnCount());
-        instance.rowIndexMapper.fitToLength(this.countSourceRows());
+        // `finally`, for the same reason `alter()` uses one: `adjustRowsAndCols()` runs the row
+        // creation hooks and `selection.refresh()` the selection hooks, so a hook that throws
+        // would otherwise leave the scope open for the rest of the task (DEV-2831).
+        try {
+          instance.columnIndexMapper.fitToLength(this.getInitialColumnCount());
+          instance.rowIndexMapper.fitToLength(this.countSourceRows());
 
-        grid.adjustRowsAndCols();
-        selection.markSource('updateData');
-        selection.refresh();
-        selection.markEndSource();
+          grid.adjustRowsAndCols();
+          selection.markSource('updateData');
 
-        editorManager.resumeStrandDiscards();
+          // Paired with the `markSource()` above, so it ends only what it began. `refresh()` clears
+          // the source itself on its normal path but not when it throws, and a source stuck at
+          // `updateData` makes every later selection skip its scroll, its editor close and its
+          // `prepareEditor()` for the rest of the instance's life (DEV-2831 review).
+          try {
+            selection.refresh();
+          } finally {
+            selection.markEndSource();
+          }
+        } finally {
+          editorManager.resumeStrandDiscards();
+        }
       }, {
         hotInstance: instance,
         dataMap: datamap,
@@ -3753,8 +3774,13 @@ export default function Core(
         instance.initIndexMappers();
         grid.adjustRowsAndCols();
         selection.markSource('loadData');
-        selection.refresh();
-        selection.markEndSource();
+
+        // Paired, for the reason `updateData()` gives above.
+        try {
+          selection.refresh();
+        } finally {
+          selection.markEndSource();
+        }
 
         if (firstRun) {
           firstRun = [null, 'loadData'];
