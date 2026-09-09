@@ -88,6 +88,14 @@ stored it raw. Anything that is not a whole number above zero resolves to `null`
 not cosmetic: `parseInt` turned `true` and `[]` into `NaN`, and because `NaN !== NaN` the change check
 reported a change on *every* `updateSettings()` call and never converged.
 
+**`applySamplingOptions()` is the only way into those two options — do not add a per-option setter back.**
+`SamplesGenerator` used to carry `setSampleCount()` and `setAllowDuplicates()`, and both were removed once
+all three plugins moved to the shared method, because they wrote `customSampleCount` **raw**: a caller
+passing `-1`, `2.5` or `'6'` could reach a state the plugins can no longer produce, which is exactly the
+disagreement `resolveSampleCount()` exists to end. Removing them was safe rather than breaking because the
+class is exported from no public entry point and the two plugins that expose the instance mark it
+`@private` (`AutoRowHeaderSize` keeps it in a `#` field), so it is not in the published API surface.
+
 `AutoRowSize` follows the same shape; its own `AGENTS.md` carries the note about the
 `updateSettings`-does-not-recalculate contract this sits under.
 

@@ -9,22 +9,6 @@ describe('SamplesGenerator', () => {
     }).toThrowWithCause('Unsupported sample type', { handsontable: true });
   });
 
-  it('should be possible to set samples count', () => {
-    const sg = new SamplesGenerator();
-
-    sg.setSampleCount(10);
-
-    expect(sg.getSampleCount()).toBe(10);
-  });
-
-  it('should be possible to allow using duplicates', () => {
-    const sg = new SamplesGenerator();
-
-    sg.setAllowDuplicates(true);
-
-    expect(sg.allowDuplicates).toBe(true);
-  });
-
   describe('resolveSampleCount', () => {
     it('should accept a whole number above zero', () => {
       expect(SamplesGenerator.resolveSampleCount(6)).toBe(6);

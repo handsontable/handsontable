@@ -77,24 +77,6 @@ class SamplesGenerator {
   }
 
   /**
-   * Set the sample count.
-   *
-   * @param {number} sampleCount Number of samples to be collected.
-   */
-  setSampleCount(sampleCount: number) {
-    this.customSampleCount = sampleCount;
-  }
-
-  /**
-   * Set if the generator should accept duplicate values.
-   *
-   * @param {boolean} allowDuplicates `true` to allow duplicate values.
-   */
-  setAllowDuplicates(allowDuplicates: boolean) {
-    this.allowDuplicates = allowDuplicates as boolean;
-  }
-
-  /**
    * Resolves a `samplingRatio` option into a usable sample count.
    *
    * Anything that is not a whole number above zero resolves to `null`, meaning the default
