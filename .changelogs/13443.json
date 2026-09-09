@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the `AutoRowSize` and `AutoColumnSize` sampling options (`samplingRatio`, `allowSampleDuplicates`, and `useHeaders`) being silently ignored when changed through `updateSettings()`. They now apply, and the measured sizes are recalculated when one of them actually changes.",
+  "type": "fixed",
+  "issueOrPR": 13443,
+  "breaking": false,
+  "framework": "none"
+}
