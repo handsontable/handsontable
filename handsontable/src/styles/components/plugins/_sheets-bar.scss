@@ -55,12 +55,15 @@ $all-sheets-visible-items: 8;
     // A sheet name can be fifty characters, and a menu sized to the longest one dominates the
     // page — the rows cap their width and ellipsize the tail (UX review). The name lands
     // inside the shared `htItemWrapper`, so the cap goes there and covers the tab menu's
-    // header row and the all-sheets rows alike.
+    // header row and the all-sheets rows alike. The trailing padding reserves the footprint of
+    // the active-sheet checkmark, which the shared menu styles paint absolutely over the row's
+    // end — without it the ellipsized text runs underneath the mark.
     &.htSheetsBarMenu table tbody tr td .htItemWrapper {
       max-width: 32ch;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      padding-inline-end: calc(var(--ht-icon-size) + var(--ht-gap-size));
     }
 
     &.htSheetsBarMenu table tbody tr td.htCustomMenuRenderer:not(.htDisabled) {
