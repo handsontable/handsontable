@@ -69,10 +69,21 @@ const trendRenderer: BaseRenderer = (instance, td, row, col, prop, value, cellPr
   baseRenderer(instance, td, row, col, prop, value, cellProperties);
   stats.rendererCalls += 1;
 
-  // `row` is a visual index; the data array is in physical order. Read the record from your own
-  // array: `getSourceDataAtRow()` returns a copy of the row, which can never be a WeakMap key.
-  const record = data[instance.toPhysicalRow(row) as number];
-  const sales = value as number[];
+  // `row` is a visual index, and `data` is in physical order, so translate before the lookup.
+  // Read the record from your own array: `getSourceDataAtRow()` returns a copy of the row on
+  // every call, which can never be a WeakMap key. Keep this closure and the grid's data source
+  // the same array -- after `updateData()`, point it at the new one.
+  const record = data[instance.toPhysicalRow(row)];
+  const sales = value;
+
+  // A row without a record (a `minSpareRows` row, or one mid-`alter()`) and an empty cell both
+  // reach the renderer. Neither can be cached: `undefined` is not a valid WeakMap key.
+  if (!record || !Array.isArray(sales) || sales.length === 0) {
+    td.textContent = '—';
+
+    return;
+  }
+
   let entry = trendCache.get(record);
 
   if (!entry || entry.input !== sales) {
@@ -111,7 +122,14 @@ const ExampleComponent = () => {
   const updateFirstRow = useCallback(() => {
     const hot = hotRef.current?.hotInstance;
 
-    if (!hot) return;
+    if (!hot) {
+      return;
+    }
+
+    // Bring the first row into view, so its renderer runs and the counter shows the single
+    // recomputation. A cell outside the rendered band is not painted at all.
+    hot.scrollViewportTo({ row: 0 });
+
     // Replace the array instead of changing it in place: the renderer compares inputs by identity.
     const nextSales = data[0].sales.map((value, month) => Math.round(value * (1 + month / 10)));
 
