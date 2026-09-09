@@ -12,7 +12,8 @@ import { replaceTemplateVariables } from './src/plugins/template-variables.mjs';
 import { rehypeTableWrapper } from './src/plugins/rehype-table-wrapper.mjs';
 import { rehypeMigrationSteps } from './src/plugins/rehype-migration-steps.mjs';
 import { replaceHasSelectors } from './src/plugins/replace-has-selectors.mjs';
-import { buildAllSidebars, buildAllValidUrls } from './src/sidebar.mjs';
+import { buildAllSidebars, buildAllValidUrls, FRAMEWORK_PREFIXES } from './src/sidebar.mjs';
+import { buildLlmsFull, buildLlmsIndex, buildLlmsSections, SITE_URL } from './src/llms.mjs';
 import { resolveHotVersion } from './src/lib/hot-version.mjs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -325,7 +326,7 @@ function commonJsonIntegration() {
   const matter = _require('gray-matter');
   const semver = _require('semver');
   const contentDir = resolve(__dirname, 'content');
-  const PREFIXES = ['javascript-data-grid', 'react-data-grid', 'angular-data-grid', 'vue-data-grid'];
+  const PREFIXES = Object.values(FRAMEWORK_PREFIXES);
   const MIN_DOCS_VERSION = '9.0';
 
   // ── Version helpers ──────────────────────────────────────────────────────
@@ -566,19 +567,24 @@ function commonJsonIntegration() {
 
 /**
  * Astro integration that generates clean Markdown files for the
- * starlight-page-actions "View in Markdown" / "Copy Markdown" features.
+ * starlight-page-actions "View in Markdown" / "Copy Markdown" features,
+ * plus the /docs/llms.txt and /docs/llms-full.txt agent-discovery files
+ * (built by src/llms.mjs from the same route map).
  *
  * Scans docs/content/ for .md files, reads their `permalink` frontmatter,
- * and writes cleaned Markdown to public/ (dev) and dist/ (build) for all
- * three framework prefixes.
+ * and writes cleaned Markdown to public/ (dev) and dist/ (build) for every
+ * framework prefix in FRAMEWORK_PREFIXES.
  *
- * Generated files live under public/_md/ and are gitignored.
+ * Generated files live under public/ and are gitignored.
+ *
+ * @param {object} sidebars The buildAllSidebars() result the llms files are
+ *   derived from.
  */
-function markdownRoutesIntegration() {
+function markdownRoutesIntegration(sidebars) {
   const matter = _require('gray-matter');
   const contentDir = resolve(__dirname, 'content');
   const publicMdDir = resolve(__dirname, 'public', '_md');
-  const PREFIXES = ['javascript-data-grid', 'react-data-grid', 'angular-data-grid', 'vue-data-grid'];
+  const PREFIXES = Object.values(FRAMEWORK_PREFIXES);
 
   /**
    * Assembles one output file: an H1 from the frontmatter title, then the body
@@ -596,6 +602,9 @@ function markdownRoutesIntegration() {
 
   function buildRouteMap() {
     const routeMap = new Map();
+    // Per-page frontmatter, keyed by the bare slug (no framework prefix, no
+    // trailing slash). Feeds the llms.txt link descriptions.
+    const pageMeta = new Map();
 
     function scanDir(dir) {
       for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -632,6 +641,8 @@ function markdownRoutesIntegration() {
         const slug = data.permalink.replace(/^\//, '').replace(/\/$/, '') || 'index';
         const md = buildMarkdown(data.title, content);
 
+        pageMeta.set(slug, { title: data.title, description: data.description || '' });
+
         for (const prefix of PREFIXES) {
           routeMap.set(`${prefix}/${slug}.md`, md);
         }
@@ -640,11 +651,11 @@ function markdownRoutesIntegration() {
 
     scanDir(contentDir);
 
-    return routeMap;
+    return { routeMap, pageMeta };
   }
 
   function writeFiles(outDir) {
-    const routeMap = buildRouteMap();
+    const { routeMap, pageMeta } = buildRouteMap();
 
     for (const [filePath, md] of routeMap) {
       const dest = resolve(outDir, filePath);
@@ -653,6 +664,13 @@ function markdownRoutesIntegration() {
       mkdirSync(destDir, { recursive: true });
       writeFileSync(dest, md, 'utf-8');
     }
+
+    // The llms files live one level above _md, at the site root (/docs/).
+    const sections = buildLlmsSections(sidebars);
+    const rootDir = dirname(outDir);
+
+    writeFileSync(resolve(rootDir, 'llms.txt'), buildLlmsIndex(pageMeta, sections), 'utf-8');
+    writeFileSync(resolve(rootDir, 'llms-full.txt'), buildLlmsFull(routeMap, sections), 'utf-8');
 
     return routeMap.size;
   }
@@ -695,7 +713,7 @@ const _validUrlArrays = (() => {
 })();
 
 export default defineConfig({
-  site: 'https://handsontable.com',
+  site: SITE_URL,
   base: '/docs',
 
   // Astro 7 changed the default from `true` to `'jsx'` (JSX-like whitespace
@@ -1040,7 +1058,7 @@ export default defineConfig({
 
     // Serves clean Markdown at *.md URLs for the "View in Markdown" button
     // added by starlight-page-actions.
-    markdownRoutesIntegration(),
+    markdownRoutesIntegration(allSidebars),
 
     // Generates /docs/data/common.json consumed by the version dropdown in
     // all deployed doc versions (current and previous).
