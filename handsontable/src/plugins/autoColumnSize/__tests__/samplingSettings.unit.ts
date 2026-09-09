@@ -77,14 +77,17 @@ describe('AutoColumnSize sampling settings', () => {
     hot.destroy();
   });
 
-  it('should drop the measured widths when a sampling setting changes', () => {
+  it('should re-measure every column when a sampling setting changes', () => {
+    // `recalculateAllColumnsWidth()`, not `clearCache()`: a bare clear empties every measured
+    // width, but the only render-time measurement covers the visible band, so every column outside
+    // the viewport would keep the default width until scrolled into view.
     const hot = buildGrid();
     const plugin = hot.getPlugin('autoColumnSize');
-    const clearCache = spyOn(plugin, 'clearCache').and.callThrough();
+    const recalculateAll = spyOn(plugin, 'recalculateAllColumnsWidth').and.callThrough();
 
     hot.updateSettings({ autoColumnSize: { samplingRatio: 6 } });
 
-    expect(clearCache).toHaveBeenCalled();
+    expect(recalculateAll).toHaveBeenCalled();
 
     hot.destroy();
   });
@@ -92,14 +95,42 @@ describe('AutoColumnSize sampling settings', () => {
   it('should keep the measured widths when the settings are re-sent unchanged', () => {
     // `SETTING_KEYS` is `true` for this plugin, so `updatePlugin` runs on every `updateSettings`
     // call - and the React and Angular wrappers re-send unchanged settings on every update. An
-    // unconditional cache clear would re-measure every column on each of them.
+    // unconditional re-measure would walk every column on each of them.
     const hot = buildGrid({ autoColumnSize: { samplingRatio: 6, allowSampleDuplicates: true } });
     const plugin = hot.getPlugin('autoColumnSize');
-    const clearCache = spyOn(plugin, 'clearCache').and.callThrough();
+    const recalculateAll = spyOn(plugin, 'recalculateAllColumnsWidth').and.callThrough();
 
     hot.updateSettings({ autoColumnSize: { samplingRatio: 6, allowSampleDuplicates: true } });
 
-    expect(clearCache).not.toHaveBeenCalled();
+    expect(recalculateAll).not.toHaveBeenCalled();
+
+    hot.destroy();
+  });
+
+  it('should keep the sampling settings when an update does not mention this plugin', () => {
+    // The path that matters most, and the one the "re-sent unchanged" test above cannot reach.
+    // `BasePlugin#onUpdateSettings` feeds `updatePluginSettings()` with `newSettings[PLUGIN_KEY]`,
+    // which is `undefined` here - it wipes the stored settings, so reading them back gives the
+    // defaults. Without the restore in `updatePlugin`, this reset `samplingRatio` from 6 to 3,
+    // flipped `useHeaders` back to `true`, and re-measured every column.
+    //
+    // The Vue wrapper makes this the normal case rather than an edge case: it omits every settings
+    // key whose value has not changed, so `autoColumnSize` is absent from nearly every payload it
+    // sends.
+    const hot = buildGrid({
+      colHeaders: true,
+      autoColumnSize: { samplingRatio: 6, allowSampleDuplicates: true, useHeaders: false },
+    });
+    const plugin = hot.getPlugin('autoColumnSize');
+    const recalculateAll = spyOn(plugin, 'recalculateAllColumnsWidth').and.callThrough();
+
+    hot.updateSettings({ readOnly: true });
+
+    expect(plugin.samplesGenerator.getSampleCount()).toBe(6);
+    expect(plugin.samplesGenerator.allowDuplicates).toBe(true);
+    expect(plugin.getSetting('samplingRatio')).toBe(6);
+    expect(plugin.ghostTable.getSetting('useHeaders')).toBe(false);
+    expect(recalculateAll).not.toHaveBeenCalled();
 
     hot.destroy();
   });

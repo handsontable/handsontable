@@ -44,24 +44,52 @@ over the whole row range, **before the first paint**. Everything past the limit 
 
 The async loop must cancel its frame when the instance was destroyed mid-calculation.
 
-## The sampling settings are re-read in `updatePlugin()`, and only a real change clears the cache
+## The sampling settings are re-read in `updatePlugin()`, and only a real change re-measures
 
 `samplingRatio`, `allowSampleDuplicates` and `useHeaders` are applied in `#applySamplingSettings()`, called
 from **both** `enablePlugin()` and `updatePlugin()`. Reading them in `enablePlugin()` alone is not enough:
 that method returns early on an already-enabled plugin, and `BasePlugin` only re-runs the enable/disable pair
 when the plugin's enabled state itself changed — so a plain settings change never reaches it. All three were
-silently ignored when they arrived through `updateSettings()` (DEV-2850).
+silently ignored when they arrived through `updateSettings()` (DEV-2850). Four rules ride along:
 
-When one of them actually changed, `updatePlugin()` calls `clearCache()`: the three decide *which cells get
-measured at all*, so widths measured under the previous values describe a different sample.
+- **Restore the stored settings first when the payload omits this plugin's key.** `SETTING_KEYS` is `true`,
+  so an update that never mentions `autoColumnSize` still reaches `updatePlugin()` — and `onUpdateSettings`
+  has already fed `updatePluginSettings()` that missing key as `undefined`, which **wipes** the stored
+  settings (this plugin declares no `SETTINGS_VALIDATORS`, so the assignment falls straight through). Read
+  them in that state and you get the *defaults*, so re-applying would reset the user's `samplingRatio`, flip
+  `useHeaders` back to `true`, and re-measure every column on an unrelated `updateSettings({ readOnly: true })`.
+  Restore from `hot.getSettings()[PLUGIN_KEY]`, which is untouched — the same repair `manualColumnResize`
+  makes for the same base-class reason (`../manualResize/AGENTS.md`). **This is the common path:** the Vue
+  wrapper omits every settings key whose value is unchanged (`wrappers/vue3/src/helpers.ts`, `simpleEqual`),
+  so a Vue app sends a payload *without* `autoColumnSize` on virtually every prop change.
+- **Re-measure with `recalculateAllColumnsWidth()`, not `clearCache()`.** A bare clear empties every measured
+  width, but the only render-time measurement is `calculateVisibleColumnsWidth()` — so every column outside
+  the viewport would keep the default width until it is scrolled into view, shrinking the table width and the
+  horizontal scroll extent. `#onAfterLoadData` is the model for "everything is stale". `AutoRowSize` can use
+  its own `clearCache()` only because that method sets `#fullRecalculationScheduled`, which its
+  `#onBeforeRender` honors; this plugin has no equivalent flag. The trade is that
+  `recalculateAllColumnsWidth()` is a no-op on a grid that is not visible, which leaves the previous widths
+  in place — the same limitation `#onAfterLoadData` already has, and a smaller wrong than a grid of default
+  widths. It also clears `#columnWidthsToRefresh`, so the header-change entries queued earlier in
+  `updatePlugin()` are not measured a second time in the same render.
+- **Re-measure only on a real change.** `updatePlugin()` runs on *every* `updateSettings()` call, and the
+  React and Angular wrappers re-send unchanged settings on every update (React on every commit). An
+  unconditional re-measure would walk every column on each of them — which the `skipUnchangedWrites` rule
+  below exists to avoid in the first place.
+- **`useHeaders` is compared against `#appliedUseHeaders`, never against `ghostTable.getSetting()`.** The
+  ghost table's copy is render-time scratch state that `#measureCellsWidth()` deliberately flips to `false`
+  and restores in a `finally`. Reading it here would tie the change detection to that restore being perfect,
+  and a future path that flipped it without restoring would report a phantom change and re-measure the whole
+  grid on the next `updateSettings()`.
 
-**Clear only on a real change.** `SETTING_KEYS` is `true` here, so `updatePlugin()` runs on *every*
-`updateSettings()` call, and the React and Angular wrappers re-send unchanged settings on every update (React
-on every commit). An unconditional `clearCache()` would re-measure every column on each of them — which the
-`skipUnchangedWrites` rule below exists to avoid in the first place.
-`SamplesGenerator#applySamplingOptions()` reports whether either sampling option changed, and `useHeaders` is
-compared against `ghostTable.getSetting('useHeaders')`. `AutoRowSize` follows the same shape; its own
-`AGENTS.md` carries the note about the `updateSettings`-does-not-recalculate contract this sits under.
+`samplingRatio` is resolved by `SamplesGenerator.resolveSampleCount()` rather than by each plugin, so all
+three sampling plugins agree on what the option means — this plugin used to `parseInt` it while `AutoRowSize`
+stored it raw. Anything that is not a whole number above zero resolves to `null` (the default). That guard is
+not cosmetic: `parseInt` turned `true` and `[]` into `NaN`, and because `NaN !== NaN` the change check
+reported a change on *every* `updateSettings()` call and never converged.
+
+`AutoRowSize` follows the same shape; its own `AGENTS.md` carries the note about the
+`updateSettings`-does-not-recalculate contract this sits under.
 
 ## The refresh queue avoids full rescans (DEV-2097)
 

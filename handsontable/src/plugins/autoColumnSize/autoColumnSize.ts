@@ -86,6 +86,11 @@ type ColumnSamples = ReturnType<SamplesGenerator['generateSample']>;
  *   }
  * ```
  *
+ * The sampling options and `useHeaders` all take effect when you change them with
+ * {@link Core#updateSettings}, and the column widths are recalculated so the new sampling is
+ * applied to columns that were already measured. `samplingRatio` must be a whole number above
+ * zero; any other value falls back to the default.
+ *
  * ::: tip
  * If you use custom renderers or custom styles that produce non-standard column widths, and you call
  * {@link Core#scrollViewportTo}, make sure `AutoColumnSize` is enabled. Without it, `scrollViewportTo()` calculates
@@ -352,6 +357,16 @@ export class AutoColumnSize extends BasePlugin {
    */
   #columnSamplesCache: Map<number, ColumnSamples> = new Map();
   /**
+   * The `useHeaders` option value as this plugin last applied it.
+   *
+   * Kept separately from the ghost table's own copy of the setting, which `#measureCellsWidth()`
+   * flips and restores while probing, so the settings-change detection never reads a value that
+   * belongs to a measurement in flight.
+   *
+   * @type {*}
+   */
+  #appliedUseHeaders: unknown = undefined;
+  /**
    * Disposer function for the column widths map observer. Called on disable to clean up.
    *
    * @type {Function|null}
@@ -416,8 +431,20 @@ export class AutoColumnSize extends BasePlugin {
 
   /**
    * Updates the plugin's state. This method is executed when {@link Core#updateSettings} is invoked.
+   *
+   * @param {object} [newSettings] The settings passed to `updateSettings`.
    */
-  updatePlugin(): void {
+  updatePlugin(newSettings?: Record<string, unknown>): void {
+    // `SETTING_KEYS` is `true`, so an update that never mentions this plugin still arrives here -
+    // and `BasePlugin#onUpdateSettings` has already fed `updatePluginSettings()` the missing key as
+    // `undefined`, wiping the stored settings. Restore them from the merged settings before reading
+    // them, or an unrelated `updateSettings({ readOnly: true })` would read the defaults, reset the
+    // user's `samplingRatio`, and re-measure every column. The Vue wrapper makes this the common
+    // case, not the rare one: it omits every key whose value is unchanged.
+    if (newSettings !== undefined && newSettings[PLUGIN_KEY] === undefined) {
+      this.updatePluginSettings(this.hot.getSettings()[PLUGIN_KEY]);
+    }
+
     this.findColumnsWhereHeaderWasChanged().forEach((visualColumn) => {
       this.#columnWidthsToRefresh.set(visualColumn, null);
     });
@@ -428,11 +455,17 @@ export class AutoColumnSize extends BasePlugin {
     // `allowSampleDuplicates` and `useHeaders` were silently ignored whenever they arrived through
     // `updateSettings`.
     //
-    // The measured widths are dropped only when one of them actually changed. The framework
-    // wrappers re-send unchanged settings on every update (React on every commit), so clearing the
-    // cache unconditionally would re-measure every column on each of them.
+    // The widths are re-measured only when one of them actually changed - re-measuring on every
+    // update would undo the work the `skipUnchangedWrites` map exists to avoid.
+    //
+    // `recalculateAllColumnsWidth()` rather than `clearCache()`: a bare clear empties every
+    // measured width, but the only render-time measurement is `calculateVisibleColumnsWidth()`, so
+    // every column outside the viewport would keep the default width until it is scrolled into
+    // view. This mirrors `#onAfterLoadData`, the other "everything is stale" path. On a grid that
+    // is not visible it is a no-op, which leaves the previous widths in place - the same
+    // limitation that path already has, and a smaller wrong than a grid of default widths.
     if (this.#applySamplingSettings()) {
-      this.clearCache();
+      this.recalculateAllColumnsWidth();
     }
 
     // Settings may remap the data that feeds the samples (e.g. a new `columns` definition), so
@@ -448,14 +481,18 @@ export class AutoColumnSize extends BasePlugin {
    * @returns {boolean} `true` when a setting changed, which means the measured widths are stale.
    */
   #applySamplingSettings(): boolean {
-    const samplingRatio = this.getSetting<number | null>('samplingRatio');
     const useHeaders = this.getSetting('useHeaders');
-    const hasHeadersChanged = this.ghostTable.getSetting('useHeaders') !== useHeaders;
+    // Compared against the last value this method applied, not against
+    // `ghostTable.getSetting('useHeaders')`: the ghost table's copy is render-time scratch state
+    // that `#measureCellsWidth()` deliberately flips and restores, and reading it here would tie
+    // the change detection to that restore being perfect.
+    const hasHeadersChanged = this.#appliedUseHeaders !== useHeaders;
 
+    this.#appliedUseHeaders = useHeaders;
     this.ghostTable.setSetting('useHeaders', useHeaders);
 
     const hasSamplingChanged = this.samplesGenerator.applySamplingOptions({
-      sampleCount: samplingRatio && !isNaN(samplingRatio) ? parseInt(String(samplingRatio), 10) : null,
+      samplingRatio: this.getSetting('samplingRatio'),
       allowDuplicates: this.getSetting<boolean>('allowSampleDuplicates'),
     });
 

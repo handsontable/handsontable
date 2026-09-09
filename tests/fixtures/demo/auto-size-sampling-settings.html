@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Auto-size sampling settings e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+  </style>
+</head>
+<body>
+  <!--
+    DEV-2850. The sampling options (`samplingRatio`, `allowSampleDuplicates`) used to take effect
+    only as INITIAL settings — passing them to `updateSettings()` was silently ignored, and a later
+    fix then had to make sure an update that never mentions the plugin does not reset them.
+
+    The data shape is the one from DEV-2842, which is what makes the option observable at all.
+    `SamplesGenerator` buckets a row's values by string length and keeps at most `samplingRatio`
+    (default 3) per bucket. Row 1 holds FOUR values of exactly the same length, so the bucket fills
+    with columns 0, 1 and 2 and column 3 is never sampled.
+
+    Column 3 is also the only narrow one, so its text is the only text that wraps. With the default
+    ratio the row is therefore measured as a single line while its column-3 cell renders three lines
+    tall — a cell never renders shorter than its own text — and the row header, with nothing to push
+    it taller, keeps the one-line height. Raising the ratio past 3 brings column 3 into the sample
+    and the measurement becomes correct.
+
+    Every height here is content-driven, which jsdom reports as zero, so this can only be checked in
+    a real browser.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    // Four DISTINCT strings of exactly the same length. Distinct so duplicate detection plays no
+    // part - the per-length cap is what drops the fourth one - and the same length so all four land
+    // in one bucket.
+    const SAME_LENGTH_ROW = [
+      'Alpha alpha alpha alpha alpha aa',
+      'Bravo bravo bravo bravo bravo bb',
+      'Delta delta delta delta delta dd',
+      'Gamma gamma gamma gamma gamma gg',
+    ];
+
+    if (new Set(SAME_LENGTH_ROW.map(value => value.length)).size !== 1) {
+      throw new Error('The sampled row must hold values of one single length.');
+    }
+    if (new Set(SAME_LENGTH_ROW).size !== SAME_LENGTH_ROW.length) {
+      throw new Error('The sampled row must hold distinct values.');
+    }
+
+    const data = [
+      ['r0 a', 'r0 b', 'r0 c', 'r0 d'],
+      SAME_LENGTH_ROW.slice(),
+      ['r2 a', 'r2 b', 'r2 c', 'r2 d'],
+      ['r3 a', 'r3 b', 'r3 c', 'r3 d'],
+    ];
+
+    const hot = new Handsontable(container, {
+      data,
+      width: 1120,
+      height: 400,
+      rowHeaders: true,
+      colHeaders: true,
+      wordWrap: true,
+      autoRowSize: true,
+      // The last column is the narrow one, so it is the only column whose text wraps - and it is
+      // also the one the default sampling drops.
+      colWidths: [320, 320, 320, 70],
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    window.hot = hot;
+
+    // Counts draws so a test can wait for the grid to have actually repainted after a settings
+    // change, instead of waiting on a fixed delay.
+    window.renderCount = 0;
+    hot.addHook('afterViewRender', function() {
+      window.renderCount += 1;
+    });
+
+    /**
+     * Raises the sampling ratio at runtime — the call that used to do nothing at all.
+     *
+     * @param {number} samplingRatio How many samples per value length to collect.
+     */
+    window.setSamplingRatio = function(samplingRatio) {
+      hot.updateSettings({ autoRowSize: { samplingRatio: samplingRatio } });
+    };
+
+    /**
+     * Changes a setting that has nothing to do with this plugin and no effect on row heights.
+     *
+     * The payload deliberately carries no `autoRowSize` key. `BasePlugin` feeds the plugin that
+     * missing key as `undefined`, which wipes its stored settings, so a plugin that re-reads them
+     * here without restoring them first would fall back to the defaults - resetting the ratio set
+     * above and re-measuring every row. The Vue wrapper sends exactly this shape on nearly every
+     * prop change, because it omits the keys whose values have not changed.
+     */
+    window.changeUnrelatedSetting = function() {
+      hot.updateSettings({ readOnly: true });
+    };
+  </script>
+</body>
+</html>

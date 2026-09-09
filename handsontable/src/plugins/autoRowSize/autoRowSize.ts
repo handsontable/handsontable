@@ -61,6 +61,10 @@ const AUTO_ROW_SIZE_CLASS_NAME = 'htAutoRowSize';
  * autoRowSize: {allowSampleDuplicates: true},
  * ```
  *
+ * Both sampling options take effect when you change them with {@link Core#updateSettings}, and the
+ * row heights are recalculated so the new sampling is applied to rows that were already measured.
+ * `samplingRatio` must be a whole number above zero; any other value falls back to the default.
+ *
  * Enable this option when rows with the same value can still render at different heights - for example, with multiline
  * text, or with custom renderers that vary a row's height based on its position or other data. Without it, the plugin
  * may sample only one of those rows and apply its height to the rest, leading to incorrect row heights.
@@ -428,8 +432,19 @@ export class AutoRowSize extends BasePlugin {
    * The measured heights are dropped only when a sampling setting actually changed. The framework
    * wrappers re-send unchanged settings on every update (React on every commit), so clearing the
    * cache unconditionally would re-measure every row on each of them.
+   *
+   * @param {object} [newSettings] The settings passed to `updateSettings`.
    */
-  updatePlugin(): void {
+  updatePlugin(newSettings?: Record<string, unknown>): void {
+    // `SETTING_KEYS` is `true`, so an update that never mentions this plugin still arrives here -
+    // and `BasePlugin#onUpdateSettings` has already fed `updatePluginSettings()` the missing key as
+    // `undefined`, wiping the stored settings. Restore them from the merged settings before reading
+    // them, or an unrelated `updateSettings({ colHeaders: true })` would read the defaults, reset
+    // the user's `samplingRatio`, and drop every measured height.
+    if (newSettings !== undefined && newSettings[PLUGIN_KEY] === undefined) {
+      this.updatePluginSettings(this.hot.getSettings()[PLUGIN_KEY]);
+    }
+
     if (this.#applySamplingSettings()) {
       this.clearCache();
     }
@@ -443,10 +458,8 @@ export class AutoRowSize extends BasePlugin {
    * @returns {boolean} `true` when a setting changed, which means the measured heights are stale.
    */
   #applySamplingSettings(): boolean {
-    const samplingRatio = this.getSetting<number | null>('samplingRatio');
-
     return this.samplesGenerator.applySamplingOptions({
-      sampleCount: samplingRatio && !isNaN(samplingRatio) ? samplingRatio : null,
+      samplingRatio: this.getSetting('samplingRatio'),
       allowDuplicates: this.getSetting<boolean>('allowSampleDuplicates'),
     });
   }

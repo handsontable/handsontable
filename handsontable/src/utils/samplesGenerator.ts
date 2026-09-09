@@ -7,7 +7,7 @@ type DataFactoryResult = false | { value: unknown; bundleSeed?: string };
 type DataFactory = (row: number, col: number, instance: SamplesGenerator) => DataFactoryResult;
 type SampleEntry = { needed: number; strings: Array<{ value: unknown; col?: number; row?: number }> };
 type SampleRange = { from: number; to: number } | number[];
-type SamplingOptions = { sampleCount: number | null; allowDuplicates: boolean };
+type SamplingOptions = { samplingRatio: unknown; allowDuplicates: boolean };
 
 /**
  * @class SamplesGenerator
@@ -95,22 +95,42 @@ class SamplesGenerator {
   }
 
   /**
+   * Resolves a `samplingRatio` option into a usable sample count.
+   *
+   * Anything that is not a whole number above zero resolves to `null`, meaning the default
+   * {@link SamplesGenerator.SAMPLE_COUNT}. That covers the option being absent, but also the values
+   * that used to be stored raw and then quietly broke the sampler: `true` and `[]` became `NaN`,
+   * which made every later comparison report a change because `NaN !== NaN`; a negative number
+   * became a `needed` count that collected no samples at all; and the string `'6'` compared as
+   * different from the number `6`.
+   *
+   * @param {*} samplingRatio The raw option value.
+   * @returns {number|null} The sample count to use, or `null` for the default.
+   */
+  static resolveSampleCount(samplingRatio: unknown): number | null {
+    const sampleCount = parseInt(String(samplingRatio), 10);
+
+    return Number.isInteger(sampleCount) && sampleCount > 0 ? sampleCount : null;
+  }
+
+  /**
    * Applies both sampling options at once and reports whether either of them changed.
    *
    * Callers use the return value to decide whether the sizes they measured earlier are still
    * usable. Both options change which cells end up in a sample, so a size measured under the
    * previous options cannot be trusted once they change - the auto-size plugins answer a `true`
-   * here by clearing their size cache.
+   * here by re-measuring.
    *
-   * Passing `null` as `sampleCount` restores the default, {@link SamplesGenerator.SAMPLE_COUNT}.
+   * The raw `samplingRatio` is resolved here rather than by each caller, so that every plugin
+   * reading the option agrees on what it means. See {@link SamplesGenerator.resolveSampleCount}.
    *
    * @param {object} options The sampling options to apply.
-   * @param {number|null} options.sampleCount Number of samples to collect per value length, or
-   * `null` for the default.
+   * @param {*} options.samplingRatio The raw `samplingRatio` option value.
    * @param {boolean} options.allowDuplicates `true` to allow duplicate values.
    * @returns {boolean} `true` when at least one option changed its value.
    */
-  applySamplingOptions({ sampleCount, allowDuplicates }: SamplingOptions): boolean {
+  applySamplingOptions({ samplingRatio, allowDuplicates }: SamplingOptions): boolean {
+    const sampleCount = SamplesGenerator.resolveSampleCount(samplingRatio);
     const hasChanged = sampleCount !== this.customSampleCount || allowDuplicates !== this.allowDuplicates;
 
     this.customSampleCount = sampleCount;
