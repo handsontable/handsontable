@@ -118,7 +118,7 @@ Two neighbours worth knowing about:
 Three more things that pass every functional test and only show up in a profile or a screenshot:
 
 - **Every table gets `applyRowHeightsToRenderedRows` on any draw that has a frozen record** — the top and bottom clones and the frozen overlays because they rendered *after* the clear, at their natural height, and the master because at the band boundary that natural height is 1px more than it rendered with. See the pixel below; an earlier version skipped the master here to save the DOM writes and that is exactly what left the panes 1px apart.
-- **The 1px boundary flip is a DOM-sync problem, not a cache problem, and the two must stay separate.** The band's first `<tr>` gains a 1px border-top, so a row's total height changes by 1px purely by scrolling onto the boundary, and the measured value then alternates between the two across draws. `markOversizedRows` keeps a `> 1` tolerance before invalidating the row-height cache — **do not tighten it**: counting 1px as a change invalidates on every single draw for as long as the row sits at the boundary. But the DOM side still has to be reconciled, because a table whose content genuinely needs the larger total (the frozen overlay holding the tall cell) cannot render it one pixel shorter, while the master honours whatever it was given. Re-applying the current record to every table is what closes that gap.
+- **The 1px boundary flip is a DOM-sync problem, not a cache problem, and the two must stay separate.** On a table that renders no head row of its own, the band's first `<tr>` gains a 1px border-top, so a row's total height changes by 1px purely by scrolling onto the boundary, and the measured value then alternates between the two across draws. `markOversizedRows` keeps a `> 1` tolerance before invalidating the row-height cache — **do not tighten it**: counting 1px as a change invalidates on every single draw for as long as the row sits at the boundary. But the DOM side still has to be reconciled, because a table whose content genuinely needs the larger total (the frozen overlay holding the tall cell) cannot render it one pixel shorter, while the master honours whatever it was given. Re-applying the current record to every table is what closes that gap. Since the row axis settled (below), a table that DOES render a column header no longer flips: the header owns that gridline at every offset, so its first row's height does not depend on where the band starts. The predicate is per table (`table.THEAD.hasChildNodes()`), not per grid — the bottom clones never hold a head row and keep the flip — so the tolerance stays for all of them.
 - **`adjustElementsSize` is gated on a real height change.** It walks every column (`sumCellSizes` must stay a live walk) and resizes three overlays; calling it on every draw taxes wide grids for nothing. But it *must* run when the heights did change, including a shrink where there is nothing left to re-apply — `wtOverlays.refresh()` sized the elements earlier in the draw, so the scrollbar would keep the old length.
 - **Steady state must cost zero row-height cache invalidations.** Each one drops the per-draw layout snapshot as well, and with a non-uniform row-size source (`rowHeights`/`minRowHeights` as an array or function, or any non-AutoRowSize `modifyRowHeight` hook) `PositionCache` has no sparse path, so a rebuild is a full prefix-sum walk over every row. Verified by counting: 0 invalidations/draw and an unchanged `createVisibleCalculators` count in every configuration. Two specs in `tests/e2e/walkontable/frozen-column-row-heights.spec.ts` pin the invalidation count at 0 through the fixture's `countRowCacheInvalidations` — the only way to see this class of bug, since the rows stay aligned and every visual assertion passes while it happens.
 
@@ -136,7 +136,9 @@ columns against the full width, a horizontal one behind it (DEV-2525).
 Four rules come out of that, and each of them was a defect first.
 
 - **Never `parseInt` a value read back off `hider.style.height`.** It truncates the fraction and
-  hands back the shortfall. `expandHiderVerticallyBy` does `parseFloat`. (`topOverlay.ts`'s
+  hands back the shortfall. The one method that read it back, `expandHiderVerticallyBy`, used
+  `parseFloat` for that reason; it is gone since DEV-2786 removed its only caller, so nothing reads
+  the written height back today - keep it that way. (`topOverlay.ts`'s
   `parseInt(holderParent.style.height, 10)` reads the *clone's* holder parent, a different element,
   and is not this.)
 - **The sum's fixed terms must carry their fraction too.** `getHiderHeightCompensation`
@@ -199,13 +201,13 @@ does. `getStyleForTD` is therefore declared optional on the `StylesHandler` inte
 and calling it unguarded threw inside the draw and took out 695 of 816 specs. Guard every method you
 add a dependency on, and teach the harness stub the same method.
 
-## Column-axis border ownership: the row header owns its gridline
+## Border ownership: the header owns its gridline, on both axes
 
-The two axes are NOT symmetric, and the column axis is the settled one. On the column axis a row
-header `th` carries its own `border-inline-end` at **every** scroll position, and no `td` standing
-behind a row header carries a `border-inline-start`. So one declared `colWidths` produces one content
-width in every column, and `col.rowHeader` is written verbatim from the `rowHeaderWidth` setting
-whatever the scroll offset (`render/colGroup.ts`).
+Both axes are settled, and they are now symmetric. On the column axis a row header `th` carries its
+own `border-inline-end` at **every** scroll position, and no `td` standing behind a row header
+carries a `border-inline-start`. So one declared `colWidths` produces one content width in every
+column, and `col.rowHeader` is written verbatim from the `rowHeaderWidth` setting whatever the scroll
+offset (`render/colGroup.ts`). The row axis is the same shape, one section down.
 
 It used to work the other way round, and that was issue #6673. `td:first-of-type` was given an
 inline-start border on top of the inline-end border every cell has, and `box-sizing: border-box` took
@@ -224,8 +226,9 @@ Consequences worth knowing:
   reads them any more. `innerBorderInlineStart` also only toggles when the grid has row headers and NO
   frozen columns, so it is not a usable "has scrolled" signal in a test — poll the holder's
   `scrollLeft` instead.
-- **`InlineStartOverlay#resetFixedPosition` reports `false` unconditionally**, and `placeFixedOverlays`
-  no longer ORs it into `ctx.positionChanged` — only the top and bottom overlays feed that flag now.
+- **`InlineStartOverlay#resetFixedPosition` reports `false` unconditionally**, and `ctx.positionChanged`
+  no longer exists at all — the top and bottom overlays were the last contributors and the row axis
+  took the same treatment, so the flag, the reconciliation branch and `prepareHeaderBorders` are gone.
   The class shifts no layout, so the flag's one job (reconciling a 1px shift) had nothing to do, yet
   every scroll crossing horizontal offset 0 ran `refreshAll()`: a nested `wot.draw(true)` over the
   master and every clone. Grids on the single-pass path did not pay it, because `prepareHeaderBorders`
@@ -245,18 +248,42 @@ Consequences worth knowing:
 - **Counting `refreshAll` cannot measure a reconciliation draw on its own.** `ScrollSync` calls
   `refreshAll` once per scroll event as the normal response to a scroll (`overlay/scroll/scrollSync.ts`),
   so a per-crossing count is at least 1 whether or not anything reconciled, and that baseline hides the
-  difference. The reconciliation is the **re-entrant** call: the scroll-driven one runs `wot.draw(true)`,
-  and a draw that sees `positionChanged` calls `refreshAll` again from inside it. Count by nesting depth
+  difference. The reconciliation was the **re-entrant** call: the scroll-driven one runs `wot.draw(true)`,
+  and a draw that saw `positionChanged` called `refreshAll` again from inside it. Nothing sets that flag
+  any more, so the re-entrant count is 0 on both axes — which is the assertion, not a reason to stop
+  counting: a reintroduced report shows up here and nowhere else. Count by nesting depth
   **on `refreshAll` itself**, which is reachable: `ScrollSync` holds it as a late-bound closure
   (`refreshAll: () => overlays.refreshAll()`), so replacing the method is observed through that call too.
   Do **not** try to get the depth by patching `draw` on the instance `hot.view._wt` hands you:
   `wtOverlays.wot !== hot.view._wt`, so a patched `_wt.draw` counts **zero** calls even for a
   `refreshAll()` invoked directly, which definitely runs `this.wot.draw(true)`.
   `tests/e2e/walkontable/inline-start-border-refresh.spec.ts` measures it this way.
-- **The row axis is unchanged.** `innerBorderTop` / `innerBorderBottom` still shift the layout by 1px,
-  which is what `positionChanged` and the reconciliation draw in `table/drawCycle.ts` exist for, and
-  `columnHeaderBorderCompensation` in `topOverlay`/`spreaderSize` is the vertical twin that stayed.
-  Bringing the row axis into line is a separate change.
+- **The row axis is the same shape, and the gate is PER TABLE.** A column header `th` carries its own
+  `border-bottom` at every scroll position, and no body row abutting a head row draws a `border-top`.
+  The CSS says `thead:not(:empty) + tbody > tr:first-child`, and that per-table form is load-bearing:
+  every overlay clone has its own `thead`, empty unless that clone renders the head row, so the rule
+  matches the master and the inline-start clone (no frozen top rows), and the top clone and top corner
+  (frozen top rows). The bottom clones' `thead` is always empty, so their first row keeps its
+  `border-top` — there the pixel is the bottom-freeze seam, not a header seam, and a grid-wide gate on
+  the root's `htColumnHeaders` class would have taken it away. A grid with no column headers keeps the
+  border everywhere for the same reason: it is the grid's own top frame, deliberately left as-is, the
+  mirror of column 0 staying 1px narrower on a grid with no row headers.
+- **The `+ 1` that goes with it is asked as a question, not answered per call site.** It used to be
+  reimplemented independently in `StylesHandler#getDefaultRowHeight`, `AutoRowSize` and
+  `ManualRowMove`'s drop guideline; they all now route through
+  `StylesHandler#firstRenderedRowDrawsTopBorder()`. In the engine the same question is
+  `getHiderHeightCompensation(wtSettings)` in `axisSizing/hiderCompensation.ts`, which reads the
+  `externalRowCalculator` and `columnHeaders` settings itself. It is read by
+  `SpreaderSize#adjustElementsSize` (which writes the hider height) and by `gatherLayoutInput`
+  (which predicts the scrollbars from the same total before the DOM is written). Those two must agree
+  to the pixel or a grid predicts a scrollbar it does not get — that is how a StretchColumns spec
+  failed on a layout snapshot describing a scrollbar the DOM never grew. Do not add a fifth copy.
+- **`getColumnHeaderHeight()` no longer changes with the scroll offset**, and neither does the hider
+  height or `getViewportHeight()`. `calculatorFactory` still resets the cached value to `NaN` on every
+  draw, so it is re-measured each time — it just measures the same number now. Anything that was
+  compensating for the flip is gone: `columnHeaderBorderCompensation`, `expandHiderVerticallyBy`,
+  `isScrolledBeyondHiderHeight` and the `scrollTo` bottom-edge term. Do not reintroduce a
+  scroll-dependent header height.
 - **Anything positioning an element over a cell must read the cell's border, not its index.** Which
   cells own an inline-start border is no longer "column 0": with row headers none of them do, and
   `htFirstDatasetColumnNotRendered` takes it off the first rendered column too. `BaseEditor#getEditedCellRect`
@@ -271,6 +298,21 @@ Consequences worth knowing:
   keeps a selection on column 0 visible; without it the edge lands at `rowHeaderWidth - 1` and
   disappears behind the row header. The `customBorders` specs cannot catch it — they count visible
   elements, and the element is there, just covered.
+
+  The row axis has the same branch and a wider z-gap: `.ht_clone_top` is 160 (the corner 180) against
+  the same border layer's 10. `standsBelowColumnHeader(cellElement)` in `selection/border/utils.ts` is
+  the twin of `standsBehindRowHeader` — the cell is the first `<tr>` of a `tbody` whose previous
+  sibling is a NON-empty `thead` — and `Border#appear` moves the top edge onto the cell's own boundary
+  for it. Same blind spot: the edge is present, just painted over.
+- **The active-header accent on the first rendered row moves to the CORNER.** `-row-seam-bottom` /
+  `-row-seam-top` colour the row *above* an active one, and row 0 has none — the accent used to come
+  from the row's own `border-top`, which is now 0px wide. `SelectionManager` therefore tags the last
+  head row's first `rowHeadersCount` `th`s in the top-inline-start corner with
+  `${activeHeaderClassName}-row-seam-top`, reusing the rule that already matches a `thead`'s
+  `tr:last-child`. It is gated on the corner clone and on the selection actually starting at the first
+  rendered row, so it cannot widen into every row-header selection. A colour assertion cannot police
+  that gate: `--ht-header-active-border-color` resolves to the plain border colour in `classic`, so the
+  negative control has to assert the CLASS.
 - **Ownership covers the seam's COLOR, not only which element draws it.** In the overlay that renders
   nothing but the row-header column, the row header `th` is also `:last-child`, and the header rule
   keyed on that paints the grid's OUTER frame color. So the same gridline came out
@@ -653,6 +695,9 @@ Separate test runner - do NOT mix with main E2E tests:
 `npm run test:walkontable --prefix handsontable`
 
 Tests in: `src/3rdparty/walkontable/test/`
+
+New engine coverage is Playwright: `tests/e2e/walkontable/*.spec.ts`, page objects in
+`tests/fixtures/pages/walkontable/`. The Jasmine specs here may be edited, not added to.
 
 For detailed guidance: use skills `walkontable-dev`, `walkontable-testing`
 

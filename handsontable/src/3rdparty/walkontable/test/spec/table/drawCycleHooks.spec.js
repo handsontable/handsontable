@@ -160,7 +160,7 @@ describe('Table.draw() lifecycle hooks (characterization for the drawCycle refac
     }
   });
 
-  it('should not run the nested reconciliation draw (double `beforeDraw`) when the render is skipped', async() => {
+  it('should run one fixed-position pass and no nested draw when the render is skipped', async() => {
     let skipNextRender = false;
     const beforeDraw = jasmine.createSpy('beforeDraw').and.callFake((force, skip) => {
       if (skipNextRender) {
@@ -175,8 +175,10 @@ describe('Table.draw() lifecycle hooks (characterization for the drawCycle refac
         TH.innerHTML = col + 1;
       }],
       // The legacy (measured) layout path applies the `innerBorderTop` class only AFTER the render,
-      // via `resetFixedPosition` - so a scroll away from offset 0 flips `positionChanged` to `true`
-      // on the very draw whose render is skipped, which is the scenario under test.
+      // via `resetFixedPosition`. Before DEV-2786 that flip shifted the layout by 1px on the very
+      // draw whose render was skipped, and the draw cycle answered with a second fixed-position pass
+      // plus a nested `refreshAll()`. The class moves nothing now, so both are gone - keep this
+      // fixture off the single-pass path anyway, because it is the path that used to pay them.
       singlePassLayout: false,
       beforeDraw,
     });
@@ -188,18 +190,14 @@ describe('Table.draw() lifecycle hooks (characterization for the drawCycle refac
     wt.scrollViewportVertically(60);
     wt.draw();
 
-    // The `innerBorderTop` flip must have happened on the skipped draw - otherwise this spec
-    // does not exercise the `positionChanged` reconciliation path at all.
+    // The `innerBorderTop` flip still happens on the skipped draw - it is just inert now. Asserted
+    // so this spec keeps describing the same scenario it was written for.
     expect(wt.wtTable.holder.parentNode.classList.contains('innerBorderTop')).toBe(true);
 
-    // The 1px-shift reconciliation (`refreshAll`) must not run for a skipped render: with the
-    // rendered band rolled back it degrades to a nested FULL draw, firing `beforeDraw` a second
-    // time within one `draw()` call and rendering the cells the hook just cancelled.
+    // A nested FULL draw would fire `beforeDraw` a second time within one `draw()` call and render
+    // the cells the hook just cancelled.
     expect(beforeDraw).toHaveBeenCalledTimes(1);
 
-    // The border toggle shifts the layout by 1px AFTER the overlay positions were computed, so the
-    // skipped draw must rerun the fixed-position pass against the post-toggle layout (in element
-    // mode the reposition is a transform reset, so the observable contract is the rerun itself).
     const resetFixedPosition = spyOn(wt.wtOverlays.topOverlay, 'resetFixedPosition').and.callThrough();
 
     skipNextRender = false;
@@ -211,8 +209,9 @@ describe('Table.draw() lifecycle hooks (characterization for the drawCycle refac
     wt.scrollViewportVertically(60);
     wt.draw();
 
-    // Once from the regular fixed-position pass + once from the skipped-draw reconciliation rerun.
-    expect(resetFixedPosition).toHaveBeenCalledTimes(2);
+    // Exactly one pass: the regular one. The second, post-toggle rerun existed only to settle the
+    // 1px shift.
+    expect(resetFixedPosition).toHaveBeenCalledTimes(1);
   });
 
   it('should keep the table safe when the very first render is skipped', async() => {

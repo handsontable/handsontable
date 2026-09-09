@@ -525,14 +525,35 @@
       }
     }
 
+    // Row axis border ownership (DEV-2786), the twin of #6673 below. A head row's `th` carries its
+    // own `border-bottom` at every scroll position, so a body row sitting directly under one draws
+    // no `border-top` of its own: the seam belongs to the header, and the body row keeps the same
+    // content height as every other row.
+    // `thead:not(:empty) + tbody` is a PER-TABLE test, not a grid-wide one, and it has to be. Every
+    // overlay clone carries its own `thead`, empty unless that clone renders the head row, so this
+    // matches exactly the tables whose first body row abuts a header: the master and the inline-start
+    // clone (no frozen top rows), the top clone and the top corner (frozen top rows, where the frozen
+    // row is the one under the header). The bottom clones' `thead` is always empty, so their first
+    // row keeps its `border-top` — there it is the bottom-freeze seam, not a header seam. A grid with
+    // no column headers keeps the border everywhere for the same reason: it is the grid's top frame.
+    :where(table.htCore, #{$ghost-table}) > thead:not(:empty) + tbody > tr:first-child {
+      > th,
+      > td {
+        border-top-width: 0;
+      }
+    }
+
     :where(#{$grid-sections}) > tr:last-child {
       > th,
       > td {
         border-bottom-color: var(--ht-border-color);
 
-        // `-row-seam-top`: tagged by SelectionManager on the last top-frozen row header when the first
-        // non-frozen row is active. Its bottom border is the top-freeze seam, out of reach of the
-        // `-prev-row` accent rule (separate overlay table), so color it here.
+        // `-row-seam-top`: tagged by SelectionManager on a header cell whose BOTTOM border is the
+        // seam above an active row, which the `-prev-row` accent rule cannot reach (separate overlay
+        // table), so color it here. Two cases share the class: the last top-frozen row header when
+        // the first non-frozen row is active, and a head row's corner cells when the row below the
+        // column header is active (DEV-2786 — the header owns that gridline now). This rule matches a
+        // `thead`'s last row as well as a `tbody`'s, so it covers both.
         &.ht__active_highlight,
         &.ht__active_highlight-row-seam-top {
           border-bottom-color: var(--ht-header-active-border-color);
@@ -781,35 +802,16 @@
     // once the grid scrolled (`correctHeaderWidth` in the engine) while column 0 held two borders
     // inside one `col` width, so its content box was 1px narrower than every other column's.
     // `innerBorderInlineStart`, `innerBorderLeft` and `emptyColumns` are still stamped on
-    // `.ht_master` for backward compatibility, but no rule reads them any more. The row axis
-    // (`innerBorderTop` / `innerBorderBottom`, below) still works the old way.
-
-    //  innerBorderTop - Property controlled by top overlay
-    //  innerBorderBottom - Property controlled by bottom overlay
-    .ht_master:not(.innerBorderTop):not(.innerBorderBottom) {
-      :where(table.htCore) > thead > tr:last-child > th,
-      & ~ .handsontable :where(table.htCore) > thead > tr:last-child > th,
-      :where(table.htCore) > thead > tr.lastChild > th,
-      & ~ .handsontable :where(table.htCore) > thead > tr.lastChild > th {
-        border-bottom-width: 0;
-      }
-    }
-
-    &.htAutoRowSize {
-      .ht_master.innerBorderTop {
-        :where(table.htCore) > tbody > tr:first-child > th,
-        :where(table.htCore) > tbody > tr:first-child > td {
-          border-top-width: 0;
-        }
-
-        & ~ .ht_clone_inline_start {
-          :where(table.htCore) > tbody > tr:first-child > th,
-          :where(table.htCore) > tbody > tr:first-child > td {
-            border-top-width: 0;
-          }
-        }
-      }
-    }
+    // `.ht_master` for backward compatibility, but no rule reads them any more, and the row axis
+    // works the same way since DEV-2786: the head row's `border-bottom` comes from the shared cell
+    // rule above at every scroll position, and the `.ht_master:not(.innerBorderTop)` block that used
+    // to zero it — trading the seam with the first body row's `border-top` — is gone. Trading it made
+    // the column header 1px taller once the grid scrolled, and the whole table with it, while the
+    // first rendered body row held two borders inside one row height. `innerBorderTop`,
+    // `innerBorderBottom` and `emptyRows` are still stamped for backward compatibility.
+    // The `htAutoRowSize` block that zeroed the first body row's `border-top` under `innerBorderTop`
+    // is gone with it: the `thead:not(:empty) + tbody` rule above now does that for every table with
+    // a head row, whether or not AutoRowSize is on.
 
     .ht_master table.htCore > thead,
     .ht_master table.htCore > tbody > tr > th,

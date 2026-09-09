@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the `Comments` plugin throwing when enabled a second time, and the `Formulas`, `Comments`, and `Loading` plugins keeping their hooks registered after being disabled.",
+  "type": "fixed",
+  "issueOrPR": 13410,
+  "breaking": false,
+  "framework": "none"
+}

@@ -19,7 +19,7 @@ Skills for Claude Code are bundled instructions that give Claude deep knowledge 
 
 The <a href="https://github.com/handsontable/handsontable-skills" target="_blank" rel="noopener noreferrer">repo</a> ships two skills:
 
-- **handsontable** -- the data grid component. Covers React, Angular, Vue, and vanilla JS setup, configuration, theming, cell types, sorting, filtering, formulas, hooks, performance, and v17 migration.
+- **handsontable** -- the data grid component. Covers React, Angular, Vue, and vanilla JS setup, configuration, theming, cell types, sorting, filtering, formulas, hooks, performance, and version migration.
 - **hyperformula** -- the headless calculation engine. Covers instance creation, CRUD, custom functions, named expressions, error handling, batch operations, and Node.js usage.
 
 Use **handsontable** when you're building a visible grid in a web app. Use **hyperformula** when you're evaluating formulas programmatically without a UI -- server-side calculations, pricing engines, what-if analysis. Claude loads whichever is relevant based on what you ask.
@@ -37,6 +37,6 @@ For Cowork or Claude.ai web, download the zip from the latest GitHub release and
 
 ## Versioned to match releases
 
-Each skill is tagged to the product version it targets -- `handsontable/v17.0.0` is the skill for Handsontable 17, `hyperformula/v3.2.0` is the skill for HyperFormula 3.2. You always know which API surface Claude is working from.
+Each skill is tagged to the product version it targets -- `handsontable/v{{$currentVersion}}` is the skill for Handsontable {{$currentVersion}}, and each HyperFormula release gets a matching `hyperformula/v*` tag. You always know which API surface Claude is working from.
 
 <a href="https://github.com/handsontable/handsontable-skills" target="_blank" rel="noopener noreferrer">Browse the Skills for Claude Code</a>

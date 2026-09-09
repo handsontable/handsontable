@@ -251,7 +251,7 @@ it.flaky('should handle a timing-sensitive operation', async() => {
 });
 ```
 
-The test description is prefixed with `[flaky]` in CI output for visibility. Defined in `test/helpers/it-themes-extension.js`.
+The test description is prefixed with `[flaky]` in CI output for visibility. Defined in `test/helpers/it-themes-extension.js`. New `it.flaky()` sites are lint-warned (`handsontable/no-new-it-flaky`): a retry hides a race, it does not remove one — a spec that needs one migrates to Playwright (see "The Jasmine suite is frozen" below).
 
 **HOT Methods Requiring `await` (from `handsontable/.eslintrc.js`):**
 
@@ -289,8 +289,8 @@ Do **not** add `await sleep(100)` / `sleep(200)`, a `setTimeout(fn, 100)`, or `a
 await selectCell(0, 0);                             // helpers already await the scroll they trigger
 await waitUntil(() => getPlugin('filters').isEnabled());   // polls every frame, rejects after 4000ms (2nd arg)
 await waitUntil(() => onAfterValidate.calls.count() === 1); // a spy having fired
-await sleep(...);                                   // ← avoid; root-cause it and name the condition
-await waitForNextAnimationFrames(2);                // ← avoid; a frame count is a delay, not a state
+await sleep(...);                                   // ← never; root-cause it and name the condition
+await waitForNextAnimationFrames(2);                // ← never; a frame count is a delay, not a state
 ```
 `waitUntil(condition, timeout = 4000)` (`test/helpers/common.js`) resolves as soon as the condition is truthy and rejects with a named reason when it never arrives, so a state that is genuinely missing fails the test instead of passing a stale assertion later. All three fixed-delay shapes are flagged by `handsontable/no-fixed-sleep-in-spec` in `*.spec.js`, `*.unit.js`, and `*.unit.ts` (at `warn`, so the existing debt surfaces without blocking); the two zero-duration hand-offs — `setTimeout(fn, 0)` and `waitForNextAnimationFrames(0)` — pass, because neither waits any time. For new Playwright tests use web-first, auto-retrying assertions (`await expect(locator).toBeVisible()`, `expect.poll`); see the `handsontable-playwright-e2e` skill. Existing sites are baselined by lint (`warn`), but a `sleep()`, `setTimeout(fn, <ms>)`, `waitForNextAnimationFrames()`, `it.flaky()`, or skip on a line your branch **adds** fails pre-push and CI — the determinism ratchet, `.ai/LOCAL-ENFORCEMENT.md`. A broken or flaky legacy test is a signal to migrate it (see below), not to add another delay.
 
@@ -315,6 +315,8 @@ Machine-enforced by the presence gate (`.github/scripts/test-presence-gate.mjs`)
 - Adding a **new** `*.spec.js` is blocked; new E2E goes to Playwright.
 - **Editing** an existing `*.spec.js` for routine maintenance is fine.
 - But if a legacy Jasmine test is **broken or flaky, fix it by migrating it to Playwright** (delete the `*.spec.js`, write the equivalent `tests/e2e/*.spec.ts`) rather than patching Jasmine. That is how the suite gradually migrates — the tests that hurt most move first.
+- **Migrate, don't patch — and if you must edit, `waitUntil()`.** A routine edit to a frozen spec that has to wait for state uses `waitUntil(condition, timeout)` (a spec global from `test/helpers/common.js`) — never a new `sleep()`, and never `waitForNextAnimationFrames()`, which is a fixed sleep denominated in frames (it awaits at most 2 real frames and pads the rest of the request with 16 ms per frame). A rendered-DOM count assertion pins the viewport first (`containerHeightForRows()`, or `scrollViewportTo()` the target into view).
+- **The flake ledger.** A legacy spec that is red or flaky across **two or more distinct CI runs** gets a migration ticket the next sprint. That is the trigger — not a third failure and not a reviewer's patience. The RefreshDimensions and display-none rerender specs both waited on the ledger until this rule existed (#13334, #13336).
 
 ## Mocking
 
@@ -655,8 +657,8 @@ it('should maintain selections after render', async() => {
 
 **Async Utilities:**
 - `waitUntil(condition, timeout = 4000)` -- Poll `condition` every animation frame until truthy; reject with a named reason after `timeout`. The condition-based replacement for every fixed delay below.
-- `sleep(delay = 100)` -- Promise-based delay. Legacy; flagged by lint in specs
-- `waitForNextAnimationFrames(framesToWait = 1)` -- Frame-count delay. Legacy; flagged by lint in specs
+- `sleep(delay = 100)` -- Promise-based delay. Legacy; every call lint-warns, and the diff-scoped ratchet fails a new one on a line your branch adds — never add one
+- `waitForNextAnimationFrames(framesToWait = 1)` -- Frame-count delay. Legacy; lint-warns and ratchets the same way (a literal `0` is a hand-off, not a wait, and passes)
 - `promisfy(fn)` -- Convert callback to Promise
 
 **DOM Event Helpers** (from `test/helpers/mouseEvents.js`):

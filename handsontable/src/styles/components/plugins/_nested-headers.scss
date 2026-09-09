@@ -22,12 +22,11 @@
       border-start-start-radius: 0;
     }
 
-    .ht_master:not(.innerBorderTop):not(.innerBorderBottom) {
-      thead th.htRowspanBottomLevel,
-      & ~ .handsontable thead th.htRowspanBottomLevel {
-        border-bottom-width: 0;
-      }
-    }
+    // A `.ht_master:not(.innerBorderTop):not(.innerBorderBottom)` block used to zero the
+    // `border-bottom` of the deepest header level here, the nested-headers copy of the row-axis
+    // border trade that DEV-2786 removed. The header owns the seam below it at every scroll position
+    // now, so `htRowspanBottomLevel` keeps the shared cell rule's `border-bottom` like any other
+    // header cell.
 
     thead th.hiddenHeader:not(:first-of-type) {
       display: none;
