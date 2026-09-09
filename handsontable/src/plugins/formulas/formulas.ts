@@ -2,7 +2,7 @@ import { BasePlugin } from '../base';
 import { staticRegister } from '../../utils/staticRegister';
 import { error, warn, warnOnce } from '../../helpers/console';
 import { isNumeric } from '../../helpers/number';
-import { isObject } from '../../helpers/object';
+import { isObject, isPlainObject } from '../../helpers/object';
 import { isDefined, isUndefined } from '../../helpers/mixed';
 import { getRegisteredHotInstances, setupEngine, setupSheet, unregisterEngine, } from './engine/register';
 import {
@@ -1062,7 +1062,9 @@ export class Formulas extends BasePlugin {
     const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
     const wasEnabled = this.#hyperlinksEnabled;
     const hyperlinks = isFormulasSettingsObject(pluginSettings) ? pluginSettings.hyperlinks : undefined;
-    const isObjectForm = typeof hyperlinks === 'object' && hyperlinks !== null;
+    // A plain object (including `{}`) enables hyperlinks with defaults; an array or any other
+    // non-plain object (a `Date`, a class instance) is not the object form and does not enable it.
+    const isObjectForm = isPlainObject(hyperlinks);
 
     this.#hyperlinksEnabled = hyperlinks === true || isObjectForm;
     this.#hyperlinkTarget = isObjectForm && hyperlinks.target === '_self' ? '_self' : '_blank';
@@ -1121,7 +1123,11 @@ export class Formulas extends BasePlugin {
 
     const href = resolveLinkUrl(url, this.hot.rootDocument.baseURI, this.#hyperlinkSchemes);
 
-    if (href === null) {
+    // A narrowed `#hyperlinkSchemes` refuses URLs the caller deliberately excluded, which is not a
+    // refusal worth warning about. Only warn when the URL is refused against the FULL allowlist too -
+    // that is the "Handsontable can never link to this" case the message describes. This extra call
+    // only runs on the refusal path, so the common (linked) path still costs a single call.
+    if (href === null && resolveLinkUrl(url, this.hot.rootDocument.baseURI) === null) {
       warnOnce(this, HYPERLINK_WARN_KEY,
         `A "HYPERLINK" formula points at a URL that Handsontable refuses to link to ("${url}"). ` +
         'Only the "http", "https", "mailto" and "tel" schemes can be linked.');

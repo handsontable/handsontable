@@ -309,6 +309,19 @@ test.describe('formulas: HYPERLINK rendering', () => {
     await expect(grid.link(0, 0)).toHaveAttribute('rel', 'noopener noreferrer');
   });
 
+  test('treats an array as "not the object form", unlike a plain object', async({ page, theme, bundle }) => {
+    const grid = new FormulasHyperlinkPage(page, theme, bundle);
+
+    await grid.goto();
+
+    await grid.setHyperlinks([] as unknown as boolean);
+    await expect(grid.link(0, 0)).toHaveCount(0);
+    await expect(grid.cell(0, 0)).toHaveText('Example one');
+
+    await grid.setHyperlinks({});
+    await expect(grid.link(0, 0)).toHaveCount(1);
+  });
+
   test('refuses a scheme left out of `hyperlinks.schemes`', async({ page, theme, bundle }) => {
     const grid = new FormulasHyperlinkPage(page, theme, bundle);
 
@@ -321,5 +334,51 @@ test.describe('formulas: HYPERLINK rendering', () => {
     await grid.setHyperlinks({ schemes: ['https'] });
 
     await expect(grid.link(0, 0)).toHaveCount(1);
+  });
+
+  test('does not warn when `hyperlinks.schemes` narrows out an otherwise-linkable URL', async({ page, theme, bundle }) => {
+    const grid = new FormulasHyperlinkPage(page, theme, bundle);
+
+    await grid.goto();
+
+    // The fixture's own grid already spent its one-shot `warnOnce` budget on the `javascript:` row
+    // during `goto()` (see the "warns once" test above), so reusing it here could never show a SECOND
+    // warning either way - a false negative that would hide a real regression. A scratch grid, built
+    // only after the console listener attaches, makes the schemes-narrowing refusal below the FIRST
+    // refusal this `Formulas` instance ever sees, which is what actually exercises the fix.
+    const warnings: string[] = [];
+
+    page.on('console', (message) => {
+      if (message.type() === 'warning') {
+        warnings.push(message.text());
+      }
+    });
+
+    await page.evaluate(() => {
+      const container = document.createElement('div');
+
+      container.setAttribute('data-testid', 'scratch-grid');
+      document.body.appendChild(container);
+
+      (window as any).__scratchHot = new (window as any).Handsontable(container, {
+        data: [['=HYPERLINK("https://example.com/one","Example one")']],
+        formulas: {
+          engine: (window as any).HyperFormula,
+          sheetName: 'ScratchSheet',
+          // Excludes `https`, so the engine's own URL is refused only under this narrowing - it would
+          // resolve fine under the plugin's full default allowlist.
+          hyperlinks: { schemes: ['mailto', 'tel'] },
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    });
+
+    await expect(page.getByTestId('scratch-grid').getByText('Example one')).toBeVisible();
+
+    await page.evaluate(() => (window as any).__scratchHot.destroy());
+
+    const refusals = warnings.filter(text => text.includes('refuses to link to'));
+
+    expect(refusals).toHaveLength(0);
   });
 });

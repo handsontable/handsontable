@@ -45,8 +45,8 @@ export class FormulasHyperlinkPage {
     return this.cell(row, 1).locator('span.custom-mark');
   }
 
-  /** Set the `hyperlinks` sub-option through `updateSettings`: a boolean or the `{ target, schemes }` object. */
-  async setHyperlinks(hyperlinks: boolean | { target?: string; schemes?: string[] }): Promise<void> {
+  /** Set the `hyperlinks` sub-option through `updateSettings`: a boolean, an object, or (for a misuse case) anything. */
+  async setHyperlinks(hyperlinks: unknown): Promise<void> {
     await this.page.evaluate((value) => {
       const hot = (window as any).hot;
 
