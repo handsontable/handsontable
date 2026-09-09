@@ -14,5 +14,11 @@
         color: var(--ht-link-hover-color);
       }
     }
+
+    // The scheme of a `mailto:`/`tel:` autoLink stays in the DOM so the next render can re-tokenize it,
+    // but it is noise to the eye: the cell shows the address or the number, the `href` keeps the scheme.
+    td a.ht-link .ht-link-scheme {
+      display: none;
+    }
   }
 }

@@ -1,7 +1,9 @@
 import {
   createLinkElement,
   findLinkTokens,
+  hideSchemePrefix,
   unwrapLinks,
+  LINK_SCHEME_CLASS_NAME,
   type LinkScheme,
   type LinkTarget,
 } from '../../utils/cellLinks';
@@ -42,6 +44,7 @@ export interface LinkifyOptions {
 // link inside a form control or button would hijack the control.
 const SKIPPED_ANCESTORS = 'a, button, input, select, textarea';
 const OWN_LINK_SELECTOR = `a.${AUTO_LINK_CLASS_NAME}`;
+const OWN_SCHEME_SELECTOR = `${OWN_LINK_SELECTOR} .${LINK_SCHEME_CLASS_NAME}`;
 
 /**
  * Unwraps every `autoLink` anchor under `root`.
@@ -50,6 +53,11 @@ const OWN_LINK_SELECTOR = `a.${AUTO_LINK_CLASS_NAME}`;
  * @returns {number} The number of anchors removed.
  */
 export function unlinkifyCell(root: Element): number {
+  // Spans first: unwrapping a scheme span merges its text back into the surrounding text node, so
+  // the anchor unwrap that follows leaves one plain text node and the next `linkifyCell` pass can
+  // tokenize the full `mailto:`/`tel:` prefix again instead of finding a stray span-less fragment.
+  unwrapLinks(root, OWN_SCHEME_SELECTOR);
+
   return unwrapLinks(root, OWN_LINK_SELECTOR);
 }
 
@@ -106,6 +114,7 @@ function linkifyTextNode(textNode: Text, options: LinkifyOptions): void {
 
     urlNode.parentNode?.insertBefore(link, urlNode);
     link.appendChild(urlNode);
+    hideSchemePrefix(link);
   }
 }
 
@@ -141,6 +150,7 @@ function linkifyWholeCell(TD: HTMLTableCellElement, text: string, options: Linki
     link.appendChild(TD.firstChild);
   }
 
+  hideSchemePrefix(link);
   TD.appendChild(link);
 }
 

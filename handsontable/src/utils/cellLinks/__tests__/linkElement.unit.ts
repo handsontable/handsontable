@@ -1,4 +1,6 @@
-import { createLinkElement, unwrapLinks, LINK_CLASS_NAME } from '../linkElement';
+import {
+  createLinkElement, hideSchemePrefix, unwrapLinks, LINK_CLASS_NAME, LINK_SCHEME_CLASS_NAME,
+} from '../linkElement';
 
 describe('createLinkElement', () => {
   it('should build an anchor with the shared class, href, target, rel and tabindex', () => {
@@ -94,5 +96,55 @@ describe('unwrapLinks', () => {
     expect(unwrapLinks(td, 'a.ht-auto-link')).toBe(1);
     expect(td.querySelectorAll('a').length).toBe(1);
     expect(td.querySelector('a')?.textContent).toBe('user');
+  });
+});
+
+describe('hideSchemePrefix', () => {
+  it('should wrap a `mailto:` prefix in a hidden span and keep the text content unchanged', () => {
+    const link = createLinkElement(document, { href: 'mailto:a@b.com', target: '_blank' });
+
+    link.textContent = 'mailto:a@b.com';
+
+    expect(hideSchemePrefix(link)).toBe(true);
+    expect(link.innerHTML).toBe(`<span class="${LINK_SCHEME_CLASS_NAME}">mailto:</span>a@b.com`);
+    expect(link.textContent).toBe('mailto:a@b.com');
+  });
+
+  it('should wrap a `tel:` prefix with leading whitespace, keeping the whitespace outside the span', () => {
+    const link = createLinkElement(document, { href: 'tel:+48123', target: '_blank' });
+
+    link.textContent = '  tel:+48123';
+
+    expect(hideSchemePrefix(link)).toBe(true);
+    expect(link.innerHTML).toBe(`  <span class="${LINK_SCHEME_CLASS_NAME}">tel:</span>+48123`);
+    expect(link.querySelector(`.${LINK_SCHEME_CLASS_NAME}`)?.textContent).toBe('tel:');
+  });
+
+  it('should return false and leave the anchor untouched for an `https:` href', () => {
+    const link = createLinkElement(document, { href: 'https://a.com/x', target: '_blank' });
+
+    link.textContent = 'https://a.com/x';
+
+    expect(hideSchemePrefix(link)).toBe(false);
+    expect(link.innerHTML).toBe('https://a.com/x');
+  });
+
+  it('should return false when the visible text does not start with the scheme', () => {
+    const link = createLinkElement(document, { href: 'mailto:a@b.com', target: '_blank' });
+
+    link.textContent = 'Email me';
+
+    expect(hideSchemePrefix(link)).toBe(false);
+    expect(link.innerHTML).toBe('Email me');
+  });
+
+  it('should match the scheme case-insensitively', () => {
+    const link = createLinkElement(document, { href: 'mailto:a@b.com', target: '_blank' });
+
+    link.textContent = 'MAILTO:a@b.com';
+
+    expect(hideSchemePrefix(link)).toBe(true);
+    expect(link.querySelector(`.${LINK_SCHEME_CLASS_NAME}`)?.textContent).toBe('MAILTO:');
+    expect(link.textContent).toBe('MAILTO:a@b.com');
   });
 });

@@ -149,6 +149,8 @@ A link inside a cell stays out of the tab order, so tabbing still moves between 
 
 Each link element gets the `ht-link` and `ht-auto-link` classes, and takes its color from the `--ht-link-color` and `--ht-link-hover-color` [theme variables](@/guides/styling/themes/themes.md). Add your own class through the `className` option.
 
+A `mailto:` or `tel:` link hides its scheme prefix from view. The prefix stays in the DOM inside a `ht-link-scheme` element, so the cell shows only the address or the number - restyle it through that class if you need the prefix visible.
+
 ## Links from formulas
 
 A cell whose formula is `HYPERLINK()` can render as a link through the `hyperlinks` property of the [`formulas`](@/api/options.md#formulas) option. Read more in [Render `HYPERLINK` formulas as links](@/guides/formulas/formula-calculation/formula-calculation.md#render-hyperlink-formulas-as-links). When both features are on, a `HYPERLINK` cell renders the formula's link and `autoLink` leaves it alone.

@@ -1,3 +1,4 @@
+import { LINK_SCHEME_CLASS_NAME } from '../../../utils/cellLinks';
 import { linkifyCell, unlinkifyCell, AUTO_LINK_CLASS_NAME, type LinkifyOptions } from '../linkifyCell';
 
 const BASE = 'https://example.com/dir/page.html';
@@ -131,6 +132,48 @@ describe('linkifyCell', () => {
 
       expect(td.querySelector('a')).toBe(null);
     });
+
+    it('should hide the `mailto:` scheme prefix behind a span, keeping the anchor href and text', () => {
+      const td = cell('mailto:a@b.com');
+
+      linkifyCell(td, options());
+
+      const link = td.querySelector<HTMLAnchorElement>('a.ht-auto-link');
+
+      expect(link?.getAttribute('href')).toBe('mailto:a@b.com');
+      expect(link?.querySelector(`span.${LINK_SCHEME_CLASS_NAME}`)?.textContent).toBe('mailto:');
+      expect(link?.textContent).toBe('mailto:a@b.com');
+    });
+
+    it('should keep the surrounding prose and hide only the scheme inside the link', () => {
+      const td = cell('mail mailto:a@b.com now');
+
+      linkifyCell(td, options());
+
+      const link = td.querySelector<HTMLAnchorElement>('a.ht-auto-link');
+
+      expect(link?.querySelector(`span.${LINK_SCHEME_CLASS_NAME}`)?.textContent).toBe('mailto:');
+      expect(td.textContent).toBe('mail mailto:a@b.com now');
+    });
+
+    it('should get no scheme span for an `https:` URL', () => {
+      const td = cell('https://a.com/x');
+
+      linkifyCell(td, options());
+
+      expect(td.querySelector(`.${LINK_SCHEME_CLASS_NAME}`)).toBe(null);
+    });
+
+    it('should leave exactly one anchor, one scheme span and unchanged text across two passes', () => {
+      const td = cell('mailto:a@b.com');
+
+      linkifyCell(td, options());
+      linkifyCell(td, options());
+
+      expect(td.querySelectorAll('a').length).toBe(1);
+      expect(td.querySelectorAll(`.${LINK_SCHEME_CLASS_NAME}`).length).toBe(1);
+      expect(td.textContent).toBe('mailto:a@b.com');
+    });
   });
 
   describe('whole-cell mode', () => {
@@ -179,6 +222,16 @@ describe('linkifyCell', () => {
       expect(td.querySelector('a')).toBe(null);
       expect(td.querySelector('input[type="checkbox"]')).not.toBe(null);
     });
+
+    it('should hide exactly the `tel:` scheme prefix when the trimmed text is a whole-cell URL', () => {
+      const td = cell('  tel:+48123 ');
+
+      linkifyCell(td, options({ inline: false }));
+
+      expect(td.querySelector(`span.${LINK_SCHEME_CLASS_NAME}`)?.textContent).toBe('tel:');
+      expect(td.querySelector('a')?.getAttribute('href')).toBe('tel:+48123');
+      expect(td.textContent).toBe('  tel:+48123 ');
+    });
   });
 });
 
@@ -199,5 +252,17 @@ describe('unlinkifyCell', () => {
     expect(td.querySelectorAll('a').length).toBe(1);
     expect(td.querySelector('a')?.textContent).toBe('u');
     expect(td.textContent).toBe('https://a.com/x u');
+  });
+
+  it('should unwrap the scheme span before the anchor and leave one merged plain-text node', () => {
+    const td = cell('mailto:a@b.com');
+
+    linkifyCell(td, options());
+
+    expect(unlinkifyCell(td)).toBe(1);
+    expect(td.querySelector('a')).toBe(null);
+    expect(td.querySelector(`.${LINK_SCHEME_CLASS_NAME}`)).toBe(null);
+    expect(td.childNodes.length).toBe(1);
+    expect(td.textContent).toBe('mailto:a@b.com');
   });
 });

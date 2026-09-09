@@ -42,6 +42,11 @@ shares with `Formulas`.
   protocol again. Do not "extend" the regex to `[a-z]+:`; the allowlist is the security boundary.
 - **The `:` fast path is load-bearing.** Most cells hold no URL; `indexOf(':')` on `textContent` is what keeps the
   regex and the TreeWalker off them on every render.
+- **The `mailto:`/`tel:` scheme prefix is hidden, not removed.** `hideSchemePrefix` (`../../utils/cellLinks/`)
+  wraps it in `span.ht-link-scheme`, which the stylesheet hides — it stays in `textContent` because every render
+  re-tokenizes the rendered text, and a text that lost `mailto:` would look like plain text on the next pass.
+  `unlinkifyCell` unwraps the spans before the anchors, so a disabled grid returns to plain text with the prefix
+  visible again.
 
 ## Where to look next
 

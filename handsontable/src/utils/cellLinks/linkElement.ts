@@ -7,6 +7,17 @@
 export const LINK_CLASS_NAME = 'ht-link';
 
 /**
+ * Class the wrapper of a hidden `mailto:`/`tel:` scheme prefix carries. The stylesheet hides any
+ * element with this class; `hideSchemePrefix` is the only place that creates one.
+ */
+export const LINK_SCHEME_CLASS_NAME = 'ht-link-scheme';
+
+// Matched against the anchor's own rendered text, case-insensitively: the scheme itself is decided
+// by `link.protocol`, so these only confirm the visible text actually starts with it.
+const MAILTO_PREFIX_PATTERN = /^mailto:/i;
+const TEL_PREFIX_PATTERN = /^tel:/i;
+
+/**
  * Where a cell link opens.
  */
 export type LinkTarget = '_blank' | '_self';
@@ -50,6 +61,61 @@ export function createLinkElement(
   link.tabIndex = -1;
 
   return link;
+}
+
+/**
+ * Hides the `mailto:`/`tel:` scheme prefix of an anchor's rendered text, wrapping it in a
+ * `span.ht-link-scheme` that the stylesheet hides. The prefix stays in the DOM instead of being
+ * removed: the caller re-tokenizes `TD.textContent` on every render pass, and a text that lost
+ * `mailto:` or `tel:` would no longer look like a linkable scheme on the next pass. `href` and
+ * `textContent` never change - only DOM nodes move.
+ *
+ * @param {HTMLAnchorElement} link The anchor to hide the scheme prefix of.
+ * @returns {boolean} `true` when the prefix was wrapped; `false` when the anchor's `href` is not a
+ * `mailto:`/`tel:` link, or its leading text does not carry that scheme.
+ */
+export function hideSchemePrefix(link: HTMLAnchorElement): boolean {
+  let pattern: RegExp;
+
+  if (link.protocol === 'mailto:') {
+    pattern = MAILTO_PREFIX_PATTERN;
+  } else if (link.protocol === 'tel:') {
+    pattern = TEL_PREFIX_PATTERN;
+  } else {
+    return false;
+  }
+
+  const doc = link.ownerDocument;
+  const walker = doc.createTreeWalker(link, NodeFilter.SHOW_TEXT);
+  let textNode: Text | null = null;
+  let node = walker.nextNode();
+
+  while (node !== null) {
+    if (/\S/.test((node as Text).data)) {
+      textNode = node as Text;
+      break;
+    }
+
+    node = walker.nextNode();
+  }
+
+  if (textNode === null || !pattern.test(textNode.data.trimStart())) {
+    return false;
+  }
+
+  const lead = textNode.data.length - textNode.data.trimStart().length;
+  const schemeNode = lead > 0 ? textNode.splitText(lead) : textNode;
+
+  schemeNode.splitText(link.protocol.length);
+
+  const scheme = doc.createElement('span');
+
+  scheme.className = LINK_SCHEME_CLASS_NAME;
+
+  schemeNode.parentNode?.insertBefore(scheme, schemeNode);
+  scheme.appendChild(schemeNode);
+
+  return true;
 }
 
 /**

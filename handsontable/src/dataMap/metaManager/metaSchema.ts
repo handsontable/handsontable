@@ -612,6 +612,10 @@ export default (): Record<string, unknown> => {
      * and always carries `rel="noopener noreferrer"`. Press <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd>
      * to open the first link of the selected cell.
      *
+     * For `mailto:` and `tel:` links, the scheme prefix is wrapped in a `ht-link-scheme` element and
+     * hidden, so the cell shows only the address or the number. The cell value and the link target
+     * keep the prefix.
+     *
      * Only the `http`, `https`, `mailto`, and `tel` schemes are ever linked. A cell that already
      * contains a link element, such as a `HYPERLINK` cell rendered through
      * [`formulas.hyperlinks`](#formulas) or an `html` cell holding an anchor, is left as it is.

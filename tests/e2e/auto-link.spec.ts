@@ -33,13 +33,24 @@ test.describe('autoLink', () => {
     await expect(grid.cell(1, 0)).toHaveText('Visit https://example.com/two for details.');
   });
 
-  test('links `mailto:` and `tel:` values', async({ page, theme, bundle }) => {
+  test('links `mailto:` and `tel:` values, hiding the scheme prefix from view', async({ page, theme, bundle }) => {
     const grid = new AutoLinkPage(page, theme, bundle);
 
     await grid.goto();
 
     await expect(grid.links(2, 0)).toHaveAttribute('href', 'mailto:someone@example.com');
     await expect(grid.links(3, 0)).toHaveAttribute('href', 'tel:+48123456789');
+
+    // The scheme stays in the DOM (textContent) for the next render's re-tokenization, but is
+    // hidden from the reader (innerText), who sees only the address or the number.
+    await expect(grid.links(2, 0)).toHaveText('mailto:someone@example.com');
+    await expect(grid.links(2, 0)).toHaveText('someone@example.com', { useInnerText: true });
+    await expect(grid.links(2, 0).locator('span.ht-link-scheme')).toBeHidden();
+
+    await expect(grid.links(3, 0)).toHaveText('+48123456789', { useInnerText: true });
+
+    // An `https:` link never gets a scheme span.
+    await expect(grid.links(0, 0).locator('span.ht-link-scheme')).toHaveCount(0);
   });
 
   test('trims the punctuation that wraps a URL in prose', async({ page, theme, bundle }) => {
@@ -203,6 +214,10 @@ test.describe('autoLink', () => {
     await expect(grid.anyLinks(0, 0)).toHaveCount(0);
     await expect(grid.anyLinks(0, 4)).toHaveCount(0);
     await expect(grid.cell(0, 4)).toHaveText('https://example.com/memo');
+
+    // The scheme prefix, hidden while the anchor existed, is plain visible text again once the
+    // anchor and its scheme span are both unwrapped.
+    await expect(grid.cell(2, 0)).toHaveText('mailto:someone@example.com', { useInnerText: true });
 
     await grid.setAutoLink(true);
 

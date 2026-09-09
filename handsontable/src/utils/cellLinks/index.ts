@@ -2,7 +2,9 @@ export { LINK_SCHEMES, normalizeSchemes, resolveLinkUrl, type LinkScheme } from 
 export { findLinkTokens, type LinkToken } from './findLinkTokens';
 export {
   LINK_CLASS_NAME,
+  LINK_SCHEME_CLASS_NAME,
   createLinkElement,
+  hideSchemePrefix,
   unwrapLinks,
   type LinkElementOptions,
   type LinkTarget,
