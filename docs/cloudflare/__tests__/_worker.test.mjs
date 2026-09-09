@@ -724,8 +724,14 @@ test('a missing _md twin passes the 404 through without a content-type override'
 
 test('non-agent assets keep the content type Pages assigned them', async() => {
   const worker = loadWorker();
-  const response = await worker.fetch(request('/docs/some-page.md.png'), markdownAssetsEnv());
 
-  assert.equal(response.status, 200);
-  assert.equal(response.headers.get('content-type'), 'text/markdown; charset=utf-8');
+  // A real .md path outside /docs/_md/ pins the boundary that matters: only
+  // the twins directory is overridden, not every .md on the site. The
+  // .md.png path pins the extension anchor.
+  for (const path of ['/docs/javascript-data-grid/foo.md', '/docs/some-page.md.png']) {
+    const response = await worker.fetch(request(path), markdownAssetsEnv());
+
+    assert.equal(response.status, 200, path);
+    assert.equal(response.headers.get('content-type'), 'text/markdown; charset=utf-8', path);
+  }
 });
