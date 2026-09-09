@@ -1,0 +1,18 @@
+// Handsontable cell links
+
+@mixin output {
+  .handsontable {
+    // An anchor the grid itself renders into a data cell (`formulas.hyperlinks`, `autoLink`) is grid
+    // chrome and gets the link color. The base rule cannot cover it: it deliberately skips every `<a>`
+    // inside a data cell, because such an anchor is normally user content that keeps its own color
+    // (#4363). `ht-link` is the opt-in marker every grid-made cell anchor carries.
+    td a.ht-link {
+      color: var(--ht-link-color);
+      text-decoration: underline;
+
+      &:hover {
+        color: var(--ht-link-hover-color);
+      }
+    }
+  }
+}
