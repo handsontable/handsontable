@@ -585,9 +585,6 @@ export class AutoRowSize extends BasePlugin {
         // table. The sweep ends without a render of its own, so nothing else would pick them up
         // until the next full render - which never comes on a grid the user only scrolls.
         this.#drainRowRefreshQueue();
-
-        // @TODO Should call once per render cycle, currently fired separately in different plugins
-        this.hot.view.adjustElementsSize();
       }
     };
 
@@ -614,8 +611,6 @@ export class AutoRowSize extends BasePlugin {
       // The whole grid fitted inside the sync limit, so `loop()` never ran and its completion
       // branch - the other place the queue is drained - was never reached.
       this.#drainRowRefreshQueue();
-
-      this.hot.view.adjustElementsSize();
     }
   }
 

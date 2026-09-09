@@ -475,7 +475,6 @@ export default function Core(
   this.rootWindow = this.rootDocument.defaultView!;
 
   if (isRootInstance(this)) {
-
     this.rootWrapperElement = this.rootDocument.createElement('div');
 
     this.rootSlotTopElement = this.rootDocument.createElement('div');
@@ -724,14 +723,12 @@ export default function Core(
   const moduleRegisterer = staticRegister(this.guid);
 
   moduleRegisterer.register('cellRangeMapper', new CellRangeToRenderableMapper({
-
     rowIndexMapper: this.rowIndexMapper,
 
     columnIndexMapper: this.columnIndexMapper,
   }));
 
   if (!this.rootElement.id || this.rootElement.id.substring(0, 3) === 'ht_') {
-
     this.rootElement.id = this.guid; // if root element does not have an id, assign a random id
   }
 
@@ -786,7 +783,6 @@ export default function Core(
   };
 
   let selection = new Selection(tableMeta, ({
-
     rowIndexMapper: instance.rowIndexMapper,
 
     columnIndexMapper: instance.columnIndexMapper,
@@ -1339,7 +1335,6 @@ export default function Core(
               // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
               // compatible with datamap.removeCol method.
               if (Number.isInteger(groupIndex)) {
-
                 groupIndex = Math.max(groupIndex - offset, 0);
               }
 
@@ -1430,7 +1425,6 @@ export default function Core(
 
             // Normalize the {index, amount} groups into bigger groups.
             arrayEach(indexes, ([groupIndex, groupAmount]) => {
-
               const calcIndex = isEmpty(groupIndex) ? instance.countCols() - 1 : Math.max(groupIndex - offset, 0);
 
               let physicalColumnIndex = instance.toPhysicalColumn(calcIndex);
@@ -1438,7 +1432,6 @@ export default function Core(
               // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
               // compatible with datamap.removeCol method.
               if (Number.isInteger(groupIndex)) {
-
                 groupIndex = Math.max(groupIndex - offset, 0);
               }
 
@@ -1523,7 +1516,6 @@ export default function Core(
       // instead of committing through it and appending records (DEV-2739).
       editorManager.resumeStrandDiscards();
 
-      instance.view.adjustElementsSize();
       instance.view.render();
     },
 
@@ -1533,7 +1525,6 @@ export default function Core(
      * @private
      */
     adjustRowsAndCols() {
-
       const minRows = tableMeta.minRows;
 
       const minSpareRows = tableMeta.minSpareRows;
@@ -1554,7 +1545,6 @@ export default function Core(
         }
       }
       if (minSpareRows) {
-
         const emptyRows = instance.countEmptyRows(true);
 
         // should I add empty rows to meet minSpareRows?
@@ -1935,7 +1925,6 @@ export default function Core(
    * @param {string|string[]} classSettings String or array of strings. Contains class name(s) from settings object.
    */
   function setClassName(className: string, classSettings: string | string[] | undefined) {
-
     const element = className === 'className' ? instance.rootElement : instance.table;
 
     if (firstRun) {
@@ -2091,9 +2080,6 @@ export default function Core(
           return;
         }
 
-        // Update the spreader size cache before rendering.
-        instance.view._wt.wtOverlays.updateLastSpreaderSize();
-        instance.view.adjustElementsSize();
         instance.render();
       });
     }
@@ -2227,7 +2213,6 @@ export default function Core(
     }
 
     instance.themeManager = createThemeManager({
-
       hot: instance,
       themeObject,
       overrides
@@ -2411,7 +2396,6 @@ export default function Core(
 
       if ((changes[i][2] === null || changes[i][2] === undefined)
         && (changes[i][3] === null || changes[i][3] === undefined)) {
-
         continue;
       }
 
@@ -2450,7 +2434,6 @@ export default function Core(
       }
 
       if (skipThisChange) {
-
         continue;
       }
 
@@ -2470,7 +2453,6 @@ export default function Core(
         editorManager.closeEditor();
       }
 
-      instance.view.adjustElementsSize();
       instance.render();
 
       if (
@@ -2623,7 +2605,6 @@ export default function Core(
     callback: (valid: boolean) => void,
     source: string
   ) {
-
     let validator = instance.getCellValidator(cellProperties);
 
     // the `canBeValidated = false` argument suggests, that the cell passes validation by default.
@@ -2734,7 +2715,6 @@ export default function Core(
    * @returns {Array} List of changes finally applied to the dataset.
    */
   function processChanges(changes: Array<CellChange | null>, source: string | undefined): CellChange[] {
-
     const beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
     // The `beforeChange` hook could add a `null` for purpose of cancelling some dataset's change.
     const filteredChanges = changes.filter((change): change is CellChange => change !== null);
@@ -3091,7 +3071,6 @@ export default function Core(
    * @returns {number[]|undefined} Selected range as an array of coordinates or `undefined` if there is no selection.
    */
   this.getSelectedActive = function() {
-
     const activeRange = instance.getSelectedRangeActive();
 
     if (!activeRange) {
@@ -3664,7 +3643,6 @@ export default function Core(
 
     if (isSizeChanged || view._wt.wtOverlays.scrollableElement === instance.rootWindow) {
       view.setLastSize(width, height);
-      view.adjustElementsSize();
       instance.render();
     }
 
@@ -3731,7 +3709,6 @@ export default function Core(
 
         editorManager.resumeStrandDiscards();
       }, {
-
         hotInstance: instance,
         dataMap: datamap,
         dataSource,
@@ -3783,7 +3760,6 @@ export default function Core(
           firstRun = [null, 'loadData'];
         }
       }, {
-
         hotInstance: instance,
         dataMap: datamap,
         dataSource,
@@ -4002,7 +3978,6 @@ export default function Core(
    * @fires Hooks#afterUpdateSettings
    */
   this.updateSettings = function(settings: Partial<GridSettings>, init = false) {
-
     const dataUpdateFunction = (firstRun ? instance.loadData : instance.updateData).bind(this);
     let i;
 
@@ -4092,7 +4067,6 @@ export default function Core(
         themeName = rootContainerThemeClassName;
 
       } else if (instance.themeManager) {
-
         themeName = instance.themeManager.getClassName();
       }
 
@@ -4134,7 +4108,6 @@ export default function Core(
           let themeObject;
 
           if (typeof (settings.theme as { getThemeConfig?: () => unknown }).getThemeConfig !== 'function') {
-
             themeObject = registerTheme(settings.theme);
           } else {
             themeObject = settings.theme as ThemeBuilder;
@@ -4364,7 +4337,6 @@ export default function Core(
     }
 
     if (init) {
-
       const initialStyle = instance.rootElement.getAttribute('style');
 
       if (initialStyle) {
@@ -4382,7 +4354,6 @@ export default function Core(
       height = instance.runHooks('beforeHeightChange', height);
 
       if (height === null) {
-
         const initialStyle = instance.rootElement.dataset.initialstyle;
 
         if (initialStyle && (initialStyle.indexOf('height') > -1 || initialStyle.indexOf('overflow') > -1)) {
@@ -4473,7 +4444,6 @@ export default function Core(
 
     if (instance.view && !firstRun) {
       instance.render();
-      instance.view._wt.wtOverlays.adjustElementsSize();
     }
 
     // Fired after the render above, so a listener reading cell sizes sees the new density. The
@@ -5374,7 +5344,6 @@ export default function Core(
    * @fires Hooks#afterSetCellMeta
    */
   this.setCellMeta = function(row: number, column: number, key: string, value: string) {
-
     const allowSetCellMeta = instance.runHooks('beforeSetCellMeta', row, column, key, value);
 
     if (allowSetCellMeta === false) {
@@ -5799,7 +5768,6 @@ export default function Core(
     let physicalRow = row;
 
     if (physicalRow !== undefined) {
-
       physicalRow = instance.runHooks('modifyRowHeader', physicalRow);
     }
 
@@ -5908,7 +5876,6 @@ export default function Core(
    * @returns {Array|string|number} Column header values.
    */
   this.getColHeader = function(column: number, headerLevel = -1) {
-
     const columnIndex = instance.runHooks('modifyColHeader', column);
 
     if (columnIndex === undefined) {

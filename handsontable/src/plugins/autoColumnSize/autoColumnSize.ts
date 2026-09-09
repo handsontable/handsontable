@@ -632,9 +632,6 @@ export class AutoColumnSize extends BasePlugin {
       } else {
         cancelIdleTask(timer);
         this.inProgress = false;
-
-        // @TODO Should call once per render cycle, currently fired separately in different plugins
-        this.hot.view.adjustElementsSize();
       }
     };
 
