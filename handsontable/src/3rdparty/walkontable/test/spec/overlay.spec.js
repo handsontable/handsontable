@@ -586,9 +586,9 @@ describe('WalkontableOverlay', () => {
     expect($(wt.wtTable.holder).width()).toBe(200);
     expect($(wt.wtTable.holder).height()).toBe(200);
     expect($(wt.wtOverlays.topOverlay.clone.wtTable.holder).width()).toBe(200 - getScrollbarWidth()); // 200px - 15px scrollbar width
-    expect($(wt.wtOverlays.topOverlay.clone.wtTable.holder).height()).toBe(23);
+    expect($(wt.wtOverlays.topOverlay.clone.wtTable.holder).height()).toBe(24); // 23px + 1px column-header border-bottom, at every scroll position (DEV-2786)
     expect($(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder).width()).toBe(50);
-    expect($(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder).height()).toBe(23);
+    expect($(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder).height()).toBe(24); // 23px + 1px column-header border-bottom, at every scroll position (DEV-2786)
     expect($(wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder).width()).toBe(50);
     expect($(wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder).height()).toBe(200 - getScrollbarWidth());
   });
@@ -620,9 +620,9 @@ describe('WalkontableOverlay', () => {
     expect($(wt.wtTable.holder).width()).toBe(clientWidth);
     expect($(wt.wtTable.holder).height()).toBe(clientHeight);
     expect($(wt.wtOverlays.topOverlay.clone.wtTable.holder).width()).toBe(totalColumnsWidth);
-    expect($(wt.wtOverlays.topOverlay.clone.wtTable.holder).height()).toBe(23);
+    expect($(wt.wtOverlays.topOverlay.clone.wtTable.holder).height()).toBe(24); // 23px + 1px column-header border-bottom, at every scroll position (DEV-2786)
     expect($(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder).width()).toBe(50);
-    expect($(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder).height()).toBe(23);
+    expect($(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder).height()).toBe(24); // 23px + 1px column-header border-bottom, at every scroll position (DEV-2786)
     expect($(wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder).width()).toBe(50);
     expect($(wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder).height()).toBe(clientHeight);
   });
@@ -655,7 +655,14 @@ describe('WalkontableOverlay', () => {
     expect($(wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder).height()).toBe(200 - getScrollbarWidth());
   });
 
-  it('should apply innerBorderTop before the render and skip the nested re-draw on the single-pass gated path (S16b)', async() => {
+  it('should keep the column header height and run no nested re-draw when crossing the top edge (DEV-2786)', async() => {
+    // Deliberately NOT on the single-pass gated path: no `singlePassLayout`, so the header-border
+    // classes are resolved AFTER the cells render. That is the path that used to pay a nested
+    // `wot.draw(true)` over the master and every clone on every crossing of vertical offset 0, to
+    // settle the 1px the class shifted. The column header carries its `border-bottom` at every
+    // scroll position now, so there is no shift, no `positionChanged` and no re-draw. This spec is
+    // the reason the `refreshAll` expectations below are not vacuous - on the single-pass path they
+    // would already have been green before the change.
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
@@ -663,42 +670,37 @@ describe('WalkontableOverlay', () => {
       columnHeaders: [function(column, TH) { // makes top overlay + drives the innerBorderTop toggle
         TH.innerHTML = column + 1;
       }],
-      singlePassLayout: true,
-      rowHeightsUniform: () => true,
-      columnWidthsUniform: () => true,
     });
 
     wt.draw();
 
-    // Precondition: this fixture takes the single-pass calculator path (uniform + element + singlePass).
-    expect(wt.wtViewport.usesLayoutSnapshotForCalculators()).toBe(true);
+    expect(wt.wtViewport.usesLayoutSnapshotForCalculators()).toBe(false);
 
     const masterParent = wt.wtTable.holder.parentNode;
+    const headerHeight = () => $(wt.wtOverlays.topOverlay.clone.wtTable.holder).height();
 
-    // At the top there is no inner border.
     expect(masterParent.classList.contains('innerBorderTop')).toBe(false);
-
-    // Cross the top edge (0 -> N): the border must be resolved pre-render, so the post-render
-    // resetFixedPosition toggle is a no-op and the nested wot.draw(true) never fires.
-    wt.scrollViewportVertically(getTotalRows() - 1);
+    expect(headerHeight()).toBe(24); // 23px + 1px border-bottom
 
     const refreshAllSpy = spyOn(wt.wtOverlays, 'refreshAll').and.callThrough();
 
+    // Cross the top edge (0 -> N).
+    wt.scrollViewportVertically(getTotalRows() - 1);
     wt.draw();
 
+    // The class is still stamped, for backward compatibility - it just moves nothing.
     expect(masterParent.classList.contains('innerBorderTop')).toBe(true);
-    expect(refreshAllSpy).not.toHaveBeenCalled(); // no nested re-draw
-    // Final geometry is correct in a single pass: 23px header + 1px innerBorderTop.
-    expect($(wt.wtOverlays.topOverlay.clone.wtTable.holder).height()).toBe(24);
+    expect(refreshAllSpy).not.toHaveBeenCalled();
+    expect(headerHeight()).toBe(24);
 
-    // Cross back to the top (N -> 0): the border is removed pre-render, still single pass.
+    // Cross back to the top (N -> 0).
     wt.scrollViewportVertically(0);
     refreshAllSpy.calls.reset();
     wt.draw();
 
     expect(masterParent.classList.contains('innerBorderTop')).toBe(false);
     expect(refreshAllSpy).not.toHaveBeenCalled();
-    expect($(wt.wtOverlays.topOverlay.clone.wtTable.holder).height()).toBe(23);
+    expect(headerHeight()).toBe(24);
   });
 
   it('should cloned header overlays have to have proper dimensions after table scroll (window object as scrollable element)', async() => {
@@ -774,12 +776,12 @@ describe('WalkontableOverlay', () => {
     }));
     expect(getTableRect(wt.wtOverlays.topOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
       top: BODY_MARGIN,
-      bottom: 31,
+      bottom: 32, // 23px header + 1px its own border-bottom, at every scroll position (DEV-2786)
       left: BODY_MARGIN,
     }));
     expect(getTableRect(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
       top: BODY_MARGIN,
-      bottom: 31,
+      bottom: 32, // 23px header + 1px its own border-bottom, at every scroll position (DEV-2786)
       left: BODY_MARGIN,
     }));
     expect(getTableRect(wt.wtOverlays.inlineStartOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
@@ -830,12 +832,12 @@ describe('WalkontableOverlay', () => {
     }));
     expect(getTableRect(wt.wtOverlays.topOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
       top: BODY_MARGIN,
-      bottom: 23 + BODY_MARGIN, // 1 top row * 23px + body margin
+      bottom: 24 + BODY_MARGIN, // 23px header + 1px its own border-bottom, at every scroll position (DEV-2786)
       left: BODY_MARGIN,
     }));
     expect(getTableRect(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
       top: BODY_MARGIN,
-      bottom: 23 + BODY_MARGIN, // 1 top row * 23px + body margin
+      bottom: 24 + BODY_MARGIN, // 23px header + 1px its own border-bottom, at every scroll position (DEV-2786)
       left: BODY_MARGIN,
     }));
     expect(getTableRect(wt.wtOverlays.inlineStartOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
@@ -882,12 +884,12 @@ describe('WalkontableOverlay', () => {
     }));
     expect(getTableRect(wt.wtOverlays.topOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
       top: BODY_MARGIN,
-      bottom: 23 + BODY_MARGIN + 1, // 1 top row * 23px + body margin + 1px (innerBorderTop)
+      bottom: 24 + BODY_MARGIN, // 23px header + 1px its own border-bottom, at every scroll position (DEV-2786)
       left: BODY_MARGIN,
     }));
     expect(getTableRect(wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
       top: BODY_MARGIN,
-      bottom: 23 + BODY_MARGIN + 1, // 1 top row * 23px + body margin + 1px (innerBorderTop)
+      bottom: 24 + BODY_MARGIN, // 23px header + 1px its own border-bottom, at every scroll position (DEV-2786)
       left: BODY_MARGIN,
     }));
     expect(getTableRect(wt.wtOverlays.inlineStartOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
@@ -932,15 +934,27 @@ describe('WalkontableOverlay', () => {
 
     const documentClientHeight = document.documentElement.clientHeight;
     const documentClientWidth = document.documentElement.clientWidth;
-    // total columns * 23px + 23px (column header) + 1px (innerBorderTop)
-    const totalRowsHeight = (getTotalRows() * 23) + 23 + 1;
+    // total columns * 23px + 24px (column header + its border-bottom)
+    const totalRowsHeight = (getTotalRows() * 23) + 24;
     // total columns * 50px (cell width) + 50px (row header)
     const totalColumnsWidth = (getTotalColumns() * 50) + 50;
     const baseRect = getTableRect(wt.wtTable);
 
+    // The table stands one pixel ABOVE the viewport's bottom edge, and it did before DEV-2786 too:
+    // `TopOverlay#scrollTo`'s `newY += 1` overshoots the flush position by a pixel so the target row
+    // is fully revealed rather than clipped by its own bottom border. That term is row-border
+    // accounting, not header-border accounting - it is needed on a grid with no headers at all (the
+    // "sticks to the bottom edge (without headers)" specs in `scroll/scroll.spec.js` land a row short
+    // without it) - so DEV-2786 left it alone.
+    //
+    // What DID move is `bottom`, by exactly the pixel this change is about: `top` is unchanged and
+    // the table is now one pixel SHORTER, because its first body row no longer draws a `border-top`.
+    // `totalRowsHeight` above already accounts for that - the header's own `border-bottom` replaced
+    // the row's, so the formula's total is the same number as before - which is why only this edge
+    // moves.
     expect(baseRect).toEqual(jasmine.objectContaining({
-      top: documentClientHeight - totalRowsHeight - 1, // 1px header border compensation
-      bottom: documentClientHeight,
+      top: documentClientHeight - totalRowsHeight - 1,
+      bottom: documentClientHeight - 1,
       left: documentClientWidth - totalColumnsWidth,
     }));
     expect(getTableRect(wt.wtOverlays.topOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
@@ -953,9 +967,10 @@ describe('WalkontableOverlay', () => {
       bottom: 24,
       left: 0,
     }));
+    // The frozen-column clone mirrors the master's band, so both edges move with it.
     expect(getTableRect(wt.wtOverlays.inlineStartOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
-      top: documentClientHeight - totalRowsHeight - 1, // 1px header border compensation
-      bottom: documentClientHeight,
+      top: documentClientHeight - totalRowsHeight - 1,
+      bottom: documentClientHeight - 1,
       left: 0,
     }));
   });
@@ -1078,8 +1093,8 @@ describe('WalkontableOverlay', () => {
 
     // total columns * 50px (cell width) + 50px (row header)
     const totalColumnsWidth = (getTotalColumns() * 50) + 50;
-    // total rows * 23px (cell height) + 24px (column header) + 1px (border top for the first header)
-    const totalRowsHeight = (getTotalRows() * 23) + 24 + 1;
+    // total rows * 23px (cell height) + 24px (column header + its own border-bottom, DEV-2786)
+    const totalRowsHeight = (getTotalRows() * 23) + 24;
 
     expect($(wt.wtOverlays.topOverlay.clone.wtTable.holder).width()).toBe(totalColumnsWidth);
     expect($(wt.wtOverlays.topOverlay.clone.wtTable.holder).height()).toBe(24); // 23px + 1px (innerBorderTop)

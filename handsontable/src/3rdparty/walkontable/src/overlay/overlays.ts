@@ -57,7 +57,7 @@ export function createOverlaysDeps(ctx: EngineContext) {
     makeStickyScrollDeps: (overlays: Overlays) => createStickyScrollStrategyDeps(ctx, overlays),
     makeResizeMonitorDeps: () => createResizeMonitorDeps(ctx),
     makeScrollbarVisibilityDeps: () => createScrollbarVisibilityDeps(ctx),
-    makeSpreaderSizeDeps: (overlays: Overlays) => createSpreaderSizeDeps(ctx, overlays),
+    makeSpreaderSizeDeps: () => createSpreaderSizeDeps(ctx),
     makeScrollSyncDeps: (overlays: Overlays, stickyScroll: StickyScrollStrategy) =>
       createScrollSyncDeps(ctx, overlays, stickyScroll),
     makeNativeScrollInputDeps: (overlays: Overlays, stickyScroll: StickyScrollStrategy, resizeMonitor: ResizeMonitor) =>
@@ -339,7 +339,7 @@ class Overlays {
       this.#deps.makeScrollbarVisibilityDeps(),
       () => this.#refreshScrollbarClearance()
     );
-    this.#spreaderSize = new SpreaderSize(this.#deps.makeSpreaderSizeDeps(this));
+    this.#spreaderSize = new SpreaderSize(this.#deps.makeSpreaderSizeDeps());
     this.#scrollSync = new ScrollSync(this.#deps.makeScrollSyncDeps(this, this.#stickyScroll));
     this.#nativeScrollInput = new NativeScrollInput(
       this.#deps.makeNativeScrollInputDeps(this, this.#stickyScroll, this.#resizeMonitor)
@@ -399,27 +399,6 @@ class Overlays {
       this.topInlineStartCornerOverlay,
       this.bottomInlineStartCornerOverlay,
     ];
-  }
-
-  /**
-   * Pre-applies the header-border classes (`innerBorderTop` / `innerBorderInlineStart`) before
-   * the cell render, so the post-render `resetFixedPosition` toggle is a no-op and the nested
-   * `wot.draw(true)` re-render is skipped. Called from the master draw on the single-pass gated path,
-   * before `beginDrawLayout`. Mirrors the overlay set used by the post-render position pass.
-   *
-   * The skipped re-render is `innerBorderTop`'s alone. The inline-start class shifts no layout since
-   * #6673, so that overlay reports no position change whether or not this pass applied its class;
-   * pre-applying it only keeps a `beforeViewRender` listener from seeing a stale value. See
-   * `InlineStartOverlay#prepareHeaderBorders`.
-   */
-  prepareHeaderBorders() {
-    this.topOverlay.prepareHeaderBorders();
-
-    if (this.bottomOverlay.clone) {
-      this.bottomOverlay.prepareHeaderBorders();
-    }
-
-    this.inlineStartOverlay.prepareHeaderBorders();
   }
 
   /**
@@ -950,15 +929,6 @@ class Overlays {
       scrollportWidth: geometryReader.clientWidth(holder),
       scrollportHeight: geometryReader.clientHeight(holder),
     }, open);
-  }
-
-  /**
-   * Expand the hider vertically element by the provided delta value.
-   *
-   * @param {number} heightDelta The delta value to expand the hider element by.
-   */
-  expandHiderVerticallyBy(heightDelta: number) {
-    this.#spreaderSize.expandHiderVerticallyBy(heightDelta);
   }
 
   /**

@@ -434,7 +434,17 @@ export class ManualRowMove extends BasePlugin {
     const backlightElemHeight = this.#backlight.getSize().height;
     const tdMiddle = (TD.offsetHeight / 2);
     const tdHeight = TD.offsetHeight;
-    let tdStartPixel = this.hot.view.THEAD.offsetHeight + this.getRowsHeight(0, coords.row - 1);
+    // `getRowsHeight` sums the LOGICAL row heights, which fall 1px short of the rendered band once
+    // the first rendered row is behind us — but only when that row draws its own `border-top`, which
+    // since DEV-2786 means a grid that renders no head row (when one is rendered it owns that
+    // gridline and every body row is the same height). Fold the shortfall in so `tdStartPixel` is
+    // the hovered row's real top edge in both shapes; the guideline is then put on the gridline just
+    // above it. The question goes through `StylesHandler` rather than `hasColHeaders()` because a
+    // plugin can add head rows to a grid that declared none — see the note on the predicate.
+    const firstRowBorderCompensation =
+      (coords.row > 0 && this.hot.stylesHandler.firstRenderedRowDrawsTopBorder()) ? 1 : 0;
+    let tdStartPixel = this.hot.view.THEAD.offsetHeight +
+      this.getRowsHeight(0, coords.row - 1) + firstRowBorderCompensation;
     const isBelowTable = pixelsRelToTableStart >= tdStartPixel + tdMiddle;
 
     if (this.isFixedRowTop(coords.row)) {
@@ -445,10 +455,11 @@ export class ManualRowMove extends BasePlugin {
       // if hover on colHeader
       this.#target.row = firstVisible > 0 ? firstVisible - 1 : firstVisible;
     } else if (isBelowTable) {
-      // if hover on lower part of TD
+      // if hover on lower part of TD - the boundary moves to this row's bottom edge, which is its
+      // RENDERED height away (no first-row special case: `tdStartPixel` above is already the real
+      // top edge, and `tdHeight` is read from the DOM).
       this.#target.row = coords.row + 1;
-      // unfortunately first row is bigger than rest
-      tdStartPixel += coords.row === 0 ? tdHeight - 1 : tdHeight;
+      tdStartPixel += tdHeight;
 
     } else {
       // elsewhere on table
@@ -456,7 +467,11 @@ export class ManualRowMove extends BasePlugin {
     }
 
     let backlightTop = pixelsRelToTableStart;
-    let guidelineTop = tdStartPixel;
+    // The drop boundary is the gridline shared by the two rows, which is the last pixel of the
+    // element ABOVE it - so one pixel up from the row's top edge. `Math.max` covers the one boundary
+    // with nothing above it: the top edge of a grid with no column headers, where the gridline is
+    // row 0's own `border-top` and therefore sits AT the edge.
+    let guidelineTop = Math.max(tdStartPixel - 1, 0);
 
     if (pixelsRelToTableStart + backlightElemHeight + backlightElemMarginTop >= hiderHeight) {
       // prevent display backlight below table

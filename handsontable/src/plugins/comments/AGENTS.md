@@ -65,6 +65,34 @@ hide is a plain `setTimeout`. The API is `show(range)` / `hide()` / `cancelHidin
 Its internal flag records whether the last action was a show or a hide. Anything that hides the tooltip
 clears that flag — which is exactly the shadow-DOM double-binding failure above.
 
+## What survives a disable, and what has to be registered again
+
+`disablePlugin()` removes every hook registered through the tracked `this.addHook()`, but the objects the
+plugin built stay: `#editor` and `#displaySwitch` are created behind `if (!...)` guards and live until
+`destroy()`. So the two kinds of listener go in opposite places, and #13410 got both wrong before it fixed
+them:
+
+- **`afterSetTheme` is registered on every `enablePlugin()`**, outside the `#editor` create guard. Inside
+  it, the hook is removed by the first disable and never comes back, and a theme change then stops hiding
+  the editor.
+- **The `DisplaySwitch` `hide` / `show` local hooks are registered inside the create guard**, with the
+  switch itself. `addLocalHook` in `../../mixins/localHooks.ts` pushes without a dedupe check, so
+  registering them per enable leaves another pair behind on each round trip and one hover ends up running
+  `showAtCell()` once per past enable. The editor's `resize` hook sits inside its guard for the same
+  reason.
+
+The shortcut context is a third case: `ShortcutManager` can create a context but never drop one, so
+`plugin:comments` is immortal.
+
+- `registerShortcuts()` takes it with `getOrCreateContext(SHORTCUTS_CONTEXT_NAME)`. `getContext` would
+  throw `The "plugin:comments" context is already registered` on the second enable.
+- `unregisterShortcuts()` calls `removeShortcutsByGroup(SHORTCUTS_GROUP)` on **both** `grid` and
+  `plugin:comments`. Skipping the plugin context leaves a second copy of every shortcut in it after a
+  re-enable.
+- `disablePlugin()` also checks `getActiveContextName()` and hands the keyboard back to `grid`. Disabling
+  the plugin while its editor had the focus otherwise leaves the emptied plugin context active, and the
+  grid ignores the keyboard until the next click.
+
 ## Editor positioning
 
 - **Reset the editor position to (0, 0) before measuring**, or the previous position influences the
@@ -83,7 +111,8 @@ clears that flag — which is exactly the shadow-DOM double-binding failure abov
 
 - The menu the items land in: `../contextMenu/AGENTS.md`.
 - Theme reaction: this plugin listens on `afterSetTheme` — `useTheme()` does not go through
-  `updateSettings`, so nothing else would notice.
+  `updateSettings`, so nothing else would notice. The hook is re-registered on every enable; see
+  [What survives a disable](#what-survives-a-disable-and-what-has-to-be-registered-again).
 - Cell meta storage and eviction: `../../dataMap/metaManager/AGENTS.md`.
 - Plugin contract, lifecycle, priorities: `../base/AGENTS.md`.
 

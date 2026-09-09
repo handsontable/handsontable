@@ -317,15 +317,21 @@ export class Comments extends BasePlugin {
       this.#editor = new CommentEditor(this.hot.rootDocument, this.hot.isRtl(), this.hot.rootPortalElement);
       this.#editor?.addLocalHook('resize',
         (width: number, height: number) => this.#onEditorResize(width, height));
-      this.hot.addHook('afterSetTheme', (themeName: string, firstRun: boolean) => {
-        if (!firstRun) {
-          this.hide();
-        }
-      });
     }
+
+    // Registered on every enable, not only when the editor is first built: tracked hooks are
+    // removed by disablePlugin() while the editor instance survives it, so a hook inside the
+    // first-create guard would be gone for good after one disable/enable round trip.
+    this.addHook('afterSetTheme', (themeName: string, firstRun: boolean) => {
+      if (!firstRun) {
+        this.hide();
+      }
+    });
 
     if (!this.#displaySwitch) {
       this.#displaySwitch = new DisplaySwitch(this.getSetting<number>('displayDelay'));
+      this.#displaySwitch.addLocalHook('hide', () => this.hide());
+      this.#displaySwitch.addLocalHook('show', (row: number, col: number) => this.showAtCell(row, col));
     }
 
     this.addHook('afterContextMenuDefaultOptions',
@@ -338,9 +344,6 @@ export class Comments extends BasePlugin {
     this.addHook('afterBeginEditing', () => this.hide());
     this.addHook('afterDocumentKeyDown', this.#onAfterDocumentKeyDown);
     this.addHook('beforeCompositionStart', this.#onAfterDocumentKeyDown);
-
-    this.#displaySwitch?.addLocalHook('hide', () => this.hide());
-    this.#displaySwitch?.addLocalHook('show', (row: number, col: number) => this.showAtCell(row, col));
 
     this.registerShortcuts();
     this.registerListeners();
@@ -362,6 +365,14 @@ export class Comments extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin(): void {
+    const manager = this.hot.getShortcutManager();
+
+    this.hide();
+
+    if (manager.getActiveContextName() === SHORTCUTS_CONTEXT_NAME) {
+      manager.setActiveContextName('grid');
+    }
+
     this.unregisterShortcuts();
     // The marker class is written on the element by `afterRenderer`, from the cell meta. Once the
     // hook is gone only a paint removes it, so under `renderMode: 'onChange'` every cell must paint.
@@ -377,7 +388,7 @@ export class Comments extends BasePlugin {
   registerShortcuts() {
     const manager = this.hot.getShortcutManager();
     const gridContext = manager.getContext('grid');
-    const pluginContext = manager.addContext(SHORTCUTS_CONTEXT_NAME);
+    const pluginContext = manager.getOrCreateContext(SHORTCUTS_CONTEXT_NAME);
 
     gridContext?.addShortcut({
       keys: [['Control', 'Alt', 'M']],
@@ -445,9 +456,14 @@ export class Comments extends BasePlugin {
    * @private
    */
   unregisterShortcuts() {
-    this.hot.getShortcutManager()
-      .getContext('grid')
-      ?.removeShortcutsByGroup(SHORTCUTS_GROUP);
+    const manager = this.hot.getShortcutManager();
+
+    manager.getContext('grid')?.removeShortcutsByGroup(SHORTCUTS_GROUP);
+
+    // The plugin's own context outlives a disable — the manager has no way to drop one — so its
+    // shortcuts are cleared here as well. Re-enabling reuses the context, and without this it
+    // would carry a second copy of every shortcut in it.
+    manager.getContext(SHORTCUTS_CONTEXT_NAME)?.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**
