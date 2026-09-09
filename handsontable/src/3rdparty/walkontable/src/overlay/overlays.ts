@@ -269,12 +269,20 @@ class Overlays {
   declare wtSettings: Settings;
 
   /**
-   * Debounced `updateLastSpreaderSize` / `adjustElementsSize` used during scroll so rapid
-   * `refresh` calls do not repeat layout work every frame.
+   * Debounced `adjustElementsSize` used during scroll so rapid `refresh` calls do not repeat
+   * layout work every frame.
    *
    * @type {Function}
    */
   #postponedAdjustElementsSize = debounce(this.#adjustElementsSizeIfNeeded.bind(this), 200);
+
+  /**
+   * The layout signature in force when {@link Overlays#adjustElementsSize} last ran, or `null`
+   * before the first run. See {@link Overlays#currentLayoutSignature}.
+   *
+   * @type {string|null}
+   */
+  #lastAppliedSignature: string | null = null;
 
   /**
    * Strategy that manages the sticky-scroll optimization during native
@@ -867,6 +875,12 @@ class Overlays {
    * Adjust overlays elements size and master table size.
    */
   adjustElementsSize() {
+    // Captured here rather than in the gate, because several paths reach this writer directly and
+    // bypass the gate entirely: `markOversizedRows`, the 1px-shift branch of the draw cycle, the
+    // bottom clone's draw, and `refreshColumnHeaderHeights` below. Recording it in the gate would
+    // leave the stored value stale after any of them and cost one redundant resize on the next draw.
+    this.#lastAppliedSignature = this.#currentLayoutSignature();
+
     this.#spreaderSize.adjustElementsSize();
     // The scrollport may have just moved or changed size, so the rect the pointer is compared against
     // has to be re-read on next use. Dropping a field, no measurement.
@@ -1068,6 +1082,70 @@ class Overlays {
   }
 
   /**
+   * Everything that decides the hider size and the overlay root geometry, as one comparable
+   * string. Compared against the signature captured by the last {@link Overlays#adjustElementsSize}
+   * so the resize runs only when its result would actually differ.
+   *
+   * The first two terms are the numbers the write itself uses (`SpreaderSize#getProposedHiderSize`),
+   * so the gate can never disagree with the writer. The rest are the inputs the overlay roots read
+   * that the hider size does not imply: the scrollport box and its scrollbars, which clones render
+   * at all, and how deep the frozen regions reach.
+   *
+   * Cost, stated honestly: the old gate did two forced layout reads per draw (the spreader's
+   * `clientWidth` and `clientHeight` — `LiveGeometryReader` caches nothing). This does one, plus an
+   * O(columns) walk. `getLayout()` returns the snapshot `Viewport#beginDrawLayout` already resolved
+   * for this draw, `getRowHeaderWidth()` is memoized on the viewport, and every row sum is O(1) off
+   * the prefix-sum cache — but `getProposedHiderSize()` sums the column widths by walking them, and
+   * its scroll-end test reads `clientHeight` on the holder. Both are what the write itself does, and
+   * matching the write is the point: a gate built on a cheaper approximation drifts from the writer,
+   * and every drift is a missed or wasted resize. The column walk in particular must stay live —
+   * `stretchH` derives from the workspace width, which derives from the column sum, so caching that
+   * sum freezes the cycle (see the Performance section of `walkontable/AGENTS.md`).
+   *
+   * @returns {string}
+   */
+  #currentLayoutSignature(): string {
+    const wtViewport = this.wot.wtViewport;
+    const layout = wtViewport.getLayout();
+    const { wtSettings } = this.#deps;
+    const hider = this.#spreaderSize.getProposedHiderSize();
+    const fixedRowsTop = wtSettings.getSetting<number>('fixedRowsTop');
+    const fixedRowsBottom = wtSettings.getSetting<number>('fixedRowsBottom');
+    const fixedColumnsStart = wtSettings.getSetting<number>('fixedColumnsStart');
+    const totalRows = wtSettings.getSetting<number>('totalRows');
+
+    return [
+      // What the write would produce.
+      hider.width,
+      hider.height,
+      // The box the overlays are sized against, and the scrollbars that box implies.
+      layout.workspaceWidth,
+      layout.workspaceHeight,
+      layout.hasVerticalScroll,
+      layout.hasHorizontalScroll,
+      layout.scrollbarSize,
+      layout.rowHeaderWidth,
+      layout.columnHeaderHeight,
+      layout.scrollMode,
+      layout.isRtl,
+      // Which clones render. Read from the settings rather than each overlay's `needFullRender`,
+      // which `updateStateOfRendering('before')` has already half-advanced by the time a draw
+      // reaches here.
+      wtSettings.getSetting('shouldRenderTopOverlay'),
+      wtSettings.getSetting('shouldRenderInlineStartOverlay'),
+      wtSettings.getSetting('shouldRenderBottomOverlay'),
+      // How deep the frozen regions reach. A move can change these while both totals stay equal,
+      // because a sum does not care about order.
+      fixedRowsTop,
+      fixedRowsBottom,
+      fixedColumnsStart,
+      this.topOverlay.sumCellSizes(0, fixedRowsTop),
+      this.bottomOverlay.sumCellSizes(totalRows - fixedRowsBottom, totalRows),
+      this.inlineStartOverlay.sumCellSizes(0, fixedColumnsStart),
+    ].join('|');
+  }
+
+  /**
    * Adjust the elements size if needed.
    */
   #adjustElementsSizeIfNeeded() {
@@ -1075,9 +1153,7 @@ class Overlays {
       return;
     }
 
-    const wasSpreaderSizeUpdated = this.updateLastSpreaderSize();
-
-    if (wasSpreaderSizeUpdated) {
+    if (this.#currentLayoutSignature() !== this.#lastAppliedSignature) {
       this.adjustElementsSize();
     }
   }

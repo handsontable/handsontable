@@ -33,9 +33,6 @@ export default function showColumnItem(hiddenColumnsPlugin: Record<string, Funct
 
       hiddenColumnsPlugin.showColumns(columns);
 
-      // We render columns at first. It was needed for getting fixed columns.
-      // Please take a look at #6864 for broader description.
-      this.view.adjustElementsSize();
       this.render();
 
       const allColumnsSelected = endVisualColumn - startVisualColumn + 1 === this.countCols();

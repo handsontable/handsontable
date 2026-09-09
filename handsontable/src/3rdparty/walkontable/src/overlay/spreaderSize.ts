@@ -85,15 +85,22 @@ export class SpreaderSize {
   }
 
   /**
-   * Adjust overlays elements size and master table size.
+   * Computes the width and height the hider element must take, without writing anything.
+   *
+   * Split out of {@link SpreaderSize#adjustElementsSize} so the change-detection gate in
+   * `Overlays` can ask "would this write differ from the last one?" against the very numbers the
+   * write uses. A gate built on a separate approximation of these values can disagree with the
+   * writer, and every such disagreement is either a missed resize (overlays drift out of step) or
+   * a wasted one.
+   *
+   * @returns {{ width: number, height: number }} The hider size in pixels.
    */
-  adjustElementsSize() {
+  getProposedHiderSize(): { width: number; height: number } {
     const { wtSettings, rootWindow, geometryReader } = this.#deps;
     const wtViewport = this.#deps.getWtViewport();
     const { wtTable } = this.#deps;
     const topOverlay = this.#deps.getTopOverlay();
     const inlineStartOverlay = this.#deps.getInlineStartOverlay();
-    const bottomOverlay = this.#deps.getBottomOverlay();
     const scrollableElement = this.#deps.getScrollableElement();
     const isWindowScrolled = scrollableElement === rootWindow;
     const totalColumns = wtSettings.getSetting<number>('totalColumns');
@@ -115,8 +122,6 @@ export class SpreaderSize {
     const summedHiderHeight = headerColumnSize + wtViewport.getColumnHeaderHeightFraction() +
       topOverlay.sumCellSizes(0, totalRows) + hiderHeightComp;
     const proposedHiderWidth = headerRowSize + inlineStartOverlay.sumCellSizes(0, totalColumns);
-    const hiderElement = wtTable.hider;
-    const hiderStyle = hiderElement.style;
     const isScrolledBeyondHiderHeight = () => {
       if (isWindowScrolled || !(scrollableElement instanceof HTMLElement)) {
         return false;
@@ -133,17 +138,28 @@ export class SpreaderSize {
       summedHiderHeight + columnHeaderBorderCompensation
     );
 
+    return { width: proposedHiderWidth, height: proposedHiderHeight };
+  }
+
+  /**
+   * Adjust overlays elements size and master table size.
+   */
+  adjustElementsSize() {
+    const { wtTable } = this.#deps;
+    const { width, height } = this.getProposedHiderSize();
+    const hiderStyle = wtTable.hider.style;
+
     // If the elements are being adjusted after scrolling the table from the very beginning to the very end,
     // we need to adjust the hider height by the column header border size.
     // (https://github.com/handsontable/dev-handsontable/issues/1772)
     // The width needs no such compensation: the row header carries its inline-end border at every
     // scroll position, so the horizontal total never changes by scrolling (#6673).
-    hiderStyle.width = `${proposedHiderWidth}px`;
-    hiderStyle.height = `${proposedHiderHeight}px`;
+    hiderStyle.width = `${width}px`;
+    hiderStyle.height = `${height}px`;
 
-    topOverlay.adjustElementsSize();
-    inlineStartOverlay.adjustElementsSize();
-    bottomOverlay.adjustElementsSize();
+    this.#deps.getTopOverlay().adjustElementsSize();
+    this.#deps.getInlineStartOverlay().adjustElementsSize();
+    this.#deps.getBottomOverlay().adjustElementsSize();
   }
 
   /**

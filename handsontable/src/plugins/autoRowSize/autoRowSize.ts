@@ -532,9 +532,6 @@ export class AutoRowSize extends BasePlugin {
       } else {
         cancelIdleTask(timer);
         this.inProgress = false;
-
-        // @TODO Should call once per render cycle, currently fired separately in different plugins
-        this.hot.view.adjustElementsSize();
       }
     };
 
@@ -550,7 +547,6 @@ export class AutoRowSize extends BasePlugin {
       loop();
     } else {
       this.inProgress = false;
-      this.hot.view.adjustElementsSize();
     }
   }
 

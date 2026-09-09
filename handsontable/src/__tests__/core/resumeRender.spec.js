@@ -83,7 +83,25 @@ describe('Core.resumeRender', () => {
     expect(afterViewRender).toHaveBeenCalledTimes(0);
   });
 
-  it('should resume the table rendering process and adjust the overlays\' sizes', async() => {
+  it('should resume the table rendering process', async() => {
+    const hot = handsontable({
+      data: createSpreadsheetData(5, 5),
+    });
+
+    spyOn(hot.view._wt, 'draw');
+
+    await suspendRender();
+    await resumeRender();
+
+    expect(hot.renderSuspendedCounter).toBe(0);
+    expect(hot.view._wt.draw).toHaveBeenCalledOnceWith(true); // fast redraw
+  });
+
+  it('should not schedule an overlay resize from the legacy `view.adjustElementsSize()`', async() => {
+    // The method used to set a flag that the next render flushed. Walkontable now compares the
+    // geometry it is about to write against the geometry it last wrote and resizes itself, so a
+    // deferred request would only make it resize twice. The method stays because it is reachable
+    // as `hot.view.adjustElementsSize()`, and its deferred branch does nothing.
     const hot = handsontable({
       data: createSpreadsheetData(5, 5),
     });
@@ -99,8 +117,11 @@ describe('Core.resumeRender', () => {
 
     await resumeRender();
 
-    expect(hot.renderSuspendedCounter).toBe(0);
-    expect(hot.view._wt.draw).toHaveBeenCalledOnceWith(true); // fast redraw
+    expect(hot.view._wt.wtOverlays.adjustElementsSize).toHaveBeenCalledTimes(0);
+
+    // `flush` is the branch that still resizes, for a caller that needs the new sizes before any draw.
+    tableView().adjustElementsSize(true);
+
     expect(hot.view._wt.wtOverlays.adjustElementsSize).toHaveBeenCalledTimes(1);
   });
 
@@ -110,7 +131,6 @@ describe('Core.resumeRender', () => {
     });
 
     spyOn(hot.view._wt, 'draw');
-    spyOn(hot.view._wt.wtOverlays, 'adjustElementsSize');
 
     await suspendRender();
     await suspendRender();
@@ -131,8 +151,6 @@ describe('Core.resumeRender', () => {
     // fast render
     await selectCell(2, 2);
 
-    tableView().adjustElementsSize();
-
     await resumeRender(); // Counter is now equals to 0, it calls render.
     await resumeRender();
     await resumeRender();
@@ -140,6 +158,5 @@ describe('Core.resumeRender', () => {
 
     expect(hot.renderSuspendedCounter).toBe(0);
     expect(hot.view._wt.draw).toHaveBeenCalledOnceWith(false); // slow redraw
-    expect(hot.view._wt.wtOverlays.adjustElementsSize).toHaveBeenCalledTimes(1);
   });
 });

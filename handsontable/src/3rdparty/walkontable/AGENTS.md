@@ -633,6 +633,40 @@ engine keeps no per-cell state of its own here; the host (`TableView` through `C
 the stamps and answers from the cell's `renderMode`. The default answers `true`, so a Walkontable
 built without the setting behaves as before. A renderer spec's `TableRendererMock` must provide it.
 
+## The engine decides for itself when the overlays need resizing — never ask it from outside
+
+`Overlays#adjustElementsSize()` writes the hider's size and re-sizes the three region overlays. It is
+**not** something core or a plugin should call. The engine runs it on the draw where the geometry it
+would write differs from the geometry it last wrote, and on no other draw.
+
+The gate is `Overlays#currentLayoutSignature()`. It joins the size the write itself would produce
+(`SpreaderSize#getProposedHiderSize()`) with the inputs the overlay roots read that the hider size
+does not imply: the workspace box and its scrollbars (off the `LayoutSnapshot` the draw already
+resolved), the three `shouldRender*Overlay` settings, the frozen counts, and the frozen extents.
+`adjustElementsSize()` records that signature as it runs, so the paths that reach the writer directly
+(`markOversizedRows`, the 1px-shift branch of the draw cycle, the bottom clone's draw,
+`refreshColumnHeaderHeights`) cannot leave it stale.
+
+Two rules follow, and both have cost real bugs:
+
+- **Never gate a resize on a measurement of the spreader.** That is what the engine did until DEV-19,
+  and it is blind on both axes: `.handsontable .wtSpreader` is `width: 0` in the stylesheet, so
+  `clientWidth` is always 0 and can never report a width change; and `height: auto` measures the
+  rendered band, which on a virtualized grid moves independently of the total. Measured on a
+  500 × 40 grid: hiding columns moved the hider from 1161px to 3650px and `updateLastSpreaderSize()`
+  still answered `false`; dropping 300 rows to 60 moved it from 8730px to 1770px, also `false`. That
+  blindness is why 30 call sites across core and the plugins used to force the resize by hand.
+- **The gate must ask the writer what it would write, not recompute it.** `getProposedHiderSize()`
+  exists for exactly that. A gate built on a separate approximation drifts from the writer, and every
+  drift is either a missed resize (overlays out of step) or a wasted one. In particular it must keep
+  using the **live** column walk — see the `stretchH` note under Performance, where caching the column
+  sum freezes the stretch cycle.
+
+`TableView#adjustElementsSize()` survives as legacy because it is reachable as
+`hot.view.adjustElementsSize()`. Its deferred branch is a no-op; `flush = true` still forces an
+immediate resize for a caller that needs new sizes before any draw. Nothing in the repository calls
+either form, and `tests/e2e/overlay-self-resize.spec.ts` asserts that stays true.
+
 ## Known Tech Debt
 
 - The DAO layer has been replaced by constructor injection + the `wire.ts` composition root (see the DI section above) — do not reintroduce DAO getters or `wot`-god-object passing.

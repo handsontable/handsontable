@@ -256,6 +256,11 @@ class TableView {
    * the render suspending. If true, the method has to be triggered once after render
    * resuming.
    *
+   * Legacy. Nothing in the codebase sets this any more — Walkontable resizes itself on the draw
+   * where the geometry it would write differs from the geometry it last wrote, so scheduling a
+   * second resize here would only make it run twice. The field and the flush in `render()` are kept
+   * because both are reachable as `hot.view.*`.
+   *
    * @private
    * @type {boolean}
    */
@@ -397,20 +402,21 @@ class TableView {
   }
 
   /**
-   * Adjust overlays elements size and master table size. By default the internal `adjustElementsSize`
-   * call of the Walkontable is postponed to the next render cycle. If `flush` is set to `true`, the method
-   * will be executed immediately.
+   * Adjust overlays elements size and master table size.
    *
-   * TODO: This method should not exist. It is a workaround for the issue with updating the elements
-   * size after render. It should be calculated and updated automatically in Walkontable.
+   * Legacy. Nothing in the codebase needs to call this any more: Walkontable compares the geometry
+   * it is about to write against the geometry it last wrote, and resizes itself on the draw where
+   * those differ (`Overlays#currentLayoutSignature`). Asking for a deferred adjustment is therefore
+   * a no-op — the next draw already does it, and setting the flag on top of that would resize twice.
    *
-   * @param {boolean} [flush=false] If `true`, the method will be executed immediately.
+   * Kept because it is reachable as `hot.view.adjustElementsSize()`. `flush` still forces an
+   * immediate resize for a caller that needs the new sizes in the same tick, before any draw.
+   *
+   * @param {boolean} [flush=false] If `true`, resize immediately instead of leaving it to the next draw.
    */
   adjustElementsSize(flush = false) {
     if (flush) {
       this._wt.wtOverlays.adjustElementsSize();
-    } else {
-      this.postponedAdjustElementsSize = true;
     }
   }
 
