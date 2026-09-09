@@ -256,6 +256,12 @@ export interface GridSettings {
   sortByRelevance?: boolean;
 
   // Plugins
+  autoLink?: boolean | {
+    target?: '_blank' | '_self';
+    schemes?: Array<'http' | 'https' | 'mailto' | 'tel'>;
+    inline?: boolean;
+    className?: string;
+  };
   autoColumnSize?: boolean | object;
   autoRowSize?: boolean | object;
   autoRowHeaderSize?: boolean | object;

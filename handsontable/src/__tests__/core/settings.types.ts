@@ -35,6 +35,12 @@ const allSettings: Required<Handsontable.GridSettings> = {
   allowRemoveRow: true,
   ariaTags: true,
   autoColumnSize: true,
+  autoLink: oneOf(true, {
+    target: '_self' as const,
+    schemes: ['http', 'https'] as Array<'http' | 'https' | 'mailto' | 'tel'>,
+    inline: false,
+    className: 'company-link',
+  }),
   autoRowSize: true,
   autoRowHeaderSize: oneOf(true, { samplingRatio: 3, allowSampleDuplicates: true, syncLimit: 500 },
     { syncLimit: '40%' }),
