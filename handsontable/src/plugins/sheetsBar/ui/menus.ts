@@ -290,7 +290,12 @@ export class SheetsBarMenus {
     const rect = positionTarget.getBoundingClientRect();
 
     menu.open();
+    // A 4px gap on both sides of the anchor. Below, the positioner adds one pixel of its own.
+    // Above, it aligns the menu's bottom to the cursor point — the anchor's bottom edge — so
+    // without the anchor-height correction a menu flipping upward covered its own trigger
+    // (UX review).
     menu.setOffset('below', 3);
+    menu.setOffset('above', -(rect.height + 4));
     menu.setPosition(
       { left: rect.left + offset.left, top: rect.bottom + offset.top },
       () => (positionTarget.isConnected ? positionTarget.getBoundingClientRect() : null),

@@ -747,6 +747,54 @@ describe('SheetsBar plugin', () => {
     expect(opened.mock.calls[0][1].sheetName).toBe('A');
   });
 
+  it('closes the hand on pointer-down, before the drag threshold', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const bar = hot.rootWrapperElement.querySelector('.ht-sheets-bar');
+    const tab = bar.querySelector('.ht-sheets-bar__tab--active');
+
+    tab.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, button: 0 }));
+
+    expect(bar.classList.contains('ht-sheets-bar-pressing')).toBe(true);
+
+    document.dispatchEvent(new MouseEvent('pointerup', { bubbles: true, button: 0 }));
+
+    expect(bar.classList.contains('ht-sheets-bar-pressing')).toBe(false);
+  });
+
+  it('marks the strip scrolled once it moves away from its start', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const strip = hot.rootWrapperElement.querySelector('.ht-sheets-bar__tabs');
+
+    strip.scrollLeft = 40;
+    strip.dispatchEvent(new Event('scroll'));
+
+    expect(strip.classList.contains('ht-sheets-bar__tabs--scrolled')).toBe(true);
+
+    strip.scrollLeft = 0;
+    strip.dispatchEvent(new Event('scroll'));
+
+    expect(strip.classList.contains('ht-sheets-bar__tabs--scrolled')).toBe(false);
+  });
+
+  it('carries the full sheet name in the label title, for names the cap ellipsizes', () => {
+    const name = 'A very long sheet name that the strip cannot show whole';
+
+    hot = new Handsontable(container, {
+      sheetsBar: { sheets: [{ name, data: [['a']] }] },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const label = hot.rootWrapperElement.querySelector('.ht-sheets-bar__tab-label');
+
+    expect(label.title).toBe(name.slice(0, 50).trim());
+    expect(label.textContent).toBe(label.title);
+  });
+
   it('does not preselect an item when a button-0 context menu follows a pointer press', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }] },

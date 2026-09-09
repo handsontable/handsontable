@@ -27,7 +27,8 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   change), `tabStrip.ts` (tabs, inline rename, focus capture/restore across repaints),
   `tabDrag.ts` (pointer drag + FLIP), `menus.ts` (two `Menu` instances built once and refilled
   per opening — the shared `Menu` never removes the `afterSetTheme` hook its constructor adds),
-  `overflow.ts` (paging arrows, `aria-disabled` so a spent arrow keeps the focus).
+  `overflow.ts` (paging arrows, `aria-disabled` so a spent arrow keeps the focus, and the
+  `ht-sheets-bar__tabs--scrolled` divider class once the strip leaves its start).
 
 ## Traps
 
@@ -124,6 +125,14 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   macOS Ctrl+click report it too; the strip tells them apart by `buttons === 0` plus no
   pointer being down on the tab (`#pointerHeldOnTab`). Focus restores in `menus.ts` go through
   `getDeepActiveElement()` — the raw `activeElement` collapses to the host in a shadow root.
+- **The menus' upward flip needs a negative `above` offset.** The positioner aligns a flipped
+  menu's bottom to the cursor point — the anchor's *bottom* edge — so `#openMenu` sets
+  `setOffset('above', -(anchorHeight + 4))` per opening; a flat offset covered the chevron.
+  Below, the positioner adds one pixel of its own, so `setOffset('below', 3)` is the 4px gap.
+- **The bar draws its own top border in the bottom slot.** `.ht-slot-bottom` zeroes the first
+  element's top border assuming the grid's edge sits flush above, which fails when the table
+  overflows or ends in a scrollbar; `_sheets-bar.scss` reinstates it (same specificity, later
+  in the sheet — keep that ordering).
 - **`render()` cancels an in-flight rename silently.** The cancel-hook handler repaints the
   strip, and dispatching it from inside `render()` re-enters the render pass — the outer pass
   then restores focus and scroll against tabs the inner pass replaced.

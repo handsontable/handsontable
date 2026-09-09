@@ -11,6 +11,15 @@ import { computeDropIndex } from './dropIndex';
 export const DRAGGING_CLASS = 'ht-sheets-bar-dragging';
 
 /**
+ * The class the bar wears from the moment a tab is pressed, before the drag threshold. The
+ * stylesheet keys the grab cursor off it, so the hand closes on press-down rather than on the
+ * first move — the UX review asked for the cursor a beat earlier than the drag itself.
+ *
+ * @type {string}
+ */
+export const PRESSING_CLASS = 'ht-sheets-bar-pressing';
+
+/**
  * Pointer travel, in pixels, before a press on a tab becomes a drag. Below it the gesture stays
  * a click, so activating a sheet and opening the rename editor keep working with an unsteady
  * hand or a finger.
@@ -172,6 +181,8 @@ export class TabDrag {
     this.#grabOffset = event.clientX - tab.getBoundingClientRect().left;
     this.#originIndex = this.#indexOf(tab);
     this.#isDragging = false;
+
+    addClass(this.#dragRoot, PRESSING_CLASS);
 
     const ownerDocument = this.#host.ownerDocument;
     const view = ownerDocument.defaultView;
@@ -514,6 +525,7 @@ export class TabDrag {
     }
 
     removeClass(this.#dragRoot, DRAGGING_CLASS);
+    removeClass(this.#dragRoot, PRESSING_CLASS);
 
     this.#tab = null;
     this.#pointerId = -1;

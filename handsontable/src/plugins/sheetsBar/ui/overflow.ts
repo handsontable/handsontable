@@ -20,6 +20,15 @@ const SCROLL_END_TOLERANCE = 1;
 export const DISABLED_CLASS = 'ht-sheets-bar__button--disabled';
 
 /**
+ * The class the strip wears once it has scrolled away from its start. The stylesheet draws a
+ * divider between the fixed controls and the tabs sliding under them, the way Google Sheets
+ * marks the same state.
+ *
+ * @type {string}
+ */
+export const SCROLLED_CLASS = 'ht-sheets-bar__tabs--scrolled';
+
+/**
  * Watches the tab strip for horizontal overflow and drives the paging arrows.
  * The strip itself scrolls with a hidden scrollbar; the arrows appear only while
  * `scrollWidth > clientWidth` and the `paging` setting is enabled, and each one is disabled
@@ -141,6 +150,12 @@ export class OverflowController {
     // `scrollLeft`, so the magnitude is what both ends have in common.
     const travelled = Math.abs(this.#strip.scrollLeft);
     const total = this.#strip.scrollWidth - this.#strip.clientWidth;
+
+    if (travelled > SCROLL_END_TOLERANCE) {
+      addClass(this.#strip, SCROLLED_CLASS);
+    } else {
+      removeClass(this.#strip, SCROLLED_CLASS);
+    }
 
     this.#setArrowEnabled(this.#pagePrev, travelled > SCROLL_END_TOLERANCE);
     this.#setArrowEnabled(this.#pageNext, travelled < total - SCROLL_END_TOLERANCE);
