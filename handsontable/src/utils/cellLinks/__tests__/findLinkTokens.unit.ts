@@ -94,4 +94,25 @@ describe('findLinkTokens', () => {
 
     expect(text.slice(token.start, token.end)).toBe('https://a.com/x');
   });
+
+  it('should drop a candidate that erodes through its own scheme colon', () => {
+    expect(findLinkTokens('x tel:: y', BASE)).toEqual([]);
+    expect(findLinkTokens('contact mailto:.', BASE)).toEqual([]);
+    expect(findLinkTokens('bare tel: now', BASE)).toEqual([]);
+  });
+
+  it('should split two URLs joined by a comma into separate tokens', () => {
+    expect(findLinkTokens('See https://a.com,https://b.com end', BASE)).toEqual([
+      { start: 4, end: 17, href: 'https://a.com/' },
+      { start: 18, end: 31, href: 'https://b.com/' },
+    ]);
+  });
+
+  it('should trim a long run of trailing unbalanced brackets without quadratic blowup', () => {
+    const text = `https://a.com/x${')'.repeat(20000)}`;
+
+    expect(findLinkTokens(text, BASE)).toEqual([
+      { start: 0, end: 15, href: 'https://a.com/x' },
+    ]);
+  });
 });
