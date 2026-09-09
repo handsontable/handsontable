@@ -400,7 +400,6 @@ export type TokenKey =
   | 'sheetsBarTabHoverBackgroundColor'
   | 'sheetsBarTabActiveForegroundColor'
   | 'sheetsBarTabActiveBackgroundColor'
-  | 'sheetsBarTabActiveBackgroundOpacity'
   | 'sheetsBarTabActiveBorderWidth'
   | 'sheetsBarTabActiveBorderColor'
   // Multiselect

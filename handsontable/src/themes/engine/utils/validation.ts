@@ -387,7 +387,6 @@ const VALID_TOKEN_KEYS = new Set([
   'sheetsBarTabHoverBackgroundColor',
   'sheetsBarTabActiveForegroundColor',
   'sheetsBarTabActiveBackgroundColor',
-  'sheetsBarTabActiveBackgroundOpacity',
   'sheetsBarTabActiveBorderWidth',
   'sheetsBarTabActiveBorderColor',
   // Multiselect
