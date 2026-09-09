@@ -506,6 +506,114 @@ describe('SheetsBar plugin', () => {
     expect(hot.getCellMeta(0, 0).valid).not.toBe(false);
   });
 
+  it('stops serving a tracked property once removeCellMeta drops it', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+
+    hot.setCellMeta(0, 0, 'readOnly', true);
+
+    expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
+
+    hot.removeCellMeta(0, 0, 'readOnly');
+
+    expect(hot.getCellMeta(0, 0).readOnly).not.toBe(true);
+
+    sheetsBar.setActiveSheet('B');
+    sheetsBar.setActiveSheet('A');
+
+    expect(hot.getCellMeta(0, 0).readOnly).not.toBe(true);
+  });
+
+  it('keeps a trimmed row\'s manual height across a switch round trip', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'A', data: [['a0'], ['a1'], ['a2']] },
+          { name: 'B', data: [['b0']] },
+        ],
+      },
+      manualRowResize: true,
+      trimRows: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const rowResize = hot.getPlugin('manualRowResize');
+
+    // jsdom computes no styles, so the theme's default row height — the floor `setManualSize`
+    // clamps against — resolves to NaN without this.
+    jest.spyOn(hot.stylesHandler, 'getDefaultRowHeight').mockReturnValue(23);
+
+    rowResize.setManualSize(1, 80);
+    hot.getPlugin('trimRows').trimRows([1]);
+    hot.render();
+
+    sheetsBar.setActiveSheet('B');
+    sheetsBar.setActiveSheet('A');
+
+    hot.getPlugin('trimRows').untrimAll();
+    hot.render();
+
+    expect(rowResize.getManualSize(1)).toBe(80);
+  });
+
+  it('does not inherit the previous workbook\'s view state on a rebuild', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: { sheets: [{ name: 'A', data: [['a0'], ['a1']] }] },
+      hiddenRows: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    hot.getPlugin('hiddenRows').hideRow(0);
+    hot.render();
+
+    hot.updateSettings({
+      sheetsBar: { sheets: [{ name: 'C', data: [['c0'], ['c1']] }] },
+    });
+
+    expect(hot.getPlugin('hiddenRows').getHiddenRows()).toEqual([]);
+  });
+
+  it('lands the rename rewrites on cells the grid cannot address, without touching the engine', () => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          {
+            name: 'Budget',
+            data: [[100, '=A1*Rates!A1'], [200, '=A2*Rates!A1']],
+            settings: { formulas: { engine, sheetName: 'Budget' } },
+          },
+          {
+            name: 'Rates',
+            data: [[0.23]],
+            settings: { formulas: { engine, sheetName: 'Rates' } },
+          },
+        ],
+      },
+      trimRows: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const ratesId = sheetsBar.getSheets()[1].id;
+
+    // A trimmed row has no visual position, so its rewrite must take the direct-write path —
+    // `setDataAtCell` cannot reach it — while the visible row goes through the change pipeline.
+    hot.getPlugin('trimRows').trimRows([1]);
+    hot.render();
+
+    expect(sheetsBar.renameSheet(ratesId, 'Fees')).toBe(true);
+    expect(hot.getSourceData()[0]).toEqual([100, '=A1*Fees!A1']);
+    expect(hot.getSourceData()[1]).toEqual([200, '=A2*Fees!A1']);
+    expect(engine.getSheetSerialized(engine.getSheetId('Budget'))).toEqual([
+      [100, '=A1*Fees!A1'],
+      [200, '=A2*Fees!A1'],
+    ]);
+  });
+
   it('serves tracked meta lazily through the meta-read path after a round trip', () => {
     const data = Array.from({ length: 200 }, (_, r) => [`a${r}`, `b${r}`]);
 

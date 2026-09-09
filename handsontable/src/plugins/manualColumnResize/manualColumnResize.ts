@@ -341,6 +341,54 @@ export class ManualColumnResize extends BasePlugin {
   }
 
   /**
+   * Returns every width set manually, as `[physicalColumn, width]` pairs. Physical indexes,
+   * because the map stores them that way: a manually resized column that trimming has taken out
+   * of the visual space still carries its width here, while `getManualSize` cannot reach it.
+   *
+   * @returns {Array<Array<number>>} The stored `[physicalColumn, width]` pairs.
+   */
+  getManualSizes(): Array<[number, number]> {
+    const sizes: Array<[number, number]> = [];
+
+    if (!this.enabled) {
+      return sizes;
+    }
+
+    this.#columnWidthsMap.getValues().forEach((value, physicalColumn) => {
+      if (typeof value === 'number') {
+        sizes.push([physicalColumn, value]);
+      }
+    });
+
+    return sizes;
+  }
+
+  /**
+   * Writes a set of manual widths at once, addressed by physical column index — the
+   * counterpart of {@link ManualColumnResize#getManualSizes}, so a stored set round-trips onto
+   * the same records regardless of trimming or column order. Values lower than `20px` are
+   * saved as `20px`, and an index outside the current column count is skipped. Call `render()`
+   * afterwards to repaint the grid.
+   *
+   * @param {Array<Array<number>>} sizes The `[physicalColumn, width]` pairs to write.
+   */
+  setManualSizes(sizes: Array<[number, number]>): void {
+    if (!this.enabled) {
+      return;
+    }
+
+    const columnCount = this.hot.columnIndexMapper.getNumberOfIndexes();
+
+    this.hot.batchExecution(() => {
+      sizes.forEach(([physicalColumn, width]) => {
+        if (physicalColumn >= 0 && physicalColumn < columnCount) {
+          this.#columnWidthsMap.setValueAtIndex(physicalColumn, Math.max(width, 20));
+        }
+      });
+    }, true);
+  }
+
+  /**
    * Clears the width stored for the specified column, so the column falls back to the width coming
    * from the [`colWidths`](@/api/options.md#colwidths) option, or to the built-in default width.
    * Call `render()` afterwards to repaint the grid.

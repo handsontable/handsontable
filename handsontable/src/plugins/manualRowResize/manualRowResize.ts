@@ -337,6 +337,55 @@ export class ManualRowResize extends BasePlugin {
   }
 
   /**
+   * Returns every height set manually, as `[physicalRow, height]` pairs. Physical indexes,
+   * because the map stores them that way: a manually resized row that trimming has taken out
+   * of the visual space still carries its height here, while `getManualSize` cannot reach it.
+   *
+   * @returns {Array<Array<number>>} The stored `[physicalRow, height]` pairs.
+   */
+  getManualSizes(): Array<[number, number]> {
+    const sizes: Array<[number, number]> = [];
+
+    if (!this.enabled) {
+      return sizes;
+    }
+
+    this.#rowHeightsMap.getValues().forEach((value, physicalRow) => {
+      if (typeof value === 'number') {
+        sizes.push([physicalRow, value]);
+      }
+    });
+
+    return sizes;
+  }
+
+  /**
+   * Writes a set of manual heights at once, addressed by physical row index — the counterpart
+   * of {@link ManualRowResize#getManualSizes}, so a stored set round-trips onto the same
+   * records regardless of trimming or row order. Values lower than the theme's default row
+   * height are saved as that height, and an index outside the current row count is skipped.
+   * Call `render()` afterwards to repaint the grid.
+   *
+   * @param {Array<Array<number>>} sizes The `[physicalRow, height]` pairs to write.
+   */
+  setManualSizes(sizes: Array<[number, number]>): void {
+    if (!this.enabled) {
+      return;
+    }
+
+    const rowCount = this.hot.rowIndexMapper.getNumberOfIndexes();
+    const minHeight = this.hot.stylesHandler.getDefaultRowHeight() || 0;
+
+    this.hot.batchExecution(() => {
+      sizes.forEach(([physicalRow, height]) => {
+        if (physicalRow >= 0 && physicalRow < rowCount) {
+          this.#rowHeightsMap.setValueAtIndex(physicalRow, Math.max(height, minHeight));
+        }
+      });
+    }, true);
+  }
+
+  /**
    * Clears the height stored for the specified row, so the row falls back to the height coming from
    * the [`rowHeights`](@/api/options.md#rowheights) option or from the theme. Call `render()`
    * afterwards to repaint the grid.

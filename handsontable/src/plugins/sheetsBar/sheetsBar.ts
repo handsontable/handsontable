@@ -64,6 +64,24 @@ function trackedCellKey(row: number, col: number): string {
 }
 
 /**
+ * Writes an engine's rewritten formula strings straight into a sheet's data array. Used for
+ * sheets that are not in front of the grid, whose engine content was seeded from that same
+ * array — the two layouts are one, so the strings go back index for index.
+ */
+function applyEngineRewritesToSheetData(data: unknown[][], serialized: unknown[][]): void {
+  data.forEach((row, rowIndex) => {
+    (row as unknown[]).forEach((cell, columnIndex) => {
+      const fromEngine = serialized[rowIndex]?.[columnIndex];
+
+      if (typeof cell === 'string' && cell.startsWith('=')
+        && typeof fromEngine === 'string' && fromEngine !== cell) {
+        (row as unknown[])[columnIndex] = fromEngine;
+      }
+    });
+  });
+}
+
+/**
  * Tracked cell-meta keys that are derived state rather than configuration: the next validation
  * recomputes them from the data, so replaying a captured value after a switch would restore a
  * stale verdict — and a validated sheet writes one such entry per cell, which is what made the
@@ -534,6 +552,7 @@ export class SheetsBar extends BasePlugin {
     this.addHook('afterSetTheme', this.#onAfterSetTheme);
     this.addHook('afterLanguageChange', this.#onAfterLanguageChange);
     this.addHook('afterSetCellMeta', this.#onAfterSetCellMeta);
+    this.addHook('afterRemoveCellMeta', this.#onAfterRemoveCellMeta);
     this.addHook('afterGetCellMeta', this.#onAfterGetCellMeta);
     this.addHook('beforeLoadData', this.#onBeforeLoadData);
 
@@ -1031,8 +1050,21 @@ export class SheetsBar extends BasePlugin {
         : descriptors.find(descriptor => descriptor.name === this.#retainActiveName);
       const target = retained ?? descriptors[activeIndex] ?? descriptors[0];
 
+      const targetSheet = model.getSheetById(target.id) as Sheet;
+
       model.setActiveSheet(target.id);
-      this.#applySheet(model.getSheetById(target.id) as Sheet, SOURCE_API);
+      this.#applySheet(targetSheet, SOURCE_API);
+
+      // On a live grid — an enable after startup, or an updatePlugin rebuild — `loadData` does
+      // not clear filters, hidden or trimmed indexes, merges, borders, or manual sizes, so the
+      // previous workbook's view collections would land on the new workbook's opening sheet
+      // and be captured as its own state on the first switch away.
+      if (this.hot.view) {
+        resetViewState(
+          this.hot,
+          (targetSheet.settings?.fixedColumnsStart as number | undefined) ?? this.#neutralFixedColumnsStart,
+        );
+      }
     } else {
       model.addSheet(null, this.#getLiveSourceData());
     }
@@ -1683,10 +1715,14 @@ export class SheetsBar extends BasePlugin {
    * resurrect the old name as a `#REF!`. Only formula cells are touched — values stay the
    * caller's own.
    *
-   * The active sheet's rewrites go through `setDataAtCell()`: its data array is the one the
-   * grid renders from, so a direct write would repaint nothing and fire no `afterChange` — a
-   * host saving the workbook off that hook would never learn the strings moved. A cell the
-   * grid cannot address (a trimmed row) is written directly; it is not rendered anyway.
+   * The active sheet's rewrites go through `setDataAtCell()` where the grid can address the
+   * cell faithfully: its data array is the one the grid renders from, so a direct write would
+   * repaint nothing and fire no `afterChange` — a host saving the workbook off that hook would
+   * never learn the strings moved. "Faithfully" is a real constraint: the Formulas plugin keys
+   * the engine by physical column while `setDataAtCell` writes the source through the
+   * `columns[].data` binding, so under a non-identity `data` remap one call cannot reach the
+   * source cell and its engine cell at once — such cells (and trimmed ones) are written
+   * straight into the source array instead, followed by one render.
    */
   #syncFormulaDataFromEngine(engine: NonNullable<SheetFormulas['engine']>, source: string) {
     const activeId = this.#model?.getActiveSheet()?.id ?? null;
@@ -1701,32 +1737,56 @@ export class SheetsBar extends BasePlugin {
       }
 
       const serialized = engine.getSheetSerialized!(sheetId);
-      const changes: Array<[number, number, string]> = [];
 
-      sheet.data.forEach((row, rowIndex) => {
-        (row as unknown[]).forEach((cell, columnIndex) => {
-          const current = typeof cell === 'string' ? cell : null;
-          const fromEngine = serialized[rowIndex]?.[columnIndex];
-
-          if (!current?.startsWith('=') || typeof fromEngine !== 'string' || fromEngine === current) {
-            return;
-          }
-
-          const visualRow = id === activeId ? this.hot.toVisualRow(rowIndex) : null;
-          const visualColumn = id === activeId ? this.hot.toVisualColumn(columnIndex) : null;
-
-          if (visualRow !== null && visualColumn !== null) {
-            changes.push([visualRow, visualColumn, fromEngine]);
-          } else {
-            (row as unknown[])[columnIndex] = fromEngine;
-          }
-        });
-      });
-
-      if (changes.length > 0) {
-        this.#withoutUndoEntry(() => this.hot.setDataAtCell(changes, `${source}.rename`));
+      if (id === activeId) {
+        this.#applyEngineRewritesToActiveSheet(sheet, serialized, source);
+      } else {
+        applyEngineRewritesToSheetData(sheet.data, serialized);
       }
     });
+  }
+
+  /**
+   * Writes the engine's rewritten formula strings into the active sheet. A cell goes through
+   * `setDataAtCell` only when the grid addresses it faithfully — its indexes resolve to a
+   * visual position whose `colToProp` points back at the same source index, which a
+   * non-identity `columns[].data` remap breaks. The rest are written straight into the source
+   * array, and one render repaints them.
+   */
+  #applyEngineRewritesToActiveSheet(sheet: Sheet, serialized: unknown[][], source: string) {
+    const changes: Array<[number, number, string]> = [];
+    let wroteDirectly = false;
+
+    sheet.data.forEach((row, rowIndex) => {
+      (row as unknown[]).forEach((cell, columnIndex) => {
+        const current = typeof cell === 'string' ? cell : null;
+        const fromEngine = serialized[rowIndex]?.[columnIndex];
+
+        if (!current?.startsWith('=') || typeof fromEngine !== 'string' || fromEngine === current) {
+          return;
+        }
+
+        const visualRow = this.hot.toVisualRow(rowIndex);
+        const visualColumn = this.hot.toVisualColumn(columnIndex);
+        const addressable = visualRow !== null && visualColumn !== null
+          && this.hot.colToProp(visualColumn) === columnIndex;
+
+        if (addressable) {
+          changes.push([visualRow, visualColumn as number, fromEngine]);
+        } else {
+          (row as unknown[])[columnIndex] = fromEngine;
+          wroteDirectly = true;
+        }
+      });
+    });
+
+    if (changes.length > 0) {
+      this.#withoutUndoEntry(() => this.hot.setDataAtCell(changes, `${source}.rename`));
+    }
+
+    if (wroteDirectly) {
+      this.hot.render();
+    }
   }
 
   /**
@@ -1801,6 +1861,35 @@ export class SheetsBar extends BasePlugin {
     }
 
     bucket.set(key, value);
+  };
+
+  /**
+   * Drops a removed property from the tracked map. Without this, the lazy overlay would keep
+   * serving the value on every later meta read — a `removeCellMeta('readOnly')` would come
+   * back on the next render as if it never happened.
+   */
+  #onAfterRemoveCellMeta = (row: number, col: number, key: string) => {
+    if (this.#isSwitching || this.#trackedCellMeta.size === 0) {
+      return;
+    }
+
+    const physicalRow = this.hot.toPhysicalRow(row);
+    const physicalCol = this.hot.toPhysicalColumn(col);
+
+    if (physicalRow === null || physicalCol === null) {
+      return;
+    }
+
+    const cellKey = trackedCellKey(physicalRow, physicalCol);
+    const bucket = this.#trackedCellMeta.get(cellKey);
+
+    if (bucket) {
+      bucket.delete(key);
+
+      if (bucket.size === 0) {
+        this.#trackedCellMeta.delete(cellKey);
+      }
+    }
   };
 
   /**

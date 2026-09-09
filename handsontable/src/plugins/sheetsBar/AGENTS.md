@@ -19,8 +19,10 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   hidden sets (hidden indexes are stored as physical, and so are the tracked cell-meta
   entries), and the selection and scroll run through `restoreViewport()` **after** the render
   batch, once the arriving sheet is painted at its own sizes. A stored order whose length no
-  longer matches the data is skipped. Manual sizes are stored as sparse `[index, size]` pairs
-  and cleared through the resize plugins' bulk `clearManualSizes()`.
+  longer matches the data is skipped. Manual sizes are stored as sparse
+  `[physicalIndex, size]` pairs read and written through the resize plugins'
+  `getManualSizes()`/`setManualSizes()` (physical, so a trimmed row keeps its height) and
+  cleared through their bulk `clearManualSizes()`.
 - `ui/` — `bar.ts` (DOM via `buildTemplate`, labels re-applied by `refreshLabels()` on language
   change), `tabStrip.ts` (tabs, inline rename, focus capture/restore across repaints),
   `tabDrag.ts` (pointer drag + FLIP), `menus.ts` (two `Menu` instances built once and refilled
@@ -67,7 +69,11 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   references only inside itself — the raw arrays would resurrect the old name on the next
   switch, with the active sheet's rewrites going through `setDataAtCell()` so `afterChange`
   fires and the grid repaints — wrapped in `#withoutUndoEntry`, because the engine rename is
-  not undoable and an undone rewrite would resolve to `#REF!`); a removed sheet is removed
+  not undoable and an undone rewrite would resolve to `#REF!`; only cells the grid addresses
+  faithfully take that path — the Formulas plugin keys the engine physically while
+  `setDataAtCell` writes through `colToProp`, so a trimmed cell or a non-identity
+  `columns[].data` binding gets a direct source write plus one render. Formulas plus a `data`
+  remap is mangled by the Formulas plugin itself at load, before any of this runs); a removed sheet is removed
   from the engine; a duplicate binds to an engine sheet of its own; a runtime-added sheet with
   no `settings` inherits the shared engine under its own name. A brand-new binding (add,
   duplicate) goes through `freeEngineName()` — a `sheetName` may differ from its tab name, so
@@ -90,6 +96,13 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   validation recomputes it, and it is what made the map balloon. Entries are stored with
   physical indexes (`afterSetCellMeta` hands over visual ones) and translated at serve time,
   so a reorder between the write and the read cannot land the meta on the wrong cell.
+  `afterRemoveCellMeta` drops the tracked key, or the overlay would keep serving a value the
+  host removed.
+- **A live-grid build resets the view state.** `#buildInitialWorkbook` calls `resetViewState`
+  after applying the opening sheet whenever the grid's view exists — `loadData` does not clear
+  filters, hidden or trimmed indexes, merges, borders, or manual sizes, and an `updatePlugin`
+  rebuild would otherwise capture the previous workbook's collections as the opening sheet's
+  own state on the first switch away.
 - **A declared workbook wins the initial data load.** `#onBeforeLoadData` redirects the init
   load at the active sheet's array (warning once about a clashing top-level `data`): the grid's
   init pass loads `data` after the plugin already applied its sheet, and without the redirect

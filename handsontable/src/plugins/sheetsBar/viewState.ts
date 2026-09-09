@@ -14,8 +14,9 @@ export interface TrackedCellMeta {
 
 /**
  * Snapshot of the runtime-mutable view state of one sheet. The manual size overrides are
- * sparse `[index, size]` pairs — a dense array the length of the row count would retain one
- * slot per row per sheet for the session.
+ * sparse `[physicalIndex, size]` pairs — a dense array the length of the row count would
+ * retain one slot per row per sheet for the session, and a visual index would lose every
+ * trimmed row's size.
  */
 export interface ViewState {
   rowSequence: number[];
@@ -126,38 +127,25 @@ function captureUnsortedRowSequence(hot: HotInstance): number[] {
  */
 function getResizePlugin(hot: HotInstance, axis: 'column' | 'row') {
   return getEnabledPlugin(hot, axis === 'column' ? 'manualColumnResize' : 'manualRowResize') as
-    { getManualSize: (index: number) => number | null } | undefined;
+    {
+      getManualSizes: () => Array<[number, number]>,
+      setManualSizes: (sizes: Array<[number, number]>) => void,
+    } | undefined;
 }
 
 /**
- * Captures the manual column width and row height overrides as sparse `[index, size]` pairs.
- * Only the plugins' own overrides are read — capturing the effective
- * `getColWidth`/`getRowHeight` would pin every column as manually sized and stop
+ * Captures the manual column width and row height overrides as sparse
+ * `[physicalIndex, size]` pairs, read straight off the plugins' physical maps — a visual walk
+ * over `countRows()` would skip every trimmed row, so a resized row hidden by a filter would
+ * lose its height on the switch. Only the plugins' own overrides are read — capturing the
+ * effective `getColWidth`/`getRowHeight` would pin every column as manually sized and stop
  * AutoColumnSize and StretchColumns from adapting after a switch.
  */
 function captureSizes(hot: HotInstance) {
-  const colWidths: Array<[number, number]> = [];
-  const rowHeights: Array<[number, number]> = [];
-  const columnResize = getResizePlugin(hot, 'column');
-  const rowResize = getResizePlugin(hot, 'row');
-
-  for (let col = 0; col < hot.countCols(); col += 1) {
-    const width = columnResize?.getManualSize(col);
-
-    if (typeof width === 'number') {
-      colWidths.push([col, width]);
-    }
-  }
-
-  for (let row = 0; row < hot.countRows(); row += 1) {
-    const height = rowResize?.getManualSize(row);
-
-    if (typeof height === 'number') {
-      rowHeights.push([row, height]);
-    }
-  }
-
-  return { colWidths, rowHeights };
+  return {
+    colWidths: getResizePlugin(hot, 'column')?.getManualSizes() ?? [],
+    rowHeights: getResizePlugin(hot, 'row')?.getManualSizes() ?? [],
+  };
 }
 
 /**
@@ -329,31 +317,15 @@ function clearManualSizes(hot: HotInstance) {
 }
 
 /**
- * Restores manual column widths and row heights, dropping the overrides carried over
- * from the previously active sheet first. An index at or past the current count is skipped:
- * the host may have shortened the sheet's data while another sheet was in front, and
- * `setManualSize` resolves an out-of-range visual index to `null`, which would write an
- * entry under the string "null".
+ * Restores manual column widths and row heights, dropping the overrides carried over from the
+ * previously active sheet first. The stored pairs are physical, and the plugins' bulk setter
+ * writes them physically too, so a size follows its record through trimming and reorder — and
+ * skips indexes the shrunken data no longer covers.
  */
 function restoreSizes(hot: HotInstance, state: ViewState) {
-  const manualColumnResize = getEnabledPlugin(hot, 'manualColumnResize') as
-    { setManualSize: (col: number, width: number) => number } | undefined;
-  const manualRowResize = getEnabledPlugin(hot, 'manualRowResize') as
-    { setManualSize: (row: number, height: number) => number } | undefined;
-
   clearManualSizes(hot);
-
-  state.colWidths.forEach(([col, width]) => {
-    if (col < hot.countCols()) {
-      manualColumnResize?.setManualSize(col, width);
-    }
-  });
-
-  state.rowHeights.forEach(([row, height]) => {
-    if (row < hot.countRows()) {
-      manualRowResize?.setManualSize(row, height);
-    }
-  });
+  getResizePlugin(hot, 'column')?.setManualSizes(state.colWidths);
+  getResizePlugin(hot, 'row')?.setManualSizes(state.rowHeights);
 }
 
 /**
