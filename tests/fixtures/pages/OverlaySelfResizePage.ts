@@ -13,8 +13,11 @@ export interface OverlayGeometry {
 }
 
 /**
- * How many resizes happened, and who asked. `engineResizes` counts Walkontable deciding on its own;
- * `externalRequests` counts anything reaching `view.adjustElementsSize()` from outside the engine.
+ * How many resizes happened, and who asked. `engineResizes` counts `Overlays#adjustElementsSize` —
+ * the master hider write plus the scrollbar-band sync — and NOT the three region overlays re-sizing
+ * their own roots, which `placeFixedOverlays` does on every master draw by design. So a zero means
+ * that master write was skipped, not that no element was resized. `externalRequests` counts anything
+ * reaching `view.adjustElementsSize()` from outside the engine.
  */
 export interface ResizeCounters {
   engineResizes: number;
@@ -183,5 +186,34 @@ export class OverlaySelfResizePage {
       before,
       { polling: 50 }
     );
+
+    await this.drainScrollResizeCheck();
+  }
+
+  /**
+   * Wait until the engine's debounced scroll-path size check has run.
+   *
+   * On a scroll-driven draw the engine does not ask "is a resize needed?" inline — it debounces the
+   * question by 200ms (`Overlays#postponedAdjustElementsSize`). A counter read straight after the
+   * rendered band settles would therefore measure a scroll the engine has not judged yet, and a
+   * `toBe(0)` would pass whether the contract holds or not.
+   *
+   * The debounce is a private field bound at construction, so the fixture cannot observe it firing.
+   * What can be observed is its only effect: the resize counter. The timer is already running when
+   * this is called, with at most 200ms left, so two equal readings 300ms apart mean it has fired and
+   * decided against a resize. This is the one place the spec proves a negative, and it needs the
+   * settle to do it.
+   */
+  private async drainScrollResizeCheck(): Promise<void> {
+    let previous = -1;
+
+    await expect.poll(async() => {
+      const { engineResizes } = await this.counters();
+      const settled = engineResizes === previous;
+
+      previous = engineResizes;
+
+      return settled;
+    }, { intervals: [300, 300, 300] }).toBe(true);
   }
 }

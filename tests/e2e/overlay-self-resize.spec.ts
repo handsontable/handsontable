@@ -13,8 +13,14 @@ import { OverlaySelfResizePage } from '../fixtures/pages/OverlaySelfResizePage';
  *
  * The gate now compares the geometry the engine is about to write against the geometry it last
  * wrote (`Overlays#currentLayoutSignature`). These tests pin both halves of that: it must fire when
- * the geometry really moved, and it must stay quiet when it did not — a resize walks every column
- * and re-sizes three overlays, so running it on every draw would be a real regression.
+ * the geometry really moved, and it must stay quiet when it did not — the write walks every column,
+ * so running it on every draw would be a real regression.
+ *
+ * What the counter sees, and does not: `engineResizes` counts `Overlays#adjustElementsSize`, which
+ * is the MASTER hider write plus the scrollbar-band sync. The three region overlays re-size their
+ * own roots on every master draw regardless, in `placeFixedOverlays`, and that is by design and
+ * outside this gate. So a zero below means the master write and the band sync were skipped — never
+ * that nothing in the grid was resized.
  */
 test.describe('overlay self-resize', () => {
   let grid: OverlaySelfResizePage;
@@ -111,8 +117,8 @@ test.describe('overlay self-resize', () => {
   });
 
   test('does not resize on a draw that changes no geometry', async () => {
-    // The performance half of the contract. `adjustElementsSize` walks every column and re-sizes
-    // three overlays, so a gate that fired on every draw would trade one bug for a slower grid.
+    // The performance half of the contract. `adjustElementsSize` walks every column and re-syncs the
+    // scrollbar bands, so a gate that fired on every draw would trade one bug for a slower grid.
     await grid.renderWithoutChanges(); // settle the header measurement above
     await grid.resetCounters();
 
@@ -125,14 +131,17 @@ test.describe('overlay self-resize', () => {
 
   test('resizes when the container changes size, with no row or column change', async () => {
     // Replaces what `refreshDimensions.spec.js` used to assert through the old two-step. Nothing
-    // about the data moved here — only the box the overlays are sized against, which is why the
-    // signature carries the workspace dimensions and not just the hider size.
+    // about the data moved here — only the box the scrollbar bands are measured against, which is
+    // why the signature carries the workspace dimensions and not just the hider size. This is the
+    // test that goes red if those terms are dropped as "redundant".
     await grid.resetCounters();
     await grid.resizeContainerTo(600);
 
     const counters = await grid.counters();
 
-    expect(counters.engineResizes).toBeGreaterThan(0);
+    // Exactly one: the box moved once, so the engine judges once. A second would mean the write
+    // changed a term of its own signature and re-fired on the next draw.
+    expect(counters.engineResizes).toBe(1);
     expect(counters.externalRequests).toBe(0);
   });
 
@@ -146,6 +155,30 @@ test.describe('overlay self-resize', () => {
 
     expect(counters.engineResizes).toBe(1);
     expect(counters.externalRequests).toBe(0);
+  });
+
+  test('resizes once, not twice, for a change that turns the scrollbars on', async () => {
+    // The signature carries `hasVerticalScroll` and `hasHorizontalScroll`, and the write itself can
+    // flip them: growing the hider past the scrollport is what makes the browser draw a scrollbar.
+    // If the signature were captured BEFORE the write, it would record the pre-write scrollbar state,
+    // the next draw would resolve a snapshot that differs, and the engine would resize a second time
+    // for a hider that had not moved. It is captured after the write instead.
+    await grid.loadRows(3, 3); // fits the 600 x 300 container: no scrollbars
+    await grid.renderWithoutChanges();
+    await grid.renderWithoutChanges(); // settle
+    await grid.resetCounters();
+
+    await grid.loadRows(500, 40); // overflows both axes: both scrollbars appear
+    await grid.renderWithoutChanges();
+
+    const afterTheChange = await grid.counters();
+
+    await grid.renderWithoutChanges();
+
+    const afterOneMoreDraw = await grid.counters();
+
+    expect(afterTheChange.engineResizes).toBe(1);
+    expect(afterOneMoreDraw.engineResizes).toBe(1);
   });
 
   test('does not resize while scrolling, at any offset', async () => {

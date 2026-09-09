@@ -274,7 +274,7 @@ class Overlays {
    *
    * @type {Function}
    */
-  #postponedAdjustElementsSize = debounce(this.#adjustElementsSizeIfNeeded.bind(this), 200);
+  #postponedAdjustElementsSize = debounce(this.adjustElementsSizeIfNeeded.bind(this), 200);
 
   /**
    * The layout signature in force when {@link Overlays#adjustElementsSize} last ran, or `null`
@@ -797,7 +797,7 @@ class Overlays {
     if (isScrollTriggered) {
       this.#postponedAdjustElementsSize();
     } else {
-      this.#adjustElementsSizeIfNeeded();
+      this.adjustElementsSizeIfNeeded();
     }
 
     if (this.bottomOverlay.clone) {
@@ -814,15 +814,6 @@ class Overlays {
     if (this.bottomInlineStartCornerOverlay && this.bottomInlineStartCornerOverlay.clone) {
       this.bottomInlineStartCornerOverlay.refresh(bottomFastDraw);
     }
-  }
-
-  /**
-   * Update the last cached spreader size with the current size.
-   *
-   * @returns {boolean} `true` if the lastSpreaderSize cache was updated, `false` otherwise.
-   */
-  updateLastSpreaderSize() {
-    return this.#spreaderSize.updateLastSpreaderSize();
   }
 
   /**
@@ -851,25 +842,32 @@ class Overlays {
     // of any grid whose column header is taller than a row - which is most grids with headers - and
     // the writes above are idempotent, so on a steady grid there is nothing for a resize to do. Going
     // direct cost one full resize per draw on exactly the common case the gate exists to protect.
-    this.#adjustElementsSizeIfNeeded();
+    this.adjustElementsSizeIfNeeded();
   }
 
   /**
    * Adjust overlays elements size and master table size.
    */
   adjustElementsSize() {
-    // Captured here rather than in the gate, because several paths reach this writer directly and
-    // bypass the gate entirely: `markOversizedRows`, the `skipRender` path of the draw cycle (the
-    // one master draw that never reaches `refresh()`), the bottom clone's draw, and
-    // `refreshColumnHeaderHeights` below. Recording it in the gate would leave the stored value
-    // stale after any of them and cost one redundant resize on the next draw.
-    this.#lastAppliedSignature = this.#currentLayoutSignature();
+    const written = this.#spreaderSize.adjustElementsSize();
 
-    this.#spreaderSize.adjustElementsSize();
     // The scrollport may have just moved or changed size, so the rect the pointer is compared against
     // has to be re-read on next use. Dropping a field, no measurement.
     this.#scrollbarVisibility.notifyResized();
     this.#syncScrollbarTrackBands();
+    // Captured here rather than in the gate, for two reasons. Several paths reach this writer directly
+    // and bypass the gate entirely - `markOversizedRows`, the `skipRender` path of the draw cycle (the
+    // one master draw that never reaches `refresh()`), the bottom clone's draw, and
+    // `refreshColumnHeaderHeights` - so recording it in the gate would leave the stored value stale
+    // after any of them and cost one redundant resize on the next draw. And capturing AFTER the write
+    // records the state the DOM is now in, so a write that changes a term of its own signature does
+    // not re-fire on the next draw. `written` is the size just applied; passing it keeps a resizing
+    // draw at two column walks rather than three.
+    //
+    // The layout terms still come from the draw's snapshot, which the write does not invalidate. That
+    // is deliberate: refreshing it here would force a measurement inside every resize, and the terms
+    // it would correct are re-resolved by `beginDrawLayout` on the next draw anyway.
+    this.#lastAppliedSignature = this.#currentLayoutSignature(written);
   }
 
   /**
@@ -1062,9 +1060,14 @@ class Overlays {
    * so the resize runs only when its result would actually differ.
    *
    * The first two terms are the numbers the write itself uses (`SpreaderSize#getProposedHiderSize`),
-   * so the gate can never disagree with the writer. The rest are the inputs the overlay roots read
-   * that the hider size does not imply: the scrollport box and its scrollbars, which clones render
-   * at all, and how deep the frozen regions reach.
+   * so the gate can never disagree with the writer. The rest are NOT there for the overlay roots -
+   * those re-size themselves on every master draw, because `placeFixedOverlays` calls each region's
+   * `resetFixedPosition()` outside the render gate and each of those ends in its own
+   * `adjustElementsSize()`. They are there for the other two things this writer does, which nothing
+   * else repeats: `ScrollbarVisibility#notifyResized()` and `Overlays#syncScrollbarTrackBands()`.
+   * Both are decided by the scrollport box, the scrollbar state, which clones render at all, and how
+   * deep the frozen regions reach - exactly the terms below. Drop them and the scrollbar bands stop
+   * following a container resize.
    *
    * Cost: no forced layout read at all, against the two the old gate did on every draw (the
    * spreader's `clientWidth` and `clientHeight` — `LiveGeometryReader` caches nothing). `getLayout()`
@@ -1076,13 +1079,14 @@ class Overlays {
    * also stay live: `stretchH` derives from the workspace width, which derives from the column sum,
    * so caching that sum freezes the cycle (see the Performance section of `walkontable/AGENTS.md`).
    *
+   * @param {{ width: number, height: number }} [hider] The hider size, when the caller has just
+   *                                                     computed it. Saves one column walk.
    * @returns {string}
    */
-  #currentLayoutSignature(): string {
+  #currentLayoutSignature(hider = this.#spreaderSize.getProposedHiderSize()): string {
     const wtViewport = this.wot.wtViewport;
     const layout = wtViewport.getLayout();
     const { wtSettings } = this.#deps;
-    const hider = this.#spreaderSize.getProposedHiderSize();
     const fixedRowsTop = wtSettings.getSetting<number>('fixedRowsTop');
     const fixedRowsBottom = wtSettings.getSetting<number>('fixedRowsBottom');
     const fixedColumnsStart = wtSettings.getSetting<number>('fixedColumnsStart');
@@ -1120,9 +1124,16 @@ class Overlays {
   }
 
   /**
-   * Adjust the elements size if needed.
+   * Resize the overlay elements, but only when the geometry the engine would write differs from the
+   * geometry it last wrote.
+   *
+   * This is the engine's own gate and the engine calls it for itself on every draw — nothing outside
+   * Walkontable needs to. It is public only so `TableView#adjustElementsSize()`, which is reachable
+   * as `hot.view.adjustElementsSize()` and cannot be removed, has something safe to forward to: an
+   * integrator who moved the grid gets a resize if the geometry really moved, and pays nothing if it
+   * did not.
    */
-  #adjustElementsSizeIfNeeded() {
+  adjustElementsSizeIfNeeded() {
     if (this.destroyed) {
       return;
     }

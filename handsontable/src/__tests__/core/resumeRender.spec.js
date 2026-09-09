@@ -97,11 +97,12 @@ describe('Core.resumeRender', () => {
     expect(hot.view._wt.draw).toHaveBeenCalledOnceWith(true); // fast redraw
   });
 
-  it('should not schedule an overlay resize from the legacy `view.adjustElementsSize()`', async() => {
+  it('should resize from the legacy `view.adjustElementsSize()` only when the geometry moved', async() => {
     // The method used to set a flag that the next render flushed. Walkontable now compares the
     // geometry it is about to write against the geometry it last wrote and resizes itself, so a
     // deferred request would only make it resize twice. The method stays because it is reachable
-    // as `hot.view.adjustElementsSize()`, and its deferred branch does nothing.
+    // as `hot.view.adjustElementsSize()`; it now forwards to the engine's own gate, so calling it
+    // repeatedly on a grid that has not moved costs nothing.
     const hot = handsontable({
       data: createSpreadsheetData(5, 5),
     });
@@ -119,10 +120,37 @@ describe('Core.resumeRender', () => {
 
     expect(hot.view._wt.wtOverlays.adjustElementsSize).toHaveBeenCalledTimes(0);
 
-    // `flush` is the branch that still resizes, for a caller that needs the new sizes before any draw.
+    // `flush` skips the gate and resizes unconditionally, for a caller that needs the new sizes
+    // before any draw.
     tableView().adjustElementsSize(true);
 
     expect(hot.view._wt.wtOverlays.adjustElementsSize).toHaveBeenCalledTimes(1);
+  });
+
+  it('should resize from the legacy `view.adjustElementsSize()` when the geometry really moved', async() => {
+    // The other half of the contract above. The escape hatch has to still work: an integrator who
+    // changed the grid's geometry outside anything the engine observes gets a resize on request.
+    const hot = handsontable({
+      data: createSpreadsheetData(5, 20),
+      width: 300,
+      height: 200,
+    });
+
+    await suspendRender();
+
+    spyOn(hot.view._wt.wtOverlays, 'adjustElementsSize');
+
+    const columnMapper = columnIndexMapper().createAndRegisterIndexMap('legacy-adjust-map', 'hiding');
+
+    columnMapper.setValueAtIndex(0, true);
+    columnMapper.setValueAtIndex(1, true);
+    columnMapper.setValueAtIndex(2, true);
+
+    tableView().adjustElementsSize();
+
+    expect(hot.view._wt.wtOverlays.adjustElementsSize).toHaveBeenCalledTimes(1);
+
+    await resumeRender();
   });
 
   it('should render the table only on the last resume call (a call that resets the counter of nested suspend calls)', async() => {

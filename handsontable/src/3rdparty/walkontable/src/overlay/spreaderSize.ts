@@ -10,7 +10,6 @@ import type { EngineContext } from '../wire';
 export function createSpreaderSizeDeps(ctx: EngineContext) {
   return {
     wtSettings: ctx.wtSettings,
-    geometryReader: ctx.geometryReader,
     wtTable: ctx.getWtTable(),
     getWtViewport: ctx.getWtViewport,
     getTopOverlay: ctx.getTopOverlay,
@@ -27,13 +26,10 @@ export type SpreaderSizeDeps = ReturnType<typeof createSpreaderSizeDeps>;
 /**
  * Owns the master hider/spreader sizing math: it computes the hider's width/height from the summed
  * cell sizes (plus the header sizes and the first-row border compensation), writes them to the DOM,
- * and then delegates to the top/inline-start/bottom overlays to size their own elements. It also
- * caches the last measured spreader size so the coordinator can skip a redundant resize when nothing
- * changed.
+ * and then delegates to the top/inline-start/bottom overlays to size their own elements.
  *
  * Extracted from the Overlays coordinator so the sizing lifecycle is self-contained; the coordinator
- * keeps thin public `adjustElementsSize`/`updateLastSpreaderSize` delegates because those are part of
- * the public overlay API.
+ * keeps a thin public `adjustElementsSize` delegate because that is part of the public overlay API.
  *
  * @class SpreaderSize
  */
@@ -46,37 +42,10 @@ export class SpreaderSize {
   readonly #deps: SpreaderSizeDeps;
 
   /**
-   * The last cached spreader size, used to detect whether a resize is needed.
-   *
-   * @type {{ width: number | null, height: number | null }}
-   */
-  #lastSize: { width: number | null; height: number | null } = { width: null, height: null };
-
-  /**
    * @param {SpreaderSizeDeps} deps The SpreaderSize dependencies.
    */
   constructor(deps: SpreaderSizeDeps) {
     this.#deps = deps;
-  }
-
-  /**
-   * Update the last cached spreader size with the current size.
-   *
-   * @returns {boolean} `true` if the lastSize cache was updated, `false` otherwise.
-   */
-  updateLastSpreaderSize() {
-    const spreader = this.#deps.wtTable.spreader;
-    const { geometryReader } = this.#deps;
-    const width = geometryReader.clientWidth(spreader);
-    const height = geometryReader.clientHeight(spreader);
-    const needsUpdating = width !== this.#lastSize.width || height !== this.#lastSize.height;
-
-    if (needsUpdating) {
-      this.#lastSize.width = width;
-      this.#lastSize.height = height;
-    }
-
-    return needsUpdating;
   }
 
   /**
@@ -130,16 +99,24 @@ export class SpreaderSize {
 
   /**
    * Adjust overlays elements size and master table size.
+   *
+   * Returns the size it wrote so the caller does not have to recompute it. `getProposedHiderSize()`
+   * walks every column, and `Overlays` needs the same two numbers for its change-detection
+   * signature - handing them back is what keeps a resizing draw at two walks instead of three.
+   *
+   * @returns {{ width: number, height: number }} The hider size written, in pixels.
    */
-  adjustElementsSize() {
-    const { width, height } = this.getProposedHiderSize();
+  adjustElementsSize(): { width: number; height: number } {
+    const size = this.getProposedHiderSize();
     const hiderStyle = this.#deps.wtTable.hider.style;
 
-    hiderStyle.width = `${width}px`;
-    hiderStyle.height = `${height}px`;
+    hiderStyle.width = `${size.width}px`;
+    hiderStyle.height = `${size.height}px`;
 
     this.#deps.getTopOverlay().adjustElementsSize();
     this.#deps.getInlineStartOverlay().adjustElementsSize();
     this.#deps.getBottomOverlay().adjustElementsSize();
+
+    return size;
   }
 }

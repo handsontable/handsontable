@@ -252,20 +252,6 @@ class TableView {
    */
   #rowHeadersCount = 0;
   /**
-   * The flag determines if the `adjustElementsSize` method call was made during
-   * the render suspending. If true, the method has to be triggered once after render
-   * resuming.
-   *
-   * Legacy. Nothing in the codebase sets this any more — Walkontable resizes itself on the draw
-   * where the geometry it would write differs from the geometry it last wrote, so scheduling a
-   * second resize here would only make it run twice. The field and the flush in `render()` are kept
-   * because both are reachable as `hot.view.*`.
-   *
-   * @private
-   * @type {boolean}
-   */
-  postponedAdjustElementsSize = false;
-  /**
    * The measurement-only probe of the rendered grid. Runs after each full master draw to record
    * content-driven row and column-header heights. It does not yet feed those values back into
    * rendering (see {@link RenderSizeProbe}).
@@ -390,12 +376,6 @@ class TableView {
       this._wt.draw(!isFullRender);
       this.#updateScrollbarClassNames();
 
-      if (this.postponedAdjustElementsSize) {
-        this.postponedAdjustElementsSize = false;
-
-        this.adjustElementsSize(true);
-      }
-
       this.hot.runHooks('afterRender', isFullRender);
       this.hot.forceFullRender = false;
     }
@@ -406,17 +386,23 @@ class TableView {
    *
    * Legacy. Nothing in the codebase needs to call this any more: Walkontable compares the geometry
    * it is about to write against the geometry it last wrote, and resizes itself on the draw where
-   * those differ (`Overlays#currentLayoutSignature`). Asking for a deferred adjustment is therefore
-   * a no-op — the next draw already does it, and setting the flag on top of that would resize twice.
+   * those differ (`Overlays#currentLayoutSignature`).
    *
-   * Kept because it is reachable as `hot.view.adjustElementsSize()`. `flush` still forces an
-   * immediate resize for a caller that needs the new sizes in the same tick, before any draw.
+   * Kept because it is reachable as `hot.view.adjustElementsSize()`, and still useful to an
+   * integrator who moved or resized the grid outside anything the engine observes and wants the new
+   * sizes in the same tick, before the next draw. Its contract has changed: it used to schedule a
+   * resize for the next render, and it now resizes straight away — but only if the geometry really
+   * differs, so calling it on a steady grid costs nothing. `flush` skips that check and resizes
+   * unconditionally.
    *
-   * @param {boolean} [flush=false] If `true`, resize immediately instead of leaving it to the next draw.
+   * @param {boolean} [flush=false] If `true`, resize unconditionally instead of only when the
+   *                                geometry changed.
    */
   adjustElementsSize(flush = false) {
     if (flush) {
       this._wt.wtOverlays.adjustElementsSize();
+    } else {
+      this._wt.wtOverlays.adjustElementsSizeIfNeeded();
     }
   }
 

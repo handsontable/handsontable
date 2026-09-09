@@ -71,9 +71,13 @@
 
     window.hot = hot;
 
-    // Two counters. `engineResizes` says how often Walkontable decided a resize was needed —
-    // the perf side of the contract, since the whole point is that it must not fire on every draw.
-    // `externalRequests` says how often anything outside the engine asked for one, which is the
+    // Two counters. `engineResizes` counts calls to `Overlays#adjustElementsSize` — the MASTER
+    // hider write plus the scrollbar-band sync. It is the perf side of the contract, since that
+    // write walks every column and the whole point is that it must not run on every draw. It does
+    // NOT count the three region overlays re-sizing their own roots: `placeFixedOverlays` does that
+    // on every master draw, by design, outside anything this gate governs — so a zero here means
+    // "the master write and the band sync were skipped", never "no overlay resized at all".
+    // `externalRequests` counts anything outside the engine asking for a resize, which is the
     // correctness side: it has to stay at 0 for the self-detection claim to mean anything.
     window.counters = { engineResizes: 0, externalRequests: 0 };
 

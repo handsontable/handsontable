@@ -682,13 +682,22 @@ built without the setting behaves as before. A renderer spec's `TableRendererMoc
 would write differs from the geometry it last wrote, and on no other draw.
 
 The gate is `Overlays#currentLayoutSignature()`. It joins the size the write itself would produce
-(`SpreaderSize#getProposedHiderSize()`) with the inputs the overlay roots read that the hider size
-does not imply: the workspace box and its scrollbars (off the `LayoutSnapshot` the draw already
-resolved), the three `shouldRender*Overlay` settings, the frozen counts, and the frozen extents.
-`adjustElementsSize()` records that signature as it runs, so the paths that reach the writer directly
+(`SpreaderSize#getProposedHiderSize()`) with the workspace box and its scrollbars (off the
+`LayoutSnapshot` the draw already resolved), the three `shouldRender*Overlay` settings, the frozen
+counts, and the frozen extents. Those extra terms are **not** there for the overlay roots — the three
+region overlays re-size themselves on every master draw, because `placeFixedOverlays` calls each
+region's `resetFixedPosition()` outside the render gate and each of those ends in its own
+`adjustElementsSize()`. They are there for the two things this writer does that nothing else repeats:
+`ScrollbarVisibility#notifyResized()` and `Overlays#syncScrollbarTrackBands()`, both decided by the
+scrollport box, the scrollbar state, which clones render, and how deep the frozen regions reach. Drop
+them and the scrollbar bands stop following a container resize.
+
+`adjustElementsSize()` records the signature **after** it writes, so a write that changes one of its
+own terms does not re-fire on the next draw, and so the paths that reach the writer directly
 (`markOversizedRows`, the `skipRender` path of the draw cycle — the one master draw that never
 reaches `refresh()` — the bottom clone's draw, and `refreshColumnHeaderHeights`) cannot leave it
-stale.
+stale. It also hands back the size it wrote, which the signature reuses: a resizing draw then walks
+the columns twice rather than three times.
 
 Two rules follow, and both have cost real bugs:
 
@@ -696,9 +705,10 @@ Two rules follow, and both have cost real bugs:
   and it is blind on both axes: `.handsontable .wtSpreader` is `width: 0` in the stylesheet, so
   `clientWidth` is always 0 and can never report a width change; and `height: auto` measures the
   rendered band, which on a virtualized grid moves independently of the total. Measured on a
-  500 × 40 grid: hiding columns moved the hider from 1161px to 3650px and `updateLastSpreaderSize()`
-  still answered `false`; dropping 300 rows to 60 moved it from 8730px to 1770px, also `false`. That
-  blindness is why 30 call sites across core and the plugins used to force the resize by hand.
+  500 × 40 grid: hiding columns moved the hider from 1161px to 3650px and the spreader-measuring
+  gate still answered `false`; dropping 300 rows to 60 moved it from 8730px to 1770px, also
+  `false`. That blindness is why 30 call sites across core and the plugins used to force the resize
+  by hand.
 - **The gate must ask the writer what it would write, not recompute it.** `getProposedHiderSize()`
   exists for exactly that. A gate built on a separate approximation drifts from the writer, and every
   drift is either a missed resize (overlays out of step) or a wasted one. In particular it must keep
@@ -706,9 +716,14 @@ Two rules follow, and both have cost real bugs:
   sum freezes the stretch cycle.
 
 `TableView#adjustElementsSize()` survives as legacy because it is reachable as
-`hot.view.adjustElementsSize()`. Its deferred branch is a no-op; `flush = true` still forces an
-immediate resize for a caller that needs new sizes before any draw. Nothing in the repository calls
-either form, and `tests/e2e/overlay-self-resize.spec.ts` asserts that stays true.
+`hot.view.adjustElementsSize()`. Its contract moved: it used to schedule a resize for the next render,
+and it now forwards to `Overlays#adjustElementsSizeIfNeeded()` — the engine's own gate — so it resizes
+straight away if the geometry really differs and costs nothing if it does not. `flush = true` skips the
+gate and resizes unconditionally. No plugin and no core path calls either form; a handful of specs
+still do, deliberately, to pin that the escape hatch keeps working
+(`__tests__/core/resumeRender.spec.js`, `__tests__/settings/fixedRowsTop.spec.js`,
+`__tests__/settings/fixedColumnsStart.spec.js`). `tests/e2e/overlay-self-resize.spec.ts` asserts that
+none of the deleted plugin paths ask for a resize on its fixture.
 
 ## Known Tech Debt
 
