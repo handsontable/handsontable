@@ -1,7 +1,7 @@
 import { useCallback, useRef } from 'react';
 import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import { BaseRenderer, baseRenderer } from 'handsontable/renderers';
+import { BaseRenderer, baseRenderer, textRenderer } from 'handsontable/renderers';
 import type { ColumnSettings } from 'handsontable/settings';
 
 registerAllModules();
@@ -79,7 +79,7 @@ const trendRenderer: BaseRenderer = (instance, td, row, col, prop, value, cellPr
   // A row without a record (a `minSpareRows` row, or one mid-`alter()`) and an empty cell both
   // reach the renderer. Neither can be cached: `undefined` is not a valid WeakMap key.
   if (!record || !Array.isArray(sales) || sales.length === 0) {
-    td.textContent = '—';
+    textRenderer(instance, td, row, col, prop, '—', cellProperties);
 
     return;
   }
@@ -92,7 +92,10 @@ const trendRenderer: BaseRenderer = (instance, td, row, col, prop, value, cellPr
     trendCache.set(record, entry);
   }
 
-  td.textContent = entry.output;
+  // Write through the built-in text renderer rather than setting `td.textContent`. On a row with
+  // an exact height the engine keeps the cell's content inside a wrapper, and this writes into
+  // that wrapper instead of replacing it.
+  textRenderer(instance, td, row, col, prop, entry.output, cellProperties);
 };
 
 const COLUMNS: ColumnSettings[] = [

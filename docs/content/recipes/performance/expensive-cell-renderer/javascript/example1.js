@@ -1,6 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import { baseRenderer } from 'handsontable/renderers';
+import { baseRenderer, textRenderer } from 'handsontable/renderers';
 
 registerAllModules();
 
@@ -70,7 +70,7 @@ const trendRenderer = (instance, td, row, col, prop, value, cellProperties) => {
   // A row without a record (a `minSpareRows` row, or one mid-`alter()`) and an empty cell both
   // reach the renderer. Neither can be cached: `undefined` is not a valid WeakMap key.
   if (!record || !Array.isArray(sales) || sales.length === 0) {
-    td.textContent = '—';
+    textRenderer(instance, td, row, col, prop, '—', cellProperties);
 
     return;
   }
@@ -83,7 +83,10 @@ const trendRenderer = (instance, td, row, col, prop, value, cellProperties) => {
     trendCache.set(record, entry);
   }
 
-  td.textContent = entry.output;
+  // Write through the built-in text renderer rather than setting `td.textContent`. On a row with
+  // an exact height the engine keeps the cell's content inside a wrapper, and this writes into
+  // that wrapper instead of replacing it.
+  textRenderer(instance, td, row, col, prop, entry.output, cellProperties);
 };
 
 const container = document.querySelector('#example1');

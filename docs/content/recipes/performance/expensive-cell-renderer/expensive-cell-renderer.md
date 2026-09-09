@@ -149,7 +149,7 @@ const trendRenderer = (instance, td, row, col, prop, value, cellProperties) => {
   const sales = value;
 
   if (!record || !Array.isArray(sales) || sales.length === 0) {
-    td.textContent = '—';
+    textRenderer(instance, td, row, col, prop, '—', cellProperties);
 
     return;
   }
@@ -162,7 +162,7 @@ const trendRenderer = (instance, td, row, col, prop, value, cellProperties) => {
     trendCache.set(record, entry);
   }
 
-  td.textContent = entry.output;
+  textRenderer(instance, td, row, col, prop, entry.output, cellProperties);
 };
 ```
 
@@ -172,7 +172,8 @@ const trendRenderer = (instance, td, row, col, prop, value, cellProperties) => {
 2. `row` is a visual index, and your `data` array is in physical order, so [`toPhysicalRow()`](@/api/core.md#tophysicalrow) translates it before the lookup. Without the translation, sorting the grid would pair a cell with the wrong record. Read the record from your own array: [`getSourceDataAtRow()`](@/api/core.md#getsourcedataatrow) returns a copy of the row on every call, so a `WeakMap` keyed by its result never hits.
 3. The guard covers the two rows that have no record to key on: a spare row added by [`minSpareRows`](@/api/options.md#minsparerows), and a row the renderer sees while [`alter()`](@/api/core.md#alter) is still running. `undefined` is not a valid `WeakMap` key, so caching one throws and takes the whole draw down with it. An empty cell is caught by the same check.
 4. `value` is the cell's value -- here, the `sales` array, handed to the renderer as the same array that sits in the record, not a copy. If the record has an entry and the entry was computed from this same array, the renderer reuses the output. Otherwise it computes, stores, and moves on.
-5. The renderer always writes `td.textContent`, because the grid resets a `td` before it runs a renderer. Only what the renderer writes back survives.
+5. The renderer always writes the cell, on the cached path as well as the computed one, because the grid resets a `td` before it runs a renderer. Only what the renderer writes back survives.
+6. The write goes through the built-in [`textRenderer`](@/guides/cell-functions/cell-renderer/cell-renderer.md) rather than `td.textContent = …`. On a row whose height is exact, the engine keeps the cell's content inside a wrapper it reuses between draws. `textContent` would replace that wrapper, and the engine would build it again on the next draw. `textRenderer` writes into it instead.
 
 **The renderer closes over `data`, so keep that binding current.** This renderer indexes the same array it gave the grid. If you later swap the data set with [`updateData()`](@/api/core.md#updatedata) or [`loadData()`](@/api/core.md#loaddata), the grid holds the new array while the closure still points at the old one, and every lookup returns a stale record or `undefined` -- with no error. Point the closure at the new array in the same step, or key the cache by the cell value instead, which needs no closure at all (see [Variations](#variations)).
 
