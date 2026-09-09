@@ -290,6 +290,7 @@ export class SheetsBarMenus {
     const rect = positionTarget.getBoundingClientRect();
 
     menu.open();
+    this.#reserveScrollbarWidth(menu);
     // A 4px gap on both sides of the anchor. Below, the positioner adds one pixel of its own.
     // Above, it aligns the menu's bottom to the cursor point — the anchor's bottom edge — so
     // without the anchor-height correction a menu flipping upward covered its own trigger
@@ -311,6 +312,27 @@ export class SheetsBarMenus {
     // that they never asked for.
     if (selectFirstItem) {
       menu.getNavigator()?.toFirstItem();
+    }
+  }
+
+  /**
+   * Widens the menu's scroll holder by the width its vertical scrollbar actually takes. The
+   * menu machinery sizes the holder to the item table exactly, so wherever the platform draws
+   * a classic (non-overlay) scrollbar, the bar eats that width out of the rows — clipping
+   * their trailing edge and leaving sideways travel behind the `overflow-x: hidden` clip.
+   * Measured rather than assumed: an overlay scrollbar takes nothing and this is a no-op.
+   */
+  #reserveScrollbarWidth(menu: Menu): void {
+    const holder = menu.container?.querySelector('.wtHolder') as HTMLElement | null;
+
+    if (!holder) {
+      return;
+    }
+
+    const scrollbarWidth = holder.offsetWidth - holder.clientWidth;
+
+    if (scrollbarWidth > 0) {
+      holder.style.width = `${holder.offsetWidth + scrollbarWidth}px`;
     }
   }
 
