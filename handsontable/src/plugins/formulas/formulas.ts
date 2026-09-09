@@ -21,7 +21,7 @@ import {
   unescapeEngineBoundValue,
   unescapeFormulaExpression,
 } from './utils';
-import { resolveHyperlinkUrl } from './hyperlinkUrl';
+import { resolveLinkUrl } from '../../utils/cellLinks';
 import { getEngineSettingsWithOverrides, haveEngineSettingsChanged } from './engine/settings';
 import { isArrayOfArrays } from '../../helpers/data';
 import { toUpperCaseFirst } from '../../helpers/string';
@@ -1190,7 +1190,7 @@ export class Formulas extends BasePlugin {
       return null;
     }
 
-    const href = resolveHyperlinkUrl(url, this.hot.rootDocument.baseURI);
+    const href = resolveLinkUrl(url, this.hot.rootDocument.baseURI);
 
     if (href === null) {
       warnOnce(this, HYPERLINK_WARN_KEY,

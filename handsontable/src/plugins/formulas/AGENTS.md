@@ -1,7 +1,7 @@
 # Formulas plugin — the HyperFormula bridge
 
 The `formulas` plugin connects the grid to HyperFormula. Read this before touching `formulas.ts` (3.4k
-lines), `indexSyncer/axisSyncer.ts`, `engine/`, `utils.ts` or `hyperlinkUrl.ts`.
+lines), `indexSyncer/axisSyncer.ts`, `engine/`, `utils.ts` or the shared link toolkit in `../../utils/cellLinks/`.
 
 HyperFormula is a **user-supplied peer dependency** (a devDependency here for tests only). It is bundled
 into `handsontable.full.js` and external in `handsontable.js`, so anything build-time has to be checked in
@@ -103,7 +103,7 @@ dependency graph). The compensation code carries a note that it can be removed o
 
 ## `HYPERLINK` cells: an allowlist, not a sanitizer
 
-`resolveHyperlinkUrl()` allows exactly `http:`, `https:`, `mailto:`, `tel:`. Everything else returns `null`
+`resolveLinkUrl()` (in `../../utils/cellLinks/`) allows exactly `http:`, `https:`, `mailto:`, `tel:`. Everything else returns `null`
 and the cell does not become a link. Two deliberate choices:
 
 - **The URL is parsed with `new URL()`, not pattern-matched**, so obfuscations that survive a string
