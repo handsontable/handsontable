@@ -50,6 +50,7 @@ interface HandsontableFixture {
   deselectCell(): void;
   selectRows(row: number): void;
   selection: {
+    getSelectionSource(): string;
     transformFocus(row: number, col: number): void;
     transformEnd(rowDelta: number, colDelta: number): void;
     isEntireColumnSelected(): boolean;
@@ -401,6 +402,120 @@ export class EditorTrimmedRowPage {
       filters.addCondition(targetColumn as number, 'by_value', [targetValues]);
       filters.filter();
     }, [row, column, values] as [number, number, string[]]);
+  }
+
+  /**
+   * Strands the editor with a removal, then fires an `alter()` a `beforeAlter` hook VETOES, then
+   * filters - all in one synchronous block.
+   *
+   * The vetoed call is the point: `alter()` opens its structural-change scope before running
+   * `beforeAlter`, so a veto returns out of the function without ever closing it. The scope then
+   * covers the filter, which finds the editor stranded by the FIRST removal, skips the discard
+   * because the scope reads as open, and commits through the stale coordinates.
+   */
+  async vetoedAlterBetweenStrandAndFilterSameTask(
+    strandRow: number, column: number, values: string[]
+  ): Promise<void> {
+    await this.page.evaluate(([target, targetColumn, targetValues]) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+      const filters = hot.getPlugin('filters');
+
+      hot.alter('remove_row', target as number, 1);
+      hot.addHook('beforeAlter', () => false);
+      hot.alter('remove_row', 0, 1);
+      filters.addCondition(targetColumn as number, 'by_value', [targetValues]);
+      filters.filter();
+    }, [strandRow, column, values] as [number, number, string[]]);
+  }
+
+  /**
+   * Strands the editor with a removal, then fires an `alter()` that THROWS, catches it, then
+   * filters - all in one synchronous block.
+   *
+   * The throw is the point. It leaves `alter()` between its `suspendStrandDiscards()` and the
+   * matching resume just as a vetoed call does, and the self-heal timeout does not help: a
+   * zero-delay timer runs in the NEXT task, while the filter that reads the scope runs in THIS
+   * one. Callers do catch - `UndoRedo` wraps its `alter()` calls in `try`/`catch` - so this is
+   * reachable without the caller doing anything unusual.
+   */
+  async throwingAlterBetweenStrandAndFilterSameTask(
+    strandRow: number, column: number, values: string[]
+  ): Promise<void> {
+    await this.page.evaluate(([target, targetColumn, targetValues]) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+      const filters = hot.getPlugin('filters');
+
+      hot.alter('remove_row', target as number, 1);
+
+      try {
+        hot.alter('no_such_action', 0, 1);
+      } catch {
+        // Swallowed the way `UndoRedo` swallows an `alter()` that fails.
+      }
+
+      filters.addCondition(targetColumn as number, 'by_value', [targetValues]);
+      filters.filter();
+    }, [strandRow, column, values] as [number, number, string[]]);
+  }
+
+  /**
+   * Replaces the data set and filters in ONE synchronous block, the `updateData()` counterpart of
+   * `removeRowThenFilterSameTask()` - the shape a wrapper produces when a new `data` prop and a
+   * filter land in the same commit. `updateData()`'s structural-change scope has to be closed by
+   * the time it returns, or the filter skips the discard and commits the stranded editor.
+   */
+  async updateDataThenFilterSameTask(
+    data: unknown[][], column: number, values: string[]
+  ): Promise<void> {
+    await this.page.evaluate(([next, targetColumn, targetValues]) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+      const filters = hot.getPlugin('filters');
+
+      hot.updateData(next as unknown[][]);
+      filters.addCondition(targetColumn as number, 'by_value', [targetValues]);
+      filters.filter();
+    }, [data, column, values] as [unknown[][], number, string[]]);
+  }
+
+  /**
+   * Replaces the data set with a hook that throws inside `updateData()`'s selection repair, then
+   * reports whether the throw happened and what the selection source is left reading.
+   *
+   * `markSource('updateData')` and `markEndSource()` sit either side of `selection.refresh()`, and
+   * `refresh()` clears the source itself only on its normal path. A source stuck at `updateData`
+   * is not cosmetic: `afterSetRangeEnd` reads it and then skips the scroll, the editor close and
+   * `prepareEditor()` on every later selection, so the grid stops opening editors at all
+   * (DEV-2831 review).
+   *
+   * The hook is armed for one call rather than removed, so it throws inside this `refresh()` and
+   * leaves the selections the test makes afterwards alone.
+   */
+  async updateDataWithThrowingRefresh(
+    data: unknown[][]
+  ): Promise<{ threw: boolean, selectionSource: string }> {
+    return this.page.evaluate((next) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+      let armed = true;
+
+      // `refresh()` re-lays every range through `setRangeEnd()`, which is what fires this.
+      hot.addHook('afterSelection', () => {
+        if (armed) {
+          armed = false;
+
+          throw new Error('afterSelection threw inside refresh()');
+        }
+      });
+
+      let threw = false;
+
+      try {
+        hot.updateData(next as unknown[][]);
+      } catch {
+        threw = true;
+      }
+
+      return { threw, selectionSource: hot.selection.getSelectionSource() };
+    }, data);
   }
 
   /**

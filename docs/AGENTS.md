@@ -185,6 +185,8 @@ category: <nav category>
 - [link to related how-to]
 ```
 
+The ordered list under `## Steps` is rendered as a Starlight step list -- numbered bullets joined by a vertical line. `rehype-migration-steps.mjs` applies `class="sl-steps" role="list"` to the `<ol>` that directly follows that heading, so write a plain markdown list and add nothing by hand. Numbered `### 1. Title` headings under the same heading keep working too; they go through the heading-based wrapper in the same plugin.
+
 ### Reference template
 
 ```markdown
