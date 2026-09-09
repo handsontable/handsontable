@@ -1313,6 +1313,11 @@ export const REGISTERED_HOOKS = [
    * before they are validated and applied to the data source.
    * Use [`afterChange`](@/api/hooks.md#afterchange) if you need to react after the data has been written.
    *
+   * This hook fires whenever a change is written through `setDataAtCell()` — not only when you call
+   * it directly, but also for regular cell edits, paste, and cut, since those are applied internally
+   * via `setDataAtCell()` too. Changes made through `setDataAtRowProp()` fire
+   * [`afterSetDataAtRowProp`](@/api/hooks.md#aftersetdataatrowprop) instead — never both for the same change.
+   *
    * @event Hooks#afterSetDataAtCell
    * @param {Array} changes An array of changes in format `[[row, column, oldValue, value], ...]`.
    * @param {string} [source] String that identifies source of hook call
@@ -1324,6 +1329,11 @@ export const REGISTERED_HOOKS = [
    * Fired after [`setDataAtRowProp`](@/api/core.md#setdataatrowprop) is called and changes are processed,
    * before they are validated and applied to the data source.
    * Use [`afterChange`](@/api/hooks.md#afterchange) if you need to react after the data has been written.
+   *
+   * This hook fires only for changes made through a direct `setDataAtRowProp()` call. Changes made
+   * through `setDataAtCell()` — including regular cell edits, paste, and cut, which apply internally
+   * via `setDataAtCell()` — fire [`afterSetDataAtCell`](@/api/hooks.md#aftersetdataatcell) instead —
+   * never both for the same change.
    *
    * @event Hooks#afterSetDataAtRowProp
    * @param {Array} changes An array of changes in format `[[row, prop, oldValue, value], ...]`.
