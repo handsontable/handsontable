@@ -895,6 +895,42 @@ export default function Core(
 
     this.forceFullRender = true;
 
+    // Both axis size caches (`Viewport#rowHeightCache` / `#columnWidthCache`) are prefix sums keyed
+    // by RENDER index, while the sizes behind them resolve per PHYSICAL index - `modifyRowHeight`
+    // (AutoRowSize, ManualRowResize) and the per-column `width`. `PositionCache#isCurrent()` only
+    // re-checks the item COUNT, so it cannot see an update that rearranges which physical index
+    // each render index points at while the count stays the same. Two shapes do exactly that: a
+    // pure permutation (sorting, a row or column move), and a trim/hide update that swaps which
+    // indexes are excluded without changing how many. Both leave the cached offsets describing the
+    // previous layout, so the viewport calculator picks the wrong band and the grid renders short,
+    // leaving blank space past the last rendered row or column.
+    //
+    // The gate is "did the mapping actually change", NOT `indexesSequenceChanged` - gating on the
+    // sequence alone was the first version of this fix and it left the same-count trim/hide swap
+    // broken. All three flags have to invalidate; where the count also changed the cache would
+    // rebuild on its own anyway, so those cost nothing.
+    //
+    // It is a gate rather than an unconditional call only because `updateCache(force = true)`
+    // reaches here with every flag false and nothing rearranged - two call sites do that today,
+    // `pagination.ts` when there is nothing to page and the DataProvider. Skipping those saves a
+    // cache drop and a layout drop that cannot change anything. No measured slowdown justifies it:
+    // an earlier version of this comment blamed a unit-test timeout on the unconditional call, and
+    // that did not hold up - the full suite passes either way, and the timeout was machine load
+    // from a concurrent Playwright run.
+    //
+    // This does not touch the per-render caching #13078 added - that is about renders, edits and
+    // scroll steps, none of which come through here.
+    const mappingChanged = indexesChangesState.indexesSequenceChanged ||
+      trimmedIndexesChanged || hiddenIndexesChanged;
+
+    if (mappingChanged) {
+      if (axis === 'row') {
+        this.view?.invalidateRowHeightCache();
+      } else {
+        this.view?.invalidateColumnWidthCache();
+      }
+    }
+
     // Sampled HERE, before the public cache-update hooks run, because `EditorManager` discards a
     // stranded editor inside those hooks - by the time the selection repair reads this, an editor
     // that was open when the trim landed is already gone.

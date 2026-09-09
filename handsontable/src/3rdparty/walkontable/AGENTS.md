@@ -77,6 +77,28 @@ affordances).
 
 The Handsontable `moveCells` grid option (added 18.0.0) enables drag-to-move for selections. HyperFormula exposes an identically named `engine.moveCells()` method that the `Formulas` plugin calls internally to relocate formula references. They are unrelated -- do not confuse the user-facing option with the HyperFormula engine API.
 
+## A size cache only notices a changed item COUNT, never a rearrangement
+
+`PositionCache#isCurrent()` (`axisSizing/positionCache/`) tests one thing: `totalItems === totalItemsFn()`. So **any update that keeps the count but changes which physical index each render index points at is invisible to it**, and the cache goes on serving the previous layout's offsets. The viewport calculator then maps a scroll offset onto the wrong band and the grid renders short, leaving blank space past the last rendered track — DEV-2823, a client-visible 18.1.0 regression.
+
+Two shapes do that, and **both** were measured stale before the fix:
+
+- a **pure permutation** — sorting rows, moving a row or column (820px of row drift after a sort; 617px of column drift after a move);
+- a **trim/hide swap** that changes *which* indexes are excluded without changing *how many* (120px of row drift). Trimming and hiding are **not** safe by accident — only the ones that happen to change the count are.
+
+The caches are keyed by **render** index while the sizes behind them resolve per **physical** index (`sizeFn` → `wtTable.getRowHeight` → `modifyRowHeight` → AutoRowSize / ManualRowResize; per-column `width` through `getCellMeta`). Any consumer holding per-physical sizes is blind in the same way: AutoRowSize invalidates through `observeMapChange(rowHeightsMap, …)` and that map is keyed by physical row, so a sort changes no value in it and the observer never fires.
+
+The invalidation is therefore explicit, in one place for both axes: `onIndexMapperCacheUpdate(state, axis)` in `src/core.ts` calls `view.invalidateRowHeightCache()` or `view.invalidateColumnWidthCache()` whenever **any** of the three change flags is set. Two ways to get that gate wrong, both hit during DEV-2823:
+
+- Gating on `indexesSequenceChanged` alone — the first version of the fix, which left the same-count trim/hide swap broken. This is the one that matters: it is a correctness bug, and each of the three flags needs its own test or a dropped flag ships green.
+- Dropping the gate entirely — `updateCache(force = true)` reaches here with every flag false and nothing rearranged (`pagination.ts` when there is nothing to page, and the DataProvider), so skipping those saves a cache and layout drop that cannot change anything. This one is only tidiness, **not** a measured win: an earlier version of this note blamed a unit-test timeout on the unconditional call, and re-running it showed the full suite passes either way — the timeout was machine load from a concurrent Playwright run.
+
+(`AutoColumnSize#onColumnIndexMapperCacheUpdate` clearing `#columnSamplesCache` is a *different* cache and does not cover this.)
+
+**The position cache is not the only reorder-blind cache.** `wtViewport.oversizedRows` is keyed by renderable row too, and `resetOversizedRows` (`axisSizing/oversizedRows.ts`) deliberately wipes only the rendered band, so on a reorder every index outside that band keeps the previous order's measurement and the rebuilt prefix sums inherit it. That matters when walkontable measures the rows itself rather than a `modifyRowHeight` provider supplying them; `resetAllOversizedRows()` is the call that clears it. Not addressed by DEV-2823 and not yet reproduced — flagged here so the next person does not assume invalidating the position cache is sufficient.
+
+Before trusting a size cache across an operation, ask whether the operation changes the item count. If it does not, nothing invalidates for you.
+
 ## Content-driven sizes the master never renders
 
 The master renders a **contiguous** column band starting at the column under the horizontal scroll offset, so as soon as that band starts past column 0 it does not render the frozen (inline-start) columns at all — the inline-start overlays are the only tables holding that content. Any size measured from the master's rendered DOM therefore misses it. Two syncs in `axisSizing/oversizedRows.ts` close that gap, both called from `runMasterDrawCycle` **after** `wtOverlays.refresh(false)`:
