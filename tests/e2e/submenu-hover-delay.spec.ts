@@ -24,6 +24,12 @@ import { SubmenuHoverDelayPage } from '../fixtures/pages/SubmenuHoverDelayPage';
  * The survival tests also stamp the container and read the stamp back, because `toBeVisible()`
  * cannot tell a submenu that survived from one that was closed and instantly recreated.
  */
+/**
+ * Mirrors `SUB_MENU_HOVER_DELAY` in `menu.ts`. Used only to state a test's own precondition, never
+ * as something to sleep for.
+ */
+const SUB_MENU_HOVER_DELAY_MS = 300;
+
 test.describe('context menu submenu hover delay', () => {
   let menu: SubmenuHoverDelayPage;
 
@@ -111,13 +117,18 @@ test.describe('context menu submenu hover delay', () => {
 
     const anchor = await menu.itemBox('Alignment');
     const parentMenu = await menu.menuBox();
-    const anchorMiddle = (anchor.top + anchor.bottom) / 2;
 
     // Brush the anchor and leave sideways, well inside the open delay. Exiting to the LEFT crosses
     // no other row, which is what makes the stale timer visible — leaving through other rows
     // re-aims the pending open at a row that has no submenu and hides the bug.
-    await menu.travelTo(anchor.left + 30, anchorMiddle);
-    await menu.travelTo(parentMenu.left - 60, anchorMiddle);
+    const msToLeave = await menu.brushAnchorAndLeave(anchor, parentMenu);
+
+    // The precondition, stated rather than assumed. If the environment is slow enough that leaving
+    // took longer than the open delay, the submenu opening below is correct behaviour and the run
+    // proves nothing — so fail here, naming the cause, instead of below, blaming the code.
+    expect(msToLeave,
+      'the pointer must leave the menu within the open delay for this test to mean anything')
+      .toBeLessThan(SUB_MENU_HOVER_DELAY_MS);
 
     await menu.settlePastHoverDelay();
 

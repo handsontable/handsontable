@@ -148,6 +148,33 @@ export class SubmenuHoverDelayPage {
   }
 
   /**
+   * Brushes the anchor row and leaves the menu again, and reports how long that took.
+   *
+   * Deliberately TWO unstepped moves, not `travelTo`: this is the one test that has to beat the
+   * 300 ms open delay, and 25 intermediate points per move is 50 CDP round trips. Locally that
+   * finished about 250 ms after landing on the anchor — inside the delay by ~50 ms — and on a
+   * loaded CI runner it went past it, so the open fired and the submenu was there for a reason
+   * that had nothing to do with the behaviour under test. Two round trips leave a margin of
+   * hundreds of milliseconds instead of tens.
+   *
+   * No path is needed here anyway: the exit runs along the anchor's own row, so it crosses no
+   * other row whether it is stepped or not.
+   *
+   * @param {MenuGeometry} anchor The anchor item's box.
+   * @param {MenuGeometry} parentMenu The menu's own box.
+   * @returns {Promise<number>} Milliseconds from landing on the anchor to being off the menu.
+   */
+  async brushAnchorAndLeave(anchor: MenuGeometry, parentMenu: MenuGeometry): Promise<number> {
+    const anchorMiddle = (anchor.top + anchor.bottom) / 2;
+    const startedAt = Date.now();
+
+    await this.page.mouse.move(anchor.left + 30, anchorMiddle);
+    await this.page.mouse.move(parentMenu.left - 60, anchorMiddle);
+
+    return Date.now() - startedAt;
+  }
+
+  /**
    * The bounded settle used before every survival assertion here. Measured in milliseconds, not in
    * frames: the thing being outlasted is a `setTimeout`, and a frame count that clears 300 ms on a
    * 60Hz display does not clear it on a 144Hz one.
