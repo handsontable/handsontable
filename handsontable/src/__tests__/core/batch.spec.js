@@ -25,7 +25,6 @@ describe('Core.batch', () => {
     spyOn(hot, 'resumeExecution').and.callThrough();
     spyOn(hot, 'resumeRender').and.callThrough();
     spyOn(hot.view._wt, 'draw');
-    spyOn(hot.view._wt.wtOverlays, 'adjustElementsSize');
 
     const columnIndexCacheUpdated = jasmine.createSpy('columnIndexCacheUpdated');
     const rowIndexCacheUpdated = jasmine.createSpy('rowIndexCacheUpdated');
@@ -59,7 +58,6 @@ describe('Core.batch', () => {
     expect(hot.resumeExecution).toHaveBeenCalledBefore(hot.resumeRender);
     expect(hot.resumeRender).toHaveBeenCalledOnceWith();
     expect(hot.view._wt.draw).toHaveBeenCalledOnceWith(false); // fast redraw?
-    expect(hot.view._wt.wtOverlays.adjustElementsSize).toHaveBeenCalledTimes(1);
     expect(columnIndexCacheUpdated).toHaveBeenCalledTimes(3);
 
     expect(columnIndexCacheUpdated).toHaveBeenCalledWith({
@@ -101,9 +99,9 @@ describe('Core.batch', () => {
     });
 
     expect(getTopClone().width()).toBe(300);
-    expect(getTopClone().height()).toBe(layout.defaultDataRowHeight);
+    expect(getTopClone().height()).toBe(layout.columnHeaderBandHeight());
     expect(getTopInlineStartClone().width()).toBe(50);
-    expect(getTopInlineStartClone().height()).toBe(layout.defaultDataRowHeight);
+    expect(getTopInlineStartClone().height()).toBe(layout.columnHeaderBandHeight());
     expect(getInlineStartClone().width()).toBe(50);
     expect(getInlineStartClone().height())
       .toBe(layout.overlayHeight({ rows: 5 }) + layout.cellBorderWidth + layout.defaultColumnHeaderHeight);

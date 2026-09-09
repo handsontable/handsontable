@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed `hot.view.adjustElementsSize()` to resize the overlays right away when the grid's geometry has moved, instead of scheduling the resize for the next render. Nothing needs to call it any more, because the grid now detects the change on its own.",
+  "type": "changed",
+  "issueOrPR": 13442,
+  "breaking": false,
+  "framework": "none"
+}

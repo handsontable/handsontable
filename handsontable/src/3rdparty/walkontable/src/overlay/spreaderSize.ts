@@ -1,27 +1,20 @@
 import { getHiderHeightCompensation, addContentHeightSlack } from '../axisSizing/hiderCompensation';
 import type { EngineContext } from '../wire';
-import type { default as Overlays } from './overlays';
 
 /**
- * Assembles the SpreaderSize's dependencies. Most come from the engine composition context; the
- * scrollable element is resolved through the owning Overlays instance (it is computed there and can
- * change on `updateSettings`), so it is read via a thunk rather than captured.
+ * Assembles the SpreaderSize's dependencies from the engine composition context.
  *
  * @param {EngineContext} ctx The engine composition context.
- * @param {Overlays} overlays The owning Overlays coordinator.
  * @returns {object} The SpreaderSize dependency set.
  */
-export function createSpreaderSizeDeps(ctx: EngineContext, overlays: Overlays) {
+export function createSpreaderSizeDeps(ctx: EngineContext) {
   return {
     wtSettings: ctx.wtSettings,
-    rootWindow: ctx.rootWindow,
-    geometryReader: ctx.geometryReader,
     wtTable: ctx.getWtTable(),
     getWtViewport: ctx.getWtViewport,
     getTopOverlay: ctx.getTopOverlay,
     getInlineStartOverlay: ctx.getInlineStartOverlay,
     getBottomOverlay: ctx.getBottomOverlay,
-    getScrollableElement: () => overlays.scrollableElement,
   };
 }
 
@@ -32,13 +25,11 @@ export type SpreaderSizeDeps = ReturnType<typeof createSpreaderSizeDeps>;
 
 /**
  * Owns the master hider/spreader sizing math: it computes the hider's width/height from the summed
- * cell sizes (plus the header sizes and the border compensations), writes them to the DOM, and then
- * delegates to the top/inline-start/bottom overlays to size their own elements. It also caches the
- * last measured spreader size so the coordinator can skip a redundant resize when nothing changed.
+ * cell sizes (plus the header sizes and the first-row border compensation), writes them to the DOM,
+ * and then delegates to the top/inline-start/bottom overlays to size their own elements.
  *
  * Extracted from the Overlays coordinator so the sizing lifecycle is self-contained; the coordinator
- * keeps thin public `adjustElementsSize`/`updateLastSpreaderSize`/`expandHider*` delegates because
- * those are part of the public overlay API.
+ * keeps a thin public `adjustElementsSize` delegate because that is part of the public overlay API.
  *
  * @class SpreaderSize
  */
@@ -51,13 +42,6 @@ export class SpreaderSize {
   readonly #deps: SpreaderSizeDeps;
 
   /**
-   * The last cached spreader size, used to detect whether a resize is needed.
-   *
-   * @type {{ width: number | null, height: number | null }}
-   */
-  #lastSize: { width: number | null; height: number | null } = { width: null, height: null };
-
-  /**
    * @param {SpreaderSizeDeps} deps The SpreaderSize dependencies.
    */
   constructor(deps: SpreaderSizeDeps) {
@@ -65,46 +49,29 @@ export class SpreaderSize {
   }
 
   /**
-   * Update the last cached spreader size with the current size.
+   * Computes the width and height the hider element must take, without writing anything.
    *
-   * @returns {boolean} `true` if the lastSize cache was updated, `false` otherwise.
+   * Split out of {@link SpreaderSize#adjustElementsSize} so the change-detection gate in
+   * `Overlays` can ask "would this write differ from the last one?" against the very numbers the
+   * write uses. A gate built on a separate approximation of these values can disagree with the
+   * writer, and every such disagreement is either a missed resize (overlays drift out of step) or
+   * a wasted one.
+   *
+   * @returns {{ width: number, height: number }} The hider size in pixels.
    */
-  updateLastSpreaderSize() {
-    const spreader = this.#deps.wtTable.spreader;
-    const { geometryReader } = this.#deps;
-    const width = geometryReader.clientWidth(spreader);
-    const height = geometryReader.clientHeight(spreader);
-    const needsUpdating = width !== this.#lastSize.width || height !== this.#lastSize.height;
-
-    if (needsUpdating) {
-      this.#lastSize.width = width;
-      this.#lastSize.height = height;
-    }
-
-    return needsUpdating;
-  }
-
-  /**
-   * Adjust overlays elements size and master table size.
-   */
-  adjustElementsSize() {
-    const { wtSettings, rootWindow, geometryReader } = this.#deps;
+  getProposedHiderSize(): { width: number; height: number } {
+    const { wtSettings } = this.#deps;
     const wtViewport = this.#deps.getWtViewport();
-    const { wtTable } = this.#deps;
     const topOverlay = this.#deps.getTopOverlay();
     const inlineStartOverlay = this.#deps.getInlineStartOverlay();
-    const bottomOverlay = this.#deps.getBottomOverlay();
-    const scrollableElement = this.#deps.getScrollableElement();
-    const isWindowScrolled = scrollableElement === rootWindow;
     const totalColumns = wtSettings.getSetting<number>('totalColumns');
     const totalRows = wtSettings.getSetting<number>('totalRows');
     const headerRowSize = wtViewport.getRowHeaderWidth();
     const headerColumnSize = wtViewport.getColumnHeaderHeight();
-    // The internal row height calculator contains a known issue that results in a 1px miscalculation.
-    // Ideally, this should be addressed at the core level. However, resolving it is non-trivial,
-    // as the flaw is embedded across multiple core modules and corresponding test cases.
-    // This limitation does not affect when the external calculator is used (AutoRowSize), which
-    // computes heights accurately, so no adjustment is required when using it.
+    // `sumCellSizes` reports every row at its logical height, and the internal row-height calculator
+    // is short by one cell bottom border, which `getHiderHeightCompensation` folds back in (0 when
+    // AutoRowSize supplies exact heights, and 0 when a column header is rendered - since DEV-2786 the
+    // header owns that gridline and no body row draws it).
     //
     // Both terms carry their sub-pixel part: `getColumnHeaderHeight()` is an integer the calculators
     // depend on, and the compensation is a real border the browser widens below 100% zoom. Dropping
@@ -115,48 +82,41 @@ export class SpreaderSize {
     const summedHiderHeight = headerColumnSize + wtViewport.getColumnHeaderHeightFraction() +
       topOverlay.sumCellSizes(0, totalRows) + hiderHeightComp;
     const proposedHiderWidth = headerRowSize + inlineStartOverlay.sumCellSizes(0, totalColumns);
-    const hiderElement = wtTable.hider;
-    const hiderStyle = hiderElement.style;
-    const isScrolledBeyondHiderHeight = () => {
-      if (isWindowScrolled || !(scrollableElement instanceof HTMLElement)) {
-        return false;
-      }
 
-      return scrollableElement.scrollTop >
-        Math.max(0, summedHiderHeight - geometryReader.clientHeight(wtTable.holder));
-    };
-    const columnHeaderBorderCompensation = isScrolledBeyondHiderHeight() ? 1 : 0;
-    // The slack goes on last, over the scroll compensation too, so the height that actually reaches
-    // the DOM is the one that carries it. The scroll test above reads the plain sum on purpose: it
-    // asks how far this element can scroll, which is the content total, not the written height.
-    const proposedHiderHeight = addContentHeightSlack(
-      summedHiderHeight + columnHeaderBorderCompensation
-    );
+    // Neither dimension takes a SCROLL-POSITION compensation any more. The row header carries its
+    // inline-end border at every scroll position (#6673) and the column header its bottom border
+    // (DEV-2786), so neither total changes by scrolling - the `innerBorderTop` compensation that used
+    // to be added here once the table was scrolled to its very end
+    // (https://github.com/handsontable/dev-handsontable/issues/1772) has nothing left to correct, and
+    // the `isScrolledBeyondHiderHeight` test that selected it is gone with it.
+    //
+    // The SUB-PIXEL slack is a different thing and stays: it stops the hider element landing a hair
+    // under the table inside it, which is enough for the browser to draw a scrollbar (DEV-2525).
+    const proposedHiderHeight = addContentHeightSlack(summedHiderHeight);
 
-    // If the elements are being adjusted after scrolling the table from the very beginning to the very end,
-    // we need to adjust the hider height by the column header border size.
-    // (https://github.com/handsontable/dev-handsontable/issues/1772)
-    // The width needs no such compensation: the row header carries its inline-end border at every
-    // scroll position, so the horizontal total never changes by scrolling (#6673).
-    hiderStyle.width = `${proposedHiderWidth}px`;
-    hiderStyle.height = `${proposedHiderHeight}px`;
-
-    topOverlay.adjustElementsSize();
-    inlineStartOverlay.adjustElementsSize();
-    bottomOverlay.adjustElementsSize();
+    return { width: proposedHiderWidth, height: proposedHiderHeight };
   }
 
   /**
-   * Expand the hider vertically element by the provided delta value.
+   * Adjust overlays elements size and master table size.
    *
-   * @param {number} heightDelta The delta value to expand the hider element by.
+   * Returns the size it wrote so the caller does not have to recompute it. `getProposedHiderSize()`
+   * walks every column, and `Overlays` needs the same two numbers for its change-detection
+   * signature - handing them back is what keeps a resizing draw at two walks instead of three.
+   *
+   * @returns {{ width: number, height: number }} The hider size written, in pixels.
    */
-  expandHiderVerticallyBy(heightDelta: number) {
-    const { hider } = this.#deps.wtTable;
+  adjustElementsSize(): { width: number; height: number } {
+    const size = this.getProposedHiderSize();
+    const hiderStyle = this.#deps.wtTable.hider.style;
 
-    // `parseFloat`, not `parseInt`: below 100% zoom the height written above is fractional
-    // (e.g. "1209.1px"), and truncating it here would hand back the sub-pixel shortfall that
-    // `adjustElementsSize` just corrected.
-    hider.style.height = `${parseFloat(hider.style.height) + heightDelta}px`;
+    hiderStyle.width = `${size.width}px`;
+    hiderStyle.height = `${size.height}px`;
+
+    this.#deps.getTopOverlay().adjustElementsSize();
+    this.#deps.getInlineStartOverlay().adjustElementsSize();
+    this.#deps.getBottomOverlay().adjustElementsSize();
+
+    return size;
   }
 }

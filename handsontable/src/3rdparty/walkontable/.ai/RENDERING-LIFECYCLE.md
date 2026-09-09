@@ -30,9 +30,10 @@ Scroll and wheel events do **not** draw synchronously. They are coalesced with `
 so rapid input produces one redraw per frame. The rAF callback ends up in `Overlays.refreshAll()`
 (`overlays.ts:488`), which calls `wot.draw(true)` — a **fast draw** (see §4).
 
-`refreshAll()` also runs again *inside* a draw on the legacy path (see Phase H). So a single user action
-can enter the draw more than once. Removing that re-entrancy for the single-pass path is the deferred
-**S16b** step.
+`refreshAll()` used to run again *inside* a draw, so a single user action could enter the draw more
+than once. That re-entrancy is **gone on every path** (**S16b**, completed): both axes now hand the
+shared gridline to the header at every scroll position, no `innerBorder*` class shifts the layout, and
+`ctx.positionChanged` and the reconciliation branch it selected were removed with it. See Phase H.
 
 ---
 
@@ -65,13 +66,13 @@ master and clone no longer share one branchy method):
   `placeFixedOverlays` → reconcile-or-selection → finish (Phases B–H below).
 - **`runCloneDrawCycle(table, ctx)`** — an overlay clone: the strict subset a clone executes. No
   begin-layout phase (so a clone cannot downgrade `runFastDraw` — it takes the master-resolved value),
-  no view hooks, no fixed-position pass (so `positionChanged` stays `false` and it always renders
-  selections). A clone's `draw()` is driven from the master's `wtOverlays.refresh(fastDraw)`.
+  no view hooks, no fixed-position pass. A clone's `draw()` is driven from the master's
+  `wtOverlays.refresh(fastDraw)`.
 
 Shared steps are free-function phase helpers referenced by both cycles: `buildRenderFilters` (kept
 separate, run before the master `beforeDraw` gate), `renderCellBand` (with the inline
 `CLONE_BOTTOM`/bottom-corner header-suppression guards), `renderActiveSelections`. A per-draw
-`DrawContext` carries `runFastDraw`/`performRedraw`/`positionChanged` plus the header renderers/counts
+`DrawContext` carries `runFastDraw`/`performRedraw` plus the header renderers/counts
 captured **pre-hook** (the render must use the values read before `beforeDraw` fires).
 
 The phase descriptions in §5 below still hold; their bodies now live in `table/drawCycle.ts` (master
@@ -239,12 +240,12 @@ All line numbers are in `table.ts` unless noted. "Master only" = guarded by `thi
   the restored `null` calculators as the nothing-rendered spreader offset instead of throwing);
   and the fully/partially-**visible** calculators are deliberately NOT restored: they describe the
   scroll position, not the DOM contents — so after a skipped draw the visible band may extend past
-  the rendered band (unlike a fast draw), and `getCell` answers those rows with exit codes. A
-  skipped render also never runs the Phase F 1px `positionChanged` reconciliation via `refreshAll`
-  (the rolled-back band would fail the nested draw's fast-draw check and escalate it to a full
-  render); instead it reruns the fixed-position pass against the post-toggle layout (which
-  converges), renders the active selections, and still runs the master `adjustElementsSize()` so
-  the hider/scrollbar size stays current.
+  the rendered band (unlike a fast draw), and `getCell` answers those rows with exit codes. There is
+  no 1px reconciliation left for it to avoid; it reruns the fixed-position pass, renders the active
+  selections, and still runs the master `adjustElementsSize()` so the hider/scrollbar size stays
+  current. That last call is deliberately hoisted out of the branch it used to sit in: a skipped
+  render is the only master-draw path that never reaches `Overlays#refresh`, so it is the one place
+  the hider would otherwise keep a stale size.
 
 ### Phase E — Full path: cell + header render (`table.ts:564–585`, only if `performRedraw`)
 - `setHeaderContentRenderers(...)` (`565`); bottom / bottom-corner clones do not render column headers
@@ -279,23 +280,24 @@ All line numbers are in `table.ts` unless noted. "Master only" = guarded by `thi
 - Call `resetFixedPosition()` on top (`624`), bottom-if-cloned (`626–628`), inline-start (`630`), and
   corner overlays (`632–638`). Each positions its clone and, for top/bottom/inline-start, decides the
   `innerBorderTop` / `innerBorderInlineStart` / `innerBorderBottom` class via `adjustHeaderBordersPosition`.
-  Only the TOP and BOTTOM results OR-together into `positionChanged`, because only the two ROW-axis
-  classes still shift the layout. `innerBorderInlineStart` is stamped for backward compatibility and
-  drives no geometry since #6673, so the inline-start overlay reports `false` unconditionally and its
-  result is not read at all; the corner overlays never contributed and return a constant `true` that
-  must never be ORed in (see AGENTS.md, "Column-axis border ownership", and the comment in
-  `placeFixedOverlays`).
-- **S16a seam:** the border decision is now a pure `#computeHeaderBordersState(...)` separated from its
-  DOM write in `overlay/regions/topOverlay.ts` / `inlineStartOverlay.ts` / `bottomOverlay.ts` — so S16b
-  can move the decision pre-render. Behavior today is unchanged (compute + apply still called in
-  sequence here).
+  **No result is read.** All three classes are stamped for backward compatibility only and none of them
+  drives geometry any more — the inline-start one since #6673, the two row-axis ones since the row axis
+  settled — so every overlay returns `false` and `placeFixedOverlays` discards what it gets. The corner
+  overlays never contributed and return a constant `true` that must never be ORed in (see AGENTS.md,
+  "Border ownership", and the comment in `placeFixedOverlays`).
+- **S16a/S16b, completed:** the decision was split into a pure `#computeHeaderBordersState(...)` so it
+  could move pre-render; with the classes shifting nothing there is nothing left to move, so both that
+  helper and the `prepareHeaderBorders()` pre-render call are gone. `adjustHeaderBordersPosition` now
+  only stamps.
 
-### Phase H — Border refresh vs selection render, then afterDraw (`table.ts:621–657`)
-- If `positionChanged` (`641`): `wtOverlays.refreshAll()` (`645`) — **which calls `wot.draw(true)` again**,
-  a nested fast draw — plus `adjustElementsSize()`. The nested draw absorbs the 1px shift from toggling
-  an `innerBorder*` class. This is the recursion **S16b** removes for the gated single-pass path (the
-  border class will be applied pre-render so no post-render shift occurs); it stays on the legacy path.
-- Else (`647`): `selectionManager.setActiveOverlay(facade).render(runFastDraw)`.
+### Phase H — Selection render, then afterDraw (`table.ts:621–657`)
+- `selectionManager.setActiveOverlay(facade).render(runFastDraw)`, unconditionally. There used to be a
+  branch here: a `positionChanged` draw called `wtOverlays.refreshAll()` instead — **which calls
+  `wot.draw(true)` again**, a nested fast draw over the master and every clone — to absorb the 1px
+  shift from toggling an `innerBorder*` class, and skipped the selection render on that pass. Nothing
+  shifts any more, so the flag, the branch and the recursion were removed together. The
+  `adjustElementsSize()` that rode along inside that branch was hoisted to the skipped-render path,
+  which is the only one that needs it (Phase D).
 - Master: `wtOverlays.afterDraw()` (`654`): `syncScrollWithMaster()` and reset overlays whose rendering
   state changed.
 - `setDrawn(true)` (`657`).
@@ -368,11 +370,13 @@ See CONCERNS "Gotchas".**
 
 ## 9. Deferred / not done (recorded so the seams are known)
 
-- **S16b** — for the gated path: apply the `innerBorder*` class pre-render, skip the
-  `positionChanged → refreshAll → wot.draw(true)` recursion (Phase H), render selection unconditionally.
-  Must stay gated (`singlePassLayout && !window-scrollable`); legacy keeps the nested draw. The S16a seam
-  (§5 Phase G) is in place. Discriminator to verify first: the nested `draw(true)` refreshes selection
-  internally, whereas S16b runs `selectionManager.render()` always.
+- **S16b — done, and it needed no gate.** The plan was to apply the `innerBorder*` class pre-render on
+  the single-pass path only and leave the legacy path its nested draw. Settling the border ownership
+  instead removed the shift on every path, so the class is applied wherever it always was, the
+  recursion is gone unconditionally, and `selectionManager.render()` runs on every draw. The
+  `prepareHeaderBorders` pre-render machinery the gated version needed was deleted rather than
+  extended. Regression cover: `tests/e2e/walkontable/inline-start-border-refresh.spec.ts` counts the
+  re-entrant `refreshAll` at 0 on both axes and on both layout paths.
 - **S15 full deletion** of the second calculator pass — only the R4 conditional skip landed; full removal
   is blocked while the legacy measured path exists.
 - **Merged-cell single-pass** — permanently excluded via the escape hatch (the height ↔ viewport

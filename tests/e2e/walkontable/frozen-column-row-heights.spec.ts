@@ -144,15 +144,18 @@ test.describe('walkontable row heights with frozen columns', { tag: '@walkontabl
   });
 
   test('keeps frozen ownership when the tall row is the first row the master renders', async () => {
-    // The band's first <tr> carries an extra 1px top border, so this row measures 1px taller than
-    // the same row anywhere else. Ownership moves on "the master out-measured the frozen side", and
-    // 1px of border is not the master's content — reading it as such would hand the row back to a
-    // master that cannot recreate its height, and the two sides would fight over it every draw.
+    // The band's first <tr> is the row the first-row border compensation applies to. Ownership moves
+    // on "the master out-measured the frozen side", and a border pixel is not the master's content —
+    // reading it as such would hand the row back to a master that cannot recreate its height, and
+    // the two sides would fight over it every draw (`countRowCacheInvalidations` is what sees that).
     //
     // It holds because the inline-start clone mirrors the master's row band: the boundary row is the
-    // first <tr> in BOTH tables, so both measurements carry the same 1px and neither out-measures
-    // the other. This test exists because that is a property of the clone's filters, not of this
-    // code, and nothing else here would notice if it changed.
+    // first <tr> in BOTH tables, so whatever the compensation is, both measurements carry it and
+    // neither out-measures the other. Since DEV-2786 a table that renders a column header hands the
+    // seam to the header and its first <tr> draws no border of its own (only the head-less bottom
+    // clones still do), so with this fixture's column headers the compensation is 0px on both sides —
+    // the symmetry, not the pixel, is what this test pins, and nothing else here would notice if
+    // the two tables ever compensated differently.
     const BOUNDARY_ROW = 4;
 
     await wt.goto({ tallRow: BOUNDARY_ROW, rows: 100 });
@@ -166,44 +169,61 @@ test.describe('walkontable row heights with frozen columns', { tag: '@walkontabl
     await wt.setTallCell(true);
 
     await expect.poll(() => wt.masterFirstRenderedRow()).toBe(BOUNDARY_ROW);
-    expect(await wt.rowHeight(wt.master, BOUNDARY_ROW))
-      .toBe(await wt.rowHeight(wt.inlineStartOverlay, BOUNDARY_ROW));
+    // Polled until both tables agree on a height ABOVE a normal row's: a plain compare between two
+    // reads also passes while both still show the provided height, or when the two reads straddle
+    // the draw that follows the growth (the holder's scroll range changes with it).
+    await wt.settledTallRowHeight(BOUNDARY_ROW);
     expect(await wt.countRowCacheInvalidations(3)).toBe(0);
   });
 
   test('keeps the panes aligned when the band boundary moves onto an already-tall row', async () => {
-    // The band's first <tr> gains a 1px border-top, so a row's total height changes by 1px purely
-    // by scrolling onto the boundary. The record holds that total, and the overlay whose content
-    // actually needs it cannot render in one pixel less — so a record left on the old side of the
-    // flip puts that overlay 1px away from every other table, and every row below it with it.
+    // A row's recorded height is re-measured every time the band moves onto or off it, and the
+    // overlay whose content actually needs the height cannot render one pixel less than its content
+    // — so a record left behind by a boundary move puts that overlay away from every other table,
+    // and every row below it with it. Before DEV-2786 the band's first <tr> gained a 1px border-top,
+    // which made the total genuinely flip by 1px at the boundary; a table that renders a column
+    // header now hands that seam to the header, so with this fixture's column headers the boundary
+    // row must measure EXACTLY its resting height on both sides, and the record must come back to it
+    // unchanged when the band moves off again.
     //
     // The record has to be established AWAY from the boundary and then have the boundary move onto
-    // it. Creating the tall content while already at the boundary measures the right total straight
-    // away and hides this entirely.
+    // it. Creating the tall content while already at the boundary measures the boundary total
+    // straight away and hides this entirely.
     const BOUNDARY_ROW = 4;
 
     await wt.goto({ tallRow: BOUNDARY_ROW, rows: 100 });
 
-    const restingHeight = await wt.rowHeight(wt.master, BOUNDARY_ROW);
-
-    expect(restingHeight).toBeGreaterThan(await wt.normalRowHeight());
+    // Established, not caught: the value every assertion below is pinned to is the first height both
+    // tables agree on above a normal row's, so a read that lands before the draw settles them cannot
+    // become the reference.
+    const restingHeight = await wt.settledTallRowHeight(BOUNDARY_ROW);
 
     await wt.scrollToRowAtTop(BOUNDARY_ROW + 1);
 
     await expect.poll(() => wt.masterFirstRenderedRow()).toBe(BOUNDARY_ROW);
-    expect(await wt.rowHeight(wt.master, BOUNDARY_ROW))
-      .toBe(await wt.rowHeight(wt.inlineStartOverlay, BOUNDARY_ROW));
+    // At the boundary both tables must land on exactly the resting height (no border pixel under a
+    // column header, see above). Pinned, because a compare between the two tables alone also passes
+    // while both still show the provided height.
+    await expect.poll(() => wt.rowHeights(BOUNDARY_ROW))
+      .toEqual({ master: restingHeight, overlay: restingHeight });
+    await expect.poll(() => wt.rowOffsetDrift([BOUNDARY_ROW + 1, BOUNDARY_ROW + 2, BOUNDARY_ROW + 3]))
+      .toEqual([0, 0, 0]);
 
-    for (const row of [BOUNDARY_ROW + 1, BOUNDARY_ROW + 2, BOUNDARY_ROW + 3]) {
-      expect(await wt.rowOffsetWithinTable(wt.master, row))
-        .toBe(await wt.rowOffsetWithinTable(wt.inlineStartOverlay, row));
-    }
-
-    // And back off the boundary again — the 1px must not be left behind.
+    // And back off the boundary again — nothing must be left behind. Polled, and pinned to the
+    // resting height rather than compared between the tables.
+    //
+    // The draw that moves the band is one synchronous task and leaves BOTH tables at the resting
+    // height: the frozen overlay is measured and the master's rows are re-sized inside that same
+    // draw (`syncOversizedRowsWithFrozenOverlays` in `drawCycle.ts`), and mutation-level traces of
+    // 148 scroll-backs never showed the two apart at any task boundary. What this assertion used to
+    // catch (3 of 150 runs under load, `Expected: 69, Received: 30`) was the reader: a locator's
+    // `boundingBox()` resolves the node and reads its box in two round trips, Walkontable recycles
+    // the same <tr> nodes across the re-render, and a node resolved as the boundary row before the
+    // draw is row 0 after it — 30 is a normal row's height. `rowHeights()` reads both tables in one
+    // evaluation; the poll absorbs a read that lands before the draw.
     await wt.scrollVerticallyTo(0);
 
-    expect(await wt.rowHeight(wt.master, BOUNDARY_ROW))
-      .toBe(await wt.rowHeight(wt.inlineStartOverlay, BOUNDARY_ROW));
+    await expect.poll(() => wt.rowHeights(BOUNDARY_ROW)).toEqual({ master: restingHeight, overlay: restingHeight });
   });
 
   test('keeps the scroll range whole when the BOTTOM clone invalidates the cache mid-draw', async () => {

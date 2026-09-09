@@ -8,11 +8,11 @@
   <br><br>
   <h3>The official <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/vue-icon.svg" width="16" height="16"> Vue 3 wrapper for Handsontable.
     <br>
-    <a href="https://handsontable.com/docs" target="_blank">JavaScript Data Grid</a> with a spreadsheet-like look and feel.</h3>
+    <a href="https://handsontable.com/docs/vue-data-grid" target="_blank">JavaScript Data Grid</a> with a spreadsheet-like look and feel.</h3>
 
   <p>With its spreadsheet-like editing features, it’s perfect for building data-rich internal apps. It allows users to enter, edit, validate, and process data from various sources. Common use cases include resource planning software (ERP), inventory management systems, digital platforms, and data modeling applications.</p>
 
-<a href="https://handsontable.com">Website</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/javascript-data-grid/vue3-installation/">Documentation</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/themes">Themes</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/api">API</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://github.com/handsontable/handsontable/discussions">Community</a>
+<a href="https://handsontable.com">Website</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/vue-data-grid">Documentation</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/vue-data-grid/themes">Themes</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/vue-data-grid/api">API</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://forum.handsontable.com/">Community</a>
 
   <br>
 
@@ -36,25 +36,30 @@
 
 ## ✨ Key Features
 
-&nbsp;&nbsp;✅&nbsp; [Built-in themes](https://handsontable.com/docs/themes/) <br>
-&nbsp;&nbsp;✅&nbsp; [Flexible API](https://handsontable.com/docs/api/) <br>
-&nbsp;&nbsp;✅&nbsp; [Virtualization](https://handsontable.com/docs/row-virtualization/) <br>
-&nbsp;&nbsp;✅&nbsp; [IME support](https://handsontable.com/docs/ime-support/) <br>
-&nbsp;&nbsp;✅&nbsp; [Internationalization](https://handsontable.com/docs/language/) <br>
-&nbsp;&nbsp;✅&nbsp; [RTL support](https://handsontable.com/docs/layout-direction/) <br>
-&nbsp;&nbsp;✅&nbsp; [Accessibility](https://handsontable.com/docs/accessibility/) <br>
-&nbsp;&nbsp;✅&nbsp; [Keyboard shortcuts](https://handsontable.com/docs/keyboard-shortcuts/) <br>
-&nbsp;&nbsp;✅&nbsp; [Sorting data](https://handsontable.com/docs/rows-sorting/) <br>
-&nbsp;&nbsp;✅&nbsp; [Filtering data](https://handsontable.com/docs/column-filter/) <br>
-&nbsp;&nbsp;✅&nbsp; [400 built-in formulas](https://handsontable.com/docs/formula-calculation/) <br>
-&nbsp;&nbsp;✅&nbsp; [Configurable selection](https://handsontable.com/docs/selection/) <br>
-&nbsp;&nbsp;✅&nbsp; [Data validation](https://handsontable.com/docs/cell-validator/) <br>
-&nbsp;&nbsp;✅&nbsp; [Conditional formatting](https://handsontable.com/docs/conditional-formatting/) <br>
-&nbsp;&nbsp;✅&nbsp; [Merged cells](https://handsontable.com/docs/merge-cells/) <br>
-&nbsp;&nbsp;✅&nbsp; [Pinned/frozen columns](https://handsontable.com/docs/column-freezing/) <br>
-&nbsp;&nbsp;✅&nbsp; [Hiding columns](https://handsontable.com/docs/column-hiding/) <br>
-&nbsp;&nbsp;✅&nbsp; [Right-click context menu](https://handsontable.com/docs/context-menu/) <br>
-&nbsp;&nbsp;✅&nbsp; [Row pagination](https://handsontable.com/docs/rows-pagination/) <br>
+&nbsp;&nbsp;✅&nbsp; [Built-in themes](https://handsontable.com/docs/vue-data-grid/themes/) <br>
+&nbsp;&nbsp;✅&nbsp; [Flexible API](https://handsontable.com/docs/vue-data-grid/api/) <br>
+&nbsp;&nbsp;✅&nbsp; [Virtualization](https://handsontable.com/docs/vue-data-grid/row-virtualization/) <br>
+&nbsp;&nbsp;✅&nbsp; [IME support](https://handsontable.com/docs/vue-data-grid/ime-support/) <br>
+&nbsp;&nbsp;✅&nbsp; [Internationalization](https://handsontable.com/docs/vue-data-grid/language/) <br>
+&nbsp;&nbsp;✅&nbsp; [RTL support](https://handsontable.com/docs/vue-data-grid/layout-direction/) <br>
+&nbsp;&nbsp;✅&nbsp; [Accessibility](https://handsontable.com/docs/vue-data-grid/accessibility/) <br>
+&nbsp;&nbsp;✅&nbsp; [Keyboard shortcuts](https://handsontable.com/docs/vue-data-grid/keyboard-shortcuts/) <br>
+&nbsp;&nbsp;✅&nbsp; [Sorting data](https://handsontable.com/docs/vue-data-grid/rows-sorting/) <br>
+&nbsp;&nbsp;✅&nbsp; [Filtering data](https://handsontable.com/docs/vue-data-grid/column-filter/) <br>
+&nbsp;&nbsp;✅&nbsp; [400 built-in formulas](https://handsontable.com/docs/vue-data-grid/formula-calculation/) <br>
+&nbsp;&nbsp;✅&nbsp; [Configurable selection](https://handsontable.com/docs/vue-data-grid/selection/) <br>
+&nbsp;&nbsp;✅&nbsp; [Data validation](https://handsontable.com/docs/vue-data-grid/cell-validator/) <br>
+&nbsp;&nbsp;✅&nbsp; [Conditional formatting](https://handsontable.com/docs/vue-data-grid/conditional-formatting/) <br>
+&nbsp;&nbsp;✅&nbsp; [Merged cells](https://handsontable.com/docs/vue-data-grid/merge-cells/) <br>
+&nbsp;&nbsp;✅&nbsp; [Pinned/frozen columns](https://handsontable.com/docs/vue-data-grid/column-freezing/) <br>
+&nbsp;&nbsp;✅&nbsp; [Hiding columns](https://handsontable.com/docs/vue-data-grid/column-hiding/) <br>
+&nbsp;&nbsp;✅&nbsp; [Right-click context menu](https://handsontable.com/docs/vue-data-grid/context-menu/) <br>
+&nbsp;&nbsp;✅&nbsp; [Row pagination](https://handsontable.com/docs/vue-data-grid/rows-pagination/) <br>
+&nbsp;&nbsp;✅&nbsp; [Server-side data](https://handsontable.com/docs/vue-data-grid/server-side-data/) <br>
+&nbsp;&nbsp;✅&nbsp; [Notifications](https://handsontable.com/docs/vue-data-grid/notification/) <br>
+&nbsp;&nbsp;✅&nbsp; [Export to Excel](https://handsontable.com/docs/vue-data-grid/export-to-excel/) <br>
+&nbsp;&nbsp;✅&nbsp; [Date and time editing](https://handsontable.com/docs/vue-data-grid/cell-type/) <br>
+&nbsp;&nbsp;✅&nbsp; [Shadow DOM / Web Components support](https://handsontable.com/docs/vue-data-grid/shadow-dom/) <br>
 
 <div id="installation">
 
@@ -71,7 +76,7 @@ Below is the installation guide for the Handsontable with Vue 3 wrapper. If you'
 npm install handsontable @handsontable/vue3
 ```
 
-You can load it directly from [jsDelivr](https:jsdelivr.com/package/npm/@handsontable/vue3) as well.
+You can load it directly from [jsDelivr](https://www.jsdelivr.com/package/npm/@handsontable/vue3) as well.
 ```html
 <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@handsontable/vue3/dist/vue-handsontable.min.js"></script>
@@ -81,7 +86,7 @@ The component will be available as `Handsontable.vue.HotTable`.
 
 ### Usage
 
-Use this data grid as you would any other component in your application. [Options](https://handsontable.com/docs/api/options/) can be set as `HotTable` props.
+Use this data grid as you would any other component in your application. [Options](https://handsontable.com/docs/vue-data-grid/api/options/) can be set as `HotTable` props.
 
 **Vue 3 Component**
 ```vue
@@ -165,7 +170,7 @@ To stay aligned with design, you can rely on the:
 
 - [Website](https://handsontable.com)
 - [Demo](https://handsontable.com/demo)
-- [Documentation](https://handsontable.com/docs/javascript-data-grid/vue3-installation/)
+- [Documentation](https://handsontable.com/docs/vue-data-grid)
 - [npm](https://www.npmjs.com/package/@handsontable/vue3)
 - [CDN](https://www.jsdelivr.com/package/npm/@handsontable/vue3)
 - [Forum](https://forum.handsontable.com/)
@@ -200,7 +205,7 @@ At first glance, it might seem that a data table, spreadsheet, and data grid are
 **We're here to help!**
 
 If you're using Handsontable with a free, non-commercial license, you can:
-- Join the conversation on [GitHub Discussions](https://github.com/handsontable/handsontable/discussions) to share ideas, suggest features, or discuss changes.
+- Get quick help from our [**Ask AI** assistant](https://handsontable.com/docs/vue-data-grid/ai-docs-assistant/) available in the documentation.
 - Report any bugs you find on our [GitHub Issue Board](https://github.com/handsontable/handsontable/issues).
 - Connect with other developers and find answers on our [Developer Forum](https://forum.handsontable.com).
 
@@ -240,4 +245,4 @@ Created and maintained by the [Handsontable Team](https://handsontable.com/team)
 
 ---
 
-© 2012 - 2025 Handsoncode
+© 2012 - 2026 Handsoncode

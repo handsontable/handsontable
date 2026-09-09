@@ -1135,6 +1135,14 @@ export default (): Record<string, unknown> => {
      * option read strings at all. A negative string is rejected instead, so a typo cannot collapse
      * the header.
      *
+     * The height is the header's **border-box** height, so it includes the header's own top and
+     * bottom borders. A column header carries a 1px border on each side, which makes
+     * `columnHeaderHeight: 40` leave a 38px content box for the label. Before Handsontable 18.2 the
+     * bottom border was dropped while the grid sat at the top of its scroll range and added back as
+     * soon as it scrolled, so the same setting produced a 39px content box unscrolled and 38px
+     * scrolled. The header keeps that border at every scroll position now, so the option resolves to
+     * the same height wherever the grid is scrolled to.
+     *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *

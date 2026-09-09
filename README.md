@@ -60,6 +60,8 @@
 &nbsp;&nbsp;✅&nbsp; [Server-side data](https://handsontable.com/docs/javascript-data-grid/server-side-data/) <br>
 &nbsp;&nbsp;✅&nbsp; [Notifications](https://handsontable.com/docs/javascript-data-grid/notification/) <br>
 &nbsp;&nbsp;✅&nbsp; [Export to Excel](https://handsontable.com/docs/javascript-data-grid/export-to-excel/) <br>
+&nbsp;&nbsp;✅&nbsp; [Date and time editing](https://handsontable.com/docs/javascript-data-grid/cell-type/) <br>
+&nbsp;&nbsp;✅&nbsp; [Shadow DOM / Web Components support](https://handsontable.com/docs/javascript-data-grid/shadow-dom/) <br>
 
 <br>
 
