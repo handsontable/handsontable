@@ -360,29 +360,33 @@ $all-sheets-visible-items: 8;
         display: none;
       }
 
+      // The design system draws the edit state as the whole tab becoming the field: the tab
+      // itself wears the editor surface and a full accent border, at its normal size and
+      // padding. The border is an inset shadow, which takes no layout space — the bar must not
+      // grow when a rename starts — and it replaces the active tab's bottom marker outright,
+      // which is why the renaming rules sit after the active ones.
+      .ht-sheets-bar__tab--renaming,
+      .ht-sheets-bar__tab--renaming:hover {
+        color: var(--ht-cell-editor-foreground-color);
+        background: var(--ht-cell-editor-background-color);
+        box-shadow: inset 0 0 0 1px var(--ht-cell-editor-border-color);
+      }
+
+      // The input is a transparent window into the tab's own surface — every visual belongs to
+      // the tab above, so the field spans the full tab however wide the typed name grows.
       .ht-sheets-bar__tab-rename {
         font-size: inherit;
         line-height: inherit;
-        color: var(--ht-cell-editor-foreground-color);
-        background: var(--ht-cell-editor-background-color);
+        color: inherit;
+        background: transparent;
         user-select: text;
-        // Drawn as an inset shadow rather than a border: inputs are normalized to
-        // `content-box`, so a real border would add its two pixels to the field's height and
-        // make the whole bar grow the moment a rename starts. A shadow paints inside the box
-        // and takes no layout space, so the tab keeps the height its label had.
         border: none;
-        box-shadow: inset 0 0 0 1px var(--ht-cell-editor-border-color);
+        box-shadow: none;
         border-radius: 0;
-        padding-inline: var(--ht-gap-size);
-        padding-block: 0;
-        // The field fills most of the tab's height, the way the design system draws it: the
-        // negative block margin reaches into the tab's own padding, leaving a gap-sized inset
-        // from the bar's edges instead of a text-height sliver floating in the middle.
-        align-self: stretch;
-        margin-block: calc(var(--ht-gap-size) - var(--ht-sheets-bar-tab-vertical-padding));
-        // The accent border is the focus indication, exactly like the cell editor it borrows
-        // its tokens from — the browser's own focus ring drew a second, rounded outline around
-        // the field (UX review: "like the design system").
+        padding: 0;
+        // The tab's accent border is the focus indication, exactly like the cell editor it
+        // borrows its tokens from — the browser's own focus ring drew a second, rounded
+        // outline around the field (UX review: "like the design system").
         outline: none;
         // The width itself is measured and set inline while typing; these two bound it, so a
         // one-character name stays clickable and a very long one cannot outgrow the bar.
