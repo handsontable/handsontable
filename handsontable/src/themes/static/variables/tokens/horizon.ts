@@ -269,6 +269,8 @@ const horizonTokens: ThemeTokensConfig = {
   paginationButtonFocusBorderColor: 'tokens.accentColor',
   paginationButtonFocusForegroundColor: 'tokens.foregroundColor',
   paginationButtonFocusBackgroundColor: 'tokens.paginationBarBackgroundColor',
+  sheetsBarHorizontalPadding: 'sizing.size_2',
+  sheetsBarBackgroundColor: 'tokens.barBackgroundColor',
   sheetsBarTabHorizontalPadding: 'sizing.size_4',
   sheetsBarTabVerticalPadding: 'sizing.size_2',
   sheetsBarTabForegroundColor: 'tokens.barForegroundColor',

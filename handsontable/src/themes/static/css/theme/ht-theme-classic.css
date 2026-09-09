@@ -314,6 +314,8 @@
   --ht-pagination-button-focus-border-color: var(--ht-accent-color);
   --ht-pagination-button-focus-foreground-color: var(--ht-foreground-color);
   --ht-pagination-button-focus-background-color: var(--ht-pagination-bar-background-color);
+  --ht-sheets-bar-horizontal-padding: var(--ht-sizing-size-2);
+  --ht-sheets-bar-background-color: var(--ht-bar-background-color);
   --ht-sheets-bar-tab-horizontal-padding: var(--ht-sizing-size-2);
   --ht-sheets-bar-tab-vertical-padding: var(--ht-sizing-size-1-5);
   --ht-sheets-bar-tab-foreground-color: var(--ht-bar-foreground-color);

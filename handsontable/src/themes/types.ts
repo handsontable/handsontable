@@ -392,6 +392,8 @@ export type TokenKey =
   | 'paginationButtonFocusForegroundColor'
   | 'paginationButtonFocusBackgroundColor'
   // Sheets bar
+  | 'sheetsBarHorizontalPadding'
+  | 'sheetsBarBackgroundColor'
   | 'sheetsBarTabHorizontalPadding'
   | 'sheetsBarTabVerticalPadding'
   | 'sheetsBarTabForegroundColor'

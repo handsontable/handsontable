@@ -269,6 +269,8 @@ const classicTokens: ThemeTokensConfig = {
   paginationButtonFocusBorderColor: 'tokens.accentColor',
   paginationButtonFocusForegroundColor: 'tokens.foregroundColor',
   paginationButtonFocusBackgroundColor: 'tokens.paginationBarBackgroundColor',
+  sheetsBarHorizontalPadding: 'sizing.size_2',
+  sheetsBarBackgroundColor: 'tokens.barBackgroundColor',
   sheetsBarTabHorizontalPadding: 'sizing.size_2',
   sheetsBarTabVerticalPadding: 'sizing.size_1_5',
   sheetsBarTabForegroundColor: 'tokens.barForegroundColor',

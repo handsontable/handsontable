@@ -395,8 +395,10 @@ const tokensKeys = [
   // The design-system file currently exports these under `component/tabs/tab-*` and
   // `component/sheets/sheets-bar-*`; the export must carry the `sheets-bar-tab-*` names below
   // (matching the shipped CSS API) for the generator to pick them up — flag the rename to the
-  // design side before the next tokens.json export. The bar's own padding and background ride
-  // on the shared `bar-*` tokens, so only the tab-level keys are listed.
+  // design side before the next tokens.json export. The bar-level keys already match the
+  // `component/sheets/sheets-bar-*` export names.
+  'sheets-bar-horizontal-padding',
+  'sheets-bar-background-color',
   'sheets-bar-tab-horizontal-padding',
   'sheets-bar-tab-vertical-padding',
   'sheets-bar-tab-foreground-color',

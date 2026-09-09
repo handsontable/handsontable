@@ -31,6 +31,14 @@ $all-sheets-visible-items: 8;
       padding-block: 0;
     }
 
+    // The base stylesheet marks a scrolling grid with an inset 1px border on its holder. The
+    // menu's rows are opaque and cover it, but the block padding above exposes the line at the
+    // scroll extremes — and the menu's own border already comes from its wrapper, so the inner
+    // one is dropped. `.htMenu` is repeated for specificity: the base rule carries five classes.
+    &.htMenu.htSheetsBarMenu .ht_master .wtHolder {
+      box-shadow: none;
+    }
+
     &.htSheetsBarMenu .ht_master .wtHolder {
       padding-block: var(--ht-menu-vertical-padding, 8px);
       // A row is its line box, its vertical padding, and the 1px bottom border every grid cell
@@ -94,7 +102,7 @@ $all-sheets-visible-items: 8;
     &.ht-sheets-bar {
       width: 100%;
       color: var(--ht-bar-foreground-color);
-      background: var(--ht-bar-background-color);
+      background: var(--ht-sheets-bar-background-color);
       font-size: var(--ht-font-size);
       line-height: var(--ht-line-height);
       box-sizing: border-box;
@@ -118,7 +126,7 @@ $all-sheets-visible-items: 8;
         display: flex;
         align-items: stretch;
         justify-content: space-between;
-        padding-inline: var(--ht-bar-horizontal-padding);
+        padding-inline: var(--ht-sheets-bar-horizontal-padding);
       }
 
       .ht-sheets-bar__controls,
@@ -236,7 +244,11 @@ $all-sheets-visible-items: 8;
         cursor: pointer;
         align-items: center;
         flex: 0 0 auto;
-        gap: var(--ht-gap-size);
+
+        // The design keeps the label-to-chevron gap at 4px in every theme, while the shared
+        // gap token varies with the theme's density (2px on classic, 6px on horizon) — so the
+        // gap comes from the sizing scale, which is 4px everywhere.
+        gap: var(--ht-sizing-size-1);
         padding-inline: var(--ht-sheets-bar-tab-horizontal-padding);
         padding-block: var(--ht-sheets-bar-tab-vertical-padding);
         color: var(--ht-sheets-bar-tab-foreground-color);
@@ -327,10 +339,10 @@ $all-sheets-visible-items: 8;
       }
 
       .ht-sheets-bar__tab-chevron {
+        position: relative;
         display: flex;
         align-items: center;
         color: var(--ht-icon-button-icon-color);
-        border-radius: var(--ht-icon-button-border-radius);
 
         // The glyph is small, so the target is grown around it and the growth is pulled back
         // out of the layout: the tab keeps the width it had, and the padding becomes hit area
@@ -338,6 +350,17 @@ $all-sheets-visible-items: 8;
         padding: var(--ht-gap-size);
         margin-inline-end: calc(var(--ht-gap-size) * -1);
         margin-block: calc(var(--ht-gap-size) * -1);
+
+        // The hover surface is drawn on its own layer, inset back to the glyph's box: the
+        // design paints the icon's own 16px square, while the padding above stays hit area
+        // that must not light up with it.
+        &::before {
+          @include mixins.pseudo;
+
+          position: absolute;
+          inset: var(--ht-gap-size);
+          border-radius: var(--ht-icon-button-border-radius);
+        }
 
         &::after {
           @include mixins.pseudo;
@@ -352,8 +375,11 @@ $all-sheets-visible-items: 8;
       .ht-sheets-bar__tab--active .ht-sheets-bar__tab-chevron:hover,
       .ht-sheets-bar__tab--active .ht-sheets-bar__tab-chevron:focus-visible {
         color: var(--ht-icon-button-hover-icon-color);
-        background-color: var(--ht-icon-button-hover-background-color);
-        box-shadow: 0 0 0 1px var(--ht-icon-button-hover-border-color);
+
+        &::before {
+          background-color: var(--ht-icon-button-hover-background-color);
+          box-shadow: 0 0 0 1px var(--ht-icon-button-hover-border-color);
+        }
       }
 
       .ht-sheets-bar__tab--renaming .ht-sheets-bar__tab-chevron {

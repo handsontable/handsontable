@@ -379,6 +379,8 @@ const VALID_TOKEN_KEYS = new Set([
   'paginationButtonFocusForegroundColor',
   'paginationButtonFocusBackgroundColor',
   // Sheets bar
+  'sheetsBarHorizontalPadding',
+  'sheetsBarBackgroundColor',
   'sheetsBarTabHorizontalPadding',
   'sheetsBarTabVerticalPadding',
   'sheetsBarTabForegroundColor',

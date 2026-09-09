@@ -854,6 +854,8 @@ These variables style the [Notification](@/guides/dialog/notification/notificati
 
 | Variable | Description                          |
 | -------- | ------------------------------------ |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-sheets-bar-horizontal-padding` </div><div class="variables-table__item"><span>JS:</span> `sheetsBarHorizontalPadding` </div>   | Horizontal padding of the sheets bar |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-sheets-bar-background-color` </div><div class="variables-table__item"><span>JS:</span> `sheetsBarBackgroundColor` </div>   | Background color of the sheets bar |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-sheets-bar-tab-horizontal-padding` </div><div class="variables-table__item"><span>JS:</span> `sheetsBarTabHorizontalPadding` </div>   | Horizontal padding of a sheets bar tab |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-sheets-bar-tab-vertical-padding` </div><div class="variables-table__item"><span>JS:</span> `sheetsBarTabVerticalPadding` </div>   | Vertical padding of a sheets bar tab |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-sheets-bar-tab-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `sheetsBarTabForegroundColor` </div>   | Text color of a sheets bar tab |
