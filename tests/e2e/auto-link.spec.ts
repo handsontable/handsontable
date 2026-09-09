@@ -51,6 +51,25 @@ test.describe('autoLink', () => {
     await expect(grid.cell(4, 0)).toHaveText('(see https://example.com/paren).');
   });
 
+  test('does not split a URL whose path merely contains a scheme word', async({ page, theme, bundle }) => {
+    const grid = new AutoLinkPage(page, theme, bundle);
+
+    await grid.goto();
+
+    await expect(grid.links(9, 0)).toHaveCount(1);
+    await expect(grid.links(9, 0)).toHaveAttribute('href', 'https://example.com/hotel:deals');
+  });
+
+  test('applies a cell-level object override, without affecting other cells', async({ page, theme, bundle }) => {
+    const grid = new AutoLinkPage(page, theme, bundle);
+
+    await grid.goto();
+
+    await expect(grid.links(4, 0)).toHaveAttribute('target', '_self');
+    await expect(grid.anyLinks(4, 0)).toHaveClass('ht-link ht-auto-link cell-override');
+    await expect(grid.links(0, 0)).toHaveAttribute('target', '_blank');
+  });
+
   test('never links a `javascript:` value or plain text', async({ page, theme, bundle }) => {
     const grid = new AutoLinkPage(page, theme, bundle);
 
@@ -214,6 +233,29 @@ test.describe('autoLink', () => {
     await expect(grid.anyLinks(0, 0)).toHaveCount(0);
 
     await grid.setAutoLink(true);
+    await expect(grid.links(0, 0)).toHaveCount(1);
+  });
+
+  test('paints anchors after `enablePlugin()` alone under `renderMode: "onChange"`', async({ page, theme, bundle }) => {
+    const grid = new AutoLinkPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.setRenderMode('onChange');
+    await grid.render(2);
+    await expect(grid.links(0, 0)).toHaveCount(1);
+
+    await grid.disablePluginWithoutRender();
+    await expect(grid.anyLinks(0, 0)).toHaveCount(0);
+
+    // Consume the epoch bump `disablePlugin()` made, so the render below only repaints what
+    // `enablePlugin()` itself marks - otherwise the leftover bump from disabling would make every
+    // cell repaint regardless of whether the enable path pulls its own weight.
+    await grid.render();
+
+    // A bare `enablePlugin()` call, with no `updateSettings`, must still advance the render epoch on
+    // its own, or a `renderMode: 'onChange'` render below paints nothing back.
+    await grid.enablePluginWithoutSettings();
+
     await expect(grid.links(0, 0)).toHaveCount(1);
   });
 

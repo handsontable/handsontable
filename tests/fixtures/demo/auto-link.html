@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Formulas HYPERLINK e2e fixture</title>
+  <title>autoLink e2e fixture</title>
   <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
   <script>
     // Theme and bundle come from the ?theme=/?bundle= query params set by the
@@ -91,6 +91,7 @@
         [window.localPageUrl, 'b7', 'c7', 'd7', 'e7', 'f7', 'g7'],
         ['javascript:alert(1)', 'b8', 'c8', 'd8', 'e8', 'f8', 'g8'],
         ['plain text', 'b9', 'c9', 'd9', 'e9', 'f9', 'g9'],
+        ['https://example.com/hotel:deals', 'b10', 'c10', 'd10', 'e10', 'f10', 'g10'],
       ],
       autoLink: true,
       formulas: {
@@ -110,6 +111,10 @@
       cells(row, col) {
         if (row === 5 && col === 0) {
           return { autoLink: false };
+        }
+
+        if (row === 4 && col === 0) {
+          return { autoLink: { target: '_self', className: 'cell-override' } };
         }
 
         return {};

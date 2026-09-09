@@ -76,6 +76,19 @@ export class AutoLinkPage {
     });
   }
 
+  /**
+   * Re-enable the plugin through its own `enablePlugin()`, then force a render. This is what a caller
+   * that flips the plugin back on through the API (rather than through `updateSettings`) does.
+   */
+  async enablePluginWithoutSettings(): Promise<void> {
+    await this.page.evaluate(() => {
+      const hot = (window as any).hot;
+
+      hot.getPlugin('autoLink').enablePlugin();
+      hot.render();
+    });
+  }
+
   /** Write a raw value into a cell. */
   async setCellValue(row: number, col: number, value: string): Promise<void> {
     await this.page.evaluate(([r, c, v]) => {

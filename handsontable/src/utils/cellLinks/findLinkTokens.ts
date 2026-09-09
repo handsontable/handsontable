@@ -23,8 +23,15 @@ export interface LinkToken {
 // commonly wrap a URL in prose.
 const TOKEN_PATTERN = /(?:https?:\/\/|mailto:|tel:)[^\s<>"'`]+/gi;
 const SCHEME_PREFIX_PATTERN = /^(?:https?:\/\/|mailto:|tel:)/i;
-const EMBEDDED_SCHEME_PATTERN = /https?:\/\/|mailto:|tel:/gi;
-const TRAILING_PUNCTUATION_CHARS = new Set(['.', ',', ';', ':', '!', '?', '\'', '"']);
+// The lookbehind requires the embedded scheme to start where a URL word cannot continue, so a path
+// segment that merely contains a scheme word ("/hotel:deals", "/x-mailto:y") is not mistaken for a
+// second, joined URL. This is deliberately narrower than "any delimiter": a comma is not in the
+// excluded class, so `a.com,https://b.com` still splits into two tokens, and neither is `=`, so a
+// redirect-style URL (`?url=https://b.com`) still splits at the `=` by design.
+const EMBEDDED_SCHEME_PATTERN = /(?<![A-Za-z0-9._~+-])(?:https?:\/\/|mailto:|tel:)/gi;
+// A quote is not in this set: `TOKEN_PATTERN`'s character class already excludes `"` and `'`, so a
+// raw token can never carry one and a quote-trimming entry here would be unreachable.
+const TRAILING_PUNCTUATION_CHARS = new Set(['.', ',', ';', ':', '!', '?']);
 const BRACKET_PAIRS: Record<string, string> = { ')': '(', ']': '[', '}': '{' };
 
 /**

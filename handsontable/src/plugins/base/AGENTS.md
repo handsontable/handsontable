@@ -4,7 +4,7 @@
 another setting must keep it switched off. Read this before touching either file, and before writing a
 plugin that has to reason about *when* it runs relative to another one.
 
-Nothing here is a feature. Change `base.ts` and you change all 42 plugins at once, so treat every edit
+Nothing here is a feature. Change `base.ts` and you change all 43 plugins at once, so treat every edit
 as monorepo-wide.
 
 ## The statics, and what each one really controls

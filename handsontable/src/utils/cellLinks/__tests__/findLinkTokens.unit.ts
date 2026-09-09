@@ -45,9 +45,6 @@ describe('findLinkTokens', () => {
     expect(findLinkTokens('really? https://a.com/x!?', BASE)).toEqual([
       { start: 8, end: 23, href: 'https://a.com/x' },
     ]);
-    expect(findLinkTokens('quote "https://a.com/x"', BASE)).toEqual([
-      { start: 7, end: 22, href: 'https://a.com/x' },
-    ]);
   });
 
   it('should drop an unbalanced closing bracket but keep a balanced one', () => {
@@ -68,6 +65,12 @@ describe('findLinkTokens', () => {
   it('should stop a URL at whitespace and at angle brackets', () => {
     expect(findLinkTokens('a <https://a.com/x> b', BASE)).toEqual([
       { start: 3, end: 18, href: 'https://a.com/x' },
+    ]);
+  });
+
+  it('should stop a URL at a quote', () => {
+    expect(findLinkTokens('quote "https://a.com/x"', BASE)).toEqual([
+      { start: 7, end: 22, href: 'https://a.com/x' },
     ]);
   });
 
@@ -105,6 +108,15 @@ describe('findLinkTokens', () => {
     expect(findLinkTokens('See https://a.com,https://b.com end', BASE)).toEqual([
       { start: 4, end: 17, href: 'https://a.com/' },
       { start: 18, end: 31, href: 'https://b.com/' },
+    ]);
+  });
+
+  it('should not split a URL whose path merely contains a scheme word', () => {
+    expect(findLinkTokens('https://example.com/hotel:deals', BASE)).toEqual([
+      { start: 0, end: 31, href: 'https://example.com/hotel:deals' },
+    ]);
+    expect(findLinkTokens('https://a.com/x-mailto:y', BASE)).toEqual([
+      { start: 0, end: 24, href: 'https://a.com/x-mailto:y' },
     ]);
   });
 

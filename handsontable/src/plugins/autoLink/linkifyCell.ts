@@ -124,6 +124,12 @@ function linkifyWholeCell(TD: HTMLTableCellElement, text: string, options: Linki
     return;
   }
 
+  // A checkbox whose label is the URL is the case this guards: the trimmed text is exactly one URL,
+  // but wrapping the whole cell would move the interactive element inside the anchor and hijack it.
+  if (TD.querySelector(SKIPPED_ANCESTORS) !== null) {
+    return;
+  }
+
   const link = createLinkElement(TD.ownerDocument, {
     href: tokens[0].href,
     target: options.target,

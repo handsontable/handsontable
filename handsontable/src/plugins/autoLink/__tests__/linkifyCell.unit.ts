@@ -168,6 +168,17 @@ describe('linkifyCell', () => {
 
       expect(td.querySelector('a')).toBe(null);
     });
+
+    it('should not wrap a cell that holds an interactive element, even when the whole text is one URL', () => {
+      // A checkbox whose label is the URL: the trimmed text content is exactly one URL, but wrapping
+      // the whole cell would move the `<input>` inside the anchor and hijack the control.
+      const td = cell('<label>https://a.com/x<input type="checkbox"></label>');
+
+      linkifyCell(td, options({ inline: false }));
+
+      expect(td.querySelector('a')).toBe(null);
+      expect(td.querySelector('input[type="checkbox"]')).not.toBe(null);
+    });
   });
 });
 

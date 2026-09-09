@@ -1,7 +1,8 @@
 import { BasePlugin } from '../base';
 import type { CellProperties } from '../../settings';
 import { LINK_SCHEMES, normalizeSchemes, type LinkScheme, type LinkTarget } from '../../utils/cellLinks';
-import { linkifyCell, unlinkifyCell, type LinkifyOptions } from './linkifyCell';
+import { linkifyCell, unlinkifyCell } from './linkifyCell';
+import { resolveAutoLinkSettings, type ResolvedAutoLinkSettings } from './resolveSettings';
 
 export const PLUGIN_KEY = 'autoLink';
 export const PLUGIN_PRIORITY = 270;
@@ -27,11 +28,6 @@ export interface AutoLinkSettings {
    */
   className?: string;
 }
-
-/**
- * The settings with every key resolved, ready for `linkifyCell`.
- */
-type ResolvedAutoLinkSettings = Omit<LinkifyOptions, 'baseUrl'>;
 
 /**
  * @plugin AutoLink
@@ -129,6 +125,11 @@ export class AutoLink extends BasePlugin {
     this.#settings = this.#resolveSettings(undefined);
     this.addHook('afterRenderer', this.#onAfterRenderer);
 
+    // The anchors are written by `afterRenderer`, so a bare enable paints nothing on its own. Under
+    // `renderMode: 'onChange'` a render right after this call would skip every cell unless the epoch
+    // advances here too - mirrors the same call in `disablePlugin()`.
+    this.hot.markAllCellsChanged();
+
     super.enablePlugin();
   }
 
@@ -188,16 +189,7 @@ export class AutoLink extends BasePlugin {
       return base;
     }
 
-    const override = cellSetting as AutoLinkSettings;
-
-    return {
-      target: override.target === '_self' || override.target === '_blank' ? override.target : base.target,
-      schemes: Array.isArray(override.schemes) ? normalizeSchemes(override.schemes) : base.schemes,
-      inline: typeof override.inline === 'boolean' ? override.inline : base.inline,
-      classNames: typeof override.className === 'string'
-        ? override.className.split(/\s+/).filter(name => name !== '')
-        : base.classNames,
-    };
+    return resolveAutoLinkSettings(base, cellSetting as AutoLinkSettings);
   }
 
   /**
