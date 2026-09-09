@@ -293,9 +293,13 @@ export class SheetsBarMenus {
     // A 4px gap on both sides of the anchor. Below, the positioner adds one pixel of its own.
     // Above, it aligns the menu's bottom to the cursor point — the anchor's bottom edge — so
     // without the anchor-height correction a menu flipping upward covered its own trigger
-    // (UX review).
+    // (UX review). The correction is clamped to what the viewport has: the positioner accepts
+    // a flip whenever the menu alone fits above the anchor's bottom edge, so an uncapped lift
+    // of anchor-height-plus-gap could push the first items off-screen. In that squeeze the
+    // menu pins to the viewport top instead — measured after `open()`, which is what renders
+    // the menu at its real height.
     menu.setOffset('below', 3);
-    menu.setOffset('above', -(rect.height + 4));
+    menu.setOffset('above', Math.max(-(rect.height + 4), (menu.container?.offsetHeight ?? 0) - rect.bottom));
     menu.setPosition(
       { left: rect.left + offset.left, top: rect.bottom + offset.top },
       () => (positionTarget.isConnected ? positionTarget.getBoundingClientRect() : null),
