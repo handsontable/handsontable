@@ -50,6 +50,7 @@ interface HandsontableFixture {
   deselectCell(): void;
   selectRows(row: number): void;
   selection: {
+    getSelectionSource(): string;
     transformFocus(row: number, col: number): void;
     transformEnd(rowDelta: number, colDelta: number): void;
     isEntireColumnSelected(): boolean;
@@ -474,6 +475,47 @@ export class EditorTrimmedRowPage {
       filters.addCondition(targetColumn as number, 'by_value', [targetValues]);
       filters.filter();
     }, [data, column, values] as [unknown[][], number, string[]]);
+  }
+
+  /**
+   * Replaces the data set with a hook that throws inside `updateData()`'s selection repair, then
+   * reports whether the throw happened and what the selection source is left reading.
+   *
+   * `markSource('updateData')` and `markEndSource()` sit either side of `selection.refresh()`, and
+   * `refresh()` clears the source itself only on its normal path. A source stuck at `updateData`
+   * is not cosmetic: `afterSetRangeEnd` reads it and then skips the scroll, the editor close and
+   * `prepareEditor()` on every later selection, so the grid stops opening editors at all
+   * (DEV-2831 review).
+   *
+   * The hook is armed for one call rather than removed, so it throws inside this `refresh()` and
+   * leaves the selections the test makes afterwards alone.
+   */
+  async updateDataWithThrowingRefresh(
+    data: unknown[][]
+  ): Promise<{ threw: boolean, selectionSource: string }> {
+    return this.page.evaluate((next) => {
+      const hot = (window as Window & { hot: HandsontableFixture }).hot;
+      let armed = true;
+
+      // `refresh()` re-lays every range through `setRangeEnd()`, which is what fires this.
+      hot.addHook('afterSelection', () => {
+        if (armed) {
+          armed = false;
+
+          throw new Error('afterSelection threw inside refresh()');
+        }
+      });
+
+      let threw = false;
+
+      try {
+        hot.updateData(next as unknown[][]);
+      } catch {
+        threw = true;
+      }
+
+      return { threw, selectionSource: hot.selection.getSelectionSource() };
+    }, data);
   }
 
   /**

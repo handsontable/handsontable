@@ -45,7 +45,9 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   on the editor reference split exactly along the bundle axis with nothing
   stale involved. **Assert the observable outcome** — committed changes, source
   data — rather than which internal objects survived, and where a difference is
-  real, say so in the test instead of pinning one bundle's answer.
+  real, say so in the test instead of pinning one bundle's answer. A real one is
+  still a defect: that editor split is tracked as DEV-2862, since the fixture
+  enables no Formulas and only the bundle differs.
 - **Never hardcode a row or column index that sits near the edge of the
   rendered band.** Each theme's padding feeds `autoColumnSize`, so the same
   content measures differently: in `width-window-scroll.html` (500px wide, 30

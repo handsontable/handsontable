@@ -3716,8 +3716,16 @@ export default function Core(
 
           grid.adjustRowsAndCols();
           selection.markSource('updateData');
-          selection.refresh();
-          selection.markEndSource();
+
+          // Paired with the `markSource()` above, so it ends only what it began. `refresh()` clears
+          // the source itself on its normal path but not when it throws, and a source stuck at
+          // `updateData` makes every later selection skip its scroll, its editor close and its
+          // `prepareEditor()` for the rest of the instance's life (DEV-2831 review).
+          try {
+            selection.refresh();
+          } finally {
+            selection.markEndSource();
+          }
         } finally {
           editorManager.resumeStrandDiscards();
         }
@@ -3766,8 +3774,13 @@ export default function Core(
         instance.initIndexMappers();
         grid.adjustRowsAndCols();
         selection.markSource('loadData');
-        selection.refresh();
-        selection.markEndSource();
+
+        // Paired, for the reason `updateData()` gives above.
+        try {
+          selection.refresh();
+        } finally {
+          selection.markEndSource();
+        }
 
         if (firstRun) {
           firstRun = [null, 'loadData'];

@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed a bug where a row or column change that was vetoed, or that failed with an error, could make a filter applied later in the same operation commit an open editor into a new, unintended record.",
+  "title": "Fixed a bug where a row, column, or data change that was vetoed, or that failed with an error, could make the grid commit an open editor into a new, unintended record, or stop the grid from opening editors at all.",
   "type": "fixed",
   "issueOrPR": 13425,
   "breaking": false,

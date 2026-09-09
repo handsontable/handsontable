@@ -1265,6 +1265,7 @@ test.describe('a data swap that strands the editor', () => {
       // Deliberately NOT asserting the editor reference is gone. Whether a fresh editor is
       // prepared at row 0 behind the discard differs between the plain and the full bundle
       // (`editorRow()` is `null` on `umd`, `0` on `full-min`), and it is not what this pins.
+      // The fixture enables no Formulas, so that split is a defect of its own - DEV-2862.
       expect(await grid.committedChangeCount()).toBe(0);
       expect(await grid.sourceRowCount()).toBe(3);
       expect(await grid.sourceData()).toEqual([
@@ -1343,6 +1344,46 @@ test.describe('a vetoed alter between a strand and a filter', () => {
         ['A3', 'B3'],
         ['A4', 'B4'],
       ]);
+    });
+});
+
+/**
+ * The strand-discard scope is not the only thing `updateData()` opens and has to close. It brackets
+ * `selection.refresh()` with `markSource('updateData')` and `markEndSource()`, and `refresh()`
+ * clears that source itself only on its normal path - so a hook that throws part-way through leaves
+ * it reading `updateData` for the rest of the instance's life.
+ *
+ * That is worse than a wrong label. `afterSetRangeEnd` reads the source and treats `updateData` as
+ * "this selection came from a data replacement, do nothing extra", so every later selection skips
+ * its scroll, skips closing an open editor, and skips `prepareEditor()`. The grid then looks alive
+ * but takes no typing at all (DEV-2831 review).
+ */
+test.describe('a data replacement whose selection repair throws', () => {
+  test('ends the selection source it began, so the grid still takes typing',
+    async({ page, theme, bundle }) => {
+      const grid = new EditorTrimmedRowPage(page, theme, bundle);
+
+      await grid.goto();
+
+      // `refresh()` returns early unless something is selected, so the throw needs a selection to
+      // reach - without this the hook never fires and the test would pass on nothing happening.
+      await grid.selectRangeWithFocusAt([1, 0, 1, 0], 1, 0);
+
+      const { threw, selectionSource } = await grid.updateDataWithThrowingRefresh([
+        ['X0', 'Y0'],
+        ['X1', 'Y1'],
+        ['X2', 'Y2'],
+      ]);
+
+      // The premise: the hook really did throw out of `updateData()`.
+      expect(threw).toBe(true);
+      // The fix, read directly. `refresh` is also fine here - anything but `updateData`.
+      expect(selectionSource).not.toBe('updateData');
+
+      // The same thing at the level a user feels it. `openEditorAndType()` asserts the editor
+      // opened and holds the text, and both of those need the `prepareEditor()` that a source
+      // stuck at `updateData` skips.
+      await grid.openEditorAndType(0, 0, 'AFTER');
     });
 });
 
