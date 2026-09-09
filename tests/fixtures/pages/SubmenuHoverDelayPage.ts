@@ -1,5 +1,6 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 import { awaitBundle } from '../bundle';
+import { afterAnimationFrames } from '../frames';
 
 /**
  * A rectangle in viewport coordinates, plus the vertical middle of each row it contains.
@@ -147,23 +148,68 @@ export class SubmenuHoverDelayPage {
   }
 
   /**
-   * Waits for the given number of animation frames INSIDE the page — the bounded settle for a
-   * negative assertion, always paired with a positive control that proved the machinery delivered.
-   * At 60fps, 40 frames is roughly 660 ms, comfortably past the 300 ms hover delay.
+   * The bounded settle used before every survival assertion here: 40 frames is roughly 660 ms at
+   * 60fps, comfortably past the 300 ms hover delay. Delegates to the shared helper so the rAF pump
+   * cannot drift between page objects.
    */
   async afterAnimationFrames(count: number): Promise<void> {
-    await this.page.evaluate(frames => new Promise<void>((resolve) => {
-      const step = (left: number) => {
-        if (left <= 0) {
-          resolve();
+    await afterAnimationFrames(this.page, count);
+  }
 
-          return;
-        }
-        requestAnimationFrame(() => step(left - 1));
-      };
+  /**
+   * Stamps the open submenu's container so a later read can tell the SAME element from a
+   * replacement. `toBeVisible()` cannot: a submenu that was closed and instantly recreated looks
+   * identical to one that survived, and those are exactly the two outcomes these tests separate.
+   */
+  async markSubmenu(): Promise<void> {
+    await this.alignmentSubmenu.evaluate((el: HTMLElement) => {
+      el.dataset.survivalProbe = 'original';
+    });
+  }
 
-      step(frames);
-    }), count);
+  /**
+   * Reads back the stamp from `markSubmenu()`. `undefined` means the container is a new element —
+   * the submenu was destroyed and rebuilt, not kept.
+   */
+  async submenuMark(): Promise<string | undefined> {
+    return this.page.evaluate(() => (document.querySelector('.htContextMenuSub_Alignment') as
+      HTMLElement | null)?.dataset.survivalProbe);
+  }
+
+  /**
+   * Closes the open submenu the way its own keyboard shortcuts do — `close()` on the submenu
+   * itself, never the parent's `closeSubMenu()`. That path leaves the parent to clean up its own
+   * bookkeeping through an `afterClose` hook.
+   */
+  async closeSubmenuFromItsOwnSide(): Promise<void> {
+    await this.page.evaluate(() => (window as unknown as {
+      hot: { getPlugin: (n: string) => { menu: { hotSubMenus: Record<string, { close: () => void }> } } };
+    }).hot.getPlugin('contextMenu').menu.hotSubMenus.alignment.close());
+  }
+
+  /**
+   * Whether the parent menu still believes a submenu is open — `hotSubMenus` plus the row it
+   * anchors. Drift between this and the DOM is what made the anchor row stop responding to hover.
+   */
+  async parentSubmenuBookkeeping(): Promise<{ keys: string[]; allClosed: boolean }> {
+    return this.page.evaluate(() => {
+      const menu = (window as unknown as {
+        hot: { getPlugin: (n: string) => { menu: {
+          hotSubMenus: Record<string, unknown>; isAllSubMenusClosed: () => boolean;
+        } } };
+      }).hot.getPlugin('contextMenu').menu;
+
+      return { keys: Object.keys(menu.hotSubMenus), allClosed: menu.isAllSubMenusClosed() };
+    });
+  }
+
+  /**
+   * Parks the pointer well away from the menu. Opening the menu with a right-click leaves the
+   * cursor on top of it, which arms a delayed open for whatever row landed under it — a stray
+   * timer that would otherwise fire in the middle of a keyboard test.
+   */
+  async parkPointerAwayFromMenu(): Promise<void> {
+    await this.page.mouse.move(2, 2, { steps: 5 });
   }
 
   /**

@@ -11,9 +11,17 @@ import { SubmenuHoverDelayPage } from '../fixtures/pages/SubmenuHoverDelayPage';
  * Closing now waits the same 300 ms, and the pending switch is cancelled when the pointer reaches
  * the submenu, returns to the anchor row, or leaves the menu.
  *
- * All of this needs a real pointer path: the bug lives in the rows crossed on the way, so a single
- * jump to the destination cannot see it. The page object always moves with `steps`. The legacy
- * Jasmine suite dispatches one synthetic `mouseover` per element and cannot express a path at all.
+ * Two things every test here has to do, or it passes on a build with the fix removed:
+ *
+ * 1. Move with `steps`. The bug lives in the rows crossed on the way, so a single jump to the
+ *    destination cannot see it. The legacy Jasmine suite dispatches one synthetic `mouseover` per
+ *    element and cannot express a path at all, which is why this is Playwright-only.
+ * 2. Settle past the delay before asserting survival. A `toBeVisible()` that resolves on its first
+ *    poll runs ~50 ms after the pointer arrives, long before the 300 ms timer it claims to test.
+ *    `afterAnimationFrames(40)` is ~660 ms at 60fps.
+ *
+ * The survival tests also stamp the container and read the stamp back, because `toBeVisible()`
+ * cannot tell a submenu that survived from one that was closed and instantly recreated.
  */
 test.describe('context menu submenu hover delay', () => {
   let menu: SubmenuHoverDelayPage;
@@ -34,19 +42,26 @@ test.describe('context menu submenu hover delay', () => {
     expect(labels).toEqual(['Left', 'Center', 'Right', 'Justify', 'Top', 'Middle', 'Bottom']);
 
     for (const label of labels) {
+      await menu.markSubmenu();
+
       const target = await menu.submenuItemPoint(label);
 
       await menu.travelTo(target.x, target.y);
+      await menu.afterAnimationFrames(40);
 
       // Before the fix this held for "Left" alone — every other item sits far enough below the
       // anchor row that the diagonal crosses "Copy" and "Cut" and killed the submenu on the way.
       await expect(menu.alignmentSubmenu,
         `submenu should survive the move to "${label}"`).toBeVisible();
 
+      // ...and it must be the SAME submenu. A build that closed it and reopened it on arrival
+      // would satisfy the assertion above while still flickering under the user's pointer.
+      expect(await menu.submenuMark(),
+        `submenu should not have been recreated on the way to "${label}"`).toBe('original');
+
       // Back to the anchor row for the next leg. Returning to the row that owns the open submenu
-      // must not close and recreate it, which is its own guard in the fix.
+      // must cancel the pending switch and change nothing else.
       await menu.openAlignmentSubmenu();
-      await expect(menu.alignmentSubmenu).toBeVisible();
     }
   });
 
@@ -66,10 +81,14 @@ test.describe('context menu submenu hover delay', () => {
     expect(bottomItem.y, 'the last submenu item must hang below the parent menu for this to be the reported path')
       .toBeGreaterThan(parentMenu.bottom);
 
+    await menu.markSubmenu();
+
     await menu.travelTo(anchor.left + 20, parentMenu.bottom + 40);
     await menu.travelTo(bottomItem.x, bottomItem.y);
+    await menu.afterAnimationFrames(40);
 
     await expect(menu.alignmentSubmenu).toBeVisible();
+    expect(await menu.submenuMark()).toBe('original');
   });
 
   test('closes the submenu once the pointer rests on another item', async () => {
@@ -81,8 +100,8 @@ test.describe('context menu submenu hover delay', () => {
     await menu.travelTo(copy.left + 20, (copy.top + copy.bottom) / 2);
 
     // The delay is a delay, not a block: resting on a plain row still closes the submenu, which is
-    // what other spreadsheet applications do. Without this the first test could pass on a fix that
-    // simply never closes anything.
+    // what other spreadsheet applications do. Without this the survival tests above could pass on a
+    // build that simply never closes anything.
     await expect(menu.alignmentSubmenu).toHaveCount(0);
   });
 
@@ -99,8 +118,6 @@ test.describe('context menu submenu hover delay', () => {
     await menu.travelTo(anchor.left + 30, anchorMiddle);
     await menu.travelTo(parentMenu.left - 60, anchorMiddle);
 
-    // Bounded settle, counted in frames inside the page: ~660 ms at 60fps, well past the 300 ms
-    // open delay. The submenu used to appear right here, with the pointer already off the menu.
     await menu.afterAnimationFrames(40);
 
     await expect(menu.alignmentSubmenu).toHaveCount(0);
@@ -113,15 +130,49 @@ test.describe('context menu submenu hover delay', () => {
     await expect(menu.alignmentSubmenu).toBeVisible();
   });
 
+  test('reopens on hover after the submenu was closed from its own side', async () => {
+    await menu.openMenu();
+    await menu.openAlignmentSubmenu();
+
+    const anchor = await menu.itemBox('Alignment');
+    const anchorMiddle = (anchor.top + anchor.bottom) / 2;
+
+    // Escape and ArrowLeft close the submenu by calling `close()` on the submenu itself, never the
+    // parent's `closeSubMenu()`. The parent's `hotSubMenus` entry therefore survives — that is the
+    // pre-existing lifecycle, and the next `openSubMenu()` is what destroys it. So the hover
+    // handler must decide "is this row's submenu open" by asking the submenu, not by remembering a
+    // row index: a remembered index still names this row here, and the early return it feeds would
+    // leave the anchor permanently unresponsive to the mouse.
+    await menu.closeSubmenuFromItsOwnSide();
+
+    await expect(menu.alignmentSubmenu).toBeHidden();
+
+    const bookkeeping = await menu.parentSubmenuBookkeeping();
+
+    expect(bookkeeping.keys, 'the entry is expected to survive — the hover must not rely on it')
+      .toEqual(['alignment']);
+
+    // Leave the row and come back. This is the interaction that stopped working.
+    await menu.travelTo(anchor.left + 20, anchorMiddle - 120);
+    await menu.travelTo(anchor.left + 20, anchorMiddle);
+
+    await expect(menu.alignmentSubmenu).toBeVisible();
+  });
+
   test('opens the submenu with no delay when the keyboard asks for it', async ({ page }) => {
     await menu.openMenu();
 
-    // The delay belongs to the hover handler only. The keyboard calls `openSubMenu` directly and
-    // must stay instant, so this asserts with no wait at all between the key and the assertion.
-    for (let i = 0; i < 12; i++) {
+    // The right-click leaves the cursor on the menu, which arms a delayed open for whichever row
+    // it landed on. Park the pointer off the menu so that timer is cancelled and cannot fire in
+    // the middle of the keyboard run below.
+    await menu.parkPointerAwayFromMenu();
+
+    let selected: string | undefined;
+
+    for (let i = 0; i < 20; i++) {
       await page.keyboard.press('ArrowDown');
 
-      const selected = await page.evaluate(() => (window as unknown as {
+      selected = await page.evaluate(() => (window as unknown as {
         hot: { getPlugin: (name: string) => { menu: { getSelectedItem: () => { key?: string } | undefined } } };
       }).hot.getPlugin('contextMenu').menu.getSelectedItem()?.key);
 
@@ -130,6 +181,12 @@ test.describe('context menu submenu hover delay', () => {
       }
     }
 
+    // Without this the loop could exhaust silently and the failure below would name the submenu
+    // rather than the navigation that never reached the item.
+    expect(selected, 'ArrowDown never reached the Alignment item').toBe('alignment');
+
+    // The delay belongs to the hover handler only. The keyboard calls `openSubMenu` directly and
+    // must stay instant, so this asserts with no settle between the key and the assertion.
     await page.keyboard.press('ArrowRight');
 
     await expect(menu.alignmentSubmenu).toBeVisible();

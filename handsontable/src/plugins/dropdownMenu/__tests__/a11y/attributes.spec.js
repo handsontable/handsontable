@@ -159,7 +159,9 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
     $expandableItem.simulate('mouseover');
 
-    await sleep(300);
+    // Waits for the expansion rather than for exactly the 300ms open delay, which left no margin
+    // at all.
+    await waitUntil(() => $expandableItem.get(0).getAttribute('aria-expanded') === 'true');
 
     expect($expandableItem.get(0).getAttribute('aria-expanded')).toEqual('true');
 

@@ -220,14 +220,6 @@ export class Menu {
    */
   #subMenuSwitchTimer: ReturnType<typeof setTimeout> | null = null;
   /**
-   * The row whose sub-menu is currently open, or `null` when none is. Re-entering that
-   * row must cancel a pending switch and do nothing else — reopening it would close and
-   * recreate the very sub-menu the pointer is heading for.
-   *
-   * @type {number|null}
-   */
-  #openSubMenuRow: number | null = null;
-  /**
    * The debounced hover-driven sub-menu open, kept as a field so it can be cancelled when
    * the pointer leaves the menu. Assigned in `open()`.
    *
@@ -325,10 +317,22 @@ export class Menu {
     // pending open nor a pending switch reflects what the user is doing. This also covers
     // the sub-menu items that hang BELOW the parent menu: reaching them means leaving the
     // menu and crossing the grid, and without this the switch armed by the last crossed
-    // row would still fire and close the sub-menu (DEV-66).
+    // row would still fire and close the sub-menu (DEV-66). A sub-menu container is a
+    // SIBLING of this one in the portal, not a descendant, so moving into a sub-menu leaves
+    // this container and cancels here too — nothing extra is needed on the sub-menu itself.
     // `mouseleave` (not `mouseout`) on purpose — `mouseout` also fires when moving between
     // rows inside the menu, which is exactly when the timers must survive.
-    this.eventManager.addEventListener(this.container, 'mouseleave', () => this.#clearHoverSubMenuTimers());
+    this.eventManager.addEventListener(this.container, 'mouseleave', () => {
+      // Repositioning the menu under a stationary cursor makes the browser recompute `:hover`
+      // and dispatch pointer events with no real movement involved (#12719) — the same reason
+      // the two hover guards above exist. A scroll that slides the menu out from under the
+      // pointer must not cancel a sub-menu the user is still waiting for.
+      if (this.#suppressHoverSubMenuToggle) {
+        return;
+      }
+
+      this.#clearHoverSubMenuTimers();
+    });
   }
 
   /**
@@ -546,15 +550,24 @@ export class Menu {
         }
 
         if (this.isAllSubMenusClosed()) {
+          // The two timers are alternatives, never both in flight: a switch left armed by an
+          // earlier hover would fire after this open and replace the sub-menu the pointer is
+          // resting on.
+          this.#clearSubMenuSwitchTimer();
           this.#delayedOpenSubMenu!(coords.row);
 
           return;
         }
 
-        // Back on the row that owns the open sub-menu — drop any pending switch. Without
-        // this the hover would close and immediately recreate the sub-menu the pointer is
-        // already heading for, which reads as a flash.
-        if (coords.row === this.#openSubMenuRow) {
+        // Back on the row whose sub-menu is open — drop any pending switch. Without this the
+        // hover would close and immediately recreate the sub-menu the pointer is already heading
+        // for, which reads as a flash.
+        // Asked of the sub-menu itself rather than of a remembered row index: `hotSubMenus` keeps
+        // its entry after Escape or ArrowLeft (those call `close()` on the sub-menu, not
+        // `closeSubMenu()` here), so a remembered index would still name this row and the early
+        // return would leave the anchor permanently unresponsive to the mouse. `isOpened()` is
+        // false there, so the hover falls through to the switch below, which reopens it.
+        if (this.#isSubMenuOpenAtRow(coords.row)) {
           this.#clearSubMenuSwitchTimer();
 
           return;
@@ -665,7 +678,6 @@ export class Menu {
       this.#suppressHoverSubMenuToggle = false;
       // A timer that outlives the menu would call `openSubMenu` on a destroyed `hotMenu`.
       this.#clearHoverSubMenuTimers();
-      this.#openSubMenuRow = null;
       this.hot.getSettings().outsideClickDeselects = this.origOutsideClickDeselects;
       this.runLocalHooks('afterClose');
 
@@ -697,13 +709,35 @@ export class Menu {
    * @param {number} row Row index the pointer is hovering.
    */
   #scheduleSubMenuSwitch(row: number) {
-    this.#clearSubMenuSwitchTimer();
+    // Both timers, for the same reason the open path clears the switch: they are alternatives.
+    this.#clearHoverSubMenuTimers();
 
     // `_registerTimeout` so the handle is cleared if the grid is destroyed with the menu open.
+    // It is the convention here, and the cost is known: `hot.timeouts` only grows, so cancelling
+    // leaves a dead handle behind and hovering across menu rows adds one each time. They are
+    // integers on an array freed with the instance. The alternative — a generation token and a
+    // timer that fires and no-ops — trades that for more state and a callback that still runs.
     this.#subMenuSwitchTimer = this.hot._registerTimeout(() => {
       this.#subMenuSwitchTimer = null;
       this.openSubMenu(row);
     }, SUB_MENU_HOVER_DELAY) as ReturnType<typeof setTimeout>;
+  }
+
+  /**
+   * Whether the row's own sub-menu is currently open on screen.
+   *
+   * Read from the sub-menu rather than from a remembered row index, because `hotSubMenus` holds
+   * an entry until something destroys it and the Escape and ArrowLeft shortcuts close a sub-menu
+   * without going through `closeSubMenu()`. A remembered index would go on naming a row whose
+   * sub-menu is already gone.
+   *
+   * @param {number} row Row index to test.
+   * @returns {boolean}
+   */
+  #isSubMenuOpenAtRow(row: number) {
+    const key = this.#getSourceDataAtRow<MenuItemConfig>(row)?.key;
+
+    return !!key && !!this.hotSubMenus[key]?.isOpened();
   }
 
   /**
@@ -761,12 +795,6 @@ export class Menu {
       () => (cell.isConnected ? cell.getBoundingClientRect() : null),
     );
     this.hotSubMenus[dataItem.key!] = subMenu;
-    this.#openSubMenuRow = row;
-
-    // Arriving in the sub-menu ends the journey the delay was protecting, so anything the
-    // crossed rows scheduled on the way here is dropped.
-    this.eventManager.addEventListener(subMenu.container, 'mouseenter',
-      () => this.#clearHoverSubMenuTimers());
 
     // Update the accessibility tags on the cell being the base for the submenu.
     if (this.hot.getSettings().ariaTags) {
@@ -790,10 +818,6 @@ export class Menu {
     if (menus) {
       menus.destroy();
       delete this.hotSubMenus[dataItem.key!];
-
-      if (this.#openSubMenuRow === row) {
-        this.#openSubMenuRow = null;
-      }
 
       const cell = this.hotMenu!.getCell(row, 0);
 

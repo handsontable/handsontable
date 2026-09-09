@@ -69,7 +69,13 @@
         // submenu opened from the upper half has room to extend past the parent menu's bottom edge.
         width: 700,
         height: 600,
-        contextMenu: true,
+        // A SHORT menu on purpose. With the full default set the parent menu is ~17 rows and the
+        // Alignment submenu is 8, so whether the submenu hangs below the parent's bottom edge
+        // depends on the row height — it does on `main`, it does not on `horizon`, and the
+        // "reported path" test needs it on every theme. Three items make the submenu reliably
+        // taller than its parent everywhere, and still leave two plain rows below the anchor for
+        // the pointer to cross, which is the whole mechanism under test.
+        contextMenu: ['alignment', 'copy', 'cut'],
         licenseKey: 'non-commercial-and-evaluation',
       });
     } catch (error) {
