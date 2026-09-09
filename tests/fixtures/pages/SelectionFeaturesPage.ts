@@ -1,5 +1,6 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 import type { CellValue, MoveCellsHookRecord } from './windowTypes';
+import { dragFillHandle } from '../gestures';
 
 /**
  * Page Object for the selection features fixture
@@ -887,17 +888,7 @@ export class SelectionFeaturesPage {
 
   /** Drag the fill handle with the real pointer onto the given cell and release. */
   async dragFillHandleTo(row: number, col: number): Promise<void> {
-    const handleBox = await this.fillHandle().boundingBox();
-    const targetBox = await this.cell(row, col).boundingBox();
-
-    if (!handleBox || !targetBox) {
-      throw new Error('The fill handle or the target cell is not rendered.');
-    }
-
-    await this.page.mouse.move(handleBox.x + handleBox.width / 2, handleBox.y + handleBox.height / 2);
-    await this.page.mouse.down();
-    await this.page.mouse.move(targetBox.x + targetBox.width / 2, targetBox.y + targetBox.height / 2, { steps: 8 });
-    await this.page.mouse.up();
+    await dragFillHandle(this.page, this.fillHandle(), this.cell(row, col));
   }
 
   /** Whether the Autofill plugin still believes the fill handle is pressed. */
