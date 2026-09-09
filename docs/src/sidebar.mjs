@@ -22,7 +22,7 @@ const { guides } = require('../content/sidebars.js');
 const { sidebar: apiItems } = require('../content/api/sidebar.js');
 const { sidebar: recipeItems } = require('../content/recipes/sidebar.js');
 
-const FRAMEWORK_PREFIXES = {
+export const FRAMEWORK_PREFIXES = {
   javascript: 'javascript-data-grid',
   react: 'react-data-grid',
   angular: 'angular-data-grid',
