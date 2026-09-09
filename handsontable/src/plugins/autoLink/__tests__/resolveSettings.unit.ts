@@ -32,7 +32,7 @@ describe('resolveAutoLinkSettings', () => {
     expect(resolveAutoLinkSettings(BASE, {}).schemes).toEqual(BASE.schemes);
   });
 
-  it('should fall back to the base schemes when a partially-unknown override still normalizes to a real subset', () => {
+  it('should narrow to the known entries when an override mixes known and unknown schemes', () => {
     const override = { schemes: ['https', 'ftp'] } as unknown as AutoLinkSettings;
 
     expect(resolveAutoLinkSettings(BASE, override).schemes).toEqual(['https']);

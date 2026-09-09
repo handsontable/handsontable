@@ -377,8 +377,14 @@ test.describe('formulas: HYPERLINK rendering', () => {
 
     await page.evaluate(() => (window as any).__scratchHot.destroy());
 
-    const refusals = warnings.filter(text => text.includes('refuses to link to'));
+    // Console delivery is asynchronous, so reading the refusal count right after `destroy()` could
+    // miss a late warning and go green wrongly. One more awaited round-trip to the page gives the
+    // console a chance to flush, and `expect.poll` re-filters the live `warnings` array on every
+    // tick so the wait still asserts the negative deterministically.
+    await page.evaluate(() => true);
 
-    expect(refusals).toHaveLength(0);
+    const countRefusals = () => warnings.filter(text => text.includes('refuses to link to')).length;
+
+    await expect.poll(countRefusals, { timeout: 1000 }).toBe(0);
   });
 });

@@ -1062,8 +1062,8 @@ export class Formulas extends BasePlugin {
     const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
     const wasEnabled = this.#hyperlinksEnabled;
     const hyperlinks = isFormulasSettingsObject(pluginSettings) ? pluginSettings.hyperlinks : undefined;
-    // A plain object (including `{}`) enables hyperlinks with defaults; an array or any other
-    // non-plain object (a `Date`, a class instance) is not the object form and does not enable it.
+    // A plain object (including `{}`) enables hyperlinks with defaults; an array or a built-in such as
+    // `Date` is not the object form and does not enable it.
     const isObjectForm = isPlainObject(hyperlinks);
 
     this.#hyperlinksEnabled = hyperlinks === true || isObjectForm;

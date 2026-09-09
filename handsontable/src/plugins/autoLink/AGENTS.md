@@ -1,7 +1,8 @@
 # AutoLink plugin — anchors from rendered text, never from the value
 
-`autoLink.ts` owns the option and the `afterRenderer` pass; `linkifyCell.ts` owns the DOM work. Read this before
-touching either, or `../../utils/cellLinks/`, which this plugin shares with `Formulas`.
+`autoLink.ts` owns the option and the `afterRenderer` pass; `linkifyCell.ts` owns the DOM work; `resolveSettings.ts`
+owns the grid/cell settings merge. Read this before touching either, or `../../utils/cellLinks/`, which this plugin
+shares with `Formulas`.
 
 ## What it owns and what it does not
 
@@ -24,13 +25,19 @@ touching either, or `../../utils/cellLinks/`, which this plugin shares with `For
 - **Skip any TD that already holds an `<a>`.** That is what keeps a HYPERLINK cell, an `html` cell with a user link,
   or a custom renderer's link from ending up as `a > a`. `Formulas` does the mirror move when its cell resolves to a
   link (unwraps every `a.ht-link`, then wraps), so the two converge whichever `afterRenderer` ran first —
-  and the order is not fixed, because `updateSettings` can register `Formulas` after this plugin.
+  and the order is not fixed, because `updateSettings` can register `Formulas` after this plugin. Whole-cell mode
+  (`inline: false`) also refuses a TD holding a `button`, `input`, `select`, or `textarea`, so a checkbox cell whose
+  label is a URL does not get its input wrapped in the anchor.
 - **`disablePlugin()` must unwrap the whole root and call `markAllCellsChanged()`.** Removing the hook removes
   nothing on screen; a memoizing renderer never repaints, and under `renderMode: 'onChange'` no cell would
-  otherwise be marked. Same lesson as `Comments` and `Formulas`.
+  otherwise be marked. Same lesson as `Comments` and `Formulas`. `enablePlugin()` also calls
+  `markAllCellsChanged()`, for the mirror reason: under `renderMode: 'onChange'` a bare `enablePlugin()` advances
+  no render epoch, so nothing would paint the anchors.
 - **Cell-level objects bypass `SETTINGS_VALIDATORS`.** The plugin validators only see the grid-level object, so
-  `#resolveSettings` re-checks every key of a column or cell override. `schemes` goes through `normalizeSchemes`,
-  which can only narrow the fixed allowlist.
+  `#resolveSettings` re-checks every key of a column or cell override. `resolveSettings.ts` never widens the fixed
+  allowlist: an explicit `[]` at column or cell level keeps that column link-free, and a column or cell `schemes`
+  array whose entries are all unknown falls back to the grid-level schemes instead of silently linking nothing (a
+  typo must not fail closed at one level and open at another).
 - **`javascript:` never tokenizes.** The scheme set is baked into the regex, and `resolveLinkUrl` checks the parsed
   protocol again. Do not "extend" the regex to `[a-z]+:`; the allowlist is the security boundary.
 - **The `:` fast path is load-bearing.** Most cells hold no URL; `indexOf(':')` on `textContent` is what keeps the
