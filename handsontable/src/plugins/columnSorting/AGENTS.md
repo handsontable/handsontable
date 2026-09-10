@@ -75,11 +75,16 @@ index **1**.
 
 ## Fixed rows are out of the sort by default, and the flag is grid-level (DEV-1713, DEV-59)
 
-Rows pinned by `fixedRowsTop` and `fixedRowsBottom` take no part in the sort. `sortByPresetSortStates()`
-starts its walk at `fixedRowsTop` instead of 0, and `getNumberOfRowsToSort()` subtracts
-`fixedRowsBottom` from the upper bound. That landed in #12627 (DEV-1713) and shipped in **18.0.0**,
-as a deliberate breaking change: a footer row holding a SUM over absolute addresses was being
-permuted into the middle of the data.
+Rows pinned by `fixedRowsTop` and `fixedRowsBottom` take no part in the sort. That landed in #12627
+(DEV-1713) and shipped in **18.0.0**, as a deliberate breaking change: a footer row holding a SUM
+over absolute addresses was being permuted into the middle of the data.
+
+**`#getSortableRowRange(numberOfRows)` owns both bounds**, and `sortByPresetSortStates()` walks
+exactly the `{ from, to }` it returns. Keep it that way: the bounds were split across two methods
+until DEV-59, which meant a caller could pick up the upper bound and miss the lower one, and the
+`sortFixedRows` flag had to be applied twice. `getNumberOfRowsToSort()` survives as a thin wrapper
+returning `.to`, because it is part of the plugin's public surface - it is the band's exclusive
+**upper bound**, not a count, whatever its name suggests.
 
 **DEV-59 asked for exactly that change, so the ticket's own text is already delivered.** What DEV-59
 added on top is the escape hatch: `sortFixedRows`, default `false`, which when set to `true` puts the
@@ -97,7 +102,11 @@ Three things about the flag are load-bearing:
   sub-options - `sortEmptyCells`, `indicator`, `headerAction`, `compareFunctionFactory` - resolve per
   column and can be overridden through `columns`. This one cannot: `fixedRowsTop`/`fixedRowsBottom`
   pin rows for the whole table, so two columns could not disagree about which rows are in range. Do
-  not "fix" that by adding it to the list.
+  not "fix" that by adding it to the list. A value written inside `columns` is ignored, and
+  `getPluginColumnConfig()` warns about it once per grid (`warnOnce`, scoped to `rootElement`) - that
+  method is the one place every per-column config passes through, for both forms of `columns`. It
+  must stay a warn-once: the column meta cache rebuilds on every `updateSettings`, and each rebuild
+  resolves every column config again.
 - **`isPlainObject` guards the boolean form.** `columnSorting: true` enables the plugin with no
   sub-options at all, so the settings value is a boolean and has no properties to read.
 
@@ -105,12 +114,14 @@ Three things about the flag are load-bearing:
 inherits both the default and the flag. `#sortsFixedRows()` is a `#private` method, which is fine on a
 subclass instance: the brand is installed by this class's constructor, which runs through `super()`.
 
-One piece of dead code sits in the middle of this and will mislead you. The `// Append
-fixedRowsBottom + spareRows` loop at the end of `sortByPresetSortStates()` pushes **visual** indexes
-onto `indexesWithData`, but `indexMapping` is built by walking `indexesBefore`, whose length is only
-the sortable band - so every entry that loop appends is read by nothing. The rows outside the band
-keep their place because they were never in `indexMapping`, not because of that loop. Left alone on
-purpose; do not reason from it.
+**Only the sorted band is mapped, and nothing is appended after it.** `indexMapping` is built by
+walking `indexesBefore`, whose length is the band's, so the rows outside the band keep their place
+because they never enter the map. DEV-59 removed an `// Append fixedRowsBottom + spareRows` loop
+that ran after the `sort()` call: it pushed **visual** indexes onto `indexesWithData` where every
+other entry is **physical**, and `indexMapping` never read past `indexesBefore.length`, so not one
+of those entries was ever used. It also paid a `getDataAtCell()` per excluded row per sort config on
+every sort. Do not re-add it - if the rows outside the band ever need to move, they need a place in
+`indexesBefore` too.
 
 ## Spare rows are counted, not assumed (#5983)
 
@@ -128,13 +139,15 @@ unsorted at the bottom. The cap matters in the other direction too: trailing emp
 
 `MultiColumnSorting` does not override the method, so both plugins share this and any change to it.
 
-**Known overlap, deliberately left alone.** The count and `fixedRowsBottom` are subtracted
-independently, but a spare row is appended at the end of the data, so it sits *inside* the band
-`fixedRowsBottom` already reserves. With `minSpareRows: 1, fixedRowsBottom: 1` and no filter both
-terms describe the same row, two rows leave the sortable range, and the last real data row is left
-unsorted, which is the #5983 symptom reached through a different option. The fix above did not
-change that: the counted value is never larger than `minSpareRows`, so the subtraction is exactly
-what it always was.
+**Known overlap - open as DEV-2881, do not "tidy" it here.** The count and `fixedRowsBottom` are
+subtracted independently, but a spare row is appended at the end of the data, so it sits *inside*
+the band `fixedRowsBottom` already reserves. With `minSpareRows: 1, fixedRowsBottom: 1` and no
+filter both terms describe the same row, two rows leave the sortable range, and the last real data
+row is left unsorted, which is the #5983 symptom reached through a different option. The bound
+should be `numberOfRows - Math.max(spareRows, fixedRowsBottom)`. Neither the #5983 fix nor DEV-59
+changed that: the counted value is never larger than `minSpareRows`, so the subtraction is exactly
+what it always was. One asymmetry DEV-59 did introduce - with `sortFixedRows: true` the
+`fixedRowsBottom` term is zeroed, so the overlap disappears and that path's range is correct.
 
 Nothing in either sorting suite covers the overlap. `__tests__/columnSorting.spec.js`'s "should
 respect `fixedRowsTop`, `fixedRowsBottom`, and `minSpareRows` together" is the only test in

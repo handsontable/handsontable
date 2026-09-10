@@ -7,7 +7,7 @@ import {
   setAttribute,
 } from '../../helpers/dom/element';
 import { isUndefined, isDefined } from '../../helpers/mixed';
-import { isObject, isPlainObject } from '../../helpers/object';
+import { hasOwnProperty, isObject, isPlainObject } from '../../helpers/object';
 import { isFunction } from '../../helpers/function';
 import { arrayMap } from '../../helpers/array';
 import { BasePlugin } from '../base';
@@ -23,6 +23,7 @@ import {
   isFirstLevelColumnHeader,
   wasHeaderClickedProperly,
   warnAboutPluginsConflict,
+  warnAboutPerColumnSortFixedRows,
 } from './utils';
 import {
   HEADER_ACTION_CLASS,
@@ -612,6 +613,12 @@ export class ColumnSorting extends BasePlugin {
       const pluginColumnConfig = columnConfig[this.pluginKey];
 
       if (isObject(pluginColumnConfig)) {
+        // Every per-column config passes through here, for both the array and the function form of
+        // `columns`, so this is the one place that can see `sortFixedRows` written where it is ignored.
+        if (hasOwnProperty(pluginColumnConfig as object, 'sortFixedRows')) {
+          warnAboutPerColumnSortFixedRows(this.hot.rootElement, this.pluginKey);
+        }
+
         return pluginColumnConfig;
       }
     }
@@ -692,24 +699,30 @@ export class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Get number of rows which should be sorted.
+   * Resolves the band of visual row indexes that takes part in the sort.
    *
-   * @private
+   * Both bounds live here so a caller cannot pick up one and forget the other. Three things
+   * narrow the band, and `sortFixedRows` switches the first two off:
+   *
+   * - `fixedRowsTop` holds the top overlay's rows above it,
+   * - `fixedRowsBottom` holds the bottom overlay's rows below it, which is what keeps a footer
+   *   row's SUM over absolute addresses from being permuted into the middle of the data,
+   * - the trailing spare rows stay below it, counted rather than assumed (see below).
+   *
    * @param {number} numberOfRows Total number of displayed rows.
-   * @returns {number}
+   * @returns {{from: number, to: number}} `from` is inclusive, `to` is exclusive.
    */
-  getNumberOfRowsToSort(numberOfRows: number) {
+  #getSortableRowRange(numberOfRows: number) {
     const settings = this.hot.getSettings();
-    // `sortFixedRows: true` opts back into sorting the whole dataset, pinned rows included, so the
-    // bottom overlay reserves nothing from the sortable range.
-    const fixedRowsBottom = this.#sortsFixedRows() ? 0 : (settings.fixedRowsBottom || 0);
+    // `sortFixedRows: true` opts back into sorting the whole dataset, pinned rows included, so
+    // neither overlay reserves anything from the sortable range.
+    const sortsFixedRows = this.#sortsFixedRows();
+    const from = sortsFixedRows ? 0 : (settings.fixedRowsTop || 0);
+    const fixedRowsBottom = sortsFixedRows ? 0 : (settings.fixedRowsBottom || 0);
 
     // `maxRows` option doesn't take into account `minSpareRows` option in this case.
-    // `fixedRowsBottom` is excluded from the sort range so footer rows (e.g. SUM formulas)
-    // stay pinned and keep their absolute-address references intact - unless `sortFixedRows`
-    // opted back into sorting them, which is what zeroed it above.
     if ((settings.maxRows ?? Infinity) <= numberOfRows) {
-      return Math.max(0, (settings.maxRows ?? 0) - fixedRowsBottom);
+      return { from, to: Math.max(0, (settings.maxRows ?? 0) - fixedRowsBottom) };
     }
 
     const minSpareRows = settings.minSpareRows ?? 0;
@@ -736,7 +749,26 @@ export class ColumnSorting extends BasePlugin {
       spareRows += 1;
     }
 
-    return Math.max(0, numberOfRows - spareRows - fixedRowsBottom);
+    // The two terms are subtracted independently even though a spare row sits inside the band
+    // `fixedRowsBottom` already reserves, so with both options set they describe the same row and
+    // one real data row drops out of the sort. That is DEV-2881, and it predates `sortFixedRows` -
+    // kept as-is here on purpose, because fixing it needs the one spec that sets both options
+    // repaired first (it currently cannot tell the two behaviors apart).
+    return { from, to: Math.max(0, numberOfRows - spareRows - fixedRowsBottom) };
+  }
+
+  /**
+   * Get number of rows which should be sorted.
+   *
+   * This is the sortable band's exclusive upper bound, not a count - the lower bound is
+   * `fixedRowsTop`. Kept as a thin wrapper because it is part of the plugin's public surface.
+   *
+   * @private
+   * @param {number} numberOfRows Total number of displayed rows.
+   * @returns {number}
+   */
+  getNumberOfRowsToSort(numberOfRows: number) {
+    return this.#getSortableRowRange(numberOfRows).to;
   }
 
   /**
@@ -753,17 +785,12 @@ export class ColumnSorting extends BasePlugin {
     }
 
     const indexesWithData: [number, ...unknown[]][] = [];
-    const numberOfRows = this.hot.countRows();
-    const settings = this.hot.getSettings();
-    // With `sortFixedRows: true` the sort starts at the very first row, so the top overlay's rows
-    // are permuted along with the rest of the dataset.
-    const fixedRowsTop = this.#sortsFixedRows() ? 0 : (settings.fixedRowsTop || 0);
-    const upperBound = this.getNumberOfRowsToSort(numberOfRows);
+    const { from, to } = this.#getSortableRowRange(this.hot.countRows());
 
     const getDataForSortedColumns = (visualRowIndex: number) =>
       arrayMap(sortConfigs, (sortConfig: SortConfig) => this.hot.getDataAtCell(visualRowIndex, sortConfig.column));
 
-    for (let visualRowIndex = fixedRowsTop; visualRowIndex < upperBound; visualRowIndex += 1) {
+    for (let visualRowIndex = from; visualRowIndex < to; visualRowIndex += 1) {
       indexesWithData.push([this.hot.toPhysicalRow(visualRowIndex), ...getDataForSortedColumns(visualRowIndex)]);
     }
 
@@ -776,11 +803,8 @@ export class ColumnSorting extends BasePlugin {
       arrayMap(sortConfigs, (sortConfig: SortConfig) => this.getFirstCellSettings(sortConfig.column))
     );
 
-    // Append fixedRowsBottom + spareRows (everything between upperBound and numberOfRows)
-    for (let visualRowIndex = upperBound; visualRowIndex < numberOfRows; visualRowIndex += 1) {
-      indexesWithData.push([visualRowIndex, ...getDataForSortedColumns(visualRowIndex)]);
-    }
-
+    // Only the sorted band is mapped. The rows outside it keep their place because they never
+    // enter `indexMapping`, so nothing has to be appended here.
     const indexesAfter = arrayMap(indexesWithData, (indexWithData: [number, ...unknown[]]) => indexWithData[0]);
 
     const indexMapping: Map<number, number> = new Map(
