@@ -93,6 +93,17 @@ Search for an option by name, or filter the list down to a single level.
   <p class="option-levels-status" data-option-levels-status aria-live="polite"></p>
 </div>
 
+<!--
+  GENERATED BLOCK — DO NOT EDIT anything between the two option-levels markers below.
+  `handsontable/scripts/generate-option-levels.mjs` rewrites it, and an edit made here is lost on
+  its next run. Change the source instead:
+    levels       -> the `@configScope` tag on the option in
+                    `handsontable/src/dataMap/metaManager/metaSchema.ts`
+    Notes column -> the `NOTES` map in `handsontable/scripts/utils/option-levels.js`
+  Then run `npm run generate:option-levels --prefix handsontable` and commit BOTH this page and
+  `option-levels.json`. `handsontable/test/__tests__/optionLevels.unit.js` fails the build when the
+  committed files do not match the source, even if a hand-edit here looks correct.
+-->
 <!-- option-levels:start -->
 
 <div class="option-levels" data-option-levels>

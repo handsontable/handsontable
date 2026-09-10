@@ -38,10 +38,12 @@ const NOTES = {
   cells: 'A grid-level function that is called for every cell.',
   columnSorting: 'Turn the plugin on at the grid level. Inside `columns` you can override its '
     + 'sub-options for one column, such as `indicator` and `headerAction`, but not enable sorting there. '
-    + 'Read from the raw `columns` setting, like `title`.',
+    + '`sortFixedRows` is the exception: it is grid-level only, because the frozen rows belong to the '
+    + 'whole table. Read from the raw `columns` setting, like `title`.',
   multiColumnSorting: 'Turn the plugin on at the grid level. Inside `columns` you can override its '
     + 'sub-options for one column, such as `indicator` and `headerAction`, but not enable sorting there. '
-    + 'Read from the raw `columns` setting, like `title`.',
+    + '`sortFixedRows` is the exception: it is grid-level only, because the frozen rows belong to the '
+    + 'whole table. Read from the raw `columns` setting, like `title`.',
 };
 
 /**
