@@ -1,7 +1,5 @@
 import { TLD_LIST, isKnownTld } from '../tlds';
 
-const EXCLUDED_TLDS = ['zip', 'mov', 'ico', 'map', 'mobi', 'pub'];
-
 describe('tlds', () => {
   const entries = TLD_LIST.split(' ');
 
@@ -27,14 +25,17 @@ describe('tlds', () => {
     });
   });
 
-  it('should not carry any of the excluded generic TLDs', () => {
-    EXCLUDED_TLDS.forEach((excluded) => {
-      expect(entries).not.toContain(excluded);
+  it('should carry a generic TLD that also reads as a common file extension: no exclusion list', () => {
+    // The full IANA list is used, punycode aside - a bare domain ending in one of these is still
+    // linkable under `strict: false`. `strict: true` (the default) or `autoLink: false` is how a
+    // filename column stays plain text; see the `strict` option's docs.
+    ['zip', 'mov'].forEach((tld) => {
+      expect(entries).toContain(tld);
     });
   });
 
   it('should carry the common generic and country-code TLDs', () => {
-    ['com', 'org', 'io', 'pl', 'md', 'co'].forEach((tld) => {
+    ['com', 'org', 'io', 'pl', 'md', 'py', 'co'].forEach((tld) => {
       expect(entries).toContain(tld);
     });
   });
