@@ -127,4 +127,29 @@ describe('findLinkTokens', () => {
       { start: 0, end: 15, href: 'https://a.com/x' },
     ]);
   });
+
+  it('should split two URLs glued together with no delimiter at an embedded `https?://`', () => {
+    const text = 'https://a.com/xhttps://b.com/y';
+
+    expect(findLinkTokens(text, BASE)).toEqual([
+      { start: 0, end: 15, href: 'https://a.com/x' },
+      { start: 15, end: 30, href: 'https://b.com/y' },
+    ]);
+  });
+
+  it('should split a `mailto:` URL glued to a following `https://` URL', () => {
+    const text = 'mailto:a@b.comhttps://c.com';
+
+    expect(findLinkTokens(text, BASE)).toEqual([
+      { start: 0, end: 14, href: 'mailto:a@b.com' },
+      { start: 14, end: 27, href: 'https://c.com/' },
+    ]);
+  });
+
+  it('should still split two URLs joined only by a comma', () => {
+    expect(findLinkTokens('See https://a.com,https://b.com end', BASE)).toEqual([
+      { start: 4, end: 17, href: 'https://a.com/' },
+      { start: 18, end: 31, href: 'https://b.com/' },
+    ]);
+  });
 });

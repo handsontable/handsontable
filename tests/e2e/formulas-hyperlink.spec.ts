@@ -387,4 +387,32 @@ test.describe('formulas: HYPERLINK rendering', () => {
 
     await expect.poll(countRefusals, { timeout: 1000 }).toBe(0);
   });
+
+  test('warns once on an invalid `hyperlinks` object-form setting, and not again once fixed',
+    async({ page, theme, bundle }) => {
+      const warnings: string[] = [];
+
+      page.on('console', (message) => {
+        if (message.type() === 'warning') {
+          warnings.push(message.text());
+        }
+      });
+
+      const grid = new FormulasHyperlinkPage(page, theme, bundle);
+
+      await grid.goto();
+
+      await grid.setHyperlinks({ target: 'top', schemes: ['https', 'ftp'] } as unknown as boolean);
+
+      const countSettingsWarnings = () => warnings.filter(text => text.includes('formulas.hyperlinks')).length;
+
+      await expect.poll(countSettingsWarnings, { timeout: 1000 }).toBe(1);
+
+      await grid.setHyperlinks({ target: '_self' });
+
+      // Console delivery is asynchronous, so a settled poll after a valid call proves no second
+      // warning arrived rather than merely that none has arrived yet.
+      await page.evaluate(() => true);
+      await expect.poll(countSettingsWarnings, { timeout: 1000 }).toBe(1);
+    });
 });

@@ -71,6 +71,18 @@ test.describe('autoLink', () => {
     await expect(grid.links(9, 0)).toHaveAttribute('href', 'https://example.com/hotel:deals');
   });
 
+  test('splits two URLs glued together with no delimiter into two anchors', async({ page, theme, bundle }) => {
+    const grid = new AutoLinkPage(page, theme, bundle);
+
+    await grid.goto();
+
+    const links = grid.links(10, 0);
+
+    await expect(links).toHaveCount(2);
+    await expect(links.nth(0)).toHaveAttribute('href', 'https://a.com/x');
+    await expect(links.nth(1)).toHaveAttribute('href', 'https://b.com/y');
+  });
+
   test('applies a cell-level object override, without affecting other cells', async({ page, theme, bundle }) => {
     const grid = new AutoLinkPage(page, theme, bundle);
 
@@ -357,5 +369,18 @@ test.describe('autoLink', () => {
 
     await expect(grid.openedUrls()).resolves.toEqual([]);
     await expect(grid.hostAltEnterEvents()).resolves.toEqual([false]);
+  });
+
+  test('keeps Alt+Enter working for autoLink cells when Formulas is disabled', async({ page, theme, bundle }) => {
+    const grid = new AutoLinkPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.recordWindowOpen();
+    await grid.setFormulasEnabled(false);
+
+    await grid.selectCell(0, 0);
+    await grid.pressOpenLinkShortcut();
+
+    await expect(grid.openedUrls()).resolves.toEqual([['https://example.com/one', '_blank']]);
   });
 });

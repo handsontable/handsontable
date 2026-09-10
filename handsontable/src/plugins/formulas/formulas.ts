@@ -23,6 +23,7 @@ import {
 } from './utils';
 import {
   LINK_CLASS_NAME,
+  LINK_SCHEMES,
   LINK_SCHEME_CLASS_NAME,
   createLinkElement,
   normalizeSchemes,
@@ -182,6 +183,10 @@ const HYPERLINK_CLASS_NAME = 'ht-hyperlink';
 // `warnOnce` key for a `HYPERLINK` URL refused by the protocol allowlist. Warning per cell would
 // flood the console on every render pass.
 const HYPERLINK_WARN_KEY = 'formulas-hyperlink-refused';
+
+// `warnOnce` key for an invalid `formulas.hyperlinks` object-form setting (an unrecognized `target`
+// or `schemes` entry). One warning per `#refreshHyperlinksSetting()` call, not per cell.
+const HYPERLINK_SETTINGS_WARN_KEY = 'formulas-hyperlinks-settings';
 
 /**
  * This plugin allows you to perform Excel-like calculations in your business applications. It does it by an
@@ -1067,6 +1072,10 @@ export class Formulas extends BasePlugin {
     // `Date` is not the object form and does not enable it.
     const isObjectForm = isPlainObject(hyperlinks);
 
+    if (isObjectForm) {
+      this.#warnOnInvalidHyperlinksSettings(hyperlinks);
+    }
+
     this.#hyperlinksEnabled = hyperlinks === true || isObjectForm;
     this.#hyperlinkTarget = isObjectForm && hyperlinks.target === '_self' ? '_self' : '_blank';
     this.#hyperlinkSchemes = normalizeSchemes(isObjectForm ? hyperlinks.schemes : undefined);
@@ -1076,6 +1085,39 @@ export class Formulas extends BasePlugin {
     if (wasEnabled && !this.#hyperlinksEnabled) {
       this.#unwrapRenderedHyperlinks();
     }
+  }
+
+  /**
+   * Warns once when the object form of the `hyperlinks` setting carries an unrecognized `target` or
+   * `schemes` entry. The setting still applies its fallback either way - an invalid `target` falls
+   * back to `'_blank'` and an unrecognized `schemes` entry is dropped by `normalizeSchemes` - so this
+   * only makes the silent fallback visible.
+   *
+   * @param {FormulasHyperlinkSettings} hyperlinks The object form of the `hyperlinks` setting.
+   */
+  #warnOnInvalidHyperlinksSettings(hyperlinks: FormulasHyperlinkSettings) {
+    const problems: string[] = [];
+
+    if (hyperlinks.target !== undefined && hyperlinks.target !== '_blank' && hyperlinks.target !== '_self') {
+      problems.push(`"target": ${JSON.stringify(hyperlinks.target)}`);
+    }
+
+    if (
+      hyperlinks.schemes !== undefined &&
+      (!Array.isArray(hyperlinks.schemes) ||
+        hyperlinks.schemes.some(scheme => !(LINK_SCHEMES as readonly string[]).includes(scheme)))
+    ) {
+      problems.push(`"schemes": ${JSON.stringify(hyperlinks.schemes)}`);
+    }
+
+    if (problems.length === 0) {
+      return;
+    }
+
+    warnOnce(this, HYPERLINK_SETTINGS_WARN_KEY,
+      `The "formulas.hyperlinks" option received an invalid setting: ${problems.join(', ')}. ` +
+      '"target" accepts "_blank" or "_self"; "schemes" accepts a subset of "http", "https", "mailto" ' +
+      'and "tel". The default is used instead.');
   }
 
   /**

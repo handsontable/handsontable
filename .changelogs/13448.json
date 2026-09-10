@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Added the `autoLink` option, which renders the URLs, email addresses, and phone numbers in cell values as clickable links, and made `formulas.hyperlinks` accept a `{ target, schemes }` object.",
+  "title": "Added the `autoLink` option, which renders the URLs, email addresses, and phone numbers in cell values as clickable links.",
   "type": "added",
   "issueOrPR": 13448,
   "breaking": false,
