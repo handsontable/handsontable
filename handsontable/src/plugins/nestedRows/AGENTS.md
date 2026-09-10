@@ -202,14 +202,37 @@ They are written in different places and can drift. Keep this in mind:
   the same set — which is why the whole suite stayed green: **`getSimplerNestedData()` has leaf
   children only**, and the only remove-a-parent spec ran on it. Reach for
   `getMoreComplexNestedData()`, or the four-level Playwright fixture
-  (`tests/fixtures/demo/nested-rows-remove-parent.html`), before believing a removal test. The
-  expansion is a RANGE, `physicalIndex + 1 … physicalIndex + countChildren(physicalIndex)`, not a walk
-  over `__children`: `cacheNode()` flattens depth-first, so a parent's descendants are always the
-  contiguous block right after it, and `countChildren()` already counts the block at every depth. The
-  order of the returned list does not matter, and both reasons are worth knowing so nobody adds a sort
-  here: `DataMap#removeRow` sorts its own copy descending before it touches the meta layer, and
-  `filterData()` re-reads each row's position with a live `parent.__children.indexOf(row)` rather than
-  from the cache, so an earlier splice cannot leave a later one pointing at the wrong sibling.
+  (`tests/fixtures/demo/nested-rows-remove-parent.html`), before believing a removal test.
+  **The expansion must stay bounded by the flatten CACHE, never by the live tree**, and the tempting
+  shortcut is exactly what breaks it. `cacheNode()` flattens depth-first, so a parent's descendants
+  *are* the contiguous block right after it — but that invariant only holds **while the cache matches
+  the tree**, and nothing on the render path re-caches (only `loadData`, `updateData`, `addChild`,
+  `detachFromParent`, `filterData`, `spliceData` and `afterCreateRow` call `rewriteCache()`). So
+  `physicalIndex + 1 … physicalIndex + countChildren(physicalIndex)` reads its SIZE from the live
+  `__children` while the indexes resolve against the cache: push one child straight into the source
+  data, call `render()`, then remove the parent, and the range runs past the parent's own subtree and
+  silently deletes the next sibling parent and its children (measured: 7 rows → 1, source 0 — worse
+  than the blank rows it replaced). `#collectDescendants()` therefore recurses over `__children` and
+  keeps only what `getRowIndex()` resolves, dropping `null` — a row the cache does not know has no
+  index to remove. Two more rules ride along. Keep the `Array.isArray(__children)` guard: `cacheNode()`
+  iterates whatever it is handed, so `__children: 'abc'` is cached as one node per character, and a
+  walk that trusts it destroys the sibling rows. And **never `physicalRows.push(...list)`** — the list
+  is now one entry per descendant, so the spread overflows the call stack (between 80k and 130k rows),
+  which the plugin-wide `arr.push(...bigArray)` ban below already forbids. The order of the returned
+  list does not matter, and both reasons are worth knowing so nobody adds a sort: `DataMap#removeRow`
+  sorts its own copy descending before it touches the meta layer, and `filterData()` re-reads each
+  row's position with a live `parent.__children.indexOf(row)` rather than from the cache, so an earlier
+  splice cannot leave a later one pointing at the wrong sibling.
+- **Undo after removing a parent restores the blank rows the removal fix removed, and that is still
+  open.** `RemoveRowAction`'s `beforeRemoveRow` listener (`undoRedo/actions/removeRow.ts`) captures
+  `rowIndexesSequence` — the whole pre-removal sequence — but reads its row data with the hook's own
+  `amount`, which is the count *before* this plugin expanded the list. So undoing one "Remove row" on
+  a parent puts every index back and re-inserts a single row: measured on the four-level fixture,
+  2 rows / 2 source rows becomes 7 rows / 3 source rows with four `null` rows. It is not a regression
+  (the pre-fix end state was the same), and it is not a one-line fix either — `captureRowData()`
+  deliberately deletes `__children`, so restoring a subtree needs the tree captured, not `amount`
+  widened. The existing coverage cannot see it: `__tests__/integration/undoRedo.spec.js` only asserts
+  `window.onerror` was not called, on a two-level tree.
 - **`collapseRow()` and `expandRow()` are dead code.** They delegate with `doTrimming` defaulting to
   `false`, so they neither trim nor render. Do not expose them and do not copy their names.
 - **`updatePlugin()` rebuilds everything.** It unregisters the trimming map and constructs a new

@@ -820,8 +820,41 @@ export class NestedRows extends BasePlugin {
   };
 
   /**
+   * Adds every descendant of the given node, at every depth, to the set of rows to remove.
+   *
+   * Bounded by the flatten cache, never by the live tree. `getRowIndex()` answers `null` for a row object the
+   * cache does not know, and a row the cache does not know has no index to remove. Taking the subtree's SIZE
+   * from the live `__children` instead – through `countChildren()`, and adding a contiguous range after the
+   * parent – produces indexes past the parent's own subtree whenever the two disagree, and those rows belong
+   * to another branch: a child pushed straight into the source data followed by a plain `render()` (nothing on
+   * that path re-caches) then deletes a sibling parent and its children outright.
+   *
+   * @param {object} node The parent node whose descendants are collected.
+   * @param {Set} removedRows Accumulator of physical indexes to remove.
+   */
+  #collectDescendants = (node: RowObject | null | undefined, removedRows: Set<number>) => {
+    const children = node?.__children;
+
+    // A truthy non-array `__children` must stop the walk here. `cacheNode()` iterates whatever it is given, so
+    // a string is cached as one node per character, and treating those as rows corrupts the data.
+    if (!Array.isArray(children)) {
+      return;
+    }
+
+    children.forEach((child: RowObject) => {
+      const childRowIndex = this.dataManager!.getRowIndex(child);
+
+      if (childRowIndex !== null) {
+        removedRows.add(childRowIndex);
+      }
+
+      this.#collectDescendants(child, removedRows);
+    });
+  };
+
+  /**
    * Callback for the `beforeRemoveRow` change list of removed physical indexes by reference. Removing a parent
-   * node has the effect of removing its whole subtree, at every depth - removing the parent object from the
+   * node has the effect of removing its whole subtree, at every depth – removing the parent object from the
    * source array takes every descendant with it, so a descendant left out of this list would survive in the
    * index maps as a row with no data behind it.
    *
@@ -831,29 +864,30 @@ export class NestedRows extends BasePlugin {
    */
   #onBeforeRemoveRow = (index: number, amount: number, physicalRows: number[]) => {
     const modifiedPhysicalRows = Array.from(physicalRows.reduce((removedRows: Set<number>, physicalIndex: number) => {
-      if (this.dataManager!.isParent(physicalIndex)) {
-        // Preserve a parent in the list of removed rows.
-        removedRows.add(physicalIndex);
-
-        // `cacheNode()` flattens the tree depth-first, so a parent's descendants are always the contiguous
-        // block right after it. `countChildren()` counts that whole block, at every depth - which is why the
-        // subtree is expressed as a range instead of a walk over `__children`.
-        const descendantCount = this.dataManager!.countChildren(physicalIndex);
-
-        for (let offset = 1; offset <= descendantCount; offset++) {
-          removedRows.add(physicalIndex + offset);
-        }
-
+      // An ancestor already listed this row, so its subtree is already collected – a parent's descendants are
+      // nested inside its own ancestor's. Without this, a selection spanning a parent and its children walks
+      // the same subtree once per row in it.
+      if (removedRows.has(physicalIndex)) {
         return removedRows;
       }
 
-      // Don't modify list of removed rows when already checked element isn't a parent.
-      return removedRows.add(physicalIndex);
-    }, new Set()));
+      removedRows.add(physicalIndex);
+
+      if (this.dataManager!.isParent(physicalIndex)) {
+        this.#collectDescendants(this.dataManager!.getDataObject(physicalIndex), removedRows);
+      }
+
+      return removedRows;
+    }, new Set<number>()));
 
     // Modifying hook's argument by the reference.
     physicalRows.length = 0;
-    physicalRows.push(...modifiedPhysicalRows);
+
+    // Never `push(...list)` here: the list now holds one entry per descendant, and a spread that wide
+    // overflows the call stack (measured between 80k and 130k rows).
+    modifiedPhysicalRows.forEach((physicalIndex) => {
+      physicalRows.push(physicalIndex);
+    });
   };
 
   /**
