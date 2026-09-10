@@ -608,14 +608,13 @@ export default (): Record<string, unknown> => {
      * | `strict`    | `true` (default) \| `false`                                             | `true`: link only URLs that carry a scheme<br>`false`: also link bare domains (`example.com`) as `https` and bare email addresses as `mailto`, validated against the IANA top-level domain list bundled with Handsontable |
      * | `className` | A string (default: `''`)                                                | Extra class name(s) added to every link                                      |
      *
-     * Keep the default unless your data holds bare domains or email addresses; the relaxed mode also
-     * links filenames whose extension is a top-level domain, such as `report.zip`. The bundled
-     * top-level domain list is fixed at build time - Handsontable makes no network request to
-     * validate a bare domain, which keeps `strict: false` usable in an air-gapped environment.
-     * Punycode top-level domains (`xn--...`) are skipped, since nobody types those into a cell; every
-     * other IANA top-level domain is used as-is, with no exclusion list, so a value such as
-     * `report.zip` or `README.md` still becomes a link even though its extension also reads as a
-     * file extension.
+     * The full IANA top-level domain list is used, so a file name whose extension is also a
+     * top-level domain, such as `report.zip` or `README.md`, links too. Keep the default unless your
+     * data holds bare domains or email addresses, and keep `strict: true` or set `autoLink: false` on
+     * columns that hold file names. The bundled list is fixed at build time - Handsontable makes no
+     * network request to validate a bare domain, which keeps `strict: false` usable in an
+     * air-gapped environment. Punycode top-level domains (`xn--...`) are skipped, since nobody types
+     * those into a cell.
      *
      * The cell keeps its own renderer and its value stays unchanged, so copying, autofill, sorting,
      * and export are unaffected. Every link element gets the `ht-link` and `ht-auto-link` classes,
