@@ -46,8 +46,8 @@ PERF_MODE=compare node scripts/run.mjs
 The suite measures whatever Chromium the `@playwright/test` pin ships, and every
 snapshot records which one (`environment.chromium`, captured by the Playwright
 `globalSetup` in `lib/setup.mjs`). The baseline is a median over develop goldens
-with the **same Chromium build and harness version** only, so after a Playwright
-bump the first PR run reports "no comparable baseline" with the reason. Deltas
+with the **same Chromium build, platform, and harness version** only, so after a
+Playwright bump or platform change the first PR run reports "no comparable baseline" with the reason. Deltas
 resume with the next develop push (against that single run, and the footer says
 so), and as a median once two have run on the new engine. The comment's `Δ vs
 shift` column and `Run shift` footer name how much faster or slower the CI runner
@@ -95,7 +95,7 @@ performance-tests/
   trace-parser.mjs             # CDP trace -> DevTools category breakdown
   .eslintrc.js                 # ESLint config (extends root)
   lib/
-    setup.mjs                  # Playwright globalSetup: Chromium build + machine -> output/environment.json
+    setup.mjs                  # Playwright globalSetup: Chromium build + platform + machine -> output/environment.json
     environment.mjs            # Run provenance and the baseline compatibility key
     trace-runner.mjs           # CDP Tracing.start/stop + warmup/iteration loop; owns HARNESS_VERSION
     hook-timing.mjs            # performance.now() on before/after hook pairs + save
@@ -166,11 +166,11 @@ at five), means the window is wrong -- not that the operation was cheap.
 
 The CI workflow (`.github/workflows/performance-tests.yml`) operates in two modes:
 
-- **On push to `develop`** (`PERF_MODE=golden`): Runs all scenarios, saves the averaged results as `golden/snapshots.json` with their provenance (commit, run, Chromium build, CPU, harness version), and deploys them to the `gh-pages` branch under `performance-reports/develop/<timestamp>/`. A `latest.json` pointer is updated for PR comparisons. A history index page lists all past runs with their commit, Chromium build and CPU. The run is also compared against the trailing median of compatible develop goldens: the report goes to the job summary and each regressed scenario becomes a `::warning` annotation on the run, so a shift on develop is seen where it happened. The saved snapshot is never derived from history.
+- **On push to `develop`** (`PERF_MODE=golden`): Runs all scenarios, saves the averaged results as `golden/snapshots.json` with their provenance (commit, run, Chromium build, platform, CPU, harness version), and deploys them to the `gh-pages` branch under `performance-reports/develop/<timestamp>/`. A `latest.json` pointer is updated for PR comparisons. A history index page lists all past runs with their commit, Chromium build, platform, and CPU. The run is also compared against the trailing median of compatible develop goldens: the report goes to the job summary and each regressed scenario becomes a `::warning` annotation on the run, so a shift on develop is seen where it happened. The saved snapshot is never derived from history.
 
-- **On pull request** (`PERF_MODE=compare`): Fetches the last 20 develop goldens from `gh-pages` into `golden/history/` (and `latest.json` as a single-file fallback), runs all scenarios, and generates a delta report against a median of the newest 5 goldens that share this run's Chromium build and harness version. The markdown summary is posted as a sticky PR comment; the full HTML report is deployed to GitHub Pages at `performance-reports/<branch-slug>/`.
+- **On pull request** (`PERF_MODE=compare`): Fetches the last 20 develop goldens from `gh-pages` into `golden/history/` (and `latest.json` as a single-file fallback), runs all scenarios, and generates a delta report against a median of the newest 5 goldens that share this run's Chromium build, platform, and harness version. The markdown summary is posted as a sticky PR comment; the full HTML report is deployed to GitHub Pages at `performance-reports/<branch-slug>/`.
 
-If no compatible golden baseline exists (first run, `gh-pages` branch not yet created, or fewer than two develop pushes since the Chromium or harness changed), the report shows raw metrics in self-compare mode and states why.
+If no compatible golden baseline exists (first run, `gh-pages` branch not yet created, or fewer than two develop pushes since the Chromium, platform, or harness changed), the report shows raw metrics in self-compare mode and states why.
 
 ### Metrics
 

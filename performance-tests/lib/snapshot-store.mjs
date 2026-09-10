@@ -77,11 +77,11 @@ export async function saveSnapshots(scenarioResults, metadata = {}, goldenDir = 
  *
  * Preference order: a median over the compatible goldens in history/, then the single-file golden
  * if it is compatible, then nothing. "Compatible" is the key from lib/environment.mjs -- same
- * Chromium build, same harness version -- when `compatibleWith` is given; without it, everything
+ * Chromium build, platform, and harness version -- when `compatibleWith` is given; without it, everything
  * marks-valid qualifies, as before provenance existed.
  *
  * A baseline that exists but is incompatible is refused, not returned: a delta against a golden
- * from another Chromium is the two browsers disagreeing, and publishing it is the defect that made
+ * from another platform or Chromium is the two environments disagreeing, and publishing it is the defect that made
  * the 09-03 Playwright bump read as a regression on five days of pull requests. Every refusal comes
  * back as a reason so the report can print it instead of a self-comparison nobody can read --
  * including "there was nothing to compare against at all", which in golden mode has no other
@@ -200,7 +200,7 @@ function refusalText(refusal, compatibleWith) {
   if (refusal.reason === MEDIAN_REFUSAL.INCOMPATIBLE_KEY) {
     return refusal.example
       ? describeKeyMismatch(compatibleWith.key, baselineKey(refusal.example))
-      : describeKeyMismatch(compatibleWith.key, { chromium: null, harnessVersion: null });
+      : describeKeyMismatch(compatibleWith.key, { chromium: null, platform: null, harnessVersion: null });
   }
 
   return BASELINE_REFUSALS[refusal.reason] ?? null;
@@ -248,7 +248,7 @@ async function loadMedianFromHistory(historyDir, goldenPathExists, compatibleWit
     if (median.excludedIncompatible > 0) {
       console.log(
         `Golden history: ${median.excludedIncompatible} snapshot(s) passed over for a different ` +
-        'Chromium build or harness version.'
+        'Chromium build, platform, or harness version.'
       );
     }
 
