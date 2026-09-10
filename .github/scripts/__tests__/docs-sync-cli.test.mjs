@@ -189,7 +189,49 @@ test('--dry-run applies locally but pushes nothing and opens nothing', () => {
 
     const ghCalls = existsSync(f.ghLog) ? readFileSync(f.ghLog, 'utf8').trim().split('\n').map((line) => JSON.parse(line)) : [];
 
-    assert.ok(!ghCalls.some((c) => c[0] === 'pr' && c[1] === 'create'));
+    // Under --dry-run nothing writes through gh at all, not just "no create":
+    // no pull request opened, edited, or closed, no label ensured, no API mutation.
+    assert.ok(!ghCalls.some((c) => (
+      (c[0] === 'pr' && ['create', 'edit', 'close'].includes(c[1]))
+      || (c[0] === 'label' && c[1] === 'create')
+      || (c[0] === 'api' && c.includes('--method'))
+    )), 'no write-shaped gh call under --dry-run');
+  } finally {
+    rmSync(f.root, { recursive: true, force: true });
+  }
+});
+
+test('a conflicting cherry-pick reports itself and blocks the push, even under an include label', () => {
+  const f = fixture();
+
+  try {
+    // Force PR 101 to carry the include label.
+    const script = readFileSync(f.fakeGh, 'utf8').replace('labels: []', 'labels: n === 101 ? [{ name: "docs-sync: include" }] : []');
+
+    writeFileSync(f.fakeGh, script);
+
+    // Make the pick of #101 conflict: prod-docs/18.1 changes the same file
+    // that #101 changes, from the same base content, to something else.
+    f.git(f.work, ['switch', '-q', 'prod-docs/18.1']);
+    writeFileSync(path.join(f.work, 'docs/content/guides/a.md'), 'a v1 (hotfixed directly on prod)\n');
+    f.git(f.work, ['commit', '-q', '-am', 'Hotfix guide a directly on prod']);
+    f.git(f.work, ['switch', '-q', 'develop']);
+    f.git(f.work, ['push', '-q', 'origin', 'prod-docs/18.1']);
+
+    const result = runCli(f);
+
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(f.git(f.work, ['ls-remote', '--heads', f.origin, 'docs-sync/prod-docs-18.1']), '', 'no branch pushed when everything conflicts');
+
+    const ghCalls = readFileSync(f.ghLog, 'utf8').trim().split('\n').map((line) => JSON.parse(line));
+
+    assert.ok(!ghCalls.some((c) => c[0] === 'pr' && c[1] === 'create'), 'no pull request when everything conflicts');
+    assert.ok(!ghCalls.some((c) => c[0] === 'pr' && c[1] === 'close'), 'the run does not close a pull request it never opened');
+
+    const summary = readFileSync(path.join(f.root, 'summary.md'), 'utf8');
+
+    assert.match(summary, /## Skipped: conflict\n\n- `[0-9a-f]{7}` Fix a typo in guide a \(#101\)/);
+    assert.match(summary, /1 commit\(s\) conflict with prod-docs\/18\.1; nothing applied, manual port needed/);
   } finally {
     rmSync(f.root, { recursive: true, force: true });
   }
