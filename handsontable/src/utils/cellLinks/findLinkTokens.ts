@@ -39,7 +39,11 @@ const SCHEME_PREFIX_PATTERN = /^(?:https?:\/\/|mailto:|tel:)/i;
 // where a URL word cannot continue, so a path segment that merely contains a scheme word
 // ("/hotel:deals", "/wiki/Tel:Aviv", "/x-mailto:y") is not mistaken for a second, joined URL, and
 // the excluded class now also covers `/` for the same reason as the `https?://` branch.
-const EMBEDDED_SCHEME_PATTERN = /(?:(?<!\/)https?:\/\/|(?<![A-Za-z0-9._~+-/])(?:mailto:|tel:))/gi;
+// The hyphen sits last in this class, not between `+` and `/`: inside `[...]`, `+-/` is a RANGE from
+// `+` (0x2B) to `/` (0x2F) - which also swallows `,` (0x2C) - not three literal characters. Putting
+// `-` last (`[...+/-]`) keeps it literal, so this class excludes exactly the URL word characters
+// plus `/`, nothing more.
+const EMBEDDED_SCHEME_PATTERN = /(?:(?<!\/)https?:\/\/|(?<![A-Za-z0-9._~+/-])(?:mailto:|tel:))/gi;
 // A quote is not in this set: `TOKEN_PATTERN`'s character class already excludes `"` and `'`, so a
 // raw token can never carry one and a quote-trimming entry here would be unreachable.
 const TRAILING_PUNCTUATION_CHARS = new Set(['.', ',', ';', ':', '!', '?']);

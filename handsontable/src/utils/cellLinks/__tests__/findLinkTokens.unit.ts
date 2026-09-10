@@ -153,6 +153,31 @@ describe('findLinkTokens', () => {
     ]);
   });
 
+  it('should split a `mailto:` URL joined to a preceding `https://` URL only by a comma', () => {
+    // Regression: the `EMBEDDED_SCHEME_PATTERN` exclusion class used to read `+-/` as a RANGE
+    // (`+` through `/`), which also swallowed `,` - so the comma no longer separated the two URLs
+    // and this stayed one garbled token.
+    expect(findLinkTokens('https://a.com,mailto:b@c.com', BASE)).toEqual([
+      { start: 0, end: 13, href: 'https://a.com/' },
+      { start: 14, end: 28, href: 'mailto:b@c.com' },
+    ]);
+  });
+
+  it('should split a `tel:` URL joined to a preceding `https://` URL only by a comma', () => {
+    expect(findLinkTokens('https://a.com,tel:+48123', BASE)).toEqual([
+      { start: 0, end: 13, href: 'https://a.com/' },
+      { start: 14, end: 24, href: 'tel:+48123' },
+    ]);
+  });
+
+  it('should not split an embedded `tel:` that is a hyphenated URL word', () => {
+    // The hyphen is a legal URL word character, so "x-tel:1" reads as one path segment, not two
+    // joined URLs - unlike the comma cases above.
+    expect(findLinkTokens('https://a.com/x-tel:1', BASE)).toEqual([
+      { start: 0, end: 21, href: 'https://a.com/x-tel:1' },
+    ]);
+  });
+
   it('should not read a bare `tel:`/`mailto:` word glued to a preceding word as a scheme', () => {
     expect(findLinkTokens('Grand Hotel:Warsaw', BASE)).toEqual([]);
     expect(findLinkTokens('motel:12 rooms', BASE)).toEqual([]);
