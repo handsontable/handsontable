@@ -151,10 +151,59 @@ test('an offender whose correct name is TAKEN is never told to rename', () => {
   // why it is refused, so match on the command plus its argument.
   assert.doesNotMatch(report.message, /git mv \.changelogs/, 'no rename remedy for a collision');
   assert.doesNotMatch(report.message, /need only a rename/);
-  assert.match(report.message, /already has/);
-  assert.match(report.message, /13442\.json/);
+  assert.match(report.message, /shares its number with another entry/);
+  assert.match(report.message, /#13442 is already in 13442\.json/);
   assert.match(report.message, /[Ff]old its title/);
   assert.match(report.message, /git rm/);
+});
+
+test('two misnamed PEERS citing one number are both collisions', () => {
+  // No canonical file exists, so neither destination is occupied *yet* - but
+  // both would rename onto `13448.json`, and the second is refused or forced
+  // over the first title. This is the live shape on PR #13448.
+  const report = formatMisnamedReport(findMisnamedEntries([
+    record('.changelogs/13448-changed.json', 13448),
+    record('.changelogs/13448-deprecated.json', 13448)
+  ]));
+
+  assert.equal(report.offenders.length, 2);
+  assert.deepEqual(report.offenders.map(r => r.collides), [true, true]);
+  assert.deepEqual(report.offenders.map(r => r.expectedExists), [false, false]);
+
+  assert.doesNotMatch(report.message, /git mv \.changelogs/, 'neither peer may rename');
+  // The wording must not claim a `13448.json` that does not exist.
+  assert.doesNotMatch(report.message, /already in 13448\.json/);
+  assert.match(report.message, /#13448 is cited by 2 files, none of them 13448\.json/);
+});
+
+test('three misnamed peers citing one number all collide', () => {
+  const offenders = findMisnamedEntries([
+    record('.changelogs/8311-react.json', 8311),
+    record('.changelogs/8311-vue.json', 8311),
+    record('.changelogs/8311-angular.json', 8311)
+  ]);
+
+  assert.deepEqual(offenders.map(r => r.collides), [true, true, true]);
+  assert.deepEqual(offenders.map(r => r.citedBy), [3, 3, 3]);
+  assert.doesNotMatch(formatMisnamedReport(offenders).message, /git mv \.changelogs/);
+});
+
+test('one misnamed entry alone still renames, however many others exist', () => {
+  // The guard must not over-fire: a single file citing a number is free to
+  // rename even when the tree holds many unrelated entries.
+  const offenders = findMisnamedEntries([
+    record('.changelogs/13396-changed.json', 13396),
+    record('.changelogs/13442.json', 13442),
+    record('.changelogs/7389.json', 7389)
+  ]);
+
+  assert.equal(offenders.length, 1);
+  assert.equal(offenders[0].collides, false);
+  assert.equal(offenders[0].citedBy, 1);
+  assert.match(
+    formatMisnamedReport(offenders).message,
+    /git mv \.changelogs\/13396-changed\.json \.changelogs\/13396\.json/
+  );
 });
 
 test('a mixed set gets each remedy for the right file', () => {

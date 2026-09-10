@@ -54,26 +54,49 @@ const entryBasename = file => file
  * first never see such a record; the pre-push hook does not validate, which
  * is why the guard lives here and not in one caller.
  *
- * Each offender carries `collides`: whether the name it should have is already
- * taken by another entry in the same set. That decides the remedy, so it is
- * computed here where every record is visible. A colliding offender must not
- * be told to rename - see `formatMisnamedReport`.
+ * Each offender carries `collides`: whether renaming it to the name it should
+ * have would land on a file that is already there, or is about to be. That
+ * decides the remedy, so it is computed here where every record is visible. A
+ * colliding offender must not be told to rename - see `formatMisnamedReport`.
+ *
+ * Two situations collide, and missing either one hands out a destructive
+ * rename. `expectedExists` covers a canonical file already sitting there
+ * (`13442-changed.json` beside `13442.json`). The count covers two misnamed
+ * PEERS citing one number with no canonical file at all
+ * (`13448-changed.json` + `13448-deprecated.json`): neither destination
+ * exists yet, so both would be told to rename onto the same path, and the
+ * second rename is refused or forced over the first title.
  *
  * @param {Array<{file: string, entry: object}>} records Pending entries and their paths.
  * @returns {Array<{file: string, basename: string, issueOrPR: number, expected: string,
- *   collides: boolean}>} One record per offender, in input order.
+ *   collides: boolean, expectedExists: boolean, citedBy: number}>} One record
+ *   per offender, in input order.
  */
 const findMisnamedEntries = (records) => {
   const usable = records.filter(({ entry }) => Number.isFinite(entry?.issueOrPR));
-  const taken = new Set(usable.map(({ file }) => entryBasename(file)));
+  const present = new Set(usable.map(({ file }) => entryBasename(file)));
+  const citations = usable.reduce((counts, { entry }) => {
+    const expected = String(entry.issueOrPR);
+
+    return counts.set(expected, (counts.get(expected) ?? 0) + 1);
+  }, new Map());
 
   return usable.reduce((found, { file, entry }) => {
     const basename = entryBasename(file);
     const expected = String(entry.issueOrPR);
 
     if (!ENTRY_BASENAME_PATTERN.test(basename) || basename !== expected) {
+      const expectedExists = present.has(expected);
+      const citedBy = citations.get(expected);
+
       found.push({
-        file, basename, issueOrPR: entry.issueOrPR, expected, collides: taken.has(expected)
+        file,
+        basename,
+        issueOrPR: entry.issueOrPR,
+        expected,
+        expectedExists,
+        citedBy,
+        collides: expectedExists || citedBy > 1
       });
     }
 
@@ -136,18 +159,26 @@ const formatMisnamedReport = (records) => {
     ] : []),
     ...(colliding.length ? [
       '',
-      `${colliding.length === 1 ? 'This one cites' : 'These cite'} a number that already has an`,
-      'entry, so do NOT rename: `git mv` refuses a destination that exists, and forcing it',
-      'overwrites the other entry and loses its title.',
+      `${
+        colliding.length === 1 ? 'This one shares its number' : 'These share their number'
+      } with another entry, so do NOT rename:`,
+      '`git mv` refuses a destination that exists, and forcing it overwrites the other',
+      'entry and loses its title.',
       '',
-      ...colliding.map(r => `  ${r.file}  (#${r.issueOrPR} is already in ${r.expected}.json)`),
+      ...colliding.map(r => `  ${r.file}  (${
+        r.expectedExists
+          ? `#${r.issueOrPR} is already in ${r.expected}.json`
+          : `#${r.issueOrPR} is cited by ${r.citedBy} files, none of them ${r.expected}.json`
+      })`),
       '',
       `Fold ${
         colliding.length === 1 ? 'its title' : 'their titles'
-      } into that file and \`git rm\` ${
-        colliding.length === 1 ? 'it' : 'them'
-      }, or renumber to cite`,
-      'a GitHub number of its own.'
+      } into a single \`<number>.json\` and \`git rm\` ${
+        colliding.length === 1 ? 'the extra file' : 'the extra files'
+      },`,
+      `or renumber ${
+        colliding.length === 1 ? 'it' : 'each of them'
+      } to cite a separate GitHub number.`
     ] : [])
   ].join('\n');
 
