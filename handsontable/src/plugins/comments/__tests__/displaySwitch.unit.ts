@@ -226,6 +226,29 @@ describe('Comments', () => {
       expect(onShow).toHaveBeenCalledWith(0, 1);
     });
 
+    it('should not carry over a show that a hide already overruled', () => {
+      const displaySwitch = new DisplaySwitch(700);
+      const onShow = jasmine.createSpy('onShow');
+      const range = { from: new CellCoords(0, 1) };
+
+      jest.useFakeTimers();
+
+      displaySwitch.addLocalHook('show', onShow);
+      displaySwitch.show(range);
+      displaySwitch.hide();
+
+      // The hover is already overruled here, so the rebuild must not bring it back to life. It
+      // would sit there waiting on the flag, and the next `cancelHiding()` - which is what
+      // `showAtCell()` does when the user opens ANOTHER cell's comment - would set that flag and
+      // let the stale timer replace the comment that was just opened.
+      displaySwitch.updateDelay(300);
+      displaySwitch.cancelHiding();
+
+      jest.runAllTimers();
+
+      expect(onShow).not.toHaveBeenCalled();
+    });
+
     it('should let `keepVisible` cancel a show carried over by a rebuild', () => {
       const displaySwitch = new DisplaySwitch(700);
       const onShow = jasmine.createSpy('onShow');

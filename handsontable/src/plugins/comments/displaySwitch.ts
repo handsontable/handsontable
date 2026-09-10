@@ -71,6 +71,11 @@ class DisplaySwitch {
    */
   hide() {
     this.wasLastActionShow = false;
+    // A hide overrules the pending show, so it must not survive as something a later rebuild can
+    // re-arm. The armed timer itself is deliberately left alone - the flag is what gates it, and
+    // `cancelHiding()` reviving it is long-standing behavior - but a re-armed copy would outlive
+    // that flag and replace whatever comment was opened next.
+    this.#pendingShowRange = null;
 
     this.hidingTimer = setTimeout(() => {
       if (this.wasLastActionShow === false) {

@@ -136,7 +136,11 @@ the other:
   function, so one orphan defeats it.
 - **Carry over.** Cancelling alone drops a hover the user already started, and the comment then never
   appears until the pointer moves again. `#pendingShowRange` is the only piece of that state living outside
-  the closure, which is what lets the rebuild re-arm it on the replacement.
+  the closure, which is what lets the rebuild re-arm it on the replacement. **`hide()` clears that field**,
+  because a hide overrules the hover: re-arming an overruled show puts a copy of it beyond the reach of the
+  flag that was suppressing it, and the next `cancelHiding()` — which is what `showAtCell()` does when
+  another cell's comment is opened — then lets the stale timer replace it. The armed timer itself is still
+  left alone by `hide()`; the flag gating it, and `cancelHiding()` reviving it, are long-standing behavior.
 - **Skip.** When the delay is unchanged there is nothing to rebuild, so `updateDelay()` returns early and a
   pending show keeps its original schedule. That is the common call by a distance, and it keeps an unrelated
   settings update from disturbing the hover's timing at all.
