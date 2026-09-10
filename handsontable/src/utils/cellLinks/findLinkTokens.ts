@@ -231,7 +231,7 @@ interface ScanResult {
  *
  * @param {string} text The text to scan.
  * @param {string} baseUrl The document URL the candidates are resolved against.
- * @param {readonly LinkScheme[]} schemes The schemes allowed by the caller.
+ * @param {LinkScheme[]} schemes The schemes allowed by the caller.
  * @returns {ScanResult} The tokens, in document order (they never overlap), plus every considered span.
  */
 function findSchemeTokens(text: string, baseUrl: string, schemes: readonly LinkScheme[]): ScanResult {
@@ -284,7 +284,7 @@ function findSchemeTokens(text: string, baseUrl: string, schemes: readonly LinkS
  *
  * @param {number} start The candidate's start offset into the text.
  * @param {number} end The candidate's end offset into the text.
- * @param {readonly Span[]} claimed The spans the candidate must not overlap.
+ * @param {Span[]} claimed The spans the candidate must not overlap.
  * @returns {boolean} `true` when the candidate overlaps a claimed span.
  */
 function overlapsClaimedSpan(start: number, end: number, claimed: readonly Span[]): boolean {
@@ -316,7 +316,7 @@ function deriveTld(host: string): string | null {
  * @param {string} rawMatch The raw regex match.
  * @param {number} matchIndex The match's offset into the original text.
  * @param {string} baseUrl The document URL to resolve against.
- * @param {readonly LinkScheme[]} schemes The schemes allowed by the caller - `https` absent disables
+ * @param {LinkScheme[]} schemes The schemes allowed by the caller - `https` absent disables
  * every bare domain, since a bare domain always resolves as `https`.
  * @returns {LinkToken|null} The token, or `null` when the candidate is not linkable.
  */
@@ -343,7 +343,7 @@ function toDomainToken(
  * @param {string} rawMatch The raw regex match.
  * @param {number} matchIndex The match's offset into the original text.
  * @param {string} baseUrl The document URL to resolve against.
- * @param {readonly LinkScheme[]} schemes The schemes allowed by the caller - `mailto` absent disables
+ * @param {LinkScheme[]} schemes The schemes allowed by the caller - `mailto` absent disables
  * every bare email address.
  * @returns {LinkToken|null} The token, or `null` when the candidate is not linkable.
  */
@@ -379,10 +379,11 @@ function toEmailToken(
  * here, since both are shared, stateful `g`-flagged regexes.
  * @param {string} text The text to scan.
  * @param {string} baseUrl The document URL to resolve against.
- * @param {readonly LinkScheme[]} schemes The schemes allowed by the caller.
- * @param {readonly Span[]} claimed The spans a match may not overlap.
- * @param {(rawMatch: string, matchIndex: number, baseUrl: string, schemes: readonly LinkScheme[]) => LinkToken | null} toToken
- * Converts one raw, non-overlapping match into a token.
+ * @param {LinkScheme[]} schemes The schemes allowed by the caller.
+ * @param {Span[]} claimed The spans a match may not overlap.
+ * @param {Function} toToken Converts one raw, non-overlapping match into a token. Takes the raw match,
+ * its offset into the original text, the document URL to resolve against, and the allowed schemes;
+ * returns a `LinkToken`, or `null` when the candidate is not linkable.
  * @returns {ScanResult} The tokens, in document order, plus every considered span.
  */
 function scanBarePattern(
