@@ -5,9 +5,21 @@
 // markdown excluded); docs-, test-, and CI/tooling-only PRs pass
 // automatically. `[skip changelog]` in the PR description — outside HTML
 // comments — overrides the requirement on a source change; the override is
-// logged with the source files it waves through. The decision logic lives in
-// lib/changelog-gate.mjs (pure, unit-tested); this wrapper only talks to the
-// GitHub API.
+// logged with the source files it waves through.
+//
+// It also caps a PR at TWO entry files, the second being for a separate GitHub
+// issue closed alongside the PR's own change. `[multiple changelogs]` in the
+// description lifts that cap for the one shape needing it: a maintenance PR
+// back-filling entries for other PRs. That marker is separate from
+// `[skip changelog]`, which never lifts the cap. Note the cap is checked before
+// the path rules, so a docs-only PR adding three entries fails here too.
+//
+// The companion half of the rule is in `bin/changelog`, which asserts that an
+// entry file is named after the number it cites — that is what makes two
+// entries for one number impossible, and it runs in this job's second step.
+//
+// The decision logic lives in lib/changelog-gate.mjs (pure, unit-tested); this
+// wrapper only talks to the GitHub API.
 
 const core = require('@actions/core');
 const github = require('@actions/github');

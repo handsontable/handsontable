@@ -362,9 +362,10 @@ const consumeCommand = async(args) => {
   // Both asserted here, before the dry run bails out, so that the `--dry-run`
   // that `checks.yml` puts on every pull request enforces them too - not only
   // the release. See `bin/lib/entry-filenames.js` and
-  // `bin/lib/published-entries.js` for what each catches and why. The filename
-  // check runs first: a file that cites a number it is not named after makes
-  // the republish report cite the wrong file.
+  // `bin/lib/published-entries.js` for what each catches and why. The order
+  // between them carries no meaning: `findRepublishedEntries` keys off
+  // `entry.issueOrPR` and never the filename, so neither report can mislead
+  // because of the other. The filename check is simply the cheaper one.
   assertEntryFilenames(pendingEntries);
 
   assertNoRepublishedEntries(pendingEntries, existingChangelogContents);

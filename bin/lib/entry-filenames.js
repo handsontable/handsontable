@@ -46,11 +46,23 @@ const entryBasename = file => file
  * `13442`, so a numeric comparison would accept `013442.json` as a second
  * file for #13442 and hand back the very collision this prevents.
  *
+ * An entry with no usable `issueOrPR` is skipped rather than reported. It has
+ * a worse problem than its name, and `assertChangelogEntryFormat` says so
+ * precisely; reporting it here would name `undefined.json` as the required
+ * filename, and following that advice produces a name this function then
+ * rejects for not being a number - a loop. Callers that validate the format
+ * first never see such a record; the pre-push hook does not validate, which
+ * is why the guard lives here and not in one caller.
+ *
  * @param {Array<{file: string, entry: object}>} records Pending entries and their paths.
  * @returns {Array<{file: string, basename: string, issueOrPR: number, expected: string}>}
  *   One record per offender, in input order.
  */
 const findMisnamedEntries = records => records.reduce((found, { file, entry }) => {
+  if (!Number.isFinite(entry?.issueOrPR)) {
+    return found;
+  }
+
   const basename = entryBasename(file);
   const expected = String(entry.issueOrPR);
 

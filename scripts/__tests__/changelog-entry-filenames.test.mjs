@@ -143,3 +143,30 @@ test('the report reads correctly for a single offender', () => {
 
   assert.match(report.message, /1 changelog entry is not named after the number it cites/);
 });
+
+test('an entry with no usable issueOrPR is skipped, not misreported', () => {
+  // Reporting it would demand `undefined.json`, and renaming to that produces a
+  // basename this function rejects for not being a number - a loop the author
+  // cannot escape. `assertChangelogEntryFormat` diagnoses the real problem, and
+  // the pre-push hook reaches this function without running that check first.
+  for (const issueOrPR of [undefined, null, 'DEV-2880', NaN, Infinity, {}]) {
+    assert.deepEqual(
+      findMisnamedEntries([{ file: '.changelogs/13500.json', entry: { issueOrPR } }]),
+      [],
+      `issueOrPR=${String(issueOrPR)} must be skipped`
+    );
+  }
+
+  // An entry object with no fields at all is skipped for the same reason.
+  assert.deepEqual(findMisnamedEntries([{ file: '.changelogs/13500.json', entry: {} }]), []);
+});
+
+test('skipping a shapeless entry does not hide a well-formed offender beside it', () => {
+  const offenders = findMisnamedEntries([
+    { file: '.changelogs/13500.json', entry: {} },
+    record('.changelogs/13442-changed.json', 13442)
+  ]);
+
+  assert.equal(offenders.length, 1);
+  assert.equal(offenders[0].file, '.changelogs/13442-changed.json');
+});
