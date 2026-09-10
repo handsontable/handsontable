@@ -5266,9 +5266,11 @@ export default (): Record<string, unknown> => {
      * the value according to [`numericFormat`](@/api/options.md#numericformat), and it keeps every
      * digit of the literal: `Intl.NumberFormat` reads a string operand as an exact decimal instead
      * of converting it to a JavaScript number. That makes `preserveNumericLiteral` the supported
-     * way to display a value beyond the safe-integer limit – the literal `'9007199254740993'`
-     * renders as `9,007,199,254,740,993`, while the same value held as a number renders as
-     * `9,007,199,254,740,992`. One exception: the filter menu's "Filter by value" checkbox
+     * way to display a value beyond the safe-integer limit: the literal `'9007199254740993'`
+     * renders with every digit intact, while the same value held as a number renders as
+     * `9007199254740992`. Grouping and decimals still follow
+     * [`numericFormat`](@/api/options.md#numericformat). One exception: the filter menu's
+     * "Filter by value" checkbox
      * list compares values strictly, so a preserved literal (`'9.0'`) and its plain number (`9`)
      * appear as two separate entries.
      *
