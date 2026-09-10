@@ -166,7 +166,7 @@ A bare domain's top-level domain (the `.com` in `handsontable.com`) is validated
 
 A link inside a cell stays out of the tab order, so tabbing still moves between cells. To open the first link of the selected cell, press <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd>. The link opens where `target` says.
 
-Inline mode can link several URLs inside one cell. <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd> always opens the first one -- reach the rest with the mouse. This is a deliberate limitation.
+Inline mode can link several URLs inside one cell. <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd> always opens the first one; reach the others with the mouse. This is a deliberate limitation.
 
 ## Styling
 

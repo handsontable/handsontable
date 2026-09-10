@@ -106,7 +106,7 @@ shares with `Formulas`.
 - **Alt+Enter always opens the FIRST link of the selected cell, never the second or later one.** `inline: true`
   (the default) can wrap several URLs in one cell, but `openCellLink.ts` reads only `a.ht-link` in document order
   and stops at the first match. Reaching the remaining links is mouse-only. Accepted product decision (owner
-  ruling) — do not add a cycling behavior to the command.
+  ruling). Do not add a cycling behavior to the command.
 
 ## Where to look next
 
