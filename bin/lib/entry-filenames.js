@@ -54,26 +54,32 @@ const entryBasename = file => file
  * first never see such a record; the pre-push hook does not validate, which
  * is why the guard lives here and not in one caller.
  *
+ * Each offender carries `collides`: whether the name it should have is already
+ * taken by another entry in the same set. That decides the remedy, so it is
+ * computed here where every record is visible. A colliding offender must not
+ * be told to rename - see `formatMisnamedReport`.
+ *
  * @param {Array<{file: string, entry: object}>} records Pending entries and their paths.
- * @returns {Array<{file: string, basename: string, issueOrPR: number, expected: string}>}
- *   One record per offender, in input order.
+ * @returns {Array<{file: string, basename: string, issueOrPR: number, expected: string,
+ *   collides: boolean}>} One record per offender, in input order.
  */
-const findMisnamedEntries = records => records.reduce((found, { file, entry }) => {
-  if (!Number.isFinite(entry?.issueOrPR)) {
+const findMisnamedEntries = (records) => {
+  const usable = records.filter(({ entry }) => Number.isFinite(entry?.issueOrPR));
+  const taken = new Set(usable.map(({ file }) => entryBasename(file)));
+
+  return usable.reduce((found, { file, entry }) => {
+    const basename = entryBasename(file);
+    const expected = String(entry.issueOrPR);
+
+    if (!ENTRY_BASENAME_PATTERN.test(basename) || basename !== expected) {
+      found.push({
+        file, basename, issueOrPR: entry.issueOrPR, expected, collides: taken.has(expected)
+      });
+    }
+
     return found;
-  }
-
-  const basename = entryBasename(file);
-  const expected = String(entry.issueOrPR);
-
-  if (!ENTRY_BASENAME_PATTERN.test(basename) || basename !== expected) {
-    found.push({
-      file, basename, issueOrPR: entry.issueOrPR, expected
-    });
-  }
-
-  return found;
-}, []);
+  }, []);
+};
 
 /**
  * Renders one offending entry as a single line.
@@ -89,11 +95,13 @@ const formatMisnamedEntry = record => `${record.file}: cites #${
  * Renders the report. Every offender is listed in one pass, so a person fixing
  * several of them does not have to re-run the command once per file.
  *
- * The remedy depends on whether the correct name is already taken, and the
- * message covers both because they are fixed differently. A plain misname is a
- * rename. A collision means two entries cite one number, and then one of them
- * has to go: either the two titles fold into one, or the extra entry is
- * renumbered to cite a GitHub number of its own.
+ * The two remedies are printed per offender, never both to everyone, because
+ * the wrong one is destructive. An offender whose correct name is free is a
+ * plain misname and renames cleanly. An offender whose correct name is taken
+ * is two entries citing one number - the shape this whole check exists to
+ * stop - and `git mv` refuses it with `fatal: destination exists`. Handing
+ * that person a `git mv` line invites `git mv -f`, which overwrites the other
+ * entry and loses its title. So a collision is told to fold instead.
  *
  * @param {Array<object>} records The records from `findMisnamedEntries`.
  * @returns {{offenders: Array<object>, message: string}} The report. The
@@ -103,6 +111,9 @@ const formatMisnamedReport = (records) => {
   if (records.length === 0) {
     return { offenders: records, message: '' };
   }
+
+  const renamable = records.filter(r => !r.collides);
+  const colliding = records.filter(r => r.collides);
 
   const message = [
     `${records.length} changelog ${
@@ -115,15 +126,29 @@ const formatMisnamedReport = (records) => {
     'An entry file is always `<issueOrPR>.json`. That is how one pull request stays one',
     'entry: a number owns exactly one file, so a change cannot be split across two lines',
     'of the same release notes. `npm run changelog entry` writes that name for you.',
-    '',
-    'If the correct name is free, rename the file:',
-    '',
-    ...records.map(r => `  git mv ${r.file} ${
-      r.file.replace(/[^\\/]+$/, `${r.expected}.json`)
-    }`),
-    '',
-    'If it is already taken, two entries cite one number. Fold their titles into the one',
-    'file and delete the extra, or renumber the extra to cite its own GitHub number.'
+    ...(renamable.length ? [
+      '',
+      'These need only a rename:',
+      '',
+      ...renamable.map(r => `  git mv ${r.file} ${
+        r.file.replace(/[^\\/]+$/, `${r.expected}.json`)
+      }`)
+    ] : []),
+    ...(colliding.length ? [
+      '',
+      `${colliding.length === 1 ? 'This one cites' : 'These cite'} a number that already has an`,
+      'entry, so do NOT rename: `git mv` refuses a destination that exists, and forcing it',
+      'overwrites the other entry and loses its title.',
+      '',
+      ...colliding.map(r => `  ${r.file}  (#${r.issueOrPR} is already in ${r.expected}.json)`),
+      '',
+      `Fold ${
+        colliding.length === 1 ? 'its title' : 'their titles'
+      } into that file and \`git rm\` ${
+        colliding.length === 1 ? 'it' : 'them'
+      }, or renumber to cite`,
+      'a GitHub number of its own.'
+    ] : [])
   ].join('\n');
 
   return { offenders: records, message };

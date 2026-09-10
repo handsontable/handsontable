@@ -119,21 +119,57 @@ test('an empty report carries an empty message', () => {
   assert.equal(report.message, '');
 });
 
-test('the report lists every offender and both remedies', () => {
+test('an offender whose correct name is free gets the rename remedy', () => {
+  // Only the suffixed file exists, so `13442.json` is free and `git mv` works.
   const report = formatMisnamedReport(findMisnamedEntries([
     record('.changelogs/13396-changed.json', 13396),
     record('.changelogs/13442-changed.json', 13442)
   ]));
 
   assert.equal(report.offenders.length, 2);
-  assert.match(report.message, /13396-changed\.json/);
-  assert.match(report.message, /13442-changed\.json/);
+  assert.equal(report.offenders.every(r => r.collides), false);
   assert.match(report.message, /2 changelog entries are/, 'pluralized');
-  // The rename remedy, one line per offender, with the corrected name.
   assert.match(report.message, /git mv \.changelogs\/13442-changed\.json \.changelogs\/13442\.json/);
-  // And the collision remedy, which is what both of these actually need.
-  assert.match(report.message, /[Ff]old their titles/);
-  assert.match(report.message, /renumber/);
+  assert.match(report.message, /git mv \.changelogs\/13396-changed\.json \.changelogs\/13396\.json/);
+});
+
+test('an offender whose correct name is TAKEN is never told to rename', () => {
+  // The shape this check exists to stop, and the one the repo actually had:
+  // `13442-changed.json` beside `13442.json`. `git mv` refuses here with
+  // `fatal: destination exists`, and `git mv -f` would destroy the other
+  // entry's title - so the rename line must not be offered for it.
+  const report = formatMisnamedReport(findMisnamedEntries([
+    record('.changelogs/13442.json', 13442),
+    record('.changelogs/13442-changed.json', 13442)
+  ]));
+
+  assert.equal(report.offenders.length, 1, 'the correctly-named file is not an offender');
+  assert.equal(report.offenders[0].file, '.changelogs/13442-changed.json');
+  assert.equal(report.offenders[0].collides, true);
+
+  // No `git mv` COMMAND line. The prose may still name the command to explain
+  // why it is refused, so match on the command plus its argument.
+  assert.doesNotMatch(report.message, /git mv \.changelogs/, 'no rename remedy for a collision');
+  assert.doesNotMatch(report.message, /need only a rename/);
+  assert.match(report.message, /already has/);
+  assert.match(report.message, /13442\.json/);
+  assert.match(report.message, /[Ff]old its title/);
+  assert.match(report.message, /git rm/);
+});
+
+test('a mixed set gets each remedy for the right file', () => {
+  const report = formatMisnamedReport(findMisnamedEntries([
+    record('.changelogs/13442.json', 13442),
+    record('.changelogs/13442-changed.json', 13442),
+    record('.changelogs/13396-changed.json', 13396)
+  ]));
+
+  assert.equal(report.offenders.length, 2);
+  // The free one renames...
+  assert.match(report.message, /git mv \.changelogs\/13396-changed\.json \.changelogs\/13396\.json/);
+  // ...and the taken one is not in a rename line.
+  assert.doesNotMatch(report.message, /git mv \.changelogs\/13442-changed\.json/);
+  assert.match(report.message, /13442-changed\.json {2}\(#13442 is already in 13442\.json\)/);
 });
 
 test('the report reads correctly for a single offender', () => {

@@ -308,6 +308,21 @@ ${chalk.yellow.italic(`### ${uppercaseFirstLetter(changelogEntry.type)}
       '  - re-run with the GitHub number the second change cites, if it has one of its own.'
     );
 
+    // Refuse without a terminal instead of overwriting. `askToProceedOrExit`
+    // destructures `shouldProceed` out of a bare `true` when stdin is not a
+    // TTY, so it answers yes by itself - and this command is what the skills
+    // now tell agents to run, which they do with no terminal. Silently
+    // replacing the existing title is the exact loss this check exists to
+    // prevent, and the `rm` hint printed on success would then delete the only
+    // remaining copy. Nothing under `.github/` or `scripts/` runs `entry`, so
+    // no automation depends on the old behavior.
+    if (!isTTY) {
+      console.log();
+      console.log('Refusing to overwrite it without a terminal to confirm on.');
+
+      process.exit(1);
+    }
+
     await askToProceedOrExit('Overwrite?');
   }
 
