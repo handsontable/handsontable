@@ -212,6 +212,27 @@ describe('findLinkTokens', () => {
       { start: 19, end: 32, href: 'https://b.com/' },
     ]);
   });
+
+  it('should not read a `tel:`/`mailto:` scheme glued to a preceding word that ends in a ' +
+    'non-ASCII letter as a scheme (Unicode-aware lookbehind)', () => {
+    expect(findLinkTokens('hôtel:Nice', BASE)).toEqual([]);
+    expect(findLinkTokens('Hôtel:Warsaw', BASE)).toEqual([]);
+    expect(findLinkTokens('Grand Hôtel:Kraków', BASE)).toEqual([]);
+    expect(findLinkTokens('Cafémailto:a@b.com', BASE)).toEqual([]);
+    expect(findLinkTokens('東京tel:03-1234', BASE)).toEqual([]);
+    // The ASCII case this mirrors must stay refused too.
+    expect(findLinkTokens('Grand Hotel:Warsaw', BASE)).toEqual([]);
+  });
+
+  it('should not link the tail of a scheme token that the caller\'s `schemes` narrowing refused', () => {
+    expect(findLinkTokens('tel:example.com', BASE, ['https'], false)).toEqual([]);
+  });
+
+  it('should still link a bare domain unrelated to a refused scheme token', () => {
+    expect(findLinkTokens('see example.com', BASE, ['https'], false)).toEqual([
+      { start: 4, end: 15, href: 'https://example.com/' },
+    ]);
+  });
 });
 
 describe('strict: false', () => {
@@ -305,6 +326,46 @@ describe('strict: false', () => {
     ]);
     expect(findLinkTokens('deploy.sh', BASE, LINK_SCHEMES, false)).toEqual([
       { start: 0, end: 9, href: 'https://deploy.sh/' },
+    ]);
+  });
+
+  it('should not link a bare domain that starts mid-word on a non-ASCII letter (Unicode-aware ' +
+    'lookbehind)', () => {
+    expect(findLinkTokens('münchen.de', BASE, LINK_SCHEMES, false)).toEqual([]);
+    expect(findLinkTokens('Besuchen Sie münchen.de heute', BASE, LINK_SCHEMES, false)).toEqual([]);
+    expect(findLinkTokens('żółw.pl', BASE, LINK_SCHEMES, false)).toEqual([]);
+    expect(findLinkTokens('naïve.example.com', BASE, LINK_SCHEMES, false)).toEqual([]);
+    // The NFD-decomposed spelling of the same word must be refused the same way.
+    const nfd = 'münchen.de'.normalize('NFD');
+
+    expect(nfd).not.toBe('münchen.de');
+    expect(findLinkTokens(nfd, BASE, LINK_SCHEMES, false)).toEqual([]);
+  });
+
+  it('should not link a bare email whose local part starts mid-word on a non-ASCII letter ' +
+    '(Unicode-aware lookbehind)', () => {
+    expect(findLinkTokens('józef@firma.pl', BASE, LINK_SCHEMES, false)).toEqual([]);
+    expect(findLinkTokens('Håkan.Örn@företag.se', BASE, LINK_SCHEMES, false)).toEqual([]);
+  });
+
+  it('should not link the local part of a bare email address whose domain TLD is unknown', () => {
+    expect(findLinkTokens('john.uk@intranet.lan', BASE, LINK_SCHEMES, false)).toEqual([]);
+    expect(findLinkTokens('first.co@example.notatld', BASE, LINK_SCHEMES, false)).toEqual([]);
+    expect(findLinkTokens('a.io@host.invalid', BASE, LINK_SCHEMES, false)).toEqual([]);
+    // Unaffected: the local part is not itself a known-TLD-shaped domain.
+    expect(findLinkTokens('jane.doe@server.local', BASE, LINK_SCHEMES, false)).toEqual([]);
+  });
+
+  it('should still link a valid email that follows a rejected one in the same text', () => {
+    expect(findLinkTokens('john.uk@intranet.lan and ok@example.com', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 25, end: 39, href: 'mailto:ok@example.com' },
+    ]);
+  });
+
+  it('should refuse a bare domain whose port is out of range instead of truncating it', () => {
+    expect(findLinkTokens('example.com:123456', BASE, LINK_SCHEMES, false)).toEqual([]);
+    expect(findLinkTokens('example.com:8080/x', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 0, end: 18, href: 'https://example.com:8080/x' },
     ]);
   });
 

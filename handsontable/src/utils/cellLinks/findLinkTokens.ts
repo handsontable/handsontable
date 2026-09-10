@@ -2,17 +2,23 @@ import { LINK_SCHEMES, resolveLinkUrl, type LinkScheme } from './resolveLinkUrl'
 import { isKnownTld } from './tlds';
 
 /**
- * A URL found inside a text, as offsets into that text plus the resolved `href`.
+ * A half-open offset range into the scanned text.
  */
-export interface LinkToken {
+export interface Span {
   /**
-   * Offset of the first character of the URL.
+   * Offset of the first character of the range.
    */
   start: number;
   /**
-   * Offset one past the last character of the URL.
+   * Offset one past the last character of the range.
    */
   end: number;
+}
+
+/**
+ * A URL found inside a text, as offsets into that text plus the resolved `href`.
+ */
+export interface LinkToken extends Span {
   /**
    * The resolved absolute URL.
    */
@@ -27,7 +33,16 @@ export interface LinkToken {
 // ("Grand Hotel:Warsaw" must not yield "tel:Warsaw", "see xmailto:a@b.com" must not link), so the
 // scheme is only recognized where a URL word cannot already be continuing - the same rule
 // `EMBEDDED_SCHEME_PATTERN` below uses to find a *second*, embedded scheme.
-const TOKEN_PATTERN = /(?:https?:\/\/|(?<![A-Za-z0-9._~+-])(?:mailto:|tel:))[^\s<>"'`]+/gi;
+// The lookbehind classes below use `\p{L}\p{N}\p{M}` (Unicode letters, digits and combining marks)
+// rather than the ASCII `A-Za-z0-9`, with the `u` flag every one of these regexes now carries. An
+// ASCII-only class treats a non-ASCII letter as a non-word character, so a match is free to start
+// mid-word right after it ("münchen.de" -> "nchen.de", "hôtel:Nice" -> "tel:Nice") - wrong in every
+// mode, and in `strict: false` a `mailto:` candidate can even truncate into someone else's inbox
+// ("józef@firma.pl" -> "mailto:zef@firma.pl"). `\p{M}` covers an NFD-decomposed accent (a combining
+// mark is its own code point there), which `\p{L}` alone would miss. `LABEL` and the email local-part
+// class deliberately stay ASCII: this only turns a wrong link into no link, never into a correct one -
+// IDN/punycode support is out of scope.
+const TOKEN_PATTERN = /(?:https?:\/\/|(?<![\p{L}\p{N}\p{M}._~+-])(?:mailto:|tel:))[^\s<>"'`]+/giu;
 const SCHEME_PREFIX_PATTERN = /^(?:https?:\/\/|mailto:|tel:)/i;
 // Two different rules for the two families of embedded scheme. An embedded `http://`/`https://`
 // splits unless it is immediately preceded by a `/`: a literal `://` inside a path is not a
@@ -44,7 +59,7 @@ const SCHEME_PREFIX_PATTERN = /^(?:https?:\/\/|mailto:|tel:)/i;
 // `+` (0x2B) to `/` (0x2F) - which also swallows `,` (0x2C) - not three literal characters. Putting
 // `-` last (`[...+/-]`) keeps it literal, so this class excludes exactly the URL word characters
 // plus `/`, nothing more.
-const EMBEDDED_SCHEME_PATTERN = /(?:(?<!\/)https?:\/\/|(?<![A-Za-z0-9._~+/-])(?:mailto:|tel:))/gi;
+const EMBEDDED_SCHEME_PATTERN = /(?:(?<!\/)https?:\/\/|(?<![\p{L}\p{N}\p{M}._~+/-])(?:mailto:|tel:))/giu;
 // A quote is not in this set: `TOKEN_PATTERN`'s character class already excludes `"` and `'`, so a
 // raw token can never carry one and a quote-trimming entry here would be unreachable.
 const TRAILING_PUNCTUATION_CHARS = new Set(['.', ',', ';', ':', '!', '?']);
@@ -62,14 +77,27 @@ const LABEL = '[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?';
 // start here, since the character right before it, `/`, is excluded). The TLD captured here is
 // provisional - `toDomainToken` re-derives and validates it after `trimTokenEnd` runs, because
 // trimming can shorten the tail.
+// The TLD group is written as `(?=([A-Za-z]{2,63}))\1` - a lookahead capture plus an immediate
+// backreference - instead of a plain `([A-Za-z]{2,63})`, to emulate an atomic group (JS has none
+// natively): the lookahead greedily captures the longest run of letters and the backreference then
+// requires that EXACT text, so the engine can never retry with a shorter run at this position. That
+// matters for the `(?!:\d{6,})` lookahead right after it, which refuses the WHOLE candidate when a
+// colon is followed by six or more digits (an out-of-range port) rather than letting it degrade into a
+// shorter, truncated match. Without the atomic emulation, `\d{1,5}(?!\d)` in the port group below
+// correctly fails to consume any of an overlong run, the `(?!:\d{6,})` lookahead then fails too, and
+// plain backtracking would shrink the TLD group instead of refusing the candidate -
+// `example.com:123456` backtracking "com" down to "co" (itself a valid ccTLD) and linking
+// `https://example.co/`, silently dropping "m:123456" rather than refusing the whole thing.
 const BARE_DOMAIN_PATTERN = new RegExp(
-  `(?<![A-Za-z0-9@._~+/-])(?:${LABEL}\\.)+([A-Za-z]{2,63})(?::\\d{1,5})?(?:[/?#][^\\s<>"'\`]*)?`, 'g'
+  `(?<![\\p{L}\\p{N}\\p{M}@._~+/-])(?:${LABEL}\\.)+(?=([A-Za-z]{2,63}))\\1(?!:\\d{6,})(?::\\d{1,5}(?!\\d))?` +
+    '(?:[/?#][^\\s<>"\'`]*)?',
+  'gu'
 );
 // A bare email candidate: an RFC-5322-ish local part, `@`, then the same label-dot-TLD shape as
 // `BARE_DOMAIN_PATTERN`, with no port or path (an email address never carries one). The lookbehind
 // keeps a match from starting mid-word, the same way the domain pattern's does.
 const BARE_EMAIL_PATTERN = new RegExp(
-  `(?<![A-Za-z0-9._%+-])[A-Za-z0-9._%+-]+@(?:${LABEL}\\.)+([A-Za-z]{2,63})`, 'g'
+  `(?<![\\p{L}\\p{N}\\p{M}._%+-])[A-Za-z0-9._%+-]+@(?:${LABEL}\\.)+([A-Za-z]{2,63})`, 'gu'
 );
 // Splits a trimmed bare candidate's host from a trailing port/path/query/fragment - `toDomainToken`
 // and `toEmailToken` both re-derive the TLD from what remains before this separator.
@@ -167,22 +195,43 @@ function findEmbeddedSchemeIndex(rawToken: string): number {
 }
 
 /**
+ * The result of one scanning pass: the tokens it actually produced, plus the span of every candidate
+ * it considered along the way - including one it went on to refuse. A later pass treats the LATTER as
+ * claimed too, not only the former, so a refused candidate's leftover text is never picked up by a
+ * different pass as if the refusal had never happened.
+ */
+interface ScanResult {
+  /**
+   * The tokens this pass produced.
+   */
+  tokens: LinkToken[];
+  /**
+   * The span of every candidate this pass considered, whether it became a token or was refused.
+   */
+  consideredSpans: Span[];
+}
+
+/**
  * Finds every scheme-carrying URL in a text (`http(s)://`, `mailto:`, `tel:`). Each candidate is
  * trimmed of surrounding punctuation and then passed through `resolveLinkUrl`, so a token that does
- * not parse, or whose scheme is not allowed, is dropped rather than linked. This is the whole of
- * `findLinkTokens`'s `strict: true` behavior - kept as its own function so that path stays provably
- * unchanged by the `strict: false` bare-domain/bare-email pass added below it.
+ * not parse, or whose scheme is not allowed (a caller-narrowed `schemes`), is dropped rather than
+ * linked - but its span is still reported in `consideredSpans`, so a `strict: false` bare pass never
+ * links the leftover tail of a scheme the caller deliberately excluded (`tel:example.com` with
+ * `schemes: ['https']` must not still link `example.com`). This is the whole of `findLinkTokens`'s
+ * `strict: true` behavior - kept as its own function so that path stays provably unchanged by the
+ * `strict: false` bare-domain/bare-email pass added below it.
  *
  * @param {string} text The text to scan.
  * @param {string} baseUrl The document URL the candidates are resolved against.
  * @param {readonly LinkScheme[]} schemes The schemes allowed by the caller.
- * @returns {LinkToken[]} The tokens in document order. They never overlap.
+ * @returns {ScanResult} The tokens, in document order (they never overlap), plus every considered span.
  */
-function findSchemeTokens(text: string, baseUrl: string, schemes: readonly LinkScheme[]): LinkToken[] {
+function findSchemeTokens(text: string, baseUrl: string, schemes: readonly LinkScheme[]): ScanResult {
   const tokens: LinkToken[] = [];
+  const consideredSpans: Span[] = [];
 
   if (text.indexOf(':') === -1) {
-    return tokens;
+    return { tokens, consideredSpans };
   }
 
   TOKEN_PATTERN.lastIndex = 0;
@@ -201,17 +250,21 @@ function findSchemeTokens(text: string, baseUrl: string, schemes: readonly LinkS
     const candidate = trimTokenEnd(rawToken);
 
     if (hasResolvableScheme(candidate)) {
+      const span = { start: match.index, end: match.index + candidate.length };
+
+      consideredSpans.push(span);
+
       const href = resolveLinkUrl(candidate, baseUrl, schemes);
 
       if (href !== null) {
-        tokens.push({ start: match.index, end: match.index + candidate.length, href });
+        tokens.push({ ...span, href });
       }
     }
 
     match = TOKEN_PATTERN.exec(text);
   }
 
-  return tokens;
+  return { tokens, consideredSpans };
 }
 
 /**
@@ -223,11 +276,11 @@ function findSchemeTokens(text: string, baseUrl: string, schemes: readonly LinkS
  *
  * @param {number} start The candidate's start offset into the text.
  * @param {number} end The candidate's end offset into the text.
- * @param {readonly LinkToken[]} claimed The spans the candidate must not overlap.
+ * @param {readonly Span[]} claimed The spans the candidate must not overlap.
  * @returns {boolean} `true` when the candidate overlaps a claimed span.
  */
-function overlapsClaimedSpan(start: number, end: number, claimed: readonly LinkToken[]): boolean {
-  return claimed.some(token => start < token.end && end > token.start);
+function overlapsClaimedSpan(start: number, end: number, claimed: readonly Span[]): boolean {
+  return claimed.some(span => start < span.end && end > span.start);
 }
 
 /**
@@ -309,34 +362,43 @@ function toEmailToken(
 
 /**
  * Runs one bare-token pattern over the whole text, keeping only the matches that land outside every
- * already-claimed span, and converts each survivor into a token.
+ * already-claimed span, and converts each survivor into a token. A match that `toToken` goes on to
+ * refuse (an unknown TLD, for example) still has its span reported in `consideredSpans` - a rejected
+ * bare-email candidate's local part must not then be linked as a bare domain, which is what claiming
+ * only the converted tokens used to allow (`john.uk@intranet.lan` linking `john.uk`).
  *
  * @param {RegExp} pattern `BARE_EMAIL_PATTERN` or `BARE_DOMAIN_PATTERN` - reset to `lastIndex = 0`
  * here, since both are shared, stateful `g`-flagged regexes.
  * @param {string} text The text to scan.
  * @param {string} baseUrl The document URL to resolve against.
  * @param {readonly LinkScheme[]} schemes The schemes allowed by the caller.
- * @param {readonly LinkToken[]} claimed The spans a match may not overlap.
+ * @param {readonly Span[]} claimed The spans a match may not overlap.
  * @param {(rawMatch: string, matchIndex: number, baseUrl: string, schemes: readonly LinkScheme[]) => LinkToken | null} toToken
  * Converts one raw, non-overlapping match into a token.
- * @returns {LinkToken[]} The tokens found, in document order.
+ * @returns {ScanResult} The tokens, in document order, plus every considered span.
  */
 function scanBarePattern(
   pattern: RegExp,
   text: string,
   baseUrl: string,
   schemes: readonly LinkScheme[],
-  claimed: readonly LinkToken[],
+  claimed: readonly Span[],
   toToken: (rawMatch: string, matchIndex: number, baseUrl: string, schemes: readonly LinkScheme[]) => LinkToken | null
-): LinkToken[] {
+): ScanResult {
   const tokens: LinkToken[] = [];
+  const consideredSpans: Span[] = [];
 
   pattern.lastIndex = 0;
 
   let match = pattern.exec(text);
 
   while (match !== null) {
-    if (!overlapsClaimedSpan(match.index, match.index + match[0].length, claimed)) {
+    const start = match.index;
+    const end = match.index + match[0].length;
+
+    if (!overlapsClaimedSpan(start, end, claimed)) {
+      consideredSpans.push({ start, end });
+
       const token = toToken(match[0], match.index, baseUrl, schemes);
 
       if (token !== null) {
@@ -347,7 +409,7 @@ function scanBarePattern(
     match = pattern.exec(text);
   }
 
-  return tokens;
+  return { tokens, consideredSpans };
 }
 
 /**
@@ -373,15 +435,21 @@ export function findLinkTokens(
     return [];
   }
 
-  const schemeTokens = findSchemeTokens(text, baseUrl, schemes);
+  const schemeScan = findSchemeTokens(text, baseUrl, schemes);
 
   if (strict) {
-    return schemeTokens;
+    return schemeScan.tokens;
   }
 
-  const emailTokens = scanBarePattern(BARE_EMAIL_PATTERN, text, baseUrl, schemes, schemeTokens, toEmailToken);
-  const claimedByEmail = [...schemeTokens, ...emailTokens];
-  const domainTokens = scanBarePattern(BARE_DOMAIN_PATTERN, text, baseUrl, schemes, claimedByEmail, toDomainToken);
+  // Every pass below claims by CONSIDERED span, not only by produced token: a scheme candidate the
+  // caller's `schemes` refused, or a bare-email candidate whose TLD did not validate, still blocks a
+  // later pass from linking whatever text sits inside its span.
+  const emailScan = scanBarePattern(
+    BARE_EMAIL_PATTERN, text, baseUrl, schemes, schemeScan.consideredSpans, toEmailToken
+  );
+  const claimedByEmail = [...schemeScan.consideredSpans, ...emailScan.consideredSpans];
+  const domainScan = scanBarePattern(BARE_DOMAIN_PATTERN, text, baseUrl, schemes, claimedByEmail, toDomainToken);
 
-  return [...schemeTokens, ...emailTokens, ...domainTokens].sort((tokenA, tokenB) => tokenA.start - tokenB.start);
+  return [...schemeScan.tokens, ...emailScan.tokens, ...domainScan.tokens]
+    .sort((tokenA, tokenB) => tokenA.start - tokenB.start);
 }
