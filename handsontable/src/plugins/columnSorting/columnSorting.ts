@@ -684,7 +684,11 @@ export class ColumnSorting extends BasePlugin {
       return SORT_FIXED_ROWS_DEFAULT;
     }
 
-    return (pluginSettings as { sortFixedRows?: boolean }).sortFixedRows ?? SORT_FIXED_ROWS_DEFAULT;
+    // `Boolean` keeps the return type honest to the JSDoc: the settings object is user input, so the
+    // property can hold anything, and the callers use the result to zero a row count.
+    return Boolean(
+      (pluginSettings as { sortFixedRows?: boolean }).sortFixedRows ?? SORT_FIXED_ROWS_DEFAULT
+    );
   }
 
   /**
@@ -702,7 +706,8 @@ export class ColumnSorting extends BasePlugin {
 
     // `maxRows` option doesn't take into account `minSpareRows` option in this case.
     // `fixedRowsBottom` is excluded from the sort range so footer rows (e.g. SUM formulas)
-    // stay pinned and keep their absolute-address references intact.
+    // stay pinned and keep their absolute-address references intact - unless `sortFixedRows`
+    // opted back into sorting them, which is what zeroed it above.
     if ((settings.maxRows ?? Infinity) <= numberOfRows) {
       return Math.max(0, (settings.maxRows ?? 0) - fixedRowsBottom);
     }

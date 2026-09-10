@@ -623,7 +623,7 @@ Run code before or after sorting using the following [Handsontable hooks](@/guid
 
 A common use of `beforeColumnSort` is server-side sorting: cancel the client-side sort, send the sort configuration to a server, and reload the data. The following example simulates this: it cancels the front-end sort, "asks a server" to sort the rows, and loads the sorted rows back into the grid.
 
-A common use of `afterColumnSort` is excluding specific rows from the sorted result — see the [`afterColumnSort` example](#exclude-rows-from-sorting) in the next section.
+A common use of `afterColumnSort` is excluding specific rows from the sorted result — see the [`afterColumnSort` example](#exclude-rows-that-are-not-frozen) in the next section. Frozen rows need no hook at all: they [stay out of the sort by default](#frozen-rows-stay-out-of-the-sort-by-default).
 
 ::: only-for javascript
 
