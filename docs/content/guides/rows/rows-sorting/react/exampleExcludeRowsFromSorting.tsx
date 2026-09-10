@@ -1,7 +1,6 @@
-// you need `useRef` to call Handsontable's instance methods
-import { useRef } from 'react';
-import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
+import type Handsontable from 'handsontable/base';
 
 // register Handsontable's modules
 registerAllModules();
@@ -27,29 +26,22 @@ const products: Product[] = [
   { name: 'Chain Lube', price: 9.99, inStock: 17 },
 ];
 
+// Move the featured rows back to the top of the view. The rule reads the data, not a row
+// position, so you pin a row by flagging it rather than by knowing where it sits.
+// Handsontable calls a hook with the grid as `this`, which is set even for a sort that runs
+// while the grid is being created - a component ref is not filled in yet at that point.
+function pinFeaturedRows(this: Handsontable) {
+  const featuredRows = products
+    .map((product, physicalRow) => (product.featured ? this.toVisualRow(physicalRow) : null))
+    .filter((visualRow): visualRow is number => visualRow !== null);
+
+  // Pass every index in one call: each move shifts the rows after it.
+  this.rowIndexMapper.moveIndexes(featuredRows, 0);
+}
+
 const ExampleComponent = () => {
-  const hotTableComponentRef = useRef<HotTableRef>(null);
-  // Move the featured rows back to the top of the view. The rule reads the data, not a row
-  // position, so you pin a row by flagging it rather than by knowing where it sits.
-  const pinFeaturedRows = () => {
-    const handsontableInstance = hotTableComponentRef.current?.hotInstance;
-
-    if (!handsontableInstance) {
-      return;
-    }
-
-    const featuredRows = products
-      .map((product, physicalRow) =>
-        (product.featured ? handsontableInstance.toVisualRow(physicalRow) : null))
-      .filter((visualRow): visualRow is number => visualRow !== null);
-
-    // Pass every index in one call: each move shifts the rows after it.
-    handsontableInstance.rowIndexMapper.moveIndexes(featuredRows, 0);
-  };
-
   return (
     <HotTable
-      ref={hotTableComponentRef}
       data={products}
       columns={[
         { data: 'name', type: 'text' },

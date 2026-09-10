@@ -27,7 +27,7 @@ const products: Product[] = [
 
 const container = document.querySelector('#exampleExcludeRowsFromSorting')!;
 
-const hot = new Handsontable(container, {
+new Handsontable(container, {
   data: products,
   columns: [
     { data: 'name', type: 'text' },
@@ -46,13 +46,15 @@ const hot = new Handsontable(container, {
   // `afterColumnSort()` is a Handsontable hook: it fires after every sort. Move the featured
   // rows back to the top of the view. The rule reads the data, not a row position, so you pin
   // a row by flagging it rather than by knowing where it sits.
-  afterColumnSort() {
+  // Read the grid from `this`, not from a variable: a sort set in `initialConfig` runs inside
+  // the constructor, before any variable holding the grid has been assigned.
+  afterColumnSort(this: Handsontable) {
     const featuredRows = products
-      .map((product, physicalRow) => (product.featured ? hot.toVisualRow(physicalRow) : null))
+      .map((product, physicalRow) => (product.featured ? this.toVisualRow(physicalRow) : null))
       .filter((visualRow): visualRow is number => visualRow !== null);
 
     // Pass every index in one call: each move shifts the rows after it.
-    hot.rowIndexMapper.moveIndexes(featuredRows, 0);
+    this.rowIndexMapper.moveIndexes(featuredRows, 0);
   },
   // `cells()` receives a physical row index, so it reads the source array directly.
   cells(row) {

@@ -681,81 +681,53 @@ Both sorting plugins behave this way: [`ColumnSorting`](@/api/columnSorting.md) 
 
 To sort the whole dataset instead, frozen rows included, set the `sortFixedRows` option to `true`. That restores the behavior Handsontable had before version 18.0.0.
 
+In the example below, both grids freeze a **Target** row at the top and a **Total** row at the bottom, and both start sorted by revenue, highest first. In the first grid, the frozen rows keep their place. In the second, `sortFixedRows` is `true`, so they are sorted with the rest of the data: **Total** moves to the top, and **Target** lands between two regions. Click any column header to compare the two grids.
+
 ::: only-for javascript
 
-```js
-const hot = new Handsontable(container, {
-  data: getData(),
-  colHeaders: true,
-  fixedRowsTop: 1,
-  fixedRowsBottom: 1,
-  columnSorting: {
-    // the frozen rows take part in the sort like any other row
-    sortFixedRows: true,
-  },
-});
-```
+::: example #exampleSortFixedRows --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleSortFixedRows.html)
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleSortFixedRows.js)
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleSortFixedRows.ts)
+
+:::
 
 :::
 
 ::: only-for react
 
-```jsx
-<HotTable
-  data={getData()}
-  colHeaders={true}
-  fixedRowsTop={1}
-  fixedRowsBottom={1}
-  columnSorting={{
-    // the frozen rows take part in the sort like any other row
-    sortFixedRows: true,
-  }}
-/>
-```
+::: example #exampleSortFixedRows :react --js 1 --ts 2
+
+@[code](@/content/guides/rows/rows-sorting/react/exampleSortFixedRows.jsx)
+@[code](@/content/guides/rows/rows-sorting/react/exampleSortFixedRows.tsx)
+
+:::
 
 :::
 
 ::: only-for angular
 
-```ts
-import { GridSettings } from '@handsontable/angular-wrapper';
+::: example #example12 :angular --ts 1 --html 2
 
-const gridSettings: GridSettings = {
-  data: getData(),
-  colHeaders: true,
-  fixedRowsTop: 1,
-  fixedRowsBottom: 1,
-  columnSorting: {
-    // the frozen rows take part in the sort like any other row
-    sortFixedRows: true,
-  },
-};
-```
+@[code](@/content/guides/rows/rows-sorting/angular/example12.ts)
+@[code](@/content/guides/rows/rows-sorting/angular/example12.html)
 
-```html
-<hot-table [settings]="gridSettings"></hot-table>
-```
+:::
 
 :::
 
 ::: only-for vue
 
-```ts
-const hotSettings = {
-  data: getData(),
-  colHeaders: true,
-  fixedRowsTop: 1,
-  fixedRowsBottom: 1,
-  columnSorting: {
-    // the frozen rows take part in the sort like any other row
-    sortFixedRows: true,
-  },
-};
-```
+::: example #exampleSortFixedRows :vue3
+
+@[code](@/content/guides/rows/rows-sorting/vue/exampleSortFixedRows.vue)
 
 :::
 
-`sortFixedRows` is a grid-level option, so you cannot set it per column: the frozen rows belong to the whole table rather than to one column.
+:::
+
+`sortFixedRows` is a grid-level option, so you cannot set it per column: the frozen rows belong to the whole table rather than to one column. If you set it inside [`columns`](@/api/options.md#columns), it has no effect, and Handsontable logs a warning to the console.
 
 ### Exclude rows that are not frozen
 

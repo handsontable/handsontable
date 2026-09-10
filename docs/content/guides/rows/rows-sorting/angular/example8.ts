@@ -67,6 +67,8 @@ export class AppComponent {
     // `afterColumnSort()` is a Handsontable hook: it's fired after each sorting. Move the
     // featured rows back to the top of the view. The rule reads the data, not a row position,
     // so you pin a row by flagging it rather than by knowing where it sits.
+    // Handsontable calls a hook with the grid as `this`, which is set even for a sort that runs
+    // while the grid is being created.
     afterColumnSort(this: Handsontable) {
       const featuredRows = products
         .map((product, physicalRow) => (product.featured ? this.toVisualRow(physicalRow) : null))

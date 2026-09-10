@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { useTemplateRef } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
+import type Handsontable from 'handsontable/base';
 import type { GridSettings } from 'handsontable/settings';
 
 registerAllModules();
@@ -27,25 +27,6 @@ const products: Product[] = [
   { name: 'Chain Lube', price: 9.99, inStock: 17 },
 ];
 
-const hotRef = useTemplateRef<InstanceType<typeof HotTable>>('hotRef');
-
-// Move the featured rows back to the top of the view. The rule reads the data, not a row
-// position, so you pin a row by flagging it rather than by knowing where it sits.
-const pinFeaturedRows = () => {
-  const hot = hotRef.value?.hotInstance;
-
-  if (!hot) {
-    return;
-  }
-
-  const featuredRows = products
-    .map((product, physicalRow) => (product.featured ? hot.toVisualRow(physicalRow) : null))
-    .filter((visualRow): visualRow is number => visualRow !== null);
-
-  // Pass every index in one call: each move shifts the rows after it.
-  hot.rowIndexMapper.moveIndexes(featuredRows, 0);
-};
-
 const hotSettings: GridSettings = {
   data: products,
   columns: [
@@ -62,8 +43,19 @@ const hotSettings: GridSettings = {
   height: 'auto',
   stretchH: 'all',
   columnSorting: true,
-  // `afterColumnSort()` is a Handsontable hook: it's fired after each sorting
-  afterColumnSort: pinFeaturedRows,
+  // `afterColumnSort()` is a Handsontable hook: it's fired after each sorting. Move the featured
+  // rows back to the top of the view. The rule reads the data, not a row position, so you pin a
+  // row by flagging it rather than by knowing where it sits.
+  // Handsontable calls a hook with the grid as `this`, which is set even for a sort that runs
+  // while the grid is being created - a template ref is not filled in yet at that point.
+  afterColumnSort(this: Handsontable) {
+    const featuredRows = products
+      .map((product, physicalRow) => (product.featured ? this.toVisualRow(physicalRow) : null))
+      .filter((visualRow): visualRow is number => visualRow !== null);
+
+    // Pass every index in one call: each move shifts the rows after it.
+    this.rowIndexMapper.moveIndexes(featuredRows, 0);
+  },
   // `cells()` receives a physical row index, so it reads the source array directly.
   cells(row) {
     return products[row]?.featured ? { className: 'featured-product' } : {};
@@ -74,6 +66,6 @@ const hotSettings: GridSettings = {
 
 <template>
   <div id="exampleExcludeRowsFromSorting">
-    <HotTable ref="hotRef" :settings="hotSettings" />
+    <HotTable :settings="hotSettings" />
   </div>
 </template>
