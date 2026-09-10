@@ -992,17 +992,21 @@ export class SheetsBar extends BasePlugin {
     // was four sweeps over the same data before a single frame reached the screen.
     const viewState = newSheet.viewState as unknown as ViewState | undefined;
     const switchSheet = () => {
+      // The neutral reset runs BEFORE the sheet arrives. `loadData` resets only the index
+      // mappers, so the reset is what clears the previous sheet's filters, hidden and trimmed
+      // indexes, merges, borders, manual sizes, and a runtime freeze — and running it first
+      // lets everything the arriving sheet declares in its own `settings` (merges, hidden
+      // indexes, a freeze, a sort) land after it and stay in force. Reset after the apply,
+      // those declarations were wiped on the sheet's first activation and then captured as
+      // its own empty state.
+      if (!viewState) {
+        resetViewState(this.hot, this.#neutralFixedColumnsStart);
+      }
+
       this.#applySheet(newSheet, source);
 
       if (viewState) {
         restoreViewState(this.hot, viewState);
-      } else {
-        // A sheet that declares its own freeze in `settings` keeps it — `#applySheet` has just
-        // applied it, and resetting to the neutral value would undo the sheet's configuration.
-        resetViewState(
-          this.hot,
-          (newSheet.settings?.fixedColumnsStart as number | undefined) ?? this.#neutralFixedColumnsStart,
-        );
       }
     };
 
@@ -1053,18 +1057,17 @@ export class SheetsBar extends BasePlugin {
       const targetSheet = model.getSheetById(target.id) as Sheet;
 
       model.setActiveSheet(target.id);
-      this.#applySheet(targetSheet, SOURCE_API);
 
       // On a live grid — an enable after startup, or an updatePlugin rebuild — `loadData` does
       // not clear filters, hidden or trimmed indexes, merges, borders, or manual sizes, so the
       // previous workbook's view collections would land on the new workbook's opening sheet
-      // and be captured as its own state on the first switch away.
+      // and be captured as its own state on the first switch away. The reset runs before the
+      // sheet is applied, so the opening sheet's own declared `settings` stay in force.
       if (this.hot.view) {
-        resetViewState(
-          this.hot,
-          (targetSheet.settings?.fixedColumnsStart as number | undefined) ?? this.#neutralFixedColumnsStart,
-        );
+        resetViewState(this.hot, this.#neutralFixedColumnsStart);
       }
+
+      this.#applySheet(targetSheet, SOURCE_API);
     } else {
       model.addSheet(null, this.#getLiveSourceData());
     }

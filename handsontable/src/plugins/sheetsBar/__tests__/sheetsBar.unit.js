@@ -1405,6 +1405,35 @@ describe('SheetsBar plugin', () => {
     expect(hot.getSettings().fixedColumnsStart).toBe(1);
   });
 
+  it('keeps the view collections a never-visited sheet declares in its own settings', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'A', data: [['a', 'b', 'c']] },
+          {
+            name: 'B',
+            data: [['x', 'y'], ['q', 'w'], ['e', 'r']],
+            settings: { hiddenRows: { rows: [1] } },
+          },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+
+    sheetsBar.setActiveSheet('B');
+
+    expect(hot.getPlugin('hiddenRows').getHiddenRows()).toEqual([1]);
+
+    sheetsBar.setActiveSheet('A');
+
+    expect(hot.getPlugin('hiddenRows').getHiddenRows()).toEqual([]);
+
+    sheetsBar.setActiveSheet('B');
+
+    expect(hot.getPlugin('hiddenRows').getHiddenRows()).toEqual([1]);
+  });
+
   it('renders the bar on the edge the position setting names, and moves with it', () => {
     hot = new Handsontable(container, {
       data: [['a']],
