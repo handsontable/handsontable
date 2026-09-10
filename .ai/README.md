@@ -31,8 +31,7 @@ Monorepo-wide orientation, not core internals.
 | [`TESTING.md`](TESTING.md) | Overview of every test pipeline with its run command and a pointer to the deep reference. |
 | [`MCP.md`](MCP.md) | code-review-graph and context tooling (monorepo-wide). |
 | [`WORKTREES.md`](WORKTREES.md) | Working in a linked git worktree: what a fresh worktree is missing, the bootstrap command, and the port and `node_modules` traps. |
-
-`.ai/specs/` – approved design specs for tooling that spans workflows and scripts (docs sync: `2026-09-10-docs-sync-design.md`).
+| [`specs/`](specs/) | Approved design specs for tooling that spans workflows and scripts. Docs sync: [`2026-09-10-docs-sync-design.md`](specs/2026-09-10-docs-sync-design.md). |
 
 ### Core scope — `handsontable/.ai/`
 

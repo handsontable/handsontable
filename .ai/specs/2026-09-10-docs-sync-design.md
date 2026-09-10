@@ -239,9 +239,10 @@ plugin tests, and the Cloudflare preview run on the pull request itself through
   - Excluded by the classifier (with reason, so the team can audit it)
   - Skipped: mixed (with categories)
   - Skipped: already on prod
-  - Run metadata: `develop@sha`, `<target>@sha`, timestamp. The model name and
-    prompt hash are logged to the run's step summary instead, because the pull
-    request body carries no AI attribution and real model names would be one.
+  - Run metadata: `develop@sha`, `<target>@sha`, prompt hash, timestamp. The
+    model name is logged to the run's step summary instead, because the pull
+    request body carries no AI attribution and a real model name would count
+    as one.
   - `[skip changelog]` outside any HTML comment
   - `<!-- docs-sync-state {json} -->`: the decision cache
 - Label `docs-sync` (created if missing). Reviewers from an optional
