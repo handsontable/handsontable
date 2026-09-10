@@ -42,15 +42,26 @@ function section(heading, items, line) {
  * could otherwise inject an HTML comment that closes the real state block
  * early (or opens a forged one), or run the body on for pages with newlines.
  *
+ * The two replacements repeat until the text stops changing: a single pass
+ * leaves a new `<!--`/`-->` behind when the input nests markers inside each
+ * other (`<!---` becomes `<!--` after one pass, still a live open marker), so
+ * one pass is not enough to guarantee the output carries none. Each pass
+ * removes at least one dash from every match, so the loop always terminates.
+ *
  * @param {string} text
  * @param {number} [max] Character cap; the excess is replaced with `…`.
  * @returns {string}
  */
 function plain(text, max = 200) {
-  const collapsed = String(text ?? '')
-    .replaceAll('<!--', '<!-')
-    .replaceAll('-->', '->')
-    .replace(/\r\n|\r|\n/g, ' ');
+  let sanitized = String(text ?? '');
+  let previous;
+
+  do {
+    previous = sanitized;
+    sanitized = sanitized.replaceAll('<!--', '<!-').replaceAll('-->', '->');
+  } while (sanitized !== previous);
+
+  const collapsed = sanitized.replace(/\r\n|\r|\n/g, ' ');
 
   return collapsed.length > max ? `${collapsed.slice(0, max)}…` : collapsed;
 }
@@ -77,7 +88,7 @@ function ref(item) {
  */
 export function renderBody(report) {
   const parts = [
-    'Documentation content merged to `develop` that applies to the released version, ported by the daily docs sync. Review the sections below; the classifier\'s reasons are listed so a wrong call can be corrected by relabelling the source pull request (`docs-sync: include` / `docs-sync: skip`).',
+    'Documentation content merged to `develop` that applies to the released version, ported by the daily docs sync. Review the sections below; the classifier\'s reasons are listed so a wrong call can be corrected by relabeling the source pull request (`docs-sync: include` / `docs-sync: skip`).',
     section('Included', report.included, (i) => `${ref(i)} (#${i.prNumber}, @${i.author})`),
     section('Skipped: conflict', report.conflicts, (i) => `${ref(i)} (#${i.prNumber}): ${i.files.map((f) => `\`${f}\``).join(', ')}`),
     section('Skipped: needs a human decision', report.unsure, (i) => `${ref(i)} (#${i.prNumber}): ${plain(i.reason)}`),

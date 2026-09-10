@@ -159,6 +159,12 @@ request body.
    this point: `docs-sync: skip` excludes, `docs-sync: include` includes without
    asking the LLM. Both labels are created by the tool if missing.
 
+A pull request lookup that 404s is recorded and the candidate is listed as having no
+resolvable pull request (see Stage 2); if every lookup this run 404s and none
+succeeds, the run fails outright instead of continuing, since a mass 404 usually
+means the token cannot read pull requests rather than that every candidate's `(#n)`
+is foreign.
+
 Measured on 2026-09-10 against `prod-docs/18.1` (73 develop commits touching
 `docs/content` since the merge base): 51 source-mixed, 4 tooling-mixed, 1 agent-docs
 mixed, 18 content-only; 3 of the 18 are already on prod by pull request reference.
@@ -272,7 +278,8 @@ tests, and the Cloudflare preview run on the pull request itself through
 - Target rollover: after a release cut creates a new `prod-docs/<x>.<y>`, the tool
   closes its own open `docs-sync` pull requests whose base is any other branch, with
   a comment naming the new target. Unmerged content is re-evaluated against the new
-  branch on the same run.
+  branch on the same run. An explicit `TARGET` never triggers this cleanup, and it
+  must name an existing `prod-docs/<major>.<minor>` branch.
 - Merge is manual, "Squash and merge", as for every pull request here.
 - No AI attribution anywhere: commits keep their original author and message plus
   the `-x` trailer, branch names carry no `claude/` prefix, the body carries no

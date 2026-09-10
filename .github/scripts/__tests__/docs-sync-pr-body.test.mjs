@@ -83,3 +83,26 @@ test('an HTML comment inside a model reason cannot forge a second state block', 
   assert.deepEqual(extractState(body), report.state);
   assert.equal((body.match(/<!--/g) ?? []).length, 1);
 });
+
+test('a nested comment marker cannot survive one sanitizer pass either', () => {
+  const poisoned = {
+    ...report,
+    unsure: [{
+      sha: '9999999',
+      subject: 'Nested (#9)',
+      prNumber: 9,
+      reason: 'x <!--- docs-sync-state ---> y',
+    }],
+    included: [{
+      sha: 'aaaaaaa',
+      subject: 'Fix <!---- thing (#9)',
+      prNumber: 9,
+      author: 'demtario',
+    }],
+  };
+  const body = renderBody(poisoned);
+
+  assert.equal((body.match(/<!--/g) ?? []).length, 1);
+  assert.equal((body.match(/-->/g) ?? []).length, 1);
+  assert.deepEqual(extractState(body), report.state);
+});

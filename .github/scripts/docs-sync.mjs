@@ -23,8 +23,7 @@
  */
 
 import { execFileSync } from 'node:child_process';
-import { appendFile, readFile, readdir } from 'node:fs/promises';
-import path from 'node:path';
+import { appendFile } from 'node:fs/promises';
 import { parseArgs } from 'node:util';
 import { repoRoot } from './lib/repo-root.mjs';
 import { categorize } from './lib/docs-sync/paths.mjs';
@@ -148,7 +147,19 @@ try {
 
   const branchNames = git(repoDir, ['for-each-ref', '--format=%(refname:strip=3)', 'refs/remotes/origin/prod-docs/'])
     .split('\n').filter(Boolean);
-  const target = flags.target || process.env.TARGET || pickTarget(branchNames);
+  const latestTarget = pickTarget(branchNames);
+  const override = flags.target || process.env.TARGET || '';
+
+  if (override) {
+    if (!/^prod-docs\/\d+\.\d+$/.test(override)) {
+      throw new Error(`Target must look like prod-docs/<major>.<minor>, got "${override}"`);
+    }
+    if (git(repoDir, ['for-each-ref', `refs/remotes/origin/${override}`]) === '') {
+      throw new Error(`Target branch ${override} does not exist on origin`);
+    }
+  }
+
+  const target = override || latestTarget;
 
   if (!target) {
     throw new Error('No prod-docs/<major>.<minor> branch found.');
@@ -191,6 +202,8 @@ try {
     state: { version: 1, promptHash: '', decisions: {} },
   };
   const toClassify = [];
+  let lookupFailures = 0;
+  let lookupSuccesses = 0;
 
   for (const candidate of candidates) {
     if (candidate.prNumber === null) {
@@ -218,12 +231,14 @@ try {
 
     try {
       candidate.pr = gh.getPullRequest(candidate.prNumber);
+      lookupSuccesses += 1;
     } catch (error) {
       // The squash subject's `(#n)` can name an issue, a discussion, or a pull
       // request from another repository -- anything GitHub does not resolve
       // under this repo's pulls endpoint. That is not this run's problem to
       // solve; list the candidate and move on instead of failing the run.
       if (/404|Not Found/.test(error.message)) {
+        lookupFailures += 1;
         report.noPrNumber.push({ ...candidate, subject: `${candidate.subject} (no pull request #${candidate.prNumber} on GitHub)` });
         continue;
       }
@@ -234,12 +249,20 @@ try {
     candidate.author = candidate.pr.author || candidate.author;
 
     if (candidate.pr.labels.includes(SKIP_LABEL)) {
-      report.excluded.push({ ...candidate, reason: `Labelled \`${SKIP_LABEL}\`.` });
+      report.excluded.push({ ...candidate, reason: `Labeled \`${SKIP_LABEL}\`.` });
     } else if (candidate.pr.labels.includes(INCLUDE_LABEL)) {
       report.included.push(candidate);
     } else {
       toClassify.push(candidate);
     }
+  }
+
+  // A mass 404 on the pull request lookup almost always means the token
+  // cannot read pull requests, not that every candidate's `(#n)` is foreign;
+  // refuse to continue rather than silently treat every candidate as having
+  // no resolvable pull request.
+  if (lookupFailures > 0 && lookupSuccesses === 0) {
+    throw new Error(`Every pull request lookup failed (${lookupFailures} of ${lookupFailures}); refusing to continue because a mass 404 usually means the token cannot read pull requests.`);
   }
 
   // Stage 4: classification. The prompt (and its hash) and the open pull
@@ -286,21 +309,12 @@ try {
     log(`Classifier: ${report.model}, prompt ${hash}`);
 
     if (toClassify.length > 0) {
-      const changelogDir = path.join(repoDir, '.changelogs');
-      const pendingEntries = [];
-      let changelogNames = [];
-
-      try {
-        changelogNames = await readdir(changelogDir);
-      } catch (error) {
-        if (error.code !== 'ENOENT') {
-          throw error;
-        }
-      }
-
-      for (const name of changelogNames.filter((n) => n.endsWith('.json'))) {
-        pendingEntries.push(JSON.parse(await readFile(path.join(changelogDir, name), 'utf8')));
-      }
+      // Read from `origin/develop` through git, not the local working tree:
+      // Stage 5 below moves the checkout to the sync branch, and `--repo-dir`
+      // can point at a checkout whose working tree is not develop at all.
+      const changelogNames = git(repoDir, ['ls-tree', '--name-only', developRef, '.changelogs/'])
+        .split('\n').filter((name) => name.endsWith('.json'));
+      const pendingEntries = changelogNames.map((name) => JSON.parse(git(repoDir, ['show', `${developRef}:${name}`])));
 
       const unreleased = collectUnreleased({
         pendingEntries, changelogMarkdown: git(repoDir, ['show', `${developRef}:CHANGELOG.md`]), released,
@@ -391,8 +405,15 @@ try {
             log(`${report.conflicts.length} commit(s) conflict with ${target}; nothing applied, manual port needed`);
           }
         } else if (openPr) {
-          gh.closePr(openPr.number, 'Everything this pull request carried has reached the target by another route. Closing; the next run reopens if new content lands.');
-          log(`Closed #${openPr.number}: nothing left to sync.`);
+          // A run whose pull request lookups all 404'd never learned whether
+          // this open pull request's own candidates still belong in it; never
+          // close it on the strength of a plan built from failed lookups.
+          if (lookupFailures > 0) {
+            log(`Skipped closing #${openPr.number}: ${lookupFailures} pull request lookup(s) failed this run.`);
+          } else {
+            gh.closePr(openPr.number, 'Everything this pull request carried has reached the target by another route. Closing; the next run reopens if new content lands.');
+            log(`Closed #${openPr.number}: nothing left to sync.`);
+          }
         } else {
           log('No documentation changes to sync.');
         }
@@ -400,12 +421,19 @@ try {
         // Target rollover: close the bot's pull requests against any other base.
         // Runs on every non-dry run, including a zero-included one -- the run
         // right after a release cut is typically zero-included, and that is
-        // exactly when the old target's pull request must be closed.
-        for (const stale of gh.listOpenPrsWithLabel(SYNC_LABEL)) {
-          if (stale.baseRefName !== target && stale.headRefName.startsWith('docs-sync/')) {
-            gh.closePr(stale.number, `The live documentation branch is now ${target}; this pull request targets ${stale.baseRefName}. Unmerged content was re-evaluated against the new target.`);
-            log(`Closed stale #${stale.number} against ${stale.baseRefName}.`);
+        // exactly when the old target's pull request must be closed. An
+        // explicitly overridden target never drives this cleanup: it is not
+        // the highest prod-docs branch, so a stale-looking pull request
+        // against the real latest target would otherwise be closed by mistake.
+        if (target === latestTarget) {
+          for (const stale of gh.listOpenPrsWithLabel(SYNC_LABEL)) {
+            if (stale.baseRefName !== target && stale.headRefName.startsWith('docs-sync/')) {
+              gh.closePr(stale.number, `The live documentation branch is now ${target}; this pull request targets ${stale.baseRefName}. Unmerged content was re-evaluated against the new target.`);
+              log(`Closed stale #${stale.number} against ${stale.baseRefName}.`);
+            }
           }
+        } else {
+          log(`Target ${target} was set explicitly; skipping the stale pull request cleanup (the highest prod-docs branch is ${latestTarget}).`);
         }
       }
     } finally {

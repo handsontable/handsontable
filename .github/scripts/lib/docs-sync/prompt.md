@@ -10,7 +10,7 @@ Answer with one JSON object and nothing else:
 Decide `include` when the change is correct for the target version as it exists
 today: typo and wording fixes, clarifications of behavior that the target version
 already has, fixes to examples that were wrong in the target version, link
-repairs, sentence-case or style normalisation, removal of stale references.
+repairs, sentence-case or style normalization, removal of stale references.
 
 Decide `exclude` when the change describes, links to, or depends on anything the
 target version does not have. The request lists what is new on `develop` and

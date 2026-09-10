@@ -11,7 +11,7 @@ test('the squash subject carries the pull request number at its end', () => {
   assert.equal(parseSquashSubject('Fix (#12) something'), null);
 });
 
-test('prod references come from parenthesised numbers and cherry-pick trailers', () => {
+test('prod references come from parenthesized numbers and cherry-pick trailers', () => {
   const refs = collectProdRefs([
     { subject: 'Docs: publish llms.txt (#13441) (#13452)', body: '' },
     {

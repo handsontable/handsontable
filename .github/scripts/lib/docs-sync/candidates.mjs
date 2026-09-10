@@ -3,7 +3,7 @@
  *
  * The repository squash-merges, so every pull request is one commit on
  * `develop` whose subject ends with `(#<n>)`. That number is the identity used
- * to recognise a change that already reached the prod branch by another route:
+ * to recognize a change that already reached the prod branch by another route:
  * a hand-made cherry-pick pull request (squash-merged, so patch-ids differ, but
  * its subject or body keeps the `(#<n>)`), or an earlier run of this tool
  * (`cherry-pick -x` writes a `cherry picked from commit` trailer that the squash
