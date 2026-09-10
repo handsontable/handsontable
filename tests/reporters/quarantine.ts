@@ -64,7 +64,9 @@ export default class QuarantineReporter implements Reporter {
     lines.push(...verdict.notes.map(note => `  ${note}`));
     lines.push(...verdict.problems.map(problem => `  ✘ ${problem}`));
 
-    if (verdict.downgraded) {
+    // Only when quarantine actually RESCUED a failing run — `downgraded` is also true for a cap or
+    // unreadable-annotation failure (passed → failed), which must not read as "the run passes".
+    if (result.status === 'failed' && verdict.status === 'passed') {
       lines.push('  The run passes: every failure was a flaky test under a live quarantine (reported above).');
     }
     if (lines.length > 0) {

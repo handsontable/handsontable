@@ -125,6 +125,8 @@ test.describe('quarantine policy', () => {
     expect(output).toContain(
       `quarantine cap exceeded: ${QUARANTINE_CAP + 1} tests are quarantined and the cap is ${QUARANTINE_CAP}`
     );
+    // Every test passed and quarantine flipped the run to failed, so this must NOT claim it passed.
+    expect(output).not.toContain('The run passes');
     expect(status).toBe(1);
   });
 
