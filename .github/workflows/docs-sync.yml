@@ -10,8 +10,11 @@ name: Docs Sync
 on:
   # 06:00 UTC, Mon-Fri. Nothing merges to develop on weekends, so a weekend run
   # would only re-derive Friday's empty report.
-  schedule:
-    - cron: '0 6 * * 1-5'
+  # Rollout step 1 (see the spec): the schedule is enabled in a follow-up pull
+  # request after a manual dry run with lint and a review of the classifier's
+  # decisions with the docs team.
+  # schedule:
+  #   - cron: '0 6 * * 1-5'
   workflow_dispatch:
     inputs:
       dry_run:

@@ -582,16 +582,20 @@ pull request body lists every decision with its reason. Merge it and
   listed under "mixed" for a hand port. Keep content fixes in their own pull request
   when they should reach the live site.
 - Override the classifier with a label on the **source** pull request:
-  `docs-sync: include` or `docs-sync: skip`.
+  `docs-sync: include` or `docs-sync: skip`. The sync pull request itself carries
+  the `docs-sync` label.
+- Set the repository variable `DOCS_SYNC_REVIEWERS` (comma-separated GitHub logins)
+  to have the workflow request review on the sync pull request automatically.
 - Never commit to a `docs-sync/*` branch by hand unless you mean to pause the bot:
   it stops rebuilding the branch while it carries a commit it did not make.
 - Hand cherry-picks stay allowed (tooling, urgent fixes). Keep the `(#<n>)` in the
   squash subject; that is how the sync recognizes the change as already ported.
 - Run it locally: `node .github/scripts/docs-sync.mjs --dry-run --no-llm` needs only
   `gh auth`; drop `--no-llm` with `LITELLM_BASE_URL`, `LITELLM_API_KEY`,
-  `DOCS_SYNC_MODEL` set to exercise the classifier. The script checks out the sync
-  branch in the checkout it runs in and restores your branch afterwards, so run it
-  from a clean checkout or a worktree, never with uncommitted changes.
+  `DOCS_SYNC_MODEL` set to exercise the classifier. Add `--skip-lint` on a machine
+  without the docs toolchain installed. The script checks out the sync branch in
+  the checkout it runs in and restores your branch afterwards, so run it from a
+  clean checkout or a worktree, never with uncommitted changes.
 
 Design: `.ai/specs/2026-09-10-docs-sync-design.md`.
 

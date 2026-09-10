@@ -10,9 +10,11 @@ import { repoRoot } from '../lib/repo-root.mjs';
 // fork-guards.test.mjs pins the guard expressions.
 const source = readFileSync(path.join(repoRoot(), '.github/workflows/docs-sync.yml'), 'utf8');
 
-test('runs on a weekday schedule and on manual dispatch that defaults to dry run', () => {
-  assert.match(source, /schedule:\n\s+- cron: '0 6 \* \* 1-5'/);
-  assert.match(source, /workflow_dispatch:/);
+test('the weekday schedule is landed disabled, pending rollout step 1, with manual dispatch live and defaulting to dry run', () => {
+  // Commented out, not removed: the cron expression stays reviewable and a
+  // follow-up pull request re-enables it by uncommenting these two lines.
+  assert.match(source, /^\s*#\s*schedule:\n\s*#\s*- cron: '0 6 \* \* 1-5'/m);
+  assert.match(source, /^\s*workflow_dispatch:\s*$/m);
   assert.match(source, /dry_run:[\s\S]*?type: boolean[\s\S]*?default: true/);
 });
 

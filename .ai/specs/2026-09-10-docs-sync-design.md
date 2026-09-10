@@ -1,6 +1,6 @@
 # Docs content sync: develop to the live prod-docs branch (DEV-1780)
 
-Status: design approved in discussion on 2026-09-10, not implemented.
+Status: implemented on branch feature/DEV-1780_Docs-content-sync-workflow (2026-09-10); the schedule is disabled until rollout step 1 completes.
 Tracker: DEV-1780.
 
 ## Goal
@@ -65,11 +65,13 @@ Three pieces:
 
 1. `.github/workflows/docs-sync.yml`: schedule, secrets, checkout, one script call,
    step summary.
-2. `.github/scripts/docs-sync/`: the pipeline (`index.mjs` entry point plus one
-   module per stage, shared helpers in `.github/scripts/lib/` where they already
-   exist). No third-party dependencies; `fetch` for LiteLLM, `gh` for GitHub.
-3. `.github/scripts/docs-sync/prompt.md`: the classification prompt, versioned with
-   the code. Its content hash is part of the decision cache key.
+2. `.github/scripts/docs-sync.mjs`: the CLI entry point, with the pipeline stages
+   inlined in one top-level `try`/`catch`/`finally`. The pure pieces of each stage
+   live in modules under `.github/scripts/lib/docs-sync/`. No third-party
+   dependencies; `fetch` for LiteLLM (in `llm.mjs`), `gh` for GitHub (in
+   `github.mjs`).
+3. `.github/scripts/lib/docs-sync/prompt.md`: the classification prompt, versioned
+   with the code. Its content hash is part of the decision cache key.
 
 Everything the LLM does not decide is deterministic and unit-tested.
 
@@ -100,9 +102,9 @@ Steps:
    script sets the push URL with the app token itself.
 3. `pnpm install --frozen-lockfile` for the docs lint step (root install; `docs/`
    is a workspace member).
-4. `node .github/scripts/docs-sync/index.mjs` with env `LITELLM_BASE_URL`,
-   `LITELLM_API_KEY`, `DOCS_SYNC_MODEL`, `GH_TOKEN` (app token), `DRY_RUN`,
-   `TARGET`.
+4. `node .github/scripts/docs-sync.mjs` with env `LITELLM_BASE_URL`,
+   `LITELLM_API_KEY`, `DOCS_SYNC_MODEL`, `DOCS_SYNC_REVIEWERS`, `GH_TOKEN` (app
+   token), `DRY_RUN`, `TARGET`.
 5. The script writes its plan and outcome to `$GITHUB_STEP_SUMMARY` in every mode.
 
 The workflow does not need the fork/Dependabot guard: it never runs on
@@ -196,7 +198,11 @@ Rules:
   not safe to apply, and a loud failure is better than a partial pull request.
 - Decisions are cached in the pull request body state block (see Stage 7) keyed by
   `sha + sha256(prompt.md)`. A rerun reclassifies only new commits. Changing the
-  prompt invalidates the cache.
+  prompt invalidates the cache. `unsure` decisions are never cached: the cache lives
+  only in an open pull request's body, so a run that opens no pull request
+  reclassifies every `unsure` candidate again next time, rather than freezing a
+  one-off model uncertainty (or a synthetic `--no-llm` answer) into a state block
+  that outlives the run that produced it.
 - Known traps the prompt names explicitly: `menuTag: new|updated` frontmatter edits
   that advertise develop-only content (see the #12858 revert), sidebar entries for
   pages the target lacks, links to `migrating-from-*` guides above the target, and
@@ -206,11 +212,16 @@ Rules:
 
 - Sync branch: `docs-sync/<target with / replaced by ->`, e.g.
   `docs-sync/prod-docs-18.1`.
-- If an open pull request from that branch exists **and** its head contains commits
-  whose *committer* is not the app bot user (cherry-picks keep the original author,
-  so the author field says nothing), the run leaves the branch alone, refreshes the
-  sticky comment with the current plan, and exits 0. A human has started resolving
-  something on it; force-pushing would destroy that work.
+- The hold triggers on foreign commits alone, checked right after Stage 3 and
+  before Stage 4 classifies anything: if the sync branch exists and any commit on
+  it has a *committer* other than the app bot user (cherry-picks keep the original
+  author, so the author field says nothing), the run leaves the branch alone. The
+  model is not called while held -- every candidate that would otherwise have gone
+  to the classifier is instead listed under "skipped: needs a human decision" with
+  a reason naming the hold, so the step summary still carries the full plan. When a
+  pull request is already open, its sticky comment is refreshed with that same
+  plan; a human has started resolving something on the branch, and force-pushing
+  would destroy that work.
 - Otherwise reset the branch to `origin/<target>` and apply included commits, oldest
   first, with `git cherry-pick -x <sha>`.
 - On conflict: `git cherry-pick --abort`, record the commit under "skipped:
@@ -224,8 +235,10 @@ most content commits are one or two files.
 ### Stage 6: verify
 
 `npm run docs:lint --prefix docs` on the resulting tree. A lint failure fails the run
-before any push, with the output in the step summary. The full docs build, the
-plugin tests, and the Cloudflare preview run on the pull request itself through
+before any push, with the captured output (capped at 8 KB) written to the step
+summary along with the remedy: fix the source pull request on `develop`, or label
+it `docs-sync: skip` to keep it out of the sync. The full docs build, the plugin
+tests, and the Cloudflare preview run on the pull request itself through
 `docs.yml`, which the app token makes possible.
 
 ### Stage 7: pull request
@@ -245,11 +258,17 @@ plugin tests, and the Cloudflare preview run on the pull request itself through
     as one.
   - `[skip changelog]` outside any HTML comment
   - `<!-- docs-sync-state {json} -->`: the decision cache
-- Label `docs-sync` (created if missing). Reviewers from an optional
-  `DOCS_SYNC_REVIEWERS` env value.
-- Zero included commits and no open pull request: exit 0 with a summary line. Zero
-  included and an open pull request: close it with a comment (everything it carried
-  was merged or ported by hand).
+- Labels `docs-sync`, `docs-sync: skip`, and `docs-sync: include` are created (if
+  missing) on every non-dry run, before the included/conflicts/close branching
+  below -- so they exist to label with even on a run that pushes nothing. Reviewers
+  from an optional `DOCS_SYNC_REVIEWERS` env value.
+- Included empty and conflicts non-empty: nothing to push, but the conflicts are
+  real content this run could not port. Update the open pull request's body (or log
+  the count when none is open); never push, and never close a pull request while a
+  conflict is still unresolved.
+- Zero included commits, zero conflicts, and no open pull request: exit 0 with a
+  summary line. Zero included, zero conflicts, and an open pull request: close it
+  with a comment (everything it carried was merged or ported by hand).
 - Target rollover: after a release cut creates a new `prod-docs/<x>.<y>`, the tool
   closes its own open `docs-sync` pull requests whose base is any other branch, with
   a comment naming the new target. Unmerged content is re-evaluated against the new
@@ -284,28 +303,39 @@ Workflow env and secrets:
 | `DOCS_SYNC_REVIEWERS` | env, optional | comma-separated GitHub logins |
 
 Script flags for local use: `--dry-run`, `--target <branch>`, `--no-llm` (treats every
-candidate as `unsure`, for testing the git side without a key).
+candidate as `unsure`, for testing the git side without a key), `--skip-lint`
+(skips Stage 6, for a machine without the docs toolchain installed),
+`--repo-dir <path>` (checkout to operate on; defaults to the repository root),
+`--gh-bin <path>` (the `gh` binary to invoke; overridable for tests).
 
 ## Testing
 
 `node --test` under `.github/scripts/__tests__/`, wired into the root `test:tooling`
-script like the other gates:
+script like the other gates. One file per module, plus the CLI and the workflow:
 
-- `docs-sync-filters.test.mjs`: content-path matching, mixed categorization,
-  version-scoped page rule, PR-number extraction, dedup by subject/body/trailer, all
-  against fixture commit lists.
-- `docs-sync-classify.test.mjs`: prompt assembly (truncation, feature list), response
-  parsing (valid, malformed, missing field), retry and hard-fail behavior, cache key
-  invalidation on prompt change. LiteLLM mocked with a fake `fetch`.
+- `docs-sync-paths.test.mjs`: content-path matching and mixed categorization.
+- `docs-sync-target.test.mjs`: target branch selection and version parsing.
+- `docs-sync-candidates.test.mjs`: PR-number extraction and dedup by
+  subject/body/trailer against fixture commit lists.
+- `docs-sync-version-scope.test.mjs`: the version-scoped page rule.
+- `docs-sync-classify.test.mjs`: prompt assembly (truncation, feature list) and
+  response parsing (valid, malformed, missing field).
+- `docs-sync-llm.test.mjs`: the LiteLLM client, mocked with a fake `fetch`.
 - `docs-sync-pr-body.test.mjs`: body rendering with every section, state block
-  round-trip, `[skip changelog]` outside comments.
+  round-trip, `[skip changelog]` outside comments, model/subject text sanitized so
+  it cannot forge a second state block.
+- `docs-sync-git-apply.test.mjs`: a throwaway repository in a temp dir (a clean
+  pick, a conflict, an empty pick, a modify/delete conflict, the foreign-commit
+  check), asserting the recorded outcome.
+- `docs-sync-github.test.mjs`: the `gh` adapter against an injectable runner.
+- `docs-sync-log.test.mjs`: the push-token scrubber.
+- `docs-sync-cli.test.mjs`: the whole script against a throwaway origin and clone,
+  with a fake `gh` that records argv and answers from canned JSON -- the
+  deterministic-filters path, the include/skip label overrides, `--dry-run`, a
+  conflicting cherry-pick, and the foreign-commit hold.
 - `docs-sync-workflow.test.mjs`: the workflow uses the app token, `permissions: {}`,
-  no `GITHUB_TOKEN` push, `workflow_dispatch` defaults to dry-run.
-
-The git-apply stage is exercised by a test that builds a throwaway repository in a
-temp dir (two branches, one clean pick, one conflict, one modify/delete) and asserts
-the recorded outcome. Existing tests in this directory already shell out to git this
-way.
+  no `GITHUB_TOKEN` (and no bare `github.token`) push, `workflow_dispatch` defaults
+  to dry-run, and the schedule trigger is landed commented out.
 
 ## Rollout
 
@@ -350,3 +380,7 @@ way.
 - Pick the model name on the LiteLLM proxy and confirm it accepts
   `response_format: json_object`.
 - Decide who is on `DOCS_SYNC_REVIEWERS`.
+- A durable per-source-PR marker for `exclude` decisions (for example, a label the
+  bot applies to the source pull request) would let an `exclude` survive a run that
+  opens no sync pull request, the same way `docs-sync: skip` already does by hand.
+  Not in v1.
