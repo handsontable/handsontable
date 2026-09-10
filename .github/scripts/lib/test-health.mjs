@@ -255,16 +255,15 @@ export function collectArtifactFiles(files, run) {
       continue;
     }
 
-    let parsed;
-
     try {
-      parsed = JSON.parse(file.text);
-    } catch (error) {
-      notes.push(`${file.artifact}/${file.path}: not valid JSON (${error.message}), skipped`);
-      continue;
-    }
+      const parsed = JSON.parse(file.text);
 
-    entries.push(...(isReport ? parsePlaywrightReport(parsed, run) : parseJasmineRecord(parsed, run)));
+      entries.push(...(isReport ? parsePlaywrightReport(parsed, run) : parseJasmineRecord(parsed, run)));
+    } catch (error) {
+      // Both the parse and the parser run here: a file that is valid JSON but the wrong shape
+      // (`null`, `{"suites":[null]}`) must be noted and skipped, not thrown past the whole run.
+      notes.push(`${file.artifact}/${file.path}: could not be read (${error.message}), skipped`);
+    }
   }
 
   for (const artifact of seenArtifacts) {
@@ -329,23 +328,41 @@ export function mergeLedger(ledger, entries, { now, retentionDays = RETENTION_DA
   }
 
   const added = [];
+  let overwritten = false;
 
   for (const entry of entries) {
     const key = entryKey(entry);
+    const previous = byKey.get(key);
 
-    if (!byKey.has(key)) {
+    if (previous === undefined) {
       added.push(entry);
+    } else if (JSON.stringify(previous) !== JSON.stringify(entry)) {
+      // The same observation re-collected with a different payload — a backfill that adds a field,
+      // a re-run that carries a new error — really did change the stored entry.
+      overwritten = true;
     }
     byKey.set(key, entry);
   }
 
-  const kept = [...byKey.values()]
+  const all = [...byKey.values()];
+  const kept = all
     .filter(entry => Date.parse(entry.seenAt) >= cutoff)
     .sort((a, b) => Date.parse(b.seenAt) - Date.parse(a.seenAt) || testKey(a).localeCompare(testKey(b)));
+  const pruned = all.length - kept.length;
+  const changed = ledger === null || added.length > 0 || overwritten || pruned > 0;
 
   return {
-    ledger: { version: LEDGER_VERSION, updatedAt: now.toISOString(), retentionDays, entries: kept },
+    // `updatedAt` moves only when the stored entries changed, so the published `ledger.json` is
+    // byte-identical run to run when nothing was added, overwritten, or pruned.
+    ledger: {
+      version: LEDGER_VERSION,
+      updatedAt: changed ? now.toISOString() : (ledger.updatedAt ?? now.toISOString()),
+      retentionDays,
+      entries: kept,
+    },
     added,
+    pruned,
+    changed,
   };
 }
 
@@ -379,6 +396,11 @@ export function aggregate(ledger, { now, ticketThresholdRuns = TICKET_THRESHOLD_
     const inLong = sorted.filter(entry => Date.parse(entry.seenAt) >= longCutoff);
     const inShort = inLong.filter(entry => Date.parse(entry.seenAt) >= shortCutoff);
     const runs30 = new Set(inLong.map(entry => entry.runId)).size;
+    // A genuine break fails repeatedly on ONE branch; a flake recurs across unrelated pull
+    // requests, or is retry-recovered (Playwright `flaky`). So the ticket line counts flaky reruns
+    // and distinct branches, not the raw run count — which a single branch pushed twice would trip.
+    const flakyRuns30 = new Set(inLong.filter(entry => entry.status === 'flaky').map(entry => entry.runId)).size;
+    const branches30 = new Set(inLong.map(entry => entry.branch).filter(Boolean)).size;
     const last = sorted[0];
 
     return {
@@ -391,6 +413,8 @@ export function aggregate(ledger, { now, ticketThresholdRuns = TICKET_THRESHOLD_
       count30: inLong.length,
       countAll: sorted.length,
       runs30,
+      flakyRuns30,
+      branches30,
       legs: [...new Set(sorted.map(entry => entry.leg))].sort(),
       statuses: [...new Set(sorted.map(entry => entry.status))].sort(),
       isolation: [...new Set(sorted.map(entry => entry.isolation).filter(Boolean))].sort(),
@@ -403,7 +427,7 @@ export function aggregate(ledger, { now, ticketThresholdRuns = TICKET_THRESHOLD_
         error: last.error ?? null,
         source: last.source,
       },
-      needsTicket: runs30 >= ticketThresholdRuns,
+      needsTicket: flakyRuns30 >= ticketThresholdRuns || branches30 >= ticketThresholdRuns,
     };
   });
 
@@ -425,6 +449,29 @@ export function aggregate(ledger, { now, ticketThresholdRuns = TICKET_THRESHOLD_
     },
     rows,
   };
+}
+
+/**
+ * The `generatedAt` a freshly aggregated summary should carry. When the new summary matches the
+ * previously published one in everything but the timestamp — nothing was added or pruned, and no
+ * windowed count rolled over a day boundary — it keeps the previous timestamp, so `summary.json`
+ * and the page stay byte-identical and the collector commits nothing. Otherwise it is `now`, so the
+ * footer date tracks the numbers above it (a count that rolls out of the 7-day window is a real
+ * change and republishes with today's date).
+ *
+ * @param {object|null} previousSummary The summary already on `gh-pages`, or `null` on the first run.
+ * @param {object} summary The summary just aggregated (its `generatedAt` is `now`).
+ * @param {Date} now The current time.
+ * @returns {string} The `generatedAt` to publish.
+ */
+export function stableGeneratedAt(previousSummary, summary, now) {
+  const withoutStamp = value => JSON.stringify({ ...value, generatedAt: null });
+
+  if (previousSummary && withoutStamp(previousSummary) === withoutStamp(summary)) {
+    return previousSummary.generatedAt ?? now.toISOString();
+  }
+
+  return now.toISOString();
 }
 
 /**
@@ -458,11 +505,13 @@ export function renderStepSummary({ run, added, notes, summary, pageUrl }) {
   const needTicket = summary.rows.filter(row => row.needsTicket);
 
   if (needTicket.length > 0) {
-    lines.push('', `${needTicket.length} test(s) have flaked in ${summary.ticketThresholdRuns}+ distinct runs `
-      + `in the last ${summary.windows.longDays} days and need a fix or migration ticket:`, '');
+    lines.push('', `${needTicket.length} test(s) recurred across ${summary.ticketThresholdRuns}+ distinct `
+      + `branches or flaky reruns in the last ${summary.windows.longDays} days `
+      + 'and need a fix or migration ticket:', '');
 
     for (const row of needTicket) {
-      lines.push(`- ${row.title} (\`${row.file ?? '?'}\`) — ${row.runs30} runs, legs: ${row.legs.join(', ')}`);
+      lines.push(`- ${row.title} (\`${row.file ?? '?'}\`) — ${row.branches30} branch(es), `
+        + `${row.flakyRuns30} flaky rerun(s), legs: ${row.legs.join(', ')}`);
     }
   }
 

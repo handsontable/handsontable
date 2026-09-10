@@ -29,7 +29,9 @@ name: Test health
 
 on:
   workflow_run:
-    workflows: ['Tests', 'Develop']
+    # 'Publish' collects the rc/stable paths, where `test.yml` runs as nested jobs of the Publish
+    # run rather than as its own 'Tests' run — the window DEV-2667 showed the ledger earns most.
+    workflows: ['Tests', 'Develop', 'Publish']
     types: [completed]
   workflow_dispatch:
     inputs:
@@ -113,14 +115,16 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           WORK_DIR=$(mktemp -d)
-          git fetch origin gh-pages
-          git worktree add "$WORK_DIR" gh-pages
+          # actions/checkout is a single-branch clone with no local gh-pages ref, so fetch it into
+          # a remote-tracking ref first; `git worktree add -B` then has a ref to branch from.
+          git fetch origin +refs/heads/gh-pages:refs/remotes/origin/gh-pages
+          git worktree add "$WORK_DIR" -B gh-pages origin/gh-pages
 
           pushed=false
           for attempt in 1 2 3 4 5; do
             (
               cd "$WORK_DIR"
-              git fetch origin gh-pages
+              git fetch origin +refs/heads/gh-pages:refs/remotes/origin/gh-pages
               git reset -q --hard origin/gh-pages
             )
             node .github/scripts/test-health-collect.mjs \
