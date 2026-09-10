@@ -1,6 +1,6 @@
 /* eslint-disable no-script-url -- the script URLs below are the subject of these tests: the guard
    must be exercised with the literal payloads it is meant to refuse. */
-import { resolveLinkUrl, normalizeSchemes, type LinkScheme } from '../resolveLinkUrl';
+import { resolveLinkUrl, normalizeSchemes, normalizeSchemesWithFallback, type LinkScheme } from '../resolveLinkUrl';
 
 const BASE = 'https://example.com/dir/page.html';
 
@@ -127,6 +127,31 @@ describe('resolveLinkUrl', () => {
 
     it('should return an empty list when nothing is allowed', () => {
       expect(normalizeSchemes([])).toEqual([]);
+    });
+  });
+
+  describe('normalizeSchemesWithFallback', () => {
+    const FALLBACK: LinkScheme[] = ['https', 'tel'];
+
+    it('should return the fallback for a non-array value', () => {
+      expect(normalizeSchemesWithFallback(undefined, FALLBACK)).toEqual(FALLBACK);
+      expect(normalizeSchemesWithFallback('https', FALLBACK)).toEqual(FALLBACK);
+    });
+
+    it('should keep an explicit empty array empty, not fall back', () => {
+      expect(normalizeSchemesWithFallback([], FALLBACK)).toEqual([]);
+    });
+
+    it('should fall back when every entry is unknown', () => {
+      expect(normalizeSchemesWithFallback(['htps', 'javascript'], FALLBACK)).toEqual(FALLBACK);
+    });
+
+    it('should narrow to only the recognized entries of a partially valid array', () => {
+      expect(normalizeSchemesWithFallback(['https', 'htps'], FALLBACK)).toEqual(['https']);
+    });
+
+    it('should keep a fully valid array as-is, in allowlist order', () => {
+      expect(normalizeSchemesWithFallback(['tel', 'http'], FALLBACK)).toEqual(['http', 'tel']);
     });
   });
 });

@@ -27,7 +27,7 @@ import {
   LINK_SCHEMES,
   LINK_SCHEME_CLASS_NAME,
   createLinkElement,
-  normalizeSchemes,
+  normalizeSchemesWithFallback,
   resolveLinkUrl,
   unwrapLinks,
   wrapCellContent,
@@ -246,7 +246,7 @@ export class Formulas extends BasePlugin {
   /**
    * The schemes a `HYPERLINK` cell may link to. A subset of the fixed allowlist, never wider.
    */
-  #hyperlinkSchemes: LinkScheme[] = normalizeSchemes(undefined);
+  #hyperlinkSchemes: readonly LinkScheme[] = normalizeSchemesWithFallback(undefined, LINK_SCHEMES);
 
   /**
    * The cells rendered as hyperlinks, by physical coordinates (`row,column`). A `HYPERLINK` whose
@@ -1127,7 +1127,9 @@ export class Formulas extends BasePlugin {
 
     this.#hyperlinksEnabled = hyperlinks === true || isObjectForm;
     this.#hyperlinkTarget = isObjectForm && hyperlinks.target === '_self' ? '_self' : '_blank';
-    this.#hyperlinkSchemes = normalizeSchemes(isObjectForm ? hyperlinks.schemes : undefined);
+    this.#hyperlinkSchemes = normalizeSchemesWithFallback(
+      isObjectForm ? hyperlinks.schemes : undefined, LINK_SCHEMES
+    );
 
     // Turning the option off removes nothing by itself: the hook stays registered, but a renderer that
     // leaves its previous DOM in place would keep an anchor that no later render pass rewrites.
@@ -1143,9 +1145,12 @@ export class Formulas extends BasePlugin {
 
   /**
    * Warns once when the object form of the `hyperlinks` setting carries an unrecognized `target` or
-   * `schemes` entry. The setting still applies its fallback either way - an invalid `target` falls
-   * back to `'_blank'` and an unrecognized `schemes` entry is dropped by `normalizeSchemes` - so this
-   * only makes the silent fallback visible.
+   * `schemes` entry. The setting still applies a fallback either way - an invalid `target` falls back
+   * to `'_blank'`, and `schemes` is resolved through `normalizeSchemesWithFallback` (dropped entries
+   * are ignored when at least one entry is recognized; the full allowlist is used instead when none
+   * are, or when `schemes` is not an array at all) - so this only makes the silent fallback visible.
+   * An EXPLICIT empty `schemes` array is not a problem: it is the author's own request for no
+   * hyperlinks, and it does not warn.
    *
    * @param {FormulasHyperlinkSettings} hyperlinks The object form of the `hyperlinks` setting.
    */
@@ -1156,22 +1161,36 @@ export class Formulas extends BasePlugin {
       problems.push(`"target": ${JSON.stringify(hyperlinks.target)}`);
     }
 
-    if (
-      hyperlinks.schemes !== undefined &&
-      (!Array.isArray(hyperlinks.schemes) ||
-        hyperlinks.schemes.some(scheme => !(LINK_SCHEMES as readonly string[]).includes(scheme)))
-    ) {
-      problems.push(`"schemes": ${JSON.stringify(hyperlinks.schemes)}`);
+    // Whether the invalid, non-empty `schemes` still narrows to at least one recognized entry - if it
+    // does, the fallback is "unknown entries are ignored" rather than "the default is used instead".
+    let schemesNarrowed = false;
+
+    if (hyperlinks.schemes !== undefined) {
+      const isSchemesArray = Array.isArray(hyperlinks.schemes);
+      const recognizedCount = isSchemesArray
+        ? hyperlinks.schemes.filter(scheme => (LINK_SCHEMES as readonly string[]).includes(scheme)).length
+        : 0;
+      const isInvalid = !isSchemesArray ||
+        (hyperlinks.schemes.length > 0 && recognizedCount !== hyperlinks.schemes.length);
+
+      if (isInvalid) {
+        problems.push(`"schemes": ${JSON.stringify(hyperlinks.schemes)}`);
+        schemesNarrowed = isSchemesArray && recognizedCount > 0;
+      }
     }
 
     if (problems.length === 0) {
       return;
     }
 
+    const fallbackNote = schemesNarrowed
+      ? 'Unknown "schemes" entries are ignored.'
+      : 'The default is used instead.';
+
     warnOnce(this, HYPERLINK_SETTINGS_WARN_KEY,
       `The "formulas.hyperlinks" option received an invalid setting: ${problems.join(', ')}. ` +
       '"target" accepts "_blank" or "_self"; "schemes" accepts a subset of "http", "https", "mailto" ' +
-      'and "tel". The default is used instead.');
+      `and "tel". ${fallbackNote}`);
   }
 
   /**

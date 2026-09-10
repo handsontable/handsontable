@@ -27,6 +27,38 @@ export function normalizeSchemes(value: unknown): LinkScheme[] {
 }
 
 /**
+ * Narrows a user-provided `schemes` value against a caller-supplied fallback, instead of always
+ * falling back to the full allowlist the way `normalizeSchemes` does.
+ *
+ * An EXPLICIT empty array is honored as-is: the author asked for no schemes, and that request is not
+ * second-guessed. A non-empty array whose entries do not match any entry of `LINK_SCHEMES` normalizes
+ * to an empty array in `normalizeSchemes`, and an empty array read from a non-empty one is a mistake
+ * here (a typo, for instance), not "no schemes" - so it falls back to `fallback` instead of failing
+ * closed. A partially valid array narrows to its recognized entries only. Anything that is not an
+ * array, including `undefined`, also falls back to `fallback`.
+ *
+ * @param {unknown} value The raw `schemes` setting.
+ * @param {LinkScheme[]} fallback The schemes to fall back to when `value` is missing, is not an
+ * array, or is a non-empty array with no recognized entry.
+ * @returns {LinkScheme[]} The resolved schemes.
+ */
+export function normalizeSchemesWithFallback(
+  value: unknown, fallback: readonly LinkScheme[]
+): readonly LinkScheme[] {
+  if (!Array.isArray(value)) {
+    return fallback;
+  }
+
+  if (value.length === 0) {
+    return [];
+  }
+
+  const normalized = normalizeSchemes(value);
+
+  return normalized.length === 0 ? fallback : normalized;
+}
+
+/**
  * Resolves the URL of a cell link against the host document, and refuses anything that is not a
  * navigable link.
  *

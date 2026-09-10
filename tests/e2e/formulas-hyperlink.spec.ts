@@ -450,6 +450,50 @@ test.describe('formulas: HYPERLINK rendering', () => {
     await expect.poll(countRefusals, { timeout: 1000 }).toBe(0);
   });
 
+  test('falls back to the full allowlist when `hyperlinks.schemes` has no recognized entry, and warns ' +
+    'that the default is used',
+    async({ page, theme, bundle }) => {
+      const warnings: string[] = [];
+
+      page.on('console', (message) => {
+        if (message.type() === 'warning') {
+          warnings.push(message.text());
+        }
+      });
+
+      const grid = new FormulasHyperlinkPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.setHyperlinks({ schemes: ['htps'] });
+
+      // A `schemes` array whose every entry is unknown must not fail closed: the fix falls back to
+      // the full allowlist, so the `https` link keeps rendering.
+      await expect(grid.link(0, 0)).toHaveCount(1);
+      await expect(grid.link(0, 0)).toHaveAttribute('href', 'https://example.com/one');
+
+      const settingsWarnings = () => warnings.filter(text => text.includes('formulas.hyperlinks'));
+
+      await expect.poll(() => settingsWarnings().length, { timeout: 1000 }).toBe(1);
+      expect(settingsWarnings()[0]).toContain('default is used instead');
+
+      // An EXPLICIT empty array is the author's own request for no links - it stays empty and must
+      // not warn again.
+      await grid.setHyperlinks({ schemes: [] });
+
+      await expect(grid.link(0, 0)).toHaveCount(0);
+      await expect(grid.cell(0, 0)).toHaveText('Example one');
+
+      // Console delivery is asynchronous, so a settled poll after the empty-array call proves no
+      // second warning arrived rather than merely that none has arrived yet.
+      await page.evaluate(() => true);
+      await expect.poll(() => settingsWarnings().length, { timeout: 1000 }).toBe(1);
+
+      // Recovering with a valid, non-empty `schemes` renders the link again.
+      await grid.setHyperlinks({ schemes: ['https'] });
+
+      await expect(grid.link(0, 0)).toHaveCount(1);
+    });
+
   test('warns once on an invalid `hyperlinks` object-form setting, and not again once fixed',
     async({ page, theme, bundle }) => {
       const warnings: string[] = [];
