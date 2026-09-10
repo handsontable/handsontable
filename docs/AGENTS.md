@@ -689,7 +689,10 @@ Two things make this easy to get wrong, and both cost a red pipeline:
 - **A hand-edit inside the block can be byte-identical to what the generator produces and still fail
   the build.** `handsontable/test/__tests__/optionLevels.unit.js` compares the committed page against
   the generator's output *computed from the source*, so the page matching is not enough — the source
-  has to carry the change too. The generator writes `option-levels.json` beside the page, and a
-  second case in the same test file checks that JSON, so one run produces two files and both must be
-  committed. `npm run test:unit --prefix handsontable -- --testPathPattern=optionLevels` is the
-  fastest way to prove you got it right.
+  has to carry the change too. Run `npm run test:unit --prefix handsontable --
+  --testPathPattern=optionLevels` to prove you got it right.
+- **The generator writes `option-levels.json` beside the page, and commit both — but only the page
+  is fully guarded.** The JSON case in that test file asserts `total`, `levels`, and each option's
+  `name` and `levels`; it never reads `note`. So a `NOTES`-only change committed to the page with a
+  stale JSON passes the suite green. Re-run the generator rather than hand-editing either file, and
+  if you want the gap closed, add `payload.options.map(o => o.note)` to that assertion.
