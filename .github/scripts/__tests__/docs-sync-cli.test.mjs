@@ -201,6 +201,46 @@ test('--dry-run applies locally but pushes nothing and opens nothing', () => {
   }
 });
 
+test('a foreign commit on the sync branch holds the run before classification, without touching the branch or opening a comment', () => {
+  const f = fixture();
+
+  try {
+    // #101 keeps the base fixture's unlabelled PR (`labels: []`), which is
+    // what puts it in `toClassify` -- the candidate the hold path must move
+    // to `unsure` instead of asking the model.
+    f.git(f.work, ['switch', '-q', '-c', 'docs-sync/prod-docs-18.1', 'prod-docs/18.1']);
+    writeFileSync(path.join(f.work, 'docs/content/guides/a.md'), 'a v1 (edited by a human on the sync branch)\n');
+    f.git(f.work, ['commit', '-q', '-am', 'Human tweak on the sync branch']);
+    f.git(f.work, ['push', '-q', 'origin', 'docs-sync/prod-docs-18.1']);
+    f.git(f.work, ['switch', '-q', 'develop']);
+
+    const remoteTipBefore = f.git(f.work, ['ls-remote', '--heads', f.origin, 'docs-sync/prod-docs-18.1']);
+
+    const result = runCli(f);
+
+    assert.equal(result.status, 0, result.stderr);
+
+    const remoteTipAfter = f.git(f.work, ['ls-remote', '--heads', f.origin, 'docs-sync/prod-docs-18.1']);
+
+    assert.equal(remoteTipAfter, remoteTipBefore, 'the sync branch tip is unchanged');
+
+    const ghCalls = readFileSync(f.ghLog, 'utf8').trim().split('\n').map((line) => JSON.parse(line));
+
+    assert.ok(!ghCalls.some((c) => (
+      (c[0] === 'pr' && ['create', 'edit', 'close'].includes(c[1]))
+      || (c[0] === 'label' && c[1] === 'create')
+      || (c[0] === 'api' && c.includes('--method'))
+    )), 'no write-shaped gh call while held (the fake gh answers pr list with [], so no pull request exists to comment on)');
+
+    const summary = readFileSync(path.join(f.root, 'summary.md'), 'utf8');
+
+    assert.match(summary, /carries commits the bot did not make/);
+    assert.match(summary, /## Skipped: needs a human decision\n\n- `[0-9a-f]{7}` Fix a typo in guide a[^\n]*\(#101\)[^\n]*Not classified/);
+  } finally {
+    rmSync(f.root, { recursive: true, force: true });
+  }
+});
+
 test('a conflicting cherry-pick reports itself and blocks the push, even under an include label', () => {
   const f = fixture();
 

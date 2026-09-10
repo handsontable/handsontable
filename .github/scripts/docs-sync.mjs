@@ -223,152 +223,171 @@ try {
     }
   }
 
-  // Stage 4: classification.
+  // Stage 4: classification. The prompt (and its hash) and the open pull
+  // request are both needed by the hold check below, so they are resolved
+  // before it even though the hold check itself never calls the model.
   const prompt = await loadPrompt();
   const hash = promptHash(prompt);
   const openPr = gh.findOpenPr(syncBranch, target);
-  const previousState = openPr ? extractState(gh.getPullRequest(openPr.number).body) : null;
-  const cache = previousState?.promptHash === hash ? { ...previousState.decisions } : {};
 
   report.promptHash = hash;
   report.state.promptHash = hash;
 
-  log(`Classifier: ${report.model}, prompt ${hash}`);
-
-  if (toClassify.length > 0) {
-    const changelogDir = path.join(repoDir, '.changelogs');
-    const pendingEntries = [];
-    let changelogNames = [];
-
-    try {
-      changelogNames = await readdir(changelogDir);
-    } catch (error) {
-      if (error.code !== 'ENOENT') {
-        throw error;
-      }
-    }
-
-    for (const name of changelogNames.filter((n) => n.endsWith('.json'))) {
-      pendingEntries.push(JSON.parse(await readFile(path.join(changelogDir, name), 'utf8')));
-    }
-
-    const unreleased = collectUnreleased({
-      pendingEntries, changelogMarkdown: git(repoDir, ['show', `${developRef}:CHANGELOG.md`]), released,
-    });
-    const classify = await makeClassifier({ prompt, hash, cache, target, releasedVersion: releasedVersionText, unreleased });
-
-    for (const candidate of toClassify) {
-      const decision = await classify(candidate);
-
-      // `unsure` is never cached: a synthetic --no-llm answer or a one-off
-      // model uncertainty must be re-asked every run, not frozen into the
-      // pull request's state block under the current prompt hash.
-      if (decision.decision !== 'unsure') {
-        report.state.decisions[cacheKey(candidate.sha, hash)] = decision;
-      }
-
-      if (decision.decision === 'include') {
-        report.included.push(candidate);
-      } else if (decision.decision === 'exclude') {
-        report.excluded.push({ ...candidate, reason: decision.reason });
-      } else {
-        report.unsure.push({ ...candidate, reason: decision.reason });
-      }
-    }
-  }
-
-  // Stage 5: apply. A branch with human commits is left alone. This can be true
-  // whether or not a pull request is currently open for it -- the fetched tip
-  // already carries the foreign commit either way, and the lease that protects
-  // a human's work on push does not depend on a pull request existing.
+  // Stage 5 gate, checked before classification: a branch with human commits
+  // is left alone. This can be true whether or not a pull request is
+  // currently open for it -- the fetched tip already carries the foreign
+  // commit either way, and the lease that protects a human's work on push
+  // does not depend on a pull request existing. Holding here, rather than
+  // after classifying, means the model is never called for a run whose plan
+  // cannot be applied anyway.
   if (syncExists && hasForeignCommits(repoDir, targetRef, syncRef)) {
     log(`Sync branch ${syncBranch} carries commits the bot did not make; leaving it untouched.`);
-    if (openPr && !dryRun) {
-      gh.upsertComment(openPr.number, HOLD_MARKER, 'The docs sync found commits on this branch that it did not make, so it did not rebuild the branch. Merge or close this pull request to let the next run continue.');
-    }
-    await flushSummary();
-    process.exit(0);
-  }
 
-  const originalHead = git(repoDir, ['rev-parse', '--abbrev-ref', 'HEAD']);
-
-  try {
-    resetSyncBranch(repoDir, syncBranch, targetRef);
-
-    const applied = applyCommits(repoDir, report.included.map((c) => c.sha).sort((a, b) => candidates.findIndex((c) => c.sha === a) - candidates.findIndex((c) => c.sha === b)));
-    const includedBySha = new Map(report.included.map((c) => [c.sha, c]));
-
-    report.included = applied.applied.map((sha) => includedBySha.get(sha));
-    report.conflicts = applied.conflicts.map(({ sha, files }) => ({ ...includedBySha.get(sha), files }));
-    report.alreadyOnProd.push(...applied.empty.map((sha) => includedBySha.get(sha)));
-
-    // Stage 6: verify.
-    if (report.included.length > 0 && !flags['skip-lint']) {
-      execFileSync('npm', ['run', 'docs:lint', '--prefix', 'docs'], { cwd: repoDir, stdio: 'inherit' });
+    for (const candidate of toClassify) {
+      report.unsure.push({ ...candidate, reason: 'Not classified: the sync branch carries commits the bot did not make.' });
     }
 
-    // Stage 7: pull request.
     const body = renderBody(report);
-    const title = renderTitle(target);
 
     log(body);
 
-    if (dryRun) {
-      log('\nDry run: nothing pushed, no pull request touched.');
-    } else {
-      if (report.included.length > 0) {
-        const lease = syncExists ? [`--force-with-lease=refs/heads/${syncBranch}:${git(repoDir, ['rev-parse', syncRef])}`] : [];
+    if (openPr && !dryRun) {
+      gh.upsertComment(
+        openPr.number,
+        HOLD_MARKER,
+        `The docs sync found commits on this branch that it did not make, so it did not rebuild the branch. Merge or close this pull request, or remove the foreign commits, to let the next run continue. Current plan:\n\n${body}`,
+      );
+    }
 
-        git(repoDir, ['push', '--quiet', ...lease, 'origin', `HEAD:refs/heads/${syncBranch}`]);
-        gh.ensureLabels([SYNC_LABEL, SKIP_LABEL, INCLUDE_LABEL]);
+    process.exitCode = 0;
+  } else {
+    const previousState = openPr ? extractState(gh.getPullRequest(openPr.number).body) : null;
+    const cache = previousState?.promptHash === hash ? { ...previousState.decisions } : {};
 
-        if (openPr) {
-          gh.updatePr(openPr.number, { title, body });
-          log(`Updated #${openPr.number}: ${openPr.url}`);
-        } else {
-          const url = gh.createPr({ head: syncBranch, base: target, title, body, labels: [SYNC_LABEL], reviewers });
+    log(`Classifier: ${report.model}, prompt ${hash}`);
 
-          log(`Opened ${url}`);
+    if (toClassify.length > 0) {
+      const changelogDir = path.join(repoDir, '.changelogs');
+      const pendingEntries = [];
+      let changelogNames = [];
+
+      try {
+        changelogNames = await readdir(changelogDir);
+      } catch (error) {
+        if (error.code !== 'ENOENT') {
+          throw error;
         }
-      } else if (report.conflicts.length > 0) {
-        // Nothing to push, but the conflicts are real content this run could
-        // not port -- never close the pull request or claim there is nothing
-        // to sync while a conflict is still unresolved.
-        if (openPr) {
-          gh.updatePr(openPr.number, { title, body });
-          log(`Updated #${openPr.number}: conflicts only, nothing applied`);
-        } else {
-          log(`${report.conflicts.length} commit(s) conflict with ${target}; nothing applied, manual port needed`);
-        }
-      } else if (openPr) {
-        gh.closePr(openPr.number, 'Everything this pull request carried has reached the target by another route. Closing; the next run reopens if new content lands.');
-        log(`Closed #${openPr.number}: nothing left to sync.`);
-      } else {
-        log('No documentation changes to sync.');
       }
 
-      // Target rollover: close the bot's pull requests against any other base.
-      // Runs on every non-dry run, including a zero-included one -- the run
-      // right after a release cut is typically zero-included, and that is
-      // exactly when the old target's pull request must be closed.
-      for (const stale of gh.listOpenPrsWithLabel(SYNC_LABEL)) {
-        if (stale.baseRefName !== target && stale.headRefName.startsWith('docs-sync/')) {
-          gh.closePr(stale.number, `The live documentation branch is now ${target}; this pull request targets ${stale.baseRefName}. Unmerged content was re-evaluated against the new target.`);
-          log(`Closed stale #${stale.number} against ${stale.baseRefName}.`);
+      for (const name of changelogNames.filter((n) => n.endsWith('.json'))) {
+        pendingEntries.push(JSON.parse(await readFile(path.join(changelogDir, name), 'utf8')));
+      }
+
+      const unreleased = collectUnreleased({
+        pendingEntries, changelogMarkdown: git(repoDir, ['show', `${developRef}:CHANGELOG.md`]), released,
+      });
+      const classify = await makeClassifier({ prompt, hash, cache, target, releasedVersion: releasedVersionText, unreleased });
+
+      for (const candidate of toClassify) {
+        const decision = await classify(candidate);
+
+        // `unsure` is never cached: a synthetic --no-llm answer or a one-off
+        // model uncertainty must be re-asked every run, not frozen into the
+        // pull request's state block under the current prompt hash.
+        if (decision.decision !== 'unsure') {
+          report.state.decisions[cacheKey(candidate.sha, hash)] = decision;
+        }
+
+        if (decision.decision === 'include') {
+          report.included.push(candidate);
+        } else if (decision.decision === 'exclude') {
+          report.excluded.push({ ...candidate, reason: decision.reason });
+        } else {
+          report.unsure.push({ ...candidate, reason: decision.reason });
         }
       }
     }
-  } finally {
-    // Best-effort: a restore failure here must never mask an error from the
-    // try block above.
-    try {
-      const currentBranch = git(repoDir, ['rev-parse', '--abbrev-ref', 'HEAD']);
 
-      if (originalHead !== 'HEAD' && currentBranch !== originalHead) {
-        git(repoDir, ['checkout', '-q', originalHead]);
+    const originalHead = git(repoDir, ['rev-parse', '--abbrev-ref', 'HEAD']);
+
+    try {
+      resetSyncBranch(repoDir, syncBranch, targetRef);
+
+      const applied = applyCommits(repoDir, report.included.map((c) => c.sha).sort((a, b) => candidates.findIndex((c) => c.sha === a) - candidates.findIndex((c) => c.sha === b)));
+      const includedBySha = new Map(report.included.map((c) => [c.sha, c]));
+
+      report.included = applied.applied.map((sha) => includedBySha.get(sha));
+      report.conflicts = applied.conflicts.map(({ sha, files }) => ({ ...includedBySha.get(sha), files }));
+      report.alreadyOnProd.push(...applied.empty.map((sha) => includedBySha.get(sha)));
+
+      // Stage 6: verify.
+      if (report.included.length > 0 && !flags['skip-lint']) {
+        execFileSync('npm', ['run', 'docs:lint', '--prefix', 'docs'], { cwd: repoDir, stdio: 'inherit' });
       }
-    } catch {
-      // Ignored, see above.
+
+      // Stage 7: pull request.
+      const body = renderBody(report);
+      const title = renderTitle(target);
+
+      log(body);
+
+      if (dryRun) {
+        log('\nDry run: nothing pushed, no pull request touched.');
+      } else {
+        if (report.included.length > 0) {
+          const lease = syncExists ? [`--force-with-lease=refs/heads/${syncBranch}:${git(repoDir, ['rev-parse', syncRef])}`] : [];
+
+          git(repoDir, ['push', '--quiet', ...lease, 'origin', `HEAD:refs/heads/${syncBranch}`]);
+          gh.ensureLabels([SYNC_LABEL, SKIP_LABEL, INCLUDE_LABEL]);
+
+          if (openPr) {
+            gh.updatePr(openPr.number, { title, body });
+            log(`Updated #${openPr.number}: ${openPr.url}`);
+          } else {
+            const url = gh.createPr({ head: syncBranch, base: target, title, body, labels: [SYNC_LABEL], reviewers });
+
+            log(`Opened ${url}`);
+          }
+        } else if (report.conflicts.length > 0) {
+          // Nothing to push, but the conflicts are real content this run could
+          // not port -- never close the pull request or claim there is nothing
+          // to sync while a conflict is still unresolved.
+          if (openPr) {
+            gh.updatePr(openPr.number, { title, body });
+            log(`Updated #${openPr.number}: conflicts only, nothing applied`);
+          } else {
+            log(`${report.conflicts.length} commit(s) conflict with ${target}; nothing applied, manual port needed`);
+          }
+        } else if (openPr) {
+          gh.closePr(openPr.number, 'Everything this pull request carried has reached the target by another route. Closing; the next run reopens if new content lands.');
+          log(`Closed #${openPr.number}: nothing left to sync.`);
+        } else {
+          log('No documentation changes to sync.');
+        }
+
+        // Target rollover: close the bot's pull requests against any other base.
+        // Runs on every non-dry run, including a zero-included one -- the run
+        // right after a release cut is typically zero-included, and that is
+        // exactly when the old target's pull request must be closed.
+        for (const stale of gh.listOpenPrsWithLabel(SYNC_LABEL)) {
+          if (stale.baseRefName !== target && stale.headRefName.startsWith('docs-sync/')) {
+            gh.closePr(stale.number, `The live documentation branch is now ${target}; this pull request targets ${stale.baseRefName}. Unmerged content was re-evaluated against the new target.`);
+            log(`Closed stale #${stale.number} against ${stale.baseRefName}.`);
+          }
+        }
+      }
+    } finally {
+      // Best-effort: a restore failure here must never mask an error from the
+      // try block above.
+      try {
+        const currentBranch = git(repoDir, ['rev-parse', '--abbrev-ref', 'HEAD']);
+
+        if (originalHead !== 'HEAD' && currentBranch !== originalHead) {
+          git(repoDir, ['checkout', '-q', originalHead]);
+        }
+      } catch {
+        // Ignored, see above.
+      }
     }
   }
 
