@@ -963,9 +963,14 @@ export class Autofill extends BasePlugin {
       this.redrawBorders(cellCoords);
     }
 
-    const mouseWasDraggedOutside = this.getIfMouseWasDraggedOutside(event);
+    // Short-circuited on purpose: the measurement reads `this.hot.table`, which is `undefined` on
+    // an instance whose init aborted before the view existed. See this plugin's AGENTS.md
+    // ("The `documentElement` listeners outlive a failed init").
+    const shouldMarkDragOutside = this.addingStarted === false &&
+      this.handleDraggedCells > 0 &&
+      this.getIfMouseWasDraggedOutside(event);
 
-    if (this.addingStarted === false && this.handleDraggedCells > 0 && mouseWasDraggedOutside) {
+    if (shouldMarkDragOutside) {
       this.mouseDragOutside = true;
       this.addingStarted = true;
 

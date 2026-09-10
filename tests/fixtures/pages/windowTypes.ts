@@ -218,6 +218,15 @@ declare global {
     /** Per-hook invocation counters of the touch tap-to-edit fixture (DEV-2687). */
     hookCounts: Record<HookCounterName, number>;
     /**
+     * Builds a grid whose init aborts inside `updateSettings()` and returns the message it threw
+     * with, or `null` when it unexpectedly succeeded (DEV-2874 fixture).
+     */
+    abortGridInit(): string | null;
+    /** Starts counting the healthy grid's `getIfMouseWasDraggedOutside()` calls (DEV-2874 fixture). */
+    instrumentDragOutsideCheck(): boolean;
+    /** How many drag-outside measurements the healthy grid has taken since instrumentation. */
+    dragOutsideCheckCount: number;
+    /**
      * Chromium-only InputDeviceCapabilities constructor, used to stamp synthetic mouse events
      * with their origin (DEV-2687).
      */
