@@ -104,6 +104,10 @@ npm run changelog entry
 
 This walks you through each field and writes the JSON file for you. **Use it rather than writing the JSON by hand.** It is the only thing that guarantees the filename, and a hand-written file is how every violation of the rule below has been created.
 
+If the target filename already exists, a non-interactive run refuses to overwrite
+it. Edit or remove the existing JSON directly, or run the command in a terminal
+to confirm the overwrite.
+
 ## One Entry Per Pull Request
 
 **A PR adds one entry. A second is correct only when it cites a different GitHub number.** The authoritative rule lives in [`.changelogs/README.md`](../../../.changelogs/README.md); this section is the short form.

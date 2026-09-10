@@ -58,6 +58,9 @@ const entryBasename = file => file
  * have would land on a file that is already there, or is about to be. That
  * decides the remedy, so it is computed here where every record is visible. A
  * colliding offender must not be told to rename - see `formatMisnamedReport`.
+ * Only an existing, correctly named file counts as an occupied destination;
+ * otherwise an invalid citation such as `-1` would collide with its own
+ * basename and receive the wrong diagnosis.
  *
  * Two situations collide, and missing either one hands out a destructive
  * rename. `expectedExists` covers a canonical file already sitting there
@@ -74,7 +77,13 @@ const entryBasename = file => file
  */
 const findMisnamedEntries = (records) => {
   const usable = records.filter(({ entry }) => Number.isFinite(entry?.issueOrPR));
-  const present = new Set(usable.map(({ file }) => entryBasename(file)));
+  const present = new Set(usable
+    .filter(({ file, entry }) => {
+      const basename = entryBasename(file);
+
+      return ENTRY_BASENAME_PATTERN.test(basename) && basename === String(entry.issueOrPR);
+    })
+    .map(({ file }) => entryBasename(file)));
   const citations = usable.reduce((counts, { entry }) => {
     const expected = String(entry.issueOrPR);
 

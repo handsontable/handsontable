@@ -337,7 +337,11 @@ jobs:
         env:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node .github/scripts/check-changelog
-      - name: Check that all changelogs are valid
+      # This is intentionally repository-wide: a stale misnamed file on the
+      # base branch would otherwise keep producing invalid release notes after
+      # the PR that created it is gone. The failure points to the exact file
+      # and the safe rename-or-fold remedy.
+      - name: Check every changelog filename (repository-wide invariant)
         run: bin/changelog consume --date 2050-01-01 --dry-run
 
   tooling-tests:

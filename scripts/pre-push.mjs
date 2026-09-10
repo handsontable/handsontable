@@ -35,38 +35,49 @@ const { findMisnamedEntries, formatMisnamedReport } = require('../bin/lib/entry-
  * repo-wide, and a rename is exactly how a second entry for one number would
  * otherwise slip past a diff-scoped check.
  *
- * Fails open on an unreadable directory or unparseable JSON — `bin/changelog`
- * itself reports those, with better messages, on every pull request. A hook
- * that blocks a push over its own I/O just trains people to use `--no-verify`.
+ * Fails open on an unreadable directory — `bin/changelog` itself reports that
+ * with better messages on every pull request. Malformed JSON is different: it
+ * is an entry defect, so the hook reports it and blocks the push while still
+ * checking the other files for filename violations.
  *
  * @param {string} root The repository root.
  * @returns {boolean} True when every entry is named correctly, or when the
  *   check could not run.
  */
-function checkEntryFilenames(root) {
+export function checkEntryFilenames(root) {
   const directory = path.join(root, '.changelogs');
   let records;
 
   try {
-    records = readdirSync(directory)
+    records = [];
+    let hasParseError = false;
+
+    readdirSync(directory)
       .filter(name => name.endsWith('.json'))
-      .map(name => ({
-        file: path.posix.join('.changelogs', name),
-        entry: JSON.parse(readFileSync(path.join(directory, name), 'utf8')),
-      }));
+      .forEach((name) => {
+        const file = path.posix.join('.changelogs', name);
+
+        try {
+          records.push({
+            file,
+            entry: JSON.parse(readFileSync(path.join(directory, name), 'utf8')),
+          });
+        } catch (error) {
+          hasParseError = true;
+          console.error(`pre-push: could not parse ${file}: ${error.message}`);
+        }
+      });
+
+    const report = formatMisnamedReport(findMisnamedEntries(records));
+
+    if (report.offenders.length) {
+      console.error(`\n${report.message}\n`);
+    }
+
+    return !hasParseError && report.offenders.length === 0;
   } catch {
     return true;
   }
-
-  const report = formatMisnamedReport(findMisnamedEntries(records));
-
-  if (report.offenders.length) {
-    console.error(`\n${report.message}\n`);
-
-    return false;
-  }
-
-  return true;
 }
 
 /**

@@ -89,6 +89,17 @@ test('a leading zero is rejected', () => {
   assert.equal(offenders.length, 1, 'compared as strings, not numbers');
 });
 
+test('an invalid numeric citation does not collide with its own basename', () => {
+  const offenders = findMisnamedEntries([
+    record('.changelogs/-1.json', -1),
+    record('.changelogs/1.5.json', 1.5),
+    record('.changelogs/1e21.json', 1e21),
+  ]);
+
+  assert.deepEqual(offenders.map(r => r.expectedExists), [false, false, false]);
+  assert.deepEqual(offenders.map(r => r.collides), [false, false, false]);
+});
+
 test('a non-numeric filename is rejected', () => {
   const offenders = findMisnamedEntries([
     record('.changelogs/entry.json', 13442),
