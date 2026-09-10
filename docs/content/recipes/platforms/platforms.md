@@ -28,5 +28,6 @@ Current recipes:
 <div class="boxes-list">
 
 - [Run Handsontable in a Salesforce Lightning Web Component](@/recipes/platforms/salesforce-lwc/salesforce-lwc.md)
+- [Wrap Handsontable in a web component](@/recipes/platforms/web-components/web-components.md)
 
 </div>

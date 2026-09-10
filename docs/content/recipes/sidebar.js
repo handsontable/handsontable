@@ -121,6 +121,11 @@ const platformsItems = [
     title: 'Salesforce Lightning Web Components',
     onlyFor: ['javascript'],
   },
+  {
+    path: 'platforms/web-components/web-components',
+    title: 'Web components',
+    onlyFor: ['javascript'],
+  },
 ];
 
 const accessibilityItems = [
