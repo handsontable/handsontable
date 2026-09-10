@@ -93,6 +93,8 @@
         ['plain text', 'b9', 'c9', 'd9', 'e9', 'f9', 'g9'],
         ['https://example.com/hotel:deals', 'b10', 'c10', 'd10', 'e10', 'f10', 'g10'],
         ['https://a.com/xhttps://b.com/y', 'b11', 'c11', 'd11', 'e11', 'f11', 'g11'],
+        ['Grand Hotel:Warsaw', 'b12', 'c12', 'd12', 'e12', 'f12', 'g12'],
+        ['https://web.archive.org/web/2020/https://example.com', 'b13', 'c13', 'd13', 'e13', 'f13', 'g13'],
       ],
       autoLink: true,
       formulas: {
@@ -124,10 +126,12 @@
       // the same long-URL content renders at a different width per theme (see tests/AGENTS.md). A
       // fixed width keeps every column, including the last one, inside the rendered band on all six
       // theme x bundle legs. The grid width comfortably exceeds their sum so nothing is virtualized
-      // out of the DOM.
+      // out of the DOM. The height is generous on the row axis the same way: horizon's rows render
+      // taller than main's and classic's, and a height sized only for main's row height virtualized
+      // the fixture's last data row out of the DOM on horizon (DEV-2804 review).
       colWidths: [220, 160, 200, 90, 160, 160, 220],
       width: 1400,
-      height: 400,
+      height: 800,
       rowHeaders: true,
       colHeaders: true,
       // Stamp test ids without displacing the per-column renderers.

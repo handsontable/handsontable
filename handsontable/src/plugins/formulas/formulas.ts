@@ -29,6 +29,7 @@ import {
   normalizeSchemes,
   resolveLinkUrl,
   unwrapLinks,
+  wrapCellContent,
   type LinkScheme,
   type LinkTarget,
 } from '../../utils/cellLinks';
@@ -2344,12 +2345,11 @@ export class Formulas extends BasePlugin {
       classNames: [HYPERLINK_CLASS_NAME],
     });
 
-    // The nodes are moved, never re-serialized, so a label containing markup stays text.
-    while (TD.firstChild) {
-      link.appendChild(TD.firstChild);
-    }
-
-    TD.appendChild(link);
+    // Wraps the cell's content root, not `TD` itself: an exact-height row keeps its content inside
+    // the engine's `.htCellClip` wrapper, and appending the anchor to `TD` directly would rebuild
+    // that wrapper on every render pass. The nodes are moved, never re-serialized, so a label
+    // containing markup stays text.
+    wrapCellContent(TD, link);
   };
 
   /**

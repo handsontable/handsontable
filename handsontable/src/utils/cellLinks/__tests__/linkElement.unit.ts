@@ -1,6 +1,8 @@
 import {
-  createLinkElement, hideSchemePrefix, unwrapLinks, LINK_CLASS_NAME, LINK_SCHEME_CLASS_NAME,
+  createLinkElement, hideSchemePrefix, unwrapLinks, wrapCellContent,
+  LINK_CLASS_NAME, LINK_SCHEME_CLASS_NAME,
 } from '../linkElement';
+import { CELL_CLIP_CLASS } from '../../../helpers/dom/element';
 
 describe('createLinkElement', () => {
   it('should build an anchor with the shared class, href, target, rel and tabindex', () => {
@@ -81,6 +83,22 @@ describe('unwrapLinks', () => {
     expect(td.innerHTML).toBe('label');
   });
 
+  it('should unwrap 50 sibling anchors in one pass and merge the text between them', () => {
+    const td = document.createElement('td');
+
+    for (let index = 0; index < 50; index++) {
+      const link = createLinkElement(document, { href: `https://a.com/${index}`, target: '_blank' });
+
+      link.append(`x${index}`);
+      td.append(link);
+    }
+
+    expect(unwrapLinks(td, 'a.ht-link')).toBe(50);
+    expect(td.querySelectorAll('a').length).toBe(0);
+    expect(td.childNodes.length).toBe(1);
+    expect(td.textContent).toBe(Array.from({ length: 50 }, (_, index) => `x${index}`).join(''));
+  });
+
   it('should leave anchors that do not match the selector alone', () => {
     const td = document.createElement('td');
     const own = createLinkElement(document, {
@@ -146,5 +164,38 @@ describe('hideSchemePrefix', () => {
     expect(hideSchemePrefix(link)).toBe(true);
     expect(link.querySelector(`.${LINK_SCHEME_CLASS_NAME}`)?.textContent).toBe('MAILTO:');
     expect(link.textContent).toBe('MAILTO:a@b.com');
+  });
+});
+
+describe('wrapCellContent', () => {
+  it('should move a plain cell\'s content into the anchor and append the anchor to the cell', () => {
+    const td = document.createElement('td');
+    const link = createLinkElement(document, { href: 'https://a.com/x', target: '_blank' });
+
+    td.textContent = 'https://a.com/x';
+
+    wrapCellContent(td, link);
+
+    expect(td.childNodes.length).toBe(1);
+    expect(td.firstElementChild).toBe(link);
+    expect(link.textContent).toBe('https://a.com/x');
+  });
+
+  it('should move the clip wrapper\'s content into the anchor and append the anchor inside the wrapper, not the TD', () => {
+    const td = document.createElement('td');
+    const wrapper = document.createElement('div');
+    const link = createLinkElement(document, { href: 'https://a.com/x', target: '_blank' });
+
+    wrapper.className = CELL_CLIP_CLASS;
+    wrapper.textContent = 'https://a.com/x';
+    td.appendChild(wrapper);
+
+    wrapCellContent(td, link);
+
+    expect(td.childNodes.length).toBe(1);
+    expect(td.firstElementChild).toBe(wrapper);
+    expect(wrapper.childNodes.length).toBe(1);
+    expect(wrapper.firstElementChild).toBe(link);
+    expect(link.textContent).toBe('https://a.com/x');
   });
 });

@@ -1,5 +1,6 @@
 import { LINK_SCHEME_CLASS_NAME } from '../../../utils/cellLinks';
 import { linkifyCell, unlinkifyCell, AUTO_LINK_CLASS_NAME, type LinkifyOptions } from '../linkifyCell';
+import { CELL_CLIP_CLASS } from '../../../helpers/dom/element';
 
 const BASE = 'https://example.com/dir/page.html';
 
@@ -94,6 +95,20 @@ describe('linkifyCell', () => {
 
       expect(hrefs(td)).toEqual(['https://a.com/y']);
       expect(td.querySelector('button')?.innerHTML).toBe('https://a.com/x');
+    });
+
+    it('should skip a checkbox\'s label text, where the label is a sibling of the input, not its ancestor', () => {
+      // The checkbox renderer puts the `<input>` inside the `<label>`, so the label text sits next
+      // to the input as a sibling text node. `closest()` on that text node's parent must stop at the
+      // `<label>` itself, the same way it stops at `<button>`, or the label gets wrapped in an anchor
+      // that leaves the checkbox itself untouched but hijacks a click on its own caption.
+      const td = cell('<label>https://a.com/x<input type="checkbox"></label>');
+
+      linkifyCell(td, options());
+
+      expect(hrefs(td)).toEqual([]);
+      expect(td.querySelector('a')).toBe(null);
+      expect(td.querySelector('input[type="checkbox"]')).not.toBe(null);
     });
 
     it('should be idempotent across passes and rebuild from the current text', () => {
@@ -231,6 +246,27 @@ describe('linkifyCell', () => {
       expect(td.querySelector(`span.${LINK_SCHEME_CLASS_NAME}`)?.textContent).toBe('tel:');
       expect(td.querySelector('a')?.getAttribute('href')).toBe('tel:+48123');
       expect(td.textContent).toBe('  tel:+48123 ');
+    });
+
+    it('should wrap the content inside the engine\'s clip wrapper, not the TD, when the row has an exact height', () => {
+      const td = cell(`<div class="${CELL_CLIP_CLASS}">https://a.com/x</div>`);
+
+      linkifyCell(td, options({ inline: false }));
+
+      const wrapper = td.querySelector(`div.${CELL_CLIP_CLASS}`);
+
+      expect(td.childNodes.length).toBe(1);
+      expect(td.firstElementChild).toBe(wrapper);
+      expect(wrapper?.childNodes.length).toBe(1);
+      expect(wrapper?.querySelector('a.ht-auto-link')?.getAttribute('href')).toBe('https://a.com/x');
+
+      // Idempotent across passes: still exactly one wrapper and one anchor, not a wrapper nested
+      // inside a stray second one.
+      linkifyCell(td, options({ inline: false }));
+
+      expect(td.querySelectorAll(`div.${CELL_CLIP_CLASS}`).length).toBe(1);
+      expect(td.querySelectorAll('a.ht-auto-link').length).toBe(1);
+      expect(td.childNodes.length).toBe(1);
     });
   });
 });

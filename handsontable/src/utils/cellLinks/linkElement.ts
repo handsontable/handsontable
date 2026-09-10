@@ -1,3 +1,5 @@
+import { getCellContentRoot } from '../../helpers/dom/element';
+
 /**
  * Class every anchor the grid itself renders into a data cell carries. It is the opt-in marker for
  * the link styles (the base stylesheet deliberately leaves user-rendered anchors alone, #4363), the
@@ -61,6 +63,28 @@ export function createLinkElement(
   link.tabIndex = -1;
 
   return link;
+}
+
+/**
+ * Moves a cell's whole rendered content into an anchor, then appends the anchor as the sole child of
+ * the cell's content root: the engine's `.htCellClip` wrapper when the row has an exact height,
+ * otherwise `TD` itself (`getCellContentRoot`). Two call sites share this - `linkifyCell`'s
+ * whole-cell mode and the Formulas plugin's `HYPERLINK` wrap - because wrapping `TD` directly would
+ * rebuild an exact-height row's clipping wrapper on every render pass, and any node left outside it
+ * would grow the row back to its content height.
+ *
+ * @param {HTMLTableCellElement} TD The rendered cell element.
+ * @param {HTMLAnchorElement} link The anchor to wrap the content in. Not yet attached anywhere.
+ */
+export function wrapCellContent(TD: HTMLTableCellElement, link: HTMLAnchorElement): void {
+  const contentRoot = getCellContentRoot(TD);
+
+  // The nodes are moved, never re-serialized, so a renderer's elements survive inside the anchor.
+  while (contentRoot.firstChild) {
+    link.appendChild(contentRoot.firstChild);
+  }
+
+  contentRoot.appendChild(link);
 }
 
 /**
@@ -147,6 +171,12 @@ function unwrapLink(link: Element): ParentNode | null {
  * next decoration pass tokenizes text node by text node, so a URL split across two nodes would be
  * missed.
  *
+ * The matching anchors are collected in one `querySelectorAll` pass instead of being re-queried from
+ * `root` after every removal, which made the whole call quadratic in the number of matches. A single
+ * snapshot still handles anchors nested inside each other correctly: `querySelectorAll` returns
+ * document order, so an outer anchor is unwrapped before the inner one it contained, and the inner
+ * one - still connected, just reparented - is already in the list to be unwrapped in its own turn.
+ *
  * @param {Element} root The element to clean, usually a TD or the grid's root element.
  * @param {string} selector The anchor selector, e.g. `a.ht-link`.
  * @returns {number} The number of anchors removed.
@@ -160,9 +190,18 @@ export function unwrapLinks(root: Element, selector: string): number {
 
   const touchedParents = new Set<ParentNode>();
   let removed = 0;
-  let link = root.querySelector(selector);
 
-  while (link !== null) {
+  for (const link of Array.from(root.querySelectorAll(selector))) {
+    // Defensive only: every anchor in the snapshot is expected to still be inside `root`, since an
+    // unwrap only ever reparents a node, never detaches it. `root.contains()` rather than the DOM's
+    // own `isConnected` - the latter answers "attached to a Document", which is false for a detached
+    // `TD` under test and would make this branch true for anchors this function is meant to reach.
+    // Guards against a future change to `unwrapLink` (or a selector matching something outside
+    // `root`'s own subtree) silently operating on a node that has left `root`'s tree.
+    if (!root.contains(link)) {
+      continue;
+    }
+
     const parent = unwrapLink(link);
 
     if (parent !== null) {
@@ -170,7 +209,6 @@ export function unwrapLinks(root: Element, selector: string): number {
     }
 
     removed += 1;
-    link = root.querySelector(selector);
   }
 
   touchedParents.forEach(parent => parent.normalize());

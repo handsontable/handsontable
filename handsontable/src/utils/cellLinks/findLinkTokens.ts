@@ -20,19 +20,26 @@ export interface LinkToken {
 
 // The scheme set is fixed here on purpose: a `javascript:` payload never matches, so there is
 // nothing to refuse later. The character class stops at whitespace and at the delimiters that
-// commonly wrap a URL in prose.
-const TOKEN_PATTERN = /(?:https?:\/\/|mailto:|tel:)[^\s<>"'`]+/gi;
+// commonly wrap a URL in prose. `https?://` is matched unconditionally - a literal `://` glued to a
+// word is not a plausible non-URL word, so linking it is harmless. `mailto:`/`tel:` carry a
+// lookbehind instead: on its own the bare scheme word appears inside ordinary prose
+// ("Grand Hotel:Warsaw" must not yield "tel:Warsaw", "see xmailto:a@b.com" must not link), so the
+// scheme is only recognized where a URL word cannot already be continuing - the same rule
+// `EMBEDDED_SCHEME_PATTERN` below uses to find a *second*, embedded scheme.
+const TOKEN_PATTERN = /(?:https?:\/\/|(?<![A-Za-z0-9._~+-])(?:mailto:|tel:))[^\s<>"'`]+/gi;
 const SCHEME_PREFIX_PATTERN = /^(?:https?:\/\/|mailto:|tel:)/i;
 // Two different rules for the two families of embedded scheme. An embedded `http://`/`https://`
-// splits UNCONDITIONALLY: a literal `://` inside a path is not a plausible URL word (unlike
-// "/hotel:deals"), so `https://a.com/xhttps://b.com/y` is two glued URLs, never one with a
-// garbled path. `mailto:`/`tel:` keep the lookbehind: it requires the embedded scheme to start
+// splits unless it is immediately preceded by a `/`: a literal `://` inside a path is not a
+// plausible URL word (unlike "/hotel:deals"), so `https://a.com/xhttps://b.com/y` and
+// `See https://a.com,https://b.com end` are two glued URLs each, never one with a garbled path -
+// but a `/` right before it means the scheme is itself a path segment of the outer URL
+// (`https://web.archive.org/web/2020/https://example.com` stays one token, href unchanged), which
+// is also why a redirect-style URL (`?url=https://b.com`) still splits at the `=` by design: `=` is
+// not a `/`. `mailto:`/`tel:` keep the narrower lookbehind: it requires the embedded scheme to start
 // where a URL word cannot continue, so a path segment that merely contains a scheme word
-// ("/hotel:deals", "/x-mailto:y") is not mistaken for a second, joined URL. This is deliberately
-// narrower than "any delimiter": a comma is not in the excluded class, so `a.com,https://b.com`
-// still splits into two tokens, and neither is `=`, so a redirect-style URL (`?url=https://b.com`)
-// still splits at the `=` by design.
-const EMBEDDED_SCHEME_PATTERN = /(?:https?:\/\/|(?<![A-Za-z0-9._~+-])(?:mailto:|tel:))/gi;
+// ("/hotel:deals", "/wiki/Tel:Aviv", "/x-mailto:y") is not mistaken for a second, joined URL, and
+// the excluded class now also covers `/` for the same reason as the `https?://` branch.
+const EMBEDDED_SCHEME_PATTERN = /(?:(?<!\/)https?:\/\/|(?<![A-Za-z0-9._~+-/])(?:mailto:|tel:))/gi;
 // A quote is not in this set: `TOKEN_PATTERN`'s character class already excludes `"` and `'`, so a
 // raw token can never carry one and a quote-trimming entry here would be unreachable.
 const TRAILING_PUNCTUATION_CHARS = new Set(['.', ',', ';', ':', '!', '?']);

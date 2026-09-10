@@ -83,6 +83,26 @@ test.describe('autoLink', () => {
     await expect(links.nth(1)).toHaveAttribute('href', 'https://b.com/y');
   });
 
+  test('does not read a bare `tel:` word glued to a preceding word as a scheme', async({ page, theme, bundle }) => {
+    const grid = new AutoLinkPage(page, theme, bundle);
+
+    await grid.goto();
+
+    await expect(grid.cell(11, 0)).toHaveText('Grand Hotel:Warsaw');
+    await expect(grid.anyLinks(11, 0)).toHaveCount(0);
+  });
+
+  test('does not split an embedded `https://` immediately preceded by a `/`', async({ page, theme, bundle }) => {
+    const grid = new AutoLinkPage(page, theme, bundle);
+
+    await grid.goto();
+
+    const link = grid.links(12, 0);
+
+    await expect(link).toHaveCount(1);
+    await expect(link).toHaveAttribute('href', 'https://web.archive.org/web/2020/https://example.com');
+  });
+
   test('applies a cell-level object override, without affecting other cells', async({ page, theme, bundle }) => {
     const grid = new AutoLinkPage(page, theme, bundle);
 

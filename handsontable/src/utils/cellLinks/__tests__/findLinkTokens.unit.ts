@@ -152,4 +152,38 @@ describe('findLinkTokens', () => {
       { start: 18, end: 31, href: 'https://b.com/' },
     ]);
   });
+
+  it('should not read a bare `tel:`/`mailto:` word glued to a preceding word as a scheme', () => {
+    expect(findLinkTokens('Grand Hotel:Warsaw', BASE)).toEqual([]);
+    expect(findLinkTokens('motel:12 rooms', BASE)).toEqual([]);
+    expect(findLinkTokens('see xmailto:a@b.com', BASE)).toEqual([]);
+  });
+
+  it('should still tokenize a `mailto:`/`tel:` scheme that starts a new word', () => {
+    expect(findLinkTokens('mail mailto:a@b.com', BASE)).toEqual([
+      { start: 5, end: 19, href: 'mailto:a@b.com' },
+    ]);
+    expect(findLinkTokens('(tel:+48123)', BASE)).toEqual([
+      { start: 1, end: 11, href: 'tel:+48123' },
+    ]);
+  });
+
+  it('should not split an embedded `https://` immediately preceded by a `/`', () => {
+    expect(findLinkTokens('https://web.archive.org/web/2020/https://example.com', BASE)).toEqual([
+      { start: 0, end: 52, href: 'https://web.archive.org/web/2020/https://example.com' },
+    ]);
+  });
+
+  it('should not split an embedded `tel:` that is a path segment, wiki-style', () => {
+    expect(findLinkTokens('https://en.wikipedia.org/wiki/Tel:Aviv', BASE)).toEqual([
+      { start: 0, end: 38, href: 'https://en.wikipedia.org/wiki/Tel:Aviv' },
+    ]);
+  });
+
+  it('should still split a redirect-style URL at the `=` (documented design choice)', () => {
+    expect(findLinkTokens('http://a.com/r?url=https://b.com', BASE)).toEqual([
+      { start: 0, end: 19, href: 'http://a.com/r?url=' },
+      { start: 19, end: 32, href: 'https://b.com/' },
+    ]);
+  });
 });

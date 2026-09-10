@@ -3,6 +3,7 @@ import {
   findLinkTokens,
   hideSchemePrefix,
   unwrapLinks,
+  wrapCellContent,
   LINK_SCHEME_CLASS_NAME,
   type LinkScheme,
   type LinkTarget,
@@ -41,8 +42,12 @@ export interface LinkifyOptions {
 }
 
 // Text inside these elements is never linked: an anchor inside an anchor is invalid HTML, and a
-// link inside a form control or button would hijack the control.
-const SKIPPED_ANCESTORS = 'a, button, input, select, textarea';
+// link inside a form control or button would hijack the control. `label` is here for the same
+// reason as `button`: the checkbox renderer puts the `<input>` INSIDE the `<label>`, so the label's
+// caption text is a sibling of the input, not its descendant - without `label` in this list,
+// `closest()` on that text node's parent would not stop before reaching the cell, and the caption
+// would be wrapped in an anchor that hijacks a click on it.
+const SKIPPED_ANCESTORS = 'a, button, input, select, textarea, label';
 const OWN_LINK_SELECTOR = `a.${AUTO_LINK_CLASS_NAME}`;
 const OWN_SCHEME_SELECTOR = `${OWN_LINK_SELECTOR} .${LINK_SCHEME_CLASS_NAME}`;
 
@@ -145,13 +150,11 @@ function linkifyWholeCell(TD: HTMLTableCellElement, text: string, options: Linki
     classNames: [AUTO_LINK_CLASS_NAME, ...options.classNames],
   });
 
-  // The nodes are moved, never re-serialized, so a renderer's elements survive inside the anchor.
-  while (TD.firstChild) {
-    link.appendChild(TD.firstChild);
-  }
-
+  // Wraps the cell's content root, not `TD` itself: an exact-height row keeps its content inside the
+  // engine's `.htCellClip` wrapper, and appending the anchor to `TD` directly would rebuild that
+  // wrapper on every render pass.
+  wrapCellContent(TD, link);
   hideSchemePrefix(link);
-  TD.appendChild(link);
 }
 
 /**

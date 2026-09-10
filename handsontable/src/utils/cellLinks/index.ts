@@ -6,6 +6,7 @@ export {
   createLinkElement,
   hideSchemePrefix,
   unwrapLinks,
+  wrapCellContent,
   type LinkElementOptions,
   type LinkTarget,
 } from './linkElement';
