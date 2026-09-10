@@ -165,7 +165,9 @@ When asked to update, fix, or re-fill a PR description, use the same temp-file a
 
 Every PR that changes source code needs a changelog entry in `.changelogs/`. `bin/changelog` names the file after the entry's `issueOrPR` field, so the filename is the **PR number** only for a `private` entry — the default, and what the rest of this section assumes. A `public` entry is named after its GitHub issue number instead, and because that number is known before the PR exists, it can be committed together with the code rather than in the round-trip below.
 
-**Which `issuesOrigin` to use is decided by [`.changelogs/README.md`](../../../.changelogs/README.md), not here** — read it before writing the entry. The CI gate only asserts that a source change adds at least one entry; it never checks the filename.
+**Which `issuesOrigin` to use is decided by [`.changelogs/README.md`](../../../.changelogs/README.md), not here** — read it before writing the entry.
+
+Two blocking checks constrain the entry, so get both right the first time. The filename must be `<issueOrPR>.json`, a plain number with no suffix, and it must match the entry's `issueOrPR` field — `bin/changelog` fails the `changelog` job over a mismatch, and the pre-push hook fails locally. And the PR may add at most **two** entry files, the second only for a separate GitHub issue it closes; a maintenance PR back-filling entries for other PRs writes `[multiple changelogs]` in the description to lift that. Running `npm run changelog entry` satisfies the filename rule by construction; writing the JSON by hand is what breaks it.
 
 For a `private` entry, after writing the file:
 
