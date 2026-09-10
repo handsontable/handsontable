@@ -23,6 +23,7 @@
  * No I/O in here. The policy is written up in `tests/AGENTS.md`.
  */
 
+// eslint-disable-next-line no-restricted-syntax -- this defines the tag the rule bans elsewhere
 export const QUARANTINE_TAG = '@quarantine';
 export const QUARANTINE_ANNOTATION = 'quarantine';
 export const QUARANTINE_CAP = 6;
@@ -72,7 +73,10 @@ export function validateQuarantine(taskId, expires, now) {
   if (typeof taskId !== 'string' || !TASK_ID.test(taskId)) {
     return 'a quarantine names the owning task id (`DEV-1234`)';
   }
-  if (typeof expires !== 'string' || !ISO_DATE.test(expires) || Number.isNaN(Date.parse(`${expires}T00:00:00Z`))) {
+  if (typeof expires !== 'string' || !ISO_DATE.test(expires)
+    || Number.isNaN(Date.parse(`${expires}T00:00:00Z`))
+    || new Date(`${expires}T00:00:00Z`).toISOString().slice(0, 10) !== expires) {
+    // The round-trip catches a real day that rolled: `Date.parse('2026-02-30')` is March 2, not NaN.
     return 'a quarantine carries an expiry date (`YYYY-MM-DD`)';
   }
   if (Date.parse(`${expires}T00:00:00Z`) > now.getTime() + (QUARANTINE_MAX_DAYS * DAY_MS)) {
@@ -164,11 +168,22 @@ export function evaluateRun({ tests, now, runStatus, hadErrors = false, cap = QU
     }
 
     const expired = entry ? isExpired(entry.expires, now) : false;
+    // Re-check the horizon at run time: `quarantined()` checks it when the spec loads, but a
+    // hand-written annotation (via the exported `describeQuarantine`, or a raw push) could carry a
+    // far-future date and be downgraded forever. A live quarantine is unexpired AND within horizon.
+    const live = entry && !expired
+      && Date.parse(`${entry.expires}T00:00:00Z`) <= now.getTime() + (QUARANTINE_MAX_DAYS * DAY_MS);
 
     if (test.outcome === 'unexpected') {
       unexplainedFailures += 1;
-    } else if (test.outcome === 'flaky') {
+
       if (entry && !expired) {
+        // Quarantine covers a flake, not a genuine failure — say so, or the log reads as
+        // "quarantine is broken" next to a red leg that a real failure caused.
+        notes.push(`${where}: FAILED outright (not flaky), which quarantine (${entry.taskId}) does not cover`);
+      }
+    } else if (test.outcome === 'flaky') {
+      if (live) {
         quarantinedFlaky += 1;
         notes.push(`quarantined flaky test, reported and not failing the run: ${where} `
           + `(${entry.taskId} until ${entry.expires})`);
@@ -176,8 +191,12 @@ export function evaluateRun({ tests, now, runStatus, hadErrors = false, cap = QU
           + `quarantined until ${entry.expires}.`);
       } else if (entry) {
         unexplainedFailures += 1;
-        problems.push(`${where}: flaky, and its quarantine (${entry.taskId}) expired on ${entry.expires} `
-          + '— fix it, or re-quarantine it with a new expiry');
+        const why = expired
+          ? `expired on ${entry.expires}`
+          : `expires ${entry.expires}, beyond the ${QUARANTINE_MAX_DAYS}-day horizon`;
+
+        problems.push(`${where}: flaky, and its quarantine (${entry.taskId}) ${why} `
+          + '— fix it, or re-quarantine it with a valid expiry');
       } else {
         unexplainedFailures += 1;
       }

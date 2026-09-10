@@ -96,14 +96,18 @@ export default defineConfig<TestOptions>({
   // The quarantine reporter (`reporters/quarantine.ts`) runs last and sets the
   // exit status: a flaky test under a live quarantine reports without failing
   // the run, an expired or over-cap quarantine fails it. See tests/AGENTS.md.
+  // `list` first restores the terminal progress the quarantine reporter's `printsToStdio` would
+  // otherwise suppress; the quarantine reporter stays LAST, because the multiplexer keeps the
+  // status of the last reporter that returns one and that is what downgrades a quarantined flake.
   reporter: process.env.CI
     ? [
+      ['list'],
       ['html', { open: 'never' }],
       ['github'],
       ['json', { outputFile: 'test-results/report.json' }],
       ['./reporters/quarantine.ts'],
     ]
-    : [['html'], ['./reporters/quarantine.ts']],
+    : [['list'], ['html'], ['./reporters/quarantine.ts']],
   use: {
     baseURL: `http://localhost:${PORT}`,
     trace: 'on-first-retry',

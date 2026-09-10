@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import {
   QUARANTINE_ANNOTATION,
   QUARANTINE_CAP,
@@ -51,6 +52,7 @@ test('describeQuarantine and parseQuarantine round-trip, with and without a reas
   );
   assert.equal(parseQuarantine('flaky, see slack'), null);
   assert.equal(parseQuarantine(undefined), null);
+  // eslint-disable-next-line no-restricted-syntax -- asserts the literal the tag helpers use
   assert.equal(QUARANTINE_TAG, '@quarantine');
 });
 
@@ -64,6 +66,7 @@ test('validateQuarantine refuses a missing task id, a bad date, and an expiry pa
   assert.match(validateQuarantine('DEV-1234', 'soon', NOW), /expiry date/);
   assert.match(validateQuarantine('DEV-1234', '2026-13-40', NOW), /expiry date/);
   assert.match(validateQuarantine('DEV-1234', daysFromNow(QUARANTINE_MAX_DAYS + 1), NOW), /within 30 days/);
+  assert.match(validateQuarantine('DEV-1234', '2026-02-30', NOW), /expiry date/, 'a rolled-over day is rejected');
   assert.equal(validateQuarantine('DEV-1234', daysFromNow(-3), NOW), null, 'a past date loads; the reporter judges it');
 });
 
@@ -170,4 +173,30 @@ test('a run that Playwright ended with an error, a timeout or an interruption is
   assert.equal(evaluateRun({ tests: flaky, now: NOW, runStatus: 'timedout' }).status, 'timedout');
   assert.equal(evaluateRun({ tests: flaky, now: NOW, runStatus: 'interrupted' }).status, 'interrupted');
   assert.equal(evaluateRun({ tests: [], now: NOW, runStatus: 'passed' }).status, 'passed');
+});
+
+test('a flaky test whose quarantine expiry is beyond the horizon fails the run (no downgrade)', () => {
+  // A hand-written annotation past the 30-day horizon must not buy an unbounded downgrade.
+  const verdict = evaluateRun({ tests: [runTest('flakes', 'flaky', daysFromNow(60))], now: NOW, runStatus: 'failed' });
+
+  assert.equal(verdict.status, 'failed');
+  assert.equal(verdict.quarantinedFlaky, 0, 'a beyond-horizon tag does not downgrade');
+  assert.match(verdict.problems[0], /beyond the 30-day horizon/);
+});
+
+test('a quarantined test that fails outright is noted, not silently counted', () => {
+  const tests = [runTest('breaks', 'unexpected', daysFromNow(10))];
+  const verdict = evaluateRun({ tests, now: NOW, runStatus: 'failed' });
+
+  assert.equal(verdict.status, 'failed');
+  assert.match(verdict.notes.join('\n'), /FAILED outright \(not flaky\), which quarantine \(DEV-1234\) does not cover/);
+});
+
+test('the quarantine reporter is last in both reporter arrays, so its status override wins', () => {
+  const config = readFileSync(new URL('../../playwright.config.ts', import.meta.url), 'utf8');
+
+  // In both arrays the quarantine reporter tuple is immediately followed by the array close.
+  const closes = [...config.matchAll(/'\.\/reporters\/quarantine\.ts'\]\s*,?\s*\]/g)];
+
+  assert.equal(closes.length, 2, 'the quarantine reporter is the last entry in the CI and local arrays');
 });

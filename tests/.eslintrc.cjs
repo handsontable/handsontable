@@ -70,8 +70,8 @@ module.exports = {
         message: 'test.fixme() parks a known product bug and is allowed ONLY with an eslint-disable line naming the tracking task (`// eslint-disable-next-line no-restricted-syntax -- DEV-1234: <why>`), so the exception stays counted and attributable. See tests/AGENTS.md.',
       },
       {
-        selector: "Literal[value='@quarantine']",
-        message: 'A bare @quarantine tag carries no owner and no expiry, and the quarantine reporter fails the run on it. Park a flaky test with quarantined(\'DEV-1234\', \'YYYY-MM-DD\', why) from fixtures/quarantine instead. See tests/AGENTS.md (Quarantine).',
+        selector: "Literal[value=/@quarantine/]",
+        message: 'A bare @quarantine tag carries no owner and no expiry, and the reporter ignores it (it reads the quarantine annotation, not the tag), so the test is not actually quarantined. Park a flaky test with quarantined(\'DEV-1234\', \'YYYY-MM-DD\', why) from fixtures/quarantine instead. See tests/AGENTS.md (Quarantine).',
       },
       {
         // Three shapes of the same miss: no options argument, an options literal without `polling`, and

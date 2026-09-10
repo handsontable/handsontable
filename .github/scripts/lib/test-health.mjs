@@ -163,6 +163,8 @@ function firstPlaywrightError(results) {
  * @returns {string|null} The description, or `null`.
  */
 function quarantineOf(annotations) {
+  // The literal must equal `QUARANTINE_ANNOTATION` in `tests/lib/quarantine-policy.mjs` (another
+  // package, so it cannot be imported); `test-health.test.mjs` pins the two together.
   const annotation = (annotations ?? []).find(candidate => candidate.type === 'quarantine');
 
   return annotation?.description ?? null;
@@ -451,7 +453,9 @@ export function aggregate(ledger, { now, ticketThresholdRuns = TICKET_THRESHOLD_
         error: last.error ?? null,
         source: last.source,
       },
-      needsTicket: flakyRuns30 >= ticketThresholdRuns || branches30 >= ticketThresholdRuns,
+      // A quarantined test already names its owning task, so it does not also count as needing one.
+      needsTicket: !last.quarantine
+        && (flakyRuns30 >= ticketThresholdRuns || branches30 >= ticketThresholdRuns),
     };
   });
 

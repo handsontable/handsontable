@@ -36,7 +36,12 @@ const daysFromNow = (days: number) => new Date(Date.now() + (days * DAY_MS)).toI
  * @returns The child's exit status and combined output.
  */
 function runSyntheticProject(name: string, specSource: string) {
-  const dir = path.join(testsRoot, 'test-results', `quarantine-proof-${name}`);
+  // The six e2e projects run this file in parallel (`fullyParallel`), so the dir carries the
+  // project and worker of the running test — two workers never write the same synthetic tree.
+  const info = test.info();
+  const dir = path.join(
+    testsRoot, 'test-results', `quarantine-proof-${name}-${info.project.name}-w${info.workerIndex}`
+  );
 
   mkdirSync(dir, { recursive: true });
   writeFileSync(path.join(dir, 'playwright.config.mjs'), [
@@ -80,6 +85,11 @@ const FLAKY_BODY = [
 ].join('\n');
 
 test.describe('quarantine policy', () => {
+  // Each case spawns a whole Playwright child run, and the last spawns two back to back; the default
+  // 20s test budget cannot hold that, and an exhausted `spawnSync` guard would surface as a null
+  // status rather than the real reason. `spawnSync` blocks the worker, so nothing here is truly async.
+  test.describe.configure({ timeout: 200_000 });
+
   test('a flaky test without quarantine fails the run (the default this policy narrows)', async() => {
     const { status, output } = runSyntheticProject('plain-flaky', `test('flakes', ${FLAKY_BODY});`);
 

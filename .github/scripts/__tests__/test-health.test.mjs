@@ -277,18 +277,19 @@ test('aggregate counts per test over both windows, counts distinct runs, and dra
   const [flaky, failed] = parsePlaywrightReport(PLAYWRIGHT_REPORT, run);
   const day = 86400000;
   const at = daysAgo => new Date(NOW.getTime() - (daysAgo * day)).toISOString();
+  const plainFlaky = { ...flaky, quarantine: null };
   const entries = [
-    { ...flaky, runId: 'a', seenAt: at(1) },
-    { ...flaky, runId: 'a', leg: 'e2e-main', seenAt: at(1) }, // same run, second leg: one recurrence, not two
-    { ...flaky, runId: 'b', seenAt: at(20) },
-    { ...flaky, runId: 'c', seenAt: at(45) }, // outside the long window
+    { ...plainFlaky, runId: 'a', seenAt: at(1) },
+    { ...plainFlaky, runId: 'a', leg: 'e2e-main', seenAt: at(1) }, // same run, second leg: one recurrence, not two
+    { ...plainFlaky, runId: 'b', seenAt: at(20) },
+    { ...plainFlaky, runId: 'c', seenAt: at(45) }, // outside the long window
     { ...failed, runId: 'a', seenAt: at(2) },
     ...parseJasmineRecord(JASMINE_RECORD, { ...run, runId: 'd', seenAt: at(3) }),
   ];
   const summary = aggregate({ ...emptyLedger(), entries }, { now: NOW });
 
   assert.equal(summary.ticketThresholdRuns, TICKET_THRESHOLD_RUNS);
-  assert.deepEqual(summary.totals, { tests: 4, needsTicket: 1, quarantined: 1, entries: 7 });
+  assert.deepEqual(summary.totals, { tests: 4, needsTicket: 1, quarantined: 0, entries: 7 });
 
   const [first, ...rest] = summary.rows;
 
@@ -299,7 +300,7 @@ test('aggregate counts per test over both windows, counts distinct runs, and dra
   assert.equal(first.runs30, 2, 'two legs of one run are one run');
   assert.deepEqual(first.legs, ['e2e-classic-min', 'e2e-main']);
   assert.equal(first.needsTicket, true);
-  assert.equal(first.quarantine, QUARANTINE_NOTE);
+  assert.equal(first.quarantine, null, 'these entries are not quarantined');
   assert.equal(first.lastSeen.seenAt, at(1));
   assert.ok(rest.every(row => !row.needsTicket), 'one run each: below the line');
 
@@ -314,7 +315,9 @@ test('renderStepSummary lists what the run added, the tests over the line, the n
   const entries = [...parsePlaywrightReport(PLAYWRIGHT_REPORT, run), ...parseJasmineRecord(JASMINE_RECORD, run)];
   const { ledger, added } = mergeLedger(null, [
     ...entries,
-    { ...entries[0], runId: '9', seenAt: '2026-09-01T00:00:00Z' },
+    { ...entries[0], runId: '9', seenAt: '2026-09-01T00:00:00Z' }, // quarantined recurrence: badge, not a ticket
+    // a non-quarantined recurrence across two branches supplies the needs-ticket row:
+    { ...entries[1], runId: '9b', branch: 'feature/other', seenAt: '2026-09-02T00:00:00Z' },
   ], { now: NOW });
   const summary = aggregate(ledger, { now: NOW });
   const markdown = renderStepSummary({
@@ -326,7 +329,7 @@ test('renderStepSummary lists what the run added, the tests over the line, the n
   });
 
   assert.match(markdown, /^## Test health — run 34121444051 \(attempt 1, `feature\/X-1_Some-branch`\)\n/);
-  assert.match(markdown, /Recorded 5 new observation\(s\):/);
+  assert.match(markdown, /Recorded 6 new observation\(s\):/);
   assert.ok(markdown.includes(`- **flaky** on \`e2e-classic-min\`: ${TALL_FROZEN_TITLE} `
     + '(`e2e/walkontable/exact-row-heights.spec.ts:57`), '
     + `quarantined (${QUARANTINE_NOTE})\n`));
@@ -392,6 +395,7 @@ test('the test-health workflow chains on the two orchestrators, takes a run id, 
   const workflow = readFileSync(path.join(repoRoot(), '.github/workflows/test-health.yml'), 'utf8');
 
   assert.match(workflow, /workflows: \['Tests', 'Develop', 'Publish'\]/);
+  assert.match(workflow, /conclusion != 'cancelled'/, 'collects every completed run, not only failures');
   assert.match(workflow, /types: \[completed\]/);
   assert.match(workflow, /workflow_dispatch:\n\s+inputs:\n\s+run-id:/);
   assert.match(workflow, /^permissions:\n\s+contents: write/m, 'the gh-pages push needs contents: write');
@@ -461,10 +465,41 @@ test('needsTicket flags a flake across runs or branches, not one branch failing 
 
   assert.equal(twoBranches.rows[0].needsTicket, true, 'across two branches it needs a ticket');
 
+  const plainFlaky = { ...flaky, quarantine: null };
   const flakyTwice = aggregate({ ...emptyLedger(), entries: [
-    { ...flaky, runId: 'r1', branch: 'feature/x', seenAt: at(1) },
-    { ...flaky, runId: 'r2', branch: 'feature/x', seenAt: at(2) },
+    { ...plainFlaky, runId: 'r1', branch: 'feature/x', seenAt: at(1) },
+    { ...plainFlaky, runId: 'r2', branch: 'feature/x', seenAt: at(2) },
   ] }, { now: NOW });
 
   assert.equal(flakyTwice.rows[0].needsTicket, true, 'flaky in two runs needs a ticket');
+});
+
+test('a quarantined test does not also count as needing a ticket', () => {
+  const run = runContextFromRun(RUN);
+  const [flaky] = parsePlaywrightReport(PLAYWRIGHT_REPORT, run);
+  const day = 86400000;
+  const at = daysAgo => new Date(NOW.getTime() - (daysAgo * day)).toISOString();
+
+  assert.ok(flaky.quarantine, 'the fixture flaky test carries a quarantine annotation');
+
+  const summary = aggregate({ ...emptyLedger(), entries: [
+    { ...flaky, runId: 'r1', branch: 'feature/x', seenAt: at(1) },
+    { ...flaky, runId: 'r2', branch: 'feature/y', seenAt: at(2) },
+  ] }, { now: NOW });
+
+  assert.ok(summary.rows[0].quarantine, 'the row is quarantined');
+  assert.equal(summary.rows[0].needsTicket, false, 'a quarantined test already has an owner');
+  assert.equal(summary.totals.needsTicket, 0);
+});
+
+test('the collector and the quarantine policy agree on the annotation type', () => {
+  const policy = readFileSync(path.join(repoRoot(), 'tests/lib/quarantine-policy.mjs'), 'utf8');
+  const match = policy.match(/QUARANTINE_ANNOTATION\s*=\s*'([^']+)'/);
+
+  assert.ok(match, 'quarantine-policy.mjs defines QUARANTINE_ANNOTATION');
+
+  const collector = readFileSync(path.join(repoRoot(), '.github/scripts/lib/test-health.mjs'), 'utf8');
+
+  assert.ok(collector.includes(`candidate.type === '${match[1]}'`),
+    'test-health.mjs quarantineOf must read the same annotation type the policy writes');
 });

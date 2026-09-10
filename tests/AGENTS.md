@@ -314,6 +314,12 @@ Jasmine suite has no quarantine: a flaky legacy spec migrates here instead.
   `quarantine` annotation carrying the owning task id, the expiry and the
   reason. A bare `'@quarantine'` literal is a lint error, and an annotation the
   reporter cannot read fails the run: no task id, no quarantine.
+- **Locally too, not just "the leg".** The reporter runs in every configuration, and its
+  downgrade only fires when a live quarantine covers the flake. So `npx playwright test` locally
+  (where `failOnFlakyTests` is off) now exits 1 on an *un*quarantined flaky test that Playwright
+  itself would have passed — the same verdict CI reaches. Quarantine or fix the flake; do not
+  reach for `.skip`. The expiry horizon is re-checked at run time as well as at load, so a
+  hand-written annotation with a far-future date does not buy an unbounded downgrade.
 - **A quarantined test still runs and still reports.** Only its *flaky* verdict
   is downgraded from "fail the leg" to "report": the reporter
   (`reporters/quarantine.ts`, last in the reporter list) prints it, writes a
