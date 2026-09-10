@@ -161,6 +161,10 @@ describe('Comments', () => {
       const range = { from: new CellCoords(0, 1) };
       const cachedShowDebounced = jasmine.createSpy('cachedShowDebounced');
 
+      // The real value is always a `debounce()` result, which carries `cancel` - and `updateDelay`
+      // calls it before replacing the function, so the stub has to carry it too.
+      cachedShowDebounced.cancel = jasmine.createSpy('cancel');
+
       displaySwitch.showDebounced = cachedShowDebounced;
 
       jest.useFakeTimers();
@@ -178,6 +182,31 @@ describe('Comments', () => {
       expect(cachedShowDebounced).not.toHaveBeenCalled();
       expect(setTimeoutSpy.mock.calls.length).toBe(1);
       expect(setTimeoutSpy.mock.calls[0][1]).toBe(800);
+    });
+
+    it('should cancel a pending show before replacing the debounced function', () => {
+      const displaySwitch = new DisplaySwitch(700);
+      const onShow = jasmine.createSpy('onShow');
+      const range = { from: new CellCoords(0, 1) };
+
+      jest.useFakeTimers();
+
+      displaySwitch.addLocalHook('show', onShow);
+      displaySwitch.show(range);
+
+      // The settings update lands inside the display delay, which is ordinary in a wrapper: React
+      // and Angular re-send unchanged keys, so every commit reaches `updatePlugin()`. Replacing the
+      // debounced function does not touch the timer the old one had already scheduled, and that
+      // timer closes over the same instance - so it still reads `wasLastActionShow` and shows.
+      displaySwitch.updateDelay(700);
+
+      // `keepVisible()` can only reach the CURRENT function, so an orphaned timer defeats it and
+      // the comment on screen is replaced while the pointer rests on the editor.
+      displaySwitch.keepVisible();
+
+      jest.runAllTimers();
+
+      expect(onShow).not.toHaveBeenCalled();
     });
   });
 

@@ -106,6 +106,13 @@ class DisplaySwitch {
    * @param {number} displayDelay Delay of showing the comments (in milliseconds).
    */
   updateDelay(displayDelay = DEFAULT_DISPLAY_DELAY) {
+    // The replaced function keeps its own scheduled timer, and that timer closes over this
+    // instance - so it would still read `wasLastActionShow` and show a comment, with nothing left
+    // holding a reference to cancel it. `keepVisible()` can only reach the CURRENT function, so an
+    // orphan defeats it. Settings updates land inside the display delay easily enough: React and
+    // Angular re-send unchanged keys, so every commit reaches `updatePlugin()`.
+    this.showDebounced?.cancel();
+
     this.showDebounced = debounce((range) => {
       if (this.wasLastActionShow) {
         const r = range as { from: { row: number; col: number } };

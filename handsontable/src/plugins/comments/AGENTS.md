@@ -125,7 +125,15 @@ cannot, because the show is what a hover asked for. So a plain `cancelHiding()` 
 on the editor. Measured with three pointer moves inside one 250 ms window. `keepVisible()` drops the pending
 show first (the `debounce` helper returns a function carrying `cancel()`), then cancels the hide.
 
-Both are pinned by `tests/e2e/comments-editor-resize.spec.ts`.
+**And `updateDelay()` has to cancel before it replaces `showDebounced`.** A `debounce()` result keeps its
+timer inside its own closure, so overwriting the field leaves that timer live with nothing holding a
+reference to stop it — and it still closes over the instance, so it reads `wasLastActionShow` and shows a
+comment anyway. `keepVisible()` can only reach the *current* function, so one orphan defeats it. The window
+is not exotic: `updateDelay()` is the `updatePlugin()` path, and the wrappers re-send unchanged keys, so a
+settings update inside the 250 ms display delay is ordinary. Pinned by `displaySwitch.unit.ts`. A test that
+stubs `showDebounced` must give the stub a `cancel`, which is what the field's type has always promised.
+
+The pointer cases are pinned by `tests/e2e/comments-editor-resize.spec.ts`.
 
 Testing it needs a real browser — the stray event comes from the browser's hit-testing order and jsdom never
 produces it. `tests/e2e/comments-editor-resize.spec.ts` owns it, and **its drag step must stay larger than
