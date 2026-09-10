@@ -142,6 +142,12 @@ test('annotationLines prints every failure up to the limit, then one line that s
   assert.match(over[ANNOTATION_LIMIT - 1],
     /^::error title=Jasmine spec failed — UMD \(theme%3A main\)::3 more failed specs are not shown here/);
   assert.match(over[ANNOTATION_LIMIT - 1], /step summary and in the failed-specs record\.$/);
+
+  // A lower limit (the abort path leaves one slot for the page-error line) is respected the same way.
+  const capped = annotationLines(specs, 'UMD (theme: main)', probes, ANNOTATION_LIMIT - 1);
+
+  assert.equal(capped.length, ANNOTATION_LIMIT - 1);
+  assert.match(capped[ANNOTATION_LIMIT - 2], /more failed specs are not shown here/);
 });
 
 test('renderSummary lists every failed spec with its verdict, explains the verdicts, and reports the cap', () => {

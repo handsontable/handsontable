@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 import { createServer } from 'http-server';
 import JasmineReporter from 'jasmine-terminal-reporter';
 import {
+  ANNOTATION_LIMIT,
   ISOLATION_PROBE_MAX_FILES,
   annotationLines,
   describeVerdict,
@@ -468,7 +469,11 @@ function report(probes, { aborted = false } = {}) {
   console.log(`\nFailed-specs record: ${recordPath}`);
 
   if (process.env.GITHUB_ACTIONS === 'true') {
-    annotationLines(failedSpecs, leg, probes).forEach(line => console.error(line));
+    // On an abort the page-error annotation was already printed, so leave one slot for it under
+    // GitHub's 10-annotations-per-step cap; otherwise the overflow note would be the line dropped.
+    const limit = aborted ? ANNOTATION_LIMIT - 1 : ANNOTATION_LIMIT;
+
+    annotationLines(failedSpecs, leg, probes, limit).forEach(line => console.error(line));
   }
   if (process.env.GITHUB_STEP_SUMMARY) {
     fs.appendFileSync(
