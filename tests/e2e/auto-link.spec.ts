@@ -103,6 +103,20 @@ test.describe('autoLink', () => {
     await expect(link).toHaveAttribute('href', 'https://web.archive.org/web/2020/https://example.com');
   });
 
+  test('splits a `https://` URL glued to a `mailto:` URL by a comma into two anchors', async({ page, theme, bundle }) => {
+    // Regression: the embedded-scheme exclusion class used to read `+-/` as a RANGE (`+` through
+    // `/`), which also swallowed the comma, so this stayed one garbled token instead of splitting.
+    const grid = new AutoLinkPage(page, theme, bundle);
+
+    await grid.goto();
+
+    const links = grid.links(13, 0);
+
+    await expect(links).toHaveCount(2);
+    await expect(links.nth(0)).toHaveAttribute('href', 'https://example.com/a');
+    await expect(links.nth(1)).toHaveAttribute('href', 'mailto:b@example.com');
+  });
+
   test('applies a cell-level object override, without affecting other cells', async({ page, theme, bundle }) => {
     const grid = new AutoLinkPage(page, theme, bundle);
 
