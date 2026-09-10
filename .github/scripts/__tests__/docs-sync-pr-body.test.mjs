@@ -51,9 +51,13 @@ test('every section is present, empty ones say none', () => {
 
 test('[skip changelog] sits outside any HTML comment', () => {
   const body = renderBody(report);
-  const withoutComments = body.replace(/<!--[\s\S]*?-->/g, '');
+  const skipAt = body.indexOf('[skip changelog]');
+  const stateAt = body.indexOf('<!-- docs-sync-state');
 
-  assert.match(withoutComments, /\[skip changelog\]/);
+  assert.notEqual(skipAt, -1, '[skip changelog] is present');
+  assert.notEqual(stateAt, -1, 'the state comment is present');
+  assert.ok(skipAt < stateAt, '[skip changelog] comes before the state comment');
+  assert.equal(body.lastIndexOf('<!--', skipAt), -1, 'no comment opens before the skip changelog line');
 });
 
 test('the state block round-trips and is absent from a foreign body', () => {
@@ -84,7 +88,7 @@ test('an HTML comment inside a model reason cannot forge a second state block', 
   assert.equal((body.match(/<!--/g) ?? []).length, 1);
 });
 
-test('a nested comment marker cannot survive one sanitizer pass either', () => {
+test('a nested comment marker is escaped rather than stripped', () => {
   const poisoned = {
     ...report,
     unsure: [{
@@ -102,7 +106,7 @@ test('a nested comment marker cannot survive one sanitizer pass either', () => {
   };
   const body = renderBody(poisoned);
 
-  assert.equal((body.match(/<!--/g) ?? []).length, 1);
-  assert.equal((body.match(/-->/g) ?? []).length, 1);
+  assert.equal((body.match(/<!--/g) ?? []).length, 1, 'only the real state marker opens a comment');
   assert.deepEqual(extractState(body), report.state);
+  assert.match(body, /&lt;!---/);
 });

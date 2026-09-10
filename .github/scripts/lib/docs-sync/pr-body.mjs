@@ -42,26 +42,24 @@ function section(heading, items, line) {
  * could otherwise inject an HTML comment that closes the real state block
  * early (or opens a forged one), or run the body on for pages with newlines.
  *
- * The two replacements repeat until the text stops changing: a single pass
- * leaves a new `<!--`/`-->` behind when the input nests markers inside each
- * other (`<!---` becomes `<!--` after one pass, still a live open marker), so
- * one pass is not enough to guarantee the output carries none. Each pass
- * removes at least one dash from every match, so the loop always terminates.
+ * Escaping the single character `<` (as `&lt;`, which GitHub renders back as
+ * a literal `<` in Markdown prose) is enough: no HTML comment, real or
+ * forged, can open without a literal `<`, so a stray `-->` that survives
+ * unescaped has nothing open to close. A multi-character replacement of
+ * `<!--` or `-->` instead -- even one that loops to a fixed point -- trips
+ * CodeQL's `js/incomplete-multi-character-sanitization` rule, which flags any
+ * removal of a multi-character sequence on the grounds that overlapping or
+ * nested occurrences can survive a single pass; escaping one character sidesteps
+ * that class of finding entirely rather than trying to out-loop it.
  *
  * @param {string} text
  * @param {number} [max] Character cap; the excess is replaced with `…`.
  * @returns {string}
  */
 function plain(text, max = 200) {
-  let sanitized = String(text ?? '');
-  let previous;
-
-  do {
-    previous = sanitized;
-    sanitized = sanitized.replaceAll('<!--', '<!-').replaceAll('-->', '->');
-  } while (sanitized !== previous);
-
-  const collapsed = sanitized.replace(/\r\n|\r|\n/g, ' ');
+  const collapsed = String(text ?? '')
+    .replaceAll('<', '&lt;')
+    .replace(/\r\n|\r|\n/g, ' ');
 
   return collapsed.length > max ? `${collapsed.slice(0, max)}…` : collapsed;
 }
