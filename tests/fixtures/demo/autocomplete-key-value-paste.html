@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture — pasting a label into a key/value source</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD); an unknown value
+    // THROWS instead of falling back — a typo in the project config must be one
+    // red leg, never a silently mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.getRenderer(cellProperties.type).apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    // A key/value source: the cell stores the whole entry, and only `value` is shown.
+    // `key` is what a paste used to lose.
+    const CAR_SOURCE = [
+      { key: '1', value: 'BMW' },
+      { key: '2', value: 'Chrysler' },
+    ];
+
+    // A plain-string source in the same grid, so a spec can prove the resolution
+    // does not reshape a column that never used key/value entries.
+    const COLOR_SOURCE = ['yellow', 'red', 'green'];
+
+    const hot = new Handsontable(container, {
+      data: [
+        // Row 0: both key/value cells are EMPTY — the state a paste into a fresh cell starts from.
+        [null, null, null],
+        // Row 1: both already hold an entry, which is the second broken shape. The old setter
+        // wrapped the pasted label as `{ key: <label>, value: <label> }`, fabricating a key.
+        [{ key: '2', value: 'Chrysler' }, { key: '2', value: 'Chrysler' }, 'yellow'],
+        // Row 2: a source cell to copy FROM, so the rich clipboard path is covered too.
+        [{ key: '1', value: 'BMW' }, null, null],
+      ],
+      columns: [
+        // Non-strict autocomplete, exactly the reported StackBlitz shape. It accepts anything,
+        // so the only visible damage is the stored shape.
+        { type: 'autocomplete', source: CAR_SOURCE, strict: false, width: 160, renderer: testIdRenderer },
+        // Dropdown is `strict` by default, so a bare string here FAILS validation and the cell
+        // is marked with `htInvalid` — the user-visible half of the bug.
+        { type: 'dropdown', source: CAR_SOURCE, width: 160, renderer: testIdRenderer },
+        // Plain-string source: a control column.
+        { type: 'autocomplete', source: COLOR_SOURCE, strict: false, width: 160, renderer: testIdRenderer },
+      ],
+      colHeaders: ['Car (autocomplete)', 'Car (dropdown)', 'Color (strings)'],
+      rowHeaders: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    window.hot = hot;
+
+    /**
+     * Describes what the DATA SOURCE holds, not what the cell displays. A key/value entry and a
+     * bare label render identically, so a spec reading the rendered text could never tell the two
+     * apart — which is the whole subject of these tests.
+     */
+    window.htSourceAt = function(row, col) {
+      const value = hot.getSourceDataAtCell(hot.toPhysicalRow(row), col);
+
+      if (value === null) return 'null';
+      if (value === undefined) return 'undefined';
+      if (typeof value === 'object') return `object:${JSON.stringify(value)}`;
+
+      return `${typeof value}:${value}`;
+    };
+
+    /** Pastes plain text into a cell through the CopyPaste plugin, which sets `text/plain` only. */
+    window.htPastePlainText = function(row, col, text) {
+      hot.selectCell(row, col);
+      hot.getPlugin('copyPaste').paste(text);
+    };
+
+    /** Reports whether the cell currently fails validation. */
+    window.htIsValid = function(row, col) {
+      return hot.getCellMeta(row, col).valid !== false;
+    };
+
+    /** Types a label into the cell's editor and commits it, the path that always resolved. */
+    window.htTypeAndCommit = function(row, col, text) {
+      hot.selectCell(row, col);
+
+      const editor = hot.getActiveEditor();
+
+      editor.beginEditing();
+      editor.TEXTAREA.value = text;
+      editor.finishEditing();
+    };
+  </script>
+</body>
+</html>

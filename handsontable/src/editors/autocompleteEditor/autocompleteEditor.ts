@@ -3,7 +3,8 @@ import type { CellProperties } from '../../settings';
 import { EDITOR_STATE } from '../baseEditor';
 import { HandsontableEditor } from '../handsontableEditor';
 import { pivot } from '../../helpers/array';
-import { isKeyValueObject, isObject } from '../../helpers/object';
+import { isKeyValueObject } from '../../helpers/object';
+import { findChoiceByDisplayedValue } from '../../helpers/cellSource';
 import {
   addClass,
   fastInnerHTML,
@@ -110,14 +111,13 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @returns {string}
    */
   getValue(): unknown {
-    const selectedValue = this.rawChoices.find((value) => {
-      const strippedValue = this.stripValueIfNeeded(value);
-
-      const resolvedValue = this.#isKeyValueObject(strippedValue)
-        ? (strippedValue as Record<string, unknown>).value : strippedValue;
-
-      return resolvedValue === this.TEXTAREA.value;
-    });
+    // Shared with the autocomplete/dropdown `valueSetter`, which resolves a label the same way for
+    // text that never passed through this editor - a `text/plain` paste, or `setDataAtCell()`. Two
+    // copies of this rule drifted once and let a pasted label store a bare string among key/value
+    // objects (DEV-57), so keep the single call.
+    const selectedValue = findChoiceByDisplayedValue(
+      this.rawChoices, this.TEXTAREA.value, this.cellProperties.allowHtml === true
+    );
 
     if (isDefined(selectedValue)) {
       return selectedValue;
@@ -178,8 +178,8 @@ export class AutocompleteEditor extends HandsontableEditor {
 
     this.htOptions = {
       ...this.htOptions,
-      valueGetter: (cellValue: unknown) => (this.#isKeyValueObject(cellValue)
-        ? (cellValue as Record<string, unknown>).value : cellValue),
+      valueGetter: (cellValue: unknown) => (isKeyValueObject(cellValue)
+        ? cellValue.value : cellValue),
     };
   }
 
@@ -348,8 +348,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     const filterSetting = this.cellProperties.filter as boolean | undefined;
     const locale = this.cellProperties.locale as string | undefined;
     const filteringCaseSensitive = this.cellProperties.filteringCaseSensitive as boolean | undefined;
-    const comparableValue = this.#isKeyValueObject(value) ?
-      (value as Record<string, unknown>).value : value;
+    const comparableValue = isKeyValueObject(value) ? value.value : value;
 
     let highlightIndex: number | null = null;
     let choices = choicesList;
@@ -366,10 +365,10 @@ export class AutocompleteEditor extends HandsontableEditor {
     const valueToMatch = filteringCaseSensitive ? comparableValue : localeLowerCase(String(comparableValue), locale);
 
     for (let i = 0; i < choices.length; i++) {
-      const currentItem =
-        this.#isKeyValueObject(choices[i]) ?
-          stripTags(stringify((choices[i] as Record<string, unknown>).value)) :
-          stripTags(stringify(choices[i]));
+      const choice = choices[i];
+      const currentItem = isKeyValueObject(choice) ?
+        stripTags(stringify(choice.value)) :
+        stripTags(stringify(choice));
       const itemToMatch = filteringCaseSensitive ? currentItem : localeLowerCase(currentItem, locale);
 
       if (itemToMatch.indexOf(String(valueToMatch)) !== -1) {
@@ -456,7 +455,7 @@ export class AutocompleteEditor extends HandsontableEditor {
 
     // Unwrapped the way the inner grid presents it - its `valueGetter` reduces a key/value entry to
     // the `value` half, so returning the raw entry would write an object into the cell.
-    return this.#isKeyValueObject(matched) ? (matched as Record<string, unknown>).value : matched;
+    return isKeyValueObject(matched) ? matched.value : matched;
   }
 
   /**
@@ -845,18 +844,6 @@ export class AutocompleteEditor extends HandsontableEditor {
         width: this.getTargetEditorWidth() + getScrollbarWidth(this.hot.rootDocument),
       });
     }
-  }
-
-  /**
-   * Checks if the value is a key/value object.
-   *
-   * @param {*} value The value to check.
-   * @returns {boolean}
-   */
-  #isKeyValueObject(value: unknown): boolean {
-    const rec = value as Record<string, unknown>;
-
-    return isObject(value) && isDefined(rec.key) && isDefined(rec.value);
   }
 
   /**

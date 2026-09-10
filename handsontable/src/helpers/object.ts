@@ -625,11 +625,22 @@ export function deepMerge(
 }
 
 /**
+ * A plain object that carries both a `key` and a `value`, the shape a cell's `source` uses to keep
+ * a stored key apart from the label shown for it.
+ */
+export type KeyValueObject = {
+  key: unknown;
+  value: unknown;
+};
+
+/**
  * Checks if the value is a key/value object.
+ *
+ * Declared as a type predicate so callers can read `key` and `value` without a cast.
  *
  * @param {*} value The value to check.
  * @returns {boolean}
  */
-export function isKeyValueObject(value: unknown): boolean {
+export function isKeyValueObject(value: unknown): value is KeyValueObject {
   return isPlainObject(value) && isDefined(value.key) && isDefined(value.value);
 }
