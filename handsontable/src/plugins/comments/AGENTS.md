@@ -39,8 +39,10 @@ tooltip never appears at all (#8624 / DEV-2596). So:
   behaves exactly as it did before the fix. The Playwright fixture mounts a native shadow root, so the
   gate's false side is **not covered by tests** — change it carefully.
 - **`elementFromPoint()` does not pierce shadow boundaries.** On a document it resolves to the shadow host.
-  `#cellBelowCursor` reads it, but only feeds a `=== target` short circuit that a one-`mouseover`-per-cell
-  pointer move never reaches, so today it is hygiene with no visible behavior. Do not build on it.
+  `#cellBelowCursor` reads it and feeds a `=== target` short circuit in `#onMouseOver`. A
+  one-`mouseover`-per-cell pointer move never reaches that short circuit, so for cell hovering it is
+  hygiene with no visible behavior — but **a resizer drag does reach it**, which is why the editor-hover
+  cancel below has to sit in front of it. Do not build anything else on it.
 
 Grid-wide shadow-DOM rules (`getDeepActiveElement()`, `getShadowHostChain()`, `composedPath()`) are in the
 core-package `../../../AGENTS.md`.
@@ -64,6 +66,95 @@ hide is a plain `setTimeout`. The API is `show(range)` / `hide()` / `cancelHidin
 
 Its internal flag records whether the last action was a show or a hide. Anything that hides the tooltip
 clears that flag — which is exactly the shadow-DOM double-binding failure above.
+
+`hide()` reassigns `hidingTimer` **without clearing the previous one**, so several timers can be pending at
+once and `cancelHiding()` only ever clears the last. It still works, because every timer callback re-checks
+`wasLastActionShow` and `cancelHiding()` flips that to `true` — the flag is what does the work, not the
+`clearTimeout`. Do not "simplify" that check away.
+
+## Being over the editor must CANCEL a pending hide
+
+The hide branch of `#onMouseOver` fires for anything in the rendered tree that is not a commented cell, and
+for a long time nothing called it off except `showAtCell()`, which only runs for a commented cell. So the
+pointer leaving the editor and coming straight back — inside the 250 ms delay — still hid it. That is
+DEV-2871 (reported as DEV-65), and a resizer drag is the way users met it:
+
+- **The browser hit-tests a `mousemove` against the textarea's PRE-resize box** and applies the new size
+  afterwards. One drag step wider than the distance from the pressed point to the box edge therefore reports
+  the element *underneath* the pointer, which reaches the hide branch. Speed only decides how often that
+  happens; a drag in small enough steps never leaves the box and never reproduced the bug.
+- **The cancel has to run BEFORE the guard block**, not as another `else if` at the bottom. By the time the
+  next event arrives over the grown textarea, `#cellBelowCursor` already holds that textarea, so the
+  `=== target` short circuit returns first and swallows the cancel. A fix placed in the `else if` chain
+  passes the hover-out-and-back case and still fails every resize drag — measured, not assumed.
+- **`#preventEditorAutoSwitch` is live again**, and it is set in **`#onInputElementMouseDown`**, never in
+  `#onMouseDown`: that handler calls `event.stopPropagation()`, so a mousedown on the textarea never
+  reaches the document-level one. It holds the editor open for the whole gesture, and the document's
+  `mouseup` clears it. The two sites that used to set this flag were deleted with
+  `onContextMenuAddComment()`/`onContextMenuRemoveComment()` in the accessibility epic; the deleted
+  `onContextMenuAddComment` set it beside a `cancelHiding()`, the same pair used here.
+
+  **A press on the resizer does not focus the textarea, and that is the whole reason the flag exists.**
+  Measured in Chrome: a primary press on the grip leaves the focus on `body`, while a press anywhere else
+  on the textarea — primary or secondary — focuses it. A focused editor is already held open by the
+  `isFocused()` short circuit, so the grip press is the one gesture that had nothing holding it.
+
+  That also bounds how bad a stranded flag can be, and it is easy to overestimate. The flag gates the
+  *show* branch too, and `#onMouseDown` reads it, so a stuck `true` would suppress hover switching and the
+  click-outside hide — but every press that could strand one **except** the grip press has focused the
+  textarea, and focus suppresses the same things by design. So there is no reachable case where the flag
+  is the visible cause, and no test here can honestly pin one. Two guards are kept as hygiene rather than
+  as fixes: only the **primary button** sets it, and **`disablePlugin()` clears it** (the field is an
+  instance field that `enablePlugin()` never touches, and a disable tears down the event manager that
+  owned the pending `mouseup`). The remaining case, a grip release genuinely outside the browser window,
+  heals on the user's next click anywhere.
+
+Two things follow from that ordering, and both cost a round of review to find.
+
+**The early return skips the `#cellBelowCursor` write, so the branch has to clear the field itself.** Left
+alone, the field keeps naming the cell the pointer left the editor *for* — routinely a plain, comment-less
+cell. Moving back onto that same cell then matches the `=== target` short circuit, no hide is ever armed, and
+the editor stays open until some *other* cell is visited. Setting it to `null` keeps the short circuit doing
+only its own job (dropping a repeated event for one cell) across a trip over the editor.
+
+**Cancelling a hide also revives a show, so the hold uses `keepVisible()` and not `cancelHiding()`.**
+`cancelHiding()` sets `wasLastActionShow` back to `true`, and that flag is the only thing suppressing a
+debounced show that a later `hide()` had already overruled — `hide()` never clears the pending show, and
+cannot, because the show is what a hover asked for. So a plain `cancelHiding()` here lets a show armed for
+*another* commented cell fire a moment later, and the comment on screen is replaced while the pointer rests
+on the editor. Measured with three pointer moves inside one 250 ms window. `keepVisible()` drops the pending
+show first (the `debounce` helper returns a function carrying `cancel()`), then cancels the hide.
+
+**And `updateDelay()` has to cancel, carry over, AND skip — all three.** It is the `updatePlugin()` path, so
+the wrappers reach it on every commit, and a settings update inside the 250 ms display delay is ordinary
+rather than exotic. Each half of the rule is a defect on its own, and the first two were shipped one after
+the other:
+
+- **Cancel.** A `debounce()` result keeps its timer inside its own closure, so overwriting the field leaves
+  that timer live with nothing holding a reference to stop it — and it still closes over the instance, so it
+  reads `wasLastActionShow` and shows a comment anyway. `keepVisible()` can only reach the *current*
+  function, so one orphan defeats it.
+- **Carry over.** Cancelling alone drops a hover the user already started, and the comment then never
+  appears until the pointer moves again. `#pendingShowRange` is the only piece of that state living outside
+  the closure, which is what lets the rebuild re-arm it on the replacement. **`hide()` clears that field**,
+  because a hide overrules the hover: re-arming an overruled show puts a copy of it beyond the reach of the
+  flag that was suppressing it, and the next `cancelHiding()` — which is what `showAtCell()` does when
+  another cell's comment is opened — then lets the stale timer replace it. The armed timer itself is still
+  left alone by `hide()`; the flag gating it, and `cancelHiding()` reviving it, are long-standing behavior.
+- **Skip.** When the delay is unchanged there is nothing to rebuild, so `updateDelay()` returns early and a
+  pending show keeps its original schedule. That is the common call by a distance, and it keeps an unrelated
+  settings update from disturbing the hover's timing at all.
+
+All three are pinned by `displaySwitch.unit.ts`, and each test is red without its own half. A test that
+stubs `showDebounced` must give the stub a `cancel`, which is what the field's type has always promised.
+
+The pointer cases are pinned by `tests/e2e/comments-editor-resize.spec.ts`.
+
+Testing it needs a real browser — the stray event comes from the browser's hit-testing order and jsdom never
+produces it. `tests/e2e/comments-editor-resize.spec.ts` owns it, and **its drag step must stay larger than
+the page object's `GRAB_INSET`**, or the gesture reproduces nothing and the spec passes against unfixed
+code. The 250 ms boundary is crossed with `page.clock`, because `toBeVisible()` resolves the moment it is
+true and so would never observe a hide that is still pending.
 
 ## What survives a disable, and what has to be registered again
 
@@ -120,6 +211,8 @@ The shortcut context is a third case: `ShortcutManager` can create a context but
 
 - `npm run test:e2e --prefix handsontable -- --testPathPattern='comments'`
 - `npm run test:unit --prefix handsontable -- --testPathPattern='comments'`
+- `npm run test:e2e --prefix tests -- comments-editor-resize` (Playwright — the resize and hover-cancel
+  behavior, which needs a real browser)
 
 ## `renderMode: 'onChange'`
 

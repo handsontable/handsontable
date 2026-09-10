@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the Autofill plugin throwing an error on every pointer move across the page after a grid failed to initialize.",
+  "type": "fixed",
+  "issueOrPR": 13453,
+  "breaking": false,
+  "framework": "none"
+}
