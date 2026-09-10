@@ -144,7 +144,9 @@ The plugin is enabled at the grid level. To opt a column or a cell out, set `aut
 
 ## Link bare domains and email addresses
 
-By default, [`autoLink`](@/api/options.md#autolink) links only a value that already carries a scheme, such as `https://handsontable.com` or `mailto:jane@example.com`. Set `strict` to `false` to also link a bare domain, such as `handsontable.com`, as an `https` URL, and a bare email address, such as `jane@example.com`, as a `mailto` URL:
+Keep [`autoLink`](@/api/options.md#autolink)'s `strict` option at its default, `true`, unless your data is known to hold bare domains or email addresses. Set it to `false` only for that data, as an opt-in -- not as a general upgrade to the rest of your grid.
+
+By default (`strict: true`), `autoLink` links only a value that already carries a scheme, such as `https://handsontable.com` or `mailto:jane@example.com`. Set `strict` to `false` to also link a bare domain, such as `handsontable.com`, as an `https` URL, and a bare email address, such as `jane@example.com`, as a `mailto` URL:
 
 ```js
 autoLink: {
@@ -152,13 +154,11 @@ autoLink: {
 },
 ```
 
-A bare domain's top-level domain (the `.com` in `handsontable.com`) is validated against the [IANA top-level domain list](https://data.iana.org/TLD/tlds-alpha-by-domain.txt), bundled with Handsontable at build time. Handsontable makes no network request to validate a bare domain, so `strict: false` works the same in an air-gapped environment as it does anywhere else. A punycode top-level domain (`xn--...`) is never linked, and neither is one of six generic top-level domains that are common file extensions: `zip`, `mov`, `ico`, `map`, `mobi`, and `pub` -- so a value such as `report.zip` stays plain text.
+A bare domain's top-level domain (the `.com` in `handsontable.com`) is validated against the [IANA top-level domain list](https://data.iana.org/TLD/tlds-alpha-by-domain.txt), bundled with Handsontable at build time. Handsontable makes no network request to validate a bare domain, so `strict: false` works the same in an air-gapped environment as it does anywhere else. A punycode top-level domain (`xn--...`) is never linked; every other IANA top-level domain is used as-is.
 
-Country-code top-level domains are never excluded. A value such as `README.md` still becomes a link, even though `.md` also reads as a file extension.
+::: warning
 
-::: tip
-
-If a column holds filenames that collide with a country-code top-level domain, such as a `.md`, `.sh`, or `.py` file, either turn `autoLink` off for that column (`autoLink: false`), or keep it on with `strict: true`.
+`strict: false` uses the full top-level domain list, with no exclusion for a generic top-level domain that also reads as a common file extension. A value such as `report.zip` or `README.md` becomes a link. `.zip` and `.mov` are known phishing-bait domains -- one more reason `strict: false` is an opt-in, not a default. Keep `strict: true` (the default), or set `autoLink: false`, on a column that holds file names.
 
 :::
 

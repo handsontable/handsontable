@@ -69,10 +69,16 @@ shares with `Formulas`.
   `handsontable/scripts/generate-tlds.mjs` from IANA's `tlds-alpha-by-domain.txt`, fetched once at generation time
   (never at runtime — the grid stays usable air-gapped). Regenerate it with
   `npm run generate:tlds --prefix handsontable` when preparing a minor release, so a newly delegated TLD (or one
-  IANA retired) reaches `strict: false` before the next release, and commit the regenerated file. The exclusion
-  list (`zip`, `mov`, `ico`, `map`, `mobi`, `pub` — generic TLDs that are common file extensions) lives ONCE, inside
-  the generator (`EXCLUDED_TLDS`); country-code TLDs are never excluded there, on purpose, even where one reads as
-  a file extension or an English word (`.md`, `.sh`, `.py`).
+  IANA retired) reaches `strict: false` before the next release, and commit the regenerated file. There is no
+  exclusion list: the FULL IANA list is bundled, punycode entries aside, so a bare domain whose TLD also reads as a
+  common file extension (`report.zip`, `README.md`) links too — do not reintroduce a hand-picked exclusion here,
+  the trade-off is documented and deliberate (product decision, 2026-09-10).
+- **`strict` defaults to `true`, and every example or demo outside the dedicated strict-mode one must stay on that
+  default.** `strict: false` is opt-in for data known to hold bare domains or email addresses, not a general
+  upgrade — the docs (`metaSchema.ts`, the clickable-links guide) recommend keeping the default and call out the
+  file-extension/phishing-bait trade-off (`.zip`, `.mov`) before showing `strict: false`. Do not flip the default in
+  an unrelated example or in `tests/fixtures/demo/auto-link.html`'s other columns; only column H there carries
+  `strict: false`.
 - **`autoLink.strict: false`'s bare-domain pass runs only on the gaps a scheme token left behind.**
   `findLinkTokens` (`../../utils/cellLinks/findLinkTokens.ts`) finds every `http(s):`/`mailto:`/`tel:` token first,
   then — only when `strict` is `false` — finds every bare domain and bare email address that does NOT overlap one
