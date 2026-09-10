@@ -87,13 +87,21 @@ function ref(item) {
 export function renderBody(report) {
   const parts = [
     'Documentation content merged to `develop` that applies to the released version, ported by the daily docs sync. Review the sections below; the classifier\'s reasons are listed so a wrong call can be corrected by relabeling the source pull request (`docs-sync: include` / `docs-sync: skip`).',
+    // The Included row is the only one that renders `(#N, ...)`; the trailing
+    // `, @author` keeps it from ever matching `collectProdRefs`'s subject-only
+    // `\(#\d+\)` scan (which reads real commit subjects, not this body,
+    // anyway) and makes the row visually distinct from every other section,
+    // whose rows below deliberately drop the parentheses. See candidates.mjs
+    // for why: those rows name pull requests that did *not* reach prod, and a
+    // squash body that ends up carrying this report must never be misread as
+    // a list of already-ported pull requests.
     section('Included', report.included, (i) => `${ref(i)} (#${i.prNumber}, @${i.author})`),
-    section('Skipped: conflict', report.conflicts, (i) => `${ref(i)} (#${i.prNumber}): ${i.files.map((f) => `\`${f}\``).join(', ')}`),
-    section('Skipped: needs a human decision', report.unsure, (i) => `${ref(i)} (#${i.prNumber}): ${plain(i.reason)}`),
-    section('Excluded by the classifier', report.excluded, (i) => `${ref(i)} (#${i.prNumber}): ${plain(i.reason)}`),
-    section('Skipped: mixed content and other changes', report.mixed, (i) => `${ref(i)} (#${i.prNumber}): touches ${i.categories.join(', ')}`),
-    section('Skipped: version-scoped pages', report.versionScoped, (i) => `${ref(i)} (#${i.prNumber}): ${i.files.map((f) => `\`${f}\``).join(', ')}`),
-    section('Skipped: already on prod', report.alreadyOnProd, (i) => `${ref(i)} (#${i.prNumber})`),
+    section('Skipped: conflict', report.conflicts, (i) => `${ref(i)} #${i.prNumber}: ${i.files.map((f) => `\`${f}\``).join(', ')}`),
+    section('Skipped: needs a human decision', report.unsure, (i) => `${ref(i)} #${i.prNumber}: ${plain(i.reason)}`),
+    section('Excluded by the classifier', report.excluded, (i) => `${ref(i)} #${i.prNumber}: ${plain(i.reason)}`),
+    section('Skipped: mixed content and other changes', report.mixed, (i) => `${ref(i)} #${i.prNumber}: touches ${i.categories.join(', ')}`),
+    section('Skipped: version-scoped pages', report.versionScoped, (i) => `${ref(i)} #${i.prNumber}: ${i.files.map((f) => `\`${f}\``).join(', ')}`),
+    section('Skipped: already on prod', report.alreadyOnProd, (i) => `${ref(i)} #${i.prNumber}`),
     section('Skipped: no pull request number', report.noPrNumber, (i) => ref(i)),
     [
       '## Run metadata',

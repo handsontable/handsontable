@@ -11,7 +11,7 @@ test('the squash subject carries the pull request number at its end', () => {
   assert.equal(parseSquashSubject('Fix (#12) something'), null);
 });
 
-test('prod references come from parenthesized numbers and cherry-pick trailers', () => {
+test('prod references come from parenthesized numbers in the subject and cherry-pick trailers', () => {
   const refs = collectProdRefs([
     { subject: 'Docs: publish llms.txt (#13441) (#13452)', body: '' },
     {
@@ -20,7 +20,10 @@ test('prod references come from parenthesized numbers and cherry-pick trailers',
     },
   ]);
 
-  assert.deepEqual([...refs.prNumbers].sort((a, b) => a - b), [13441, 13444, 13452, 13460]);
+  // #13444 lives only in the body and is not collected: a squash body can
+  // carry this tool's own sync report, whose non-included rows also name
+  // pull requests that were never ported (see candidates.mjs).
+  assert.deepEqual([...refs.prNumbers].sort((a, b) => a - b), [13441, 13452, 13460]);
   assert.deepEqual([...refs.shas], ['5680ec8ae8f0000000000000000000000000abcd']);
 });
 

@@ -166,10 +166,10 @@ test('the CLI classifies deterministically, pushes the sync branch, and opens on
 
     // --no-llm makes every classifier candidate unsure, so nothing is included and
     // no pull request is opened; every other bucket is exercised.
-    assert.match(summary, /## Skipped: needs a human decision\n\n- `[0-9a-f]{7}` Fix a typo in guide a \(#101\)/);
-    assert.match(summary, /## Skipped: mixed content and other changes\n\n- `[0-9a-f]{7}` Add feature with docs \(#102\): touches source/);
-    assert.match(summary, /## Skipped: version-scoped pages\n\n- `[0-9a-f]{7}` Add the 18\.2 migration guide \(#103\)/);
-    assert.match(summary, /## Skipped: already on prod\n\n- `[0-9a-f]{7}` Fix guide d \(#104\)/);
+    assert.match(summary, /## Skipped: needs a human decision\n\n- `[0-9a-f]{7}` Fix a typo in guide a #101/);
+    assert.match(summary, /## Skipped: mixed content and other changes\n\n- `[0-9a-f]{7}` Add feature with docs #102: touches source/);
+    assert.match(summary, /## Skipped: version-scoped pages\n\n- `[0-9a-f]{7}` Add the 18\.2 migration guide #103/);
+    assert.match(summary, /## Skipped: already on prod\n\n- `[0-9a-f]{7}` Fix guide d #104/);
     assert.match(summary, /## Skipped: no pull request number\n\n- `[0-9a-f]{7}` direct push without a number/);
     assert.match(summary, /Target: prod-docs\/18\.1@/);
     assert.match(summary, /released 18\.1\.0/);
@@ -230,7 +230,7 @@ test('a skip label on the source pull request excludes it, with no branch pushed
 
     const summary = readFileSync(path.join(f.root, 'summary.md'), 'utf8');
 
-    assert.match(summary, /## Excluded by the classifier\n\n- `[0-9a-f]{7}` Fix a typo in guide a \(#101\): Labeled/);
+    assert.match(summary, /## Excluded by the classifier\n\n- `[0-9a-f]{7}` Fix a typo in guide a #101: Labeled/);
     assert.equal(f.git(f.work, ['ls-remote', '--heads', f.origin, 'docs-sync/prod-docs-18.1']), '', 'no branch pushed when the only candidate is excluded');
 
     const ghCalls = readFileSync(f.ghLog, 'utf8').trim().split('\n').map((line) => JSON.parse(line));
@@ -301,7 +301,7 @@ test('a foreign commit on the sync branch holds the run before classification, w
     const summary = readFileSync(path.join(f.root, 'summary.md'), 'utf8');
 
     assert.match(summary, /carries commits the bot did not make/);
-    assert.match(summary, /## Skipped: needs a human decision\n\n- `[0-9a-f]{7}` Fix a typo in guide a[^\n]*\(#101\)[^\n]*Not classified/);
+    assert.match(summary, /## Skipped: needs a human decision\n\n- `[0-9a-f]{7}` Fix a typo in guide a[^\n]*#101[^\n]*Not classified/);
   } finally {
     rmSync(f.root, { recursive: true, force: true });
   }
@@ -333,7 +333,7 @@ test('a conflicting cherry-pick reports itself and blocks the push, even under a
 
     const summary = readFileSync(path.join(f.root, 'summary.md'), 'utf8');
 
-    assert.match(summary, /## Skipped: conflict\n\n- `[0-9a-f]{7}` Fix a typo in guide a \(#101\)/);
+    assert.match(summary, /## Skipped: conflict\n\n- `[0-9a-f]{7}` Fix a typo in guide a #101/);
     assert.match(summary, /1 commit\(s\) conflict with prod-docs\/18\.1; nothing applied, manual port needed/);
   } finally {
     rmSync(f.root, { recursive: true, force: true });

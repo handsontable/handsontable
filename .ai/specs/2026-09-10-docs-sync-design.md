@@ -141,11 +141,19 @@ request body.
 1. **Already on prod.** A candidate is done when any of these hold:
    - `git cherry origin/<target> origin/develop <BASE>` marks it `-` (identical
      patch-id).
-   - Any commit on `<BASE>..origin/<target>` has `(#<n>)` in its subject or body,
-     or `cherry picked from commit <sha>` in its body. This catches hand-made
-     cherry-pick pull requests (squash-merged, so patch-ids differ) and the tool's
-     own earlier merged pull requests (`cherry-pick -x` writes the trailer, and the
-     squash body carries it).
+   - Any commit on `<BASE>..origin/<target>` has `(#<n>)` in its subject, or
+     `cherry picked from commit <sha>` in its subject or body. This catches
+     hand-made cherry-pick pull requests (squash-merged, so patch-ids differ)
+     and the tool's own earlier merged pull requests (`cherry-pick -x` writes
+     the trailer, and the squash body carries it). The `(#<n>)` scan is
+     subject-only, deliberately excluding the body: when the sync pull request
+     itself is squash-merged with "the pull request title and description" as
+     its body, that body is this very report, and its Conflicting/Unsure/
+     Excluded/Mixed/Scoped rows each name a `(#<n>)` for a commit that was
+     *not* ported. Reading those from the body would make the next run treat
+     them as already on prod. For the same reason, every non-included row in
+     the rendered report writes the pull request number as a bare `#n`
+     (no parentheses) -- only the Included row keeps `(#n, @author)`.
 2. **Content-only.** Every changed file must match the content paths. Anything else
    makes the commit **mixed**; it is skipped and listed with the categories it
    touched (`source`, `tooling`, `agent docs`, `other`), so the human porting it

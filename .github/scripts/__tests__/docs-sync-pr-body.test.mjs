@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   INCLUDE_LABEL, SKIP_LABEL, STATE_MARKER, SYNC_LABEL, extractState, renderBody, renderTitle,
 } from '../lib/docs-sync/pr-body.mjs';
+import { collectProdRefs } from '../lib/docs-sync/candidates.mjs';
 
 const report = {
   target: 'prod-docs/18.1',
@@ -42,11 +43,22 @@ test('every section is present, empty ones say none', () => {
   }
   assert.match(body, /## Skipped: already on prod\n\nNone\./);
   assert.match(body, /`1111111` Fix typo \(#1, @demtario\)/);
-  assert.match(body, /`2222222` Conflicting \(#2\): `docs\/content\/a\.md`/);
+  assert.match(body, /`2222222` Conflicting #2: `docs\/content\/a\.md`/);
   assert.match(body, /`3333333`.*diff truncated/);
   assert.match(body, /`5555555`.*source/);
   assert.match(body, /develop@`bbbbbbb`/);
   assert.match(body, /prod-docs\/18\.1@`aaaaaaa`/);
+});
+
+test('a squash body carrying this report cannot poison the next run\'s dedup', () => {
+  const body = renderBody(report);
+  const refs = collectProdRefs([{ subject: 'Sync (#99)', body }]);
+
+  // Every non-included row's `#N` renders without parentheses, so the
+  // subject-only, parenthesized-only scan in collectProdRefs picks up only
+  // the sync commit's own subject number, never #2, #3, #4, #5, or #6 from
+  // the report's Conflicting/Unsure/Excluded/Mixed/Scoped rows.
+  assert.deepEqual(refs.prNumbers, new Set([99]));
 });
 
 test('[skip changelog] sits outside any HTML comment', () => {
