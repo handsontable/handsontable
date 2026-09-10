@@ -43,6 +43,21 @@ class DisplaySwitch {
    * @type {number}
    */
   hidingTimer: ReturnType<typeof setTimeout> | null = null;
+  /**
+   * The range a show is waiting on, or `null` when none is pending. The debounced function keeps
+   * its timer in its own closure, so this is the only thing that survives a rebuild and lets a
+   * pending show be carried over to the replacement.
+   *
+   * @type {object|null}
+   */
+  #pendingShowRange: object | null = null;
+  /**
+   * The delay the current debounced function was built with, so a rebuild can be skipped when it
+   * would produce the same function.
+   *
+   * @type {number|null}
+   */
+  #displayDelay: number | null = null;
 
   /**
    * Initializes the display switch and configures the debounced show delay.
@@ -71,6 +86,7 @@ class DisplaySwitch {
    */
   show(range: object) {
     this.wasLastActionShow = true;
+    this.#pendingShowRange = range;
     this.showDebounced?.(range);
   }
 
@@ -97,6 +113,7 @@ class DisplaySwitch {
    */
   keepVisible() {
     this.showDebounced?.cancel();
+    this.#pendingShowRange = null;
     this.cancelHiding();
   }
 
@@ -106,20 +123,37 @@ class DisplaySwitch {
    * @param {number} displayDelay Delay of showing the comments (in milliseconds).
    */
   updateDelay(displayDelay = DEFAULT_DISPLAY_DELAY) {
-    // The replaced function keeps its own scheduled timer, and that timer closes over this
-    // instance - so it would still read `wasLastActionShow` and show a comment, with nothing left
-    // holding a reference to cancel it. `keepVisible()` can only reach the CURRENT function, so an
-    // orphan defeats it. Settings updates land inside the display delay easily enough: React and
-    // Angular re-send unchanged keys, so every commit reaches `updatePlugin()`.
+    // Nothing to rebuild when the delay is the same, and this is the common call by a distance:
+    // `updatePlugin()` reaches here on every `updateSettings()`, and the wrappers re-send unchanged
+    // keys on ordinary commits. Returning leaves a pending show on its original schedule, so an
+    // unrelated settings update cannot disturb the hover the user already started.
+    if (this.showDebounced && this.#displayDelay === displayDelay) {
+      return;
+    }
+
+    // A rebuild has to both cancel and carry over. The replaced function keeps its timer in its own
+    // closure, and that timer closes over this instance, so leaving it running would show a comment
+    // with nothing holding a reference to stop it - `keepVisible()` can only reach the CURRENT
+    // function, so one orphan defeats it. Cancelling alone is not enough either: it would drop a
+    // hover the user already started, and the comment would never appear until the pointer moved.
+    const pendingRange = this.#pendingShowRange;
+
     this.showDebounced?.cancel();
+    this.#displayDelay = displayDelay;
 
     this.showDebounced = debounce((range) => {
+      this.#pendingShowRange = null;
+
       if (this.wasLastActionShow) {
         const r = range as { from: { row: number; col: number } };
 
         this.runLocalHooks('show', r.from.row, r.from.col);
       }
     }, displayDelay);
+
+    if (pendingRange) {
+      this.showDebounced(pendingRange);
+    }
   }
 
   /**

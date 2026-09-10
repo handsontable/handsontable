@@ -125,12 +125,23 @@ cannot, because the show is what a hover asked for. So a plain `cancelHiding()` 
 on the editor. Measured with three pointer moves inside one 250 ms window. `keepVisible()` drops the pending
 show first (the `debounce` helper returns a function carrying `cancel()`), then cancels the hide.
 
-**And `updateDelay()` has to cancel before it replaces `showDebounced`.** A `debounce()` result keeps its
-timer inside its own closure, so overwriting the field leaves that timer live with nothing holding a
-reference to stop it — and it still closes over the instance, so it reads `wasLastActionShow` and shows a
-comment anyway. `keepVisible()` can only reach the *current* function, so one orphan defeats it. The window
-is not exotic: `updateDelay()` is the `updatePlugin()` path, and the wrappers re-send unchanged keys, so a
-settings update inside the 250 ms display delay is ordinary. Pinned by `displaySwitch.unit.ts`. A test that
+**And `updateDelay()` has to cancel, carry over, AND skip — all three.** It is the `updatePlugin()` path, so
+the wrappers reach it on every commit, and a settings update inside the 250 ms display delay is ordinary
+rather than exotic. Each half of the rule is a defect on its own, and the first two were shipped one after
+the other:
+
+- **Cancel.** A `debounce()` result keeps its timer inside its own closure, so overwriting the field leaves
+  that timer live with nothing holding a reference to stop it — and it still closes over the instance, so it
+  reads `wasLastActionShow` and shows a comment anyway. `keepVisible()` can only reach the *current*
+  function, so one orphan defeats it.
+- **Carry over.** Cancelling alone drops a hover the user already started, and the comment then never
+  appears until the pointer moves again. `#pendingShowRange` is the only piece of that state living outside
+  the closure, which is what lets the rebuild re-arm it on the replacement.
+- **Skip.** When the delay is unchanged there is nothing to rebuild, so `updateDelay()` returns early and a
+  pending show keeps its original schedule. That is the common call by a distance, and it keeps an unrelated
+  settings update from disturbing the hover's timing at all.
+
+All three are pinned by `displaySwitch.unit.ts`, and each test is red without its own half. A test that
 stubs `showDebounced` must give the stub a `cancel`, which is what the field's type has always promised.
 
 The pointer cases are pinned by `tests/e2e/comments-editor-resize.spec.ts`.

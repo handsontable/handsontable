@@ -184,7 +184,7 @@ describe('Comments', () => {
       expect(setTimeoutSpy.mock.calls[0][1]).toBe(800);
     });
 
-    it('should cancel a pending show before replacing the debounced function', () => {
+    it('should keep a pending show when the delay did not change', () => {
       const displaySwitch = new DisplaySwitch(700);
       const onShow = jasmine.createSpy('onShow');
       const range = { from: new CellCoords(0, 1) };
@@ -194,14 +194,52 @@ describe('Comments', () => {
       displaySwitch.addLocalHook('show', onShow);
       displaySwitch.show(range);
 
-      // The settings update lands inside the display delay, which is ordinary in a wrapper: React
-      // and Angular re-send unchanged keys, so every commit reaches `updatePlugin()`. Replacing the
-      // debounced function does not touch the timer the old one had already scheduled, and that
-      // timer closes over the same instance - so it still reads `wasLastActionShow` and shows.
+      // The common call by a distance: `updatePlugin()` reaches `updateDelay()` on every
+      // `updateSettings()`, and the wrappers re-send unchanged keys on ordinary commits. A hover
+      // the user already started must survive one, or the comment never appears until the pointer
+      // moves again.
       displaySwitch.updateDelay(700);
 
-      // `keepVisible()` can only reach the CURRENT function, so an orphaned timer defeats it and
-      // the comment on screen is replaced while the pointer rests on the editor.
+      jest.runAllTimers();
+
+      expect(onShow).toHaveBeenCalledTimes(1);
+      expect(onShow).toHaveBeenCalledWith(0, 1);
+    });
+
+    it('should carry a pending show over to the rebuilt debounced function', () => {
+      const displaySwitch = new DisplaySwitch(700);
+      const onShow = jasmine.createSpy('onShow');
+      const range = { from: new CellCoords(0, 1) };
+
+      jest.useFakeTimers();
+
+      displaySwitch.addLocalHook('show', onShow);
+      displaySwitch.show(range);
+
+      // A real delay change does rebuild, and the pending hover has to come with it - exactly once,
+      // so neither the old timer nor the new one is left to fire on its own.
+      displaySwitch.updateDelay(300);
+
+      jest.runAllTimers();
+
+      expect(onShow).toHaveBeenCalledTimes(1);
+      expect(onShow).toHaveBeenCalledWith(0, 1);
+    });
+
+    it('should let `keepVisible` cancel a show carried over by a rebuild', () => {
+      const displaySwitch = new DisplaySwitch(700);
+      const onShow = jasmine.createSpy('onShow');
+      const range = { from: new CellCoords(0, 1) };
+
+      jest.useFakeTimers();
+
+      displaySwitch.addLocalHook('show', onShow);
+      displaySwitch.show(range);
+      displaySwitch.updateDelay(300);
+
+      // The replaced function keeps its timer in its own closure. Left running, it still closes
+      // over this instance and shows a comment that `keepVisible()` cannot reach, which is how the
+      // editor swapped to another cell while the pointer rested on it.
       displaySwitch.keepVisible();
 
       jest.runAllTimers();
