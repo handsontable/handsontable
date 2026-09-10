@@ -39,6 +39,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     target: '_self' as const,
     schemes: ['http', 'https'] as Array<'http' | 'https' | 'mailto' | 'tel'>,
     inline: false,
+    strict: false,
     className: 'company-link',
   }),
   autoRowSize: true,

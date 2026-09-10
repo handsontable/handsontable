@@ -12,6 +12,11 @@ new Handsontable(document.createElement('div'), {
   },
 });
 new Handsontable(document.createElement('div'), {
+  autoLink: {
+    strict: false,
+  },
+});
+new Handsontable(document.createElement('div'), {
   autoLink: true,
   columns: [
     { autoLink: false },

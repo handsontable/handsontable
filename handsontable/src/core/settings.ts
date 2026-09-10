@@ -260,6 +260,7 @@ export interface GridSettings {
     target?: '_blank' | '_self';
     schemes?: Array<'http' | 'https' | 'mailto' | 'tel'>;
     inline?: boolean;
+    strict?: boolean;
     className?: string;
   };
   autoColumnSize?: boolean | object;

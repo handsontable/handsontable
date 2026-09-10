@@ -24,6 +24,12 @@ export interface AutoLinkSettings {
    */
   inline?: boolean;
   /**
+   * `true` links only URLs that carry a scheme (`http`, `https`, `mailto`, `tel`). `false` also links
+   * bare domains (`example.com`, as `https`) and bare email addresses (`jane@example.com`, as
+   * `mailto`), validated against the IANA top-level domain list bundled with Handsontable. Default `true`.
+   */
+  strict?: boolean;
+  /**
    * Extra class name(s) added to every anchor. Default `''`.
    */
   className?: string;
@@ -83,6 +89,7 @@ export class AutoLink extends BasePlugin {
       target: '_blank',
       schemes: [...LINK_SCHEMES],
       inline: true,
+      strict: true,
       className: '',
     };
   }
@@ -96,6 +103,7 @@ export class AutoLink extends BasePlugin {
       schemes: (value: unknown) => Array.isArray(value) &&
         value.every(scheme => (LINK_SCHEMES as readonly string[]).includes(scheme)),
       inline: (value: unknown) => typeof value === 'boolean',
+      strict: (value: unknown) => typeof value === 'boolean',
       className: (value: unknown) => typeof value === 'string',
     };
   }
@@ -221,6 +229,7 @@ export class AutoLink extends BasePlugin {
       target: this.getSetting<LinkTarget>('target'),
       schemes: normalizeSchemes(this.getSetting('schemes')),
       inline: this.getSetting<boolean>('inline'),
+      strict: this.getSetting<boolean>('strict'),
       classNames: this.getSetting<string>('className').split(/\s+/).filter(name => name !== ''),
     };
 

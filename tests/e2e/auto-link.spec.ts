@@ -418,3 +418,102 @@ test.describe('autoLink', () => {
     await expect(grid.openedUrls()).resolves.toEqual([['https://example.com/one', '_blank']]);
   });
 });
+
+/**
+ * `autoLink.strict` (DEV-2804): with `strict: false`, a bare domain and a bare email address are
+ * linked too, validated against the IANA top-level domain list bundled with Handsontable. Column H
+ * (index 7) of the fixture carries `{ autoLink: { strict: false } }`; column A (index 0) stays on the
+ * grid-level default (`strict: true`), proving the non-strict column does not change strict behavior
+ * elsewhere.
+ */
+test.describe('autoLink.strict', () => {
+  test('links a bare domain as `https`', async({ page, theme, bundle }) => {
+    const grid = new AutoLinkPage(page, theme, bundle);
+
+    await grid.goto();
+
+    const link = grid.links(0, 7);
+
+    await expect(link).toHaveCount(1);
+    await expect(link).toHaveAttribute('href', 'https://google.com/');
+  });
+
+  test('links a bare domain with a `www` label and a path', async({ page, theme, bundle }) => {
+    const grid = new AutoLinkPage(page, theme, bundle);
+
+    await grid.goto();
+
+    await expect(grid.links(1, 7)).toHaveAttribute('href', 'https://www.example.org/docs');
+  });
+
+  test('links a bare email address as `mailto`, with no scheme prefix to hide', async({ page, theme, bundle }) => {
+    const grid = new AutoLinkPage(page, theme, bundle);
+
+    await grid.goto();
+
+    const link = grid.links(2, 7);
+
+    await expect(link).toHaveCount(1);
+    await expect(link).toHaveAttribute('href', 'mailto:ana.garcia@example.com');
+    await expect(link.locator('.ht-link-scheme')).toHaveCount(0);
+    await expect(link).toHaveText('ana.garcia@example.com', { useInnerText: true });
+  });
+
+  test('links a bare domain whose top-level domain is a country code (documented trade-off)', async({ page, theme, bundle }) => {
+    const grid = new AutoLinkPage(page, theme, bundle);
+
+    await grid.goto();
+
+    await expect(grid.links(3, 7)).toHaveCount(1);
+  });
+
+  test('does not link a bare domain excluded as a generic file-extension top-level domain', async({ page, theme, bundle }) => {
+    const grid = new AutoLinkPage(page, theme, bundle);
+
+    await grid.goto();
+
+    await expect(grid.anyLinks(4, 7)).toHaveCount(0);
+    await expect(grid.cell(4, 7)).toHaveText('report.zip');
+  });
+
+  test('does not link a bare domain whose top-level domain is unknown', async({ page, theme, bundle }) => {
+    const grid = new AutoLinkPage(page, theme, bundle);
+
+    await grid.goto();
+
+    await expect(grid.anyLinks(5, 7)).toHaveCount(0);
+    await expect(grid.cell(5, 7)).toHaveText('node.js');
+  });
+
+  test('links a bare domain inside prose and keeps the surrounding sentence', async({ page, theme, bundle }) => {
+    const grid = new AutoLinkPage(page, theme, bundle);
+
+    await grid.goto();
+
+    const link = grid.links(6, 7);
+
+    await expect(link).toHaveCount(1);
+    await expect(link).toHaveAttribute('href', 'https://handsontable.com/');
+    await expect(grid.cell(6, 7)).toHaveText('Visit handsontable.com today.');
+  });
+
+  test('never mistakes a version-like string for a bare domain', async({ page, theme, bundle }) => {
+    const grid = new AutoLinkPage(page, theme, bundle);
+
+    await grid.goto();
+
+    await expect(grid.anyLinks(7, 7)).toHaveCount(0);
+    await expect(grid.cell(7, 7)).toHaveText('1.2.3');
+  });
+
+  test('leaves column A (strict default) unaffected by another column\'s `strict: false`', async({ page, theme, bundle }) => {
+    const grid = new AutoLinkPage(page, theme, bundle);
+
+    await grid.goto();
+
+    await expect(grid.cell(11, 0)).toHaveText('Grand Hotel:Warsaw');
+    await expect(grid.anyLinks(11, 0)).toHaveCount(0);
+    await expect(grid.links(0, 0)).toHaveCount(1);
+    await expect(grid.links(0, 0)).toHaveAttribute('href', 'https://example.com/one');
+  });
+});

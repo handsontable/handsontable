@@ -14,6 +14,7 @@ function options(overrides: Partial<LinkifyOptions> = {}): LinkifyOptions {
     target: '_blank',
     schemes: ['http', 'https', 'mailto', 'tel'],
     inline: true,
+    strict: true,
     classNames: [],
     ...overrides,
   };
@@ -189,6 +190,29 @@ describe('linkifyCell', () => {
       expect(td.querySelectorAll(`.${LINK_SCHEME_CLASS_NAME}`).length).toBe(1);
       expect(td.textContent).toBe('mailto:a@b.com');
     });
+
+    it('should link a bare domain and a bare email address when `strict` is `false`', () => {
+      const td = cell('see google.com or jane@example.com');
+
+      linkifyCell(td, options({ strict: false }));
+
+      expect(hrefs(td)).toEqual(['https://google.com/', 'mailto:jane@example.com']);
+      expect(td.textContent).toBe('see google.com or jane@example.com');
+
+      // Neither candidate carries a scheme in the text, so there is no prefix to hide: no
+      // `ht-link-scheme` span appears on either anchor.
+      expect(td.querySelectorAll(`.${LINK_SCHEME_CLASS_NAME}`).length).toBe(0);
+    });
+
+    it('should leave a bare domain and a bare email address as plain text when `strict` is `true`', () => {
+      const td = cell('see google.com or jane@example.com');
+
+      linkifyCell(td, options({ strict: true }));
+
+      expect(hrefs(td)).toEqual([]);
+      expect(td.querySelector('a')).toBe(null);
+      expect(td.textContent).toBe('see google.com or jane@example.com');
+    });
   });
 
   describe('whole-cell mode', () => {
@@ -267,6 +291,16 @@ describe('linkifyCell', () => {
       expect(td.querySelectorAll(`div.${CELL_CLIP_CLASS}`).length).toBe(1);
       expect(td.querySelectorAll('a.ht-auto-link').length).toBe(1);
       expect(td.childNodes.length).toBe(1);
+    });
+
+    it('should wrap a whole-cell bare domain when `strict` is `false`', () => {
+      const td = cell('  www.example.com ');
+
+      linkifyCell(td, options({ inline: false, strict: false }));
+
+      expect(td.querySelectorAll('a').length).toBe(1);
+      expect(td.querySelector('a')?.getAttribute('href')).toBe('https://www.example.com/');
+      expect(td.textContent).toBe('  www.example.com ');
     });
   });
 });

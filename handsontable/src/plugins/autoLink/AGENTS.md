@@ -7,8 +7,8 @@ shares with `Formulas`.
 ## What it owns and what it does not
 
 - Owns: finding URLs in the **rendered text** of a TD and wrapping each in `a.ht-link.ht-auto-link`; removing those
-  anchors when the option or plugin goes away; resolving the `target` / `schemes` / `inline` / `className` settings
-  per cell.
+  anchors when the option or plugin goes away; resolving the `target` / `schemes` / `inline` / `strict` / `className`
+  settings per cell.
 - Does not own: URL parsing, the scheme allowlist, the anchor factory, unwrapping (`../../utils/cellLinks/`), the
   Alt+Enter chord (`shortcuts/contexts/commands/openCellLink.ts`), or the link styles
   (`styles/components/core/_links.scss`, keyed on `ht-link`).
@@ -65,6 +65,26 @@ shares with `Formulas`.
   the DOM on `horizon` while the other two legs still render it — a silent gap in coverage, not a failure. When
   adding rows to `tests/fixtures/demo/auto-link.html`, keep `height` generous enough (`800` as of this writing) and
   run **every** leg, not only `e2e-main`.
+- **The bundled TLD list is generated — never hand-edit `../../utils/cellLinks/tlds.ts`.** It is produced by
+  `handsontable/scripts/generate-tlds.mjs` from IANA's `tlds-alpha-by-domain.txt`, fetched once at generation time
+  (never at runtime — the grid stays usable air-gapped). Regenerate it with
+  `npm run generate:tlds --prefix handsontable` when preparing a minor release, so a newly delegated TLD (or one
+  IANA retired) reaches `strict: false` before the next release, and commit the regenerated file. The exclusion
+  list (`zip`, `mov`, `ico`, `map`, `mobi`, `pub` — generic TLDs that are common file extensions) lives ONCE, inside
+  the generator (`EXCLUDED_TLDS`); country-code TLDs are never excluded there, on purpose, even where one reads as
+  a file extension or an English word (`.md`, `.sh`, `.py`).
+- **`autoLink.strict: false`'s bare-domain pass runs only on the gaps a scheme token left behind.**
+  `findLinkTokens` (`../../utils/cellLinks/findLinkTokens.ts`) finds every `http(s):`/`mailto:`/`tel:` token first,
+  then — only when `strict` is `false` — finds every bare domain and bare email address that does NOT overlap one
+  of those spans (and, for a domain, does not overlap an already-found bare email either), so `foo.example.com`
+  inside `https://foo.example.com` is never linked a second time, and the domain half of a bare email address is
+  never linked on its own. Do not "simplify" this into one combined regex pass; the overlap check is what keeps a
+  URL's own host from becoming a second, redundant anchor.
+- **The `:` fast path in `linkifyCell` differs by mode, and `strict: false` must not narrow it to `:` alone.** A
+  strict pass only ever needs to look for a scheme, so `text.indexOf(':') === -1` is enough to skip a cell. A
+  non-strict pass also has to catch a bare domain (needs a `.`) or a bare email address (needs an `@`), neither of
+  which carries a `:` — narrowing the fast path to `:` under `strict: false` would silently stop linking
+  `google.com` and `jane@example.com`.
 
 ## Where to look next
 

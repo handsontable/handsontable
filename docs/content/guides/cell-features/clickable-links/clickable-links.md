@@ -92,6 +92,7 @@ Set [`autoLink`](@/api/options.md#autolink) to an object to configure the links:
 | `target`    | `'_blank'` | Where the links open: a new tab (`'_blank'`) or the current one (`'_self'`).                  |
 | `schemes`   | all four   | The URL schemes to link, a subset of `'http'`, `'https'`, `'mailto'`, and `'tel'`. A column or cell `schemes` can only narrow this fixed four-scheme allowlist, never widen it, and replaces the grid-level list for those cells. |
 | `inline`    | `true`     | `true` links URLs inside longer text. `false` links only a cell whose whole value is one URL. |
+| `strict`    | `true`     | `true` links only URLs that carry a scheme. `false` also links bare domains and bare email addresses. See [Link bare domains and email addresses](#link-bare-domains-and-email-addresses). |
 | `className` | `''`       | Extra class name(s) added to every link element.                                              |
 
 The plugin is enabled at the grid level. To opt a column or a cell out, set `autoLink: false` in the [`columns`](@/api/options.md#columns), [`cells`](@/api/options.md#cells), or [`cell`](@/api/options.md#cell) option. To override the settings for a column or a cell, set an object there:
@@ -138,6 +139,26 @@ The plugin is enabled at the grid level. To opt a column or a cell out, set `aut
 @[code](@/content/guides/cell-features/clickable-links/vue/example2.vue)
 
 :::
+
+:::
+
+## Link bare domains and email addresses
+
+By default, [`autoLink`](@/api/options.md#autolink) links only a value that already carries a scheme, such as `https://handsontable.com` or `mailto:jane@example.com`. Set `strict` to `false` to also link a bare domain, such as `handsontable.com`, as an `https` URL, and a bare email address, such as `jane@example.com`, as a `mailto` URL:
+
+```js
+autoLink: {
+  strict: false,
+},
+```
+
+A bare domain's top-level domain (the `.com` in `handsontable.com`) is validated against the [IANA top-level domain list](https://data.iana.org/TLD/tlds-alpha-by-domain.txt), bundled with Handsontable at build time. Handsontable makes no network request to validate a bare domain, so `strict: false` works the same in an air-gapped environment as it does anywhere else. A punycode top-level domain (`xn--...`) is never linked, and neither is one of six generic top-level domains that are common file extensions: `zip`, `mov`, `ico`, `map`, `mobi`, and `pub` -- so a value such as `report.zip` stays plain text.
+
+Country-code top-level domains are never excluded. A value such as `README.md` still becomes a link, even though `.md` also reads as a file extension.
+
+::: tip
+
+If a column holds filenames that collide with a country-code top-level domain, such as a `.md`, `.sh`, or `.py` file, either turn `autoLink` off for that column (`autoLink: false`), or keep it on with `strict: true`.
 
 :::
 

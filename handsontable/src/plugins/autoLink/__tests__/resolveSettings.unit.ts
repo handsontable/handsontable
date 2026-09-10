@@ -6,6 +6,7 @@ const BASE: ResolvedAutoLinkSettings = {
   target: '_blank',
   schemes: ['http', 'https', 'mailto', 'tel'],
   inline: true,
+  strict: true,
   classNames: [],
 };
 
@@ -54,6 +55,21 @@ describe('resolveAutoLinkSettings', () => {
     expect(resolved.target).toBe(BASE.target);
     expect(resolved.inline).toBe(BASE.inline);
     expect(resolved.classNames).toEqual(BASE.classNames);
+  });
+
+  it('should accept a boolean `strict` override', () => {
+    expect(resolveAutoLinkSettings(BASE, { strict: false }).strict).toBe(false);
+    expect(resolveAutoLinkSettings({ ...BASE, strict: false }, { strict: true }).strict).toBe(true);
+  });
+
+  it('should ignore a non-boolean `strict` override and keep the base value', () => {
+    const override = { strict: 'nope' } as unknown as AutoLinkSettings;
+
+    expect(resolveAutoLinkSettings(BASE, override).strict).toBe(BASE.strict);
+  });
+
+  it('should keep the base `strict` when the override does not mention it', () => {
+    expect(resolveAutoLinkSettings(BASE, {}).strict).toBe(BASE.strict);
   });
 });
 

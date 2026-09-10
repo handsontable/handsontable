@@ -53,6 +53,7 @@ export function resolveAutoLinkSettings(
     target: override.target === '_self' || override.target === '_blank' ? override.target : base.target,
     schemes: resolveSchemesOverride(base.schemes, override.schemes),
     inline: typeof override.inline === 'boolean' ? override.inline : base.inline,
+    strict: typeof override.strict === 'boolean' ? override.strict : base.strict,
     classNames: typeof override.className === 'string'
       ? override.className.split(/\s+/).filter(name => name !== '')
       : base.classNames,

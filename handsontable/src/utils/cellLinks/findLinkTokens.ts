@@ -1,4 +1,5 @@
 import { LINK_SCHEMES, resolveLinkUrl, type LinkScheme } from './resolveLinkUrl';
+import { isKnownTld } from './tlds';
 
 /**
  * A URL found inside a text, as offsets into that text plus the resolved `href`.
@@ -48,6 +49,32 @@ const EMBEDDED_SCHEME_PATTERN = /(?:(?<!\/)https?:\/\/|(?<![A-Za-z0-9._~+/-])(?:
 // raw token can never carry one and a quote-trimming entry here would be unreachable.
 const TRAILING_PUNCTUATION_CHARS = new Set(['.', ',', ';', ':', '!', '?']);
 const BRACKET_PAIRS: Record<string, string> = { ')': '(', ']': '[', '}': '{' };
+
+// `strict: false` only. A DNS label: 1-63 characters, letters/digits/hyphen, never starting or
+// ending on a hyphen - the same shape `BARE_DOMAIN_PATTERN` repeats once per label and
+// `BARE_EMAIL_PATTERN` repeats for the host part after `@`.
+const LABEL = '[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?';
+// A candidate that carries no scheme of its own: one or more `label.` groups, a final TLD-shaped
+// group (letters only - digits are never a real TLD, which is what keeps an IP address or a
+// version string like `1.2.3` from matching at all), an optional port, and an optional path/query/
+// fragment. The lookbehind blocks a match from starting inside a longer word, an email's local part,
+// or a URL that already carries a scheme (`foo.example.com` inside `https://foo.example.com` cannot
+// start here, since the character right before it, `/`, is excluded). The TLD captured here is
+// provisional - `toDomainToken` re-derives and validates it after `trimTokenEnd` runs, because
+// trimming can shorten the tail.
+const BARE_DOMAIN_PATTERN = new RegExp(
+  `(?<![A-Za-z0-9@._~+/-])(?:${LABEL}\\.)+([A-Za-z]{2,63})(?::\\d{1,5})?(?:[/?#][^\\s<>"'\`]*)?`, 'g'
+);
+// A bare email candidate: an RFC-5322-ish local part, `@`, then the same label-dot-TLD shape as
+// `BARE_DOMAIN_PATTERN`, with no port or path (an email address never carries one). The lookbehind
+// keeps a match from starting mid-word, the same way the domain pattern's does.
+const BARE_EMAIL_PATTERN = new RegExp(
+  `(?<![A-Za-z0-9._%+-])[A-Za-z0-9._%+-]+@(?:${LABEL}\\.)+([A-Za-z]{2,63})`, 'g'
+);
+// Splits a trimmed bare candidate's host from a trailing port/path/query/fragment - `toDomainToken`
+// and `toEmailToken` both re-derive the TLD from what remains before this separator.
+const HOST_SUFFIX_PATTERN = /[:/?#]/;
+const TRAILING_LETTERS_PATTERN = /[A-Za-z]+$/;
 
 /**
  * Counts how many of each bracket character (`(`, `)`, `[`, `]`, `{`, `}`) a token carries. Computed
@@ -140,21 +167,21 @@ function findEmbeddedSchemeIndex(rawToken: string): number {
 }
 
 /**
- * Finds every linkable URL in a text. Each candidate is trimmed of surrounding punctuation and then
- * passed through `resolveLinkUrl`, so a token that does not parse, or whose scheme is not allowed,
- * is dropped rather than linked.
+ * Finds every scheme-carrying URL in a text (`http(s)://`, `mailto:`, `tel:`). Each candidate is
+ * trimmed of surrounding punctuation and then passed through `resolveLinkUrl`, so a token that does
+ * not parse, or whose scheme is not allowed, is dropped rather than linked. This is the whole of
+ * `findLinkTokens`'s `strict: true` behavior - kept as its own function so that path stays provably
+ * unchanged by the `strict: false` bare-domain/bare-email pass added below it.
  *
  * @param {string} text The text to scan.
  * @param {string} baseUrl The document URL the candidates are resolved against.
- * @param {LinkScheme[]} [schemes] The schemes allowed by the caller.
+ * @param {readonly LinkScheme[]} schemes The schemes allowed by the caller.
  * @returns {LinkToken[]} The tokens in document order. They never overlap.
  */
-export function findLinkTokens(
-  text: string, baseUrl: string, schemes: readonly LinkScheme[] = LINK_SCHEMES
-): LinkToken[] {
+function findSchemeTokens(text: string, baseUrl: string, schemes: readonly LinkScheme[]): LinkToken[] {
   const tokens: LinkToken[] = [];
 
-  if (typeof text !== 'string' || text.indexOf(':') === -1) {
+  if (text.indexOf(':') === -1) {
     return tokens;
   }
 
@@ -185,4 +212,176 @@ export function findLinkTokens(
   }
 
   return tokens;
+}
+
+/**
+ * Whether a raw regex match's span overlaps any of a set of already-claimed token spans. `strict:
+ * false` uses this to keep a bare-domain or bare-email candidate from being linked a second time when
+ * it is really a fragment of a URL (or, for a domain, an email) that already produced its own token -
+ * `foo.example.com` inside `https://foo.example.com` is the domain case, and the domain half of an
+ * already-linked email address is the email case.
+ *
+ * @param {number} start The candidate's start offset into the text.
+ * @param {number} end The candidate's end offset into the text.
+ * @param {readonly LinkToken[]} claimed The spans the candidate must not overlap.
+ * @returns {boolean} `true` when the candidate overlaps a claimed span.
+ */
+function overlapsClaimedSpan(start: number, end: number, claimed: readonly LinkToken[]): boolean {
+  return claimed.some(token => start < token.end && end > token.start);
+}
+
+/**
+ * Re-derives the top-level domain of a trimmed bare-domain or bare-email host, from what actually
+ * survives trimming - `trimTokenEnd` can shorten the tail, so the TLD captured by the original regex
+ * match is not trusted as-is.
+ *
+ * @param {string} host The candidate's host part: for an email, everything after the `@`; for a
+ * domain, the whole trimmed candidate (a trailing port or path is stripped here).
+ * @returns {string|null} The lowercase TLD, or `null` when the host does not end in a letters-only
+ * run.
+ */
+function deriveTld(host: string): string | null {
+  const hostSuffixIndex = host.search(HOST_SUFFIX_PATTERN);
+  const hostOnly = hostSuffixIndex === -1 ? host : host.slice(0, hostSuffixIndex);
+  const match = TRAILING_LETTERS_PATTERN.exec(hostOnly);
+
+  return match === null ? null : match[0].toLowerCase();
+}
+
+/**
+ * Turns one raw `BARE_DOMAIN_PATTERN` match into a token: trims it, re-derives and validates its TLD
+ * against the bundled IANA list, and resolves it as an `https://` URL.
+ *
+ * @param {string} rawMatch The raw regex match.
+ * @param {number} matchIndex The match's offset into the original text.
+ * @param {string} baseUrl The document URL to resolve against.
+ * @param {readonly LinkScheme[]} schemes The schemes allowed by the caller - `https` absent disables
+ * every bare domain, since a bare domain always resolves as `https`.
+ * @returns {LinkToken|null} The token, or `null` when the candidate is not linkable.
+ */
+function toDomainToken(
+  rawMatch: string, matchIndex: number, baseUrl: string, schemes: readonly LinkScheme[]
+): LinkToken | null {
+  const candidate = trimTokenEnd(rawMatch);
+  const tld = candidate === '' ? null : deriveTld(candidate);
+
+  if (tld === null || !isKnownTld(tld)) {
+    return null;
+  }
+
+  const href = resolveLinkUrl(`https://${candidate}`, baseUrl, schemes);
+
+  return href === null ? null : { start: matchIndex, end: matchIndex + candidate.length, href };
+}
+
+/**
+ * Turns one raw `BARE_EMAIL_PATTERN` match into a token, the same way {@link toDomainToken} turns a
+ * domain match into one: trims it, re-derives and validates the TLD of the part after `@`, and
+ * resolves it as a `mailto:` URL.
+ *
+ * @param {string} rawMatch The raw regex match.
+ * @param {number} matchIndex The match's offset into the original text.
+ * @param {string} baseUrl The document URL to resolve against.
+ * @param {readonly LinkScheme[]} schemes The schemes allowed by the caller - `mailto` absent disables
+ * every bare email address.
+ * @returns {LinkToken|null} The token, or `null` when the candidate is not linkable.
+ */
+function toEmailToken(
+  rawMatch: string, matchIndex: number, baseUrl: string, schemes: readonly LinkScheme[]
+): LinkToken | null {
+  const candidate = trimTokenEnd(rawMatch);
+  const atIndex = candidate.indexOf('@');
+
+  if (atIndex === -1) {
+    return null;
+  }
+
+  const tld = deriveTld(candidate.slice(atIndex + 1));
+
+  if (tld === null || !isKnownTld(tld)) {
+    return null;
+  }
+
+  const href = resolveLinkUrl(`mailto:${candidate}`, baseUrl, schemes);
+
+  return href === null ? null : { start: matchIndex, end: matchIndex + candidate.length, href };
+}
+
+/**
+ * Runs one bare-token pattern over the whole text, keeping only the matches that land outside every
+ * already-claimed span, and converts each survivor into a token.
+ *
+ * @param {RegExp} pattern `BARE_EMAIL_PATTERN` or `BARE_DOMAIN_PATTERN` - reset to `lastIndex = 0`
+ * here, since both are shared, stateful `g`-flagged regexes.
+ * @param {string} text The text to scan.
+ * @param {string} baseUrl The document URL to resolve against.
+ * @param {readonly LinkScheme[]} schemes The schemes allowed by the caller.
+ * @param {readonly LinkToken[]} claimed The spans a match may not overlap.
+ * @param {(rawMatch: string, matchIndex: number, baseUrl: string, schemes: readonly LinkScheme[]) => LinkToken | null} toToken
+ * Converts one raw, non-overlapping match into a token.
+ * @returns {LinkToken[]} The tokens found, in document order.
+ */
+function scanBarePattern(
+  pattern: RegExp,
+  text: string,
+  baseUrl: string,
+  schemes: readonly LinkScheme[],
+  claimed: readonly LinkToken[],
+  toToken: (rawMatch: string, matchIndex: number, baseUrl: string, schemes: readonly LinkScheme[]) => LinkToken | null
+): LinkToken[] {
+  const tokens: LinkToken[] = [];
+
+  pattern.lastIndex = 0;
+
+  let match = pattern.exec(text);
+
+  while (match !== null) {
+    if (!overlapsClaimedSpan(match.index, match.index + match[0].length, claimed)) {
+      const token = toToken(match[0], match.index, baseUrl, schemes);
+
+      if (token !== null) {
+        tokens.push(token);
+      }
+    }
+
+    match = pattern.exec(text);
+  }
+
+  return tokens;
+}
+
+/**
+ * Finds every linkable URL in a text: the scheme-carrying kind always, and - when `strict` is
+ * `false` - a bare domain (`example.com`, linked as `https`) or a bare email address
+ * (`jane@example.com`, linked as `mailto`) too, wherever one sits outside a span a scheme token
+ * already claimed. Email addresses are matched before domains, and a domain match is dropped when it
+ * overlaps either an already-found scheme token OR an already-found email token - so the domain half
+ * of an email address is never linked again on its own. Every bare TLD is validated against the
+ * bundled IANA list (`./tlds.ts`).
+ *
+ * @param {string} text The text to scan.
+ * @param {string} baseUrl The document URL the candidates are resolved against.
+ * @param {LinkScheme[]} [schemes] The schemes allowed by the caller.
+ * @param {boolean} [strict] `true` (default) links only URLs that carry a scheme. `false` also links
+ * bare domains and bare email addresses.
+ * @returns {LinkToken[]} The tokens in document order. They never overlap.
+ */
+export function findLinkTokens(
+  text: string, baseUrl: string, schemes: readonly LinkScheme[] = LINK_SCHEMES, strict = true
+): LinkToken[] {
+  if (typeof text !== 'string') {
+    return [];
+  }
+
+  const schemeTokens = findSchemeTokens(text, baseUrl, schemes);
+
+  if (strict) {
+    return schemeTokens;
+  }
+
+  const emailTokens = scanBarePattern(BARE_EMAIL_PATTERN, text, baseUrl, schemes, schemeTokens, toEmailToken);
+  const claimedByEmail = [...schemeTokens, ...emailTokens];
+  const domainTokens = scanBarePattern(BARE_DOMAIN_PATTERN, text, baseUrl, schemes, claimedByEmail, toDomainToken);
+
+  return [...schemeTokens, ...emailTokens, ...domainTokens].sort((tokenA, tokenB) => tokenA.start - tokenB.start);
 }

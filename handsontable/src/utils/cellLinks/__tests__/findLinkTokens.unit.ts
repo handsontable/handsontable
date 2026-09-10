@@ -1,5 +1,6 @@
 /* eslint-disable no-script-url -- the script URLs below are the subject of these tests. */
 import { findLinkTokens } from '../findLinkTokens';
+import { LINK_SCHEMES } from '../resolveLinkUrl';
 
 const BASE = 'https://example.com/dir/page.html';
 
@@ -209,6 +210,131 @@ describe('findLinkTokens', () => {
     expect(findLinkTokens('http://a.com/r?url=https://b.com', BASE)).toEqual([
       { start: 0, end: 19, href: 'http://a.com/r?url=' },
       { start: 19, end: 32, href: 'https://b.com/' },
+    ]);
+  });
+});
+
+describe('strict: false', () => {
+  it('should link a whole-string bare domain as `https`', () => {
+    expect(findLinkTokens('google.com', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 0, end: 10, href: 'https://google.com/' },
+    ]);
+  });
+
+  it('should link a bare domain with a `www` label, a path and a query inside prose', () => {
+    expect(findLinkTokens('see www.google.com/path?q=1 now', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 4, end: 27, href: 'https://www.google.com/path?q=1' },
+    ]);
+  });
+
+  it('should link a bare domain with a subdomain, a multi-label TLD, a port and a path', () => {
+    expect(findLinkTokens('sub.example.co.uk:8080/x', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 0, end: 24, href: 'https://sub.example.co.uk:8080/x' },
+    ]);
+  });
+
+  it('should lowercase the host of a mixed-case bare domain', () => {
+    expect(findLinkTokens('Example.COM', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 0, end: 11, href: 'https://example.com/' },
+    ]);
+  });
+
+  it('should trim a bare domain wrapped in a parenthetical and a trailing period', () => {
+    expect(findLinkTokens('(example.com).', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 1, end: 12, href: 'https://example.com/' },
+    ]);
+  });
+
+  it('should link a bare email address as `mailto`', () => {
+    expect(findLinkTokens('jane@example.com', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 0, end: 16, href: 'mailto:jane@example.com' },
+    ]);
+  });
+
+  it('should link a bare email and a bare domain in the same text as two tokens, never the ' +
+    'email\'s domain alone', () => {
+    expect(findLinkTokens('mail jane@example.com or example.org', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 5, end: 21, href: 'mailto:jane@example.com' },
+      { start: 25, end: 36, href: 'https://example.org/' },
+    ]);
+  });
+
+  it('should link a scheme URL and a bare domain in the same text, the scheme token first', () => {
+    expect(findLinkTokens('https://a.com and b.com', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 0, end: 13, href: 'https://a.com/' },
+      { start: 18, end: 23, href: 'https://b.com/' },
+    ]);
+  });
+
+  it('should not link a bare domain whose TLD is not a known top-level domain', () => {
+    expect(findLinkTokens('node.js', BASE, LINK_SCHEMES, false)).toEqual([]);
+    expect(findLinkTokens('file.txt', BASE, LINK_SCHEMES, false)).toEqual([]);
+    expect(findLinkTokens('example.notatld', BASE, LINK_SCHEMES, false)).toEqual([]);
+  });
+
+  it('should not link a bare domain whose TLD is on the generic-TLD exclusion list', () => {
+    expect(findLinkTokens('report.zip', BASE, LINK_SCHEMES, false)).toEqual([]);
+    expect(findLinkTokens('favicon.ico', BASE, LINK_SCHEMES, false)).toEqual([]);
+  });
+
+  it('should never mistake an IP address or a version-like string for a bare domain', () => {
+    expect(findLinkTokens('1.2.3', BASE, LINK_SCHEMES, false)).toEqual([]);
+    expect(findLinkTokens('192.168.0.1', BASE, LINK_SCHEMES, false)).toEqual([]);
+    expect(findLinkTokens('v1.2.3-rc.1', BASE, LINK_SCHEMES, false)).toEqual([]);
+  });
+
+  it('should not link a two-character label as a bare domain: the TLD group requires 2 letters', () => {
+    expect(findLinkTokens('a.b', BASE, LINK_SCHEMES, false)).toEqual([]);
+  });
+
+  it('should link only the whole URL, never its bare-domain suffix a second time', () => {
+    expect(findLinkTokens('https://foo.example.com', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 0, end: 23, href: 'https://foo.example.com/' },
+    ]);
+  });
+
+  it('should link a bare domain whose TLD is a country code, even where it reads as a file ' +
+    'extension or an English word (documented trade-off)', () => {
+    expect(findLinkTokens('README.md', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 0, end: 9, href: 'https://readme.md/' },
+    ]);
+    expect(findLinkTokens('deploy.sh', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 0, end: 9, href: 'https://deploy.sh/' },
+    ]);
+  });
+
+  it('should yield only the scheme tokens in strict mode for every bare-domain and bare-email ' +
+    'case above', () => {
+    const strictInputs = [
+      'google.com',
+      'see www.google.com/path?q=1 now',
+      'sub.example.co.uk:8080/x',
+      'Example.COM',
+      '(example.com).',
+      'jane@example.com',
+      'mail jane@example.com or example.org',
+      'node.js',
+      'file.txt',
+      'report.zip',
+      'favicon.ico',
+      '1.2.3',
+      '192.168.0.1',
+      'v1.2.3-rc.1',
+      'a.b',
+      'example.notatld',
+      'README.md',
+      'deploy.sh',
+    ];
+
+    strictInputs.forEach((input) => {
+      expect(findLinkTokens(input, BASE)).toEqual([]);
+    });
+
+    expect(findLinkTokens('https://a.com and b.com', BASE)).toEqual([
+      { start: 0, end: 13, href: 'https://a.com/' },
+    ]);
+    expect(findLinkTokens('https://foo.example.com', BASE)).toEqual([
+      { start: 0, end: 23, href: 'https://foo.example.com/' },
     ]);
   });
 });

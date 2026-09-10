@@ -605,7 +605,16 @@ export default (): Record<string, unknown> => {
      * | `target`    | `'_blank'` (default) \| `'_self'`                                       | Where the links open                                                         |
      * | `schemes`   | An array of `'http'`, `'https'`, `'mailto'`, `'tel'` (default: all four) | The URL schemes to link. Narrows the fixed four-scheme allowlist, never widens it. A column or cell `schemes` replaces the grid-level list for those cells. |
      * | `inline`    | `true` (default) \| `false`                                             | `true`: link URLs inside longer text<br>`false`: link only a cell whose whole value is one URL |
+     * | `strict`    | `true` (default) \| `false`                                             | `true`: link only URLs that carry a scheme<br>`false`: also link bare domains (`example.com`) as `https` and bare email addresses as `mailto`, validated against the IANA top-level domain list bundled with Handsontable |
      * | `className` | A string (default: `''`)                                                | Extra class name(s) added to every link                                      |
+     *
+     * The bundled top-level domain list is fixed at build time - Handsontable makes no network
+     * request to validate a bare domain, which keeps `strict: false` usable in an air-gapped
+     * environment. Punycode top-level domains (`xn--...`) are skipped, since nobody types those into
+     * a cell, and six generic top-level domains that are common file extensions -
+     * `zip`, `mov`, `ico`, `map`, `mobi`, `pub` - are excluded, so a value such as `report.zip` stays
+     * plain text. Country-code top-level domains are never excluded, so a value such as `README.md`
+     * still becomes a link even though `.md` also reads as a file extension.
      *
      * The cell keeps its own renderer and its value stays unchanged, so copying, autofill, sorting,
      * and export are unaffected. Every link element gets the `ht-link` and `ht-auto-link` classes,
@@ -644,6 +653,11 @@ export default (): Record<string, unknown> => {
      *   target: '_self',
      *   schemes: ['http', 'https'],
      *   className: 'company-link',
+     * },
+     *
+     * // also link bare domains (as `https`) and bare email addresses (as `mailto`)
+     * autoLink: {
+     *   strict: false,
      * },
      *
      * // enable the plugin, but keep one column as plain text

@@ -35,7 +35,8 @@
     in anchors after the cell's own renderer ran. Column A is plain text, column B opts out, column C
     has a custom renderer that writes a span, column D is the `html` cell type holding a user anchor,
     column E has a memoizing renderer, column F holds HYPERLINK formulas so a spec can prove the two
-    features converge on one anchor, and column G runs in whole-cell mode. HyperFormula is loaded on
+    features converge on one anchor, column G runs in whole-cell mode, and column H has
+    `autoLink.strict: false`, which also links bare domains and bare email addresses. HyperFormula is loaded on
     the base-bundle legs only, the same way the formulas fixture does it.
   -->
   <div id="grid" data-testid="grid"></div>
@@ -82,20 +83,20 @@
 
     window.hot = new Handsontable(container, {
       data: [
-        ['https://example.com/one', 'https://example.com/optout', 'go https://example.com/marked', '<a href="https://example.com/user">user link</a>', 'https://example.com/memo', '=HYPERLINK("https://example.com/hf", "HF label")', 'https://example.com/whole'],
-        ['Visit https://example.com/two for details.', 'b2', 'c2', 'd2', 'e2', '=HYPERLINK("https://example.com/raw")', 'see https://example.com/inline-off'],
-        ['mailto:someone@example.com', 'b3', 'c3', 'd3', 'e3', '=HYPERLINK("mailto:hf@example.com")', ' https://example.com/padded '],
-        ['tel:+48123456789', 'b4', 'c4', 'd4', 'e4', 'f4', 'g4'],
-        ['(see https://example.com/paren).', 'b5', 'c5', 'd5', 'e5', 'f5', 'g5'],
-        ['https://example.com/cell-optout', 'b6', 'c6', 'd6', 'e6', 'f6', 'g6'],
-        [window.localPageUrl, 'b7', 'c7', 'd7', 'e7', 'f7', 'g7'],
-        ['javascript:alert(1)', 'b8', 'c8', 'd8', 'e8', 'f8', 'g8'],
-        ['plain text', 'b9', 'c9', 'd9', 'e9', 'f9', 'g9'],
-        ['https://example.com/hotel:deals', 'b10', 'c10', 'd10', 'e10', 'f10', 'g10'],
-        ['https://a.com/xhttps://b.com/y', 'b11', 'c11', 'd11', 'e11', 'f11', 'g11'],
-        ['Grand Hotel:Warsaw', 'b12', 'c12', 'd12', 'e12', 'f12', 'g12'],
-        ['https://web.archive.org/web/2020/https://example.com', 'b13', 'c13', 'd13', 'e13', 'f13', 'g13'],
-        ['https://example.com/a,mailto:b@example.com', 'b14', 'c14', 'd14', 'e14', 'f14', 'g14'],
+        ['https://example.com/one', 'https://example.com/optout', 'go https://example.com/marked', '<a href="https://example.com/user">user link</a>', 'https://example.com/memo', '=HYPERLINK("https://example.com/hf", "HF label")', 'https://example.com/whole', 'google.com'],
+        ['Visit https://example.com/two for details.', 'b2', 'c2', 'd2', 'e2', '=HYPERLINK("https://example.com/raw")', 'see https://example.com/inline-off', 'www.example.org/docs'],
+        ['mailto:someone@example.com', 'b3', 'c3', 'd3', 'e3', '=HYPERLINK("mailto:hf@example.com")', ' https://example.com/padded ', 'ana.garcia@example.com'],
+        ['tel:+48123456789', 'b4', 'c4', 'd4', 'e4', 'f4', 'g4', 'README.md'],
+        ['(see https://example.com/paren).', 'b5', 'c5', 'd5', 'e5', 'f5', 'g5', 'report.zip'],
+        ['https://example.com/cell-optout', 'b6', 'c6', 'd6', 'e6', 'f6', 'g6', 'node.js'],
+        [window.localPageUrl, 'b7', 'c7', 'd7', 'e7', 'f7', 'g7', 'Visit handsontable.com today.'],
+        ['javascript:alert(1)', 'b8', 'c8', 'd8', 'e8', 'f8', 'g8', '1.2.3'],
+        ['plain text', 'b9', 'c9', 'd9', 'e9', 'f9', 'g9', 'x'],
+        ['https://example.com/hotel:deals', 'b10', 'c10', 'd10', 'e10', 'f10', 'g10', 'x'],
+        ['https://a.com/xhttps://b.com/y', 'b11', 'c11', 'd11', 'e11', 'f11', 'g11', 'x'],
+        ['Grand Hotel:Warsaw', 'b12', 'c12', 'd12', 'e12', 'f12', 'g12', 'x'],
+        ['https://web.archive.org/web/2020/https://example.com', 'b13', 'c13', 'd13', 'e13', 'f13', 'g13', 'x'],
+        ['https://example.com/a,mailto:b@example.com', 'b14', 'c14', 'd14', 'e14', 'f14', 'g14', 'x'],
       ],
       autoLink: true,
       formulas: {
@@ -111,6 +112,7 @@
         { renderer: memoRenderer },
         {},
         { autoLink: { inline: false } },
+        { autoLink: { strict: false } },
       ],
       cells(row, col) {
         if (row === 5 && col === 0) {
@@ -130,8 +132,8 @@
       // out of the DOM. The height is generous on the row axis the same way: horizon's rows render
       // taller than main's and classic's, and a height sized only for main's row height virtualized
       // the fixture's last data row out of the DOM on horizon (DEV-2804 review).
-      colWidths: [220, 160, 200, 90, 160, 160, 220],
-      width: 1400,
+      colWidths: [220, 160, 200, 90, 160, 160, 220, 200],
+      width: 1650,
       height: 800,
       rowHeaders: true,
       colHeaders: true,

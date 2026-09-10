@@ -36,6 +36,12 @@ export interface LinkifyOptions {
    */
   inline: boolean;
   /**
+   * `true` links only URLs that carry a scheme (`http`, `https`, `mailto`, `tel`). `false` also links
+   * bare domains (`example.com`, as `https`) and bare email addresses (`jane@example.com`, as
+   * `mailto`), validated against the bundled IANA top-level domain list.
+   */
+  strict: boolean;
+  /**
    * Extra class names for every anchor.
    */
   classNames: readonly string[];
@@ -101,7 +107,7 @@ function collectTextNodes(TD: HTMLTableCellElement): Text[] {
  * @param {LinkifyOptions} options The pass options.
  */
 function linkifyTextNode(textNode: Text, options: LinkifyOptions): void {
-  const tokens = findLinkTokens(textNode.data, options.baseUrl, options.schemes);
+  const tokens = findLinkTokens(textNode.data, options.baseUrl, options.schemes, options.strict);
   const doc = textNode.ownerDocument;
 
   for (let index = tokens.length - 1; index >= 0; index--) {
@@ -132,7 +138,7 @@ function linkifyTextNode(textNode: Text, options: LinkifyOptions): void {
  */
 function linkifyWholeCell(TD: HTMLTableCellElement, text: string, options: LinkifyOptions): void {
   const trimmed = text.trim();
-  const tokens = findLinkTokens(trimmed, options.baseUrl, options.schemes);
+  const tokens = findLinkTokens(trimmed, options.baseUrl, options.schemes, options.strict);
 
   if (tokens.length !== 1 || tokens[0].start !== 0 || tokens[0].end !== trimmed.length) {
     return;
@@ -172,8 +178,11 @@ export function linkifyCell(TD: HTMLTableCellElement, options: LinkifyOptions): 
 
   const text = TD.textContent ?? '';
 
-  // Every allowed scheme contains a colon; this keeps the regex off the ordinary cell.
-  if (text.indexOf(':') === -1) {
+  // Every allowed scheme contains a colon, so a strict pass never needs to look past that. A
+  // non-strict pass also links a bare domain (needs a `.`) or a bare email address (needs an `@`),
+  // so it only skips a cell holding none of the three - still the overwhelming majority of cells.
+  if (options.strict ? text.indexOf(':') === -1
+    : text.indexOf(':') === -1 && text.indexOf('.') === -1 && text.indexOf('@') === -1) {
     return;
   }
 
