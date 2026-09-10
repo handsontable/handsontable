@@ -1,8 +1,8 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed removing a nested parent row leaving its deeper descendants behind as blank rows. Removing a parent now removes every descendant, so the same action can delete more rows than before, and `beforeRemoveRow` and `afterRemoveRow` listeners receive the full list.",
+  "title": "Fixed removing a nested parent row leaving its deeper descendants behind as blank rows.",
   "type": "fixed",
   "issueOrPR": 13457,
-  "breaking": true,
+  "breaking": false,
   "framework": "none"
 }
