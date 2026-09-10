@@ -395,7 +395,7 @@ $all-sheets-visible-items: 8;
       .ht-sheets-bar__tab--renaming:hover {
         color: var(--ht-cell-editor-foreground-color);
         background: var(--ht-cell-editor-background-color);
-        box-shadow: inset 0 0 0 1px var(--ht-cell-editor-border-color);
+        box-shadow: inset 0 0 0 2px var(--ht-cell-editor-border-color);
       }
 
       // The input is a transparent window into the tab's own surface — every visual belongs to
