@@ -44,7 +44,7 @@ runs:
       if: ${{ (github.event_name == 'push' && 'golden' || 'compare') == 'compare' }}
       shell: bash
       run: |
-        if ! git fetch --force origin gh-pages:gh-pages 2>/dev/null; then
+        if ! git fetch --force origin gh-pages 2>/dev/null; then
           if git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
             echo "::error::gh-pages exists on the remote but could not be fetched"
             exit 1
@@ -55,7 +55,7 @@ runs:
 
         # Single-file fallback, kept for when the history/ fetch below is empty or
         # has nothing with a marked trace window on every scenario.
-        if git show gh-pages:performance-reports/develop/latest.json > performance-tests/golden/snapshots.json 2>/dev/null; then
+        if git show origin/gh-pages:performance-reports/develop/latest.json > performance-tests/golden/snapshots.json 2>/dev/null; then
           echo "Golden baseline (latest.json) restored from gh-pages"
         else
           echo "No golden baseline found on gh-pages -- running without baseline"
@@ -125,7 +125,7 @@ runs:
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
 
-        if ! git fetch --force origin gh-pages:gh-pages 2>/dev/null; then
+        if ! git fetch --force origin gh-pages 2>/dev/null; then
           if git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
             echo "::warning::gh-pages exists on the remote but could not be fetched"
           else
@@ -138,7 +138,7 @@ runs:
 
         git worktree prune
         WORK_DIR=$(mktemp -d)
-        git worktree add --detach "$WORK_DIR" gh-pages
+        git worktree add --detach "$WORK_DIR" origin/gh-pages
         trap 'cd "$GITHUB_WORKSPACE"; git worktree remove "$WORK_DIR" --force 2>/dev/null || true; git worktree prune' EXIT
 
         mkdir -p "${WORK_DIR}/${DEPLOY_DIR}"
@@ -165,7 +165,7 @@ runs:
               break
             fi
             echo "Push attempt $attempt failed, pulling and retrying..."
-            git fetch --force origin gh-pages:gh-pages && git rebase gh-pages
+            git fetch --force origin gh-pages && git rebase origin/gh-pages
           done
           if [ "$pushed" = false ]; then
             echo "ERROR: all push attempts failed"
@@ -192,7 +192,7 @@ runs:
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
 
-        if ! git fetch --force origin gh-pages:gh-pages 2>/dev/null; then
+        if ! git fetch --force origin gh-pages 2>/dev/null; then
           if git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
             echo "::warning::gh-pages exists on the remote but could not be fetched"
           else
@@ -204,7 +204,7 @@ runs:
 
         git worktree prune
         WORK_DIR=$(mktemp -d)
-        git worktree add --detach "$WORK_DIR" gh-pages
+        git worktree add --detach "$WORK_DIR" origin/gh-pages
         trap 'cd "$GITHUB_WORKSPACE"; git worktree remove "$WORK_DIR" --force 2>/dev/null || true; git worktree prune' EXIT
 
         mkdir -p "${WORK_DIR}/${DEPLOY_DIR}"
@@ -225,7 +225,7 @@ runs:
               break
             fi
             echo "Push attempt $attempt failed, pulling and retrying..."
-            git fetch --force origin gh-pages:gh-pages && git rebase gh-pages
+            git fetch --force origin gh-pages && git rebase origin/gh-pages
           done
           if [ "$pushed" = false ]; then
             echo "ERROR: all push attempts failed"

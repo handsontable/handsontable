@@ -20,13 +20,20 @@ describe('performance gh-pages Git steps', () => {
 
     test(`${site} uses detached worktrees and prunes stale registrations`, () => {
       const content = read(site);
+      const worktreeAdds = content.match(/^\s*git worktree add.*$/gm) ?? [];
+      const prunes = content.match(/git worktree prune/g) ?? [];
 
-      assert.ok(content.includes('git worktree add --detach'));
-      assert.ok(content.includes('git worktree prune'));
+      assert.equal(worktreeAdds.length, 2);
+      assert.ok(worktreeAdds.every(command => command.includes('git worktree add --detach')));
+      assert.equal(prunes.length, 4);
     });
 
-    test(`${site} force-fetches gh-pages`, () => {
-      assert.ok(read(site).includes('git fetch --force origin gh-pages:gh-pages'));
+    test(`${site} force-fetches the remote-tracking gh-pages ref`, () => {
+      const fetches = read(site).match(/git fetch.*gh-pages.*$/gm) ?? [];
+
+      assert.equal(fetches.length, 5);
+      assert.ok(fetches.every(command => command.includes('git fetch --force origin gh-pages')));
+      assert.ok(fetches.every(command => !command.includes(':gh-pages')));
     });
   }
 });

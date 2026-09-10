@@ -170,7 +170,7 @@ The CI workflow (`.github/workflows/performance-tests.yml`) operates in two mode
 
 - **On pull request** (`PERF_MODE=compare`): Fetches the last 20 develop goldens from `gh-pages` into `golden/history/` (and `latest.json` as a single-file fallback), runs all scenarios, and generates a delta report against a median of the newest 5 goldens that share this run's Chromium build, platform, and harness version. The markdown summary is posted as a sticky PR comment; the full HTML report is deployed to GitHub Pages at `performance-reports/<branch-slug>/`.
 
-If no compatible golden baseline exists (first run, `gh-pages` branch not yet created, or fewer than two develop pushes since the Chromium, platform, or harness changed), the report shows raw metrics in self-compare mode and states why.
+If no compatible golden baseline exists (first run, `gh-pages` branch not yet created, or before the first develop push after the Chromium, platform, or harness changed), the report shows raw metrics in self-compare mode and states why. One compatible develop golden serves as the single-run baseline. The median starts after the second.
 
 ### Metrics
 

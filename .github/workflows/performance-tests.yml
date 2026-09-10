@@ -71,7 +71,7 @@ jobs:
       # The snapshot it saves is never derived from history (teardown.mjs saves before it loads).
       - name: Fetch golden snapshots from GitHub Pages
         run: |
-          if ! git fetch --force origin gh-pages:gh-pages 2>/dev/null; then
+          if ! git fetch --force origin gh-pages 2>/dev/null; then
             if git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
               echo "::error::gh-pages exists on the remote but could not be fetched"
               exit 1
@@ -84,7 +84,7 @@ jobs:
           # has nothing compatible with this run (marked trace window on every scenario,
           # same Chromium build, platform, and harness version). Compare mode only: in golden mode
           # the file would be this run's own snapshot.
-          if [ "$PERF_MODE" = "compare" ] && git show gh-pages:performance-reports/develop/latest.json > performance-tests/golden/snapshots.json 2>/dev/null; then
+          if [ "$PERF_MODE" = "compare" ] && git show origin/gh-pages:performance-reports/develop/latest.json > performance-tests/golden/snapshots.json 2>/dev/null; then
             echo "Golden baseline (latest.json) restored from gh-pages"
           else
             echo "No single-file golden restored -- relying on the history median"
@@ -177,7 +177,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          if ! git fetch --force origin gh-pages:gh-pages 2>/dev/null; then
+          if ! git fetch --force origin gh-pages 2>/dev/null; then
             if git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
               echo "::warning::gh-pages exists on the remote but could not be fetched"
             else
@@ -190,7 +190,7 @@ jobs:
 
           git worktree prune
           WORK_DIR=$(mktemp -d)
-          git worktree add --detach "$WORK_DIR" gh-pages
+          git worktree add --detach "$WORK_DIR" origin/gh-pages
           trap 'cd "$GITHUB_WORKSPACE"; git worktree remove "$WORK_DIR" --force 2>/dev/null || true; git worktree prune' EXIT
 
           # Deploy timestamped snapshot + report
@@ -220,7 +220,7 @@ jobs:
                 break
               fi
               echo "Push attempt $attempt failed, pulling and retrying..."
-              git fetch --force origin gh-pages:gh-pages && git rebase gh-pages
+              git fetch --force origin gh-pages && git rebase origin/gh-pages
             done
             if [ "$pushed" = false ]; then
               echo "ERROR: all push attempts failed"
@@ -243,7 +243,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          if ! git fetch --force origin gh-pages:gh-pages 2>/dev/null; then
+          if ! git fetch --force origin gh-pages 2>/dev/null; then
             if git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
               echo "::warning::gh-pages exists on the remote but could not be fetched"
             else
@@ -255,7 +255,7 @@ jobs:
 
           git worktree prune
           WORK_DIR=$(mktemp -d)
-          git worktree add --detach "$WORK_DIR" gh-pages
+          git worktree add --detach "$WORK_DIR" origin/gh-pages
           trap 'cd "$GITHUB_WORKSPACE"; git worktree remove "$WORK_DIR" --force 2>/dev/null || true; git worktree prune' EXIT
 
           mkdir -p "${WORK_DIR}/${DEPLOY_DIR}"
@@ -276,7 +276,7 @@ jobs:
                 break
               fi
               echo "Push attempt $attempt failed, pulling and retrying..."
-              git fetch --force origin gh-pages:gh-pages && git rebase gh-pages
+              git fetch --force origin gh-pages && git rebase origin/gh-pages
             done
             if [ "$pushed" = false ]; then
               echo "ERROR: all push attempts failed"

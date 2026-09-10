@@ -2,17 +2,18 @@
 
 /**
  * Populates `performance-tests/golden/history/` with the last HISTORY_FETCH_COUNT
- * timestamped develop golden snapshots from the local `gh-pages` ref, for
+ * timestamped develop golden snapshots from the remote-tracking `origin/gh-pages` ref, for
  * `computeMedianSnapshot()` (performance-tests/lib/median-snapshot.mjs) to filter
  * and median over.
  *
  * This script does no filtering by `windowSource` and no math -- it only dumps raw
  * files. All of that lives in median-snapshot.mjs, which is unit tested; this script
  * stays a thin, shell-free wrapper around `git ls-tree`/`git show` against the
- * `gh-pages` ref that both golden-restore call sites (the "Fetch golden snapshots
- * from GitHub Pages" step in .github/workflows/performance-tests.yml and
- * .github/actions/performance-run/action.yml) already fetch locally before this
- * runs, so no network fetch is needed here.
+ * `origin/gh-pages` ref that both golden-restore call sites (the "Fetch golden
+ * snapshots from GitHub Pages" step in .github/workflows/performance-tests.yml
+ * and .github/actions/performance-run/action.yml) already fetch before this
+ * runs, so no network fetch is needed here. This avoids a local `gh-pages`
+ * branch being locked by a worktree left behind after a cancelled job.
  *
  * Shared between those two call sites specifically so they cannot drift on the
  * fetch count or the timestamp pattern the way several of their other duplicated
@@ -31,6 +32,7 @@ import { repoRoot } from './lib/repo-root.mjs';
 // after windowSource filtering -- generous on purpose since re-fetching a few extra
 // small JSON files is cheap.
 export const HISTORY_FETCH_COUNT = 20;
+const GH_PAGES_REF = 'origin/gh-pages';
 const TIMESTAMPED_DIR = /^(.*\/(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}Z))$/;
 // Anchored via repoRoot(), not a bare relative path -- a CI runner's cwd is always the
 // repo root so this made no difference there, but a bare relative path resolves
@@ -38,7 +40,7 @@ const TIMESTAMPED_DIR = /^(.*\/(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}Z))$/;
 const HISTORY_DIR = join(repoRoot(), 'performance-tests', 'golden', 'history');
 
 /**
- * @param {string} lsTreeOutput -- stdout of `git ls-tree --name-only gh-pages -- performance-reports/develop/`
+ * @param {string} lsTreeOutput -- stdout of `git ls-tree --name-only origin/gh-pages -- performance-reports/develop/`
  * @param {number} [count]
  * @returns {Array<{dir: string, name: string}>} newest-first, capped at `count`
  */
@@ -75,7 +77,7 @@ function main() {
   try {
     lsTreeOutput = execFileSync(
       'git',
-      ['ls-tree', '--name-only', 'gh-pages', '--', 'performance-reports/develop/'],
+      ['ls-tree', '--name-only', GH_PAGES_REF, '--', 'performance-reports/develop/'],
       // `cwd` is load-bearing, not decoration: the `performance-reports/develop/`
       // pathspec is resolved by git relative to the process cwd, not the repo root --
       // discovered when this script, invoked from a subdirectory, silently returned
@@ -105,7 +107,7 @@ function main() {
     let content;
 
     try {
-      content = execFileSync('git', ['show', `gh-pages:${dir}/snapshots.json`], {
+      content = execFileSync('git', ['show', `${GH_PAGES_REF}:${dir}/snapshots.json`], {
         encoding: 'utf8',
         cwd: repoRoot(),
       });
