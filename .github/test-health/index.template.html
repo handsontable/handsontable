@@ -205,8 +205,9 @@
     render();
   }
   document.querySelectorAll('th[data-key]').forEach(function(th) {
+    // Keep the implicit `columnheader` role (a role="button" would drop it and make aria-sort
+    // invalid); tabindex + the keydown handler below make the header operable without a mouse.
     th.setAttribute('tabindex', '0');
-    th.setAttribute('role', 'button');
     th.setAttribute('aria-sort', th.classList.contains('sorted') ? (sortAsc ? 'ascending' : 'descending') : 'none');
     th.addEventListener('click', function() { applySort(th); });
     th.addEventListener('keydown', function(event) {
