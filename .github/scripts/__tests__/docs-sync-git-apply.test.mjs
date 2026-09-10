@@ -5,7 +5,7 @@ import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import {
-  SYNC_COMMITTER, applyCommits, git, hasForeignCommits, resetSyncBranch,
+  SYNC_COMMITTER, applyCommits, git, hasForeignCommits, recoverFromFailedPick, resetSyncBranch,
 } from '../lib/docs-sync/git-apply.mjs';
 
 /**
@@ -83,6 +83,32 @@ test('resetSyncBranch creates the branch at the target and applyCommits sorts ea
     // Author is kept, committer is the bot, and -x recorded the source.
     assert.equal(git(f.root, ['log', '-1', '--format=%an %ce']), `Author ${SYNC_COMMITTER.email}`);
     assert.match(git(f.root, ['log', '-1', '--format=%B']), new RegExp(`cherry picked from commit ${f.clean}`));
+  } finally {
+    rmSync(f.root, { recursive: true, force: true });
+  }
+});
+
+test('recoverFromFailedPick cleans a stuck cherry-pick and leaves HEAD unchanged', () => {
+  const f = fixture();
+
+  try {
+    resetSyncBranch(f.root, 'docs-sync/prod', 'prod');
+    const headBefore = git(f.root, ['rev-parse', 'HEAD']);
+
+    // Put the checkout into a real conflicted cherry-pick, bypassing applyCommits.
+    assert.throws(() => f.run(['cherry-pick', '-x', f.conflicting]));
+    assert.notEqual(git(f.root, ['status', '--porcelain']), '');
+
+    recoverFromFailedPick(f.root, f.conflicting);
+
+    assert.equal(git(f.root, ['status', '--porcelain']), '');
+    assert.equal(git(f.root, ['rev-parse', 'HEAD']), headBefore);
+
+    // The sequencer state is actually cleared, not just the porcelain status:
+    // a fresh cherry-pick can start without "previous cherry-pick not concluded".
+    assert.throws(() => f.run(['cherry-pick', '-x', f.conflicting]));
+    assert.equal(git(f.root, ['status', '--porcelain']), 'UU docs/content/b.md');
+    f.run(['cherry-pick', '--abort']);
   } finally {
     rmSync(f.root, { recursive: true, force: true });
   }

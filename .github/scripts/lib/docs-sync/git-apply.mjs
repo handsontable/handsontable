@@ -30,6 +30,8 @@ export function git(cwd, args) {
     env: {
       ...process.env,
       GIT_DIR: undefined,
+      GIT_WORK_TREE: undefined,
+      GIT_INDEX_FILE: undefined,
       GIT_COMMITTER_NAME: SYNC_COMMITTER.name,
       GIT_COMMITTER_EMAIL: SYNC_COMMITTER.email,
     },
@@ -76,6 +78,31 @@ function conflictedFiles(cwd) {
 }
 
 /**
+ * Recover a clean working tree when the normal end to a failed cherry-pick
+ * (`--skip` or `--abort`) itself throws. Ends the sequence outright and hard
+ * resets to `HEAD` -- never `git clean`, which would delete a developer's own
+ * untracked files during a local dry run -- then re-checks for unmerged paths
+ * so a still-dirty tree fails loudly instead of corrupting the next pick's
+ * conflict report.
+ *
+ * @param {string} cwd
+ * @param {string} sha The commit whose pick this is recovering from, for the error message.
+ */
+export function recoverFromFailedPick(cwd, sha) {
+  try {
+    git(cwd, ['cherry-pick', '--quit']);
+  } catch {
+    // Ignored: --quit failing (e.g. no sequencer state left to end) doesn't
+    // matter, the hard reset below is what actually restores a clean tree.
+  }
+  git(cwd, ['reset', '--hard', 'HEAD']);
+
+  if (conflictedFiles(cwd).length > 0) {
+    throw new Error(`Working tree not clean after recovering from a failed pick of ${sha}`);
+  }
+}
+
+/**
  * Cherry-pick each sha in order. A conflict is aborted and recorded; an empty
  * pick (the change is already in the tree) is skipped and recorded.
  *
@@ -97,10 +124,18 @@ export function applyCommits(cwd, shas) {
       const files = conflictedFiles(cwd);
 
       if (files.length === 0 && /empty|nothing to commit/i.test(message)) {
-        git(cwd, ['cherry-pick', '--skip']);
+        try {
+          git(cwd, ['cherry-pick', '--skip']);
+        } catch {
+          recoverFromFailedPick(cwd, sha);
+        }
         empty.push(sha);
       } else {
-        git(cwd, ['cherry-pick', '--abort']);
+        try {
+          git(cwd, ['cherry-pick', '--abort']);
+        } catch {
+          recoverFromFailedPick(cwd, sha);
+        }
         conflicts.push({ sha, files });
       }
     }
