@@ -589,4 +589,14 @@ test.describe('autoLink.strict', () => {
     await expect(grid.anyLinks(15, 7)).toHaveCount(0);
     await expect(grid.cell(15, 7)).toHaveText('www.google.co.uk:123456');
   });
+
+  test('does not link a bare domain preceded by a backslash, Windows-path-style ' +
+    '(regression)', async({ page, theme, bundle }) => {
+    const grid = new AutoLinkPage(page, theme, bundle);
+
+    await grid.goto();
+
+    await expect(grid.anyLinks(16, 7)).toHaveCount(0);
+    await expect(grid.cell(16, 7)).toHaveText('C:\\Users\\example.com\\file');
+  });
 });

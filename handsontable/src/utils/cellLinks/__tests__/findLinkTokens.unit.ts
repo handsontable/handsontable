@@ -194,6 +194,16 @@ describe('findLinkTokens', () => {
     ]);
   });
 
+  it('should not split an embedded `https://` immediately preceded by a `\\` (Windows-path-shaped ' +
+    'glue, same rule as the `/` case above)', () => {
+    const text = 'https://a.com/x\\https://b.com/y';
+
+    // Before this fix, only `/` blocked the split, so this glued text produced two tokens
+    // ("https://a.com/x\" and "https://b.com/y"). A backslash is now excluded the same way.
+    expect(findLinkTokens(text, BASE)).toHaveLength(1);
+    expect(findLinkTokens(text, BASE)[0]).toMatchObject({ start: 0, end: text.length });
+  });
+
   it('should not split an embedded `https://` immediately preceded by a `/`', () => {
     expect(findLinkTokens('https://web.archive.org/web/2020/https://example.com', BASE)).toEqual([
       { start: 0, end: 52, href: 'https://web.archive.org/web/2020/https://example.com' },
@@ -222,6 +232,12 @@ describe('findLinkTokens', () => {
     expect(findLinkTokens('東京tel:03-1234', BASE)).toEqual([]);
     // The ASCII case this mirrors must stay refused too.
     expect(findLinkTokens('Grand Hotel:Warsaw', BASE)).toEqual([]);
+  });
+
+  it('should not read a `tel:`/`mailto:` scheme glued to a preceding backslash as a scheme ' +
+    '(Windows path, strict mode)', () => {
+    expect(findLinkTokens('C:\\mailto:a@b.com', BASE)).toEqual([]);
+    expect(findLinkTokens('C:\\tel:123', BASE)).toEqual([]);
   });
 
   it('should not link the tail of a scheme token that the caller\'s `schemes` narrowing refused', () => {
@@ -418,6 +434,54 @@ describe('strict: false', () => {
     ]);
     expect(findLinkTokens('https://foo.example.com', BASE)).toEqual([
       { start: 0, end: 23, href: 'https://foo.example.com/' },
+    ]);
+  });
+
+  it('should not link a bare domain preceded by a backslash (Windows path)', () => {
+    expect(findLinkTokens('C:\\example.com', BASE, LINK_SCHEMES, false)).toEqual([]);
+    expect(findLinkTokens('C:\\Users\\example.com\\file', BASE, LINK_SCHEMES, false)).toEqual([]);
+    expect(findLinkTokens('\\\\server\\share.example.com', BASE, LINK_SCHEMES, false)).toEqual([]);
+  });
+
+  it('should link a bare domain up to, but not across, a following backslash', () => {
+    const tokens = findLinkTokens('see example.com\\file', BASE, LINK_SCHEMES, false);
+
+    expect(tokens).toEqual([
+      { start: 4, end: 15, href: 'https://example.com/' },
+    ]);
+    // The token must end before the backslash - a bare-domain path never continues across one.
+    expect('see example.com\\file'.slice(tokens[0].start, tokens[0].end)).toBe('example.com');
+  });
+
+  it('should not read a `tel:` scheme glued to a preceding backslash as a scheme ' +
+    '(Windows path, non-strict mode)', () => {
+    expect(findLinkTokens('C:\\tel:123', BASE, LINK_SCHEMES, false)).toEqual([]);
+  });
+
+  it('should refuse the `mailto:` scheme glued to a preceding backslash, but still link the ' +
+    'bare email address that survives it (pre-existing `BARE_EMAIL_PATTERN` behavior, unrelated ' +
+    'to this fix: its own lookbehind does not exclude `:`, so a local part right after any ' +
+    'rejected "word:" prefix - "xmailto:a@b.com" behaves identically today - still matches on ' +
+    'its own)', () => {
+    expect(findLinkTokens('C:\\mailto:a@b.com', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 10, end: 17, href: 'mailto:a@b.com' },
+    ]);
+    expect(findLinkTokens('see xmailto:a@b.com', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 12, end: 19, href: 'mailto:a@b.com' },
+    ]);
+  });
+
+  it('should still link an ordinary bare domain unrelated to a backslash (control)', () => {
+    expect(findLinkTokens('Visit google.com now', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 6, end: 16, href: 'https://google.com/' },
+    ]);
+  });
+
+  it('should still split two scheme URLs joined by a comma (control, unaffected by the ' +
+    'backslash exclusion)', () => {
+    expect(findLinkTokens('https://a.com,mailto:b@c.com', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 0, end: 13, href: 'https://a.com/' },
+      { start: 14, end: 28, href: 'mailto:b@c.com' },
     ]);
   });
 });

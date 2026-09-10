@@ -42,7 +42,11 @@ export interface LinkToken extends Span {
 // mark is its own code point there), which `\p{L}` alone would miss. `LABEL` and the email local-part
 // class deliberately stay ASCII: this only turns a wrong link into no link, never into a correct one -
 // IDN/punycode support is out of scope.
-const TOKEN_PATTERN = /(?:https?:\/\/|(?<![\p{L}\p{N}\p{M}._~+-])(?:mailto:|tel:))[^\s<>"'`]+/giu;
+// Every lookbehind class below also excludes both path separators, `/` and `\`: without the
+// backslash a Windows path reads as a URL word boundary rather than as a continuation of it, so under
+// `strict: false` `C:\example.com` and `C:\Users\example.com\file` both linkify to
+// `https://example.com/` - the backslash is excluded for the same reason `/` already is.
+const TOKEN_PATTERN = /(?:https?:\/\/|(?<![\p{L}\p{N}\p{M}._~+\\-])(?:mailto:|tel:))[^\s<>"'`]+/giu;
 const SCHEME_PREFIX_PATTERN = /^(?:https?:\/\/|mailto:|tel:)/i;
 // Two different rules for the two families of embedded scheme. An embedded `http://`/`https://`
 // splits unless it is immediately preceded by a `/`: a literal `://` inside a path is not a
@@ -59,7 +63,7 @@ const SCHEME_PREFIX_PATTERN = /^(?:https?:\/\/|mailto:|tel:)/i;
 // `+` (0x2B) to `/` (0x2F) - which also swallows `,` (0x2C) - not three literal characters. Putting
 // `-` last (`[...+/-]`) keeps it literal, so this class excludes exactly the URL word characters
 // plus `/`, nothing more.
-const EMBEDDED_SCHEME_PATTERN = /(?:(?<!\/)https?:\/\/|(?<![\p{L}\p{N}\p{M}._~+/-])(?:mailto:|tel:))/giu;
+const EMBEDDED_SCHEME_PATTERN = /(?:(?<![/\\])https?:\/\/|(?<![\p{L}\p{N}\p{M}._~+/\\-])(?:mailto:|tel:))/giu;
 // A quote is not in this set: `TOKEN_PATTERN`'s character class already excludes `"` and `'`, so a
 // raw token can never carry one and a quote-trimming entry here would be unreachable.
 const TRAILING_PUNCTUATION_CHARS = new Set(['.', ',', ';', ':', '!', '?']);
@@ -97,7 +101,7 @@ const LABEL = '[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?';
 // `(?:LABEL\.)+[A-Za-z]{2,63}` is captured and re-asserted as one unit, so there is no shorter host
 // substring left for backtracking to fall back to - the candidate is refused outright instead.
 const BARE_DOMAIN_PATTERN = new RegExp(
-  `(?<![\\p{L}\\p{N}\\p{M}@._~+/-])(?=((?:${LABEL}\\.)+[A-Za-z]{2,63}))\\1(?!:\\d{6,})(?::\\d{1,5}(?!\\d))?` +
+  `(?<![\\p{L}\\p{N}\\p{M}@._~+/\\\\-])(?=((?:${LABEL}\\.)+[A-Za-z]{2,63}))\\1(?!:\\d{6,})(?::\\d{1,5}(?!\\d))?` +
     '(?:[/?#][^\\s<>"\'`]*)?',
   'gu'
 );
@@ -105,7 +109,7 @@ const BARE_DOMAIN_PATTERN = new RegExp(
 // `BARE_DOMAIN_PATTERN`, with no port or path (an email address never carries one). The lookbehind
 // keeps a match from starting mid-word, the same way the domain pattern's does.
 const BARE_EMAIL_PATTERN = new RegExp(
-  `(?<![\\p{L}\\p{N}\\p{M}._%+-])[A-Za-z0-9._%+-]+@(?:${LABEL}\\.)+([A-Za-z]{2,63})`, 'gu'
+  `(?<![\\p{L}\\p{N}\\p{M}._%+\\\\-])[A-Za-z0-9._%+-]+@(?:${LABEL}\\.)+([A-Za-z]{2,63})`, 'gu'
 );
 // Splits a trimmed bare candidate's host from a trailing port/path/query/fragment - `toDomainToken`
 // and `toEmailToken` both re-derive the TLD from what remains before this separator.
