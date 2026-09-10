@@ -34,10 +34,12 @@ import {
   aggregate,
   collectArtifactFiles,
   emptyLedger,
+  entryKey,
   mergeLedger,
   renderPage,
   renderStepSummary,
   runContextFromRun,
+  stableGeneratedAt,
 } from './lib/test-health.mjs';
 
 const DEFAULT_PAGE_URL = 'https://handsontable.github.io/handsontable/test-health/';
@@ -156,14 +158,29 @@ const run = runContextFromRun(JSON.parse(readFileSync(options.run, 'utf8')));
 const ledgerPath = path.join(options['ledger-dir'], 'ledger.json');
 const existing = existsSync(ledgerPath) ? JSON.parse(readFileSync(ledgerPath, 'utf8')) : emptyLedger();
 const { entries, notes } = collectArtifactFiles(readArtifactFiles(options.artifacts), run);
-const seeded = readSeed(options.seed);
+// A seed the ledger already holds must not overwrite the richer CI observation with its own
+// `error: null`, `source: 'seed'` copy — merge only the seeds that are new.
+const existingKeys = new Set((existing.entries ?? []).map(entryKey));
+const seeded = readSeed(options.seed).filter(entry => !existingKeys.has(entryKey(entry)));
 const { ledger, added } = mergeLedger(existing, [...seeded, ...entries], { now });
-const summary = aggregate(ledger, { now });
+const summaryPath = path.join(options['ledger-dir'], 'summary.json');
+let previousSummary = null;
+
+if (existsSync(summaryPath)) {
+  try {
+    previousSummary = JSON.parse(readFileSync(summaryPath, 'utf8'));
+  } catch {
+    previousSummary = null;
+  }
+}
+
+const aggregated = aggregate(ledger, { now });
+const summary = { ...aggregated, generatedAt: stableGeneratedAt(previousSummary, aggregated, now) };
 const pageUrl = options['page-url'] ?? DEFAULT_PAGE_URL;
 
 mkdirSync(options['ledger-dir'], { recursive: true });
 writeFileSync(ledgerPath, `${JSON.stringify(ledger, null, 2)}\n`);
-writeFileSync(path.join(options['ledger-dir'], 'summary.json'), `${JSON.stringify(summary, null, 2)}\n`);
+writeFileSync(summaryPath, `${JSON.stringify(summary, null, 2)}\n`);
 
 if (options.template) {
   const template = readFileSync(options.template, 'utf8');

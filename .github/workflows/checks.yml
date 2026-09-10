@@ -113,10 +113,14 @@ jobs:
             hot-e2e-test-shared: &hot-e2e-test-shared
               - './handsontable/test/e2e/**'
               - './handsontable/test/scripts/**'
+              # The bridge reporter and the loader helpers decide what the Puppeteer
+              # legs report, so a change to them alone must still run those legs.
+              - './handsontable/test/helpers/**'
             build-handsontable-umd:
               - *hot-shared
               - './handsontable/test/e2e/**'
               - './handsontable/test/scripts/**'
+              - './handsontable/test/helpers/**'
               - './examples/next/visual-tests/**'
               # The Playwright tier drives the built dist, so a tests-only PR
               # must still produce the UMD artifact.

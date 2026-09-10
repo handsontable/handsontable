@@ -188,18 +188,29 @@
       tbody.appendChild(tr);
     });
 
-    document.getElementById('empty').hidden = visible.length > 0 || rows.length > 0 && filter !== '';
+    document.getElementById('empty').hidden = visible.length > 0 || rows.length > 0;
     document.getElementById('count').textContent = visible.length + ' of ' + rows.length + ' test(s)';
   }
 
+  function applySort(th) {
+    var key = th.getAttribute('data-key');
+    if (sortKey === key) { sortAsc = !sortAsc; } else { sortKey = key; sortAsc = key === 'title' || key === 'legs'; }
+    document.querySelectorAll('th[data-key]').forEach(function(other) {
+      other.classList.remove('sorted', 'asc');
+      other.setAttribute('aria-sort', 'none');
+    });
+    th.classList.add('sorted');
+    if (sortAsc) { th.classList.add('asc'); }
+    th.setAttribute('aria-sort', sortAsc ? 'ascending' : 'descending');
+    render();
+  }
   document.querySelectorAll('th[data-key]').forEach(function(th) {
-    th.addEventListener('click', function() {
-      var key = th.getAttribute('data-key');
-      if (sortKey === key) { sortAsc = !sortAsc; } else { sortKey = key; sortAsc = key === 'title' || key === 'legs'; }
-      document.querySelectorAll('th').forEach(function(other) { other.classList.remove('sorted', 'asc'); });
-      th.classList.add('sorted');
-      if (sortAsc) { th.classList.add('asc'); }
-      render();
+    th.setAttribute('tabindex', '0');
+    th.setAttribute('role', 'button');
+    th.setAttribute('aria-sort', th.classList.contains('sorted') ? (sortAsc ? 'ascending' : 'descending') : 'none');
+    th.addEventListener('click', function() { applySort(th); });
+    th.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); applySort(th); }
     });
   });
   document.getElementById('filter').addEventListener('input', render);

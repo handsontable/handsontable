@@ -20,6 +20,7 @@ import {
   renderPage,
   renderStepSummary,
   runContextFromRun,
+  stableGeneratedAt,
   testKey,
 } from '../lib/test-health.mjs';
 import { repoRoot } from '../lib/repo-root.mjs';
@@ -219,7 +220,7 @@ test('collectArtifactFiles reads only report and record files, skips broken JSON
     'jasmine:failed:MemoryLeakTest leaks',
   ]);
   assert.equal(notes.length, 2, notes.join('\n'));
-  assert.match(notes[0], /puppeteer-failed-specs-UMD\.min-main\/failed-specs-0df67fa0\.json: not valid JSON/);
+  assert.match(notes[0], /puppeteer-failed-specs-UMD\.min-main\/failed-specs-0df67fa0\.json: could not be read/);
   assert.match(notes[1], /^playwright-report-main: no test-results\/report\.json/);
 });
 
@@ -262,13 +263,13 @@ test('mergeLedger de-duplicates by entry key, prunes past the retention window, 
   assert.deepEqual(mergeLedger(null, [], { now: NOW }).ledger.entries, [], 'no ledger yet is an empty ledger');
 
   const later = new Date(NOW.getTime() + 3600000);
-  const again = mergeLedger(ledger, [entries[0]], { now: later });
+  const again = mergeLedger(ledger, [{ ...entries[0], error: 'newer copy' }], { now: later });
 
-  assert.equal(again.changed, false, 'the same observation again changes nothing');
+  assert.equal(again.changed, false, 're-collecting the stored payload changes nothing');
   assert.equal(again.pruned, 0);
   assert.equal(again.ledger.updatedAt, NOW.toISOString(), 'an unchanged ledger keeps its change time');
-  assert.equal(aggregate(again.ledger, { now: later }).generatedAt, NOW.toISOString(),
-    'and so does the summary, so nothing is republished');
+  assert.equal(aggregate(again.ledger, { now: later }).generatedAt, later.toISOString(),
+    'aggregate always stamps now; stableGeneratedAt keeps an unchanged page identical in the collector');
 });
 
 test('aggregate counts per test over both windows, counts distinct runs, and draws the ticket line', () => {
@@ -331,8 +332,8 @@ test('renderStepSummary lists what the run added, the tests over the line, the n
     + `quarantined (${QUARANTINE_NOTE})\n`));
   assert.ok(markdown.includes('- **failed** on `UMD (theme: main)`: Core_alter remove_row should remove one row '
     + '(`handsontable/test/e2e/core/alter.spec.js`), in isolation: passes alone\n'));
-  assert.ok(markdown.includes('1 test(s) have flaked in 2+ distinct runs in the last 30 days '
-    + 'and need a fix or migration ticket:'));
+  assert.ok(markdown.includes('1 test(s) recurred across 2+ distinct branches or flaky reruns in the '
+    + 'last 30 days and need a fix or migration ticket:'));
   assert.match(markdown, /Notes:\n\n- playwright-report-main: no test-results\/report\.json/);
   assert.match(markdown, /Ledger: https:\/\/handsontable\.github\.io\/handsontable\/test-health\/\n$/);
 
@@ -380,6 +381,9 @@ test('the reporter config, the E2E workflow and the collector agree on the repor
     'the Playwright artifact keeps the prefix the collector classifies by');
   assert.match(e2e, new RegExp(`^\\s+tests/${reportDir}\\s*$`, 'm'),
     `e2e.yml must upload tests/${reportDir} with the report`);
+  assert.match(e2e, /^\s+tests\/playwright-report\s*$/m,
+    'e2e.yml must also upload tests/playwright-report, so tests/ stays the artifact root '
+    + `and the report keeps its ${reportDir}/ prefix`);
   assert.ok(e2e.includes(`name: ${JASMINE_ARTIFACT_PREFIX}\${{ matrix.bundle.label }}`),
     'the Puppeteer record artifact keeps the prefix the collector classifies by');
 });
@@ -387,7 +391,7 @@ test('the reporter config, the E2E workflow and the collector agree on the repor
 test('the test-health workflow chains on the two orchestrators, takes a run id, and stays fork-safe', () => {
   const workflow = readFileSync(path.join(repoRoot(), '.github/workflows/test-health.yml'), 'utf8');
 
-  assert.match(workflow, /workflows: \['Tests', 'Develop'\]/);
+  assert.match(workflow, /workflows: \['Tests', 'Develop', 'Publish'\]/);
   assert.match(workflow, /types: \[completed\]/);
   assert.match(workflow, /workflow_dispatch:\n\s+inputs:\n\s+run-id:/);
   assert.match(workflow, /^permissions:\n\s+contents: write/m, 'the gh-pages push needs contents: write');
@@ -395,4 +399,72 @@ test('the test-health workflow chains on the two orchestrators, takes a run id, 
   assert.ok(!/^concurrency:/m.test(workflow), 'a concurrency group would cancel queued collections');
   assert.match(workflow, /--seed \.github\/test-health\/seed\.json/);
   assert.match(workflow, /--template \.github\/test-health\/index\.template\.html/);
+});
+
+test('mergeLedger reports changed/pruned and freezes updatedAt on a true no-op', () => {
+  const run = runContextFromRun(RUN);
+  const [flaky] = parsePlaywrightReport(PLAYWRIGHT_REPORT, run);
+  const seed = { ...emptyLedger(), updatedAt: '2026-09-01T00:00:00Z', entries: [flaky] };
+
+  const noop = mergeLedger(seed, [flaky], { now: NOW });
+
+  assert.equal(noop.changed, false, 're-collecting the same entry changes nothing');
+  assert.equal(noop.pruned, 0);
+  assert.equal(noop.ledger.updatedAt, '2026-09-01T00:00:00Z', 'a no-op keeps the old timestamp');
+
+  const overwrite = mergeLedger(seed, [{ ...flaky, error: 'new error' }], { now: NOW });
+
+  assert.equal(overwrite.changed, true, 'the same key with a different payload is a change');
+  assert.equal(overwrite.added.length, 0);
+  assert.equal(overwrite.ledger.updatedAt, NOW.toISOString());
+
+  const day = 86400000;
+  const staleAt = new Date(NOW.getTime() - ((RETENTION_DAYS + 1) * day)).toISOString();
+  const stale = { ...flaky, runId: 'old', seenAt: staleAt };
+  const pruning = mergeLedger(
+    { ...emptyLedger(), updatedAt: '2026-09-01T00:00:00Z', entries: [stale] }, [], { now: NOW }
+  );
+
+  assert.equal(pruning.pruned, 1);
+  assert.equal(pruning.changed, true, 'pruning a stale entry is a change');
+});
+
+test('stableGeneratedAt keeps the timestamp when only it would differ, else advances to now', () => {
+  const base = { generatedAt: '2026-09-01T00:00:00Z', rows: [{ key: 'a', count7: 1 }], totals: { tests: 1 } };
+  const same = { ...base, generatedAt: NOW.toISOString() };
+
+  assert.equal(stableGeneratedAt(base, same, NOW), '2026-09-01T00:00:00Z', 'identical but for the stamp keeps it');
+
+  const rolled = { ...base, generatedAt: NOW.toISOString(), rows: [{ key: 'a', count7: 0 }] };
+
+  assert.equal(stableGeneratedAt(base, rolled, NOW), NOW.toISOString(), 'a count that rolled advances the stamp');
+  assert.equal(stableGeneratedAt(null, same, NOW), NOW.toISOString(), 'the first publish uses now');
+});
+
+test('needsTicket flags a flake across runs or branches, not one branch failing twice', () => {
+  const run = runContextFromRun(RUN);
+  const [flaky, failed] = parsePlaywrightReport(PLAYWRIGHT_REPORT, run);
+  const day = 86400000;
+  const at = daysAgo => new Date(NOW.getTime() - (daysAgo * day)).toISOString();
+
+  const oneBranch = aggregate({ ...emptyLedger(), entries: [
+    { ...failed, runId: 'r1', branch: 'feature/x', seenAt: at(1) },
+    { ...failed, runId: 'r2', branch: 'feature/x', seenAt: at(2) },
+  ] }, { now: NOW });
+
+  assert.equal(oneBranch.rows[0].needsTicket, false, "two failures on one branch is that branch's bug");
+
+  const twoBranches = aggregate({ ...emptyLedger(), entries: [
+    { ...failed, runId: 'r1', branch: 'feature/x', seenAt: at(1) },
+    { ...failed, runId: 'r2', branch: 'feature/y', seenAt: at(2) },
+  ] }, { now: NOW });
+
+  assert.equal(twoBranches.rows[0].needsTicket, true, 'across two branches it needs a ticket');
+
+  const flakyTwice = aggregate({ ...emptyLedger(), entries: [
+    { ...flaky, runId: 'r1', branch: 'feature/x', seenAt: at(1) },
+    { ...flaky, runId: 'r2', branch: 'feature/x', seenAt: at(2) },
+  ] }, { now: NOW });
+
+  assert.equal(flakyTwice.rows[0].needsTicket, true, 'flaky in two runs needs a ticket');
 });
