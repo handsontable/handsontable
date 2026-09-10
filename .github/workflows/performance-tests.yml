@@ -33,7 +33,7 @@ permissions:
 jobs:
   performance-tests:
     name: run
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 90
     env:
       PERF_MODE: ${{ github.event_name == 'push' && 'golden' || 'compare' }}

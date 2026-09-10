@@ -14,7 +14,7 @@ on:
 jobs:
   run:
     name: run
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 90
     permissions:
       contents: write
