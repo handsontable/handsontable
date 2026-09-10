@@ -32,6 +32,8 @@ Monorepo-wide orientation, not core internals.
 | [`MCP.md`](MCP.md) | code-review-graph and context tooling (monorepo-wide). |
 | [`WORKTREES.md`](WORKTREES.md) | Working in a linked git worktree: what a fresh worktree is missing, the bootstrap command, and the port and `node_modules` traps. |
 
+`.ai/specs/` – approved design specs for tooling that spans workflows and scripts (docs sync: `2026-09-10-docs-sync-design.md`).
+
 ### Core scope — `handsontable/.ai/`
 
 Internals of the core data grid package.
