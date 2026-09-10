@@ -1,6 +1,7 @@
 import { BasePlugin } from '../base';
 import { staticRegister } from '../../utils/staticRegister';
 import { error, warn, warnOnce } from '../../helpers/console';
+import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { isNumeric } from '../../helpers/number';
 import { isObject, isPlainObject } from '../../helpers/object';
 import { isDefined, isUndefined } from '../../helpers/mixed';
@@ -188,6 +189,10 @@ const HYPERLINK_WARN_KEY = 'formulas-hyperlink-refused';
 // `warnOnce` key for an invalid `formulas.hyperlinks` object-form setting (an unrecognized `target`
 // or `schemes` entry). One warning per `#refreshHyperlinksSetting()` call, not per cell.
 const HYPERLINK_SETTINGS_WARN_KEY = 'formulas-hyperlinks-settings';
+
+// `warnOnce` key for the deprecated `registerShortcuts()`/`unregisterShortcuts()` shims. Shared
+// between the two methods so calling both in a row still warns once.
+const SHORTCUTS_DEPRECATION_WARN_KEY = 'formulas-shortcuts-deprecated';
 
 /**
  * This plugin allows you to perform Excel-like calculations in your business applications. It does it by an
@@ -829,6 +834,11 @@ export class Formulas extends BasePlugin {
 
     this.#refreshHyperlinksSetting();
 
+    // The `HYPERLINK` anchors are written by `#onAfterRenderer`, so a bare enable paints nothing on
+    // its own. Under `renderMode: 'onChange'` a render right after this call would skip every cell
+    // unless the epoch advances here too - mirrors the same call in `AutoLink.enablePlugin()`.
+    this.hot.markAllCellsChanged();
+
     super.enablePlugin();
   }
 
@@ -847,6 +857,34 @@ export class Formulas extends BasePlugin {
     this.engine = null;
 
     super.disablePlugin();
+  }
+
+  /**
+   * Deprecated. The `Alt`+`Enter` shortcut that opens a cell's link is a core grid shortcut now,
+   * registered for every grid, so the plugin has nothing to register. This method is a no-op.
+   *
+   * @deprecated Since 18.2.0. The `Alt`+`Enter` shortcut that opens a cell's link is a core grid
+   * shortcut now, registered for every grid, so the plugin has nothing to register. The method does
+   * nothing and will be removed in the next major release.
+   */
+  registerShortcuts(): void {
+    warnOnce(this, SHORTCUTS_DEPRECATION_WARN_KEY, toSingleLine`The "registerShortcuts" and\x20
+      "unregisterShortcuts" methods of the Formulas plugin are deprecated and do nothing: the\x20
+      Alt+Enter link shortcut is a core grid shortcut since 18.2.0. Remove the calls.`);
+  }
+
+  /**
+   * Deprecated. The `Alt`+`Enter` shortcut that opens a cell's link is a core grid shortcut now,
+   * registered for every grid, so the plugin has nothing to unregister. This method is a no-op.
+   *
+   * @deprecated Since 18.2.0. The `Alt`+`Enter` shortcut that opens a cell's link is a core grid
+   * shortcut now, registered for every grid, so the plugin has nothing to unregister. The method does
+   * nothing and will be removed in the next major release.
+   */
+  unregisterShortcuts(): void {
+    warnOnce(this, SHORTCUTS_DEPRECATION_WARN_KEY, toSingleLine`The "registerShortcuts" and\x20
+      "unregisterShortcuts" methods of the Formulas plugin are deprecated and do nothing: the\x20
+      Alt+Enter link shortcut is a core grid shortcut since 18.2.0. Remove the calls.`);
   }
 
   /**

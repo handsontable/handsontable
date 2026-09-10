@@ -90,7 +90,7 @@ Set [`autoLink`](@/api/options.md#autolink) to an object to configure the links:
 | Option      | Default    | Description                                                                                  |
 | ----------- | ---------- | -------------------------------------------------------------------------------------------- |
 | `target`    | `'_blank'` | Where the links open: a new tab (`'_blank'`) or the current one (`'_self'`).                  |
-| `schemes`   | all four   | The URL schemes to link, a subset of `'http'`, `'https'`, `'mailto'`, and `'tel'`.            |
+| `schemes`   | all four   | The URL schemes to link, a subset of `'http'`, `'https'`, `'mailto'`, and `'tel'`. A column or cell `schemes` can only narrow this fixed four-scheme allowlist, never widen it, and replaces the grid-level list for those cells. |
 | `inline`    | `true`     | `true` links URLs inside longer text. `false` links only a cell whose whole value is one URL. |
 | `className` | `''`       | Extra class name(s) added to every link element.                                              |
 

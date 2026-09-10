@@ -1,8 +1,8 @@
 import { BasePlugin } from '../base';
 import type { CellProperties } from '../../settings';
 import { LINK_SCHEMES, normalizeSchemes, type LinkScheme, type LinkTarget } from '../../utils/cellLinks';
-import { linkifyCell, unlinkifyCell } from './linkifyCell';
-import { resolveAutoLinkSettings, type ResolvedAutoLinkSettings } from './resolveSettings';
+import { linkifyCell, unlinkifyCell, type LinkifyOptions } from './linkifyCell';
+import { resolveAutoLinkSettingsCached, type ResolvedAutoLinkSettings } from './resolveSettings';
 
 export const PLUGIN_KEY = 'autoLink';
 export const PLUGIN_PRIORITY = 270;
@@ -106,6 +106,29 @@ export class AutoLink extends BasePlugin {
   #settings: ResolvedAutoLinkSettings | null = null;
 
   /**
+   * The document's base URL, cached so `#onAfterRenderer` never reads `baseURI` itself. Refreshed on
+   * every `beforeRender` - `#onBeforeRender` - rather than only once on enable, in case the document
+   * gains or loses a `<base>` element mid-session.
+   */
+  #baseUrl = '';
+
+  /**
+   * Merged column- or cell-level `autoLink` overrides, keyed on the override object itself. A cell's
+   * override object is read again on every render pass it is painted, so without this cache the
+   * merge-and-validate work in `resolveAutoLinkSettings` would repeat on every render for a cell whose
+   * override never changed.
+   */
+  #overrideCache = new WeakMap<object, ResolvedAutoLinkSettings>();
+
+  /**
+   * The full `LinkifyOptions` built for one resolved settings object (grid-level or a cached
+   * override), keyed on that object. Avoids allocating a fresh options object - `{ ...resolved,
+   * baseUrl }` - on every cell of every render pass; rebuilt only when `#baseUrl` actually changed
+   * since the cached entry was built.
+   */
+  #optionsCache = new WeakMap<ResolvedAutoLinkSettings, LinkifyOptions>();
+
+  /**
    * Checks if the plugin is enabled in the Handsontable settings.
    *
    * @returns {boolean}
@@ -123,6 +146,8 @@ export class AutoLink extends BasePlugin {
     }
 
     this.#settings = this.#resolveSettings(undefined);
+    this.#baseUrl = this.hot.rootDocument.baseURI;
+    this.addHook('beforeRender', this.#onBeforeRender);
     this.addHook('afterRenderer', this.#onAfterRenderer);
 
     // The anchors are written by `afterRenderer`, so a bare enable paints nothing on its own. Under
@@ -157,6 +182,11 @@ export class AutoLink extends BasePlugin {
     this.hot.markAllCellsChanged();
     this.#settings = null;
 
+    // `WeakMap` has no `clear()`; a fresh instance is the only way to drop every entry. A later
+    // `enablePlugin()` re-derives both caches from scratch, so nothing here needs to survive.
+    this.#overrideCache = new WeakMap();
+    this.#optionsCache = new WeakMap();
+
     super.disablePlugin();
   }
 
@@ -168,6 +198,15 @@ export class AutoLink extends BasePlugin {
 
     super.destroy();
   }
+
+  /**
+   * `beforeRender` hook callback. Refreshes the cached `baseUrl` so `#onAfterRenderer` never reads
+   * `document.baseURI` itself - cheap to call on every render, unlike reading a live DOM property once
+   * per cell.
+   */
+  #onBeforeRender = () => {
+    this.#baseUrl = this.hot.rootDocument.baseURI;
+  };
 
   /**
    * Resolves the settings for one cell: the grid-level settings, with a cell-level object merged over
@@ -189,7 +228,29 @@ export class AutoLink extends BasePlugin {
       return base;
     }
 
-    return resolveAutoLinkSettings(base, cellSetting as AutoLinkSettings);
+    return resolveAutoLinkSettingsCached(this.#overrideCache, base, cellSetting as AutoLinkSettings);
+  }
+
+  /**
+   * Builds the `LinkifyOptions` for one resolved settings object, memoized in `#optionsCache` so the
+   * `{ ...resolved, baseUrl }` copy runs at most once per resolved settings object per `baseUrl` -
+   * not once per cell of every render pass.
+   *
+   * @param {ResolvedAutoLinkSettings} resolved The resolved settings to add `baseUrl` to.
+   * @returns {LinkifyOptions} The options ready for `linkifyCell`.
+   */
+  #toLinkifyOptions(resolved: ResolvedAutoLinkSettings): LinkifyOptions {
+    const cached = this.#optionsCache.get(resolved);
+
+    if (cached !== undefined && cached.baseUrl === this.#baseUrl) {
+      return cached;
+    }
+
+    const options: LinkifyOptions = { ...resolved, baseUrl: this.#baseUrl };
+
+    this.#optionsCache.set(resolved, options);
+
+    return options;
   }
 
   /**
@@ -214,9 +275,6 @@ export class AutoLink extends BasePlugin {
       return;
     }
 
-    linkifyCell(TD, {
-      ...this.#resolveSettings(cellSetting),
-      baseUrl: this.hot.rootDocument.baseURI,
-    });
+    linkifyCell(TD, this.#toLinkifyOptions(this.#resolveSettings(cellSetting)));
   };
 }

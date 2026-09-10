@@ -179,6 +179,57 @@ test.describe('formulas: HYPERLINK rendering', () => {
     await expect(grid.link(0, 4)).toHaveCount(0);
   });
 
+  test('enablePlugin() marks every cell changed, so a bare re-enable repaints links under renderMode: "onChange"',
+    async({ page, theme, bundle }) => {
+      const grid = new FormulasHyperlinkPage(page, theme, bundle);
+
+      await grid.goto();
+      await expect(grid.link(0, 0)).toHaveCount(1);
+
+      await grid.setRenderMode('onChange');
+      await grid.disableFormulasPluginWithoutRender();
+      await grid.render();
+
+      // Disabling already unwraps eagerly, without needing a render - confirms the starting point
+      // before the render-epoch assertion below.
+      await expect(grid.link(0, 0)).toHaveCount(0);
+
+      // Without `enablePlugin()` marking every cell changed, this render would skip every cell under
+      // `renderMode: 'onChange'` and the anchor would never come back.
+      await grid.enableFormulasPluginWithRender();
+
+      await expect(grid.link(0, 0)).toHaveCount(1);
+    });
+
+  test('deprecates registerShortcuts()/unregisterShortcuts() as no-op shims that warn once, and Alt+Enter still works',
+    async({ page, theme, bundle }) => {
+      const warnings: string[] = [];
+
+      page.on('console', (message) => {
+        if (message.type() === 'warning') {
+          warnings.push(message.text());
+        }
+      });
+
+      const grid = new FormulasHyperlinkPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.recordWindowOpen();
+
+      // Rejects (and fails the test) if either deprecated method throws.
+      await grid.callDeprecatedShortcutMethods();
+
+      const deprecationWarnings = () => warnings.filter(text => text.includes('deprecated'));
+
+      await expect.poll(() => deprecationWarnings().length, { timeout: 1000 }).toBe(1);
+
+      // The chord itself is a core grid shortcut, unaffected by the deprecated shims.
+      await grid.selectCell(0, 0);
+      await grid.pressOpenLinkShortcut();
+
+      await expect(grid.openedUrls()).resolves.toEqual(['https://example.com/one']);
+    });
+
   test('survives a renderer that wraps the anchor it produced', async({ page, theme, bundle }) => {
     const pageErrors: string[] = [];
 

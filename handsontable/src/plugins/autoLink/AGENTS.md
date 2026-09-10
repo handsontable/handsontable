@@ -30,14 +30,23 @@ shares with `Formulas`.
   label is a URL does not get its input wrapped in the anchor.
 - **`disablePlugin()` must unwrap the whole root and call `markAllCellsChanged()`.** Removing the hook removes
   nothing on screen; a memoizing renderer never repaints, and under `renderMode: 'onChange'` no cell would
-  otherwise be marked. Same lesson as `Comments` and `Formulas`. `enablePlugin()` also calls
-  `markAllCellsChanged()`, for the mirror reason: under `renderMode: 'onChange'` a bare `enablePlugin()` advances
-  no render epoch, so nothing would paint the anchors.
+  otherwise be marked. `enablePlugin()` also calls `markAllCellsChanged()`, for the mirror reason: under
+  `renderMode: 'onChange'` a bare `enablePlugin()` advances no render epoch, so nothing would paint the anchors.
+  Both `AutoLink` and `Formulas` (since 18.2.0) call `markAllCellsChanged()` in `enablePlugin()`, for that mirror
+  reason; `AutoLink` calls it in `disablePlugin()` too, as does `Comments`. `Formulas.disablePlugin()` does not need
+  the call: `#unwrapRenderedHyperlinks()` removes its anchors from the currently-rendered DOM eagerly, not through a
+  render pass, so there is no epoch for a later `render()` to skip.
 - **Cell-level objects bypass `SETTINGS_VALIDATORS`.** The plugin validators only see the grid-level object, so
   `#resolveSettings` re-checks every key of a column or cell override. `resolveSettings.ts` never widens the fixed
-  allowlist: an explicit `[]` at column or cell level keeps that column link-free, and a column or cell `schemes`
-  array whose entries are all unknown falls back to the grid-level schemes instead of silently linking nothing (a
-  typo must not fail closed at one level and open at another).
+  four-scheme allowlist: a column or cell `schemes` REPLACES the grid-level list for those cells (a standard
+  cascading override, not a merge), and every level can only narrow the allowlist, never widen it. An explicit `[]`
+  at column or cell level keeps that column link-free, and a column or cell `schemes` array whose entries are all
+  unknown falls back to the grid-level schemes instead of silently linking nothing (a typo must not fail closed at
+  one level and open at another). `#resolveSettings` caches the merged result per override object in
+  `#overrideCache` (a `WeakMap`), and caches the `LinkifyOptions` built from it in `#optionsCache` keyed on that
+  merged object, so neither the merge-and-validate work nor the `baseUrl` spread repeats on every render for a cell
+  whose override object is unchanged; both caches are dropped (a fresh `WeakMap`, which has no `clear()`) in
+  `disablePlugin()`.
 - **`javascript:` never tokenizes.** The scheme set is baked into the regex, and `resolveLinkUrl` checks the parsed
   protocol again. Do not "extend" the regex to `[a-z]+:`; the allowlist is the security boundary.
 - **The `:` fast path is load-bearing.** Most cells hold no URL; `indexOf(':')` on `textContent` is what keeps the
@@ -47,6 +56,15 @@ shares with `Formulas`.
   re-tokenizes the rendered text, and a text that lost `mailto:` would look like plain text on the next pass.
   `unlinkifyCell` unwraps the spans before the anchors, so a disabled grid returns to plain text with the prefix
   visible again.
+- **A jsdom unit test builds a TD with `document.createElement`, which is detached, so `Node.isConnected` is
+  `false` for everything inside it.** `unwrapLinks` (`../../utils/cellLinks/linkElement.ts`) therefore guards its
+  defensive check with `root.contains(link)`, not `link.isConnected` — the latter would read `true` for anchors
+  this function is meant to reach whenever the caller passes a detached `TD`, which every jsdom unit test does.
+- **The Playwright fixture's row height must stay generous on every theme.** `horizon`'s rows render taller than
+  `main`'s and `classic`'s, so a `height` sized only for `main` can virtualize the fixture's last data row out of
+  the DOM on `horizon` while the other two legs still render it — a silent gap in coverage, not a failure. When
+  adding rows to `tests/fixtures/demo/auto-link.html`, keep `height` generous enough (`800` as of this writing) and
+  run **every** leg, not only `e2e-main`.
 
 ## Where to look next
 

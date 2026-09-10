@@ -88,6 +88,40 @@ export class FormulasHyperlinkPage {
   }
 
   /**
+   * Re-enable the Formulas plugin and force a redraw. Used after
+   * `disableFormulasPluginWithoutRender()` to prove `enablePlugin()` marks every cell changed on its
+   * own - under `renderMode: 'onChange'` the render right after would otherwise skip every cell.
+   */
+  async enableFormulasPluginWithRender(): Promise<void> {
+    await this.page.evaluate(() => {
+      const hot = (window as any).hot;
+
+      hot.getPlugin('formulas').enablePlugin();
+      hot.render();
+    });
+  }
+
+  /** Set the grid's `renderMode` option through `updateSettings`. */
+  async setRenderMode(renderMode: 'always' | 'onChange'): Promise<void> {
+    await this.page.evaluate((mode) => {
+      (window as any).hot.updateSettings({ renderMode: mode });
+    }, renderMode);
+  }
+
+  /**
+   * Call `registerShortcuts()` and `unregisterShortcuts()` on the Formulas plugin directly, the
+   * deprecated no-op shims. Rejects if either call throws.
+   */
+  async callDeprecatedShortcutMethods(): Promise<void> {
+    await this.page.evaluate(() => {
+      const formulas = (window as any).hot.getPlugin('formulas');
+
+      formulas.registerShortcuts();
+      formulas.unregisterShortcuts();
+    });
+  }
+
+  /**
    * Replace `window.open` with a recorder. The plugin opens links through it,
    * so this keeps the keyboard assertion deterministic and offline.
    */

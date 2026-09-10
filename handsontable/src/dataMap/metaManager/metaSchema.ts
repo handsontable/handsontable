@@ -603,7 +603,7 @@ export default (): Record<string, unknown> => {
      * | Option      | Possible settings                                                       | Description                                                                 |
      * | ----------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------- |
      * | `target`    | `'_blank'` (default) \| `'_self'`                                       | Where the links open                                                         |
-     * | `schemes`   | An array of `'http'`, `'https'`, `'mailto'`, `'tel'` (default: all four) | The URL schemes to link. Narrows the allowlist, never widens it.             |
+     * | `schemes`   | An array of `'http'`, `'https'`, `'mailto'`, `'tel'` (default: all four) | The URL schemes to link. Narrows the fixed four-scheme allowlist, never widens it. A column or cell `schemes` replaces the grid-level list for those cells. |
      * | `inline`    | `true` (default) \| `false`                                             | `true`: link URLs inside longer text<br>`false`: link only a cell whose whole value is one URL |
      * | `className` | A string (default: `''`)                                                | Extra class name(s) added to every link                                      |
      *

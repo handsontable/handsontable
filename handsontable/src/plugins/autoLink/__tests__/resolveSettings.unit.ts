@@ -1,4 +1,4 @@
-import { resolveAutoLinkSettings } from '../resolveSettings';
+import { resolveAutoLinkSettings, resolveAutoLinkSettingsCached } from '../resolveSettings';
 import type { ResolvedAutoLinkSettings } from '../resolveSettings';
 import type { AutoLinkSettings } from '../autoLink';
 
@@ -54,5 +54,36 @@ describe('resolveAutoLinkSettings', () => {
     expect(resolved.target).toBe(BASE.target);
     expect(resolved.inline).toBe(BASE.inline);
     expect(resolved.classNames).toEqual(BASE.classNames);
+  });
+});
+
+describe('resolveAutoLinkSettingsCached', () => {
+  it('should return the identical result object when resolving the same override object twice', () => {
+    const cache = new WeakMap<object, ResolvedAutoLinkSettings>();
+    const override: AutoLinkSettings = { target: '_self' };
+
+    const first = resolveAutoLinkSettingsCached(cache, BASE, override);
+    const second = resolveAutoLinkSettingsCached(cache, BASE, override);
+
+    expect(second).toBe(first);
+  });
+
+  it('should resolve two different override objects independently, even with identical contents', () => {
+    const cache = new WeakMap<object, ResolvedAutoLinkSettings>();
+    const overrideA: AutoLinkSettings = { target: '_self' };
+    const overrideB: AutoLinkSettings = { target: '_self' };
+
+    const resolvedA = resolveAutoLinkSettingsCached(cache, BASE, overrideA);
+    const resolvedB = resolveAutoLinkSettingsCached(cache, BASE, overrideB);
+
+    expect(resolvedA).not.toBe(resolvedB);
+    expect(resolvedA).toEqual(resolvedB);
+  });
+
+  it('should return a value equal to a direct, uncached resolve', () => {
+    const cache = new WeakMap<object, ResolvedAutoLinkSettings>();
+    const override: AutoLinkSettings = { schemes: ['https'], className: 'company-link' };
+
+    expect(resolveAutoLinkSettingsCached(cache, BASE, override)).toEqual(resolveAutoLinkSettings(BASE, override));
   });
 });

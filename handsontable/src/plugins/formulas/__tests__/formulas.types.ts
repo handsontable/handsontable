@@ -64,3 +64,7 @@ formulas.sheetId!.toFixed();
 formulas.addSheet('sheet2', [[]]);
 formulas.getCellType(0, 0, 1);
 formulas.switchSheet('sheet2');
+
+// Deprecated no-op shims, kept for backward compatibility - must still compile.
+formulas.registerShortcuts();
+formulas.unregisterShortcuts();
