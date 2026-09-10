@@ -182,8 +182,10 @@ test.describe('sheets bar', () => {
 
     await bar.goto();
 
+    // The hover surface is painted on the trigger's `::before` layer, inset to the glyph's own
+    // box, so that is where the treatment shows up.
     const surfaceOf = (index: number) => bar.chevron(index)
-      .evaluate(element => getComputedStyle(element).backgroundColor);
+      .evaluate(element => getComputedStyle(element, '::before').backgroundColor);
 
     const resting = await surfaceOf(0);
 
