@@ -21,7 +21,7 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 [[toc]]
 
-Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode).
+Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way.
 
 ## 1. `date` cells reach the formula engine the same way on every data path
 
@@ -355,3 +355,49 @@ than one selection layer.
 Nothing to change in most cases, because the gesture now does what the highlight shows. If your own
 code removed a selection layer in response to such a click, drop that workaround: the grid no longer
 removes the layer for you.
+
+## 9. A plain value written into a key/value `source` cell resolves to the matching object
+
+This applies only to [`autocomplete`](@/api/options.md#source),
+[`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) or `handsontable` columns
+whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects.
+
+Such a cell stores the whole object, not the label shown for it. The cell editor already resolved a
+label into that object, but no other way of writing to the cell did. Writing the label `'BMW'` into a
+column whose source held `{ key: '1', value: 'BMW' }` stored one of two wrong values, depending on
+what the cell held before:
+
+- an empty cell stored the string `'BMW'`
+- a cell that already held an object stored `{ key: 'BMW', value: 'BMW' }`, reusing the label as the key
+
+The label is now looked up among the source objects, and the matching object is stored whole. Every
+way of writing to the cell behaves like the editor:
+
+- pasting text, including a paste from another application and a paste as plain text
+  (<kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Shift**</kbd> + <kbd>**V**</kbd>)
+- [`setDataAtCell()`](@/api/core.md#setdataatcell) and
+  [`populateFromArray()`](@/api/core.md#populatefromarray)
+- autofill and undo
+
+A value that matches no source object is stored as you wrote it, so a
+[`strict`](@/api/options.md#strict) column still marks it invalid. A `source` of plain strings is
+unaffected, and so is a `source` declared as a function, because its options are not known until the
+function answers.
+
+### Who is affected
+
+- You use a `strict` column, such as `dropdown`. Pasting a valid label used to mark the cell invalid.
+  It is now accepted, so a cell you expected to fail validation may now pass.
+- You use a non-strict `autocomplete` column and read
+  [`getSourceData()`](@/api/core.md#getsourcedata) after a paste or a
+  [`setDataAtCell()`](@/api/core.md#setdataatcell) call. Those cells now hold objects where some of
+  them held plain strings, so the column no longer mixes the two shapes.
+- You wrote code to repair the mixed shapes yourself, or to rebuild the `key` from the label.
+
+### How to migrate
+
+Nothing to change in most cases, because the column now stores one shape everywhere, which is the
+shape the editor always produced. If your own code turned a stored string back into a source object
+after a paste, drop that workaround. If you read these cells with
+[`getSourceData()`](@/api/core.md#getsourcedata) and branched on whether the value was a string, that
+branch is now dead for values that match an option -- read the `value` property instead.
