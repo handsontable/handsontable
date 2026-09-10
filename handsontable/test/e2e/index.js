@@ -3,6 +3,10 @@ require('jasmine-co').install();
 // Needs to be loaded after `jasmine-co`'s `install`, to avoid being handled by its `wrapFn` logic for globals.
 require('../helpers/it-themes-extension');
 
+// The runner's report joins the recorded path the same way (`specFileFilter` reverses it), so both
+// sides use one helper: a drift here would attach every annotation to a file that does not exist.
+const { specFilePath } = require('../scripts/lib/failed-specs.mjs');
+
 // Every pattern here must match a spec file's context key for the file to load.
 const testPathRegExps = [];
 
@@ -58,7 +62,7 @@ window.__hotSpecFiles = specFiles;
       req(filePath);
 
       topSuiteChildren().slice(childrenBefore).forEach((suite) => {
-        specFiles[suite.id] = base + filePath.replace(/^\.\//, '');
+        specFiles[suite.id] = specFilePath(base, filePath);
       });
     }
   });

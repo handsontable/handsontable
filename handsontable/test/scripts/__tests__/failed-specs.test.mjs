@@ -1,7 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  ANNOTATION_LIMIT,
   ISOLATION_PROBE_MAX_FILES,
+  annotationLines,
   describeVerdict,
   failedFiles,
   formatAnnotation,
@@ -115,10 +117,31 @@ test('formatPageErrorAnnotation names the leg and says the run stopped there', (
   );
 });
 
-test('describeVerdict words the three probe outcomes', () => {
-  assert.equal(describeVerdict({ failed: 0 }), 'passes alone');
-  assert.equal(describeVerdict({ failed: 2 }), 'fails alone (2 failed)');
-  assert.equal(describeVerdict({ failed: 0, error: 'page error' }), 'could not be probed (page error)');
+test('describeVerdict words the probe outcomes, and a probe that ran no spec is not a pass', () => {
+  assert.equal(describeVerdict({ failed: 0, specs: 3 }), 'passes alone');
+  assert.equal(describeVerdict({ failed: 2, specs: 3 }), 'fails alone (2 failed)');
+  assert.equal(describeVerdict({ failed: 0, specs: 0, error: 'page error' }), 'could not be probed (page error)');
+  assert.equal(describeVerdict({ failed: 0, specs: 0 }), 'could not be probed (no specs matched the file filter)');
+});
+
+test('annotationLines prints every failure up to the limit, then one line that says how many more', () => {
+  const specs = Array.from({ length: ANNOTATION_LIMIT + 2 }, (_, index) => toFailedSpec({
+    ...RESULT, fullName: `Core spec ${index}`, filePath: `handsontable/test/e2e/core/s${index}.spec.js`,
+  }));
+  const probes = new Map([[specs[0].filePath, { failed: 1, specs: 1 }]]);
+
+  const within = annotationLines(specs.slice(0, ANNOTATION_LIMIT), 'UMD (theme: main)', probes);
+
+  assert.equal(within.length, ANNOTATION_LIMIT, 'at the limit every failure has its own line');
+  assert.match(within[0], /In isolation: fails alone \(1 failed\)\.$/);
+
+  const over = annotationLines(specs, 'UMD (theme: main)', probes);
+
+  assert.equal(over.length, ANNOTATION_LIMIT, 'never more lines than GitHub shows');
+  assert.match(over[ANNOTATION_LIMIT - 2], /Core spec 8%0A/, 'the first nine failures keep their lines');
+  assert.match(over[ANNOTATION_LIMIT - 1],
+    /^::error title=Jasmine spec failed — UMD \(theme%3A main\)::3 more failed specs are not shown here/);
+  assert.match(over[ANNOTATION_LIMIT - 1], /step summary and in the failed-specs record\.$/);
 });
 
 test('renderSummary lists every failed spec with its verdict, explains the verdicts, and reports the cap', () => {
@@ -152,6 +175,12 @@ test('renderSummary lists every failed spec with its verdict, explains the verdi
 
   assert.ok(!quiet.includes('passes alone**'), 'no probe, no explanation');
   assert.ok(!quiet.includes('not re-run alone'), 'no cap note when nothing was skipped');
+
+  const aborted = renderSummary([toFailedSpec(RESULT)], 'UMD (theme: main)', new Map(), 0, { aborted: true });
+
+  assert.ok(aborted.includes('An uncaught page error aborted the run: the specs after it did not run, '
+    + 'and no failing file was re-run alone.'));
+  assert.ok(!aborted.includes('the probe stops after'), 'an aborted run does not blame the cap');
 });
 
 test('toRecord carries the leg, theme, run id, and each spec with its verdict', () => {
@@ -163,6 +192,7 @@ test('toRecord carries the leg, theme, run id, and each spec with its verdict', 
     leg: 'UMD (theme: main)',
     theme: 'main',
     runId: '3f9ca9d7',
+    aborted: false,
     failed: [{
       fullName: 'Core_alter remove_row should remove one row',
       description: 'should remove one row',
@@ -171,4 +201,5 @@ test('toRecord carries the leg, theme, run id, and each spec with its verdict', 
       isolation: 'fails alone (1 failed)',
     }],
   });
+  assert.equal(toRecord({ ...context, aborted: true }, [], probes).aborted, true);
 });

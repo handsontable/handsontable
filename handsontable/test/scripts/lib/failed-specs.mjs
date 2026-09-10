@@ -16,6 +16,12 @@
 export const ISOLATION_PROBE_MAX_FILES = 5;
 
 /**
+ * How many `::error` annotations one step may print before GitHub silently drops the rest. From
+ * the tenth failed spec on, one line points at the step summary instead.
+ */
+export const ANNOTATION_LIMIT = 10;
+
+/**
  * Escape a string for use inside a RegExp source.
  *
  * @param {string} text The text to escape.
@@ -150,15 +156,53 @@ export function formatPageErrorAnnotation(message, leg) {
 /**
  * Describe an isolation probe's outcome in the words the report uses.
  *
- * @param {{failed: number, error?: string}} probe The probe result for one file.
+ * A probe that ran no spec at all is not a pass: Jasmine boots and reports done with zero specs
+ * whenever the file filter matches nothing (a renamed directory, a new `require.context` base), and
+ * calling that "passes alone" would send the reader hunting for shared state that is not there.
+ *
+ * @param {{failed: number, specs?: number, error?: string}} probe The probe result for one file.
  * @returns {string} `passes alone` when the file's specs all passed by themselves, otherwise why not.
  */
 export function describeVerdict(probe) {
   if (probe.error) {
     return `could not be probed (${probe.error})`;
   }
+  if (probe.specs === 0) {
+    return 'could not be probed (no specs matched the file filter)';
+  }
 
   return probe.failed === 0 ? 'passes alone' : `fails alone (${probe.failed} failed)`;
+}
+
+/**
+ * The `::error` lines for a run's failed specs, capped at what GitHub shows. When the failures do
+ * not fit, the last line says how many more there are and where the full list is, so the checks
+ * tab never shows an arbitrary ten as if they were all of them.
+ *
+ * @param {{fullName: string, filePath: string|null, messages: string[]}[]} failedSpecs The failed specs.
+ * @param {string} leg The leg label.
+ * @param {Map<string, {failed: number, specs?: number, error?: string}>} probes Isolation results keyed by file.
+ * @param {number} [limit] Override of `ANNOTATION_LIMIT`.
+ * @returns {string[]} At most `limit` workflow-command lines.
+ */
+export function annotationLines(failedSpecs, leg, probes, limit = ANNOTATION_LIMIT) {
+  const verdictFor = spec => (spec.filePath && probes.has(spec.filePath)
+    ? describeVerdict(probes.get(spec.filePath))
+    : undefined);
+
+  if (failedSpecs.length <= limit) {
+    return failedSpecs.map(spec => formatAnnotation(spec, leg, verdictFor(spec)));
+  }
+
+  const shown = failedSpecs.slice(0, limit - 1).map(spec => formatAnnotation(spec, leg, verdictFor(spec)));
+  const rest = failedSpecs.length - (limit - 1);
+
+  shown.push(`::error title=${escapeCommandProperty(`Jasmine spec failed — ${leg}`)}::${escapeCommandData(
+    `${rest} more failed specs are not shown here (GitHub lists at most ${limit} annotations per step); `
+    + 'the full list is in the step summary and in the failed-specs record.'
+  )}`);
+
+  return shown;
 }
 
 /**
@@ -166,11 +210,13 @@ export function describeVerdict(probe) {
  *
  * @param {{fullName: string, filePath: string|null, messages: string[]}[]} failedSpecs The failed specs.
  * @param {string} leg The leg label.
- * @param {Map<string, {failed: number, error?: string}>} probes Isolation results keyed by spec file.
+ * @param {Map<string, {failed: number, specs?: number, error?: string}>} probes Isolation results keyed by spec file.
  * @param {number} skippedFiles How many failing files were not probed because of the cap.
+ * @param {object} [options] Options.
+ * @param {boolean} [options.aborted] Whether an uncaught page error ended the run before any probe could run.
  * @returns {string} The Markdown.
  */
-export function renderSummary(failedSpecs, leg, probes, skippedFiles = 0) {
+export function renderSummary(failedSpecs, leg, probes, skippedFiles = 0, { aborted = false } = {}) {
   const lines = [`## Jasmine failures — ${leg}`, ''];
 
   for (const spec of failedSpecs) {
@@ -193,7 +239,10 @@ export function renderSummary(failedSpecs, leg, probes, skippedFiles = 0) {
       + '`npm run test:e2e.puppeteer -- --specFile=<path-pattern>`.');
   }
 
-  if (skippedFiles > 0) {
+  if (aborted) {
+    lines.push('', '_An uncaught page error aborted the run: the specs after it did not run, and no failing '
+      + 'file was re-run alone._');
+  } else if (skippedFiles > 0) {
     lines.push('', `_${skippedFiles} more failing file(s) were not re-run alone – the probe stops after `
       + `${ISOLATION_PROBE_MAX_FILES} files._`);
   }
@@ -208,8 +257,9 @@ export function renderSummary(failedSpecs, leg, probes, skippedFiles = 0) {
  * @param {string} context.leg The leg label.
  * @param {string} context.theme The theme the leg ran.
  * @param {string} context.runId The dump's run id (the runner HTML's suffix).
+ * @param {boolean} [context.aborted] Whether an uncaught page error ended the run early.
  * @param {{fullName: string, description: string, filePath: string|null, messages: string[]}[]} failedSpecs The failed specs.
- * @param {Map<string, {failed: number, error?: string}>} probes Isolation results keyed by spec file.
+ * @param {Map<string, {failed: number, specs?: number, error?: string}>} probes Isolation results keyed by spec file.
  * @returns {object} The record.
  */
 export function toRecord(context, failedSpecs, probes) {
@@ -217,6 +267,7 @@ export function toRecord(context, failedSpecs, probes) {
     leg: context.leg,
     theme: context.theme,
     runId: context.runId,
+    aborted: Boolean(context.aborted),
     failed: failedSpecs.map(spec => ({
       ...spec,
       isolation: spec.filePath && probes.has(spec.filePath) ? describeVerdict(probes.get(spec.filePath)) : null,
