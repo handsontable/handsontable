@@ -103,6 +103,10 @@ shares with `Formulas`.
   above). A `mailto:`/`tel:` column therefore auto-sizes a few characters wider than its visible text. Cosmetic
   and deliberate: teaching `GhostTable` about this plugin's hidden-prefix convention is worse than a slightly
   oversized column, so do not "fix" this by reaching into the sampler.
+- **Alt+Enter always opens the FIRST link of the selected cell, never the second or later one.** `inline: true`
+  (the default) can wrap several URLs in one cell, but `openCellLink.ts` reads only `a.ht-link` in document order
+  and stops at the first match. Reaching the remaining links is mouse-only. Accepted product decision (owner
+  ruling) — do not add a cycling behavior to the command.
 
 ## Where to look next
 
