@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Changed the `formulas.hyperlinks` option to also accept a `{ target, schemes }` object; any plain object now enables the HYPERLINK rendering, where before only `true` did.",
-  "type": "changed",
-  "issueOrPR": 13448,
-  "breaking": false,
-  "framework": "none"
-}

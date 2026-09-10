@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Deprecated the `registerShortcuts()` and `unregisterShortcuts()` methods of the Formulas plugin; the Alt+Enter link shortcut is a core grid shortcut now, and the methods do nothing.",
-  "type": "deprecated",
-  "issueOrPR": 13448,
-  "breaking": false,
-  "framework": "none"
-}

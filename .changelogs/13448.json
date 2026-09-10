@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Added the `autoLink` option, which renders the URLs, email addresses, and phone numbers in cell values as clickable links, with a `strict: false` mode that also links bare domains and email addresses.",
+  "title": "Added the `autoLink` option, which renders the URLs, email addresses, and phone numbers in cell values as clickable links, with a `strict: false` mode that also links bare domains and email addresses; `formulas.hyperlinks` now also accepts a `{ target, schemes }` object, and the Formulas plugin's `registerShortcuts()` and `unregisterShortcuts()` methods are deprecated no-ops because the Alt+Enter link shortcut is a core grid shortcut.",
   "type": "added",
   "issueOrPR": 13448,
   "breaking": false,
