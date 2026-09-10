@@ -106,6 +106,16 @@
       return hot.getCellMeta(row, col).valid !== false;
     };
 
+    /**
+     * Replaces the dataset with rows holding bare labels. Loading is not a write, so nothing
+     * resolves them — that is what keeps an existing dataset untouched until a cell is written.
+     */
+    window.htLoadPlainLabels = function() {
+      hot.updateData([
+        ['BMW', 'BMW', 'yellow'],
+      ]);
+    };
+
     /** Types a label into the cell's editor and commits it, the path that always resolved. */
     window.htTypeAndCommit = function(row, col, text) {
       hot.selectCell(row, col);

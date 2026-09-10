@@ -358,9 +358,11 @@ removes the layer for you.
 
 ## 9. A plain value written into a key/value `source` cell resolves to the matching object
 
-This applies only to [`autocomplete`](@/api/options.md#source),
-[`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) or `handsontable` columns
-whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects.
+This applies only to
+[`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md) and
+[`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) columns whose
+[`source`](@/api/options.md#source) is an array of `{ key, value }` objects. The `handsontable` cell
+type is unaffected -- it stores whatever you write, and always did.
 
 Such a cell stores the whole object, not the label shown for it. The cell editor already resolved a
 label into that object, but no other way of writing to the cell did. Writing the label `'BMW'` into a
@@ -383,6 +385,11 @@ A value that matches no source object is stored as you wrote it, so a
 [`strict`](@/api/options.md#strict) column still marks it invalid. A `source` of plain strings is
 unaffected, and so is a `source` declared as a function, because its options are not known until the
 function answers.
+
+**Loading data does not resolve anything.** The [`data`](@/api/options.md#data) option,
+[`loadData()`](@/api/core.md#loaddata) and [`updateData()`](@/api/core.md#updatedata) store what you
+give them, so an existing dataset that holds plain labels keeps them until something writes to those
+cells.
 
 ### Who is affected
 

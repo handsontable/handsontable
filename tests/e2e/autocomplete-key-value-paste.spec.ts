@@ -98,6 +98,22 @@ test.describe('pasting a label into a key/value source (DEV-57)', () => {
     await expect.poll(() => grid.sourceAt(0, 2)).toBe('string:red');
   });
 
+  test('does not resolve labels that arrive by loading data', async() => {
+    // Loading is not a write, so it never reaches `valueSetter`. This is what keeps an existing
+    // dataset holding plain labels untouched until something writes to those cells, and it is
+    // stated in the migration guide — so it needs a test rather than a claim.
+    await grid.loadPlainLabels();
+
+    await expect.poll(() => grid.sourceAt(0, 0)).toBe('string:BMW');
+    await expect.poll(() => grid.sourceAt(0, 1)).toBe('string:BMW');
+
+    // A write to the same cell does resolve it, which is the contrast that makes the point.
+    await grid.pastePlainText(0, 0, 'BMW');
+
+    await expect.poll(() => grid.sourceAt(0, 0))
+      .toBe('object:{"key":"1","value":"BMW"}');
+  });
+
   test('keeps preserving the entry through a copy and a plain paste', async() => {
     // The rich clipboard path, which already worked: all three flavours reach the grid and the
     // private one carries the entry. This is the regression guard for it.

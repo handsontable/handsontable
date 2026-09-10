@@ -15,6 +15,7 @@ interface FixtureWindow {
   htPastePlainText(row: number, col: number, text: string): void;
   htIsValid(row: number, col: number): boolean;
   htTypeAndCommit(row: number, col: number, text: string): void;
+  htLoadPlainLabels(): void;
 }
 
 /**
@@ -129,6 +130,13 @@ export class AutocompleteKeyValuePastePage {
       ([r, c]) => (window as unknown as FixtureWindow).htIsValid(r, c),
       [row, col],
     );
+  }
+
+  /**
+   * Replaces the dataset with rows holding bare labels, through `updateData()`.
+   */
+  async loadPlainLabels(): Promise<void> {
+    await this.page.evaluate(() => (window as unknown as FixtureWindow).htLoadPlainLabels());
   }
 
   /**
