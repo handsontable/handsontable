@@ -565,6 +565,8 @@ Cell renderers are called separately for every displayed cell, during every tabl
 
 If you only need to format the displayed value (e.g., add units, format dates, or apply text transformations), consider using the [`valueFormatter`](@/api/options.md#valueformatter) option instead of a custom renderer. The `valueFormatter` is called before the renderer and focuses solely on value transformation, making it more performant for simple formatting tasks. Use a renderer when you need to modify the DOM structure, add custom HTML elements, or handle complex visual layouts.
 
+When a renderer computes something slow from the cell's data -- a chart, a parsed document, a formatted summary -- compute it once and reuse it. Key that cache by the data record or by the cell coordinates, never by the `td` element: the grid reuses each `td` for a different record as you scroll, so a `td`-keyed cache misses on almost every call. The [Cache the output of an expensive cell renderer](@/recipes/performance/expensive-cell-renderer/expensive-cell-renderer.md) recipe walks through the pattern, including how to invalidate the cache when the data changes.
+
 ## Result
 
 You now have a custom cell renderer that controls how cell content appears in the DOM. You can use a built-in renderer by alias, register and reuse your own with `registerRenderer()`, or write inline renderer functions for full control over the cell's HTML structure.
