@@ -39,6 +39,8 @@ Two checks, both blocking, and neither rests on the reviewer:
 
 The filename check is the load-bearing one. A number owns exactly one file, so two entries citing one number cannot coexist on disk — which is what makes a `13442-changed.json` beside `13442.json` impossible rather than merely discouraged. It runs on every PR through the `consume --date 2050-01-01 --dry-run` step of `checks.yml`'s `changelog` job, and it needs no diff, so a rename cannot slip past it.
 
+The filename assertion is intentionally fail-closed in both `consume` and `sync`. There is no bypass for a stale or misnamed file: release compilation must stop until the file is renamed, folded, removed, or corrected. This means one stray file on `develop` can fail an unrelated PR and can stop a release cut, but it prevents invalid release notes from being published silently. The command names every offending file and prints the safe remedy.
+
 `bin/changelog entry` has always written that filename and cannot write another, so **the way to stay on the right side of both checks is to use it** rather than writing the JSON by hand.
 
 **To add more than two entries**, which only a maintenance PR back-filling entries for *other* pull requests should need, write the following in the **PR description**, outside any HTML comment, and re-run the failed **Changelog** check:
