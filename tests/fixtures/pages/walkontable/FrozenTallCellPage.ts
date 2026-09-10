@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import * as geometry from './rowGeometry';
 
 /**
  * Page Object for the "tall cell in a frozen column" Walkontable fixture.
@@ -114,23 +115,11 @@ export class FrozenTallCellPage {
   }
 
   /**
-   * The rendered height of one row in one table, or `NaN` when that table does not render it — a
-   * value no comparison accepts, so a row that left the rendered band fails loudly instead of
-   * passing as 0 (a "taller than 0" check would accept anything).
-   *
-   * Read in ONE evaluation on the table's root, never through `row().boundingBox()`: a locator's
-   * `boundingBox()` resolves the node in one round trip and reads its box in another, and
-   * Walkontable recycles the same `<tr>` nodes across a re-render. A node resolved as the boundary
-   * row before a scroll-driven draw is row 0 after it, and the read then reports a normal row's
-   * height for the tall one (`Expected: 69, Received: 30`). The table's root is never recycled, so
-   * resolving it first and querying the row inside the evaluation cannot straddle a draw.
+   * The rendered height of one row in one table, or `NaN` when that table does not render it.
+   * One evaluation on the table's root, never `row().boundingBox()` — `rowGeometry.ts` says why.
    */
   async rowHeight(table: Locator, row: number): Promise<number> {
-    return table.evaluate((root, target) => {
-      const tr = root.querySelector(`tbody [data-testid="row-${target}"]`);
-
-      return tr ? tr.getBoundingClientRect().height : NaN;
-    }, row);
+    return geometry.rowHeight(table, row);
   }
 
   /**
@@ -138,12 +127,7 @@ export class FrozenTallCellPage {
    * no draw can land between the two. The pair a comparison needs, read as a pair.
    */
   async rowHeights(row: number): Promise<{ master: number, overlay: number }> {
-    return this.grid.evaluate((grid, target) => {
-      const read = (table: string) => grid
-        .querySelector(`${table} tbody [data-testid="row-${target}"]`)?.getBoundingClientRect().height ?? NaN;
-
-      return { master: read('.ht_master'), overlay: read('.ht_clone_inline_start') };
-    }, row);
+    return geometry.rowHeights(this.grid, row);
   }
 
   /**
@@ -189,12 +173,7 @@ export class FrozenTallCellPage {
    * One evaluation per read, for the reason `rowHeight()` gives.
    */
   async rowOffsetWithinTable(table: Locator, row: number): Promise<number> {
-    return table.evaluate((root, target) => {
-      const tr = root.querySelector(`tbody [data-testid="row-${target}"]`);
-      const body = root.querySelector('tbody');
-
-      return tr && body ? tr.getBoundingClientRect().top - body.getBoundingClientRect().top : 0;
-    }, row);
+    return geometry.rowOffsetWithinTable(table, row);
   }
 
   /**
@@ -202,16 +181,7 @@ export class FrozenTallCellPage {
    * overlay, all read in one evaluation. Zeroes mean the panes are aligned.
    */
   async rowOffsetDrift(rows: number[]): Promise<number[]> {
-    return this.grid.evaluate((grid, targets) => {
-      const offset = (table: string, row: number) => {
-        const tr = grid.querySelector(`${table} tbody [data-testid="row-${row}"]`);
-        const body = grid.querySelector(`${table} tbody`);
-
-        return tr && body ? tr.getBoundingClientRect().top - body.getBoundingClientRect().top : NaN;
-      };
-
-      return targets.map(row => offset('.ht_master', row) - offset('.ht_clone_inline_start', row));
-    }, rows);
+    return geometry.rowOffsetDrift(this.grid, rows);
   }
 
   /**
