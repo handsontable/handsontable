@@ -19,11 +19,11 @@ const octokit = github.getOctokit(token);
 
 const run = async() => {
   // The extension is mandatory here: ESM resolution (dynamic import from CJS)
-  // does not add `.mjs` the way require() adds `.js`.
+  // does not add `.mjs` the way require() adds `.js`. Keep the destructuring on
+  // ONE line: `eslint-disable-next-line` covers only the line that follows it,
+  // so wrapping this statement moves the specifier out from under the disable.
   // eslint-disable-next-line import/extensions
-  const {
-    evaluateChangelogGate, SKIP_MARKER, MULTIPLE_MARKER
-  } = await import('./lib/changelog-gate.mjs');
+  const { evaluateChangelogGate, SKIP_MARKER, MULTIPLE_MARKER } = await import('./lib/changelog-gate.mjs');
   const pr = github.context.payload.pull_request;
 
   if (pr === undefined) {
