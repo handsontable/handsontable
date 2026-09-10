@@ -46,15 +46,26 @@ test('createPr passes labels and reviewers only when given', () => {
 
 test('upsertComment edits the marked comment when it exists and posts otherwise', () => {
   const marker = '<!-- docs-sync-hold -->';
-  const existing = JSON.stringify([{ id: 77, body: `${marker}\nold` }]);
-  const { calls, run } = recorder([existing, '', '[]', '']);
+  const existing = JSON.stringify([[{ id: 77, body: `${marker}\nold` }]]);
+  const { calls, run } = recorder([existing, '', '[[]]', '']);
   const gh = createGitHub({ repo: 'o/r', run });
 
   gh.upsertComment(3, marker, 'new text');
+  assert.deepEqual(calls[0], ['api', 'repos/o/r/issues/3/comments', '--paginate', '--slurp']);
   assert.deepEqual(calls[1], ['api', '--method', 'PATCH', 'repos/o/r/issues/comments/77', '-f', `body=${marker}\nnew text`]);
 
   gh.upsertComment(3, marker, 'first text');
   assert.deepEqual(calls[3], ['api', '--method', 'POST', 'repos/o/r/issues/3/comments', '-f', `body=${marker}\nfirst text`]);
+});
+
+test('upsertComment finds the marked comment on a later page', () => {
+  const marker = '<!-- docs-sync-hold -->';
+  const twoPages = JSON.stringify([[{ id: 1, body: 'unrelated' }], [{ id: 78, body: `${marker}\nold` }]]);
+  const { calls, run } = recorder([twoPages, '']);
+  const gh = createGitHub({ repo: 'o/r', run });
+
+  gh.upsertComment(3, marker, 'updated text');
+  assert.deepEqual(calls[1], ['api', '--method', 'PATCH', 'repos/o/r/issues/comments/78', '-f', `body=${marker}\nupdated text`]);
 });
 
 test('ensureLabels, updatePr, closePr, and listOpenPrsWithLabel build the expected calls', () => {

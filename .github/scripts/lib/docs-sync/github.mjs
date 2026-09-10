@@ -116,7 +116,8 @@ export function createGitHub({ repo, run = defaultRun }) {
      * @param {string} body
      */
     upsertComment(number, marker, body) {
-      const comments = JSON.parse(run(['api', `repos/${repo}/issues/${number}/comments`, '--paginate']));
+      // `--slurp` wraps all paginated pages into one outer array, so we flatten it to get a single list.
+      const comments = JSON.parse(run(['api', `repos/${repo}/issues/${number}/comments`, '--paginate', '--slurp'])).flat();
       const existing = comments.find((comment) => (comment.body ?? '').startsWith(marker));
       const text = `${marker}\n${body}`;
 
