@@ -356,6 +356,9 @@ try {
       // Stage 6: verify.
       if (report.included.length > 0 && !flags['skip-lint']) {
         try {
+          // docs:lint covers the sidebar.js files under docs/content and
+          // nothing else the sync ports; the full build and the content
+          // checks run on the pull request itself.
           execFileSync('npm', ['run', 'docs:lint', '--prefix', 'docs'], { cwd: repoDir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
         } catch (error) {
           const output = `${error.stdout ?? ''}${error.stderr ?? ''}`;

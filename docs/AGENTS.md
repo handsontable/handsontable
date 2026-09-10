@@ -570,7 +570,8 @@ A caret range does not track new releases. `pnpm-lock.yaml` pins the resolved ve
 
 ### Getting a content fix to the live site
 
-Land it on `develop` first. A weekday workflow (`docs-sync.yml`, script
+Land it on `develop` first. A workflow (`docs-sync.yml`, run by manual dispatch
+until the rollout follow-up enables the weekday schedule; script
 `.github/scripts/docs-sync.mjs`) ports **content-only** commits (`docs/content/**`,
 `docs/public/img/**`) to the highest `prod-docs/<major>.<minor>` through one pull
 request, `docs-sync/prod-docs-<major>.<minor>` → `prod-docs/<major>.<minor>`. An
@@ -644,7 +645,7 @@ The two layers overlap on failed dynamic imports of content-hashed `_astro/*.js`
 
 Neither layer reaches a frozen version build under `/docs/<major>.<minor>/`. `deploy/build_previous_versions.sh` copies each archived version out of its own Docker image verbatim, so those pages run the `beforeSend` and the bundles that shipped at their release - a rule added on `develop` today never appears there. Check a Sentry issue's `url` tag before writing a filter for it: when the events come from a versioned path, the only mechanism that drops them is a **Sentry project-level inbound filter on the message** (server-side, so frozen HTML is irrelevant), and the group belongs in `ignored`/`archived forever`, never `resolved` - the archived page is live, so a resolve auto-regresses. Example: HANDSONTABLE-DOCS-1FM mixes both, 11 of 18 events on current recipe pages (which the hook does filter) and 1 on `/docs/17.1/`, still calling the `http://localhost:3000/tickets` its bundle was built with.
 
-The same gap exists one branch away: production docs build from `prod-docs/<major>.<minor>`, which receives content through the daily docs sync and tooling through hand cherry-picks, and does not carry `sentryOnLoad` today. Every rule here is inert in production until that cherry-pick lands - say so when reporting that a filter is done.
+The same gap exists one branch away: production docs build from `prod-docs/<major>.<minor>`, which receives content through the docs sync and tooling through hand cherry-picks, and does not carry `sentryOnLoad` today. Every rule here is inert in production until that cherry-pick lands - say so when reporting that a filter is done.
 
 Gate any rule that is expected noise only in one place (a recipe page with no backend, a demo without a server) on the page URL, so the same failure stays visible everywhere else.
 

@@ -73,7 +73,7 @@ jobs:
           cache: 'pnpm'
           cache-dependency-path: pnpm-lock.yaml
 
-      # Needed only for `npm run docs:lint` on the rebuilt branch.
+      # Needed only for docs:lint, which validates the synced sidebar.js files.
       - run: pnpm install --frozen-lockfile
 
       - name: Sync

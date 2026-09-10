@@ -243,9 +243,10 @@ most content commits are one or two files.
 `npm run docs:lint --prefix docs` on the resulting tree. A lint failure fails the run
 before any push, with the captured output (capped at 8 KB) written to the step
 summary along with the remedy: fix the source pull request on `develop`, or label
-it `docs-sync: skip` to keep it out of the sync. The full docs build, the plugin
-tests, and the Cloudflare preview run on the pull request itself through
-`docs.yml`, which the app token makes possible.
+it `docs-sync: skip` to keep it out of the sync. `docs:lint` covers the `sidebar.js`
+files under `docs/content` and nothing else the sync ports; the full build and the
+content checks run on the pull request itself, through `docs.yml`, which the app
+token makes possible.
 
 ### Stage 7: pull request
 
