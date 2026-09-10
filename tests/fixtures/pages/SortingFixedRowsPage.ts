@@ -1,11 +1,15 @@
 import { type Page, type Locator, expect } from '@playwright/test';
-import { awaitBundle } from '../bundle';
+import { awaitBundle, BUNDLE_POLLING_MS } from '../bundle';
 import { type CellValue } from './windowTypes';
 
-/** Which sorting plugin the grid is built with. Both share the sortable-range calculation. */
+/**
+ * Which sorting plugin the grid is built with. Both share the sortable-range calculation.
+ */
 export type SortingPlugin = 'columnSorting' | 'multiColumnSorting';
 
-/** A sort config as the public plugin API takes it: a VISUAL column index plus an order. */
+/**
+ * A sort config as the public plugin API takes it: a VISUAL column index plus an order.
+ */
 export interface SortRequest {
   column: number;
   sortOrder: 'asc' | 'desc';
@@ -24,21 +28,37 @@ export interface SortRequest {
  * single home of the `Window` augmentation shared by every page object in this directory.
  */
 export class SortingFixedRowsPage {
-  /** The Playwright page the fixture is driven through. */
+  /**
+   * The Playwright page the fixture is driven through.
+   */
   readonly page: Page;
-  /** The active theme, passed through to the fixture URL. */
+  /**
+   * The active theme, passed through to the fixture URL.
+   */
   readonly theme: string;
-  /** The active bundle, passed through to the fixture URL. */
+  /**
+   * The active bundle, passed through to the fixture URL.
+   */
   readonly bundle: string;
-  /** The master table - the only layer that renders every row exactly once. */
+  /**
+   * The master table - the only layer that renders every row exactly once.
+   */
   readonly master: Locator;
-  /** The top overlay, which holds the column headers and the `fixedRowsTop` rows. */
+  /**
+   * The top overlay, which holds the column headers and the `fixedRowsTop` rows.
+   */
   readonly topOverlay: Locator;
-  /** The bottom overlay, which holds the `fixedRowsBottom` rows. */
+  /**
+   * The bottom overlay, which holds the `fixedRowsBottom` rows.
+   */
   readonly bottomOverlay: Locator;
-  /** Uncaught page errors seen since construction, in the order they fired. */
+  /**
+   * Uncaught page errors seen since construction, in the order they fired.
+   */
   readonly pageErrors: string[] = [];
-  /** The plugin the grid was last built with, so the API sort reaches the right one. */
+  /**
+   * The plugin the grid was last built with, so the API sort reaches the right one.
+   */
   activePlugin: SortingPlugin = 'columnSorting';
 
   /**
@@ -56,16 +76,51 @@ export class SortingFixedRowsPage {
   }
 
   /**
-   * Navigate to the fixture and wait for the grid to render.
+   * Navigate to the fixture and wait for the grid to render - a real DOM condition, never a sleep.
+   *
+   * The bundle first, or the leg would fail pointing at a cell instead of the real cause. Then
+   * wait for the fixture to have finished building, either way, and rethrow a constructor throw
+   * with its own message: without that, a failed build reads as a `toBeVisible()` timeout on a
+   * cell, which points nowhere near the cause.
    */
   async goto(): Promise<void> {
     await this.page.goto(
       `/tests/fixtures/demo/sorting-fixed-rows.html?theme=${this.theme}&bundle=${this.bundle}`);
-    await awaitBundle(this.page);
+
+    try {
+      await awaitBundle(this.page);
+
+      await this.page.waitForFunction(
+        () => 'hot' in window || 'htBuildError' in window,
+        undefined,
+        { polling: BUNDLE_POLLING_MS }
+      );
+    } catch (timeoutError) {
+      const snapshot = await this.page.evaluate(() => ({
+        readyState: document.readyState,
+        handsontable: typeof (window as { Handsontable?: unknown }).Handsontable,
+        stylesheets: document.styleSheets.length,
+      })).catch(() => 'page unreachable');
+
+      throw new Error(`The fixture never built its grid; page snapshot: ${JSON.stringify(snapshot)}`,
+        { cause: timeoutError });
+    }
+
+    const buildError = await this.page.evaluate(
+      () => (window as { htBuildError?: string }).htBuildError ?? null
+    );
+
+    if (buildError !== null) {
+      throw new Error(`Handsontable constructor threw in the fixture:\n${buildError}`);
+    }
+
     await expect(this.masterCell(0, 0)).toBeVisible();
   }
 
-  /** Rebuilds the grid with the given setting overrides, so one test cannot leak into the next. */
+  /**
+   * Rebuilds the grid with the given setting overrides, so one test cannot leak into the next.
+   * A constructor throw here surfaces on its own, because `page.evaluate` rejects with it.
+   */
   async rebuild(overrides: Record<string, unknown> = {}): Promise<void> {
     await this.page.evaluate(settings => window.initSortingFixedRowsGrid(settings), overrides);
     await expect(this.masterCell(0, 0)).toBeVisible();
@@ -98,27 +153,37 @@ export class SortingFixedRowsPage {
     }, { plugin: this.activePlugin, value: sortFixedRows });
   }
 
-  /** A single data cell in the master table, by visual row/column. */
+  /**
+   * A single data cell in the master table, by visual row/column.
+   */
   masterCell(row: number, col: number): Locator {
     return this.master.getByTestId(`cell-${row}-${col}`);
   }
 
-  /** A single data cell as the top overlay renders it - only `fixedRowsTop` rows are there. */
+  /**
+   * A single data cell as the top overlay renders it - only `fixedRowsTop` rows are there.
+   */
   topOverlayCell(row: number, col: number): Locator {
     return this.topOverlay.getByTestId(`cell-${row}-${col}`);
   }
 
-  /** A single data cell as the bottom overlay renders it - only `fixedRowsBottom` rows are there. */
+  /**
+   * A single data cell as the bottom overlay renders it - only `fixedRowsBottom` rows are there.
+   */
   bottomOverlayCell(row: number, col: number): Locator {
     return this.bottomOverlay.getByTestId(`cell-${row}-${col}`);
   }
 
-  /** A column header, scoped to the top overlay so the match is unambiguous. */
+  /**
+   * A column header, scoped to the top overlay so the match is unambiguous.
+   */
   header(col: number): Locator {
     return this.topOverlay.getByTestId(`col-header-${col}`);
   }
 
-  /** The clickable sorting label inside a column header. */
+  /**
+   * The clickable sorting label inside a column header.
+   */
   sortLabel(col: number): Locator {
     return this.header(col).locator('span.colHeader');
   }
@@ -149,12 +214,16 @@ export class SortingFixedRowsPage {
     }, { plugin: this.activePlugin, sortConfigs: configs });
   }
 
-  /** The values the grid currently holds in a column, top to bottom, pinned rows included. */
+  /**
+   * The values the grid currently holds in a column, top to bottom, pinned rows included.
+   */
   async columnValues(col: number): Promise<CellValue[]> {
     return this.page.evaluate(column => window.hot.getDataAtCol(column), col);
   }
 
-  /** The number of rows the grid currently renders. */
+  /**
+   * The number of rows the grid currently renders.
+   */
   async rowCount(): Promise<number> {
     return this.page.evaluate(() => window.hot.countRows());
   }

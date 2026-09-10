@@ -103,7 +103,16 @@
       return true;
     };
 
-    window.initSortingFixedRowsGrid();
+    // Fail loud: a constructor throw is stored where `goto()` can read it and rethrow it with its own
+    // message. Without this the first build failing reads as a `toBeVisible()` timeout on a cell,
+    // which points nowhere near the cause. `rebuild()` needs no such net - it runs through
+    // `page.evaluate`, which already rejects with the error.
+    try {
+      window.initSortingFixedRowsGrid();
+    } catch (error) {
+      window.htBuildError = String((error && error.stack) || error);
+      throw error;
+    }
   </script>
 </body>
 </html>

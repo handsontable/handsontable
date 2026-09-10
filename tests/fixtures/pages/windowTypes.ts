@@ -16,7 +16,9 @@ interface FixtureCellRange {
   highlight: { row: number | null, col: number | null };
 }
 
-/** One entry of a sort config, as both sorting plugins take and return it. */
+/**
+ * One entry of a sort config, as both sorting plugins take and return it.
+ */
 export interface FixtureSortConfig {
   column: number;
   sortOrder: 'asc' | 'desc';
@@ -211,7 +213,9 @@ declare global {
     pendingValidationCount(): number;
     /** Rebuilds the GH #5983 sorting-a-filtered-grid-with-`minSpareRows` fixture grid. */
     initSortingSpareRowsGrid(overrides?: Record<string, unknown>): boolean;
-    /** Rebuilds the DEV-59 sorting-with-`fixedRowsTop`/`fixedRowsBottom` fixture grid. */
+    /**
+     * Rebuilds the DEV-59 sorting-with-`fixedRowsTop`/`fixedRowsBottom` fixture grid.
+     */
     initSortingFixedRowsGrid(overrides?: Record<string, unknown>): boolean;
     /** Returns the text the browser currently reports as selected (fragmentSelection fixture). */
     readTextSelection(): string;
