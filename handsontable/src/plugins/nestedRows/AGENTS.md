@@ -206,8 +206,9 @@ They are written in different places and can drift. Keep this in mind:
   **The expansion must stay bounded by the flatten CACHE, never by the live tree**, and the tempting
   shortcut is exactly what breaks it. `cacheNode()` flattens depth-first, so a parent's descendants
   *are* the contiguous block right after it — but that invariant only holds **while the cache matches
-  the tree**, and nothing on the render path re-caches (only `loadData`, `updateData`, `addChild`,
-  `detachFromParent`, `filterData`, `spliceData` and `afterCreateRow` call `rewriteCache()`). So
+  the tree**, and **nothing on the render path re-caches** — `rewriteCache()` is called only by the
+  tree operations listed at the `getRowIndex()` landmine above, and a plain `render()` is not one of
+  them. So
   `physicalIndex + 1 … physicalIndex + countChildren(physicalIndex)` reads its SIZE from the live
   `__children` while the indexes resolve against the cache: push one child straight into the source
   data, call `render()`, then remove the parent, and the range runs past the parent's own subtree and
@@ -231,8 +232,10 @@ They are written in different places and can drift. Keep this in mind:
   2 rows / 2 source rows becomes 7 rows / 3 source rows with four `null` rows. It is not a regression
   (the pre-fix end state was the same), and it is not a one-line fix either — `captureRowData()`
   deliberately deletes `__children`, so restoring a subtree needs the tree captured, not `amount`
-  widened. The existing coverage cannot see it: `__tests__/integration/undoRedo.spec.js` only asserts
-  `window.onerror` was not called, on a two-level tree.
+  widened. The existing coverage cannot see it. `__tests__/integration/undoRedo.spec.js` holds two
+  tests, both on a two-level tree: the one that undoes a **child** removal does assert the data comes
+  back, and the one that undoes a **parent** removal asserts only that `window.onerror` was not
+  called — so the wrong row count and the blank rows both pass it.
 - **`collapseRow()` and `expandRow()` are dead code.** They delegate with `doTrimming` defaulting to
   `false`, so they neither trim nor render. Do not expose them and do not copy their names.
 - **`updatePlugin()` rebuilds everything.** It unregisters the trimming map and constructs a new
