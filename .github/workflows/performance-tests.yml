@@ -40,6 +40,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          # This removes ignored output and dependency directories left by an earlier
+          # job on the persistent runner. It requires Git on the runner.
+          clean: true
+
+      - name: Verify Git checkout
+        shell: bash
+        run: |
+          if [ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" != "true" ]; then
+            echo "::error::The self-hosted performance runner requires Git and a Git checkout. Install Xcode Command Line Tools for the runner account."
+            exit 1
+          fi
 
       - name: Install pnpm
         uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
@@ -188,10 +200,15 @@ jobs:
           TIMESTAMP=$(date -u +"%Y-%m-%dT%H-%M-%SZ")
           DEPLOY_DIR="performance-reports/develop/${TIMESTAMP}"
 
+        WORKTREE_PREFIX="${RUNNER_TEMP}/handsontable-performance-gh-pages."
+        for stale_dir in "${WORKTREE_PREFIX}"*; do
+          [ -d "$stale_dir" ] || continue
+          git worktree remove --force "$stale_dir" 2>/dev/null || rm -rf "$stale_dir"
+        done
           git worktree prune
-          WORK_DIR=$(mktemp -d)
+        WORK_DIR=$(mktemp -d "${WORKTREE_PREFIX}XXXXXX")
           git worktree add --detach "$WORK_DIR" origin/gh-pages
-          trap 'cd "$GITHUB_WORKSPACE"; git worktree remove "$WORK_DIR" --force 2>/dev/null || true; git worktree prune' EXIT
+        trap 'cd "$GITHUB_WORKSPACE"; git worktree remove "$WORK_DIR" --force 2>/dev/null || true; rm -rf "$WORK_DIR"; git worktree prune' EXIT
 
           # Deploy timestamped snapshot + report
           mkdir -p "${WORK_DIR}/${DEPLOY_DIR}"
@@ -253,10 +270,15 @@ jobs:
 
           DEPLOY_DIR="performance-reports/${BRANCH_SLUG}"
 
+        WORKTREE_PREFIX="${RUNNER_TEMP}/handsontable-performance-gh-pages."
+        for stale_dir in "${WORKTREE_PREFIX}"*; do
+          [ -d "$stale_dir" ] || continue
+          git worktree remove --force "$stale_dir" 2>/dev/null || rm -rf "$stale_dir"
+        done
           git worktree prune
-          WORK_DIR=$(mktemp -d)
+        WORK_DIR=$(mktemp -d "${WORKTREE_PREFIX}XXXXXX")
           git worktree add --detach "$WORK_DIR" origin/gh-pages
-          trap 'cd "$GITHUB_WORKSPACE"; git worktree remove "$WORK_DIR" --force 2>/dev/null || true; git worktree prune' EXIT
+        trap 'cd "$GITHUB_WORKSPACE"; git worktree remove "$WORK_DIR" --force 2>/dev/null || true; rm -rf "$WORK_DIR"; git worktree prune' EXIT
 
           mkdir -p "${WORK_DIR}/${DEPLOY_DIR}"
           cp performance-tests/output/report.html "${WORK_DIR}/${DEPLOY_DIR}/index.html"
