@@ -201,7 +201,8 @@ test.describe('formulas: HYPERLINK rendering', () => {
       await expect(grid.link(0, 0)).toHaveCount(1);
     });
 
-  test('deprecates registerShortcuts()/unregisterShortcuts() as no-op shims that warn once, and Alt+Enter still works',
+  test('deprecates registerShortcuts()/unregisterShortcuts() as two separate no-op shims, each ' +
+    'warning once through deprecatedWarnOnce, and Alt+Enter still works',
     async({ page, theme, bundle }) => {
       const warnings: string[] = [];
 
@@ -219,9 +220,19 @@ test.describe('formulas: HYPERLINK rendering', () => {
       // Rejects (and fails the test) if either deprecated method throws.
       await grid.callDeprecatedShortcutMethods();
 
-      const deprecationWarnings = () => warnings.filter(text => text.includes('deprecated'));
+      const deprecationWarnings = () => warnings.filter(text => text.includes('Deprecated'));
 
-      await expect.poll(() => deprecationWarnings().length, { timeout: 1000 }).toBe(1);
+      // `deprecatedWarnOnce` keys each method separately, so calling both prints two warnings, not
+      // one shared warning - the "Deprecated: " prefix and per-method key are what `deprecatedWarnOnce`
+      // adds over the old shared `warnOnce` call.
+      await expect.poll(() => deprecationWarnings().length, { timeout: 1000 }).toBe(2);
+      expect(deprecationWarnings().some(text => text.includes('registerShortcuts') &&
+        !text.includes('unregisterShortcuts'))).toBe(true);
+      expect(deprecationWarnings().some(text => text.includes('unregisterShortcuts'))).toBe(true);
+
+      // Calling both a second time must not print any further warning - each key is a "once".
+      await grid.callDeprecatedShortcutMethods();
+      await expect.poll(() => deprecationWarnings().length, { timeout: 1000 }).toBe(2);
 
       // The chord itself is a core grid shortcut, unaffected by the deprecated shims.
       await grid.selectCell(0, 0);

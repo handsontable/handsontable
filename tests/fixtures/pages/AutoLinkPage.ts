@@ -77,6 +77,17 @@ export class AutoLinkPage {
   }
 
   /**
+   * Disable the Formulas plugin WITHOUT forcing a redraw, which is what a caller that simply turns
+   * the plugin off does. No render means no `afterRenderer` pass, so nothing repaints the cells that
+   * held a `HYPERLINK` anchor.
+   */
+  async disableFormulasPluginWithoutRender(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as any).hot.getPlugin('formulas').disablePlugin();
+    });
+  }
+
+  /**
    * Re-enable the plugin through its own `enablePlugin()`, then force a render. This is what a caller
    * that flips the plugin back on through the API (rather than through `updateSettings`) does.
    */

@@ -33,9 +33,14 @@ shares with `Formulas`.
   otherwise be marked. `enablePlugin()` also calls `markAllCellsChanged()`, for the mirror reason: under
   `renderMode: 'onChange'` a bare `enablePlugin()` advances no render epoch, so nothing would paint the anchors.
   Both `AutoLink` and `Formulas` (since 18.2.0) call `markAllCellsChanged()` in `enablePlugin()`, for that mirror
-  reason; `AutoLink` calls it in `disablePlugin()` too, as does `Comments`. `Formulas.disablePlugin()` does not need
-  the call: `#unwrapRenderedHyperlinks()` removes its anchors from the currently-rendered DOM eagerly, not through a
-  render pass, so there is no epoch for a later `render()` to skip.
+  reason - `Formulas` gates its call on `#hyperlinksEnabled`, since with `hyperlinks` off there is nothing to
+  repaint. `AutoLink` calls it in `disablePlugin()` too, as does `Comments`. `Formulas` calls it on BOTH
+  transitions when hyperlinks were or become on - `disablePlugin()`, and the `hyperlinks`-off branch of
+  `#refreshHyperlinksSetting()` - even though `#unwrapRenderedHyperlinks()` already removes its own anchors from
+  the currently-rendered DOM eagerly, not through a render pass. That eager removal is not the whole story: once a
+  `HYPERLINK` anchor is gone, the cell's label is plain URL text again, and only `AutoLink`'s OWN next paint of
+  that cell can claim it - so under `renderMode: 'onChange'` the epoch still has to advance, or a freed URL stays
+  unlinked until something unrelated repaints it.
 - **Cell-level objects bypass `SETTINGS_VALIDATORS`.** The plugin validators only see the grid-level object, so
   `#resolveSettings` re-checks every key of a column or cell override. `resolveSettings.ts` never widens the fixed
   four-scheme allowlist: a column or cell `schemes` REPLACES the grid-level list for those cells (a standard

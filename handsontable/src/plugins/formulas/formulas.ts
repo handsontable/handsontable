@@ -1,6 +1,6 @@
 import { BasePlugin } from '../base';
 import { staticRegister } from '../../utils/staticRegister';
-import { error, warn, warnOnce } from '../../helpers/console';
+import { deprecatedWarnOnce, error, warn, warnOnce } from '../../helpers/console';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { isNumeric } from '../../helpers/number';
 import { isObject, isPlainObject } from '../../helpers/object';
@@ -189,10 +189,6 @@ const HYPERLINK_WARN_KEY = 'formulas-hyperlink-refused';
 // `warnOnce` key for an invalid `formulas.hyperlinks` object-form setting (an unrecognized `target`
 // or `schemes` entry). One warning per `#refreshHyperlinksSetting()` call, not per cell.
 const HYPERLINK_SETTINGS_WARN_KEY = 'formulas-hyperlinks-settings';
-
-// `warnOnce` key for the deprecated `registerShortcuts()`/`unregisterShortcuts()` shims. Shared
-// between the two methods so calling both in a row still warns once.
-const SHORTCUTS_DEPRECATION_WARN_KEY = 'formulas-shortcuts-deprecated';
 
 /**
  * This plugin allows you to perform Excel-like calculations in your business applications. It does it by an
@@ -836,8 +832,12 @@ export class Formulas extends BasePlugin {
 
     // The `HYPERLINK` anchors are written by `#onAfterRenderer`, so a bare enable paints nothing on
     // its own. Under `renderMode: 'onChange'` a render right after this call would skip every cell
-    // unless the epoch advances here too - mirrors the same call in `AutoLink.enablePlugin()`.
-    this.hot.markAllCellsChanged();
+    // unless the epoch advances here too - mirrors the same call in `AutoLink.enablePlugin()`. Gated
+    // on `#hyperlinksEnabled`: with `hyperlinks` off (the common `formulas: { engine }` setup) there
+    // are no anchors to repaint, so the call would only force a full, no-op repaint.
+    if (this.#hyperlinksEnabled) {
+      this.hot.markAllCellsChanged();
+    }
 
     super.enablePlugin();
   }
@@ -856,6 +856,16 @@ export class Formulas extends BasePlugin {
 
     this.engine = null;
 
+    // `#unwrapRenderedHyperlinks()` above already removed this plugin's own anchors from the
+    // currently-rendered DOM, eagerly - but a cell that HELD one is now plain URL text, which a
+    // second plugin (`AutoLink`) can only claim on its own next paint of that cell. Under
+    // `renderMode: 'onChange'` a `render()` right after this call would skip every cell unless the
+    // epoch advances here too, so a HYPERLINK label AutoLink should now link stays unlinked until
+    // something else repaints it.
+    if (this.#hyperlinksEnabled) {
+      this.hot.markAllCellsChanged();
+    }
+
     super.disablePlugin();
   }
 
@@ -865,12 +875,12 @@ export class Formulas extends BasePlugin {
    *
    * @deprecated Since 18.2.0. The `Alt`+`Enter` shortcut that opens a cell's link is a core grid
    * shortcut now, registered for every grid, so the plugin has nothing to register. The method does
-   * nothing and will be removed in the next major release.
+   * nothing and will be removed in 19.0.0.
    */
   registerShortcuts(): void {
-    warnOnce(this, SHORTCUTS_DEPRECATION_WARN_KEY, toSingleLine`The "registerShortcuts" and\x20
-      "unregisterShortcuts" methods of the Formulas plugin are deprecated and do nothing: the\x20
-      Alt+Enter link shortcut is a core grid shortcut since 18.2.0. Remove the calls.`);
+    deprecatedWarnOnce('Formulas.registerShortcuts', toSingleLine`The "registerShortcuts" method of\x20
+      the Formulas plugin does nothing: the Alt+Enter link shortcut is a core grid shortcut since\x20
+      18.2.0. It will be removed in 19.0.0. Remove the call.`);
   }
 
   /**
@@ -879,12 +889,12 @@ export class Formulas extends BasePlugin {
    *
    * @deprecated Since 18.2.0. The `Alt`+`Enter` shortcut that opens a cell's link is a core grid
    * shortcut now, registered for every grid, so the plugin has nothing to unregister. The method does
-   * nothing and will be removed in the next major release.
+   * nothing and will be removed in 19.0.0.
    */
   unregisterShortcuts(): void {
-    warnOnce(this, SHORTCUTS_DEPRECATION_WARN_KEY, toSingleLine`The "registerShortcuts" and\x20
-      "unregisterShortcuts" methods of the Formulas plugin are deprecated and do nothing: the\x20
-      Alt+Enter link shortcut is a core grid shortcut since 18.2.0. Remove the calls.`);
+    deprecatedWarnOnce('Formulas.unregisterShortcuts', toSingleLine`The "unregisterShortcuts" method\x20
+      of the Formulas plugin does nothing: the Alt+Enter link shortcut is a core grid shortcut since\x20
+      18.2.0. It will be removed in 19.0.0. Remove the call.`);
   }
 
   /**
@@ -1123,6 +1133,11 @@ export class Formulas extends BasePlugin {
     // leaves its previous DOM in place would keep an anchor that no later render pass rewrites.
     if (wasEnabled && !this.#hyperlinksEnabled) {
       this.#unwrapRenderedHyperlinks();
+
+      // As in `disablePlugin()`: the anchors are gone from the DOM eagerly, but the freed URL text is
+      // only linkable by `AutoLink` on that cell's NEXT paint, and under `renderMode: 'onChange'` that
+      // paint is skipped unless the epoch advances here.
+      this.hot.markAllCellsChanged();
     }
   }
 

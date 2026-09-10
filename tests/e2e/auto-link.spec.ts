@@ -255,6 +255,45 @@ test.describe('autoLink', () => {
     await expect(grid.anyLinks(3, 0)).toHaveCount(0);
   });
 
+  test('applies the grid-level object form of `strict`', async({ page, theme, bundle }) => {
+    // `metaSchema.ts` and the clickable-links guide lead with this form - `autoLink: { strict: false }`
+    // set at the grid level - but every other `strict` assertion drives a column-level override
+    // instead, which goes through a different code path (`updatePluginSettings`/`getSetting` rather
+    // than `resolveAutoLinkSettings` reading a per-cell override object directly).
+    const grid = new AutoLinkPage(page, theme, bundle);
+
+    await grid.goto();
+
+    // Column A stays on the grid-level default (`strict: true`) until the call below, so the bare
+    // domain in the last fixture row is not linked yet.
+    await expect(grid.anyLinks(14, 0)).toHaveCount(0);
+    await expect(grid.cell(14, 0)).toHaveText('google.com');
+
+    await grid.setAutoLink({ strict: false });
+
+    const link = grid.links(14, 0);
+
+    await expect(link).toHaveCount(1);
+    await expect(link).toHaveAttribute('href', 'https://google.com/');
+
+    await grid.setAutoLink(true);
+
+    await expect(grid.anyLinks(14, 0)).toHaveCount(0);
+  });
+
+  test('applies the grid-level object form of `inline`', async({ page, theme, bundle }) => {
+    const grid = new AutoLinkPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.setAutoLink({ inline: false });
+
+    // A whole-cell URL still links...
+    await expect(grid.links(0, 0)).toHaveCount(1);
+    // ...but a URL embedded in prose does not, now that `inline: false` applies grid-wide.
+    await expect(grid.anyLinks(1, 0)).toHaveCount(0);
+    await expect(grid.cell(1, 0)).toHaveText('Visit https://example.com/two for details.');
+  });
+
   test('survives repeated renders and rebuilds from the current value', async({ page, theme, bundle }) => {
     const grid = new AutoLinkPage(page, theme, bundle);
 
@@ -403,6 +442,28 @@ test.describe('autoLink', () => {
 
     await expect(grid.openedUrls()).resolves.toEqual([]);
     await expect(grid.hostAltEnterEvents()).resolves.toEqual([false]);
+  });
+
+  test('links the freed URL text under `renderMode: "onChange"` when Formulas is disabled without ' +
+    'a render', async({ page, theme, bundle }) => {
+    const grid = new AutoLinkPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.setRenderMode('onChange');
+    await grid.render(2);
+
+    // Before: the HYPERLINK anchor owns the cell, AutoLink has nothing to do.
+    await expect(grid.anyLinks(1, 5)).toHaveCount(1);
+    await expect(grid.anyLinks(1, 5)).toHaveClass('ht-link ht-hyperlink');
+
+    // `disablePlugin()` removes the HYPERLINK anchor from the DOM eagerly, but only a paint of the
+    // cell lets AutoLink claim the freed URL text - which `render()` under `renderMode: 'onChange'`
+    // would skip unless `Formulas.disablePlugin()` advanced the render epoch on its own.
+    await grid.disableFormulasPluginWithoutRender();
+    await grid.render();
+
+    await expect(grid.links(1, 5)).toHaveCount(1);
+    await expect(grid.links(1, 5)).toHaveAttribute('href', 'https://example.com/raw');
   });
 
   test('keeps Alt+Enter working for autoLink cells when Formulas is disabled', async({ page, theme, bundle }) => {
