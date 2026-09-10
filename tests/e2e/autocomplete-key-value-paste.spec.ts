@@ -46,6 +46,10 @@ test.describe('pasting a label into a key/value source (DEV-57)', () => {
       // is the actual contract — if the editor's rule changes, this fails rather than drifting.
       await grid.typeAndCommit(0, column, 'BMW');
 
+      // Poll before capturing. The commit is synchronous for an array source today, but reading it
+      // straight away would race if anything upstream ever deferred, and CI fails on a retry.
+      await expect.poll(() => grid.sourceAt(0, column)).toMatch(/^object:/);
+
       const typed = await grid.sourceAt(0, column);
 
       await grid.pastePlainText(1, column, 'BMW');
