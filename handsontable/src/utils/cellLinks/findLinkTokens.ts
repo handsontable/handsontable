@@ -77,19 +77,27 @@ const LABEL = '[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?';
 // start here, since the character right before it, `/`, is excluded). The TLD captured here is
 // provisional - `toDomainToken` re-derives and validates it after `trimTokenEnd` runs, because
 // trimming can shorten the tail.
-// The TLD group is written as `(?=([A-Za-z]{2,63}))\1` - a lookahead capture plus an immediate
-// backreference - instead of a plain `([A-Za-z]{2,63})`, to emulate an atomic group (JS has none
-// natively): the lookahead greedily captures the longest run of letters and the backreference then
-// requires that EXACT text, so the engine can never retry with a shorter run at this position. That
-// matters for the `(?!:\d{6,})` lookahead right after it, which refuses the WHOLE candidate when a
-// colon is followed by six or more digits (an out-of-range port) rather than letting it degrade into a
-// shorter, truncated match. Without the atomic emulation, `\d{1,5}(?!\d)` in the port group below
-// correctly fails to consume any of an overlong run, the `(?!:\d{6,})` lookahead then fails too, and
-// plain backtracking would shrink the TLD group instead of refusing the candidate -
-// `example.com:123456` backtracking "com" down to "co" (itself a valid ccTLD) and linking
-// `https://example.co/`, silently dropping "m:123456" rather than refusing the whole thing.
+// The WHOLE host - `(?:LABEL\.)+[A-Za-z]{2,63}`, not only its final label - is written as
+// `(?=(...))\1`, a lookahead capture plus an immediate backreference, to emulate an atomic group (JS
+// has none natively): the lookahead greedily captures the longest run the host shape allows and the
+// backreference then requires that EXACT text, so the engine can never retry with a shorter host at
+// this position. That matters for the `(?!:\d{6,})` lookahead right after it, which refuses the WHOLE
+// candidate when a colon is followed by six or more digits (an out-of-range port) rather than letting
+// it degrade into a shorter, truncated match: without the atomic emulation, `\d{1,5}(?!\d)` in the
+// port group below correctly fails to consume any of an overlong run, the `(?!:\d{6,})` lookahead then
+// fails too, and plain backtracking shrinks the host instead of refusing the candidate.
+//
+// An EARLIER version of this pattern made only the FINAL label atomic (`(?:LABEL\.)+(?=(TLD))\1`),
+// which fixed the single-label case (`example.com:123456` no longer backtracks "com" into "co") but
+// left `(?:LABEL\.)+` itself free to backtrack, dropping a WHOLE LEADING LABEL to satisfy the
+// lookahead instead: `www.google.co.uk:123456` backtracked to `www.google.co` (a valid host, "co"
+// being Colombia's ccTLD) and linked `https://www.google.co/`; `mail.google.com:987654` backtracked to
+// `mail.google` (".google" is itself a delegated gTLD) and linked `https://mail.google/`, from a text
+// that named no such host. Wrapping the WHOLE host in the lookahead/backreference pair closes that:
+// `(?:LABEL\.)+[A-Za-z]{2,63}` is captured and re-asserted as one unit, so there is no shorter host
+// substring left for backtracking to fall back to - the candidate is refused outright instead.
 const BARE_DOMAIN_PATTERN = new RegExp(
-  `(?<![\\p{L}\\p{N}\\p{M}@._~+/-])(?:${LABEL}\\.)+(?=([A-Za-z]{2,63}))\\1(?!:\\d{6,})(?::\\d{1,5}(?!\\d))?` +
+  `(?<![\\p{L}\\p{N}\\p{M}@._~+/-])(?=((?:${LABEL}\\.)+[A-Za-z]{2,63}))\\1(?!:\\d{6,})(?::\\d{1,5}(?!\\d))?` +
     '(?:[/?#][^\\s<>"\'`]*)?',
   'gu'
 );

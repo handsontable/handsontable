@@ -579,4 +579,14 @@ test.describe('autoLink.strict', () => {
     await expect(grid.links(0, 0)).toHaveCount(1);
     await expect(grid.links(0, 0)).toHaveAttribute('href', 'https://example.com/one');
   });
+
+  test('does not link a bare domain whose port is out of range, even when dropping a leading ' +
+    'label would otherwise yield a valid-looking host (regression)', async({ page, theme, bundle }) => {
+    const grid = new AutoLinkPage(page, theme, bundle);
+
+    await grid.goto();
+
+    await expect(grid.anyLinks(15, 7)).toHaveCount(0);
+    await expect(grid.cell(15, 7)).toHaveText('www.google.co.uk:123456');
+  });
 });

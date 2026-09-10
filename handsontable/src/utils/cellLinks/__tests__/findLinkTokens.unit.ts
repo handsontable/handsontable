@@ -367,6 +367,23 @@ describe('strict: false', () => {
     expect(findLinkTokens('example.com:8080/x', BASE, LINK_SCHEMES, false)).toEqual([
       { start: 0, end: 18, href: 'https://example.com:8080/x' },
     ]);
+    expect(findLinkTokens('example.com:65535', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 0, end: 17, href: 'https://example.com:65535/' },
+    ]);
+  });
+
+  it('should refuse the WHOLE host on an overlong port, not just backtrack the final label ' +
+    '(regression: an earlier atomic-group fix made only the final label atomic, so plain ' +
+    'backtracking dropped a leading label instead and still linked a - wrong - shorter host)', () => {
+    expect(findLinkTokens('www.google.co.uk:123456', BASE, LINK_SCHEMES, false)).toEqual([]);
+    expect(findLinkTokens('mail.google.com:987654', BASE, LINK_SCHEMES, false)).toEqual([]);
+    expect(findLinkTokens('my.site.dev:123456', BASE, LINK_SCHEMES, false)).toEqual([]);
+    expect(findLinkTokens('a.b.c.example.com:1234567', BASE, LINK_SCHEMES, false)).toEqual([]);
+
+    // The valid multi-label host still links whole, port and path intact.
+    expect(findLinkTokens('www.google.co.uk:8080/path', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 0, end: 26, href: 'https://www.google.co.uk:8080/path' },
+    ]);
   });
 
   it('should yield only the scheme tokens in strict mode for every bare-domain and bare-email ' +
