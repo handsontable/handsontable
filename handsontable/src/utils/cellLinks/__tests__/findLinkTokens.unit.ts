@@ -272,9 +272,14 @@ describe('strict: false', () => {
     expect(findLinkTokens('example.notatld', BASE, LINK_SCHEMES, false)).toEqual([]);
   });
 
-  it('should not link a bare domain whose TLD is on the generic-TLD exclusion list', () => {
-    expect(findLinkTokens('report.zip', BASE, LINK_SCHEMES, false)).toEqual([]);
-    expect(findLinkTokens('favicon.ico', BASE, LINK_SCHEMES, false)).toEqual([]);
+  it('should link a bare domain whose TLD is also a common file extension: no exclusion list, ' +
+    'the full IANA list is used (documented trade-off)', () => {
+    expect(findLinkTokens('report.zip', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 0, end: 10, href: 'https://report.zip/' },
+    ]);
+    expect(findLinkTokens('video.mov', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 0, end: 9, href: 'https://video.mov/' },
+    ]);
   });
 
   it('should never mistake an IP address or a version-like string for a bare domain', () => {
@@ -316,7 +321,7 @@ describe('strict: false', () => {
       'node.js',
       'file.txt',
       'report.zip',
-      'favicon.ico',
+      'video.mov',
       '1.2.3',
       '192.168.0.1',
       'v1.2.3-rc.1',

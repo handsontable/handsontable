@@ -467,13 +467,15 @@ test.describe('autoLink.strict', () => {
     await expect(grid.links(3, 7)).toHaveCount(1);
   });
 
-  test('does not link a bare domain excluded as a generic file-extension top-level domain', async({ page, theme, bundle }) => {
+  test('links a bare domain whose top-level domain is also a common file extension (documented trade-off, no exclusion list)', async({ page, theme, bundle }) => {
     const grid = new AutoLinkPage(page, theme, bundle);
 
     await grid.goto();
 
-    await expect(grid.anyLinks(4, 7)).toHaveCount(0);
-    await expect(grid.cell(4, 7)).toHaveText('report.zip');
+    const link = grid.links(4, 7);
+
+    await expect(link).toHaveCount(1);
+    await expect(link).toHaveAttribute('href', 'https://report.zip/');
   });
 
   test('does not link a bare domain whose top-level domain is unknown', async({ page, theme, bundle }) => {
