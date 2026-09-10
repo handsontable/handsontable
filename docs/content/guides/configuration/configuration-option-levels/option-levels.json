@@ -123,7 +123,7 @@
         "cell"
       ],
       "since": "18.2.0",
-      "note": "The plugin toggle is grid level. A column or cell `false` opts out, and a column or cell object overrides `target`, `schemes`, `inline`, and `className` for those cells."
+      "note": "The plugin toggle is grid level. A column or cell `false` opts out, and a column or cell object overrides `target`, `schemes`, `strict`, `inline`, and `className` for those cells."
     },
     {
       "name": "autoRowHeaderSize",

@@ -96,6 +96,13 @@ shares with `Formulas`.
   non-strict pass also has to catch a bare domain (needs a `.`) or a bare email address (needs an `@`), neither of
   which carries a `:` — narrowing the fast path to `:` under `strict: false` would silently stop linking
   `google.com` and `jane@example.com`.
+- **`autoColumnSize` measures the hidden `mailto:`/`tel:` prefix, but the grid never renders it.** `afterRenderer`
+  is fired by `TableView`, not by `renderCell()`, and `renderCell()` is what `GhostTable`'s sampling table calls —
+  so no anchor and no `span.ht-link-scheme` is ever built there, and the sampler measures the FULL
+  `mailto:jane@example.com` string while the rendered cell hides the `mailto:` prefix (`hideSchemePrefix`, see
+  above). A `mailto:`/`tel:` column therefore auto-sizes a few characters wider than its visible text. Cosmetic
+  and deliberate: teaching `GhostTable` about this plugin's hidden-prefix convention is worse than a slightly
+  oversized column, so do not "fix" this by reaching into the sampler.
 
 ## Where to look next
 

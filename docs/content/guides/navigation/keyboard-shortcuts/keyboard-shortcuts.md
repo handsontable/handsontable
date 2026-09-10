@@ -62,6 +62,7 @@ By default, <kbd>Tab</kbd> moves the active cell one column to the right and <kb
 | <kbd>**Ctrl**</kbd>+<kbd>**End**</kbd>       | <kbd>⌘</kbd>+<kbd>**End**</kbd>       | Move to the last non-frozen cell of the grid<sup>\*</sup>                                       | &cross; | &check; |
 | <kbd>**Page Up**</kbd>                       | <kbd>**Page Up**</kbd>                      | Move one screen up                                                                              | &check; | &check; |
 | <kbd>**Page Down**</kbd>                     | <kbd>**Page Down**</kbd>                    | Move one screen down                                                                            | &check; | &check; |
+| <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd>      | <kbd>⌥</kbd>+<kbd>**Enter**</kbd>     | Open the link of the selected cell (when the cell renders a link, for example through `autoLink` or `formulas.hyperlinks`) | &cross; | &cross; |
 
 <sup>\*</sup> This action depends on your layout direction.
 
@@ -87,7 +88,6 @@ These keyboard shortcuts help you select cells. They come from Handsontable's [`
 | <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>                                                              | <kbd>⌘</kbd>+<kbd>**Enter**</kbd>                                                             | Fill the selected range of cells with the value of the active cell<sup>\*\*\*\*</sup> | &cross; | &check; |
 | <kbd>**Delete**</kbd>                                                                                 | <kbd>**Delete**</kbd>                                                                               | Clear the contents of the selected cells                                          | &check; | &check; |
 | <kbd>**Backspace**</kbd>                                                                              | <kbd>**Backspace**</kbd>                                                                            | Clear the contents of the selected cells                                          | &check; | &check; |
-| <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd>                                                               | <kbd>⌥</kbd>+<kbd>**Enter**</kbd>                                                            | Open the link of the selected cell (when the cell renders a link, for example through `autoLink` or `formulas.hyperlinks`) | &cross; | &cross; |
 
 <sup>*</sup> Does not work on macOS with multiple keyboard layouts. To work around this issue, add <kbd>Fn</kbd> to the key combination.<br>
 <sup>\*\*</sup> In case of multiple selection layers, only the last selection layer gets extended.<br>
