@@ -73,6 +73,45 @@ same place.
 The sorted rows are arrays of the form `[rowIndex, ...values]`, so the only sorted column's value sits at
 index **1**.
 
+## Fixed rows are out of the sort by default, and the flag is grid-level (DEV-1713, DEV-59)
+
+Rows pinned by `fixedRowsTop` and `fixedRowsBottom` take no part in the sort. `sortByPresetSortStates()`
+starts its walk at `fixedRowsTop` instead of 0, and `getNumberOfRowsToSort()` subtracts
+`fixedRowsBottom` from the upper bound. That landed in #12627 (DEV-1713) and shipped in **18.0.0**,
+as a deliberate breaking change: a footer row holding a SUM over absolute addresses was being
+permuted into the middle of the data.
+
+**DEV-59 asked for exactly that change, so the ticket's own text is already delivered.** What DEV-59
+added on top is the escape hatch: `sortFixedRows`, default `false`, which when set to `true` puts the
+pinned rows back inside the sort range and restores the pre-18.0.0 behavior. `SORT_FIXED_ROWS_DEFAULT`
+in `columnSorting.ts` is the single place the default lives - flipping it to `true` would un-pin those
+rows for every grid that does not set the option, and is a breaking change in its own right.
+
+Three things about the flag are load-bearing:
+
+- **It is read at sort time, from the grid settings, never cached.** `#sortsFixedRows()` reads
+  `getSettings()[this.pluginKey].sortFixedRows` on every call, exactly as `fixedRowsTop` is read one
+  line below. So `updateSettings` needs no wiring, and the wrappers re-sending an unchanged settings
+  object costs nothing.
+- **It is deliberately NOT in `inheritedColumnProperties`** (`columnStatesManager.ts`). The other
+  sub-options - `sortEmptyCells`, `indicator`, `headerAction`, `compareFunctionFactory` - resolve per
+  column and can be overridden through `columns`. This one cannot: `fixedRowsTop`/`fixedRowsBottom`
+  pin rows for the whole table, so two columns could not disagree about which rows are in range. Do
+  not "fix" that by adding it to the list.
+- **`isPlainObject` guards the boolean form.** `columnSorting: true` enables the plugin with no
+  sub-options at all, so the settings value is a boolean and has no properties to read.
+
+`MultiColumnSorting` overrides neither `getNumberOfRowsToSort()` nor `sortByPresetSortStates()`, so it
+inherits both the default and the flag. `#sortsFixedRows()` is a `#private` method, which is fine on a
+subclass instance: the brand is installed by this class's constructor, which runs through `super()`.
+
+One piece of dead code sits in the middle of this and will mislead you. The `// Append
+fixedRowsBottom + spareRows` loop at the end of `sortByPresetSortStates()` pushes **visual** indexes
+onto `indexesWithData`, but `indexMapping` is built by walking `indexesBefore`, whose length is only
+the sortable band - so every entry that loop appends is read by nothing. The rows outside the band
+keep their place because they were never in `indexMapping`, not because of that loop. Left alone on
+purpose; do not reason from it.
+
 ## Spare rows are counted, not assumed (#5983)
 
 `getNumberOfRowsToSort()` keeps the trailing spare rows out of the sortable range, and it decides

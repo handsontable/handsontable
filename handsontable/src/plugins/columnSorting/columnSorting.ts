@@ -54,6 +54,14 @@ export const APPEND_COLUMN_CONFIG_STRATEGY = 'append';
 export const REPLACE_COLUMN_CONFIG_STRATEGY = 'replace';
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 /**
+ * Default for the `sortFixedRows` option: rows pinned by `fixedRowsTop` or `fixedRowsBottom` stay
+ * where they are and take no part in the sort.
+ *
+ * Flipping this to `true` is a breaking change - it un-pins those rows for every grid that does
+ * not set the option, and it re-corrupts absolute-address formulas in footer rows (#12627).
+ */
+const SORT_FIXED_ROWS_DEFAULT = false;
+/**
  * Marks the header container of a column that is showing a sort indicator. The indicator is
  * positioned against that container, so the room it needs is reserved there rather than as padding
  * on the label - padding on the label would enlarge the area that sorts on click, which is exactly
@@ -120,6 +128,7 @@ const pluginConflictsState = new WeakMap();
  *   sortEmptyCells: true, // true = the table sorts empty cells, false = the table moves all empty cells to the end of the table (by default)
  *   indicator: true, // true = shows indicator for all columns (by default), false = don't show indicator for columns
  *   headerAction: true, // true = allow to click on the headers to sort (by default), false = turn off possibility to click on the headers to sort
+ *   sortFixedRows: false, // false = rows pinned by `fixedRowsTop` and `fixedRowsBottom` keep their place (by default), true = the whole dataset is sorted, pinned rows included
  *   compareFunctionFactory: function(sortOrder, columnMeta) {
  *     return function(value, nextValue) {
  *       // Some value comparisons which will return -1, 0 or 1...
@@ -656,6 +665,29 @@ export class ColumnSorting extends BasePlugin {
   }
 
   /**
+   * Whether the rows pinned in the top and bottom overlays take part in the sort.
+   *
+   * Read straight from the grid-level plugin settings on every sort, the same way `fixedRowsTop`
+   * and `fixedRowsBottom` themselves are, so `updateSettings` needs no extra wiring. It is
+   * deliberately NOT one of the `inheritedColumnProperties` in `columnStatesManager.ts`: the two
+   * `fixedRows*` options pin rows for the whole table, so a per-column answer would be
+   * meaningless - two columns could not disagree about which rows are in range.
+   *
+   * @returns {boolean} `true` when the pinned rows are inside the sortable range.
+   */
+  #sortsFixedRows() {
+    const pluginSettings = (this.hot.getSettings() as Record<string, unknown>)[this.pluginKey];
+
+    // The option can be set to `true` rather than to an object, which enables the plugin with its
+    // defaults and carries no sub-options at all.
+    if (!isPlainObject(pluginSettings)) {
+      return SORT_FIXED_ROWS_DEFAULT;
+    }
+
+    return (pluginSettings as { sortFixedRows?: boolean }).sortFixedRows ?? SORT_FIXED_ROWS_DEFAULT;
+  }
+
+  /**
    * Get number of rows which should be sorted.
    *
    * @private
@@ -664,7 +696,9 @@ export class ColumnSorting extends BasePlugin {
    */
   getNumberOfRowsToSort(numberOfRows: number) {
     const settings = this.hot.getSettings();
-    const fixedRowsBottom = settings.fixedRowsBottom || 0;
+    // `sortFixedRows: true` opts back into sorting the whole dataset, pinned rows included, so the
+    // bottom overlay reserves nothing from the sortable range.
+    const fixedRowsBottom = this.#sortsFixedRows() ? 0 : (settings.fixedRowsBottom || 0);
 
     // `maxRows` option doesn't take into account `minSpareRows` option in this case.
     // `fixedRowsBottom` is excluded from the sort range so footer rows (e.g. SUM formulas)
@@ -716,7 +750,9 @@ export class ColumnSorting extends BasePlugin {
     const indexesWithData: [number, ...unknown[]][] = [];
     const numberOfRows = this.hot.countRows();
     const settings = this.hot.getSettings();
-    const fixedRowsTop = settings.fixedRowsTop || 0;
+    // With `sortFixedRows: true` the sort starts at the very first row, so the top overlay's rows
+    // are permuted along with the rest of the dataset.
+    const fixedRowsTop = this.#sortsFixedRows() ? 0 : (settings.fixedRowsTop || 0);
     const upperBound = this.getNumberOfRowsToSort(numberOfRows);
 
     const getDataForSortedColumns = (visualRowIndex: number) =>
@@ -768,7 +804,8 @@ export class ColumnSorting extends BasePlugin {
    *
    * @private
    * @param {object} allSortSettings All sort config settings. Object may contain `initialConfig`, `indicator`,
-   * `sortEmptyCells`, `headerAction` and `compareFunctionFactory` properties.
+   * `sortEmptyCells`, `headerAction` and `compareFunctionFactory` properties. `sortFixedRows` is read
+   * separately, at sort time, because it is grid-level rather than per-column.
    */
   sortBySettings(allSortSettings: unknown) {
     if (isPlainObject(allSortSettings)) {
