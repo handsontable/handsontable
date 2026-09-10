@@ -37,13 +37,36 @@ function section(heading, items, line) {
 }
 
 /**
- * `\`sha\` subject (#n)` with the pull request number when known.
+ * Make free text safe to interpolate into the pull request body: neither a
+ * commit subject nor a model-written reason is trusted content, and either
+ * could otherwise inject an HTML comment that closes the real state block
+ * early (or opens a forged one), or run the body on for pages with newlines.
  *
- * @param {{ sha: string, subject: string, prNumber?: number|null }} item
+ * @param {string} text
+ * @param {number} [max] Character cap; the excess is replaced with `…`.
+ * @returns {string}
+ */
+function plain(text, max = 200) {
+  const collapsed = String(text ?? '')
+    .replaceAll('<!--', '<!-')
+    .replaceAll('-->', '->')
+    .replace(/\r\n|\r|\n/g, ' ');
+
+  return collapsed.length > max ? `${collapsed.slice(0, max)}…` : collapsed;
+}
+
+/**
+ * `\`sha\` subject` with the subject sanitized and any trailing `(#n)` it
+ * already carries stripped, since every `section()` caller appends its own
+ * `(#n, ...)` right after this.
+ *
+ * @param {{ sha: string, subject: string }} item
  * @returns {string}
  */
 function ref(item) {
-  return `\`${item.sha.slice(0, 7)}\` ${item.subject}`;
+  const subject = plain(item.subject).replace(/\s*\(#\d+\)\s*$/, '');
+
+  return `\`${item.sha.slice(0, 7)}\` ${subject}`;
 }
 
 /**
@@ -57,8 +80,8 @@ export function renderBody(report) {
     'Documentation content merged to `develop` that applies to the released version, ported by the daily docs sync. Review the sections below; the classifier\'s reasons are listed so a wrong call can be corrected by relabelling the source pull request (`docs-sync: include` / `docs-sync: skip`).',
     section('Included', report.included, (i) => `${ref(i)} (#${i.prNumber}, @${i.author})`),
     section('Skipped: conflict', report.conflicts, (i) => `${ref(i)} (#${i.prNumber}): ${i.files.map((f) => `\`${f}\``).join(', ')}`),
-    section('Skipped: needs a human decision', report.unsure, (i) => `${ref(i)} (#${i.prNumber}): ${i.reason}`),
-    section('Excluded by the classifier', report.excluded, (i) => `${ref(i)} (#${i.prNumber}): ${i.reason}`),
+    section('Skipped: needs a human decision', report.unsure, (i) => `${ref(i)} (#${i.prNumber}): ${plain(i.reason)}`),
+    section('Excluded by the classifier', report.excluded, (i) => `${ref(i)} (#${i.prNumber}): ${plain(i.reason)}`),
     section('Skipped: mixed content and other changes', report.mixed, (i) => `${ref(i)} (#${i.prNumber}): touches ${i.categories.join(', ')}`),
     section('Skipped: version-scoped pages', report.versionScoped, (i) => `${ref(i)} (#${i.prNumber}): ${i.files.map((f) => `\`${f}\``).join(', ')}`),
     section('Skipped: already on prod', report.alreadyOnProd, (i) => `${ref(i)} (#${i.prNumber})`),

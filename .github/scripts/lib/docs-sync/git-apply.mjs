@@ -34,6 +34,8 @@ export function git(cwd, args) {
       GIT_INDEX_FILE: undefined,
       GIT_COMMITTER_NAME: SYNC_COMMITTER.name,
       GIT_COMMITTER_EMAIL: SYNC_COMMITTER.email,
+      // The empty-pick detection in applyCommits() matches git's English message.
+      LC_ALL: 'C',
     },
   }).trim();
 }

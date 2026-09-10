@@ -21,6 +21,7 @@ test('uses the release GitHub App token and never GITHUB_TOKEN', () => {
   assert.match(source, /client-id: \$\{\{ secrets\.RELEASE_APP_CLIENT_ID \}\}/);
   assert.match(source, /private-key: \$\{\{ secrets\.RELEASE_APP_PRIVATE_KEY \}\}/);
   assert.doesNotMatch(source, /secrets\.GITHUB_TOKEN/);
+  assert.doesNotMatch(source, /github\.token/);
   assert.match(source, /GH_TOKEN: \$\{\{ steps\.app-token\.outputs\.token \}\}/);
   assert.match(source, /persist-credentials: false/);
 });
@@ -34,5 +35,6 @@ test('passes the LiteLLM secrets and the model variable to the script', () => {
   assert.match(source, /LITELLM_BASE_URL: \$\{\{ secrets\.LITELLM_BASE_URL \}\}/);
   assert.match(source, /LITELLM_API_KEY: \$\{\{ secrets\.LITELLM_API_KEY \}\}/);
   assert.match(source, /DOCS_SYNC_MODEL: \$\{\{ vars\.DOCS_SYNC_MODEL \}\}/);
+  assert.match(source, /DOCS_SYNC_REVIEWERS: \$\{\{ vars\.DOCS_SYNC_REVIEWERS \}\}/);
   assert.match(source, /run: node \.github\/scripts\/docs-sync\.mjs/);
 });

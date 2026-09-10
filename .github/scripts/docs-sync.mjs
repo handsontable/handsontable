@@ -44,6 +44,7 @@ import {
   applyCommits, git, hasForeignCommits, resetSyncBranch,
 } from './lib/docs-sync/git-apply.mjs';
 import { createGitHub } from './lib/docs-sync/github.mjs';
+import { scrubSecrets } from './lib/docs-sync/log.mjs';
 
 const HOLD_MARKER = '<!-- docs-sync-hold -->';
 const CONTENT_PATHSPECS = ['docs/content', 'docs/public/img'];
@@ -70,13 +71,17 @@ const gh = createGitHub({
 const summaryLines = [];
 
 /**
- * Log to stdout and to the step summary buffer.
+ * Log to stdout and to the step summary buffer, with the push token scrubbed
+ * out of every line -- a failed push echoes the tokenized remote URL through
+ * `error.message`, and this is the one place all such messages pass through.
  *
  * @param {string} line
  */
 function log(line) {
-  console.log(line);
-  summaryLines.push(line);
+  const scrubbed = scrubSecrets(line);
+
+  console.log(scrubbed);
+  summaryLines.push(scrubbed);
 }
 
 /**
@@ -211,8 +216,22 @@ try {
       continue;
     }
 
-    candidate.pr = gh.getPullRequest(candidate.prNumber);
-    candidate.author = candidate.pr.author;
+    try {
+      candidate.pr = gh.getPullRequest(candidate.prNumber);
+    } catch (error) {
+      // The squash subject's `(#n)` can name an issue, a discussion, or a pull
+      // request from another repository -- anything GitHub does not resolve
+      // under this repo's pulls endpoint. That is not this run's problem to
+      // solve; list the candidate and move on instead of failing the run.
+      if (/404|Not Found/.test(error.message)) {
+        report.noPrNumber.push({ ...candidate, subject: `${candidate.subject} (no pull request #${candidate.prNumber} on GitHub)` });
+        continue;
+      }
+      throw error;
+    }
+    // A ghost account (deleted or inaccessible to the token) renders as an
+    // empty login; keep the git commit author rather than render a bare `@`.
+    candidate.author = candidate.pr.author || candidate.author;
 
     if (candidate.pr.labels.includes(SKIP_LABEL)) {
       report.excluded.push({ ...candidate, reason: `Labelled \`${SKIP_LABEL}\`.` });
@@ -322,7 +341,16 @@ try {
 
       // Stage 6: verify.
       if (report.included.length > 0 && !flags['skip-lint']) {
-        execFileSync('npm', ['run', 'docs:lint', '--prefix', 'docs'], { cwd: repoDir, stdio: 'inherit' });
+        try {
+          execFileSync('npm', ['run', 'docs:lint', '--prefix', 'docs'], { cwd: repoDir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+        } catch (error) {
+          const output = `${error.stdout ?? ''}${error.stderr ?? ''}`;
+
+          log('## Docs lint failed on the rebuilt branch');
+          log(output.slice(0, 8192));
+          log('Fix the source pull request on develop, or label it `docs-sync: skip` to keep it out of the sync.');
+          throw new Error('docs:lint failed on the rebuilt branch');
+        }
       }
 
       // Stage 7: pull request.
@@ -334,11 +362,15 @@ try {
       if (dryRun) {
         log('\nDry run: nothing pushed, no pull request touched.');
       } else {
+        // Created on every non-dry run, before the include/conflict/close
+        // branching below, so a conflicts-only or a nothing-to-sync run still
+        // leaves the labels available for a human to apply by hand.
+        gh.ensureLabels([SYNC_LABEL, SKIP_LABEL, INCLUDE_LABEL]);
+
         if (report.included.length > 0) {
           const lease = syncExists ? [`--force-with-lease=refs/heads/${syncBranch}:${git(repoDir, ['rev-parse', syncRef])}`] : [];
 
           git(repoDir, ['push', '--quiet', ...lease, 'origin', `HEAD:refs/heads/${syncBranch}`]);
-          gh.ensureLabels([SYNC_LABEL, SKIP_LABEL, INCLUDE_LABEL]);
 
           if (openPr) {
             gh.updatePr(openPr.number, { title, body });

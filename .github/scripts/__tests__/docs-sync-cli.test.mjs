@@ -119,7 +119,7 @@ test('the CLI classifies deterministically, pushes the sync branch, and opens on
     // --no-llm makes every classifier candidate unsure, so nothing is included and
     // no pull request is opened; every other bucket is exercised.
     assert.match(summary, /## Skipped: needs a human decision\n\n- `[0-9a-f]{7}` Fix a typo in guide a \(#101\)/);
-    assert.match(summary, /## Skipped: mixed content and other changes\n\n- `[0-9a-f]{7}` Add feature with docs \(#102\) \(#102\): touches source/);
+    assert.match(summary, /## Skipped: mixed content and other changes\n\n- `[0-9a-f]{7}` Add feature with docs \(#102\): touches source/);
     assert.match(summary, /## Skipped: version-scoped pages\n\n- `[0-9a-f]{7}` Add the 18\.2 migration guide \(#103\)/);
     assert.match(summary, /## Skipped: already on prod\n\n- `[0-9a-f]{7}` Fix guide d \(#104\)/);
     assert.match(summary, /## Skipped: no pull request number\n\n- `[0-9a-f]{7}` direct push without a number/);
@@ -165,9 +165,35 @@ test('an include label on the source pull request forces the pick, pushes, and o
     assert.equal(create[create.indexOf('--base') + 1], 'prod-docs/18.1');
     assert.equal(create[create.indexOf('--head') + 1], 'docs-sync/prod-docs-18.1');
     assert.equal(create[create.indexOf('--title') + 1], 'Sync docs content from develop to prod-docs/18.1');
-    assert.match(create[create.indexOf('--body') + 1], /## Included\n\n- `[0-9a-f]{7}` Fix a typo in guide a \(#101\) \(#101, @someone\)/);
+    assert.match(create[create.indexOf('--body') + 1], /## Included\n\n- `[0-9a-f]{7}` Fix a typo in guide a \(#101, @someone\)/);
     assert.match(create[create.indexOf('--body') + 1], /\[skip changelog\]/);
     assert.ok(ghCalls.some((c) => c[0] === 'label' && c[1] === 'create' && c[2] === 'docs-sync'), 'labels ensured');
+  } finally {
+    rmSync(f.root, { recursive: true, force: true });
+  }
+});
+
+test('a skip label on the source pull request excludes it, with no branch pushed and no pull request opened', () => {
+  const f = fixture();
+
+  try {
+    // Re-point the fake gh so PR 101 carries the skip label.
+    const script = readFileSync(f.fakeGh, 'utf8').replace('labels: []', 'labels: n === 101 ? [{ name: "docs-sync: skip" }] : []');
+
+    writeFileSync(f.fakeGh, script);
+
+    const result = runCli(f);
+
+    assert.equal(result.status, 0, result.stderr);
+
+    const summary = readFileSync(path.join(f.root, 'summary.md'), 'utf8');
+
+    assert.match(summary, /## Excluded by the classifier\n\n- `[0-9a-f]{7}` Fix a typo in guide a \(#101\): Labelled/);
+    assert.equal(f.git(f.work, ['ls-remote', '--heads', f.origin, 'docs-sync/prod-docs-18.1']), '', 'no branch pushed when the only candidate is excluded');
+
+    const ghCalls = readFileSync(f.ghLog, 'utf8').trim().split('\n').map((line) => JSON.parse(line));
+
+    assert.ok(!ghCalls.some((c) => c[0] === 'pr' && c[1] === 'create'), 'no pull request when nothing is included');
   } finally {
     rmSync(f.root, { recursive: true, force: true });
   }
