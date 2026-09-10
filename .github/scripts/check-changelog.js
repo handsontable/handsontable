@@ -21,7 +21,9 @@ const run = async() => {
   // The extension is mandatory here: ESM resolution (dynamic import from CJS)
   // does not add `.mjs` the way require() adds `.js`.
   // eslint-disable-next-line import/extensions
-  const { evaluateChangelogGate, SKIP_MARKER } = await import('./lib/changelog-gate.mjs');
+  const {
+    evaluateChangelogGate, SKIP_MARKER, MULTIPLE_MARKER
+  } = await import('./lib/changelog-gate.mjs');
   const pr = github.context.payload.pull_request;
 
   if (pr === undefined) {
@@ -62,11 +64,25 @@ const run = async() => {
     pull_number: pr.number
   });
 
-  const { reason, sourceFiles } = evaluateChangelogGate({ body, files });
+  const { reason, sourceFiles, entries } = evaluateChangelogGate({ body, files });
 
   switch (reason) {
     case 'entry-added':
       console.log('Found new changelog(s), success!');
+      break;
+    case 'multiple-allowed':
+      console.log(
+        `The PR description opts out of the entry limit via \`${MULTIPLE_MARKER}\`. Entries added:`
+      );
+      entries.forEach(file => console.log(`  - ${file}`));
+      break;
+    case 'too-many-entries':
+      console.log('This PR adds these changelog entries:');
+      entries.forEach(file => console.log(`  - ${file}`));
+      core.setFailed(
+        // eslint-disable-next-line max-len
+        `This PR adds ${entries.length} changelog entries. One pull request gets one entry, and a second only when it cites a separate GitHub issue — otherwise the release notes carry lines a reader cannot tell came from one change. Fold the extra titles into one entry (see .changelogs/README.md), or — for a maintenance PR that legitimately back-fills entries for other pull requests — write \`${MULTIPLE_MARKER}\` in the PR description (outside HTML comments) and re-run this check.`
+      );
       break;
     case 'no-source-change':
       console.log(

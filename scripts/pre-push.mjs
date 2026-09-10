@@ -10,8 +10,9 @@
  * touches. The full unit/E2E suites are CI's job.
  */
 import { execSync, spawnSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
+import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
 import { repoRoot } from '../.github/scripts/lib/repo-root.mjs';
 import { selectRatchetedFiles } from '../.github/scripts/lib/lint-ratchet.mjs';
@@ -21,6 +22,52 @@ import { filterCached, recordGreen } from './e2e-run-cache.mjs';
 // npx/npm are .cmd shims on Windows; spawnSync needs a shell there or it ENOENTs
 // (a hook that fails-closed on every push just trains people to use --no-verify).
 const WIN = process.platform === 'win32';
+
+// `bin/lib/` is CommonJS, shared with `bin/changelog`. Resolved from this
+// file's own location, not from the repo root, so the specifier stays a
+// literal (`import/no-dynamic-require`) and the module is pure either way.
+const require = createRequire(import.meta.url);
+const { findMisnamedEntries, formatMisnamedReport } = require('../bin/lib/entry-filenames.js');
+
+/**
+ * Report the changelog entries whose filename does not match the number they
+ * cite. Reads the whole directory rather than the pushed diff: the invariant is
+ * repo-wide, and a rename is exactly how a second entry for one number would
+ * otherwise slip past a diff-scoped check.
+ *
+ * Fails open on an unreadable directory or unparseable JSON — `bin/changelog`
+ * itself reports those, with better messages, on every pull request. A hook
+ * that blocks a push over its own I/O just trains people to use `--no-verify`.
+ *
+ * @param {string} root The repository root.
+ * @returns {boolean} True when every entry is named correctly, or when the
+ *   check could not run.
+ */
+function checkEntryFilenames(root) {
+  const directory = path.join(root, '.changelogs');
+  let records;
+
+  try {
+    records = readdirSync(directory)
+      .filter(name => name.endsWith('.json'))
+      .map(name => ({
+        file: path.posix.join('.changelogs', name),
+        entry: JSON.parse(readFileSync(path.join(directory, name), 'utf8')),
+      }));
+  } catch {
+    return true;
+  }
+
+  const report = formatMisnamedReport(findMisnamedEntries(records));
+
+  if (report.offenders.length) {
+    console.error(`\n${report.message}\n`);
+
+    return false;
+  }
+
+  return true;
+}
 
 /**
  * Resolve the base ref to diff against — the merge-base with the trunk.
@@ -296,6 +343,17 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
 
   if (gate.status !== 0) {
     process.exit(gate.status ?? 1);
+  }
+
+  // 1b) Changelog entry filenames — blocking, and diff-independent, so it needs
+  //     no base ref and costs a directory read. An entry file is always
+  //     `<issueOrPR>.json`, which is what keeps one pull request to one entry:
+  //     a number owns one file, so a change cannot be split across two lines of
+  //     the same release notes. CI asserts the same thing in `bin/changelog`'s
+  //     `consume --dry-run`, which is the real guarantee — this push is
+  //     bypassable with `--no-verify`, routine on release-branch pull requests.
+  if (!checkEntryFilenames(root)) {
+    process.exit(1);
   }
 
   const changed = execSync(`git diff --name-only ${base}...HEAD`, { encoding: 'utf8', cwd: root })

@@ -1,0 +1,125 @@
+/**
+ * Detects `.changelogs/*.json` entries whose filename does not match the
+ * number they cite.
+ *
+ * The invariant is that a file is named `<issueOrPR>.json` and nothing else,
+ * which is what makes "one entry per pull request" enforceable at all: the
+ * filesystem holds one file per number, so two entries citing the same number
+ * cannot coexist. `bin/changelog entry` has always written exactly that name
+ * and cannot produce anything else, so every violation is a file hand-written
+ * around the CLI.
+ *
+ * The shape that motivated this is a suffix: `13442.json` (fixed) beside
+ * `13442-changed.json` (changed), one pull request's change split across two
+ * files that both cite #13442. Four such files were written in one month, and
+ * `consume`/`sync` glob `*.json`, so they compiled happily into two adjacent
+ * lines that no reader could tell came from one change.
+ *
+ * Checking the name rather than counting entries is deliberate. It needs no
+ * diff base, no pull request context and no network, so the same function
+ * serves `consume`, `sync` and the pre-push hook; and it cannot be dodged by
+ * renaming a file, the way a check scoped to a pull request's added files can.
+ */
+
+/**
+ * A filename that cites a number and nothing else. Anchored, and digits only,
+ * so `13442-changed`, `13442 (copy)` and `entry` are all rejected.
+ */
+const ENTRY_BASENAME_PATTERN = /^\d+$/;
+
+/**
+ * Reduces a path to its basename without the `.json` extension. Accepts both
+ * separators so a record built on Windows compares the same way.
+ *
+ * @param {string} file The entry's path, absolute or relative.
+ * @returns {string} The basename with `.json` removed.
+ */
+const entryBasename = file => file
+  .split(/[\\/]/)
+  .pop()
+  .replace(/\.json$/i, '');
+
+/**
+ * Finds the entries whose filename does not equal the number they cite.
+ *
+ * The comparison is between strings, not numbers: `Number('013442')` is
+ * `13442`, so a numeric comparison would accept `013442.json` as a second
+ * file for #13442 and hand back the very collision this prevents.
+ *
+ * @param {Array<{file: string, entry: object}>} records Pending entries and their paths.
+ * @returns {Array<{file: string, basename: string, issueOrPR: number, expected: string}>}
+ *   One record per offender, in input order.
+ */
+const findMisnamedEntries = records => records.reduce((found, { file, entry }) => {
+  const basename = entryBasename(file);
+  const expected = String(entry.issueOrPR);
+
+  if (!ENTRY_BASENAME_PATTERN.test(basename) || basename !== expected) {
+    found.push({
+      file, basename, issueOrPR: entry.issueOrPR, expected
+    });
+  }
+
+  return found;
+}, []);
+
+/**
+ * Renders one offending entry as a single line.
+ *
+ * @param {object} record A record from `findMisnamedEntries`.
+ * @returns {string} The rendered line.
+ */
+const formatMisnamedEntry = record => `${record.file}: cites #${
+  record.issueOrPR
+}, so it must be named \`${record.expected}.json\``;
+
+/**
+ * Renders the report. Every offender is listed in one pass, so a person fixing
+ * several of them does not have to re-run the command once per file.
+ *
+ * The remedy depends on whether the correct name is already taken, and the
+ * message covers both because they are fixed differently. A plain misname is a
+ * rename. A collision means two entries cite one number, and then one of them
+ * has to go: either the two titles fold into one, or the extra entry is
+ * renumbered to cite a GitHub number of its own.
+ *
+ * @param {Array<object>} records The records from `findMisnamedEntries`.
+ * @returns {{offenders: Array<object>, message: string}} The report. The
+ *   message is empty when there are no offenders.
+ */
+const formatMisnamedReport = (records) => {
+  if (records.length === 0) {
+    return { offenders: records, message: '' };
+  }
+
+  const message = [
+    `${records.length} changelog ${
+      records.length === 1 ? 'entry is' : 'entries are'
+    } not named after the number ${
+      records.length === 1 ? 'it cites' : 'they cite'
+    }:`,
+    ...records.map(r => `  ${formatMisnamedEntry(r)}`),
+    '',
+    'An entry file is always `<issueOrPR>.json`. That is how one pull request stays one',
+    'entry: a number owns exactly one file, so a change cannot be split across two lines',
+    'of the same release notes. `npm run changelog entry` writes that name for you.',
+    '',
+    'If the correct name is free, rename the file:',
+    '',
+    ...records.map(r => `  git mv ${r.file} ${
+      r.file.replace(/[^\\/]+$/, `${r.expected}.json`)
+    }`),
+    '',
+    'If it is already taken, two entries cite one number. Fold their titles into the one',
+    'file and delete the extra, or renumber the extra to cite its own GitHub number.'
+  ].join('\n');
+
+  return { offenders: records, message };
+};
+
+module.exports = {
+  entryBasename,
+  findMisnamedEntries,
+  formatMisnamedEntry,
+  formatMisnamedReport
+};
