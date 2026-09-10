@@ -820,8 +820,10 @@ export class NestedRows extends BasePlugin {
   };
 
   /**
-   * Callback for the `beforeRemoveRow` change list of removed physical indexes by reference. Removing parent node
-   * has effect in removing children nodes.
+   * Callback for the `beforeRemoveRow` change list of removed physical indexes by reference. Removing a parent
+   * node has the effect of removing its whole subtree, at every depth - removing the parent object from the
+   * source array takes every descendant with it, so a descendant left out of this list would survive in the
+   * index maps as a row with no data behind it.
    *
    * @param {number} index Visual index of starter row.
    * @param {number} amount Amount of rows to be removed.
@@ -830,20 +832,16 @@ export class NestedRows extends BasePlugin {
   #onBeforeRemoveRow = (index: number, amount: number, physicalRows: number[]) => {
     const modifiedPhysicalRows = Array.from(physicalRows.reduce((removedRows: Set<number>, physicalIndex: number) => {
       if (this.dataManager!.isParent(physicalIndex)) {
-        const children = this.dataManager!.getDataObject(physicalIndex)?.__children;
-
         // Preserve a parent in the list of removed rows.
         removedRows.add(physicalIndex);
 
-        if (Array.isArray(children)) {
-          // Add a children to the list of removed rows.
-          children.forEach((child) => {
-            const childRowIndex = this.dataManager!.getRowIndex(child);
+        // `cacheNode()` flattens the tree depth-first, so a parent's descendants are always the contiguous
+        // block right after it. `countChildren()` counts that whole block, at every depth - which is why the
+        // subtree is expressed as a range instead of a walk over `__children`.
+        const descendantCount = this.dataManager!.countChildren(physicalIndex);
 
-            if (childRowIndex !== null) {
-              removedRows.add(childRowIndex);
-            }
-          });
+        for (let offset = 1; offset <= descendantCount; offset++) {
+          removedRows.add(physicalIndex + offset);
         }
 
         return removedRows;
