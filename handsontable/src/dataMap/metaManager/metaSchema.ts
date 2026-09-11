@@ -6919,6 +6919,12 @@ export default (): Record<string, unknown> => {
      * | `false` (default) | Don't truncate text content with an ellipsis  |
      * | `true`            | Truncate text content with an ellipsis        |
      *
+     * ::: tip
+     * The `autocomplete`, `dropdown`, and `handsontable` cell types always truncate their value with an
+     * ellipsis so their dropdown arrow never overlaps the content, regardless of this option. This
+     * changed in 18.2.0.
+     * :::
+     *
      * @since 16.0.0
      * @memberof Options#
      * @type {boolean}
@@ -8088,6 +8094,12 @@ export default (): Record<string, unknown> => {
      * Word wrapping only applies to content that contains spaces or other soft-wrap opportunities.
      * A long unbroken string without spaces (e.g. a URL or a continuous number sequence) does not wrap
      * regardless of this setting.
+     * :::
+     *
+     * ::: tip
+     * The `autocomplete`, `dropdown`, and `handsontable` cell types always keep their value on a single
+     * line and truncate it with an ellipsis, so their dropdown arrow never overlaps the content. For
+     * those types this option has no effect. This changed in 18.2.0.
      * :::
      *
      * This option can be set at any level of the [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration):

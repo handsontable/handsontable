@@ -15,14 +15,16 @@
     if (!window.htBundle) {
       throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
     }
-    // Only the two cell types that render `htAutocompleteArrow` and wrap around it (#2545 / DEV-28).
-    window.htCellType = ({ autocomplete: 'autocomplete', dropdown: 'dropdown' })[htParams.get('cellType') ?? 'autocomplete'];
+    // The three cell types that render `htAutocompleteArrow`: `dropdown` and `handsontable` both
+    // delegate to `autocompleteRenderer` like `autocomplete` (DEV-28).
+    window.htCellType = ({ autocomplete: 'autocomplete', dropdown: 'dropdown', handsontable: 'handsontable' })[htParams.get('cellType') ?? 'autocomplete'];
     if (!window.htCellType) {
       throw new Error('Unknown ?cellType= value: ' + JSON.stringify(htParams.get('cellType')));
     }
-    // `narrow` forces a 60px column so a long value cannot fit on one line; `autosize` lets
-    // `autoColumnSize` grow the column and asserts nothing is truncated.
-    window.htMode = ({ narrow: 'narrow', autosize: 'autosize' })[htParams.get('mode') ?? 'narrow'];
+    // `narrow` forces a 60px column so a long value cannot fit; `tall` adds a large `rowHeights` so
+    // the single-line cell sits in a tall row (to check the arrow stays beside the first line, not
+    // centered); `autosize` lets `autoColumnSize` grow the column and asserts nothing is truncated.
+    window.htMode = ({ narrow: 'narrow', tall: 'tall', autosize: 'autosize' })[htParams.get('mode') ?? 'narrow'];
     if (!window.htMode) {
       throw new Error('Unknown ?mode= value: ' + JSON.stringify(htParams.get('mode')));
     }
@@ -44,23 +46,27 @@
     container.className = `ht-theme-${window.htTheme}`;
 
     const CHOICES = ['Al', 'Connecticut readjustment authority', 'Alto'];
-    // A long value that overflows a narrow column, and a short one on the same column that fits on a
-    // single line - the short cell is the single-line height reference the wrap check compares against
-    // (row heights are per-row, so a wrapping long cell grows only its own row).
     const LONG = 'Connecticut readjustment authority';
     const SHORT = 'Al';
 
-    const column = { type: window.htCellType, source: CHOICES };
+    // `autocomplete` / `dropdown` take a flat `source`; `handsontable` takes a nested grid config.
+    // All three resolve to `autocompleteRenderer` and the `htAutocomplete` class.
+    const columnFor = extra => (window.htCellType === 'handsontable'
+      ? { type: 'handsontable', handsontable: { data: CHOICES.map(choice => [choice]) }, ...extra }
+      : { type: window.htCellType, source: CHOICES, ...extra });
 
     const settings = window.htMode === 'autosize'
       ? {
         data: [[LONG], [SHORT]],
-        columns: [column],
+        columns: [columnFor({})],
         autoColumnSize: true,
       }
       : {
         data: [[LONG, LONG], [SHORT, SHORT], [null, null]],
-        columns: [{ ...column, width: 60 }, { ...column, width: 60 }],
+        columns: [columnFor({ width: 60 }), columnFor({ width: 60 })],
+        // A tall row keeps the value on one line (the fix) while the cell box is far taller than a
+        // line, so the arrow's vertical anchor is observable.
+        ...(window.htMode === 'tall' ? { rowHeights: 80 } : {}),
       };
 
     window.hot = new Handsontable(container, {

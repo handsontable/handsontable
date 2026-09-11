@@ -26,14 +26,18 @@
       }
     }
 
-    // A narrow arrow cell (autocomplete / dropdown) must keep its text on a single line and
-    // truncate with an ellipsis instead of wrapping around the floated arrow (#2545). Reserve
-    // the arrow's width on the content root and take the arrow out of flow, so the ellipsis
-    // lands before the arrow rather than behind it (a float shortens line boxes but not the
-    // content box, so `text-overflow` alone would clip behind the float). The AutoColumnSize
-    // ghost sample inherits these rules - it renders through the real renderer, which adds the
-    // `htAutocomplete` class - so `nowrap` forces the measured intrinsic width to include the
-    // reserved arrow space and autosize grows the column instead of truncating.
+    // A narrow arrow cell (autocomplete / dropdown / handsontable) used to render its contents
+    // tangled around the right-floated arrow (DEV-28). These list cell types now keep their value
+    // on a single line and truncate it with an ellipsis, so the content clips at the content-box
+    // edge - which the reserved trailing padding places before the arrow - instead of wrapping or
+    // overflowing under it. This overrides `wordWrap` / `textEllipsis` for these three types by
+    // design (documented on both options in `metaSchema.ts`); a float shortens line boxes but not
+    // the content box, so the arrow is taken out of flow for the ellipsis to land in front of it.
+    // The reserved padding also widens the AutoColumnSize ghost sample (it renders the real
+    // renderer, which adds the `htAutocomplete` class), so an autosized column fits the value plus
+    // the arrow. The arrow keeps the base rule's vertical offset - beside the first line, not
+    // centered - so it stays aligned with top-anchored text on a tall row and with the still-
+    // floated `.ht-multi-select-arrow`.
     td.htAutocomplete {
       position: relative;
       white-space: nowrap;
@@ -44,11 +48,10 @@
 
       .htAutocompleteArrow {
         position: absolute;
-        top: 50%;
         float: none;
         inset-inline-end: var(--ht-cell-horizontal-padding);
+        top: calc(var(--ht-cell-vertical-padding) + (var(--ht-line-height) - var(--ht-icon-size)) / 2);
         margin: 0;
-        transform: translateY(-50%);
       }
     }
   }

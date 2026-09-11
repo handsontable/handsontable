@@ -21,7 +21,7 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 [[toc]]
 
-Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode).
+Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns the `autocomplete`, `dropdown`, and `handsontable` cell types, and applies only if you use one of them.
 
 ## 1. `date` cells reach the formula engine the same way on every data path
 
@@ -355,3 +355,23 @@ than one selection layer.
 Nothing to change in most cases, because the gesture now does what the highlight shows. If your own
 code removed a selection layer in response to such a click, drop that workaround: the grid no longer
 removes the layer for you.
+
+## 9. List cells keep their value on one line
+
+This applies only to the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), and [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) cell types, which render a dropdown arrow.
+
+In a narrow column, the value in one of these cells used to wrap onto several lines and tangle with the dropdown arrow. The value now stays on a single line and truncates with an ellipsis, and the arrow's width is reserved so the content never reaches it.
+
+### `wordWrap` and `textEllipsis` no longer apply to these cell types
+
+The single-line-with-ellipsis behavior is fixed for these three cell types, so [`wordWrap`](@/api/options.md#wordwrap) (default `true`) and [`textEllipsis`](@/api/options.md#textellipsis) (default `false`) have no effect on them. Every other cell type still honors both options.
+
+### Who is affected
+
+You are affected only if you use the `autocomplete`, `dropdown`, or `handsontable` cell type **and** relied on its value wrapping onto multiple lines within the cell.
+
+### How to migrate
+
+Nothing to change in most cases, because a single-line value with the arrow clear of the text is what these cells were meant to show.
+
+If you need a column whose cells wrap their content over several lines, use a cell type that has no dropdown arrow (for example [`text`](@/guides/cell-types/text-cell-type/text-cell-type.md)), or widen the column so the value fits.
