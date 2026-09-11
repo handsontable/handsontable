@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-11T09:16:23.476Z",
+  "generatedAt": "2026-09-11T09:19:21.464Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,11 +8,41 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 2,
+    "tests": 3,
     "needsTicket": 0,
-    "entries": 2
+    "entries": 3
   },
   "rows": [
+    {
+      "key": "playwright|e2e/iframe-cross-realm-scroll.spec.ts|cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
+      "tier": "playwright",
+      "file": "e2e/iframe-cross-realm-scroll.spec.ts",
+      "line": 100,
+      "title": "cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 1,
+      "branches30": 1,
+      "legs": [
+        "e2e-classic-min"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "lastSeen": {
+        "seenAt": "2026-09-11T09:18:34Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34582029516",
+        "branch": "feature/PRO-370_Sheets-bar-plugin",
+        "leg": "e2e-classic-min",
+        "status": "flaky",
+        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
     {
       "key": "playwright|e2e/walkontable/exact-row-heights.spec.ts|walkontable exact row heights › in the `exact` mode › keeps a row with a tall frozen cell at the provided height in both tables",
       "tier": "playwright",

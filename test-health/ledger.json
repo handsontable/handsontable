@@ -1,8 +1,28 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-11T09:16:23.476Z",
+  "updatedAt": "2026-09-11T09:19:21.464Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "playwright",
+      "leg": "e2e-classic-min",
+      "file": "e2e/iframe-cross-realm-scroll.spec.ts",
+      "line": 100,
+      "title": "cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
+      "status": "flaky",
+      "attempts": 2,
+      "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+      "isolation": null,
+      "source": "ci",
+      "runId": "34582029516",
+      "runAttempt": 1,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34582029516",
+      "workflow": "Tests",
+      "branch": "feature/PRO-370_Sheets-bar-plugin",
+      "headSha": "4a0767b472b005d0401272cf13b1dc5d9a41e43e",
+      "event": "pull_request",
+      "seenAt": "2026-09-11T09:18:34Z"
+    },
     {
       "tier": "playwright",
       "leg": "e2e-classic-min",
