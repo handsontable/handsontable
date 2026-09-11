@@ -231,6 +231,78 @@ test('an include label on the source pull request forces the pick, pushes, and o
   }
 });
 
+test('the lint gate invokes eslint directly by path, not npx, and a pass lets the push through', () => {
+  const f = fixture();
+
+  try {
+    // Untracked but ignored, mirroring the real `docs/.gitignore`: the CLI
+    // refuses to run over a dirty working tree, and this stub must not
+    // register as one.
+    writeFileSync(path.join(f.work, '.git/info/exclude'), 'docs/node_modules/\n', { flag: 'a' });
+    mkdirSync(path.join(f.work, 'docs/node_modules/eslint/bin'), { recursive: true });
+    writeFileSync(path.join(f.work, 'docs/node_modules/eslint/bin/eslint.js'), '#!/usr/bin/env node\nprocess.exit(0);\n');
+
+    writeAnswers(f, { includeLabels: [101] });
+
+    const result = spawnSync(process.execPath, [CLI, '--repo-dir', f.work, '--gh-bin', f.fakeGh, '--no-llm'], {
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        GIT_DIR: undefined,
+        GH_REPO: 'o/r',
+        GH_TOKEN: 'x',
+        DRY_RUN: '',
+        TARGET: '',
+        GITHUB_STEP_SUMMARY: path.join(f.root, 'summary.md'),
+        FAKE_GH_ANSWERS: f.answersPath,
+      },
+    });
+
+    assert.equal(result.status, 0, result.stderr);
+
+    const remoteTip = f.git(f.work, ['ls-remote', '--heads', f.origin, 'docs-sync/prod-docs-18.1']);
+
+    assert.match(remoteTip, /docs-sync\/prod-docs-18\.1/);
+  } finally {
+    rmSync(f.root, { recursive: true, force: true });
+  }
+});
+
+test('a real lint failure on the rebuilt tree blocks the push', () => {
+  const f = fixture();
+
+  try {
+    // Untracked but ignored, mirroring the real `docs/.gitignore`: the CLI
+    // refuses to run over a dirty working tree, and this stub must not
+    // register as one.
+    writeFileSync(path.join(f.work, '.git/info/exclude'), 'docs/node_modules/\n', { flag: 'a' });
+    mkdirSync(path.join(f.work, 'docs/node_modules/eslint/bin'), { recursive: true });
+    writeFileSync(path.join(f.work, 'docs/node_modules/eslint/bin/eslint.js'), '#!/usr/bin/env node\nconsole.error("fake lint error");\nprocess.exit(1);\n');
+
+    writeAnswers(f, { includeLabels: [101] });
+
+    const result = spawnSync(process.execPath, [CLI, '--repo-dir', f.work, '--gh-bin', f.fakeGh, '--no-llm'], {
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        GIT_DIR: undefined,
+        GH_REPO: 'o/r',
+        GH_TOKEN: 'x',
+        DRY_RUN: '',
+        TARGET: '',
+        GITHUB_STEP_SUMMARY: path.join(f.root, 'summary.md'),
+        FAKE_GH_ANSWERS: f.answersPath,
+      },
+    });
+
+    assert.notEqual(result.status, 0);
+    assert.match(`${result.stdout}${result.stderr}`, /Docs lint failed|fake lint error/);
+    assert.equal(f.git(f.work, ['ls-remote', '--heads', f.origin, 'docs-sync/prod-docs-18.1']), '', 'nothing pushed when lint fails');
+  } finally {
+    rmSync(f.root, { recursive: true, force: true });
+  }
+});
+
 test('a skip label on the source pull request excludes it, with no branch pushed and no pull request opened', () => {
   const f = fixture();
 

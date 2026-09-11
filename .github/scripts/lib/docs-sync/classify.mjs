@@ -73,6 +73,21 @@ export function collectUnreleased({ pendingEntries, changelogMarkdown, released 
 }
 
 /**
+ * Escape untrusted text before it enters the model's user turn, inside one
+ * of the named spans `prompt.md` tells the model to treat as data, not
+ * instructions. Escaping `<` keeps a literal closing tag (e.g.
+ * `</pull-request-body>`) from prematurely ending its own span -- the same
+ * single-character-escape reasoning `pr-body.mjs`'s `plain()` uses for the
+ * HTML case.
+ *
+ * @param {string} text
+ * @returns {string}
+ */
+function escapeUntrusted(text) {
+  return text.replaceAll('<', '&lt;');
+}
+
+/**
  * Cut a string and say how much was cut.
  *
  * @param {string} text
@@ -109,21 +124,24 @@ export function buildUserMessage(input, { maxBody = 4096, maxDiff = 61440 } = {}
     `Released version: ${releasedVersion}`,
     '',
     '# Pull request',
-    `#${pr.number}: ${pr.title}`,
+    `#${pr.number}`,
+    '<pull-request-title>',
+    escapeUntrusted(pr.title),
+    '</pull-request-title>',
     '',
     '<pull-request-body>',
-    // Escaping `<` keeps a body containing the literal text
-    // `</pull-request-body>` from prematurely closing this untrusted span --
-    // the same single-character-escape reasoning `pr-body.mjs`'s `plain()`
-    // uses for the HTML case, applied here to the prompt's own delimiter.
-    truncate((pr.body ?? '').replaceAll('<', '&lt;'), maxBody),
+    truncate(escapeUntrusted(pr.body ?? ''), maxBody),
     '</pull-request-body>',
     '',
     '# Changed files',
-    ...files.map((file) => `- ${file}`),
+    '<changed-files>',
+    ...files.map((file) => `- ${escapeUntrusted(file)}`),
+    '</changed-files>',
     '',
     '# New on develop and absent from the target',
-    unreleased,
+    '<unreleased>',
+    escapeUntrusted(unreleased),
+    '</unreleased>',
     '',
     '# Diff',
     '```diff',
