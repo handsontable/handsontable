@@ -199,16 +199,26 @@ export default class HotGrid extends LightningElement {
                 changes.forEach(([row, col, oldValue, newValue]) => {
                     if (oldValue !== newValue) {
                         this.dispatchEvent(new CustomEvent('cellchange', {
-                            detail: { row, col, oldValue, newValue },
+                            detail: {
+                                row,
+                                physicalRow: this._hot.toPhysicalRow(row),
+                                col,
+                                oldValue,
+                                newValue,
+                            },
                         }));
                     }
                 });
             },
             afterCreateRow: (index, amount) => {
-                this.dispatchEvent(new CustomEvent('rowcreate', { detail: { index, amount } }));
+                this.dispatchEvent(new CustomEvent('rowcreate', {
+                    detail: { index, physicalIndex: this._hot.toPhysicalRow(index), amount },
+                }));
             },
-            beforeRemoveRow: (index, amount) => {
-                this.dispatchEvent(new CustomEvent('rowremoverequest', { detail: { index, amount } }));
+            beforeRemoveRow: (index, amount, physicalRows) => {
+                this.dispatchEvent(new CustomEvent('rowremoverequest', {
+                    detail: { physicalRows: [...physicalRows] },
+                }));
 
                 return false;
             },
@@ -225,10 +235,11 @@ export default class HotGrid extends LightningElement {
 }
 ```
 
-Two details:
+Three details:
 
 - `loadScript` attaches the library to `window.Handsontable`, so the instance comes from the global, not from an import.
 - `destroy()` in `disconnectedCallback` is not optional. Lightning Experience keeps navigated-away pages in memory, and an undestroyed grid keeps its listeners and its resize observer.
+- The events carry physical row indexes. The hooks report visual indexes, which move when the user sorts a column, while the data component's arrays keep source order - an event carrying only the visual index would resolve a different record after a sort. [`toPhysicalRow()`](@/api/core.md#tophysicalrow) translates the first two, and `beforeRemoveRow` already receives its physical indexes as the third argument. See [Understanding data and indexes](@/guides/getting-started/understanding-data-and-indexes/understanding-data-and-indexes.md).
 
 Replace `licenseKey` with your commercial key before production. See [License key](@/guides/getting-started/license-key/license-key.md).
 
@@ -409,12 +420,14 @@ Its template wires the grid's properties and events:
 </template>
 ```
 
-Three wire adapters feed the grid: `getObjectInfo` for data types and labels, `getListUi` for the records, and `getPicklistValuesByRecordType` for dropdown sources. The third one is easy to miss - `getObjectInfo` reports that a field *is* a picklist but never lists its values, so a dropdown built from it offers nothing to choose. All three resolve independently, so each calls the same builder and the builder waits for all three:
+Four wire adapters feed the grid: `getObjectInfo` for data types and labels, [`getListInfoByName`](https://developer.salesforce.com/docs/platform/lwc/guide/reference-lightning-ui-api-lists-ui.html) for the list view's columns, `getListRecordsByName` for the records, and `getPicklistValuesByRecordType` for dropdown sources. The last one is easy to miss - `getObjectInfo` reports that a field *is* a picklist but never lists its values, so a dropdown built from it offers nothing to choose.
+
+The two list adapters chain: `getListRecordsByName` takes a `fields` argument of qualified field names, which `getListInfoByName` supplies through its `displayColumns`. The `'$_listFields'` reactive parameter holds the records back until the columns arrive; the other adapters resolve independently, so each calls the same builder and the builder waits for everything it reads. Older examples use `getListUi` from `lightning/uiListApi` for the same job - Salesforce has [deprecated it](https://developer.salesforce.com/docs/platform/lwc/guide/reference-get-list-ui.html), and these two adapters are its replacement.
 
 ```js
 // force-app/main/default/lwc/handsontableApp/handsontableApp.js
 import { LightningElement, wire } from 'lwc';
-import { getListUi } from 'lightning/uiListApi';
+import { getListInfoByName, getListRecordsByName } from 'lightning/uiListsApi';
 import { getObjectInfo, getPicklistValuesByRecordType } from 'lightning/uiObjectInfoApi';
 import { updateRecord, createRecord, deleteRecord } from 'lightning/uiRecordApi';
 import ACCOUNT_OBJECT from '@salesforce/schema/Account';
@@ -436,9 +449,10 @@ export default class HandsontableApp extends LightningElement {
     _recordIds = [];
     _fieldApiNames = [];
     _objectInfo = null;
-    _listData = null;
+    _listRecords = null;
     _picklists = null;
     _recordTypeId = undefined;
+    _listFields = undefined;
 
     @wire(getObjectInfo, { objectApiName: ACCOUNT_OBJECT })
     wiredObjectInfo({ data, error }) {
@@ -465,14 +479,29 @@ export default class HandsontableApp extends LightningElement {
         }
     }
 
-    @wire(getListUi, {
+    @wire(getListInfoByName, {
         objectApiName: ACCOUNT_OBJECT,
         listViewApiName: 'AllAccounts',
+    })
+    wiredListInfo({ data, error }) {
+        if (data) {
+            this._listFields = data.displayColumns.map(
+                (column) => `Account.${column.fieldApiName}`,
+            );
+        } else if (error) {
+            this.error = error.body?.message || 'Failed to load the list view';
+        }
+    }
+
+    @wire(getListRecordsByName, {
+        objectApiName: ACCOUNT_OBJECT,
+        listViewApiName: 'AllAccounts',
+        fields: '$_listFields',
         pageSize: 50,
     })
     wiredAccounts({ data, error }) {
         if (data) {
-            this._listData = data;
+            this._listRecords = data;
             this._buildGrid();
         } else if (error) {
             this.error = error.body?.message || 'Failed to load Accounts';
@@ -517,7 +546,7 @@ Fill the `source` with each entry's `value`, not its `label`. The two differ on 
 
 `SKIP_FIELDS` drops the fields that make no sense in a grid: system audit fields, and the ID and relationship fields whose values are not scalars. A relationship field such as `Owner` carries a nested record object rather than a string, so a cell would render `[object Object]`.
 
-Read the field list off the first returned record rather than off the metadata. `getObjectInfo` describes every field on the object, while `getListUi` returns only the columns of the list view. A column built from metadata that the payload does not carry renders empty even when the record holds a value - and an edit to that empty cell still writes, so it silently overwrites the stored value with whatever the user typed. The grid then re-renders from the refreshed payload, the cell goes blank again, and the write looks like it failed when it did not.
+Read the field list off the first returned record rather than off the metadata. `getObjectInfo` describes every field on the object, while the records carry only the fields the list view displays - the `fields` argument built from `displayColumns`. A column built from metadata that the payload does not carry renders empty even when the record holds a value - and an edit to that empty cell still writes, so it silently overwrites the stored value with whatever the user typed. The grid then re-renders from the refreshed payload, the cell goes blank again, and the write looks like it failed when it did not.
 
 Accounts carry two obvious field groups, `Billing*` and `Shipping*`, which map onto [nested headers](@/guides/columns/column-groups/column-groups.md) with [collapsible columns](@/api/options.md#collapsiblecolumns). The builder groups the fields by prefix, emits one header cell per group with a `colspan`, and flattens the records into the array of arrays the grid renders:
 
@@ -530,11 +559,11 @@ _groupOf(fieldName) {
 }
 
 _buildGrid() {
-    if (!this._objectInfo || !this._listData || !this._picklists) {
+    if (!this._objectInfo || !this._listRecords || !this._picklists) {
         return;
     }
 
-    const records = this._listData.records.records;
+    const records = this._listRecords.records;
 
     if (!records || records.length === 0) {
         this.error = 'No accounts found';
@@ -643,8 +672,8 @@ Without it, a refused delete says "please try again" and the user retries foreve
 ```js
 // force-app/main/default/lwc/handsontableApp/handsontableApp.js - inside the class
 handleCellChange(event) {
-    const { row, col, newValue } = event.detail;
-    const recordId = this._recordIds[row];
+    const { physicalRow, col, newValue } = event.detail;
+    const recordId = this._recordIds[physicalRow];
     const fieldName = this._fieldApiNames[col];
 
     if (!recordId || !fieldName) {
@@ -663,20 +692,21 @@ A new row is trickier. Handsontable fires `afterCreateRow` while the row is stil
 ```js
 // force-app/main/default/lwc/handsontableApp/handsontableApp.js - inside the class
 handleRowCreate(event) {
-    const { index, amount } = event.detail;
+    const { index, physicalIndex, amount } = event.detail;
     const grid = this.template.querySelector('c-hot-grid');
 
     for (let i = 0; i < amount; i++) {
-        const rowIndex = index + i;
+        const visualRow = index + i;
+        const physicalRow = physicalIndex + i;
 
-        this._recordIds.splice(rowIndex, 0, null);
+        this._recordIds.splice(physicalRow, 0, null);
 
         // eslint-disable-next-line @lwc/lwc/no-async-operation
         setTimeout(() => {
             const fields = {};
 
             this._fieldApiNames.forEach((field, col) => {
-                const value = grid?.getDataAtCell?.(rowIndex, col);
+                const value = grid?.getDataAtCell?.(visualRow, col);
 
                 if (value != null && value !== '') {
                     fields[field] = value;
@@ -689,7 +719,7 @@ handleRowCreate(event) {
 
             createRecord({ apiName: 'Account', fields })
                 .then((record) => {
-                    this._recordIds[rowIndex] = record.id;
+                    this._recordIds[physicalRow] = record.id;
                 })
                 .catch((error) => {
                     this.error = this._messageFrom(error, 'Create failed');
@@ -699,37 +729,45 @@ handleRowCreate(event) {
 }
 ```
 
+The handler uses both indexes on purpose: [`getDataAtCell()`](@/api/core.md#getdataatcell) takes the visual row, while `_recordIds` keeps source order, so the placeholder and the saved ID land at the physical row.
+
 The `null` placeholder also protects `handleCellChange`: a cell edit on a row whose record does not exist yet finds no ID and returns instead of writing to the wrong record.
 
-`createRecord` does not refresh the list view, so the new row keeps whatever the user typed into it and shows no server-side values - the record exists, but `getListUi` still returns the page it fetched before the insert. Reload the page, or call [`refreshApex`](https://developer.salesforce.com/docs/platform/lwc/guide/apex-result-caching.html) on the wired list result, when the row has to come back from the server.
+`createRecord` does not refresh the list view, so the new row keeps whatever the user typed into it and shows no server-side values - the record exists, but `getListRecordsByName` still returns the page it fetched before the insert. Reload the page, or call [`refreshApex`](https://developer.salesforce.com/docs/platform/lwc/guide/apex-result-caching.html) on the wired list result, when the row has to come back from the server.
 
-Deletes are the one call the org refuses often, so the row removal is optimistic and reversible. Take the row out of `data` right away, fire the deletes, and put the row back at the same index if any of them rejects:
+Deletes are the one call the org refuses often, so the row removal is optimistic and reversible. Take the rows out of `data` right away, fire the deletes, and put the rows back at the same indexes if any of them rejects. The wrapper sends physical indexes, and on a sorted grid a contiguous visual selection maps to scattered physical rows, so the handler splices per row instead of once:
 
 ```js
 // force-app/main/default/lwc/handsontableApp/handsontableApp.js - inside the class
 handleRowRemoveRequest(event) {
-    const { index, amount } = event.detail;
-    const removedIds = this._recordIds.slice(index, index + amount);
-    const removedRows = this.data.slice(index, index + amount);
+    const physicalRows = [...event.detail.physicalRows].sort((a, b) => a - b);
+    const removed = physicalRows.map((row) => ({
+        row,
+        recordId: this._recordIds[row],
+        values: this.data[row],
+    }));
 
-    this._recordIds.splice(index, amount);
-    this.data = [...this.data.slice(0, index), ...this.data.slice(index + amount)];
+    [...removed].reverse().forEach(({ row }) => {
+        this._recordIds.splice(row, 1);
+    });
+    this.data = this.data.filter((rowValues, row) => !physicalRows.includes(row));
     this.error = null;
 
-    Promise.all(removedIds.map((recordId) => (recordId ? deleteRecord(recordId) : Promise.resolve())))
+    Promise.all(removed.map(({ recordId }) => (recordId ? deleteRecord(recordId) : Promise.resolve())))
         .catch((error) => {
-            this._recordIds.splice(index, 0, ...removedIds);
-            this.data = [
-                ...this.data.slice(0, index),
-                ...removedRows,
-                ...this.data.slice(index),
-            ];
+            const restored = [...this.data];
+
+            removed.forEach(({ row, recordId, values }) => {
+                this._recordIds.splice(row, 0, recordId);
+                restored.splice(row, 0, values);
+            });
+            this.data = restored;
             this.error = this._messageFrom(error, 'Delete failed');
         });
 }
 ```
 
-Capture `removedIds` and `removedRows` before you splice, because they are what the rollback puts back. Each assignment to `this.data` is a new array, which is what pushes the change through the `@api` setter and into `updateSettings()`.
+Capture the `removed` entries before you splice, because they are what the rollback puts back. Removal runs highest index first, and the rollback lowest first, so no splice shifts the indexes the next one uses. Each assignment to `this.data` is a new array, which is what pushes the change through the `@api` setter and into `updateSettings()`.
 
 Without the rollback the grid quietly disagrees with the org: the row is gone locally, the record is not, and nothing says so until a reload. Refused deletes are common, not exotic - Salesforce blocks deleting an account that has related cases or closed-won opportunities.
 
@@ -826,6 +864,7 @@ Edit a cell and reload the page. The value persists, because it went to the org 
 - Field metadata generates the column configuration, and the list view payload decides which fields exist.
 - Settings cross as `@api` properties, forwarded through `updateSettings()` and deep-copied out of the reactive proxy.
 - Hooks become DOM events, each mapping to one Lightning Data Service call, with `beforeRemoveRow` making deletes reversible.
+- Grid hooks report visual row indexes, so the wrapper translates them to physical ones - a sorted grid then still writes to the record the user edited.
 
 ## Next steps
 
