@@ -4,7 +4,7 @@ import { eventTargetEl, isBottomMostColumnHeader } from '../../helpers/dom/eleme
 import { isEmpty } from '../../helpers/mixed';
 import { parseToLocalDate, parseToLocalTime, parseToLocalDateTime } from '../../helpers/dateTime';
 import { DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND } from './sortService';
-import { warn } from '../../helpers/console';
+import { warn, warnOnce } from '../../helpers/console';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 
 export const ASC_SORT_STATE = 'asc';
@@ -247,4 +247,21 @@ export function createDateTimeCompareFunction(
 export function warnAboutPluginsConflict(workingPlugin: string, disabledPlugin: string) {
   warn(toSingleLine`Plugins \`columnSorting\` and \`multiColumnSorting\` should not be enabled simultaneously.\x20
     Only \`${workingPlugin}\` will work. The \`${disabledPlugin}\` plugin will remain disabled.`);
+}
+
+/**
+ * Warn that `sortFixedRows` was set inside `columns` and has no effect there.
+ *
+ * The plugin's other sub-options do resolve per column, so a user who has learned that is likely to
+ * try this one the same way and get no feedback at all. Printed once per grid: the column config is
+ * resolved again on every column meta cache rebuild.
+ *
+ * @param {object} scope The per-instance object the "warn once" state is bound to.
+ * @param {string} pluginKey The plugin the option was written under.
+ */
+export function warnAboutPerColumnSortFixedRows(scope: object, pluginKey: string) {
+  warnOnce(scope, `${pluginKey}.perColumnSortFixedRows`, toSingleLine`The \`sortFixedRows\` option was set\x20
+    inside \`columns\`, where it has no effect.\x20
+    It is a grid-level option, because \`fixedRowsTop\` and \`fixedRowsBottom\` pin rows for the whole\x20
+    table. Move it to the grid-level \`${pluginKey}\` settings.`);
 }

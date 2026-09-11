@@ -21,7 +21,7 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 [[toc]]
 
-Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way.
+Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way.
 
 ## 1. `date` cells reach the formula engine the same way on every data path
 
@@ -400,7 +400,72 @@ formulas.disablePlugin();
 formulas.enablePlugin();
 ```
 
-## 10. A plain value written into a key/value `source` cell resolves to the matching object
+## 10. Removing a parent row removes every row below it
+
+This applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin.
+
+Removing a parent row has always been documented as removing that row and all of its children. Up to
+18.1, it removed the parent and its direct children only. On a tree three or more levels deep, the
+grandchildren and everything below them stayed on screen as blank rows. Their data was already gone,
+because removing the parent object takes its whole branch with it, so those rows had nothing behind
+them and no further **Remove row** could clear them.
+
+Take this tree:
+
+```js
+const data = [
+  {
+    name: 'father 1',
+    __children: [
+      {
+        name: 'Child 1.1',
+        __children: [
+          {
+            name: 'Child 1.1.1',
+            __children: [{ name: 'Child 1.1.1.1' }],
+          },
+        ],
+      },
+    ],
+  },
+];
+```
+
+Removing row `0`:
+
+|  | Rows removed | Rows left |
+| --- | --- | --- |
+| Up to 18.1 | 2 | 2 blank rows |
+| From 18.2 | 4 | none |
+
+### Who is affected
+
+- You read the physical row indexes from
+  [`beforeRemoveRow`](@/api/hooks.md#beforeremoverow) or
+  [`afterRemoveRow`](@/api/hooks.md#afterremoverow). Both now receive every descendant. For the tree
+  above, removing row `0` reported `[0, 1]` and now reports `[0, 1, 2, 3]`.
+- You count the rows a removal affects, or use the `amount` argument to size your own bookkeeping.
+  Read that number from [`afterRemoveRow`](@/api/hooks.md#afterremoverow), which reports the rows
+  that were really removed. In [`beforeRemoveRow`](@/api/hooks.md#beforeremoverow), `amount` is
+  counted before the plugin adds the descendants, so it stays at the old value -- read the length of
+  the row array that hook receives instead.
+- You relied on the blank rows staying behind, for example by writing new values into them. They are
+  gone.
+- You undo a removal. Undo does not restore a nested parent's subtree: it puts back one row and
+  leaves the rest on screen with no data behind them. This is not new in 18.2 -- the state you end up
+  with after the undo is the same as in 18.1 -- but the removal itself is clean now, so the undo is
+  where you first see it.
+
+A tree two levels deep is unaffected. There, the direct children and all descendants are the same
+set, so the number of removed rows does not change.
+
+### How to migrate
+
+Nothing to change in most cases, because the rows that are now removed had no data behind them. If
+your own code reacts to a row removal, read the row list from the hook argument rather than assuming
+one parent plus its direct children.
+
+## 11. A plain value written into a key/value `source` cell resolves to the matching object
 
 This applies only to
 [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md) and

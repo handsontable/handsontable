@@ -29,6 +29,7 @@ const NOW = new Date('2026-09-08T12:00:00Z');
 const TALL_FROZEN_TITLE = 'walkontable exact row heights › in the `exact` mode › '
   + 'keeps a row with a tall frozen cell at the provided height in both tables';
 const TIMEOUT_MESSAGE = 'Timed out 10000ms waiting for expect(locator).toBeVisible()';
+const QUARANTINE_NOTE = 'DEV-1234 until 2026-10-08 — height read one draw early';
 
 const RUN = {
   id: 34121444051,
@@ -79,6 +80,7 @@ const PLAYWRIGHT_REPORT = {
           tests: [{
             projectName: 'e2e-classic-min',
             status: 'flaky',
+            annotations: [{ type: 'quarantine', description: QUARANTINE_NOTE }],
             results: [
               { status: 'failed', retry: 0, error: { message: '[31mExpected 30 to be 69[39m\n\n  at line 61' } },
               { status: 'passed', retry: 1 },
@@ -178,6 +180,8 @@ test('parsePlaywrightReport keeps flaky and failed tests with their title path, 
   assert.equal(entries[0].tier, 'playwright');
   assert.equal(entries[0].source, 'ci');
   assert.equal(entries[0].isolation, null);
+  assert.equal(entries[0].quarantine, QUARANTINE_NOTE, 'the quarantine travels');
+  assert.equal(entries[1].quarantine, null);
   assert.equal(entries[0].runId, '34121444051', 'every entry carries the run');
 });
 
@@ -194,6 +198,7 @@ test('parseJasmineRecord keeps every failed spec with its file, message and isol
   );
   assert.equal(entries[0].tier, 'jasmine');
   assert.equal(entries[0].line, null);
+  assert.equal(entries[0].quarantine, null, 'the frozen suite has no quarantine');
 });
 
 test('collectArtifactFiles reads only report and record files, skips broken JSON, notes an HTML-only report', () => {
@@ -256,6 +261,15 @@ test('mergeLedger de-duplicates by entry key, prunes past the retention window, 
   ], 'newest first; the stale copy is gone');
   assert.equal(ledger.entries[1].error, 'newer copy', 'a re-collected attempt replaces the earlier copy');
   assert.deepEqual(mergeLedger(null, [], { now: NOW }).ledger.entries, [], 'no ledger yet is an empty ledger');
+
+  const later = new Date(NOW.getTime() + 3600000);
+  const again = mergeLedger(ledger, [{ ...entries[0], error: 'newer copy' }], { now: later });
+
+  assert.equal(again.changed, false, 're-collecting the stored payload changes nothing');
+  assert.equal(again.pruned, 0);
+  assert.equal(again.ledger.updatedAt, NOW.toISOString(), 'an unchanged ledger keeps its change time');
+  assert.equal(aggregate(again.ledger, { now: later }).generatedAt, later.toISOString(),
+    'aggregate always stamps now; stableGeneratedAt keeps an unchanged page identical in the collector');
 });
 
 test('aggregate counts per test over both windows, counts distinct runs, and draws the ticket line', () => {
@@ -263,18 +277,19 @@ test('aggregate counts per test over both windows, counts distinct runs, and dra
   const [flaky, failed] = parsePlaywrightReport(PLAYWRIGHT_REPORT, run);
   const day = 86400000;
   const at = daysAgo => new Date(NOW.getTime() - (daysAgo * day)).toISOString();
+  const plainFlaky = { ...flaky, quarantine: null };
   const entries = [
-    { ...flaky, runId: 'a', seenAt: at(1) },
-    { ...flaky, runId: 'a', leg: 'e2e-main', seenAt: at(1) }, // same run, second leg: one recurrence, not two
-    { ...flaky, runId: 'b', seenAt: at(20) },
-    { ...flaky, runId: 'c', seenAt: at(45) }, // outside the long window
+    { ...plainFlaky, runId: 'a', seenAt: at(1) },
+    { ...plainFlaky, runId: 'a', leg: 'e2e-main', seenAt: at(1) }, // same run, second leg: one recurrence, not two
+    { ...plainFlaky, runId: 'b', seenAt: at(20) },
+    { ...plainFlaky, runId: 'c', seenAt: at(45) }, // outside the long window
     { ...failed, runId: 'a', seenAt: at(2) },
     ...parseJasmineRecord(JASMINE_RECORD, { ...run, runId: 'd', seenAt: at(3) }),
   ];
   const summary = aggregate({ ...emptyLedger(), entries }, { now: NOW });
 
   assert.equal(summary.ticketThresholdRuns, TICKET_THRESHOLD_RUNS);
-  assert.deepEqual(summary.totals, { tests: 4, needsTicket: 1, entries: 7 });
+  assert.deepEqual(summary.totals, { tests: 4, needsTicket: 1, quarantined: 0, entries: 7 });
 
   const [first, ...rest] = summary.rows;
 
@@ -285,6 +300,7 @@ test('aggregate counts per test over both windows, counts distinct runs, and dra
   assert.equal(first.runs30, 2, 'two legs of one run are one run');
   assert.deepEqual(first.legs, ['e2e-classic-min', 'e2e-main']);
   assert.equal(first.needsTicket, true);
+  assert.equal(first.quarantine, null, 'these entries are not quarantined');
   assert.equal(first.lastSeen.seenAt, at(1));
   assert.ok(rest.every(row => !row.needsTicket), 'one run each: below the line');
 
@@ -299,7 +315,9 @@ test('renderStepSummary lists what the run added, the tests over the line, the n
   const entries = [...parsePlaywrightReport(PLAYWRIGHT_REPORT, run), ...parseJasmineRecord(JASMINE_RECORD, run)];
   const { ledger, added } = mergeLedger(null, [
     ...entries,
-    { ...entries[0], runId: '9', seenAt: '2026-09-01T00:00:00Z' },
+    { ...entries[0], runId: '9', seenAt: '2026-09-01T00:00:00Z' }, // quarantined recurrence: badge, not a ticket
+    // a non-quarantined recurrence across two branches supplies the needs-ticket row:
+    { ...entries[1], runId: '9b', branch: 'feature/other', seenAt: '2026-09-02T00:00:00Z' },
   ], { now: NOW });
   const summary = aggregate(ledger, { now: NOW });
   const markdown = renderStepSummary({
@@ -311,9 +329,10 @@ test('renderStepSummary lists what the run added, the tests over the line, the n
   });
 
   assert.match(markdown, /^## Test health — run 34121444051 \(attempt 1, `feature\/X-1_Some-branch`\)\n/);
-  assert.match(markdown, /Recorded 5 new observation\(s\):/);
+  assert.match(markdown, /Recorded 6 new observation\(s\):/);
   assert.ok(markdown.includes(`- **flaky** on \`e2e-classic-min\`: ${TALL_FROZEN_TITLE} `
-    + '(`e2e/walkontable/exact-row-heights.spec.ts:57`)\n'));
+    + '(`e2e/walkontable/exact-row-heights.spec.ts:57`), '
+    + `quarantined (${QUARANTINE_NOTE})\n`));
   assert.ok(markdown.includes('- **failed** on `UMD (theme: main)`: Core_alter remove_row should remove one row '
     + '(`handsontable/test/e2e/core/alter.spec.js`), in isolation: passes alone\n'));
   assert.ok(markdown.includes('1 test(s) recurred across 2+ distinct branches or flaky reruns in the '
@@ -376,6 +395,7 @@ test('the test-health workflow chains on the two orchestrators, takes a run id, 
   const workflow = readFileSync(path.join(repoRoot(), '.github/workflows/test-health.yml'), 'utf8');
 
   assert.match(workflow, /workflows: \['Tests', 'Develop', 'Publish'\]/);
+  assert.match(workflow, /conclusion != 'cancelled'/, 'collects every completed run, not only failures');
   assert.match(workflow, /types: \[completed\]/);
   assert.match(workflow, /workflow_dispatch:\n\s+inputs:\n\s+run-id:/);
   assert.match(workflow, /^permissions:\n\s+contents: write/m, 'the gh-pages push needs contents: write');
@@ -445,10 +465,41 @@ test('needsTicket flags a flake across runs or branches, not one branch failing 
 
   assert.equal(twoBranches.rows[0].needsTicket, true, 'across two branches it needs a ticket');
 
+  const plainFlaky = { ...flaky, quarantine: null };
   const flakyTwice = aggregate({ ...emptyLedger(), entries: [
-    { ...flaky, runId: 'r1', branch: 'feature/x', seenAt: at(1) },
-    { ...flaky, runId: 'r2', branch: 'feature/x', seenAt: at(2) },
+    { ...plainFlaky, runId: 'r1', branch: 'feature/x', seenAt: at(1) },
+    { ...plainFlaky, runId: 'r2', branch: 'feature/x', seenAt: at(2) },
   ] }, { now: NOW });
 
   assert.equal(flakyTwice.rows[0].needsTicket, true, 'flaky in two runs needs a ticket');
+});
+
+test('a quarantined test does not also count as needing a ticket', () => {
+  const run = runContextFromRun(RUN);
+  const [flaky] = parsePlaywrightReport(PLAYWRIGHT_REPORT, run);
+  const day = 86400000;
+  const at = daysAgo => new Date(NOW.getTime() - (daysAgo * day)).toISOString();
+
+  assert.ok(flaky.quarantine, 'the fixture flaky test carries a quarantine annotation');
+
+  const summary = aggregate({ ...emptyLedger(), entries: [
+    { ...flaky, runId: 'r1', branch: 'feature/x', seenAt: at(1) },
+    { ...flaky, runId: 'r2', branch: 'feature/y', seenAt: at(2) },
+  ] }, { now: NOW });
+
+  assert.ok(summary.rows[0].quarantine, 'the row is quarantined');
+  assert.equal(summary.rows[0].needsTicket, false, 'a quarantined test already has an owner');
+  assert.equal(summary.totals.needsTicket, 0);
+});
+
+test('the collector and the quarantine policy agree on the annotation type', () => {
+  const policy = readFileSync(path.join(repoRoot(), 'tests/lib/quarantine-policy.mjs'), 'utf8');
+  const match = policy.match(/QUARANTINE_ANNOTATION\s*=\s*'([^']+)'/);
+
+  assert.ok(match, 'quarantine-policy.mjs defines QUARANTINE_ANNOTATION');
+
+  const collector = readFileSync(path.join(repoRoot(), '.github/scripts/lib/test-health.mjs'), 'utf8');
+
+  assert.ok(collector.includes(`candidate.type === '${match[1]}'`),
+    'test-health.mjs quarantineOf must read the same annotation type the policy writes');
 });

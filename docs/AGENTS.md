@@ -568,6 +568,36 @@ A caret range does not track new releases. `pnpm-lock.yaml` pins the resolved ve
 
 `docs-production.yml` deploys from `prod-docs/**` and installs with `--frozen-lockfile`, so develop is not what the live site serves, and `publish.yml` never regenerates the lockfile at a release cut. A bump on develop protects the next cut only. To fix what a user sees today, repeat the change on the live `prod-docs/<major>.<minor>` branch. Redo the edit there rather than cherry-picking the lockfile hunk: an older branch usually has no package or snapshot stanza for the new version at all, so applying the importer hunk by itself leaves an invalid lockfile. Copy both stanzas across too, then validate with `pnpm install --lockfile-only --frozen-lockfile`.
 
+### Getting a content fix to the live site
+
+Land it on `develop` first. A workflow (`docs-sync.yml`, run by manual dispatch
+until the rollout follow-up enables the weekday schedule; script
+`.github/scripts/docs-sync.mjs`) ports **content-only** commits (`docs/content/**`,
+`docs/public/img/**`) to the highest `prod-docs/<major>.<minor>` through one pull
+request, `docs-sync/prod-docs-<major>.<minor>` → `prod-docs/<major>.<minor>`. An
+LLM decides per commit whether the change applies to the released version; the
+pull request body lists every decision with its reason. Merge it and
+`docs-production.yml` deploys.
+
+- A commit that also touches tooling, source, or agent docs is **not** split; it is
+  listed under "mixed" for a hand port. Keep content fixes in their own pull request
+  when they should reach the live site.
+- Override the classifier with a label on the **source** pull request:
+  `docs-sync: include` or `docs-sync: skip`. The sync pull request itself carries
+  the `docs-sync` label.
+- Set the repository variable `DOCS_SYNC_REVIEWERS` (comma-separated GitHub logins)
+  to have the workflow request review on the sync pull request automatically.
+- Never commit to a `docs-sync/*` branch by hand unless you mean to pause the bot:
+  it stops rebuilding the branch while it carries a commit it did not make.
+- Hand cherry-picks stay allowed (tooling, urgent fixes). Keep the `(#<n>)` in the
+  squash subject; that is how the sync recognizes the change as already ported.
+- Run it locally: `node .github/scripts/docs-sync.mjs --dry-run --no-llm` needs only
+  `gh auth`; drop `--no-llm` with `LITELLM_BASE_URL`, `LITELLM_API_KEY`,
+  `DOCS_SYNC_MODEL` set to exercise the classifier. Add `--skip-lint` on a machine
+  without the docs toolchain installed. The script checks out the sync branch in
+  the checkout it runs in and restores your branch afterwards, so run it from a
+  clean checkout or a worktree, never with uncommitted changes.
+
 ---
 
 ## 2.12 Content Pipeline and Dev-Server Memory (DEV-1991)
@@ -594,6 +624,8 @@ That env var is what the spawned child receives, so setting it makes the foregro
 
 Every page returns HTTP 500 with `[postcss] ENOENT: no such file or directory, open '../../../handsontable/styles/handsontable.min.css'`. `src/styles/handsontable-import.css` imports the **built** stylesheet from the core package, and `git worktree` materializes tracked files only, so a new worktree has no `handsontable/styles/`. Build the core package, or copy `handsontable/styles/` in from a checkout that already has it. Then **restart the dev server** - postcss caches the resolution failure, so a running server keeps 500ing after the file appears.
 
+The framework examples have the same trap one layer up, and it reads as a network failure rather than a missing build. Pages load, JavaScript examples render, but **every** React and Vue example on the page fails with `[hot-example] JSX failed: ... TypeError: Failed to fetch dynamically imported module` - including examples nobody touched, which is the tell. The server log says what is really wrong: `Failed to resolve import "@handsontable/react-wrapper"`. The docs site links the wrappers from the workspace, and their `main`/`module` entries point at build output (`commonjs/`, `es/`) that a new worktree does not have. Build them (`npm run build --prefix wrappers/react-wrapper`, `--prefix wrappers/vue3`; the Angular examples need `wrappers/angular-wrapper/dist`), after the core build they compile against, then restart the dev server as above.
+
 ---
 
 ## 2.13 Example-Runner Error Handling
@@ -613,7 +645,7 @@ The two layers overlap on failed dynamic imports of content-hashed `_astro/*.js`
 
 Neither layer reaches a frozen version build under `/docs/<major>.<minor>/`. `deploy/build_previous_versions.sh` copies each archived version out of its own Docker image verbatim, so those pages run the `beforeSend` and the bundles that shipped at their release - a rule added on `develop` today never appears there. Check a Sentry issue's `url` tag before writing a filter for it: when the events come from a versioned path, the only mechanism that drops them is a **Sentry project-level inbound filter on the message** (server-side, so frozen HTML is irrelevant), and the group belongs in `ignored`/`archived forever`, never `resolved` - the archived page is live, so a resolve auto-regresses. Example: HANDSONTABLE-DOCS-1FM mixes both, 11 of 18 events on current recipe pages (which the hook does filter) and 1 on `/docs/17.1/`, still calling the `http://localhost:3000/tickets` its bundle was built with.
 
-The same gap exists one branch away: production docs build from `prod-docs/<major>.<minor>`, which cherry-picks from `develop` selectively and does not carry `sentryOnLoad` today. Every rule here is inert in production until that cherry-pick lands - say so when reporting that a filter is done.
+The same gap exists one branch away: production docs build from `prod-docs/<major>.<minor>`, which receives content through the docs sync and tooling through hand cherry-picks, and does not carry `sentryOnLoad` today. Every rule here is inert in production until that cherry-pick lands - say so when reporting that a filter is done.
 
 Gate any rule that is expected noise only in one place (a recipe page with no backend, a demo without a server) on the page URL, so the same failure stays visible everywhere else.
 
@@ -660,3 +692,39 @@ Both halves are guarded, on three different triggers - know which one you are re
 | `tests/markdownProseSpacing.spec.ts` | the reader-visible gap on a built page | only when the PR carries the `run-docs-visual` label - it lives in `testDir: './tests'`, the opt-in visual suite |
 
 So the label-gated spec is a backstop, not a gate. The first two are what actually hold the line on a normal PR.
+
+---
+
+## 2.16 A guide page can be partly generated, and the frontmatter does not say so
+
+`docs/content/**` is hand-written prose *except* inside marker comment pairs. A generator owns
+everything between the markers and rewrites it from a source outside `docs/`, so an edit made there
+is silently discarded on the generator's next run. Nothing in the page's frontmatter, and nothing at
+the top of the file, warns you: the markers can sit hundreds of lines down, and the generated block
+reads like ordinary Markdown.
+
+**Before editing any guide page, grep it for `:start -->`.** If the line you want to change sits
+between a `:start` and an `:end` marker, edit the generator's source instead, then re-run the
+generator and commit its output.
+
+The one page in this shape today:
+
+| Page | Markers | Edit instead | Regenerate with |
+|---|---|---|---|
+| `guides/configuration/configuration-option-levels/configuration-option-levels.md` | `<!-- option-levels:start -->` / `<!-- option-levels:end -->` | levels: the `@configScope` tag on the option in `handsontable/src/dataMap/metaManager/metaSchema.ts`; Notes column: the `NOTES` map in `handsontable/scripts/utils/option-levels.js` | `npm run generate:option-levels --prefix handsontable` |
+
+Two things make this easy to get wrong, and both cost a red pipeline:
+
+- **The levels and the Notes column have different sources.** The `@configScope` tag is levels-only
+  by design, so prose caveats live in the `NOTES` map in the generator's utility, not in
+  `metaSchema.ts`. Adding a sub-option that is grid-level only means editing `NOTES`, not the schema.
+- **A hand-edit inside the block can be byte-identical to what the generator produces and still fail
+  the build.** `handsontable/test/__tests__/optionLevels.unit.js` compares the committed page against
+  the generator's output *computed from the source*, so the page matching is not enough — the source
+  has to carry the change too. Run `npm run test:unit --prefix handsontable --
+  --testPathPattern=optionLevels` to prove you got it right.
+- **The generator writes `option-levels.json` beside the page, and commit both — but only the page
+  is fully guarded.** The JSON case in that test file asserts `total`, `levels`, and each option's
+  `name` and `levels`; it never reads `note`. So a `NOTES`-only change committed to the page with a
+  stale JSON passes the suite green. Re-run the generator rather than hand-editing either file, and
+  if you want the gap closed, add `payload.options.map(o => o.note)` to that assertion.

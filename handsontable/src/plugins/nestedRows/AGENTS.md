@@ -190,6 +190,62 @@ They are written in different places and can drift. Keep this in mind:
   is still on the right cell. `moveCellsMeta()` resets the moved block's own meta rather than carrying
   it across, because `LazyFactoryMap` has no move primitive; the alternative, `getCellMetas()`, takes
   visual indexes, materializes meta for every column and fires `afterSetCellMeta` per cell.
+- **Removing a parent must reach every depth, and a two-level fixture cannot tell you whether it
+  does.** `#onBeforeRemoveRow()` rewrites the core's list of rows to remove, and the data side and the
+  index side of that removal are driven by different things: `DataManager#filterData()` splices the
+  parent OBJECT out of its own parent, which takes the whole subtree with it, while
+  `rowIndexMapper.removeIndexes()` only loses the rows this hook listed. So a descendant left off the
+  list survives as a row with no source row behind it — a blank row that reads back as `null` and that
+  no further "Remove row" can clear, because it is not in the tree any more. The hook used to add the
+  parent plus its **direct children** only, so everything from the third level down was left behind
+  (DEV-56). Two levels is correct by coincidence there — "direct children" and "all descendants" are
+  the same set — which is why the whole suite stayed green: **`getSimplerNestedData()` has leaf
+  children only**, and the only remove-a-parent spec ran on it. Reach for
+  `getMoreComplexNestedData()`, or the four-level Playwright fixture
+  (`tests/fixtures/demo/nested-rows-remove-parent.html`), before believing a removal test.
+  **The expansion must stay bounded by the flatten CACHE, never by the live tree**, and the tempting
+  shortcut is exactly what breaks it. `cacheNode()` flattens depth-first, so a parent's descendants
+  *are* the contiguous block right after it — but that invariant only holds **while the cache matches
+  the tree**, and **nothing on the render path re-caches** — `rewriteCache()` is called only by the
+  tree operations listed at the `getRowIndex()` landmine above, and a plain `render()` is not one of
+  them. So
+  `physicalIndex + 1 … physicalIndex + countChildren(physicalIndex)` reads its SIZE from the live
+  `__children` while the indexes resolve against the cache: push one child straight into the source
+  data, call `render()`, then remove the parent, and the range runs past the parent's own subtree and
+  silently deletes the next sibling parent and its children (measured: 7 rows → 1, source 0 — worse
+  than the blank rows it replaced). `#collectDescendants()` therefore recurses over `__children` and
+  keeps only what `getRowIndex()` resolves — a row the cache does not know has no index to remove, and
+  the walk **stops** there rather than continuing into its children. In a consistent cache that second
+  half is a no-op, because `cacheNode()` caches a parent before its children, so an unknown node has no
+  known descendants. It earns its place in exactly the drifted state this bullet is about: a descendant
+  the cache still remembers under a parent it no longer knows would hand back an index that now
+  addresses a different row, which is the same way the range version destroyed a sibling branch. Two more rules ride along. Keep the `Array.isArray(__children)` guard: `cacheNode()`
+  iterates whatever it is handed, so `__children: 'abc'` is cached as one node per character, and a
+  walk that trusts it destroys the sibling rows. And **never `physicalRows.push(...list)`** — the list
+  is now one entry per descendant, so the spread overflows the call stack (between 80k and 130k rows),
+  which the plugin-wide `arr.push(...bigArray)` ban below already forbids. The order of the returned
+  list does not matter, and both reasons are worth knowing so nobody adds a sort: `DataMap#removeRow`
+  sorts its own copy descending before it touches the meta layer, and `filterData()` re-reads each
+  row's position with a live `parent.__children.indexOf(row)` rather than from the cache, so an earlier
+  splice cannot leave a later one pointing at the wrong sibling.
+- **Undo after removing a parent restores the blank rows the removal fix removed, and that is still
+  open.** `RemoveRowAction`'s `beforeRemoveRow` listener (`undoRedo/actions/removeRow.ts`) captures
+  `rowIndexesSequence` — the whole pre-removal sequence — but reads its row data with the hook's own
+  `amount`, which is the count *before* this plugin expanded the list. So undoing one "Remove row" on
+  a parent puts every index back and re-inserts a single row: measured on the four-level fixture,
+  2 rows / 2 source rows becomes 7 rows / 3 source rows with four `null` rows. **Not a regression, and
+  that is measured rather than assumed** — the post-undo state is byte-identical on both sides at
+  depth 4 (`7 rows / 3 source / ["Root A","Root B","B-1",null,null,null,null]` before the removal fix
+  and after it). What the fix changes is only where you first notice: the pre-fix removal already left
+  4 rows / 2 source with two blanks, so the grid was broken before the undo, while now the removal is
+  clean and the undo is the first bad state. Removing the parent a second time does **not** clear the
+  blanks either, on both sides (6 rows / 2 source, four `null`s) — do not tell a user that it does.
+  It is not a one-line fix — `captureRowData()`
+  deliberately deletes `__children`, so restoring a subtree needs the tree captured, not `amount`
+  widened. The existing coverage cannot see it. `__tests__/integration/undoRedo.spec.js` holds two
+  tests, both on a two-level tree: the one that undoes a **child** removal does assert the data comes
+  back, and the one that undoes a **parent** removal asserts only that `window.onerror` was not
+  called — so the wrong row count and the blank rows both pass it.
 - **`collapseRow()` and `expandRow()` are dead code.** They delegate with `doTrimming` defaulting to
   `false`, so they neither trim nor render. Do not expose them and do not copy their names.
 - **`updatePlugin()` rebuilds everything.** It unregisters the trimming map and constructs a new
@@ -297,6 +353,7 @@ They are written in different places and can drift. Keep this in mind:
 | `__tests__/data/dataManager.unit.js` | The tree-path helpers, including the round trip across a data swap |
 | `tests/e2e/nested-rows-api.spec.ts` | Playwright: hooks, cancelling, and post-`loadData` safety |
 | `tests/e2e/nested-rows-update-data.spec.ts` | Playwright: collapsed parents across `updateData` / `loadData` |
+| `tests/e2e/nested-rows-remove-parent.spec.ts` | Playwright: removing a parent takes its whole subtree, on a **four-level** tree |
 
 Physical layouts of the shared fixtures, which the specs depend on:
 

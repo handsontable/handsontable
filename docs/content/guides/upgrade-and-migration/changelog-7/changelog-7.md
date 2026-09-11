@@ -345,7 +345,7 @@ For more information on this release, see:
 - Fixed a bug where selecting a mixed merged/non-merged section caused improper results. ([#4912](https://github.com/handsontable/handsontable/issues/4912))
 - Fixed a problem where the `Handsontable` class export differed between UMD and other environments. ([#4605](https://github.com/handsontable/handsontable/issues/4605))
 - Fixed a bug where disabling `colHeaders` using `updateSettings` did not work properly. ([#4136](https://github.com/handsontable/handsontable/issues/4136))
-- Fixed a bug where the changes cancelled using the `beforeChange` hook were still validated. ([#3381](https://github.com/handsontable/handsontable/issues/3381))
+- Fixed a bug where the changes canceled using the `beforeChange` hook were still validated. ([#3381](https://github.com/handsontable/handsontable/issues/3381))
 - Updated the documentation for the `setSortConfig` method of the Column Sorting plugin.
 - Fixed a problem where passing an `Array` as a cell value caused the `populateFromArray` method to fail. ([#5675](https://github.com/handsontable/handsontable/issues/5675))
 - Rewrote the TypeScript definition file so it matches the actual structure of the library more precisely. ([#5767](https://github.com/handsontable/handsontable/issues/5767))
