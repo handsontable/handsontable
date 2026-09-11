@@ -111,7 +111,7 @@ Run it:
 rails db:seed
 ```
 
-The seed script inserts 50 orders across realistic statuses (`pending`, `paid`, `shipped`, `delivered`, `cancelled`). It checks whether data already exists, so running it twice does not duplicate rows.
+The seed script inserts 50 orders across realistic statuses (`pending`, `paid`, `shipped`, `delivered`, `canceled`). It checks whether data already exists, so running it twice does not duplicate rows.
 
 ## Step 4 -- Configure the routes
 
@@ -322,7 +322,7 @@ Start the backend and the Vite dev server with `bash setup.sh` (or `make setup`)
 | Option | What it does |
 |---|---|
 | `rowId: 'id'` | Tells `dataProvider` which field uniquely identifies a row. Must match the Rails primary key name. |
-| `{ signal }` in `fetchRows` | Pass the `AbortSignal` to `fetch()` so in-flight requests are cancelled when the user sorts or filters before the previous response arrives. |
+| `{ signal }` in `fetchRows` | Pass the `AbortSignal` to `fetch()` so in-flight requests are canceled when the user sorts or filters before the previous response arrives. |
 | `{ rowsAmount }` in `onRowsCreate` | `dataProvider` passes the number of rows to add. The frontend builds default objects and sends them as `{ rows: [...] }`. Returning `json.rows` lets `dataProvider` replace client-side placeholder ids with the ids assigned by Rails. |
 | `beforeRowsMutation` | Intercepts mutations before they run. Return `false` to cancel. Used here to show a delete-confirmation notification with **Delete**/**Cancel** actions instead of deleting immediately. |
 | `pagination: { pageSize: 10 }` | Enables the pagination toolbar. `dataProvider` passes the current page and size to `fetchRows` automatically. |

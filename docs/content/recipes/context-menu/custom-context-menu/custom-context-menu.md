@@ -244,6 +244,6 @@ copy_row_as_json: {
 
 ## Next steps
 
-- Add a `disabled()` function to any item to make it conditionally unavailable. Return `true` to grey out the item and prevent its callback from firing.
+- Add a `disabled()` function to any item to make it conditionally unavailable. Return `true` to gray out the item and prevent its callback from firing.
 - Explore the [Context menu guide](@/guides/accessories-and-menus/context-menu/context-menu.md) for the full list of built-in item keys and advanced configuration.
 - To add the same custom actions to the column dropdown menu, configure `dropdownMenu.items` using the same structure.
