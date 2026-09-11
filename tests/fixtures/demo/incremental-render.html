@@ -67,6 +67,9 @@
 
     window.htPaints = new Map();
     window.htExternal = 'one';
+    // Counts the draws the engine ran for a vertical scroll (fast or full); the hook fires after
+    // that draw, so a spec can wait on it instead of guessing when the scroll settled.
+    window.htScrollDraws = 0;
 
     // Counts only paints into the grid's own tables. `autoColumnSize` (on by default) runs the
     // renderers into a detached ghost table to measure widths; those are not cell paints.
@@ -116,6 +119,9 @@
       width: 600,
       height: 300,
       renderer: countingRenderer,
+      afterScrollVertically: () => {
+        window.htScrollDraws += 1;
+      },
     };
     const scenarios = {
       text: () => ({ ...base, data: makeData(200, 10), renderMode: 'onChange' }),

@@ -436,6 +436,25 @@ test.describe('renderMode: onChange, scrolling', () => {
     await grid.expectEqualToFullRepaint();
   });
 
+  test('keeps the focus in the grid when the selected row leaves the band', async({ page, theme, bundle }) => {
+    const grid = new IncrementalRenderPage(page, theme, bundle, 'scroll');
+
+    await grid.goto();
+    await grid.run('hot.selectCell(5, 1);');
+    await grid.scrollToRow(40);
+
+    // Row 5 is no longer rendered. The element that held it now shows another row and keeps the
+    // focus, as a stationary element would, so the keyboard still reaches the grid.
+    expect(await grid.read<boolean>('hot.getCell(5, 1) === null')).toBe(true);
+    expect(await grid.read<boolean>(
+      'document.activeElement.tagName === "TD" && hot.rootElement.contains(document.activeElement)'
+    )).toBe(true);
+
+    await page.keyboard.press('ArrowDown');
+
+    expect(await grid.read<number[]>('hot.getSelectedLast()')).toEqual([6, 1, 6, 1]);
+  });
+
   test('keeps an open editor on its cell across a scroll that keeps the row rendered', async({ page, theme, bundle }) => {
     const grid = new IncrementalRenderPage(page, theme, bundle, 'scroll');
 

@@ -129,8 +129,13 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
   // other's band back and re-oscillate it. On top of that, both bands gain directional overscan
   // (`applyRenderedColumnsBandOverscan` / `applyRenderedRowsBandOverscan`) so consecutive scroll
   // steps land inside the rendered band and resolve as fast draws.
+  // Resolved once per draw, after `beforeDraw()` refreshed the axis owners, and shared with the render
+  // phase and the clones: the band stabilizer, the row recycling and the band identity the cells
+  // renderer hands the host must all read the same answer.
+  wtOverlays.stationaryBandsAllowed = wtViewport.allowsStationaryBands();
+
   ctx.runFastDraw = wtViewport.createCalculators(ctx.runFastDraw, {
-    stationaryBands: wtOverlays.isScrollDrivenDraw && wtViewport.allowsStationaryBands(),
+    stationaryBands: wtOverlays.isScrollDrivenDraw && wtOverlays.stationaryBandsAllowed,
   });
 
   if (ctx.runFastDraw) {
@@ -192,6 +197,7 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
         filters,
         isPureVerticalScrollDraw(wtOverlays),
         wtOverlays.isScrollDrivenDraw,
+        wtOverlays.stationaryBandsAllowed,
       );
 
       if (!wtSettings.getSetting('externalRowCalculator')) {
@@ -288,6 +294,7 @@ function runCloneDrawCycle(table: Table, ctx: DrawContext): void {
       filters,
       isPureVerticalScrollDraw(cloneSourceOverlays),
       cloneSourceOverlays.isScrollDrivenDraw,
+      cloneSourceOverlays.stationaryBandsAllowed,
     );
 
     if (table.is(CLONE_BOTTOM)) {
@@ -442,9 +449,11 @@ function isPureVerticalScrollDraw(wtOverlays: Overlays): boolean {
  * @param {boolean} columnHeadersRenderSkippable Whether the column-header (THEAD) pass may be skipped
  *   for this draw (a pure vertical scroll); resolved per role by the caller.
  * @param {boolean} scrollDrivenDraw Whether the draw was entered as a scroll draw (the master's
- *   `isScrollDrivenDraw`, read off the clone source for a clone). With the viewport's
- *   `allowsStationaryBands()` it lets the rows renderer keep a row's TR across the scroll, and lets
- *   the host keep such a cell untouched.
+ *   `isScrollDrivenDraw`, read off the clone source for a clone).
+ * @param {boolean} stationaryBandsAllowed Whether the draw allows stationary bands (the master's
+ *   `stationaryBandsAllowed`, resolved once per draw, read off the clone source for a clone). With
+ *   `scrollDrivenDraw` it lets the rows renderer keep a row's TR across the scroll, and on its own it
+ *   lets the host keep such a cell untouched.
  */
 function renderCellBand(
   table: Table,
@@ -452,11 +461,11 @@ function renderCellBand(
   filters: { rowFilter: RowFilter; columnFilter: ColumnFilter },
   columnHeadersRenderSkippable: boolean,
   scrollDrivenDraw: boolean,
+  stationaryBandsAllowed: boolean,
 ): void {
   table.tableRenderer.setHeaderContentRenderers(ctx.rowHeaders, ctx.columnHeaders);
   table.tableRenderer.setScrollDrivenDraw(scrollDrivenDraw);
-  // The clones share the master's viewport, so every table of a draw reads the same answer.
-  table.tableRenderer.setStationaryBandsAllowed(table.deps.getWtViewport().allowsStationaryBands());
+  table.tableRenderer.setStationaryBandsAllowed(stationaryBandsAllowed);
 
   if (table.is(CLONE_BOTTOM) ||
       table.is(CLONE_BOTTOM_INLINE_START_CORNER)) {

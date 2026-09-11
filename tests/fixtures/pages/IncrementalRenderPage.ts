@@ -6,14 +6,6 @@ export type IncrementalRenderScenario =
   'scroll' | 'frozen';
 
 /**
- * The part of the grid API the scroll wait reads inside the page.
- */
-interface RenderedBandReader {
-  getFirstRenderedVisibleRow(): number;
-  getLastRenderedVisibleRow(): number;
-}
-
-/**
  * Page Object for the `renderMode` fixture. Every probe reads the grid through the fixture's own
  * globals (`window.hot`, the paint counter, the canonical snapshot), so the specs never depend on
  * DOM structure beyond the `data-testid` the fixture's renderers stamp on each cell.
@@ -65,21 +57,20 @@ export class IncrementalRenderPage {
 
   /**
    * Scrolls the viewport so that `row` is its first fully visible row, and waits for the draw the
-   * scroll event triggers: the rendered band has to move. Nothing calls `render()` here, because
-   * the engine's own scroll-driven draw is the one under test. It is the draw that keeps a row's
-   * elements across the move; an explicit `render()` rebuilds the band instead.
+   * scroll event triggers (the fixture counts `afterScrollVertically`, which the engine fires after
+   * that draw). Nothing calls `render()` here, because the engine's own scroll-driven draw is the one
+   * under test: it is the draw that keeps a row's elements across the move, while an explicit
+   * `render()` rebuilds the band. A target whose rows already sit inside the rendered band resolves
+   * as a fast draw that paints nothing, so a spec that expects paints must scroll past the band (the
+   * `scroll` and `frozen` scenarios render 10 rows past the viewport on each side).
    */
   async scrollToRow(row: number): Promise<void> {
-    const bandBefore = await this.renderedBand();
+    const drawsBefore = await this.read<number>('window.htScrollDraws');
 
     await this.run(`hot.scrollViewportTo({ row: ${row}, verticalSnap: 'top' });`);
     await this.page.waitForFunction(
-      (before: [number, number]) => {
-        const hot = (window as unknown as { hot: RenderedBandReader }).hot;
-
-        return hot.getFirstRenderedVisibleRow() !== before[0] || hot.getLastRenderedVisibleRow() !== before[1];
-      },
-      bandBefore,
+      (before: number) => (window as unknown as { htScrollDraws: number }).htScrollDraws > before,
+      drawsBefore,
       { polling: 50 },
     );
   }

@@ -160,8 +160,8 @@ describe('RowsRenderer row recycling', () => {
 
     const trs = Array.from(rootNode.children);
 
-    // Scrolling up by 6 into a band of 5: rows 20-24 are what the band now wants, and the previous
-    // band held 20-29 - none of the elements that would move carries a row the new band wants.
+    // Scrolling up by 6 into a band of 5: the band now wants rows 14-18, and the previous band held
+    // 20-29 - none of the elements that would move carries a row the new band wants.
     state.offset = 14;
     state.size = 5;
     state.recyclable = true;
@@ -169,6 +169,52 @@ describe('RowsRenderer row recycling', () => {
 
     expect(rootNode.children.length).toBe(5);
     expect(Array.from(rootNode.children)).toEqual(trs.slice(0, 5));
+  });
+
+  it('should rotate when the band shrinks while scrolling down and some rows still survive', () => {
+    const { rootNode, draw, state, renderer } = createFixture();
+
+    draw(0, 10, false);
+
+    const trs = Array.from(rootNode.children);
+
+    // Scrolling down by 5 into a band of 2: rows 5 and 6 survive, at old positions 5 and 6. Only the
+    // previous size bounds the survival scrolling down; the new, smaller size does not.
+    state.offset = 5;
+    state.size = 2;
+    state.recyclable = true;
+    renderer.render();
+
+    expect(rootNode.children.length).toBe(2);
+    expect(rootNode.children[0]).toBe(trs[5]);
+    expect(rootNode.children[1]).toBe(trs[6]);
+  });
+
+  it('should keep the focus on a cell whose row leaves the band', () => {
+    const { rootNode, draw, state, renderer } = createFixture();
+    const table = document.createElement('table');
+
+    table.appendChild(rootNode);
+    document.body.appendChild(table);
+    draw(0, 5, false);
+
+    const td = document.createElement('td');
+
+    td.tabIndex = -1;
+    rootNode.children[1].appendChild(td);
+    td.focus();
+
+    expect(document.activeElement).toBe(td);
+
+    state.offset = 3;
+    state.recyclable = true;
+    renderer.render();
+
+    // Row 1 left the band: its TR wrapped to the end, and the element it carries is still focused.
+    expect(rootNode.children[3]).toBe(td.parentElement);
+    expect(document.activeElement).toBe(td);
+
+    table.remove();
   });
 
   it('should not rotate when the band is empty', () => {

@@ -678,9 +678,10 @@ together with `hasStationaryBands()` and `isRowRecyclingAllowed()` (both `false`
 pre-recycling engine).
 
 The fourth argument is the identity of the rendered band, and it has two forms, chosen per draw by
-`TableRenderer#hasStationaryBands()`. `renderCellBand` sets it from `Viewport#allowsStationaryBands()`,
-the predicate that gates the stationary bands themselves; the clones share the master's viewport, so
-every table of a draw gets the same answer.
+`TableRenderer#hasStationaryBands()`. The master draw cycle resolves `Viewport#allowsStationaryBands()`
+once per draw, after `beforeDraw()` refreshed the axis owners, into `Overlays#stationaryBandsAllowed`,
+and the band stabilizer and `renderCellBand` (master and clones, through the clone source) all read
+that one value, so the three decisions never disagree within a draw.
 
 - **Stationary bands allowed** (single-pass layout, element-scrolled on both axes): the overlay name
   alone. A cell's own source coordinates carry its identity, so a band that grows or shrinks repaints
@@ -708,8 +709,12 @@ cell untouched (`renderMode: 'onChange'`, through the offset-free band above), a
 while nothing a cell paints depends on the band (the MergeCells case). A `forceFullRender`
 (`hot.render()`) enters as `draw(false)` and never rotates: it rebuilds the band in place, and the
 stamps' coordinates then repaint every element whose row moved. The rotation is also skipped when no
-row survives the move (`shift >= size` in either direction), when the band is empty, and when the
-TBODY does not hold exactly the previous band (something else touched it).
+row survives the move (the shift reaches the previous band's size scrolling down, the new band's size
+scrolling up), when the band is empty, and when the TBODY does not hold exactly the previous band
+(something else touched it). A focused cell in a leaving row is detached with its row for the
+duration of the move; Chromium blurs a removed element only at its next rendering step, by which
+time the row is back, and for an engine that blurs at once the renderer gives the element the focus
+back without scrolling, so the keyboard keeps reaching the grid either way.
 
 It is a move, not an insertion or removal, so the stationary-DOM invariant (no structural mutation
 while scrolling, see the comment above `rows.render()` in `tableRenderer.ts`) holds: measured against

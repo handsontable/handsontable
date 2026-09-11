@@ -339,6 +339,8 @@ describe('Walkontable directional row band overscan on vertical scroll', () => {
     observer.observe(wt.wtTable.holder.parentNode, { subtree: true, childList: true });
     observer.takeRecords();
 
+    const startRowBefore = renderedBand(wt).startRow;
+
     // Enough one-row steps to include several full band re-renders (overscan exhaustions).
     for (let step = 5; step < 40; step += 2) {
       vScrollTo(wt, (rowH * step) + 7);
@@ -348,7 +350,10 @@ describe('Walkontable directional row band overscan on vertical scroll', () => {
     observer.disconnect();
 
     const structuralMutations = records.filter(record => record.type === 'childList');
+    const movedRows = structuralMutations.reduce((count, record) => count + record.addedNodes.length, 0);
 
+    // Exactly one TR per row the band start moved by across every crossing, never the whole band.
+    expect(movedRows).toBe(renderedBand(wt).startRow - startRowBefore);
     // The rows renderer rotates the TR nodes on a scroll-driven draw so a row that stays in the band
     // keeps its TR; that reads as childList records on the TBODY. Nothing else may happen: no node
     // is created or dropped (every node a record added is one a record of the same draw removed),

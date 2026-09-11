@@ -106,6 +106,11 @@ export class RowsRenderer extends BaseRenderer {
       .setOffset(nextOffset)
       .start();
 
+    // Recorded right after the elements were rotated and the band was sized, so the record describes
+    // the TBODY from here on whatever a later pass does with it.
+    this.#lastOffset = nextOffset;
+    this.#lastSize = rowsToRender;
+
     for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       this.orderView.render();
 
@@ -138,9 +143,6 @@ export class RowsRenderer extends BaseRenderer {
     }
 
     this.orderView.end();
-
-    this.#lastOffset = nextOffset;
-    this.#lastSize = rowsToRender;
   }
 
   /**
@@ -172,18 +174,25 @@ export class RowsRenderer extends BaseRenderer {
       nextSize === 0 ||
       delta === 0 ||
       // No row survives the move, so every TR would be repainted anyway: rotating them is pure cost.
-      // Both sizes matter, and they differ when the band grows or shrinks on the same draw. Scrolling
-      // down, a row survives only if its old index is below the previous size; scrolling up, only if
-      // its new index is below the new size. Requiring both keeps the rotation to the elements that
-      // exist now AND are still wanted, in either direction.
-      shift >= lastSize ||
-      shift >= nextSize ||
+      // Scrolling down, the survivors are the previous band's rows past the shift, so a row survives
+      // only if the shift is below the previous size; scrolling up, they are the new band's rows past
+      // the shift, so only if it is below the new size. The other size takes no part, and the two
+      // differ when the band grows or shrinks on the same draw.
+      (delta > 0 ? shift >= lastSize : shift >= nextSize) ||
       rootNode.childElementCount !== lastSize
     ) {
       return;
     }
 
-    const fragment = rootNode.ownerDocument.createDocumentFragment();
+    const rootDocument = rootNode.ownerDocument;
+    // A focused cell in a row that leaves the band is detached with its row for the duration of the
+    // move. Chromium blurs a removed element only at its next rendering step, by which time the row
+    // is back; an engine that blurs at once would drop the grid's focus to the body here. In that case
+    // the element gets the focus back, without scrolling to it: it is the element the previous draw
+    // left focused, about to show another row, exactly as a stationary element would.
+    const focusedElement = rootDocument.activeElement;
+    const focusedInBand = focusedElement !== null && rootNode.contains(focusedElement);
+    const fragment = rootDocument.createDocumentFragment();
 
     if (delta > 0) {
       // Scrolled down: the first `delta` rows left the band – send them to the bottom, in order.
@@ -198,6 +207,10 @@ export class RowsRenderer extends BaseRenderer {
         fragment.insertBefore(rootNode.lastElementChild!, fragment.firstChild);
       }
       rootNode.insertBefore(fragment, rootNode.firstChild);
+    }
+
+    if (focusedInBand && rootDocument.activeElement !== focusedElement) {
+      (focusedElement as HTMLElement).focus({ preventScroll: true });
     }
   }
 }

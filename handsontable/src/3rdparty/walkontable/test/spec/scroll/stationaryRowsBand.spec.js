@@ -124,15 +124,20 @@ describe('Walkontable stationary rows band on vertical scroll', () => {
     observer.observe(wt.wtTable.holder.parentNode, { subtree: true, childList: true });
     observer.takeRecords();
 
+    const firstRowBefore = wt.wtTable.getFirstRenderedRow();
+
     // Several one-row band shifts at unaligned offsets - each one re-renders the band.
     for (let step = 5; step < 10; step++) {
       scrollTo(wt, (rowHeight * step) + 7);
     }
 
     const structuralMutations = observer.takeRecords().filter(record => record.type === 'childList');
+    const movedRows = structuralMutations.reduce((count, record) => count + record.addedNodes.length, 0);
 
     observer.disconnect();
 
+    // Exactly one TR per row the band start moved by, and never the whole band.
+    expect(movedRows).toBe(wt.wtTable.getFirstRenderedRow() - firstRowBefore);
     // The rows renderer rotates the TR nodes on a scroll-driven draw so a row that stays in the band
     // keeps its TR; that reads as childList records on the TBODY. Nothing else may happen: no node
     // is created or dropped (every node a record added is one a record of the same draw removed),
