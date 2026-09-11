@@ -40,12 +40,16 @@ export class RowsRenderer extends BaseRenderer {
    */
   declare orderView: OrderView;
   /**
-   * SPIKE (#13446): the source row the first TR held after the last render, and the band size then.
-   * `-1` until the first render.
+   * The source row the first TR held after the last render. `-1` until the first render, which is
+   * what tells the rotation there is no previous band to rotate.
+   *
+   * @type {number}
    */
   #lastOffset: number = -1;
   /**
-   * SPIKE (#13446): the number of TR elements the last render left in the root node.
+   * The number of TR elements the last render left in the root node.
+   *
+   * @type {number}
    */
   #lastSize: number = 0;
 
@@ -95,7 +99,7 @@ export class RowsRenderer extends BaseRenderer {
 
     const nextOffset = rowsToRender > 0 ? this.table.renderedRowToSource(0) : 0;
 
-    this.#recycleRows(nextOffset);
+    this.#recycleRows(nextOffset, rowsToRender);
 
     this.orderView
       .setSize(rowsToRender)
@@ -140,15 +144,17 @@ export class RowsRenderer extends BaseRenderer {
   }
 
   /**
-   * SPIKE (#13446): on a scroll-driven draw, rotates the TR elements so a row that stays in the
-   * rendered band keeps its TR (and so its TDs). The rows that scrolled out wrap to the other end
-   * and are overwritten by the rows that scrolled in. After the rotation the TR at index `i` holds
-   * source row `nextOffset + i` for every row that was already rendered, which is exactly what the
-   * cell pass is about to paint there – so a `td`-keyed renderer cache hits for the whole overlap.
+   * On a scroll-driven draw, rotates the TR elements so a row that stays in the rendered band keeps
+   * its TR (and so its TDs). The rows that scrolled out wrap to the other end and are overwritten by
+   * the rows that scrolled in. After the rotation the TR at index `i` holds source row
+   * `nextOffset + i` for every row that was already rendered, which is exactly what the cell pass is
+   * about to paint there – so the host's paint stamps match for the whole overlap and, under
+   * `renderMode: 'onChange'`, those cells are left as they are.
    *
    * @param {number} nextOffset The source row the first TR will hold on this draw.
+   * @param {number} nextSize The number of rows this draw will render.
    */
-  #recycleRows(nextOffset: number) {
+  #recycleRows(nextOffset: number, nextSize: number) {
     if (!this.table.isRowRecyclingAllowed()) {
       return;
     }
@@ -156,12 +162,22 @@ export class RowsRenderer extends BaseRenderer {
     const rootNode = this.rootNode as HTMLElement;
     const lastSize = this.#lastSize;
     const delta = nextOffset - this.#lastOffset;
+    const shift = Math.abs(delta);
 
     if (
       this.#lastOffset < 0 ||
       lastSize === 0 ||
+      // An empty band renders nothing; `nextOffset` is then a sentinel, not a real offset, so the
+      // delta it produces is meaningless and the rotation would move rows `start()` is about to drop.
+      nextSize === 0 ||
       delta === 0 ||
-      Math.abs(delta) >= lastSize ||
+      // No row survives the move, so every TR would be repainted anyway: rotating them is pure cost.
+      // Both sizes matter, and they differ when the band grows or shrinks on the same draw. Scrolling
+      // down, a row survives only if its old index is below the previous size; scrolling up, only if
+      // its new index is below the new size. Requiring both keeps the rotation to the elements that
+      // exist now AND are still wanted, in either direction.
+      shift >= lastSize ||
+      shift >= nextSize ||
       rootNode.childElementCount !== lastSize
     ) {
       return;

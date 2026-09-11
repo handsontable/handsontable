@@ -12,15 +12,6 @@ import type { StylesHandler } from '../types';
 import { applyRowHeight } from './exactRowHeight';
 
 /**
- * SPIKE (#13446): the runtime switches that select the row-recycling variant, read off `globalThis` so
- * one build serves every measurement (`off` when neither is set).
- */
-type SpikeSwitches = typeof globalThis & {
-  __HOT_SPIKE_SHIFT?: boolean;
-  __HOT_SPIKE_SKIP?: boolean;
-};
-
-/**
  * Asked for every cell in the rendered band before the cell element is reset and painted.
  * Answering `false` leaves the element exactly as the previous draw left it.
  */
@@ -214,13 +205,20 @@ export class TableRenderer {
    */
   #columnHeadersRenderSkippable: boolean = false;
   /**
-   * SPIKE (#13446): `true` when this draw was entered as a scroll draw (`isScrollDrivenDraw`), so
-   * the rows renderer may rotate the TR elements to follow the band, and the cells renderer may
-   * skip cells whose source coordinates did not change. Set once per draw by the draw cycle.
+   * `true` when this draw was entered as a scroll draw (`Overlays#isScrollDrivenDraw`). Set once per
+   * draw by the draw cycle; together with `#stationaryBandsAllowed` it decides whether the rows
+   * renderer may rotate the TR elements to follow the band.
    *
    * @type {boolean}
    */
   #scrollDrivenDraw: boolean = false;
+  /**
+   * `true` when the viewport allows stationary bands on this draw (`Viewport#allowsStationaryBands`):
+   * single-pass layout, element-scrolled on both axes. Set once per draw by the draw cycle.
+   *
+   * @type {boolean}
+   */
+  #stationaryBandsAllowed: boolean = false;
   /**
    * `true` once the column-header pass has rendered at least once and stored its render window.
    *
@@ -318,7 +316,7 @@ export class TableRenderer {
   }
 
   /**
-   * SPIKE (#13446): records whether this draw was entered as a scroll draw.
+   * Records whether this draw was entered as a scroll draw.
    *
    * @param {boolean} scrollDriven Whether the draw is scroll-driven.
    */
@@ -327,24 +325,38 @@ export class TableRenderer {
   }
 
   /**
-   * SPIKE (#13446): whether the rows renderer may rotate the TR elements on this draw. The runtime
-   * switch `globalThis.__HOT_SPIKE_SHIFT` selects the variant so one build serves every measurement.
+   * Records whether the viewport allows stationary bands on this draw.
+   *
+   * @param {boolean} allowed Whether stationary bands are allowed.
+   */
+  setStationaryBandsAllowed(allowed: boolean) {
+    this.#stationaryBandsAllowed = allowed;
+  }
+
+  /**
+   * Whether the paint identity of a cell may leave the band's offsets and sizes out (see
+   * `CellsRenderer#render`). `true` exactly when the viewport allows stationary bands: nothing that
+   * paints a cell then depends on where the band starts or how far it reaches. MergeCells, the one
+   * renderer that does (it clamps a merged cell's span to the rendered band), forces single-pass
+   * layout off and so turns this off with it.
+   *
+   * @returns {boolean}
+   */
+  hasStationaryBands(): boolean {
+    return this.#stationaryBandsAllowed;
+  }
+
+  /**
+   * Whether the rows renderer may rotate the TR elements on this draw, so a row that stays in the
+   * band keeps its element. Only on a scroll-driven draw (any other draw keeps the band where it is
+   * or rebuilds it) and only where stationary bands are allowed, for the reason `hasStationaryBands()`
+   * gives: a cell that kept its element across the move is left untouched by the host, and that is
+   * safe only while nothing a cell paints depends on the band.
    *
    * @returns {boolean}
    */
   isRowRecyclingAllowed(): boolean {
-    return this.#scrollDrivenDraw && (globalThis as SpikeSwitches).__HOT_SPIKE_SHIFT === true;
-  }
-
-  /**
-   * SPIKE (#13446): whether the cells renderer may leave a cell untouched on this draw when the
-   * element already shows the same source cell (only meaningful together with row recycling).
-   * Runtime switch: `globalThis.__HOT_SPIKE_SKIP`.
-   *
-   * @returns {boolean}
-   */
-  isUnchangedCellSkippable(): boolean {
-    return this.#scrollDrivenDraw && (globalThis as SpikeSwitches).__HOT_SPIKE_SKIP === true;
+    return this.#scrollDrivenDraw && this.#stationaryBandsAllowed;
   }
 
   /**
@@ -477,11 +489,18 @@ export class TableRenderer {
 
     // Stationary bands: the TR/TD/TH nodes keep their DOM positions on every draw — the
     // `OrderView`s reuse the children in place and the renderers below overwrite their content.
-    // Rows and cells are deliberately NEVER moved, inserted, or removed while a band merely shifts
-    // (the draw cycle keeps both band sizes stable on scroll-driven draws — see
-    // `stabilizeRenderedRowsBand`/`stabilizeRenderedColumnsBand`). Structural DOM mutations here
-    // would trigger the host page's `:has()` style invalidation on every scroll, at a cost that
-    // scales with the host document.
+    // Rows and cells are never inserted or removed while a band merely shifts (the draw cycle keeps
+    // both band sizes stable on scroll-driven draws — see `stabilizeRenderedRowsBand`/
+    // `stabilizeRenderedColumnsBand`). Structural DOM mutations here would trigger the host page's
+    // `:has()` style invalidation on every scroll, at a cost that scales with the host document.
+    //
+    // The one move: on a scroll-driven draw where stationary bands are allowed
+    // (`isRowRecyclingAllowed()`) the rows renderer rotates the TR elements by the band's offset
+    // delta, so a row that stays in the band keeps its TR and its TDs, and the host can then leave
+    // those cells untouched (`renderMode: 'onChange'`, through `shouldPaintCell`). That is one
+    // `DocumentFragment` move of `delta` rows per full draw, not a per-frame re-insertion of the
+    // band: measured against the `:has()` cost above (a host document of 30,000 nodes and three
+    // `:has()` rules) style recalculation stayed flat.
     this.rows!.render();
     this.rowHeaders!.render();
     this.cells!.render();

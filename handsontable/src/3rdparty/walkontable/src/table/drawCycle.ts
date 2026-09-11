@@ -441,7 +441,10 @@ function isPureVerticalScrollDraw(wtOverlays: Overlays): boolean {
  *   `buildRenderFilters` (passed non-null rather than re-read off the nullable `table.*Filter`).
  * @param {boolean} columnHeadersRenderSkippable Whether the column-header (THEAD) pass may be skipped
  *   for this draw (a pure vertical scroll); resolved per role by the caller.
- * @param {boolean} scrollDrivenDraw SPIKE (#13446): whether the draw was entered as a scroll draw.
+ * @param {boolean} scrollDrivenDraw Whether the draw was entered as a scroll draw (the master's
+ *   `isScrollDrivenDraw`, read off the clone source for a clone). With the viewport's
+ *   `allowsStationaryBands()` it lets the rows renderer keep a row's TR across the scroll, and lets
+ *   the host keep such a cell untouched.
  */
 function renderCellBand(
   table: Table,
@@ -452,6 +455,8 @@ function renderCellBand(
 ): void {
   table.tableRenderer.setHeaderContentRenderers(ctx.rowHeaders, ctx.columnHeaders);
   table.tableRenderer.setScrollDrivenDraw(scrollDrivenDraw);
+  // The clones share the master's viewport, so every table of a draw reads the same answer.
+  table.tableRenderer.setStationaryBandsAllowed(table.deps.getWtViewport().allowsStationaryBands());
 
   if (table.is(CLONE_BOTTOM) ||
       table.is(CLONE_BOTTOM_INLINE_START_CORNER)) {

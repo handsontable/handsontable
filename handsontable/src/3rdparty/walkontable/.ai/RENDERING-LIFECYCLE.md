@@ -175,6 +175,12 @@ order (order is load-bearing — see CONCERNS "Directional overscan invariants")
    whose cost scales with the host document. Both axes stabilize on ANY scroll-driven draw (per-axis
    gating would let each axis shrink the other's band back and re-oscillate it). Works for non-uniform
    sizes too.
+3. **Row recycling** (`render/rows.ts`, in the render phase; gated by
+   `TableRenderer#isRowRecyclingAllowed()` = scroll-driven AND `allowsStationaryBands()`): before the
+   cell pass, the TR elements are rotated by the band's offset delta, so a row that stays in the band
+   keeps its TR and its TDs. Under the same gate `render/cells.ts` hands `shouldPaintCell` an
+   offset-free band identity (the overlay name), so a host in `renderMode: 'onChange'` paints only the
+   rows that entered. See AGENTS.md, "Row recycling".
 
 Specs: `test/spec/scroll/stationaryColumnsBandOverscan.spec.js`, `stationaryRowsBandOverscan.spec.js`
 (directional extension, fast draws inside the overscan, pixel parity vs `draw(false)`, zero-delta rules,

@@ -126,13 +126,25 @@ class Renderer {
   }
 
   /**
-   * SPIKE (#13446): records whether this draw was entered as a scroll draw.
+   * Sets whether this draw was entered as a scroll draw.
    *
    * @param {boolean} scrollDriven Whether the draw is scroll-driven.
    * @returns {Renderer}
    */
   setScrollDrivenDraw(scrollDriven: boolean) {
     this.renderer.setScrollDrivenDraw(scrollDriven);
+
+    return this;
+  }
+
+  /**
+   * Sets whether the viewport allows stationary bands on this draw.
+   *
+   * @param {boolean} allowed Whether stationary bands are allowed.
+   * @returns {Renderer}
+   */
+  setStationaryBandsAllowed(allowed: boolean) {
+    this.renderer.setStationaryBandsAllowed(allowed);
 
     return this;
   }

@@ -349,6 +349,15 @@ describe('Walkontable directional row band overscan on vertical scroll', () => {
 
     const structuralMutations = records.filter(record => record.type === 'childList');
 
-    expect(structuralMutations.length).toBe(0);
+    // The rows renderer rotates the TR nodes on a scroll-driven draw so a row that stays in the band
+    // keeps its TR; that reads as childList records on the TBODY. Nothing else may happen: no node
+    // is created or dropped (every node a record added is one a record of the same draw removed),
+    // and no cell moves inside its row.
+    const added = new Set(structuralMutations.flatMap(record => Array.from(record.addedNodes)));
+    const removed = new Set(structuralMutations.flatMap(record => Array.from(record.removedNodes)));
+
+    expect(structuralMutations.every(record => record.target.tagName === 'TBODY')).toBe(true);
+    expect(Array.from(added).every(node => removed.has(node))).toBe(true);
+    expect(Array.from(removed).every(node => added.has(node))).toBe(true);
   });
 });

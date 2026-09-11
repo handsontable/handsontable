@@ -5713,7 +5713,10 @@ export default (): Record<string, unknown> => {
      * | `'onChange'`         | The cell is painted only when the element it lands in showed something else after its last paint: another cell, another value, another renderer, a changed cell meta (through [`setCellMeta()`](@/api/core.md#setcellmeta) or the [`cells`](#cells) function), or a structural change of the grid. |
      *
      * Under `'onChange'`, a render skips the cells whose paint would produce the same result as their
-     * last paint. Some changes are not detected, because nothing in the grid sees them:
+     * last paint. A scroll keeps the elements of the rows that stay rendered, so it paints only the
+     * rows that enter the rendered area; a grid with merged cells, or one that scrolls with the page,
+     * repaints its rendered cells on a scroll instead. Some changes are not detected, because nothing
+     * in the grid sees them:
      * - a meta object mutated directly (`getCellMeta(row, col).x = y`, including inside the
      * [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta) and [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta) hooks),
      * - a value object mutated in place (the grid compares values by identity),

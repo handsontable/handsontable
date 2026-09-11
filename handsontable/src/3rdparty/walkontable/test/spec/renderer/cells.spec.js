@@ -8,7 +8,7 @@ describe('Walkontable.Renderer.CellsRenderer', () => {
       return false;
     }
 
-    isUnchangedCellSkippable() {
+    hasStationaryBands() {
       return false;
     }
 

@@ -75,7 +75,7 @@ describe('Walkontable stationary rows band on vertical scroll', () => {
     wt.wtOverlays.syncScrollPositions();
   }
 
-  it('should keep the same TR nodes in the same DOM order across a pure vertical scroll', async() => {
+  it('should keep the same TR nodes across a pure vertical scroll, each row that stays keeping its TR', async() => {
     const { wt } = makeWot();
 
     wt.draw();
@@ -87,16 +87,24 @@ describe('Walkontable stationary rows band on vertical scroll', () => {
     scrollTo(wt, (rowHeight * 6) + 7);
 
     const tbody = getTableMaster().find('tbody').get(0);
+    const rowOf = tr => Number(tr.querySelector('td').textContent.match(/^r(\d+)c/)[1]);
     const trsBefore = Array.from(tbody.children);
+    const trByRowBefore = new Map(trsBefore.map(tr => [rowOf(tr), tr]));
 
     scrollTo(wt, (rowHeight * 9) + 7);
 
     const trsAfter = Array.from(tbody.children);
+    const rowsAfter = trsAfter.map(rowOf);
+    const keptRows = rowsAfter.filter(row => trByRowBefore.has(row));
 
-    // The band shifted by 3 rows, but the TR nodes are stationary: same references, same order.
+    // The band shifted by 3 rows. No TR was created or dropped, and every row that stayed in the
+    // band kept its TR: the nodes were rotated (the three that left wrapped to the end and hold
+    // the three that entered), not replaced.
     expect(trsAfter.length).toBe(trsBefore.length);
-    trsAfter.forEach((tr, index) => {
-      expect(tr).toBe(trsBefore[index]);
+    expect(trsAfter.every(tr => trsBefore.includes(tr))).toBe(true);
+    expect(keptRows.length).toBe(trsBefore.length - 3);
+    keptRows.forEach((row) => {
+      expect(trsAfter[rowsAfter.indexOf(row)]).toBe(trByRowBefore.get(row));
     });
   });
 
@@ -125,7 +133,16 @@ describe('Walkontable stationary rows band on vertical scroll', () => {
 
     observer.disconnect();
 
-    expect(structuralMutations.length).toBe(0);
+    // The rows renderer rotates the TR nodes on a scroll-driven draw so a row that stays in the band
+    // keeps its TR; that reads as childList records on the TBODY. Nothing else may happen: no node
+    // is created or dropped (every node a record added is one a record of the same draw removed),
+    // and no cell moves inside its row.
+    const added = new Set(structuralMutations.flatMap(record => Array.from(record.addedNodes)));
+    const removed = new Set(structuralMutations.flatMap(record => Array.from(record.removedNodes)));
+
+    expect(structuralMutations.every(record => record.target.tagName === 'TBODY')).toBe(true);
+    expect(Array.from(added).every(node => removed.has(node))).toBe(true);
+    expect(Array.from(removed).every(node => added.has(node))).toBe(true);
   });
 
   it('should keep the rendered band size constant across mid-table scroll positions', async() => {

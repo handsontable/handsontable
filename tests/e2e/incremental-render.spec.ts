@@ -360,7 +360,109 @@ test.describe('renderMode: onChange, changes the render must see', () => {
   });
 });
 
+test.describe('renderMode: onChange, scrolling', () => {
+  const rowOf = (key: string) => Number(key.split(',')[0]);
+
+  test('paints only the rows that enter the band, and keeps the elements of the rows that stay', async({ page, theme, bundle }) => {
+    const grid = new IncrementalRenderPage(page, theme, bundle, 'scroll');
+
+    await grid.goto();
+
+    // Down: the rows below the old band enter, every other rendered row is left as it is. The
+    // last row of the old band stays in the new one; it keeps its element and its content.
+    let [, lastBefore] = await grid.renderedBand();
+
+    await grid.run(`window.htProbe = hot.getCell(${lastBefore}, 1);`);
+    await grid.scrollToRow(25);
+
+    let painted = await grid.paintedCells();
+
+    expect(painted.length).toBeGreaterThan(0);
+    expect(painted.every(key => rowOf(key) > lastBefore)).toBe(true);
+    expect(await grid.read<boolean>(`hot.getCell(${lastBefore}, 1) === window.htProbe`)).toBe(true);
+    await expect(grid.cell(lastBefore, 1)).toHaveText(`r${lastBefore}c1`);
+    await grid.expectEqualToFullRepaint();
+
+    // Further down, from a band that no longer starts at the first row.
+    await grid.resetPaints();
+    [, lastBefore] = await grid.renderedBand();
+    await grid.run(`window.htProbe = hot.getCell(${lastBefore}, 1);`);
+    await grid.scrollToRow(40);
+
+    painted = await grid.paintedCells();
+
+    expect(painted.length).toBeGreaterThan(0);
+    expect(painted.every(key => rowOf(key) > lastBefore)).toBe(true);
+    expect(await grid.read<boolean>(`hot.getCell(${lastBefore}, 1) === window.htProbe`)).toBe(true);
+
+    // Up: the mirror image, the rows above the old band enter.
+    await grid.resetPaints();
+
+    const [firstBefore] = await grid.renderedBand();
+
+    await grid.run(`window.htProbe = hot.getCell(${firstBefore}, 1);`);
+    await grid.scrollToRow(15);
+
+    painted = await grid.paintedCells();
+
+    expect(painted.length).toBeGreaterThan(0);
+    expect(painted.every(key => rowOf(key) < firstBefore)).toBe(true);
+    expect(await grid.read<boolean>(`hot.getCell(${firstBefore}, 1) === window.htProbe`)).toBe(true);
+    await expect(grid.cell(firstBefore, 1)).toHaveText(`r${firstBefore}c1`);
+    await grid.expectEqualToFullRepaint();
+  });
+
+  test('keeps the frozen overlays in step with a full repaint through scrolling', async({ page, theme, bundle }) => {
+    const grid = new IncrementalRenderPage(page, theme, bundle, 'frozen');
+
+    await grid.goto();
+
+    const [, lastBefore] = await grid.renderedBand();
+
+    // One element from the master and one from the frozen-columns clone, both on a row that stays.
+    await grid.run(`window.htProbe = [hot.getCell(${lastBefore}, 3), hot.getCell(${lastBefore}, 0, true)];`);
+    await grid.scrollToRow(25);
+
+    const painted = await grid.paintedCells();
+
+    expect(painted.length).toBeGreaterThan(0);
+    expect(painted.every(key => rowOf(key) > lastBefore)).toBe(true);
+    expect(await grid.read<boolean>(`hot.getCell(${lastBefore}, 3) === window.htProbe[0]`)).toBe(true);
+    expect(await grid.read<boolean>(`hot.getCell(${lastBefore}, 0, true) === window.htProbe[1]`)).toBe(true);
+    await grid.expectEqualToFullRepaint();
+
+    await grid.resetPaints();
+    await grid.scrollToRow(12);
+    await grid.expectEqualToFullRepaint();
+  });
+
+  test('keeps an open editor on its cell across a scroll that keeps the row rendered', async({ page, theme, bundle }) => {
+    const grid = new IncrementalRenderPage(page, theme, bundle, 'scroll');
+
+    await grid.goto();
+    await grid.run('hot.selectCell(5, 1);');
+    await page.keyboard.press('Enter');
+    await page.keyboard.type('!');
+    await grid.scrollToRow(12);
+    await page.keyboard.press('Enter');
+
+    expect(await grid.read<string>('hot.getDataAtCell(5, 1)')).toBe('r5c1!');
+    await expect(grid.cell(5, 1)).toHaveText('r5c1!');
+  });
+});
+
 test.describe('renderMode: always (default)', () => {
+  test('paints every rendered cell on a scroll', async({ page, theme, bundle }) => {
+    const grid = new IncrementalRenderPage(page, theme, bundle, 'always');
+
+    await grid.goto();
+    await grid.scrollToRow(25);
+
+    const rendered = await grid.read<number>('hot.countRenderedRows() * hot.countRenderedCols()');
+
+    expect((await grid.paintedCells()).length).toBe(rendered);
+  });
+
   test('paints every rendered cell on every render', async({ page, theme, bundle }) => {
     const grid = new IncrementalRenderPage(page, theme, bundle, 'always');
 

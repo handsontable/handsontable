@@ -29,7 +29,8 @@
     // The grid shape under test, from a fixed allowlist for the same reason.
     window.htScenario = ({
       text: 'text', always: 'always', mixed: 'mixed', 'frozen-merge': 'frozen-merge', formulas: 'formulas', search: 'search',
-      'cells-fn': 'cells-fn', resize: 'resize', 'merge-height': 'merge-height', comments: 'comments',
+      'cells-fn': 'cells-fn', resize: 'resize', 'merge-height': 'merge-height', comments: 'comments', scroll: 'scroll',
+      frozen: 'frozen',
     })[htParams.get('scenario') ?? 'text'];
     if (!window.htScenario) {
       throw new Error('Unknown ?scenario= value: ' + JSON.stringify(htParams.get('scenario')));
@@ -137,6 +138,19 @@
         fixedRowsTop: 2,
         fixedColumnsStart: 2,
         mergeCells: true,
+      }),
+      // The scrolling shapes. A numeric rendering offset (the reporter's setup) instead of `'auto'`:
+      // the band then gets no directional overscan on a scroll-driven draw, so away from the grid's
+      // edges it has the same size after a scroll as after a plain render, and the two can be
+      // compared. Without merged cells, so the engine may keep a row's elements across the scroll.
+      scroll: () => ({ ...base, data: makeData(200, 10), renderMode: 'onChange', viewportRowRenderingOffset: 10 }),
+      frozen: () => ({
+        ...base,
+        data: makeData(200, 8),
+        renderMode: 'onChange',
+        fixedRowsTop: 2,
+        fixedColumnsStart: 2,
+        viewportRowRenderingOffset: 10,
       }),
       formulas: () => ({
         ...base,

@@ -196,7 +196,9 @@ columns: [
 ],
 ```
 
-Under `'onChange'`, a cell is painted only when the element it lands in showed something else after its last paint: another cell (the viewport scrolled), another value, another renderer, a changed cell meta, or a structural change of the grid such as a sort, a filter, an inserted row, a data reload, or a settings update. Everything the grid can see is covered, including a formula whose dependency changed, a validation result, a comment, and a merged cell.
+Under `'onChange'`, a cell is painted only when the element it lands in showed something else after its last paint: another cell (its row scrolled out of the rendered area and another row took the element), another value, another renderer, a changed cell meta, or a structural change of the grid such as a sort, a filter, an inserted row, a data reload, or a settings update. Everything the grid can see is covered, including a formula whose dependency changed, a validation result, a comment, and a merged cell.
+
+A scroll keeps the elements of the rows that stay rendered, so it paints only the rows that enter the rendered area. A renderer that caches per element (a framework component attached to the cell element, for example) keeps its cache across the scroll as well. A grid with merged cells, or one that scrolls with the page instead of inside its own box, repaints its rendered cells on a scroll instead.
 
 Some changes are invisible to the grid, because nothing in it sees them:
 

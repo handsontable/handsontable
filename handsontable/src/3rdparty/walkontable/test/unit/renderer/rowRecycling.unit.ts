@@ -153,6 +153,40 @@ describe('RowsRenderer row recycling', () => {
     expect(Array.from(rootNode.children)).toEqual(trs);
   });
 
+  it('should not rotate when no row would survive the move upwards into a smaller band', () => {
+    const { rootNode, draw, state, renderer } = createFixture();
+
+    draw(20, 10, false);
+
+    const trs = Array.from(rootNode.children);
+
+    // Scrolling up by 6 into a band of 5: rows 20-24 are what the band now wants, and the previous
+    // band held 20-29 - none of the elements that would move carries a row the new band wants.
+    state.offset = 14;
+    state.size = 5;
+    state.recyclable = true;
+    renderer.render();
+
+    expect(rootNode.children.length).toBe(5);
+    expect(Array.from(rootNode.children)).toEqual(trs.slice(0, 5));
+  });
+
+  it('should not rotate when the band is empty', () => {
+    const { rootNode, draw, state, renderer } = createFixture();
+
+    draw(12, 6, false);
+
+    const trs = Array.from(rootNode.children);
+
+    state.size = 0;
+    state.recyclable = true;
+    renderer.render();
+
+    expect(rootNode.children.length).toBe(0);
+    // Every TR was dropped by the view, and none of them was pointlessly moved first.
+    expect(trs.every(tr => tr.parentNode === null)).toBe(true);
+  });
+
   it('should not rotate on the first draw', () => {
     const { rootNode, state, renderer } = createFixture();
 

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Made a scroll keep the row elements of the rows that stay rendered, so a cell in `renderMode: 'onChange'` is no longer repainted when the viewport merely scrolls past it, and a custom renderer that caches per element keeps its cache across a scroll.",
+  "type": "changed",
+  "issueOrPR": 13467,
+  "breaking": false,
+  "framework": "none"
+}
