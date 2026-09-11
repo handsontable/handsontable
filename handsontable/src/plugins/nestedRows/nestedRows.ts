@@ -1,6 +1,6 @@
 import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
 import { BasePlugin } from '../base';
-import DataManager, { type RowObject } from './data/dataManager';
+import DataManager, { type NestedRowsRemovalSnapshot, type RowObject } from './data/dataManager';
 import CollapsingUI from './ui/collapsing';
 import HeadersUI from './ui/headers';
 import ContextMenuUI from './ui/contextMenu';
@@ -716,6 +716,84 @@ export class NestedRows extends BasePlugin {
   }
 
   /**
+   * Captures the nested roots represented by a row removal for UndoRedo.
+   *
+   * @private
+   * @param {number[]} physicalRows Physical rows expanded by the removal hook.
+   * @returns {unknown} An internal nested-row snapshot.
+   */
+  captureRemovedRows(physicalRows: number[]): unknown {
+    if (!this.#isOperational()) {
+      return null;
+    }
+
+    return this.dataManager!.captureRemovedRows(physicalRows);
+  }
+
+  /**
+   * Returns the physical rows represented by an internal nested-row snapshot.
+   *
+   * @private
+   * @param {unknown} snapshot An internal nested-row snapshot.
+   * @returns {number[]} Physical rows in the removed subtrees.
+   */
+  getRemovedPhysicalRows(snapshot: unknown): number[] {
+    if (!this.#isOperational() || !this.#isNestedRowsRemovalSnapshot(snapshot)) {
+      return [];
+    }
+
+    return this.dataManager!.getRemovedPhysicalRows(snapshot);
+  }
+
+  /**
+   * Reports whether a nested-row snapshot can be restored without mutating the tree.
+   *
+   * @private
+   * @param {unknown} snapshot An internal nested-row snapshot.
+   * @returns {boolean} `true` when the plugin is active and the restore hooks allow the operation.
+   */
+  canRestoreRemovedRows(snapshot: unknown): boolean {
+    if (!this.#isOperational() || !this.#isNestedRowsRemovalSnapshot(snapshot)) {
+      return false;
+    }
+
+    return this.dataManager!.canRestoreRemovedRows(snapshot);
+  }
+
+  /**
+   * Restores an internal nested-row snapshot and the physical row sequence it belonged to.
+   *
+   * @private
+   * @param {unknown} snapshot An internal nested-row snapshot.
+   * @param {number[]} rowIndexesSequence Physical row sequence from before removal.
+   */
+  restoreRemovedRows(snapshot: unknown, rowIndexesSequence: number[]): boolean {
+    if (!this.#isOperational() || !this.#isNestedRowsRemovalSnapshot(snapshot)) {
+      return false;
+    }
+
+    const wasRestored = this.dataManager!.restoreRemovedRows(snapshot, rowIndexesSequence);
+
+    this.hot.selection.refresh();
+
+    return wasRestored;
+  }
+
+  /**
+   * Checks whether a value has the shape produced by `captureRemovedRows`.
+   *
+   * @param {unknown} snapshot The value to check.
+   * @returns {boolean}
+   */
+  #isNestedRowsRemovalSnapshot(snapshot: unknown): snapshot is NestedRowsRemovalSnapshot {
+    return typeof snapshot === 'object' && snapshot !== null &&
+      'rows' in snapshot && Array.isArray(snapshot.rows) &&
+      'rowIndexMaps' in snapshot && typeof snapshot.rowIndexMaps === 'object' &&
+      snapshot.rowIndexMaps !== null &&
+      'collapsedRows' in snapshot && Array.isArray(snapshot.collapsedRows);
+  }
+
+  /**
    * @private
    * @param {number} index The index where the data was spliced.
    * @param {number} amount An amount of items to remove.
@@ -820,8 +898,38 @@ export class NestedRows extends BasePlugin {
   };
 
   /**
+   * Adds every descendant of the given node, at every depth, to the set of rows to remove.
+   *
+   * The list is bounded by the flatten cache. A live `__children` tree can be ahead of that cache
+   * when application code mutates source data directly, so a descendant is included only when its
+   * physical index is still known.
+   *
+   * @param {object} node The parent node whose descendants are collected.
+   * @param {Set} removedRows Accumulator of physical indexes to remove.
+   */
+  #collectDescendants = (node: RowObject | null | undefined, removedRows: Set<number>) => {
+    const children = node?.__children;
+
+    if (!Array.isArray(children)) {
+      return;
+    }
+
+    children.forEach((child) => {
+      const childRowIndex = this.dataManager!.getRowIndex(child);
+
+      if (childRowIndex !== null) {
+        removedRows.add(childRowIndex);
+      }
+
+      this.#collectDescendants(child, removedRows);
+    });
+  };
+
+  /**
    * Callback for the `beforeRemoveRow` change list of removed physical indexes by reference. Removing parent node
-   * has effect in removing children nodes.
+   * has the effect of removing its whole subtree, at every depth – removing the parent object from the
+   * source array takes every descendant with it, so a descendant left out of this list would survive in the
+   * index maps as a row with no data behind it.
    *
    * @param {number} index Visual index of starter row.
    * @param {number} amount Amount of rows to be removed.
@@ -829,33 +937,25 @@ export class NestedRows extends BasePlugin {
    */
   #onBeforeRemoveRow = (index: number, amount: number, physicalRows: number[]) => {
     const modifiedPhysicalRows = Array.from(physicalRows.reduce((removedRows: Set<number>, physicalIndex: number) => {
-      if (this.dataManager!.isParent(physicalIndex)) {
-        const children = this.dataManager!.getDataObject(physicalIndex)?.__children;
-
-        // Preserve a parent in the list of removed rows.
-        removedRows.add(physicalIndex);
-
-        if (Array.isArray(children)) {
-          // Add a children to the list of removed rows.
-          children.forEach((child) => {
-            const childRowIndex = this.dataManager!.getRowIndex(child);
-
-            if (childRowIndex !== null) {
-              removedRows.add(childRowIndex);
-            }
-          });
-        }
-
+      if (removedRows.has(physicalIndex)) {
         return removedRows;
       }
 
-      // Don't modify list of removed rows when already checked element isn't a parent.
-      return removedRows.add(physicalIndex);
+      removedRows.add(physicalIndex);
+
+      if (this.dataManager!.isParent(physicalIndex)) {
+        this.#collectDescendants(this.dataManager!.getDataObject(physicalIndex), removedRows);
+      }
+
+      return removedRows;
     }, new Set()));
 
     // Modifying hook's argument by the reference.
     physicalRows.length = 0;
-    physicalRows.push(...modifiedPhysicalRows);
+
+    modifiedPhysicalRows.forEach((physicalIndex) => {
+      physicalRows.push(physicalIndex);
+    });
   };
 
   /**

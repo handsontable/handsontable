@@ -40,6 +40,10 @@ interface MergeAnchor {
   physicalColumn: number;
 }
 
+export interface PhysicalRowMergeSnapshot extends MergeAreaGeometry {
+  physicalRows: number[];
+}
+
 /**
  * What a row move does to one merge, decided before the move's fragments exist.
  *
@@ -863,6 +867,65 @@ export class MergeCells extends BasePlugin {
    */
   getPasteUnmergeSnapshot(): MergeAreaGeometry[] {
     return [...this.#pasteUnmergeSnapshot];
+  }
+
+  /**
+   * Captures merge geometry and its physical row anchor before a nested-row removal.
+   *
+   * @private
+   * @returns {Array} Merge snapshots keyed by their physical rows.
+   */
+  getPhysicalRowSpansForRemoval(): PhysicalRowMergeSnapshot[] {
+    if (!this.enabled || !this.mergedCellsCollection) {
+      return [];
+    }
+
+    this.#captureMissingMergeAnchors();
+
+    return this.mergedCellsCollection.mergedCells.map(merge => ({
+      row: merge.row,
+      col: merge.col,
+      rowspan: merge.rowspan,
+      colspan: merge.colspan,
+      physicalRows: this.#mergeAnchors.get(merge)?.physicalRows.slice() ?? [],
+    }));
+  }
+
+  /**
+   * Restores the physical anchor on merge objects recreated by UndoRedo after a nested-row removal.
+   *
+   * @private
+   * @param {PhysicalRowMergeSnapshot[]} snapshots Merge snapshots captured before removal.
+   */
+  restorePhysicalRowSpansAfterRemoval(snapshots: PhysicalRowMergeSnapshot[]) {
+    if (!this.enabled || !this.mergedCellsCollection) {
+      return;
+    }
+
+    snapshots.forEach((snapshot) => {
+      let merge = this.mergedCellsCollection.get(snapshot.row, snapshot.col);
+      const physicalColumn = merge ? this.hot.toPhysicalColumn(merge.col) : null;
+
+      if (!merge && snapshot.physicalRows.length > 0) {
+        merge = this.mergedCellsCollection.add({
+          row: snapshot.row,
+          col: snapshot.col,
+          rowspan: snapshot.rowspan,
+          colspan: snapshot.colspan,
+        }, true);
+      }
+
+      const restoredPhysicalColumn = merge ? this.hot.toPhysicalColumn(merge.col) : null;
+
+      if (merge && (physicalColumn ?? restoredPhysicalColumn) !== null && snapshot.physicalRows.length > 0) {
+        this.#mergeAnchors.set(merge, {
+          physicalRows: snapshot.physicalRows.slice(),
+          physicalColumn: physicalColumn ?? restoredPhysicalColumn!,
+        });
+      }
+    });
+
+    this.#reanchorMergesToVisibleRows();
   }
 
   /**

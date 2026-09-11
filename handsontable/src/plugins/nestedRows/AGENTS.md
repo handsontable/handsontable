@@ -268,6 +268,21 @@ They are written in different places and can drift. Keep this in mind:
   physical order never diverge because of a move. Only trimming makes them diverge.
 - **UndoRedo** deletes `__children` before storing undo data, because this plugin restores the tree
   itself.
+- **Nested parent undo is a two-phase operation.** The `beforeRemoveRow` list must contain every
+  cached descendant, while `RemoveRowAction` captures the complete subtree before `filterData`
+  mutates the source. Undo restores the tree and physical row/meta slots first, then replays the
+  generic cell values and accessors. The snapshot must also carry every row-index-map value and the
+  collapsed-parent list – restoring only `IndexesSequence` moves trimming and hiding state onto the
+  wrong physical rows. MergeCells needs its physical row anchors restored after its visual geometry.
+  Do not send that geometry through `restoreMergedCells`: `merge()` populates non-corner cells with
+  `null`, and the generic `data` snapshot only holds the parent row. Skip the visual remesh and
+  reattach physical anchors only. A nested undo that cannot land (plugin disabled,
+  `beforeCreateRow` veto) must be refused before `beforeUndo`. Formulas always calls `engine.undo()`
+  there, so a late `{ wasUndone: false }` leaves HyperFormula restored and Handsontable empty.
+  The nested restore emits the normal `beforeCreateRow`/`afterCreateRow` pair with
+  `UndoRedo.undo` as the source. Do not fix this by widening `amount` while still dropping
+  `__children`. Tests that assert the nested source tree must use `dataManager.getRawSourceData()`,
+  because the public `getSourceData()` path is intentionally flattened by `modifyRowData`.
 - **AutoRowHeaderSize already subsumes `HeadersUI#updateRowHeaderWidth()` — never measure labels
   here.** That method derives a width from the nesting depth alone
   (`Math.max(50, padding * 2 + 10 * levelCount + 25)`, exactly 61px on a two-level tree in

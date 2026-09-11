@@ -35,6 +35,12 @@ Most actions settle the redo by calling back with **no argument**. An action tha
 redo — **currently only `MoveCellsAction`** — reports `{ wasRedone: false }`, which pushes the action back
 onto the **undone** stack instead of the done stack.
 
+An action that can legitimately fail to undo — **currently only `RemoveRowAction` with a nested
+snapshot** — exposes `canUndo(hot)`. `UndoRedo.undo()` calls it **before** `beforeUndo`. Formulas
+always calls `engine.undo()` in `beforeUndo`, so a veto or a disabled NestedRows plugin discovered
+only while applying the snapshot would leave HyperFormula restored and Handsontable empty. A late
+`{ wasUndone: false }` still puts the action back on the done stack and must **not** emit `afterUndo`.
+
 ## `MoveCellsAction` is the asymmetric one, in three ways
 
 1. **Its `undo` restores both regions with `restoreRegion` instead of replaying the move**, so

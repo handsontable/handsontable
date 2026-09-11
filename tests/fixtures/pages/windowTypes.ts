@@ -35,6 +35,7 @@ export interface FixtureHotInstance {
   getSourceDataAtCell(row: number, col: number): CellValue;
   getSourceData(): unknown[];
   setDataAtCell(row: number, col: number, value: CellValue): void;
+  setCellMeta(row: number, col: number, key: string, value: unknown): void;
   getCellMeta(row: number, col: number): { className?: string, readOnly?: boolean };
   getPlugin(name: 'formulas'): {
     getCellType(row: number, col: number): string,
@@ -106,6 +107,7 @@ export interface FixtureHotInstance {
     },
     dataManager: {
       getDataObject(row: number): object | null,
+      getRawSourceData(): unknown[],
       addChild(parent: object): void,
     },
   };
@@ -231,6 +233,14 @@ declare global {
     moveCellsHookLog: MoveCellsHookRecord[];
     /** Recorded NestedRows collapse/expand hook calls, in firing order. */
     hookLog: { name: string, args: unknown[] }[];
+    /** Recorded remove-row hook arguments from the DEV-30 nested undo fixture. */
+    removeLog: {
+      hook: 'beforeRemoveRow' | 'afterRemoveRow';
+      index: number;
+      amount: number;
+      physicalRows: number[];
+      source?: string;
+    }[];
     /** Makes the fixture's `beforeMoveCells` listener return `false`. */
     setBeforeMoveCellsVeto(shouldVeto: boolean): boolean;
     /** Makes the fixture's `beforeRowMove` listener return `false`. */

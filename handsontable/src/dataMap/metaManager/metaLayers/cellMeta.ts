@@ -41,6 +41,11 @@ export interface CellMetaSnapshotEntry {
   value: unknown;
 }
 
+export interface CellMetaAtRowEntry {
+  physicalColumn: number;
+  meta: CellProperties;
+}
+
 /**
  * @class CellMeta
  *
@@ -478,6 +483,28 @@ export default class CellMeta {
     return Array.from(rowMeta)
       .sort(([a], [b]) => a - b)
       .map(([, meta]) => meta);
+  }
+
+  /**
+   * Returns the materialized cell metas for a physical row together with the physical column keys
+   * that own them. The coordinate fields on a meta object are render-time values and can be stale
+   * after a row or column map changes.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @returns {{physicalColumn: number, meta: object}[]}
+   */
+  getMetasAtRowWithPhysicalColumns(physicalRow: number): CellMetaAtRowEntry[] {
+    assert(() => isUnsignedNumber(physicalRow), 'Expecting an unsigned number.');
+
+    const rowMeta = this.metas.getIfExists(physicalRow);
+
+    if (rowMeta === undefined) {
+      return [];
+    }
+
+    return Array.from(rowMeta)
+      .sort(([a], [b]) => a - b)
+      .map(([physicalColumn, meta]) => ({ physicalColumn, meta }));
   }
 
   /**
