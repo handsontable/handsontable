@@ -55,6 +55,23 @@ test('a configured temperature is sent verbatim, including 0', async() => {
   }
 });
 
+test('json mode is on by default and omittable', async() => {
+  const bodies = [];
+  const fetchImpl = async(url, init) => {
+    bodies.push(JSON.parse(init.body));
+
+    return ok('{}');
+  };
+
+  await createClient({ baseUrl: 'https://x', apiKey: 'k', model: 'm', fetchImpl, sleep: noSleep })
+    .complete({ system: 's', user: 'u' });
+  await createClient({ baseUrl: 'https://x', apiKey: 'k', model: 'm', jsonMode: false, fetchImpl, sleep: noSleep })
+    .complete({ system: 's', user: 'u' });
+
+  assert.deepEqual(bodies[0].response_format, { type: 'json_object' }, 'response_format is sent by default');
+  assert.ok(!('response_format' in bodies[1]), 'response_format is omitted when json mode is off');
+});
+
 test('an error body is surfaced past 200 characters and capped at 4096', async() => {
   const shortTail = `${'x'.repeat(300)}NEEDLE`;
   const fetchImpl = async() => new Response(shortTail, { status: 400 });

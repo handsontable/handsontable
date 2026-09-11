@@ -89,6 +89,10 @@ jobs:
           # it to 0 to keep classifications deterministic on a model that
           # honours temperature (e.g. Anthropic).
           DOCS_SYNC_TEMPERATURE: ${{ vars.DOCS_SYNC_TEMPERATURE }}
+          # Optional repository variable, on by default. Set it to off for a
+          # model that rejects `response_format`; the classifier parses the JSON
+          # object out of prose either way.
+          DOCS_SYNC_JSON_MODE: ${{ vars.DOCS_SYNC_JSON_MODE }}
           DOCS_SYNC_REVIEWERS: ${{ vars.DOCS_SYNC_REVIEWERS }}
           # A scheduled run is never a dry run; a manual dispatch defaults to one.
           DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}

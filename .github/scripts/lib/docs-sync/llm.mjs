@@ -38,6 +38,10 @@ export function completionsUrl(baseUrl) {
  *   applies -- a reasoning-tier model that rejects any non-default temperature
  *   then accepts the call, while a model that honours it can be pinned (e.g. to
  *   `0`) for repeatable classifications.
+ * @param {boolean} [options.jsonMode] Whether to ask for a JSON object via
+ *   `response_format`. On by default. Turn it off for a model that rejects
+ *   `response_format`; `parseDecision` extracts the JSON object out of prose
+ *   either way, so this only trades a reliability aid, not correctness.
  * @param {typeof fetch} [options.fetchImpl]
  * @param {(ms: number) => Promise<void>} [options.sleep]
  * @param {number} [options.attempts] Total attempts, including the first.
@@ -49,6 +53,7 @@ export function createClient({
   apiKey,
   model,
   temperature,
+  jsonMode = true,
   fetchImpl = fetch,
   sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); }),
   attempts = 3,
@@ -73,7 +78,7 @@ export function createClient({
       body: JSON.stringify({
         model,
         ...(temperature === undefined ? {} : { temperature }),
-        response_format: { type: 'json_object' },
+        ...(jsonMode ? { response_format: { type: 'json_object' } } : {}),
         messages: [
           { role: 'system', content: system },
           { role: 'user', content: user },

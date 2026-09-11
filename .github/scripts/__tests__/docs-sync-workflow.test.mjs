@@ -49,6 +49,7 @@ test('passes the LiteLLM secrets and the model variable to the script', () => {
   assert.match(source, /LITELLM_API_KEY: \$\{\{ secrets\.LITELLM_API_KEY \}\}/);
   assert.match(source, /DOCS_SYNC_MODEL: \$\{\{ vars\.DOCS_SYNC_MODEL \}\}/);
   assert.match(source, /DOCS_SYNC_TEMPERATURE: \$\{\{ vars\.DOCS_SYNC_TEMPERATURE \}\}/);
+  assert.match(source, /DOCS_SYNC_JSON_MODE: \$\{\{ vars\.DOCS_SYNC_JSON_MODE \}\}/);
   assert.match(source, /DOCS_SYNC_REVIEWERS: \$\{\{ vars\.DOCS_SYNC_REVIEWERS \}\}/);
   assert.match(source, /run: node \.github\/scripts\/docs-sync\.mjs/);
 });

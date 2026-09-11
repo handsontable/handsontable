@@ -17,8 +17,8 @@
  *                                      [--repo-dir <path>] [--gh-bin <path>]
  *
  * Env: GH_TOKEN, GH_REPO, LITELLM_BASE_URL, LITELLM_API_KEY, DOCS_SYNC_MODEL,
- *      DOCS_SYNC_TEMPERATURE, DOCS_SYNC_REVIEWERS, DRY_RUN, TARGET,
- *      GITHUB_STEP_SUMMARY.
+ *      DOCS_SYNC_TEMPERATURE, DOCS_SYNC_JSON_MODE, DOCS_SYNC_REVIEWERS, DRY_RUN,
+ *      TARGET, GITHUB_STEP_SUMMARY.
  */
 
 import { execFileSync } from 'node:child_process';
@@ -117,7 +117,7 @@ async function makeClassifier({ prompt, hash, cache, target, releasedVersion, un
 
   const {
     LITELLM_BASE_URL: baseUrl, LITELLM_API_KEY: apiKey, DOCS_SYNC_MODEL: model,
-    DOCS_SYNC_TEMPERATURE: temperatureText,
+    DOCS_SYNC_TEMPERATURE: temperatureText, DOCS_SYNC_JSON_MODE: jsonModeText,
   } = process.env;
 
   if (!baseUrl || !apiKey || !model) {
@@ -139,7 +139,23 @@ async function makeClassifier({ prompt, hash, cache, target, releasedVersion, un
     }
   }
 
-  const client = createClient({ baseUrl, apiKey, model, temperature });
+  // On by default, so an unset variable keeps the `response_format` request
+  // every provider that supports it benefits from. Turn it off only for a model
+  // that rejects `response_format`. A present-but-unrecognized value is a
+  // configuration error, not a silent fallback.
+  let jsonMode = true;
+
+  if (jsonModeText !== undefined && jsonModeText !== '') {
+    if (/^(1|true|on|yes)$/i.test(jsonModeText)) {
+      jsonMode = true;
+    } else if (/^(0|false|off|no)$/i.test(jsonModeText)) {
+      jsonMode = false;
+    } else {
+      throw new Error(`DOCS_SYNC_JSON_MODE must be a boolean (on/off), got "${jsonModeText}".`);
+    }
+  }
+
+  const client = createClient({ baseUrl, apiKey, model, temperature, jsonMode });
 
   return async(candidate) => {
     const key = cacheKey(candidate.sha, hash);
