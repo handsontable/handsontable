@@ -72,6 +72,15 @@ describe('SheetModel', () => {
     expect(model.getSheetById(renamed.id).name).toBe('w'.repeat(MAX_SHEET_NAME_LENGTH));
   });
 
+  it('gives a blank or whitespace-only requested name the default numbering, like an omitted one', () => {
+    const model = new SheetModel();
+    const blank = model.addSheet('', [[]]);
+    const spaces = model.addSheet('   ', [[]]);
+
+    expect(blank.name).toBe('Sheet1');
+    expect(spaces.name).toBe('Sheet2');
+  });
+
   it('counts a name in characters, so an emoji costs one', () => {
     const model = new SheetModel();
     const sheet = model.addSheet('🙂'.repeat(MAX_SHEET_NAME_LENGTH + 5), [[]]);

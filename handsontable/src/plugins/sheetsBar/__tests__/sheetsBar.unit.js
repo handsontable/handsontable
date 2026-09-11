@@ -1863,6 +1863,31 @@ describe('SheetsBar plugin', () => {
     expect(mirror.textContent).toBe('A much longer sheet name');
   });
 
+  it('waits with the length cap until an IME composition ends, so the session is not cancelled', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: { sheets: [{ name: 'A', data: [['a']] }] },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    hot.rootWrapperElement
+      .querySelector('.ht-sheets-bar__tab')
+      .dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+
+    const input = hot.rootWrapperElement.querySelector('.ht-sheets-bar__tab-rename');
+    const overLimit = 'あ'.repeat(55);
+
+    // Mid-composition the value belongs to the IME — writing `input.value` there cancels the
+    // session — so an over-limit candidate must pass through untouched.
+    input.value = overLimit;
+    input.dispatchEvent(new InputEvent('input', { bubbles: true, isComposing: true }));
+
+    expect(input.value).toBe(overLimit);
+
+    input.dispatchEvent(new CompositionEvent('compositionend', { bubbles: true }));
+
+    expect(input.value).toBe('あ'.repeat(50));
+  });
+
   it('keeps the rename input alive when it is clicked or double-clicked', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }] },

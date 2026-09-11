@@ -537,11 +537,10 @@ export class TabStrip {
       stopImmediatePropagation(event);
       finish(event.key === 'Enter', true);
     });
-    input.addEventListener('blur', () => finish(true, false));
-    input.addEventListener('input', () => {
-      // The limit is counted the way the model counts it — in characters a reader sees, so an
-      // emoji costs one — rather than through the input's own `maxlength`, which counts UTF-16
-      // units and would stop an emoji-heavy name at half the length the API accepts.
+    // The limit is counted the way the model counts it — in characters a reader sees, so an
+    // emoji costs one — rather than through the input's own `maxlength`, which counts UTF-16
+    // units and would stop an emoji-heavy name at half the length the API accepts.
+    const applyLengthCap = () => {
       const limited = truncateSheetName(input.value);
 
       if (limited !== input.value) {
@@ -549,7 +548,22 @@ export class TabStrip {
       }
 
       this.#syncRenameWidth(input, mirror, widthFloor);
+    };
+
+    input.addEventListener('blur', () => finish(true, false));
+    input.addEventListener('input', (event) => {
+      // Mid-composition the value belongs to the IME: writing `input.value` here cancels the
+      // session, committing or dropping the candidate instead of leaving it in the composition
+      // window. The cap waits for `compositionend`; only the width tracks the interim text.
+      if ((event as InputEvent).isComposing) {
+        this.#syncRenameWidth(input, mirror, widthFloor);
+
+        return;
+      }
+
+      applyLengthCap();
     });
+    input.addEventListener('compositionend', applyLengthCap);
 
     mirror.className = 'ht-sheets-bar__tab-rename-mirror';
     mirror.setAttribute('aria-hidden', 'true');

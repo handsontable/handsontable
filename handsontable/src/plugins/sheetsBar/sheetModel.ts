@@ -205,7 +205,8 @@ export class SheetModel {
   }
 
   /**
-   * Appends a sheet. A `null`/omitted name gets the next unique `Sheet{num}` default.
+   * Appends a sheet. A `null`/omitted, blank, or whitespace-only name gets the next unique
+   * `Sheet{num}` default.
    */
   addSheet(
     name?: string | null,
@@ -333,7 +334,11 @@ export class SheetModel {
    * defaults count up as `Sheet{n}`, explicit collisions count up as `name (n)`.
    */
   #uniqueName(requested: string | null): string {
-    const clamped = requested === null ? null : clampSheetName(requested);
+    const trimmed = requested === null ? null : clampSheetName(requested);
+    // A blank or whitespace-only request has no visible label, so it takes the default
+    // numbering instead — the same blank that `renameSheet` rejects must not be creatable
+    // through `addSheet`.
+    const clamped = trimmed === '' ? null : trimmed;
 
     if (clamped !== null && this.resolveId(clamped) === null) {
       return clamped;
