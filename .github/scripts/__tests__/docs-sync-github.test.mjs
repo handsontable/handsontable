@@ -69,12 +69,15 @@ test('upsertComment finds the marked comment on a later page', () => {
 });
 
 test('ensureLabels, updatePr, closePr, and listOpenPrsWithLabel build the expected calls', () => {
-  const { calls, run } = recorder(['', '', '', '', '[{"number":1,"baseRefName":"prod-docs/18.0","headRefName":"docs-sync/prod-docs-18.0","url":"u"}]']);
+  const { calls, run } = recorder([
+    '[{"name":"docs-sync"}]', '', '', '', '[{"number":1,"baseRefName":"prod-docs/18.0","headRefName":"docs-sync/prod-docs-18.0","url":"u"}]',
+  ]);
   const gh = createGitHub({ repo: 'o/r', run });
 
   gh.ensureLabels(['docs-sync', 'docs-sync: skip']);
-  assert.deepEqual(calls[0], ['label', 'create', 'docs-sync', '--repo', 'o/r', '--force', '--color', '0E8A16', '--description', 'Managed by the docs sync workflow']);
-  assert.deepEqual(calls[1].slice(0, 3), ['label', 'create', 'docs-sync: skip']);
+  assert.deepEqual(calls[0], ['label', 'list', '--repo', 'o/r', '--json', 'name', '--limit', '100']);
+  assert.deepEqual(calls[1], ['label', 'create', 'docs-sync: skip', '--repo', 'o/r', '--color', '0E8A16', '--description', 'Managed by the docs sync workflow']);
+  assert.equal(calls.filter((call) => call[0] === 'label' && call[1] === 'create').length, 1, 'the already-existing label is not recreated');
 
   gh.updatePr(4, { title: 'T', body: 'B' });
   assert.deepEqual(calls[2], ['pr', 'edit', '4', '--repo', 'o/r', '--title', 'T', '--body', 'B']);
@@ -84,4 +87,14 @@ test('ensureLabels, updatePr, closePr, and listOpenPrsWithLabel build the expect
 
   assert.deepEqual(gh.listOpenPrsWithLabel('docs-sync'), [{ number: 1, baseRefName: 'prod-docs/18.0', headRefName: 'docs-sync/prod-docs-18.0', url: 'u' }]);
   assert.deepEqual(calls[4], ['pr', 'list', '--repo', 'o/r', '--state', 'open', '--label', 'docs-sync', '--json', 'number,baseRefName,headRefName,url']);
+});
+
+test('ensureLabels creates nothing when every label already exists', () => {
+  const { calls, run } = recorder(['[{"name":"docs-sync"},{"name":"docs-sync: skip"},{"name":"docs-sync: include"}]']);
+  const gh = createGitHub({ repo: 'o/r', run });
+
+  gh.ensureLabels(['docs-sync', 'docs-sync: skip', 'docs-sync: include']);
+
+  assert.equal(calls.length, 1, 'only the label list call is made');
+  assert.deepEqual(calls[0], ['label', 'list', '--repo', 'o/r', '--json', 'name', '--limit', '100']);
 });

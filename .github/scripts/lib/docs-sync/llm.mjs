@@ -28,6 +28,7 @@ export function completionsUrl(baseUrl) {
  * @param {typeof fetch} [options.fetchImpl]
  * @param {(ms: number) => Promise<void>} [options.sleep]
  * @param {number} [options.attempts] Total attempts, including the first.
+ * @param {number} [options.timeoutMs] Per-attempt fetch timeout, in milliseconds.
  * @returns {{ complete: (turns: { system: string, user: string }) => Promise<string> }}
  */
 export function createClient({
@@ -37,6 +38,7 @@ export function createClient({
   fetchImpl = fetch,
   sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); }),
   attempts = 3,
+  timeoutMs = 60_000,
 }) {
   const url = completionsUrl(baseUrl);
 
@@ -49,6 +51,7 @@ export function createClient({
   async function once({ system, user }) {
     const response = await fetchImpl(url, {
       method: 'POST',
+      signal: AbortSignal.timeout(timeoutMs),
       headers: {
         Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',

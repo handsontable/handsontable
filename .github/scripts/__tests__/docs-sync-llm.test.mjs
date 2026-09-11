@@ -76,3 +76,27 @@ test('a 4xx other than 429 fails immediately', async() => {
   await assert.rejects(() => client.complete({ system: 's', user: 'u' }), /401/);
   assert.equal(n, 1);
 });
+
+test('the fetch call carries an abort signal, and a timeout is retried like a network error', async() => {
+  const calls = [];
+  let n = 0;
+  const fetchImpl = async(url, init) => {
+    calls.push(init);
+    n += 1;
+    if (n === 1) {
+      const error = new Error('The operation was aborted due to timeout');
+
+      error.name = 'TimeoutError';
+      throw error;
+    }
+
+    return ok('fine');
+  };
+  const client = createClient({
+    baseUrl: 'https://x', apiKey: 'k', model: 'm', fetchImpl, sleep: noSleep, timeoutMs: 5,
+  });
+
+  assert.equal(await client.complete({ system: 's', user: 'u' }), 'fine');
+  assert.equal(n, 2);
+  assert.ok(calls[0].signal instanceof AbortSignal);
+});

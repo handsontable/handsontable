@@ -59,6 +59,15 @@ test('the user message carries every input and truncates long parts', () => {
   assert.match(message, /- Added X/);
   assert.match(message, /bbbb\n\[truncated: 6 more characters\]/);
   assert.match(message, /dddddddddd\n\[truncated: 90 more characters\]/);
+  assert.match(message, /<pull-request-body>\n/);
+  assert.match(message, /\n<\/pull-request-body>/);
+});
+
+test('the prompt names the untrusted-content delimiters buildUserMessage wraps around', async() => {
+  const prompt = await loadPrompt();
+
+  assert.match(prompt, /<pull-request-body>/);
+  assert.match(prompt, /```diff/);
 });
 
 test('parseDecision accepts a bare object and a fenced one, and falls back to unsure', () => {

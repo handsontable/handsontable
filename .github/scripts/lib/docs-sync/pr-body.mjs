@@ -65,6 +65,23 @@ function plain(text, max = 200) {
 }
 
 /**
+ * Escape a reason before it goes inside the state block's raw JSON payload.
+ * That JSON sits inside an already-open HTML comment (`<!-- ... -->`), unlike
+ * every rendered row (where `plain()`'s `<` escape is enough, since nothing
+ * there is already open) -- a `-->` here needs no preceding `<!--` of its own
+ * to close this comment early and spill the rest of the JSON into the
+ * visible body. Escaping `>` in addition to `plain()`'s `<` keeps the literal
+ * sequence `-->` from ever surviving into the payload, with two independent
+ * single-character replacements, not a sequence removal.
+ *
+ * @param {string} text
+ * @returns {string}
+ */
+function forState(text) {
+  return plain(text).replaceAll('>', '&gt;');
+}
+
+/**
  * `\`sha\` subject` with the subject sanitized and any trailing `(#n)` it
  * already carries stripped, since every `section()` caller appends its own
  * `(#n, ...)` right after this.
@@ -112,7 +129,11 @@ export function renderBody(report) {
       `- Generated: ${report.generatedAt}`,
     ].join('\n'),
     '[skip changelog]',
-    `<!-- ${STATE_MARKER}\n${JSON.stringify(report.state)}\n-->`,
+    `<!-- ${STATE_MARKER}\n${JSON.stringify({
+      ...report.state,
+      decisions: Object.fromEntries(Object.entries(report.state.decisions)
+        .map(([key, value]) => [key, { ...value, reason: forState(value.reason) }])),
+    })}\n-->`,
   ];
 
   return parts.join('\n\n');
