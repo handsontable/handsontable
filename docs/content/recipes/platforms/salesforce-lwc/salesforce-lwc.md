@@ -34,7 +34,7 @@ In this tutorial, you will run Handsontable inside a Salesforce Lightning Web Co
 **Difficulty:** Intermediate<br>
 **Time:** ~30 minutes
 
-Handsontable resolves mouse, focus, and clipboard events across the shadow boundary on its own, so clicking, the cell editors, copy and paste, and the context menu work under Lightning Web Security with no workaround code. What is left is the glue: the grid reaches the org as a static resource, its stylesheets have to land in the right document, its settings arrive as `@api` properties, and its hooks turn into Lightning Data Service calls.
+Handsontable resolves mouse, focus, and clipboard events across the shadow boundary on its own, so clicking, the cell editors, copy and paste, and the context menu work under Lightning Web Security with no workaround code. The rest is the four points of contact this recipe wires up.
 
 This recipe runs against real org data, so the grid cannot run inside this page. The code below is complete, but it arrives in pieces: each step adds members to a class you already started. The [repository](https://github.com/handsontable/salesforce-lwc) holds both components as whole files if you would rather read them that way, or deploy them and follow along.
 
@@ -43,7 +43,7 @@ This recipe runs against real org data, so the grid cannot run inside this page.
 A Lightning app page with an editable grid of Account records:
 
 - Handsontable loaded from a static resource, with no bundler and no npm dependency in the org.
-- Column types derived from Salesforce field metadata: picklists become dropdowns, numeric fields become numeric cells, and checkboxes become boolean cells. **All Accounts** carries no numeric or boolean field, so add `Employees` and `Annual Revenue` to the list view to watch those two mappings fire.
+- Column types derived from Salesforce field metadata: picklists become dropdowns, numeric fields become numeric cells, and checkboxes become boolean cells.
 - Grouped, collapsible column headers built from field name prefixes such as `Billing` and `Shipping`.
 - Cell edits, new rows, and deleted rows saved to Salesforce through Lightning Data Service, with no Apex.
 
@@ -386,7 +386,7 @@ getDataAtCell(row, col) {
 
 Every setting the data component binds needs an accessor here, and a missing one fails silently: with `nestedHeaders` never set, the grid falls back to `colHeaders: true` and labels the columns `A`, `B`, `C` instead of the field names.
 
-The copies matter. Handsontable mutates the data source it is given, and a parent's reactive state arrives as a read-only proxy, so the deep copy and the array spreads are what keep the grid from writing into it. Skip them and the grid renders, every edit is rejected, the cell snaps back, and no `afterChange` fires.
+The copies are load-bearing. Handsontable mutates the data source it is given, and a parent's reactive state arrives as a read-only proxy, so the deep copy and the array spreads are what keep the grid from writing into it. Skip them and the grid renders, every edit is rejected, the cell snaps back, and no `afterChange` fires.
 
 The three hooks in that same settings object turn grid activity into DOM events. `afterChange` skips the `loadData` source, because without that guard the first data load reports every cell as an edit and the org receives a write for each one.
 
@@ -422,7 +422,9 @@ Its template wires the grid's properties and events:
 
 Four wire adapters feed the grid: `getObjectInfo` for data types and labels, [`getListInfoByName`](https://developer.salesforce.com/docs/platform/lwc/guide/reference-lightning-ui-api-lists-ui.html) for the list view's columns, `getListRecordsByName` for the records, and `getPicklistValuesByRecordType` for dropdown sources. The last one is easy to miss - `getObjectInfo` reports that a field *is* a picklist but never lists its values, so a dropdown built from it offers nothing to choose.
 
-The two list adapters chain: `getListRecordsByName` takes a `fields` argument of qualified field names, which `getListInfoByName` supplies through its `displayColumns`. The `'$_listFields'` reactive parameter holds the records back until the columns arrive; the other adapters resolve independently, so each calls the same builder and the builder waits for everything it reads. Older examples use `getListUi` from `lightning/uiListApi` for the same job - Salesforce has [deprecated it](https://developer.salesforce.com/docs/platform/lwc/guide/reference-get-list-ui.html), and these two adapters are its replacement.
+The two list adapters chain: `getListRecordsByName` takes a `fields` argument of qualified field names, which `getListInfoByName` supplies through its `displayColumns`. The records do not wait for it - while `'$_listFields'` is still `undefined`, the adapter emits the records once with empty field maps, then again with the field data once the names arrive. The builder skips the fieldless emission, and the other adapters resolve independently, so each wire calls the same builder and the builder waits for everything it reads.
+
+Two traps in this pair, both verified against a live org. The adapters take `objectApiName` as a plain string: unlike `getObjectInfo`, they do not accept the `@salesforce/schema` object, and handed one they never provision - no request, no data, no error, and the grid renders empty with nothing in the console. And older examples use `getListUi` from `lightning/uiListApi` for the same job - Salesforce has [deprecated it](https://developer.salesforce.com/docs/platform/lwc/guide/reference-get-list-ui.html), and these two adapters are its replacement.
 
 ```js
 // force-app/main/default/lwc/handsontableApp/handsontableApp.js
@@ -480,7 +482,7 @@ export default class HandsontableApp extends LightningElement {
     }
 
     @wire(getListInfoByName, {
-        objectApiName: ACCOUNT_OBJECT,
+        objectApiName: 'Account',
         listViewApiName: 'AllAccounts',
     })
     wiredListInfo({ data, error }) {
@@ -494,7 +496,7 @@ export default class HandsontableApp extends LightningElement {
     }
 
     @wire(getListRecordsByName, {
-        objectApiName: ACCOUNT_OBJECT,
+        objectApiName: 'Account',
         listViewApiName: 'AllAccounts',
         fields: '$_listFields',
         pageSize: 50,
@@ -575,6 +577,10 @@ _buildGrid() {
     const availableFields = Object.keys(records[0].fields)
         .filter((field) => !SKIP_FIELDS.includes(field));
 
+    if (!availableFields.length) {
+        return;
+    }
+
     const groups = {};
     const groupOrder = [];
 
@@ -644,7 +650,7 @@ The `row: -2` in each collapsible entry addresses the upper of the two header ro
 
 The `_recordIds` and `_fieldApiNames` arrays are what turn a cell coordinate back into a Salesforce field on a Salesforce record, which is how Step 6 saves an edit.
 
-The list view decides which columns exist, so the mapping only shows what it carries. Stock **All Accounts** returns `Name`, `Site`, `Phone`, `Type`, and `BillingStateCode` - one dropdown and four text columns. Add `Employees`, `Annual Revenue`, or a checkbox field through **List View Controls** > **Select Fields to Display**, or point `listViewApiName` at your own list view, and those columns arrive as `numeric` and `checkbox` cells with no code change.
+Stock **All Accounts** returns `Name`, `Site`, `Phone`, `Type`, and `BillingStateCode` - one dropdown and four text columns. Add `Employees`, `Annual Revenue`, or a checkbox field through **List View Controls** > **Select Fields to Display**, or point `listViewApiName` at your own list view, and those columns arrive as `numeric` and `checkbox` cells with no code change.
 
 ![Account records rendered in the grid with grouped Billing and Shipping headers and a picklist dropdown open in a cell](/img/pages/salesforce-lwc/column-types-and-groups.png)
 
@@ -667,7 +673,7 @@ _messageFrom(error, fallback) {
 }
 ```
 
-Without it, a refused delete says "please try again" and the user retries forever. With it, the grid shows the org's own explanation - which cases block the delete, and which opportunities.
+Without it, a refused delete says "please try again" and the user retries forever. With it, the grid shows the org's own explanation of what blocked the write.
 
 ```js
 // force-app/main/default/lwc/handsontableApp/handsontableApp.js - inside the class
@@ -687,7 +693,7 @@ handleCellChange(event) {
 }
 ```
 
-A new row is trickier. Handsontable fires `afterCreateRow` while the row is still empty, and a paste fills its cells afterwards, so creating the record immediately would save a blank one. Insert a `null` placeholder in `_recordIds` to keep the row-to-record mapping aligned, then read the row back on the next tick and create the record from whatever landed in it:
+A new row needs deferring. Handsontable fires `afterCreateRow` while the row is still empty, and a paste fills its cells afterwards, so creating the record immediately would save a blank one. Insert a `null` placeholder in `_recordIds` to keep the row-to-record mapping aligned, then read the row back on the next tick and create the record from whatever landed in it:
 
 ```js
 // force-app/main/default/lwc/handsontableApp/handsontableApp.js - inside the class
@@ -769,7 +775,7 @@ handleRowRemoveRequest(event) {
 
 Capture the `removed` entries before you splice, because they are what the rollback puts back. Removal runs highest index first, and the rollback lowest first, so no splice shifts the indexes the next one uses. Each assignment to `this.data` is a new array, which is what pushes the change through the `@api` setter and into `updateSettings()`.
 
-Without the rollback the grid quietly disagrees with the org: the row is gone locally, the record is not, and nothing says so until a reload. Refused deletes are common, not exotic - Salesforce blocks deleting an account that has related cases or closed-won opportunities.
+Without the rollback the grid disagrees with the org: the row is gone locally, the record is not, and nothing says so until a reload. Refused deletes are common - Salesforce blocks deleting an account that has related cases or closed-won opportunities.
 
 Expose this component so it can be dropped onto a Lightning page:
 
@@ -853,8 +859,6 @@ Edit a cell and reload the page. The value persists, because it went to the org 
 - Tabbing in from another component focuses the grid without selecting a cell, so the arrow keys do nothing until the user clicks. Select one yourself on `focusin` - the [web component recipe](@/recipes/platforms/web-components/web-components.md) shows that listener.
 - The grid holds one list view page - 50 records here. For more, page through the list view or drive the grid with the [`dataProvider` plugin](@/guides/getting-started/server-side-data/server-side-data.md) against Apex.
 - One call per cell edit and per removed row, so a wide paste is one `updateRecord` per cell. Batch through Apex for bulk editing.
-- ID and relationship fields do not render as text. `OwnerId` gives the ID, and `Owner` gives a nested record object that renders `[object Object]` - hence `SKIP_FIELDS`.
-- Deletes fail on accounts with related cases or closed-won opportunities, as `DELETE_FAILED` listing what blocks them. The row returns and the message explains why.
 - Dependent picklists offer every value. Each entry carries a `validFor` mask naming its controlling values, which `_columnFor` ignores, so a state field lists the states of every country. Filter `values` per row against the controlling field.
 - Field-level security is enforced by the API, not the grid: a read-only field still accepts input and fails on save. Mark those columns [`readOnly`](@/api/options.md#readonly).
 
@@ -863,8 +867,7 @@ Edit a cell and reload the page. The value persists, because it went to the org 
 - The grid ships as a static resource and is created from `window.Handsontable` after its stylesheets resolve.
 - Field metadata generates the column configuration, and the list view payload decides which fields exist.
 - Settings cross as `@api` properties, forwarded through `updateSettings()` and deep-copied out of the reactive proxy.
-- Hooks become DOM events, each mapping to one Lightning Data Service call, with `beforeRemoveRow` making deletes reversible.
-- Grid hooks report visual row indexes, so the wrapper translates them to physical ones - a sorted grid then still writes to the record the user edited.
+- Hooks become DOM events, each mapping to one Lightning Data Service call, with `beforeRemoveRow` making deletes reversible and the wrapper forwarding physical row indexes so a sorted grid still writes to the record the user edited.
 
 ## Next steps
 
