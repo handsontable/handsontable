@@ -158,6 +158,11 @@ jobs:
     # branches: publishing would leave a full tree under `base/<tag>/` that
     # nothing reads and no lifecycle rule purges.
     if: ${{ !failure() && !cancelled() && github.ref_type != 'tag' }}
+    # What the gate found, for the `approve` job below: `changed` holds the run
+    # on the visual-approval environment; anything else lets it skip.
+    outputs:
+      verdict: ${{ steps.gate.outputs.verdict }}
+      report-url: ${{ steps.gate.outputs.report-url }}
     # Job-level, mirroring integration.yml's preview job: the sticky-comment
     # step below needs it to post the verdict. Kept off the workflow level so
     # the `render` jobs keep the caller's default grant untouched.
@@ -360,62 +365,31 @@ jobs:
           aws s3 cp ./visual-tests/.reg/out.json "s3://$R2_BUCKET_NAME/$REG_EXPECTED_KEY/out.json" \
             --endpoint-url "$R2_ENDPOINT"
 
-      # `reg-suit run` exits 0 whatever it finds, so this step is the whole gate.
-      # It always runs, even when approved, so the comment below is refreshed
-      # rather than left showing a verdict that no longer holds.
-      # `always()`, not the implicit `success()`: an earlier failure would
-      # otherwise skip this, leave `.reg/comment.md` unwritten, and let the
-      # sticky step below fail on a missing path while the previous push's
-      # verdict stayed up -- the staleness this whole arrangement avoids.
-      - name: Visual approval gate
+      # `reg-suit run` exits 0 whatever it finds, so this step is the gate's verdict.
+      # It fails only when the comparison itself failed (no report, nothing
+      # compared); differences become the `changed` output, and the `approve` job
+      # below turns that into a human decision. It runs on `always()`, not the
+      # implicit `success()`: an earlier failure would otherwise skip it, leave
+      # `.reg/comment.md` unwritten, and let the sticky step below fail on a
+      # missing path while the previous push's verdict stayed up -- the staleness
+      # this whole arrangement avoids.
+      - name: Visual verdict
+        id: gate
         if: always() && github.event_name == 'pull_request'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          REPO: ${{ github.repository }}
-          # `visual-cleanup.yml` cannot strip the label on a fork or Dependabot
-          # push (read-only token), so an approval there would outlive the
-          # screenshots it covered. Those runs ignore the label entirely.
+          # A fork or Dependabot run publishes nothing, so there is no hosted
+          # report to link; the artifact and the job summary carry the verdict.
           IS_UNTRUSTED: ${{ github.event.pull_request.head.repo.full_name != github.repository
             || github.actor == 'dependabot[bot]' }}
           VISUAL_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          # A fork run publishes nothing, so there is no hosted report to link.
           if [ "$IS_UNTRUSTED" = "true" ]; then
-            export VISUAL_PUBLISHED=false
+            export VISUAL_PUBLISHED=false VISUAL_SEEDED=false
           else
-            export VISUAL_PUBLISHED=true
+            export VISUAL_PUBLISHED=true VISUAL_SEEDED=true
           fi
 
-          # Read the labels live. `github.event.pull_request.labels` is a
-          # snapshot of the triggering event, so a re-run after applying the
-          # label would still see the old set and could never turn green.
-          if [ "$IS_UNTRUSTED" = "true" ]; then
-            approved=false
-          elif ! approved=$(gh api "repos/$REPO/issues/$PR_NUMBER/labels" \
-                 --jq 'any(.[]; .name == "visual-approved")' 2>/tmp/label-err); then
-            # Steps run under `set -e`, so an unhandled failure here would abort
-            # before the gate runs and leave the sticky comment showing a stale
-            # verdict. Fall back to "not approved": the safe direction, and the
-            # gate still writes a fresh comment explaining the result.
-            echo "::warning::Could not read the pull request labels; treating as not approved."
-            cat /tmp/label-err
-            approved=false
-          fi
-          echo "visual-approved present: $approved"
-
-          # Tell the contributor why their label did nothing, rather than
-          # leaving them to re-apply it against instructions that cannot work.
-          if [ "$IS_UNTRUSTED" = "true" ] \
-            && gh api "repos/$REPO/issues/$PR_NUMBER/labels" \
-                 --jq 'any(.[]; .name == "visual-approved")' 2>/dev/null | grep -q true; then
-            echo "::warning::visual-approved is ignored on fork and Dependabot runs, because" \
-              "nothing can clear it when you push again. A maintainer has to re-raise the branch" \
-              "from the main repository to approve these differences."
-          fi
-
-          VISUAL_APPROVED="$approved" VISUAL_SEEDED="$([ "$IS_UNTRUSTED" = true ] && echo false || echo true)" \
-            node ./visual-tests/scripts/visual-gate.mjs
+          node ./visual-tests/scripts/visual-gate.mjs
 
       # One sticky comment, rewritten in place, carrying the counts, the report
       # link and how to accept the changes. Fork runs have no write token, so
@@ -427,10 +401,13 @@ jobs:
         if: always() && github.event_name == 'pull_request'
         run: cat visual-tests/.reg/comment.md >> "$GITHUB_STEP_SUMMARY" || true
 
-      # Kept for the runs that produced no hosted report, or a red gate. A green
-      # same-repo run needs neither: the report is already published to R2.
+      # Kept whenever there is something to review or the comparison failed: a
+      # fork run has no hosted report, and a reviewer approving a `changed`
+      # verdict may want the images without the CDN. A clean same-repo run needs
+      # it for nothing, so it is skipped there.
       - name: Upload the visual diff report
-        if: failure() && github.event_name == 'pull_request'
+        if: ${{ !cancelled() && github.event_name == 'pull_request'
+          && (failure() || steps.gate.outputs.verdict != 'clean') }}
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
         with:
           name: visual-diff-report
@@ -446,3 +423,71 @@ jobs:
         with:
           header: visual-tests
           path: visual-tests/.reg/comment.md
+
+  # The human decision, as a GitLab-style manual gate inside the Tests DAG -- the
+  # same mechanism manual-qa.yml uses. When Compare found differences, this job
+  # pauses on the `visual-approval` ENVIRONMENT until someone on its reviewer
+  # list approves the run ("Review pending deployments" on the run page; the
+  # deployment's "View deployment" button opens the diff report). While it waits
+  # the Visual module never completes, so `CI Gate` -- which needs it -- cannot
+  # report and the merge stays blocked; a rejection fails this job and turns
+  # `CI Gate` red. GitHub records who approved, when, and any comment as the
+  # deployment review.
+  #
+  # Semantics that follow from the mechanism: approval is PER RUN, so every new
+  # push re-asks -- screenshots nobody looked at never inherit one; it is
+  # all-or-nothing for the build, as the label it replaces was; it needs no
+  # re-commit and no re-run; and it works for fork and Dependabot pull requests,
+  # whose downgraded token the old label machinery could not clear -- the
+  # reviewer's approval does not go through that token.
+  #
+  # Cutover (repo admin): create the `visual-approval` environment WITH required
+  # reviewers before this lands. A job that references a missing environment
+  # silently auto-creates it UNPROTECTED and runs straight through, so the step
+  # below asserts the control's OUTCOME -- an approval recorded against this run
+  # -- rather than trusting its configuration, and fails closed when none is.
+  approve:
+    name: approve
+    runs-on: ubuntu-latest
+    needs: [ compare ]
+    if: ${{ !cancelled() && github.event_name == 'pull_request'
+      && needs.compare.outputs.verdict == 'changed' }}
+    environment:
+      name: visual-approval
+      url: ${{ needs.compare.outputs.report-url }}
+    steps:
+      - name: Assert a human approval is recorded for this run
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # https://github.com/actions/github-script/releases/tag/v8.0.0
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            let approvals;
+
+            try {
+              // Raw request: the reusable workflow shares the parent's run id,
+              // and this endpoint lists the environment approvals for it.
+              const response = await github.request(
+                'GET /repos/{owner}/{repo}/actions/runs/{run_id}/approvals',
+                { owner, repo, run_id: context.runId },
+              );
+
+              approvals = response.data;
+            } catch (error) {
+              core.setFailed(`Could not read this run's approvals (${error.status} ${error.message}). `
+                + 'The visual gate cannot confirm a human approved the differences, so it fails closed. '
+                + 'If this is a token-permission error, grant `actions: read` to the Tests workflow.');
+              return;
+            }
+
+            const approval = approvals.find((entry) => entry.state === 'approved'
+              && (entry.environments || []).some((environment) => environment.name === 'visual-approval'));
+
+            if (!approval) {
+              core.setFailed('This job ran without a recorded visual-approval approval, which means the '
+                + '`visual-approval` environment has no required reviewers (a missing environment is '
+                + 'auto-created unprotected). Configure it -- required reviewers -- and re-run; the gate '
+                + 'is not enforcing anything until then.');
+              return;
+            }
+            core.notice(`Visual differences approved by @${approval.user.login}`
+              + `${approval.comment ? `: ${approval.comment}` : ''}.`);
