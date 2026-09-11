@@ -18,7 +18,7 @@ try {
       await page.addStyleTag({
         content: `
           @media (min-width: 800px) and (max-width: 1279px) {
-            .ht-card-grid:has(> .ht-link-card) {
+            .ht-card-grid:has(> .ht-link-card:nth-child(3)) {
               grid-template-columns: repeat(3, calc((100% - 32px) / 3));
               gap: 16px;
             }

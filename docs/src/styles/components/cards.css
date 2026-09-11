@@ -78,7 +78,7 @@
 }
 
 @media (min-width: 50rem) and (max-width: 79.99rem) {
-  .ht-card-grid:has(> .ht-link-card) {
+  .ht-card-grid:has(> .ht-link-card:nth-child(3)) {
     grid-template-columns: repeat(3, calc((100% - 32px) / 3));
     gap: 16px;
   }

@@ -37,7 +37,7 @@ test.describe('Introduction demo-card layout', () => {
       await page.setViewportSize({ width, height: 900 });
       await page.goto(`${baseURL}${PAGE_PATH}`);
 
-      const grids = page.locator('.ht-card-grid');
+      const grids = page.locator('.ht-card-grid:has(> .ht-link-card:nth-child(3))');
       await expect(grids.first()).toBeVisible();
 
       const measurements = await grids.evaluateAll((elements) => elements.map((grid) => {
@@ -67,6 +67,29 @@ test.describe('Introduction demo-card layout', () => {
         measurement.rowCount === Math.ceil(measurement.cardCount / 3) &&
         measurement.widthDifference < 0.01 &&
         measurement.titleFontSize === '14px'
+      )).toBe(true);
+
+      const singleCardMeasurements = await page.locator('.ht-card-grid').evaluateAll((elements) => elements
+        .filter(grid => grid.children.length === 1 &&
+          grid.firstElementChild?.classList.contains('ht-link-card'))
+        .map((grid) => {
+          const card = grid.firstElementChild;
+          const gridStyles = getComputedStyle(grid);
+
+          return {
+            activeColumns: gridStyles.gridTemplateColumns
+              .split(' ')
+              .filter(columnWidth => parseFloat(columnWidth) > 0)
+              .length,
+            cardWidth: card.getBoundingClientRect().width,
+            gridWidth: grid.getBoundingClientRect().width,
+          };
+        }));
+
+      expect(singleCardMeasurements.length).toBeGreaterThan(0);
+      expect(singleCardMeasurements.every(measurement =>
+        measurement.activeColumns === 1 &&
+        measurement.cardWidth / measurement.gridWidth > 0.99
       )).toBe(true);
     });
   }
