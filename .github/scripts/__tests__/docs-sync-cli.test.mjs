@@ -219,7 +219,9 @@ test('the CLI classifies deterministically, pushes the sync branch, and opens on
 
     assert.equal(result.status, 0, result.stderr);
 
-    const summary = readFileSync(path.join(f.root, 'summary.md'), 'utf8');
+    // The full per-commit report is logged to the job log (stdout); the step
+    // summary now carries only the counts (asserted in its own test).
+    const summary = result.stdout;
 
     // --no-llm makes every classifier candidate unsure, so nothing is included and
     // no pull request is opened; every other bucket is exercised.
@@ -357,7 +359,7 @@ test('a skip label on the source pull request excludes it, with no branch pushed
 
     assert.equal(result.status, 0, result.stderr);
 
-    const summary = readFileSync(path.join(f.root, 'summary.md'), 'utf8');
+    const summary = result.stdout;
 
     assert.match(summary, /## Excluded by the classifier\n\n- `[0-9a-f]{7}` Fix a typo in guide a #101: Labeled/);
     assert.equal(f.git(f.work, ['ls-remote', '--heads', f.origin, 'docs-sync/prod-docs-18.1']), '', 'no branch pushed when the only candidate is excluded');
@@ -416,7 +418,7 @@ test('an include-labeled candidate on a held run renders as skipped, not include
 
     assert.equal(result.status, 0, result.stderr);
 
-    const summary = readFileSync(path.join(f.root, 'summary.md'), 'utf8');
+    const summary = result.stdout;
 
     assert.match(summary, /## Included\n\nNone\./);
     assert.match(summary, /## Skipped: needs a human decision\n\n- `[0-9a-f]{7}` Fix a typo in guide a #101: Not applied: the sync branch carries commits the bot did not make\./);
@@ -473,7 +475,7 @@ test('a foreign commit on the sync branch holds the run before classification, w
       || (c[0] === 'api' && c.includes('--method'))
     )), 'no write-shaped gh call while held (the fake gh answers pr list with [], so no pull request exists to comment on)');
 
-    const summary = readFileSync(path.join(f.root, 'summary.md'), 'utf8');
+    const summary = result.stdout;
 
     assert.match(summary, /carries commits the bot did not make/);
     assert.match(summary, /## Skipped: needs a human decision\n\n- `[0-9a-f]{7}` Fix a typo in guide a[^\n]*#101[^\n]*Not classified/);
@@ -506,7 +508,7 @@ test('a conflicting cherry-pick reports itself and blocks the push, even under a
     assert.ok(!ghCalls.some((c) => c[0] === 'pr' && c[1] === 'create'), 'no pull request when everything conflicts');
     assert.ok(!ghCalls.some((c) => c[0] === 'pr' && c[1] === 'close'), 'the run does not close a pull request it never opened');
 
-    const summary = readFileSync(path.join(f.root, 'summary.md'), 'utf8');
+    const summary = result.stdout;
 
     assert.match(summary, /## Skipped: conflict\n\n- `[0-9a-f]{7}` Fix a typo in guide a #101/);
     assert.match(summary, /1 commit\(s\) conflict with prod-docs\/18\.1; nothing applied, manual port needed/);
@@ -728,7 +730,7 @@ test('a real 404 on one pull request lookup is recorded with a reason, and never
 
     assert.equal(result.status, 0, result.stderr);
 
-    const summary = readFileSync(path.join(f.root, 'summary.md'), 'utf8');
+    const summary = result.stdout;
     const section = summary.match(/## Skipped: no pull request number\n\n([\s\S]*?)\n\n##/);
 
     assert.ok(section, 'section rendered');
@@ -802,7 +804,7 @@ test('a cached decision under the current prompt hash skips the model; a stale p
     assert.equal(first.status, 0, first.stderr);
     assert.equal(requests.length, 0, 'a cache hit under the current prompt hash must not call the model');
 
-    const summary1 = readFileSync(path.join(f.root, 'summary.md'), 'utf8');
+    const summary1 = first.stdout;
 
     assert.match(summary1, /## Excluded by the classifier\n\n- `[0-9a-f]{7}` Fix a typo in guide a #101: cached from a prior run/);
 
@@ -824,7 +826,7 @@ test('a cached decision under the current prompt hash skips the model; a stale p
     assert.ok(!('temperature' in requests[0]), 'temperature is omitted when the variable is unset');
     assert.deepEqual(requests[0].response_format, { type: 'json_object' }, 'json mode is on by default');
 
-    const summary2 = readFileSync(path.join(f.root, 'summary.md'), 'utf8');
+    const summary2 = second.stdout;
 
     assert.match(summary2, /## Included\n\n- `[0-9a-f]{7}` Fix a typo in guide a \(#101, @someone\)/);
 
@@ -846,7 +848,7 @@ test('a cached decision under the current prompt hash skips the model; a stale p
   }
 });
 
-test('a failed classifier call logs the whole body but bounds the step summary', async() => {
+test('a failed classifier call logs the whole upstream body to the job log, not the step summary', async() => {
   const f = fixture();
   const bigBody = `<!DOCTYPE html><html><head><title>Blocked</title></head><body>${'Z'.repeat(20_000)}</body></html>`;
   const server = createServer((req, res) => {
@@ -870,20 +872,73 @@ test('a failed classifier call logs the whole body but bounds the step summary',
 
     const result = await spawnCli(f, { port });
 
-    assert.notEqual(result.status, 0, 'the 403 aborts the run');
+    // The failure is skipped, not fatal (that behavior has its own test); what
+    // this pins is where the big body goes.
+    assert.equal(result.status, 0, result.stderr);
     // The job log (stdout) carries the response whole, including the far end of
-    // the body and the Cloudflare-block hint from the headers.
+    // the body and the Cloudflare-block hint the diagnostic derived from headers.
     assert.ok(result.stdout.includes('Z'.repeat(20_000)), 'the full block-page body reaches the job log');
     assert.match(result.stdout, /Looks like a Cloudflare edge block/);
     assert.match(result.stdout, /cf-ray=testray-WAW/);
-    assert.doesNotMatch(result.stdout, /cut for the step summary/, 'the job log is never cut');
 
-    // The step summary is bounded and fenced, with a pointer to the uncut log.
+    // The step summary gets only the concise per-candidate failure line, never
+    // the 20 KB body.
     const summary = readFileSync(path.join(f.root, 'summary.md'), 'utf8');
 
-    assert.match(summary, /\[cut for the step summary; full text in the job log\]/);
-    assert.match(summary, /````/, 'the summary body is fenced so GitHub renders it literally');
+    assert.match(summary, /Classifier request failed for #101 \(403\); not cherry-picked\./);
     assert.ok(!summary.includes('Z'.repeat(20_000)), 'the summary does not carry the whole body');
+  } finally {
+    server.close();
+    rmSync(f.root, { recursive: true, force: true });
+  }
+});
+
+test('a classifier failure skips that candidate, keeps the open pull request, and reports counts', async() => {
+  const f = fixture();
+  const server = createServer((req, res) => {
+    req.resume();
+    req.on('end', () => {
+      // A content-triggered edge block: HTML 403, deterministic on the request.
+      res.writeHead(403, { 'Content-Type': 'text/html', 'cf-ray': 'block-WAW', server: 'cloudflare' });
+      res.end('<!DOCTYPE html><html><head><title>Blocked</title></head><body>blocked</body></html>');
+    });
+  });
+
+  await new Promise((resolve) => { server.listen(0, '127.0.0.1', resolve); });
+
+  const { port } = server.address();
+
+  try {
+    // An open pull request exists; the sole classifiable candidate (#101) 403s.
+    writeAnswers(f, { openPr: { number: 500, url: 'https://github.com/o/r/pull/500', body: 'Prior run.' } });
+
+    const result = await spawnCli(f, { port });
+
+    // The run does not abort on the failed classification.
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /1 candidate\(s\) could not be classified this run/);
+
+    // The open pull request is NOT closed while a classification failed -- the
+    // unsure candidate may become an include once the gateway accepts it.
+    assert.match(result.stdout, /Skipped closing #500:.*classification\(s\) failed/);
+    assert.doesNotMatch(result.stdout, /Closed #500/);
+
+    const ghCalls = readFileSync(f.ghLog, 'utf8').trim().split('\n').map((line) => JSON.parse(line));
+
+    assert.ok(!ghCalls.some((c) => c[0] === 'pr' && c[1] === 'close'), 'the pull request was not closed');
+
+    // The full per-commit reason lives in the job log only...
+    assert.match(result.stdout, /Not classified: the classifier request failed \(403\)/);
+
+    // ...while the step summary shows counts, not the per-commit audit trail.
+    const summary = readFileSync(path.join(f.root, 'summary.md'), 'utf8');
+
+    assert.match(summary, /## Docs content sync to prod-docs\/18\.1/);
+    // 5 candidates across the buckets; none picked, #101 needs a human.
+    assert.match(summary, /Picked \*\*0\*\* of \*\*5\*\* commit\(s\)/);
+    assert.match(summary, /Needs a human decision: 1/);
+    // The per-commit audit-trail reason is logs-only, not in the summary.
+    assert.doesNotMatch(summary, /Not classified: the classifier request failed/);
   } finally {
     server.close();
     rmSync(f.root, { recursive: true, force: true });
