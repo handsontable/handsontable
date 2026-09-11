@@ -31,7 +31,6 @@ Monorepo-wide orientation, not core internals.
 | [`TESTING.md`](TESTING.md) | Overview of every test pipeline with its run command and a pointer to the deep reference. |
 | [`MCP.md`](MCP.md) | code-review-graph and context tooling (monorepo-wide). |
 | [`WORKTREES.md`](WORKTREES.md) | Working in a linked git worktree: what a fresh worktree is missing, the bootstrap command, and the port and `node_modules` traps. |
-| [`specs/`](specs/) | Approved design specs for tooling that spans workflows and scripts. The docs sync (`.github/scripts/docs-sync.mjs`) depends on a LiteLLM proxy (secrets `LITELLM_BASE_URL`, `LITELLM_API_KEY`; variable `DOCS_SYNC_MODEL`); its prompt lives at `.github/scripts/lib/docs-sync/prompt.md`. |
 
 ### Core scope — `handsontable/.ai/`
 
