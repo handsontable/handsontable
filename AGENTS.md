@@ -238,3 +238,4 @@ Follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format. Changel
 - The docs site (`docs/`) uses Node 22 (its own `.nvmrc`) and is not needed for core library development.
 - Walkontable (the rendering engine) lives inside `handsontable/src/3rdparty/walkontable/` and has its **own test runner** — do not mix Walkontable tests with main E2E tests.
 - No Docker, databases, or external services are required.
+- **A bot pull request must be opened with a GitHub App token, not `GITHUB_TOKEN`.** Pull requests that `GITHUB_TOKEN` opens do not trigger `pull_request` workflows, so they get no CI at all. `docs-sync.yml` mints one from the `RELEASE_APP_*` secrets the same way `publish.yml` does; copy that shape for any new bot. The `docs-sync/*` branches are owned by that workflow: it rebuilds them from the target tip on every run and stops only while a branch carries a commit whose committer is not `docs-sync[bot]`.

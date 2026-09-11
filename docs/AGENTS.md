@@ -568,6 +568,36 @@ A caret range does not track new releases. `pnpm-lock.yaml` pins the resolved ve
 
 `docs-production.yml` deploys from `prod-docs/**` and installs with `--frozen-lockfile`, so develop is not what the live site serves, and `publish.yml` never regenerates the lockfile at a release cut. A bump on develop protects the next cut only. To fix what a user sees today, repeat the change on the live `prod-docs/<major>.<minor>` branch. Redo the edit there rather than cherry-picking the lockfile hunk: an older branch usually has no package or snapshot stanza for the new version at all, so applying the importer hunk by itself leaves an invalid lockfile. Copy both stanzas across too, then validate with `pnpm install --lockfile-only --frozen-lockfile`.
 
+### Getting a content fix to the live site
+
+Land it on `develop` first. A workflow (`docs-sync.yml`, run by manual dispatch
+until the rollout follow-up enables the weekday schedule; script
+`.github/scripts/docs-sync.mjs`) ports **content-only** commits (`docs/content/**`,
+`docs/public/img/**`) to the highest `prod-docs/<major>.<minor>` through one pull
+request, `docs-sync/prod-docs-<major>.<minor>` → `prod-docs/<major>.<minor>`. An
+LLM decides per commit whether the change applies to the released version; the
+pull request body lists every decision with its reason. Merge it and
+`docs-production.yml` deploys.
+
+- A commit that also touches tooling, source, or agent docs is **not** split; it is
+  listed under "mixed" for a hand port. Keep content fixes in their own pull request
+  when they should reach the live site.
+- Override the classifier with a label on the **source** pull request:
+  `docs-sync: include` or `docs-sync: skip`. The sync pull request itself carries
+  the `docs-sync` label.
+- Set the repository variable `DOCS_SYNC_REVIEWERS` (comma-separated GitHub logins)
+  to have the workflow request review on the sync pull request automatically.
+- Never commit to a `docs-sync/*` branch by hand unless you mean to pause the bot:
+  it stops rebuilding the branch while it carries a commit it did not make.
+- Hand cherry-picks stay allowed (tooling, urgent fixes). Keep the `(#<n>)` in the
+  squash subject; that is how the sync recognizes the change as already ported.
+- Run it locally: `node .github/scripts/docs-sync.mjs --dry-run --no-llm` needs only
+  `gh auth`; drop `--no-llm` with `LITELLM_BASE_URL`, `LITELLM_API_KEY`,
+  `DOCS_SYNC_MODEL` set to exercise the classifier. Add `--skip-lint` on a machine
+  without the docs toolchain installed. The script checks out the sync branch in
+  the checkout it runs in and restores your branch afterwards, so run it from a
+  clean checkout or a worktree, never with uncommitted changes.
+
 ---
 
 ## 2.12 Content Pipeline and Dev-Server Memory (DEV-1991)
@@ -615,7 +645,7 @@ The two layers overlap on failed dynamic imports of content-hashed `_astro/*.js`
 
 Neither layer reaches a frozen version build under `/docs/<major>.<minor>/`. `deploy/build_previous_versions.sh` copies each archived version out of its own Docker image verbatim, so those pages run the `beforeSend` and the bundles that shipped at their release - a rule added on `develop` today never appears there. Check a Sentry issue's `url` tag before writing a filter for it: when the events come from a versioned path, the only mechanism that drops them is a **Sentry project-level inbound filter on the message** (server-side, so frozen HTML is irrelevant), and the group belongs in `ignored`/`archived forever`, never `resolved` - the archived page is live, so a resolve auto-regresses. Example: HANDSONTABLE-DOCS-1FM mixes both, 11 of 18 events on current recipe pages (which the hook does filter) and 1 on `/docs/17.1/`, still calling the `http://localhost:3000/tickets` its bundle was built with.
 
-The same gap exists one branch away: production docs build from `prod-docs/<major>.<minor>`, which cherry-picks from `develop` selectively and does not carry `sentryOnLoad` today. Every rule here is inert in production until that cherry-pick lands - say so when reporting that a filter is done.
+The same gap exists one branch away: production docs build from `prod-docs/<major>.<minor>`, which receives content through the docs sync and tooling through hand cherry-picks, and does not carry `sentryOnLoad` today. Every rule here is inert in production until that cherry-pick lands - say so when reporting that a filter is done.
 
 Gate any rule that is expected noise only in one place (a recipe page with no backend, a demo without a server) on the page URL, so the same failure stays visible everywhere else.
 
