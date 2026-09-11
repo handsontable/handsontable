@@ -411,8 +411,9 @@ export class TextEditor extends BaseEditor {
     }, true);
 
     // The cell scrolled back into the rendered range after a transient scroll-hide. The textarea has
-    // just been restored above; let a layered editor restore and re-anchor its UI too. Gated on
-    // `!force` so `prepare()`/`open()` (which call `refreshDimensions(true)`) never trigger it.
+    // just been restored above; let a layered editor restore and re-anchor its UI too. `open()` clears
+    // `#hiddenByScroll` up front, so its own `refreshDimensions()` cannot trigger this; the `!force`
+    // gate covers `prepare()`, which calls `refreshDimensions(true)` before any scroll-hide can occur.
     if (!force && this.#hiddenByScroll) {
       this.#hiddenByScroll = false;
       this.showAfterScroll();
