@@ -74,6 +74,8 @@ const DAY_MS = 24 * 60 * 60 * 1000;
  * @property {number} attempts How many times the test ran in that leg.
  * @property {string|null} error The first line of the first failure message.
  * @property {string|null} isolation The Jasmine isolation verdict, when probed.
+ * @property {string|null} quarantine The Playwright quarantine entry (`DEV-1234 until 2026-10-08 — why`), when the
+ * test carries one (`tests/fixtures/quarantine.ts`).
  * @property {'ci'|'seed'} source `ci` for a collected artifact, `seed` for a hand-recorded entry.
  * @property {string} [note] Free text on a seed entry.
  */
@@ -155,13 +157,29 @@ function firstPlaywrightError(results) {
 }
 
 /**
+ * The quarantine annotation text of a Playwright test, when it carries one.
+ *
+ * @param {Array<{type: string, description?: string}>|undefined} annotations The test's annotations.
+ * @returns {string|null} The description, or `null`.
+ */
+function quarantineOf(annotations) {
+  // The literal must equal `QUARANTINE_ANNOTATION` in `tests/lib/quarantine-policy.mjs` (another
+  // package, so it cannot be imported); `test-health.test.mjs` pins the two together.
+  const annotation = (annotations ?? []).find(candidate => candidate.type === 'quarantine');
+
+  return annotation?.description ?? null;
+}
+
+/**
  * Entries for every flaky or failed test in a Playwright JSON report.
  *
  * The report nests suites: a file-level suite (whose title IS the file path)
  * holds the `describe` suites, which hold the specs; a spec holds one test per
  * project. `test.status` is Playwright's outcome: `expected`, `unexpected`,
  * `flaky` or `skipped`. `flaky` means the test failed and then passed on retry;
- * with `failOnFlakyTests` on, that is what makes a CI leg red.
+ * with `failOnFlakyTests` on, that is what makes a CI leg red — unless the test
+ * is quarantined (`tests/fixtures/quarantine.ts`), in which case the leg stays
+ * green and the entry says so.
  *
  * @param {object} report The parsed `report.json`.
  * @param {RunContext} run The run the report came from.
@@ -189,6 +207,7 @@ export function parsePlaywrightReport(report, run) {
           attempts: (test.results ?? []).length,
           error: firstPlaywrightError(test.results ?? []),
           isolation: null,
+          quarantine: quarantineOf(test.annotations),
           source: 'ci',
           ...run,
         });
@@ -226,6 +245,7 @@ export function parseJasmineRecord(record, run) {
     attempts: 1,
     error: firstLine(spec.messages?.[0]),
     isolation: spec.isolation ?? null,
+    quarantine: null,
     source: 'ci',
     ...run,
   }));
@@ -317,7 +337,12 @@ export function emptyLedger() {
  * @param {object} options Options.
  * @param {Date} options.now The current time.
  * @param {number} [options.retentionDays] Override of `RETENTION_DAYS`.
- * @returns {{ledger: object, added: Entry[]}} The merged ledger and the entries that were new to it.
+ * `updatedAt` moves only when the set of entries changed. The collector runs
+ * after every completed run, and a run that adds nothing must leave the
+ * published files byte-identical, or every run would commit a timestamp.
+ *
+ * @returns {{ledger: object, added: Entry[], pruned: number, changed: boolean}} The merged ledger, the
+ * entries that were new to it, how many fell out of the window, and whether anything changed.
  */
 export function mergeLedger(ledger, entries, { now, retentionDays = RETENTION_DAYS }) {
   const cutoff = now.getTime() - (retentionDays * DAY_MS);
@@ -418,6 +443,7 @@ export function aggregate(ledger, { now, ticketThresholdRuns = TICKET_THRESHOLD_
       legs: [...new Set(sorted.map(entry => entry.leg))].sort(),
       statuses: [...new Set(sorted.map(entry => entry.status))].sort(),
       isolation: [...new Set(sorted.map(entry => entry.isolation).filter(Boolean))].sort(),
+      quarantine: last.quarantine ?? null,
       lastSeen: {
         seenAt: last.seenAt,
         runUrl: last.runUrl,
@@ -427,7 +453,9 @@ export function aggregate(ledger, { now, ticketThresholdRuns = TICKET_THRESHOLD_
         error: last.error ?? null,
         source: last.source,
       },
-      needsTicket: flakyRuns30 >= ticketThresholdRuns || branches30 >= ticketThresholdRuns,
+      // A quarantined test already names its owning task, so it does not also count as needing one.
+      needsTicket: !last.quarantine
+        && (flakyRuns30 >= ticketThresholdRuns || branches30 >= ticketThresholdRuns),
     };
   });
 
@@ -438,6 +466,8 @@ export function aggregate(ledger, { now, ticketThresholdRuns = TICKET_THRESHOLD_
 
   return {
     version: LEDGER_VERSION,
+    // Always `now`: the page's counts are measured against `now`, so the footer date tracks them.
+    // The collector keeps an otherwise-unchanged page byte-identical via `stableGeneratedAt`.
     generatedAt: now.toISOString(),
     windows: { shortDays: SHORT_WINDOW_DAYS, longDays: LONG_WINDOW_DAYS },
     ticketThresholdRuns,
@@ -445,6 +475,7 @@ export function aggregate(ledger, { now, ticketThresholdRuns = TICKET_THRESHOLD_
     totals: {
       tests: rows.length,
       needsTicket: rows.filter(row => row.needsTicket).length,
+      quarantined: rows.filter(row => row.quarantine).length,
       entries: (ledger.entries ?? []).length,
     },
     rows,
@@ -497,8 +528,9 @@ export function renderStepSummary({ run, added, notes, summary, pageUrl }) {
     for (const entry of added) {
       const where = entry.file ? ` (\`${entry.file}${entry.line ? `:${entry.line}` : ''}\`)` : '';
       const isolation = entry.isolation ? `, in isolation: ${entry.isolation}` : '';
+      const quarantine = entry.quarantine ? `, quarantined (${entry.quarantine})` : '';
 
-      lines.push(`- **${entry.status}** on \`${entry.leg}\`: ${entry.title}${where}${isolation}`);
+      lines.push(`- **${entry.status}** on \`${entry.leg}\`: ${entry.title}${where}${isolation}${quarantine}`);
     }
   }
 

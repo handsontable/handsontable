@@ -1332,6 +1332,7 @@ export default (): Record<string, unknown> => {
      * | `indicator`              | `true`: Display the arrow icon in the column header, to indicate a sortable column<br>`false`: Don't display the arrow icon in the column header  |
      * | `headerAction`           | `true`: Enable clicking on the column header to sort the column<br>`false`: Disable clicking on the column header to sort the column             |
      * | `sortEmptyCells`         | `true`: Sort empty cells as well<br>`false`: Place empty cells at the end                                                                        |
+     * | `sortFixedRows`          | `true`: Sort the whole dataset, including the rows pinned by [`fixedRowsTop`](#fixedrowstop) and [`fixedRowsBottom`](#fixedrowsbottom)<br>`false`: Keep the pinned rows in place<br>Grid-level only |
      * | `compareFunctionFactory` | A [custom compare function](@/guides/rows/rows-sorting/rows-sorting.md#add-a-custom-comparator)                                                                |
      *
      * If you set the `columnSorting` option to an object,
@@ -1368,6 +1369,8 @@ export default (): Record<string, unknown> => {
      *   indicator: true,
      *   // disable clicking on the column header to sort the column
      *   headerAction: false,
+     *   // sort the pinned rows along with the rest of the dataset
+     *   sortFixedRows: true,
      *   // add a custom compare function
      *   compareFunctionFactory(sortOrder, columnMeta) {
      *     return function(value, nextValue) {
@@ -4994,6 +4997,7 @@ export default (): Record<string, unknown> => {
      * | `indicator`              | `true`: Display the arrow icon in the column header, to indicate a sortable column<br>`false`: Don't display the arrow icon in the column header |
      * | `headerAction`           | `true`: Enable clicking on the column header to sort the column<br>`false`: Disable clicking on the column header to sort the column             |
      * | `sortEmptyCells`         | `true`: Sort empty cells as well<br>`false`: Place empty cells at the end                                                                        |
+     * | `sortFixedRows`          | `true`: Sort the whole dataset, including the rows pinned by [`fixedRowsTop`](#fixedrowstop) and [`fixedRowsBottom`](#fixedrowsbottom)<br>`false`: Keep the pinned rows in place<br>Grid-level only |
      * | `compareFunctionFactory` | A [custom compare function](@/guides/rows/rows-sorting/rows-sorting.md#add-a-custom-comparator)                                                               |
      *
      * If you set the `multiColumnSorting` option to an object,
@@ -5029,6 +5033,8 @@ export default (): Record<string, unknown> => {
      *   indicator: true,
      *   // disable clicking on the column header to sort the column
      *   headerAction: false,
+     *   // sort the pinned rows along with the rest of the dataset
+     *   sortFixedRows: true,
      *   // add a custom compare function
      *   compareFunctionFactory(sortOrder, columnMeta) {
      *     return function(value, nextValue) {

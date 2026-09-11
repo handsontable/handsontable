@@ -112,7 +112,7 @@ Express parses this as `filters = { '0': { prop: 'status', ... } }` when only on
 
 ### `ALLOWED_COLUMNS` and `ALLOWED_CONDITIONS` enums
 
-Using `z.enum(ALLOWED_COLUMNS)` on the `prop` field ensures users cannot inject arbitrary column names into the SQL query builder. Any request with an unrecognised column name is rejected with a `400` before reaching the service.
+Using `z.enum(ALLOWED_COLUMNS)` on the `prop` field ensures users cannot inject arbitrary column names into the SQL query builder. Any request with an unrecognized column name is rejected with a `400` before reaching the service.
 
 ## Step 4: Bootstrap the server
 

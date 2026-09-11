@@ -93,6 +93,17 @@ Search for an option by name, or filter the list down to a single level.
   <p class="option-levels-status" data-option-levels-status aria-live="polite"></p>
 </div>
 
+<!--
+  GENERATED BLOCK — DO NOT EDIT anything between the two option-levels markers below.
+  `handsontable/scripts/generate-option-levels.mjs` rewrites it, and an edit made here is lost on
+  its next run. Change the source instead:
+    levels       -> the `@configScope` tag on the option in
+                    `handsontable/src/dataMap/metaManager/metaSchema.ts`
+    Notes column -> the `NOTES` map in `handsontable/scripts/utils/option-levels.js`
+  Then run `npm run generate:option-levels --prefix handsontable` and commit BOTH this page and
+  `option-levels.json`. `handsontable/test/__tests__/optionLevels.unit.js` fails the build when the
+  committed files do not match the source, even if a hand-edit here looks correct.
+-->
 <!-- option-levels:start -->
 
 <div class="option-levels" data-option-levels>
@@ -124,7 +135,7 @@ Search for an option by name, or filter the list down to a single level.
 | <span data-option="colorScheme" data-levels="grid"></span>[`colorScheme`](@/api/options.md#colorscheme) | Yes | No | No | No | Core |  |
 | <span data-option="columnHeaderHeight" data-levels="grid"></span>[`columnHeaderHeight`](@/api/options.md#columnheaderheight) | Yes | No | No | No | Core |  |
 | <span data-option="columns" data-levels="grid"></span>[`columns`](@/api/options.md#columns) | Yes | No | No | No | Core |  |
-| <span data-option="columnSorting" data-levels="grid columns"></span>[`columnSorting`](@/api/options.md#columnsorting) | Yes | Yes | No | No | ColumnSorting | Turn the plugin on at the grid level. Inside `columns` you can override its sub-options for one column, such as `indicator` and `headerAction`, but not enable sorting there. Read from the raw `columns` setting, like `title`. |
+| <span data-option="columnSorting" data-levels="grid columns"></span>[`columnSorting`](@/api/options.md#columnsorting) | Yes | Yes | No | No | ColumnSorting | Turn the plugin on at the grid level. Inside `columns` you can override its sub-options for one column, such as `indicator` and `headerAction`, but not enable sorting there. `sortFixedRows` is the exception: it is grid-level only, because the frozen rows belong to the whole table. Read from the raw `columns` setting, like `title`. |
 | <span data-option="columnSummary" data-levels="grid"></span>[`columnSummary`](@/api/options.md#columnsummary) | Yes | No | No | No | ColumnSummary |  |
 | <span data-option="colWidths" data-levels="grid"></span>[`colWidths`](@/api/options.md#colwidths) | Yes | No | No | No | Core |  |
 | <span data-option="commentedCellClassName" data-levels="grid columns cells cell"></span>[`commentedCellClassName`](@/api/options.md#commentedcellclassname) | Yes | Yes | Yes | Yes | Core |  |
@@ -202,7 +213,7 @@ Search for an option by name, or filter the list down to a single level.
 | <span data-option="minSpareCols" data-levels="grid"></span>[`minSpareCols`](@/api/options.md#minsparecols) | Yes | No | No | No | Core |  |
 | <span data-option="minSpareRows" data-levels="grid"></span>[`minSpareRows`](@/api/options.md#minsparerows) | Yes | No | No | No | Core |  |
 | <span data-option="moveCells" data-levels="grid"></span>[`moveCells`](@/api/options.md#movecells) | Yes | No | No | No | Core |  |
-| <span data-option="multiColumnSorting" data-levels="grid columns"></span>[`multiColumnSorting`](@/api/options.md#multicolumnsorting) | Yes | Yes | No | No | MultiColumnSorting | Turn the plugin on at the grid level. Inside `columns` you can override its sub-options for one column, such as `indicator` and `headerAction`, but not enable sorting there. Read from the raw `columns` setting, like `title`. |
+| <span data-option="multiColumnSorting" data-levels="grid columns"></span>[`multiColumnSorting`](@/api/options.md#multicolumnsorting) | Yes | Yes | No | No | MultiColumnSorting | Turn the plugin on at the grid level. Inside `columns` you can override its sub-options for one column, such as `indicator` and `headerAction`, but not enable sorting there. `sortFixedRows` is the exception: it is grid-level only, because the frozen rows belong to the whole table. Read from the raw `columns` setting, like `title`. |
 | <span data-option="navigableHeaders" data-levels="grid"></span>[`navigableHeaders`](@/api/options.md#navigableheaders) | Yes | No | No | No | Core |  |
 | <span data-option="nestedHeaders" data-levels="grid"></span>[`nestedHeaders`](@/api/options.md#nestedheaders) | Yes | No | No | No | NestedHeaders |  |
 | <span data-option="nestedRows" data-levels="grid"></span>[`nestedRows`](@/api/options.md#nestedrows) | Yes | No | No | No | NestedRows |  |

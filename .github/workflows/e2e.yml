@@ -113,9 +113,13 @@ jobs:
       - name: Install the Playwright test package
         run: pnpm install --filter handsontable-tests
       - name: Run Playwright E2E
+        id: playwright
         run: cd tests && npx playwright test --project=e2e-${{ matrix.theme }}${{ matrix.bundle.suffix }}
+      # Also when the leg stayed green only because a flaky test was under
+      # quarantine (the quarantine reporter sets the output): the ledger still
+      # records that test.
       - name: Upload the Playwright report on failure
-        if: failure()
+        if: failure() || steps.playwright.outputs.quarantined-flaky == 'true'
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
         with:
           name: playwright-report-${{ matrix.theme }}${{ matrix.bundle.suffix }}
