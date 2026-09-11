@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a sheet added at runtime not activating again after the sheets bar switched away from it.",
+  "type": "fixed",
+  "issueOrPR": 13478,
+  "breaking": false,
+  "framework": "none"
+}
