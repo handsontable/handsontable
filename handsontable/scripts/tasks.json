@@ -212,6 +212,11 @@
       "cmd": "node scripts/generate-option-levels.mjs",
       "deps": [],
       "mode": "inherit"
+    },
+    "generate:tlds": {
+      "cmd": "node scripts/generate-tlds.mjs",
+      "deps": [],
+      "mode": "inherit"
     }
   },
 

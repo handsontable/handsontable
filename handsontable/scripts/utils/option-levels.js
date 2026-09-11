@@ -33,6 +33,8 @@ const NOTES = {
   headerClassName: 'Applies to column headers, so it stops at the column level.',
   ariaTags: 'The switch is grid level. A per-cell value only changes that cell\'s ARIA attributes.',
   search: 'The plugin toggle is grid level. `queryMethod` and `callback` resolve per cell.',
+  autoLink: 'The plugin toggle is grid level. A column or cell `false` opts out, and a column or cell object '
+    + 'overrides `target`, `schemes`, `strict`, `inline`, and `className` for those cells.',
   disableVisualSelection: 'Row and column headers read the grid-level value only, and so does the check '
     + 'that gates dragging a selection with `moveCells`.',
   cells: 'A grid-level function that is called for every cell.',

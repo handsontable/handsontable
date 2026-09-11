@@ -15,6 +15,7 @@ vue:
 |Plugin Name  | Description |
 |--|--|
 |[AutoColumnSize](@/api/autoColumnSize.md) |Automatically adjusts the column's width to the size of the content.|
+|[AutoLink](@/api/autoLink.md)| Renders the URLs found in cell values as clickable links.|
 |[AutoRowHeaderSize](@/api/autoRowHeaderSize.md)| Automatically adjusts the row header's width to the size of its longest label.|
 |[AutoRowSize](@/api/autoRowSize.md)| Automatically adjusts the row's height to the size of the content.|
 |[Autofill](@/api/autofill.md)| Drag the fill handle - a square in the bottom right corner of the cell to fill cells with the data series.|

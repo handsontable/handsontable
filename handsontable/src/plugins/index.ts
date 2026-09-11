@@ -1,3 +1,4 @@
+import { AutoLink } from './autoLink';
 import { AutoColumnSize } from './autoColumnSize';
 import { Autofill } from './autofill';
 import { AutoRowSize } from './autoRowSize';
@@ -52,6 +53,7 @@ import {
  */
 declare module './registry' {
   interface PluginClassMap {
+    autoLink: typeof AutoLink;
     autoColumnSize: typeof AutoColumnSize;
     autofill: typeof Autofill;
     autoRowSize: typeof AutoRowSize;
@@ -101,6 +103,7 @@ declare module './registry' {
  * Registers all available plugins.
  */
 export function registerAllPlugins() {
+  registerPlugin(AutoLink);
   registerPlugin(AutoColumnSize);
   registerPlugin(Autofill);
   registerPlugin(AutoRowSize);
@@ -146,6 +149,7 @@ export function registerAllPlugins() {
 }
 
 export {
+  AutoLink,
   AutoColumnSize,
   Autofill,
   AutoRowSize,
