@@ -17,7 +17,8 @@
  *                                      [--repo-dir <path>] [--gh-bin <path>]
  *
  * Env: GH_TOKEN, GH_REPO, LITELLM_BASE_URL, LITELLM_API_KEY, DOCS_SYNC_MODEL,
- *      DOCS_SYNC_REVIEWERS, DRY_RUN, TARGET, GITHUB_STEP_SUMMARY.
+ *      DOCS_SYNC_TEMPERATURE, DOCS_SYNC_JSON_MODE, DOCS_SYNC_REVIEWERS, DRY_RUN,
+ *      TARGET, GITHUB_STEP_SUMMARY.
  */
 
 import { execFileSync } from 'node:child_process';
@@ -69,14 +70,20 @@ const gh = createGitHub({
 const summaryLines = [];
 
 /**
- * Log to stdout and to the step summary buffer, with the push token scrubbed
- * out of every line -- a failed push echoes the tokenized remote URL through
- * `error.message`, and this is the one place all such messages pass through.
+ * Log to stdout and to the step summary buffer, with secrets scrubbed out of
+ * every line -- a failed push echoes the tokenized remote URL through
+ * `error.message`, and a LiteLLM error body can quote the request, including
+ * the `Authorization` header, the proxy URL, or the key. The step summary is
+ * not secret-masked by GitHub, so all three of the script's secrets are passed
+ * as literals to be redacted wherever they appear, in whatever shape. This is
+ * the one place all such messages pass through.
  *
  * @param {string} line
  */
 function log(line) {
-  const scrubbed = scrubSecrets(line);
+  const scrubbed = scrubSecrets(line, [
+    process.env.LITELLM_API_KEY, process.env.GH_TOKEN, process.env.LITELLM_BASE_URL,
+  ]);
 
   console.log(scrubbed);
   summaryLines.push(scrubbed);
@@ -113,13 +120,52 @@ async function makeClassifier({ prompt, hash, cache, target, releasedVersion, un
     return async() => ({ decision: 'unsure', reason: 'Classifier disabled with --no-llm.' });
   }
 
-  const { LITELLM_BASE_URL: baseUrl, LITELLM_API_KEY: apiKey, DOCS_SYNC_MODEL: model } = process.env;
+  const {
+    LITELLM_BASE_URL: baseUrl, LITELLM_API_KEY: apiKey, DOCS_SYNC_MODEL: model,
+    DOCS_SYNC_TEMPERATURE: temperatureText, DOCS_SYNC_JSON_MODE: jsonModeText,
+  } = process.env;
 
   if (!baseUrl || !apiKey || !model) {
     throw new Error('LITELLM_BASE_URL, LITELLM_API_KEY and DOCS_SYNC_MODEL are required unless --no-llm is passed.');
   }
 
-  const client = createClient({ baseUrl, apiKey, model });
+  // Unset repository variables expand to an empty string in the workflow, not
+  // an absent env var, so treat `''` and `undefined` alike: both mean "omit
+  // the temperature and let the model's own default apply". A present but
+  // unparseable value is a configuration error, not a silent `NaN` that would
+  // serialize to `"temperature": null` and 400 every call.
+  let temperature;
+
+  // `Number`, not `Number.parseFloat`: parseFloat stops at the first character
+  // it cannot read and keeps what it has, so a comma typo (`0,7`) or a stray
+  // suffix (`0.7x`) would silently pin a wrong value instead of throwing. The
+  // `.trim()` on the empty check is what keeps `Number(' ') === 0` from reading
+  // a whitespace-only value as a real temperature.
+  if (temperatureText !== undefined && temperatureText.trim() !== '') {
+    temperature = Number(temperatureText);
+
+    if (!Number.isFinite(temperature)) {
+      throw new Error(`DOCS_SYNC_TEMPERATURE must be a number, got "${temperatureText}".`);
+    }
+  }
+
+  // On by default, so an unset variable keeps the `response_format` request
+  // every provider that supports it benefits from. Turn it off only for a model
+  // that rejects `response_format`. A present-but-unrecognized value is a
+  // configuration error, not a silent fallback.
+  let jsonMode = true;
+
+  if (jsonModeText !== undefined && jsonModeText !== '') {
+    if (/^(1|true|on|yes)$/i.test(jsonModeText)) {
+      jsonMode = true;
+    } else if (/^(0|false|off|no)$/i.test(jsonModeText)) {
+      jsonMode = false;
+    } else {
+      throw new Error(`DOCS_SYNC_JSON_MODE must be a boolean (on/off), got "${jsonModeText}".`);
+    }
+  }
+
+  const client = createClient({ baseUrl, apiKey, model, temperature, jsonMode });
 
   return async(candidate) => {
     const key = cacheKey(candidate.sha, hash);

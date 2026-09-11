@@ -30,9 +30,67 @@ test('complete posts an OpenAI-shaped JSON request and returns the content', asy
   const body = JSON.parse(calls[0].init.body);
 
   assert.equal(body.model, 'm');
-  assert.equal(body.temperature, 0);
+  // Omitted entirely, not sent as 0: a reasoning-tier model rejects any
+  // non-default temperature, so the absent key is what lets the call through.
+  assert.ok(!('temperature' in body), 'temperature is absent when not configured');
   assert.deepEqual(body.response_format, { type: 'json_object' });
   assert.deepEqual(body.messages, [{ role: 'system', content: 'S' }, { role: 'user', content: 'U' }]);
+});
+
+test('a configured temperature is sent verbatim, including 0', async() => {
+  for (const temperature of [0, 0.7]) {
+    const calls = [];
+    const fetchImpl = async(url, init) => {
+      calls.push(init);
+
+      return ok('{}');
+    };
+    const client = createClient({
+      baseUrl: 'https://x', apiKey: 'k', model: 'm', temperature, fetchImpl, sleep: noSleep,
+    });
+
+    await client.complete({ system: 's', user: 'u' });
+
+    assert.equal(JSON.parse(calls[0].body).temperature, temperature);
+  }
+});
+
+test('json mode is on by default and omittable', async() => {
+  const bodies = [];
+  const fetchImpl = async(url, init) => {
+    bodies.push(JSON.parse(init.body));
+
+    return ok('{}');
+  };
+
+  await createClient({ baseUrl: 'https://x', apiKey: 'k', model: 'm', fetchImpl, sleep: noSleep })
+    .complete({ system: 's', user: 'u' });
+  await createClient({ baseUrl: 'https://x', apiKey: 'k', model: 'm', jsonMode: false, fetchImpl, sleep: noSleep })
+    .complete({ system: 's', user: 'u' });
+
+  assert.deepEqual(bodies[0].response_format, { type: 'json_object' }, 'response_format is sent by default');
+  assert.ok(!('response_format' in bodies[1]), 'response_format is omitted when json mode is off');
+});
+
+test('an error body is surfaced past 200 characters and capped at 4096', async() => {
+  const shortTail = `${'x'.repeat(300)}NEEDLE`;
+  const fetchImpl = async() => new Response(shortTail, { status: 400 });
+  const client = createClient({ baseUrl: 'https://x', apiKey: 'k', model: 'm', fetchImpl, sleep: noSleep });
+
+  // The old 200-character cut buried the actual cause; the wider cut keeps it.
+  await assert.rejects(() => client.complete({ system: 's', user: 'u' }), /NEEDLE/);
+
+  const longBody = 'y'.repeat(5000);
+  const fetchLong = async() => new Response(longBody, { status: 400 });
+  const clientLong = createClient({ baseUrl: 'https://x', apiKey: 'k', model: 'm', fetchImpl: fetchLong, sleep: noSleep });
+
+  await assert.rejects(() => clientLong.complete({ system: 's', user: 'u' }), (error) => {
+    const quoted = error.message.slice(error.message.indexOf('400: ') + '400: '.length);
+
+    assert.equal(quoted.length, 4096, 'the body is capped at 4096 characters');
+
+    return true;
+  });
 });
 
 test('5xx and 429 are retried, then the last error surfaces', async() => {

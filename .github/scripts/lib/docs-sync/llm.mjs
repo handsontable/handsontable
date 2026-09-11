@@ -6,6 +6,14 @@
  * without a network or a wait.
  */
 
+// An upstream error body (a proxy 4xx, an HTML block page) is the one string in
+// this module that a diagnostic needs in full, so it is cut generously rather
+// than at a token-frugal 200: 4096 matches the classifier's own body budget in
+// `classify.mjs`. Every such message passes through `docs-sync.mjs`'s
+// `scrubSecrets` before it reaches a log line or the public step summary, so a
+// key echoed back in the body is redacted regardless of this cap.
+const MAX_ERROR_CHARS = 4096;
+
 /**
  * The chat completions endpoint for a proxy base URL.
  *
@@ -25,6 +33,15 @@ export function completionsUrl(baseUrl) {
  * @param {string} options.baseUrl
  * @param {string} options.apiKey
  * @param {string} options.model
+ * @param {number} [options.temperature] Sampling temperature. Omitted from the
+ *   request body entirely when undefined, so the provider's own default
+ *   applies -- a reasoning-tier model that rejects any non-default temperature
+ *   then accepts the call, while a model that honors it can be pinned (e.g. to
+ *   `0`) for repeatable classifications.
+ * @param {boolean} [options.jsonMode] Whether to ask for a JSON object via
+ *   `response_format`. On by default. Turn it off for a model that rejects
+ *   `response_format`; `parseDecision` extracts the JSON object out of prose
+ *   either way, so this only trades a reliability aid, not correctness.
  * @param {typeof fetch} [options.fetchImpl]
  * @param {(ms: number) => Promise<void>} [options.sleep]
  * @param {number} [options.attempts] Total attempts, including the first.
@@ -35,6 +52,8 @@ export function createClient({
   baseUrl,
   apiKey,
   model,
+  temperature,
+  jsonMode = true,
   fetchImpl = fetch,
   sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); }),
   attempts = 3,
@@ -58,8 +77,8 @@ export function createClient({
       },
       body: JSON.stringify({
         model,
-        temperature: 0,
-        response_format: { type: 'json_object' },
+        ...(temperature === undefined ? {} : { temperature }),
+        ...(jsonMode ? { response_format: { type: 'json_object' } } : {}),
         messages: [
           { role: 'system', content: system },
           { role: 'user', content: user },
@@ -68,7 +87,7 @@ export function createClient({
     });
 
     if (!response.ok) {
-      const error = new Error(`LiteLLM responded ${response.status}: ${(await response.text()).slice(0, 200)}`);
+      const error = new Error(`LiteLLM responded ${response.status}: ${(await response.text()).slice(0, MAX_ERROR_CHARS)}`);
 
       error.status = response.status;
       throw error;
@@ -78,7 +97,7 @@ export function createClient({
     const content = payload?.choices?.[0]?.message?.content;
 
     if (typeof content !== 'string') {
-      throw new Error(`LiteLLM response carried no message content: ${JSON.stringify(payload).slice(0, 200)}`);
+      throw new Error(`LiteLLM response carried no message content: ${JSON.stringify(payload).slice(0, MAX_ERROR_CHARS)}`);
     }
 
     return content;
