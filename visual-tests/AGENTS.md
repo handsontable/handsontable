@@ -152,7 +152,8 @@ Eight things about this pipeline are worth knowing before changing it.
   render is deterministic and the golden record is the odd one out — neither pull request is at fault, and
   `visual-approved` on one of them fixes nothing for the others. Confirmed on `columns-filter-2` under
   WebKit, where the poisoned record carried a stray browser text-selection highlight on a column header;
-  `test-runner.ts` now clears that selection before every capture. **`visual.handsontable.com` is behind a
+  `test-runner.ts` now resets that selection before every capture (engine-gated — see Determinism below).
+  **`visual.handsontable.com` is behind a
   CDN, so reading a golden record back can hand you a stale copy** — during that investigation it served
   the superseded image for nearly an hour after `develop` had reseeded, which reads exactly like a
   baseline nobody has fixed yet. Always bust the cache before concluding anything from a golden record:
@@ -181,6 +182,16 @@ element screenshots and the settle the fixture does for you):
 - **Hover the element, not a coordinate.** `locator.hover()` names the target and runs the actionability
   checks (visible, stable, receives events at the point) before moving; a raw `mouse.move()` to a
   bounding-box coordinate does neither, so what it hovers depends on what happened to be there.
+- **The fixture drops a stray native selection before every capture, and under a focused text control
+  the reset is engine-gated.** `clearNativeTextSelection()` in `test-runner.ts` removes the browser's own
+  text-selection highlight (a header label a click sequence left selected). With an input or textarea
+  focused the engines split, measured on #13468: WebKit keeps painting a selection made before the
+  control took focus and the Selection API cannot see it (one collapsed range at the control's parent,
+  stray or not), so there the ranges are removed and the control's own selection is put back with
+  `setSelectionRange()`. Chromium re-rasterizes the whole grid's text when the ranges under a focused
+  control are removed — 13 Tab-navigation captures moved by 3k–45k pixels across every theme when the
+  clear ran unconditionally — so on Chromium and Firefox a focused text control is left alone. Do not
+  fold the two branches into one; either half regresses the other engine.
 - **No fixed delays.** `waitForTimeout()`, `sleep()`, the global `setTimeout()` (inside `page.evaluate`
   too) and `'networkidle'` are lint errors in `src/` and `tests/`. The 2024 import carries about forty
   such sleeps; each wears `// eslint-disable-next-line no-restricted-syntax -- DEV-2797: <why>` so the

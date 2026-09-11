@@ -205,15 +205,18 @@ async function waitForScrollbarClearanceToSettle(page: Page) {
  * would need this clear skipped, or its selection is stripped before the capture with nothing on
  * screen to explain why.
  *
- * A focused text control that has text SELECTED is left alone: `removeAllRanges()` would collapse
- * that selection, and an open editor is often captured with its value selected. A focused control
- * with only a caret (a filter input the menu is about to close, a search box) protects nothing -
- * Playwright hides the caret in captures anyway - so the clear runs. That distinction matters on
- * WebKit, where the header highlight survives the focus moving into the menu's inputs as an inactive
- * selection; the previous guard skipped the clear for any focused text control, so the highlight
- * reached the capture whenever an input still owned focus when the wrapper ran. `selectionStart` is
- * the test for a control that owns a text selection at all; reading `value` would wrongly skip a
- * checkbox, radio, range or color input, each of which reports a non-empty default.
+ * A focused text control is the case where the engines split, measured on PR #13468. WebKit keeps
+ * painting a selection made before the control took focus - the header highlight survived the focus
+ * moving into the filter menu's inputs - and the Selection API cannot see it while the control has
+ * focus: `getSelection()` reports one collapsed range at the control's parent whether or not a stray
+ * highlight is on screen. Chromium, on the other hand, re-rasterizes the text of the whole grid when
+ * the ranges under a focused control are removed - the run that cleared unconditionally moved 13
+ * Tab-navigation captures by 3k-45k pixels across every theme - and moves the caret to 0. So a
+ * focused text control is left alone on Chromium and Firefox (Firefox reports no range there at all),
+ * and on WebKit the ranges are removed and the control's own selection is put straight back with
+ * `setSelectionRange()`, which restores the caret, a selected range and its direction exactly.
+ * `selectionStart` is the test for a control that owns a text selection at all; reading `value` would
+ * wrongly skip a checkbox, radio, range or color input, each of which reports a non-empty default.
  *
  * Annotates the test with the text it removed, when it removed any, so a stray selection shows in
  * the Playwright report instead of only as a changed golden.
@@ -222,20 +225,29 @@ async function waitForScrollbarClearanceToSettle(page: Page) {
  * @returns {Promise<void>} Resolves once no stray native selection is left.
  */
 async function clearNativeTextSelection(page: Page) {
+  // Only WebKit paints a selection the API no longer reports (see the docblock); the reset under a
+  // focused text control costs Chromium a re-rasterized grid, so it is engine-gated.
+  const resetUnderTextControl = baseTest.info().project.name === 'webkit';
+
   // The callback runs in the browser, where `window` and `document` are the right globals to use.
   /* eslint-disable no-restricted-globals */
-  const cleared = await page.evaluate(() => {
+  const cleared = await page.evaluate((resetUnderControl) => {
     const active = document.activeElement;
-    const ownsTextSelection =
-      (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement) &&
-      typeof active.selectionStart === 'number';
-    const hasSelectedText = ownsTextSelection && active.selectionStart !== active.selectionEnd;
+    const selection = window.getSelection();
+    const textControl = (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement)
+      && typeof active.selectionStart === 'number' ? active : null;
 
-    if (hasSelectedText) {
+    if (textControl) {
+      if (resetUnderControl) {
+        const { selectionStart, selectionEnd, selectionDirection } = textControl;
+
+        selection?.removeAllRanges();
+        textControl.setSelectionRange(selectionStart, selectionEnd, selectionDirection ?? 'none');
+      }
+
       return null;
     }
 
-    const selection = window.getSelection();
     const stray = selection && selection.rangeCount > 0 && !selection.isCollapsed
       ? selection.toString().slice(0, 60)
       : '';
@@ -243,7 +255,7 @@ async function clearNativeTextSelection(page: Page) {
     selection?.removeAllRanges();
 
     return stray ? { text: stray, active: active ? active.tagName.toLowerCase() : 'none' } : null;
-  });
+  }, resetUnderTextControl);
   /* eslint-enable no-restricted-globals */
 
   if (cleared) {
