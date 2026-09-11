@@ -151,6 +151,7 @@ export interface FixtureHotInstance {
   loadData(data: unknown[]): void;
   updateData(data: unknown[]): void;
   updateSettings(settings: Record<string, unknown>): void;
+  alter(action: string, index?: number | number[][], amount?: number, source?: string): void;
   countCols(): number;
   rowIndexMapper: { getIndexesSequence(): number[] };
   columnIndexMapper: { getIndexesSequence(): number[] };
