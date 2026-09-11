@@ -3,8 +3,8 @@ import type { CellProperties } from '../../settings';
 import { EDITOR_STATE } from '../baseEditor';
 import { HandsontableEditor } from '../handsontableEditor';
 import { pivot } from '../../helpers/array';
-import { isKeyValueObject } from '../../helpers/object';
-import { findChoiceByDisplayedValue } from '../../helpers/cellSource';
+import { isKeyValueEntry } from '../../helpers/object';
+import { findChoiceByDisplayedValue } from '../../utils/cellSource';
 import {
   addClass,
   fastInnerHTML,
@@ -178,7 +178,7 @@ export class AutocompleteEditor extends HandsontableEditor {
 
     this.htOptions = {
       ...this.htOptions,
-      valueGetter: (cellValue: unknown) => (isKeyValueObject(cellValue)
+      valueGetter: (cellValue: unknown) => (isKeyValueEntry(cellValue)
         ? cellValue.value : cellValue),
     };
   }
@@ -348,7 +348,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     const filterSetting = this.cellProperties.filter as boolean | undefined;
     const locale = this.cellProperties.locale as string | undefined;
     const filteringCaseSensitive = this.cellProperties.filteringCaseSensitive as boolean | undefined;
-    const comparableValue = isKeyValueObject(value) ? value.value : value;
+    const comparableValue = isKeyValueEntry(value) ? value.value : value;
 
     let highlightIndex: number | null = null;
     let choices = choicesList;
@@ -366,7 +366,7 @@ export class AutocompleteEditor extends HandsontableEditor {
 
     for (let i = 0; i < choices.length; i++) {
       const choice = choices[i];
-      const currentItem = isKeyValueObject(choice) ?
+      const currentItem = isKeyValueEntry(choice) ?
         stripTags(stringify(choice.value)) :
         stripTags(stringify(choice));
       const itemToMatch = filteringCaseSensitive ? currentItem : localeLowerCase(currentItem, locale);
@@ -455,7 +455,7 @@ export class AutocompleteEditor extends HandsontableEditor {
 
     // Unwrapped the way the inner grid presents it - its `valueGetter` reduces a key/value entry to
     // the `value` half, so returning the raw entry would write an object into the cell.
-    return isKeyValueObject(matched) ? matched.value : matched;
+    return isKeyValueEntry(matched) ? matched.value : matched;
   }
 
   /**
@@ -814,7 +814,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     const { allowHtml } = this.cellProperties;
     const processValue = (value: unknown) => stringify(allowHtml ? value : stripTags(String(value)));
 
-    if (values.every(value => isKeyValueObject(value))) {
+    if (values.every(value => isKeyValueEntry(value))) {
       return values.map((value) => {
         const obj = value as Record<string, unknown>;
 

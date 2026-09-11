@@ -1,4 +1,4 @@
-import { isObjectEqual, isObject } from '../../helpers/object';
+import { isObjectEqual, isKeyValueEntry } from '../../helpers/object';
 import { isDefined } from '../../helpers/mixed';
 import type { CellProperties } from '../../settings';
 
@@ -13,16 +13,12 @@ export const VALIDATOR_TYPE: 'autocomplete' = 'autocomplete';
  */
 export function autocompleteValidator(
   this: CellProperties, value: unknown, callback: (valid: boolean) => void): void {
-  const isKeyValueObject = (obj: unknown) => {
-    const rec = obj as Record<string, unknown>;
-
-    return isObject(obj) && isDefined(rec.key) && isDefined(rec.value);
-  };
+  // The shared guard, not a local copy. A fourth definition of "what is a key/value entry" lived
+  // here and it is the same rule the setter and the editor resolve labels with - drift between them
+  // is what let a pasted label reach this validator as a bare string (DEV-57).
   const isNullOrUndefined = (val: unknown): boolean => {
-    if (isKeyValueObject(val)) {
-      const rec = val as Record<string, unknown>;
-
-      return isNullOrUndefined(rec.key) && isNullOrUndefined(rec.value);
+    if (isKeyValueEntry(val)) {
+      return isNullOrUndefined(val.key) && isNullOrUndefined(val.value);
     }
 
     return val === null || val === undefined;

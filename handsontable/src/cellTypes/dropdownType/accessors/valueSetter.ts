@@ -1,21 +1,10 @@
-import { valueSetter as autocompleteValueSetter } from '../../autocompleteType/accessors';
-import type { ChoiceMeta, SetterContext } from '../../autocompleteType/accessors/valueSetter';
-
 /**
- * Defines what value is set to an dropdown-typed cell.
+ * A dropdown cell stores and resolves a value exactly like an autocomplete cell, so it shares that
+ * setter outright rather than delegating to it.
  *
- * `cellMeta` is forwarded, not dropped: the autocomplete setter reads `source` from it to resolve a
- * bare label into the key/value entry it belongs to, and a dropdown is `strict` by default, so
- * losing it would leave every plain-text paste invalid (DEV-57).
- *
- * @param {*} newValue The value to be set.
- * @param {number} row The row index.
- * @param {number} column The column index.
- * @param {object} [cellMeta] The cell meta object.
- * @returns {*} The new value to be set.
+ * A hand-written delegate used to sit here, and it dropped the `cellMeta` argument - which is what
+ * carries `source`, so the resolution never ran for the one cell type where the damage is visible
+ * (a dropdown is `strict` by default, and an unresolved label fails its validator). A re-export has
+ * no argument list to keep in sync, so that mistake cannot be made again (DEV-57).
  */
-export function valueSetter(
-  this: SetterContext, newValue: unknown, row: number, column: number,
-  cellMeta?: ChoiceMeta): unknown {
-  return autocompleteValueSetter.call(this, newValue, row, column, cellMeta);
-}
+export { valueSetter } from '../../autocompleteType/accessors';

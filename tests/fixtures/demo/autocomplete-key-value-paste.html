@@ -53,30 +53,41 @@
     // does not reshape a column that never used key/value entries.
     const COLOR_SOURCE = ['yellow', 'red', 'green'];
 
-    const hot = new Handsontable(container, {
-      data: [
-        // Row 0: both key/value cells are EMPTY — the state a paste into a fresh cell starts from.
-        [null, null, null],
-        // Row 1: both already hold an entry, which is the second broken shape. The old setter
-        // wrapped the pasted label as `{ key: <label>, value: <label> }`, fabricating a key.
-        [{ key: '2', value: 'Chrysler' }, { key: '2', value: 'Chrysler' }, 'yellow'],
-        // Row 2: a source cell to copy FROM, so the rich clipboard path is covered too.
-        [{ key: '1', value: 'BMW' }, null, null],
-      ],
-      columns: [
-        // Non-strict autocomplete, exactly the reported StackBlitz shape. It accepts anything,
-        // so the only visible damage is the stored shape.
-        { type: 'autocomplete', source: CAR_SOURCE, strict: false, width: 160, renderer: testIdRenderer },
-        // Dropdown is `strict` by default, so a bare string here FAILS validation and the cell
-        // is marked with `htInvalid` — the user-visible half of the bug.
-        { type: 'dropdown', source: CAR_SOURCE, width: 160, renderer: testIdRenderer },
-        // Plain-string source: a control column.
-        { type: 'autocomplete', source: COLOR_SOURCE, strict: false, width: 160, renderer: testIdRenderer },
-      ],
-      colHeaders: ['Car (autocomplete)', 'Car (dropdown)', 'Color (strings)'],
-      rowHeaders: true,
-      licenseKey: 'non-commercial-and-evaluation',
-    });
+    let hot;
+
+    try {
+      hot = new Handsontable(container, {
+        data: [
+          // Row 0: both key/value cells are EMPTY - the state a paste into a fresh cell starts from.
+          [null, null, null],
+          // Row 1: both already hold an entry, which is the second broken shape. The old setter
+          // wrapped the pasted label as `{ key: <label>, value: <label> }`, fabricating a key.
+          [{ key: '2', value: 'Chrysler' }, { key: '2', value: 'Chrysler' }, 'yellow'],
+          // Row 2: a source cell to copy FROM, so the rich clipboard path is covered too.
+          [{ key: '1', value: 'BMW' }, null, null],
+        ],
+        columns: [
+          // Non-strict autocomplete, exactly the reported StackBlitz shape. It accepts anything,
+          // so the only visible damage is the stored shape.
+          { type: 'autocomplete', source: CAR_SOURCE, strict: false, width: 160, renderer: testIdRenderer },
+          // Dropdown is `strict` by default, so a bare string here FAILS validation and the cell
+          // is marked with `htInvalid` - the user-visible half of the bug.
+          { type: 'dropdown', source: CAR_SOURCE, width: 160, renderer: testIdRenderer },
+          // Plain-string source: a control column.
+          { type: 'autocomplete', source: COLOR_SOURCE, strict: false, width: 160, renderer: testIdRenderer },
+        ],
+        colHeaders: ['Car (autocomplete)', 'Car (dropdown)', 'Color (strings)'],
+        rowHeaders: true,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      // Fail loud. Without this a settings error surfaces as "element(s) not found" from the page
+      // object's first locator, on all six theme x bundle legs, with the real exception only in the
+      // browser console. See the determinism rules in `tests/AGENTS.md`.
+      container.setAttribute('data-init-error', String(error && error.message));
+
+      throw error;
+    }
 
     window.hot = hot;
 
@@ -101,9 +112,17 @@
       hot.getPlugin('copyPaste').paste(text);
     };
 
-    /** Reports whether the cell currently fails validation. */
-    window.htIsValid = function(row, col) {
-      return hot.getCellMeta(row, col).valid !== false;
+    /**
+     * Reports the cell's validation flag as a string, so a spec can tell "valid" from "not yet
+     * validated". `valid !== false` would read `true` for a cell nothing has validated, which
+     * passes against code that stores a bare string and only later marks the cell invalid.
+     */
+    window.htValidState = function(row, col) {
+      const { valid } = hot.getCellMeta(row, col);
+
+      if (valid === undefined) return 'unvalidated';
+
+      return valid === true ? 'valid' : 'invalid';
     };
 
     /**
@@ -114,6 +133,11 @@
       hot.updateData([
         ['BMW', 'BMW', 'yellow'],
       ]);
+    };
+
+    /** Undoes the last action. */
+    window.htUndo = function() {
+      hot.getPlugin('undoRedo').undo();
     };
 
     /** Types a label into the cell's editor and commits it, the path that always resolved. */

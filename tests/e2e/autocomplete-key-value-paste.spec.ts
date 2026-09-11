@@ -54,7 +54,7 @@ test.describe('pasting a label into a key/value source (DEV-57)', () => {
 
       await grid.pastePlainText(1, column, 'BMW');
 
-      expect(await grid.sourceAt(1, column)).toBe(typed);
+      await expect.poll(() => grid.sourceAt(1, column)).toBe(typed);
     });
 
     test(`keeps the source entry's own key when the ${name} cell already held one`, async() => {
@@ -81,7 +81,12 @@ test.describe('pasting a label into a key/value source (DEV-57)', () => {
 
     // The user-visible half of the bug: `dropdown` is strict, so the bare string failed the
     // validator and the cell was painted with `invalidCellClassName`.
-    await expect.poll(() => grid.isValid(0, 1)).toBe(true);
+    //
+    // `'valid'`, not "not invalid". A probe reading `valid !== false` answers `true` for a cell
+    // nothing has validated yet, so it would pass on the first poll - before validation ran, and
+    // so also against the unfixed code. The class assertion is vacuous for the same reason and
+    // only earns its place once the meta has been pinned to `'valid'` first.
+    await expect.poll(() => grid.validState(0, 1)).toBe('valid');
     await expect(grid.cell(0, 1)).not.toHaveClass(/htInvalid/);
   });
 
@@ -90,7 +95,7 @@ test.describe('pasting a label into a key/value source (DEV-57)', () => {
     // above while accepting anything.
     await grid.pastePlainText(0, 1, 'Audi');
 
-    await expect.poll(() => grid.isValid(0, 1)).toBe(false);
+    await expect.poll(() => grid.validState(0, 1)).toBe('invalid');
     await expect(grid.cell(0, 1)).toHaveClass(/htInvalid/);
   });
 
@@ -116,6 +121,25 @@ test.describe('pasting a label into a key/value source (DEV-57)', () => {
 
     await expect.poll(() => grid.sourceAt(0, 0))
       .toBe('object:{"key":"1","value":"BMW"}');
+  });
+
+  test('restores a plain label verbatim on undo', async() => {
+    // `utils/valueAccessors.ts` states the invariant: undo and redo restore what the cell held
+    // before, verbatim. Resolving inside the setter would break it on exactly the dataset the
+    // migration guide promises is untouched - a column loaded with plain labels - by turning them
+    // into entries on the first undo, a value the user never typed and never undid to.
+    await grid.loadPlainLabels();
+
+    await expect.poll(() => grid.sourceAt(0, 0)).toBe('string:BMW');
+
+    await grid.pastePlainText(0, 0, 'Chrysler');
+
+    await expect.poll(() => grid.sourceAt(0, 0))
+      .toBe('object:{"key":"2","value":"Chrysler"}');
+
+    await grid.undo();
+
+    await expect.poll(() => grid.sourceAt(0, 0)).toBe('string:BMW');
   });
 
   test('keeps preserving the entry through a copy and a plain paste', async() => {

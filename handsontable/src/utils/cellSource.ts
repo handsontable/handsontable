@@ -1,6 +1,6 @@
-import { isKeyValueObject } from './object';
-import { stringify } from './mixed';
-import { stripTags } from './string';
+import { isKeyValueEntry } from '../helpers/object';
+import { stringify } from '../helpers/mixed';
+import { stripTags } from '../helpers/string';
 
 /**
  * Reduces one choice to the text a cell displays for it: a key/value entry contributes its `value`
@@ -11,9 +11,23 @@ import { stripTags } from './string';
  * @returns {string} The displayed text of the choice.
  */
 function toDisplayedText(choice: unknown, allowHtml: boolean): string {
-  const value = isKeyValueObject(choice) ? choice.value : choice;
+  const value = isKeyValueEntry(choice) ? choice.value : choice;
 
   return stringify(allowHtml ? value : stripTags(String(value)));
+}
+
+/**
+ * Reports whether a cell's resolved choices hold key/value entries at all.
+ *
+ * Cheap on purpose: it reads the entries' own shape and does no string work, so a caller that only
+ * cares about key/value sources can skip {@link findChoiceByDisplayedValue} entirely rather than
+ * paying a `stripTags` pass per choice per cell on a bulk write.
+ *
+ * @param {*} choices The cell's resolved choices.
+ * @returns {boolean}
+ */
+export function hasKeyValueChoices(choices: unknown): boolean {
+  return Array.isArray(choices) && choices.some(isKeyValueEntry);
 }
 
 /**
@@ -27,6 +41,11 @@ function toDisplayedText(choice: unknown, allowHtml: boolean): string {
  * not, which is what let a pasted label store a bare string among key/value objects (DEV-57).
  *
  * Comparison is textual, matching what the user sees, so a numeric choice matches its string label.
+ *
+ * The result is deliberately not memoized. A `source` array can be mutated in place by the host
+ * application, and a cached displayed-text map would then resolve a label to an option that is no
+ * longer offered - a silent wrong value, which is worse than the scan it saves. Callers that only
+ * need key/value sources gate on {@link hasKeyValueChoices} instead.
  *
  * @param {*} choices The cell's resolved choices. Anything but an array yields `undefined`, which
  *                    is what skips a function-based `source` - it cannot be resolved without

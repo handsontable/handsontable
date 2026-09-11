@@ -1,4 +1,4 @@
-import { findChoiceByDisplayedValue } from '../cellSource';
+import { findChoiceByDisplayedValue, hasKeyValueChoices } from '../cellSource';
 
 describe('cellSource helpers', () => {
   describe('findChoiceByDisplayedValue', () => {
@@ -63,6 +63,28 @@ describe('cellSource helpers', () => {
       ];
 
       expect(findChoiceByDisplayedValue(source, 'BMW')).toBe(source[0]);
+    });
+  });
+
+  describe('hasKeyValueChoices', () => {
+    it('should report key/value entries wherever they sit in the array', () => {
+      expect(hasKeyValueChoices([{ key: '1', value: 'BMW' }])).toBe(true);
+      expect(hasKeyValueChoices(['yellow', { key: '1', value: 'BMW' }])).toBe(true);
+    });
+
+    it('should report no key/value entries for a plain-string source', () => {
+      expect(hasKeyValueChoices(['yellow', 'red'])).toBe(false);
+    });
+
+    it('should report no key/value entries for an entry missing its key', () => {
+      expect(hasKeyValueChoices([{ value: 'BMW' }])).toBe(false);
+    });
+
+    it('should report no key/value entries for anything that is not an array', () => {
+      expect(hasKeyValueChoices(undefined)).toBe(false);
+      expect(hasKeyValueChoices(null)).toBe(false);
+      expect(hasKeyValueChoices(() => [])).toBe(false);
+      expect(hasKeyValueChoices([])).toBe(false);
     });
   });
 });

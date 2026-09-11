@@ -391,6 +391,12 @@ function answers.
 give them, so an existing dataset that holds plain labels keeps them until something writes to those
 cells.
 
+**Undo and redo restore what the cell held, exactly.** They resolve nothing, which is a fix in its
+own right: undoing back to a plain label used to store `{ key: <label>, value: <label> }` whenever
+the cell happened to hold an object at the time, so the restored cell carried a key that matched no
+option and a [`strict`](@/api/options.md#strict) column marked it invalid. It now restores the plain
+label you undid to.
+
 ### Who is affected
 
 - You use a `strict` column, such as `dropdown`. Pasting a valid label used to mark the cell invalid.

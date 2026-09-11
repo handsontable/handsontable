@@ -1,5 +1,7 @@
 import { CELL_TYPE, AutocompleteCellType } from '../';
+import { DropdownCellType } from '../../dropdownType';
 import type { ChoiceMeta } from '../accessors/valueSetter';
+import type { ChangeSource } from '../../../settings';
 import {
   getCellType,
   getRegisteredCellTypeNames,
@@ -67,30 +69,30 @@ describe('AutocompleteCellType', () => {
     });
   });
 
+  const kvSource = [
+    { key: '1', value: 'BMW' },
+    { key: '2', value: 'Chrysler' },
+  ];
+
+  /**
+   * Builds the `this` context the setter is called with, standing in for the grid instance.
+   *
+   * @param {*} storedValue What the target cell already holds in the data source.
+   * @returns {object} The setter context.
+   */
+  function contextHolding(storedValue: unknown) {
+    return {
+      getSourceDataAtCell: () => storedValue,
+      toPhysicalRow: (row: number) => row,
+      toPhysicalColumn: (column: number) => column,
+    };
+  }
+
   describe('valueSetter', () => {
-    const source = [
-      { key: '1', value: 'BMW' },
-      { key: '2', value: 'Chrysler' },
-    ];
-
-    /**
-     * Builds the `this` context the setter is called with, standing in for the grid instance.
-     *
-     * @param {*} storedValue What the target cell already holds in the data source.
-     * @returns {object} The setter context.
-     */
-    function contextHolding(storedValue: unknown) {
-      return {
-        getSourceDataAtCell: () => storedValue,
-        toPhysicalRow: (row: number) => row,
-        toPhysicalColumn: (column: number) => column,
-      };
-    }
-
     const setValue = (
       storedValue: unknown,
       newValue: unknown,
-      cellMeta: ChoiceMeta = { source }
+      cellMeta: ChoiceMeta = { source: kvSource }
     ) => AutocompleteCellType.valueSetter.call(contextHolding(storedValue), newValue, 0, 0, cellMeta);
 
     it('should resolve a bare label to the whole key/value entry of the source', () => {
@@ -121,7 +123,7 @@ describe('AutocompleteCellType', () => {
     });
 
     it('should leave the value alone when the source is a function', () => {
-      const asyncSource = (query: string, callback: (choices: unknown[]) => void) => callback(source);
+      const asyncSource = (query: string, callback: (choices: unknown[]) => void) => callback(kvSource);
 
       expect(setValue(null, 'BMW', { source: asyncSource })).toBe('BMW');
     });
@@ -154,6 +156,46 @@ describe('AutocompleteCellType', () => {
 
     it('should work when the cell meta argument is missing', () => {
       expect(AutocompleteCellType.valueSetter.call(contextHolding(null), 'BMW', 0, 0)).toBe('BMW');
+    });
+
+    it('should leave an undo or redo write verbatim', () => {
+      // `utils/valueAccessors.ts` states the invariant: undo and redo restore what the cell held
+      // before, verbatim. Neither branch of this setter may run there - not the resolution, and
+      // not the wrap, which used to fabricate `{ key: <label>, value: <label> }` whenever the cell
+      // happened to hold an entry.
+      const setWithSource = (storedValue: unknown, newValue: unknown, changeSource: ChangeSource) =>
+        AutocompleteCellType.valueSetter.call(
+          contextHolding(storedValue), newValue, 0, 0, { source: kvSource }, changeSource
+        );
+
+      expect(setWithSource(null, 'BMW', 'UndoRedo.undo')).toBe('BMW');
+      expect(setWithSource(null, 'BMW', 'UndoRedo.redo')).toBe('BMW');
+      // The case that used to fabricate a key: the cell holds an entry and the undo restores a
+      // plain label, which is the shape a column loaded with plain labels undoes back to.
+      expect(setWithSource({ key: '2', value: 'Chrysler' }, 'BMW', 'UndoRedo.undo')).toBe('BMW');
+      // An undo restoring an entry still gets that entry back.
+      expect(setWithSource(null, { key: '2', value: 'Chrysler' }, 'UndoRedo.undo'))
+        .toEqual({ key: '2', value: 'Chrysler' });
+      // Every other source still resolves.
+      expect(setWithSource(null, 'BMW', 'CopyPaste.paste')).toEqual({ key: '1', value: 'BMW' });
+      expect(setWithSource(null, 'BMW', 'edit')).toEqual({ key: '1', value: 'BMW' });
+    });
+  });
+
+  describe('dropdown reuses the autocomplete setter', () => {
+    it('should be the very same function', () => {
+      // A hand-written delegate here once dropped the `cellMeta` argument, which is what carries
+      // `source` - so the resolution never ran for the strict cell type, the one where the bug is
+      // visible. Sharing the function outright removes the argument list that can be forgotten.
+      expect(DropdownCellType.valueSetter).toBe(AutocompleteCellType.valueSetter);
+    });
+
+    it('should resolve a label through the dropdown cell type too', () => {
+      const resolved = DropdownCellType.valueSetter.call(
+        contextHolding(null), 'BMW', 0, 0, { source: kvSource }
+      );
+
+      expect(resolved).toEqual({ key: '1', value: 'BMW' });
     });
   });
 });

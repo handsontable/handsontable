@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed a plain value written into an `autocomplete` or `dropdown` cell whose `source` is an array of `key` and `value` objects being stored as the bare label. The matching object is now stored, so a paste, `setDataAtCell()` and autofill behave like the cell editor, which already resolved the label, and a `strict` column no longer marks a valid pasted option as invalid.",
+  "title": "Fixed a plain value written into an `autocomplete` or `dropdown` cell whose `source` is an array of `key` and `value` objects being stored as the bare label. The matching object is now stored, so a paste, `setDataAtCell()` and autofill behave like the cell editor, which already resolved the label, and a `strict` column no longer marks a valid pasted option as invalid. Undo and redo now restore such a cell exactly as it was, instead of rebuilding the object with the label as its key.",
   "type": "fixed",
   "issueOrPR": 13458,
   "breaking": false,

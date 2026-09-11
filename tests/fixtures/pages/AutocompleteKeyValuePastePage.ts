@@ -13,9 +13,10 @@ interface FixtureWindow {
   hot: HandsontableFixture;
   htSourceAt(row: number, col: number): string;
   htPastePlainText(row: number, col: number, text: string): void;
-  htIsValid(row: number, col: number): boolean;
+  htValidState(row: number, col: number): string;
   htTypeAndCommit(row: number, col: number, text: string): void;
   htLoadPlainLabels(): void;
+  htUndo(): void;
 }
 
 /**
@@ -49,6 +50,15 @@ export class AutocompleteKeyValuePastePage {
     // Wait for the bundle before the cell. The test id comes from the fixture's renderer, so
     // "cell not found" alone cannot tell a slow bundle apart from a grid that failed to render.
     await awaitBundle(this.page);
+
+    // Rethrow a constructor throw the fixture captured. Without this a settings error surfaces as
+    // "element(s) not found" from the locator below, with the real exception only in the browser
+    // console - the fail-loud rule in `tests/AGENTS.md`.
+    const initError = await this.page.getByTestId('grid').getAttribute('data-init-error');
+
+    if (initError !== null) {
+      throw new Error(`The fixture grid failed to build: ${initError}`);
+    }
 
     await expect(this.cell(0, 0)).toBeVisible();
   }
@@ -123,11 +133,16 @@ export class AutocompleteKeyValuePastePage {
   }
 
   /**
-   * Reports whether the cell passes validation, according to its cell meta.
+   * Reports the cell's validation state as `'valid'`, `'invalid'` or `'unvalidated'`.
+   *
+   * Three states rather than a boolean on purpose. A probe reading `valid !== false` answers
+   * `true` for a cell nothing has validated yet, so an assertion for "valid" would pass on its
+   * first poll - before validation ran, and therefore also against code that stores a bare string
+   * and only then marks the cell invalid.
    */
-  async isValid(row: number, col: number): Promise<boolean> {
+  async validState(row: number, col: number): Promise<string> {
     return this.page.evaluate(
-      ([r, c]) => (window as unknown as FixtureWindow).htIsValid(r, c),
+      ([r, c]) => (window as unknown as FixtureWindow).htValidState(r, c),
       [row, col],
     );
   }
@@ -137,6 +152,13 @@ export class AutocompleteKeyValuePastePage {
    */
   async loadPlainLabels(): Promise<void> {
     await this.page.evaluate(() => (window as unknown as FixtureWindow).htLoadPlainLabels());
+  }
+
+  /**
+   * Undoes the last action.
+   */
+  async undo(): Promise<void> {
+    await this.page.evaluate(() => (window as unknown as FixtureWindow).htUndo());
   }
 
   /**
