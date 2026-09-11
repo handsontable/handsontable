@@ -148,17 +148,64 @@ export class HandsontableEditor extends TextEditor {
    * Closes the editor.
    */
   close(): void {
-    // Deliberately NOT clearing `innerSelectionOrigin` here. `TextEditor#refreshDimensions()` calls
-    // `close()` as "hide for now" when the edited cell scrolls out of the rendered range, and
-    // `afterSetTheme` does the same - neither ends the edit, `state` stays `EDITING` and the inner
-    // grid keeps its selection. Clearing here threw away a pick the user could still see and had
-    // not finished with. `open()` sets the origin on every real re-open, which is what resets it.
+    // Deliberately NOT clearing `innerSelectionOrigin` here. `afterSetTheme` calls `close()` without
+    // ending the edit - `state` stays `EDITING` and the inner grid keeps its selection - so clearing
+    // here would throw away a pick the user could still see and had not finished with. (A scroll-out
+    // of the rendered range no longer reaches `close()`; it goes through `hideForScroll()`, which also
+    // preserves the selection.) `open()` sets the origin on every real re-open, which is what resets it.
     if (this.htEditor) {
       this.htEditor.rootElement.style.display = 'none';
     }
 
     this.removeHooksByKey('beforeKeyDown');
     super.close();
+  }
+
+  /**
+   * Hides the nested grid because the edited cell scrolled out of the rendered range, without ending
+   * the edit. Only the display and the `_opened` flag change; the `beforeKeyDown` hook, the shortcut
+   * group, and the nested grid's data and selection are all preserved (unlike {@link HandsontableEditor#close},
+   * which tears them down). This is what lets the list re-show still populated, and typing and arrow
+   * navigation keep working, after a scroll round-trip.
+   *
+   * @private
+   * @returns {boolean} Always `true` - the hide is transient and the layer must be re-shown on scroll-back.
+   */
+  hideForScroll(): boolean {
+    this._opened = false;
+    this.hideEditableElement();
+
+    if (this.htEditor) {
+      this.htEditor.rootElement.style.display = 'none';
+    }
+
+    return true;
+  }
+
+  /**
+   * Re-shows the nested grid after the edited cell scrolled back into the rendered range, re-anchoring
+   * it to the cell. The grid's data and selection were preserved by {@link HandsontableEditor#hideForScroll},
+   * so nothing is reloaded here.
+   *
+   * @private
+   */
+  showAfterScroll(): void {
+    if (this.htEditor) {
+      this.htEditor.rootElement.style.display = '';
+      this.reflowDropdown();
+    }
+  }
+
+  /**
+   * Re-anchors the re-shown dropdown to the edited cell's new viewport position. Split from
+   * {@link HandsontableEditor#showAfterScroll} so {@link AutocompleteEditor} can re-measure the list to
+   * its choices before the flip pass reads its size.
+   *
+   * @private
+   */
+  reflowDropdown(): void {
+    this.flipDropdownVerticallyIfNeeded();
+    this.flipDropdownHorizontallyIfNeeded();
   }
 
   /**
