@@ -149,8 +149,20 @@ test('hasForeignCommits is false for bot picks and true once a human commits', (
     // A second genuine bot pick must not corrupt the first entry's parsing:
     // git appends its own newline after every `%x1e` record separator, and a
     // separator placed after the body would drag that newline onto the front
-    // of the next entry's email.
-    git(f.root, ['commit', '--allow-empty', '-m', `second bot pick\n\n(cherry picked from commit ${f.clean})`]);
+    // of the next entry's email. Author identity is set explicitly (not left
+    // to ambient global git config, which a CI runner has none of).
+    execFileSync('git', ['commit', '--allow-empty', '-m', `second bot pick\n\n(cherry picked from commit ${f.clean})`], {
+      cwd: f.root,
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        GIT_DIR: undefined,
+        GIT_AUTHOR_NAME: 'Author',
+        GIT_AUTHOR_EMAIL: 'author@example.com',
+        GIT_COMMITTER_NAME: SYNC_COMMITTER.name,
+        GIT_COMMITTER_EMAIL: SYNC_COMMITTER.email,
+      },
+    });
     assert.equal(hasForeignCommits(f.root, 'prod', 'docs-sync/prod'), false);
 
     f.run(['commit', '-q', '--allow-empty', '-m', 'human resolves something']);
