@@ -1,4 +1,5 @@
 import AxisSyncer from '../../indexSyncer/axisSyncer';
+import { createMockEngine } from './helpers/mockEngine';
 
 function createMockIndexMapper(indexesSequence) {
   const state = { indexesSequence };
@@ -18,32 +19,6 @@ function createMockIndexSyncer(engine, sheetId = 0) {
     getSheetId: () => sheetId,
     isPerformingUndoRedo: () => false,
     getPostponeAction: () => () => {},
-  };
-}
-
-function createMockEngine(initialDimensions = { width: 4, height: 4 }) {
-  const calls = { setRowOrder: [], setColumnOrder: [] };
-  const dimensions = { ...initialDimensions };
-
-  return {
-    calls,
-    dimensions,
-    setRowOrder: (sheetId, transformation) => {
-      if (transformation.length !== dimensions.height) {
-        throw new Error('Invalid arguments, expected number of rows provided to be sheet height.');
-      }
-
-      calls.setRowOrder.push({ sheetId, transformation });
-    },
-    setColumnOrder: (sheetId, transformation) => {
-      if (transformation.length !== dimensions.width) {
-        throw new Error('Invalid arguments, expected number of columns provided to be sheet width.');
-      }
-
-      calls.setColumnOrder.push({ sheetId, transformation });
-    },
-    getSheetDimensions: () => ({ ...dimensions }),
-    batch: callback => callback(),
   };
 }
 
@@ -89,16 +64,49 @@ describe('AxisSyncer sequence change sync', () => {
       expect(engine.calls.setColumnOrder).toEqual([]);
     });
 
-    it('should not sync the order when the sequence is longer than the engine sheet', () => {
+    it('should compress the order onto the columns the engine holds when the sequence is longer', () => {
       const engine = createMockEngine({ width: 2, height: 4 });
       const indexMapper = createMockIndexMapper([0, 1, 2, 3]);
       const axisSyncer = new AxisSyncer('column', indexMapper, createMockIndexSyncer(engine));
 
       axisSyncer.init();
+      // The engine holds the first two columns only, and the reorder keeps them in that relative order.
       indexMapper.state.indexesSequence = [0, 2, 1, 3];
+      axisSyncer.getIndexesChangeSyncMethod()('update');
 
-      expect(() => axisSyncer.getIndexesChangeSyncMethod()('update')).not.toThrow();
-      expect(engine.calls.setColumnOrder).toEqual([]);
+      expect(engine.calls.setColumnOrder).toEqual([
+        { sheetId: 0, transformation: [0, 1] },
+      ]);
+    });
+
+    it('should compress a reorder that swaps two columns the engine holds', () => {
+      const engine = createMockEngine({ width: 2, height: 4 });
+      const indexMapper = createMockIndexMapper([0, 1, 2, 3]);
+      const axisSyncer = new AxisSyncer('column', indexMapper, createMockIndexSyncer(engine));
+
+      axisSyncer.init();
+      indexMapper.state.indexesSequence = [1, 0, 2, 3];
+      axisSyncer.getIndexesChangeSyncMethod()('update');
+
+      expect(engine.calls.setColumnOrder).toEqual([
+        { sheetId: 0, transformation: [1, 0] },
+      ]);
+    });
+
+    it('should rank an index the sequence no longer covers last instead of sending it as -1', () => {
+      const engine = createMockEngine({ width: 3, height: 4 });
+      const indexMapper = createMockIndexMapper([0, 1, 2]);
+      const axisSyncer = new AxisSyncer('column', indexMapper, createMockIndexSyncer(engine));
+
+      axisSyncer.init();
+      // Mid-batch the mapper can drop an index the stored sequence still carries; it arrives as `-1`,
+      // which the engine rejects as a non-permutation.
+      indexMapper.state.indexesSequence = [2, 0];
+      axisSyncer.getIndexesChangeSyncMethod()('update');
+
+      expect(engine.calls.setColumnOrder).toEqual([
+        { sheetId: 0, transformation: [1, 2, 0] },
+      ]);
     });
 
     it('should keep the last synced order as the baseline for the transformation after a skipped sync', () => {
@@ -135,6 +143,40 @@ describe('AxisSyncer sequence change sync', () => {
 
       expect(() => axisSyncer.getIndexesChangeSyncMethod()('update')).not.toThrow();
       expect(engine.calls.setRowOrder).toEqual([]);
+    });
+
+    it('should compress the order onto the rows the engine holds when the sequence is longer', () => {
+      const engine = createMockEngine({ width: 4, height: 2 });
+      const indexMapper = createMockIndexMapper([0, 1, 2]);
+      const axisSyncer = new AxisSyncer('row', indexMapper, createMockIndexSyncer(engine));
+
+      axisSyncer.init();
+      indexMapper.state.indexesSequence = [1, 0, 2];
+      axisSyncer.getIndexesChangeSyncMethod()('update');
+
+      expect(engine.calls.setRowOrder).toEqual([
+        { sheetId: 0, transformation: [1, 0] },
+      ]);
+    });
+
+    it('should keep the last synced order as the baseline for the transformation after a skipped sync', () => {
+      const engine = createMockEngine({ width: 0, height: 0 });
+      const indexMapper = createMockIndexMapper([0, 1, 2]);
+      const axisSyncer = new AxisSyncer('row', indexMapper, createMockIndexSyncer(engine, 2));
+      const syncMethod = axisSyncer.getIndexesChangeSyncMethod();
+
+      axisSyncer.init();
+      indexMapper.state.indexesSequence = [2, 0, 1];
+      syncMethod('update');
+
+      expect(engine.calls.setRowOrder).toEqual([]);
+
+      engine.dimensions.height = 3;
+      syncMethod('update');
+
+      expect(engine.calls.setRowOrder).toEqual([
+        { sheetId: 2, transformation: [1, 2, 0] },
+      ]);
     });
 
     it('should sync the order when the engine sheet is as tall as the reordered sequence', () => {

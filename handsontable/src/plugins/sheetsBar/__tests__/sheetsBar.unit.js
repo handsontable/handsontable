@@ -1183,11 +1183,17 @@ describe('SheetsBar plugin', () => {
     const added = sheetsBar.addSheet();
 
     expect(sheetsBar.setActiveSheet(added.id)).toBe(true);
+
+    hot.setDataAtCell(0, 0, 'typed on the new sheet');
+
     expect(sheetsBar.setActiveSheet('Budget')).toBe(true);
+    expect(hot.getDataAtCell(0, 1)).toBe(23);
+
     expect(sheetsBar.setActiveSheet(added.id)).toBe(true);
     expect(sheetsBar.getSheets().find(sheet => sheet.isActive).name).toBe(added.name);
     expect(hot.rootWrapperElement.querySelector('.ht-sheets-bar__tab--active').textContent)
       .toBe(added.name);
+    expect(hot.getDataAtCell(0, 0)).toBe('typed on the new sheet');
   });
 
   it('gives a runtime-added sheet a fresh engine sheet when its tab name is taken in the engine', () => {
