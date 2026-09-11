@@ -470,19 +470,20 @@ export class AutocompleteEditor extends HandsontableEditor {
     this.#focusDebounced.cancel();
 
     // Ends the edit session. Closing is the one event that reliably means "no response is wanted
-    // any more": `state` stays `EDITING` when `refreshDimensions()` closes an editor whose cell
-    // scrolled out of the rendered range and when `afterSetTheme` closes one (`assignHooks`), and
-    // `_opened` stays false after that same cell scrolls back and the editor is shown again.
+    // any more": a scroll-out of the rendered range no longer reaches here (see below), and
+    // `afterSetTheme` still closes the editor (`assignHooks`). `_opened` stays false while the cell is
+    // scroll-hidden and after it scrolls back, so the guards elsewhere key on `state`, not `_opened`.
     //
     // Queries this editor deferred are cancelled outright; the token below is for the ones already
     // handed to user code, which cannot be.
     //
-    // Known limitation: `refreshDimensions()` also calls `close()` as "hide for now" when the
-    // edited cell scrolls out of the rendered range, and there is no signal here to tell that apart
-    // from "the edit ended". So after the cell scrolls back the editor is visible again but its
-    // list can no longer populate. That path was already one-way before this change - the
-    // `removeHooksByKey` below means typing could not re-query after a scroll round trip either -
-    // and separating the two meanings belongs in `TextEditor`, not here.
+    // The two meanings of hiding are now separated in `TextEditor`: a scroll-out of the rendered range
+    // goes through `hideForScroll()` (transient - keeps `beforeKeyDown`, the query timeouts, the edit
+    // session and the loaded list, so the dropdown re-shows populated and re-queries on scroll-back),
+    // while `close()` here is the genuine edit-end teardown. One deliberate consequence: because the
+    // edit session is NOT bumped on a scroll-hide, a function-`source` response that lands while the
+    // cell is scroll-hidden is now accepted and repopulates the list; that is safe because the holder's
+    // `opacity: 0` keeps it invisible until scroll-back re-runs `showEditableElement()`.
     this.#queryTimeouts.forEach(timeoutId => clearTimeout(timeoutId));
     this.#queryTimeouts.clear();
 
@@ -495,6 +496,23 @@ export class AutocompleteEditor extends HandsontableEditor {
       setAttribute(this.TEXTAREA, [
         A11Y_EXPANDED('false'),
       ]);
+    }
+  }
+
+  /**
+   * Re-shows the dropdown list after the edited cell scrolled back into the rendered range, keeping the
+   * choices already loaded into the nested grid and re-measuring its size against the cell's new
+   * position. Guarded on there being choices to show, so an empty list stays hidden - matching the
+   * empty branch of {@link AutocompleteEditor#updateChoicesList}.
+   *
+   * @private
+   */
+  showAfterScroll(): void {
+    if (this.htEditor && this.strippedChoices.length > 0) {
+      this.htEditor.rootElement.style.display = '';
+      this.updateDropdownDimensions();
+      this.flipDropdownVerticallyIfNeeded();
+      this.flipDropdownHorizontallyIfNeeded();
     }
   }
 

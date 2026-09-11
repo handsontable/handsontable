@@ -87,6 +87,15 @@ export class TextEditor extends BaseEditor {
    * @type {string}
    */
   declare layerClass: string;
+  /**
+   * Tracks whether the editor was transiently hidden because its edited cell scrolled out of the
+   * rendered range (as opposed to the edit ending). Set from the return value of
+   * {@link TextEditor#hideForScroll}, read in {@link TextEditor#refreshDimensions} to re-show a
+   * layered editor's UI once the cell scrolls back into view.
+   *
+   * @type {boolean}
+   */
+  #hiddenByScroll = false;
 
   /**
    * @param {Core} hotInstance The Handsontable instance.
@@ -124,6 +133,7 @@ export class TextEditor extends BaseEditor {
    */
   open(): void {
     this._opened = true;
+    this.#hiddenByScroll = false;
     this.refreshDimensions(); // need it instantly, to prevent https://github.com/handsontable/handsontable/issues/348
     this.showEditableElement();
     this.hot.getShortcutManager().setActiveContextName('editor');
@@ -135,6 +145,7 @@ export class TextEditor extends BaseEditor {
    */
   close(): void {
     this._opened = false;
+    this.#hiddenByScroll = false;
     this.autoResize.unObserve();
 
     if (isInternalElement(getDeepActiveElement(this.hot.rootDocument) as HTMLElement, this.hot.rootElement)) {
@@ -327,6 +338,30 @@ export class TextEditor extends BaseEditor {
   }
 
   /**
+   * Hides the editor because its edited cell scrolled out of the rendered range. This is a transient,
+   * reversible hide, not the end of the edit. The base editor has no persistent layer of its own, so
+   * it delegates to the destructive {@link TextEditor#close} to preserve the historic inline-editor
+   * behavior, and reports that the hide was not transient. Layered editors (Handsontable, autocomplete,
+   * dropdown) override this to hide only their UI while keeping the edit alive, and return `true`.
+   *
+   * @private
+   * @returns {boolean} `true` when the hide is transient and the layer must be re-shown on scroll-back.
+   */
+  hideForScroll(): boolean {
+    this.close();
+
+    return false;
+  }
+
+  /**
+   * Re-shows the editor's layer after its edited cell scrolled back into the rendered range. No-op for
+   * the base editor, which has no persistent layer. Layered editors override this to restore their UI.
+   *
+   * @private
+   */
+  showAfterScroll(): void {}
+
+  /**
    * Refreshes editor's size and position.
    *
    * @private
@@ -341,7 +376,9 @@ export class TextEditor extends BaseEditor {
     // TD is outside of the viewport.
     if (!this.TD) {
       if (!force) {
-        this.close(); // TODO shouldn't it be this.finishEditing() ?
+        // Hide the editor for now; the edit stays alive. A layered editor keeps its list state so it
+        // can be re-shown, still populated, once the cell scrolls back (see the tail of this method).
+        this.#hiddenByScroll = this.hideForScroll();
       }
 
       return;
@@ -372,6 +409,14 @@ export class TextEditor extends BaseEditor {
       maxWidth,
       maxHeight,
     }, true);
+
+    // The cell scrolled back into the rendered range after a transient scroll-hide. The textarea has
+    // just been restored above; let a layered editor restore and re-anchor its UI too. Gated on
+    // `!force` so `prepare()`/`open()` (which call `refreshDimensions(true)`) never trigger it.
+    if (!force && this.#hiddenByScroll) {
+      this.#hiddenByScroll = false;
+      this.showAfterScroll();
+    }
   }
 
   /**
