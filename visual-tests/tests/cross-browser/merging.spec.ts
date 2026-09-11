@@ -6,6 +6,7 @@ import {
   selectFromContextMenu,
 } from '../../src/page-helpers';
 
+// eslint-disable-next-line no-restricted-syntax -- DEV-2797: parked since b558a787a (2025-01-14) with no owner; the consolidation phase decides whether the merge-cells geometry capture is repaired or removed
 test.skip('Test merging', async({ goto, tablePage }) => {
   await goto('/merged-cells-demo');
 

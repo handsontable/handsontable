@@ -19,6 +19,7 @@
 import { cp, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve, sep } from 'node:path';
 import { spawn } from 'node:child_process';
+import { toleranceFlags } from '../lib/tolerance-flags.mjs';
 
 const CONCURRENCY = 16;
 const ROOT = join(import.meta.dirname, '..');
@@ -38,12 +39,13 @@ const cacheBuster = process.env.GITHUB_RUN_ID || String(Date.now());
 
 /**
  * Read the comparison tolerances from `regconfig.json` so both comparison paths
- * apply the same ones. Hard-coding them here would let the fork path drift into
- * failing on antialiasing noise that a same-repo run tolerates.
+ * apply the same ones. The mapping itself lives in `lib/tolerance-flags.mjs`,
+ * shared with the stability matrix; hard-coding it here would let this path
+ * drift into failing on antialiasing noise that a same-repo run tolerates.
  *
  * @returns {Promise<string[]>} `reg-cli` flags.
  */
-async function toleranceFlags() {
+async function readToleranceFlags() {
   let config;
 
   try {
@@ -54,26 +56,7 @@ async function toleranceFlags() {
     throw new Error(`Could not read regconfig.json for comparison tolerances: ${error.message}`);
   }
 
-  const core = config.core ?? {};
-  const flags = [];
-
-  if (core.enableAntialias) {
-    flags.push('-A');
-  }
-
-  if (core.thresholdPixel !== undefined) {
-    flags.push('-S', String(core.thresholdPixel));
-  }
-
-  if (core.thresholdRate !== undefined) {
-    flags.push('-T', String(core.thresholdRate));
-  }
-
-  if (core.matchingThreshold !== undefined) {
-    flags.push('-M', String(core.matchingThreshold));
-  }
-
-  return flags;
+  return toleranceFlags(config);
 }
 
 /**
@@ -188,7 +171,7 @@ if (!expectedKey || !domain) {
         // copies into `.reg/actual` for the same reason; match its layout.
         await cp(join(ROOT, 'screenshots'), ACTUAL_DIR, { recursive: true });
 
-        const flags = await toleranceFlags();
+        const flags = await readToleranceFlags();
 
         console.log(`Comparing with tolerances: ${flags.join(' ') || '(none configured)'}`);
 

@@ -12,8 +12,12 @@ import { PlaywrightTestConfig, devices } from '@playwright/test';
 const config: PlaywrightTestConfig = {
   testDir: './tests',
   testIgnore: '**/cross-browser/**',
-  /* Maximum time one test can run for. */
-  timeout: 10 * 1000,
+  /*
+   * Maximum time one test can run for. 15 s, not 10: a capture whose scrollbar-clearance band is stuck
+   * spends up to 5 s in the settle wait before it fails with a message naming the cause, and that message
+   * has to win over the generic test timeout (see waitForScrollbarClearanceToSettle in src/test-runner.ts).
+   */
+  timeout: 15 * 1000,
   expect: {
     /**
      * Maximum time expect() should wait for the condition to be met.

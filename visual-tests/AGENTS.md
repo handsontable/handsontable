@@ -67,7 +67,7 @@ itself — no notifier plugin is configured. The pull request comment is written
 `.reg/comment.md` and posted by the `marocchino/sticky-pull-request-comment` step in `visual.yml`, which is
 why it carries the approval instructions as well as the counts.
 
-Seven things about this pipeline are worth knowing before changing it.
+Eight things about this pipeline are worth knowing before changing it.
 
 - **`reg-suit run` exits 0 no matter what it finds.** A comparison result never fails it; fetch, publish
   and comparison-runtime errors do. Notifier errors are the one class it deliberately swallows
@@ -101,11 +101,36 @@ Seven things about this pipeline are worth knowing before changing it.
   carries `github.event.pull_request.user.login != 'dependabot[bot]'` as well, and keeps the canonical
   clause because `fork-guards.test.mjs` asserts that shape. Any future `labeled`-triggered workflow needs
   the same pair.
-- **The comparison tolerates antialiasing, deliberately.** `regconfig.json` sets `enableAntialias` and
-  `thresholdPixel: 150`. Chromium's text antialiasing is not bit-stable between runs: a measured example
-  differed by 78 pixels out of 921,600 with no visible change, and at zero tolerance that failed 104 of
-  1,646 screenshots — all of them focus- or menu-state captures. Do not lower these back to zero without
-  re-measuring; a real regression is orders of magnitude larger.
+- **The comparison has three tolerance knobs, and all three are set on purpose.** `regconfig.json`
+  drives pixelmatch through reg-cli: `matchingThreshold` (0.1) is the per-pixel color distance below
+  which a pixel is not counted at all; `enableAntialias` drops the pixels pixelmatch's heuristic
+  classifies as antialiasing; `thresholdPixel` (150) is the per-image count of remaining pixels an
+  item may differ by and still pass. reg-suit defaults `matchingThreshold` to **0** when the key is
+  absent, so until DEV-2797 every 1-unit color difference the heuristic did not exclude was counted.
+  That is how a checkbox-glyph flicker of 152 counted pixels failed a 150-pixel gate on PR #13311
+  (113 of them a two-pixel sliver of the "In stock" column), and why dark-theme edge speckle, which
+  the heuristic misses, tripped the gate while light-theme speckle did not. Measured before choosing
+  0.1: it turns that event into 0 counted pixels and leaves both genuine state differences in the
+  local corpus failing (a 16px scrollbar band, a focus ring on another element); 0.2 hid the focus
+  ring, so it is the ceiling. The knob has a false-negative budget, and it is not small: pixelmatch
+  discards any pixel whose YIQ delta is under `35215 × 0.1² ≈ 352`, which is a uniform (grey) RGB shift
+  of up to 26/255, a red-only shift of up to 46, or a blue-only shift of up to 78. A color-only token
+  change inside that band passes every golden untouched, so a design-system PR that moves a token must
+  state the before and after values and be reviewed by eye — the gate will not see it. Do not lower
+  `thresholdPixel` back to zero without re-measuring; a real regression is orders of magnitude larger. `compare-fork.mjs` and the stability
+  matrix read the same file through `lib/tolerance-flags.mjs`, so one edit covers every comparison path.
+- **A capture waits two animation frames, then for the scrollbar clearance to settle — and a stuck
+  band fails the capture.** The scrollbar-clearance band (#10370) is created inside the holder's
+  `scroll` handler, which the browser dispatches on the frame *after* the action that scrolled resolves.
+  A settle poll that runs the moment `click()` returns sees no band, passes, and the capture lands with
+  the band up: measured 16 of 20 times on `selection-arabic-rtl-demo-2`, 0 of 20 once two frames had
+  elapsed. The band then closes 1000 ms later (`OVERLAY_SCROLLBAR_FADE_DELAY`). `test-runner.ts` waits
+  those two frames before the first poll, and when a band is still open after 5 s it decides instead of
+  giving up silently: a pointer resting within 26 px of that scrollbar's edge (`OVERLAY_SCROLLBAR_PROXIMITY`,
+  mirrored in the fixture) pins the band open by design, so the capture proceeds with a `scrollbar-band`
+  annotation on the test; anything else throws, Playwright re-renders the spec, and a persistent stuck
+  band reds the render job with a message naming the cause. `locator.screenshot()` bypasses the wrapper —
+  capture through `tablePage.screenshot()`.
 - **A missing baseline never blocks.** `Check for golden records` probes
   `https://<domain>/base/<branch>/out.json` over plain HTTPS. When that 404s the run sets
   `VISUAL_BOOTSTRAP=true`: `visual-gate.mjs` passes without reading a report, and a same-repo build promotes
@@ -127,12 +152,66 @@ Seven things about this pipeline are worth knowing before changing it.
   render is deterministic and the golden record is the odd one out — neither pull request is at fault, and
   `visual-approved` on one of them fixes nothing for the others. Confirmed on `columns-filter-2` under
   WebKit, where the poisoned record carried a stray browser text-selection highlight on a column header;
-  `test-runner.ts` now clears that selection before every capture. **`visual.handsontable.com` is behind a
+  `test-runner.ts` now resets that selection before every capture (engine-gated — see Determinism below).
+  **`visual.handsontable.com` is behind a
   CDN, so reading a golden record back can hand you a stale copy** — during that investigation it served
   the superseded image for nearly an hour after `develop` had reseeded, which reads exactly like a
   baseline nobody has fixed yet. Always bust the cache before concluding anything from a golden record:
   `curl -H 'Cache-Control: no-cache' '<url>?cb=$RANDOM'`. The reg-suit reports are per-commit paths and
   never restated, so only the `base/<branch>/` prefix has this problem.
+
+## Determinism
+
+A visual spec has no assertion of its own — the screenshot is the assertion — so whatever state the
+page is in when `screenshot()` runs is what the golden records. The rules that keep that state the
+same on every render, enforced at `error` by `visual-tests/.eslintrc.js` (the functional tier's bans
+from `tests/.eslintrc.cjs`, with one deliberate difference — the conditional `test.skip(condition, why)`
+stays legal here because it is how js-only and chromium-only specs declare their variant — plus a ban on
+element screenshots and the settle the fixture does for you):
+
+- **Assert the state the capture is meant to show before capturing.** After any action that changes
+  focus, opens or closes an element, or scrolls, wait for that state with a web-first assertion —
+  `await expect(locator).toBeFocused()` / `.toBeVisible()` / `.toBeHidden()` / `.toHaveClass()` — or a
+  page helper that does. A capture on the line after a `click()` / `press()` / `type()` with nothing
+  asserted in between photographs whichever half of the transition the runner reached.
+- **The filters menu moves focus on a timer.** Choosing a condition focuses that condition's first
+  input 10 ms later (`handsontable/src/plugins/filters/component/condition.ts`), so a capture or a key
+  press straight after the choice lands on either side of the hand-off; `filterByCondition()` and the
+  filters specs assert `toBeFocused()` on the input first. The same shape applies to any component that
+  defers focus.
+- **Hover the element, not a coordinate.** `locator.hover()` names the target and runs the actionability
+  checks (visible, stable, receives events at the point) before moving; a raw `mouse.move()` to a
+  bounding-box coordinate does neither, so what it hovers depends on what happened to be there.
+- **The fixture drops a stray native selection before every capture, and under a focused text control
+  the reset is engine-gated.** `clearNativeTextSelection()` in `test-runner.ts` removes the browser's own
+  text-selection highlight (a header label a click sequence left selected). With an input or textarea
+  focused the engines split, measured on #13468: WebKit keeps painting a selection made before the
+  control took focus and the Selection API cannot see it (one collapsed range at the control's parent,
+  stray or not), so there the ranges are removed and the control's own selection is put back with
+  `setSelectionRange()`. Chromium re-rasterizes the whole grid's text when the ranges under a focused
+  control are removed — 13 Tab-navigation captures moved by 3k–45k pixels across every theme when the
+  clear ran unconditionally — so on Chromium and Firefox a focused text control is left alone. Do not
+  fold the two branches into one; either half regresses the other engine.
+- **No fixed delays.** `waitForTimeout()`, `sleep()`, the global `setTimeout()` (inside `page.evaluate`
+  too) and `'networkidle'` are lint errors in `src/` and `tests/`. The 2024 import carries about forty
+  such sleeps; each wears `// eslint-disable-next-line no-restricted-syntax -- DEV-2797: <why>` so the
+  debt is counted and greppable while the consolidation replaces them with asserted states. A new sleep
+  needs the same line naming its own task, or it does not land.
+- **`.only`, a bare or titled `.skip`, `test.fixme`, and `locator.screenshot()` are errors** too; the
+  conditional `test.skip(condition, why)` that scopes a spec to a framework or a browser is the one legal
+  skip, and an element capture is a clipped `tablePage.screenshot()` so the settle still runs.
+- **Prove a determinism change with the stability matrix**, not a local loop: `Visual stability`
+  (`.github/workflows/visual-stability.yml`, `workflow_dispatch`) renders the filters family (classic plus
+  one chosen theme) and the whole cross-browser `selection.spec.ts` on chromium and firefox, on up to ten
+  separate runners from one commit, and reports byte-unstable captures and the pairs the gate would have
+  called changed. A single machine cannot see the cross-runner half of the
+  noise — locally, 39 of 92 captures were byte-unstable across ten renders and the gate tolerated all of
+  it, while CI flipped items a local loop never did. The ticket's acceptance criterion (ten renders, no
+  changed filters item) is one dispatch of that workflow.
+- **Two specs are known to photograph the wrong state**: `tab-navigation-from-submenu` and
+  `shift-tab-navigation-from-submenu` never open the Alignment submenu they describe (ArrowDown ×3 from
+  the first enabled item stops short of it), so their frames repeat the plain-menu frames other specs own.
+  Repair the keystrokes or convert the coverage in the consolidation phase; do not delete them silently.
 
 Snapshot keys, set in `.github/workflows/visual.yml`:
 

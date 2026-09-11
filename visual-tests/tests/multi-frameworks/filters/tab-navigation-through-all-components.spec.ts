@@ -35,6 +35,15 @@ test(__filename, async({ tablePage }) => {
   await tablePage.keyboard.press('ArrowDown');
   await tablePage.keyboard.press('ArrowDown');
   await tablePage.keyboard.press('Enter'); // select and accept "Is between" option (9 presses: None→Is empty→Is not empty→Is equal to→Is not equal to→Before→Before or equal to→After→After or equal to→Is between)
+
+  // Choosing a condition moves focus to its first input on a 10 ms timer
+  // (handsontable/src/plugins/filters/component/condition.ts), so a capture taken straight away
+  // photographs either side of that hand-off. Assert the state the screenshot is meant to show.
+  const isBetweenFirstInput = tablePage
+    .getByRole('menuitem').filter({ hasText: 'Is between' })
+    .getByPlaceholder('Value', { exact: true });
+
+  await expect(isBetweenFirstInput).toBeFocused();
   await tryToEscapeFromTheComponentsFocus();
 
   // take a screenshot of the focused input after selecting and accepting the condition option

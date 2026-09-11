@@ -1,4 +1,4 @@
-import { test } from '../../../src/test-runner';
+import { test, expect } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 import { selectCell } from '../../../src/page-helpers';
 
@@ -19,7 +19,14 @@ test(__filename, async({ tablePage }) => {
   await tablePage.keyboard.press('ArrowDown');
   await tablePage.keyboard.press('ArrowDown');
   await tablePage.keyboard.press('Enter'); // "Begins with"
-  await tablePage.waitForTimeout(100);
+
+  // The condition component focuses its input on a 10 ms timer (filters/component/condition.ts);
+  // typing before that lands the text in the select. Wait for the state, not for a duration.
+  const beginsWithInput = tablePage
+    .getByRole('menuitem').filter({ hasText: 'Begins with' })
+    .getByPlaceholder('Value', { exact: true });
+
+  await expect(beginsWithInput).toBeFocused();
   await tablePage.keyboard.type('Road', { delay: 100 });
 
   await tablePage.keyboard.press('Enter'); // "Enter" here should do nothing
