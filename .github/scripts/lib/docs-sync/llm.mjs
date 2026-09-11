@@ -10,13 +10,10 @@
 // small and self-authored, so a modest cap is enough.
 const MAX_PAYLOAD_CHARS = 4096;
 
-// A failed upstream call's body is cut much more generously: a Cloudflare block
-// page is mostly a base64 font blob, but its signal (`<title>Blocked</title>`,
-// the visible message) sits in the first few hundred bytes, so 16 KiB captures
-// every real error whole while staying well under `$GITHUB_STEP_SUMMARY`'s size
-// limit -- it is not unbounded because that summary has a cap and is not
-// secret-masked.
-const MAX_ERROR_BODY_CHARS = 16_384;
+// A failed upstream call's body is NOT cut here -- the whole response goes to
+// the diagnostic message so the run log carries it in full. The size-limited,
+// un-masked step summary is capped downstream at the summary sink
+// (`log.mjs`'s `capForSummary`), not here, so the two sinks can differ.
 
 // The response headers worth surfacing on a failed call -- the set the probe
 // proved discriminates a Cloudflare edge block from a real API error. Every
@@ -84,11 +81,7 @@ export function describeErrorResponse(response, bodyText) {
     lines.push(`  (${omitted} other header${omitted === 1 ? '' : 's'} omitted)`);
   }
 
-  const body = bodyText.length > MAX_ERROR_BODY_CHARS
-    ? `${bodyText.slice(0, MAX_ERROR_BODY_CHARS)}\n[truncated: ${bodyText.length - MAX_ERROR_BODY_CHARS} more characters]`
-    : bodyText;
-
-  lines.push('Body:', body);
+  lines.push('Body:', bodyText);
 
   return lines.join('\n');
 }

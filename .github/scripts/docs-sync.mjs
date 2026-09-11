@@ -43,7 +43,7 @@ import {
   applyCommits, git, hasForeignCommits, resetSyncBranch,
 } from './lib/docs-sync/git-apply.mjs';
 import { createGitHub } from './lib/docs-sync/github.mjs';
-import { scrubSecrets } from './lib/docs-sync/log.mjs';
+import { capForSummary, scrubSecrets } from './lib/docs-sync/log.mjs';
 
 const HOLD_MARKER = '<!-- docs-sync-hold -->';
 const CONTENT_PATHSPECS = CONTENT_PREFIXES.map((prefix) => prefix.replace(/\/$/, ''));
@@ -78,6 +78,10 @@ const summaryLines = [];
  * as literals to be redacted wherever they appear, in whatever shape. This is
  * the one place all such messages pass through.
  *
+ * The job log gets the full scrubbed line; the step summary gets a size-bounded
+ * copy (`capForSummary`), so a huge failure body stays whole in the log while
+ * the summary does not run away.
+ *
  * @param {string} line
  */
 function log(line) {
@@ -86,7 +90,7 @@ function log(line) {
   ]);
 
   console.log(scrubbed);
-  summaryLines.push(scrubbed);
+  summaryLines.push(capForSummary(scrubbed));
 }
 
 /**

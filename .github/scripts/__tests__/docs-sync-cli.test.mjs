@@ -832,3 +832,76 @@ test('a cached decision under the current prompt hash skips the model; a stale p
     rmSync(f.root, { recursive: true, force: true });
   }
 });
+
+test('a failed classifier call logs the whole body but caps the step summary', async() => {
+  const f = fixture();
+  const bigBody = `<!DOCTYPE html><html><head><title>Blocked</title></head><body>${'Z'.repeat(20_000)}</body></html>`;
+  const server = createServer((req, res) => {
+    let body = '';
+
+    req.on('data', (chunk) => { body += chunk; });
+    req.on('end', () => {
+      res.writeHead(403, {
+        'Content-Type': 'text/html', 'cf-ray': 'testray-WAW', 'cf-mitigated': 'challenge', server: 'cloudflare',
+      });
+      res.end(bigBody);
+    });
+  });
+
+  await new Promise((resolve) => { server.listen(0, '127.0.0.1', resolve); });
+
+  const { port } = server.address();
+
+  // `spawn`, not `spawnSync`: the fake server lives in this process, so a
+  // blocking child would deadlock (see the cache test above for the full note).
+  const run = () => new Promise((resolve) => {
+    const child = spawn(process.execPath, [CLI, '--repo-dir', f.work, '--gh-bin', f.fakeGh, '--skip-lint'], {
+      env: {
+        ...process.env,
+        GIT_DIR: undefined,
+        GH_REPO: 'o/r',
+        GH_TOKEN: 'x',
+        DRY_RUN: '',
+        TARGET: '',
+        GITHUB_STEP_SUMMARY: path.join(f.root, 'summary.md'),
+        FAKE_GH_ANSWERS: f.answersPath,
+        LITELLM_BASE_URL: `http://127.0.0.1:${port}`,
+        LITELLM_API_KEY: 'test-key-well-over-eight-chars',
+        DOCS_SYNC_MODEL: 'test-model',
+        DOCS_SYNC_TEMPERATURE: undefined,
+        DOCS_SYNC_JSON_MODE: undefined,
+      },
+    });
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout.setEncoding('utf8');
+    child.stderr.setEncoding('utf8');
+    child.stdout.on('data', (chunk) => { stdout += chunk; });
+    child.stderr.on('data', (chunk) => { stderr += chunk; });
+    child.on('close', (status) => { resolve({ status, stdout, stderr }); });
+  });
+
+  try {
+    writeAnswers(f, {});
+
+    const result = await run();
+
+    assert.notEqual(result.status, 0, 'the 403 aborts the run');
+    // The job log (stdout) carries the response whole, including the far end of
+    // the body and the Cloudflare-block hint from the headers.
+    assert.ok(result.stdout.includes('Z'.repeat(20_000)), 'the full block-page body reaches the job log');
+    assert.match(result.stdout, /Looks like a Cloudflare edge block/);
+    assert.match(result.stdout, /cf-ray=testray-WAW/);
+    assert.doesNotMatch(result.stdout, /\[truncated/, 'the job log is never truncated');
+
+    // The step summary is bounded, with a pointer to the uncut log.
+    const summary = readFileSync(path.join(f.root, 'summary.md'), 'utf8');
+
+    assert.match(summary, /\[truncated: \d+ more characters; see the full job log\]/);
+    assert.ok(!summary.includes('Z'.repeat(20_000)), 'the summary does not carry the whole body');
+  } finally {
+    server.close();
+    rmSync(f.root, { recursive: true, force: true });
+  }
+});

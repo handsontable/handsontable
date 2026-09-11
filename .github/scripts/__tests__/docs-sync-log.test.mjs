@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { scrubSecrets } from '../lib/docs-sync/log.mjs';
+import { capForSummary, scrubSecrets } from '../lib/docs-sync/log.mjs';
 
 test('a tokenized remote URL is scrubbed', () => {
   const text = "Command failed: git push --quiet origin HEAD:refs/heads/docs-sync/prod-docs-18.1\nfatal: unable to access 'https://x-access-token:ghs_abc123DEF456@github.com/handsontable/handsontable.git/': stale lease";
@@ -48,4 +48,15 @@ test('a pathologically short secret is left alone so it cannot shred the log', (
   const text = 'Target prod-docs/18.1, sync branch docs-sync/prod-docs-18.1.';
 
   assert.equal(scrubSecrets(text, ['x']), text);
+});
+
+test('capForSummary passes short text through and bounds long text with a pointer to the log', () => {
+  assert.equal(capForSummary('short and fine', 100), 'short and fine');
+
+  const capped = capForSummary('z'.repeat(50), 20);
+
+  assert.ok(capped.startsWith('z'.repeat(20)));
+  assert.match(capped, /\[truncated: 30 more characters; see the full job log\]/);
+  // The cap is on the summary copy only, so the pointer is what leads a reader
+  // from the summary to the uncut job log.
 });

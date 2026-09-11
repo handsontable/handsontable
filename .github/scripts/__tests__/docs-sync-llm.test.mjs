@@ -72,22 +72,23 @@ test('json mode is on by default and omittable', async() => {
   assert.ok(!('response_format' in bodies[1]), 'response_format is omitted when json mode is off');
 });
 
-test('an error body is surfaced past 200 characters and capped at 16 KiB', async() => {
+test('the error body is surfaced in full, uncut at the client', async() => {
   const shortTail = `${'x'.repeat(300)}NEEDLE`;
   const fetchImpl = async() => new Response(shortTail, { status: 400 });
   const client = createClient({ baseUrl: 'https://x', apiKey: 'k', model: 'm', fetchImpl, sleep: noSleep });
 
-  // The old 200-character cut buried the actual cause; the wider cut keeps it.
+  // The old 200-character cut buried the actual cause.
   await assert.rejects(() => client.complete({ system: 's', user: 'u' }), /NEEDLE/);
 
-  const overCap = 20_000;
-  const fetchLong = async() => new Response('y'.repeat(overCap), { status: 400 });
+  // A large body is kept whole here; only the step-summary sink caps it, so the
+  // job log carries the full response.
+  const big = 'y'.repeat(20_000);
+  const fetchLong = async() => new Response(big, { status: 400 });
   const clientLong = createClient({ baseUrl: 'https://x', apiKey: 'k', model: 'm', fetchImpl: fetchLong, sleep: noSleep });
 
-  // Assert around the truncation notice, not a byte offset -- the message now
-  // carries a status line and a headers block before the body.
   await assert.rejects(() => clientLong.complete({ system: 's', user: 'u' }), (error) => {
-    assert.match(error.message, new RegExp(`\\[truncated: ${overCap - 16_384} more characters\\]`));
+    assert.ok(error.message.includes(big), 'the whole body is present in the error message');
+    assert.doesNotMatch(error.message, /\[truncated/, 'the client does not truncate the body');
 
     return true;
   });
