@@ -57,18 +57,17 @@ test.describe('walkontable exact row heights', { tag: '@walkontable' }, () => {
     test('keeps a row with a tall frozen cell at the provided height in both tables', async () => {
       // The frozen-column row sync measures the inline-start overlay for heights the master cannot
       // see. An exact row must not be re-recorded through that path either.
-      expect(await wt.rowHeight(wt.inlineStartOverlay, TALL_FROZEN_ROW)).toBe(ROW_HEIGHT);
-      expect(await wt.rowHeight(wt.master, TALL_FROZEN_ROW)).toBe(ROW_HEIGHT);
+      expect(await wt.rowHeights(TALL_FROZEN_ROW)).toEqual({ master: ROW_HEIGHT, overlay: ROW_HEIGHT });
 
       await wt.scrollHorizontallyTo(500);
 
-      // Poll: the holder's `scrollLeft` settles synchronously but the redraw it triggers is
-      // scheduled in `requestAnimationFrame` (`nativeScrollInput.ts`), so a read straight after
-      // the scroll can still see column 0. Pre-existing flake, not a change in behavior.
-      await expect.poll(async() => wt.masterFirstRenderedColumn()).toBeGreaterThan(0);
-      expect(await wt.rowHeight(wt.master, TALL_FROZEN_ROW)).toBe(ROW_HEIGHT);
-      expect(await wt.rowOffsetWithinTable(wt.master, TALL_FROZEN_ROW + 2))
-        .toBe(await wt.rowOffsetWithinTable(wt.inlineStartOverlay, TALL_FROZEN_ROW + 2));
+      // `scrollLeft` lands a task before the draw that moves the band, so the band is polled, and
+      // the heights and offsets after it are polled and pinned too: each pair is read in one
+      // evaluation, because two reads that straddle the draw measure recycled rows (see
+      // `rowGeometry.ts`), and a compare between two such reads can pass while both are wrong.
+      await expect.poll(() => wt.masterFirstRenderedColumn()).toBeGreaterThan(0);
+      await expect.poll(() => wt.rowHeights(TALL_FROZEN_ROW)).toEqual({ master: ROW_HEIGHT, overlay: ROW_HEIGHT });
+      await expect.poll(() => wt.rowOffsetDrift([TALL_FROZEN_ROW + 2])).toEqual([0]);
     });
 
     test('keeps the checkbox and the autocomplete arrow inside the clipping wrapper', async () => {
@@ -84,7 +83,10 @@ test.describe('walkontable exact row heights', { tag: '@walkontable' }, () => {
       await wt.scrollVerticallyTo(100000);
       await wt.scrollVerticallyTo(0);
 
-      expect(await wt.masterScrollHeight()).toBe(before);
+      // Polled: `scrollTop` lands a task before the draw that follows it, and the scroll range is
+      // 1px taller while the band is scrolled (the top overlay's inner border), so a single read
+      // right after the scroll back can still see that pixel.
+      await expect.poll(() => wt.masterScrollHeight()).toBe(before);
       expect(await wt.countRowCacheInvalidations(3)).toBe(0);
     });
 
@@ -123,7 +125,10 @@ test.describe('walkontable exact row heights', { tag: '@walkontable' }, () => {
       await wt.scrollVerticallyTo(100000);
       await wt.scrollVerticallyTo(0);
 
-      expect(await wt.masterScrollHeight()).toBe(before);
+      // Polled: `scrollTop` lands a task before the draw that follows it, and the scroll range is
+      // 1px taller while the band is scrolled (the top overlay's inner border), so a single read
+      // right after the scroll back can still see that pixel.
+      await expect.poll(() => wt.masterScrollHeight()).toBe(before);
       expect(await wt.countRowCacheInvalidations(3)).toBe(0);
     });
   });

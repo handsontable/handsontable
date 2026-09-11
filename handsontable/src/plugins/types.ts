@@ -7,6 +7,7 @@
  */
 import type { AutoColumnSize } from './autoColumnSize';
 import type { Autofill } from './autofill';
+import type { AutoLink } from './autoLink';
 import type { AutoRowSize } from './autoRowSize';
 import type { BindRowsWithHeaders } from './bindRowsWithHeaders';
 import type { CollapsibleColumns } from './collapsibleColumns';
@@ -54,6 +55,7 @@ import type { UndoRedo } from './undoRedo';
 export interface PluginTypeMap {
   autoColumnSize: AutoColumnSize;
   autofill: Autofill;
+  autoLink: AutoLink;
   autoRowSize: AutoRowSize;
   bindRowsWithHeaders: BindRowsWithHeaders;
   collapsibleColumns: CollapsibleColumns;

@@ -21,7 +21,7 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 [[toc]]
 
-Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin.
+Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin.
 
 ## 1. `date` cells reach the formula engine the same way on every data path
 
@@ -356,7 +356,51 @@ Nothing to change in most cases, because the gesture now does what the highlight
 code removed a selection layer in response to such a click, drop that workaround: the grid no longer
 removes the layer for you.
 
-## 9. Removing a parent row removes every row below it
+## 9. Formulas shortcut methods
+
+This applies only if you call [`registerShortcuts()`](@/api/formulas.md#registershortcuts) or
+[`unregisterShortcuts()`](@/api/formulas.md#unregistershortcuts) on the
+[`Formulas`](@/api/formulas.md) plugin.
+
+The `Alt`+`Enter` shortcut that opens a cell's link is a core grid shortcut now, registered for
+every grid, so the `Formulas` plugin has nothing left for either method to do. Both are deprecated
+no-op methods since 18.2.0, and each prints a one-time console warning when called. They will be
+removed in 19.0.0.
+
+Nothing else about the shortcut changes: `Alt`+`Enter` still opens the link of the selected cell the
+same way it always did.
+
+### Who is affected
+
+You are affected only if your code calls `hot.getPlugin('formulas').registerShortcuts()` or
+`.unregisterShortcuts()` -- for example, to re-register the shortcut after disabling and
+re-enabling the plugin.
+
+### How to migrate
+
+Remove the calls. The shortcut is available on every grid regardless of whether the `Formulas`
+plugin is enabled, so there is nothing to replace them with.
+
+**Before:**
+
+```js
+const formulas = hot.getPlugin('formulas');
+
+formulas.disablePlugin();
+formulas.enablePlugin();
+formulas.registerShortcuts();
+```
+
+**After:**
+
+```js
+const formulas = hot.getPlugin('formulas');
+
+formulas.disablePlugin();
+formulas.enablePlugin();
+```
+
+## 10. Removing a parent row removes every row below it
 
 This applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin.
 

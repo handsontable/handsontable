@@ -64,6 +64,22 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   the target row well inside the band on every theme, which is why `cell(40, 3)`
   after an 800px window scroll in the same spec is safe. Distance from the
   band's edge is what decides, not whether the index is written down.
+- **A SHORT fixed-height fixture has no room to spare on the row axis, and
+  `hover()` turns that into a delayed failure somewhere else.** Playwright
+  scrolls a target into view before pressing it, so a `cell(row, col)` locator
+  is not only a position — it is a potential scroll. In a 260px grid,
+  `cell(5, 3)` is inside the band on `main` and `horizon` and below the fold on
+  `classic`; hovering it there scrolled the holder far enough to unrender row 1,
+  and the step that failed was a LATER hover over row 1, which timed out after
+  20s with `waiting for getByTestId('cell-1-1')` — a missing element, pointing
+  at neither the scroll nor the theme (DEV-2871). Two rules follow. Pick a cell
+  that cannot move: one a row or two below the header, in a column the fixture's
+  own floating UI does not cover. And remember the sibling failure with the same
+  symptom — a cell a portal element (a comment editor, a menu) is painted over
+  cannot receive the pointer either, so `hover()` waits out the whole timeout on
+  an element that is present and visible. Centralize the choice in one page-object
+  method so the reasoning is stated once
+  (`CommentsEditorResizePage.hoverCellWithoutComment()`).
 
 ## Fixture contract (never get these wrong)
 
@@ -317,3 +333,16 @@ recycled (the table's root, the grid), read every value a comparison needs in
 that same evaluation (`FrozenTallCellPage.rowHeights()`), and poll a pinned
 expected value rather than comparing two reads with each other — two reads
 that both landed before the draw agree with each other and prove nothing.
+
+**Where a flake goes.** In CI the config adds a `json` reporter
+(`test-results/report.json`, shipped inside the `playwright-report-*` failure
+artifact), and `.github/workflows/test-health.yml` collects every `flaky` or
+`unexpected` test of a red run into the cross-run ledger at
+<https://handsontable.github.io/handsontable/test-health/>: per test, 7- and
+30-day counts, distinct runs, legs, and a "needs ticket" flag at 2+ distinct
+runs in 30 days — the playbook's line for a fix or migration ticket. A `flaky`
+outcome (failed, then passed on retry) reaches the ledger only because
+`failOnFlakyTests` fails the leg; keep `retries` at 1 in CI for that to hold.
+The report path is pinned by `.github/scripts/lib/test-health.mjs` and asserted
+in `.github/scripts/__tests__/test-health.test.mjs`, so moving it means changing
+all three places.

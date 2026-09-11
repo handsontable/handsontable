@@ -314,6 +314,22 @@ They are written in different places and can drift. Keep this in mind:
   physical order never diverge because of a move. Only trimming makes them diverge.
 - **UndoRedo** deletes `__children` before storing undo data, because this plugin restores the tree
   itself.
+- **AutoRowHeaderSize already subsumes `HeadersUI#updateRowHeaderWidth()` — never measure labels
+  here.** That method derives a width from the nesting depth alone
+  (`Math.max(50, padding * 2 + 10 * levelCount + 25)`, exactly 61px on a two-level tree in
+  `ht-theme-main`) and never looks at the label, so a ~40px custom `rowHeaders` label is clipped
+  (DEV-64). AutoRowHeaderSize measures the header **as rendered**, decoration included: it runs the
+  renderers from `afterGetRowHeaderRenderers` into a `GhostTable`, and the grid's own one
+  (`appendRowHeader`, `tableView.ts:2196`) fires `afterGetRowHeader`, which is where
+  `appendLevelIndicators` adds the spacers and the button. Measured: toggling nesting alone moves it
+  66px -> 104px, and 133px -> 170px with longer labels — a constant ~38px, this plugin's decoration.
+  The 61px floor therefore never wins once that plugin is on. So the formula is a deliberately crude
+  **fallback for the no-AutoRowHeaderSize case**; teaching it to measure text would duplicate a whole
+  sampler and would still disagree with a plain grid, which is fixed-width by default too. If it is
+  ever changed to *add* decoration room on top of the incoming width instead of `Math.max`-ing a
+  floor, gate that on `this.hot.getPlugin('autoRowHeaderSize')?.isEnabled()` (the pattern
+  `manualRowResize.ts:876` uses for `autoRowSize`) or the 38px is counted twice. Users escape with
+  `rowHeaderWidth` (works back to 16.2, because the floor is a `Math.max`) or `autoRowHeaderSize: true`.
 
 ## Tests
 

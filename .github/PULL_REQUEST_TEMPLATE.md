@@ -21,6 +21,14 @@ entry` AFTER opening the PR (the file is named after the PR number). Docs-,
 test-, and CI/tooling-only PRs pass the check automatically. To deliberately
 skip it on a source change, write [skip changelog] in this description OUTSIDE
 any HTML comment — here, inside a comment, it is inert.
+
+One PR gets ONE entry. A second is only for a separate GitHub issue this PR
+closes; a different type or framework is not a reason for a second file — fold
+the titles instead. Use `npm run changelog entry` rather than writing the JSON
+by hand: the filename must be <number>.json with no suffix, and that is checked.
+Back-filling entries for OTHER PRs is the only case needing more than two —
+write [multiple changelogs] outside a comment for that. [skip changelog] does
+not lift the limit.
 -->
 
 ### Commands run

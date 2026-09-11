@@ -63,9 +63,26 @@ jobs:
           path: ./
       - run: tar -zxf dist.tar.gz ./handsontable/dist ./handsontable/styles && rm dist.tar.gz
       - name: Test
+        # HOT_E2E_LEG labels the failure annotations, the step summary, and the
+        # failed-specs record the runner writes on a red run (test/e2e-results/).
+        env:
+          HOT_E2E_LEG: ${{ matrix.bundle.label }}
         run: |
           cd handsontable
           npm run ${{ matrix.bundle.dump }} --theme=${{ matrix.theme }} && npm run test:e2e.puppeteer --theme=${{ matrix.theme }}
+      # The record names every failed spec with its file and whether it fails
+      # alone; the flake ledger collects these across runs. Uploading needs no
+      # secret, so fork and Dependabot runs keep it.
+      - name: Upload the failed-specs record
+        if: failure()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          name: puppeteer-failed-specs-${{ matrix.bundle.label }}-${{ matrix.theme }}
+          path: handsontable/test/e2e-results/
+          if-no-files-found: ignore
+          # A re-run attempt that fails again replaces the record; without this
+          # the upload 409s on the name and the newer record is lost.
+          overwrite: true
 
   # Runs inside the pinned Playwright container so the engine + browsers match
   # local and baseline generation. One leg per theme × bundle — the same matrix
@@ -106,3 +123,6 @@ jobs:
             tests/playwright-report
             tests/test-results
           retention-days: 3
+          # A re-run attempt that fails again replaces the report; without this
+          # the upload 409s on the name and the newer report is lost.
+          overwrite: true

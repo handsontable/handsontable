@@ -37,7 +37,7 @@ To speed up the process of merging your changes, follow these rules:
 
     Your tests help us understand the issue and make sure it stays fixed forever. Write them to prove the *intended* behavior, ideally before the code — for a bug fix, write the failing test first, confirm it fails for the right reason, then fix it so it stays as a regression guard.
 8. Lint your code. From the root directory, run: `npm run lint`. Your code should follow our coding style, inspired by the [Airbnb JavaScript Style Guide](https://github.com/airbnb/javascript).
-9. Add a mandatory [changelog](https://github.com/handsontable/handsontable/blob/master/CHANGELOG.md) entry. From the root directory, run: `npm run changelog entry` (see [`.changelogs/`](https://github.com/handsontable/handsontable/tree/master/.changelogs)). Non-source-code PRs can skip this by writing `[skip changelog]` in the PR description.
+9. Add a mandatory [changelog](https://github.com/handsontable/handsontable/blob/master/CHANGELOG.md) entry. From the root directory, run: `npm run changelog entry` (see [`.changelogs/`](https://github.com/handsontable/handsontable/tree/master/.changelogs)). One PR gets one entry, and a second only when it cites a separate GitHub issue; both the count and the entry's filename are checked automatically. Non-source-code PRs can skip this by writing `[skip changelog]` in the PR description.
 10. In your PR, add a thorough description of all the changes, and fill in the test-evidence section of the PR template.
 
 Thank you for your contribution!

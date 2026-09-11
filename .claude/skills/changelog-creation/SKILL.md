@@ -99,23 +99,33 @@ Getting this wrong is not fatal — GitHub redirects `/issues/<n>` to `/pull/<n>
 For interactive creation, run:
 
 ```bash
-node bin/changelog entry
+npm run changelog entry
 ```
 
-This walks you through each field and writes the JSON file for you. You can also create the file manually -- the format is simple enough.
+This walks you through each field and writes the JSON file for you. **Use it rather than writing the JSON by hand.** It is the only thing that guarantees the filename, and a hand-written file is how every violation of the rule below has been created.
 
-## One Entry Per Changelog Section
+If the target filename already exists, a non-interactive run refuses to overwrite
+it. Edit or remove the existing JSON directly, or run the command in a terminal
+to confirm the overwrite.
 
-**Never add two entries that land in the same `CHANGELOG.md` section for the same package.** One entry per PR is the norm. The authoritative rule lives in [`.changelogs/README.md`](../../../.changelogs/README.md); this section is the short form.
+## One Entry Per Pull Request
+
+**A PR adds one entry. A second is correct only when it cites a different GitHub number.** The authoritative rule lives in [`.changelogs/README.md`](../../../.changelogs/README.md); this section is the short form.
 
 That holds even when the PR fixes several issues or makes several distinct user-facing changes. The title describes the overall change; it does not list individual issues.
 
-Do **not** add a second entry with the same `type` and `framework` because:
+Do **not** add a second entry because:
 
 - the PR fixes a second bug that has no issue of its own — fold it into the one title;
+- the fix also changes an API, or is `changed` as well as `fixed` — **a different `type` is not a reason for a second file**; describe both in the one title and let the `type` that matters most pick the section;
+- the change spans the React, Vue, and Angular wrappers — **a different `framework` is not a reason either**; file it once with `framework: none`;
 - the changes feel unrelated — if they are genuinely unrelated, they belong in separate PRs.
 
-A second entry **is** correct when it lands elsewhere — a different `type`, or a different `framework`. A public issue fixed alongside a private behavior change is the common case: `fixed` plus `changed`. Those cannot fold into one file, because a file carries one `type` and `type` picks the section.
+A second entry **is** correct for a public GitHub issue closed alongside the PR's own change: one file citing the issue number, one citing the PR number.
+
+**Never invent a filename.** A file is always `<issueOrPR>.json`, a plain number and nothing else. `13442-changed.json`, `13442-react.json`, and `013442.json` are all rejected, because a number owns exactly one file — that is what keeps one PR to one entry. If the name you need is already taken, the entry already exists: fold your title into it.
+
+Two blocking checks assert this, so a violation reds the PR rather than reaching a reviewer: `bin/changelog` rejects a misnamed file (on every PR, via the `consume --dry-run` step of the `changelog` job, and locally via pre-push), and the changelog gate rejects a third entry file. A maintenance PR that back-fills entries for *other* PRs writes `[multiple changelogs]` in the PR description to lift the count limit; `[skip changelog]` does not lift it.
 
 Before you commit, list what the branch adds:
 
@@ -124,7 +134,7 @@ git fetch origin develop
 git diff --name-only --diff-filter=A origin/develop...HEAD -- '.changelogs/*.json'
 ```
 
-Read the `type` and `framework` of every path it lists. Two paths that share both are wrong — fold them together and delete the extra. Swap `develop` for the PR's base branch when you target a release branch.
+More than two paths is wrong — fold the extra titles together and delete the files. Swap `develop` for the PR's base branch when you target a release branch.
 
 ## Checklist
 
@@ -134,6 +144,6 @@ Read the `type` and `framework` of every path it lists. Two paths that share bot
 4. Set `breaking` to `true` only if the change breaks existing behavior.
 5. Set `framework` to match the affected package, or `"none"` for core.
 6. Leave `issuesOrigin` as `"private"` unless the entry cites a real public GitHub issue number — see [Issue Origin](#issue-origin).
-7. Name the file `<PR-number>.json` and set `"issueOrPR"` to the same number. Do not guess or infer the number — read it from the created PR. Write to `<repo-root>/.changelogs/<PR-number>.json` — **not** inside any package subdirectory (e.g. `handsontable/.changelogs/` is wrong). With `"public"`, both the filename and `issueOrPR` use the **issue** number instead.
+7. Name the file `<PR-number>.json` and set `"issueOrPR"` to the same number — a plain number, with no suffix of any kind. Do not guess or infer the number — read it from the created PR. Write to `<repo-root>/.changelogs/<PR-number>.json` — **not** inside any package subdirectory (e.g. `handsontable/.changelogs/` is wrong). With `"public"`, both the filename and `issueOrPR` use the **issue** number instead.
 8. Commit and push the new changelog file to the same feature branch so the open PR picks it up.
-9. Confirm no two files the branch adds under `.changelogs/` share the same `type` and `framework` — see [One Entry Per Changelog Section](#one-entry-per-changelog-section).
+9. Confirm the branch adds **one** file under `.changelogs/`, or two citing different numbers, and that each filename equals its `issueOrPR` — see [One Entry Per Pull Request](#one-entry-per-pull-request).
