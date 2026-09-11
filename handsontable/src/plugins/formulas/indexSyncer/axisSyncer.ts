@@ -72,6 +72,13 @@ class AxisSyncer {
    */
   #indexesSequence: number[] = [];
   /**
+   * Whether the engine still holds the order `#indexesSequence` describes. It stops describing it while the
+   * engine's sheet is empty, because an order sent then would have nothing to apply to.
+   *
+   * @type {boolean}
+   */
+  #engineOrderStale = false;
+  /**
    * List of moved HF indexes, stored before performing move on HOT to calculate transformation needed on HF's engine.
    *
    * @private
@@ -333,13 +340,77 @@ class AxisSyncer {
   }
 
   /**
+   * Reshapes an order transformation into the permutation of `0..sizeForAxis - 1` the engine accepts.
+   *
+   * The engine takes an order exactly as long as its sheet, and every entry has to be a position within
+   * that sheet — it rejects anything else by throwing, and the throw unwinds whatever triggered the
+   * sequence change. Two things make the grid's own transformation a poor fit. The engine reports a sheet
+   * by the extent of its content, so trailing empty rows and columns of the dataset are not counted, and
+   * it also extends a sheet beyond the dataset to calculate values outside it
+   * (handsontable/hyperformula#1179). The transformation is therefore padded when it is shorter than the
+   * sheet, and compressed onto the elements the engine actually holds when it is longer, keeping their
+   * relative order. Mid-batch entries the sequence no longer covers arrive as `-1` and are ranked last.
+   *
+   * @param {number[]} transformation Order transformation describing where each element the engine currently
+   * holds should move to.
+   * @param {number} sizeForAxis Size of the engine's sheet along the synchronized axis.
+   * @returns {number[]} The order to hand to the engine.
+   */
+  static #toEngineOrder(transformation: number[], sizeForAxis: number): number[] {
+    const positions = [];
+
+    for (let position = 0; position < sizeForAxis; position += 1) {
+      positions.push({
+        index: position,
+        target: position < transformation.length ? transformation[position] : position,
+      });
+    }
+
+    positions.sort((left, right) => {
+      if (left.target < 0 || right.target < 0) {
+        return (left.target < 0 ? 1 : 0) - (right.target < 0 ? 1 : 0) || left.index - right.index;
+      }
+
+      return left.target - right.target || left.index - right.index;
+    });
+
+    const engineOrder: number[] = new Array<number>(sizeForAxis);
+
+    positions.forEach(({ index }, rank) => {
+      engineOrder[index] = rank;
+    });
+
+    return engineOrder;
+  }
+
+  /**
+   * Sends an axis order transformation to the engine, reshaped to the engine sheet's size.
+   *
+   * @param {number[]} transformation Order transformation describing where each element the engine currently
+   * holds should move to.
+   * @param {number} sizeForAxis Size of the engine's sheet along the synchronized axis.
+   * @returns {boolean} `true` when the engine received the order, `false` when there was nothing to send.
+   */
+  #syncOrderWithEngine(transformation: number[], sizeForAxis: number): boolean {
+    // A sheet the workbook gained at runtime carries no data, so the engine holds no rows or columns to
+    // reorder and reports the sheet as 0x0. There is nothing to send, and the grid's order is replayed
+    // by the next sync that finds a sheet to apply it to.
+    if (sizeForAxis === 0) {
+      return false;
+    }
+
+    this.#indexSyncer.getEngine()![`set${toUpperCaseFirst(this.#axis)}Order`](
+      this.#indexSyncer.getSheetId()!, AxisSyncer.#toEngineOrder(transformation, sizeForAxis));
+
+    return true;
+  }
+
+  /**
    * Gets callback for hook triggered after performing change of indexes order.
    *
    * @returns {Function}
    */
   getIndexesChangeSyncMethod() {
-    const SYNC_ORDER_CHANGE_METHOD_NAME = `set${toUpperCaseFirst(this.#axis)}Order`;
-
     return (source: string) => {
       if (this.#indexSyncer.isPerformingUndoRedo()) {
         return;
@@ -358,26 +429,27 @@ class AxisSyncer {
 
         const relativeTransformation = this.#indexesSequence.map(index => positionOfPhysical[index] ?? -1);
         const sheetDimensions = this.#indexSyncer.getEngine()!.getSheetDimensions(this.#indexSyncer.getSheetId()!);
-        let sizeForAxis;
+        const sizeForAxis = this.#axis === 'row' ? sheetDimensions.height : sheetDimensions.width;
 
-        if (this.#axis === 'row') {
-          sizeForAxis = sheetDimensions.height;
+        this.#engineOrderStale = !this.#syncOrderWithEngine(relativeTransformation, sizeForAxis);
 
-        } else {
-          sizeForAxis = sheetDimensions.width;
+        if (this.#engineOrderStale) {
+          // The engine's sheet is empty, so whatever it is filled with later arrives in physical order.
+          // Recording that identity keeps the next transformation absolute, which is what carries the
+          // order the engine could not take when it becomes able to take one.
+          this.#indexesSequence = newSequence.map((value, index) => index);
+
+          return;
         }
+      }
 
-        const numberOfReorganisedIndexes = relativeTransformation.length;
-
-        // Sheet dimension can be changed by HF's engine for purpose of calculating values. It extends dependency
-        // graph to calculate values outside of a defined dataset. This part of code could be removed after resolving
-        // feature request from HF issue board (handsontable/hyperformula#1179).
-        for (let i = numberOfReorganisedIndexes; i < sizeForAxis; i += 1) {
-          relativeTransformation.push(i);
-        }
-
-        this.#indexSyncer.getEngine()![SYNC_ORDER_CHANGE_METHOD_NAME](this.#indexSyncer.getSheetId()!,
-          relativeTransformation);
+      // The stored sequence is the order the engine currently holds, and every transformation is relative
+      // to it. While the engine has nothing to apply an order to, the sequence stays where it was —
+      // recording the grid's would make the next transformation describe a move the engine never made,
+      // and its axis order would drift away from the grid's. Every source is frozen, not just the one
+      // that was skipped: a row inserted or moved in the meantime advances the grid's sequence too.
+      if (this.#engineOrderStale) {
+        return;
       }
 
       this.#indexesSequence = newSequence;
@@ -391,25 +463,25 @@ class AxisSyncer {
    * that translates visual indexes through `getHfIndexFromVisualIndex` reads the wrong cells.
    *
    * @private
+   * @returns {boolean} `true` when the engine holds the sequence's order, `false` while it does not.
    */
-  #syncInitialOrder() {
+  #syncInitialOrder(): boolean {
     const sequence = this.#indexMapper.getIndexesSequence();
     const isIdentity = sequence.every((value, index) => value === index);
 
     if (isIdentity || sequence.length === 0) {
-      return;
+      return true;
     }
 
     const engine = this.#indexSyncer.getEngine();
     const sheetId = this.#indexSyncer.getSheetId();
 
     if (engine === null || sheetId === null) {
-      this.#indexSyncer.getPostponeAction()(() => this.#syncInitialOrder());
+      this.#indexSyncer.getPostponeAction()(() => this.#applyInitialOrder());
 
-      return;
+      return false;
     }
 
-    const SYNC_ORDER_CHANGE_METHOD_NAME = `set${toUpperCaseFirst(this.#axis)}Order`;
     const sheetDimensions = engine.getSheetDimensions(sheetId);
     const sizeForAxis = this.#axis === 'row' ? sheetDimensions.height : sheetDimensions.width;
     // HF currently holds data in physical order ([0..n-1] identity). The transformation tells HF where each
@@ -422,19 +494,30 @@ class AxisSyncer {
       transformation[sequence[position]] = position;
     }
 
-    for (let i = transformation.length; i < sizeForAxis; i += 1) {
-      transformation.push(i);
-    }
+    return this.#syncOrderWithEngine(transformation, sizeForAxis);
+  }
 
-    engine[SYNC_ORDER_CHANGE_METHOD_NAME](sheetId, transformation);
+  /**
+   * Synchronizes the initial order and records the sequence the engine ended up holding. A sync the engine
+   * could not take leaves the stored sequence behind, so the next transformation is measured against the
+   * order the engine actually holds rather than one it never received.
+   *
+   * @private
+   */
+  #applyInitialOrder() {
+    const sequence = this.#indexMapper.getIndexesSequence();
+
+    this.#engineOrderStale = !this.#syncInitialOrder();
+    // A sync the engine could not take leaves it in physical order, which is what the next transformation
+    // has to be measured against — recording the grid's sequence would claim an order it never received.
+    this.#indexesSequence = this.#engineOrderStale ? sequence.map((value, index) => index) : sequence;
   }
 
   /**
    * Initialize the AxisSyncer.
    */
   init() {
-    this.#syncInitialOrder();
-    this.#indexesSequence = this.#indexMapper.getIndexesSequence();
+    this.#applyInitialOrder();
   }
 }
 

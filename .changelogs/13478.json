@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed sorting a grid whose formula engine sheet is shorter than the grid, such as a sheet with trailing empty rows or one the sheets bar added at runtime, which threw an error and left a runtime-added sheet impossible to switch back to.",
+  "type": "fixed",
+  "issueOrPR": 13478,
+  "breaking": false,
+  "framework": "none"
+}

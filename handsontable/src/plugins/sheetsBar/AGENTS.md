@@ -76,7 +76,11 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   `columns[].data` binding gets a direct source write plus one render. Formulas plus a `data`
   remap is mangled by the Formulas plugin itself at load, before any of this runs); a removed sheet is removed
   from the engine; a duplicate binds to an engine sheet of its own; a runtime-added sheet with
-  no `settings` inherits the shared engine under its own name. A brand-new binding (add,
+  no `settings` inherits the shared engine under its own name — and carries no data, so the
+  engine reports that sheet as `0x0` while the grid counts its default rows and columns. Its
+  axis order is therefore not mirrored into the engine until the sheet holds data; the
+  mechanism, and why the stored baseline records identity rather than the grid's order, is in
+  `../formulas/AGENTS.md` ("The engine's sheet size is not the grid's axis length"). A brand-new binding (add,
   duplicate) goes through `freeEngineName()` — a `sheetName` may differ from its tab name, so
   a free tab label can still identify another sheet's engine data, and reusing it would
   overwrite that data. A rename whose new name already identifies another engine sheet is

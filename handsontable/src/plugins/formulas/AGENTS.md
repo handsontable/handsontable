@@ -100,11 +100,31 @@ switches the sheet, and dropping them would skip that.
 `{ hyperformula: engineClass }`. Cross-sheet referencing hooks are registered on the shared instance
 registry.
 
-## HF may extend the sheet beyond the dataset
+## The engine's sheet size is not the grid's axis length, in either direction
 
-The engine grows a sheet's dimensions to calculate values outside the defined dataset (it extends the
-dependency graph). The compensation code carries a note that it can be removed once
-[hyperformula#1179](https://github.com/handsontable/hyperformula/issues/1179) is resolved.
+`getSheetDimensions()` answers with the extent of the sheet's **content**, and the engine accepts an order
+exactly as long as that — anything else it rejects by throwing, and the throw unwinds whatever triggered the
+sequence change (a sort, a view-state restore). The two directions have different causes and the same fix
+site, `AxisSyncer#syncOrderWithEngine`:
+
+- **Sheet larger than the dataset.** The engine grows a sheet to calculate values outside it (it extends the
+  dependency graph). The order is padded up to that size, and the padding can go once
+  [hyperformula#1179](https://github.com/handsontable/hyperformula/issues/1179) is resolved.
+- **Sheet shorter than the grid.** Trailing empty rows and columns are not counted, so a grid with a blank
+  last row, with `minSpareRows`, or a sheet the sheets bar added at runtime (no data at all, reported `0x0`
+  against the grid's default 26 columns) is longer than its own engine sheet. The order is **compressed**
+  onto the elements the engine holds, keeping their relative order, rather than sent whole — sending it whole
+  is what made sorting such a grid throw `InvalidArgumentsError` (DEV-2904).
+
+Two rules ride along. The engine validates **entries** as well as length, so an order must be a permutation
+of `0..size - 1`: the `?? -1` a mid-batch sequence produces is ranked last rather than passed through, which
+the engine would reject as "not a permutation". And an order for an **empty** sheet is not sent at all — the
+engine holds nothing to reorder — in which case the stored `#indexesSequence` records the identity the engine
+will hold when it is filled, so the next sync sends the order as an absolute one and the grid's order is not
+lost. Never record the grid's own sequence there: every transformation is relative to the order the engine
+actually holds, and claiming one it never received makes its axis order drift away from the grid's for the
+rest of the session. Still open: a move applied while the engine's sheet is empty reaches the engine through
+`syncMoves` but is not reflected in that identity baseline.
 
 ## `HYPERLINK` cells: an allowlist, not a sanitizer
 
