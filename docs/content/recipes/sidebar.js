@@ -116,6 +116,19 @@ const editingValidationItems = [
   },
 ];
 
+const platformsItems = [
+  {
+    path: 'platforms/salesforce-lwc/salesforce-lwc',
+    title: 'Salesforce Lightning Web Components',
+    onlyFor: ['javascript'],
+  },
+  {
+    path: 'platforms/web-components/web-components',
+    title: 'Web components',
+    onlyFor: ['javascript'],
+  },
+];
+
 const accessibilityItems = [
   { path: 'accessibility/keyboard-shortcuts/keyboard-shortcuts', title: 'Custom keyboard shortcuts', onlyFor: ['javascript', 'react', 'angular'] },
   { path: 'accessibility/aria-grid/aria-grid', title: 'ARIA grid', onlyFor: ['javascript', 'angular', 'react'] },
@@ -162,6 +175,7 @@ module.exports = {
       onlyFor: ['javascript', 'angular', 'react', 'vue'],
     },
     { title: 'Performance', path: 'performance', children: performanceItems, collapsable: false, onlyFor: ['javascript', 'react', 'angular', 'vue'] },
+    { title: 'Platforms and embedding', path: 'platforms', children: platformsItems, collapsable: false, onlyFor: ['javascript'] },
     { title: 'Themes', path: 'themes', children: themesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
   ],
 };
