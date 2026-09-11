@@ -29,37 +29,30 @@ When you push changes to a GitHub pull request:
    pull requests are therefore compared against one contributor's unreviewed screenshots. Treat an LTS
    result as advisory until an LTS push trigger exists.
 
-If reg-suit spots differences, the **Compare** check on your pull request fails, and you can't merge your
-changes. In that case:
+If reg-suit spots differences, the **Visual / approve** job of your pull request's Tests run waits for a
+reviewer, and `CI Gate` waits with it, so you can't merge yet. In that case:
 1. Open the report. The **Visual** workflow comments the report URL on your pull request. If that URL is
    unreachable, download the `visual-diff-report` artifact from the workflow run instead.
 2. Decide what the differences mean:
-      - They are a regression. Push a commit that removes them, and the check goes green.
-      - They are intentional. Add the `visual-approved` label to the pull request. That is the whole
-        step: the **Visual approval rerun** workflow re-runs the failed jobs for you, so the visual
-        check goes green without a manual re-run. If the rest of the pipeline is still running, the
-        re-run starts once it finishes. Any other job that is red stays red — the label accepts
-        visual differences, nothing else. Approval covers the whole build — there is no
-        per-screenshot review.
+      - They are a regression. Push a commit that removes them; the next run compares again and the
+        approval request goes away on its own.
+      - They are intentional. A reviewer opens the workflow run and selects **Review pending
+        deployments → visual-approval → Approve** (the deployment's "View deployment" button opens the
+        report). One click: no new commit, no re-run. **Reject** turns the run red. Approval covers the
+        whole build — there is no per-screenshot review — so read the report first.
 
-Approval binds to one set of screenshots. Pushing a new commit removes the `visual-approved` label, so
-screenshots nobody has looked at never inherit an earlier approval.
+Approval binds to one run. A new push starts a new run and asks again, so screenshots nobody has looked at
+never inherit an earlier approval. GitHub records who approved and any comment they left.
 
-Two cases the label cannot solve:
+Two cases worth knowing:
 
-- **Your pull request comes from a fork, or from Dependabot.** Those runs get no secrets, so nothing can
-  clear the label when you push again — which means it is ignored there rather than trusted, and no
-  automatic re-run is started either. The check
-  reports the real verdict, the workflow run's job summary carries it, and the `visual-diff-report`
-  artifact holds the images. To accept intentional differences, a maintainer has to re-raise the branch
-  from the main repository.
+- **Your pull request comes from a fork, or from Dependabot.** Those runs get no secrets and publish no
+  report, so the `visual-diff-report` artifact on the run holds the images and the job summary carries
+  the verdict. The approval works exactly the same: a maintainer approves the pending deployment.
 - **A visual change merged into the branch you target.** The golden records always come from that branch's
   latest build, so once someone else's intentional change lands, your next run inherits their differences
   as well as yours. **Rebase** — approving would also approve any real regression of your own that the same
   build contains.
-
-Approval is read live at the moment the gate runs, so it binds to wall-clock time rather than to a commit.
-Applying the label while a newer push is still rendering approves whatever that build produces.
 
 If the branch you target has no golden records yet, the check does not fail. The build promotes its own
 screenshots to that branch's golden records and passes, so a fresh branch cannot wedge every pull request
@@ -99,14 +92,12 @@ flowchart TD
     OUT --> GATE{"visual-gate.mjs<br/>any differences?"}
     GATE --> COMMENT["visual-gate.mjs writes the comment,<br/>sticky action posts it"]
     GATE -->|"none"| PASS["Check passes, PR mergeable"]
-    GATE -->|"differences found"| LABEL{"visual-approved<br/>label present?"}
-    LABEL -->|"yes"| PASS
-    LABEL -->|"no"| FAIL["Check fails, PR blocked"]
+    GATE -->|"differences found"| WAIT["approve job waits on the<br/>visual-approval environment"]
 
-    FAIL --> REVIEW["Open the report URL<br/>or the visual-diff-report artifact"]
+    WAIT --> REVIEW["Reviewer opens the report URL<br/>or the visual-diff-report artifact"]
     REVIEW -->|"a regression: fix it"| PR
-    REVIEW -->|"intentional: add the label"| RERUN["visual-approval-rerun.yml<br/>re-runs the failed jobs"]
-    RERUN --> KPR
+    REVIEW -->|"intentional: Approve"| PASS
+    REVIEW -->|"Reject"| FAIL["Job fails, PR blocked"]
 
     KBR -.->|"rewrites the baseline"| BUCKET[("Cloudflare R2<br/>base/BRANCH/actual/")]
     SEED -.-> BUCKET
@@ -117,7 +108,7 @@ flowchart TD
 
 Two behaviors are worth reading off the diagram:
 
-- **Approval is all or nothing, and the label is the only step.** The `visual-approved` label accepts every difference in the build at once, and `visual-approval-rerun.yml` re-runs the failed jobs so the visual check turns green on its own. An approval covers exactly the screenshots someone looked at: the label is compared against the commit it was applied to, so a push during the wait cancels the pending re-run — and pushing also removes the label outright.
+- **Approval is all or nothing, and one click.** A `changed` verdict holds the run on the `visual-approval` environment; the reviewer approves or rejects the pending deployment on the run page. An approval covers exactly the screenshots of that run: a new push is a new run and asks again.
 - **A missing baseline never blocks.** The first build for a branch promotes its own screenshots to the golden records and passes. The next build of that branch replaces them, so an unreviewed baseline survives at most one merge.
 
 ## Visual tests structure
@@ -153,8 +144,8 @@ There main demo available for all frameworks is served on `/`. There are additio
 
 ## Run visual tests through GitHub Actions
 
-Our GitHub Actions configuration runs the visual tests automatically, and the `visual-approved` label
-re-runs them for you. To start a re-run by hand anyway:
+Our GitHub Actions configuration runs the visual tests automatically; approving intentional differences
+needs no re-run. To render again by hand (a flake you want to rule out):
 
 1. On GitHub, at the bottom of your pull request, find the **Visual / Compare** check. Select **Details**.
 2. On the left, next to the **Compare** job, select 🔄.
