@@ -37,7 +37,7 @@ import {
 } from './lib/docs-sync/classify.mjs';
 import { createClient } from './lib/docs-sync/llm.mjs';
 import {
-  INCLUDE_LABEL, SKIP_LABEL, SYNC_LABEL, extractState, renderBody, renderTitle,
+  INCLUDE_LABEL, SKIP_LABEL, SYNC_LABEL, extractState, renderBody, renderCounts, renderTitle,
 } from './lib/docs-sync/pr-body.mjs';
 import {
   applyCommits, git, hasForeignCommits, resetSyncBranch,
@@ -276,6 +276,7 @@ try {
   const toClassify = [];
   let lookupFailures = 0;
   let lookupSuccesses = 0;
+  let classifierFailures = 0;
 
   for (const candidate of candidates) {
     if (candidate.prNumber === null) {
@@ -367,7 +368,7 @@ try {
 
     const body = renderBody(report);
 
-    log(body);
+    log(body, { summary: renderCounts(report) });
 
     if (openPr && !dryRun) {
       gh.upsertComment(
@@ -398,7 +399,31 @@ try {
       const classify = await makeClassifier({ prompt, hash, cache, target, releasedVersion: releasedVersionText, unreleased });
 
       for (const candidate of toClassify) {
-        const decision = await classify(candidate);
+        let decision;
+
+        try {
+          decision = await classify(candidate);
+        } catch (error) {
+          // One candidate's request failing must not abandon the whole batch. A
+          // content-triggered edge block (a WAF matching a string in the diff)
+          // is deterministic and re-runs identically, so aborting would let a
+          // single bad diff hold every other pending doc fix hostage. Leave this
+          // candidate unclassified -- never cached, so it is re-asked every run
+          // and clears itself once the gateway accepts it -- and carry on.
+          classifierFailures += 1;
+          // The full upstream response (headers + body, incl. the cf-ray for a
+          // support ticket) goes to the job log; the step summary gets a concise
+          // line, not the whole block page.
+          log(
+            `Classifier request failed for \`${candidate.sha.slice(0, 7)}\` (#${candidate.prNumber}); leaving it for a human.\n${error.message}`,
+            { summary: `Classifier request failed for #${candidate.prNumber} (${error.status ?? 'network error'}); not cherry-picked.` },
+          );
+          report.unsure.push({
+            ...candidate,
+            reason: `Not classified: the classifier request failed (${error.status ?? 'network error'}). Left for a human; not cherry-picked.`,
+          });
+          continue;
+        }
 
         // `unsure` is never cached: a synthetic --no-llm answer or a one-off
         // model uncertainty must be re-asked every run, not frozen into the
@@ -414,6 +439,10 @@ try {
         } else {
           report.unsure.push({ ...candidate, reason: decision.reason });
         }
+      }
+
+      if (classifierFailures > 0) {
+        log(`${classifierFailures} candidate(s) could not be classified this run; left for a human, not cherry-picked. The rest still sync.`);
       }
     }
 
@@ -472,7 +501,10 @@ try {
       const body = renderBody(report);
       const title = renderTitle(target);
 
-      log(body);
+      // Full per-commit audit trail to the job log; only the counts to the step
+      // summary, so it does not repeat the whole body GitHub already renders as
+      // the pull request description.
+      log(body, { summary: renderCounts(report) });
 
       if (dryRun) {
         log('\nDry run: nothing pushed, no pull request touched.');
@@ -514,11 +546,14 @@ try {
             log(`${report.conflicts.length} commit(s) conflict with ${target}; nothing applied, manual port needed`);
           }
         } else if (openPr) {
-          // A run whose pull request lookups all 404'd never learned whether
-          // this open pull request's own candidates still belong in it; never
-          // close it on the strength of a plan built from failed lookups.
-          if (lookupFailures > 0) {
-            log(`Skipped closing #${openPr.number}: ${lookupFailures} pull request lookup(s) failed this run.`);
+          // A run that could not classify or look up every candidate never
+          // learned whether this open pull request's own candidates still
+          // belong in it; never close it on the strength of a partial plan.
+          // A classifier failure is transient (an edge block clears when the
+          // gateway is fixed), so a candidate now sitting in `unsure` may become
+          // an include next run -- closing here would discard that plan.
+          if (lookupFailures > 0 || classifierFailures > 0) {
+            log(`Skipped closing #${openPr.number}: ${lookupFailures} pull request lookup(s) and ${classifierFailures} classification(s) failed this run.`);
           } else {
             gh.closePr(openPr.number, 'Everything this pull request carried has reached the target by another route. Closing; the next run reopens if new content lands.');
             log(`Closed #${openPr.number}: nothing left to sync.`);

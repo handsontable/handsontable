@@ -22,6 +22,40 @@ export function renderTitle(target) {
   return `Sync docs content from develop to ${target}`;
 }
 
+// Every bucket a candidate can land in, paired with its step-summary label. The
+// order is picked first, then the reasons for not picking. `renderBody` renders
+// the same buckets in full; this is the count-only view.
+const OUTCOMES = [
+  ['included', 'Included in the sync pull request'],
+  ['unsure', 'Needs a human decision'],
+  ['excluded', 'Excluded by the classifier'],
+  ['conflicts', 'Conflict'],
+  ['mixed', 'Mixed with non-content changes'],
+  ['versionScoped', 'Version-scoped page'],
+  ['alreadyOnProd', 'Already on prod'],
+  ['noPrNumber', 'No pull request number'],
+];
+
+/**
+ * A count-only summary of a run: how many commits were picked and how many were
+ * not, by outcome. The full per-commit decisions and reasons stay in the job
+ * log and the pull request body (`renderBody`); this is what the step summary
+ * shows so it does not repeat the whole audit trail.
+ *
+ * @param {object} report
+ * @returns {string}
+ */
+export function renderCounts(report) {
+  const picked = report.included.length;
+  const total = OUTCOMES.reduce((sum, [key]) => sum + report[key].length, 0);
+
+  return [
+    `## Docs content sync to ${report.target}`,
+    `Picked **${picked}** of **${total}** commit(s) for the sync pull request. Per-commit decisions and reasons are in the job log and the pull request body.`,
+    OUTCOMES.map(([key, label]) => `- ${label}: ${report[key].length}`).join('\n'),
+  ].join('\n\n');
+}
+
 /**
  * One Markdown section, or `None.` when the list is empty.
  *

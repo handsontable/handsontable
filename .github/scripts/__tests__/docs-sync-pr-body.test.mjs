@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  INCLUDE_LABEL, SKIP_LABEL, STATE_MARKER, SYNC_LABEL, extractState, renderBody, renderTitle,
+  INCLUDE_LABEL, SKIP_LABEL, STATE_MARKER, SYNC_LABEL, extractState, renderBody, renderCounts, renderTitle,
 } from '../lib/docs-sync/pr-body.mjs';
 import { collectProdRefs } from '../lib/docs-sync/candidates.mjs';
 
@@ -29,6 +29,20 @@ test('labels and title are fixed strings', () => {
   assert.equal(SKIP_LABEL, 'docs-sync: skip');
   assert.equal(INCLUDE_LABEL, 'docs-sync: include');
   assert.equal(renderTitle('prod-docs/18.1'), 'Sync docs content from develop to prod-docs/18.1');
+});
+
+test('renderCounts summarizes picked vs not picked by outcome', () => {
+  // The fixture has 1 included and 6 not-picked across the other buckets (7 total).
+  const counts = renderCounts(report);
+
+  assert.match(counts, /## Docs content sync to prod-docs\/18\.1/);
+  assert.match(counts, /Picked \*\*1\*\* of \*\*7\*\* commit\(s\)/);
+  assert.match(counts, /^- Included in the sync pull request: 1$/m);
+  assert.match(counts, /^- Needs a human decision: 1$/m);
+  assert.match(counts, /^- Already on prod: 0$/m);
+  assert.match(counts, /^- No pull request number: 1$/m);
+  // It is a count-only view: no per-commit shas or reasons leak into it.
+  assert.doesNotMatch(counts, /1111111|diff truncated|documents 18\.2/);
 });
 
 test('every section is present, empty ones say none', () => {
