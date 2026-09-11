@@ -72,6 +72,16 @@ export class NestedRowsUndoPage {
     await this.page.evaluate(() => window.hot.getPlugin('undoRedo').redo());
   }
 
+  /** Undo through the plugin API without moving the highlight first. */
+  async undoViaPlugin(): Promise<void> {
+    await this.page.evaluate(() => window.hot.getPlugin('undoRedo').undo());
+  }
+
+  /** Visual row of the current highlight, or `null` when nothing is selected. */
+  selectedRow(): Promise<number | null> {
+    return this.page.evaluate(() => window.hot.getSelectedLast()?.[0] ?? null);
+  }
+
   /** Read the names currently visible through the public visual-row API. */
   visibleNames(): Promise<string[]> {
     return this.page.evaluate(() => {

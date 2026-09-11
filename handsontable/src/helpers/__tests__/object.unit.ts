@@ -12,6 +12,7 @@ import {
   assignObjectDefaults,
   deepMerge,
   deepClone,
+  stripFunctionValues,
 } from 'handsontable/helpers/object';
 
 describe('Object helper', () => {
@@ -710,6 +711,26 @@ describe('Object helper', () => {
 
     it('should return false if the object is undefined', () => {
       expect(isKeyValueObject(undefined)).toBe(false);
+    });
+  });
+
+  describe('stripFunctionValues', () => {
+    it('should delete function-valued object keys and null function-valued array entries', () => {
+      const callback = () => {};
+      const value = {
+        name: 'A',
+        run: callback,
+        nested: { run: callback },
+        list: [callback, 'keep'],
+      };
+
+      stripFunctionValues(value);
+
+      expect(value).toEqual({
+        name: 'A',
+        nested: {},
+        list: [null, 'keep'],
+      });
     });
   });
 });

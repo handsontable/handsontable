@@ -327,6 +327,14 @@ They are written in different places and can drift. Keep this in mind:
   `UndoRedo.undo` as the source. Do not fix this by widening `amount` while still dropping
   `__children`. Tests that assert the nested source tree must use `dataManager.getRawSourceData()`,
   because the public `getSourceData()` path is intentionally flattened by `modifyRowData`.
+  Sibling roots go back in **ascending** `index` order: the live array is already compacted, and
+  inserting high indexes first writes past the remaining siblings (`A,B,C` minus `A` and `B`
+  becomes `A,C,B`). `row.index` is the position inside the parent – never use it as a visual-row
+  fallback for the probe hooks; a trimmed root would hand Formulas `0`. Context-menu removal
+  (`ContextMenu.removeRow`) never calls `selection.shiftRows`, so that undo path must not either
+  or the highlight lands below the restored subtree. The create-row probe asks **every** root
+  before deciding, otherwise a later veto leaves the earlier roots' `beforeCreateRow` unpaired
+  and the later root unasked.
 - **AutoRowHeaderSize already subsumes `HeadersUI#updateRowHeaderWidth()` — never measure labels
   here.** That method derives a width from the nesting depth alone
   (`Math.max(50, padding * 2 + 10 * levelCount + 25)`, exactly 61px on a two-level tree in

@@ -766,13 +766,15 @@ export class NestedRows extends BasePlugin {
    * @private
    * @param {unknown} snapshot An internal nested-row snapshot.
    * @param {number[]} rowIndexesSequence Physical row sequence from before removal.
+   * @param {boolean} [shiftSelection=true] When `false`, skip shifting the highlight. Context-menu
+   *   removal never called `shiftRows`, so undoing that path must not push the selection down.
    */
-  restoreRemovedRows(snapshot: unknown, rowIndexesSequence: number[]): boolean {
+  restoreRemovedRows(snapshot: unknown, rowIndexesSequence: number[], shiftSelection = true): boolean {
     if (!this.#isOperational() || !this.#isNestedRowsRemovalSnapshot(snapshot)) {
       return false;
     }
 
-    const wasRestored = this.dataManager!.restoreRemovedRows(snapshot, rowIndexesSequence);
+    const wasRestored = this.dataManager!.restoreRemovedRows(snapshot, rowIndexesSequence, shiftSelection);
 
     this.hot.selection.refresh();
 

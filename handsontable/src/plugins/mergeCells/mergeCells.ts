@@ -903,7 +903,12 @@ export class MergeCells extends BasePlugin {
     }
 
     snapshots.forEach((snapshot) => {
-      let merge = this.mergedCellsCollection.get(snapshot.row, snapshot.col);
+      const candidate = this.mergedCellsCollection.get(snapshot.row, snapshot.col);
+      // `get()` maps every covered cell, not just the top-left anchor. After a removal has
+      // slid surviving merges up, those coords can belong to a different merge.
+      let merge = candidate && candidate.row === snapshot.row && candidate.col === snapshot.col
+        ? candidate
+        : false;
       const physicalColumn = merge ? this.hot.toPhysicalColumn(merge.col) : null;
 
       if (!merge && snapshot.physicalRows.length > 0) {

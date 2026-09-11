@@ -103,3 +103,16 @@ test('undo restores a removed nested parent and its descendants', async({ page, 
     { name: 'After 13' },
   ]);
 });
+
+test('undo after a context-menu removal keeps the highlight on the restored parent', async({
+  page, theme, bundle,
+}) => {
+  const nestedRows = new NestedRowsUndoPage(page, theme, bundle);
+
+  await nestedRows.goto();
+  await nestedRows.removeRowViaContextMenu(13);
+  await nestedRows.undoViaPlugin();
+
+  expect(await nestedRows.selectedRow()).toBe(13);
+  expect(await nestedRows.visibleNames()).toEqual(EXPECTED_NAMES);
+});

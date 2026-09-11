@@ -228,18 +228,84 @@ describe('NestedRows', () => {
         }],
         beforeUndo,
         afterUndo,
+        fixedRowsTop: 2,
         nestedRows: true,
       });
 
       await alter('remove_row', 0);
+
+      const fixedRowsTopAfterRemove = getSettings().fixedRowsTop;
+
       getPlugin('nestedRows').disablePlugin();
       getPlugin('undoRedo').undo();
 
       expect(getPlugin('undoRedo').doneActions.length).toBe(1);
       expect(getPlugin('undoRedo').undoneActions.length).toBe(0);
       expect(countRows()).toBe(0);
+      expect(getSettings().fixedRowsTop).toBe(fixedRowsTopAfterRemove);
       expect(beforeUndo).not.toHaveBeenCalled();
       expect(afterUndo).not.toHaveBeenCalled();
+    });
+
+    it('should restore two sibling parents in their original order', async() => {
+      handsontable({
+        data: [
+          { col1: 'A' },
+          { col1: 'B' },
+          { col1: 'C' },
+        ],
+        nestedRows: true,
+      });
+
+      await alter('remove_row', 0, 2);
+      getPlugin('undoRedo').undo();
+
+      expect(getPlugin('nestedRows').dataManager.getRawSourceData()).toEqual([
+        { col1: 'A' },
+        { col1: 'B' },
+        { col1: 'C' },
+      ]);
+    });
+
+    it('should ask every removed root before refusing a later create-row veto', async() => {
+      const beforeCreateRow = jasmine.createSpy('beforeCreateRow').and.callFake(index => index !== 1);
+
+      handsontable({
+        data: [
+          { col1: 'A' },
+          { col1: 'B' },
+          { col1: 'C' },
+        ],
+        beforeCreateRow,
+        nestedRows: true,
+      });
+
+      await alter('remove_row', 0, 2);
+      beforeCreateRow.calls.reset();
+      getPlugin('undoRedo').undo();
+
+      expect(beforeCreateRow.calls.allArgs().map(args => args[0])).toEqual([0, 1]);
+      expect(countRows()).toBe(1);
+      expect(getPlugin('undoRedo').doneActions.length).toBe(1);
+    });
+
+    it('should keep restored cell-option meta out of the user-defined bucket', async() => {
+      handsontable({
+        data: [{
+          col1: 'A1',
+          __children: [{ col1: 'A1.1' }],
+        }],
+        cell: [{ row: 0, col: 0, className: 'from-cell-option' }],
+        nestedRows: true,
+      });
+
+      await alter('remove_row', 0);
+      getPlugin('undoRedo').undo();
+      await updateSettings({
+        cell: [{ row: 0, col: 0, className: 'replaced' }],
+      });
+
+      expect(getCellMeta(0, 0).className).toBe('replaced');
     });
 
     it('should not throw an error when removing a parent row', async() => {

@@ -1,6 +1,6 @@
 import type { HotInstance } from '../../../core/types';
 import { rangeEach } from '../../../helpers/number';
-import { deepClone, isPlainObject, objectEach } from '../../../helpers/object';
+import { deepClone, objectEach, stripFunctionValues } from '../../../helpers/object';
 import { arrayEach } from '../../../helpers/array';
 import type { NestedRows } from '../nestedRows';
 
@@ -51,34 +51,6 @@ interface CacheStructure {
   levelCount: number;
   rows: RowObject[];
   nodeInfo: WeakMap<object, NodeInfo>;
-}
-
-/**
- * Removes function-valued properties from a cloned row.
- *
- * Function values are not cell data and retaining them would alias a callback from the removed
- * source row onto the row restored by UndoRedo.
- *
- * @param {unknown} value The cloned value to clean.
- */
-function stripFunctionValues(value: unknown): void {
-  if (Array.isArray(value)) {
-    value.forEach((entry, index) => {
-      if (typeof entry === 'function') {
-        value[index] = null;
-      } else {
-        stripFunctionValues(entry);
-      }
-    });
-  } else if (isPlainObject(value)) {
-    Object.keys(value).forEach((key) => {
-      if (typeof value[key] === 'function') {
-        delete value[key];
-      } else {
-        stripFunctionValues(value[key]);
-      }
-    });
-  }
 }
 
 /**
@@ -264,6 +236,18 @@ class DataManager {
   }
 
   /**
+   * Visual insert index for a captured nested root. `row.index` is the position inside the parent,
+   * so it must not stand in for a missing visual row – a trimmed root would hand the hooks `0`
+   * instead of the physical slot Formulas uses for its veto check.
+   *
+   * @param {RemovedRowSnapshot} row A captured nested removal root.
+   * @returns {number} A visual row, or the physical row when the root was trimmed.
+   */
+  #visualIndexForRemovedRow(row: RemovedRowSnapshot): number {
+    return row.visualIndex ?? this.hot.toVisualRow(row.physicalRows[0]) ?? row.physicalRows[0];
+  }
+
+  /**
    * Runs the create-row lifecycle hooks for a nested undo without mutating the tree.
    *
    * UndoRedo must call this before `beforeUndo`. Formulas always calls `engine.undo()` in
@@ -274,23 +258,44 @@ class DataManager {
    * @returns {boolean} `true` when every restore hook allows the operation.
    */
   canRestoreRemovedRows(snapshot: NestedRowsRemovalSnapshot): boolean {
-    return snapshot.rows.every((row) => {
-      const visualIndex = row.visualIndex ?? row.index;
-      const subtreeLength = row.physicalRows.length;
+    const roots = snapshot.rows.map(row => ({
+      row,
+      visualIndex: this.#visualIndexForRemovedRow(row),
+      subtreeLength: row.physicalRows.length,
+    }));
 
-      if (this.hot.runHooks('beforeAlter', 'insert_row_above', visualIndex, subtreeLength, 'UndoRedo.undo') === false ||
-        this.hot.runHooks('beforeCreateRow', visualIndex, subtreeLength, 'UndoRedo.undo') === false) {
-        return false;
+    // Ask every root before deciding. Stopping at the first `false` would fire the insert
+    // hooks for earlier roots and skip later ones, so a listener pairing before/after on the
+    // first root is left holding state and a veto on the second root is never heard.
+    let allowed = true;
+
+    roots.forEach(({ visualIndex, subtreeLength }) => {
+      if (this.hot.runHooks('beforeAlter', 'insert_row_above', visualIndex, subtreeLength, 'UndoRedo.undo') === false) {
+        allowed = false;
       }
 
+      if (this.hot.runHooks('beforeCreateRow', visualIndex, subtreeLength, 'UndoRedo.undo') === false) {
+        allowed = false;
+      }
+    });
+
+    if (!allowed) {
+      return false;
+    }
+
+    roots.forEach(({ row }) => {
       this.plugin.disableCoreAPIModifiers();
 
       try {
-        return this.hot.runHooks('beforeDataSplice', row.physicalRows[0], 0, [row.data]) !== false;
+        if (this.hot.runHooks('beforeDataSplice', row.physicalRows[0], 0, [row.data]) === false) {
+          allowed = false;
+        }
       } finally {
         this.plugin.enableCoreAPIModifiers();
       }
     });
+
+    return allowed;
   }
 
   /**
@@ -302,9 +307,15 @@ class DataManager {
    *
    * @param {NestedRowsRemovalSnapshot} snapshot Detached nested-row removal snapshot.
    * @param {number[]} rowIndexesSequence Physical row sequence from before the removal.
+   * @param {boolean} [shiftSelection=true] When `false`, skip `selection.shiftRows`. Context-menu
+   *   removal never shifted the highlight, so undoing that path must not push it down by the subtree.
    * @returns {boolean} `true` when the operation was restored.
    */
-  restoreRemovedRows(snapshot: NestedRowsRemovalSnapshot, rowIndexesSequence: number[]): boolean {
+  restoreRemovedRows(
+    snapshot: NestedRowsRemovalSnapshot,
+    rowIndexesSequence: number[],
+    shiftSelection = true
+  ): boolean {
     if (!this.plugin.enabled || this.plugin.dataManager !== this) {
       return false;
     }
@@ -322,7 +333,11 @@ class DataManager {
     });
 
     rowsByParent.forEach((rows, parent) => {
-      rows.sort((first, second) => second.index - first.index);
+      // The live array is already compacted. Inserting high indexes first writes past the
+      // remaining siblings and lands them in the wrong order (A,B,C minus A and B becomes A,C,B).
+      // Ascending original-index order pushes that compacted tail to the right as each root
+      // goes back, which rebuilds the pre-removal layout.
+      rows.sort((first, second) => first.index - second.index);
 
       rows.forEach((row) => {
         if (parent === null) {
@@ -379,20 +394,22 @@ class DataManager {
       );
     });
 
-    restoredRowBlocks.forEach(({ physicalRow, amount }) => {
-      const visualRow = this.hot.toVisualRow(physicalRow);
-      let visibleAmount = 0;
+    if (shiftSelection) {
+      restoredRowBlocks.forEach(({ physicalRow, amount }) => {
+        const visualRow = this.hot.toVisualRow(physicalRow);
+        let visibleAmount = 0;
 
-      for (let offset = 0; offset < amount; offset++) {
-        if (this.hot.toVisualRow(physicalRow + offset) !== null) {
-          visibleAmount += 1;
+        for (let offset = 0; offset < amount; offset++) {
+          if (this.hot.toVisualRow(physicalRow + offset) !== null) {
+            visibleAmount += 1;
+          }
         }
-      }
 
-      if (visualRow !== null && visibleAmount > 0) {
-        this.hot.selection.shiftRows(visualRow, visibleAmount);
-      }
-    });
+        if (visualRow !== null && visibleAmount > 0) {
+          this.hot.selection.shiftRows(visualRow, visibleAmount);
+        }
+      });
+    }
 
     return true;
   }

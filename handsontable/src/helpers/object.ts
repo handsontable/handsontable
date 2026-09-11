@@ -304,6 +304,36 @@ export function isPlainObject(value: unknown): value is Record<string, unknown> 
 }
 
 /**
+ * Recursively deletes function-valued keys from a cloned value. `deepClone` keeps functions by
+ * reference at every depth, so a top-level-only sweep would still alias a nested closure onto the
+ * object created on undo.
+ *
+ * Array entries that hold a function become `null`. Object keys that hold a function are deleted.
+ *
+ * @param {unknown} value The cloned value to sweep.
+ */
+export function stripFunctionValues(value: unknown): void {
+  if (Array.isArray(value)) {
+    value.forEach((entry, index) => {
+      if (typeof entry === 'function') {
+        value[index] = null;
+      } else {
+        stripFunctionValues(entry);
+      }
+    });
+
+  } else if (isPlainObject(value)) {
+    Object.keys(value).forEach((key) => {
+      if (typeof value[key] === 'function') {
+        delete value[key];
+      } else {
+        stripFunctionValues(value[key]);
+      }
+    });
+  }
+}
+
+/**
  * @param {object} object The object on which to define the property.
  * @param {string} property The name of the property to be defined or modified.
  * @param {*} value The value associated with the property.

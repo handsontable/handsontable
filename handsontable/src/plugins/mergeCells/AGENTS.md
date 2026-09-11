@@ -37,6 +37,11 @@ trimming and reordering. The merge's own `row`/`col`/`rowspan` are re-derived fr
 `rowIndexMapper` `cacheUpdated`, so treat them as a snapshot of how the merge currently *draws*, not as
 what it owns.
 
+`restorePhysicalRowSpansAfterRemoval` must match a snapshot to a merge by **that merge's own
+anchor** (`merge.row === snapshot.row && merge.col === snapshot.col`). `mergedCellsCollection.get()`
+answers for every covered cell, so after a removal has slid another merge onto those coords the
+lookup hands back the wrong object and the snapshot's `physicalRows` are written onto it.
+
 The rows are an explicit list, not a `{ start, length }` range: merging on a sorted grid, or over a row a
 filter has hidden, gives a merge whose physical rows are not consecutive.
 
