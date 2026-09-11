@@ -75,8 +75,8 @@ export class BottomInlineStartCornerOverlay extends Overlay {
 
     overlayRoot.style.top = '';
 
-    // Same rule as the top corner: the positioned form whenever either neighbour's axis is owned by
-    // the window; each neighbour reports a 0 offset on an element-owned axis.
+    // Same rule as the top corner: the positioned form whenever either neighbor's axis is owned by
+    // the window; each neighbor reports a 0 offset on an element-owned axis.
     const anyAxisOnWindow = this.bottomOverlay.trimmingContainer === rootWindow ||
       this.inlineStartOverlay.trimmingContainer === rootWindow;
 

@@ -343,7 +343,7 @@ function captureRenderedState(table: Table, wtViewport: Viewport): RenderedState
 
 /**
  * Puts the pre-draw rendered state back, undoing the band and filter advance of a draw whose render
- * the `beforeDraw` hook cancelled — but only when the rollback is provably safe. When any guard
+ * the `beforeDraw` hook canceled — but only when the rollback is provably safe. When any guard
  * fails, the this-draw state is kept, which is exactly the pre-rollback behavior of the engine, so
  * a blocked rollback is never worse than what shipped before the rollback existed.
  *

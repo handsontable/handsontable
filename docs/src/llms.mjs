@@ -166,7 +166,7 @@ export function buildLlmsIndex(pageMeta, sections) {
     for (const { label, slug, prefix } of section.items) {
       const meta = pageMeta.get(slug);
       // Prefer the page's own title: sidebar labels lean on their group for
-      // context (every recipe group's overview page is labelled 'Overview'),
+      // context (every recipe group's overview page is labeled 'Overview'),
       // which a flat index does not have.
       const desc = meta?.description ? `: ${meta.description}` : '';
 

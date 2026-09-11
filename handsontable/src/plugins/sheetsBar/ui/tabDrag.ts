@@ -122,7 +122,7 @@ export class TabDrag {
    */
   #grabOffset = 0;
   /**
-   * The dragged tab's index when the gesture started, restored when the drag is cancelled.
+   * The dragged tab's index when the gesture started, restored when the drag is canceled.
    */
   #originIndex = 0;
   /**
@@ -278,8 +278,8 @@ export class TabDrag {
       lefts.set(element, rect.left);
 
       // The drop decision reads the slot a tab has settled in, not the point its slide
-      // animation happens to be passing through. Right after a swap the displaced neighbour is
-      // still travelling, its centre still near the pointer, and a pointer that wobbles a pixel
+      // animation happens to be passing through. Right after a swap the displaced neighbor is
+      // still traveling, its center still near the pointer, and a pointer that wobbles a pixel
       // would swap it straight back — the strip then flickers between the two orders for as
       // long as the hand is unsteady. The in-flight translation is subtracted, so the swap
       // boundary stands still while the tabs animate around it.
@@ -465,7 +465,7 @@ export class TabDrag {
    * Moving the tab to another slot re-inserts it into the strip, and a re-inserted element
    * loses its pointer capture — so the capture is taken again, and the gesture goes on. When
    * the pointer itself is no longer active — released over another document, say — taking it
-   * again fails, and no release will ever reach the strip: the gesture is cancelled instead.
+   * again fails, and no release will ever reach the strip: the gesture is canceled instead.
    *
    * @param {PointerEvent} event The lostpointercapture event.
    */

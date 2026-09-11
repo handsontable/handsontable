@@ -111,7 +111,7 @@ class DisplaySwitch {
    *
    * Dropping the show is what separates this from `cancelHiding()`, and it is required rather than
    * tidy. `cancelHiding()` also sets `wasLastActionShow` back to `true`, which is the only thing
-   * suppressing a show that a `hide()` had already overruled - so cancelling a hide on its own
+   * suppressing a show that a `hide()` had already overruled - so canceling a hide on its own
    * revives that show, and the comment on screen is replaced by another cell's a moment later.
    * The caller here is reacting to the pointer resting ON the editor, where the comment already
    * displayed is the one that belongs there.
@@ -139,7 +139,7 @@ class DisplaySwitch {
     // A rebuild has to both cancel and carry over. The replaced function keeps its timer in its own
     // closure, and that timer closes over this instance, so leaving it running would show a comment
     // with nothing holding a reference to stop it - `keepVisible()` can only reach the CURRENT
-    // function, so one orphan defeats it. Cancelling alone is not enough either: it would drop a
+    // function, so one orphan defeats it. Canceling alone is not enough either: it would drop a
     // hover the user already started, and the comment would never appear until the pointer moved.
     const pendingRange = this.#pendingShowRange;
 

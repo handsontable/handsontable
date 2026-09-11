@@ -668,7 +668,7 @@ export class AutoRowHeaderSize extends BasePlugin {
   ): void {
     // Each level is bucketed by the labels IT draws. Sampling every level by another's labels would
     // skip the row carrying this one's longest label, leaving the level narrow. The grid's own
-    // renderer is recognised by reference: it is the only one whose text `getRowHeader` can be
+    // renderer is recognized by reference: it is the only one whose text `getRowHeader` can be
     // trusted for, and it is not necessarily the first in the array.
     this.#readLabel = isGridRenderer
       ? visualRow => this.hot.getRowHeader(visualRow)

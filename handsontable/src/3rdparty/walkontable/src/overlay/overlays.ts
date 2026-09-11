@@ -315,7 +315,7 @@ class Overlays {
 
   /**
    * Whether the press being handled started as a touch, so the compatibility `mousedown`/`click`/
-   * `contextmenu` that follow the same tap can be recognised and let through - only `pointerdown`
+   * `contextmenu` that follow the same tap can be recognized and let through - only `pointerdown`
    * carries a `pointerType`.
    */
   #pressIsTouch = false;
@@ -664,7 +664,7 @@ class Overlays {
    *
    * Driving the axis owner rather than the single `scrollableElement` matters in split mode, where
    * that element is the holder while the window owns the vertical axis: a wheel that moved the
-   * holder's `scrollLeft` was cancelled, and the window-owned vertical part went with it — the
+   * holder's `scrollLeft` was canceled, and the window-owned vertical part went with it — the
    * columns moved, the page did not. Scrolling the window from here consumes both axes at once.
    *
    * @param {number} delta Relative value to scroll.
@@ -909,7 +909,7 @@ class Overlays {
     const scrollbarWidth = geometryReader.getScrollbarWidth(rootDocument);
     // Only where an overlay is actually clipped out of the strip. The band exists to fill in for the
     // frozen content that stops short of the scrollbar; along an edge no overlay reaches, there is
-    // nothing to fill in for, and drawing one paints a grey strip over live cells and swallows the
+    // nothing to fill in for, and drawing one paints a gray strip over live cells and swallows the
     // presses there - which is what a grid with no frozen rows or columns used to get.
     const covers = (edge: 'bottom' | 'inlineEnd') =>
       this.#overlays.some(overlay => overlay.coversScrollbarEdge(edge));

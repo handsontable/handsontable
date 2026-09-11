@@ -208,7 +208,7 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
    *
    * @param {KeyboardEvent} event The keyboard event.
    * @param {string[]} keys Normalized pressed keys.
-   * @returns {boolean} Whether a shortcut cancelled further handling.
+   * @returns {boolean} Whether a shortcut canceled further handling.
    */
   const runGlobalScopedShortcuts = (event: KeyboardEvent, keys: string[]) => {
     const items = CONTEXTS.getItems();
