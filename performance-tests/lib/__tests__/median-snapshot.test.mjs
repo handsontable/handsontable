@@ -327,9 +327,9 @@ describe('computeMedianSnapshot', () => {
 });
 
 describe('computeMedianSnapshot -- baseline compatibility key', () => {
-  const KEY = { chromium: '140.0.7339.16', harnessVersion: 1 };
-  const provenance = (chromium, harnessVersion = 1) => ({
-    environment: { chromium, cpuModel: 'any' },
+  const KEY = { chromium: '140.0.7339.16', platform: 'linux x64', harnessVersion: 1 };
+  const provenance = (chromium, harnessVersion = 1, platform = 'linux x64') => ({
+    environment: { chromium, platform, cpuModel: 'any' },
     harnessVersion,
   });
   const keyed = (timestamp, chromium, overrides) => ({
@@ -387,6 +387,22 @@ describe('computeMedianSnapshot -- baseline compatibility key', () => {
     ], { compatibleWith: { key: KEY } });
 
     assert.equal(result, null);
+  });
+
+  test('does not median goldens from another platform with the same Chromium and harness', () => {
+    const result = computeMedianSnapshot([
+      { ...snapshot('2026-09-03T10:49:00Z'), ...provenance('140.0.7339.16', 1, 'darwin arm64') },
+      { ...snapshot('2026-09-03T10:31:00Z'), ...provenance('140.0.7339.16', 1, 'darwin arm64') },
+    ], { compatibleWith: { key: KEY } });
+
+    assert.equal(result, null);
+    assert.equal(
+      explainMedianRefusal([
+        { ...snapshot('2026-09-03T10:49:00Z'), ...provenance('140.0.7339.16', 1, 'darwin arm64') },
+        { ...snapshot('2026-09-03T10:31:00Z'), ...provenance('140.0.7339.16', 1, 'darwin arm64') },
+      ], { compatibleWith: { key: KEY } }).reason,
+      MEDIAN_REFUSAL.INCOMPATIBLE_KEY
+    );
   });
 
   test('a redefined scenario drops its old entries without dropping the snapshot they came from', () => {
@@ -471,10 +487,10 @@ describe('computeMedianSnapshot -- baseline compatibility key', () => {
 });
 
 describe('explainMedianRefusal', () => {
-  const KEY = { chromium: '140.0.7339.16', harnessVersion: 1 };
+  const KEY = { chromium: '140.0.7339.16', platform: 'linux x64', harnessVersion: 1 };
   const keyed = (timestamp, chromium, overrides) => ({
     ...snapshot(timestamp, overrides),
-    environment: { chromium },
+    environment: { chromium, platform: 'linux x64' },
     harnessVersion: 1,
   });
 

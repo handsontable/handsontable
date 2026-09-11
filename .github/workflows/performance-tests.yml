@@ -33,13 +33,25 @@ permissions:
 jobs:
   performance-tests:
     name: run
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 90
     env:
       PERF_MODE: ${{ github.event_name == 'push' && 'golden' || 'compare' }}
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          # This removes ignored output and dependency directories left by an earlier
+          # job on the persistent runner. It requires Git on the runner.
+          clean: true
+
+      - name: Verify Git checkout
+        shell: bash
+        run: |
+          if [ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" != "true" ]; then
+            echo "::error::The self-hosted performance runner requires Git and a Git checkout. Install Xcode Command Line Tools for the runner account."
+            exit 1
+          fi
 
       - name: Install pnpm
         uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
@@ -71,14 +83,20 @@ jobs:
       # The snapshot it saves is never derived from history (teardown.mjs saves before it loads).
       - name: Fetch golden snapshots from GitHub Pages
         run: |
-          git fetch origin gh-pages:gh-pages 2>/dev/null || true
+          if ! git fetch --force origin gh-pages 2>/dev/null; then
+            if git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
+              echo "::error::gh-pages exists on the remote but could not be fetched"
+              exit 1
+            fi
+            echo "gh-pages does not exist on the remote yet"
+          fi
           mkdir -p performance-tests/golden
 
           # Single-file fallback, kept for when the history/ fetch below is empty or
           # has nothing compatible with this run (marked trace window on every scenario,
-          # same Chromium build, same harness version). Compare mode only: in golden mode
+          # same Chromium build, platform, and harness version). Compare mode only: in golden mode
           # the file would be this run's own snapshot.
-          if [ "$PERF_MODE" = "compare" ] && git show gh-pages:performance-reports/develop/latest.json > performance-tests/golden/snapshots.json 2>/dev/null; then
+          if [ "$PERF_MODE" = "compare" ] && git show origin/gh-pages:performance-reports/develop/latest.json > performance-tests/golden/snapshots.json 2>/dev/null; then
             echo "Golden baseline (latest.json) restored from gh-pages"
           else
             echo "No single-file golden restored -- relying on the history median"
@@ -171,13 +189,26 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          git fetch origin gh-pages:gh-pages 2>/dev/null || true
+          if ! git fetch --force origin gh-pages 2>/dev/null; then
+            if git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
+              echo "::warning::gh-pages exists on the remote but could not be fetched"
+            else
+              echo "gh-pages does not exist on the remote yet"
+            fi
+          fi
 
           TIMESTAMP=$(date -u +"%Y-%m-%dT%H-%M-%SZ")
           DEPLOY_DIR="performance-reports/develop/${TIMESTAMP}"
 
-          WORK_DIR=$(mktemp -d)
-          git worktree add "$WORK_DIR" gh-pages
+        WORKTREE_PREFIX="${RUNNER_TEMP}/handsontable-performance-gh-pages."
+        for stale_dir in "${WORKTREE_PREFIX}"*; do
+          [ -d "$stale_dir" ] || continue
+          git worktree remove --force "$stale_dir" 2>/dev/null || rm -rf "$stale_dir"
+        done
+          git worktree prune
+        WORK_DIR=$(mktemp -d "${WORKTREE_PREFIX}XXXXXX")
+          git worktree add --detach "$WORK_DIR" origin/gh-pages
+        trap 'cd "$GITHUB_WORKSPACE"; git worktree remove "$WORK_DIR" --force 2>/dev/null || true; rm -rf "$WORK_DIR"; git worktree prune' EXIT
 
           # Deploy timestamped snapshot + report
           mkdir -p "${WORK_DIR}/${DEPLOY_DIR}"
@@ -200,22 +231,19 @@ jobs:
             git commit -m "perf: golden baseline ${TIMESTAMP}"
             pushed=false
             for attempt in 1 2 3; do
-              if git push origin gh-pages; then
+              if git push origin HEAD:gh-pages; then
                 echo "Deployed golden to ${DEPLOY_DIR}/"
                 pushed=true
                 break
               fi
               echo "Push attempt $attempt failed, pulling and retrying..."
-              git pull --rebase origin gh-pages
+              git fetch --force origin gh-pages && git rebase origin/gh-pages
             done
             if [ "$pushed" = false ]; then
               echo "ERROR: all push attempts failed"
               exit 1
             fi
           fi
-
-          cd -
-          git worktree remove "$WORK_DIR" --force
 
       - name: Deploy PR report to GitHub Pages
         if: always() && github.event_name == 'pull_request'
@@ -232,12 +260,25 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          git fetch origin gh-pages:gh-pages 2>/dev/null || true
+          if ! git fetch --force origin gh-pages 2>/dev/null; then
+            if git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
+              echo "::warning::gh-pages exists on the remote but could not be fetched"
+            else
+              echo "gh-pages does not exist on the remote yet"
+            fi
+          fi
 
           DEPLOY_DIR="performance-reports/${BRANCH_SLUG}"
 
-          WORK_DIR=$(mktemp -d)
-          git worktree add "$WORK_DIR" gh-pages
+        WORKTREE_PREFIX="${RUNNER_TEMP}/handsontable-performance-gh-pages."
+        for stale_dir in "${WORKTREE_PREFIX}"*; do
+          [ -d "$stale_dir" ] || continue
+          git worktree remove --force "$stale_dir" 2>/dev/null || rm -rf "$stale_dir"
+        done
+          git worktree prune
+        WORK_DIR=$(mktemp -d "${WORKTREE_PREFIX}XXXXXX")
+          git worktree add --detach "$WORK_DIR" origin/gh-pages
+        trap 'cd "$GITHUB_WORKSPACE"; git worktree remove "$WORK_DIR" --force 2>/dev/null || true; rm -rf "$WORK_DIR"; git worktree prune' EXIT
 
           mkdir -p "${WORK_DIR}/${DEPLOY_DIR}"
           cp performance-tests/output/report.html "${WORK_DIR}/${DEPLOY_DIR}/index.html"
@@ -251,22 +292,19 @@ jobs:
             git commit -m "perf: update report for ${BRANCH_SLUG}"
             pushed=false
             for attempt in 1 2 3; do
-              if git push origin gh-pages; then
+              if git push origin HEAD:gh-pages; then
                 echo "Deployed to ${DEPLOY_DIR}/"
                 pushed=true
                 break
               fi
               echo "Push attempt $attempt failed, pulling and retrying..."
-              git pull --rebase origin gh-pages
+              git fetch --force origin gh-pages && git rebase origin/gh-pages
             done
             if [ "$pushed" = false ]; then
               echo "ERROR: all push attempts failed"
               exit 1
             fi
           fi
-
-          cd -
-          git worktree remove "$WORK_DIR" --force
 
       - name: Post performance summary to pull request
         if: always() && github.event_name == 'pull_request'

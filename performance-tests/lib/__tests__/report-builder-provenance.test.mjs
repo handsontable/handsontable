@@ -194,6 +194,7 @@ describe('buildReport -- environment and refusal', () => {
         chromium: '140.0.7339.16',
         cpuModel: 'AMD EPYC 7763 64-Core Processor',
         cpuCount: 4,
+        platform: 'linux x64',
         runnerImage: 'ubuntu24 20260901.1.0',
       },
     });
@@ -203,7 +204,7 @@ describe('buildReport -- environment and refusal', () => {
     ));
     assert.ok(report.includes(
       'Current: commit `abcdef0`, run `42`, Chromium 140.0.7339.16 · AMD EPYC 7763 64-Core Processor ×4 '
-      + '· ubuntu24 20260901.1.0.'
+      + '· linux x64 · ubuntu24 20260901.1.0.'
     ));
   });
 

@@ -30,6 +30,7 @@ export default async function setup() {
   console.log(
     `\nEnvironment: Chromium ${environment.chromium ?? 'unknown'}, `
     + `${environment.cpuModel ?? 'unknown CPU'} ×${environment.cpuCount}, `
+    + `${environment.platform}, `
     + `${environment.runnerImage ?? 'no runner image'}\n`
   );
 }
