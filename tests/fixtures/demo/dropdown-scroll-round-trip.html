@@ -85,7 +85,10 @@
       colWidths: [120, 160, 160],
       colHeaders: ['Text', 'Dropdown', 'Autocomplete'],
       rowHeaders: true,
-      height: 220,
+      // Tall enough that the 5-option dropdown opened at row 2 always fits BELOW the cell on every
+      // theme (so it never flips upward — a flipped list changes ArrowDown semantics), while 100 rows
+      // still let a near-top cell scroll fully out of the rendered range.
+      height: 400,
       columns: [
         {},
         { type: 'dropdown', source: OPTIONS },
