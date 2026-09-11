@@ -56,6 +56,22 @@ test.describe('Introduction demo-card layout', () => {
           rowCount: rowPositions.size,
           widthDifference: Math.max(...widths) - Math.min(...widths),
           titleFontSize: getComputedStyle(grid.querySelector('.title')).fontSize,
+          gridBorders: [
+            gridStyles.borderTopWidth,
+            gridStyles.borderRightWidth,
+            gridStyles.borderBottomWidth,
+            gridStyles.borderLeftWidth,
+          ],
+          cardsHaveFullBorder: cards.every((card) => {
+            const cardStyles = getComputedStyle(card);
+
+            return [
+              cardStyles.borderTopWidth,
+              cardStyles.borderRightWidth,
+              cardStyles.borderBottomWidth,
+              cardStyles.borderLeftWidth,
+            ].every(width => width === '1px');
+          }),
         };
       }));
 
@@ -66,7 +82,9 @@ test.describe('Introduction demo-card layout', () => {
         measurement.rowGap === '16px' &&
         measurement.rowCount === Math.ceil(measurement.cardCount / 3) &&
         measurement.widthDifference < 0.01 &&
-        measurement.titleFontSize === '14px'
+        measurement.titleFontSize === '14px' &&
+        measurement.gridBorders.every(width => width === '0px') &&
+        measurement.cardsHaveFullBorder
       )).toBe(true);
 
       const singleCardMeasurements = await page.locator('.ht-card-grid').evaluateAll((elements) => elements

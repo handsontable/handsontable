@@ -81,6 +81,11 @@
   .ht-card-grid:has(> .ht-link-card:nth-child(3)) {
     grid-template-columns: repeat(3, calc((100% - 32px) / 3));
     gap: 16px;
+    border: 0;
+  }
+
+  .ht-card-grid:has(> .ht-link-card:nth-child(3)) > .ht-link-card {
+    border: 1px solid var(--sl-color-gray-5);
   }
 
   .ht-link-card .title {
