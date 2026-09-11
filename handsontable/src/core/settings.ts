@@ -260,6 +260,13 @@ export interface GridSettings {
   sortByRelevance?: boolean;
 
   // Plugins
+  autoLink?: boolean | {
+    target?: '_blank' | '_self';
+    schemes?: Array<'http' | 'https' | 'mailto' | 'tel'>;
+    inline?: boolean;
+    strict?: boolean;
+    className?: string;
+  };
   autoColumnSize?: boolean | object;
   autoRowSize?: boolean | object;
   autoRowHeaderSize?: boolean | object;
@@ -276,7 +283,12 @@ export interface GridSettings {
   dropdownMenu?: boolean | object | string[];
   emptyDataState?: boolean | object;
   filters?: boolean | object;
-  formulas?: boolean | { engine: unknown; sheetName?: string; hyperlinks?: boolean; [key: string]: unknown };
+  formulas?: boolean | {
+    engine: unknown;
+    sheetName?: string;
+    hyperlinks?: boolean | { target?: '_blank' | '_self'; schemes?: Array<'http' | 'https' | 'mailto' | 'tel'> };
+    [key: string]: unknown;
+  };
   hiddenColumns?: boolean | object;
   hiddenRows?: boolean | object;
   loading?: boolean | object;

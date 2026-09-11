@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Undoing a cell edit on a row that a filter or row trimming has since hidden now writes the source data, so it fires `afterSetSourceDataAtCell` and `modifySourceData` instead of `beforeChange`, `afterChange`, and `modifyData`.",
-  "type": "changed",
-  "issueOrPR": 13396,
-  "breaking": false,
-  "framework": "none"
-}
