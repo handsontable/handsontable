@@ -1,12 +1,19 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { execFileSync, spawnSync } from 'node:child_process';
+import {
+  execFileSync, spawn, spawnSync,
+} from 'node:child_process';
 import {
   chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync, existsSync,
 } from 'node:fs';
+import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { repoRoot } from '../lib/repo-root.mjs';
+import {
+  cacheKey, promptHash, loadPrompt,
+} from '../lib/docs-sync/classify.mjs';
+import { STATE_MARKER } from '../lib/docs-sync/pr-body.mjs';
 
 const CLI = path.join(repoRoot(), '.github/scripts/docs-sync.mjs');
 
@@ -617,6 +624,110 @@ test('a real 404 on one pull request lookup is recorded with a reason, and never
     // before: bare `ref(i)`, no trailing colon.
     assert.match(section[1], /`[0-9a-f]{7}` direct push without a number$/);
   } finally {
+    rmSync(f.root, { recursive: true, force: true });
+  }
+});
+
+test('a cached decision under the current prompt hash skips the model; a stale prompt hash does not', async() => {
+  const f = fixture();
+  const requests = [];
+  const nextDecision = { decision: 'include', reason: 'the model decided this' };
+
+  const server = createServer((req, res) => {
+    let body = '';
+
+    req.on('data', (chunk) => { body += chunk; });
+    req.on('end', () => {
+      requests.push(JSON.parse(body));
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ choices: [{ message: { content: JSON.stringify(nextDecision) } }] }));
+    });
+  });
+
+  await new Promise((resolve) => { server.listen(0, '127.0.0.1', resolve); });
+
+  const { port } = server.address();
+  const hash = promptHash(await loadPrompt());
+
+  // Deliberately `spawn`, not `spawnSync`: the fake LiteLLM server above lives
+  // in this same process. `spawnSync` fully blocks this process's event loop
+  // until the child exits, so the server could never accept the child's
+  // connection or run its request handler -- the child's fetch would hang
+  // until it exhausted `llm.mjs`'s retry budget (3 attempts x 60s timeout +
+  // backoff = ~183s) and then fail. Confirmed empirically: with `spawnSync`
+  // here, the stale-prompt-hash run (the one that must call the model)
+  // reliably took ~185s and exited 1; switching to `spawn` drops it back to
+  // the sub-second range and both cache scenarios pass.
+  const runWithoutNoLlm = (extraAnswers) => {
+    writeAnswers(f, extraAnswers);
+
+    return new Promise((resolve) => {
+      const child = spawn(process.execPath, [CLI, '--repo-dir', f.work, '--gh-bin', f.fakeGh, '--skip-lint'], {
+        env: {
+          ...process.env,
+          GIT_DIR: undefined,
+          GH_REPO: 'o/r',
+          GH_TOKEN: 'x',
+          DRY_RUN: '',
+          TARGET: '',
+          GITHUB_STEP_SUMMARY: path.join(f.root, 'summary.md'),
+          FAKE_GH_ANSWERS: f.answersPath,
+          LITELLM_BASE_URL: `http://127.0.0.1:${port}`,
+          LITELLM_API_KEY: 'test-key',
+          DOCS_SYNC_MODEL: 'test-model',
+        },
+      });
+      let stdout = '';
+      let stderr = '';
+
+      child.stdout.setEncoding('utf8');
+      child.stderr.setEncoding('utf8');
+      child.stdout.on('data', (chunk) => { stdout += chunk; });
+      child.stderr.on('data', (chunk) => { stderr += chunk; });
+      child.on('close', (status) => { resolve({ status, stdout, stderr }); });
+    });
+  };
+
+  try {
+    // Cache hit: a prior run's state block, under the CURRENT prompt hash,
+    // already has a decision for candidate #101's commit. The model must
+    // not be called, and the cached decision (not the server's canned
+    // answer) must be what shows up in the rendered report.
+    const cachedState = {
+      version: 1,
+      promptHash: hash,
+      decisions: { [cacheKey(f.contentOnly, hash)]: { decision: 'exclude', reason: 'cached from a prior run' } },
+    };
+    const cachedBody = `Prior run.\n\n<!-- ${STATE_MARKER}\n${JSON.stringify(cachedState)}\n-->`;
+
+    const first = await runWithoutNoLlm({ openPr: { number: 500, url: 'https://github.com/o/r/pull/500', body: cachedBody } });
+
+    assert.equal(first.status, 0, first.stderr);
+    assert.equal(requests.length, 0, 'a cache hit under the current prompt hash must not call the model');
+
+    const summary1 = readFileSync(path.join(f.root, 'summary.md'), 'utf8');
+
+    assert.match(summary1, /## Excluded by the classifier\n\n- `[0-9a-f]{7}` Fix a typo in guide a #101: cached from a prior run/);
+
+    // Cache invalidation: same state shape, but a stale promptHash. The
+    // model must be called this time, and its answer (not the stale cache)
+    // must be what shows up.
+    rmSync(path.join(f.root, 'summary.md'), { force: true });
+
+    const staleState = { ...cachedState, promptHash: 'stale0000000' };
+    const staleBody = `Prior run.\n\n<!-- ${STATE_MARKER}\n${JSON.stringify(staleState)}\n-->`;
+
+    const second = await runWithoutNoLlm({ openPr: { number: 500, url: 'https://github.com/o/r/pull/500', body: staleBody } });
+
+    assert.equal(second.status, 0, second.stderr);
+    assert.equal(requests.length, 1, 'a stale prompt hash must call the model exactly once for the one classifiable candidate');
+    assert.equal(requests[0].messages[1].role, 'user');
+
+    const summary2 = readFileSync(path.join(f.root, 'summary.md'), 'utf8');
+
+    assert.match(summary2, /## Included\n\n- `[0-9a-f]{7}` Fix a typo in guide a \(#101, @someone\)/);
+  } finally {
+    server.close();
     rmSync(f.root, { recursive: true, force: true });
   }
 });

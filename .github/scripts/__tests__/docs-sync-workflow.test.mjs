@@ -16,6 +16,10 @@ test('the weekday schedule is landed disabled, pending rollout step 1, with manu
   assert.match(source, /^\s*#\s*schedule:\n\s*#\s*- cron: '0 6 \* \* 1-5'/m);
   assert.match(source, /^\s*workflow_dispatch:\s*$/m);
   assert.match(source, /dry_run:[\s\S]*?type: boolean[\s\S]*?default: true/);
+  assert.match(
+    source,
+    /DRY_RUN: \$\{\{ github\.event_name == 'workflow_dispatch' && inputs\.dry_run \|\| 'false' \}\}/,
+  );
 });
 
 test('uses the release GitHub App token and never GITHUB_TOKEN', () => {
