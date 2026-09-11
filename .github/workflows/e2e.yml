@@ -123,3 +123,6 @@ jobs:
             tests/playwright-report
             tests/test-results
           retention-days: 3
+          # A re-run attempt that fails again replaces the report; without this
+          # the upload 409s on the name and the newer report is lost.
+          overwrite: true
