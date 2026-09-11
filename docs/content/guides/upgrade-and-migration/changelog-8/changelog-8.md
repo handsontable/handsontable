@@ -35,7 +35,7 @@ For more information on this release, see:
 
 - Introduced a `separated` attribute for the label options (the `label` DOM element may wrap `input`
   or be placed next to it). ([#3172](https://github.com/handsontable/handsontable/issues/3172))
-- Introduced the `modifyAutoColumnSizeSeed` hook to let developers overwrite the default behaviour
+- Introduced the `modifyAutoColumnSizeSeed` hook to let developers overwrite the default behavior
   of the AutoColumnSize sampling.
   ([#3339](https://github.com/handsontable/handsontable/issues/3339))
 - Added support for hiding columns for the `NestedHeaders` plugin.

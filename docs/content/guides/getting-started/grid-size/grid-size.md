@@ -451,7 +451,7 @@ For live examples of both modes, see the [column stretching](@/guides/columns/co
 
 Handsontable observes window resizing. If the window's dimensions have changed, then we check if Handsontable should resize itself too. Due to the performance issue, we use the debounce method to respond on window resize.
 
-You can easily overwrite this behaviour by returning `false` in the [`beforeRefreshDimensions`](@/api/hooks.md#beforerefreshdimensions) hook.
+You can easily overwrite this behavior by returning `false` in the [`beforeRefreshDimensions`](@/api/hooks.md#beforerefreshdimensions) hook.
 
 ::: only-for javascript
 
