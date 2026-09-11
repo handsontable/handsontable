@@ -7,7 +7,7 @@ import { AutocompleteKeyValuePastePage } from '../fixtures/pages/AutocompleteKey
  *
  * The reported route is <kbd>Cmd/Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd>, which is the browser's
  * "paste as plain text" command: it delivers a paste event carrying `text/plain` only, so the
- * private clipboard flavour that carries the entry is gone and the grid has no entry to restore.
+ * private clipboard flavor that carries the entry is gone and the grid has no entry to restore.
  * The same thing happens for a paste from any other application, and for
  * `getPlugin('copyPaste').paste()`.
  *
@@ -143,7 +143,7 @@ test.describe('pasting a label into a key/value source (DEV-57)', () => {
   });
 
   test('keeps preserving the entry through a copy and a plain paste', async() => {
-    // The rich clipboard path, which already worked: all three flavours reach the grid and the
+    // The rich clipboard path, which already worked: all three flavors reach the grid and the
     // private one carries the entry. This is the regression guard for it.
     await grid.copyCell(2, 0);
     await grid.pasteClipboardInto(0, 0);

@@ -66,7 +66,11 @@ export function valueSetter(
 
   const sourceDataAtCell = this.getSourceDataAtCell(this.toPhysicalRow(row), this.toPhysicalColumn(column));
 
-  if (isKeyValueEntry(sourceDataAtCell)) {
+  // The same `isEmpty` gate as above, for the same reason. Clearing a cell that held an entry used
+  // to wrap the blank as `{ key: null, value: null }`, which is an object rather than an empty cell:
+  // `getSourceData()` handed it back for a cell the user had emptied, and `emptyValue` never ran at
+  // all, because `utils/valueAccessors.ts` applies that only to an `''` this setter returns.
+  if (!isEmpty(newValue) && isKeyValueEntry(sourceDataAtCell)) {
     return { key: newValue, value: newValue };
   }
 

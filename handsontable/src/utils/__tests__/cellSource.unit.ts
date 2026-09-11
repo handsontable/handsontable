@@ -49,6 +49,26 @@ describe('cellSource helpers', () => {
       expect(findChoiceByDisplayedValue(source, 'BMW', true)).toBeUndefined();
     });
 
+    it('should read a blank entry as blank, whichever way tags are handled', () => {
+      // `String(null)` is `'null'`, so stripping before stringifying gave a `null` entry the
+      // displayed text `'null'` - it matched a paste of that literal word and never matched the
+      // empty text the cell shows for it. The `allowHtml` branch already stringified, so the two
+      // disagreed with each other as well.
+      const blanks = [{ key: '0', value: null }];
+
+      expect(findChoiceByDisplayedValue(blanks, '')).toBe(blanks[0]);
+      expect(findChoiceByDisplayedValue(blanks, '', true)).toBe(blanks[0]);
+      expect(findChoiceByDisplayedValue(blanks, 'null')).toBeUndefined();
+
+      // A bare blank in the list reads the same way. `{ key, value: undefined }` is not an entry at
+      // all - `isKeyValueObject()` wants both halves defined - so only the bare form reaches this.
+      const bare = [null, undefined];
+
+      expect(findChoiceByDisplayedValue(bare, '')).toBe(null);
+      expect(findChoiceByDisplayedValue(bare, 'null')).toBeUndefined();
+      expect(findChoiceByDisplayedValue(bare, 'undefined')).toBeUndefined();
+    });
+
     it('should return `undefined` for anything that is not an array of choices', () => {
       expect(findChoiceByDisplayedValue(undefined, 'BMW')).toBeUndefined();
       expect(findChoiceByDisplayedValue(null, 'BMW')).toBeUndefined();

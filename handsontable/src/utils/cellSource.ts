@@ -39,8 +39,14 @@ export function isKeyValueEntry(value: unknown): value is KeyValueObject {
  */
 function toDisplayedText(choice: unknown, allowHtml: boolean): string {
   const value = isKeyValueEntry(choice) ? choice.value : choice;
+  // `stringify()` first, then strip - never `String()`. `String(null)` is `'null'`, so a choice
+  // carrying `value: null` would claim the displayed text `'null'`, matching a paste of that
+  // literal word and never matching the empty text the cell actually shows for it. `stringify()`
+  // turns `null` and `undefined` into `''`, which is what the renderer and the lookup label below
+  // both use, so the two halves of this branch agree.
+  const text = stringify(value);
 
-  return stringify(allowHtml ? value : stripTags(String(value)));
+  return allowHtml ? text : stripTags(text);
 }
 
 /**

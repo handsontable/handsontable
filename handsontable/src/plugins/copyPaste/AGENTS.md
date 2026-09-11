@@ -126,7 +126,7 @@ returns a plain string. Each catch warns through `#warnClipboardParseRefused`, t
 
 Do not "tidy" either catch away.
 
-## The private flavour is often absent, and that is not an error
+## The private flavor is often absent, and that is not an error
 
 `pastedSourceData` is `undefined` for every paste the grid did not write itself, so `populateValues()`
 falls through to the plain string. Three routes reach that state and **only the first is obvious**:
@@ -134,10 +134,10 @@ falls through to the plain string. Three routes reach that state and **only the 
 - **<kbd>Cmd/Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd>**, the browser's "paste as plain text" command
   (`IDC_CONTENT_CONTEXT_PASTE_AND_MATCH_STYLE`, bound to that combination on every desktop platform).
   It delivers a paste event carrying **`text/plain` only** — `text/html` is stripped along with the
-  private flavour. Right-click → "Paste as plain text" is the same command.
+  private flavor. Right-click → "Paste as plain text" is the same command.
 - **A paste from any other application.** It usually carries `text/html`, so it takes the
   `htmlToGridSettings()` branch rather than `readPlainText()` — a different branch, the same outcome,
-  because only Handsontable writes the private flavour.
+  because only Handsontable writes the private flavor.
 - **`getPlugin('copyPaste').paste(text)`**, which sets `text/plain` and nothing else. This is the
   deterministic way to exercise all three from a test; simulating the key combination cannot work,
   because the accelerator is handled in the **browser process** and a synthetic key event never
@@ -149,7 +149,7 @@ DEV-57 is the worked example: an `autocomplete`/`dropdown` column with a key/val
 bare label on every one of the three routes above, and a `strict` column then marked the cell invalid.
 The fix is in `cellTypes/autocompleteType/accessors/valueSetter.ts`, **not here** — do not add
 cell-type knowledge to `populateValues()`. Nothing in this plugin reads the SHIFT key, and nothing
-should: merely holding it while the browser runs an ordinary paste changes none of the flavours.
+should: merely holding it while the browser runs an ordinary paste changes none of the flavors.
 
 ## Copy is not a sanitizer surface — it is a text surface
 

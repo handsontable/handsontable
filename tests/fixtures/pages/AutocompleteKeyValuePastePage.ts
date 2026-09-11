@@ -82,7 +82,7 @@ export class AutocompleteKeyValuePastePage {
 
   /**
    * Pastes plain text into a cell. The CopyPaste plugin's `paste()` sets only the `text/plain`
-   * clipboard flavour, which is exactly what the browser hands the grid for a paste-as-plain-text
+   * clipboard flavor, which is exactly what the browser hands the grid for a paste-as-plain-text
    * (<kbd>Cmd/Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd>) and for a paste from any other
    * application. Simulating the key combination itself would test the browser, not the grid: the
    * accelerator is handled in the browser process, so a synthetic key event never reaches this
@@ -98,7 +98,7 @@ export class AutocompleteKeyValuePastePage {
   }
 
   /**
-   * Copies one cell with the real clipboard, so the rich flavours the grid writes are in play.
+   * Copies one cell with the real clipboard, so the rich flavors the grid writes are in play.
    */
   async copyCell(row: number, col: number): Promise<void> {
     await this.cell(row, col).click({ position: { x: 5, y: 5 } });

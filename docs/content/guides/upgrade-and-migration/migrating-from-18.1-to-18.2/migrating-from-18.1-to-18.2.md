@@ -435,6 +435,11 @@ function answers.
 give them, so an existing dataset that holds plain labels keeps them until something writes to those
 cells.
 
+**Clearing a cell leaves it empty.** Emptying a cell that held an entry used to store
+`{ key: null, value: null }`, so [`getSourceData()`](@/api/core.md#getsourcedata) handed back an
+object for a cell the user had cleared, and [`emptyValue`](@/api/options.md#emptyvalue) never
+applied to that column at all. Such a cell now stores the empty value, like every other column.
+
 **Undo and redo restore what the cell held, exactly.** They resolve nothing, which is a fix in its
 own right: undoing back to a plain label used to store `{ key: <label>, value: <label> }` whenever
 the cell happened to hold an object at the time, so the restored cell carried a key that matched no

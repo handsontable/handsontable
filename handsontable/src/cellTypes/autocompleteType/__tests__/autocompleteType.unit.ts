@@ -133,11 +133,19 @@ describe('AutocompleteCellType', () => {
     });
 
     it('should not resolve an emptied cell into a source entry', () => {
-      // Clearing a cell keeps the existing wrap - the validator reads `{ key: null, value: null }`
-      // as empty - and it must not pick up an entry that happens to carry an empty label.
-      expect(setValue({ key: '1', value: 'BMW' }, null, { source: [{ key: '0', value: '' }] }))
-        .toEqual({ key: null, value: null });
+      // Clearing must not pick up an entry that happens to carry an empty label.
+      expect(setValue({ key: '1', value: 'BMW' }, null, { source: [{ key: '0', value: '' }] })).toBe(null);
       expect(setValue(null, '', { source: [{ key: '0', value: '' }] })).toBe('');
+    });
+
+    it('should hand an emptied cell back blank rather than wrapping it', () => {
+      // The wrap below the resolution ran on a blank too, so clearing a cell that held an entry
+      // stored `{ key: null, value: null }`. That is an object, not an empty cell: `getSourceData()`
+      // returned it for a cell the user had emptied, and `emptyValue` never saw the blank at all,
+      // because `utils/valueAccessors.ts` applies that only to an `''` this setter returns.
+      expect(setValue({ key: '1', value: 'BMW' }, null)).toBe(null);
+      expect(setValue({ key: '1', value: 'BMW' }, '')).toBe('');
+      expect(setValue({ key: '1', value: 'BMW' }, undefined)).toBe(undefined);
     });
 
     it('should compare the label as text, so a numeric entry resolves', () => {
