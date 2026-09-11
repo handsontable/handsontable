@@ -19,7 +19,8 @@ const PINNED_ASC = [25, 10, 20, 30, 40, 35];
 const ALL_ASC = [10, 20, 25, 30, 35, 40];
 
 // `MultiColumnSorting` extends `ColumnSorting` and overrides neither method that decides the sortable
-// range, so both plugins must agree on every case below.
+// range, so both plugins must agree on every case below. An override of the upper bound is covered
+// in `sortableRowRangeOverride.unit.js`, which has to register a subclass under these same keys.
 describe.each([
   ['columnSorting', ColumnSorting],
   ['multiColumnSorting', MultiColumnSorting],

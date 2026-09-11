@@ -699,30 +699,38 @@ export class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Resolves the band of visual row indexes that takes part in the sort.
+   * The first visual row that takes part in the sort.
    *
-   * Both bounds live here so a caller cannot pick up one and forget the other. Three things
-   * narrow the band, and `sortFixedRows` switches the first two off:
+   * `fixedRowsTop` holds the top overlay's rows above it, unless `sortFixedRows` opts them back in.
    *
-   * - `fixedRowsTop` holds the top overlay's rows above it,
-   * - `fixedRowsBottom` holds the bottom overlay's rows below it, which is what keeps a footer
-   *   row's SUM over absolute addresses from being permuted into the middle of the data,
-   * - the trailing spare rows stay below it, counted rather than assumed (see below).
-   *
-   * @param {number} numberOfRows Total number of displayed rows.
-   * @returns {{from: number, to: number}} `from` is inclusive, `to` is exclusive.
+   * @returns {number}
    */
-  #getSortableRowRange(numberOfRows: number) {
+  #getSortableRowStart() {
+    return this.#sortsFixedRows() ? 0 : (this.hot.getSettings().fixedRowsTop || 0);
+  }
+
+  /**
+   * Get number of rows which should be sorted.
+   *
+   * This is the sortable band's exclusive upper bound, not a count - the lower bound comes from
+   * `#getSortableRowStart()`. `sortByPresetSortStates()` reads it through `this`, so a subclass that
+   * overrides this method decides where the sort stops. Two things keep rows below it: the
+   * `fixedRowsBottom` rows, which keeps a footer row's SUM over absolute addresses from being
+   * permuted into the data (unless `sortFixedRows` opts them back in), and the trailing spare rows.
+   *
+   * @private
+   * @param {number} numberOfRows Total number of displayed rows.
+   * @returns {number}
+   */
+  getNumberOfRowsToSort(numberOfRows: number) {
     const settings = this.hot.getSettings();
-    // `sortFixedRows: true` opts back into sorting the whole dataset, pinned rows included, so
-    // neither overlay reserves anything from the sortable range.
-    const sortsFixedRows = this.#sortsFixedRows();
-    const from = sortsFixedRows ? 0 : (settings.fixedRowsTop || 0);
-    const fixedRowsBottom = sortsFixedRows ? 0 : (settings.fixedRowsBottom || 0);
+    // `sortFixedRows: true` opts back into sorting the whole dataset, pinned rows included, so the
+    // bottom overlay reserves nothing from the sortable range.
+    const fixedRowsBottom = this.#sortsFixedRows() ? 0 : (settings.fixedRowsBottom || 0);
 
     // `maxRows` option doesn't take into account `minSpareRows` option in this case.
     if ((settings.maxRows ?? Infinity) <= numberOfRows) {
-      return { from, to: Math.max(0, (settings.maxRows ?? 0) - fixedRowsBottom) };
+      return Math.max(0, (settings.maxRows ?? 0) - fixedRowsBottom);
     }
 
     const minSpareRows = settings.minSpareRows ?? 0;
@@ -754,21 +762,7 @@ export class ColumnSorting extends BasePlugin {
     // one real data row drops out of the sort. That is DEV-2881, and it predates `sortFixedRows` -
     // kept as-is here on purpose, because fixing it needs the one spec that sets both options
     // repaired first (it currently cannot tell the two behaviors apart).
-    return { from, to: Math.max(0, numberOfRows - spareRows - fixedRowsBottom) };
-  }
-
-  /**
-   * Get number of rows which should be sorted.
-   *
-   * This is the sortable band's exclusive upper bound, not a count - the lower bound is
-   * `fixedRowsTop`. Kept as a thin wrapper because it is part of the plugin's public surface.
-   *
-   * @private
-   * @param {number} numberOfRows Total number of displayed rows.
-   * @returns {number}
-   */
-  getNumberOfRowsToSort(numberOfRows: number) {
-    return this.#getSortableRowRange(numberOfRows).to;
+    return Math.max(0, numberOfRows - spareRows - fixedRowsBottom);
   }
 
   /**
@@ -785,7 +779,10 @@ export class ColumnSorting extends BasePlugin {
     }
 
     const indexesWithData: [number, ...unknown[]][] = [];
-    const { from, to } = this.#getSortableRowRange(this.hot.countRows());
+    const from = this.#getSortableRowStart();
+    // Through `this`, never inlined: a subclass that overrides `getNumberOfRowsToSort()` owns the
+    // upper bound.
+    const to = this.getNumberOfRowsToSort(this.hot.countRows());
 
     const getDataForSortedColumns = (visualRowIndex: number) =>
       arrayMap(sortConfigs, (sortConfig: SortConfig) => this.hot.getDataAtCell(visualRowIndex, sortConfig.column));

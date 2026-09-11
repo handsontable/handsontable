@@ -79,12 +79,14 @@ Rows pinned by `fixedRowsTop` and `fixedRowsBottom` take no part in the sort. Th
 (DEV-1713) and shipped in **18.0.0**, as a deliberate breaking change: a footer row holding a SUM
 over absolute addresses was being permuted into the middle of the data.
 
-**`#getSortableRowRange(numberOfRows)` owns both bounds**, and `sortByPresetSortStates()` walks
-exactly the `{ from, to }` it returns. Keep it that way: the bounds were split across two methods
-until DEV-59, which meant a caller could pick up the upper bound and miss the lower one, and the
-`sortFixedRows` flag had to be applied twice. `getNumberOfRowsToSort()` survives as a thin wrapper
-returning `.to`, because it is part of the plugin's public surface - it is the band's exclusive
-**upper bound**, not a count, whatever its name suggests.
+**The upper bound is an extension seam, so `sortByPresetSortStates()` must read it through `this`.**
+The sort walks from `#getSortableRowStart()` (inclusive) to `this.getNumberOfRowsToSort(countRows)`
+(exclusive), and `getNumberOfRowsToSort()` is the band's **upper bound**, not a count, whatever its
+name suggests. It is a plain method, so a subclass can override it to narrow the sort - and that
+only works while the sort calls it. A DEV-59 refactor once folded both bounds into one private
+helper and called that instead: the method survived as a wrapper, overriding it silently did
+nothing, and a review caught it. `sortableRowRange.unit.js` now pins an overriding subclass, so do
+not inline the upper bound again. The lower bound stays private because nothing ever overrode it.
 
 **DEV-59 asked for exactly that change, so the ticket's own text is already delivered.** What DEV-59
 added on top is the escape hatch: `sortFixedRows`, default `false`, which when set to `true` puts the
