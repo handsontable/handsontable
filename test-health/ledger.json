@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-11T09:19:21.464Z",
+  "updatedAt": "2026-09-11T11:33:50.485Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "jasmine",
+      "leg": "UMD.min (theme: main)",
+      "file": "handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js",
+      "line": null,
+      "title": "AutocompleteEditor choices should not sort the choices list, when the `sortByRelevance` option is set to `true`",
+      "status": "failed",
+      "attempts": 1,
+      "error": "Expected '' to equal 'cyan'.",
+      "isolation": "passes alone",
+      "quarantine": null,
+      "source": "ci",
+      "runId": "34593199590",
+      "runAttempt": 1,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34593199590",
+      "workflow": "Tests",
+      "branch": "feature/DEV-2892_Recycle-row-elements-on-scroll-draws",
+      "headSha": "dfac03a96e976dbf62254f1a38e4a8dd6102a662",
+      "event": "pull_request",
+      "seenAt": "2026-09-11T11:32:56Z"
+    },
     {
       "tier": "playwright",
       "leg": "e2e-classic-min",

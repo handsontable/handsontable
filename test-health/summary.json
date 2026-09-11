@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-11T10:01:31.643Z",
+  "generatedAt": "2026-09-11T11:33:50.485Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,12 +8,45 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 3,
+    "tests": 4,
     "needsTicket": 0,
     "quarantined": 0,
-    "entries": 3
+    "entries": 4
   },
   "rows": [
+    {
+      "key": "jasmine|handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js|AutocompleteEditor choices should not sort the choices list, when the `sortByRelevance` option is set to `true`",
+      "tier": "jasmine",
+      "file": "handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js",
+      "line": null,
+      "title": "AutocompleteEditor choices should not sort the choices list, when the `sortByRelevance` option is set to `true`",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "legs": [
+        "UMD.min (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "passes alone"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-11T11:32:56Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34593199590",
+        "branch": "feature/DEV-2892_Recycle-row-elements-on-scroll-draws",
+        "leg": "UMD.min (theme: main)",
+        "status": "failed",
+        "error": "Expected '' to equal 'cyan'.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
     {
       "key": "playwright|e2e/iframe-cross-realm-scroll.spec.ts|cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
       "tier": "playwright",
