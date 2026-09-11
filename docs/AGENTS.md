@@ -598,8 +598,6 @@ pull request body lists every decision with its reason. Merge it and
   the checkout it runs in and restores your branch afterwards, so run it from a
   clean checkout or a worktree, never with uncommitted changes.
 
-Design: `.ai/specs/2026-09-10-docs-sync-design.md`.
-
 ---
 
 ## 2.12 Content Pipeline and Dev-Server Memory (DEV-1991)

@@ -11,8 +11,6 @@
  * plumbing, the dedup, the version-scoped page rule, and the pull request
  * bookkeeping never depend on the model.
  *
- * Design: `.ai/specs/2026-09-10-docs-sync-design.md`.
- *
  * Usage:
  *   node .github/scripts/docs-sync.mjs [--dry-run] [--target prod-docs/18.1]
  *                                      [--no-llm] [--skip-lint]

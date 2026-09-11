@@ -5,7 +5,6 @@ name: Docs Sync
 # `develop` documents the NEXT release, so this is not a plain branch sync: an
 # LLM (through the LiteLLM proxy) decides per commit whether the change applies
 # to the released version; everything else is deterministic and unit-tested.
-# Design: .ai/specs/2026-09-10-docs-sync-design.md
 # Script: .github/scripts/docs-sync.mjs (run it locally with --dry-run).
 on:
   # 06:00 UTC, Mon-Fri. Nothing merges to develop on weekends, so a weekend run
