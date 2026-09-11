@@ -126,6 +126,18 @@ class Renderer {
   }
 
   /**
+   * SPIKE (#13446): records whether this draw was entered as a scroll draw.
+   *
+   * @param {boolean} scrollDriven Whether the draw is scroll-driven.
+   * @returns {Renderer}
+   */
+  setScrollDrivenDraw(scrollDriven: boolean) {
+    this.renderer.setScrollDrivenDraw(scrollDriven);
+
+    return this;
+  }
+
+  /**
    * Renders the table.
    */
   render() {

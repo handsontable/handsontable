@@ -39,6 +39,15 @@ export class RowsRenderer extends BaseRenderer {
    * @type {WeakMap}
    */
   declare orderView: OrderView;
+  /**
+   * SPIKE (#13446): the source row the first TR held after the last render, and the band size then.
+   * `-1` until the first render.
+   */
+  #lastOffset: number = -1;
+  /**
+   * SPIKE (#13446): the number of TR elements the last render left in the root node.
+   */
+  #lastSize: number = 0;
 
   /**
    * Creates a new RowsRenderer instance.
@@ -84,9 +93,13 @@ export class RowsRenderer extends BaseRenderer {
       ]);
     }
 
+    const nextOffset = rowsToRender > 0 ? this.table.renderedRowToSource(0) : 0;
+
+    this.#recycleRows(nextOffset);
+
     this.orderView
       .setSize(rowsToRender)
-      .setOffset(this.table.renderedRowToSource(0))
+      .setOffset(nextOffset)
       .start();
 
     for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
@@ -121,5 +134,54 @@ export class RowsRenderer extends BaseRenderer {
     }
 
     this.orderView.end();
+
+    this.#lastOffset = nextOffset;
+    this.#lastSize = rowsToRender;
+  }
+
+  /**
+   * SPIKE (#13446): on a scroll-driven draw, rotates the TR elements so a row that stays in the
+   * rendered band keeps its TR (and so its TDs). The rows that scrolled out wrap to the other end
+   * and are overwritten by the rows that scrolled in. After the rotation the TR at index `i` holds
+   * source row `nextOffset + i` for every row that was already rendered, which is exactly what the
+   * cell pass is about to paint there – so a `td`-keyed renderer cache hits for the whole overlap.
+   *
+   * @param {number} nextOffset The source row the first TR will hold on this draw.
+   */
+  #recycleRows(nextOffset: number) {
+    if (!this.table.isRowRecyclingAllowed()) {
+      return;
+    }
+
+    const rootNode = this.rootNode as HTMLElement;
+    const lastSize = this.#lastSize;
+    const delta = nextOffset - this.#lastOffset;
+
+    if (
+      this.#lastOffset < 0 ||
+      lastSize === 0 ||
+      delta === 0 ||
+      Math.abs(delta) >= lastSize ||
+      rootNode.childElementCount !== lastSize
+    ) {
+      return;
+    }
+
+    const fragment = rootNode.ownerDocument.createDocumentFragment();
+
+    if (delta > 0) {
+      // Scrolled down: the first `delta` rows left the band – send them to the bottom, in order.
+      for (let i = 0; i < delta; i++) {
+        fragment.appendChild(rootNode.firstElementChild!);
+      }
+      rootNode.appendChild(fragment);
+
+    } else {
+      // Scrolled up: the last `-delta` rows left the band – send them to the top, in order.
+      for (let i = 0; i < -delta; i++) {
+        fragment.insertBefore(rootNode.lastElementChild!, fragment.firstChild);
+      }
+      rootNode.insertBefore(fragment, rootNode.firstChild);
+    }
   }
 }

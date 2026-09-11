@@ -32,6 +32,12 @@ export class CellsRenderer extends BaseRenderer {
    * @type {WeakMap}
    */
   orderViews: WeakMap<object, SharedOrderView> = new WeakMap();
+  /**
+   * SPIKE (#13446): the source row and column each TD element painted last, packed as
+   * `row * 2^21 + column`. Read on a scroll-driven draw to leave an element alone when it already
+   * shows the cell the draw would paint into it.
+   */
+  #paintedCoords: WeakMap<HTMLElement, number> = new WeakMap();
 
   /**
    * Creates a new CellsRenderer instance.
@@ -72,6 +78,9 @@ export class CellsRenderer extends BaseRenderer {
     const band = [
       activeOverlayName, rowFilter?.offset ?? 0, rowsToRender, columnFilter?.offset ?? 0, columnsToRender,
     ].join(',');
+    const skipUnchanged = this.table.isUnchangedCellSkippable();
+    const paintedCoords = this.#paintedCoords;
+    const COORDS_BASE = 2 ** 21;
 
     for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
@@ -100,10 +109,20 @@ export class CellsRenderer extends BaseRenderer {
           continue; // eslint-disable-line no-continue
         }
 
+        // SPIKE (#13446): on a scroll-driven draw an element that already shows this source cell
+        // (its TR was carried over by the row recycling) is left exactly as it is.
+        const coordsKey = (sourceRowIndex * COORDS_BASE) + sourceColumnIndex;
+
+        if (skipUnchanged && paintedCoords.get(TD) === coordsKey) {
+          continue; // eslint-disable-line no-continue
+        }
+
         // The host may keep the element as it is (`renderMode: 'onChange'`); then nothing below runs.
         if (!this.table.shouldPaintCell(sourceRowIndex, sourceColumnIndex, TD as HTMLTableCellElement, band)) {
           continue; // eslint-disable-line no-continue
         }
+
+        paintedCoords.set(TD, coordsKey);
 
         if (!hasClass(TD, 'hide')) { // Workaround for hidden columns plugin
           TD.className = '';

@@ -191,6 +191,7 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
         ctx,
         filters,
         isPureVerticalScrollDraw(wtOverlays),
+        wtOverlays.isScrollDrivenDraw,
       );
 
       if (!wtSettings.getSetting('externalRowCalculator')) {
@@ -286,6 +287,7 @@ function runCloneDrawCycle(table: Table, ctx: DrawContext): void {
       ctx,
       filters,
       isPureVerticalScrollDraw(cloneSourceOverlays),
+      cloneSourceOverlays.isScrollDrivenDraw,
     );
 
     if (table.is(CLONE_BOTTOM)) {
@@ -439,14 +441,17 @@ function isPureVerticalScrollDraw(wtOverlays: Overlays): boolean {
  *   `buildRenderFilters` (passed non-null rather than re-read off the nullable `table.*Filter`).
  * @param {boolean} columnHeadersRenderSkippable Whether the column-header (THEAD) pass may be skipped
  *   for this draw (a pure vertical scroll); resolved per role by the caller.
+ * @param {boolean} scrollDrivenDraw SPIKE (#13446): whether the draw was entered as a scroll draw.
  */
 function renderCellBand(
   table: Table,
   ctx: DrawContext,
   filters: { rowFilter: RowFilter; columnFilter: ColumnFilter },
   columnHeadersRenderSkippable: boolean,
+  scrollDrivenDraw: boolean,
 ): void {
   table.tableRenderer.setHeaderContentRenderers(ctx.rowHeaders, ctx.columnHeaders);
+  table.tableRenderer.setScrollDrivenDraw(scrollDrivenDraw);
 
   if (table.is(CLONE_BOTTOM) ||
       table.is(CLONE_BOTTOM_INLINE_START_CORNER)) {

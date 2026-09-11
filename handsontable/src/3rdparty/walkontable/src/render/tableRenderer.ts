@@ -12,6 +12,15 @@ import type { StylesHandler } from '../types';
 import { applyRowHeight } from './exactRowHeight';
 
 /**
+ * SPIKE (#13446): the runtime switches that select the row-recycling variant, read off `globalThis` so
+ * one build serves every measurement (`off` when neither is set).
+ */
+type SpikeSwitches = typeof globalThis & {
+  __HOT_SPIKE_SHIFT?: boolean;
+  __HOT_SPIKE_SKIP?: boolean;
+};
+
+/**
  * Asked for every cell in the rendered band before the cell element is reset and painted.
  * Answering `false` leaves the element exactly as the previous draw left it.
  */
@@ -205,6 +214,14 @@ export class TableRenderer {
    */
   #columnHeadersRenderSkippable: boolean = false;
   /**
+   * SPIKE (#13446): `true` when this draw was entered as a scroll draw (`isScrollDrivenDraw`), so
+   * the rows renderer may rotate the TR elements to follow the band, and the cells renderer may
+   * skip cells whose source coordinates did not change. Set once per draw by the draw cycle.
+   *
+   * @type {boolean}
+   */
+  #scrollDrivenDraw: boolean = false;
+  /**
    * `true` once the column-header pass has rendered at least once and stored its render window.
    *
    * @type {boolean}
@@ -298,6 +315,36 @@ export class TableRenderer {
    */
   setColumnHeadersRenderSkippable(skippable: boolean) {
     this.#columnHeadersRenderSkippable = skippable;
+  }
+
+  /**
+   * SPIKE (#13446): records whether this draw was entered as a scroll draw.
+   *
+   * @param {boolean} scrollDriven Whether the draw is scroll-driven.
+   */
+  setScrollDrivenDraw(scrollDriven: boolean) {
+    this.#scrollDrivenDraw = scrollDriven;
+  }
+
+  /**
+   * SPIKE (#13446): whether the rows renderer may rotate the TR elements on this draw. The runtime
+   * switch `globalThis.__HOT_SPIKE_SHIFT` selects the variant so one build serves every measurement.
+   *
+   * @returns {boolean}
+   */
+  isRowRecyclingAllowed(): boolean {
+    return this.#scrollDrivenDraw && (globalThis as SpikeSwitches).__HOT_SPIKE_SHIFT === true;
+  }
+
+  /**
+   * SPIKE (#13446): whether the cells renderer may leave a cell untouched on this draw when the
+   * element already shows the same source cell (only meaningful together with row recycling).
+   * Runtime switch: `globalThis.__HOT_SPIKE_SKIP`.
+   *
+   * @returns {boolean}
+   */
+  isUnchangedCellSkippable(): boolean {
+    return this.#scrollDrivenDraw && (globalThis as SpikeSwitches).__HOT_SPIKE_SKIP === true;
   }
 
   /**
