@@ -190,6 +190,25 @@ describe('RowsRenderer row recycling', () => {
     expect(rootNode.children[1]).toBe(trs[6]);
   });
 
+  it('should not rotate when scrolling up past the rows the band held, even into a bigger band', () => {
+    const { rootNode, draw, state, renderer } = createFixture();
+
+    draw(20, 10, false);
+
+    const trs = Array.from(rootNode.children);
+
+    // Scrolling up by 15 into a band of 20: rows 20-24 would survive, but only 10 elements exist
+    // and the move takes the rows from the end, so there is nothing to rotate them with. The band
+    // is rebuilt in place instead; the draw must not throw.
+    state.offset = 5;
+    state.size = 20;
+    state.recyclable = true;
+
+    expect(() => renderer.render()).not.toThrow();
+    expect(rootNode.children.length).toBe(20);
+    expect(Array.from(rootNode.children).slice(0, 10)).toEqual(trs);
+  });
+
   it('should keep the focus on a cell whose row leaves the band', () => {
     const { rootNode, draw, state, renderer } = createFixture();
     const table = document.createElement('table');

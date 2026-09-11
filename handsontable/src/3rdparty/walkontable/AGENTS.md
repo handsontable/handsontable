@@ -709,9 +709,10 @@ cell untouched (`renderMode: 'onChange'`, through the offset-free band above), a
 while nothing a cell paints depends on the band (the MergeCells case). A `forceFullRender`
 (`hot.render()`) enters as `draw(false)` and never rotates: it rebuilds the band in place, and the
 stamps' coordinates then repaint every element whose row moved. The rotation is also skipped when no
-row survives the move (the shift reaches the previous band's size scrolling down, the new band's size
-scrolling up), when the band is empty, and when the TBODY does not hold exactly the previous band
-(something else touched it). A focused cell in a leaving row is detached with its row for the
+row survives the move: the shift reaches the previous band's size in either direction (there are no
+more elements to move; scrolling up past it ran the move out of elements once, a bot-review catch), or
+the new band's size scrolling up. It is also skipped when the band is empty, and when the TBODY does
+not hold exactly the previous band (something else touched it). A focused cell in a leaving row is detached with its row for the
 duration of the move; Chromium blurs a removed element only at its next rendering step, by which
 time the row is back, and for an engine that blurs at once the renderer gives the element the focus
 back without scrolling, so the keyboard keeps reaching the grid either way.

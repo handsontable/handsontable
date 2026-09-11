@@ -174,11 +174,13 @@ export class RowsRenderer extends BaseRenderer {
       nextSize === 0 ||
       delta === 0 ||
       // No row survives the move, so every TR would be repainted anyway: rotating them is pure cost.
-      // Scrolling down, the survivors are the previous band's rows past the shift, so a row survives
-      // only if the shift is below the previous size; scrolling up, they are the new band's rows past
-      // the shift, so only if it is below the new size. The other size takes no part, and the two
-      // differ when the band grows or shrinks on the same draw.
-      (delta > 0 ? shift >= lastSize : shift >= nextSize) ||
+      // The rotation moves elements that exist, so in either direction the shift must stay below the
+      // previous size (scrolling up past it would run the move out of elements). Scrolling up, the
+      // survivors are the new band's rows past the shift, so the shift must stay below the new size
+      // too; scrolling down the new size takes no part, and a band that shrinks on the same draw
+      // still keeps the rows past the shift (`start()` trims the rest).
+      shift >= lastSize ||
+      (delta < 0 && shift >= nextSize) ||
       rootNode.childElementCount !== lastSize
     ) {
       return;
