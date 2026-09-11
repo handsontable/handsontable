@@ -5,6 +5,18 @@ import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 import { createServer } from 'http-server';
 import JasmineReporter from 'jasmine-terminal-reporter';
+import {
+  ANNOTATION_LIMIT,
+  ISOLATION_PROBE_MAX_FILES,
+  annotationLines,
+  describeVerdict,
+  failedFiles,
+  formatPageErrorAnnotation,
+  renderSummary,
+  specFileFilter,
+  toFailedSpec,
+  toRecord,
+} from './lib/failed-specs.mjs';
 
 const require = createRequire(import.meta.url);
 const { computeRunId, readRunIdInputsFromEnv } = require('../../.config/helper/run-id');
@@ -61,6 +73,11 @@ function listenOnFreePort(server, startPort) {
 const IS_CI = process.env.CI;
 const IS_TTY = process.stdout.isTTY;
 const CI_DOTS_PER_LINE = 120;
+// A failing spec file re-run alone that takes longer than this is reported as
+// unprobeable instead of hanging the job.
+const ISOLATION_PROBE_TIMEOUT_MS = 5 * 60 * 1000;
+// Where a red run leaves its failed-specs record (gitignored; CI uploads it).
+const RESULTS_DIR = 'test/e2e-results';
 
 // Separate positional args (runner HTML path) from flag args (--random,
 // --verbose, --seed=..., --hotVersion=...). Without this split, a flag-only
@@ -113,13 +130,23 @@ if (flags) {
   }
 
   // Support --spec=<pattern> to filter test files at runtime (e.g., --spec=i18n or --spec="i18n/index").
+  // Jasmine's boot reads the same `spec` parameter as a filter on spec names, so the pattern has to
+  // match both a file path and the names of the specs in it. --specFile=<pattern> filters the files
+  // only (e.g. --specFile="core/alter\.spec\.js$"), which is what re-running one file alone needs.
   const specFlag = flagArgs.find(a => a.startsWith('--spec='));
+  const specFileFlag = flagArgs.find(a => a.startsWith('--specFile='));
 
   if (specFlag) {
     const specPattern = specFlag.replace('--spec=', '');
 
     params.push(`spec=${encodeURIComponent(specPattern)}`);
     console.log(`Filtering tests with pattern: ${specPattern}`);
+  }
+  if (specFileFlag) {
+    const specFilePattern = specFileFlag.replace('--specFile=', '');
+
+    params.push(`specFile=${encodeURIComponent(specFilePattern)}`);
+    console.log(`Filtering spec files with pattern: ${specFilePattern}`);
   }
 
   if (params.length > 0) {
@@ -170,6 +197,16 @@ page.setViewport({
 });
 
 const cleanup = cleanupFactory(browser, server);
+const packagePath = path.relative(rootPath, process.cwd());
+const runnerUrl = query => `http://localhost:${PORT}/${packagePath}/${originalPath}${query}`;
+// The main run's query (`seed`, `random`, `hotVersion`, `spec`), carried into
+// the probe runs minus the ordering flags: a file re-run alone runs in its
+// natural order, so the verdict describes the file, not one shuffle of it.
+// `specFile` (the file filter) is replaced with the probed file's own.
+const mainQuery = htmlPath.slice(originalPath.length + 1);
+const leg = process.env.HOT_E2E_LEG
+  ? `${process.env.HOT_E2E_LEG} (theme: ${runIdInputs.theme})`
+  : `theme: ${runIdInputs.theme}`;
 
 const reporter = new JasmineReporter({
   colors: 1,
@@ -181,8 +218,22 @@ const reporter = new JasmineReporter({
   includeStackTrace: true,
 });
 let errorCount = 0;
+// Every failed spec of the main run, as data. After the run their files are
+// re-run alone (the isolation probe) and the report below names each of them.
+const failedSpecs = [];
+// 'main' while the whole runner page runs, 'probe' while one failing spec file
+// is re-run alone. The bridge callbacks branch on it: a probe run only counts
+// its specs and failures into `probe`, and the terminal reporter never sees it.
+// `probe` is `null` between probes and after one gave up (timeout, page error):
+// a callback that arrives then belongs to a document the probe no longer cares
+// about, and is dropped rather than written into the next file's verdict.
+let phase = 'main';
+let probe = null;
 
 await page.exposeFunction('jasmineStarted', (specInfo) => {
+  if (phase === 'probe') {
+    return;
+  }
   if (specInfo.order.random) {
     process.stdout.write(`Randomized with seed ${specInfo.order.seed}\n`);
   }
@@ -190,11 +241,33 @@ await page.exposeFunction('jasmineStarted', (specInfo) => {
   reporter.jasmineStarted(specInfo);
 });
 await page.exposeFunction('jasmineSpecStarted', () => {});
-await page.exposeFunction('jasmineSuiteStarted', suite => reporter.suiteStarted(suite));
-await page.exposeFunction('jasmineSuiteDone', () => reporter.suiteDone());
+await page.exposeFunction('jasmineSuiteStarted', (suite) => {
+  if (phase === 'main') {
+    reporter.suiteStarted(suite);
+  }
+});
+await page.exposeFunction('jasmineSuiteDone', () => {
+  if (phase === 'main') {
+    reporter.suiteDone();
+  }
+});
 await page.exposeFunction('jasmineSpecDone', (result) => {
+  if (phase === 'probe') {
+    if (probe !== null) {
+      probe.specs += 1;
+
+      if (result.status === 'failed') {
+        probe.failed += 1;
+      }
+    }
+
+    return;
+  }
   if (result.failedExpectations.length) {
     errorCount += result.failedExpectations.length;
+  }
+  if (result.status === 'failed') {
+    failedSpecs.push(toFailedSpec(result));
   }
   reporter.specDone(result);
 
@@ -208,9 +281,16 @@ await page.exposeFunction('jasmineSpecDone', (result) => {
   }
 });
 await page.exposeFunction('jasmineDone', async() => {
+  if (phase === 'probe') {
+    if (probe !== null) {
+      probe.resolve();
+    }
+
+    return;
+  }
   reporter.jasmineDone();
 
-  await cleanup(errorCount === 0 ? 0 : 1);
+  await finish();
 });
 
 await page.exposeFunction('getEventListeners', async(selector) => {
@@ -245,9 +325,33 @@ await page.exposeFunction('setDeviceScaleFactor', async(scaleFactor) => {
 });
 
 page.on('pageerror', async(msg) => {
+  if (phase === 'probe') {
+    if (probe !== null) {
+      probe.error = `page error: ${String(msg).split('\n')[0]}`;
+      probe.resolve();
+    }
+
+    return;
+  }
   /* eslint-disable no-console */
   console.log(msg);
-  await cleanup(1);
+
+  // An uncaught error aborts the whole run, so the specs after it never ran.
+  // Say so on the checks tab, and keep what did fail before it. Whatever the
+  // report does, the process must still exit 1: a throw here would be handed
+  // to the page and leave the browser open until the job times out.
+  try {
+    if (process.env.GITHUB_ACTIONS === 'true') {
+      console.error(formatPageErrorAnnotation(String(msg), leg));
+    }
+    if (failedSpecs.length > 0) {
+      report(new Map(), { aborted: true });
+    }
+  } catch (error) {
+    console.error('The failure report could not be written:', error);
+  } finally {
+    await cleanup(1);
+  }
 });
 
 page.on('console', (msg) => {
@@ -257,10 +361,155 @@ page.on('console', (msg) => {
   }
 });
 
-const packagePath = path.relative(rootPath, process.cwd());
+/**
+ * Re-runs one failing spec file alone by reloading the runner page with a
+ * `specFile=` filter that selects only that file. The bridge callbacks count that
+ * run's specs and failures into `probe`; a page error, a navigation error, or a
+ * timeout ends the run with an error verdict instead.
+ *
+ * Every write is guarded by `probe === mine`: after a timeout or a page error
+ * the old document is still alive for a moment and its late callbacks — a
+ * `jasmineDone`, a rejected `goto` — must not land in the next file's verdict.
+ * The document is unloaded before the next probe for the same reason.
+ *
+ * @param {string} file The repo-relative spec file.
+ * @returns {Promise<{failed: number, specs: number, error?: string}>} The verdict for the file.
+ */
+async function probeFile(file) {
+  const query = new URLSearchParams(mainQuery);
+
+  query.delete('random');
+  query.delete('seed');
+  query.set('specFile', specFileFilter(file));
+
+  const mine = { failed: 0, specs: 0, error: null, resolve: () => {} };
+
+  probe = mine;
+
+  await new Promise((resolve) => {
+    const timer = setTimeout(() => {
+      if (probe === mine) {
+        mine.error = `timed out after ${ISOLATION_PROBE_TIMEOUT_MS / 1000}s`;
+        mine.resolve();
+      }
+    }, ISOLATION_PROBE_TIMEOUT_MS);
+
+    mine.resolve = () => {
+      clearTimeout(timer);
+      resolve();
+    };
+
+    page.goto(runnerUrl(`?${query.toString()}`)).catch((error) => {
+      if (probe === mine) {
+        mine.error = `navigation failed: ${error.message || error}`;
+        mine.resolve();
+      }
+    });
+  });
+
+  // Nothing from this document may reach the next probe: forget it, then unload it.
+  probe = null;
+  await page.goto('about:blank').catch(() => {});
+
+  return mine.error
+    ? { failed: mine.failed, specs: mine.specs, error: mine.error }
+    : { failed: mine.failed, specs: mine.specs };
+}
+
+/**
+ * Re-runs each failing spec file alone, up to `ISOLATION_PROBE_MAX_FILES` of
+ * them, to tell a failure caused by the specs that ran before it from one
+ * that fails by itself.
+ *
+ * @param {string[]} files The repo-relative spec files that had failures.
+ * @returns {Promise<Map<string, {failed: number, error?: string}>>} The verdict per probed file.
+ */
+async function runIsolationProbes(files) {
+  const verdicts = new Map();
+  const targets = files.slice(0, ISOLATION_PROBE_MAX_FILES);
+
+  if (targets.length === 0) {
+    return verdicts;
+  }
+
+  console.log(`\nRe-running ${targets.length} failing spec file(s) alone, to tell a failure caused by the `
+    + 'specs that ran before it from one that fails by itself:');
+  phase = 'probe';
+
+  for (const file of targets) {
+    // Sequential on purpose: the probes share the one page.
+    // eslint-disable-next-line no-await-in-loop
+    const verdict = await probeFile(file);
+
+    verdicts.set(file, verdict);
+    console.log(`  ${file}: ${describeVerdict(verdict)}`);
+  }
+
+  return verdicts;
+}
+
+/**
+ * Writes the report of a red run: the JSON record in `test/e2e-results/`, the
+ * `::error` annotations (on GitHub Actions, capped at what it shows), and the
+ * Markdown step summary (when the job provides one).
+ *
+ * @param {Map<string, {failed: number, specs: number, error?: string}>} probes The isolation verdicts per file.
+ * @param {object} [options] Options.
+ * @param {boolean} [options.aborted] Whether an uncaught page error ended the run before the probes.
+ */
+function report(probes, { aborted = false } = {}) {
+  const runId = computeRunId(runIdInputs);
+  // An aborted run skipped its files because of the abort, not because of the cap.
+  const skippedFiles = aborted ? 0 : Math.max(0, failedFiles(failedSpecs).length - probes.size);
+  const recordPath = path.join(RESULTS_DIR, `failed-specs-${runId}.json`);
+  const record = toRecord({ leg, theme: runIdInputs.theme, runId, aborted }, failedSpecs, probes);
+
+  fs.mkdirSync(RESULTS_DIR, { recursive: true });
+  fs.writeFileSync(recordPath, `${JSON.stringify(record, null, 2)}\n`);
+  console.log(`\nFailed-specs record: ${recordPath}`);
+
+  if (process.env.GITHUB_ACTIONS === 'true') {
+    // On an abort the page-error annotation was already printed, so leave one slot for it under
+    // GitHub's 10-annotations-per-step cap; otherwise the overflow note would be the line dropped.
+    const limit = aborted ? ANNOTATION_LIMIT - 1 : ANNOTATION_LIMIT;
+
+    annotationLines(failedSpecs, leg, probes, limit).forEach(line => console.error(line));
+  }
+  if (process.env.GITHUB_STEP_SUMMARY) {
+    fs.appendFileSync(
+      process.env.GITHUB_STEP_SUMMARY,
+      renderSummary(failedSpecs, leg, probes, skippedFiles, { aborted }),
+    );
+  }
+}
+
+/**
+ * Ends the main run: a green run exits at once; a red one re-runs the failing
+ * files alone, reports, and exits 1. The exit is in a `finally`: this is the
+ * body of the `jasmineDone` binding, and Puppeteer hands a throw from a binding
+ * back to the page, so without it a full disk or a read-only workspace would
+ * leave the browser open until the job times out instead of failing.
+ */
+async function finish() {
+  if (failedSpecs.length === 0) {
+    await cleanup(errorCount === 0 ? 0 : 1);
+
+    return;
+  }
+
+  try {
+    const probes = await runIsolationProbes(failedFiles(failedSpecs));
+
+    report(probes);
+  } catch (error) {
+    console.error('The failure report could not be written:', error);
+  } finally {
+    await cleanup(1);
+  }
+}
 
 try {
-  await page.goto(`http://localhost:${PORT}/${packagePath}/${htmlPath}`);
+  await page.goto(runnerUrl(htmlPath.slice(originalPath.length)));
 } catch (error) {
   /* eslint-disable no-console */
   console.log(error);

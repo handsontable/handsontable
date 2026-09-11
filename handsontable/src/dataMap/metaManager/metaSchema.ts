@@ -586,6 +586,91 @@ export default (): Record<string, unknown> => {
     ariaTags: true,
 
     /**
+     * @description
+     * The `autoLink` option configures the [`AutoLink`](@/api/autoLink.md) plugin, which renders the
+     * URLs found in cell values as clickable links.
+     *
+     * You can set the `autoLink` option to one of the following:
+     *
+     * | Setting           | Description                                                                              |
+     * | ----------------- | ---------------------------------------------------------------------------------------- |
+     * | `false` (default) | Disable the [`AutoLink`](@/api/autoLink.md) plugin                                       |
+     * | `true`            | Enable the [`AutoLink`](@/api/autoLink.md) plugin with the default settings               |
+     * | An object         | Enable the [`AutoLink`](@/api/autoLink.md) plugin and configure its settings              |
+     *
+     * If you set the `autoLink` option to an object, you can configure the following settings:
+     *
+     * | Option      | Possible settings                                                       | Description                                                                 |
+     * | ----------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+     * | `target`    | `'_blank'` (default) \| `'_self'`                                       | Where the links open                                                         |
+     * | `schemes`   | An array of `'http'`, `'https'`, `'mailto'`, `'tel'` (default: all four) | The URL schemes to link. Narrows the fixed four-scheme allowlist, never widens it. A column or cell `schemes` replaces the grid-level list for those cells. |
+     * | `inline`    | `true` (default) \| `false`                                             | `true`: link URLs inside longer text<br>`false`: link only a cell whose whole value is one URL |
+     * | `strict`    | `true` (default) \| `false`                                             | `true`: link only URLs that carry a scheme<br>`false`: also link bare domains (`example.com`) as `https` and bare email addresses as `mailto`, validated against the IANA top-level domain list bundled with Handsontable |
+     * | `className` | A string (default: `''`)                                                | Extra class name(s) added to every link                                      |
+     *
+     * The full IANA top-level domain list is used, so a file name whose extension is also a
+     * top-level domain, such as `report.zip` or `README.md`, links too. Keep the default unless your
+     * data holds bare domains or email addresses, and keep `strict: true` or set `autoLink: false` on
+     * columns that hold file names. The bundled list is fixed at build time - Handsontable makes no
+     * network request to validate a bare domain, which keeps `strict: false` usable in an
+     * air-gapped environment. Punycode top-level domains (`xn--...`) are skipped, since nobody types
+     * those into a cell.
+     *
+     * The cell keeps its own renderer and its value stays unchanged, so copying, autofill, sorting,
+     * and export are unaffected. Every link element gets the `ht-link` and `ht-auto-link` classes,
+     * and always carries `rel="noopener noreferrer"`. Press <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd>
+     * to open the first link of the selected cell.
+     *
+     * For `mailto:` and `tel:` links, the scheme prefix is wrapped in a `ht-link-scheme` element and
+     * hidden, so the cell shows only the address or the number. The cell value and the link target
+     * keep the prefix.
+     *
+     * Only the `http`, `https`, `mailto`, and `tel` schemes are ever linked. A cell that already
+     * contains a link element, such as a `HYPERLINK` cell rendered through
+     * [`formulas.hyperlinks`](#formulas) or an `html` cell holding an anchor, is left as it is.
+     *
+     * The plugin is enabled at the grid level. Set `autoLink: false` for a column or a cell to opt it
+     * out, or set an object to override the grid-level settings for that column or cell.
+     *
+     * Read more:
+     * - [Clickable links](@/guides/cell-features/clickable-links/clickable-links.md)
+     * - [Plugins: `AutoLink`](@/api/autoLink.md)
+     *
+     * @memberof Options#
+     * @type {boolean|object}
+     * @default false
+     * @since 18.2.0
+     * @category AutoLink
+     * @configScope grid columns cells cell
+     *
+     * @example
+     * ```js
+     * // link every URL, email address and phone number found in cell values
+     * autoLink: true,
+     *
+     * // open links in the same tab, link web URLs only, and add a class to every link
+     * autoLink: {
+     *   target: '_self',
+     *   schemes: ['http', 'https'],
+     *   className: 'company-link',
+     * },
+     *
+     * // also link bare domains (as `https`) and bare email addresses (as `mailto`)
+     * autoLink: {
+     *   strict: false,
+     * },
+     *
+     * // enable the plugin, but keep one column as plain text
+     * autoLink: true,
+     * columns: [
+     *   { data: 'website' },
+     *   { data: 'notes', autoLink: false },
+     * ],
+     * ```
+     */
+    autoLink: false,
+
+    /**
      * The `autoColumnSize` option configures the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin.
      *
      * You can set the `autoColumnSize` option to one of the following:
@@ -3438,16 +3523,22 @@ export default (): Record<string, unknown> => {
      * | `sheetId`   | A number                                                                                                                                                                                                               |
      * | `sheetName` | A string                                                                                                                                                                                                               |
      * | `language`  | A [HyperFormula language pack](https://handsontable.github.io/hyperformula/guide/localizing-functions.html), imported from `hyperformula/es/i18n/languages`                                                          |
-     * | `hyperlinks` | `true` \|<br>`false` (default)                                                                                                                                                                                        |
+     * | `hyperlinks` | `true` \|<br>`false` (default) \|<br>An object with `target` and `schemes`                                                                                                                                                   |
      *
      * Set `hyperlinks` to `true` to render a cell whose formula is `HYPERLINK()` as a link. The cell
      * keeps its own renderer, and the link label is the value the formula returns. Only a cell whose
      * root expression is `HYPERLINK()` becomes a link, so a nested call such as
      * `=CONCATENATE("see ", HYPERLINK("https://example.com"))` renders as plain text.
      *
+     * Set `hyperlinks` to an object to configure the links: `target` is `'_blank'` (default) or
+     * `'_self'`, and `schemes` narrows the allowed URL schemes to a subset of `'http'`, `'https'`,
+     * `'mailto'`, and `'tel'`.
+     *
      * A link is created only for the `http`, `https`, `mailto` and `tel` schemes. Any other scheme,
      * `javascript:` included, renders the label as plain text instead. Press
-     * <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd> to open the link of the selected cell.
+     * <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd> to open the link of the selected cell. Each link
+     * element gets the `ht-link` and `ht-hyperlink` classes. To link plain URLs in cell values, see
+     * [`autoLink`](#autoLink).
      *
      * Read more:
      * - [Plugins: `Formulas`](@/api/formulas.md)
@@ -3478,6 +3569,15 @@ export default (): Record<string, unknown> => {
      * formulas: {
      *   engine: HyperFormula,
      *   hyperlinks: true
+     * }
+     *
+     * // or, open `HYPERLINK()` links in the same tab and link only web URLs
+     * formulas: {
+     *   engine: HyperFormula,
+     *   hyperlinks: {
+     *     target: '_self',
+     *     schemes: ['http', 'https']
+     *   }
      * }
      *
      * // or, add a HyperFormula instance
@@ -5211,10 +5311,14 @@ export default (): Record<string, unknown> => {
      *
      * This option affects only the displayed output in the cell renderer.
      * It has no effect on the numeric cell editor. In the source data, numeric values
-     * are stored as JavaScript numbers.
+     * are stored as JavaScript numbers, so a value beyond the safe-integer limit
+     * (`9007199254740991`) loses precision before the formatter ever sees it. To store and display
+     * such a value exactly, set [`preserveNumericLiteral`](@/api/options.md#preservenumericliteral)
+     * to `true` and provide the value as a string.
      *
      * Read more:
      * - [`locale`](@/api/options.md#locale)
+     * - [`preserveNumericLiteral`](@/api/options.md#preservenumericliteral)
      * - [Numeric cell type](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md)
      * - [Cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md)
      * - [Third-party licenses](@/guides/technical-specification/third-party-licenses/third-party-licenses.md)
@@ -5259,8 +5363,14 @@ export default (): Record<string, unknown> => {
      * behaving like a number in those features: column sorting and filter conditions compare it
      * numerically, and the [`Formulas`](@/api/formulas.md) engine parses the literal as a number,
      * so functions such as `SUM` still include the cell. The cell renderer still formats
-     * the value according to [`numericFormat`](@/api/options.md#numericformat); only the editor
-     * shows the preserved literal. One exception: the filter menu's "Filter by value" checkbox
+     * the value according to [`numericFormat`](@/api/options.md#numericformat), and it keeps every
+     * digit of the literal: `Intl.NumberFormat` reads a string operand as an exact decimal instead
+     * of converting it to a JavaScript number. That makes `preserveNumericLiteral` the supported
+     * way to display a value beyond the safe-integer limit: the literal `'9007199254740993'`
+     * renders with every digit intact, while the same value held as a number renders as
+     * `9007199254740992`. Grouping and decimals still follow
+     * [`numericFormat`](@/api/options.md#numericformat). One exception: the filter menu's
+     * "Filter by value" checkbox
      * list compares values strictly, so a preserved literal (`'9.0'`) and its plain number (`9`)
      * appear as two separate entries.
      *

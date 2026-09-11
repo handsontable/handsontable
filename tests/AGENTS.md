@@ -333,3 +333,16 @@ recycled (the table's root, the grid), read every value a comparison needs in
 that same evaluation (`FrozenTallCellPage.rowHeights()`), and poll a pinned
 expected value rather than comparing two reads with each other — two reads
 that both landed before the draw agree with each other and prove nothing.
+
+**Where a flake goes.** In CI the config adds a `json` reporter
+(`test-results/report.json`, shipped inside the `playwright-report-*` failure
+artifact), and `.github/workflows/test-health.yml` collects every `flaky` or
+`unexpected` test of a red run into the cross-run ledger at
+<https://handsontable.github.io/handsontable/test-health/>: per test, 7- and
+30-day counts, distinct runs, legs, and a "needs ticket" flag at 2+ distinct
+runs in 30 days — the playbook's line for a fix or migration ticket. A `flaky`
+outcome (failed, then passed on retry) reaches the ledger only because
+`failOnFlakyTests` fails the leg; keep `retries` at 1 in CI for that to hold.
+The report path is pinned by `.github/scripts/lib/test-health.mjs` and asserted
+in `.github/scripts/__tests__/test-health.test.mjs`, so moving it means changing
+all three places.

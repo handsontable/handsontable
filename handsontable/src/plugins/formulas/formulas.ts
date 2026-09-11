@@ -1,8 +1,9 @@
 import { BasePlugin } from '../base';
 import { staticRegister } from '../../utils/staticRegister';
-import { error, warn, warnOnce } from '../../helpers/console';
+import { deprecatedWarnOnce, error, warn, warnOnce } from '../../helpers/console';
+import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { isNumeric } from '../../helpers/number';
-import { isObject } from '../../helpers/object';
+import { isObject, isPlainObject } from '../../helpers/object';
 import { isDefined, isUndefined } from '../../helpers/mixed';
 import { getRegisteredHotInstances, setupEngine, setupSheet, unregisterEngine, } from './engine/register';
 import {
@@ -21,7 +22,18 @@ import {
   unescapeEngineBoundValue,
   unescapeFormulaExpression,
 } from './utils';
-import { resolveHyperlinkUrl } from './hyperlinkUrl';
+import {
+  LINK_CLASS_NAME,
+  LINK_SCHEMES,
+  LINK_SCHEME_CLASS_NAME,
+  createLinkElement,
+  normalizeSchemesWithFallback,
+  resolveLinkUrl,
+  unwrapLinks,
+  wrapCellContent,
+  type LinkScheme,
+  type LinkTarget,
+} from '../../utils/cellLinks';
 import { getEngineSettingsWithOverrides, haveEngineSettingsChanged } from './engine/settings';
 import { isArrayOfArrays } from '../../helpers/data';
 import { toUpperCaseFirst } from '../../helpers/string';
@@ -75,12 +87,20 @@ interface MoveCellsRect {
 }
 
 /**
+ * The object form of the `formulas.hyperlinks` setting.
+ */
+export interface FormulasHyperlinkSettings {
+  target?: LinkTarget;
+  schemes?: LinkScheme[];
+}
+
+/**
  * The expected shape of the `formulas` plugin settings object (the non-boolean form).
  */
 interface FormulasPluginSettings {
   sheetName?: string;
   engine: unknown;
-  hyperlinks?: boolean;
+  hyperlinks?: boolean | FormulasHyperlinkSettings;
 }
 
 /**
@@ -158,16 +178,17 @@ const REMOVAL_SPANS_CHUNK_SIZE = 1000;
 // cells may put one into the source data - see `#syncFormulasToSourceData`.
 const REF_ERROR_PATTERN = /#REF!/;
 
-// Group under which the plugin's grid shortcuts are registered, so `disablePlugin` can drop them all.
-const SHORTCUTS_GROUP = PLUGIN_KEY;
-
-// Class name of the anchor that wraps the content of a `HYPERLINK` cell. It is also the marker that
-// keeps the wrapping idempotent when a renderer leaves the previous DOM in place.
+// Class name of the anchor that wraps the content of a HYPERLINK cell, next to the shared ht-link.
+// It is also the marker that keeps the wrapping idempotent when a renderer leaves the previous DOM in place.
 const HYPERLINK_CLASS_NAME = 'ht-hyperlink';
 
 // `warnOnce` key for a `HYPERLINK` URL refused by the protocol allowlist. Warning per cell would
 // flood the console on every render pass.
 const HYPERLINK_WARN_KEY = 'formulas-hyperlink-refused';
+
+// `warnOnce` key for an invalid `formulas.hyperlinks` object-form setting (an unrecognized `target`
+// or `schemes` entry). One warning per `#refreshHyperlinksSetting()` call, not per cell.
+const HYPERLINK_SETTINGS_WARN_KEY = 'formulas-hyperlinks-settings';
 
 /**
  * This plugin allows you to perform Excel-like calculations in your business applications. It does it by an
@@ -217,6 +238,15 @@ export class Formulas extends BasePlugin {
    * because it is read once per rendered cell.
    */
   #hyperlinksEnabled = false;
+
+  /**
+   * Where a `HYPERLINK` anchor opens. Read from the `hyperlinks` object form, `_blank` otherwise.
+   */
+  #hyperlinkTarget: LinkTarget = '_blank';
+  /**
+   * The schemes a `HYPERLINK` cell may link to. A subset of the fixed allowlist, never wider.
+   */
+  #hyperlinkSchemes: readonly LinkScheme[] = normalizeSchemesWithFallback(undefined, LINK_SCHEMES);
 
   /**
    * The cells rendered as hyperlinks, by physical coordinates (`row,column`). A `HYPERLINK` whose
@@ -799,7 +829,15 @@ export class Formulas extends BasePlugin {
     this.#engineListeners?.forEach(([eventName, listener]) => this.engine!.on(eventName, listener));
 
     this.#refreshHyperlinksSetting();
-    this.registerShortcuts();
+
+    // The `HYPERLINK` anchors are written by `#onAfterRenderer`, so a bare enable paints nothing on
+    // its own. Under `renderMode: 'onChange'` a render right after this call would skip every cell
+    // unless the epoch advances here too - mirrors the same call in `AutoLink.enablePlugin()`. Gated
+    // on `#hyperlinksEnabled`: with `hyperlinks` off (the common `formulas: { engine }` setup) there
+    // are no anchors to repaint, so the call would only force a full, no-op repaint.
+    if (this.#hyperlinksEnabled) {
+      this.hot.markAllCellsChanged();
+    }
 
     super.enablePlugin();
   }
@@ -810,7 +848,6 @@ export class Formulas extends BasePlugin {
   disablePlugin() {
     this.#unwrapRenderedHyperlinks();
     this.#hyperlinkCells.clear();
-    this.unregisterShortcuts();
     this.#engineListeners?.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
 
     if (this.engine) {
@@ -819,7 +856,45 @@ export class Formulas extends BasePlugin {
 
     this.engine = null;
 
+    // `#unwrapRenderedHyperlinks()` above already removed this plugin's own anchors from the
+    // currently-rendered DOM, eagerly - but a cell that HELD one is now plain URL text, which a
+    // second plugin (`AutoLink`) can only claim on its own next paint of that cell. Under
+    // `renderMode: 'onChange'` a `render()` right after this call would skip every cell unless the
+    // epoch advances here too, so a HYPERLINK label AutoLink should now link stays unlinked until
+    // something else repaints it.
+    if (this.#hyperlinksEnabled) {
+      this.hot.markAllCellsChanged();
+    }
+
     super.disablePlugin();
+  }
+
+  /**
+   * Deprecated. The `Alt`+`Enter` shortcut that opens a cell's link is a core grid shortcut now,
+   * registered for every grid, so the plugin has nothing to register. This method is a no-op.
+   *
+   * @deprecated Since 18.2.0. The `Alt`+`Enter` shortcut that opens a cell's link is a core grid
+   * shortcut now, registered for every grid, so the plugin has nothing to register. The method does
+   * nothing and will be removed in 19.0.0.
+   */
+  registerShortcuts(): void {
+    deprecatedWarnOnce('Formulas.registerShortcuts', toSingleLine`The "registerShortcuts" method of\x20
+      the Formulas plugin does nothing: the Alt+Enter link shortcut is a core grid shortcut since\x20
+      18.2.0. It will be removed in 19.0.0. Remove the call.`);
+  }
+
+  /**
+   * Deprecated. The `Alt`+`Enter` shortcut that opens a cell's link is a core grid shortcut now,
+   * registered for every grid, so the plugin has nothing to unregister. This method is a no-op.
+   *
+   * @deprecated Since 18.2.0. The `Alt`+`Enter` shortcut that opens a cell's link is a core grid
+   * shortcut now, registered for every grid, so the plugin has nothing to unregister. The method does
+   * nothing and will be removed in 19.0.0.
+   */
+  unregisterShortcuts(): void {
+    deprecatedWarnOnce('Formulas.unregisterShortcuts', toSingleLine`The "unregisterShortcuts" method\x20
+      of the Formulas plugin does nothing: the Alt+Enter link shortcut is a core grid shortcut since\x20
+      18.2.0. It will be removed in 19.0.0. Remove the call.`);
   }
 
   /**
@@ -1036,73 +1111,86 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * Registers the shortcut that opens the link of the selected `HYPERLINK` cell. The anchor is kept
-   * out of the tab order, so this is the only keyboard path to the link.
-   *
-   * @private
-   */
-  registerShortcuts() {
-    this.hot.getShortcutManager()
-      .getContext('grid')
-      ?.addShortcut({
-        keys: [['Alt', 'Enter']],
-        callback: () => {
-          const highlight = this.hot.getSelectedRangeActive()?.highlight;
-
-          if (!highlight || highlight.row === null || highlight.col === null) {
-            return;
-          }
-
-          const href = this.#getHyperlinkHref(highlight.row, highlight.col);
-
-          if (href !== null) {
-            this.hot.rootWindow.open(href, '_blank', 'noopener,noreferrer');
-          }
-        },
-        stopPropagation: true,
-        // The shortcut prevents the default action and stops propagation whenever `runOnlyIf`
-        // passes, so it must claim the chord only for a cell that actually resolves to a link.
-        // Testing just `isCell()` would swallow `Alt`+`Enter` grid-wide and break a host
-        // application's own handler for it.
-        runOnlyIf: (): boolean => {
-          const highlight = this.hot.getSelectedRangeActive()?.highlight;
-
-          return this.#hyperlinksEnabled &&
-            !!highlight?.isCell() &&
-            highlight.row !== null &&
-            highlight.col !== null &&
-            this.#getHyperlinkHref(highlight.row, highlight.col) !== null;
-        },
-        group: SHORTCUTS_GROUP,
-      });
-  }
-
-  /**
-   * Removes the shortcuts registered by the plugin.
-   *
-   * @private
-   */
-  unregisterShortcuts() {
-    this.hot.getShortcutManager()
-      .getContext('grid')
-      ?.removeShortcutsByGroup(SHORTCUTS_GROUP);
-  }
-
-  /**
-   * Reads the `hyperlinks` plugin setting into the cached flag.
+   * Reads the `hyperlinks` plugin setting into the cached flag, target, and scheme list.
    */
   #refreshHyperlinksSetting() {
     const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
     const wasEnabled = this.#hyperlinksEnabled;
+    const hyperlinks = isFormulasSettingsObject(pluginSettings) ? pluginSettings.hyperlinks : undefined;
+    // A plain object (including `{}`) enables hyperlinks with defaults; an array or a built-in such as
+    // `Date` is not the object form and does not enable it.
+    const isObjectForm = isPlainObject(hyperlinks);
 
-    this.#hyperlinksEnabled = isFormulasSettingsObject(pluginSettings) && pluginSettings.hyperlinks === true;
+    if (isObjectForm) {
+      this.#warnOnInvalidHyperlinksSettings(hyperlinks);
+    }
 
-    // Turning the option off is the moment to clean up, not every subsequent draw: a renderer that
+    this.#hyperlinksEnabled = hyperlinks === true || isObjectForm;
+    this.#hyperlinkTarget = isObjectForm && hyperlinks.target === '_self' ? '_self' : '_blank';
+    this.#hyperlinkSchemes = normalizeSchemesWithFallback(
+      isObjectForm ? hyperlinks.schemes : undefined, LINK_SCHEMES
+    );
+
+    // Turning the option off removes nothing by itself: the hook stays registered, but a renderer that
     // leaves its previous DOM in place would keep an anchor that no later render pass rewrites.
-    // Doing it here keeps the per-cell path free for the default, disabled case.
     if (wasEnabled && !this.#hyperlinksEnabled) {
       this.#unwrapRenderedHyperlinks();
+
+      // As in `disablePlugin()`: the anchors are gone from the DOM eagerly, but the freed URL text is
+      // only linkable by `AutoLink` on that cell's NEXT paint, and under `renderMode: 'onChange'` that
+      // paint is skipped unless the epoch advances here.
+      this.hot.markAllCellsChanged();
     }
+  }
+
+  /**
+   * Warns once when the object form of the `hyperlinks` setting carries an unrecognized `target` or
+   * `schemes` entry. The setting still applies a fallback either way - an invalid `target` falls back
+   * to `'_blank'`, and `schemes` is resolved through `normalizeSchemesWithFallback` (dropped entries
+   * are ignored when at least one entry is recognized; the full allowlist is used instead when none
+   * are, or when `schemes` is not an array at all) - so this only makes the silent fallback visible.
+   * An EXPLICIT empty `schemes` array is not a problem: it is the author's own request for no
+   * hyperlinks, and it does not warn.
+   *
+   * @param {FormulasHyperlinkSettings} hyperlinks The object form of the `hyperlinks` setting.
+   */
+  #warnOnInvalidHyperlinksSettings(hyperlinks: FormulasHyperlinkSettings) {
+    const problems: string[] = [];
+
+    if (hyperlinks.target !== undefined && hyperlinks.target !== '_blank' && hyperlinks.target !== '_self') {
+      problems.push(`"target": ${JSON.stringify(hyperlinks.target)}`);
+    }
+
+    // Whether the invalid, non-empty `schemes` still narrows to at least one recognized entry - if it
+    // does, the fallback is "unknown entries are ignored" rather than "the default is used instead".
+    let schemesNarrowed = false;
+
+    if (hyperlinks.schemes !== undefined) {
+      const isSchemesArray = Array.isArray(hyperlinks.schemes);
+      const recognizedCount = isSchemesArray
+        ? hyperlinks.schemes.filter(scheme => (LINK_SCHEMES as readonly string[]).includes(scheme)).length
+        : 0;
+      const isInvalid = !isSchemesArray ||
+        (hyperlinks.schemes.length > 0 && recognizedCount !== hyperlinks.schemes.length);
+
+      if (isInvalid) {
+        problems.push(`"schemes": ${JSON.stringify(hyperlinks.schemes)}`);
+        schemesNarrowed = isSchemesArray && recognizedCount > 0;
+      }
+    }
+
+    if (problems.length === 0) {
+      return;
+    }
+
+    const fallbackNote = schemesNarrowed
+      ? 'Unknown "schemes" entries are ignored.'
+      : 'The default is used instead.';
+
+    warnOnce(this, HYPERLINK_SETTINGS_WARN_KEY,
+      `The "formulas.hyperlinks" option received an invalid setting: ${problems.join(', ')}. ` +
+      '"target" accepts "_blank" or "_self"; "schemes" accepts a subset of "http", "https", "mailto" ' +
+      `and "tel". ${fallbackNote}`);
   }
 
   /**
@@ -1110,52 +1198,11 @@ export class Formulas extends BasePlugin {
    *
    * Disabling the plugin removes the `afterRenderer` hook, so a renderer that leaves its previous
    * DOM in place would keep its cells clickable with nothing left to clean them up. The anchors are
-   * matched by the plugin's own class, so no knowledge of the rendering internals is needed.
+   * matched by the plugin's own class, so another feature's cell links are left alone.
    */
   #unwrapRenderedHyperlinks() {
-    this.hot.rootElement
-      ?.querySelectorAll<HTMLElement>(`a.${HYPERLINK_CLASS_NAME}`)
-      .forEach(link => this.#unwrapLink(link));
-  }
-
-  /**
-   * Moves an anchor's content up into the anchor's own parent and drops the anchor.
-   *
-   * The insertion goes through `link.parentNode` rather than the cell: a renderer that leaves the
-   * previous DOM in place can wrap an existing anchor, leaving it as `TD > div > a` instead of a
-   * direct child. Inserting relative to the cell would then throw `NotFoundError` and, because this
-   * runs inside `afterRenderer`, take the whole draw down with it.
-   *
-   * @param {Element} link The anchor to unwrap.
-   */
-  #unwrapLink(link: Element) {
-    const { parentNode } = link;
-
-    while (link.firstChild) {
-      parentNode?.insertBefore(link.firstChild, link);
-    }
-
-    link.remove();
-  }
-
-  /**
-   * Moves the content of a cell's `HYPERLINK` anchor back into the cell and drops the anchor. Loops
-   * so that anchors nested by an older render pass are unwrapped as well.
-   *
-   * @param {HTMLTableCellElement} TD The rendered cell element.
-   */
-  #unwrapHyperlink(TD: HTMLTableCellElement) {
-    // A cell rendered as plain text has no element children at all, which is the overwhelmingly
-    // common case and the one that must not pay for a selector query on every render pass.
-    if (TD.firstElementChild === null) {
-      return;
-    }
-
-    let link = TD.querySelector(`a.${HYPERLINK_CLASS_NAME}`);
-
-    while (link !== null) {
-      this.#unwrapLink(link);
-      link = TD.querySelector(`a.${HYPERLINK_CLASS_NAME}`);
+    if (this.hot.rootElement) {
+      unwrapLinks(this.hot.rootElement, `a.${HYPERLINK_CLASS_NAME}`);
     }
   }
 
@@ -1190,9 +1237,13 @@ export class Formulas extends BasePlugin {
       return null;
     }
 
-    const href = resolveHyperlinkUrl(url, this.hot.rootDocument.baseURI);
+    const href = resolveLinkUrl(url, this.hot.rootDocument.baseURI, this.#hyperlinkSchemes);
 
-    if (href === null) {
+    // A narrowed `#hyperlinkSchemes` refuses URLs the caller deliberately excluded, which is not a
+    // refusal worth warning about. Only warn when the URL is refused against the FULL allowlist too -
+    // that is the "Handsontable can never link to this" case the message describes. This extra call
+    // only runs on the refusal path, so the common (linked) path still costs a single call.
+    if (href === null && resolveLinkUrl(url, this.hot.rootDocument.baseURI) === null) {
       warnOnce(this, HYPERLINK_WARN_KEY,
         `A "HYPERLINK" formula points at a URL that Handsontable refuses to link to ("${url}"). ` +
         'Only the "http", "https", "mailto" and "tel" schemes can be linked.');
@@ -2336,11 +2387,9 @@ export class Formulas extends BasePlugin {
     }
 
     // Walkontable recycles TD elements, and a renderer is free to leave its previous DOM in place.
-    // Unwrapping first keeps this idempotent by construction: no anchor nests inside another one
-    // across render passes, and the `href` is always rebuilt from the current formula instead of
-    // inherited from whatever the previous pass resolved. Cleanup for the option being turned off
-    // happens once, in `#refreshHyperlinksSetting`, so this path never runs for a disabled grid.
-    this.#unwrapHyperlink(TD);
+    // Unwrapping this plugin's own anchor first keeps the pass idempotent and rebuilds the `href`
+    // from the current formula instead of inheriting whatever the previous pass resolved.
+    unwrapLinks(TD, `a.${HYPERLINK_CLASS_NAME}`);
 
     const href = this.#getHyperlinkHref(row, column);
     const hyperlinkKey = `${this.hot.toPhysicalRow(row)},${this.hot.toPhysicalColumn(column)}`;
@@ -2351,23 +2400,28 @@ export class Formulas extends BasePlugin {
       return;
     }
 
+    // A HYPERLINK cell is the formula's link and nothing else: any other grid-made anchor in it (an
+    // `autoLink` anchor around a URL-shaped label, for instance) is unwrapped so the two features
+    // converge on one anchor regardless of which `afterRenderer` callback ran first. The scheme span
+    // AutoLink hid must be unwrapped first, while it is still inside its own anchor - unwrapping the
+    // anchor alone would carry it, still hidden, into the HYPERLINK anchor built below, so a HYPERLINK
+    // label renders exactly as the formula returns it whichever `afterRenderer` ran first.
+    unwrapLinks(TD, `a.${LINK_CLASS_NAME} .${LINK_SCHEME_CLASS_NAME}`);
+    unwrapLinks(TD, `a.${LINK_CLASS_NAME}`);
+
     this.#hyperlinkCells.add(hyperlinkKey);
 
-    const link = this.hot.rootDocument.createElement('a');
+    const link = createLinkElement(this.hot.rootDocument, {
+      href,
+      target: this.#hyperlinkTarget,
+      classNames: [HYPERLINK_CLASS_NAME],
+    });
 
-    link.className = HYPERLINK_CLASS_NAME;
-    link.href = href;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    // Cell content stays out of the grid's tab order; `Alt`+`Enter` is the keyboard path instead.
-    link.tabIndex = -1;
-
-    // The nodes are moved, never re-serialized, so a label containing markup stays text.
-    while (TD.firstChild) {
-      link.appendChild(TD.firstChild);
-    }
-
-    TD.appendChild(link);
+    // Wraps the cell's content root, not `TD` itself: an exact-height row keeps its content inside
+    // the engine's `.htCellClip` wrapper, and appending the anchor to `TD` directly would rebuild
+    // that wrapper on every render pass. The nodes are moved, never re-serialized, so a label
+    // containing markup stays text.
+    wrapCellContent(TD, link);
   };
 
   /**

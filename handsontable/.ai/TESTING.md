@@ -61,6 +61,18 @@ npm run test:unit -- --coverage
 
 The helper that derives the hash lives in `handsontable/.config/helper/run-id.js` -- used by both the Rspack config and the Puppeteer script so they stay in lockstep.
 
+### What a red run leaves behind
+
+`run-puppeteer.mjs` receives every Jasmine result as data through the page bridge (`test/helpers/jasmine-bridge-reporter.js`), so a failure is reported by name rather than parsed out of the log. After a red run it:
+
+1. re-runs each failing spec file alone, up to `ISOLATION_PROBE_MAX_FILES` (5) of them, by reloading the runner page with a `specFile=` filter that selects only that file (`specFile`, not `spec`: Jasmine's own boot reads `spec` as a filter on spec *names*, so a file path there loads the file and runs none of its specs). A file that **passes alone** failed because of the specs that ran before it (shared state, a leaked timer, an unrestored global); one that **fails alone** is broken on its own. The probe drops `random` and `seed`, so the verdict describes the file in its natural order, not one shuffle of it. A probe that hits an uncaught page error, runs past five minutes, or matches no spec at all (the file filter selected nothing) is reported as "could not be probed";
+2. writes `test/e2e-results/failed-specs-<runId>.json` (gitignored). `e2e.yml` uploads it on failure as the `puppeteer-failed-specs-<bundle>-<theme>` artifact -- the input for the cross-run flake ledger (`.github/workflows/test-health.yml`, published at <https://handsontable.github.io/handsontable/test-health/>);
+3. on GitHub Actions, prints one `::error` annotation per failed spec, attached to the spec file, and appends a Markdown block to the step summary. GitHub shows at most 10 annotations per step, so from the tenth failure on a single line says how many more there are and points at the summary. `HOT_E2E_LEG` (set by `e2e.yml` from the bundle label) names the leg in all three outputs.
+
+The spec file is known because `test/e2e/index.js` records which `require.context` key added each top-level suite (`window.__hotSpecFiles`), and the bridge reporter stamps it on every result as `filePath`. A top-level `it()` outside any `describe`, and `MemoryLeakTest`, carry no file and are reported without a verdict. An uncaught page error still aborts the run as before; it now also gets its own annotation, and the specs that failed before it are still reported, without probing.
+
+To reproduce a verdict locally, re-run one file alone against the same dump: `npm run test:e2e.puppeteer -- --specFile=<path-pattern>` (`--spec=<pattern>` also exists, but it has to match the spec names as well as the file path). With a `--testPathPattern` baked into the dump, either parameter narrows it rather than replacing it. The helpers behind the report are pure and unit-tested with `node:test` (`test/scripts/lib/failed-specs.mjs`, `test/scripts/__tests__/`), part of the root `npm run test:tooling`.
+
 **Test Environment:**
 - Unit tests: jsdom (JavaScript DOM implementation)
 - New E2E: Playwright (real Chromium; `tests/` package)

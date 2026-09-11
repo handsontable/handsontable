@@ -41,6 +41,13 @@ import {
 } from '../../../helpers/a11y';
 
 const MIN_WIDTH = 215;
+/**
+ * How long a hover has to rest on a menu row before a sub-menu opens, switches or closes.
+ * Opening and closing use the same delay on purpose: the sub-menu is drawn beside the
+ * parent, so reaching it means crossing the rows below the anchor, and an instant close
+ * would kill the sub-menu mid-move (DEV-66).
+ */
+const SUB_MENU_HOVER_DELAY = 300;
 
 /**
  * Type guard that checks whether the provided value has a readable `name` property.
@@ -205,6 +212,21 @@ export class Menu {
    */
   #suppressHoverSubMenuToggleFrameId: number | null = null;
   /**
+   * The pending hover-driven sub-menu switch. While a sub-menu is open, hovering another
+   * row schedules the switch instead of performing it at once, so the pointer can travel
+   * across those rows on its way to the open sub-menu without killing it (DEV-66).
+   *
+   * @type {number|null}
+   */
+  #subMenuSwitchTimer: ReturnType<typeof setTimeout> | null = null;
+  /**
+   * The debounced hover-driven sub-menu open, kept as a field so it can be cancelled when
+   * the pointer leaves the menu. Assigned in `open()`.
+   *
+   * @type {Function|null}
+   */
+  #delayedOpenSubMenu: (((...args: unknown[]) => unknown) & { cancel: () => void }) | null = null;
+  /**
    * Detach functions for the document `scroll` listeners active while the menu is open.
    * Scroll listeners are registered in `open()` (not in the constructor) so that they
    * fire in menu OPEN order: a menu whose anchor lives inside another menu's container
@@ -290,6 +312,27 @@ export class Menu {
 
       frame = getParentWindow(frame);
     }
+
+    // Once the pointer is off the menu, no row is being hovered any more, so neither a
+    // pending open nor a pending switch reflects what the user is doing. This also covers
+    // the sub-menu items that hang BELOW the parent menu: reaching them means leaving the
+    // menu and crossing the grid, and without this the switch armed by the last crossed
+    // row would still fire and close the sub-menu (DEV-66). A sub-menu container is a
+    // SIBLING of this one in the portal, not a descendant, so moving into a sub-menu leaves
+    // this container and cancels here too — nothing extra is needed on the sub-menu itself.
+    // `mouseleave` (not `mouseout`) on purpose — `mouseout` also fires when moving between
+    // rows inside the menu, which is exactly when the timers must survive.
+    this.eventManager.addEventListener(this.container, 'mouseleave', () => {
+      // Repositioning the menu under a stationary cursor makes the browser recompute `:hover`
+      // and dispatch pointer events with no real movement involved (#12719) — the same reason
+      // the two hover guards above exist. A scroll that slides the menu out from under the
+      // pointer must not cancel a sub-menu the user is still waiting for.
+      if (this.#suppressHoverSubMenuToggle) {
+        return;
+      }
+
+      this.#clearHoverSubMenuTimers();
+    });
   }
 
   /**
@@ -420,7 +463,10 @@ export class Menu {
     this.container.removeAttribute('style');
     this.container.style.display = 'block';
 
-    const delayedOpenSubMenu = debounce((...args: unknown[]) => this.openSubMenu(args[0] as number), 300);
+    this.#delayedOpenSubMenu = debounce(
+      (...args: unknown[]) => this.openSubMenu(args[0] as number),
+      SUB_MENU_HOVER_DELAY,
+    );
     const minWidthOfMenu = (Number(this.options.minWidth) || MIN_WIDTH);
     let noItemsDefined = false;
 
@@ -504,10 +550,30 @@ export class Menu {
         }
 
         if (this.isAllSubMenusClosed()) {
-          delayedOpenSubMenu(coords.row);
-        } else {
-          this.openSubMenu(coords.row);
+          // The two timers are alternatives, never both in flight: a switch left armed by an
+          // earlier hover would fire after this open and replace the sub-menu the pointer is
+          // resting on.
+          this.#clearSubMenuSwitchTimer();
+          this.#delayedOpenSubMenu!(coords.row);
+
+          return;
         }
+
+        // Back on the row whose sub-menu is open — drop any pending switch. Without this the
+        // hover would close and immediately recreate the sub-menu the pointer is already heading
+        // for, which reads as a flash.
+        // Asked of the sub-menu itself rather than of a remembered row index: `hotSubMenus` keeps
+        // its entry after Escape or ArrowLeft (those call `close()` on the sub-menu, not
+        // `closeSubMenu()` here), so a remembered index would still name this row and the early
+        // return would leave the anchor permanently unresponsive to the mouse. `isOpened()` is
+        // false there, so the hover falls through to the switch below, which reopens it.
+        if (this.#isSubMenuOpenAtRow(coords.row)) {
+          this.#clearSubMenuSwitchTimer();
+
+          return;
+        }
+
+        this.#scheduleSubMenuSwitch(coords.row);
       },
       afterOnCellContextMenu: (event: MouseEvent) => {
         event.preventDefault();
@@ -610,6 +676,8 @@ export class Menu {
       }
 
       this.#suppressHoverSubMenuToggle = false;
+      // A timer that outlives the menu would call `openSubMenu` on a destroyed `hotMenu`.
+      this.#clearHoverSubMenuTimers();
       this.hot.getSettings().outsideClickDeselects = this.origOutsideClickDeselects;
       this.runLocalHooks('afterClose');
 
@@ -634,6 +702,65 @@ export class Menu {
   }
 
   /**
+   * Schedules a hover-driven sub-menu switch for the given row, replacing any pending one.
+   * The switch is what closes the currently open sub-menu, so delaying it is what lets the
+   * pointer cross the rows between the anchor and the sub-menu (DEV-66).
+   *
+   * @param {number} row Row index the pointer is hovering.
+   */
+  #scheduleSubMenuSwitch(row: number) {
+    // Both timers, for the same reason the open path clears the switch: they are alternatives.
+    this.#clearHoverSubMenuTimers();
+
+    // `_registerTimeout` so the handle is cleared if the grid is destroyed with the menu open.
+    // It is the convention here, and the cost is known: `hot.timeouts` only grows, so cancelling
+    // leaves a dead handle behind and hovering across menu rows adds one each time. They are
+    // integers on an array freed with the instance. The alternative — a generation token and a
+    // timer that fires and no-ops — trades that for more state and a callback that still runs.
+    this.#subMenuSwitchTimer = this.hot._registerTimeout(() => {
+      this.#subMenuSwitchTimer = null;
+      this.openSubMenu(row);
+    }, SUB_MENU_HOVER_DELAY) as ReturnType<typeof setTimeout>;
+  }
+
+  /**
+   * Whether the row's own sub-menu is currently open on screen.
+   *
+   * Read from the sub-menu rather than from a remembered row index, because `hotSubMenus` holds
+   * an entry until something destroys it and the Escape and ArrowLeft shortcuts close a sub-menu
+   * without going through `closeSubMenu()`. A remembered index would go on naming a row whose
+   * sub-menu is already gone.
+   *
+   * @param {number} row Row index to test.
+   * @returns {boolean}
+   */
+  #isSubMenuOpenAtRow(row: number) {
+    const key = this.#getSourceDataAtRow<MenuItemConfig>(row)?.key;
+
+    return !!key && !!this.hotSubMenus[key]?.isOpened();
+  }
+
+  /**
+   * Drops a pending sub-menu switch, leaving the open sub-menu as it is.
+   */
+  #clearSubMenuSwitchTimer() {
+    if (this.#subMenuSwitchTimer !== null) {
+      clearTimeout(this.#subMenuSwitchTimer);
+      this.#subMenuSwitchTimer = null;
+    }
+  }
+
+  /**
+   * Drops both hover timers. Called when the pointer leaves the menu and when it enters an
+   * open sub-menu — in both cases the hover that armed them is no longer what the user is
+   * doing, so neither an open nor a switch should still be on its way.
+   */
+  #clearHoverSubMenuTimers() {
+    this.#clearSubMenuSwitchTimer();
+    this.#delayedOpenSubMenu?.cancel();
+  }
+
+  /**
    * Open sub menu at the provided row index.
    *
    * @param {number} row Row index.
@@ -643,6 +770,13 @@ export class Menu {
     if (!this.hotMenu) {
       return false;
     }
+
+    // Opening a sub-menu — from the keyboard, or because a hover timer just fired — settles what
+    // the hover timers were still deciding, so neither may outlive it. The keyboard is the case
+    // that matters: hovering does not move the menu selection, so the pointer can be resting on
+    // another row (with its switch armed) while ArrowRight or Enter opens the selected row's
+    // sub-menu. Left armed, that switch fires 300ms later and tears down what the key just opened.
+    this.#clearHoverSubMenuTimers();
 
     const cell = this.hotMenu.getCell(row, 0);
 

@@ -45,6 +45,15 @@ new Handsontable(document.createElement('div'), {
     hyperlinks: true,
   },
 });
+new Handsontable(document.createElement('div'), {
+  formulas: {
+    engine: Hyperformula,
+    hyperlinks: {
+      target: '_self',
+      schemes: ['http', 'https'],
+    },
+  },
+});
 const hot = new Handsontable(document.createElement('div'), {});
 const formulas = hot.getPlugin('formulas');
 
@@ -55,3 +64,7 @@ formulas.sheetId!.toFixed();
 formulas.addSheet('sheet2', [[]]);
 formulas.getCellType(0, 0, 1);
 formulas.switchSheet('sheet2');
+
+// Deprecated no-op shims, kept for backward compatibility - must still compile.
+formulas.registerShortcuts();
+formulas.unregisterShortcuts();
