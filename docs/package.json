@@ -20,6 +20,7 @@
     "docs:validate-layer-order": "node scripts/validate-layer-order.mjs",
     "docs:lint": "eslint --ext .js,.mjs,.ts,.astro src content",
     "docs:lint:fix": "eslint --ext .js,.mjs,.ts,.astro src content --fix",
+    "docs:lint:content": "eslint --ext .js,.mjs,.ts,.astro content",
     "docs:docker:build:production": "cross-env BUILD_MODE=production npm run build && docker build -f docker/Dockerfile -t docs-md:production .",
     "docs:visual-test": "npx playwright test",
     "docs:visual-test:update-screenshot": "npx playwright test -u",

@@ -102,7 +102,7 @@ export function renderBody(report) {
     section('Skipped: mixed content and other changes', report.mixed, (i) => `${ref(i)} #${i.prNumber}: touches ${i.categories.join(', ')}`),
     section('Skipped: version-scoped pages', report.versionScoped, (i) => `${ref(i)} #${i.prNumber}: ${i.files.map((f) => `\`${f}\``).join(', ')}`),
     section('Skipped: already on prod', report.alreadyOnProd, (i) => `${ref(i)} #${i.prNumber}`),
-    section('Skipped: no pull request number', report.noPrNumber, (i) => ref(i)),
+    section('Skipped: no pull request number', report.noPrNumber, (i) => (i.reason ? `${ref(i)}: ${plain(i.reason)}` : ref(i))),
     [
       '## Run metadata',
       '',

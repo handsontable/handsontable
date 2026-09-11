@@ -26,7 +26,7 @@ import { execFileSync } from 'node:child_process';
 import { appendFile } from 'node:fs/promises';
 import { parseArgs } from 'node:util';
 import { repoRoot } from './lib/repo-root.mjs';
-import { categorize } from './lib/docs-sync/paths.mjs';
+import { CONTENT_PREFIXES, categorize } from './lib/docs-sync/paths.mjs';
 import { parseVersion, pickTarget, syncBranchFor } from './lib/docs-sync/target.mjs';
 import {
   collectProdRefs, isAlreadyOnProd, parseCherryOutput, parseSquashSubject,
@@ -46,7 +46,7 @@ import { createGitHub } from './lib/docs-sync/github.mjs';
 import { scrubSecrets } from './lib/docs-sync/log.mjs';
 
 const HOLD_MARKER = '<!-- docs-sync-hold -->';
-const CONTENT_PATHSPECS = ['docs/content', 'docs/public/img'];
+const CONTENT_PATHSPECS = CONTENT_PREFIXES.map((prefix) => prefix.replace(/\/$/, ''));
 
 const { values: flags } = parseArgs({
   options: {
@@ -237,9 +237,9 @@ try {
       // request from another repository -- anything GitHub does not resolve
       // under this repo's pulls endpoint. That is not this run's problem to
       // solve; list the candidate and move on instead of failing the run.
-      if (/404|Not Found/.test(error.message)) {
+      if (/HTTP 404/.test(error.stderr ?? '')) {
         lookupFailures += 1;
-        report.noPrNumber.push({ ...candidate, subject: `${candidate.subject} (no pull request #${candidate.prNumber} on GitHub)` });
+        report.noPrNumber.push({ ...candidate, reason: `No pull request #${candidate.prNumber} on GitHub.` });
         continue;
       }
       throw error;
@@ -288,6 +288,10 @@ try {
     for (const candidate of toClassify) {
       report.unsure.push({ ...candidate, reason: 'Not classified: the sync branch carries commits the bot did not make.' });
     }
+    for (const candidate of report.included) {
+      report.unsure.push({ ...candidate, reason: 'Not applied: the sync branch carries commits the bot did not make.' });
+    }
+    report.included = [];
 
     const body = renderBody(report);
 
@@ -341,6 +345,12 @@ try {
       }
     }
 
+    const dirty = git(repoDir, ['status', '--porcelain']);
+
+    if (dirty !== '') {
+      throw new Error(`Refusing to rebuild ${syncBranch}: ${repoDir} has uncommitted changes:\n${dirty}`);
+    }
+
     const originalHead = git(repoDir, ['rev-parse', '--abbrev-ref', 'HEAD']);
 
     try {
@@ -356,10 +366,15 @@ try {
       // Stage 6: verify.
       if (report.included.length > 0 && !flags['skip-lint']) {
         try {
-          // docs:lint covers the sidebar.js files under docs/content and
-          // nothing else the sync ports; the full build and the content
-          // checks run on the pull request itself.
-          execFileSync('npm', ['run', 'docs:lint', '--prefix', 'docs'], { cwd: repoDir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+          // Scoped to `docs/content` only -- the sync never touches
+          // `docs/src` -- so a pre-existing lint error elsewhere in the
+          // target branch's site source never fails a run for content this
+          // tool did not touch. This does not solve every scoping gap: the
+          // `docs/node_modules` installed from develop's lockfile can still
+          // mismatch the target branch's own `docs/package.json` after the
+          // checkout swap above; the full build and content checks run on
+          // the pull request itself and catch that class of problem.
+          execFileSync('npm', ['run', 'docs:lint:content', '--prefix', 'docs'], { cwd: repoDir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
         } catch (error) {
           const output = `${error.stdout ?? ''}${error.stderr ?? ''}`;
 
@@ -385,9 +400,17 @@ try {
         gh.ensureLabels([SYNC_LABEL, SKIP_LABEL, INCLUDE_LABEL]);
 
         if (report.included.length > 0) {
-          const lease = syncExists ? [`--force-with-lease=refs/heads/${syncBranch}:${git(repoDir, ['rev-parse', syncRef])}`] : [];
+          const treeChanged = !syncExists || git(repoDir, [
+            'rev-parse', `${syncBranch}^{tree}`,
+          ]) !== git(repoDir, ['rev-parse', `${syncRef}^{tree}`]);
 
-          git(repoDir, ['push', '--quiet', ...lease, 'origin', `HEAD:refs/heads/${syncBranch}`]);
+          if (treeChanged) {
+            const lease = syncExists ? [`--force-with-lease=refs/heads/${syncBranch}:${git(repoDir, ['rev-parse', syncRef])}`] : [];
+
+            git(repoDir, ['push', '--quiet', ...lease, 'origin', `HEAD:refs/heads/${syncBranch}`]);
+          } else {
+            log(`No change: ${syncBranch}'s tree already matches ${syncRef}; skipping the push.`);
+          }
 
           if (openPr) {
             gh.updatePr(openPr.number, { title, body });

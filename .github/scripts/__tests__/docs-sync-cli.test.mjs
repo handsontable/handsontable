@@ -96,10 +96,11 @@ function fixture() {
     'const a = process.argv.slice(2);',
     'let answers = {};',
     'try { answers = JSON.parse(fs.readFileSync(process.env.FAKE_GH_ANSWERS, "utf8")); } catch {}',
-    'const pulls404 = answers.pulls404 === true || process.env.FAKE_GH_PULLS_404 === "1";',
+    'const pulls404All = answers.pulls404 === true || process.env.FAKE_GH_PULLS_404 === "1";',
+    'const pulls404Some = Array.isArray(answers.pulls404) ? answers.pulls404 : [];',
     'if (a[0] === "api" && /pulls\\/\\d+$/.test(a[1])) {',
     '  const n = Number(a[1].split("/").pop());',
-    '  if (pulls404) { process.stderr.write("Not Found (HTTP 404)"); process.exit(1); }',
+    '  if (pulls404All || pulls404Some.includes(n)) { process.stderr.write("Not Found (HTTP 404)"); process.exit(1); }',
     '  if (answers.openPr && n === answers.openPr.number) {',
     '    process.stdout.write(JSON.stringify({ number: n, title: `PR ${n}`, body: answers.openPr.body ?? "", labels: [], user: { login: "someone" } }));',
     '  } else {',
@@ -267,6 +268,52 @@ test('--dry-run applies locally but pushes nothing and opens nothing', () => {
   }
 });
 
+test('an include-labeled candidate on a held run renders as skipped, not included', () => {
+  const f = fixture();
+
+  try {
+    // Same foreign-commit setup as the hold tests below, plus an include
+    // label on #101's source pull request -- #101 lands in report.included
+    // during the candidate loop (which runs before the hold check), so this
+    // exercises the hold path's own redirect of report.included into unsure.
+    f.git(f.work, ['switch', '-q', '-c', 'docs-sync/prod-docs-18.1', 'prod-docs/18.1']);
+    writeFileSync(path.join(f.work, 'docs/content/guides/a.md'), 'a v1 (edited by a human on the sync branch)\n');
+    f.git(f.work, ['commit', '-q', '-am', 'Human tweak on the sync branch']);
+    f.git(f.work, ['push', '-q', 'origin', 'docs-sync/prod-docs-18.1']);
+    f.git(f.work, ['switch', '-q', 'develop']);
+
+    writeAnswers(f, { includeLabels: [101] });
+
+    const result = runCli(f);
+
+    assert.equal(result.status, 0, result.stderr);
+
+    const summary = readFileSync(path.join(f.root, 'summary.md'), 'utf8');
+
+    assert.match(summary, /## Included\n\nNone\./);
+    assert.match(summary, /## Skipped: needs a human decision\n\n- `[0-9a-f]{7}` Fix a typo in guide a #101: Not applied: the sync branch carries commits the bot did not make\./);
+  } finally {
+    rmSync(f.root, { recursive: true, force: true });
+  }
+});
+
+test('a dirty working tree refuses to rebuild the sync branch rather than discarding uncommitted edits', () => {
+  const f = fixture();
+
+  try {
+    // An uncommitted edit to a tracked file, left behind exactly like a
+    // developer's own local --dry-run invocation would.
+    writeFileSync(path.join(f.work, 'docs/content/guides/a.md'), 'dirty, uncommitted\n');
+
+    const result = runCli(f);
+
+    assert.equal(result.status, 1);
+    assert.match(result.stdout, /Refusing to rebuild docs-sync\/prod-docs-18\.1.*uncommitted changes/s);
+  } finally {
+    rmSync(f.root, { recursive: true, force: true });
+  }
+});
+
 test('a foreign commit on the sync branch holds the run before classification, without touching the branch or opening a comment', () => {
   const f = fixture();
 
@@ -361,6 +408,44 @@ test('an open pull request gets updated, not created', () => {
     assert.match(edit[edit.indexOf('--body') + 1], /\(#101/);
     assert.ok(!ghCalls.some((c) => c[0] === 'pr' && c[1] === 'create'), 'no pull request created when one is already open');
     assert.match(f.git(f.work, ['ls-remote', '--heads', f.origin, 'docs-sync/prod-docs-18.1']), /docs-sync\/prod-docs-18\.1/, 'branch pushed');
+  } finally {
+    rmSync(f.root, { recursive: true, force: true });
+  }
+});
+
+test('a second run over an unchanged develop skips the push but still updates the pull request', () => {
+  const f = fixture();
+
+  try {
+    writeAnswers(f, {
+      includeLabels: [101],
+      openPr: { number: 42, url: 'https://github.com/o/r/pull/42', body: '' },
+    });
+
+    const result1 = runCli(f);
+
+    assert.equal(result1.status, 0, result1.stderr);
+
+    const tipAfterFirst = f.git(f.work, ['ls-remote', '--heads', f.origin, 'docs-sync/prod-docs-18.1']);
+
+    writeFileSync(f.ghLog, '');
+
+    // No new commits landed on develop between runs, and the fixture's
+    // answers are unchanged, so the second run re-cherry-picks the exact
+    // same commit onto the exact same target tip -- a byte-identical tree
+    // under a fresh committer date. The push must be skipped.
+    const result2 = runCli(f);
+
+    assert.equal(result2.status, 0, result2.stderr);
+
+    const tipAfterSecond = f.git(f.work, ['ls-remote', '--heads', f.origin, 'docs-sync/prod-docs-18.1']);
+
+    assert.equal(tipAfterSecond, tipAfterFirst, 'the sync branch is not re-pushed when its tree is unchanged');
+    assert.match(result2.stdout, /skipping the push/);
+
+    const ghCalls2 = readFileSync(f.ghLog, 'utf8').trim().split('\n').map((line) => JSON.parse(line));
+
+    assert.ok(ghCalls2.some((c) => c[0] === 'pr' && c[1] === 'edit' && c[2] === '42'), 'the pull request is still updated even though nothing was pushed');
   } finally {
     rmSync(f.root, { recursive: true, force: true });
   }
@@ -490,6 +575,47 @@ test('a run whose pull request lookups all 404 refuses to continue', () => {
 
     assert.equal(result.status, 1);
     assert.match(result.stdout, /Every pull request lookup failed \(1 of 1\)/);
+  } finally {
+    rmSync(f.root, { recursive: true, force: true });
+  }
+});
+
+test('a real 404 on one pull request lookup is recorded with a reason, and never resurrects a floating (#n)', () => {
+  const f = fixture();
+
+  try {
+    // A second content-only candidate with its own pull request number, so
+    // the mass-404 guard (lookupFailures > 0 && lookupSuccesses === 0) does
+    // not fire: #105 succeeds normally, #101 hits a real 404 selectively --
+    // the shape that exercises the per-candidate `continue` instead of the
+    // mass-abort path.
+    writeFileSync(path.join(f.work, 'docs/content/guides/f.md'), 'f\n');
+    f.git(f.work, ['add', '-A']);
+    f.git(f.work, ['commit', '-q', '-m', 'Fix guide f (#105)']);
+    f.git(f.work, ['push', '-q', 'origin', 'develop']);
+
+    writeAnswers(f, { pulls404: [101] });
+
+    const result = runCli(f);
+
+    assert.equal(result.status, 0, result.stderr);
+
+    const summary = readFileSync(path.join(f.root, 'summary.md'), 'utf8');
+    const section = summary.match(/## Skipped: no pull request number\n\n([\s\S]*?)\n\n##/);
+
+    assert.ok(section, 'section rendered');
+
+    const row101 = section[1].split('\n').find((line) => line.includes('Fix a typo in guide a'));
+
+    assert.ok(row101, 'row for #101 present');
+    assert.match(row101, /Fix a typo in guide a: No pull request #101 on GitHub\./);
+    // The bug this guards: appending the note after the subject left the
+    // subject's own trailing `(#101)` unstripped, so a floating `(#101)`
+    // showed up a second time in the middle of the row.
+    assert.doesNotMatch(row101, /\(#\d+\).*\(#\d+\)/);
+    // The unaffected direct-push case (no `reason`) still renders exactly as
+    // before: bare `ref(i)`, no trailing colon.
+    assert.match(section[1], /`[0-9a-f]{7}` direct push without a number$/);
   } finally {
     rmSync(f.root, { recursive: true, force: true });
   }
