@@ -88,6 +88,30 @@ test('resetSyncBranch creates the branch at the target and applyCommits sorts ea
   }
 });
 
+test('applyCommits rethrows on a non-conflict, non-empty cherry-pick failure and leaves a clean tree', () => {
+  const f = fixture();
+
+  try {
+    resetSyncBranch(f.root, 'docs-sync/prod', 'prod');
+
+    // Force cherry-pick to fail for a reason that is neither a content
+    // conflict nor an empty pick, without depending on commit hooks (which
+    // `git cherry-pick` does not run): point GPG at a binary that can't
+    // execute, the same class of infra failure the reviewer named.
+    f.run(['config', 'commit.gpgsign', 'true']);
+    f.run(['config', 'gpg.program', '/nonexistent-gpg-binary-xyz']);
+
+    assert.throws(
+      () => applyCommits(f.root, [f.clean]),
+      /Cherry-pick of .+ failed for a reason other than a conflict or an empty pick/,
+    );
+    // Recovery still has to happen even though the error propagates.
+    assert.equal(git(f.root, ['status', '--porcelain']), '');
+  } finally {
+    rmSync(f.root, { recursive: true, force: true });
+  }
+});
+
 test('recoverFromFailedPick cleans a stuck cherry-pick and leaves HEAD unchanged', () => {
   const f = fixture();
 
@@ -122,7 +146,42 @@ test('hasForeignCommits is false for bot picks and true once a human commits', (
     applyCommits(f.root, [f.clean]);
     assert.equal(hasForeignCommits(f.root, 'prod', 'docs-sync/prod'), false);
 
+    // A second genuine bot pick must not corrupt the first entry's parsing:
+    // git appends its own newline after every `%x1e` record separator, and a
+    // separator placed after the body would drag that newline onto the front
+    // of the next entry's email.
+    git(f.root, ['commit', '--allow-empty', '-m', `second bot pick\n\n(cherry picked from commit ${f.clean})`]);
+    assert.equal(hasForeignCommits(f.root, 'prod', 'docs-sync/prod'), false);
+
     f.run(['commit', '-q', '--allow-empty', '-m', 'human resolves something']);
+    assert.equal(hasForeignCommits(f.root, 'prod', 'docs-sync/prod'), true);
+  } finally {
+    rmSync(f.root, { recursive: true, force: true });
+  }
+});
+
+test('hasForeignCommits is true for a spoofed committer email without a cherry-pick trailer', () => {
+  const f = fixture();
+
+  try {
+    resetSyncBranch(f.root, 'docs-sync/prod', 'prod');
+
+    // A committer email alone is an unauthenticated local git-config value:
+    // anyone with push access can set it to the bot's address. Without the
+    // `-x` trailer the bot always writes, this must still count as foreign.
+    execFileSync('git', ['commit', '--allow-empty', '-m', 'manual commit pretending to be the bot'], {
+      cwd: f.root,
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        GIT_DIR: undefined,
+        GIT_AUTHOR_NAME: 'Attacker',
+        GIT_AUTHOR_EMAIL: 'attacker@example.com',
+        GIT_COMMITTER_NAME: 'docs-sync[bot]',
+        GIT_COMMITTER_EMAIL: SYNC_COMMITTER.email,
+      },
+    });
+
     assert.equal(hasForeignCommits(f.root, 'prod', 'docs-sync/prod'), true);
   } finally {
     rmSync(f.root, { recursive: true, force: true });

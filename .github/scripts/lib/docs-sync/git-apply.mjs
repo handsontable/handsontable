@@ -15,6 +15,13 @@ export const SYNC_COMMITTER = {
   email: 'docs-sync[bot]@users.noreply.github.com',
 };
 
+// Same pattern as candidates.mjs' CHERRY_TRAILER, kept local because that
+// module doesn't export it. `git cherry-pick -x` always writes this trailer,
+// so its presence -- alongside the bot's committer email -- is what tells a
+// genuine bot pick apart from a manually authored commit with a spoofed
+// committer identity.
+const CHERRY_TRAILER = /cherry picked from commit [0-9a-f]{7,40}/;
+
 /**
  * Run git in a checkout with the bot's committer identity.
  *
@@ -49,9 +56,21 @@ export function git(cwd, args) {
  * @returns {boolean}
  */
 export function hasForeignCommits(cwd, targetRef, syncRef) {
-  const emails = git(cwd, ['log', '--format=%ce', `${targetRef}..${syncRef}`]).split('\n').filter(Boolean);
+  // The record separator goes first: git appends its own trailing newline
+  // after each `%x1e`, and putting the separator after `%B` would leave that
+  // newline stuck to the front of every entry but the first, corrupting the
+  // email slice below.
+  const log = git(cwd, ['log', '--format=%x1e%ce%x1f%B', `${targetRef}..${syncRef}`]);
+  const commits = log.split('\x1e').filter((entry) => entry.length > 0);
 
-  return emails.some((email) => email !== SYNC_COMMITTER.email);
+  return commits.some((entry) => {
+    const sepIndex = entry.indexOf('\x1f');
+    const email = entry.slice(0, sepIndex);
+    const body = entry.slice(sepIndex + 1);
+    const isGenuineBotPick = email === SYNC_COMMITTER.email && CHERRY_TRAILER.test(body);
+
+    return !isGenuineBotPick;
+  });
 }
 
 /**
@@ -132,13 +151,25 @@ export function applyCommits(cwd, shas) {
           recoverFromFailedPick(cwd, sha);
         }
         empty.push(sha);
-      } else {
+      } else if (files.length > 0) {
         try {
           git(cwd, ['cherry-pick', '--abort']);
         } catch {
           recoverFromFailedPick(cwd, sha);
         }
         conflicts.push({ sha, files });
+      } else {
+        // No conflicted files and the message isn't a recognized empty-pick:
+        // an infra failure (GPG signing, a rejected commit hook, a disk
+        // error, ...), not a content conflict. Leave a clean tree, then fail
+        // the run loudly instead of reporting a bogus conflict.
+        try {
+          git(cwd, ['cherry-pick', '--abort']);
+        } catch {
+          recoverFromFailedPick(cwd, sha);
+        }
+        error.message = `Cherry-pick of ${sha} failed for a reason other than a conflict or an empty pick: ${error.message}`;
+        throw error;
       }
     }
   }
