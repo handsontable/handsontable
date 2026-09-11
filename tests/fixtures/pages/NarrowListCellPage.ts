@@ -4,7 +4,6 @@ import { awaitBundle } from '../bundle';
 interface FixtureWindow {
   hot: {
     getCell(row: number, col: number, topmost?: boolean): HTMLElement | null;
-    rootElement: HTMLElement;
   };
 }
 
@@ -70,18 +69,6 @@ export class NarrowListCellPage {
    */
   cell(row: number, col: number): Locator {
     return this.page.getByTestId(`cell-${row}-${col}`);
-  }
-
-  /**
-   * The grid's single-line height, in CSS pixels: the `--ht-line-height` token plus the cell's own
-   * vertical padding and bottom border. This is what an unwrapped arrow cell must not exceed.
-   */
-  async lineHeight(): Promise<number> {
-    return this.page.evaluate(() => {
-      const cs = getComputedStyle((window as unknown as FixtureWindow).hot.rootElement);
-
-      return parseFloat(cs.getPropertyValue('--ht-line-height'));
-    });
   }
 
   /**

@@ -50,20 +50,6 @@
         margin: 0;
         transform: translateY(-50%);
       }
-
-      > .htCellClip .htAutocompleteArrow {
-        inset-inline-end: 0;
-      }
-    }
-
-    // Exact-height rows move the cell content into an absolutely-positioned clip wrapper and zero
-    // the cell's padding, so the reserve and truncation move onto the wrapper (its `inset` already
-    // carries the cell padding, hence no padding term here). The selector carries `tr.htExactRow`
-    // so it outweighs the base `tr.htExactRow > td > .htCellClip { padding: 0 }` rule.
-    tr.htExactRow > td.htAutocomplete > .htCellClip {
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      padding-inline-end: calc(var(--ht-icon-size) + var(--ht-gap-size) * 2);
     }
   }
 
