@@ -1,7 +1,7 @@
 # Formulas plugin — the HyperFormula bridge
 
 The `formulas` plugin connects the grid to HyperFormula. Read this before touching `formulas.ts` (3.4k
-lines), `indexSyncer/axisSyncer.ts`, `engine/`, `utils.ts` or `hyperlinkUrl.ts`.
+lines), `indexSyncer/axisSyncer.ts`, `engine/`, `utils.ts` or the shared link toolkit in `../../utils/cellLinks/`.
 
 HyperFormula is a **user-supplied peer dependency** (a devDependency here for tests only). It is bundled
 into `handsontable.full.js` and external in `handsontable.js`, so anything build-time has to be checked in
@@ -103,7 +103,7 @@ dependency graph). The compensation code carries a note that it can be removed o
 
 ## `HYPERLINK` cells: an allowlist, not a sanitizer
 
-`resolveHyperlinkUrl()` allows exactly `http:`, `https:`, `mailto:`, `tel:`. Everything else returns `null`
+`resolveLinkUrl()` (in `../../utils/cellLinks/`) allows exactly `http:`, `https:`, `mailto:`, `tel:`. Everything else returns `null`
 and the cell does not become a link. Two deliberate choices:
 
 - **The URL is parsed with `new URL()`, not pattern-matched**, so obfuscations that survive a string
@@ -119,6 +119,23 @@ and the cell does not become a link. Two deliberate choices:
   `../filters/AGENTS.md`.
 - Exporting formulas rather than values: `../exportFile/AGENTS.md` (`exportFormulas`).
 - Plugin contract, lifecycle, priorities: `../base/AGENTS.md`.
+
+## `HYPERLINK` anchors share plumbing with `autoLink`
+
+- The anchor is built by `createLinkElement()` from `../../utils/cellLinks/` and carries `ht-link ht-hyperlink`.
+  `ht-hyperlink` shipped in 18.1.0 and stays forever; `ht-link` is the shared marker the styles and the
+  Alt+Enter command key on. Do not build an `<a>` by hand here.
+- **Alt+Enter is not registered by this plugin.** It is a core grid command (`shortcuts/contexts/commands/openCellLink.ts`)
+  that reads `a.ht-link` from the selected cell's rendered TD. Registering the chord here again would run two
+  callbacks per keypress: the shortcut manager appends duplicate key combinations, it does not reject them.
+- **Order rule against `autoLink`.** Hook callbacks run in registration order, and `Formulas` can be enabled after
+  `AutoLink` through `updateSettings`, so `#onAfterRenderer` must converge from both orders: it always unwraps its
+  own `a.ht-hyperlink` first, and when the cell resolves to a link it unwraps every `a.ht-link` before wrapping. When
+  the cell resolves to no link it leaves foreign anchors alone. `AutoLink` skips any TD that already holds an `<a>`.
+  Unwrapping `a.ht-link` alone is not enough: it leaves behind any `span.ht-link-scheme` `AutoLink` hid inside that
+  anchor (`hideSchemePrefix()` in `../../utils/cellLinks/linkElement.ts`), and the wrap that follows would then carry
+  that hidden span into the HYPERLINK anchor. So `#onAfterRenderer` unwraps `a.ht-link .ht-link-scheme` FIRST, while
+  it is still inside its own anchor — a HYPERLINK label always renders verbatim, whichever `afterRenderer` ran first.
 
 ## Testing
 

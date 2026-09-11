@@ -1,0 +1,487 @@
+/* eslint-disable no-script-url -- the script URLs below are the subject of these tests. */
+import { findLinkTokens } from '../findLinkTokens';
+import { LINK_SCHEMES } from '../resolveLinkUrl';
+
+const BASE = 'https://example.com/dir/page.html';
+
+describe('findLinkTokens', () => {
+  it('should return no tokens for text without a URL', () => {
+    expect(findLinkTokens('plain text', BASE)).toEqual([]);
+    expect(findLinkTokens('', BASE)).toEqual([]);
+    expect(findLinkTokens('ratio 3:4', BASE)).toEqual([]);
+  });
+
+  it('should tokenize a whole-string URL', () => {
+    expect(findLinkTokens('https://a.com/x', BASE)).toEqual([
+      { start: 0, end: 15, href: 'https://a.com/x' },
+    ]);
+  });
+
+  it('should tokenize URLs embedded in prose, in order', () => {
+    const text = 'See https://a.com/one and http://b.com/two today';
+
+    expect(findLinkTokens(text, BASE)).toEqual([
+      { start: 4, end: 21, href: 'https://a.com/one' },
+      { start: 26, end: 42, href: 'http://b.com/two' },
+    ]);
+  });
+
+  it('should tokenize `mailto:` and `tel:` URLs', () => {
+    expect(findLinkTokens('mail mailto:a@b.com or call tel:+48123456789', BASE)).toEqual([
+      { start: 5, end: 19, href: 'mailto:a@b.com' },
+      { start: 28, end: 44, href: 'tel:+48123456789' },
+    ]);
+  });
+
+  it('should match the scheme case-insensitively', () => {
+    expect(findLinkTokens('HTTPS://A.com/X', BASE)).toEqual([
+      { start: 0, end: 15, href: 'https://a.com/X' },
+    ]);
+  });
+
+  it('should trim trailing punctuation', () => {
+    expect(findLinkTokens('go to https://a.com/x.', BASE)).toEqual([
+      { start: 6, end: 21, href: 'https://a.com/x' },
+    ]);
+    expect(findLinkTokens('really? https://a.com/x!?', BASE)).toEqual([
+      { start: 8, end: 23, href: 'https://a.com/x' },
+    ]);
+  });
+
+  it('should drop an unbalanced closing bracket but keep a balanced one', () => {
+    expect(findLinkTokens('(see https://a.com/x)', BASE)).toEqual([
+      { start: 5, end: 20, href: 'https://a.com/x' },
+    ]);
+    expect(findLinkTokens('(see https://a.com/x).', BASE)).toEqual([
+      { start: 5, end: 20, href: 'https://a.com/x' },
+    ]);
+    expect(findLinkTokens('https://en.wikipedia.org/wiki/Foo_(bar)', BASE)).toEqual([
+      { start: 0, end: 39, href: 'https://en.wikipedia.org/wiki/Foo_(bar)' },
+    ]);
+    expect(findLinkTokens('[https://a.com/x]', BASE)).toEqual([
+      { start: 1, end: 16, href: 'https://a.com/x' },
+    ]);
+  });
+
+  it('should stop a URL at whitespace and at angle brackets', () => {
+    expect(findLinkTokens('a <https://a.com/x> b', BASE)).toEqual([
+      { start: 3, end: 18, href: 'https://a.com/x' },
+    ]);
+  });
+
+  it('should stop a URL at a quote', () => {
+    expect(findLinkTokens('quote "https://a.com/x"', BASE)).toEqual([
+      { start: 7, end: 22, href: 'https://a.com/x' },
+    ]);
+  });
+
+  it('should never tokenize a `javascript:` or `data:` URL', () => {
+    expect(findLinkTokens('javascript:alert(1)', BASE)).toEqual([]);
+    expect(findLinkTokens('JAVASCRIPT:alert(1)', BASE)).toEqual([]);
+    expect(findLinkTokens('data:text/html,<script>alert(1)</script>', BASE)).toEqual([]);
+  });
+
+  it('should skip a token that does not parse as a URL', () => {
+    expect(findLinkTokens('broken https:// here', BASE)).toEqual([]);
+  });
+
+  it('should honour the `schemes` narrowing', () => {
+    expect(findLinkTokens('mailto:a@b.com https://a.com/x', BASE, ['https'])).toEqual([
+      { start: 15, end: 30, href: 'https://a.com/x' },
+    ]);
+    expect(findLinkTokens('https://a.com/x', BASE, [])).toEqual([]);
+  });
+
+  it('should keep offsets into the original text after trimming', () => {
+    const text = 'x https://a.com/x)). y';
+    const [token] = findLinkTokens(text, BASE);
+
+    expect(text.slice(token.start, token.end)).toBe('https://a.com/x');
+  });
+
+  it('should drop a candidate that erodes through its own scheme colon', () => {
+    expect(findLinkTokens('x tel:: y', BASE)).toEqual([]);
+    expect(findLinkTokens('contact mailto:.', BASE)).toEqual([]);
+    expect(findLinkTokens('bare tel: now', BASE)).toEqual([]);
+  });
+
+  it('should split two URLs joined by a comma into separate tokens', () => {
+    expect(findLinkTokens('See https://a.com,https://b.com end', BASE)).toEqual([
+      { start: 4, end: 17, href: 'https://a.com/' },
+      { start: 18, end: 31, href: 'https://b.com/' },
+    ]);
+  });
+
+  it('should not split a URL whose path merely contains a scheme word', () => {
+    expect(findLinkTokens('https://example.com/hotel:deals', BASE)).toEqual([
+      { start: 0, end: 31, href: 'https://example.com/hotel:deals' },
+    ]);
+    expect(findLinkTokens('https://a.com/x-mailto:y', BASE)).toEqual([
+      { start: 0, end: 24, href: 'https://a.com/x-mailto:y' },
+    ]);
+  });
+
+  it('should trim a long run of trailing unbalanced brackets without quadratic blowup', () => {
+    const text = `https://a.com/x${')'.repeat(20000)}`;
+
+    expect(findLinkTokens(text, BASE)).toEqual([
+      { start: 0, end: 15, href: 'https://a.com/x' },
+    ]);
+  });
+
+  it('should split two URLs glued together with no delimiter at an embedded `https?://`', () => {
+    const text = 'https://a.com/xhttps://b.com/y';
+
+    expect(findLinkTokens(text, BASE)).toEqual([
+      { start: 0, end: 15, href: 'https://a.com/x' },
+      { start: 15, end: 30, href: 'https://b.com/y' },
+    ]);
+  });
+
+  it('should split a `mailto:` URL glued to a following `https://` URL', () => {
+    const text = 'mailto:a@b.comhttps://c.com';
+
+    expect(findLinkTokens(text, BASE)).toEqual([
+      { start: 0, end: 14, href: 'mailto:a@b.com' },
+      { start: 14, end: 27, href: 'https://c.com/' },
+    ]);
+  });
+
+  it('should still split two URLs joined only by a comma', () => {
+    expect(findLinkTokens('See https://a.com,https://b.com end', BASE)).toEqual([
+      { start: 4, end: 17, href: 'https://a.com/' },
+      { start: 18, end: 31, href: 'https://b.com/' },
+    ]);
+  });
+
+  it('should split a `mailto:` URL joined to a preceding `https://` URL only by a comma', () => {
+    // Regression: the `EMBEDDED_SCHEME_PATTERN` exclusion class used to read `+-/` as a RANGE
+    // (`+` through `/`), which also swallowed `,` - so the comma no longer separated the two URLs
+    // and this stayed one garbled token.
+    expect(findLinkTokens('https://a.com,mailto:b@c.com', BASE)).toEqual([
+      { start: 0, end: 13, href: 'https://a.com/' },
+      { start: 14, end: 28, href: 'mailto:b@c.com' },
+    ]);
+  });
+
+  it('should split a `tel:` URL joined to a preceding `https://` URL only by a comma', () => {
+    expect(findLinkTokens('https://a.com,tel:+48123', BASE)).toEqual([
+      { start: 0, end: 13, href: 'https://a.com/' },
+      { start: 14, end: 24, href: 'tel:+48123' },
+    ]);
+  });
+
+  it('should not split an embedded `tel:` that is a hyphenated URL word', () => {
+    // The hyphen is a legal URL word character, so "x-tel:1" reads as one path segment, not two
+    // joined URLs - unlike the comma cases above.
+    expect(findLinkTokens('https://a.com/x-tel:1', BASE)).toEqual([
+      { start: 0, end: 21, href: 'https://a.com/x-tel:1' },
+    ]);
+  });
+
+  it('should not read a bare `tel:`/`mailto:` word glued to a preceding word as a scheme', () => {
+    expect(findLinkTokens('Grand Hotel:Warsaw', BASE)).toEqual([]);
+    expect(findLinkTokens('motel:12 rooms', BASE)).toEqual([]);
+    expect(findLinkTokens('see xmailto:a@b.com', BASE)).toEqual([]);
+  });
+
+  it('should still tokenize a `mailto:`/`tel:` scheme that starts a new word', () => {
+    expect(findLinkTokens('mail mailto:a@b.com', BASE)).toEqual([
+      { start: 5, end: 19, href: 'mailto:a@b.com' },
+    ]);
+    expect(findLinkTokens('(tel:+48123)', BASE)).toEqual([
+      { start: 1, end: 11, href: 'tel:+48123' },
+    ]);
+  });
+
+  it('should not split an embedded `https://` immediately preceded by a `\\` (Windows-path-shaped ' +
+    'glue, same rule as the `/` case above)', () => {
+    const text = 'https://a.com/x\\https://b.com/y';
+
+    // Before this fix, only `/` blocked the split, so this glued text produced two tokens
+    // ("https://a.com/x\" and "https://b.com/y"). A backslash is now excluded the same way.
+    expect(findLinkTokens(text, BASE)).toHaveLength(1);
+    expect(findLinkTokens(text, BASE)[0]).toMatchObject({ start: 0, end: text.length });
+  });
+
+  it('should not split an embedded `https://` immediately preceded by a `/`', () => {
+    expect(findLinkTokens('https://web.archive.org/web/2020/https://example.com', BASE)).toEqual([
+      { start: 0, end: 52, href: 'https://web.archive.org/web/2020/https://example.com' },
+    ]);
+  });
+
+  it('should not split an embedded `tel:` that is a path segment, wiki-style', () => {
+    expect(findLinkTokens('https://en.wikipedia.org/wiki/Tel:Aviv', BASE)).toEqual([
+      { start: 0, end: 38, href: 'https://en.wikipedia.org/wiki/Tel:Aviv' },
+    ]);
+  });
+
+  it('should still split a redirect-style URL at the `=` (documented design choice)', () => {
+    expect(findLinkTokens('http://a.com/r?url=https://b.com', BASE)).toEqual([
+      { start: 0, end: 19, href: 'http://a.com/r?url=' },
+      { start: 19, end: 32, href: 'https://b.com/' },
+    ]);
+  });
+
+  it('should not read a `tel:`/`mailto:` scheme glued to a preceding word that ends in a ' +
+    'non-ASCII letter as a scheme (Unicode-aware lookbehind)', () => {
+    expect(findLinkTokens('hôtel:Nice', BASE)).toEqual([]);
+    expect(findLinkTokens('Hôtel:Warsaw', BASE)).toEqual([]);
+    expect(findLinkTokens('Grand Hôtel:Kraków', BASE)).toEqual([]);
+    expect(findLinkTokens('Cafémailto:a@b.com', BASE)).toEqual([]);
+    expect(findLinkTokens('東京tel:03-1234', BASE)).toEqual([]);
+    // The ASCII case this mirrors must stay refused too.
+    expect(findLinkTokens('Grand Hotel:Warsaw', BASE)).toEqual([]);
+  });
+
+  it('should not read a `tel:`/`mailto:` scheme glued to a preceding backslash as a scheme ' +
+    '(Windows path, strict mode)', () => {
+    expect(findLinkTokens('C:\\mailto:a@b.com', BASE)).toEqual([]);
+    expect(findLinkTokens('C:\\tel:123', BASE)).toEqual([]);
+  });
+
+  it('should not link the tail of a scheme token that the caller\'s `schemes` narrowing refused', () => {
+    expect(findLinkTokens('tel:example.com', BASE, ['https'], false)).toEqual([]);
+  });
+
+  it('should still link a bare domain unrelated to a refused scheme token', () => {
+    expect(findLinkTokens('see example.com', BASE, ['https'], false)).toEqual([
+      { start: 4, end: 15, href: 'https://example.com/' },
+    ]);
+  });
+});
+
+describe('strict: false', () => {
+  it('should link a whole-string bare domain as `https`', () => {
+    expect(findLinkTokens('google.com', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 0, end: 10, href: 'https://google.com/' },
+    ]);
+  });
+
+  it('should link a bare domain with a `www` label, a path and a query inside prose', () => {
+    expect(findLinkTokens('see www.google.com/path?q=1 now', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 4, end: 27, href: 'https://www.google.com/path?q=1' },
+    ]);
+  });
+
+  it('should link a bare domain with a subdomain, a multi-label TLD, a port and a path', () => {
+    expect(findLinkTokens('sub.example.co.uk:8080/x', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 0, end: 24, href: 'https://sub.example.co.uk:8080/x' },
+    ]);
+  });
+
+  it('should lowercase the host of a mixed-case bare domain', () => {
+    expect(findLinkTokens('Example.COM', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 0, end: 11, href: 'https://example.com/' },
+    ]);
+  });
+
+  it('should trim a bare domain wrapped in a parenthetical and a trailing period', () => {
+    expect(findLinkTokens('(example.com).', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 1, end: 12, href: 'https://example.com/' },
+    ]);
+  });
+
+  it('should link a bare email address as `mailto`', () => {
+    expect(findLinkTokens('jane@example.com', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 0, end: 16, href: 'mailto:jane@example.com' },
+    ]);
+  });
+
+  it('should link a bare email and a bare domain in the same text as two tokens, never the ' +
+    'email\'s domain alone', () => {
+    expect(findLinkTokens('mail jane@example.com or example.org', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 5, end: 21, href: 'mailto:jane@example.com' },
+      { start: 25, end: 36, href: 'https://example.org/' },
+    ]);
+  });
+
+  it('should link a scheme URL and a bare domain in the same text, the scheme token first', () => {
+    expect(findLinkTokens('https://a.com and b.com', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 0, end: 13, href: 'https://a.com/' },
+      { start: 18, end: 23, href: 'https://b.com/' },
+    ]);
+  });
+
+  it('should not link a bare domain whose TLD is not a known top-level domain', () => {
+    expect(findLinkTokens('node.js', BASE, LINK_SCHEMES, false)).toEqual([]);
+    expect(findLinkTokens('file.txt', BASE, LINK_SCHEMES, false)).toEqual([]);
+    expect(findLinkTokens('example.notatld', BASE, LINK_SCHEMES, false)).toEqual([]);
+  });
+
+  it('should link a bare domain whose TLD is also a common file extension: no exclusion list, ' +
+    'the full IANA list is used (documented trade-off)', () => {
+    expect(findLinkTokens('report.zip', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 0, end: 10, href: 'https://report.zip/' },
+    ]);
+    expect(findLinkTokens('video.mov', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 0, end: 9, href: 'https://video.mov/' },
+    ]);
+  });
+
+  it('should never mistake an IP address or a version-like string for a bare domain', () => {
+    expect(findLinkTokens('1.2.3', BASE, LINK_SCHEMES, false)).toEqual([]);
+    expect(findLinkTokens('192.168.0.1', BASE, LINK_SCHEMES, false)).toEqual([]);
+    expect(findLinkTokens('v1.2.3-rc.1', BASE, LINK_SCHEMES, false)).toEqual([]);
+  });
+
+  it('should not link a two-character label as a bare domain: the TLD group requires 2 letters', () => {
+    expect(findLinkTokens('a.b', BASE, LINK_SCHEMES, false)).toEqual([]);
+  });
+
+  it('should link only the whole URL, never its bare-domain suffix a second time', () => {
+    expect(findLinkTokens('https://foo.example.com', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 0, end: 23, href: 'https://foo.example.com/' },
+    ]);
+  });
+
+  it('should link a bare domain whose TLD is a country code, even where it reads as a file ' +
+    'extension or an English word (documented trade-off)', () => {
+    expect(findLinkTokens('README.md', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 0, end: 9, href: 'https://readme.md/' },
+    ]);
+    expect(findLinkTokens('deploy.sh', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 0, end: 9, href: 'https://deploy.sh/' },
+    ]);
+  });
+
+  it('should not link a bare domain that starts mid-word on a non-ASCII letter (Unicode-aware ' +
+    'lookbehind)', () => {
+    expect(findLinkTokens('münchen.de', BASE, LINK_SCHEMES, false)).toEqual([]);
+    expect(findLinkTokens('Besuchen Sie münchen.de heute', BASE, LINK_SCHEMES, false)).toEqual([]);
+    expect(findLinkTokens('żółw.pl', BASE, LINK_SCHEMES, false)).toEqual([]);
+    expect(findLinkTokens('naïve.example.com', BASE, LINK_SCHEMES, false)).toEqual([]);
+    // The NFD-decomposed spelling of the same word must be refused the same way.
+    const nfd = 'münchen.de'.normalize('NFD');
+
+    expect(nfd).not.toBe('münchen.de');
+    expect(findLinkTokens(nfd, BASE, LINK_SCHEMES, false)).toEqual([]);
+  });
+
+  it('should not link a bare email whose local part starts mid-word on a non-ASCII letter ' +
+    '(Unicode-aware lookbehind)', () => {
+    expect(findLinkTokens('józef@firma.pl', BASE, LINK_SCHEMES, false)).toEqual([]);
+    expect(findLinkTokens('Håkan.Örn@företag.se', BASE, LINK_SCHEMES, false)).toEqual([]);
+  });
+
+  it('should not link the local part of a bare email address whose domain TLD is unknown', () => {
+    expect(findLinkTokens('john.uk@intranet.lan', BASE, LINK_SCHEMES, false)).toEqual([]);
+    expect(findLinkTokens('first.co@example.notatld', BASE, LINK_SCHEMES, false)).toEqual([]);
+    expect(findLinkTokens('a.io@host.invalid', BASE, LINK_SCHEMES, false)).toEqual([]);
+    // Unaffected: the local part is not itself a known-TLD-shaped domain.
+    expect(findLinkTokens('jane.doe@server.local', BASE, LINK_SCHEMES, false)).toEqual([]);
+  });
+
+  it('should still link a valid email that follows a rejected one in the same text', () => {
+    expect(findLinkTokens('john.uk@intranet.lan and ok@example.com', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 25, end: 39, href: 'mailto:ok@example.com' },
+    ]);
+  });
+
+  it('should refuse a bare domain whose port is out of range instead of truncating it', () => {
+    expect(findLinkTokens('example.com:123456', BASE, LINK_SCHEMES, false)).toEqual([]);
+    expect(findLinkTokens('example.com:8080/x', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 0, end: 18, href: 'https://example.com:8080/x' },
+    ]);
+    expect(findLinkTokens('example.com:65535', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 0, end: 17, href: 'https://example.com:65535/' },
+    ]);
+  });
+
+  it('should refuse the WHOLE host on an overlong port, not just backtrack the final label ' +
+    '(regression: an earlier atomic-group fix made only the final label atomic, so plain ' +
+    'backtracking dropped a leading label instead and still linked a - wrong - shorter host)', () => {
+    expect(findLinkTokens('www.google.co.uk:123456', BASE, LINK_SCHEMES, false)).toEqual([]);
+    expect(findLinkTokens('mail.google.com:987654', BASE, LINK_SCHEMES, false)).toEqual([]);
+    expect(findLinkTokens('my.site.dev:123456', BASE, LINK_SCHEMES, false)).toEqual([]);
+    expect(findLinkTokens('a.b.c.example.com:1234567', BASE, LINK_SCHEMES, false)).toEqual([]);
+
+    // The valid multi-label host still links whole, port and path intact.
+    expect(findLinkTokens('www.google.co.uk:8080/path', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 0, end: 26, href: 'https://www.google.co.uk:8080/path' },
+    ]);
+  });
+
+  it('should yield only the scheme tokens in strict mode for every bare-domain and bare-email ' +
+    'case above', () => {
+    const strictInputs = [
+      'google.com',
+      'see www.google.com/path?q=1 now',
+      'sub.example.co.uk:8080/x',
+      'Example.COM',
+      '(example.com).',
+      'jane@example.com',
+      'mail jane@example.com or example.org',
+      'node.js',
+      'file.txt',
+      'report.zip',
+      'video.mov',
+      '1.2.3',
+      '192.168.0.1',
+      'v1.2.3-rc.1',
+      'a.b',
+      'example.notatld',
+      'README.md',
+      'deploy.sh',
+    ];
+
+    strictInputs.forEach((input) => {
+      expect(findLinkTokens(input, BASE)).toEqual([]);
+    });
+
+    expect(findLinkTokens('https://a.com and b.com', BASE)).toEqual([
+      { start: 0, end: 13, href: 'https://a.com/' },
+    ]);
+    expect(findLinkTokens('https://foo.example.com', BASE)).toEqual([
+      { start: 0, end: 23, href: 'https://foo.example.com/' },
+    ]);
+  });
+
+  it('should not link a bare domain preceded by a backslash (Windows path)', () => {
+    expect(findLinkTokens('C:\\example.com', BASE, LINK_SCHEMES, false)).toEqual([]);
+    expect(findLinkTokens('C:\\Users\\example.com\\file', BASE, LINK_SCHEMES, false)).toEqual([]);
+    expect(findLinkTokens('\\\\server\\share.example.com', BASE, LINK_SCHEMES, false)).toEqual([]);
+  });
+
+  it('should link a bare domain up to, but not across, a following backslash', () => {
+    const tokens = findLinkTokens('see example.com\\file', BASE, LINK_SCHEMES, false);
+
+    expect(tokens).toEqual([
+      { start: 4, end: 15, href: 'https://example.com/' },
+    ]);
+    // The token must end before the backslash - a bare-domain path never continues across one.
+    expect('see example.com\\file'.slice(tokens[0].start, tokens[0].end)).toBe('example.com');
+  });
+
+  it('should not read a `tel:` scheme glued to a preceding backslash as a scheme ' +
+    '(Windows path, non-strict mode)', () => {
+    expect(findLinkTokens('C:\\tel:123', BASE, LINK_SCHEMES, false)).toEqual([]);
+  });
+
+  it('should refuse the `mailto:` scheme glued to a preceding backslash, but still link the ' +
+    'bare email address that survives it (pre-existing `BARE_EMAIL_PATTERN` behavior, unrelated ' +
+    'to this fix: its own lookbehind does not exclude `:`, so a local part right after any ' +
+    'rejected "word:" prefix - "xmailto:a@b.com" behaves identically today - still matches on ' +
+    'its own)', () => {
+    expect(findLinkTokens('C:\\mailto:a@b.com', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 10, end: 17, href: 'mailto:a@b.com' },
+    ]);
+    expect(findLinkTokens('see xmailto:a@b.com', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 12, end: 19, href: 'mailto:a@b.com' },
+    ]);
+  });
+
+  it('should still link an ordinary bare domain unrelated to a backslash (control)', () => {
+    expect(findLinkTokens('Visit google.com now', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 6, end: 16, href: 'https://google.com/' },
+    ]);
+  });
+
+  it('should still split two scheme URLs joined by a comma (control, unaffected by the ' +
+    'backslash exclusion)', () => {
+    expect(findLinkTokens('https://a.com,mailto:b@c.com', BASE, LINK_SCHEMES, false)).toEqual([
+      { start: 0, end: 13, href: 'https://a.com/' },
+      { start: 14, end: 28, href: 'mailto:b@c.com' },
+    ]);
+  });
+});
