@@ -9,8 +9,13 @@ function recorder(answers) {
   const calls = [];
   const run = (args) => {
     calls.push(args);
+    const next = answers.shift();
 
-    return answers.shift() ?? '';
+    if (next && typeof next === 'object' && 'throws' in next) {
+      throw next.throws;
+    }
+
+    return next ?? '';
   };
 
   return { calls, run };
@@ -68,33 +73,55 @@ test('upsertComment finds the marked comment on a later page', () => {
   assert.deepEqual(calls[1], ['api', '--method', 'PATCH', 'repos/o/r/issues/comments/78', '-f', `body=${marker}\nupdated text`]);
 });
 
-test('ensureLabels, updatePr, closePr, and listOpenPrsWithLabel build the expected calls', () => {
+test('updatePr, closePr, and listOpenPrsWithLabel build the expected calls', () => {
   const { calls, run } = recorder([
-    '[{"name":"docs-sync"}]', '', '', '', '[{"number":1,"baseRefName":"prod-docs/18.0","headRefName":"docs-sync/prod-docs-18.0","url":"u"}]',
+    '', '', '[{"number":1,"baseRefName":"prod-docs/18.0","headRefName":"docs-sync/prod-docs-18.0","url":"u"}]',
+  ]);
+  const gh = createGitHub({ repo: 'o/r', run });
+
+  gh.updatePr(4, { title: 'T', body: 'B' });
+  assert.deepEqual(calls[0], ['pr', 'edit', '4', '--repo', 'o/r', '--title', 'T', '--body', 'B']);
+
+  gh.closePr(4, 'bye');
+  assert.deepEqual(calls[1], ['pr', 'close', '4', '--repo', 'o/r', '--comment', 'bye']);
+
+  assert.deepEqual(gh.listOpenPrsWithLabel('docs-sync'), [{ number: 1, baseRefName: 'prod-docs/18.0', headRefName: 'docs-sync/prod-docs-18.0', url: 'u' }]);
+  assert.deepEqual(calls[2], ['pr', 'list', '--repo', 'o/r', '--state', 'open', '--label', 'docs-sync', '--json', 'number,baseRefName,headRefName,url']);
+});
+
+test('ensureLabels checks each label individually and only creates missing ones', () => {
+  const notFound = Object.assign(new Error('Command failed'), { stderr: 'gh: Not Found (HTTP 404)' });
+  const { calls, run } = recorder([
+    '', // docs-sync exists
+    { throws: notFound }, // docs-sync: skip is missing
+    '', // label create succeeds
   ]);
   const gh = createGitHub({ repo: 'o/r', run });
 
   gh.ensureLabels(['docs-sync', 'docs-sync: skip']);
-  assert.deepEqual(calls[0], ['label', 'list', '--repo', 'o/r', '--json', 'name', '--limit', '100']);
-  assert.deepEqual(calls[1], ['label', 'create', 'docs-sync: skip', '--repo', 'o/r', '--color', '0E8A16', '--description', 'Managed by the docs sync workflow']);
-  assert.equal(calls.filter((call) => call[0] === 'label' && call[1] === 'create').length, 1, 'the already-existing label is not recreated');
 
-  gh.updatePr(4, { title: 'T', body: 'B' });
-  assert.deepEqual(calls[2], ['pr', 'edit', '4', '--repo', 'o/r', '--title', 'T', '--body', 'B']);
+  assert.deepEqual(calls[0], ['api', 'repos/o/r/labels/docs-sync']);
+  assert.deepEqual(calls[1], ['api', 'repos/o/r/labels/docs-sync%3A%20skip']);
+  assert.deepEqual(calls[2], ['label', 'create', 'docs-sync: skip', '--repo', 'o/r', '--color', '0E8A16', '--description', 'Managed by the docs sync workflow']);
+  assert.equal(calls.length, 3, 'the already-existing label is checked but never recreated');
+});
 
-  gh.closePr(4, 'bye');
-  assert.deepEqual(calls[3], ['pr', 'close', '4', '--repo', 'o/r', '--comment', 'bye']);
+test('ensureLabels rethrows an error that is not a 404', () => {
+  // `execFileSync` bakes the stderr text into `error.message` too (verified against a real
+  // failing subprocess), so the mock does the same instead of leaving `message` generic.
+  const serverError = Object.assign(new Error('Command failed: gh api ...\ngh: Internal Server Error (HTTP 500)'), { stderr: 'gh: Internal Server Error (HTTP 500)' });
+  const { run } = recorder([{ throws: serverError }]);
+  const gh = createGitHub({ repo: 'o/r', run });
 
-  assert.deepEqual(gh.listOpenPrsWithLabel('docs-sync'), [{ number: 1, baseRefName: 'prod-docs/18.0', headRefName: 'docs-sync/prod-docs-18.0', url: 'u' }]);
-  assert.deepEqual(calls[4], ['pr', 'list', '--repo', 'o/r', '--state', 'open', '--label', 'docs-sync', '--json', 'number,baseRefName,headRefName,url']);
+  assert.throws(() => gh.ensureLabels(['docs-sync']), /500/);
 });
 
 test('ensureLabels creates nothing when every label already exists', () => {
-  const { calls, run } = recorder(['[{"name":"docs-sync"},{"name":"docs-sync: skip"},{"name":"docs-sync: include"}]']);
+  const { calls, run } = recorder(['', '', '']);
   const gh = createGitHub({ repo: 'o/r', run });
 
   gh.ensureLabels(['docs-sync', 'docs-sync: skip', 'docs-sync: include']);
 
-  assert.equal(calls.length, 1, 'only the label list call is made');
-  assert.deepEqual(calls[0], ['label', 'list', '--repo', 'o/r', '--json', 'name', '--limit', '100']);
+  assert.equal(calls.length, 3, 'each label is checked once and none is created');
+  assert.ok(calls.every((call) => call[0] === 'api'), 'only lookup calls are made, no creates');
 });

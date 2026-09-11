@@ -125,6 +125,11 @@ function fixture() {
     '  process.stdout.write("https://github.com/o/r/pull/200");',
     '} else if (a[0] === "api" && /\\/comments$/.test(a[1]) && a.includes("--slurp")) {',
     '  process.stdout.write("[[]]");',
+    '} else if (a[0] === "api" && /\\/labels\\//.test(a[1])) {',
+    '  const name = decodeURIComponent(a[1].split("/labels/").pop());',
+    '  const existingLabels = answers.existingLabels || [];',
+    '  if (!existingLabels.includes(name)) { process.stderr.write("Not Found (HTTP 404)"); process.exit(1); }',
+    '  process.stdout.write(JSON.stringify({ name }));',
     '} else { process.stdout.write(""); }',
   ].join('\n'));
   chmodSync(fakeGh, 0o755);

@@ -70,21 +70,14 @@ export function createGitHub({ repo, run = defaultRun }) {
      * @param {string[]} names
      */
     ensureLabels(names) {
-      let existingLabels;
-
-      try {
-        existingLabels = JSON.parse(run(['label', 'list', '--repo', repo, '--json', 'name', '--limit', '100']));
-      } catch {
-        // An empty or unparseable response is treated as "nothing known", the
-        // same way `extractState` treats a bad state block: it falls back to
-        // creating every label rather than throwing, never a fatal error.
-        existingLabels = [];
-      }
-
-      const existing = new Set(existingLabels.map((label) => label.name));
-
       for (const name of names) {
-        if (!existing.has(name)) {
+        try {
+          run(['api', `repos/${repo}/labels/${encodeURIComponent(name)}`]);
+        } catch (error) {
+          if (!/HTTP 404/.test(error.stderr ?? '')) {
+            throw error;
+          }
+
           run(['label', 'create', name, '--repo', repo, '--color', LABEL_COLOR, '--description', LABEL_DESCRIPTION]);
         }
       }
