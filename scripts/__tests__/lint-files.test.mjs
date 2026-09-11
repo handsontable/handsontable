@@ -11,6 +11,8 @@ test('lintable keeps files inside a CI lint scope', () => {
       'wrappers/vue3/src/HotTable.vue',
       'tests/e2e/x.spec.ts',
       'tests/fixtures/pages/GridPage.ts',
+      'visual-tests/tests/multi-frameworks/filters/accepting-by-enter.spec.ts',
+      'visual-tests/src/test-runner.ts',
       'scripts/pre-push.mjs',
     ]),
     [
@@ -20,6 +22,8 @@ test('lintable keeps files inside a CI lint scope', () => {
       'wrappers/vue3/src/HotTable.vue',
       'tests/e2e/x.spec.ts',
       'tests/fixtures/pages/GridPage.ts',
+      'visual-tests/tests/multi-frameworks/filters/accepting-by-enter.spec.ts',
+      'visual-tests/src/test-runner.ts',
       'scripts/pre-push.mjs',
     ],
   );
@@ -32,6 +36,8 @@ test('lintable drops files outside every CI lint scope (react/angular/docs, pack
       'wrappers/angular-wrapper/projects/hot-table/src/lib/x.ts', // ng lint, not eslint CLI
       'docs/src/x.js', // no lint script
       'handsontable/hot.config.js', // package root — not in src/test/scripts
+      'visual-tests/regconfig.json', // package root — only src/ and tests/ are linted
+      'visual-tests/scripts/run-tests.mjs', // CI lints scripts/ through the package script, not the hook
       'README.md',
     ]),
     [],

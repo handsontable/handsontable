@@ -1,0 +1,176 @@
+name: Visual stability
+
+# The acceptance instrument for visual-suite flakes (DEV-2797): render the specs
+# under investigation on N separate runners from ONE commit and report which
+# captures came back byte-different, and which pairs the suite's own comparison
+# (reg-cli with regconfig.json's tolerances) would have called "changed".
+#
+# On demand only. It publishes nothing, reads no secret, comments nowhere, so it
+# needs no fork guard and can never touch `base/<branch>`; the verdict lives in
+# the job summary. Ten machines are the point: a single-machine loop cannot see
+# the cross-runner component of the noise (the same commit renders byte-stable
+# on one box and flips on the next), which is why the ticket asks for ten
+# consecutive runs rather than a local repeat.
+#
+# Scope is deliberately narrow — the filters family plus the RTL selection spec,
+# the two groups that produced every sighting — so a dispatch costs ~10 short
+# jobs, not ten full suites. Widen `SPECS` for another investigation rather than
+# growing this into a second suite; the nightly full render is a separate
+# workflow.
+on:
+  workflow_dispatch:
+    inputs:
+      iterations:
+        description: 'How many separate runners render the commit'
+        type: choice
+        default: '10'
+        options: ['3', '5', '10']
+      theme:
+        description: 'Which theme variant to render next to the classic pass'
+        type: choice
+        default: 'main-dark'
+        options: ['main', 'main-dark', 'horizon', 'horizon-dark']
+
+permissions:
+  contents: read
+
+concurrency:
+  # Static prefix, per the repo rule (never the workflow-name expression).
+  group: visual-stability-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # The two spec groups behind every DEV-2797 sighting. Paths, not tags, so the
+  # `--grep`-free invocation stays identical to what visual.yml renders.
+  MULTI_SPECS: tests/multi-frameworks/filters
+  CROSS_SPECS: selection
+
+jobs:
+  render:
+    name: render ${{ matrix.iteration }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      # Every entry lands on its own runner; entries above `iterations` skip
+      # themselves in the first step so the matrix stays a literal.
+      matrix:
+        iteration: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    steps:
+      - name: Skip beyond the requested iteration count
+        id: gate
+        env:
+          ITERATIONS: ${{ inputs.iterations }}
+          ITERATION: ${{ matrix.iteration }}
+        run: |
+          if [ "$ITERATION" -gt "$ITERATIONS" ]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        if: steps.gate.outputs.run == 'true'
+      - uses: ./.github/actions/setup-workspace
+        if: steps.gate.outputs.run == 'true'
+
+      - name: Cache Playwright browsers
+        if: steps.gate.outputs.run == 'true'
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # https://github.com/actions/cache/releases/tag/v5.0.3
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          # Same key shape as visual.yml, so the two workflows share the cache.
+          key: playwright-all-${{ runner.os }}-${{ hashFiles('visual-tests/package.json', 'pnpm-workspace.yaml') }}
+      # All three browsers, although this job runs two: the cache key is visual.yml's
+      # `all` key, so what this job saves is what the cross-browser leg restores. A
+      # cache saved here without webkit would leave that leg with no webkit binary.
+      - name: Install Playwright browser binaries
+        if: steps.gate.outputs.run == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx --no playwright install chromium firefox webkit
+        working-directory: visual-tests
+      - name: Install Playwright system dependencies
+        if: steps.gate.outputs.run == 'true'
+        run: npx --no playwright install-deps chromium firefox
+        working-directory: visual-tests
+
+      # No Build stage to download from on a dispatch, so this composes the same
+      # screenshot tree visual.yml's artifact-fallback path does: the ES + CJS
+      # build, the language packs, and the type declarations the regenerated
+      # `exports` map names (partial-packaging.test.mjs pins that pairing).
+      - name: Build the Handsontable package the demos import
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          npm run in handsontable build:es
+          npm run in handsontable build:commonjs
+          npm run in handsontable build:languages.es
+          npm run in handsontable build:languages
+          npm run in handsontable build:languages.min
+          npm run in handsontable build:types
+          (cd handsontable && node scripts/run.mjs downlevel:types)
+          # A tree for screenshots, not for publishing (no UMD or theme bundles), so
+          # it skips the strict packaging checks.
+          npm run in handsontable postbuild:partial
+
+      # The installer and the linker both filter by path prefix, so naming the js tree
+      # skips the three wrapper installs this job never serves (the Angular one is the
+      # slow one).
+      - name: Build the js visual-test demo
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          npm run examples:install next/visual-tests/js
+          npm --prefix examples/next/visual-tests/js/demo run build
+
+      - name: Record the runner
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          mkdir -p visual-tests/screenshots
+          { lscpu | grep 'Model name' || echo 'Model name: unknown'; } > visual-tests/screenshots/runner.txt
+
+      # Order matters. The cross-browser config declares its own `webServer` on 8082 and,
+      # with CI set, refuses to reuse a server it did not start — so it runs first and owns
+      # the port for its duration. The multi-framework config has no `webServer`, so the
+      # shared server is started afterwards and polled for readiness rather than slept on.
+      - name: Render the specs under investigation
+        if: steps.gate.outputs.run == 'true'
+        working-directory: visual-tests
+        env:
+          HOT_THEME_UNDER_TEST: ${{ inputs.theme }}
+        run: |
+          npx playwright test --config playwright-cross-browser.config.ts --project=chromium --project=firefox --reporter=dot "$CROSS_SPECS"
+          npm run serve-example &
+          for i in $(seq 1 30); do curl -sf http://localhost:8082/ > /dev/null && break; sleep 1; done
+          curl -sf http://localhost:8082/ > /dev/null || { echo '::error::serve-example did not come up on 8082'; exit 1; }
+          HOT_FRAMEWORK=js npx playwright test --project=chromium --reporter=dot "$MULTI_SPECS"
+          HOT_FRAMEWORK=js HOT_THEME="$HOT_THEME_UNDER_TEST" npx playwright test --project=chromium --reporter=dot "$MULTI_SPECS"
+
+      # `!cancelled()`, not the implicit success(): a spec that failed its retries in one
+      # iteration still rendered the rest, and the verdict reports the gap as data.
+      - name: Upload the screenshots
+        if: steps.gate.outputs.run == 'true' && !cancelled()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          name: stability-${{ matrix.iteration }}
+          path: visual-tests/screenshots
+          retention-days: 3
+
+  verdict:
+    name: verdict
+    needs: [ render ]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      - uses: ./.github/actions/setup-workspace
+      - uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # https://github.com/actions/download-artifact/releases/tag/v8.0.0
+        with:
+          pattern: stability-*
+          path: runs
+
+      # Two verdicts. Byte identity across runners is the sharp one (it sees
+      # noise the tolerance hides); the reg-cli pass, with the flags read from
+      # regconfig.json exactly as compare-fork.mjs reads them, is the one the
+      # gate would actually deliver — and the one the ticket's acceptance
+      # criterion is written against.
+      - name: Byte stability across runners
+        run: node ./visual-tests/scripts/stability-verdict.mjs runs >> "$GITHUB_STEP_SUMMARY"

@@ -11,30 +11,41 @@ test('Test focus on Shift+Tab navigation', async({ goto, tablePage }) => {
   await tableBottom.waitFor();
 
   await tablePage.keyboard.press('Tab');
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2797: fixed delay inherited from the 2024 import; replace with the asserted state (toBeVisible / toBeFocused / a settled helper) when this family is consolidated
   await tablePage.waitForTimeout(50);
   await tablePage.keyboard.press('Tab');
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2797: fixed delay inherited from the 2024 import; replace with the asserted state (toBeVisible / toBeFocused / a settled helper) when this family is consolidated
   await tablePage.waitForTimeout(50);
   await tablePage.keyboard.press('Shift+Tab');
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2797: fixed delay inherited from the 2024 import; replace with the asserted state (toBeVisible / toBeFocused / a settled helper) when this family is consolidated
   await tablePage.waitForTimeout(50);
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
   await tablePage.keyboard.press('Tab');
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2797: fixed delay inherited from the 2024 import; replace with the asserted state (toBeVisible / toBeFocused / a settled helper) when this family is consolidated
   await tablePage.waitForTimeout(50);
   await tablePage.keyboard.press('Tab');
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2797: fixed delay inherited from the 2024 import; replace with the asserted state (toBeVisible / toBeFocused / a settled helper) when this family is consolidated
   await tablePage.waitForTimeout(50);
   await tablePage.keyboard.press('Tab');
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2797: fixed delay inherited from the 2024 import; replace with the asserted state (toBeVisible / toBeFocused / a settled helper) when this family is consolidated
   await tablePage.waitForTimeout(50);
   await tablePage.keyboard.press('Tab');
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2797: fixed delay inherited from the 2024 import; replace with the asserted state (toBeVisible / toBeFocused / a settled helper) when this family is consolidated
   await tablePage.waitForTimeout(50);
   await tablePage.keyboard.press('Tab');
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2797: fixed delay inherited from the 2024 import; replace with the asserted state (toBeVisible / toBeFocused / a settled helper) when this family is consolidated
   await tablePage.waitForTimeout(50);
   await tablePage.keyboard.press('Tab');
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2797: fixed delay inherited from the 2024 import; replace with the asserted state (toBeVisible / toBeFocused / a settled helper) when this family is consolidated
   await tablePage.waitForTimeout(50);
   await tablePage.keyboard.press('Tab');
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2797: fixed delay inherited from the 2024 import; replace with the asserted state (toBeVisible / toBeFocused / a settled helper) when this family is consolidated
   await tablePage.waitForTimeout(50);
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
   await tablePage.keyboard.press('Shift+Tab');
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2797: fixed delay inherited from the 2024 import; replace with the asserted state (toBeVisible / toBeFocused / a settled helper) when this family is consolidated
   await tablePage.waitForTimeout(50);
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

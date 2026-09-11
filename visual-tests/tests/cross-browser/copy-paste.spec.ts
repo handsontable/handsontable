@@ -85,6 +85,7 @@ test('Copy and paste data in a scrolled table', async({ goto, tablePage, browser
     element.scrollTo(10000, 10000); // Large values to ensure scrolling to the end
   });
 
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2797: fixed delay inherited from the 2024 import; replace with the asserted state (toBeVisible / toBeFocused / a settled helper) when this family is consolidated
   await tablePage.waitForTimeout(20);
 
   // The scroll above puts a scrollbar track along both edges for about a second, and while it is there
@@ -105,6 +106,7 @@ test('Copy and paste data in a scrolled table', async({ goto, tablePage, browser
     element.scrollTo(0, 0);
   });
 
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2797: fixed delay inherited from the 2024 import; replace with the asserted state (toBeVisible / toBeFocused / a settled helper) when this family is consolidated
   await tablePage.waitForTimeout(20);
 
   const targetCell = await selectCell(0, 0, table);
@@ -134,6 +136,7 @@ test('Cut and paste data in a scrolled table', async({ goto, tablePage, browserN
     element.scrollTo(10000, 10000); // Large values to ensure scrolling to the end
   });
 
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2797: fixed delay inherited from the 2024 import; replace with the asserted state (toBeVisible / toBeFocused / a settled helper) when this family is consolidated
   await tablePage.waitForTimeout(20);
 
   // The scroll above puts a scrollbar track along both edges for about a second, and while it is there
@@ -154,6 +157,7 @@ test('Cut and paste data in a scrolled table', async({ goto, tablePage, browserN
     element.scrollTo(0, 0);
   });
 
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2797: fixed delay inherited from the 2024 import; replace with the asserted state (toBeVisible / toBeFocused / a settled helper) when this family is consolidated
   await tablePage.waitForTimeout(20);
 
   await tablePage.screenshot({ path: helpers.screenshotPath() });

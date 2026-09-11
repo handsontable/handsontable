@@ -21,10 +21,10 @@ test(__filename, async({ tablePage }) => {
 
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
-  const clearColumnBox = await dropdownMenu.locator('"Clear column"').boundingBox();
-
-  // Hovering the menu item resets the focus order so the next Tab should focus the first filters component
-  await tablePage.mouse.move(clearColumnBox!.x, clearColumnBox!.y);
+  // Hovering the menu item resets the focus order so the next Tab should focus the first filters component.
+  // `hover()` names the element and runs the actionability checks (visible, stable, receives events at
+  // the point) before moving; the previous raw `mouse.move` to a bounding-box coordinate did neither.
+  await dropdownMenu.getByText('Clear column', { exact: true }).hover();
 
   // take a screenshot of the dropdown menu with hovered "Clear column" menu item
   await tablePage.screenshot({ path: helpers.screenshotPath() });
