@@ -135,6 +135,55 @@ test('describeErrorResponse stays quiet about Cloudflare for an ordinary JSON AP
   assert.match(message, /model not found/);
 });
 
+test('describeErrorResponse softens the claim for a Cloudflare-fronted HTML error with no cf-mitigated', () => {
+  // A Cloudflare-fronted origin's own 5xx HTML page: server=cloudflare + HTML,
+  // but no cf-mitigated -- so it must not be called an edge block.
+  const body = '<!DOCTYPE html><html><body>502 Bad Gateway</body></html>';
+  const response = new Response(body, {
+    status: 502,
+    statusText: 'Bad Gateway',
+    headers: { server: 'cloudflare', 'cf-ray': 'deadbeef-WAW', 'content-type': 'text/html' },
+  });
+
+  const message = describeErrorResponse(response, body);
+
+  assert.doesNotMatch(message, /edge block/);
+  assert.match(message, /Cloudflare served this HTML, not the model API; cf-ray=deadbeef-WAW/);
+});
+
+test('describeErrorResponse drops the Headers label when nothing matches the allowlist', () => {
+  const body = 'gateway timeout';
+  // A hand-built headers object, not a Response: the Response constructor adds a
+  // content-type for a string body, which is itself a diagnostic header.
+  const response = {
+    status: 504,
+    statusText: 'Gateway Timeout',
+    headers: new Headers({ 'x-lb-node': 'edge-7' }),
+  };
+
+  const message = describeErrorResponse(response, body);
+
+  // No empty "Headers:" section; just the omitted count.
+  assert.doesNotMatch(message, /^Headers:$/m);
+  assert.match(message, /\(1 other header omitted\)/);
+});
+
+test('a fetchImpl that omits headers degrades instead of throwing, and the status still governs the retry', async() => {
+  let n = 0;
+  // A hand-rolled response with no `headers` property at all.
+  const fetchImpl = async() => {
+    n += 1;
+
+    return { ok: false, status: 400, statusText: 'Bad Request', text: async() => 'no headers here' };
+  };
+  const client = createClient({ baseUrl: 'https://x', apiKey: 'k', model: 'm', fetchImpl, sleep: noSleep });
+
+  // 400 is a non-retryable status, so it must surface as a 400 -- not get
+  // mistaken for a network error (undefined status) and retried three times.
+  await assert.rejects(() => client.complete({ system: 's', user: 'u' }), /LiteLLM responded 400/);
+  assert.equal(n, 1);
+});
+
 test('5xx and 429 are retried, then the last error surfaces', async() => {
   let n = 0;
   const fetchImpl = async() => {

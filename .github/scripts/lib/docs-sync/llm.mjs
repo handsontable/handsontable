@@ -11,9 +11,9 @@
 const MAX_PAYLOAD_CHARS = 4096;
 
 // A failed upstream call's body is NOT cut here -- the whole response goes to
-// the diagnostic message so the run log carries it in full. The size-limited,
-// un-masked step summary is capped downstream at the summary sink
-// (`log.mjs`'s `capForSummary`), not here, so the two sinks can differ.
+// the diagnostic message so the job log carries it in full. The size-limited,
+// un-masked step summary is bounded and fenced downstream at the summary sink
+// (`log.mjs`'s `fenceForSummary`), not here, so the two sinks can differ.
 
 // The response headers worth surfacing on a failed call -- the set the probe
 // proved discriminates a Cloudflare edge block from a real API error. Every
@@ -39,36 +39,41 @@ export function completionsUrl(baseUrl) {
 
 /**
  * A diagnostic message for a non-2xx response: the status, the headers that
- * tell an edge block apart from an API error, and the body.
+ * tell an edge block apart from an API error, and the full body. This is the
+ * job-log/exception text; the summary sink bounds and fences it downstream.
  *
- * The trimming is deliberate, not laziness: the whole string is thrown, logged,
- * and appended to `$GITHUB_STEP_SUMMARY`, which has a size limit and is not
- * secret-masked. So headers are allowlisted (never dumped whole) and the body is
- * capped -- see the constants above.
+ * Headers are allowlisted, never dumped: this string can reach the un-masked
+ * step summary, so an unanticipated header must never ride along. It reads
+ * `response.headers` defensively so a hand-rolled `fetchImpl` that omits it
+ * degrades to "no headers" instead of throwing.
  *
  * @param {Response} response
  * @param {string} bodyText The already-read response body.
  * @returns {string}
  */
 export function describeErrorResponse(response, bodyText) {
-  const lines = [`LiteLLM responded ${response.status} ${response.statusText}`.trimEnd()];
+  const headers = response.headers ?? new Headers();
+  const lines = [`LiteLLM responded ${response.status} ${response.statusText ?? ''}`.trimEnd()];
 
-  // A Cloudflare edge block returns HTML with cf-ray/cf-mitigated, not the JSON
-  // an API error carries. Flag that from the headers alone -- do not assert
-  // which hop or whose zone Cloudflare fronts; the headers cannot support that,
-  // and a wrong guess here misleads the next reader.
-  const server = response.headers.get('server') ?? '';
-  const cfMitigated = response.headers.get('cf-mitigated');
-  const contentType = response.headers.get('content-type') ?? '';
+  // Do not assert which hop or whose zone Cloudflare fronts; the headers cannot
+  // support that. `cf-mitigated` is set only when Cloudflare actually mitigates,
+  // so it is the confident signal and holds even if a later proxy rewrote the
+  // Server header. Server: cloudflare plus an HTML body is weaker -- it can be a
+  // Cloudflare-fronted origin's own error page -- so word that case without
+  // calling it an edge block.
+  const cfMitigated = headers.get('cf-mitigated');
+  const cfRay = headers.get('cf-ray') ?? '?';
 
-  if (/cloudflare/i.test(server) && (cfMitigated != null || /text\/html/i.test(contentType))) {
-    lines.push(`Looks like a Cloudflare edge block, not the model API; cf-ray=${response.headers.get('cf-ray') ?? '?'}, cf-mitigated=${cfMitigated ?? 'n/a'}.`);
+  if (cfMitigated != null) {
+    lines.push(`Looks like a Cloudflare edge block, not the model API; cf-ray=${cfRay}, cf-mitigated=${cfMitigated}.`);
+  } else if (/cloudflare/i.test(headers.get('server') ?? '') && /text\/html/i.test(headers.get('content-type') ?? '')) {
+    lines.push(`Cloudflare served this HTML, not the model API; cf-ray=${cfRay}.`);
   }
 
   const shown = [];
   let omitted = 0;
 
-  for (const [name, value] of response.headers) {
+  for (const [name, value] of headers) {
     if (DIAGNOSTIC_HEADERS.includes(name) || name.startsWith('x-ratelimit-')) {
       shown.push(`  ${name}: ${value}`);
     } else {
@@ -76,7 +81,9 @@ export function describeErrorResponse(response, bodyText) {
     }
   }
 
-  lines.push('Headers:', ...shown);
+  if (shown.length > 0) {
+    lines.push('Headers:', ...shown);
+  }
   if (omitted > 0) {
     lines.push(`  (${omitted} other header${omitted === 1 ? '' : 's'} omitted)`);
   }

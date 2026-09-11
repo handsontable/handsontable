@@ -43,7 +43,7 @@ import {
   applyCommits, git, hasForeignCommits, resetSyncBranch,
 } from './lib/docs-sync/git-apply.mjs';
 import { createGitHub } from './lib/docs-sync/github.mjs';
-import { capForSummary, scrubSecrets } from './lib/docs-sync/log.mjs';
+import { fenceForSummary, scrubSecrets } from './lib/docs-sync/log.mjs';
 
 const HOLD_MARKER = '<!-- docs-sync-hold -->';
 const CONTENT_PATHSPECS = CONTENT_PREFIXES.map((prefix) => prefix.replace(/\/$/, ''));
@@ -68,6 +68,11 @@ const gh = createGitHub({
   run: (args) => execFileSync(flags['gh-bin'], args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim(),
 });
 const summaryLines = [];
+// GitHub drops the entire step summary if a step writes more than ~1 MiB to it,
+// so the buffer is bounded well under that; the job log is never bounded.
+const SUMMARY_BUDGET_CHARS = 900_000;
+let summaryUsedChars = 0;
+let summaryTruncated = false;
 
 /**
  * Log to stdout and to the step summary buffer, with secrets scrubbed out of
@@ -78,19 +83,37 @@ const summaryLines = [];
  * as literals to be redacted wherever they appear, in whatever shape. This is
  * the one place all such messages pass through.
  *
- * The job log gets the full scrubbed line; the step summary gets a size-bounded
- * copy (`capForSummary`), so a huge failure body stays whole in the log while
- * the summary does not run away.
+ * The job log always gets the full scrubbed line. The step summary gets `line`
+ * too, unless the caller passes a `summary` override (the failure path passes a
+ * bounded, fenced copy) -- and once the summary buffer nears GitHub's size
+ * limit, one marker is written and further summary appends stop, so a large run
+ * never costs the whole summary.
  *
  * @param {string} line
+ * @param {{ summary?: string }} [options] `summary` replaces `line` in the step
+ *   summary only (already bounded by the caller); the job log still gets `line`.
  */
-function log(line) {
-  const scrubbed = scrubSecrets(line, [
-    process.env.LITELLM_API_KEY, process.env.GH_TOKEN, process.env.LITELLM_BASE_URL,
-  ]);
+function log(line, { summary } = {}) {
+  const secrets = [process.env.LITELLM_API_KEY, process.env.GH_TOKEN, process.env.LITELLM_BASE_URL];
+  const forLog = scrubSecrets(line, secrets);
 
-  console.log(scrubbed);
-  summaryLines.push(capForSummary(scrubbed));
+  console.log(forLog);
+
+  if (summaryTruncated) {
+    return;
+  }
+
+  const forSummary = summary === undefined ? forLog : scrubSecrets(summary, secrets);
+
+  if (summaryUsedChars + forSummary.length + 1 > SUMMARY_BUDGET_CHARS) {
+    summaryLines.push('[step summary truncated to stay within GitHub\'s size limit; see the full job log]');
+    summaryTruncated = true;
+
+    return;
+  }
+
+  summaryLines.push(forSummary);
+  summaryUsedChars += forSummary.length + 1;
 }
 
 /**
@@ -539,7 +562,10 @@ try {
 
   await flushSummary();
 } catch (error) {
-  log(`Failed: ${error.message}`);
+  // The job log gets the whole error (a failed classifier call carries the full
+  // upstream response); the summary gets a bounded, fenced copy so a block page
+  // renders literally and cannot run the summary away.
+  log(`Failed: ${error.message}`, { summary: `Failed:\n${fenceForSummary(error.message)}` });
   await flushSummary();
   process.exitCode = 1;
 }

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { capForSummary, scrubSecrets } from '../lib/docs-sync/log.mjs';
+import { fenceForSummary, scrubSecrets } from '../lib/docs-sync/log.mjs';
 
 test('a tokenized remote URL is scrubbed', () => {
   const text = "Command failed: git push --quiet origin HEAD:refs/heads/docs-sync/prod-docs-18.1\nfatal: unable to access 'https://x-access-token:ghs_abc123DEF456@github.com/handsontable/handsontable.git/': stale lease";
@@ -50,13 +50,21 @@ test('a pathologically short secret is left alone so it cannot shred the log', (
   assert.equal(scrubSecrets(text, ['x']), text);
 });
 
-test('capForSummary passes short text through and bounds long text with a pointer to the log', () => {
-  assert.equal(capForSummary('short and fine', 100), 'short and fine');
+test('fenceForSummary fences short text whole and bounds long text with a distinct pointer', () => {
+  const short = fenceForSummary('short and fine', 100);
 
-  const capped = capForSummary('z'.repeat(50), 20);
+  assert.equal(short, '````\nshort and fine\n````');
 
-  assert.ok(capped.startsWith('z'.repeat(20)));
-  assert.match(capped, /\[truncated: 30 more characters; see the full job log\]/);
-  // The cap is on the summary copy only, so the pointer is what leads a reader
-  // from the summary to the uncut job log.
+  // Distinguishable content, so a slice that kept too much (a `max + 10` bug)
+  // would fail the exact-length check on the fenced line.
+  const capped = fenceForSummary('ab'.repeat(25), 20);
+  const lines = capped.split('\n');
+
+  assert.equal(lines[0], '````', 'opens with the four-backtick fence');
+  assert.equal(lines[1], 'ab'.repeat(10), 'exactly the first 20 characters are kept');
+  assert.match(capped, /\[cut for the step summary; full text in the job log\]/);
+  assert.equal(lines.at(-1), '````', 'the closing fence survives the cut');
+  // The marker deliberately avoids the `[truncated:` prefix classify.mjs uses,
+  // so a log-scanning assertion never confuses the two.
+  assert.doesNotMatch(capped, /\[truncated:/);
 });

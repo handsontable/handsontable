@@ -18,11 +18,13 @@
  * run's public step summary.
  */
 
-// The GitHub step summary has a size limit and, unlike a job log, is rendered
-// markdown, so one huge failure body (a Cloudflare block page, say) must not run
-// away in it. `capForSummary` bounds the summary copy; the job log keeps the
-// full string.
+// The step summary has a size limit and, unlike a job log, is rendered markdown
+// -- GitHub parses a raw `<!DOCTYPE html>` block page and strips the tags. So a
+// failure body destined for the summary is both bounded and wrapped in a code
+// fence; the job log keeps the full, unfenced string. Four backticks so a stray
+// ``` inside the page cannot close the fence early.
 const MAX_SUMMARY_CHARS = 16_384;
+const FENCE = '````';
 
 // A literal secret shorter than this is not redacted: every real credential
 // here (a GitHub App token, a LiteLLM key, the proxy URL) is far longer, and
@@ -58,19 +60,21 @@ export function scrubSecrets(text, secrets = []) {
 }
 
 /**
- * Bound a string for the step summary, pointing the reader at the full job log
- * when it had to cut. The job log is written uncapped, so nothing is lost.
+ * Bound a string for the step summary and wrap it in a code fence so GitHub
+ * renders it literally instead of parsing any HTML in it. The cut notice is
+ * worded distinctly (no `[truncated:` prefix) so it never collides with
+ * `classify.mjs`'s prompt truncation in a log-scanning assertion. The job log
+ * is written uncapped and unfenced, so nothing is lost there.
  *
  * @param {string} text
  * @param {number} [max]
  * @returns {string}
  */
-export function capForSummary(text, max = MAX_SUMMARY_CHARS) {
+export function fenceForSummary(text, max = MAX_SUMMARY_CHARS) {
   const string = String(text);
+  const shown = string.length > max
+    ? `${string.slice(0, max)}\n[cut for the step summary; full text in the job log]`
+    : string;
 
-  if (string.length <= max) {
-    return string;
-  }
-
-  return `${string.slice(0, max)}\n[truncated: ${string.length - max} more characters; see the full job log]`;
+  return `${FENCE}\n${shown}\n${FENCE}`;
 }

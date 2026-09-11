@@ -167,6 +167,50 @@ function runCli(f, extra = [], envOverrides = {}) {
   });
 }
 
+/**
+ * Spawn the CLI against an in-process fake LiteLLM server on `port`, with the
+ * classifier live (no `--no-llm`). Async on purpose: `spawnSync` would block
+ * this process's event loop so the in-process server could never answer.
+ *
+ * @param {object} f A `fixture()`.
+ * @param {{ port: number, extraEnv?: object }} options
+ * @returns {Promise<{ status: number, stdout: string, stderr: string }>}
+ */
+function spawnCli(f, { port, extraEnv = {} }) {
+  return new Promise((resolve) => {
+    const child = spawn(process.execPath, [CLI, '--repo-dir', f.work, '--gh-bin', f.fakeGh, '--skip-lint'], {
+      env: {
+        ...process.env,
+        GIT_DIR: undefined,
+        GH_REPO: 'o/r',
+        GH_TOKEN: 'x',
+        DRY_RUN: '',
+        TARGET: '',
+        GITHUB_STEP_SUMMARY: path.join(f.root, 'summary.md'),
+        FAKE_GH_ANSWERS: f.answersPath,
+        LITELLM_BASE_URL: `http://127.0.0.1:${port}`,
+        LITELLM_API_KEY: 'test-key',
+        DOCS_SYNC_MODEL: 'test-model',
+        // Blanked like GIT_DIR/DRY_RUN/TARGET so an inherited value from the
+        // developer's own shell (docs/AGENTS.md tells people to export these)
+        // cannot flip the omitted-by-default assertions; a run that needs them
+        // passes them through extraEnv.
+        DOCS_SYNC_TEMPERATURE: undefined,
+        DOCS_SYNC_JSON_MODE: undefined,
+        ...extraEnv,
+      },
+    });
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout.setEncoding('utf8');
+    child.stderr.setEncoding('utf8');
+    child.stdout.on('data', (chunk) => { stdout += chunk; });
+    child.stderr.on('data', (chunk) => { stderr += chunk; });
+    child.on('close', (status) => { resolve({ status, stdout, stderr }); });
+  });
+}
+
 test('the CLI classifies deterministically, pushes the sync branch, and opens one pull request', () => {
   const f = fixture();
 
@@ -738,38 +782,7 @@ test('a cached decision under the current prompt hash skips the model; a stale p
   const runWithoutNoLlm = (extraAnswers, extraEnv = {}) => {
     writeAnswers(f, extraAnswers);
 
-    return new Promise((resolve) => {
-      const child = spawn(process.execPath, [CLI, '--repo-dir', f.work, '--gh-bin', f.fakeGh, '--skip-lint'], {
-        env: {
-          ...process.env,
-          GIT_DIR: undefined,
-          GH_REPO: 'o/r',
-          GH_TOKEN: 'x',
-          DRY_RUN: '',
-          TARGET: '',
-          GITHUB_STEP_SUMMARY: path.join(f.root, 'summary.md'),
-          FAKE_GH_ANSWERS: f.answersPath,
-          LITELLM_BASE_URL: `http://127.0.0.1:${port}`,
-          LITELLM_API_KEY: 'test-key',
-          DOCS_SYNC_MODEL: 'test-model',
-          // Blanked like GIT_DIR/DRY_RUN/TARGET above so an inherited value from
-          // the developer's own shell (docs/AGENTS.md tells people to export
-          // these) cannot flip the omitted-by-default assertions; a run that
-          // needs them passes them through extraEnv below.
-          DOCS_SYNC_TEMPERATURE: undefined,
-          DOCS_SYNC_JSON_MODE: undefined,
-          ...extraEnv,
-        },
-      });
-      let stdout = '';
-      let stderr = '';
-
-      child.stdout.setEncoding('utf8');
-      child.stderr.setEncoding('utf8');
-      child.stdout.on('data', (chunk) => { stdout += chunk; });
-      child.stderr.on('data', (chunk) => { stderr += chunk; });
-      child.on('close', (status) => { resolve({ status, stdout, stderr }); });
-    });
+    return spawnCli(f, { port, extraEnv });
   };
 
   try {
@@ -833,13 +846,13 @@ test('a cached decision under the current prompt hash skips the model; a stale p
   }
 });
 
-test('a failed classifier call logs the whole body but caps the step summary', async() => {
+test('a failed classifier call logs the whole body but bounds the step summary', async() => {
   const f = fixture();
   const bigBody = `<!DOCTYPE html><html><head><title>Blocked</title></head><body>${'Z'.repeat(20_000)}</body></html>`;
   const server = createServer((req, res) => {
-    let body = '';
+    // Drain the request so the response goes out; the body itself is not needed.
+    req.resume();
 
-    req.on('data', (chunk) => { body += chunk; });
     req.on('end', () => {
       res.writeHead(403, {
         'Content-Type': 'text/html', 'cf-ray': 'testray-WAW', 'cf-mitigated': 'challenge', server: 'cloudflare',
@@ -852,40 +865,10 @@ test('a failed classifier call logs the whole body but caps the step summary', a
 
   const { port } = server.address();
 
-  // `spawn`, not `spawnSync`: the fake server lives in this process, so a
-  // blocking child would deadlock (see the cache test above for the full note).
-  const run = () => new Promise((resolve) => {
-    const child = spawn(process.execPath, [CLI, '--repo-dir', f.work, '--gh-bin', f.fakeGh, '--skip-lint'], {
-      env: {
-        ...process.env,
-        GIT_DIR: undefined,
-        GH_REPO: 'o/r',
-        GH_TOKEN: 'x',
-        DRY_RUN: '',
-        TARGET: '',
-        GITHUB_STEP_SUMMARY: path.join(f.root, 'summary.md'),
-        FAKE_GH_ANSWERS: f.answersPath,
-        LITELLM_BASE_URL: `http://127.0.0.1:${port}`,
-        LITELLM_API_KEY: 'test-key-well-over-eight-chars',
-        DOCS_SYNC_MODEL: 'test-model',
-        DOCS_SYNC_TEMPERATURE: undefined,
-        DOCS_SYNC_JSON_MODE: undefined,
-      },
-    });
-    let stdout = '';
-    let stderr = '';
-
-    child.stdout.setEncoding('utf8');
-    child.stderr.setEncoding('utf8');
-    child.stdout.on('data', (chunk) => { stdout += chunk; });
-    child.stderr.on('data', (chunk) => { stderr += chunk; });
-    child.on('close', (status) => { resolve({ status, stdout, stderr }); });
-  });
-
   try {
     writeAnswers(f, {});
 
-    const result = await run();
+    const result = await spawnCli(f, { port });
 
     assert.notEqual(result.status, 0, 'the 403 aborts the run');
     // The job log (stdout) carries the response whole, including the far end of
@@ -893,12 +876,13 @@ test('a failed classifier call logs the whole body but caps the step summary', a
     assert.ok(result.stdout.includes('Z'.repeat(20_000)), 'the full block-page body reaches the job log');
     assert.match(result.stdout, /Looks like a Cloudflare edge block/);
     assert.match(result.stdout, /cf-ray=testray-WAW/);
-    assert.doesNotMatch(result.stdout, /\[truncated/, 'the job log is never truncated');
+    assert.doesNotMatch(result.stdout, /cut for the step summary/, 'the job log is never cut');
 
-    // The step summary is bounded, with a pointer to the uncut log.
+    // The step summary is bounded and fenced, with a pointer to the uncut log.
     const summary = readFileSync(path.join(f.root, 'summary.md'), 'utf8');
 
-    assert.match(summary, /\[truncated: \d+ more characters; see the full job log\]/);
+    assert.match(summary, /\[cut for the step summary; full text in the job log\]/);
+    assert.match(summary, /````/, 'the summary body is fenced so GitHub renders it literally');
     assert.ok(!summary.includes('Z'.repeat(20_000)), 'the summary does not carry the whole body');
   } finally {
     server.close();
