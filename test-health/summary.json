@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "generatedAt": "2026-09-11T09:16:23.476Z",
+  "windows": {
+    "shortDays": 7,
+    "longDays": 30
+  },
+  "ticketThresholdRuns": 2,
+  "retentionDays": 90,
+  "totals": {
+    "tests": 2,
+    "needsTicket": 0,
+    "entries": 2
+  },
+  "rows": [
+    {
+      "key": "playwright|e2e/walkontable/exact-row-heights.spec.ts|walkontable exact row heights › in the `exact` mode › keeps a row with a tall frozen cell at the provided height in both tables",
+      "tier": "playwright",
+      "file": "e2e/walkontable/exact-row-heights.spec.ts",
+      "line": 57,
+      "title": "walkontable exact row heights › in the `exact` mode › keeps a row with a tall frozen cell at the provided height in both tables",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 1,
+      "branches30": 1,
+      "legs": [
+        "e2e-classic-min"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "lastSeen": {
+        "seenAt": "2026-09-07T12:21:37Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34121444051/job/101742189525",
+        "branch": "feature/DEV-2805_MergeCells-Column-Move-Trimmed-Rows",
+        "leg": "e2e-classic-min",
+        "status": "flaky",
+        "error": null,
+        "source": "seed"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/overlay-scrollbar-clearance.spec.ts|overlay scrollbar clearance › gives the strip to the scrollbar while the track is up, and back afterwards",
+      "tier": "playwright",
+      "file": "e2e/overlay-scrollbar-clearance.spec.ts",
+      "line": 226,
+      "title": "overlay scrollbar clearance › gives the strip to the scrollbar while the track is up, and back afterwards",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 1,
+      "branches30": 1,
+      "legs": [
+        "e2e-main"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "lastSeen": {
+        "seenAt": "2026-09-07T00:00:00Z",
+        "runUrl": null,
+        "branch": "develop",
+        "leg": "e2e-main",
+        "status": "flaky",
+        "error": null,
+        "source": "seed"
+      },
+      "needsTicket": false
+    }
+  ]
+}
