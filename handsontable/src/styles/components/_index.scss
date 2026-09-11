@@ -4,6 +4,7 @@
 @use "./core/selection";
 @use "./core/license-notification";
 @use "./core/license-branding";
+@use "./core/links";
 
 // Plugins
 @use "./plugins/collapsible-columns";
@@ -13,7 +14,6 @@
 @use "./plugins/hidden-rows";
 @use "./plugins/dropdown-menu";
 @use "./plugins/filters";
-@use "./plugins/formulas";
 @use "./plugins/comments";
 @use "./plugins/custom-borders";
 @use "./plugins/column-sorting";
@@ -56,6 +56,7 @@
   @include selection.output();
   @include license-notification.output();
   @include license-branding.output();
+  @include links.output();
   // Renderers
   @include autocomplete-renderer.output();
   @include checkbox-renderer.output();
@@ -82,7 +83,6 @@
   @include hidden-rows.output();
   @include dropdown-menu.output();
   @include filters.output();
-  @include formulas.output();
   @include comments.output();
   @include custom-borders.output();
   @include column-sorting.output();

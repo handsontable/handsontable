@@ -1313,8 +1313,15 @@ export const REGISTERED_HOOKS = [
    * before they are validated and applied to the data source.
    * Use [`afterChange`](@/api/hooks.md#afterchange) if you need to react after the data has been written.
    *
+   * This hook fires for every `setDataAtCell()` call – not only when you call it directly, but also
+   * for regular cell edits, paste, cut, Delete/Backspace, the fill handle, Ctrl+Enter, a checkbox
+   * click, and undo/redo, since those are applied internally via `setDataAtCell()` too. It also fires
+   * when a `beforeChange` handler cancels the change, with an empty `changes` array. Changes made
+   * through `setDataAtRowProp()` fire [`afterSetDataAtRowProp`](@/api/hooks.md#aftersetdataatrowprop)
+   * instead – never both for the same change.
+   *
    * @event Hooks#afterSetDataAtCell
-   * @param {Array} changes An array of changes in format `[[row, column, oldValue, value], ...]`.
+   * @param {Array} changes An array of changes in format `[[row, prop, oldValue, value], ...]`.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    */
@@ -1324,6 +1331,13 @@ export const REGISTERED_HOOKS = [
    * Fired after [`setDataAtRowProp`](@/api/core.md#setdataatrowprop) is called and changes are processed,
    * before they are validated and applied to the data source.
    * Use [`afterChange`](@/api/hooks.md#afterchange) if you need to react after the data has been written.
+   *
+   * This hook fires for every `setDataAtRowProp()` call, yours or a plugin's – for example, the
+   * DataProvider plugin calls it internally (with `source` set to `'DataProvider.revert'`) to roll
+   * back an optimistic edit after a failed server update. Changes made through `setDataAtCell()` –
+   * including regular cell edits, paste, cut, Delete/Backspace, the fill handle, Ctrl+Enter, a
+   * checkbox click, and undo/redo, which apply internally via `setDataAtCell()` – fire
+   * [`afterSetDataAtCell`](@/api/hooks.md#aftersetdataatcell) instead – never both for the same change.
    *
    * @event Hooks#afterSetDataAtRowProp
    * @param {Array} changes An array of changes in format `[[row, prop, oldValue, value], ...]`.

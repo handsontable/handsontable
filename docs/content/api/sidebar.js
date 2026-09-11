@@ -21,7 +21,7 @@ module.exports = {
     },
     {
       title: 'Cells',
-      children: ['autofill', 'comments', 'customBorders', 'formulas', 'mergeCells'],
+      children: ['autoLink', 'autofill', 'comments', 'customBorders', 'formulas', 'mergeCells'],
     },
     {
       title: 'Menus & UI',

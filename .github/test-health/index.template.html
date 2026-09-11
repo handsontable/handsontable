@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Handsontable test health</title>
+<style>
+  :root { color-scheme: light dark; font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  body { margin: 0 auto; padding: 24px 20px 48px; max-width: 1280px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .meta { color: #6b7280; margin-bottom: 20px; }
+  .totals { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 20px; }
+  .totals div { border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 16px; min-width: 120px; }
+  .totals b { display: block; font-size: 22px; }
+  .controls { display: flex; gap: 16px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+  .controls input[type="search"] { padding: 6px 10px; min-width: 260px; }
+  .wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+  th { position: sticky; top: 0; background: Canvas; cursor: pointer; white-space: nowrap; user-select: none; }
+  th.sorted::after { content: " ▾"; color: #6b7280; }
+  th.sorted.asc::after { content: " ▴"; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .title { max-width: 520px; }
+  .file { color: #6b7280; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+  .badge { display: inline-block; border-radius: 999px; padding: 1px 8px; font-size: 12px; font-weight: 600; }
+  .badge.ticket { background: #fee2e2; color: #991b1b; }
+  .badge.tier { background: #e5e7eb; color: #374151; font-weight: 500; }
+  .badge.flaky { background: #fef3c7; color: #92400e; }
+  .badge.failed { background: #fee2e2; color: #991b1b; }
+  .badge.seed { background: #dbeafe; color: #1e40af; }
+  .legs { font-size: 12px; color: #374151; }
+  .error { color: #6b7280; font-size: 12px; max-width: 360px; overflow-wrap: anywhere; }
+  tr.ticket td:first-child { border-left: 3px solid #dc2626; }
+  .empty { padding: 32px; text-align: center; color: #6b7280; }
+  footer { margin-top: 24px; color: #6b7280; font-size: 12px; }
+  a { color: inherit; }
+  @media (prefers-color-scheme: dark) {
+    .totals div { border-color: #374151; }
+    th, td { border-color: #374151; }
+    .badge.tier { background: #374151; color: #e5e7eb; }
+    .legs, .error { color: #9ca3af; }
+  }
+</style>
+</head>
+<body>
+<h1>Test health</h1>
+<div class="meta">
+  Flaky and failed tests collected from every red <code>Tests</code> and <code>Develop</code> run, per test, across runs.
+  Generated __GENERATED_AT__. Data: <a href="summary.json">summary.json</a>, <a href="ledger.json">ledger.json</a>.
+</div>
+<div class="totals" id="totals"></div>
+<div class="controls">
+  <input type="search" id="filter" placeholder="Filter by title, file, leg, branch…" aria-label="Filter rows">
+  <label><input type="checkbox" id="onlyTicket"> only tests that need a ticket</label>
+  <span id="count" class="meta"></span>
+</div>
+<div class="wrap">
+  <table id="table">
+    <thead>
+      <tr>
+        <th data-key="needsTicket">Ticket</th>
+        <th data-key="title">Test</th>
+        <th data-key="count7" class="num">7 d</th>
+        <th data-key="count30" class="num sorted">30 d</th>
+        <th data-key="runs30" class="num">Runs (30 d)</th>
+        <th data-key="legs">Legs</th>
+        <th data-key="lastSeen">Last seen</th>
+        <th>Last error</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <div class="empty" id="empty" hidden>No flaky or failed test recorded in the retention window.</div>
+</div>
+<footer>
+  A test <b>needs a ticket</b> once it flaked in <span id="threshold"></span>+ distinct runs within 30 days (the flakiness playbook's rule).
+  <em>flaky</em> = failed, then passed on retry (Playwright; still fails the leg under <code>failOnFlakyTests</code>);
+  <em>failed</em> = did not pass. Jasmine entries carry the runner's isolation verdict when their file was re-run alone.
+  Entries older than <span id="retention"></span> days drop off. Source: <code>.github/workflows/test-health.yml</code>.
+</footer>
+<script id="summary" type="application/json">__SUMMARY_JSON__</script>
+<script>
+(function() {
+  var summary = JSON.parse(document.getElementById('summary').textContent);
+  var rows = summary.rows || [];
+  var sortKey = 'count30';
+  var sortAsc = false;
+
+  document.getElementById('threshold').textContent = summary.ticketThresholdRuns;
+  document.getElementById('retention').textContent = summary.retentionDays;
+
+  var totals = document.getElementById('totals');
+  [
+    ['Tests seen', summary.totals.tests],
+    ['Need a ticket', summary.totals.needsTicket],
+    ['Observations', summary.totals.entries]
+  ].forEach(function(pair) {
+    var box = document.createElement('div');
+    var b = document.createElement('b');
+    b.textContent = pair[1];
+    box.appendChild(b);
+    box.appendChild(document.createTextNode(pair[0]));
+    totals.appendChild(box);
+  });
+
+  function text(tag, content, className) {
+    var el = document.createElement(tag);
+    if (className) { el.className = className; }
+    el.textContent = content == null ? '' : String(content);
+    return el;
+  }
+
+  function badge(content, className) {
+    return text('span', content, 'badge ' + className);
+  }
+
+  function sortValue(row, key) {
+    if (key === 'lastSeen') { return row.lastSeen.seenAt; }
+    if (key === 'legs') { return row.legs.join(','); }
+    if (key === 'needsTicket') { return row.needsTicket ? 1 : 0; }
+    return row[key];
+  }
+
+  function render() {
+    var filter = document.getElementById('filter').value.trim().toLowerCase();
+    var onlyTicket = document.getElementById('onlyTicket').checked;
+    var visible = rows.filter(function(row) {
+      if (onlyTicket && !row.needsTicket) { return false; }
+      if (!filter) { return true; }
+      var hay = [row.title, row.file, row.legs.join(' '), row.lastSeen.branch, row.tier].join(' ').toLowerCase();
+      return hay.indexOf(filter) !== -1;
+    });
+
+    visible.sort(function(a, b) {
+      var av = sortValue(a, sortKey);
+      var bv = sortValue(b, sortKey);
+      var cmp = av < bv ? -1 : av > bv ? 1 : 0;
+      if (cmp === 0) { cmp = b.count30 - a.count30 || a.title.localeCompare(b.title); }
+      return sortAsc ? cmp : -cmp;
+    });
+
+    var tbody = document.querySelector('#table tbody');
+    tbody.textContent = '';
+    visible.forEach(function(row) {
+      var tr = document.createElement('tr');
+      if (row.needsTicket) { tr.className = 'ticket'; }
+
+      var ticket = document.createElement('td');
+      if (row.needsTicket) { ticket.appendChild(badge('needs ticket', 'ticket')); }
+      tr.appendChild(ticket);
+
+      var title = document.createElement('td');
+      title.className = 'title';
+      title.appendChild(badge(row.tier, 'tier'));
+      title.appendChild(document.createTextNode(' '));
+      row.statuses.forEach(function(status) { title.appendChild(badge(status, status)); title.appendChild(document.createTextNode(' ')); });
+      if (row.lastSeen.source === 'seed') { title.appendChild(badge('hand-recorded', 'seed')); }
+      title.appendChild(text('div', row.title));
+      title.appendChild(text('div', (row.file || '?') + (row.line ? ':' + row.line : ''), 'file'));
+      if (row.isolation.length) { title.appendChild(text('div', 'in isolation: ' + row.isolation.join('; '), 'legs')); }
+      tr.appendChild(title);
+
+      tr.appendChild(text('td', row.count7, 'num'));
+      tr.appendChild(text('td', row.count30, 'num'));
+      tr.appendChild(text('td', row.runs30, 'num'));
+      tr.appendChild(text('td', row.legs.join(', '), 'legs'));
+
+      var last = document.createElement('td');
+      var when = text('span', row.lastSeen.seenAt.replace('T', ' ').replace(/:\d\d(\.\d+)?Z$/, 'Z'));
+      if (row.lastSeen.runUrl) {
+        var link = document.createElement('a');
+        link.href = row.lastSeen.runUrl;
+        link.appendChild(when);
+        last.appendChild(link);
+      } else {
+        last.appendChild(when);
+      }
+      last.appendChild(text('div', row.lastSeen.branch + ' · ' + row.lastSeen.leg, 'legs'));
+      tr.appendChild(last);
+
+      tr.appendChild(text('td', row.lastSeen.error || '', 'error'));
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById('empty').hidden = visible.length > 0 || rows.length > 0;
+    document.getElementById('count').textContent = visible.length + ' of ' + rows.length + ' test(s)';
+  }
+
+  function applySort(th) {
+    var key = th.getAttribute('data-key');
+    if (sortKey === key) { sortAsc = !sortAsc; } else { sortKey = key; sortAsc = key === 'title' || key === 'legs'; }
+    document.querySelectorAll('th[data-key]').forEach(function(other) {
+      other.classList.remove('sorted', 'asc');
+      other.setAttribute('aria-sort', 'none');
+    });
+    th.classList.add('sorted');
+    if (sortAsc) { th.classList.add('asc'); }
+    th.setAttribute('aria-sort', sortAsc ? 'ascending' : 'descending');
+    render();
+  }
+  document.querySelectorAll('th[data-key]').forEach(function(th) {
+    // Keep the implicit `columnheader` role (a role="button" would drop it and make aria-sort
+    // invalid); tabindex + the keydown handler below make the header operable without a mouse.
+    th.setAttribute('tabindex', '0');
+    th.setAttribute('aria-sort', th.classList.contains('sorted') ? (sortAsc ? 'ascending' : 'descending') : 'none');
+    th.addEventListener('click', function() { applySort(th); });
+    th.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); applySort(th); }
+    });
+  });
+  document.getElementById('filter').addEventListener('input', render);
+  document.getElementById('onlyTicket').addEventListener('change', render);
+  render();
+}());
+</script>
+</body>
+</html>

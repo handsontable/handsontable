@@ -4,7 +4,7 @@
 another setting must keep it switched off. Read this before touching either file, and before writing a
 plugin that has to reason about *when* it runs relative to another one.
 
-Nothing here is a feature. Change `base.ts` and you change all 42 plugins at once, so treat every edit
+Nothing here is a feature. Change `base.ts` and you change all 43 plugins at once, so treat every edit
 as monorepo-wide.
 
 ## The statics, and what each one really controls
@@ -163,22 +163,23 @@ without a priority in registration order. Registering two plugins on the same pr
 | 45 | autoRowHeaderSize | 240 | exportFile |
 | 50 | columnSorting | 250 | filters |
 | 60 | comments | 260 | formulas |
-| 70 | contextMenu | 280 | nestedHeaders |
-| 80 | copyPaste | 290 | collapsibleColumns |
-| 90 | customBorders | 300 | nestedRows |
-| 100 | dragToScroll | 310 | hiddenColumns |
-| 110 | manualColumnFreeze | 320 | hiddenRows |
-| 120 | manualColumnMove | 330 | trimRows |
-| 130 | manualColumnResize | 350 | loading |
-| 140 | manualRowMove | 360 | dialog |
-| 150 | mergeCells | 370 | emptyDataState |
-| 155 | stretchColumns | 375 | notification |
-| 160 | multipleSelectionHandles | 900 | pagination |
+| 70 | contextMenu | 270 | autoLink |
+| 80 | copyPaste | 280 | nestedHeaders |
+| 90 | customBorders | 290 | collapsibleColumns |
+| 100 | dragToScroll | 300 | nestedRows |
+| 110 | manualColumnFreeze | 310 | hiddenColumns |
+| 120 | manualColumnMove | 320 | hiddenRows |
+| 130 | manualColumnResize | 330 | trimRows |
+| 140 | manualRowMove | 350 | loading |
+| 150 | mergeCells | 360 | dialog |
+| 155 | stretchColumns | 370 | emptyDataState |
+| 160 | multipleSelectionHandles | 375 | notification |
+| | | 900 | pagination |
 | | | 910 | sheetsBar |
 | | | 950 | dataProvider |
 | | | 1000 | undoRedo |
 
-Free slots to pick a new number from: 180, 270, 340, and the 380–890 range. **340 is the only gap between
+Free slots to pick a new number from: 180, 340, and the 380–890 range. **340 is the only gap between
 the trimming plugins (330) and the overlay plugins (350+)**, so it is the slot for a plugin that must enable
 after trimming and before the overlays. `900`+ is reserved for plugins that
 must see every other plugin's state already settled (Pagination, DataProvider, UndoRedo).
@@ -191,6 +192,9 @@ hook's callback list. Four load-bearing cases, so do not renumber casually:
 - MoveCells (25) and SelectionHandles (24) settle their drag state before DragToScroll (100) reads it in a hook.
 - ColumnSorting (50) before MultiColumnSorting (170).
 - UndoRedo (1000) last, so every other plugin's hooks are registered before it starts recording actions.
+- `autoLink` (270) enables after `formulas` (260) so its `afterRenderer` runs after the HYPERLINK wrap on a fresh
+  grid, but nothing relies on that: both `afterRenderer` callbacks converge from either order (see
+  `../formulas/AGENTS.md`), because `updateSettings` can register `Formulas` later.
 
 For a path with **no** hook — a raw DOM listener — priority is irrelevant and the ordering guarantee has to
 come from somewhere else (DOM bubbling, for instance). `../dragToScroll/AGENTS.md` works through that
