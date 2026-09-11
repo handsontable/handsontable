@@ -137,9 +137,15 @@ test.describe('NestedRows removing a parent row', () => {
       // past the unknown node reads that stale index and deletes `Root B` from its own branch.
       await nestedRows.graftUnknownNodeOverCachedRow(0, 5);
 
+      // Prove the graft actually landed before relying on it. The tree gains three entries - the new
+      // node plus the second reference to `Root B` and `B-1` - while the cache still holds 7, which is
+      // the drift itself. Without this, a graft that silently did nothing would still end at
+      // `Root B` / `B-1` below and the case would pass while testing nothing.
+      await expect.poll(() => nestedRows.sourceRowCount()).toBe(10);
+      await expect.poll(() => nestedRows.countRows()).toBe(7);
+
       await nestedRows.removeRow(0);
 
-      await expect.poll(() => nestedRows.dataNames()).toEqual(['Root B', 'B-1']);
-      await expect.poll(() => nestedRows.countRows()).toBe(2);
+      await expectRows(nestedRows, ['Root B', 'B-1']);
     });
 });
