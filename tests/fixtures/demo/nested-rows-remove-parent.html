@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture - removing a nested parent row</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    Fixture for removing a nested parent row (DEV-56).
+
+    The tree is FOUR levels deep on purpose. `beforeRemoveRow` used to expand a removed parent
+    into the parent plus its DIRECT children only, so anything from the third level down stayed
+    in the index maps while the source data lost it - the grid then rendered blank rows nobody
+    could delete. Two levels is not enough to see it: there, "direct children" and "all
+    descendants" are the same set.
+
+    Physical layout of the seeded tree:
+      0  Root A            (parent, level 0)
+      1    A-1             (parent, level 1)
+      2      A-1-a         (parent, level 2)
+      3        A-1-a-i     (leaf,   level 3)
+      4    A-2             (leaf,   level 1)
+      5  Root B            (parent, level 0)
+      6    B-1             (leaf,   level 1)
+
+    `Root A` is the deep case. `Root B` is the flat control: removing it must take exactly two
+    rows, so a fix that over-removes fails here rather than passing everywhere.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    // A constructor failure is stamped on the container so a spec reports it as itself, rather
+    // than as a cell that never appeared.
+    try {
+      window.hot = new Handsontable(container, {
+        data: [
+          {
+            name: 'Root A',
+            __children: [
+              {
+                name: 'A-1',
+                __children: [
+                  {
+                    name: 'A-1-a',
+                    __children: [{ name: 'A-1-a-i' }],
+                  },
+                ],
+              },
+              { name: 'A-2' },
+            ],
+          },
+          {
+            name: 'Root B',
+            __children: [{ name: 'B-1' }],
+          },
+        ],
+        columns: [{ data: 'name' }],
+        colHeaders: ['Name'],
+        rowHeaders: true,
+        nestedRows: true,
+        contextMenu: true,
+        renderer: testIdRenderer,
+        height: 'auto',
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      container.setAttribute('data-init-error', String(error && error.message ? error.message : error));
+    }
+  </script>
+</body>
+</html>
