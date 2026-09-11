@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-11T12:31:42.875Z",
+  "updatedAt": "2026-09-11T12:57:53.767Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "playwright",
+      "leg": "e2e-main",
+      "file": "e2e/walkontable/exact-row-heights.spec.ts",
+      "line": 80,
+      "title": "walkontable exact row heights › in the `exact` mode › keeps the scroll range stable and the row-height cache settled",
+      "status": "flaky",
+      "attempts": 2,
+      "error": "Error: expect(received).toBe(expected) // Object.is equality",
+      "isolation": null,
+      "quarantine": null,
+      "source": "ci",
+      "runId": "34597788339",
+      "runAttempt": 2,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34597788339/attempts/2",
+      "workflow": "Tests",
+      "branch": "feature/DEV-2901_Astro-AVIF-RCE-bump",
+      "headSha": "310d736b9416b98836c09652e79afe86b9b01cd4",
+      "event": "pull_request",
+      "seenAt": "2026-09-11T12:57:07Z"
+    },
     {
       "tier": "playwright",
       "leg": "e2e-main",

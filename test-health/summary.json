@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-11T12:31:42.875Z",
+  "generatedAt": "2026-09-11T12:57:53.767Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 5,
     "needsTicket": 0,
     "quarantined": 0,
-    "entries": 5
+    "entries": 6
   },
   "rows": [
     {
@@ -20,9 +20,9 @@
       "file": "e2e/walkontable/exact-row-heights.spec.ts",
       "line": 80,
       "title": "walkontable exact row heights › in the `exact` mode › keeps the scroll range stable and the row-height cache settled",
-      "count7": 1,
-      "count30": 1,
-      "countAll": 1,
+      "count7": 2,
+      "count30": 2,
+      "countAll": 2,
       "runs30": 1,
       "flakyRuns30": 1,
       "branches30": 1,
@@ -35,8 +35,8 @@
       "isolation": [],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-09-11T12:30:54Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34597788339",
+        "seenAt": "2026-09-11T12:57:07Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34597788339/attempts/2",
         "branch": "feature/DEV-2901_Astro-AVIF-RCE-bump",
         "leg": "e2e-main",
         "status": "flaky",
