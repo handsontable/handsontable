@@ -156,7 +156,7 @@ export class OverflowController {
 
     this.#pagingSection.hidden = !(this.#pagingEnabled && overflows);
 
-    // Distance travelled from the first tab. Under RTL the strip scrolls into negative
+    // Distance traveled from the first tab. Under RTL the strip scrolls into negative
     // `scrollLeft`, so the magnitude is what both ends have in common.
     const travelled = Math.abs(this.#strip.scrollLeft);
     const total = this.#strip.scrollWidth - this.#strip.clientWidth;

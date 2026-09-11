@@ -186,7 +186,7 @@ class MasterTable extends Table {
     // throws; the brand check detects the pre-init call so the caching block
     // can be skipped. The non-caching branches (window-trimming overflow
     // reset and the trailing isVisible check) still run, matching the
-    // pre-DEV-1777 behaviour and the side effects callers depend on.
+    // pre-DEV-1777 behavior and the side effects callers depend on.
     const fieldsInitialized = #trimmingCache in this;
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
     // Each axis has its own owner (see `overlay/axisOwner.ts`). The overlays read the same two

@@ -365,7 +365,7 @@ export function getAlignmentFromClassName(className: string | undefined): object
 /**
  * Derives an ExcelJS `alignment` object from the cell meta `className`.
  *
- * Recognised Handsontable alignment classes:
+ * Recognized Handsontable alignment classes:
  * - Horizontal: `htLeft`, `htCenter`, `htRight`, `htJustify`
  * - Vertical: `htTop`, `htMiddle`, `htBottom`
  *

@@ -284,7 +284,7 @@ export const REGISTERED_HOOKS = [
    * @param {number} amount Number of newly created columns in the data source array.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
-   * @returns {*} If `false` then creating columns is cancelled.
+   * @returns {*} If `false` then creating columns is canceled.
    * @example
    * ::: only-for javascript
    * ```js
@@ -1421,7 +1421,7 @@ export const REGISTERED_HOOKS = [
    * @param {CellRange} targetRange The range new values will be filled into.
    * @param {string} direction Declares the direction of the autofill. Possible values: `up`, `down`, `left`, `right`.
    *
-   * @returns {boolean|Array[]} If false, the operation is cancelled. If array of arrays, the returned data
+   * @returns {boolean|Array[]} If false, the operation is canceled. If array of arrays, the returned data
    *                              will be passed into [`populateFromArray`](@/api/core.md#populatefromarray) instead of the default autofill
    *                              algorithm's result.
    */
@@ -1478,7 +1478,7 @@ export const REGISTERED_HOOKS = [
    *                          [Binding to data: Identify changed columns in hooks](@/guides/getting-started/binding-to-data/binding-to-data.md#identify-changed-columns-in-hooks).
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
-   * @returns {undefined | boolean} If `false` all changes were cancelled, `true` otherwise.
+   * @returns {undefined | boolean} If `false` all changes were canceled, `true` otherwise.
    * @example
    * ::: only-for javascript
    * ```js

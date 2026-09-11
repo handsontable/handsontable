@@ -230,7 +230,7 @@ export class MultipleSelectionHandles extends BasePlugin {
       }
     });
 
-    // A cancelled gesture never reaches `touchend`, and browsers cancel often on a real phone - a
+    // A canceled gesture never reaches `touchend`, and browsers cancel often on a real phone - a
     // system gesture, an incoming call, the browser claiming the touch for scrolling. Both events are
     // handled the same way, because both answer the same question: which fingers are gone?
     for (const eventName of ['touchend', 'touchcancel']) {

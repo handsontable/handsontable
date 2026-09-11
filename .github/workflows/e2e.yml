@@ -3,7 +3,7 @@ name: E2E
 # End-to-end tests, build-dependent (consume the UMD artifact). Two matrices,
 # 1:1 with each other: the frozen Puppeteer suite and the new Playwright suite,
 # both over theme × bundle (UMD / UMD.min). Per-leg gating keeps the exact old
-# scope behaviour (UMD legs on the e2e scope, UMD.min on the e2e-min scope).
+# scope behavior (UMD legs on the e2e scope, UMD.min on the e2e-min scope).
 # The UMD.min legs load handsontable.full.min.js — the exact file Puppeteer's
 # test:production runs. The bundles Puppeteer does not test either
 # (handsontable.full.js and handsontable.min.js) are deliberately not covered

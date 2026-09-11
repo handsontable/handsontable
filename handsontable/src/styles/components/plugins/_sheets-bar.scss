@@ -56,10 +56,10 @@ $all-sheets-visible-items: 8;
       overflow-x: hidden;
     }
 
-    // The shared menu styles paint the mark in the accent colour. That is the right colour in
+    // The shared menu styles paint the mark in the accent color. That is the right color in
     // the themes whose selected-row language is the accent, but classic marks a selected row in
-    // grey and keeps a pale blue accent, which leaves the check barely legible against the row.
-    // Following the token that tints the row keeps the mark in whatever colour the theme already
+    // gray and keeps a pale blue accent, which leaves the check barely legible against the row.
+    // Following the token that tints the row keeps the mark in whatever color the theme already
     // uses to say "this one", and is the accent again wherever that is what the theme means.
     &.htSheetsBarMenu table tbody tr td .htItemWrapper span.selected::after {
       color: var(--ht-menu-item-active-color, var(--ht-accent-color));

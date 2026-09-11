@@ -772,7 +772,7 @@ export class Formulas extends BasePlugin {
       // `actionType` the engine step cannot be dispatched safely (`engine.redo()` vs the
       // `move_cells` replay path — the wrong branch runs the engine operation twice), so cancel
       // the redo instead of desyncing HyperFormula. The guard runs BEFORE `setPerformRedo(true)`
-      // — a cancelled redo never fires `afterRedo`, so a flag set here would leak.
+      // — a canceled redo never fires `afterRedo`, so a flag set here would leak.
       if (typeof action !== 'object' || action === null || !('actionType' in action)) {
         return false;
       }
@@ -790,7 +790,7 @@ export class Formulas extends BasePlugin {
 
     this.addHook('afterUndo', (action: unknown) => {
       this.indexSyncer!.setPerformUndo(false);
-      // Also clears the redo flags: a redo cancelled by a `beforeRedo` listener never fires
+      // Also clears the redo flags: a redo canceled by a `beforeRedo` listener never fires
       // `afterRedo`, so without these resets the flags set in `beforeRedo` would leak until the
       // next successful redo.
       this.indexSyncer!.setPerformRedo(false);
@@ -3294,7 +3294,7 @@ export class Formulas extends BasePlugin {
    * Formula cells are already served correctly through `modifyData` via `getCellValue`.
    * Plain VALUE / EMPTY cells, however, fall back to the raw HOT data, so after HF
    * moves the data the old raw values must be cleared from the source cells and the
-   * serialised HF content must be written to the target cells.
+   * serialized HF content must be written to the target cells.
    *
    * The write is fenced with `#moveCellsSyncPending` to prevent the `afterSetDataAtCell`
    * hook from re-syncing the same data back into HyperFormula.
@@ -3362,7 +3362,7 @@ export class Formulas extends BasePlugin {
         );
       }
 
-      // Write target cells with HF-serialised content (formula strings preserved).
+      // Write target cells with HF-serialized content (formula strings preserved).
       // Use 'auto' source so UndoRedo does not record these writes as separate DataChangeActions
       // — they are part of the move and are covered by the MoveCellsAction in the undo stack.
       this.hot.populateFromArray(

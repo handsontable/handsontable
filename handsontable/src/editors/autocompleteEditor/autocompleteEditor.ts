@@ -92,7 +92,7 @@ export class AutocompleteEditor extends HandsontableEditor {
    * scroll-hide, both through `#dropInFlightQueries()` - so a late response can tell that the query it
    * belongs to has been abandoned, which neither `state` nor `_opened` reports reliably. Only the
    * response needs a token: user code holds that callback and there is nothing to cancel, while the
-   * editor's own deferred queries are cancelled outright through `#queryTimeouts`.
+   * editor's own deferred queries are canceled outright through `#queryTimeouts`.
    *
    * @type {number}
    */
@@ -480,7 +480,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     // also closes the editor (`assignHooks`). `_opened` stays false while the cell is scroll-hidden and
     // after it scrolls back, so the guards elsewhere key on `state`, not `_opened`.
     //
-    // Queries this editor deferred are cancelled outright; the token below is for the ones already
+    // Queries this editor deferred are canceled outright; the token below is for the ones already
     // handed to user code, which cannot be.
     //
     // The two meanings of hiding are separated in `TextEditor`: a scroll-out goes through
@@ -505,7 +505,7 @@ export class AutocompleteEditor extends HandsontableEditor {
    * so any `source` response still in flight is dropped. Shared by `close()` and `hideForScroll()`:
    * both mean "no more responses wanted", and a late one must not re-show the list or steal focus back
    * through `hot.listen()` (DEV-2653/DEV-2676). The debounced refocus is armed by the inner grid's
-   * `afterScroll` and runs 100 ms later, so it outlives the hide unless cancelled here.
+   * `afterScroll` and runs 100 ms later, so it outlives the hide unless canceled here.
    *
    * @private
    */
@@ -579,7 +579,7 @@ export class AutocompleteEditor extends HandsontableEditor {
   }
 
   /**
-   * Verifies result of validation or closes editor if user's cancelled changes.
+   * Verifies result of validation or closes editor if user's canceled changes.
    *
    * @param {boolean|undefined} result If `false` and the cell using allowInvalid option,
    *                                   then an editor won't be closed until validation is passed.

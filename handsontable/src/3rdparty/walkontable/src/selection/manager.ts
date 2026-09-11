@@ -345,7 +345,7 @@ export class SelectionManager {
         headerAttributesMap.set(element, attributes);
       }
 
-      // Tag the active-header neighbour classes in this same pass, so the scanned element set is
+      // Tag the active-header neighbor classes in this same pass, so the scanned element set is
       // walked once. Order into `classNamesMap` does not matter — it is applied after the loop.
       if (isActiveHeader) {
         this.#markActiveHeaderNeighbor(element, className as string, classNamesMap);
@@ -468,7 +468,7 @@ export class SelectionManager {
   }
 
   /**
-   * Tags the neighbours of a single active-header cell: the TH directly BEFORE an active header gets
+   * Tags the neighbors of a single active-header cell: the TH directly BEFORE an active header gets
    * `<className>-prev` (the theme colors its inline-end border, giving the active header its
    * inline-start accent), and every TH of the TBODY row directly ABOVE an active row header gets
    * `<className>-prev-row` (the theme colors its bottom border, giving the active row header its top
@@ -481,7 +481,7 @@ export class SelectionManager {
    * active-header element, from the class-applying pass in `render`.
    *
    * @param {HTMLElement} element A scanned active-header element.
-   * @param {string} activeHeaderClassName The active header class name (the neighbour classes derive from it).
+   * @param {string} activeHeaderClassName The active header class name (the neighbor classes derive from it).
    * @param {Map} classNamesMap The render cycle's element→classNames map (applied and cleaned up later).
    */
   #markActiveHeaderNeighbor(
@@ -507,7 +507,7 @@ export class SelectionManager {
    * half of {@link SelectionManager#markActiveHeaderNeighbor}.
    *
    * @param {HTMLElement} element The active row-header cell.
-   * @param {string} activeHeaderClassName The active header class name (the neighbour class derives from it).
+   * @param {string} activeHeaderClassName The active header class name (the neighbor class derives from it).
    * @param {Map} classNamesMap The render cycle's element→classNames map (applied and cleaned up later).
    */
   #markPreviousRowHeaders(
@@ -562,7 +562,7 @@ export class SelectionManager {
   /**
    * Tags the last frozen column header with a seam class when the first non-frozen column is the
    * active header. That header's inline-start edge lands on the frozen-pane seam, which is drawn by
-   * the frozen overlay (a separate table) and is therefore out of reach of the neighbour `:has()`
+   * the frozen overlay (a separate table) and is therefore out of reach of the neighbor `:has()`
    * rule that gives every other active header its inline-start accent. The class lets the theme color
    * that seam to match. No-op unless `fixedColumnsStart` is used and this is the frozen overlay.
    *

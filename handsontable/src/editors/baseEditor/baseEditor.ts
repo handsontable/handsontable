@@ -519,7 +519,7 @@ export class BaseEditor {
   }
 
   /**
-   * Verifies result of validation or closes editor if user's cancelled changes.
+   * Verifies result of validation or closes editor if user's canceled changes.
    *
    * @param {boolean|undefined} result If `false` and the cell using allowInvalid option,
    *                                   then an editor won't be closed until validation is passed.
@@ -683,7 +683,7 @@ export class BaseEditor {
     // The position above shifted the editor 1px towards the inline start so that it covers the
     // gridline the previous cell draws on its inline-end side. A cell that draws its OWN
     // inline-start border keeps that gridline inside its box, so there is nothing to cover and the
-    // shift is cancelled here. Which cells those are is not a fixed index: with row headers the
+    // shift is canceled here. Which cells those are is not a fixed index: with row headers the
     // header owns the gridline and column 0 draws none (#6673), and `htFirstDatasetColumnNotRendered`
     // takes it off the first rendered column too - so read the border rather than the index, and
     // key it off the same value that sizes the editor below, or the two disagree by a pixel.

@@ -189,7 +189,7 @@ jobs:
     # Gated on the ES+CJS build (the visual examples consume it) OR the visual
     # scope — NOT on the build module merely succeeding. A tests/**-only PR
     # builds UMD (for Playwright) but not ES+CJS, and must not pay for the full
-    # visual suite (matches the pre-split behaviour).
+    # visual suite (matches the pre-split behavior).
     if: ${{ !failure() && !cancelled() && (needs.build.outputs.es-cjs-built == 'true' || needs.checks.outputs.test-visual == 'true') }}
     uses: ./.github/workflows/visual.yml
     secrets: inherit
@@ -218,7 +218,7 @@ jobs:
   # then sit as "Expected — waiting for status to be reported" and block the PR
   # forever. This job instead ALWAYS runs (so it always reports one stable name)
   # and derives a single verdict from every other job's result: it fails if any
-  # job that actually ran failed or was cancelled, and passes when everything
+  # job that actually ran failed or was canceled, and passes when everything
   # else succeeded or was legitimately scope-skipped. Branch protection should
   # require ONLY "CI Gate" and unpin every individual/matrix check name. The
   # manual-QA gate blocks through its needs edge here: a ticked PR's pending

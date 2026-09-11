@@ -32,7 +32,7 @@ import type { HotInstance } from '../../core/types';
  * not be read, and both resolve to open channels, so they reached the lock either way.
  *
  * This is a product decision recorded under DEV-2709, NOT a reading the specification states. S4.1
- * heads its behavior column "Behaviour (unless `silent`)" over a hard-stop row that says
+ * heads its behavior column "Behavior (unless `silent`)" over a hard-stop row that says
  * "Trial: block", which read literally puts the block inside the silenced set; S2.3's `trial` row
  * ("Trial messages + hard-stop block") separates the two. The split below is the answer to that
  * ambiguity and the specification still needs amending to match - do not revert this from S4.1 alone.
