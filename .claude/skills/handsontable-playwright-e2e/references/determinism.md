@@ -8,6 +8,7 @@ A flake-free Playwright spec:
 - Freeze time with `page.clock` where behavior depends on it; mock network with `page.route`.
 - Keep fixtures small — a big dataset slows every test and makes flakes likelier.
 - `failOnFlakyTests` is on in CI: a test that only passes on retry is a hard failure. Fix the root cause, don't add retries.
+- A *known* flake that keeps reddening unrelated pull requests may be quarantined — `test('…', quarantined('DEV-1234', 'YYYY-MM-DD', why), …)` from `fixtures/quarantine.ts` — for at most 30 days, at most six tests at once, in this tier only. It still runs and reports; only its flaky verdict stops failing the leg. Never a bare `@quarantine` tag (lint error), never `.skip`. Rules: `tests/AGENTS.md` (Quarantine).
 
 ## Waits inside a page object
 
