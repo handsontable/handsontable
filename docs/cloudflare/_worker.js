@@ -47,6 +47,7 @@
  *  17. /docs{/}                            → /docs/(framework)/ (cookie, 302)
  *  18. Versioned /docs/:ver/react-*        → /docs/:ver/react-data-grid/*
  * 18a. POST /docs/scripts/json/save.json   → mock 200 JSON (saving-data demo)
+ * 18b. /docs/_md/**.md, /docs/llms*.txt   → served from assets as text/plain
  *  19. Static asset fallback (env.ASSETS)
  */
 
@@ -1376,6 +1377,26 @@ async function route(request, env) {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
       });
+    }
+
+    // -- 18b. Agent-facing text files: force text/plain -----------------------
+    // The Markdown twins under /docs/_md/ and the llms.txt indexes exist for
+    // AI agents, but Pages serves .md as `text/markdown` — a content type
+    // OpenAI's web-search fetch tool refuses to parse (verified 2026-09-08:
+    // the tool fetched a twin, reported "unsupported content type", and fell
+    // back to the HTML page). `text/plain` is what raw.githubusercontent.com
+    // and hyperformula.handsontable.com/llms.txt serve, and every major agent
+    // stack consumes it. Serving content, so this must stay below rule 12a.
+    if (/^\/docs\/(?:_md\/.+\.md|llms(?:-full)?\.txt)$/.test(path)) {
+      const assetResponse = await env.ASSETS.fetch(request);
+
+      if (assetResponse.status !== 200) return assetResponse;
+
+      const decorated = new Response(assetResponse.body, assetResponse);
+
+      decorated.headers.set('Content-Type', 'text/plain; charset=utf-8');
+
+      return decorated;
     }
 
     // -- 19. Fallback: serve static assets via env.ASSETS --------------------

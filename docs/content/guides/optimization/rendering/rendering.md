@@ -158,6 +158,8 @@ hot.render();
 
 If you need markup that no option covers, write a [custom renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md). A renderer runs on every render, so what it writes is always reapplied. (Under [`renderMode: 'onChange'`](#skip-the-cells-that-did-not-change) it runs whenever the cell changed, which for markup written from the cell's value and meta is the same thing.)
 
+The same reuse rules out the `td` as a cache key: after a scroll it shows a different record, so a `WeakMap` of `td` to a computed value misses on almost every call. Key a renderer's cache by the data record or by the cell coordinates instead. The [Cache the output of an expensive cell renderer](@/recipes/performance/expensive-cell-renderer/expensive-cell-renderer.md) recipe shows the pattern.
+
 ### Observe renders
 
 Two hooks let you see the rendering cycle:

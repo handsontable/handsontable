@@ -255,7 +255,6 @@ export class Pagination extends BasePlugin {
         .addLocalHook('nextPageClick', () => this.nextPage())
         .addLocalHook('lastPageClick', () => this.lastPage())
         .addLocalHook('pageSizeChange', (pageSize: number | 'auto') => this.setPageSize(pageSize));
-
     }
 
     // The layout manager owns the bottom-slot placement and ordering. With a custom `uiContainer`
@@ -357,7 +356,6 @@ export class Pagination extends BasePlugin {
    */
   #refreshUI() {
     this.#computeAndApplyState();
-    this.hot.view.adjustElementsSize();
     this.hot.render();
   }
 

@@ -1231,7 +1231,6 @@ export class Formulas extends BasePlugin {
         affectedSheetIds.has(sheetId)
       ) {
         relatedHot.render();
-        relatedHot.view?.adjustElementsSize();
       }
     });
   }
@@ -3434,5 +3433,4 @@ export class Formulas extends BasePlugin {
       this.#nestedRowsDetachPending = false;
     }
   };
-
 }
