@@ -217,7 +217,11 @@ export interface GridSettings {
     prop: string | number, value: CellValue, cellProperties: CellProperties) => HTMLTableCellElement | void);
   valueFormatter?: (value: CellValue, cellProperties: CellProperties) => CellValue;
   valueGetter?: (value: CellValue, visualRow: number, visualCol: number, cellMeta: CellProperties) => CellValue;
-  valueSetter?: (value: CellValue, visualRow: number, visualCol: number, cellMeta: CellProperties) => CellValue;
+  // `source` is declared optional on purpose. Adding a required fifth parameter would raise the
+  // option's minimum call arity, so a consumer that reads the option back out and invokes it with
+  // four arguments would stop compiling - see `.ai/BREAKING-CHANGES.md`.
+  valueSetter?: (value: CellValue, visualRow: number, visualCol: number, cellMeta: CellProperties,
+    source?: ChangeSource) => CellValue;
   placeholder?: string | number;
   renderAllRows?: boolean;
   renderAllColumns?: boolean;

@@ -235,6 +235,21 @@ When working with object-based dropdown data, you can use methods like [`getSour
 
 :::
 
+#### Writing a plain value
+
+You don't have to build the object yourself. When you write a plain value into the cell, Handsontable looks it up among the `value` properties of the `source` array. On a match, the cell stores the whole matching object, with its `key`.
+
+This applies to every way a value reaches the cell:
+
+- picking an option in the editor
+- typing an option's text and pressing <kbd>**Enter**</kbd>
+- pasting text, including a paste from another application and a paste as plain text (<kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Shift**</kbd> + <kbd>**V**</kbd>)
+- calling [`setDataAtCell()`](@/api/core.md#setdataatcell) or [`populateFromArray()`](@/api/core.md#populatefromarray)
+
+A value that matches no option is stored as you wrote it. The `dropdown` cell type is strict, so such a value fails validation and the cell is marked as invalid.
+
+The lookup compares the text the cell displays, so a numeric `value` matches its string form. It's skipped when `source` is a function, because the options aren't known until the function answers.
+
 ## Set the dropdown width
 
 By default, the dropdown list matches the width of the edited cell, so long options can be truncated. To let the list expand to fit its longest option, set [`trimDropdown`](@/api/options.md#trimdropdown) to `false`.

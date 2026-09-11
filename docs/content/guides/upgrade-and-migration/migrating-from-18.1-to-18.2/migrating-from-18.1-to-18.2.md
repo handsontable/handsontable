@@ -21,7 +21,7 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 [[toc]]
 
-Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin.
+Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way.
 
 ## 1. `date` cells reach the formula engine the same way on every data path
 
@@ -464,3 +464,67 @@ set, so the number of removed rows does not change.
 Nothing to change in most cases, because the rows that are now removed had no data behind them. If
 your own code reacts to a row removal, read the row list from the hook argument rather than assuming
 one parent plus its direct children.
+
+## 11. A plain value written into a key/value `source` cell resolves to the matching object
+
+This applies only to
+[`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md) and
+[`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) columns whose
+[`source`](@/api/options.md#source) is an array of `{ key, value }` objects. The `handsontable` cell
+type is unaffected -- it stores whatever you write, and always did.
+
+Such a cell stores the whole object, not the label shown for it. The cell editor already resolved a
+label into that object, but no other way of writing to the cell did. Writing the label `'BMW'` into a
+column whose source held `{ key: '1', value: 'BMW' }` stored one of two wrong values, depending on
+what the cell held before:
+
+- an empty cell stored the string `'BMW'`
+- a cell that already held an object stored `{ key: 'BMW', value: 'BMW' }`, reusing the label as the key
+
+The label is now looked up among the source objects, and the matching object is stored whole. Every
+way of writing to the cell behaves like the editor:
+
+- pasting text, including a paste from another application and a paste as plain text
+  (<kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Shift**</kbd> + <kbd>**V**</kbd>)
+- [`setDataAtCell()`](@/api/core.md#setdataatcell) and
+  [`populateFromArray()`](@/api/core.md#populatefromarray)
+- autofill and undo
+
+A value that matches no source object is stored as you wrote it, so a
+[`strict`](@/api/options.md#strict) column still marks it invalid. A `source` of plain strings is
+unaffected, and so is a `source` declared as a function, because its options are not known until the
+function answers.
+
+**Loading data does not resolve anything.** The [`data`](@/api/options.md#data) option,
+[`loadData()`](@/api/core.md#loaddata) and [`updateData()`](@/api/core.md#updatedata) store what you
+give them, so an existing dataset that holds plain labels keeps them until something writes to those
+cells.
+
+**Clearing a cell leaves it empty.** Emptying a cell that held an entry used to store
+`{ key: null, value: null }`, so [`getSourceData()`](@/api/core.md#getsourcedata) handed back an
+object for a cell the user had cleared, and [`emptyValue`](@/api/options.md#emptyvalue) never
+applied to that column at all. Such a cell now stores the empty value, like every other column.
+
+**Undo and redo restore what the cell held, exactly.** They resolve nothing, which is a fix in its
+own right: undoing back to a plain label used to store `{ key: <label>, value: <label> }` whenever
+the cell happened to hold an object at the time, so the restored cell carried a key that matched no
+option and a [`strict`](@/api/options.md#strict) column marked it invalid. It now restores the plain
+label you undid to.
+
+### Who is affected
+
+- You use a `strict` column, such as `dropdown`. Pasting a valid label used to mark the cell invalid.
+  It is now accepted, so a cell you expected to fail validation may now pass.
+- You use a non-strict `autocomplete` column and read
+  [`getSourceData()`](@/api/core.md#getsourcedata) after a paste or a
+  [`setDataAtCell()`](@/api/core.md#setdataatcell) call. Those cells now hold objects where some of
+  them held plain strings, so the column no longer mixes the two shapes.
+- You wrote code to repair the mixed shapes yourself, or to rebuild the `key` from the label.
+
+### How to migrate
+
+Nothing to change in most cases, because the column now stores one shape everywhere, which is the
+shape the editor always produced. If your own code turned a stored string back into a source object
+after a paste, drop that workaround. If you read these cells with
+[`getSourceData()`](@/api/core.md#getsourcedata) and branched on whether the value was a string, that
+branch is now dead for values that match an option -- read the `value` property instead.
