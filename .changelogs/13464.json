@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a bug where a dropdown or autocomplete editor's list disappeared and could no longer be used after the edited cell was scrolled out of view and back in a fixed-height grid.",
+  "type": "fixed",
+  "issueOrPR": 13464,
+  "breaking": false,
+  "framework": "none"
+}
