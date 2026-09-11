@@ -36,7 +36,7 @@ export function completionsUrl(baseUrl) {
  * @param {number} [options.temperature] Sampling temperature. Omitted from the
  *   request body entirely when undefined, so the provider's own default
  *   applies -- a reasoning-tier model that rejects any non-default temperature
- *   then accepts the call, while a model that honours it can be pinned (e.g. to
+ *   then accepts the call, while a model that honors it can be pinned (e.g. to
  *   `0`) for repeatable classifications.
  * @param {boolean} [options.jsonMode] Whether to ask for a JSON object via
  *   `response_format`. On by default. Turn it off for a model that rejects

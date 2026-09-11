@@ -41,3 +41,11 @@ test('empty or undefined secrets are ignored', () => {
 
   assert.equal(scrubSecrets(text, ['', undefined]), text);
 });
+
+test('a pathologically short secret is left alone so it cannot shred the log', () => {
+  // A one-character GH_TOKEN (as the CLI test uses) would otherwise replace
+  // every occurrence of that character in every line.
+  const text = 'Target prod-docs/18.1, sync branch docs-sync/prod-docs-18.1.';
+
+  assert.equal(scrubSecrets(text, ['x']), text);
+});

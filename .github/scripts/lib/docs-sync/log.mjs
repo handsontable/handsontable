@@ -19,14 +19,20 @@
  * run's public step summary.
  */
 
+// A literal secret shorter than this is not redacted: every real credential
+// here (a GitHub App token, a LiteLLM key, the proxy URL) is far longer, and
+// redacting a one- or two-character value would replace that substring
+// everywhere in the log and shred otherwise-legible output.
+const MIN_SECRET_CHARS = 8;
+
 /**
  * Redact the tokenized GitHub remote URL, any `Bearer` credential, and every
  * literal secret passed in.
  *
  * @param {string} text
  * @param {string[]} [secrets] Literal secret values to redact wherever they
- *   appear, such as `[process.env.LITELLM_API_KEY]`. Empty and undefined
- *   entries are ignored.
+ *   appear, such as `[process.env.LITELLM_API_KEY]`. Empty, undefined, and
+ *   pathologically short (< 8 characters) entries are ignored.
  * @returns {string}
  */
 export function scrubSecrets(text, secrets = []) {
@@ -38,7 +44,7 @@ export function scrubSecrets(text, secrets = []) {
     .replace(/Bearer\s+[^\s"']+/g, 'Bearer ***');
 
   for (const secret of secrets) {
-    if (secret) {
+    if (secret && secret.length >= MIN_SECRET_CHARS) {
       scrubbed = scrubbed.split(secret).join('***');
     }
   }

@@ -72,13 +72,18 @@ const summaryLines = [];
 /**
  * Log to stdout and to the step summary buffer, with secrets scrubbed out of
  * every line -- a failed push echoes the tokenized remote URL through
- * `error.message`, and a LiteLLM error body can quote the `Authorization`
- * header or the key. This is the one place all such messages pass through.
+ * `error.message`, and a LiteLLM error body can quote the request, including
+ * the `Authorization` header, the proxy URL, or the key. The step summary is
+ * not secret-masked by GitHub, so all three of the script's secrets are passed
+ * as literals to be redacted wherever they appear, in whatever shape. This is
+ * the one place all such messages pass through.
  *
  * @param {string} line
  */
 function log(line) {
-  const scrubbed = scrubSecrets(line, [process.env.LITELLM_API_KEY]);
+  const scrubbed = scrubSecrets(line, [
+    process.env.LITELLM_API_KEY, process.env.GH_TOKEN, process.env.LITELLM_BASE_URL,
+  ]);
 
   console.log(scrubbed);
   summaryLines.push(scrubbed);
@@ -131,8 +136,13 @@ async function makeClassifier({ prompt, hash, cache, target, releasedVersion, un
   // serialize to `"temperature": null` and 400 every call.
   let temperature;
 
-  if (temperatureText !== undefined && temperatureText !== '') {
-    temperature = Number.parseFloat(temperatureText);
+  // `Number`, not `Number.parseFloat`: parseFloat stops at the first character
+  // it cannot read and keeps what it has, so a comma typo (`0,7`) or a stray
+  // suffix (`0.7x`) would silently pin a wrong value instead of throwing. The
+  // `.trim()` on the empty check is what keeps `Number(' ') === 0` from reading
+  // a whitespace-only value as a real temperature.
+  if (temperatureText !== undefined && temperatureText.trim() !== '') {
+    temperature = Number(temperatureText);
 
     if (!Number.isFinite(temperature)) {
       throw new Error(`DOCS_SYNC_TEMPERATURE must be a number, got "${temperatureText}".`);

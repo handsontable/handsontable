@@ -752,6 +752,12 @@ test('a cached decision under the current prompt hash skips the model; a stale p
           LITELLM_BASE_URL: `http://127.0.0.1:${port}`,
           LITELLM_API_KEY: 'test-key',
           DOCS_SYNC_MODEL: 'test-model',
+          // Blanked like GIT_DIR/DRY_RUN/TARGET above so an inherited value from
+          // the developer's own shell (docs/AGENTS.md tells people to export
+          // these) cannot flip the omitted-by-default assertions; a run that
+          // needs them passes them through extraEnv below.
+          DOCS_SYNC_TEMPERATURE: undefined,
+          DOCS_SYNC_JSON_MODE: undefined,
           ...extraEnv,
         },
       });

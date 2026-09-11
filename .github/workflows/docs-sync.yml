@@ -87,7 +87,7 @@ jobs:
           # the request, so the provider's own default applies -- required for a
           # reasoning-tier model that rejects any non-default temperature. Set
           # it to 0 to keep classifications deterministic on a model that
-          # honours temperature (e.g. Anthropic).
+          # honors temperature (e.g. Anthropic).
           DOCS_SYNC_TEMPERATURE: ${{ vars.DOCS_SYNC_TEMPERATURE }}
           # Optional repository variable, on by default. Set it to off for a
           # model that rejects `response_format`; the classifier parses the JSON
