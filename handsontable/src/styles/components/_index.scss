@@ -27,6 +27,7 @@
 @use "./plugins/dialog";
 @use "./plugins/notification";
 @use "./plugins/pagination";
+@use "./plugins/sheets-bar";
 @use "./plugins/loading";
 @use "./plugins/empty-data-state";
 
@@ -95,6 +96,7 @@
   @include dialog.output();
   @include notification.output();
   @include pagination.output();
+  @include sheets-bar.output();
   @include loading.output();
   @include empty-data-state.output();
 }

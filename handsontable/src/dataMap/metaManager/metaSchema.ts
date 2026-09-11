@@ -6550,6 +6550,62 @@ export default (): Record<string, unknown> => {
     selectionHandles: false,
 
     /**
+     * The `sheetsBar` option configures the [`SheetsBar`](@/api/sheetsBar.md) plugin, which renders a tab bar
+     * below the grid — or above it, with the `position` option — and lets the user
+     * switch between the sheets of a multi-sheet workbook.
+     *
+     * You can set the `sheetsBar` option to one of the following:
+     *
+     * | Setting                          | Description                                                       |
+     * | -------------------------------- | ------------------------------------------------------------------|
+     * | `undefined` (default)            | Disable the `SheetsBar` plugin                                    |
+     * | `false`                          | Disable the `SheetsBar` plugin                                    |
+     * | `true`                           | Enable the [`SheetsBar`](@/api/sheetsBar.md) plugin                |
+     *
+     * ##### sheetsBar: Additional options
+     *
+     * If you set the `sheetsBar` option to an object, you can set the following `SheetsBar` plugin options:
+     *
+     * | Option        | Possible settings                                  | Description                                                                                 |
+     * | ------------- | --------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+     * | `sheets`      | An array of `{ name, data, settings }` objects, or `null` | Defines the initial workbook. When omitted, the grid's own data becomes a single `Sheet1`     |
+     * | `activeSheet` | A number (default: `0`)                              | The index (within `sheets`) of the sheet to activate on initialization. Passed later through [`updateSettings()`](@/api/core.md#updatesettings) with a changed value, it switches the active sheet without rebuilding the workbook; a re-passed identical value is ignored |
+     * | `controls`    | Boolean (default: `true`)                            | Controls visibility of the add-sheet and sheet-menu controls                                  |
+     * | `paging`      | Boolean (default: `true`)                            | Controls visibility of the tab-scrolling controls, shown when tabs overflow the bar's width    |
+     * | `position`    | `'top'` \| `'bottom'` (default: `'bottom'`)          | The edge of the grid the bar renders on                                                        |
+     * | `uiContainer` | An HTML element (default: `null`)                    | The container element where the sheets bar UI will be installed. If not provided, the bar is injected below the root table element |
+     *
+     * Read more:
+     * - [Plugins: `SheetsBar`](@/api/sheetsBar.md)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * @since 18.2.0
+     * @memberof Options#
+     * @type {boolean|object}
+     * @default undefined
+     * @category SheetsBar
+     * @configScope grid
+     *
+     * @example
+     * ```js
+     * // enable the `SheetsBar` plugin
+     * sheetsBar: true,
+     *
+     * // or, with a predefined workbook
+     * sheetsBar: {
+     *   sheets: [
+     *     { name: 'Budget', data: [['Item', 'Cost'], ['Rent', 1200]] },
+     *     { name: 'Notes', data: [['Draft']] },
+     *   ],
+     *   activeSheet: 0,
+     * },
+     * ```
+     */
+    sheetsBar: undefined,
+
+    /**
      * The `moveCells` option lets you move a [selection](@/guides/cell-features/selection/selection.md) by
      * dragging its edge. When enabled, hovering the border of a selected cell range shows a grab cursor;
      * dragging the border moves the block's data (values, the [`className`](#classname) cell meta, and – with the

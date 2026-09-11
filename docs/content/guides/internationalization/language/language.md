@@ -275,6 +275,7 @@ Below is a list of features which can be translated:
 - Nesting rows
 - Pagination
 - Read-only
+- Sheets bar
 - Undo and Redo
 - Dialogs (including Loading indicator)
 

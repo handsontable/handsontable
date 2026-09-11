@@ -144,6 +144,7 @@ const accessoriesAndMenusItems = [
   { path: 'guides/dialog/loading/loading' },
   { path: 'guides/dialog/notification/notification' },
   { path: 'guides/accessories-and-menus/layout-slots/layout-slots' },
+  { path: 'guides/accessories-and-menus/sheets-bar/sheets-bar' },
 ];
 
 const internationalizationItems = [

@@ -3096,6 +3096,154 @@ export const REGISTERED_HOOKS = [
   'afterPageNavigationVisibilityChange',
 
   /**
+   * Fired by {@link SheetsBar} plugin before changing the active sheet. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#beforeSheetTabChange
+   * @param {number} oldSheetId The id of the sheet being left.
+   * @param {number} newSheetId The id of the sheet being activated.
+   * @param {string} source String that identifies source of hook call.
+   * @returns {*|boolean} If `false` is returned the action is canceled.
+   */
+  'beforeSheetTabChange',
+
+  /**
+   * Fired by {@link SheetsBar} plugin after changing the active sheet. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#afterSheetTabChange
+   * @param {number} oldSheetId The id of the sheet being left.
+   * @param {number} newSheetId The id of the sheet being activated.
+   * @param {string} source String that identifies source of hook call.
+   */
+  'afterSheetTabChange',
+
+  /**
+   * Fired by {@link SheetsBar} plugin before adding a new sheet. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#beforeSheetTabAdd
+   * @param {string|null} name The requested sheet name, or `null` for a default-generated name.
+   * @param {string} source String that identifies source of hook call.
+   * @returns {*|boolean} If `false` is returned the action is canceled.
+   */
+  'beforeSheetTabAdd',
+
+  /**
+   * Fired by {@link SheetsBar} plugin after adding a new sheet. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#afterSheetTabAdd
+   * @param {number} sheetId The id of the added sheet.
+   * @param {string} name The name of the added sheet.
+   * @param {string} source String that identifies source of hook call.
+   */
+  'afterSheetTabAdd',
+
+  /**
+   * Fired by {@link SheetsBar} plugin before removing a sheet. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#beforeSheetTabRemove
+   * @param {number} sheetId The id of the sheet to be removed.
+   * @param {string} source String that identifies source of hook call.
+   * @returns {*|boolean} If `false` is returned the action is canceled.
+   */
+  'beforeSheetTabRemove',
+
+  /**
+   * Fired by {@link SheetsBar} plugin after removing a sheet. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#afterSheetTabRemove
+   * @param {number} sheetId The id of the removed sheet.
+   * @param {string} source String that identifies source of hook call.
+   */
+  'afterSheetTabRemove',
+
+  /**
+   * Fired by {@link SheetsBar} plugin before renaming a sheet. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#beforeSheetTabRename
+   * @param {number} sheetId The id of the sheet being renamed.
+   * @param {string} oldName The current name of the sheet.
+   * @param {string} newName The requested new name of the sheet.
+   * @param {string} source String that identifies source of hook call.
+   * @returns {*|boolean} If `false` is returned the action is canceled.
+   */
+  'beforeSheetTabRename',
+
+  /**
+   * Fired by {@link SheetsBar} plugin after renaming a sheet. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#afterSheetTabRename
+   * @param {number} sheetId The id of the renamed sheet.
+   * @param {string} oldName The previous name of the sheet.
+   * @param {string} newName The new name of the sheet.
+   * @param {string} source String that identifies source of hook call.
+   */
+  'afterSheetTabRename',
+
+  /**
+   * Fired by {@link SheetsBar} plugin before moving a sheet to a new tab position. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#beforeSheetTabMove
+   * @param {number} sheetId The id of the sheet being moved.
+   * @param {number} finalIndex The requested tab index.
+   * @param {string} source String that identifies source of hook call.
+   * @returns {*|boolean} If `false` is returned the action is canceled.
+   */
+  'beforeSheetTabMove',
+
+  /**
+   * Fired by {@link SheetsBar} plugin after moving a sheet to a new tab position. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#afterSheetTabMove
+   * @param {number} sheetId The id of the moved sheet.
+   * @param {number} finalIndex The tab index the sheet was moved to.
+   * @param {string} source String that identifies source of hook call.
+   */
+  'afterSheetTabMove',
+
+  /**
+   * Fired by {@link SheetsBar} plugin after capturing a sheet's runtime view state (e.g. scroll position,
+   * selection) before switching away from it. This hook is fired when {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#afterSheetTabStateCapture
+   * @param {number} sheetId The id of the sheet the view state was captured from.
+   * @param {object} viewState The captured view state.
+   * @param {string} source String that identifies source of hook call.
+   */
+  'afterSheetTabStateCapture',
+
+  /**
+   * Fired by {@link SheetsBar} plugin after restoring a sheet's runtime view state (e.g. scroll position,
+   * selection) when switching to it. This hook is fired when {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#afterSheetTabStateRestore
+   * @param {number} sheetId The id of the sheet the view state was restored to.
+   * @param {object} viewState The restored view state.
+   * @param {string} source String that identifies source of hook call.
+   */
+  'afterSheetTabStateRestore',
+
+  /**
    * Fired by the {@link Formulas} plugin, when any cell value changes.
    *
    * Returns an array of objects that contains:

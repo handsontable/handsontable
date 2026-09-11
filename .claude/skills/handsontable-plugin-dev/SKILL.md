@@ -118,11 +118,38 @@ this.#map = this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginName, '
 this.hot.batch(() => {
   // multiple operations here - only one render at the end
 });
-// Or for render-only batching:
-this.hot.suspendRender();
-// ... operations ...
-this.hot.resumeRender();
 ```
+`Core#batch`/`batchRender` do not resume in a `finally`, so never wrap host-reachable code in them - a
+listener that throws mid-batch leaves the grid render-suspended for the rest of its life. When the batched
+work runs host code (`updateSettings`, `loadData`, another plugin's hooks), suspend and resume yourself:
+```js
+this.hot.suspendRender();
+
+try {
+  // operations that can run host code
+} finally {
+  this.hot.resumeRender();
+}
+```
+
+**Sliced per-unit settings** - When a plugin manages several logical units that each need their own partial configuration layered over the grid's base settings (for example, one sheet in a multi-sheet workbook), treat each unit's settings object as a partial slice: apply only the declared keys and leave every undeclared key at its current grid-level value. Apply the slice and its data together, batched into a single render - guarded with a `finally`, since both calls run host code:
+```ts
+#applySheet(sheet: Sheet, source: string) {
+  const apply = () => {
+    if (sheet.settings) {
+      this.hot.updateSettings(sheet.settings);  // only declared keys change
+    }
+    this.hot.loadData(sheet.data, `${source}.switch`);
+  };
+
+  if (this.hot.view) {
+    this.#batchRender(apply);  // suspendRender() + try/finally resumeRender()
+  } else {
+    apply();  // view doesn't exist yet during initial plugin setup
+  }
+}
+```
+Reference implementation: `src/plugins/sheetsBar/sheetsBar.ts` (`#applySheet`). If the plugin also owns a layout slot for its UI (see `handsontable/AGENTS.md` "Wrapper UI placement"), register that UI once in `enablePlugin()` and let this method own only the settings/data swap, not the UI placement.
 
 ## Decoupling Rules
 

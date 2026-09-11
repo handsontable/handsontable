@@ -122,6 +122,22 @@ const dictionary = {
   [C.PAGINATION_NEXT_PAGE]: 'Go to next page',
   [C.PAGINATION_LAST_PAGE]: 'Go to last page',
 
+  [C.SHEETS_BAR_SECTION]: 'Sheets',
+  [C.SHEETS_BAR_ADD_SHEET]: 'Add sheet',
+  [C.SHEETS_BAR_ALL_SHEETS]: 'All sheets',
+  [C.SHEETS_BAR_SHEET_MENU]: 'Sheet actions: [name]',
+  [C.SHEETS_BAR_RENAME_SHEET]: 'Sheet name',
+  [C.SHEETS_BAR_ITEMS_DELETE]: 'Delete',
+  [C.SHEETS_BAR_ITEMS_DUPLICATE]: 'Duplicate',
+  [C.SHEETS_BAR_ITEMS_RENAME]: 'Rename',
+  [C.SHEETS_BAR_ITEMS_MOVE_RIGHT]: 'Move right',
+  [C.SHEETS_BAR_ITEMS_MOVE_LEFT]: 'Move left',
+  [C.SHEETS_BAR_PAGE_PREV]: 'Scroll sheets backward',
+  [C.SHEETS_BAR_PAGE_NEXT]: 'Scroll sheets forward',
+  [C.SHEETS_BAR_SHEET_CHANGED]: 'Sheet [name] activated',
+  [C.SHEETS_BAR_RENAME_REJECTED]: 'Sheet name not changed: [name] is already in use',
+  [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Sheet',
+
   [C.CHECKBOX_CHECKED]: 'Checked',
   [C.CHECKBOX_UNCHECKED]: 'Unchecked',
 

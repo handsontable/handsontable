@@ -77,7 +77,8 @@ ${prefix}[dir="rtl"] .ht-page-navigation-section .ht-page-last::before {
 
 ${prefix}.htDropdownMenu table tbody tr td .htItemWrapper span.selected::after,
 ${prefix}.htContextMenu table tbody tr td .htItemWrapper span.selected::after,
-${prefix}.htFiltersConditionsMenu table tbody tr td .htItemWrapper span.selected::after {
+${prefix}.htFiltersConditionsMenu table tbody tr td .htItemWrapper span.selected::after,
+${prefix}.htSheetsBarMenu table tbody tr td .htItemWrapper span.selected::after {
   ${icon(icons, "check")}
 }
 
@@ -133,5 +134,33 @@ ${prefix}.ht-multi-select-editor-search-icon {
 
 ${prefix}.ht-multi-select-editor-item-selected input::after {
   ${icon(icons, "checkbox")}
+}
+
+${prefix}.ht-sheets-bar__add::before {
+  ${icon(icons, "plus")}
+}
+
+${prefix}.ht-sheets-bar__all::before {
+  ${icon(icons, "menuList")}
+}
+
+${prefix}.ht-sheets-bar__tab-chevron::after {
+  ${icon(icons, "selectArrow")}
+}
+
+${prefix}.ht-sheets-bar__page-prev::before {
+  ${icon(icons, "arrowLeft")}
+}
+
+${prefix}[dir="rtl"] .ht-sheets-bar__page-prev::before {
+  ${icon(icons, "arrowRight")}
+}
+
+${prefix}.ht-sheets-bar__page-next::before {
+  ${icon(icons, "arrowRight")}
+}
+
+${prefix}[dir="rtl"] .ht-sheets-bar__page-next::before {
+  ${icon(icons, "arrowLeft")}
 }`;
 };

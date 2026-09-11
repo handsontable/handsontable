@@ -118,6 +118,22 @@ const dictionary = {
   [C.PAGINATION_NEXT_PAGE]: 'Gå til neste side',
   [C.PAGINATION_LAST_PAGE]: 'Gå til siste side',
 
+  [C.SHEETS_BAR_SECTION]: 'Ark',
+  [C.SHEETS_BAR_ADD_SHEET]: 'Legg til ark',
+  [C.SHEETS_BAR_ALL_SHEETS]: 'Alle ark',
+  [C.SHEETS_BAR_SHEET_MENU]: 'Arkhandlinger: [name]',
+  [C.SHEETS_BAR_RENAME_SHEET]: 'Arknavn',
+  [C.SHEETS_BAR_ITEMS_DELETE]: 'Slett',
+  [C.SHEETS_BAR_ITEMS_DUPLICATE]: 'Dupliser',
+  [C.SHEETS_BAR_ITEMS_RENAME]: 'Gi nytt navn',
+  [C.SHEETS_BAR_ITEMS_MOVE_RIGHT]: 'Flytt til høyre',
+  [C.SHEETS_BAR_ITEMS_MOVE_LEFT]: 'Flytt til venstre',
+  [C.SHEETS_BAR_PAGE_PREV]: 'Rull ark bakover',
+  [C.SHEETS_BAR_PAGE_NEXT]: 'Rull ark fremover',
+  [C.SHEETS_BAR_SHEET_CHANGED]: 'Ark [name] aktivert',
+  [C.SHEETS_BAR_RENAME_REJECTED]: 'Arknavnet ble ikke endret: [name] er allerede i bruk',
+  [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Ark',
+
   [C.LOADING_TITLE]: 'Laster...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Lukk',
 

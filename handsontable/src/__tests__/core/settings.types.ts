@@ -258,6 +258,13 @@ const allSettings: Required<Handsontable.GridSettings> = {
   selectionMode: oneOf('single', 'range', 'multiple'),
   selectionHandles: true,
   moveCells: true,
+  sheetsBar: oneOf(true, {
+    sheets: [{ name: 'Budget', data: [[1, 2]], settings: { readOnly: true } }],
+    activeSheet: 0,
+    controls: true,
+    paging: true,
+    uiContainer: document.body,
+  }),
   selectOptions: oneOf(
     ['A', 'B', 'C'],
     { a: 'A', b: 'B', c: 'C' },
@@ -587,6 +594,13 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterSheetAdded: (addedSheetDisplayName) => {},
   afterSheetRemoved: (removedSheetDisplayName, changes) => {},
   afterSheetRenamed: (oldDisplayName, newDisplayName) => {},
+  afterSheetTabAdd: (sheetId, name, source) => {},
+  afterSheetTabChange: (oldSheetId, newSheetId, source) => {},
+  afterSheetTabMove: (sheetId, finalIndex, source) => {},
+  afterSheetTabRemove: (sheetId, source) => {},
+  afterSheetTabRename: (sheetId, oldName, newName, source) => {},
+  afterSheetTabStateCapture: (sheetId, viewState) => {},
+  afterSheetTabStateRestore: (sheetId, viewState) => {},
   afterTrimRow: (rows) => {},
   afterUndo: (action) => {},
   afterUndoStackChange: (doneActionsBefore, doneActionsAfter) => {},
@@ -758,6 +772,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeSetRangeEnd: (coords) => {},
   beforeSetRangeStart: (coords) => {},
   beforeSetRangeStartOnly: (coords) => {},
+  beforeSheetTabAdd: (name, source) => {},
+  beforeSheetTabChange: (oldSheetId, newSheetId, source) => {},
+  beforeSheetTabMove: (sheetId, finalIndex, source) => {},
+  beforeSheetTabRemove: (sheetId, source) => {},
+  beforeSheetTabRename: (sheetId, oldName, newName, source) => {},
   beforeStretchingColumnWidth: (stretchedWidth, column) => {
     const _stretchedWidth: number = stretchedWidth;
     const _column: number = column;
@@ -1023,3 +1042,19 @@ hot.updateSettings({ beforeInit: () => {} });
 // type back out and fails if the option is ever dropped from `GridSettings`.
 const columnEmptyValue: Handsontable.ColumnSettings['emptyValue'] = null;
 const cellEmptyValue: Handsontable.CellMeta['emptyValue'] = null;
+
+// Regression: sheetsBar settings and hooks must be accepted by updateSettings.
+hot.updateSettings({ sheetsBar: true });
+hot.updateSettings({
+  sheetsBar: {
+    sheets: [{ name: 'Budget', data: [[1, 2]], settings: { readOnly: true } }],
+    activeSheet: 0,
+    controls: true,
+    paging: false,
+    position: 'top',
+    uiContainer: document.createElement('div'),
+  },
+  beforeSheetTabChange: (oldSheetId, newSheetId, source) => false,
+  afterSheetTabChange: (oldSheetId, newSheetId, source) => {},
+  afterSheetTabAdd: (sheetId, name, source) => {},
+});

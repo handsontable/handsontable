@@ -68,7 +68,9 @@ export type IconKey =
   | 'caretHiddenDown'
   | 'collapseOff'
   | 'collapseOn'
-  | 'radio';
+  | 'radio'
+  | 'plus'
+  | 'menuList';
 
 export type ThemeIconsConfig = Partial<Record<IconKey, string>> & Record<string, string>;
 
@@ -389,6 +391,19 @@ export type TokenKey =
   | 'paginationButtonFocusBorderColor'
   | 'paginationButtonFocusForegroundColor'
   | 'paginationButtonFocusBackgroundColor'
+  // Sheets bar
+  | 'sheetsBarHorizontalPadding'
+  | 'sheetsBarBackgroundColor'
+  | 'sheetsBarTabHorizontalPadding'
+  | 'sheetsBarTabVerticalPadding'
+  | 'sheetsBarTabForegroundColor'
+  | 'sheetsBarTabBackgroundColor'
+  | 'sheetsBarTabHoverForegroundColor'
+  | 'sheetsBarTabHoverBackgroundColor'
+  | 'sheetsBarTabActiveForegroundColor'
+  | 'sheetsBarTabActiveBackgroundColor'
+  | 'sheetsBarTabActiveBorderWidth'
+  | 'sheetsBarTabActiveBorderColor'
   // Multiselect
   | 'chipBackground'
   | 'chipBorderRadius'

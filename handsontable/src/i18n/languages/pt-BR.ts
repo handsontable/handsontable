@@ -118,6 +118,22 @@ const dictionary = {
   [C.PAGINATION_NEXT_PAGE]: 'Ir para a próxima página',
   [C.PAGINATION_LAST_PAGE]: 'Ir para a última página',
 
+  [C.SHEETS_BAR_SECTION]: 'Planilhas',
+  [C.SHEETS_BAR_ADD_SHEET]: 'Adicionar planilha',
+  [C.SHEETS_BAR_ALL_SHEETS]: 'Todas as planilhas',
+  [C.SHEETS_BAR_SHEET_MENU]: 'Ações da planilha: [name]',
+  [C.SHEETS_BAR_RENAME_SHEET]: 'Nome da planilha',
+  [C.SHEETS_BAR_ITEMS_DELETE]: 'Excluir',
+  [C.SHEETS_BAR_ITEMS_DUPLICATE]: 'Duplicar',
+  [C.SHEETS_BAR_ITEMS_RENAME]: 'Renomear',
+  [C.SHEETS_BAR_ITEMS_MOVE_RIGHT]: 'Mover para a direita',
+  [C.SHEETS_BAR_ITEMS_MOVE_LEFT]: 'Mover para a esquerda',
+  [C.SHEETS_BAR_PAGE_PREV]: 'Rolar planilhas para trás',
+  [C.SHEETS_BAR_PAGE_NEXT]: 'Rolar planilhas para frente',
+  [C.SHEETS_BAR_SHEET_CHANGED]: 'Planilha [name] ativada',
+  [C.SHEETS_BAR_RENAME_REJECTED]: 'Nome da planilha não alterado: [name] já está em uso',
+  [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Planilha',
+
   [C.LOADING_TITLE]: 'Carregando...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Fechar',
 
