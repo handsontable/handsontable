@@ -25,8 +25,50 @@
         opacity: 0.6;
       }
     }
+
+    // A narrow arrow cell (autocomplete / dropdown) must keep its text on a single line and
+    // truncate with an ellipsis instead of wrapping around the floated arrow (#2545). Reserve
+    // the arrow's width on the content root and take the arrow out of flow, so the ellipsis
+    // lands before the arrow rather than behind it (a float shortens line boxes but not the
+    // content box, so `text-overflow` alone would clip behind the float). The AutoColumnSize
+    // ghost sample inherits these rules - it renders through the real renderer, which adds the
+    // `htAutocomplete` class - so `nowrap` forces the measured intrinsic width to include the
+    // reserved arrow space and autosize grows the column instead of truncating.
+    td.htAutocomplete {
+      position: relative;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      padding-inline-end: calc(
+        var(--ht-cell-horizontal-padding) + var(--ht-icon-size) + var(--ht-gap-size) * 2
+      );
+
+      .htAutocompleteArrow {
+        position: absolute;
+        top: 50%;
+        float: none;
+        inset-inline-end: var(--ht-cell-horizontal-padding);
+        margin: 0;
+        transform: translateY(-50%);
+      }
+
+      > .htCellClip .htAutocompleteArrow {
+        inset-inline-end: 0;
+      }
+    }
+
+    // Exact-height rows move the cell content into an absolutely-positioned clip wrapper and zero
+    // the cell's padding, so the reserve and truncation move onto the wrapper (its `inset` already
+    // carries the cell padding, hence no padding term here). The selector carries `tr.htExactRow`
+    // so it outweighs the base `tr.htExactRow > td > .htCellClip { padding: 0 }` rule.
+    tr.htExactRow > td.htAutocomplete > .htCellClip {
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      padding-inline-end: calc(var(--ht-icon-size) + var(--ht-gap-size) * 2);
+    }
   }
 
+  // Kept for arrow usages outside a grid cell (e.g. the select editor overlay); the in-cell
+  // arrow above is out of flow and flips through `inset-inline-end`, so it needs no float here.
   [dir="rtl"].handsontable {
     .htAutocompleteArrow {
       float: left;
