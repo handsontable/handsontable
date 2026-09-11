@@ -120,9 +120,12 @@ Seven things about this pipeline are worth knowing before changing it.
   The `Reconcile the golden records` step runs on every non-pull-request event and `aws s3 sync --delete`s
   that build's own render over `base/<branch>/actual`, unreviewed — so a green `develop` build that
   happened to photograph a transient state makes that state the reference. The build reports no failure
-  and no retry; it simply captured something else. It then persists, because most `develop` runs are
-  cancelled by the next push (2 of 10 finished on the day this was found), so the next reseed can be hours
-  away. **The diagnostic is byte equality across pull requests:** if two unrelated pull requests fail on
+  and no retry; it simply captured something else. It persisted for hours while the seed lived in
+  `develop.yml`, whose `cancel-in-progress` cancelled most runs before they reached it (23 of 30 on 2026-09-08). The seed now runs in
+  `.github/workflows/visual-seed.yml` under a group that never cancels, so the last push of any burst is
+  seeded within about 15 minutes, and a poisoned record is overwritten by the next develop push rather than
+  the next run that survives. A poisoned record can also be replaced by hand: dispatch `Visual seed` on
+  develop. **The diagnostic is byte equality across pull requests:** if two unrelated pull requests fail on
   the same item, `shasum -a 256` their `actual/<item>` from the two reports. Identical bytes mean the
   render is deterministic and the golden record is the odd one out — neither pull request is at fault, and
   `visual-approved` on one of them fixes nothing for the others. Confirmed on `columns-filter-2` under

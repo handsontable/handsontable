@@ -34,6 +34,11 @@ name: Develop
 # chained publish gate (the RUN conclusion) is trim-proof: scope-skipped jobs
 # do not fail a run's conclusion.
 #
+# NOT folded here: the visual golden seed. visual-seed.yml owns it, under a
+# concurrency group that never cancels — this run's cancel-in-progress is right
+# for the functional suite and wrong for a baseline every open pull request
+# depends on (DEV-2797; the reasoning is in that file's header).
+#
 # NOT folded here (deliberately, this increment): the docs sub-system.
 # docs-staging.yml (deploy to dev, docs/**-gated) and docs-angular-typecheck.yml
 # keep their own `push: develop` triggers and behave exactly as before. Target
@@ -154,12 +159,11 @@ jobs:
       attw-full: ${{ needs.checks.outputs.run-all == 'true' }}
     secrets: inherit
 
-  visual:
-    name: Visual
-    needs: [ checks, build, e2e, integration ]
-    if: ${{ !failure() && !cancelled() && (needs.build.outputs.es-cjs-built == 'true' || needs.checks.outputs.test-visual == 'true') }}
-    uses: ./.github/workflows/visual.yml
-    secrets: inherit
+  # The visual golden seed is NOT here. It lives in visual-seed.yml with a
+  # non-cancelling concurrency group, because this run's `cancel-in-progress`
+  # kept cancelling it at the end of the DAG and left every open pull request
+  # comparing against a stale baseline (DEV-2797). Adding a `visual:` job back
+  # here would render develop twice and reintroduce the lag.
 
   # ── Trunk-only stages ───────────────────────────────────────────────────────
   # Multi-OS/env build sanity (ubuntu + macos + windows; PRs build ubuntu only).
