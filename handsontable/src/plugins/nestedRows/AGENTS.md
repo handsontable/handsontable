@@ -214,8 +214,12 @@ They are written in different places and can drift. Keep this in mind:
   data, call `render()`, then remove the parent, and the range runs past the parent's own subtree and
   silently deletes the next sibling parent and its children (measured: 7 rows → 1, source 0 — worse
   than the blank rows it replaced). `#collectDescendants()` therefore recurses over `__children` and
-  keeps only what `getRowIndex()` resolves, dropping `null` — a row the cache does not know has no
-  index to remove. Two more rules ride along. Keep the `Array.isArray(__children)` guard: `cacheNode()`
+  keeps only what `getRowIndex()` resolves — a row the cache does not know has no index to remove, and
+  the walk **stops** there rather than continuing into its children. In a consistent cache that second
+  half is a no-op, because `cacheNode()` caches a parent before its children, so an unknown node has no
+  known descendants. It earns its place in exactly the drifted state this bullet is about: a descendant
+  the cache still remembers under a parent it no longer knows would hand back an index that now
+  addresses a different row, which is the same way the range version destroyed a sibling branch. Two more rules ride along. Keep the `Array.isArray(__children)` guard: `cacheNode()`
   iterates whatever it is handed, so `__children: 'abc'` is cached as one node per character, and a
   walk that trusts it destroys the sibling rows. And **never `physicalRows.push(...list)`** — the list
   is now one entry per descendant, so the spread overflows the call stack (between 80k and 130k rows),
@@ -229,8 +233,14 @@ They are written in different places and can drift. Keep this in mind:
   `rowIndexesSequence` — the whole pre-removal sequence — but reads its row data with the hook's own
   `amount`, which is the count *before* this plugin expanded the list. So undoing one "Remove row" on
   a parent puts every index back and re-inserts a single row: measured on the four-level fixture,
-  2 rows / 2 source rows becomes 7 rows / 3 source rows with four `null` rows. It is not a regression
-  (the pre-fix end state was the same), and it is not a one-line fix either — `captureRowData()`
+  2 rows / 2 source rows becomes 7 rows / 3 source rows with four `null` rows. **Not a regression, and
+  that is measured rather than assumed** — the post-undo state is byte-identical on both sides at
+  depth 4 (`7 rows / 3 source / ["Root A","Root B","B-1",null,null,null,null]` before the removal fix
+  and after it). What the fix changes is only where you first notice: the pre-fix removal already left
+  4 rows / 2 source with two blanks, so the grid was broken before the undo, while now the removal is
+  clean and the undo is the first bad state. Removing the parent a second time does **not** clear the
+  blanks either, on both sides (6 rows / 2 source, four `null`s) — do not tell a user that it does.
+  It is not a one-line fix — `captureRowData()`
   deliberately deletes `__children`, so restoring a subtree needs the tree captured, not `amount`
   widened. The existing coverage cannot see it. `__tests__/integration/undoRedo.spec.js` holds two
   tests, both on a two-level tree: the one that undoes a **child** removal does assert the data comes

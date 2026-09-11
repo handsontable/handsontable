@@ -844,9 +844,15 @@ export class NestedRows extends BasePlugin {
     children.forEach((child: RowObject) => {
       const childRowIndex = this.dataManager!.getRowIndex(child);
 
-      if (childRowIndex !== null) {
-        removedRows.add(childRowIndex);
+      // Stop at a node the cache does not know, rather than walking past it. `cacheNode()` caches a parent
+      // before its children, so in a consistent cache an unknown node has no known descendants and this
+      // changes nothing. It matters when the cache and the tree have drifted: a descendant the cache still
+      // remembers from an earlier shape would hand back an index that now addresses a different row.
+      if (childRowIndex === null) {
+        return;
       }
+
+      removedRows.add(childRowIndex);
 
       this.#collectDescendants(child, removedRows);
     });
@@ -864,9 +870,9 @@ export class NestedRows extends BasePlugin {
    */
   #onBeforeRemoveRow = (index: number, amount: number, physicalRows: number[]) => {
     const modifiedPhysicalRows = Array.from(physicalRows.reduce((removedRows: Set<number>, physicalIndex: number) => {
-      // An ancestor already listed this row, so its subtree is already collected – a parent's descendants are
-      // nested inside its own ancestor's. Without this, a selection spanning a parent and its children walks
-      // the same subtree once per row in it.
+      // Purely an optimization – the accumulator is a Set, so re-walking a subtree adds nothing. An ancestor
+      // already listed this row, which means its descendants are already collected, and without this a
+      // selection spanning a parent and its children walks the same subtree once per row in it.
       if (removedRows.has(physicalIndex)) {
         return removedRows;
       }

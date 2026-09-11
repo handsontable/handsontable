@@ -123,6 +123,22 @@ test.describe('NestedRows removing a parent row', () => {
 
       // `Root B` and `B-1` must survive. The uncached child goes with its parent's object, so the
       // data loses it either way - what must never happen is another branch being deleted.
+      await expectRows(nestedRows, ['Root B', 'B-1']);
+    });
+
+  test('a cached row hanging under an uncached node is not dragged into the removal',
+    async({ page, theme, bundle }) => {
+      const nestedRows = new NestedRowsRemoveParentPage(page, theme, bundle);
+
+      await nestedRows.goto();
+
+      // The other half of a drifted cache. `Root A` gains a brand new node the cache has never seen,
+      // and `Root B` - which the cache still remembers at index 5 - is hung underneath it. Walking
+      // past the unknown node reads that stale index and deletes `Root B` from its own branch.
+      await nestedRows.graftUnknownNodeOverCachedRow(0, 5);
+
+      await nestedRows.removeRow(0);
+
       await expect.poll(() => nestedRows.dataNames()).toEqual(['Root B', 'B-1']);
       await expect.poll(() => nestedRows.countRows()).toBe(2);
     });

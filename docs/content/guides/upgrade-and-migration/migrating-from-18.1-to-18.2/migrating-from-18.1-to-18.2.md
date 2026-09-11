@@ -444,10 +444,17 @@ Removing row `0`:
   [`beforeRemoveRow`](@/api/hooks.md#beforeremoverow) or
   [`afterRemoveRow`](@/api/hooks.md#afterremoverow). Both now receive every descendant. For the tree
   above, removing row `0` reported `[0, 1]` and now reports `[0, 1, 2, 3]`.
-- You count the rows a removal affects, or use the `amount` argument of either hook to size your own
-  bookkeeping. The number is larger for any parent with grandchildren.
+- You count the rows a removal affects, or use the `amount` argument to size your own bookkeeping.
+  Read that number from [`afterRemoveRow`](@/api/hooks.md#afterremoverow), which reports the rows
+  that were really removed. In [`beforeRemoveRow`](@/api/hooks.md#beforeremoverow), `amount` is
+  counted before the plugin adds the descendants, so it stays at the old value -- read the length of
+  the row array that hook receives instead.
 - You relied on the blank rows staying behind, for example by writing new values into them. They are
   gone.
+- You undo a removal. Undo does not restore a nested parent's subtree: it puts back one row and
+  leaves the rest on screen with no data behind them. This is not new in 18.2 -- the state you end up
+  with after the undo is the same as in 18.1 -- but the removal itself is clean now, so the undo is
+  where you first see it.
 
 A tree two levels deep is unaffected. There, the direct children and all descendants are the same
 set, so the number of removed rows does not change.

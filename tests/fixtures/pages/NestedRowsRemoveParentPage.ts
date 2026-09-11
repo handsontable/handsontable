@@ -178,4 +178,30 @@ export class NestedRowsRemoveParentPage {
       window.hot.render();
     }, { parentRow: row, childName: name });
   }
+
+  /**
+   * Grafts a BRAND NEW node under `parentRow`, and hangs an EXISTING, already-cached row object under
+   * that new node - then renders without re-caching.
+   *
+   * This is the drifted-cache shape the descendant walk has to survive: the grafted node is unknown to
+   * the flatten cache (`getRowIndex()` answers `null`), while the node beneath it is still remembered
+   * at its old index. A walk that steps past the unknown node reads that stale index and removes a row
+   * from a different branch.
+   *
+   * @param {number} parentRow Physical row index of the parent to graft onto.
+   * @param {number} borrowedRow Physical row index of the existing row object to hang underneath.
+   */
+  async graftUnknownNodeOverCachedRow(parentRow: number, borrowedRow: number): Promise<void> {
+    await this.page.evaluate(({ target, borrowed }) => {
+      const plugin = window.hot.getPlugin('nestedRows');
+      const parentObject = plugin.dataManager.getDataObject(target) as { __children?: unknown[] } | null;
+      const cachedObject = plugin.dataManager.getDataObject(borrowed);
+
+      if (parentObject && Array.isArray(parentObject.__children) && cachedObject) {
+        parentObject.__children.push({ name: 'grafted', __children: [cachedObject] });
+      }
+
+      window.hot.render();
+    }, { target: parentRow, borrowed: borrowedRow });
+  }
 }
