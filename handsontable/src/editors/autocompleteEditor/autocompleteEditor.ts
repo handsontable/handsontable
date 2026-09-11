@@ -463,31 +463,21 @@ export class AutocompleteEditor extends HandsontableEditor {
    * Closes the editor.
    */
   close(): void {
-    // The debounced refocus is armed by the inner grid's `afterScroll` and runs 100 ms later. It
-    // outlives the close by the same route the choices response used to, and `hideEditableElement()`
-    // only sets `opacity: 0`, so its `focus()` puts the caret back into a closed editor. The next
-    // scroll of a reopened list re-arms it, so cancelling here loses nothing.
-    this.#focusDebounced.cancel();
-
-    // Ends the edit session. Closing is the one event that reliably means "no response is wanted
-    // any more": a scroll-out of the rendered range no longer reaches here (see below), and
-    // `afterSetTheme` still closes the editor (`assignHooks`). `_opened` stays false while the cell is
-    // scroll-hidden and after it scrolls back, so the guards elsewhere key on `state`, not `_opened`.
+    // Ends the edit session. Closing means "no response is wanted any more", and so does a scroll-out
+    // of the rendered range (see `hideForScroll()` below, which shares this in-flight cleanup); a late
+    // response must not re-show the list or steal focus in either case (DEV-2653/DEV-2676). `afterSetTheme`
+    // also closes the editor (`assignHooks`). `_opened` stays false while the cell is scroll-hidden and
+    // after it scrolls back, so the guards elsewhere key on `state`, not `_opened`.
     //
     // Queries this editor deferred are cancelled outright; the token below is for the ones already
     // handed to user code, which cannot be.
     //
-    // The two meanings of hiding are now separated in `TextEditor`: a scroll-out of the rendered range
-    // goes through `hideForScroll()` (transient - keeps `beforeKeyDown`, the query timeouts, the edit
-    // session and the loaded list, so the dropdown re-shows populated and re-queries on scroll-back),
-    // while `close()` here is the genuine edit-end teardown. One deliberate consequence: because the
-    // edit session is NOT bumped on a scroll-hide, a function-`source` response that lands while the
-    // cell is scroll-hidden is now accepted and repopulates the list; that is safe because the holder's
-    // `opacity: 0` keeps it invisible until scroll-back re-runs `showEditableElement()`.
-    this.#queryTimeouts.forEach(timeoutId => clearTimeout(timeoutId));
-    this.#queryTimeouts.clear();
-
-    this.#editSession += 1;
+    // The two meanings of hiding are separated in `TextEditor`: a scroll-out goes through
+    // `hideForScroll()` (transient - it runs this same cleanup so late responses are dropped, but keeps
+    // `beforeKeyDown` and the already-loaded choices, so the dropdown re-shows populated and re-queries
+    // on scroll-back), while `close()` here is the genuine edit-end teardown that also unhooks and tears
+    // down the inner grid.
+    this.#dropInFlightQueries();
 
     this.removeHooksByKey('beforeKeyDown');
     super.close();
@@ -497,6 +487,38 @@ export class AutocompleteEditor extends HandsontableEditor {
         A11Y_EXPANDED('false'),
       ]);
     }
+  }
+
+  /**
+   * Cancels the debounced refocus, clears the deferred query timeouts, and bumps the edit-session token
+   * so any `source` response still in flight is dropped. Shared by `close()` and `hideForScroll()`:
+   * both mean "no more responses wanted", and a late one must not re-show the list or steal focus back
+   * through `hot.listen()` (DEV-2653/DEV-2676). The debounced refocus is armed by the inner grid's
+   * `afterScroll` and runs 100 ms later, so it outlives the hide unless cancelled here.
+   *
+   * @private
+   */
+  #dropInFlightQueries(): void {
+    this.#focusDebounced.cancel();
+    this.#queryTimeouts.forEach(timeoutId => clearTimeout(timeoutId));
+    this.#queryTimeouts.clear();
+    this.#editSession += 1;
+  }
+
+  /**
+   * Hides the dropdown because the edited cell scrolled out of the rendered range, without ending the
+   * edit. Drops in-flight responses exactly as `close()` does (a late one must not re-show the list or
+   * steal focus), but the inherited `HandsontableEditor#hideForScroll` only hides the UI — it keeps
+   * `beforeKeyDown` and the already-loaded choices — so the list re-shows populated and typing
+   * re-queries once the cell scrolls back.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  hideForScroll(): boolean {
+    this.#dropInFlightQueries();
+
+    return super.hideForScroll();
   }
 
   /**
