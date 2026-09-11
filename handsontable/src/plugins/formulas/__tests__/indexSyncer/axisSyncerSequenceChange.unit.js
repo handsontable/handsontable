@@ -21,11 +21,13 @@ function createMockIndexSyncer(engine, sheetId = 0) {
   };
 }
 
-function createMockEngine(dimensions = { width: 4, height: 4 }) {
+function createMockEngine(initialDimensions = { width: 4, height: 4 }) {
   const calls = { setRowOrder: [], setColumnOrder: [] };
+  const dimensions = { ...initialDimensions };
 
   return {
     calls,
+    dimensions,
     setRowOrder: (sheetId, transformation) => {
       if (transformation.length !== dimensions.height) {
         throw new Error('Invalid arguments, expected number of rows provided to be sheet height.');
@@ -40,7 +42,7 @@ function createMockEngine(dimensions = { width: 4, height: 4 }) {
 
       calls.setColumnOrder.push({ sheetId, transformation });
     },
-    getSheetDimensions: () => dimensions,
+    getSheetDimensions: () => ({ ...dimensions }),
     batch: callback => callback(),
   };
 }
@@ -97,6 +99,28 @@ describe('AxisSyncer sequence change sync', () => {
 
       expect(() => axisSyncer.getIndexesChangeSyncMethod()('update')).not.toThrow();
       expect(engine.calls.setColumnOrder).toEqual([]);
+    });
+
+    it('should keep the last synced order as the baseline for the transformation after a skipped sync', () => {
+      const engine = createMockEngine({ width: 0, height: 0 });
+      const indexMapper = createMockIndexMapper([0, 1, 2, 3]);
+      const axisSyncer = new AxisSyncer('column', indexMapper, createMockIndexSyncer(engine, 2));
+      const syncMethod = axisSyncer.getIndexesChangeSyncMethod();
+
+      axisSyncer.init();
+      indexMapper.state.indexesSequence = [0, 2, 1, 3];
+      syncMethod('update');
+
+      expect(engine.calls.setColumnOrder).toEqual([]);
+
+      // The engine's sheet grew, so the same grid order now fits and has to reach the engine — measured
+      // against the order the engine actually holds, which is still the one from before the skip.
+      engine.dimensions.width = 4;
+      syncMethod('update');
+
+      expect(engine.calls.setColumnOrder).toEqual([
+        { sheetId: 2, transformation: [0, 2, 1, 3] },
+      ]);
     });
   });
 

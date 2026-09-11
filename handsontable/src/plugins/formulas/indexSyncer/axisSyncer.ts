@@ -338,15 +338,15 @@ class AxisSyncer {
    * @param {number[]} transformation Order transformation describing where each element the engine currently
    * holds should move to.
    * @param {number} sizeForAxis Size of the engine's sheet along the synchronized axis.
-   * @returns {void}
+   * @returns {boolean} `true` when the engine received the order, `false` when it was skipped.
    */
-  #syncOrderWithEngine(transformation: number[], sizeForAxis: number): void {
+  #syncOrderWithEngine(transformation: number[], sizeForAxis: number): boolean {
     // A sheet added to the workbook at runtime carries no data, so the engine reports it as 0x0 while the grid
     // still counts its default rows and columns. The engine accepts an order exactly as long as the sheet, and
     // rejects anything longer by throwing — which unwinds whatever triggered the sequence change. Such an order
     // describes elements the engine does not hold, so there is nothing to reorder and the sync is skipped.
     if (transformation.length > sizeForAxis) {
-      return;
+      return false;
     }
 
     // Sheet dimension can be changed by HF's engine for purpose of calculating values. It extends dependency
@@ -358,6 +358,8 @@ class AxisSyncer {
 
     this.#indexSyncer.getEngine()![`set${toUpperCaseFirst(this.#axis)}Order`](
       this.#indexSyncer.getSheetId()!, transformation);
+
+    return true;
   }
 
   /**
@@ -386,7 +388,13 @@ class AxisSyncer {
         const sheetDimensions = this.#indexSyncer.getEngine()!.getSheetDimensions(this.#indexSyncer.getSheetId()!);
         const sizeForAxis = this.#axis === 'row' ? sheetDimensions.height : sheetDimensions.width;
 
-        this.#syncOrderWithEngine(relativeTransformation, sizeForAxis);
+        // The stored sequence is the order the engine currently holds, and every transformation is
+        // relative to it. A skipped sync leaves the engine on the previous order, so the sequence stays
+        // where it was — recording the new one would make the next transformation describe a move the
+        // engine never made, and its axis order would drift away from the grid's.
+        if (!this.#syncOrderWithEngine(relativeTransformation, sizeForAxis)) {
+          return;
+        }
       }
 
       this.#indexesSequence = newSequence;
