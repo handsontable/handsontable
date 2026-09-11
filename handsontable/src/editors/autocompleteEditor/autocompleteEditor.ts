@@ -88,17 +88,19 @@ export class AutocompleteEditor extends HandsontableEditor {
    */
   #queryGeneration = 0;
   /**
-   * Edit-session token. Bumped on every `close()`, so a `source` response can tell that the edit it
-   * belongs to has ended - which neither `state` nor `_opened` reports reliably. Only the response
-   * needs a token: user code holds that callback and there is nothing to cancel, while the editor's
-   * own deferred queries are cancelled outright through `#queryTimeouts`.
+   * Edit-session token. Bumped whenever no further `source` response is wanted - on `close()` and on a
+   * scroll-hide, both through `#dropInFlightQueries()` - so a late response can tell that the query it
+   * belongs to has been abandoned, which neither `state` nor `_opened` reports reliably. Only the
+   * response needs a token: user code holds that callback and there is nothing to cancel, while the
+   * editor's own deferred queries are cancelled outright through `#queryTimeouts`.
    *
    * @type {number}
    */
   #editSession = 0;
   /**
    * Timer ids of the `queryChoices()` calls this editor has deferred and not yet run. Cleared on
-   * `close()`, so a query scheduled during an edit never runs after it.
+   * `close()` and on a scroll-hide (both through `#dropInFlightQueries()`), so a query scheduled during
+   * an edit never runs after the edit ends or while the cell is out of view.
    *
    * @type {Set}
    */
@@ -394,7 +396,8 @@ export class AutocompleteEditor extends HandsontableEditor {
   }
 
   /**
-   * Defers a `queryChoices()` call and keeps its timer id so `close()` can cancel it.
+   * Defers a `queryChoices()` call and keeps its timer id so `close()` and a scroll-hide can cancel it
+   * (both through `#dropInFlightQueries()`).
    *
    * `hot._registerTimeout()` has no cancel path of its own - `_clearTimeouts()` runs only from
    * `Core#destroy()` - so without this a query scheduled during an edit still fires after the
@@ -508,8 +511,9 @@ export class AutocompleteEditor extends HandsontableEditor {
   /**
    * Hides the dropdown because the edited cell scrolled out of the rendered range, without ending the
    * edit. Drops in-flight responses exactly as `close()` does (a late one must not re-show the list or
-   * steal focus), but the inherited `HandsontableEditor#hideForScroll` only hides the UI — it keeps
-   * `beforeKeyDown` and the already-loaded choices — so the list re-shows populated and typing
+   * steal focus), and lowers the combobox `aria-expanded` so a screen reader does not keep announcing
+   * an open listbox while the list is hidden. The inherited `HandsontableEditor#hideForScroll` keeps
+   * `beforeKeyDown` and the already-loaded choices, so the list re-shows populated and typing
    * re-queries once the cell scrolls back.
    *
    * @private
@@ -518,24 +522,52 @@ export class AutocompleteEditor extends HandsontableEditor {
   hideForScroll(): boolean {
     this.#dropInFlightQueries();
 
+    if (this.hot.getSettings().ariaTags) {
+      setAttribute(this.TEXTAREA, [
+        A11Y_EXPANDED('false'),
+      ]);
+    }
+
     return super.hideForScroll();
   }
 
   /**
    * Re-shows the dropdown list after the edited cell scrolled back into the rendered range, keeping the
-   * choices already loaded into the nested grid and re-measuring its size against the cell's new
-   * position. Guarded on there being choices to show, so an empty list stays hidden - matching the
-   * empty branch of {@link AutocompleteEditor#updateChoicesList}.
+   * choices already loaded into the nested grid. Guarded on there being choices to show, so an empty
+   * list stays hidden, matching the empty branch of {@link AutocompleteEditor#updateChoicesList}. The
+   * re-measure is added to the base flip pass through {@link AutocompleteEditor#reflowDropdown}, and the
+   * combobox `aria-expanded` is raised again.
+   *
+   * Known limitation: a `function` `source` whose response was still in flight when the cell scrolled
+   * out was dropped by `hideForScroll()` and is not requested again, so for that one case the list stays
+   * empty until the next keystroke re-queries. Re-querying here would fix it, but at the cost of a source
+   * call on every scroll-back, so it is deliberately left to the keystroke.
    *
    * @private
    */
   showAfterScroll(): void {
     if (this.htEditor && this.strippedChoices.length > 0) {
-      this.htEditor.rootElement.style.display = '';
-      this.updateDropdownDimensions();
-      this.flipDropdownVerticallyIfNeeded();
-      this.flipDropdownHorizontallyIfNeeded();
+      super.showAfterScroll();
+
+      if (this.hot.getSettings().ariaTags) {
+        setAttribute(this.TEXTAREA, [
+          A11Y_EXPANDED('true'),
+        ]);
+      }
     }
+  }
+
+  /**
+   * Re-measures the dropdown to the choices it holds before the base flip pass reads its size, so the
+   * list comes back at the right width and height after a scroll round-trip even if the column was
+   * resized while the cell was out of range.
+   *
+   * @private
+   */
+  reflowDropdown(): void {
+    this.updateDropdownDimensions();
+
+    super.reflowDropdown();
   }
 
   /**
@@ -569,10 +601,12 @@ export class AutocompleteEditor extends HandsontableEditor {
     // editor stays open and returns to `EDITING`. Rejecting them would stop the list refreshing for
     // the length of every validation, which is a behavior change rather than a fix.
     //
-    // `state` rather than `isOpened()`: `_opened` stays false after `refreshDimensions()` closes an
-    // editor whose cell scrolled out of view and then shows it again on the way back, without ever
-    // restoring the flag.
-    if (this.state !== EDITOR_STATE.EDITING && this.state !== EDITOR_STATE.WAITING) {
+    // `_opened` is false while the edited cell is scroll-hidden (`hideForScroll()`) and is restored on
+    // scroll-back. Bailing on it keeps a keystroke made while the cell is out of view - which
+    // `beforeKeyDown` still schedules, since the hide deliberately keeps that hook - from reaching the
+    // source and, once it answered, re-showing the list and calling `hot.listen()` against a cell with
+    // no rendered rect.
+    if ((this.state !== EDITOR_STATE.EDITING && this.state !== EDITOR_STATE.WAITING) || !this._opened) {
       return;
     }
 

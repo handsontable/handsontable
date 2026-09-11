@@ -192,9 +192,20 @@ export class HandsontableEditor extends TextEditor {
   showAfterScroll(): void {
     if (this.htEditor) {
       this.htEditor.rootElement.style.display = '';
-      this.flipDropdownVerticallyIfNeeded();
-      this.flipDropdownHorizontallyIfNeeded();
+      this.reflowDropdown();
     }
+  }
+
+  /**
+   * Re-anchors the re-shown dropdown to the edited cell's new viewport position. Split from
+   * {@link HandsontableEditor#showAfterScroll} so {@link AutocompleteEditor} can re-measure the list to
+   * its choices before the flip pass reads its size.
+   *
+   * @private
+   */
+  reflowDropdown(): void {
+    this.flipDropdownVerticallyIfNeeded();
+    this.flipDropdownHorizontallyIfNeeded();
   }
 
   /**

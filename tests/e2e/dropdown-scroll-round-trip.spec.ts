@@ -45,6 +45,13 @@ test.describe('layered editor — scroll round-trip (DEV-26)', () => {
     await expect(grid.options()).toHaveCount(renderedOptions);
     await expect(grid.optionByText('Alpha')).toBeVisible();
 
+    // The whole editor layer must be back, not just the list's `display`. `isOpened()` must read true
+    // again (a false value there makes the next data change reset the live edit via `applyChanges()`),
+    // and the holder must be opaque (a regression that leaves it at `opacity: 0` hides everything while
+    // `listDisplayed()` still passes).
+    expect(await grid.isEditorOpen()).toBe(true);
+    expect(await grid.holderOpacity()).toBe('1');
+
     // The inner grid and the editor's ArrowDown shortcut group survived the round trip.
     await grid.pressArrowDown();
     await expect.poll(() => grid.innerSelectedRow()).toBe(0);
@@ -65,9 +72,9 @@ test.describe('layered editor — scroll round-trip (DEV-26)', () => {
     expect(await grid.listDisplayed()).toBe(true);
     await expect(grid.options()).toHaveCount(renderedOptions);
 
-    // Typing must still filter the list — proof the textarea `input` requery path survived the
-    // round trip (it did not before the fix, because `close()` tore its query state down). `Al`
-    // matches Alpha / Alfa / Alto only.
+    // Typing must still filter the list, proof the `beforeKeyDown` requery hook survived the round
+    // trip (it did not before the fix, because `close()` unhooked it). `Al` matches Alpha / Alfa /
+    // Alto only.
     await grid.focusEditor();
     await grid.type('Al');
     await expect(grid.options()).toHaveCount(3);

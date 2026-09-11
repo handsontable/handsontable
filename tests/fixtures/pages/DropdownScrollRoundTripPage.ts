@@ -5,15 +5,12 @@ interface EditorHandle {
   isOpened(): boolean;
   state: string;
   getEditedCell(): HTMLElement | null;
-  getValue(): unknown;
   TEXTAREA?: HTMLTextAreaElement;
   htEditor?: { getSelectedActive(): number[] | undefined };
 }
 
 interface HandsontableFixture {
   getActiveEditor(): EditorHandle | undefined;
-  getDataAtCell(row: number, col: number): unknown;
-  selectCell(row: number, col: number): void;
 }
 
 type FixtureWindow = Window & { hot: HandsontableFixture };
@@ -120,6 +117,27 @@ export class DropdownScrollRoundTripPage {
     return this.page.evaluate(() => (
       (window as FixtureWindow).hot.getActiveEditor()?.getEditedCell() != null
     ));
+  }
+
+  /**
+   * Whether `getActiveEditor().isOpened()` reports true. This must be true again after a scroll-back:
+   * `Core#applyChanges()` reads this flag (not `state`), and a false value while the editor is visible
+   * makes the next data change reset the live edit.
+   */
+  async isEditorOpen(): Promise<boolean> {
+    return this.page.evaluate(() => (
+      (window as FixtureWindow).hot.getActiveEditor()?.isOpened() === true
+    ));
+  }
+
+  /**
+   * The computed opacity of the editor holder (`.handsontableInputHolder`). `hideEditableElement()`
+   * drops it to 0 and `showEditableElement()` restores it to 1. Read it directly, since the list's own
+   * `display` (see {@link listDisplayed}) would not catch a holder left transparent.
+   */
+  async holderOpacity(): Promise<string> {
+    return this.page.getByTestId('grid').locator('.handsontableInputHolder')
+      .evaluate((el: HTMLElement) => el.ownerDocument.defaultView!.getComputedStyle(el).opacity);
   }
 
   /**
