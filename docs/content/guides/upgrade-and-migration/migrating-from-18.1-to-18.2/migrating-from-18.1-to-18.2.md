@@ -21,7 +21,7 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 [[toc]]
 
-Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one.
+Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin.
 
 ## 1. `date` cells reach the formula engine the same way on every data path
 
@@ -315,3 +315,152 @@ marks, because Handsontable adds its own in front of the label you built:
 The second form also needs no [`sanitizer`](@/api/options.md#sanitizer). A `name` containing markup
 is written through `innerHTML`, so under Trusted Types it needs a policy-backed sanitizer; a plain
 label does not.
+
+## 8. <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click on a selected cell moves the highlight
+
+This applies to every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode) of
+`multiple`.
+
+Since 16.0.0, <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + clicking a cell that was already part of the
+selection removed it, wherever the highlight happened to be. The cell you just clicked therefore
+stopped being selected, and the highlight fell back to another layer, so it appeared to jump to a cell
+you clicked earlier. Moving the highlight around inside a multi-cell selection was not possible.
+
+What the click does now depends on where the highlight is:
+
+- The clicked cell does not hold the highlight: the highlight moves to it, and it stays selected. So
+  does every other selected cell.
+- The clicked cell already holds the highlight: the cell is deselected. Clicking the last remaining
+  cell this way still clears the selection.
+
+Two <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + clicks on the same cell therefore still deselect it. The
+first moves the highlight there, and the second removes it. How quickly you click makes no
+difference, so a <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + double-click does the same thing as those
+two clicks: it moves the highlight onto the cell and then removes it.
+
+### Who is affected
+
+- You rely on a single <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click removing a cell from the
+  selection without regard to the highlight. It now takes two clicks unless the cell is already
+  highlighted.
+- You count [`afterDeselect`](@/api/hooks.md#afterdeselect) events, or read
+  [`getSelected()`](@/api/core.md#getselected) after such a click. A click that moves the highlight
+  keeps the layer instead of dropping it, and no longer clears the selection.
+
+A grid with `selectionMode` set to `single` or `range` is unaffected, because neither supports more
+than one selection layer.
+
+### How to migrate
+
+Nothing to change in most cases, because the gesture now does what the highlight shows. If your own
+code removed a selection layer in response to such a click, drop that workaround: the grid no longer
+removes the layer for you.
+
+## 9. Formulas shortcut methods
+
+This applies only if you call [`registerShortcuts()`](@/api/formulas.md#registershortcuts) or
+[`unregisterShortcuts()`](@/api/formulas.md#unregistershortcuts) on the
+[`Formulas`](@/api/formulas.md) plugin.
+
+The `Alt`+`Enter` shortcut that opens a cell's link is a core grid shortcut now, registered for
+every grid, so the `Formulas` plugin has nothing left for either method to do. Both are deprecated
+no-op methods since 18.2.0, and each prints a one-time console warning when called. They will be
+removed in 19.0.0.
+
+Nothing else about the shortcut changes: `Alt`+`Enter` still opens the link of the selected cell the
+same way it always did.
+
+### Who is affected
+
+You are affected only if your code calls `hot.getPlugin('formulas').registerShortcuts()` or
+`.unregisterShortcuts()` -- for example, to re-register the shortcut after disabling and
+re-enabling the plugin.
+
+### How to migrate
+
+Remove the calls. The shortcut is available on every grid regardless of whether the `Formulas`
+plugin is enabled, so there is nothing to replace them with.
+
+**Before:**
+
+```js
+const formulas = hot.getPlugin('formulas');
+
+formulas.disablePlugin();
+formulas.enablePlugin();
+formulas.registerShortcuts();
+```
+
+**After:**
+
+```js
+const formulas = hot.getPlugin('formulas');
+
+formulas.disablePlugin();
+formulas.enablePlugin();
+```
+
+## 10. Removing a parent row removes every row below it
+
+This applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin.
+
+Removing a parent row has always been documented as removing that row and all of its children. Up to
+18.1, it removed the parent and its direct children only. On a tree three or more levels deep, the
+grandchildren and everything below them stayed on screen as blank rows. Their data was already gone,
+because removing the parent object takes its whole branch with it, so those rows had nothing behind
+them and no further **Remove row** could clear them.
+
+Take this tree:
+
+```js
+const data = [
+  {
+    name: 'father 1',
+    __children: [
+      {
+        name: 'Child 1.1',
+        __children: [
+          {
+            name: 'Child 1.1.1',
+            __children: [{ name: 'Child 1.1.1.1' }],
+          },
+        ],
+      },
+    ],
+  },
+];
+```
+
+Removing row `0`:
+
+|  | Rows removed | Rows left |
+| --- | --- | --- |
+| Up to 18.1 | 2 | 2 blank rows |
+| From 18.2 | 4 | none |
+
+### Who is affected
+
+- You read the physical row indexes from
+  [`beforeRemoveRow`](@/api/hooks.md#beforeremoverow) or
+  [`afterRemoveRow`](@/api/hooks.md#afterremoverow). Both now receive every descendant. For the tree
+  above, removing row `0` reported `[0, 1]` and now reports `[0, 1, 2, 3]`.
+- You count the rows a removal affects, or use the `amount` argument to size your own bookkeeping.
+  Read that number from [`afterRemoveRow`](@/api/hooks.md#afterremoverow), which reports the rows
+  that were really removed. In [`beforeRemoveRow`](@/api/hooks.md#beforeremoverow), `amount` is
+  counted before the plugin adds the descendants, so it stays at the old value -- read the length of
+  the row array that hook receives instead.
+- You relied on the blank rows staying behind, for example by writing new values into them. They are
+  gone.
+- You undo a removal. Undo does not restore a nested parent's subtree: it puts back one row and
+  leaves the rest on screen with no data behind them. This is not new in 18.2 -- the state you end up
+  with after the undo is the same as in 18.1 -- but the removal itself is clean now, so the undo is
+  where you first see it.
+
+A tree two levels deep is unaffected. There, the direct children and all descendants are the same
+set, so the number of removed rows does not change.
+
+### How to migrate
+
+Nothing to change in most cases, because the rows that are now removed had no data behind them. If
+your own code reacts to a row removal, read the row list from the hook argument rather than assuming
+one parent plus its direct children.

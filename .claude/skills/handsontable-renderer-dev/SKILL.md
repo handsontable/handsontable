@@ -59,10 +59,12 @@ Renderers are called **for every cell in the viewport on every render cycle** (b
 - Never read layout properties inside a renderer (`getBoundingClientRect`, `offsetWidth`) - causes layout thrashing
 - Avoid object allocations and complex string concatenations in the hot path
 - The simpler the renderer, the better
+- A slow derived value (chart markup, a parsed document) belongs in a cache keyed by the **data record or the cell coordinates**, never by the `TD`: the engine keeps a fixed set of `TD` elements and rewrites them as you scroll, so a `TD`-keyed cache misses on almost every call (issue #13446). Two traps when building that cache: `getSourceDataAtRow()` returns a **copy** of the row on every call, so it can never be a `WeakMap` key - read the record from your own data array by `toPhysicalRow(row)` (the cell `value` itself IS handed over by reference); and `afterRender` does not fire for scroll draws - count or refresh per-draw state in `afterViewRender`. Worked example: `docs/content/recipes/performance/expensive-cell-renderer/`.
 
 ## Common mistakes
 
 - Forgetting to call `baseRenderer` first, which skips readonly/invalid CSS and ARIA setup.
+- Caching renderer output on the `TD` element (a `WeakMap` keyed by `TD`, or a property on it) - see Performance above.
 - Adding event listeners in a renderer (use editors or plugins instead).
 - Using `innerHTML` with unsanitized user input.
 - Writing children straight into `TD` (`TD.appendChild`, `TD.insertBefore(x, TD.firstChild)`, `empty(TD)`) instead of `getCellContentRoot(TD)` — on an exact-height row the clipping wrapper is then rebuilt every draw, and a node left outside it grows the row back.

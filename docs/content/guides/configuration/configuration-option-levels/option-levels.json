@@ -6,10 +6,10 @@
     "cells",
     "cell"
   ],
-  "total": 171,
+  "total": 172,
   "counts": {
     "grid": 106,
-    "grid columns cells cell": 60,
+    "grid columns cells cell": 61,
     "grid columns": 4,
     "columns": 1
   },
@@ -112,6 +112,18 @@
       ],
       "since": null,
       "note": null
+    },
+    {
+      "name": "autoLink",
+      "category": "AutoLink",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": "18.2.0",
+      "note": "The plugin toggle is grid level. A column or cell `false` opts out, and a column or cell object overrides `target`, `schemes`, `strict`, `inline`, and `className` for those cells."
     },
     {
       "name": "autoRowHeaderSize",
@@ -253,7 +265,7 @@
         "columns"
       ],
       "since": null,
-      "note": "Turn the plugin on at the grid level. Inside `columns` you can override its sub-options for one column, such as `indicator` and `headerAction`, but not enable sorting there. Read from the raw `columns` setting, like `title`."
+      "note": "Turn the plugin on at the grid level. Inside `columns` you can override its sub-options for one column, such as `indicator` and `headerAction`, but not enable sorting there. `sortFixedRows` is the exception: it is grid-level only, because the frozen rows belong to the whole table. Read from the raw `columns` setting, like `title`."
     },
     {
       "name": "columnSummary",
@@ -1015,7 +1027,7 @@
         "columns"
       ],
       "since": null,
-      "note": "Turn the plugin on at the grid level. Inside `columns` you can override its sub-options for one column, such as `indicator` and `headerAction`, but not enable sorting there. Read from the raw `columns` setting, like `title`."
+      "note": "Turn the plugin on at the grid level. Inside `columns` you can override its sub-options for one column, such as `indicator` and `headerAction`, but not enable sorting there. `sortFixedRows` is the exception: it is grid-level only, because the frozen rows belong to the whole table. Read from the raw `columns` setting, like `title`."
     },
     {
       "name": "navigableHeaders",

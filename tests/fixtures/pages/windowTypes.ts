@@ -17,6 +17,14 @@ interface FixtureCellRange {
 }
 
 /**
+ * One entry of a sort config, as both sorting plugins take and return it.
+ */
+export interface FixtureSortConfig {
+  column: number;
+  sortOrder: 'asc' | 'desc';
+}
+
+/**
  * The slice of the Handsontable instance API the fixture-driving evaluate
  * callbacks use, so the in-page calls stay typed without importing the core
  * types into the test tier.
@@ -60,6 +68,16 @@ export interface FixtureHotInstance {
     addCondition(column: number, name: string, args: unknown[]): void,
     clearConditions(column?: number): void,
     filter(): void,
+  };
+  /**
+   * Both sorting plugins expose the same `sort()` signature - `MultiColumnSorting` extends
+   * `ColumnSorting` and only widens what an array of configs means - so one overload covers
+   * a fixture that swaps between them. The `column` is a VISUAL index.
+   */
+  getPlugin(name: 'columnSorting' | 'multiColumnSorting'): {
+    sort(sortConfig?: FixtureSortConfig | FixtureSortConfig[]): void,
+    getSortConfig(): FixtureSortConfig[],
+    clearSort(): void,
   };
   getPlugin(name: 'dragToScroll'): { isListening(): boolean };
   getPlugin(name: 'autofill'): { mouseDownOnCellCorner: boolean };
@@ -118,6 +136,8 @@ export interface FixtureHotInstance {
   deselectCell(): void;
   getSelectedRangeLast(): FixtureCellRange;
   getSelectedRange(): FixtureCellRange[];
+  getSelectedRangeActive(): FixtureCellRange | undefined;
+  getSelected(): number[][] | undefined;
   addHook(name: string, callback: () => void): void;
   addHookOnce(name: string, callback: () => unknown): void;
   getSelectedLast(): number[];
@@ -131,6 +151,7 @@ export interface FixtureHotInstance {
   loadData(data: unknown[]): void;
   updateData(data: unknown[]): void;
   updateSettings(settings: Record<string, unknown>): void;
+  alter(action: string, index?: number | number[][], amount?: number, source?: string): void;
   countCols(): number;
   rowIndexMapper: { getIndexesSequence(): number[] };
   columnIndexMapper: { getIndexesSequence(): number[] };
@@ -193,6 +214,10 @@ declare global {
     pendingValidationCount(): number;
     /** Rebuilds the GH #5983 sorting-a-filtered-grid-with-`minSpareRows` fixture grid. */
     initSortingSpareRowsGrid(overrides?: Record<string, unknown>): boolean;
+    /**
+     * Rebuilds the DEV-59 sorting-with-`fixedRowsTop`/`fixedRowsBottom` fixture grid.
+     */
+    initSortingFixedRowsGrid(overrides?: Record<string, unknown>): boolean;
     /** Returns the text the browser currently reports as selected (fragmentSelection fixture). */
     readTextSelection(): string;
     /** Drops any existing text selection (fragmentSelection fixture). */
@@ -215,6 +240,15 @@ declare global {
     setBeforeColumnMoveVeto(shouldVeto: boolean): boolean;
     /** Per-hook invocation counters of the touch tap-to-edit fixture (DEV-2687). */
     hookCounts: Record<HookCounterName, number>;
+    /**
+     * Builds a grid whose init aborts inside `updateSettings()` and returns the message it threw
+     * with, or `null` when it unexpectedly succeeded (DEV-2874 fixture).
+     */
+    abortGridInit(): string | null;
+    /** Starts counting the healthy grid's `getIfMouseWasDraggedOutside()` calls (DEV-2874 fixture). */
+    instrumentDragOutsideCheck(): boolean;
+    /** How many drag-outside measurements the healthy grid has taken since instrumentation. */
+    dragOutsideCheckCount: number;
     /**
      * Chromium-only InputDeviceCapabilities constructor, used to stamp synthetic mouse events
      * with their origin (DEV-2687).

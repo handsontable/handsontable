@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import * as geometry from './rowGeometry';
 
 /**
  * Page Object for the "tall cell in a frozen column" Walkontable fixture.
@@ -113,16 +114,54 @@ export class FrozenTallCellPage {
     return table.locator('tbody').getByTestId(`row-${row}`);
   }
 
-  /** The rendered height of one row in one table. */
+  /**
+   * The rendered height of one row in one table, or `NaN` when that table does not render it.
+   * One evaluation on the table's root, never `row().boundingBox()` — `rowGeometry.ts` says why.
+   */
   async rowHeight(table: Locator, row: number): Promise<number> {
-    const box = await this.row(table, row).boundingBox();
-
-    return box?.height ?? 0;
+    return geometry.rowHeight(table, row);
   }
 
   /**
-   * The height of a normal, single-line row. Row 0 is deliberately not used as the
-   * baseline: the rendered band's first row carries an extra 1px top border.
+   * The height of one row in the master AND in the inline-start overlay, read in one evaluation so
+   * no draw can land between the two. The pair a comparison needs, read as a pair.
+   */
+  async rowHeights(row: number): Promise<{ master: number, overlay: number }> {
+    return geometry.rowHeights(this.grid, row);
+  }
+
+  /**
+   * The height of a tall row once the master and the inline-start overlay agree on it and it
+   * exceeds a normal row's — established by polling, not caught by a single read that may land
+   * before the draw that puts both tables there. The value to pin later assertions to.
+   *
+   * `normalRow` is the baseline and must be a normal row that is rendered wherever the band
+   * currently is: row 1 (`normalRowHeight()`) leaves the band once the grid scrolls, and a baseline
+   * read off an unrendered row is `NaN`, which makes the poll fail rather than accept the provided
+   * height as "tall". The row after the tall one is rendered whenever the tall one is.
+   */
+  async settledTallRowHeight(row: number, normalRow = row + 1): Promise<number> {
+    const normalHeight = await this.rowHeight(this.master, normalRow);
+    let settled = NaN;
+
+    await expect.poll(async () => {
+      const { master, overlay } = await this.rowHeights(row);
+
+      settled = master;
+
+      return master === overlay && master > normalHeight;
+    }, {
+      message: `row ${row} to settle at one height in both the master and the inline-start overlay, `
+        + `above the ${normalHeight}px of normal row ${normalRow}`,
+    }).toBe(true);
+
+    return settled;
+  }
+
+  /**
+   * The height of a normal, single-line row while the band starts at the top of the grid. Row 0 is
+   * deliberately not used as the baseline: the rendered band's first row carries an extra 1px top
+   * border. After a scroll, row 1 may have left the band (`NaN`); read an explicit rendered row then.
    */
   async normalRowHeight(): Promise<number> {
     return this.rowHeight(this.master, 1);
@@ -131,12 +170,18 @@ export class FrozenTallCellPage {
   /**
    * The vertical offset of a row relative to its own table's body, so the master
    * and a clone are comparable even though they sit at different page positions.
+   * One evaluation per read, for the reason `rowHeight()` gives.
    */
   async rowOffsetWithinTable(table: Locator, row: number): Promise<number> {
-    const rowBox = await this.row(table, row).boundingBox();
-    const bodyBox = await table.locator('tbody').boundingBox();
+    return geometry.rowOffsetWithinTable(table, row);
+  }
 
-    return (rowBox?.y ?? 0) - (bodyBox?.y ?? 0);
+  /**
+   * How far each given row's offset in the master differs from its offset in the inline-start
+   * overlay, all read in one evaluation. Zeroes mean the panes are aligned.
+   */
+  async rowOffsetDrift(rows: number[]): Promise<number[]> {
+    return geometry.rowOffsetDrift(this.grid, rows);
   }
 
   /**

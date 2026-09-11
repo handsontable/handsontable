@@ -1694,7 +1694,7 @@ For more information on Handsontable 9.0.2, see:
 
 - Fixed an issue where the validator function was called twice when the Formulas plugin was enabled.
   [#8138](https://github.com/handsontable/handsontable/issues/8138)
-- Introduced a new CSS style for cells of the `checkbox` type to restore previous behaviour.
+- Introduced a new CSS style for cells of the `checkbox` type to restore previous behavior.
   [#8196](https://github.com/handsontable/handsontable/issues/8196)
 
 For more information on Handsontable 9.0.1, see:
@@ -1746,7 +1746,7 @@ For more information on Handsontable 9.0.0, see:
 
 - Introduced a `separated` attribute for the label options (the `label` DOM element may wrap `input`
   or be placed next to it). [#3172](https://github.com/handsontable/handsontable/issues/3172)
-- Introduced the `modifyAutoColumnSizeSeed` hook to let developers overwrite the default behaviour
+- Introduced the `modifyAutoColumnSizeSeed` hook to let developers overwrite the default behavior
   of the AutoColumnSize sampling. [#3339](https://github.com/handsontable/handsontable/issues/3339)
 - Added support for hiding columns for the _NestedHeaders_ plugin.
   [#6879](https://github.com/handsontable/handsontable/issues/6879)

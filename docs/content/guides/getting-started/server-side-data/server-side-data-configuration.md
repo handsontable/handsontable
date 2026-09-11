@@ -2,7 +2,7 @@
 type: reference
 title: Server-side configuration
 metaTitle: Server-side configuration - JavaScript Data Grid | Handsontable
-description: Handsontable dataProvider configuration—required keys, pagination and pageSize, query parameters for fetchRows, column sorting, and server-side filters.
+description: Handsontable dataProvider configuration -- required keys, pagination and pageSize, query parameters for fetchRows, column sorting, and server-side filters.
 permalink: /server-side-data-configuration
 canonicalUrl: /server-side-data-configuration
 tags:

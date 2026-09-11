@@ -1,0 +1,90 @@
+name: Docs Sync
+
+# Ports content-only documentation commits from develop to the live
+# prod-docs/<major>.<minor> branch through one bot-owned pull request.
+# `develop` documents the NEXT release, so this is not a plain branch sync: an
+# LLM (through the LiteLLM proxy) decides per commit whether the change applies
+# to the released version; everything else is deterministic and unit-tested.
+# Script: .github/scripts/docs-sync.mjs (run it locally with --dry-run).
+on:
+  # 06:00 UTC, Mon-Fri. Nothing merges to develop on weekends, so a weekend run
+  # would only re-derive Friday's empty report.
+  # Rollout step 1 (see the spec): the schedule is enabled in a follow-up pull
+  # request after a manual dry run with lint and a review of the classifier's
+  # decisions with the docs team.
+  # schedule:
+  #   - cron: '0 6 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Plan only: rebuild the branch locally, push nothing, open nothing'
+        type: boolean
+        default: true
+      target:
+        description: 'prod-docs/<major>.<minor> to sync into; blank picks the highest'
+        type: string
+        default: ''
+
+# The job needs to push a branch and open a pull request, and pull requests
+# opened with GITHUB_TOKEN do not trigger `pull_request` workflows, so the sync
+# pull request would get no docs lint, no build, and no preview. The release
+# GitHub App token is used instead, and GITHUB_TOKEN gets nothing.
+permissions: {}
+
+concurrency:
+  group: docs-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Sync docs content to the live prod-docs branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Mint GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # https://github.com/actions/create-github-app-token/releases/tag/v3.2.0
+        with:
+          client-id: ${{ secrets.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          ref: develop
+          fetch-depth: 0
+          # The script sets its own push credentials from GH_TOKEN; the checkout
+          # must not leave GITHUB_TOKEN in .git/config where it would be used
+          # instead.
+          persist-credentials: false
+
+      - name: Point pushes at the App token
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: git remote set-url --push origin "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
+
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
+        name: Install pnpm
+
+      - name: Use Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+
+      # Needed only for docs:lint, which validates the synced sidebar.js files.
+      - run: pnpm install --frozen-lockfile
+
+      - name: Sync
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_REPO: ${{ github.repository }}
+          LITELLM_BASE_URL: ${{ secrets.LITELLM_BASE_URL }}
+          LITELLM_API_KEY: ${{ secrets.LITELLM_API_KEY }}
+          # Repository variable, so the model can change without a pull request.
+          DOCS_SYNC_MODEL: ${{ vars.DOCS_SYNC_MODEL }}
+          DOCS_SYNC_REVIEWERS: ${{ vars.DOCS_SYNC_REVIEWERS }}
+          # A scheduled run is never a dry run; a manual dispatch defaults to one.
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
+          TARGET: ${{ inputs.target }}
+        run: node .github/scripts/docs-sync.mjs
