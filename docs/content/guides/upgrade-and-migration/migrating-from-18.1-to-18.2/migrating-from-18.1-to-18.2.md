@@ -451,10 +451,8 @@ Removing row `0`:
   the row array that hook receives instead.
 - You relied on the blank rows staying behind, for example by writing new values into them. They are
   gone.
-- You undo a removal. Undo does not restore a nested parent's subtree: it puts back one row and
-  leaves the rest on screen with no data behind them. This is not new in 18.2 -- the state you end up
-  with after the undo is the same as in 18.1 -- but the removal itself is clean now, so the undo is
-  where you first see it.
+- You undo a removal. From 18.2, undo restores the parent and its descendants. Up to 18.1 it put
+  back one row and left the rest on screen with no data behind them.
 
 A tree two levels deep is unaffected. There, the direct children and all descendants are the same
 set, so the number of removed rows does not change.

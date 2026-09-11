@@ -11,6 +11,10 @@ export interface UndoRedoAction {
   [key: string]: unknown;
 }
 
+export interface UndoRedoActionResult {
+  wasUndone?: boolean;
+}
+
 export const PLUGIN_KEY = 'undoRedo';
 export const PLUGIN_PRIORITY = 1000;
 
@@ -245,6 +249,18 @@ export class UndoRedo extends BasePlugin {
       return;
     }
 
+    type UndoableAction = {
+      canUndo?: (hot: HotInstance) => boolean
+      undo: (hot: HotInstance, callback: (result?: UndoRedoActionResult) => void) => void
+    };
+    const pendingAction = this.doneActions[this.doneActions.length - 1] as UndoableAction;
+
+    // A nested remove-row undo can still fail (plugin disabled, create-row veto). Formulas
+    // always calls `engine.undo()` in `beforeUndo`, so that check has to win first.
+    if (pendingAction.canUndo?.(this.hot) === false) {
+      return;
+    }
+
     const doneActionsCopy = this.doneActions.slice();
 
     this.hot.runHooks('beforeUndoStackChange', doneActionsCopy);
@@ -266,10 +282,18 @@ export class UndoRedo extends BasePlugin {
 
     this.hot.runHooks('beforeRedoStackChange', undoneActionsCopy);
 
+    let wasUndone = true;
+
     try {
-      (action as { undo: (hot: HotInstance, callback: () => void) => void }).undo(this.hot, () => {
+      (action as UndoableAction).undo(this.hot, (result) => {
         this.ignoreNewActions = false;
-        this.undoneActions.push(action);
+        wasUndone = result?.wasUndone !== false;
+
+        if (wasUndone) {
+          this.undoneActions.push(action);
+        } else {
+          this.doneActions.push(action);
+        }
       });
 
     } catch (error) {
@@ -282,7 +306,10 @@ export class UndoRedo extends BasePlugin {
     }
 
     this.hot.runHooks('afterRedoStackChange', undoneActionsCopy, this.undoneActions.slice());
-    this.hot.runHooks('afterUndo', actionClone);
+
+    if (wasUndone) {
+      this.hot.runHooks('afterUndo', actionClone);
+    }
   }
 
   /**

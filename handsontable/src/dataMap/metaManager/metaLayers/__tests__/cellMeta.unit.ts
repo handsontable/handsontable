@@ -241,6 +241,23 @@ describe('ColumnMeta', () => {
       expect(meta.getMetasAtRow(2).map(metaObject => metaObject._test)).toEqual(['zero', 'one', 'three', 'four']);
     });
 
+    it('should return physical column keys with metas', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      meta.getMeta(2, 4)._test = 'four';
+      meta.getMeta(2, 1)._test = 'one';
+
+      expect(meta.getMetasAtRowWithPhysicalColumns(2).map(({ physicalColumn, meta: cellMeta }) => ({
+        physicalColumn,
+        value: cellMeta._test,
+      }))).toEqual([
+        { physicalColumn: 1, value: 'one' },
+        { physicalColumn: 4, value: 'four' },
+      ]);
+    });
+
     it('should change cell meta by reference', () => {
       const globalMeta = new GlobalMeta();
       const columnMeta = new ColumnMeta(globalMeta);

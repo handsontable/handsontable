@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture - nested row undo</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[
+      htParams.get('bundle') ?? 'umd'
+    ];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+  </style>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    window.removeLog = [];
+
+    window.hot = new Handsontable(container, {
+      data: [
+        { name: 'Leaf 0' },
+        { name: 'Leaf 1' },
+        { name: 'Leaf 2' },
+        { name: 'Leaf 3' },
+        { name: 'Leaf 4' },
+        { name: 'Leaf 5' },
+        { name: 'Leaf 6' },
+        { name: 'Leaf 7' },
+        { name: 'Leaf 8' },
+        { name: 'Leaf 9' },
+        { name: 'Leaf 10' },
+        { name: 'Leaf 11' },
+        { name: 'Leaf 12' },
+        {
+          name: 'Parent 13',
+          __children: [{
+            name: 'Child 13',
+            __children: [{ name: 'Grandchild 13' }],
+          }],
+        },
+        { name: 'After 13' },
+      ],
+      columns: [{ data: 'name' }],
+      colHeaders: ['Name'],
+      rowHeaders: true,
+      nestedRows: true,
+      contextMenu: true,
+      undo: true,
+      renderer: testIdRenderer,
+      height: 'auto',
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    window.hot.setCellMeta(13, 0, 'className', 'parent-meta');
+    window.hot.setCellMeta(14, 0, 'className', 'child-meta');
+    window.hot.setCellMeta(15, 0, 'className', 'grandchild-meta');
+
+    const recordRemove = (hook) => (index, amount, physicalRows, source) => {
+      window.removeLog.push({
+        hook,
+        index,
+        amount,
+        physicalRows: physicalRows.slice(),
+        source,
+      });
+    };
+
+    window.hot.addHook('beforeRemoveRow', recordRemove('beforeRemoveRow'));
+    window.hot.addHook('afterRemoveRow', recordRemove('afterRemoveRow'));
+  </script>
+</body>
+</html>

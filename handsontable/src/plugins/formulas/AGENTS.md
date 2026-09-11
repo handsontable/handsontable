@@ -63,6 +63,11 @@ instead of replaying the move, so `afterMoveCells` — where the forward directi
 has to cover it here. Redo *does* replay the move, so it must **not** be listed, or the sheet is scanned
 twice.
 
+**A nested `remove_row` undo can refuse to land.** `RemoveRowAction.canUndo()` runs the enabled and
+`beforeCreateRow` checks **before** `beforeUndo`, because this plugin always calls `engine.undo()`
+there. A late `{ wasUndone: false }` would leave HyperFormula restored and Handsontable empty.
+`UndoRedo.undo()` also skips `afterUndo` when the action reports that failure.
+
 ## Sequence syncing
 
 The row/column sequence is mirrored into HF as a **permutation**, and two hooks matter:
