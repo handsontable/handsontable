@@ -22,6 +22,7 @@
 
 import { execFileSync } from 'node:child_process';
 import { appendFile } from 'node:fs/promises';
+import path from 'node:path';
 import { parseArgs } from 'node:util';
 import { repoRoot } from './lib/repo-root.mjs';
 import { CONTENT_PREFIXES, categorize } from './lib/docs-sync/paths.mjs';
@@ -367,12 +368,24 @@ try {
           // Scoped to `docs/content` only -- the sync never touches
           // `docs/src` -- so a pre-existing lint error elsewhere in the
           // target branch's site source never fails a run for content this
-          // tool did not touch. This does not solve every scoping gap: the
-          // `docs/node_modules` installed from develop's lockfile can still
-          // mismatch the target branch's own `docs/package.json` after the
-          // checkout swap above; the full build and content checks run on
-          // the pull request itself and catch that class of problem.
-          execFileSync('npm', ['run', 'docs:lint:content', '--prefix', 'docs'], { cwd: repoDir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+          // tool did not touch. Invoked as a direct `eslint` call, not
+          // `npm run docs:lint:content`: `resetSyncBranch` above has already
+          // swapped the checkout onto the target branch's tree, and a
+          // `package.json` script only exists there once this very change
+          // has been ported to it -- which content-only sync can never do,
+          // since `docs/package.json` is a tooling file. `docs/node_modules`
+          // (gitignored, installed once from develop's lockfile before this
+          // script runs) survives the checkout swap untouched, so the
+          // `eslint` binary is available regardless of which tree is
+          // checked out; only its own config resolution depends on the
+          // target's tree, same as before. This does not solve every
+          // scoping gap: the installed `eslint` and its plugins can still
+          // mismatch the target branch's own config; the full build and
+          // content checks run on the pull request itself and catch that
+          // class of problem.
+          execFileSync('npx', ['--no-install', 'eslint', '--ext', '.js,.mjs,.ts,.astro', 'content'], {
+            cwd: path.join(repoDir, 'docs'), encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
+          });
         } catch (error) {
           const output = `${error.stdout ?? ''}${error.stderr ?? ''}`;
 

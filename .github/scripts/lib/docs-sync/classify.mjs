@@ -112,7 +112,11 @@ export function buildUserMessage(input, { maxBody = 4096, maxDiff = 61440 } = {}
     `#${pr.number}: ${pr.title}`,
     '',
     '<pull-request-body>',
-    truncate(pr.body ?? '', maxBody),
+    // Escaping `<` keeps a body containing the literal text
+    // `</pull-request-body>` from prematurely closing this untrusted span --
+    // the same single-character-escape reasoning `pr-body.mjs`'s `plain()`
+    // uses for the HTML case, applied here to the prompt's own delimiter.
+    truncate((pr.body ?? '').replaceAll('<', '&lt;'), maxBody),
     '</pull-request-body>',
     '',
     '# Changed files',
