@@ -327,6 +327,12 @@ jobs:
     # HTML comments) overrides on a source change. Deliberately NOT re-run on
     # `edited`: re-run the failed job after adding an entry or the marker (the
     # script reads the live PR body).
+    #
+    # Both steps also enforce "one PR, one entry": step 1 caps a PR at two entry
+    # files (lifted by `[multiple changelogs]`, never by `[skip changelog]`), and
+    # step 2 asserts every `.changelogs/*.json` is named after the number it
+    # cites, over the whole directory — which is what makes two entries for one
+    # number impossible. See `.changelogs/README.md`.
     if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
@@ -335,7 +341,11 @@ jobs:
         env:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node .github/scripts/check-changelog
-      - name: Check that all changelogs are valid
+      # This is intentionally repository-wide: a stale misnamed file on the
+      # base branch would otherwise keep producing invalid release notes after
+      # the PR that created it is gone. The failure points to the exact file
+      # and the safe rename-or-fold remedy.
+      - name: Check every changelog filename (repository-wide invariant)
         run: bin/changelog consume --date 2050-01-01 --dry-run
 
   tooling-tests:

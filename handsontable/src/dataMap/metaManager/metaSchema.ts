@@ -5211,10 +5211,14 @@ export default (): Record<string, unknown> => {
      *
      * This option affects only the displayed output in the cell renderer.
      * It has no effect on the numeric cell editor. In the source data, numeric values
-     * are stored as JavaScript numbers.
+     * are stored as JavaScript numbers, so a value beyond the safe-integer limit
+     * (`9007199254740991`) loses precision before the formatter ever sees it. To store and display
+     * such a value exactly, set [`preserveNumericLiteral`](@/api/options.md#preservenumericliteral)
+     * to `true` and provide the value as a string.
      *
      * Read more:
      * - [`locale`](@/api/options.md#locale)
+     * - [`preserveNumericLiteral`](@/api/options.md#preservenumericliteral)
      * - [Numeric cell type](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md)
      * - [Cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md)
      * - [Third-party licenses](@/guides/technical-specification/third-party-licenses/third-party-licenses.md)
@@ -5259,8 +5263,14 @@ export default (): Record<string, unknown> => {
      * behaving like a number in those features: column sorting and filter conditions compare it
      * numerically, and the [`Formulas`](@/api/formulas.md) engine parses the literal as a number,
      * so functions such as `SUM` still include the cell. The cell renderer still formats
-     * the value according to [`numericFormat`](@/api/options.md#numericformat); only the editor
-     * shows the preserved literal. One exception: the filter menu's "Filter by value" checkbox
+     * the value according to [`numericFormat`](@/api/options.md#numericformat), and it keeps every
+     * digit of the literal: `Intl.NumberFormat` reads a string operand as an exact decimal instead
+     * of converting it to a JavaScript number. That makes `preserveNumericLiteral` the supported
+     * way to display a value beyond the safe-integer limit: the literal `'9007199254740993'`
+     * renders with every digit intact, while the same value held as a number renders as
+     * `9007199254740992`. Grouping and decimals still follow
+     * [`numericFormat`](@/api/options.md#numericformat). One exception: the filter menu's
+     * "Filter by value" checkbox
      * list compares values strictly, so a preserved literal (`'9.0'`) and its plain number (`9`)
      * appear as two separate entries.
      *

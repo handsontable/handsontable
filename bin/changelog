@@ -17,6 +17,7 @@ const hotConfig = require('../hot.config');
 const {
   excludeVersionSection, findRepublishedEntries, formatRepublishedReport
 } = require('./lib/published-entries');
+const { findMisnamedEntries, formatMisnamedReport } = require('./lib/entry-filenames');
 
 const isTTY = process.stdin.isTTY;
 
@@ -182,6 +183,28 @@ const assertNoRepublishedEntries = (pendingEntries, changelogContents) => {
   }
 };
 
+/**
+ * Reports the pending entries whose filename does not match the number they
+ * cite, and exits when there are any. Every offender is listed in one pass so
+ * that clearing several of them takes one run.
+ *
+ * This is what keeps one pull request to one entry: a number owns exactly one
+ * file, so the same change cannot be announced on two adjacent lines of one
+ * release. See `bin/lib/entry-filenames.js` for the shapes it catches.
+ *
+ * @param {Array<{file: string, entry: object}>} pendingEntries Pending entries and their paths.
+ */
+const assertEntryFilenames = (pendingEntries) => {
+  const report = formatMisnamedReport(findMisnamedEntries(pendingEntries));
+
+  if (report.offenders.length) {
+    console.log();
+    console.log(chalk.red(report.message));
+
+    process.exit(1);
+  }
+};
+
 const createEntryCommand = async(args) => {
   const argTitle = args.title ? args.title.join(' ') : undefined;
   const answers = isTTY ? await inquirer.prompt([
@@ -267,8 +290,38 @@ ${chalk.yellow.italic(`### ${uppercaseFirstLetter(changelogEntry.type)}
 
   await askToProceedOrExit();
 
+  // A collision means #<issueOrPR> already has an entry, and a number owns
+  // exactly one file - so the two titles have to become one, not two files.
+  // Said here because this prompt is the moment someone reaches for a
+  // `<number>-changed.json` instead, which `consume` and `sync` now reject.
   if (await fileExists(destination)) {
-    console.log(`The file \`${destination}\` already exists.`);
+    console.log(`The file \`${destination}\` already exists, so #${
+      changelogEntry.issueOrPR
+    } is already announced.`);
+    console.log(
+      'One pull request gets one entry. Do not write a second file under another name:'
+    );
+    console.log(
+      '  - overwrite this one with a title that covers both changes, or'
+    );
+    console.log(
+      '  - re-run with the GitHub number the second change cites, if it has one of its own.'
+    );
+
+    // Refuse without a terminal instead of overwriting. `askToProceedOrExit`
+    // destructures `shouldProceed` out of a bare `true` when stdin is not a
+    // TTY, so it answers yes by itself - and this command is what the skills
+    // now tell agents to run, which they do with no terminal. Silently
+    // replacing the existing title is the exact loss this check exists to
+    // prevent, and the `rm` hint printed on success would then delete the only
+    // remaining copy. Nothing under `.github/` or `scripts/` runs `entry`, so
+    // no automation depends on the old behavior.
+    if (!isTTY) {
+      console.log();
+      console.log('Refusing to overwrite it without a terminal to confirm on.');
+
+      process.exit(1);
+    }
 
     await askToProceedOrExit('Overwrite?');
   }
@@ -316,16 +369,21 @@ const consumeCommand = async(args) => {
   const ungroupedEntries = (await Promise.all(changelogEntryFiles.map(p => fs.readFile(p, 'utf8'))))
     .map(contents => assertChangelogEntryFormat(JSON.parse(contents)));
 
-  // Asserted here, before the dry run bails out, so that the `--dry-run` that
-  // `checks.yml` puts on every pull request enforces it too - not only the
-  // release. See `bin/lib/published-entries.js` for what it catches and why.
-  assertNoRepublishedEntries(
-    ungroupedEntries.map((entry, i) => ({
-      file: path.relative(process.cwd(), changelogEntryFiles[i]),
-      entry
-    })),
-    existingChangelogContents
-  );
+  const pendingEntries = ungroupedEntries.map((entry, i) => ({
+    file: path.relative(process.cwd(), changelogEntryFiles[i]),
+    entry
+  }));
+
+  // Both asserted here, before the dry run bails out, so that the `--dry-run`
+  // that `checks.yml` puts on every pull request enforces them too - not only
+  // the release. See `bin/lib/entry-filenames.js` and
+  // `bin/lib/published-entries.js` for what each catches and why. The order
+  // between them carries no meaning: `findRepublishedEntries` keys off
+  // `entry.issueOrPR` and never the filename, so neither report can mislead
+  // because of the other. The filename check is simply the cheaper one.
+  assertEntryFilenames(pendingEntries);
+
+  assertNoRepublishedEntries(pendingEntries, existingChangelogContents);
 
   const groupedEntries = lodash.groupBy(ungroupedEntries, 'type');
   const groupedPairs = lodash.sortBy(lodash
@@ -438,11 +496,20 @@ const syncCommand = async(args) => {
     return;
   }
 
-  const pendingEntries = (await Promise.all(entryFiles.map(p => fs.readFile(p, 'utf8'))))
+  const loadedEntries = (await Promise.all(entryFiles.map(p => fs.readFile(p, 'utf8'))))
     .map((c, i) => ({
       file: path.relative(process.cwd(), entryFiles[i]),
       entry: assertChangelogEntryFormat(JSON.parse(c))
-    }))
+    }));
+
+  // Asserted on everything loaded, before the filter below drops the entries
+  // this section already carries: a misnamed file is wrong whether or not it
+  // is being synced right now. `consume --dry-run` covers every pull request,
+  // but a release branch is maintainer-managed, so an operator cherry-pick
+  // onto one reaches `sync` without ever passing through `checks.yml`.
+  assertEntryFilenames(loadedEntries);
+
+  const pendingEntries = loadedEntries
     .filter(({ entry }) => !section.includes(`/${entry.issueOrPR})`));
 
   // The filter above only dedups against the section being synced into, so an

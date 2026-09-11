@@ -77,6 +77,28 @@ affordances).
 
 The Handsontable `moveCells` grid option (added 18.0.0) enables drag-to-move for selections. HyperFormula exposes an identically named `engine.moveCells()` method that the `Formulas` plugin calls internally to relocate formula references. They are unrelated -- do not confuse the user-facing option with the HyperFormula engine API.
 
+## A size cache only notices a changed item COUNT, never a rearrangement
+
+`PositionCache#isCurrent()` (`axisSizing/positionCache/`) tests one thing: `totalItems === totalItemsFn()`. So **any update that keeps the count but changes which physical index each render index points at is invisible to it**, and the cache goes on serving the previous layout's offsets. The viewport calculator then maps a scroll offset onto the wrong band and the grid renders short, leaving blank space past the last rendered track — DEV-2823, a client-visible 18.1.0 regression.
+
+Two shapes do that, and **both** were measured stale before the fix:
+
+- a **pure permutation** — sorting rows, moving a row or column (820px of row drift after a sort; 617px of column drift after a move);
+- a **trim/hide swap** that changes *which* indexes are excluded without changing *how many* (120px of row drift). Trimming and hiding are **not** safe by accident — only the ones that happen to change the count are.
+
+The caches are keyed by **render** index while the sizes behind them resolve per **physical** index (`sizeFn` → `wtTable.getRowHeight` → `modifyRowHeight` → AutoRowSize / ManualRowResize; per-column `width` through `getCellMeta`). Any consumer holding per-physical sizes is blind in the same way: AutoRowSize invalidates through `observeMapChange(rowHeightsMap, …)` and that map is keyed by physical row, so a sort changes no value in it and the observer never fires.
+
+The invalidation is therefore explicit, in one place for both axes: `onIndexMapperCacheUpdate(state, axis)` in `src/core.ts` calls `view.invalidateRowHeightCache()` or `view.invalidateColumnWidthCache()` whenever **any** of the three change flags is set. Two ways to get that gate wrong, both hit during DEV-2823:
+
+- Gating on `indexesSequenceChanged` alone — the first version of the fix, which left the same-count trim/hide swap broken. This is the one that matters: it is a correctness bug, and each of the three flags needs its own test or a dropped flag ships green.
+- Dropping the gate entirely — `updateCache(force = true)` reaches here with every flag false and nothing rearranged (`pagination.ts` when there is nothing to page, and the DataProvider), so skipping those saves a cache and layout drop that cannot change anything. This one is only tidiness, **not** a measured win: an earlier version of this note blamed a unit-test timeout on the unconditional call, and re-running it showed the full suite passes either way — the timeout was machine load from a concurrent Playwright run.
+
+(`AutoColumnSize#onColumnIndexMapperCacheUpdate` clearing `#columnSamplesCache` is a *different* cache and does not cover this.)
+
+**The position cache is not the only reorder-blind cache.** `wtViewport.oversizedRows` is keyed by renderable row too, and `resetOversizedRows` (`axisSizing/oversizedRows.ts`) deliberately wipes only the rendered band, so on a reorder every index outside that band keeps the previous order's measurement and the rebuilt prefix sums inherit it. That matters when walkontable measures the rows itself rather than a `modifyRowHeight` provider supplying them; `resetAllOversizedRows()` is the call that clears it. Not addressed by DEV-2823 and not yet reproduced — flagged here so the next person does not assume invalidating the position cache is sufficient.
+
+Before trusting a size cache across an operation, ask whether the operation changes the item count. If it does not, nothing invalidates for you.
+
 ## Content-driven sizes the master never renders
 
 The master renders a **contiguous** column band starting at the column under the horizontal scroll offset, so as soon as that band starts past column 0 it does not render the frozen (inline-start) columns at all — the inline-start overlays are the only tables holding that content. Any size measured from the master's rendered DOM therefore misses it. Two syncs in `axisSizing/oversizedRows.ts` close that gap, both called from `runMasterDrawCycle` **after** `wtOverlays.refresh(false)`:
@@ -674,6 +696,56 @@ of style recalculation, not JavaScript. Three consequences:
 engine keeps no per-cell state of its own here; the host (`TableView` through `CellPainter`) owns
 the stamps and answers from the cell's `renderMode`. The default answers `true`, so a Walkontable
 built without the setting behaves as before. A renderer spec's `TableRendererMock` must provide it.
+
+## The engine decides for itself when the overlays need resizing — never ask it from outside
+
+`Overlays#adjustElementsSize()` writes the hider's size and re-sizes the three region overlays. It is
+**not** something core or a plugin should call. The engine runs it on the draw where the geometry it
+would write differs from the geometry it last wrote, and on no other draw.
+
+The gate is `Overlays#currentLayoutSignature()`. It joins the size the write itself would produce
+(`SpreaderSize#getProposedHiderSize()`) with the workspace box and its scrollbars (off the
+`LayoutSnapshot` the draw already resolved), the three `shouldRender*Overlay` settings, the frozen
+counts, and the frozen extents. Those extra terms are **not** there for the overlay roots — the three
+region overlays re-size themselves on every master draw, because `placeFixedOverlays` calls each
+region's `resetFixedPosition()` outside the render gate and each of those ends in its own
+`adjustElementsSize()`. They are there for the two things this writer does that nothing else repeats:
+`ScrollbarVisibility#notifyResized()` and `Overlays#syncScrollbarTrackBands()`, both decided by the
+scrollport box, the scrollbar state, which clones render, and how deep the frozen regions reach. Drop
+them and the scrollbar bands stop following a container resize.
+
+`adjustElementsSize()` records the signature **after** it writes, so a write that changes one of its
+own terms does not re-fire on the next draw, and so the paths that reach the writer directly
+(`markOversizedRows`, the `skipRender` path of the draw cycle — the one master draw that never
+reaches `refresh()` — the bottom clone's draw, and `refreshColumnHeaderHeights`) cannot leave it
+stale. It also hands back the size it wrote, which the signature reuses: a resizing draw then walks
+the columns twice rather than three times.
+
+Two rules follow, and both have cost real bugs:
+
+- **Never gate a resize on a measurement of the spreader.** That is what the engine did until DEV-19,
+  and it is blind on both axes: `.handsontable .wtSpreader` is `width: 0` in the stylesheet, so
+  `clientWidth` is always 0 and can never report a width change; and `height: auto` measures the
+  rendered band, which on a virtualized grid moves independently of the total. Measured on a
+  500 × 40 grid: hiding columns moved the hider from 1161px to 3650px and the spreader-measuring
+  gate still answered `false`; dropping 300 rows to 60 moved it from 8730px to 1770px, also
+  `false`. That blindness is why 30 call sites across core and the plugins used to force the resize
+  by hand.
+- **The gate must ask the writer what it would write, not recompute it.** `getProposedHiderSize()`
+  exists for exactly that. A gate built on a separate approximation drifts from the writer, and every
+  drift is either a missed resize (overlays out of step) or a wasted one. In particular it must keep
+  using the **live** column walk — see the `stretchH` note under Performance, where caching the column
+  sum freezes the stretch cycle.
+
+`TableView#adjustElementsSize()` survives as legacy because it is reachable as
+`hot.view.adjustElementsSize()`. Its contract moved: it used to schedule a resize for the next render,
+and it now forwards to `Overlays#adjustElementsSizeIfNeeded()` — the engine's own gate — so it resizes
+straight away if the geometry really differs and costs nothing if it does not. `flush = true` skips the
+gate and resizes unconditionally. No plugin and no core path calls either form; a handful of specs
+still do, deliberately, to pin that the escape hatch keeps working
+(`__tests__/core/resumeRender.spec.js`, `__tests__/settings/fixedRowsTop.spec.js`,
+`__tests__/settings/fixedColumnsStart.spec.js`). `tests/e2e/walkontable/overlay-self-resize.spec.ts` asserts that
+none of the deleted plugin paths ask for a resize on its fixture.
 
 ## Known Tech Debt
 

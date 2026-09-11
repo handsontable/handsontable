@@ -204,13 +204,15 @@ starlight-toc {
 }
 
 /* Generated recipe steps emit Starlight's `.sl-steps` markup without instantiating
-   the `<Steps>` component, so keep the component's global marker styles here. */
+   the `<Steps>` component, so keep the component's global marker styles here.
+
+   This rule stays unlayered on purpose. The list renders inside
+   `.sl-markdown-content`, and Starlight's generic sibling rule there
+   (`starlight.content`, specificity 0-1-2) beats `.sl-steps` at 0-1-0, so a
+   layered version of this rule would lose and the list would take
+   `--sl-content-gap-y` instead of the 2rem the section needs. */
 .sl-steps {
   margin-top: 2rem;
-}
-
-.sl-steps > li > * + * {
-  margin-top: var(--sl-content-gap-y);
 }
 
 @layer starlight.components {
@@ -227,8 +229,27 @@ starlight-toc {
     counter-increment: steps-counter;
     position: relative;
     padding-inline-start: calc(var(--bullet-size) + 1rem);
-    padding-bottom: 2rem;
+    /* `li::after` (the hairline connector) is anchored to the padding box and
+       inset by `bullet-size + bullet-margin` at the top, so the item has to be
+       taller than that or the line collapses to nothing.
+
+       Upstream Starlight uses `padding-bottom: 1px` and leans on the
+       `margin-bottom` its markdown styles give a loose list's last child. That
+       margin is gated on the list being loose, and these guides also write
+       tight lists, whose one-line items land exactly on `min-height` and lose
+       the line entirely. So the spacing is set here instead, and only between
+       items - the last one has nothing to connect to. */
+    padding-bottom: 1rem;
     min-height: calc(var(--bullet-size) + var(--bullet-margin));
+  }
+
+  .sl-steps > li:last-child {
+    padding-bottom: 0;
+  }
+
+  /* Nothing follows the last bullet, so a line under it points at nothing. */
+  .sl-steps > li:last-child::after {
+    content: none;
   }
 
   .sl-steps > li + li {
@@ -266,6 +287,10 @@ starlight-toc {
 }
 
 @layer starlight.content {
+  .sl-steps > li > * + * {
+    margin-top: var(--sl-content-gap-y);
+  }
+
   .sl-steps > li > :first-child {
     --lh: calc(1em * var(--sl-line-height));
     --shift-y: calc(0.5 * (var(--bullet-size) - var(--lh)));

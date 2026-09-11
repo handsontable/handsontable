@@ -40,11 +40,47 @@ when every height is already cached.
 - **The first rendered row gets +1px** to compensate for its `border-top-width`. That compensation is
   per-render, not baked into the cached height.
 
-## `updateSettings` does not recalculate
+## `updateSettings` does not recalculate — with one exception
 
 Changing `wordWrap`, `textEllipsis` or a renderer changes row heights, but `updateSettings()` alone does not
 re-measure. Callers must follow it with `recalculateAllRowsHeight()`. That is documented in the class JSDoc
 and in the guides — it is the contract, not a bug.
+
+**The exception is this plugin's own sampling settings.** `updatePlugin()` re-reads `samplingRatio` and
+`allowSampleDuplicates` and, when either actually changed, calls `clearCache()` — which schedules the full
+recalculation. That is not a widening of the rule above: those two settings decide *which cells get measured
+at all*, so heights measured under the previous values describe a different sample and cannot be kept.
+Leaving them applied only to rows measured after the change is what made the setting look inert (DEV-2850).
+
+Three rules hold that in place, and all three are load-bearing:
+
+- **The settings must be re-read in `updatePlugin()`, not only in `enablePlugin()`.** `enablePlugin()`
+  returns early on an already-enabled plugin, and `BasePlugin` only re-runs the enable/disable pair when the
+  plugin's enabled state itself changed — so a plain settings change never reaches it. This is exactly how
+  `samplingRatio` came to be silently ignored on every `updateSettings()` call.
+- **Restore the stored settings first when the payload omits this plugin's key.** `SETTING_KEYS` is `true`,
+  so an update that never mentions `autoRowSize` still reaches `updatePlugin()` — and `onUpdateSettings` has
+  already fed `updatePluginSettings()` that missing key as `undefined`, which **wipes** the stored settings
+  (neither auto-size plugin declares `SETTINGS_VALIDATORS`, so the assignment falls straight through). Read
+  them in that state and you get the *defaults*, so re-applying would reset the user's `samplingRatio` and
+  re-measure the whole grid on an unrelated `updateSettings({ colHeaders: true })`. Restore from
+  `hot.getSettings()[PLUGIN_KEY]`, which is untouched — the same repair, for the same base-class reason, that
+  `manualRowResize` does (`../manualResize/AGENTS.md`, "Listing a foreign option in `SETTING_KEYS`").
+  **This is the common path, not an edge case:** the Vue wrapper omits every settings key whose value is
+  unchanged (`wrappers/vue3/src/helpers.ts`, `simpleEqual`), so a Vue app sends a payload *without*
+  `autoRowSize` on virtually every prop change.
+- **Clear the cache only when a value actually changed.** `updatePlugin()` runs on every `updateSettings()`
+  call, and the React and Angular wrappers re-send unchanged settings on every update (React on every
+  commit). An unconditional `clearCache()` would therefore re-measure every row on every commit.
+  `SamplesGenerator#applySamplingOptions()` returns whether anything changed, which is what that decision
+  reads; `AutoColumnSize` uses the same method for the same reason.
+
+`samplingRatio` is resolved by `SamplesGenerator.resolveSampleCount()` rather than by each plugin, so all
+three sampling plugins agree on what the option means. Anything that is not a whole number above zero
+resolves to `null` (the default). That guard is not cosmetic: parsed raw, `true` and `[]` became `NaN`, and
+because `NaN !== NaN` the change check reported a change on *every* `updateSettings()` call and never
+converged; a negative value produced a `needed` count that collected no samples at all; and `'6'` compared
+as different from `6`.
 
 ## Only a full render measures rows, and it measures only the visible band
 
