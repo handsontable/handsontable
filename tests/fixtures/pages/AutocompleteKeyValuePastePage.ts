@@ -15,6 +15,7 @@ interface FixtureWindow {
   htPastePlainText(row: number, col: number, text: string): void;
   htValidState(row: number, col: number): string;
   htTypeAndCommit(row: number, col: number, text: string): void;
+  htEmptyEditorAndCommit(row: number, col: number): Promise<number>;
   htLoadPlainLabels(): void;
   htUndo(): void;
 }
@@ -117,6 +118,20 @@ export class AutocompleteKeyValuePastePage {
     await expect.poll(() => this.selected()).toEqual([[row, col, row, col]]);
 
     await this.page.keyboard.press('ControlOrMeta+v');
+  }
+
+  /**
+   * Opens the cell's editor, waits for its choices to load, then clears the text and commits.
+   *
+   * Returns how many choices were loaded. The count is the proof the test exercised the lookup:
+   * the choices query is deferred, so an editor opened and committed in one tick has none, and a
+   * spec written that way passes whether the empty-text guard exists or not.
+   */
+  async emptyEditorAndCommit(row: number, col: number): Promise<number> {
+    return this.page.evaluate(
+      ([r, c]) => (window as unknown as FixtureWindow).htEmptyEditorAndCommit(r, c),
+      [row, col],
+    );
   }
 
   /**

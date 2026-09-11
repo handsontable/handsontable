@@ -107,6 +107,24 @@ test.describe('pasting a label into a key/value source (DEV-57)', () => {
     await expect.poll(() => grid.sourceAt(0, 2)).toBe('string:red');
   });
 
+  test('leaves an emptied editor empty rather than resolving it to a blank entry', async() => {
+    // Column 3's source carries `{ key: '0', value: null }`, which the cell shows as nothing. An
+    // emptied editor and that entry therefore look identical on screen. Resolving one to the other
+    // would store an object where the user cleared the cell, and because it is an object the setter
+    // returns it untouched, so its own empty gate never runs and neither `allowEmpty` nor
+    // `emptyValue` ever sees a blank.
+    await expect.poll(() => grid.sourceAt(1, 3)).toBe('object:{"key":"1","value":"BMW"}');
+
+    const loadedChoices = await grid.emptyEditorAndCommit(1, 3);
+
+    // Proof the test reached the lookup at all. The choices query is deferred, so an editor opened
+    // and committed in the same tick holds none and `getValue()` returns the text without ever
+    // consulting the source - which passes with or without the guard.
+    expect(loadedChoices).toBe(2);
+
+    await expect.poll(() => grid.sourceAt(1, 3)).toBe('string:');
+  });
+
   test('does not resolve labels that arrive by loading data', async() => {
     // Loading is not a write, so it never reaches `valueSetter`. This is what keeps an existing
     // dataset holding plain labels untouched until something writes to those cells, and it is

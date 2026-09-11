@@ -116,6 +116,16 @@ export class AutocompleteEditor extends HandsontableEditor {
     // text that never passed through this editor - a `text/plain` paste, or `setDataAtCell()`. Two
     // copies of this rule drifted once and let a pasted label store a bare string among key/value
     // objects (DEV-57), so keep the single call.
+    // An emptied editor has to stay empty, the same rule the `valueSetter` keeps. A `source` entry
+    // whose label is blank - `{ key: '0', value: null }` - displays as `''`, so without this guard
+    // confirming an empty editor would resolve to that entry. It is an object, so the setter returns
+    // it untouched and its own `isEmpty` gate never runs, leaving `allowEmpty` and `emptyValue` with
+    // no blank to act on. A plain `''` entry resolves to `''` anyway, so the blank option a user can
+    // pick from the list still behaves the same.
+    if (this.TEXTAREA.value === '') {
+      return this.TEXTAREA.value;
+    }
+
     const selectedValue = findChoiceByDisplayedValue(
       this.rawChoices, this.TEXTAREA.value, this.cellProperties.allowHtml === true
     );

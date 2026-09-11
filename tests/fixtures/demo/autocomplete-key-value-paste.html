@@ -53,18 +53,27 @@
     // does not reshape a column that never used key/value entries.
     const COLOR_SOURCE = ['yellow', 'red', 'green'];
 
+    // A key/value source carrying a BLANK label. The cell shows nothing for it, so an empty editor
+    // and this entry look identical on screen - which is what makes it the trap: resolving a blank
+    // to it would store an object where the user left the cell empty.
+    const BLANK_SOURCE = [
+      { key: '0', value: null },
+      { key: '1', value: 'BMW' },
+    ];
+
     let hot;
 
     try {
       hot = new Handsontable(container, {
         data: [
           // Row 0: both key/value cells are EMPTY - the state a paste into a fresh cell starts from.
-          [null, null, null],
+          [null, null, null, null],
           // Row 1: both already hold an entry, which is the second broken shape. The old setter
           // wrapped the pasted label as `{ key: <label>, value: <label> }`, fabricating a key.
-          [{ key: '2', value: 'Chrysler' }, { key: '2', value: 'Chrysler' }, 'yellow'],
+          [{ key: '2', value: 'Chrysler' }, { key: '2', value: 'Chrysler' }, 'yellow',
+            { key: '1', value: 'BMW' }],
           // Row 2: a source cell to copy FROM, so the rich clipboard path is covered too.
-          [{ key: '1', value: 'BMW' }, null, null],
+          [{ key: '1', value: 'BMW' }, null, null, null],
         ],
         columns: [
           // Non-strict autocomplete, exactly the reported StackBlitz shape. It accepts anything,
@@ -75,8 +84,11 @@
           { type: 'dropdown', source: CAR_SOURCE, width: 160, renderer: testIdRenderer },
           // Plain-string source: a control column.
           { type: 'autocomplete', source: COLOR_SOURCE, strict: false, width: 160, renderer: testIdRenderer },
+          // A source with a blank label, so a spec can prove an emptied editor stays empty rather
+          // than resolving to the entry that happens to display as nothing.
+          { type: 'autocomplete', source: BLANK_SOURCE, strict: false, width: 160, renderer: testIdRenderer },
         ],
-        colHeaders: ['Car (autocomplete)', 'Car (dropdown)', 'Color (strings)'],
+        colHeaders: ['Car (autocomplete)', 'Car (dropdown)', 'Color (strings)', 'Blank label'],
         rowHeaders: true,
         licenseKey: 'non-commercial-and-evaluation',
       });
@@ -141,6 +153,33 @@
     };
 
     /** Types a label into the cell's editor and commits it, the path that always resolved. */
+    /**
+     * Opens the editor, waits for its choices to actually load, then clears the text and commits.
+     *
+     * The wait is the whole point. `queryChoices()` is deferred through a timeout, so an editor
+     * opened and committed in one tick still has an EMPTY `rawChoices` and `getValue()` never
+     * reaches the lookup at all - a test written that way passes whether the guard is there or not.
+     * Resolves with the number of choices that were loaded, so the spec can assert the path was
+     * exercised rather than trusting it.
+     */
+    window.htEmptyEditorAndCommit = function(row, col) {
+      hot.selectCell(row, col);
+
+      const editor = hot.getActiveEditor();
+
+      editor.beginEditing();
+
+      return new Promise(function(resolve) {
+        setTimeout(function() {
+          const loaded = editor.rawChoices.length;
+
+          editor.TEXTAREA.value = '';
+          editor.finishEditing();
+          resolve(loaded);
+        }, 100);
+      });
+    };
+
     window.htTypeAndCommit = function(row, col, text) {
       hot.selectCell(row, col);
 
