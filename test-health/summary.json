@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-11T09:19:21.464Z",
+  "generatedAt": "2026-09-11T10:01:31.643Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -10,6 +10,7 @@
   "totals": {
     "tests": 3,
     "needsTicket": 0,
+    "quarantined": 0,
     "entries": 3
   },
   "rows": [
@@ -32,6 +33,7 @@
         "flaky"
       ],
       "isolation": [],
+      "quarantine": null,
       "lastSeen": {
         "seenAt": "2026-09-11T09:18:34Z",
         "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34582029516",
@@ -62,6 +64,7 @@
         "flaky"
       ],
       "isolation": [],
+      "quarantine": null,
       "lastSeen": {
         "seenAt": "2026-09-07T12:21:37Z",
         "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34121444051/job/101742189525",
@@ -92,6 +95,7 @@
         "flaky"
       ],
       "isolation": [],
+      "quarantine": null,
       "lastSeen": {
         "seenAt": "2026-09-07T00:00:00Z",
         "runUrl": null,
