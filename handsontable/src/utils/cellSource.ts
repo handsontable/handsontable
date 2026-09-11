@@ -1,6 +1,33 @@
-import { isKeyValueEntry } from '../helpers/object';
+import { isKeyValueObject } from '../helpers/object';
 import { stringify } from '../helpers/mixed';
 import { stripTags } from '../helpers/string';
+
+/**
+ * A plain object that carries both a `key` and a `value`, the shape a cell's `source` uses to keep
+ * a stored key apart from the label shown for it.
+ */
+export type KeyValueObject = {
+  key: unknown;
+  value: unknown;
+};
+
+/**
+ * Type-guard form of `isKeyValueObject()`, so a caller can read `key` and `value` without a cast.
+ *
+ * It lives here rather than beside `isKeyValueObject()` in `helpers/object.ts` for the same reason
+ * this whole module does: `index.ts` spreads that module onto `Handsontable.helper` and `base.ts`
+ * types the namespace as `typeof import('./helpers/object')`, so anything exported there is public
+ * API forever. `isKeyValueObject()` keeps its `boolean` return for exactly that reason - narrowing
+ * it would reject a consumer reading any other property after the check - and this wrapper adds the
+ * narrowing for internal callers without adding a second public helper. It delegates rather than
+ * repeating the shape test, so the two can never disagree.
+ *
+ * @param {*} value The value to check.
+ * @returns {boolean}
+ */
+export function isKeyValueEntry(value: unknown): value is KeyValueObject {
+  return isKeyValueObject(value);
+}
 
 /**
  * Reduces one choice to the text a cell displays for it: a key/value entry contributes its `value`

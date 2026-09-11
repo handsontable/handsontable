@@ -1,4 +1,5 @@
-import { isObjectEqual, isKeyValueEntry } from '../../helpers/object';
+import { isObjectEqual } from '../../helpers/object';
+import { isKeyValueEntry } from '../../utils/cellSource';
 import { isDefined } from '../../helpers/mixed';
 import type { CellProperties } from '../../settings';
 

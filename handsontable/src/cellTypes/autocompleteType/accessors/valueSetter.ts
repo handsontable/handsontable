@@ -1,6 +1,5 @@
-import { isKeyValueEntry } from '../../../helpers/object';
 import { isEmpty } from '../../../helpers/mixed';
-import { findChoiceByDisplayedValue, hasKeyValueChoices } from '../../../utils/cellSource';
+import { findChoiceByDisplayedValue, hasKeyValueChoices, isKeyValueEntry } from '../../../utils/cellSource';
 import type { CellProperties, ChangeSource } from '../../../settings';
 
 /**

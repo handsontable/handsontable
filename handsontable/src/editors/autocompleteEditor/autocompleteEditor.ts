@@ -3,8 +3,7 @@ import type { CellProperties } from '../../settings';
 import { EDITOR_STATE } from '../baseEditor';
 import { HandsontableEditor } from '../handsontableEditor';
 import { pivot } from '../../helpers/array';
-import { isKeyValueEntry } from '../../helpers/object';
-import { findChoiceByDisplayedValue } from '../../utils/cellSource';
+import { findChoiceByDisplayedValue, isKeyValueEntry } from '../../utils/cellSource';
 import {
   addClass,
   fastInnerHTML,

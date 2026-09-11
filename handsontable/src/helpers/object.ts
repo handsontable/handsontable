@@ -625,34 +625,11 @@ export function deepMerge(
 }
 
 /**
- * A plain object that carries both a `key` and a `value`, the shape a cell's `source` uses to keep
- * a stored key apart from the label shown for it.
- */
-export type KeyValueObject = {
-  key: unknown;
-  value: unknown;
-};
-
-/**
  * Checks if the value is a key/value object.
  *
  * @param {*} value The value to check.
  * @returns {boolean}
  */
 export function isKeyValueObject(value: unknown): boolean {
-  return isKeyValueEntry(value);
-}
-
-/**
- * Type-guard variant of {@link isKeyValueObject} that narrows the value to {@link KeyValueObject}.
- * Use this instead of `isKeyValueObject` when you need TypeScript to narrow the type after the
- * check. {@link isKeyValueObject} intentionally returns `boolean` to preserve downstream
- * compatibility - it is re-exported on the public `Handsontable.helper` namespace, where narrowing
- * to a two-property type would reject a consumer reading any other property after the check.
- *
- * @param {*} value The value to check.
- * @returns {boolean}
- */
-export function isKeyValueEntry(value: unknown): value is KeyValueObject {
   return isPlainObject(value) && isDefined(value.key) && isDefined(value.value);
 }
