@@ -157,7 +157,7 @@
       "deps": [],
       "mode": "inherit",
       "passthrough": true,
-      "passthroughFilter": ["--random", "--seed", "--verbose", "--hotVersion"]
+      "passthroughFilter": ["--random", "--seed", "--verbose", "--hotVersion", "--spec", "--specFile"]
     },
     "test:walkontable.dump": {
       "cmd": "cross-env-shell BABEL_ENV=commonjs_e2e NODE_ENV=test-walkontable env-cmd -f ../hot.config.js rspack ./src/3rdparty/walkontable/test/helpers/index.js ./src/3rdparty/walkontable/test/spec/index.js",
@@ -181,7 +181,7 @@
       "deps": [],
       "mode": "inherit",
       "passthrough": true,
-      "passthroughFilter": ["--random", "--seed", "--verbose", "--hotVersion"]
+      "passthroughFilter": ["--random", "--seed", "--verbose", "--hotVersion", "--spec", "--specFile"]
     },
     "test:mobile.dump": {
       "cmd": "npm run build:styles && cross-env-shell BABEL_ENV=commonjs_e2e NODE_ENV=test-mobile env-cmd --no-override -f ../hot.config.js rspack ./test/helpers/index.js ./test/e2e/mobile/index.js",
