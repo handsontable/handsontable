@@ -22,6 +22,13 @@ test('the weekday schedule is landed disabled, pending rollout step 1, with manu
   );
 });
 
+test('is named distinctly from the examples sync and the production deploy', () => {
+  // "Docs Sync" read as a sibling of "Docs Examples Sync" despite doing an
+  // unrelated job; the verb-first name says what this one does and where, and
+  // sets it apart from "Docs Production Deployment", which actually deploys.
+  assert.match(source, /^name: Sync Docs Content to Production$/m);
+});
+
 test('uses the release GitHub App token and never GITHUB_TOKEN', () => {
   assert.match(source, /actions\/create-github-app-token@/);
   assert.match(source, /client-id: \$\{\{ secrets\.RELEASE_APP_CLIENT_ID \}\}/);
@@ -41,6 +48,7 @@ test('passes the LiteLLM secrets and the model variable to the script', () => {
   assert.match(source, /LITELLM_BASE_URL: \$\{\{ secrets\.LITELLM_BASE_URL \}\}/);
   assert.match(source, /LITELLM_API_KEY: \$\{\{ secrets\.LITELLM_API_KEY \}\}/);
   assert.match(source, /DOCS_SYNC_MODEL: \$\{\{ vars\.DOCS_SYNC_MODEL \}\}/);
+  assert.match(source, /DOCS_SYNC_TEMPERATURE: \$\{\{ vars\.DOCS_SYNC_TEMPERATURE \}\}/);
   assert.match(source, /DOCS_SYNC_REVIEWERS: \$\{\{ vars\.DOCS_SYNC_REVIEWERS \}\}/);
   assert.match(source, /run: node \.github\/scripts\/docs-sync\.mjs/);
 });

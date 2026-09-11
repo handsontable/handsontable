@@ -17,7 +17,8 @@
  *                                      [--repo-dir <path>] [--gh-bin <path>]
  *
  * Env: GH_TOKEN, GH_REPO, LITELLM_BASE_URL, LITELLM_API_KEY, DOCS_SYNC_MODEL,
- *      DOCS_SYNC_REVIEWERS, DRY_RUN, TARGET, GITHUB_STEP_SUMMARY.
+ *      DOCS_SYNC_TEMPERATURE, DOCS_SYNC_REVIEWERS, DRY_RUN, TARGET,
+ *      GITHUB_STEP_SUMMARY.
  */
 
 import { execFileSync } from 'node:child_process';
@@ -69,14 +70,15 @@ const gh = createGitHub({
 const summaryLines = [];
 
 /**
- * Log to stdout and to the step summary buffer, with the push token scrubbed
- * out of every line -- a failed push echoes the tokenized remote URL through
- * `error.message`, and this is the one place all such messages pass through.
+ * Log to stdout and to the step summary buffer, with secrets scrubbed out of
+ * every line -- a failed push echoes the tokenized remote URL through
+ * `error.message`, and a LiteLLM error body can quote the `Authorization`
+ * header or the key. This is the one place all such messages pass through.
  *
  * @param {string} line
  */
 function log(line) {
-  const scrubbed = scrubSecrets(line);
+  const scrubbed = scrubSecrets(line, [process.env.LITELLM_API_KEY]);
 
   console.log(scrubbed);
   summaryLines.push(scrubbed);
@@ -113,13 +115,31 @@ async function makeClassifier({ prompt, hash, cache, target, releasedVersion, un
     return async() => ({ decision: 'unsure', reason: 'Classifier disabled with --no-llm.' });
   }
 
-  const { LITELLM_BASE_URL: baseUrl, LITELLM_API_KEY: apiKey, DOCS_SYNC_MODEL: model } = process.env;
+  const {
+    LITELLM_BASE_URL: baseUrl, LITELLM_API_KEY: apiKey, DOCS_SYNC_MODEL: model,
+    DOCS_SYNC_TEMPERATURE: temperatureText,
+  } = process.env;
 
   if (!baseUrl || !apiKey || !model) {
     throw new Error('LITELLM_BASE_URL, LITELLM_API_KEY and DOCS_SYNC_MODEL are required unless --no-llm is passed.');
   }
 
-  const client = createClient({ baseUrl, apiKey, model });
+  // Unset repository variables expand to an empty string in the workflow, not
+  // an absent env var, so treat `''` and `undefined` alike: both mean "omit
+  // the temperature and let the model's own default apply". A present but
+  // unparseable value is a configuration error, not a silent `NaN` that would
+  // serialize to `"temperature": null` and 400 every call.
+  let temperature;
+
+  if (temperatureText !== undefined && temperatureText !== '') {
+    temperature = Number.parseFloat(temperatureText);
+
+    if (!Number.isFinite(temperature)) {
+      throw new Error(`DOCS_SYNC_TEMPERATURE must be a number, got "${temperatureText}".`);
+    }
+  }
+
+  const client = createClient({ baseUrl, apiKey, model, temperature });
 
   return async(candidate) => {
     const key = cacheKey(candidate.sha, hash);

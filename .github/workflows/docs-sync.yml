@@ -1,4 +1,4 @@
-name: Docs Sync
+name: Sync Docs Content to Production
 
 # Ports content-only documentation commits from develop to the live
 # prod-docs/<major>.<minor> branch through one bot-owned pull request.
@@ -83,6 +83,12 @@ jobs:
           LITELLM_API_KEY: ${{ secrets.LITELLM_API_KEY }}
           # Repository variable, so the model can change without a pull request.
           DOCS_SYNC_MODEL: ${{ vars.DOCS_SYNC_MODEL }}
+          # Optional repository variable. Unset (empty) omits temperature from
+          # the request, so the provider's own default applies -- required for a
+          # reasoning-tier model that rejects any non-default temperature. Set
+          # it to 0 to keep classifications deterministic on a model that
+          # honours temperature (e.g. Anthropic).
+          DOCS_SYNC_TEMPERATURE: ${{ vars.DOCS_SYNC_TEMPERATURE }}
           DOCS_SYNC_REVIEWERS: ${{ vars.DOCS_SYNC_REVIEWERS }}
           # A scheduled run is never a dry run; a manual dispatch defaults to one.
           DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}

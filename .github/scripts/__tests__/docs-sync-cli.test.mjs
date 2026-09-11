@@ -735,7 +735,7 @@ test('a cached decision under the current prompt hash skips the model; a stale p
   // here, the stale-prompt-hash run (the one that must call the model)
   // reliably took ~185s and exited 1; switching to `spawn` drops it back to
   // the sub-second range and both cache scenarios pass.
-  const runWithoutNoLlm = (extraAnswers) => {
+  const runWithoutNoLlm = (extraAnswers, extraEnv = {}) => {
     writeAnswers(f, extraAnswers);
 
     return new Promise((resolve) => {
@@ -752,6 +752,7 @@ test('a cached decision under the current prompt hash skips the model; a stale p
           LITELLM_BASE_URL: `http://127.0.0.1:${port}`,
           LITELLM_API_KEY: 'test-key',
           DOCS_SYNC_MODEL: 'test-model',
+          ...extraEnv,
         },
       });
       let stdout = '';
@@ -799,10 +800,24 @@ test('a cached decision under the current prompt hash skips the model; a stale p
     assert.equal(second.status, 0, second.stderr);
     assert.equal(requests.length, 1, 'a stale prompt hash must call the model exactly once for the one classifiable candidate');
     assert.equal(requests[0].messages[1].role, 'user');
+    // With DOCS_SYNC_TEMPERATURE unset, the request omits temperature entirely.
+    assert.ok(!('temperature' in requests[0]), 'temperature is omitted when the variable is unset');
 
     const summary2 = readFileSync(path.join(f.root, 'summary.md'), 'utf8');
 
     assert.match(summary2, /## Included\n\n- `[0-9a-f]{7}` Fix a typo in guide a \(#101, @someone\)/);
+
+    // DOCS_SYNC_TEMPERATURE reaches the request body when set.
+    rmSync(path.join(f.root, 'summary.md'), { force: true });
+
+    const third = await runWithoutNoLlm(
+      { openPr: { number: 500, url: 'https://github.com/o/r/pull/500', body: staleBody } },
+      { DOCS_SYNC_TEMPERATURE: '0.2' },
+    );
+
+    assert.equal(third.status, 0, third.stderr);
+    assert.equal(requests.length, 2, 'the third run calls the model again under the stale prompt hash');
+    assert.equal(requests[1].temperature, 0.2, 'a configured temperature is forwarded to the request');
   } finally {
     server.close();
     rmSync(f.root, { recursive: true, force: true });
