@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed narrow `dropdown` and `autocomplete` cells wrapping their contents around the dropdown arrow; long values now stay on one line and truncate with an ellipsis.",
+  "type": "fixed",
+  "issueOrPR": 13463,
+  "breaking": false,
+  "framework": "none"
+}
