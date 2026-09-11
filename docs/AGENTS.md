@@ -603,6 +603,25 @@ pull request body lists every decision with its reason. Merge it and
   the checkout it runs in and restores your branch afterwards, so run it from a
   clean checkout or a worktree, never with uncommitted changes.
 
+#### A `Blocked` HTML 403 from the classifier is a Cloudflare block on the runner IP
+
+The classifier calls the gateway at `litellm.handsontable.com`, which sits
+behind Cloudflare. A CI run can get an HTML `Blocked` 403 after a handful of
+successful calls, while the same calls from a developer machine never block.
+This is **caller-IP dependent** - measured 42/42 successes from a non-datacenter
+IP against roughly six-then-block from the GitHub Actions runner - so the block
+is on the runner -> gateway leg at Cloudflare (bot management on the runner's
+datacenter IP), not the model API, the gateway's own rate limit (its
+`x-ratelimit-remaining-requests` stayed near its ceiling), or the gateway ->
+provider egress (that leg is identical from a machine that never blocks). The
+fix is to allowlist the runner IP at that Cloudflare zone, or turn off Bot Fight
+Mode for the host - not a client change. Whether that zone is Handsontable's own
+or the host's is unconfirmed until someone reads Cloudflare -> Security -> Events
+for `litellm.handsontable.com`; that view also names the exact rule that fired.
+On a failed call the classifier now logs the upstream response headers (`cf-ray`,
+`cf-mitigated`, `server`, rate-limit headers) so the block is identifiable
+straight from the run summary.
+
 ---
 
 ## 2.12 Content Pipeline and Dev-Server Memory (DEV-1991)

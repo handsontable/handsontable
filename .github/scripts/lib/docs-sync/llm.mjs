@@ -6,13 +6,27 @@
  * without a network or a wait.
  */
 
-// An upstream error body (a proxy 4xx, an HTML block page) is the one string in
-// this module that a diagnostic needs in full, so it is cut generously rather
-// than at a token-frugal 200: 4096 matches the classifier's own body budget in
-// `classify.mjs`. Every such message passes through `docs-sync.mjs`'s
-// `scrubSecrets` before it reaches a log line or the public step summary, so a
-// key echoed back in the body is redacted regardless of this cap.
-const MAX_ERROR_CHARS = 4096;
+// The classifier's own malformed-response payload (our JSON) is cut here; it is
+// small and self-authored, so a modest cap is enough.
+const MAX_PAYLOAD_CHARS = 4096;
+
+// A failed upstream call's body is cut much more generously: a Cloudflare block
+// page is mostly a base64 font blob, but its signal (`<title>Blocked</title>`,
+// the visible message) sits in the first few hundred bytes, so 16 KiB captures
+// every real error whole while staying well under `$GITHUB_STEP_SUMMARY`'s size
+// limit -- it is not unbounded because that summary has a cap and is not
+// secret-masked.
+const MAX_ERROR_BODY_CHARS = 16_384;
+
+// The response headers worth surfacing on a failed call -- the set the probe
+// proved discriminates a Cloudflare edge block from a real API error. Every
+// `x-ratelimit-*` header is kept too (rate-limit state is diagnostic and the
+// exact names vary by provider). Allowlisted, not dumped: this string reaches
+// the un-masked step summary, so an unanticipated header must never ride along.
+const DIAGNOSTIC_HEADERS = [
+  'server', 'cf-ray', 'cf-mitigated', 'cf-cache-status', 'retry-after',
+  'x-litellm-model-id', 'content-type', 'date',
+];
 
 /**
  * The chat completions endpoint for a proxy base URL.
@@ -24,6 +38,59 @@ export function completionsUrl(baseUrl) {
   const base = baseUrl.replace(/\/+$/, '');
 
   return base.endsWith('/v1') ? `${base}/chat/completions` : `${base}/v1/chat/completions`;
+}
+
+/**
+ * A diagnostic message for a non-2xx response: the status, the headers that
+ * tell an edge block apart from an API error, and the body.
+ *
+ * The trimming is deliberate, not laziness: the whole string is thrown, logged,
+ * and appended to `$GITHUB_STEP_SUMMARY`, which has a size limit and is not
+ * secret-masked. So headers are allowlisted (never dumped whole) and the body is
+ * capped -- see the constants above.
+ *
+ * @param {Response} response
+ * @param {string} bodyText The already-read response body.
+ * @returns {string}
+ */
+export function describeErrorResponse(response, bodyText) {
+  const lines = [`LiteLLM responded ${response.status} ${response.statusText}`.trimEnd()];
+
+  // A Cloudflare edge block returns HTML with cf-ray/cf-mitigated, not the JSON
+  // an API error carries. Flag that from the headers alone -- do not assert
+  // which hop or whose zone Cloudflare fronts; the headers cannot support that,
+  // and a wrong guess here misleads the next reader.
+  const server = response.headers.get('server') ?? '';
+  const cfMitigated = response.headers.get('cf-mitigated');
+  const contentType = response.headers.get('content-type') ?? '';
+
+  if (/cloudflare/i.test(server) && (cfMitigated != null || /text\/html/i.test(contentType))) {
+    lines.push(`Looks like a Cloudflare edge block, not the model API; cf-ray=${response.headers.get('cf-ray') ?? '?'}, cf-mitigated=${cfMitigated ?? 'n/a'}.`);
+  }
+
+  const shown = [];
+  let omitted = 0;
+
+  for (const [name, value] of response.headers) {
+    if (DIAGNOSTIC_HEADERS.includes(name) || name.startsWith('x-ratelimit-')) {
+      shown.push(`  ${name}: ${value}`);
+    } else {
+      omitted += 1;
+    }
+  }
+
+  lines.push('Headers:', ...shown);
+  if (omitted > 0) {
+    lines.push(`  (${omitted} other header${omitted === 1 ? '' : 's'} omitted)`);
+  }
+
+  const body = bodyText.length > MAX_ERROR_BODY_CHARS
+    ? `${bodyText.slice(0, MAX_ERROR_BODY_CHARS)}\n[truncated: ${bodyText.length - MAX_ERROR_BODY_CHARS} more characters]`
+    : bodyText;
+
+  lines.push('Body:', body);
+
+  return lines.join('\n');
 }
 
 /**
@@ -87,7 +154,7 @@ export function createClient({
     });
 
     if (!response.ok) {
-      const error = new Error(`LiteLLM responded ${response.status}: ${(await response.text()).slice(0, MAX_ERROR_CHARS)}`);
+      const error = new Error(describeErrorResponse(response, await response.text()));
 
       error.status = response.status;
       throw error;
@@ -97,7 +164,7 @@ export function createClient({
     const content = payload?.choices?.[0]?.message?.content;
 
     if (typeof content !== 'string') {
-      throw new Error(`LiteLLM response carried no message content: ${JSON.stringify(payload).slice(0, MAX_ERROR_CHARS)}`);
+      throw new Error(`LiteLLM response carried no message content: ${JSON.stringify(payload).slice(0, MAX_PAYLOAD_CHARS)}`);
     }
 
     return content;

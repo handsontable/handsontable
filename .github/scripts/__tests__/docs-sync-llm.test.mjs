@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { completionsUrl, createClient } from '../lib/docs-sync/llm.mjs';
+import { completionsUrl, createClient, describeErrorResponse } from '../lib/docs-sync/llm.mjs';
 
 const ok = (content) => new Response(JSON.stringify({ choices: [{ message: { content } }] }), { status: 200 });
 const noSleep = async() => {};
@@ -72,7 +72,7 @@ test('json mode is on by default and omittable', async() => {
   assert.ok(!('response_format' in bodies[1]), 'response_format is omitted when json mode is off');
 });
 
-test('an error body is surfaced past 200 characters and capped at 4096', async() => {
+test('an error body is surfaced past 200 characters and capped at 16 KiB', async() => {
   const shortTail = `${'x'.repeat(300)}NEEDLE`;
   const fetchImpl = async() => new Response(shortTail, { status: 400 });
   const client = createClient({ baseUrl: 'https://x', apiKey: 'k', model: 'm', fetchImpl, sleep: noSleep });
@@ -80,17 +80,58 @@ test('an error body is surfaced past 200 characters and capped at 4096', async()
   // The old 200-character cut buried the actual cause; the wider cut keeps it.
   await assert.rejects(() => client.complete({ system: 's', user: 'u' }), /NEEDLE/);
 
-  const longBody = 'y'.repeat(5000);
-  const fetchLong = async() => new Response(longBody, { status: 400 });
+  const overCap = 20_000;
+  const fetchLong = async() => new Response('y'.repeat(overCap), { status: 400 });
   const clientLong = createClient({ baseUrl: 'https://x', apiKey: 'k', model: 'm', fetchImpl: fetchLong, sleep: noSleep });
 
+  // Assert around the truncation notice, not a byte offset -- the message now
+  // carries a status line and a headers block before the body.
   await assert.rejects(() => clientLong.complete({ system: 's', user: 'u' }), (error) => {
-    const quoted = error.message.slice(error.message.indexOf('400: ') + '400: '.length);
-
-    assert.equal(quoted.length, 4096, 'the body is capped at 4096 characters');
+    assert.match(error.message, new RegExp(`\\[truncated: ${overCap - 16_384} more characters\\]`));
 
     return true;
   });
+});
+
+test('describeErrorResponse flags a Cloudflare edge block and surfaces its cf-ray', () => {
+  const blockPage = `<!DOCTYPE html><html><head><title>Blocked</title></head><body>${'@'.repeat(500)}</body></html>`;
+  const response = new Response(blockPage, {
+    status: 403,
+    statusText: 'Forbidden',
+    headers: {
+      server: 'cloudflare',
+      'cf-ray': 'a39683217aeeb5f7-WAW',
+      'cf-mitigated': 'challenge',
+      'content-type': 'text/html; charset=UTF-8',
+      'x-ratelimit-remaining-requests': '4999',
+      'set-cookie': 'secret-cf-clearance=should-not-appear',
+    },
+  });
+
+  const message = describeErrorResponse(response, blockPage);
+
+  assert.match(message, /LiteLLM responded 403 Forbidden/);
+  assert.match(message, /Looks like a Cloudflare edge block/);
+  assert.match(message, /cf-ray=a39683217aeeb5f7-WAW/);
+  // Allowlisted diagnostic headers appear...
+  assert.match(message, /^ {2}cf-mitigated: challenge$/m);
+  assert.match(message, /^ {2}x-ratelimit-remaining-requests: 4999$/m);
+  // ...but a non-diagnostic header (a cookie) is counted, never printed.
+  assert.doesNotMatch(message, /should-not-appear/);
+  assert.match(message, /\(1 other header omitted\)/);
+  assert.match(message, /Blocked/);
+});
+
+test('describeErrorResponse stays quiet about Cloudflare for an ordinary JSON API error', () => {
+  const body = '{"error":{"message":"model not found"}}';
+  const response = new Response(body, {
+    status: 404, statusText: 'Not Found', headers: { 'content-type': 'application/json' },
+  });
+
+  const message = describeErrorResponse(response, body);
+
+  assert.doesNotMatch(message, /Cloudflare/);
+  assert.match(message, /model not found/);
 });
 
 test('5xx and 429 are retried, then the last error surfaces', async() => {
