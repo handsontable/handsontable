@@ -1,0 +1,70 @@
+name: Visual seed
+
+# Writes the golden records for `develop` — `base/develop/` in R2, the baseline
+# every pull request into develop is compared against — from the render of the
+# commit that was just pushed.
+#
+# Why this is its own workflow and not a job of develop.yml. develop.yml runs
+# under `cancel-in-progress: true`, deliberately: a follow-up merge cancels the
+# in-flight run so the newest sha starts testing at once. For the golden seed
+# that policy is the defect. The seed sits at the END of that run (after E2E
+# and Integration), so a burst of merges cancels it again and again: on
+# 2026-09-08, 23 of 30 develop runs never reached it, and the baseline lagged
+# develop by 3.7 hours during the day and by 16 to 70 hours over nights and
+# weekends. A pull request renders `refs/pull/N/merge`, which already contains
+# develop's tip, so every pull request opened in such a gap was compared
+# against a baseline older than its own render — and reported the base branch's
+# own changes as its differences. Roughly three quarters of the red visual gates
+# in the four weeks before DEV-2797 had one or two changed items, and the stale
+# baseline was the largest single cause.
+#
+# Here the group never cancels. GitHub keeps one running and one pending run per
+# group and drops the older pending ones, so the LAST push of any burst is
+# always seeded, and a seed lands about 12 to 15 minutes after its push instead
+# of 25 (or never). Intermediate pushes in a burst are skipped; their pull
+# requests compare against the next seed, which contains them.
+#
+# The trade the header states so nobody rediscovers it: this seed does not wait
+# for the functional suite to be green. A golden record describes what the
+# commit renders, not whether its tests passed, and the alternative — chaining
+# on the Develop run's conclusion — inherits exactly the cancellations above.
+# Pull requests still render Visual only after E2E and Integration (test.yml);
+# that ordering is unchanged.
+#
+# visual.yml needs nothing new: on a `push` event it already resolves
+# `REG_EXPECTED_KEY=REG_ACTUAL_KEY=base/<branch>`, compares the fresh render
+# against the previous baseline (a report nothing read until now — the summary
+# step in visual.yml surfaces it), and reconciles the prefix. With no Build
+# artifacts to download it takes its own build fallback for the core and the
+# wrappers, which is where the extra minutes go.
+on:
+  push:
+    branches: [ develop ]
+  # A re-seed by hand, for a baseline someone has confirmed is poisoned (the
+  # byte-equality diagnostic in visual-tests/AGENTS.md) or after a failed seed.
+  workflow_dispatch:
+  # Self-validation, as develop.yml does it: this file never runs on an ordinary
+  # pull request, so a broken workflow_call graph would first execute AFTER
+  # merging, on the next develop push. With this trigger a pull request that
+  # touches the file gets a startup-validated run whose only job skips itself.
+  pull_request:
+    paths: [ '.github/workflows/visual-seed.yml' ]
+
+# NO permissions block — same parity rule as develop.yml: the called visual.yml
+# validates its nested job-level grant (the Compare job's `pull-requests: write`)
+# against the default token this caller hands down, the same token the pull
+# request path is proven against.
+
+concurrency:
+  # Static prefix (never the workflow-name expression, which a called workflow
+  # resolves to the caller's name). `cancel-in-progress: false` is the whole
+  # point of this file — see the header.
+  group: visual-seed-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  visual:
+    name: Visual
+    if: github.event_name != 'pull_request'
+    uses: ./.github/workflows/visual.yml
+    secrets: inherit
