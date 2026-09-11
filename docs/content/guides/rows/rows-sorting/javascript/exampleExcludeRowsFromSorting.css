@@ -1,0 +1,10 @@
+/* Marks the featured rows, so you can watch them hold their place while the rest of the list
+   sorts. The background is set through the theme's own CSS variables rather than with a plain
+   `background-color`: the theme's row-striping rule is more specific than a single class, so a
+   direct declaration would be ignored. */
+.handsontable td.featured-product {
+  --ht-row-cell-odd-background-color: #fff8e1;
+  --ht-row-cell-even-background-color: #fff8e1;
+
+  font-weight: 600;
+}

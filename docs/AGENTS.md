@@ -594,6 +594,8 @@ That env var is what the spawned child receives, so setting it makes the foregro
 
 Every page returns HTTP 500 with `[postcss] ENOENT: no such file or directory, open '../../../handsontable/styles/handsontable.min.css'`. `src/styles/handsontable-import.css` imports the **built** stylesheet from the core package, and `git worktree` materializes tracked files only, so a new worktree has no `handsontable/styles/`. Build the core package, or copy `handsontable/styles/` in from a checkout that already has it. Then **restart the dev server** - postcss caches the resolution failure, so a running server keeps 500ing after the file appears.
 
+The framework examples have the same trap one layer up, and it reads as a network failure rather than a missing build. Pages load, JavaScript examples render, but **every** React and Vue example on the page fails with `[hot-example] JSX failed: ... TypeError: Failed to fetch dynamically imported module` - including examples nobody touched, which is the tell. The server log says what is really wrong: `Failed to resolve import "@handsontable/react-wrapper"`. The docs site links the wrappers from the workspace, and their `main`/`module` entries point at build output (`commonjs/`, `es/`) that a new worktree does not have. Build them (`npm run build --prefix wrappers/react-wrapper`, `--prefix wrappers/vue3`; the Angular examples need `wrappers/angular-wrapper/dist`), after the core build they compile against, then restart the dev server as above.
+
 ---
 
 ## 2.13 Example-Runner Error Handling
@@ -660,3 +662,39 @@ Both halves are guarded, on three different triggers - know which one you are re
 | `tests/markdownProseSpacing.spec.ts` | the reader-visible gap on a built page | only when the PR carries the `run-docs-visual` label - it lives in `testDir: './tests'`, the opt-in visual suite |
 
 So the label-gated spec is a backstop, not a gate. The first two are what actually hold the line on a normal PR.
+
+---
+
+## 2.16 A guide page can be partly generated, and the frontmatter does not say so
+
+`docs/content/**` is hand-written prose *except* inside marker comment pairs. A generator owns
+everything between the markers and rewrites it from a source outside `docs/`, so an edit made there
+is silently discarded on the generator's next run. Nothing in the page's frontmatter, and nothing at
+the top of the file, warns you: the markers can sit hundreds of lines down, and the generated block
+reads like ordinary Markdown.
+
+**Before editing any guide page, grep it for `:start -->`.** If the line you want to change sits
+between a `:start` and an `:end` marker, edit the generator's source instead, then re-run the
+generator and commit its output.
+
+The one page in this shape today:
+
+| Page | Markers | Edit instead | Regenerate with |
+|---|---|---|---|
+| `guides/configuration/configuration-option-levels/configuration-option-levels.md` | `<!-- option-levels:start -->` / `<!-- option-levels:end -->` | levels: the `@configScope` tag on the option in `handsontable/src/dataMap/metaManager/metaSchema.ts`; Notes column: the `NOTES` map in `handsontable/scripts/utils/option-levels.js` | `npm run generate:option-levels --prefix handsontable` |
+
+Two things make this easy to get wrong, and both cost a red pipeline:
+
+- **The levels and the Notes column have different sources.** The `@configScope` tag is levels-only
+  by design, so prose caveats live in the `NOTES` map in the generator's utility, not in
+  `metaSchema.ts`. Adding a sub-option that is grid-level only means editing `NOTES`, not the schema.
+- **A hand-edit inside the block can be byte-identical to what the generator produces and still fail
+  the build.** `handsontable/test/__tests__/optionLevels.unit.js` compares the committed page against
+  the generator's output *computed from the source*, so the page matching is not enough — the source
+  has to carry the change too. Run `npm run test:unit --prefix handsontable --
+  --testPathPattern=optionLevels` to prove you got it right.
+- **The generator writes `option-levels.json` beside the page, and commit both — but only the page
+  is fully guarded.** The JSON case in that test file asserts `total`, `levels`, and each option's
+  `name` and `levels`; it never reads `note`. So a `NOTES`-only change committed to the page with a
+  stale JSON passes the suite green. Re-run the generator rather than hand-editing either file, and
+  if you want the gap closed, add `payload.options.map(o => o.note)` to that assertion.
