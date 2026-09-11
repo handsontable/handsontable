@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-11T12:57:53.767Z",
+  "generatedAt": "2026-09-11T17:09:31.727Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -9,11 +9,45 @@
   "retentionDays": 90,
   "totals": {
     "tests": 5,
-    "needsTicket": 0,
+    "needsTicket": 1,
     "quarantined": 0,
-    "entries": 6
+    "entries": 7
   },
   "rows": [
+    {
+      "key": "jasmine|handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js|AutocompleteEditor choices should not sort the choices list, when the `sortByRelevance` option is set to `true`",
+      "tier": "jasmine",
+      "file": "handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js",
+      "line": null,
+      "title": "AutocompleteEditor choices should not sort the choices list, when the `sortByRelevance` option is set to `true`",
+      "count7": 2,
+      "count30": 2,
+      "countAll": 2,
+      "runs30": 2,
+      "flakyRuns30": 0,
+      "branches30": 2,
+      "legs": [
+        "UMD.min (theme: classic)",
+        "UMD.min (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "passes alone"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-11T17:08:40Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34624277577",
+        "branch": "feature/DEV-2904_Sheets-bar-runtime-sheet-switch",
+        "leg": "UMD.min (theme: classic)",
+        "status": "failed",
+        "error": "Expected '' to equal 'cyan'.",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
     {
       "key": "playwright|e2e/walkontable/exact-row-heights.spec.ts|walkontable exact row heights › in the `exact` mode › keeps the scroll range stable and the row-height cache settled",
       "tier": "playwright",
@@ -41,39 +75,6 @@
         "leg": "e2e-main",
         "status": "flaky",
         "error": "Error: expect(received).toBe(expected) // Object.is equality",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "jasmine|handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js|AutocompleteEditor choices should not sort the choices list, when the `sortByRelevance` option is set to `true`",
-      "tier": "jasmine",
-      "file": "handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js",
-      "line": null,
-      "title": "AutocompleteEditor choices should not sort the choices list, when the `sortByRelevance` option is set to `true`",
-      "count7": 1,
-      "count30": 1,
-      "countAll": 1,
-      "runs30": 1,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "legs": [
-        "UMD.min (theme: main)"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [
-        "passes alone"
-      ],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-09-11T11:32:56Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34593199590",
-        "branch": "feature/DEV-2892_Recycle-row-elements-on-scroll-draws",
-        "leg": "UMD.min (theme: main)",
-        "status": "failed",
-        "error": "Expected '' to equal 'cyan'.",
         "source": "ci"
       },
       "needsTicket": false
