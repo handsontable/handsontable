@@ -333,13 +333,39 @@ class AxisSyncer {
   }
 
   /**
+   * Sends an axis order transformation to the engine, padding it up to the engine sheet's size.
+   *
+   * @param {number[]} transformation Order transformation describing where each element the engine currently
+   * holds should move to.
+   * @param {number} sizeForAxis Size of the engine's sheet along the synchronized axis.
+   * @returns {void}
+   */
+  #syncOrderWithEngine(transformation: number[], sizeForAxis: number): void {
+    // A sheet added to the workbook at runtime carries no data, so the engine reports it as 0x0 while the grid
+    // still counts its default rows and columns. The engine accepts an order exactly as long as the sheet, and
+    // rejects anything longer by throwing — which unwinds whatever triggered the sequence change. Such an order
+    // describes elements the engine does not hold, so there is nothing to reorder and the sync is skipped.
+    if (transformation.length > sizeForAxis) {
+      return;
+    }
+
+    // Sheet dimension can be changed by HF's engine for purpose of calculating values. It extends dependency
+    // graph to calculate values outside of a defined dataset. This part of code could be removed after resolving
+    // feature request from HF issue board (handsontable/hyperformula#1179).
+    for (let i = transformation.length; i < sizeForAxis; i += 1) {
+      transformation.push(i);
+    }
+
+    this.#indexSyncer.getEngine()![`set${toUpperCaseFirst(this.#axis)}Order`](
+      this.#indexSyncer.getSheetId()!, transformation);
+  }
+
+  /**
    * Gets callback for hook triggered after performing change of indexes order.
    *
    * @returns {Function}
    */
   getIndexesChangeSyncMethod() {
-    const SYNC_ORDER_CHANGE_METHOD_NAME = `set${toUpperCaseFirst(this.#axis)}Order`;
-
     return (source: string) => {
       if (this.#indexSyncer.isPerformingUndoRedo()) {
         return;
@@ -358,26 +384,9 @@ class AxisSyncer {
 
         const relativeTransformation = this.#indexesSequence.map(index => positionOfPhysical[index] ?? -1);
         const sheetDimensions = this.#indexSyncer.getEngine()!.getSheetDimensions(this.#indexSyncer.getSheetId()!);
-        let sizeForAxis;
+        const sizeForAxis = this.#axis === 'row' ? sheetDimensions.height : sheetDimensions.width;
 
-        if (this.#axis === 'row') {
-          sizeForAxis = sheetDimensions.height;
-
-        } else {
-          sizeForAxis = sheetDimensions.width;
-        }
-
-        const numberOfReorganisedIndexes = relativeTransformation.length;
-
-        // Sheet dimension can be changed by HF's engine for purpose of calculating values. It extends dependency
-        // graph to calculate values outside of a defined dataset. This part of code could be removed after resolving
-        // feature request from HF issue board (handsontable/hyperformula#1179).
-        for (let i = numberOfReorganisedIndexes; i < sizeForAxis; i += 1) {
-          relativeTransformation.push(i);
-        }
-
-        this.#indexSyncer.getEngine()![SYNC_ORDER_CHANGE_METHOD_NAME](this.#indexSyncer.getSheetId()!,
-          relativeTransformation);
+        this.#syncOrderWithEngine(relativeTransformation, sizeForAxis);
       }
 
       this.#indexesSequence = newSequence;
@@ -409,7 +418,6 @@ class AxisSyncer {
       return;
     }
 
-    const SYNC_ORDER_CHANGE_METHOD_NAME = `set${toUpperCaseFirst(this.#axis)}Order`;
     const sheetDimensions = engine.getSheetDimensions(sheetId);
     const sizeForAxis = this.#axis === 'row' ? sheetDimensions.height : sheetDimensions.width;
     // HF currently holds data in physical order ([0..n-1] identity). The transformation tells HF where each
@@ -422,11 +430,7 @@ class AxisSyncer {
       transformation[sequence[position]] = position;
     }
 
-    for (let i = transformation.length; i < sizeForAxis; i += 1) {
-      transformation.push(i);
-    }
-
-    engine[SYNC_ORDER_CHANGE_METHOD_NAME](sheetId, transformation);
+    this.#syncOrderWithEngine(transformation, sizeForAxis);
   }
 
   /**

@@ -1159,6 +1159,37 @@ describe('SheetsBar plugin', () => {
     expect(hot.getDataAtCell(0, 1)).toBe(23);
   });
 
+  it('activates a runtime-added sheet again after the workbook switched away from it', () => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          {
+            name: 'Budget',
+            data: [[100, '=A1*Rates!A1']],
+            settings: { formulas: { engine, sheetName: 'Budget' } },
+          },
+          {
+            name: 'Rates',
+            data: [[0.23]],
+            settings: { formulas: { engine, sheetName: 'Rates' } },
+          },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const added = sheetsBar.addSheet();
+
+    expect(sheetsBar.setActiveSheet(added.id)).toBe(true);
+    expect(sheetsBar.setActiveSheet('Budget')).toBe(true);
+    expect(sheetsBar.setActiveSheet(added.id)).toBe(true);
+    expect(sheetsBar.getSheets().find(sheet => sheet.isActive).name).toBe(added.name);
+    expect(hot.rootWrapperElement.querySelector('.ht-sheets-bar__tab--active').textContent)
+      .toBe(added.name);
+  });
+
   it('gives a runtime-added sheet a fresh engine sheet when its tab name is taken in the engine', () => {
     const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
 
