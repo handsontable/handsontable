@@ -2,7 +2,8 @@ import { type Locator, type Page, expect } from '@playwright/test';
 import { awaitBundle } from '../bundle';
 
 export type IncrementalRenderScenario =
-  'text' | 'always' | 'mixed' | 'frozen-merge' | 'formulas' | 'search' | 'cells-fn' | 'resize' | 'merge-height' | 'comments';
+  'text' | 'always' | 'mixed' | 'frozen-merge' | 'formulas' | 'search' | 'cells-fn' | 'resize' | 'merge-height' | 'comments' |
+  'scroll' | 'frozen';
 
 /**
  * Page Object for the `renderMode` fixture. Every probe reads the grid through the fixture's own
@@ -40,11 +41,38 @@ export class IncrementalRenderPage {
     await expect(this.page.getByTestId('cell-0-0').first()).toBeVisible();
 
     // Settle the rendered band. The init draw runs before the column header height is measured,
-    // so it renders one row more than the next draw; that next draw therefore repaints every
-    // master cell once (the band is part of a cell's paint stamp). The counts the specs assert
-    // start from the settled state.
+    // so it renders one row more than the next draw. Where the engine cannot keep stationary bands
+    // (merged cells), the band is part of a cell's paint stamp and that next draw repaints every
+    // master cell once. The counts the specs assert start from the settled state either way.
     await this.run('hot.render();');
     await this.resetPaints();
+  }
+
+  /**
+   * Returns the first and last rendered rows of the master table.
+   */
+  async renderedBand(): Promise<[number, number]> {
+    return this.read<[number, number]>('[hot.getFirstRenderedVisibleRow(), hot.getLastRenderedVisibleRow()]');
+  }
+
+  /**
+   * Scrolls the viewport so that `row` is its first fully visible row, and waits for the draw the
+   * scroll event triggers (the fixture counts `afterScrollVertically`, which the engine fires after
+   * that draw). Nothing calls `render()` here, because the engine's own scroll-driven draw is the one
+   * under test: it is the draw that keeps a row's elements across the move, while an explicit
+   * `render()` rebuilds the band. A target whose rows already sit inside the rendered band resolves
+   * as a fast draw that paints nothing, so a spec that expects paints must scroll past the band (the
+   * `scroll` and `frozen` scenarios render 10 rows past the viewport on each side).
+   */
+  async scrollToRow(row: number): Promise<void> {
+    const drawsBefore = await this.read<number>('window.htScrollDraws');
+
+    await this.run(`hot.scrollViewportTo({ row: ${row}, verticalSnap: 'top' });`);
+    await this.page.waitForFunction(
+      (before: number) => (window as unknown as { htScrollDraws: number }).htScrollDraws > before,
+      drawsBefore,
+      { polling: 50 },
+    );
   }
 
   /**

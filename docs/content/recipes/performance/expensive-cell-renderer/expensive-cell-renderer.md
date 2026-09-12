@@ -134,7 +134,7 @@ The cache is a `WeakMap` whose keys are the row objects of your data source. It 
 { input: sales, output: buildTrend(sales) }
 ```
 
-**Why not key the cache by the `td` element?** Handsontable renders only the visible cells plus a small buffer, and it keeps a fixed set of `td` elements for them. As you scroll, each `td` is rewritten to show a different record. A cache keyed by the `td` -- a `WeakMap` of `td` to output, or a property set on the element -- therefore misses on almost every renderer call while you scroll, and the expensive work runs for cells that were computed a moment ago. The record is the thing that stays the same between renders, so it is the key.
+**Why not key the cache by the `td` element?** Handsontable renders only the visible cells plus a small buffer, and it keeps a fixed set of `td` elements for them. A vertical scroll keeps a row's `td` elements with the row while the row stays rendered, but nothing else does: a horizontal scroll, a row that leaves the rendered area and comes back, and any scroll in a grid with merged cells or in a grid that scrolls with the page all hand the record a different `td`. A cache keyed by the `td` -- a `WeakMap` of `td` to output, or a property set on the element -- therefore misses on every one of those, and the expensive work runs again for cells that were computed a moment ago. The record is the thing that stays the same between renders, so it is the key.
 
 **Why a `WeakMap`?** When a record leaves the data set and nothing else references it, its cache entry is released with it. A plain `Map` would keep every record alive.
 
@@ -220,18 +220,18 @@ The same rule applies to a primitive value: the `input !== value` check compares
 ## Variations
 
 - **The value is an object.** When the cell's value is itself an object or an array, you can key the `WeakMap` by the value and skip the record lookup: the grid hands the renderer the value itself, not a copy. A replaced value is then a new key, and the old entry is released with the old value.
-- **The renderer mounts a component.** If your renderer mounts a framework component or builds a large DOM subtree, cache the container element itself and move it into the `td` the renderer receives. Three rules make that safe, and the [React wrapper](@/guides/integrate-with-react/react-installation/react-installation.md) follows all three in its own renderer bridge:
-  1. **Put the table in the key, not only the coordinates.** A cell in a frozen column is drawn twice, once in the master table and once in the overlay clone. One element has one parent, so a container shared by both draws lands in whichever table rendered last and leaves the other `td` empty. Key by instance, table, row, and column together.
-  2. **Move it only when it is not already there.** Check `container.parentNode === td` first. Re-inserting on every draw detaches and remounts the component each time, which is the cost you are trying to avoid.
-  3. **Make the container the cell's only child.** Clear the cell before you append, which is what the React wrapper does. A container placed next to whatever the cell already holds leaves the cell with two children, and the engine's own content wrapper is then rebuilt on every draw.
+- **The renderer mounts a component.** If your renderer mounts a framework component or builds a large DOM subtree, let the `td` own the container. On each call, reuse the container the cell already holds and update it with the record the cell now shows; create one only for a cell that has none. A vertical scroll keeps a row's `td` elements with the row, so the containers of the rows that stay rendered are not touched at all, and a row that enters takes over the container a leaving row left behind. The Angular wrapper's [`HotCellRendererComponent`](@/guides/cell-functions/cell-renderer/cell-renderer.md) renders its component cells this way: one component per `td`, its inputs updated on every call. Three rules make that safe:
+  1. **Update in place, never rebuild.** Set the component's inputs, or rewrite the subtree's text and attributes, from the record the renderer receives. Tearing the container down and mounting a new one on every call is the cost you are trying to avoid.
+  2. **Key by the `td`, not by the coordinates.** A container keyed by row and column has to be moved between cells as the band moves, and a cell in a frozen column is drawn twice, once in the master table and once in the overlay clone, so one container cannot serve both. A container owned by the `td` has one parent for its whole life.
+  3. **Make the container the cell's only child.** Clear the cell before you append. A container placed next to whatever the cell already holds leaves the cell with two children, and the engine's own content wrapper is then rebuilt on every draw.
 
-  Keep the cache bounded to the viewport: drop entries for coordinates that are no longer rendered, or the container cache grows with every row the user scrolls past.
-- **Renders that are not scrolls.** The [`renderMode`](@/api/options.md#rendermode) option set to `'onChange'` lets a render skip cells whose data, meta, and position did not change since their last paint. It does not skip cells while you scroll, because a scrolled cell shows another record, so the cache in this recipe is still what saves the computation there. The two combine well: the option removes the renderer call, the cache removes the computation.
+  Hold the containers in a `WeakMap` keyed by the `td`, so a cell element the grid drops releases its container with it.
+- **Skip the cells that did not change.** The [`renderMode`](@/api/options.md#rendermode) option set to `'onChange'` lets a render skip cells whose data, meta, and position did not change since their last paint. A vertical scroll then paints only the rows that enter the rendered area; a horizontal scroll, and any scroll in a grid with merged cells or in a grid that scrolls with the page, still repaints the rendered cells, so the cache in this recipe is still what saves the computation there. The two combine well: the option removes the renderer call, the cache removes the computation.
 
 ## What you learned
 
 - A renderer runs for every rendered cell on every render, so a slow computation inside it runs far more often than the data changes.
-- The grid reuses `td` elements for different records as you scroll, so a `td` is the wrong cache key. The data record, or the cell coordinates, is the right one.
+- A `td` follows its row only through a vertical scroll; a horizontal scroll and a row that comes back into view give the record another `td`, so a `td` is the wrong cache key for a computed value. The data record, or the cell coordinates, is the right one.
 - A `WeakMap` keyed by the record releases entries together with the records.
 - Storing the input next to the output makes the cache invalidate itself when the input is replaced. In-place mutation keeps the same identity, so it needs an explicit `delete()`.
 - How to translate a visual row index to a physical one before reading the data source.
@@ -241,5 +241,5 @@ The same rule applies to a primitive value: the `input !== value` check compares
 
 - If your renderer only formats the value -- units, dates, text transforms -- use the [`valueFormatter`](@/api/options.md#valueformatter) option instead of a custom renderer.
 - Reduce the number of renders with [`batch()`](@/api/core.md#batch) when you change many cells at once. See [Batch operations](@/guides/optimization/batch-operations/batch-operations.md).
-- Skip unchanged cells on non-scroll renders with [`renderMode: 'onChange'`](@/guides/optimization/rendering/rendering.md#skip-the-cells-that-did-not-change).
+- Skip the cells that did not change, on renders and on vertical scrolls, with [`renderMode: 'onChange'`](@/guides/optimization/rendering/rendering.md#skip-the-cells-that-did-not-change).
 - For a renderer that draws an SVG chart in the cell, see the [Sparkline cell renderer](@/recipes/rendering-styling/sparkline-cell-renderer/sparkline-cell-renderer.md) recipe.

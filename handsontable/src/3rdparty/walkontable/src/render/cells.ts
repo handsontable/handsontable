@@ -64,14 +64,19 @@ export class CellsRenderer extends BaseRenderer {
   render() {
     const { rowsToRender, columnsToRender, rows, rowHeaders } = this.table;
     const { rowFilter, columnFilter, activeOverlayName } = this.table;
-    // The identity of the rendered band: which source rows and columns the reused elements hold on
-    // this draw. The host compares it against the element's last paint. The band size stays in it
-    // even though a reused element's own source indexes already move with the offsets: MergeCells
-    // clamps a merged cell's rowspan and colspan to the rendered band, so a cell whose indexes did
-    // not change still needs a paint when the band grows or shrinks.
-    const band = [
-      activeOverlayName, rowFilter?.offset ?? 0, rowsToRender, columnFilter?.offset ?? 0, columnsToRender,
-    ].join(',');
+    // The identity of the rendered band, part of what the host compares against an element's last
+    // paint (`shouldPaintCell`). Where stationary bands are allowed it is the overlay name alone: a
+    // cell's own source coordinates then carry its identity, so an element that kept its row across
+    // a scroll (`RowsRenderer` rotates the TRs) reads as unchanged, and a band that grows or shrinks
+    // repaints only the cells it adds. Otherwise the offsets and sizes stay in: that is the only
+    // layout MergeCells can be active in, and it clamps a merged cell's span to the rendered band,
+    // so such a cell needs a paint when the band moves or resizes even though its coordinates did
+    // not change.
+    const band = this.table.hasStationaryBands()
+      ? activeOverlayName
+      : [
+        activeOverlayName, rowFilter?.offset ?? 0, rowsToRender, columnFilter?.offset ?? 0, columnsToRender,
+      ].join(',');
 
     for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);

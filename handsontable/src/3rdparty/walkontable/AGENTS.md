@@ -695,7 +695,66 @@ of style recalculation, not JavaScript. Three consequences:
 `false` skips the reset, the `cellRenderer` call, and the ARIA re-stamp for that element. The
 engine keeps no per-cell state of its own here; the host (`TableView` through `CellPainter`) owns
 the stamps and answers from the cell's `renderMode`. The default answers `true`, so a Walkontable
-built without the setting behaves as before. A renderer spec's `TableRendererMock` must provide it.
+built without the setting behaves as before. A renderer spec's `TableRendererMock` must provide it,
+together with `hasStationaryBands()` and `isRowRecyclingAllowed()` (both `false` reproduces the
+pre-recycling engine).
+
+The fourth argument is the identity of the rendered band, and it has two forms, chosen per draw by
+`TableRenderer#hasStationaryBands()`. The master draw cycle resolves `Viewport#allowsStationaryBands()`
+once per draw, after `beforeDraw()` refreshed the axis owners, into `Overlays#stationaryBandsAllowed`,
+and the band stabilizer and `renderCellBand` (master and clones, through the clone source) all read
+that one value, so the three decisions never disagree within a draw.
+
+- **Stationary bands allowed** (single-pass layout, element-scrolled on both axes): the overlay name
+  alone. A cell's own source coordinates carry its identity, so a band that grows or shrinks repaints
+  only the cells it adds, and an element that kept its row across a scroll (next section) reads as
+  unchanged.
+- **Otherwise**: `overlay,rowOffset,rowCount,columnOffset,columnCount`. That is the only layout
+  MergeCells can be active in (it forces single-pass layout off through `modifySinglePassLayout`),
+  and MergeCells clamps a merged cell's `rowspan`/`colspan` to the rendered band, so such a cell
+  needs a paint when the band moves or resizes even though its coordinates did not change. A plugin
+  that derives a cell's paint from where the band starts or ends belongs in this branch, and there is
+  no other in the tree: the remaining `getFirstRenderedVisibleRow` readers feed row heights
+  (`stylesHandler`, `autoRowSize`), meta eviction (`dynamicCellMeta`) and the selection layer
+  (`customBorders`), none of which is a cell paint.
+
+## Row recycling: a scroll keeps a row's TR
+
+`render/rows.ts` rotates the TR elements on a scroll-driven draw by the band's offset delta (one
+`DocumentFragment` move of the rows that left the band to the other end, in order), so a row that
+stays in the band keeps its TR and its TDs, and the cell pass paints the entering rows into the
+elements the leaving rows freed. The DOM order stays the band order, so `TR.rowIndex` and child
+order still say which row an element holds; what changed is that an element now follows its row
+across a scroll. Gated by `TableRenderer#isRowRecyclingAllowed()` = scroll-driven draw AND stationary
+bands allowed, and the two halves of that gate are one on purpose: the host leaves a carried-over
+cell untouched (`renderMode: 'onChange'`, through the offset-free band above), and that is safe only
+while nothing a cell paints depends on the band (the MergeCells case). A `forceFullRender`
+(`hot.render()`) enters as `draw(false)` and never rotates: it rebuilds the band in place, and the
+stamps' coordinates then repaint every element whose row moved. The rotation is also skipped when no
+row survives the move: the shift reaches the previous band's size in either direction (there are no
+more elements to move; scrolling up past it ran the move out of elements once, a bot-review catch), or
+the new band's size scrolling up. It is also skipped when the band is empty, and when the TBODY does
+not hold exactly the previous band (something else touched it). A focused cell in a leaving row is detached with its row for the
+duration of the move; Chromium blurs a removed element only at its next rendering step, by which
+time the row is back, and for an engine that blurs at once the renderer gives the element the focus
+back without scrolling, so the keyboard keeps reaching the grid either way.
+
+It is a move, not an insertion or removal, so the stationary-DOM invariant (no structural mutation
+while scrolling, see the comment above `rows.render()` in `tableRenderer.ts`) holds: measured against
+a host document of 30,000 nodes and three `:has()` rules, style recalculation stayed flat. The row
+axis only; the column axis renders a contiguous band into stationary TDs as before.
+
+What it buys, measured on the reporter's Angular grid (#13446, SVG-rich component cells, 65 rows by
+7 columns, one 1,000 px scroll): under `renderMode: 'onChange'` the official Angular renderer's worst
+frame went from 170 ms to 70 ms and its renderer calls per run from 3,108 to 462 (the cells that entered); a renderer
+that caches per `td` (the pattern framework wrappers use) hits again for every row that stays,
+which is what the rotation exists for.
+
+Pinned by `test/unit/renderer/rowRecycling.unit.ts` (the rotation and its guards),
+`test/unit/renderer/cellBand.unit.ts` (the two band forms, and that a carried-over element is
+offered to the host with its own coordinates) and `tests/e2e/incremental-render.spec.ts` (paints on
+a scroll down and up, element identity in the master and the frozen-columns clone, equality to a
+full repaint, an open editor across a scroll).
 
 ## The engine decides for itself when the overlays need resizing — never ask it from outside
 
