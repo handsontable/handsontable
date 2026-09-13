@@ -25,8 +25,39 @@
         opacity: 0.6;
       }
     }
+
+    // A narrow arrow cell (autocomplete / dropdown / handsontable) used to render its contents
+    // tangled around the right-floated arrow (DEV-28). These list cell types now keep their value
+    // on a single line and truncate it with an ellipsis, so the content clips at the content-box
+    // edge - which the reserved trailing padding places before the arrow - instead of wrapping or
+    // overflowing under it. This overrides `wordWrap` / `textEllipsis` for these three types by
+    // design (documented on both options in `metaSchema.ts`); a float shortens line boxes but not
+    // the content box, so the arrow is taken out of flow for the ellipsis to land in front of it.
+    // The reserved padding also widens the AutoColumnSize ghost sample (it renders the real
+    // renderer, which adds the `htAutocomplete` class), so an autosized column fits the value plus
+    // the arrow. The arrow keeps the base rule's vertical offset - beside the first line, not
+    // centered - so it stays aligned with top-anchored text on a tall row and with the still-
+    // floated `.ht-multi-select-arrow`.
+    td.htAutocomplete {
+      position: relative;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      padding-inline-end: calc(
+        var(--ht-cell-horizontal-padding) + var(--ht-icon-size) + var(--ht-gap-size) * 2
+      );
+
+      .htAutocompleteArrow {
+        position: absolute;
+        float: none;
+        inset-inline-end: var(--ht-cell-horizontal-padding);
+        top: calc(var(--ht-cell-vertical-padding) + (var(--ht-line-height) - var(--ht-icon-size)) / 2);
+        margin: 0;
+      }
+    }
   }
 
+  // Kept for arrow usages outside a grid cell (e.g. the select editor overlay); the in-cell
+  // arrow above is out of flow and flips through `inset-inline-end`, so it needs no float here.
   [dir="rtl"].handsontable {
     .htAutocompleteArrow {
       float: left;
