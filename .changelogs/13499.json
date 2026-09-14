@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a grid inside a shadow root not selecting a cell when the user tabbed into it.",
+  "type": "fixed",
+  "issueOrPR": 13499,
+  "breaking": false,
+  "framework": "none"
+}
