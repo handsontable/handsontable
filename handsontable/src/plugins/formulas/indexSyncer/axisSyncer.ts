@@ -426,7 +426,14 @@ class AxisSyncer {
 
       if (source === 'update' && newSequence.length > 0) {
         this.#syncOrderWithEngine(newSequence);
+
+        return;
       }
+
+      // An insert, a removal or a move reaches the engine through its own call — `addRows`, `removeRows`,
+      // `syncMoves` — and renumbers the physical indexes on both sides, so the engine ends up holding the
+      // grid's new sequence and the stored order has to follow it there.
+      this.#indexesSequence = newSequence;
     };
   }
 

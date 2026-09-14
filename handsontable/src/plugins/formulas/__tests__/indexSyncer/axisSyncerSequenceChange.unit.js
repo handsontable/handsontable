@@ -115,6 +115,29 @@ describe('AxisSyncer sequence change sync', () => {
       expect(engine.calls.setColumnOrder[1]).toEqual({ sheetId: 0, transformation: [2, 1, 0] });
     });
 
+    it('should follow the grid sequence through an insert before ordering the engine again', () => {
+      const engine = createMockEngine({ width: 3, height: 4 });
+      const indexMapper = createMockIndexMapper([0, 1, 2]);
+      const axisSyncer = new AxisSyncer('column', indexMapper, createMockIndexSyncer(engine));
+      const syncMethod = axisSyncer.getIndexesChangeSyncMethod();
+
+      axisSyncer.init();
+      indexMapper.state.indexesSequence = [2, 0, 1];
+      syncMethod('update');
+
+      // The engine inserts the column itself, through `addColumns`, and both sides renumber their physical
+      // indexes — so the order the engine holds afterwards is the grid's new sequence, with the new column
+      // where the grid put it rather than appended at the end.
+      indexMapper.state.indexesSequence = [2, 0, 3, 1];
+      syncMethod('insert');
+      engine.dimensions.width = 4;
+
+      indexMapper.state.indexesSequence = [1, 3, 0, 2];
+      syncMethod('update');
+
+      expect(engine.calls.setColumnOrder[1]).toEqual({ sheetId: 0, transformation: [3, 2, 1, 0] });
+    });
+
     it('should rank an index the sequence no longer covers last instead of sending it as -1', () => {
       const engine = createMockEngine({ width: 3, height: 4 });
       const indexMapper = createMockIndexMapper([0, 1, 2]);
