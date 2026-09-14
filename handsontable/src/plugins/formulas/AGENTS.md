@@ -100,11 +100,51 @@ switches the sheet, and dropping them would skip that.
 `{ hyperformula: engineClass }`. Cross-sheet referencing hooks are registered on the shared instance
 registry.
 
-## HF may extend the sheet beyond the dataset
+## The engine's sheet size is not the grid's axis length, in either direction
 
-The engine grows a sheet's dimensions to calculate values outside the defined dataset (it extends the
-dependency graph). The compensation code carries a note that it can be removed once
-[hyperformula#1179](https://github.com/handsontable/hyperformula/issues/1179) is resolved.
+`getSheetDimensions()` answers with the extent of the sheet's **content**, and the engine accepts an order
+exactly as long as that — anything else it rejects by throwing, and the throw unwinds whatever triggered the
+sequence change (a sort, a view-state restore). The two directions have different causes and the same fix
+site, `AxisSyncer#syncOrderWithEngine`:
+
+- **Sheet larger than the dataset.** The engine grows a sheet to calculate values outside it (it extends the
+  dependency graph). The order is padded up to that size, and the padding can go once
+  [hyperformula#1179](https://github.com/handsontable/hyperformula/issues/1179) is resolved.
+- **Sheet shorter than the grid.** Trailing empty rows and columns are not counted, so a grid with a blank
+  last row, with `minSpareRows`, or a sheet the sheets bar added at runtime (no data at all, reported `0x0`
+  against the grid's default 26 columns) is longer than its own engine sheet. The order is **compressed**
+  onto the elements the engine holds, keeping their relative order, rather than sent whole — sending it whole
+  is what made sorting such a grid throw `InvalidArgumentsError` (DEV-2904).
+
+Four rules ride along.
+
+- **The order must be a permutation of `0..size - 1`.** The engine validates entries as well as length, so an
+  index the sequence no longer covers (the mid-batch state that used to produce `-1`) is ranked last rather
+  than passed through, which the engine would reject as "not a permutation".
+- **`#indexesSequence` names the elements the engine holds, in the engine's own order** — not the grid's
+  sequence. The two are the same only while the sheet covers the whole grid. Once it does not, storing the
+  grid's sequence would name elements the engine never received, and every later order, being relative to
+  what the engine holds, would move the wrong rows or columns for the rest of the session. The exception is
+  the paths where the engine changes itself: an insert, a removal, a move and an undo all leave it holding
+  the grid's new sequence, so the stored order follows it there.
+- **How the sheet was filled decides where its new rows go.** A sheet fed its content (at load, or by the
+  engine's own insert) holds it in physical order; a sheet that reported `0x0` is filled through addresses
+  the grid computes from its own sequence, so its first row is whichever row the grid showed first **at the
+  moment it was filled**. That sequence is captured when the empty sheet is found and used to extend the
+  stored list, because the grid can have been reordered since — reading the current sequence there would
+  conclude the engine already holds the new order and skip the sync that carries it.
+- **An order that cannot be reproduced is not sent.** The compression keeps the engine's own elements in
+  their relative order, which reproduces the grid exactly while they still occupy the sequence's leading
+  positions — a sheet shorter than the grid means the grid's extra rows are the empty tail the engine left
+  out. A reorder that moves one of those in FRONT of an element the engine holds is inexpressible: the engine
+  addresses its rows positionally and has no row to shift the others past. Approximating it would leave the
+  index translation (which reads HF index `i` as sequence position `i`) and the engine on different rows, so
+  nothing is sent. An order that would change nothing is skipped too, because the engine records an undo
+  entry and clears its redo stack for every order it is handed.
+
+Still open: a move applied while the engine's sheet is empty reaches the engine through `syncMoves` but is
+not reflected in the stored order, and a sequence change that cannot be expressed leaves the engine behind
+the grid with no warning.
 
 ## `HYPERLINK` cells: an allowlist, not a sanitizer
 
