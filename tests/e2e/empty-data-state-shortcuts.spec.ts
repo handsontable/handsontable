@@ -72,7 +72,7 @@ test.describe('emptyDataState keyboard shortcuts', () => {
 
     await grid.page.keyboard.press('ControlOrMeta+a');
 
-    expect(await grid.selection()).toEqual([[-1, -1, 7, 4]]);
+    expect(await grid.selection()).toEqual([[-1, -1, 7, 5]]);
   });
 
   test('leaves the chord unclaimed when there is nothing to select', async() => {
@@ -86,8 +86,34 @@ test.describe('emptyDataState keyboard shortcuts', () => {
     expect(await grid.selection()).toBeNull();
   });
 
+  test('lets Tab out of the overlay instead of swallowing it', async() => {
+    await grid.selectAllWithKeyboard();
+    await grid.runContextMenuItem('columnHeader', /^Hide columns$/);
+    await expect(grid.overlay).toBeVisible();
+
+    // A LIVE selection is the whole point: the grid's tab-navigation pair calls `preventDefault()`
+    // exactly when the selection is still in range, and the overlay inherits it. The rows are still
+    // there behind the hidden columns, so select-all leaves one alive - after removing every row there
+    // is nothing to select and the pair bows out on its own, which proves nothing.
+    await grid.clickOverlay();
+    await grid.page.keyboard.press('ControlOrMeta+a');
+    expect(await grid.selection()).toEqual([[-1, -1, 7, 5]]);
+
+    // Unguarded, this is `true` and the user has no way out of the overlay at all: the key is
+    // consumed and focus never moves.
+    expect(await grid.pressAndReadDefaultPrevented('Tab')).toBe(false);
+  });
+
   test('does not let Delete clear the data it cannot show', async() => {
     const before = await grid.allValues();
+
+    // Positive control: the same key, on the same grid, with the cells on screen. Without it the
+    // negative half below would pass just as well on a grid where Delete never worked at all.
+    await grid.selectAllWithKeyboard(1, 1);
+    await grid.page.keyboard.press('Delete');
+    await expect.poll(() => grid.allValues()).not.toEqual(before);
+    await grid.page.keyboard.press('ControlOrMeta+z');
+    await expect.poll(() => grid.allValues()).toEqual(before);
 
     await grid.selectAllWithKeyboard();
     await grid.runContextMenuItem('columnHeader', /^Hide columns$/);
@@ -95,9 +121,14 @@ test.describe('emptyDataState keyboard shortcuts', () => {
 
     await grid.clickOverlay();
     await grid.page.keyboard.press('ControlOrMeta+a');
-    expect(await grid.selection()).toEqual([[-1, -1, 7, 4]]);
+    expect(await grid.selection()).toEqual([[-1, -1, 7, 5]]);
 
     await grid.page.keyboard.press('Delete');
+
+    // Clearing the selection is a real round trip through the event loop and a render, so a write
+    // that was merely late has landed by the time it settles.
+    await grid.clickOverlay();
+    await expect.poll(() => grid.selection()).toBeNull();
 
     expect(await grid.allValues()).toEqual(before);
   });
@@ -105,16 +136,90 @@ test.describe('emptyDataState keyboard shortcuts', () => {
   test('does not let Ctrl+Enter overwrite the data it cannot show', async() => {
     const before = await grid.allValues();
 
+    // Positive control, as above: Ctrl+Enter fills the selection from the highlighted cell when the
+    // cells are on screen, so the negative half below is about the guard and not about the chord.
+    await grid.selectAllWithKeyboard(1, 1);
+    await grid.page.keyboard.press('ControlOrMeta+Enter');
+    await expect.poll(() => grid.allValues()).not.toEqual(before);
+    await grid.page.keyboard.press('ControlOrMeta+z');
+    await expect.poll(() => grid.allValues()).toEqual(before);
+
     await grid.selectAllWithKeyboard();
     await grid.runContextMenuItem('columnHeader', /^Hide columns$/);
     await expect(grid.overlay).toBeVisible();
 
     await grid.clickOverlay();
     await grid.page.keyboard.press('ControlOrMeta+a');
+    expect(await grid.selection()).toEqual([[-1, -1, 7, 5]]);
 
     await grid.page.keyboard.press('ControlOrMeta+Enter');
 
+    await grid.clickOverlay();
+    await expect.poll(() => grid.selection()).toBeNull();
+
     expect(await grid.allValues()).toEqual(before);
+  });
+
+  test('does not let Ctrl+M merge the cells it cannot show', async() => {
+    const before = await grid.allValues();
+
+    // Positive control: `Ctrl`+`M` un-merges by clearing every cell but the top-left one, so on a
+    // visible grid it really does destroy content. `mergeCells` registers it into the GRID context,
+    // which the overlay inherits.
+    await grid.selectAllWithKeyboard(1, 1);
+    await grid.page.keyboard.press('Control+m');
+    await expect.poll(() => grid.allValues()).not.toEqual(before);
+    await grid.page.keyboard.press('ControlOrMeta+z');
+    await expect.poll(() => grid.allValues()).toEqual(before);
+
+    await grid.selectAllWithKeyboard();
+    await grid.runContextMenuItem('columnHeader', /^Hide columns$/);
+    await expect(grid.overlay).toBeVisible();
+
+    await grid.clickOverlay();
+    await grid.page.keyboard.press('ControlOrMeta+a');
+    expect(await grid.selection()).toEqual([[-1, -1, 7, 5]]);
+
+    await grid.page.keyboard.press('Control+m');
+
+    await grid.clickOverlay();
+    await expect.poll(() => grid.selection()).toBeNull();
+
+    expect(await grid.allValues()).toEqual(before);
+  });
+
+  test('does not let Space toggle the checkboxes it cannot show', async() => {
+    const before = await grid.allValues();
+
+    // Positive control on ONE checkbox cell: `checkboxRenderer` binds space to the GRID context with
+    // its own `runOnlyIf`, so a group-level guard would never have reached it, and the overlay
+    // inherits it with the rest. The selection is a single checkbox on purpose - with a text cell in
+    // it the handler lets the press through to the editor, which writes a space into the highlighted
+    // cell and muddies the comparison.
+    await grid.cell(0, 0).click();
+    await grid.selectCell(1, 5);
+    await grid.page.keyboard.press('Space');
+    await expect.poll(() => grid.allValues()).not.toEqual(before);
+
+    // Whatever the control left behind is the baseline for the negative half. Space is not its own
+    // inverse over a mixed selection, and undo leaves one row flipped, so neither way back is a
+    // reliable reset - and neither is what this test is about.
+    const baseline = await grid.allValues();
+
+    await grid.selectAllWithKeyboard(2, 2);
+    await grid.runContextMenuItem('columnHeader', /^Hide columns$/);
+    await expect(grid.overlay).toBeVisible();
+
+    await grid.clickOverlay();
+    await grid.page.keyboard.press('ControlOrMeta+a');
+    expect(await grid.selection()).toEqual([[-1, -1, 7, 5]]);
+
+    await grid.page.keyboard.press('Space');
+
+    await grid.clickOverlay();
+    await expect.poll(() => grid.selection()).toBeNull();
+
+    expect(await grid.allValues()).toEqual(baseline);
   });
 
   test('restores the grid shortcut context once the overlay hides', async() => {
@@ -133,6 +238,6 @@ test.describe('emptyDataState keyboard shortcuts', () => {
     // The proof that matters: a grid shortcut works again without clicking a cell first.
     await grid.page.keyboard.press('ControlOrMeta+a');
 
-    expect(await grid.selection()).toEqual([[-1, -1, 7, 4]]);
+    expect(await grid.selection()).toEqual([[-1, -1, 7, 5]]);
   });
 });

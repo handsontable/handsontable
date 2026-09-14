@@ -120,15 +120,8 @@ export interface FixtureHotInstance {
   getPlugin(name: 'emptyDataState'): {
     isVisible(): boolean,
   };
-  getPlugin(name: 'hiddenColumns'): {
-    hideColumns(columns: number[]): void,
-    showColumns(columns: number[]): void,
-  };
   getShortcutManager(): {
     getActiveContextName(): string,
-  };
-  getFocusScopeManager(): {
-    getActiveScopeId(): string | null,
   };
   getActiveEditor(): {
     isOpened(): boolean,
@@ -199,6 +192,11 @@ declare global {
     hot: FixtureHotInstance;
     /** DEV-2917 fixture: the message of a throw the fixture's own grid build caught, if any. */
     htFixtureError?: string;
+    /**
+     * DEV-2917: `defaultPrevented` of the last `keydown` seen at the window, or `null` when none
+     * reached it. Written by a bubble-phase listener, so it reads the verdict of every handler below.
+     */
+    htLastKeyDefaultPrevented: boolean | null;
     /** #5833 fixture: the "getter" grid – constructor rows with a non-configurable derived getter. */
     hotGetter: FixtureHotInstance;
     /** #5833 fixture: the "accessor" grid – the docs' function-data-source pattern (function `columns[].data`). */

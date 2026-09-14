@@ -47,9 +47,11 @@
     try {
       var COLUMN_NAMES = ['A', 'B', 'C', 'D', 'E'];
       // Built here rather than through `Handsontable.helper`, so the fixture depends on the
-      // constructor alone - the one thing `awaitBundle()` proves is present.
+      // constructor alone - the one thing `awaitBundle()` proves is present. The sixth column is a
+      // checkbox: `checkboxRenderer` registers space/enter/delete into the GRID context, so the
+      // overlay inherits those too and they need the same guard as the grid's own.
       var data = Array.from({ length: 8 }, function(_, row) {
-        return COLUMN_NAMES.map(function(name) { return name + (row + 1); });
+        return COLUMN_NAMES.map(function(name) { return name + (row + 1); }).concat([row % 2 === 0]);
       });
 
       var container = document.querySelector('[data-testid="grid"]');
@@ -58,14 +60,19 @@
 
       window.hot = new Handsontable(container, {
         data: data,
+        columns: [{}, {}, {}, {}, {}, { type: 'checkbox' }],
         rowHeaders: true,
         colHeaders: true,
         contextMenu: true,
         hiddenColumns: { indicators: true },
+        // `Ctrl`+`M` un-merges by clearing every cell but the top-left one, and it is registered into
+        // the GRID context - so an overlay that inherits the grid's shortcuts reaches it.
+        mergeCells: true,
         undo: true,
         emptyDataState: true,
-        renderer: function(instance, td, row, col, prop, value, cellProperties) {
-          Handsontable.renderers.TextRenderer.apply(this, arguments);
+        // Stamped from a hook rather than a grid-wide `renderer`, which would replace the checkbox
+        // column's own renderer and take the case under test with it.
+        afterRenderer: function(td, row, col) {
           td.setAttribute('data-testid', 'cell-' + row + '-' + col);
         },
         licenseKey: 'non-commercial-and-evaluation',

@@ -70,9 +70,15 @@ export class EmptyDataStateShortcutsPage {
     return this.page.locator('.ht-empty-data-state').locator('visible=true');
   }
 
-  /** Selects the whole grid the way a user does: click a cell, then Ctrl/Cmd+A. */
-  async selectAllWithKeyboard(): Promise<void> {
-    await this.cell(0, 0).click();
+  /**
+   * Selects the whole grid the way a user does: click a cell, then Ctrl/Cmd+A.
+   *
+   * Which cell is a parameter because two calls that press the SAME point within the double-click
+   * interval read as a double click, which opens the editor - and the Ctrl+A that follows then goes
+   * to the `editor` context and selects nothing. A test that selects all twice passes a second cell.
+   */
+  async selectAllWithKeyboard(row = 0, col = 0): Promise<void> {
+    await this.cell(row, col).click();
     await this.page.keyboard.press('ControlOrMeta+a');
   }
 
@@ -110,6 +116,16 @@ export class EmptyDataStateShortcutsPage {
     return this.page.evaluate(() => window.hot.getPlugin('emptyDataState').isVisible());
   }
 
+  /**
+   * Selects one cell through the API, for a cell whose own control a real click would land on.
+   * The grid must already be listening, so click a cell first.
+   */
+  async selectCell(row: number, col: number): Promise<void> {
+    await this.page.evaluate(([r, c]) => {
+      window.hot.selectCell(r, c);
+    }, [row, col]);
+  }
+
   /** The grid's current selection, as `getSelected()` returns it. */
   async selection(): Promise<number[][] | null> {
     return this.page.evaluate(() => window.hot.getSelected() ?? null);
@@ -123,6 +139,25 @@ export class EmptyDataStateShortcutsPage {
   /** The number of columns the grid can actually render (0 once every column is hidden). */
   async renderableColumnCount(): Promise<number> {
     return this.page.evaluate(() => window.hot.view.countRenderableColumns());
+  }
+
+  /**
+   * Presses a key and reports whether anything called `preventDefault()` on it.
+   *
+   * The listener is installed before the press and sits on the window in the bubble phase, so it runs
+   * after every handler below it and reads their verdict - nothing here is timed.
+   */
+  async pressAndReadDefaultPrevented(key: string): Promise<boolean | null> {
+    await this.page.evaluate(() => {
+      window.htLastKeyDefaultPrevented = null;
+      window.addEventListener('keydown', (event) => {
+        window.htLastKeyDefaultPrevented = event.defaultPrevented;
+      }, { once: true });
+    });
+
+    await this.page.keyboard.press(key);
+
+    return this.page.evaluate(() => window.htLastKeyDefaultPrevented);
   }
 
   /**

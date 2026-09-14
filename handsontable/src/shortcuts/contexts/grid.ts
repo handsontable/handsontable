@@ -2,6 +2,7 @@ import type { HotInstance } from '../../core/types';
 import { isDefined } from '../../helpers/mixed';
 import { GRID_GROUP, EDITOR_EDIT_GROUP, GRID_SCOPE, GRID_TAB_NAVIGATION_GROUP } from './constants';
 import { createKeyboardShortcutCommandsPool } from './commands';
+import { canAccessCellContent } from '../guards';
 import { getSelectedCellLink } from './commands/openCellLink';
 
 /**
@@ -15,27 +16,28 @@ export function shortcutsGridContext(hot: HotInstance) {
   type CommandsPool = Record<string, (...args: unknown[]) => boolean | void>;
   const commandsPool = createKeyboardShortcutCommandsPool(hot) as unknown as CommandsPool;
   /**
-   * Whether the grid currently renders any cell.
-   *
-   * A shortcut that reads or writes cell CONTENT must require this. Without it the keystroke acts on
-   * data the user cannot see - every column hidden, or the `emptyDataState` overlay covering the body -
-   * and `Delete` silently blanked the whole dataset (DEV-2917). `countRenderedCols()` is a faithful
-   * proxy: with every column hidden it reports 0 even with frozen columns configured, because the
-   * frozen clone has nothing to clone. It reports -1 before the first draw, so this fails closed.
-   *
-   * Shortcuts that only MOVE the selection deliberately do not take it - navigating the headers that
-   * are still on screen is useful, and moving a selection destroys nothing.
+   * Whether a shortcut may act on the CONTENT of the selected cells. The predicate lives in
+   * `../guards.ts` so every registrar can reach it - `mergeCells` and `checkboxRenderer` add
+   * destructive shortcuts to this same context and need the same answer.
    *
    * @returns {boolean}
    */
-  const hasRenderedCells = (): boolean => hot.countRenderedRows() > 0 && hot.countRenderedCols() > 0;
-  const config = {
-    runOnlyIf: () => {
-      const { navigableHeaders } = hot.getSettings();
+  const canAccessCells = (): boolean => canAccessCellContent(hot);
+  /**
+   * Whether the grid has somewhere for the selection to move: a drawn cell, or a header when
+   * `navigableHeaders` is on. This is what every selection-moving shortcut requires, and it is
+   * deliberately weaker than `canAccessCells()` - moving a selection destroys nothing.
+   *
+   * @returns {boolean}
+   */
+  const isGridNavigable = (): boolean => {
+    const { navigableHeaders } = hot.getSettings();
 
-      return isDefined(hot.getSelected()) &&
-        (navigableHeaders || !navigableHeaders && hot.countRenderedRows() > 0 && hot.countRenderedCols() > 0);
-    },
+    return isDefined(hot.getSelected()) &&
+      (navigableHeaders || hot.countRenderedRows() > 0 && hot.countRenderedCols() > 0);
+  };
+  const config = {
+    runOnlyIf: isGridNavigable,
     group: GRID_GROUP,
   };
 
@@ -50,7 +52,7 @@ export function shortcutsGridContext(hot: HotInstance) {
     callback: () => commandsPool.emptySelectedCells(),
   }], {
     group: EDITOR_EDIT_GROUP,
-    runOnlyIf: () => isDefined(hot.getSelected()) && hasRenderedCells(),
+    runOnlyIf: () => isDefined(hot.getSelected()) && canAccessCells(),
   });
 
   context.addShortcuts([{
@@ -70,7 +72,7 @@ export function shortcutsGridContext(hot: HotInstance) {
     callback: () => commandsPool.populateSelectedCellsData(),
     runOnlyIf: () => {
       return isDefined(hot.getSelected()) &&
-        hasRenderedCells() &&
+        canAccessCells() &&
         !hot.getSelectedRangeActive()?.highlight.isHeader() &&
         (hot.getSelectedRangeActive()?.getCellsCount() ?? 0) > 1;
     },
@@ -81,7 +83,7 @@ export function shortcutsGridContext(hot: HotInstance) {
     // The shortcut prevents the default action and stops propagation whenever `runOnlyIf` passes,
     // so it must claim the chord only for a cell that actually renders a link. Testing just
     // `isCell()` would swallow `Alt`+`Enter` grid-wide and break a host application's own handler.
-    runOnlyIf: () => hasRenderedCells() && getSelectedCellLink(hot) !== null,
+    runOnlyIf: () => canAccessCells() && getSelectedCellLink(hot) !== null,
   }, {
     keys: [['Control', 'Space']],
     captureCtrl: true,
@@ -208,6 +210,12 @@ export function shortcutsGridContext(hot: HotInstance) {
   type TabNavCommand = { before: (event: KeyboardEvent) => void; after: (event: KeyboardEvent) => boolean | void };
   const tabNavigationCommand = commandsPool.tabNavigation() as unknown as TabNavCommand;
 
+  // The pair wraps the Tab entries above, so it takes the same guard they do - it used to have none at
+  // all. That matters because `after()` calls `event.preventDefault()` whenever the selection is still
+  // in range: unguarded, an overlay that inherits these shortcuts swallowed Tab and left the user no
+  // way out of it. `before()` takes the guard too, so the pair can never run half-applied. A
+  // per-shortcut `runOnlyIf` REPLACES a group-level one instead of being ANDed with it, so it is
+  // written on each entry.
   context.addShortcuts([{
     keys: [['Tab'], ['Shift', 'Tab']],
     preventDefault: false,
@@ -215,6 +223,7 @@ export function shortcutsGridContext(hot: HotInstance) {
     relativeToGroup: GRID_GROUP,
     group: GRID_TAB_NAVIGATION_GROUP,
     position: 'before',
+    runOnlyIf: isGridNavigable,
     callback: (event: KeyboardEvent) => tabNavigationCommand.before(event),
   }, {
     keys: [['Tab'], ['Shift', 'Tab']],
@@ -222,6 +231,7 @@ export function shortcutsGridContext(hot: HotInstance) {
     stopPropagation: false,
     relativeToGroup: GRID_GROUP,
     group: GRID_TAB_NAVIGATION_GROUP,
+    runOnlyIf: isGridNavigable,
     callback: (event: KeyboardEvent) => tabNavigationCommand.after(event),
     position: 'after',
   }]);
