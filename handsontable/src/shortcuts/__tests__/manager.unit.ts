@@ -112,16 +112,88 @@ describe('Shortcut Manager', () => {
       manager.destroy();
     });
 
-    it('should not loop forever when the fallbacks form a cycle', () => {
+    it('should fall through to the fallback when its own shortcut declines', () => {
+      const gridSpy = jasmine.createSpy('gridA');
+      const pluginSpy = jasmine.createSpy('pluginA');
+      const manager = createTestManager();
+      const pluginContext = manager.addContext('plugin:overlay');
+
+      manager.getContext('grid').addShortcut({
+        keys: [['a']],
+        callback: gridSpy,
+        group: 'gridGroup',
+      });
+      pluginContext.addShortcut({
+        keys: [['a']],
+        callback: pluginSpy,
+        runOnlyIf: () => false,
+        group: 'pluginGroup',
+      });
+      pluginContext.setFallbackContext(manager.getContext('grid'));
+      manager.setActiveContextName('plugin:overlay');
+
+      pressKey('a');
+
+      expect(pluginSpy).not.toHaveBeenCalled();
+      expect(gridSpy).toHaveBeenCalledTimes(1);
+
+      manager.destroy();
+    });
+
+    it('should stop the walk on a shortcut that ran, even when its callback did nothing', () => {
+      const gridSpy = jasmine.createSpy('gridA');
+      const manager = createTestManager();
+      const pluginContext = manager.addContext('plugin:overlay');
+
+      manager.getContext('grid').addShortcut({
+        keys: [['a']],
+        callback: gridSpy,
+        group: 'gridGroup',
+      });
+      pluginContext.addShortcut({
+        keys: [['a']],
+        callback: () => {},
+        group: 'pluginGroup',
+      });
+      pluginContext.setFallbackContext(manager.getContext('grid'));
+      manager.setActiveContextName('plugin:overlay');
+
+      pressKey('a');
+
+      expect(gridSpy).not.toHaveBeenCalled();
+
+      manager.destroy();
+    });
+
+    it('should visit each context at most once when the fallbacks form a cycle', () => {
+      const firstGuard = jasmine.createSpy('firstGuard').and.returnValue(false);
+      const secondGuard = jasmine.createSpy('secondGuard').and.returnValue(false);
       const manager = createTestManager();
       const firstContext = manager.addContext('plugin:first');
       const secondContext = manager.addContext('plugin:second');
 
+      firstContext.addShortcut({
+        keys: [['a']],
+        callback: () => {},
+        runOnlyIf: firstGuard,
+        group: 'firstGroup',
+      });
+      secondContext.addShortcut({
+        keys: [['a']],
+        callback: () => {},
+        runOnlyIf: secondGuard,
+        group: 'secondGroup',
+      });
       firstContext.setFallbackContext(secondContext);
       secondContext.setFallbackContext(firstContext);
       manager.setActiveContextName('plugin:first');
 
-      expect(() => pressKey('a')).not.toThrow();
+      pressKey('a');
+
+      // An unguarded cycle never returns, and one that revisits a context calls its guard again. Both
+      // are bounded by the counts below - `not.toThrow()` would sit in the loop instead of failing.
+      expect(firstGuard).toHaveBeenCalledTimes(1);
+      expect(secondGuard).toHaveBeenCalledTimes(1);
 
       manager.destroy();
     });
@@ -164,6 +236,27 @@ describe('Shortcut Manager', () => {
       document.documentElement.dispatchEvent(event);
 
       expect(spy).toHaveBeenCalledTimes(1);
+
+      manager.destroy();
+    });
+
+    it('should not reach a table-scoped fallback from a global context', () => {
+      const gridSpy = jasmine.createSpy('gridA');
+      const manager = createTestManager({
+        handleEvent: () => false,
+      });
+      const globalContext = manager.addContext('testGlobalWithFallback', 'global');
+
+      manager.getContext('grid').addShortcut({
+        keys: [['a']],
+        callback: gridSpy,
+        group: 'gridFallbackGroup',
+      });
+      globalContext.setFallbackContext(manager.getContext('grid'));
+
+      document.documentElement.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', bubbles: true }));
+
+      expect(gridSpy).not.toHaveBeenCalled();
 
       manager.destroy();
     });

@@ -132,57 +132,19 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
   let isCtrlKeySilenced = false;
 
   /**
-   * Walks the fallback chain and returns the first context that holds a shortcut for the pressed
-   * keys, or `null` when none does.
-   *
-   * A context declares a fallback so that the shortcuts it does not define keep working while it is
-   * active - an overlay that covers the grid without replacing it, for example. Resolving the owner
-   * here rather than inside the context keeps `hasShortcut()` and `getShortcuts()` answering for a
-   * single context, which is what their documentation promises and what `hasEventShortcut()` needs.
-   *
-   * @param {object|undefined} context The context to start from.
-   * @param {string[]} keys Normalized pressed keys.
-   * @returns {object|null}
-   */
-  const resolveContextOwningKeys = (context: Context | undefined, keys: string[]): Context | null => {
-    const visited = new Set<Context>();
-    let currentContext = context ?? null;
-
-    // A fallback may itself declare one, and nothing stops an integration from forming a cycle.
-    while (currentContext !== null && !visited.has(currentContext)) {
-      if (currentContext.hasShortcut(keys)) {
-        return currentContext;
-      }
-
-      visited.add(currentContext);
-      currentContext = currentContext.getFallbackContext();
-    }
-
-    return null;
-  };
-
-  /**
-   * A callback function for listening events from the recorder.
+   * Runs every shortcut the given context registers for the pressed keys, without consulting its
+   * fallback.
    *
    * @param {KeyboardEvent} event The keyboard event.
-   * @param {string[]} keys Names of the shortcut's keys,
-   * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)),
-   * in lowercase or uppercase, unified across browsers.
-   * @param {object | string} context The context object or name.
-   * @returns {boolean}
+   * @param {string[]} keys Normalized pressed keys.
+   * @param {object} context The context to run.
+   * @returns {{ hasRunAnyShortcut: boolean, isExecutionCancelled: boolean }}
    */
-  const recorderCallback = (
-    event: KeyboardEvent, keys: string[], context: string | Context = getActiveContextName()): boolean => {
-    const activeContext = isContextObject(context) ? context : getContext(context);
-    let isExecutionCancelled = false;
-    const owningContext = resolveContextOwningKeys(activeContext, keys);
-
-    if (!owningContext) {
-      return isExecutionCancelled;
-    }
-
+  const runContextShortcuts = (event: KeyboardEvent, keys: string[], context: Context) => {
     // Processing just actions being in stack at the moment of shortcut pressing (without respecting additions/removals performed dynamically).
-    const shortcuts = owningContext.getShortcuts(keys);
+    const shortcuts = context.getShortcuts(keys);
+    let hasRunAnyShortcut = false;
+    let isExecutionCancelled = false;
 
     for (let index = 0; index < shortcuts.length; index++) {
       const {
@@ -195,6 +157,7 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
       } = shortcuts[index];
 
       if (runOnlyIf?.(event) === true) {
+        hasRunAnyShortcut = true;
         isCtrlKeySilenced = captureCtrl ?? false;
         isExecutionCancelled = callback(event, keys) === false;
         isCtrlKeySilenced = false;
@@ -218,7 +181,61 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
       }
     }
 
-    return isExecutionCancelled;
+    return { hasRunAnyShortcut, isExecutionCancelled };
+  };
+
+  /**
+   * A callback function for listening events from the recorder.
+   *
+   * A context may declare a fallback, so that the keys it does not answer keep working while it is
+   * active - an overlay that covers the grid without replacing it, for example. The chain is walked
+   * here rather than inside the context, which keeps `hasShortcut()` and `getShortcuts()` answering
+   * for a single context, as their documentation promises and as `hasEventShortcut()` needs.
+   *
+   * **The walk moves on only when NOTHING in the current context ran.** A shortcut whose `runOnlyIf`
+   * returned `true` stops it, whether or not its callback did anything - that is what lets a context
+   * claim a key deliberately. A shortcut that is registered but declines (its `runOnlyIf` returned
+   * `false`) does not shadow the fallback's answer for the same key, which is the whole point of
+   * inheriting rather than listing keys by hand.
+   *
+   * @param {KeyboardEvent} event The keyboard event.
+   * @param {string[]} keys Names of the shortcut's keys,
+   * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)),
+   * in lowercase or uppercase, unified across browsers.
+   * @param {object | string} context The context object or name.
+   * @returns {boolean}
+   */
+  const recorderCallback = (
+    event: KeyboardEvent, keys: string[], context: string | Context = getActiveContextName()): boolean => {
+    let currentContext = (isContextObject(context) ? context : getContext(context)) ?? null;
+    // Allocated only once a fallback is actually walked - this runs on every keydown, and almost no
+    // context declares one. Nothing stops an integration from forming a cycle.
+    let visitedContexts: Set<Context> | null = null;
+
+    while (currentContext !== null) {
+      const { hasRunAnyShortcut, isExecutionCancelled } = runContextShortcuts(event, keys, currentContext);
+
+      if (hasRunAnyShortcut) {
+        return isExecutionCancelled;
+      }
+
+      const fallbackContext = currentContext.getFallbackContext();
+
+      if (fallbackContext === null) {
+        return false;
+      }
+
+      visitedContexts ??= new Set<Context>();
+      visitedContexts.add(currentContext);
+
+      if (visitedContexts.has(fallbackContext)) {
+        return false;
+      }
+
+      currentContext = fallbackContext;
+    }
+
+    return false;
   };
 
   /**
@@ -251,7 +268,9 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
         continue;
       }
 
-      if (recorderCallback(event, keys, context)) {
+      // Deliberately not `recorderCallback()`: this path runs while the TABLE pipeline is blocked, so
+      // walking a fallback could reach table-scoped shortcuts the block exists to stop.
+      if (runContextShortcuts(event, keys, context).isExecutionCancelled) {
         return true;
       }
     }
