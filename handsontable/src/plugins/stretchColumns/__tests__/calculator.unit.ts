@@ -61,7 +61,45 @@ describe('StretchCalculator widths map and engine cache', () => {
     hot.destroy();
   });
 
-  it('clears the widths map once when the strategy is switched to `none`, then stays silent', () => {
+  it('switches strategy with one map write and one cache drop, then stays silent', () => {
+    // `all` → `last` keeps the plugin enabled, so `updatePlugin()` swaps the strategy and the next
+    // render writes the new widths: only the last column is stretched now.
+    const hot = buildGrid();
+
+    jest.spyOn(hot.view, 'getViewportWidth').mockReturnValue(300);
+    hot.render();
+
+    expect(hot.getColWidth(0)).toBe(100);
+
+    const widthsMap = hot.columnIndexMapper.variousMapsCollection.get('stretchColumns');
+    const invalidate = jest.spyOn(hot.view, 'invalidateColumnWidthCache');
+    let mapChanges = 0;
+
+    hot.columnIndexMapper.observeMapChange(widthsMap!, () => {
+      mapChanges += 1;
+    });
+
+    hot.updateSettings({ stretchH: 'last' });
+
+    expect(hot.getColWidth(0)).toBe(50);
+    expect(hot.getColWidth(2)).toBe(200);
+    expect(mapChanges).toBe(1);
+    expect(invalidate).toHaveBeenCalledTimes(1);
+
+    invalidate.mockClear();
+    hot.render();
+
+    expect(mapChanges).toBe(1);
+    expect(invalidate).not.toHaveBeenCalled();
+
+    hot.destroy();
+  });
+
+  it('leaves the map and the engine cache alone once the plugin is disabled', () => {
+    // `all` → `none` disables the plugin: `BasePlugin#onUpdateSettings` clears its hooks before
+    // the render, so `refreshStretching()` never runs on that transition and afterwards. The
+    // widths come back to their base through the removed `modifyColWidth` hook, not through a map
+    // write, and nothing drops the engine cache from this plugin any more.
     const hot = buildGrid();
 
     jest.spyOn(hot.view, 'getViewportWidth').mockReturnValue(300);
@@ -78,15 +116,10 @@ describe('StretchCalculator widths map and engine cache', () => {
     });
 
     hot.updateSettings({ stretchH: 'none' });
-
-    expect(hot.getColWidth(0)).toBe(50);
-    expect(mapChanges).toBe(1);
-    expect(invalidate).toHaveBeenCalledTimes(1);
-
-    invalidate.mockClear();
     hot.render();
 
-    expect(mapChanges).toBe(1);
+    expect(hot.getColWidth(0)).toBe(50);
+    expect(mapChanges).toBe(0);
     expect(invalidate).not.toHaveBeenCalled();
 
     hot.destroy();
