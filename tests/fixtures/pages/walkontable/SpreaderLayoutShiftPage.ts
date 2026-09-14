@@ -23,6 +23,11 @@ export class SpreaderLayoutShiftPage {
   readonly bundle: string;
   readonly grid: Locator;
   readonly master: Locator;
+  readonly topClone: Locator;
+  readonly inlineStartClone: Locator;
+
+  /** Whether the current page was opened right-to-left (`goto({ rtl: true })`). */
+  rtl = false;
 
   /**
    * What the page reported while loading. A grid that never appears says nothing about why, so
@@ -36,6 +41,8 @@ export class SpreaderLayoutShiftPage {
     this.bundle = bundle;
     this.grid = page.getByTestId('grid');
     this.master = this.grid.locator('.ht_master');
+    this.topClone = this.grid.locator('.ht_clone_top');
+    this.inlineStartClone = this.grid.locator('.ht_clone_inline_start');
 
     page.on('pageerror', error => this.#pageProblems.push(`pageerror: ${error.message}`));
     page.on('requestfailed', request =>
@@ -49,21 +56,28 @@ export class SpreaderLayoutShiftPage {
 
   /**
    * Navigate and wait for the grid to render. `frozen` adds two frozen rows and columns, so the
-   * overlay clones carry spreaders of their own.
+   * overlay clones carry spreaders of their own; `rtl` renders the grid and the page right-to-left.
    */
-  async goto({ frozen = false } = {}): Promise<void> {
+  async goto({ frozen = false, rtl = false } = {}): Promise<void> {
     const params = new URLSearchParams({ theme: this.theme, bundle: this.bundle });
 
     if (frozen) {
       params.set('frozen', '1');
     }
 
+    if (rtl) {
+      params.set('rtl', '1');
+    }
+
+    this.rtl = rtl;
     this.#pageProblems.length = 0;
     await this.page.goto(`/tests/fixtures/demo/walkontable/spreader-layout-shift.html?${params}`);
 
     try {
       await expect(this.master).toBeVisible();
-      await expect(this.cell(0, 0)).toBeVisible();
+      // "Rendered" means the master carries body cells. Not cell (0, 0): with frozen panes the
+      // master's band starts past the frozen rows and columns, and that cell lives in a clone only.
+      await expect(this.master.locator('tbody td').first()).toBeVisible();
     } catch (error) {
       const report = this.#pageProblems.length > 0 ? this.#pageProblems.join(' | ') : 'the page reported no errors';
 
@@ -82,9 +96,35 @@ export class SpreaderLayoutShiftPage {
     return this.master.locator('.wtHolder');
   }
 
-  /** A data cell, by its test id. */
+  /**
+   * A data cell as the MASTER renders it. Every overlay clone renders its own copy with the same
+   * test id, so the lookup is scoped to the master.
+   */
   cell(row: number, col: number): Locator {
-    return this.page.getByTestId(`cell-${row}-${col}`);
+    return this.master.getByTestId(`cell-${row}-${col}`);
+  }
+
+  /** A data cell in a frozen column, as the inline-start clone renders it. */
+  frozenColumnCell(row: number, col: number): Locator {
+    return this.inlineStartClone.getByTestId(`cell-${row}-${col}`);
+  }
+
+  /** A data cell in a frozen row, as the top clone renders it. */
+  frozenRowCell(row: number, col: number): Locator {
+    return this.topClone.getByTestId(`cell-${row}-${col}`);
+  }
+
+  /** The column header cell of a column, as the top clone renders it. */
+  async columnHeader(col: number): Promise<Locator> {
+    const name = await this.page.evaluate(
+      (c) => (window as unknown as { hot: { getColHeader(col: number): string } }).hot.getColHeader(c), col);
+
+    return this.topClone.locator('thead th').filter({ has: this.page.getByText(name, { exact: true }) });
+  }
+
+  /** The row header cell of a row, as the inline-start clone renders it. */
+  rowHeader(row: number): Locator {
+    return this.inlineStartClone.locator('tbody th').filter({ has: this.page.getByText(String(row + 1), { exact: true }) });
   }
 
   /** The lowest row index the master actually renders. */
@@ -183,15 +223,19 @@ export class SpreaderLayoutShiftPage {
    * Scroll the master viewport with real wheel events, then wait until the engine has rendered a
    * band starting past the one it started on - a render-state probe, since the redraw is
    * rAF-batched and lands after the scroll position settles.
+   *
+   * `deltaX` is given as "away from the inline start": in RTL the wheel sign is flipped so the
+   * same call scrolls the same columns into view.
    */
   async wheelScroll({ deltaX = 0, deltaY = 0, steps = 12 }): Promise<void> {
     const rowBefore = await this.masterFirstRenderedRow();
     const columnBefore = await this.masterFirstRenderedColumn();
+    const physicalDeltaX = this.rtl ? -deltaX : deltaX;
 
     await this.hoverMaster();
 
     for (let i = 0; i < steps; i += 1) {
-      await this.page.mouse.wheel(deltaX, deltaY);
+      await this.page.mouse.wheel(physicalDeltaX, deltaY);
     }
 
     if (deltaY > 0) {
@@ -215,24 +259,80 @@ export class SpreaderLayoutShiftPage {
   }
 
   /** Select a cell by clicking it, and wait for the focus to land. */
-  async selectCell(row: number, col: number): Promise<void> {
-    await this.cell(row, col).click();
-    await expect(this.cell(row, col)).toHaveClass(/\bcurrent\b/);
+  async selectCell(cell: Locator): Promise<void> {
+    await cell.click();
+    await expect(cell).toHaveClass(/\bcurrent\b/);
   }
 
-  /** Open the editor on a cell with a double-click, and wait for it to appear. */
-  async openEditor(row: number, col: number): Promise<Locator> {
-    await this.cell(row, col).dblclick();
+  /**
+   * Open the editor on a cell with a double-click, and wait until the editor reports itself open
+   * ON THAT CELL - the holder element is reused and merely moved, so its visibility says nothing
+   * about which cell it is placed over.
+   */
+  async openEditor(cell: Locator): Promise<Locator> {
+    await cell.dblclick();
 
-    const editor = this.grid.locator('.handsontableInputHolder').first();
+    await expect.poll(() => cell.evaluate((td) => {
+      const editor = (window as unknown as {
+        hot: { getActiveEditor(): { isOpened(): boolean, TD: HTMLElement } | undefined }
+      }).hot.getActiveEditor();
 
-    await expect(editor).toBeVisible();
+      return Boolean(editor && editor.isOpened() && editor.TD === td);
+    })).toBe(true);
 
-    return editor;
+    return this.grid.locator('.handsontableInputHolder').first();
   }
 
-  /** The master's fill handle - the small square at the selection's bottom-right corner. */
+  /** Close an open editor without saving, and wait until it reports itself closed. */
+  async closeEditor(): Promise<void> {
+    await this.page.keyboard.press('Escape');
+
+    await expect.poll(() => this.page.evaluate(() => {
+      const editor = (window as unknown as {
+        hot: { getActiveEditor(): { isOpened(): boolean } | undefined }
+      }).hot.getActiveEditor();
+
+      return Boolean(editor && editor.isOpened());
+    })).toBe(false);
+  }
+
+  /** The master's fill handle - the small square at the selection's inline-end bottom corner. */
   fillHandle(): Locator {
     return this.master.locator('.wtBorder.corner').first();
+  }
+
+  /** The fill handle the inline-start clone draws for a selection in a frozen column. */
+  frozenColumnFillHandle(): Locator {
+    return this.inlineStartClone.locator('.wtBorder.corner').first();
+  }
+
+  /**
+   * Hover a column header and wait for the column-resize handle to appear. The plugin places the
+   * handle at the header's inline-end edge, relative to the root element.
+   */
+  async hoverColumnHeader(col: number): Promise<Locator> {
+    const header = await this.columnHeader(col);
+
+    await header.hover();
+
+    const handle = this.grid.locator('.manualColumnResizer');
+
+    await expect(handle).toBeVisible();
+
+    return handle;
+  }
+
+  /**
+   * Hover a row header and wait for the row-resize handle to appear. The plugin places the handle
+   * at the header's bottom edge, relative to the root element.
+   */
+  async hoverRowHeader(row: number): Promise<Locator> {
+    await this.rowHeader(row).hover();
+
+    const handle = this.grid.locator('.manualRowResizer');
+
+    await expect(handle).toBeVisible();
+
+    return handle;
   }
 }

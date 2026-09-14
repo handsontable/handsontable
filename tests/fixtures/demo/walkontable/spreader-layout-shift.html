@@ -28,6 +28,12 @@
     }
     // Frozen panes on request, so the overlay clones get their own spreaders to exercise.
     window.htFrozen = htParams.get('frozen') === '1';
+    // RTL on request: the grid AND the page, as a real RTL app has it.
+    window.htRtl = htParams.get('rtl') === '1';
+
+    if (window.htRtl) {
+      document.documentElement.dir = 'rtl';
+    }
 
     // The layout-shift observer is installed BEFORE the bundle loads, so no shift can be missed.
     // Every entry keeps enough of its sources for a spec to say which element the browser blamed.
@@ -99,6 +105,11 @@
       colHeaders: true,
       fixedRowsTop: window.htFrozen ? 2 : 0,
       fixedColumnsStart: window.htFrozen ? 2 : 0,
+      layoutDirection: window.htRtl ? 'rtl' : 'ltr',
+      // The resize handles are placed from the header's position relative to the root element,
+      // another reader of the spreader offset.
+      manualRowResize: true,
+      manualColumnResize: true,
       renderer: testIdRenderer,
       licenseKey: 'non-commercial-and-evaluation',
     });
