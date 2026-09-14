@@ -2403,7 +2403,7 @@ export default function Core(
               shouldBeCanceled = false;
               // cancel the change
               changes.splice(index, 1);
-              // we cancelled the change, so cell value is still valid
+              // we canceled the change, so cell value is still valid
               cellPropertiesReference.valid = true;
               // ...and the stored meta has to hear about it too, or a cache clear that landed while
               // the validator was running leaves the kept value wearing the rejected edit's mark.
@@ -2760,7 +2760,7 @@ export default function Core(
    */
   function processChanges(changes: Array<CellChange | null>, source: string | undefined): CellChange[] {
     const beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
-    // The `beforeChange` hook could add a `null` for purpose of cancelling some dataset's change.
+    // The `beforeChange` hook could add a `null` for purpose of canceling some dataset's change.
     const filteredChanges = changes.filter((change): change is CellChange => change !== null);
 
     if (beforeChangeResult === false || filteredChanges.length === 0) {

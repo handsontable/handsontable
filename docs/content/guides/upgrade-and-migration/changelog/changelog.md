@@ -1897,7 +1897,7 @@ For more information on this release, see:
 
 - Fixed an issue where the validator function was called twice when the `Formulas` plugin was
   enabled. ([#8138](https://github.com/handsontable/handsontable/issues/8138))
-- Introduced a new CSS style for cells of the `checkbox` type to restore previous behaviour.
+- Introduced a new CSS style for cells of the `checkbox` type to restore previous behavior.
   ([#8196](https://github.com/handsontable/handsontable/issues/8196))
 
 ## 9.0.0
@@ -1963,7 +1963,7 @@ For more information on this release, see:
 
 - Introduced a `separated` attribute for the label options (the `label` DOM element may wrap `input`
   or be placed next to it). ([#3172](https://github.com/handsontable/handsontable/issues/3172))
-- Introduced the `modifyAutoColumnSizeSeed` hook to let developers overwrite the default behaviour
+- Introduced the `modifyAutoColumnSizeSeed` hook to let developers overwrite the default behavior
   of the AutoColumnSize sampling.
   ([#3339](https://github.com/handsontable/handsontable/issues/3339))
 - Added support for hiding columns for the `NestedHeaders` plugin.
@@ -2388,7 +2388,7 @@ methods and hooks were added and there are few depreciations and removals, too.
   `boolean`. [#6547](https://github.com/handsontable/handsontable/pull/6547)
 - Added additional information available in the cell meta object - the language.
   [#6254](https://github.com/handsontable/handsontable/pull/6254).
-- Added a possibility to allow cancelling of `autofill` in the `beforeAutofill` hook.
+- Added a possibility to allow canceling of `autofill` in the `beforeAutofill` hook.
   [#4441](https://github.com/handsontable/handsontable/issues/4441)
 - Added support for newer versions of moment, numbro and pikaday.
   [#5159](https://github.com/handsontable/handsontable/issues/5159)

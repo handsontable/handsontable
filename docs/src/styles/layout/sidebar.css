@@ -2,7 +2,7 @@
  * Sidebar menu-tag badges  (menuTag: new | updated in frontmatter)
  *
  * Starlight renders these as .sl-badge.success / .sl-badge.caution.
- * Badge colours are handled by starlight-theme-rapide. Only size and
+ * Badge colors are handled by starlight-theme-rapide. Only size and
  * layout adjustments for the sidebar context are applied here.
  * ------------------------------------------------------------------------- */
 

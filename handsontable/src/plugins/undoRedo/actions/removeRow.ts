@@ -1,38 +1,12 @@
 import type { HookCallback } from '../../../core/hooks/bucket';
 import type { HotInstance } from '../../../core/types';
+import type { UndoRedoActionResult } from '../undoRedo';
 import { BaseAction } from './_base';
 import { getCellMetas, collectAffectedMergedCells, restoreMergedCells } from '../utils';
-import { deepClone, isPlainObject } from '../../../helpers/object';
+import { deepClone, isPlainObject, stripFunctionValues } from '../../../helpers/object';
 import { isDataAccessorFn } from '../../../dataMap/dataSource';
 import type { DataAccessorFn } from '../../../dataMap/dataSource';
-
-/**
- * Recursively deletes function-valued keys from a cloned row. `deepClone` keeps functions by
- * reference at every depth, so a top-level-only sweep would still alias a nested closure of the
- * removed row onto the row the `dataSchema` creates on undo.
- *
- * @param {unknown} value The cloned value to sweep.
- */
-function stripFunctionValues(value: unknown): void {
-  if (Array.isArray(value)) {
-    value.forEach((entry, index) => {
-      if (typeof entry === 'function') {
-        value[index] = null;
-      } else {
-        stripFunctionValues(entry);
-      }
-    });
-
-  } else if (isPlainObject(value)) {
-    Object.keys(value).forEach((key) => {
-      if (typeof value[key] === 'function') {
-        delete value[key];
-      } else {
-        stripFunctionValues(value[key]);
-      }
-    });
-  }
-}
+import type { PhysicalRowMergeSnapshot } from '../../mergeCells/mergeCells';
 
 /**
  * Snapshots one source row for later restoration. Function-valued keys are dropped (at every
@@ -98,6 +72,52 @@ function captureAccessorValues(
 }
 
 /**
+ * Captures cell metadata by physical row so nested rows can restore metadata for every descendant.
+ *
+ * @param {HotInstance} hot The Handsontable instance.
+ * @param {number[]} physicalRows Physical rows being removed.
+ * @returns {Array<[number, number, object]>} Physical row/column metadata entries.
+ */
+function capturePhysicalCellMetas(
+  hot: HotInstance, physicalRows: number[]
+): Array<[number, number, Record<string, unknown>]> {
+  const cellMetas: Array<[number, number, Record<string, unknown>]> = [];
+  const metaManager = hot._getMetaManager();
+
+  physicalRows.forEach((physicalRow) => {
+    metaManager.getCellsMetaAtRowWithPhysicalColumns(physicalRow).forEach(({ physicalColumn, meta }) => {
+      cellMetas.push([physicalRow, physicalColumn, meta as Record<string, unknown>]);
+    });
+  });
+
+  return cellMetas;
+}
+
+/**
+ * Captures merged ranges intersecting every visible row in a nested removal.
+ *
+ * @param {HotInstance} hot The Handsontable instance.
+ * @param {number[]} physicalRows Physical rows being removed.
+ * @returns {Array<object>} A de-duplicated list of affected merged ranges.
+ */
+function collectNestedRemovedMergedCells(hot: HotInstance, physicalRows: number[]): PhysicalRowMergeSnapshot[] {
+  type MergeCellsPlugin = {
+    enabled?: boolean;
+    getPhysicalRowSpansForRemoval?: () => PhysicalRowMergeSnapshot[];
+  };
+  const mergeCellsPlugin = hot.getPlugin('mergeCells') as MergeCellsPlugin | undefined;
+
+  if (!mergeCellsPlugin?.enabled || !mergeCellsPlugin.getPhysicalRowSpansForRemoval) {
+    return [];
+  }
+
+  const removedPhysicalRows = new Set(physicalRows);
+
+  return mergeCellsPlugin.getPhysicalRowSpansForRemoval()
+    .filter(mergedCell => mergedCell.physicalRows.some(physicalRow => removedPhysicalRows.has(physicalRow)));
+}
+
+/**
  * Action that tracks changes in row removal.
  *
  * @class RemoveRowAction
@@ -139,10 +159,41 @@ export class RemoveRowAction extends BaseAction {
    *   the removed rows. Stored as plain `{ row, col, rowspan, colspan }` objects in visual coords.
    */
   removedMergedCells;
+  /**
+   * Internal snapshot supplied by the NestedRows plugin when a removed row owns a nested subtree.
+   *
+   * @type {unknown}
+   */
+  declare nestedRowsSnapshot?: unknown;
+  /**
+   * Cell metadata captured in physical coordinates for nested rows.
+   *
+   * @type {Array}
+   */
+  declare nestedRemovedCellMetas?: Array<[number, number, Record<string, unknown>]>;
+  /**
+   * Accessor-column values captured for every physical row in a nested subtree.
+   *
+   * @type {Array}
+   */
+  declare nestedAccessorValues?: Array<{ row: number, values: Array<[number, unknown]> }>;
+  /**
+   * Merge geometry and physical anchors captured for nested rows.
+   *
+   * @type {Array}
+   */
+  declare nestedRemovedMergedCells?: PhysicalRowMergeSnapshot[];
+  /**
+   * Source of the nested removal (`ContextMenu.removeRow`, `UndoRedo.redo`, and so on). Context-menu
+   * removal does not call `selection.shiftRows`, so undo must not either.
+   *
+   * @type {string}
+   */
+  declare nestedRemovalSource?: string;
 
   /**
    * Initializes the remove row action with the removed data, captured accessor-column values, row index
-   * sequence, fixed-row counts, cell meta backup, and affected merged cells.
+   * sequence, fixed-row counts, cell meta backup, affected merged cells, and an optional nested-row snapshot.
    */
   constructor({
     index,
@@ -153,11 +204,21 @@ export class RemoveRowAction extends BaseAction {
     rowIndexesSequence,
     removedCellMetas,
     removedMergedCells,
+    nestedRowsSnapshot,
+    nestedRemovedCellMetas,
+    nestedAccessorValues,
+    nestedRemovedMergedCells,
+    nestedRemovalSource,
   }: {
     index: number, indexes?: number[], data: unknown[][], accessorValues: Array<Array<[number, unknown]>>,
     fixedRowsBottom: number, fixedRowsTop: number,
     rowIndexesSequence: number[], removedCellMetas: unknown[],
-    removedMergedCells: Array<{ row: number, col: number, rowspan: number, colspan: number }>
+    removedMergedCells: Array<{ row: number, col: number, rowspan: number, colspan: number }>,
+    nestedRowsSnapshot?: unknown,
+    nestedRemovedCellMetas?: Array<[number, number, Record<string, unknown>]>,
+    nestedAccessorValues?: Array<{ row: number, values: Array<[number, unknown]> }>,
+    nestedRemovedMergedCells?: PhysicalRowMergeSnapshot[],
+    nestedRemovalSource?: string,
   }) {
     super('remove_row');
     this.index = index;
@@ -168,6 +229,14 @@ export class RemoveRowAction extends BaseAction {
     this.rowIndexesSequence = rowIndexesSequence;
     this.removedCellMetas = removedCellMetas;
     this.removedMergedCells = removedMergedCells;
+
+    if (nestedRowsSnapshot !== null && nestedRowsSnapshot !== undefined) {
+      this.nestedRowsSnapshot = nestedRowsSnapshot;
+      this.nestedRemovedCellMetas = nestedRemovedCellMetas;
+      this.nestedAccessorValues = nestedAccessorValues;
+      this.nestedRemovedMergedCells = nestedRemovedMergedCells;
+      this.nestedRemovalSource = nestedRemovalSource;
+    }
   }
 
   /**
@@ -181,6 +250,32 @@ export class RemoveRowAction extends BaseAction {
         const removedData: unknown[] = [];
         const removedAccessorValues: Array<Array<[number, unknown]>> = [];
         const accessorColumns = collectAccessorColumns(hot);
+        const removedPhysicalRows = Array.isArray(logicRows)
+          ? logicRows.filter((row): row is number => typeof row === 'number')
+          : [];
+        const nestedRows = hot.getPlugin('nestedRows');
+        const nestedRowsSnapshot = nestedRows?.enabled
+          ? nestedRows.captureRemovedRows(removedPhysicalRows)
+          : null;
+        const hasNestedRowsSnapshot = nestedRowsSnapshot !== null && nestedRowsSnapshot !== undefined;
+        const nestedRemovedPhysicalRows = hasNestedRowsSnapshot && nestedRows
+          ? nestedRows.getRemovedPhysicalRows(nestedRowsSnapshot)
+          : [];
+        const nestedRemovedCellMetas = hasNestedRowsSnapshot
+          ? capturePhysicalCellMetas(hot, nestedRemovedPhysicalRows)
+          : undefined;
+        const nestedAccessorValues = hasNestedRowsSnapshot
+          ? nestedRemovedPhysicalRows.map(row => ({
+            row,
+            values: captureAccessorValues(hot, row, accessorColumns),
+          }))
+          : undefined;
+        const nestedRemovedMergedCells = hasNestedRowsSnapshot
+          ? collectNestedRemovedMergedCells(hot, nestedRemovedPhysicalRows)
+          : undefined;
+        const removedMergedCells = nestedRemovedMergedCells
+          ? nestedRemovedMergedCells.map(({ physicalRows: _physicalRows, ...mergedCell }) => mergedCell)
+          : collectAffectedMergedCells(hot, 'row', index, amount);
 
         for (let i = 0; i < amount; i++) {
           removedData.push(captureRowData(hot, physicalRowIndex + i));
@@ -195,7 +290,12 @@ export class RemoveRowAction extends BaseAction {
           fixedRowsTop: hot.getSettings().fixedRowsTop ?? 0,
           rowIndexesSequence: hot.rowIndexMapper.getIndexesSequence(),
           removedCellMetas: getCellMetas(hot, physicalRowIndex, lastRowIndex, 0, hot.countCols() - 1),
-          removedMergedCells: collectAffectedMergedCells(hot, 'row', index, amount),
+          removedMergedCells,
+          nestedRowsSnapshot,
+          nestedRemovedCellMetas,
+          nestedAccessorValues,
+          nestedRemovedMergedCells,
+          nestedRemovalSource: source,
         });
       };
 
@@ -206,16 +306,32 @@ export class RemoveRowAction extends BaseAction {
   }
 
   /**
+   * Reports whether this nested removal can be undone without mutating the grid.
+   *
+   * UndoRedo must call this before `beforeUndo`. Formulas always calls `engine.undo()` in
+   * `beforeUndo`, so a disabled plugin or a create-row veto discovered only while applying
+   * the snapshot would leave HyperFormula restored and Handsontable empty.
+   *
+   * @param {Core} hot The Handsontable instance.
+   * @returns {boolean} `true` when undo can proceed.
+   */
+  canUndo(hot: HotInstance): boolean {
+    if (this.nestedRowsSnapshot === undefined) {
+      return true;
+    }
+
+    const nestedRows = hot.getPlugin('nestedRows');
+
+    return !!nestedRows?.enabled && nestedRows.canRestoreRemovedRows(this.nestedRowsSnapshot);
+  }
+
+  /**
    * @param {Core} hot The Handsontable instance.
    * @param {function(): void} undoneCallback The callback to be called after the action is undone.
    */
-  undo(hot: HotInstance, undoneCallback: HookCallback) {
+  undo(hot: HotInstance, undoneCallback: (result?: UndoRedoActionResult) => void) {
     const settings = hot.getSettings();
     const changes: unknown[][] = [];
-
-    // Changing by the reference as `updateSettings` doesn't work the best.
-    settings.fixedRowsBottom = this.fixedRowsBottom;
-    settings.fixedRowsTop = this.fixedRowsTop;
 
     // Prepare the change list to fill the source data.
     this.data.forEach((row, rowIndexDelta) => {
@@ -235,33 +351,146 @@ export class RemoveRowAction extends BaseAction {
     // an accessor. A hidden column keeps its visual index, so it restores like any other. A column
     // trimmed at removal time is never captured either, because `captureAccessorValues` iterates
     // `countCols()`, which does not count trimmed columns.
-    this.accessorValues.forEach((rowValues, rowIndexDelta) => {
-      rowValues.forEach(([physicalColumn, value]) => {
-        const prop: unknown = hot.colToProp(hot.toVisualColumn(physicalColumn));
+    if (this.nestedRowsSnapshot !== undefined) {
+      this.nestedAccessorValues?.forEach(({ row, values }) => {
+        values.forEach(([physicalColumn, value]) => {
+          const prop: unknown = hot.colToProp(hot.toVisualColumn(physicalColumn));
 
-        if (isDataAccessorFn(prop)) {
-          changes.push([this.index + rowIndexDelta, prop, value]);
+          if (isDataAccessorFn(prop)) {
+            changes.push([row, prop, value]);
+          }
+        });
+      });
+    } else {
+      this.accessorValues.forEach((rowValues, rowIndexDelta) => {
+        rowValues.forEach(([physicalColumn, value]) => {
+          const prop: unknown = hot.colToProp(hot.toVisualColumn(physicalColumn));
+
+          if (isDataAccessorFn(prop)) {
+            changes.push([this.index + rowIndexDelta, prop, value]);
+          }
+        });
+      });
+    }
+
+    const nestedRows = hot.getPlugin('nestedRows');
+
+    if (this.nestedRowsSnapshot !== undefined && !nestedRows?.enabled) {
+      undoneCallback({ wasUndone: false });
+
+      return;
+    }
+
+    if (this.nestedRowsSnapshot !== undefined && nestedRows.enabled) {
+      const wasRestored = nestedRows.restoreRemovedRows(
+        this.nestedRowsSnapshot,
+        this.rowIndexesSequence,
+        this.nestedRemovalSource !== 'ContextMenu.removeRow'
+      );
+
+      if (!wasRestored) {
+        undoneCallback({ wasUndone: false });
+
+        return;
+      }
+    } else {
+      // The indexes sequence have to be applied twice.
+      //  * First for proper index translation. The alter method accepts a visual index
+      //    and we are able to retrieve the correct index indicating where to add a new row based
+      //    only on the previous order state of the rows;
+      //  * The alter method shifts the indexes (a side-effect), so we need to reapply the indexes sequence
+      //    the same as it was in the previous state;
+      hot.rowIndexMapper.setIndexesSequence(this.rowIndexesSequence);
+      hot.alter('insert_row_above', hot.toVisualRow(this.index), this.data.length, 'UndoRedo.undo');
+      hot.rowIndexMapper.setIndexesSequence(this.rowIndexesSequence);
+    }
+
+    // Changing by the reference as `updateSettings` doesn't work the best.
+    settings.fixedRowsBottom = this.fixedRowsBottom;
+    settings.fixedRowsTop = this.fixedRowsTop;
+
+    if (this.nestedRowsSnapshot !== undefined && this.nestedRemovedCellMetas) {
+      const metaManager = hot._getMetaManager();
+
+      this.nestedRemovedCellMetas.forEach(([physicalRow, physicalColumn, cellMeta]) => {
+        const visualRow = hot.toVisualRow(physicalRow);
+        const visualColumn = hot.toVisualColumn(physicalColumn);
+        const canUsePublicMetaHooks = visualRow !== null && visualColumn !== null;
+        const restoreMeta = (key: string) => {
+          if (canUsePublicMetaHooks) {
+            const allowSetCellMeta = hot.runHooks(
+              'beforeSetCellMeta', visualRow, visualColumn, key, cellMeta[key]
+            );
+
+            if (allowSetCellMeta === false) {
+              return;
+            }
+          }
+
+          // Re-open the origin that filed the write. A bare `setCellMeta` would put every
+          // key in `_userDefinedMetaProps` and drop it from `_cellOptionMetaProps`, so a
+          // later `updateSettings({ cell: [...] })` would replay the stale value (#5661).
+          // Plugin-declarative keys (ColumnSummary `readOnly`) belong to no bucket.
+          const cellOptionKeys = cellMeta._cellOptionMetaProps;
+          const userDefinedKeys = cellMeta._userDefinedMetaProps;
+          const isCellOption = cellOptionKeys instanceof Set && cellOptionKeys.has(key);
+          const isUserDefined = userDefinedKeys instanceof Set && userDefinedKeys.has(key);
+
+          if (isCellOption) {
+            metaManager.startCellOptionMetaRecording();
+          } else if (!isUserDefined) {
+            metaManager.disableUserDefinedMetaRecording();
+          }
+
+          try {
+            metaManager.setCellMeta(physicalRow, physicalColumn, key, cellMeta[key]);
+          } finally {
+            if (isCellOption) {
+              metaManager.endCellOptionMetaRecording();
+            } else if (!isUserDefined) {
+              metaManager.enableUserDefinedMetaRecording();
+            }
+          }
+
+          if (canUsePublicMetaHooks) {
+            hot.runHooks('afterSetCellMeta', visualRow, visualColumn, key, cellMeta[key]);
+          }
+        };
+        const persistedMetaProps = cellMeta._persistedMetaProps;
+
+        if (persistedMetaProps instanceof Set) {
+          persistedMetaProps.forEach((key) => {
+            if (Object.prototype.hasOwnProperty.call(cellMeta, key)) {
+              restoreMeta(key);
+            }
+          });
+
+        } else {
+          Object.keys(cellMeta)
+            .filter(key => !['row', 'col', 'prop', 'visualRow', 'visualCol', '_isBaseRendererCalled'].includes(key))
+            .forEach(restoreMeta);
         }
       });
-    });
+    } else {
+      this.removedCellMetas.forEach((entry: unknown) => {
+        const [rowIndex, columnIndex, cellMeta] = entry as [number, number, Record<string, unknown>];
 
-    // The indexes sequence have to be applied twice.
-    //  * First for proper index translation. The alter method accepts a visual index
-    //    and we are able to retrieve the correct index indicating where to add a new row based
-    //    only on the previous order state of the rows;
-    //  * The alter method shifts the indexes (a side-effect), so we need to reapply the indexes sequence
-    //    the same as it was in the previous state;
-    hot.rowIndexMapper.setIndexesSequence(this.rowIndexesSequence);
-    hot.alter('insert_row_above', hot.toVisualRow(this.index), this.data.length, 'UndoRedo.undo');
-    hot.rowIndexMapper.setIndexesSequence(this.rowIndexesSequence);
+        hot.setCellMetaObject(rowIndex, columnIndex, cellMeta);
+      });
+    }
 
-    this.removedCellMetas.forEach((entry: unknown) => {
-      const [rowIndex, columnIndex, cellMeta] = entry as [number, number, Record<string, unknown>];
+    if (this.nestedRowsSnapshot === undefined) {
+      restoreMergedCells(hot, this.removedMergedCells);
+    }
 
-      hot.setCellMetaObject(rowIndex, columnIndex, cellMeta);
-    });
+    if (this.nestedRemovedMergedCells?.length) {
+      type MergeCellsPlugin = {
+        restorePhysicalRowSpansAfterRemoval?: (snapshots: PhysicalRowMergeSnapshot[]) => void;
+      };
+      const mergeCellsPlugin = hot.getPlugin('mergeCells') as MergeCellsPlugin | undefined;
 
-    restoreMergedCells(hot, this.removedMergedCells);
+      mergeCellsPlugin?.restorePhysicalRowSpansAfterRemoval?.(this.nestedRemovedMergedCells);
+    }
 
     hot.addHookOnce('afterViewRender', undoneCallback);
 

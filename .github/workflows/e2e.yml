@@ -3,7 +3,7 @@ name: E2E
 # End-to-end tests, build-dependent (consume the UMD artifact). Two matrices,
 # 1:1 with each other: the frozen Puppeteer suite and the new Playwright suite,
 # both over theme × bundle (UMD / UMD.min). Per-leg gating keeps the exact old
-# scope behaviour (UMD legs on the e2e scope, UMD.min on the e2e-min scope).
+# scope behavior (UMD legs on the e2e scope, UMD.min on the e2e-min scope).
 # The UMD.min legs load handsontable.full.min.js — the exact file Puppeteer's
 # test:production runs. The bundles Puppeteer does not test either
 # (handsontable.full.js and handsontable.min.js) are deliberately not covered
@@ -113,9 +113,13 @@ jobs:
       - name: Install the Playwright test package
         run: pnpm install --filter handsontable-tests
       - name: Run Playwright E2E
+        id: playwright
         run: cd tests && npx playwright test --project=e2e-${{ matrix.theme }}${{ matrix.bundle.suffix }}
+      # Also when the leg stayed green only because a flaky test was under
+      # quarantine (the quarantine reporter sets the output): the ledger still
+      # records that test.
       - name: Upload the Playwright report on failure
-        if: failure()
+        if: failure() || steps.playwright.outputs.quarantined-flaky == 'true'
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
         with:
           name: playwright-report-${{ matrix.theme }}${{ matrix.bundle.suffix }}

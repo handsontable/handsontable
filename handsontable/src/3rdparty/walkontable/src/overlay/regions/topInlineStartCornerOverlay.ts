@@ -133,7 +133,7 @@ export class TopInlineStartCornerOverlay extends Overlay {
     const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
     const { rootWindow } = this.deps;
 
-    // The corner follows the window on whichever axis the window owns; a neighbour whose axis is
+    // The corner follows the window on whichever axis the window owns; a neighbor whose axis is
     // owned by an element reports a 0 offset on that axis, so the positioned form is right whenever
     // at least one axis scrolls with the window.
     if (this.topOverlay.trimmingContainer === rootWindow || this.inlineStartOverlay.trimmingContainer === rootWindow) {

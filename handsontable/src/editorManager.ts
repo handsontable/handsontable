@@ -731,7 +731,7 @@ class EditorManager {
    * visual index space instead of preserving it, so `isHidden()` reads `false` for a trimmed row and
    * this method never fires for one.
    *
-   * The edit is finished rather than cancelled, which for most editors means it is COMMITTED - the
+   * The edit is finished rather than canceled, which for most editors means it is COMMITTED - the
    * same outcome clicking the pager already produces, since that is an outside click and therefore
    * deselects. The final say still belongs to the editor: `DropdownEditor#finishEditing()` rewrites
    * the flag to a discard when the active range no longer contains the edited cell. On THIS path it
