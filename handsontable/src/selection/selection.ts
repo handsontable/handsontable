@@ -279,6 +279,41 @@ class Selection {
    * @type {Set<number>}
    */
   #columnExtentSpansGrid = new Set<number>();
+  /**
+   * The structural-change scopes currently open, innermost last. `alter()` opens one around its
+   * whole run.
+   *
+   * A scope's `sequence` orders it against the others, and it is stamped when that scope's DATA
+   * CHANGE lands - not when the scope opens. The two are different orders, and only the first one
+   * is correct: a nested `alter()` fired from a `before*` hook makes its change BEFORE the enclosing
+   * call makes its own, while one fired from an `after*` hook or a cache-update makes it after.
+   * Ordering by scope-open time gets the `before*` case backwards and shifts the selection the wrong
+   * way (DEV-2755 review).
+   *
+   * A scope with no data change of its own - an amount-0 `alter()` - is stamped when it asks for its
+   * shift instead, which puts it after whatever had already changed by then.
+   *
+   * @type {Array}
+   */
+  #shiftScopes: Array<{ sequence: number | null }> = [];
+  /**
+   * Hands out the scope sequence numbers.
+   *
+   * @type {number}
+   */
+  #shiftSequence = 0;
+  /**
+   * Row shifts held back while an enclosing scope still owes the selection a repair.
+   *
+   * @type {Array}
+   */
+  #pendingRowShifts: Array<{ sequence: number, index: number, amount: number }> = [];
+  /**
+   * The column counterpart of `#pendingRowShifts`.
+   *
+   * @type {Array}
+   */
+  #pendingColumnShifts: Array<{ sequence: number, index: number, amount: number }> = [];
 
   /**
    * Initializes the Selection manager with grid settings and table API references, and sets up transformation modules and highlight layers.
@@ -916,12 +951,173 @@ class Selection {
   }
 
   /**
+   * Opens a structural-change scope. Until the matching `resumeShifts()`, a shift asked for by a
+   * scope opened INSIDE this one is held back and composed with this one's own shift - but only
+   * once this one's data change has actually landed.
+   *
+   * `alter()` renumbers the index space before it repairs the selection, so an `alter()` fired from
+   * a hook in between works on a selection that is stale for the enclosing call too. Its own repair
+   * then clamps the out-of-range range back into the grid - doing the enclosing call's job - and the
+   * enclosing shift lands one row further than the records actually moved (DEV-2755).
+   *
+   * Before that data change there is nothing owed and nothing to compose, so a nested call there
+   * repairs the selection immediately, exactly as it did before this scope existed. That is the
+   * ordinary shape of an `alter()` fired from `beforeAlter` or `beforeRemoveRow`.
+   */
+  suspendShifts() {
+    this.#shiftScopes.push({ sequence: null });
+  }
+
+  /**
+   * Closes the innermost structural-change scope. Closing the OUTERMOST one writes any shift still
+   * held back, so a change that never reached a shift of its own - a removal that emptied the grid,
+   * a `ContextMenu.removeRow` that repairs by `refresh()` instead, a cancelled action, a throwing
+   * hook - cannot leave an inner scope's repair for the next one to apply against a different grid.
+   */
+  resumeShifts() {
+    this.#shiftScopes.pop();
+
+    if (this.#shiftScopes.length > 0) {
+      return;
+    }
+
+    // BOTH axes are taken and cleared before EITHER is written. `#applyRowShifts()` ends in
+    // `setRangeEnd()`, whose `afterSelectionEnd` consumers can throw, and a column shift still
+    // queued at that moment would otherwise be applied by the next `alter()` against a grid it was
+    // never computed for.
+    const rowShifts = this.#takeShifts(this.#pendingRowShifts);
+    const columnShifts = this.#takeShifts(this.#pendingColumnShifts);
+
+    this.#pendingRowShifts = [];
+    this.#pendingColumnShifts = [];
+
+    this.#applyRowShifts(rowShifts);
+    this.#applyColumnShifts(columnShifts);
+  }
+
+  /**
+   * Records that the open scope's data change has landed, which is what orders it against the other
+   * scopes and what arms the hold for anything nested inside it from here on.
+   *
+   * Called from the index mapper's `cacheUpdated` handler in `core.ts`, which runs after the
+   * renumbering and BEFORE the public cache-update hook - so an `alter()` a consumer of that hook
+   * fires already sees this scope as owing a repair, while one fired from a `before*` hook does not.
+   *
+   * A multi-group `alter()` lands several changes and re-stamps on each, so a shift asked for after
+   * the second group still sorts behind anything nested between the two.
+   */
+  markStructuralIndexChange() {
+    const scope = this.#shiftScopes[this.#shiftScopes.length - 1];
+
+    if (scope) {
+      this.#shiftSequence += 1;
+      scope.sequence = this.#shiftSequence;
+    }
+  }
+
+  /**
+   * Stamps the innermost open scope if its data change has not stamped it already, and returns the
+   * number a shift asked for now belongs to.
+   *
+   * @returns {number}
+   */
+  #stampInnermostScope(): number {
+    const scope = this.#shiftScopes[this.#shiftScopes.length - 1];
+
+    if (!scope) {
+      return 0;
+    }
+
+    if (scope.sequence === null) {
+      this.#shiftSequence += 1;
+      scope.sequence = this.#shiftSequence;
+    }
+
+    return scope.sequence;
+  }
+
+  /**
+   * Whether a scope OUTSIDE the innermost one has already changed the data and not yet repaired the
+   * selection for it. That is the only state in which a nested shift has to wait.
+   *
+   * @returns {boolean}
+   */
+  #hasPendingEnclosingChange(): boolean {
+    for (let index = 0; index < this.#shiftScopes.length - 1; index++) {
+      if (this.#shiftScopes[index].sequence !== null) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Orders the recorded shifts by the moment the change behind each one landed, and reduces them to
+   * the `[index, amount]` pairs the fold works on.
+   *
+   * @param {Array} pending The recorded shifts for one axis.
+   * @returns {Array<Array<number>>}
+   */
+  #takeShifts(
+    pending: Array<{ sequence: number, index: number, amount: number }>): Array<[number, number]> {
+    return pending
+      .slice()
+      .sort((shiftA, shiftB) => shiftA.sequence - shiftB.sequence)
+      .map(({ index, amount }): [number, number] => [index, amount]);
+  }
+
+  /**
    * Transforms the last selection layer down or up by the index count.
+   *
+   * The write is DEFERRED while an enclosing structural-change scope still owes the selection a
+   * repair - see `suspendShifts()`. The caller cannot read the shifted selection back on that path;
+   * it is settled by the time the enclosing `alter()` returns.
    *
    * @param {number} visualRowIndex Visual row index from which the selection will be shifted.
    * @param {number} amount The number of rows to shift the selection.
    */
   shiftRows(visualRowIndex: number, amount: number) {
+    // Dropped rather than recorded, which is what this did before the scopes existed: a shift asked
+    // for while nothing is selected repairs nothing, and recording it would let an enclosing scope
+    // apply it later to a selection made in between.
+    if (!this.isSelected()) {
+      return;
+    }
+
+    this.#pendingRowShifts.push({
+      sequence: this.#stampInnermostScope(),
+      index: visualRowIndex,
+      amount,
+    });
+
+    // The shift waits only while an ENCLOSING scope owes the selection a repair - that is the whole
+    // window in which writing it now would apply the enclosing call's correction as well as this
+    // one's. Everywhere else, including inside a scope whose own change has not landed yet, it goes
+    // straight through as it always did.
+    if (this.#hasPendingEnclosingChange()) {
+      return;
+    }
+
+    const shifts = this.#takeShifts(this.#pendingRowShifts);
+
+    // Cleared BEFORE the write, which runs selection hooks that can open a scope of their own.
+    this.#pendingRowShifts = [];
+
+    this.#applyRowShifts(shifts);
+  }
+
+  /**
+   * Applies a sequence of row shifts to the last selection layer as one update.
+   *
+   * The arithmetic is folded first and the result is clamped into the grid ONCE, at the end. Writing
+   * each shift on its own would clamp in between, and an intermediate clamp both applies a repair
+   * another shift in the sequence still owes and exposes an out-of-range selection to
+   * `afterSelection` (DEV-2755).
+   *
+   * @param {Array<Array<number>>} shifts The `[visualRowIndex, amount]` pairs to apply, in order.
+   */
+  #applyRowShifts(shifts: Array<[number, number]>) {
     if (!this.isSelected()) {
       return;
     }
@@ -933,74 +1129,139 @@ class Selection {
         disableHeadersHighlight: true,
       });
 
-    } else if (range &&
-        (this.isSelectedByColumnHeader() || (range.getOuterTopStartCorner().row ?? 0) >= visualRowIndex)) {
-      const { from, to, highlight } = range;
-      const countRows = this.tableProps.countRows();
-      const isSelectedByRowHeader = this.isSelectedByRowHeader();
-      const isSelectedByColumnHeader = this.isSelectedByColumnHeader();
-      const minRow = isSelectedByColumnHeader ? -1 : 0;
+      return;
+    }
+
+    if (!range) {
+      return;
+    }
+
+    const { from, to, highlight } = range;
+    const isSelectedByRowHeader = this.isSelectedByRowHeader();
+    const isSelectedByColumnHeader = this.isSelectedByColumnHeader();
+    let fromRow = from.row ?? 0;
+    let toRow = to.row ?? 0;
+    let highlightRow = highlight.row ?? 0;
+    // What each shift is gated on: it moves the range only when the range starts at or below the
+    // index it shifts from. Carried through the fold, so a later shift is tested against where the
+    // earlier ones have already put the range.
+    let topStartRow = range.getOuterTopStartCorner().row ?? 0;
+    let isRangeShifted = false;
+    let isHighlightShifted = false;
+
+    shifts.forEach(([visualRowIndex, amount]) => {
+      if (!isSelectedByColumnHeader && topStartRow < visualRowIndex) {
+        return;
+      }
+
       const coordsStartAmount = isSelectedByColumnHeader ? 0 : amount;
 
-      // After shifting, a single-row selection can land on a row that is hidden (e.g. removing a
-      // row next to a hidden one), leaving the highlight on a non-rendered row. Snap it to the
-      // nearest visible row (see snapToNearestVisible for the single-line scoping rationale).
-      const isSingleRow = from.row === to.row;
-      const clampToVisibleRow = (visualRow: number): number =>
-        snapToNearestVisible(this.tableProps.rowIndexMapper, visualRow, isSingleRow);
+      isRangeShifted = true;
+      fromRow += coordsStartAmount;
+      topStartRow += coordsStartAmount;
+      toRow += amount;
 
-      const rowExtentSpansGrid = new Set(this.#rowExtentSpansGrid);
-      const columnExtentSpansGrid = new Set(this.#columnExtentSpansGrid);
-
-      // Remove from the stack the last added selection as that selection below will be
-      // replaced by new transformed selection.
-      this.getSelectedRange().pop();
-
-      const coordsStart = this.tableProps.createCellCoords(
-        clampToVisibleRow(clamp((from.row ?? 0) + coordsStartAmount, minRow, countRows - 1)),
-        from.col ?? 0
-      );
-      const coordsEnd = this.tableProps.createCellCoords(
-        clampToVisibleRow(clamp((to.row ?? 0) + amount, minRow, countRows - 1)),
-        to.col ?? 0
-      );
-
-      this.markSource('shift');
-
-      if ((highlight.row ?? 0) >= visualRowIndex) {
-        this.setRangeStartOnly(coordsStart, true, this.tableProps.createCellCoords(
-          clampToVisibleRow(clamp((highlight.row ?? 0) + amount, 0, countRows - 1)),
-          highlight.col ?? 0
-        ));
-
-      } else {
-        this.setRangeStartOnly(coordsStart, true);
+      if (highlightRow >= visualRowIndex) {
+        isHighlightShifted = true;
+        highlightRow += amount;
       }
+    });
 
-      if (isSelectedByRowHeader) {
-        this.selectedByRowHeader.add(this.getLayerLevel());
-      }
-      if (isSelectedByColumnHeader) {
-        this.selectedByColumnHeader.add(this.getLayerLevel());
-      }
-
-      // Re-laying the range through `setRangeStartOnly()` cleared these, and a shift does not change
-      // what the selection spans - a full column is still a full column after a row is inserted.
-      this.#rowExtentSpansGrid = rowExtentSpansGrid;
-      this.#columnExtentSpansGrid = columnExtentSpansGrid;
-
-      this.setRangeEnd(coordsEnd);
-      this.markEndSource();
+    if (!isRangeShifted) {
+      return;
     }
+
+    const countRows = this.tableProps.countRows();
+    const minRow = isSelectedByColumnHeader ? -1 : 0;
+
+    // After shifting, a single-row selection can land on a row that is hidden (e.g. removing a
+    // row next to a hidden one), leaving the highlight on a non-rendered row. Snap it to the
+    // nearest visible row (see snapToNearestVisible for the single-line scoping rationale).
+    const isSingleRow = from.row === to.row;
+    const clampToVisibleRow = (visualRow: number): number =>
+      snapToNearestVisible(this.tableProps.rowIndexMapper, visualRow, isSingleRow);
+
+    const rowExtentSpansGrid = new Set(this.#rowExtentSpansGrid);
+    const columnExtentSpansGrid = new Set(this.#columnExtentSpansGrid);
+
+    // Remove from the stack the last added selection as that selection below will be
+    // replaced by new transformed selection.
+    this.getSelectedRange().pop();
+
+    const coordsStart = this.tableProps.createCellCoords(
+      clampToVisibleRow(clamp(fromRow, minRow, countRows - 1)),
+      from.col ?? 0
+    );
+    const coordsEnd = this.tableProps.createCellCoords(
+      clampToVisibleRow(clamp(toRow, minRow, countRows - 1)),
+      to.col ?? 0
+    );
+
+    this.markSource('shift');
+
+    if (isHighlightShifted) {
+      this.setRangeStartOnly(coordsStart, true, this.tableProps.createCellCoords(
+        clampToVisibleRow(clamp(highlightRow, 0, countRows - 1)),
+        highlight.col ?? 0
+      ));
+
+    } else {
+      this.setRangeStartOnly(coordsStart, true);
+    }
+
+    if (isSelectedByRowHeader) {
+      this.selectedByRowHeader.add(this.getLayerLevel());
+    }
+    if (isSelectedByColumnHeader) {
+      this.selectedByColumnHeader.add(this.getLayerLevel());
+    }
+
+    // Re-laying the range through `setRangeStartOnly()` cleared these, and a shift does not change
+    // what the selection spans - a full column is still a full column after a row is inserted.
+    this.#rowExtentSpansGrid = rowExtentSpansGrid;
+    this.#columnExtentSpansGrid = columnExtentSpansGrid;
+
+    this.setRangeEnd(coordsEnd);
+    this.markEndSource();
   }
 
   /**
-   * Transforms the last selection layer left or right by the index count.
+   * Transforms the last selection layer left or right by the index count. Deferred under an
+   * enclosing scope on the same rule as `shiftRows()`.
    *
    * @param {number} visualColumnIndex Visual column index from which the selection will be shifted.
    * @param {number} amount The number of columns to shift the selection.
    */
   shiftColumns(visualColumnIndex: number, amount: number) {
+    // The column half of the rules spelled out in `shiftRows()`.
+    if (!this.isSelected()) {
+      return;
+    }
+
+    this.#pendingColumnShifts.push({
+      sequence: this.#stampInnermostScope(),
+      index: visualColumnIndex,
+      amount,
+    });
+
+    if (this.#hasPendingEnclosingChange()) {
+      return;
+    }
+
+    const shifts = this.#takeShifts(this.#pendingColumnShifts);
+
+    this.#pendingColumnShifts = [];
+
+    this.#applyColumnShifts(shifts);
+  }
+
+  /**
+   * Applies a sequence of column shifts to the last selection layer as one update. The column
+   * counterpart of `#applyRowShifts()`, and it folds and clamps for the same reason.
+   *
+   * @param {Array<Array<number>>} shifts The `[visualColumnIndex, amount]` pairs to apply, in order.
+   */
+  #applyColumnShifts(shifts: Array<[number, number]>) {
     if (!this.isSelected()) {
       return;
     }
@@ -1012,65 +1273,98 @@ class Selection {
         disableHeadersHighlight: true,
       });
 
-    } else if (range &&
-        (this.isSelectedByRowHeader() || (range.getOuterTopStartCorner().col ?? 0) >= visualColumnIndex)) {
-      const { from, to, highlight } = range;
-      const countCols = this.tableProps.countCols();
-      const isSelectedByRowHeader = this.isSelectedByRowHeader();
-      const isSelectedByColumnHeader = this.isSelectedByColumnHeader();
-      const minColumn = isSelectedByRowHeader ? -1 : 0;
+      return;
+    }
+
+    if (!range) {
+      return;
+    }
+
+    const { from, to, highlight } = range;
+    const isSelectedByRowHeader = this.isSelectedByRowHeader();
+    const isSelectedByColumnHeader = this.isSelectedByColumnHeader();
+    let fromColumn = from.col ?? 0;
+    let toColumn = to.col ?? 0;
+    let highlightColumn = highlight.col ?? 0;
+    // The column half of the gate spelled out in `#applyRowShifts()`.
+    let topStartColumn = range.getOuterTopStartCorner().col ?? 0;
+    let isRangeShifted = false;
+    let isHighlightShifted = false;
+
+    shifts.forEach(([visualColumnIndex, amount]) => {
+      if (!isSelectedByRowHeader && topStartColumn < visualColumnIndex) {
+        return;
+      }
+
       const coordsStartAmount = isSelectedByRowHeader ? 0 : amount;
 
-      // After shifting, a single-column selection can land on a column that is hidden (e.g. removing
-      // a column next to a hidden one), leaving the highlight on a non-rendered column. Snap it to
-      // the nearest visible column (see snapToNearestVisible for the single-line scoping rationale).
-      const isSingleColumn = from.col === to.col;
-      const clampToVisibleColumn = (visualColumn: number): number =>
-        snapToNearestVisible(this.tableProps.columnIndexMapper, visualColumn, isSingleColumn);
+      isRangeShifted = true;
+      fromColumn += coordsStartAmount;
+      topStartColumn += coordsStartAmount;
+      toColumn += amount;
 
-      const rowExtentSpansGrid = new Set(this.#rowExtentSpansGrid);
-      const columnExtentSpansGrid = new Set(this.#columnExtentSpansGrid);
-
-      // Remove from the stack the last added selection as that selection below will be
-      // replaced by new transformed selection.
-      this.getSelectedRange().pop();
-
-      const coordsStart = this.tableProps.createCellCoords(
-        from.row ?? 0,
-        clampToVisibleColumn(clamp((from.col ?? 0) + coordsStartAmount, minColumn, countCols - 1))
-      );
-      const coordsEnd = this.tableProps.createCellCoords(
-        to.row ?? 0,
-        clampToVisibleColumn(clamp((to.col ?? 0) + amount, minColumn, countCols - 1))
-      );
-
-      this.markSource('shift');
-
-      if ((highlight.col ?? 0) >= visualColumnIndex) {
-        this.setRangeStartOnly(coordsStart, true, this.tableProps.createCellCoords(
-          highlight.row ?? 0,
-          clampToVisibleColumn(clamp((highlight.col ?? 0) + amount, 0, countCols - 1))
-        ));
-
-      } else {
-        this.setRangeStartOnly(coordsStart, true);
+      if (highlightColumn >= visualColumnIndex) {
+        isHighlightShifted = true;
+        highlightColumn += amount;
       }
+    });
 
-      if (isSelectedByRowHeader) {
-        this.selectedByRowHeader.add(this.getLayerLevel());
-      }
-      if (isSelectedByColumnHeader) {
-        this.selectedByColumnHeader.add(this.getLayerLevel());
-      }
-
-      // Re-laying the range through `setRangeStartOnly()` cleared these, and a shift does not change
-      // what the selection spans - a full column is still a full column after a row is inserted.
-      this.#rowExtentSpansGrid = rowExtentSpansGrid;
-      this.#columnExtentSpansGrid = columnExtentSpansGrid;
-
-      this.setRangeEnd(coordsEnd);
-      this.markEndSource();
+    if (!isRangeShifted) {
+      return;
     }
+
+    const countCols = this.tableProps.countCols();
+    const minColumn = isSelectedByRowHeader ? -1 : 0;
+
+    // After shifting, a single-column selection can land on a column that is hidden (e.g. removing
+    // a column next to a hidden one), leaving the highlight on a non-rendered column. Snap it to
+    // the nearest visible column (see snapToNearestVisible for the single-line scoping rationale).
+    const isSingleColumn = from.col === to.col;
+    const clampToVisibleColumn = (visualColumn: number): number =>
+      snapToNearestVisible(this.tableProps.columnIndexMapper, visualColumn, isSingleColumn);
+
+    const rowExtentSpansGrid = new Set(this.#rowExtentSpansGrid);
+    const columnExtentSpansGrid = new Set(this.#columnExtentSpansGrid);
+
+    // Remove from the stack the last added selection as that selection below will be
+    // replaced by new transformed selection.
+    this.getSelectedRange().pop();
+
+    const coordsStart = this.tableProps.createCellCoords(
+      from.row ?? 0,
+      clampToVisibleColumn(clamp(fromColumn, minColumn, countCols - 1))
+    );
+    const coordsEnd = this.tableProps.createCellCoords(
+      to.row ?? 0,
+      clampToVisibleColumn(clamp(toColumn, minColumn, countCols - 1))
+    );
+
+    this.markSource('shift');
+
+    if (isHighlightShifted) {
+      this.setRangeStartOnly(coordsStart, true, this.tableProps.createCellCoords(
+        highlight.row ?? 0,
+        clampToVisibleColumn(clamp(highlightColumn, 0, countCols - 1))
+      ));
+
+    } else {
+      this.setRangeStartOnly(coordsStart, true);
+    }
+
+    if (isSelectedByRowHeader) {
+      this.selectedByRowHeader.add(this.getLayerLevel());
+    }
+    if (isSelectedByColumnHeader) {
+      this.selectedByColumnHeader.add(this.getLayerLevel());
+    }
+
+    // Re-laying the range through `setRangeStartOnly()` cleared these, and a shift does not change
+    // what the selection spans - a full column is still a full column after a row is inserted.
+    this.#rowExtentSpansGrid = rowExtentSpansGrid;
+    this.#columnExtentSpansGrid = columnExtentSpansGrid;
+
+    this.setRangeEnd(coordsEnd);
+    this.markEndSource();
   }
 
   /**

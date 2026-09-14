@@ -45,6 +45,10 @@ export interface GridHelperInstance {
     start: CellCoords, input: unknown[][], end?: CellCoords, source?: string,
     method?: string, direction?: string, deltas?: unknown[]
   ): object | false | undefined;
+  runAlter(
+    action: string, index?: number | number[][], amount?: number, source?: string,
+    keepEmptyRows?: boolean
+  ): void;
   adjustRowsAndCols(): void;
   [key: string]: unknown;
 }
