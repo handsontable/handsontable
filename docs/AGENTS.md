@@ -570,8 +570,8 @@ A caret range does not track new releases. `pnpm-lock.yaml` pins the resolved ve
 
 ### Getting a content fix to the live site
 
-Land it on `develop` first. A workflow (`docs-sync.yml`, run by manual dispatch
-until the rollout follow-up enables the weekday schedule; script
+Land it on `develop` first. A workflow (`docs-sync.yml`, run on weekdays at
+05:00 UTC and on manual dispatch; script
 `.github/scripts/docs-sync.mjs`) ports **content-only** commits (`docs/content/**`,
 `docs/public/img/**`) to the highest `prod-docs/<major>.<minor>` through one pull
 request, `docs-sync/prod-docs-<major>.<minor>` → `prod-docs/<major>.<minor>`. An

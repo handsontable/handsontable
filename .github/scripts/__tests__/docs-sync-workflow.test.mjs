@@ -10,12 +10,13 @@ import { repoRoot } from '../lib/repo-root.mjs';
 // fork-guards.test.mjs pins the guard expressions.
 const source = readFileSync(path.join(repoRoot(), '.github/workflows/docs-sync.yml'), 'utf8');
 
-test('the weekday schedule is landed disabled, pending rollout step 1, with manual dispatch live and defaulting to dry run', () => {
-  // Commented out, not removed: the cron expression stays reviewable and a
-  // follow-up pull request re-enables it by uncommenting these two lines.
-  assert.match(source, /^\s*#\s*schedule:\n\s*#\s*- cron: '0 6 \* \* 1-5'/m);
+test('the weekday schedule is live at 05:00 UTC, with manual dispatch defaulting to a dry run', () => {
+  // Enabled (not commented): the daily run is the rollout's live trigger.
+  assert.match(source, /^\s*schedule:\n\s*- cron: '0 5 \* \* 1-5'/m);
+  assert.doesNotMatch(source, /#\s*- cron:/);
   assert.match(source, /^\s*workflow_dispatch:\s*$/m);
   assert.match(source, /dry_run:[\s\S]*?type: boolean[\s\S]*?default: true/);
+  // A scheduled run is never a dry run; a manual dispatch defaults to one.
   assert.match(
     source,
     /DRY_RUN: \$\{\{ github\.event_name == 'workflow_dispatch' && inputs\.dry_run \|\| 'false' \}\}/,
