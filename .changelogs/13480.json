@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a `filters` plugin crash thrown when the grid's data was replaced twice while a filter was active and the `filters` option was re-sent (as the framework wrappers do on every update).",
+  "type": "fixed",
+  "issueOrPR": 13480,
+  "breaking": false,
+  "framework": "none"
+}
