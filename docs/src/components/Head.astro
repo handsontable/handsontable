@@ -98,6 +98,13 @@ import Default from '@astrojs/starlight/components/Head.astro';
     var pending = TARGETS.slice();
     var observer;
 
+    function stop() {
+      if (observer) {
+        observer.disconnect();
+        observer = null;
+      }
+    }
+
     function patch() {
       pending = pending.filter(function (target) {
         var iframe = document.getElementById(target.id);
@@ -118,8 +125,8 @@ import Default from '@astrojs/starlight/components/Head.astro';
         return false;
       });
 
-      if (pending.length === 0 && observer) {
-        observer.disconnect();
+      if (pending.length === 0) {
+        stop();
       }
     }
 
@@ -127,6 +134,14 @@ import Default from '@astrojs/starlight/components/Head.astro';
     observer.observe(document.documentElement, { childList: true, subtree: true });
 
     patch();
+
+    // A target may never appear - an ad blocker kills the Headway and GTM scripts, declined
+    // analytics consent stops the VWO tag, and #_vwo_communication_proxy never appears off
+    // production at all. A childList+subtree observer left live for the page's lifetime queues
+    // a MutationRecord for every DOM change (example-runner injection, island hydration, grids
+    // re-rendering on scroll), so bound its lifetime rather than wait for a completion that may
+    // never come. Third-party injection lands within a few seconds; 10s covers a slow network.
+    setTimeout(stop, 10000);
   })();
 </script>
 

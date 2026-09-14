@@ -675,13 +675,6 @@ The live guard is in `src/components/Head.astro`; its regression test is `src/co
 
 Unrelated to this: `src/plugins/replace-has-selectors.mjs` and `src/plugins/has-fallback-runtime.mjs` rewrite `:has()` in **stylesheets** for performance. They do not touch selector strings passed to `querySelectorAll` inside third-party bundles.
 
-### Naming third-party utility iframes for accessibility
-
-A sibling `is:inline` guard in `src/components/Head.astro` gives an accessible name to the utility iframes that marketing scripts inject with no `title` - Headway's changelog panel (`#HW_frame`) and the Visual Website Optimizer communication proxy (`#_vwo_communication_proxy`) - which axe and Lighthouse flag under `frame-title` (DEV-63). The scripts inject asynchronously (Headway through a deferred CDN script, VWO through a tag inside the externally managed Google Tag Manager container, so `#_vwo_communication_proxy` never appears on a non-production build), so the guard uses a `MutationObserver` and disconnects once every target is patched. Two rules:
-
-- **`title` names a frame; `aria-hidden` removes it.** They are different remediations. A frame that is real UI when shown (`#HW_frame`) gets a `title` only - `aria-hidden="true"` on it would hide a working feature, and `aria-hidden` over a cross-origin frame you cannot inspect also risks the `aria-hidden-focus` violation. Only a genuinely contentless, never-displayed frame (`#_vwo_communication_proxy`) also gets `aria-hidden="true"` + `tabindex="-1"`.
-- The regression test is `src/components/__tests__/head-hidden-iframe-a11y.test.mjs`, which extracts the shipped script and runs it against a fake DOM that injects the iframes asynchronously (run under `npm run docs:test:plugins`).
-
 ---
 
 ## 2.15 Cascade layers in the docs CSS
@@ -740,3 +733,14 @@ Two things make this easy to get wrong, and both cost a red pipeline:
   `name` and `levels`; it never reads `note`. So a `NOTES`-only change committed to the page with a
   stale JSON passes the suite green. Re-run the generator rather than hand-editing either file, and
   if you want the gap closed, add `payload.options.map(o => o.note)` to that assertion.
+
+---
+
+## 2.17 Naming third-party utility iframes for accessibility
+
+Marketing scripts inject utility iframes with no `title`, which axe and Lighthouse flag under `frame-title` and screen readers announce as an empty frame (DEV-63). An `is:inline` guard in `src/components/Head.astro` (a sibling of the Starlight TOC guard in §2.14 - same head-script pattern, different subject) gives each an accessible name once it appears: Headway's changelog panel (`#HW_frame`) and the Visual Website Optimizer communication proxy (`#_vwo_communication_proxy`). The scripts inject asynchronously - Headway through a deferred CDN script, VWO through a tag inside the externally managed Google Tag Manager container, so `#_vwo_communication_proxy` never appears on a non-production build - so the guard uses a `MutationObserver`. Two rules:
+
+- **`title` names a frame; `aria-hidden` removes it.** They are different remediations. A frame that is real UI when shown (`#HW_frame` is the changelog panel) gets a `title` only - `aria-hidden="true"` on it would hide a working feature, and `aria-hidden` over a cross-origin frame you cannot inspect also risks the `aria-hidden-focus` violation. Only a genuinely contentless, never-displayed frame (`#_vwo_communication_proxy`) also gets `aria-hidden="true"` + `tabindex="-1"`.
+- **Bound the observer's lifetime.** It disconnects once every target is patched, but a target may never appear (a blocker kills the scripts, declined consent stops the VWO tag, and VWO never appears off production), so a `setTimeout` deadline also disconnects it - a `childList`+`subtree` observer left live for the whole page churns a MutationRecord on every DOM change.
+
+The regression test is `src/components/__tests__/head-hidden-iframe-a11y.test.mjs`, which extracts the shipped script and runs it against a fake DOM that injects the iframes asynchronously (run under `npm run docs:test:plugins`).

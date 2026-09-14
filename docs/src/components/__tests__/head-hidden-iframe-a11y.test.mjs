@@ -55,6 +55,7 @@ function createHarness() {
   const observeCalls = [];
   let observerCallback = null;
   let disconnectCount = 0;
+  let deadlineCallback = null;
 
   const document = {
     documentElement: { tagName: 'HTML' },
@@ -80,12 +81,21 @@ function createHarness() {
   return {
     document,
     MutationObserver: FakeMutationObserver,
+    // Capture the deadline callback instead of scheduling it, so the test controls when the
+    // bounded-lifetime disconnect fires and no real timer is left dangling.
+    setTimeout(callback) {
+      deadlineCallback = callback;
+      return 0;
+    },
     register(element) {
       byId.set(element.id, element);
     },
     insert(element) {
       byId.set(element.id, element);
       observerCallback?.();
+    },
+    fireDeadline() {
+      deadlineCallback?.();
     },
     observeCall: () => observeCalls[0],
     disconnectCount: () => disconnectCount,
@@ -98,9 +108,9 @@ function createHarness() {
  * @param {object} harness The harness from `createHarness()`.
  */
 function runGuard(harness) {
-  const runGuardScript = new Function('document', 'MutationObserver', readIframeGuardScript());
+  const runGuardScript = new Function('document', 'MutationObserver', 'setTimeout', readIframeGuardScript());
 
-  runGuardScript(harness.document, harness.MutationObserver);
+  runGuardScript(harness.document, harness.MutationObserver, harness.setTimeout);
 }
 
 test('the VWO communication proxy is titled and removed from the a11y tree and tab order', () => {
@@ -171,6 +181,23 @@ test('the observer keeps watching until every target has appeared, then disconne
   harness.insert(createFakeIframe('HW_frame'));
 
   assert.equal(harness.disconnectCount(), 1, 'must disconnect once every target is patched');
+});
+
+test('the observer disconnects at the deadline even if a target never appears', () => {
+  // An ad blocker or declined analytics consent means a target iframe is never injected, and
+  // #_vwo_communication_proxy never appears off production. The observer must not stay live for
+  // the whole page lifetime churning MutationRecords - the bounded deadline disconnects it.
+  const harness = createHarness();
+
+  runGuard(harness);
+
+  harness.insert(createFakeIframe('HW_frame'));
+
+  assert.equal(harness.disconnectCount(), 0, 'must keep watching while VWO is still pending');
+
+  harness.fireDeadline();
+
+  assert.equal(harness.disconnectCount(), 1, 'the deadline must disconnect the still-pending observer');
 });
 
 test('the observer watches the whole document subtree so it catches iframes appended to body', () => {
