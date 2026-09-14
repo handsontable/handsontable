@@ -73,22 +73,50 @@ test.describe('dropdown validation with `strict: false` (DEV-2911)', () => {
   });
 
   test('keeps validating strictly after updateSettings() rebuilds the cell meta', async() => {
+    // Clicking the cell is the point: it prepares the cell's editor, which is what used to make
+    // this one cell strict. The focus then moves to the flexible autocomplete column, so it
+    // leaves the cell under test without preparing another dropdown cell on the way out.
     await grid.clickCell(1, 1);
-    await grid.clickCell(3, 2);
+    await grid.clickCell(3, 0);
 
-    // Selecting the cell prepared its editor, which wrote `strict` onto that one cell's meta...
-    expect(await grid.strictAt(1, 1)).toBe('true');
-
+    // Rebuilding the cell meta used to undo whatever the editor had written. The React wrapper
+    // re-sends `columns` like this on every render of a grid with `HotColumn` children.
     await grid.reapplyColumns();
-
-    // ...and rebuilding the meta dropped it again. The React wrapper re-sends `columns` like this
-    // on every render of a grid with `HotColumn` children.
-    expect(await grid.strictAt(1, 1)).toBe('false');
 
     await grid.setDataAtCell(1, 1, 'bogus');
 
     await expect.poll(() => grid.validState(1, 1)).toBe('invalid');
     await expect(grid.cell(1, 1)).toHaveClass(/htInvalid/);
+  });
+
+  test('rejects a pasted value outside the source when allowInvalid is false', async() => {
+    // Column 3 carries the same declaration plus `allowInvalid: false`, where an invalid value is
+    // discarded instead of stored and marked. It is the only path of this change that loses a
+    // write, so it is asserted on the stored value, not on the validation flag.
+    expect(await grid.strictAt(2, 3)).toBe('false');
+    expect(await grid.dataAt(2, 3)).toBe('blue');
+
+    await grid.pasteFrom(2, 0, 'bogus\tbogus\tbogus\tbogus');
+
+    // The flexible column takes the value. That is the proof the paste landed, so the two reads
+    // below cannot pass by running before it.
+    await expect.poll(() => grid.dataAt(2, 0)).toBe('bogus');
+
+    // The default dropdown stores the value and marks it, because `allowInvalid` is `true` there.
+    expect(await grid.dataAt(2, 2)).toBe('bogus');
+    await expect(grid.cell(2, 2)).toHaveClass(/htInvalid/);
+
+    expect(await grid.dataAt(2, 3)).toBe('blue');
+  });
+
+  test('validates strictly when `strict: false` comes from the `cells` option', async() => {
+    // Column 4 declares `strict: false` one cascade level down, through `cells`.
+    expect(await grid.strictAt(2, 4)).toBe('false');
+
+    await grid.pasteFrom(2, 0, 'bogus\tbogus\tbogus\tbogus\tbogus');
+
+    await expect.poll(() => grid.validState(2, 4)).toBe('invalid');
+    await expect(grid.cell(2, 4)).toHaveClass(/htInvalid/);
   });
 
   test('keeps a flexible autocomplete value and an in-source dropdown value valid', async() => {

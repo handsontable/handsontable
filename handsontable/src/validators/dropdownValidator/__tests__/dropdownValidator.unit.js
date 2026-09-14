@@ -54,6 +54,13 @@ describe('dropdownValidator', () => {
       expect(cellProperties.strict).toBe(false);
     });
 
+    it('should validate any value positively when the cell has no source', () => {
+      // The only branch where the forced strict mode is not what decides the result. A cell with
+      // no `source` has nothing to check against, so it must not start rejecting values.
+      expect(validate(dropdownValidator, { strict: false }, 'purple')).toBe(true);
+      expect(validate(dropdownValidator, {}, 'purple')).toBe(true);
+    });
+
     it('should still apply `allowEmpty` to an empty value', () => {
       expect(validate(dropdownValidator, { strict: false, source: SOURCE, allowEmpty: true }, '')).toBe(true);
       expect(validate(dropdownValidator, { strict: false, source: SOURCE, allowEmpty: false }, '')).toBe(false);

@@ -51,14 +51,14 @@
         data: [
           // Row 0: a value outside the source in every column, loaded rather than written - the
           // reported shape. Loading never validates, so only `validateCells()` can mark it.
-          ['incorrect', 'incorrect', 'incorrect'],
-          ['red', 'green', 'red'],
-          ['green', 'blue', 'green'],
-          ['yellow', 'red', 'yellow'],
+          ['incorrect', 'incorrect', 'incorrect', 'incorrect', 'incorrect'],
+          ['red', 'green', 'red', 'green', 'red'],
+          ['green', 'blue', 'green', 'blue', 'green'],
+          ['yellow', 'red', 'yellow', 'red', 'yellow'],
         ],
         columns: [
           // Flexible autocomplete: a value outside the source is valid by definition. It is the
-          // column a paste starts from, so the dropdown cell next to it is written to without
+          // column a paste starts from, so the dropdown cells to its right are written to without
           // ever being selected.
           { type: 'autocomplete', source: COLORS, strict: false, width: 140, renderer: testIdRenderer },
           // The subject. The dropdown editor forces `strict` only onto the cell it prepares, so
@@ -66,8 +66,25 @@
           { type: 'dropdown', source: COLORS, strict: false, width: 140, renderer: testIdRenderer },
           // A default dropdown (strict through its type): the behavior column 1 must match.
           { type: 'dropdown', source: COLORS, width: 140, renderer: testIdRenderer },
+          // The same declaration plus `allowInvalid: false`, where an invalid value is rejected
+          // rather than stored - the one path of this change that discards a write.
+          {
+            type: 'dropdown', source: COLORS, strict: false, allowInvalid: false,
+            width: 140, renderer: testIdRenderer,
+          },
+          // `strict: false` declared one cascade level down, through `cells` below, so the tests
+          // cover more than the `columns` form.
+          { type: 'dropdown', source: COLORS, width: 140, renderer: testIdRenderer },
         ],
-        colHeaders: ['Autocomplete (flexible)', 'Dropdown (strict: false)', 'Dropdown'],
+        cells(row, column) {
+          if (column === 4) {
+            return { strict: false };
+          }
+        },
+        colHeaders: [
+          'Autocomplete (flexible)', 'Dropdown (strict: false)', 'Dropdown',
+          'Dropdown (allowInvalid: false)', 'Dropdown (cells: strict false)',
+        ],
         rowHeaders: true,
         licenseKey: 'non-commercial-and-evaluation',
       });
@@ -111,6 +128,11 @@
     window.htPasteFrom = function(row, col, text) {
       hot.selectCell(row, col);
       hot.getPlugin('copyPaste').paste(text);
+    };
+
+    /** What the cell holds, as a string, so a rejected write can be told from a stored one. */
+    window.htDataAt = function(row, col) {
+      return String(hot.getDataAtCell(row, col));
     };
 
     /** Writes a value through the API, with no selection involved. */

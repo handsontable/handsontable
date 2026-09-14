@@ -36,25 +36,25 @@ This example shows the usage of the dropdown feature. Dropdown is based on [Auto
 
 ::: only-for javascript
 
-Internally, cell `{type: 'dropdown'}` is equivalent to cell `{type: 'autocomplete', strict: true, filter: false}`. Therefore you can think of `dropdown` as a searchable `<select>`.
+Internally, cell `{type: 'dropdown'}` is equivalent to cell `{type: 'autocomplete', strict: true, filter: false}`. Therefore you can think of `dropdown` as a searchable `<select>`. Strict mode cannot be turned off here: a dropdown cell ignores `strict: false`. See [Validate dropdown values](#validate-dropdown-values).
 
 :::
 
 ::: only-for react
 
-Internally, cell `type="dropdown"` is equivalent to cell `type="autocomplete" strict={true} filter={false}`. Therefore you can think of `dropdown` as a searchable `<select>`.
+Internally, cell `type="dropdown"` is equivalent to cell `type="autocomplete" strict={true} filter={false}`. Therefore you can think of `dropdown` as a searchable `<select>`. Strict mode cannot be turned off here: a dropdown cell ignores `strict={false}`. See [Validate dropdown values](#validate-dropdown-values).
 
 :::
 
 ::: only-for angular
 
-Internally, cell `{ type: 'dropdown' }` is equivalent to cell `{ type:'autocomplete', strict: true, filter: false }`. Therefore you can think of `dropdown` as a searchable `<select>`.
+Internally, cell `{ type: 'dropdown' }` is equivalent to cell `{ type:'autocomplete', strict: true, filter: false }`. Therefore you can think of `dropdown` as a searchable `<select>`. Strict mode cannot be turned off here: a dropdown cell ignores `strict: false`. See [Validate dropdown values](#validate-dropdown-values).
 
 :::
 
 ::: only-for vue
 
-Internally, cell `{ type: 'dropdown' }` is equivalent to cell `{ type:'autocomplete', strict: true, filter: false }`. Therefore you can think of `dropdown` as a searchable `<select>`.
+Internally, cell `{ type: 'dropdown' }` is equivalent to cell `{ type:'autocomplete', strict: true, filter: false }`. Therefore you can think of `dropdown` as a searchable `<select>`. Strict mode cannot be turned off here: a dropdown cell ignores `strict: false`. See [Validate dropdown values](#validate-dropdown-values).
 
 :::
 

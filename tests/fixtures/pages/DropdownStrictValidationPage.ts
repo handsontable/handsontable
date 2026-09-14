@@ -12,6 +12,7 @@ interface FixtureWindow {
   hot: HandsontableFixture;
   htValidState(row: number, col: number): string;
   htStrictAt(row: number, col: number): string;
+  htDataAt(row: number, col: number): string;
   htPasteFrom(row: number, col: number, text: string): void;
   htSetDataAtCell(row: number, col: number, value: string): void;
   htValidateCells(): Promise<void>;
@@ -88,6 +89,17 @@ export class DropdownStrictValidationPage {
   async strictAt(row: number, col: number): Promise<string> {
     return this.page.evaluate(
       ([r, c]) => (window as unknown as FixtureWindow).htStrictAt(r, c),
+      [row, col],
+    );
+  }
+
+  /**
+   * Returns what the cell holds, as a string. A write that `allowInvalid: false` rejected leaves
+   * the previous value in place, which the validation flag alone cannot show.
+   */
+  async dataAt(row: number, col: number): Promise<string> {
+    return this.page.evaluate(
+      ([r, c]) => (window as unknown as FixtureWindow).htDataAt(r, c),
       [row, col],
     );
   }
