@@ -49,6 +49,8 @@ test.describe('stretched columns after a container resize', () => {
       expect(after.scrollbar).toEqual({ vertical: 0, horizontal: 0 });
     });
 
+    // No-regression check on the GROW direction: the stale cache undershoots once the container
+    // grows past it, so it does not reproduce the defect (see the header-clone test above for that).
     test(`${stretchH}: growing the container after a shrink also lands clean`, async() => {
       await grid.goto({ stretchH, height: 'auto' });
 

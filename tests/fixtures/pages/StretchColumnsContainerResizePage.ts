@@ -2,6 +2,23 @@ import { type Page, type Locator, expect } from '@playwright/test';
 import { awaitBundle } from '../bundle';
 
 /**
+ * The slice of the grid API this page reads in the browser. Declared locally, the way the other
+ * page objects do it (see `EmptyValuePage.ts`), rather than augmenting `Window` again —
+ * `windowTypes.ts` already augments it with `hot: FixtureHotInstance`, and a second augmentation of
+ * the same property with a different type is a TS2717 error.
+ */
+interface StretchFixtureHot {
+  rootElement: HTMLElement;
+  countCols(): number;
+  getColWidth(col: number): number;
+  render(): void;
+  view: {
+    hasVerticalScroll(): boolean;
+    hasHorizontalScroll(): boolean;
+  };
+}
+
+/**
  * The geometry the DEV-2902 assertions compare, all read in one `evaluate` so the numbers come from
  * the same layout.
  */
@@ -107,7 +124,7 @@ export class StretchColumnsContainerResizePage {
       const firstRowCells = Array.from(grid.querySelectorAll('.ht_master table.htCore tbody tr:first-child td'));
       const headerCells = Array.from(grid.querySelectorAll('.ht_clone_top thead tr:first-child th'));
       const lastHeader = headerCells[headerCells.length - 1];
-      const hot = window.hot;
+      const hot = (window as unknown as { hot: StretchFixtureHot }).hot;
       let apiColumnWidthSum = 0;
 
       for (let col = 0; col < hot.countCols(); col++) {
@@ -134,18 +151,26 @@ export class StretchColumnsContainerResizePage {
    * scrollbar on either axis.
    */
   async rootScrollClasses(): Promise<string[]> {
-    return this.page.evaluate(() => Array.from(window.hot.rootElement.classList)
-      .filter(name => name === 'htHasScrollX' || name === 'htHasScrollY'));
+    return this.page.evaluate(() => {
+      const hot = (window as unknown as { hot: StretchFixtureHot }).hot;
+
+      return Array.from(hot.rootElement.classList)
+        .filter(name => name === 'htHasScrollX' || name === 'htHasScrollY');
+    });
   }
 
   /**
    * The engine's own verdict, read through the public TableView wrappers.
    */
   async engineScrollFlags(): Promise<{ vertical: boolean; horizontal: boolean }> {
-    return this.page.evaluate(() => ({
-      vertical: window.hot.view.hasVerticalScroll(),
-      horizontal: window.hot.view.hasHorizontalScroll(),
-    }));
+    return this.page.evaluate(() => {
+      const hot = (window as unknown as { hot: StretchFixtureHot }).hot;
+
+      return {
+        vertical: hot.view.hasVerticalScroll(),
+        horizontal: hot.view.hasHorizontalScroll(),
+      };
+    });
   }
 
   /**
@@ -153,9 +178,10 @@ export class StretchColumnsContainerResizePage {
    */
   async renderWithoutChange(): Promise<number> {
     return this.page.evaluate(() => {
+      const hot = (window as unknown as { hot: StretchFixtureHot }).hot;
       const before = window.invalidationCount();
 
-      window.hot.render();
+      hot.render();
 
       return window.invalidationCount() - before;
     });
@@ -164,16 +190,6 @@ export class StretchColumnsContainerResizePage {
 
 declare global {
   interface Window {
-    hot: {
-      rootElement: HTMLElement;
-      countCols(): number;
-      getColWidth(col: number): number;
-      render(): void;
-      view: {
-        hasVerticalScroll(): boolean;
-        hasHorizontalScroll(): boolean;
-      };
-    };
     setContainerWidth(px: number): void;
     invalidationCount(): number;
   }
