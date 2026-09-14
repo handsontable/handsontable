@@ -761,7 +761,12 @@ the new band's size scrolling up. It is also skipped when the band is empty, and
 not hold exactly the previous band (something else touched it). A focused cell in a leaving row is detached with its row for the
 duration of the move; Chromium blurs a removed element only at its next rendering step, by which
 time the row is back, and for an engine that blurs at once the renderer gives the element the focus
-back without scrolling, so the keyboard keeps reaching the grid either way.
+back without scrolling, so the keyboard keeps reaching the grid either way. Both reads cross shadow
+boundaries: the focused element comes from `getDeepActiveElement()` (inside a shadow root
+`document.activeElement` is the host), and "in the band" holds when the TBODY contains the element
+or one of its `getShadowHostChain()` hosts (`contains()` stops at a web-component cell's shadow
+root). The unit tests emulate an engine that blurs at once by wrapping the fragment the rotation
+moves rows through; without that, jsdom keeps the focus like Chromium and the restore never runs.
 
 It is a move, not an insertion or removal, so the stationary-DOM invariant (no structural mutation
 while scrolling, see the comment above `rows.render()` in `tableRenderer.ts`) holds: measured against

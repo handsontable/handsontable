@@ -5,6 +5,7 @@ import { OrderView } from '../utils/orderView';
 import {
   addClass,
   getDeepActiveElement,
+  getShadowHostChain,
   hasClass,
   removeClass,
   setAttribute
@@ -194,9 +195,14 @@ export class RowsRenderer extends BaseRenderer {
     // the element gets the focus back, without scrolling to it: it is the element the previous draw
     // left focused, about to show another row, exactly as a stationary element would. Read through
     // `getDeepActiveElement`: inside a shadow root `document.activeElement` is the host, which the
-    // TBODY never contains.
+    // TBODY never contains. The reverse holds for a control inside a web-component cell: `contains`
+    // stops at the cell's shadow boundary, so the band holds the element when it holds the element
+    // itself or one of its shadow hosts.
     const focusedElement = getDeepActiveElement(rootDocument);
-    const focusedInBand = focusedElement !== null && rootNode.contains(focusedElement);
+    const focusedInBand = focusedElement !== null && (
+      rootNode.contains(focusedElement) ||
+      getShadowHostChain(focusedElement).some(host => rootNode.contains(host))
+    );
     const fragment = rootDocument.createDocumentFragment();
 
     if (delta > 0) {

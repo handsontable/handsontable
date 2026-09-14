@@ -50,7 +50,56 @@ function createFixture(): Fixture {
   return { renderer, rootNode, state, draw, sources };
 }
 
+/**
+ * Makes the rotation behave like an engine that blurs a detached element at once. jsdom, like
+ * Chromium, keeps the focus on an element through a synchronous detach and re-attach, so without this
+ * the restore branch of the renderer never runs and a focus test proves nothing. The fragment the
+ * renderer moves the rows through is wrapped so that a row carrying the focused control (or its
+ * shadow host) blurs it on the way out.
+ *
+ * @returns {jest.SpyInstance} The spy, restored by the caller.
+ */
+function emulateEagerBlur(): jest.SpyInstance {
+  const create = document.createDocumentFragment.bind(document);
+
+  return jest.spyOn(document, 'createDocumentFragment').mockImplementation(() => {
+    const fragment = create();
+    const blurDetached = (node: Node) => {
+      let active: Element | null = document.activeElement;
+
+      while (active?.shadowRoot?.activeElement) {
+        active = active.shadowRoot.activeElement;
+      }
+
+      const host = active?.getRootNode();
+      const lightNode = host instanceof ShadowRoot ? host.host : active;
+
+      if (lightNode && node.contains(lightNode)) {
+        (active as HTMLElement).blur();
+      }
+    };
+    const { appendChild, insertBefore } = fragment;
+
+    fragment.appendChild = <T extends Node>(node: T): T => {
+      blurDetached(node);
+
+      return appendChild.call(fragment, node) as T;
+    };
+    fragment.insertBefore = <T extends Node>(node: T, child: Node | null): T => {
+      blurDetached(node);
+
+      return insertBefore.call(fragment, node, child) as T;
+    };
+
+    return fragment;
+  });
+}
+
 describe('RowsRenderer row recycling', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('should keep the TR of every row that stays in the band when the band moves down', () => {
     const { rootNode, draw, sources, state, renderer } = createFixture();
 
@@ -225,13 +274,54 @@ describe('RowsRenderer row recycling', () => {
 
     expect(document.activeElement).toBe(td);
 
+    const blurSpy = jest.spyOn(td, 'blur');
+
+    emulateEagerBlur();
     state.offset = 3;
     state.recyclable = true;
     renderer.render();
 
-    // Row 1 left the band: its TR wrapped to the end, and the element it carries is still focused.
+    // Row 1 left the band: its TR wrapped to the end, the engine blurred the element on the way out,
+    // and the renderer gave it the focus back.
+    expect(blurSpy).toHaveBeenCalledTimes(1);
     expect(rootNode.children[3]).toBe(td.parentElement);
     expect(document.activeElement).toBe(td);
+
+    table.remove();
+  });
+
+  it('should keep the focus on a control inside a shadow root of a cell whose row leaves the band', () => {
+    const { rootNode, draw, state, renderer } = createFixture();
+    const table = document.createElement('table');
+
+    table.appendChild(rootNode);
+    document.body.appendChild(table);
+    draw(0, 5, false);
+
+    const td = document.createElement('td');
+    const host = document.createElement('div');
+    const input = document.createElement('input');
+
+    host.attachShadow({ mode: 'open' }).appendChild(input);
+    td.appendChild(host);
+    rootNode.children[1].appendChild(td);
+    input.focus();
+
+    // The document sees the host; the control itself sits behind the shadow boundary.
+    expect(document.activeElement).toBe(host);
+    expect(host.shadowRoot!.activeElement).toBe(input);
+
+    const blurSpy = jest.spyOn(input, 'blur');
+
+    emulateEagerBlur();
+    state.offset = 3;
+    state.recyclable = true;
+    renderer.render();
+
+    expect(blurSpy).toHaveBeenCalledTimes(1);
+    expect(rootNode.children[3]).toBe(td.parentElement);
+    expect(document.activeElement).toBe(host);
+    expect(host.shadowRoot!.activeElement).toBe(input);
 
     table.remove();
   });
