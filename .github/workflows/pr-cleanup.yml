@@ -87,6 +87,11 @@ jobs:
     steps:
       # The AWS CLI ships on the runner image. `wrangler r2 object delete` has no
       # recursive mode, so the S3 API is the practical way to drop a prefix.
+      # Two prefixes: the core suite's `pr-<n>/` and the docs suite's
+      # `docs/pr-<n>/` (the docs-visual-run action publishes the Playwright
+      # report and manifest there). Removing a prefix with nothing under it is
+      # a no-op, so an unlabeled pull request that never ran the docs suite
+      # costs nothing here.
       - name: Delete this pull request's screenshots from R2
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
@@ -94,5 +99,8 @@ jobs:
           AWS_DEFAULT_REGION: auto
         run: |
           aws s3 rm "s3://$R2_BUCKET_NAME/pr-${{ github.event.number }}/" \
+            --recursive \
+            --endpoint-url "https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com"
+          aws s3 rm "s3://$R2_BUCKET_NAME/docs/pr-${{ github.event.number }}/" \
             --recursive \
             --endpoint-url "https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com"

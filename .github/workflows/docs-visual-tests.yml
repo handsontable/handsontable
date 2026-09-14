@@ -1,31 +1,31 @@
 name: Docs Visual Tests
 
+# The by-hand entry point for the docs visual suite. It runs the
+# docs-visual-run action -- the one implementation docs.yml's `visual` job and
+# docs-visual-seed.yml use -- against the chosen environment, so a compare here
+# is held to the same R2 baseline, `docs/base/<this branch>/`, as a pull
+# request, and a re-seed writes that same prefix. Nothing calls this file:
+# docs.yml uses the action directly, so the `workflow_call` fragment mode, the
+# label gate, and the actions/cache baseline that never was one (the action's
+# probe step has the history) are gone (DEV-2860).
+#
+# A compare publishes its report under `docs/dispatch/<branch>/<run id>/`, a
+# per-run key that pr-cleanup.yml does not purge (it keys on a pull request
+# number); retention there is the bucket's business. The verdict lands in the
+# job summary, and nothing waits on an approval for a dispatch.
 on:
   workflow_dispatch:
     inputs:
-      update-snapshots:
-        description: "Update snapshots"
-        type: boolean
       test_env:
         type: choice
-        description: Test enviroment
+        description: Test environment
         default: 'http://localhost:4321/docs'
         options:
           - https://dev.handsontable.com/docs
           - https://handsontable.com/docs
           - http://localhost:4321/docs
-  # Fragment mode (Tests pipeline): targets the PR's Cloudflare preview and is
-  # label-gated — it runs ONLY when the PR carries the `run-docs-visual` label
-  # (checked LIVE via the API, so adding the label and pressing "Re-run all
-  # jobs" on the Tests run triggers it inside the pipeline).
-  workflow_call:
-    inputs:
-      test-url:
-        description: 'Base docs URL to test (e.g. the PR preview)'
-        type: string
-        required: true
-      require-label:
-        description: 'Only run when the PR carries the run-docs-visual label'
+      update-snapshots:
+        description: 'Re-seed docs/base/<this branch> from the chosen environment'
         type: boolean
         default: false
 
@@ -34,133 +34,51 @@ concurrency:
   group: docs-visual-${{ github.ref }}
   cancel-in-progress: true
 
-defaults:
-  run:
-    working-directory: ./docs/
-
 jobs:
-  # Live label gate for the fragment mode: reads the PR's CURRENT labels via
-  # the API (the event payload is frozen at trigger time, so a label added
-  # later is visible to a re-run — that is what makes this manually
-  # triggerable from inside the pipeline).
-  gate:
-    name: "[CHECK] Docs visual label"
-    runs-on: ubuntu-latest
-    outputs:
-      run: ${{ steps.check.outputs.run }}
-    steps:
-      - name: Evaluate the gate
-        id: check
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # https://github.com/actions/github-script/releases/tag/v8.0.0
-        with:
-          script: |
-            if (!${{ inputs.require-label || false }}) {
-              core.setOutput('run', 'true');
-              return;
-            }
-            const prNumber = context.payload.pull_request?.number;
-            if (!prNumber) { core.setOutput('run', 'false'); return; }
-            const { data: pr } = await github.rest.pulls.get({
-              owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber,
-            });
-            const run = pr.labels.some(l => l.name === 'run-docs-visual');
-            core.setOutput('run', String(run));
-            if (!run) {
-              core.notice('docs-visual skipped — add the "run-docs-visual" label to the PR and press "Re-run all jobs" to run it inside this pipeline.');
-            }
-
   run-tests:
     name: "[TEST] Docs Visual"
-    needs: [ gate ]
-    if: needs.gate.outputs.run == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 90
-    env:
-      PASS_COOKIE: ${{ secrets.PASS_COOKIE }}
+    # Read-only: no comment, no pull request. The R2 writes go through the
+    # action's inputs, not the token.
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
 
-      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
-        name: Install pnpm
+      # The localhost choice builds the packages and the docs here; the config's
+      # `webServer` then starts `pnpm preview` for the run. The other choices
+      # test a deployed site and need none of this.
+      - name: Set up the workspace
+        if: ${{ inputs.test_env == 'http://localhost:4321/docs' }}
+        uses: ./.github/actions/setup-workspace
 
-      - name: Set up Node
-        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
-        with:
-          cache: 'pnpm'
-          cache-dependency-path: pnpm-lock.yaml
-          node-version: "22"
-          check-latest: true
-
-      - name: Install monorepo dependencies (including docs)
-        working-directory: .
-        run: pnpm install
-
-      - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps
-
-      - name: Install the monorepo dependencies and build the packages
-        if: ${{ (inputs.test_env || inputs.test-url) == 'http://localhost:4321/docs' }}
-        working-directory: .
+      - name: Build the packages
+        if: ${{ inputs.test_env == 'http://localhost:4321/docs' }}
         run: npm run all build -- --e examples visual-tests
 
       - name: Generate API refs
-        if: ${{ (inputs.test_env || inputs.test-url) == 'http://localhost:4321/docs' }}
-        run: |
-          npm run docs:api
+        if: ${{ inputs.test_env == 'http://localhost:4321/docs' }}
+        working-directory: ./docs
+        run: npm run docs:api
 
       - name: Build documentation
-        if: ${{ (inputs.test_env || inputs.test-url) == 'http://localhost:4321/docs' }}
-        run: |
-          npm run build
+        if: ${{ inputs.test_env == 'http://localhost:4321/docs' }}
+        working-directory: ./docs
+        run: npm run build
 
-      - name: Restore snapshot cache
-        id: cache
-        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # https://github.com/actions/cache/releases/tag/v5.0.3
+      # `with:` values are expressions, not shell, so the ternaries are safe
+      # here; inside the action every one of them travels through `env:`.
+      - name: Run the docs visual suite
+        uses: ./.github/actions/docs-visual-run
         with:
-          # The lockfile hash keys the snapshots to the browser build that
-          # rendered them: after a Playwright bump the old-engine snapshots
-          # must never restore (they would fail every test on font/AA pixel
-          # differences) — a miss routes into "Initialize snapshots" below,
-          # which re-baselines automatically.
-          key: plawyright-cache/${{github.repository}}/${{ hashFiles('pnpm-lock.yaml') }}/${{github.ref}}-${{ github.run_id }}
-          restore-keys: |
-            plawyright-cache/${{github.repository}}/${{ hashFiles('pnpm-lock.yaml') }}/${{github.ref}}
-            plawyright-cache/${{github.repository}}/${{ hashFiles('pnpm-lock.yaml') }}/refs/heads/develop
-          path: docs/tests/test-artifacts
-
-      - name: Check if cache was restored
-        id: check-cache
-        run: |
-          if [[ -n "$(find . -name 'test-artifacts' -type d -not -path '*/node_modules/*' -print0 | xargs -0 -I {} find {} -type f -print -quit)" ]]; then
-            echo "cache-restored=true" >> $GITHUB_ENV
-          else
-            echo "cache-restored=false" >> $GITHUB_ENV
-          fi
-
-      - name: Initialize snapshots
-        if: ${{env.cache-restored != 'true' || inputs.update-snapshots == true}}
-        run: BASE_URL=${{ inputs.test_env || inputs.test-url }} npx playwright test --update-snapshots
-
-      - name: Test
-        if: ${{env.cache-restored == 'true' && inputs.update-snapshots != true}}
-        run: BASE_URL=${{ inputs.test_env || inputs.test-url }} npx playwright test
-
-      - name: Save snapshot cache
-        if: ${{!cancelled() && (env.cache-restored != 'true' || inputs.update-snapshots == true)}}
-        uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # https://github.com/actions/cache/releases/tag/v5.0.3
-        with:
-          key: plawyright-cache/${{github.repository}}/${{ hashFiles('pnpm-lock.yaml') }}/${{github.ref}}-${{ github.run_id }}
-          path: docs/tests/test-artifacts
-
-      - name: Upload test report
-        if: always()
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
-        with:
-          # Not "playwright-report" — that name is taken by the e2e failure
-          # artifact when running inside the Tests pipeline (names are
-          # immutable per run).
-          name: docs-visual-report
-          path: ./docs/tests/test-artifacts/results
-          retention-days: 30
-          overwrite: true
+          test-url: ${{ inputs.test_env }}
+          mode: ${{ inputs.update-snapshots && 'seed' || 'compare' }}
+          base-key: docs/base/${{ github.ref_name }}
+          actual-key: ${{ inputs.update-snapshots && format('docs/base/{0}', github.ref_name) || format('docs/dispatch/{0}/{1}', github.ref_name, github.run_id) }}
+          pass-cookie: ${{ secrets.PASS_COOKIE }}
+          r2-access-key-id: ${{ secrets.R2_ACCESS_KEY_ID }}
+          r2-secret-access-key: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          r2-account-id: ${{ secrets.R2_ACCOUNT_ID }}
+          run-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

@@ -184,11 +184,11 @@
 - `manual-qa.yml` - the human merge gate, and a `CI Gate` dependency like every module above
 - `integration.yml` - wrapper tests, ESM/CJS format checks, pkg.pr.new PR package preview
 - `performance.yml` (PR) / `performance-tests.yml` (develop golden baseline) - the CDP perf suite
-- `visual.yml` - visual regression render matrix plus the reg-suit comparison and approval gate
-- `visual-cleanup.yml` - clears the `visual-approved` label on new commits (the R2 screenshot purge lives in `pr-cleanup.yml`)
+- `visual.yml` - visual regression render matrix and the reg-suit comparison, scoped by its `tier` input (`pr` | `seed` | `full`, the table in `visual-tests/src/config.mjs`), plus the `approve` job that holds a `changed` verdict on the `visual-approval` environment (the R2 screenshot purge lives in `pr-cleanup.yml`)
+- `visual-seed.yml` / `visual-nightly.yml` - the develop golden seed (non-cancelling) / the weekday full-matrix render that never writes the goldens
 - `publish.yml` - package publishing pipeline to npm (the only workflow npm trusted publishing trusts)
 - `docs.yml` / `docs-staging.yml` / `docs-production.yml` - docs gates and deployment (Cloudflare Pages)
-- `docs-visual-tests.yml` - visual regression testing for docs
+- `docs-visual-tests.yml` (dispatch) / `docs-visual-seed.yml` (seeds `docs/base/<branch>` after a staging deploy) / the `docs-visual-run` action - docs visual regression against an R2 baseline, gated like `visual.yml`
 
 Fork PRs and Dependabot PRs both run on a read-only token with no Actions secrets. Read the two
 fork-guard bullets in the root `AGENTS.md` before touching any step that comments, pushes to a ref,
