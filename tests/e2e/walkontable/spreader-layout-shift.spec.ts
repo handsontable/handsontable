@@ -29,7 +29,10 @@ test.describe('walkontable spreader layout shift', { tag: '@walkontable' }, () =
   const PLACEMENT_TOLERANCE = 2;
 
   /**
-   * Asserts an editor box sits on a cell box: same top, same inline edges.
+   * Asserts an editor box is PLACED on a cell box: same top, and the same inline-start edge - the
+   * one the editor is anchored on (left in LTR, right in RTL). The editor's width is deliberately
+   * not compared: a theme sizes it as it likes (horizon draws it a few pixels wider than the cell),
+   * and that has nothing to do with where it was placed.
    *
    * @param {Locator} editor The editor holder.
    * @param {Locator} cell The edited cell.
@@ -40,9 +43,12 @@ test.describe('walkontable spreader layout shift', { tag: '@walkontable' }, () =
 
     expect(cellBox).not.toBeNull();
     expect(editorBox).not.toBeNull();
+
+    const cellInlineStart = wt.rtl ? cellBox!.x + cellBox!.width : cellBox!.x;
+    const editorInlineStart = wt.rtl ? editorBox!.x + editorBox!.width : editorBox!.x;
+
     expect(Math.abs(editorBox!.y - cellBox!.y)).toBeLessThanOrEqual(PLACEMENT_TOLERANCE);
-    expect(Math.abs(editorBox!.x - cellBox!.x)).toBeLessThanOrEqual(PLACEMENT_TOLERANCE);
-    expect(Math.abs((editorBox!.x + editorBox!.width) - (cellBox!.x + cellBox!.width))).toBeLessThanOrEqual(PLACEMENT_TOLERANCE);
+    expect(Math.abs(editorInlineStart - cellInlineStart)).toBeLessThanOrEqual(PLACEMENT_TOLERANCE);
   }
 
   /**
