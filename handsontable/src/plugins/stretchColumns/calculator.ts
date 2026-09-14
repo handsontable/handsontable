@@ -111,24 +111,24 @@ export class StretchCalculator {
   /**
    * Writes the calculated widths to the map when they differ from the stored ones, and drops the
    * engine's column-width cache in the same step so the draw that follows sums the new widths.
+   * The invalidation is bound to this single write path rather than to the map itself (the way
+   * ManualColumnResize and AutoColumnSize bind theirs through observeMapChange), so any future
+   * second writer of the map must call it too.
    *
    * @param {Array<number | null>} nextValues The stretched width per physical column, `null` where
    *                                          the column is not stretched.
-   * @returns {boolean} `true` when the map changed.
    */
-  #applyWidths(nextValues: Array<number | null>): boolean {
+  #applyWidths(nextValues: Array<number | null>): void {
     const currentValues = this.#widthsMap.getValues();
     const changed = currentValues.length !== nextValues.length ||
-      nextValues.some((value, index) => currentValues[index] !== value);
+      nextValues.some((value, index) => !Object.is(currentValues[index], value));
 
     if (!changed) {
-      return false;
+      return;
     }
 
     this.#widthsMap.setValues(nextValues);
     this.#hot.view.invalidateColumnWidthCache();
-
-    return true;
   }
 
   /**

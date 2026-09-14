@@ -98,7 +98,7 @@ export class StretchColumnsContainerResizePage {
    * container, so the caller passes `expectHiderFollows: false` and only the wrapper is awaited.
    */
   async setContainerWidth(px: number, expectHiderFollows = true): Promise<void> {
-    await this.page.evaluate(width => window.setContainerWidth(width), px);
+    await this.page.evaluate(width => window.htSetContainerWidth(width), px);
 
     await expect.poll(async() => (await this.geometry()).containerWidth, {
       message: `wrapper reaches ${px}px`,
@@ -179,18 +179,18 @@ export class StretchColumnsContainerResizePage {
   async renderWithoutChange(): Promise<number> {
     return this.page.evaluate(() => {
       const hot = (window as unknown as { hot: StretchFixtureHot }).hot;
-      const before = window.invalidationCount();
+      const before = window.htInvalidationCount();
 
       hot.render();
 
-      return window.invalidationCount() - before;
+      return window.htInvalidationCount() - before;
     });
   }
 }
 
 declare global {
   interface Window {
-    setContainerWidth(px: number): void;
-    invalidationCount(): number;
+    htSetContainerWidth(px: number): void;
+    htInvalidationCount(): number;
   }
 }

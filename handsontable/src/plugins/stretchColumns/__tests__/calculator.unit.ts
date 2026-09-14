@@ -41,6 +41,9 @@ describe('StretchCalculator widths map and engine cache', () => {
     expect(hot.getColWidth(0)).toBe(100);
     expect(hot.getColWidth(2)).toBe(100);
     expect(mapChanges).toBe(1);
+    // Loose on purpose: under jsdom, `TableView#render` can drop the width cache itself through
+    // `#discardSizesMeasuredWithoutStyles`, so the exact count here is environment-dependent. The
+    // steady-state and change-count assertions below are the exact ones.
     expect(invalidate).toHaveBeenCalled();
 
     // Steady state: same viewport, same widths — nothing written, nothing dropped.

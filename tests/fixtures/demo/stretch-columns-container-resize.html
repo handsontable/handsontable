@@ -131,12 +131,12 @@
       return originalInvalidate();
     };
 
-    window.invalidationCount = () => invalidations;
+    window.htInvalidationCount = () => invalidations;
 
     // Resizes the WRAPPER. Walkontable's ResizeMonitor observes the grid root's parent and calls
     // `refreshDimensions()` on the next animation frame; nothing here waits — the spec waits on
     // the DOM outcome (hider width == new container width).
-    window.setContainerWidth = (px) => {
+    window.htSetContainerWidth = (px) => {
       document.getElementById('wrap').style.width = `${px}px`;
     };
   </script>

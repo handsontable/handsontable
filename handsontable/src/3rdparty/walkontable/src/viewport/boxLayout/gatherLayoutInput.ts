@@ -108,9 +108,10 @@ export function gatherLayoutInput(deps: LayoutDeps): LayoutInput {
   // only. It is exact here because every producer whose widths can move at a constant count
   // (`StretchColumns`, `ManualColumnResize`, `AutoColumnSize`) drops the cache through
   // `view.invalidateColumnWidthCache()` when its map changes — `StretchColumns` since DEV-2902.
-  // A producer that forgets makes this total stale for exactly one draw per change, and the solver
-  // then predicts a scrollbar the browser never paints (the DEV-2902 symptom: a header clone one
-  // scrollbar narrower than the master hider).
+  // A producer that forgets leaves this total stale until something ELSE invalidates the cache — and
+  // at a constant column count that may never come. The solver then predicts a scrollbar the browser
+  // never paints on every draw after the change (the DEV-2902 symptom: a header clone one scrollbar
+  // narrower than the master hider, persisting across every render after a container resize).
   const totalContentWidth = rowHeaderWidth + viewport.columnWidthCache.getTotalSize();
   const totalContentHeight = columnHeaderHeight + viewport.getColumnHeaderHeightFraction() +
     viewport.rowHeightCache.getTotalSize() + hiderHeightCompensation;
