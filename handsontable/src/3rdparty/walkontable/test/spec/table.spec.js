@@ -448,6 +448,59 @@ describe('WalkontableTable', () => {
     expect(cellRenderer).toHaveBeenCalledTimes(renderedCells);
   });
 
+  it('should repaint the whole band on every refill pass when the band renders a merged cell (DEV-2908)', async() => {
+    // Same fixture as above, plus one cell carrying a `rowspan` the way MergeCells' anchor does. A
+    // merged grid takes no paint window (the plugin writes neighbor heights from pre-measure row
+    // heights), so the band's first cell is painted once per band render — pass 1 plus every refill
+    // pass — instead of once for the whole draw. No overlay clone renders in this table, so
+    // `renderCycleSeq` counts the master's band renders alone.
+    createDataArray(100, 4);
+    spec().$wrapper.width(300).height(300);
+
+    let tallRows = true;
+    const cellRenderer = jasmine.createSpy('cellRenderer').and.callFake((row, column, TD) => {
+      TD.innerHTML = tallRows && row >= 1 && row <= 3
+        ? `<div style="height: 200px">${getData(row, column)}</div>`
+        : getData(row, column);
+
+      if (row === 0 && column === 3) {
+        TD.setAttribute('rowspan', '2');
+      } else {
+        TD.removeAttribute('rowspan');
+      }
+    });
+
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      cellRenderer,
+    });
+
+    wt.draw();
+    wt.draw();
+
+    expect(getTableMaster().find('tbody tr').length).toBeLessThanOrEqual(3);
+
+    tallRows = false;
+    cellRenderer.calls.reset();
+
+    const renderCycleSeqBefore = wt.wtViewport.renderCycleSeq;
+
+    wt.draw();
+
+    const bandRenders = wt.wtViewport.renderCycleSeq - renderCycleSeqBefore;
+    const firstCellPaints = cellRenderer.calls.allArgs()
+      .filter(([row, column]) => row === 0 && column === 0)
+      .length;
+
+    // The shrink really took refill passes, and each of them repainted the first cell.
+    expect(getTableMaster().find('tbody tr').length).toBeGreaterThanOrEqual(13);
+    expect(bandRenders).toBeGreaterThan(1);
+    expect(firstCellPaints).toBe(bandRenders);
+    expect(getTableMaster().find('tbody tr:first td:eq(3)').attr('rowspan')).toBe('2');
+  });
+
   it('should use column width function to get column width', async() => {
     spec().$wrapper.width(600);
 

@@ -67,8 +67,8 @@ export class CellsRenderer extends BaseRenderer {
     // The rows before the window are not touched at all — not even their order view runs — because
     // the row-headers renderer skips the same rows and the two share one size set per TR
     // (`SharedOrderView`); running either one alone would resize the TR's children without the
-    // other's count. The mock tables in the renderer specs may not define the field.
-    const paintFromRow = this.table.paintFromRow ?? 0;
+    // other's count.
+    const { paintFromRow } = this.table;
     // The identity of the rendered band: which source rows and columns the reused elements hold on
     // this draw. The host compares it against the element's last paint. The band size stays in it
     // even though a reused element's own source indexes already move with the offsets: MergeCells

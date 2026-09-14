@@ -2,6 +2,14 @@ import { type Page, type Locator, expect } from '@playwright/test';
 import { awaitBundle } from '../bundle';
 
 /**
+ * The fixture's cumulative paint counters (see `paintCounters()`).
+ */
+export interface PaintCounters {
+  draws: number;
+  cell00Paints: number;
+}
+
+/**
  * Page Object for the column-autosize-viewport-refill fixture (#6452 / DEV-406): a 320px-tall
  * grid whose column C starts 40px wide with wrapped, tall rows 1-7. Encapsulates the resize-handle
  * double-click, the "shorten texts" data change, and the "does the rendered band fill the
@@ -13,10 +21,21 @@ export class ColumnAutosizeRefillPage {
   readonly bundle: string;
   readonly grid: Locator;
 
-  constructor(page: Page, theme = 'main', bundle = 'umd') {
+  readonly fixture: string;
+
+  /**
+   * @param {Page} page The Playwright page.
+   * @param {string} [theme='main'] The theme project.
+   * @param {string} [bundle='umd'] The bundle project.
+   * @param {string} [fixture='column-autosize-viewport-refill'] The fixture file under
+   *   `tests/fixtures/demo/`, without the extension. `merge-cells-refill` shares this grid's shape
+   *   plus a merged block, so it reuses this page object.
+   */
+  constructor(page: Page, theme = 'main', bundle = 'umd', fixture = 'column-autosize-viewport-refill') {
     this.page = page;
     this.theme = theme;
     this.bundle = bundle;
+    this.fixture = fixture;
     this.grid = page.getByTestId('grid');
   }
 
@@ -26,7 +45,7 @@ export class ColumnAutosizeRefillPage {
    * `document.write`-injected `dist/handsontable.js` can outlast it on a cold worker.
    */
   async goto(): Promise<void> {
-    await this.page.goto(`/tests/fixtures/demo/column-autosize-viewport-refill.html?theme=${this.theme}&bundle=${this.bundle}`);
+    await this.page.goto(`/tests/fixtures/demo/${this.fixture}.html?theme=${this.theme}&bundle=${this.bundle}`);
     await awaitBundle(this.page);
     await expect(this.cell(0, 0)).toBeVisible();
   }
@@ -113,9 +132,10 @@ export class ColumnAutosizeRefillPage {
   /**
    * How many draws (`afterViewRender`) and how many paints of cell (0, 0) (`afterRenderer`) the
    * fixture counted since the page loaded. Read in one `page.evaluate`, so both describe the same
-   * moment.
+   * moment. Cumulative since page load — compare two snapshots, never the raw values: every draw
+   * before the action would otherwise bank slack an extra paint could hide in.
    */
-  async paintCounters(): Promise<{ draws: number; cell00Paints: number }> {
+  async paintCounters(): Promise<PaintCounters> {
     return this.page.evaluate(() => {
       const counters = window as unknown as { drawCount: number; cell00Paints: number };
 
@@ -124,15 +144,39 @@ export class ColumnAutosizeRefillPage {
   }
 
   /**
-   * Assert that no draw painted cell (0, 0) more than once: the refill passes repaint only the rows
-   * they append (DEV-2908). Cell (0, 0) is in every band of this fixture (no scrolling), so a
-   * whole-band repaint on any refill pass would push its paint count above the draw count.
+   * Assert that every draw since `before` painted cell (0, 0) exactly once: the refill passes
+   * repaint only the rows they append (DEV-2908). Cell (0, 0) is in every band of this fixture (no
+   * scrolling) and every draw here is a full draw, so the paint delta must equal the draw delta —
+   * a whole-band repaint on any refill pass pushes it above. Snapshot `before` right before the
+   * action so the assertion describes that action's draws alone.
+   *
+   * @param {PaintCounters} before The counters snapshotted before the action.
    */
-  async expectOnePaintPerDraw(): Promise<void> {
-    const { draws, cell00Paints } = await this.paintCounters();
+  async expectOnePaintPerDrawSince(before: PaintCounters): Promise<void> {
+    const after = await this.paintCounters();
+    const draws = after.draws - before.draws;
+    const cell00Paints = after.cell00Paints - before.cell00Paints;
 
-    expect(cell00Paints).toBeGreaterThan(0);
-    expect(cell00Paints).toBeLessThanOrEqual(draws);
+    expect(draws).toBeGreaterThan(0);
+    expect(cell00Paints).toBe(draws);
+  }
+
+  /**
+   * Assert that the action drew at least once and painted cell (0, 0) at least once per draw. This
+   * is the sanity half of the merge-cells refill spec; whether a merged grid took the FULL repaint on
+   * each refill pass is pinned in the engine tier (`walkontable/test/spec/table.spec.js`, DEV-2908),
+   * where no overlay clone renders and the band-render count is observable. The counters here
+   * cannot tell a refill pass from a clone render, so no stronger claim is made from them.
+   *
+   * @param {PaintCounters} before The counters snapshotted before the action.
+   */
+  async expectPaintedOnEveryDrawSince(before: PaintCounters): Promise<void> {
+    const after = await this.paintCounters();
+    const draws = after.draws - before.draws;
+    const cell00Paints = after.cell00Paints - before.cell00Paints;
+
+    expect(draws).toBeGreaterThan(0);
+    expect(cell00Paints).toBeGreaterThanOrEqual(draws);
   }
 
   /**

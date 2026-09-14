@@ -595,8 +595,13 @@ const MAX_ROWS_BAND_REFILL_PASSES = 3;
  * `beforeRenderer`/`afterRenderer` hooks that `tableView.ts` fires from inside it), no
  * `shouldPaintCell` question, no row-header repaint, no re-measure. Over a refilled draw the cell
  * renderer therefore runs once per cell of the FINAL band. The window is dropped and the whole band
- * repainted when the start row moved, when the column band moved or resized, or when a cell above
- * the appended rows spans into them (see the helper). The draw-level hooks never repeat: the
+ * repainted when the start row moved, when the column band moved or resized, when the host's
+ * `renderEpoch` advanced, or when the band renders a merged cell (see the helper). One cost stays
+ * with the host's `renderMode: 'onChange'`: the `band` identity `CellsRenderer` hands `shouldPaintCell`
+ * carries `rowsToRender`, and a skipped row keeps the stamp its own pass wrote, so after a refilled
+ * draw the DOM carries one stamp per pass and the next ordinary draw repaints the skipped cells once
+ * (their stamp no longer matches) — self-healing, no correctness effect; the engine cannot re-stamp
+ * them because the host owns the stamps. The draw-level hooks never repeat: the
  * `beforeDraw` setting (core's `beforeViewRender`) fires once before the first pass and the `onDraw`
  * setting (core's `afterViewRender`) once after the last, both outside this loop. `renderCycleSeq`
  * advances once per pass whatever the window, and its only consumer is the `skipRender` rollback
@@ -627,6 +632,8 @@ function refillRenderedRowsBandIfShrunk(
   const lastDatasetRow = wtSettings.getSetting<number>('totalRows') - 1;
 
   for (let pass = 0; pass < MAX_ROWS_BAND_REFILL_PASSES; pass++) {
+    // The render calculator's start/end rows of the band this pass starts from — Walkontable's
+    // gapless row space, not Handsontable source or visual indexes.
     const previousStartRow = table.getFirstRenderedRow();
     const previousEndRow = table.getLastRenderedRow();
 
@@ -679,11 +686,14 @@ function refillRenderedRowsBandIfShrunk(
       return;
     }
 
-    // The column band this pass renders against, captured before the recompute: the paint window
-    // below is only valid while it does not move.
-    const previousColumns = {
+    // What the previous pass rendered, captured before the recompute: the paint window below is
+    // only valid while none of it moves. `previousRowsCount` is the rendered row count itself, not
+    // a difference of calculator bounds; the epoch is the host's structural-change counter.
+    const previousBand = {
+      rowsCount: table.getRenderedRowsCount(),
       startColumn: table.getFirstRenderedColumn(),
-      count: table.getRenderedColumnsCount(),
+      columnsCount: table.getRenderedColumnsCount(),
+      renderEpoch: wtSettings.getSetting<number>('renderEpoch'),
     };
 
     // Full recompute (no stationary bands: this is a content change, not a scroll step) so the
@@ -696,7 +706,7 @@ function refillRenderedRowsBandIfShrunk(
     wtViewport.extendRenderedRowsBandTo(previousStartRow, previousEndRow);
 
     const filters = buildRenderFilters(table, ctx);
-    const paintFromVisibleRow = resolveRefillPaintWindow(table, previousStartRow, previousEndRow, previousColumns);
+    const paintFromVisibleRow = resolveRefillPaintWindow(table, previousStartRow, previousBand);
 
     // A pass that measures no further change has settled the band; anything else is another shrink
     // the grown band just exposed, and the next iteration decides whether it must grow again.
@@ -707,35 +717,41 @@ function refillRenderedRowsBandIfShrunk(
 }
 
 /**
- * Whether a cell in the first `rowCount` rendered rows spans down to (or past) the last of them.
- * That is the shape of a merged cell clamped to the previous band's end: its anchor TD sits above
- * the appended rows, and its `rowspan` has to grow into them, which only a repaint of that TD does.
- * Reads the `rowSpan` property only — no layout is forced.
+ * What the previous refill pass (or pass 1) rendered, as far as the paint window needs to know.
+ */
+interface PreviousRenderedBand {
+  /**
+   * How many rows the previous pass rendered (`getRenderedRowsCount()`).
+   */
+  rowsCount: number;
+  /**
+   * The first rendered column of the previous pass' column band.
+   */
+  startColumn: number;
+  /**
+   * How many columns the previous pass rendered.
+   */
+  columnsCount: number;
+  /**
+   * The host's `renderEpoch` setting when the previous pass rendered.
+   */
+  renderEpoch: number;
+}
+
+/**
+ * Whether the band as the previous pass left it renders any merged cell. A merged grid never takes
+ * the paint window. Not because a `rowspan` has to grow — MergeCells caps a span at the merge's own
+ * last non-hidden row (`translateMergedCellToRenderable`) and only ever raises the ANCHOR to the
+ * band's first row, so a span reaching the band end already carries its full value — but because
+ * its after-renderer writes `TD.style.height` on the cells NEXT TO a merged block from row heights
+ * pass 1 read before this draw's re-measure; a skipped row would keep that stale height until the
+ * next draw. One selector query, no per-cell walk, no layout.
  *
  * @param {HTMLTableSectionElement} TBODY The master TBODY as the previous pass left it.
- * @param {number} rowCount How many rendered rows the previous band had.
  * @returns {boolean}
  */
-function hasRowSpanReachingBandEnd(TBODY: HTMLTableSectionElement, rowCount: number): boolean {
-  const lastRow = rowCount - 1;
-
-  for (let row = 0; row < rowCount; row++) {
-    const TR = TBODY.children[row];
-
-    if (!TR) {
-      return false;
-    }
-
-    for (let cell = 0; cell < TR.children.length; cell++) {
-      const { rowSpan } = TR.children[cell] as HTMLTableCellElement;
-
-      if (rowSpan > 1 && row + rowSpan - 1 >= lastRow) {
-        return true;
-      }
-    }
-  }
-
-  return false;
+function rendersMergedCells(TBODY: HTMLTableSectionElement): boolean {
+  return TBODY.querySelector('td[rowspan], th[rowspan]') !== null;
 }
 
 /**
@@ -743,45 +759,48 @@ function hasRowSpanReachingBandEnd(TBODY: HTMLTableSectionElement, rowCount: num
  * starts from (`0` = the whole band). The band the pass renders is the union of the previous band
  * and the proposal, so the rows the previous pass rendered are already correct in the DOM — but the
  * TR and TD nodes are reused in place by visible index, so skipping them is only sound while each
- * node still holds the same source cell. Three things break that, and each falls back to a full
+ * node still holds the same source cell. Four things break that, and each falls back to a full
  * repaint: the band's START row moved (every TR now holds a different source row); the column band
  * moved or resized (`createCalculators(false)` recomputes both axes, and pass 1's columns overscan
- * is not re-applied — every TD would hold a different source column); or a cell above the appended
- * rows spans into them (a merged cell clamped to the previous band end whose anchor needs its
- * `rowspan` grown, see {@link hasRowSpanReachingBandEnd}).
+ * is not re-applied — every TD would hold a different source column); the host's `renderEpoch`
+ * advanced (a structural change from inside a render hook that kept the column count and start,
+ * e.g. a reorder or a hide); or the band renders a merged cell (see {@link rendersMergedCells}).
+ *
+ * `previousStartRow` is the render calculator's start row (the first rendered row of the band, in
+ * Walkontable's gapless row space), not a Handsontable source or visual index.
  *
  * Exported for unit tests only (`test/unit/table/drawCycle.unit.js`).
  *
  * @param {Table} table The master table, after the refill's recompute assigned the new band.
- * @param {number} previousStartRow The first source row of the band the previous pass rendered.
- * @param {number} previousEndRow The last source row of the band the previous pass rendered.
- * @param {{ startColumn: number, count: number }} previousColumns The column band the previous pass rendered.
+ * @param {number} previousStartRow The render calculator's start row of the band the previous pass rendered.
+ * @param {PreviousRenderedBand} previousBand What the previous pass rendered.
  * @returns {number} The first visible row to repaint; `0` repaints the whole band.
  */
 export function resolveRefillPaintWindow(
   table: Table,
   previousStartRow: number,
-  previousEndRow: number,
-  previousColumns: { startColumn: number; count: number },
+  previousBand: PreviousRenderedBand,
 ): number {
   if (table.getFirstRenderedRow() !== previousStartRow) {
     return 0;
   }
 
   if (
-    table.getFirstRenderedColumn() !== previousColumns.startColumn ||
-    table.getRenderedColumnsCount() !== previousColumns.count
+    table.getFirstRenderedColumn() !== previousBand.startColumn ||
+    table.getRenderedColumnsCount() !== previousBand.columnsCount
   ) {
     return 0;
   }
 
-  const previousRowsCount = previousEndRow - previousStartRow + 1;
-
-  if (hasRowSpanReachingBandEnd(table.TBODY!, previousRowsCount)) {
+  if (table.wtSettings.getSetting<number>('renderEpoch') !== previousBand.renderEpoch) {
     return 0;
   }
 
-  return previousRowsCount;
+  if (rendersMergedCells(table.TBODY!)) {
+    return 0;
+  }
+
+  return previousBand.rowsCount;
 }
 
 /**

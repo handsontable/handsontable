@@ -82,6 +82,7 @@ Each scenario measures a specific user interaction pattern:
 | **cell-editing** | 5000 x 10 | selectCell + Enter + type + Enter x 20 | Sequential cell edits |
 | **initial-load** | 100000 x 100 | `new Handsontable(...)` | Grid construction only |
 | **source-data-validator-load** | 100000 x 100 | `new Handsontable(...)` with `sourceDataValidator` | Same fixture as initial-load plus the one option |
+| **column-autosize-refill** | 2000 x 200 | `manualColumnResize.setManualSize(2, 320)` + `render()` | 25px columns (~72 rendered), 40 wrapped rows shrink and the row band is refilled in several passes within the draw |
 
 Each scenario runs **1 warmup iteration** (discarded) followed by **3 measured iterations** with CDP tracing. Four scenarios (filtering, sorting, initial-load, source-data-validator-load) run **5**; each states its own reason in its `scenario.config.mjs` (short windows on a 300 to 350 MB heap where one GC pause moves a mean of three by 10 to 20%; for `source-data-validator-load`, a 20% run-to-run spread after removing the runner factor), and their iterations cost seconds next to the fixture load. The runner forces a full GC before every measured iteration, so garbage from the previous reset is never collected inside the next window, and reads the live heap after every end mark (`jsHeapAfterGcBytes`, recorded beside the windowed extrema).
 

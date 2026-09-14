@@ -6,6 +6,7 @@ describe('Walkontable.Renderer.CellsRenderer', () => {
 
     constructor() {
       this.rootDocument = document;
+      this.paintFromRow = 0;
     }
 
     renderedRowToSource(visibleRowIndex) {
