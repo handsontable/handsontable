@@ -280,8 +280,8 @@ Leave the option unset for a modal scope. A modal blocks the rest of the grid, s
 shortcuts through it defeats the point. The fallback may declare a fallback of its own, and Handsontable
 walks the chain; a chain that loops back on itself stops rather than repeating.
 
-A shortcut that writes cell content refuses to run while the grid draws no cells or a modal scope covers
-it, so inheriting cannot hand the user a way to change data they cannot see.
+A shortcut that writes cell content refuses to run while the grid draws no cells, so inheriting cannot
+hand the user a way to change data the grid is not showing.
 
 ### Add conditional scope activation
 

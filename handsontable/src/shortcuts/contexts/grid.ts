@@ -83,6 +83,10 @@ export function shortcutsGridContext(hot: HotInstance) {
     // The shortcut prevents the default action and stops propagation whenever `runOnlyIf` passes,
     // so it must claim the chord only for a cell that actually renders a link. Testing just
     // `isCell()` would swallow `Alt`+`Enter` grid-wide and break a host application's own handler.
+    //
+    // `canAccessCells()` is redundant beside that lookup today - an undrawn cell has no link to find -
+    // and it is kept for uniformity: every shortcut that acts on cell content declares it, so changing
+    // how the link is looked up cannot silently leave this one unguarded.
     runOnlyIf: () => canAccessCells() && getSelectedCellLink(hot) !== null,
   }, {
     keys: [['Control', 'Space']],
