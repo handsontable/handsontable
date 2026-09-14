@@ -1,17 +1,52 @@
 name: Visual
 
 # Visual regression — the post-test budgeting gate (the orchestrator runs it
-# only after the functional tests pass). Two render configs (multi-framework
-# chromium, cross-browser chromium+firefox+webkit) as a matrix; then the compare
-# job consumes both screenshot sets. Each config downloads the core + wrapper
-# build artifacts, falling back to a local build if an artifact is missing.
+# only after the functional tests pass). What renders is the `tier` input, one
+# row of `VISUAL_TIERS` in visual-tests/src/config.mjs:
+#   pr    js × {main, main-dark} on chromium, plus a wrapper only when the
+#         `wrappers` input names it (the Checks scope router's `visual-wrappers`
+#         list: the wrappers whose own wrappers/<pkg>/** tree changed — never
+#         the Integration matrix, which lights all three on any core change).
+#         Every pull request (test.yml). No bare "classic" render and no
+#         cross-browser leg.
+#   seed  everything the golden records hold: js bare + the four themes, the
+#         cross-browser leg, and the three wrappers COPIED from the js render.
+#         The develop push (visual-seed.yml); the master push and the RC path
+#         (test.yml). The only tier whose Reconcile step rewrites
+#         `base/<branch>`; a branch with no goldens yet is still bootstrapped
+#         by whichever tier its first pull request renders (the Seed step).
+#   full  everything, with the wrappers rendered for real from their own demos.
+#         The weekday nightly (visual-nightly.yml), which compares against
+#         `base/develop` and never writes it; and a pull request that touches
+#         the visual tier itself (test.yml, the router's `visual-full`:
+#         visual-tests/** and its demos), so a spec or demo change is proven
+#         on every variant.
+# Why (DEV-2797, measured on 82 pull requests): the full render added a mean
+# 15.1 minutes per run, and no real regression in that window was confined to
+# one theme, browser or wrapper — every one hit all of them. Each render job
+# downloads the core + wrapper build artifacts, falling back to a local build
+# if an artifact is missing.
 on:
   workflow_call:
+    inputs:
+      tier:
+        description: 'Which variants to render and compare: pr | seed | full (visual-tests/src/config.mjs VISUAL_TIERS)'
+        type: string
+        required: true
+      wrappers:
+        description: 'pr tier only: the wrappers to render for real, a JSON array of wrapper directory names (the Checks scope router''s visual-wrappers output) — empty renders none'
+        type: string
+        default: ''
 
-# Not secrets, so these stay readable on fork runs too.
+# Not secrets, so these stay readable on fork runs too. The tier travels as
+# environment as well, so every `npm run in visual-tests …` and every
+# `node ./visual-tests/scripts/…` below resolves the same tier through
+# visual-tests/lib/visual-tiers.mjs.
 env:
   R2_BUCKET_NAME: handsontable-visual
   VISUAL_REPORT_DOMAIN: visual.handsontable.com
+  VISUAL_TIER: ${{ inputs.tier }}
+  VISUAL_WRAPPERS: ${{ inputs.wrappers }}
 
 jobs:
   render:
@@ -20,9 +55,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        config:
-          - { name: 'multi-framework', browsers: 'chromium', cache: 'chromium', test: 'test', artifact: 'vt-screenshots-multi', tar: 'screenshots-multi.tar.gz' }
-          - { name: 'cross-browser', browsers: 'chromium firefox webkit', cache: 'all', test: 'test:cross-browser', artifact: 'vt-screenshots-cross', tar: 'screenshots-cross.tar.gz' }
+        # The pr tier drops the cross-browser leg: a firefox or webkit difference
+        # is nothing a pull request author can reproduce locally, and the leg is
+        # 7 minutes and one more job under the org's 60-job cap. `strategy`
+        # cannot read `env`, so the two matrix shapes are spelled out in full;
+        # `demos` says which visual-test demos the leg serves (the tier's
+        # frameworks, or the js demo alone through `serve-example`).
+        config: ${{ fromJSON(inputs.tier == 'pr'
+          && '[{"name":"multi-framework","browsers":"chromium","cache":"chromium","test":"test","artifact":"vt-screenshots-multi","tar":"screenshots-multi.tar.gz","demos":"tier"}]'
+          || '[{"name":"multi-framework","browsers":"chromium","cache":"chromium","test":"test","artifact":"vt-screenshots-multi","tar":"screenshots-multi.tar.gz","demos":"tier"},{"name":"cross-browser","browsers":"chromium firefox webkit","cache":"all","test":"test:cross-browser","artifact":"vt-screenshots-cross","tar":"screenshots-cross.tar.gz","demos":"js"}]') }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
       - uses: ./.github/actions/setup-workspace
@@ -94,13 +135,22 @@ jobs:
           # bundles on the fallback path), so it skips the packaging checks.
           npm run in handsontable postbuild:partial
 
+      # A wrapper build is fetched (or built) only where a wrapper demo will
+      # actually render: on the leg that serves the tier's demos, and only in
+      # the full tier or in a pr tier whose `wrappers` input names that wrapper.
+      # Exact on purpose — the seed tier copies the js render into the wrapper
+      # directories and never renders one, so `!= 'pr'` would still pay for
+      # three wrapper builds (the Angular one alone is about 2 minutes) that
+      # nothing reads. Both halves of each pair carry the same condition.
       - name: Download the Angular wrapper build artifact
+        if: matrix.config.demos == 'tier' && (inputs.tier == 'full' || (inputs.tier == 'pr' && contains(inputs.wrappers, 'angular-wrapper')))
         uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # https://github.com/actions/download-artifact/releases/tag/v8.0.0
         with:
           name: angular-wrapper-build
           path: ./angular-wrapper-build
         continue-on-error: true
-      - run: |
+      - if: matrix.config.demos == 'tier' && (inputs.tier == 'full' || (inputs.tier == 'pr' && contains(inputs.wrappers, 'angular-wrapper')))
+        run: |
           if test -f "angular-wrapper-build/angular-wrapper.tar.gz"; then
             tar -zxf angular-wrapper-build/angular-wrapper.tar.gz
             rm -r angular-wrapper-build
@@ -109,12 +159,14 @@ jobs:
           fi
 
       - name: Download the React wrapper build artifact
+        if: matrix.config.demos == 'tier' && (inputs.tier == 'full' || (inputs.tier == 'pr' && contains(inputs.wrappers, 'react-wrapper')))
         uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # https://github.com/actions/download-artifact/releases/tag/v8.0.0
         with:
           name: react-wrapper-build
           path: ./react-wrapper-build
         continue-on-error: true
-      - run: |
+      - if: matrix.config.demos == 'tier' && (inputs.tier == 'full' || (inputs.tier == 'pr' && contains(inputs.wrappers, 'react-wrapper')))
+        run: |
           if test -f "react-wrapper-build/react-wrapper.tar.gz"; then
             tar -zxf react-wrapper-build/react-wrapper.tar.gz
             rm -r react-wrapper-build
@@ -123,12 +175,14 @@ jobs:
           fi
 
       - name: Download the Vue3 wrapper build artifact
+        if: matrix.config.demos == 'tier' && (inputs.tier == 'full' || (inputs.tier == 'pr' && contains(inputs.wrappers, 'vue3')))
         uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # https://github.com/actions/download-artifact/releases/tag/v8.0.0
         with:
           name: vue3-build
           path: ./vue3-build
         continue-on-error: true
-      - run: |
+      - if: matrix.config.demos == 'tier' && (inputs.tier == 'full' || (inputs.tier == 'pr' && contains(inputs.wrappers, 'vue3')))
+        run: |
           if test -f "vue3-build/vue3.tar.gz"; then
             tar -zxf vue3-build/vue3.tar.gz
             rm -r vue3-build
@@ -136,8 +190,23 @@ jobs:
             npm run in vue3 build
           fi
 
+      # The multi-framework leg builds the tier's frameworks through build.mjs
+      # (js plus the wrappers the `wrappers` input names for pr; js alone for
+      # seed; js and the three wrappers for full). The
+      # cross-browser leg serves only the js demo through `serve-example`, so it
+      # installs and builds that one tree — the same two commands
+      # visual-stability.yml uses. The matrix value goes through `env:`, never
+      # straight into the script body.
       - name: Build visual test examples
-        run: npm run in visual-tests build
+        env:
+          DEMOS: ${{ matrix.config.demos }}
+        run: |
+          if [ "$DEMOS" = "js" ]; then
+            npm run examples:install next/visual-tests/js
+            npm --prefix examples/next/visual-tests/js/demo run build
+          else
+            npm run in visual-tests build
+          fi
       - name: Run visual tests (${{ matrix.config.name }})
         run: npm run in visual-tests ${{ matrix.config.test }}
       - run: tar -zcf ${{ matrix.config.tar }} ./visual-tests/screenshots
@@ -179,17 +248,23 @@ jobs:
         with:
           name: vt-screenshots-multi
           path: ./
+      - run: tar -zxf screenshots-multi.tar.gz
+      # The pr tier renders no cross-browser leg (see the matrix), so its
+      # artifact does not exist there, and download-artifact fails on a name it
+      # cannot find.
       - name: Download cross-browser screenshots
+        if: inputs.tier != 'pr'
         uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # https://github.com/actions/download-artifact/releases/tag/v8.0.0
         with:
           name: vt-screenshots-cross
           path: ./
-      - run: |
-          tar -zxf screenshots-multi.tar.gz
-          tar -zxf screenshots-cross.tar.gz
+      - if: inputs.tier != 'pr'
+        run: tar -zxf screenshots-cross.tar.gz
       # Golden records live under `base/<branch>` and are rewritten by every
-      # build of that branch. A PR compares against the branch it targets, so
-      # PRs into a release or LTS branch pick up the right baseline for free.
+      # seed-tier build of that branch. A PR compares against the branch it
+      # targets, so PRs into a release or LTS branch pick up the right baseline
+      # for free. `VISUAL_WRITES_BASE` is what the Reconcile step keys on: only
+      # the seed tier writes the baseline.
       - name: Resolve the snapshot keys
         # Context values go through the environment rather than into the script
         # body, so a branch name can never be read as shell.
@@ -198,11 +273,22 @@ jobs:
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           BASE_REF: ${{ github.base_ref }}
           REF_NAME: ${{ github.ref_name }}
+          TIER: ${{ inputs.tier }}
         run: |
           if [ -n "$PR_NUMBER" ]; then
             echo "REG_EXPECTED_KEY=base/$BASE_REF" >> "$GITHUB_ENV"
             echo "REG_ACTUAL_KEY=pr-$PR_NUMBER/$PR_HEAD_SHA" >> "$GITHUB_ENV"
+            echo "VISUAL_WRITES_BASE=false" >> "$GITHUB_ENV"
           else
+            # Every caller that runs this module on a push, a schedule or a
+            # dispatch passes seed or full; a pr tier here would compare a
+            # two-theme subset against the whole baseline and then reconcile
+            # the baseline down to that subset.
+            if [ "$TIER" = "pr" ]; then
+              echo "::error::The pr tier is for pull requests; a $GITHUB_EVENT_NAME event must pass tier: seed or tier: full."
+              exit 1
+            fi
+
             # `lts/*` is listed for correctness, but nothing triggers this
             # workflow on an LTS push today: test.yml pushes on master,
             # develop.yml on develop, publish.yml on release/** and explicitly
@@ -216,8 +302,23 @@ jobs:
                 echo "VISUAL_SKIP=true" >> "$GITHUB_ENV"
                 ;;
             esac
-            echo "REG_EXPECTED_KEY=base/$REF_NAME" >> "$GITHUB_ENV"
-            echo "REG_ACTUAL_KEY=base/$REF_NAME" >> "$GITHUB_ENV"
+
+            if [ "$TIER" = "full" ]; then
+              # A full render (the nightly) is compared against the goldens and
+              # published under its own key, but it is never the baseline: it
+              # renders the wrappers for real, and the baseline is the seed
+              # tier's shape by design (visual-tests/AGENTS.md, js-copied
+              # baselines). `nightly/<branch>/` is a fixed key rewritten by
+              # every nightly, so only the latest report is kept and nothing
+              # needs purging.
+              echo "REG_EXPECTED_KEY=base/$REF_NAME" >> "$GITHUB_ENV"
+              echo "REG_ACTUAL_KEY=nightly/$REF_NAME" >> "$GITHUB_ENV"
+              echo "VISUAL_WRITES_BASE=false" >> "$GITHUB_ENV"
+            else
+              echo "REG_EXPECTED_KEY=base/$REF_NAME" >> "$GITHUB_ENV"
+              echo "REG_ACTUAL_KEY=base/$REF_NAME" >> "$GITHUB_ENV"
+              echo "VISUAL_WRITES_BASE=true" >> "$GITHUB_ENV"
+            fi
           fi
 
       # A branch with no golden records yet must not wedge every PR opened
@@ -275,12 +376,54 @@ jobs:
           BASE_REF: ${{ github.base_ref }}
         run: node ./visual-tests/scripts/compare-fork.mjs "$BASE_REF"
 
+      # On a push, a schedule or a dispatch nothing else reads the comparison:
+      # the gate below is pull-request-only, so until this step a seed's own
+      # differences — what the merged commit changed — went unread, and a
+      # nightly had no verdict at all. The script writes the build's differences
+      # to the job summary; for the seed tier a difference never fails it (the
+      # seed must land, and its differences are the merge's) — only a missing
+      # or empty comparison does, and that comparison has already failed the
+      # job; for the full tier any difference is the job's failure. It sits
+      # BEFORE Reconcile so a seed still reconciles after reporting. Context
+      # values go through `env:`: a commit message can contain shell.
+      - name: Report this build's differences
+        id: report
+        if: ${{ !cancelled() && github.event_name != 'pull_request' && env.VISUAL_SKIP != 'true' }}
+        env:
+          HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+          VISUAL_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: node ./visual-tests/scripts/seed-report.mjs
+
+      # Attribution for what a pull request never rendered. The pr tier renders
+      # js × {main, main-dark}, so a merge that changed the classic render, a
+      # horizon theme, Firefox, WebKit or a wrapper copy passed its own visual
+      # check without showing it — the seed is the first build that renders
+      # those variants, and it reconciles them straight into the baseline below.
+      # So the seed's out-of-tier differences go onto the merged pull request
+      # (the number comes from the squash commit's `(#N)` suffix), where the
+      # author reads them minutes after the merge instead of in a run summary
+      # nobody opens. Sticky by header and number, so a re-run edits rather than
+      # repeats. Push events only — a seed always is one, and the push token
+      # carries the `pull-requests: write` this job already requests for the
+      # verdict comment; no fork can reach this step. `continue-on-error`: a
+      # failed comment must never keep the seed from landing.
+      - name: Comment the seed's out-of-tier differences on the merged pull request
+        if: ${{ !cancelled() && github.event_name == 'push' && steps.report.outputs.comment == 'true' }}
+        continue-on-error: true
+        uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # https://github.com/marocchino/sticky-pull-request-comment/releases/tag/v3.0.4
+        with:
+          header: visual-seed
+          number: ${{ steps.report.outputs.pull }}
+          path: visual-tests/.reg/seed-comment.md
+
       # reg-suit only ever PUTs, and its fetch lists the whole prefix, so a
       # deleted or renamed screenshot would linger under `base/<branch>/actual/`
       # and show up as a phantom deletion on every later pull request. Reconcile
-      # the prefix to exactly what this build rendered.
+      # the prefix to exactly what this build rendered. Only the seed tier gets
+      # here (`VISUAL_WRITES_BASE`, set above): the nightly's full render is not
+      # the baseline's shape and never reaches it.
       - name: Reconcile the golden records
-        if: env.VISUAL_SKIP != 'true' && github.event_name != 'pull_request'
+        if: env.VISUAL_SKIP != 'true' && env.VISUAL_WRITES_BASE == 'true'
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
@@ -403,11 +546,14 @@ jobs:
 
       # Kept whenever there is something to review or the comparison failed: a
       # fork run has no hosted report, and a reviewer approving a `changed`
-      # verdict may want the images without the CDN. A clean same-repo run needs
-      # it for nothing, so it is skipped there.
+      # verdict may want the images without the CDN. A nightly with differences
+      # (a red run, or the report step's `changed`) keeps its images the same
+      # way; so does a seed whose merge changed something. A clean run needs it
+      # for nothing, so it is skipped there.
       - name: Upload the visual diff report
-        if: ${{ !cancelled() && github.event_name == 'pull_request'
-          && (failure() || steps.gate.outputs.verdict != 'clean') }}
+        if: ${{ !cancelled() && (failure()
+          || (github.event_name == 'pull_request' && steps.gate.outputs.verdict != 'clean')
+          || steps.report.outputs.verdict == 'changed') }}
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
         with:
           name: visual-diff-report

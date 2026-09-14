@@ -184,7 +184,8 @@
 - `manual-qa.yml` - the human merge gate, and a `CI Gate` dependency like every module above
 - `integration.yml` - wrapper tests, ESM/CJS format checks, pkg.pr.new PR package preview
 - `performance.yml` (PR) / `performance-tests.yml` (develop golden baseline) - the CDP perf suite
-- `visual.yml` - visual regression render matrix, the reg-suit comparison, and the `approve` job that holds a `changed` verdict on the `visual-approval` environment (the R2 screenshot purge lives in `pr-cleanup.yml`)
+- `visual.yml` - visual regression render matrix and the reg-suit comparison, scoped by its `tier` input (`pr` | `seed` | `full`, the table in `visual-tests/src/config.mjs`), plus the `approve` job that holds a `changed` verdict on the `visual-approval` environment (the R2 screenshot purge lives in `pr-cleanup.yml`)
+- `visual-seed.yml` / `visual-nightly.yml` - the develop golden seed (non-cancelling) / the weekday full-matrix render that never writes the goldens
 - `publish.yml` - package publishing pipeline to npm (the only workflow npm trusted publishing trusts)
 - `docs.yml` / `docs-staging.yml` / `docs-production.yml` - docs gates and deployment (Cloudflare Pages)
 - `docs-visual-tests.yml` - visual regression testing for docs

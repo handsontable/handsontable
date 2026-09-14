@@ -31,12 +31,15 @@ name: Visual seed
 # Pull requests still render Visual only after E2E and Integration (test.yml);
 # that ordering is unchanged.
 #
-# visual.yml needs nothing new: on a `push` event it already resolves
+# This run renders the `seed` tier (`with: tier: seed`) — everything the golden
+# records hold: js bare plus the four themes, the cross-browser leg, and the
+# three wrappers copied from the js render (the tier table is `VISUAL_TIERS` in
+# visual-tests/src/config.mjs). On a `push` event visual.yml resolves
 # `REG_EXPECTED_KEY=REG_ACTUAL_KEY=base/<branch>`, compares the fresh render
-# against the previous baseline (a report nothing read until now — the summary
-# step in visual.yml surfaces it), and reconciles the prefix. With no Build
-# artifacts to download it takes its own build fallback for the core and the
-# wrappers, which is where the extra minutes go.
+# against the previous baseline (its "Report this build's differences" step
+# writes that comparison — what this commit changed — to the job summary), and
+# reconciles the prefix. With no Build artifacts to download it takes its own
+# build fallback for the core, which is where the extra minutes go.
 on:
   push:
     branches: [ develop ]
@@ -67,4 +70,6 @@ jobs:
     name: Visual
     if: github.event_name != 'pull_request'
     uses: ./.github/workflows/visual.yml
+    with:
+      tier: seed
     secrets: inherit
