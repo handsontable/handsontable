@@ -359,6 +359,14 @@ In the example below, the **Job title (default)** column uses the default height
 
 :::
 
+## Validate dropdown values
+
+The dropdown validator always runs in strict mode. A value that is not in the `source` list is marked invalid, whether it is typed, pasted, or set with [`setDataAtCell()`](@/api/core.md#setdataatcell). The [`strict`](@/api/options.md#strict) option has no effect on dropdown cells.
+
+The [`allowInvalid`](@/api/options.md#allowinvalid) option decides what happens to an invalid value, the same as in [Autocomplete strict mode](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md#autocomplete-strict-mode).
+
+Validation runs when a value is written to a cell. Values that are already in the data source when the grid loads are not validated. To check and mark them, call [`validateCells()`](@/api/core.md#validatecells) after the grid is created.
+
 ## Result
 
 After configuring the dropdown cell type, cells display a button that opens a dropdown list of options. Users can search the list by typing. Only values from the source list are accepted. The selected value is stored in the data source.

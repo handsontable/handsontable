@@ -101,6 +101,8 @@ In strict mode, the [`allowInvalid`](@/api/options.md#allowinvalid) option deter
 - [`allowInvalid: true`](@/api/options.md#allowinvalid) optional - allows manual input of a value that does not exist in the `source`, the field background is highlighted in red, and the selection advances to the next cell
 - [`allowInvalid: false`](@/api/options.md#allowinvalid) - does not allow manual input of a value that does not exist in the `source`, the <kbd>**Enter**</kbd> key is ignored, and the editor field remains open
 
+Validation runs when a value is written to a cell. Values that are already in the data source when the grid loads are not validated. To check and mark them, call [`validateCells()`](@/api/core.md#validatecells) after the grid is created.
+
 ::: only-for javascript
 
 ::: example #example2 .docs-height-large --js 1 --ts 2
