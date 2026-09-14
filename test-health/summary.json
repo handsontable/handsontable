@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-14T12:36:28.408Z",
+  "generatedAt": "2026-09-14T12:44:26.472Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 9,
     "needsTicket": 1,
     "quarantined": 0,
-    "entries": 20
+    "entries": 24
   },
   "rows": [
     {
@@ -93,9 +93,9 @@
       "file": "e2e/walkontable/spreader-layout-shift.spec.ts",
       "line": 258,
       "title": "walkontable spreader layout shift › right-to-left, with frozen rows and columns › the editor opens over its cell after a scroll on both axes",
-      "count7": 2,
-      "count30": 2,
-      "countAll": 2,
+      "count7": 4,
+      "count30": 4,
+      "countAll": 4,
       "runs30": 1,
       "flakyRuns30": 0,
       "branches30": 1,
@@ -109,8 +109,8 @@
       "isolation": [],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-09-14T12:35:42Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34842569625",
+        "seenAt": "2026-09-14T12:43:39Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34842569625/attempts/2",
         "branch": "feature/DEV-2912_Spreader-transform-no-layout-shift",
         "leg": "e2e-horizon",
         "status": "failed",
@@ -125,9 +125,9 @@
       "file": "e2e/walkontable/spreader-layout-shift.spec.ts",
       "line": 144,
       "title": "walkontable spreader layout shift › without frozen panes › the editor opens over its cell after a scroll on both axes",
-      "count7": 2,
-      "count30": 2,
-      "countAll": 2,
+      "count7": 4,
+      "count30": 4,
+      "countAll": 4,
       "runs30": 1,
       "flakyRuns30": 0,
       "branches30": 1,
@@ -141,8 +141,8 @@
       "isolation": [],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-09-14T12:35:42Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34842569625",
+        "seenAt": "2026-09-14T12:43:39Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34842569625/attempts/2",
         "branch": "feature/DEV-2912_Spreader-transform-no-layout-shift",
         "leg": "e2e-horizon",
         "status": "failed",
