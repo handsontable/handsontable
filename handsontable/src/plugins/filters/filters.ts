@@ -454,6 +454,12 @@ export class Filters extends BasePlugin {
         component?.destroy();
         this.components.set(key, null);
       });
+      // Destroy the observer alongside the collection, and null both, mirroring `destroy()`. The
+      // observer holds its own reference to the collection, so leaving it bound to a destroyed
+      // collection strands it: `enablePlugin()` recreates the collection but skips the observer it
+      // still holds, and the next data change reads the destroyed collection and throws (DEV-2889).
+      this.conditionUpdateObserver?.destroy();
+      this.conditionUpdateObserver = null;
       this.conditionCollection?.destroy();
       this.conditionCollection = null;
       this.hot.rowIndexMapper.unregisterMap(this.pluginName ?? '');
