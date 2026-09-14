@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed keyboard shortcuts, including select all, undo and redo, not working while the empty data state overlay is displayed.",
+  "type": "fixed",
+  "issueOrPR": 13489,
+  "breaking": false,
+  "framework": "none"
+}
