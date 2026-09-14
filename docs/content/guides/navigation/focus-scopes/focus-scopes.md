@@ -21,6 +21,7 @@ vue:
   metaTitle: Focus scopes - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Navigation
+menuTag: updated
 ---
 Use focus scopes to create isolated focus boundaries within a Handsontable instance and control which keyboard shortcuts are active for each part of the UI. Focus scopes come in two types: `inline` (default) allows natural DOM tab order, and `modal` blocks focus outside the scope -- useful for dialogs and overlays.
 
@@ -363,6 +364,36 @@ The focus scope manager automatically:
 - Updates the [`Core#isListening`](@/api/core.md#islistening) state based on scope activity
 - Switches the shortcuts context to the scope's specified context name when the scope is activated
 - Handles tab navigation between scopes
+
+## Keyboard listening state
+
+Only one Handsontable instance at a time listens to keyboard input on the document. When a grid is not listening, it ignores keyboard events -- navigation and shortcuts stop working until the grid becomes active again. You can check the current state with [`isListening()`](@/api/core.md#islistening).
+
+When the user clicks or tabs to an element outside the table -- an external input, a button, or a custom panel -- the grid stops listening automatically. This is the most common cause of keyboard navigation issues in applications that combine Handsontable with external UI elements.
+
+To hand keyboard input back to the grid without forcing the user to click a cell, call [`listen()`](@/api/core.md#listen):
+
+```js
+// return keyboard input to the grid
+// after the user interacts with an external element
+hot.listen();
+```
+
+Calling `listen()` also deactivates listening on every other Handsontable instance on the page, so on multi-grid pages exactly one grid receives keyboard input. To make the grid ignore keyboard input explicitly, call [`unlisten()`](@/api/core.md#unlisten).
+
+::: only-for react
+
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [Instance methods](@/guides/getting-started/react-methods/react-methods.md) page.
+
+:::
+
+:::
+
+For UI elements registered as [focus scopes](#register-a-focus-scope), you don't need to call these methods -- the focus scope manager updates the listening state automatically as scopes activate and deactivate.
 
 ## Result
 

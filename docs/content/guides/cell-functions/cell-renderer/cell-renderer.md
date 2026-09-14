@@ -100,7 +100,7 @@ Be sure to turn those options off in your Handsontable configuration, as keeping
 
 :::
 
-## Use the renderer component within React's Context
+## Use the renderer component within React's context
 
 In this example, React's `Context` passes information available in the main app component to the renderer. In this case, we're using just the renderer, but the same principle works with [editors](@/guides/cell-functions/cell-editor/cell-editor.md) as well.
 
@@ -160,7 +160,7 @@ You can create and use a custom cell renderer component that utilizes the `rende
 
 :::
 
-## Declare a custom renderer as an Angular Template
+## Declare a custom renderer as an Angular template
 
 The Angular wrapper supports using an Angular `TemplateRef` as a renderer. This is particularly useful if you want to leverage the power of Angular templates directly, without creating a full component.
 

@@ -2,7 +2,7 @@ import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 // Register all Handsontable's modules.
 registerAllModules();
-const container = document.querySelector('#example8');
+const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
     data: [
         ['Ana García', 'Engineering', 'Senior Engineer', 95000, 'Madrid', 12],

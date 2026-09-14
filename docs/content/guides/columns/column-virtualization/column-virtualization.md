@@ -90,6 +90,10 @@ The demo below presents a data grid displaying one million cells (1000 rows x 10
 
 :::
 
+## Horizontal scrolling
+
+Hold <kbd>Shift</kbd> and scroll the mouse wheel to scroll the grid horizontally. No configuration is required.
+
 ## Known limitations
 
 Using column virtualization has the following side effects:
