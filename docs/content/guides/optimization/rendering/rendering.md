@@ -208,6 +208,7 @@ Some changes are invisible to the grid, because nothing in it sees them:
 - A value object mutated in place. The grid compares values by identity, so `row.checked = true` on an object the cell already showed does not count.
 - State outside the grid that a renderer reads, such as a theme flag or a store.
 - A renderer that reads the data of other cells. The built-in checkbox renderer does this when [`label.property`](@/api/options.md#label) points at another column: editing that column does not repaint the checkbox cell.
+- A renderer that reads where the rendered area starts or ends, through [`getFirstRenderedVisibleRow()`](@/api/core.md#getfirstrenderedvisiblerow) or its siblings. A vertical scroll keeps such a cell as it is, because the cell's own row and value did not change.
 
 A [`cells`](@/api/options.md#cells) function result is compared value by value. Return the same references for an unchanged result: a renderer function created on every call counts as a change on every render.
 

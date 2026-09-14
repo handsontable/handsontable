@@ -5839,7 +5839,10 @@ export default (): Record<string, unknown> => {
      * - a value object mutated in place (the grid compares values by identity),
      * - state outside the grid that a renderer reads,
      * - a renderer that reads the data of other cells, such as the checkbox renderer with
-     * [`label.property`](#label).
+     * [`label.property`](#label),
+     * - a renderer that reads where the rendered area starts or ends, through
+     * [`getFirstRenderedVisibleRow()`](@/api/core.md#getfirstrenderedvisiblerow) or its siblings: a
+     * vertical scroll keeps such a cell as it is.
      *
      * Set `renderMode: 'always'` on such cells, or mark them with
      * [`markCellChanged()`](@/api/core.md#markcellchanged) before rendering. A [`cells`](#cells)

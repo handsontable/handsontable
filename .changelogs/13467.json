@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Made a vertical scroll keep the row elements of the rows that stay rendered, so a cell in `renderMode: 'onChange'` is no longer repainted when the viewport merely scrolls past it, and a custom renderer that caches per element keeps its cache across a scroll. This works with merged cells too; only the cells of the merged blocks repaint on a scroll.",
+  "title": "Made a vertical scroll keep the elements of the rows that stay rendered, so a cell in `renderMode: 'onChange'` is not repainted by the scroll and a renderer that caches per element keeps its cache. With merged cells, only the cells of the merged blocks repaint.",
   "type": "changed",
   "issueOrPR": 13467,
   "breaking": false,

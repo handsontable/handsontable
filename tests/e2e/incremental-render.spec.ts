@@ -476,14 +476,13 @@ test.describe('renderMode: onChange, scrolling', () => {
     await grid.resetPaints();
     await grid.scrollToRow(40);
 
-    let [firstBefore] = await grid.renderedBand();
-
     painted = await grid.paintedCells();
     expect(painted.length).toBeGreaterThan(0);
     await grid.expectEqualToFullRepaint();
 
     await grid.resetPaints();
-    [firstBefore] = await grid.renderedBand();
+
+    const [firstBefore] = await grid.renderedBand();
     // A row near the start of the band stays rendered through the scroll up.
     await grid.run(`window.htProbe = hot.getCell(${firstBefore + 1}, 5);`);
     await grid.scrollToRow(20);

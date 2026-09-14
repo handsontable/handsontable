@@ -687,7 +687,10 @@ of style recalculation, not JavaScript. Three consequences:
   synchronization and leaves an empty `style=""` behind. It is cosmetic for the user, but it makes
   the same cell come out differently depending on what its element held before, which is exactly
   what a byte-for-byte comparison against a full repaint catches (`incremental-render.spec.ts`, the
-  `merge` scenario: a covered cell that becomes a block's clamped origin on a scroll).
+  `merge` scenario: a covered cell that becomes a block's clamped origin on a scroll). jsdom does not
+  reproduce the trap, so no unit test pins it; a `no-restricted-syntax` override for `src/render/**`
+  in `handsontable/.eslintrc.js` bans the bare call instead, and the helper's `hasAttribute` read is
+  the fix, not a shortcut.
 - **The cell-range scan is cached** per layer and overlay (`selection/scanCache.ts`) under the
   layer's corners, the rendered band (offsets, counts, header counts), and the host's `renderEpoch`
   setting. Header scans are not cached: the `onBeforeHighlightingRowHeader`/`ColumnHeader` settings
@@ -730,12 +733,13 @@ depends on where the band starts or ends:
   its identity, so a band that grows or shrinks repaints only the cells it adds, and an element that
   kept its row across a scroll (next section) reads as unchanged.
 
-The master draw cycle resolves `Viewport#allowsStationaryBands()` and `Viewport#allowsRowRecycling()`
-once per draw, after `beforeDraw()` refreshed the axis owners, into `Overlays#stationaryBandsAllowed`
-and `Overlays#rowRecyclingAllowed`; the band stabilizer reads the first, `renderCellBand` (master and
-clones, through the clone source) the second, so no decision disagrees within a draw. The two differ
-by the single-pass term only: MergeCells opts out of single-pass layout for the height-versus-viewport
-circularity, and that must not switch the recycling off for the rest of the grid.
+The master draw cycle resolves `Viewport#allowsRowRecycling()` once per draw, after `beforeDraw()`
+refreshed the axis owners, into `Overlays#rowRecyclingAllowed`, which `renderCellBand` reads for the
+master and for every clone (through the clone source), so the recycling and the stable identity never
+disagree within a draw. `Viewport#allowsStationaryBands()` has one reader, the `createCalculators`
+call right there, so it is not stored. The two predicates differ by the single-pass term only:
+MergeCells opts out of single-pass layout for the height-versus-viewport circularity, and that must
+not switch the recycling off for the rest of the grid.
 
 ## Row recycling: a scroll keeps a row's TR
 

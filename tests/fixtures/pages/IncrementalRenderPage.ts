@@ -79,12 +79,18 @@ export class IncrementalRenderPage {
    * under test: it is the draw that keeps a row's elements across the move, while an explicit
    * `render()` rebuilds the band. A target whose rows already sit inside the rendered band resolves
    * as a fast draw that paints nothing, so a spec that expects paints must scroll past the band (the
-   * `scroll` and `frozen` scenarios render 10 rows past the viewport on each side).
+   * `scroll` and `frozen` scenarios render 10 rows past the viewport on each side). A target the
+   * viewport already sits at scrolls nothing and fires no draw, so it fails here at once instead of
+   * waiting for a draw that never comes.
    */
   async scrollToRow(row: number): Promise<void> {
     const drawsBefore = await this.read<number>('window.htScrollDraws');
+    const scrolled = await this.read<boolean>(`hot.scrollViewportTo({ row: ${row}, verticalSnap: 'top' })`);
 
-    await this.run(`hot.scrollViewportTo({ row: ${row}, verticalSnap: 'top' });`);
+    if (!scrolled) {
+      throw new Error(`scrollToRow(${row}): the viewport did not move, so no scroll draw will follow`);
+    }
+
     await this.page.waitForFunction(
       (before: number) => (window as unknown as { htScrollDraws: number }).htScrollDraws > before,
       drawsBefore,

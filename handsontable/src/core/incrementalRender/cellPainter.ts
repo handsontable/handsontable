@@ -154,7 +154,9 @@ export class CellPainter {
    * cell that kept its element across a scroll read as unchanged; a cell whose paint depends on where
    * the band starts or ends cannot take it. That is a merged block's cell: MergeCells clamps the
    * block's span to the rendered band and marks the origin's meta `spanned`, which the covered cells
-   * resolve to as well.
+   * resolve to as well. The flag is the plugin's own meta key, read here through the meta's index
+   * signature: it is not a setting, so it stays off the published `CellMeta` and out of the options
+   * reference (`src/plugins/mergeCells/AGENTS.md` records that it is load-bearing).
    *
    * @param {CellProperties} cellProperties The resolved cell meta.
    * @param {string} band The full identity of the rendered band.

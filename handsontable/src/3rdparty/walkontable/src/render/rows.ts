@@ -4,6 +4,7 @@ import { toSingleLine } from '../../../../helpers/templateLiteralTag';
 import { OrderView } from '../utils/orderView';
 import {
   addClass,
+  getDeepActiveElement,
   hasClass,
   removeClass,
   setAttribute
@@ -191,8 +192,10 @@ export class RowsRenderer extends BaseRenderer {
     // move. Chromium blurs a removed element only at its next rendering step, by which time the row
     // is back; an engine that blurs at once would drop the grid's focus to the body here. In that case
     // the element gets the focus back, without scrolling to it: it is the element the previous draw
-    // left focused, about to show another row, exactly as a stationary element would.
-    const focusedElement = rootDocument.activeElement;
+    // left focused, about to show another row, exactly as a stationary element would. Read through
+    // `getDeepActiveElement`: inside a shadow root `document.activeElement` is the host, which the
+    // TBODY never contains.
+    const focusedElement = getDeepActiveElement(rootDocument);
     const focusedInBand = focusedElement !== null && rootNode.contains(focusedElement);
     const fragment = rootDocument.createDocumentFragment();
 
@@ -211,7 +214,11 @@ export class RowsRenderer extends BaseRenderer {
       rootNode.insertBefore(fragment, rootNode.firstChild);
     }
 
-    if (focusedInBand && rootDocument.activeElement !== focusedElement) {
+    // The restore fires `focusin` from inside the render pass, after the TBODY holds the whole band
+    // again. Nothing in the tree renders or reads a cell element from a focus event: the focus
+    // manager's listeners set a flag or switch the active scope (`hot.listen()`), and an editor's
+    // input lives outside the TBODY, so it is never the element this detaches.
+    if (focusedInBand && getDeepActiveElement(rootDocument) !== focusedElement) {
       (focusedElement as HTMLElement).focus({ preventScroll: true });
     }
   }

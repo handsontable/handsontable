@@ -131,14 +131,13 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
   // (`applyRenderedColumnsBandOverscan` / `applyRenderedRowsBandOverscan`) so consecutive scroll
   // steps land inside the rendered band and resolve as fast draws.
   // Resolved once per draw, after `beforeDraw()` refreshed the axis owners, and shared with the render
-  // phase and the clones, so the band stabilizer, the row recycling and the cell identity the cells
-  // renderer offers the host each read one answer. The two predicates differ by the single-pass
-  // term: a grid with merged cells keeps the measured layout and still recycles its rows.
-  wtOverlays.stationaryBandsAllowed = wtViewport.allowsStationaryBands();
+  // phase and the clones, so the row recycling and the cell identity the cells renderer offers the
+  // host read one answer. It is the stationary-bands predicate below without the single-pass term: a
+  // grid with merged cells keeps the measured layout and still recycles its rows.
   wtOverlays.rowRecyclingAllowed = wtViewport.allowsRowRecycling();
 
   ctx.runFastDraw = wtViewport.createCalculators(ctx.runFastDraw, {
-    stationaryBands: wtOverlays.isScrollDrivenDraw && wtOverlays.stationaryBandsAllowed,
+    stationaryBands: wtOverlays.isScrollDrivenDraw && wtViewport.allowsStationaryBands(),
   });
 
   if (ctx.runFastDraw) {
@@ -630,9 +629,11 @@ const MAX_ROWS_BAND_REFILL_PASSES = 3;
  * call site reads `rowHeightsChanged` and not `rowHeightCache.isCurrent()` alone — see the comment
  * on `skipSecondPass`.
  *
- * The row-recycling flags are forwarded unchanged. The rows renderer measures the union band against
- * the TRs pass 1 left in the TBODY, so a start edge folded back in rotates rows exactly as a scroll
- * does, and a cell whose paint stamp still matches is skipped like on any other draw.
+ * The row-recycling flags are forwarded unchanged. The rows renderer compares the union band with the
+ * TRs pass 1 left in the TBODY. The band only grows, so its end keeps every TR where it is; a start
+ * edge folded back in moves that many TRs from the tail to the front, and their rows are rebuilt at
+ * the tail in new TRs (a growth, not a slide, so those few rows are painted twice). A cell whose
+ * paint stamp still matches is skipped like on any other draw.
  *
  * @param {Table} table The master table.
  * @param {DrawContext} ctx The per-draw scratch (supplies the header renderers for the re-render).
