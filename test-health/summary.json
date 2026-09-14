@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-14T10:28:10.446Z",
+  "generatedAt": "2026-09-14T12:30:37.248Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -188,7 +188,7 @@
       "file": "e2e/walkontable/exact-row-heights.spec.ts",
       "line": 57,
       "title": "walkontable exact row heights › in the `exact` mode › keeps a row with a tall frozen cell at the provided height in both tables",
-      "count7": 1,
+      "count7": 0,
       "count30": 1,
       "countAll": 1,
       "runs30": 1,
