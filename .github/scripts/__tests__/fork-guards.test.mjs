@@ -76,6 +76,11 @@ const GUARDED_SITES = [
   ['.github/workflows/visual.yml', 'name: Seed the golden records'],
   ['.github/workflows/visual.yml', 'name: Comment the visual verdict on the pull request'],
   ['.github/workflows/pr-cleanup.yml', '  purge-visual-screenshots:'],
+  // The docs visual suite (DEV-2860): the sticky comment in docs.yml, and the
+  // two R2 writes inside the composite action both entry points call.
+  ['.github/workflows/docs.yml', 'name: Comment the docs visual verdict on the pull request'],
+  ['.github/actions/docs-visual-run/action.yml', 'name: Publish the report'],
+  ['.github/actions/docs-visual-run/action.yml', 'name: Seed the golden records'],
 ];
 
 test('every fork-hostile site carries both halves of the canonical guard', () => {

@@ -188,7 +188,7 @@
 - `visual-seed.yml` / `visual-nightly.yml` - the develop golden seed (non-cancelling) / the weekday full-matrix render that never writes the goldens
 - `publish.yml` - package publishing pipeline to npm (the only workflow npm trusted publishing trusts)
 - `docs.yml` / `docs-staging.yml` / `docs-production.yml` - docs gates and deployment (Cloudflare Pages)
-- `docs-visual-tests.yml` - visual regression testing for docs
+- `docs-visual-tests.yml` (dispatch) / `docs-visual-seed.yml` (seeds `docs/base/<branch>` after a staging deploy) / the `docs-visual-run` action - docs visual regression against an R2 baseline, gated like `visual.yml`
 
 Fork PRs and Dependabot PRs both run on a read-only token with no Actions secrets. Read the two
 fork-guard bullets in the root `AGENTS.md` before touching any step that comments, pushes to a ref,

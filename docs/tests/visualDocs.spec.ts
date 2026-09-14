@@ -68,6 +68,17 @@ testCases.forEach(({ paths, prefix, urlPath }) => {
   test.describe(`${prefix} tests`, () => {
     paths.forEach((pathObj) => {
       test(`take screenshot for ${prefix} on ${pathObj.path.split('/').pop()}`, async({ page, baseURL }) => {
+        const screenshotName = `${prefix}-${pathObj.path.split('/').pop()}.png`;
+
+        /*
+         * Which golden record this test owns, for `tests/lib/visual-manifest.mjs`: Playwright's report
+         * carries the test's title, not the file it compared, so the manifest the visual gate reads is
+         * built from these annotations. FIRST statement of the body on purpose — `test.fixme()` below
+         * throws where it stands, and a parked page that declared nothing would be read as a golden
+         * nobody owns any more and dropped from the baseline by the next seed.
+         */
+        test.info().annotations.push({ type: 'snapshot', description: `visualDocs.spec.ts/${screenshotName}` });
+
         const path = `/${urlPath}/${pathObj.path.split('/').pop()}`.replace('introduction', '');
 
         /**
@@ -92,8 +103,6 @@ testCases.forEach(({ paths, prefix, urlPath }) => {
         // Angular and Vue examples can take several seconds to bootstrap; without
         // this wait the screenshot captures a loading shimmer instead of the grid.
         await expect(page.locator('.hot-example-preview--loading')).toHaveCount(0, { timeout: 30000 });
-
-        const screenshotName = `${prefix}-${pathObj.path.split('/').pop()}.png`;
 
         // Third-party Figma embeds (e.g. the design-system "Live preview") load
         // asynchronously and are sometimes blank when the screenshot is taken.
