@@ -1,5 +1,6 @@
 import { test, expect } from '../fixtures/test';
 import { FiltersDataReplacePage } from '../fixtures/pages/FiltersDataReplacePage';
+import { FiltersValueListPage } from '../fixtures/pages/FiltersValueListPage';
 
 /**
  * Regression coverage for DEV-2889.
@@ -65,3 +66,39 @@ test.describe('Filters — replacing data with an active filter', () => {
       expect(grid.pageErrors).toEqual([]);
     });
 });
+
+/**
+ * The Filters plugin's menu focus navigator (`#menuFocusNavigator`) caches the component elements it
+ * moves the Tab focus between. Replacing the data while re-sending `filters` disables and enables the
+ * plugin, which destroys and recreates those components — so the navigator has to be rebuilt with
+ * them, or Tab focus keeps pointing at detached elements and never reaches the live value list. This
+ * is the same stale-reference family as the crash above; `disablePlugin()` now drops the navigator
+ * too.
+ */
+test('keeps filter-menu keyboard focus navigation working after a data replace',
+  async({ page, theme, bundle }) => {
+    const grid = new FiltersValueListPage(page, theme, bundle);
+
+    await grid.goto();
+
+    // Baseline: from the keyboard, Tab into the value list and focus an item.
+    await grid.openMenuWithKeyboard(0, 0);
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('ArrowDown');
+    await expect(grid.focusedListItems()).toHaveCount(1);
+    await grid.escapeMenu();
+
+    // Replace the data while re-sending `filters`, the shape the framework wrappers commit.
+    await page.evaluate(() => window.hot.updateSettings({
+      data: [['Xavier', 'Red'], ['Yara', 'Green'], ['Zoe', 'Blue']],
+      filters: true,
+    }));
+
+    // The same keyboard path must still reach the (rebuilt) value list.
+    await grid.openMenuWithKeyboard(0, 0);
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('ArrowDown');
+    await expect(grid.focusedListItems()).toHaveCount(1);
+  });

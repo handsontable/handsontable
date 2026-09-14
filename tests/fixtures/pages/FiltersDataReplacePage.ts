@@ -40,7 +40,8 @@ export class FiltersDataReplacePage {
   async goto(): Promise<void> {
     if (this.bundle !== 'umd' && this.bundle !== 'full-min') {
       throw new Error(
-        `Unknown bundle ${JSON.stringify(this.bundle)} - expected 'umd' or 'full-min'.`);
+        `Unknown bundle ${JSON.stringify(this.bundle)} - expected 'umd' or 'full-min'. ` +
+        'Check the argument order: (page, theme, bundle).');
     }
 
     await this.page.goto(
