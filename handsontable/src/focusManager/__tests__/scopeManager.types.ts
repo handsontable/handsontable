@@ -31,6 +31,11 @@ focusScopeManager.registerScope('test', element, {
   enableFocusCatchers: false,
 });
 
+focusScopeManager.registerScope('test', element, {
+  shortcutsContextName: 'test',
+  fallbackShortcutsContextName: 'grid',
+});
+
 focusScopeManager.unregisterScope('test');
 focusScopeManager.activateScope('test');
 focusScopeManager.activateScope('test', 'tab_from_above');

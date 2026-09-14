@@ -309,7 +309,9 @@ describe('Pagination keyboard shortcut', () => {
         await keyDownUp(['shift', 'tab']);
 
         expect(isListening()).toBe(false);
-        expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
+        // Focus left the grid, so the scope deactivated and the shortcuts context rolled back to
+        // what it displaced. It used to keep the plugin's name here (DEV-2917).
+        expect(getShortcutManager().getActiveContextName()).toBe('grid');
         expect(document.activeElement).toBe(topInput[0]);
       });
 
@@ -343,7 +345,7 @@ describe('Pagination keyboard shortcut', () => {
         await keyDownUp(['shift', 'tab']);
 
         expect(isListening()).toBe(false);
-        expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
+        expect(getShortcutManager().getActiveContextName()).toBe('grid');
         expect(document.activeElement).toBe(topInput[0]);
       });
 
@@ -400,7 +402,7 @@ describe('Pagination keyboard shortcut', () => {
         await keyDownUp(['shift', 'tab']);
 
         expect(isListening()).toBe(false);
-        expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
+        expect(getShortcutManager().getActiveContextName()).toBe('grid');
         expect(document.activeElement).toBe(topInput[0]);
 
         document.getElementById('uiContainer').parentElement.remove();

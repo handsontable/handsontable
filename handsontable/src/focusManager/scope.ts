@@ -8,6 +8,8 @@ import { SCOPE_TYPES, FOCUS_SOURCES, DEFAULT_SHORTCUTS_CONTEXT } from './constan
  * @property {function(): boolean} hasContainerDetached Whether the container is detached from the root Handsontable wrapper element.
  * @property {function(): string} getShortcutsContextName The name of the shortcuts context to switch to when the scope is activated.
  * @property {function(): string|null} getFallbackShortcutsContextName The name of the shortcuts context consulted for keys the scope's own context does not define.
+ * @property {function(): string|null} getDisplacedShortcutsContextName The shortcuts context this scope displaced when it was activated.
+ * @property {function(string|null): void} setDisplacedShortcutsContextName Stores the shortcuts context this scope displaced.
  * @property {function(): boolean} runOnlyIf Whether the scope is enabled or not depends on the custom logic.
  * @property {function(): boolean} contains Whether the target element is within the scope.
  * @property {function(): void} activate Activates the scope.
@@ -57,6 +59,14 @@ export function createFocusScope(
     enableFocusCatchers: true,
     ...options,
   };
+
+  /**
+   * The shortcuts context that was active when this scope took over, restored on deactivation.
+   * Held per scope rather than in one slot on the manager, so nesting rolls back in order.
+   *
+   * @type {string|null}
+   */
+  let displacedShortcutsContextName: string | null = null;
 
   const focusCatchers = mergedOptions.enableFocusCatchers === false ?
     null :
@@ -128,6 +138,10 @@ export function createFocusScope(
     hasContainerDetached: () => !hotInstance.rootWrapperElement.contains(container),
     getShortcutsContextName: () => mergedOptions.shortcutsContextName as string,
     getFallbackShortcutsContextName: () => (mergedOptions.fallbackShortcutsContextName ?? null) as string | null,
+    getDisplacedShortcutsContextName: () => displacedShortcutsContextName,
+    setDisplacedShortcutsContextName: (contextName: string | null) => {
+      displacedShortcutsContextName = contextName;
+    },
     runOnlyIf: () => (mergedOptions.runOnlyIf as () => boolean)(),
     contains,
     activate,

@@ -156,6 +156,13 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
 
     const scope = SCOPES.getItem(scopeId) as ReturnType<typeof createFocusScope>;
 
+    // Without this the manager keeps pointing at a destroyed scope, and the shortcuts context it
+    // displaced is never rolled back - which is how disabling the plugin that owns the active scope
+    // left every grid shortcut dead (DEV-2917).
+    if (activeScope === scope) {
+      deactivateScope(scope);
+    }
+
     if (scope.getFallbackShortcutsContextName() !== null) {
       shortcutManager.getContext(scope.getShortcutsContextName())?.setFallbackContext(null);
     }
@@ -216,11 +223,14 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
     activeScope = scope;
     activeScope.activate(focusSource);
 
+    // Captured AFTER the scope above was deactivated, so its own rollback already ran and nesting
+    // unwinds in order.
+    scope.setDisplacedShortcutsContextName(shortcutManager.getActiveContextName());
     shortcutManager.setActiveContextName(scope.getShortcutsContextName());
   }
 
   /**
-   * Deactivates a scope by its ID.
+   * Deactivates a scope.
    *
    * @param {object} scope The scope to deactivate.
    */
@@ -232,7 +242,42 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
     }
 
     activeScope = null;
+    restoreDisplacedShortcutsContext(scope);
     scope.deactivate();
+  }
+
+  /**
+   * Rolls the shortcuts context back to whatever the scope displaced when it was activated.
+   *
+   * Deactivation used to leave the context alone, so nothing but a later focus or click event reaching
+   * `processScopes()` ever rolled it back. Undoing a full row removal from the context menu fires
+   * neither, so the grid came back full of data, looking completely normal, with every shortcut dead
+   * until the user clicked a cell (DEV-2917).
+   *
+   * EVERY deactivation restores, including the one where focus simply left every scope. Skipping that
+   * path looks harmless - the grid is unlistened there, so the context name decides nothing - but the
+   * stale name survives, and the next activation captures IT as the context it displaced. The scope
+   * then rolls back to its own name and the grid is stuck exactly as before. `Core#listen()` re-enters
+   * without `processScopes()` too, and would land on that dead name.
+   *
+   * @param {object} scope The scope being deactivated.
+   */
+  function restoreDisplacedShortcutsContext(scope: ReturnType<typeof createFocusScope>): void {
+    const displacedContextName = scope.getDisplacedShortcutsContextName();
+
+    scope.setDisplacedShortcutsContextName(null);
+
+    if (displacedContextName === null) {
+      return;
+    }
+
+    // Something else took the context over while the scope was active - an open editor, for example.
+    // Rolling back then would close over that state instead of this scope's.
+    if (shortcutManager.getActiveContextName() !== scope.getShortcutsContextName()) {
+      return;
+    }
+
+    shortcutManager.setActiveContextName(displacedContextName);
   }
 
   /**

@@ -468,14 +468,56 @@ describe('ScopeManager', () => {
       expect(isListening()).toBe(true);
       expect(onActivate).not.toHaveBeenCalled();
       expect(onDeactivate).toHaveBeenCalledTimes(1);
-      expect(getShortcutManager().getActiveContextName()).toBe('myPlugin');
+      // Deactivating through the API rolls the shortcuts context back to what the scope displaced.
+      // It used to stay on the scope's own name, which left the grid listening with every shortcut
+      // dead until a later focus or click event happened to reach `processScopes()` (DEV-2917).
+      expect(getShortcutManager().getActiveContextName()).toBe('grid');
 
       getFocusScopeManager().deactivateScope('top');
 
       expect(isListening()).toBe(true);
       expect(onActivate).not.toHaveBeenCalled();
       expect(onDeactivate).toHaveBeenCalledTimes(1);
+      expect(getShortcutManager().getActiveContextName()).toBe('grid');
+    });
+
+    it('should not roll back to its own context after focus left the scope and returned', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+      });
+
+      const container = createUIWithFocusScope('before', {
+        id: 'top',
+        shortcutsContextName: 'myPlugin',
+      });
+      const outsideInput = document.createElement('input');
+
+      document.body.appendChild(outsideInput);
+
+      await listen();
+
+      container.querySelector('.text-input').focus();
+
       expect(getShortcutManager().getActiveContextName()).toBe('myPlugin');
+
+      // Focus leaves every scope. The context must roll back here as well, even though the grid stops
+      // listening and the name decides nothing while focus is away.
+      outsideInput.focus();
+
+      expect(getShortcutManager().getActiveContextName()).toBe('grid');
+
+      container.querySelector('.text-input').focus();
+
+      expect(getShortcutManager().getActiveContextName()).toBe('myPlugin');
+
+      getFocusScopeManager().deactivateScope('top');
+
+      // Leaving the stale name in place above would make this second activation record 'myPlugin' as
+      // the context it displaced, so the scope would roll back to its own name and leave the grid
+      // listening with every shortcut dead - DEV-2917 again, by a different route.
+      expect(getShortcutManager().getActiveContextName()).toBe('grid');
+
+      outsideInput.remove();
     });
 
     it('should deactivate the scope (deactivation changed by events)', async() => {

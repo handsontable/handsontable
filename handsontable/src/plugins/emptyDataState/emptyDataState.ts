@@ -4,6 +4,7 @@ import { isObject } from '../../helpers/object';
 import { isButtonType } from '../../helpers/uiButton';
 import { isRootInstance } from '../../utils/rootInstance';
 import { GRID_SCOPE } from '../../shortcuts/contexts/constants';
+import { command as selectAllCellsCommand } from '../../shortcuts/contexts/commands/selectAllCells';
 import * as C from '../../i18n/constants';
 import type { SelectionState } from '../../selection/types';
 
@@ -355,6 +356,9 @@ export class EmptyDataState extends BasePlugin {
 
     if (this.isVisible()) {
       this.#ui?.show();
+      // `disablePlugin()` unregistered the scope, which deactivated it and rolled the shortcuts
+      // context back. The overlay is on screen again, so the scope owns the keyboard again too.
+      this.hot.getFocusScopeManager().activateScope(PLUGIN_KEY);
     }
 
     super.updatePlugin();
@@ -459,15 +463,7 @@ export class EmptyDataState extends BasePlugin {
 
     pluginContext.addShortcut({
       keys: [['Control/Meta', 'A']],
-      callback: () => {
-        const { selection } = this.hot;
-
-        selection.markSource('keyboard');
-        selection.selectAll(true, true, {
-          disableHeadersHighlight: true,
-        });
-        selection.markEndSource();
-      },
+      callback: () => selectAllCellsCommand.callback(this.hot),
       // The data is still there when only the columns are hidden, which is the case worth selecting.
       // With no rows or no columns at all there is nothing to select, so the chord stays unclaimed.
       runOnlyIf: () => this.hot.countRows() > 0 && this.hot.countCols() > 0,
@@ -632,17 +628,9 @@ export class EmptyDataState extends BasePlugin {
     this.#ui?.hide();
     this.#isVisible = false;
 
-    const focusScopeManager = this.hot.getFocusScopeManager();
-
-    focusScopeManager.deactivateScope(PLUGIN_KEY);
-
-    // `deactivateScope()` drops the active scope but never rolls the shortcut context back, and only
-    // a later focus or click event would do it. Undoing a full row removal from the context menu
-    // fires neither, so the grid came back with data and every shortcut still dead until the user
-    // clicked a cell.
-    if (focusScopeManager.getActiveScopeId() === null) {
-      this.hot.getShortcutManager().setActiveContextName(GRID_SCOPE);
-    }
+    // `deactivateScope()` restores the shortcuts context this scope displaced. Do not roll it back
+    // here as well - two rollbacks eventually disagree, and this one cannot know what it displaced.
+    this.hot.getFocusScopeManager().deactivateScope(PLUGIN_KEY);
 
     if (this.#selectionState && this.#selectionState.ranges.length > 0) {
       this.hot.selection.importSelection({
