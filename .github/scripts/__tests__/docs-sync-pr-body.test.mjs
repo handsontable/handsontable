@@ -31,6 +31,23 @@ test('labels and title are fixed strings', () => {
   assert.equal(renderTitle('prod-docs/18.1'), 'Sync docs content from develop to prod-docs/18.1');
 });
 
+test('rendered rows strip ClickUp task ids so the bot pull request does not drag tasks into review', () => {
+  const withIds = {
+    ...report,
+    included: [{ sha: 'abcdef1', subject: 'DEV-2894: Americanize spelling (#13475)', prNumber: 13475, author: 'demtario' }],
+    unsure: [{ sha: 'bcdef12', subject: 'SU-833: Note beforeKeyDown return (#12000)', prNumber: 12000, reason: 'unsure' }],
+  };
+  const body = renderBody(withIds);
+
+  // No ClickUp-shaped id survives anywhere in the body...
+  assert.doesNotMatch(body, /\b[A-Z]{2,4}-\d+\b/);
+  // ...the descriptions stay, and the leading `id: ` prefix is cleaned up...
+  assert.match(body, /`abcdef1` Americanize spelling \(#13475, @demtario\)/);
+  assert.match(body, /`bcdef12` Note beforeKeyDown return #12000/);
+  // ...and the source pull-request number (which ClickUp does not link) survives.
+  assert.match(body, /#13475/);
+});
+
 test('OUTCOMES covers every candidate bucket the report carries', () => {
   // renderCounts (OUTCOMES) and renderBody's section() calls are two copies of
   // the bucket set. If a ninth bucket is added to the report and only renderBody

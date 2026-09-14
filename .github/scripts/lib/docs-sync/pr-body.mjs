@@ -118,15 +118,32 @@ function forState(text) {
 }
 
 /**
- * `\`sha\` subject` with the subject sanitized and any trailing `(#n)` it
- * already carries stripped, since every `section()` caller appends its own
- * `(#n, ...)` right after this.
+ * `\`sha\` subject` with the subject sanitized, the trailing `(#n)` it already
+ * carries stripped (every `section()` caller appends its own `(#n, ...)`), and
+ * every ClickUp-style task id removed.
+ *
+ * The task-id strip is load-bearing, not cosmetic: a squash-merge subject is
+ * `DEV-1234: ...`, and ClickUp links any `PREFIX-1234` it finds in a pull
+ * request body to that task and moves it to "code review". This bot pull
+ * request lists dozens of already-merged commits, so without the strip every
+ * one of those tasks gets dragged back into review the moment the sync pull
+ * request opens. Only the source `#n` (a pull-request number, which ClickUp
+ * does not treat as a task) is meant to survive.
  *
  * @param {{ sha: string, subject: string }} item
  * @returns {string}
  */
 function ref(item) {
-  const subject = plain(item.subject).replace(/\s*\(#\d+\)\s*$/, '');
+  const subject = plain(item.subject)
+    .replace(/\s*\(#\d+\)\s*$/, '')
+    // 2-4 uppercase letters + digits is the ClickUp custom-id shape (DEV, SU,
+    // PRO, IT, ...). It can also match a technical token like `UTF-8` in a
+    // subject; stripping that from a display row is an accepted cosmetic cost
+    // next to dragging the wrong tasks back into review.
+    .replace(/\b[A-Z]{2,4}-\d+\b/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .replace(/^[\s:\-–—]+/, '')
+    .trim();
 
   return `\`${item.sha.slice(0, 7)}\` ${subject}`;
 }
