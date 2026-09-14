@@ -73,6 +73,13 @@ class AxisSyncer {
    */
   #indexesSequence: number[] = [];
   /**
+   * Whether the engine's sheet is filled through addresses the grid computes, rather than fed its content
+   * in physical order. A sheet that reported no rows or columns is in that state until it holds an order.
+   *
+   * @type {boolean}
+   */
+  #engineFilledInGridOrder = false;
+  /**
    * List of moved HF indexes, stored before performing move on HOT to calculate transformation needed on HF's engine.
    *
    * @private
@@ -341,15 +348,30 @@ class AxisSyncer {
    * gained is appended in physical order, which is the order it is fed in.
    *
    * @param {number} sizeForAxis Size of the engine's sheet along the synchronized axis.
+   * @param {number[]} targetSequence The grid's sequence of physical indexes, in grid order.
    * @returns {number[]} Physical indexes, in engine order.
    */
-  #getEngineElements(sizeForAxis: number): number[] {
+  #getEngineElements(sizeForAxis: number, targetSequence: number[]): number[] {
     const elements = this.#indexesSequence.slice(0, sizeForAxis);
     const held = new Set<number>(elements);
 
+    // A sheet that was empty is filled through addresses the grid computes from its own sequence, so its
+    // first row is whichever row the grid shows first.
+    if (this.#engineFilledInGridOrder) {
+      for (let position = 0; position < targetSequence.length && elements.length < sizeForAxis; position += 1) {
+        if (!held.has(targetSequence[position])) {
+          elements.push(targetSequence[position]);
+          held.add(targetSequence[position]);
+        }
+      }
+    }
+
+    // A sheet that was fed its content — at load, or by the engine's own insert — holds it in physical
+    // order, and the engine can also carry rows past the grid's own sequence (hyperformula#1179).
     for (let physicalIndex = 0; elements.length < sizeForAxis; physicalIndex += 1) {
       if (!held.has(physicalIndex)) {
         elements.push(physicalIndex);
+        held.add(physicalIndex);
       }
     }
 
@@ -361,14 +383,20 @@ class AxisSyncer {
    *
    * The engine takes an order exactly as long as its sheet, and every entry has to be a position inside that
    * sheet — anything else it rejects by throwing, and the throw unwinds whatever triggered the sequence
-   * change. The grid's own sequence is a poor fit in both directions: the engine extends a sheet beyond the
-   * dataset to calculate values outside it (handsontable/hyperformula#1179), and it leaves trailing empty
-   * rows and columns out of the sheet's extent. So the order is built from the elements the engine actually
-   * holds, ranked by where the grid's sequence puts them, which keeps their relative order whichever way the
-   * two sizes differ. An element the sequence no longer covers ranks last.
+   * change. The sheet's own size is a poor fit for the grid's sequence in both directions: the engine extends
+   * a sheet beyond the dataset to calculate values outside it (handsontable/hyperformula#1179), and it leaves
+   * trailing empty rows and columns out of the sheet's extent.
+   *
+   * The order is therefore built from the elements the engine holds, ranked by where the grid's sequence puts
+   * them. That reproduces the grid's order exactly as long as those elements still occupy the sequence's
+   * leading positions, which is what a sheet shorter than the grid means: the grid's extra rows or columns
+   * are the empty tail the engine left out. A reorder that moves one of them in FRONT of an element the
+   * engine holds cannot be expressed at all — the engine addresses its rows positionally, and it has no row
+   * to shift the others past — so nothing is sent and the caller is told, rather than an order being applied
+   * that the grid's index translation would then read differently.
    *
    * @param {number[]} targetSequence The grid's sequence of physical indexes, in grid order.
-   * @returns {boolean} `true` when the engine received an order, `false` when it holds nothing to reorder.
+   * @returns {boolean} `true` when the engine holds the sequence's order, `false` when it could not be sent.
    */
   #syncOrderWithEngine(targetSequence: number[]): boolean {
     const engine = this.#indexSyncer.getEngine()!;
@@ -380,33 +408,65 @@ class AxisSyncer {
     // reorder and reports the sheet as 0x0. The grid's order is replayed by the next sync that finds a
     // sheet to apply it to.
     if (sizeForAxis === 0) {
+      this.#engineFilledInGridOrder = true;
+
       return false;
     }
 
-    // One-pass inverse lookup instead of `targetSequence.indexOf` per element, which would make every sort
-    // and unsort quadratic in the number of rows or columns.
-    const positionOfPhysical: number[] = new Array<number>(targetSequence.length);
+    const engineElements = this.#getEngineElements(sizeForAxis, targetSequence);
+    const held = new Set<number>(engineElements);
+    const rankOfEngineIndex = new Map<number, number>();
+    const engineIndexOfPhysical = new Map<number, number>();
 
-    for (let position = 0; position < targetSequence.length; position += 1) {
-      positionOfPhysical[targetSequence[position]] = position;
-    }
-
-    const ranked = this.#getEngineElements(sizeForAxis)
-      .map((physicalIndex, engineIndex) => ({
-        physicalIndex,
-        engineIndex,
-        position: positionOfPhysical[physicalIndex] ?? Number.MAX_SAFE_INTEGER,
-      }))
-      .sort((left, right) => left.position - right.position || left.engineIndex - right.engineIndex);
-
-    const engineOrder: number[] = new Array<number>(sizeForAxis);
-
-    ranked.forEach(({ engineIndex }, rank) => {
-      engineOrder[engineIndex] = rank;
+    engineElements.forEach((physicalIndex, engineIndex) => {
+      engineIndexOfPhysical.set(physicalIndex, engineIndex);
     });
 
+    // One pass over the target order hands out the ranks, instead of sorting one object per element —
+    // this runs on every sequence change, mid-batch included, so a sort of a large grid pays for it.
+    for (let position = 0; position < targetSequence.length; position += 1) {
+      const physicalIndex = targetSequence[position];
+
+      if (held.has(physicalIndex)) {
+        rankOfEngineIndex.set(engineIndexOfPhysical.get(physicalIndex)!, rankOfEngineIndex.size);
+      }
+    }
+
+    // An element the target sequence no longer covers (a mid-batch state the mapper can be in) keeps the
+    // position it has, after everything the sequence did name.
+    engineElements.forEach((physicalIndex, engineIndex) => {
+      if (!rankOfEngineIndex.has(engineIndex)) {
+        rankOfEngineIndex.set(engineIndex, rankOfEngineIndex.size);
+      }
+    });
+
+    const leadingPositionsAreHeld = targetSequence
+      .slice(0, sizeForAxis)
+      .every(physicalIndex => held.has(physicalIndex));
+
+    if (!leadingPositionsAreHeld) {
+      return false;
+    }
+
+    const engineOrder: number[] = new Array<number>(sizeForAxis);
+    const reordered: number[] = new Array<number>(sizeForAxis);
+
+    rankOfEngineIndex.forEach((rank, engineIndex) => {
+      engineOrder[engineIndex] = rank;
+      reordered[rank] = engineElements[engineIndex];
+    });
+
+    // The engine records an undo entry and clears its redo stack for any order it is handed, so an order
+    // that changes nothing costs the user their redo history. Compression makes that common: every sort
+    // that leaves the engine's own elements in the same relative order ranks them identically.
+    this.#indexesSequence = reordered;
+    this.#engineFilledInGridOrder = false;
+
+    if (engineOrder.every((rank, engineIndex) => rank === engineIndex)) {
+      return true;
+    }
+
     engine[`set${toUpperCaseFirst(this.#axis)}Order`](sheetId, engineOrder);
-    this.#indexesSequence = ranked.map(({ physicalIndex }) => physicalIndex);
 
     return true;
   }
@@ -418,11 +478,16 @@ class AxisSyncer {
    */
   getIndexesChangeSyncMethod() {
     return (source: string) => {
+      const newSequence = this.#indexMapper.getIndexesSequence();
+
+      // The engine reverts its own axis order from its own undo stack, so nothing is sent here — but the
+      // stored order is the only record of what the engine holds, and it has to follow the revert. Both
+      // sides come out of an undo on the sequence the grid ends up with.
       if (this.#indexSyncer.isPerformingUndoRedo()) {
+        this.#indexesSequence = newSequence;
+
         return;
       }
-
-      const newSequence = this.#indexMapper.getIndexesSequence();
 
       if (source === 'update' && newSequence.length > 0) {
         this.#syncOrderWithEngine(newSequence);
@@ -477,6 +542,7 @@ class AxisSyncer {
     // The engine holds the sheet it was just fed, in physical order, whatever order the previous sheet was
     // left in — so the stored order starts from that identity rather than from what the engine used to hold.
     this.#indexesSequence = [];
+    this.#engineFilledInGridOrder = false;
 
     if (!this.#syncInitialOrder()) {
       this.#indexesSequence = this.#indexMapper.getIndexesSequence().map((value, index) => index);

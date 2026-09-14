@@ -116,18 +116,33 @@ site, `AxisSyncer#syncOrderWithEngine`:
   onto the elements the engine holds, keeping their relative order, rather than sent whole — sending it whole
   is what made sorting such a grid throw `InvalidArgumentsError` (DEV-2904).
 
-Three rules ride along. The engine validates **entries** as well as length, so an order must be a permutation
-of `0..size - 1`: an index the sequence no longer covers (the mid-batch state that used to produce `-1`) is
-ranked last rather than passed through, which the engine would reject as "not a permutation". An order for an
-**empty** sheet is not sent at all — the engine holds nothing to reorder — and the stored sequence then
-records the identity the engine will hold once the sheet is filled, so the next sync carries the grid's order
-rather than losing it. And `#indexesSequence` names **the elements the engine holds, in the engine's own
-order** — not the grid's sequence. The two are the same only while the sheet covers the whole grid: once it
-does not, storing the grid's sequence would name elements the engine never received, and every later order,
-being relative to what the engine holds, would move the wrong rows or columns for the rest of the session.
-`#getEngineElements()` reads that list back and extends it in physical order when the sheet has grown, which
-is the order the engine is fed in. Still open: a move applied while the engine's sheet is empty reaches the
-engine through `syncMoves` but is not reflected in that identity baseline.
+Four rules ride along.
+
+- **The order must be a permutation of `0..size - 1`.** The engine validates entries as well as length, so an
+  index the sequence no longer covers (the mid-batch state that used to produce `-1`) is ranked last rather
+  than passed through, which the engine would reject as "not a permutation".
+- **`#indexesSequence` names the elements the engine holds, in the engine's own order** — not the grid's
+  sequence. The two are the same only while the sheet covers the whole grid. Once it does not, storing the
+  grid's sequence would name elements the engine never received, and every later order, being relative to
+  what the engine holds, would move the wrong rows or columns for the rest of the session. The exception is
+  the paths where the engine changes itself: an insert, a removal, a move and an undo all leave it holding
+  the grid's new sequence, so the stored order follows it there.
+- **How the sheet was filled decides where its new rows go.** A sheet fed its content (at load, or by the
+  engine's own insert) holds it in physical order; a sheet that reported `0x0` is filled through addresses
+  the grid computes from its own sequence, so its first row is whichever row the grid shows first.
+  `#getEngineElements()` extends the stored list the matching way.
+- **An order that cannot be reproduced is not sent.** The compression keeps the engine's own elements in
+  their relative order, which reproduces the grid exactly while they still occupy the sequence's leading
+  positions — a sheet shorter than the grid means the grid's extra rows are the empty tail the engine left
+  out. A reorder that moves one of those in FRONT of an element the engine holds is inexpressible: the engine
+  addresses its rows positionally and has no row to shift the others past. Approximating it would leave the
+  index translation (which reads HF index `i` as sequence position `i`) and the engine on different rows, so
+  nothing is sent. An order that would change nothing is skipped too, because the engine records an undo
+  entry and clears its redo stack for every order it is handed.
+
+Still open: a move applied while the engine's sheet is empty reaches the engine through `syncMoves` but is
+not reflected in the stored order, and a sequence change that cannot be expressed leaves the engine behind
+the grid with no warning.
 
 ## `HYPERLINK` cells: an allowlist, not a sanitizer
 
