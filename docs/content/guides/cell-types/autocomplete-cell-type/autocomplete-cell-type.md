@@ -38,6 +38,8 @@ In all three modes, the `source` option can be provided in two formats:
 - An array of values
 - An array of objects with `key` and `value` properties
 
+In all three modes, validation runs when a value is written to a cell. Values that are already in the data source when the grid loads are not validated. To check and mark them, call [`validateCells()`](@/api/core.md#validatecells) after the grid is created.
+
 ## Autocomplete flexible mode
 
 This example uses the `autocomplete` feature in the default flexible mode. In this mode, the user can choose one of the suggested options while typing or enter a custom value that is not included in the suggestions.
