@@ -138,6 +138,38 @@ export class NestedRowsPage {
     });
   }
 
+  /** Put the selection on one cell, by visual row/column. */
+  async selectCell(row: number, col: number): Promise<void> {
+    await this.page.evaluate(([r, c]) => window.hot.selectCell(r, c), [row, col]);
+  }
+
+  /**
+   * The selected cell as `[row, column]` in VISUAL coordinates, or `null` when nothing is selected.
+   *
+   * Reported as a pair rather than through {@link NestedRowsPage#highlightedRow} alone, because a
+   * selection that moves to a parent row must keep the column the user was on.
+   */
+  selectedCell(): Promise<[number, number] | null> {
+    return this.page.evaluate(() => {
+      const last = window.hot.getSelectedLast();
+
+      return last ? [last[0], last[1]] as [number, number] : null;
+    });
+  }
+
+  /**
+   * Whether DOM focus is still somewhere inside the grid.
+   *
+   * Assert this only AFTER a key press. The collapse/expand button is not focusable, so a real
+   * pointer press on it leaves `document.activeElement` on `<body>` even on a grid that is working
+   * perfectly - reading it straight after a click measures that, not the grid's state. Handsontable
+   * listens for keys on the document, so the first key press moves the selection and pulls focus
+   * back into the grid; that is the point at which this is worth checking.
+   */
+  focusInsideGrid(): Promise<boolean> {
+    return this.page.evaluate(() => window.hot.rootElement.contains(document.activeElement));
+  }
+
   /** Every collapse/expand hook call the fixture has recorded, in order. */
   hookLog(): Promise<NestedRowsHookCall[]> {
     return this.page.evaluate(() => window.hookLog);

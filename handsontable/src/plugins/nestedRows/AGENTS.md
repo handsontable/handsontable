@@ -296,6 +296,25 @@ They are written in different places and can drift. Keep this in mind:
   `handsontable/.ai/CONCERNS.md` as stack-overflow risks with 10k+ rows. Build index lists with a loop.
 - **`batchExecution` does not suspend rendering.** Use `hot.batch()` when a method performs two
   passes (as `expandToLevel()` does), or the grid renders the intermediate state.
+- **`CollapsingUI#trimRows()` is the one seam every collapse path reaches — including the stash
+  restore, which is not a user collapse.** All four collapse entry points funnel through it
+  (`collapseChildren`, `collapseMultipleChildren`, `collapseRows`, `collapseAll`), which is why the
+  DEV-50 selection guard lives there and **not** inside `collapseChildren()` before its own trim
+  call: `collapseMultipleChildren()` and `collapseAll()` invoke `collapseChildren(elem, false,
+  **false**)` with trimming off and aggregate the indexes to trim once at the end, so a guard placed
+  there never fires on those two paths. The cost of picking the shared seam is that
+  `collapsedRowsStash.applyStash()` reaches it too — `alter()` opens that stash around every insert
+  and remove, and it owns the selection across the operation (`selection.shiftRows()` moves it with
+  the rows). Anything added to `trimRows()` that touches the selection must therefore be skipped
+  while `#isRestoringStash` is set, or it fires on every row added to or removed from a grid that has
+  anything collapsed.
+- **Do not assert `document.activeElement` straight after clicking the collapse button.** The nesting
+  button is not focusable, so a real pointer press on it leaves focus on `<body>` even when the grid
+  is working perfectly — a synthetic `dispatchEvent` does not, which makes the two disagree and a
+  hand-check look green. Handsontable listens for keys on the document, so the grid still answers the
+  keyboard from there; the first key press moves the selection and pulls focus back inside. Prove
+  focus-related behaviour with a **key press** (`page.keyboard.press`) and assert `activeElement`
+  only afterwards. `tests/e2e/nested-rows-collapse-selection.spec.ts` is the reference.
 
 ## How it interacts with the rest of the grid
 
@@ -366,6 +385,7 @@ They are written in different places and can drift. Keep this in mind:
 | `tests/e2e/nested-rows-update-data.spec.ts` | Playwright: collapsed parents across `updateData` / `loadData` |
 | `tests/e2e/nested-rows-remove-parent.spec.ts` | Playwright: removing a parent takes its whole subtree, on a **four-level** tree |
 | `tests/e2e/nested-rows-undo.spec.ts` | Playwright: undo restores a removed parent and its descendants |
+| `tests/e2e/nested-rows-collapse-selection.spec.ts` | Playwright: where the selection lands when a collapse trims the row holding it |
 
 Physical layouts of the shared fixtures, which the specs depend on:
 
