@@ -285,7 +285,9 @@ All line numbers are in `table.ts` unless noted. "Master only" = guarded by `thi
   it shrank too — so the helper loops, bounded by `MAX_ROWS_BAND_REFILL_PASSES`. Passes scale roughly
   one-per-stale-out-of-band tall record (`resetOversizedRows` wipes only in-band records, so every
   stale record below the band survives to cap the next proposal); a shrink that leaves more of them
-  than the cap exhausts it, and the viewport stays under-filled until the next scroll or resize,
+  than the cap exhausts it. The next draw would progress — the last pass left the in-band heights
+  correct, so its band reaches the next stale record and the refill fires again — but nothing
+  schedules one, so the viewport stays under-filled until a scroll, resize, or content change,
   which is the pre-fix #6452 behavior. Rows that GREW take no pass: the band then overflows the
   viewport, which is harmless. Four declines guard a pass: `renderAllRows`/band-at-dataset-end skip
   the proposal walk outright; a proposal that does not overlap or touch the previous band is declined

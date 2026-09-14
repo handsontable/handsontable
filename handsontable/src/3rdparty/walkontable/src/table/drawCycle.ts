@@ -243,7 +243,7 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
       // so a taller frozen header is already reflected in the THEAD when the body rows are re-sized.
       const frozenRowHeightsChanged = syncOversizedRowsWithFrozenOverlays(table, wipedFrozenRows);
 
-      if (frozenRowHeightsChanged && !wtSettings.getSetting('externalRowCalculator')) {
+      if (frozenRowHeightsChanged && !hasExternalRowCalculator) {
         // The calculators above were built from row heights this sync has since changed, and a
         // frozen-derived height cannot be known any earlier — the frozen overlays had not rendered.
         // An ordinary oversized row never reaches here: the master measures it inside
@@ -519,15 +519,20 @@ function renderCellBand(
  * band and the settled one — the #6452 fixture (rows 1-7 tall, a ~5-row pre-fix band) already
  * consumes all three passes.
  *
- * Exhausting the cap does NOT self-correct on the next draw. The pass that spent the last iteration
- * re-measured every row inside the final band accurately, so what still caps the band is a stale
- * tall record for a row just OUTSIDE it — and that is precisely the state in which the next draw's
- * `markOversizedRows` reports no change, `rowHeightsChanged` is `false`, and the refill never fires.
- * The viewport then stays under-filled until a scroll or a resize brings those rows into a rendered
- * band, i.e. exactly the pre-fix #6452 behavior. That is not a regression; the cap buys it against
- * letting one draw re-render the band an unbounded number of times. Do not "fix" it by dropping the
- * out-of-band records: a record for a row that is still genuinely tall is legitimate, and dropping
- * it would shrink the scroll range on unrelated edits.
+ * Exhausting the cap leaves the grid stuck for want of a DRAW, not for want of information. The loop
+ * exits through the cap only right after a `renderCellBand` that reported a further height change (a
+ * pass that measures none returns first), so at that point every row inside the final band is
+ * measured correctly and only the band is stale. The next draw would make progress: its band is
+ * built from the corrected heights, so it reaches the first stale tall record below the old band,
+ * renders that row, `resetOversizedRows` wipes the record, `markOversizedRows` reports the change,
+ * and the refill fires again. What stops the recovery is that nothing schedules that draw. The
+ * viewport stays under-filled until a scroll, a resize, or a content change triggers one, i.e.
+ * exactly the pre-fix #6452 behavior. That is not a regression; the cap buys it against letting one
+ * draw re-render the band an unbounded number of times. A single deferred draw scheduled when the
+ * cap is hit, or a cap that adapts to the number of stale records, would both close the gap; neither
+ * is part of this fix. Do not "fix" it by dropping the out-of-band records instead: a record for a
+ * row that is still genuinely tall is legitimate, and dropping it would shrink the scroll range on
+ * unrelated edits.
  */
 const MAX_ROWS_BAND_REFILL_PASSES = 3;
 
@@ -686,10 +691,12 @@ function refillRenderedRowsBandIfShrunk(
 /**
  * Whether a refill pass would render with a frozen-column sync decision different from the one this
  * draw already acted on. `ctx.syncFrozenRows` is a function of the master's first rendered column
- * (`shouldSyncOversizedRowsWithFrozenOverlays`), resolved from the PREVIOUS draw's column band —
- * and pass 1's band got the columns overscan, which the refill's `createCalculators(false)` (no
- * `stationaryBands`) does not re-apply, so the recomputed band can start past column 0 where the
- * captured one started at 0. Rendering with that mismatch is destructive when the flag was captured
+ * (`shouldSyncOversizedRowsWithFrozenOverlays`), captured from THIS draw's pass-1 column band —
+ * the one `createCalculators` assigned before the first `renderCellBand`, columns overscan
+ * included. That timing is what this guard relies on, so do not move the capture: pass 1's band
+ * got the columns overscan, which the refill's `createCalculators(false)` (no `stationaryBands`)
+ * does not re-apply, so the recomputed band can start past column 0 where the captured one
+ * started at 0. Rendering with that mismatch is destructive when the flag was captured
  * `false`: `releaseFrozenOversizedRows()` already ran, so the refill's `resetOversizedRows` would
  * wipe frozen-tall records with no exemption left, on a master that no longer renders the frozen
  * columns and therefore can never re-measure them. The refill declines the pass on any disagreement
@@ -697,9 +704,22 @@ function refillRenderedRowsBandIfShrunk(
  * pre-fix behavior either way and settles on the next draw).
  *
  * The column proposal here is prediction, not assignment: `createColumnsCalculator` builds the same
- * band `createCalculators(false)` would assign, without touching the viewport's calculators.
+ * band `createCalculators(false)` would assign, without touching the viewport's calculators. For
+ * the prediction to match, it must read the same row-header width the assignment will: on the
+ * legacy measured path the column band's width is `getViewportWidth()` minus `getRowHeaderWidth()`,
+ * and `createCalculators(false)` resets that memo (inside `createRowsCalculator`) and re-measures the
+ * TH, while a propose-only build deliberately does not. A row-header width that moved during this
+ * render would therefore land the predicted `startColumn` on the other side of 0 from the assigned
+ * one — the very mismatch this guard exists to stop. So the guard resets the memo itself before
+ * predicting. The memo re-measures lazily on the next read, so the accept path pays one extra TH
+ * measure and a declined pass pays it on the next `getRowHeaderWidth()` read; both only with
+ * `fixedColumnsStart` set. (On the snapshot path the width comes from the per-draw `LayoutSnapshot`,
+ * which neither build re-derives, so prediction and assignment agree there regardless.)
  * `externalRowCalculator` needs no re-check — the refill only runs when `markOversizedRows`
  * reported a change, which it never does with that setting on.
+ *
+ * Exported for unit tests only (`test/unit/table/drawCycle.unit.js`); nothing outside this module
+ * calls it.
  *
  * The disagreeing branch is untested by design, not by omission: staging it needs a SCROLL-driven
  * draw whose columns overscan lands the pass-1 band at column 0 (natural `startColumn` 1..8, moving
@@ -712,12 +732,20 @@ function refillRenderedRowsBandIfShrunk(
  * @param {ViewportBand} renderBand The viewport band the refill's proposals read.
  * @returns {boolean} `true` when the pass must be declined.
  */
-function refillDisagreesWithFrozenColumnSync(table: Table, ctx: DrawContext, renderBand: ViewportBand): boolean {
+export function refillDisagreesWithFrozenColumnSync(
+  table: Table,
+  ctx: DrawContext,
+  renderBand: ViewportBand,
+): boolean {
   if (!table.wtSettings.getSetting<number>('fixedColumnsStart')) {
     return false;
   }
 
   const wtViewport = table.deps.getWtViewport();
+
+  // Read the row-header width the assignment will read, not the one pass 1 left behind (see JSDoc).
+  wtViewport.rowHeaderWidth = NaN;
+
   const proposedStartColumn = wtViewport
     .createColumnsCalculator(['rendered'], renderBand, { proposeOnly: true })
     .getResultsFor('rendered')?.startColumn ?? null;

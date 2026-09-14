@@ -800,9 +800,7 @@ describe('WalkontableTable', () => {
 
       wt.draw();
 
-      getTableMaster().find('.wtHolder').scrollTop(460);
-
-      await sleep(20);
+      await scrollViewportVertically(460);
 
       wt.draw();
 
@@ -921,9 +919,7 @@ describe('WalkontableTable', () => {
 
       wt.draw();
 
-      getTableMaster().find('.wtHolder').scrollTop(1250);
-
-      await sleep(20);
+      await scrollViewportVertically(1250);
 
       wt.draw();
       wt.draw();
@@ -983,9 +979,7 @@ describe('WalkontableTable', () => {
 
       wt.draw();
 
-      getTableMaster().find('.wtHolder').scrollLeft(300);
-
-      await sleep(20);
+      await scrollViewportHorizontally(300);
 
       wt.draw();
       wt.draw();
@@ -1041,9 +1035,7 @@ describe('WalkontableTable', () => {
 
       wt.draw();
 
-      getTableMaster().find('.wtHolder').scrollTop(30000);
-
-      await sleep(20);
+      await scrollViewportVertically(30000);
 
       wt.draw();
       wt.draw();

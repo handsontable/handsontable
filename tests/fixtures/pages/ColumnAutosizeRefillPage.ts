@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 
 /**
  * Page Object for the column-autosize-viewport-refill fixture (#6452 / DEV-406): a 320px-tall
@@ -20,10 +21,13 @@ export class ColumnAutosizeRefillPage {
   }
 
   /**
-   * Navigate and wait for the grid to render (a real DOM condition, no sleep).
+   * Navigate, wait for the bundle to evaluate, then wait for the grid to render (a real DOM
+   * condition, no sleep). The bundle wait comes first: `expect` is a 10s budget and the
+   * `document.write`-injected `dist/handsontable.js` can outlast it on a cold worker.
    */
   async goto(): Promise<void> {
     await this.page.goto(`/tests/fixtures/demo/column-autosize-viewport-refill.html?theme=${this.theme}&bundle=${this.bundle}`);
+    await awaitBundle(this.page);
     await expect(this.cell(0, 0)).toBeVisible();
   }
 
@@ -98,7 +102,9 @@ export class ColumnAutosizeRefillPage {
     await expect.poll(async () => {
       const { rendered, visible } = await this.probe();
 
-      return rendered >= visible;
+      // `rendered > 0` first: an empty TBODY probes as `{ rendered: 0, visible: 0 }`, and this poll
+      // reads its own frame, so `0 >= 0` would pass without the first poll ever seeing rows.
+      return rendered > 0 && rendered >= visible;
     }, {
       message: 'rendered row count should be at least the fully-visible row count the engine reports',
     }).toBe(true);
@@ -115,18 +121,24 @@ export class ColumnAutosizeRefillPage {
    * Single measurement of the rendered band vs. the viewport. The three fields are read in one
    * `page.evaluate`, so they describe the same frame; each `expect.poll` above calls `probe()`
    * independently, so the two assertions read separate frames. Returns `gap: Infinity` (never
-   * satisfies the `toBeLessThanOrEqual` assertion) when no rows are rendered yet, instead of
-   * throwing on a missing last row.
+   * satisfies the `toBeLessThanOrEqual` assertion) when the master table is not in the DOM yet or
+   * no rows are rendered yet, instead of throwing on a missing element.
    */
   private async probe(): Promise<{ gap: number; rendered: number; visible: number }> {
     return this.page.evaluate(() => {
-      const master = document.querySelector('[data-testid="grid"] .ht_master') as HTMLElement;
+      const empty = { gap: Number.POSITIVE_INFINITY, rendered: 0, visible: 0 };
+      const master = document.querySelector('[data-testid="grid"] .ht_master') as HTMLElement | null;
+
+      if (!master) {
+        return empty;
+      }
+
       const holder = master.querySelector('.wtHolder') as HTMLElement;
       const rows = master.querySelectorAll('tbody tr');
       const lastRow = rows[rows.length - 1] as HTMLElement | undefined;
 
       if (!lastRow) {
-        return { gap: Number.POSITIVE_INFINITY, rendered: 0, visible: 0 };
+        return empty;
       }
 
       const gap = holder.getBoundingClientRect().bottom - lastRow.getBoundingClientRect().bottom;
