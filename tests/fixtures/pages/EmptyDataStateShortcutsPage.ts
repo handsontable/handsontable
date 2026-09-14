@@ -116,6 +116,13 @@ export class EmptyDataStateShortcutsPage {
     return this.page.evaluate(() => window.hot.getPlugin('emptyDataState').isVisible());
   }
 
+  /** Applies setting overrides to the live grid. */
+  async updateSettings(settings: Record<string, unknown>): Promise<void> {
+    await this.page.evaluate((overrides) => {
+      window.hot.updateSettings(overrides);
+    }, settings);
+  }
+
   /**
    * Selects one cell through the API, for a cell whose own control a real click would land on.
    * The grid must already be listening, so click a cell first.

@@ -104,6 +104,26 @@ test.describe('emptyDataState keyboard shortcuts', () => {
     expect(await grid.pressAndReadDefaultPrevented('Tab')).toBe(false);
   });
 
+  test('lets Tab out of the overlay with navigable headers too', async() => {
+    // `navigableHeaders` keeps the grid navigable even when it draws no cell, so the tab-navigation
+    // pair DOES run here - the other Tab test covers the path where it bows out. Tab still gets
+    // through: with no column left to move into, the move wraps at once and `after()` takes its
+    // deselect branch instead of reaching `preventDefault()`. This pins that second route; it is a
+    // regression guard, not a control for the guard itself.
+    await grid.updateSettings({ navigableHeaders: true });
+
+    await grid.selectAllWithKeyboard();
+    await grid.runContextMenuItem('columnHeader', /^Hide columns$/);
+    await expect(grid.overlay).toBeVisible();
+
+    await grid.clickOverlay();
+    await grid.page.keyboard.press('ControlOrMeta+a');
+    expect(await grid.selection()).toEqual([[-1, -1, 7, 5]]);
+
+    expect(await grid.pressAndReadDefaultPrevented('Tab')).toBe(false);
+    expect(await grid.selection()).toBeNull();
+  });
+
   test('does not let Delete clear the data it cannot show', async() => {
     const before = await grid.allValues();
 
