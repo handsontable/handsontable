@@ -63,23 +63,24 @@ export class StretchCalculator {
 
   /**
    * Recalculates the column widths.
+   *
+   * The result is written to the widths map with a single `setValues()` call, and only when it
+   * differs from what the map already holds. Two consumers depend on that shape. The `change`
+   * hook of the map is what a caller of `observeMapChange` sees, so one write means one
+   * notification per real change and none in steady state. And the engine's column-width
+   * prefix-sum cache (`Viewport#columnWidthCache`) is keyed on the item COUNT only — a stretched
+   * width that moves keeps the count, so the cache has to be dropped explicitly, the way
+   * `ManualColumnResize` and `AutoColumnSize` drop it when their maps change. Left in place, the
+   * cache fed the layout snapshot the PREVIOUS total, the solver predicted scrollbars for a grid
+   * that had none, and the top overlay clipped the last header by the scrollbar width (DEV-2902).
    */
   refreshStretching() {
-    if (this.#activeStrategy === 'none') {
-      this.#widthsMap.clear();
+    const nextValues: Array<number | null> = new Array<number | null>(this.#widthsMap.getLength()).fill(null);
+    const stretchStrategy = this.#activeStrategy === 'none'
+      ? undefined
+      : this.#stretchStrategies.get(this.#activeStrategy);
 
-      return;
-    }
-
-    this.#hot.batchExecution(() => {
-      this.#widthsMap.clear();
-
-      const stretchStrategy = this.#stretchStrategies.get(this.#activeStrategy);
-
-      if (!stretchStrategy) {
-        return;
-      }
-
+    if (stretchStrategy) {
       const view = this.#hot.view;
       let viewportWidth = view.getViewportWidth();
 
@@ -100,9 +101,34 @@ export class StretchCalculator {
       stretchStrategy.calculate();
 
       stretchStrategy.getWidths().forEach(([columnIndex, width]) => {
-        this.#widthsMap.setValueAtIndex(this.#hot.toPhysicalColumn(columnIndex), width);
+        nextValues[this.#hot.toPhysicalColumn(columnIndex)] = width;
       });
-    }, true);
+    }
+
+    this.#applyWidths(nextValues);
+  }
+
+  /**
+   * Writes the calculated widths to the map when they differ from the stored ones, and drops the
+   * engine's column-width cache in the same step so the draw that follows sums the new widths.
+   *
+   * @param {Array<number | null>} nextValues The stretched width per physical column, `null` where
+   *                                          the column is not stretched.
+   * @returns {boolean} `true` when the map changed.
+   */
+  #applyWidths(nextValues: Array<number | null>): boolean {
+    const currentValues = this.#widthsMap.getValues();
+    const changed = currentValues.length !== nextValues.length ||
+      nextValues.some((value, index) => currentValues[index] !== value);
+
+    if (!changed) {
+      return false;
+    }
+
+    this.#widthsMap.setValues(nextValues);
+    this.#hot.view.invalidateColumnWidthCache();
+
+    return true;
   }
 
   /**
