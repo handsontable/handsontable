@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-14T09:48:25.436Z",
+  "generatedAt": "2026-09-14T09:57:35.931Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 5,
+    "tests": 6,
     "needsTicket": 1,
     "quarantined": 0,
-    "entries": 8
+    "entries": 9
   },
   "rows": [
     {
@@ -76,6 +76,39 @@
         "leg": "e2e-main",
         "status": "flaky",
         "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js|AutocompleteEditor choices should sort alphabetically the choices list, when the `sortByRelevance` option is set to `false`",
+      "tier": "jasmine",
+      "file": "handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js",
+      "line": null,
+      "title": "AutocompleteEditor choices should sort alphabetically the choices list, when the `sortByRelevance` option is set to `false`",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "legs": [
+        "UMD.min (theme: horizon)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "passes alone"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-14T09:56:49Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34828239175/attempts/2",
+        "branch": "feature/DEV-2906_Pnpm-overrides-for-medium-lockfile-alerts",
+        "leg": "UMD.min (theme: horizon)",
+        "status": "failed",
+        "error": "Expected '' to equal 'yellow'.",
         "source": "ci"
       },
       "needsTicket": false
