@@ -12,7 +12,8 @@ pre-commit:
       run: node scripts/lint-staged.mjs
 pre-push:
   commands:
-    # Full local mirror of the CI gate: presence gate + eslint + test-weakening
-    # detector + the changed Playwright specs.
+    # Full local mirror of the CI gate: presence gate + eslint + the determinism
+    # ratchet (a new sleep()/it.flaky()/skip on an added spec line blocks) +
+    # test-weakening detector + the changed Playwright specs + changed unit tests.
     test-gate:
       run: node scripts/pre-push.mjs

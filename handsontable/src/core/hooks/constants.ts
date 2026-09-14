@@ -284,7 +284,7 @@ export const REGISTERED_HOOKS = [
    * @param {number} amount Number of newly created columns in the data source array.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
-   * @returns {*} If `false` then creating columns is cancelled.
+   * @returns {*} If `false` then creating columns is canceled.
    * @example
    * ::: only-for javascript
    * ```js
@@ -1313,8 +1313,15 @@ export const REGISTERED_HOOKS = [
    * before they are validated and applied to the data source.
    * Use [`afterChange`](@/api/hooks.md#afterchange) if you need to react after the data has been written.
    *
+   * This hook fires for every `setDataAtCell()` call – not only when you call it directly, but also
+   * for regular cell edits, paste, cut, Delete/Backspace, the fill handle, Ctrl+Enter, a checkbox
+   * click, and undo/redo, since those are applied internally via `setDataAtCell()` too. It also fires
+   * when a `beforeChange` handler cancels the change, with an empty `changes` array. Changes made
+   * through `setDataAtRowProp()` fire [`afterSetDataAtRowProp`](@/api/hooks.md#aftersetdataatrowprop)
+   * instead – never both for the same change.
+   *
    * @event Hooks#afterSetDataAtCell
-   * @param {Array} changes An array of changes in format `[[row, column, oldValue, value], ...]`.
+   * @param {Array} changes An array of changes in format `[[row, prop, oldValue, value], ...]`.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    */
@@ -1324,6 +1331,13 @@ export const REGISTERED_HOOKS = [
    * Fired after [`setDataAtRowProp`](@/api/core.md#setdataatrowprop) is called and changes are processed,
    * before they are validated and applied to the data source.
    * Use [`afterChange`](@/api/hooks.md#afterchange) if you need to react after the data has been written.
+   *
+   * This hook fires for every `setDataAtRowProp()` call, yours or a plugin's – for example, the
+   * DataProvider plugin calls it internally (with `source` set to `'DataProvider.revert'`) to roll
+   * back an optimistic edit after a failed server update. Changes made through `setDataAtCell()` –
+   * including regular cell edits, paste, cut, Delete/Backspace, the fill handle, Ctrl+Enter, a
+   * checkbox click, and undo/redo, which apply internally via `setDataAtCell()` – fire
+   * [`afterSetDataAtCell`](@/api/hooks.md#aftersetdataatcell) instead – never both for the same change.
    *
    * @event Hooks#afterSetDataAtRowProp
    * @param {Array} changes An array of changes in format `[[row, prop, oldValue, value], ...]`.
@@ -1407,7 +1421,7 @@ export const REGISTERED_HOOKS = [
    * @param {CellRange} targetRange The range new values will be filled into.
    * @param {string} direction Declares the direction of the autofill. Possible values: `up`, `down`, `left`, `right`.
    *
-   * @returns {boolean|Array[]} If false, the operation is cancelled. If array of arrays, the returned data
+   * @returns {boolean|Array[]} If false, the operation is canceled. If array of arrays, the returned data
    *                              will be passed into [`populateFromArray`](@/api/core.md#populatefromarray) instead of the default autofill
    *                              algorithm's result.
    */
@@ -1464,7 +1478,7 @@ export const REGISTERED_HOOKS = [
    *                          [Binding to data: Identify changed columns in hooks](@/guides/getting-started/binding-to-data/binding-to-data.md#identify-changed-columns-in-hooks).
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
-   * @returns {undefined | boolean} If `false` all changes were cancelled, `true` otherwise.
+   * @returns {undefined | boolean} If `false` all changes were canceled, `true` otherwise.
    * @example
    * ::: only-for javascript
    * ```js
@@ -3080,6 +3094,154 @@ export const REGISTERED_HOOKS = [
    * @param {boolean} isVisible The visibility state of the page size section.
    */
   'afterPageNavigationVisibilityChange',
+
+  /**
+   * Fired by {@link SheetsBar} plugin before changing the active sheet. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#beforeSheetTabChange
+   * @param {number} oldSheetId The id of the sheet being left.
+   * @param {number} newSheetId The id of the sheet being activated.
+   * @param {string} source String that identifies source of hook call.
+   * @returns {*|boolean} If `false` is returned the action is canceled.
+   */
+  'beforeSheetTabChange',
+
+  /**
+   * Fired by {@link SheetsBar} plugin after changing the active sheet. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#afterSheetTabChange
+   * @param {number} oldSheetId The id of the sheet being left.
+   * @param {number} newSheetId The id of the sheet being activated.
+   * @param {string} source String that identifies source of hook call.
+   */
+  'afterSheetTabChange',
+
+  /**
+   * Fired by {@link SheetsBar} plugin before adding a new sheet. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#beforeSheetTabAdd
+   * @param {string|null} name The requested sheet name, or `null` for a default-generated name.
+   * @param {string} source String that identifies source of hook call.
+   * @returns {*|boolean} If `false` is returned the action is canceled.
+   */
+  'beforeSheetTabAdd',
+
+  /**
+   * Fired by {@link SheetsBar} plugin after adding a new sheet. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#afterSheetTabAdd
+   * @param {number} sheetId The id of the added sheet.
+   * @param {string} name The name of the added sheet.
+   * @param {string} source String that identifies source of hook call.
+   */
+  'afterSheetTabAdd',
+
+  /**
+   * Fired by {@link SheetsBar} plugin before removing a sheet. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#beforeSheetTabRemove
+   * @param {number} sheetId The id of the sheet to be removed.
+   * @param {string} source String that identifies source of hook call.
+   * @returns {*|boolean} If `false` is returned the action is canceled.
+   */
+  'beforeSheetTabRemove',
+
+  /**
+   * Fired by {@link SheetsBar} plugin after removing a sheet. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#afterSheetTabRemove
+   * @param {number} sheetId The id of the removed sheet.
+   * @param {string} source String that identifies source of hook call.
+   */
+  'afterSheetTabRemove',
+
+  /**
+   * Fired by {@link SheetsBar} plugin before renaming a sheet. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#beforeSheetTabRename
+   * @param {number} sheetId The id of the sheet being renamed.
+   * @param {string} oldName The current name of the sheet.
+   * @param {string} newName The requested new name of the sheet.
+   * @param {string} source String that identifies source of hook call.
+   * @returns {*|boolean} If `false` is returned the action is canceled.
+   */
+  'beforeSheetTabRename',
+
+  /**
+   * Fired by {@link SheetsBar} plugin after renaming a sheet. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#afterSheetTabRename
+   * @param {number} sheetId The id of the renamed sheet.
+   * @param {string} oldName The previous name of the sheet.
+   * @param {string} newName The new name of the sheet.
+   * @param {string} source String that identifies source of hook call.
+   */
+  'afterSheetTabRename',
+
+  /**
+   * Fired by {@link SheetsBar} plugin before moving a sheet to a new tab position. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#beforeSheetTabMove
+   * @param {number} sheetId The id of the sheet being moved.
+   * @param {number} finalIndex The requested tab index.
+   * @param {string} source String that identifies source of hook call.
+   * @returns {*|boolean} If `false` is returned the action is canceled.
+   */
+  'beforeSheetTabMove',
+
+  /**
+   * Fired by {@link SheetsBar} plugin after moving a sheet to a new tab position. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#afterSheetTabMove
+   * @param {number} sheetId The id of the moved sheet.
+   * @param {number} finalIndex The tab index the sheet was moved to.
+   * @param {string} source String that identifies source of hook call.
+   */
+  'afterSheetTabMove',
+
+  /**
+   * Fired by {@link SheetsBar} plugin after capturing a sheet's runtime view state (e.g. scroll position,
+   * selection) before switching away from it. This hook is fired when {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#afterSheetTabStateCapture
+   * @param {number} sheetId The id of the sheet the view state was captured from.
+   * @param {object} viewState The captured view state.
+   * @param {string} source String that identifies source of hook call.
+   */
+  'afterSheetTabStateCapture',
+
+  /**
+   * Fired by {@link SheetsBar} plugin after restoring a sheet's runtime view state (e.g. scroll position,
+   * selection) when switching to it. This hook is fired when {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#afterSheetTabStateRestore
+   * @param {number} sheetId The id of the sheet the view state was restored to.
+   * @param {object} viewState The restored view state.
+   * @param {string} source String that identifies source of hook call.
+   */
+  'afterSheetTabStateRestore',
 
   /**
    * Fired by the {@link Formulas} plugin, when any cell value changes.

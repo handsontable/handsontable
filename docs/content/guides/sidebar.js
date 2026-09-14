@@ -83,10 +83,12 @@ const rowsItems = [
 
 const cellFeaturesItems = [
   { path: 'guides/cell-features/selection/selection' },
+  { path: 'guides/cell-features/move-cells/move-cells' },
   { path: 'guides/cell-features/merge-cells/merge-cells' },
   { path: 'guides/cell-features/conditional-formatting/conditional-formatting' },
   { path: 'guides/cell-features/text-alignment/text-alignment' },
   { path: 'guides/cell-features/read-only-cells/read-only-cells' },
+  { path: 'guides/cell-features/clickable-links/clickable-links' },
   { path: 'guides/cell-features/comments/comments' },
   { path: 'guides/cell-features/autofill-values/autofill-values' },
   { path: 'guides/cell-features/formatting-cells/formatting-cells' },
@@ -142,6 +144,7 @@ const accessoriesAndMenusItems = [
   { path: 'guides/dialog/loading/loading' },
   { path: 'guides/dialog/notification/notification' },
   { path: 'guides/accessories-and-menus/layout-slots/layout-slots' },
+  { path: 'guides/accessories-and-menus/sheets-bar/sheets-bar' },
 ];
 
 const internationalizationItems = [

@@ -87,6 +87,8 @@ The following APIs are deprecated. They keep working and print a one-time consol
 | `saveManualRowHeights()` (`ManualRowResize`) | 18.0 | 19.0 | No-op. Persist heights in your application code. | [Migrate from 17.1 to 18.0 -> Resize-state methods](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#stop-calling-deprecated-resize-state-methods) |
 | `loadManualRowHeights()` (`ManualRowResize`) | 18.0 | 19.0 | No-op. Pass an array to `manualRowResize`. | [Migrate from 17.1 to 18.0 -> Resize-state methods](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#stop-calling-deprecated-resize-state-methods) |
 | `Handsontable.helper.sanitize()` | 18.0 | 19.0 | Pass-through. Use the `sanitizer` option. | [`sanitizer` option](@/api/options.md#sanitizer) |
+| `registerShortcuts()` (`Formulas`) | 18.2 | 19.0 | No-op. The `Alt`+`Enter` shortcut that opens a cell's link is a core grid shortcut. Remove the call. | [Migrate from 18.1 to 18.2 -> Formulas shortcut methods](@/guides/upgrade-and-migration/migrating-from-18.1-to-18.2/migrating-from-18.1-to-18.2.md#9-formulas-shortcut-methods) |
+| `unregisterShortcuts()` (`Formulas`) | 18.2 | 19.0 | No-op. The `Alt`+`Enter` shortcut that opens a cell's link is a core grid shortcut. Remove the call. | [Migrate from 18.1 to 18.2 -> Formulas shortcut methods](@/guides/upgrade-and-migration/migrating-from-18.1-to-18.2/migrating-from-18.1-to-18.2.md#9-formulas-shortcut-methods) |
 
 ### Options
 

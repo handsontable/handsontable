@@ -89,9 +89,25 @@ export default defineConfig<TestOptions>({
   // A test that only passes on retry is a hard failure pre-merge.
   failOnFlakyTests: !!process.env.CI,
   // CI: html (open:never) — it is what the failure-artifact upload collects
-  // (tests/playwright-report) — plus GitHub annotations. Blob is only for
-  // sharded runs, which this suite does not use.
-  reporter: process.env.CI ? [['html', { open: 'never' }], ['github']] : 'html',
+  // (tests/playwright-report) — plus GitHub annotations, plus the JSON report
+  // the cross-run flake ledger reads (`.github/workflows/test-health.yml`; the
+  // path is pinned by `.github/scripts/lib/test-health.mjs` and asserted in its
+  // tests). Blob is only for sharded runs, which this suite does not use.
+  // The quarantine reporter (`reporters/quarantine.ts`) runs last and sets the
+  // exit status: a flaky test under a live quarantine reports without failing
+  // the run, an expired or over-cap quarantine fails it. See tests/AGENTS.md.
+  // `list` first restores the terminal progress the quarantine reporter's `printsToStdio` would
+  // otherwise suppress; the quarantine reporter stays LAST, because the multiplexer keeps the
+  // status of the last reporter that returns one and that is what downgrades a quarantined flake.
+  reporter: process.env.CI
+    ? [
+      ['list'],
+      ['html', { open: 'never' }],
+      ['github'],
+      ['json', { outputFile: 'test-results/report.json' }],
+      ['./reporters/quarantine.ts'],
+    ]
+    : [['list'], ['html'], ['./reporters/quarantine.ts']],
   use: {
     baseURL: `http://localhost:${PORT}`,
     trace: 'on-first-retry',

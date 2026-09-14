@@ -46,6 +46,9 @@ new Handsontable(document.createElement('div'), {
         disabled() {
           return !!(this as any).getSelectedLast();
         },
+        checked() {
+          return !!(this as any).getSelectedLast();
+        },
         disableSelection: true,
         isCommand: false,
         callback(key: string, selection: unknown, clickEvent: MouseEvent) {
@@ -88,12 +91,27 @@ new Handsontable(document.createElement('div'), {
         key: 'name',
         hidden: false,
         disabled: false,
+        checked: true,
       }
     }
   }
 });
 
 const separator: MenuItemConfig = ContextMenu.SEPARATOR;
+
+// Pinned by assigning to `MenuItemConfig` directly. The literals inside `contextMenu.items` above
+// cannot pin anything: `contextMenu` is typed `boolean | object | string[]`, so they are checked
+// against bare `object`, and `MenuItemConfig` carries `[key: string]: unknown`, which accepts any
+// property name. Deleting the `checked` declaration left `test:types` green until these lines.
+const checkedItem: MenuItemConfig = { name: 'toggle', checked: true };
+const uncheckedItem: MenuItemConfig = { name: 'toggle', checked: false };
+const checkedItemFn: MenuItemConfig = { name: 'toggle', checked: () => true };
+
+// @ts-expect-error `checked` takes a boolean or a function returning one. The explicit declaration
+// wins over the index signature, which is what makes this an error - and it is the type-level half
+// of the renderer testing `checked` by type rather than by presence, so an unrelated property of
+// that name does not turn somebody's item into a checkbox.
+const wronglyCheckedItem: MenuItemConfig = { name: 'toggle', checked: 'pending' };
 
 new Handsontable(document.createElement('div'), {
   contextMenu: {

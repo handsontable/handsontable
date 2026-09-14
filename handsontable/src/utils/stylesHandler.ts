@@ -158,6 +158,7 @@ export class StylesHandler {
 
     if (
       visualRowIndex !== undefined &&
+      this.firstRenderedRowDrawsTopBorder() &&
       visualRowIndex === this.#hot.view.getFirstRenderedVisibleRow()
     ) {
       // add 1px border-top-width compensation for the first rendered row
@@ -165,6 +166,41 @@ export class StylesHandler {
     }
 
     return rowHeight;
+  }
+
+  /**
+   * Whether the first rendered body row draws its own 1px `border-top`, which makes it render one
+   * pixel taller than every other row.
+   *
+   * It does only when the grid has no column headers, where that border is the grid's own top frame.
+   * With column headers the last head row's `th` owns the gridline below it at every scroll position
+   * (DEV-2786, the row-axis twin of #6673), so the first body row renders at the same height as the
+   * rest. The rule that produces this is `thead:not(:empty) + tbody > tr:first-child` in
+   * `styles/base/_base.scss`.
+   *
+   * This is the GRID-level answer, which is what the master's row heights need. The rule itself is
+   * per table: an overlay clone that renders no head row keeps the border on its own first row, and
+   * `axisSizing/oversizedRows` resolves that from each table's `THEAD`.
+   *
+   * It asks how many header rows are actually RENDERED, not whether `colHeaders` is on, because the
+   * two disagree: `afterGetColumnHeaderRenderers` lets a plugin add head rows to a grid that
+   * declared none, and NestedHeaders does exactly that whenever it holds a layer, without consulting
+   * `colHeaders`. Such a grid has a non-empty `thead`, so the CSS rule fires and its first body row
+   * draws no top border, while `hasColHeaders()` still reports `false` - and every caller then
+   * compensates for a pixel that is not there. The engine side asks the same question the same way -
+   * `getHiderHeightCompensation` in `axisSizing/hiderCompensation.ts` takes the length of the
+   * resolved `columnHeaders` array - which is what keeps the two in step.
+   *
+   * @returns {boolean}
+   */
+  firstRenderedRowDrawsTopBorder() {
+    // The view is absent until the first render; fall back to the setting, which is the only answer
+    // available before the header renderers have been resolved.
+    if (!this.#hot.view) {
+      return !this.#hot.hasColHeaders();
+    }
+
+    return this.#hot.view.getColumnHeadersCount() === 0;
   }
 
   /**

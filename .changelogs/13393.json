@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved scrolling performance by removing a redundant re-render that ran whenever the grid was scrolled across its horizontal start.",
+  "type": "changed",
+  "issueOrPR": 13393,
+  "breaking": false,
+  "framework": "none"
+}

@@ -146,7 +146,7 @@ class CollapsingUI extends BaseUI {
     }
 
     if (forceRender) {
-      this.renderAndAdjust();
+      this.renderTable();
     }
 
     // Only a row that actually has children can be collapsed. Without this check pressing Enter on a
@@ -177,7 +177,7 @@ class CollapsingUI extends BaseUI {
     }
 
     if (forceRender) {
-      this.renderAndAdjust();
+      this.renderTable();
     }
   }
 
@@ -356,7 +356,7 @@ class CollapsingUI extends BaseUI {
     }
 
     if (forceRender) {
-      this.renderAndAdjust();
+      this.renderTable();
     }
 
     return rowsToUntrim;
@@ -381,7 +381,7 @@ class CollapsingUI extends BaseUI {
     }
 
     if (forceRender) {
-      this.renderAndAdjust();
+      this.renderTable();
     }
   }
 
@@ -489,7 +489,7 @@ class CollapsingUI extends BaseUI {
     const isActionPerformed = !this.#isSameCollapsedState(currentCollapsedRows);
 
     if (isActionPerformed && forceRender) {
-      this.renderAndAdjust();
+      this.renderTable();
     }
 
     if (shouldRunHooks) {
@@ -740,13 +740,11 @@ class CollapsingUI extends BaseUI {
   }
 
   /**
-   * Helper function to render the table and call the `adjustElementsSize` method.
+   * Helper function to render the table.
    *
    * @private
    */
-  renderAndAdjust() {
-    // Dirty workaround to prevent scroll height not adjusting to the table height. Needs refactoring in the future.
-    this.hot.view.adjustElementsSize();
+  renderTable() {
     this.hot.render();
   }
 }

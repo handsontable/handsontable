@@ -67,7 +67,7 @@ itself — no notifier plugin is configured. The pull request comment is written
 `.reg/comment.md` and posted by the `marocchino/sticky-pull-request-comment` step in `visual.yml`, which is
 why it carries the approval instructions as well as the counts.
 
-Six things about this pipeline are worth knowing before changing it.
+Seven things about this pipeline are worth knowing before changing it.
 
 - **`reg-suit run` exits 0 no matter what it finds.** A comparison result never fails it; fetch, publish
   and comparison-runtime errors do. Notifier errors are the one class it deliberately swallows
@@ -116,6 +116,23 @@ Six things about this pipeline are worth knowing before changing it.
 - **A golden record is just a previous build's `actual/` directory.** reg-suit fetches
   `<expectedKey>/actual/**` into the local `expected/` dir, so the goldens and a normal build share one
   format. There is no separate baseline artifact to maintain.
+- **A single flaky capture on `develop` reds every open pull request, and it does not look like a flake.**
+  The `Reconcile the golden records` step runs on every non-pull-request event and `aws s3 sync --delete`s
+  that build's own render over `base/<branch>/actual`, unreviewed — so a green `develop` build that
+  happened to photograph a transient state makes that state the reference. The build reports no failure
+  and no retry; it simply captured something else. It then persists, because most `develop` runs are
+  cancelled by the next push (2 of 10 finished on the day this was found), so the next reseed can be hours
+  away. **The diagnostic is byte equality across pull requests:** if two unrelated pull requests fail on
+  the same item, `shasum -a 256` their `actual/<item>` from the two reports. Identical bytes mean the
+  render is deterministic and the golden record is the odd one out — neither pull request is at fault, and
+  `visual-approved` on one of them fixes nothing for the others. Confirmed on `columns-filter-2` under
+  WebKit, where the poisoned record carried a stray browser text-selection highlight on a column header;
+  `test-runner.ts` now clears that selection before every capture. **`visual.handsontable.com` is behind a
+  CDN, so reading a golden record back can hand you a stale copy** — during that investigation it served
+  the superseded image for nearly an hour after `develop` had reseeded, which reads exactly like a
+  baseline nobody has fixed yet. Always bust the cache before concluding anything from a golden record:
+  `curl -H 'Cache-Control: no-cache' '<url>?cb=$RANDOM'`. The reg-suit reports are per-commit paths and
+  never restated, so only the `base/<branch>/` prefix has this problem.
 
 Snapshot keys, set in `.github/workflows/visual.yml`:
 

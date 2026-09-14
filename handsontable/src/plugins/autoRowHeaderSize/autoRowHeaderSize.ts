@@ -332,13 +332,12 @@ export class AutoRowHeaderSize extends BasePlugin {
       return;
     }
 
-    this.#samplesGenerator.setAllowDuplicates(this.getSetting<boolean>('allowSampleDuplicates'));
-
-    const samplingRatio = this.getSetting<number | null>('samplingRatio');
-
-    if (samplingRatio && !isNaN(samplingRatio)) {
-      this.#samplesGenerator.setSampleCount(parseInt(String(samplingRatio), 10));
-    }
+    // Shared with AutoRowSize and AutoColumnSize so the same option name resolves the same way on
+    // all three - a raw `samplingRatio` used to be stored differently by each of them.
+    this.#samplesGenerator.applySamplingOptions({
+      samplingRatio: this.getSetting('samplingRatio'),
+      allowDuplicates: this.getSetting<boolean>('allowSampleDuplicates'),
+    });
 
     // Pinned ahead of the default order, the way {@link AutoColumnSize} pins `modifyColWidth`. This
     // handler answers with its own measurement and drops the incoming width, so it has to run
@@ -365,8 +364,19 @@ export class AutoRowHeaderSize extends BasePlugin {
 
   /**
    * Updates the plugin's state.
+   *
+   * @param {object} [newSettings] The settings passed to `updateSettings`.
    */
-  updatePlugin(): void {
+  updatePlugin(newSettings?: Record<string, unknown>): void {
+    // `BasePlugin#onUpdateSettings` feeds `updatePluginSettings()` with `newSettings[PLUGIN_KEY]`,
+    // which an update that does not mention this plugin carries as `undefined` - wiping the stored
+    // settings. The re-enable below then reads the defaults, so `allowSampleDuplicates: true`
+    // silently reverted to `false` on every unrelated `updateSettings` call. Restore the option
+    // from the merged settings first.
+    if (newSettings !== undefined && newSettings[PLUGIN_KEY] === undefined) {
+      this.updatePluginSettings(this.hot.getSettings()[PLUGIN_KEY]);
+    }
+
     this.clearCache();
     this.disablePlugin();
     this.enablePlugin();
@@ -658,7 +668,7 @@ export class AutoRowHeaderSize extends BasePlugin {
   ): void {
     // Each level is bucketed by the labels IT draws. Sampling every level by another's labels would
     // skip the row carrying this one's longest label, leaving the level narrow. The grid's own
-    // renderer is recognised by reference: it is the only one whose text `getRowHeader` can be
+    // renderer is recognized by reference: it is the only one whose text `getRowHeader` can be
     // trusted for, and it is not necessarily the first in the array.
     this.#readLabel = isGridRenderer
       ? visualRow => this.hot.getRowHeader(visualRow)

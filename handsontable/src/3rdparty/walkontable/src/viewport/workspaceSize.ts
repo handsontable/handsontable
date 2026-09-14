@@ -14,6 +14,39 @@
 import type { default as Viewport } from './viewport';
 
 /**
+ * The sub-pixel remainder between a used height read from the computed style and the whole-pixel
+ * value `offsetHeight` reported for the same element.
+ *
+ * Returns 0 for an unreadable style (`auto`, or an element with no layout), so a caller adding this
+ * to a total can never turn it into `NaN`.
+ *
+ * **Clamped to one pixel either way, and that is load-bearing.** The computed `height` is the
+ * CONTENT box while `offsetHeight` is the BORDER box, so the subtraction is a rounding remainder
+ * only while the element carries no vertical border or padding. That holds for the grid's own THEAD
+ * — those borders live on the `th` — but a host page's CSS reset or table framework can put a
+ * border on `thead`, and the difference would then be several whole pixels of real box, not a
+ * fraction. Subtracted from a content total it would leave the scroll box shorter than the table
+ * and clip the last row: the very defect this fraction exists to prevent, and one no rounding
+ * afterwards could recover. A true remainder is always inside (-1, 1), so anything outside it is
+ * not a remainder and is discarded.
+ *
+ * @param {string} usedHeight The computed `height`, e.g. `'29.0972px'`.
+ * @param {number} roundedHeight The whole-pixel height the same element reports.
+ * @returns {number} The remainder in CSS pixels, or 0 if it is not one.
+ */
+function measuredHeightFraction(usedHeight: string, roundedHeight: number): number {
+  const used = Number.parseFloat(usedHeight);
+
+  if (!Number.isFinite(used)) {
+    return 0;
+  }
+
+  const remainder = used - roundedHeight;
+
+  return Math.abs(remainder) < 1 ? remainder : 0;
+}
+
+/**
  * Reduces a row-header width answer to the single number the viewport needs.
  *
  * The `modifyRowHeaderWidth` hook may answer per row header level - `AutoRowHeaderSize` does, so
@@ -95,7 +128,7 @@ function measureHasVerticalScroll(viewport: Viewport): boolean {
 function measureHasHorizontalScroll(viewport: Viewport): boolean {
   const { geometryReader } = viewport.deps;
 
-  if (viewport.isVerticallyScrollableByWindow()) {
+  if (viewport.isHorizontallyScrollableByWindow()) {
     const documentElement = viewport.deps.rootDocument.documentElement;
 
     return geometryReader.scrollWidth(documentElement) > geometryReader.clientWidth(documentElement);
@@ -103,7 +136,10 @@ function measureHasHorizontalScroll(viewport: Viewport): boolean {
 
   const { hider } = viewport.wtTable;
   const hiderOffsetWidth = geometryReader.offsetWidth(hider);
-  const scrollbarWidth = measureHasVerticalScroll(viewport) ? geometryReader.getScrollbarWidth() : 0;
+  // Only the holder's own vertical scrollbar narrows the horizontal scrollport. When the window owns
+  // the vertical axis its scrollbar sits outside the grid's box.
+  const holderHasVerticalScrollbar = !viewport.isVerticallyScrollableByWindow() && measureHasVerticalScroll(viewport);
+  const scrollbarWidth = holderHasVerticalScrollbar ? geometryReader.getScrollbarWidth() : 0;
 
   return hiderOffsetWidth > measureWorkspaceWidth(viewport) - scrollbarWidth;
 }
@@ -186,6 +222,7 @@ export interface WorkspaceSize {
   sumColumnWidths(from: number, length: number): number;
   getWorkspaceOffset(): { left: number, top: number };
   getColumnHeaderHeight(): number;
+  getColumnHeaderHeightFraction(): number;
   getRowHeaderWidth(): number;
 }
 
@@ -275,10 +312,12 @@ export const workspaceSize: WorkspaceSize = {
   hasVerticalScroll(this: Viewport): boolean {
     // Measure the rendered DOM (legacy V18 path) when either:
     //  - single-pass layout is off (escape hatch, e.g. mergeCells), or
-    //  - the table scrolls with the window: the document's scroll depends on other page content, so
-    //    predicting it from this table's content totals is unreliable. Single-pass prediction is
-    //    scoped to element mode, where content-vs-box is deterministic (and validated by test:walkontable).
-    if (!this.wtSettings.getSetting('singlePassLayout') || this.isVerticallyScrollableByWindow()) {
+    //  - the table scrolls with the window on either axis: the document's scroll depends on other
+    //    page content, so predicting it from this table's content totals is unreliable, and the
+    //    snapshot is built for one scroll mode on both axes. Single-pass prediction is scoped to
+    //    element mode, where content-vs-box is deterministic (and validated by test:walkontable).
+    if (!this.wtSettings.getSetting('singlePassLayout') ||
+        this.isVerticallyScrollableByWindow() || this.isHorizontallyScrollableByWindow()) {
       return measureHasVerticalScroll(this);
     }
 
@@ -295,9 +334,10 @@ export const workspaceSize: WorkspaceSize = {
    */
   hasHorizontalScroll(this: Viewport): boolean {
     // Measure the DOM (legacy) when single-pass is off (escape hatch) or the table scrolls with the
-    // window (document scroll is externally influenced); predict only in element mode. See
-    // `hasVerticalScroll` for the rationale.
-    if (!this.wtSettings.getSetting('singlePassLayout') || this.isVerticallyScrollableByWindow()) {
+    // window on either axis (document scroll is externally influenced); predict only in element
+    // mode. See `hasVerticalScroll` for the rationale.
+    if (!this.wtSettings.getSetting('singlePassLayout') ||
+        this.isVerticallyScrollableByWindow() || this.isHorizontallyScrollableByWindow()) {
       return measureHasHorizontalScroll(this);
     }
 
@@ -306,7 +346,9 @@ export const workspaceSize: WorkspaceSize = {
   },
 
   /**
-   * Checks if the table uses the window as a viewport and if there is a vertical scrollbar.
+   * Checks if the window owns the vertical axis: no ancestor of the table traps it vertically, so
+   * the page scrolls the rows. The answer is per axis and can differ from the horizontal one - the
+   * top overlay carries the vertical owner (see `Overlay#trimmingContainer`).
    *
    * @this Viewport
    * @returns {boolean}
@@ -316,7 +358,8 @@ export const workspaceSize: WorkspaceSize = {
   },
 
   /**
-   * Checks if the table uses the window as a viewport and if there is a horizontal scrollbar.
+   * Checks if the window owns the horizontal axis: no ancestor of the table traps it horizontally,
+   * so the page scrolls the columns. The inline-start overlay carries the horizontal owner.
    *
    * @this Viewport
    * @returns {boolean}
@@ -364,12 +407,56 @@ export const workspaceSize: WorkspaceSize = {
 
     if (!columnHeaders.length) {
       this.columnHeaderHeight = 0;
+      this.columnHeaderHeightFraction = 0;
     } else if (isNaN(this.columnHeaderHeight)) {
-      this.columnHeaderHeight = this.wtTable.THEAD
-        ? this.deps.geometryReader.outerHeight(this.wtTable.THEAD) : 0;
+      const { THEAD } = this.wtTable;
+
+      this.columnHeaderHeight = THEAD ? this.deps.geometryReader.outerHeight(THEAD) : 0;
+      // `outerHeight` is `offsetHeight`, an integer, so below 100% zoom it drops up to a pixel of
+      // the header's real height. Record what it dropped. Only the hider/content total consumes it —
+      // the calculators keep the integer they have always been given.
+      //
+      // Cost: this branch is NOT once per grid. `createColumnsCalculator` resets the height to `NaN`,
+      // and the draw cycle creates calculators two to four times per master draw, so the branch runs
+      // on every draw. What it adds over the `outerHeight` above is one resolved style declaration,
+      // not a second reflow — `outerHeight` has already flushed layout and nothing invalidates it in
+      // between, so the read lands on clean layout. Keying it on a cache that survives the reset was
+      // considered and rejected: the fraction can move while the integer does not (29.0972px and
+      // 29.4776px both report 29), so the key would have to carry `devicePixelRatio` too, and a stale
+      // fraction reintroduces the scrollbar this exists to prevent.
+      //
+      // The used height comes from the computed style, NOT from `getBoundingClientRect()`. Both
+      // report the fraction, but a rect is scaled by an ancestor's CSS `zoom` while `offsetHeight`
+      // is not, so subtracting one from the other under CSS zoom yields a large negative number and
+      // shrinks the hider instead of growing it. The computed style is in the same space as
+      // `offsetHeight` at any zoom.
+      this.columnHeaderHeightFraction = THEAD
+        ? measuredHeightFraction(this.deps.geometryReader.getComputedStyle(THEAD).height,
+          this.columnHeaderHeight) : 0;
     }
 
     return this.columnHeaderHeight;
+  },
+
+  /**
+   * The sub-pixel part of the column header height that `getColumnHeaderHeight()` rounds away.
+   *
+   * Always `0` at 100% zoom, where the header lands on a whole pixel.
+   *
+   * @this Viewport
+   * @returns {number}
+   */
+  getColumnHeaderHeightFraction(this: Viewport): number {
+    // Fill the cache through the integer getter, which owns both values.
+    this.getColumnHeaderHeight();
+
+    // The two are written together at every site that writes either — the zero-header branch and
+    // the measure branch above, and the reset in `CalculatorFactory#createColumnsCalculator` — and
+    // only the integer gates the refill, so a site that ever assigns the height alone would strand
+    // this one. The coalesce keeps a stranded or not-yet-filled value out of a content total, where
+    // `NaN` would propagate into the hider height and size the grid to nothing; it is a floor, not
+    // a substitute for keeping the pair in lockstep.
+    return this.columnHeaderHeightFraction || 0;
   },
 
   /**

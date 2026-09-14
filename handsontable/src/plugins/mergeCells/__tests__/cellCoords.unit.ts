@@ -215,6 +215,29 @@ describe('MergeCells', () => {
         expect(after.to.row).toEqual(5); // 4 + rowspan(2) - 1
         expect(after.to.col).toEqual(6); // 5 + colspan(2) - 1
       });
+
+      it('should keep the current row span when none is provided', () => {
+        const mergedCell = createMergedCellCoords(1, 1, 3, 2);
+
+        mergedCell.relocate(4, 5);
+
+        expect(mergedCell.rowspan).toEqual(3);
+      });
+
+      it('should apply a new row span and invalidate the lazily cached range', () => {
+        const mergedCell = createMergedCellCoords(1, 1, 3, 2);
+
+        // populate the lazy `#cellRange` cache before relocating
+        expect(mergedCell.getRange().to.row).toEqual(3); // 1 + rowspan(3) - 1
+
+        // rows inside the merge were trimmed away, so it now occupies fewer visual rows
+        mergedCell.relocate(1, 1, 2);
+
+        expect(mergedCell.rowspan).toEqual(2);
+
+        // a stale cache would still report the old span here
+        expect(mergedCell.getRange().to.row).toEqual(2); // 1 + rowspan(2) - 1
+      });
     });
 
     describe('`isFarther` method', () => {

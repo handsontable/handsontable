@@ -1,7 +1,7 @@
 # Formulas plugin — the HyperFormula bridge
 
 The `formulas` plugin connects the grid to HyperFormula. Read this before touching `formulas.ts` (3.4k
-lines), `indexSyncer/axisSyncer.ts`, `engine/`, `utils.ts` or `hyperlinkUrl.ts`.
+lines), `indexSyncer/axisSyncer.ts`, `engine/`, `utils.ts` or the shared link toolkit in `../../utils/cellLinks/`.
 
 HyperFormula is a **user-supplied peer dependency** (a devDependency here for tests only). It is bundled
 into `handsontable.full.js` and external in `handsontable.js`, so anything build-time has to be checked in
@@ -63,6 +63,11 @@ instead of replaying the move, so `afterMoveCells` — where the forward directi
 has to cover it here. Redo *does* replay the move, so it must **not** be listed, or the sheet is scanned
 twice.
 
+**A nested `remove_row` undo can refuse to land.** `RemoveRowAction.canUndo()` runs the enabled and
+`beforeCreateRow` checks **before** `beforeUndo`, because this plugin always calls `engine.undo()`
+there. A late `{ wasUndone: false }` would leave HyperFormula restored and Handsontable empty.
+`UndoRedo.undo()` also skips `afterUndo` when the action reports that failure.
+
 ## Sequence syncing
 
 The row/column sequence is mirrored into HF as a **permutation**, and two hooks matter:
@@ -103,7 +108,7 @@ dependency graph). The compensation code carries a note that it can be removed o
 
 ## `HYPERLINK` cells: an allowlist, not a sanitizer
 
-`resolveHyperlinkUrl()` allows exactly `http:`, `https:`, `mailto:`, `tel:`. Everything else returns `null`
+`resolveLinkUrl()` (in `../../utils/cellLinks/`) allows exactly `http:`, `https:`, `mailto:`, `tel:`. Everything else returns `null`
 and the cell does not become a link. Two deliberate choices:
 
 - **The URL is parsed with `new URL()`, not pattern-matched**, so obfuscations that survive a string
@@ -120,6 +125,23 @@ and the cell does not become a link. Two deliberate choices:
 - Exporting formulas rather than values: `../exportFile/AGENTS.md` (`exportFormulas`).
 - Plugin contract, lifecycle, priorities: `../base/AGENTS.md`.
 
+## `HYPERLINK` anchors share plumbing with `autoLink`
+
+- The anchor is built by `createLinkElement()` from `../../utils/cellLinks/` and carries `ht-link ht-hyperlink`.
+  `ht-hyperlink` shipped in 18.1.0 and stays forever; `ht-link` is the shared marker the styles and the
+  Alt+Enter command key on. Do not build an `<a>` by hand here.
+- **Alt+Enter is not registered by this plugin.** It is a core grid command (`shortcuts/contexts/commands/openCellLink.ts`)
+  that reads `a.ht-link` from the selected cell's rendered TD. Registering the chord here again would run two
+  callbacks per keypress: the shortcut manager appends duplicate key combinations, it does not reject them.
+- **Order rule against `autoLink`.** Hook callbacks run in registration order, and `Formulas` can be enabled after
+  `AutoLink` through `updateSettings`, so `#onAfterRenderer` must converge from both orders: it always unwraps its
+  own `a.ht-hyperlink` first, and when the cell resolves to a link it unwraps every `a.ht-link` before wrapping. When
+  the cell resolves to no link it leaves foreign anchors alone. `AutoLink` skips any TD that already holds an `<a>`.
+  Unwrapping `a.ht-link` alone is not enough: it leaves behind any `span.ht-link-scheme` `AutoLink` hid inside that
+  anchor (`hideSchemePrefix()` in `../../utils/cellLinks/linkElement.ts`), and the wrap that follows would then carry
+  that hidden span into the HYPERLINK anchor. So `#onAfterRenderer` unwraps `a.ht-link .ht-link-scheme` FIRST, while
+  it is still inside its own anchor — a HYPERLINK label always renders verbatim, whichever `afterRenderer` ran first.
+
 ## Testing
 
 - `npm run test:e2e --prefix handsontable -- --testPathPattern='formulas'`
@@ -128,3 +150,7 @@ and the cell does not become a link. Two deliberate choices:
 `__tests__/` is unusually broad: `hfApi`, `initialization`, `validation`, `publicAPI`, `hooks`,
 `featureIntegration`, `memoryLeak`, `redoState`, `indexSyncer/`, `plugins/`. A change here almost always
 needs more than `formulas.spec.js`, and `memoryLeak.spec.js` is the one people forget.
+
+## `HYPERLINK` cells and `renderMode: 'onChange'`
+
+A `HYPERLINK` whose URL argument lives in another cell keeps its label when that cell changes, so the engine exports no value change for it and an incremental render would keep the stale `href`. `#onAfterRenderer` records every cell it wrapped in `#hyperlinkCells` (physical coordinates) and `#onEngineValuesUpdated` calls `hot.markCellChanged()` for each of them, so any engine update rebuilds the anchors on the next render. A cell that BECOMES a `HYPERLINK` while keeping the label it already showed is not in the set yet and changes nothing the paint compares, so `#onEngineValuesUpdated` also walks the engine's change list and marks every updated cell whose `#getHyperlinkHref` is non-null (`#markCellsThatBecameHyperlinks`). `markCellChanged()` touches stored meta only, so a recorded cell that scrolled out and was evicted costs nothing. The set is cleared in `disablePlugin`, at the top of `#onAfterLoadData`, and in the four create/remove row/column handlers: physical keys drift after a removal, and every one of those paths repaints all rendered cells, which re-registers them. Plain dependents need nothing: the render compares the formatted value, which HyperFormula already changed.

@@ -147,15 +147,13 @@ ClickUp task: https://app.clickup.com/t/9015210959/DEV-xxx
 - Include the ClickUp task ID in the PR title when applicable.
 - Start the **Context** section with "The PR fixes/adds/changes/..." -- be direct, no filler.
 - If the PR introduces a breaking change, require the `Breaking change` label and include a migration section with before/after examples. Update migration guides in `docs/content/guides/upgrade-and-migration/`.
-- **If you tick "MANUAL QA NEEDED" in the checklist, also apply the red `Manual QA required` label** so the request is visible in the PR list. Nothing applies it automatically — labels in this repo are applied by hand:
+- **If you tick "MANUAL QA NEEDED" in the checklist, also apply the red `Requires Manual QA` label** so the request is visible in the PR list. Nothing applies it automatically — labels in this repo are applied by hand:
 
   ```bash
-  # once per repository, if the label does not exist yet
-  gh label create "Manual QA required" --color B60205 \
-    --description "Waits for a manual-qa environment sign-off before it can merge"
-
-  gh pr edit <number> --add-label "Manual QA required"
+  gh pr edit <number> --add-label "Requires Manual QA"
   ```
+
+  The label already exists in this repository — **do not create it.** `gh label list --search "Manual QA"` also returns `QA needed` and `Verified by QA`, which are different labels with their own meanings, so match the name exactly rather than the closest hit. Creating a near-miss name (`Manual QA required`) silently makes a second red label that nobody filters on.
 
   The label is a **marker only**. The gate is the ticked box, which the Checks scope router reads when the pipeline starts: it holds `Manual QA / sign-off` until a designated reviewer approves the run. Because the box is read once per run, ticking it *after* a pipeline has already gone green does not arm anything — press **"Re-run all jobs"** on the Tests run (and the same applies in reverse after unticking).
 
@@ -167,7 +165,9 @@ When asked to update, fix, or re-fill a PR description, use the same temp-file a
 
 Every PR that changes source code needs a changelog entry in `.changelogs/`. `bin/changelog` names the file after the entry's `issueOrPR` field, so the filename is the **PR number** only for a `private` entry — the default, and what the rest of this section assumes. A `public` entry is named after its GitHub issue number instead, and because that number is known before the PR exists, it can be committed together with the code rather than in the round-trip below.
 
-**Which `issuesOrigin` to use is decided by [`.changelogs/README.md`](../../../.changelogs/README.md), not here** — read it before writing the entry. The CI gate only asserts that a source change adds at least one entry; it never checks the filename.
+**Which `issuesOrigin` to use is decided by [`.changelogs/README.md`](../../../.changelogs/README.md), not here** — read it before writing the entry.
+
+Two blocking checks constrain the entry, so get both right the first time. The filename must be `<issueOrPR>.json`, a plain number with no suffix, and it must match the entry's `issueOrPR` field — `bin/changelog` fails the `changelog` job over a mismatch, and the pre-push hook fails locally. And the PR may add at most **two** entry files, the second only for a separate GitHub issue it closes; a maintenance PR back-filling entries for other PRs writes `[multiple changelogs]` in the description to lift that. Running `npm run changelog entry` satisfies the filename rule by construction; writing the JSON by hand is what breaks it.
 
 For a `private` entry, after writing the file:
 

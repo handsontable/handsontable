@@ -27,6 +27,7 @@
     "stylelint:fix": "node scripts/run.mjs lint:stylelint.fix",
     "measure:module-sizes": "node scripts/run.mjs measure:module-sizes",
     "generate:option-levels": "node scripts/run.mjs generate:option-levels",
+    "generate:tlds": "node scripts/run.mjs generate:tlds",
     "test": "node scripts/run.mjs --sequential test",
     "test.random": "node scripts/run.mjs --sequential test -- --random",
     "test:walkontable": "node scripts/run.mjs --sequential test:walkontable",
@@ -49,6 +50,7 @@
     "test:unit.watch": "node scripts/run.mjs --sequential test:unit -- --watch",
     "test:mobile.dump": "node scripts/run.mjs test:mobile.dump",
     "test:types": "node scripts/run.mjs test:types",
+    "test:eslint-rules": "node scripts/run.mjs test:eslint-rules",
     "watch": "node scripts/run.mjs --sequential watch",
     "build": "node scripts/run.mjs --parallel build",
     "postbuild": "node scripts/run.mjs prepare-package-for-publish",
@@ -171,7 +173,7 @@
       "../CHANGELOG.md",
       "../handsontable-non-commercial-license.pdf",
       "../LICENSE.txt",
-      "README.md"
+      "../README.md"
     ],
     "exports": [
       "./cellTypes/*/index.*",

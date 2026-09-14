@@ -147,18 +147,6 @@ export function waitForNextAnimationFrames(framesToWait = 1) {
 }
 
 /**
- * Wait for the next animation frames.
- *
- * @param {number} [framesToWait=1] The number of animation frames to wait for.
- * @returns {Promise<void>}
- *
- * @deprecated Use waitForNextAnimationFrames instead.
- */
-export async function waitForNameAnimationFrames(framesToWait = 1) {
-  await waitForNextAnimationFrames(framesToWait);
-}
-
-/**
  * Polls the provided condition on every animation frame until it returns a truthy value, or
  * rejects after `timeout` milliseconds. The condition-based replacement for a fixed `sleep()` or
  * a frame-count wait: it resolves as soon as the observable state is really there, and a state
@@ -487,6 +475,9 @@ export function getDefaultRowHeight() {
 }
 
 /**
+ * Only for a grid with NO column headers — see `firstRenderedRowDefaultHeight` in
+ * `themeLayoutFromTokens`. With column headers every body row is `getDefaultRowHeight()`.
+ *
  * @returns {number} Returns the default row height for the first rendered row.
  */
 export function getFirstRenderedRowDefaultHeight() {
@@ -505,6 +496,18 @@ export function getDefaultColumnWidth() {
  */
 export function getDefaultColumnHeaderHeight() {
   return getThemeLayout().defaultColumnHeaderHeight;
+}
+
+/**
+ * The rendered height of a column-header band — see `columnHeaderBandHeight` in
+ * `themeLayoutFromTokens`. Use this, not `getDefaultColumnHeaderHeight()`, whenever the number has
+ * to describe the space the header occupies in the layout.
+ *
+ * @param {number} [levels=1] Number of column-header levels.
+ * @returns {number} Height in pixels.
+ */
+export function getColumnHeaderBandHeight(levels = 1) {
+  return getThemeLayout().columnHeaderBandHeight(levels);
 }
 
 /**

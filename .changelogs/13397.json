@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the \"Filter by value\" search box ignoring the column's locale once the filter menu had been confirmed.",
+  "type": "fixed",
+  "issueOrPR": 13397,
+  "breaking": false,
+  "framework": "none"
+}

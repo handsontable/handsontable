@@ -7,6 +7,11 @@
  * same DOM that the `<Steps>` Astro component generates. Nested h3 steps
  * inside a parent step are wrapped in a nested `<ol class="sl-steps">`.
  *
+ * Step lists: a how-to guide writes its steps as a plain markdown ordered
+ * list under a `## Steps` heading (the template in `docs/AGENTS.md`), which
+ * is a list rather than a run of headings and so never matched the wrapper
+ * above. That list gets the same `sl-steps` markup applied in place.
+ *
  * FileTree: `<div class="dom-tree">` elements are converted to
  * `<starlight-file-tree>` custom elements so the real Starlight FileTree
  * CSS applies.
@@ -15,6 +20,9 @@ import { visit } from 'unist-util-visit';
 
 /** Matches "1. Title" or "Step 1: Title" prefixes. */
 const STEP_RE = /^(?:\d+\.\s+|Step\s+\d+[.:]\s*)/;
+
+/** Heading that introduces a how-to guide's ordered step list. */
+const STEPS_HEADING_TEXT = 'Steps';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -140,6 +148,82 @@ function makeStepsOl(lis) {
 }
 
 // ---------------------------------------------------------------------------
+// Step list marking (a how-to guide's `## Steps` ordered list)
+// ---------------------------------------------------------------------------
+
+/** Class list of a HAST element, always as an array. */
+function classNamesOf(node) {
+  const value = node.properties?.className;
+
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'string') return value.split(/\s+/).filter(Boolean);
+
+  return [];
+}
+
+/** The next element sibling after `index`, skipping whitespace-only text. */
+function nextElementSibling(children, index) {
+  for (let i = index + 1; i < children.length; i++) {
+    const node = children[i];
+
+    if (node.type === 'text' && node.value.trim() === '') continue;
+    if (node.type === 'element') return node;
+
+    return null;
+  }
+
+  return null;
+}
+
+/**
+ * Applies the `sl-steps` markup to the ordered list that follows a `## Steps`
+ * heading, so a how-to guide's numbered list renders like the step lists the
+ * heading-based wrapper produces.
+ *
+ * Runs before `wrapSteps()`, which rewrites the children arrays this reads.
+ *
+ * @param {object} tree - HAST root
+ */
+function markStepsListAfterHeading(tree) {
+  visit(tree, 'element', (node, index, parent) => {
+    if (!parent || index === null || index === undefined) return;
+    if (node.tagName !== 'h2') return;
+    if (textContent(node).trim() !== STEPS_HEADING_TEXT) return;
+
+    const list = nextElementSibling(parent.children, index);
+
+    if (!list || list.tagName !== 'ol') return;
+
+    const classNames = classNamesOf(list);
+
+    if (classNames.includes('sl-steps')) return;
+
+    list.properties = {
+      ...list.properties,
+      className: [...classNames, 'sl-steps'],
+      // `list-style: none` strips list semantics in Safari/VoiceOver, so the
+      // role has to be restated - the same workaround Starlight's own
+      // component uses.
+      role: 'list',
+    };
+
+    // The bullets are drawn by a CSS counter, so an `<ol start="3">` would
+    // still count from 1. Starlight's own rehype-steps.ts hands the offset to
+    // the stylesheet through `--sl-steps-start`, which `page.css` reads; do
+    // the same, and keep any style the list already carries.
+    const start = list.properties.start;
+
+    if (typeof start === 'number') {
+      const styles = [`--sl-steps-start: ${start - 1}`];
+
+      if (list.properties.style) styles.push(String(list.properties.style));
+
+      list.properties.style = styles.join(';');
+    }
+  });
+}
+
+// ---------------------------------------------------------------------------
 // FileTree transformation
 // ---------------------------------------------------------------------------
 
@@ -183,14 +267,18 @@ export function rehypeMigrationSteps() {
     // 1. Convert DOM tree divs to actual starlight-file-tree elements.
     transformDomTrees(tree);
 
-    // 2. Wrap step headings in <ol class="sl-steps"> structure.
+    // 2. Give a how-to guide's `## Steps` ordered list the same markup.
+    //    Before wrapSteps(), which rewrites the children arrays it reads.
+    markStepsListAfterHeading(tree);
+
+    // 3. Wrap step headings in <ol class="sl-steps"> structure.
     //    h2 steps nest h3, h3 steps nest h4.
     tree.children = wrapSteps(tree.children, 'h2', 'h3');
 
-    // 3. Catch orphaned h3 step headings (e.g. "Step 1: …" not inside an h2 step).
+    // 4. Catch orphaned h3 step headings (e.g. "Step 1: …" not inside an h2 step).
     tree.children = wrapSteps(tree.children, 'h3', 'h4');
 
-    // 4. Catch orphaned h4 step headings (e.g. "Step 1. …" under a non-step h3).
+    // 5. Catch orphaned h4 step headings (e.g. "Step 1. …" under a non-step h3).
     tree.children = wrapSteps(tree.children, 'h4', null);
   };
 }

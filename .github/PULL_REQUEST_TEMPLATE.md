@@ -21,6 +21,14 @@ entry` AFTER opening the PR (the file is named after the PR number). Docs-,
 test-, and CI/tooling-only PRs pass the check automatically. To deliberately
 skip it on a source change, write [skip changelog] in this description OUTSIDE
 any HTML comment — here, inside a comment, it is inert.
+
+One PR gets ONE entry. A second is only for a separate GitHub issue this PR
+closes; a different type or framework is not a reason for a second file — fold
+the titles instead. Use `npm run changelog entry` rather than writing the JSON
+by hand: the filename must be <number>.json with no suffix, and that is checked.
+Back-filling entries for OTHER PRs is the only case needing more than two —
+write [multiple changelogs] outside a comment for that. [skip changelog] does
+not lift the limit.
 -->
 
 ### Commands run
@@ -50,4 +58,4 @@ any HTML comment — here, inside a comment, it is inert.
 - [ ] I have reviewed the guidelines about [Contributing to Handsontable](https://github.com/handsontable/handsontable/blob/master/CONTRIBUTING.md) and I confirm that my code follows the code style of this project.
 - [ ] I have signed the [Contributor License Agreement](https://cla.handsontable.com/sign) — one signature covers both Handsontable and HyperFormula; the `cla/signed` check on this PR confirms it.
 - [ ] My change requires a change to the documentation.
-- [ ] MANUAL QA NEEDED — <!-- one line: WHAT to check and why automation can't judge it. Also add the red `Manual QA required` label. Ticking holds the Tests run for a manual-qa environment approval by a designated reviewer (never whoever triggered the run). The box is read once per run, so if you change it after the pipeline ran, press "Re-run all jobs". This line is machine-read — keep its wording. -->
+- [ ] MANUAL QA NEEDED — <!-- one line: WHAT to check and why automation can't judge it. Also add the red `Requires Manual QA` label (that exact name — it already exists; `QA needed` and `Verified by QA` are different labels). Ticking holds the Tests run for a manual-qa environment approval by a designated reviewer (never whoever triggered the run). The box is read once per run, so if you change it after the pipeline ran, press "Re-run all jobs". This line is machine-read — keep its wording. -->

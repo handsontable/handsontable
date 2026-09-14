@@ -14,9 +14,13 @@ plugin.
   `isVisible()`, `show()`, `hide()`, `update()` — delegates to the dialog. Every one of those methods
   re-checks `this.#dialogPlugin?.isEnabled()` before acting, because a user can switch `dialog: false` back
   off at any time.
-- **The dialog reference and the `afterDialogFocus` hook are wired once**, guarded on
-  `#dialogPlugin === null`. `updatePlugin()` runs the usual `disablePlugin(); enablePlugin();` cycle, so
-  without that guard the hook would be registered again on every settings update.
+- **The dialog reference is resolved once**, guarded on `#dialogPlugin === null`, and it outlives a
+  disable. **The `afterDialogFocus` hook is not**: it is registered with the tracked `this.addHook(...)` on
+  every `enablePlugin()`, outside that guard, so `disablePlugin()` drops it and the next enable puts it
+  back. `updatePlugin()` runs the usual `disablePlugin(); enablePlugin();` cycle, and the tracked
+  registration is what keeps that from doubling the hook. Registering it inside the guard is the older
+  shape and it silently loses the hook on the first `updateSettings()` (fixed in #13410, covered by
+  `src/plugins/__tests__/hooksReleasedOnDisable.unit.js`).
 
 ## `show()` is idempotent, and vetoable only on a real open
 

@@ -20,12 +20,6 @@
 - Impact: Makes it hard to reason about listener ownership. Clearing one manager's listeners requires filtering by manager identity, which is inefficient and error-prone.
 - Fix approach: Each `EventManager` instance should maintain its own listener list. Provide a central registry only for debugging/leak detection purposes.
 
-**Redundant Render Cycle Calls:**
-- Issue: Several plugins independently trigger operations that should be batched per render cycle. The TODO comments are explicit: "Should call once per render cycle, currently fired separately in different plugins."
-- Files: `handsontable/src/plugins/hiddenColumns/hiddenColumns.ts`, `handsontable/src/plugins/autoColumnSize/autoColumnSize.ts`, `handsontable/src/plugins/autoRowSize/autoRowSize.ts`
-- Impact: Unnecessary re-renders degrade performance, especially with large datasets. Each redundant call triggers layout recalculations.
-- Fix approach: Consolidate these operations into a single per-render-cycle hook. Use the existing `batchRender()` / `suspendRender()` / `resumeRender()` infrastructure to coalesce these calls.
-
 **core.ts Monolith:**
 - Issue: `core.ts` is covering initialization, data manipulation, rendering coordination, selection management, and the entire public API surface. Functions use `this` binding via closure (constructor function pattern), not class syntax.
 - Files: `handsontable/src/core.ts`

@@ -494,10 +494,14 @@ describe('buildHtmlReport -- baseline provenance', () => {
       { timestamp: 't', scenarios: { sorting: goldenScenario() } },
       {}
     );
-    const { thresholds } = payloadOf(html);
+    const { thresholds, scenarios } = payloadOf(html);
 
-    assert.ok(thresholds.heap < thresholds.timing);
+    assert.equal(typeof thresholds.timing, 'number');
     assert.equal(typeof thresholds.cvWarning, 'number');
+    // No shared heap number: the heap band is per scenario, and a shared field would be reached for
+    // and hand the two scroll scenarios the wrong band.
+    assert.equal('heap' in thresholds, false);
+    assert.equal(typeof scenarios[0].heapThreshold, 'number');
   });
 });
 

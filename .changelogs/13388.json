@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed copying, cutting, and pasting doing nothing in a grid embedded in a Salesforce Lightning Web Component.",
+  "type": "fixed",
+  "issueOrPR": 13388,
+  "breaking": false,
+  "framework": "none"
+}

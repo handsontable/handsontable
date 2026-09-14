@@ -25,7 +25,7 @@ name: Manual QA
 #   mergeable PR until someone re-runs it; that is a known limitation, kept
 #   deliberately in exchange for having no label/arming automation at all.
 #
-# The red `Manual QA required` label is applied BY THE PR AUTHOR (the
+# The red `Requires Manual QA` label is applied BY THE PR AUTHOR (the
 # `pr-creation` skill instructs it), like every other label in this repo. It
 # is a marker for the PR list, never the trigger.
 #

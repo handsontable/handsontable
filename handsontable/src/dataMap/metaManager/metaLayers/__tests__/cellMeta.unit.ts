@@ -5,6 +5,36 @@ import { registerAllCellTypes, getCellType } from '../../../../cellTypes';
 
 registerAllCellTypes();
 
+describe('CellMeta#extendMeta', () => {
+  it('should advance the render version only when a merged value differs', () => {
+    const meta = new CellMeta(new ColumnMeta(new GlobalMeta()));
+    const renderer = () => {};
+
+    meta.extendMeta(1, 1, { readOnly: true, renderer });
+    expect(meta.getMeta(1, 1)._renderVersion).toBe(1);
+
+    // The same result again (a fresh object, the same values) is not a change.
+    meta.extendMeta(1, 1, { readOnly: true, renderer });
+    expect(meta.getMeta(1, 1)._renderVersion).toBe(1);
+
+    meta.extendMeta(1, 1, { readOnly: false, renderer });
+    expect(meta.getMeta(1, 1)._renderVersion).toBe(2);
+
+    // A new function reference is a change, by identity.
+    meta.extendMeta(1, 1, { readOnly: false, renderer: () => {} });
+    expect(meta.getMeta(1, 1)._renderVersion).toBe(3);
+  });
+
+  it('should not advance the render version for an empty result', () => {
+    const meta = new CellMeta(new ColumnMeta(new GlobalMeta()));
+
+    meta.getMeta(0, 0);
+    meta.extendMeta(0, 0, {});
+
+    expect(meta.getMeta(0, 0)._renderVersion).toBeUndefined();
+  });
+});
+
 describe('ColumnMeta', () => {
   it('should reflect the changes in the cell meta when the global meta properties were changed', () => {
     const globalMeta = new GlobalMeta();
@@ -209,6 +239,23 @@ describe('ColumnMeta', () => {
       meta.getMeta(2, 1)._test = 'one';
 
       expect(meta.getMetasAtRow(2).map(metaObject => metaObject._test)).toEqual(['zero', 'one', 'three', 'four']);
+    });
+
+    it('should return physical column keys with metas', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      meta.getMeta(2, 4)._test = 'four';
+      meta.getMeta(2, 1)._test = 'one';
+
+      expect(meta.getMetasAtRowWithPhysicalColumns(2).map(({ physicalColumn, meta: cellMeta }) => ({
+        physicalColumn,
+        value: cellMeta._test,
+      }))).toEqual([
+        { physicalColumn: 1, value: 'one' },
+        { physicalColumn: 4, value: 'four' },
+      ]);
     });
 
     it('should change cell meta by reference', () => {

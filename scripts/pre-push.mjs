@@ -5,20 +5,80 @@
  * run so a new test is proven before it is pushed. Bypassable with
  * `git push --no-verify` — CI is the real guarantee.
  *
- * Scoped to stay fast: it runs the presence gate (no build) and only the
- * Playwright specs the push touches. The full unit/E2E suites are CI's job.
+ * Scoped to stay fast: it runs the presence gate (no build), the determinism
+ * ratchet on the changed spec files, and only the Playwright specs the push
+ * touches. The full unit/E2E suites are CI's job.
  */
 import { execSync, spawnSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
+import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
 import { repoRoot } from '../.github/scripts/lib/repo-root.mjs';
+import { selectRatchetedFiles } from '../.github/scripts/lib/lint-ratchet.mjs';
 import { lintable, runEslint } from './lint-files.mjs';
 import { filterCached, recordGreen } from './e2e-run-cache.mjs';
 
 // npx/npm are .cmd shims on Windows; spawnSync needs a shell there or it ENOENTs
 // (a hook that fails-closed on every push just trains people to use --no-verify).
 const WIN = process.platform === 'win32';
+
+// `bin/lib/` is CommonJS, shared with `bin/changelog`. Resolved from this
+// file's own location, not from the repo root, so the specifier stays a
+// literal (`import/no-dynamic-require`) and the module is pure either way.
+const require = createRequire(import.meta.url);
+const { findMisnamedEntries, formatMisnamedReport } = require('../bin/lib/entry-filenames.js');
+
+/**
+ * Report the changelog entries whose filename does not match the number they
+ * cite. Reads the whole directory rather than the pushed diff: the invariant is
+ * repo-wide, and a rename is exactly how a second entry for one number would
+ * otherwise slip past a diff-scoped check.
+ *
+ * Fails open on an unreadable directory — `bin/changelog` itself reports that
+ * with better messages on every pull request. Malformed JSON is different: it
+ * is an entry defect, so the hook reports it and blocks the push while still
+ * checking the other files for filename violations.
+ *
+ * @param {string} root The repository root.
+ * @returns {boolean} True when every entry is named correctly, or when the
+ *   check could not run.
+ */
+export function checkEntryFilenames(root) {
+  const directory = path.join(root, '.changelogs');
+  let records;
+
+  try {
+    records = [];
+    let hasParseError = false;
+
+    readdirSync(directory)
+      .filter(name => name.endsWith('.json'))
+      .forEach((name) => {
+        const file = path.posix.join('.changelogs', name);
+
+        try {
+          records.push({
+            file,
+            entry: JSON.parse(readFileSync(path.join(directory, name), 'utf8')),
+          });
+        } catch (error) {
+          hasParseError = true;
+          console.error(`pre-push: could not parse ${file}: ${error.message}`);
+        }
+      });
+
+    const report = formatMisnamedReport(findMisnamedEntries(records));
+
+    if (report.offenders.length) {
+      console.error(`\n${report.message}\n`);
+    }
+
+    return !hasParseError && report.offenders.length === 0;
+  } catch {
+    return true;
+  }
+}
 
 /**
  * Resolve the base ref to diff against — the merge-base with the trunk.
@@ -75,6 +135,18 @@ export function changedUnitTests(changed) {
  */
 export function unitTestPattern(unitFile) {
   return unitFile.replace(/^handsontable\//, '');
+}
+
+/**
+ * Does the push touch a file the determinism ratchet applies to? The ratchet
+ * CLI makes the same decision itself and exits 0 at once; deciding here too
+ * saves the spawn on the common source-only push. Pure so it can be unit-tested.
+ *
+ * @param {string[]} changed Repo-relative changed paths.
+ * @returns {boolean} True when `.github/scripts/lint-ratchet.mjs` must run.
+ */
+export function needsDeterminismRatchet(changed) {
+  return selectRatchetedFiles(changed).length > 0;
 }
 
 /**
@@ -284,6 +356,17 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     process.exit(gate.status ?? 1);
   }
 
+  // 1b) Changelog entry filenames — blocking, and diff-independent, so it needs
+  //     no base ref and costs a directory read. An entry file is always
+  //     `<issueOrPR>.json`, which is what keeps one pull request to one entry:
+  //     a number owns one file, so a change cannot be split across two lines of
+  //     the same release notes. CI asserts the same thing in `bin/changelog`'s
+  //     `consume --dry-run`, which is the real guarantee — this push is
+  //     bypassable with `--no-verify`, routine on release-branch pull requests.
+  if (!checkEntryFilenames(root)) {
+    process.exit(1);
+  }
+
   const changed = execSync(`git diff --name-only ${base}...HEAD`, { encoding: 'utf8', cwd: root })
     .split('\n').filter(Boolean);
 
@@ -293,8 +376,32 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     process.exit(1);
   }
 
-  // 3) Surface weakened specs (assertions removed / skip/focus added). Non-blocking,
-  //    same as CI — it is a signal for the author, not a hard gate.
+  // 2b) Determinism ratchet — blocking. The warn-level sleep()/it.flaky()/skip
+  //     rules stay warnings on the frozen suite's existing debt, but one on a
+  //     line THIS push added is an error. Same script and rule set as CI
+  //     (lint.yml), so the local scope is exactly the CI scope. The CLI skips
+  //     (exit 0, with a notice) on every tooling gap it can meet — no base ref,
+  //     ESLint missing or exiting 2 — so the only exit 1 is a real finding; a
+  //     child killed before it could answer is infra and does not block either.
+  if (needsDeterminismRatchet(changed)) {
+    const ratchet = spawnSync('node', [path.join(root, '.github/scripts/lint-ratchet.mjs')], {
+      stdio: 'inherit',
+      cwd: root,
+      env: { ...env, GATE_BASE: base },
+    });
+
+    if (isSpawnInfraFailure(ratchet)) {
+      console.log(`pre-push: the determinism ratchet could not complete (${
+        ratchet.error?.code || ratchet.signal}) — skipping; CI runs it.`);
+    } else if (ratchet.status !== 0) {
+      process.exit(ratchet.status);
+    }
+  }
+
+  // 3) Surface weakened specs (assertions removed, a test block deleted, skip/focus
+  //    added, an exact matcher downgraded to a bounded one, a toBeCloseTo tolerance
+  //    widened).
+  //    Non-blocking, same as CI — it is a signal for the author, not a hard gate.
   spawnSync('node', [path.join(root, '.github/scripts/test-weakening-gate.mjs')], {
     stdio: 'inherit',
     cwd: root,

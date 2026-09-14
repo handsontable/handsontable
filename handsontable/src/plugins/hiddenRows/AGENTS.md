@@ -5,7 +5,8 @@ before touching `hiddenRows.ts` or anything in `contextMenuItem/`.
 
 **This plugin is the mirror image of `../hiddenColumns/`, almost line for line.** Read
 `../hiddenColumns/AGENTS.md` — the hiding-vs-trimming distinction, the replayed `init` local hook, the
-`afterGetCellMeta` hygiene rules (`className` normalization, compare-before-assign, token matching) and the
+`afterGetCellMeta` hygiene rules (`className` normalization, compare-before-assign, gating the write on
+finding the marker, token matching) and the
 `disablePlugin()` meta reset are all the same. **Fix a bug in one and check the other.**
 
 What follows is only what differs.

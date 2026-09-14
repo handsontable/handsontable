@@ -103,6 +103,8 @@ getSelectionText(window);
 getStyle(domElement, 'foo');
 getStyle(domElement, 'foo', window);
 getTrimmingContainer(domElement);
+getTrimmingContainer(domElement, 'x');
+getTrimmingContainer(domElement, 'y');
 getWindowScrollLeft();
 getWindowScrollLeft(window);
 getWindowScrollTop();

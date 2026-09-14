@@ -10,6 +10,7 @@ import type { IndexMapper } from '../translations';
 import type CellCoords from '../3rdparty/walkontable/src/cell/coords';
 import type CellRange from '../3rdparty/walkontable/src/cell/range';
 import type { Events, GridSettings } from './settings';
+import type { RenderChangeTracker } from './incrementalRender/renderChangeTracker';
 import type { CellProperties, ColumnDataGetterSetterFunction } from '../settings';
 import type { default as SelectionManager } from '../selection/selection';
 import type { default as ViewInstance } from '../tableView';
@@ -203,6 +204,9 @@ export interface HotInstance {
 
   // Rendering
   render(): void;
+  markCellChanged(row: number, column: number): void;
+  markAllCellsChanged(): void;
+  renderChangeTracker: RenderChangeTracker;
   forceFullRender: boolean;
   batchRender(wrappedOperations: () => unknown): unknown;
   batchExecution(wrappedOperations: () => unknown, forceFlushChanges?: boolean): unknown;

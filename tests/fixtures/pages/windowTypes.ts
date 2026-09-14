@@ -17,6 +17,14 @@ interface FixtureCellRange {
 }
 
 /**
+ * One entry of a sort config, as both sorting plugins take and return it.
+ */
+export interface FixtureSortConfig {
+  column: number;
+  sortOrder: 'asc' | 'desc';
+}
+
+/**
  * The slice of the Handsontable instance API the fixture-driving evaluate
  * callbacks use, so the in-page calls stay typed without importing the core
  * types into the test tier.
@@ -27,6 +35,7 @@ export interface FixtureHotInstance {
   getSourceDataAtCell(row: number, col: number): CellValue;
   getSourceData(): unknown[];
   setDataAtCell(row: number, col: number, value: CellValue): void;
+  setCellMeta(row: number, col: number, key: string, value: unknown): void;
   getCellMeta(row: number, col: number): { className?: string, readOnly?: boolean };
   getPlugin(name: 'formulas'): {
     getCellType(row: number, col: number): string,
@@ -61,6 +70,16 @@ export interface FixtureHotInstance {
     clearConditions(column?: number): void,
     filter(): void,
   };
+  /**
+   * Both sorting plugins expose the same `sort()` signature - `MultiColumnSorting` extends
+   * `ColumnSorting` and only widens what an array of configs means - so one overload covers
+   * a fixture that swaps between them. The `column` is a VISUAL index.
+   */
+  getPlugin(name: 'columnSorting' | 'multiColumnSorting'): {
+    sort(sortConfig?: FixtureSortConfig | FixtureSortConfig[]): void,
+    getSortConfig(): FixtureSortConfig[],
+    clearSort(): void,
+  };
   getPlugin(name: 'dragToScroll'): { isListening(): boolean };
   getPlugin(name: 'autofill'): { mouseDownOnCellCorner: boolean };
   getPlugin(name: 'multipleSelectionHandles'): { isDragged(): boolean };
@@ -88,6 +107,7 @@ export interface FixtureHotInstance {
     },
     dataManager: {
       getDataObject(row: number): object | null,
+      getRawSourceData(): unknown[],
       addChild(parent: object): void,
     },
   };
@@ -103,6 +123,12 @@ export interface FixtureHotInstance {
   } | undefined;
   render(): void;
   listen(): void;
+  view: {
+    isVerticallyScrollableByWindow(): boolean,
+    isHorizontallyScrollableByWindow(): boolean,
+  };
+  /** The grid's own root `<div>` – a child of the container passed to the constructor. */
+  rootElement: HTMLElement;
   getFirstFullyVisibleRow(): number;
   getLastFullyVisibleRow(): number;
   getLastRenderedVisibleRow(): number;
@@ -112,6 +138,8 @@ export interface FixtureHotInstance {
   deselectCell(): void;
   getSelectedRangeLast(): FixtureCellRange;
   getSelectedRange(): FixtureCellRange[];
+  getSelectedRangeActive(): FixtureCellRange | undefined;
+  getSelected(): number[][] | undefined;
   addHook(name: string, callback: () => void): void;
   addHookOnce(name: string, callback: () => unknown): void;
   getSelectedLast(): number[];
@@ -125,6 +153,7 @@ export interface FixtureHotInstance {
   loadData(data: unknown[]): void;
   updateData(data: unknown[]): void;
   updateSettings(settings: Record<string, unknown>): void;
+  alter(action: string, index?: number | number[][], amount?: number, source?: string): void;
   countCols(): number;
   rowIndexMapper: { getIndexesSequence(): number[] };
   columnIndexMapper: { getIndexesSequence(): number[] };
@@ -163,8 +192,14 @@ declare global {
         add(key: string, callback: (...args: unknown[]) => unknown): void;
       };
     };
-    /** Rebuilds the formulas fixture grid with the given dataset. */
+    /**
+     * Rebuilds the formulas fixture grid with the given dataset, or – the width-window-scroll
+     * fixture's overload – rebuilds its grid with setting overrides and an optional parent width.
+     */
     initGrid(data: CellValue[][], overrides?: Record<string, unknown>): boolean;
+    initGrid(overrides?: Record<string, unknown>, containerWidth?: string): boolean;
+    /** `afterScrollVertically` calls since the last rebuild (width-window-scroll fixture). */
+    verticalScrollCount: number;
     /** Rebuilds the selection-features fixture grid with the given setting overrides. */
     initSelectionGrid(overrides?: Record<string, unknown>): boolean;
     /** Rebuilds the mobile drag-to-scroll fixture grid with the given setting overrides. */
@@ -181,6 +216,10 @@ declare global {
     pendingValidationCount(): number;
     /** Rebuilds the GH #5983 sorting-a-filtered-grid-with-`minSpareRows` fixture grid. */
     initSortingSpareRowsGrid(overrides?: Record<string, unknown>): boolean;
+    /**
+     * Rebuilds the DEV-59 sorting-with-`fixedRowsTop`/`fixedRowsBottom` fixture grid.
+     */
+    initSortingFixedRowsGrid(overrides?: Record<string, unknown>): boolean;
     /** Returns the text the browser currently reports as selected (fragmentSelection fixture). */
     readTextSelection(): string;
     /** Drops any existing text selection (fragmentSelection fixture). */
@@ -195,6 +234,14 @@ declare global {
     moveCellsHookLog: MoveCellsHookRecord[];
     /** Recorded NestedRows collapse/expand hook calls, in firing order. */
     hookLog: { name: string, args: unknown[] }[];
+    /** Recorded remove-row hook arguments from the DEV-30 nested undo fixture. */
+    removeLog: {
+      hook: 'beforeRemoveRow' | 'afterRemoveRow';
+      index: number;
+      amount: number;
+      physicalRows: number[];
+      source?: string;
+    }[];
     /** Makes the fixture's `beforeMoveCells` listener return `false`. */
     setBeforeMoveCellsVeto(shouldVeto: boolean): boolean;
     /** Makes the fixture's `beforeRowMove` listener return `false`. */
@@ -203,6 +250,15 @@ declare global {
     setBeforeColumnMoveVeto(shouldVeto: boolean): boolean;
     /** Per-hook invocation counters of the touch tap-to-edit fixture (DEV-2687). */
     hookCounts: Record<HookCounterName, number>;
+    /**
+     * Builds a grid whose init aborts inside `updateSettings()` and returns the message it threw
+     * with, or `null` when it unexpectedly succeeded (DEV-2874 fixture).
+     */
+    abortGridInit(): string | null;
+    /** Starts counting the healthy grid's `getIfMouseWasDraggedOutside()` calls (DEV-2874 fixture). */
+    instrumentDragOutsideCheck(): boolean;
+    /** How many drag-outside measurements the healthy grid has taken since instrumentation. */
+    dragOutsideCheckCount: number;
     /**
      * Chromium-only InputDeviceCapabilities constructor, used to stamp synthetic mouse events
      * with their origin (DEV-2687).

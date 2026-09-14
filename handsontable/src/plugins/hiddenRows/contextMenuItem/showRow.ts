@@ -33,9 +33,6 @@ export default function showRowItem(hiddenRowsPlugin: Record<string, Function>) 
 
       hiddenRowsPlugin.showRows(rows);
 
-      // We render rows at first. It was needed for getting fixed rows.
-      // Please take a look at #6864 for broader description.
-      this.view.adjustElementsSize();
       this.render();
 
       const allRowsSelected = endVisualRow - startVisualRow + 1 === this.countRows();

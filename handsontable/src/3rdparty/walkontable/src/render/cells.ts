@@ -4,6 +4,7 @@ import {
   setAttribute,
 } from '../../../../helpers/dom/element';
 import { SharedOrderView } from '../utils/orderView';
+import { clearAppliedSelection } from '../selection/appliedSelection';
 import { BaseRenderer } from './_base';
 import {
   A11Y_COLINDEX,
@@ -62,6 +63,15 @@ export class CellsRenderer extends BaseRenderer {
    */
   render() {
     const { rowsToRender, columnsToRender, rows, rowHeaders } = this.table;
+    const { rowFilter, columnFilter, activeOverlayName } = this.table;
+    // The identity of the rendered band: which source rows and columns the reused elements hold on
+    // this draw. The host compares it against the element's last paint. The band size stays in it
+    // even though a reused element's own source indexes already move with the offsets: MergeCells
+    // clamps a merged cell's rowspan and colspan to the rendered band, so a cell whose indexes did
+    // not change still needs a paint when the band grows or shrinks.
+    const band = [
+      activeOverlayName, rowFilter?.offset ?? 0, rowsToRender, columnFilter?.offset ?? 0, columnsToRender,
+    ].join(',');
 
     for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
@@ -90,8 +100,16 @@ export class CellsRenderer extends BaseRenderer {
           continue; // eslint-disable-line no-continue
         }
 
+        // The host may keep the element as it is (`renderMode: 'onChange'`); then nothing below runs.
+        if (!this.table.shouldPaintCell(sourceRowIndex, sourceColumnIndex, TD as HTMLTableCellElement, band)) {
+          continue; // eslint-disable-line no-continue
+        }
+
         if (!hasClass(TD, 'hide')) { // Workaround for hidden columns plugin
           TD.className = '';
+          // The record of the selection classes goes with them. A `hide` cell keeps both, so the
+          // selection pass can still take them off when the cell leaves the selection.
+          clearAppliedSelection(TD);
         }
 
         TD.removeAttribute('style');

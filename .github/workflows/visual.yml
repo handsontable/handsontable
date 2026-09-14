@@ -57,6 +57,13 @@ jobs:
             npm run in handsontable build:es
             npm run in handsontable build:commonjs
             npm run in handsontable build:languages.es
+            # The exports map's `./languages/all` require target is `languages/all.js`,
+            # which only `build:languages` emits; the UMD artifact carries dist/ and
+            # styles/, not languages/, so a run whose ES+CJS job was scope-skipped
+            # while UMD ran has to build the packs here (same tasks as build.yml's
+            # ES+CJS job) or `postbuild:partial` fails on that one export.
+            npm run in handsontable build:languages
+            npm run in handsontable build:languages.min
             # The `exports` map that `postbuild:partial` verifies below names the
             # type declarations, so this path has to emit them too or the check
             # fails on eight missing `.d.ts`/`.d.mts` files. Same pair, same

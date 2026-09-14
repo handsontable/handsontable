@@ -269,8 +269,9 @@ export const calculatorFactory: CalculatorFactory = {
    * @param {'rendered' | 'fullyVisible' | 'partiallyVisible'} calculatorTypes The list of the calculation types.
    * @param {'render' | 'visible'} band The viewport box the calculator reads.
    * @param {object} [options] The calculator-creation options.
-   * @param {boolean} [options.proposeOnly=false] When `true`, the `columnHeaderHeight` memo is NOT
-   * reset — the propose-only twin of the `createRowsCalculator` option, see there.
+   * @param {boolean} [options.proposeOnly=false] When `true`, the `columnHeaderHeight` and
+   * `columnHeaderHeightFraction` memos are NOT reset — the propose-only twin of the
+   * `createRowsCalculator` option, see there.
    * @returns {ViewportColumnsCalculator}
    */
   createColumnsCalculator(
@@ -301,6 +302,7 @@ export const calculatorFactory: CalculatorFactory = {
 
     if (!proposeOnly) {
       this.columnHeaderHeight = NaN;
+      this.columnHeaderHeightFraction = NaN;
     }
 
     const fixedColumnsStart = wtSettings.getSetting<number>('fixedColumnsStart');

@@ -160,7 +160,6 @@ function replaceData(
   // TODO: rethink the way the `afterChange` hook is being run here in the core `init` method.
   if (!firstRun) {
     hotInstance.runHooks('afterChange', null, internalSource);
-    hotInstance.view.adjustElementsSize();
     hotInstance.render();
   }
 

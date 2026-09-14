@@ -3,8 +3,10 @@
  * to measure the elapsed time between a "before" and "after" hook pair.
  */
 
-import { writeFile, mkdir } from 'node:fs/promises';
-import { join } from 'node:path';
+import { writeSidecar } from './sidecar.mjs';
+
+// The sidecar the teardown reads the hook deltas from, next to the scenario's traces.
+export const HOOK_TIMING_FILE = 'hook-timing.json';
 
 /**
  * Inject timing listeners for a before/after hook pair.
@@ -76,10 +78,5 @@ export async function saveHookTimings(outputDir, deltas) {
 
   const avgDelta = deltas.reduce((a, b) => a + b, 0) / deltas.length;
 
-  await mkdir(outputDir, { recursive: true });
-  await writeFile(
-    join(outputDir, 'hook-timing.json'),
-    JSON.stringify({ deltas, averageDeltaMs: avgDelta }, null, 2),
-    'utf8',
-  );
+  await writeSidecar(outputDir, HOOK_TIMING_FILE, { deltas, averageDeltaMs: avgDelta });
 }

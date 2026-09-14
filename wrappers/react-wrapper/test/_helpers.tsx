@@ -319,6 +319,29 @@ export const ImmediateValueEditor: React.FC = () => {
   );
 };
 
+/**
+ * Editor whose focusable control is a plain `<input>`, the shape the reported case uses
+ * (DEV-2787). The `<button>` the editors above carry is not an `isInput()` element, so none of
+ * them reaches the `isOutsideInput` branch of the document `mouseup` verdict in `tableView`.
+ */
+export const TextInputEditor: React.FC = () => {
+  const mainElementRef = React.useRef<HTMLDivElement>(null);
+  const { value, setValue } = useHotEditor<string>({
+    onOpen() {
+      mainElementRef.current!.style.display = 'block';
+    },
+    onClose() {
+      mainElementRef.current!.style.display = 'none';
+    }
+  });
+
+  return (
+    <div id="textInputEditor" ref={mainElementRef} style={{ display: 'none' }}>
+      <input id="textInputEditorField" value={value ?? ''} onChange={event => setValue(event.target.value)} />
+    </div>
+  );
+};
+
 export class CustomNativeEditor extends Handsontable.editors.BaseEditor {
   declare TEXTAREA: HTMLTextAreaElement
   declare TEXTAREA_PARENT: HTMLElement

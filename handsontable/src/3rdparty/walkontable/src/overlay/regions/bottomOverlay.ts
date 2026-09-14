@@ -73,6 +73,9 @@ export class BottomOverlay extends Overlay {
   /**
    * Updates the top overlay position.
    *
+   * Reports no position change, for the same reason `TopOverlay#resetFixedPosition` does not:
+   * `innerBorderBottom` shifts no layout since DEV-2786, so the draw cycle has nothing to reconcile.
+   *
    * @returns {boolean}
    */
   resetFixedPosition() {
@@ -86,9 +89,8 @@ export class BottomOverlay extends Overlay {
     overlayRoot.style.top = '';
 
     let overlayPosition = 0;
-    const preventOverflow = this.wtSettings.getSetting<boolean | string>('preventOverflow');
 
-    if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
+    if (this.trimmingContainer === rootWindow) {
       overlayPosition = this.getOverlayOffset();
 
       // At non-integer zoom levels (e.g. 90%) the browser physically rounds each row's
@@ -108,11 +110,11 @@ export class BottomOverlay extends Overlay {
       this.repositionOverlay();
     }
 
-    const positionChanged = this.adjustHeaderBordersPosition(overlayPosition);
+    this.adjustHeaderBordersPosition(overlayPosition);
 
     this.adjustElementsSize();
 
-    return positionChanged;
+    return false;
   }
 
   /**
@@ -209,8 +211,49 @@ export class BottomOverlay extends Overlay {
     } else if (this.clone) {
       // Stopped rendering - `fixedRowsBottom` set back to 0, say. Nothing below sizes this overlay any
       // more, so drop its clearance here or the filler stays behind as an opaque strip over live cells.
+      this.#bottomClearance = 0;
       this.clearScrollbarClearance();
     }
+  }
+
+  /**
+   * The bottom clearance strip this overlay last computed, in pixels (0 when none applies). The
+   * bottom-inline-start corner is drawn over this overlay's bottom edge and must clip exactly the
+   * same strip - a corner that decides on its own can disagree by one gate and leave a notch where
+   * the frozen columns stop and the frozen rows carry on (#10370) - so it reads the value from here
+   * instead of recomputing it. The draw cycle positions this overlay before the corner.
+   *
+   * @returns {number}
+   */
+  getBottomClearance(): number {
+    return this.#bottomClearance;
+  }
+
+  /**
+   * Whether this clone rests on the master holder's bottom edge, where the holder's horizontal
+   * scrollbar is painted. Anywhere else the clone floats over live cells, and a clearance strip
+   * there is a clipped clone plus a band filling in for nothing.
+   *
+   * Computed on every read, never cached. The sizing pass that consumes it runs from
+   * `Overlays#refresh` BEFORE `resetFixedPosition` in the same draw, so a value written by the
+   * positioning pass would be one draw behind exactly when the clone has just arrived on the edge
+   * or just left it — and the band, which `Overlays#syncScrollbarTrackBands` derives from the
+   * published strip during that same earlier pass, would then disagree with the clip. Clip and band
+   * together, or not at all (#10370).
+   *
+   * The two paths mirror `resetFixedPosition`: with the window scrolling the rows the clone floats at
+   * the viewport's bottom and reaches the holder's edge only once the page is at the grid's end,
+   * which is what a zero overlay offset means; with an element scrolling them `repositionOverlay`
+   * lifts the clone to where the rows end whenever the holder itself does not scroll.
+   *
+   * @returns {boolean}
+   */
+  #restsOnHolderBottomEdge(): boolean {
+    if (this.trimmingContainer === this.deps.rootWindow) {
+      return this.getOverlayOffset() === 0;
+    }
+
+    return this.deps.getWtViewport().hasVerticalScroll();
   }
 
   /**
@@ -226,27 +269,36 @@ export class BottomOverlay extends Overlay {
     const { rootDocument, rootWindow } = this.deps;
     const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
     const overlayRootStyle = overlayRoot.style;
-    const preventOverflow = this.wtSettings.getSetting<boolean | string>('preventOverflow');
 
-    // Both strips need this overlay to be laid out against the scrollport; when the window anchors it
-    // instead, `repositionOverlay` never runs and clipping would expose the master for nothing.
-    const rootSized = this.trimmingContainer !== rootWindow || preventOverflow === 'horizontal';
-    // Clip and band together, or not at all - see `TopOverlay#adjustRootElementSize`.
-    const clearanceApplies = holderOwnsScrollbars(this.trimmingContainer, rootWindow);
+    // Width is a horizontal question: sized against the scrollport whenever an element owns the
+    // horizontal axis (see `TopOverlay#adjustRootElementSize`).
+    const rootSized = !wtViewport.isHorizontallyScrollableByWindow();
+    // Each strip reads the owner of the axis it lies on. The inline-end strip clears the master's
+    // VERTICAL scrollbar, so it asks this overlay's own (vertical) owner; the bottom strip clears the
+    // HORIZONTAL one, so it asks the inline-start overlay's. In split mode the two differ - the window
+    // owns the rows, the holder owns the columns - and one predicate taken from the vertical owner
+    // said "the window's scrollbar" for both, leaving the holder's horizontal scrollbar under the
+    // frozen bottom rows at the grid's end. Clip and band together, or not at all - see
+    // `TopOverlay#adjustRootElementSize`.
+    const inlineEndClearanceApplies = holderOwnsScrollbars(this.trimmingContainer, rootWindow);
+    const bottomClearanceApplies = holderOwnsScrollbars(
+      this.wot.wtOverlays.inlineStartOverlay.trimmingContainer, rootWindow
+    ) && this.#restsOnHolderBottomEdge();
 
     // The master's vertical scrollbar sits along the inline-end edge this overlay spans.
     this.#holderClearance = axisScrollbarClearance(
       this.deps.geometryReader,
       wtTable.holder,
       this.deps.geometryReader.getScrollbarWidth(rootDocument),
-      clearanceApplies && wtViewport.hasVerticalScroll(),
+      inlineEndClearanceApplies && wtViewport.hasVerticalScroll(),
       'vertical'
     );
 
     if (rootSized) {
       let width = wtViewport.getWorkspaceWidth();
 
-      if (wtViewport.hasVerticalScroll()) {
+      // Only the holder's own vertical scrollbar takes width off this overlay - see `TopOverlay`.
+      if (wtViewport.hasVerticalScroll() && !wtViewport.isVerticallyScrollableByWindow()) {
         width = overlayExtentBesideScrollbar(
           width,
           this.deps.geometryReader.clientWidth(wtTable.holder),
@@ -263,13 +315,16 @@ export class BottomOverlay extends Overlay {
     }
 
     // This overlay also spans the bottom edge, where the horizontal scrollbar is painted - but only
-    // while it actually sits on that edge. Without a vertical scroll `repositionOverlay` lifts it to
-    // where the rows end, clear of the scrollbar, so no strip is needed then.
+    // while it actually rests on that edge (`#restsOnHolderBottomEdge`, folded into the predicate
+    // above). `hasVerticalScroll()` used to stand in for that, and it is the wrong question on the
+    // window-owned vertical axis: the page scrolls, so it answers `true` while the clone floats
+    // mid-page over live cells, and `repositionOverlay` - which lifts the clone clear of the
+    // scrollbar in element mode - never runs on that path at all.
     this.#bottomClearance = axisScrollbarClearance(
       this.deps.geometryReader,
       wtTable.holder,
       this.deps.geometryReader.getScrollbarWidth(rootDocument),
-      clearanceApplies && wtViewport.hasHorizontalScroll() && wtViewport.hasVerticalScroll(),
+      bottomClearanceApplies && wtViewport.hasHorizontalScroll(),
       'horizontal'
     );
 
@@ -415,10 +470,9 @@ export class BottomOverlay extends Overlay {
    */
   getOverlayOffset() {
     const { rootWindow } = this.deps;
-    const preventOverflow = this.wtSettings.getSetting<boolean | string>('preventOverflow');
     let overlayOffset = 0;
 
-    if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'vertical') && this.clone) {
+    if (this.trimmingContainer === rootWindow && this.clone) {
       const rootHeight = this.deps.getWtTable().getTotalHeight();
       const overlayRootHeight = this.clone.wtTable.getTotalHeight();
       const maxOffset = rootHeight - overlayRootHeight;
@@ -437,72 +491,29 @@ export class BottomOverlay extends Overlay {
   }
 
   /**
-   * Pre-applies the header-border class before the cell render (single-pass gated path), so the
-   * post-render `resetFixedPosition` toggle is a no-op and the nested re-draw is skipped. Element mode
-   * only — see `TopOverlay#prepareHeaderBorders`.
-   */
-  prepareHeaderBorders() {
-    if (!this.needFullRender || !this.shouldBeRendered() ||
-        !this.deps.getWtTable().holder.parentNode || !this.clone ||
-        this.trimmingContainer === this.deps.rootWindow) {
-      return;
-    }
-
-    this.adjustHeaderBordersPosition(this.getScrollPosition());
-  }
-
-  /**
-   * Adds css classes to hide the header border's header (cell-selection border hiding issue).
+   * Stamps the `innerBorderBottom` class on the master's root element.
+   *
+   * Kept for backward compatibility only: no stylesheet has read it since DEV-2786 handed the seam
+   * under the column header to the header's own `border-bottom` at every scroll position. See
+   * `TopOverlay#adjustHeaderBordersPosition`.
    *
    * @param {number} position Header Y position if trimming container is window or scroll top if not.
-   * @returns {boolean}
    */
   adjustHeaderBordersPosition(position: number) {
-    const masterParent = this.deps.getWtTable().holder.parentNode as HTMLElement;
-    const state = this.#computeHeaderBordersState(position);
-
-    if (state.innerBorderBottom === 'add') {
-      addClass(masterParent, 'innerBorderBottom');
-    } else if (state.innerBorderBottom === 'remove') {
-      removeClass(masterParent, 'innerBorderBottom');
-    }
-
-    if (state.innerBorderBottom !== 'keep') {
-      this.cachedFixedRowsBottom = this.wtSettings.getSetting<number>('fixedRowsBottom');
-    }
-
-    return state.positionChanged;
-  }
-
-  /**
-   * Computes the bottom overlay's header-border state without mutating the DOM. Pure: reads settings
-   * and the current class state only. Splitting the decision from the write lets the single-pass draw
-   * resolve the `innerBorderBottom` toggle before rendering, instead of after.
-   *
-   * @param {number} position Header Y position if trimming container is window or scroll top if not.
-   * @returns {{ innerBorderBottom: string, positionChanged: boolean }}
-   */
-  #computeHeaderBordersState(position: number) {
     const { wtSettings } = this;
     const masterParent = this.deps.getWtTable().holder.parentNode as HTMLElement;
     const fixedRowsBottom = wtSettings.getSetting<number>('fixedRowsBottom');
     const areFixedRowsBottomChanged = this.cachedFixedRowsBottom !== fixedRowsBottom;
     const columnHeaders = wtSettings.getSetting('columnHeaders') as ((...args: unknown[]) => unknown)[];
-    let innerBorderBottom = 'keep';
-    let positionChanged = false;
 
     if ((areFixedRowsBottomChanged || fixedRowsBottom === 0) && columnHeaders.length > 0) {
-      const previousState = hasClass(masterParent, 'innerBorderBottom');
-
       if (position || wtSettings.getSetting('totalRows') === 0) {
-        innerBorderBottom = 'add';
-        positionChanged = !previousState;
+        addClass(masterParent, 'innerBorderBottom');
       } else {
-        innerBorderBottom = 'remove';
-        positionChanged = previousState;
+        removeClass(masterParent, 'innerBorderBottom');
       }
-    }
 
-    return { innerBorderBottom, positionChanged };
+      this.cachedFixedRowsBottom = fixedRowsBottom;
+    }
   }
 }

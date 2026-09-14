@@ -73,6 +73,16 @@
     document.querySelector('[data-testid="add-row"]').addEventListener('click', () => {
       hot.alter('insert_row_below', hot.countRows() - 1);
     });
+
+    // How many times the plugin ran a paste to completion. CopyPaste binds its clipboard
+    // listeners on the document AND on the grid's own element (DEV-2795), so one Ctrl+V reaches
+    // the plugin twice even on a plain page, and only the event registry keeps the handler
+    // running once. Under the default `overwrite` paste mode a double paste writes the same
+    // values twice and looks identical, so counting the hook is the only way to see it.
+    window.__pasteHookCalls = 0;
+    hot.addHook('afterPaste', () => {
+      window.__pasteHookCalls += 1;
+    });
   </script>
 </body>
 </html>

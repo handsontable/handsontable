@@ -92,6 +92,18 @@ export class BaseEditor {
    * @type {HTMLTableCellElement}
    */
   TD: HTMLTableCellElement | null = null;
+  // Declared without an initializer on purpose. An editor that never assigns one has to keep
+  // reading `undefined`, which is what it read while this property lived on `editorFactory`'s own
+  // type, and what `editors/__tests__/index.spec.js` asserts.
+  /**
+   * An element the editor renders OUTSIDE its own container – a dropdown, popover or third-party
+   * picker appended to the document body. The grid treats this element and its whole subtree as a
+   * part of the editor, so neither a click landing in it nor the browser focus moving into it
+   * counts as a click or a focus loss outside the grid.
+   *
+   * @type {HTMLElement|null}
+   */
+  preventCloseElement?: HTMLElement | null;
   /**
    * Visual row index.
    *
@@ -507,7 +519,7 @@ export class BaseEditor {
   }
 
   /**
-   * Verifies result of validation or closes editor if user's cancelled changes.
+   * Verifies result of validation or closes editor if user's canceled changes.
    *
    * @param {boolean|undefined} result If `false` and the cell using allowInvalid option,
    *                                   then an editor won't be closed until validation is passed.
@@ -671,7 +683,7 @@ export class BaseEditor {
     // The position above shifted the editor 1px towards the inline start so that it covers the
     // gridline the previous cell draws on its inline-end side. A cell that draws its OWN
     // inline-start border keeps that gridline inside its box, so there is nothing to cover and the
-    // shift is cancelled here. Which cells those are is not a fixed index: with row headers the
+    // shift is canceled here. Which cells those are is not a fixed index: with row headers the
     // header owns the gridline and column 0 draws none (#6673), and `htFirstDatasetColumnNotRendered`
     // takes it off the first rendered column too - so read the border rather than the index, and
     // key it off the same value that sizes the editor below, or the two disagree by a pixel.

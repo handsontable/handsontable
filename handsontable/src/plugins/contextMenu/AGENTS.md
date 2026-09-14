@@ -53,6 +53,19 @@ Both menus now rebuild their item list on every `open()` (`prepareMenuItems()`),
 
 One thing a rebuild does **not** cover: `CommandExecutor` never evicts a command it registered, and `execute()` gates on `disabled`, not `hidden`. So an item contributed by a plugin that is now off is still reachable through `plugin.executeCommand(key)`. An item whose availability depends on its plugin being enabled needs that check on **both** `hidden()` and `disabled()`.
 
+## A menu item's state goes on the item, never inside its `name`
+
+`menuItemRenderer` writes an item's resolved `name` through `fastInnerHTML`, which is a Trusted Types sink. Anything an item bakes into that string as markup therefore takes the whole menu down under a CSP carrying `require-trusted-types-for 'script'`, and it is the grid's own markup, so no `sanitizer` should be needed for it.
+
+That is what DEV-2650 fixed. `markLabelAsSelected()` (`contextMenu/utils.ts`) and its byte-for-byte copy `markSelected()` (`customBorders/utils.ts`) prefixed a label with `<span class="selected">✓</span>`, so a read-only selection or a bordered one threw. Neither is used any more, and both were kept as legacy exports — their modules ship a declaration file, so a consumer on `moduleResolution: node` can import them whatever the `exports` map says. An item declares `checked` instead — `boolean` or a function, resolved by `isItemChecked()` in `menu/utils.ts` the same way `isItemDisabled` resolves `disabled` — and the renderer builds the span with `createElement`.
+
+Four things to keep right when touching this:
+
+- **Insert the mark AFTER calling `fastInnerHTML`.** It replaces everything the wrapper holds, so a span appended first is wiped. The rendered DOM must stay `[span.selected, text]`; four legacy positioning specs measure that span's offset.
+- **Declaring `checked` makes an item checkable**, so it is announced as `menuitemcheckbox` and carries `aria-checked`. That is not a convenience: `aria-checked` is invalid on a plain `menuitem`, so leaving these items as menu items would draw a mark a screen reader cannot perceive — worse than the markup-in-the-label it replaced, which at least reached the accessible name. Five of the six in-tree items rely on this; only `make_read_only` declares `checkable` itself. An explicit `ariaChecked` still wins, and predates the flag, so that is the one way the mark and the announced state can still be made to disagree.
+- **The checkbox branch labels from `ariaLabel ?? itemValue`.** These five items declare no `ariaLabel`, and reading one unconditionally would write the string `"undefined"` as the accessible name.
+- **Returning a node from `name` does not work.** The renderer does `String(itemValue)`, and `name` is publicly documented as a string or a function returning one. A new item property is the additive route; widening `name` is not.
+
 ## `className` is `string | string[]` — never do string surgery on it
 
 The `className` cell meta accepts a space-separated string **or** an array (both are documented in `metaSchema`). Always normalize it with `normalizeClassNames()` from `handsontable/src/helpers/dom/element.ts` and then work on whole tokens.
@@ -60,6 +73,77 @@ The `className` cell meta accepts a space-separated string **or** an array (both
 Two shipped bugs came from ignoring this. Both `.replace()`-based: #7427 (an array `className` threw on `.split`) and #7122, where `utils.ts` removed an alignment token with `.replace('htRight', '')` and then "tidied up" with `.replace('  ', '')`. That deleted the double space instead of collapsing it, so the two surviving class names were glued into one (`class_namehtMiddle`) and both stopped matching. The same substring matching also chopped custom classes that merely contained an alignment name (`htTopBar` → `Bar`).
 
 Match alignment classes by exact token (`classNames.includes('htRight')`), as `exportFile/types/xlsx/cell-style.ts` already does — never `indexOf`/`includes` on the raw string.
+
+## In a nested-iframe spec, read the event coordinates AFTER the mousedown
+
+`positioning.spec.js` builds the grid in an iframe inside an iframe, driven from the test page's own
+`Handsontable` — a cross-realm grid — and scrolls both documents so the cell sits partly outside the
+outer frame's viewport. The `mousedown` that precedes the `contextmenu` selects the cell, and the
+selection's window-scroll strategy (`core/viewportScroll/scrollStrategies/*`) calls `scrollIntoView`
+on it, which scrolls the frames it sits outside of. The engine reads a cross-realm window's scroll
+offset correctly since DEV-2789 (`getScrollTop` used to return `undefined` there, which kept that
+strategy from ever deciding the page must move), so this now happens for a cross-realm grid exactly
+as it always did for a grid built in its own realm. A real `contextmenu` event carries the pointer's
+current coordinates; a spec that computed `clientX`/`clientY` from the cell's position **before** the
+mousedown fired the event at where the cell used to be, and the menu opened there, 104px from the
+cell. Take the position after the mousedown and two frames, as the spec does now — and expect the
+same from any spec that right-clicks a cell that is not fully visible in every ancestor frame.
+
+## Hovering a sub-menu is a timer, and both directions use it
+
+Opening a sub-menu on hover was always debounced 300ms. Closing one was instant, and that asymmetry
+was the bug in DEV-66: the sub-menu is drawn beside the parent, so reaching any item except the
+first means moving right AND down, across the parent rows below the anchor. Every crossed row hit
+the hover handler, which called `openSubMenu(row)` — and that closes every open sub-menu **before**
+it checks whether the new row even has one, so the sub-menu died mid-move and nothing replaced it.
+Six of the seven alignment options could not be pointed at directly.
+
+Closing now waits the same `SUB_MENU_HOVER_DELAY` (300ms). Five things hold that together, and each
+of them has a measured failure behind it.
+
+- **The delay lives in `afterOnCellMouseOver`, never inside `openSubMenu()`.** `defaultShortcutsList`
+  calls `openSubMenu()` directly for ArrowRight and Enter, and the keyboard must stay instant.
+- **`mouseleave` on the menu container is the load-bearing cancel, not the arrival at the sub-menu.**
+  The sub-menu box is TALLER than the parent menu, so its lower items hang below it over the grid;
+  the reported path leaves the menu, crosses ~150px of grid and enters the sub-menu from below. The
+  switch armed by the last crossed parent row fires out there, so a fix that only cancels on arrival
+  still loses the sub-menu. It is also what cancels a pending *open* when the pointer brushes an
+  anchor row and leaves — that debounce was never cancelled at all before.
+- **`mouseleave`, never `mouseout`.** `mouseout` fires when moving between rows *inside* the menu,
+  which is exactly when the timers must survive. The handler carries the `#suppressHoverSubMenuToggle`
+  guard for the same reason the two hover guards do: a scroll that repositions the menu under a
+  stationary cursor makes the browser recompute `:hover` and dispatch pointer events with no real
+  movement (#12719), and that must not cancel a sub-menu the user is still waiting for.
+- **A sub-menu container is a SIBLING of its parent's container in the portal, not a descendant.**
+  So the parent's own `mouseleave` already fires when the pointer moves into the sub-menu; a
+  `mouseenter` listener on the sub-menu is redundant, and registering one per open leaks an entry on
+  the parent's `eventManager` for the life of the menu.
+- **"Is this row's sub-menu open" is asked of the sub-menu, never of a remembered row index.**
+  Escape and ArrowLeft call `close()` on the *sub-menu itself*, never the parent's
+  `closeSubMenu()`, so the entry in `hotSubMenus` outlives the closing — by design; the next
+  `openSubMenu()` is what destroys it. A remembered index therefore goes on naming a row whose
+  sub-menu is already gone, the handler's "already open on this row" branch returns early forever,
+  and **the anchor row stops responding to the mouse for the life of the menu**. The old code
+  self-healed by accident, because its unconditional `openSubMenu()` cleared the stale entry on the
+  way through. `#isSubMenuOpenAtRow()` reads `hotSubMenus[key]?.isOpened()` instead, which is false
+  after such a close, so the hover falls through to the switch and reopens.
+  Do **not** "fix" this by deleting the entry in an `afterClose` hook: nothing else destroys that
+  sub-menu, so its `eventManager` listeners leak and `test/e2e/MemoryLeakTest.js` goes red with a
+  non-zero listener count — measured, 24 of them.
+
+- **`openSubMenu()` clears both hover timers on the way in.** Opening settles what they were still
+  deciding, so neither may outlive it. The case that bites is the keyboard: hovering moves the page
+  cursor but never the menu selection, so the pointer can rest on one row while ArrowRight or Enter
+  opens the selected row's sub-menu. The route is real — open with ArrowRight, close with ArrowLeft
+  (focus returns to the parent, and the `hotSubMenus` entry stays), rest the pointer on another row
+  so a switch is armed, then press ArrowRight again. Without the clear, that switch fires 300ms
+  later and tears down what the key just opened.
+
+Resting on a plain row for longer than the delay still closes the sub-menu — the delay is a delay,
+not a block. Coverage is `tests/e2e/submenu-hover-delay.spec.ts`; it must move the pointer with
+`steps` and settle past 300ms before asserting survival, or it passes on a build with the cancels
+removed. The legacy Jasmine suite dispatches one synthetic `mouseover` per element and cannot
+express a pointer path at all.
 
 ## Where to look next
 

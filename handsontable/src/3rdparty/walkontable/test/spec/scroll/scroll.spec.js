@@ -114,8 +114,8 @@ describe('WalkontableScroll', () => {
       const firstRow = getTableMaster().find('tbody tr:first');
       const lastRow = getTableMaster().find('tbody tr:last');
 
-      expect(firstRow.find('td:first').text()).toBe('AU93');
-      expect(firstRow.find('td:last').text()).toBe('AX93');
+      expect(firstRow.find('td:first').text()).toBe('AU94'); // one row fewer fits: the header owns its border-bottom (DEV-2786)
+      expect(firstRow.find('td:last').text()).toBe('AX94');
       expect(lastRow.find('td:first').text()).toBe('AU100');
       expect(lastRow.find('td:last').text()).toBe('AX100');
     });
@@ -186,8 +186,8 @@ describe('WalkontableScroll', () => {
       // band's start one column along.
       expect(firstRow.find('td:first').text()).toBe('H1');
       expect(firstRow.find('td:last').text()).toBe('K1');
-      expect(lastRow.find('td:first').text()).toBe('H8');
-      expect(lastRow.find('td:last').text()).toBe('K8');
+      expect(lastRow.find('td:first').text()).toBe('H7'); // one row fewer fits: the header owns its border-bottom (DEV-2786)
+      expect(lastRow.find('td:last').text()).toBe('K7');
     });
 
     it('should scroll to the cell so that it sticks to the right edge of the viewport (forced by method flag)', async() => {
@@ -258,8 +258,8 @@ describe('WalkontableScroll', () => {
       // the table is scrolled, so one more column fits in the rendered band.
       expect(firstRow.find('td:first').text()).toBe('K1');
       expect(firstRow.find('td:last').text()).toBe('N1');
-      expect(lastRow.find('td:first').text()).toBe('K8');
-      expect(lastRow.find('td:last').text()).toBe('N8');
+      expect(lastRow.find('td:first').text()).toBe('K7'); // one row fewer fits: the header owns its border-bottom (DEV-2786)
+      expect(lastRow.find('td:last').text()).toBe('N7');
     });
 
     it('should scroll to the cell so that it sticks to the left edge of the viewport (forced by method flag)', async() => {

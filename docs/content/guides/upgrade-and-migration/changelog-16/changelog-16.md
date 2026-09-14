@@ -32,15 +32,15 @@ For more information about this release see:
 
 #### Added
 - Improved focus management by introducing a focus scopes mechanism. [#11804](https://github.com/handsontable/handsontable/pull/11804)
-- Introduced an "auto" option for the `roundFloat` setting in the Column Summary plugin and ensured proper recalculation of endpoints after data updates. [#11833](https://github.com/handsontable/handsontable/pull/11833)
-- Added an Enter key handler and a new `searchMode` option to the Filters plugin. [#11871](https://github.com/handsontable/handsontable/pull/11871)
-- Implemented a `style` option for the Custom Borders plugin, enabling style customization. [#11876](https://github.com/handsontable/handsontable/pull/11876)
+- Introduced an "auto" option for the `roundFloat` setting in the [`ColumnSummary`](@/api/columnSummary.md) plugin and ensured proper recalculation of endpoints after data updates. [#11833](https://github.com/handsontable/handsontable/pull/11833)
+- Added an Enter key handler and a new `searchMode` option to the [`Filters`](@/api/filters.md) plugin. [#11871](https://github.com/handsontable/handsontable/pull/11871)
+- Implemented a `style` option for the [`CustomBorders`](@/api/customBorders.md) plugin, enabling style customization. [#11876](https://github.com/handsontable/handsontable/pull/11876)
 - Introduced a new "dotted" border style to the Custom Borders plugin. [#11877](https://github.com/handsontable/handsontable/pull/11877)
 - Added the EmptyDataState plugin to improve UX when no data is available. [#11879](https://github.com/handsontable/handsontable/pull/11879)
 - Added a `settings` entry to the Handsontable exports. [#11883](https://github.com/handsontable/handsontable/pull/11883)
 - Added new global button CSS class names. [#11896](https://github.com/handsontable/handsontable/pull/11896)
-- Introduced `minRowHeights` as an alias for `rowHeights` for API consistency. [#11898](https://github.com/handsontable/handsontable/pull/11898)
-- Added a new `template` option to the Dialog plugin. [#11902](https://github.com/handsontable/handsontable/pull/11902)
+- Introduced [`minRowHeights`](@/api/options.md#minrowheights) as an alias for [`rowHeights`](@/api/options.md#rowheights) for API consistency. [#11898](https://github.com/handsontable/handsontable/pull/11898)
+- Added a new `template` option to the [`Dialog`](@/api/dialog.md) plugin. [#11902](https://github.com/handsontable/handsontable/pull/11902)
 - Added new theme variables and implemented `no-icons` and `icons-only` style variants. [#11913](https://github.com/handsontable/handsontable/pull/11913)
 
 #### Changed
@@ -100,8 +100,8 @@ For more information about this release see:
 #### Added
 - Introduced row pagination functionality. [#11612](https://github.com/handsontable/handsontable/pull/11612)
 - Introduced a Dialog plugin. [#11754](https://github.com/handsontable/handsontable/pull/11754)
-- Added support for object-based (`key`/`value`) source in Autocomplete and Dropdown editors, along with new `valueGetter` and `valueSetter` options. [#11773](https://github.com/handsontable/handsontable/pull/11773)
-- Added a new `initialState` configuration option. [#11777](https://github.com/handsontable/handsontable/pull/11777)
+- Added support for object-based (`key`/`value`) source in Autocomplete and Dropdown editors, along with new [`valueGetter`](@/api/options.md#valuegetter) and [`valueSetter`](@/api/options.md#valuesetter) options. [#11773](https://github.com/handsontable/handsontable/pull/11773)
+- Added a new [`initialState`](@/api/options.md#initialstate) configuration option. [#11777](https://github.com/handsontable/handsontable/pull/11777)
 - Introduced the Loading plugin. [#11792](https://github.com/handsontable/handsontable/pull/11792)
 - Added a new "classic" theme. [#11790](https://github.com/handsontable/handsontable/pull/11790)
 - Added a [Deprecation policy](https://handsontable.com/docs/deprecation-policy/) page to the documentation.
@@ -171,7 +171,7 @@ For more information about this release see:
 - **Breaking change**: Added a focus outline to the context and dropdown menus. [#11669](https://github.com/handsontable/handsontable/pull/11669)
 - Improved Handsontable editor positioning. [#11593](https://github.com/handsontable/handsontable/pull/11593)
 - Added a second-click cell deselection feature. [#11602](https://github.com/handsontable/handsontable/pull/11602)
-- Added a new `textEllipsis` option. [#11609](https://github.com/handsontable/handsontable/pull/11609)
+- Added a new [`textEllipsis`](@/api/options.md#textellipsis) option. [#11609](https://github.com/handsontable/handsontable/pull/11609)
 - Added backward compatibility for the renamed CSS variables. [#11676](https://github.com/handsontable/handsontable/pull/11676)
 - Angular: Introduced a new Angular wrapper - `@handsontable/angular-wrapper`. [#11511](https://github.com/handsontable/handsontable/pull/11511)
 

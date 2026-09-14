@@ -277,6 +277,7 @@ class MergedCellsCollection {
 
       this.mergedCells.push(newMergedCell);
       this.#addMergedCellToMatrix(newMergedCell);
+      this.hot?.markAllCellsChanged();
 
       return newMergedCell;
     }
@@ -303,6 +304,7 @@ class MergedCellsCollection {
     if (mergedCell && mergedCellIndex !== -1) {
       this.mergedCells.splice(mergedCellIndex, 1);
       this.#removeMergedCellFromMatrix(mergedCell);
+      this.hot?.markAllCellsChanged();
 
       return mergedCell;
     }
@@ -330,6 +332,7 @@ class MergedCellsCollection {
 
     this.mergedCells.length = 0;
     this.mergedCellsMatrix = new Map<number, Map<number, MergedCellCoords>>();
+    this.hot?.markAllCellsChanged();
   }
 
   /**
@@ -608,8 +611,18 @@ class MergedCellsCollection {
    * @param {string} direction `right`, `left`, `up` or `down`.
    * @param {number} index Index where the change, which caused the shifting took place.
    * @param {number} count Number of rows/columns added/removed in the preceding action.
+   * @param {function(MergedCellCoords): boolean} [canRemove] Decides whether a merge the shift wants
+   * to drop may really be dropped. A merge whose rows are partly trimmed occupies fewer visual rows
+   * than it owns, so removing all of its *visible* rows must not delete the trimmed ones with them.
+   * Such a merge is kept with its coordinates left as the shift found them; the caller re-derives them
+   * from the merge's physical rows right after.
    */
-  shiftCollections(direction: string, index: number, count: number) {
+  shiftCollections(
+    direction: string,
+    index: number,
+    count: number,
+    canRemove: (mergedCell: MergedCellCoords) => boolean = () => true
+  ) {
     const shiftVector = [0, 0];
 
     switch (direction) {
@@ -638,7 +651,11 @@ class MergedCellsCollection {
       currentMerge.shift(shiftVector, index);
 
       if (currentMerge.removed) {
-        removedMergedCells.push(currentMerge);
+        if (canRemove(currentMerge)) {
+          removedMergedCells.push(currentMerge);
+        } else {
+          currentMerge.removed = false;
+        }
       }
     });
 
@@ -723,12 +740,29 @@ class MergedCellsCollection {
    * Note: single-cell fragments (`colspan === 1 && rowspan === 1`) are dropped because
    * they no longer represent a merge. The user-facing behavior (auto-split + silent drop
    * of singletons) is documented in `docs/content/guides/cell-features/merge-cells/merge-cells.md`
-   * under "Behavior during row/column reorder and column freeze".
+   * under "Behavior during row/column reorder and column freeze". The one exception is a fragment
+   * the caller lists in `retainedIndexes`: it shows one cell only because the rest of its rows are
+   * trimmed, so it is a merge again as soon as they come back. Both the row and the column callers
+   * pass it, since a merge trimmed to one visible row is already `rowspan: 1` before any column move.
+   *
+   * Every merge is replaced by a new object, so the returned map tells the caller which merges came
+   * out of which — the plugin uses it to carry each merge's physical anchor onto its replacements
+   * instead of re-deriving one from the post-move visual coordinates.
    *
    * @param {'column' | 'row'} axis Axis that was reordered.
    * @param {Map<MergedCellCoords, number[]>} snapshot Snapshot taken before the reorder.
+   * @param {Map<MergedCellCoords, Set<number>>} [retainedIndexes] Per merge, the physical indexes
+   * along `axis` whose single-cell fragment must survive the singleton drop. Keyed per merge because
+   * two merges in different columns can cover the same rows, and only one of them may be carrying
+   * trimmed rows.
+   * @returns {Map<MergedCellCoords, MergedCellCoords[]>} Map of the merge before the reorder -> the
+   * merges that replaced it. A merge the reorder dropped entirely maps to an empty array.
    */
-  translateAfterAxisMove(axis: 'column' | 'row', snapshot: Map<MergedCellCoords, number[]>): void {
+  translateAfterAxisMove(
+    axis: 'column' | 'row',
+    snapshot: Map<MergedCellCoords, number[]>,
+    retainedIndexes: Map<MergedCellCoords, Set<number>> = new Map()
+  ): Map<MergedCellCoords, MergedCellCoords[]> {
     const isColumn = axis === 'column';
     const indexProp = isColumn ? 'col' : 'row';
     const spanProp = isColumn ? 'colspan' : 'rowspan';
@@ -737,17 +771,26 @@ class MergedCellsCollection {
     const toVisual = isColumn
       ? (physicalIndex: number) => this.hot.toVisualColumn(physicalIndex)
       : (physicalIndex: number) => this.hot.toVisualRow(physicalIndex);
-    const replacements: Array<{ row: number; col: number; rowspan: number; colspan: number }> = [];
+    const toPhysical = isColumn
+      ? (visualIndex: number) => this.hot.toPhysicalColumn(visualIndex)
+      : (visualIndex: number) => this.hot.toPhysicalRow(visualIndex);
+    const replacements: Array<{
+      source: MergedCellCoords,
+      info: { row: number; col: number; rowspan: number; colspan: number },
+    }> = [];
 
     this.mergedCells.forEach((merge) => {
       const physicals = snapshot.get(merge);
 
       if (!physicals) {
         replacements.push({
-          row: merge.row,
-          col: merge.col,
-          rowspan: merge.rowspan,
-          colspan: merge.colspan,
+          source: merge,
+          info: {
+            row: merge.row,
+            col: merge.col,
+            rowspan: merge.rowspan,
+            colspan: merge.colspan,
+          },
         });
 
         return;
@@ -762,6 +805,8 @@ class MergedCellsCollection {
         return;
       }
 
+      const retained = retainedIndexes.get(merge);
+
       MergedCellsCollection.detectContiguousRuns(newVisuals).forEach((run) => {
         const replacement = {
           [indexProp]: run.start,
@@ -770,20 +815,34 @@ class MergedCellsCollection {
           [otherSpanProp]: merge[otherSpanProp],
         };
 
-        if (replacement.colspan === 1 && replacement.rowspan === 1) {
+        if (replacement.colspan === 1 && replacement.rowspan === 1
+          && !retained?.has(toPhysical(run.start))) {
           return;
         }
 
-        replacements.push(replacement as { row: number; col: number; rowspan: number; colspan: number });
+        replacements.push({
+          source: merge,
+          info: replacement as { row: number; col: number; rowspan: number; colspan: number },
+        });
       });
     });
+
+    const sources = new Map<MergedCellCoords, MergedCellCoords[]>();
+
+    this.mergedCells.forEach(merge => sources.set(merge, []));
 
     this.mergedCells.length = 0;
     this.mergedCellsMatrix.clear();
 
-    replacements.forEach((info) => {
-      this.add(info, true);
+    replacements.forEach(({ source, info }) => {
+      const added = this.add(info, true);
+
+      if (added !== false) {
+        sources.get(source)?.push(added);
+      }
     });
+
+    return sources;
   }
 
   /**
@@ -810,14 +869,14 @@ class MergedCellsCollection {
    * phases (remove all, then re-add all) so merges that swap visual positions don't clobber each
    * other's freshly written entries.
    *
-   * @param {Array<{ mergedCell: MergedCellCoords, row: number, col: number }>} relocations The merges
-   * to move together with their new top-left visual `row`/`col`.
+   * @param {Array<object>} relocations The merges to move together with their new top-left visual
+   * `row`/`col` and, when rows inside them have been trimmed away, their new visual `rowspan`.
    */
-  relocateInMatrix(relocations: { mergedCell: MergedCellCoords, row: number, col: number }[]) {
+  relocateInMatrix(relocations: { mergedCell: MergedCellCoords, row: number, col: number, rowspan?: number }[]) {
     relocations.forEach(({ mergedCell }) => this.#removeMergedCellFromMatrix(mergedCell));
 
-    relocations.forEach(({ mergedCell, row, col }) => {
-      mergedCell.relocate(row, col);
+    relocations.forEach(({ mergedCell, row, col, rowspan }) => {
+      mergedCell.relocate(row, col, rowspan);
       this.#addMergedCellToMatrix(mergedCell);
     });
   }
@@ -832,6 +891,25 @@ class MergedCellsCollection {
    */
   removeFromMatrix(merges: MergedCellCoords[]) {
     merges.forEach(mergedCell => this.#removeMergedCellFromMatrix(mergedCell));
+  }
+
+  /**
+   * Drops a batch of merges from both the `mergedCells` list and the lookup matrix, matching them by
+   * identity rather than by coordinates. A merge that no longer covers any row has visual coordinates
+   * that describe nothing, so {@link MergedCellsCollection#remove}'s coordinate lookup cannot find it.
+   *
+   * @param {Array<MergedCellCoords>} merges The merges to drop.
+   */
+  dropMerges(merges: MergedCellCoords[]) {
+    merges.forEach((mergedCell) => {
+      const index = this.mergedCells.indexOf(mergedCell);
+
+      if (index !== -1) {
+        this.mergedCells.splice(index, 1);
+      }
+
+      this.#removeMergedCellFromMatrix(mergedCell);
+    });
   }
 
   /**

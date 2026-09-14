@@ -14,7 +14,7 @@
  */
 import { isHTMLElement } from '../../../../helpers/dom/element';
 import { CLONE_BOTTOM } from '../overlay';
-import { getBoxAdjustedRowHeight } from './boxModel';
+import { applyRowHeight } from '../render/exactRowHeight';
 import type { default as Table } from '../table/baseTable';
 
 /**
@@ -158,18 +158,25 @@ function applyRowHeightsToRenderedRows(table: Table): void {
 
   const borderBoxSizing = table.wtSettings.getSetting('stylesHandler').areCellsBorderBox();
   const renderedRows = TBODY.childNodes;
+  // Once per call rather than once per row (see `RowUtils#mayHaveExactRows`).
+  const mayHaveExactRows = table.rowUtils.mayHaveExactRows();
 
   for (let renderedRowIndex = 0; renderedRowIndex < renderedRows.length; renderedRowIndex++) {
-    const firstChild = renderedRows[renderedRowIndex].firstChild;
+    const TR = renderedRows[renderedRowIndex];
 
-    if (!isHTMLElement(firstChild)) {
+    if (!isHTMLElement(TR)) {
       continue;
     }
 
     const sourceRowIndex = rowFilter.renderedToSource(renderedRowIndex);
-    const rowHeight = table.rowUtils.getHeightByOverlayName(sourceRowIndex, table.name);
+    const isExact = mayHaveExactRows && table.rowUtils.isExact(sourceRowIndex);
 
-    firstChild.style.height = rowHeight ? `${getBoxAdjustedRowHeight(rowHeight, borderBoxSizing)}px` : '';
+    applyRowHeight(
+      TR,
+      table.rowUtils.getHeightByOverlayName(sourceRowIndex, table.name, isExact),
+      isExact,
+      borderBoxSizing,
+    );
   }
 }
 
@@ -552,14 +559,38 @@ export function markOversizedRows(
   }
   let rowCount = table.TBODY!.childNodes.length;
   const stylesHandler = table.wtSettings.getSetting('stylesHandler');
+  const { rowUtils } = table;
+  // A uniform exact band has nothing to measure: every row is pinned at its provided height and its
+  // content is clipped, so the DOM can never be taller than the records. Decided before the
+  // geometry read so the band pays no reflow, and needed on its own: the uniform fast path below
+  // compares the band against the DEFAULT height, which an exact band never matches. One row can
+  // stand for the band only when BOTH the sizes and the mode are uniform — `isUniform()` describes
+  // the size source alone, and a per-row mode could leave a floor row in the band unmeasured.
+  // Asked once for the whole band rather than once per row: `false` means no row can be exact, so
+  // the per-row probe in the walk below is skipped entirely — the default configuration.
+  const mayHaveExactRows = rowUtils.mayHaveExactRows();
+  const isExactBand = mayHaveExactRows && rowCount > 0 &&
+    table.deps.rowSizeSource.isUniform() && table.deps.rowSizeSource.isModeUniform() &&
+    rowUtils.isExact(table.rowFilter!.renderedToSource(0));
+  // Whether THIS table's first rendered `<tr>` draws its own 1px `border-top`, which makes it render
+  // one pixel taller than the rest of the band. It does only when the table renders no head row: the
+  // `thead:not(:empty) + tbody > tr:first-child` rule in `styles/base/_base.scss` hands the seam
+  // under a column header to the header's own `border-bottom` (DEV-2786), so a body row abutting one
+  // has no top border to account for. Per TABLE, not per grid, and it has to be: the bottom clone
+  // renders no head row, so its first row keeps the border — there it is the bottom-freeze seam.
+  // `StylesHandler#firstRenderedRowDrawsTopBorder` is the grid-level form of the same question, for
+  // the master's own row heights.
+  const drawsFirstRowTopBorder = !table.THEAD?.hasChildNodes();
   const expectedTableHeight = rowCount * stylesHandler.getDefaultRowHeight();
-  const actualTableHeight = table.deps.geometryReader.innerHeight(table.TBODY!) - 1;
+  const actualTableHeight = isExactBand
+    ? expectedTableHeight
+    : table.deps.geometryReader.innerHeight(table.TBODY!) - (drawsFirstRowTopBorder ? 1 : 0);
   const borderBoxSizing = stylesHandler.areCellsBorderBox();
   const rowHeightFn = borderBoxSizing
     ? (element: HTMLElement) => table.deps.geometryReader.outerHeight(element)
     : (element: HTMLElement) => table.deps.geometryReader.innerHeight(element);
   const borderCompensation = borderBoxSizing ? 0 : 1;
-  const firstRowBorderCompensation = borderBoxSizing ? 1 : 0;
+  const firstRowBorderCompensation = (borderBoxSizing && drawsFirstRowTopBorder) ? 1 : 0;
   let previousRowHeight;
   let rowCurrentHeight;
   let sourceRowIndex;
@@ -592,14 +623,23 @@ export function markOversizedRows(
   while (rowCount) {
     rowCount -= 1;
     sourceRowIndex = table.rowFilter!.renderedToSource(rowCount);
+
+    // An exact row is never raised by what it renders — its content is clipped to the provided
+    // height. A record it may still hold (from before it became exact) stays wiped, so the
+    // shrink detection below reports the change.
+    if (mayHaveExactRows && rowUtils.isExact(sourceRowIndex)) {
+      continue; // eslint-disable-line no-continue
+    }
+
     previousRowHeight = table.getRowHeight(sourceRowIndex);
     currentTr = table.getTrForRow(sourceRowIndex);
     rowHeader = currentTr.querySelector('th');
 
     // Use the rendered row index (rowCount === 0 is always the first <tr> in this tbody),
     // not the source row index (which would be wrong for clones whose first rendered row
-    // has a different source index). Any tbody's first <tr> gets border-top: 1px from the
-    // tr:first-child CSS rule, so the compensation applies regardless of source identity.
+    // has a different source index). The tr:first-child CSS rule gives a tbody's first <tr>
+    // border-top: 1px whatever its source identity — but only in a table that renders no head
+    // row, which `firstRowBorderCompensation` already accounts for.
     const topBorderCompensation = rowCount === 0 ? firstRowBorderCompensation : 0;
 
     if (rowHeader) {
@@ -634,6 +674,13 @@ export function markOversizedRows(
       // the measured value alternates between the two, so counting 1px as a change invalidates the
       // row-height cache on every single draw for as long as the row sits there. The DOM side of the
       // flip is handled separately, by re-applying the current record to every table below.
+      //
+      // Since DEV-2786 the flip only happens on a table with NO head row of its own: there the
+      // border is the grid's top frame and still moves with the band. A table that renders a
+      // column header hands that gridline to the header at every scroll position, so its first
+      // row's height no longer depends on where the band starts and this tolerance costs it
+      // nothing. Narrowing it to that case would still be wrong - it is per table, and the
+      // headerless one has to keep it.
       if (wipedHeight === undefined || Math.abs(rowCurrentHeight - wipedHeight) > 1) {
         hasChanges = true;
       }

@@ -7,16 +7,67 @@ The `copyPaste` plugin owns copy, cut and paste. Read this before touching `copy
 too, because native text selection and clipboard handling compete for the same events. See
 `../base/AGENTS.md` for what listing a foreign key implies.
 
-## Listeners go on the document, not the root element
+## Three binding points, because a clipboard event arrives three ways
 
-That is deliberate, for Chrome 133 and lower to copy/paste/cut correctly (DEV-2277). Do not "scope them
-properly" to `rootElement`.
+`copy`/`cut`/`paste` are bound on **all three** of these, through one `bindClipboardListeners()` helper:
 
-**Inside a Shadow DOM tree the same listeners are attached to the grid's shadow root as well.** Sandboxed
-hosts (Salesforce Lightning Web Security) retarget events observed at the document level, which hides the
-grid internals from the document listeners; listeners bound inside the grid's own shadow tree still receive
-the untouched event path. `#processedClipboardEvents` is the registry that prevents double handling when
-both listeners receive the same event — the same pattern the Comments plugin uses for hover.
+| Target | Why it exists | Ticket |
+|---|---|---|
+| `rootDocument` | Events targeting `document.body` — outside the grid, so nothing bound below would see them — and Chrome 133 and lower needs it to copy/cut/paste at all | DEV-2277 |
+| `rootElement` | Salesforce Lightning Web Security delivers clipboard events **only** to listeners bound at or below the element the grid owns | DEV-2795 / #13388 |
+| the grid's shadow root, when it has one | Predates `rootElement` and is now a deliberate duplicate of it — see below | DEV-1619 |
+
+**Never drop the document one** — do not "scope the listeners properly" to `rootElement`. The `rootElement`
+one does not replace it: outside a sandbox it merely sees an in-grid event first.
+
+**The shadow-root row no longer carries a case of its own.** `rootElement` is always a descendant of its own
+shadow root and all three listeners are bubble-phase, so every event that reaches the shadow-root listener
+already passed `rootElement` and was consumed by the registry. The only events it can see that `rootElement`
+cannot are ones targeting a sibling inside the same shadow tree, and `isInternalElement()` rejects those in
+`onCopy`/`onCut`/`onPaste`. It is kept because removing it is a behavior change in exactly the environment
+nobody here can test — do not "clean it up" on the strength of this paragraph, and do not restore an
+independent-sounding justification for it either.
+
+`#processedClipboardEvents` is the registry that keeps the handler running once when several of these see
+the same event — the same pattern the Comments plugin uses for hover. It is a `WeakSet` keyed on event
+**identity**, which holds because `EventManager`'s `extendEvent()` mutates and returns the same event
+object rather than wrapping it. A change there breaks dedupe silently, into double paste.
+
+**Since DEV-2795 that registry is load-bearing for every grid, not just one in a shadow tree** — the
+document and `rootElement` listeners both see every in-grid event. Under the default `overwrite` paste mode
+a double paste writes the same values twice and looks identical, so no value assertion can catch it; the
+`afterPaste` counter in the fixture below is what does. `pasteMode: 'shift_down'` is where it would actually
+corrupt data, by inserting the rows twice.
+
+Under LWS only one listener fires anyway, so dedupe is not what carries that case — but the membrane's
+event identity is unverified, so do not lean on it there.
+
+### Testing the LWS shape
+
+`tests/e2e/shadow-dom.spec.ts` drives it through the `?delivery=lws-shape` mode of
+`tests/fixtures/demo/shadow-dom.html`, which reproduces the two things LWS does that this plugin feels.
+Both are needed — with only the first, the tests never exercise the branch that actually carries a paste in
+an org:
+
+1. **Delivery**, with `stopPropagation` on the container. That is the same reach LWS has, since listeners
+   **on** the container still fire. It must not be `stopImmediatePropagation` (that would cut off the
+   plugin's own container listener) and it must not sit on the shadow root (the plugin binds there too, so
+   the test would pass without the fix).
+2. **A collapsed `composedPath()`**, replaced in the capture phase with the shadow host chain. This is what
+   sends `#resolveClipboardEventTarget` down its second branch, onto the retargeted `event.target`. With an
+   intact path the first branch answers instead, and the LWS half of that method goes untested.
+
+The fixture also records what reached the document — the tests assert that list is empty, and the
+default-delivery test asserts it contains `paste`, so the empty list is not a claim about a recorder that
+never worked.
+
+**This reproduces the shape of LWS, not LWS.** A real org also runs the grid behind a sandbox membrane that
+proxies the DOM itself, which no fixture here stands in for — the same caveat #13227 carried. Changes to
+this area still want confirmation in an actual org.
+
+The browser clipboard outlives a test (each test gets a fresh context, not a fresh clipboard), so **a
+clipboard test must copy a value no other test in the file copies.** Otherwise a broken copy still pastes
+the leftover from an earlier test and the assertion passes.
 
 ## Two Safari workarounds, both still needed
 
@@ -74,6 +125,31 @@ returns a plain string. Each catch warns through `#warnClipboardParseRefused`, t
   payload that was valid markup the parser simply refused.
 
 Do not "tidy" either catch away.
+
+## The private flavor is often absent, and that is not an error
+
+`pastedSourceData` is `undefined` for every paste the grid did not write itself, so `populateValues()`
+falls through to the plain string. Three routes reach that state and **only the first is obvious**:
+
+- **<kbd>Cmd/Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd>**, the browser's "paste as plain text" command
+  (`IDC_CONTENT_CONTEXT_PASTE_AND_MATCH_STYLE`, bound to that combination on every desktop platform).
+  It delivers a paste event carrying **`text/plain` only** — `text/html` is stripped along with the
+  private flavor. Right-click → "Paste as plain text" is the same command.
+- **A paste from any other application.** It usually carries `text/html`, so it takes the
+  `htmlToGridSettings()` branch rather than `readPlainText()` — a different branch, the same outcome,
+  because only Handsontable writes the private flavor.
+- **`getPlugin('copyPaste').paste(text)`**, which sets `text/plain` and nothing else. This is the
+  deterministic way to exercise all three from a test; simulating the key combination cannot work,
+  because the accelerator is handled in the **browser process** and a synthetic key event never
+  reaches this code at all.
+
+**So a cell type whose stored shape differs from its displayed text cannot rely on this plugin to
+restore it.** That is the cell type's `valueSetter`'s job — see `.claude/skills/handsontable-celltype-dev/SKILL.md`.
+DEV-57 is the worked example: an `autocomplete`/`dropdown` column with a key/value `source` stored a
+bare label on every one of the three routes above, and a `strict` column then marked the cell invalid.
+The fix is in `cellTypes/autocompleteType/accessors/valueSetter.ts`, **not here** — do not add
+cell-type knowledge to `populateValues()`. Nothing in this plugin reads the SHIFT key, and nothing
+should: merely holding it while the browser runs an ordinary paste changes none of the flavors.
 
 ## Copy is not a sanitizer surface — it is a text surface
 

@@ -1,0 +1,178 @@
+/**
+ * The git side of the docs sync: rebuild the bot-owned branch from the target
+ * and cherry-pick the included commits one by one.
+ *
+ * Every pick is `-x` so the squash body of the merged pull request carries the
+ * source sha, which is one of the dedup signals `candidates.mjs` reads. The
+ * committer identity is fixed so `hasForeignCommits` can tell a bot pick from a
+ * human commit: cherry-pick keeps the original author, so the author field
+ * cannot make that distinction.
+ */
+import { execFileSync } from 'node:child_process';
+
+export const SYNC_COMMITTER = {
+  name: 'docs-sync[bot]',
+  email: 'docs-sync[bot]@users.noreply.github.com',
+};
+
+// Same pattern as candidates.mjs' CHERRY_TRAILER, kept local because that
+// module doesn't export it. `git cherry-pick -x` always writes this trailer,
+// so its presence -- alongside the bot's committer email -- is what tells a
+// genuine bot pick apart from a manually authored commit with a spoofed
+// committer identity.
+const CHERRY_TRAILER = /cherry picked from commit [0-9a-f]{7,40}/;
+
+/**
+ * Run git in a checkout with the bot's committer identity.
+ *
+ * @param {string} cwd Checkout root.
+ * @param {string[]} args Arguments after `git`.
+ * @returns {string} Trimmed stdout.
+ */
+export function git(cwd, args) {
+  return execFileSync('git', args, {
+    cwd,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+    env: {
+      ...process.env,
+      GIT_DIR: undefined,
+      GIT_WORK_TREE: undefined,
+      GIT_INDEX_FILE: undefined,
+      GIT_COMMITTER_NAME: SYNC_COMMITTER.name,
+      GIT_COMMITTER_EMAIL: SYNC_COMMITTER.email,
+      // The empty-pick detection in applyCommits() matches git's English message.
+      LC_ALL: 'C',
+    },
+  }).trim();
+}
+
+/**
+ * Whether the sync branch carries any commit the bot did not make.
+ *
+ * @param {string} cwd
+ * @param {string} targetRef e.g. `origin/prod-docs/18.1`.
+ * @param {string} syncRef e.g. `origin/docs-sync/prod-docs-18.1`.
+ * @returns {boolean}
+ */
+export function hasForeignCommits(cwd, targetRef, syncRef) {
+  // The record separator goes first: git appends its own trailing newline
+  // after each `%x1e`, and putting the separator after `%B` would leave that
+  // newline stuck to the front of every entry but the first, corrupting the
+  // email slice below.
+  const log = git(cwd, ['log', '--format=%x1e%ce%x1f%B', `${targetRef}..${syncRef}`]);
+  const commits = log.split('\x1e').filter((entry) => entry.length > 0);
+
+  return commits.some((entry) => {
+    const sepIndex = entry.indexOf('\x1f');
+    const email = entry.slice(0, sepIndex);
+    const body = entry.slice(sepIndex + 1);
+    const isGenuineBotPick = email === SYNC_COMMITTER.email && CHERRY_TRAILER.test(body);
+
+    return !isGenuineBotPick;
+  });
+}
+
+/**
+ * Point the sync branch at the target tip and check it out.
+ *
+ * @param {string} cwd
+ * @param {string} branch The local sync branch name.
+ * @param {string} targetRef The ref to start from.
+ */
+export function resetSyncBranch(cwd, branch, targetRef) {
+  git(cwd, ['checkout', '-q', '-B', branch, targetRef]);
+}
+
+/**
+ * Paths in conflict after a failed cherry-pick, including modify/delete.
+ *
+ * @param {string} cwd
+ * @returns {string[]}
+ */
+function conflictedFiles(cwd) {
+  return git(cwd, ['status', '--porcelain'])
+    .split('\n')
+    .filter((line) => /^(UU|AA|DU|UD|AU|UA|DD) /.test(line))
+    .map((line) => line.slice(3).trim())
+    .sort();
+}
+
+/**
+ * Recover a clean working tree when the normal end to a failed cherry-pick
+ * (`--skip` or `--abort`) itself throws. Ends the sequence outright and hard
+ * resets to `HEAD` -- never `git clean`, which would delete a developer's own
+ * untracked files during a local dry run -- then re-checks for unmerged paths
+ * so a still-dirty tree fails loudly instead of corrupting the next pick's
+ * conflict report.
+ *
+ * @param {string} cwd
+ * @param {string} sha The commit whose pick this is recovering from, for the error message.
+ */
+export function recoverFromFailedPick(cwd, sha) {
+  try {
+    git(cwd, ['cherry-pick', '--quit']);
+  } catch {
+    // Ignored: --quit failing (e.g. no sequencer state left to end) doesn't
+    // matter, the hard reset below is what actually restores a clean tree.
+  }
+  git(cwd, ['reset', '--hard', 'HEAD']);
+
+  if (conflictedFiles(cwd).length > 0) {
+    throw new Error(`Working tree not clean after recovering from a failed pick of ${sha}`);
+  }
+}
+
+/**
+ * Cherry-pick each sha in order. A conflict is aborted and recorded; an empty
+ * pick (the change is already in the tree) is skipped and recorded.
+ *
+ * @param {string} cwd
+ * @param {string[]} shas Oldest first.
+ * @returns {{ applied: string[], conflicts: Array<{ sha: string, files: string[] }>, empty: string[] }}
+ */
+export function applyCommits(cwd, shas) {
+  const applied = [];
+  const conflicts = [];
+  const empty = [];
+
+  for (const sha of shas) {
+    try {
+      git(cwd, ['cherry-pick', '-x', sha]);
+      applied.push(sha);
+    } catch (error) {
+      const message = `${error.stderr ?? ''}${error.stdout ?? ''}`;
+      const files = conflictedFiles(cwd);
+
+      if (files.length === 0 && /empty|nothing to commit/i.test(message)) {
+        try {
+          git(cwd, ['cherry-pick', '--skip']);
+        } catch {
+          recoverFromFailedPick(cwd, sha);
+        }
+        empty.push(sha);
+      } else if (files.length > 0) {
+        try {
+          git(cwd, ['cherry-pick', '--abort']);
+        } catch {
+          recoverFromFailedPick(cwd, sha);
+        }
+        conflicts.push({ sha, files });
+      } else {
+        // No conflicted files and the message isn't a recognized empty-pick:
+        // an infra failure (GPG signing, a rejected commit hook, a disk
+        // error, ...), not a content conflict. Leave a clean tree, then fail
+        // the run loudly instead of reporting a bogus conflict.
+        try {
+          git(cwd, ['cherry-pick', '--abort']);
+        } catch {
+          recoverFromFailedPick(cwd, sha);
+        }
+        error.message = `Cherry-pick of ${sha} failed for a reason other than a conflict or an empty pick: ${error.message}`;
+        throw error;
+      }
+    }
+  }
+
+  return { applied, conflicts, empty };
+}

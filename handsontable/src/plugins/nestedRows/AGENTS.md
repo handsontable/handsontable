@@ -108,6 +108,132 @@ They are written in different places and can drift. Keep this in mind:
   `TypeError: Cannot read properties of undefined`, which is what forced one customer to retry inside
   `requestAnimationFrame`. Never re-introduce the non-null assertion, and never feed the result
   straight into the trimming map — filter `null` out first.
+- **A position inside a parent is not a grid row index, and `hot.alter()` cannot bridge the two.**
+  `addChildAtIndex()` takes an index *within the parent*, so for a top-level row that is a position in
+  `dataManager.data` — and every preceding parent's subtree sits between it and the row's real place
+  in the grid. They agree only while no preceding top-level row has children, which is why this
+  survived for years: an insert next to the *first* parent is correct by coincidence, and both shared
+  fixtures put that parent at row 0. `hot.alter('insert_row_above', …)` cannot be handed either index,
+  because it derives the whole insert from one: `DataMap#createRow()` splices the top-level array at
+  the **top-level** position, while the row index maps, the cell meta, and the
+  `beforeCreateRow`/`afterCreateRow` hooks all count in **grid rows**. So both branches of
+  `addChildAtIndex()` build the insert by hand — splice, `rewriteCache()`,
+  `rowIndexMapper.insertIndexes()`, `shiftCellsMeta()` (physical), then the hooks. Three things come
+  with that. `disableCoreAPIModifiers()` around such an insert is not a safety measure but the thing
+  that **hid** the mistake: with the modifiers off, `Core#countSourceRows()` reports the top-level
+  count, so a grid-row index above it is silently clamped instead of failing. The `beforeAlter` and
+  `beforeDataSplice` hooks no longer fire for a top-level insert, which neither the parent branch nor
+  `addChild()` ever fired either. And `beforeCreateRow`'s **veto has to keep being honored** in any
+  hand-built insert: `Formulas#onBeforeCreateRow` answers `false` whenever HyperFormula cannot extend
+  the sheet, and `'NestedRows.*'` is not in that plugin's `isBlockedSource`, so its own
+  `afterCreateRow` listener then calls `engine.addRows()` on the state HyperFormula just refused —
+  which throws out of `runHooks`, skips `afterAddChild`, and leaves the collapsed-rows stash open for
+  the grid's whole life. A cancel must therefore still fire `afterAddChild` (with a `null` element,
+  which `#onAfterAddChild` already tolerates) to close that stash. **The parent branch and
+  `addChild()` still ignore that veto** — pre-existing, and a separate behavior change to fix, because
+  a cancel there would start actually cancelling. (DEV-2625, following #7727 / DEV-2605.)
+- **Only the top-level branch translates its index for `insertIndexes()`.** `insertIndexes()` takes a
+  **visual** index and resolves it through `getNotTrimmedIndexes()[arg]`, but the parent branch passes
+  `finalChildIndex` and `addChild()` passes `getRowIndex(childElement)` — both **physical**. With a
+  foreign trimming map above the insertion point the maps then insert one slot past the data, so the
+  trim flag of the displaced row lands on the newly inserted one. The existing
+  `another plugin trims a row above the insertion point` spec passes only because both slots hold
+  `false` there. The top-level branch translates, and two things about that translation are worth
+  knowing. **Appending has no row to translate**, because no physical row holds the new index yet, so
+  it must be read from the visible row count (`countRows()`) and never from `countAllRows()`, which
+  walks the tree and so ignores trimming. Getting that wrong is not an off-by-one: an index one past
+  the visible end resolves to no row, `#onBeforeRemoveRow` expands it into a whole parent's subtree,
+  and undoing the insert then deleted the last parent **and its five children** (18 rows → 13, caught
+  in review on #13401). And the remaining hole is the mirror case: when the **displaced row itself**
+  is trimmed it has no visual index, none resolves back to it, so `insertIndexes()` cannot address
+  that slot at all — the fallback to the physical index is off by the number of trimmed rows above it.
+  Fixing that one means writing the maps directly.
+- **`onBeforeDataSplice()` hands the core a grid-row index for a top-level row, and that is still
+  broken.** It routes a splice into `DataManager#spliceData()` — which does translate a grid row into
+  the right `(parent, indexWithinParent)` pair — but short-circuits with `return true` when
+  `isRowHighestLevel(index)`, letting `DataMap#spliceData()` splice the raw top-level array at a grid
+  row index. Measured on `getSimplerNestedData()`: `hot.alter('insert_row_above', 12, 1)` **appends**
+  the new row at top-level position 3 (grid row 18), because `Array#splice` clamps 12 against a
+  three-element array, while the cell meta and the index maps shift at row 12 — so the meta desyncs
+  from data that never moved. The context menu no longer reaches it *directly* (see the bullet above),
+  but **redo still does**: `CreateRowAction#redo()` replays the insert as
+  `hot.alter('insert_row_above', <the grid row afterCreateRow reported>, ...)`, so redoing a
+  context-menu insert next to a top-level row lands straight on this path. Fixing it means dropping
+  that short-circuit **and** the
+  `[element]` re-wrap on the line below it (`elements` is already an array, so `spliceData` currently
+  inserts `[row]` as the row object), which also makes the path inherit `spliceData`'s "the row above
+  is an empty parent, so adopt the new row as its child" rule. Assert the new row's **shape**, not
+  just `countRows()` — the re-wrap leaves the count right and the row an array.
+- **The hand-built tree operations have to shift the cell meta themselves.** `MetaManager` is kept in
+  step only by `DataMap#createRow`/`removeRow`, and `addChild`, `addChildAtIndex`,
+  `detachFromParent` and the row-move path reach neither — they splice `__children` and fire the row
+  hooks by hand. So
+  stored meta (comments, `className`, everything) stays on the old physical rows and lands on the
+  wrong cells: #7727 for the insert side, DEV-2626 for the detach side, same context menu. Use
+  `dataManager.shiftCellsMeta()` for an insert and `dataManager.moveCellsMeta()` for a move. Both
+  take **physical** indexes, which is what `getRowIndex()` already returns, so never pass the result
+  through `toPhysicalRow()` and never use `hot.spliceCellsMeta()`, which takes a **visual** index and
+  would translate a second time. Qualify the class when you name the mover: `RowMoveController` has
+  its own, unrelated `moveCellsMeta()` for the row-move path, and the two are not interchangeable —
+  it *preserves* the moved rows' meta (snapshot through `getCellMetaAtRow()`, re-insert through
+  `spliceCellsMeta()`) where the `DataManager` one blanks it. That one is also the standing example
+  of the double translation this rule forbids: it reads physical (`getCellMetaAtRow()`) and writes
+  visual (`spliceCellsMeta()`) with the same indexes, so its meta lands on the wrong rows as soon as
+  a collapsed or trimmed row makes visual and physical diverge. Do not copy it, and do not "fix" the
+  `DataManager` side to match it. Three traps ride along, one per fix. Read the destination with
+  `getRowIndex(element)` **after** the last `rewriteCache()` — never derive it arithmetically from the
+  parent position, because a sibling that owns descendants breaks any `parentIndex + n` formula.
+  Keep the raw `getRowIndex()` result out of the `?? 0` fallback the hook arguments use: as a meta
+  index that `0` splices from the top of the grid whenever the cache does not know the row object.
+  And skip the move when the block lands back on its own index — detaching the last child of a last
+  child re-parents it without moving any row, and a remove plus re-insert there would blank meta that
+  is still on the right cell. `moveCellsMeta()` resets the moved block's own meta rather than carrying
+  it across, because `LazyFactoryMap` has no move primitive; the alternative, `getCellMetas()`, takes
+  visual indexes, materializes meta for every column and fires `afterSetCellMeta` per cell.
+- **Removing a parent must reach every depth, and a two-level fixture cannot tell you whether it
+  does.** `#onBeforeRemoveRow()` rewrites the core's list of rows to remove, and the data side and the
+  index side of that removal are driven by different things: `DataManager#filterData()` splices the
+  parent OBJECT out of its own parent, which takes the whole subtree with it, while
+  `rowIndexMapper.removeIndexes()` only loses the rows this hook listed. So a descendant left off the
+  list survives as a row with no source row behind it — a blank row that reads back as `null` and that
+  no further "Remove row" can clear, because it is not in the tree any more. The hook used to add the
+  parent plus its **direct children** only, so everything from the third level down was left behind
+  (DEV-56). Two levels is correct by coincidence there — "direct children" and "all descendants" are
+  the same set — which is why the whole suite stayed green: **`getSimplerNestedData()` has leaf
+  children only**, and the only remove-a-parent spec ran on it. Reach for
+  `getMoreComplexNestedData()`, or the four-level Playwright fixture
+  (`tests/fixtures/demo/nested-rows-remove-parent.html`), before believing a removal test.
+  **The expansion must stay bounded by the flatten CACHE, never by the live tree**, and the tempting
+  shortcut is exactly what breaks it. `cacheNode()` flattens depth-first, so a parent's descendants
+  *are* the contiguous block right after it — but that invariant only holds **while the cache matches
+  the tree**, and **nothing on the render path re-caches** — `rewriteCache()` is called only by the
+  tree operations listed at the `getRowIndex()` landmine above, and a plain `render()` is not one of
+  them. So
+  `physicalIndex + 1 … physicalIndex + countChildren(physicalIndex)` reads its SIZE from the live
+  `__children` while the indexes resolve against the cache: push one child straight into the source
+  data, call `render()`, then remove the parent, and the range runs past the parent's own subtree and
+  silently deletes the next sibling parent and its children (measured: 7 rows → 1, source 0 — worse
+  than the blank rows it replaced). `#collectDescendants()` therefore recurses over `__children` and
+  keeps only what `getRowIndex()` resolves — a row the cache does not know has no index to remove, and
+  the walk **stops** there rather than continuing into its children. In a consistent cache that second
+  half is a no-op, because `cacheNode()` caches a parent before its children, so an unknown node has no
+  known descendants. It earns its place in exactly the drifted state this bullet is about: a descendant
+  the cache still remembers under a parent it no longer knows would hand back an index that now
+  addresses a different row, which is the same way the range version destroyed a sibling branch. Two more rules ride along. Keep the `Array.isArray(__children)` guard: `cacheNode()`
+  iterates whatever it is handed, so `__children: 'abc'` is cached as one node per character, and a
+  walk that trusts it destroys the sibling rows. And **never `physicalRows.push(...list)`** — the list
+  is now one entry per descendant, so the spread overflows the call stack (between 80k and 130k rows),
+  which the plugin-wide `arr.push(...bigArray)` ban below already forbids. The order of the returned
+  list does not matter, and both reasons are worth knowing so nobody adds a sort: `DataMap#removeRow`
+  sorts its own copy descending before it touches the meta layer, and `filterData()` re-reads each
+  row's position with a live `parent.__children.indexOf(row)` rather than from the cache, so an earlier
+  splice cannot leave a later one pointing at the wrong sibling.
+- **Undo after removing a parent must capture the tree, not widen `amount`.** DEV-56 left this
+  open: `RemoveRowAction` stored `rowIndexesSequence` but `captureRowData()` deleted `__children`,
+  so one Ctrl+Z put the indexes back and re-inserted a single row. That is now a two-phase restore
+  (see "Nested parent undo" under How it interacts). Do not "fix" it by widening `amount` while
+  still dropping `__children`. A two-level "no error" assertion is not enough — use
+  `__tests__/integration/undoRedo.spec.js` plus `tests/e2e/nested-rows-undo.spec.ts`.
 - **`collapseRow()` and `expandRow()` are dead code.** They delegate with `doTrimming` defaulting to
   `false`, so they neither trim nor render. Do not expose them and do not copy their names.
 - **`updatePlugin()` rebuilds everything.** It unregisters the trimming map and constructs a new
@@ -149,6 +275,18 @@ They are written in different places and can drift. Keep this in mind:
 - **`collapsedRowsStash.stash()` temporarily expands everything.** Any operation wrapped in
   stash/applyStash briefly un-trims all rows. It is used around add child, detach child, row move,
   and filtering.
+- **So every visual index an insert computes is measured in the *expanded* space, and any listener
+  that replays it later addresses a different row.** `beforeAddChild` opens the stash and
+  `afterAddChild` closes it, which puts the whole of `addChildAtIndex()` and `addChild()` inside a
+  window where nothing is trimmed. `afterCreateRow` fires in there, so with a collapsed parent above
+  the insertion point `UndoRedo`'s `CreateRowAction` stores an expanded-space row and undoes with
+  `alter('remove_row', <that row>)` **after** `applyStash()` re-trimmed — deleting a row the user
+  never inserted. `selection.shiftRows()` in the top-level branch is measured the same way, so a
+  selection between the collapsed-space and expanded-space insertion points does not follow the rows
+  that moved. Both are pre-existing in class (the old top-level index was wrong in the collapsed
+  space too) and both are still open: repairing them means expressing the index in the space the app
+  sees, which is only knowable after `applyStash()`. Do not add a collapsed-parent case to a spec
+  here and assume it passes — check which space the number is in first.
 - **Construction order matters.** `CollapsingUI`, `HeadersUI`, `ContextMenuUI`, and
   `RowMoveController` all capture `plugin.dataManager` (and some capture `plugin.collapsingUI`) in
   their constructors. Reassigning `plugin.dataManager` later leaves four stale references.
@@ -174,6 +312,45 @@ They are written in different places and can drift. Keep this in mind:
   physical order never diverge because of a move. Only trimming makes them diverge.
 - **UndoRedo** deletes `__children` before storing undo data, because this plugin restores the tree
   itself.
+- **Nested parent undo is a two-phase operation.** The `beforeRemoveRow` list must contain every
+  cached descendant, while `RemoveRowAction` captures the complete subtree before `filterData`
+  mutates the source. Undo restores the tree and physical row/meta slots first, then replays the
+  generic cell values and accessors. The snapshot must also carry every row-index-map value and the
+  collapsed-parent list – restoring only `IndexesSequence` moves trimming and hiding state onto the
+  wrong physical rows. MergeCells needs its physical row anchors restored after its visual geometry.
+  Do not send that geometry through `restoreMergedCells`: `merge()` populates non-corner cells with
+  `null`, and the generic `data` snapshot only holds the parent row. Skip the visual remesh and
+  reattach physical anchors only. A nested undo that cannot land (plugin disabled,
+  `beforeCreateRow` veto) must be refused before `beforeUndo`. Formulas always calls `engine.undo()`
+  there, so a late `{ wasUndone: false }` leaves HyperFormula restored and Handsontable empty.
+  The nested restore emits the normal `beforeCreateRow`/`afterCreateRow` pair with
+  `UndoRedo.undo` as the source. Do not fix this by widening `amount` while still dropping
+  `__children`. Tests that assert the nested source tree must use `dataManager.getRawSourceData()`,
+  because the public `getSourceData()` path is intentionally flattened by `modifyRowData`.
+  Sibling roots go back in **ascending** `index` order: the live array is already compacted, and
+  inserting high indexes first writes past the remaining siblings (`A,B,C` minus `A` and `B`
+  becomes `A,C,B`). `row.index` is the position inside the parent – never use it as a visual-row
+  fallback for the probe hooks; a trimmed root would hand Formulas `0`. Context-menu removal
+  (`ContextMenu.removeRow`) never calls `selection.shiftRows`, so that undo path must not either
+  or the highlight lands below the restored subtree. The create-row probe asks **every** root
+  before deciding, otherwise a later veto leaves the earlier roots' `beforeCreateRow` unpaired
+  and the later root unasked.
+- **AutoRowHeaderSize already subsumes `HeadersUI#updateRowHeaderWidth()` — never measure labels
+  here.** That method derives a width from the nesting depth alone
+  (`Math.max(50, padding * 2 + 10 * levelCount + 25)`, exactly 61px on a two-level tree in
+  `ht-theme-main`) and never looks at the label, so a ~40px custom `rowHeaders` label is clipped
+  (DEV-64). AutoRowHeaderSize measures the header **as rendered**, decoration included: it runs the
+  renderers from `afterGetRowHeaderRenderers` into a `GhostTable`, and the grid's own one
+  (`appendRowHeader`, `tableView.ts:2196`) fires `afterGetRowHeader`, which is where
+  `appendLevelIndicators` adds the spacers and the button. Measured: toggling nesting alone moves it
+  66px -> 104px, and 133px -> 170px with longer labels — a constant ~38px, this plugin's decoration.
+  The 61px floor therefore never wins once that plugin is on. So the formula is a deliberately crude
+  **fallback for the no-AutoRowHeaderSize case**; teaching it to measure text would duplicate a whole
+  sampler and would still disagree with a plain grid, which is fixed-width by default too. If it is
+  ever changed to *add* decoration room on top of the incoming width instead of `Math.max`-ing a
+  floor, gate that on `this.hot.getPlugin('autoRowHeaderSize')?.isEnabled()` (the pattern
+  `manualRowResize.ts:876` uses for `autoRowSize`) or the 38px is counted twice. Users escape with
+  `rowHeaderWidth` (works back to 16.2, because the floor is a `Math.max`) or `autoRowHeaderSize: true`.
 
 ## Tests
 
@@ -187,6 +364,8 @@ They are written in different places and can drift. Keep this in mind:
 | `__tests__/data/dataManager.unit.js` | The tree-path helpers, including the round trip across a data swap |
 | `tests/e2e/nested-rows-api.spec.ts` | Playwright: hooks, cancelling, and post-`loadData` safety |
 | `tests/e2e/nested-rows-update-data.spec.ts` | Playwright: collapsed parents across `updateData` / `loadData` |
+| `tests/e2e/nested-rows-remove-parent.spec.ts` | Playwright: removing a parent takes its whole subtree, on a **four-level** tree |
+| `tests/e2e/nested-rows-undo.spec.ts` | Playwright: undo restores a removed parent and its descendants |
 
 Physical layouts of the shared fixtures, which the specs depend on:
 

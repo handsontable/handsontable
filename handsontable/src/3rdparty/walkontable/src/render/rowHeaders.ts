@@ -1,6 +1,7 @@
 import { SharedOrderView } from '../utils/orderView';
 import { BaseRenderer } from './_base';
 import { setAttribute, removeAttribute } from '../../../../helpers/dom/element';
+import { clearAppliedSelection } from '../selection/appliedSelection';
 import {
   A11Y_COLINDEX,
   A11Y_ROWHEADER,
@@ -56,6 +57,10 @@ export class RowHeadersRenderer extends BaseRenderer {
 
   /**
    * Renders the cells.
+   *
+   * Stamps no `htLastRowHeaderColumn` marker, unlike `ColumnHeadersRenderer#render`: the seam to
+   * column 0 needs one only in a HEAD row, where CSS cannot tell a corner `th` from a column
+   * header. Every `th` in a BODY row is a row header, so the theme rule matches them all.
    */
   render() {
     const { rowsToRender, rowHeaderFunctions, rowHeadersCount, rows, cells } = this.table;
@@ -89,6 +94,7 @@ export class RowHeadersRenderer extends BaseRenderer {
         }
 
         TH.className = '';
+        clearAppliedSelection(TH);
         TH.removeAttribute('style');
 
         // Remove all accessibility-related attributes for the header to start fresh.

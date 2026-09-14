@@ -210,9 +210,12 @@ export class Loading extends BasePlugin {
       if (!this.#dialogPlugin?.isEnabled()) {
         this.hot.getSettings().dialog = true;
       }
-
-      this.hot.addHook('afterDialogFocus', () => this.#onAfterDialogFocus());
     }
+
+    // Registered on every enable, not only on the first: disabling the plugin removes its hooks
+    // while the dialog reference above survives, so a hook inside that branch would be gone
+    // after the first updateSettings.
+    this.addHook('afterDialogFocus', () => this.#onAfterDialogFocus());
 
     super.enablePlugin();
   }

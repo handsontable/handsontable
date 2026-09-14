@@ -27,8 +27,16 @@ import {
   REGRESSION_CALLOUT_THRESHOLD_TIMING,
   calcCv,
   comparability,
+  heapThresholdFor,
   sumActive,
 } from '../lib/thresholds.mjs';
+import {
+  DEFAULT_MEASUREMENT_VERSION,
+  baselineKey,
+  describeKey,
+  isCompatibleBaseline,
+  isCompleteKey,
+} from '../lib/environment.mjs';
 
 const GH_PAGES_REF = 'origin/gh-pages';
 const DEVELOP_REPORTS = 'performance-reports/develop';
@@ -102,6 +110,38 @@ function loadGoldens({ since }) {
 }
 
 /**
+ * The goldens a run may be compared against, as CI would select them: the same compatibility key
+ * (Chromium build, harness version) when the run carries one, and only other unkeyed goldens when it
+ * does not -- so a replay across a Playwright bump, or across the commit that introduced
+ * provenance, never medians the two environments together.
+ *
+ * @param {Array<{ timestamp: string, snapshot: object }>} earlier -- goldens before the run, oldest first
+ * @param {object} current -- the run's snapshot
+ * @returns {{ candidates: Array<object>, compatibleWith: object | null }}
+ */
+function compatibleWindow(earlier, current) {
+  const key = baselineKey(current);
+
+  if (!isCompleteKey(key)) {
+    return {
+      candidates: earlier.filter(entry => !isCompleteKey(baselineKey(entry.snapshot))),
+      compatibleWith: null,
+    };
+  }
+
+  const scenarioVersions = Object.fromEntries(
+    Object.entries(current.scenarios || {}).map(([name, entry]) => [
+      name, entry?.measurementVersion ?? DEFAULT_MEASUREMENT_VERSION,
+    ])
+  );
+
+  return {
+    candidates: earlier.filter(entry => isCompatibleBaseline(entry.snapshot, key)),
+    compatibleWith: { key, scenarioVersions },
+  };
+}
+
+/**
  * Replays each golden as if it were a PR run, against a median of only the goldens before it.
  *
  * @param {Array<{ timestamp: string, snapshot: object }>} goldens -- oldest first
@@ -111,12 +151,22 @@ function loadGoldens({ since }) {
 function replay(goldens, windowSize) {
   const deltas = [];
   let skippedIncomparable = 0;
+  let skippedThinWindow = 0;
 
-  for (let i = windowSize; i < goldens.length; i += 1) {
+  for (let i = 1; i < goldens.length; i += 1) {
     // Only the trailing window, never the run under test -- otherwise the baseline contains the
     // very run it is being compared against and the noise reads far smaller than it is.
-    const window = goldens.slice(i - windowSize, i).map(entry => entry.snapshot);
-    const baseline = computeMedianSnapshot(window, { windowSize });
+    const { candidates, compatibleWith } = compatibleWindow(goldens.slice(0, i), goldens[i].snapshot);
+
+    // A full window, as CI would have had. The first runs after a key change have fewer compatible
+    // predecessors and CI would have reported "no baseline" for them, so they are not replayed.
+    if (candidates.length < windowSize) {
+      skippedThinWindow += 1;
+      continue;
+    }
+
+    const window = candidates.slice(-windowSize).map(entry => entry.snapshot);
+    const baseline = computeMedianSnapshot(window, { windowSize, compatibleWith });
 
     if (!baseline) {
       continue;
@@ -169,7 +219,65 @@ function replay(goldens, windowSize) {
     }
   }
 
-  return { deltas, skippedIncomparable };
+  return { deltas, skippedIncomparable, skippedThinWindow };
+}
+
+/**
+ * How many goldens sit in each compatibility group. A replay that spans a Chromium change shows two
+ * rows here, and the thin-window count above tells how many runs after the boundary went unreplayed.
+ *
+ * @param {Array<{ timestamp: string, snapshot: object }>} goldens
+ */
+function printKeyGroups(goldens) {
+  const groups = new Map();
+
+  for (const { snapshot } of goldens) {
+    const key = baselineKey(snapshot);
+    const label = isCompleteKey(key) ? describeKey(key) : 'no provenance recorded';
+
+    groups.set(label, (groups.get(label) || 0) + 1);
+  }
+
+  console.log('Compatibility groups (only goldens in the same group are medianed together):');
+
+  for (const [label, count] of groups) {
+    console.log(`  ${String(count).padStart(4)}  ${label}`);
+  }
+
+  console.log('');
+}
+
+/**
+ * Heap callouts per scenario, at the shared constant and at the scenario's own threshold, so a
+ * per-scenario override in HEAP_THRESHOLDS_BY_SCENARIO can be read against the noise it answers.
+ *
+ * @param {Array<object>} deltas
+ */
+function printHeapByScenario(deltas) {
+  const scenarios = [...new Set(deltas.map(d => d.scenario))].sort();
+
+  console.log('\n  heap callouts per scenario on no-change comparisons:\n');
+  console.log(
+    `  ${'scenario'.padEnd(30)}${'n'.padStart(5)}${`>${REGRESSION_CALLOUT_THRESHOLD_HEAP}%`.padStart(9)}`
+    + `${'threshold'.padStart(12)}${'fired'.padStart(8)}`
+  );
+
+  for (const scenario of scenarios) {
+    const values = deltas.filter(d => d.scenario === scenario && d.heap != null).map(d => d.heap);
+
+    if (values.length === 0) {
+      continue;
+    }
+
+    const threshold = heapThresholdFor(scenario);
+    const atShared = values.filter(v => v > REGRESSION_CALLOUT_THRESHOLD_HEAP).length;
+    const atOwn = values.filter(v => v > threshold).length;
+
+    console.log(
+      `  ${scenario.padEnd(30)}${String(values.length).padStart(5)}${String(atShared).padStart(9)}`
+      + `${`${threshold}%`.padStart(12)}${String(atOwn).padStart(8)}`
+    );
+  }
 }
 
 /**
@@ -259,12 +367,21 @@ async function main(argv) {
     );
   }
 
-  const { deltas, skippedIncomparable } = replay(goldens, windowSize);
+  printKeyGroups(goldens);
+
+  const { deltas, skippedIncomparable, skippedThinWindow } = replay(goldens, windowSize);
 
   if (skippedIncomparable > 0) {
     console.log(
       `Skipped ${skippedIncomparable} comparison(s) the reports would refuse to publish `
       + '(incomplete capture or window mismatch).\n'
+    );
+  }
+
+  if (skippedThinWindow > 0) {
+    console.log(
+      `Skipped ${skippedThinWindow} run(s) with fewer than ${windowSize} compatible predecessors, `
+      + 'where CI would have reported no baseline.\n'
     );
   }
 
@@ -278,6 +395,7 @@ async function main(argv) {
   printCurve(deltas, 'heap', HEAP_THRESHOLDS, REGRESSION_CALLOUT_THRESHOLD_HEAP);
 
   printPerScenarioSpread(goldens);
+  printHeapByScenario(deltas);
 
   console.log('');
 }
@@ -290,4 +408,4 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   });
 }
 
-export { loadGoldens, replay, parseArgs };
+export { loadGoldens, replay, parseArgs, compatibleWindow };

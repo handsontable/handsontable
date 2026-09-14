@@ -1,7 +1,7 @@
 import GlobalMeta from './metaLayers/globalMeta';
 import TableMeta from './metaLayers/tableMeta';
 import ColumnMeta from './metaLayers/columnMeta';
-import CellMeta from './metaLayers/cellMeta';
+import CellMeta, { type CellMetaAtRowEntry } from './metaLayers/cellMeta';
 import localHooks from '../../mixins/localHooks';
 import { mixin } from '../../helpers/object';
 import { throwWithCause } from '../../helpers/errors';
@@ -336,6 +336,18 @@ export default class MetaManager {
   }
 
   /**
+   * Merges the per-render dynamic extension into the cell meta object without marking the cell as
+   * changed (see `CellMeta#extendMeta`).
+   *
+   * @param {number} physicalRow The physical row index which points what cell meta object is updated.
+   * @param {number} physicalColumn The physical column index which points what cell meta object is updated.
+   * @param {object} settings An object to merge with.
+   */
+  extendCellMeta(physicalRow: number, physicalColumn: number, settings: Record<string, unknown>) {
+    this.cellMeta.extendMeta(physicalRow, physicalColumn, settings);
+  }
+
+  /**
    * Removes a property defined by the "key" argument from the cell meta object.
    *
    * @param {number} physicalRow The physical row index.
@@ -366,6 +378,17 @@ export default class MetaManager {
    */
   getCellsMetaAtRow(physicalRow: number) {
     return this.cellMeta.getMetasAtRow(physicalRow);
+  }
+
+  /**
+   * Returns all materialized cell meta objects for a physical row together with their physical
+   * column keys.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @returns {{physicalColumn: number, meta: object}[]}
+   */
+  getCellsMetaAtRowWithPhysicalColumns(physicalRow: number): CellMetaAtRowEntry[] {
+    return this.cellMeta.getMetasAtRowWithPhysicalColumns(physicalRow);
   }
 
   /**
