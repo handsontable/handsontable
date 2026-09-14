@@ -3,6 +3,7 @@ import { EmptyDataStateUI } from './ui';
 import { isObject } from '../../helpers/object';
 import { isButtonType } from '../../helpers/uiButton';
 import { isRootInstance } from '../../utils/rootInstance';
+import { GRID_SCOPE } from '../../shortcuts/contexts/constants';
 import * as C from '../../i18n/constants';
 import type { SelectionState } from '../../selection/types';
 
@@ -34,6 +35,7 @@ const SOURCE = Object.freeze({
   LOADING: 'loading',
 });
 const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
+const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 /**
  * @plugin EmptyDataState
@@ -317,6 +319,7 @@ export class EmptyDataState extends BasePlugin {
       });
 
       this.#registerFocusScope();
+      this.#registerShortcuts();
       this.#registerEvents();
     }
 
@@ -363,6 +366,7 @@ export class EmptyDataState extends BasePlugin {
   disablePlugin() {
     this.#loadingActive = false;
 
+    this.#unregisterShortcuts();
     this.#unregisterFocusScope();
 
     this.#ui?.destroy();
@@ -436,6 +440,62 @@ export class EmptyDataState extends BasePlugin {
           }
         },
       });
+  }
+
+  /**
+   * Registers the shortcuts that stay available while the overlay covers the grid.
+   *
+   * Activating the plugin's focus scope switches the shortcut manager to `plugin:emptyDataState`,
+   * and the manager runs the active context only. Without this group that context is empty, so
+   * every grid shortcut dies for as long as the overlay is shown.
+   *
+   * Undo and redo are forwarded to the grid context, which keeps the UndoRedo plugin the single
+   * owner of that logic. Select all cannot be forwarded the same way: the grid context guards its
+   * whole group with `isDefined(getSelected())` plus rendered cells, and neither holds while the
+   * overlay is up, so the shortcut carries its own callback.
+   */
+  #registerShortcuts() {
+    const manager = this.hot.getShortcutManager();
+    const pluginContext = manager.getOrCreateContext(SHORTCUTS_CONTEXT_NAME);
+    const gridContext = manager.getContext(GRID_SCOPE);
+
+    pluginContext.addShortcut({
+      keys: [['Control/Meta', 'A']],
+      callback: () => {
+        const { selection } = this.hot;
+
+        selection.markSource('keyboard');
+        selection.selectAll(true, true, {
+          disableHeadersHighlight: true,
+        });
+        selection.markEndSource();
+      },
+      // The data is still there when only the columns are hidden, which is the case worth selecting.
+      // With no rows or no columns at all there is nothing to select, so the chord stays unclaimed.
+      runOnlyIf: () => this.hot.countRows() > 0 && this.hot.countCols() > 0,
+      group: SHORTCUTS_GROUP,
+    });
+
+    if (gridContext) {
+      pluginContext.addShortcuts([{
+        keys: [['Control/Meta', 'z']],
+        callback: () => {},
+      }, {
+        keys: [['Control/Meta', 'y'], ['Control/Meta', 'Shift', 'z']],
+        callback: () => {},
+      }], {
+        forwardToContext: gridContext,
+        group: SHORTCUTS_GROUP,
+      });
+    }
+  }
+
+  /**
+   * Unregisters the plugin's shortcut group.
+   */
+  #unregisterShortcuts() {
+    this.hot.getShortcutManager()
+      .getContext(SHORTCUTS_CONTEXT_NAME)?.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**
@@ -587,7 +647,17 @@ export class EmptyDataState extends BasePlugin {
     this.#ui?.hide();
     this.#isVisible = false;
 
-    this.hot.getFocusScopeManager().deactivateScope(PLUGIN_KEY);
+    const focusScopeManager = this.hot.getFocusScopeManager();
+
+    focusScopeManager.deactivateScope(PLUGIN_KEY);
+
+    // `deactivateScope()` drops the active scope but never rolls the shortcut context back, and only
+    // a later focus or click event would do it. Undoing a full row removal from the context menu
+    // fires neither, so the grid came back with data and every shortcut still dead until the user
+    // clicked a cell.
+    if (focusScopeManager.getActiveScopeId() === null) {
+      this.hot.getShortcutManager().setActiveContextName(GRID_SCOPE);
+    }
 
     if (this.#selectionState && this.#selectionState.ranges.length > 0) {
       this.hot.selection.importSelection({

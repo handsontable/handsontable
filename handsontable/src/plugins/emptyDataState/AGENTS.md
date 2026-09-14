@@ -50,6 +50,43 @@ Two details:
   (`hasHorizontalScroll() && !isHorizontallyScrollableByWindow()`), then `preventDefault()`. Without those
   guards the page stops scrolling.
 
+## It owns a shortcut context, so it must fill it
+
+`#show()` activates the plugin's focus scope, and the focus scope manager switches the shortcut manager to
+`plugin:emptyDataState`. The manager runs the **active context only** — `handleEventWithScope()` in
+`../../shortcuts/manager.ts` — and `runGlobalScopedShortcuts` is no escape hatch, because both this context
+and `grid` are `table`-scoped. So an empty context means every grid shortcut is dead for as long as the
+overlay is on screen. It shipped that way and DEV-53 is the report: undo, redo and select all all died.
+
+`#registerShortcuts()` fills it, and the two halves are deliberately different:
+
+- **Undo and redo use `forwardToContext`**, the idiom `../contextMenu/menu/defaultShortcutsList.ts` and
+  `../comments/` already use. UndoRedo stays the single owner of that logic, and nothing here depends on
+  that plugin being enabled.
+- **Select all carries its own callback**, because forwarding does not work. The `grid` context guards its
+  whole main group with `isDefined(getSelected())` plus rendered cells (`../../shortcuts/contexts/grid.ts`),
+  and neither holds while the overlay is up — a forwarded `Ctrl`+`A` is silently inert. It is guarded on
+  `countRows() > 0 && countCols() > 0` instead: with every column hidden the data is still there and worth
+  selecting, with no rows there is nothing to select and the chord stays unclaimed.
+
+Do **not** guard these on `isVisible()`. The context being active is the guard; a redundant one only adds a
+second way for the shortcuts to go dead.
+
+## `#hide()` must roll the shortcut context back itself
+
+`deactivateScope()` (`../../focusManager/scopeManager.ts`) clears the active scope and **never** touches the
+shortcut context — `setActiveContextName` is called on activation only. After that, nothing rolls it back
+except a later focus or click event reaching `processScopes()`.
+
+Undoing a full row removal from the context menu fires neither, so the grid came back full of data, looking
+completely normal, with every shortcut dead until the user clicked a cell. `#hide()` therefore resets the
+context to `grid` when no other scope took over, the same way `../comments/` does after hiding its editor.
+
+Two explanations for why only that path broke were measured and are **both wrong**, so do not reach for
+either when changing this: it is not which branch `#hide()` takes (the `updateData` path takes the
+`importSelection` branch too and recovers), and it is not where focus lands (in the broken path
+`document.activeElement` is a `TD` inside the grid and the context is still stuck).
+
 ## Selection on hide
 
 `#show()` captures the current selection through `selection.exportSelection()`. `#hide()` restores it with
@@ -71,6 +108,10 @@ Either way, `afterEmptyDataStateHide` fires last.
 
 - `npm run test:e2e --prefix handsontable -- --testPathPattern='emptyDataState'`
 - `npm run test:unit --prefix handsontable -- --testPathPattern='emptyDataState'`
+- `npm --prefix tests run test:e2e -- e2e/empty-data-state-shortcuts.spec.ts`
 
 `__tests__/` splits into `hooks/`, `methods/`, `options/`, `keyboardShortcuts/`, `plugins/` plus
 `ui.unit.js`.
+
+The shortcut behavior is pinned by the Playwright spec, not by `__tests__/keyboardShortcuts/`: it needs a
+real context menu and real key events, and the legacy suite is frozen.

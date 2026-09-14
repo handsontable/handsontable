@@ -116,6 +116,19 @@ export interface FixtureHotInstance {
     enablePlugin(): void,
     disablePlugin(): void,
   };
+  getPlugin(name: 'emptyDataState'): {
+    isVisible(): boolean,
+  };
+  getPlugin(name: 'hiddenColumns'): {
+    hideColumns(columns: number[]): void,
+    showColumns(columns: number[]): void,
+  };
+  getShortcutManager(): {
+    getActiveContextName(): string,
+  };
+  getFocusScopeManager(): {
+    getActiveScopeId(): string | null,
+  };
   getActiveEditor(): {
     isOpened(): boolean,
     beginEditing(): void,
@@ -126,6 +139,7 @@ export interface FixtureHotInstance {
   view: {
     isVerticallyScrollableByWindow(): boolean,
     isHorizontallyScrollableByWindow(): boolean,
+    countRenderableColumns(): number,
   };
   /** The grid's own root `<div>` – a child of the container passed to the constructor. */
   rootElement: HTMLElement;
