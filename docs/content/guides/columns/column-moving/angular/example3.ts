@@ -21,7 +21,7 @@ export class AppComponent {
   ];
 
   readonly hotSettings: GridSettings = {
-    colHeaders: ['One', 'Two', 'Three'],
+    colHeaders: ['SKU', 'Product', 'Supplier'],
     rowHeaders: true,
     manualColumnMove: true,
     autoWrapRow: true,

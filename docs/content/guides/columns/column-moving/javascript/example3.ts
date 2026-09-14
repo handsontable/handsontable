@@ -12,7 +12,7 @@ new Handsontable(container, {
     ['SKU-0093', 'Wireless Mouse', 'Alpine Supply Co.'],
     ['SKU-1170', 'Ergonomic Office Chair', 'Cascade Distributors'],
   ],
-  colHeaders: ['One', 'Two', 'Three'],
+  colHeaders: ['SKU', 'Product', 'Supplier'],
   rowHeaders: true,
   manualColumnMove: true,
   autoWrapRow: true,
