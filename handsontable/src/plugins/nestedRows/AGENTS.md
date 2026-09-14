@@ -296,24 +296,35 @@ They are written in different places and can drift. Keep this in mind:
   `handsontable/.ai/CONCERNS.md` as stack-overflow risks with 10k+ rows. Build index lists with a loop.
 - **`batchExecution` does not suspend rendering.** Use `hot.batch()` when a method performs two
   passes (as `expandToLevel()` does), or the grid renders the intermediate state.
-- **`CollapsingUI#trimRows()` is the one seam every collapse path reaches — including the stash
-  restore, which is not a user collapse.** All four collapse entry points funnel through it
-  (`collapseChildren`, `collapseMultipleChildren`, `collapseRows`, `collapseAll`), which is why the
-  DEV-50 selection guard lives there and **not** inside `collapseChildren()` before its own trim
-  call: `collapseMultipleChildren()` and `collapseAll()` invoke `collapseChildren(elem, false,
-  **false**)` with trimming off and aggregate the indexes to trim once at the end, so a guard placed
-  there never fires on those two paths. The cost of picking the shared seam is that
-  `collapsedRowsStash.applyStash()` reaches it too — `alter()` opens that stash around every insert
-  and remove, and it owns the selection across the operation (`selection.shiftRows()` moves it with
-  the rows). Anything added to `trimRows()` that touches the selection must therefore be skipped
-  while `#isRestoringStash` is set, or it fires on every row added to or removed from a grid that has
-  anything collapsed.
+- **Three collapses reach the trimming map that the user never asked for, and `shouldRunHooks` is
+  what tells them apart.** `CollapsingUI#trimRows()` looks like the natural seam for anything that
+  reacts to a collapse — every path funnels through it — but it cannot tell a gesture from a replay.
+  Three callers re-collapse a state the user chose earlier: `updatePlugin()` (which in React runs on
+  **every re-render**, see the `updatePlugin()` landmine above), `#onAfterUpdateData()`, and
+  `collapsedRowsStash.applyStash()`, which `alter()` opens around every insert and remove while it
+  owns the selection (`selection.shiftRows()` moves it with the rows). Anything that reaches out and
+  touches shared grid state — the selection, the viewport, focus — must therefore hang off
+  `applyCollapsedRowsChange()` and be gated on `shouldRunHooks === true`, which is exactly the flag
+  the two replays already pass `false` for and which the stash restore bypasses entirely by calling
+  `collapseMultipleChildren()` directly. That is where the DEV-50 selection guard lives. Make the
+  gate opt-**in**, never opt-out: a new collapse path then leaves the selection alone until it says
+  otherwise, instead of silently inheriting a side effect. Run the side effect after
+  `collapseMultipleChildren()` has returned and `collapsedRows` is updated, so an `afterSelection`
+  consumer reading `getCollapsedParents()` sees the collapse that caused it.
+- **A collapse that strands the selection must fill in only the case the core gave up on.**
+  `Selection#deselectIfHighlightStranded()` drops a stranded single-cell selection but **clamps** an
+  extent that tracks the grid — a full-column selection anchored in the column header, a select-all —
+  so that one survives the trim in a form the user still recognises. Re-selecting unconditionally
+  replaces that repair with a single cell and throws away work the core deliberately did. Check that
+  the selection really is gone first. Read the highlight from `getSelectedRangeActive()`, not
+  `getSelectedRangeLast()`: the active layer is the one the core judges, and on a multi-layer
+  Ctrl+click selection the two are different ranges.
 - **Do not assert `document.activeElement` straight after clicking the collapse button.** The nesting
   button is not focusable, so a real pointer press on it leaves focus on `<body>` even when the grid
   is working perfectly — a synthetic `dispatchEvent` does not, which makes the two disagree and a
   hand-check look green. Handsontable listens for keys on the document, so the grid still answers the
   keyboard from there; the first key press moves the selection and pulls focus back inside. Prove
-  focus-related behaviour with a **key press** (`page.keyboard.press`) and assert `activeElement`
+  focus-related behavior with a **key press** (`page.keyboard.press`) and assert `activeElement`
   only afterwards. `tests/e2e/nested-rows-collapse-selection.spec.ts` is the reference.
 
 ## How it interacts with the rest of the grid

@@ -130,17 +130,29 @@ export class NestedRowsPage {
   }
 
   /** The visual row the selection highlight sits on, or `null` when nothing is selected. */
-  highlightedRow(): Promise<number | null> {
-    return this.page.evaluate(() => {
-      const last = window.hot.getSelectedLast();
-
-      return last ? last[0] : null;
-    });
+  async highlightedRow(): Promise<number | null> {
+    return (await this.selectedCell())?.[0] ?? null;
   }
 
   /** Put the selection on one cell, by visual row/column. */
   async selectCell(row: number, col: number): Promise<void> {
     await this.page.evaluate(([r, c]) => window.hot.selectCell(r, c), [row, col]);
+  }
+
+  /**
+   * The whole selected range as `[fromRow, fromCol, toRow, toCol]`, or `null` when nothing is
+   * selected.
+   *
+   * {@link NestedRowsPage#selectedCell} reports only where the highlight sits, which cannot tell a
+   * surviving whole-column selection from a single cell on the same row.
+   */
+  selectedRange(): Promise<number[] | null> {
+    return this.page.evaluate(() => window.hot.getSelectedLast() ?? null);
+  }
+
+  /** Push settings through `updateSettings()`, which rebuilds the plugin and replays its state. */
+  async updateSettings(settings: Record<string, unknown>): Promise<void> {
+    await this.page.evaluate(config => window.hot.updateSettings(config), settings);
   }
 
   /**

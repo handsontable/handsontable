@@ -59,19 +59,6 @@ class CollapsingUI extends BaseUI {
    * @type {Array|undefined}
    */
   declare lastCollapsedRows: number[] | undefined;
-  /**
-   * `true` while `collapsedRowsStash.applyStash()` re-collapses the sections that an `alter()` call
-   * temporarily expanded.
-   *
-   * A stash restore trims the same rows a user-initiated collapse does, so it reaches
-   * {@link CollapsingUI#trimRows} through the same seam - but it is not a collapse the user asked
-   * for. `alter()` owns the selection across an insert or a remove (`selection.shiftRows()` moves it
-   * with the rows), and moving it to a parent here would overwrite that on every row added to or
-   * removed from a grid that has anything collapsed.
-   *
-   * @type {boolean}
-   */
-  #isRestoringStash = false;
 
   /**
    * Initializes the collapsing UI component and sets up the stash mechanism for preserving collapsed row state across operations.
@@ -101,16 +88,7 @@ class CollapsingUI extends BaseUI {
         });
       },
       applyStash: (forceRender = true) => {
-        this.#isRestoringStash = true;
-
-        try {
-          this.collapseMultipleChildren(this.lastCollapsedRows ?? [], forceRender);
-        } finally {
-          // `finally`, not a plain reset after the call: a throw would otherwise leave the flag set
-          // and silently disable the selection guard for the rest of the instance's life.
-          this.#isRestoringStash = false;
-        }
-
+        this.collapseMultipleChildren(this.lastCollapsedRows ?? [], forceRender);
         this.lastCollapsedRows = undefined;
       },
       trimStash: (realElementIndex: number, amount: number) => {
@@ -481,6 +459,13 @@ class CollapsingUI extends BaseUI {
     }
 
     const isCollapse = action === 'collapse';
+    // Only a collapse the user actually asked for may move the selection, and `shouldRunHooks` is
+    // what says so: both replays that re-collapse a state the user chose earlier - `updatePlugin()`
+    // and `#onAfterUpdateData()` - pass `false` here precisely because they are not new actions. The
+    // marker is opt-IN rather than opt-out so that any collapse path added later leaves the
+    // selection alone until it says otherwise. Read before the trim: afterwards the highlight's
+    // visual row no longer names the record the user picked.
+    const selectionAnchor = isCollapse && shouldRunHooks ? this.#captureSelectionAnchor() : null;
     const currentCollapsedRows = this.getCollapsedParents();
     // The action is possible only when every index points at a row that really has children. An
     // impossible action still reports through the hooks, matching the CollapsibleColumns plugin.
@@ -512,6 +497,13 @@ class CollapsingUI extends BaseUI {
 
     if (isActionPerformed && forceRender) {
       this.renderTable();
+    }
+
+    // After `collapsedRows` has been updated and the table repainted, so an `afterSelection`
+    // consumer reading `getCollapsedParents()` sees the collapse that caused the move - and before
+    // `afterRowCollapse`, so that hook reports the selection the user is left with.
+    if (selectionAnchor !== null) {
+      this.#restoreSelectionToVisibleAncestor(selectionAnchor);
     }
 
     if (shouldRunHooks) {
@@ -635,94 +627,91 @@ class CollapsingUI extends BaseUI {
   }
 
   /**
-   * Trim rows.
+   * Records where the selection sits, so a collapse that trims it away can put it back somewhere.
    *
-   * @param {Array} rows Physical row indexes.
+   * The PHYSICAL row is what is kept: the highlight stores a VISUAL row, and the trim is exactly
+   * what invalidates that. Read from the ACTIVE range rather than the last one, because the active
+   * layer is the one `Selection#deselectIfHighlightStranded()` judges - reading a different layer
+   * would fire on a selection the core left alone, or stay silent on the one it dropped.
+   *
+   * @returns {{physicalRow: number, column: number}|null} The anchor, or `null` when there is no
+   * selection or the highlight names no row.
    */
-  trimRows(rows: number[]) {
-    // Read BEFORE the trim - afterwards the highlight's visual row no longer names the record the
-    // user picked, which is the whole problem this guards against.
-    const selectionTarget = this.#findAncestorToKeepSelectionOn(rows);
-
-    this.hot.batchExecution(() => {
-      arrayEach(rows, (physicalRow: number) => {
-        this.plugin.collapsedRowsMap!.setValueAtIndex(physicalRow, true);
-      });
-    }, true);
-
-    if (selectionTarget !== null) {
-      // Translated AFTER the trim on purpose. `collapseAll()` trims sections above this one too, so
-      // the ancestor's visual index is not the one it had a moment ago - only the physical index
-      // survives the rebuild.
-      const visualRow = this.hot.toVisualRow(selectionTarget.physicalRow);
-
-      if (visualRow !== null) {
-        this.hot.selectCell(visualRow, selectionTarget.column);
-      }
-    }
-  }
-
-  /**
-   * Finds the row the selection should land on when `rows` are about to be trimmed away.
-   *
-   * Collapsing is backed by a trimming map, so a collapsed row leaves visual index space altogether.
-   * The selection holds a VISUAL row, which the trim invalidates: `Selection#repairSelection()` then
-   * drops the selection outright, DOM focus falls back to `<body>`, and the grid stops answering the
-   * keyboard until the user clicks into it again. Moving the selection onto the collapsed parent
-   * first is the tree-view convention and keeps the grid focused.
-   *
-   * The target is the nearest surviving ANCESTOR rather than "the parent": under multi-level nesting
-   * - and always under `collapseAll()` - the parent is itself in the set being trimmed.
-   *
-   * @param {number[]} rows Physical row indexes about to be trimmed.
-   * @returns {{physicalRow: number, column: number}|null} The row to re-select, or `null` to leave
-   * the selection alone.
-   */
-  #findAncestorToKeepSelectionOn(rows: number[]): { physicalRow: number, column: number } | null {
-    if (this.#isRestoringStash || rows.length === 0) {
-      return null;
-    }
-
-    const highlight = this.hot.getSelectedRangeLast()?.highlight;
+  #captureSelectionAnchor(): { physicalRow: number, column: number } | null {
+    const highlight = this.hot.getSelectedRangeActive()?.highlight;
 
     // A highlight on a column header names no row, so a row trim cannot strand it.
     if (!highlight || highlight.row === null || highlight.row < 0 || highlight.col === null) {
       return null;
     }
 
-    const highlightColumn = highlight.col;
-    const highlightPhysicalRow = this.hot.toPhysicalRow(highlight.row);
+    const physicalRow = this.hot.toPhysicalRow(highlight.row);
 
-    if (highlightPhysicalRow === null) {
+    if (physicalRow === null) {
       return null;
     }
 
-    const trimmedRows = new Set(rows);
+    return { physicalRow, column: highlight.col };
+  }
 
-    // Only rows that actually go away need the selection moved. Collapsing a section the selection
-    // is not in must leave it exactly where it is.
-    if (!trimmedRows.has(highlightPhysicalRow)) {
-      return null;
+  /**
+   * Puts the selection on the nearest ancestor that is still visible, when a collapse left the grid
+   * with none at all.
+   *
+   * Collapsing is backed by a trimming map, so a collapsed row leaves visual index space altogether.
+   * The selection holds a VISUAL row, which the trim invalidates, and
+   * `Selection#deselectIfHighlightStranded()` then drops it: DOM focus falls back to `<body>` and the
+   * grid stops answering the keyboard until the user clicks into it again. Landing on the collapsed
+   * parent instead is the tree-view convention.
+   *
+   * Only the "dropped it entirely" case is filled in. A selection whose extent tracks the grid - a
+   * full-column selection anchored in the column header, or a select-all - is CLAMPED by the core
+   * rather than dropped, and survives the trim in a form the user still recognises; replacing that
+   * with a single cell would throw away a repair the core deliberately made.
+   *
+   * The walk climbs until a row with a visual index turns up rather than stopping at the first
+   * ancestor this plugin did not collapse, because another trimming map can be hiding it - Filters,
+   * `trimRows` and Pagination all share this index space.
+   *
+   * @param {{physicalRow: number, column: number}} anchor Where the selection was before the trim.
+   */
+  #restoreSelectionToVisibleAncestor(anchor: { physicalRow: number, column: number }) {
+    if (this.hot.getSelectedRangeActive()) {
+      return;
     }
 
-    let ancestor = this.dataManager.getRowParent(highlightPhysicalRow);
+    let ancestor = this.dataManager.getRowParent(anchor.physicalRow);
 
     while (ancestor !== null) {
       const ancestorRow = this.dataManager.getRowIndex(ancestor);
 
       if (ancestorRow === null) {
-        break;
+        return;
       }
 
-      // Survives when this trim does not take it AND an earlier collapse has not already taken it.
-      if (!trimmedRows.has(ancestorRow) && this.plugin.collapsedRowsMap!.getValueAtIndex(ancestorRow) !== true) {
-        return { physicalRow: ancestorRow, column: highlightColumn };
+      const visualRow = this.hot.toVisualRow(ancestorRow);
+
+      if (visualRow !== null) {
+        this.hot.selectCell(visualRow, anchor.column);
+
+        return;
       }
 
       ancestor = this.dataManager.getRowParent(ancestor);
     }
+  }
 
-    return null;
+  /**
+   * Trim rows.
+   *
+   * @param {Array} rows Physical row indexes.
+   */
+  trimRows(rows: number[]) {
+    this.hot.batchExecution(() => {
+      arrayEach(rows, (physicalRow: number) => {
+        this.plugin.collapsedRowsMap!.setValueAtIndex(physicalRow, true);
+      });
+    }, true);
   }
 
   /**

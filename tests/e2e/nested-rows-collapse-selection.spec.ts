@@ -103,15 +103,36 @@ test.describe('NestedRows selection when a section is collapsed', () => {
     expect(await nestedRows.selectedCell()).toEqual([6, -1]);
   });
 
+  test('a whole-column selection the core clamps is not replaced by a single cell', async({ page, theme }) => {
+    const nestedRows = new NestedRowsPage(page, theme);
+
+    await nestedRows.goto();
+
+    // Ctrl+Space selects the column: the highlight stays on B-2 but the extent is anchored in the
+    // column header, so it TRACKS the grid. `deselectIfHighlightStranded()` re-pins such a selection
+    // to the new row count instead of dropping it - the collapse must leave that repair alone rather
+    // than reducing a surviving whole-column selection to one cell.
+    await nestedRows.cell(8, 0).click();
+    await page.keyboard.press('Control+Space');
+
+    // Anchored at row -1, the column header - that anchor is what marks the extent as grid-tracking.
+    expect(await nestedRows.selectedRange()).toEqual([-1, 0, 8, 0]);
+
+    await nestedRows.collapseButton(6).click();
+
+    // Still the whole column, clamped to the 7 rows that are left - not [6, 0, 6, 0].
+    expect(await nestedRows.selectedRange()).toEqual([-1, 0, 6, 0]);
+  });
+
   test('a collapsed-state stash restore does not move the selection', async({ page, theme }) => {
     const nestedRows = new NestedRowsPage(page, theme);
 
     await nestedRows.goto();
 
     // The stash is what `alter()` opens around an insert or a remove: it expands everything, the
-    // operation runs, then `applyStash()` re-collapses. That restore reaches the same trimming seam
-    // a user-initiated collapse does, but `alter()` owns the selection across it - `shiftRows()`
-    // moves it with the rows - so the collapse guard must stay out of the way.
+    // operation runs, then `applyStash()` re-collapses. It re-collapses through
+    // `collapseMultipleChildren()` directly, bypassing the choke point the guard hangs off, because
+    // `alter()` owns the selection across the operation - `shiftRows()` moves it with the rows.
     await nestedRows.cell(0, 0).click();
     await nestedRows.collapseButton(6).click();
     await nestedRows.stashCollapsedState();
@@ -122,8 +143,35 @@ test.describe('NestedRows selection when a section is collapsed', () => {
 
     await nestedRows.applyCollapsedStash();
 
-    // Unchanged behaviour: the restore trims B-1 away and the core drops the stale selection. What
+    // Unchanged behavior: the restore trims B-1 away and the core drops the stale selection. What
     // must NOT happen is the guard firing and parking the user on Root B.
     expect(await nestedRows.selectedCell()).toBeNull();
+  });
+
+  test('an updateSettings replay does not move the selection', async({ page, theme }) => {
+    const nestedRows = new NestedRowsPage(page, theme);
+
+    await nestedRows.goto();
+
+    // `updatePlugin()` tears the plugin down and re-collapses the parents the user chose, and in
+    // React it runs on EVERY re-render that carries the `nestedRows` key. The replay passes
+    // `shouldRunHooks: false` precisely because it is not a new action, so it must not move the
+    // selection, scroll, or pull focus - none of which the user asked for by re-rendering.
+    await nestedRows.cell(0, 0).click();
+    await nestedRows.collapseButton(0).click();
+
+    // Root B survived Root A's collapse, so the selection can sit on one of its children.
+    expect(await nestedRows.visibleNames()).toEqual(['Root A', 'Root B', 'B-1', 'B-2']);
+    await nestedRows.selectCell(3, 0);
+
+    await nestedRows.updateSettings({ nestedRows: true });
+
+    // The replay leaves the selection exactly as it found it. It ends up dropped, which is a
+    // SEPARATE pre-existing effect: `disablePlugin()` untrims everything, so visual row 3 names
+    // A-2-a for the length of the rebuild, and the re-collapse strands it. What this pins is that
+    // the collapse guard did not fire - with it firing, the user would be parked on Root A ([0, 0]),
+    // moved and scrolled by a re-render they never asked for.
+    expect(await nestedRows.selectedCell()).toBeNull();
+    expect(await nestedRows.visibleNames()).toEqual(['Root A', 'Root B', 'B-1', 'B-2']);
   });
 });

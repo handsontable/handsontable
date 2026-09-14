@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed a problem where collapsing a nested-rows section that held the selection left the grid with no selection at all, so it stopped answering the keyboard until it was clicked again. The selection now moves to the collapsed parent row.",
+  "title": "Fixed a problem where collapsing a nested-rows section that held the selection left the grid with no selection, so it stopped answering the keyboard until it was clicked again.",
   "type": "fixed",
   "issueOrPR": 13492,
   "breaking": false,
