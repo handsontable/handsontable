@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-11T17:09:31.727Z",
+  "generatedAt": "2026-09-14T06:32:34.147Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -147,7 +147,7 @@
       "file": "e2e/overlay-scrollbar-clearance.spec.ts",
       "line": 226,
       "title": "overlay scrollbar clearance › gives the strip to the scrollbar while the track is up, and back afterwards",
-      "count7": 1,
+      "count7": 0,
       "count30": 1,
       "countAll": 1,
       "runs30": 1,
