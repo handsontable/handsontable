@@ -37,9 +37,9 @@ const hot = new Handsontable(container, {
   // configuration options, in the object literal notation
   licenseKey: "non-commercial-and-evaluation",
   data: [
-    ['A1', 'B1', 'C1', 'D1'],
-    ['A2', 'B2', 'C2', 'D2'],
-    ['A3', 'B3', 'C3', 'D3'],
+    ['SKU-4821', 'Stainless Steel Water Bottle', 'Harbor Goods', '142'],
+    ['SKU-0093', 'Wireless Mouse', 'Alpine Supply Co.', '0'],
+    ['SKU-1170', 'Ergonomic Office Chair', 'Cascade Distributors', '67'],
   ],
   width: 400,
   height: 300,
@@ -65,9 +65,9 @@ To apply configuration options, pass them as individual props of the [`HotTable`
   autoWrapCol={true}
   licenseKey="non-commercial-and-evaluation"
   data={[
-    ['A1', 'B1', 'C1', 'D1'],
-    ['A2', 'B2', 'C2', 'D2'],
-    ['A3', 'B3', 'C3', 'D3'],
+    ['SKU-4821', 'Stainless Steel Water Bottle', 'Harbor Goods', '142'],
+    ['SKU-0093', 'Wireless Mouse', 'Alpine Supply Co.', '0'],
+    ['SKU-1170', 'Ergonomic Office Chair', 'Cascade Distributors', '67'],
   ]}
   width={400}
   height={300}
@@ -91,9 +91,9 @@ To apply configuration options, pass them as `GridSettings` object to [`HotTable
 import { GridSettings } from "@handsontable/angular-wrapper";
 
 data = [
-  ["A1", "B1", "C1", "D1"],
-  ["A2", "B2", "C2", "D2"],
-  ["A3", "B3", "C3", "D3"],
+  ["SKU-4821", "Stainless Steel Water Bottle", "Harbor Goods", "142"],
+  ["SKU-0093", "Wireless Mouse", "Alpine Supply Co.", "0"],
+  ["SKU-1170", "Ergonomic Office Chair", "Cascade Distributors", "67"],
 ];
 gridSettings: GridSettings = {
   autoWrapRow: true,
@@ -131,9 +131,9 @@ registerAllModules();
 const hotSettings = ref({
   licenseKey: 'non-commercial-and-evaluation',
   data: [
-    ['A1', 'B1', 'C1', 'D1'],
-    ['A2', 'B2', 'C2', 'D2'],
-    ['A3', 'B3', 'C3', 'D3'],
+    ['SKU-4821', 'Stainless Steel Water Bottle', 'Harbor Goods', '142'],
+    ['SKU-0093', 'Wireless Mouse', 'Alpine Supply Co.', '0'],
+    ['SKU-1170', 'Ergonomic Office Chair', 'Cascade Distributors', '67'],
   ],
   width: 400,
   height: 300,
@@ -838,9 +838,9 @@ const container = document.querySelector('#example');
 const hot = new Handsontable(container, {
   // top-level grid options that apply to the entire grid
   data: [
-    ['A1', 'B1', 'C1', 'D1'],
-    ['A2', 'B2', 'C2', 'D2'],
-    ['A3', 'B3', 'C3', 'D3'],
+    ['SKU-4821', 'Stainless Steel Water Bottle', 'Harbor Goods', '142'],
+    ['SKU-0093', 'Wireless Mouse', 'Alpine Supply Co.', '0'],
+    ['SKU-1170', 'Ergonomic Office Chair', 'Cascade Distributors', '67'],
   ],
   licenseKey: 'non-commercial-and-evaluation',
   width: 'auto',
@@ -961,9 +961,9 @@ const container = document.querySelector('#example');
 const hot = new Handsontable(container, {
   // top-level grid options that apply to the entire grid
   data: [
-    ['A1', 'B1', 'C1', 'D1'],
-    ['A2', 'B2', 'C2', 'D2'],
-    ['A3', 'B3', 'C3', 'D3'],
+    ['SKU-4821', 'Stainless Steel Water Bottle', 'Harbor Goods', '142'],
+    ['SKU-0093', 'Wireless Mouse', 'Alpine Supply Co.', '0'],
+    ['SKU-1170', 'Ergonomic Office Chair', 'Cascade Distributors', '67'],
   ],
   licenseKey: 'non-commercial-and-evaluation',
   width: 'auto',

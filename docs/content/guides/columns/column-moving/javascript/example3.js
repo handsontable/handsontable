@@ -1,22 +1,19 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-
 // Register all Handsontable's modules.
 registerAllModules();
-
 const container = document.querySelector('#example3');
-
 new Handsontable(container, {
-  data: [
-    ['A1', 'B1', 'C1'],
-    ['A2', 'B2', 'C2'],
-    ['A3', 'B3', 'C3'],
-  ],
-  colHeaders: ['One', 'Two', 'Three'],
-  rowHeaders: true,
-  manualColumnMove: true,
-  autoWrapRow: true,
-  autoWrapCol: true,
-  height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation',
+    data: [
+        ['SKU-4821', 'Stainless Steel Water Bottle', 'Harbor Goods'],
+        ['SKU-0093', 'Wireless Mouse', 'Alpine Supply Co.'],
+        ['SKU-1170', 'Ergonomic Office Chair', 'Cascade Distributors'],
+    ],
+    colHeaders: ['One', 'Two', 'Three'],
+    rowHeaders: true,
+    manualColumnMove: true,
+    autoWrapRow: true,
+    autoWrapCol: true,
+    height: 'auto',
+    licenseKey: 'non-commercial-and-evaluation',
 });
