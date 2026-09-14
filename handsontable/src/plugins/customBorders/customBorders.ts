@@ -1301,7 +1301,7 @@ export class CustomBorders extends BasePlugin {
 
   /**
    * Applies one progressive batch, renders so the newly in-viewport borders appear, then schedules
-   * the next batch or finishes. Aborts if the load was cancelled/superseded (token mismatch).
+   * the next batch or finishes. Aborts if the load was canceled/superseded (token mismatch).
    *
    * @param {number} token The generation token captured when the load started.
    */

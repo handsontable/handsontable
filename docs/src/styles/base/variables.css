@@ -9,7 +9,7 @@
  */
 
 /* -------------------------------------------------------------------------
- * Handsontable brand colours (matches the Stylus theme variables)
+ * Handsontable brand colors (matches the Stylus theme variables)
  * Starlight CSS custom properties:
  * https://starlight.astro.build/guides/css-and-tailwind/#theming
  *
@@ -17,10 +17,10 @@
  * Unlayered rules always win over layered ones, so we must NOT override
  * the gray-scale / white / black variables here — those need to invert
  * between light and dark mode via Starlight's own layered rules.
- * Only set accent colours (with separate dark/light values) and typography.
+ * Only set accent colors (with separate dark/light values) and typography.
  * ------------------------------------------------------------------------- */
 
-/* Dark mode accent colours + pure neutral gray palette */
+/* Dark mode accent colors + pure neutral gray palette */
 :root {
   --sl-color-accent-low:  #1a3a6b;
   --sl-color-accent:      #2856ea;
@@ -68,7 +68,7 @@
   --sl-color-block-bg: #121212;
 }
 
-/* Light mode accent colours + pure neutral gray palette */
+/* Light mode accent colors + pure neutral gray palette */
 :root[data-theme='light'] {
   --sl-color-accent-low:  #e6f3ff;
   --sl-color-accent:      #1A42E8;

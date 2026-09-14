@@ -7,6 +7,8 @@
  * decision cache the next run reads back.
  */
 
+import { stripTaskIds } from './log.mjs';
+
 export const STATE_MARKER = 'docs-sync-state';
 export const SYNC_LABEL = 'docs-sync';
 export const SKIP_LABEL = 'docs-sync: skip';
@@ -20,6 +22,42 @@ export const INCLUDE_LABEL = 'docs-sync: include';
  */
 export function renderTitle(target) {
   return `Sync docs content from develop to ${target}`;
+}
+
+// Every bucket a candidate can land in, paired with its step-summary label. The
+// order is picked first, then the reasons for not picking. `renderBody` renders
+// the same buckets in full; this is the count-only view. Exported so a test can
+// assert it covers every bucket the report carries -- the two lists are separate
+// copies and nothing else keeps them in step.
+export const OUTCOMES = [
+  ['included', 'Included in the sync pull request'],
+  ['unsure', 'Needs a human decision'],
+  ['excluded', 'Excluded by the classifier'],
+  ['conflicts', 'Conflict'],
+  ['mixed', 'Mixed with non-content changes'],
+  ['versionScoped', 'Version-scoped page'],
+  ['alreadyOnProd', 'Already on prod'],
+  ['noPrNumber', 'No pull request number'],
+];
+
+/**
+ * A count-only summary of a run: how many commits were picked and how many were
+ * not, by outcome. The full per-commit decisions and reasons stay in the job
+ * log and the pull request body (`renderBody`); this is what the step summary
+ * shows so it does not repeat the whole audit trail.
+ *
+ * @param {object} report
+ * @returns {string}
+ */
+export function renderCounts(report) {
+  const picked = report.included.length;
+  const total = OUTCOMES.reduce((sum, [key]) => sum + report[key].length, 0);
+
+  return [
+    `## Docs content sync to ${report.target}`,
+    `Picked **${picked}** of **${total}** commit(s) for the sync pull request. Per-commit decisions and reasons are in the job log and the pull request body.`,
+    OUTCOMES.map(([key, label]) => `- ${label}: ${report[key].length}`).join('\n'),
+  ].join('\n\n');
 }
 
 /**
@@ -57,9 +95,13 @@ function section(heading, items, line) {
  * @returns {string}
  */
 function plain(text, max = 200) {
-  const collapsed = String(text ?? '')
+  // stripTaskIds runs here, the one chokepoint every untrusted subject and
+  // model-written reason passes through, so a task id in either never reaches
+  // the pull request body (see stripTaskIds for why that matters).
+  const collapsed = stripTaskIds(String(text ?? '')
     .replaceAll('<', '&lt;')
-    .replace(/\r\n|\r|\n/g, ' ');
+    .replace(/\r\n|\r|\n/g, ' '))
+    .trim();
 
   return collapsed.length > max ? `${collapsed.slice(0, max)}…` : collapsed;
 }
@@ -82,15 +124,20 @@ function forState(text) {
 }
 
 /**
- * `\`sha\` subject` with the subject sanitized and any trailing `(#n)` it
- * already carries stripped, since every `section()` caller appends its own
- * `(#n, ...)` right after this.
+ * `\`sha\` subject`. `plain()` already stripped the task ids and sanitized the
+ * text; here the trailing `(#n)` the subject carries is removed (every
+ * `section()` caller appends its own `(#n, ...)`) and the `: ` a removed leading
+ * `DEV-1234: ` prefix left behind is cleaned up. Only the source `#n` (a
+ * pull-request number, which ClickUp does not treat as a task) survives.
  *
  * @param {{ sha: string, subject: string }} item
  * @returns {string}
  */
 function ref(item) {
-  const subject = plain(item.subject).replace(/\s*\(#\d+\)\s*$/, '');
+  const subject = plain(item.subject)
+    .replace(/\s*\(#\d+\)\s*$/, '')
+    .replace(/^[\s:\-–—]+/, '')
+    .trim();
 
   return `\`${item.sha.slice(0, 7)}\` ${subject}`;
 }

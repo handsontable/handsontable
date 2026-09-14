@@ -226,7 +226,7 @@ function applyEditorPosition(
 }
 
 /**
- * Hook that allows encapsulating custom behaviours of component-based editor by customizing passed ref with overridden hooks object.
+ * Hook that allows encapsulating custom behaviors of component-based editor by customizing passed ref with overridden hooks object.
  *
  * @param {HotEditorHooks} overriddenHooks Overrides specific for the custom editor.
  * @param {DependencyList} deps Overridden hooks object React dependency list.

@@ -221,7 +221,11 @@ describe('UndoRedo -> RemoveRow action with a function dataSchema', () => {
     valueSetter.mockClear();
     plugin.undo();
 
-    expect(valueSetter).toHaveBeenCalledWith('Frank Honest', expect.anything(), expect.anything(), expect.anything());
+    // The fifth argument is the change source, and on this path it is the undo itself - which is
+    // how a cell type whose stored shape differs from the written value can leave an undo
+    // verbatim (the autocomplete setter does, DEV-57).
+    expect(valueSetter).toHaveBeenCalledWith(
+      'Frank Honest', expect.anything(), expect.anything(), expect.anything(), 'UndoRedo.undo');
     expect(hot.getDataAtCell(1, 1)).toBe('Frank Honest');
   });
 

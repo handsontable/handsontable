@@ -47,6 +47,16 @@ A migration guide is required for every major release and some minor releases. E
 
 Follow the structure of previous migration guides for consistency. Migration guides live in `docs/content/guides/upgrade-and-migration/`.
 
+**Sections are numbered, and the number lives in two places.** Each step is an `## <N>. <title>`
+heading, and the paragraph just after `[[toc]]` names every section by that number ("Section 9
+concerns ..."). Two pull requests open at the same time both add the next number, so the guide is a
+reliable merge conflict on a busy release, and the conflict has two regions: the intro paragraph and
+the heading. Resolve both — renumber the later section and add its sentence to the intro. Nothing
+checks the intro against the headings, so a half-resolved merge ships an intro that describes the
+wrong section and no gate complains. Check for links to the anchor you are renumbering
+(`migrating-from-X-to-Y.md#<n>-...`) before you renumber; there are usually none, and a renumber that
+breaks one is silent too.
+
 ## Trademark rules
 
 - Any documentation page mentioning "Excel" must include the Microsoft/Excel trademark disclaimer.

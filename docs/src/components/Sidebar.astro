@@ -128,7 +128,7 @@ if (isRecipePage) {
     const entries: any[] = (matchingGroup as any).entries;
 
     if (pathname.includes('/api/')) {
-      // On API pages: show only the API reference items (the last group, labelled
+      // On API pages: show only the API reference items (the last group, labeled
       // 'API reference'). The items inside it are the flat API nav list.
       const apiGroup = entries.findLast((e: any) => e.type === 'group' && e.label === 'API reference');
       (Astro.locals.starlightRoute as any).sidebar = apiGroup ? apiGroup.entries : entries;
