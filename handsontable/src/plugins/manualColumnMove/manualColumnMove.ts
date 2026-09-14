@@ -84,7 +84,7 @@ export class ManualColumnMove extends BasePlugin {
    */
   #pressed = false;
   /**
-   * Whether the pointer travelled far enough since the header was pressed to count as a drag. A
+   * Whether the pointer traveled far enough since the header was pressed to count as a drag. A
    * press that stayed put is a click to sort, so no columns move and the move hooks stay quiet.
    */
   #dragged = false;
@@ -270,7 +270,7 @@ export class ManualColumnMove extends BasePlugin {
 
   /**
    * Checks whether a column drag is in progress - the header is held down and the pointer has
-   * travelled far enough to count as a drag rather than a click.
+   * traveled far enough to count as a drag rather than a click.
    *
    * `ColumnSorting` asks this on release to tell a click apart from a drag, so the two plugins
    * cannot disagree about where that line is.
@@ -790,7 +790,7 @@ export class ManualColumnMove extends BasePlugin {
       addClass(this.hot.rootElement, CSS_AFTER_SELECTION);
     }
 
-    // A press that never travelled is a click, not a move. Bailing out here also keeps
+    // A press that never traveled is a click, not a move. Bailing out here also keeps
     // `beforeColumnMove` / `afterColumnMove` from firing on every header click.
     if (!wasDragged || columnsLen < 1 || target === undefined) {
       this.#columnsToMove.length = 0;

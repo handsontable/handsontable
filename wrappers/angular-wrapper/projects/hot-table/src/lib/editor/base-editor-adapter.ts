@@ -213,7 +213,7 @@ export class BaseEditorAdapter extends Handsontable.editors.BaseEditor {
   /**
    * Unsubscribes the finish/cancel edit subscriptions if they are still active.
    * Without this, destroying the table while an editor was prepared but never
-   * finished/cancelled leaves the `take(1)` subscriptions hanging (they never emit).
+   * finished/canceled leaves the `take(1)` subscriptions hanging (they never emit).
    */
   private cleanupSubscriptions(): void {
     if (this._finishEditSubscription) {

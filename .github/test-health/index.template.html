@@ -29,6 +29,7 @@
   .badge.flaky { background: #fef3c7; color: #92400e; }
   .badge.failed { background: #fee2e2; color: #991b1b; }
   .badge.seed { background: #dbeafe; color: #1e40af; }
+  .badge.quarantine { background: #ede9fe; color: #5b21b6; }
   .legs { font-size: 12px; color: #374151; }
   .error { color: #6b7280; font-size: 12px; max-width: 360px; overflow-wrap: anywhere; }
   tr.ticket td:first-child { border-left: 3px solid #dc2626; }
@@ -77,6 +78,7 @@
   A test <b>needs a ticket</b> once it flaked in <span id="threshold"></span>+ distinct runs within 30 days (the flakiness playbook's rule).
   <em>flaky</em> = failed, then passed on retry (Playwright; still fails the leg under <code>failOnFlakyTests</code>);
   <em>failed</em> = did not pass. Jasmine entries carry the runner's isolation verdict when their file was re-run alone.
+  A <em>quarantined</em> Playwright test still runs and reports; its flaky verdict does not fail the leg until the entry's expiry (<code>tests/AGENTS.md</code>, Quarantine).
   Entries older than <span id="retention"></span> days drop off. Source: <code>.github/workflows/test-health.yml</code>.
 </footer>
 <script id="summary" type="application/json">__SUMMARY_JSON__</script>
@@ -94,6 +96,7 @@
   [
     ['Tests seen', summary.totals.tests],
     ['Need a ticket', summary.totals.needsTicket],
+    ['Quarantined', summary.totals.quarantined || 0],
     ['Observations', summary.totals.entries]
   ].forEach(function(pair) {
     var box = document.createElement('div');
@@ -136,8 +139,8 @@
       var av = sortValue(a, sortKey);
       var bv = sortValue(b, sortKey);
       var cmp = av < bv ? -1 : av > bv ? 1 : 0;
-      if (cmp === 0) { cmp = b.count30 - a.count30 || a.title.localeCompare(b.title); }
-      return sortAsc ? cmp : -cmp;
+      if (cmp !== 0) { return sortAsc ? cmp : -cmp; }
+      return b.count30 - a.count30 || a.title.localeCompare(b.title);
     });
 
     var tbody = document.querySelector('#table tbody');
@@ -156,9 +159,11 @@
       title.appendChild(document.createTextNode(' '));
       row.statuses.forEach(function(status) { title.appendChild(badge(status, status)); title.appendChild(document.createTextNode(' ')); });
       if (row.lastSeen.source === 'seed') { title.appendChild(badge('hand-recorded', 'seed')); }
+      if (row.quarantine) { title.appendChild(badge('quarantined', 'quarantine')); }
       title.appendChild(text('div', row.title));
       title.appendChild(text('div', (row.file || '?') + (row.line ? ':' + row.line : ''), 'file'));
       if (row.isolation.length) { title.appendChild(text('div', 'in isolation: ' + row.isolation.join('; '), 'legs')); }
+      if (row.quarantine) { title.appendChild(text('div', 'quarantine: ' + row.quarantine, 'legs')); }
       tr.appendChild(title);
 
       tr.appendChild(text('td', row.count7, 'num'));

@@ -357,9 +357,9 @@
 
       // An active header's inline-start edge has width 0 (only `:first-child` reserves
       // it), so its accent went missing there while the inline-end side kept it — most visible on
-      // frozen columns. Color the shared gridline on the inline-start neighbour instead, so every
+      // frozen columns. Color the shared gridline on the inline-start neighbor instead, so every
       // active column header shows a matching inline-start accent. `SelectionManager` stamps the
-      // neighbour with this class; selecting on `:has(+ th.ht__active_highlight)` instead makes every
+      // neighbor with this class; selecting on `:has(+ th.ht__active_highlight)` instead makes every
       // toggle of the active class (it moves between recycled header nodes on scroll) trigger a style
       // invalidation scaled to the whole host page.
       &.ht__active_highlight-prev {
@@ -368,7 +368,7 @@
 
       // Boundary seam: when the first non-frozen column is the active header, its inline-start edge
       // falls on the frozen-pane seam drawn by the frozen overlay (a separate table), out of reach of
-      // the neighbour class above (stamped within one table). `SelectionManager` tags the last frozen
+      // the neighbor class above (stamped within one table). `SelectionManager` tags the last frozen
       // header with this class so the seam gets the same accent.
       &.ht__active_highlight-seam {
         border-inline-end-color: var(--ht-header-active-border-color);
@@ -466,7 +466,7 @@
         }
       }
 
-      // An active row header's top edge sits on the bottom gridline of the row above. Colour that
+      // An active row header's top edge sits on the bottom gridline of the row above. Color that
       // real border instead of drawing a box-shadow on the active header itself, so the accent rides
       // the layout gridline and never drifts a pixel (the box-shadow rounded independently and, on
       // the first row of each overlay table, doubled with the `tr:first-child` border-top below).

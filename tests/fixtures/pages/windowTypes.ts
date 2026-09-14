@@ -17,6 +17,14 @@ interface FixtureCellRange {
 }
 
 /**
+ * One entry of a sort config, as both sorting plugins take and return it.
+ */
+export interface FixtureSortConfig {
+  column: number;
+  sortOrder: 'asc' | 'desc';
+}
+
+/**
  * The slice of the Handsontable instance API the fixture-driving evaluate
  * callbacks use, so the in-page calls stay typed without importing the core
  * types into the test tier.
@@ -27,6 +35,7 @@ export interface FixtureHotInstance {
   getSourceDataAtCell(row: number, col: number): CellValue;
   getSourceData(): unknown[];
   setDataAtCell(row: number, col: number, value: CellValue): void;
+  setCellMeta(row: number, col: number, key: string, value: unknown): void;
   getCellMeta(row: number, col: number): { className?: string, readOnly?: boolean };
   getPlugin(name: 'formulas'): {
     getCellType(row: number, col: number): string,
@@ -61,6 +70,16 @@ export interface FixtureHotInstance {
     clearConditions(column?: number): void,
     filter(): void,
   };
+  /**
+   * Both sorting plugins expose the same `sort()` signature - `MultiColumnSorting` extends
+   * `ColumnSorting` and only widens what an array of configs means - so one overload covers
+   * a fixture that swaps between them. The `column` is a VISUAL index.
+   */
+  getPlugin(name: 'columnSorting' | 'multiColumnSorting'): {
+    sort(sortConfig?: FixtureSortConfig | FixtureSortConfig[]): void,
+    getSortConfig(): FixtureSortConfig[],
+    clearSort(): void,
+  };
   getPlugin(name: 'dragToScroll'): { isListening(): boolean };
   getPlugin(name: 'autofill'): { mouseDownOnCellCorner: boolean };
   getPlugin(name: 'multipleSelectionHandles'): { isDragged(): boolean };
@@ -88,6 +107,7 @@ export interface FixtureHotInstance {
     },
     dataManager: {
       getDataObject(row: number): object | null,
+      getRawSourceData(): unknown[],
       addChild(parent: object): void,
     },
   };
@@ -133,6 +153,7 @@ export interface FixtureHotInstance {
   loadData(data: unknown[]): void;
   updateData(data: unknown[]): void;
   updateSettings(settings: Record<string, unknown>): void;
+  alter(action: string, index?: number | number[][], amount?: number, source?: string): void;
   countCols(): number;
   rowIndexMapper: { getIndexesSequence(): number[] };
   columnIndexMapper: { getIndexesSequence(): number[] };
@@ -195,6 +216,10 @@ declare global {
     pendingValidationCount(): number;
     /** Rebuilds the GH #5983 sorting-a-filtered-grid-with-`minSpareRows` fixture grid. */
     initSortingSpareRowsGrid(overrides?: Record<string, unknown>): boolean;
+    /**
+     * Rebuilds the DEV-59 sorting-with-`fixedRowsTop`/`fixedRowsBottom` fixture grid.
+     */
+    initSortingFixedRowsGrid(overrides?: Record<string, unknown>): boolean;
     /** Returns the text the browser currently reports as selected (fragmentSelection fixture). */
     readTextSelection(): string;
     /** Drops any existing text selection (fragmentSelection fixture). */
@@ -209,6 +234,14 @@ declare global {
     moveCellsHookLog: MoveCellsHookRecord[];
     /** Recorded NestedRows collapse/expand hook calls, in firing order. */
     hookLog: { name: string, args: unknown[] }[];
+    /** Recorded remove-row hook arguments from the DEV-30 nested undo fixture. */
+    removeLog: {
+      hook: 'beforeRemoveRow' | 'afterRemoveRow';
+      index: number;
+      amount: number;
+      physicalRows: number[];
+      source?: string;
+    }[];
     /** Makes the fixture's `beforeMoveCells` listener return `false`. */
     setBeforeMoveCellsVeto(shouldVeto: boolean): boolean;
     /** Makes the fixture's `beforeRowMove` listener return `false`. */

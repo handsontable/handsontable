@@ -420,6 +420,85 @@ describe('Formulas', () => {
       expect(reloaded[0][1]).toBe('=SUM(A1:A4)');
     });
 
+    it('should keep HyperFormula in step when undoing a nested parent removal', async() => {
+      handsontable({
+        data: [{
+          col1: 'A1',
+          __children: [{ col1: 'A1.1' }],
+        }],
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1'
+        },
+        nestedRows: true,
+      });
+
+      await alter('remove_row', 0);
+      getPlugin('undoRedo').undo();
+
+      const formulasPlugin = getPlugin('formulas');
+
+      expect(countRows()).toBe(2);
+      expect(getPlugin('nestedRows').dataManager.getRawSourceData()).toEqual([{
+        col1: 'A1',
+        __children: [{ col1: 'A1.1' }],
+      }]);
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual([
+        ['A1'],
+        ['A1.1'],
+      ]);
+    });
+
+    it('should not undo HyperFormula when a nested parent undo is vetoed', async() => {
+      handsontable({
+        data: [{
+          col1: 'A1',
+          __children: [{ col1: '=A1' }],
+        }],
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1'
+        },
+        beforeCreateRow: () => false,
+        nestedRows: true,
+      });
+
+      await alter('remove_row', 0);
+
+      const formulasPlugin = getPlugin('formulas');
+      const sheetAfterRemove = formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId);
+
+      getPlugin('undoRedo').undo();
+
+      expect(countRows()).toBe(0);
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual(sheetAfterRemove);
+    });
+
+    it('should not undo HyperFormula when NestedRows is disabled before undo', async() => {
+      handsontable({
+        data: [{
+          col1: 'A1',
+          __children: [{ col1: '=A1' }],
+        }],
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1'
+        },
+        nestedRows: true,
+      });
+
+      await alter('remove_row', 0);
+      getPlugin('nestedRows').disablePlugin();
+
+      const formulasPlugin = getPlugin('formulas');
+      const sheetAfterRemove = formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId);
+
+      getPlugin('undoRedo').undo();
+
+      expect(countRows()).toBe(0);
+      expect(formulasPlugin.engine.getSheetSerialized(formulasPlugin.sheetId)).toEqual(sheetAfterRemove);
+    });
+
     it('should clear the detach guard when the plugin is re-enabled', async() => {
       const data = [
         [10, '=SUM(A1:A3)'],

@@ -34,6 +34,7 @@ import { NestedRows } from './nestedRows';
 import { Pagination } from './pagination';
 import { Search } from './search';
 import { SelectionHandles } from './selectionHandles';
+import { SheetsBar } from './sheetsBar';
 import { StretchColumns } from './stretchColumns';
 import { TouchScroll } from './touchScroll';
 import { TrimRows } from './trimRows';
@@ -88,6 +89,7 @@ declare module './registry' {
     pagination: typeof Pagination;
     search: typeof Search;
     selectionHandles: typeof SelectionHandles;
+    sheetsBar: typeof SheetsBar;
     stretchColumns: typeof StretchColumns;
     touchScroll: typeof TouchScroll;
     trimRows: typeof TrimRows;
@@ -138,6 +140,7 @@ export function registerAllPlugins() {
   registerPlugin(Pagination);
   registerPlugin(Search);
   registerPlugin(SelectionHandles);
+  registerPlugin(SheetsBar);
   registerPlugin(StretchColumns);
   registerPlugin(TouchScroll);
   registerPlugin(TrimRows);
@@ -184,6 +187,7 @@ export {
   Pagination,
   Search,
   SelectionHandles,
+  SheetsBar,
   StretchColumns,
   TouchScroll,
   TrimRows,

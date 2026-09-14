@@ -346,3 +346,45 @@ outcome (failed, then passed on retry) reaches the ledger only because
 The report path is pinned by `.github/scripts/lib/test-health.mjs` and asserted
 in `.github/scripts/__tests__/test-health.test.mjs`, so moving it means changing
 all three places.
+
+## Quarantine
+
+`failOnFlakyTests` stays on: a test that passes only on retry fails the leg, and
+fixing the flake is the answer. Quarantine is the narrow, expiring, capped
+exception for a *known* flake that would otherwise redden every unrelated pull
+request until the fix lands — and it exists in this tier only. The frozen
+Jasmine suite has no quarantine: a flaky legacy spec migrates here instead.
+
+- **Tag through the helper, never by hand.**
+  `test('title', quarantined('DEV-1234', '2026-10-08', 'why'), async() => …)`
+  (`fixtures/quarantine.ts`). The helper writes the `@quarantine` tag and a
+  `quarantine` annotation carrying the owning task id, the expiry and the
+  reason. A bare `'@quarantine'` literal is a lint error, and an annotation the
+  reporter cannot read fails the run: no task id, no quarantine.
+- **Locally too, not just "the leg".** The reporter runs in every configuration, and its
+  downgrade only fires when a live quarantine covers the flake. So `npx playwright test` locally
+  (where `failOnFlakyTests` is off) now exits 1 on an *un*quarantined flaky test that Playwright
+  itself would have passed — the same verdict CI reaches. Quarantine or fix the flake; do not
+  reach for `.skip`. The expiry horizon is re-checked at run time as well as at load, so a
+  hand-written annotation with a far-future date does not buy an unbounded downgrade.
+- **A quarantined test still runs and still reports.** Only its *flaky* verdict
+  is downgraded from "fail the leg" to "report": the reporter
+  (`reporters/quarantine.ts`, last in the reporter list) prints it, writes a
+  `::warning` on the checks tab, and sets the step output `quarantined-flaky`
+  so `e2e.yml` still uploads the report and the ledger records the test. A test
+  that fails outright is not covered — quarantine is for flakes, not for
+  failures. Never `.skip` a flake.
+- **Expiry: at most 30 days out**, checked when the spec loads. Past the date
+  the flaky verdict fails the leg again, and the tag on a passing test raises a
+  warning asking to be removed.
+- **Cap: 6 quarantined tests at once**, counted as distinct tests (one test
+  across six projects is one). The entry after the cap fails the run even when
+  every test passes; fix one before parking another.
+- **Visible.** The ledger at <https://handsontable.github.io/handsontable/test-health/>
+  shows quarantined tests with their entry, so nothing is parked silently.
+
+The decision logic is pure (`lib/quarantine-policy.mjs`, tested in
+`lib/__tests__/` through the root `test:tooling`); `e2e/quarantine-policy.spec.ts`
+proves the exit codes end to end by running synthetic projects in a child
+process (no browser). `QUARANTINE_CAP` and `QUARANTINE_MAX_DAYS` live in the
+policy module; change them there and in this section together.

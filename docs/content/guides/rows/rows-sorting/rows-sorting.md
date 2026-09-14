@@ -20,6 +20,8 @@ tags:
   - highest to lowest
   - unordered data
   - sortEmptyCells
+  - sortFixedRows
+  - fixed rows sorting
   - data sorting
   - sort data
   - sort rows
@@ -207,6 +209,8 @@ const configurationOptions = {
     sortEmptyCells: false,
     // show sort-order arrow in the column header (default: true)
     indicator: true,
+    // keep the rows frozen by `fixedRowsTop` and `fixedRowsBottom` in place (default: false)
+    sortFixedRows: false,
     // sort column 1 descending at initialization
     initialConfig: {
       column: 1,
@@ -231,6 +235,7 @@ const configurationOptions = {
     headerAction: true,
     sortEmptyCells: false,
     indicator: true,
+    sortFixedRows: false,
     initialConfig: {
       column: 1,
       sortOrder: 'desc',
@@ -256,6 +261,7 @@ const configurationOptions: GridSettings = {
     headerAction: true,
     sortEmptyCells: false,
     indicator: true,
+    sortFixedRows: false,
     initialConfig: {
       column: 1,
       sortOrder: 'desc',
@@ -286,6 +292,8 @@ const hotSettings = {
     sortEmptyCells: false,
     // show sort-order arrow in the column header (default: true)
     indicator: true,
+    // keep the rows frozen by `fixedRowsTop` and `fixedRowsBottom` in place (default: false)
+    sortFixedRows: false,
     // sort column 1 descending at initialization
     initialConfig: {
       column: 1,
@@ -615,7 +623,7 @@ Run code before or after sorting using the following [Handsontable hooks](@/guid
 
 A common use of `beforeColumnSort` is server-side sorting: cancel the client-side sort, send the sort configuration to a server, and reload the data. The following example simulates this: it cancels the front-end sort, "asks a server" to sort the rows, and loads the sorted rows back into the grid.
 
-A common use of `afterColumnSort` is excluding specific rows from the sorted result — see the [`afterColumnSort` example](#exclude-rows-from-sorting) in the next section.
+A common use of `afterColumnSort` is excluding specific rows from the sorted result — see the [`afterColumnSort` example](#exclude-rows-that-are-not-frozen) in the next section. Frozen rows need no hook at all: they [stay out of the sort by default](#frozen-rows-stay-out-of-the-sort-by-default).
 
 ::: only-for javascript
 
@@ -663,15 +671,25 @@ A common use of `afterColumnSort` is excluding specific rows from the sorted res
 
 ## Exclude rows from sorting
 
-You can prevent specific top or bottom rows from being sorted. This is useful when a frozen row at the top displays column labels, or a frozen row at the bottom displays [column summaries](@/guides/columns/column-summary/column-summary.md) — rows that should always stay in place regardless of the sort order.
+Two cases are worth telling apart. Rows you froze with [`fixedRowsTop`](@/api/options.md#fixedrowstop) or [`fixedRowsBottom`](@/api/options.md#fixedrowsbottom) are left out of sorting for you, with no code at all. Rows that are not frozen take part in every sort, and keeping one of them in place is something you write yourself.
+
+### Frozen rows stay out of the sort by default
+
+Since version 18.0.0, a frozen row holds its position no matter which column you sort by. This matters when a frozen row at the top carries column labels, or a frozen row at the bottom carries [column summaries](@/guides/columns/column-summary/column-summary.md) whose formulas point at absolute cell addresses. Sorting such a row into the middle of the data would break those formulas.
+
+Both sorting plugins behave this way: [`ColumnSorting`](@/api/columnSorting.md) and [`MultiColumnSorting`](@/api/multiColumnSorting.md).
+
+To sort the whole dataset instead, frozen rows included, set the `sortFixedRows` option to `true`. That restores the behavior Handsontable had before version 18.0.0.
+
+In the example below, both grids freeze a **Target** row at the top and a **Total** row at the bottom, and both start sorted by revenue, highest first. In the first grid, the frozen rows keep their place. In the second, `sortFixedRows` is `true`, so they are sorted with the rest of the data: **Total** moves to the top, and **Target** lands between two regions. Click any column header to compare the two grids.
 
 ::: only-for javascript
 
-::: example #exampleExcludeRowsFromSorting --html 1 --js 2 --ts 3
+::: example #exampleSortFixedRows --html 1 --js 2 --ts 3
 
-@[code](@/content/guides/rows/rows-sorting/javascript/exampleExcludeRowsFromSorting.html)
-@[code](@/content/guides/rows/rows-sorting/javascript/exampleExcludeRowsFromSorting.js)
-@[code](@/content/guides/rows/rows-sorting/javascript/exampleExcludeRowsFromSorting.ts)
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleSortFixedRows.html)
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleSortFixedRows.js)
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleSortFixedRows.ts)
 
 :::
 
@@ -679,10 +697,64 @@ You can prevent specific top or bottom rows from being sorted. This is useful wh
 
 ::: only-for react
 
-::: example #exampleExcludeRowsFromSorting :react --js 1 --ts 2
+::: example #exampleSortFixedRows :react --js 1 --ts 2
+
+@[code](@/content/guides/rows/rows-sorting/react/exampleSortFixedRows.jsx)
+@[code](@/content/guides/rows/rows-sorting/react/exampleSortFixedRows.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example12 :angular --ts 1 --html 2
+
+@[code](@/content/guides/rows/rows-sorting/angular/example12.ts)
+@[code](@/content/guides/rows/rows-sorting/angular/example12.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #exampleSortFixedRows :vue3
+
+@[code](@/content/guides/rows/rows-sorting/vue/exampleSortFixedRows.vue)
+
+:::
+
+:::
+
+`sortFixedRows` is a grid-level option, so you cannot set it per column: the frozen rows belong to the whole table rather than to one column. If you set it inside [`columns`](@/api/options.md#columns), it has no effect, and Handsontable logs a warning to the console.
+
+### Exclude rows that are not frozen
+
+A row that is not frozen takes part in every sort. To hold one in place, listen to the [`afterColumnSort`](@/api/hooks.md#aftercolumnsort) hook and move the row back with [`rowIndexMapper.moveIndexes()`](@/api/indexMapper.md#moveindexes).
+
+In the example below, the two featured products stay at the top whichever column you sort by. No row is frozen. The rule reads the data rather than a row position, so you pin a row by flagging it instead of by knowing where it sits.
+
+::: only-for javascript
+
+::: example #exampleExcludeRowsFromSorting --html 1 --js 2 --ts 3 --css 4
+
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleExcludeRowsFromSorting.html)
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleExcludeRowsFromSorting.js)
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleExcludeRowsFromSorting.ts)
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleExcludeRowsFromSorting.css)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #exampleExcludeRowsFromSorting :react --js 1 --ts 2 --css 3
 
 @[code](@/content/guides/rows/rows-sorting/react/exampleExcludeRowsFromSorting.jsx)
 @[code](@/content/guides/rows/rows-sorting/react/exampleExcludeRowsFromSorting.tsx)
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleExcludeRowsFromSorting.css)
 
 :::
 
@@ -701,13 +773,15 @@ You can prevent specific top or bottom rows from being sorted. This is useful wh
 
 ::: only-for vue
 
-::: example #exampleExcludeRowsFromSorting :vue3
+::: example #exampleExcludeRowsFromSorting :vue3 --css 2
 
 @[code](@/content/guides/rows/rows-sorting/vue/exampleExcludeRowsFromSorting.vue)
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleExcludeRowsFromSorting.css)
 
 :::
 
 :::
+
 
 ## Control sorting programmatically
 
@@ -957,7 +1031,7 @@ const configurationOptions: GridSettings = {
 
 ### Configure multi-column sorting options
 
-`multiColumnSorting` supports the same options as `columnSorting`: `headerAction`, `sortEmptyCells`, `indicator`, and `compareFunctionFactory`. Refer to [Configure sorting](#configure-sorting) for a description of each option.
+`multiColumnSorting` supports the same options as `columnSorting`: `headerAction`, `sortEmptyCells`, `indicator`, `sortFixedRows`, and `compareFunctionFactory`. Refer to [Configure sorting](#configure-sorting) for a description of each option.
 
 To disable multi-column sorting for a specific column, set `headerAction` to `false` in that column's configuration:
 
@@ -1431,6 +1505,7 @@ These header-focused shortcuts work only when a column header is focused. Enable
 | --- | --- | --- | --- |
 | `headerAction` | `boolean` | `true` | When `true`, clicking a column header sorts by that column. |
 | `sortEmptyCells` | `boolean` | `false` | When `true`, empty cells participate in sorting. When `false`, empty cells are always placed at the end. |
+| `sortFixedRows` | `boolean` | `false` | When `true`, the rows frozen by `fixedRowsTop` and `fixedRowsBottom` are sorted along with the rest of the dataset. When `false`, they keep their position. Grid-level only. |
 | `indicator` | `boolean` | `true` | When `true`, a sort-order arrow icon is shown in the column header. |
 | `compareFunctionFactory` | `function` | -- | A factory that returns a custom comparator function. See [Add a custom comparator](#add-a-custom-comparator). |
 | `initialConfig` | `object` | -- | Sort config applied at initialization. Contains `column` (visual index) and `sortOrder` (`'asc'` or `'desc'`). |

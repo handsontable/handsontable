@@ -4,7 +4,7 @@ name: Visual approval rerun
 # is the whole action rather than step one of two.
 #
 # The gate in `visual.yml` reads the label live, but only a NEW attempt runs it,
-# and nothing started one — so a labelled pull request kept its red
+# and nothing started one — so a labeled pull request kept its red
 # `Visual / Compare`, and with it a red `CI Gate`, until someone pressed
 # "Re-run jobs" by hand.
 #

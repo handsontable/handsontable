@@ -405,7 +405,7 @@ Mind that changes in table are applied after running all validators (both synchr
 
 ## Result
 
-You now have a cell validator that enforces data rules when a user finishes editing. Register it under an alias to reference it by name across your column configuration. Use <code>allowInvalid</code> set to false to keep the editor open until the user enters a valid value, or <code>allowInvalid</code> set to true to accept the value while still visually flagging the cell. Use <code>invalidCellClassName</code> to customise the CSS class applied to cells that fail validation — the default is <code>htInvalid</code>.
+You now have a cell validator that enforces data rules when a user finishes editing. Register it under an alias to reference it by name across your column configuration. Use <code>allowInvalid</code> set to false to keep the editor open until the user enters a valid value, or <code>allowInvalid</code> set to true to accept the value while still visually flagging the cell. Use <code>invalidCellClassName</code> to customize the CSS class applied to cells that fail validation — the default is <code>htInvalid</code>.
 
 ## Related API reference
 
