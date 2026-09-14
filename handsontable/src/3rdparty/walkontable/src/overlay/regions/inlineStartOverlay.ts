@@ -321,7 +321,8 @@ export class InlineStartOverlay extends Overlay {
     const start = typeof rowsRenderCalculator?.startPosition === 'number'
       ? rowsRenderCalculator.startPosition : 0;
 
-    setSpreaderOffset(this.clone.wtTable.spreader, 'y', start, this.deps.getWtOverlays().isStickyScrollActive());
+    // The clone is suspended only while the strategy positions the clones itself (element mode).
+    setSpreaderOffset(this.clone.wtTable.spreader, 'y', start, this.deps.getWtOverlays().isStickyScrollOwningClones());
   }
 
   /**

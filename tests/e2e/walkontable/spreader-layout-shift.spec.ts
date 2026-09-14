@@ -19,82 +19,92 @@ test.describe('walkontable spreader layout shift', { tag: '@walkontable' }, () =
 
   test.beforeEach(async({ page, theme, bundle }) => {
     wt = new SpreaderLayoutShiftPage(page, theme, bundle);
-    await wt.goto();
-
-    // Only Chromium reports layout shifts, and every project here runs it. A precondition rather
-    // than a skip: on a browser without the entry type every assertion below would pass on nothing.
-    expect(await wt.layoutShiftsSupported(), 'layout-shift entries must be reported by this browser').toBe(true);
   });
 
-  test('reports a layout shift for a box moved with an inset (positive control)', async() => {
-    await wt.resetLayoutShifts();
-    await wt.moveControlBox();
+  test.describe('without frozen panes', () => {
+    test.beforeEach(async() => {
+      await wt.goto();
 
-    // The observer path works: a real layout move on this page IS seen and IS blamed correctly.
-    await expect.poll(() => wt.shiftValueBlamedOn('cls-control'), {
-      message: 'the control box moved by 200px, so the observer must report it',
-    }).toBeGreaterThan(0);
-  });
+      // Only Chromium reports layout shifts, and every project here runs it. A precondition rather
+      // than a skip: on a browser without the entry type every assertion below would pass on nothing.
+      expect(await wt.layoutShiftsSupported(), 'layout-shift entries must be reported by this browser').toBe(true);
+    });
 
-  test('a vertical wheel scroll moves no layout', async() => {
-    await wt.resetLayoutShifts();
-    await wt.wheelScroll({ deltaY: 600 });
+    test('reports a layout shift for a box moved with an inset (positive control)', async() => {
+      await wt.resetLayoutShifts();
+      await wt.moveControlBox();
 
-    expect(await wt.shiftValueBlamedOn('wtSpreader')).toBe(0);
-    // Well under the 0.1 "good" line, and 200× under what the inset write measured.
-    expect(await wt.totalShiftValue()).toBeLessThan(0.05);
-  });
+      // The observer path works: a real layout move on this page IS seen and IS blamed correctly.
+      await expect.poll(() => wt.shiftValueBlamedOn('cls-control'), {
+        message: 'the control box moved by 200px, so the observer must report it',
+      }).toBeGreaterThan(0);
+    });
 
-  test('a horizontal wheel scroll moves no layout', async() => {
-    await wt.resetLayoutShifts();
-    await wt.wheelScroll({ deltaX: 400 });
+    test('a vertical wheel scroll moves no layout', async() => {
+      await wt.resetLayoutShifts();
+      await wt.wheelScroll({ deltaY: 600 });
 
-    expect(await wt.shiftValueBlamedOn('wtSpreader')).toBe(0);
-    expect(await wt.totalShiftValue()).toBeLessThan(0.05);
-  });
+      expect(await wt.shiftValueBlamedOn('wtSpreader')).toBe(0);
+      // Well under the 0.1 "good" line, and 200× under what the inset write measured.
+      expect(await wt.totalShiftValue()).toBeLessThan(0.05);
+    });
 
-  test('the editor opens over its cell after a scroll', async() => {
-    // The editor is placed from the cell's document position, which the layout chain no longer
-    // carries once the spreader moves by a transform - this pins that the offset is added back.
-    await wt.wheelScroll({ deltaY: 600 });
+    test('a horizontal wheel scroll moves no layout', async() => {
+      await wt.resetLayoutShifts();
+      await wt.wheelScroll({ deltaX: 400 });
 
-    const row = (await wt.masterFirstRenderedRow()) + 4;
-    const cellBox = await wt.cell(row, 3).boundingBox();
-    const editor = await wt.openEditor(row, 3);
-    const editorBox = await editor.boundingBox();
+      expect(await wt.shiftValueBlamedOn('wtSpreader')).toBe(0);
+      expect(await wt.totalShiftValue()).toBeLessThan(0.05);
+    });
 
-    expect(cellBox).not.toBeNull();
-    expect(editorBox).not.toBeNull();
-    // A pixel of border compensation either way is by design; anything larger is a misplaced editor.
-    expect(Math.abs(editorBox!.y - cellBox!.y)).toBeLessThanOrEqual(2);
-    expect(Math.abs(editorBox!.x - cellBox!.x)).toBeLessThanOrEqual(2);
-  });
+    test('the editor opens over its cell after a scroll', async() => {
+      // The editor is placed from the cell's document position, which the layout chain no longer
+      // carries once the spreader moves by a transform - this pins that the offset is added back.
+      await wt.wheelScroll({ deltaY: 600 });
 
-  test('the fill handle sits at the selection corner after a scroll', async() => {
-    // Same reason as the editor: the handle is anchored from the cell's document position.
-    await wt.wheelScroll({ deltaY: 600 });
+      const row = (await wt.masterFirstRenderedRow()) + 4;
+      const cellBox = await wt.cell(row, 3).boundingBox();
+      const editor = await wt.openEditor(row, 3);
+      const editorBox = await editor.boundingBox();
 
-    const row = (await wt.masterFirstRenderedRow()) + 4;
+      expect(cellBox).not.toBeNull();
+      expect(editorBox).not.toBeNull();
+      // A pixel of border compensation either way is by design; anything larger is a misplaced editor.
+      expect(Math.abs(editorBox!.y - cellBox!.y)).toBeLessThanOrEqual(2);
+      expect(Math.abs(editorBox!.x - cellBox!.x)).toBeLessThanOrEqual(2);
+    });
 
-    await wt.selectCell(row, 3);
+    test('the fill handle sits at the selection corner after a scroll', async() => {
+      // The corner is positioned from `offset(TD) - offset(TABLE)`, both inside the spreader, so this
+      // pins that the transform cancels out of that difference. (The separate anchor that decides
+      // whether the handle is pulled inside the grid's last row/column is not exercised here - that
+      // decision only changes at the grid's edge, where the band-relative coordinate already exceeds
+      // the viewport, so it cannot flip either way.)
+      await wt.wheelScroll({ deltaY: 600 });
 
-    const cellBox = await wt.cell(row, 3).boundingBox();
-    const handleBox = await wt.fillHandle().boundingBox();
+      const row = (await wt.masterFirstRenderedRow()) + 4;
 
-    expect(cellBox).not.toBeNull();
-    expect(handleBox).not.toBeNull();
+      await wt.selectCell(row, 3);
 
-    const handleCenterX = handleBox!.x + handleBox!.width / 2;
-    const handleCenterY = handleBox!.y + handleBox!.height / 2;
+      const cellBox = await wt.cell(row, 3).boundingBox();
+      const handleBox = await wt.fillHandle().boundingBox();
 
-    // The handle straddles the cell's bottom-right corner.
-    expect(Math.abs(handleCenterX - (cellBox!.x + cellBox!.width))).toBeLessThanOrEqual(4);
-    expect(Math.abs(handleCenterY - (cellBox!.y + cellBox!.height))).toBeLessThanOrEqual(4);
+      expect(cellBox).not.toBeNull();
+      expect(handleBox).not.toBeNull();
+
+      const handleCenterX = handleBox!.x + handleBox!.width / 2;
+      const handleCenterY = handleBox!.y + handleBox!.height / 2;
+
+      // The handle straddles the cell's bottom-right corner.
+      expect(Math.abs(handleCenterX - (cellBox!.x + cellBox!.width))).toBeLessThanOrEqual(4);
+      expect(Math.abs(handleCenterY - (cellBox!.y + cellBox!.height))).toBeLessThanOrEqual(4);
+    });
   });
 
   test.describe('with frozen rows and columns', () => {
     test.beforeEach(async() => {
       await wt.goto({ frozen: true });
+      expect(await wt.layoutShiftsSupported(), 'layout-shift entries must be reported by this browser').toBe(true);
     });
 
     test('the overlay clones move no layout either', async() => {

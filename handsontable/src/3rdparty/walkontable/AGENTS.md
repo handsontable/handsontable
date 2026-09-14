@@ -106,11 +106,18 @@ Four rules follow, and the first is the one that bites.
   bottom overlay the same as the top. `setSpreaderOffset` keeps the last value per element in a
   `WeakMap` so a write to one axis preserves the other — never compose the transform string at a call
   site.
-- **The sticky-scroll strategy suspends the transform for a native scrollbar drag.** It positions the
-  spreader through `position: sticky` and the insets for the duration of the drag, so the overlays
-  only record the offset while `Overlays#isStickyScrollActive()` is true, and the transform returns
-  on release. `#activate` reads its starting offset from the record, not from `style.top`, which is
-  empty now.
+- **The sticky-scroll strategy lifts the transform for a native scrollbar drag, and a lifted
+  transform reads as zero.** For the drag it positions the master spreader through `position:
+  sticky` and the insets - which the offset chain DOES see - so `clearSpreaderTransform` marks the
+  record lifted and `getSpreaderOffset()` returns `{0, 0}` until `applySpreaderTransform` puts it
+  back on release; otherwise the editor, fill handle and resize handles would add the offset on top
+  of the inset and land a whole scroll offset away mid-drag. The master's writes are suspended
+  while `Overlays#isStickyScrollActive()` is true. The CLONES are a narrower case: the strategy
+  only takes them over in element mode (in window mode they keep the overlay system's positioning
+  and the strategy returns before touching them), so their writes are suspended only while
+  `Overlays#isStickyScrollOwningClones()` is true - suspend them on the master's flag and the
+  frozen columns freeze for the length of a page-scrollbar drag. `#activate` reads its starting
+  offset from the record, not from `style.top`, which is empty now.
 
 Pinned by `test/unit/overlay/spreaderOffset.unit.ts` and `tests/e2e/walkontable/spreader-layout-shift.spec.ts`,
 which reads the browser's own `layout-shift` entries under a real wheel scroll — a scripted

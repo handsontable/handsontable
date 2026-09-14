@@ -15,26 +15,56 @@
  *
  * The last written offset is kept per element so each axis can be written by a different overlay
  * (the top overlay owns the vertical axis, the inline-start overlay the horizontal one) without
- * either reading the DOM back.
+ * either reading the DOM back. The record also knows whether the transform is currently LIFTED:
+ * during a native scrollbar drag the sticky-scroll strategy positions the element through the
+ * insets instead, which the offset chain does see, so `getSpreaderOffset()` reports zero for as
+ * long as that lasts - otherwise every reader would count the offset twice.
  */
-const offsets = new WeakMap<HTMLElement, { x: number; y: number }>();
+interface SpreaderOffsetRecord {
+  x: number;
+  y: number;
+  lifted: boolean;
+}
+
+const offsets = new WeakMap<HTMLElement, SpreaderOffsetRecord>();
 
 /**
- * Returns the spreader's current offset in physical pixels. `x` is negative in RTL, where the
- * spreader moves away from the hider's right edge.
+ * @param {HTMLElement} spreader The spreader element.
+ * @returns {SpreaderOffsetRecord} The element's record, created on first use.
+ */
+function recordFor(spreader: HTMLElement): SpreaderOffsetRecord {
+  let record = offsets.get(spreader);
+
+  if (!record) {
+    record = { x: 0, y: 0, lifted: false };
+    offsets.set(spreader, record);
+  }
+
+  return record;
+}
+
+/**
+ * Returns the offset the transform currently applies, in physical pixels. `x` is negative in RTL,
+ * where the spreader moves away from the hider's right edge. Zero while the transform is lifted:
+ * the insets position the element then, and the offset chain already accounts for those.
  *
  * @param {HTMLElement} spreader The spreader element.
  * @returns {{ x: number, y: number }}
  */
 export function getSpreaderOffset(spreader: HTMLElement): { x: number; y: number } {
-  const offset = offsets.get(spreader);
+  const record = offsets.get(spreader);
 
-  return offset ? { x: offset.x, y: offset.y } : { x: 0, y: 0 };
+  if (!record || record.lifted) {
+    return { x: 0, y: 0 };
+  }
+
+  return { x: record.x, y: record.y };
 }
 
 /**
  * Records one axis of the spreader offset and, unless the write is suspended, applies the
- * resulting transform.
+ * resulting transform. A write that changes nothing is skipped: the master spreader's vertical
+ * axis is written by the top AND the bottom overlay on every draw, with the same value.
  *
  * @param {HTMLElement} spreader The spreader element.
  * @param {'x' | 'y'} axis The axis to set.
@@ -45,14 +75,13 @@ export function getSpreaderOffset(spreader: HTMLElement): { x: number; y: number
 export function setSpreaderOffset(
   spreader: HTMLElement, axis: 'x' | 'y', value: number, suspended: boolean = false
 ): void {
-  let offset = offsets.get(spreader);
+  const record = recordFor(spreader);
 
-  if (!offset) {
-    offset = { x: 0, y: 0 };
-    offsets.set(spreader, offset);
+  if (record[axis] === value) {
+    return;
   }
 
-  offset[axis] = value;
+  record[axis] = value;
 
   if (!suspended) {
     applySpreaderTransform(spreader);
@@ -60,28 +89,32 @@ export function setSpreaderOffset(
 }
 
 /**
- * Writes the recorded offset to the element as a transform. A zero offset clears the property so
- * an unscrolled grid carries no transform at all.
+ * Writes the recorded offset to the element as a transform and marks it applied. A zero offset
+ * clears the property so an unscrolled grid carries no transform at all.
  *
  * @param {HTMLElement} spreader The spreader element.
  */
 export function applySpreaderTransform(spreader: HTMLElement): void {
-  const offset = offsets.get(spreader);
+  const record = recordFor(spreader);
 
-  if (!offset || (offset.x === 0 && offset.y === 0)) {
+  record.lifted = false;
+
+  if (record.x === 0 && record.y === 0) {
     spreader.style.transform = '';
 
     return;
   }
 
-  spreader.style.transform = `translate(${offset.x}px, ${offset.y}px)`;
+  spreader.style.transform = `translate(${record.x}px, ${record.y}px)`;
 }
 
 /**
- * Removes the transform without forgetting the recorded offset, so it can be re-applied later.
+ * Removes the transform and marks it lifted, keeping the recorded offset so it can be re-applied.
+ * While lifted, `getSpreaderOffset()` reports zero.
  *
  * @param {HTMLElement} spreader The spreader element.
  */
 export function clearSpreaderTransform(spreader: HTMLElement): void {
+  recordFor(spreader).lifted = true;
   spreader.style.transform = '';
 }

@@ -406,7 +406,10 @@ export class BottomOverlay extends Overlay {
     const start = typeof columnsRenderCalculator?.startPosition === 'number'
       ? columnsRenderCalculator.startPosition : 0;
 
-    setSpreaderOffset(spreader, 'x', this.isRtl() ? -start : start, this.deps.getWtOverlays().isStickyScrollActive());
+    // The clone is suspended only while the strategy positions the clones itself (element mode).
+    const suspended = this.deps.getWtOverlays().isStickyScrollOwningClones();
+
+    setSpreaderOffset(spreader, 'x', this.isRtl() ? -start : start, suspended);
   }
 
   /**

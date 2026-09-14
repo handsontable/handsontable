@@ -120,6 +120,17 @@ export class StickyScrollStrategy {
   }
 
   /**
+   * Whether sticky-scroll mode currently owns the overlay CLONES' spreaders as well. In window-scroll
+   * mode it never does - the clones keep the overlay system's own positioning - so their transform
+   * writes must carry on during a drag.
+   *
+   * @returns {boolean}
+   */
+  ownsCloneSpreaders(): boolean {
+    return this.#active && !this.#isWindowScroll();
+  }
+
+  /**
    * Checks whether sticky-scroll should activate based on the current state.
    * Called from `Overlays.syncScrollPositions()` after scroll direction is determined.
    *

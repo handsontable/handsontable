@@ -24,12 +24,27 @@ export class SpreaderLayoutShiftPage {
   readonly grid: Locator;
   readonly master: Locator;
 
+  /**
+   * What the page reported while loading. A grid that never appears says nothing about why, so
+   * `goto()` puts these into its failure instead of a bare "element not found".
+   */
+  readonly #pageProblems: string[] = [];
+
   constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
     this.theme = theme;
     this.bundle = bundle;
     this.grid = page.getByTestId('grid');
     this.master = this.grid.locator('.ht_master');
+
+    page.on('pageerror', error => this.#pageProblems.push(`pageerror: ${error.message}`));
+    page.on('requestfailed', request =>
+      this.#pageProblems.push(`requestfailed: ${request.url()} (${request.failure()?.errorText ?? 'unknown'})`));
+    page.on('console', message => {
+      if (message.type() === 'error') {
+        this.#pageProblems.push(`console.error: ${message.text()}`);
+      }
+    });
   }
 
   /**
@@ -43,26 +58,14 @@ export class SpreaderLayoutShiftPage {
       params.set('frozen', '1');
     }
 
-    // A grid that never appears says nothing about why. Collect what the page reported while it
-    // loaded, so the failure names a thrown error or a failed request instead of a missing element.
-    const pageProblems: string[] = [];
-
-    this.page.on('pageerror', error => pageProblems.push(`pageerror: ${error.message}`));
-    this.page.on('requestfailed', request =>
-      pageProblems.push(`requestfailed: ${request.url()} (${request.failure()?.errorText ?? 'unknown'})`));
-    this.page.on('console', message => {
-      if (message.type() === 'error') {
-        pageProblems.push(`console.error: ${message.text()}`);
-      }
-    });
-
+    this.#pageProblems.length = 0;
     await this.page.goto(`/tests/fixtures/demo/walkontable/spreader-layout-shift.html?${params}`);
 
     try {
       await expect(this.master).toBeVisible();
       await expect(this.cell(0, 0)).toBeVisible();
     } catch (error) {
-      const report = pageProblems.length > 0 ? pageProblems.join(' | ') : 'the page reported no errors';
+      const report = this.#pageProblems.length > 0 ? this.#pageProblems.join(' | ') : 'the page reported no errors';
 
       throw new Error(`the grid did not render (${report})\n${error instanceof Error ? error.message : String(error)}`);
     }
@@ -109,11 +112,33 @@ export class SpreaderLayoutShiftPage {
    * The shifts recorded since the last reset that count towards the page's CLS. Entries within
    * 500ms of a press or keystroke are excluded by the browser (`hadRecentInput`), so the page object
    * never clicks the grid before a scroll.
+   *
+   * The observer delivers in batches and late, so this waits until the buffer has stopped growing
+   * for a while before reading it - a read taken too early sees an empty buffer, which looks
+   * exactly like a clean result.
    */
   async layoutShifts(): Promise<LayoutShiftRecord[]> {
-    // The observer delivers asynchronously; two frames is enough for every pending entry to land.
     await this.page.evaluate(() => new Promise<void>((resolve) => {
-      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+      const buffer = (window as unknown as { __layoutShifts: unknown[] }).__layoutShifts;
+      const quietFramesNeeded = 20;
+      let lastLength = buffer.length;
+      let quietFrames = 0;
+      const tick = () => {
+        if (buffer.length === lastLength) {
+          quietFrames += 1;
+        } else {
+          quietFrames = 0;
+          lastLength = buffer.length;
+        }
+
+        if (quietFrames >= quietFramesNeeded) {
+          resolve();
+        } else {
+          requestAnimationFrame(tick);
+        }
+      };
+
+      requestAnimationFrame(tick);
     }));
 
     const entries = await this.page.evaluate(() => (window as unknown as {
