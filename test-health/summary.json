@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-14T10:07:48.826Z",
+  "generatedAt": "2026-09-14T10:28:10.446Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 7,
     "needsTicket": 1,
     "quarantined": 0,
-    "entries": 15
+    "entries": 16
   },
   "rows": [
     {
@@ -88,6 +88,39 @@
       "needsTicket": false
     },
     {
+      "key": "jasmine|handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js|AutocompleteEditor choices should sort alphabetically the choices list, when the `sortByRelevance` option is set to `false`",
+      "tier": "jasmine",
+      "file": "handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js",
+      "line": null,
+      "title": "AutocompleteEditor choices should sort alphabetically the choices list, when the `sortByRelevance` option is set to `false`",
+      "count7": 2,
+      "count30": 2,
+      "countAll": 2,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "legs": [
+        "UMD.min (theme: horizon)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "passes alone"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-14T10:27:24Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34828239175/attempts/3",
+        "branch": "feature/DEV-2906_Pnpm-overrides-for-medium-lockfile-alerts",
+        "leg": "UMD.min (theme: horizon)",
+        "status": "failed",
+        "error": "Expected '' to equal 'yellow'.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
       "key": "playwright|e2e/walkontable/exact-row-heights.spec.ts|walkontable exact row heights › in the `exact` mode › keeps the scroll range stable and the row-height cache settled",
       "tier": "playwright",
       "file": "e2e/walkontable/exact-row-heights.spec.ts",
@@ -114,39 +147,6 @@
         "leg": "e2e-main",
         "status": "flaky",
         "error": "Error: expect(received).toBe(expected) // Object.is equality",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "jasmine|handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js|AutocompleteEditor choices should sort alphabetically the choices list, when the `sortByRelevance` option is set to `false`",
-      "tier": "jasmine",
-      "file": "handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js",
-      "line": null,
-      "title": "AutocompleteEditor choices should sort alphabetically the choices list, when the `sortByRelevance` option is set to `false`",
-      "count7": 1,
-      "count30": 1,
-      "countAll": 1,
-      "runs30": 1,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "legs": [
-        "UMD.min (theme: horizon)"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [
-        "passes alone"
-      ],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-09-14T09:56:49Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34828239175/attempts/2",
-        "branch": "feature/DEV-2906_Pnpm-overrides-for-medium-lockfile-alerts",
-        "leg": "UMD.min (theme: horizon)",
-        "status": "failed",
-        "error": "Expected '' to equal 'yellow'.",
         "source": "ci"
       },
       "needsTicket": false
