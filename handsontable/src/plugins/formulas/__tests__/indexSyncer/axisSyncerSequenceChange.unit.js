@@ -93,6 +93,28 @@ describe('AxisSyncer sequence change sync', () => {
       ]);
     });
 
+    it('should measure a later order against the columns the engine holds, not the grid sequence', () => {
+      const engine = createMockEngine({ width: 3, height: 4 });
+      const indexMapper = createMockIndexMapper([0, 1, 2, 3, 4]);
+      const axisSyncer = new AxisSyncer('column', indexMapper, createMockIndexSyncer(engine));
+      const syncMethod = axisSyncer.getIndexesChangeSyncMethod();
+
+      axisSyncer.init();
+      // Column 3 is empty, so the engine does not hold it, and moving it to the front leaves the three
+      // columns the engine does hold in their existing order.
+      indexMapper.state.indexesSequence = [3, 0, 1, 2, 4];
+      syncMethod('update');
+
+      expect(engine.calls.setColumnOrder).toEqual([
+        { sheetId: 0, transformation: [0, 1, 2] },
+      ]);
+
+      indexMapper.state.indexesSequence = [3, 2, 1, 0, 4];
+      syncMethod('update');
+
+      expect(engine.calls.setColumnOrder[1]).toEqual({ sheetId: 0, transformation: [2, 1, 0] });
+    });
+
     it('should rank an index the sequence no longer covers last instead of sending it as -1', () => {
       const engine = createMockEngine({ width: 3, height: 4 });
       const indexMapper = createMockIndexMapper([0, 1, 2]);

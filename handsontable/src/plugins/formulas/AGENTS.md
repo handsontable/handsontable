@@ -116,15 +116,18 @@ site, `AxisSyncer#syncOrderWithEngine`:
   onto the elements the engine holds, keeping their relative order, rather than sent whole — sending it whole
   is what made sorting such a grid throw `InvalidArgumentsError` (DEV-2904).
 
-Two rules ride along. The engine validates **entries** as well as length, so an order must be a permutation
-of `0..size - 1`: the `?? -1` a mid-batch sequence produces is ranked last rather than passed through, which
-the engine would reject as "not a permutation". And an order for an **empty** sheet is not sent at all — the
-engine holds nothing to reorder — in which case the stored `#indexesSequence` records the identity the engine
-will hold when it is filled, so the next sync sends the order as an absolute one and the grid's order is not
-lost. Never record the grid's own sequence there: every transformation is relative to the order the engine
-actually holds, and claiming one it never received makes its axis order drift away from the grid's for the
-rest of the session. Still open: a move applied while the engine's sheet is empty reaches the engine through
-`syncMoves` but is not reflected in that identity baseline.
+Three rules ride along. The engine validates **entries** as well as length, so an order must be a permutation
+of `0..size - 1`: an index the sequence no longer covers (the mid-batch state that used to produce `-1`) is
+ranked last rather than passed through, which the engine would reject as "not a permutation". An order for an
+**empty** sheet is not sent at all — the engine holds nothing to reorder — and the stored sequence then
+records the identity the engine will hold once the sheet is filled, so the next sync carries the grid's order
+rather than losing it. And `#indexesSequence` names **the elements the engine holds, in the engine's own
+order** — not the grid's sequence. The two are the same only while the sheet covers the whole grid: once it
+does not, storing the grid's sequence would name elements the engine never received, and every later order,
+being relative to what the engine holds, would move the wrong rows or columns for the rest of the session.
+`#getEngineElements()` reads that list back and extends it in physical order when the sheet has grown, which
+is the order the engine is fed in. Still open: a move applied while the engine's sheet is empty reaches the
+engine through `syncMoves` but is not reflected in that identity baseline.
 
 ## `HYPERLINK` cells: an allowlist, not a sanitizer
 
