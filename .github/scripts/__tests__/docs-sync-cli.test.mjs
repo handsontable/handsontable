@@ -901,6 +901,49 @@ test('when every classification fails the run stops, logging the whole body to t
   }
 });
 
+test('the all-failed floor does not throw away include-labeled commits when a sibling is blocked', async() => {
+  const f = fixture({ extraContentCommit: true });
+  const server = createServer((req, res) => {
+    req.resume();
+    req.on('end', () => {
+      // Every live classification 403s. #105 is include-labeled, so it never
+      // reaches the classifier and must still sync.
+      res.writeHead(403, { 'Content-Type': 'text/html', 'cf-ray': 'block-WAW', server: 'cloudflare' });
+      res.end('<!DOCTYPE html><html><head><title>Blocked</title></head><body>blocked</body></html>');
+    });
+  });
+
+  await new Promise((resolve) => { server.listen(0, '127.0.0.1', resolve); });
+
+  const { port } = server.address();
+
+  try {
+    // #105 is forced in by a label (never classified); #101 is the only live
+    // classification and it fails.
+    writeAnswers(f, { includeLabels: [105] });
+
+    const result = await spawnCli(f, { port });
+
+    // The floor must NOT fire: there is human-approved work to sync.
+    assert.equal(result.status, 0, result.stderr);
+    assert.doesNotMatch(result.stdout, /Every classification failed/);
+
+    // The labeled commit is pushed...
+    const remoteTip = f.git(f.work, ['ls-remote', '--heads', f.origin, 'docs-sync/prod-docs-18.1']);
+
+    assert.match(remoteTip, /docs-sync\/prod-docs-18\.1/, 'the labeled commit was pushed');
+    const picked = f.git(f.work, ['log', '--format=%s', 'origin/docs-sync/prod-docs-18.1']);
+
+    assert.match(picked, /Fix guide f \(#105\)/);
+
+    // ...and the blocked sibling is left for a human, not fatal.
+    assert.match(result.stdout, /1 candidate\(s\) could not be classified this run/);
+  } finally {
+    server.close();
+    rmSync(f.root, { recursive: true, force: true });
+  }
+});
+
 test('a partial classifier failure skips that candidate, keeps the open pull request, and reports counts', async() => {
   const f = fixture({ extraContentCommit: true });
   let requestCount = 0;

@@ -469,8 +469,12 @@ try {
       // The same floor the pull request lookup has: if every classification
       // failed, that is a broken key or a dead gateway, not a batch of bad
       // diffs. Fail loudly rather than exit 0 with nothing synced and repeat
-      // green on every schedule with no one alerted.
-      if (classifierFailures > 0 && classifierSuccesses === 0) {
+      // green on every schedule with no one alerted. But only when there is
+      // genuinely nothing to sync: a `docs-sync: include` label puts commits in
+      // `report.included` without ever calling `classify()`, so a blocked
+      // sibling must not throw those human-approved commits away -- exactly the
+      // hostage case this change exists to prevent.
+      if (classifierFailures > 0 && classifierSuccesses === 0 && report.included.length === 0) {
         throw new Error(`Every classification failed (${classifierFailures} of ${classifierFailures}); refusing to continue because a total failure usually means a broken key or gateway, not bad diffs.`);
       }
       if (classifierFailures > 0) {
