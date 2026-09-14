@@ -13,6 +13,7 @@ import { stopImmediatePropagation, isRightClick } from '../../../../../helpers/d
 import { isMobileBrowser } from '../../../../../helpers/browser';
 import { getCornerStyle, standsBelowColumnHeader } from './utils';
 import { CUSTOM_SELECTION_TYPE } from '../constants';
+import { getSpreaderOffset } from '../../overlay/spreaderOffset';
 
 const BORDER_STYLE_CLASS_PREFIX = 'ht-border-style-';
 const MOVE_ZONE_THICKNESS = 6;
@@ -1311,10 +1312,13 @@ class Border {
     }
 
     const hiderOffset = geometryReader.offset(this.wot.wtTable.hider);
+    // `TDOffset` comes from the offset chain, which does not see the transform that places the
+    // spreader (`overlay/spreaderOffset.ts`); add it back so the anchor lands on the cell.
+    const spreaderOffset = getSpreaderOffset(this.wot.wtTable.spreader);
 
     return {
-      top: TDOffset.top - hiderOffset.top,
-      left: TDOffset.left - hiderOffset.left,
+      top: TDOffset.top - hiderOffset.top + spreaderOffset.y,
+      left: TDOffset.left - hiderOffset.left + spreaderOffset.x,
     };
   }
 

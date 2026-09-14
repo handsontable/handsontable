@@ -73,6 +73,51 @@ The declarations live in `src/styles/base/_z-index-map.scss`, `css/walkontable.s
 clone values, duplicated — keep in sync) and `src/styles/components/core/_selection.scss` (the
 affordances).
 
+## The spreader is moved by a transform, and the offset chain cannot see it
+
+`div.wtSpreader` holds the rendered rows and columns and is repositioned on every scroll draw to the
+offset of the first rendered row and column inside the hider. That offset is written as a CSS
+`transform: translate(x, y)`, never as the `top`/`left` insets (`overlay/spreaderOffset.ts`, DEV-54).
+An inset write is a layout move that the browser reports as a layout shift: it subtracts the scroll
+distance, but the spreader can only sit on a row boundary, so a sub-row remainder is reported on every
+frame and the page's CLS grows without bound — 10.4 after 25 wheel steps, where 0.1 is "good". A
+transform moves pixels without moving layout and is exempt. Measured on the same build with and
+without it: CLS 10.44 → 0.004, forced layouts per scroll run 154 → 106, everything else within noise.
+
+Four rules follow, and the first is the one that bites.
+
+- **`offsetTop`/`offsetLeft` and the `offset()` helper walk the layout chain, so they no longer see
+  this distance.** Any code that compares a cell's document position against an element OUTSIDE the
+  spreader lands short by the spreader offset unless it adds it back with
+  `wtTable.getSpreaderOffset()` (a `{ x, y }` in physical pixels, `x` negative in RTL). The sites
+  that do: `BaseEditor#getEditedCellRect` (the editor box), `Border#getFillHandleAnchor` (the fill
+  handle), `Overlay#getRelativeCellPosition` (the resize handles). Differences between two elements
+  both inside the spreader — `Border#appear`'s `offset(TD) - offset(TABLE)` — cancel the term and
+  need nothing. `getBoundingClientRect()` follows the transform and needs nothing either, which is
+  why `Autofill#getIfMouseWasDraggedOutside` switched to it. The offset is a recorded number, not a
+  DOM read, so adding it costs no layout.
+- **The spreader opens a stacking context now.** A transform always does. It sits at z-index auto in
+  the master's own context (`.ht_master` is `z-index: 0`, see the section above), so the selection
+  layers inside it keep their order among themselves and stay below the scrollbar clearance filler
+  (300) as before; nothing inside the spreader can outrank a sibling of the spreader any more, and
+  nothing needed to.
+- **Each axis is owned by a different overlay, and neither reads the DOM back.** The top overlay
+  writes `y` on the master spreader and `x` on its clone's; the inline-start overlay the reverse; the
+  bottom overlay the same as the top. `setSpreaderOffset` keeps the last value per element in a
+  `WeakMap` so a write to one axis preserves the other — never compose the transform string at a call
+  site.
+- **The sticky-scroll strategy suspends the transform for a native scrollbar drag.** It positions the
+  spreader through `position: sticky` and the insets for the duration of the drag, so the overlays
+  only record the offset while `Overlays#isStickyScrollActive()` is true, and the transform returns
+  on release. `#activate` reads its starting offset from the record, not from `style.top`, which is
+  empty now.
+
+Pinned by `test/unit/overlay/spreaderOffset.unit.ts` and `tests/e2e/walkontable/spreader-layout-shift.spec.ts`,
+which reads the browser's own `layout-shift` entries under a real wheel scroll — a scripted
+`scrollTop` assignment is not a scroll-driven draw — and carries a positive control, because an
+observer that saw nothing reports the same zero as a spreader that moved no layout. The spec fails
+on the inset write (1.17 blamed on `div.wtSpreader` after 12 wheel steps).
+
 ## Naming gotcha: `moveCells` grid option vs. HyperFormula engine method
 
 The Handsontable `moveCells` grid option (added 18.0.0) enables drag-to-move for selections. HyperFormula exposes an identically named `engine.moveCells()` method that the `Formulas` plugin calls internally to relocate formula references. They are unrelated -- do not confuse the user-facing option with the HyperFormula engine API.

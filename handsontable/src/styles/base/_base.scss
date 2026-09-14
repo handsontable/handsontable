@@ -851,11 +851,15 @@
     // so without opting out, the browser's scroll anchoring treats it as content appearing above the
     // scroll position, nudges the offset to compensate, and emits a scroll event nobody asked for.
     overflow-anchor: none;
-    // Above the master's cells AND above the selection decorations drawn over them. `.wtHider` and
-    // `.wtSpreader` are positioned but carry no z-index, so they open no stacking context and the
-    // selection's own layers compete directly with this one: border lines 1-6, the moveCells bands
-    // 100, the autofill corner 150, the resize pills 200. At z-index 1 those all won, and a border
-    // painted across the track while the cell it belongs to sat hidden underneath it.
+    // Above the master's cells AND above the selection decorations drawn over them. `.wtHider` is
+    // positioned but carries no z-index, so it opens no stacking context. `.wtSpreader` DOES open
+    // one: it is placed with a transform (`walkontable/src/overlay/spreaderOffset.ts`, DEV-54), and
+    // a transform always creates a stacking context. That context sits at z-index auto (0) in the
+    // master's, so the selection's own layers inside it - border lines 1-6, the moveCells bands 100,
+    // the autofill corner 110, the resize pills 115 - are all ordered below this box whatever they
+    // declare, and among themselves exactly as before. At z-index 1 this box lost to them while the
+    // spreader still opened no context, and a border painted across the track while the cell it
+    // belongs to sat hidden underneath it.
     // Safe to raise: the cell editor is NOT in this holder - it lives in `.ht-wrapper` alongside it -
     // so nothing here can cover an open editor. And the scrollbar is not a DOM node; the browser paints
     // it above the scroller's contents whatever they declare, so the thumb stays visible and grabbable.

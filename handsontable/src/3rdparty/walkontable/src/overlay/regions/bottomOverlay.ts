@@ -17,6 +17,7 @@ import {
   CLONE_BOTTOM,
 } from '../constants';
 import { throwWithCause } from '../../../../../helpers/errors';
+import { setSpreaderOffset } from '../spreaderOffset';
 
 /**
  * @class BottomOverlay
@@ -369,14 +370,17 @@ export class BottomOverlay extends Overlay {
     const total = this.wtSettings.getSetting<number>('totalRows');
 
     const rowsRenderCalculator = this.deps.getWtViewport().rowsRenderCalculator;
+    // During a native scrollbar drag the sticky-scroll strategy positions the spreader itself;
+    // the offset is only recorded then, and the transform returns on release.
+    const suspended = this.deps.getWtOverlays().isStickyScrollActive();
 
     if (typeof rowsRenderCalculator?.startPosition === 'number') {
-      this.spreader.style.top = `${rowsRenderCalculator.startPosition}px`;
+      setSpreaderOffset(this.spreader, 'y', rowsRenderCalculator.startPosition, suspended);
 
     } else if (total === 0 || rowsRenderCalculator === null) {
       // 0 rows, or nothing rendered yet — a `null` calculator is the drawn-but-never-rendered state
       // a skipped first draw leaves behind (see `restoreRenderedStateIfSafe` in `table/drawCycle.ts`).
-      this.spreader.style.top = '0';
+      setSpreaderOffset(this.spreader, 'y', 0, suspended);
 
     } else {
       throwWithCause('Incorrect value of the rowsRenderCalculator');
@@ -397,17 +401,12 @@ export class BottomOverlay extends Overlay {
       return;
     }
 
-    const styleProperty = this.isRtl() ? 'right' : 'left';
     const { spreader } = this.clone.wtTable;
-
     const columnsRenderCalculator = this.deps.getWtViewport().columnsRenderCalculator;
+    const start = typeof columnsRenderCalculator?.startPosition === 'number'
+      ? columnsRenderCalculator.startPosition : 0;
 
-    if (typeof columnsRenderCalculator?.startPosition === 'number') {
-      spreader.style[styleProperty] = `${columnsRenderCalculator.startPosition}px`;
-
-    } else {
-      spreader.style[styleProperty] = '';
-    }
+    setSpreaderOffset(spreader, 'x', this.isRtl() ? -start : start, this.deps.getWtOverlays().isStickyScrollActive());
   }
 
   /**

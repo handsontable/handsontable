@@ -1006,6 +1006,16 @@ class Overlays {
   }
 
   /**
+   * Whether the sticky-scroll strategy currently owns the spreaders' position (a native scrollbar
+   * drag is in progress). The overlays then leave the spreader transform alone.
+   *
+   * @returns {boolean}
+   */
+  isStickyScrollActive(): boolean {
+    return this.#stickyScroll.isActive();
+  }
+
+  /**
    * Get the overlay whose rendered area contains the provided element.
    *
    * This matches against each clone's spreader rather than its `TABLE`, so it also resolves the

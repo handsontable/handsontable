@@ -2,6 +2,7 @@ import { isSafari } from '../../../../../helpers/browser';
 import type { EngineContext } from '../../wire';
 import type { default as Overlays } from '../overlays';
 import type { Overlay } from '../regions/_base';
+import { getSpreaderOffset, applySpreaderTransform, clearSpreaderTransform } from '../spreaderOffset';
 
 /**
  * Assembles the StickyScrollStrategy's dependencies. Most come from the engine composition context;
@@ -110,6 +111,15 @@ export class StickyScrollStrategy {
   }
 
   /**
+   * Whether sticky-scroll mode currently owns the spreaders' position.
+   *
+   * @returns {boolean}
+   */
+  isActive(): boolean {
+    return this.#active;
+  }
+
+  /**
    * Checks whether sticky-scroll should activate based on the current state.
    * Called from `Overlays.syncScrollPositions()` after scroll direction is determined.
    *
@@ -167,15 +177,11 @@ export class StickyScrollStrategy {
    * using the exact visual offset so no jump occurs.
    */
   #activate() {
-    const spreader = this.#deps.wtTable.spreader;
-    const isRtl = this.#deps.wtSettings.getSetting('rtlMode');
-    const leftProp = isRtl ? 'right' : 'left';
-
-    const startTop = Number.parseInt(spreader.style.top, 10) || 0;
+    // The spreader is placed with a transform (`../spreaderOffset.ts`); its recorded offset is the
+    // first rendered row/column, which is what the inset formula needs. `x` is negative in RTL.
+    const { x: startLeft, y: startTop } = getSpreaderOffset(this.#deps.wtTable.spreader);
     const stickyTop = startTop - this.#getScrollTop();
-
-    const startLeft = Number.parseInt(spreader.style[leftProp], 10) || 0;
-    const stickyLeft = startLeft - this.#getScrollLeft();
+    const stickyLeft = Math.abs(startLeft) - this.#getScrollLeft();
 
     this.#active = true;
 
@@ -302,7 +308,8 @@ export class StickyScrollStrategy {
     const leftProp = isRtl ? 'right' : 'left';
     const isSticky = position === 'sticky';
 
-    // Master spreader
+    // Master spreader. Sticky mode positions it through the insets alone, so the transform that
+    // places it otherwise (`../spreaderOffset.ts`) is lifted for the drag and put back on release.
     spreader.style.position = position;
 
     if (isSticky) {
@@ -310,9 +317,11 @@ export class StickyScrollStrategy {
       spreader.style.bottom = '';
       spreader.style[leftProp] = `${stickyLeft}px`;
       spreader.style[isRtl ? 'left' : 'right'] = '';
+      clearSpreaderTransform(spreader);
 
     } else {
       this.#clearSpreaderInsetStyles(spreader);
+      applySpreaderTransform(spreader);
     }
 
     // Overlay clone spreaders — only in element scroll mode.
@@ -364,8 +373,11 @@ export class StickyScrollStrategy {
         cloneSpreader.style[isRtl ? 'left' : 'right'] = '';
       }
 
+      clearSpreaderTransform(cloneSpreader);
+
     } else {
       this.#clearSpreaderInsetStyles(cloneSpreader);
+      applySpreaderTransform(cloneSpreader);
     }
   }
 
