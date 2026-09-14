@@ -1,6 +1,6 @@
 import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
 import { BasePlugin } from '../base';
-import DataManager, { type RowObject } from './data/dataManager';
+import DataManager, { type NestedRowsRemovalSnapshot, type RowObject } from './data/dataManager';
 import CollapsingUI from './ui/collapsing';
 import HeadersUI from './ui/headers';
 import ContextMenuUI from './ui/contextMenu';
@@ -713,6 +713,86 @@ export class NestedRows extends BasePlugin {
     }
 
     return this.dataManager!.countAllRows();
+  }
+
+  /**
+   * Captures the nested roots represented by a row removal for UndoRedo.
+   *
+   * @private
+   * @param {number[]} physicalRows Physical rows expanded by the removal hook.
+   * @returns {unknown} An internal nested-row snapshot.
+   */
+  captureRemovedRows(physicalRows: number[]): unknown {
+    if (!this.#isOperational()) {
+      return null;
+    }
+
+    return this.dataManager!.captureRemovedRows(physicalRows);
+  }
+
+  /**
+   * Returns the physical rows represented by an internal nested-row snapshot.
+   *
+   * @private
+   * @param {unknown} snapshot An internal nested-row snapshot.
+   * @returns {number[]} Physical rows in the removed subtrees.
+   */
+  getRemovedPhysicalRows(snapshot: unknown): number[] {
+    if (!this.#isOperational() || !this.#isNestedRowsRemovalSnapshot(snapshot)) {
+      return [];
+    }
+
+    return this.dataManager!.getRemovedPhysicalRows(snapshot);
+  }
+
+  /**
+   * Reports whether a nested-row snapshot can be restored without mutating the tree.
+   *
+   * @private
+   * @param {unknown} snapshot An internal nested-row snapshot.
+   * @returns {boolean} `true` when the plugin is active and the restore hooks allow the operation.
+   */
+  canRestoreRemovedRows(snapshot: unknown): boolean {
+    if (!this.#isOperational() || !this.#isNestedRowsRemovalSnapshot(snapshot)) {
+      return false;
+    }
+
+    return this.dataManager!.canRestoreRemovedRows(snapshot);
+  }
+
+  /**
+   * Restores an internal nested-row snapshot and the physical row sequence it belonged to.
+   *
+   * @private
+   * @param {unknown} snapshot An internal nested-row snapshot.
+   * @param {number[]} rowIndexesSequence Physical row sequence from before removal.
+   * @param {boolean} [shiftSelection=true] When `false`, skip shifting the highlight. Context-menu
+   *   removal never called `shiftRows`, so undoing that path must not push the selection down.
+   */
+  restoreRemovedRows(snapshot: unknown, rowIndexesSequence: number[], shiftSelection = true): boolean {
+    if (!this.#isOperational() || !this.#isNestedRowsRemovalSnapshot(snapshot)) {
+      return false;
+    }
+
+    const wasRestored = this.dataManager!.restoreRemovedRows(snapshot, rowIndexesSequence, shiftSelection);
+
+    this.hot.selection.refresh();
+
+    return wasRestored;
+  }
+
+  /**
+   * Checks whether a value has the shape produced by `captureRemovedRows`.
+   *
+   * @param {unknown} snapshot The value to check.
+   * @returns {boolean}
+   */
+  #isNestedRowsRemovalSnapshot(snapshot: unknown): snapshot is NestedRowsRemovalSnapshot {
+    return typeof snapshot === 'object' && snapshot !== null &&
+      'rows' in snapshot && Array.isArray(snapshot.rows) &&
+      'rowIndexMaps' in snapshot && typeof snapshot.rowIndexMaps === 'object' &&
+      snapshot.rowIndexMaps !== null &&
+      'collapsedRows' in snapshot && Array.isArray(snapshot.collapsedRows);
   }
 
   /**

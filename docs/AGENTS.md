@@ -593,7 +593,12 @@ pull request body lists every decision with its reason. Merge it and
   squash subject; that is how the sync recognizes the change as already ported.
 - Run it locally: `node .github/scripts/docs-sync.mjs --dry-run --no-llm` needs only
   `gh auth`; drop `--no-llm` with `LITELLM_BASE_URL`, `LITELLM_API_KEY`,
-  `DOCS_SYNC_MODEL` set to exercise the classifier. Add `--skip-lint` on a machine
+  `DOCS_SYNC_MODEL` set to exercise the classifier. Two optional repository
+  variables tune it per provider: `DOCS_SYNC_TEMPERATURE` pins the sampling
+  temperature (leave it unset to use the model's own default -- required for a
+  reasoning-tier model that rejects any non-default temperature), and
+  `DOCS_SYNC_JSON_MODE` (on by default) can be set to off for a model that
+  rejects `response_format`. Add `--skip-lint` on a machine
   without the docs toolchain installed. The script checks out the sync branch in
   the checkout it runs in and restores your branch afterwards, so run it from a
   clean checkout or a worktree, never with uncommitted changes.

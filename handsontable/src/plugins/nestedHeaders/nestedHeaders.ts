@@ -473,7 +473,7 @@ export class NestedHeaders extends BasePlugin {
 
     if (this.enabled) {
       // Derive tree colspan / isHidden state from the current hiding map. This covers columns
-      // that were already hidden before the plugin initialised (e.g. HiddenColumns configured
+      // that were already hidden before the plugin initialized (e.g. HiddenColumns configured
       // together with nestedHeaders). Future changes are handled by #onColumnIndexMapperCacheUpdated.
       this.#stateManager.syncVisibility(createColumnVisibilityAdapter(this.hot));
     }

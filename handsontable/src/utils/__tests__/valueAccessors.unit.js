@@ -27,7 +27,20 @@ describe('getValueSetterValue', () => {
     const result = getValueSetterValue('abc', { instance, visualRow: 1, visualCol: 4, valueSetter });
 
     expect(result).toBe(instance);
-    expect(valueSetter).toHaveBeenCalledWith('abc', 1, 4, expect.objectContaining({ instance }));
+    // Five arguments: the fifth is the change source, which a cell type needs to tell an undo
+    // from an ordinary write. It is `undefined` here because this call passes no source.
+    expect(valueSetter)
+      .toHaveBeenCalledWith('abc', 1, 4, expect.objectContaining({ instance }), undefined);
+  });
+
+  it('forwards the change source to `valueSetter`, so a cell type can recognize an undo', () => {
+    const instance = { name: 'hot' };
+    const valueSetter = jest.fn(value => value);
+
+    getValueSetterValue('abc', { instance, visualRow: 1, visualCol: 4, valueSetter }, 'UndoRedo.undo');
+
+    expect(valueSetter)
+      .toHaveBeenCalledWith('abc', 1, 4, expect.objectContaining({ instance }), 'UndoRedo.undo');
   });
 
   describe('`emptyValue`', () => {

@@ -124,6 +124,22 @@ const dictionary = {
   [C.PAGINATION_NEXT_PAGE]: 'Ga naar volgende pagina',
   [C.PAGINATION_LAST_PAGE]: 'Ga naar laatste pagina',
 
+  [C.SHEETS_BAR_SECTION]: 'Bladen',
+  [C.SHEETS_BAR_ADD_SHEET]: 'Blad toevoegen',
+  [C.SHEETS_BAR_ALL_SHEETS]: 'Alle bladen',
+  [C.SHEETS_BAR_SHEET_MENU]: 'Bladacties: [name]',
+  [C.SHEETS_BAR_RENAME_SHEET]: 'Bladnaam',
+  [C.SHEETS_BAR_ITEMS_DELETE]: 'Verwijderen',
+  [C.SHEETS_BAR_ITEMS_DUPLICATE]: 'Dupliceren',
+  [C.SHEETS_BAR_ITEMS_RENAME]: 'Naam wijzigen',
+  [C.SHEETS_BAR_ITEMS_MOVE_RIGHT]: 'Naar rechts verplaatsen',
+  [C.SHEETS_BAR_ITEMS_MOVE_LEFT]: 'Naar links verplaatsen',
+  [C.SHEETS_BAR_PAGE_PREV]: 'Bladen terug scrollen',
+  [C.SHEETS_BAR_PAGE_NEXT]: 'Bladen vooruit scrollen',
+  [C.SHEETS_BAR_SHEET_CHANGED]: 'Blad [name] geactiveerd',
+  [C.SHEETS_BAR_RENAME_REJECTED]: 'Bladnaam niet gewijzigd: [name] is al in gebruik',
+  [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Blad',
+
   [C.LOADING_TITLE]: 'Laden...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Sluiten',
 

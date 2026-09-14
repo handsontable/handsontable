@@ -17,7 +17,8 @@
  *                                      [--repo-dir <path>] [--gh-bin <path>]
  *
  * Env: GH_TOKEN, GH_REPO, LITELLM_BASE_URL, LITELLM_API_KEY, DOCS_SYNC_MODEL,
- *      DOCS_SYNC_REVIEWERS, DRY_RUN, TARGET, GITHUB_STEP_SUMMARY.
+ *      DOCS_SYNC_TEMPERATURE, DOCS_SYNC_JSON_MODE, DOCS_SYNC_REVIEWERS, DRY_RUN,
+ *      TARGET, GITHUB_STEP_SUMMARY.
  */
 
 import { execFileSync } from 'node:child_process';
@@ -36,13 +37,13 @@ import {
 } from './lib/docs-sync/classify.mjs';
 import { createClient } from './lib/docs-sync/llm.mjs';
 import {
-  INCLUDE_LABEL, SKIP_LABEL, SYNC_LABEL, extractState, renderBody, renderTitle,
+  INCLUDE_LABEL, SKIP_LABEL, SYNC_LABEL, extractState, renderBody, renderCounts, renderTitle,
 } from './lib/docs-sync/pr-body.mjs';
 import {
   applyCommits, git, hasForeignCommits, resetSyncBranch,
 } from './lib/docs-sync/git-apply.mjs';
 import { createGitHub } from './lib/docs-sync/github.mjs';
-import { scrubSecrets } from './lib/docs-sync/log.mjs';
+import { fenceForSummary, scrubSecrets } from './lib/docs-sync/log.mjs';
 
 const HOLD_MARKER = '<!-- docs-sync-hold -->';
 const CONTENT_PATHSPECS = CONTENT_PREFIXES.map((prefix) => prefix.replace(/\/$/, ''));
@@ -67,19 +68,52 @@ const gh = createGitHub({
   run: (args) => execFileSync(flags['gh-bin'], args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim(),
 });
 const summaryLines = [];
+// GitHub drops the entire step summary if a step writes more than ~1 MiB to it,
+// so the buffer is bounded well under that; the job log is never bounded.
+const SUMMARY_BUDGET_CHARS = 900_000;
+let summaryUsedChars = 0;
+let summaryTruncated = false;
 
 /**
- * Log to stdout and to the step summary buffer, with the push token scrubbed
- * out of every line -- a failed push echoes the tokenized remote URL through
- * `error.message`, and this is the one place all such messages pass through.
+ * Log to stdout and to the step summary buffer, with secrets scrubbed out of
+ * every line -- a failed push echoes the tokenized remote URL through
+ * `error.message`, and a LiteLLM error body can quote the request, including
+ * the `Authorization` header, the proxy URL, or the key. The step summary is
+ * not secret-masked by GitHub, so all three of the script's secrets are passed
+ * as literals to be redacted wherever they appear, in whatever shape. This is
+ * the one place all such messages pass through.
+ *
+ * The job log always gets the full scrubbed line. The step summary gets `line`
+ * too, unless the caller passes a `summary` override (the failure path passes a
+ * bounded, fenced copy) -- and once the summary buffer nears GitHub's size
+ * limit, one marker is written and further summary appends stop, so a large run
+ * never costs the whole summary.
  *
  * @param {string} line
+ * @param {{ summary?: string }} [options] `summary` replaces `line` in the step
+ *   summary only (already bounded by the caller); the job log still gets `line`.
  */
-function log(line) {
-  const scrubbed = scrubSecrets(line);
+function log(line, { summary } = {}) {
+  const secrets = [process.env.LITELLM_API_KEY, process.env.GH_TOKEN, process.env.LITELLM_BASE_URL];
+  const forLog = scrubSecrets(line, secrets);
 
-  console.log(scrubbed);
-  summaryLines.push(scrubbed);
+  console.log(forLog);
+
+  if (summaryTruncated) {
+    return;
+  }
+
+  const forSummary = summary === undefined ? forLog : scrubSecrets(summary, secrets);
+
+  if (summaryUsedChars + forSummary.length + 1 > SUMMARY_BUDGET_CHARS) {
+    summaryLines.push('[step summary truncated to stay within GitHub\'s size limit; see the full job log]');
+    summaryTruncated = true;
+
+    return;
+  }
+
+  summaryLines.push(forSummary);
+  summaryUsedChars += forSummary.length + 1;
 }
 
 /**
@@ -113,13 +147,52 @@ async function makeClassifier({ prompt, hash, cache, target, releasedVersion, un
     return async() => ({ decision: 'unsure', reason: 'Classifier disabled with --no-llm.' });
   }
 
-  const { LITELLM_BASE_URL: baseUrl, LITELLM_API_KEY: apiKey, DOCS_SYNC_MODEL: model } = process.env;
+  const {
+    LITELLM_BASE_URL: baseUrl, LITELLM_API_KEY: apiKey, DOCS_SYNC_MODEL: model,
+    DOCS_SYNC_TEMPERATURE: temperatureText, DOCS_SYNC_JSON_MODE: jsonModeText,
+  } = process.env;
 
   if (!baseUrl || !apiKey || !model) {
     throw new Error('LITELLM_BASE_URL, LITELLM_API_KEY and DOCS_SYNC_MODEL are required unless --no-llm is passed.');
   }
 
-  const client = createClient({ baseUrl, apiKey, model });
+  // Unset repository variables expand to an empty string in the workflow, not
+  // an absent env var, so treat `''` and `undefined` alike: both mean "omit
+  // the temperature and let the model's own default apply". A present but
+  // unparseable value is a configuration error, not a silent `NaN` that would
+  // serialize to `"temperature": null` and 400 every call.
+  let temperature;
+
+  // `Number`, not `Number.parseFloat`: parseFloat stops at the first character
+  // it cannot read and keeps what it has, so a comma typo (`0,7`) or a stray
+  // suffix (`0.7x`) would silently pin a wrong value instead of throwing. The
+  // `.trim()` on the empty check is what keeps `Number(' ') === 0` from reading
+  // a whitespace-only value as a real temperature.
+  if (temperatureText !== undefined && temperatureText.trim() !== '') {
+    temperature = Number(temperatureText);
+
+    if (!Number.isFinite(temperature)) {
+      throw new Error(`DOCS_SYNC_TEMPERATURE must be a number, got "${temperatureText}".`);
+    }
+  }
+
+  // On by default, so an unset variable keeps the `response_format` request
+  // every provider that supports it benefits from. Turn it off only for a model
+  // that rejects `response_format`. A present-but-unrecognized value is a
+  // configuration error, not a silent fallback.
+  let jsonMode = true;
+
+  if (jsonModeText !== undefined && jsonModeText !== '') {
+    if (/^(1|true|on|yes)$/i.test(jsonModeText)) {
+      jsonMode = true;
+    } else if (/^(0|false|off|no)$/i.test(jsonModeText)) {
+      jsonMode = false;
+    } else {
+      throw new Error(`DOCS_SYNC_JSON_MODE must be a boolean (on/off), got "${jsonModeText}".`);
+    }
+  }
+
+  const client = createClient({ baseUrl, apiKey, model, temperature, jsonMode });
 
   return async(candidate) => {
     const key = cacheKey(candidate.sha, hash);
@@ -132,7 +205,21 @@ async function makeClassifier({ prompt, hash, cache, target, releasedVersion, un
     const user = buildUserMessage({
       pr: candidate.pr, files: candidate.files, diff, releasedVersion, target, unreleased,
     });
-    const decision = parseDecision(await client.complete({ system: prompt, user }));
+
+    let content;
+
+    try {
+      content = await client.complete({ system: prompt, user });
+    } catch (error) {
+      // Tag gateway/network failures so the caller skips only these. The
+      // `git show` and prompt building above are local work: if they throw it
+      // is a broken checkout, not a bad diff, and the run must abort rather than
+      // silently mark the candidate unsure.
+      error.gateway = true;
+      throw error;
+    }
+
+    const decision = parseDecision(content);
 
     cache[key] = decision;
 
@@ -203,6 +290,8 @@ try {
   const toClassify = [];
   let lookupFailures = 0;
   let lookupSuccesses = 0;
+  let classifierFailures = 0;
+  let classifierSuccesses = 0;
 
   for (const candidate of candidates) {
     if (candidate.prNumber === null) {
@@ -294,7 +383,7 @@ try {
 
     const body = renderBody(report);
 
-    log(body);
+    log(body, { summary: renderCounts(report) });
 
     if (openPr && !dryRun) {
       gh.upsertComment(
@@ -325,7 +414,41 @@ try {
       const classify = await makeClassifier({ prompt, hash, cache, target, releasedVersion: releasedVersionText, unreleased });
 
       for (const candidate of toClassify) {
-        const decision = await classify(candidate);
+        let decision;
+
+        try {
+          decision = await classify(candidate);
+          classifierSuccesses += 1;
+        } catch (error) {
+          // Only a gateway/network failure is skippable; a local error (a broken
+          // `git show`, say) is tagged differently and must abort the run.
+          if (!error.gateway) {
+            throw error;
+          }
+
+          // One candidate's request failing must not abandon the whole batch. A
+          // content-triggered edge block (a WAF matching a string in the diff)
+          // is deterministic and re-runs identically, so aborting would let a
+          // single bad diff hold every other pending doc fix hostage. Leave this
+          // candidate unclassified -- never cached, so it is re-asked every run
+          // and clears itself once the gateway accepts it -- and carry on.
+          classifierFailures += 1;
+          // The full upstream response (headers + body, incl. the cf-ray for a
+          // support ticket) goes to the job log; the step summary gets a concise
+          // line, not the whole block page. `no status` rather than `network
+          // error`: a 200 with no message content, or a non-JSON body, throws
+          // without a status but is a real gateway answer, not a connection
+          // problem -- the job log has the full response.
+          log(
+            `Classifier request failed for \`${candidate.sha.slice(0, 7)}\` (#${candidate.prNumber}); leaving it for a human.\n${error.message}`,
+            { summary: `Classifier request failed for #${candidate.prNumber} (${error.status ?? 'no status'}); not cherry-picked.` },
+          );
+          report.unsure.push({
+            ...candidate,
+            reason: `Not classified: the classifier request failed (${error.status ?? 'no status'}). Left for a human; not cherry-picked.`,
+          });
+          continue;
+        }
 
         // `unsure` is never cached: a synthetic --no-llm answer or a one-off
         // model uncertainty must be re-asked every run, not frozen into the
@@ -341,6 +464,21 @@ try {
         } else {
           report.unsure.push({ ...candidate, reason: decision.reason });
         }
+      }
+
+      // The same floor the pull request lookup has: if every classification
+      // failed, that is a broken key or a dead gateway, not a batch of bad
+      // diffs. Fail loudly rather than exit 0 with nothing synced and repeat
+      // green on every schedule with no one alerted. But only when there is
+      // genuinely nothing to sync: a `docs-sync: include` label puts commits in
+      // `report.included` without ever calling `classify()`, so a blocked
+      // sibling must not throw those human-approved commits away -- exactly the
+      // hostage case this change exists to prevent.
+      if (classifierFailures > 0 && classifierSuccesses === 0 && report.included.length === 0) {
+        throw new Error(`Every classification failed (${classifierFailures} of ${classifierFailures}); refusing to continue because a total failure usually means a broken key or gateway, not bad diffs.`);
+      }
+      if (classifierFailures > 0) {
+        log(`${classifierFailures} candidate(s) could not be classified this run; left for a human, not cherry-picked. The rest still sync.`);
       }
     }
 
@@ -399,7 +537,10 @@ try {
       const body = renderBody(report);
       const title = renderTitle(target);
 
-      log(body);
+      // Full per-commit audit trail to the job log; only the counts to the step
+      // summary, so it does not repeat the whole body GitHub already renders as
+      // the pull request description.
+      log(body, { summary: renderCounts(report) });
 
       if (dryRun) {
         log('\nDry run: nothing pushed, no pull request touched.');
@@ -441,11 +582,14 @@ try {
             log(`${report.conflicts.length} commit(s) conflict with ${target}; nothing applied, manual port needed`);
           }
         } else if (openPr) {
-          // A run whose pull request lookups all 404'd never learned whether
-          // this open pull request's own candidates still belong in it; never
-          // close it on the strength of a plan built from failed lookups.
-          if (lookupFailures > 0) {
-            log(`Skipped closing #${openPr.number}: ${lookupFailures} pull request lookup(s) failed this run.`);
+          // A run that could not classify or look up every candidate never
+          // learned whether this open pull request's own candidates still
+          // belong in it; never close it on the strength of a partial plan.
+          // A classifier failure is transient (an edge block clears when the
+          // gateway is fixed), so a candidate now sitting in `unsure` may become
+          // an include next run -- closing here would discard that plan.
+          if (lookupFailures > 0 || classifierFailures > 0) {
+            log(`Skipped closing #${openPr.number}: ${lookupFailures} pull request lookup(s) and ${classifierFailures} classification(s) failed this run.`);
           } else {
             gh.closePr(openPr.number, 'Everything this pull request carried has reached the target by another route. Closing; the next run reopens if new content lands.');
             log(`Closed #${openPr.number}: nothing left to sync.`);
@@ -489,7 +633,10 @@ try {
 
   await flushSummary();
 } catch (error) {
-  log(`Failed: ${error.message}`);
+  // The job log gets the whole error (a failed classifier call carries the full
+  // upstream response); the summary gets a bounded, fenced copy so a block page
+  // renders literally and cannot run the summary away.
+  log(`Failed: ${error.message}`, { summary: `Failed:\n${fenceForSummary(error.message)}` });
   await flushSummary();
   process.exitCode = 1;
 }

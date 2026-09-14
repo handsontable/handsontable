@@ -1547,7 +1547,7 @@ class Border {
     // to move onto it. A cell in the first body row of a table that renders a head row draws no top
     // border - the column header owns that gridline (DEV-2786) - and the shared pixel is then the
     // last pixel of the top overlay, which paints at z-index 160 against this layer's 10. An edge
-    // left centred on it loses half its thickness behind the column header, so both cases put the
+    // left centered on it loses half its thickness behind the column header, so both cases put the
     // visible edge at the cell's own top boundary. The row axis's twin of the inline-start case
     // below; `standsBelowColumnHeader` explains why it is read from the DOM.
     if (parseInt(style.borderTopWidth, 10) > 0 || standsBelowColumnHeader(fromTDEl)) {
@@ -1557,7 +1557,7 @@ class Border {
     // The inline-start gridline sits INSIDE the cell when the cell draws its own start border, so the
     // edge has to move onto it. A cell standing behind a row header draws no start border - the row
     // header owns that gridline (#6673) - and the shared pixel is then the last pixel of the
-    // inline-start overlay, which paints at z-index 120 against this layer's 10. An edge left centred
+    // inline-start overlay, which paints at z-index 120 against this layer's 10. An edge left centered
     // on it would be hidden behind the row header, so both cases put the visible edge at the cell's
     // own inline-start boundary. Read from the DOM, not from a column index: with row headers no cell
     // owns that border, and `htFirstDatasetColumnNotRendered` takes it off the first rendered column
@@ -1586,7 +1586,7 @@ class Border {
     // A corner is only filled when the perpendicular edge is actually drawn there. A horizontal edge
     // extends toward the end corner only if this cell has a visible end edge, and toward the bottom
     // only if it has a visible bottom edge. Without this, a per-cell custom border whose end/bottom
-    // side is hidden (an interior or split-range edge) would still extend into the empty neighbour and
+    // side is hidden (an interior or split-range edge) would still extend into the empty neighbor and
     // stick out. For regular selections the side settings are absent, so `!undefined?.hide` is `true`
     // and the extension behaves exactly as before.
     const extendToEnd = !this.settings.end?.hide;

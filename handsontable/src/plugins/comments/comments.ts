@@ -1020,7 +1020,7 @@ export class Comments extends BasePlugin {
     // `#cellBelowCursor === target` one: the drag lands an event on the element underneath the
     // pointer (the browser hit-tests each "mousemove" against the textarea's pre-resize box) and
     // `elementFromPoint` already resolves to the resized textarea, so the next event - the one
-    // over the textarea - matches and would return before cancelling anything.
+    // over the textarea - matches and would return before canceling anything.
     if (this.targetIsCommentTextArea(event)) {
       this.#displaySwitch?.keepVisible();
       // Returning early skips the `#cellBelowCursor` write below, so the field would keep naming
