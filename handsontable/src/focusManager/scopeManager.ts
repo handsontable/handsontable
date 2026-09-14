@@ -4,7 +4,12 @@ import { throwWithCause } from '../helpers/errors';
 import { createFocusScope } from './scope';
 import { useEventListener } from './eventListener';
 import { FOCUS_SOURCES } from './constants';
-import { getComposedEventTargetEl, getDeepActiveElement, isVisible } from '../helpers/dom/element';
+import {
+  getComposedEventTargetEl,
+  getDeepActiveElement,
+  getShadowHostChain,
+  isVisible,
+} from '../helpers/dom/element';
 
 type FocusScopeType = 'modal' | 'inline';
 type FocusScopeActivationSource = 'unknown' | 'click' | 'tab_from_above' | 'tab_from_below';
@@ -260,6 +265,24 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
   }
 
   /**
+   * Checks whether the scope contains the target element, looking through the shadow boundaries
+   * the target is rendered behind.
+   *
+   * A scope answers containment with `Node.contains()`, which stops at a shadow root, so a target
+   * resolved from inside a shadow tree the scope's container merely hosts (a web component rendered
+   * in a cell) is reported as outside it. Falling back to the target's shadow hosts asks the same
+   * question about the elements the container can actually see.
+   *
+   * @param {object} scope The focus scope to ask.
+   * @param {HTMLElement} target The target element.
+   * @returns {boolean} `true` when the target, or one of the hosts it is rendered behind, is within the scope.
+   */
+  function scopeContains(scope: ReturnType<typeof createFocusScope>, target: HTMLElement): boolean {
+    return scope.contains(target) ||
+      getShadowHostChain(target).some((host: HTMLElement) => scope.contains(host));
+  }
+
+  /**
    * Activates or deactivates the appropriate scope based on the target element that was
    * triggered by the focus or click event.
    *
@@ -276,7 +299,7 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
     let hasActiveScope = false;
 
     allEnabledScopes.forEach((scope: ReturnType<typeof createFocusScope>) => {
-      if (!hasActiveScope && scope.contains(target)) {
+      if (!hasActiveScope && scopeContains(scope, target)) {
         hasActiveScope = true;
 
         if (focusSource !== FOCUS_SOURCES.UNKNOWN) {

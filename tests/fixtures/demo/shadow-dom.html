@@ -164,6 +164,31 @@
       td.setAttribute('data-testid', `cell-${row}-${col}`);
     };
 
+    // A web component rendered INSIDE a cell, so its content sits one shadow boundary deeper
+    // than the grid itself. An event raised in there resolves to a node the cell's own tree
+    // cannot see with `Node.contains()`, which is the case that must not read as outside the grid.
+    class CellWidgetElement extends HTMLElement {
+      constructor() {
+        super();
+
+        const widgetRoot = this.attachShadow({ mode: 'open' });
+        const button = document.createElement('button');
+
+        button.type = 'button';
+        button.setAttribute('data-testid', 'cell-widget-button');
+        button.textContent = 'Widget';
+        widgetRoot.appendChild(button);
+      }
+    }
+
+    customElements.define('cell-widget', CellWidgetElement);
+
+    const widgetRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.dom.empty(td);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+      td.appendChild(document.createElement('cell-widget'));
+    };
+
     const hot = new Handsontable(container, {
       data: [
         ['A1', 'B1', 'C1'],
@@ -178,7 +203,11 @@
       // The comment on B4 backs the hover-tooltip cases (issue #8624). B4 and A4 are
       // untouched by the other tests, so the comment cannot disturb them.
       comments: true,
-      cell: [{ row: 3, col: 1, comment: { value: 'Comment inside the shadow root' } }],
+      cell: [
+        { row: 3, col: 1, comment: { value: 'Comment inside the shadow root' } },
+        // C2 hosts the nested web component; no other test touches that cell.
+        { row: 1, col: 2, renderer: widgetRenderer },
+      ],
       renderer: testIdRenderer,
       licenseKey: 'non-commercial-and-evaluation',
     });

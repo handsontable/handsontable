@@ -101,6 +101,16 @@ test.describe('grid inside a native shadow root', () => {
     await expect.poll(() => grid.selected()).toEqual([[3, 2, 3, 2]]);
   });
 
+  test('keeps the grid active when a web component rendered in a cell is clicked', async () => {
+    await grid.cell(0, 0).click();
+    await expect.poll(() => grid.selected()).toEqual([[0, 0, 0, 0]]);
+
+    await grid.cellWidgetButton.click();
+
+    expect(await grid.isListening()).toBe(true);
+    await expect.poll(() => grid.selected()).not.toBeNull();
+  });
+
   test('executes a context menu action on the selection that opened it', async () => {
     await grid.cell(1, 0).click({ button: 'right' });
 
