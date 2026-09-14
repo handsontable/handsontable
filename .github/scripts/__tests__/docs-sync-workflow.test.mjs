@@ -35,7 +35,9 @@ test('uses the built-in GITHUB_TOKEN, not a GitHub App', () => {
   // per-workflow, so there is no App to install or keep permissioned.
   assert.doesNotMatch(source, /create-github-app-token/);
   assert.doesNotMatch(source, /RELEASE_APP/);
-  assert.match(source, /GH_TOKEN: \$\{\{ github\.token \}\}/);
+  // Both sites -- the push remote and the Sync step -- must carry it; a positive
+  // match on one would stay green if the other were dropped.
+  assert.equal((source.match(/GH_TOKEN: \$\{\{ github\.token \}\}/g) ?? []).length, 2);
   assert.match(source, /persist-credentials: false/);
 });
 

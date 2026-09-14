@@ -24,13 +24,19 @@ on:
         type: string
         default: ''
 
-# The job pushes a branch, opens/updates a pull request, and creates and applies
-# the `docs-sync` labels. It uses the built-in GITHUB_TOKEN with these scopes
-# granted per-workflow (labels are the Issues API, hence `issues: write`), the
-# same pattern handsontable/examples uses -- no separate GitHub App to install
-# or keep permissioned. Trade-off: a pull request opened by GITHUB_TOKEN does
-# not trigger `pull_request` workflows, so the sync pull request gets no CI until
-# a maintainer approves/re-runs it. That manual step is accepted here.
+# The job pushes a branch, opens/updates a pull request, applies the `docs-sync`
+# labels, and posts a hold comment. It uses the built-in GITHUB_TOKEN with these
+# scopes granted per-workflow -- `issues: write` is the Issues API, which both
+# labels and issue comments need -- so there is no separate GitHub App to install
+# or keep permissioned (handsontable/examples' import workflows open their bot
+# pull requests the same way). Trade-off: a pull request opened by GITHUB_TOKEN
+# does not trigger `pull_request` workflows, so the sync pull request gets no CI
+# (docs lint, build, preview); there is no run to "re-run" -- a maintainer closes
+# and reopens the pull request, or pushes a commit, to fire CI. Accepted here.
+# Pre-flight for the first live run: Settings -> Actions -> General -> "Allow
+# GitHub Actions to create and approve pull requests" must be on (repo AND org);
+# the `permissions:` block does not override that toggle, and `gh pr create`
+# 403s without it.
 permissions:
   contents: write
   pull-requests: write
