@@ -55,6 +55,12 @@
     shadow boundary. Cells are stamped with data-testid via a renderer;
     Playwright locators pierce open shadow roots transparently.
   -->
+  <!--
+    A light-DOM button ABOVE the host, so sequential Tab navigation enters the grid from
+    outside the shadow tree (DEV-2886). The textarea below the host is the counterpart for
+    Shift+Tab from beneath.
+  -->
+  <button data-testid="before-grid" type="button">Before the grid</button>
   <div id="shadow-host" data-testid="shadow-host"></div>
   <div id="outside-area">
     <textarea data-testid="outside-textarea" rows="3" cols="40"></textarea>

@@ -4,7 +4,7 @@ import { throwWithCause } from '../helpers/errors';
 import { createFocusScope } from './scope';
 import { useEventListener } from './eventListener';
 import { FOCUS_SOURCES } from './constants';
-import { eventTargetEl, getDeepActiveElement, isVisible } from '../helpers/dom/element';
+import { getComposedEventTargetEl, getDeepActiveElement, isVisible } from '../helpers/dom/element';
 
 type FocusScopeType = 'modal' | 'inline';
 type FocusScopeActivationSource = 'unknown' | 'click' | 'tab_from_above' | 'tab_from_below';
@@ -297,10 +297,12 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
     hotInstance.rootWindow,
     {
       onFocus: (event) => {
-        processScopes(eventTargetEl(event)!, eventTargetEl(event)!.dataset.htFocusSource ?? FOCUS_SOURCES.UNKNOWN);
+        const target = getComposedEventTargetEl(event)!;
+
+        processScopes(target, target.dataset.htFocusSource ?? FOCUS_SOURCES.UNKNOWN);
       },
       onClick: (event) => {
-        processScopes(eventTargetEl(event)!, FOCUS_SOURCES.CLICK);
+        processScopes(getComposedEventTargetEl(event)!, FOCUS_SOURCES.CLICK);
       },
       onTabKeyDown: () => {
         updateScopesFocusVisibilityState();
