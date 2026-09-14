@@ -2,10 +2,13 @@ import AxisSyncer from '../../indexSyncer/axisSyncer';
 import { createMockEngine } from './helpers/mockEngine';
 
 function createMockIndexMapper(indexesSequence, notTrimmedIndexes = indexesSequence) {
+  const state = { indexesSequence, notTrimmedIndexes };
+
   return {
-    getIndexesSequence: () => indexesSequence,
-    getNotTrimmedIndexes: () => notTrimmedIndexes,
-    getNumberOfIndexes: () => indexesSequence.length,
+    state,
+    getIndexesSequence: () => state.indexesSequence,
+    getNotTrimmedIndexes: () => state.notTrimmedIndexes,
+    getNumberOfIndexes: () => state.indexesSequence.length,
     addLocalHook: () => {},
   };
 }
@@ -87,18 +90,26 @@ describe('AxisSyncer initial order sync', () => {
       ]);
     });
 
-    it('should measure the next transformation against the engine order after a skipped initial sync', () => {
+    it('should fill a sheet that was empty at init in the order the grid had then', () => {
       const engine = createMockEngine({ width: 0, height: 0 });
       const indexMapper = createMockIndexMapper([0, 2, 1, 3]);
       const axisSyncer = new AxisSyncer('column', indexMapper, createMockIndexSyncer(engine));
+      const syncMethod = axisSyncer.getIndexesChangeSyncMethod();
 
       axisSyncer.init();
+      // The sheet gains its columns through addresses the grid computes from the order it had at init, so
+      // they already sit that way and there is nothing to reorder.
       engine.dimensions.width = 4;
-      axisSyncer.getIndexesChangeSyncMethod()('update');
+      syncMethod('update');
 
-      // The engine never received the initial order, so the first order it does receive has to carry it.
+      expect(engine.calls.setColumnOrder).toEqual([]);
+
+      // A later reorder is measured against those columns: the engine holds [0, 2, 1, 3].
+      indexMapper.state.indexesSequence = [3, 1, 2, 0];
+      syncMethod('update');
+
       expect(engine.calls.setColumnOrder).toEqual([
-        { sheetId: 0, transformation: [0, 2, 1, 3] },
+        { sheetId: 0, transformation: [3, 2, 1, 0] },
       ]);
     });
   });

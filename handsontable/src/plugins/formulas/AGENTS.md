@@ -129,8 +129,10 @@ Four rules ride along.
   the grid's new sequence, so the stored order follows it there.
 - **How the sheet was filled decides where its new rows go.** A sheet fed its content (at load, or by the
   engine's own insert) holds it in physical order; a sheet that reported `0x0` is filled through addresses
-  the grid computes from its own sequence, so its first row is whichever row the grid shows first.
-  `#getEngineElements()` extends the stored list the matching way.
+  the grid computes from its own sequence, so its first row is whichever row the grid showed first **at the
+  moment it was filled**. That sequence is captured when the empty sheet is found and used to extend the
+  stored list, because the grid can have been reordered since — reading the current sequence there would
+  conclude the engine already holds the new order and skip the sync that carries it.
 - **An order that cannot be reproduced is not sent.** The compression keeps the engine's own elements in
   their relative order, which reproduces the grid exactly while they still occupy the sequence's leading
   positions — a sheet shorter than the grid means the grid's extra rows are the empty tail the engine left

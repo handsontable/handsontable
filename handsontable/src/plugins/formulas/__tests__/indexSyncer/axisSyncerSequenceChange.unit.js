@@ -159,6 +159,27 @@ describe('AxisSyncer sequence change sync', () => {
       expect(engine.held.columns).toEqual([1, 2, 0]);
     });
 
+    it('should fill a sheet that was empty in the order the grid had then, not the order it has now', () => {
+      const engine = createMockEngine({ width: 0, height: 0 });
+      const indexMapper = createMockIndexMapper([2, 0, 1]);
+      const axisSyncer = new AxisSyncer('column', indexMapper, createMockIndexSyncer(engine));
+      const syncMethod = axisSyncer.getIndexesChangeSyncMethod();
+
+      axisSyncer.init();
+      syncMethod('update');
+
+      expect(engine.calls.setColumnOrder).toEqual([]);
+
+      // The user types into the empty sheet, which creates its columns through addresses the grid computes
+      // from the order above — so the engine holds [2, 0, 1] — and only then sorts.
+      engine.dimensions.width = 3;
+      engine.held.columns = [2, 0, 1];
+      indexMapper.state.indexesSequence = [0, 1, 2];
+      syncMethod('update');
+
+      expect(engine.held.columns).toEqual([0, 1, 2]);
+    });
+
     it('should send nothing when a column the engine does not hold moves in front of one it does', () => {
       const engine = createMockEngine({ width: 3, height: 4 });
       const indexMapper = createMockIndexMapper([0, 1, 2, 3]);

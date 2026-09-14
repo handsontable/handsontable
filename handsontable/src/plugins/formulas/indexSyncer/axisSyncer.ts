@@ -73,12 +73,13 @@ class AxisSyncer {
    */
   #indexesSequence: number[] = [];
   /**
-   * Whether the engine's sheet is filled through addresses the grid computes, rather than fed its content
-   * in physical order. A sheet that reported no rows or columns is in that state until it holds an order.
+   * The grid's sequence at the moment the engine's sheet was found empty, or `null` while the engine holds
+   * content it was fed. A sheet with no rows or columns is filled through addresses the grid computes from
+   * that sequence, so it is what says which element each row or column the sheet gains belongs to.
    *
-   * @type {boolean}
+   * @type {Array<number>|null}
    */
-  #engineFilledInGridOrder = false;
+  #fillSequence: number[] | null = null;
   /**
    * List of moved HF indexes, stored before performing move on HOT to calculate transformation needed on HF's engine.
    *
@@ -354,14 +355,15 @@ class AxisSyncer {
   #getEngineElements(sizeForAxis: number, targetSequence: number[]): number[] {
     const elements = this.#indexesSequence.slice(0, sizeForAxis);
     const held = new Set<number>(elements);
+    const fillSequence = this.#fillSequence;
 
-    // A sheet that was empty is filled through addresses the grid computes from its own sequence, so its
-    // first row is whichever row the grid shows first.
-    if (this.#engineFilledInGridOrder) {
-      for (let position = 0; position < targetSequence.length && elements.length < sizeForAxis; position += 1) {
-        if (!held.has(targetSequence[position])) {
-          elements.push(targetSequence[position]);
-          held.add(targetSequence[position]);
+    // A sheet that was empty is filled through addresses the grid computes, so its first row is whichever
+    // row the grid showed first WHEN it was filled — not in the order the grid happens to be in now.
+    if (fillSequence !== null) {
+      for (let position = 0; position < fillSequence.length && elements.length < sizeForAxis; position += 1) {
+        if (!held.has(fillSequence[position])) {
+          elements.push(fillSequence[position]);
+          held.add(fillSequence[position]);
         }
       }
     }
@@ -408,7 +410,8 @@ class AxisSyncer {
     // reorder and reports the sheet as 0x0. The grid's order is replayed by the next sync that finds a
     // sheet to apply it to.
     if (sizeForAxis === 0) {
-      this.#engineFilledInGridOrder = true;
+      this.#fillSequence = targetSequence.slice();
+      this.#indexesSequence = [];
 
       return false;
     }
@@ -460,7 +463,7 @@ class AxisSyncer {
     // that changes nothing costs the user their redo history. Compression makes that common: every sort
     // that leaves the engine's own elements in the same relative order ranks them identically.
     this.#indexesSequence = reordered;
-    this.#engineFilledInGridOrder = false;
+    this.#fillSequence = null;
 
     if (engineOrder.every((rank, engineIndex) => rank === engineIndex)) {
       return true;
@@ -540,13 +543,12 @@ class AxisSyncer {
    */
   #applyInitialOrder() {
     // The engine holds the sheet it was just fed, in physical order, whatever order the previous sheet was
-    // left in — so the stored order starts from that identity rather than from what the engine used to hold.
+    // left in — so the stored order starts empty, which reads back as that physical order, rather than
+    // carrying over what the engine used to hold.
     this.#indexesSequence = [];
-    this.#engineFilledInGridOrder = false;
+    this.#fillSequence = null;
 
-    if (!this.#syncInitialOrder()) {
-      this.#indexesSequence = this.#indexMapper.getIndexesSequence().map((value, index) => index);
-    }
+    this.#syncInitialOrder();
   }
 
   /**
