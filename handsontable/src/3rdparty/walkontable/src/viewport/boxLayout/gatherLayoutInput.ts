@@ -104,6 +104,13 @@ export function gatherLayoutInput(deps: LayoutDeps): LayoutInput {
   // only flip the verdict the wrong way: the solver reserves a vertical bar, `stretchH` shrinks the
   // columns to make room, and no bar is ever painted.
   const hiderHeightCompensation = getHiderHeightCompensation(wtSettings);
+  // The column total comes from the prefix-sum cache, which `isCurrent()` keys on the item COUNT
+  // only. It is exact here because every producer whose widths can move at a constant count
+  // (`StretchColumns`, `ManualColumnResize`, `AutoColumnSize`) drops the cache through
+  // `view.invalidateColumnWidthCache()` when its map changes — `StretchColumns` since DEV-2902.
+  // A producer that forgets makes this total stale for exactly one draw per change, and the solver
+  // then predicts a scrollbar the browser never paints (the DEV-2902 symptom: a header clone one
+  // scrollbar narrower than the master hider).
   const totalContentWidth = rowHeaderWidth + viewport.columnWidthCache.getTotalSize();
   const totalContentHeight = columnHeaderHeight + viewport.getColumnHeaderHeightFraction() +
     viewport.rowHeightCache.getTotalSize() + hiderHeightCompensation;
