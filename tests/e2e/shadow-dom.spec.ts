@@ -111,6 +111,17 @@ test.describe('grid inside a native shadow root', () => {
     await expect.poll(() => grid.selected()).not.toBeNull();
   });
 
+  test('tabs out of the grid from a web component rendered in a cell', async () => {
+    await grid.cellWidgetButton.click();
+    await expect.poll(() => grid.selected()).toEqual([[1, 2, 1, 2]]);
+
+    await grid.page.keyboard.press('Tab');
+    await expect(grid.cellWidgetButton).toBeFocused();
+
+    await grid.page.keyboard.press('Tab');
+    await expect(grid.outsideTextarea).toBeFocused();
+  });
+
   test('executes a context menu action on the selection that opened it', async () => {
     await grid.cell(1, 0).click({ button: 'right' });
 

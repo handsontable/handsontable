@@ -249,7 +249,7 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
       }
 
       if (scope === activeScope) {
-        if (scope.contains(getDeepActiveElement(hotInstance.rootDocument) as HTMLElement)) {
+        if (scopeContains(scope, getDeepActiveElement(hotInstance.rootDocument) as HTMLElement)) {
           scope.deactivateFocusCatchers();
         } else {
           scope.activateFocusCatchers();
