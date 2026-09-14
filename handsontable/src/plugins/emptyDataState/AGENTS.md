@@ -71,25 +71,34 @@ hidden, where selecting the data is the only route back to a context menu.
 Do **not** guard the override on `isVisible()`. The context being active is the guard; a second one only
 adds another way for the shortcut to go dead.
 
-**The safety half of this lives in `../../shortcuts/contexts/grid.ts`, not here.** Inheriting is only safe
-because a grid shortcut that reads or writes cell CONTENT refuses while the grid renders nothing
-(`hasRenderedCells()`). Without it, the `Ctrl`+`A` above hands the user a selection over hidden data and
+**The safety half of this lives in `../../shortcuts/guards.ts`, not here.** Inheriting is only safe because
+every grid shortcut that reads or writes cell CONTENT calls `canAccessCellContent()` and refuses while the
+grid draws no cell - which is exactly the state that puts this overlay on screen. Without it, the `Ctrl`+`A` above hands the user a selection over hidden data and
 `Delete` blanks the whole dataset — measured, 40 cells, on a grid whose columns were all hidden. If you add
-a destructive shortcut to the grid context, guard it there; every inheriting overlay depends on it.
+a destructive shortcut to the grid context, from anywhere, guard it with that helper; every inheriting
+overlay depends on it. `Tab` carries the same guard for the opposite reason: the grid's tab-navigation pair
+calls `preventDefault()` whenever a selection survives, which used to trap the user inside the overlay.
 
-## `#hide()` must roll the shortcut context back itself
+## The shortcut context rolls back in the scope manager, not here
 
-`deactivateScope()` (`../../focusManager/scopeManager.ts`) clears the active scope and **never** touches the
-shortcut context — `setActiveContextName` is called on activation only. After that, nothing rolls it back
-except a later focus or click event reaching `processScopes()`.
+`deactivateScope()` (`../../focusManager/scopeManager.ts`) restores the shortcuts context the scope
+displaced when it was activated — the name is captured on the scope itself, so nesting unwinds in order,
+and the rollback is skipped when something else (an open editor) took the context over meanwhile.
 
-Undoing a full row removal from the context menu fires neither, so the grid came back full of data, looking
-completely normal, with every shortcut dead until the user clicked a cell. `#hide()` therefore resets the
-context to `grid` when no other scope took over, the same way `../comments/` does after hiding its editor.
+Do **not** add a second rollback in `#hide()`. There used to be one, hardcoded to `grid`, and two rollbacks
+that can disagree is worse than the bug it fixed. The bug is worth remembering: deactivation used to leave
+the context alone, so only a later focus or click event reaching `processScopes()` rolled it back. Undoing
+a full row removal from the context menu fires neither, so the grid came back full of data, looking
+completely normal, with every shortcut dead until the user clicked a cell.
 
-Two explanations for why only that path broke were measured and are **both wrong**, so do not reach for
-either when changing this: it is not which branch `#hide()` takes (the `updateData` path takes the
-`importSelection` branch too and recovers), and it is not where focus lands (in the broken path
+`disablePlugin()` is the same story through a different door: `unregisterScope()` deactivates an active
+scope before destroying it, which is what rolls the context back when `updateSettings({ emptyDataState:
+false })` turns the plugin off while the overlay is up. `updatePlugin()` re-activates the scope when the
+overlay is still on screen, because the `disablePlugin()` half of it gave the keyboard back to the grid.
+
+Two explanations for why only the context-menu path broke were measured and are **both wrong**, so do not
+reach for either when changing this: it is not which branch `#hide()` takes (the `updateData` path takes
+the `importSelection` branch too and recovers), and it is not where focus lands (in the broken path
 `document.activeElement` is a `TD` inside the grid and the context is still stuck).
 
 ## Selection on hide

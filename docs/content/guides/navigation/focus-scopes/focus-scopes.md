@@ -255,6 +255,34 @@ customScopeContext.addShortcut({
 });
 ```
 
+### Inherit another context's shortcuts
+
+A scope that *covers* the grid rather than replacing it can keep the grid's shortcuts working while it
+is active. Set `fallbackShortcutsContextName` to `'grid'`. When a key arrives, Handsontable looks in the
+scope's own context first, and moves on to the fallback only when nothing there answers the key. The
+scope therefore answers everything the grid answers, including shortcuts added to the grid later, and
+you never maintain a list of keys.
+
+```js
+const focusScopeManager = hot.getFocusScopeManager();
+
+focusScopeManager.registerScope('customOverlay', containerElement, {
+  shortcutsContextName: 'plugin:customOverlay',
+  fallbackShortcutsContextName: 'grid',
+});
+```
+
+A shortcut in the scope's own context wins over the fallback's shortcut for the same keys, as long as its
+`runOnlyIf` returns `true`. When `runOnlyIf` returns `false`, the fallback answers instead. Use that to
+override one key without shadowing it the rest of the time.
+
+Leave the option unset for a modal scope. A modal blocks the rest of the grid, so letting the grid's
+shortcuts through it defeats the point. The fallback may declare a fallback of its own, and Handsontable
+walks the chain; a chain that loops back on itself stops rather than repeating.
+
+A shortcut that writes cell content refuses to run while the grid draws no cells or a modal scope covers
+it, so inheriting cannot hand the user a way to change data they cannot see.
+
 ### Add conditional scope activation
 
 To add conditional scope activation, use the `runOnlyIf` option. This allows you to enable or disable the scope based on custom logic. The option is useful for situations where your UI depends on whether it has any focusable elements, or when you want to prevent the scope from activating for a particular part of the UI. For cases where focus should bypass the scope activation after <kbd>Tab</kbd> or <kbd>Shift</kbd>+<kbd>Tab</kbd> key presses, the logic should return `false`.
