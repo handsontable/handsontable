@@ -24,8 +24,10 @@ export function renderTitle(target) {
 
 // Every bucket a candidate can land in, paired with its step-summary label. The
 // order is picked first, then the reasons for not picking. `renderBody` renders
-// the same buckets in full; this is the count-only view.
-const OUTCOMES = [
+// the same buckets in full; this is the count-only view. Exported so a test can
+// assert it covers every bucket the report carries -- the two lists are separate
+// copies and nothing else keeps them in step.
+export const OUTCOMES = [
   ['included', 'Included in the sync pull request'],
   ['unsure', 'Needs a human decision'],
   ['excluded', 'Excluded by the classifier'],

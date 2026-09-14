@@ -205,7 +205,21 @@ async function makeClassifier({ prompt, hash, cache, target, releasedVersion, un
     const user = buildUserMessage({
       pr: candidate.pr, files: candidate.files, diff, releasedVersion, target, unreleased,
     });
-    const decision = parseDecision(await client.complete({ system: prompt, user }));
+
+    let content;
+
+    try {
+      content = await client.complete({ system: prompt, user });
+    } catch (error) {
+      // Tag gateway/network failures so the caller skips only these. The
+      // `git show` and prompt building above are local work: if they throw it
+      // is a broken checkout, not a bad diff, and the run must abort rather than
+      // silently mark the candidate unsure.
+      error.gateway = true;
+      throw error;
+    }
+
+    const decision = parseDecision(content);
 
     cache[key] = decision;
 
@@ -277,6 +291,7 @@ try {
   let lookupFailures = 0;
   let lookupSuccesses = 0;
   let classifierFailures = 0;
+  let classifierSuccesses = 0;
 
   for (const candidate of candidates) {
     if (candidate.prNumber === null) {
@@ -403,7 +418,14 @@ try {
 
         try {
           decision = await classify(candidate);
+          classifierSuccesses += 1;
         } catch (error) {
+          // Only a gateway/network failure is skippable; a local error (a broken
+          // `git show`, say) is tagged differently and must abort the run.
+          if (!error.gateway) {
+            throw error;
+          }
+
           // One candidate's request failing must not abandon the whole batch. A
           // content-triggered edge block (a WAF matching a string in the diff)
           // is deterministic and re-runs identically, so aborting would let a
@@ -413,14 +435,17 @@ try {
           classifierFailures += 1;
           // The full upstream response (headers + body, incl. the cf-ray for a
           // support ticket) goes to the job log; the step summary gets a concise
-          // line, not the whole block page.
+          // line, not the whole block page. `no status` rather than `network
+          // error`: a 200 with no message content, or a non-JSON body, throws
+          // without a status but is a real gateway answer, not a connection
+          // problem -- the job log has the full response.
           log(
             `Classifier request failed for \`${candidate.sha.slice(0, 7)}\` (#${candidate.prNumber}); leaving it for a human.\n${error.message}`,
-            { summary: `Classifier request failed for #${candidate.prNumber} (${error.status ?? 'network error'}); not cherry-picked.` },
+            { summary: `Classifier request failed for #${candidate.prNumber} (${error.status ?? 'no status'}); not cherry-picked.` },
           );
           report.unsure.push({
             ...candidate,
-            reason: `Not classified: the classifier request failed (${error.status ?? 'network error'}). Left for a human; not cherry-picked.`,
+            reason: `Not classified: the classifier request failed (${error.status ?? 'no status'}). Left for a human; not cherry-picked.`,
           });
           continue;
         }
@@ -441,6 +466,13 @@ try {
         }
       }
 
+      // The same floor the pull request lookup has: if every classification
+      // failed, that is a broken key or a dead gateway, not a batch of bad
+      // diffs. Fail loudly rather than exit 0 with nothing synced and repeat
+      // green on every schedule with no one alerted.
+      if (classifierFailures > 0 && classifierSuccesses === 0) {
+        throw new Error(`Every classification failed (${classifierFailures} of ${classifierFailures}); refusing to continue because a total failure usually means a broken key or gateway, not bad diffs.`);
+      }
       if (classifierFailures > 0) {
         log(`${classifierFailures} candidate(s) could not be classified this run; left for a human, not cherry-picked. The rest still sync.`);
       }

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  INCLUDE_LABEL, SKIP_LABEL, STATE_MARKER, SYNC_LABEL, extractState, renderBody, renderCounts, renderTitle,
+  INCLUDE_LABEL, OUTCOMES, SKIP_LABEL, STATE_MARKER, SYNC_LABEL, extractState, renderBody, renderCounts, renderTitle,
 } from '../lib/docs-sync/pr-body.mjs';
 import { collectProdRefs } from '../lib/docs-sync/candidates.mjs';
 
@@ -29,6 +29,23 @@ test('labels and title are fixed strings', () => {
   assert.equal(SKIP_LABEL, 'docs-sync: skip');
   assert.equal(INCLUDE_LABEL, 'docs-sync: include');
   assert.equal(renderTitle('prod-docs/18.1'), 'Sync docs content from develop to prod-docs/18.1');
+});
+
+test('OUTCOMES covers every candidate bucket the report carries', () => {
+  // renderCounts (OUTCOMES) and renderBody's section() calls are two copies of
+  // the bucket set. If a ninth bucket is added to the report and only renderBody
+  // learns it, the count undercounts and the bucket never shows in the summary.
+  // Every array-valued key on the report is a candidate bucket.
+  const bucketKeys = Object.entries(report).filter(([, value]) => Array.isArray(value)).map(([key]) => key);
+  const outcomeKeys = OUTCOMES.map(([key]) => key);
+
+  for (const key of bucketKeys) {
+    assert.ok(outcomeKeys.includes(key), `OUTCOMES is missing the report bucket "${key}"`);
+  }
+  // And no OUTCOMES entry names a key the report does not have.
+  for (const key of outcomeKeys) {
+    assert.ok(key in report, `OUTCOMES names "${key}", which is not a report bucket`);
+  }
 });
 
 test('renderCounts summarizes picked vs not picked by outcome', () => {

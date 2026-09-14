@@ -22,7 +22,7 @@ const CLI = path.join(repoRoot(), '.github/scripts/docs-sync.mjs');
  * commit (#102), a migration guide into 18.2 (#103), a content fix already
  * cherry-picked to prod by hand (#104), and a direct push with no PR number.
  */
-function fixture() {
+function fixture({ extraContentCommit = false } = {}) {
   const root = mkdtempSync(path.join(tmpdir(), 'docs-sync-cli-'));
   const origin = path.join(root, 'origin.git');
   const work = path.join(root, 'work');
@@ -76,6 +76,14 @@ function fixture() {
   write('docs/content/guides/e.md', 'e\n');
   git(work, ['add', '-A']);
   git(work, ['commit', '-q', '-m', 'direct push without a number']);
+
+  // Opt-in second content-only candidate, so a test can exercise a mixed batch
+  // (one classifies, one fails) without the all-failed floor firing.
+  if (extraContentCommit) {
+    write('docs/content/guides/f.md', 'f v2\n');
+    git(work, ['add', '-A']);
+    git(work, ['commit', '-q', '-m', 'Fix guide f (#105)']);
+  }
 
   git(work, ['switch', '-q', 'prod-docs/18.1']);
   write('handsontable/package.json', '{"version":"18.1.0"}\n');
@@ -848,7 +856,7 @@ test('a cached decision under the current prompt hash skips the model; a stale p
   }
 });
 
-test('a failed classifier call logs the whole upstream body to the job log, not the step summary', async() => {
+test('when every classification fails the run stops, logging the whole body to the job log only', async() => {
   const f = fixture();
   const bigBody = `<!DOCTYPE html><html><head><title>Blocked</title></head><body>${'Z'.repeat(20_000)}</body></html>`;
   const server = createServer((req, res) => {
@@ -872,17 +880,17 @@ test('a failed classifier call logs the whole upstream body to the job log, not 
 
     const result = await spawnCli(f, { port });
 
-    // The failure is skipped, not fatal (that behavior has its own test); what
-    // this pins is where the big body goes.
-    assert.equal(result.status, 0, result.stderr);
-    // The job log (stdout) carries the response whole, including the far end of
-    // the body and the Cloudflare-block hint the diagnostic derived from headers.
+    // The sole candidate 403s, so every classification failed: the floor fires
+    // and the run stops rather than exit 0 with nothing synced.
+    assert.notEqual(result.status, 0, 'a total classification failure stops the run');
+    assert.match(result.stdout, /Every classification failed/);
+    // The full upstream body still reached the job log before the floor threw,
+    // with the Cloudflare-block hint the diagnostic derived from the headers.
     assert.ok(result.stdout.includes('Z'.repeat(20_000)), 'the full block-page body reaches the job log');
     assert.match(result.stdout, /Looks like a Cloudflare edge block/);
     assert.match(result.stdout, /cf-ray=testray-WAW/);
 
-    // The step summary gets only the concise per-candidate failure line, never
-    // the 20 KB body.
+    // The step summary never carries the 20 KB body.
     const summary = readFileSync(path.join(f.root, 'summary.md'), 'utf8');
 
     assert.match(summary, /Classifier request failed for #101 \(403\); not cherry-picked\./);
@@ -893,14 +901,22 @@ test('a failed classifier call logs the whole upstream body to the job log, not 
   }
 });
 
-test('a classifier failure skips that candidate, keeps the open pull request, and reports counts', async() => {
-  const f = fixture();
+test('a partial classifier failure skips that candidate, keeps the open pull request, and reports counts', async() => {
+  const f = fixture({ extraContentCommit: true });
+  let requestCount = 0;
   const server = createServer((req, res) => {
     req.resume();
     req.on('end', () => {
-      // A content-triggered edge block: HTML 403, deterministic on the request.
-      res.writeHead(403, { 'Content-Type': 'text/html', 'cf-ray': 'block-WAW', server: 'cloudflare' });
-      res.end('<!DOCTYPE html><html><head><title>Blocked</title></head><body>blocked</body></html>');
+      requestCount += 1;
+      if (requestCount === 1) {
+        // First candidate (#101) classifies cleanly -- excluded, not picked.
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ choices: [{ message: { content: '{"decision":"exclude","reason":"documents 18.2"}' } }] }));
+      } else {
+        // Second candidate (#105) hits a content-triggered edge block.
+        res.writeHead(403, { 'Content-Type': 'text/html', 'cf-ray': 'block-WAW', server: 'cloudflare' });
+        res.end('<!DOCTYPE html><html><head><title>Blocked</title></head><body>blocked</body></html>');
+      }
     });
   });
 
@@ -909,17 +925,18 @@ test('a classifier failure skips that candidate, keeps the open pull request, an
   const { port } = server.address();
 
   try {
-    // An open pull request exists; the sole classifiable candidate (#101) 403s.
+    // An open pull request exists; #101 classifies, #105 fails -- a mixed batch,
+    // so the run proceeds instead of hitting the all-failed floor.
     writeAnswers(f, { openPr: { number: 500, url: 'https://github.com/o/r/pull/500', body: 'Prior run.' } });
 
     const result = await spawnCli(f, { port });
 
-    // The run does not abort on the failed classification.
+    // The failed candidate does not abort the run.
     assert.equal(result.status, 0, result.stderr);
     assert.match(result.stdout, /1 candidate\(s\) could not be classified this run/);
 
     // The open pull request is NOT closed while a classification failed -- the
-    // unsure candidate may become an include once the gateway accepts it.
+    // skipped candidate may become an include once the gateway accepts it.
     assert.match(result.stdout, /Skipped closing #500:.*classification\(s\) failed/);
     assert.doesNotMatch(result.stdout, /Closed #500/);
 
@@ -927,17 +944,17 @@ test('a classifier failure skips that candidate, keeps the open pull request, an
 
     assert.ok(!ghCalls.some((c) => c[0] === 'pr' && c[1] === 'close'), 'the pull request was not closed');
 
-    // The full per-commit reason lives in the job log only...
-    assert.match(result.stdout, /Not classified: the classifier request failed \(403\)/);
+    // The full per-commit reason for the skipped candidate lives in the job log.
+    assert.match(result.stdout, /#105.*Not classified: the classifier request failed \(403\)/s);
 
-    // ...while the step summary shows counts, not the per-commit audit trail.
+    // The step summary shows counts, not the per-commit audit trail.
     const summary = readFileSync(path.join(f.root, 'summary.md'), 'utf8');
 
     assert.match(summary, /## Docs content sync to prod-docs\/18\.1/);
-    // 5 candidates across the buckets; none picked, #101 needs a human.
-    assert.match(summary, /Picked \*\*0\*\* of \*\*5\*\* commit\(s\)/);
+    // 6 candidates across the buckets; none picked, #101 excluded, #105 needs a human.
+    assert.match(summary, /Picked \*\*0\*\* of \*\*6\*\* commit\(s\)/);
     assert.match(summary, /Needs a human decision: 1/);
-    // The per-commit audit-trail reason is logs-only, not in the summary.
+    assert.match(summary, /Excluded by the classifier: 1/);
     assert.doesNotMatch(summary, /Not classified: the classifier request failed/);
   } finally {
     server.close();
