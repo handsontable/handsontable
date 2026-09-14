@@ -78,3 +78,26 @@ export function fenceForSummary(text, max = MAX_SUMMARY_CHARS) {
 
   return `${FENCE}\n${shown}\n${FENCE}`;
 }
+
+// A ClickUp custom id: 2-4 uppercase letters, a hyphen, digits (DEV, SU, PRO,
+// IT, ...). The trailing `(?!-)` keeps a CVE id like `CVE-2024-12345` whole
+// instead of eating `CVE-2024` and leaving `-12345`.
+const TASK_ID = /\b[A-Z]{2,4}-\d+\b(?!-)/g;
+
+/**
+ * Remove ClickUp task ids from text. ClickUp links any `PREFIX-1234` it finds in
+ * a pull request body or a commit message to that task and moves it to "code
+ * review", so the docs-sync pull request -- which lists dozens of already-merged
+ * commits, both in its body and (through `cherry-pick -x`) in its commit
+ * messages -- must carry none, or it drags every one of those tasks back into
+ * review. Newline-safe: only runs of spaces or tabs left by a removal are
+ * collapsed, so a multi-line commit message keeps its structure.
+ *
+ * @param {string} text
+ * @returns {string}
+ */
+export function stripTaskIds(text) {
+  return String(text ?? '')
+    .replace(TASK_ID, '')
+    .replace(/[ \t]{2,}/g, ' ');
+}

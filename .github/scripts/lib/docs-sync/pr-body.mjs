@@ -7,6 +7,8 @@
  * decision cache the next run reads back.
  */
 
+import { stripTaskIds } from './log.mjs';
+
 export const STATE_MARKER = 'docs-sync-state';
 export const SYNC_LABEL = 'docs-sync';
 export const SKIP_LABEL = 'docs-sync: skip';
@@ -93,9 +95,13 @@ function section(heading, items, line) {
  * @returns {string}
  */
 function plain(text, max = 200) {
-  const collapsed = String(text ?? '')
+  // stripTaskIds runs here, the one chokepoint every untrusted subject and
+  // model-written reason passes through, so a task id in either never reaches
+  // the pull request body (see stripTaskIds for why that matters).
+  const collapsed = stripTaskIds(String(text ?? '')
     .replaceAll('<', '&lt;')
-    .replace(/\r\n|\r|\n/g, ' ');
+    .replace(/\r\n|\r|\n/g, ' '))
+    .trim();
 
   return collapsed.length > max ? `${collapsed.slice(0, max)}…` : collapsed;
 }
@@ -118,17 +124,11 @@ function forState(text) {
 }
 
 /**
- * `\`sha\` subject` with the subject sanitized, the trailing `(#n)` it already
- * carries stripped (every `section()` caller appends its own `(#n, ...)`), and
- * every ClickUp-style task id removed.
- *
- * The task-id strip is load-bearing, not cosmetic: a squash-merge subject is
- * `DEV-1234: ...`, and ClickUp links any `PREFIX-1234` it finds in a pull
- * request body to that task and moves it to "code review". This bot pull
- * request lists dozens of already-merged commits, so without the strip every
- * one of those tasks gets dragged back into review the moment the sync pull
- * request opens. Only the source `#n` (a pull-request number, which ClickUp
- * does not treat as a task) is meant to survive.
+ * `\`sha\` subject`. `plain()` already stripped the task ids and sanitized the
+ * text; here the trailing `(#n)` the subject carries is removed (every
+ * `section()` caller appends its own `(#n, ...)`) and the `: ` a removed leading
+ * `DEV-1234: ` prefix left behind is cleaned up. Only the source `#n` (a
+ * pull-request number, which ClickUp does not treat as a task) survives.
  *
  * @param {{ sha: string, subject: string }} item
  * @returns {string}
@@ -136,12 +136,6 @@ function forState(text) {
 function ref(item) {
   const subject = plain(item.subject)
     .replace(/\s*\(#\d+\)\s*$/, '')
-    // 2-4 uppercase letters + digits is the ClickUp custom-id shape (DEV, SU,
-    // PRO, IT, ...). It can also match a technical token like `UTF-8` in a
-    // subject; stripping that from a display row is an accepted cosmetic cost
-    // next to dragging the wrong tasks back into review.
-    .replace(/\b[A-Z]{2,4}-\d+\b/g, '')
-    .replace(/\s{2,}/g, ' ')
     .replace(/^[\s:\-–—]+/, '')
     .trim();
 

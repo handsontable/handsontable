@@ -9,6 +9,7 @@
  * cannot make that distinction.
  */
 import { execFileSync } from 'node:child_process';
+import { stripTaskIds } from './log.mjs';
 
 export const SYNC_COMMITTER = {
   name: 'docs-sync[bot]',
@@ -139,6 +140,18 @@ export function applyCommits(cwd, shas) {
   for (const sha of shas) {
     try {
       git(cwd, ['cherry-pick', '-x', sha]);
+      // Strip ClickUp task ids from the picked commit message so the merged sync
+      // pull request's commit list does not link -- and move -- every original
+      // task, the same way the pull request body would. The `-x` provenance
+      // trailer is a hex sha (no id), so it survives and `hasForeignCommits`
+      // still recognizes the pick; a `DEV-1234: ` prefix the strip leaves as a
+      // bare `: ` on the subject line is cleaned up too.
+      const message = git(cwd, ['log', '-1', '--format=%B', 'HEAD']);
+      const cleaned = stripTaskIds(message).replace(/^[ \t]*[:\-–—][ \t]*/, '');
+
+      if (cleaned !== message) {
+        git(cwd, ['commit', '--amend', '-m', cleaned]);
+      }
       applied.push(sha);
     } catch (error) {
       const message = `${error.stderr ?? ''}${error.stdout ?? ''}`;
