@@ -50,27 +50,32 @@ Two details:
   (`hasHorizontalScroll() && !isHorizontallyScrollableByWindow()`), then `preventDefault()`. Without those
   guards the page stops scrolling.
 
-## It owns a shortcut context, so it must fill it
+## It owns a shortcut context, and it INHERITS the grid's
 
 `#show()` activates the plugin's focus scope, and the focus scope manager switches the shortcut manager to
 `plugin:emptyDataState`. The manager runs the **active context only** — `handleEventWithScope()` in
 `../../shortcuts/manager.ts` — and `runGlobalScopedShortcuts` is no escape hatch, because both this context
-and `grid` are `table`-scoped. So an empty context means every grid shortcut is dead for as long as the
-overlay is on screen. It shipped that way and DEV-53 is the report: undo, redo and select all all died.
+and `grid` are `table`-scoped. The plugin shipped with that context empty, so every grid shortcut was dead
+for as long as the overlay was on screen. That is DEV-53: undo, redo and select all all died.
 
-`#registerShortcuts()` fills it, and the two halves are deliberately different:
+The scope therefore declares `fallbackShortcutsContextName: GRID_SCOPE`. The manager walks that chain when
+it dispatches a key, so the overlay answers **everything the grid answers**, including shortcuts added to
+the grid after this file was written. Listing keys here instead would rot silently — the first design did
+exactly that, with two `forwardToContext` entries, and it was rejected for this reason.
 
-- **Undo and redo use `forwardToContext`**, the idiom `../contextMenu/menu/defaultShortcutsList.ts` and
-  `../comments/` already use. UndoRedo stays the single owner of that logic, and nothing here depends on
-  that plugin being enabled.
-- **Select all carries its own callback**, because forwarding does not work. The `grid` context guards its
-  whole main group with `isDefined(getSelected())` plus rendered cells (`../../shortcuts/contexts/grid.ts`),
-  and neither holds while the overlay is up — a forwarded `Ctrl`+`A` is silently inert. It is guarded on
-  `countRows() > 0 && countCols() > 0` instead: with every column hidden the data is still there and worth
-  selecting, with no rows there is nothing to select and the chord stays unclaimed.
+Select all is the one shortcut this plugin still registers itself, and it is an **override**, not a gap:
+the grid's own `Control/Meta+A` is guarded on `isDefined(getSelected())`, and the overlay starts with
+nothing selected, so the inherited one is silently inert exactly when it is needed — with every column
+hidden, where selecting the data is the only route back to a context menu.
 
-Do **not** guard these on `isVisible()`. The context being active is the guard; a redundant one only adds a
-second way for the shortcuts to go dead.
+Do **not** guard the override on `isVisible()`. The context being active is the guard; a second one only
+adds another way for the shortcut to go dead.
+
+**The safety half of this lives in `../../shortcuts/contexts/grid.ts`, not here.** Inheriting is only safe
+because a grid shortcut that reads or writes cell CONTENT refuses while the grid renders nothing
+(`hasRenderedCells()`). Without it, the `Ctrl`+`A` above hands the user a selection over hidden data and
+`Delete` blanks the whole dataset — measured, 40 cells, on a grid whose columns were all hidden. If you add
+a destructive shortcut to the grid context, guard it there; every inheriting overlay depends on it.
 
 ## `#hide()` must roll the shortcut context back itself
 

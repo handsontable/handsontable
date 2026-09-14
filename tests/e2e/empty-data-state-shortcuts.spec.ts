@@ -9,6 +9,11 @@ import { EmptyDataStateShortcutsPage } from '../fixtures/pages/EmptyDataStateSho
  * undo, redo and select all all died for as long as the overlay was up. A second defect kept the
  * context on `plugin:emptyDataState` after the overlay hid again, leaving a grid full of data with
  * no working shortcuts until the user clicked a cell.
+ *
+ * The overlay now inherits the grid's shortcut context instead of listing keys, so the two tests that
+ * press Delete and Ctrl+Enter are the other half of the fix: a shortcut that writes cell content must
+ * refuse while the grid renders nothing, or inheriting would hand the user a way to destroy data they
+ * cannot see.
  */
 test.describe('emptyDataState keyboard shortcuts', () => {
   let grid: EmptyDataStateShortcutsPage;
@@ -79,6 +84,37 @@ test.describe('emptyDataState keyboard shortcuts', () => {
     await grid.page.keyboard.press('ControlOrMeta+a');
 
     expect(await grid.selection()).toBeNull();
+  });
+
+  test('does not let Delete clear the data it cannot show', async() => {
+    const before = await grid.allValues();
+
+    await grid.selectAllWithKeyboard();
+    await grid.runContextMenuItem('columnHeader', /^Hide columns$/);
+    await expect(grid.overlay).toBeVisible();
+
+    await grid.clickOverlay();
+    await grid.page.keyboard.press('ControlOrMeta+a');
+    expect(await grid.selection()).toEqual([[-1, -1, 7, 4]]);
+
+    await grid.page.keyboard.press('Delete');
+
+    expect(await grid.allValues()).toEqual(before);
+  });
+
+  test('does not let Ctrl+Enter overwrite the data it cannot show', async() => {
+    const before = await grid.allValues();
+
+    await grid.selectAllWithKeyboard();
+    await grid.runContextMenuItem('columnHeader', /^Hide columns$/);
+    await expect(grid.overlay).toBeVisible();
+
+    await grid.clickOverlay();
+    await grid.page.keyboard.press('ControlOrMeta+a');
+
+    await grid.page.keyboard.press('ControlOrMeta+Enter');
+
+    expect(await grid.allValues()).toEqual(before);
   });
 
   test('restores the grid shortcut context once the overlay hides', async() => {

@@ -31,6 +31,7 @@ export interface FixtureSortConfig {
  */
 export interface FixtureHotInstance {
   getDataAtCell(row: number, col: number): CellValue;
+  getData(): CellValue[][];
   getDataAtCol(col: number): CellValue[];
   getSourceDataAtCell(row: number, col: number): CellValue;
   getSourceData(): unknown[];
@@ -196,6 +197,8 @@ declare global {
   interface Window {
     /** The fixture's live Handsontable instance. */
     hot: FixtureHotInstance;
+    /** DEV-2917 fixture: the message of a throw the fixture's own grid build caught, if any. */
+    htFixtureError?: string;
     /** #5833 fixture: the "getter" grid – constructor rows with a non-configurable derived getter. */
     hotGetter: FixtureHotInstance;
     /** #5833 fixture: the "accessor" grid – the docs' function-data-source pattern (function `columns[].data`). */

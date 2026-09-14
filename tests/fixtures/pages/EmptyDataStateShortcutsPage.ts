@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 
 /**
  * Page object for the DEV-2917 fixture: one grid with `emptyDataState`, `hiddenColumns` and undo.
@@ -16,14 +17,20 @@ export class EmptyDataStateShortcutsPage {
   readonly theme: string;
   /** The active bundle, passed through to the fixture URL. */
   readonly bundle: string;
+  /** Requests the browser could not complete, so a missing bundle names itself. */
+  readonly failedRequests: string[] = [];
 
   /**
-   * Wires up the page object for one theme/bundle leg.
+   * Wires up the page object for one theme/bundle leg and starts collecting failed requests, so a
+   * bundle the server did not deliver surfaces as its own URL rather than as a mute timeout.
    */
   constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
     this.theme = theme;
     this.bundle = bundle;
+    page.on('requestfailed', (request) => {
+      this.failedRequests.push(`${request.url()} (${request.failure()?.errorText ?? 'unknown'})`);
+    });
   }
 
   /**
@@ -32,6 +39,24 @@ export class EmptyDataStateShortcutsPage {
   async goto(): Promise<void> {
     await this.page.goto(
       `/tests/fixtures/demo/empty-data-state-shortcuts.html?theme=${this.theme}&bundle=${this.bundle}`);
+    // The bundle is injected with `document.write`, so the page can be loaded while the constructor
+    // is not there yet. Waiting on a cell instead would report "element(s) not found".
+    try {
+      await awaitBundle(this.page);
+    } catch (error) {
+      const reason = this.failedRequests.length > 0 ?
+        `requests failed: ${this.failedRequests.join(', ')}` :
+        'no request failed - the bundle evaluated too slowly';
+
+      throw new Error(`The Handsontable bundle never evaluated (${reason}).`, { cause: error });
+    }
+
+    const fixtureError = await this.page.evaluate(() => window.htFixtureError ?? null);
+
+    if (fixtureError !== null) {
+      throw new Error(`The fixture failed to build the grid: ${fixtureError}`);
+    }
+
     await expect(this.cell(0, 0)).toBeVisible();
   }
 
@@ -98,5 +123,13 @@ export class EmptyDataStateShortcutsPage {
   /** The number of columns the grid can actually render (0 once every column is hidden). */
   async renderableColumnCount(): Promise<number> {
     return this.page.evaluate(() => window.hot.view.countRenderableColumns());
+  }
+
+  /**
+   * Every cell value, flattened. A destructive shortcut that slipped through shows up here even
+   * when the cells are hidden, which reading one corner would miss.
+   */
+  async allValues(): Promise<unknown[]> {
+    return this.page.evaluate(() => window.hot.getData().flat());
   }
 }

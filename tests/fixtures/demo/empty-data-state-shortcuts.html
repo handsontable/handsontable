@@ -41,26 +41,38 @@
     document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
   </script>
   <script>
-    function testIdRenderer(instance, td, row, col, prop, value, cellProperties) {
-      Handsontable.renderers.TextRenderer.apply(this, arguments);
-      td.setAttribute('data-testid', 'cell-' + row + '-' + col);
+    // The build runs inside try/catch and parks the message on `window.htFixtureError`, which the
+    // page object rethrows. Without it a constructor throw surfaces only as "element(s) not found"
+    // on whichever assertion came first, which says nothing about the cause.
+    try {
+      var COLUMN_NAMES = ['A', 'B', 'C', 'D', 'E'];
+      // Built here rather than through `Handsontable.helper`, so the fixture depends on the
+      // constructor alone - the one thing `awaitBundle()` proves is present.
+      var data = Array.from({ length: 8 }, function(_, row) {
+        return COLUMN_NAMES.map(function(name) { return name + (row + 1); });
+      });
+
+      var container = document.querySelector('[data-testid="grid"]');
+
+      container.className = 'ht-theme-' + window.htTheme;
+
+      window.hot = new Handsontable(container, {
+        data: data,
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        hiddenColumns: { indicators: true },
+        undo: true,
+        emptyDataState: true,
+        renderer: function(instance, td, row, col, prop, value, cellProperties) {
+          Handsontable.renderers.TextRenderer.apply(this, arguments);
+          td.setAttribute('data-testid', 'cell-' + row + '-' + col);
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      window.htFixtureError = String(error && error.message ? error.message : error);
     }
-
-    var container = document.querySelector('[data-testid="grid"]');
-
-    container.className = 'ht-theme-' + window.htTheme;
-
-    window.hot = new Handsontable(container, {
-      data: Handsontable.helper.createSpreadsheetData(8, 5),
-      rowHeaders: true,
-      colHeaders: true,
-      contextMenu: true,
-      hiddenColumns: { indicators: true },
-      undo: true,
-      emptyDataState: true,
-      renderer: testIdRenderer,
-      licenseKey: 'non-commercial-and-evaluation',
-    });
   </script>
 </body>
 </html>

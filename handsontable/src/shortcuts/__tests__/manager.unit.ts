@@ -33,6 +33,117 @@ describe('Shortcut Manager', () => {
     });
   });
 
+  describe('fallback context chain', () => {
+    /**
+     * Dispatches a key on the document, the way the recorder receives it.
+     *
+     * @param {string} key - The `KeyboardEvent.key` value to send.
+     */
+    function pressKey(key: string) {
+      document.documentElement.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
+    }
+
+    it('should run the fallback context\'s shortcut when the active one does not define the keys', () => {
+      const gridSpy = jasmine.createSpy('gridUndo');
+      const manager = createTestManager();
+      const pluginContext = manager.addContext('plugin:overlay');
+
+      manager.getContext('grid').addShortcut({
+        keys: [['a']],
+        callback: gridSpy,
+        group: 'gridGroup',
+      });
+      pluginContext.setFallbackContext(manager.getContext('grid'));
+      manager.setActiveContextName('plugin:overlay');
+
+      pressKey('a');
+
+      expect(gridSpy).toHaveBeenCalledTimes(1);
+
+      manager.destroy();
+    });
+
+    it('should prefer the active context\'s own shortcut over the fallback\'s', () => {
+      const gridSpy = jasmine.createSpy('gridA');
+      const pluginSpy = jasmine.createSpy('pluginA');
+      const manager = createTestManager();
+      const pluginContext = manager.addContext('plugin:overlay');
+
+      manager.getContext('grid').addShortcut({
+        keys: [['a']],
+        callback: gridSpy,
+        group: 'gridGroup',
+      });
+      pluginContext.addShortcut({
+        keys: [['a']],
+        callback: pluginSpy,
+        group: 'pluginGroup',
+      });
+      pluginContext.setFallbackContext(manager.getContext('grid'));
+      manager.setActiveContextName('plugin:overlay');
+
+      pressKey('a');
+
+      expect(pluginSpy).toHaveBeenCalledTimes(1);
+      expect(gridSpy).not.toHaveBeenCalled();
+
+      manager.destroy();
+    });
+
+    it('should walk a chain of fallbacks', () => {
+      const gridSpy = jasmine.createSpy('gridA');
+      const manager = createTestManager();
+      const middleContext = manager.addContext('plugin:middle');
+      const outerContext = manager.addContext('plugin:outer');
+
+      manager.getContext('grid').addShortcut({
+        keys: [['a']],
+        callback: gridSpy,
+        group: 'gridGroup',
+      });
+      middleContext.setFallbackContext(manager.getContext('grid'));
+      outerContext.setFallbackContext(middleContext);
+      manager.setActiveContextName('plugin:outer');
+
+      pressKey('a');
+
+      expect(gridSpy).toHaveBeenCalledTimes(1);
+
+      manager.destroy();
+    });
+
+    it('should not loop forever when the fallbacks form a cycle', () => {
+      const manager = createTestManager();
+      const firstContext = manager.addContext('plugin:first');
+      const secondContext = manager.addContext('plugin:second');
+
+      firstContext.setFallbackContext(secondContext);
+      secondContext.setFallbackContext(firstContext);
+      manager.setActiveContextName('plugin:first');
+
+      expect(() => pressKey('a')).not.toThrow();
+
+      manager.destroy();
+    });
+
+    it('should leave `hasShortcut` answering for a single context', () => {
+      const manager = createTestManager();
+      const pluginContext = manager.addContext('plugin:overlay');
+
+      manager.getContext('grid').addShortcut({
+        keys: [['a']],
+        callback: () => {},
+        group: 'gridGroup',
+      });
+      pluginContext.setFallbackContext(manager.getContext('grid'));
+
+      expect(pluginContext.hasShortcut(['a'])).toBe(false);
+      expect(pluginContext.getShortcuts(['a'])).toEqual([]);
+
+      manager.destroy();
+    });
+  });
+
   describe('global scope shortcuts when the table shortcut pipeline is blocked', () => {
     it('should run shortcuts on global contexts when handleEvent returns false', () => {
       const spy = jasmine.createSpy('globalF6');

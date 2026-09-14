@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed keyboard shortcuts, including select all, undo and redo, not working while the empty data state overlay is displayed.",
+  "title": "Fixed keyboard shortcuts, including select all, undo and redo, not working while the empty data state overlay is displayed, and stopped shortcuts that change cell content from running while the grid renders no cells.",
   "type": "fixed",
   "issueOrPR": 13489,
   "breaking": false,

@@ -132,6 +132,36 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
   let isCtrlKeySilenced = false;
 
   /**
+   * Walks the fallback chain and returns the first context that holds a shortcut for the pressed
+   * keys, or `null` when none does.
+   *
+   * A context declares a fallback so that the shortcuts it does not define keep working while it is
+   * active - an overlay that covers the grid without replacing it, for example. Resolving the owner
+   * here rather than inside the context keeps `hasShortcut()` and `getShortcuts()` answering for a
+   * single context, which is what their documentation promises and what `hasEventShortcut()` needs.
+   *
+   * @param {object|undefined} context The context to start from.
+   * @param {string[]} keys Normalized pressed keys.
+   * @returns {object|null}
+   */
+  const resolveContextOwningKeys = (context: Context | undefined, keys: string[]): Context | null => {
+    const visited = new Set<Context>();
+    let currentContext = context ?? null;
+
+    // A fallback may itself declare one, and nothing stops an integration from forming a cycle.
+    while (currentContext !== null && !visited.has(currentContext)) {
+      if (currentContext.hasShortcut(keys)) {
+        return currentContext;
+      }
+
+      visited.add(currentContext);
+      currentContext = currentContext.getFallbackContext();
+    }
+
+    return null;
+  };
+
+  /**
    * A callback function for listening events from the recorder.
    *
    * @param {KeyboardEvent} event The keyboard event.
@@ -145,13 +175,14 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
     event: KeyboardEvent, keys: string[], context: string | Context = getActiveContextName()): boolean => {
     const activeContext = isContextObject(context) ? context : getContext(context);
     let isExecutionCancelled = false;
+    const owningContext = resolveContextOwningKeys(activeContext, keys);
 
-    if (!activeContext?.hasShortcut(keys)) {
+    if (!owningContext) {
       return isExecutionCancelled;
     }
 
     // Processing just actions being in stack at the moment of shortcut pressing (without respecting additions/removals performed dynamically).
-    const shortcuts = activeContext?.getShortcuts(keys) ?? [];
+    const shortcuts = owningContext.getShortcuts(keys);
 
     for (let index = 0; index < shortcuts.length; index++) {
       const {

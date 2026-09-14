@@ -7,6 +7,7 @@ import { SCOPE_TYPES, FOCUS_SOURCES, DEFAULT_SHORTCUTS_CONTEXT } from './constan
  * @property {function(): string} getType The type of the scope.
  * @property {function(): boolean} hasContainerDetached Whether the container is detached from the root Handsontable wrapper element.
  * @property {function(): string} getShortcutsContextName The name of the shortcuts context to switch to when the scope is activated.
+ * @property {function(): string|null} getFallbackShortcutsContextName The name of the shortcuts context consulted for keys the scope's own context does not define.
  * @property {function(): boolean} runOnlyIf Whether the scope is enabled or not depends on the custom logic.
  * @property {function(): boolean} contains Whether the target element is within the scope.
  * @property {function(): void} activate Activates the scope.
@@ -25,6 +26,10 @@ import { SCOPE_TYPES, FOCUS_SOURCES, DEFAULT_SHORTCUTS_CONTEXT } from './constan
  * @param {object} [options] Configuration options.
  * @param {string} [options.shortcutsContextName='grid'] The name of the shortcuts context to switch to when
  * the scope is activated.
+ * @param {string} [options.fallbackShortcutsContextName] The name of a shortcuts context consulted for keys the
+ * scope's own context does not define. Pass `'grid'` for a scope that covers the grid without replacing it, so the
+ * grid's shortcuts keep working - including ones added later - instead of dying while the scope is active. Leave it
+ * unset for a modal scope, which must not let grid shortcuts through.
  * @param {'modal' | 'inline'} [options.type='inline'] The type of the scope:<br/>
  *   - `modal`: The scope is modal and blocks the rest of the grid from receiving focus.<br/>
  *   - `inline`: The scope is inline and allows the rest of the grid to receive focus in the order of the rendered elements in the DOM.
@@ -122,6 +127,7 @@ export function createFocusScope(
     getType: () => mergedOptions.type as string,
     hasContainerDetached: () => !hotInstance.rootWrapperElement.contains(container),
     getShortcutsContextName: () => mergedOptions.shortcutsContextName as string,
+    getFallbackShortcutsContextName: () => (mergedOptions.fallbackShortcutsContextName ?? null) as string | null,
     runOnlyIf: () => (mergedOptions.runOnlyIf as () => boolean)(),
     contains,
     activate,

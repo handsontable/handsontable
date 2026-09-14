@@ -14,6 +14,21 @@ export function shortcutsGridContext(hot: HotInstance) {
 
   type CommandsPool = Record<string, (...args: unknown[]) => boolean | void>;
   const commandsPool = createKeyboardShortcutCommandsPool(hot) as unknown as CommandsPool;
+  /**
+   * Whether the grid currently renders any cell.
+   *
+   * A shortcut that reads or writes cell CONTENT must require this. Without it the keystroke acts on
+   * data the user cannot see - every column hidden, or the `emptyDataState` overlay covering the body -
+   * and `Delete` silently blanked the whole dataset (DEV-2917). `countRenderedCols()` is a faithful
+   * proxy: with every column hidden it reports 0 even with frozen columns configured, because the
+   * frozen clone has nothing to clone. It reports -1 before the first draw, so this fails closed.
+   *
+   * Shortcuts that only MOVE the selection deliberately do not take it - navigating the headers that
+   * are still on screen is useful, and moving a selection destroys nothing.
+   *
+   * @returns {boolean}
+   */
+  const hasRenderedCells = (): boolean => hot.countRenderedRows() > 0 && hot.countRenderedCols() > 0;
   const config = {
     runOnlyIf: () => {
       const { navigableHeaders } = hot.getSettings();
@@ -35,7 +50,7 @@ export function shortcutsGridContext(hot: HotInstance) {
     callback: () => commandsPool.emptySelectedCells(),
   }], {
     group: EDITOR_EDIT_GROUP,
-    runOnlyIf: () => isDefined(hot.getSelected()),
+    runOnlyIf: () => isDefined(hot.getSelected()) && hasRenderedCells(),
   });
 
   context.addShortcuts([{
@@ -55,6 +70,7 @@ export function shortcutsGridContext(hot: HotInstance) {
     callback: () => commandsPool.populateSelectedCellsData(),
     runOnlyIf: () => {
       return isDefined(hot.getSelected()) &&
+        hasRenderedCells() &&
         !hot.getSelectedRangeActive()?.highlight.isHeader() &&
         (hot.getSelectedRangeActive()?.getCellsCount() ?? 0) > 1;
     },
@@ -65,7 +81,7 @@ export function shortcutsGridContext(hot: HotInstance) {
     // The shortcut prevents the default action and stops propagation whenever `runOnlyIf` passes,
     // so it must claim the chord only for a cell that actually renders a link. Testing just
     // `isCell()` would swallow `Alt`+`Enter` grid-wide and break a host application's own handler.
-    runOnlyIf: () => getSelectedCellLink(hot) !== null,
+    runOnlyIf: () => hasRenderedCells() && getSelectedCellLink(hot) !== null,
   }, {
     keys: [['Control', 'Space']],
     captureCtrl: true,

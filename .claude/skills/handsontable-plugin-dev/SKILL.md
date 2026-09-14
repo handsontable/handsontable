@@ -182,7 +182,8 @@ If your plugin provides UI elements (buttons, inputs, navigation bars), you must
 - **Implement focus entry logic** - when the scope is activated, focus the first or last focusable element depending on the navigation direction (Tab = first, Shift+Tab = last).
 - The focus manager listens to Tab/Shift+Tab keyboard events and blocks or allows them to ensure the correct UI module is focused during normal focus navigation.
 - **Scopes switch automatically** based on which element the user clicks or focuses. The Core switches the active scope and sets the listen mode so the user can interact with either the grid or another module (e.g., pagination bar).
-- See the Pagination plugin for a reference implementation (`#registerFocusScope` / `#unregisterFocusScope`).
+- **Decide whether your scope COVERS the grid or REPLACES it, and say so.** Activating a scope switches the shortcut manager to the scope's `shortcutsContextName`, and only that context runs - so an empty one kills every grid shortcut while your UI is up (`emptyDataState` shipped that way; DEV-53). An overlay the user still thinks of as "the grid underneath" adds `fallbackShortcutsContextName: 'grid'` to `registerScope()` and inherits the lot, including shortcuts added to the grid after you wrote the plugin. A **modal** scope leaves it unset - letting grid shortcuts through a modal is the bug. Register a shortcut in your own context only to OVERRIDE one, and record in your `AGENTS.md` why the grid's version does not fit.
+- See the Pagination plugin for a reference implementation (`#registerFocusScope` / `#unregisterFocusScope`). `emptyDataState` is the reference for an inheriting overlay.
 
 ## Important Gotchas
 

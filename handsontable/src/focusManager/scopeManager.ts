@@ -11,6 +11,7 @@ type FocusScopeActivationSource = 'unknown' | 'click' | 'tab_from_above' | 'tab_
 
 export type FocusScopeOptions = {
   shortcutsContextName?: string;
+  fallbackShortcutsContextName?: string;
   type?: FocusScopeType;
   contains?: (target: HTMLElement) => boolean;
   runOnlyIf?: () => boolean;
@@ -84,6 +85,8 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
    * @param {object} [options] Configuration options.
    * @param {string} [options.shortcutsContextName='grid'] The name of the shortcuts context to switch to when
    * the scope is activated.
+   * @param {string} [options.fallbackShortcutsContextName] The name of a shortcuts context consulted for keys the
+   * scope's own context does not define. Pass `'grid'` for a scope that covers the grid without replacing it.
    * @param {'modal' | 'inline'} [options.type='inline'] The type of the scope:<br/>
    *   - `modal`: The scope is modal and blocks the rest of the grid from receiving focus.<br/>
    *   - `inline`: The scope is inline and allows the rest of the grid to receive focus in the order of the rendered elements in the DOM.
@@ -132,7 +135,12 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
 
     SCOPES.addItem(scopeId, scope);
 
-    shortcutManager.getOrCreateContext(scope.getShortcutsContextName());
+    const scopeContext = shortcutManager.getOrCreateContext(scope.getShortcutsContextName());
+    const fallbackContextName = scope.getFallbackShortcutsContextName();
+
+    if (fallbackContextName !== null) {
+      scopeContext.setFallbackContext(shortcutManager.getOrCreateContext(fallbackContextName));
+    }
   }
 
   /**
@@ -147,6 +155,10 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
     }
 
     const scope = SCOPES.getItem(scopeId) as ReturnType<typeof createFocusScope>;
+
+    if (scope.getFallbackShortcutsContextName() !== null) {
+      shortcutManager.getContext(scope.getShortcutsContextName())?.setFallbackContext(null);
+    }
 
     scope.destroy();
     SCOPES.removeItem(scopeId);

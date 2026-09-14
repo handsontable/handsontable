@@ -426,6 +426,9 @@ export class EmptyDataState extends BasePlugin {
     this.hot.getFocusScopeManager()
       .registerScope(PLUGIN_KEY, this.#ui!.getElement()!, {
         shortcutsContextName: SHORTCUTS_CONTEXT_NAME,
+        // The overlay covers the grid, it does not replace it, so everything the grid answers stays
+        // answered - including shortcuts added to it after this line was written.
+        fallbackShortcutsContextName: GRID_SCOPE,
         runOnlyIf: () => this.isVisible(),
         onActivate: (focusSource: string) => {
           const focusableElements = this.#ui?.getFocusableElements() ?? [];
@@ -443,21 +446,16 @@ export class EmptyDataState extends BasePlugin {
   }
 
   /**
-   * Registers the shortcuts that stay available while the overlay covers the grid.
+   * Registers the one shortcut the overlay answers differently from the grid.
    *
-   * Activating the plugin's focus scope switches the shortcut manager to `plugin:emptyDataState`,
-   * and the manager runs the active context only. Without this group that context is empty, so
-   * every grid shortcut dies for as long as the overlay is shown.
-   *
-   * Undo and redo are forwarded to the grid context, which keeps the UndoRedo plugin the single
-   * owner of that logic. Select all cannot be forwarded the same way: the grid context guards its
-   * whole group with `isDefined(getSelected())` plus rendered cells, and neither holds while the
-   * overlay is up, so the shortcut carries its own callback.
+   * Everything else is inherited, through the scope's `fallbackShortcutsContextName`. Select all is
+   * the exception: the grid's own entry is guarded on `isDefined(getSelected())`, and the overlay
+   * starts with nothing selected, so the inherited one would be silently inert exactly when the user
+   * needs it - with every column hidden, where selecting the data is the way back to a context menu.
    */
   #registerShortcuts() {
     const manager = this.hot.getShortcutManager();
     const pluginContext = manager.getOrCreateContext(SHORTCUTS_CONTEXT_NAME);
-    const gridContext = manager.getContext(GRID_SCOPE);
 
     pluginContext.addShortcut({
       keys: [['Control/Meta', 'A']],
@@ -475,19 +473,6 @@ export class EmptyDataState extends BasePlugin {
       runOnlyIf: () => this.hot.countRows() > 0 && this.hot.countCols() > 0,
       group: SHORTCUTS_GROUP,
     });
-
-    if (gridContext) {
-      pluginContext.addShortcuts([{
-        keys: [['Control/Meta', 'z']],
-        callback: () => {},
-      }, {
-        keys: [['Control/Meta', 'y'], ['Control/Meta', 'Shift', 'z']],
-        callback: () => {},
-      }], {
-        forwardToContext: gridContext,
-        group: SHORTCUTS_GROUP,
-      });
-    }
   }
 
   /**
