@@ -639,6 +639,12 @@ export class BaseEditor {
     const gridMostRightPos = rootWindow.innerWidth - containerOffset.left - containerWidth;
     const { wtTable: overlayTable } = wtOverlays.getParentOverlay(TD) ?? this.hot.view._wt;
     const overlayName = overlayTable.name;
+    // `offset()` walks the layout chain and misses the transform that places the spreader
+    // (`walkontable/src/overlay/spreaderOffset.ts`); fold that offset into the cell's document position.
+    const spreaderOffset = overlayTable.getSpreaderOffset();
+
+    currentOffset.top += spreaderOffset.y;
+    currentOffset.left += spreaderOffset.x;
 
     const scrollTop = ['master', 'inline_start'].includes(overlayName) ? containerScrollTop : 0;
     const scrollLeft = ['master', 'top', 'bottom'].includes(overlayName) ? containerScrollLeft : 0;
