@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-14T12:44:26.472Z",
+  "generatedAt": "2026-09-14T13:45:03.980Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 9,
+    "tests": 10,
     "needsTicket": 1,
     "quarantined": 0,
-    "entries": 24
+    "entries": 30
   },
   "rows": [
     {
@@ -48,6 +48,42 @@
         "source": "ci"
       },
       "needsTicket": true
+    },
+    {
+      "key": "playwright|e2e/sheets-bar.spec.ts|sheets bar › deleting a sheet from the menu leaves the focus on the tab that takes its place",
+      "tier": "playwright",
+      "file": "e2e/sheets-bar.spec.ts",
+      "line": 394,
+      "title": "sheets bar › deleting a sheet from the menu leaves the focus on the tab that takes its place",
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-classic-min",
+        "e2e-horizon",
+        "e2e-horizon-min",
+        "e2e-main",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-14T13:44:04Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34849010211",
+        "branch": "feature/DEV-2917_EmptyDataState-keyboard-shortcuts",
+        "leg": "e2e-classic",
+        "status": "failed",
+        "error": "Test timeout of 20000ms exceeded.",
+        "source": "ci"
+      },
+      "needsTicket": false
     },
     {
       "key": "jasmine|handsontable/src/plugins/columnSorting/__tests__/columnSorting.spec.js|ColumnSorting compatibility with options should not break virtual rendering if preventOverflow is used",
