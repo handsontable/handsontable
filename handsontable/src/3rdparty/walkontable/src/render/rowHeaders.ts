@@ -64,8 +64,11 @@ export class RowHeadersRenderer extends BaseRenderer {
    */
   render() {
     const { rowsToRender, rowHeaderFunctions, rowHeadersCount, rows, cells } = this.table;
+    // Same window as `CellsRenderer#render`, and it has to be: the two renderers share one order
+    // view size set per TR, so a row skipped by one must be skipped by the other.
+    const paintFromRow = this.table.paintFromRow ?? 0;
 
-    for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
+    for (let visibleRowIndex = paintFromRow; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
       const TR = rows!.getRenderedNode(visibleRowIndex);
 

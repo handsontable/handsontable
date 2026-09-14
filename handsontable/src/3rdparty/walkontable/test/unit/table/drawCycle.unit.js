@@ -1,4 +1,4 @@
-import { refillDisagreesWithFrozenColumnSync } from '../../../src/table/drawCycle';
+import { refillDisagreesWithFrozenColumnSync, resolveRefillPaintWindow } from '../../../src/table/drawCycle';
 
 describe('refillDisagreesWithFrozenColumnSync', () => {
   /**
@@ -83,5 +83,105 @@ describe('refillDisagreesWithFrozenColumnSync', () => {
 
     expect(refillDisagreesWithFrozenColumnSync(table, { syncFrozenRows: false }, 'render')).toBe(false);
     expect(refillDisagreesWithFrozenColumnSync(table, { syncFrozenRows: true }, 'render')).toBe(true);
+  });
+});
+
+describe('resolveRefillPaintWindow', () => {
+  /**
+   * Builds the slice of a master table the window decision reads: the band the refill just
+   * assigned (first rendered row, first rendered column, rendered column count) and the TBODY the
+   * previous pass rendered.
+   *
+   * @param {object} options Stub knobs.
+   * @param {number} options.firstRenderedRow The band's first row after the refill's recompute.
+   * @param {number} options.firstRenderedColumn The band's first column after the recompute.
+   * @param {number} options.renderedColumnsCount The band's column count after the recompute.
+   * @param {number} options.previousRows How many TRs the previous pass rendered.
+   * @param {Array<[number, number, number]>} [options.rowSpans] `[visibleRow, cellIndex, rowSpan]` triples to stamp.
+   * @returns {object}
+   */
+  function createTableStub({
+    firstRenderedRow, firstRenderedColumn, renderedColumnsCount, previousRows, rowSpans = [],
+  }) {
+    const TBODY = document.createElement('tbody');
+
+    for (let row = 0; row < previousRows; row++) {
+      const TR = document.createElement('tr');
+
+      for (let column = 0; column < renderedColumnsCount; column++) {
+        TR.appendChild(document.createElement('td'));
+      }
+      TBODY.appendChild(TR);
+    }
+    rowSpans.forEach(([row, cell, rowSpan]) => {
+      TBODY.children[row].children[cell].rowSpan = rowSpan;
+    });
+
+    return {
+      TBODY,
+      getFirstRenderedRow: () => firstRenderedRow,
+      getFirstRenderedColumn: () => firstRenderedColumn,
+      getRenderedColumnsCount: () => renderedColumnsCount,
+    };
+  }
+
+  const previousColumns = { startColumn: 3, count: 4 };
+
+  it('should window the paint to the appended rows when the start row and the column band are unchanged', () => {
+    const table = createTableStub({
+      firstRenderedRow: 10, firstRenderedColumn: 3, renderedColumnsCount: 4, previousRows: 5,
+    });
+
+    expect(resolveRefillPaintWindow(table, 10, 14, previousColumns)).toBe(5);
+  });
+
+  it('should repaint everything when the band start row moved', () => {
+    const table = createTableStub({
+      firstRenderedRow: 9, firstRenderedColumn: 3, renderedColumnsCount: 4, previousRows: 5,
+    });
+
+    expect(resolveRefillPaintWindow(table, 10, 14, previousColumns)).toBe(0);
+  });
+
+  it('should repaint everything when the column band start moved', () => {
+    const table = createTableStub({
+      firstRenderedRow: 10, firstRenderedColumn: 2, renderedColumnsCount: 4, previousRows: 5,
+    });
+
+    expect(resolveRefillPaintWindow(table, 10, 14, previousColumns)).toBe(0);
+  });
+
+  it('should repaint everything when the column band count moved', () => {
+    const table = createTableStub({
+      firstRenderedRow: 10, firstRenderedColumn: 3, renderedColumnsCount: 5, previousRows: 5,
+    });
+
+    expect(resolveRefillPaintWindow(table, 10, 14, previousColumns)).toBe(0);
+  });
+
+  it('should repaint everything when a cell above the window spans into the appended rows', () => {
+    // A merged cell clamped to the previous band end must grow its rowspan into the new rows, and
+    // its anchor TD sits above the window - only a full repaint reaches it.
+    const table = createTableStub({
+      firstRenderedRow: 10,
+      firstRenderedColumn: 3,
+      renderedColumnsCount: 4,
+      previousRows: 5,
+      rowSpans: [[2, 1, 3]],
+    });
+
+    expect(resolveRefillPaintWindow(table, 10, 14, previousColumns)).toBe(0);
+  });
+
+  it('should keep the window when the spanning cells end above the previous band end', () => {
+    const table = createTableStub({
+      firstRenderedRow: 10,
+      firstRenderedColumn: 3,
+      renderedColumnsCount: 4,
+      previousRows: 5,
+      rowSpans: [[0, 0, 2], [1, 3, 3]],
+    });
+
+    expect(resolveRefillPaintWindow(table, 10, 14, previousColumns)).toBe(5);
   });
 });

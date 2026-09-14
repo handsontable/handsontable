@@ -111,6 +111,31 @@ export class ColumnAutosizeRefillPage {
   }
 
   /**
+   * How many draws (`afterViewRender`) and how many paints of cell (0, 0) (`afterRenderer`) the
+   * fixture counted since the page loaded. Read in one `page.evaluate`, so both describe the same
+   * moment.
+   */
+  async paintCounters(): Promise<{ draws: number; cell00Paints: number }> {
+    return this.page.evaluate(() => {
+      const counters = window as unknown as { drawCount: number; cell00Paints: number };
+
+      return { draws: counters.drawCount, cell00Paints: counters.cell00Paints };
+    });
+  }
+
+  /**
+   * Assert that no draw painted cell (0, 0) more than once: the refill passes repaint only the rows
+   * they append (DEV-2908). Cell (0, 0) is in every band of this fixture (no scrolling), so a
+   * whole-band repaint on any refill pass would push its paint count above the draw count.
+   */
+  async expectOnePaintPerDraw(): Promise<void> {
+    const { draws, cell00Paints } = await this.paintCounters();
+
+    expect(cell00Paints).toBeGreaterThan(0);
+    expect(cell00Paints).toBeLessThanOrEqual(draws);
+  }
+
+  /**
    * Column header cell in the top clone (where the resize handle attaches).
    */
   private columnHeader(col: number): Locator {

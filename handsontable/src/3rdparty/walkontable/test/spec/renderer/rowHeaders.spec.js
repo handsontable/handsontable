@@ -220,4 +220,49 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
       </tbody>
       `);
   });
+
+  describe('paint window (`paintFromRow`)', () => {
+    it('should repaint only the row headers at and after `paintFromRow`', async() => {
+      const { rowHeadersRenderer, rowsRenderer, cellsRenderer, tableMock, rootNode } = createRenderer();
+
+      const headerRenderer = jasmine.createSpy().and.callFake((row, TH) => {
+        TH.innerHTML = `${tableMock.pass}:${row}`;
+      });
+
+      tableMock.pass = 'a';
+      tableMock.rowsToRender = 2;
+      tableMock.columnsToRender = 1;
+      tableMock.rowHeadersCount = 1;
+      tableMock.rowHeaderFunctions = [headerRenderer];
+      tableMock.cellRenderer = () => {};
+
+      rowsRenderer.render();
+      rowHeadersRenderer.render();
+      cellsRenderer.render();
+
+      // Row headers and cells share one order view per TR, so a skipped row is skipped by BOTH
+      // renderers - the TH count of an untouched row must not drift.
+      const untouchedTH = rootNode.querySelector('tr:nth-child(1) th');
+
+      untouchedTH.className = 'kept';
+
+      headerRenderer.calls.reset();
+      tableMock.pass = 'b';
+      tableMock.rowsToRender = 3;
+      tableMock.paintFromRow = 2;
+
+      rowsRenderer.render();
+      rowHeadersRenderer.render();
+      cellsRenderer.render();
+
+      expect(headerRenderer).toHaveBeenCalledTimes(1);
+      expect(headerRenderer.calls.argsFor(0)[0]).toBe(2);
+      expect(rootNode.querySelectorAll('tr:nth-child(1) th').length).toBe(1);
+      expect(rootNode.querySelectorAll('tr:nth-child(1) td').length).toBe(1);
+      expect(untouchedTH.className).toBe('kept');
+      expect(untouchedTH.innerHTML).toBe('a:0');
+      expect(rootNode.querySelector('tr:nth-child(2) th').innerHTML).toBe('a:1');
+      expect(rootNode.querySelector('tr:nth-child(3) th').innerHTML).toBe('b:2');
+    });
+  });
 });

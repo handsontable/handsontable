@@ -465,6 +465,7 @@ function renderCellBand(
   ctx: DrawContext,
   filters: { rowFilter: RowFilter; columnFilter: ColumnFilter },
   columnHeadersRenderSkippable: boolean,
+  paintFromVisibleRow = 0,
 ): boolean {
   table.tableRenderer.setHeaderContentRenderers(ctx.rowHeaders, ctx.columnHeaders);
 
@@ -476,12 +477,15 @@ function renderCellBand(
 
   table.tableRenderer.setColumnHeadersRenderSkippable(columnHeadersRenderSkippable);
 
-  const wipedOversizedRows = resetOversizedRows(table);
+  const wipedOversizedRows = resetOversizedRows(table, paintFromVisibleRow);
 
+  // The paint window, the record reset above and the measure below all cover the same rows: a
+  // refill pass that repaints only the rows it appended also wipes and re-measures only those.
   table.tableRenderer
     .setActiveOverlayName(table.name)
     .setViewportSize(table.getRenderedRowsCount(), table.getRenderedColumnsCount())
     .setFilters(filters.rowFilter, filters.columnFilter)
+    .setPaintWindow(paintFromVisibleRow)
     .render();
 
   // Mark that a cell band reached the DOM. The viewport is shared by the master and all overlay
@@ -492,7 +496,7 @@ function renderCellBand(
   adjustColumnHeaderHeights(table);
 
   if (table.isMaster || table.is(CLONE_BOTTOM)) {
-    return markOversizedRows(table, wipedOversizedRows);
+    return markOversizedRows(table, wipedOversizedRows, { fromVisibleRow: paintFromVisibleRow });
   }
 
   return false;
@@ -585,12 +589,18 @@ const MAX_ROWS_BAND_REFILL_PASSES = 3;
  * a scroll draw is rare, and the recompute is answering a content change rather than a scroll step,
  * where the stabilization has nothing to hold steady.
  *
- * Renderer-level callbacks fire once per pass: each pass re-renders the whole band, so the cell
- * renderer — and the core `beforeRenderer`/`afterRenderer` hooks that `tableView.ts` fires from
- * inside it — runs again for every cell. The draw-level hooks do not repeat: the `beforeDraw`
- * setting (core's `beforeViewRender`) fires once before the first pass and the `onDraw` setting
- * (core's `afterViewRender`) once after the last, both outside this loop. `renderCycleSeq` advances
- * once per pass, and its only consumer is the `skipRender` rollback guard.
+ * A pass repaints only the rows it appends, when it can: `resolveRefillPaintWindow` hands
+ * `renderCellBand` a paint window that starts right after the previous band, and the rows before it
+ * keep their elements untouched — no cell reset, no `cellRenderer` (so none of the core
+ * `beforeRenderer`/`afterRenderer` hooks that `tableView.ts` fires from inside it), no
+ * `shouldPaintCell` question, no row-header repaint, no re-measure. Over a refilled draw the cell
+ * renderer therefore runs once per cell of the FINAL band. The window is dropped and the whole band
+ * repainted when the start row moved, when the column band moved or resized, or when a cell above
+ * the appended rows spans into them (see the helper). The draw-level hooks never repeat: the
+ * `beforeDraw` setting (core's `beforeViewRender`) fires once before the first pass and the `onDraw`
+ * setting (core's `afterViewRender`) once after the last, both outside this loop. `renderCycleSeq`
+ * advances once per pass whatever the window, and its only consumer is the `skipRender` rollback
+ * guard.
  *
  * Every pass rebuilds both size caches, which is why the second-calculator-pass skip right after the
  * call site reads `rowHeightsChanged` and not `rowHeightCache.isCurrent()` alone — see the comment
@@ -669,6 +679,13 @@ function refillRenderedRowsBandIfShrunk(
       return;
     }
 
+    // The column band this pass renders against, captured before the recompute: the paint window
+    // below is only valid while it does not move.
+    const previousColumns = {
+      startColumn: table.getFirstRenderedColumn(),
+      count: table.getRenderedColumnsCount(),
+    };
+
     // Full recompute (no stationary bands: this is a content change, not a scroll step) so the
     // rendered and visible calculators are rebuilt from the freshly measured heights together.
     wtViewport.createCalculators(false);
@@ -679,13 +696,92 @@ function refillRenderedRowsBandIfShrunk(
     wtViewport.extendRenderedRowsBandTo(previousStartRow, previousEndRow);
 
     const filters = buildRenderFilters(table, ctx);
+    const paintFromVisibleRow = resolveRefillPaintWindow(table, previousStartRow, previousEndRow, previousColumns);
 
     // A pass that measures no further change has settled the band; anything else is another shrink
     // the grown band just exposed, and the next iteration decides whether it must grow again.
-    if (!renderCellBand(table, ctx, filters, columnHeadersRenderSkippable)) {
+    if (!renderCellBand(table, ctx, filters, columnHeadersRenderSkippable, paintFromVisibleRow)) {
       return;
     }
   }
+}
+
+/**
+ * Whether a cell in the first `rowCount` rendered rows spans down to (or past) the last of them.
+ * That is the shape of a merged cell clamped to the previous band's end: its anchor TD sits above
+ * the appended rows, and its `rowspan` has to grow into them, which only a repaint of that TD does.
+ * Reads the `rowSpan` property only — no layout is forced.
+ *
+ * @param {HTMLTableSectionElement} TBODY The master TBODY as the previous pass left it.
+ * @param {number} rowCount How many rendered rows the previous band had.
+ * @returns {boolean}
+ */
+function hasRowSpanReachingBandEnd(TBODY: HTMLTableSectionElement, rowCount: number): boolean {
+  const lastRow = rowCount - 1;
+
+  for (let row = 0; row < rowCount; row++) {
+    const TR = TBODY.children[row];
+
+    if (!TR) {
+      return false;
+    }
+
+    for (let cell = 0; cell < TR.children.length; cell++) {
+      const { rowSpan } = TR.children[cell] as HTMLTableCellElement;
+
+      if (rowSpan > 1 && row + rowSpan - 1 >= lastRow) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Decides how much of the band a refill pass has to repaint, as the visible row index the paint
+ * starts from (`0` = the whole band). The band the pass renders is the union of the previous band
+ * and the proposal, so the rows the previous pass rendered are already correct in the DOM — but the
+ * TR and TD nodes are reused in place by visible index, so skipping them is only sound while each
+ * node still holds the same source cell. Three things break that, and each falls back to a full
+ * repaint: the band's START row moved (every TR now holds a different source row); the column band
+ * moved or resized (`createCalculators(false)` recomputes both axes, and pass 1's columns overscan
+ * is not re-applied — every TD would hold a different source column); or a cell above the appended
+ * rows spans into them (a merged cell clamped to the previous band end whose anchor needs its
+ * `rowspan` grown, see {@link hasRowSpanReachingBandEnd}).
+ *
+ * Exported for unit tests only (`test/unit/table/drawCycle.unit.js`).
+ *
+ * @param {Table} table The master table, after the refill's recompute assigned the new band.
+ * @param {number} previousStartRow The first source row of the band the previous pass rendered.
+ * @param {number} previousEndRow The last source row of the band the previous pass rendered.
+ * @param {{ startColumn: number, count: number }} previousColumns The column band the previous pass rendered.
+ * @returns {number} The first visible row to repaint; `0` repaints the whole band.
+ */
+export function resolveRefillPaintWindow(
+  table: Table,
+  previousStartRow: number,
+  previousEndRow: number,
+  previousColumns: { startColumn: number; count: number },
+): number {
+  if (table.getFirstRenderedRow() !== previousStartRow) {
+    return 0;
+  }
+
+  if (
+    table.getFirstRenderedColumn() !== previousColumns.startColumn ||
+    table.getRenderedColumnsCount() !== previousColumns.count
+  ) {
+    return 0;
+  }
+
+  const previousRowsCount = previousEndRow - previousStartRow + 1;
+
+  if (hasRowSpanReachingBandEnd(table.TBODY!, previousRowsCount)) {
+    return 0;
+  }
+
+  return previousRowsCount;
 }
 
 /**

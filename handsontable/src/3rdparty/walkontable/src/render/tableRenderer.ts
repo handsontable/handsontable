@@ -149,6 +149,16 @@ export class TableRenderer {
    */
   columnsToRender: number = 0;
   /**
+   * The visible row index the cell and row-header renderers start painting from on this render.
+   * The rows before it keep their TR children exactly as the previous render left them: no reset,
+   * no `cellRenderer` call, no `shouldPaintCell` question, no header repaint. `0` paints the whole
+   * band — the default, and the state after every `render()`. Set per render through
+   * `setPaintWindow`; the row-band refill in `table/drawCycle.ts` is the one caller.
+   *
+   * @type {number}
+   */
+  paintFromRow: number = 0;
+  /**
    * An array of functions to be used as a content factory to row headers.
    *
    * @type {Function[]}
@@ -286,6 +296,22 @@ export class TableRenderer {
   setViewportSize(rowsCount: number, columnsCount: number) {
     this.rowsToRender = rowsCount;
     this.columnsToRender = columnsCount;
+  }
+
+  /**
+   * Restricts the next `render()`'s cell and row-header repaint to the rows at and after
+   * `fromVisibleRow`. The caller guarantees that every row before it holds the same source row, in
+   * the same column band, as on the previous render: the TR nodes are reused in place, so a band
+   * whose start row or column band moved re-identifies every element and must repaint everything.
+   * The window applies to one render only; `render()` clears it.
+   *
+   * @param {number} fromVisibleRow The first visible row index to repaint; `0` repaints the whole band.
+   * @returns {TableRenderer}
+   */
+  setPaintWindow(fromVisibleRow: number) {
+    this.paintFromRow = Math.max(0, fromVisibleRow);
+
+    return this;
   }
 
   /**
@@ -469,5 +495,8 @@ export class TableRenderer {
         );
       }
     }
+
+    // One render only — the next draw (or the next refill pass) decides its own window.
+    this.paintFromRow = 0;
   }
 }

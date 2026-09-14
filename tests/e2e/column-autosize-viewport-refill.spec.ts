@@ -30,6 +30,7 @@ test.describe('viewport refill after the rendered rows shrink', () => {
     await expect.poll(() => grid.columnHeaderWidth(2)).toBeGreaterThan(200);
 
     await grid.expectViewportFilled();
+    await grid.expectOnePaintPerDraw();
   });
 
   test('replacing the long values with short ones fills the viewport with rows', async () => {
@@ -38,5 +39,6 @@ test.describe('viewport refill after the rendered rows shrink', () => {
     await grid.shortenTexts();
 
     await grid.expectViewportFilled();
+    await grid.expectOnePaintPerDraw();
   });
 });

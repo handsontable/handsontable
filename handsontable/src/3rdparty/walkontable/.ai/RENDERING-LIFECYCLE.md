@@ -299,7 +299,14 @@ All line numbers are in `table.ts` unless noted. "Master only" = guarded by `thi
   already ran). Proposals are side-effect free: they pass `{ proposeOnly: true }`, which skips the
   `rowHeaderWidth`/`columnHeaderHeight` memo reset inside
   `createRowsCalculator`/`createColumnsCalculator` (the resets themselves must stay where they are —
-  their position relative to the neighboring viewport-size reads is load-bearing).
+  their position relative to the neighboring viewport-size reads is load-bearing). A pass repaints
+  only the rows it appends (DEV-2908): `resolveRefillPaintWindow` hands `renderCellBand` a paint
+  window (`TableRenderer#setPaintWindow`) that starts after the previous band, and the record reset
+  and the measure take the same window, so the cell renderer runs once per cell of the final band
+  over the whole draw. The window is dropped for a full repaint when the start row moved, when the
+  column band moved or resized, or when a cell above the window spans into it (a merged cell
+  clamped to the previous band end). Row headers and cells skip the same rows — they share one
+  order-view size set per TR.
   Every pass rebuilds both size caches, which is why the Phase F skip below reads
   `rowHeightsChanged` rather than the caches alone.
 
