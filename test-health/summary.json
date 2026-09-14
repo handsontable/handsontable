@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-14T09:57:35.931Z",
+  "generatedAt": "2026-09-14T10:07:48.826Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 6,
+    "tests": 7,
     "needsTicket": 1,
     "quarantined": 0,
-    "entries": 9
+    "entries": 15
   },
   "rows": [
     {
@@ -48,6 +48,44 @@
         "source": "ci"
       },
       "needsTicket": true
+    },
+    {
+      "key": "jasmine|handsontable/src/plugins/columnSorting/__tests__/columnSorting.spec.js|ColumnSorting compatibility with options should not break virtual rendering if preventOverflow is used",
+      "tier": "jasmine",
+      "file": "handsontable/src/plugins/columnSorting/__tests__/columnSorting.spec.js",
+      "line": null,
+      "title": "ColumnSorting compatibility with options should not break virtual rendering if preventOverflow is used",
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "legs": [
+        "UMD (theme: classic)",
+        "UMD (theme: horizon)",
+        "UMD (theme: main)",
+        "UMD.min (theme: classic)",
+        "UMD.min (theme: horizon)",
+        "UMD.min (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "fails alone (1 failed)"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-14T10:06:55Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34829867159",
+        "branch": "feature/DEV-2912_Spreader-transform-no-layout-shift",
+        "leg": "UMD (theme: classic)",
+        "status": "failed",
+        "error": "Expected 0 to be greater than 0.",
+        "source": "ci"
+      },
+      "needsTicket": false
     },
     {
       "key": "playwright|e2e/walkontable/exact-row-heights.spec.ts|walkontable exact row heights › in the `exact` mode › keeps the scroll range stable and the row-height cache settled",
