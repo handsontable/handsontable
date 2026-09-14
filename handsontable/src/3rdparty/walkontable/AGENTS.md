@@ -674,6 +674,14 @@ of style recalculation, not JavaScript. Three consequences:
   after (`render/cells.ts`, `render/rowHeaders.ts`, `render/columnHeaders.ts` do). Without it
   the record says "applied" while the DOM is blank, and the element stays unselected until the
   selection changes.
+- **Reset an inline style with `removeInlineStyle()` (`helpers/dom/element.ts`), never a bare
+  `removeAttribute('style')`.** Chromium synchronizes the `style` attribute lazily from the
+  `element.style` declaration; on an element whose inline style was written and never read back
+  (a covered merged cell's `display: none`, a renderer's height), the bare removal lands before the
+  synchronization and leaves an empty `style=""` behind. It is cosmetic for the user, but it makes
+  the same cell come out differently depending on what its element held before, which is exactly
+  what a byte-for-byte comparison against a full repaint catches (`incremental-render.spec.ts`, the
+  `merge` scenario: a covered cell that becomes a block's clamped origin on a scroll).
 - **The cell-range scan is cached** per layer and overlay (`selection/scanCache.ts`) under the
   layer's corners, the rendered band (offsets, counts, header counts), and the host's `renderEpoch`
   setting. Header scans are not cached: the `onBeforeHighlightingRowHeader`/`ColumnHeader` settings
@@ -696,27 +704,32 @@ of style recalculation, not JavaScript. Three consequences:
 engine keeps no per-cell state of its own here; the host (`TableView` through `CellPainter`) owns
 the stamps and answers from the cell's `renderMode`. The default answers `true`, so a Walkontable
 built without the setting behaves as before. A renderer spec's `TableRendererMock` must provide it,
-together with `hasStationaryBands()` and `isRowRecyclingAllowed()` (both `false` reproduces the
+together with `hasStableCellIdentity()` and `isRowRecyclingAllowed()` (both `false` reproduces the
 pre-recycling engine).
 
-The fourth argument is the identity of the rendered band, and it has two forms, chosen per draw by
-`TableRenderer#hasStationaryBands()`. The master draw cycle resolves `Viewport#allowsStationaryBands()`
-once per draw, after `beforeDraw()` refreshed the axis owners, into `Overlays#stationaryBandsAllowed`,
-and the band stabilizer and `renderCellBand` (master and clones, through the clone source) all read
-that one value, so the three decisions never disagree within a draw.
+The fourth and fifth arguments are the two identities of the rendered band. The engine hands over
+both and the host picks per cell, because only the host knows which cells paint something that
+depends on where the band starts or ends:
 
-- **Stationary bands allowed** (single-pass layout, element-scrolled on both axes): the overlay name
-  alone. A cell's own source coordinates carry its identity, so a band that grows or shrinks repaints
-  only the cells it adds, and an element that kept its row across a scroll (next section) reads as
-  unchanged.
-- **Otherwise**: `overlay,rowOffset,rowCount,columnOffset,columnCount`. That is the only layout
-  MergeCells can be active in (it forces single-pass layout off through `modifySinglePassLayout`),
-  and MergeCells clamps a merged cell's `rowspan`/`colspan` to the rendered band, so such a cell
-  needs a paint when the band moves or resizes even though its coordinates did not change. A plugin
-  that derives a cell's paint from where the band starts or ends belongs in this branch, and there is
-  no other in the tree: the remaining `getFirstRenderedVisibleRow` readers feed row heights
+- **`band`**, always: `overlay,rowOffset,rowCount,columnOffset,columnCount`. A cell stamped with it
+  repaints whenever the band moves or resizes. MergeCells needs that for a merged block's cells: it
+  clamps the block's `rowspan`/`colspan` to the rendered band, so the cell's paint changes even though
+  its coordinates did not. It marks the block's origin meta `spanned`, the covered cells resolve to
+  that meta, and `CellPainter#bandIdentity` keeps the full band for them. No other cell paint in the
+  tree reads the band: the remaining `getFirstRenderedVisibleRow` readers feed row heights
   (`stylesHandler`, `autoRowSize`), meta eviction (`dynamicCellMeta`) and the selection layer
-  (`customBorders`), none of which is a cell paint.
+  (`customBorders`).
+- **`stableBand`**, the overlay name alone where the rows recycle (`TableRenderer#hasStableCellIdentity()`,
+  from `Overlays#rowRecyclingAllowed`), `null` otherwise. A cell's own source coordinates then carry
+  its identity, so a band that grows or shrinks repaints only the cells it adds, and an element that
+  kept its row across a scroll (next section) reads as unchanged.
+
+The master draw cycle resolves `Viewport#allowsStationaryBands()` and `Viewport#allowsRowRecycling()`
+once per draw, after `beforeDraw()` refreshed the axis owners, into `Overlays#stationaryBandsAllowed`
+and `Overlays#rowRecyclingAllowed`; the band stabilizer reads the first, `renderCellBand` (master and
+clones, through the clone source) the second, so no decision disagrees within a draw. The two differ
+by the single-pass term only: MergeCells opts out of single-pass layout for the height-versus-viewport
+circularity, and that must not switch the recycling off for the rest of the grid.
 
 ## Row recycling: a scroll keeps a row's TR
 
@@ -725,10 +738,11 @@ that one value, so the three decisions never disagree within a draw.
 stays in the band keeps its TR and its TDs, and the cell pass paints the entering rows into the
 elements the leaving rows freed. The DOM order stays the band order, so `TR.rowIndex` and child
 order still say which row an element holds; what changed is that an element now follows its row
-across a scroll. Gated by `TableRenderer#isRowRecyclingAllowed()` = scroll-driven draw AND stationary
-bands allowed, and the two halves of that gate are one on purpose: the host leaves a carried-over
-cell untouched (`renderMode: 'onChange'`, through the offset-free band above), and that is safe only
-while nothing a cell paints depends on the band (the MergeCells case). A `forceFullRender`
+across a scroll. Gated by `TableRenderer#isRowRecyclingAllowed()` = scroll-driven draw AND
+`Viewport#allowsRowRecycling()` (element-scrolled on both axes, single-pass layout NOT required, so a
+grid with merged cells recycles too). The host leaves a carried-over cell untouched
+(`renderMode: 'onChange'`) only when the cell took the stable identity above, which a merged block's
+cell never does. A `forceFullRender`
 (`hot.render()`) enters as `draw(false)` and never rotates: it rebuilds the band in place, and the
 stamps' coordinates then repaint every element whose row moved. The rotation is also skipped when no
 row survives the move: the shift reaches the previous band's size in either direction (there are no

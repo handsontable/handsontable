@@ -3025,7 +3025,10 @@ export class MergeCells extends BasePlugin {
   /**
    * Opts the table out of single-pass rendering while merged cells are present. A virtualized merged
    * cell's height depends on which rows are in the viewport — the very thing the predicted layout is
-   * trying to compute — so merge tables keep the legacy measure-then-render path.
+   * trying to compute — so merge tables keep the legacy measure-then-render path. The opt-out is about
+   * the layout model only: the engine still recycles its rows on a vertical scroll and offers the
+   * cells outside merged blocks a stable paint identity (`Viewport#allowsRowRecycling`); the blocks'
+   * own cells stay viewport-bound through the `spanned` meta flag.
    *
    * @returns {boolean}
    */

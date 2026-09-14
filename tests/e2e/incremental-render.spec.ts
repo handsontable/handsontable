@@ -436,6 +436,78 @@ test.describe('renderMode: onChange, scrolling', () => {
     await grid.expectEqualToFullRepaint();
   });
 
+  test('repaints only the entering rows and the merged blocks on a scroll through virtualized merges', async({ page, theme, bundle }) => {
+    const grid = new IncrementalRenderPage(page, theme, bundle, 'merge');
+
+    await grid.goto();
+
+    const blocks = await grid.mergedBlocks();
+    const inBlock = (key: string) => {
+      const [row, col] = key.split(',').map(Number);
+
+      return blocks.some(block => row >= block.row && row < block.row + block.rowspan
+        && col >= block.col && col < block.col + block.colspan);
+    };
+
+    // Down, to a band that starts inside the block at rows 6-8. The block's cells that stayed
+    // rendered repaint, because the block is now clamped to the band and its first rendered row
+    // carries the origin; every other row that stayed keeps its element and is left alone.
+    const [, lastBefore] = await grid.renderedBand();
+
+    await grid.run(`window.htProbe = hot.getCell(${lastBefore}, 3);`);
+    await grid.scrollToRow(17);
+
+    let painted = await grid.paintedCells();
+
+    expect(painted.length).toBeGreaterThan(0);
+    expect(painted.filter(key => !(rowOf(key) > lastBefore || inBlock(key)))).toEqual([]);
+    expect(painted).toEqual(expect.arrayContaining(['7,1', '7,2', '8,1', '8,2']));
+    expect(await grid.read<boolean>(`hot.getCell(${lastBefore}, 3) === window.htProbe`)).toBe(true);
+    await expect(grid.cell(7, 1)).toHaveAttribute('rowspan', '2');
+    // The element was a covered cell (`display: none`) a moment ago; the reset must leave no empty
+    // `style` attribute behind (Chromium synchronizes the attribute lazily).
+    expect(await grid.read<boolean>('hot.getCell(7, 1).hasAttribute("style")')).toBe(false);
+    // The block's origin is above the band; the plugin resolves it to the clamped cell.
+    expect(await grid.read<boolean>('hot.getCell(6, 1) === hot.getCell(7, 1)')).toBe(true);
+    await grid.expectEqualToFullRepaint();
+
+    // Further down, past two blocks, then back up over one of them: in both directions only the
+    // entering rows and the blocks are painted, and the tables equal a full repaint.
+    await grid.resetPaints();
+    await grid.scrollToRow(40);
+
+    let [firstBefore] = await grid.renderedBand();
+
+    painted = await grid.paintedCells();
+    expect(painted.length).toBeGreaterThan(0);
+    await grid.expectEqualToFullRepaint();
+
+    await grid.resetPaints();
+    [firstBefore] = await grid.renderedBand();
+    // A row near the start of the band stays rendered through the scroll up.
+    await grid.run(`window.htProbe = hot.getCell(${firstBefore + 1}, 5);`);
+    await grid.scrollToRow(20);
+
+    painted = await grid.paintedCells();
+    expect(painted.length).toBeGreaterThan(0);
+    expect(painted.filter(key => !(rowOf(key) < firstBefore || inBlock(key)))).toEqual([]);
+    expect(await grid.read<boolean>(`hot.getCell(${firstBefore + 1}, 5) === window.htProbe`)).toBe(true);
+    await grid.expectEqualToFullRepaint();
+  });
+
+  test('keeps frozen overlays and a merged block in step with a full repaint through scroll-driven draws', async({ page, theme, bundle }) => {
+    const grid = new IncrementalRenderPage(page, theme, bundle, 'frozen-merge');
+
+    await grid.goto();
+    await grid.run('hot.getPlugin("mergeCells").merge(30, 3, 33, 4);');
+    await grid.scrollToRow(25);
+    await grid.expectEqualToFullRepaint();
+    await grid.scrollToRow(40);
+    await grid.expectEqualToFullRepaint();
+    await grid.scrollToRow(10);
+    await grid.expectEqualToFullRepaint();
+  });
+
   test('keeps the focus in the grid when the selected row leaves the band', async({ page, theme, bundle }) => {
     const grid = new IncrementalRenderPage(page, theme, bundle, 'scroll');
 

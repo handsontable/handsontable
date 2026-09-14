@@ -126,14 +126,21 @@ class Overlays {
   isScrollDrivenDraw: boolean = false;
   /**
    * `true` while the in-progress master draw allows stationary bands (`Viewport#allowsStationaryBands`),
-   * resolved once per master draw after `beforeDraw()` refreshed the axis owners. Read by the draw
-   * cycle for the band stabilizer, the row recycling and the band identity handed to `shouldPaintCell`,
-   * on the master and on its clones (through the clone source), so the three never disagree within a
-   * draw.
+   * resolved once per master draw after `beforeDraw()` refreshed the axis owners, and read by the
+   * band stabilizer.
    *
    * @type {boolean}
    */
   stationaryBandsAllowed: boolean = false;
+  /**
+   * `true` while the in-progress master draw allows row recycling (`Viewport#allowsRowRecycling`),
+   * resolved at the same moment. Read by the draw cycle for the row recycling and the stable cell
+   * identity handed to `shouldPaintCell`, on the master and on its clones (through the clone source),
+   * so the two never disagree within a draw.
+   *
+   * @type {boolean}
+   */
+  rowRecyclingAllowed: boolean = false;
 
   /**
    * Binds the native DOM input listeners (scroll, wheel, key, resize) and translates them into the

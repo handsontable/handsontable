@@ -1805,3 +1805,18 @@ export function getChildEl<T extends HTMLElement = HTMLElement>(parent: ParentNo
 
   return node ? (node as T) : null;
 }
+
+/**
+ * Removes the element's inline `style` attribute so that nothing of it remains. A bare
+ * `removeAttribute('style')` is not enough in Chromium: the attribute is synchronized lazily from the
+ * `element.style` declaration, and when the declaration was written and never read back, the removal
+ * lands before the synchronization and an empty `style=""` attribute is left behind. Reading the
+ * attribute first settles it, and the removal is then complete.
+ *
+ * @param {HTMLElement} element The element to clear.
+ */
+export function removeInlineStyle(element: HTMLElement): void {
+  if (element.hasAttribute('style')) {
+    element.removeAttribute('style');
+  }
+}

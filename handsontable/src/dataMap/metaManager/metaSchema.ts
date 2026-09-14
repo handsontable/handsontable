@@ -5830,9 +5830,10 @@ export default (): Record<string, unknown> => {
      *
      * Under `'onChange'`, a render skips the cells whose paint would produce the same result as their
      * last paint. A vertical scroll keeps the elements of the rows that stay rendered, so it paints
-     * only the rows that enter the rendered area. A horizontal scroll repaints the rendered cells, and
-     * so does any scroll in a grid with merged cells or in a grid that scrolls with the page. Some
-     * changes are not detected, because nothing in the grid sees them:
+     * only the rows that enter the rendered area, plus the cells of merged blocks, whose span depends
+     * on that area. A horizontal scroll repaints the rendered cells, and so does any scroll in a grid
+     * that scrolls with the page. Some changes are not detected, because nothing in the grid sees
+     * them:
      * - a meta object mutated directly (`getCellMeta(row, col).x = y`, including inside the
      * [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta) and [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta) hooks),
      * - a value object mutated in place (the grid compares values by identity),

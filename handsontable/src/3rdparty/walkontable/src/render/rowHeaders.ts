@@ -1,6 +1,6 @@
 import { SharedOrderView } from '../utils/orderView';
 import { BaseRenderer } from './_base';
-import { setAttribute, removeAttribute } from '../../../../helpers/dom/element';
+import { setAttribute, removeAttribute, removeInlineStyle } from '../../../../helpers/dom/element';
 import { clearAppliedSelection } from '../selection/appliedSelection';
 import {
   A11Y_COLINDEX,
@@ -95,7 +95,7 @@ export class RowHeadersRenderer extends BaseRenderer {
 
         TH.className = '';
         clearAppliedSelection(TH);
-        TH.removeAttribute('style');
+        removeInlineStyle(TH);
 
         // Remove all accessibility-related attributes for the header to start fresh.
         removeAttribute(TH, [

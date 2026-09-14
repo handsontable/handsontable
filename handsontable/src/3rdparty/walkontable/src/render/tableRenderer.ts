@@ -13,10 +13,13 @@ import { applyRowHeight } from './exactRowHeight';
 
 /**
  * Asked for every cell in the rendered band before the cell element is reset and painted.
- * Answering `false` leaves the element exactly as the previous draw left it.
+ * Answering `false` leaves the element exactly as the previous draw left it. `band` is the identity
+ * of the rendered band (the overlay with its offsets and sizes); `stableBand` is the overlay name
+ * alone, offered where the rows recycle so a cell that kept its element across a scroll can read as
+ * unchanged, and `null` where it may not be used.
  */
 export type ShouldPaintCell = (
-  sourceRow: number, sourceColumn: number, TD: HTMLTableCellElement, band: string
+  sourceRow: number, sourceColumn: number, TD: HTMLTableCellElement, band: string, stableBand: string | null
 ) => boolean;
 
 /**
@@ -206,19 +209,19 @@ export class TableRenderer {
   #columnHeadersRenderSkippable: boolean = false;
   /**
    * `true` when this draw was entered as a scroll draw (`Overlays#isScrollDrivenDraw`). Set once per
-   * draw by the draw cycle; together with `#stationaryBandsAllowed` it decides whether the rows
+   * draw by the draw cycle; together with `#rowRecyclingAllowed` it decides whether the rows
    * renderer may rotate the TR elements to follow the band.
    *
    * @type {boolean}
    */
   #scrollDrivenDraw: boolean = false;
   /**
-   * `true` when the viewport allows stationary bands on this draw (`Viewport#allowsStationaryBands`):
-   * single-pass layout, element-scrolled on both axes. Set once per draw by the draw cycle.
+   * `true` when the viewport allows row recycling on this draw (`Viewport#allowsRowRecycling`):
+   * element-scrolled on both axes. Set once per draw by the draw cycle.
    *
    * @type {boolean}
    */
-  #stationaryBandsAllowed: boolean = false;
+  #rowRecyclingAllowed: boolean = false;
   /**
    * `true` once the column-header pass has rendered at least once and stored its render window.
    *
@@ -325,38 +328,37 @@ export class TableRenderer {
   }
 
   /**
-   * Records whether the viewport allows stationary bands on this draw.
+   * Records whether the viewport allows row recycling on this draw.
    *
-   * @param {boolean} allowed Whether stationary bands are allowed.
+   * @param {boolean} allowed Whether row recycling is allowed.
    */
-  setStationaryBandsAllowed(allowed: boolean) {
-    this.#stationaryBandsAllowed = allowed;
+  setRowRecyclingAllowed(allowed: boolean) {
+    this.#rowRecyclingAllowed = allowed;
   }
 
   /**
-   * Whether the paint identity of a cell may leave the band's offsets and sizes out (see
-   * `CellsRenderer#render`). `true` exactly when the viewport allows stationary bands: nothing that
-   * paints a cell then depends on where the band starts or how far it reaches. MergeCells, the one
-   * renderer that does (it clamps a merged cell's span to the rendered band), forces single-pass
-   * layout off and so turns this off with it.
+   * Whether the cells renderer may offer the host a stable paint identity for a cell: the overlay name
+   * alone instead of the band's offsets and sizes (see `CellsRenderer#render`). `true` exactly where
+   * the rows recycle, so an element that kept its row across a scroll can read as unchanged. The host
+   * still decides per cell, because it knows which cells paint something that depends on where the
+   * band starts or ends: MergeCells clamps a merged block's span to the rendered band, and the block's
+   * cells keep the full identity.
    *
    * @returns {boolean}
    */
-  hasStationaryBands(): boolean {
-    return this.#stationaryBandsAllowed;
+  hasStableCellIdentity(): boolean {
+    return this.#rowRecyclingAllowed;
   }
 
   /**
    * Whether the rows renderer may rotate the TR elements on this draw, so a row that stays in the
    * band keeps its element. Only on a scroll-driven draw (any other draw keeps the band where it is
-   * or rebuilds it) and only where stationary bands are allowed, for the reason `hasStationaryBands()`
-   * gives: a cell that kept its element across the move is left untouched by the host, and that is
-   * safe only while nothing a cell paints depends on the band.
+   * or rebuilds it) and only where the viewport allows it (element-scrolled on both axes).
    *
    * @returns {boolean}
    */
   isRowRecyclingAllowed(): boolean {
-    return this.#scrollDrivenDraw && this.#stationaryBandsAllowed;
+    return this.#scrollDrivenDraw && this.#rowRecyclingAllowed;
   }
 
   /**
@@ -494,7 +496,7 @@ export class TableRenderer {
     // `stabilizeRenderedColumnsBand`). Structural DOM mutations here would trigger the host page's
     // `:has()` style invalidation on every scroll, at a cost that scales with the host document.
     //
-    // The one move: on a scroll-driven draw where stationary bands are allowed
+    // The one move: on a scroll-driven draw where row recycling is allowed
     // (`isRowRecyclingAllowed()`) the rows renderer rotates the TR elements by the band's offset
     // delta, so a row that stays in the band keeps its TR and its TDs, and the host can then leave
     // those cells untouched (`renderMode: 'onChange'`, through `shouldPaintCell`). That is one

@@ -138,13 +138,13 @@ class Renderer {
   }
 
   /**
-   * Sets whether the viewport allows stationary bands on this draw.
+   * Sets whether the viewport allows row recycling on this draw.
    *
-   * @param {boolean} allowed Whether stationary bands are allowed.
+   * @param {boolean} allowed Whether row recycling is allowed.
    * @returns {Renderer}
    */
-  setStationaryBandsAllowed(allowed: boolean) {
-    this.renderer.setStationaryBandsAllowed(allowed);
+  setRowRecyclingAllowed(allowed: boolean) {
+    this.renderer.setRowRecyclingAllowed(allowed);
 
     return this;
   }

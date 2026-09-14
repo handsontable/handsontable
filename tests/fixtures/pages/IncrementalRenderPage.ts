@@ -3,7 +3,17 @@ import { awaitBundle } from '../bundle';
 
 export type IncrementalRenderScenario =
   'text' | 'always' | 'mixed' | 'frozen-merge' | 'formulas' | 'search' | 'cells-fn' | 'resize' | 'merge-height' | 'comments' |
-  'scroll' | 'frozen';
+  'scroll' | 'frozen' | 'merge';
+
+/**
+ * A merged block of the `merge` scenario, as the fixture declares it.
+ */
+export interface MergedBlock {
+  row: number;
+  col: number;
+  rowspan: number;
+  colspan: number;
+}
 
 /**
  * Page Object for the `renderMode` fixture. Every probe reads the grid through the fixture's own
@@ -46,6 +56,13 @@ export class IncrementalRenderPage {
     // master cell once. The counts the specs assert start from the settled state either way.
     await this.run('hot.render();');
     await this.resetPaints();
+  }
+
+  /**
+   * Returns the merged blocks the `merge` scenario declares.
+   */
+  async mergedBlocks(): Promise<MergedBlock[]> {
+    return this.page.evaluate(() => (window as unknown as { htMergedBlocks: MergedBlock[] }).htMergedBlocks);
   }
 
   /**

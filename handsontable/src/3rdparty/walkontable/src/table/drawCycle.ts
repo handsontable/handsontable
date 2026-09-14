@@ -130,9 +130,11 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
   // (`applyRenderedColumnsBandOverscan` / `applyRenderedRowsBandOverscan`) so consecutive scroll
   // steps land inside the rendered band and resolve as fast draws.
   // Resolved once per draw, after `beforeDraw()` refreshed the axis owners, and shared with the render
-  // phase and the clones: the band stabilizer, the row recycling and the band identity the cells
-  // renderer hands the host must all read the same answer.
+  // phase and the clones, so the band stabilizer, the row recycling and the cell identity the cells
+  // renderer offers the host each read one answer. The two predicates differ by the single-pass
+  // term: a grid with merged cells keeps the measured layout and still recycles its rows.
   wtOverlays.stationaryBandsAllowed = wtViewport.allowsStationaryBands();
+  wtOverlays.rowRecyclingAllowed = wtViewport.allowsRowRecycling();
 
   ctx.runFastDraw = wtViewport.createCalculators(ctx.runFastDraw, {
     stationaryBands: wtOverlays.isScrollDrivenDraw && wtOverlays.stationaryBandsAllowed,
@@ -197,7 +199,7 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
         filters,
         isPureVerticalScrollDraw(wtOverlays),
         wtOverlays.isScrollDrivenDraw,
-        wtOverlays.stationaryBandsAllowed,
+        wtOverlays.rowRecyclingAllowed,
       );
 
       if (!wtSettings.getSetting('externalRowCalculator')) {
@@ -294,7 +296,7 @@ function runCloneDrawCycle(table: Table, ctx: DrawContext): void {
       filters,
       isPureVerticalScrollDraw(cloneSourceOverlays),
       cloneSourceOverlays.isScrollDrivenDraw,
-      cloneSourceOverlays.stationaryBandsAllowed,
+      cloneSourceOverlays.rowRecyclingAllowed,
     );
 
     if (table.is(CLONE_BOTTOM)) {
@@ -450,10 +452,10 @@ function isPureVerticalScrollDraw(wtOverlays: Overlays): boolean {
  *   for this draw (a pure vertical scroll); resolved per role by the caller.
  * @param {boolean} scrollDrivenDraw Whether the draw was entered as a scroll draw (the master's
  *   `isScrollDrivenDraw`, read off the clone source for a clone).
- * @param {boolean} stationaryBandsAllowed Whether the draw allows stationary bands (the master's
- *   `stationaryBandsAllowed`, resolved once per draw, read off the clone source for a clone). With
+ * @param {boolean} rowRecyclingAllowed Whether the draw allows row recycling (the master's
+ *   `rowRecyclingAllowed`, resolved once per draw, read off the clone source for a clone). With
  *   `scrollDrivenDraw` it lets the rows renderer keep a row's TR across the scroll, and on its own it
- *   lets the host keep such a cell untouched.
+ *   lets the cells renderer offer the host a stable identity for a cell.
  */
 function renderCellBand(
   table: Table,
@@ -461,11 +463,11 @@ function renderCellBand(
   filters: { rowFilter: RowFilter; columnFilter: ColumnFilter },
   columnHeadersRenderSkippable: boolean,
   scrollDrivenDraw: boolean,
-  stationaryBandsAllowed: boolean,
+  rowRecyclingAllowed: boolean,
 ): void {
   table.tableRenderer.setHeaderContentRenderers(ctx.rowHeaders, ctx.columnHeaders);
   table.tableRenderer.setScrollDrivenDraw(scrollDrivenDraw);
-  table.tableRenderer.setStationaryBandsAllowed(stationaryBandsAllowed);
+  table.tableRenderer.setRowRecyclingAllowed(rowRecyclingAllowed);
 
   if (table.is(CLONE_BOTTOM) ||
       table.is(CLONE_BOTTOM_INLINE_START_CORNER)) {

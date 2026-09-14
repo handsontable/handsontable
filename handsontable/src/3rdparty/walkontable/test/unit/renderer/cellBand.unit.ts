@@ -11,7 +11,7 @@ interface Fixture {
     rowsToRender: number;
     columnsToRender: number;
     scrollDriven: boolean;
-    stationary: boolean;
+    recyclable: boolean;
   };
   shouldPaintCell: jest.Mock;
   /**
@@ -20,9 +20,9 @@ interface Fixture {
    */
   draw(): void;
   /**
-   * The band identities the cells renderer handed to `shouldPaintCell`, one per cell, deduplicated.
+   * The `[band, stableBand]` pairs the cells renderer handed to `shouldPaintCell`, deduplicated.
    */
-  bands(): string[];
+  identities(): string[];
 }
 
 /**
@@ -39,7 +39,7 @@ function createFixture(): Fixture {
     rowsToRender: 3,
     columnsToRender: 2,
     scrollDriven: false,
-    stationary: false,
+    recyclable: false,
   };
   const shouldPaintCell = jest.fn(() => true);
   const rows = new RowsRenderer(tbody);
@@ -67,8 +67,8 @@ function createFixture(): Fixture {
     shouldPaintCell,
     cellRenderer: jest.fn(),
     isAriaEnabled: () => false,
-    hasStationaryBands: () => state.stationary,
-    isRowRecyclingAllowed: () => state.scrollDriven && state.stationary,
+    hasStableCellIdentity: () => state.recyclable,
+    isRowRecyclingAllowed: () => state.scrollDriven && state.recyclable,
   } as unknown as TableRenderer;
 
   rows.setTable(table);
@@ -83,23 +83,25 @@ function createFixture(): Fixture {
       rows.render();
       cells.render();
     },
-    bands: () => Array.from(new Set(shouldPaintCell.mock.calls.map((call: unknown[]) => call[3] as string))),
+    identities: () => Array.from(new Set(
+      shouldPaintCell.mock.calls.map((call: unknown[]) => `${call[3]} | ${call[4]}`)
+    )),
   };
 }
 
 describe('CellsRenderer band identity', () => {
-  it('should carry the offsets and sizes when stationary bands are not allowed', () => {
-    const { draw, bands, state } = createFixture();
+  it('should hand the host the full band, with offsets and sizes, and no stable identity where the rows do not recycle', () => {
+    const { draw, identities, state } = createFixture();
 
     state.rowOffset = 4;
     state.columnOffset = 1;
     draw();
 
-    expect(bands()).toEqual(['master,4,3,1,2']);
+    expect(identities()).toEqual(['master,4,3,1,2 | null']);
   });
 
-  it('should change with the offsets when stationary bands are not allowed', () => {
-    const { draw, bands, state, shouldPaintCell } = createFixture();
+  it('should move the full band with the offsets', () => {
+    const { draw, identities, state, shouldPaintCell } = createFixture();
 
     draw();
     shouldPaintCell.mockClear();
@@ -107,24 +109,24 @@ describe('CellsRenderer band identity', () => {
     state.rowOffset = 1;
     draw();
 
-    expect(bands()).toEqual(['master,1,3,0,2']);
+    expect(identities()).toEqual(['master,1,3,0,2 | null']);
   });
 
-  it('should be the overlay name alone when stationary bands are allowed', () => {
-    const { draw, bands, state } = createFixture();
+  it('should offer the overlay name as the stable identity where the rows recycle, next to the full band', () => {
+    const { draw, identities, state } = createFixture();
 
-    state.stationary = true;
+    state.recyclable = true;
     state.rowOffset = 4;
     state.columnOffset = 1;
     draw();
 
-    expect(bands()).toEqual(['master']);
+    expect(identities()).toEqual(['master,4,3,1,2 | master']);
   });
 
-  it('should stay the same across a scroll when stationary bands are allowed', () => {
-    const { draw, bands, state, shouldPaintCell } = createFixture();
+  it('should keep the stable identity constant across a scroll while the full band moves', () => {
+    const { draw, identities, state, shouldPaintCell } = createFixture();
 
-    state.stationary = true;
+    state.recyclable = true;
     draw();
     shouldPaintCell.mockClear();
 
@@ -133,13 +135,13 @@ describe('CellsRenderer band identity', () => {
     state.rowsToRender = 4;
     draw();
 
-    expect(bands()).toEqual(['master']);
+    expect(identities()).toEqual(['master,1,4,0,2 | master']);
   });
 
   it('should hand a carried-over element to the host with its own source coordinates after a scroll', () => {
     const { draw, state, shouldPaintCell, tbody } = createFixture();
 
-    state.stationary = true;
+    state.recyclable = true;
     draw();
 
     const tdOfRowOne = tbody.children[1].children[0];
@@ -150,9 +152,9 @@ describe('CellsRenderer band identity', () => {
     draw();
 
     // The TR that held row 1 is now the first row of the band, still carrying its own TD, and the
-    // host is asked about that element with the coordinates it already shows.
+    // host is asked about that element with the coordinates it already shows and both identities.
     expect(tbody.children[0].children[0]).toBe(tdOfRowOne);
-    expect(shouldPaintCell.mock.calls[0]).toEqual([1, 0, tdOfRowOne, 'master']);
+    expect(shouldPaintCell.mock.calls[0]).toEqual([1, 0, tdOfRowOne, 'master,1,3,0,2', 'master']);
   });
 
   it('should ask the host about every cell of the band whatever the draw flags', () => {
@@ -162,7 +164,7 @@ describe('CellsRenderer band identity', () => {
     expect(shouldPaintCell).toHaveBeenCalledTimes(6);
 
     shouldPaintCell.mockClear();
-    state.stationary = true;
+    state.recyclable = true;
     state.scrollDriven = true;
     state.rowOffset = 1;
     draw();

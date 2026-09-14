@@ -8,7 +8,7 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
       return false;
     }
 
-    hasStationaryBands() {
+    hasStableCellIdentity() {
       return false;
     }
 

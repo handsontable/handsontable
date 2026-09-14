@@ -103,6 +103,12 @@ export interface CellMeta extends ColumnSettings {
   comment?: CommentObject;
   isSearchResult?: boolean;
   hidden?: boolean;
+  /**
+   * Set by the `MergeCells` plugin on the origin cell of a merged block; the covered cells resolve to
+   * that meta. A spanned cell's paint depends on the rendered band, so it never takes the stable
+   * paint identity under `renderMode: 'onChange'`.
+   */
+  spanned?: boolean;
   skipRowOnPaste?: boolean;
 }
 

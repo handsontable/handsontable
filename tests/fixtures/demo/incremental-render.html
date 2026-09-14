@@ -30,7 +30,7 @@
     window.htScenario = ({
       text: 'text', always: 'always', mixed: 'mixed', 'frozen-merge': 'frozen-merge', formulas: 'formulas', search: 'search',
       'cells-fn': 'cells-fn', resize: 'resize', 'merge-height': 'merge-height', comments: 'comments', scroll: 'scroll',
-      frozen: 'frozen',
+      frozen: 'frozen', merge: 'merge',
     })[htParams.get('scenario') ?? 'text'];
     if (!window.htScenario) {
       throw new Error('Unknown ?scenario= value: ' + JSON.stringify(htParams.get('scenario')));
@@ -112,6 +112,15 @@
       return data;
     }
 
+    // The merged blocks of the `merge` scenario, exposed so a spec can tell a block's cell (which
+    // repaints on every scroll, its span being clamped to the rendered band) from an ordinary one.
+    window.htMergedBlocks = [
+      { row: 6, col: 1, rowspan: 3, colspan: 2 },
+      { row: 22, col: 4, rowspan: 4, colspan: 1 },
+      { row: 40, col: 0, rowspan: 2, colspan: 3 },
+      { row: 48, col: 7, rowspan: 5, colspan: 2 },
+    ];
+
     const base = {
       licenseKey: 'non-commercial-and-evaluation',
       rowHeaders: true,
@@ -157,6 +166,17 @@
         fixedRowsTop: 2,
         fixedColumnsStart: 2,
         viewportRowRenderingOffset: 10,
+      }),
+      // Merged blocks in a grid whose rows recycle. Virtualized, so a block's span is clamped to the
+      // rendered band: the block's cells keep the viewport-bound paint identity while every other
+      // cell takes the stable one. MergeCells keeps the measured layout, so the band has no overscan
+      // and equals a plain render's away from the grid's edges.
+      merge: () => ({
+        ...base,
+        data: makeData(200, 10),
+        renderMode: 'onChange',
+        viewportRowRenderingOffset: 10,
+        mergeCells: { virtualized: true, cells: window.htMergedBlocks },
       }),
       formulas: () => ({
         ...base,

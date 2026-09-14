@@ -134,7 +134,7 @@ The cache is a `WeakMap` whose keys are the row objects of your data source. It 
 { input: sales, output: buildTrend(sales) }
 ```
 
-**Why not key the cache by the `td` element?** Handsontable renders only the visible cells plus a small buffer, and it keeps a fixed set of `td` elements for them. A vertical scroll keeps a row's `td` elements with the row while the row stays rendered, but nothing else does: a horizontal scroll, a row that leaves the rendered area and comes back, and any scroll in a grid with merged cells or in a grid that scrolls with the page all hand the record a different `td`. A cache keyed by the `td` -- a `WeakMap` of `td` to output, or a property set on the element -- therefore misses on every one of those, and the expensive work runs again for cells that were computed a moment ago. The record is the thing that stays the same between renders, so it is the key.
+**Why not key the cache by the `td` element?** Handsontable renders only the visible cells plus a small buffer, and it keeps a fixed set of `td` elements for them. A vertical scroll keeps a row's `td` elements with the row while the row stays rendered, but nothing else does: a horizontal scroll, a row that leaves the rendered area and comes back, and any scroll in a grid that scrolls with the page all hand the record a different `td`. A cache keyed by the `td` -- a `WeakMap` of `td` to output, or a property set on the element -- therefore misses on every one of those, and the expensive work runs again for cells that were computed a moment ago. The record is the thing that stays the same between renders, so it is the key.
 
 **Why a `WeakMap`?** When a record leaves the data set and nothing else references it, its cache entry is released with it. A plain `Map` would keep every record alive.
 
@@ -226,7 +226,7 @@ The same rule applies to a primitive value: the `input !== value` check compares
   3. **Make the container the cell's only child.** Clear the cell before you append. A container placed next to whatever the cell already holds leaves the cell with two children, and the engine's own content wrapper is then rebuilt on every draw.
 
   Hold the containers in a `WeakMap` keyed by the `td`, so a cell element the grid drops releases its container with it.
-- **Skip the cells that did not change.** The [`renderMode`](@/api/options.md#rendermode) option set to `'onChange'` lets a render skip cells whose data, meta, and position did not change since their last paint. A vertical scroll then paints only the rows that enter the rendered area; a horizontal scroll, and any scroll in a grid with merged cells or in a grid that scrolls with the page, still repaints the rendered cells, so the cache in this recipe is still what saves the computation there. The two combine well: the option removes the renderer call, the cache removes the computation.
+- **Skip the cells that did not change.** The [`renderMode`](@/api/options.md#rendermode) option set to `'onChange'` lets a render skip cells whose data, meta, and position did not change since their last paint. A vertical scroll then paints only the rows that enter the rendered area, plus the cells of merged blocks; a horizontal scroll, and any scroll in a grid that scrolls with the page, still repaint the rendered cells, so the cache in this recipe is still what saves the computation there. The two combine well: the option removes the renderer call, the cache removes the computation.
 
 ## What you learned
 
