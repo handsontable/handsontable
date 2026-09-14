@@ -56,7 +56,8 @@
       td.setAttribute('data-testid', `cell-${row}-${col}`);
     };
 
-    new Handsontable(container, {
+    // Exposed so a spec can drive the documented `filter()` recipe directly.
+    window.hot = new Handsontable(container, {
       data: [
         ['Alice', 'Red'],
         ['Bob', 'Green'],

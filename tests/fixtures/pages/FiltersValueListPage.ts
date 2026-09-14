@@ -56,6 +56,35 @@ export class FiltersValueListPage {
     await expect(this.valueList.first()).toBeVisible();
   }
 
+  /** The list items that currently carry the grid's focus highlight. */
+  focusedListItems(): Locator {
+    return this.menu.locator('.htUIMultipleSelect .ht_master .htCore tbody td.current');
+  }
+
+  /**
+   * Opens the dropdown menu of the given column from the keyboard, the way a user reaches it without
+   * the mouse. The keyboard path keeps the by-value list alive across menu openings, which the click
+   * path does not, so a focus ring left in the list survives into the next opening.
+   *
+   * @param {number} row Visual row index to select first.
+   * @param {number} col Visual column index whose menu opens.
+   */
+  async openMenuWithKeyboard(row: number, col: number): Promise<void> {
+    await this.page.evaluate(([r, c]) => (window as unknown as {
+      hot: { selectCell: (row: number, column: number) => void }
+    }).hot.selectCell(r, c), [row, col]);
+    await this.page.keyboard.press('Alt+Shift+ArrowDown');
+
+    await expect(this.menu).toBeVisible();
+    await expect(this.valueList.first()).toBeVisible();
+  }
+
+  /** Close the menu with the Escape key and wait for it to go away. */
+  async escapeMenu(): Promise<void> {
+    await this.page.keyboard.press('Escape');
+    await expect(this.menu).toBeHidden();
+  }
+
   /** Confirm the menu with the "OK" button and wait for it to close. */
   async confirmMenu(): Promise<void> {
     await this.menu.locator('.htUIButtonOK input').click();
@@ -118,5 +147,53 @@ export class FiltersValueListPage {
 
     await checkbox.click();
     await expect(checkbox).not.toBeChecked();
+  }
+
+  /**
+   * Add a filter condition to a column through the plugin API and apply it, the way the documented
+   * `filter()` recipe does. This is the API counterpart to the menu-driven `applyCondition()`.
+   *
+   * @param {number} column The visual column index.
+   * @param {string} name The condition short name (e.g. `eq`, `by_value`).
+   * @param {Array} args The condition arguments.
+   */
+  async addFilter(column: number, name: string, args: unknown[]): Promise<void> {
+    await this.page.evaluate(({ column: col, name: conditionName, args: conditionArgs }) => {
+      const plugin = window.hot.getPlugin('filters');
+
+      plugin.addCondition(col, conditionName, conditionArgs);
+      plugin.filter();
+    }, { column, name, args });
+  }
+
+  /**
+   * Replace the grid's source data while keeping the `filters` option in the payload, exactly as the
+   * React and Angular wrappers re-send their whole settings object on every update. Passing `filters`
+   * is what makes `updateSettings` run the Filters plugin's `updatePlugin` (disable + enable) cycle.
+   *
+   * @param {Array} data The new source data.
+   */
+  async replaceData(data: unknown[][]): Promise<void> {
+    await this.page.evaluate((newData) => {
+      window.hot.updateSettings({ data: newData, filters: true });
+    }, data);
+  }
+
+  /**
+   * Write a value into a cell through the API, which fires `afterChange`.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @param {string} value The new value.
+   */
+  async setCellValue(row: number, col: number, value: string): Promise<void> {
+    await this.page.evaluate(({ row: r, col: c, value: v }) => {
+      window.hot.setDataAtCell(r, c, v);
+    }, { row, col, value });
+  }
+
+  /** The number of rows the grid currently shows (source rows minus the filtered-out ones). */
+  async visibleRowCount(): Promise<number> {
+    return this.page.evaluate(() => window.hot.countRows());
   }
 }
