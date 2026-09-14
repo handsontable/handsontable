@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved rendering performance when rows shrink after a column resize: the viewport refill now renders only the newly added rows instead of re-rendering every visible row on each refill pass.",
+  "type": "changed",
+  "issueOrPR": 13481,
+  "breaking": false,
+  "framework": "none"
+}
