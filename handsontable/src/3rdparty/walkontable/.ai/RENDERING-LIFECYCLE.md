@@ -304,7 +304,8 @@ All line numbers are in `table.ts` unless noted. "Master only" = guarded by `thi
   window (`TableRenderer#setPaintWindow`) that starts after the previous band, and the record reset
   and the measure take the same window, so the cell renderer runs once per cell of the final band
   over the whole draw. The window is dropped for a full repaint when the start row moved, when the
-  column band moved or resized, when the host's `renderEpoch` advanced, or when the band renders a
+  column band moved or resized, when the host's `renderEpoch` advanced since the draw started (the
+  snapshot predates pass 1, so a render hook's change in any pass counts), or when the band renders a
   merged cell (MergeCells writes neighbor heights from pre-measure row heights in its after-renderer;
   its `rowspan` itself never needs growing). Row headers and cells skip the same rows — they share one
   order-view size set per TR. Under the host's `renderMode: 'onChange'` a skipped row keeps the

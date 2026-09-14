@@ -159,9 +159,10 @@ describe('resolveRefillPaintWindow', () => {
     expect(resolveRefillPaintWindow(table, 10, previousBand)).toBe(0);
   });
 
-  it('should repaint everything when the host advanced the render epoch during the pass', () => {
+  it('should repaint everything when the host advanced the render epoch since the draw started', () => {
     // A structural change from inside a render hook (a column reorder or hide) can keep the column
-    // start and count while changing what every TD holds.
+    // start and count while changing what every TD holds. `previousBand.renderEpoch` is the
+    // draw-start snapshot, so a change made by the previous pass' own hooks is caught too.
     const table = createTableStub({ ...agreeing, renderEpoch: 8 });
 
     expect(resolveRefillPaintWindow(table, 10, previousBand)).toBe(0);

@@ -48,6 +48,13 @@ interface DrawContext {
    * read again when the frozen records are cleared and measured, so the two can never disagree.
    */
   syncFrozenRows: boolean;
+  /**
+   * The host's `renderEpoch` setting when this draw started — before pass 1 rendered anything. The
+   * row-band refill compares the live value against it before taking a paint window, so a
+   * structural change made from inside ANY render hook of this draw (pass 1's included) drops the
+   * window. Snapshotting it later, per pass, would put such a change on both sides of the compare.
+   */
+  renderEpochAtDrawStart: number;
   rowHeaders: Function[];
   columnHeaders: Function[];
   rowHeadersCount: number;
@@ -76,6 +83,7 @@ export function runDrawCycle(table: Table, fastDraw: boolean): void {
     runFastDraw: fastDraw,
     performRedraw: true,
     syncFrozenRows: false,
+    renderEpochAtDrawStart: wtSettings.getSetting<number>('renderEpoch'),
     rowHeaders,
     columnHeaders,
     rowHeadersCount: rowHeaders.length,
@@ -687,13 +695,15 @@ function refillRenderedRowsBandIfShrunk(
     }
 
     // What the previous pass rendered, captured before the recompute: the paint window below is
-    // only valid while none of it moves. `previousRowsCount` is the rendered row count itself, not
-    // a difference of calculator bounds; the epoch is the host's structural-change counter.
+    // only valid while none of it moves. `rowsCount` is the rendered row count itself, not a
+    // difference of calculator bounds. The epoch is NOT read here — a render hook of the previous
+    // pass may already have advanced it, which would put the change on both sides of the compare;
+    // the draw-start snapshot in `ctx` predates every pass of this draw.
     const previousBand = {
       rowsCount: table.getRenderedRowsCount(),
       startColumn: table.getFirstRenderedColumn(),
       columnsCount: table.getRenderedColumnsCount(),
-      renderEpoch: wtSettings.getSetting<number>('renderEpoch'),
+      renderEpoch: ctx.renderEpochAtDrawStart,
     };
 
     // Full recompute (no stationary bands: this is a content change, not a scroll step) so the
@@ -733,7 +743,9 @@ interface PreviousRenderedBand {
    */
   columnsCount: number;
   /**
-   * The host's `renderEpoch` setting when the previous pass rendered.
+   * The host's `renderEpoch` setting when this DRAW started (`DrawContext#renderEpochAtDrawStart`),
+   * before pass 1 rendered — not when the previous pass did, or a structural change from one of
+   * that pass' render hooks would already be on both sides of the compare.
    */
   renderEpoch: number;
 }
@@ -763,8 +775,9 @@ function rendersMergedCells(TBODY: HTMLTableSectionElement): boolean {
  * repaint: the band's START row moved (every TR now holds a different source row); the column band
  * moved or resized (`createCalculators(false)` recomputes both axes, and pass 1's columns overscan
  * is not re-applied — every TD would hold a different source column); the host's `renderEpoch`
- * advanced (a structural change from inside a render hook that kept the column count and start,
- * e.g. a reorder or a hide); or the band renders a merged cell (see {@link rendersMergedCells}).
+ * advanced since the DRAW started (a structural change from inside any render hook of this draw,
+ * pass 1's included, that kept the column count and start — e.g. a reorder or a hide); or the band
+ * renders a merged cell (see {@link rendersMergedCells}).
  *
  * `previousStartRow` is the render calculator's start row (the first rendered row of the band, in
  * Walkontable's gapless row space), not a Handsontable source or visual index.
