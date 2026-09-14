@@ -109,6 +109,13 @@
       height: window.htHeight,
       renderer: testIdRenderer,
       autoColumnSize: false,
+      // Rows must keep their height when the columns change width, so the spec isolates the
+      // column-width cache. With wrapping on, the narrower `task`/`assignee` columns at 900px wrap
+      // two cells, rows 0-1 grow 29→49px, and the auto-height root lags one draw behind the taller
+      // content: that draw publishes `htHasScrollY` from a snapshot recomputed after the render and
+      // the root's own growth triggers the draw that clears it. A one-frame transient the spec could
+      // read in between — a separate, pre-existing auto-height concern, not this defect.
+      wordWrap: false,
       licenseKey: 'non-commercial-and-evaluation',
     });
 
