@@ -20,20 +20,23 @@
         }
       }
 
-      // Keep the indicator inside the cell. `hiddenColumns` already reserves 15px of column
-      // width for it (`#onModifyColWidth`), and a negative offset here overflows the scroll
-      // container: on the last stretched column it adds ~1px of scrollWidth, which paints a
-      // scrollbar that has nothing to scroll and shortens the master pane. See #13500.
+      // The arrow sits FLUSH with the cell's outer edge, which is where the design system puts
+      // it: in Handsontable Design System / `header_cell`, `icon_hidden_right` spans x 110-120
+      // of a 120px cell and `icon_hidden_left` spans -1 to 9.
+      // These offsets are measured from the PADDING box and the cell has a 1px border, so -1px
+      // is that flush position. The old -2px put the arrow 1px BEYOND the cell, and on a
+      // stretched grid the table's edge is flush with the scroll box — so that 1px became
+      // scrollWidth the browser painted a scrollbar for, with nothing to scroll. See #13500.
       &.beforeHiddenColumn::after {
         @include mixins.pseudo;
 
-        right: 0;
+        right: -1px;
       }
 
       &.afterHiddenColumn::before {
         @include mixins.pseudo;
 
-        left: 0;
+        left: -1px;
       }
 
       &.ht__active_highlight {
@@ -52,12 +55,12 @@
     th {
       &.beforeHiddenColumn::after {
         right: initial;
-        left: 0;
+        left: -1px;
         transform: translateY(-50%) rotate(180deg);
       }
 
       &.afterHiddenColumn::before {
-        right: 0;
+        right: -1px;
         left: initial;
         transform: translateY(-50%) rotate(180deg);
       }

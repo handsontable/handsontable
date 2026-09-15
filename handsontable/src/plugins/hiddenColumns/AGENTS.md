@@ -87,15 +87,33 @@ relationship, so an off-by-one here is a real bug, not a style choice.
 That puts it after the default listeners — including AutoColumnSize's, which is pinned to the front. A
 hidden column's width must be zeroed *after* anything that computes a width, or the computed value wins.
 
-## The indicator must be drawn INSIDE its cell
+## The indicator sits FLUSH with the cell edge — `-1px`, not `-2px` and not `0`
+
+The offsets in `../../styles/components/plugins/_hidden-columns.scss` are measured from the header's
+**padding** box, and the header carries a 1px border. So:
+
+| value | arrow's outer edge | matches design? | overflows the scroll box? |
+|---|---|---|---|
+| `-2px` (≤ 18.1.0) | 1px **past** the cell | no | **yes — this is #13500** |
+| **`-1px`** | **exactly on the cell edge** | **yes** | no |
+| `0` | 1px **inside** the cell | no — visibly further from the divider | no |
+
+**The design system is the authority here, and it says flush.** In Handsontable Design System →
+`header_cell` (120px wide), `icon_hidden_right` spans x 110–120 and `icon_hidden_left` spans −1 to 9 —
+each arrow's outer edge lands on the cell's own edge, so a `before`/`after` pair brackets the divider
+between two columns and almost touches. `-2px` pulled them 1px too far apart *through* the divider;
+`0` pushes them 1px too far in. Do not "simplify" this to `0`.
+
+The arrow is **10px**, and that is also from the design system: the sticker sheet's icons are 16×16
+except four at 10×10, which are exactly the four hidden indicators. The `10px !important` in the SCSS
+is therefore correct, even though it hardcodes what `--ht-icon-size` would otherwise give (16px on
+main/horizon, 12px on classic). Leave it alone unless design adds a `hidden-indicator-size` token —
+today the design system defines only `hidden-indicator-color`.
 
 `#onModifyColWidth` adds **15px** to a visible column next to a hidden one — but only when
 `indicators` is on, the width is already a number, and `hasColHeaders()` is true. Read the code for the
-guards; do not assume the 15px is always there. When it is, the arrow is 10px wide, so the space is
-reserved and the pseudo-element never needs a negative offset. It used to have one anyway
-(`right: -2px` / `left: -2px` in `../../styles/components/plugins/_hidden-columns.scss`), and that is
-#13500: the offset is measured from the header's **padding** box, the header has a 1px border, so the
-arrow reached 1px past the table's right edge.
+guards; do not assume the 15px is always there. That reservation and the 10px arrow hold each other up:
+moving the arrow to `--ht-icon-size` (16px) would not fit in 15px.
 
 One pixel is enough when the table is **flush with the scroll box**, which is exactly what `stretchH`
 produces. The browser reports `scrollWidth = clientWidth + 1`, paints a horizontal scrollbar with

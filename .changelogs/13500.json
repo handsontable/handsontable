@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "public",
-  "title": "Fixed a bug where the `hiddenColumns` and `hiddenRows` indicators were drawn just outside the cell they belong to, which made the grid report content it could not fit. A grid using `stretchH` with frozen columns showed a horizontal scrollbar that had nothing to scroll, and its rows drifted apart across the frozen boundary once scrolled to the bottom; a grid using `height: 'auto'` grew a vertical scrollbar it should never have. Both indicators are now drawn inside their cell.",
+  "title": "Fixed a bug where the `hiddenColumns` and `hiddenRows` indicators were drawn one pixel beyond the cell they belong to, which made the grid report content it could not fit. A grid using `stretchH` with frozen columns showed a horizontal scrollbar that had nothing to scroll, and its rows drifted apart across the frozen boundary once scrolled to the bottom; a grid using `height: 'auto'` grew a vertical scrollbar it should never have. Both indicators now sit flush with the cell edge, matching the design system.",
   "type": "fixed",
   "issueOrPR": 13500,
   "breaking": false,

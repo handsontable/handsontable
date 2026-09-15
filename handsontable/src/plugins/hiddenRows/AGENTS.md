@@ -32,12 +32,14 @@ Two real differences worth knowing:
 The marker class is applied for `this.isHidden(row - 1)` — the class describes the **neighbor**
 relationship, so an off-by-one there is a real bug.
 
-## The indicator must be drawn INSIDE its cell
+## The indicator sits FLUSH with the header edge — `-1px`, not `-2px` and not `0`
 
 `../../styles/components/plugins/_hidden-rows.scss` used to draw the arrow at `bottom: -2px` on
 `beforeHiddenRow::after` and `top: -2px` on `afterHiddenRow::before`. Those offsets are measured from
 the row header's **padding** box, and the header has a 1px border, so the arrow reached 1px past the
-table's bottom edge.
+table's bottom edge. `-1px` lands it exactly on that edge, which is the design-system position and the
+value `../hiddenColumns/` uses on the horizontal axis — read its `AGENTS.md` for the measurements.
+`0` would pull it 1px inside and visibly widen the gap to the divider, so do not "simplify" to that.
 
 On a `height: 'auto'` grid that 1px is enough. Such a grid must never scroll itself — it grows to its
 rows and the page scrolls instead — so its box is flush with its content **by construction**, and the
