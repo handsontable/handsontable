@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-15T09:18:22.286Z",
+  "generatedAt": "2026-09-15T09:40:45.339Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 11,
     "needsTicket": 3,
     "quarantined": 0,
-    "entries": 40
+    "entries": 41
   },
   "rows": [
     {
@@ -20,9 +20,9 @@
       "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
       "line": 65,
       "title": "grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
-      "count7": 3,
-      "count30": 3,
-      "countAll": 3,
+      "count7": 4,
+      "count30": 4,
+      "countAll": 4,
       "runs30": 2,
       "flakyRuns30": 2,
       "branches30": 2,
@@ -37,8 +37,8 @@
       "isolation": [],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-09-15T09:17:38Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34950093138",
+        "seenAt": "2026-09-15T09:39:56Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34950093138/attempts/2",
         "branch": "feature/DEV-2921_Hidden-Column-Indicator-Overhang",
         "leg": "e2e-classic",
         "status": "flaky",
