@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-15T11:29:42.249Z",
+  "generatedAt": "2026-09-15T11:40:11.019Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -9,9 +9,9 @@
   "retentionDays": 90,
   "totals": {
     "tests": 12,
-    "needsTicket": 3,
+    "needsTicket": 4,
     "quarantined": 0,
-    "entries": 45
+    "entries": 46
   },
   "rows": [
     {
@@ -79,6 +79,38 @@
         "leg": "UMD.min (theme: horizon)",
         "status": "failed",
         "error": "Expected '' to equal 'cyan'.",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "playwright|e2e/unlaid-out-init-scroll-sync.spec.ts|grid built into a container that has no layout yet › fills its container without any interaction once the unslotted container is laid out",
+      "tier": "playwright",
+      "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
+      "line": 65,
+      "title": "grid built into a container that has no layout yet › fills its container without any interaction once the unslotted container is laid out",
+      "count7": 2,
+      "count30": 2,
+      "countAll": 2,
+      "runs30": 2,
+      "flakyRuns30": 2,
+      "branches30": 2,
+      "legs": [
+        "e2e-classic-min",
+        "e2e-horizon"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-15T11:39:19Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34962745856",
+        "branch": "develop",
+        "leg": "e2e-horizon",
+        "status": "flaky",
+        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
       },
       "needsTicket": true
@@ -313,37 +345,6 @@
         "leg": "e2e-main",
         "status": "flaky",
         "error": "Error: expect(received).toBe(expected) // Object.is equality",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "playwright|e2e/unlaid-out-init-scroll-sync.spec.ts|grid built into a container that has no layout yet › fills its container without any interaction once the unslotted container is laid out",
-      "tier": "playwright",
-      "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
-      "line": 65,
-      "title": "grid built into a container that has no layout yet › fills its container without any interaction once the unslotted container is laid out",
-      "count7": 1,
-      "count30": 1,
-      "countAll": 1,
-      "runs30": 1,
-      "flakyRuns30": 1,
-      "branches30": 1,
-      "legs": [
-        "e2e-classic-min"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-09-15T10:03:25Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34954201316",
-        "branch": "feature/DEV-2917_EmptyDataState-keyboard-shortcuts",
-        "leg": "e2e-classic-min",
-        "status": "flaky",
-        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
       },
       "needsTicket": false
