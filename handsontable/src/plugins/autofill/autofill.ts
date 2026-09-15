@@ -3,7 +3,6 @@ import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/r
 import type { CellProperties } from '../../settings';
 import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
-import { offset, outerHeight, outerWidth } from '../../helpers/dom/element';
 import { isObject, isObjectEqual } from '../../helpers/object';
 import { arrayEach, arrayMap } from '../../helpers/array';
 import { isEmpty } from '../../helpers/mixed';
@@ -785,11 +784,9 @@ export class Autofill extends BasePlugin {
    * @returns {boolean}
    */
   getIfMouseWasDraggedOutside(event: Pick<MouseEvent, 'clientX' | 'clientY'>) {
-    const { documentElement } = this.hot.rootDocument;
-    const tableBottom = offset(this.hot.table).top - (this.hot.rootWindow.pageYOffset ||
-      documentElement.scrollTop) + outerHeight(this.hot.table);
-    const tableRight = offset(this.hot.table).left - (this.hot.rootWindow.pageXOffset ||
-      documentElement.scrollLeft) + outerWidth(this.hot.table);
+    // Viewport coordinates straight from the box: unlike the offset chain, it follows the transform
+    // that places the spreader (`walkontable/src/overlay/spreaderOffset.ts`).
+    const { bottom: tableBottom, right: tableRight } = this.hot.table.getBoundingClientRect();
 
     return event.clientY > tableBottom && event.clientX <= tableRight;
   }

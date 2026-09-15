@@ -22,7 +22,15 @@ When you push changes to a GitHub pull request:
    workflow runs the visual tests, then compares the resulting screenshots against the golden records.
 4. The golden records come from the branch your pull request targets — usually `develop`. Every build of a
    base branch rewrites that branch's golden records, so a pull request into `develop`, `master`, or a
-   release branch is compared against the right baseline with no extra configuration.
+   release branch is compared against the right baseline with no extra configuration. On `develop` the
+   seed is its own workflow, `Visual seed` (`.github/workflows/visual-seed.yml`), which runs on every push
+   under a concurrency group that never cancels, so the last push of any burst is always seeded, usually
+   within about 15 minutes; `master` and the release branches seed through their own pipelines as before.
+
+   That window is the one thing to know before you read a diff: a pull request opened in the middle of a
+   burst, or in the quarter of an hour after the last push, is compared against a baseline that does not
+   yet contain every merged commit. If a difference looks like someone else's change, check whether the
+   latest `Visual seed` run has finished before assuming it is yours.
 
    **Exception — LTS branches.** No workflow currently runs the visual tests on a push to `lts/*`, so an
    LTS baseline is created by the first pull request into that branch and is never replaced. Later LTS
@@ -215,7 +223,7 @@ add this line anywhere in your test:
 await page.screenshot({ path: helpers.screenshotPath() });
 ```
 
-In each test, you can take as many screenshots as you want. For example:
+Capture one screenshot per distinct visual state, and assert that state first (`await expect(locator).toBeFocused()`, `.toBeVisible()`, …) — a capture straight after an action photographs whichever half of the transition the runner reached. The determinism rules are in `AGENTS.md`. For example:
 
 ```js
 await cell.click();

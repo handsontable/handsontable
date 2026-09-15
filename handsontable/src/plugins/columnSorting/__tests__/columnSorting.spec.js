@@ -3470,10 +3470,12 @@ describe('ColumnSorting', () => {
 
       await waitForNextAnimationFrames(2);
 
+      // The spreader is placed with a transform, not the `top` inset (DEV-54); the vertical
+      // translation is the offset of the first rendered row.
       const wtSpreader = spec().$container.find('.ht_master .wtSpreader');
-      const cssTop = parseInt(wtSpreader.css('top'), 10);
+      const translateY = new DOMMatrixReadOnly(wtSpreader.css('transform')).m42;
 
-      expect(cssTop).toBeGreaterThan(0);
+      expect(translateY).toBeGreaterThan(0);
     });
   });
 

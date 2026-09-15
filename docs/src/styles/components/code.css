@@ -4,7 +4,10 @@
 
 /* Plain fenced code blocks sit in the page with the same breathing room as the embedded
    interactive examples (.hot-example, margin: 2rem 0). Starlight's markdown flow only adds
-   its default --sl-content-gap-y between siblings, which reads cramped next to prose. */
+   its default --sl-content-gap-y between siblings, which reads cramped next to prose.
+   Unlayered on purpose, so it wins over Starlight's layered flow rule. That also puts code
+   blocks outside the cascade-layer backstop - see AGENTS.md 2.15. tests/markdownProseSpacing.spec.ts
+   pins this 2rem; update it when this value changes. */
 .sl-markdown-content .expressive-code {
   margin-block: 2rem;
 }
