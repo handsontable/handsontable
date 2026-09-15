@@ -176,11 +176,11 @@ export function normalizeSortInFetchParams(params: { sort: unknown }, hot: HotIn
 }
 
 /**
- * Converts DataProvider query `sort` payload (`prop` and `order`) to a value accepted by [[ColumnSorting#setSortConfig]].
- * Inverse of [[applyColumnSortingToQueryParameters]] for restoring header state after a successful fetch.
+ * Converts DataProvider query `sort` payload (`prop` and `order`) to a value accepted by {@link ColumnSorting#setSortConfig}.
+ * Inverse of `applyColumnSortingToQueryParameters()` for restoring header state after a successful fetch.
  *
  * @param {Core} hot Handsontable instance.
- * @param {{ prop: string, order: 'asc'|'desc' }|null|undefined} sortingPayload Sort from [[DataProviderQueryParameters]], or null when unsorted.
+ * @param {{ prop: string, order: 'asc'|'desc' }|null|undefined} sortingPayload Sort from `DataProviderQueryParameters`, or null when unsorted.
  * @returns {{ column: number, sortOrder: 'asc'|'desc' }|Array} Empty array when there is no valid sort; otherwise a single-column config object.
  */
 export function sortingPayloadToSort(

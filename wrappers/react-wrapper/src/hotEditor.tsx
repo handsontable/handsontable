@@ -7,7 +7,6 @@ import React, {
   RefObject,
   createContext,
   useContext,
-  useDeferredValue,
   useImperativeHandle,
   useMemo,
   useState,
@@ -227,7 +226,7 @@ function applyEditorPosition(
 }
 
 /**
- * Hook that allows encapsulating custom behaviours of component-based editor by customizing passed ref with overridden hooks object.
+ * Hook that allows encapsulating custom behaviors of component-based editor by customizing passed ref with overridden hooks object.
  *
  * @param {HotEditorHooks} overriddenHooks Overrides specific for the custom editor.
  * @param {DependencyList} deps Overridden hooks object React dependency list.
@@ -241,9 +240,6 @@ export function useHotEditor<T>(
     useContext(EditorContext)!;
   const [rerenderTrigger, setRerenderTrigger] = useState(0);
   const [editorValue, setEditorValue] = useState<T>();
-
-  // return a deferred value that allows for optimizing performance by delaying the update of a value until the next render.
-  const deferredValue = useDeferredValue(editorValue);
 
   useImperativeHandle(
     hooksRef,
@@ -261,7 +257,7 @@ export function useHotEditor<T>(
   return useMemo(
     () => ({
       get value(): T | undefined {
-        return deferredValue;
+        return editorValue;
       },
       setValue(newValue) {
         setEditorValue(newValue);
@@ -282,7 +278,7 @@ export function useHotEditor<T>(
         return col ?? undefined;
       },
     }),
-    [rerenderTrigger, hotCustomEditorInstanceRef, deferredValue]
+    [rerenderTrigger, hotCustomEditorInstanceRef, editorValue]
   );
 }
 

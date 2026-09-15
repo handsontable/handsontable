@@ -31,9 +31,9 @@ Revert and restore your changes, using the undo and redo features.
 
 The [`UndoRedo`](@/api/undoRedo.md) plugin records supported grid operations and stores them in undo and redo stacks.
 
-You can use keyboard shortcuts or call API methods to move backward and forward through that history.
+You can use keyboard shortcuts, the context menu, or API methods to move backward and forward through that history.
 
-The plugin is enabled by default.
+The plugin is enabled by default. When the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md) is enabled, its default items include **Undo** and **Redo**.
 
 ## Basic demo
 
@@ -97,7 +97,8 @@ The built-in tracked actions include:
 - Row and column insertion/removal (`afterCreateRow`, `afterCreateCol`, `beforeRemoveRow`, `beforeRemoveCol`)
 - Column sorting (`beforeColumnSort`)
 - Filtering (`beforeFilter`)
-- Row and column moving (`beforeRowMove`, `beforeColumnMove`)
+- Row and column moving (`afterRowMove`, `afterColumnMove`)
+- Cell moving and copying (`beforeMoveCells`, `afterMoveCells`), when the [`moveCells`](@/api/options.md#movecells) option is enabled
 - Merge and unmerge (`beforeMergeCells`, `afterUnmergeCells`)
 - Alignment changes (`beforeCellAlignment`)
 
@@ -111,6 +112,12 @@ For data edits, UndoRedo records only effective changes:
 
 When you undo a data-change action, Handsontable can also remove rows or columns that were created as a side effect of that edit, and then restore the previous selection.
 
+An undo puts each value back on the row you edited, even when that row moved or is no longer visible. If a [filter](@/guides/columns/column-filter/column-filter.md) or [row trimming](@/guides/rows/row-trimming/row-trimming.md) hides the row after your edit, Handsontable writes the value straight to the source data. Three things follow from that:
+
+- The [`beforeChange`](@/api/hooks.md#beforechange), [`afterChange`](@/api/hooks.md#afterchange), and [`modifyData`](@/api/hooks.md#modifydata) hooks do not run for those values. [`afterSetSourceDataAtCell`](@/api/hooks.md#aftersetsourcedataatcell) and [`modifySourceData`](@/api/hooks.md#modifysourcedata) run instead, so a listener that vetoes, rewrites, or normalizes edited values has to cover the source hooks as well.
+- The write does not re-run the filter, so the row stays hidden until you filter again.
+- Handsontable identifies the row by its position in the source data, not by a stable ID. If you remove rows without going through the undo stack, an undo recorded before that removal can land on a neighboring row.
+
 ## Hooks and stack lifecycle
 
 UndoRedo exposes hooks for both stack updates and action execution:
@@ -120,7 +127,7 @@ UndoRedo exposes hooks for both stack updates and action execution:
 
 You can return `false` from `beforeUndoStackChange`, `beforeUndo`, or `beforeRedo` to block recording or execution.
 
-Calling `loadData()` clears both stacks.
+Calling [`loadData()`](@/api/core.md#loaddata) clears both stacks. Calling [`updateData()`](@/api/core.md#updatedata) does not, so an undo that runs after it can restore values from the previous dataset. Call [`clear()`](@/api/undoRedo.md#clear) yourself if you don't want that. Disabling the plugin or destroying the grid also clears both stacks.
 
 ## Programmatic control
 
@@ -182,6 +189,8 @@ The following operations are not tracked by default:
 - [Hiding columns](@/guides/columns/column-hiding/column-hiding.md) and [hiding rows](@/guides/rows/row-hiding/row-hiding.md)
 - [Trimming rows](@/guides/rows/row-trimming/row-trimming.md)
 - Generic cell metadata changes that don't register an UndoRedo action (for example, most direct `setCellMeta()` updates)
+- Merges applied from the [`mergeCells`](@/api/options.md#mergecells) setting. UndoRedo tracks the merges and unmerges that run through the context menu, the merge keyboard shortcut, and the plugin's [`merge()`](@/api/mergeCells.md#merge) and [`unmerge()`](@/api/mergeCells.md#unmerge) methods.
+- Rows and columns that Handsontable adds on its own to satisfy [`minRows`](@/api/options.md#minrows), [`minCols`](@/api/options.md#mincols), [`minSpareRows`](@/api/options.md#minsparerows), or [`minSpareCols`](@/api/options.md#minsparecols). These carry the `auto` source, which UndoRedo skips. It also skips the `UndoRedo.undo` and `UndoRedo.redo` sources, so its own operations never re-enter the stack.
 
 ## Related keyboard shortcuts
 

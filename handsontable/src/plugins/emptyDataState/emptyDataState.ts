@@ -2,8 +2,9 @@ import { BasePlugin } from '../base';
 import { EmptyDataStateUI } from './ui';
 import { isObject } from '../../helpers/object';
 import { isButtonType } from '../../helpers/uiButton';
+import { isRootInstance } from '../../utils/rootInstance';
 import * as C from '../../i18n/constants';
-import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
+import type { SelectionState } from '../../selection/types';
 
 /**
  * Local type-guard narrowing `unknown` to `Record<string, unknown>`.
@@ -25,15 +26,6 @@ type MessageSetting =
   | ((source: string) => string | Record<string, unknown>)
   | undefined;
 
-interface SelectionState {
-  ranges: CellRange[];
-  activeRange: CellRange | undefined;
-  activeSelectionLayer: number;
-  selectedByRowHeader: number[];
-  selectedByColumnHeader: number[];
-  disableHeadersHighlight: boolean;
-}
-
 export const PLUGIN_KEY = 'emptyDataState';
 export const PLUGIN_PRIORITY = 370;
 const SOURCE = Object.freeze({
@@ -53,8 +45,8 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  *
  * In order to enable the empty data state mechanism, {@link Options#emptyDataState} option must be set to `true`.
  *
- * When [[Options#dataProvider]] is enabled, the loading overlay is toggled from DataProvider fetch hooks
- * ([[Hooks#beforeDataProviderFetch]], [[Hooks#afterDataProviderFetch]], [[Hooks#afterDataProviderFetchError]]).
+ * When {@link Options#dataProvider} is enabled, the loading overlay is toggled from DataProvider fetch hooks
+ * ({@link Hooks#beforeDataProviderFetch}, {@link Hooks#afterDataProviderFetch}, {@link Hooks#afterDataProviderFetchError}).
  *
  * The plugin provides several configuration options to customize the empty data state behavior and appearance:
  * - `message`: Message to display in the empty data state overlay.
@@ -299,10 +291,15 @@ export class EmptyDataState extends BasePlugin {
   /**
    * Check if the plugin is enabled in the handsontable settings.
    *
+   * The empty data state renders into the root grid element and registers a focus scope, and both
+   * belong to the main Handsontable instance. In a nested grid (the one the `handsontable`,
+   * `autocomplete`, and `dropdown` cell types create) neither exists, so the plugin stays disabled
+   * there.
+   *
    * @returns {boolean}
    */
   isEnabled(): boolean {
-    return !!this.hot.getSettings()[PLUGIN_KEY];
+    return isRootInstance(this.hot) && !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -443,8 +440,15 @@ export class EmptyDataState extends BasePlugin {
 
   /**
    * Unregisters the focus scope for the emptyDataState plugin.
+   *
+   * Nothing was registered on a non-root instance, where the plugin never enables and the
+   * `FocusScopeManager` does not exist, so a direct `disablePlugin()` call there must not reach it.
    */
   #unregisterFocusScope() {
+    if (!isRootInstance(this.hot)) {
+      return;
+    }
+
     this.hot.getFocusScopeManager().unregisterScope(PLUGIN_KEY);
   }
 

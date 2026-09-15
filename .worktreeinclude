@@ -1,0 +1,33 @@
+# Gitignored files copied into each worktree Claude Code creates.
+#
+# Uses .gitignore syntax. Only files that match a pattern AND are gitignored are
+# copied, so nothing tracked is ever duplicated. Applies to worktrees created by
+# `--worktree`, by subagent isolation, and by the desktop app; a WorktreeCreate
+# hook replaces the mechanism entirely and must copy these itself.
+#
+# This covers only the file half of setting up a worktree. It cannot install
+# dependencies, and it cannot reach the Claude project memory, which lives
+# outside the repository — run `node scripts/claude/setup-worktree.mjs` for
+# those. See .ai/WORKTREES.md.
+
+# Docs site secrets. Absent from a fresh worktree, so docs work and the docs
+# test suite fail there with no explanation.
+docs/.env
+docs/tests/.env
+
+# Deliberately NOT copied — listing these here would cause real bugs:
+#
+#   node_modules            A copy is not an install. Per-package `.bin` shims
+#                           would still be missing and package scripts still die
+#                           with exit 127.
+#   handsontable/dist       Build outputs. A stale copy is exactly the
+#   handsontable/tmp        "silently testing the wrong build" failure this
+#   handsontable/styles     repository already has to guard against elsewhere.
+#   .code-review-graph/     Branch-stamped. A copy answers cross-file queries
+#                           with another branch's structure, which is worse than
+#                           having no graph at all.
+#   .claude/settings.local.json
+#                           Not needed. Since Claude Code v2.1.211 a permission
+#                           approval made in a worktree is saved to the MAIN
+#                           checkout's file and applies in every worktree of the
+#                           repository, so a copy here would only go stale.

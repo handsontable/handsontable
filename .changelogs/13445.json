@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the context menu and column menu submenus closing while the pointer was still moving towards them, and stopped a brief hover from opening a submenu after the pointer had already left the menu.",
+  "type": "fixed",
+  "issueOrPR": 13445,
+  "breaking": false,
+  "framework": "none"
+}

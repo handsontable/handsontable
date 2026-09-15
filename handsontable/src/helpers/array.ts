@@ -26,27 +26,50 @@ export function extendArray(arr: unknown[], extension: unknown[]): void {
 }
 
 /**
+ * Transposes a two-dimensional array, turning its rows into columns.
+ *
+ * The rows may differ in length. The widest row decides how many columns come out, and a shorter
+ * row yields the empty-cell value (`null`) for the positions it does not reach.
+ *
+ * The output holds `null` wherever the input held `undefined`, including in a full-width row, so
+ * that every returned row is dense.
+ *
  * @param {Array} arr An array to pivot.
  * @returns {Array}
  */
-export function pivot(arr: unknown[][]): unknown[] {
+export function pivot(arr: unknown[][]): unknown[][] {
   const pivotedArr: unknown[][] = [];
 
-  if (!arr || arr.length === 0 || !arr[0] || arr[0].length === 0) {
+  if (!arr || arr.length === 0) {
     return pivotedArr;
   }
 
   const rowCount = arr.length;
-  const colCount = arr[0].length;
+  let colCount = 0;
 
+  // The widest row decides the width. Taking it from the first row alone silently drops every
+  // cell past that width, which is data loss for a ragged input.
   for (let i = 0; i < rowCount; i++) {
-    for (let j = 0; j < colCount; j++) {
-      if (!pivotedArr[j]) {
-        pivotedArr[j] = [];
-      }
+    const row = arr[i];
 
-      pivotedArr[j][i] = arr[i][j];
+    if (row && row.length > colCount) {
+      colCount = row.length;
     }
+  }
+
+  for (let j = 0; j < colCount; j++) {
+    const pivotedRow: unknown[] = new Array(rowCount);
+
+    for (let i = 0; i < rowCount; i++) {
+      const row = arr[i];
+      const value = row ? row[j] : undefined;
+
+      // A row shorter than the widest one has no value here. Keep the output dense with the
+      // empty-cell value rather than leaving a hole for the caller to trip over.
+      pivotedRow[i] = value === undefined ? null : value;
+    }
+
+    pivotedArr[j] = pivotedRow;
   }
 
   return pivotedArr;

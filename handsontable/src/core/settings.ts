@@ -8,12 +8,14 @@ import type {
   CellRange as WalkontableCellRange,
 } from '../3rdparty/walkontable/src';
 import type {
-  CellChange, ChangeSource, RowObject, CellValue, CellProperties, ColumnSettings, RemoveIndexSignature,
+  CellChange, ChangeSource, RowObject, CellValue, CellProperties, ColumnSettings,
+  ColumnDataGetterSetterFunction, RemoveIndexSignature,
 } from '../settings';
 import type { ColumnConditions } from '../plugins/filters';
 import type { LayoutConfig } from './layout';
 import type { PredefinedMenuItemKey, MenuItemConfig, ContextMenu } from '../plugins/contextMenu';
 import type { DropdownMenu } from '../plugins/dropdownMenu';
+import type { SheetsBarSettings, SheetsBarViewState } from '../plugins/sheetsBar';
 import type { ColumnSortingConfig } from '../plugins/columnSorting';
 import type { NestedHeader } from '../plugins/nestedHeaders';
 import type { UndoRedoAction } from '../plugins/undoRedo';
@@ -26,6 +28,7 @@ import type {
 } from '../plugins/dataProvider';
 import type { RangeType, HotInstance } from './types';
 import type { ThemeColorScheme, DensityType } from '../themes/types';
+import type { IndexesChangeSource } from '../translations/indexMapper';
 
 /**
  * The function shape of the `sourceDataValidator` option. Returns `true` when the value is valid.
@@ -79,6 +82,50 @@ export type SanitizerContext =
   | (string & {});
 
 /**
+ * A value a Trusted Types sink accepts in place of a plain string.
+ *
+ * Structural on purpose. `TrustedHTML` is not in the DOM lib of the TypeScript version this
+ * package compiles against, and declaring it as a global here would collide with
+ * `@types/trusted-types` in any project that installs it, or with a future DOM lib. Matching the
+ * shape instead means a real `TrustedHTML` satisfies it without anyone declaring anything.
+ *
+ * A `sanitizer` may return one: under `require-trusted-types-for 'script'` a sink rejects plain
+ * strings, so a page enforcing Trusted Types has to hand back the output of its own policy.
+ * Handsontable passes that value to the sink untouched - it is never concatenated, re-tested, or
+ * otherwise turned back into a string, any of which would strip the trust.
+ */
+export type TrustedHTMLLike = { toString(): string };
+
+/**
+ * The consumer surface passed as the second argument to the `textExtractor` option, so an extractor
+ * can apply different rules per surface.
+ *
+ * Where `SanitizerContext` names a surface that writes HTML *to the DOM*, this names one that turns
+ * grid content into *text* for somewhere the DOM cannot reach - a file, the clipboard, a printer.
+ *
+ * Annotate the parameter with it to get completion on the values you branch on:
+ *
+ * ```ts
+ * import type { TextExtractorContext } from 'handsontable';
+ *
+ * const settings = {
+ *   textExtractor: (content: string, source: TextExtractorContext) =>
+ *     source === 'ExportFile.rowHeader' ? content.trim() : strip(content),
+ * };
+ * ```
+ *
+ * The listed values are the surfaces that ship today. The `(string & {})` member is what lets a
+ * plugin - including a third-party one - pass a surface of its own without a change here, which is
+ * what keeps the option extensible. It carries the same trade as `SanitizerContext`: the type cannot
+ * reject a wrong value, so a misspelled comparison comes out as a branch that never runs.
+ */
+export type TextExtractorContext =
+  | 'ExportFile.columnHeader'
+  | 'ExportFile.rowHeader'
+  | 'CopyPaste.columnHeader'
+  | (string & {});
+
+/**
  * Grid settings interface representing all possible Handsontable configuration options.
  * Derived from the metaSchema factory in dataMap/metaManager/metaSchema.ts.
  */
@@ -105,8 +152,8 @@ export interface GridSettings {
   height?: number | string | (() => number | string);
   colWidths?: number | number[] | string | ((column: number) => number | string) | Array<number | string>;
   rowHeights?: number | number[] | string | ((row: number) => number | string) | Array<number | string>;
-  rowHeaderWidth?: number | number[];
-  columnHeaderHeight?: number | number[];
+  rowHeaderWidth?: number | number[] | string | Array<number | string>;
+  columnHeaderHeight?: number | number[] | string | Array<number | string>;
   minRowHeights?: number | string | number[] | ((index: number) => number);
   maxRows?: number;
   maxCols?: number;
@@ -149,6 +196,7 @@ export interface GridSettings {
   copyable?: boolean;
   copyPaste?: boolean | object;
   editor?: string | (new (...args: unknown[]) => unknown) | boolean;
+  emptyValue?: CellValue;
   enterBeginsEditing?: boolean;
   enterMoves?: { col: number; row: number } | ((event: KeyboardEvent) => { col: number; row: number });
   fillHandle?: boolean | string | { autoInsertRow?: boolean; direction?: string };
@@ -169,10 +217,15 @@ export interface GridSettings {
     prop: string | number, value: CellValue, cellProperties: CellProperties) => HTMLTableCellElement | void);
   valueFormatter?: (value: CellValue, cellProperties: CellProperties) => CellValue;
   valueGetter?: (value: CellValue, visualRow: number, visualCol: number, cellMeta: CellProperties) => CellValue;
-  valueSetter?: (value: CellValue, visualRow: number, visualCol: number, cellMeta: CellProperties) => CellValue;
+  // `source` is declared optional on purpose. Adding a required fifth parameter would raise the
+  // option's minimum call arity, so a consumer that reads the option back out and invokes it with
+  // four arguments would stop compiling - see `.ai/BREAKING-CHANGES.md`.
+  valueSetter?: (value: CellValue, visualRow: number, visualCol: number, cellMeta: CellProperties,
+    source?: ChangeSource) => CellValue;
   placeholder?: string | number;
   renderAllRows?: boolean;
   renderAllColumns?: boolean;
+  renderMode?: 'always' | 'onChange';
   viewportColumnRenderingOffset?: number | 'auto';
   viewportRowRenderingOffset?: number | 'auto';
   viewportColumnRenderingThreshold?: number | 'auto';
@@ -208,8 +261,16 @@ export interface GridSettings {
   sortByRelevance?: boolean;
 
   // Plugins
+  autoLink?: boolean | {
+    target?: '_blank' | '_self';
+    schemes?: Array<'http' | 'https' | 'mailto' | 'tel'>;
+    inline?: boolean;
+    strict?: boolean;
+    className?: string;
+  };
   autoColumnSize?: boolean | object;
   autoRowSize?: boolean | object;
+  autoRowHeaderSize?: boolean | object;
   bindRowsWithHeaders?: boolean | string;
   collapsibleColumns?: boolean | { row: number; col: number; collapsible?: boolean; [key: string]: unknown }[];
   columnSummary?: object[] | (() => object[]);
@@ -223,7 +284,12 @@ export interface GridSettings {
   dropdownMenu?: boolean | object | string[];
   emptyDataState?: boolean | object;
   filters?: boolean | object;
-  formulas?: boolean | { engine: unknown; sheetName?: string; hyperlinks?: boolean; [key: string]: unknown };
+  formulas?: boolean | {
+    engine: unknown;
+    sheetName?: string;
+    hyperlinks?: boolean | { target?: '_blank' | '_self'; schemes?: Array<'http' | 'https' | 'mailto' | 'tel'> };
+    [key: string]: unknown;
+  };
   hiddenColumns?: boolean | object;
   hiddenRows?: boolean | object;
   loading?: boolean | object;
@@ -237,6 +303,7 @@ export interface GridSettings {
   nestedRows?: boolean;
   pagination?: boolean | object;
   search?: boolean | object;
+  sheetsBar?: boolean | SheetsBarSettings;
   trimRows?: boolean | number[];
 
   // Checkbox
@@ -262,6 +329,7 @@ export interface GridSettings {
   language?: string;
   numericFormat?: object;
   preserveNumericLiteral?: boolean;
+  preserveTextValue?: boolean;
   selectOptions?: string[] | number[] | object[] | Record<string, string>
     | ((visualRow: number, visualColumn: number, prop: string | number) => string[] | Record<string, string>);
   strict?: boolean;
@@ -289,8 +357,21 @@ export interface GridSettings {
   // which breaks any body that uses the parameter as a definite string. Both are build breaks on
   // upgrade, so the contract is published as the exported `SanitizerContext` type that a user opts
   // into on their own parameter - see its docs above.
+  //
+  // Returning a `TrustedHTML` is supported for pages enforcing Trusted Types; see `TrustedHTMLLike`.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  sanitizer?: (html: string, ...args: any[]) => string;
+  sanitizer?: (html: string, ...args: any[]) => string | TrustedHTMLLike;
+
+  // Content projection
+  // The second parameter is absorbed by `...args: any[]` for the same reason as `sanitizer` above:
+  // naming it here would raise the option's minimum call arity to two, breaking anyone who reuses
+  // the configured extractor as `hot.getSettings().textExtractor?.(value)`. The contract is
+  // published as the exported `TextExtractorContext` type instead.
+  // `boolean`, not `true`: `false` reads as off at runtime, the JSDoc documents it, and typing the
+  // option narrower would stop a caller passing a plain `boolean` - a feature flag, a value read
+  // from configuration - without a ternary that only exists to satisfy the type.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  textExtractor?: boolean | ((content: string, ...args: any[]) => string);
 
   // State
   initialState?: Record<string, unknown>;
@@ -315,6 +396,7 @@ export interface GridSettings {
   afterCustomBordersUpdate?: () => void;
   afterColumnSequenceCacheUpdate?: (indexesChangesState: {
     indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean; hiddenIndexesChanged: boolean;
+    indexesChangeSource?: IndexesChangeSource;
   }) => void;
   afterColumnSort?: (currentSortConfig: ColumnSortingConfig[], destinationSortConfigs: ColumnSortingConfig[]) => void;
   afterColumnUnfreeze?: (columnIndex: number, isFreezingPerformed: boolean) => void;
@@ -402,6 +484,11 @@ export interface GridSettings {
   afterPageSizeChange?: (oldPageSize: number | 'auto', newPageSize: number | 'auto') => void;
   afterPageSizeVisibilityChange?: (isVisible: boolean) => void;
   afterPaste?: (data: CellValue[][], coords: RangeType[]) => void;
+  /**
+   * Declaring this callback here has no effect: the hook runs during the `beforeInit` dispatch,
+   * before Handsontable reads the callbacks from the settings object. Register it globally with
+   * `Handsontable.hooks.add('afterPluginsInitialized', callback)` instead.
+   */
   afterPluginsInitialized?: () => void;
   afterRedo?: (action: UndoRedoAction) => void;
   afterRedoStackChange?: (undoneActionsBefore: UndoRedoAction[], undoneActionsAfter: UndoRedoAction[]) => void;
@@ -423,6 +510,7 @@ export interface GridSettings {
   afterRowSequenceChange?: (source: ChangeSource) => void;
   afterRowSequenceCacheUpdate?: (indexesChangesState: {
     indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean; hiddenIndexesChanged: boolean;
+    indexesChangeSource?: IndexesChangeSource;
   }) => void;
   afterRowsMutation?: (operation: string, payload: RowMutationPayload) => void;
   afterRowsMutationError?: (operation: string, error: Error, payload: RowMutationPayload) => void;
@@ -450,6 +538,13 @@ export interface GridSettings {
   afterSheetAdded?: (addedSheetDisplayName: string) => void;
   afterSheetRemoved?: (removedSheetDisplayName: string, changes: unknown[]) => void;
   afterSheetRenamed?: (oldDisplayName: string, newDisplayName: string) => void;
+  afterSheetTabAdd?: (sheetId: number, name: string, source: string) => void;
+  afterSheetTabChange?: (oldSheetId: number, newSheetId: number, source: string) => void;
+  afterSheetTabMove?: (sheetId: number, finalIndex: number, source: string) => void;
+  afterSheetTabRemove?: (sheetId: number, source: string) => void;
+  afterSheetTabRename?: (sheetId: number, oldName: string, newName: string, source: string) => void;
+  afterSheetTabStateCapture?: (sheetId: number, viewState: SheetsBarViewState, source: string) => void;
+  afterSheetTabStateRestore?: (sheetId: number, viewState: SheetsBarViewState, source: string) => void;
   afterTrimRow?: (currentTrimConfig: number[], destinationTrimConfig?: number[],
     actionPossible?: boolean, stateChanged?: boolean) => void;
   afterUndo?: (action: UndoRedoAction) => void;
@@ -531,7 +626,7 @@ export interface GridSettings {
     highlightMeta: { selectionType: string; columnCursor: number; selectionWidth: number }) => number | void;
   beforeHighlightingRowHeader?: (row: number, headerLevel: number,
     highlightMeta: { selectionType: string; rowCursor: number; selectionHeight: number }) => number | void;
-  beforeInit?: () => void;
+  beforeInit?: (() => void) | (() => void)[];
   beforeInitWalkontable?: (walkontableConfig: object) => void;
   beforeKeyDown?: (event: KeyboardEvent) => void;
   beforeLanguageChange?: (languageCode: string) => void;
@@ -605,6 +700,11 @@ export interface GridSettings {
   beforeSetRangeEnd?: (coords: WalkontableCellCoords) => void;
   beforeSetRangeStart?: (coords: WalkontableCellCoords) => void;
   beforeSetRangeStartOnly?: (coords: WalkontableCellCoords) => void;
+  beforeSheetTabAdd?: (name: string | null, source: string) => void | boolean;
+  beforeSheetTabChange?: (oldSheetId: number, newSheetId: number, source: string) => void | boolean;
+  beforeSheetTabMove?: (sheetId: number, finalIndex: number, source: string) => void | boolean;
+  beforeSheetTabRemove?: (sheetId: number, source: string) => void | boolean;
+  beforeSheetTabRename?: (sheetId: number, oldName: string, newName: string, source: string) => void | boolean;
   beforeStretchingColumnWidth?: (stretchedWidth: number, column: number) => void | number;
   beforeTouchScroll?: () => void;
   beforeTrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[],
@@ -627,6 +727,11 @@ export interface GridSettings {
   beforeViewportScrollVertically?: (visualRow: number, snapping: 'auto' | 'top' | 'bottom') => number | boolean | null;
   beforeViewRender?: (isForced: boolean, skipRender: { skipRender?: boolean }) => void;
   beforeWidthChange?: (width: number | string) => number | string;
+  /**
+   * Declaring this callback here has no effect: the hook runs inside the constructor, before
+   * Handsontable reads the callbacks from the settings object. Register it globally with
+   * `Handsontable.hooks.add('construct', callback)` instead.
+   */
   construct?: () => void;
   dialogFocusNextElement?: () => void;
   dialogFocusPreviousElement?: () => void;
@@ -650,11 +755,17 @@ export interface GridSettings {
   modifyGetCoordsElement?: (row: number, column: number) => void | [number, number];
   modifyRowData?: (row: number) => void;
   modifyRowHeader?: (row: number) => void;
-  modifyRowHeaderWidth?: (rowHeaderWidth: number) => void | number;
+  modifyRowHeaderWidth?: (rowHeaderWidth: number | number[]) => void | number | number[];
   modifyRowHeight?: (height: number, row: number, source?: string) => void | number;
   modifyRowHeightByOverlayName?: (height: number, row: number, overlayType: string) => void | number;
   modifySinglePassLayout?: (singlePassLayout: boolean) => void | boolean;
-  modifySourceData?: (row: number, column: number, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
+  // Method syntax on purpose: the `column` parameter was widened after the hook started receiving
+  // a `columns[].data` accessor function, and only bivariant method-style checking keeps existing
+  // `(row, column: number, ...)` handlers assignable under `strictFunctionTypes`.
+  modifySourceData?(
+    row: number, column: number | string | ColumnDataGetterSetterFunction,
+    valueHolder: { value: CellValue }, ioMode: 'get' | 'set'
+  ): void;
   modifyTransformEnd?: (delta: WalkontableCellCoords) => void;
   modifyTransformFocus?: (delta: WalkontableCellCoords) => void;
   modifyTransformStart?: (delta: WalkontableCellCoords) => void;
@@ -690,6 +801,22 @@ type HookKey = {
  * users are given instead.
  */
 export type SanitizerFn = NonNullable<RemoveIndexSignature<GridSettings>['sanitizer']>;
+
+/**
+ * The shape of a configured `textExtractor` in its function form, derived from the option so the two
+ * cannot drift apart. `true` is excluded because it selects the built-in extraction rather than
+ * supplying one.
+ *
+ * `RemoveIndexSignature` earns its place here for the same reason it does in `SanitizerFn`:
+ * `GridSettings` carries a `[key: string]: any`, so a plain lookup would keep resolving - to `any` -
+ * if the option were renamed, silently un-typing every internal consumer.
+ *
+ * Not re-exported from the package entry points: with the option's second parameter absorbed by
+ * `...args: any[]`, annotating with this type conveys no context, so `TextExtractorContext` is what
+ * users are given instead.
+ */
+export type TextExtractorFn =
+  Exclude<NonNullable<RemoveIndexSignature<GridSettings>['textExtractor']>, boolean>;
 
 /**
  * Map of all Handsontable hook names to their typed callback signatures.

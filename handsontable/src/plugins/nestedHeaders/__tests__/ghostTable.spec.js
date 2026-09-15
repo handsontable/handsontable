@@ -26,6 +26,109 @@ describe('NestedHeaders', () => {
       expect(ghostTable).toBeDefined();
     });
 
+    describe('DOM it measures', () => {
+      /**
+       * Captures the ghost table container while it is briefly in the document. It is created,
+       * measured, and removed inside one synchronous call, so it cannot be read afterwards.
+       *
+       * @param {Function} build Builds the grid.
+       * @returns {HTMLElement|null} The captured container.
+       */
+      function captureGhostContainer(build) {
+        const originalAppendChild = document.body.appendChild;
+        let captured = null;
+
+        document.body.appendChild = function(node) {
+          if (node.classList && node.classList.contains('htGhostTable')) {
+            captured = node.cloneNode(true);
+          }
+
+          return originalAppendChild.call(this, node);
+        };
+
+        try {
+          build();
+        } finally {
+          document.body.appendChild = originalAppendChild;
+        }
+
+        return captured;
+      }
+
+      it('should build the exact DOM the HTML-string version produced', async() => {
+        // The ghost table drives column width measurement, and its styling is scoped to
+        // `.htGhostTable > table` — a DIRECT child — with the row and cell rules scoped under
+        // that. A structural difference from the markup this replaced would measure against
+        // different CSS and silently size every column wrong, which no width assertion phrased as
+        // "greater than zero" would catch. Compared against the old markup, parsed.
+        const container = captureGhostContainer(() => {
+          handsontable({
+            data: createSpreadsheetData(4, 4),
+            dropdownMenu: true,
+            collapsibleColumns: true,
+            nestedHeaders: [
+              [{ label: 'group', colspan: 2 }, 'c', 'd'],
+              ['a', 'b', 'c', 'd'],
+            ],
+          });
+        });
+
+        expect(container).not.toBe(null);
+
+        const expected = document.createElement('div');
+
+        expected.innerHTML = '<table data-ghost-table="rendered"><thead>' +
+          '<tr>' +
+            '<th data-column="0" colspan="2"><div class="relative"><span class="colHeader">group</span>' +
+              '<button class="changeType"></button>' +
+              '<div class="collapsibleIndicator expanded">-</div></div></th>' +
+            '<th data-column="2" colspan="1"><div class="relative"><span class="colHeader">c</span>' +
+              '<button class="changeType"></button></div></th>' +
+            '<th data-column="3" colspan="1"><div class="relative"><span class="colHeader">d</span>' +
+              '<button class="changeType"></button></div></th>' +
+          '</tr>' +
+          '<tr>' +
+            '<th data-column="0" colspan="1"><div class="relative"><span class="colHeader">a</span>' +
+              '<button class="changeType"></button></div></th>' +
+            '<th data-column="1" colspan="1"><div class="relative"><span class="colHeader">b</span>' +
+              '<button class="changeType"></button></div></th>' +
+            '<th data-column="2" colspan="1"><div class="relative"><span class="colHeader">c</span>' +
+              '<button class="changeType"></button></div></th>' +
+            '<th data-column="3" colspan="1"><div class="relative"><span class="colHeader">d</span>' +
+              '<button class="changeType"></button></div></th>' +
+          '</tr>' +
+          '</thead></table>';
+
+        expect(container.innerHTML).toBe(expected.innerHTML);
+      });
+
+      it('should keep the measured table a direct child of the scoped container', async() => {
+        // `.htGhostTable > table` is a child combinator: one extra wrapper and every row and cell
+        // rule stops matching, so the table measures unstyled.
+        const container = captureGhostContainer(() => {
+          handsontable({
+            data: createSpreadsheetData(3, 3),
+            nestedHeaders: [[{ label: 'group', colspan: 2 }, 'c'], ['a', 'b', 'c']],
+          });
+        });
+
+        expect(container.classList.contains('htGhostTable')).toBe(true);
+        expect(container.firstElementChild.tagName).toBe('TABLE');
+        expect(container.children.length).toBe(1);
+      });
+
+      it('should render a header label carrying markup as markup, as the string form did', async() => {
+        const container = captureGhostContainer(() => {
+          handsontable({
+            data: createSpreadsheetData(2, 2),
+            nestedHeaders: [['<b>bold</b>', 'plain']],
+          });
+        });
+
+        expect(container.querySelector('.colHeader').innerHTML).toBe('<b>bold</b>');
+      });
+    });
+
     describe('widthsCache', () => {
       it('should contain cached widths after initialization', async() => {
         handsontable({

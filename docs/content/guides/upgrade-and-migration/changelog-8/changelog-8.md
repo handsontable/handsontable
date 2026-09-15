@@ -1,16 +1,16 @@
 ---
 type: reference
-title: Changelog 8.0
-metaTitle: Changelog 8.0 - JavaScript Data Grid | Handsontable
-description: See the full history of changes made to Handsontable 8.0 in each minor and patch release.
+title: Changelog 8.x
+metaTitle: Changelog 8.x - JavaScript Data Grid | Handsontable
+description: See the full history of changes made to Handsontable 8.x in each minor and patch release.
 permalink: /changelog-8
 canonicalUrl: /changelog-8
 react:
-  metaTitle: Changelog 8.0 - React Data Grid | Handsontable
+  metaTitle: Changelog 8.x - React Data Grid | Handsontable
 angular:
-  metaTitle: Changelog 8.0 - Angular Data Grid | Handsontable
+  metaTitle: Changelog 8.x - Angular Data Grid | Handsontable
 vue:
-  metaTitle: Changelog 8.0 - Vue Data Grid | Handsontable
+  metaTitle: Changelog 8.x - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---
@@ -35,7 +35,7 @@ For more information on this release, see:
 
 - Introduced a `separated` attribute for the label options (the `label` DOM element may wrap `input`
   or be placed next to it). ([#3172](https://github.com/handsontable/handsontable/issues/3172))
-- Introduced the `modifyAutoColumnSizeSeed` hook to let developers overwrite the default behaviour
+- Introduced the `modifyAutoColumnSizeSeed` hook to let developers overwrite the default behavior
   of the AutoColumnSize sampling.
   ([#3339](https://github.com/handsontable/handsontable/issues/3339))
 - Added support for hiding columns for the `NestedHeaders` plugin.
@@ -490,7 +490,7 @@ methods and hooks were added and there are few depreciations and removals, too.
   `boolean`. [#6547](https://github.com/handsontable/handsontable/pull/6547)
 - Added additional information available in the cell meta object - the language.
   [#6254](https://github.com/handsontable/handsontable/pull/6254).
-- Added a possibility to allow cancelling of `autofill` in the `beforeAutofill` hook.
+- Added a possibility to allow canceling of `autofill` in the `beforeAutofill` hook.
   [#4441](https://github.com/handsontable/handsontable/issues/4441)
 - Added support for newer versions of moment, numbro and pikaday.
   [#5159](https://github.com/handsontable/handsontable/issues/5159)

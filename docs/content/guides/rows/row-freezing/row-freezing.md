@@ -95,6 +95,18 @@ You can combine `fixedRowsTop` and `fixedRowsBottom` to keep both a header and a
 
 After completing this guide, the rows you specify with `fixedRowsTop` or `fixedRowsBottom` stay visible while you scroll through the rest of the grid.
 
+## Frozen area size limit
+
+When your grid has a defined [`height`](@/api/options.md#height), freeze only as many rows as fit within it.
+
+Handsontable always draws frozen rows in full. It never shrinks them, and it never scrolls them. If the frozen rows need more space than the grid has, they cover the whole grid. The remaining rows stay out of reach: the vertical scrollbar still moves, but the view no longer changes.
+
+This applies to the total height of the frozen rows, not to how many there are. Taller rows reach the limit sooner.
+
+Both `fixedRowsTop` and `fixedRowsBottom` behave this way. Keep the combined height of your frozen rows smaller than the grid's height. If your grid has to work at several sizes, pick a number of frozen rows that fits the shortest one.
+
+Without a defined `height`, the grid grows to fit its rows, so the frozen rows cannot outgrow it and this limit does not apply. Read more in [Grid size](@/guides/getting-started/grid-size/grid-size.md).
+
 ## Related API reference
 
 **Configuration options**

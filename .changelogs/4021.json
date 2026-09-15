@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed `rowHeights` being treated as a minimum height: a row now renders at exactly the height you set, and content taller than the row is clipped instead of stretching it. Use `minRowHeights` to keep the previous behavior, where the value is a floor the content can grow past.",
+  "type": "fixed",
+  "issueOrPR": 4021,
+  "breaking": true,
+  "framework": "none"
+}

@@ -60,9 +60,15 @@
     var(--ht-menu-shadow-blur, 8px) color-mix(in srgb, var(--ht-menu-shadow-color, rgba(0, 0, 0)) var(--ht-menu-shadow-opacity, 100%), transparent);
 }
 
-@mixin box-shadow {
-  box-shadow: var(--ht-shadow-x, 0) var(--ht-shadow-y, 0)
+// The shadow as a bare value, for the callers that have to compose it with a shadow of their
+// own — `box-shadow` takes a list, so a second declaration would drop the first.
+@function box-shadow-value() {
+  @return var(--ht-shadow-x, 0) var(--ht-shadow-y, 0)
     var(--ht-shadow-blur, 8px) color-mix(in srgb, var(--ht-shadow-color, rgba(0, 0, 0)) var(--ht-shadow-opacity, 100%), transparent);
+}
+
+@mixin box-shadow {
+  box-shadow: box-shadow-value();
 }
 
 @mixin scrollbar-styles {

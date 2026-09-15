@@ -3,6 +3,7 @@ bower_components
 dist
 commonjs
 es
+/types
 
 .DS_Store
 .idea

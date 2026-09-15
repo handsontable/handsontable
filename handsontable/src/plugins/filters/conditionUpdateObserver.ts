@@ -171,11 +171,11 @@ class ConditionUpdateObserver {
    * Update all related states which should be changed after invoking changes applied to current column.
    *
    * @param {number} column The column index.
-   * @param {object} conditionArgsChange Object describing condition changes which can be handled by filters on `update` hook.
-   * It contains keys `conditionKey` and `conditionValue` which refers to change specified key of condition to specified value
-   * based on referred keys.
+   * @param {*} [_conditionArgsChange] No longer used. A data change used to hand its value set in
+   * here, which is what rewrote the column's condition behind the user's back (issue #6471). The
+   * parameter is kept so the published typings keep accepting the old two-argument call.
    */
-  updateStatesAtColumn(column: number, conditionArgsChange?: unknown) {
+  updateStatesAtColumn(column: number, _conditionArgsChange?: unknown) {
     if (this.grouping) {
       if (this.changes.indexOf(column) === -1) {
         this.changes.push(column);
@@ -184,16 +184,15 @@ class ConditionUpdateObserver {
       return;
     }
 
-    this.#withColumnDataCache(() => this.#updateStatesAtColumnInternal(column, conditionArgsChange));
+    this.#withColumnDataCache(() => this.#updateStatesAtColumnInternal(column));
   }
 
   /**
    * Performs the actual state update for the column. Runs with the full-column data memo active.
    *
    * @param {number} column The column index.
-   * @param {object} conditionArgsChange Object describing condition changes which can be handled by filters on `update` hook.
    */
-  #updateStatesAtColumnInternal(column: number, conditionArgsChange?: unknown) {
+  #updateStatesAtColumnInternal(column: number) {
     const allConditions = this.conditionCollection.exportAllConditions();
     let editedColumnPosition = this.conditionCollection.getColumnStackPosition(column);
 
@@ -253,7 +252,10 @@ class ConditionUpdateObserver {
       editedConditionStack: { column, conditions: editedConditions },
       dependentConditionStacks: conditionsAfter,
       filteredRowsFactory: visibleDataFactory,
-      conditionArgsChange
+      // Every row of a column, ignoring every condition. Consumers need it to tell a value that is
+      // merely hidden by another column's filter from one that has left the data for good. Shares
+      // the same memo as `visibleDataFactory`, which already reads this column, so it costs nothing.
+      columnValuesFactory: (physicalColumn: number) => this.#getColumnData(physicalColumn)
     });
   }
 

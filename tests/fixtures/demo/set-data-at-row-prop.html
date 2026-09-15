@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture — setDataAtRowProp old value</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    E2E fixture for DEV-2721 / GitHub #4118.
+
+    `setDataAtRowProp()` and `setSourceDataAtCell()` are addressed by PROP, but both used to read
+    the previous value through `dataSource.getAtCell()`, which resolves a VISUAL COLUMN INDEX. A
+    numeric prop was therefore translated a second time and the reported old value came from a
+    different column — while the write itself landed correctly.
+
+    The scenarios are driven from the spec so one fixture covers every column-remapping shape.
+    Cell values are `r<row>c<col>`, so a wrong old value names the column it really came from.
+  -->
+  <div data-testid="status">idle</div>
+  <div data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+    const status = document.querySelector('[data-testid="status"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const ROWS = 4;
+    const COLS = 15;
+
+    /**
+     * Array-of-arrays source: 4 rows x 15 columns of `r<row>c<col>`.
+     */
+    function arrayData() {
+      return Array.from({ length: ROWS }, (_, r) => Array.from({ length: COLS }, (_, c) => `r${r}c${c}`));
+    }
+
+    /**
+     * Array-of-objects source with the same values under `p0`..`p7`.
+     */
+    function objectData() {
+      return Array.from({ length: ROWS }, (_, r) => {
+        const row = {};
+
+        for (let c = 0; c < 8; c++) {
+          row[`p${c}`] = `r${r}c${c}`;
+        }
+
+        return row;
+      });
+    }
+
+    /**
+     * Build a grid for one scenario, run `body`, then always destroy it so the
+     * next scenario starts from a clean instance.
+     */
+    function withGrid(settings, body) {
+      const hot = new Handsontable(container, Object.assign({
+        licenseKey: 'non-commercial-and-evaluation',
+        width: 600,
+        height: 200,
+      }, settings));
+
+      try {
+        return body(hot);
+      } finally {
+        hot.destroy();
+      }
+    }
+
+    /**
+     * Translate a scenario descriptor into Handsontable settings.
+     */
+    function settingsFor(scenario) {
+      const settings = { data: scenario.dataKind === 'object' ? objectData() : arrayData() };
+
+      if (scenario.columns) {
+        settings.columns = scenario.columns;
+      }
+      if (scenario.manualColumnMove) {
+        settings.manualColumnMove = scenario.manualColumnMove;
+      }
+      if (scenario.hiddenColumns) {
+        settings.hiddenColumns = { columns: scenario.hiddenColumns };
+      }
+
+      return settings;
+    }
+
+    /**
+     * Run `setDataAtRowProp()` for one scenario and report what the grid did:
+     * the old value handed to `afterChange`, plus the source row before, after
+     * and after an undo. `undo` is what proves the change is reversible.
+     */
+    window.htRunSetDataAtRowProp = (scenario) => withGrid(settingsFor(scenario), (hot) => {
+      const row = scenario.row ?? 1;
+      let seen = null;
+
+      hot.addHook('afterChange', (changes, source) => {
+        if (source === 'test') {
+          seen = changes;
+        }
+      });
+
+      const before = hot.getSourceDataAtRow(row);
+
+      hot.setDataAtRowProp([[row, scenario.prop, 'NEW']], 'test');
+
+      const after = hot.getSourceDataAtRow(row);
+
+      hot.getPlugin('undoRedo').undo();
+
+      return {
+        oldValue: seen && seen[0] ? seen[0][2] : null,
+        reportedProp: seen && seen[0] ? seen[0][1] : null,
+        before,
+        after,
+        undone: hot.getSourceDataAtRow(row),
+      };
+    });
+
+    /**
+     * Run `setSourceDataAtCell()` for one scenario and report the old value the
+     * `afterSetSourceDataAtCell` hook received, plus the resulting source row.
+     */
+    window.htRunSetSourceDataAtCell = (scenario) => withGrid(settingsFor(scenario), (hot) => {
+      const row = scenario.row ?? 1;
+      let seen = null;
+
+      hot.addHook('afterSetSourceDataAtCell', (changes) => {
+        seen = changes;
+      });
+
+      const before = hot.getSourceDataAtRow(row);
+
+      hot.setSourceDataAtCell(row, scenario.prop, 'NEW');
+
+      return {
+        oldValue: seen && seen[0] ? seen[0][2] : null,
+        before,
+        after: hot.getSourceDataAtRow(row),
+      };
+    });
+
+    status.textContent = 'ready';
+  </script>
+</body>
+</html>

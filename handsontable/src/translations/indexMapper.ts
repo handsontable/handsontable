@@ -20,6 +20,8 @@ import { isDefined } from '../helpers/mixed';
 import { ChangesObservable } from './changesObservable/observable';
 import { throwWithCause } from '../helpers/errors';
 
+export type IndexesChangeSource = 'init' | 'remove' | 'insert' | 'move' | 'update';
+
 /**
  * @class IndexMapper
  * @description
@@ -141,7 +143,17 @@ export class IndexMapper {
    *
    * @type {undefined|string}
    */
-  indexesChangeSource: string | undefined = undefined;
+  indexesChangeSource: IndexesChangeSource | undefined = undefined;
+  /**
+   * Source of the next cache update caused by an index sequence change.
+   *
+   * The active source is cleared after the sequence mutation completes. A cache update can be
+   * deferred until batched operations resume, so it needs a separate value that survives until the
+   * cache-update hook is emitted.
+   *
+   * @type {undefined|string}
+   */
+  #cacheUpdateSource: IndexesChangeSource | undefined = undefined;
   /**
    * Flag determining whether any action on trimmed indexes has been performed. It's used for cache management.
    *
@@ -203,6 +215,7 @@ export class IndexMapper {
   constructor() {
     this.indexesSequence.addLocalHook('change', () => {
       this.indexesSequenceChanged = true;
+      this.#cacheUpdateSource = this.indexesChangeSource;
 
       // Sequence of stored indexes might change.
       this.updateCache();
@@ -756,6 +769,10 @@ export class IndexMapper {
    * @param {'start' | 'end'} [mode] Sets where the column is inserted: at the start of the passed index or at the end.
    */
   insertIndexes(firstInsertedVisualIndex: number, amountOfIndexes: number, mode: 'start' | 'end' = 'start'): void {
+    if (amountOfIndexes === 0) {
+      return;
+    }
+
     const nthVisibleIndex = this.getNotTrimmedIndexes()[firstInsertedVisualIndex];
     const firstInsertedPhysicalIndex = isDefined(nthVisibleIndex)
       ? nthVisibleIndex
@@ -883,28 +900,41 @@ export class IndexMapper {
       this.trimmedIndexesChanged || this.hiddenIndexesChanged;
 
     if (force === true || (this.isBatched === false && anyCachedIndexChanged === true)) {
-      this.trimmingMapsCollection.updateCache();
-      this.hidingMapsCollection.updateCache();
-      this.notTrimmedIndexesCache = this.getNotTrimmedIndexes(false);
-      this.notHiddenIndexesCache = this.getNotHiddenIndexes(false);
-      this.renderablePhysicalIndexesCache = this.getRenderableIndexes(false);
-      this.cacheFromPhysicalToVisualIndexes();
-      this.cacheFromVisualToRenderableIndexes();
-
-      // Currently there's support only for the "hiding" map type.
-      if (this.hiddenIndexesChanged) {
-        this.hidingChangesObservable.emit(this.hidingMapsCollection.getMergedValues());
-      }
-
-      this.runLocalHooks('cacheUpdated', {
+      const indexesChangesState = {
         indexesSequenceChanged: this.indexesSequenceChanged,
         trimmedIndexesChanged: this.trimmedIndexesChanged,
         hiddenIndexesChanged: this.hiddenIndexesChanged,
-      });
+      };
 
-      this.indexesSequenceChanged = false;
-      this.trimmedIndexesChanged = false;
-      this.hiddenIndexesChanged = false;
+      try {
+        this.runLocalHooks('beforeCacheUpdate', indexesChangesState);
+
+        this.trimmingMapsCollection.updateCache();
+        this.hidingMapsCollection.updateCache();
+        this.notTrimmedIndexesCache = this.getNotTrimmedIndexes(false);
+        this.notHiddenIndexesCache = this.getNotHiddenIndexes(false);
+        this.renderablePhysicalIndexesCache = this.getRenderableIndexes(false);
+        this.cacheFromPhysicalToVisualIndexes();
+        this.cacheFromVisualToRenderableIndexes();
+
+        // Currently there's support only for the "hiding" map type.
+        if (this.hiddenIndexesChanged) {
+          this.hidingChangesObservable.emit(this.hidingMapsCollection.getMergedValues());
+        }
+
+        const indexesChangeSource = this.#cacheUpdateSource;
+
+        this.#cacheUpdateSource = undefined;
+
+        this.runLocalHooks('cacheUpdated', { ...indexesChangesState, indexesChangeSource });
+
+        this.indexesSequenceChanged = false;
+        this.trimmedIndexesChanged = false;
+        this.hiddenIndexesChanged = false;
+
+      } finally {
+        this.runLocalHooks('afterCacheUpdate');
+      }
     }
   }
 

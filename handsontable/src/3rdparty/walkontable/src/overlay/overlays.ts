@@ -6,6 +6,7 @@ import type { Overlay } from './regions/_base';
 import type EventManager from '../../../../eventManager';
 import { debounce } from '../../../../helpers/function';
 import { arrayEach } from '../../../../helpers/array';
+import { isHTMLElement } from '../../../../helpers/dom/element';
 import {
   InlineStartOverlay,
   TopOverlay,
@@ -16,6 +17,15 @@ import {
 import { createOverlayDeps } from './regions/_base';
 import { StickyScrollStrategy, createStickyScrollStrategyDeps } from './strategies/stickyScrollStrategy';
 import { ResizeMonitor, createResizeMonitorDeps } from './resizeMonitor';
+import { ScrollbarVisibility, createScrollbarVisibilityDeps } from './scrollbarVisibility';
+import {
+  BAND_SWALLOWED_EVENTS,
+  canGrabScrollbar,
+  isPointInScrollbarBand,
+  axisScrollbarClearance,
+  syncScrollbarTrackBands,
+  type ScrollbarBandsOpen,
+} from './scrollbarClearance';
 import { SpreaderSize, createSpreaderSizeDeps } from './spreaderSize';
 import { ScrollSync, createScrollSyncDeps } from './scroll/scrollSync';
 import { NativeScrollInput, createNativeScrollInputDeps } from './scroll/nativeScrollInput';
@@ -46,7 +56,8 @@ export function createOverlaysDeps(ctx: EngineContext) {
     // owning Overlays instance (for `refreshAll`/`applyToDOM`/`scrollableElement`/`eventManager`).
     makeStickyScrollDeps: (overlays: Overlays) => createStickyScrollStrategyDeps(ctx, overlays),
     makeResizeMonitorDeps: () => createResizeMonitorDeps(ctx),
-    makeSpreaderSizeDeps: (overlays: Overlays) => createSpreaderSizeDeps(ctx, overlays),
+    makeScrollbarVisibilityDeps: () => createScrollbarVisibilityDeps(ctx),
+    makeSpreaderSizeDeps: () => createSpreaderSizeDeps(ctx),
     makeScrollSyncDeps: (overlays: Overlays, stickyScroll: StickyScrollStrategy) =>
       createScrollSyncDeps(ctx, overlays, stickyScroll),
     makeNativeScrollInputDeps: (overlays: Overlays, stickyScroll: StickyScrollStrategy, resizeMonitor: ResizeMonitor) =>
@@ -223,7 +234,7 @@ class Overlays {
    * @protected
    * @type {BottomOverlay}
    */
-  declare bottomOverlay: Overlay;
+  declare bottomOverlay: BottomOverlay;
 
   /**
    * Refer to the InlineStartOverlay or instance.
@@ -258,12 +269,20 @@ class Overlays {
   declare wtSettings: Settings;
 
   /**
-   * Debounced `updateLastSpreaderSize` / `adjustElementsSize` used during scroll so rapid
-   * `refresh` calls do not repeat layout work every frame.
+   * Debounced `adjustElementsSize` used during scroll so rapid `refresh` calls do not repeat
+   * layout work every frame.
    *
    * @type {Function}
    */
-  #postponedAdjustElementsSize = debounce(this.#adjustElementsSizeIfNeeded.bind(this), 200);
+  #postponedAdjustElementsSize = debounce(this.adjustElementsSizeIfNeeded.bind(this), 200);
+
+  /**
+   * The layout signature in force when {@link Overlays#adjustElementsSize} last ran, or `null`
+   * before the first run. See {@link Overlays#currentLayoutSignature}.
+   *
+   * @type {string|null}
+   */
+  #lastAppliedSignature: string | null = null;
 
   /**
    * Strategy that manages the sticky-scroll optimization during native
@@ -282,6 +301,24 @@ class Overlays {
    * @type {ResizeMonitor}
    */
   #resizeMonitor!: ResizeMonitor;
+
+  /**
+   * Tracks whether an overlay scrollbar is on screen, so the clearance strip the frozen overlays leave
+   * for it opens with it and closes again when it fades (#10370).
+   */
+  #scrollbarVisibility!: ScrollbarVisibility;
+
+  /**
+   * The band sizes currently drawn, so a press landing in one can be swallowed (#10370).
+   */
+  #bandSizes = { bottom: 0, inlineEnd: 0 };
+
+  /**
+   * Whether the press being handled started as a touch, so the compatibility `mousedown`/`click`/
+   * `contextmenu` that follow the same tap can be recognized and let through - only `pointerdown`
+   * carries a `pointerType`.
+   */
+  #pressIsTouch = false;
 
   /**
    * @param {OverlaysDeps} deps The Overlays module dependencies.
@@ -304,7 +341,13 @@ class Overlays {
     // drives sticky activation on scroll; it owns the scrollable element and the scroll state.
     this.#stickyScroll = new StickyScrollStrategy(this.#deps.makeStickyScrollDeps(this));
     this.#resizeMonitor = new ResizeMonitor(this.#deps.makeResizeMonitorDeps());
-    this.#spreaderSize = new SpreaderSize(this.#deps.makeSpreaderSizeDeps(this));
+    // Re-applies the clearance when the scrollbar comes or goes. Only clip-path and a filler's
+    // visibility change, so this costs paint, never layout.
+    this.#scrollbarVisibility = new ScrollbarVisibility(
+      this.#deps.makeScrollbarVisibilityDeps(),
+      () => this.#refreshScrollbarClearance()
+    );
+    this.#spreaderSize = new SpreaderSize(this.#deps.makeSpreaderSizeDeps());
     this.#scrollSync = new ScrollSync(this.#deps.makeScrollSyncDeps(this, this.#stickyScroll));
     this.#nativeScrollInput = new NativeScrollInput(
       this.#deps.makeNativeScrollInputDeps(this, this.#stickyScroll, this.#resizeMonitor)
@@ -323,7 +366,7 @@ class Overlays {
    *
    * @param {boolean} [includeMaster = false] If set to `true`, the list will contain the master table as the last
    * element.
-   * @returns {(TopOverlay|TopInlineStartCornerOverlay|InlineStartOverlay|BottomOverlay|BottomInlineStartCornerOverlay)[]}
+   * @returns {(TopOverlay|BottomOverlay|InlineStartOverlay|TopInlineStartCornerOverlay|BottomInlineStartCornerOverlay)[]}
    */
   getOverlays(includeMaster = false) {
     const overlays: Array<Overlay | Table> = [...this.#overlays];
@@ -367,22 +410,6 @@ class Overlays {
   }
 
   /**
-   * Pre-applies the header-border classes (`innerBorderTop` / `innerBorderInlineStart`) before
-   * the cell render, so the post-render `resetFixedPosition` toggle is a no-op and the nested
-   * `wot.draw(true)` re-render is skipped. Called from the master draw on the single-pass gated path,
-   * before `beginDrawLayout`. Mirrors the overlay set used by the post-render position pass.
-   */
-  prepareHeaderBorders() {
-    this.topOverlay.prepareHeaderBorders();
-
-    if (this.bottomOverlay.clone) {
-      this.bottomOverlay.prepareHeaderBorders();
-    }
-
-    this.inlineStartOverlay.prepareHeaderBorders();
-  }
-
-  /**
    * Runs logic for the overlays before the table is drawn.
    */
   beforeDraw() {
@@ -393,6 +420,22 @@ class Overlays {
     // actually rendered the band (a `skipRender` hook cancels one that got this far), so the drop is
     // simply retaken on the next draw that can re-measure.
     if (!this.isScrollDrivenDraw) {
+      // An axis owner can move without a settings change (a page rule that clips the root, a
+      // `width` that becomes definite). `adjustElementsSize` re-resolves the owners too, but only on
+      // a draw that moved the overlays or resized the spreader, and a removed clip changes neither –
+      // the overlay then keeps the element while `MasterTable#alignOverlaysWithTrimmingContainer`
+      // resolves the window for the same draw. Before `beginDrawLayout`, which reads the owners
+      // through the viewport predicates.
+      this.#refreshAxisOwners();
+      // Re-pick the scrolling elements against the owners just resolved, BEFORE this draw builds its
+      // calculators. `Overlays#afterDraw` runs this too, and has to: only there is a provisional
+      // layout settled, and this call skips a provisional answer. But a rebind that happens only
+      // there is one draw late — the calculators have already read the offset off the element the
+      // owner moved AWAY from, so the band drawn is the one the old scroller was scrolled to and it
+      // stays on screen until something else redraws (measured: an owner moved from the holder to
+      // the window left the master on the scrolled band with every input already reporting 0).
+      // Idempotent: it compares the owners against the bound ones and returns when they agree.
+      this.#scrollSync.resyncScrollableElementsWithOwners();
       this.#scrollSync.resetSizesMeasuredBeforeLayoutSettled();
     }
 
@@ -401,6 +444,15 @@ class Overlays {
     }, false));
 
     this.#overlays.forEach(overlay => overlay.updateStateOfRendering('before'));
+  }
+
+  /**
+   * Re-resolves the axis owners held by the three region overlays (the corners read those).
+   */
+  #refreshAxisOwners() {
+    this.topOverlay.updateTrimmingContainer();
+    this.inlineStartOverlay.updateTrimmingContainer();
+    this.bottomOverlay.updateTrimmingContainer();
   }
 
   /**
@@ -443,6 +495,9 @@ class Overlays {
     // either; the flag survives to the next full draw.
     if (!this.isScrollDrivenDraw) {
       this.#scrollSync.resolveProvisionalLayout();
+      // After the provisional pass, so a table that just settled is not rebound twice and keeps the
+      // size drop that pass schedules.
+      this.#scrollSync.resyncScrollableElementsWithOwners();
     }
   }
 
@@ -469,44 +524,203 @@ class Overlays {
    */
   registerListeners() {
     this.#nativeScrollInput.registerListeners();
+
+    // An overlay scrollbar comes on screen when the pointer nears it, so the strip it needs has to be
+    // driven by pointer position. Passive, and the handler reads no DOM - the scrollport rect it
+    // compares against is cached and only re-read on scroll or resize.
+    this.eventManager.addEventListener(this.#deps.rootWindow as unknown as HTMLElement, 'pointermove', ((
+      event: PointerEvent
+    ) => {
+      this.#scrollbarVisibility.notifyPointerMoved(
+        event.clientX, event.clientY, this.wtSettings.getSetting<boolean>('rtlMode')
+      );
+    }) as EventListener, { passive: true });
+
+    // Nothing can hold a band open once the pointer is gone. Releasing a pin needs a move that says
+    // "no longer near", and once the pointer leaves the window no more moves arrive - so without this
+    // the strip stayed painted for as long as the page was open.
+    this.eventManager.addEventListener(
+      this.#deps.rootDocument.documentElement,
+      'pointerleave',
+      (() => this.#scrollbarVisibility.notifyPointerLeft()) as EventListener,
+      { passive: true }
+    );
+
+    // The cached scrollport rect is in viewport coordinates, so scrolling the PAGE moves the grid
+    // without any of the grid's own scroll offsets changing. Left alone, a pointer beside the real
+    // scrollbar then read as "not near" and the band closed under a drawn thumb, or one sitting
+    // mid-grid fell inside the stale edge zone and pinned it open. Only drops the cache; no reads.
+    this.eventManager.addEventListener(
+      this.#deps.rootWindow as unknown as HTMLElement,
+      'scroll',
+      (() => this.#scrollbarVisibility.notifyResized()) as EventListener,
+      { passive: true, capture: true }
+    );
+
+    // A press inside an open band must do nothing: no selection, no deselect, no menu. It is caught by
+    // coordinate on the way down rather than by target, because the band does not hit-test - the point
+    // is answered by whatever the band is painted over, which is a different element in every part of
+    // the strip.
+    BAND_SWALLOWED_EVENTS.forEach((eventName) => {
+      this.eventManager.addEventListener(
+        this.wtTable.holder,
+        eventName,
+        ((event: MouseEvent) => this.#swallowBandPress(event)) as EventListener,
+        { capture: true }
+      );
+    });
   }
 
   /**
-   * Scrolls main scrollable element vertically.
+   * Stops a pointer event that landed inside an open scrollbar band (#10370).
+   *
+   * @param {MouseEvent} event The pointer event on its way down to the grid.
+   */
+  #swallowBandPress(event: MouseEvent) {
+    const { bottom, inlineEnd } = this.#bandSizes;
+
+    // A tap is how you scroll on a touchscreen, not how you grab a thumb. `canGrabScrollbar` answers
+    // "does this machine have a mouse *somewhere*", which is the right question for drawing the band
+    // and the wrong one for swallowing a press: on a hybrid device (touchscreen laptop, tablet with a
+    // trackpad) it is true, so without this the band ate finger taps in the bottom strip - the exact
+    // "scroll, then tap a cell near the edge" failure the touch-only exclusion was written to prevent.
+    //
+    // Only `pointerdown` carries a `pointerType`; the `mousedown`/`click`/`dblclick` that follow a tap
+    // are compatibility events indistinguishable from real mouse ones. So the answer is recorded at the
+    // press that starts the gesture and read by the rest of it.
+    //
+    // Every press re-records it, which is what keeps it from going stale: a mouse press sets it back to
+    // false before anything downstream reads it. Clearing it on `click` instead - to bound the same
+    // staleness - broke the double-tap, because `dblclick` arrives AFTER the `click` that would have
+    // cleared it and is the event that opens the editor: the tap selected the cell and nothing opened.
+    if (event.type === 'pointerdown') {
+      this.#pressIsTouch = (event as PointerEvent).pointerType === 'touch';
+    }
+
+    if (this.#pressIsTouch) {
+      return;
+    }
+
+    if (bottom === 0 && inlineEnd === 0) {
+      return;
+    }
+
+    // The selection's own controls are drawn in this strip too - the autofill corner most of all, on
+    // any selection that reaches the grid's edge. The band is painted over them so the track reads as
+    // one clean line, but painting over a control must not disarm it: swallowing here left the fill
+    // handle dead for as long as the track showed. A press that really landed on one is the user
+    // reaching for that control, not for the scrollbar, so it goes through.
+    const target = event.target as HTMLElement | null;
+
+    if (target && typeof target.closest === 'function' && target.closest('.wtBorder')) {
+      return;
+    }
+
+    const rect = this.#deps.geometryReader.getBoundingClientRect(this.wtTable.holder);
+
+    const rtl = this.wtSettings.getSetting<boolean>('rtlMode');
+
+    if (isPointInScrollbarBand(rect, bottom, inlineEnd, rtl, event.clientX, event.clientY)) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+  }
+
+  /**
+   * Whether an overlay scrollbar is currently on screen, and so whether the frozen overlays should be
+   * leaving a clearance strip for it (#10370).
+   *
+   * @returns {ScrollbarBandsOpen}
+   */
+  isScrollbarVisible(): ScrollbarBandsOpen {
+    // The clip and the band switch on the same flag, so the two can never disagree - either half-
+    // switched state is visible (a seam down the strip, or a column header cut short). See
+    // `ScrollbarVisibility`.
+    const visible = this.#scrollbarVisibility.visible;
+
+    return { bottom: visible.horizontal, inlineEnd: visible.vertical };
+  }
+
+  /**
+   * Reports a scroll to the scrollbar-visibility tracker: scrolling is what puts an overlay scrollbar
+   * on screen, alongside the pointer nearing it.
+   */
+  notifyScrolledForScrollbarVisibility(): void {
+    // Nothing downstream can produce a band on a classic-scrollbar system, so a scroll there should not
+    // flip state, schedule a timer per axis and run two no-op refresh passes. `getScrollbarWidth`
+    // caches after its first call, so this costs a lookup on a path that fires on every scroll.
+    if (this.#deps.geometryReader.getScrollbarWidth(this.#deps.rootDocument) !== 0) {
+      return;
+    }
+
+    this.#scrollbarVisibility.notifyScrolled();
+  }
+
+  /**
+   * Scrolls the vertical axis by a delta, on whatever owns that axis: the top overlay's scrolling
+   * element — the holder (or a scrollable ancestor) when an element owns the axis, the window when
+   * the page does. Reports whether the position moved, which is what the wheel listener uses to
+   * decide whether it consumed the event.
+   *
+   * Driving the axis owner rather than the single `scrollableElement` matters in split mode, where
+   * that element is the holder while the window owns the vertical axis: a wheel that moved the
+   * holder's `scrollLeft` was canceled, and the window-owned vertical part went with it — the
+   * columns moved, the page did not. Scrolling the window from here consumes both axes at once.
    *
    * @param {number} delta Relative value to scroll.
    * @returns {boolean}
    */
   scrollVertically(delta: number) {
-    if (!(this.scrollableElement instanceof HTMLElement)) {
-      return false;
-    }
-
-    const el = this.scrollableElement;
-    const previousScroll = el.scrollTop;
-
-    el.scrollTop += delta;
-
-    return previousScroll !== el.scrollTop;
+    return this.#scrollAxisOwnerBy(this.topOverlay.mainTableScrollableElement, 'y', delta);
   }
 
   /**
-   * Scrolls main scrollable element horizontally.
+   * Scrolls the horizontal axis by a delta, on whatever owns that axis (the inline-start overlay's
+   * scrolling element). See `scrollVertically`.
    *
    * @param {number} delta Relative value to scroll.
    * @returns {boolean}
    */
   scrollHorizontally(delta: number) {
-    if (!(this.scrollableElement instanceof HTMLElement)) {
-      return false;
+    return this.#scrollAxisOwnerBy(this.inlineStartOverlay.mainTableScrollableElement, 'x', delta);
+  }
+
+  /**
+   * Moves one axis of its owner by a delta and reports whether the position changed.
+   *
+   * The element test is `isHTMLElement`, never `instanceof`: an owner from an iframe's realm fails
+   * `instanceof HTMLElement` against this realm's constructor, and the old guard then reported "not
+   * scrolled", so a wheel over a clone could not reach the columns at all. A window owner is scrolled
+   * with `behavior: 'instant'` so the offset is readable on the next line whatever `scroll-behavior`
+   * the page sets — a smooth scroll would read as unmoved, the event would not be consumed, and the
+   * browser's own scroll would land on top of it.
+   *
+   * @param {HTMLElement | Window} owner The element (or window) that scrolls the axis.
+   * @param {'x' | 'y'} axis The axis to move.
+   * @param {number} delta Relative value to scroll.
+   * @returns {boolean}
+   */
+  #scrollAxisOwnerBy(owner: HTMLElement | Window, axis: 'x' | 'y', delta: number): boolean {
+    if (isHTMLElement(owner)) {
+      const property = axis === 'x' ? 'scrollLeft' : 'scrollTop';
+      const previous = owner[property];
+
+      owner[property] += delta;
+
+      return previous !== owner[property];
     }
 
-    const el = this.scrollableElement;
-    const previousScroll = el.scrollLeft;
+    const { rootWindow } = this.#deps;
+    const read = () => (axis === 'x' ? rootWindow.scrollX : rootWindow.scrollY);
+    const previous = read();
 
-    el.scrollLeft += delta;
+    rootWindow.scrollBy({
+      left: axis === 'x' ? delta : 0,
+      top: axis === 'y' ? delta : 0,
+      behavior: 'instant',
+    });
 
-    return previousScroll !== el.scrollLeft;
+    return previous !== read();
   }
 
   /**
@@ -538,6 +752,7 @@ class Overlays {
   destroy() {
     this.#postponedAdjustElementsSize.cancel();
     this.#resizeMonitor.destroy();
+    this.#scrollbarVisibility.destroy();
     this.#stickyScroll.destroy();
     this.eventManager.destroy();
     // todo, probably all below `destroy` calls has no sense. To analyze
@@ -582,7 +797,7 @@ class Overlays {
     if (isScrollTriggered) {
       this.#postponedAdjustElementsSize();
     } else {
-      this.#adjustElementsSizeIfNeeded();
+      this.adjustElementsSizeIfNeeded();
     }
 
     if (this.bottomOverlay.clone) {
@@ -599,15 +814,6 @@ class Overlays {
     if (this.bottomInlineStartCornerOverlay && this.bottomInlineStartCornerOverlay.clone) {
       this.bottomInlineStartCornerOverlay.refresh(bottomFastDraw);
     }
-  }
-
-  /**
-   * Update the last cached spreader size with the current size.
-   *
-   * @returns {boolean} `true` if the lastSpreaderSize cache was updated, `false` otherwise.
-   */
-  updateLastSpreaderSize() {
-    return this.#spreaderSize.updateLastSpreaderSize();
   }
 
   /**
@@ -632,32 +838,114 @@ class Overlays {
       }
     });
     syncOversizedColumnHeadersWithFrozenOverlays(this.wot.wtTable);
-    this.adjustElementsSize();
+    // Through the gate, not straight to the writer. `TableView#afterRender` calls this on every draw
+    // of any grid whose column header is taller than a row - which is most grids with headers - and
+    // the writes above are idempotent, so on a steady grid there is nothing for a resize to do. Going
+    // direct cost one full resize per draw on exactly the common case the gate exists to protect.
+    this.adjustElementsSizeIfNeeded();
   }
 
   /**
    * Adjust overlays elements size and master table size.
    */
   adjustElementsSize() {
-    this.#spreaderSize.adjustElementsSize();
+    const written = this.#spreaderSize.adjustElementsSize();
+
+    // The scrollport may have just moved or changed size, so the rect the pointer is compared against
+    // has to be re-read on next use. Dropping a field, no measurement.
+    this.#scrollbarVisibility.notifyResized();
+    this.#syncScrollbarTrackBands();
+    // Captured here rather than in the gate, for two reasons. Several paths reach this writer directly
+    // and bypass the gate entirely - `markOversizedRows`, the `skipRender` path of the draw cycle (the
+    // one master draw that never reaches `refresh()`), the bottom clone's draw, and
+    // `refreshColumnHeaderHeights` - so recording it in the gate would leave the stored value stale
+    // after any of them and cost one redundant resize on the next draw. And capturing AFTER the write
+    // records the state the DOM is now in, so a write that changes a term of its own signature does
+    // not re-fire on the next draw. `written` is the size just applied; passing it keeps a resizing
+    // draw at two column walks rather than three.
+    //
+    // The layout terms still come from the draw's snapshot, which the write does not invalidate. That
+    // is deliberate: refreshing it here would force a measurement inside every resize, and the terms
+    // it would correct are re-resolved by `beginDrawLayout` on the next draw anyway.
+    this.#lastAppliedSignature = this.#currentLayoutSignature(written);
   }
 
   /**
-   * Expand the hider vertically element by the provided delta value.
+   * Re-applies the clearance after the scrollbar appears or fades, and nothing else (#10370).
    *
-   * @param {number} heightDelta The delta value to expand the hider element by.
+   * Opening and closing the band is a paint change - a `clip-path` and an opacity - so it must not drag
+   * a full `adjustElementsSize` behind it: that walks every column, resizes three overlays, and (being
+   * an extra pass no other input triggers) changes what the render-offset specs count.
    */
-  expandHiderVerticallyBy(heightDelta: number) {
-    this.#spreaderSize.expandHiderVerticallyBy(heightDelta);
+  #refreshScrollbarClearance() {
+    const open = this.isScrollbarVisible();
+
+    // The bands have to come and go on this signal, not wait for the next draw - a scroll may not
+    // trigger one, and the scrollbar is already on screen by then.
+    this.#syncScrollbarTrackBands();
+
+    this.#overlays.forEach((overlay) => {
+      overlay.refreshScrollbarClearance(open);
+    });
   }
 
   /**
-   * Expand the hider horizontally element by the provided delta value.
+   * Draws the band each overlay scrollbar is painted in, across the whole scrollport (#10370).
    *
-   * @param {number} widthDelta The delta value to expand the hider element by.
+   * Owned here rather than per overlay: the band has to span the master too, or the frozen part reads as
+   * an opaque patch next to a transparent gap. Skipped entirely unless the grid is in the
+   * overlay-scrollbar regime, so a classic-scrollbar grid pays nothing - not even the two reads.
    */
-  expandHiderHorizontallyBy(widthDelta: number) {
-    this.#spreaderSize.expandHiderHorizontallyBy(widthDelta);
+  #syncScrollbarTrackBands() {
+    const { geometryReader, rootDocument } = this.#deps;
+    const wtViewport = this.wot.wtViewport;
+    const holder = this.wtTable.holder;
+    // Only when the holder is the scroller. With page-level scrolling the scrollbar belongs to the
+    // window, nowhere near this holder, so a band in here would carve a strip out of nothing.
+    // Also off on a touch-only device: nothing there can grab a thumb, and the band would swallow the
+    // press that becomes a tap - see `canGrabScrollbar`.
+    const holderScrolls = this.scrollableElement === holder
+      && canGrabScrollbar(this.#deps.rootWindow);
+    const scrollbarWidth = geometryReader.getScrollbarWidth(rootDocument);
+    // Only where an overlay is actually clipped out of the strip. The band exists to fill in for the
+    // frozen content that stops short of the scrollbar; along an edge no overlay reaches, there is
+    // nothing to fill in for, and drawing one paints a gray strip over live cells and swallows the
+    // presses there - which is what a grid with no frozen rows or columns used to get.
+    const covers = (edge: 'bottom' | 'inlineEnd') =>
+      this.#overlays.some(overlay => overlay.coversScrollbarEdge(edge));
+    const bottom = holderScrolls && covers('bottom')
+      ? axisScrollbarClearance(
+        geometryReader, holder, scrollbarWidth, wtViewport.hasHorizontalScroll(), 'horizontal'
+      ) : 0;
+    const inlineEnd = holderScrolls && covers('inlineEnd')
+      ? axisScrollbarClearance(
+        geometryReader, holder, scrollbarWidth, wtViewport.hasVerticalScroll(), 'vertical'
+      ) : 0;
+
+    const open = this.isScrollbarVisible();
+
+    // Only an open band can swallow a press; a closed edge is ordinary grid again.
+    this.#bandSizes = {
+      bottom: open.bottom ? bottom : 0,
+      inlineEnd: open.inlineEnd ? inlineEnd : 0,
+    };
+
+    if (bottom === 0 && inlineEnd === 0) {
+      syncScrollbarTrackBands(
+        holder,
+        { bottom: 0, inlineEnd: 0, scrollportWidth: 0, scrollportHeight: 0 },
+        { bottom: false, inlineEnd: false }
+      );
+
+      return;
+    }
+
+    syncScrollbarTrackBands(holder, {
+      bottom,
+      inlineEnd,
+      scrollportWidth: geometryReader.clientWidth(holder),
+      scrollportHeight: geometryReader.clientHeight(holder),
+    }, open);
   }
 
   /**
@@ -679,12 +967,18 @@ class Overlays {
   }
 
   /**
-   * Get the parent overlay of the provided element.
+   * Finds the overlay clone that holds the provided element, by the given containment test.
+   *
+   * Shared by the two public lookups below so the overlay list stays in one place: adding an overlay
+   * type to one list and forgetting the other would silently leave the two answering differently.
    *
    * @param {HTMLElement} element An element to process.
+   * @param {Function} isHeldBy Decides whether a clone's table holds the element.
    * @returns {WalkontableInstance|null}
    */
-  getParentOverlay(element: HTMLElement): WalkontableInstance | null {
+  #findParentOverlay(
+    element: HTMLElement, isHeldBy: (wtTable: Table, el: HTMLElement) => boolean
+  ): WalkontableInstance | null {
     if (!element) {
       return null;
     }
@@ -703,12 +997,56 @@ class Overlays {
         return;
       }
 
-      if (overlay.clone && overlay.clone.wtTable.TABLE.contains(element)) { // todo demeter
+      if (overlay.clone && isHeldBy(overlay.clone.wtTable, element)) { // todo demeter
         result = overlay.clone;
       }
     });
 
     return result;
+  }
+
+  /**
+   * Whether the sticky-scroll strategy currently owns the spreaders' position (a native scrollbar
+   * drag is in progress). The overlays then leave the spreader transform alone.
+   *
+   * @returns {boolean}
+   */
+  isStickyScrollActive(): boolean {
+    return this.#stickyScroll.isActive();
+  }
+
+  /**
+   * Whether the sticky-scroll strategy currently owns the overlay clones' spreaders too. It does not
+   * in window-scroll mode, and the clone transform writes must then keep running during a drag.
+   *
+   * @returns {boolean}
+   */
+  isStickyScrollOwningClones(): boolean {
+    return this.#stickyScroll.ownsCloneSpreaders();
+  }
+
+  /**
+   * Get the overlay whose rendered area contains the provided element.
+   *
+   * This matches against each clone's spreader rather than its `TABLE`, so it also resolves the
+   * elements an overlay renders beside its table — the selection borders, which are appended to the
+   * spreader. `getParentOverlay` misses those and reports them as the master's.
+   *
+   * @param {HTMLElement} element An element to process.
+   * @returns {WalkontableInstance|null}
+   */
+  getParentOverlayByRenderedArea(element: HTMLElement): WalkontableInstance | null {
+    return this.#findParentOverlay(element, (wtTable, el) => wtTable.spreader.contains(el));
+  }
+
+  /**
+   * Get the parent overlay of the provided element.
+   *
+   * @param {HTMLElement} element An element to process.
+   * @returns {WalkontableInstance|null}
+   */
+  getParentOverlay(element: HTMLElement): WalkontableInstance | null {
+    return this.#findParentOverlay(element, (wtTable, el) => wtTable.TABLE.contains(el));
   }
 
   /**
@@ -737,16 +1075,90 @@ class Overlays {
   }
 
   /**
-   * Adjust the elements size if needed.
+   * Everything that decides the hider size and the overlay root geometry, as one comparable
+   * string. Compared against the signature captured by the last {@link Overlays#adjustElementsSize}
+   * so the resize runs only when its result would actually differ.
+   *
+   * The first two terms are the numbers the write itself uses (`SpreaderSize#getProposedHiderSize`),
+   * so the gate can never disagree with the writer. The rest are NOT there for the overlay roots -
+   * those re-size themselves on every master draw, because `placeFixedOverlays` calls each region's
+   * `resetFixedPosition()` outside the render gate and each of those ends in its own
+   * `adjustElementsSize()`. They are there for the other two things this writer does, which nothing
+   * else repeats: `ScrollbarVisibility#notifyResized()` and `Overlays#syncScrollbarTrackBands()`.
+   * Both are decided by the scrollport box, the scrollbar state, which clones render at all, and how
+   * deep the frozen regions reach - exactly the terms below. Drop them and the scrollbar bands stop
+   * following a container resize.
+   *
+   * Cost: no forced layout read at all, against the two the old gate did on every draw (the
+   * spreader's `clientWidth` and `clientHeight` — `LiveGeometryReader` caches nothing). `getLayout()`
+   * returns the snapshot `Viewport#beginDrawLayout` already resolved for this draw,
+   * `getRowHeaderWidth()` is memoized on the viewport, and every row sum is O(1) off the prefix-sum
+   * cache. The one non-constant part is the column walk inside `getProposedHiderSize()`, and that is
+   * what the write itself does — matching the write is the point, because a gate built on a cheaper
+   * approximation drifts from the writer and every drift is a missed or wasted resize. The walk must
+   * also stay live: `stretchH` derives from the workspace width, which derives from the column sum,
+   * so caching that sum freezes the cycle (see the Performance section of `walkontable/AGENTS.md`).
+   *
+   * @param {{ width: number, height: number }} [hider] The hider size, when the caller has just
+   *                                                     computed it. Saves one column walk.
+   * @returns {string}
    */
-  #adjustElementsSizeIfNeeded() {
+  #currentLayoutSignature(hider = this.#spreaderSize.getProposedHiderSize()): string {
+    const wtViewport = this.wot.wtViewport;
+    const layout = wtViewport.getLayout();
+    const { wtSettings } = this.#deps;
+    const fixedRowsTop = wtSettings.getSetting<number>('fixedRowsTop');
+    const fixedRowsBottom = wtSettings.getSetting<number>('fixedRowsBottom');
+    const fixedColumnsStart = wtSettings.getSetting<number>('fixedColumnsStart');
+    const totalRows = wtSettings.getSetting<number>('totalRows');
+
+    return [
+      // What the write would produce.
+      hider.width,
+      hider.height,
+      // The box the overlays are sized against, and the scrollbars that box implies.
+      layout.workspaceWidth,
+      layout.workspaceHeight,
+      layout.hasVerticalScroll,
+      layout.hasHorizontalScroll,
+      layout.scrollbarSize,
+      layout.rowHeaderWidth,
+      layout.columnHeaderHeight,
+      layout.scrollMode,
+      layout.isRtl,
+      // Which clones render. Read from the settings rather than each overlay's `needFullRender`,
+      // which `updateStateOfRendering('before')` has already half-advanced by the time a draw
+      // reaches here.
+      wtSettings.getSetting('shouldRenderTopOverlay'),
+      wtSettings.getSetting('shouldRenderInlineStartOverlay'),
+      wtSettings.getSetting('shouldRenderBottomOverlay'),
+      // How deep the frozen regions reach. A move can change these while both totals stay equal,
+      // because a sum does not care about order.
+      fixedRowsTop,
+      fixedRowsBottom,
+      fixedColumnsStart,
+      this.topOverlay.sumCellSizes(0, fixedRowsTop),
+      this.bottomOverlay.sumCellSizes(totalRows - fixedRowsBottom, totalRows),
+      this.inlineStartOverlay.sumCellSizes(0, fixedColumnsStart),
+    ].join('|');
+  }
+
+  /**
+   * Resize the overlay elements, but only when the geometry the engine would write differs from the
+   * geometry it last wrote.
+   *
+   * This is the engine's own gate and the engine calls it for itself on every draw — nothing outside
+   * Walkontable needs to. It is public only so `TableView#adjustElementsSize()`, which is reachable
+   * as `hot.view.adjustElementsSize()` and cannot be removed, has something safe to forward to: an
+   * integrator who moved the grid gets a resize if the geometry really moved, and pays nothing if it
+   * did not.
+   */
+  adjustElementsSizeIfNeeded() {
     if (this.destroyed) {
       return;
     }
 
-    const wasSpreaderSizeUpdated = this.updateLastSpreaderSize();
-
-    if (wasSpreaderSizeUpdated) {
+    if (this.#currentLayoutSignature() !== this.#lastAppliedSignature) {
       this.adjustElementsSize();
     }
   }

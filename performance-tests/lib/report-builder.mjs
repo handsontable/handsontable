@@ -3,45 +3,140 @@
 // interactive tables) lives in the HTML report instead.
 
 import {
-  REGRESSION_CALLOUT_THRESHOLD,
+  REGRESSION_CALLOUT_THRESHOLD_TIMING,
+  INCOMPARABLE_LABELS,
+  activeTotalsPerIteration,
+  calcCv,
+  fmtCvValue,
+  heapThresholdFor,
   pctChange,
+  relativeToShift,
+  runShift,
   sumActive,
+  comparability,
+  sumActiveComparable,
+  traceMismatches,
   fmtMs,
   fmtPct,
   fmtPctWithEmoji,
   formatTitle,
 } from './thresholds.mjs';
+import { formatEnvironment } from './environment.mjs';
+
+/**
+ * Decides every verdict the comment makes, once. `buildReport` renders from it and
+ * `collectRegressions` lists from it, and the teardown passes the same object to both -- deciding it
+ * per render site is how the table and the callouts once disagreed on one run.
+ *
+ * @param {Record<string, object>} allScenarioResults -- keyed by scenario name
+ * @param {object | null} goldenSnapshots
+ * @param {object} [meta] -- see buildReport
+ * @returns {{ assessments: Array<object>, shift: number | null, hasGolden: boolean }}
+ */
+export function assessReport(allScenarioResults, goldenSnapshots, meta = {}) {
+  const goldenScenarios = goldenSnapshots?.scenarios || {};
+  const hasGolden = Object.keys(goldenScenarios).length > 0;
+  const assessments = assessScenarios(allScenarioResults, goldenScenarios, traceMismatches(meta));
+  // Not on a self-comparison: every delta is 0 there, and a shift of 0.0% would read as a
+  // measurement of the runner.
+  const shift = hasGolden && !goldenSnapshots?.isSelfCompare
+    ? runShift(assessments.map(a => a.totalPct))
+    : null;
+
+  return { assessments, shift, hasGolden };
+}
 
 /**
  * @param {Record<string, object>} allScenarioResults -- keyed by scenario name
  * @param {object | null} goldenSnapshots -- golden baseline (or null to self-compare)
- * @param {object} [meta] -- { runUrl }
+ * @param {object} [meta] -- { pagesUrl, crossWindowScenarios, versionMismatchScenarios, commit,
+ *   runId, environment, baselineUnavailable }
+ * @param {{ assessments: Array<object>, shift: number | null, hasGolden: boolean }} [assessment]
+ *   -- from assessReport; computed here when the caller has no other use for it
  * @returns {string} full markdown report
  */
-export function buildReport(allScenarioResults, goldenSnapshots, meta = {}) {
+export function buildReport(
+  allScenarioResults, goldenSnapshots, meta = {},
+  assessment = assessReport(allScenarioResults, goldenSnapshots, meta)
+) {
   const goldenScenarios = goldenSnapshots?.scenarios || {};
-  const hasGolden = Object.keys(goldenScenarios).length > 0;
+  const { assessments, shift, hasGolden } = assessment;
   const sections = [];
 
   // Summary table
-  sections.push(buildSummaryTable(allScenarioResults, goldenScenarios, hasGolden));
+  sections.push(buildSummaryTable(assessments, hasGolden, shift));
 
-  // Regression callouts (only for scenarios > threshold)
-  if (hasGolden) {
-    sections.push(buildRegressionCallouts(allScenarioResults, goldenScenarios));
+  // Hook timing, for the scenarios that measure it independently of the trace
+  const hookTiming = buildHookTimingSection(allScenarioResults, goldenScenarios, hasGolden);
+
+  if (hookTiming) {
+    sections.push(hookTiming);
+  }
+
+  // Regression callouts (only for scenarios > threshold). Suppressed on a self-comparison, where
+  // every delta is 0% by construction and "within tolerance" would be a claim about nothing.
+  if (hasGolden && !goldenSnapshots?.isSelfCompare) {
+    sections.push(buildRegressionCallouts(assessments, shift));
+  }
+
+  // Where the baseline came from, so a reader can tell one run from five
+  const provenance = buildProvenanceFooter(goldenSnapshots, meta, hasGolden, shift, assessments);
+
+  if (provenance) {
+    sections.push(provenance);
   }
 
   // Link to full HTML report on GitHub Pages
   if (meta.pagesUrl) {
     sections.push(
-      `\u{1F4CA} **[Full interactive report \u2192](${meta.pagesUrl})**`
+      `\u{1F4CA} **[Full interactive report →](${meta.pagesUrl})**`
     );
   }
 
   return sections.join('\n\n');
 }
 
-// --- summary table ---
+/**
+ * The scenarios a run regressed on, for a caller that needs the list rather than the prose -- the
+ * golden (develop-push) teardown turns each into a `::warning` annotation on the develop run.
+ *
+ * Same assessment as the callouts, so the two cannot disagree -- and the same run shift, so a
+ * consumer can say how far a row sits from the rest of the run the way the callout prose does.
+ *
+ * @param {Record<string, object>} allScenarioResults
+ * @param {object | null} goldenSnapshots
+ * @param {object} [meta]
+ * @param {{ assessments: Array<object>, shift: number | null }} [assessment] -- from assessReport,
+ *   the same object the report was rendered from
+ * @returns {Array<{ name: string, title: string, totalPct: number | null, heapPct: number | null,
+ *   timingRegressed: boolean, heapRegressed: boolean, shift: number | null,
+ *   relativePct: number | null }>}
+ */
+export function collectRegressions(
+  allScenarioResults, goldenSnapshots, meta = {},
+  assessment = assessReport(allScenarioResults, goldenSnapshots, meta)
+) {
+  if (!goldenSnapshots || goldenSnapshots.isSelfCompare) {
+    return [];
+  }
+
+  const { assessments, shift } = assessment;
+
+  return assessments
+    .filter(a => a.timingRegressed || a.heapRegressed)
+    .map(({ name, title, totalPct, heapPct, timingRegressed, heapRegressed }) => ({
+      name,
+      title,
+      totalPct,
+      heapPct,
+      timingRegressed,
+      heapRegressed,
+      shift,
+      relativePct: relativeToShift(totalPct, shift),
+    }));
+}
+
+// --- assessment ---
 
 // Memory-focused scenarios: their primary metric is JS heap, not trace timing. They are grouped at
 // the bottom of the summary table so the timing scenarios read together at the top.
@@ -65,39 +160,213 @@ function orderedScenarioEntries(results) {
   });
 }
 
-function buildSummaryTable(results, goldenScenarios, hasGolden) {
+/**
+ * Decides whether a scenario's total delta may be published, and computes it if so.
+ *
+ * Two things disqualify a comparison. The baseline may have failed to capture a category the
+ * current run did record, in which case the two sums describe different things (the filed defect:
+ * ~4 ms of real work divided against a baseline that never measured it, published as +115.7%). Or
+ * the two sides may have been measured through different trace windows, which PR1's `windowSource`
+ * discriminator detects.
+ *
+ * @param {object} current
+ * @param {object | undefined} golden
+ * @param {false | 'window-mismatch' | 'version-mismatch'} mismatch
+ * @returns {{ change: number | null, incomplete: boolean }}
+ */
+function totalDelta(current, golden, mismatch) {
+  if (!golden) {
+    return { change: null, incomplete: false, label: null, shortLabel: null };
+  }
+
+  const verdict = comparability(golden.categories, current.categories, mismatch);
+
+  if (!verdict.comparable) {
+    return {
+      change: null, incomplete: true, label: verdict.label, shortLabel: verdict.shortLabel,
+    };
+  }
+
+  const { baseline, current: currentTotal } = sumActiveComparable(
+    golden.categories, current.categories
+  );
+
+  return {
+    change: pctChange(baseline, currentTotal), incomplete: false, label: null, shortLabel: null,
+  };
+}
+
+/**
+ * Everything the table, the callouts and the annotations need to know about one scenario, decided
+ * once. Deciding it per render site is how one comment came to print a red heap cell in its table
+ * and clear the same run in its callouts.
+ *
+ * @param {Record<string, object>} results
+ * @param {Record<string, object>} goldenScenarios
+ * @param {Record<string, 'window-mismatch' | 'version-mismatch'>} mismatches -- per scenario name
+ * @returns {Array<object>}
+ */
+function assessScenarios(results, goldenScenarios, mismatches) {
+  return orderedScenarioEntries(results).map(([name, current]) => {
+    const golden = goldenScenarios[name];
+    // A trace-level mismatch: the two sides bracket different slices (window) or different
+    // definitions of the scenario (version). Both withhold everything derived from the trace.
+    const traceMismatch = mismatches[name] ?? false;
+    const { change: totalPct, incomplete, label, shortLabel } = totalDelta(current, golden, traceMismatch);
+    // Heap survives a missed timing category -- the two are measured independently -- but not a
+    // trace mismatch: jsHeapMaxBytes is a maximum over the samples inside the window, so two
+    // windows (or two definitions) sample two different things.
+    const heapPct = !golden || traceMismatch
+      ? null
+      : pctChange(golden.updateCounters?.jsHeapMaxBytes, current.updateCounters?.jsHeapMaxBytes);
+    const heapThreshold = heapThresholdFor(name);
+
+    return {
+      name,
+      title: formatTitle(name),
+      current,
+      golden,
+      traceMismatch,
+      totalPct,
+      incomplete,
+      label,
+      shortLabel,
+      heapPct,
+      heapThreshold,
+      timingRegressed: totalPct != null && totalPct > REGRESSION_CALLOUT_THRESHOLD_TIMING,
+      heapRegressed: heapPct != null && heapPct > heapThreshold,
+    };
+  });
+}
+
+// --- summary table ---
+
+/**
+ * Renders the two spreads a reader needs to weigh a delta, side by side.
+ *
+ * They measure different things and are not interchangeable. The first is how much the three
+ * back-to-back iterations of this run disagreed; the second is how far apart the develop runs
+ * behind the baseline median sit. After PR1 the first is routinely under 4% while the second is
+ * 11-19%, so showing only the first would advertise a confidence the comparison does not have.
+ *
+ * @param {object} current
+ * @param {object | undefined} golden
+ * @returns {string}
+ */
+function reliabilityCell(current, golden) {
+  const iterationTotals = activeTotalsPerIteration(current._iterationValues?.categories);
+
+  return `${fmtCvValue(calcCv(iterationTotals))} / ${fmtCvValue(golden?.spread)}`;
+}
+
+function buildSummaryTable(assessments, hasGolden, shift) {
+  // The column only when a shift was estimated, on the same condition as its legend: on a
+  // self-comparison or a thin table every cell would read "--" with nothing explaining what it is.
+  const hasShift = hasGolden && shift != null;
   const headers = hasGolden
-    ? ['Scenario', 'Scripting', 'Rendering', 'Painting', 'Total', '\u0394 Total', 'JS Heap', '\u0394 Heap']
-    : ['Scenario', 'Scripting', 'Rendering', 'Painting', 'Total', 'JS Heap'];
+    ? [
+      'Scenario', 'Scripting', 'Rendering', 'Painting', 'Total', 'Δ Total',
+      ...(hasShift ? ['Δ vs shift'] : []),
+      'CV run / base', 'JS Heap', 'Δ Heap',
+    ]
+    : ['Scenario', 'Scripting', 'Rendering', 'Painting', 'Total', 'CV run', 'JS Heap'];
 
   const rows = [];
 
-  for (const [name, current] of orderedScenarioEntries(results)) {
+  for (const a of assessments) {
+    const { current, golden } = a;
     const cats = current.categories || {};
     const total = sumActive(cats);
     const heap = current.updateCounters?.jsHeapMaxLabel ?? '--';
 
     if (hasGolden) {
-      const golden = goldenScenarios[name];
-      const goldenTotal = golden ? sumActive(golden.categories || {}) : null;
-      const totalChange = fmtPctWithEmoji(pctChange(goldenTotal, total));
-      const heapChange = fmtPctWithEmoji(
-        pctChange(golden?.updateCounters?.jsHeapMaxBytes, current.updateCounters?.jsHeapMaxBytes)
-      );
+      // The verdict's own wording. A fixed "baseline incomplete" misattributes a failure of this
+      // run's own capture to develop, and sends a maintainer to re-run develop for nothing.
+      const totalChange = a.incomplete ? a.shortLabel : fmtPctWithEmoji(a.totalPct);
+      // Informational, no emoji: the callout gate runs on the raw delta and a second set of colours
+      // here would let the two columns reach opposite verdicts on one row.
+      const vsShift = hasShift ? [fmtPct(relativeToShift(a.totalPct, shift))] : [];
+      // Gated here as well as in the callouts, so the table and the callout below it cannot reach
+      // opposite verdicts on the same run.
+      const heapChange = a.traceMismatch
+        // The mismatch's own label, not the baseline-side one: the heap cell is only ever withheld
+        // for a trace mismatch, where the baseline captured everything and it is the windows or
+        // the definitions that differ. "baseline incomplete" here would give one row two
+        // explanations for one cause.
+        ? INCOMPARABLE_LABELS[a.traceMismatch]
+        : fmtPctWithEmoji(a.heapPct, a.heapThreshold);
 
       rows.push([
-        formatTitle(name), fmtMs(cats.scripting), fmtMs(cats.rendering),
-        fmtMs(cats.painting), fmtMs(total), totalChange, heap, heapChange,
+        a.title, fmtMs(cats.scripting), fmtMs(cats.rendering),
+        fmtMs(cats.painting), fmtMs(total), totalChange, ...vsShift,
+        reliabilityCell(current, golden), heap, heapChange,
       ]);
     } else {
       rows.push([
-        formatTitle(name), fmtMs(cats.scripting), fmtMs(cats.rendering),
-        fmtMs(cats.painting), fmtMs(total), heap,
+        a.title, fmtMs(cats.scripting), fmtMs(cats.rendering),
+        fmtMs(cats.painting), fmtMs(total),
+        fmtCvValue(calcCv(activeTotalsPerIteration(current._iterationValues?.categories))), heap,
       ]);
     }
   }
 
-  return `## \u26A1 Performance Results\n\n${formatMarkdownTable(headers, rows)}`;
+  // The shift sentence on the same condition as the column.
+  const shiftLegend = hasShift
+    ? '`Δ vs shift`: the delta with this run\'s common shift against the baseline removed (see the '
+      + 'footer); callouts use the raw `Δ Total`. '
+    : '';
+  const legend = hasGolden
+    ? `\n\n<sub>${shiftLegend}`
+      + '`CV run / base`: spread across the three iterations of this run, then across the '
+      + 'develop runs behind the baseline. A high second number means the baseline itself moves, '
+      + 'so read the delta beside it loosely.</sub>'
+    : '';
+
+  return `## ⚡ Performance Results\n\n${formatMarkdownTable(headers, rows)}${legend}`;
+}
+
+// --- hook timing ---
+
+/**
+ * Hook timing is measured in-page around the hook pair rather than derived from the trace, so it is
+ * an independent check on the trace window. Only the scenarios that install a timer report it.
+ *
+ * @param {Record<string, object>} results
+ * @param {Record<string, object>} goldenScenarios
+ * @param {boolean} hasGolden
+ * @returns {string} markdown section, or '' when no scenario measures a hook
+ */
+function buildHookTimingSection(results, goldenScenarios, hasGolden) {
+  const rows = [];
+
+  for (const [name, current] of orderedScenarioEntries(results)) {
+    if (current.hookTiming == null) {
+      continue;
+    }
+
+    const golden = goldenScenarios[name];
+    const row = [
+      formatTitle(name),
+      fmtMs(current.hookTiming),
+      fmtCvValue(calcCv(current._iterationValues?.hookTiming)),
+    ];
+
+    if (hasGolden) {
+      row.push(fmtPctWithEmoji(pctChange(golden?.hookTiming, current.hookTiming)));
+    }
+
+    rows.push(row);
+  }
+
+  if (rows.length === 0) {
+    return '';
+  }
+
+  const headers = hasGolden
+    ? ['Scenario', 'Hook', 'CV run', 'Δ Hook']
+    : ['Scenario', 'Hook', 'CV run'];
+
+  return `### Hook timing\n\n${formatMarkdownTable(headers, rows)}`;
 }
 
 // --- regression callouts ---
@@ -116,49 +385,179 @@ function buildTimingBreakdown(current, golden) {
   return parts.join(', ');
 }
 
-function buildRegressionCallouts(results, goldenScenarios) {
+function buildRegressionCallouts(assessments, shift) {
   const callouts = [];
+  const skipped = [];
+  const noBaseline = [];
 
-  for (const [name, current] of orderedScenarioEntries(results)) {
-    const golden = goldenScenarios[name];
-
-    if (!golden) {
+  for (const a of assessments) {
+    if (!a.golden) {
+      // Not in the baseline at all -- new, or omitted by the median window -- which is not the
+      // same as a comparison that failed. Reported by name rather than silently dropped, so a
+      // scenario missing from every count above has somewhere honest to land.
+      noBaseline.push(a.title);
       continue;
     }
 
-    const totalPct = pctChange(sumActive(golden.categories || {}), sumActive(current.categories || {}));
-    const heapPct = pctChange(
-      golden.updateCounters?.jsHeapMaxBytes, current.updateCounters?.jsHeapMaxBytes
-    );
-    const timingRegressed = totalPct != null && totalPct > REGRESSION_CALLOUT_THRESHOLD;
-    const heapRegressed = heapPct != null && heapPct > REGRESSION_CALLOUT_THRESHOLD;
+    if (a.incomplete) {
+      // A trace mismatch withholds heap too (jsHeapMaxBytes is a maximum over the samples inside
+      // the parsed window, invalid across two different windows or definitions), so a reader must
+      // not conclude heap was still assessed just because it isn't called out separately below.
+      const heapNote = a.traceMismatch ? '; heap also not assessed' : '';
 
-    if (!timingRegressed && !heapRegressed) {
+      skipped.push(`${a.title} (${a.label}${heapNote})`);
+    }
+
+    if (!a.timingRegressed && !a.heapRegressed) {
       continue;
     }
 
-    const title = formatTitle(name);
-    const header = timingRegressed
-      ? `> \u26A0\uFE0F **${title}** regressed ${fmtPct(totalPct)}`
-      : `> \u26A0\uFE0F **${title}** regressed`;
+    const header = a.timingRegressed
+      ? `> ⚠️ **${a.title}** regressed ${fmtPct(a.totalPct)}`
+      : `> ⚠️ **${a.title}** regressed`;
     const lines = [header];
 
-    if (timingRegressed) {
-      lines.push(`> ${buildTimingBreakdown(current, golden)}`);
+    if (a.timingRegressed) {
+      lines.push(`> ${buildTimingBreakdown(a.current, a.golden)}`);
+
+      // Where the run as a whole sits tells the reader whether this row stands out from it. Prose,
+      // not a verdict: the callout fired on the raw delta and stays fired.
+      const relative = relativeToShift(a.totalPct, shift);
+
+      if (relative != null) {
+        lines.push(`> ${fmtPct(relative)} relative to this run's shift of ${fmtPct(shift)}`);
+      }
     }
 
-    if (heapRegressed) {
-      lines.push(`> JS heap ${fmtPct(heapPct)} larger`);
+    if (a.heapRegressed) {
+      lines.push(`> JS heap ${fmtPct(a.heapPct)} larger`);
     }
 
     callouts.push(lines.join('\n'));
   }
 
-  if (callouts.length === 0) {
-    return 'All scenarios within tolerance \u2705';
+  // A scenario whose baseline is unusable was neither cleared nor flagged, so say so rather than
+  // letting it fall silently into "within tolerance". Scoped to the total by default, because heap
+  // survives a baseline that only missed a timing category -- the two are measured independently --
+  // and calling heap unassessed there would contradict a callout standing directly above it. A
+  // window mismatch is the exception: it invalidates heap too, and that entry says so explicitly.
+  const notes = [];
+
+  if (skipped.length > 0) {
+    notes.push(`Total delta not assessed: ${skipped.join(', ')}.`);
   }
 
-  return `### Regressions\n\n${callouts.join('\n\n')}`;
+  // Not in the baseline at all, which "within tolerance" cannot claim either -- there is nothing to
+  // be flat against. Kept distinct from `skipped`, which is baselines that exist but disagree.
+  if (noBaseline.length > 0) {
+    notes.push(`No baseline yet: ${noBaseline.join(', ')}.`);
+  }
+
+  const note = notes.length > 0 ? `\n\n<sub>${notes.join(' ')}</sub>` : '';
+
+  if (callouts.length === 0) {
+    return `All assessed scenarios within tolerance ✅${note}`;
+  }
+
+  return `### Regressions\n\n${callouts.join('\n\n')}${note}`;
+}
+
+// --- provenance ---
+
+/**
+ * States what the deltas above were measured against, on what, and how far the whole run sits from
+ * it. Without this the comment reads identically whether the baseline was a five-run median or one
+ * fluke develop push, and whether the runner was a fast one or a slow one.
+ *
+ * @param {object | null} goldenSnapshots
+ * @param {object} meta
+ * @param {boolean} hasGolden
+ * @param {number | null} shift
+ * @param {Array<object>} assessments
+ * @returns {string}
+ */
+function buildProvenanceFooter(goldenSnapshots, meta, hasGolden, shift, assessments) {
+  if (!hasGolden) {
+    // A golden (develop-push) run with nothing compatible to compare against -- the first pushes
+    // after a Chromium or harness change. Compare mode falls back to a self-comparison and says why
+    // there; here there is no self-comparison, so say why here or the job summary reads as if the
+    // tooling silently stopped comparing.
+    if (!meta.baselineUnavailable) {
+      return '';
+    }
+
+    const current = formatCurrent(meta);
+
+    return `<sub>No comparable develop baseline: ${meta.baselineUnavailable}.${current}</sub>`;
+  }
+
+  let baseline;
+
+  if (goldenSnapshots?.isSelfCompare) {
+    // The reason the run had nothing to compare against is the one thing a reader of a self-comparison
+    // needs, and "no develop baseline was available" alone sends them to check gh-pages.
+    const why = meta.baselineUnavailable ? `: ${meta.baselineUnavailable}` : ', no develop baseline was available';
+
+    baseline = `this run compared against itself${why} (every delta above is 0% by construction)`;
+  } else if (goldenSnapshots?.isMedian) {
+    const sources = goldenSnapshots.medianSourceTimestamps || [];
+    const range = sources.length > 1
+      ? ` (${sources[sources.length - 1]} to ${sources[0]})`
+      : '';
+
+    baseline = `median of ${goldenSnapshots.medianWindowSize} develop runs${range}`;
+  } else if (goldenSnapshots?.timestamp) {
+    baseline = `single develop run ${goldenSnapshots.timestamp}`;
+  } else {
+    baseline = 'unknown';
+  }
+
+  // The browser the baseline was recorded in. Same as the current one whenever the compatibility
+  // key selected it; printed anyway, because a local run without history can compare across it.
+  if (!goldenSnapshots?.isSelfCompare && goldenSnapshots?.environment?.chromium) {
+    baseline += `, Chromium ${goldenSnapshots.environment.chromium}`;
+  }
+
+  const current = formatCurrent(meta);
+
+  let shiftNote = '';
+
+  if (shift != null) {
+    const rows = assessments.filter(a => a.totalPct != null).length;
+
+    shiftNote = ` Run shift: ${fmtPct(shift)} (median Δ across ${rows} scenarios: how much `
+      + 'faster or slower this runner ran than the baseline\'s, which every scenario shares. '
+      + '`Δ vs shift` removes it; callouts use the raw `Δ Total`, because a change that '
+      + 'slows every scenario alike is exactly what the shift cannot see).';
+  }
+
+  return `<sub>Baseline: ${baseline}.${current}${shiftNote}</sub>`;
+}
+
+/**
+ * " Current: commit `abc1234`, run `42`, Chromium ... · CPU ×N · image." -- or '' when nothing is known.
+ *
+ * @param {object} meta
+ * @returns {string}
+ */
+function formatCurrent(meta) {
+  const parts = [];
+
+  if (meta.commit) {
+    parts.push(`commit \`${String(meta.commit).slice(0, 7)}\``);
+  }
+
+  if (meta.runId) {
+    parts.push(`run \`${meta.runId}\``);
+  }
+
+  const environment = formatEnvironment(meta.environment);
+
+  if (environment) {
+    parts.push(environment);
+  }
+
+  return parts.length > 0 ? ` Current: ${parts.join(', ')}.` : '';
 }
 
 // --- helpers ---

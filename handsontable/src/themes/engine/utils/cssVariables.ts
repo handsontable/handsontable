@@ -64,8 +64,10 @@ function toCssKey(prefix: string, key: string): string {
 export interface FlattenOptions {
   /**
    * Resolves a `[light, dark]` value list to that one branch instead of emitting
-   * `light-dark()`. Needed because `light-dark()` is newer than the browsers
-   * Handsontable supports, so the shipped minified CSS does not use it.
+   * `light-dark()`. The scheme override has to win over the stylesheet, and a
+   * stylesheet built below the `light-dark()` floor carries class-switched
+   * variables that a bare `color-scheme` flip cannot beat. See
+   * `ThemeManager#buildResolvedColorVariables`.
    */
   resolveScheme?: 'light' | 'dark';
   /**

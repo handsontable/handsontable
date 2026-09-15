@@ -36,25 +36,25 @@ This example shows the usage of the dropdown feature. Dropdown is based on [Auto
 
 ::: only-for javascript
 
-Internally, cell `{type: 'dropdown'}` is equivalent to cell `{type: 'autocomplete', strict: true, filter: false}`. Therefore you can think of `dropdown` as a searchable `<select>`.
+Internally, cell `{type: 'dropdown'}` is equivalent to cell `{type: 'autocomplete', strict: true, filter: false}`. Therefore you can think of `dropdown` as a searchable `<select>`. Strict mode cannot be turned off here: a dropdown cell ignores `strict: false`. See [Validate dropdown values](#validate-dropdown-values).
 
 :::
 
 ::: only-for react
 
-Internally, cell `type="dropdown"` is equivalent to cell `type="autocomplete" strict={true} filter={false}`. Therefore you can think of `dropdown` as a searchable `<select>`.
+Internally, cell `type="dropdown"` is equivalent to cell `type="autocomplete" strict={true} filter={false}`. Therefore you can think of `dropdown` as a searchable `<select>`. Strict mode cannot be turned off here: a dropdown cell ignores `strict={false}`. See [Validate dropdown values](#validate-dropdown-values).
 
 :::
 
 ::: only-for angular
 
-Internally, cell `{ type: 'dropdown' }` is equivalent to cell `{ type:'autocomplete', strict: true, filter: false }`. Therefore you can think of `dropdown` as a searchable `<select>`.
+Internally, cell `{ type: 'dropdown' }` is equivalent to cell `{ type:'autocomplete', strict: true, filter: false }`. Therefore you can think of `dropdown` as a searchable `<select>`. Strict mode cannot be turned off here: a dropdown cell ignores `strict: false`. See [Validate dropdown values](#validate-dropdown-values).
 
 :::
 
 ::: only-for vue
 
-Internally, cell `{ type: 'dropdown' }` is equivalent to cell `{ type:'autocomplete', strict: true, filter: false }`. Therefore you can think of `dropdown` as a searchable `<select>`.
+Internally, cell `{ type: 'dropdown' }` is equivalent to cell `{ type:'autocomplete', strict: true, filter: false }`. Therefore you can think of `dropdown` as a searchable `<select>`. Strict mode cannot be turned off here: a dropdown cell ignores `strict: false`. See [Validate dropdown values](#validate-dropdown-values).
 
 :::
 
@@ -104,6 +104,8 @@ Internally, cell `{ type: 'dropdown' }` is equivalent to cell `{ type:'autocompl
 ## The `source` option
 
 The `source` option can be provided in two formats:
+
+You can also assign a function to load the options from a remote source, as described in [Autocomplete strict mode with asynchronous data](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md#autocomplete-strict-mode-with-asynchronous-data). Handsontable ignores a response that arrives after the editor closed - including a close you may not notice, such as scrolling the edited cell out of view - and it ignores a response that a newer query has superseded, which happens as you type. Call the callback whenever the request completes, even late.
 
 ### Array of values
 
@@ -233,6 +235,21 @@ When working with object-based dropdown data, you can use methods like [`getSour
 
 :::
 
+#### Writing a plain value
+
+You don't have to build the object yourself. When you write a plain value into the cell, Handsontable looks it up among the `value` properties of the `source` array. On a match, the cell stores the whole matching object, with its `key`.
+
+This applies to every way a value reaches the cell:
+
+- picking an option in the editor
+- typing an option's text and pressing <kbd>**Enter**</kbd>
+- pasting text, including a paste from another application and a paste as plain text (<kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Shift**</kbd> + <kbd>**V**</kbd>)
+- calling [`setDataAtCell()`](@/api/core.md#setdataatcell) or [`populateFromArray()`](@/api/core.md#populatefromarray)
+
+A value that matches no option is stored as you wrote it. The `dropdown` cell type is strict, so such a value fails validation and the cell is marked as invalid.
+
+The lookup compares the text the cell displays, so a numeric `value` matches its string form. It's skipped when `source` is a function, because the options aren't known until the function answers.
+
 ## Set the dropdown width
 
 By default, the dropdown list matches the width of the edited cell, so long options can be truncated. To let the list expand to fit its longest option, set [`trimDropdown`](@/api/options.md#trimdropdown) to `false`.
@@ -341,6 +358,14 @@ In the example below, the **Job title (default)** column uses the default height
 :::
 
 :::
+
+## Validate dropdown values
+
+The dropdown validator always runs in strict mode. A value that is not in the `source` list is marked invalid, whether it is typed, pasted, or set with [`setDataAtCell()`](@/api/core.md#setdataatcell). The [`strict`](@/api/options.md#strict) option has no effect on dropdown cells.
+
+The [`allowInvalid`](@/api/options.md#allowinvalid) option decides what happens to an invalid value, the same as in [Autocomplete strict mode](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md#autocomplete-strict-mode).
+
+Validation runs when a value is written to a cell. Values that are already in the data source when the grid loads are not validated. To check and mark them, call [`validateCells()`](@/api/core.md#validatecells) after the grid is created.
 
 ## Result
 

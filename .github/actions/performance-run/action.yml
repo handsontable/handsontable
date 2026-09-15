@@ -46,12 +46,20 @@ runs:
       run: |
         git fetch origin gh-pages:gh-pages 2>/dev/null || true
         mkdir -p performance-tests/golden
+
+        # Single-file fallback, kept for when the history/ fetch below is empty or
+        # has nothing with a marked trace window on every scenario.
         if git show gh-pages:performance-reports/develop/latest.json > performance-tests/golden/snapshots.json 2>/dev/null; then
-          echo "Golden baseline restored from gh-pages"
+          echo "Golden baseline (latest.json) restored from gh-pages"
         else
           echo "No golden baseline found on gh-pages -- running without baseline"
           rm -f performance-tests/golden/snapshots.json
         fi
+
+        # Rolling-median history, shared with .github/workflows/performance-tests.yml
+        # so the two golden-restore call sites can't drift on the fetch count or the
+        # timestamp pattern.
+        node .github/scripts/fetch-golden-history.mjs
 
     - name: Compute report URL
       id: report-url
@@ -83,6 +91,10 @@ runs:
         PR_NUMBER: ${{ github.event.pull_request.number || '' }}
         PAGES_URL: ${{ steps.report-url.outputs.pages_url || '' }}
         GITHUB_HEAD_REF: ${{ github.head_ref || '' }}
+        # The commit the report names. On a pull_request event the default GITHUB_SHA is the
+        # ephemeral refs/pull/N/merge commit, which does not exist on the branch under review, so
+        # the report would cite a SHA nobody can look up. Fall back to GITHUB_SHA off the PR path.
+        PERF_COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         PERF_MODE: ${{ github.event_name == 'push' && 'golden' || 'compare' }}
       run: PERF_MODE=$PERF_MODE node scripts/run.mjs
 

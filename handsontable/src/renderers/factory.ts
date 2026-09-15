@@ -20,7 +20,7 @@ import type { CellProperties } from '../settings';
  * @example
  * ```typescript
  * const myRenderer = rendererFactory(({ td, value, cellProperties }) => {
- *   td.innerHTML = '';
+ *   td.replaceChildren();
  *   const div = document.createElement('div');
  *   div.textContent = value || '';
  *   div.style.color = cellProperties.customColor || 'black';

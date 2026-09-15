@@ -56,6 +56,7 @@ const cellTypesItems = [
 const performanceItems = [
   { path: 'performance/lazy-loading/lazy-loading', title: 'Lazy loading with pagination', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
   { path: 'performance/persist-column-layout/persist-column-layout', title: 'Persist column layout', onlyFor: ['javascript', 'angular', 'react'] },
+  { path: 'performance/expensive-cell-renderer/expensive-cell-renderer', title: 'Cache an expensive cell renderer', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
 ];
 
 const renderingStylingItems = [

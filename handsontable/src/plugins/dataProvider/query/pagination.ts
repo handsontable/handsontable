@@ -15,8 +15,8 @@ const PAGINATION_PLUGIN_KEY = 'pagination';
 /**
  * Copies enabled Pagination `pageSize` and current page into query parameters.
  *
- * Uses [[Pagination#getCurrentPage]] and [[Pagination#getCurrentPageSize]] when present so refetches
- * (e.g. after sort) keep the user-selected state without calling [[Pagination#getPaginationData]]
+ * Uses {@link Pagination#getCurrentPage} and {@link Pagination#getCurrentPageSize} when present so refetches
+ * (e.g. after sort) keep the user-selected state without calling {@link Pagination#getPaginationData}
  * (unsafe before DataProvider registers external-pagination hooks).
  * Falls back to `pageSize` / `initialPage` from settings when the state getters are missing (tests)
  * or return a non-numeric value (e.g. `'auto'`).

@@ -2,7 +2,7 @@ import { A11Y_HIDDEN } from '../a11y';
 import { isSafariBefore261, isMobileBrowser, isIpadOS, isWindowsOS } from '../browser';
 import { throwWithCause } from '../../helpers/errors';
 import { warnOnce } from '../../helpers/console';
-import type { SanitizerContext } from '../../core/settings';
+import type { SanitizerContext, TrustedHTMLLike } from '../../core/settings';
 
 /**
  * Get the parent of the specified node in the DOM tree.
@@ -310,6 +310,30 @@ function filterEmptyClassNames(classNames: string[]) {
   return classNames.filter((x: string) => !!x);
 }
 
+/**
+ * Normalizes a `className` value to a flat array of non-empty class names.
+ * Accepts a space-separated string, an array of strings, or a nullish value.
+ *
+ * Filtering is truthiness-based and shared with `addClass` through `filterEmptyClassNames`, so the
+ * cell meta path and the DOM path always agree on what counts as a class. A truthy non-string
+ * therefore survives, which makes the declared `string[]` slightly optimistic for out-of-contract
+ * input - that is deliberate. Do not "fix" the type by adding a second, stricter filter here.
+ *
+ * @param {string|string[]|null|undefined} className The `className` value to normalize.
+ * @returns {string[]}
+ */
+export function normalizeClassNames(className: string | string[] | null | undefined): string[] {
+  if (Array.isArray(className)) {
+    return filterEmptyClassNames(className);
+  }
+
+  if (typeof className === 'string') {
+    return filterEmptyClassNames(className.split(' '));
+  }
+
+  return [];
+}
+
 function filterRegexes(list: (string | RegExp)[], returnBoth: true): { regexFree: string[]; regexes: RegExp[] };
 function filterRegexes(list: (string | RegExp)[], returnBoth?: false): string[];
 /**
@@ -505,9 +529,25 @@ export function removeTextNodes(element: Node): void {
  * http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/9
  * http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/11 - no siginificant improvement with Chrome remove() method.
  *
- * @param {HTMLElement} element An element to clear.
+ * Prefer this over `innerHTML = ''` for the UI containers the grid clears - dialogs, the
+ * pagination bar, a cell. That assignment reads as "assign nothing", but `innerHTML` is a Trusted
+ * Types sink whatever the value, so under `require-trusted-types-for 'script'` an empty string
+ * throws exactly like markup would. Removing the children touches no sink and behaves identically
+ * on browsers that do not implement Trusted Types.
+ *
+ * Scoped to small child counts on purpose. Measured in Chromium, this is a couple of microseconds
+ * faster up to about three children and around 1.4x slower attached (2.5x detached) at ten
+ * thousand, with the crossover near thirty. Every call site in the grid is well under that; a
+ * wholesale grid-body clear is the shape that loses, and wants `replaceChildren()` instead - which
+ * is not a sink either.
+ *
+ * Typed as `Element` rather than `HTMLElement` because that is all the function needs -
+ * it reads `lastChild` and calls `removeChild`, both of which come from `Node`. The
+ * narrower type forced a cast on callers holding a plain `Element`.
+ *
+ * @param {Element} element An element to clear.
  */
-export function empty(element: HTMLElement): void {
+export function empty(element: Element): void {
   let child;
 
   /* eslint-disable no-cond-assign */
@@ -516,7 +556,73 @@ export function empty(element: HTMLElement): void {
   }
 }
 
-export const HTML_CHARACTERS = /(<([^>]*)>|&([^;]*);)/;
+/**
+ * Decides whether a string is written through `innerHTML` (markup, so it has to reach the
+ * sanitizer) or `textContent` (plain text, which cannot inject anything).
+ *
+ * Every alternative is deliberately shaped to require something that could actually be parsed as
+ * markup, and must stay that way. A looser test - matching any `<` with a later `>`, or any `&`
+ * with a later `;` - routes ordinary prose such as `Smith & Sons, Ltd.; est. 1920` or
+ * `Score < 50 > threshold` to `innerHTML`. Under a Trusted Types policy that write throws, and
+ * because `fastInnerHTML` has no `catch` the error propagates out of header rendering and takes
+ * the whole grid down, from a `colHeaders` string containing no markup at all.
+ *
+ * The four alternatives are, in order: a tag, a markup declaration or processing instruction, a
+ * named character reference (`&amp;`, `&frac12;`), and a numeric one (`&#169;`, `&#x1F600;`).
+ *
+ * The tag alternative requires a tag-like shape - `<`, an optional `/`, then an ASCII letter - and
+ * excludes `<` from the run that follows, which is what keeps it linear. With `[^>]*` there, a
+ * label of `'<a'.repeat(40000)` backtracks for over a second on the main thread; `[^<>]*` answers
+ * the same in a fraction of a millisecond. The one input the two disagree on is a `<` inside an
+ * attribute value with no other tag in the string (`<a x="<">`), which lands on the text path - the
+ * inert side. This matters beyond rendering: `sanitizeHTML` runs this test over a whole `text/html`
+ * clipboard payload on paste.
+ *
+ * The declaration alternative is why a comment, a doctype, `<![CDATA[`, or `<?xml?>` still takes
+ * the HTML path. None of them can build an element, so nothing here is a sink concern; they are
+ * kept on it because the `html` cell type and `allowHtml` sources render markup deliberately, and
+ * dropping declarations to the text path would print them literally where they used to disappear
+ * into the parser. It deliberately does not require a closing `>`: an unterminated declaration is
+ * still not prose, and leaving the `>` out keeps this alternative free of a quantifier.
+ *
+ * The alternatives sit side by side rather than nested inside one group, which is what keeps the
+ * pattern inside the complexity budget the `typescript:S5843` quality gate enforces - nesting an
+ * alternation inside another one prices every quantifier under it a level higher. They are all
+ * non-capturing: this value is public, and capture groups on it were a shape consumers could read
+ * (`match[1]` used to equal `match[0]`) while nothing in the grid ever did. Exposing no groups is
+ * honest about that, where renumbering them silently would not be.
+ *
+ * The numeric alternative writes the `x` as optional rather than splitting decimal from
+ * hexadecimal, so it also admits `&#abc;` - `#` with hexadecimal digits but no `x`. That is not a
+ * reference, so this errs toward treating a handful of unrealistic strings as markup. The
+ * sanitizer seeing slightly too much is the safe direction to be imprecise in.
+ *
+ * Two residuals, both deliberate. The semicolon-less legacy named form (`&copy 2024`, which a
+ * parser still decodes, with a parse error) is out of scope, so such content now renders literally;
+ * the old pattern only decoded it when an unrelated `;` happened to appear later in the same
+ * string, which made the behavior depend on the rest of the value. And the tag alternative still
+ * matches prose shaped like a tag, `Type <Enter> to continue` or `<none>`, because the only way to
+ * exclude it is a tag-name allowlist, which would drop custom elements from headers. Such a label
+ * still reaches `innerHTML`, and so still throws under a Trusted Types policy - the accidental
+ * crash this pattern narrows is reduced, not eliminated.
+ *
+ * The named form requires at least two characters on purpose. HTML defines no single-letter named
+ * reference - the shortest are two, such as `&lt;` and `&ni;` - so the floor costs nothing and it
+ * is what keeps `R&D; notes` out of the sink. Matching by shape cannot be exact: `&Dx;` is not a
+ * reference either, yet it is spelled like one. Testing the ~2200 real names would mean a table
+ * lookup on a path that runs for every rendered header, and a browser renders an unknown
+ * reference literally anyway, so shape is where this stops.
+ *
+ * It stays unanchored, so a string mixing prose with a real reference (`Smith & Sons; &amp; more`)
+ * still matches on the reference and still reaches the sanitizer.
+ *
+ * The `i` flag carries the case-insensitivity that tag names and hexadecimal digits need anyway
+ * (`<IMG SRC=x>`, `&#X41;`), which is what lets the character classes stay this short. There is
+ * deliberately no `g` flag: it would make `.test()` stateful through `lastIndex`, so consecutive
+ * calls on the same pattern would disagree about identical content.
+ */
+export const HTML_CHARACTERS =
+  /(?:<\/?[a-z][^<>]*>)|(?:<[!?])|(?:&[a-z][a-z\d]+;)|(?:&#x?[\da-f]+;)/i;
 
 /**
  * Shared "warn once" key for every missing-sanitizer warning, so that all DOM
@@ -554,7 +660,7 @@ const defaultSanitizerWarnScope = {};
  *
  * @param {HTMLElement} element An element to write into.
  * @param {string} content The text to write.
- * @param {boolean|function(string, SanitizerContext): string} [sanitizer] When a function, use it as the sanitizer; when `false`,
+ * @param {boolean|function(string, SanitizerContext): (string|object)} [sanitizer] When a function, use it as the sanitizer; when `false`,
  * write the content as raw HTML on purpose (no warning); when `true` (the default), write the content as raw HTML and
  * warn once that no sanitizer is configured.
  * @param {SanitizerContext} [context] The sanitization context passed as the second argument to a custom sanitizer function, and
@@ -564,11 +670,11 @@ const defaultSanitizerWarnScope = {};
  */
 export function fastInnerHTML(
   element: HTMLElement, content: string,
-  sanitizer: boolean | ((html: string, context: SanitizerContext) => string) = true,
+  sanitizer: boolean | ((html: string, context: SanitizerContext) => string | TrustedHTMLLike) = true,
   context: SanitizerContext = 'innerHTML',
   scope: object = defaultSanitizerWarnScope): void {
   if (HTML_CHARACTERS.test(content)) {
-    let sanitized: string;
+    let sanitized: string | TrustedHTMLLike;
 
     if (typeof sanitizer === 'function') {
       // `?? ''` rather than `?? content`: a sanitizer that returns nothing for input it strips
@@ -587,7 +693,23 @@ export function fastInnerHTML(
       sanitized = content;
     }
 
-    element.innerHTML = sanitized;
+    const target = getCellContentRoot(element);
+
+    if (sanitized === '') {
+      // A sanitizer that stripped the payload entirely leaves nothing to write. Clearing the
+      // element is not the same as assigning `''` to `innerHTML`: that is a Trusted Types sink
+      // whatever the value, so under `require-trusted-types-for 'script'` the empty string throws
+      // and a stripped cell takes the grid down instead of rendering blank.
+      empty(target);
+
+      return;
+    }
+
+    // The sanitizer's value reaches the sink exactly as returned. A page enforcing Trusted Types
+    // hands back a `TrustedHTML`, which the sink accepts and a plain string is rejected in place
+    // of - so this must never coerce, concatenate, or re-test the value. The cast is only for the
+    // DOM lib's `string` typing; `TrustedHTML` is absent from it at this TypeScript version.
+    target.innerHTML = sanitized as string;
   } else {
     fastInnerText(element, content);
   }
@@ -600,7 +722,8 @@ export function fastInnerHTML(
  * @param {string} content The text to write.
  */
 export function fastInnerText(element: HTMLElement, content: string): void {
-  const child = element.firstChild;
+  const target = getCellContentRoot(element);
+  const child = target.firstChild;
 
   if (child && child.nodeType === 3 && child.nextSibling === null) {
     // fast lane - replace existing text node
@@ -608,9 +731,39 @@ export function fastInnerText(element: HTMLElement, content: string): void {
 
   } else {
     // slow lane - empty element and insert a text node
-    empty(element);
-    element.appendChild(element.ownerDocument.createTextNode(content));
+    empty(target);
+    target.appendChild(target.ownerDocument.createTextNode(content));
   }
+}
+
+/**
+ * The class of the clipping wrapper the rendering engine places inside a cell whose row has an
+ * exact height. A table cell cannot be shorter than its content, so the engine moves the content
+ * into this wrapper, which is taken out of flow and clipped to the cell's padding box.
+ *
+ * @type {string}
+ */
+export const CELL_CLIP_CLASS = 'htCellClip';
+
+/**
+ * Returns the element a cell's content belongs in: the engine's clipping wrapper when the cell
+ * holds one (and nothing else), otherwise the cell itself. Renderers write through this so the
+ * wrapper survives a redraw instead of being wiped and rebuilt on every draw.
+ *
+ * @param {HTMLElement} element The cell element (or any element, which is then returned as-is).
+ * @returns {HTMLElement}
+ */
+export function getCellContentRoot(element: HTMLElement): HTMLElement {
+  const child = element.firstChild;
+
+  // Cheap checks first: this runs for every cell on every draw. A text node (the common case) and a
+  // cell with several children exit on integer compares before the type guard runs. A falsy check
+  // rather than `=== null`: a bare object standing in for an element (tests) has no `firstChild`.
+  if (!child || child.nodeType !== Node.ELEMENT_NODE || child.nextSibling !== null) {
+    return element;
+  }
+
+  return isHTMLElement(child) && hasClass(child, CELL_CLIP_CLASS) ? child : element;
 }
 
 /**
@@ -775,11 +928,14 @@ export function getWindowScrollLeft(rootWindow: Window = window): number {
  */
 // eslint-disable-next-line no-restricted-globals
 export function getScrollTop(element: HTMLElement | Window, rootWindow: Window = window): number {
-  if (element instanceof Window) {
-    return getWindowScrollTop(rootWindow);
+  // `isHTMLElement`, not `instanceof Window`: a window from another realm (an iframe driven from
+  // the parent page) fails the realm-bound test, fell through to `window.scrollTop`, and returned
+  // `undefined` — the row calculators then built the band from it, on the last rows of the grid.
+  if (isHTMLElement(element)) {
+    return element.scrollTop;
   }
 
-  return element.scrollTop;
+  return getWindowScrollTop(rootWindow);
 }
 
 /**
@@ -791,11 +947,12 @@ export function getScrollTop(element: HTMLElement | Window, rootWindow: Window =
  */
 // eslint-disable-next-line no-restricted-globals
 export function getScrollLeft(element: HTMLElement | Window, rootWindow: Window = window): number {
-  if (element instanceof Window) {
-    return getWindowScrollLeft(rootWindow);
+  // Cross-realm safe for the reason given on `getScrollTop`.
+  if (isHTMLElement(element)) {
+    return element.scrollLeft;
   }
 
-  return element.scrollLeft;
+  return getWindowScrollLeft(rootWindow);
 }
 
 /**
@@ -865,14 +1022,25 @@ const OVERFLOW_TRIMMING_VALUES = ['scroll', 'hidden', 'auto', 'clip'];
 const OVERFLOW_CONCRETE_VALUES = ['visible', 'clip', 'hidden', 'scroll', 'auto', 'overlay'];
 
 /**
- * Checks whether a single overflow axis traps the table on that axis.
+ * One of the two overflow axes an element can trim on.
+ */
+export type OverflowAxis = 'x' | 'y';
+
+/**
+ * Checks whether a single overflow axis traps the table on that axis, for the single-answer form of
+ * `getTrimmingContainer()` (no `axis` argument).
  *
  * `overflow: clip` establishes no scroll port. When an axis is `clip` while the perpendicular axis
  * stays `visible`, it does not trap the table's scroll — the table still scrolls with the window on
  * the visible axis. A width-constrained, window-scrolled table sets `overflow-x: clip` on its root
- * (see core.ts, DEV-1025); treating that root as the trimming container drops the overlays out of
- * window-scroll mode (frozen rows stop pinning, vertical virtualization stops). Such a single-axis
- * clip must not qualify the axis as trimming.
+ * (see core.ts, DEV-1025). The single-answer form has to name one container for both axes, so
+ * treating that root as the trimming container would drop the overlays out of window-scroll mode
+ * (frozen rows stop pinning, vertical virtualization stops). Such a single-axis clip must not
+ * qualify the axis as trimming there.
+ *
+ * The per-axis form of `getTrimmingContainer()` does not use this exemption: asked about the
+ * horizontal axis alone, an `overflow-x: clip` ancestor is the correct answer, and the vertical axis
+ * gets its own, separate answer.
  *
  * @param {string} axis The `overflow-x`/`overflow-y` value of the axis being tested.
  * @param {string} perpendicular The `overflow` value of the other axis.
@@ -914,19 +1082,55 @@ function resolveOverflowAxes(el: HTMLElement, computedStyle: CSSStyleDeclaration
 }
 
 /**
+ * Checks whether the element trims the table on the given axis, for the per-axis form of
+ * `getTrimmingContainer()`. Any trapping value on that axis counts; the perpendicular axis is
+ * irrelevant, because the caller resolves it separately.
+ *
+ * @param {HTMLElement} el The element to test.
+ * @param {OverflowAxis} axis The axis to test.
+ * @param {Window | null} rootWindow The element's window, or `null` for a detached document.
+ * @returns {boolean}
+ */
+function elementTrapsAxis(el: HTMLElement, axis: OverflowAxis, rootWindow: Window | null): boolean {
+  if (rootWindow) {
+    const axes = resolveOverflowAxes(el, rootWindow.getComputedStyle(el));
+
+    return OVERFLOW_TRIMMING_VALUES.includes(axes[axis]);
+  }
+
+  const inlineAxis = axis === 'x' ? el.style.overflowX : el.style.overflowY;
+
+  return OVERFLOW_TRIMMING_VALUES.includes(inlineAxis || el.style.overflow);
+}
+
+/**
  * Returns a DOM element responsible for trimming the provided element.
  *
+ * Without `axis`, one container is named for both axes: the nearest ancestor that traps on either
+ * axis, where a single-axis `clip` next to a `visible` axis does not count (see `overflowAxisTraps`).
+ * This is the public `Handsontable.dom.getTrimmingContainer()` contract.
+ *
+ * With `axis`, the answer is per axis: the nearest ancestor whose `overflow-x` (or `overflow-y`) is
+ * `scroll`, `hidden`, `auto`, or `clip`, regardless of the other axis. The two axes can resolve to
+ * different containers — a root with `overflow-x: clip` and no vertical clip trims horizontally
+ * while the window still owns the vertical axis. The rendering engine asks per axis.
+ *
  * @param {HTMLElement} base Base element.
+ * @param {OverflowAxis} [axis] The axis to resolve. Omit for the single-answer form.
  * @returns {HTMLElement} Base element's trimming parent.
  */
-export function getTrimmingContainer(base: HTMLElement): HTMLElement | Window {
+export function getTrimmingContainer(base: HTMLElement, axis?: OverflowAxis): HTMLElement | Window {
   const rootDocument = base.ownerDocument;
   const rootWindow = rootDocument.defaultView;
 
   let el: HTMLElement | null = base.parentElement;
 
   while (el && el.style && rootDocument.body !== el) {
-    if (rootWindow) {
+    if (axis !== undefined) {
+      if (elementTrapsAxis(el, axis, rootWindow)) {
+        return el;
+      }
+    } else if (rootWindow) {
       const { x, y } = resolveOverflowAxes(el, rootWindow.getComputedStyle(el));
 
       if (overflowAxisTraps(x, y) || overflowAxisTraps(y, x)) {

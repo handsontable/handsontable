@@ -27,6 +27,14 @@ Pre-populate new rows with default values when users add rows to the grid.
 
 To keep one empty row at the bottom of the grid, set [`minSpareRows`](@/api/options.md#minsparerows) to `1`.
 
+::: warning
+
+Take care when you combine [`minSpareRows`](@/api/options.md#minsparerows) with [`allowInsertRow: false`](@/api/options.md#allowinsertrow). The spare rows still appear and typing into them works, because [`minSpareRows`](@/api/options.md#minsparerows) ignores [`allowInsertRow`](@/api/options.md#allowinsertrow). But a paste that extends past the last row is cut short, and Handsontable drops the rows that do not fit without an error.
+
+More generally, [`allowInsertRow: false`](@/api/options.md#allowinsertrow) does more than hide the context menu's insert items. It also stops the grid from adding rows during a paste or an autofill, and makes [`setDataAtCell()`](@/api/core.md#setdataatcell) throw when you write below the last row. See the [`allowInsertRow`](@/api/options.md#allowinsertrow) reference for what it does and does not stop.
+
+:::
+
 ::: only-for javascript
 
 ::: example #example1 --js 1 --ts 2
@@ -72,7 +80,7 @@ To keep one empty row at the bottom of the grid, set [`minSpareRows`](@/api/opti
 
 ## Spare rows with placeholder styling
 
-To hint what to enter in the spare row, add a custom cell renderer that displays greyed-out placeholder text in empty cells. The renderer checks whether the whole row is empty, then shows a template value in a lighter color.
+To hint what to enter in the spare row, add a custom cell renderer that displays grayed-out placeholder text in empty cells. The renderer checks whether the whole row is empty, then shows a template value in a lighter color.
 
 ::: only-for javascript
 
@@ -209,7 +217,7 @@ const hot = new Handsontable(container, {
 
 ## Result
 
-Your grid keeps one or more empty rows at the bottom. Depending on the approach, spare rows show greyed-out placeholder text or auto-fill all cells with template values when the user starts editing.
+Your grid keeps one or more empty rows at the bottom. Depending on the approach, spare rows show grayed-out placeholder text or auto-fill all cells with template values when the user starts editing.
 
 ## Related API reference
 

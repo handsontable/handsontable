@@ -132,4 +132,117 @@ describe('GhostTable', () => {
       expect(td!.textContent).toBe('A1');
     });
   });
+  describe('addRowHeadersColumn', () => {
+    /**
+     * A Handsontable stand-in that has row headers, labelling each row with the passed strings.
+     *
+     * @param {string[]} labels The row header label of each row.
+     * @returns {object}
+     */
+    function createRowHeaderHotMock(labels: string[]) {
+      const hot = createHotMock({});
+
+      hot.hasRowHeaders = () => true;
+      hot.view = {
+        appendColHeader: () => {},
+        appendRowHeader: (visualRow: number, th: HTMLTableCellElement) => {
+          th.textContent = labels[visualRow];
+        },
+      } as never;
+
+      return hot;
+    }
+
+    /**
+     * A samples map in the shape SamplesGenerator produces for a column of row headers.
+     *
+     * @param {number[]} rows Visual row indexes to sample.
+     * @returns {Map}
+     */
+    function rowSamples(rows: number[]) {
+      return new Map(rows.map(row => [`${row}`, { strings: [{ row, value: `row ${row}` }] }]));
+    }
+
+    it('should build one TH per measured row, each wrapped in its own TR inside the TBODY', () => {
+      const ghostTable = new GhostTable(createRowHeaderHotMock(['Alpha', 'Beta', 'Gamma']));
+
+      ghostTable.addRowHeadersColumn(rowSamples([0, 2]) as never);
+
+      const table = ghostTable.columns[0].table as HTMLTableElement;
+      const rows = table.querySelectorAll('tbody > tr');
+
+      expect(rows.length).toBe(2);
+      // The styling is scoped with child combinators, so a TH appended straight into the section
+      // would measure unstyled (#4363).
+      expect(rows[0].querySelector('th')!.textContent).toBe('Alpha');
+      expect(rows[1].querySelector('th')!.textContent).toBe('Gamma');
+    });
+
+    it('should mark the measured headers as ghost-table cells', () => {
+      const ghostTable = new GhostTable(createRowHeaderHotMock(['Alpha']));
+
+      ghostTable.addRowHeadersColumn(rowSamples([0]) as never);
+
+      const th = (ghostTable.columns[0].table as HTMLTableElement).querySelector('tbody th');
+
+      expect(th!.getAttribute('ghost-table')).toBe('1');
+    });
+
+    it('should let the table size itself to its content, overriding the fixed layout htCore imposes', () => {
+      const ghostTable = new GhostTable(createRowHeaderHotMock(['Alpha']));
+
+      ghostTable.addRowHeadersColumn(rowSamples([0]) as never);
+
+      const table = ghostTable.columns[0].table as HTMLTableElement;
+
+      // Without both overrides the measurement reads 0, because `.handsontable .htCore` declares
+      // `width: 0` and `table-layout: fixed`.
+      expect(table.style.tableLayout).toBe('auto');
+      expect(table.style.width).toBe('auto');
+    });
+
+    it('should register the column under the row header index, so getWidths reports it as column -1', () => {
+      const ghostTable = new GhostTable(createRowHeaderHotMock(['Alpha']));
+
+      ghostTable.addRowHeadersColumn(rowSamples([0]) as never);
+
+      expect(ghostTable.columns[0].col).toBe(-1);
+    });
+
+    it('should measure a second header level as column -2', () => {
+      const ghostTable = new GhostTable(createRowHeaderHotMock(['Alpha']));
+
+      ghostTable.addRowHeadersColumn(rowSamples([0]) as never, 1);
+
+      expect(ghostTable.columns[0].col).toBe(-2);
+    });
+
+    it('should add nothing when the grid has no row headers', () => {
+      const hot = createRowHeaderHotMock(['Alpha']);
+
+      hot.hasRowHeaders = () => false;
+
+      const ghostTable = new GhostTable(hot);
+
+      ghostTable.addRowHeadersColumn(rowSamples([0]) as never);
+
+      expect(ghostTable.columns.length).toBe(0);
+    });
+
+    it('should add nothing when there are no rows to measure', () => {
+      const ghostTable = new GhostTable(createRowHeaderHotMock([]));
+
+      ghostTable.addRowHeadersColumn(rowSamples([]) as never);
+
+      expect(ghostTable.columns.length).toBe(0);
+    });
+
+    it('should refuse to mix a row headers column into a table already raised vertically', () => {
+      const ghostTable = new GhostTable(createRowHeaderHotMock(['Alpha']));
+
+      ghostTable.addRow(0, createSamples() as never);
+
+      expect(() => ghostTable.addRowHeadersColumn(rowSamples([0]) as never)).toThrow();
+    });
+  });
 });

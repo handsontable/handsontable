@@ -61,7 +61,10 @@ export class CellAlignmentAction extends BaseAction {
       range.forAll((row: number, col: number) => {
         // Alignment classes should only collected within cell ranges. We skip header coordinates.
         if (row >= 0 && col >= 0) {
-          hot.setCellMeta(row, col, 'className', (this.stateBefore as string[][])[row][col] || ' htLeft');
+          // Restored as recorded, including an absent value. Falling back to a horizontal alignment
+          // here used to leave the cell aligned left after undoing a vertical alignment, and made
+          // the class name grow on every undo/redo cycle.
+          hot.setCellMeta(row, col, 'className', (this.stateBefore as string[][])[row][col]);
         }
 
         return true;

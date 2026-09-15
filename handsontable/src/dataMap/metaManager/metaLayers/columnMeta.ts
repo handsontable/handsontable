@@ -1,5 +1,5 @@
 import { extend } from '../../../helpers/object';
-import { columnFactory, extendByMetaType } from '../utils';
+import { columnFactory, extendByMetaType, normalizeEditorSetting } from '../utils';
 import LazyFactoryMap from '../lazyFactoryMap';
 
 /**
@@ -68,9 +68,10 @@ export default class ColumnMeta {
    */
   updateMeta(physicalColumn: number, settings: Record<string, unknown>) {
     const meta = this.getMeta(physicalColumn);
+    const normalizedSettings = normalizeEditorSetting(settings);
 
-    extend(meta, settings);
-    extendByMetaType(meta, settings);
+    extend(meta, normalizedSettings);
+    extendByMetaType(meta, normalizedSettings);
   }
 
   /**

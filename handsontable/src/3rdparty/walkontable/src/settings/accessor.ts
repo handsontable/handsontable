@@ -2,6 +2,7 @@ import { objectEach } from '../../../../helpers/object';
 import { throwWithCause } from '../../../../helpers/errors';
 import type { StylesHandler } from '../types';
 import type { SettingsPort } from '../ports';
+import type { RowHeightMode } from '../axisSizing/axisSizeSource';
 import { getDefaults } from './defaults';
 
 /**
@@ -88,6 +89,7 @@ export default class Settings implements SettingsPort {
   getSetting(key: 'viewportColumnRenderingThreshold'): number | 'auto';
   getSetting(key: 'viewportRowRenderingOffsetIsAuto'): boolean;
   getSetting(key: 'viewportColumnRenderingOffsetIsAuto'): boolean;
+  getSetting(key: 'rowHeightMode', sourceRowIndex: number): RowHeightMode;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getSetting<T = any>(key: string, param1?: any, param2?: unknown, param3?: unknown, param4?: unknown): T;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

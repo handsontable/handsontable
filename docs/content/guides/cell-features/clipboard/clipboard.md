@@ -17,6 +17,7 @@ vue:
   metaTitle: Clipboard - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
+menuTag: updated
 ---
 Copy data from selected cells to the system clipboard.
 
@@ -28,7 +29,7 @@ Handsontable supports copy, cut, and paste via the browser clipboard API and key
 
 You can copy or cut data from Handsontable to the system clipboard, either manually (using the context menu or the <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**C**</kbd>/<kbd>**X**</kbd> shortcuts) or programmatically (using Handsontable's API methods).
 
-## Copy & Cut
+## Copy & cut
 
 Copy & Cut actions allow exporting data from Handsontable to the system clipboard. The [`CopyPaste`](@/api/copyPaste.md) plugin copies and cuts data as a `text/plain` and a `text/html` MIME-type.
 
@@ -305,6 +306,53 @@ copyPastePlugin.copy('column-headers-only');
 ## Paste
 
 The `Paste` action allows the importing of data from external sources, using the user's system clipboard. The [`CopyPaste`](@/api/copyPaste.md) plugin firstly looks for `text/html` in the system clipboard, followed by `text/plain`.
+
+### Rows of unequal length
+
+Clipboard content does not always hold the same number of cells in every row. A row copied from a
+text editor, or a table exported by another application, can be shorter than the one below it.
+
+Handsontable pastes such content as wide as its **widest** row. A shorter row covers the same
+columns as the widest one, and the cells it has no value for are emptied, the way a spreadsheet
+application pastes them. Those cells hold `null`, the same value that clearing a cell writes.
+
+When the pasted content repeats to fill a larger selection, it repeats on that same width. Pasting
+two rows of three cells into a selection six columns wide writes the three cells twice per row.
+
+A merged cell that reaches past the last column is trimmed to the columns that are there. A footer
+row spanning a table wider than the pasted data lands in one row, without adding empty columns.
+
+The [`beforePaste`](@/api/hooks.md#beforepaste) and [`afterPaste`](@/api/hooks.md#afterpaste) hooks
+receive the content already squared off to the widest row, so what they report matches what the grid
+writes. To paste only the cells that were present, drop the empty ones in `beforePaste`.
+
+### Pasting wider than the grid
+
+A paste that runs past the last column adds the columns it needs when the
+[`data`](@/api/options.md#data) source is an array of arrays, you set no
+[`columns`](@/api/options.md#columns) option, and
+[`allowInsertColumn`](@/api/options.md#allowinsertcolumn) is left on.
+
+In every other configuration the column count is fixed. An object data source takes its columns
+from the first row or from [`dataSchema`](@/api/options.md#dataschema), and a `columns` option
+states them outright. The values that reach past the last column are still written, but to a
+property named after the column index, so no column displays them.
+[`getSourceData()`](@/api/core.md#getsourcedata) returns those properties, and
+[`countSourceCols()`](@/api/core.md#countsourcecols) counts only the ones on the first row, because that method
+reads the first row's keys.
+
+::: tip
+
+On an object data source this write is deprecated as of 18.2.0 and will be ignored from 19.0.0 on,
+because the value can never become a column there - it only adds a key your
+[`dataSchema`](@/api/options.md#dataschema) does not declare. Set
+[`allowInsertColumn`](@/api/options.md#allowinsertcolumn) to `false` to drop such pasted values
+today - that also removes **Insert column left** and **Insert column right** from the menus, which
+an object data source cannot use anyway. It does not stop a direct
+[`setDataAtCell()`](@/api/core.md#setdataatcell) call. To write a field the grid shows no column
+for, use [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) instead.
+
+:::
 
 ### Extending paste behavior
 

@@ -14,6 +14,100 @@ export const CLONE_TYPES = [
   CLONE_BOTTOM_INLINE_START_CORNER,
 ];
 
+/**
+ * Band, in CSS pixels, kept clear along an edge so an overlay ("floating") scrollbar stays visible and
+ * grabbable instead of being covered by a frozen overlay (#10370). Such a scrollbar takes no layout
+ * space, so it measures 0 and its real thickness cannot be read from the DOM - this has to be a
+ * constant, and it is sized for the widest state the scrollbar can reach.
+ *
+ * It is deliberately generous, because the two directions are not symmetrical: too small and the
+ * scrollbar is partly covered again, which is the whole defect; too large only costs a slightly taller
+ * band. Measured on macOS with the pointer on the scrollbar, which is its widest state: the painted
+ * widget is 7px idle and 11px hovered in both Chrome and Firefox, while the *interactive* reach probed
+ * by dragging is 16px. 16 therefore covers every state measured.
+ *
+ * One published number, for reference only: Gecko's Windows 11 default
+ * (`kDefaultWinOverlayScrollbarSize`, `widget/ScrollbarDrawingWin11.cpp`) is 12. It is quoted because
+ * it is written down, not because this is a Gecko concern - every engine that floats its scrollbars
+ * needs the same clearance, each with its own thickness, and GTK takes its size from the active theme.
+ * No single value is exact everywhere, so over-reserving is the safe direction.
+ */
+export const OVERLAY_SCROLLBAR_CLEARANCE = 16;
+
+/**
+ * How close, in CSS pixels, the pointer has to come to the scrollport's edge before the clearance strip
+ * opens. Roughly the reach at which a browser brings its own overlay scrollbar back on screen, plus
+ * enough margin that the strip is already open by the time the pointer arrives at the thumb.
+ */
+export const OVERLAY_SCROLLBAR_PROXIMITY = 26;
+
+/**
+ * How long a band stays open, in milliseconds, after the last scroll - with the pointer away from the
+ * scrollbar, which is the only case this timer governs (a pointer near the scrollbar pins the band open
+ * for as long as it stays there, the same as the browser keeps the thumb up).
+ *
+ * Sized to *outlast* the thumb it belongs to, with room to spare. Measured in the grid with the pointer
+ * parked away, the thumb was gone somewhere between ~650ms and ~960ms across runs - the spread is the
+ * measurement's own latency, so the number here covers the whole range rather than the middle of it.
+ * Undershooting is the visible defect: the track is pulled out from under a scrollbar still on screen.
+ * Overshooting only leaves the track up a little longer than the thumb, which reads as ordinary.
+ */
+export const OVERLAY_SCROLLBAR_FADE_DELAY = 1000;
+
+/**
+ * Sticky, zero-size box holding the clearance fillers. It must be the master holder's **first** child:
+ * a sticky box only shifts toward its own edge, so one placed after the table cannot be pulled back up
+ * into the scrollport and would trail below it (measured).
+ */
+export const OVERLAY_SCROLLBAR_FILLER_HOST_CLASS = 'htScrollbarClearanceFillers';
+
+/**
+ * One opaque patch covering the strip an overlay vacated, so the master's scrolled cells cannot show
+ * through it. Lives inside the master holder, because a browser paints a scroll container's own
+ * scrollbar above that container's contents - measured in Chrome and Firefox alike - so a patch placed
+ * above the holder instead would hide the scrollbar thumb (measured: 0 thumb pixels).
+ */
+export const OVERLAY_SCROLLBAR_FILLER_CLASS = 'htScrollbarClearanceFiller';
+
+/**
+ * How many `ResizeObserver` deliveries in direct succession make the callback a self-sustaining loop
+ * rather than a burst of real resizes. A parent sized in dynamic units (`dvh`) can be re-sized by the
+ * very refresh the previous delivery triggered, and that cycle never ends on its own (#11021).
+ *
+ * The number is counted in DELIVERY CYCLES, not in wall-clock time. An observer delivers at most once
+ * per rendering frame, so a self-sustaining loop occupies every frame whatever the machine is doing:
+ * load changes how long 300 takes to arrive, never whether it arrives. The count it replaced was reset
+ * after 100 ms of wall-clock quiet, which under CPU contention (frames stretched past 100 ms) reset
+ * before the threshold on every single loop - the guard was disabled in exactly the machine state it
+ * exists for (DEV-2740).
+ *
+ * 300 is kept from the shipped guard, where it was raised from 100 (#11612) because a legitimate
+ * resize stream reached the lower value.
+ */
+export const RESIZE_LOOP_GUARD_THRESHOLD = 300;
+
+/**
+ * How long the loop guard leaves the observer disconnected before observing again, in milliseconds.
+ *
+ * The disconnect used to be permanent, which killed container-resize reactivity for the grid's whole
+ * lifetime once the guard fired - and the guard can fire on a legitimate stream too, since a gap-free
+ * multi-second drag of a splitter around the grid also occupies every frame. Reconnecting turns that
+ * permanent kill into a duty cycle: a grid whose stream was legitimate resumes reacting, while a page
+ * with a real loop is throttled instead of frozen.
+ *
+ * Two seconds, so a test that samples the callback count after the warning has a wide margin to read a
+ * frozen count in. `setTimeout` under load fires late, never early, so load only widens that window.
+ */
+export const RESIZE_LOOP_GUARD_RECONNECT_DELAY = 2000;
+
+/**
+ * The ceiling for the reconnect delay, in milliseconds. Each trip that is not separated from the last
+ * one by a quiet frame doubles the delay, so a page whose loop never goes away backs off toward one
+ * burst per 30 seconds instead of running continuously. A single quiet frame returns the delay to
+ * `RESIZE_LOOP_GUARD_RECONNECT_DELAY` - a grid that proved itself quiet must not inherit the backoff.
+ */
+export const RESIZE_LOOP_GUARD_RECONNECT_MAX_DELAY = 30000;
+
 export const CLONE_CLASS_NAMES = new Map([
   [CLONE_TOP, `ht_clone_${CLONE_TOP}`],
   [CLONE_BOTTOM, `ht_clone_${CLONE_BOTTOM}`],

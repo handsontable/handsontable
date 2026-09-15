@@ -5,6 +5,7 @@ import { ColGroupRenderer } from './colGroup';
 import { RowsRenderer } from './rows';
 import { CellsRenderer } from './cells';
 import { TableRenderer } from './tableRenderer';
+import type { ShouldPaintCell } from './tableRenderer';
 import type RowFilter from '../filter/row';
 import type ColumnFilter from '../filter/column';
 import type RowUtils from '../axisSizing/rowUtils';
@@ -19,6 +20,7 @@ interface RendererOptions {
   rowUtils?: RowUtils;
   columnUtils?: ColumnUtils;
   cellRenderer?: Function;
+  shouldPaintCell?: ShouldPaintCell;
   stylesHandler?: StylesHandler;
 }
 
@@ -39,14 +41,14 @@ class Renderer {
    * @param {RendererOptions} options The renderer configuration options.
    */
   constructor({
-    TABLE, THEAD, COLGROUP, TBODY, rowUtils, columnUtils, cellRenderer, stylesHandler
+    TABLE, THEAD, COLGROUP, TBODY, rowUtils, columnUtils, cellRenderer, shouldPaintCell, stylesHandler
   }: RendererOptions = {}) {
     /**
      * General renderer class used to render Walkontable content on screen.
      *
      * @type {TableRenderer}
      */
-    this.renderer = new TableRenderer(TABLE!, { cellRenderer, stylesHandler });
+    this.renderer = new TableRenderer(TABLE!, { cellRenderer, shouldPaintCell, stylesHandler });
     this.renderer.setRenderers({
       rowHeaders: new RowHeadersRenderer(),
       columnHeaderRows: new ColumnHeaderRowsRenderer(THEAD!),
@@ -106,6 +108,19 @@ class Renderer {
    */
   setHeaderContentRenderers(rowHeaders: Function[], columnHeaders: Function[]) {
     this.renderer.setHeaderContentRenderers(rowHeaders, columnHeaders);
+
+    return this;
+  }
+
+  /**
+   * Restricts the next render's cell and row-header repaint to the rows at and after
+   * `fromVisibleRow` (see `TableRenderer#setPaintWindow`).
+   *
+   * @param {number} fromVisibleRow The first visible row index to repaint; `0` repaints the whole band.
+   * @returns {Renderer}
+   */
+  setPaintWindow(fromVisibleRow: number) {
+    this.renderer.setPaintWindow(fromVisibleRow);
 
     return this;
   }

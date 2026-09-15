@@ -153,3 +153,84 @@ export function normalizeValueForFormulaEngine(value: unknown) {
 
   return value;
 }
+
+/**
+ * Checks if the provided value is a text-cell value that should be preserved – passed to the
+ * engine as a string, protected from being coerced to a number – according to the cell meta
+ * (`type: 'text'` combined with `preserveTextValue: true`). Formulas are never preserved, and
+ * neither are escaped formula expressions (values starting with `'=`), which already use the
+ * engine's escape mechanism. Empty strings are never preserved either, so clearing a cell keeps
+ * producing an empty cell in the engine.
+ *
+ * @param {*} value Checked value.
+ * @param {object} cellMeta Cell meta object with the `type` and `preserveTextValue` properties.
+ * @returns {boolean}
+ */
+export function isPreservedText(
+  value: unknown,
+  cellMeta: { type?: string, preserveTextValue?: boolean },
+): value is string {
+  return typeof value === 'string' &&
+    value !== '' &&
+    cellMeta.type === 'text' &&
+    cellMeta.preserveTextValue === true &&
+    !isFormula(value) &&
+    !isEscapedFormulaExpression(value);
+}
+
+/**
+ * Escapes the value from the engine's value parsing using the "'" sign (HyperFormula feature).
+ *
+ * @param {string} value Value to escape.
+ * @returns {string}
+ */
+export function escapeTextValue(value: string): string {
+  return `'${value}`;
+}
+
+/**
+ * Tells whether a value read out of the engine carries the engine's string-escape apostrophe at all.
+ * {@link unescapeEngineBoundValue} returns everything else unchanged, so this is the cheap pre-check
+ * that lets a caller skip the cell meta read the unescaping would otherwise need – that read runs the
+ * user-provided `cells` function, which is the expensive part of a per-cell scan.
+ *
+ * @param {*} value Value read from the engine.
+ * @returns {boolean}
+ */
+export function isEngineEscapedValue(value: unknown): value is string {
+  return typeof value === 'string' && value.startsWith('\'');
+}
+
+/**
+ * Reverses {@link escapeTextValue} on values read back out of the engine. The engine's serialized
+ * getters (`getCellSerialized`, `getSheetSerialized`, `getFillRangeData`) return the stored content
+ * verbatim – the leading "'" included – so a value that goes straight back into the grid has to be
+ * unescaped first, or the apostrophe becomes part of the grid's data.
+ *
+ * Exactly one apostrophe is removed, because the engine round-trips the escape one-for-one: a
+ * preserved text value that legitimately starts with an apostrophe is stored doubled and reads back
+ * doubled. The strip is then confirmed against the cell meta – it applies only where the escape
+ * could have been added in the first place, that is to a `date`-typed cell or to a preserved text
+ * cell. Escaped formula expressions ("'=…") keep their apostrophe: it is the user's own escape,
+ * carrying different semantics, and `isPreservedText` excludes them for that reason.
+ *
+ * @param {*} value Value read from the engine.
+ * @param {object} cellMeta Cell meta object with the `type` and `preserveTextValue` properties.
+ * @returns {*} The unescaped value, or the original value when no unescaping applies.
+ */
+export function unescapeEngineBoundValue(
+  value: unknown,
+  cellMeta: { type?: string, preserveTextValue?: boolean },
+): unknown {
+  if (!isEngineEscapedValue(value)) {
+    return value;
+  }
+
+  const unescaped = value.slice(1);
+
+  if (isDate(unescaped, cellMeta.type) || isPreservedText(unescaped, cellMeta)) {
+    return unescaped;
+  }
+
+  return value;
+}

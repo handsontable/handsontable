@@ -32,6 +32,7 @@ describe('UndoRedo -> RemoveRow action', () => {
         ['A2', 'B2', 'C2', 'D2', 'E2'],
         ['A3', 'B3', 'C3', 'D3', 'E3']
       ],
+      accessorValues: [[], []],
       rowIndexesSequence: [0, 1, 2, 3, 4],
       fixedRowsTop: 0,
       fixedRowsBottom: 0,

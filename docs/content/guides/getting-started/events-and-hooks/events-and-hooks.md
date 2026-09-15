@@ -232,6 +232,22 @@ Handsontable exposes hundreds of hooks. The ones below are the hooks you reach f
 
 </div>
 
+When [`beforeInit`](@/api/hooks.md#beforeinit) runs, the grid is only partly built. Your settings are
+readable through [`getSettings()`](@/api/core.md#getsettings), but the data is not loaded and the table
+is not rendered, so a call such as [`countRows()`](@/api/core.md#countrows) throws. Use
+[`afterInit`](@/api/hooks.md#afterinit) to work with the grid.
+
+Two lifecycle hooks cannot be used as options at all, because they run before Handsontable reads the
+callbacks from the settings object: [`construct`](@/api/hooks.md#construct), which runs inside the
+constructor, and [`afterPluginsInitialized`](@/api/hooks.md#afterpluginsinitialized), which runs while
+the plugins start up. Register those two globally instead:
+
+```js
+Handsontable.hooks.add('construct', () => {
+  // your code
+});
+```
+
 **Data changes** -- react to or alter the user's edits. Returning `false` from [`beforeChange`](@/api/hooks.md#beforechange) rejects the change.
 
 <div class="boxes-list">
@@ -384,6 +400,8 @@ It's worth mentioning that some Handsontable hooks are triggered from the Handso
 | [`ContextMenu.rowBelow`](@/api/contextMenu.md)     | Action triggered by the ContextMenu plugin after the "Insert row below" has been clicked.                                                                                                                              |
 | [`CopyPaste.paste`](@/api/copyPaste.md)            | Action triggered by the CopyPaste plugin after the value has been pasted.                                                                                                                                              |
 | [`MergeCells`](@/api/mergeCells.md)                | Action triggered by the MergeCells plugin when clearing the merged cells' underlying cells. |
+| [`SheetsBar.api`](@/api/sheetsBar.md)             | Action triggered by the SheetsBar plugin's API methods. Data hooks that run while a sheet switch loads the arriving sheet's data receive `SheetsBar.api.switch`. |
+| [`SheetsBar.ui`](@/api/sheetsBar.md)              | Action triggered by the SheetsBar plugin's tab bar -- a click, a drag, or one of its menus. Data hooks that run during the switch receive `SheetsBar.ui.switch`. |
 | [`UndoRedo.redo`](@/api/undoRedo.md)               | Action triggered by the UndoRedo plugin after the change has been redone.                                                                                                                                              |
 | [`UndoRedo.undo`](@/api/undoRedo.md)               | Action triggered by the UndoRedo plugin after the change has been undone.                                                                                                                                              |
 | [`ColumnSummary.set`](@/api/columnSummary.md)      | Action triggered by the ColumnSummary plugin after the calculation has been done.                                                                                                                                      |
@@ -478,6 +496,16 @@ The following demo uses [`beforeKeyDown`](@/api/hooks.md#beforekeydown) callback
 - Pressing <kbd>**Delete**</kbd> or <kbd>**Backspace**</kbd> on a cell deletes the cell and shifts all cells beneath it in the column up resulting in the cursor, which doesn't move, having the value previously beneath it, now in the current cell.
 - Pressing <kbd>**Enter**</kbd> in a cell where the value remains unchanged pushes all the cells in the column beneath and including the current cell down one row. This results in a blank cell under the cursor which hasn't moved.
 
+The example below replaces the default action with a custom one, so it needs `stopImmediatePropagation()` + `preventDefault()`. If you only need to block a key's default handling, with no replacement action, `return false` is enough:
+
+```js
+hot.addHook('beforeKeyDown', (event) => {
+  if (event.key === 'Enter') {
+    return false;
+  }
+});
+```
+
 ::: only-for javascript
 
 ::: example #example2 --js 1 --ts 2
@@ -548,5 +576,5 @@ The following demo uses [`beforeKeyDown`](@/api/hooks.md#beforekeydown) callback
 
 ## Related
 
-- [Configuration options](@/guides/getting-started/configuration-options/configuration-options.md) -- see how hooks interact with grid configuration at initialization.
+- [Setting options](@/guides/configuration/configuration-options/configuration-options.md) -- see how hooks interact with grid configuration at initialization.
 - [Saving data](@/guides/getting-started/saving-data/saving-data.md) -- a practical example of using the `afterChange` hook to persist edits to a backend.

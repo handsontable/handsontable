@@ -1,5 +1,5 @@
 import { isKey } from '../../../../../helpers/unicode';
-import { eventTargetEl } from '../../../../../helpers/dom/element';
+import { eventTargetEl, isHTMLElement } from '../../../../../helpers/dom/element';
 import { requestAnimationFrame } from '../../../../../helpers/feature';
 import type { EngineContext } from '../../wire';
 import type { default as Overlays } from '../overlays';
@@ -51,6 +51,7 @@ export function createNativeScrollInputDeps(
     geometryReader: ctx.geometryReader,
     wtTable: ctx.getWtTable(),
     eventManager: overlays.eventManager,
+    notifyScrolledForScrollbarVisibility: () => overlays.notifyScrolledForScrollbarVisibility(),
     getTopOverlay: () => overlays.topOverlay,
     getInlineStartOverlay: () => overlays.inlineStartOverlay,
     getCloneableOverlays: () => [
@@ -205,18 +206,44 @@ export class NativeScrollInput {
     const masterVertical = this.#deps.getTopOverlay().mainTableScrollableElement;
     const target = event.target;
 
+    // Scrolling is what brings an overlay scrollbar on screen, so the clearance strip the frozen
+    // overlays leave for it has to open now and fade with it (#10370). Deliberately below the
+    // key-press branch: keyboard navigation moves the viewport without the browser drawing a
+    // scrollbar, and notifying from there carved out a strip nothing was painted in.
+    if (!this.#keyPressed) {
+      this.#deps.notifyScrolledForScrollbarVisibility();
+    }
+
     // For key press, sync only master -> overlay position because while pressing Walkontable.render is triggered
     // by hot.refreshBorder
-    if (this.#keyPressed) {
-      if ((masterVertical !== rootWindow && target !== rootWindow &&
-           !(masterVertical instanceof HTMLElement && eventTargetEl(event)!.contains(masterVertical))) ||
-          (masterHorizontal !== rootWindow && target !== rootWindow &&
-           !(masterHorizontal instanceof HTMLElement && eventTargetEl(event)!.contains(masterHorizontal)))) {
-        return;
-      }
+    if (this.#keyPressed &&
+        (this.#isOutsideAxisOwner(event, masterVertical) || this.#isOutsideAxisOwner(event, masterHorizontal))) {
+      return;
     }
 
     this.#deps.syncScrollPositions();
+  }
+
+  /**
+   * Whether an event fired away from the element that owns an axis: the owner is an element (not
+   * the window), the event's target is not the window, and the target does not hold the owner.
+   * The key-press branches of the scroll and wheel listeners skip their work in that case.
+   *
+   * `isHTMLElement`, never `instanceof`: an owner from another realm (an iframe driven from the
+   * parent page) failed the realm-bound test, which made every key-press holder scroll look
+   * foreign, so `syncScrollPositions` was skipped for the whole key press and the clones kept the
+   * band they had before it.
+   *
+   * @param {Event} event The scroll or wheel event.
+   * @param {HTMLElement | Window} owner The element (or window) that scrolls one axis.
+   * @returns {boolean}
+   */
+  #isOutsideAxisOwner(event: Event, owner: HTMLElement | Window): boolean {
+    const { rootWindow } = this.#deps;
+    const target = eventTargetEl(event);
+
+    return owner !== rootWindow && (event.target as unknown) !== rootWindow &&
+      !(isHTMLElement(owner) && target !== null && target.contains(owner));
   }
 
   /**
@@ -238,19 +265,12 @@ export class NativeScrollInput {
 
     const masterHorizontal = this.#deps.getInlineStartOverlay().mainTableScrollableElement;
     const masterVertical = this.#deps.getTopOverlay().mainTableScrollableElement;
-    const target = event.target;
 
     // For key press, sync only master -> overlay position because while pressing Walkontable.render is triggered
     // by hot.refreshBorder
-    const shouldNotWheelVertically = masterVertical !== rootWindow &&
-      target !== rootWindow &&
-      !(target instanceof Node && masterVertical instanceof HTMLElement && target.contains(masterVertical));
-    const shouldNotWheelHorizontally = masterHorizontal !== rootWindow &&
-      target !== rootWindow &&
-      !(target instanceof Node && masterHorizontal instanceof HTMLElement && target.contains(masterHorizontal));
-
     if (
-      (this.#keyPressed && (shouldNotWheelVertically || shouldNotWheelHorizontally))
+      (this.#keyPressed &&
+        (this.#isOutsideAxisOwner(event, masterVertical) || this.#isOutsideAxisOwner(event, masterHorizontal)))
        ||
       this.#deps.getScrollableElement() === rootWindow
     ) {

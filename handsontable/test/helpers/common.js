@@ -147,15 +147,38 @@ export function waitForNextAnimationFrames(framesToWait = 1) {
 }
 
 /**
- * Wait for the next animation frames.
+ * Polls the provided condition on every animation frame until it returns a truthy value, or
+ * rejects after `timeout` milliseconds. The condition-based replacement for a fixed `sleep()` or
+ * a frame-count wait: it resolves as soon as the observable state is really there, and a state
+ * that never arrives fails with a named reason instead of passing a stale assertion later.
  *
- * @param {number} [framesToWait=1] The number of animation frames to wait for.
+ * @param {Function} condition A function returning a truthy value once the awaited state is reached.
+ * @param {number} [timeout=4000] How long to keep polling, in milliseconds.
  * @returns {Promise<void>}
- *
- * @deprecated Use waitForNextAnimationFrames instead.
  */
-export async function waitForNameAnimationFrames(framesToWait = 1) {
-  await waitForNextAnimationFrames(framesToWait);
+export function waitUntil(condition, timeout = 4000) {
+  const startTime = Date.now();
+  const requestFrame = window.requestAnimationFrame ?? (callback => window.setTimeout(callback, 16));
+
+  return new Promise((resolve, reject) => {
+    const check = () => {
+      if (condition()) {
+        resolve();
+
+        return;
+      }
+
+      if (Date.now() - startTime > timeout) {
+        reject(new Error(`waitUntil: the condition was not met within ${timeout}ms`));
+
+        return;
+      }
+
+      requestFrame(check);
+    };
+
+    check();
+  });
 }
 
 /**
@@ -452,6 +475,9 @@ export function getDefaultRowHeight() {
 }
 
 /**
+ * Only for a grid with NO column headers — see `firstRenderedRowDefaultHeight` in
+ * `themeLayoutFromTokens`. With column headers every body row is `getDefaultRowHeight()`.
+ *
  * @returns {number} Returns the default row height for the first rendered row.
  */
 export function getFirstRenderedRowDefaultHeight() {
@@ -470,6 +496,18 @@ export function getDefaultColumnWidth() {
  */
 export function getDefaultColumnHeaderHeight() {
   return getThemeLayout().defaultColumnHeaderHeight;
+}
+
+/**
+ * The rendered height of a column-header band — see `columnHeaderBandHeight` in
+ * `themeLayoutFromTokens`. Use this, not `getDefaultColumnHeaderHeight()`, whenever the number has
+ * to describe the space the header occupies in the layout.
+ *
+ * @param {number} [levels=1] Number of column-header levels.
+ * @returns {number} Height in pixels.
+ */
+export function getColumnHeaderBandHeight(levels = 1) {
+  return getThemeLayout().columnHeaderBandHeight(levels);
 }
 
 /**
@@ -589,6 +627,35 @@ export function getInnerEditorListBox() {
     settingsWidth: inner.getSettings().width,
     settingsHeight: inner.getSettings().height,
   };
+}
+
+/**
+ * The active editor's inline-start offset, corrected onto the edited cell's own boundary so it can
+ * be compared against `$(getCell(row, col)).offset()`.
+ *
+ * `BaseEditor#getEditedCellRect` moves the editor 1px towards the inline start whenever the edited
+ * cell draws no inline-start border of its own, so that the editor covers the gridline its
+ * inline-start neighbour draws. With row headers on that is EVERY cell, because the row header owns
+ * the gridline in front of column 0 (#6673), and `htFirstDatasetColumnNotRendered` takes the border
+ * off the first rendered column too. The rule is read off the edited cell's computed border, exactly
+ * as the editor reads it, so no spec has to restate which columns it applies to.
+ *
+ * The top axis is deliberately left to the caller: `getEditedCellRect` decides that one from the
+ * row's position in the overlays, not from a border, so there is no single value to fold in here.
+ *
+ * @param {object} $editor The jQuery-wrapped editor element (`getActiveEditor().TEXTAREA_PARENT`).
+ * @returns {number} The editor's `offset().left`, plus the pixel the editor was shifted by.
+ */
+export function editorInlineStartOffset($editor) {
+  const { TD } = getActiveEditor();
+  const style = getComputedStyle(TD);
+
+  if (style.direction === 'rtl') {
+    throw new Error('editorInlineStartOffset() corrects the physical left edge, which is the ' +
+      'inline start only in LTR. The RTL specs mirror the offset themselves.');
+  }
+
+  return $editor.offset().left + (Number.parseInt(style.borderLeftWidth, 10) > 0 ? 0 : 1);
 }
 
 /**
@@ -1027,6 +1094,13 @@ export function closeContextMenu() {
 }
 
 /**
+ * Closes the dropdown menu.
+ */
+export function closeDropdownMenu() {
+  $(document).simulate('mousedown');
+}
+
+/**
  * Shows dropdown menu.
  *
  * @param {number|HTMLTableCellElement} [columnIndexOrCell=0] The column index or TD element under which the dropdown menu is triggered.
@@ -1082,6 +1156,41 @@ export function openDropdownSubmenuOption(submenuName, cell) {
   item
     .simulate('mouseenter')
     .simulate('mouseover');
+}
+
+/**
+ * Open, execute the sub menu action and close the dropdown menu.
+ *
+ * @param {string} submenuName The dropdown menu item name (it has to be a submenu) to hover.
+ * @param {string} optionName The dropdown menu subitem name to click.
+ * @param {number|HTMLTableCellElement} [cell] The column index or TH element to open the menu under.
+ */
+export async function selectDropdownSubmenuOption(submenuName, optionName, cell) {
+  openDropdownSubmenuOption(submenuName, cell);
+
+  // Wait for the submenu to open instead of guessing with a fixed delay.
+  let button = $();
+
+  for (let attempt = 0; attempt < 30 && button.length === 0; attempt++) {
+    // eslint-disable-next-line no-await-in-loop
+    await waitForNextAnimationFrames(1);
+
+    button = $(`.htDropdownMenuSub_${submenuName}`)
+      .find(`.ht_master .htCore tbody td:contains(${optionName})`);
+  }
+
+  // Without this the `.simulate()` calls below are silent no-ops and the test passes having
+  // clicked nothing.
+  if (button.length === 0) {
+    throw new Error(`The "${optionName}" option of the "${submenuName}" dropdown submenu was not found.`);
+  }
+
+  button
+    .simulate('mouseenter')
+    .simulate('mousedown')
+    .simulate('mouseup')
+    .simulate('click');
+  closeDropdownMenu();
 }
 
 /**

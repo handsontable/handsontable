@@ -24,7 +24,11 @@ Display a configurable dropdown menu, triggered by clicking on a button in a col
 ## Overview
 
 The [`DropdownMenu`](@/api/dropdownMenu.md) plugin enables you to add a configurable dropdown menu to the table's column headers.
-The dropdown menu acts like the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md) but is triggered by clicking the button in the header.
+The dropdown menu and the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md) are two independent plugins, each with its own configuration key (`dropdownMenu` and `contextMenu`). The dropdown menu is triggered by clicking the button in the column header, instead of right-clicking.
+
+::: warning `dropdownMenu` and `contextMenu` are configured separately
+Setting one option does not affect the other, even though both accept items in the same format.
+:::
 
 ## Quick setup
 
@@ -76,6 +80,10 @@ To enable the plugin, set the [`dropdownMenu`](@/api/options.md#dropdownmenu) co
 ## Plugin configuration
 
 To use the default dropdown contents, set it to `true`, or to customize it by setting it to use a custom list of actions. For the available entry options reference, see the [Context Menu demo](@/guides/accessories-and-menus/context-menu/context-menu.md#page-specific).
+
+Some entries come from other plugins, and work only when their plugin is enabled. The `freeze_column` and `unfreeze_column` entries require the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin. When you enable it, both entries join the default dropdown contents. Each one shows only when it applies: `freeze_column` on a column that is not frozen, and `unfreeze_column` on a column that is.
+
+The menu builds its item list every time it opens, so entries follow the current configuration. To leave a plugin's entries out, list the items you want instead of setting the option to `true`. To change the list on each open, use the [`beforeDropdownMenuSetItems`](@/api/hooks.md#beforedropdownmenusetitems) hook.
 
 ::: only-for javascript
 

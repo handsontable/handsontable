@@ -17,14 +17,25 @@ interface FixtureCellRange {
 }
 
 /**
+ * One entry of a sort config, as both sorting plugins take and return it.
+ */
+export interface FixtureSortConfig {
+  column: number;
+  sortOrder: 'asc' | 'desc';
+}
+
+/**
  * The slice of the Handsontable instance API the fixture-driving evaluate
  * callbacks use, so the in-page calls stay typed without importing the core
  * types into the test tier.
  */
 export interface FixtureHotInstance {
   getDataAtCell(row: number, col: number): CellValue;
+  getDataAtCol(col: number): CellValue[];
   getSourceDataAtCell(row: number, col: number): CellValue;
+  getSourceData(): unknown[];
   setDataAtCell(row: number, col: number, value: CellValue): void;
+  setCellMeta(row: number, col: number, key: string, value: unknown): void;
   getCellMeta(row: number, col: number): { className?: string, readOnly?: boolean };
   getPlugin(name: 'formulas'): {
     getCellType(row: number, col: number): string,
@@ -36,6 +47,7 @@ export interface FixtureHotInstance {
     isUndoAvailable(): boolean,
     isRedoAvailable(): boolean,
     doneActions: unknown[],
+    ignoreNewActions: boolean,
   };
   getPlugin(name: 'moveCells'): {
     moveCellRange(sourceRange: unknown, targetTopLeft: unknown, isCopy?: boolean): boolean,
@@ -43,7 +55,33 @@ export interface FixtureHotInstance {
     enablePlugin(): void,
     disablePlugin(): void,
   };
+  getPlugin(name: 'manualRowMove'): {
+    moveRows(rows: number[], finalIndex: number): boolean,
+  };
+  getPlugin(name: 'manualColumnMove'): {
+    moveColumns(columns: number[], finalIndex: number): boolean,
+  };
+  getPlugin(name: 'manualColumnFreeze'): {
+    freezeColumn(column: number): void,
+    unfreezeColumn(column: number): void,
+  };
+  getPlugin(name: 'filters'): {
+    addCondition(column: number, name: string, args: unknown[]): void,
+    clearConditions(column?: number): void,
+    filter(): void,
+  };
+  /**
+   * Both sorting plugins expose the same `sort()` signature - `MultiColumnSorting` extends
+   * `ColumnSorting` and only widens what an array of configs means - so one overload covers
+   * a fixture that swaps between them. The `column` is a VISUAL index.
+   */
+  getPlugin(name: 'columnSorting' | 'multiColumnSorting'): {
+    sort(sortConfig?: FixtureSortConfig | FixtureSortConfig[]): void,
+    getSortConfig(): FixtureSortConfig[],
+    clearSort(): void,
+  };
   getPlugin(name: 'dragToScroll'): { isListening(): boolean };
+  getPlugin(name: 'autofill'): { mouseDownOnCellCorner: boolean };
   getPlugin(name: 'multipleSelectionHandles'): { isDragged(): boolean };
   getPlugin(name: 'nestedRows'): {
     collapseAll(): void,
@@ -59,6 +97,19 @@ export interface FixtureHotInstance {
     countChildren(row: number, recursive?: boolean): number,
     expandToRow(row: number): boolean,
     expandToLevel(level: number): void,
+    // Private, but a spec needs it: there is no public API for the stash window that add child,
+    // detach child, remove row and row move open around themselves.
+    collapsingUI: {
+      collapsedRowsStash: {
+        stash(): void,
+        applyStash(): void,
+      },
+    },
+    dataManager: {
+      getDataObject(row: number): object | null,
+      getRawSourceData(): unknown[],
+      addChild(parent: object): void,
+    },
   };
   getPlugin(name: 'selectionHandles'): {
     isDragActive(): boolean,
@@ -72,6 +123,12 @@ export interface FixtureHotInstance {
   } | undefined;
   render(): void;
   listen(): void;
+  view: {
+    isVerticallyScrollableByWindow(): boolean,
+    isHorizontallyScrollableByWindow(): boolean,
+  };
+  /** The grid's own root `<div>` – a child of the container passed to the constructor. */
+  rootElement: HTMLElement;
   getFirstFullyVisibleRow(): number;
   getLastFullyVisibleRow(): number;
   getLastRenderedVisibleRow(): number;
@@ -81,16 +138,25 @@ export interface FixtureHotInstance {
   deselectCell(): void;
   getSelectedRangeLast(): FixtureCellRange;
   getSelectedRange(): FixtureCellRange[];
+  getSelectedRangeActive(): FixtureCellRange | undefined;
+  getSelected(): number[][] | undefined;
   addHook(name: string, callback: () => void): void;
   addHookOnce(name: string, callback: () => unknown): void;
   getSelectedLast(): number[];
   countRows(): number;
+  countEmptyRows(ending?: boolean): number;
+  isEmptyRow(row: number): boolean;
+  isEmptyCol(col: number): boolean;
   toVisualRow(row: number): number | null;
   toPhysicalRow(row: number): number | null;
   selectCell(row: number, col: number): boolean;
   loadData(data: unknown[]): void;
+  updateData(data: unknown[]): void;
   updateSettings(settings: Record<string, unknown>): void;
+  alter(action: string, index?: number | number[][], amount?: number, source?: string): void;
   countCols(): number;
+  rowIndexMapper: { getIndexesSequence(): number[] };
+  columnIndexMapper: { getIndexesSequence(): number[] };
   _createCellCoords(row: number, col: number): unknown;
   _createCellRange(highlight: unknown, from: unknown, to: unknown): unknown;
 }
@@ -116,26 +182,83 @@ declare global {
   interface Window {
     /** The fixture's live Handsontable instance. */
     hot: FixtureHotInstance;
+    /** #5833 fixture: the "getter" grid – constructor rows with a non-configurable derived getter. */
+    hotGetter: FixtureHotInstance;
+    /** #5833 fixture: the "accessor" grid – the docs' function-data-source pattern (function `columns[].data`). */
+    hotAccessor: FixtureHotInstance;
     /** The Handsontable constructor loaded by the fixture — exposes the global hooks bucket. */
     Handsontable: {
       hooks: {
         add(key: string, callback: (...args: unknown[]) => unknown): void;
       };
     };
-    /** Rebuilds the formulas fixture grid with the given dataset. */
+    /**
+     * Rebuilds the formulas fixture grid with the given dataset, or – the width-window-scroll
+     * fixture's overload – rebuilds its grid with setting overrides and an optional parent width.
+     */
     initGrid(data: CellValue[][], overrides?: Record<string, unknown>): boolean;
+    initGrid(overrides?: Record<string, unknown>, containerWidth?: string): boolean;
+    /** `afterScrollVertically` calls since the last rebuild (width-window-scroll fixture). */
+    verticalScrollCount: number;
     /** Rebuilds the selection-features fixture grid with the given setting overrides. */
     initSelectionGrid(overrides?: Record<string, unknown>): boolean;
     /** Rebuilds the mobile drag-to-scroll fixture grid with the given setting overrides. */
     initMobileGrid(overrides?: Record<string, unknown>): boolean;
+    /** Rebuilds the fragmentSelection fixture grid with the given setting overrides. */
+    initFragmentSelectionGrid(overrides?: Record<string, unknown>): boolean;
+    /** Rebuilds the GH #5069 nested-`dataSchema` + `minSpareRows` fixture grid. */
+    initNestedSchemaGrid(overrides?: Record<string, unknown>): boolean;
+    /** Rebuilds the GH #7553 invalid-mark fixture grid with the given setting overrides. */
+    initInvalidMarkGrid(overrides?: Record<string, unknown>): boolean;
+    /** Releases the oldest pending validator callback; false when none was waiting (#7553 fixture). */
+    resolveValidation(): boolean;
+    /** How many validator callbacks are waiting to be released (#7553 fixture). */
+    pendingValidationCount(): number;
+    /** Rebuilds the GH #5983 sorting-a-filtered-grid-with-`minSpareRows` fixture grid. */
+    initSortingSpareRowsGrid(overrides?: Record<string, unknown>): boolean;
+    /**
+     * Rebuilds the DEV-59 sorting-with-`fixedRowsTop`/`fixedRowsBottom` fixture grid.
+     */
+    initSortingFixedRowsGrid(overrides?: Record<string, unknown>): boolean;
+    /** Returns the text the browser currently reports as selected (fragmentSelection fixture). */
+    readTextSelection(): string;
+    /** Drops any existing text selection (fragmentSelection fixture). */
+    clearTextSelection(): boolean;
+    /** Reports whether a selection border, a cell, or neither is under a point (fragmentSelection fixture). */
+    elementUnder(x: number, y: number): string;
+    /** Resets the count of mouse moves that landed on a selection border (fragmentSelection fixture). */
+    resetBorderMoveCount(): boolean;
+    /** Returns how many mouse moves landed on a selection border since the reset (fragmentSelection fixture). */
+    getBorderMoveCount(): number;
     /** Recorded moveCells hook calls for the current grid instance. */
     moveCellsHookLog: MoveCellsHookRecord[];
     /** Recorded NestedRows collapse/expand hook calls, in firing order. */
     hookLog: { name: string, args: unknown[] }[];
+    /** Recorded remove-row hook arguments from the DEV-30 nested undo fixture. */
+    removeLog: {
+      hook: 'beforeRemoveRow' | 'afterRemoveRow';
+      index: number;
+      amount: number;
+      physicalRows: number[];
+      source?: string;
+    }[];
     /** Makes the fixture's `beforeMoveCells` listener return `false`. */
     setBeforeMoveCellsVeto(shouldVeto: boolean): boolean;
+    /** Makes the fixture's `beforeRowMove` listener return `false`. */
+    setBeforeRowMoveVeto(shouldVeto: boolean): boolean;
+    /** Makes the fixture's `beforeColumnMove` listener return `false`. */
+    setBeforeColumnMoveVeto(shouldVeto: boolean): boolean;
     /** Per-hook invocation counters of the touch tap-to-edit fixture (DEV-2687). */
     hookCounts: Record<HookCounterName, number>;
+    /**
+     * Builds a grid whose init aborts inside `updateSettings()` and returns the message it threw
+     * with, or `null` when it unexpectedly succeeded (DEV-2874 fixture).
+     */
+    abortGridInit(): string | null;
+    /** Starts counting the healthy grid's `getIfMouseWasDraggedOutside()` calls (DEV-2874 fixture). */
+    instrumentDragOutsideCheck(): boolean;
+    /** How many drag-outside measurements the healthy grid has taken since instrumentation. */
+    dragOutsideCheckCount: number;
     /**
      * Chromium-only InputDeviceCapabilities constructor, used to stamp synthetic mouse events
      * with their origin (DEV-2687).

@@ -4,6 +4,10 @@ import {
 } from '../../../../../helpers/dom/element';
 import BottomInlineStartCornerOverlayTable from '../../table/regions/bottomInlineStartCornerTable';
 import { Overlay, type OverlayDeps } from './_base';
+import type { BottomOverlay } from './bottomOverlay';
+import {
+  reservedScrollbarSpace,
+} from '../scrollbarClearance';
 import {
   CLONE_BOTTOM_INLINE_START_CORNER,
 } from '../constants';
@@ -15,7 +19,7 @@ export class BottomInlineStartCornerOverlay extends Overlay {
   /**
    * @type {Overlay}
    */
-  declare bottomOverlay: Overlay;
+  declare bottomOverlay: BottomOverlay;
   /**
    * @type {Overlay}
    */
@@ -25,7 +29,7 @@ export class BottomInlineStartCornerOverlay extends Overlay {
    * @param {BottomOverlay} bottomOverlay The instance of the Top overlay.
    * @param {InlineStartOverlay} inlineStartOverlay The instance of the InlineStart overlay.
    */
-  constructor(deps: OverlayDeps, bottomOverlay: Overlay, inlineStartOverlay: Overlay) {
+  constructor(deps: OverlayDeps, bottomOverlay: BottomOverlay, inlineStartOverlay: Overlay) {
     super(deps, CLONE_BOTTOM_INLINE_START_CORNER);
     this.bottomOverlay = bottomOverlay;
     this.inlineStartOverlay = inlineStartOverlay;
@@ -59,10 +63,8 @@ export class BottomInlineStartCornerOverlay extends Overlay {
    */
   resetFixedPosition() {
     const { wot } = this;
-
-    this.updateTrimmingContainer();
-
     const { clone } = this;
+    const { rootWindow } = this.deps;
 
     if (!(wot.wtTable.holder.parentNode as HTMLElement) || !clone) {
       // removed from DOM
@@ -73,7 +75,12 @@ export class BottomInlineStartCornerOverlay extends Overlay {
 
     overlayRoot.style.top = '';
 
-    if (this.trimmingContainer === this.deps.rootWindow) {
+    // Same rule as the top corner: the positioned form whenever either neighbor's axis is owned by
+    // the window; each neighbor reports a 0 offset on an element-owned axis.
+    const anyAxisOnWindow = this.bottomOverlay.trimmingContainer === rootWindow ||
+      this.inlineStartOverlay.trimmingContainer === rootWindow;
+
+    if (anyAxisOnWindow) {
       const inlineStartOffset = this.inlineStartOverlay.getOverlayOffset();
       const { geometryReader } = this.deps;
       const masterTableRect = geometryReader.getBoundingClientRect(this.deps.getWtTable().TABLE);
@@ -96,8 +103,29 @@ export class BottomInlineStartCornerOverlay extends Overlay {
       tableHeight = 0;
     }
 
+    // This corner is drawn over the bottom edge, on top of both the frozen-column and frozen-bottom-row
+    // overlays, so it would re-cover the strip they leave clear for an overlay scrollbar (#10370).
+    // Only while this corner is actually painting. Its `clone` exists either way, and unlike its
+    // siblings it still has to be repositioned when it is not rendering (four positioning specs pin
+    // that), so the guard belongs on the clearance rather than on the whole method. Without it the
+    // corner recomputed a live strip on a dead overlay every draw, and went on reporting the bottom
+    // edge as covered - which is what decides whether a band is drawn at all.
+    // The strip is the frozen-bottom-rows overlay's own, read rather than recomputed: this corner is
+    // drawn over that overlay, so if the two disagree the band is left half-covered - a notch along
+    // the bottom edge where the frozen columns stop and the frozen rows carry on. That overlay keys
+    // the strip on the HORIZONTAL axis owner (the scrollbar it clears is the horizontal one; its own
+    // `trimmingContainer` is the vertical owner, and in split mode that is the window) and on
+    // whether it rests on the holder's bottom edge, and the draw cycle positions it before this corner.
+    const bottomClearance = this.needFullRender ? this.bottomOverlay.getBottomClearance() : 0;
+
     overlayRoot.style.height = `${tableHeight}px`;
     overlayRoot.style.width = `${tableWidth}px`;
+    clone.wtTable.holder.style.height = overlayRoot.style.height;
+
+    this.publishScrollbarClearance(
+      { bottom: bottomClearance, rtl: this.isRtl() },
+      this.wot.wtOverlays.isScrollbarVisible()
+    );
 
     return true;
   }
@@ -174,7 +202,6 @@ export class BottomInlineStartCornerOverlay extends Overlay {
 
     const wtTable = this.deps.getWtTable();
     const wtViewport = this.deps.getWtViewport();
-    const { rootDocument } = this.deps;
     const cloneRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
     let bottomOffset = 0;
 
@@ -183,7 +210,8 @@ export class BottomInlineStartCornerOverlay extends Overlay {
     }
 
     if (wtViewport.hasVerticalScroll() && wtViewport.hasHorizontalScroll()) {
-      bottomOffset += this.deps.geometryReader.getScrollbarWidth(rootDocument);
+      // The master holder's real gutter, for the reason spelled out in `BottomOverlay#repositionOverlay`.
+      bottomOffset += reservedScrollbarSpace(this.deps.geometryReader, wtTable.holder, 'horizontal');
     }
 
     cloneRoot.style.bottom = `${bottomOffset}px`;

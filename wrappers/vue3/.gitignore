@@ -5,6 +5,7 @@ test/dist/
 es
 commonjs
 dist
+/types
 .rpt2_cache
 npm-debug.log
 /*.d.ts

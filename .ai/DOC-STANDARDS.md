@@ -12,7 +12,7 @@ The gating policy and a digest of the most-violated rules live in the root `AGEN
 
 ## Documentation branch conventions
 
-- Feature docs branches: `docs/issue-xxxx` (e.g., `docs/issue-9024`), branched from the feature branch or `develop`.
+- Feature docs branches: `docs/<TASK-ID>_Short-Description` (e.g., `docs/DEV-458_Clarify-undo-redo-docs`), branched from the feature branch or `develop`. `<TASK-ID>` is the ClickUp custom ID, whose prefix follows the task's space (`DEV`, `SU`, `PRO`).
 - Release docs branches: `release/x.y.z-docs`, branched from `release/x.y.z`.
 
 ## Writing style rules
@@ -32,6 +32,7 @@ Apply to all documentation text — guides, JSDoc comments, changelog entries, m
 11. **Clause separators.** Use en dashes (–) in non-site text (JSDoc, changelog, migration guides). The docs *site* uses hyphens or double hyphens instead — see `docs/AGENTS.md` 2.2.
 12. **Consistent 3rd-party naming.** Use official capitalization: `Node.js`, `webpack`, `GitLab`, `TypeScript`.
 13. **PR descriptions**: Use plain, concise language. Avoid literary wording — developers need to parse it quickly.
+14. **Sentence case headings.** Capitalize only the first word, plus proper nouns, product names, API identifiers, and acronyms. ("Definition of done (local enforcement)", not "Definition of Done (Local Enforcement)".) Applies to Markdown headings at every level and to the docs frontmatter `title:` field. Terms with fixed capitalization keep it: `Node.js`, `HyperFormula`, `HotTable`, `UndoRedo`, `Content Security Policy (CSP)`. Sentence case composes with the Diátaxis title patterns in `docs/AGENTS.md` 2.1 (verb phrase, "How to …", "Understanding …") rather than replacing them. **Not covered:** `README.md`, which is marketing-facing and uses Title Case with emoji headings by design, and agent instruction files (`AGENTS.md`, `.claude/skills/**`), whose heading style is currently mixed and out of scope for this rule.
 
 ## Migration guide requirements
 
@@ -45,6 +46,16 @@ A migration guide is required for every major release and some minor releases. E
 6. Links to more detailed information (new pages, PRs).
 
 Follow the structure of previous migration guides for consistency. Migration guides live in `docs/content/guides/upgrade-and-migration/`.
+
+**Sections are numbered, and the number lives in two places.** Each step is an `## <N>. <title>`
+heading, and the paragraph just after `[[toc]]` names every section by that number ("Section 9
+concerns ..."). Two pull requests open at the same time both add the next number, so the guide is a
+reliable merge conflict on a busy release, and the conflict has two regions: the intro paragraph and
+the heading. Resolve both — renumber the later section and add its sentence to the intro. Nothing
+checks the intro against the headings, so a half-resolved merge ships an intro that describes the
+wrong section and no gate complains. Check for links to the anchor you are renumbering
+(`migrating-from-X-to-Y.md#<n>-...`) before you renumber; there are usually none, and a renumber that
+breaks one is silent too.
 
 ## Trademark rules
 

@@ -14,11 +14,13 @@ import type { CellValue } from './windowTypes';
 export class FormulasMoveCellsPage {
   readonly page: Page;
   readonly theme: string;
+  readonly bundle: string;
   readonly grid: Locator;
 
-  constructor(page: Page, theme = 'main') {
+  constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
     this.theme = theme;
+    this.bundle = bundle;
     this.grid = page.getByTestId('grid');
   }
 
@@ -27,7 +29,8 @@ export class FormulasMoveCellsPage {
    * a real DOM condition).
    */
   async goto(): Promise<void> {
-    await this.page.goto(`/tests/fixtures/demo/formulas-move-cells.html?theme=${this.theme}`);
+    await this.page.goto(
+      `/tests/fixtures/demo/formulas-move-cells.html?theme=${this.theme}&bundle=${this.bundle}`);
     await expect(this.cell(0, 0)).toBeVisible();
   }
 
@@ -65,6 +68,16 @@ export class FormulasMoveCellsPage {
   }
 
   /**
+   * The array the grid was constructed with, as it stands now.
+   *
+   * Handsontable projects HyperFormula's formulas onto its own reads, so `getSourceData()` can look
+   * right while this array holds stale text. Only this tells the two apart.
+   */
+  async rawData(): Promise<unknown[][]> {
+    return this.page.evaluate(() => (window as any).rawData);
+  }
+
+  /**
    * Rebuild the grid with this test's dataset merged with optional setting overrides
    * (e.g. `{ trimRows: [1] }`) — a fresh Handsontable instance and a fresh HyperFormula
    * sheet, so tests stay isolated.
@@ -80,6 +93,16 @@ export class FormulasMoveCellsPage {
   /** A single data cell, by visual row/column, via its stable test id. */
   cell(row: number, col: number): Locator {
     return this.page.getByTestId(`cell-${row}-${col}`);
+  }
+
+  /** Open a cell's editor, type a value, and commit it with Enter. */
+  async editCell(row: number, col: number, value: string): Promise<void> {
+    await this.cell(row, col).dblclick();
+    const editor = this.page.locator('.handsontableInput');
+
+    await expect(editor).toBeVisible();
+    await editor.fill(value);
+    await editor.press('Enter');
   }
 
   /**

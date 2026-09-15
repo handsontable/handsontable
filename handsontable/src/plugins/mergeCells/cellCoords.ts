@@ -357,15 +357,19 @@ class MergedCellCoords {
   }
 
   /**
-   * Sets a new visual top-left and invalidates the lazily cached range, so callers that mutate the
-   * merge's position (e.g. re-anchoring to visible rows) don't leave `getRange()` serving stale coords.
+   * Sets a new visual top-left (and optionally a new row span) and invalidates the lazily cached
+   * range, so callers that mutate the merge's position (e.g. re-anchoring to visible rows) don't leave
+   * `getRange()` serving stale coords. The span is passed when rows inside the merge have been trimmed
+   * away, which shrinks the visual space the merge occupies.
    *
    * @param {number} row New top row index.
    * @param {number} col New left column index.
+   * @param {number} [rowspan] New row span. Defaults to the current one.
    */
-  relocate(row: number, col: number) {
+  relocate(row: number, col: number, rowspan: number = this.rowspan) {
     this.row = row;
     this.col = col;
+    this.rowspan = rowspan;
     this.#cellRange = null;
   }
 

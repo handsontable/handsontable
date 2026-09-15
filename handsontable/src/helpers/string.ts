@@ -82,6 +82,122 @@ export function isPercentValue(value: string): boolean {
 }
 
 /**
+ * The named character references a message string may carry, plus numeric ones handled below.
+ */
+const NAMED_ENTITIES: Record<string, string> = {
+  amp: '&',
+  lt: '<',
+  gt: '>',
+  quot: '"',
+  apos: '\'',
+  nbsp: '\xA0',
+  // Punctuation and symbols that turn up in authored UI copy. Without these, a title written as
+  // `Loading&hellip;` displayed the reference itself once these surfaces stopped being parsed.
+  ndash: '\u2013',
+  mdash: '\u2014',
+  hellip: '\u2026',
+  lsquo: '\u2018',
+  rsquo: '\u2019',
+  ldquo: '\u201C',
+  rdquo: '\u201D',
+  laquo: '\xAB',
+  raquo: '\xBB',
+  bull: '\u2022',
+  middot: '\xB7',
+  dagger: '\u2020',
+  copy: '\xA9',
+  reg: '\xAE',
+  trade: '\u2122',
+  deg: '\xB0',
+  plusmn: '\xB1',
+  times: '\xD7',
+  divide: '\xF7',
+  euro: '\u20AC',
+  pound: '\xA3',
+  yen: '\xA5',
+  cent: '\xA2',
+  sect: '\xA7',
+  para: '\xB6',
+  shy: '\xAD',
+  ensp: '\u2002',
+  emsp: '\u2003',
+  thinsp: '\u2009',
+};
+
+/**
+ * Decodes HTML character references in a string.
+ *
+ * UI copy that carries tags used to be stripped with `stripTags()` and then assigned to
+ * `innerHTML`, so the HTML parser decoded any character references on the way in: a title written
+ * as `&lt;` displayed as `<`. Those surfaces now build DOM and write through `textContent`, which
+ * decodes nothing, so this reproduces that step and keeps what those messages render unchanged.
+ *
+ * Covers the named references that appear in authored copy plus decimal and hexadecimal numeric
+ * ones. The full HTML entity table is roughly two thousand names, and reproducing it would mean
+ * shipping the table; a reference outside this set is left as written. Numeric references have no
+ * such limit, so `&#8212;` resolves whether or not `&mdash;` is listed.
+ *
+ * Two limits of that table are worth knowing, because the parser this imitates has neither:
+ *
+ * - The lookup is **case-sensitive**. HTML5 also defines a handful of names in upper case, so
+ *   `&AMP;`, `&COPY;` and `&REG;` are valid references the parser decoded and this leaves as
+ *   written. Use the lower-case spelling in authored copy.
+ * - A name outside `NAMED_ENTITIES` stays literal. `a &hearts; b` used to render `a ♥ b` and now
+ *   renders as written.
+ *
+ * Reachable as `Handsontable.helper.decodeHtmlEntities()`, because `src/index.ts` spreads the
+ * string helpers into the public barrel, so both limits above are part of the published contract.
+ *
+ * @param {string} string String to decode.
+ * @returns {string}
+ */
+export function decodeHtmlEntities(string: string): string {
+  // One pass, so a decoded `&` cannot start a second reference - `&amp;lt;` decodes to `&lt;`,
+  // which is what the parser produced, not to `<`.
+  return String(string).replace(/&(#[0-9]+|#[xX][0-9a-fA-F]+|[a-zA-Z]+);/g, (match, reference: string) => {
+    if (reference[0] === '#') {
+      const codePoint = reference[1] === 'x' || reference[1] === 'X'
+        ? parseInt(reference.slice(2), 16)
+        : parseInt(reference.slice(1), 10);
+
+      if (!Number.isFinite(codePoint) || codePoint < 0 || codePoint > 0x10FFFF) {
+        return match;
+      }
+
+      // The parser replaces NUL and lone surrogates with U+FFFD rather than passing them through,
+      // and `Number.isFinite` cannot catch either, because `parseInt` succeeds on both. Passing a
+      // lone surrogate on would put invalid UTF-16 into cell data, which a later JSON or CSV write
+      // then has to deal with.
+      if (codePoint === 0 || (codePoint >= 0xD800 && codePoint <= 0xDFFF)) {
+        return '\uFFFD';
+      }
+
+      return String.fromCodePoint(codePoint);
+    }
+
+    // `Object.hasOwn`, not a bare lookup: `NAMED_ENTITIES` is an object literal, so a bare read
+    // walks the prototype chain and `&constructor;` resolves to `Object`, stringified into the
+    // output. The same went for `&toString;`, `&valueOf;`, `&hasOwnProperty;`, `&isPrototypeOf;`
+    // and `&propertyIsEnumerable;`. The parser leaves all of those literal, and so must this.
+    return Object.hasOwn(NAMED_ENTITIES, reference) ? NAMED_ENTITIES[reference] : match;
+  });
+}
+
+/**
+ * Strips HTML tags from a string and decodes any character references left behind.
+ *
+ * This is what a surface needs when it renders authored copy as text: it reproduces what assigning
+ * the string to `innerHTML` and reading `textContent` back used to produce, without going near a
+ * sink. Use it wherever `stripTags()` output is written through `textContent`.
+ *
+ * @param {string} string String to convert.
+ * @returns {string}
+ */
+export function htmlToPlainText(string: string): string {
+  return decodeHtmlEntities(stripTags(string));
+}
+
+/**
  * Strip any HTML tag from the string.
  *
  * @param {string} string String to cut HTML from.

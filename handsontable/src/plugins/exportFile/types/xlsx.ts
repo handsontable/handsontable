@@ -414,7 +414,7 @@ class Xlsx extends BaseType {
     //    suppressed whenever ColumnSummary is present.
     //
     // 2. Setting protection on every cell — even { locked: false } — causes ExcelJS to
-    //    initialise font/fill/border to sentinel values, which adds noise to the file
+    //    initialize font/fill/border to sentinel values, which adds noise to the file
     //    and breaks styling assertions in tests.
     const hasColumnSummary = summaryMap.size > 0;
     const hasReadOnlyCells = !hasColumnSummary &&

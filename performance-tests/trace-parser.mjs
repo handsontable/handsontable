@@ -482,6 +482,58 @@ function computeTraceBounds(events) {
   };
 }
 
+// Explicit measurement window, emitted by lib/trace-runner.mjs around the scenario action.
+export const MEASURE_START_MARK = 'hot-perf-measure-start';
+export const MEASURE_END_MARK = 'hot-perf-measure-end';
+
+/**
+ * Read the measurement window the runner marked around the scenario action.
+ *
+ * Preferred over calculateWindow because the auto-zoom picks the busiest region of
+ * the trace, and on a scenario driven through page.evaluate that region can be the
+ * V8.InvokeApiInterruptCallbacks blob CDP produces to enter the isolate -- measured
+ * at 426.9 ms in a real `sorting` trace. The window then closes about 60 ms before
+ * the Paint, Layout and Commit events the action caused, so rendering and painting
+ * are scored as zero while the harness overhead is scored as System.
+ *
+ * Marks are matched on the thread whose stats are actually computed. A second
+ * renderer (an out-of-process frame) carrying the same name would otherwise set
+ * bounds over a thread this parse never reads, and the near-empty categories that
+ * produces would be published as a real improvement.
+ *
+ * @param {Array<object>} events -- raw trace events
+ * @param {{pid: number, tid: number}} [mainThread] -- restrict marks to this thread
+ * @returns {{min: number, max: number, range: number}|null} bounds in us, or null when unmarked
+ */
+export function measurementWindowFromMarks(events, mainThread) {
+  let min = null;
+  let max = null;
+
+  for (const event of events) {
+    // Chrome emits performance.mark as an instant event on blink.user_timing. Requiring
+    // the category keeps a same-named performance.measure (ph 'b'/'e') out of the bounds.
+    if (event.ph !== 'I' || event.cat !== 'blink.user_timing') {
+      continue;
+    }
+
+    if (mainThread && (event.pid !== mainThread.pid || event.tid !== mainThread.tid)) {
+      continue;
+    }
+
+    if (event.name === MEASURE_START_MARK && (min === null || event.ts < min)) {
+      min = event.ts;
+    } else if (event.name === MEASURE_END_MARK && (max === null || event.ts > max)) {
+      max = event.ts;
+    }
+  }
+
+  if (min === null || max === null || max <= min) {
+    return null;
+  }
+
+  return { min, max, range: max - min };
+}
+
 // calculateWindow from devtools-frontend/front_end/models/trace/extras/MainThreadActivity.ts
 // Finds the "interesting" region of the trace by detecting low utilization at edges
 // Uses ALL main thread entries (not just visible) - matches DevTools behavior
@@ -745,11 +797,11 @@ function computeProfileCallScripting(events, mainPid, mainTid, windowMinUs, wind
   return profileCallScriptingUs / 1000; // convert to ms
 }
 
-function formatHeapMinBytesLabel(bytes) {
+export function formatHeapMinBytesLabel(bytes) {
   return `${Math.round(bytes / 1000)} kB`;
 }
 
-function formatHeapMaxBytesLabel(bytes) {
+export function formatHeapMaxBytesLabel(bytes) {
   if (bytes >= 1_000_000) {
     return `${(bytes / 1_000_000).toFixed(1)} MB`;
   }
@@ -760,14 +812,25 @@ function formatHeapMaxBytesLabel(bytes) {
 /**
  * Min/max from UpdateCounters instant events (args.data: jsHeapSizeUsed, documents, nodes, jsEventListeners).
  * Matches DevTools decimal labels: kB = bytes/1000, MB = bytes/1e6.
+ *
+ * These are running extrema, so they must be confined to the same window the timing
+ * categories use. Otherwise a longer trace can only push a maximum up: samples taken
+ * after the measured action -- during the settle, a readback, or teardown -- would
+ * raise jsHeapMaxBytes without a single millisecond of timing changing, and
+ * report-builder runs that number through the same regression threshold as timing.
+ *
+ * @param {Array<object>} events -- raw trace events
+ * @param {{pid: number, tid: number}} [mainThread] -- restrict samples to this thread
+ * @param {{min: number, max: number}} [windowUs] -- restrict samples to this window, in us
  */
-export function computeUpdateCountersRanges(events, mainThread) {
+export function computeUpdateCountersRanges(events, mainThread, windowUs) {
   const list = events.filter(
     e =>
       e.name === 'UpdateCounters' &&
       e.ph === 'I' &&
       e.args?.data &&
-      (!mainThread || (e.pid === mainThread.pid && e.tid === mainThread.tid)),
+      (!mainThread || (e.pid === mainThread.pid && e.tid === mainThread.tid)) &&
+      (!windowUs || (e.ts >= windowUs.min && e.ts <= windowUs.max)),
   );
 
   if (list.length === 0) {
@@ -849,8 +912,10 @@ export function parseTrace(traceJson) {
     e.tid === mainThread.tid
   );
 
-  // Calculate the auto-zoomed window using DevTools's MainThreadActivity.calculateWindow
-  const windowUs = calculateWindow(traceBoundsUs, allMainThreadEntries);
+  // Prefer the window the runner marked around the action. Fall back to DevTools's
+  // MainThreadActivity.calculateWindow for traces recorded without the marks.
+  const markedWindowUs = measurementWindowFromMarks(events, mainThread);
+  const windowUs = markedWindowUs ?? calculateWindow(traceBoundsUs, allMainThreadEntries);
   const windowMinMs = windowUs.min / 1000;
   const windowMaxMs = windowUs.max / 1000;
   const windowRangeMs = windowUs.range / 1000;
@@ -886,7 +951,7 @@ export function parseTrace(traceJson) {
     // Actually no change needed since we moved time from other→scripting, both non-idle
   }
 
-  const updateCounters = computeUpdateCountersRanges(events, mainThread);
+  const updateCounters = computeUpdateCountersRanges(events, mainThread, windowUs);
 
   return {
     rangeStart: 0,
@@ -903,6 +968,7 @@ export function parseTrace(traceJson) {
       windowMinMs,
       windowMaxMs,
       windowRangeMs,
+      windowSource: markedWindowUs ? 'marks' : 'auto-zoom',
       profileCallMs,
       updateCountersSampleCount: updateCounters?.sampleCount ?? 0,
     }

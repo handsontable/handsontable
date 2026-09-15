@@ -9,6 +9,14 @@
  * override is surfaced together with the files it waves through so a reviewer
  * can judge it.
  *
+ * It also caps how many entries a PR may add. One is the norm; a second is for
+ * a separate GitHub issue cited alongside the PR's own change. Beyond that the
+ * release notes carry two lines a reader cannot tell came from one change, so
+ * the gate fails unless `[multiple changelogs]` says the PR is the one shape
+ * that legitimately files more — a maintenance PR back-filling entries for
+ * other PRs. The companion half of the rule lives in `bin/changelog`, which
+ * asserts repo-wide that an entry file is named after the number it cites.
+ *
  * No network or filesystem access lives here so the logic is unit-testable;
  * the CLI wrapper (`../check-changelog.js`) feeds it the live PR body and the
  * changed-file list from the GitHub API.
@@ -20,6 +28,24 @@ import { classify } from './presence-gate.mjs';
  * The opt-out marker recognized in a PR description.
  */
 export const SKIP_MARKER = '[skip changelog]';
+
+/**
+ * The marker that lifts the entry ceiling. Deliberately separate from
+ * `SKIP_MARKER`: "this source change needs no entry" and "this pull request
+ * legitimately files more than two" are different claims, and the first must
+ * never wave through the second.
+ *
+ * It exists for one shape, which has happened once: a maintenance pull request
+ * that back-fills missing entries for *other* pull requests (#12319 added six).
+ */
+export const MULTIPLE_MARKER = '[multiple changelogs]';
+
+/**
+ * How many entries one pull request may add. Two, because a public issue fixed
+ * alongside a private behavior change is the one routine case for a second
+ * entry, and it cites a different number.
+ */
+const MAX_ENTRIES = 2;
 
 /**
  * Trees whose changes ship in the npm packages and therefore warrant a
@@ -84,32 +110,68 @@ export function stripHtmlComments(body) {
 }
 
 /**
+ * The entry files a PR adds, in API order.
+ *
+ * Only `added` counts. Editing an existing entry's title is routine
+ * maintenance, and a `renamed` file is caught repo-wide by the filename
+ * assertion in `bin/changelog` instead, which needs no diff at all.
+ *
+ * @param {{status: string, filename: string}[]} files The PR's changed files.
+ * @returns {string[]} The added `.changelogs/*.json` paths.
+ */
+function addedEntries(files) {
+  return files
+    .filter(f => f.status === 'added'
+      && f.filename.startsWith('.changelogs/')
+      && f.filename.endsWith('.json'))
+    .map(f => f.filename);
+}
+
+/**
  * Evaluate the gate for a PR.
+ *
+ * Two entries citing the *same* number is not a case this function has to
+ * consider. `bin/changelog` asserts repo-wide that a file is named after the
+ * number it cites, so a number owns exactly one file and the shape cannot
+ * exist - which is also why nothing here reads an entry's contents, and why
+ * the gate needs no `head.sha` and no fail-open path for a fetch. What is left
+ * for a diff to catch is a pull request filing more entries than the rule
+ * allows, each citing a number of its own.
  *
  * @param {object} pr The gate's inputs.
  * @param {string} pr.body The PR description (live, not the frozen payload).
  * @param {{status: string, filename: string}[]} pr.files The PR's changed
  *   files, as returned by the GitHub "list pull request files" API.
- * @returns {{pass: boolean, reason: string, sourceFiles: string[]}} The
- *   verdict; `reason` is one of 'entry-added', 'no-source-change',
- *   'skipped-explicitly', or 'missing-entry'.
+ * @returns {{pass: boolean, reason: string, sourceFiles: string[],
+ *   entries: string[]}} The verdict; `reason` is one of 'entry-added',
+ *   'no-source-change', 'skipped-explicitly', 'missing-entry',
+ *   'too-many-entries', or 'multiple-allowed'.
  */
 export function evaluateChangelogGate({ body, files }) {
-  const hasEntry = files.some(f => f.status === 'added'
-    && f.filename.startsWith('.changelogs/')
-    && f.filename.endsWith('.json'));
+  const entries = addedEntries(files);
   const sourceFiles = files.map(f => f.filename).filter(requiresChangelog);
-  const skipped = stripHtmlComments(body || '').includes(SKIP_MARKER);
+  const strippedBody = stripHtmlComments(body || '');
+  const skipped = strippedBody.includes(SKIP_MARKER);
+  const multipleAllowed = strippedBody.includes(MULTIPLE_MARKER);
 
-  if (hasEntry) {
-    return { pass: true, reason: 'entry-added', sourceFiles };
+  // Counted before anything else, so `[skip changelog]` cannot wave a count
+  // violation through: it answers "does this change need an entry", which is a
+  // different question from "may this PR file more than one".
+  if (entries.length > MAX_ENTRIES) {
+    return multipleAllowed
+      ? { pass: true, reason: 'multiple-allowed', sourceFiles, entries }
+      : { pass: false, reason: 'too-many-entries', sourceFiles, entries };
+  }
+
+  if (entries.length > 0) {
+    return { pass: true, reason: 'entry-added', sourceFiles, entries };
   }
   if (sourceFiles.length === 0) {
-    return { pass: true, reason: 'no-source-change', sourceFiles };
+    return { pass: true, reason: 'no-source-change', sourceFiles, entries };
   }
   if (skipped) {
-    return { pass: true, reason: 'skipped-explicitly', sourceFiles };
+    return { pass: true, reason: 'skipped-explicitly', sourceFiles, entries };
   }
 
-  return { pass: false, reason: 'missing-entry', sourceFiles };
+  return { pass: false, reason: 'missing-entry', sourceFiles, entries };
 }

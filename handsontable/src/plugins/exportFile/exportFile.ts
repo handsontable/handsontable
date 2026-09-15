@@ -488,7 +488,7 @@ export class ExportFile extends BasePlugin {
    *
    * This method is only supported for text-based formats such as CSV.
    * Calling it with a binary format (e.g. `'xlsx'`) throws an error — use
-   * [[ExportFile#exportAsBlobAsync]] instead.
+   * {@link ExportFile#exportAsBlobAsync} instead.
    *
    * @param {string} format Export format type e.g. `'csv'`.
    * @param {object} options Export options.
@@ -557,7 +557,7 @@ export class ExportFile extends BasePlugin {
    * Triggers a synchronous file download for text-based export formats (e.g. `'csv'`).
    *
    * Calling this method with a binary format (e.g. `'xlsx'`) throws an error — use
-   * [[ExportFile#downloadFileAsync]] instead.
+   * {@link ExportFile#downloadFileAsync} instead.
    *
    * @param {string} format Export format type e.g. `'csv'`.
    * @param {object} options Export options.
@@ -636,7 +636,9 @@ export class ExportFile extends BasePlugin {
 
     if (hasDialog && formatter.binary) {
       dialogPlugin.show({
-        content: buildExportDialogContent(this.hot.getTranslatedPhrase(EXPORT_FILE_DIALOG_TITLE)),
+        content: buildExportDialogContent(
+          this.hot.getTranslatedPhrase(EXPORT_FILE_DIALOG_TITLE), this.hot.rootDocument
+        ),
         customClassName: LOADING_CLASS_NAME,
         background: 'semi-transparent',
         closable: false,

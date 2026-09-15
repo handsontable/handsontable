@@ -16,7 +16,7 @@ Handsontable is distributed as multiple packages targeting different use cases. 
 
 To utilize the full distribution of Handsontable, you can choose either the default (main) styles or other theme styles.
 
-### Option 1: Default (main) Styles
+### Option 1: Default (main) styles
 Include the following files in your project:
 ```html
 <script src="dist/handsontable.full.js"></script>
@@ -28,7 +28,7 @@ Alternatively, you can opt for the minified versions:
 
 The **handsontable.full.js** are bundled with all necessary dependencies for seamless integration.
 
-### Option 2: Theme-Based Styles
+### Option 2: Theme-based styles
 
 For projects utilizing themes, use the **Theme API** (recommended) or load theme **CSS files**. Available built-in themes are **main**, **horizon**, and **classic**.
 

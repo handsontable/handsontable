@@ -39,6 +39,7 @@ export interface MenuItemConfig {
   name: string | (() => string);
   hidden?: boolean | (() => boolean);
   disabled?: boolean | (() => boolean);
+  checked?: boolean | (() => boolean);
   callback?: (key: string, selection: unknown[], clickEvent: MouseEvent) => void;
   renderer?: (
     hot: unknown, wrapper: HTMLElement, row: number, col: number, prop: string | number, itemValue: string
@@ -403,7 +404,7 @@ export class ContextMenu extends BasePlugin {
    * @fires Hooks#beforeContextMenuSetItems
    */
   prepareMenuItems() {
-    this.itemsFactory = new ItemsFactory(this.hot, ContextMenu.DEFAULT_ITEMS);
+    this.itemsFactory = new ItemsFactory(this.hot, ContextMenu.DEFAULT_ITEMS, PLUGIN_KEY);
 
     const settings = this.hot.getSettings()[PLUGIN_KEY];
     const predefinedItems = {

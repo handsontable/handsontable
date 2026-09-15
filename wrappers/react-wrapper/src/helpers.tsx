@@ -8,6 +8,7 @@ import React, {
   useEffect,
 } from 'react';
 import ReactDOM from 'react-dom';
+import Handsontable from 'handsontable/base';
 import { HotTableProps } from './types';
 
 let bulkComponentContainer: DocumentFragment | null = null;
@@ -52,6 +53,17 @@ export const HOT_DESTROYED_WARNING = 'The Handsontable instance bound to this co
  * Default classname given to the wrapper container.
  */
 export const DEFAULT_CLASSNAME = 'hot-wrapper-editor-container';
+
+/**
+ * Classname for the stable host that holds React editor portals.
+ * Distinct from `DEFAULT_CLASSNAME` so page CSS and `querySelector` do not hit both nodes.
+ */
+export const EDITOR_PORTAL_HOST_CLASSNAME = 'hot-wrapper-editor-portal-host';
+
+/**
+ * Warning when the editor portal host cannot be moved into `rootPortalElement`.
+ */
+export const MISSING_ROOT_PORTAL_WARNING = 'The React editor portal host could not be attached to `rootPortalElement`. The editor stays on `document.body` and clicks on it may fail to commit.';
 
 /**
  * Logs warn to the console if the `console` object is exposed.
@@ -133,14 +145,70 @@ function hasChildElementOfType(children: ReactNode, type: 'hot-renderer' | 'hot-
 }
 
 /**
+ * Check whether the `editor` prop holds a component editor, as opposed to a boolean flag.
+ *
+ * Both editor props accept a boolean, so a truthy check alone is not enough to tell a component
+ * apart from a bare `editor={true}`.
+ *
+ * @param {HotTableProps['editor']} editor The `editor` prop.
+ * @returns {boolean} `true` when the prop carries a component to render.
+ */
+export function isComponentEditor(editor: HotTableProps['editor']): boolean {
+  return !!editor && typeof editor !== 'boolean';
+}
+
+/**
+ * Resolve the Handsontable `editor` setting from the two editor props.
+ *
+ * `editor` carries the component editor and `hotEditor` the Handsontable-native one, but both accept
+ * a boolean:
+ *
+ * - `false` disables editing.
+ * - `true` names no editor, so it is treated as if the prop were not provided. It must never reach
+ *   the core, which accepts only a string or a constructor and throws on anything else.
+ * - Any other nullish or falsy value (`null`, `0`, `''`) is also treated as "not provided", so a
+ *   column written as `editor={cond ? MyEditor : null}` inherits instead of locking.
+ *
+ * `hotEditor` is resolved before a falsy `editor`, so an editor named there still wins over a bare
+ * `editor={false}` — the behavior in every released version, where `editor={false}` fell through to
+ * the `hotEditor` value. A component `editor` outranks both: it is picked by `isComponentEditor()`
+ * before this function is reached, so `editor={MyComponent} hotEditor={false}` keeps the component.
+ *
+ * @param {HotTableProps['editor']} editor The `editor` prop.
+ * @param {HotTableProps['hotEditor']} hotEditor The `hotEditor` prop.
+ * @returns {*} The editor setting, or `undefined` when neither prop names one.
+ */
+export function resolveEditorSetting(
+  editor: HotTableProps['editor'],
+  hotEditor: HotTableProps['hotEditor']
+): Handsontable.GridSettings['editor'] | undefined {
+  if (hotEditor === false) {
+    return false;
+  }
+
+  // `true` names no editor, so it must fall through to "not provided" rather than hard-setting the
+  // default one — otherwise it would override the editor a column's `type` or the grid supplies.
+  if (hotEditor && hotEditor !== true) {
+    return hotEditor as Handsontable.GridSettings['editor'];
+  }
+
+  return editor === false ? false : undefined;
+}
+
+/**
  * Create an editor portal.
  *
  * @param {Document} doc Document to be used.
  * @param {ComponentType} Editor Editor component or render function.
+ * @param {HTMLElement} portalHost Host element to portal into. Required – do not fall back to `doc.body`.
  * @returns {ReactPortal} The portal for the editor.
  */
-export function createEditorPortal(doc: Document | null, Editor: HotTableProps['editor'] | undefined | boolean): ReactPortal | null {
-  if (!doc || !Editor || typeof Editor === 'boolean') {
+export function createEditorPortal(
+  doc: Document | null,
+  Editor: HotTableProps['editor'] | undefined | boolean,
+  portalHost?: HTMLElement | null
+): ReactPortal | null {
+  if (!doc || !Editor || typeof Editor === 'boolean' || !portalHost) {
     return null;
   }
 
@@ -153,7 +221,7 @@ export function createEditorPortal(doc: Document | null, Editor: HotTableProps['
     <div {...containerProps}>
       {editorElement}
     </div>
-    , doc.body);
+    , portalHost);
 }
 
 /**

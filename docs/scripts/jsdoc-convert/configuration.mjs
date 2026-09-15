@@ -59,6 +59,32 @@ export default {
         metaTitle: 'AutoColumnSize - Angular Data Grid | Handsontable',
       },
     },
+    'AutoLink.md': {
+      id: '883xgxul',
+      metaTitle: 'AutoLink - JavaScript Data Grid | Handsontable',
+      description: 'Use the AutoLink plugin with its API options and methods to render the URLs found in cell values as clickable links.',
+      react: {
+        id: '77y9d5vk',
+        metaTitle: 'AutoLink - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'p4s2h8nq',
+        metaTitle: 'AutoLink - Angular Data Grid | Handsontable',
+      },
+    },
+    'AutoRowHeaderSize.md': {
+      id: 'ty441i4v',
+      metaTitle: 'AutoRowHeaderSize - JavaScript Data Grid | Handsontable',
+      description: 'Use the AutoRowHeaderSize plugin with its API options and methods to set the row header width based on its longest label.',
+      react: {
+        id: 's8rcdjwl',
+        metaTitle: 'AutoRowHeaderSize - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: '1iiq9p4n',
+        metaTitle: 'AutoRowHeaderSize - Angular Data Grid | Handsontable',
+      },
+    },
     'AutoRowSize.md': {
       id: 'fm3dhdw8',
       metaTitle: 'AutoRowSize - JavaScript Data Grid | Handsontable',

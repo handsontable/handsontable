@@ -1,8 +1,9 @@
 import type { HotInstance } from '../../core/types';
 import type { CellProperties } from '../../settings';
+import { EDITOR_STATE } from '../baseEditor';
 import { HandsontableEditor } from '../handsontableEditor';
 import { pivot } from '../../helpers/array';
-import { isKeyValueObject, isObject } from '../../helpers/object';
+import { findChoiceByDisplayedValue, isKeyValueEntry } from '../../utils/cellSource';
 import {
   addClass,
   fastInnerHTML,
@@ -13,6 +14,7 @@ import {
   outerWidth,
   setAttribute,
   setCaretPosition,
+  empty,
 } from '../../helpers/dom/element';
 import { isDefined, stringify } from '../../helpers/mixed';
 import { stripTags, localeLowerCase } from '../../helpers/string';
@@ -77,6 +79,32 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @type {string}
    */
   #idPrefix = this.hot.guid.slice(0, 9);
+  /**
+   * Generation token for the in-flight choices query. Bumped on every `queryChoices()` call, so a
+   * response belonging to a superseded query can be told apart from the one the editor is waiting
+   * for.
+   *
+   * @type {number}
+   */
+  #queryGeneration = 0;
+  /**
+   * Edit-session token. Bumped whenever no further `source` response is wanted - on `close()` and on a
+   * scroll-hide, both through `#dropInFlightQueries()` - so a late response can tell that the query it
+   * belongs to has been abandoned, which neither `state` nor `_opened` reports reliably. Only the
+   * response needs a token: user code holds that callback and there is nothing to cancel, while the
+   * editor's own deferred queries are canceled outright through `#queryTimeouts`.
+   *
+   * @type {number}
+   */
+  #editSession = 0;
+  /**
+   * Timer ids of the `queryChoices()` calls this editor has deferred and not yet run. Cleared on
+   * `close()` and on a scroll-hide (both through `#dropInFlightQueries()`), so a query scheduled during
+   * an edit never runs after the edit ends or while the cell is out of view.
+   *
+   * @type {Set}
+   */
+  #queryTimeouts: Set<ReturnType<typeof setTimeout>> = new Set();
 
   /**
    * Gets current value from editable element.
@@ -84,14 +112,23 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @returns {string}
    */
   getValue(): unknown {
-    const selectedValue = this.rawChoices.find((value) => {
-      const strippedValue = this.stripValueIfNeeded(value);
+    // Shared with the autocomplete/dropdown `valueSetter`, which resolves a label the same way for
+    // text that never passed through this editor - a `text/plain` paste, or `setDataAtCell()`. Two
+    // copies of this rule drifted once and let a pasted label store a bare string among key/value
+    // objects (DEV-57), so keep the single call.
+    // An emptied editor has to stay empty, the same rule the `valueSetter` keeps. A `source` entry
+    // whose label is blank - `{ key: '0', value: null }` - displays as `''`, so without this guard
+    // confirming an empty editor would resolve to that entry. It is an object, so the setter returns
+    // it untouched and its own `isEmpty` gate never runs, leaving `allowEmpty` and `emptyValue` with
+    // no blank to act on. A plain `''` entry resolves to `''` anyway, so the blank option a user can
+    // pick from the list still behaves the same.
+    if (this.TEXTAREA.value === '') {
+      return this.TEXTAREA.value;
+    }
 
-      const resolvedValue = this.#isKeyValueObject(strippedValue)
-        ? (strippedValue as Record<string, unknown>).value : strippedValue;
-
-      return resolvedValue === this.TEXTAREA.value;
-    });
+    const selectedValue = findChoiceByDisplayedValue(
+      this.rawChoices, this.TEXTAREA.value, this.cellProperties.allowHtml === true
+    );
 
     if (isDefined(selectedValue)) {
       return selectedValue;
@@ -105,6 +142,15 @@ export class AutocompleteEditor extends HandsontableEditor {
    */
   createElements(): void {
     super.createElements();
+
+    // Typing supersedes a pick made with the arrow keys or a click - that pick never wrote to the
+    // TEXTAREA, so nothing about the text says it happened. `input` rather than the `beforeKeyDown`
+    // hook because text arrives here by routes that fire no keydown at all: a right-click Paste, a
+    // drag-and-drop, an IME commit. It does not fire for a programmatic `setValue()`, so the commit
+    // path writing the resolved choice back cannot clear the origin it just acted on.
+    this.eventManager.addEventListener(this.TEXTAREA, 'input', () => {
+      this.innerSelectionOrigin = null;
+    });
 
     addClass(this.htContainer, 'autocompleteEditor');
     addClass(this.htContainer, this.hot.rootWindow.navigator.platform.indexOf('Mac') === -1 ? '' : 'htMacScroll');
@@ -143,8 +189,8 @@ export class AutocompleteEditor extends HandsontableEditor {
 
     this.htOptions = {
       ...this.htOptions,
-      valueGetter: (cellValue: unknown) => (this.#isKeyValueObject(cellValue)
-        ? (cellValue as Record<string, unknown>).value : cellValue),
+      valueGetter: (cellValue: unknown) => (isKeyValueEntry(cellValue)
+        ? cellValue.value : cellValue),
     };
   }
 
@@ -152,6 +198,13 @@ export class AutocompleteEditor extends HandsontableEditor {
    * Opens the editor and adjust its size and internal Handsontable's instance.
    */
   open(): void {
+    // The editor instance is reused across cells and `updateChoicesList()` is the only writer, so
+    // without this the list from the PREVIOUS cell survives until this cell's deferred query lands.
+    // `resolveInnerSelectionValue()` matches against it, so a commit inside that window could write
+    // a choice belonging to another column's `source`.
+    this.strippedChoices = [];
+    this.rawChoices = [];
+
     super.open();
 
     const trimDropdownSetting = this.cellProperties.trimDropdown as boolean | undefined;
@@ -211,7 +264,7 @@ export class AutocompleteEditor extends HandsontableEditor {
             const match = cellValue.slice(indexOfMatch, indexOfMatch + query.length);
             const { rootDocument } = hotInstance;
 
-            TD.innerHTML = '';
+            empty(TD);
             TD.appendChild(rootDocument.createTextNode(cellValue.slice(0, indexOfMatch)));
 
             const strong = rootDocument.createElement('strong');
@@ -277,15 +330,166 @@ export class AutocompleteEditor extends HandsontableEditor {
       setAttribute(this.TEXTAREA, ...A11Y_EXPANDED('true'));
     }
 
-    this.hot._registerTimeout(() => {
+    this.#deferQuery();
+  }
+
+  /**
+   * Returns the editor's current value in the form the choice matching works on.
+   */
+  #editorValue(): unknown {
+    return this.stripValueIfNeeded(this.getValue());
+  }
+
+  /**
+   * Works out which choice the list highlights for a value: the narrowed choice array plus the
+   * index within it, or `null` when nothing matches.
+   *
+   * Extracted so `updateChoicesList()` and `resolveInnerSelectionValue()` cannot answer this question
+   * differently. The check is only meaningful while both derive the match identically, and a copy
+   * of these rules that drifted would fail silently - by committing a value the user never saw
+   * highlighted.
+   *
+   * @param {Array} choicesList The choices to match against, already stripped.
+   * @param {*} value The editor value, already stripped.
+   * @returns {{ choices: Array, highlightIndex: number | null }}
+   */
+  #deriveHighlight(choicesList: ChoiceArray, value: unknown):
+    { choices: ChoiceArray, highlightIndex: number | null } {
+    const sortByRelevanceSetting = this.cellProperties.sortByRelevance as boolean | undefined;
+    const filterSetting = this.cellProperties.filter as boolean | undefined;
+    const locale = this.cellProperties.locale as string | undefined;
+    const filteringCaseSensitive = this.cellProperties.filteringCaseSensitive as boolean | undefined;
+    const comparableValue = isKeyValueEntry(value) ? value.value : value;
+
+    let highlightIndex: number | null = null;
+    let choices = choicesList;
+
+    if (!sortByRelevanceSetting) {
+      // Sort a copy: `updateChoicesList` is public API, so the caller's array (typically the
+      // `source` setting) must keep its original order. The spread also keeps iterable callers (a
+      // Set, a NodeList) working, which `Array#toSorted` would not — the floor now allows it, but
+      // switching would narrow what this public method accepts.
+      choices = [...choices].sort((a, b) => stringify(a).localeCompare(stringify(b)));
+    }
+
+    const filteredChoiceIndexes: number[] = [];
+    const valueToMatch = filteringCaseSensitive ? comparableValue : localeLowerCase(String(comparableValue), locale);
+
+    for (let i = 0; i < choices.length; i++) {
+      const choice = choices[i];
+      const currentItem = isKeyValueEntry(choice) ?
+        stripTags(stringify(choice.value)) :
+        stripTags(stringify(choice));
+      const itemToMatch = filteringCaseSensitive ? currentItem : localeLowerCase(currentItem, locale);
+
+      if (itemToMatch.indexOf(String(valueToMatch)) !== -1) {
+        filteredChoiceIndexes.push(i);
+
+        if (filterSetting === false) {
+          break;
+        }
+      }
+    }
+
+    if (filterSetting === false) {
+      if (String(value).length > 0) {
+        highlightIndex = filteredChoiceIndexes[0] ?? null;
+      }
+    } else {
+      choices = filteredChoiceIndexes.map(index => choices[index]);
+      highlightIndex = choices.indexOf(valueToMatch) > -1 ? choices.indexOf(valueToMatch) : 0;
+    }
+
+    return { choices, highlightIndex };
+  }
+
+  /**
+   * Defers a `queryChoices()` call and keeps its timer id so `close()` and a scroll-hide can cancel it
+   * (both through `#dropInFlightQueries()`).
+   *
+   * `hot._registerTimeout()` has no cancel path of its own - `_clearTimeouts()` runs only from
+   * `Core#destroy()` - so without this a query scheduled during an edit still fires after the
+   * editor closed, and starts a fresh request against a cell nobody is editing.
+   *
+   * @param {number} [delay] Delay in milliseconds.
+   */
+  #deferQuery(delay: number = 0): void {
+    const timeoutId = this.hot._registerTimeout(() => {
+      this.#queryTimeouts.delete(timeoutId);
       this.queryChoices(this.TEXTAREA.value);
-    });
+    }, delay);
+
+    this.#queryTimeouts.add(timeoutId);
+  }
+
+  /**
+   * The value the choice list contributes to the commit, or `undefined` to keep the typed text.
+   *
+   * A pick the user made with the arrow keys or a click is theirs, and is returned as-is. In strict
+   * mode anything else is a match derived from the typed value, and this works that match out
+   * afresh rather than trusting the highlight: `highlightBestMatchingChoice()` runs from a query
+   * deferred 10 ms behind the keystrokes, so the highlight routinely describes older text than the
+   * value being committed - including for the whole time a function `source` has a response
+   * outstanding, which no amount of waiting inside a commit can fix.
+   *
+   * Returning the derived match rather than merely accepting or rejecting the highlight matters
+   * under `allowInvalid: false`: for a typed `'Alf'` whose list still shows `'Alpha'`, answering
+   * "no" would commit `'Alf'`, which the strict validator then rejects outright. `'Alfa'` is the
+   * value strict mode owes the user, and it is already in hand here.
+   *
+   * Derived from `strippedChoices` - the list actually loaded into the inner grid - NOT from
+   * `rawChoices`. `updateChoicesList()` is public API and can be handed an array that never came
+   * from `source` (`queryChoices()`'s own empty-source branch does exactly that), and matching
+   * against a set the user cannot see would drop the choice they can.
+   *
+   * @private
+   * @returns {*}
+   */
+  resolveInnerSelectionValue(): unknown {
+    if (this.innerSelectionOrigin === 'user') {
+      return super.resolveInnerSelectionValue();
+    }
+
+    // Non-strict derives no highlight of its own, so with no pick outstanding there is nothing the
+    // list can contribute. Checking the origin FIRST is what makes clearing it on `input` mean
+    // something here: short-circuiting on `strict` would hand back a pick the typing superseded.
+    if (this.cellProperties.strict !== true) {
+      return undefined;
+    }
+
+    const { choices, highlightIndex } = this.#deriveHighlight(this.strippedChoices, this.#editorValue());
+
+    if (highlightIndex === null || highlightIndex >= choices.length) {
+      return undefined;
+    }
+
+    const matched = choices[highlightIndex];
+
+    // Unwrapped the way the inner grid presents it - its `valueGetter` reduces a key/value entry to
+    // the `value` half, so returning the raw entry would write an object into the cell.
+    return isKeyValueEntry(matched) ? matched.value : matched;
   }
 
   /**
    * Closes the editor.
    */
   close(): void {
+    // Ends the edit session. Closing means "no response is wanted any more", and so does a scroll-out
+    // of the rendered range (see `hideForScroll()` below, which shares this in-flight cleanup); a late
+    // response must not re-show the list or steal focus in either case (DEV-2653/DEV-2676). `afterSetTheme`
+    // also closes the editor (`assignHooks`). `_opened` stays false while the cell is scroll-hidden and
+    // after it scrolls back, so the guards elsewhere key on `state`, not `_opened`.
+    //
+    // Queries this editor deferred are canceled outright; the token below is for the ones already
+    // handed to user code, which cannot be.
+    //
+    // The two meanings of hiding are separated in `TextEditor`: a scroll-out goes through
+    // `hideForScroll()` (transient - it runs this same cleanup so late responses are dropped, but keeps
+    // `beforeKeyDown` and the already-loaded choices, so the dropdown re-shows populated and re-queries
+    // on scroll-back), while `close()` here is the genuine edit-end teardown that also unhooks and tears
+    // down the inner grid.
+    this.#dropInFlightQueries();
+
     this.removeHooksByKey('beforeKeyDown');
     super.close();
 
@@ -297,7 +501,85 @@ export class AutocompleteEditor extends HandsontableEditor {
   }
 
   /**
-   * Verifies result of validation or closes editor if user's cancelled changes.
+   * Cancels the debounced refocus, clears the deferred query timeouts, and bumps the edit-session token
+   * so any `source` response still in flight is dropped. Shared by `close()` and `hideForScroll()`:
+   * both mean "no more responses wanted", and a late one must not re-show the list or steal focus back
+   * through `hot.listen()` (DEV-2653/DEV-2676). The debounced refocus is armed by the inner grid's
+   * `afterScroll` and runs 100 ms later, so it outlives the hide unless canceled here.
+   *
+   * @private
+   */
+  #dropInFlightQueries(): void {
+    this.#focusDebounced.cancel();
+    this.#queryTimeouts.forEach(timeoutId => clearTimeout(timeoutId));
+    this.#queryTimeouts.clear();
+    this.#editSession += 1;
+  }
+
+  /**
+   * Hides the dropdown because the edited cell scrolled out of the rendered range, without ending the
+   * edit. Drops in-flight responses exactly as `close()` does (a late one must not re-show the list or
+   * steal focus), and lowers the combobox `aria-expanded` so a screen reader does not keep announcing
+   * an open listbox while the list is hidden. The inherited `HandsontableEditor#hideForScroll` keeps
+   * `beforeKeyDown` and the already-loaded choices, so the list re-shows populated and typing
+   * re-queries once the cell scrolls back.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  hideForScroll(): boolean {
+    this.#dropInFlightQueries();
+
+    if (this.hot.getSettings().ariaTags) {
+      setAttribute(this.TEXTAREA, [
+        A11Y_EXPANDED('false'),
+      ]);
+    }
+
+    return super.hideForScroll();
+  }
+
+  /**
+   * Re-shows the dropdown list after the edited cell scrolled back into the rendered range, keeping the
+   * choices already loaded into the nested grid. Guarded on there being choices to show, so an empty
+   * list stays hidden, matching the empty branch of {@link AutocompleteEditor#updateChoicesList}. The
+   * re-measure is added to the base flip pass through {@link AutocompleteEditor#reflowDropdown}, and the
+   * combobox `aria-expanded` is raised again.
+   *
+   * Known limitation: a `function` `source` whose response was still in flight when the cell scrolled
+   * out was dropped by `hideForScroll()` and is not requested again, so for that one case the list stays
+   * empty until the next keystroke re-queries. Re-querying here would fix it, but at the cost of a source
+   * call on every scroll-back, so it is deliberately left to the keystroke.
+   *
+   * @private
+   */
+  showAfterScroll(): void {
+    if (this.htEditor && this.strippedChoices.length > 0) {
+      super.showAfterScroll();
+
+      if (this.hot.getSettings().ariaTags) {
+        setAttribute(this.TEXTAREA, [
+          A11Y_EXPANDED('true'),
+        ]);
+      }
+    }
+  }
+
+  /**
+   * Re-measures the dropdown to the choices it holds before the base flip pass reads its size, so the
+   * list comes back at the right width and height after a scroll round-trip even if the column was
+   * resized while the cell was out of range.
+   *
+   * @private
+   */
+  reflowDropdown(): void {
+    this.updateDropdownDimensions();
+
+    super.reflowDropdown();
+  }
+
+  /**
+   * Verifies result of validation or closes editor if user's canceled changes.
    *
    * @param {boolean|undefined} result If `false` and the cell using allowInvalid option,
    *                                   then an editor won't be closed until validation is passed.
@@ -311,17 +593,59 @@ export class AutocompleteEditor extends HandsontableEditor {
   /**
    * Prepares choices list based on applied argument.
    *
+   * Does nothing when the editor is not editing, and ignores a `source` response that arrives after
+   * the editor closed or after a newer query started.
+   *
    * @param {string} query The query.
    */
   queryChoices(query: string): void {
+    // `close()` cancels the queries this editor deferred, so no internal caller reaches here once
+    // an edit has ended. This guard is for the public method: `queryChoices()` ships in the type
+    // declarations, and calling it while no edit is in progress must not invoke the user's
+    // `source`, which is typically a network request.
+    //
+    // `WAITING` counts as in progress. `close()` is what unhooks `beforeKeyDown`, so keystrokes
+    // still schedule queries while an async validator runs, and under `allowInvalid: false` the
+    // editor stays open and returns to `EDITING`. Rejecting them would stop the list refreshing for
+    // the length of every validation, which is a behavior change rather than a fix.
+    //
+    // `_opened` is false while the edited cell is scroll-hidden (`hideForScroll()`) and is restored on
+    // scroll-back. Bailing on it keeps a keystroke made while the cell is out of view - which
+    // `beforeKeyDown` still schedules, since the hide deliberately keeps that hook - from reaching the
+    // source and, once it answered, re-showing the list and calling `hot.listen()` against a cell with
+    // no rendered rect.
+    if ((this.state !== EDITOR_STATE.EDITING && this.state !== EDITOR_STATE.WAITING) || !this._opened) {
+      return;
+    }
+
     type SourceValue = unknown[] | ((query: string, callback: (choices: unknown[]) => void) => void);
     const source = this.cellProperties.source as SourceValue | undefined;
+    const generation = this.#queryGeneration + 1;
+    const editSession = this.#editSession;
 
+    this.#queryGeneration = generation;
     this.query = query;
 
     if (typeof source === 'function') {
       type SourceFn = (query: string, callback: (choices: unknown[]) => void) => void;
+
       (source as SourceFn).call(this.cellProperties, query, (choices: unknown[]) => {
+        // A user-supplied source answers whenever it likes, and `HandsontableEditor.close()` only
+        // hides the nested grid, so a late response can still re-show the dropdown and pull focus
+        // back through `hot.listen()`. Two ways a response stops being the one the editor waits
+        // for, one token each: the edit ended, or a newer query superseded it. Deliberately no
+        // state check - a response landing while an async validator holds the editor in `WAITING`
+        // belongs to the still-open editor, and rejecting it would leave the list empty for the
+        // rest of the edit when `allowInvalid: false` sends the state back to `EDITING`.
+        // `Core#destroy()` reaches neither token - it never closes the active editor - and
+        // `updateChoicesList()` would then touch an `htEditor` whose root element is gone. The
+        // guide tells people to answer late, and in a single-page app a torn-down grid is the
+        // usual way that happens.
+        if (this.hot.isDestroyed || editSession !== this.#editSession ||
+            generation !== this.#queryGeneration) {
+          return;
+        }
+
         this.rawChoices = choices;
         this.updateChoicesList(this.stripValuesIfNeeded(choices));
       });
@@ -343,51 +667,7 @@ export class AutocompleteEditor extends HandsontableEditor {
   updateChoicesList(choicesList: ChoiceArray): void {
     const pos = getCaretPosition(this.TEXTAREA);
     const endPos = getSelectionEndPosition(this.TEXTAREA);
-    const sortByRelevanceSetting = this.cellProperties.sortByRelevance as boolean | undefined;
-    const filterSetting = this.cellProperties.filter as boolean | undefined;
-    const value = this.stripValueIfNeeded(this.getValue());
-    const comparableValue = this.#isKeyValueObject(value) ? (value as Record<string, unknown>).value : value;
-
-    let highlightIndex: number | null = null;
-    let choices = choicesList;
-
-    if (!sortByRelevanceSetting) {
-      // Sort a copy, never the passed-in array: `updateChoicesList` is public API and the caller's
-      // array (typically the `source` setting) must keep its original order. `Array#toSorted` would
-      // do this in one call but is outside the `browser-targets.js` baseline (Firefox 115+,
-      // Safari 16+), and swc lowers syntax only — it adds no instance-method polyfills.
-      choices = [...choices].sort((a, b) => stringify(a).localeCompare(stringify(b)));
-    }
-
-    const filteredChoiceIndexes: number[] = [];
-    const locale = this.cellProperties.locale as string | undefined;
-    const filteringCaseSensitive = this.cellProperties.filteringCaseSensitive as boolean | undefined;
-    const valueToMatch = filteringCaseSensitive ? comparableValue : localeLowerCase(String(comparableValue), locale);
-
-    for (let i = 0; i < choices.length; i++) {
-      const currentItem =
-        this.#isKeyValueObject(choices[i]) ?
-          stripTags(stringify((choices[i] as Record<string, unknown>).value)) :
-          stripTags(stringify(choices[i]));
-      const itemToMatch = filteringCaseSensitive ? currentItem : localeLowerCase(currentItem, locale);
-
-      if (itemToMatch.indexOf(String(valueToMatch)) !== -1) {
-        filteredChoiceIndexes.push(i);
-
-        if (filterSetting === false) {
-          break;
-        }
-      }
-    }
-
-    if (filterSetting === false) {
-      if (String(value).length > 0) {
-        highlightIndex = filteredChoiceIndexes[0];
-      }
-    } else {
-      choices = filteredChoiceIndexes.map(index => choices[index]);
-      highlightIndex = choices.indexOf(valueToMatch) > -1 ? choices.indexOf(valueToMatch) : 0;
-    }
+    const { choices, highlightIndex } = this.#deriveHighlight(choicesList, this.#editorValue());
 
     this.strippedChoices = choices;
 
@@ -405,8 +685,18 @@ export class AutocompleteEditor extends HandsontableEditor {
       this.flipDropdownHorizontallyIfNeeded();
 
       if (this.cellProperties.strict === true) {
-        this.highlightBestMatchingChoice(highlightIndex ?? undefined);
+        const matchedIndex = highlightIndex ?? undefined;
+
+        this.highlightBestMatchingChoice(matchedIndex);
+
+        // Only on this branch: in non-strict mode `highlightBestMatchingChoice()` never runs, so a
+        // late query must not clear a `'user'` origin the arrow keys set.
+        this.innerSelectionOrigin = matchedIndex === undefined ? null : 'auto';
       }
+    } else {
+      // The list is empty and hidden, so there is nothing left on screen that a pick could refer
+      // to. Without this an arrow pick made against an earlier list stays authoritative.
+      this.innerSelectionOrigin = null;
     }
 
     this.hot.listen();
@@ -607,7 +897,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     const { allowHtml } = this.cellProperties;
     const processValue = (value: unknown) => stringify(allowHtml ? value : stripTags(String(value)));
 
-    if (values.every(value => isKeyValueObject(value))) {
+    if (values.every(value => isKeyValueEntry(value))) {
       return values.map((value) => {
         const obj = value as Record<string, unknown>;
 
@@ -640,18 +930,6 @@ export class AutocompleteEditor extends HandsontableEditor {
   }
 
   /**
-   * Checks if the value is a key/value object.
-   *
-   * @param {*} value The value to check.
-   * @returns {boolean}
-   */
-  #isKeyValueObject(value: unknown): boolean {
-    const rec = value as Record<string, unknown>;
-
-    return isObject(value) && isDefined(rec.key) && isDefined(rec.value);
-  }
-
-  /**
    * OnBeforeKeyDown callback.
    *
    * @private
@@ -674,11 +952,7 @@ export class AutocompleteEditor extends HandsontableEditor {
         timeOffset += 10;
       }
 
-      if (this.htEditor) {
-        this.hot._registerTimeout(() => {
-          this.queryChoices(this.TEXTAREA.value);
-        }, timeOffset);
-      }
+      this.#deferQuery(timeOffset);
     }
   }
 }

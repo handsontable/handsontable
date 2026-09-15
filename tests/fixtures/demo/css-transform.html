@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Handsontable CSS transform e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const params = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[params.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(params.get('theme')));
+    }
+
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[
+      params.get('bundle') ?? 'umd'
+    ];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(params.get('bundle')));
+    }
+
+    document.write(`<link rel="stylesheet" href="/handsontable/styles/ht-theme-${window.htTheme}.min.css">`);
+  </script>
+  <style>
+    body {
+      margin: 0;
+    }
+
+    #grid {
+      width: 500px;
+      height: 300px;
+      margin: 160px;
+      transform: rotate(90deg);
+      transform-origin: center;
+    }
+  </style>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+  <script>
+    document.write(`<script src="/handsontable/dist/${window.htBundle}"><\/script>`);
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+    window.hot = new Handsontable(container, {
+      data: Handsontable.helper.createSpreadsheetData(20, 20),
+      width: 500,
+      height: 300,
+      rowHeaders: true,
+      colHeaders: true,
+      fixedColumnsStart: 2,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>

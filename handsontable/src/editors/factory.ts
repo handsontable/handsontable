@@ -19,7 +19,6 @@ type EditorBaseFactoryParams<E> = Record<string, (editor: E, ...args: any[]) => 
 type EditorWithExtendedProps = InstanceType<typeof BaseEditor> & {
   container?: HTMLElement;
   input?: HTMLElement;
-  preventCloseElement?: HTMLElement | null;
   eventManager?: InstanceType<typeof EventManager>;
   refreshDimensions?: () => void;
   _opened: boolean;

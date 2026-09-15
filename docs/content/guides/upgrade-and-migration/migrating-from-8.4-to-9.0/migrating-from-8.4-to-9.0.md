@@ -149,7 +149,7 @@ Handsontable 9.0.0 removes the following previously deprecated plugins:
 - Header Tooltips
 - Observe Changes
 
-### Header Tooltips
+### Header tooltips
 
 To implement functionality similar to that of the Header Tooltips plugin, you can utilize the [`afterGetColHeader`](@/api/hooks.md#aftergetcolheader) and [`afterGetRowHeader`](@/api/hooks.md#aftergetrowheader) hooks to add a `title` attribute to the headers.
 See the snippet below for example implementation.
@@ -205,7 +205,7 @@ const onAfterGetHeader = function(index, TH) {
 
 :::
 
-### Observe Changes
+### Observe changes
 
 The plugin fired the [`afterChangesObserved`](@/api/hooks.md#afterchangesobserved) hook. Be sure to stop listening to it after updating to version `>=9.0.0`.
 

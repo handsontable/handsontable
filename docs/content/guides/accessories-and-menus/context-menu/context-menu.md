@@ -125,6 +125,16 @@ The `filter_by_condition`, `filter_by_condition2`, `filter_operators`, `filter_b
 `filter_action_bar` items build the filtering interface and take effect only in the dropdown (column)
 menu, not in the context menu. See [Filter menu items](@/guides/accessories-and-menus/column-menu/column-menu.md#filter-menu-items).
 
+The table above lists every key you can use in the array form of `contextMenu`. An array key that
+matches no available item is skipped, and Handsontable logs a console warning naming it and the
+menu it came from. That covers a key with a typo in it, and a key whose plugin is not enabled --
+so check the required plugin named beside the key when an item does not appear.
+
+Two cases are skipped without a warning. A key for a built-in item that is turned off, such as
+`row_above` under `allowInsertRow: false`, is left out on purpose. And in the object form of
+`contextMenu`, a plain string value is the item's label rather than a key to look up, so nothing
+is resolved and nothing is reported.
+
 To see the context menu, right-click on a cell. On touch devices, long-press a cell to open the context menu.
 
 ::: only-for javascript
@@ -169,6 +179,133 @@ To see the context menu, right-click on a cell. On touch devices, long-press a c
 :::
 
 :::
+
+### Command names are not menu item keys
+
+Some commands are addressed with a `parent:child` name, such as `alignment:left`. Those names work
+with [`executeCommand()`](@/api/contextMenu.md#executecommand), which runs a command directly:
+
+::: only-for javascript
+```javascript
+hot.getPlugin('contextMenu').executeCommand('alignment:left');
+```
+:::
+
+::: only-for react
+```jsx
+hotRef.current.hotInstance.getPlugin('contextMenu').executeCommand('alignment:left');
+```
+:::
+
+::: only-for angular
+```typescript
+this.hotTable.hotInstance.getPlugin('contextMenu').executeCommand('alignment:left');
+```
+:::
+
+::: only-for vue
+```javascript
+hotTableRef.value.hotInstance.getPlugin('contextMenu').executeCommand('alignment:left');
+```
+:::
+
+They are not menu item keys. Listing `alignment:left` in `contextMenu` does not create a "Left"
+item, because only the keys in the table above are resolved.
+
+To show part of a submenu, keep the predefined submenu items and filter out the ones you don't
+want. The items you keep carry their own actions, so they keep working:
+
+::: only-for javascript
+```javascript
+const verticalKeys = ['alignment:top', 'alignment:middle', 'alignment:bottom'];
+
+const hot = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
+  contextMenu: true,
+  afterContextMenuDefaultOptions(options) {
+    const alignment = options.items.find(item => item.key === 'alignment');
+
+    if (!alignment) {
+      return;
+    }
+
+    alignment.submenu.items = alignment.submenu.items
+      .filter(item => !verticalKeys.includes(item.key));
+  },
+});
+```
+:::
+
+::: only-for react
+```jsx
+const verticalKeys = ['alignment:top', 'alignment:middle', 'alignment:bottom'];
+
+const trimAlignment = (options) => {
+  const alignment = options.items.find(item => item.key === 'alignment');
+
+  if (!alignment) {
+    return;
+  }
+
+  alignment.submenu.items = alignment.submenu.items
+    .filter(item => !verticalKeys.includes(item.key));
+};
+
+<HotTable
+  licenseKey="non-commercial-and-evaluation"
+  contextMenu={true}
+  afterContextMenuDefaultOptions={trimAlignment}
+/>
+```
+:::
+
+::: only-for angular
+```typescript
+const verticalKeys = ['alignment:top', 'alignment:middle', 'alignment:bottom'];
+
+readonly gridSettings: GridSettings = {
+  licenseKey: 'non-commercial-and-evaluation',
+  contextMenu: true,
+  afterContextMenuDefaultOptions(options) {
+    const alignment = options.items.find(item => item.key === 'alignment');
+
+    if (!alignment) {
+      return;
+    }
+
+    alignment.submenu.items = alignment.submenu.items
+      .filter(item => !verticalKeys.includes(item.key));
+  },
+};
+```
+:::
+
+::: only-for vue
+```javascript
+const verticalKeys = ['alignment:top', 'alignment:middle', 'alignment:bottom'];
+
+const settings = {
+  licenseKey: 'non-commercial-and-evaluation',
+  contextMenu: true,
+  afterContextMenuDefaultOptions(options) {
+    const alignment = options.items.find(item => item.key === 'alignment');
+
+    if (!alignment) {
+      return;
+    }
+
+    alignment.submenu.items = alignment.submenu.items
+      .filter(item => !verticalKeys.includes(item.key));
+  },
+};
+```
+:::
+
+The alignment submenu then offers only the horizontal options. For the column menu, use
+`afterDropdownMenuDefaultOptions` instead.
+
+To build a submenu item of your own, give it a `name` and a `callback`. A custom item runs only the
+`callback` you write -- it does not inherit an action from a predefined key of the same name.
 
 ::: only-for react
 
@@ -247,9 +384,10 @@ Each configuration object in `items` can have these properties:
 | `name` | The label shown in the menu. Can be a `string` or a function returning a string. Supports HTML -- see the note below. When a function, `this` refers to the Handsontable instance. |
 | `disabled` | Whether the item is grayed out and non-clickable. Can be a `boolean` or a function returning a boolean. When a function, `this` refers to the Handsontable instance. |
 | `hidden` | Whether the item is hidden from the menu entirely. Can be a `boolean` or a function returning a boolean. When a function, `this` refers to the Handsontable instance. |
+| `checked` | Whether the item is marked with a check mark. Can be a `boolean` or a function returning a boolean. When a function, `this` refers to the Handsontable instance. Setting this option also makes the item a checkbox for assistive technology, so its state is announced as well as shown. An item that defines its own `renderer` draws its own content, so it gets the accessible state but no check mark. |
 | `callback` | A function called when the item is clicked. Receives `key`, `selection`, and `clickEvent` as arguments. |
 | `submenu` | Defines a nested submenu. Takes an object with an `items` array. Each submenu item's `key` must follow the `parent_key:child_key` format. |
-| `renderer` | A custom function for rendering the item's HTML. Must return an `HTMLElement`. |
+| `renderer` | A custom function for rendering the item's HTML. Must return an `HTMLElement`. A `renderer` owns the item's content, so Handsontable draws no `checked` mark inside it. |
 | `disableSelection` | When `true`, hovering over the item does not highlight it. |
 | `isCommand` | When `false`, clicking the item does not execute a command or close the menu. |
 

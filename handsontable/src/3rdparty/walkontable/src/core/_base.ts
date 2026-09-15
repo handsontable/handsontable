@@ -145,7 +145,7 @@ export default class CoreAbstract {
    *
    * @returns {Window} The root window.
    */
-  get rootWindow(): Window {
+  get rootWindow(): Window & typeof globalThis {
     return this.domBindings.rootWindow;
   }
 
@@ -183,7 +183,7 @@ export default class CoreAbstract {
     this.domBindings = {
       rootTable: table,
       rootDocument: table.ownerDocument,
-      rootWindow: table.ownerDocument.defaultView as Window,
+      rootWindow: table.ownerDocument.defaultView as Window & typeof globalThis,
       geometryReader: geometryReader ?? new LiveGeometryReader(table.ownerDocument.defaultView as Window),
       // `rootElement` is intentionally assigned later (see TableView); the cast defers it as the
       // original literal did. `unknown` is required because `LiveGeometryReader`'s `#`-private field

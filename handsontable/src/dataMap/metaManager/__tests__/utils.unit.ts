@@ -3,6 +3,7 @@ import {
   columnFactory,
   assert,
   isNullish,
+  normalizeEditorSetting,
 } from '../utils';
 import { registerAllCellTypes, getCellType } from '../../../cellTypes';
 
@@ -264,6 +265,45 @@ describe('MetaManager utils', () => {
       expect(isNullish(NaN)).toBe(false);
       expect(isNullish({})).toBe(false);
       expect(isNullish([])).toBe(false);
+    });
+  });
+
+  describe('normalizeEditorSetting', () => {
+    it('should drop an "editor" property of `true`, so it reads as "not passed"', () => {
+      const settings = { editor: true, type: 'numeric' };
+      const normalizedSettings = normalizeEditorSetting(settings);
+
+      expect(normalizedSettings).not.toBe(settings);
+      expect('editor' in normalizedSettings).toBe(false);
+      expect(normalizedSettings.type).toBe('numeric');
+    });
+
+    it('should not mutate the passed settings object', () => {
+      const settings = { editor: true };
+
+      normalizeEditorSetting(settings);
+
+      expect(settings.editor).toBe(true);
+    });
+
+    it('should return the very same object when the "editor" property needs no normalization', () => {
+      const namedEditor = { editor: 'numeric' };
+      const disabledEditor = { editor: false };
+      const nullEditor = { editor: null };
+      const noEditor = { type: 'numeric' };
+
+      expect(normalizeEditorSetting(namedEditor)).toBe(namedEditor);
+      expect(normalizeEditorSetting(disabledEditor)).toBe(disabledEditor);
+      expect(normalizeEditorSetting(nullEditor)).toBe(nullEditor);
+      expect(normalizeEditorSetting(noEditor)).toBe(noEditor);
+    });
+
+    it('should keep an "editor" property that is a truthy non-boolean value', () => {
+      class CustomEditor {}
+
+      const settings = { editor: CustomEditor };
+
+      expect(normalizeEditorSetting(settings).editor).toBe(CustomEditor);
     });
   });
 });

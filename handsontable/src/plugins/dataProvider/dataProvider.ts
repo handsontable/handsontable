@@ -85,7 +85,7 @@ registerConflict('dataProvider', [
  *
  * @typedef {object} DataProviderFilterColumn
  * @property {string} prop Column data key.
- * @property {'conjunction'|'disjunction'|'disjunctionWithExtraCondition'} operation Filters stack operation (same values as [[Filters#exportConditions]]).
+ * @property {'conjunction'|'disjunction'|'disjunctionWithExtraCondition'} operation Filters stack operation (same values as {@link Filters#exportConditions}).
  * @property {Array<DataProviderFilterCondition>} conditions Filter conditions (same shape as Filters `exportConditions`).
  */
 
@@ -191,14 +191,14 @@ export {
  * @class DataProvider
  *
  * @description
- * A truthy [[Options#dataProvider]] value enables this plugin. Each key (`rowId`, `fetchRows`, `onRowsCreate`, `onRowsUpdate`, `onRowsRemove`) is validated like other plugin options.
- * When the object is a **complete** server-backed configuration (all of those keys present and valid), Handsontable loads rows via `fetchRows`, runs mutations through the callbacks, and the [[Hooks#hasExternalDataSource]] hook returns `true` so plugins such as Filters and Pagination can treat the grid as server-driven.
+ * A truthy {@link Options#dataProvider} value enables this plugin. Each key (`rowId`, `fetchRows`, `onRowsCreate`, `onRowsUpdate`, `onRowsRemove`) is validated like other plugin options.
+ * When the object is a **complete** server-backed configuration (all of those keys present and valid), Handsontable loads rows via `fetchRows`, runs mutations through the callbacks, and the {@link Hooks#hasExternalDataSource} hook returns `true` so plugins such as Filters and Pagination can treat the grid as server-driven.
  * If required callbacks are missing or invalid, `fetchRows` and the affected mutation paths no-op until the configuration is valid.
  * Valid edits apply to the grid immediately; if `onRowsUpdate` fails, if validation fails later, or if `beforeRowsMutation` cancels, those cells revert to their previous values.
- * When the [[Options#notification]] plugin is enabled, failed `fetchRows`, `onRowsCreate`, `onRowsUpdate`, or `onRowsRemove` requests (including a refetch after a successful mutation) show an error notification toast with the same translated titles and description text as before.
+ * When the {@link Options#notification} plugin is enabled, failed `fetchRows`, `onRowsCreate`, `onRowsUpdate`, or `onRowsRemove` requests (including a refetch after a successful mutation) show an error notification toast with the same translated titles and description text as before.
  *
  * If `trimRows`, `manualRowMove`, `manualColumnMove`, or `multiColumnSorting` is enabled, the DataProvider plugin does not enable. Handsontable logs a console warning when you still set a complete `dataProvider` configuration.
- * Use [[Options#columnSorting]] for server-driven sort (single column). Query `sort` uses `prop` (column data key).
+ * Use {@link Options#columnSorting} for server-driven sort (single column). Query `sort` uses `prop` (column data key).
  */
 export class DataProvider extends BasePlugin {
   /**
@@ -318,7 +318,7 @@ export class DataProvider extends BasePlugin {
   /**
    * Disables the plugin, aborts fetch, resets query state.
    * Hook listeners registered with `addHook` are removed by `super.disablePlugin()` via `clearHooks()`.
-   * The constructor registers [[Hooks#hasExternalDataSource]] for the period before the first `enablePlugin()`;
+   * The constructor registers {@link Hooks#hasExternalDataSource} for the period before the first `enablePlugin()`;
    * `enablePlugin()` registers it again so it survives each `updatePlugin()` cycle.
    */
   disablePlugin(): void {
@@ -347,7 +347,7 @@ export class DataProvider extends BasePlugin {
    * Fetches rows from `fetchRows` with current or overridden query parameters.
    *
    * @param {object} [overrides] Partial query overrides (e.g. `{ page: 2 }`, `{ pageSize: 20, page: 1 }`, `{ sort }`, `{ filters }`).
-   * Pass `{ skipLoading: true }` to mark internal refetches (for example sort or CRUD); [[Hooks#beforeDataProviderFetch]] receives it, and it is not passed to `fetchRows`.
+   * Pass `{ skipLoading: true }` to mark internal refetches (for example sort or CRUD); {@link Hooks#beforeDataProviderFetch} receives it, and it is not passed to `fetchRows`.
    * Numeric `page` is clamped to at least 1.
    * When the response `totalRows` implies fewer pages than the requested `page`, fetches again at the last valid page without applying the out-of-range result (avoids redundant `afterPageChange` loads and aborted duplicate requests after row removal on the last page).
    * @returns {Promise<{ rows: Array<*>, totalRows: number }|null>}
@@ -661,7 +661,7 @@ export class DataProvider extends BasePlugin {
   /**
    * Merges overrides into `#queryParameters` and normalizes sort / page for `fetchRows`.
    *
-   * @param {object} overrides Partial query overrides (subset of [[DataProviderQueryParameters]] keys).
+   * @param {object} overrides Partial query overrides (subset of `DataProviderQueryParameters` keys).
    * @returns {DataProviderQueryParameters} Query parameters object for `fetchRows`.
    */
   #mergeAndNormalizeFetchParams(overrides: DataProviderFetchDataOverrides): DataProviderBeforeFetchParameters {
@@ -723,8 +723,8 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * Shows an error toast in the [[Options#notification]] plugin when it is enabled.
-   * For `fetch` failures only, the toast includes a primary **Refetch** action (`duration: 0` until dismissed) that hides the toast and calls [[DataProvider#fetchData]] again.
+   * Shows an error toast in the {@link Options#notification} plugin when it is enabled.
+   * For `fetch` failures only, the toast includes a primary **Refetch** action (`duration: 0` until dismissed) that hides the toast and calls {@link DataProvider#fetchData} again.
    *
    * @param {'fetch'|'create'|'update'|'remove'} kind Which request failed.
    * @param {Error|*} err Rejection reason from the user callback or `fetchRows`.
@@ -823,13 +823,13 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * Runs [[#fetchData]] for internal fire-and-forget refetches (initial load, `updatePlugin`, sort, filter, and the
-   * Refetch notification action). [[#fetchData]] already surfaces the failure – it fires
-   * [[Hooks#afterDataProviderFetchError]] and shows the error notification – before rethrowing for its public callers,
+   * Runs {@link DataProvider#fetchData} for internal fire-and-forget refetches (initial load, `updatePlugin`, sort, filter, and the
+   * Refetch notification action). {@link DataProvider#fetchData} already surfaces the failure – it fires
+   * {@link Hooks#afterDataProviderFetchError} and shows the error notification – before rethrowing for its public callers,
    * so here the rejection is only logged and settled. Without this, `fetchRows` failures reach the page as
    * `unhandledrejection` events.
    *
-   * @param {object} [overrides] Partial query overrides passed to [[#fetchData]].
+   * @param {object} [overrides] Partial query overrides passed to {@link DataProvider#fetchData}.
    * @returns {Promise<{ rows: Array<*>, totalRows: number }|null>} Resolves to `null` when the fetch fails.
    */
   #fetchDataSilently(
@@ -843,7 +843,7 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * Default handler for [[Hooks#hasExternalDataSource]]: `true` when this instance has a complete server-backed
+   * Default handler for {@link Hooks#hasExternalDataSource}: `true` when this instance has a complete server-backed
    * `dataProvider` configuration. Registered in the constructor (early lifecycle) and in `enablePlugin()` after each
    * `disablePlugin()` clears `addHook` listeners.
    *
@@ -905,7 +905,7 @@ export class DataProvider extends BasePlugin {
 
   /**
    * Intercepts filter action when `fetchRows` is set: applies server-side filters and refetches; returns false so Filters skip client-side trimming.
-   * Without `fetchRows`, returns nothing so Filters run client-side trimming (same guard pattern as [[#onBeforeColumnSort]]).
+   * Without `fetchRows`, returns nothing so Filters run client-side trimming (same guard pattern as `#onBeforeColumnSort()`).
    *
    * @param {Array} conditionsStack Exported filter conditions (column = physical index).
    * @returns {boolean|void} False when filtering is handled server-side.
@@ -955,7 +955,7 @@ export class DataProvider extends BasePlugin {
    *
    * @param {Array} doneActionsCopy Snapshot of the undo stack before the new action.
    * @param {string} [source] Change source for the action being pushed onto the stack.
-   * @returns {boolean|void} Return `false` to block stacking (see [[Hooks#beforeUndoStackChange]]).
+   * @returns {boolean|void} Return `false` to block stacking (see {@link Hooks#beforeUndoStackChange}).
    */
   readonly #onBeforeUndoStackChange = (doneActionsCopy: unknown[], source: string | undefined) => {
     if (!isFunction(this.#getOnRowsUpdate())) {

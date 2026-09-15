@@ -160,7 +160,7 @@ describe('Table.draw() lifecycle hooks (characterization for the drawCycle refac
     }
   });
 
-  it('should not run the nested reconciliation draw (double `beforeDraw`) when the render is skipped', async() => {
+  it('should run one fixed-position pass and no nested draw when the render is skipped', async() => {
     let skipNextRender = false;
     const beforeDraw = jasmine.createSpy('beforeDraw').and.callFake((force, skip) => {
       if (skipNextRender) {
@@ -175,8 +175,10 @@ describe('Table.draw() lifecycle hooks (characterization for the drawCycle refac
         TH.innerHTML = col + 1;
       }],
       // The legacy (measured) layout path applies the `innerBorderTop` class only AFTER the render,
-      // via `resetFixedPosition` - so a scroll away from offset 0 flips `positionChanged` to `true`
-      // on the very draw whose render is skipped, which is the scenario under test.
+      // via `resetFixedPosition`. Before DEV-2786 that flip shifted the layout by 1px on the very
+      // draw whose render was skipped, and the draw cycle answered with a second fixed-position pass
+      // plus a nested `refreshAll()`. The class moves nothing now, so both are gone - keep this
+      // fixture off the single-pass path anyway, because it is the path that used to pay them.
       singlePassLayout: false,
       beforeDraw,
     });
@@ -188,18 +190,14 @@ describe('Table.draw() lifecycle hooks (characterization for the drawCycle refac
     wt.scrollViewportVertically(60);
     wt.draw();
 
-    // The `innerBorderTop` flip must have happened on the skipped draw - otherwise this spec
-    // does not exercise the `positionChanged` reconciliation path at all.
+    // The `innerBorderTop` flip still happens on the skipped draw - it is just inert now. Asserted
+    // so this spec keeps describing the same scenario it was written for.
     expect(wt.wtTable.holder.parentNode.classList.contains('innerBorderTop')).toBe(true);
 
-    // The 1px-shift reconciliation (`refreshAll`) must not run for a skipped render: with the
-    // rendered band rolled back it degrades to a nested FULL draw, firing `beforeDraw` a second
-    // time within one `draw()` call and rendering the cells the hook just cancelled.
+    // A nested FULL draw would fire `beforeDraw` a second time within one `draw()` call and render
+    // the cells the hook just cancelled.
     expect(beforeDraw).toHaveBeenCalledTimes(1);
 
-    // The border toggle shifts the layout by 1px AFTER the overlay positions were computed, so the
-    // skipped draw must rerun the fixed-position pass against the post-toggle layout (in element
-    // mode the reposition is a transform reset, so the observable contract is the rerun itself).
     const resetFixedPosition = spyOn(wt.wtOverlays.topOverlay, 'resetFixedPosition').and.callThrough();
 
     skipNextRender = false;
@@ -211,8 +209,9 @@ describe('Table.draw() lifecycle hooks (characterization for the drawCycle refac
     wt.scrollViewportVertically(60);
     wt.draw();
 
-    // Once from the regular fixed-position pass + once from the skipped-draw reconciliation rerun.
-    expect(resetFixedPosition).toHaveBeenCalledTimes(2);
+    // Exactly one pass: the regular one. The second, post-toggle rerun existed only to settle the
+    // 1px shift.
+    expect(resetFixedPosition).toHaveBeenCalledTimes(1);
   });
 
   it('should keep the table safe when the very first render is skipped', async() => {
@@ -311,7 +310,7 @@ describe('Table.draw() lifecycle hooks (characterization for the drawCycle refac
     }
   });
 
-  it('should restore the `correctHeaderWidth` flag when the render is skipped', async() => {
+  it('should keep the column rollback across a horizontal scroll whose render is skipped', async() => {
     let skipNextRender = false;
     const wt = walkontable({
       data: getData,
@@ -329,16 +328,43 @@ describe('Table.draw() lifecycle hooks (characterization for the drawCycle refac
 
     wt.draw();
 
-    expect(wt.wtTable.correctHeaderWidth).toBe(false);
+    const rowHeaderWidth = () => wt.wtTable.TABLE.querySelector('tbody tr th').offsetWidth;
+    const widthBeforeScroll = rowHeaderWidth();
+    const renderedColumnsBeforeScroll = wt.wtTable.TBODY.firstChild.querySelectorAll('td').length;
 
-    // The flag flips before the `beforeDraw` gate, but the header it describes never re-renders on
-    // a skipped draw. Left advanced, the next draw would see "no change" and keep the stale header
-    // width forever - so the rollback must put the flag back with the rest of the rendered state.
+    expect(widthBeforeScroll).toBeGreaterThan(0);
+
+    // The column axis is what the rollback still protects here. Without it the advanced column band
+    // describes columns the skipped draw never rendered, so the filter stops matching the DOM and
+    // `getCell` reads past it.
     skipNextRender = true;
     wt.scrollViewportHorizontally(3, 'end');
     wt.draw();
 
-    expect(wt.wtTable.correctHeaderWidth).toBe(false);
+    // The render was really skipped - the TBODY still holds the pre-scroll column band.
+    expect(wt.wtTable.TBODY.firstChild.querySelectorAll('td').length).toBe(renderedColumnsBeforeScroll);
+
+    // A rolled-back band describes the stale DOM, so every cell it resolves really holds that
+    // column's value. Without the rollback the band names the post-scroll columns while the TBODY
+    // still holds the pre-scroll ones, and `getCell` maps a new index onto an old cell - an element,
+    // but the wrong one, which is why an `instanceof HTMLElement` check cannot see this.
+    expect(wt.wtTable.getFirstRenderedColumn()).toBeGreaterThan(-1);
+
+    for (let col = wt.wtTable.getFirstRenderedColumn(); col <= wt.wtTable.getLastRenderedColumn(); col++) {
+      expect(wt.wtTable.getCell(new Walkontable.CellCoords(0, col)).textContent)
+        .toBe(`${getData(0, col)}`);
+    }
+
+    // And the row header width is scroll independent, so neither the skipped draw nor the one that
+    // follows it can leave the DOM describing a width the engine no longer reports. It used to grow
+    // by 1px once the table scrolled, which is what the removed `correctHeaderWidth` flag tracked
+    // and what this spec had to roll back (#6673).
+    expect(rowHeaderWidth()).toBe(widthBeforeScroll);
+
+    skipNextRender = false;
+    wt.draw();
+
+    expect(rowHeaderWidth()).toBe(widthBeforeScroll);
   });
 
   it('should fire `beforeDraw` but SKIP `onDraw` when beforeDraw sets skipRender', async() => {

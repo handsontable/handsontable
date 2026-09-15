@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed the comment tooltip not opening when you hover a commented cell in a grid rendered inside a shadow root.",
+  "type": "fixed",
+  "issueOrPR": 8624,
+  "breaking": false,
+  "framework": "none"
+}

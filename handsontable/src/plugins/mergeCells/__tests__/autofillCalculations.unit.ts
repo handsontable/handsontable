@@ -191,6 +191,8 @@ describe('MergeCells-Autofill calculations', () => {
       const hotMock = {
         render: () => {
         },
+        markAllCellsChanged: () => {
+        },
         countCols: () => 100,
         countRows: () => 100,
         propToCol: el => el,
@@ -261,6 +263,8 @@ describe('MergeCells-Autofill calculations', () => {
     it('Should recreate the merged cells after the autofill process, when the dataset is an array of objects', () => {
       const hotMock = {
         render: () => {
+        },
+        markAllCellsChanged: () => {
         },
         countCols: () => 100,
         countRows: () => 100,

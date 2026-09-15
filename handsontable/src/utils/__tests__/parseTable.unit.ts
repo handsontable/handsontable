@@ -1,5 +1,8 @@
-import { instanceToHTML, _dataToHTML, htmlToGridSettings } from '../parseTable';
+import {
+  instanceToHTML, instanceToTableElement, _dataToHTML, htmlToGridSettings
+} from '../parseTable';
 import Handsontable from '../../index';
+import { stripTags } from '../../helpers/string';
 import { registerCellType, TextCellType } from '../../cellTypes';
 
 registerCellType(TextCellType);
@@ -171,6 +174,147 @@ describe('htmlToGridSettings', () => {
     const config = htmlToGridSettings(htmlToParse);
 
     expect(config.data.toString()).toBe('A3,B3,C3,A4,B4,C4,A5,B5,C5,A6,B6,C6');
+  });
+
+  it('should parse every column of a ragged HTML table whose first row is the narrowest', () => {
+    const htmlToParse = [
+      '<table><tbody>',
+      '<tr><td>schedule</td></tr>',
+      '<tr><td></td><td>Football</td><td>Score</td></tr>',
+      '</tbody></table>',
+    ].join('');
+    const config = htmlToGridSettings(htmlToParse);
+
+    // The grid is as wide as the widest row, and the short first row is padded out.
+    expect(config.data).toEqual([
+      ['schedule', undefined, undefined],
+      ['', 'Football', 'Score'],
+    ]);
+  });
+
+  it('should parse every column of a ragged HTML table whose widest row is neither first nor last', () => {
+    const htmlToParse = [
+      '<table><tbody>',
+      '<tr><td>A1</td></tr>',
+      '<tr><td>A2</td><td>B2</td><td>C2</td><td>D2</td></tr>',
+      '<tr><td>A3</td><td>B3</td></tr>',
+      '</tbody></table>',
+    ].join('');
+    const config = htmlToGridSettings(htmlToParse);
+
+    expect(config.data).toEqual([
+      ['A1', undefined, undefined, undefined],
+      ['A2', 'B2', 'C2', 'D2'],
+      ['A3', 'B3', undefined, undefined],
+    ]);
+  });
+
+  it('should count a colspan in a later row when sizing a ragged HTML table', () => {
+    const htmlToParse = [
+      '<table><tbody>',
+      '<tr><td>A1</td></tr>',
+      '<tr><td colspan="2">A2</td><td>C2</td></tr>',
+      '</tbody></table>',
+    ].join('');
+    const config = htmlToGridSettings(htmlToParse);
+
+    expect(config.data[1]).toHaveLength(3);
+    expect(config.data[1][2]).toBe('C2');
+  });
+
+  it('should keep the first row\'s width when it is already the widest', () => {
+    const htmlToParse = [
+      '<table><tbody>',
+      '<tr><td>A1</td><td>B1</td><td>C1</td></tr>',
+      '<tr><td>A2</td></tr>',
+      '</tbody></table>',
+    ].join('');
+    const config = htmlToGridSettings(htmlToParse);
+
+    expect(config.data).toEqual([
+      ['A1', 'B1', 'C1'],
+      ['A2', undefined, undefined],
+    ]);
+  });
+
+  it('should not let a full-width colspan row widen the whole table', () => {
+    const htmlToParse = [
+      '<table><tbody>',
+      '<tr><td>A1</td><td>B1</td><td>C1</td></tr>',
+      // A footer row spanning the table is normal in email and Word exports. It needs one slot,
+      // not twenty, or every pasted row gains seventeen blank columns.
+      '<tr><td colspan="20">footer</td></tr>',
+      '</tbody></table>',
+    ].join('');
+    const config = htmlToGridSettings(htmlToParse);
+
+    expect(config.data[0]).toHaveLength(3);
+  });
+
+  it('should keep every cell when the first row spans both ways', () => {
+    const htmlToParse = [
+      '<table><tbody>',
+      // The cell holds two columns of the row below it as well, so that row needs four slots.
+      '<tr><td rowspan="2" colspan="2">A</td></tr>',
+      '<tr><td>B</td><td>C</td></tr>',
+      '</tbody></table>',
+    ].join('');
+    const config = htmlToGridSettings(htmlToParse);
+
+    expect(config.data[1]).toEqual([null, null, 'B', 'C']);
+  });
+
+  it('should keep rows rectangular when a span reaches past the last column', () => {
+    const htmlToParse = [
+      '<table><tbody>',
+      '<tr><td>a</td></tr>',
+      '<tr><td>b</td><td colspan="3">wide</td></tr>',
+      '</tbody></table>',
+    ].join('');
+    const config = htmlToGridSettings(htmlToParse);
+
+    // The span is trimmed to what the grid holds, so it cannot stretch its own row.
+    expect(config.data.map((row: unknown[]) => row.length)).toEqual([2, 2]);
+  });
+
+  it('should give a th outside the first column no data slot', () => {
+    const htmlToParse = [
+      '<table><tbody>',
+      // The fill loop sends every non-`td` to the row headers, so a `th` here takes no column.
+      '<tr><td>a</td><th>grp</th><td>b</td></tr>',
+      '<tr><td>1</td><td>2</td></tr>',
+      '</tbody></table>',
+    ].join('');
+    const config = htmlToGridSettings(htmlToParse);
+
+    expect(config.data).toEqual([['a', 'b'], ['1', '2']]);
+  });
+
+  it('should count the slots a rowspan reserves in the rows below it', () => {
+    const htmlToParse = [
+      '<table><tbody>',
+      '<tr><td>A1</td><td>B1</td></tr>',
+      '<tr><td rowspan="2">A2</td></tr>',
+      // The rowspan above holds column 0, so this row needs four slots, not three.
+      '<tr><td>B3</td><td>C3</td><td>D3</td></tr>',
+      '</tbody></table>',
+    ].join('');
+    const config = htmlToGridSettings(htmlToParse);
+
+    expect(config.data[2]).toEqual([null, 'B3', 'C3', 'D3']);
+  });
+
+  it('should not subtract a row header from rows that do not have one', () => {
+    const htmlToParse = [
+      '<table><tbody>',
+      '<tr><th>H1</th><td>A1</td></tr>',
+      // No `th` here, so all three cells are data and none of them may be trimmed away.
+      '<tr><td>A2</td><td>B2</td><td>C2</td></tr>',
+      '</tbody></table>',
+    ].join('');
+    const config = htmlToGridSettings(htmlToParse);
+
+    expect(config.data[1]).toEqual(['A2', 'B2', 'C2']);
   });
 
   it('should parse data from HTML table with nested Excel shape cells', () => {
@@ -465,5 +609,157 @@ describe('htmlToGridSettings', () => {
         ['1 2 3 4 5\r\nbr\r\n6 7 8 9 0']
       ]);
     });
+  });
+});
+
+describe('instanceToTableElement', () => {
+  /**
+   * Parses the string form the DOM form replaced, so the two can be compared node for node.
+   *
+   * @param {string} html The markup produced by `instanceToHTML`.
+   * @returns {HTMLElement} The parsed table.
+   */
+  function parseTableHTML(html: string): HTMLElement {
+    const wrapper = document.createElement('div');
+
+    wrapper.innerHTML = html;
+
+    return wrapper.firstElementChild as HTMLElement;
+  }
+
+  it.each([
+    ['plain values', [['A1', 'B1'], ['A2', 'B2']]],
+    ['empty cells', [['A1', null], ['', 'B2']]],
+    ['angle brackets', [['<script>alert(1)</script>', 'a > b']]],
+    ['spaces and tabs', [['a  b', 'c\td']]],
+    ['newlines', [['line1\nline2', 'a\r\nb\r\nc']]],
+    ['a trailing newline', [['ends with\n', '\nstarts with']]],
+    // A lone carriage return matches neither the encoder's newline pattern nor the split below, so
+    // it survives into the string and the HTML parser normalizes it. Missed by the first version.
+    ['a lone carriage return', [['before\rafter', 'a\r\rb']]],
+    // The encoder escapes only `<` and `>`, so a character reference already present in the data
+    // reached the parser intact and was decoded. Also missed by the first version.
+    ['character references in the data', [['a&nbsp;b', '&amp;lt; &#38; &#x26;']]],
+    ['a reference that could double-decode', [['&amp;lt;', '&amp;amp;nbsp;']]],
+    ['tabs next to spaces', [['a\t b', ' \ta\t ']]],
+  ])('should build the same table the parsed HTML form produced - %s', (_label, data) => {
+    const hot = new Handsontable(document.createElement('div'), {
+      data,
+      colHeaders: true,
+      rowHeaders: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const built = instanceToTableElement(hot, document);
+    const parsed = parseTableHTML(instanceToHTML(hot));
+
+    // `outerHTML` compares structure, attributes, and text in one assertion, and reports the
+    // difference readably when the two diverge.
+    expect(built.outerHTML).toBe(parsed.outerHTML);
+
+    hot.destroy();
+  });
+
+  it('should keep markup in headers, as the parsed string form did', () => {
+    // `colHeaders: ['<b>ID</b>']` is a documented pattern. Writing the header as text would render
+    // the tags literally and silently change what `toTableElement()` returns.
+    const hot = new Handsontable(document.createElement('div'), {
+      data: [['A1', 'B1']],
+      colHeaders: ['<b>ID</b>', 'Plain'],
+      rowHeaders: ['<i>1</i>'],
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const built = instanceToTableElement(hot, document);
+
+    expect(built.querySelector('thead th:nth-child(2)')!.innerHTML).toBe('<b>ID</b>');
+    expect(built.outerHTML).toBe(parseTableHTML(instanceToHTML(hot)).outerHTML);
+
+    hot.destroy();
+  });
+
+  it('should parse a payload that is not a plain string without normalizing it away', () => {
+    // `replaceTdCellsWithTextContent()` walks `html.length`. A `TrustedHTML` has none, so
+    // normalizing it returned an empty string and the parse found no table at all.
+    const trustedLike = {
+      toString: () => '<table><tbody><tr><td>A1</td><td>B1</td></tr></tbody></table>',
+    };
+
+    expect(htmlToGridSettings(trustedLike, document)?.data).toEqual([['A1', 'B1']]);
+  });
+
+  it('should build a table without a thead when column headers are off', () => {
+    const hot = new Handsontable(document.createElement('div'), {
+      data: [['A1']],
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const built = instanceToTableElement(hot, document);
+
+    expect(built.tHead).toBe(null);
+    expect(built.outerHTML).toBe(parseTableHTML(instanceToHTML(hot)).outerHTML);
+
+    hot.destroy();
+  });
+});
+
+describe('header sanitizing parity between toHTML and toTableElement', () => {
+  /**
+   * Builds a grid with a header carrying markup.
+   *
+   * @param {Function} [sanitizer] The `sanitizer` option, when the test configures one.
+   * @returns {object} The Handsontable instance.
+   */
+  function gridWithMarkupHeader(sanitizer?: (html: string) => string) {
+    return new Handsontable(document.createElement('div'), {
+      data: [['A1', 'B1']],
+      colHeaders: ['<b>ID</b>', 'Name'],
+      licenseKey: 'non-commercial-and-evaluation',
+      ...(sanitizer ? { sanitizer } : {}),
+    });
+  }
+
+  it('should put the header through the sanitizer in both representations', () => {
+    // `stripTags` rather than a hand-rolled `replace(/<[^>]*>/g, '')`: a single-pass regex is
+    // incomplete sanitization, since `<<script>script>` re-forms a tag after one pass. The helper
+    // loops until the string stops changing, which is also what a real sanitizer does.
+    const hot = gridWithMarkupHeader(stripTags);
+    const fromString = instanceToHTML(hot as never);
+    const fromDom = instanceToTableElement(hot as never, document);
+
+    // These two describe the same grid. `toHTML()` used to interpolate the header raw, so a
+    // stripping sanitizer left the `<b>` in one and removed it from the other.
+    expect(fromString).toContain('<th>ID</th>');
+    expect(fromString).not.toContain('<b>');
+    expect(fromDom.querySelectorAll('th')[0].innerHTML).toBe('ID');
+
+    hot.destroy();
+  });
+
+  it('should keep header markup in both representations when no sanitizer is configured', () => {
+    const hot = gridWithMarkupHeader();
+    const fromString = instanceToHTML(hot as never);
+    const fromDom = instanceToTableElement(hot as never, document);
+
+    expect(fromString).toContain('<th><b>ID</b></th>');
+    expect(fromDom.querySelectorAll('th')[0].innerHTML).toBe('<b>ID</b>');
+
+    hot.destroy();
+  });
+
+  it('should not warn about a missing sanitizer from either read-only API', () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const hot = gridWithMarkupHeader();
+
+    warnSpy.mockClear();
+    instanceToHTML(hot as never);
+    instanceToTableElement(hot as never, document);
+
+    // Both are read-only: neither writes to the page, so "HTML content is being written to the
+    // DOM" would name a surface the caller never looked at. The written markup is unchanged.
+    expect(warnSpy.mock.calls.filter(c => String(c[0]).includes('without a sanitizer'))).toEqual([]);
+
+    warnSpy.mockRestore();
+    hot.destroy();
   });
 });

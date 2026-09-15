@@ -2,6 +2,7 @@ import type { HotInstance } from '../../core/types';
 import { arrayEach } from '../../helpers/array';
 import { throwWithCause } from '../../helpers/errors';
 import { hasOwnProperty } from '../../helpers/object';
+import { warnOnce } from '../../helpers/console';
 
 interface CommandDescriptor {
   key?: string;
@@ -67,17 +68,11 @@ export class CommandExecutor {
    * @param {*} params Arguments passed to command task.
    */
   execute(commandName: string, ...params: unknown[]) {
-    const commandSplit = commandName.split(':');
-    const commandNamePrimary = commandSplit[0];
+    const command = this.#findCommand(commandName);
 
-    const subCommandName = commandSplit.length === 2 ? commandSplit[1] : null;
-    let command = this.commands[commandNamePrimary];
-
+    // A subcommand name that matches no submenu entry leaves nothing to run.
     if (!command) {
-      throwWithCause(`Menu command '${commandNamePrimary}' not exists.`);
-    }
-    if (subCommandName && command.submenu) {
-      command = findSubCommand(subCommandName, command.submenu.items)!;
+      return;
     }
     if (command.disabled === true) {
       return;
@@ -96,8 +91,74 @@ export class CommandExecutor {
     if (typeof this.commonCallback === 'function') {
       callbacks.push(this.commonCallback);
     }
-    params.unshift(commandSplit.join(':'));
+    params.unshift(commandName);
     arrayEach(callbacks, callback => callback.apply(this.hot, params));
+  }
+
+  /**
+   * Checks whether a name resolves to a registered command, using the same two lookups
+   * `execute()` makes — the parent name first, then the whole name.
+   *
+   * @param {string} commandName Command id, optionally a `parent:child` subcommand name.
+   * @returns {boolean}
+   */
+  hasCommand(commandName: string): boolean {
+    const [commandNamePrimary] = commandName.split(':');
+
+    return hasOwnProperty(this.commands, commandNamePrimary) ||
+      hasOwnProperty(this.commands, commandName);
+  }
+
+  /**
+   * Resolves a command name to the descriptor that should run. Throws when the name resolves to
+   * no registered command at all.
+   *
+   * @param {string} commandName Command id, optionally a `parent:child` subcommand name.
+   * @returns {object|undefined} The command, or `undefined` when a subcommand name matches no
+   *                             entry in its parent's submenu.
+   */
+  #findCommand(commandName: string): CommandDescriptor | undefined {
+    const commandSplit = commandName.split(':');
+    const commandNamePrimary = commandSplit[0];
+    const subCommandName = commandSplit.length === 2 ? commandSplit[1] : null;
+
+    // The primary name is resolved FIRST so a parent's submenu keeps precedence over a top-level
+    // command registered under the same `parent:child` key. Both exist whenever object-form
+    // `items` declare the parent and the colon key side by side, and the submenu entry is the one
+    // that carries the action — matching the whole name first would hand back the caller's bare
+    // entry and silently stop running it.
+    if (hasOwnProperty(this.commands, commandNamePrimary)) {
+      const command = this.commands[commandNamePrimary];
+
+      if (!subCommandName || !command.submenu) {
+        return command;
+      }
+
+      const subCommand = findSubCommand(subCommandName, command.submenu.items);
+
+      // Nothing to run. Reported rather than thrown, so a mistyped subcommand is as findable as
+      // a mistyped parent (which throws below) without crashing a click handler.
+      if (!subCommand) {
+        warnOnce(
+          this.hot.rootElement,
+          `menu-unknown-subcommand:${commandName}`,
+          `Handsontable: the menu command "${commandName}" matches no entry in the ` +
+          `"${commandNamePrimary}" submenu, so it did nothing.`
+        );
+      }
+
+      return subCommand;
+    }
+
+    // No such parent. A command can still be registered under a key that itself contains a colon,
+    // because object-form menu `items` use their key verbatim — matching the whole name here is
+    // what stops `{ items: { 'alignment:left': … } }` throwing on click. Reached only where the
+    // lookup above used to throw, so it takes nothing away from the split path.
+    if (hasOwnProperty(this.commands, commandName)) {
+      return this.commands[commandName];
+    }
+
+    return throwWithCause(`Menu command '${commandNamePrimary}' not exists.`);
   }
 }
 

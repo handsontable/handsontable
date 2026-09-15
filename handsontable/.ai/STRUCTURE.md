@@ -300,6 +300,10 @@ handsontable/src/
 - Contains: Each plugin in its own directory with `index.ts` barrel export
 - Key files: `base/base.ts` (BasePlugin), `registry.ts` (plugin registry)
 - Convention: Each plugin directory exports `{ PLUGIN_KEY, PLUGIN_PRIORITY, PluginClassName }` from `index.ts`
+- Convention: Each plugin directory also has an `AGENTS.md` (with `CLAUDE.md` symlinked to it) carrying that
+  plugin's own knowledge - read it before changing the plugin. `base/AGENTS.md` documents the plugin contract
+  itself, including the full `PLUGIN_PRIORITY` table; `manualResize/AGENTS.md` documents the helpers the two
+  resize plugins share (that directory holds no plugin).
 
 **`handsontable/src/3rdparty/walkontable/`:**
 - Purpose: Self-contained rendering engine with its own test suite
@@ -375,8 +379,9 @@ handsontable/src/
 - Implementation: `handsontable/src/plugins/myPlugin/myPlugin.ts`
 - Barrel export: `handsontable/src/plugins/myPlugin/index.ts` (export `PLUGIN_KEY`, `PLUGIN_PRIORITY`, class)
 - Register in: `handsontable/src/plugins/index.ts` (add to `registerAllPlugins()`)
-- E2E tests: `handsontable/src/plugins/myPlugin/__tests__/myPlugin.spec.js`
+- E2E tests: new E2E is Playwright in `tests/e2e/` (the Jasmine `*.spec.js` suite is frozen)
 - Unit tests: `handsontable/src/plugins/myPlugin/__tests__/myPlugin.unit.js`
+- Knowledge file: `handsontable/src/plugins/myPlugin/AGENTS.md`, plus `ln -s AGENTS.md CLAUDE.md`
 - Types: auto-generated in `handsontable/tmp/` via `npm run build:types`
 
 **New Editor:**

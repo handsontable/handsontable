@@ -15,7 +15,15 @@ import { readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { isNewJasmineSpec } from '../../.github/scripts/lib/presence-gate.mjs';
 import { repoRoot, sessionEditsFile, stopVerdict, toRepoRelative } from './session.mjs';
-import { changedPlaywrightSpecs, changedUnitTests, unitTestPattern, isJestInfraFailure } from '../pre-push.mjs';
+import {
+  changedPlaywrightSpecs,
+  changedUnitTests,
+  unitTestPattern,
+  isJestInfraFailure,
+  isSpawnInfraFailure,
+  condenseTestOutput,
+  TEST_RUN_MAX_BUFFER,
+} from '../pre-push.mjs';
 import { filterCached, recordGreen } from '../e2e-run-cache.mjs';
 
 // npx/npm are .cmd shims on Windows; spawnSync needs a shell there or it ENOENTs.
@@ -128,16 +136,35 @@ if (toRun.length > 0) {
   // theme matrix (main/horizon/classic). See the run-scope note in the
   // handsontable-playwright-e2e skill.
   const pw = spawnSync('npx', ['playwright', 'test', '--project=e2e-main', ...toRun], {
-    cwd: path.join(root, 'tests'), stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8', shell: WIN,
+    cwd: path.join(root, 'tests'),
+    stdio: ['ignore', 'pipe', 'pipe'],
+    encoding: 'utf8',
+    shell: WIN,
+    maxBuffer: TEST_RUN_MAX_BUFFER,
   });
 
-  if (pw.status !== 0) {
+  if (pw.status !== 0 && isSpawnInfraFailure(pw)) {
+    // No verdict, so nothing to block on — but the unit checks below are
+    // independent and must still run. Do NOT exit here.
+    //
+    // Audience caveat: Claude Code forwards a hook's stderr to the agent only on
+    // exit 2. This leg does not exit, so the note reaches the agent only if a
+    // later leg blocks in the same run (stderr accumulates) — otherwise it lands
+    // in the debug log. Best-effort by design: nothing may depend on the agent
+    // reading it. The same holds for the unit-loop note below.
     process.stderr.write(
-      `Playwright specs you touched are failing — fix them before finishing:\n${pw.stdout || ''}${pw.stderr || ''}`,
+      `Note: the Playwright run for ${toRun.join(', ')} could not complete (${
+        pw.error?.code || pw.signal}). Not treated as a test failure — verify it yourself.\n`,
+    );
+  } else if (pw.status !== 0) {
+    process.stderr.write(
+      `Playwright specs you touched are failing — fix them before finishing:\n${
+        condenseTestOutput(`${pw.stdout || ''}${pw.stderr || ''}`)}\n`,
     );
     process.exit(2);
+  } else {
+    recordGreen(root, toRun);
   }
-  recordGreen(root, toRun);
 }
 
 // Run any changed Jest unit test the session touched — fast (jest maps to src,
@@ -150,15 +177,33 @@ for (const file of unitFiles) {
   const jest = spawnSync(
     'npm',
     ['run', 'test:unit', '--', `--testPathPattern=${unitTestPattern(file)}`],
-    { cwd: path.join(root, 'handsontable'), encoding: 'utf8', shell: WIN },
+    {
+      cwd: path.join(root, 'handsontable'),
+      encoding: 'utf8',
+      shell: WIN,
+      maxBuffer: TEST_RUN_MAX_BUFFER,
+    },
   );
 
   if (jest.status !== 0) {
-    if (isJestInfraFailure(`${jest.stdout || ''}${jest.stderr || ''}`)) {
+    const output = `${jest.stdout || ''}${jest.stderr || ''}`;
+
+    if (isSpawnInfraFailure(jest)) {
+      // This one file produced no verdict; the others are independent runs, so
+      // keep checking them rather than abandoning the loop. As above, this note
+      // only reaches the agent if a later leg exits 2 — do not rely on it.
+      process.stderr.write(
+        `Note: the unit run for ${file} could not complete (${
+          jest.error?.code || jest.signal}). Not treated as a test failure — verify it yourself.\n`,
+      );
+      continue;
+    }
+
+    if (isJestInfraFailure(output)) {
       break;
     }
     process.stderr.write(
-      `Unit tests you touched are failing — fix them before finishing:\n${jest.stdout || ''}${jest.stderr || ''}`,
+      `Unit tests you touched are failing — fix them before finishing:\n${condenseTestOutput(output)}\n`,
     );
     process.exit(2);
   }

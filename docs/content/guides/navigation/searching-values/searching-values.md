@@ -389,7 +389,7 @@ You can set a custom callback in three ways:
 
 ### Per-cell `queryMethod` and `callback`
 
-Both `queryMethod` and `callback` can be overridden for individual cells, columns, or rows using Handsontable's [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md) model. Set a `search` object directly in a `cell`, `columns`, or `rows` entry:
+Both `queryMethod` and `callback` can be overridden for individual cells, columns, or rows using Handsontable's [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md) model. Set a `search` object directly in a `cell`, `columns`, or `rows` entry:
 
 ```js
 handsontable({

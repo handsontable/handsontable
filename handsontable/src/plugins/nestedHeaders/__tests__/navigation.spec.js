@@ -1632,7 +1632,7 @@ describe('NestedHeaders', () => {
       await keyDownUp('arrowup'); // "C"
 
       expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).toBe(51);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(50);
     });
 
     it('should scroll the viewport correctly while navigating vertically using arrows ' +
@@ -1690,7 +1690,7 @@ describe('NestedHeaders', () => {
       await selectCell(-1, 20);
 
       expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).toBe(801);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(800);
 
       await keyDownUp('arrowup'); // scroll to the beginning of the "F" header
 
@@ -1700,7 +1700,7 @@ describe('NestedHeaders', () => {
       await keyDownUp('arrowdown');
 
       expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).toBe(801);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(800);
 
       await keyDownUp('arrowup'); // scroll to the beginning of the "F" header
 

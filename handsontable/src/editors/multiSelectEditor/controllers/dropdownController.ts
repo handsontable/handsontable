@@ -409,7 +409,10 @@ export class DropdownController {
       this.#unregisterEvents(itemElement as HTMLLIElement)
     );
     this.#cache.checkboxChangeListeners.clear();
-    this.#dropdownListElement.innerHTML = '';
+    // `replaceChildren()`, not `empty()`: this list holds one `li` per distinct value, so a
+    // multi-select over a few hundred of them sits well past the ~30-child crossover where
+    // removing children one at a time starts losing. It is not a Trusted Types sink either.
+    this.#dropdownListElement.replaceChildren();
   }
 
   /**

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the guard against an endless `ResizeObserver` loop, which a busy machine could stop from engaging at all, and which permanently stopped a grid from reacting to container resizes once it did engage. The guard now measures the loop in rendering frames rather than in elapsed time, so it engages on any machine, and it reconnects the observer after a short cooldown instead of disconnecting it for good.",
+  "type": "fixed",
+  "issueOrPR": 13355,
+  "breaking": false,
+  "framework": "none"
+}

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MergeCells with collapsed nested rows fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    // Four groups of a parent plus five children, each covered by one merge in the first column -
+    // the shape reported in issue #7686. A group is therefore six rows, and the merges start every
+    // sixth row.
+    const GROUP_SIZE = 6;
+    const GROUPS = ['P0', 'P1', 'P2', 'P3'];
+
+    const settings = {
+      data: GROUPS.map(category => ({
+        category,
+        __children: [0, 1, 2, 3, 4].map(index => ({ title: `${category} T${index}` })),
+      })),
+      colHeaders: ['Category', 'Title'],
+      rowHeaders: true,
+      nestedRows: true,
+      mergeCells: GROUPS.map((unused, group) => ({
+        row: group * GROUP_SIZE,
+        col: 0,
+        rowspan: GROUP_SIZE,
+        colspan: 1,
+      })),
+      width: 500,
+      height: 700,
+      afterRenderer(td, row, col) {
+        td.setAttribute('data-testid', `cell-${row}-${col}`);
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    };
+
+    /**
+     * Describes the first column as it is currently rendered: one entry per master-table row,
+     * saying whether the cell is visible and how far it spans. A cell a merge covers is hidden by
+     * the plugin, so `covered` marks the rows that belong to the merge above them.
+     */
+    const readFirstColumn = () =>
+      Array.from(document.querySelectorAll('.ht_master tbody tr')).map((tr) => {
+        const td = tr.querySelector('td');
+
+        if (!td) {
+          return null;
+        }
+
+        return {
+          covered: td.style.display === 'none',
+          rowspan: Number(td.getAttribute('rowspan') ?? 1),
+          text: td.textContent.trim(),
+        };
+      });
+
+    // Built loudly: a constructor throw is captured where the page object can read and rethrow it.
+    try {
+      window.hot = new Handsontable(container, settings);
+    } catch (error) {
+      window.htBuildError = String((error && error.stack) || error);
+      throw error;
+    }
+
+    window.htReadFirstColumn = readFirstColumn;
+
+    /**
+     * Collapses or expands a parent by its visual row index, then draws, so the caller observes a
+     * settled grid.
+     */
+    window.htToggleGroup = (row, collapse) => {
+      const collapsingUI = window.hot.getPlugin('nestedRows').collapsingUI;
+
+      if (collapse) {
+        collapsingUI.collapseChildren(row);
+      } else {
+        collapsingUI.expandChildren(row);
+      }
+
+      window.hot.render();
+    };
+
+    window.htReady = true;
+  </script>
+</body>
+</html>

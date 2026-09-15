@@ -2,6 +2,7 @@ import type { HotInstance } from '../../core/types';
 import type { CellProperties } from '../../settings';
 import { textRenderer } from '../textRenderer';
 import { isNumeric } from '../../helpers/number';
+import { normalizeClassNames } from '../../helpers/dom/element';
 import { warn } from '../../helpers/console';
 import { intlFormatter } from './utils';
 
@@ -55,18 +56,10 @@ export function numericRenderer(
   }
 
   if (isNumeric(hotInstance.getDataAtCell(row, col))) {
-    let classArr: string[] = [];
-
-    if (Array.isArray(cellProperties.className)) {
-      classArr = cellProperties.className as string[];
-
-    } else {
-      const className = (cellProperties.className ?? '') as string;
-
-      if (className.length) {
-        classArr = className.split(' ');
-      }
-    }
+    // `className` is publicly typed `string | string[]`. `normalizeClassNames()` returns a fresh
+    // array on both branches, so the pushes below cannot reach a grid-level or column-level array -
+    // that is one instance shared by every cell through the cell meta prototype chain.
+    const classArr = normalizeClassNames(cellProperties.className);
 
     if (classArr.indexOf('htLeft') < 0 && classArr.indexOf('htCenter') < 0 &&
       classArr.indexOf('htRight') < 0 && classArr.indexOf('htJustify') < 0) {

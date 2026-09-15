@@ -284,7 +284,7 @@ export const REGISTERED_HOOKS = [
    * @param {number} amount Number of newly created columns in the data source array.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
-   * @returns {*} If `false` then creating columns is cancelled.
+   * @returns {*} If `false` then creating columns is canceled.
    * @example
    * ::: only-for javascript
    * ```js
@@ -334,6 +334,7 @@ export const REGISTERED_HOOKS = [
    * @param {boolean} indexesChangesState.indexesSequenceChanged Indicates if the sequence of indexes has changed.
    * @param {boolean} indexesChangesState.trimmedIndexesChanged Indicates if the trimmed indexes have changed.
    * @param {boolean} indexesChangesState.hiddenIndexesChanged Indicates if the hidden indexes have changed.
+   * @param {'init'|'remove'|'insert'|'move'|'update'} [indexesChangesState.indexesChangeSource] Indicates what caused a sequence change.
    */
   'afterColumnSequenceCacheUpdate',
 
@@ -553,9 +554,9 @@ export const REGISTERED_HOOKS = [
   'afterDataProviderFetchAbort',
 
   /**
-   * Queried to determine if the instance uses an external data source (complete [[Options#dataProvider]] configuration).
+   * Queried to determine if the instance uses an external data source (complete {@link Options#dataProvider} configuration).
    * When the DataProvider plugin is enabled, it adds an instance handler in `enablePlugin()`. Callbacks may return
-   * `true`, `false`, or `undefined`; the value propagates through the hook chain like other [[Hooks#run]] hooks.
+   * `true`, `false`, or `undefined`; the value propagates through the hook chain as in any other hook.
    *
    * @event Hooks#hasExternalDataSource
    * @since 17.1.0
@@ -808,6 +809,7 @@ export const REGISTERED_HOOKS = [
    * @param {boolean} indexesChangesState.indexesSequenceChanged Indicates if the sequence of indexes has changed.
    * @param {boolean} indexesChangesState.trimmedIndexesChanged Indicates if the trimmed indexes have changed.
    * @param {boolean} indexesChangesState.hiddenIndexesChanged Indicates if the hidden indexes have changed.
+   * @param {'init'|'remove'|'insert'|'move'|'update'} [indexesChangesState.indexesChangeSource] Indicates what caused a sequence change.
    */
   'afterRowSequenceCacheUpdate',
 
@@ -1311,8 +1313,15 @@ export const REGISTERED_HOOKS = [
    * before they are validated and applied to the data source.
    * Use [`afterChange`](@/api/hooks.md#afterchange) if you need to react after the data has been written.
    *
+   * This hook fires for every `setDataAtCell()` call – not only when you call it directly, but also
+   * for regular cell edits, paste, cut, Delete/Backspace, the fill handle, Ctrl+Enter, a checkbox
+   * click, and undo/redo, since those are applied internally via `setDataAtCell()` too. It also fires
+   * when a `beforeChange` handler cancels the change, with an empty `changes` array. Changes made
+   * through `setDataAtRowProp()` fire [`afterSetDataAtRowProp`](@/api/hooks.md#aftersetdataatrowprop)
+   * instead – never both for the same change.
+   *
    * @event Hooks#afterSetDataAtCell
-   * @param {Array} changes An array of changes in format `[[row, column, oldValue, value], ...]`.
+   * @param {Array} changes An array of changes in format `[[row, prop, oldValue, value], ...]`.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    */
@@ -1322,6 +1331,13 @@ export const REGISTERED_HOOKS = [
    * Fired after [`setDataAtRowProp`](@/api/core.md#setdataatrowprop) is called and changes are processed,
    * before they are validated and applied to the data source.
    * Use [`afterChange`](@/api/hooks.md#afterchange) if you need to react after the data has been written.
+   *
+   * This hook fires for every `setDataAtRowProp()` call, yours or a plugin's – for example, the
+   * DataProvider plugin calls it internally (with `source` set to `'DataProvider.revert'`) to roll
+   * back an optimistic edit after a failed server update. Changes made through `setDataAtCell()` –
+   * including regular cell edits, paste, cut, Delete/Backspace, the fill handle, Ctrl+Enter, a
+   * checkbox click, and undo/redo, which apply internally via `setDataAtCell()` – fire
+   * [`afterSetDataAtCell`](@/api/hooks.md#aftersetdataatcell) instead – never both for the same change.
    *
    * @event Hooks#afterSetDataAtRowProp
    * @param {Array} changes An array of changes in format `[[row, prop, oldValue, value], ...]`.
@@ -1405,7 +1421,7 @@ export const REGISTERED_HOOKS = [
    * @param {CellRange} targetRange The range new values will be filled into.
    * @param {string} direction Declares the direction of the autofill. Possible values: `up`, `down`, `left`, `right`.
    *
-   * @returns {boolean|Array[]} If false, the operation is cancelled. If array of arrays, the returned data
+   * @returns {boolean|Array[]} If false, the operation is canceled. If array of arrays, the returned data
    *                              will be passed into [`populateFromArray`](@/api/core.md#populatefromarray) instead of the default autofill
    *                              algorithm's result.
    */
@@ -1462,7 +1478,7 @@ export const REGISTERED_HOOKS = [
    *                          [Binding to data: Identify changed columns in hooks](@/guides/getting-started/binding-to-data/binding-to-data.md#identify-changed-columns-in-hooks).
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
-   * @returns {undefined | boolean} If `false` all changes were cancelled, `true` otherwise.
+   * @returns {undefined | boolean} If `false` all changes were canceled, `true` otherwise.
    * @example
    * ::: only-for javascript
    * ```js
@@ -1626,6 +1642,22 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired before the Handsontable instance is initiated.
+   *
+   * At this point the grid is only partly built. Your settings are already readable through
+   * [`getSettings()`](@/api/core.md#getsettings), but the data is not loaded and the table is not
+   * rendered. Calling a method that reads the data, such as
+   * [`countRows()`](@/api/core.md#countrows) or [`getData()`](@/api/core.md#getdata), throws.
+   * `hot.view` is still `undefined`, so reading it gives `undefined` and calling a method on it
+   * throws. Use this hook to prepare your own state, and use
+   * [`afterInit`](@/api/hooks.md#afterinit) to work with the grid.
+   *
+   * Where the callback runs depends on how you register it. A callback passed in the settings object
+   * runs after the plugins are initialized. A callback registered globally with
+   * `Handsontable.hooks.add('beforeInit', callback)`, or with a negative `orderIndex`, runs before
+   * them.
+   *
+   * The hook fires once per instance creation. React's `StrictMode` mounts a component twice in
+   * development, so a grid created there fires it twice.
    *
    * @event Hooks#beforeInit
    */
@@ -1829,7 +1861,10 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#beforeRender
    * @param {boolean} isForced If set to `true`, the rendering gets triggered by a change of settings, a change of
    *                           data, or a logic that needs a full Handsontable render cycle.
-   *                           If set to `false`, the rendering gets triggered by scrolling or moving the selection.
+   *                           If set to `false`, the rendering gets triggered by something lighter, such as moving
+   *                           the selection. The flag describes what triggered the render, not how much was
+   *                           redrawn: a `false` render still redraws cells when it brings a new row or column
+   *                           band into view. Scrolling does not fire this hook at all.
    */
   'beforeRender',
 
@@ -1839,7 +1874,10 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#afterRender
    * @param {boolean} isForced If set to `true`, the rendering gets triggered by a change of settings, a change of
    *                           data, or a logic that needs a full Handsontable render cycle.
-   *                           If set to `false`, the rendering gets triggered by scrolling or moving the selection.
+   *                           If set to `false`, the rendering gets triggered by something lighter, such as moving
+   *                           the selection. The flag describes what triggered the render, not how much was
+   *                           redrawn: a `false` render still redraws cells when it brings a new row or column
+   *                           band into view. Scrolling does not fire this hook at all.
    */
   'afterRender',
 
@@ -1969,6 +2007,12 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired after Handsontable instance is constructed (using `new` operator).
    *
+   * This hook runs inside the constructor, before Handsontable reads the callbacks from the settings
+   * object. A `construct` callback passed in the settings object is registered too late, so it never
+   * runs. To listen to this hook, register it globally with
+   * `Handsontable.hooks.add('construct', callback)`. To run your code from the settings object as early
+   * as possible, use [`beforeInit`](@/api/hooks.md#beforeinit) instead.
+   *
    * @event Hooks#construct
    */
   'construct',
@@ -2078,7 +2122,8 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#modifySourceData
    * @since 8.0.0
    * @param {number} row Physical row index.
-   * @param {number} column Physical column index or property name.
+   * @param {number|string|Function} column Physical column index, property name, or a
+   *   `columns[].data` accessor function (see {@link Options#data}).
    * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value` property.
    * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
    */
@@ -2984,9 +3029,9 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired by {@link Pagination} plugin after changing the page. This hook is fired when
-   * {@link Options#pagination} option is enabled. When a complete [[Options#dataProvider]] configuration
+   * {@link Options#pagination} option is enabled. When a complete {@link Options#dataProvider} configuration
    * handles paging, {@link DataProvider} loads the requested page via `fetchRows`. {@link Pagination} then aligns its
-   * UI from [[Hooks#afterDataProviderFetch]].
+   * UI from {@link Hooks#afterDataProviderFetch}.
    *
    * @since 16.1.0
    * @event Hooks#afterPageChange
@@ -3009,9 +3054,9 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired by {@link Pagination} plugin after changing the page size. This hook is fired when
-   * {@link Options#pagination} option is enabled. When a complete [[Options#dataProvider]] configuration
+   * {@link Options#pagination} option is enabled. When a complete {@link Options#dataProvider} configuration
    * handles paging, {@link DataProvider} loads page 1 for the new size via `fetchRows`. {@link Pagination} then aligns
-   * its UI from [[Hooks#afterDataProviderFetch]].
+   * its UI from {@link Hooks#afterDataProviderFetch}.
    *
    * @since 16.1.0
    * @event Hooks#afterPageSizeChange
@@ -3049,6 +3094,154 @@ export const REGISTERED_HOOKS = [
    * @param {boolean} isVisible The visibility state of the page size section.
    */
   'afterPageNavigationVisibilityChange',
+
+  /**
+   * Fired by {@link SheetsBar} plugin before changing the active sheet. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#beforeSheetTabChange
+   * @param {number} oldSheetId The id of the sheet being left.
+   * @param {number} newSheetId The id of the sheet being activated.
+   * @param {string} source String that identifies source of hook call.
+   * @returns {*|boolean} If `false` is returned the action is canceled.
+   */
+  'beforeSheetTabChange',
+
+  /**
+   * Fired by {@link SheetsBar} plugin after changing the active sheet. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#afterSheetTabChange
+   * @param {number} oldSheetId The id of the sheet being left.
+   * @param {number} newSheetId The id of the sheet being activated.
+   * @param {string} source String that identifies source of hook call.
+   */
+  'afterSheetTabChange',
+
+  /**
+   * Fired by {@link SheetsBar} plugin before adding a new sheet. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#beforeSheetTabAdd
+   * @param {string|null} name The requested sheet name, or `null` for a default-generated name.
+   * @param {string} source String that identifies source of hook call.
+   * @returns {*|boolean} If `false` is returned the action is canceled.
+   */
+  'beforeSheetTabAdd',
+
+  /**
+   * Fired by {@link SheetsBar} plugin after adding a new sheet. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#afterSheetTabAdd
+   * @param {number} sheetId The id of the added sheet.
+   * @param {string} name The name of the added sheet.
+   * @param {string} source String that identifies source of hook call.
+   */
+  'afterSheetTabAdd',
+
+  /**
+   * Fired by {@link SheetsBar} plugin before removing a sheet. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#beforeSheetTabRemove
+   * @param {number} sheetId The id of the sheet to be removed.
+   * @param {string} source String that identifies source of hook call.
+   * @returns {*|boolean} If `false` is returned the action is canceled.
+   */
+  'beforeSheetTabRemove',
+
+  /**
+   * Fired by {@link SheetsBar} plugin after removing a sheet. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#afterSheetTabRemove
+   * @param {number} sheetId The id of the removed sheet.
+   * @param {string} source String that identifies source of hook call.
+   */
+  'afterSheetTabRemove',
+
+  /**
+   * Fired by {@link SheetsBar} plugin before renaming a sheet. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#beforeSheetTabRename
+   * @param {number} sheetId The id of the sheet being renamed.
+   * @param {string} oldName The current name of the sheet.
+   * @param {string} newName The requested new name of the sheet.
+   * @param {string} source String that identifies source of hook call.
+   * @returns {*|boolean} If `false` is returned the action is canceled.
+   */
+  'beforeSheetTabRename',
+
+  /**
+   * Fired by {@link SheetsBar} plugin after renaming a sheet. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#afterSheetTabRename
+   * @param {number} sheetId The id of the renamed sheet.
+   * @param {string} oldName The previous name of the sheet.
+   * @param {string} newName The new name of the sheet.
+   * @param {string} source String that identifies source of hook call.
+   */
+  'afterSheetTabRename',
+
+  /**
+   * Fired by {@link SheetsBar} plugin before moving a sheet to a new tab position. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#beforeSheetTabMove
+   * @param {number} sheetId The id of the sheet being moved.
+   * @param {number} finalIndex The requested tab index.
+   * @param {string} source String that identifies source of hook call.
+   * @returns {*|boolean} If `false` is returned the action is canceled.
+   */
+  'beforeSheetTabMove',
+
+  /**
+   * Fired by {@link SheetsBar} plugin after moving a sheet to a new tab position. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#afterSheetTabMove
+   * @param {number} sheetId The id of the moved sheet.
+   * @param {number} finalIndex The tab index the sheet was moved to.
+   * @param {string} source String that identifies source of hook call.
+   */
+  'afterSheetTabMove',
+
+  /**
+   * Fired by {@link SheetsBar} plugin after capturing a sheet's runtime view state (e.g. scroll position,
+   * selection) before switching away from it. This hook is fired when {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#afterSheetTabStateCapture
+   * @param {number} sheetId The id of the sheet the view state was captured from.
+   * @param {object} viewState The captured view state.
+   * @param {string} source String that identifies source of hook call.
+   */
+  'afterSheetTabStateCapture',
+
+  /**
+   * Fired by {@link SheetsBar} plugin after restoring a sheet's runtime view state (e.g. scroll position,
+   * selection) when switching to it. This hook is fired when {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 18.2.0
+   * @event Hooks#afterSheetTabStateRestore
+   * @param {number} sheetId The id of the sheet the view state was restored to.
+   * @param {object} viewState The restored view state.
+   * @param {string} source String that identifies source of hook call.
+   */
+  'afterSheetTabStateRestore',
 
   /**
    * Fired by the {@link Formulas} plugin, when any cell value changes.
@@ -3273,8 +3466,13 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired while retrieving the row header width.
    *
+   * A grid can render more than one row header. Return a single number to give every level the same
+   * width, or an array with one entry per level - starting at the grid's edge - to size each on its
+   * own. The value passed in follows the same rule, so a handler that widens the incoming width
+   * should check for an array before doing arithmetic on it.
+   *
    * @event Hooks#modifyRowHeaderWidth
-   * @param {number} rowHeaderWidth Row header width.
+   * @param {number|number[]} rowHeaderWidth Row header width, or one width per row header level.
    */
   'modifyRowHeaderWidth',
 
@@ -3353,6 +3551,11 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired after initializing all the plugins.
    * This hook should be added before Handsontable is initialized.
+   *
+   * This hook runs while `beforeInit` is being dispatched, before Handsontable reads the callbacks
+   * from the settings object. An `afterPluginsInitialized` callback passed in the settings object is
+   * registered too late, so it never runs. To listen to this hook, register it globally with
+   * `Handsontable.hooks.add('afterPluginsInitialized', callback)`.
    *
    * @event Hooks#afterPluginsInitialized
    *

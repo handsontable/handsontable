@@ -8,6 +8,7 @@ import { command as selectAllCells } from './selectAllCells';
 import { command as selectAllCellsAndHeaders } from './selectAllCellsAndHeaders';
 import { command as populateSelectedCellsData } from './populateSelectedCellsData';
 import { command as tabNavigation } from './tabNavigation';
+import { command as openCellLink } from './openCellLink';
 
 const allCommands = [
   ...getAllEditorCommands(),
@@ -19,6 +20,7 @@ const allCommands = [
   selectAllCellsAndHeaders,
   populateSelectedCellsData,
   tabNavigation,
+  openCellLink,
 ];
 
 /**

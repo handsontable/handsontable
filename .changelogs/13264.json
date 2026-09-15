@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Content shaped like an HTML tag, a markup declaration, or a character reference is now what routes cell and header text through the HTML write path. Ordinary text holding `&`, `;`, `<` or `>` is written as plain text, which keeps it from stopping a grid from rendering under a Trusted Types policy. A character reference without its closing semicolon, such as `&copy 2024`, now renders literally.",
+  "type": "changed",
+  "issueOrPR": 13264,
+  "breaking": false,
+  "framework": "none"
+}

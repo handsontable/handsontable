@@ -195,10 +195,18 @@ export class Pagination extends BasePlugin {
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link Pagination#enablePlugin} method is called.
    *
+   * The pagination bar renders into the bottom slot and registers a focus scope, and the
+   * `LayoutManager`, the `FocusScopeManager` and the root grid element all belong to the main
+   * Handsontable instance. In a nested grid (the one the `handsontable`, `autocomplete`, and
+   * `dropdown` cell types create) none of them exists, so the plugin stays disabled there. A custom
+   * `uiContainer` does not change that:
+   * it replaces the bottom-slot placement only, while the focus scope and the root grid element are
+   * still required.
+   *
    * @returns {boolean}
    */
   isEnabled(): boolean {
-    return !!this.hot.getSettings()[PLUGIN_KEY];
+    return isRootInstance(this.hot) && !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -247,12 +255,14 @@ export class Pagination extends BasePlugin {
         .addLocalHook('nextPageClick', () => this.nextPage())
         .addLocalHook('lastPageClick', () => this.lastPage())
         .addLocalHook('pageSizeChange', (pageSize: number | 'auto') => this.setPageSize(pageSize));
-
     }
 
     // The layout manager owns the bottom-slot placement and ordering. With a custom `uiContainer`
     // the UI installs itself there instead, so the slot registration is skipped. The manager only
-    // exists on the root instance, hence the guard.
+    // exists on the root instance. With `isEnabled()` gated on `isRootInstance` that half is always
+    // false in practice, and it stays only as a statement of the requirement, not as support for a
+    // nested grid: a direct `enablePlugin()` call on a non-root instance dies earlier, in the UI,
+    // which reads `rootGridElement`.
     if (isRootInstance(this.hot) && !this.getSetting('uiContainer')) {
       this.hot.getLayoutManager()
         .register(PLUGIN_KEY, this.#ui.getContainer(), { side: 'bottom', weight: LAYOUT_WEIGHT });
@@ -280,7 +290,7 @@ export class Pagination extends BasePlugin {
   }
 
   /**
-   * @param {object} result [[Hooks#afterDataProviderFetch]] payload.
+   * @param {object} result {@link Hooks#afterDataProviderFetch} payload.
    * @param {{ page: number, pageSize: number, sort: *, filters: * }} result.queryParameters Query parameters for the completed fetch.
    * @param {number} result.totalRows Total row count from the provider response.
    * @returns {void}
@@ -346,7 +356,6 @@ export class Pagination extends BasePlugin {
    */
   #refreshUI() {
     this.#computeAndApplyState();
-    this.hot.view.adjustElementsSize();
     this.hot.render();
   }
 
@@ -401,6 +410,7 @@ export class Pagination extends BasePlugin {
 
     this.#unregisterFocusScope();
 
+    // Mirrors the guard in `enablePlugin()`: always false in practice, see the comment there.
     if (isRootInstance(this.hot)) {
       this.hot.getLayoutManager().unregister(PLUGIN_KEY, 'bottom');
     }
@@ -533,6 +543,10 @@ export class Pagination extends BasePlugin {
    * @fires Hooks#afterPageChange
    */
   setPage(pageNumber: number): void {
+    if (!this.enabled) {
+      return;
+    }
+
     const oldPage = this.#currentPage;
     const shouldProceed = this.hot.runHooks('beforePageChange', oldPage, pageNumber);
 
@@ -564,6 +578,10 @@ export class Pagination extends BasePlugin {
    * @fires Hooks#afterPageSizeChange
    */
   setPageSize(pageSize: number | 'auto'): void {
+    if (!this.enabled) {
+      return;
+    }
+
     const oldPageSize = this.#pageSize;
     const shouldProceed = this.hot.runHooks('beforePageSizeChange', oldPageSize, pageSize);
 
@@ -868,8 +886,15 @@ export class Pagination extends BasePlugin {
 
   /**
    * Unregisters the focus scope for the pagination plugin.
+   *
+   * Nothing was registered on a non-root instance, where the plugin never enables and the
+   * `FocusScopeManager` does not exist, so a direct `disablePlugin()` call there must not reach it.
    */
   #unregisterFocusScope() {
+    if (!isRootInstance(this.hot)) {
+      return;
+    }
+
     this.hot.getFocusScopeManager().unregisterScope(PLUGIN_KEY);
   }
 

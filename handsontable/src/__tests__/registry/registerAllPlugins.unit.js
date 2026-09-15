@@ -24,6 +24,7 @@ describe('`registerAllPlugins`', () => {
       'MoveCells',
       'ManualRowResize',
       'AutoRowSize',
+      'AutoRowHeaderSize',
       'ColumnSorting',
       'Comments',
       'ContextMenu',
@@ -46,6 +47,7 @@ describe('`registerAllPlugins`', () => {
       'ExportFile',
       'Filters',
       'Formulas',
+      'AutoLink',
       'NestedHeaders',
       'CollapsibleColumns',
       'NestedRows',
@@ -57,6 +59,7 @@ describe('`registerAllPlugins`', () => {
       'EmptyDataState',
       'Notification',
       'Pagination',
+      'SheetsBar',
       'DataProvider',
       'UndoRedo',
     ]);

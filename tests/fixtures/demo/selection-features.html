@@ -48,13 +48,20 @@
     // a move. Reset on every init together with the grid.
     window.moveCellsHookLog = [];
     window.vetoBeforeMoveCells = false;
+    window.vetoBeforeRowMove = false;
+    window.vetoBeforeColumnMove = false;
 
     window.initSelectionGrid = (overrides = {}) => {
       if (window.hot) {
         window.hot.destroy();
       }
 
+      // Reset the hook log and every veto flag with the grid, so a test that re-inits after
+      // arming a veto does not carry it into the new instance.
       window.moveCellsHookLog = [];
+      window.vetoBeforeMoveCells = false;
+      window.vetoBeforeRowMove = false;
+      window.vetoBeforeColumnMove = false;
 
       window.hot = new Handsontable(container, Object.assign({
         beforeMoveCells: (source, target, isCopy) => {
@@ -84,6 +91,10 @@
             isCopy,
           });
         },
+        // Registered through the settings on purpose: a settings hook is added after the plugin
+        // hooks, which is what lets a veto slip past a `beforeRowMove`-based undo listener.
+        beforeRowMove: () => (window.vetoBeforeRowMove ? false : undefined),
+        beforeColumnMove: () => (window.vetoBeforeColumnMove ? false : undefined),
         data: buildData(),
         width: 500,
         height: 400,
@@ -102,6 +113,19 @@
     // Toggles the beforeMoveCells veto for the veto tests.
     window.setBeforeMoveCellsVeto = (shouldVeto) => {
       window.vetoBeforeMoveCells = shouldVeto;
+
+      return true;
+    };
+
+    // Toggles the beforeRowMove / beforeColumnMove vetoes for the move-undo tests.
+    window.setBeforeRowMoveVeto = (shouldVeto) => {
+      window.vetoBeforeRowMove = shouldVeto;
+
+      return true;
+    };
+
+    window.setBeforeColumnMoveVeto = (shouldVeto) => {
+      window.vetoBeforeColumnMove = shouldVeto;
 
       return true;
     };

@@ -1353,4 +1353,62 @@ describe('Notification', () => {
       expect(warnSpy).not.toHaveBeenCalled();
     });
   });
+
+  describe('nested grid (non-root instance)', () => {
+    it('should not enable the plugin in a grid nested in the `handsontable` cell type', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 2),
+        columns: [{
+          type: 'handsontable',
+          handsontable: {
+            data: createSpreadsheetData(2, 2),
+            notification: true,
+          },
+        }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const innerHot = getActiveEditor().htEditor;
+
+      // The notification needs the FocusScopeManager and the `ht-overlay` element, and both belong
+      // to the root instance only. The plugin declines to enable instead of throwing (DEV-2641).
+      expect(getActiveEditor().isOpened()).toBe(true);
+      expect(innerHot.countRows()).toBe(2);
+      expect(innerHot.getPlugin('notification').isEnabled()).toBe(false);
+      expect(innerHot.getPlugin('notification').enabled).toBe(false);
+
+      // An update carrying the plugin's own key reaches the enable-on-update branch of
+      // `BasePlugin#onUpdateSettings`, which the editor's own width/height update does not.
+      await innerHot.updateSettings({ notification: true });
+
+      expect(innerHot.getPlugin('notification').isEnabled()).toBe(false);
+      expect(innerHot.getPlugin('notification').enabled).toBe(false);
+    });
+
+    it('should keep the root instance notifications working when a nested grid asks for them too', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 2),
+        columns: [{
+          type: 'handsontable',
+          handsontable: {
+            data: createSpreadsheetData(2, 2),
+            notification: true,
+          },
+        }],
+        notification: { animation: false },
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      getPlugin('notification').showMessage({ message: 'Root message' });
+
+      await waitForNextAnimationFrames(1);
+
+      expect(getPlugin('notification').enabled).toBe(true);
+      expect(document.querySelectorAll('.ht-notification__toast').length).toBe(1);
+    });
+  });
 });

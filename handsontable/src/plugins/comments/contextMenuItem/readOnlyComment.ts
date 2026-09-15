@@ -1,7 +1,7 @@
 import type { HotInstance } from '../../../core/types';
 import * as C from '../../../i18n/constants';
-import { checkSelectionConsistency, markLabelAsSelected } from '../../contextMenu/utils';
-import { META_READONLY, type Comments } from '../comments';
+import { checkSelectionConsistency } from '../../contextMenu/utils';
+import { META_COMMENT, META_READONLY, type CommentObject, type Comments } from '../comments';
 
 /**
  * @param {Comments} plugin The Comments plugin instance.
@@ -11,12 +11,18 @@ export default function readOnlyCommentItem(plugin: Comments) {
   return {
     key: 'commentsReadOnly',
     name(this: HotInstance): string {
-      const label: string = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT);
-      const areReadOnly = checkSelectionConsistency(this.getSelectedRange() ?? [], (row: number, col: number) => {
-        return !!(plugin.getCommentMeta(row, col, META_READONLY));
-      });
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT);
+    },
+    checked(this: HotInstance) {
+      return checkSelectionConsistency(this.getSelectedRange() ?? [], (row: number, col: number) => {
+        // Read transiently rather than through `plugin.getCommentMeta()`, which resolves via
+        // `getCellMeta`. This walks the whole selection on every menu draw and only breaks early
+        // on a hit, so the materializing read would retain one meta object per visited cell for
+        // the grid's life - the pattern `handsontable/AGENTS.md` bans for a range loop.
+        const comment = this.getCellMetaTransient<{ [META_COMMENT]?: CommentObject }>(row, col)[META_COMMENT];
 
-      return areReadOnly ? markLabelAsSelected(label) : label;
+        return !!comment?.[META_READONLY];
+      });
     },
     callback(this: HotInstance) {
       const range = this.getSelectedRangeActive();

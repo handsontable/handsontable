@@ -16,8 +16,10 @@ describe('Focus selection scroll', () => {
   });
 
   it('should scroll the viewport vertically', async() => {
-    // the viewport height shows exactly 4 rows + 1 header row + 15px (scrollbar) + 1px (border top)
-    const height = getDefaultColumnHeaderHeight() + (4 * getDefaultRowHeight()) + 16;
+    // the viewport height shows exactly 4 rows + 1 header row + 15px (scrollbar). The header band
+    // carries the grid's 1px top frame and its own 1px border-bottom (DEV-2786), both of which
+    // `getColumnHeaderBandHeight()` accounts for.
+    const height = getColumnHeaderBandHeight() + (4 * getDefaultRowHeight()) + 15;
 
     handsontable({
       data: createSpreadsheetData(50, 5),
@@ -50,7 +52,9 @@ describe('Focus selection scroll', () => {
 
     await keyDownUp('enter'); // B5
 
-    expect(topOverlay().getScrollPosition()).toBe(getDefaultRowHeight() + 2);
+    // One pixel of slack, not two: `TopOverlay#scrollTo`'s own `newY += 1` is what is left after
+    // DEV-2786 removed the column-header border compensation that used to be added beside it.
+    expect(topOverlay().getScrollPosition()).toBe(getDefaultRowHeight() + 1);
     expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(4, 1, true));
     expect(scrollIntoViewSpy).toHaveBeenCalledWith({
       block: 'nearest',
@@ -61,7 +65,7 @@ describe('Focus selection scroll', () => {
 
     await keyDownUp('enter'); // B6
 
-    expect(topOverlay().getScrollPosition()).toBe((getDefaultRowHeight() * 2) + 2);
+    expect(topOverlay().getScrollPosition()).toBe((getDefaultRowHeight() * 2) + 1);
     expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(5, 1, true));
     expect(scrollIntoViewSpy).toHaveBeenCalledWith({
       block: 'nearest',
@@ -73,7 +77,7 @@ describe('Focus selection scroll', () => {
     await keyDownUp(['shift', 'enter']); // B5
     await keyDownUp(['shift', 'enter']); // B4
 
-    expect(topOverlay().getScrollPosition()).toBe((getDefaultRowHeight() * 2) + 2);
+    expect(topOverlay().getScrollPosition()).toBe((getDefaultRowHeight() * 2) + 1);
     expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(4, 1, true));
     expect(scrollIntoViewSpy.calls.thisFor(1)).toBe(getCell(3, 1, true));
     expect(scrollIntoViewSpy).toHaveBeenCalledWith({
@@ -118,7 +122,9 @@ describe('Focus selection scroll', () => {
 
     await keyDownUp(['shift', 'enter']); // B50
 
-    expect(topOverlay().getScrollPosition()).toBe((getDefaultRowHeight() * 46) + 2);
+    // No slack at all here: the scroll is clamped to the holder's maximum, and the extra pixel the
+    // hider used to carry for the first rendered row's `border-top` is gone (DEV-2786).
+    expect(topOverlay().getScrollPosition()).toBe(getDefaultRowHeight() * 46);
     expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(49, 1, true));
     expect(scrollIntoViewSpy).toHaveBeenCalledWith({
       block: 'nearest',
@@ -127,14 +133,13 @@ describe('Focus selection scroll', () => {
   });
 
   it('should scroll the viewport horizontally', async() => {
-    // The viewport width shows exactly 4 columns + 1 header col + 15px (scrollbar) + 1px (grid
-    // left-frame border). The 1px slack makes the scroll positions below land on exact
-    // `colWidths` multiples on every theme -- themes that render a 1px cell border-left
-    // consume that slack; themes without it leave it as a 1px gap. Do not re-introduce a
-    // theme-specific `+ 1` on the expected scroll values; the container width already
-    // normalizes the difference.
+    // The viewport width shows exactly 4 columns + 1 header col + 15px (scrollbar), which makes
+    // the scroll positions below land on exact `colWidths` multiples on every theme. This used to
+    // need 1px of extra slack to absorb the border the first data column carried inside its own
+    // width; since #6673 the row header owns that gridline, so every column has the same content
+    // width and no theme needs the slack. Do not re-introduce a `+ 1` on either side.
     const colWidths = 60;
-    const width = getDefaultRowHeaderWidth() + (4 * colWidths) + 16;
+    const width = getDefaultRowHeaderWidth() + (4 * colWidths) + 15;
 
     handsontable({
       data: createSpreadsheetData(5, 50),

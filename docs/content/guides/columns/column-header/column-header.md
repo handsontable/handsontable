@@ -314,7 +314,24 @@ When column labels are longer, header text can wrap and require more vertical sp
 You can set this option to one of the following:
 
 - A number - set the same height for every column header.
+- A string - set the same height, written as a pixel size: `'50'` or `'50px'`.
 - An array - set different heights for individual column header levels.
+
+The height is a number of pixels. A string that states a pixel size works too, so a value coming from
+an attribute, a JSON config, or a framework template still applies. You can mix both forms inside the
+array. A value that states no pixel count, such as `'50%'` or `'20em'`, is ignored - the header keeps
+its default height, and Handsontable reports the value once in the browser console.
+
+A negative number is kept as it is, because numbers behave exactly as they did before this option
+read strings. A negative string is rejected, so a typo cannot collapse the header.
+
+The height you set is the header's **border-box** height: it includes the header's own top and
+bottom borders. A column header carries a 1px border on each side, so `columnHeaderHeight: 40`
+leaves a 38px content box for the label. Before Handsontable 18.2 the bottom border was dropped
+while the grid sat at the top of its scroll range and added back as soon as you scrolled, so the
+same setting gave a 39px content box unscrolled and 38px scrolled. The header now keeps that border
+at every scroll position, which makes the option's result the same wherever the grid is scrolled to.
+If you had tuned the number against an unscrolled grid, add a pixel to keep the label area you had.
 
 The example below uses longer labels together with `columnHeaderHeight: 50`.
 

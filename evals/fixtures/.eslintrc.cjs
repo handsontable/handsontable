@@ -10,4 +10,15 @@ module.exports = {
     'import/extensions': 'off',
     'import/no-extraneous-dependencies': 'off',
   },
+  overrides: [
+    {
+      // A frozen-tier (Jasmine) fixture reads its helpers as globals mounted by
+      // that tier's bootstrap (`handsontable/test/bootstrap.js`), the same way
+      // `handsontable/.eslintrc.js` treats a real `*.spec.js`.
+      files: ['*.spec.js'],
+      rules: {
+        'no-undef': 'off',
+      },
+    },
+  ],
 };

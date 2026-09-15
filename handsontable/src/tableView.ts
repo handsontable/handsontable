@@ -1,6 +1,4 @@
 import type { HotInstance } from './core/types';
-import type { BaseRenderer } from './renderers/baseRenderer';
-import type { CellProperties } from './settings';
 import type { IndexMapper } from './translations';
 import type { WalkontableInstance } from './3rdparty/walkontable/src/types';
 import type { RowsCalculationType, ColumnsCalculationType } from './3rdparty/walkontable/src/calculator/viewportBase';
@@ -8,13 +6,14 @@ import {
   addClass,
   removeClass,
   clearTextSelection,
+  closest,
+  isChildOf,
   empty,
   eventTargetEl,
   fastInnerHTML,
   fastInnerText,
   getScrollbarWidth,
   hasClass,
-  isChildOf,
   getDeepActiveElement,
   getShadowHostChain,
   isHTMLElement,
@@ -26,7 +25,7 @@ import {
   getParentWindow,
 } from './helpers/dom/element';
 import EventManager from './eventManager';
-import { formatCellValue, renderCell } from './renderers/renderCell';
+import { CellPainter } from './core/incrementalRender/cellPainter';
 import { RenderSizeProbe } from './renderSizeProbe';
 import {
   isImmediatePropagationStopped,
@@ -47,6 +46,8 @@ import {
   A11Y_ROWCOUNT,
   A11Y_TREEGRID
 } from './helpers/a11y';
+import { parsePixelSize } from './utils/pixelSize';
+import { warnOnce } from './helpers/console';
 
 /**
  * Checks whether a size setting (`rowHeights`, `minRowHeights`, or `colWidths`) guarantees a uniform
@@ -58,6 +59,129 @@ import {
  */
 function isUniformSizeSetting(value: unknown): boolean {
   return value === undefined || value === null || typeof value === 'number';
+}
+
+/**
+ * Renders a rejected setting value for the warning message.
+ *
+ * Nothing here may throw. This runs inside a Walkontable settings getter during a draw, and only on
+ * the path that is already falling back, so a throw would turn a soft fallback into a dead grid.
+ *
+ * `JSON.stringify` throws on a `BigInt` and on a circular object. `String()` is not safe either: it
+ * throws on an object with no prototype (`Object.create(null)`) and on one whose `toString`,
+ * `valueOf`, or `Symbol.toPrimitive` throws – and a framework can hand any of those to a setting.
+ * `Object.prototype.toString` never calls user code, so it is the fallback.
+ *
+ * @param {*} value The value that could not be read.
+ * @returns {string}
+ */
+function describeValue(value: unknown): string {
+  if (typeof value === 'string') {
+    return `"${value}"`;
+  }
+
+  try {
+    return String(value);
+  } catch {
+    return Object.prototype.toString.call(value);
+  }
+}
+
+/**
+ * Resolves one entry of a header size setting into a number of pixels.
+ *
+ * Warns once per grid instance when the value cannot be read as a pixel size, then returns `null` so
+ * the caller falls back to its own default rather than rendering a broken size.
+ *
+ * @param {*} value The configured value.
+ * @param {object} scope The object the one-time warning is bound to.
+ * @param {string} optionName The option's name, used in the warning message.
+ * @returns {number|null}
+ */
+function resolveHeaderSizeEntry(value: unknown, scope: object, optionName: string): number | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  const size = parsePixelSize(value);
+
+  if (size === null) {
+    const described = describeValue(value);
+
+    warnOnce(
+      // The value is part of the key, not just the message. Keyed on the option name alone, a later
+      // `updateSettings` with a different bad value would print nothing and the console would only
+      // ever name the first one.
+      scope,
+      `invalid-header-size-${optionName}-${described}`,
+      `Handsontable: the \`${optionName}\` option expects a number of pixels, such as \`100\`, ` +
+      `\`'100'\`, or \`'100px'\`. The value ${described} cannot be read as a pixel size, ` +
+      'so it is ignored and the default size is used instead. A negative number is kept as it is, ' +
+      'but a negative string is rejected the same way this value was.'
+    );
+
+    return null;
+  }
+
+  return size;
+}
+
+/**
+ * Checks whether a header size entry is already a number, or is empty and therefore stands for
+ * "use the default size for this level".
+ *
+ * @param {*} entry The array entry to check.
+ * @returns {boolean}
+ */
+function isResolvedHeaderSizeEntry(entry: unknown): entry is number | null | undefined {
+  return typeof entry === 'number' || entry === null || entry === undefined;
+}
+
+/**
+ * Resolves the `rowHeaderWidth` and `columnHeaderHeight` settings into the numbers the rendering
+ * engine needs.
+ *
+ * Both options are documented as pixel numbers, and the sizing code downstream requires real
+ * numbers: the row header width guard replaces a non-number with the default column width, and the
+ * column header height merge skips anything that is not a number. Resolving the value here – the one
+ * place each option crosses from the grid settings into Walkontable – satisfies that requirement
+ * without adding a branch to the per-cell sizing code that runs on every draw.
+ *
+ * The `'100'` and `'100px'` string forms are accepted alongside a plain number, so a value arriving
+ * from an attribute, a JSON config, or a framework template still resolves.
+ *
+ * A value that is already a number, or an array already made of numbers, is returned by reference,
+ * so the common path allocates nothing. An array holding a string is re-resolved on every read, and
+ * the setting is read a few times per draw. That is left as it is on purpose: a cache keyed on the
+ * array's identity would answer stale after an in-place edit of the caller's own array, which costs
+ * more than the handful of regex matches it would save on a configuration almost nobody writes.
+ *
+ * @param {*} value The configured setting value.
+ * @param {object} scope The object the one-time warning is bound to.
+ * @param {string} optionName The option's name, used in the warning message.
+ * @returns {number|Array|undefined}
+ */
+function resolveHeaderSizeSetting(
+  value: unknown,
+  scope: object,
+  optionName: string
+): number | Array<number | null | undefined> | undefined {
+  if (value === undefined || typeof value === 'number') {
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    const entries: unknown[] = value;
+
+    // Returning the same array keeps the already-numeric case allocation-free on every draw.
+    if (entries.every(isResolvedHeaderSizeEntry)) {
+      return entries;
+    }
+
+    return entries.map(entry => resolveHeaderSizeEntry(entry, scope, optionName));
+  }
+
+  return resolveHeaderSizeEntry(value, scope, optionName) ?? undefined;
 }
 
 /**
@@ -128,15 +252,6 @@ class TableView {
    */
   #rowHeadersCount = 0;
   /**
-   * The flag determines if the `adjustElementsSize` method call was made during
-   * the render suspending. If true, the method has to be triggered once after render
-   * resuming.
-   *
-   * @private
-   * @type {boolean}
-   */
-  postponedAdjustElementsSize = false;
-  /**
    * The measurement-only probe of the rendered grid. Runs after each full master draw to record
    * content-driven row and column-header heights. It does not yet feed those values back into
    * rendering (see {@link RenderSizeProbe}).
@@ -158,6 +273,13 @@ class TableView {
    * @type {boolean}
    */
   #selectionMouseDown = false;
+  /**
+   * Name of the overlay the current mouse drag started in, or `null` when no drag is in progress.
+   * Used to keep a text selection from spreading past the overlay it began in.
+   *
+   * @type {string|null}
+   */
+  #textSelectionOverlay: string | null = null;
   /**
    * @type {boolean}
    */
@@ -216,12 +338,24 @@ class TableView {
    */
   #recentTouchEndTimeout: ReturnType<typeof setTimeout> | null = null;
   /**
+   * Paints cells for the rendering engine and decides which of them need painting.
+   *
+   * @type {CellPainter}
+   */
+  #cellPainter: CellPainter;
+
+  /**
    * @param {Hanstontable} hotInstance Instance of {@link Handsontable}.
    */
   constructor(hotInstance: HotInstance) {
     this.hot = hotInstance;
     this.eventManager = new EventManager(this.hot);
     this.settings = this.hot.getSettings();
+    this.#cellPainter = new CellPainter(
+      this.hot,
+      this.hot.renderChangeTracker,
+      (renderedRow, renderedColumn) => this.translateFromRenderableToVisualIndex(renderedRow, renderedColumn),
+    );
 
     this.createElements();
     this.registerEvents();
@@ -242,32 +376,33 @@ class TableView {
       this._wt.draw(!isFullRender);
       this.#updateScrollbarClassNames();
 
-      if (this.postponedAdjustElementsSize) {
-        this.postponedAdjustElementsSize = false;
-
-        this.adjustElementsSize(true);
-      }
-
       this.hot.runHooks('afterRender', isFullRender);
       this.hot.forceFullRender = false;
     }
   }
 
   /**
-   * Adjust overlays elements size and master table size. By default the internal `adjustElementsSize`
-   * call of the Walkontable is postponed to the next render cycle. If `flush` is set to `true`, the method
-   * will be executed immediately.
+   * Adjust overlays elements size and master table size.
    *
-   * TODO: This method should not exist. It is a workaround for the issue with updating the elements
-   * size after render. It should be calculated and updated automatically in Walkontable.
+   * Legacy. Nothing in the codebase needs to call this any more: Walkontable compares the geometry
+   * it is about to write against the geometry it last wrote, and resizes itself on the draw where
+   * those differ (`Overlays#currentLayoutSignature`).
    *
-   * @param {boolean} [flush=false] If `true`, the method will be executed immediately.
+   * Kept because it is reachable as `hot.view.adjustElementsSize()`, and still useful to an
+   * integrator who moved or resized the grid outside anything the engine observes and wants the new
+   * sizes in the same tick, before the next draw. Its contract has changed: it used to schedule a
+   * resize for the next render, and it now resizes straight away — but only if the geometry really
+   * differs, so calling it on a steady grid costs nothing. `flush` skips that check and resizes
+   * unconditionally.
+   *
+   * @param {boolean} [flush=false] If `true`, resize unconditionally instead of only when the
+   *                                geometry changed.
    */
   adjustElementsSize(flush = false) {
     if (flush) {
       this._wt.wtOverlays.adjustElementsSize();
     } else {
-      this.postponedAdjustElementsSize = true;
+      this._wt.wtOverlays.adjustElementsSizeIfNeeded();
     }
   }
 
@@ -401,7 +536,14 @@ class TableView {
 
       this.#selectionMouseDown = true;
 
-      if (!this.isTextSelectionAllowed(eventTargetEl(event)!)) {
+      const mouseDownTarget = eventTargetEl(event)!;
+
+      // Only `fragmentSelection` reads this, so a grid using the default pays no overlay lookup.
+      this.#textSelectionOverlay = this.settings.fragmentSelection
+        ? this.#getRenderingOverlayName(mouseDownTarget)
+        : null;
+
+      if (!this.isTextSelectionAllowed(mouseDownTarget)) {
         clearTextSelection(rootWindow);
         event.preventDefault();
         rootWindow.focus(); // make sure that window that contains HOT is active. Important when HOT is in iframe.
@@ -415,9 +557,22 @@ class TableView {
       }
 
       this.#selectionMouseDown = false;
+      this.#textSelectionOverlay = null;
     });
     this.eventManager.addEventListener(rootElement, 'mousemove', (event) => {
-      if (this.#selectionMouseDown && !this.isTextSelectionAllowed(eventTargetEl(event)!)) {
+      if (!this.#selectionMouseDown) {
+        return;
+      }
+
+      const target = eventTargetEl(event)!;
+      // Confinement applies to `fragmentSelection` only, and never to an input: the editor's
+      // textarea lives outside every clone, so a drag reaching it would otherwise count as leaving
+      // the starting overlay and cancel a gesture `isTextSelectionAllowed` explicitly permits.
+      const leftItsOverlay = this.#textSelectionOverlay !== null &&
+        !isInput(target) &&
+        this.#hasLeftTextSelectionOverlay(target);
+
+      if (!this.isTextSelectionAllowed(target) || leftItsOverlay) {
         // Clear selection only when fragmentSelection is enabled, otherwise clearing selection breaks the IME editor.
         if (this.settings.fragmentSelection) {
           clearTextSelection(rootWindow);
@@ -449,21 +604,35 @@ class TableView {
         return;
       }
 
+      // The listener on `rootElement` never sees a release outside the grid, so clear the drag state
+      // here too. Left set, a later hover over the grid would look like a drag still in progress and
+      // wipe whatever the user has selected on the host page.
+      this.#selectionMouseDown = false;
+      this.#textSelectionOverlay = null;
+
       const activeElement = getDeepActiveElement(rootDocument);
       const activeHTMLElement = isHTMLElement(activeElement) ? activeElement : null;
-      const isOutsideInputElement = activeHTMLElement !== null && isOutsideInput(activeHTMLElement);
+      // Both resolved once and handed to the verdicts below. Each is needed twice, and this
+      // listener runs for every `mouseup` on the document: the surface test walks the focused
+      // element's ancestors up to the open editor's `preventCloseElement`, and the roots are an
+      // array that would otherwise be rebuilt per call.
+      const isFocusInEditorSurface = this.#isFocusWithinEditorSurface(activeHTMLElement);
+      const gridUiRoots = this.#getGridUiRoots();
+      const isForeignInputElement = this.#isForeignInput(
+        activeHTMLElement, isFocusInEditorSurface, gridUiRoots
+      );
 
-      if (activeHTMLElement !== null && isInput(activeHTMLElement) && !isOutsideInputElement) {
+      if (activeHTMLElement !== null && isInput(activeHTMLElement) && !isForeignInputElement) {
         return;
       }
 
       const eventPath = event.composedPath();
-      const isPathThroughGridUi = eventPath.includes(rootWrapperElement ?? rootElement) ||
-        (this.hot.rootPortalElement && eventPath.includes(this.hot.rootPortalElement));
-      const isFocusLostToOutside = this.hot.getFocusManager().isForeignFocusTarget(activeHTMLElement) ||
-        (!wasInsideGridClick && !this.hot.getFocusManager().hasBrowserFocus() && !isPathThroughGridUi);
+      const isPathThroughGridUi = gridUiRoots.some(root => eventPath.includes(root));
+      const isFocusLostToOutside = !isFocusInEditorSurface &&
+        (this.hot.getFocusManager().isForeignFocusTarget(activeHTMLElement) ||
+        (!wasInsideGridClick && !this.hot.getFocusManager().hasBrowserFocus() && !isPathThroughGridUi));
 
-      if (isOutsideInputElement || isFocusLostToOutside ||
+      if (isForeignInputElement || isFocusLostToOutside ||
           (!selection.isSelected() && !selection.isSelectedByAnyHeader() &&
           !this.#isPathWithinGrid(eventPath) && !isRightClick(event))) {
         this.hot.unlisten();
@@ -967,48 +1136,13 @@ class TableView {
         return isUniformSizeSetting(this.hot.getSettings().colWidths) &&
           !this.hot.hasHook('modifyColWidth');
       },
+      shouldPaintCell: (
+        renderedRowIndex: number, renderedColumnIndex: number, TD: HTMLTableCellElement, band: string
+      ) => this.#cellPainter.shouldPaint(renderedRowIndex, renderedColumnIndex, TD, band),
       cellRenderer: (renderedRowIndex: number, renderedColumnIndex: number, TD: HTMLTableCellElement) => {
-        const [visualRowIndex, visualColumnIndex] = this
-          .translateFromRenderableToVisualIndex(renderedRowIndex, renderedColumnIndex);
-
-        // Coords may be modified. For example, by the `MergeCells` plugin. It should affect cell value and cell meta.
-        const modifiedCellCoords = this.hot
-          .runHooks('modifyGetCellCoords', visualRowIndex, visualColumnIndex, false, 'meta');
-
-        let visualRowToCheck = visualRowIndex;
-        let visualColumnToCheck = visualColumnIndex;
-
-        if (Array.isArray(modifiedCellCoords)) {
-          [visualRowToCheck, visualColumnToCheck] = modifiedCellCoords as [number, number];
-        }
-
-        const cellProperties = this.hot.getCellMeta<CellProperties>(visualRowToCheck, visualColumnToCheck);
-        const prop = this.hot.colToProp(visualColumnToCheck) as string;
-        let value = this.hot.getDataAtRowProp(visualRowToCheck, prop);
-
-        if (this.hot.hasHook('beforeValueRender')) {
-          value = this.hot.runHooks('beforeValueRender', value, cellProperties);
-        }
-
-        const renderer = this.hot.getCellRenderer(cellProperties);
-        const formattedValue = formatCellValue(value, cellProperties, renderer);
-
-        this.hot.runHooks('beforeRenderer', TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
-
-        const rendererArgs: Parameters<BaseRenderer> = [
-          this.hot as HotInstance,
-          TD,
-          visualRowIndex,
-          visualColumnIndex,
-          prop,
-          formattedValue,
-          cellProperties,
-        ];
-
-        renderCell(renderer, rendererArgs);
-
-        this.hot.runHooks('afterRenderer', TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
+        this.#cellPainter.paint(renderedRowIndex, renderedColumnIndex, TD);
       },
+      renderEpoch: () => this.hot.renderChangeTracker.epoch,
       selections: this.hot.selection.highlight,
       hideBorderOnMouseDownOver: () => this.settings.fragmentSelection,
       onWindowResize: () => {
@@ -1297,6 +1431,11 @@ class TableView {
         return newVisualColumn;
       },
       onAfterDrawSelection: (currentRow: number, currentColumn: number, layerLevel: number) => {
+        // Asked once per selected cell per draw, so the hook system is entered only when it has to be.
+        if (!this.hot.hasHook('afterDrawSelection')) {
+          return undefined;
+        }
+
         let cornersOfSelection;
         const [visualRowIndex, visualColumnIndex] =
           this.translateFromRenderableToVisualIndex(currentRow, currentColumn);
@@ -1328,7 +1467,8 @@ class TableView {
       },
       onBeforeTouchScroll: () => this.hot.runHooks('beforeTouchScroll'),
       onAfterMomentumScroll: () => this.hot.runHooks('afterMomentumScroll'),
-      onModifyRowHeaderWidth: (rowHeaderWidth: number) => this.hot.runHooks('modifyRowHeaderWidth', rowHeaderWidth),
+      onModifyRowHeaderWidth: (rowHeaderWidth: number | number[]) =>
+        this.hot.runHooks('modifyRowHeaderWidth', rowHeaderWidth),
       onModifyGetCellCoords: (
         renderableRowIndex: number, renderableColumnIndex: number, topmost: boolean, source: string
       ): (number | null)[] | undefined => {
@@ -1415,10 +1555,19 @@ class TableView {
         }
         this.hot.runHooks('afterViewportColumnCalculatorOverride', calc);
       },
-      rowHeaderWidth: () => this.settings.rowHeaderWidth,
+      // Scoped to this `TableView`, not to `hot.rootElement`: the container outlives `destroy()`, so
+      // a component that remounts on the same node would inherit the old instance's warned-keys set
+      // and stay silent for the rest of the page.
+      rowHeaderWidth: () => resolveHeaderSizeSetting(
+        this.settings.rowHeaderWidth, this, 'rowHeaderWidth'
+      ),
       columnHeaderHeight: () => {
         const hookHeight = this.hot.runHooks('modifyColumnHeaderHeight');
-        const configured = this.settings.columnHeaderHeight;
+        // Resolved before the merge below reads it, because that merge only accepts numbers – and
+        // before the `levels === 0` shortcut, which returns the value without going through it.
+        const configured = resolveHeaderSizeSetting(
+          this.settings.columnHeaderHeight, this, 'columnHeaderHeight'
+        );
         const probe = this.renderSizeProbe.columnHeaderHeights;
         // Merge the three provided-height sources per header level: the `columnHeaderHeight` option
         // (scalar or per-level array), the `modifyColumnHeaderHeight` hook (AutoRowSize), and the
@@ -1515,15 +1664,15 @@ class TableView {
       return true;
     }
 
-    const isChildOfTableBody = isChildOf(el, this._wt.wtTable.spreader);
+    const isSelectableArea = this.#isSelectableTableArea(el);
 
-    if (this.settings.fragmentSelection === true && isChildOfTableBody) {
+    if (this.settings.fragmentSelection === true && isSelectableArea) {
       return true;
     }
 
     const isSingleCell = this.hot.getSelectedRangeActive()?.isSingleCell() ?? false;
 
-    if (this.settings.fragmentSelection === 'cell' && isSingleCell && isChildOfTableBody) {
+    if (this.settings.fragmentSelection === 'cell' && isSingleCell && isSelectableArea) {
       return true;
     }
 
@@ -1532,6 +1681,99 @@ class TableView {
     }
 
     return false;
+  }
+
+  /**
+   * Resolves the Walkontable instance that renders the given element: the overlay clone that owns
+   * it, or the master instance when the element sits outside every clone.
+   *
+   * @param {HTMLElement} el The element to resolve.
+   * @returns {Walkontable}
+   */
+  #getOwningWt(el: HTMLElement) {
+    return this._wt.wtOverlays.getParentOverlay(el) ?? this._wt;
+  }
+
+  /**
+   * Resolves the table whose rendered area holds the given element, or `null` when the element sits
+   * outside every table — the grid's own scrollbars and padding, or the page around it.
+   *
+   * A frozen cell lives in an overlay clone, which is a sibling of the master table rather than its
+   * descendant, so the owning table has to be resolved before anything can be asked about the
+   * element — testing against the master alone rejects every cell in a frozen row, frozen column, or
+   * corner (#4980).
+   *
+   * Matching is by rendered area rather than by `TABLE`, because a table renders more than its
+   * cells: the selection borders are appended to the spreader beside it. `getParentOverlay` misses
+   * those and reports a frozen area's borders as the master's, which is wrong in both directions —
+   * the border reads as unselectable, and as a different overlay from the cells it sits between.
+   *
+   * @param {HTMLElement} el The element to resolve.
+   * @returns {Walkontable|null}
+   */
+  #getRenderingWt(el: HTMLElement) {
+    const overlay = this._wt.wtOverlays.getParentOverlayByRenderedArea(el);
+
+    if (overlay !== null) {
+      return overlay;
+    }
+
+    return isChildOf(el, this._wt.wtTable.spreader) ? this._wt : null;
+  }
+
+  /**
+   * Checks whether the element belongs to the selectable area of the table that renders it.
+   *
+   * Everything that table renders counts, not just the cells. A multi-cell drag passes over the
+   * selection borders, and rejecting one cancels a selection that is still inside the same area —
+   * which is exactly what `fragmentSelection: true` exists to allow. Headers are the one exception:
+   * column headers sit in the THEAD and row headers are `TH` elements inside the TBODY's own rows,
+   * and every grid with headers renders them into a clone, so allowing them here would make header
+   * labels selectable on any grid that has headers at all, frozen or not.
+   *
+   * @param {HTMLElement} el The element to check.
+   * @returns {boolean}
+   */
+  #isSelectableTableArea(el: HTMLElement) {
+    const wt = this.#getRenderingWt(el);
+
+    if (wt === null) {
+      return false;
+    }
+
+    // The spreader bounds the walk. `closest` runs past an `until` that is not an ancestor, and
+    // would then leave the grid entirely and match a `TH` on the host page.
+    return closest(el, ['TH'], wt.wtTable.spreader) === null;
+  }
+
+  /**
+   * Checks whether the pointer has moved out of the overlay the current text selection started in.
+   *
+   * Each frozen area is rendered as a separate table, and those tables sit next to the master table
+   * in the DOM in an order that does not follow the visual layout. A native selection range that
+   * spans two of them therefore picks up cells the pointer never crossed, so a selection is confined
+   * to the overlay it began in.
+   *
+   * @param {HTMLElement} el The element currently under the pointer.
+   * @returns {boolean}
+   */
+  #hasLeftTextSelectionOverlay(el: HTMLElement) {
+    return this.#getRenderingOverlayName(el) !== this.#textSelectionOverlay;
+  }
+
+  /**
+   * Names the overlay whose rendered area holds the given element, or `null` when it sits outside
+   * every table.
+   *
+   * This is not `getElementOverlayName`, which resolves by `TABLE` and so reports a frozen area's
+   * selection borders as the master's. Naming a border differently from the cells it sits between
+   * would read as leaving the overlay and cancel a drag that never left it.
+   *
+   * @param {HTMLElement} el The element to name.
+   * @returns {string|null}
+   */
+  #getRenderingOverlayName(el: HTMLElement) {
+    return this.#getRenderingWt(el)?.wtTable.name ?? null;
   }
 
   /**
@@ -1562,12 +1804,28 @@ class TableView {
 
   /**
    * Checks whether the event path points into the grid. The path counts as internal when it
-   * contains the grid's root element or its portal element. A complete path (one that crosses
-   * shadow boundaries and therefore contains ShadowRoot entries) is trusted as-is - a miss
-   * means a genuine outside click, even when the path shares the grid's shadow hosts. Only a
-   * filtered path (no ShadowRoot entries) falls back to the shadow host chain check, which
+   * contains the grid's root element, its portal element, or the open editor's
+   * `preventCloseElement` – the element an editor renders outside its own container, which the
+   * grid counts as a part of the editor (see `#getActiveEditorSurface()`). A complete path (one
+   * that crosses shadow boundaries and therefore contains ShadowRoot entries) is trusted as-is
+   * – a miss means a genuine outside click, even when the path shares the grid's shadow hosts.
+   * Only a filtered path (no ShadowRoot entries) falls back to the shadow host chain check, which
    * matters for sandboxed hosts (e.g. Salesforce Lightning Web Security) that collapse paths
    * observed at the document level to the visible host chain, hiding the grid internals.
+   *
+   * The editor-surface test is NOT redundant with `editorFactory`'s own `mousedown`
+   * `stopPropagation` listener, which never reaches this handler for the shapes it covers. That
+   * listener is wired exactly once, immediately after the editor's `init`/`afterInit` returns, so
+   * it does not exist at all for a `preventCloseElement` assigned later in `beforeOpen`/`afterOpen`
+   * (both documented hooks), nor for an editor that rebuilds its picker element on every open –
+   * the listener then stays bound to a detached node. This branch is the only mousedown-side
+   * protection in both cases, so do not remove it as duplicated work.
+   *
+   * Known limitation: the shadow-host fallback below is keyed on the ROOT element's host chain, so
+   * it covers a surface living in the grid's own shadow tree but not one in a different shadow tree
+   * under a path-filtering host. Unverified and unreachable without such a host, so no guard is
+   * written for it – the focus-side test (`#isFocusWithinEditorSurface()`) is what carries the
+   * reported case.
    *
    * @param {EventTarget[]} eventPath The event propagation path (`event.composedPath()`).
    * @private
@@ -1581,11 +1839,225 @@ class TableView {
       return true;
     }
 
+    // Resolved only after the two checks above have failed, so the common path (a press inside the
+    // grid) still costs two `includes` and nothing else. Must stay ABOVE the ShadowRoot bail-out: a
+    // complete path that crosses shadow boundaries can carry the surface, and bailing first would
+    // read that as an outside click.
+    const editorSurface = this.#getActiveEditorSurface();
+
+    if (editorSurface !== null && eventPath.includes(editorSurface)) {
+      return true;
+    }
+
     if (eventPath.some(entry => isShadowRoot(entry))) {
       return false;
     }
 
     return getShadowHostChain(rootElement).some(host => eventPath.includes(host));
+  }
+
+  /**
+   * Reads the OPEN editor's `preventCloseElement` - the element it renders outside its own
+   * container (a dropdown, popover or third-party picker appended to the document body). The grid
+   * counts that element and its subtree as a part of the editor.
+   *
+   * Gated on `isOpened()` on purpose. `getActiveEditor()` also answers for an editor that is merely
+   * PREPARED (`prepareEditor()` runs on every cell selection), and editor instances are cached per
+   * class per grid – so a picker parked in the document body by an earlier edit would otherwise
+   * suppress genuine outside clicks for the rest of the instance's life.
+   *
+   * @private
+   * @returns {HTMLElement|null}
+   */
+  #getActiveEditorSurface(): HTMLElement | null {
+    const editor = this.hot.getActiveEditor();
+
+    if (!editor?.isOpened() || !isHTMLElement(editor.preventCloseElement)) {
+      return null;
+    }
+
+    // A surface that CONTAINS the grid is refused rather than honored. A picker library that hands
+    // back its root instead of its popup makes `document.body` an easy value to assign, and taking
+    // it at face value would make every click on the page count as a click inside the grid – the
+    // outside-click deselect would stop working for as long as that editor is open, with nothing
+    // visible to blame it on. The option names an element the editor renders OUTSIDE its container,
+    // so an ancestor of the grid can never be a legitimate answer.
+    //
+    // Refusing it here does NOT unbind `editorFactory`'s own `mousedown` `stopPropagation`, which
+    // is already attached to whatever the editor named. On an ancestor of the grid that listener
+    // swallows every `mousedown` on the page before this handler sees it (measured: the document
+    // listener does not fire at all while such a surface is set), so the edit ends on the `mouseup`
+    // path instead - the press blurs the editor's input, `hasBrowserFocus()` goes false, and the
+    // second clause of `isFocusLostToOutside` carries it. Outside clicks therefore keep closing the
+    // editor, one event later than usual.
+    //
+    // Walked from the ROOT upwards with `closest()`, not `surface.contains(rootElement)`, for the
+    // same reason `#isFocusWithinEditorSurface()` does: `contains()` stops at a shadow boundary. A
+    // grid rendered inside a shadow root is not a `contains()` descendant of anything outside that
+    // root, so `document.body.contains(rootElement)` reads `false` there and the ancestor would be
+    // honored – while `composedPath()` still carries it on every click, which is precisely the
+    // failure this guard exists to prevent.
+    if (closest(this.hot.rootElement, [editor.preventCloseElement]) !== null) {
+      warnOnce(
+        this.hot.rootElement,
+        'TableView.preventCloseElementContainsGrid',
+        'The editor\'s `preventCloseElement` contains the grid, so it cannot be told apart from ' +
+        'the page. Assign the picker\'s own popup element instead of an ancestor of the grid. The ' +
+        'element is ignored, and clicks outside the grid keep closing the editor.'
+      );
+
+      return null;
+    }
+
+    return editor.preventCloseElement;
+  }
+
+  /**
+   * Decides whether the focused input belongs to the page rather than to the grid.
+   *
+   * `isOutsideInput()` answers that question from the `data-hot-input` stamp alone, which the grid
+   * puts on the inputs it builds itself (the text editor's textarea, the select editor's `select`,
+   * the filters and pagination controls). An editor supplied by a user - the React and Angular
+   * component editors, and every hand-written native one (which is how a Vue editor is written,
+   * that wrapper having no component-editor API) - renders a plain `<input>` with no stamp, and
+   * the raw helper then reads it as a page input while it holds the focus. On the
+   * document's `mouseup` that verdict is what unlistens the grid, and `unlisten()` blocks EVERY
+   * `table`-scoped shortcut context (see the `handleEvent` callback in `core.ts`), the `editor`
+   * one included - so the editor loses its own Enter, Escape and Tab (DEV-2787). A LEFT press
+   * hides how bad that is: the focus scope manager re-listens on the `click` that closes the
+   * gesture, so the grid is deaf only between the two events. A RIGHT press ends in `contextmenu`
+   * and no `click`, and the grid then stays deaf for the rest of the edit.
+   *
+   * The stamp is therefore treated as one of two ways to prove ownership, containment being the
+   * other, and `isOutsideInput()` itself is left alone: it has four other call sites, and
+   * `FocusGridManager#focusCell()` BLURS the element it answers `true` for, so widening the helper
+   * would blur a component editor's field on every selection change.
+   *
+   * Answering `false` also takes the early return above, which skips the `outsideClickDeselects`
+   * block further down - the same treatment the guard has always given the grid's own stamped
+   * textarea. The deselect is unchanged rather than newly suppressed, and the reason is the two
+   * guards that block already carries, neither of which depends on where the focus sits: a press
+   * OUTSIDE the grid has set `#outsideClickHandled` on the `mousedown` (that path does its own
+   * deselect or `destroyEditor()`), which this handler reads as `wasOutsideClickHandled`; and a
+   * press INSIDE the grid fails the block's `!#isPathWithinGrid(eventPath)` test. Unlisten, not
+   * the deselect, is what this predicate is written for.
+   *
+   * @private
+   * @param {HTMLElement|null} element The deepest reachable focused element.
+   * @param {boolean} isFocusInEditorSurface Whether that element sits inside the open editor's
+   *                                         `preventCloseElement` subtree. Passed in rather than
+   *                                         resolved here because the caller needs the same answer
+   *                                         for its own focus verdict.
+   * @param {HTMLElement[]} gridUiRoots The grid's own UI roots, from `#getGridUiRoots()`. Passed
+   *                                    in for the same reason: the caller tests the event path
+   *                                    against the same list.
+   * @returns {boolean}
+   */
+  #isForeignInput(
+    element: HTMLElement | null, isFocusInEditorSurface: boolean, gridUiRoots: HTMLElement[]
+  ): boolean {
+    if (element === null || !isOutsideInput(element)) {
+      return false;
+    }
+
+    return !this.#isWithinOpenEditorDom(element, gridUiRoots) && !isFocusInEditorSurface;
+  }
+
+  /**
+   * Checks whether the given element sits in the grid's own DOM while an editor is OPEN.
+   *
+   * Gated on the open editor on purpose, and that gate is what keeps the change narrow: an input
+   * the grid renders INSIDE a cell must keep counting as the page's. A custom renderer that puts
+   * an `<input>` in its TD relies on the grid unlistening while that field holds the focus -
+   * otherwise the arrow keys would move the selection while they move the caret - and the
+   * checkbox renderer's own `setTimeout(instance.listen)` exists to re-listen after exactly that.
+   * With no editor open, none of that changes. With one open, an input inside the grid's own DOM
+   * is the grid's, and the grid must keep listening for the editor's sake - whichever root the
+   * editor mounted into: `editorFactory` appends the container to `rootPortalElement` for
+   * `position: 'portal'` and to `rootElement` otherwise, the React wrapper's editor portal host
+   * lives in `rootPortalElement`, and the Angular adapter appends its placeholder to
+   * `rootElement`. The test is deliberately not per-cell: it does not try to prove the field
+   * belongs to the edited cell, only that it is not the page's.
+   *
+   * On paper that widens the answer to an unstamped input the grid renders in some OTHER cell - a
+   * checkbox renderer's `<input>`, say - while an editor is open elsewhere. Measured, that shape
+   * does not occur for a pointer gesture: a press which moves the focus onto another cell's input
+   * also changes the selection, and the selection change closes the editor in the same local hook
+   * that runs `afterSelection`. That hook skips the close for five selection sources - `'shift'`
+   * (the row/column SHIFT an insert or a remove performs), `'refresh'`, `'loadData'`,
+   * `'updateData'` and `'deselect'` - and every one of them is data-driven, so none coincides with
+   * the press that would have to move the focus. By the time the `mouseup` verdict runs,
+   * `isCellEdited()` is already false and this test is never consulted for that input.
+   * `tests/e2e/editor-open-checkbox-focus.spec.ts` pins that, and goes red if an editor ever
+   * survives the selection change - which is when the widening would start to matter.
+   *
+   * Walks with `closest()`, not `Node#contains()`, mirroring `#isFocusWithinEditorSurface()`:
+   * the element comes from `getDeepActiveElement()`, which reaches into shadow roots, while
+   * `contains()` stops at a shadow boundary - so an editor rendering its field inside a web
+   * component would read as outside the grid. No spec discriminates the two (the fixture's
+   * `host=shadow` variant puts the GRID in a shadow root, which a plain parent walk still
+   * covers), so treat the choice as convention rather than as pinned behavior.
+   *
+   * @private
+   * @param {HTMLElement} element The deepest reachable focused element.
+   * @param {HTMLElement[]} gridUiRoots The grid's own UI roots, from `#getGridUiRoots()`.
+   * @returns {boolean}
+   */
+  #isWithinOpenEditorDom(element: HTMLElement, gridUiRoots: HTMLElement[]): boolean {
+    if (!this.isCellEdited()) {
+      return false;
+    }
+
+    return closest(element, gridUiRoots) !== null;
+  }
+
+  /**
+   * The elements that hold the grid's own UI: the root wrapper (the grid, plus whatever a plugin
+   * renders into its layout slots and overlay layer) and the portal layer (menus, dialogs, every
+   * `position: 'portal'` editor container, the React wrapper's editor portal host).
+   *
+   * Shared by the two `mouseup` tests that ask "is this the grid's own UI" of an element or an
+   * event path. It is NOT the only copy: `FocusGridManager` builds the same pair, with the same
+   * `rootWrapperElement ?? rootElement` fallback and the same `isHTMLElement` filter, to bind its
+   * `focusin`/`focusout` listeners - and `isForeignFocusTarget()`/`hasBrowserFocus()`, which
+   * answer the other half of this same verdict, read from that copy. A new mount root has to be
+   * added in both places, and the two drifting apart would split the verdict against itself.
+   *
+   * Deliberately NOT shared with `#isPathWithinGrid()`, which tests a different list -
+   * `rootElement` rather than the wrapper, plus the open editor's surface - and folding the two
+   * together would change what that method accepts.
+   *
+   * @private
+   * @returns {HTMLElement[]}
+   */
+  #getGridUiRoots(): HTMLElement[] {
+    const { rootElement, rootWrapperElement, rootPortalElement } = this.hot;
+
+    return [rootWrapperElement ?? rootElement, rootPortalElement].filter(root => isHTMLElement(root));
+  }
+
+  /**
+   * Checks whether the browser focus sits inside the open editor's `preventCloseElement` subtree.
+   *
+   * `FocusGridManager#isForeignFocusTarget()` answers `true` for anything outside the grid's root,
+   * which such an element is by definition – so without this test, opening a picker that takes the
+   * focus (flatpickr moves it into its calendar) makes the next `mouseup` anywhere read as a focus
+   * loss to the outside and deselect the cell, committing the editor's pre-edit value.
+   *
+   * Walks with `closest()`, not `Node#contains()`. The element comes from `getDeepActiveElement()`,
+   * which reaches into shadow roots, while `contains()` stops at a shadow boundary – so a picker
+   * built as a web component would put the focus on a node inside its own shadow root and read as
+   * outside the surface, reproducing this defect with a different picker library. `closest()`
+   * follows `.host` across those boundaries.
+   *
+   * @private
+   * @param {HTMLElement|null} element The deepest reachable focused element.
+   * @returns {boolean}
+   */
+  #isFocusWithinEditorSurface(element: HTMLElement | null): boolean {
+    const surface = this.#getActiveEditorSurface();
+
+    return surface !== null && element !== null && closest(element, [surface]) !== null;
   }
 
   /**
@@ -1809,7 +2281,7 @@ class TableView {
     element: HTMLElement, index: number, content: (index: number, headerLevel?: number) => unknown, headerLevel = 0
   ) {
     let renderedIndex = index;
-    const parentOverlay = this._wt.wtOverlays.getParentOverlay(element) || this._wt;
+    const parentOverlay = this.#getOwningWt(element);
 
     // prevent wrong calculations from SampleGenerator
     if (element.parentNode) {
@@ -2106,7 +2578,7 @@ class TableView {
    * @returns {'master'|'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'}
    */
   getElementOverlayName(element: HTMLElement) {
-    return (this._wt.wtOverlays.getParentOverlay(element) ?? this._wt).wtTable.name;
+    return this.#getOwningWt(element).wtTable.name;
   }
 
   /**

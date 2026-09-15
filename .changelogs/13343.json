@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Deprecated writing past the last column of an object data source. The value lands on a property named after the column index, which no column can display, and the write will be ignored in Handsontable 19.0.0.",
+  "type": "deprecated",
+  "issueOrPR": 13343,
+  "breaking": false,
+  "framework": "none"
+}

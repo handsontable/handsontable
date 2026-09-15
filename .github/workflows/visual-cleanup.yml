@@ -6,7 +6,10 @@ name: Visual approval reset
 # On-PR-CLOSE cleanup does NOT belong here: `pr-cleanup.yml` is the single
 # close-triggered pipeline, and the R2 screenshot purge lives there as
 # `purge-visual-screenshots`. This file exists only because `synchronize` and
-# `reopened` are outside that workflow's trigger.
+# `reopened` are outside that workflow's trigger. By the same rule, APPLYING the
+# label is `visual-approval-rerun.yml` (`labeled`), which re-runs the failed gate
+# and re-reads the label on every poll -- so stripping it here is also what
+# cancels a re-run that a push has overtaken.
 on:
   pull_request:
     types: [ synchronize, reopened ]

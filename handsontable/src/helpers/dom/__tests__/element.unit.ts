@@ -1,9 +1,12 @@
 import {
   addClass,
+  normalizeClassNames,
   closest,
   closestDown,
   getParent,
   getScrollbarWidth,
+  getScrollLeft,
+  getScrollTop,
   getFractionalScalingCompensation,
   hasClass,
   isInput,
@@ -13,6 +16,10 @@ import {
   selectElementIfAllowed,
   setAttribute,
   fastInnerHTML,
+  fastInnerText,
+  getCellContentRoot,
+  CELL_CLIP_CLASS,
+  HTML_CHARACTERS,
   isVisible,
   findFirstParentWithClass,
   isHTMLElement,
@@ -384,6 +391,61 @@ describe('DomElement helper', () => {
   });
 
   /**
+   * Handsontable.dom.normalizeClassNames
+   */
+  describe('normalizeClassNames', () => {
+    it('should split a space-separated string into tokens', () => {
+      expect(normalizeClassNames('test1 test2 test3')).toEqual(['test1', 'test2', 'test3']);
+    });
+
+    it('should return a single-token string as a one-element array', () => {
+      expect(normalizeClassNames('test1')).toEqual(['test1']);
+    });
+
+    it('should pass an array of class names through', () => {
+      expect(normalizeClassNames(['test1', 'test2'])).toEqual(['test1', 'test2']);
+    });
+
+    it('should drop empty tokens produced by extra whitespace', () => {
+      expect(normalizeClassNames('  test1   test2 ')).toEqual(['test1', 'test2']);
+    });
+
+    it('should drop falsy entries from an array', () => {
+      expect(normalizeClassNames(['test1', '', 'test2'])).toEqual(['test1', 'test2']);
+      expect(normalizeClassNames([null, undefined, 0, false, 'test1'] as unknown as string[]))
+        .toEqual(['test1']);
+    });
+
+    it('should keep the same entries `addClass` would keep', () => {
+      // Both go through `filterEmptyClassNames`, so the meta path and the DOM path agree on what
+      // counts as a class. When they disagreed, an out-of-contract entry rendered without a hiding
+      // plugin and vanished with one.
+      const element = document.createElement('div');
+
+      addClass(element, ['test1', 123, '', 'test2'] as unknown as string[]);
+
+      // Compared as class names: `classList` stringifies what it stores, the helper does not.
+      expect(normalizeClassNames(['test1', 123, '', 'test2'] as unknown as string[]).map(String))
+        .toEqual(Array.from(element.classList));
+    });
+
+    it('should return an empty array for nullish and empty values', () => {
+      expect(normalizeClassNames(undefined)).toEqual([]);
+      expect(normalizeClassNames(null)).toEqual([]);
+      expect(normalizeClassNames('')).toEqual([]);
+      expect(normalizeClassNames([])).toEqual([]);
+    });
+
+    it('should produce a value that survives a join/normalize round trip', () => {
+      // The hiding plugins normalize, edit, then write back `join(' ')`. Feeding that result back
+      // in must be stable, otherwise repeated renders would keep rewriting the cell meta.
+      const once = normalizeClassNames(['test', 'test2']);
+
+      expect(normalizeClassNames(once.join(' '))).toEqual(once);
+    });
+  });
+
+  /**
    * Handsontable.helper.addClass
    */
   describe('addClass', () => {
@@ -744,6 +806,144 @@ describe('DomElement helper', () => {
   });
 
   //
+  // Handsontable.helper.HTML_CHARACTERS
+  //
+  describe('HTML_CHARACTERS', () => {
+    it('should not treat prose that merely contains `&` and `;` as markup', () => {
+      // Every one of these matched before the pattern was narrowed, so an ordinary header label
+      // took the `innerHTML` path and, under a Trusted Types policy, brought the whole grid down.
+      expect(HTML_CHARACTERS.test('Smith & Sons, Ltd.; est. 1920')).toBe(false);
+      expect(HTML_CHARACTERS.test('R&D; notes')).toBe(false);
+      expect(HTML_CHARACTERS.test('cost: 5 & up; tax incl.')).toBe(false);
+    });
+
+    it('should not treat prose that merely contains `<` and `>` as markup', () => {
+      expect(HTML_CHARACTERS.test('Score < 50 > threshold')).toBe(false);
+      expect(HTML_CHARACTERS.test('<3 > 5')).toBe(false);
+    });
+
+    it('should keep reporting no markup for text with an unpaired `<`, `>`, `&` or `;`', () => {
+      // These were already `false` before the narrowing. They are here as fences, not as evidence
+      // of it: they hold no `<`...`>` and no `&`...`;` pair at all.
+      expect(HTML_CHARACTERS.test('a < b')).toBe(false);
+      expect(HTML_CHARACTERS.test('3 > 2')).toBe(false);
+      expect(HTML_CHARACTERS.test('plain text')).toBe(false);
+      expect(HTML_CHARACTERS.test('')).toBe(false);
+    });
+
+    it('should keep a markup declaration or processing instruction on the HTML path', () => {
+      // None of these can build an element, so they are not a sink concern. They stay on the HTML
+      // path because the `html` cell type and `allowHtml` sources render markup deliberately, and
+      // routing them to text would print them literally where the parser used to absorb them.
+      expect(HTML_CHARACTERS.test('<!-- note -->')).toBe(true);
+      expect(HTML_CHARACTERS.test('<!DOCTYPE html>')).toBe(true);
+      expect(HTML_CHARACTERS.test('<![CDATA[x]]>')).toBe(true);
+      expect(HTML_CHARACTERS.test('<?pi?>')).toBe(true);
+      // No closing `>` required, so an unterminated declaration is classified the same way.
+      expect(HTML_CHARACTERS.test('<!unterminated')).toBe(true);
+    });
+
+    it('should not treat a `<` followed by neither a letter nor `!`/`?` as markup', () => {
+      expect(HTML_CHARACTERS.test('< div>')).toBe(false);
+      expect(HTML_CHARACTERS.test('<12>')).toBe(false);
+      expect(HTML_CHARACTERS.test('<->')).toBe(false);
+    });
+
+    it('should stay linear on a long run of `<`, which `[^>]*` did not', () => {
+      // `[^>]*` backtracked for over a second here, on the main thread, reachable from a paste.
+      const bomb = '<a'.repeat(40000);
+      const startedAt = Date.now();
+
+      expect(HTML_CHARACTERS.test(bomb)).toBe(false);
+      expect(Date.now() - startedAt).toBeLessThan(100);
+    });
+
+    it('should treat markup a parser accepts but a strict reading would not as markup', () => {
+      // These all build a live element, so they MUST keep reaching the sanitizer. They are the
+      // shapes a future narrowing would drop out of the sink without any other test noticing.
+      expect(HTML_CHARACTERS.test('<x:y>a</x:y>')).toBe(true);
+      expect(HTML_CHARACTERS.test('<svg:script>alert(1)</svg:script>')).toBe(true);
+      // A `>` inside an attribute value, so the first `>` does not close the tag.
+      expect(HTML_CHARACTERS.test('<img src="a>b" onerror=alert(1)>')).toBe(true);
+      expect(HTML_CHARACTERS.test('<img/src=x onerror=alert(1)>')).toBe(true);
+      expect(HTML_CHARACTERS.test('<IMG SRC=x ONERROR=alert(1)>')).toBe(true);
+      // A `<` inside an attribute value does not end the run, so a string whose ONLY tag is
+      // spelled that way lands on the text path. Accepted: text cannot inject, and excluding `<`
+      // from the run is what keeps this alternative linear.
+      expect(HTML_CHARACTERS.test('<a x="<">')).toBe(false);
+      // With any other tag present it matches on that one, so this is genuinely the narrow case.
+      expect(HTML_CHARACTERS.test('<a x="<"><b>ID</b>')).toBe(true);
+    });
+
+    it('should keep matching prose shaped like a tag, which the pattern cannot exclude', () => {
+      // Documented residual, not an aspiration: excluding these needs a tag-name allowlist, which
+      // would drop custom elements from headers. Pinned so the limit is visible, not surprising.
+      expect(HTML_CHARACTERS.test('Type <Enter> to continue')).toBe(true);
+      expect(HTML_CHARACTERS.test('<none>')).toBe(true);
+      // Same on the entity side: two-plus alphanumerics and a `;` are indistinguishable by shape.
+      expect(HTML_CHARACTERS.test('Ben&Jerry; cones')).toBe(true);
+      // ...whereas the two-character floor does exclude this one.
+      expect(HTML_CHARACTERS.test('AT&T; Inc.')).toBe(false);
+    });
+
+    it('should treat a tag as markup, opening, closing, self-closing, and upper-case alike', () => {
+      expect(HTML_CHARACTERS.test('<b>ID</b>')).toBe(true);
+      expect(HTML_CHARACTERS.test('</b>')).toBe(true);
+      expect(HTML_CHARACTERS.test('<br/>')).toBe(true);
+      expect(HTML_CHARACTERS.test('<A HREF="x">y</A>')).toBe(true);
+      expect(HTML_CHARACTERS.test('<div class="x">y</div>')).toBe(true);
+      expect(HTML_CHARACTERS.test('<span>test<br>test</span>')).toBe(true);
+    });
+
+    it('should treat all three forms of a character reference as markup', () => {
+      expect(HTML_CHARACTERS.test('a &amp; b')).toBe(true);
+      expect(HTML_CHARACTERS.test('&nbsp;')).toBe(true);
+      expect(HTML_CHARACTERS.test('&lt;')).toBe(true);
+      expect(HTML_CHARACTERS.test('&frac12;')).toBe(true);
+      expect(HTML_CHARACTERS.test('&#169;')).toBe(true);
+      expect(HTML_CHARACTERS.test('&#x1F600;')).toBe(true);
+      expect(HTML_CHARACTERS.test('&#X41;')).toBe(true);
+    });
+
+    it('should admit `&#` with hexadecimal digits and no `x`, which is deliberate imprecision', () => {
+      // Not a real reference, so a parser renders it literally. The two numeric forms share one
+      // branch to keep the pattern within the complexity budget, and the cost is that a few
+      // unrealistic strings are treated as markup - erring toward sanitizing too much.
+      expect(HTML_CHARACTERS.test('&#abc;')).toBe(true);
+      // Still excluded, because `g` is not a hexadecimal digit.
+      expect(HTML_CHARACTERS.test('&#ghi;')).toBe(false);
+    });
+
+    it('should treat prose that also holds a real character reference as markup', () => {
+      // The pattern is unanchored, so the reference is what it matches on. A narrowing that
+      // anchored it would silently stop sanitizing this content.
+      expect(HTML_CHARACTERS.test('Smith & Sons; &amp; more')).toBe(true);
+      expect(HTML_CHARACTERS.test('prose first, then <b>markup</b>')).toBe(true);
+    });
+
+    it('should not carry the `g` flag, which would make `.test()` stateful', () => {
+      // With `g`, `lastIndex` persists between calls, so the same content would be classified
+      // differently depending on what was tested before it.
+      expect(HTML_CHARACTERS.global).toBe(false);
+
+      const content = '<b>ID</b>';
+
+      expect(HTML_CHARACTERS.test(content)).toBe(true);
+      expect(HTML_CHARACTERS.test(content)).toBe(true);
+    });
+
+    it('should expose no capture groups, and match only the markup it found', () => {
+      // The contract worth pinning is `match[0]`. This value is public, and it used to carry three
+      // groups that nothing in the grid read; renumbering them as the alternatives changed would
+      // have handed consumers a silently different shape, so there are now none at all.
+      expect('<b>ID</b>'.match(HTML_CHARACTERS)[0]).toBe('<b>');
+      expect('a &amp; b'.match(HTML_CHARACTERS)[0]).toBe('&amp;');
+      expect('&#x1F600;'.match(HTML_CHARACTERS)[0]).toBe('&#x1F600;');
+      expect([...'<b>ID</b>'.match(HTML_CHARACTERS)]).toEqual(['<b>']);
+    });
+  });
+
+  //
   // Handsontable.helper.fastInnerHTML
   //
   describe('fastInnerHTML', () => {
@@ -874,6 +1074,177 @@ describe('DomElement helper', () => {
 
       expect(warnSpy).not.toHaveBeenCalled();
     });
+
+    it('should clear the element rather than assign an empty string when the sanitizer strips everything', () => {
+      // `innerHTML` is a Trusted Types sink whatever the value, so writing `''` throws under
+      // `require-trusted-types-for 'script'`. A sanitizer that strips a payload entirely must
+      // leave a blank cell, not take the grid down.
+      const element = document.createElement('div');
+      const child = document.createElement('span');
+
+      element.appendChild(child);
+
+      const setter = jasmine.createSpy('innerHTML setter');
+
+      Object.defineProperty(element, 'innerHTML', {
+        configurable: true,
+        get: () => '',
+        set: setter,
+      });
+
+      fastInnerHTML(element, '<b>x</b>', () => '');
+
+      expect(setter).not.toHaveBeenCalled();
+      expect(element.childNodes.length).toBe(0);
+    });
+
+    it('should also clear when the sanitizer returns nothing at all', () => {
+      const element = document.createElement('div');
+
+      element.appendChild(document.createElement('span'));
+
+      fastInnerHTML(element, '<b>x</b>', () => undefined as unknown as string);
+
+      expect(element.childNodes.length).toBe(0);
+    });
+
+    it('should write prose holding `&` or `<` as text, and not warn about a missing sanitizer', () => {
+      // A real element, not an `{ innerHTML: '' }` mock: this content takes the `fastInnerText`
+      // branch, which reaches for `element.ownerDocument`.
+      const element = document.createElement('div');
+
+      fastInnerHTML(element, 'Smith & Sons, Ltd.; est. 1920', true, 'header', {});
+
+      expect(element.childNodes.length).toBe(1);
+      expect(element.childNodes[0].nodeType).toBe(Node.TEXT_NODE);
+      expect(element.textContent).toBe('Smith & Sons, Ltd.; est. 1920');
+      expect(warnSpy).not.toHaveBeenCalled();
+
+      fastInnerHTML(element, 'Score < 50 > threshold', true, 'header', {});
+
+      expect(element.querySelectorAll('*').length).toBe(0);
+      expect(element.textContent).toBe('Score < 50 > threshold');
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('should NOT consult a configured sanitizer for prose holding `&` or `<`', () => {
+      const element = document.createElement('div');
+      const sanitizer = jasmine.createSpy('sanitizer').and.returnValue('replaced');
+
+      fastInnerHTML(element, 'R&D; notes', sanitizer, 'header', {});
+
+      expect(sanitizer).not.toHaveBeenCalled();
+      expect(element.textContent).toBe('R&D; notes');
+    });
+
+    it('should still consult a configured sanitizer for a real character reference', () => {
+      const element = document.createElement('div');
+      const sanitizer = jasmine.createSpy('sanitizer').and.callFake(content => content);
+
+      fastInnerHTML(element, 'a &amp; b', sanitizer, 'header', {});
+
+      expect(sanitizer).toHaveBeenCalledWith('a &amp; b', 'header');
+      expect(element.innerHTML).toBe('a &amp; b');
+      // Decoded by the parser, which is the whole reason a real reference must reach this path.
+      expect(element.textContent).toBe('a & b');
+    });
+
+    it('should still write a header holding real markup through `innerHTML`', () => {
+      const element = document.createElement('div');
+
+      fastInnerHTML(element, '<b>ID</b>', true, 'header', {});
+
+      expect(element.querySelector('b')).not.toBe(null);
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  //
+  // Handsontable.helper.fastInnerText
+  //
+  describe('fastInnerText', () => {
+    it('should write the content as a single text node', () => {
+      const element = document.createElement('div');
+
+      fastInnerText(element, 'Smith & Sons, Ltd.; est. 1920');
+
+      expect(element.childNodes.length).toBe(1);
+      expect(element.childNodes[0].nodeType).toBe(Node.TEXT_NODE);
+      expect(element.textContent).toBe('Smith & Sons, Ltd.; est. 1920');
+    });
+
+    it('should replace existing content, including element children', () => {
+      const element = document.createElement('div');
+
+      element.innerHTML = '<b>old</b>';
+
+      fastInnerText(element, 'new');
+
+      expect(element.childNodes.length).toBe(1);
+      expect(element.querySelectorAll('*').length).toBe(0);
+      expect(element.textContent).toBe('new');
+    });
+
+    it('should not parse markup in the content', () => {
+      const element = document.createElement('div');
+
+      fastInnerText(element, '<b>ID</b>');
+
+      expect(element.querySelector('b')).toBe(null);
+      expect(element.textContent).toBe('<b>ID</b>');
+    });
+
+    it('should write into the clipping wrapper when the element holds one', () => {
+      const element = document.createElement('td');
+
+      element.innerHTML = `<div class="${CELL_CLIP_CLASS}">old</div>`;
+
+      const wrapper = element.firstElementChild;
+
+      fastInnerText(element, 'new');
+
+      expect(element.childNodes.length).toBe(1);
+      expect(element.firstElementChild).toBe(wrapper);
+      expect(wrapper?.childNodes.length).toBe(1);
+      expect(wrapper?.textContent).toBe('new');
+    });
+  });
+
+  //
+  // Handsontable.helper.getCellContentRoot
+  //
+  describe('getCellContentRoot', () => {
+    it('should return the element itself when it holds no wrapper', () => {
+      const element = document.createElement('td');
+
+      element.textContent = 'text';
+
+      expect(getCellContentRoot(element)).toBe(element);
+    });
+
+    it('should return the wrapper when it is the only child', () => {
+      const element = document.createElement('td');
+
+      element.innerHTML = `<div class="${CELL_CLIP_CLASS}">text</div>`;
+
+      expect(getCellContentRoot(element)).toBe(element.firstElementChild);
+    });
+
+    it('should return the element itself when the wrapper has siblings', () => {
+      const element = document.createElement('td');
+
+      element.innerHTML = `<i>x</i><div class="${CELL_CLIP_CLASS}">text</div>`;
+
+      expect(getCellContentRoot(element)).toBe(element);
+    });
+
+    it('should not mistake another div for the wrapper', () => {
+      const element = document.createElement('td');
+
+      element.innerHTML = '<div class="other">text</div>';
+
+      expect(getCellContentRoot(element)).toBe(element);
+    });
   });
 
   //
@@ -954,6 +1325,39 @@ describe('DomElement helper', () => {
       const element = document.createElement('div');
 
       expect(isHTMLElement(element)).toBe(true);
+    });
+  });
+
+  //
+  // Handsontable.helper.getScrollTop / getScrollLeft
+  //
+  describe('getScrollTop / getScrollLeft', () => {
+    it('should read the offsets off an element', () => {
+      const element = document.createElement('div');
+
+      element.scrollTop = 12;
+      element.scrollLeft = 34;
+
+      expect(getScrollTop(element, window)).toBe(12);
+      expect(getScrollLeft(element, window)).toBe(34);
+    });
+
+    it('should read the offsets off the root window when the element IS a window', () => {
+      const rootWindow = { scrollY: 56, scrollX: 78 } as unknown as Window;
+
+      expect(getScrollTop(window, rootWindow)).toBe(56);
+      expect(getScrollLeft(window, rootWindow)).toBe(78);
+    });
+
+    it('should read the offsets off the root window for a window from another realm', () => {
+      // A window built by another realm (an iframe driven from the parent page) is not
+      // `instanceof` this realm's `Window`. A realm-bound test then fell through to reading
+      // `window.scrollTop`, which is `undefined`, and the row calculators built the band from it.
+      const foreignWindow = { scrollY: 56, scrollX: 78 } as unknown as Window;
+
+      expect(foreignWindow instanceof Window).toBe(false);
+      expect(getScrollTop(foreignWindow, foreignWindow)).toBe(56);
+      expect(getScrollLeft(foreignWindow, foreignWindow)).toBe(78);
     });
   });
 
@@ -1321,6 +1725,87 @@ describe('DomElement helper', () => {
       wrapper.style.overflow = 'inherit';
 
       expect(getTrimmingContainer(base)).toBe(window);
+    });
+
+    describe('per axis', () => {
+      // The per-axis form answers for one axis only, so the single-axis-clip exemption of the
+      // single-answer form does not apply: a root that clips the horizontal axis IS the horizontal
+      // trimming container, while the vertical axis keeps its own answer (here the window).
+      it('should resolve the two axes independently for an ancestor with `overflow-x: clip`', () => {
+        wrapper.style.overflowX = 'clip';
+        wrapper.style.overflowY = 'visible';
+
+        expect(getTrimmingContainer(base, 'x')).toBe(wrapper);
+        expect(getTrimmingContainer(base, 'y')).toBe(window);
+      });
+
+      it('should resolve the two axes independently for an ancestor with `overflow-y: clip`', () => {
+        wrapper.style.overflowX = 'visible';
+        wrapper.style.overflowY = 'clip';
+
+        expect(getTrimmingContainer(base, 'x')).toBe(window);
+        expect(getTrimmingContainer(base, 'y')).toBe(wrapper);
+      });
+
+      it('should resolve the two axes independently for the `clip visible` shorthand', () => {
+        wrapper.style.overflow = 'clip visible';
+
+        expect(getTrimmingContainer(base, 'x')).toBe(wrapper);
+        expect(getTrimmingContainer(base, 'y')).toBe(window);
+      });
+
+      it('should return the ancestor on both axes when it clips both (`overflow: clip`)', () => {
+        wrapper.style.overflow = 'clip';
+
+        expect(getTrimmingContainer(base, 'x')).toBe(wrapper);
+        expect(getTrimmingContainer(base, 'y')).toBe(wrapper);
+      });
+
+      it('should return the ancestor on both axes when it hides overflow (`overflow: hidden`)', () => {
+        wrapper.style.overflow = 'hidden';
+
+        expect(getTrimmingContainer(base, 'x')).toBe(wrapper);
+        expect(getTrimmingContainer(base, 'y')).toBe(wrapper);
+      });
+
+      it('should return the ancestor on both axes for the DEV-1777 container (`overflow-x: auto; overflow-y: hidden`)', () => {
+        // A single-axis scroll container next to a hidden axis traps on both, the same as the
+        // single-answer form says — only `clip` beside `visible` ever differs between the forms.
+        wrapper.style.overflowX = 'auto';
+        wrapper.style.overflowY = 'hidden';
+
+        expect(getTrimmingContainer(base, 'x')).toBe(wrapper);
+        expect(getTrimmingContainer(base, 'y')).toBe(wrapper);
+      });
+
+      it('should skip a nearer ancestor that traps only the other axis', () => {
+        // wrapper (overflow-x: clip) > middle (nothing) > base: the vertical answer walks past
+        // the wrapper to the outer scroller.
+        const outer = document.createElement('div');
+
+        outer.style.overflowY = 'auto';
+        outer.appendChild(wrapper);
+        document.body.appendChild(outer);
+        wrapper.style.overflowX = 'clip';
+
+        expect(getTrimmingContainer(base, 'x')).toBe(wrapper);
+        expect(getTrimmingContainer(base, 'y')).toBe(outer);
+
+        outer.parentNode.removeChild(outer);
+        document.body.appendChild(wrapper);
+      });
+
+      it('should return the window on both axes when no ancestor traps the element', () => {
+        expect(getTrimmingContainer(base, 'x')).toBe(window);
+        expect(getTrimmingContainer(base, 'y')).toBe(window);
+      });
+
+      it('should defer to computed style for a global `overflow` keyword on either axis', () => {
+        wrapper.style.overflow = 'inherit';
+
+        expect(getTrimmingContainer(base, 'x')).toBe(window);
+        expect(getTrimmingContainer(base, 'y')).toBe(window);
+      });
     });
   });
 

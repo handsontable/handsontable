@@ -2407,7 +2407,22 @@ describe('Filters UI', () => {
           [['Mercedes', 'Fiat', 'Renault', 'Ferrari', 'Peugeot', 'Lamborghini', 'Audi']]);
         filters.filter();
 
+        const valueComponent = filters.components.get('filter_by_value');
+        const expectedSelection = ['Mercedes', 'Fiat', 'Renault', 'Ferrari', 'Peugeot', 'Lamborghini', 'Audi'];
+
+        expect(valueComponent.state.getValueAtIndex(2).args[0])
+          .toEqual(jasmine.arrayWithExactContents(expectedSelection));
+
+        // Moves the Renault row from France to Italy, so column 1's condition ('Germany', 'France')
+        // no longer lets that row through.
         await setDataAtCell(2, 1, 'Italy');
+
+        // The list follows the data, but the selection behind it does not shrink - that is the
+        // #8874 invariant. The stored selection is what the next OK writes back.
+        expect(valueComponent.state.getValueAtIndex(2).args[0])
+          .toEqual(jasmine.arrayWithExactContents(expectedSelection));
+        expect(filters.conditionCollection.getConditions(2)[0].args[0])
+          .toEqual(jasmine.arrayWithExactContents(expectedSelection));
 
         await dropdownMenu(2);
         await sleep(112);
@@ -2415,8 +2430,16 @@ describe('Filters UI', () => {
         const items = byValueMultipleSelect().getItems();
         const checkedValues = items.filter(item => item.checked).map(item => item.value);
 
+        // The box can only tick what it lists, and it lists the companies of the rows still passing
+        // the country filter. Renault's row moved to Italy, so it drops out of the list here while
+        // staying selected underneath.
         expect(checkedValues).toEqual(
-          jasmine.arrayWithExactContents(['Mercedes', 'Fiat', 'Renault', 'Ferrari', 'Peugeot', 'Lamborghini', 'Audi']));
+          jasmine.arrayWithExactContents(['Mercedes', 'Fiat', 'Peugeot', 'Audi']));
+
+        // Nothing was re-selected or unselected on the user's behalf: confirming returns the whole
+        // selection, listed or not.
+        expect(byValueMultipleSelect().getValue())
+          .toEqual(jasmine.arrayWithExactContents(expectedSelection));
       });
   });
 });

@@ -1,5 +1,6 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 import type { CellValue, MoveCellsHookRecord } from './windowTypes';
+import { dragFillHandle } from '../gestures';
 
 /**
  * Page Object for the selection features fixture
@@ -151,6 +152,16 @@ export class SelectionFeaturesPage {
   }
 
   /**
+   * Write a cell value through the grid, producing one undoable data change.
+   */
+  async setCellValue(row: number, col: number, value: CellValue): Promise<void> {
+    await this.page.evaluate(
+      ({ r, c, v }) => window.hot.setDataAtCell(r, c, v),
+      { r: row, c: col, v: value }
+    );
+  }
+
+  /**
    * Read a raw source value without applying valueGetter.
    */
   async sourceCellValue(row: number, col: number): Promise<CellValue> {
@@ -176,6 +187,70 @@ export class SelectionFeaturesPage {
    */
   async setBeforeMoveCellsVeto(shouldVeto: boolean): Promise<void> {
     await this.page.evaluate(veto => window.setBeforeMoveCellsVeto(veto), shouldVeto);
+  }
+
+  /**
+   * Make the fixture's `beforeRowMove` listener veto the next row move.
+   */
+  async setBeforeRowMoveVeto(shouldVeto: boolean): Promise<void> {
+    await this.page.evaluate(veto => window.setBeforeRowMoveVeto(veto), shouldVeto);
+  }
+
+  /**
+   * Make the fixture's `beforeColumnMove` listener veto the next column move.
+   */
+  async setBeforeColumnMoveVeto(shouldVeto: boolean): Promise<void> {
+    await this.page.evaluate(veto => window.setBeforeColumnMoveVeto(veto), shouldVeto);
+  }
+
+  /**
+   * Move rows through the ManualRowMove plugin API.
+   */
+  async moveRows(rows: number[], finalIndex: number): Promise<void> {
+    await this.page.evaluate(
+      ({ r, i }) => window.hot.getPlugin('manualRowMove').moveRows(r, i),
+      { r: rows, i: finalIndex }
+    );
+  }
+
+  /**
+   * Move columns through the ManualColumnMove plugin API.
+   */
+  async moveColumns(columns: number[], finalIndex: number): Promise<void> {
+    await this.page.evaluate(
+      ({ c, i }) => window.hot.getPlugin('manualColumnMove').moveColumns(c, i),
+      { c: columns, i: finalIndex }
+    );
+  }
+
+  /**
+   * Press the undo keyboard shortcut, the way a user does. Needs a selected cell so the grid holds
+   * focus. `ControlOrMeta` maps to Cmd on macOS and Ctrl elsewhere.
+   */
+  async pressUndoShortcut(): Promise<void> {
+    await this.page.keyboard.press('ControlOrMeta+z');
+  }
+
+  /**
+   * Freeze a column through the ManualColumnFreeze plugin API. Also arms that plugin's own
+   * `beforeColumnMove` veto, which only applies after its first use.
+   */
+  async freezeColumn(column: number): Promise<void> {
+    await this.page.evaluate(c => window.hot.getPlugin('manualColumnFreeze').freezeColumn(c), column);
+  }
+
+  /**
+   * The current visual-to-physical row order held by the index mapper.
+   */
+  async rowOrder(): Promise<number[]> {
+    return this.page.evaluate(() => window.hot.rowIndexMapper.getIndexesSequence());
+  }
+
+  /**
+   * The current visual-to-physical column order held by the index mapper.
+   */
+  async columnOrder(): Promise<number[]> {
+    return this.page.evaluate(() => window.hot.columnIndexMapper.getIndexesSequence());
   }
 
   /**
@@ -609,7 +684,14 @@ export class SelectionFeaturesPage {
    */
   async focusCell(): Promise<{ row: number, col: number }> {
     return this.page.evaluate(() => {
-      const highlight = window.hot.getSelectedRangeLast().highlight;
+      // The ACTIVE range, not the last one. Keyboard navigation can rotate the focus onto a layer
+      // that is not on top, and `getSelectedRangeLast()` would then report the wrong cell — which
+      // is exactly the state the ctrl+click rule has to read correctly.
+      const highlight = window.hot.getSelectedRangeActive()?.highlight;
+
+      if (!highlight) {
+        return { row: -1, col: -1 };
+      }
 
       return { row: highlight.row ?? -1, col: highlight.col ?? -1 };
     });
@@ -635,6 +717,68 @@ export class SelectionFeaturesPage {
   /** Select several disjoint ranges as separate selection layers. */
   async selectLayers(ranges: [number, number, number, number][]): Promise<void> {
     await this.page.evaluate(layers => window.hot.selectCells(layers), ranges);
+  }
+
+  /**
+   * Ctrl/Cmd+clicks a cell, the way a user adds one to a multiple selection.
+   *
+   * The modifier is pressed as a real key event, not passed as an event property: the held-modifier
+   * state comes from the key recorder, so a synthesized `metaKey` alone would not register.
+   * `ControlOrMeta` maps to Cmd on macOS and Ctrl elsewhere.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} col Visual column index.
+   */
+  async ctrlClickCell(row: number, col: number): Promise<void> {
+    await this.cell(row, col).click({ modifiers: ['ControlOrMeta'] });
+  }
+
+  /**
+   * Ctrl/Cmd+double-clicks a cell — two clicks inside the OS double-click window.
+   *
+   * This is also the only Playwright gesture that reproduces a real fast click pair: `dblclick()`
+   * escalates `clickCount`, so the two mouseups report `detail` 1 then 2, while two `click()` calls
+   * report 1 twice however quickly they land.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} col Visual column index.
+   */
+  async ctrlDoubleClickCell(row: number, col: number): Promise<void> {
+    await this.cell(row, col).dblclick({ modifiers: ['ControlOrMeta'] });
+  }
+
+  /**
+   * Ctrl/Cmd+clicks a row header, which adds the whole row as a range layer.
+   *
+   * Resolved through the row's own cell so the lookup names a visual row rather than a position in
+   * the rendered rows, which a scrolled grid renumbers. Scoped to the grid, and to the
+   * inline-start overlay where the headers the user actually clicks are rendered — the master
+   * table holds a second copy of them.
+   *
+   * @param {number} row Visual row index.
+   */
+  async ctrlClickRowHeader(row: number): Promise<void> {
+    const cellBox = await this.cell(row, 0).boundingBox();
+    const headerBox = await this.grid.locator('.ht_clone_inline_start tbody th').first().boundingBox();
+
+    if (!cellBox || !headerBox) {
+      throw new Error(`Row ${row} or its header column is not rendered, so it cannot be clicked`);
+    }
+
+    // The row comes from its own cell and the column from the header strip, so neither depends on
+    // a position in the rendered rows — which a scrolled grid renumbers.
+    await this.page.keyboard.down('ControlOrMeta');
+    await this.page.mouse.click(headerBox.x + (headerBox.width / 2), cellBox.y + (cellBox.height / 2));
+    await this.page.keyboard.up('ControlOrMeta');
+  }
+
+  /**
+   * How many selection layers exist, and `0` when nothing is selected at all.
+   *
+   * @returns {Promise<number>}
+   */
+  async selectedLayerCount(): Promise<number> {
+    return this.page.evaluate(() => window.hot.getSelected()?.length ?? 0);
   }
 
   /** Select whole columns through the instance API. */
@@ -721,6 +865,80 @@ export class SelectionFeaturesPage {
   /** The autofill fill handle of the focus selection, scoped to the master overlay. */
   fillHandle(): Locator {
     return this.page.locator('.ht_master .wtBorder.current.corner:visible');
+  }
+
+  /**
+   * The visible edges of the autofill "fill" border in the master overlay — the dashed preview
+   * that follows the pointer while the fill handle is dragged. Empty once no fill gesture is
+   * in progress.
+   */
+  visibleFillBorders(): Locator {
+    return this.page.locator('.ht_master .wtBorder.fill:visible');
+  }
+
+  /**
+   * Double-click the fill handle with the real pointer (the copy-down gesture). A real
+   * double-click, not a dispatched `dblclick`: Walkontable synthesizes its own double-click
+   * from the mousedown/mouseup pairs, and the browser decides in which order the grid's
+   * `mouseup` listeners run.
+   */
+  async doubleClickFillHandle(): Promise<void> {
+    await this.fillHandle().dblclick();
+  }
+
+  /** Drag the fill handle with the real pointer onto the given cell and release. */
+  async dragFillHandleTo(row: number, col: number): Promise<void> {
+    await dragFillHandle(this.page, this.fillHandle(), this.cell(row, col));
+  }
+
+  /** Whether the Autofill plugin still believes the fill handle is pressed. */
+  async isFillHandlePressed(): Promise<boolean> {
+    return this.page.evaluate(() => window.hot.getPlugin('autofill').mouseDownOnCellCorner);
+  }
+
+  /**
+   * Press the fill handle with the real pointer and keep the button held. The caller owns the
+   * release (`releasePointer()`), which is what lets a test slip a settings update inside the
+   * gesture.
+   */
+  async pressFillHandle(): Promise<void> {
+    await this.#pressElementCenter(this.fillHandle());
+  }
+
+  /**
+   * Move the held pointer onto a cell without releasing it, continuing whatever drag is in
+   * progress.
+   */
+  async dragPointerToCell(row: number, col: number): Promise<void> {
+    await this.#movePointerToCell(row, col);
+  }
+
+  /**
+   * Turn the fill handle on or off through `updateSettings`, the way an application toggles it at
+   * runtime. Goes through the settings path on purpose: that is what routes the plugin through
+   * `disablePlugin()` alone, without the `enablePlugin()` that `updatePlugin()` pairs it with.
+   */
+  async setFillHandleEnabled(enabled: boolean): Promise<void> {
+    await this.page.evaluate(isEnabled => window.hot.updateSettings({ fillHandle: isEnabled }), enabled);
+  }
+
+  /**
+   * Re-send the grid's current `fillHandle` value through `updateSettings`, changing nothing. This
+   * is the shape a framework wrapper produces on an unrelated re-render, when it forwards every
+   * declared prop back into the grid.
+   */
+  async resendFillHandleSetting(): Promise<void> {
+    await this.page.evaluate(() => {
+      window.hot.updateSettings({ fillHandle: window.hot.getSettings().fillHandle });
+    });
+  }
+
+  /**
+   * Narrow the fill handle to one axis through `updateSettings` — a reconfiguration that changes
+   * what a fill is allowed to do, as opposed to a re-send of the same value.
+   */
+  async setFillHandleDirection(direction: 'vertical' | 'horizontal'): Promise<void> {
+    await this.page.evaluate(value => window.hot.updateSettings({ fillHandle: value }), direction);
   }
 
   /**

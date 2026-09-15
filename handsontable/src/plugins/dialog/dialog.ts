@@ -5,8 +5,9 @@ import { isObject, isPlainObject } from '../../helpers/object';
 import { isHTMLElement } from '../../helpers/dom/element';
 import { isButtonType } from '../../helpers/uiButton';
 import { getSanitizer } from '../../utils/sanitizer';
+import { isRootInstance } from '../../utils/rootInstance';
 import * as C from '../../i18n/constants';
-import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
+import type { SelectionState } from '../../selection/types';
 
 export const PLUGIN_KEY = 'dialog';
 export const PLUGIN_PRIORITY = 360;
@@ -250,18 +251,20 @@ export class Dialog extends BasePlugin {
    *
    * @type {SelectionState | null}
    */
-  #selectionState: {
-    ranges: CellRange[]; activeRange: CellRange | undefined; activeSelectionLayer: number;
-    selectedByRowHeader: number[]; selectedByColumnHeader: number[]; disableHeadersHighlight: boolean;
-  } | null = null;
+  #selectionState: SelectionState | null = null;
 
   /**
    * Check if the plugin is enabled in the handsontable settings.
    *
+   * The dialog renders into the `ht-overlay` element and registers a modal focus scope, and both
+   * belong to the main Handsontable instance. In a nested grid (the one the `handsontable`,
+   * `autocomplete`, and `dropdown` cell types create) neither exists, so the plugin stays disabled
+   * there.
+   *
    * @returns {boolean}
    */
   isEnabled(): boolean {
-    return !!this.hot.getSettings()[PLUGIN_KEY];
+    return isRootInstance(this.hot) && !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -399,13 +402,12 @@ export class Dialog extends BasePlugin {
     if (this.#selectionState && this.#selectionState.ranges.length > 0 && this.#selectionState.activeRange) {
       const state = this.#selectionState;
 
+      // Spread rather than enumerated: the exported state carries the grid-span flags that tell the
+      // next trim to clamp a full-column or select-all extent instead of dropping it, and a
+      // hand-written field list silently leaves them behind.
       this.hot.selection.importSelection({
-        ranges: state.ranges,
+        ...state,
         activeRange: state.activeRange!,
-        activeSelectionLayer: state.activeSelectionLayer,
-        selectedByRowHeader: state.selectedByRowHeader,
-        selectedByColumnHeader: state.selectedByColumnHeader,
-        disableHeadersHighlight: state.disableHeadersHighlight,
       });
       this.hot.view.render();
       this.#selectionState = null;
@@ -629,6 +631,19 @@ export class Dialog extends BasePlugin {
 
             } else if (focusSource === 'tab_from_below') {
               focusableElements[focusableElements.length - 1]?.focus();
+
+            } else if (focusSource === 'unknown' && isListening) {
+              // `show()` activates the scope without a source, so it arrives as `unknown`. Without
+              // this branch a template that reports focusable elements (`confirm`) left the focus
+              // on the grid behind the open modal - the fallback below is unreachable here.
+              //
+              // Matched on `unknown` rather than written as a bare `else`, which would also catch
+              // `click`. A click on a NON-focusable part of the dialog (its title, say) sends no
+              // focus event of its own, so with the scope deactivated - the user clicked outside
+              // the open modal first - it reaches here as `click` and would move the focus the user
+              // did not ask to move. A click on a focusable element never gets this far: its own
+              // focus event activates the scope first, and `activateScope` then returns early.
+              focusableElements[0]?.focus();
             }
 
           } else if (
@@ -649,8 +664,15 @@ export class Dialog extends BasePlugin {
 
   /**
    * Unregisters the focus scope for the dialog plugin.
+   *
+   * Nothing was registered on a non-root instance, where the plugin never enables and the
+   * `FocusScopeManager` does not exist, so a direct `disablePlugin()` call there must not reach it.
    */
   #unregisterFocusScope() {
+    if (!isRootInstance(this.hot)) {
+      return;
+    }
+
     this.hot.getFocusScopeManager().unregisterScope(PLUGIN_KEY);
   }
 

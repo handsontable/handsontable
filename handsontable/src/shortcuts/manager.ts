@@ -208,7 +208,7 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
    *
    * @param {KeyboardEvent} event The keyboard event.
    * @param {string[]} keys Normalized pressed keys.
-   * @returns {boolean} Whether a shortcut cancelled further handling.
+   * @returns {boolean} Whether a shortcut canceled further handling.
    */
   const runGlobalScopedShortcuts = (event: KeyboardEvent, keys: string[]) => {
     const items = CONTEXTS.getItems();
@@ -275,6 +275,9 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
     hasEventShortcut,
     /**
      * Returns whether `control` or `meta` keys are pressed.
+     *
+     * The state is re-read from the modifier flags of every keyboard event, so a synthetic
+     * keyboard event dispatched without those flags reports the keys as released.
      *
      * @memberof ShortcutManager#
      * @type {Function}

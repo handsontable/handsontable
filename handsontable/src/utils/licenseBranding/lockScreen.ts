@@ -1,4 +1,4 @@
-import { html } from '../../helpers/templateLiteralTag';
+import { buildTemplate } from '../../helpers/dom/template';
 import type { LockContent } from './content';
 import type { HotInstance } from '../../core/types';
 
@@ -53,24 +53,57 @@ export function mountLicenseLock(hotInstance: HotInstance, content: LockContent)
   // `__content-wrapper`, `__content`, `__title`, `__description`, `__buttons`, `ht-button`) plus the
   // `handsontable` class the dialog carries (the `.ht-button` base rules are scoped under it). The
   // copy is assigned through `textContent` below, never interpolated into the markup.
-  const { refs } = html`
-    <div data-ref="lock" class="${lockClassName}"
-      role="alertdialog" aria-modal="true"
-      aria-labelledby="${titleId}" aria-describedby="${descriptionId}"
-      tabindex="-1" dir="${isRtl ? 'rtl' : 'ltr'}" style="display: block;">
-      <div class="${DIALOG_CLASS}__content-wrapper">
-        <div data-ref="inner" tabindex="-1" class="${DIALOG_CLASS}__content-wrapper-inner">
-          <div class="${DIALOG_CLASS}__content">
-            <h2 data-ref="title" id="${titleId}" class="${DIALOG_CLASS}__title"></h2>
-            <p data-ref="description" id="${descriptionId}" class="${DIALOG_CLASS}__description"></p>
-          </div>
-          <div class="${DIALOG_CLASS}__buttons">
-            <a data-ref="contactButton" class="ht-button ht-button--secondary" rel="noopener"></a>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
+  const { refs } = buildTemplate({
+    tag: 'div',
+    ref: 'lock',
+    className: lockClassName,
+    attrs: {
+      role: 'alertdialog',
+      'aria-modal': 'true',
+      'aria-labelledby': titleId,
+      'aria-describedby': descriptionId,
+      tabindex: '-1',
+      dir: isRtl ? 'rtl' : 'ltr',
+      style: 'display: block;',
+    },
+    children: [{
+      tag: 'div',
+      className: `${DIALOG_CLASS}__content-wrapper`,
+      children: [{
+        tag: 'div',
+        ref: 'inner',
+        className: `${DIALOG_CLASS}__content-wrapper-inner`,
+        attrs: { tabindex: '-1' },
+        children: [
+          {
+            tag: 'div',
+            className: `${DIALOG_CLASS}__content`,
+            children: [
+              {
+                tag: 'h2', ref: 'title', className: `${DIALOG_CLASS}__title`, attrs: { id: titleId },
+              },
+              {
+                tag: 'p',
+                ref: 'description',
+                className: `${DIALOG_CLASS}__description`,
+                attrs: { id: descriptionId },
+              },
+            ],
+          },
+          {
+            tag: 'div',
+            className: `${DIALOG_CLASS}__buttons`,
+            children: [{
+              tag: 'a',
+              ref: 'contactButton',
+              className: 'ht-button ht-button--secondary',
+              attrs: { rel: 'noopener' },
+            }],
+          },
+        ],
+      }],
+    }],
+  }, hotInstance.rootDocument);
   const lock = refs.lock;
 
   refs.title.textContent = content.title;

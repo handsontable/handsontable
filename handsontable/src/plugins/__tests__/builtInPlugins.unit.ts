@@ -10,6 +10,7 @@ describe('built-in plugins', () => {
       'MoveCells',
       'ManualRowResize',
       'AutoRowSize',
+      'AutoRowHeaderSize',
       'ColumnSorting',
       'Comments',
       'ContextMenu',
@@ -32,6 +33,7 @@ describe('built-in plugins', () => {
       'ExportFile',
       'Filters',
       'Formulas',
+      'AutoLink',
       'NestedHeaders',
       'CollapsibleColumns',
       'NestedRows',
@@ -43,6 +45,7 @@ describe('built-in plugins', () => {
       'EmptyDataState',
       'Notification',
       'Pagination',
+      'SheetsBar',
       'DataProvider',
       'UndoRedo',
     ]);

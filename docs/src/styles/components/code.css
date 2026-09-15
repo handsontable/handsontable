@@ -2,6 +2,13 @@
  * Code block enhancements
  * ------------------------------------------------------------------------- */
 
+/* Plain fenced code blocks sit in the page with the same breathing room as the embedded
+   interactive examples (.hot-example, margin: 2rem 0). Starlight's markdown flow only adds
+   its default --sl-content-gap-y between siblings, which reads cramped next to prose. */
+.sl-markdown-content .expressive-code {
+  margin-block: 2rem;
+}
+
 /* Override Expressive Code variables — Ion-inspired dark theme */
 .expressive-code {
   /* Code block background & text */

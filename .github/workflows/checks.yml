@@ -5,8 +5,11 @@ name: Checks
 # pipeline when red — test presence and changelog. Called by test.yml; the
 # scope outputs are re-exported so the orchestrator can gate the rest.
 #
-# Manual QA is deliberately NOT here: its red must block the merge, not stop
-# the build/test DAG, so it lives in its own module that nothing depends on.
+# Manual QA is deliberately NOT gated here: the scope job only READS the
+# PR-description tickbox (the `manual-qa` output) so test.yml can skip the
+# module on unticked PRs without spending a runner; the gate itself is
+# manual-qa.yml's sign-off job, which holds CI Gate through a `needs` edge
+# while it waits on the manual-qa environment approval — never this router.
 on:
   workflow_call:
     inputs:
@@ -35,9 +38,16 @@ on:
       # True when the PR touches anything outside the CI pipeline (.github/**).
       # Lint + the code-quality scans gate on it, so a pipeline-only PR skips them.
       outside-ci: { value: '${{ jobs.scope.outputs.outside-ci }}' }
+      # True when a handsontable spec/unit file may have changed — the trees the
+      # determinism ratchet (lint.yml) reads. Same trees as RATCHETED_FILES in
+      # .github/scripts/lib/lint-ratchet.mjs.
+      lint-ratchet: { value: '${{ jobs.scope.outputs.lint-ratchet }}' }
       # Precomputed here so the Integration wrapper matrix fans out with NO
       # per-module setup job (matrix context is illegal in a job-level if).
       wrapper-matrix: { value: '${{ jobs.scope.outputs.wrapper-matrix }}' }
+      # True when the PR description ticks "MANUAL QA NEEDED" — routes the
+      # Manual QA module (see manual-qa.yml).
+      manual-qa: { value: '${{ jobs.scope.outputs.manual-qa }}' }
 
 jobs:
   scope:
@@ -62,7 +72,9 @@ jobs:
       pkg-preview: ${{ steps.path-filter.outputs.pkg-preview }}
       docs: ${{ steps.path-filter.outputs.docs }}
       outside-ci: ${{ steps.path-filter.outputs.outside-ci }}
+      lint-ratchet: ${{ steps.path-filter.outputs.lint-ratchet }}
       wrapper-matrix: ${{ steps.wrappers.outputs.list }}
+      manual-qa: ${{ steps.manual-qa.outputs.requested }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
         if: ${{ inputs.test-all != true }}
@@ -101,10 +113,14 @@ jobs:
             hot-e2e-test-shared: &hot-e2e-test-shared
               - './handsontable/test/e2e/**'
               - './handsontable/test/scripts/**'
+              # The bridge reporter and the loader helpers decide what the Puppeteer
+              # legs report, so a change to them alone must still run those legs.
+              - './handsontable/test/helpers/**'
             build-handsontable-umd:
               - *hot-shared
               - './handsontable/test/e2e/**'
               - './handsontable/test/scripts/**'
+              - './handsontable/test/helpers/**'
               - './examples/next/visual-tests/**'
               # The Playwright tier drives the built dist, so a tests-only PR
               # must still produce the UMD artifact.
@@ -142,6 +158,10 @@ jobs:
             test-visual:
               - './examples/next/visual-tests/**'
               - './visual-tests/**'
+              # The Playwright version (and thus the rendering browsers) lives
+              # in the workspace catalog — a catalog-only bump must re-render.
+              - './pnpm-lock.yaml'
+              - './pnpm-workspace.yaml'
             test-performance:
               # config-files (deps in package.json, babel/hot.config, bundler config)
               # can shift bundle perf — run the suite on the PR for those too, not just
@@ -153,6 +173,7 @@ jobs:
               - './performance-tests/**'
             verify-types:
               - './handsontable/**'
+              - './.github/workflows/emitted-types.yml'
             docs-angular:
               - './docs/content/**/angular/*.ts'
               - './docs/angular-type-check/**'
@@ -177,6 +198,9 @@ jobs:
             docs:
               - './docs/**'
               - './handsontable/package.json'
+              # docs' Playwright version comes from the workspace catalog too.
+              - './pnpm-lock.yaml'
+              - './pnpm-workspace.yaml'
             # True when the PR changes anything that ESLint/scans can act on —
             # i.e. NOT confined to the YAML pipeline definitions. Lint + the
             # code-quality scans (Sonar/CodeQL/FOSSA/audit) gate on this so a
@@ -192,6 +216,13 @@ jobs:
             # make it match nearly everything.
             outside-ci:
               - '!./.github/{workflows,actions}/**'
+            # The two trees the handsontable lint task covers and specs live in
+            # (`src/` holds the co-located `__tests__/`, `test/` the rest). The
+            # ratchet script re-selects `*.spec.js` / `*.unit.{js,ts}` itself and
+            # exits 0 when the PR gained no such line, so this only saves a runner.
+            lint-ratchet:
+              - './handsontable/src/**'
+              - './handsontable/test/**'
 
       # Build the Integration wrapper matrix from the scope flags (run-all → all
       # three). Emitting it here means the wrapper job fans out with no extra
@@ -214,6 +245,29 @@ jobs:
             require("fs").appendFileSync(process.env.GITHUB_OUTPUT, "list=" + JSON.stringify(w) + "\n");
           '
 
+      # Manual QA is requested by ticking "MANUAL QA NEEDED"
+      # in the PR description (the template carries the line — its wording is
+      # this regex's contract). Read LIVE, never from the frozen event payload,
+      # so ticking the box and pressing "Re-run all jobs" arms the gate on an
+      # existing run. This is only the routing bit — the gate itself (the
+      # environment-approval sign-off job) lives in manual-qa.yml, and an
+      # unticked PR skips that module without spending a runner on it.
+      - id: manual-qa
+        name: Read the manual-QA tickbox
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # https://github.com/actions/github-script/releases/tag/v8.0.0
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner, repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+            });
+            const requested = /^\s*-\s*\[[xX]\]\s+MANUAL QA NEEDED/m.test(pr.body || '');
+            core.setOutput('requested', String(requested));
+            core.notice(requested
+              ? 'Manual QA requested — the Manual QA sign-off job will wait for a manual-qa environment approval.'
+              : 'Manual QA not requested — to request it, tick "MANUAL QA NEEDED" in the PR description and press "Re-run all jobs".');
+
   presence:
     name: test presence
     runs-on: ubuntu-latest
@@ -224,11 +278,41 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
         with:
           fetch-depth: 0
+      # The gate's advisory red-spec check reads the LIVE body (the way the
+      # Manual QA job does), not the frozen event payload, so an author who
+      # fills the field after opening the PR is heard on the next run. A
+      # read-only call, so it works on the fork/Dependabot token too; any
+      # failure only skips that one advisory check — the script catches API
+      # errors, `continue-on-error` covers an action-runtime failure the script
+      # cannot catch (so it can never fail this job and, through test.yml's
+      # needs, the CI Gate), and the gate reads the file when it exists and
+      # stays silent when it does not.
+      - name: Read the live pull-request body
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # https://github.com/actions/github-script/releases/tag/v8.0.0
+        continue-on-error: true
+        env:
+          BODY_FILE: ${{ runner.temp }}/pr-body.md
+        with:
+          script: |
+            try {
+              const { data: pr } = await github.rest.pulls.get({
+                owner: context.repo.owner, repo: context.repo.repo,
+                pull_number: context.payload.pull_request.number,
+              });
+              require('node:fs').writeFileSync(process.env.BODY_FILE, pr.body || '');
+            } catch (error) {
+              core.warning(`Could not read the live PR body (${error.message}); the red-spec advisory check is skipped.`);
+            }
+      # Prints the verdict plus the ADVISORY warnings (frozen-suite growth,
+      # empty red-spec field, RTL correlation, Walkontable routing) as Markdown
+      # into the step summary; in Actions each warning is also a `::warning`
+      # annotation. The advisories never change the exit code.
       - name: Evaluate test-presence gate (warn)
         run: set -o pipefail; node .github/scripts/test-presence-gate.mjs | tee -a "$GITHUB_STEP_SUMMARY"
         env:
           GATE_MODE: warn
           GATE_BASE: ${{ github.event.pull_request.base.sha }}
+          GATE_PR_BODY_FILE: ${{ runner.temp }}/pr-body.md
       - name: Detect weakened specs (warn)
         run: set -o pipefail; node .github/scripts/test-weakening-gate.mjs | tee -a "$GITHUB_STEP_SUMMARY"
         env:
@@ -243,6 +327,12 @@ jobs:
     # HTML comments) overrides on a source change. Deliberately NOT re-run on
     # `edited`: re-run the failed job after adding an entry or the marker (the
     # script reads the live PR body).
+    #
+    # Both steps also enforce "one PR, one entry": step 1 caps a PR at two entry
+    # files (lifted by `[multiple changelogs]`, never by `[skip changelog]`), and
+    # step 2 asserts every `.changelogs/*.json` is named after the number it
+    # cites, over the whole directory — which is what makes two entries for one
+    # number impossible. See `.changelogs/README.md`.
     if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
@@ -251,7 +341,11 @@ jobs:
         env:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node .github/scripts/check-changelog
-      - name: Check that all changelogs are valid
+      # This is intentionally repository-wide: a stale misnamed file on the
+      # base branch would otherwise keep producing invalid release notes after
+      # the PR that created it is gone. The failure points to the exact file
+      # and the safe rename-or-fold remedy.
+      - name: Check every changelog filename (repository-wide invariant)
         run: bin/changelog consume --date 2050-01-01 --dry-run
 
   tooling-tests:

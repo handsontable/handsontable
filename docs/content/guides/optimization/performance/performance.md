@@ -15,6 +15,7 @@ vue:
   metaTitle: Performance - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Optimization
+menuTag: updated
 ---
 Boost your grid's performance by setting a constant column size, suspending rendering, deciding how many rows and columns are pre-rendered, and more.
 
@@ -24,7 +25,57 @@ Boost your grid's performance by setting a constant column size, suspending rend
 
 Handsontable performs multiple calculations to display the grid properly. The most demanding actions are performed on load, change, and scroll events. Every single operation decreases the performance, but most of them are unavoidable.
 
-To measure Handsontable's execution times in various configurations, we use our own library called [Performance Lab](https://github.com/handsontable/performance-lab). Some tests have shown that there are methods that may potentially boost the performance of your application. These only work in certain cases, but we hope they can be successfully applied to your app as well.
+The optimizations on this page come from measuring Handsontable's execution times in various configurations. Each one applies only in certain cases. Check which ones fit your application. To see how those measurements work, browse the [performance test suite](https://github.com/handsontable/handsontable/tree/develop/performance-tests) in the Handsontable repository. It runs scripted interactions in a real browser and records the timings.
+
+## Measure render performance in the console
+
+To check how many times the grid renders and how long each render takes, log it from the [`beforeRender`](@/api/hooks.md#beforerender) and [`afterRender`](@/api/hooks.md#afterrender) hooks instead of reading a generic browser profiler. This logs one line per render cycle directly in your browser console, scoped to Handsontable. Note that these hooks don't fire on scroll, since scrolling doesn't trigger a full render.
+
+::: only-for react
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [Instance methods](@/guides/getting-started/react-methods/react-methods.md) page.
+
+:::
+:::
+
+::: only-for angular
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page.
+
+:::
+:::
+
+::: only-for vue
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. Use a template ref on the `HotTable` component and read its `hotInstance` property.
+
+For more information, see the [Referencing the Handsontable instance in Vue 3](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md) page.
+
+:::
+:::
+
+```js
+let renderCount = 0;
+let renderStart = 0;
+
+hot.addHook('beforeRender', () => {
+  renderStart = performance.now();
+});
+
+hot.addHook('afterRender', () => {
+  renderCount += 1;
+  console.log(`Render #${renderCount} took ${(performance.now() - renderStart).toFixed(2)} ms`);
+});
+```
+
+For per-cell timing, pair the [`beforeRenderer`](@/api/hooks.md#beforerenderer) and [`afterRenderer`](@/api/hooks.md#afterrenderer) hooks instead - they run once for every rendered cell.
 
 ## Set constant row and column sizes
 
@@ -111,7 +162,7 @@ Changing your background, font colors, etc., shouldn't lower the performance. Ho
 
 ## Avoid the `cells` option when possible
 
-The [`cells`](@/api/options.md#cells) option is a function invoked before each of Handsontable's [rendering cycles](@/guides/optimization/batch-operations/batch-operations.md). Because it runs on every render for every visible cell, even a small amount of work inside it adds up quickly and can noticeably slow down the grid.
+The [`cells`](@/api/options.md#cells) option is a function invoked before each of Handsontable's [rendering cycles](@/guides/optimization/rendering/rendering.md). Because it runs on every render for every visible cell, even a small amount of work inside it adds up quickly and can noticeably slow down the grid.
 
 Prefer lighter alternatives when they meet your needs:
 
@@ -189,6 +240,7 @@ For more information, see our [Pagination guide](@/guides/rows/rows-pagination/r
 
 <div class="boxes-list">
 
+- [Understanding rendering](@/guides/optimization/rendering/rendering.md)
 - [Batch operations](@/guides/optimization/batch-operations/batch-operations.md)
 - [Row virtualization](@/guides/rows/row-virtualization/row-virtualization.md)
 - [Column virtualization](@/guides/columns/column-virtualization/column-virtualization.md)

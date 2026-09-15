@@ -41,7 +41,7 @@ describe('Core.scrollViewportTo', () => {
       const layout = getThemeLayout();
 
       expect(result).toBe(true);
-      expect(inlineStartOverlay().getScrollPosition()).toBe(2826);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(2825);
       // Auto bottom snap: row 150 should be at the bottom edge of the viewport.
       expect(topOverlay().getScrollPosition()).toBeGreaterThan(layout.verticalScrollForRow(150) - 300);
       expect(topOverlay().getScrollPosition()).toBeLessThanOrEqual(layout.verticalScrollForRow(151));
@@ -133,7 +133,7 @@ describe('Core.scrollViewportTo', () => {
       const layout = getThemeLayout();
 
       expect(result).toBe(true);
-      expect(inlineStartOverlay().getScrollPosition()).toBe(2826);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(2825);
       // Auto top snap: row 150 should be at the top edge of the viewport.
       expect(topOverlay().getScrollPosition()).toBe(layout.verticalScrollForRow(150));
     });
@@ -244,7 +244,7 @@ describe('Core.scrollViewportTo', () => {
     });
 
     expect(result).toBe(true);
-    expect(inlineStartOverlay().getScrollPosition()).toBe(2826);
+    expect(inlineStartOverlay().getScrollPosition()).toBe(2825);
     expect(topOverlay().getScrollPosition()).toBe(0);
   });
 

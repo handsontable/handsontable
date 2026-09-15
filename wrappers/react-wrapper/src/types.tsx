@@ -68,7 +68,27 @@ export interface UseHotEditorImpl<T> {
 type ReplaceRenderersEditors<T> = Omit<RemoveIndexSignature<T>, 'renderer' | 'editor'> & {
   hotRenderer?: T extends { renderer?: infer R } ? R : never,
   renderer?: ComponentType<HotRendererProps>,
+  /**
+   * The Handsontable-native editor: a registered editor name, an editor class, or a boolean.
+   *
+   * Set it to `false` to disable editing. Setting it to `true` — or to any other falsy value, such as
+   * `null` — is treated as if the prop were not provided, so the cell keeps the editor its column
+   * type or the grid supplies.
+   *
+   * A component passed to `editor` outranks this prop. A native editor named here outranks
+   * `editor={false}`.
+   */
   hotEditor?: T extends { editor?: infer E } ? E : never,
+  /**
+   * The component-based editor, rendered through a React portal.
+   *
+   * Set it to `false` to disable editing. Setting it to `true` — or to any other falsy value, such as
+   * `null` — is treated as if the prop were not provided, so the cell keeps the editor its column
+   * type or the grid supplies.
+   *
+   * A component passed here wins over `hotEditor`. A bare `editor={false}` does not: an editor named
+   * in `hotEditor` still applies.
+   */
   editor?: ComponentType | boolean,
 } & { [key: string]: any }
 

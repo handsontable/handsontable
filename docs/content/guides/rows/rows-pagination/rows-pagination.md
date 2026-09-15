@@ -26,6 +26,7 @@ vue:
   metaTitle: Row pagination - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
+menuTag: updated
 ---
 Split large data sets into pages to improve usability and rendering performance. Pagination operates fully on the client side and automatically recomputes the total page count whenever rows are added, removed, filtered, or otherwise modified.
 
@@ -463,6 +464,8 @@ When pagination is enabled:
 - [`NestedRows`](@/api/nestedRows.md) and [`MergeCells`](@/api/mergeCells.md) plugins should be disabled.
 - The [`height`](@/api/options.md#height) option set as `auto` is not supported when the `pageSize: 'auto'` is set.
 - Pagination always displays a fixed number of rows per page (default is `10`), regardless of data changes such as hiding, trimming, filtering, removing, adding, or pasting rows - unless `pageSize: 'auto'` is set.
+
+Pagination also works on the main grid only. A grid nested in a cell, that is a cell of the [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md), [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), or [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cell type, has no layout slot to render the pagination bar into, so the [`pagination`](@/api/options.md#pagination) option has no effect there. A custom `uiContainer` does not change that.
 
 ## Result
 

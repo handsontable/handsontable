@@ -421,8 +421,8 @@ describe('ThemeManager', () => {
           .split(`.ht-theme-test-theme.${manager.scopeClassName} {`)[1];
 
         // `backgroundColor` is ['colors.white', 'colors.palette.950'] in the main theme. The scoped
-        // block must carry the DARK branch outright — the minified theme stylesheets do not use
-        // light-dark(), so a bare `color-scheme` flip would leave the light colors in place.
+        // block must carry the DARK branch outright: against a stylesheet built below the
+        // `light-dark()` floor, a bare `color-scheme` flip would leave the light colors in place.
         expect(scopedBlock).toContain('--ht-background-color: var(--ht-colors-palette-950);');
         expect(scopedBlock).not.toContain('--ht-background-color: light-dark(');
       });

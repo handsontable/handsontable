@@ -2,7 +2,7 @@
 type: reference
 title: Server-side CRUD
 metaTitle: Server-side CRUD - JavaScript Data Grid | Handsontable
-description: Handsontable dataProvider create, update, and remove—onRowsCreate, onRowsUpdate, onRowsRemove, mutation hooks, optimistic UI, validators, and programmatic CRUD.
+description: Handsontable dataProvider create, update, and remove -- onRowsCreate, onRowsUpdate, onRowsRemove, mutation hooks, optimistic UI, validators, and programmatic CRUD.
 permalink: /server-side-data-crud
 canonicalUrl: /server-side-data-crud
 tags:
@@ -76,7 +76,7 @@ From the plugin instance (`hot.getPlugin('dataProvider')`), you can also call [`
 
 `operation` is `'create'`, `'update'`, or `'remove'`. The hook `payload` is a wrapper object, not the same reference as the callback argument: `'create'` uses `{ rowsCreate }` (same inner shape as `onRowsCreate`), `'update'` uses `{ rows }` (the array passed to `onRowsUpdate`), and `'remove'` uses `{ rowsRemove }` (the id array passed to `onRowsRemove`).
 
-When the server callback succeeds but the following refetch fails, `afterRowsMutationError` still uses the same `operation` as the mutation (`'update'`, `'create'`, or `'remove'`). Use [[Hooks#afterDataProviderFetchError]] if you need to handle fetch failures separately from rejected mutation callbacks.
+When the server callback succeeds but the following refetch fails, `afterRowsMutationError` still uses the same `operation` as the mutation (`'update'`, `'create'`, or `'remove'`). Use [`afterDataProviderFetchError`](@/api/hooks.md#afterdataproviderfetcherror) if you need to handle fetch failures separately from rejected mutation callbacks.
 
 ### Undo stack
 

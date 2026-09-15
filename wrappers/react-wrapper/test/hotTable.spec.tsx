@@ -7,9 +7,13 @@ import {
   mockElementDimensions,
   RendererComponent,
   EditorComponent,
+  ImmediateValueEditor,
+  PointerCommitEditor,
+  TextInputEditor,
   sleep,
   simulateKeyboardEvent,
   simulateMouseEvent,
+  simulatePointerActivation,
   mountComponent,
   mountComponentWithRef,
   customNativeRenderer,
@@ -501,8 +505,8 @@ describe('Renderer configuration using React components', () => {
 });
 
 describe('Editor configuration using React components', () => {
-  it('should use the editor component as Handsontable editor and mount it in the root tree of the document', async () => {
-    mountComponentWithRef<HotTableRef>((
+  it('should mount the editor component inside the Handsontable root portal', async () => {
+    const hotTableComponent = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(3, 3)}
@@ -517,8 +521,130 @@ describe('Editor configuration using React components', () => {
     ));
 
     const editorElement = document.querySelector('#editorComponentContainer')!;
+    const portalHost = hotTableComponent.hotInstance!.rootPortalElement
+      .querySelector('.hot-wrapper-editor-portal-host');
 
-    expect(editorElement.parentElement!.parentElement).toBe(document.body);
+    expect(portalHost).not.toBeNull();
+    expect(portalHost!.contains(editorElement)).toBe(true);
+    expect(portalHost!.classList.contains('hot-wrapper-editor-container')).toBe(false);
+  });
+
+  it('should commit setValue after a real pointer sequence on the editor control', async () => {
+    const hotInstance = mountComponentWithRef<HotTableRef>((
+      <HotTable licenseKey="non-commercial-and-evaluation"
+                id="test-hot"
+                data={createSpreadsheetData(3, 3)}
+                width={300}
+                height={300}
+                rowHeights={23}
+                colWidths={50}
+                init={function () {
+                  mockElementDimensions(this.rootElement, 300, 300);
+                }}
+                editor={PointerCommitEditor} />
+    )).hotInstance!;
+
+    await act(async () => {
+      hotInstance.selectCell(0, 0);
+      simulateKeyboardEvent('keydown', 13);
+    });
+
+    expect(hotInstance.getDataAtCell(0, 0)).toEqual('A1');
+
+    await act(async () => {
+      simulatePointerActivation(document.querySelector('#pointerCommitEditor button'));
+    });
+
+    expect(hotInstance.getDataAtCell(0, 0)).toEqual('new-value');
+  });
+
+  it('should not unlisten the grid when a pointer gesture lands in the editor\'s own input', async () => {
+    // DEV-2787. The document `mouseup` verdict reads a focused plain `<input>` as a page input,
+    // because ownership is decided by the `data-hot-input` stamp the grid puts on the inputs it
+    // builds itself - and a component editor's field carries none. `unlisten()` blocks EVERY
+    // `table`-scoped shortcut context (see the `handleEvent` callback in core), the `editor` one
+    // included, so the editor's own Enter, Escape and Tab die with it.
+    //
+    // Counted through `afterUnlisten` rather than read from `isListening()` at the end of the
+    // gesture: the focus scope manager re-listens on the `click` that follows the `mouseup`, so
+    // the state has already healed itself by the time a full gesture returns. The hook is what
+    // still sees the call - and a listener on it is the shape of user code this defect reaches.
+    const hotInstance = mountComponentWithRef<HotTableRef>((
+      <HotTable licenseKey="non-commercial-and-evaluation"
+                id="test-hot"
+                data={createSpreadsheetData(3, 3)}
+                width={300}
+                height={300}
+                rowHeights={23}
+                colWidths={50}
+                init={function () {
+                  mockElementDimensions(this.rootElement, 300, 300);
+                }}
+                editor={TextInputEditor} />
+    )).hotInstance!;
+
+    await act(async () => {
+      hotInstance.selectCell(0, 0);
+      simulateKeyboardEvent('keydown', 13);
+    });
+
+    // Scoped to the live instance's portal. A StrictMode remount leaves the previous editor portal
+    // host behind on `document.body`, and a document-wide query can hit that stale copy instead.
+    const field = hotInstance.rootPortalElement
+      .querySelector('#textInputEditorField') as HTMLInputElement;
+
+    expect(field).not.toBeNull();
+    // A starting-state check, not an assertion about the fix (see the note below the gesture).
+    expect(hotInstance.isListening()).toBe(true);
+
+    let unlistenCount = 0;
+
+    hotInstance.addHook('afterUnlisten', () => {
+      unlistenCount += 1;
+    });
+
+    await act(async () => {
+      simulatePointerActivation(field);
+    });
+
+    // The precondition the case rests on: without the focus actually sitting in the field, the
+    // verdict never reaches the `isOutsideInput` branch and the case would pin nothing.
+    expect(document.activeElement).toBe(field);
+
+    // The count is what carries this case. The `isListening()` line below cannot: the gesture
+    // ends in a `click`, and the focus scope manager re-listens on that, so it stays green even
+    // when the `mouseup` unlistened. It is kept as an end-state sanity check only.
+    expect(unlistenCount).toBe(0);
+    expect(hotInstance.isListening()).toBe(true);
+  });
+
+  it('should update the hook value in the same turn as setValue', async () => {
+    // Documents the public `useHotEditor().value` contract after dropping
+    // `useDeferredValue`. This does not cover the GH-13374 commit path.
+    const hotInstance = mountComponentWithRef<HotTableRef>((
+      <HotTable licenseKey="non-commercial-and-evaluation"
+                id="test-hot"
+                data={createSpreadsheetData(3, 3)}
+                width={300}
+                height={300}
+                rowHeights={23}
+                colWidths={50}
+                init={function () {
+                  mockElementDimensions(this.rootElement, 300, 300);
+                }}
+                editor={ImmediateValueEditor} />
+    )).hotInstance!;
+
+    await act(async () => {
+      hotInstance.selectCell(0, 0);
+      simulateKeyboardEvent('keydown', 13);
+    });
+
+    await act(async () => {
+      simulateMouseEvent(document.querySelector('#immediateValueSet'), 'click');
+    });
+
+    expect(document.querySelector('#immediateValueDisplay')!.textContent).toEqual('typed');
   });
 
   it('should use the editor component as Handsontable editor, when it\'s passed as component to HotTable editor prop', async () => {
@@ -779,6 +905,266 @@ describe('Editor configuration using React components', () => {
     expect(document.querySelector('#editorComponentContainer')).not.toBeTruthy();
     expect(console.warn).toHaveBeenCalledWith(OBSOLETE_HOTEDITOR_WARNING);
     expect(console.warn).not.toHaveBeenCalledWith(UNEXPECTED_HOTTABLE_CHILDREN_WARNING);
+  });
+
+  it('should disable editing when the HotTable `editor` prop is set to `false`', async () => {
+    const hotInstance = mountComponentWithRef<HotTableRef>((
+      <HotTable licenseKey="non-commercial-and-evaluation"
+                id="test-hot"
+                data={createSpreadsheetData(3, 2)}
+                width={300}
+                height={300}
+                rowHeights={23}
+                colWidths={50}
+                columns={[{}, { editor: 'text' }]}
+                editor={false}
+                init={function () {
+                  mockElementDimensions(this.rootElement, 300, 300);
+                }} />
+    )).hotInstance!;
+
+    expect(hotInstance.getCellEditor(0, 0)).toBe(false);
+
+    await act(async () => {
+      hotInstance.selectCell(0, 0);
+      simulateKeyboardEvent('keydown', 13);
+    });
+
+    expect(hotInstance.getActiveEditor()).toBeUndefined();
+    expect(hotInstance.getDataAtCell(0, 0)).toEqual('A1');
+
+    // A column that names its own editor still overrides the disabled global one, which also proves
+    // the test is not simply failing to open any editor at all.
+    expect(hotInstance.getCellEditor(0, 1).EDITOR_TYPE).toBe('text');
+
+    await act(async () => {
+      hotInstance.selectCell(0, 1);
+      simulateKeyboardEvent('keydown', 13);
+    });
+
+    expect(hotInstance.getActiveEditor()!.constructor.name).toBe('TextEditor');
+  });
+
+  it('should disable editing when the HotTable `hotEditor` prop is set to `false`', async () => {
+    const hotInstance = mountComponentWithRef<HotTableRef>((
+      <HotTable licenseKey="non-commercial-and-evaluation"
+                id="test-hot"
+                data={createSpreadsheetData(3, 2)}
+                width={300}
+                height={300}
+                rowHeights={23}
+                colWidths={50}
+                columns={[{}, { editor: 'text' }]}
+                hotEditor={false}
+                init={function () {
+                  mockElementDimensions(this.rootElement, 300, 300);
+                }} />
+    )).hotInstance!;
+
+    expect(hotInstance.getCellEditor(0, 0)).toBe(false);
+
+    await act(async () => {
+      hotInstance.selectCell(0, 0);
+      simulateKeyboardEvent('keydown', 13);
+    });
+
+    expect(hotInstance.getActiveEditor()).toBeUndefined();
+    expect(hotInstance.getDataAtCell(0, 0)).toEqual('A1');
+
+    // Positive control, as above.
+    expect(hotInstance.getCellEditor(0, 1).EDITOR_TYPE).toBe('text');
+
+    await act(async () => {
+      hotInstance.selectCell(0, 1);
+      simulateKeyboardEvent('keydown', 13);
+    });
+
+    expect(hotInstance.getActiveEditor()!.constructor.name).toBe('TextEditor');
+  });
+
+  it('should apply and revert a dynamic switch of the `editor` prop to `false`', async () => {
+    const hotTableRef = React.createRef<HotTableRef>();
+    const hotSettings: HotTableProps = {
+      licenseKey: "non-commercial-and-evaluation",
+      id: "test-hot",
+      data: createSpreadsheetData(3, 2),
+      width: 300,
+      height: 300,
+      rowHeights: 23,
+      colWidths: 50,
+      autoRowSize: false,
+      autoColumnSize: false,
+      init: function () {
+        mockElementDimensions(this.rootElement, 300, 300);
+      },
+    };
+
+    renderHotTableWithProps(hotSettings, false, hotTableRef);
+
+    const hotInstance = hotTableRef.current!.hotInstance!;
+
+    expect(hotInstance.getCellEditor(0, 0).EDITOR_TYPE).toBe('text');
+
+    await act(async () => {
+      hotSettings.editor = false;
+      renderHotTableWithProps(hotSettings, false, hotTableRef);
+    });
+
+    expect(hotInstance.getCellEditor(0, 0)).toBe(false);
+
+    await act(async () => {
+      hotInstance.selectCell(0, 0);
+      simulateKeyboardEvent('keydown', 13);
+    });
+
+    expect(hotInstance.getActiveEditor()).toBeUndefined();
+
+    // Dropping the prop brings the default editor back, so `false` does not stick.
+    await act(async () => {
+      delete hotSettings.editor;
+      renderHotTableWithProps(hotSettings, false, hotTableRef);
+    });
+
+    expect(hotInstance.getCellEditor(0, 0).EDITOR_TYPE).toBe('text');
+  });
+
+  it('should let a `hotEditor` editor win over an `editor` prop set to `false`', async () => {
+    const hotInstance = mountComponentWithRef<HotTableRef>((
+      <HotTable licenseKey="non-commercial-and-evaluation"
+                id="test-hot"
+                data={createSpreadsheetData(3, 2)}
+                width={300}
+                height={300}
+                rowHeights={23}
+                colWidths={50}
+                editor={false}
+                hotEditor={CustomNativeEditor}
+                init={function () {
+                  mockElementDimensions(this.rootElement, 300, 300);
+                }} />
+    )).hotInstance!;
+
+    // `editor={false}` only says "no component editor"; a native editor named alongside it still
+    // applies, which is how every released version behaved.
+    expect(hotInstance.getCellEditor(0, 0)).toBe(CustomNativeEditor);
+
+    await act(async () => {
+      hotInstance.selectCell(0, 0);
+      simulateKeyboardEvent('keydown', 13);
+      (document.activeElement as HTMLInputElement).value = 'hello';
+      hotInstance.getActiveEditor()!.finishEditing(false);
+    });
+
+    expect(hotInstance.getDataAtCell(0, 0)).toEqual('--hello--');
+  });
+
+  it('should fall back to the default editor when the `editor` prop is set to `true`', async () => {
+    const hotInstance = mountComponentWithRef<HotTableRef>((
+      <HotTable licenseKey="non-commercial-and-evaluation"
+                id="test-hot"
+                data={createSpreadsheetData(3, 2)}
+                width={300}
+                height={300}
+                rowHeights={23}
+                colWidths={50}
+                editor={true}
+                init={function () {
+                  mockElementDimensions(this.rootElement, 300, 300);
+                }} />
+    )).hotInstance!;
+
+    // `true` carries no component to render, so it must resolve to the default editor rather than an
+    // editor class with nothing behind it.
+    expect(hotInstance.getCellEditor(0, 0).EDITOR_TYPE).toBe('text');
+
+    await act(async () => {
+      hotInstance.selectCell(0, 0);
+      simulateKeyboardEvent('keydown', 13);
+    });
+
+    expect(hotInstance.getActiveEditor()!.constructor.name).toBe('TextEditor');
+  });
+
+  it('should fall back to the default editor when the `hotEditor` prop is set to `true`', async () => {
+    const hotInstance = mountComponentWithRef<HotTableRef>((
+      <HotTable licenseKey="non-commercial-and-evaluation"
+                id="test-hot"
+                data={createSpreadsheetData(3, 2)}
+                width={300}
+                height={300}
+                rowHeights={23}
+                colWidths={50}
+                hotEditor={true}
+                init={function () {
+                  mockElementDimensions(this.rootElement, 300, 300);
+                }} />
+    )).hotInstance!;
+
+    // A bare `true` must never reach the core, which accepts only a string or a constructor and
+    // throws on anything else.
+    expect(hotInstance.getCellEditor(0, 0).EDITOR_TYPE).toBe('text');
+
+    await act(async () => {
+      hotInstance.selectCell(0, 0);
+      simulateKeyboardEvent('keydown', 13);
+    });
+
+    expect(hotInstance.getActiveEditor()!.constructor.name).toBe('TextEditor');
+  });
+
+  it('should keep opening the editor passed by an `editor={condition && Editor}` prop', async () => {
+    const withEditor = true;
+    const hotInstance = mountComponentWithRef<HotTableRef>((
+      <HotTable licenseKey="non-commercial-and-evaluation"
+                id="test-hot"
+                data={createSpreadsheetData(3, 2)}
+                width={300}
+                height={300}
+                rowHeights={23}
+                colWidths={50}
+                editor={withEditor && EditorComponent}
+                init={function () {
+                  mockElementDimensions(this.rootElement, 300, 300);
+                }} />
+    )).hotInstance!;
+
+    // The common `condition && Editor` idiom passes the component itself while the condition holds,
+    // so the editor it names must still open, exactly as before this change.
+    await act(async () => {
+      hotInstance.selectCell(0, 0);
+      simulateKeyboardEvent('keydown', 13);
+    });
+
+    expect(hotInstance.getActiveEditor()!.constructor.name).toEqual('CustomEditor');
+  });
+
+  it('should disable editing when an `editor={condition && Editor}` prop resolves to `false`', async () => {
+    const withEditor = false;
+    const hotInstance = mountComponentWithRef<HotTableRef>((
+      <HotTable licenseKey="non-commercial-and-evaluation"
+                id="test-hot"
+                data={createSpreadsheetData(3, 2)}
+                width={300}
+                height={300}
+                rowHeights={23}
+                colWidths={50}
+                editor={withEditor && EditorComponent}
+                init={function () {
+                  mockElementDimensions(this.rootElement, 300, 300);
+                }} />
+    )).hotInstance!;
+
+    // Once the condition drops the component, the prop is a plain `false`, which is the documented
+    // way to switch editing off.
+    expect(hotInstance.getCellEditor(0, 0)).toBe(false);
+
+    await act(async () => {
+      hotInstance.selectCell(0, 0);
+      simulateKeyboardEvent('keydown', 13);
+    });
+
+    expect(hotInstance.getActiveEditor()).toBeUndefined();
+    expect(hotInstance.getDataAtCell(0, 0)).toEqual('A1');
   });
 });
 

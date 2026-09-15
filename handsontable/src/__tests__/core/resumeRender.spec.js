@@ -83,7 +83,26 @@ describe('Core.resumeRender', () => {
     expect(afterViewRender).toHaveBeenCalledTimes(0);
   });
 
-  it('should resume the table rendering process and adjust the overlays\' sizes', async() => {
+  it('should resume the table rendering process', async() => {
+    const hot = handsontable({
+      data: createSpreadsheetData(5, 5),
+    });
+
+    spyOn(hot.view._wt, 'draw');
+
+    await suspendRender();
+    await resumeRender();
+
+    expect(hot.renderSuspendedCounter).toBe(0);
+    expect(hot.view._wt.draw).toHaveBeenCalledOnceWith(true); // fast redraw
+  });
+
+  it('should resize from the legacy `view.adjustElementsSize()` only when the geometry moved', async() => {
+    // The method used to set a flag that the next render flushed. Walkontable now compares the
+    // geometry it is about to write against the geometry it last wrote and resizes itself, so a
+    // deferred request would only make it resize twice. The method stays because it is reachable
+    // as `hot.view.adjustElementsSize()`; it now forwards to the engine's own gate, so calling it
+    // repeatedly on a grid that has not moved costs nothing.
     const hot = handsontable({
       data: createSpreadsheetData(5, 5),
     });
@@ -99,9 +118,39 @@ describe('Core.resumeRender', () => {
 
     await resumeRender();
 
-    expect(hot.renderSuspendedCounter).toBe(0);
-    expect(hot.view._wt.draw).toHaveBeenCalledOnceWith(true); // fast redraw
+    expect(hot.view._wt.wtOverlays.adjustElementsSize).toHaveBeenCalledTimes(0);
+
+    // `flush` skips the gate and resizes unconditionally, for a caller that needs the new sizes
+    // before any draw.
+    tableView().adjustElementsSize(true);
+
     expect(hot.view._wt.wtOverlays.adjustElementsSize).toHaveBeenCalledTimes(1);
+  });
+
+  it('should resize from the legacy `view.adjustElementsSize()` when the geometry really moved', async() => {
+    // The other half of the contract above. The escape hatch has to still work: an integrator who
+    // changed the grid's geometry outside anything the engine observes gets a resize on request.
+    const hot = handsontable({
+      data: createSpreadsheetData(5, 20),
+      width: 300,
+      height: 200,
+    });
+
+    await suspendRender();
+
+    spyOn(hot.view._wt.wtOverlays, 'adjustElementsSize');
+
+    const columnMapper = columnIndexMapper().createAndRegisterIndexMap('legacy-adjust-map', 'hiding');
+
+    columnMapper.setValueAtIndex(0, true);
+    columnMapper.setValueAtIndex(1, true);
+    columnMapper.setValueAtIndex(2, true);
+
+    tableView().adjustElementsSize();
+
+    expect(hot.view._wt.wtOverlays.adjustElementsSize).toHaveBeenCalledTimes(1);
+
+    await resumeRender();
   });
 
   it('should render the table only on the last resume call (a call that resets the counter of nested suspend calls)', async() => {
@@ -110,7 +159,6 @@ describe('Core.resumeRender', () => {
     });
 
     spyOn(hot.view._wt, 'draw');
-    spyOn(hot.view._wt.wtOverlays, 'adjustElementsSize');
 
     await suspendRender();
     await suspendRender();
@@ -131,8 +179,6 @@ describe('Core.resumeRender', () => {
     // fast render
     await selectCell(2, 2);
 
-    tableView().adjustElementsSize();
-
     await resumeRender(); // Counter is now equals to 0, it calls render.
     await resumeRender();
     await resumeRender();
@@ -140,6 +186,5 @@ describe('Core.resumeRender', () => {
 
     expect(hot.renderSuspendedCounter).toBe(0);
     expect(hot.view._wt.draw).toHaveBeenCalledOnceWith(false); // slow redraw
-    expect(hot.view._wt.wtOverlays.adjustElementsSize).toHaveBeenCalledTimes(1);
   });
 });

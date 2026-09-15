@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed the fill border following the mouse after a double-click on the fill handle.",
+  "type": "fixed",
+  "issueOrPR": 13370,
+  "breaking": false,
+  "framework": "none"
+}

@@ -1,0 +1,338 @@
+import { LINK_SCHEME_CLASS_NAME } from '../../../utils/cellLinks';
+import { linkifyCell, unlinkifyCell, AUTO_LINK_CLASS_NAME, type LinkifyOptions } from '../linkifyCell';
+import { CELL_CLIP_CLASS } from '../../../helpers/dom/element';
+
+const BASE = 'https://example.com/dir/page.html';
+
+/**
+ * @param {Partial<LinkifyOptions>} [overrides] Option overrides.
+ * @returns {LinkifyOptions} The options.
+ */
+function options(overrides: Partial<LinkifyOptions> = {}): LinkifyOptions {
+  return {
+    baseUrl: BASE,
+    target: '_blank',
+    schemes: ['http', 'https', 'mailto', 'tel'],
+    inline: true,
+    strict: true,
+    classNames: [],
+    ...overrides,
+  };
+}
+
+/**
+ * @param {string} html The cell's inner HTML.
+ * @returns {HTMLTableCellElement} The cell.
+ */
+function cell(html: string): HTMLTableCellElement {
+  const td = document.createElement('td');
+
+  td.innerHTML = html;
+
+  return td;
+}
+
+/**
+ * @param {Element} root The element to read anchors from.
+ * @returns {string[]} The `href` of every own anchor, in order.
+ */
+function hrefs(root: Element): string[] {
+  return Array.from(root.querySelectorAll<HTMLAnchorElement>(`a.${AUTO_LINK_CLASS_NAME}`)).map(a => a.href);
+}
+
+describe('linkifyCell', () => {
+  describe('inline mode', () => {
+    it('should leave a cell without a URL untouched', () => {
+      const td = cell('plain text');
+
+      linkifyCell(td, options());
+
+      expect(td.innerHTML).toBe('plain text');
+    });
+
+    it('should wrap a whole-cell URL', () => {
+      const td = cell('https://a.com/x');
+
+      linkifyCell(td, options());
+
+      expect(td.innerHTML).toBe(
+        '<a class="ht-link ht-auto-link" href="https://a.com/x" target="_blank" rel="noopener noreferrer" ' +
+        'tabindex="-1">https://a.com/x</a>'
+      );
+    });
+
+    it('should wrap every URL inside prose and keep the rest as text', () => {
+      const td = cell('See https://a.com/one and mailto:b@c.com.');
+
+      linkifyCell(td, options());
+
+      expect(hrefs(td)).toEqual(['https://a.com/one', 'mailto:b@c.com']);
+      expect(td.textContent).toBe('See https://a.com/one and mailto:b@c.com.');
+      expect(td.childNodes.length).toBe(5);
+    });
+
+    it('should descend into a renderer\'s own elements', () => {
+      const td = cell('<span class="mark">go https://a.com/x</span>');
+
+      linkifyCell(td, options());
+
+      expect(td.querySelector('span.mark a.ht-auto-link')?.getAttribute('href')).toBe('https://a.com/x');
+      expect(td.textContent).toBe('go https://a.com/x');
+    });
+
+    it('should skip a cell that already holds an anchor', () => {
+      const td = cell('<a href="https://user.com">https://a.com/x</a>');
+
+      linkifyCell(td, options());
+
+      expect(hrefs(td)).toEqual([]);
+      expect(td.querySelectorAll('a').length).toBe(1);
+    });
+
+    it('should skip text inside interactive elements', () => {
+      const td = cell('<button>https://a.com/x</button> https://a.com/y');
+
+      linkifyCell(td, options());
+
+      expect(hrefs(td)).toEqual(['https://a.com/y']);
+      expect(td.querySelector('button')?.innerHTML).toBe('https://a.com/x');
+    });
+
+    it('should skip a checkbox\'s label text, where the label is a sibling of the input, not its ancestor', () => {
+      // The checkbox renderer puts the `<input>` inside the `<label>`, so the label text sits next
+      // to the input as a sibling text node. `closest()` on that text node's parent must stop at the
+      // `<label>` itself, the same way it stops at `<button>`, or the label gets wrapped in an anchor
+      // that leaves the checkbox itself untouched but hijacks a click on its own caption.
+      const td = cell('<label>https://a.com/x<input type="checkbox"></label>');
+
+      linkifyCell(td, options());
+
+      expect(hrefs(td)).toEqual([]);
+      expect(td.querySelector('a')).toBe(null);
+      expect(td.querySelector('input[type="checkbox"]')).not.toBe(null);
+    });
+
+    it('should be idempotent across passes and rebuild from the current text', () => {
+      const td = cell('https://a.com/x');
+
+      linkifyCell(td, options());
+      linkifyCell(td, options());
+
+      expect(td.querySelectorAll('a').length).toBe(1);
+      expect(td.textContent).toBe('https://a.com/x');
+
+      // A renderer that keeps the DOM but changed the text node.
+      td.querySelector('a')!.textContent = 'https://a.com/changed';
+      linkifyCell(td, options());
+
+      expect(hrefs(td)).toEqual(['https://a.com/changed']);
+    });
+
+    it('should apply target, schemes and class names', () => {
+      const td = cell('https://a.com/x tel:+48123');
+
+      linkifyCell(td, options({ target: '_self', schemes: ['https'], classNames: ['brand'] }));
+
+      const anchors = td.querySelectorAll('a');
+
+      expect(anchors.length).toBe(1);
+      expect(anchors[0].className).toBe('ht-link ht-auto-link brand');
+      expect(anchors[0].getAttribute('target')).toBe('_self');
+    });
+
+    it('should never build an anchor for a script URL', () => {
+      // eslint-disable-next-line no-script-url
+      const td = cell('javascript:alert(1)');
+
+      linkifyCell(td, options());
+
+      expect(td.querySelector('a')).toBe(null);
+    });
+
+    it('should hide the `mailto:` scheme prefix behind a span, keeping the anchor href and text', () => {
+      const td = cell('mailto:a@b.com');
+
+      linkifyCell(td, options());
+
+      const link = td.querySelector<HTMLAnchorElement>('a.ht-auto-link');
+
+      expect(link?.getAttribute('href')).toBe('mailto:a@b.com');
+      expect(link?.querySelector(`span.${LINK_SCHEME_CLASS_NAME}`)?.textContent).toBe('mailto:');
+      expect(link?.textContent).toBe('mailto:a@b.com');
+    });
+
+    it('should keep the surrounding prose and hide only the scheme inside the link', () => {
+      const td = cell('mail mailto:a@b.com now');
+
+      linkifyCell(td, options());
+
+      const link = td.querySelector<HTMLAnchorElement>('a.ht-auto-link');
+
+      expect(link?.querySelector(`span.${LINK_SCHEME_CLASS_NAME}`)?.textContent).toBe('mailto:');
+      expect(td.textContent).toBe('mail mailto:a@b.com now');
+    });
+
+    it('should get no scheme span for an `https:` URL', () => {
+      const td = cell('https://a.com/x');
+
+      linkifyCell(td, options());
+
+      expect(td.querySelector(`.${LINK_SCHEME_CLASS_NAME}`)).toBe(null);
+    });
+
+    it('should leave exactly one anchor, one scheme span and unchanged text across two passes', () => {
+      const td = cell('mailto:a@b.com');
+
+      linkifyCell(td, options());
+      linkifyCell(td, options());
+
+      expect(td.querySelectorAll('a').length).toBe(1);
+      expect(td.querySelectorAll(`.${LINK_SCHEME_CLASS_NAME}`).length).toBe(1);
+      expect(td.textContent).toBe('mailto:a@b.com');
+    });
+
+    it('should link a bare domain and a bare email address when `strict` is `false`', () => {
+      const td = cell('see google.com or jane@example.com');
+
+      linkifyCell(td, options({ strict: false }));
+
+      expect(hrefs(td)).toEqual(['https://google.com/', 'mailto:jane@example.com']);
+      expect(td.textContent).toBe('see google.com or jane@example.com');
+
+      // Neither candidate carries a scheme in the text, so there is no prefix to hide: no
+      // `ht-link-scheme` span appears on either anchor.
+      expect(td.querySelectorAll(`.${LINK_SCHEME_CLASS_NAME}`).length).toBe(0);
+    });
+
+    it('should leave a bare domain and a bare email address as plain text when `strict` is `true`', () => {
+      const td = cell('see google.com or jane@example.com');
+
+      linkifyCell(td, options({ strict: true }));
+
+      expect(hrefs(td)).toEqual([]);
+      expect(td.querySelector('a')).toBe(null);
+      expect(td.textContent).toBe('see google.com or jane@example.com');
+    });
+  });
+
+  describe('whole-cell mode', () => {
+    it('should wrap the whole content when the trimmed text is exactly one URL', () => {
+      const td = cell('  https://a.com/x ');
+
+      linkifyCell(td, options({ inline: false }));
+
+      expect(td.querySelectorAll('a').length).toBe(1);
+      expect(td.querySelector('a')?.getAttribute('href')).toBe('https://a.com/x');
+      expect(td.textContent).toBe('  https://a.com/x ');
+    });
+
+    it('should wrap a renderer\'s elements together with the text', () => {
+      const td = cell('<span class="mark">https://a.com/x</span>');
+
+      linkifyCell(td, options({ inline: false }));
+
+      expect(td.firstElementChild?.tagName).toBe('A');
+      expect(td.querySelector('a > span.mark')).not.toBe(null);
+    });
+
+    it('should not link text that holds a URL among other words', () => {
+      const td = cell('see https://a.com/x now');
+
+      linkifyCell(td, options({ inline: false }));
+
+      expect(td.querySelector('a')).toBe(null);
+    });
+
+    it('should not link two URLs', () => {
+      const td = cell('https://a.com/x https://a.com/y');
+
+      linkifyCell(td, options({ inline: false }));
+
+      expect(td.querySelector('a')).toBe(null);
+    });
+
+    it('should not wrap a cell that holds an interactive element, even when the whole text is one URL', () => {
+      // A checkbox whose label is the URL: the trimmed text content is exactly one URL, but wrapping
+      // the whole cell would move the `<input>` inside the anchor and hijack the control.
+      const td = cell('<label>https://a.com/x<input type="checkbox"></label>');
+
+      linkifyCell(td, options({ inline: false }));
+
+      expect(td.querySelector('a')).toBe(null);
+      expect(td.querySelector('input[type="checkbox"]')).not.toBe(null);
+    });
+
+    it('should hide exactly the `tel:` scheme prefix when the trimmed text is a whole-cell URL', () => {
+      const td = cell('  tel:+48123 ');
+
+      linkifyCell(td, options({ inline: false }));
+
+      expect(td.querySelector(`span.${LINK_SCHEME_CLASS_NAME}`)?.textContent).toBe('tel:');
+      expect(td.querySelector('a')?.getAttribute('href')).toBe('tel:+48123');
+      expect(td.textContent).toBe('  tel:+48123 ');
+    });
+
+    it('should wrap the content inside the engine\'s clip wrapper, not the TD, when the row has an exact height', () => {
+      const td = cell(`<div class="${CELL_CLIP_CLASS}">https://a.com/x</div>`);
+
+      linkifyCell(td, options({ inline: false }));
+
+      const wrapper = td.querySelector(`div.${CELL_CLIP_CLASS}`);
+
+      expect(td.childNodes.length).toBe(1);
+      expect(td.firstElementChild).toBe(wrapper);
+      expect(wrapper?.childNodes.length).toBe(1);
+      expect(wrapper?.querySelector('a.ht-auto-link')?.getAttribute('href')).toBe('https://a.com/x');
+
+      // Idempotent across passes: still exactly one wrapper and one anchor, not a wrapper nested
+      // inside a stray second one.
+      linkifyCell(td, options({ inline: false }));
+
+      expect(td.querySelectorAll(`div.${CELL_CLIP_CLASS}`).length).toBe(1);
+      expect(td.querySelectorAll('a.ht-auto-link').length).toBe(1);
+      expect(td.childNodes.length).toBe(1);
+    });
+
+    it('should wrap a whole-cell bare domain when `strict` is `false`', () => {
+      const td = cell('  www.example.com ');
+
+      linkifyCell(td, options({ inline: false, strict: false }));
+
+      expect(td.querySelectorAll('a').length).toBe(1);
+      expect(td.querySelector('a')?.getAttribute('href')).toBe('https://www.example.com/');
+      expect(td.textContent).toBe('  www.example.com ');
+    });
+  });
+});
+
+describe('unlinkifyCell', () => {
+  it('should remove own anchors and leave foreign ones', () => {
+    const td = cell('https://a.com/x');
+
+    linkifyCell(td, options());
+
+    // A foreign anchor appended after the pass, the way an `html` renderer's content would sit.
+    const foreign = document.createElement('a');
+
+    foreign.href = 'https://user.com';
+    foreign.textContent = 'u';
+    td.append(' ', foreign);
+
+    expect(unlinkifyCell(td)).toBe(1);
+    expect(td.querySelectorAll('a').length).toBe(1);
+    expect(td.querySelector('a')?.textContent).toBe('u');
+    expect(td.textContent).toBe('https://a.com/x u');
+  });
+
+  it('should unwrap the scheme span before the anchor and leave one merged plain-text node', () => {
+    const td = cell('mailto:a@b.com');
+
+    linkifyCell(td, options());
+
+    expect(unlinkifyCell(td)).toBe(1);
+    expect(td.querySelector('a')).toBe(null);
+    expect(td.querySelector(`.${LINK_SCHEME_CLASS_NAME}`)).toBe(null);
+    expect(td.childNodes.length).toBe(1);
+    expect(td.textContent).toBe('mailto:a@b.com');
+  });
+});

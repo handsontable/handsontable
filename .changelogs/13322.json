@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a bug where `setDataAtRowProp()` and `setSourceDataAtCell()` reported the previous value of the wrong column when the property was a number and the columns were moved or remapped through `columns[].data`. The `oldValue` passed to `beforeChange`, `afterChange` and `afterSetSourceDataAtCell` now comes from the addressed cell, and undoing such a change restores the original value instead of overwriting the cell with another column's value. Data addressed by a string property was never affected. A numeric property against object-shaped data now reports the value stored under that numeric key (usually `undefined`), which is where the write itself lands.",
+  "type": "fixed",
+  "issueOrPR": 13322,
+  "breaking": false,
+  "framework": "none"
+}

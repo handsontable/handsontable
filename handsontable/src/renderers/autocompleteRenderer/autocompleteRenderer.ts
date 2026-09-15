@@ -3,7 +3,8 @@ import type { CellProperties } from '../../settings';
 import { htmlRenderer } from '../htmlRenderer';
 import { textRenderer } from '../textRenderer';
 import EventManager from '../../eventManager';
-import { addClass, eventTargetEl, hasClass } from '../../helpers/dom/element';
+import { addClass, eventTargetEl, hasClass, getCellContentRoot } from '../../helpers/dom/element';
+import { isLeftClick } from '../../helpers/dom/event';
 import { A11Y_HIDDEN } from '../../helpers/a11y';
 
 export const RENDERER_TYPE: 'autocomplete' = 'autocomplete';
@@ -40,13 +41,17 @@ export function autocompleteRenderer(
   (rendererFunc as (this: unknown, ...args: unknown[]) => void)
     .apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
 
-  if (!TD.firstChild) { // http://jsperf.com/empty-node-if-needed
+  // Written through the content root so an exact-height row's clipping wrapper survives the redraw
+  // and the arrow lands inside it (in-flow content outside the wrapper would grow the row back).
+  const contentRoot = getCellContentRoot(TD);
+
+  if (!contentRoot.firstChild) { // http://jsperf.com/empty-node-if-needed
     // otherwise empty fields appear borderless in demo/renderers.html (IE)
-    TD.appendChild(rootDocument.createTextNode(String.fromCharCode(160))); // workaround for https://github.com/handsontable/handsontable/issues/1946
+    contentRoot.appendChild(rootDocument.createTextNode(String.fromCharCode(160))); // workaround for https://github.com/handsontable/handsontable/issues/1946
     // this is faster than innerHTML. See: https://github.com/handsontable/handsontable/wiki/JavaScript-&-DOM-performance-tips
   }
 
-  TD.insertBefore(ARROW, TD.firstChild);
+  contentRoot.insertBefore(ARROW, contentRoot.firstChild);
 
   addClass(TD, 'htAutocomplete');
 
@@ -55,7 +60,16 @@ export function autocompleteRenderer(
 
     // not very elegant but easy and fast
     hotInstance.acArrowListener = function(event: Event) {
-      if (hasClass(eventTargetEl(event)!, 'htAutocompleteArrow')) {
+      // Only the left button opens the list. Walkontable applies the same button check to its own
+      // double-click-to-open path, and without it a right-click on the arrow opens the editor
+      // alongside the context menu. Walkontable pairs that check with a `touchApplied` escape
+      // hatch; this path needs none, because a tap reaches it only as a compatibility `mousedown`,
+      // which carries `button === 0` like any other left press.
+      if (isLeftClick(event) && hasClass(eventTargetEl(event)!, 'htAutocompleteArrow')) {
+        // The `null` event is load-bearing, not laziness: `EditorManager#openEditor` only applies
+        // its "no editor for a multi-cell selection" default when the event is a `MouseEvent`, so
+        // forwarding the real one here would stop the arrow from opening the list after a
+        // shift-drag range. Changing that is a behavior change, not a cleanup.
         hotInstance.view._wt.getSetting('onCellDblClick', null, hotInstance._createCellCoords(row, col), TD);
       }
     };

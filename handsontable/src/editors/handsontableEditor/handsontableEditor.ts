@@ -67,6 +67,35 @@ export class HandsontableEditor extends TextEditor {
    * @type {boolean}
    */
   isFlippedHorizontally: boolean = false;
+  /**
+   * How the inner grid's current selection came about: `'user'` for an explicit pick (the arrow
+   * keys or a click on a choice), `'auto'` for one the editor derived from the value being typed,
+   * `null` for no selection.
+   *
+   * `finishEditing()` commits the inner grid's value over the typed one, and only the origin tells
+   * the two apart - the selection itself looks the same either way.
+   */
+  protected innerSelectionOrigin: 'user' | 'auto' | null = null;
+
+  /**
+   * The value the inner grid contributes to the commit, or `undefined` to leave the typed value
+   * alone.
+   *
+   * Here that is simply whatever the inner grid has selected: it is selected either by the user or
+   * by `open()`, and both describe the list on screen by construction. `AutocompleteEditor` derives
+   * its selection from the typed value through a DEFERRED query, so its selection can describe
+   * older text than the value being committed, and it overrides this.
+   *
+   * @private
+   * @returns {*}
+   */
+  resolveInnerSelectionValue(): unknown {
+    if (!this.htEditor || !this.htEditor.getSelectedActive()) {
+      return undefined;
+    }
+
+    return this.htEditor.getValue();
+  }
 
   /**
    * Opens the editor and adjust its size.
@@ -97,8 +126,10 @@ export class HandsontableEditor extends TextEditor {
 
     if (this.cellProperties.strict) {
       this.htEditor.selectCell(0, 0);
+      this.innerSelectionOrigin = 'auto';
     } else {
       this.htEditor.deselectCell();
+      this.innerSelectionOrigin = null;
     }
 
     setCaretPosition(this.TEXTAREA, 0, this.TEXTAREA.value.length);
@@ -117,12 +148,64 @@ export class HandsontableEditor extends TextEditor {
    * Closes the editor.
    */
   close(): void {
+    // Deliberately NOT clearing `innerSelectionOrigin` here. `afterSetTheme` calls `close()` without
+    // ending the edit - `state` stays `EDITING` and the inner grid keeps its selection - so clearing
+    // here would throw away a pick the user could still see and had not finished with. (A scroll-out
+    // of the rendered range no longer reaches `close()`; it goes through `hideForScroll()`, which also
+    // preserves the selection.) `open()` sets the origin on every real re-open, which is what resets it.
     if (this.htEditor) {
       this.htEditor.rootElement.style.display = 'none';
     }
 
     this.removeHooksByKey('beforeKeyDown');
     super.close();
+  }
+
+  /**
+   * Hides the nested grid because the edited cell scrolled out of the rendered range, without ending
+   * the edit. Only the display and the `_opened` flag change; the `beforeKeyDown` hook, the shortcut
+   * group, and the nested grid's data and selection are all preserved (unlike {@link HandsontableEditor#close},
+   * which tears them down). This is what lets the list re-show still populated, and typing and arrow
+   * navigation keep working, after a scroll round-trip.
+   *
+   * @private
+   * @returns {boolean} Always `true` - the hide is transient and the layer must be re-shown on scroll-back.
+   */
+  hideForScroll(): boolean {
+    this._opened = false;
+    this.hideEditableElement();
+
+    if (this.htEditor) {
+      this.htEditor.rootElement.style.display = 'none';
+    }
+
+    return true;
+  }
+
+  /**
+   * Re-shows the nested grid after the edited cell scrolled back into the rendered range, re-anchoring
+   * it to the cell. The grid's data and selection were preserved by {@link HandsontableEditor#hideForScroll},
+   * so nothing is reloaded here.
+   *
+   * @private
+   */
+  showAfterScroll(): void {
+    if (this.htEditor) {
+      this.htEditor.rootElement.style.display = '';
+      this.reflowDropdown();
+    }
+  }
+
+  /**
+   * Re-anchors the re-shown dropdown to the edited cell's new viewport position. Split from
+   * {@link HandsontableEditor#showAfterScroll} so {@link AutocompleteEditor} can re-measure the list to
+   * its choices before the flip pass reads its size.
+   *
+   * @private
+   */
+  reflowDropdown(): void {
+    this.flipDropdownVerticallyIfNeeded();
+    this.flipDropdownHorizontallyIfNeeded();
   }
 
   /**
@@ -142,6 +225,9 @@ export class HandsontableEditor extends TextEditor {
 
     const { hot } = this;
     const setValue = this.setValue.bind(this);
+    const markUserPick = () => {
+      this.innerSelectionOrigin = 'user';
+    };
     const options: Record<string, unknown> = {
       startRows: 0,
       startCols: 0,
@@ -163,6 +249,8 @@ export class HandsontableEditor extends TextEditor {
         }
 
         const sourceValue = this.getDataAtCell(coords.row, coords.col);
+
+        markUserPick();
 
         // if the value is undefined then it means we don't want to set the value
         if (sourceValue !== undefined) {
@@ -223,12 +311,10 @@ export class HandsontableEditor extends TextEditor {
       this.hot.listen(); // return the focus to the parent HOT instance
     }
 
-    if (this.htEditor && this.htEditor.getSelectedActive()) {
-      const value = this.htEditor.getValue();
+    const innerValue = this.resolveInnerSelectionValue();
 
-      if (value !== undefined) { // if the value is undefined then it means we don't want to set the value
-        this.setValue(value);
-      }
+    if (innerValue !== undefined) { // if the value is undefined then it means we don't want to set the value
+      this.setValue(innerValue);
     }
 
     super.finishEditing(restoreOriginalValue, ctrlDown, callback);
@@ -458,8 +544,10 @@ export class HandsontableEditor extends TextEditor {
       if (rowToSelect !== undefined) {
         if (rowToSelect < 0 || (this.isFlippedVertically && rowToSelect > innerHOT.countRows() - 1)) {
           innerHOT.deselectCell();
+          this.innerSelectionOrigin = null;
         } else {
           innerHOT.selectCell(rowToSelect, 0);
+          this.innerSelectionOrigin = 'user';
         }
         if (innerHOT.getData().length) {
           event.preventDefault();
@@ -497,7 +585,7 @@ export class HandsontableEditor extends TextEditor {
 
         return action(rowToSelect, event);
       },
-      preventDefault: false, // Doesn't block default behaviour (navigation) for a `textArea` HTMLElement.
+      preventDefault: false, // Doesn't block default behavior (navigation) for a `textArea` HTMLElement.
     }, {
       keys: [['ArrowDown']],
       callback: (event: KeyboardEvent) => {
@@ -524,7 +612,7 @@ export class HandsontableEditor extends TextEditor {
 
         return action(rowToSelect, event);
       },
-      preventDefault: false, // Doesn't block default behaviour (navigation) for a `textArea` HTMLElement.
+      preventDefault: false, // Doesn't block default behavior (navigation) for a `textArea` HTMLElement.
     }], contextConfig);
   }
 

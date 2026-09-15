@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed a grid with no `height` set rendering taller than its own container when the browser zoom or the system display scaling was below 100%, which made the bottom rows overlap the element under the grid and cut off the last row headers.",
+  "type": "fixed",
+  "issueOrPR": 6280,
+  "breaking": false,
+  "framework": "none"
+}

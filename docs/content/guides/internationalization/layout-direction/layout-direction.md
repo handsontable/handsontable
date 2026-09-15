@@ -323,11 +323,11 @@ In the example below, some columns are explicitly aligned to the left, center, o
 :::
 
 You can apply the horizontal text alignment settings to:
-- [The entire grid](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), by setting [`className`](@/api/options.md#classname) on the global level
-- [Individual columns](@/guides/getting-started/configuration-options/configuration-options.md#set-column-options), by setting [`className`](@/api/options.md#classname) on the column level
-- [Individual rows](@/guides/getting-started/configuration-options/configuration-options.md#set-row-options), by setting [`className`](@/api/options.md#classname) using the [`cells`](@/api/options.md#cells) option's callback
-- [Individual cells](@/guides/getting-started/configuration-options/configuration-options.md#set-cell-options), by setting [`className`](@/api/options.md#classname) on the cell level
-- [Individual grid elements, based on any logic you implement](@/guides/getting-started/configuration-options/configuration-options.md#implement-custom-logic), by setting [`className`](@/api/options.md#classname) using the [`cells`](@/api/options.md#cells) option's callback
+- [The entire grid](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options), by setting [`className`](@/api/options.md#classname) on the global level
+- [Individual columns](@/guides/configuration/configuration-options/configuration-options.md#set-column-options), by setting [`className`](@/api/options.md#classname) on the column level
+- [Individual rows](@/guides/configuration/configuration-options/configuration-options.md#set-row-options), by setting [`className`](@/api/options.md#classname) using the [`cells`](@/api/options.md#cells) option's callback
+- [Individual cells](@/guides/configuration/configuration-options/configuration-options.md#set-cell-options), by setting [`className`](@/api/options.md#classname) on the cell level
+- [Individual grid elements, based on any logic you implement](@/guides/configuration/configuration-options/configuration-options.md#implement-custom-logic), by setting [`className`](@/api/options.md#classname) using the [`cells`](@/api/options.md#cells) option's callback
 
 ## Related articles
 

@@ -32,6 +32,8 @@ The Loading plugin provides a loading overlay for Handsontable using the [Dialog
 
 With simplicity and effectiveness in mind, the loading plugin was designed to provide a consistent user experience with customizable appearance and behavior. It requires the [Dialog](@/api/dialog.md) plugin to be enabled to function properly.
 
+Because it renders through the Dialog plugin, it works on the main grid only. A grid nested in a cell, that is a cell of the [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md), [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), or [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cell type, has no overlay layer, so the [`loading`](@/api/options.md#loading) option has no effect there.
+
 ## Basic configuration
 
 To enable the Loading plugin, set the [`loading`](@/api/options.md#loading) option to `true` or provide a configuration object.

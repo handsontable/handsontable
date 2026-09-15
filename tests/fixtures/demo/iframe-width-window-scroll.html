@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cross-realm width-only grid e2e fixture</title>
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 0; }
+    /* The iframe is the grid's realm. Its own page scrolls the rows. */
+    #frame { width: 900px; height: 400px; border: 0; display: block; }
+  </style>
+</head>
+<body>
+  <!--
+    The grid's DOM lives in the IFRAME, but the `Handsontable` constructor that
+    builds it is the PARENT's. Every node the engine touches therefore comes
+    from another realm, where `node instanceof HTMLElement` is false against the
+    parent's constructor. The layout is the same width-only split mode as
+    `width-window-scroll.html`: a definite `width`, no `height`, so the root owns
+    the horizontal axis and the iframe's own window owns the vertical one.
+  -->
+  <iframe id="frame" data-testid="frame"></iframe>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const data = Array.from({ length: 200 }, (_, r) =>
+      Array.from({ length: 30 }, (_, c) => `R${r + 1}C${c + 1}`));
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    window.ready = false;
+    window.scrollHookCounts = { horizontal: 0, vertical: 0 };
+
+    /**
+     * Loads one stylesheet into the iframe document and resolves when it applied.
+     * The grid is measured at construction, so a link that has not applied yet
+     * would size every row and column from an unthemed table.
+     */
+    function loadStyle(doc, href) {
+      return new Promise((resolve, reject) => {
+        const link = doc.createElement('link');
+
+        link.rel = 'stylesheet';
+        link.href = href;
+        link.addEventListener('load', resolve);
+        link.addEventListener('error', () => reject(new Error(`failed to load ${href}`)));
+        doc.head.appendChild(link);
+      });
+    }
+
+    /**
+     * Builds (or rebuilds) the grid INSIDE the iframe, from the parent realm.
+     */
+    window.initGrid = async function(overrides = {}) {
+      const frame = document.getElementById('frame');
+      const doc = frame.contentDocument;
+
+      if (window.hot) {
+        window.hot.destroy();
+        window.hot = undefined;
+      }
+
+      window.ready = false;
+      window.scrollHookCounts = { horizontal: 0, vertical: 0 };
+      doc.open();
+      doc.write('<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body></body></html>');
+      doc.close();
+
+      // `doc.open()` replaces the document, so the styles go in after it, not before.
+      await Promise.all([
+        loadStyle(doc, '/handsontable/styles/handsontable.min.css'),
+        loadStyle(doc, `/handsontable/styles/ht-theme-${window.htTheme}.min.css`),
+      ]);
+
+      doc.body.style.margin = '0';
+
+      const grid = doc.createElement('div');
+
+      grid.id = 'grid';
+      grid.setAttribute('data-testid', 'grid');
+      grid.className = `ht-theme-${window.htTheme}`;
+      doc.body.appendChild(grid);
+
+      // The constructor is the PARENT's; the container is the IFRAME's. That is
+      // the whole point of the fixture.
+      window.hot = new Handsontable(grid, {
+        data,
+        width: 500,
+        fixedRowsTop: 2,
+        fixedColumnsStart: 2,
+        rowHeaders: true,
+        colHeaders: true,
+        renderer: testIdRenderer,
+        licenseKey: 'non-commercial-and-evaluation',
+        // These fire from the engine's per-frame scroll-direction flags, which come straight from
+        // the scroll offsets read off each axis' owner. An owner the engine cannot read reports a
+        // motionless axis, so the hook simply never fires.
+        afterScrollHorizontally() {
+          window.scrollHookCounts.horizontal += 1;
+        },
+        afterScrollVertically() {
+          window.scrollHookCounts.vertical += 1;
+        },
+        ...overrides,
+      });
+      window.frameDoc = doc;
+      window.frameWin = frame.contentWindow;
+      window.ready = true;
+
+      return true;
+    };
+
+    window.initGrid();
+  </script>
+</body>
+</html>

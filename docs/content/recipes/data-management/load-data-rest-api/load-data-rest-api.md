@@ -330,7 +330,7 @@ The first two examples manage the fetch lifecycle yourself: you call `loadData()
 - Slicing rows in `fetchRows` using the `page` and `pageSize` query parameters.
 - Enabling `pagination`, `columnSorting`, and `emptyDataState` so the plugin drives navigation and loading overlays.
 - Using `beforeDataProviderFetch`, `afterDataProviderFetch`, and `afterDataProviderFetchError` hooks for status feedback.
-- Passing an `AbortSignal` to `fetch` so superseded requests are cancelled automatically.
+- Passing an `AbortSignal` to `fetch` so superseded requests are canceled automatically.
 
 ## When to use each approach
 
@@ -415,7 +415,7 @@ async fetchRows({ page, pageSize, sort }, { signal }) {
 - `page` -- 1-based page index driven by the Pagination plugin.
 - `pageSize` -- rows per page; matches `pagination: { pageSize: 5 }` in grid options.
 - `sort` -- `{ prop, order }` object when a column header is sorted, or `null` when unsorted.
-- `{ signal }` -- AbortSignal from the plugin. Pass it to your `fetch` call so superseded requests are cancelled.
+- `{ signal }` -- AbortSignal from the plugin. Pass it to your `fetch` call so superseded requests are canceled.
 - Return `{ rows, totalRows }`. `totalRows` is the unsliced count -- the Pagination plugin uses it to calculate the page count and navigation controls.
 
 ## Step 4: Apply sort from query parameters
