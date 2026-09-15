@@ -98,3 +98,21 @@ test('a capture missing from any render is a failed verdict, not a footnote', ()
   // The default keeps every existing caller's behavior.
   assert.deepEqual(verdictLine([0, 0]), clean);
 });
+
+test('a matrix that photographed nothing at all fails, where every other signal reads zero', () => {
+  // The corner `missing` cannot cover: it is derived from the union of what the runs produced, so if
+  // every render died before its first capture the union is empty, nothing is "missing from at least
+  // one run", and each pair compares two empty directories for 0 changed under `-I`. Every number in
+  // the report is then legitimately zero and the run would have exited 0 saying the gate would pass.
+  const nothing = verdictLine([0, 0], { missing: 0, captures: 0 });
+
+  assert.equal(nothing.failed, true);
+  assert.match(nothing.line, /no captures at all/);
+  assert.match(nothing.line, /Read the render jobs/);
+  assert.doesNotMatch(nothing.line, /passed every pair/);
+
+  // One capture is enough to go back to judging the comparison on its merits.
+  assert.equal(verdictLine([0, 0], { missing: 0, captures: 1 }).failed, false);
+  // And an unknown count keeps the old behavior for a caller that does not pass one.
+  assert.equal(verdictLine([0, 0], { missing: 0 }).failed, false);
+});

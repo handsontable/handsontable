@@ -114,13 +114,29 @@ export function byteStability(runs, hashOf, listPngs = pngsUnder) {
  * the count is 0. `missing` — captures absent from at least one run, which the byte-stability table
  * above already lists — is therefore part of the verdict rather than table decoration.
  *
+ * `missing` alone does not cover the total failure, because it is derived from the union of what the
+ * runs produced: when every render dies before photographing anything, that union is empty, nothing is
+ * "missing from at least one run", every pair compares two empty directories, and `-I` makes reg-cli
+ * exit 0 on all of it. `captures` is the count of that union, so the one case where every other signal
+ * is legitimately zero still fails.
+ *
  * @param {Array<number | null>} changedPerPair Per-pair differing-item counts, `null` for a pair reg-cli
  * could not compare.
  * @param {object} [options] Extra signals.
  * @param {number} [options.missing] How many captures are absent from at least one run.
+ * @param {number | null} [options.captures] How many distinct captures the runs produced between them;
+ * `null` when the caller does not know.
  * @returns {{ line: string, failed: boolean }} The Markdown line and whether the run should be red.
  */
-export function verdictLine(changedPerPair, { missing = 0 } = {}) {
+export function verdictLine(changedPerPair, { missing = 0, captures = null } = {}) {
+  if (captures === 0) {
+    return {
+      line: '**Verdict: no captures at all — every render failed before it photographed anything, so this '
+        + 'matrix measured nothing. Read the render jobs, not this table.**',
+      failed: true,
+    };
+  }
+
   const errored = changedPerPair.filter(c => c === null).length;
   const changed = changedPerPair.reduce((sum, c) => sum + (c ?? 0), 0);
 

@@ -123,7 +123,10 @@ if (!process.argv[2]) {
     // exits 0 under `-I` whatever it finds, so a matrix whose renders died early would otherwise read
     // "the gate would have passed every pair" with a byte-stability table full of "missing in".
     const missing = unstable.filter(entry => entry.missingIn.length > 0).length;
-    const { line, failed } = verdictLine(changedPerPair, { missing });
+    // `files` is the union of what the runs produced. Zero means every render died before it
+    // photographed anything, and that is the one shape where `missing` is also zero (nothing can be
+    // absent from a set nobody filled) and every pair compares two empty directories for 0 changed.
+    const { line, failed } = verdictLine(changedPerPair, { missing, captures: files.length });
 
     console.log('');
     console.log(line);
