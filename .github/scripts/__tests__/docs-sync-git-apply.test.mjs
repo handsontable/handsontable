@@ -199,3 +199,47 @@ test('hasForeignCommits is true for a spoofed committer email without a cherry-p
     rmSync(f.root, { recursive: true, force: true });
   }
 });
+
+test('applyCommits strips ClickUp task ids from the picked commit message but keeps the -x trailer', () => {
+  const root = mkdtempSync(path.join(tmpdir(), 'docs-sync-git-id-'));
+  const env = {
+    ...process.env,
+    GIT_DIR: undefined,
+    GIT_AUTHOR_NAME: 'Author', GIT_AUTHOR_EMAIL: 'author@example.com',
+    GIT_COMMITTER_NAME: 'Author', GIT_COMMITTER_EMAIL: 'author@example.com',
+  };
+  const run = (args) => execFileSync('git', args, { cwd: root, encoding: 'utf8', env }).trim();
+  const write = (rel, text) => {
+    mkdirSync(path.dirname(path.join(root, rel)), { recursive: true });
+    writeFileSync(path.join(root, rel), text);
+  };
+
+  try {
+    run(['init', '-q', '-b', 'develop']);
+    write('docs/content/a.md', 'a v1\n');
+    run(['add', '-A']);
+    run(['commit', '-q', '-m', 'base']);
+    run(['branch', 'prod']);
+    write('docs/content/a.md', 'a v2\n');
+    run(['commit', '-q', '-am', 'DEV-2894: Americanize spelling (#9)']);
+    const sha = run(['rev-parse', 'HEAD']);
+
+    resetSyncBranch(root, 'docs-sync/prod', 'prod');
+    const { applied } = applyCommits(root, [sha]);
+
+    assert.deepEqual(applied, [sha]);
+
+    const message = git(root, ['log', '-1', '--format=%B', 'HEAD']);
+
+    // The task id is gone, the leading `: ` it left is cleaned, the source pull
+    // request number stays, and the -x provenance trailer survives.
+    assert.doesNotMatch(message, /DEV-2894/);
+    assert.equal(message.split('\n')[0], 'Americanize spelling (#9)');
+    assert.match(message, /cherry picked from commit [0-9a-f]{7,40}/);
+
+    // The bot committer + trailer still read as a bot pick, not a foreign commit.
+    assert.equal(hasForeignCommits(root, 'prod', 'docs-sync/prod'), false);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});

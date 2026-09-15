@@ -67,6 +67,7 @@ function createFixture(): Fixture {
     shouldPaintCell,
     cellRenderer: jest.fn(),
     isAriaEnabled: () => false,
+    paintFromRow: 0,
     hasStableCellIdentity: () => state.recyclable,
     isRowRecyclingAllowed: () => state.scrollDriven && state.recyclable,
   } as unknown as TableRenderer;

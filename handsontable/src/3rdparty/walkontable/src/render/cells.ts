@@ -65,6 +65,11 @@ export class CellsRenderer extends BaseRenderer {
   render() {
     const { rowsToRender, columnsToRender, rows, rowHeaders } = this.table;
     const { rowFilter, columnFilter, activeOverlayName } = this.table;
+    // The rows before the window are not touched at all — not even their order view runs — because
+    // the row-headers renderer skips the same rows and the two share one size set per TR
+    // (`SharedOrderView`); running either one alone would resize the TR's children without the
+    // other's count.
+    const { paintFromRow } = this.table;
     // The identity of the rendered band, part of what the host compares against an element's last
     // paint (`shouldPaintCell`): the overlay with the band's offsets and sizes. Where the rows recycle
     // the host is also offered the stable identity, the overlay name alone: a cell's own source
@@ -78,7 +83,7 @@ export class CellsRenderer extends BaseRenderer {
     ].join(',');
     const stableBand = this.table.hasStableCellIdentity() ? activeOverlayName : null;
 
-    for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
+    for (let visibleRowIndex = paintFromRow; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
       const TR = rows!.getRenderedNode(visibleRowIndex);
 

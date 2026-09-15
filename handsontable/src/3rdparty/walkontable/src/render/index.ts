@@ -113,6 +113,19 @@ class Renderer {
   }
 
   /**
+   * Restricts the next render's cell and row-header repaint to the rows at and after
+   * `fromVisibleRow` (see `TableRenderer#setPaintWindow`).
+   *
+   * @param {number} fromVisibleRow The first visible row index to repaint; `0` repaints the whole band.
+   * @returns {Renderer}
+   */
+  setPaintWindow(fromVisibleRow: number) {
+    this.renderer.setPaintWindow(fromVisibleRow);
+
+    return this;
+  }
+
+  /**
    * Marks this draw as one where the column-header (THEAD) pass may be skipped when the column render
    * window is unchanged (a pure vertical scroll).
    *

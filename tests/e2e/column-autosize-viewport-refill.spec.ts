@@ -23,6 +23,8 @@ test.describe('viewport refill after the rendered rows shrink', () => {
     await expect.poll(() => grid.columnHeaderWidth(2)).toBeLessThanOrEqual(41);
     await expect.poll(() => grid.renderedRowCount()).toBeLessThanOrEqual(6);
 
+    const paintsBefore = await grid.paintCounters();
+
     await grid.autosizeColumnByDoubleClick(2);
 
     // The autosize itself is not under test, only its consequence — but the assertion below is
@@ -30,13 +32,17 @@ test.describe('viewport refill after the rendered rows shrink', () => {
     await expect.poll(() => grid.columnHeaderWidth(2)).toBeGreaterThan(200);
 
     await grid.expectViewportFilled();
+    await grid.expectOnePaintPerDrawSince(paintsBefore);
   });
 
   test('replacing the long values with short ones fills the viewport with rows', async () => {
     await expect.poll(() => grid.renderedRowCount()).toBeLessThanOrEqual(6);
 
+    const paintsBefore = await grid.paintCounters();
+
     await grid.shortenTexts();
 
     await grid.expectViewportFilled();
+    await grid.expectOnePaintPerDrawSince(paintsBefore);
   });
 });

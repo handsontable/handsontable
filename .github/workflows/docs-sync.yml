@@ -7,13 +7,12 @@ name: Sync Docs Content to Production
 # to the released version; everything else is deterministic and unit-tested.
 # Script: .github/scripts/docs-sync.mjs (run it locally with --dry-run).
 on:
-  # 06:00 UTC, Mon-Fri. Nothing merges to develop on weekends, so a weekend run
-  # would only re-derive Friday's empty report.
-  # Rollout step 1 (see the spec): the schedule is enabled in a follow-up pull
-  # request after a manual dry run with lint and a review of the classifier's
-  # decisions with the docs team.
-  # schedule:
-  #   - cron: '0 6 * * 1-5'
+  # 05:00 UTC, Mon-Fri = 06:00 Warsaw in winter (CET) / 07:00 in summer (CEST).
+  # GitHub cron is UTC-only and cannot track DST, so 05:00 UTC keeps it at 06:00
+  # local during standard time. Nothing merges to develop on weekends, so a
+  # weekend run would only re-derive Friday's empty report.
+  schedule:
+    - cron: '0 5 * * 1-5'
   workflow_dispatch:
     inputs:
       dry_run:
@@ -25,11 +24,23 @@ on:
         type: string
         default: ''
 
-# The job needs to push a branch and open a pull request, and pull requests
-# opened with GITHUB_TOKEN do not trigger `pull_request` workflows, so the sync
-# pull request would get no docs lint, no build, and no preview. The release
-# GitHub App token is used instead, and GITHUB_TOKEN gets nothing.
-permissions: {}
+# The job pushes a branch, opens/updates a pull request, applies the `docs-sync`
+# labels, and posts a hold comment. It uses the built-in GITHUB_TOKEN with these
+# scopes granted per-workflow -- `issues: write` is the Issues API, which both
+# labels and issue comments need -- so there is no separate GitHub App to install
+# or keep permissioned (handsontable/examples' import workflows open their bot
+# pull requests the same way). Trade-off: a pull request opened by GITHUB_TOKEN
+# does not trigger `pull_request` workflows, so the sync pull request gets no CI
+# (docs lint, build, preview); there is no run to "re-run" -- a maintainer closes
+# and reopens the pull request, or pushes a commit, to fire CI. Accepted here.
+# Pre-flight for the first live run: Settings -> Actions -> General -> "Allow
+# GitHub Actions to create and approve pull requests" must be on (repo AND org);
+# the `permissions:` block does not override that toggle, and `gh pr create`
+# 403s without it.
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
 
 concurrency:
   group: docs-sync
@@ -41,25 +52,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - name: Mint GitHub App token
-        id: app-token
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # https://github.com/actions/create-github-app-token/releases/tag/v3.2.0
-        with:
-          client-id: ${{ secrets.RELEASE_APP_CLIENT_ID }}
-          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
-
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
         with:
           ref: develop
           fetch-depth: 0
-          # The script sets its own push credentials from GH_TOKEN; the checkout
-          # must not leave GITHUB_TOKEN in .git/config where it would be used
-          # instead.
+          # The script sets its own push credentials from GH_TOKEN below; the
+          # checkout must not leave a different token in .git/config where it
+          # would be used instead.
           persist-credentials: false
 
-      - name: Point pushes at the App token
+      - name: Point pushes at GITHUB_TOKEN
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_TOKEN: ${{ github.token }}
         run: git remote set-url --push origin "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
 
       - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
@@ -77,7 +81,7 @@ jobs:
 
       - name: Sync
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           LITELLM_BASE_URL: ${{ secrets.LITELLM_BASE_URL }}
           LITELLM_API_KEY: ${{ secrets.LITELLM_API_KEY }}

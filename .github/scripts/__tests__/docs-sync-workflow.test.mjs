@@ -10,12 +10,13 @@ import { repoRoot } from '../lib/repo-root.mjs';
 // fork-guards.test.mjs pins the guard expressions.
 const source = readFileSync(path.join(repoRoot(), '.github/workflows/docs-sync.yml'), 'utf8');
 
-test('the weekday schedule is landed disabled, pending rollout step 1, with manual dispatch live and defaulting to dry run', () => {
-  // Commented out, not removed: the cron expression stays reviewable and a
-  // follow-up pull request re-enables it by uncommenting these two lines.
-  assert.match(source, /^\s*#\s*schedule:\n\s*#\s*- cron: '0 6 \* \* 1-5'/m);
+test('the weekday schedule is live at 05:00 UTC, with manual dispatch defaulting to a dry run', () => {
+  // Enabled (not commented): the daily run is the rollout's live trigger.
+  assert.match(source, /^\s*schedule:\n\s*- cron: '0 5 \* \* 1-5'/m);
+  assert.doesNotMatch(source, /#\s*- cron:/);
   assert.match(source, /^\s*workflow_dispatch:\s*$/m);
   assert.match(source, /dry_run:[\s\S]*?type: boolean[\s\S]*?default: true/);
+  // A scheduled run is never a dry run; a manual dispatch defaults to one.
   assert.match(
     source,
     /DRY_RUN: \$\{\{ github\.event_name == 'workflow_dispatch' && inputs\.dry_run \|\| 'false' \}\}/,
@@ -29,18 +30,21 @@ test('is named distinctly from the examples sync and the production deploy', () 
   assert.match(source, /^name: Sync Docs Content to Production$/m);
 });
 
-test('uses the release GitHub App token and never GITHUB_TOKEN', () => {
-  assert.match(source, /actions\/create-github-app-token@/);
-  assert.match(source, /client-id: \$\{\{ secrets\.RELEASE_APP_CLIENT_ID \}\}/);
-  assert.match(source, /private-key: \$\{\{ secrets\.RELEASE_APP_PRIVATE_KEY \}\}/);
-  assert.doesNotMatch(source, /secrets\.GITHUB_TOKEN/);
-  assert.doesNotMatch(source, /github\.token/);
-  assert.match(source, /GH_TOKEN: \$\{\{ steps\.app-token\.outputs\.token \}\}/);
+test('uses the built-in GITHUB_TOKEN, not a GitHub App', () => {
+  // Same approach as handsontable/examples: GITHUB_TOKEN with the scopes granted
+  // per-workflow, so there is no App to install or keep permissioned.
+  assert.doesNotMatch(source, /create-github-app-token/);
+  assert.doesNotMatch(source, /RELEASE_APP/);
+  // Both sites -- the push remote and the Sync step -- must carry it; a positive
+  // match on one would stay green if the other were dropped.
+  assert.equal((source.match(/GH_TOKEN: \$\{\{ github\.token \}\}/g) ?? []).length, 2);
   assert.match(source, /persist-credentials: false/);
 });
 
-test('declares no default permissions and one concurrency group', () => {
-  assert.match(source, /^permissions: \{\}$/m);
+test('grants the write scopes the token needs, including issues for labels', () => {
+  // `issues: write` is load-bearing -- labels are the Issues API, and the run
+  // creates the `docs-sync` labels and applies one to its pull request.
+  assert.match(source, /^permissions:\n\s+contents: write\n\s+pull-requests: write\n\s+issues: write$/m);
   assert.match(source, /concurrency:\n\s+group: docs-sync\n\s+cancel-in-progress: false/);
 });
 
