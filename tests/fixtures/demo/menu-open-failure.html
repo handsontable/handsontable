@@ -31,17 +31,20 @@
 </head>
 <body>
   <!--
-    DEV-41 / DEV-2922. A dropdown menu item whose `name()` throws.
+    DEV-41 / DEV-2922. A dropdown menu and a context menu sharing one item whose `name()` misbehaves.
 
     `name` as a function is a public menu-item feature, and the menu calls it while RENDERING the
-    items — that is, inside `hotMenu.init()`, after `Menu.open()` has already set `this.hotMenu`
-    (which is all `isOpened()` reads) and before it creates the navigator. A throw in that window
-    used to leave the menu "open" for good: every later document `mousedown` reached `close()` and
-    died on the missing navigator, the menu could never be opened again, and `destroy()` threw too,
-    so the document listener leaked past an SPA page change.
+    items — that is, inside `hotMenu.init()`, while `Menu.open()` is still building the menu and
+    before it creates the navigator. `isOpened()` used to be `this.hotMenu !== null`, so it already
+    said `true` in that window. A throw there left the menu "open" for good: every later document
+    `mousedown` reached `close()` and died on the missing navigator, the menu could never be opened
+    again, and `destroy()` threw too, so the document listener leaked past an SPA page change.
 
-    The throw is switchable at runtime so one test can prove the page RECOVERS — a fixture that
-    could only ever throw would leave "no errors" and "nothing works any more" indistinguishable.
+    The item's behavior is switchable at runtime (`htItemMode`). Throwing is one way into the window;
+    the other modes reach into it WITHOUT a throw — asking the menu about itself, closing it, or
+    opening it again — which is the rest of the bug class. Switchable also lets one test prove the
+    page RECOVERS: a fixture that could only ever throw would leave "no errors" and "nothing works
+    any more" indistinguishable.
   -->
   <div id="spacer"></div>
   <div id="grid" data-testid="grid"></div>
@@ -56,11 +59,93 @@
 
     container.className = `ht-theme-${window.htTheme}`;
 
-    /** Flipped by the page object. While true, the menu item below throws as it renders. */
-    window.htMenuShouldThrow = true;
+    /**
+     * What the menu item below does each time its menu paints it. Set by the page object.
+     *
+     * - `throw`  - throws: the DEV-41 trigger. The default, so the failed-open tests need no setup.
+     * - `none`   - paints normally.
+     * - `probe`  - records what the owning menu reports about itself at that moment.
+     * - `close`  - asks the owning plugin to close the menu, once.
+     * - `reopen` - asks the owning plugin to open the menu again, once.
+     */
+    window.htItemMode = 'throw';
+
+    /** Which plugin's menu the page object opened, so the item knows which menu to reach into. */
+    window.htMenuPlugin = 'dropdownMenu';
+
+    /** One entry per `probe` paint: what `isOpened()` said, and whether the menu could be driven. */
+    window.htProbes = [];
+
+    /** Every public show/hide hook of the menu under test, with what `isOpened()` said inside it. */
+    window.htHookLog = [];
 
     /** The message the item throws, asserted on so the rethrow is proven to survive the rollback. */
     window.HT_MENU_ITEM_ERROR = 'DEV-41 fixture: menu item name() failed';
+
+    /**
+     * The item's `name()`. `name` as a function is a public menu-item feature, and the menu calls
+     * it while PAINTING the item - the first paint happens inside `open()`, while the menu grid is
+     * still being built, which is the window every mode here reaches into.
+     *
+     * @returns {string}
+     */
+    function itemName() {
+      const mode = window.htItemMode;
+      const plugin = window.hot.getPlugin(window.htMenuPlugin);
+
+      if (mode === 'throw') {
+        throw new Error(window.HT_MENU_ITEM_ERROR);
+      }
+
+      if (mode === 'probe') {
+        const menu = plugin.menu;
+
+        window.htProbes.push({
+          isOpened: menu.isOpened(),
+          canDrive: menu.getNavigator() !== null && menu.getKeyboardShortcutsCtrl() !== null,
+        });
+      }
+
+      if (mode === 'close') {
+        window.htItemMode = 'none';
+        plugin.close();
+      }
+
+      if (mode === 'reopen') {
+        window.htItemMode = 'none';
+        plugin.open({ top: 0, left: 0 });
+      }
+
+      return 'Recovered item';
+    }
+
+    /**
+     * Records one public show/hide hook, but only for the menu under test.
+     *
+     * @param {string} pluginName The plugin the hook belongs to.
+     * @param {string} event A short name for the hook.
+     */
+    function logHook(pluginName, event) {
+      if (pluginName !== window.htMenuPlugin) {
+        return;
+      }
+
+      window.htHookLog.push({ event, isOpened: window.hot.getPlugin(pluginName).menu.isOpened() });
+    }
+
+    /**
+     * A fresh item list per plugin - the two menus must not share item objects.
+     *
+     * @returns {object}
+     */
+    function menuItems() {
+      return {
+        items: {
+          safe_item: { name: 'Safe item' },
+          exploding_item: { name: itemName },
+        },
+      };
+    }
 
     const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
       Handsontable.renderers.TextRenderer.apply(this, arguments);
@@ -85,20 +170,14 @@
             TH.setAttribute('data-testid', `header-${column}`);
           }
         },
-        dropdownMenu: {
-          items: {
-            safe_item: { name: 'Safe item' },
-            exploding_item: {
-              name() {
-                if (window.htMenuShouldThrow) {
-                  throw new Error(window.HT_MENU_ITEM_ERROR);
-                }
-
-                return 'Recovered item';
-              },
-            },
-          },
-        },
+        dropdownMenu: menuItems(),
+        contextMenu: menuItems(),
+        beforeDropdownMenuShow: () => logHook('dropdownMenu', 'beforeShow'),
+        afterDropdownMenuShow: () => logHook('dropdownMenu', 'afterShow'),
+        afterDropdownMenuHide: () => logHook('dropdownMenu', 'afterHide'),
+        beforeContextMenuShow: () => logHook('contextMenu', 'beforeShow'),
+        afterContextMenuShow: () => logHook('contextMenu', 'afterShow'),
+        afterContextMenuHide: () => logHook('contextMenu', 'afterHide'),
         licenseKey: 'non-commercial-and-evaluation',
       });
     } catch (error) {
@@ -109,21 +188,40 @@
      * Stop the menu item from throwing, so a later open can succeed.
      */
     window.htStopThrowing = () => {
-      window.htMenuShouldThrow = false;
+      window.htItemMode = 'none';
     };
 
     /**
-     * What the dropdown menu believes about itself. `isOpened()` is the exact invariant DEV-41
+     * Pick what the item does on its next paints, and which plugin's menu it reaches into.
+     *
+     * @param {string} mode One of the modes documented on `htItemMode`.
+     * @param {string} pluginName `dropdownMenu` or `contextMenu`.
+     */
+    window.htSetItemMode = (mode, pluginName) => {
+      window.htItemMode = mode;
+      window.htMenuPlugin = pluginName;
+    };
+
+    /**
+     * What the menu under test believes about itself. `isOpened()` is the exact invariant DEV-41
      * broke, and it is not observable from the DOM alone: the stranded menu kept `hotMenu` set
      * while its container was already hidden.
      */
     window.htMenuState = () => {
-      const menu = window.hot.getPlugin('dropdownMenu').menu;
+      const menu = window.hot.getPlugin(window.htMenuPlugin).menu;
 
       return {
         isOpened: menu ? menu.isOpened() : null,
         containerDisplay: menu ? menu.container.style.display : null,
       };
+    };
+
+    /**
+     * Paint the open menu again. The default `renderMode` is `'always'`, so this calls every item's
+     * `name()` once more - with the menu fully open this time, which is the probe's positive control.
+     */
+    window.htRepaintMenu = () => {
+      window.hot.getPlugin(window.htMenuPlugin).menu.hotMenu.render();
     };
 
     /**

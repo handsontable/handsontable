@@ -148,3 +148,117 @@ test.describe('a menu item that throws while the menu is opening', () => {
     await expect.poll(() => pageErrors).toEqual([]);
   });
 });
+
+/**
+ * The rest of the bug class, reached WITHOUT a throw.
+ *
+ * `isOpened()` used to be `this.hotMenu !== null`, and `open()` assigns `hotMenu` before it builds
+ * the menu, so for the whole build it said `true` about a menu with no navigator and no keyboard
+ * controller yet. Anything that ran in that window and trusted the answer acted on a menu that was
+ * not there — a throw is one way in, and these are the others. `isOpened()` now turns true only
+ * once the menu is fully built, and the plugins' "is a menu already in play" guards ask the new
+ * `isClosed()` instead.
+ *
+ * Two of the tests pin what did NOT change, which is how this stays a non-breaking fix: a nested
+ * `open()` is still ignored, and every public show/hide hook still reads the same `isOpened()`.
+ * Both plugins share the `Menu` class but each has its own `open()` guard, so each runs the set.
+ */
+for (const plugin of ['dropdownMenu', 'contextMenu'] as const) {
+  test.describe(`${plugin}: an item callback that reaches into the menu while it opens`, () => {
+    let grid: MenuOpenFailurePage;
+    /** Uncaught page errors, newest last. */
+    let pageErrors: string[];
+
+    test.beforeEach(async({ page, theme, bundle }) => {
+      pageErrors = [];
+      page.on('pageerror', error => pageErrors.push(error.message));
+
+      grid = new MenuOpenFailurePage(page, theme, bundle);
+      await grid.goto();
+    });
+
+    test('isOpened() never claims a menu that cannot be driven yet', async() => {
+      await grid.setItemMode('probe', plugin);
+      await grid.openMenuOf(plugin);
+      await expect(grid.openMenu(plugin)).toBeVisible();
+
+      // One more paint, with the menu fully open this time.
+      await grid.repaintMenu();
+
+      const probes = await grid.probes();
+
+      // Both phases were sampled. Without the second, the invariant below holds over nothing.
+      expect(probes.some(probe => !probe.isOpened)).toBe(true);
+      expect(probes.some(probe => probe.isOpened)).toBe(true);
+      // The promise every caller relies on. Before, the paint during the build read `true` with no
+      // navigator behind it — the same navigator `close()`, `focus()` and the Filters focus
+      // controller all went on to dereference.
+      expect(probes.filter(probe => probe.isOpened && !probe.canDrive)).toEqual([]);
+      await expect.poll(() => pageErrors).toEqual([]);
+    });
+
+    test('a close() while the menu is still opening leaves a working menu', async() => {
+      await grid.setItemMode('close', plugin);
+      await grid.openMenuOf(plugin);
+
+      // The open in progress wins. The close() lands while the menu grid is mid-build, and tearing
+      // it down under its own `init()` is what broke the page before.
+      await expect(grid.openMenu(plugin)).toBeVisible();
+      await expect.poll(() => grid.menuState()).toEqual({ isOpened: true, containerDisplay: 'block' });
+
+      // And it is a real menu, not a husk: the ordinary close path works on it.
+      await grid.clickPageBackground();
+
+      await expect.poll(() => grid.menuState()).toEqual({ isOpened: false, containerDisplay: 'none' });
+      await expect.poll(() => pageErrors).toEqual([]);
+    });
+
+    test('a nested open() while the menu is still opening is ignored, as it always was', async() => {
+      await grid.setItemMode('reopen', plugin);
+      await grid.openMenuOf(plugin);
+      await expect(grid.openMenu(plugin)).toBeVisible();
+      await expect.poll(() => grid.menuState()).toMatchObject({ isOpened: true });
+
+      // Announced once, not twice. This passed before the change too: the plugins' guards asked
+      // `isOpened()`, which was already true mid-build. It is false mid-build now, so they ask
+      // `isClosed()` — asking `isOpened()` here would announce the menu a second time.
+      const log = await grid.hookLog();
+
+      expect(log.filter(entry => entry.event === 'beforeShow')).toHaveLength(1);
+      expect(log.filter(entry => entry.event === 'afterShow')).toHaveLength(1);
+      await expect.poll(() => pageErrors).toEqual([]);
+    });
+
+    test('the public show and hide hooks read the same open state as before', async() => {
+      await grid.setItemMode('none', plugin);
+      await grid.openMenuOf(plugin);
+      await expect(grid.openMenu(plugin)).toBeVisible();
+
+      await grid.clickPageBackground();
+
+      await expect.poll(() => grid.menuState()).toMatchObject({ isOpened: false });
+      // `isOpened()` changed only for the moments the menu is being built or torn down, and no
+      // public hook runs then. These three bracket those moments, and each must read what it always
+      // read. This passed before the change too; it is what keeps the change non-breaking.
+      expect(await grid.hookLog()).toEqual([
+        { event: 'beforeShow', isOpened: false },
+        { event: 'afterShow', isOpened: true },
+        { event: 'afterHide', isOpened: false },
+      ]);
+    });
+
+    test('a throwing item leaves the menu closed, and the next click clean', async() => {
+      await grid.setItemMode('throw', plugin);
+      await grid.openMenuOf(plugin);
+
+      await expect.poll(() => pageErrors).toContain(await grid.itemErrorMessage());
+
+      pageErrors.length = 0;
+
+      await grid.clickPageBackground();
+
+      await expect.poll(() => grid.menuState()).toEqual({ isOpened: false, containerDisplay: 'none' });
+      await expect.poll(() => pageErrors).toEqual([]);
+    });
+  });
+}

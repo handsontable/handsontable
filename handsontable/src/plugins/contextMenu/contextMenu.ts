@@ -331,7 +331,9 @@ export class ContextMenu extends BasePlugin {
     },
     anchorRectProvider?: MenuAnchorRectProvider,
   ): void {
-    if (this.menu?.isOpened()) {
+    // `isClosed()`, not `isOpened()`: a menu still being built is not open yet, and a nested `open()`
+    // from one of its item callbacks must not announce and position a second one (DEV-41).
+    if (this.menu && !this.menu.isClosed()) {
       return;
     }
 

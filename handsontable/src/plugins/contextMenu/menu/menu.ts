@@ -88,6 +88,11 @@ interface MenuOptions {
  */
 
 /**
+ * Where a menu is in its open/close cycle: `closed` -> `opening` -> `opened` -> `closing` -> `closed`.
+ */
+type MenuLifecycle = 'closed' | 'opening' | 'opened' | 'closing';
+
+/**
  * @private
  * @class Menu
  */
@@ -170,6 +175,14 @@ export class Menu {
    * @type {KeyboardShortcutsMenuController}
    */
   #shortcutsCtrl: ReturnType<typeof createKeyboardShortcutsCtrl> | null = null;
+  /**
+   * Where the menu is in its open/close cycle. `isOpened()` and `isClosed()` read this and nothing
+   * else - never `hotMenu`, which is assigned partway through opening and cleared partway through
+   * closing, so it said "open" about a menu that could not be driven yet (DEV-41).
+   *
+   * @type {string}
+   */
+  #lifecycle: MenuLifecycle = 'closed';
   /**
    * The border width of the table used in the menu.
    *
@@ -454,10 +467,36 @@ export class Menu {
   /**
    * Open menu.
    *
+   * Does nothing unless the menu is closed. Called while it is open, or re-entered from an item
+   * callback while it is opening or from a hook while it is closing, it would build a second menu
+   * grid over the first.
+   *
    * @fires Hooks#beforeContextMenuShow
    * @fires Hooks#afterContextMenuShow
    */
   open() {
+    if (!this.isClosed()) {
+      return;
+    }
+
+    this.#lifecycle = 'opening';
+
+    try {
+      this.#open();
+    } finally {
+      // `#open()` sets `opened` in one place only, once the menu can be driven. Every other exit -
+      // the empty-items return, a throw from an item callback or from the menu grid, or anything
+      // added later - arrives here still `opening`, so the menu cannot be left claiming to be open.
+      if (this.#lifecycle === 'opening') {
+        this.#lifecycle = 'closed';
+      }
+    }
+  }
+
+  /**
+   * Builds and shows the menu. Only {@link Menu#open} calls this; it owns the lifecycle around it.
+   */
+  #open() {
     this.runLocalHooks('beforeOpen');
 
     this.#delayedOpenSubMenu = debounce(
@@ -631,18 +670,12 @@ export class Menu {
       },
     };
 
-    // Everything from here on is undone by `#rollbackFailedOpen()`, so it all belongs inside the
-    // guard. `isOpened()` is `this.hotMenu !== null`, so the assignment below makes the menu
-    // report itself as open while `#navigator` does not exist yet - and user code runs in that
-    // window, because rendering the items calls each item's `name()`, `disabled()`, `checked()`
-    // and `ariaLabel()` callbacks. A throw there used to strand the menu half-open for the life
-    // of the page: every later document `mousedown` reached `close()` and threw on the missing
-    // navigator, `open()` could never run again, and `destroy()` threw too, so the document
-    // listener leaked past an SPA page change (DEV-41).
-    //
-    // The two settings lines are inside the guard for their own reason: they mutate the HOST
-    // grid, so a throw from the constructor below would otherwise pin `outsideClickDeselects`
-    // to `false` for good and silently stop clicks outside the grid from deselecting.
+    // User code runs from here on: painting the items calls each item's `name()`, `disabled()`,
+    // `checked()` and `ariaLabel()`. On a throw, `#rollbackFailedOpen()` releases what this block
+    // acquired - including the HOST grid's `outsideClickDeselects`, which is why the two settings
+    // lines sit inside the guard too; outside it, a throwing constructor would pin the setting to
+    // `false` for good. The menu cannot be stranded "open" either way (DEV-41): that is set only at
+    // the commit point below.
     try {
       this.origOutsideClickDeselects = this.hot.getSettings().outsideClickDeselects;
       this.hot.getSettings().outsideClickDeselects = false;
@@ -662,6 +695,10 @@ export class Menu {
       throw error;
     }
 
+    // The commit point. From here the menu grid, the navigator and the keyboard controller all
+    // exist - exactly what `isOpened()` promises its callers.
+    this.#lifecycle = 'opened';
+
     this.focus();
 
     if (this.isSubMenu()) {
@@ -672,20 +709,21 @@ export class Menu {
   }
 
   /**
-   * Restores the closed state after {@link Menu#open} failed partway through, so a menu that never
-   * finished opening cannot stay stranded as "open".
+   * Releases what {@link Menu#open} acquired before it failed partway through.
    *
-   * Undoes what `open()` had done by then. No sub-menu or hover timer exists yet and
-   * `setPosition()` has not run, but the container is visible and the document scroll listeners
-   * are registered - `open()` does both before building the menu grid - and `close()` cannot undo
-   * either afterwards, because it bails on `isOpened()`.
+   * This is resource cleanup, not what keeps the menu from being stranded "open" - the lifecycle in
+   * `open()` guarantees that on its own - so a release missed here leaks instead of breaking the
+   * page. Still mirror every new side effect of `#open()` in it. No sub-menu or hover timer exists
+   * yet and `setPosition()` has not run, but the container is visible and the document scroll
+   * listeners are registered, and `close()` cannot undo either, because it bails unless the menu
+   * is open.
    *
    * `afterClose` IS fired, even though `afterOpen` never was. The callers have already announced
    * the menu: `DropdownMenu#open()` runs `beforeDropdownMenuShow` and `ContextMenu#open()` runs
    * `beforeContextMenuShow` before reaching here, so staying silent would leave an application
    * that tracks the documented before/after pair stuck in the "menu showing" state for good. The
    * three listeners on this hook only restore focus and emit the matching `*Hide` hook, which is
-   * exactly what a failed open needs.
+   * exactly what a failed open needs. They find the menu closed, as they do after `close()`.
    */
   #rollbackFailedOpen() {
     try {
@@ -699,6 +737,7 @@ export class Menu {
     this.#clearScrollListeners();
     this.container.style.display = 'none';
     this.hot.getSettings().outsideClickDeselects = this.origOutsideClickDeselects;
+    this.#lifecycle = 'closed';
     this.runLocalHooks('afterClose');
   }
 
@@ -716,16 +755,16 @@ export class Menu {
       this.parentMenu!.close();
 
     } else {
-      // Optional: a menu whose `open()` threw before reaching `createMenuNavigator()` has none.
-      // `close()` runs on every document `mousedown`, so a hard call here takes the whole page
-      // down rather than the one menu (DEV-41).
-      this.#navigator?.clear();
+      // Set before the teardown, which runs sub-menu and grid hooks: a `close()` or `open()`
+      // re-entered from one of them finds a menu neither open nor closed, and does nothing.
+      this.#lifecycle = 'closing';
+
+      // Safe because `isOpened()` passed: `opened` is set only after the navigator exists (DEV-41).
+      this.#navigator!.clear();
 
       // The teardown can throw: `closeAllSubMenus()` destroys each sub-menu, which runs
-      // user-facing hooks on the way, and `destroy()` can fail on a grid that never finished
-      // building. Whatever happens, the reset in `finally` has to run - skipping it leaves
-      // `hotMenu` set, so `isOpened()` keeps saying `true` and the menu is stranded exactly the
-      // way a failed `open()` used to strand it (DEV-41), only reached through this door.
+      // user-facing hooks on the way. Whatever happens, the reset in `finally` has to run -
+      // skipping it would leave the menu `closing` for good, so it could never be opened again.
       try {
         this.closeAllSubMenus();
         this.hotMenu!.destroy();
@@ -745,6 +784,7 @@ export class Menu {
         // A timer that outlives the menu would call `openSubMenu` on a destroyed `hotMenu`.
         this.#clearHoverSubMenuTimers();
         this.hot.getSettings().outsideClickDeselects = this.origOutsideClickDeselects;
+        this.#lifecycle = 'closed';
       }
 
       this.runLocalHooks('afterClose');
@@ -964,12 +1004,28 @@ export class Menu {
   }
 
   /**
-   * Checks if menu was opened.
+   * Checks if the menu is open and can be driven.
+   *
+   * `true` from the moment `open()` finishes building the menu - its grid, navigator and keyboard
+   * controller all exist - until `close()` starts tearing it down. `false` while it is still being
+   * built, which is when its items are first painted and their callbacks first run (DEV-41).
    *
    * @returns {boolean} Returns `true` if menu was opened.
    */
   isOpened() {
-    return this.hotMenu !== null;
+    return this.#lifecycle === 'opened';
+  }
+
+  /**
+   * Checks if the menu is closed, with no menu grid in play.
+   *
+   * Not the opposite of {@link Menu#isOpened}: while the menu is opening or closing, both are
+   * `false`. Ask this before starting another `open()`; ask `isOpened()` before driving the menu.
+   *
+   * @returns {boolean} Returns `true` if the menu is closed.
+   */
+  isClosed() {
+    return this.#lifecycle === 'closed';
   }
 
   /**

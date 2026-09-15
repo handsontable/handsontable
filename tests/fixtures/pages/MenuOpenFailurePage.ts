@@ -2,7 +2,7 @@ import { type Page, type Locator, expect } from '@playwright/test';
 import { awaitBundle } from '../bundle';
 
 /**
- * What the dropdown menu believes about itself, read through the plugin rather than the DOM.
+ * What the menu under test believes about itself, read through the plugin rather than the DOM.
  *
  * `isOpened()` is the invariant DEV-41 broke and it is invisible from the markup: the stranded
  * menu reported itself open while its container was already hidden, so a DOM-only check passed
@@ -14,10 +14,42 @@ export interface MenuState {
 }
 
 /**
+ * The two plugins built on the shared `Menu` class that this fixture configures.
+ */
+export type MenuPlugin = 'dropdownMenu' | 'contextMenu';
+
+/**
+ * What the fixture's menu item does each time its menu paints it (see `htItemMode` in the fixture).
+ */
+export type ItemMode = 'throw' | 'none' | 'probe' | 'close' | 'reopen';
+
+/**
+ * One `probe` paint: what `isOpened()` said, and whether the menu could actually be driven then.
+ */
+export interface MenuProbe {
+  isOpened: boolean;
+  canDrive: boolean;
+}
+
+/**
+ * One public show/hide hook of the menu under test, with what `isOpened()` said inside it.
+ */
+export interface HookEntry {
+  event: 'beforeShow' | 'afterShow' | 'afterHide';
+  isOpened: boolean;
+}
+
+const MENU_CLASS: Record<MenuPlugin, string> = {
+  dropdownMenu: 'htDropdownMenu',
+  contextMenu: 'htContextMenu',
+};
+
+/**
  * Page Object for the menu open-failure fixture (DEV-41 / DEV-2922).
  *
- * The fixture's dropdown menu carries one item whose `name()` throws while rendering, which is
- * inside `Menu.open()`'s window between "the menu counts as open" and "the navigator exists".
+ * The fixture's dropdown menu and context menu share one item whose `name()` runs while the menu is
+ * still being built - the window between "`open()` started" and "the navigator exists". By default
+ * it throws; `setItemMode()` switches it to reaching back into the menu without a throw.
  */
 export class MenuOpenFailurePage {
   readonly page: Page;
@@ -58,14 +90,69 @@ export class MenuOpenFailurePage {
   }
 
   /**
-   * The dropdown menu that is currently on screen.
+   * The menu of one plugin that is currently on screen.
    *
    * Menus render into a body-level portal, so they cannot be scoped to the grid container.
    * Handsontable removes the inner table when a menu closes, so filtering on visibility resolves
    * to the single open menu.
+   *
+   * @param {MenuPlugin} [plugin] Which plugin's menu.
    */
-  openMenu(): Locator {
-    return this.page.locator('.htDropdownMenu:visible').last();
+  openMenu(plugin: MenuPlugin = 'dropdownMenu'): Locator {
+    return this.page.locator(`.${MENU_CLASS[plugin]}:visible`).last();
+  }
+
+  /**
+   * Open one plugin's menu the way a user does: the header button for the dropdown menu, a right
+   * click on a data cell for the context menu.
+   *
+   * Does NOT wait for the menu - several tests here are about an open that goes wrong.
+   *
+   * @param {MenuPlugin} plugin Which plugin's menu to open.
+   */
+  async openMenuOf(plugin: MenuPlugin): Promise<void> {
+    if (plugin === 'dropdownMenu') {
+      await this.clickColumnMenuButton(0);
+
+      return;
+    }
+
+    // Row 1, column 1: a row below the header on every theme, and clear of the header button.
+    await this.cell(1, 1).click({ button: 'right' });
+  }
+
+  /**
+   * Pick what the fixture's menu item does on its next paints, and which plugin's menu it reaches
+   * back into.
+   *
+   * @param {ItemMode} mode What the item does.
+   * @param {MenuPlugin} plugin The plugin whose menu is under test.
+   */
+  async setItemMode(mode: ItemMode, plugin: MenuPlugin): Promise<void> {
+    await this.page.evaluate(([nextMode, nextPlugin]) => (window as unknown as {
+      htSetItemMode: (mode: string, plugin: string) => void;
+    }).htSetItemMode(nextMode, nextPlugin), [mode, plugin]);
+  }
+
+  /**
+   * Every `probe` paint so far.
+   */
+  async probes(): Promise<MenuProbe[]> {
+    return this.page.evaluate(() => (window as unknown as { htProbes: MenuProbe[] }).htProbes);
+  }
+
+  /**
+   * Every public show/hide hook of the menu under test so far, in order.
+   */
+  async hookLog(): Promise<HookEntry[]> {
+    return this.page.evaluate(() => (window as unknown as { htHookLog: HookEntry[] }).htHookLog);
+  }
+
+  /**
+   * Paint the open menu again, which calls every item's `name()` with the menu fully open.
+   */
+  async repaintMenu(): Promise<void> {
+    await this.page.evaluate(() => (window as unknown as { htRepaintMenu: () => void }).htRepaintMenu());
   }
 
   /**
@@ -111,7 +198,7 @@ export class MenuOpenFailurePage {
     }).HT_MENU_ITEM_ERROR);
   }
 
-  /** What the dropdown menu believes about itself. */
+  /** What the menu under test believes about itself. */
   async menuState(): Promise<MenuState> {
     return this.page.evaluate(() => (window as unknown as {
       htMenuState: () => MenuState;
