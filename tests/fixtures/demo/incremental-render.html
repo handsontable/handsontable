@@ -30,7 +30,7 @@
     window.htScenario = ({
       text: 'text', always: 'always', mixed: 'mixed', 'frozen-merge': 'frozen-merge', formulas: 'formulas', search: 'search',
       'cells-fn': 'cells-fn', resize: 'resize', 'merge-height': 'merge-height', comments: 'comments', scroll: 'scroll',
-      frozen: 'frozen', merge: 'merge',
+      frozen: 'frozen', merge: 'merge', mapping: 'mapping',
     })[htParams.get('scenario') ?? 'text'];
     if (!window.htScenario) {
       throw new Error('Unknown ?scenario= value: ' + JSON.stringify(htParams.get('scenario')));
@@ -159,6 +159,17 @@
       // edges it has the same size after a scroll as after a plain render, and the two can be
       // compared. Without merged cells, so the engine may keep a row's elements across the scroll.
       scroll: () => ({ ...base, data: makeData(200, 10), renderMode: 'onChange', viewportRowRenderingOffset: 10 }),
+      // The scrolling shape with the row mapping plugins on, so a test can hide, move, and sort rows
+      // between scroll-driven draws.
+      mapping: () => ({
+        ...base,
+        data: makeData(200, 10),
+        renderMode: 'onChange',
+        viewportRowRenderingOffset: 10,
+        hiddenRows: true,
+        manualRowMove: true,
+        columnSorting: true,
+      }),
       frozen: () => ({
         ...base,
         data: makeData(200, 8),

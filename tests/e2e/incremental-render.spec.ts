@@ -507,6 +507,32 @@ test.describe('renderMode: onChange, scrolling', () => {
     await grid.expectEqualToFullRepaint();
   });
 
+  test('keeps the tables equal to a full repaint when row mapping changes interleave with scrolls', async({ page, theme, bundle }) => {
+    const grid = new IncrementalRenderPage(page, theme, bundle, 'mapping');
+
+    await grid.goto();
+    await grid.scrollToRow(25);
+    await grid.expectEqualToFullRepaint();
+
+    // Hide two rows inside the rendered band, then scroll on through the recycled elements.
+    await grid.run('hot.getPlugin("hiddenRows").hideRows([27, 28]); hot.render();');
+    await grid.expectEqualToFullRepaint();
+    await grid.scrollToRow(45);
+    await grid.expectEqualToFullRepaint();
+
+    // Move rows into the band, then scroll back up.
+    await grid.run('hot.getPlugin("manualRowMove").moveRows([50, 51], 40); hot.render();');
+    await grid.expectEqualToFullRepaint();
+    await grid.scrollToRow(20);
+    await grid.expectEqualToFullRepaint();
+
+    // Sort, which remaps every row, then scroll down again.
+    await grid.run('hot.getPlugin("columnSorting").sort({ column: 0, sortOrder: "desc" });');
+    await grid.expectEqualToFullRepaint();
+    await grid.scrollToRow(60);
+    await grid.expectEqualToFullRepaint();
+  });
+
   test('keeps the focus in the grid when the selected row leaves the band', async({ page, theme, bundle }) => {
     const grid = new IncrementalRenderPage(page, theme, bundle, 'scroll');
 

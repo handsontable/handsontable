@@ -258,6 +258,47 @@ describe('RowsRenderer row recycling', () => {
     expect(Array.from(rootNode.children).slice(0, 10)).toEqual(trs);
   });
 
+  it('should keep the TR of every tail row when the band moves up and grows past its old end', () => {
+    const { rootNode, draw, sources, state, renderer } = createFixture();
+
+    draw(10, 20, false);
+
+    const trs = Array.from(rootNode.children);
+
+    // Rows 8-35 replace rows 10-29: no row leaves, two enter at the front and six at the end.
+    state.offset = 8;
+    state.size = 28;
+    state.recyclable = true;
+    renderer.render();
+
+    expect(rootNode.children.length).toBe(28);
+    // Every old TR sits two slots further down, so the tail rows 28 and 29 kept their elements.
+    expect(Array.from(rootNode.children).slice(2, 22)).toEqual(trs);
+    // The front slots and the new tail are fresh elements, not rotated ones.
+    expect(sources().slice(0, 2)).toEqual(['', '']);
+    expect(sources().slice(22)).toEqual(['', '', '', '', '', '']);
+  });
+
+  it('should rotate only the tail rows that leave when the band moves up and grows', () => {
+    const { rootNode, draw, sources, state, renderer } = createFixture();
+
+    draw(10, 20, false);
+
+    const trs = Array.from(rootNode.children);
+
+    // Rows 5-26 replace rows 10-29: rows 27-29 leave at the end and wrap to the front, rows 5 and 6
+    // get fresh elements, rows 10-26 keep theirs.
+    state.offset = 5;
+    state.size = 22;
+    state.recyclable = true;
+    renderer.render();
+
+    expect(rootNode.children.length).toBe(22);
+    expect(sources().slice(0, 2)).toEqual(['', '']);
+    expect(sources().slice(2, 5)).toEqual(['27', '28', '29']);
+    expect(Array.from(rootNode.children).slice(5)).toEqual(trs.slice(0, 17));
+  });
+
   it('should keep the focus on a cell whose row leaves the band', () => {
     const { rootNode, draw, state, renderer } = createFixture();
     const table = document.createElement('table');

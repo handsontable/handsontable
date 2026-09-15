@@ -153,7 +153,10 @@ export class RowsRenderer extends BaseRenderer {
    * the rows that scrolled in. After the rotation the TR at index `i` holds source row
    * `nextOffset + i` for every row that was already rendered, which is exactly what the cell pass is
    * about to paint there – so the host's paint stamps match for the whole overlap and, under
-   * `renderMode: 'onChange'`, those cells are left as they are.
+   * `renderMode: 'onChange'`, those cells are left as they are. Only rows that LEAVE the band wrap:
+   * a band that moves up and grows past its old end at the same time (a refill re-pass, or a
+   * recompute with non-uniform heights) keeps every tail row in place and gets fresh TRs for the
+   * front slots the leaving rows cannot fill; `start()` counts them as part of the band.
    *
    * @param {number} nextOffset The source row the first TR will hold on this draw.
    * @param {number} nextSize The number of rows this draw will render.
@@ -189,11 +192,14 @@ export class RowsRenderer extends BaseRenderer {
     }
 
     const rootDocument = rootNode.ownerDocument;
-    // A focused cell in a row that leaves the band is detached with its row for the duration of the
-    // move. Chromium blurs a removed element only at its next rendering step, by which time the row
-    // is back; an engine that blurs at once would drop the grid's focus to the body here. In that case
-    // the element gets the focus back, without scrolling to it: it is the element the previous draw
-    // left focused, about to show another row, exactly as a stationary element would. Read through
+    // A focused element in a row that leaves the band is detached with its row for the duration of
+    // the move. Chromium blurs a removed element only at its next rendering step, by which time the
+    // row is back; an engine that blurs at once would drop the browser focus to the body here, and
+    // the grid's focus state with it (a `focusout` with no `focusin` to follow). In that case the
+    // element gets the focus back, without scrolling to it. This keeps the focus WHERE it was, on an
+    // element the cell pass is about to paint another row into; it does not preserve what the element
+    // shows. A TD outlives that paint, so the grid's own cell focus survives; an embedded control
+    // does only if its renderer updates it in place, exactly as on a stationary grid. Read through
     // `getDeepActiveElement`: inside a shadow root `document.activeElement` is the host, which the
     // TBODY never contains. The reverse holds for a control inside a web-component cell: `contains`
     // stops at the cell's shadow boundary, so the band holds the element when it holds the element
@@ -213,9 +219,17 @@ export class RowsRenderer extends BaseRenderer {
       rootNode.appendChild(fragment);
 
     } else {
-      // Scrolled up: the last `-delta` rows left the band – send them to the top, in order.
-      for (let i = 0; i < -delta; i++) {
+      // Scrolled up: the rows past the new band's end left it – send them to the top, in order. When
+      // the band also grew at its end, fewer than `-delta` rows leave, and the remaining front slots
+      // get fresh TRs so that every row still in the band keeps its own element.
+      const leaving = Math.max(0, (this.#lastOffset + lastSize) - (nextOffset + nextSize));
+      const rotated = Math.min(shift, leaving);
+
+      for (let i = 0; i < rotated; i++) {
         fragment.insertBefore(rootNode.lastElementChild!, fragment.firstChild);
+      }
+      for (let i = rotated; i < shift; i++) {
+        fragment.insertBefore(this.nodesPool!.obtain() as HTMLElement, fragment.firstChild);
       }
       rootNode.insertBefore(fragment, rootNode.firstChild);
     }

@@ -761,12 +761,30 @@ the new band's size scrolling up. It is also skipped when the band is empty, and
 not hold exactly the previous band (something else touched it). A focused cell in a leaving row is detached with its row for the
 duration of the move; Chromium blurs a removed element only at its next rendering step, by which
 time the row is back, and for an engine that blurs at once the renderer gives the element the focus
-back without scrolling, so the keyboard keeps reaching the grid either way. Both reads cross shadow
+back without scrolling, so the keyboard keeps reaching the grid either way. The restore keeps the
+focus WHERE it was, on an element about to show another row; it does not preserve what the element
+shows (a TD outlives the paint, an embedded control only if its renderer updates it in place, as on a
+stationary grid). Both reads cross shadow
 boundaries: the focused element comes from `getDeepActiveElement()` (inside a shadow root
 `document.activeElement` is the host), and "in the band" holds when the TBODY contains the element
 or one of its `getShadowHostChain()` hosts (`contains()` stops at a web-component cell's shadow
 root). The unit tests emulate an engine that blurs at once by wrapping the fragment the rotation
 moves rows through; without that, jsdom keeps the focus like Chromium and the restore never runs.
+
+Only rows that LEAVE the band wrap. A band that moves up and grows past its old end at the same time
+(a refill re-pass in `table/drawCycle.ts`, or a recompute with non-uniform heights) keeps every tail
+row's TR in place and gets fresh TRs for the front slots the leaving rows cannot fill; `start()`
+counts them as part of the band. Without that, a row still in the band would hand its element (and a
+live control in it) to an unrelated row. Pinned by the "moves up and grows" cases in
+`test/unit/renderer/rowRecycling.unit.ts`.
+
+Row mapping changes (hide, trim, move, sort) need nothing here. The rotation assumes one thing: the
+TR at position `i` held renderable row `lastOffset + i` after the previous render, which every
+render records. The host's paint stamps carry the visual index and the value, so a cell whose row
+now maps elsewhere repaints whatever its TR held. Core's `onIndexMapperCacheUpdate` does set
+`forceFullRender`, which enters as `draw(false)` and skips the rotation, but the recycling does not
+depend on that; `tests/e2e/incremental-render.spec.ts` (the `mapping` scenario) interleaves
+scroll-driven draws with hiding, moving, and sorting rows and checks the tables equal a full repaint.
 
 It is a move, not an insertion or removal, so the stationary-DOM invariant (no structural mutation
 while scrolling, see the comment above `rows.render()` in `tableRenderer.ts`) holds: measured against
