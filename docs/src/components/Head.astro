@@ -97,8 +97,11 @@ import Default from '@astrojs/starlight/components/Head.astro';
 
     var pending = TARGETS.slice();
     var observer;
+    var deadline;
 
     function stop() {
+      clearTimeout(deadline);
+
       if (observer) {
         observer.disconnect();
         observer = null;
@@ -130,18 +133,40 @@ import Default from '@astrojs/starlight/components/Head.astro';
       }
     }
 
-    observer = new MutationObserver(patch);
-    observer.observe(document.documentElement, { childList: true, subtree: true });
+    function arm() {
+      if (pending.length === 0) {
+        return;
+      }
 
-    patch();
+      patch();
 
-    // A target may never appear - an ad blocker kills the Headway and GTM scripts, declined
-    // analytics consent stops the VWO tag, and #_vwo_communication_proxy never appears off
-    // production at all. A childList+subtree observer left live for the page's lifetime queues
-    // a MutationRecord for every DOM change (example-runner injection, island hydration, grids
-    // re-rendering on scroll), so bound its lifetime rather than wait for a completion that may
-    // never come. Third-party injection lands within a few seconds; 10s covers a slow network.
-    setTimeout(stop, 10000);
+      if (pending.length === 0) {
+        return;
+      }
+
+      if (!observer) {
+        observer = new MutationObserver(patch);
+      }
+
+      observer.observe(document.documentElement, { childList: true, subtree: true });
+
+      // Bound the observer's lifetime. A childList+subtree observer left live for the page's
+      // lifetime queues a MutationRecord for every DOM change (example-runner injection, island
+      // hydration, grids re-rendering on scroll), and a target may never appear at all - an ad
+      // blocker kills the scripts, and #_vwo_communication_proxy never appears off production.
+      // Third-party injection lands within a few seconds of its trigger.
+      clearTimeout(deadline);
+      deadline = setTimeout(stop, 15000);
+    }
+
+    arm();
+
+    // The VWO tag inside Google Tag Manager fires only after analytics consent, and its proxy
+    // iframe injects asynchronously after that - which can be well past the initial deadline for
+    // a reader who lingers in the Cookiebot banner. Cookiebot dispatches CookiebotOnAccept on the
+    // consent click and again on every later load once consent is stored, so re-arm the watcher
+    // there rather than widen the deadline. The listener is inert where Cookiebot is absent.
+    window.addEventListener('CookiebotOnAccept', arm);
   })();
 </script>
 

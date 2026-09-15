@@ -53,7 +53,9 @@ function createFakeIframe(id, initialAttrs = {}) {
 function createHarness() {
   const byId = new Map();
   const observeCalls = [];
+  const consentListeners = [];
   let observerCallback = null;
+  let connected = false;
   let disconnectCount = 0;
   let deadlineCallback = null;
 
@@ -64,41 +66,68 @@ function createHarness() {
     },
   };
 
+  // Mirrors a real MutationObserver: once disconnected it stops delivering callbacks, so a test
+  // can prove the guard truly stopped reacting after the deadline, not merely that disconnect()
+  // was called.
   class FakeMutationObserver {
     constructor(callback) {
       observerCallback = callback;
     }
 
     observe(target, options) {
+      connected = true;
       observeCalls.push({ target, options });
     }
 
     disconnect() {
+      connected = false;
       disconnectCount += 1;
     }
   }
 
+  const window = {
+    addEventListener(type, handler) {
+      if (type === 'CookiebotOnAccept') {
+        consentListeners.push(handler);
+      }
+    },
+  };
+
   return {
     document,
+    window,
     MutationObserver: FakeMutationObserver,
     // Capture the deadline callback instead of scheduling it, so the test controls when the
     // bounded-lifetime disconnect fires and no real timer is left dangling.
     setTimeout(callback) {
       deadlineCallback = callback;
-      return 0;
+      return 1;
+    },
+    clearTimeout() {
+      deadlineCallback = null;
     },
     register(element) {
       byId.set(element.id, element);
     },
     insert(element) {
       byId.set(element.id, element);
-      observerCallback?.();
+
+      if (connected) {
+        observerCallback?.();
+      }
     },
     fireDeadline() {
       deadlineCallback?.();
     },
+    fireConsent() {
+      for (const handler of consentListeners) {
+        handler();
+      }
+    },
     observeCall: () => observeCalls[0],
+    observeCallCount: () => observeCalls.length,
     disconnectCount: () => disconnectCount,
+    isConnected: () => connected,
   };
 }
 
@@ -108,9 +137,16 @@ function createHarness() {
  * @param {object} harness The harness from `createHarness()`.
  */
 function runGuard(harness) {
-  const runGuardScript = new Function('document', 'MutationObserver', 'setTimeout', readIframeGuardScript());
+  const runGuardScript = new Function(
+    'document',
+    'MutationObserver',
+    'setTimeout',
+    'clearTimeout',
+    'window',
+    readIframeGuardScript()
+  );
 
-  runGuardScript(harness.document, harness.MutationObserver, harness.setTimeout);
+  runGuardScript(harness.document, harness.MutationObserver, harness.setTimeout, harness.clearTimeout, harness.window);
 }
 
 test('the VWO communication proxy is titled and removed from the a11y tree and tab order', () => {
@@ -183,10 +219,11 @@ test('the observer keeps watching until every target has appeared, then disconne
   assert.equal(harness.disconnectCount(), 1, 'must disconnect once every target is patched');
 });
 
-test('the observer disconnects at the deadline even if a target never appears', () => {
-  // An ad blocker or declined analytics consent means a target iframe is never injected, and
+test('the deadline disconnects the observer and leaves a later iframe untouched', () => {
+  // An ad blocker or declined consent means a target iframe is never injected, and
   // #_vwo_communication_proxy never appears off production. The observer must not stay live for
-  // the whole page lifetime churning MutationRecords - the bounded deadline disconnects it.
+  // the whole page lifetime churning MutationRecords - the bounded deadline disconnects it, and
+  // after that an iframe that shows up is genuinely ignored (not merely "disconnect was called").
   const harness = createHarness();
 
   runGuard(harness);
@@ -198,6 +235,56 @@ test('the observer disconnects at the deadline even if a target never appears', 
   harness.fireDeadline();
 
   assert.equal(harness.disconnectCount(), 1, 'the deadline must disconnect the still-pending observer');
+  assert.equal(harness.isConnected(), false);
+
+  const lateProxy = createFakeIframe('_vwo_communication_proxy');
+
+  harness.insert(lateProxy);
+
+  assert.equal(lateProxy.getAttribute('title'), null, 'an iframe arriving after the deadline is left alone');
+});
+
+test('consent re-arms the watcher so a proxy injected after the deadline is still patched', () => {
+  // The VWO tag fires only after analytics consent, and the proxy injects asynchronously after
+  // that - possibly past the initial deadline. Cookiebot's CookiebotOnAccept re-arms the watcher
+  // so the late proxy is still named, which a fixed timer alone would miss.
+  const harness = createHarness();
+
+  runGuard(harness);
+
+  harness.fireDeadline();
+
+  assert.equal(harness.isConnected(), false, 'the initial observation window has closed');
+
+  harness.fireConsent();
+
+  assert.equal(harness.isConnected(), true, 'consent must re-arm the observer');
+
+  const proxy = createFakeIframe('_vwo_communication_proxy');
+
+  harness.insert(proxy);
+
+  assert.equal(proxy.getAttribute('title'), 'A/B testing communication frame');
+  assert.equal(proxy.getAttribute('aria-hidden'), 'true');
+  assert.equal(proxy.getAttribute('tabindex'), '-1');
+});
+
+test('consent does not re-arm once every target is already patched', () => {
+  const harness = createHarness();
+
+  runGuard(harness);
+
+  harness.insert(createFakeIframe('HW_frame'));
+  harness.insert(createFakeIframe('_vwo_communication_proxy'));
+
+  assert.equal(harness.disconnectCount(), 1, 'both patched disconnects the observer');
+
+  const observeCallsBefore = harness.observeCallCount();
+
+  harness.fireConsent();
+
+  assert.equal(harness.observeCallCount(), observeCallsBefore, 'nothing left to watch, so no re-observe');
+  assert.equal(harness.isConnected(), false);
 });
 
 test('the observer watches the whole document subtree so it catches iframes appended to body', () => {
