@@ -312,29 +312,3 @@ export function fastCall(
 
   return func.call(context);
 }
-
-/**
- * Runs every step in order, even when an earlier one throws, then rethrows the first error.
- * Use it for teardown, where a step skipped by an earlier throw would leave its resource behind.
- *
- * @param {Array<Function>} steps The steps, in order.
- */
-export function runEveryStep(steps: Array<() => void>): void {
-  let failed = false;
-  let firstError: unknown;
-
-  steps.forEach((step) => {
-    try {
-      step();
-    } catch (error) {
-      if (!failed) {
-        failed = true;
-        firstError = error;
-      }
-    }
-  });
-
-  if (failed) {
-    throw firstError;
-  }
-}

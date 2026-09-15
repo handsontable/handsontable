@@ -13,7 +13,7 @@ import {
 import { clamp, isNumeric, rangeEach, rangeEachReverse, valueAccordingPercent } from 'handsontable/helpers/number';
 import { isDefined, isEmpty, isUndefined, stringify } from 'handsontable/helpers/mixed';
 import {
-  curry, curryRight, debounce, isFunction, partial, pipe, runEveryStep, throttle, throttleAfterHits
+  curry, curryRight, debounce, isFunction, partial, pipe, throttle, throttleAfterHits
 } from 'handsontable/helpers/function';
 import {
   getComparisonFunction, isTouchSupported, requestAnimationFrame, cancelAnimationFrame
@@ -110,7 +110,6 @@ randomString();
 rangeEach(0, 0, (index: number) => {});
 rangeEachReverse(0, 0, (index: number) => {});
 requestAnimationFrame(() => {});
-runEveryStep([() => {}, () => {}]);
 setProperty({}, 'test', true);
 spreadsheetColumnIndex('foo');
 spreadsheetColumnLabel(1);

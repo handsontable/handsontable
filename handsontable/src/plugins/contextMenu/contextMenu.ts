@@ -1,7 +1,6 @@
 import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import { arrayEach } from '../../helpers/array';
-import { runEveryStep } from '../../helpers/function';
 import { objectEach } from '../../helpers/object';
 import { CommandExecutor } from './commandExecutor';
 import { ItemsFactory } from './itemsFactory';
@@ -225,18 +224,15 @@ export class ContextMenu extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin(): void {
-    // Every step runs even when an earlier one throws. `close()` runs the application's `after*Hide`
-    // listener, and a throw there used to skip the menu's own teardown - with it
-    // `eventManager.destroy()`, the document listeners that carried DEV-41 onto the next page.
-    runEveryStep([
-      () => this.close(),
-      () => this.menu?.destroy(),
-      () => {
-        this.menu = null;
-      },
-      () => this.unregisterShortcuts(),
-      () => super.disablePlugin(),
-    ]);
+    this.close();
+
+    if (this.menu) {
+      this.menu.destroy();
+      this.menu = null;
+    }
+
+    this.unregisterShortcuts();
+    super.disablePlugin();
   }
 
   /**
@@ -520,13 +516,11 @@ export class ContextMenu extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy(): void {
-    // Every step runs even when an earlier one throws. `close()` runs the application's `after*Hide`
-    // listener, and a throw there used to skip the menu's own teardown - with it
-    // `eventManager.destroy()`, the document listeners that carried DEV-41 onto the next page.
-    runEveryStep([
-      () => this.close(),
-      () => this.menu?.destroy(),
-      () => super.destroy(),
-    ]);
+    this.close();
+
+    if (this.menu) {
+      this.menu.destroy();
+    }
+    super.destroy();
   }
 }

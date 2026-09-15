@@ -60,14 +60,6 @@ export interface HookEntry {
   isOpened: boolean | null;
 }
 
-/**
- * Whether the plugin under test still holds a menu, and whether it is still switched on.
- */
-export interface PluginState {
-  hasMenu: boolean;
-  enabled: boolean;
-}
-
 const MENU_CLASS: Record<MenuPlugin, string> = {
   dropdownMenu: 'htDropdownMenu',
   contextMenu: 'htContextMenu',
@@ -357,13 +349,6 @@ export class MenuOpenFailurePage {
     }).htHostState());
   }
 
-  /** Whether the plugin still holds a menu, and whether it is still switched on. */
-  async pluginState(): Promise<PluginState> {
-    return this.page.evaluate(() => (window as unknown as {
-      htPluginState: () => PluginState;
-    }).htPluginState());
-  }
-
   /** Remember the menu object, before a settings change swaps the plugin's menu for a fresh one. */
   async captureMenu(): Promise<void> {
     await this.page.evaluate(() => (window as unknown as {
@@ -376,27 +361,6 @@ export class MenuOpenFailurePage {
     return this.page.evaluate(() => (window as unknown as {
       htCapturedMenuState: () => { isOpened: boolean; hasGrid: boolean };
     }).htCapturedMenuState());
-  }
-
-  /** Remember the menu's container, so a later teardown can be checked after the page lost it. */
-  async captureMenuContainer(): Promise<void> {
-    await this.page.evaluate(() => (window as unknown as {
-      htCaptureMenuContainer: () => void;
-    }).htCaptureMenuContainer());
-  }
-
-  /** Whether the remembered container was detached, which is what `Menu#destroy()` does last. */
-  async menuContainerDetached(): Promise<boolean> {
-    return this.page.evaluate(() => (window as unknown as {
-      htMenuContainerDetached: () => boolean;
-    }).htMenuContainerDetached());
-  }
-
-  /** Switch the plugin under test off. Returns `'ok'` or the message it threw. */
-  async disableMenuPlugin(): Promise<string> {
-    return this.page.evaluate(() => (window as unknown as {
-      htDisableMenuPlugin: () => string;
-    }).htDisableMenuPlugin());
   }
 
   /** How many times the menu under test rebuilt its item list, through its public hook. */

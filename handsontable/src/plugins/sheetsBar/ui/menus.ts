@@ -3,7 +3,6 @@ import { SEPARATOR } from '../../contextMenu/predefinedItems';
 import { getDocumentOffsetByElement } from '../../contextMenu/utils';
 import { setAttribute, getDeepActiveElement } from '../../../helpers/dom/element';
 import { A11Y_LABEL } from '../../../helpers/a11y';
-import { runEveryStep } from '../../../helpers/function';
 import * as C from '../../../i18n/constants';
 import type { HotInstance } from '../../../core/types';
 import type { SheetDescriptor } from '../sheetModel';
@@ -201,18 +200,11 @@ export class SheetsBarMenus {
    * Closes the open menu, if any, and destroys both menus.
    */
   destroy(): void {
-    // Every step runs even when an earlier one throws. `close()` runs the application's `after*Hide`
-    // listener, and a throw there used to skip the menu's own teardown - with it
-    // `eventManager.destroy()`, the document listeners that carried DEV-41 onto the next page.
-    runEveryStep([
-      () => this.close(),
-      () => this.#tabMenu?.destroy(),
-      () => this.#allSheetsMenu?.destroy(),
-      () => {
-        this.#tabMenu = null;
-        this.#allSheetsMenu = null;
-      },
-    ]);
+    this.close();
+    this.#tabMenu?.destroy();
+    this.#allSheetsMenu?.destroy();
+    this.#tabMenu = null;
+    this.#allSheetsMenu = null;
   }
 
   /**

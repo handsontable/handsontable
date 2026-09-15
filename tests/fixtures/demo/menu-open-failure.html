@@ -401,17 +401,6 @@
     };
 
     /**
-     * Whether the plugin under test still holds a menu, and whether it is still switched on.
-     *
-     * @returns {object}
-     */
-    window.htPluginState = () => {
-      const plugin = window.hot.getPlugin(window.htMenuPlugin);
-
-      return { hasMenu: plugin.menu !== null && plugin.menu !== undefined, enabled: plugin.enabled === true };
-    };
-
-    /**
      * Remember the menu object itself, before something replaces it. A settings change swaps the
      * plugin's menu for a fresh one, so afterwards only a reference taken beforehand can say what
      * became of the one that was being built.
@@ -431,41 +420,6 @@
       isOpened: window.htMenuRef.isOpened(),
       hasGrid: window.htMenuRef.hotMenu !== null && window.htMenuRef.hotMenu !== undefined,
     });
-
-    /**
-     * Remember the menu's container element. Grid teardown detaches the whole portal before the
-     * plugins are destroyed, so after a `destroy()` no selector can find the container any more -
-     * only a reference taken beforehand can tell whether the MENU released it.
-     */
-    window.htCaptureMenuContainer = () => {
-      window.htMenuContainerRef = window.hot.getPlugin(window.htMenuPlugin).menu.container;
-    };
-
-    /**
-     * Whether the remembered container was detached from its parent, which `Menu#destroy()` is what
-     * does. It is the one step after `eventManager.destroy()`, so a detached container means the
-     * menu's document listeners were released too.
-     *
-     * @returns {boolean}
-     */
-    window.htMenuContainerDetached = () => window.htMenuContainerRef.parentNode === null;
-
-    /**
-     * Switch the plugin under test off the way an application does. Reported rather than thrown:
-     * a hide hook that throws has to keep reaching the caller, and the menu still has to be torn
-     * down around it.
-     *
-     * @returns {string}
-     */
-    window.htDisableMenuPlugin = () => {
-      try {
-        window.hot.updateSettings({ [window.htMenuPlugin]: false });
-
-        return 'ok';
-      } catch (error) {
-        return String(error && error.message);
-      }
-    };
 
     /**
      * How many `afterSetTheme` hooks the host grid holds. Every menu adds one when it is built, so

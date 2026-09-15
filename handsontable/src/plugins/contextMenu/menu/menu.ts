@@ -19,6 +19,7 @@ import { arrayEach, arrayFilter, arrayReduce } from '../../../helpers/array';
 import { isWindowsOS, isMobileBrowser, isIpadOS } from '../../../helpers/browser';
 import {
   addClass,
+  empty,
   eventTargetEl,
   isChildOf,
   isHTMLElement,
@@ -29,7 +30,7 @@ import {
   removeClass,
 } from '../../../helpers/dom/element';
 import { isRightClick } from '../../../helpers/dom/event';
-import { debounce, runEveryStep } from '../../../helpers/function';
+import { debounce } from '../../../helpers/function';
 import { isDefined } from '../../../helpers/mixed';
 import { mixin } from '../../../helpers/object';
 import localHooks from '../../../mixins/localHooks';
@@ -756,18 +757,14 @@ export class Menu {
    * exactly what a failed open needs. They find the menu closed, as they do after `close()`.
    */
   #rollbackFailedOpen() {
+    const menuGrid = this.hotMenu;
+
+    // First, because it cannot throw: the menu is back to `closed` before anything else is tried.
+    this.#resetToClosed();
+
     try {
-      runEveryStep([
-        () => this.hotMenu?.destroy(),
-        () => {
-          this.hotMenu = null;
-          this.#lifecycle = 'closed';
-          this.#clearScrollListeners();
-          this.container.style.display = 'none';
-          this.hot.getSettings().outsideClickDeselects = this.origOutsideClickDeselects;
-        },
-        () => this.runLocalHooks('afterClose'),
-      ]);
+      menuGrid?.destroy();
+      this.runLocalHooks('afterClose');
     } catch {
       // Dropped on purpose. `open()` rethrows the error that started this rollback, and that one is
       // the application's own bug. A second failure here - a grid that cannot tear down after a
@@ -794,30 +791,36 @@ export class Menu {
       // re-entered from one of them finds a menu neither open nor closed, and does nothing.
       this.#lifecycle = 'closing';
 
-      // Every step runs even when an earlier one throws, and the first error is rethrown after. Each
-      // can run application code - clearing the navigator deselects through the grid's hooks, and
-      // `closeAllSubMenus()` destroys grids - and a skipped step leaves the grid alive, the menu
-      // `closing` for good (so it never opens again), or `afterClose` unfired (DEV-41).
-      runEveryStep([
+      try {
         // Safe because `isOpened()` passed: `opened` is set only after the navigator exists.
-        () => this.#navigator!.clear(),
-        () => this.closeAllSubMenus(),
-        () => this.hotMenu!.destroy(),
-        () => this.#resetToClosed(),
-        () => this.runLocalHooks('afterClose'),
-        () => this.#returnToParentMenu(),
-      ]);
+        this.#navigator!.clear();
+        this.closeAllSubMenus();
+        this.hotMenu!.destroy();
+      } finally {
+        // The menu's own state returns to `closed` whatever happened above, so it can never be
+        // stranded mid-transition - that is the DEV-41 fix. Every line in the `try` runs
+        // application code (clearing the navigator deselects through the grid's hooks, sub-menu
+        // teardown destroys grids), and an error from it propagates, exactly as it does everywhere
+        // else in the grid.
+        this.#resetToClosed();
+      }
+
+      this.runLocalHooks('afterClose');
+      this.#returnToParentMenu();
     }
   }
 
   /**
    * Returns the menu's own state to closed once its grid is gone. Plain resets only, so it runs to
-   * the end even after an earlier teardown step threw.
+   * the end even when the teardown before it threw.
    */
   #resetToClosed() {
     this.hotMenu = null;
     this.#lifecycle = 'closed';
     this.container.style.display = 'none';
+    // Emptied rather than assumed empty. A teardown that threw before `hotMenu.destroy()` leaves
+    // the old grid's DOM behind, and the next open would build a second grid on top of it.
+    empty(this.container);
     this.#anchorRectProvider = null;
     this.#scrollFollowBaseline = null;
     this.#clearScrollListeners();
@@ -1018,13 +1021,9 @@ export class Menu {
    * Close all opened sub menus. Each one is closed even when an earlier one throws.
    */
   closeAllSubMenus() {
-    const steps: Array<() => void> = [];
-
     arrayEach(this.hotMenu!.getData(), (value: unknown, row: number) => {
-      steps.push(() => this.closeSubMenu(row));
+      this.closeSubMenu(row);
     });
-
-    runEveryStep(steps);
   }
 
   /**
@@ -1057,36 +1056,31 @@ export class Menu {
 
     this.#isDestroyed = true;
 
-    // A throwing step must not keep the document listeners alive - that leak is what carried the
-    // DEV-41 crash onto the next page of an SPA.
-    runEveryStep([
-      () => {
-        // A menu destroyed mid-build still owes its callers the other half of the pair. They ran
-        // `before*Show` before `open()` reached here, `close()` is a no-op while the menu is
-        // opening, and the rollback that ends the build fires into the list `clearLocalHooks()`
-        // empties on the next line. Without this the application stays in its "menu showing" state
-        // for good, and never gets the focus back.
-        if (this.#lifecycle === 'opening') {
-          this.runLocalHooks('afterClose');
-        }
-      },
-      () => this.clearLocalHooks(),
-      () => this.close(),
-      () => {
-        // Skipped once the host is gone: it clears every hook itself, and its methods throw by then.
-        if (!this.hot.isDestroyed) {
-          this.hot.removeHook('afterSetTheme', this.#onAfterSetTheme);
-        }
-      },
-      () => {
-        this.parentMenu = null;
-        this.eventManager.destroy();
+    try {
+      // A menu destroyed mid-build still owes its callers the other half of the pair: they ran
+      // `before*Show` before `open()` reached here, and `close()` below is a no-op while the menu is
+      // opening, so nothing else fires it. Without this the application stays in its "menu showing"
+      // state for good, and never gets the focus back.
+      if (this.#lifecycle === 'opening') {
+        this.runLocalHooks('afterClose');
+      }
 
-        if (menuContainerParentElement) {
-          menuContainerParentElement.removeChild(this.container);
-        }
-      },
-    ]);
+      this.clearLocalHooks();
+      this.close();
+    } finally {
+      // Released whatever happened above. These document listeners are what carried the DEV-41
+      // crash onto the next page of an SPA, and the theme hook holds this menu on the host grid.
+      if (!this.hot.isDestroyed) {
+        this.hot.removeHook('afterSetTheme', this.#onAfterSetTheme);
+      }
+
+      this.parentMenu = null;
+      this.eventManager.destroy();
+
+      if (menuContainerParentElement) {
+        menuContainerParentElement.removeChild(this.container);
+      }
+    }
   }
 
   /**

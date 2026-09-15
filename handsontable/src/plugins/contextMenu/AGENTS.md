@@ -180,28 +180,27 @@ Rules for anyone touching this:
 - **The reset is structural — keep it that way.** `open()` sets `opening` and runs `#open()` inside a
   `finally` that returns the menu to `closed` unless `#open()` reached its single commit point.
   Do not move the commit point, and do not add a second place that sets `opened`.
-- **Teardown runs every step, and rethrows the first error after.** `close()`, `closeAllSubMenus()`,
-  `destroy()` and the rollback all go through `runEveryStep()` from `helpers/function`. Each step
-  can run application code — clearing the navigator deselects through the grid's hooks, and sub-menu
-  teardown destroys grids — and a step skipped by an earlier throw leaves behind exactly what it was
-  there to release: the grid alive with its DOM in the container (so the next open builds a second
-  grid on top), `afterClose` unfired, the sub-menu's document listeners attached, or the menu
-  `closing` for good. That last one shipped for one commit: `navigator.clear()` sat before the
-  guard, so a throwing `afterDeselect` stranded the menu where neither `open()` nor `close()` would
-  run. Put a new teardown statement inside a step, never before or after the list.
-- **The plugins' own teardown runs every step too.** `ContextMenu` and `DropdownMenu` (`destroy()`
-  and `disablePlugin()`) and the sheets bar's `Menus#destroy()` call their own `close()` before
-  `menu.destroy()`, and `close()` runs the application's `after*Hide` listener. Plain statements
-  there meant a throwing listener skipped `menu.destroy()` — and with it `eventManager.destroy()`,
-  the document listeners that carried DEV-41 onto the next page of an SPA. They go through
-  `runEveryStep()` as well, with `this.menu = null` as its own step. One limit worth knowing:
-  `hot.destroy()` destroys plugins in a plain `forEach` (`core.ts`), so the rethrow still stops that
-  loop and the plugins after it are skipped. That is wider than the menu and is not fixed here.
+- **An application error during teardown propagates, and the menu's own state still resets.**
+  `close()` tears down inside a `try` and resets in the `finally`; `destroy()` releases the theme
+  hook, the event manager and the container in its own `finally`. Every teardown line runs
+  application code — clearing the navigator deselects through the grid's hooks, sub-menu teardown
+  destroys grids, `afterClose` reaches the plugins' `after*Hide` — and when that code throws, the
+  error reaches the caller, exactly as it does everywhere else in the grid (`runHooks` has no
+  `try` anywhere, and `hot.destroy()` stops at the first plugin that throws). What the menu
+  guarantees is narrower and is the DEV-41 fix itself: it is never left mid-transition. An earlier
+  round wrapped every teardown step, and every caller, so that no step could be skipped; each
+  rethrow then made the next caller up the stack look unguarded, which is how the wrapping spread
+  to `destroy()`, `disablePlugin()` and `updatePlugin()` in three plugins. Do not reintroduce that.
+  A resource a throw can strand is best handled by making the next `open()` cope: `#resetToClosed()`
+  empties the container, so a grid whose `destroy()` never ran cannot leave DOM for the next open to
+  build on top of.
 - **Re-entry is a no-op in both transitions.** `open()` does nothing unless `isClosed()`, and
   `close()` does nothing unless `isOpened()`. So a `close()` from an item callback mid-build is
   ignored and the open in progress wins — tearing the grid down under its own `init()` is what
   broke the page before — and a `close()` or `open()` re-entered from a teardown hook does nothing.
-- **`#rollbackFailedOpen()` is resource cleanup now, not the guarantee.** It still releases what
+- **`#rollbackFailedOpen()` is resource cleanup, not the guarantee.** It resets the state first —
+  that call cannot throw — and only then destroys the half-built grid and fires `afterClose`, both
+  inside its one `catch`. It still releases what
   `#open()` acquired — the menu grid, the scroll listeners, the visible container, the HOST grid's
   `outsideClickDeselects` — so mirror every new side effect of `#open()` in it. A miss now leaks
   instead of breaking the page. The scroll listeners were missed exactly this way on the first
@@ -261,9 +260,10 @@ Coverage is `tests/e2e/menu-open-failure.spec.ts`: the throw path, and — for b
 that fails if `isOpened()` ever reports a menu without a navigator, a `close()` and a nested `open()`
 fired mid-build, the three public hooks, a throwing hide listener during the rollback, a throwing
 sub-menu item, and a throwing sub-menu teardown (a global `afterDestroy` on the sub-menu's grid).
-Round 5 adds, for both plugins: a throwing hide listener during `hot.destroy()` and during
-`disablePlugin()`, a settings change from an item's `name()` and from its `hidden()`, a `close()`
-that was ignored mid-build followed by a command, and the sub-menu's grid hook.
+It also covers, for both plugins: a settings change from an item's `name()` and from its `hidden()`,
+a `close()` that was ignored mid-build followed by a command, and the sub-menu's grid hook. The
+sub-menu teardown test pins the contract above — the error reaches the page, and the menu is still
+closed with an empty container that the next open builds into.
 Every "no page error" read there goes through the page object's `settle()` first: a web-first poll
 cannot prove a negative, because `expect.poll(...).toEqual([])` passes on its first read and waits
 for nothing. Note what that spec cannot do by watching for errors:

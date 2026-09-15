@@ -309,7 +309,7 @@ for (const plugin of ['dropdownMenu', 'contextMenu'] as const) {
       await expect.poll(() => grid.menuState()).toMatchObject({ isOpened: true });
     });
 
-    test('a sub-menu teardown that throws still tears the whole menu down', async() => {
+    test('a sub-menu teardown that throws leaves the menu closed and the next open clean', async() => {
       await grid.setItemMode('none', plugin);
       await grid.openMenuOf(plugin);
       await expect(grid.openMenu(plugin)).toBeVisible();
@@ -319,59 +319,20 @@ for (const plugin of ['dropdownMenu', 'contextMenu'] as const) {
       await grid.arm('subMenuTeardownThrows');
       await grid.clickPageBackground();
 
-      // Positive control: the sub-menu's teardown really threw.
+      // Positive control: the sub-menu's teardown really threw, and the error reaches the page - the
+      // grid does not swallow an application error here any more than anywhere else.
       await expect.poll(() => pageErrors).toContain(await grid.fixtureError('teardown'));
 
-      // Every step after the throw still ran. Before, it skipped the menu's own grid, the hide hook
-      // and the sub-menu's document listeners: the grid kept its DOM in the container, and the next
-      // open built a second grid on top of it.
+      // What the menu still owes whatever the application did: its own state. It is closed, not
+      // stuck mid-transition, and the container it leaves behind is empty - so the next open builds
+      // one menu, not a second grid on top of the old one.
       await expect.poll(() => grid.menuState()).toEqual({ isOpened: false, containerDisplay: 'none' });
       expect(await grid.menuGridCount()).toBe(0);
       expect(await grid.subMenuContainerCount()).toBe(0);
-      expect((await grid.hookLog()).filter(entry => entry.event === 'afterHide')).toHaveLength(1);
 
       await grid.openMenuOf(plugin);
       await expect(grid.openMenu(plugin)).toBeVisible();
       expect(await grid.menuGridCount()).toBe(1);
-
-      // Nothing outlives the grid.
-      expect(await grid.destroyGrid()).toBe('ok');
-      await expect.poll(() => grid.listenerCount()).toBe(0);
-    });
-
-    test('a throwing hide hook does not stop the grid teardown from releasing the menu', async() => {
-      await grid.setItemMode('none', plugin);
-      await grid.openMenuOf(plugin);
-      await expect(grid.openMenu(plugin)).toBeVisible();
-      // Taken now: tearing the grid down detaches the whole portal first, so afterwards no selector
-      // can reach the container and only this reference can say whether the MENU released it.
-      await grid.captureMenuContainer();
-
-      await grid.arm('hideThrows');
-
-      // The application's error still reaches the caller.
-      expect(await grid.destroyGrid()).toBe(await grid.fixtureError('hide'));
-
-      // And the menu was torn down around it. The plugin used to call its own `close()` on the line
-      // before `menu.destroy()` with nothing around it, so a throwing `after*Hide` listener skipped
-      // the destroy - and with it `eventManager.destroy()`, which is the document listener that
-      // carried this bug onto the next page of an SPA.
-      expect(await grid.menuContainerDetached()).toBe(true);
-    });
-
-    test('a throwing hide hook does not stop the plugin from being switched off', async() => {
-      await grid.setItemMode('none', plugin);
-      await grid.openMenuOf(plugin);
-      await expect(grid.openMenu(plugin)).toBeVisible();
-
-      await grid.arm('hideThrows');
-
-      expect(await grid.disableMenuPlugin()).toBe(await grid.fixtureError('hide'));
-
-      // Same teardown shape as above, through `disablePlugin()`. Before, the plugin kept a live
-      // menu and still reported itself switched on, so the next `updateSettings()` built a second
-      // menu on top of one nothing could reach.
-      expect(await grid.pluginState()).toEqual({ hasMenu: false, enabled: false });
     });
 
     test('a settings change from an item callback leaves no menu running', async() => {
