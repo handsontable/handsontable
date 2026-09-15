@@ -293,9 +293,10 @@ export class CopyPaste extends BasePlugin {
   /**
    * The unclamped `[startRow, startColumn, endRow, endColumn]` range a paste is about to
    * populate, captured just before `populateFromArray()` runs. A validated column defers row
-   * creation to a microtask (see `#onAfterChange`), so the synchronous selection made right
-   * after `populateFromArray()` returns can be clamped against a stale row count. This plan is
-   * what `#onAfterChange` uses to re-select against the fresh count once the write settles.
+   * creation until the validator queue drains (see `#onAfterChange`), so the synchronous
+   * selection made right after `populateFromArray()` returns can be clamped against a stale row
+   * count. This plan is what `#onAfterChange` uses to re-select against the fresh count once the
+   * write settles.
    *
    * @type {[number, number, number, number] | null}
    */
@@ -1302,10 +1303,10 @@ export class CopyPaste extends BasePlugin {
       return;
     }
 
-    // Deferred paste (a validated cell in range grew the grid on a microtask, after the inline
-    // selection clamped against a stale count): re-select against the fresh count. Skip it when
-    // the selection no longer starts where the paste did - a synchronous `afterPaste` handler that
-    // moved the selection (e.g. to advance focus) must not be overwritten a microtask later.
+    // Deferred paste (a validated cell in range grew the grid once the validator queue drained,
+    // after the inline selection clamped against a stale count): re-select against the fresh count.
+    // Skip it when the selection no longer starts where the paste did - a synchronous `afterPaste`
+    // handler that moved the selection (e.g. to advance focus) must not be overwritten afterwards.
     const activeRange = this.hot.getSelectedRangeActive();
     const topStart = activeRange ? activeRange.getTopStartCorner() : null;
 

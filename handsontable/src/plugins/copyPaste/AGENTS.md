@@ -181,17 +181,27 @@ validated cell anywhere in the pasted range — a `dropdown`/`autocomplete` colu
 so do `numeric`/`date`/custom — makes the write settle asynchronously. `validateCell` (`core.ts`) defers
 **every** validated cell through `_registerMicrotask` ("validation should be always asynchronous"), so
 `applyChanges()` — where the new rows are actually created (`datamap.createRow`, guarded by
-`allowInsertRow`) — runs on a microtask, **after** `onPaste()` has already returned. Consequences for anyone
+`allowInsertRow`) — runs only after the validator queue drains, **after** `onPaste()` has already returned.
+For a synchronous validator (the array-source `dropdown` in the test) that is one microtask; an async
+validator (function `source`, custom async) settles on a later, arbitrary boundary. Consequences for anyone
 touching `onPaste`: (1) any synchronous post-paste read of `countRows()`/`countCols()` is **stale** for a
 validated paste, so the inline `selectCell` clamps the selection down to the pre-paste last row (the reported
 bug); the fix keeps that inline selection and adds a one-shot `afterChange` correction (`#onAfterChange`,
 gated on `source === 'CopyPaste.paste'`) that re-selects against the settled count. (2) The correction lands
 **after `afterPaste` fires**, and `afterPaste` (and `populateValues`'s return value) still describe the stale
-collapsed range — only the DOM selection is corrected a microtask later. (3) `afterChange` fires only when
-`changes.length > 0`, and the shift paste modes recurse into `populateFromArray` **without** the
+collapsed range — only the DOM selection is corrected once the write settles. (3) `afterChange` fires only
+when `changes.length > 0`, and the shift paste modes recurse into `populateFromArray` **without** the
 `'CopyPaste.paste'` source, so the handler skips them and their inline selection stands. (4) The correction
-re-selects only while the selection still starts at the paste origin, so a synchronous `afterPaste` handler
-that moved the selection is not overwritten on the microtask.
+re-selects only while the selection still starts at the paste origin (`getTopStartCorner()`), so a
+synchronous `afterPaste` handler that moved the selection, or a late async validator resolving after the user
+clicked away, is not overwritten.
+
+Known limitation: `#pastePlan` is a **single slot**. With an async validator, two pastes can interleave — a
+second paste's `populateValues` overwriting the first's plan before the first's `applyChanges` settles — and
+the earlier paste's `afterChange` then corrects against the later plan. This is unreachable with a
+synchronous validator (its microtask drains before any next user paste event) and out of DEV-38's scope; a
+per-paste token (a stack, as the index-mapper does) is the fix if async-validated paste interleaving ever
+needs to be correct.
 
 ## Header copying
 
