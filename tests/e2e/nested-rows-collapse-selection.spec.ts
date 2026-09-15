@@ -67,6 +67,30 @@ test.describe('NestedRows selection when a section is collapsed', () => {
     expect(await nestedRows.selectedCell()).toEqual([2, 0]);
   });
 
+  test('a selection BELOW the collapsed section stays on its own row', async({ page, theme }) => {
+    const nestedRows = new NestedRowsPage(page, theme);
+
+    await nestedRows.goto();
+
+    // B-1 belongs to Root B, and collapsing Root A does not trim it - but it does trim five rows
+    // ABOVE it, so the stored visual index (7) lands past the new row count of 4 and the core drops
+    // the selection. The row the user picked is still on screen, so the walk to an ancestor must not
+    // start: B-1 is its own answer.
+    await nestedRows.cell(7, 0).click();
+    expect(await nestedRows.selectedCell()).toEqual([7, 0]);
+
+    await nestedRows.collapseButton(0).click();
+
+    expect(await nestedRows.visibleNames()).toEqual(['Root A', 'Root B', 'B-1', 'B-2']);
+
+    // B-1 slid from visual 7 to visual 2. Landing on Root B (visual 1) would move the user off the
+    // record they picked, onto a parent of a section they never collapsed.
+    expect(await nestedRows.selectedCell()).toEqual([2, 0]);
+
+    await page.keyboard.press('ArrowDown');
+    expect(await nestedRows.selectedCell()).toEqual([3, 0]);
+  });
+
   test('collapseAll from two levels deep lands on the nearest ancestor that survives', async({ page, theme }) => {
     const nestedRows = new NestedRowsPage(page, theme);
 
@@ -145,6 +169,35 @@ test.describe('NestedRows selection when a section is collapsed', () => {
 
     // Unchanged behavior: the restore trims B-1 away and the core drops the stale selection. What
     // must NOT happen is the guard firing and parking the user on Root B.
+    expect(await nestedRows.selectedCell()).toBeNull();
+  });
+
+  test('a collapse driven from outside the grid does not pull focus into it', async({ page, theme }) => {
+    const nestedRows = new NestedRowsPage(page, theme);
+
+    await nestedRows.goto();
+
+    // The selection is inside the section that is about to be collapsed...
+    await nestedRows.cell(8, 0).click();
+
+    // ...but the user has moved on to a control of the app's own, outside the grid.
+    await page.evaluate(() => {
+      const button = document.createElement('button');
+
+      button.id = 'outside-control';
+      document.body.appendChild(button);
+      button.focus();
+    });
+
+    expect(await nestedRows.focusInsideGrid()).toBe(false);
+
+    await nestedRows.callPlugin('collapseAll');
+
+    // `selectCell()` scrolls and takes the focus, which is right inside the grid and rude outside
+    // it. A grid the user is not in keeps the behavior it always had: the core drops the stranded
+    // selection, and nothing takes its place.
+    expect(await nestedRows.focusInsideGrid()).toBe(false);
+    expect(await page.evaluate(() => document.activeElement?.id)).toBe('outside-control');
     expect(await nestedRows.selectedCell()).toBeNull();
   });
 

@@ -296,29 +296,42 @@ They are written in different places and can drift. Keep this in mind:
   `handsontable/.ai/CONCERNS.md` as stack-overflow risks with 10k+ rows. Build index lists with a loop.
 - **`batchExecution` does not suspend rendering.** Use `hot.batch()` when a method performs two
   passes (as `expandToLevel()` does), or the grid renders the intermediate state.
-- **Three collapses reach the trimming map that the user never asked for, and `shouldRunHooks` is
+- **Several collapses reach the trimming map that the user never asked for, and `shouldRunHooks` is
   what tells them apart.** `CollapsingUI#trimRows()` looks like the natural seam for anything that
   reacts to a collapse — every path funnels through it — but it cannot tell a gesture from a replay.
-  Three callers re-collapse a state the user chose earlier: `updatePlugin()` (which in React runs on
-  **every re-render**, see the `updatePlugin()` landmine above), `#onAfterUpdateData()`, and
-  `collapsedRowsStash.applyStash()`, which `alter()` opens around every insert and remove while it
-  owns the selection (`selection.shiftRows()` moves it with the rows). Anything that reaches out and
-  touches shared grid state — the selection, the viewport, focus — must therefore hang off
-  `applyCollapsedRowsChange()` and be gated on `shouldRunHooks === true`, which is exactly the flag
-  the two replays already pass `false` for and which the stash restore bypasses entirely by calling
-  `collapseMultipleChildren()` directly. That is where the DEV-50 selection guard lives. Make the
-  gate opt-**in**, never opt-out: a new collapse path then leaves the selection alone until it says
-  otherwise, instead of silently inheriting a side effect. Run the side effect after
-  `collapseMultipleChildren()` has returned and `collapsedRows` is updated, so an `afterSelection`
-  consumer reading `getCollapsedParents()` sees the collapse that caused it.
-- **A collapse that strands the selection must fill in only the case the core gave up on.**
-  `Selection#deselectIfHighlightStranded()` drops a stranded single-cell selection but **clamps** an
-  extent that tracks the grid — a full-column selection anchored in the column header, a select-all —
-  so that one survives the trim in a form the user still recognises. Re-selecting unconditionally
-  replaces that repair with a single cell and throws away work the core deliberately did. Check that
-  the selection really is gone first. Read the highlight from `getSelectedRangeActive()`, not
-  `getSelectedRangeLast()`: the active layer is the one the core judges, and on a multi-layer
-  Ctrl+click selection the two are different ranges.
+  At least four callers re-collapse a state the user chose earlier, and the list is not closed:
+  `updatePlugin()` (which in React runs on **every re-render**, see the `updatePlugin()` landmine
+  above), `#onAfterUpdateData()`, `collapsedRowsStash.applyStash()` — which `alter()` opens around
+  every insert and remove while it owns the selection (`selection.shiftRows()` moves it with the
+  rows) — and `RowMoveController#onBeforeRowMove()`, which stashes and restores around every row
+  move independently of `alter()`. Anything that reaches out and touches shared grid state — the
+  selection, the viewport, focus — must therefore hang off `applyCollapsedRowsChange()` and be gated
+  on `shouldRunHooks === true`, which is exactly the flag the two hook-silent replays already pass
+  `false` for and which both stash paths bypass entirely by calling `collapseMultipleChildren()`
+  directly. That is where the DEV-50 selection guard lives. Make the gate opt-**in**, never opt-out:
+  a new collapse path then leaves the selection alone until it says otherwise, instead of silently
+  inheriting a side effect — which is what keeps the row-move path safe without naming it. Run the
+  side effect after `collapseMultipleChildren()` has returned and `collapsedRows` is updated, so an
+  `afterSelection` consumer reading `getCollapsedParents()` sees the collapse that caused it.
+- **`selectCell()` scrolls and takes the focus, so gate it on `hot.isListening()` too.** That is
+  wanted when the user is working inside the grid and rude when they are not: an app calling
+  `collapseAll()` from its own toolbar button would otherwise have the focus yanked off that button
+  mid-keyboard-navigation. Measured — without the gate, `document.activeElement` moves from the
+  app's button to a grid `<td>` and `isListening()` flips to `true`. `changeListener: false` fixes
+  only half of it (the listener stays put, DOM focus still moves), so the gate is the whole answer.
+- **A collapse that strands the selection must fill in only the case the core gave up on, and start
+  the walk at the record the user picked.** `Selection#deselectIfHighlightStranded()` drops a
+  stranded single-cell selection but **clamps** an extent that tracks the grid — a full-column
+  selection anchored in the column header, a select-all — so that one survives the trim in a form the
+  user still recognises. Re-selecting unconditionally replaces that repair with a single cell and
+  throws away work the core deliberately did. Check that the selection really is gone first. Read the
+  highlight from `getSelectedRangeActive()`, not `getSelectedRangeLast()`: the active layer is the
+  one the core judges, and on a multi-layer Ctrl+click selection the two are different ranges. And
+  the core drops a selection for **two** reasons, so walking straight to the parent is wrong: the
+  picked row was trimmed, OR it survived while rows **above** it were trimmed, which slides its
+  visual index down until the stored one sits past the last row. Selecting B-1 and collapsing an
+  earlier section is the second shape — the record is still on screen, and moving the user onto the
+  parent of a section they never collapsed is a bug. Start the walk at the anchor row itself.
 - **Do not assert `document.activeElement` straight after clicking the collapse button.** The nesting
   button is not focusable, so a real pointer press on it leaves focus on `<body>` even when the grid
   is working perfectly — a synthetic `dispatchEvent` does not, which makes the two disagree and a
