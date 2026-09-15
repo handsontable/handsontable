@@ -19,6 +19,7 @@ import {
   axisScrollbarClearance,
 } from '../scrollbarClearance';
 import { throwWithCause } from '../../../../../helpers/errors';
+import { setSpreaderOffset } from '../spreaderOffset';
 
 /**
  * @class InlineStartOverlay
@@ -275,23 +276,29 @@ export class InlineStartOverlay extends Overlay {
    */
   applyToDOM() {
     const total = this.wtSettings.getSetting('totalColumns');
-    const styleProperty = this.isRtl() ? 'right' : 'left';
+    const isRtl = this.isRtl();
 
     const columnsRenderCalculator = this.deps.getWtViewport().columnsRenderCalculator;
+    // During a native scrollbar drag the sticky-scroll strategy positions the spreader itself;
+    // the offset is only recorded then, and the transform returns on release.
+    const suspended = this.deps.getWtOverlays().isStickyScrollActive();
 
     if (typeof columnsRenderCalculator?.startPosition === 'number') {
-      this.spreader.style[styleProperty] = `${columnsRenderCalculator.startPosition}px`;
+      const start = columnsRenderCalculator.startPosition;
+
+      // In RTL the spreader moves away from the hider's right edge, so the physical direction flips.
+      setSpreaderOffset(this.spreader, 'x', isRtl ? -start : start, suspended);
 
     } else if (total === 0 || columnsRenderCalculator === null) {
       // 0 columns, or nothing rendered yet — a `null` calculator is the drawn-but-never-rendered state
       // a skipped first draw leaves behind (see `restoreRenderedStateIfSafe` in `table/drawCycle.ts`).
-      this.spreader.style[styleProperty] = '0';
+      setSpreaderOffset(this.spreader, 'x', 0, suspended);
 
     } else {
       throwWithCause('Incorrect value of the columnsRenderCalculator');
     }
 
-    if (this.isRtl()) {
+    if (isRtl) {
       this.spreader.style.left = '';
     } else {
       this.spreader.style.right = '';
@@ -311,13 +318,11 @@ export class InlineStartOverlay extends Overlay {
     }
 
     const rowsRenderCalculator = this.deps.getWtViewport().rowsRenderCalculator;
+    const start = typeof rowsRenderCalculator?.startPosition === 'number'
+      ? rowsRenderCalculator.startPosition : 0;
 
-    if (typeof rowsRenderCalculator?.startPosition === 'number') {
-      this.clone.wtTable.spreader.style.top = `${rowsRenderCalculator.startPosition}px`;
-
-    } else {
-      this.clone.wtTable.spreader.style.top = '';
-    }
+    // The clone is suspended only while the strategy positions the clones itself (element mode).
+    setSpreaderOffset(this.clone.wtTable.spreader, 'y', start, this.deps.getWtOverlays().isStickyScrollOwningClones());
   }
 
   /**

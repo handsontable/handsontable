@@ -108,8 +108,11 @@ describe('preview package composition', () => {
       // Only the preview publish composes a complete package.
       expect([...callers.strict].sort()).toEqual(['workflows/integration.yml']);
       // The ES + CJS build runs before the UMD bundles and the theme stylesheets exist; the
-      // visual runs compose a tree for screenshots that never reaches a registry.
-      expect([...callers.partial].sort()).toEqual(['workflows/build.yml', 'workflows/visual.yml']);
+      // visual runs and the on-demand stability matrix compose a tree for screenshots that never
+      // reaches a registry.
+      expect([...callers.partial].sort()).toEqual([
+        'workflows/build.yml', 'workflows/visual-stability.yml', 'workflows/visual.yml',
+      ]);
     });
 
     it('should compose the preview package after the artifacts land and before the publish', () => {

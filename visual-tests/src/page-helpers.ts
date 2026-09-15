@@ -1,4 +1,4 @@
-import type { Locator } from '@playwright/test';
+import { expect, type Locator } from '@playwright/test';
 import PageHolder from './page-holder';
 import { helpers } from './helpers';
 
@@ -450,6 +450,13 @@ export async function filterByCondition(
   if (value !== undefined) {
     const valueInput = page.getByRole('textbox', { name: 'Value', exact: true });
 
+    // BEFORE the click, not after it. Choosing a condition focuses this input on a 10 ms timer
+    // (`filters/component/condition.ts`, the `index === 0` branch), and the click focuses it too — so
+    // an assertion placed after the click passes on its first poll and waits for nothing, leaving the
+    // timer free to fire mid-typing. Waiting for the hand-off first is what makes the state
+    // deterministic; the click then only places the caret. `accepting-by-enter.spec.ts` waits the
+    // same way. The second input has no such timer (the engine defers only the first).
+    await expect(valueInput).toBeFocused();
     await valueInput.click();
     await valueInput.pressSequentially(value);
   }
@@ -555,6 +562,7 @@ export async function collapseNestedColumn(columnName:string, table = getDefault
  */
 export async function collapseNestedRow(rowNumber:number, table = getDefaultTableInstance()) {
   await table.getByRole('rowheader', { name: rowNumber.toString() }).locator('div').nth(1).click();
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2797: fixed delay inherited from the 2024 import; replace with the asserted state (toBeVisible / toBeFocused / a settled helper) when this family is consolidated
   await getPageInstance().waitForTimeout(500);
 
 }
@@ -596,6 +604,7 @@ export async function resizeColumn(columnName: string, resizeAmount: number) {
 
   if (box) {
     await getPageInstance().mouse.move(box.x + box.width - 3, box.y + (box.height / 2));
+    // eslint-disable-next-line no-restricted-syntax -- DEV-2797: the resize handle appears on hover with no class to wait for yet; replace with a hover-state probe when this helper is reworked
     await getPageInstance().waitForTimeout(500);
 
     // Drag the resize handle to resize the column
@@ -617,6 +626,7 @@ export async function resizeRow(rowIndex: number, resizeAmount: number, tableLoc
     // Move to the bottom border of the row header
     await getPageInstance().mouse.move(box.x + (box.width / 2), box.y + box.height - 3);
     // Add a small delay to ensure the hover action is registered
+    // eslint-disable-next-line no-restricted-syntax -- DEV-2797: the resize handle appears on hover with no class to wait for yet; replace with a hover-state probe when this helper is reworked
     await getPageInstance().waitForTimeout(500);
 
     // Drag the resize handle to resize the row

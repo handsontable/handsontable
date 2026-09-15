@@ -1,10 +1,14 @@
 import AxisSyncer from '../../indexSyncer/axisSyncer';
+import { createMockEngine } from './helpers/mockEngine';
 
 function createMockIndexMapper(indexesSequence, notTrimmedIndexes = indexesSequence) {
+  const state = { indexesSequence, notTrimmedIndexes };
+
   return {
-    getIndexesSequence: () => indexesSequence,
-    getNotTrimmedIndexes: () => notTrimmedIndexes,
-    getNumberOfIndexes: () => indexesSequence.length,
+    state,
+    getIndexesSequence: () => state.indexesSequence,
+    getNotTrimmedIndexes: () => state.notTrimmedIndexes,
+    getNumberOfIndexes: () => state.indexesSequence.length,
     addLocalHook: () => {},
   };
 }
@@ -15,22 +19,6 @@ function createMockIndexSyncer(engine, sheetId = 0) {
     getSheetId: () => sheetId,
     isPerformingUndoRedo: () => false,
     getPostponeAction: () => () => {},
-  };
-}
-
-function createMockEngine() {
-  const calls = { setRowOrder: [], setColumnOrder: [] };
-
-  return {
-    calls,
-    setRowOrder: (sheetId, transformation) => {
-      calls.setRowOrder.push({ sheetId, transformation });
-    },
-    setColumnOrder: (sheetId, transformation) => {
-      calls.setColumnOrder.push({ sheetId, transformation });
-    },
-    getSheetDimensions: () => ({ width: 4, height: 4 }),
-    batch: callback => callback(),
   };
 }
 
@@ -67,7 +55,7 @@ describe('AxisSyncer initial order sync', () => {
     it('should pad the transformation array to match the HF sheet width when HF has extended dimensions', () => {
       const engine = createMockEngine();
 
-      engine.getSheetDimensions = () => ({ width: 6, height: 4 });
+      engine.dimensions.width = 6;
       const indexMapper = createMockIndexMapper([0, 2, 1, 3]);
       const indexSyncer = createMockIndexSyncer(engine);
       const axisSyncer = new AxisSyncer('column', indexMapper, indexSyncer);
@@ -80,12 +68,58 @@ describe('AxisSyncer initial order sync', () => {
     });
   });
 
+  describe('engine sheet smaller than the sequence', () => {
+    it('should not sync the initial order when the engine sheet holds no columns', () => {
+      const engine = createMockEngine({ width: 0, height: 0 });
+      const indexMapper = createMockIndexMapper([0, 2, 1, 3]);
+      const axisSyncer = new AxisSyncer('column', indexMapper, createMockIndexSyncer(engine));
+
+      expect(() => axisSyncer.init()).not.toThrow();
+      expect(engine.calls.setColumnOrder).toEqual([]);
+    });
+
+    it('should compress the initial order onto the columns the engine holds', () => {
+      const engine = createMockEngine({ width: 2, height: 4 });
+      const indexMapper = createMockIndexMapper([1, 0, 2, 3]);
+      const axisSyncer = new AxisSyncer('column', indexMapper, createMockIndexSyncer(engine));
+
+      axisSyncer.init();
+
+      expect(engine.calls.setColumnOrder).toEqual([
+        { sheetId: 0, transformation: [1, 0] },
+      ]);
+    });
+
+    it('should fill a sheet that was empty at init in the order the grid had then', () => {
+      const engine = createMockEngine({ width: 0, height: 0 });
+      const indexMapper = createMockIndexMapper([0, 2, 1, 3]);
+      const axisSyncer = new AxisSyncer('column', indexMapper, createMockIndexSyncer(engine));
+      const syncMethod = axisSyncer.getIndexesChangeSyncMethod();
+
+      axisSyncer.init();
+      // The sheet gains its columns through addresses the grid computes from the order it had at init, so
+      // they already sit that way and there is nothing to reorder.
+      engine.dimensions.width = 4;
+      syncMethod('update');
+
+      expect(engine.calls.setColumnOrder).toEqual([]);
+
+      // A later reorder is measured against those columns: the engine holds [0, 2, 1, 3].
+      indexMapper.state.indexesSequence = [3, 1, 2, 0];
+      syncMethod('update');
+
+      expect(engine.calls.setColumnOrder).toEqual([
+        { sheetId: 0, transformation: [3, 2, 1, 0] },
+      ]);
+    });
+  });
+
   describe('row axis', () => {
     it('should call setRowOrder when row sequence is non-identity', () => {
       const engine = createMockEngine();
       const indexMapper = createMockIndexMapper([2, 0, 1]);
 
-      engine.getSheetDimensions = () => ({ width: 4, height: 3 });
+      engine.dimensions.height = 3;
       const indexSyncer = createMockIndexSyncer(engine);
       const axisSyncer = new AxisSyncer('row', indexMapper, indexSyncer);
 

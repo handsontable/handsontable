@@ -7007,6 +7007,8 @@ export default (): Record<string, unknown> => {
      * | `true`  | [Strict mode](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md#autocomplete-strict-mode)         | The end user:<br>- Can only choose one of suggested values<br>- Can't enter a custom value |
      * | `false` | [Flexible mode](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md#autocomplete-flexible-mode)     | The end user:<br>- Can choose one of suggested values<br>- Can enter a custom value        |
      *
+     * The [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cell type always runs in strict mode, so it ignores `strict: false`.
+     *
      * This option can be set at any level of the [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration):
      * the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
      *
@@ -7090,6 +7092,12 @@ export default (): Record<string, unknown> => {
      * | ----------------- | --------------------------------------------- |
      * | `false` (default) | Don't truncate text content with an ellipsis  |
      * | `true`            | Truncate text content with an ellipsis        |
+     *
+     * ::: tip
+     * The `autocomplete`, `dropdown`, and `handsontable` cell types always truncate their value with an
+     * ellipsis so their dropdown arrow never overlaps the content, regardless of this option. This
+     * changed in 19.0.0.
+     * :::
      *
      * @since 16.0.0
      * @memberof Options#
@@ -8260,6 +8268,12 @@ export default (): Record<string, unknown> => {
      * Word wrapping only applies to content that contains spaces or other soft-wrap opportunities.
      * A long unbroken string without spaces (e.g. a URL or a continuous number sequence) does not wrap
      * regardless of this setting.
+     * :::
+     *
+     * ::: tip
+     * The `autocomplete`, `dropdown`, and `handsontable` cell types always keep their value on a single
+     * line and truncate it with an ellipsis, so their dropdown arrow never overlaps the content. For
+     * those types this option has no effect. This changed in 19.0.0.
      * :::
      *
      * This option can be set at any level of the [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration):
