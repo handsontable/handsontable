@@ -26,6 +26,7 @@ test(__filename, async({ goto, tablePage }) => {
 
   await tablePage.mouse.wheel(0, 500);
 
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2797: fixed delay inherited from the 2024 import; replace with the asserted state (toBeVisible / toBeFocused / a settled helper) when this family is consolidated
   await tablePage.waitForTimeout(500);
 
   await tablePage.screenshot({ path: helpers.screenshotPath() });
