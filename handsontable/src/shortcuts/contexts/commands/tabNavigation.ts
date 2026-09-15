@@ -1,4 +1,5 @@
 import type { HotInstance } from '../../../core/types';
+import { canNavigateGrid } from '../../guards';
 
 export const command = {
   name: 'tabNavigation',
@@ -39,6 +40,10 @@ export const command = {
 
         if (
           !tabNavigation ||
+          // Nowhere to move the selection to - every column hidden, or an overlay covering the body.
+          // Claiming the chord here would swallow `Tab` and leave the user no way out of that overlay,
+          // so release it and drop the selection, the same way a wrap off the end of the grid does.
+          !canNavigateGrid(hot) ||
           !hot.selection.isSelected() ||
           autoWrapRow && rowWrapState.wrapped && rowWrapState.flipped ||
           !autoWrapRow && rowWrapState.wrapped

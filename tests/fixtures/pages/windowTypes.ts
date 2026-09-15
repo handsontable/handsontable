@@ -31,6 +31,7 @@ export interface FixtureSortConfig {
  */
 export interface FixtureHotInstance {
   getDataAtCell(row: number, col: number): CellValue;
+  getData(): CellValue[][];
   getDataAtCol(col: number): CellValue[];
   getSourceDataAtCell(row: number, col: number): CellValue;
   getSourceData(): unknown[];
@@ -116,6 +117,21 @@ export interface FixtureHotInstance {
     enablePlugin(): void,
     disablePlugin(): void,
   };
+  getPlugin(name: 'emptyDataState'): {
+    isVisible(): boolean,
+  };
+  getPlugin(name: 'dialog'): {
+    show(options: { content: string }): void,
+  };
+  getFocusScopeManager(): {
+    getActiveScopeId(): string | null,
+  };
+  getShortcutManager(): {
+    getActiveContextName(): string,
+  };
+  runHooks(name: string, ...args: unknown[]): unknown;
+  countRenderedRows(): number;
+  countRenderedCols(): number;
   getActiveEditor(): {
     isOpened(): boolean,
     beginEditing(): void,
@@ -126,6 +142,7 @@ export interface FixtureHotInstance {
   view: {
     isVerticallyScrollableByWindow(): boolean,
     isHorizontallyScrollableByWindow(): boolean,
+    countRenderableColumns(): number,
   };
   /** The grid's own root `<div>` – a child of the container passed to the constructor. */
   rootElement: HTMLElement;
@@ -182,6 +199,13 @@ declare global {
   interface Window {
     /** The fixture's live Handsontable instance. */
     hot: FixtureHotInstance;
+    /** DEV-2917 fixture: the message of a throw the fixture's own grid build caught, if any. */
+    htFixtureError?: string;
+    /**
+     * DEV-2917: `defaultPrevented` of the last `keydown` seen at the window, or `null` when none
+     * reached it. Written by a bubble-phase listener, so it reads the verdict of every handler below.
+     */
+    htLastKeyDefaultPrevented: boolean | null;
     /** #5833 fixture: the "getter" grid – constructor rows with a non-configurable derived getter. */
     hotGetter: FixtureHotInstance;
     /** #5833 fixture: the "accessor" grid – the docs' function-data-source pattern (function `columns[].data`). */

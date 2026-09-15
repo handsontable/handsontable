@@ -255,6 +255,48 @@ customScopeContext.addShortcut({
 });
 ```
 
+### Inherit another context's shortcuts
+
+A scope that *covers* the grid rather than replacing it can keep the grid's shortcuts working while it
+is active. Set `fallbackShortcutsContextName` to `'grid'`. When a key arrives, Handsontable looks in the
+scope's own context first, and moves on to the fallback only when nothing there answers the key. The
+scope therefore answers everything the grid answers, including shortcuts added to the grid later, and
+you never maintain a list of keys.
+
+```js
+const focusScopeManager = hot.getFocusScopeManager();
+
+focusScopeManager.registerScope('customOverlay', containerElement, {
+  shortcutsContextName: 'plugin:customOverlay',
+  fallbackShortcutsContextName: 'grid',
+  coversGridBody: true,
+});
+```
+
+Set `shortcutsContextName` as well. It defaults to `'grid'`, so a scope that declares only the fallback
+names the same context twice, and Handsontable throws.
+
+A shortcut in the scope's own context wins over the fallback's shortcut for the same keys, as long as its
+`runOnlyIf` returns `true`. When `runOnlyIf` returns `false`, the fallback answers instead. Use that to
+override one key without shadowing it the rest of the time.
+
+Leave the option unset for a modal scope. A modal blocks the rest of the grid, so letting the grid's
+shortcuts through it defeats the point. The fallback may declare a fallback of its own, and Handsontable
+walks the chain; a chain that loops back on itself stops rather than repeating.
+
+Set `coversGridBody` to `true` when the scope's container is painted over the grid body. A shortcut that
+writes cell content then refuses to run, both while the grid draws no cells and while your scope covers
+the cells it does draw. Those are different states: an overlay shown during a data fetch covers rows that
+are still on screen, and without this flag a shortcut would ask only "does the grid draw a cell", get
+`yes`, and change data the user cannot reach.
+
+Covering and inheriting are separate questions, which is why they are separate options. A pagination bar
+may inherit the grid's shortcuts without covering the body — the cells stay visible and usable.
+
+Two write paths sit outside the shortcut manager and are not affected by either option: the clipboard
+`paste` and `cut` handlers, which listen for the browser's own events, and anything your own code calls
+through the API.
+
 ### Add conditional scope activation
 
 To add conditional scope activation, use the `runOnlyIf` option. This allows you to enable or disable the scope based on custom logic. The option is useful for situations where your UI depends on whether it has any focusable elements, or when you want to prevent the scope from activating for a particular part of the UI. For cases where focus should bypass the scope activation after <kbd>Tab</kbd> or <kbd>Shift</kbd>+<kbd>Tab</kbd> key presses, the logic should return `false`.

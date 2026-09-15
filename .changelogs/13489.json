@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed keyboard shortcuts, including select all, undo and redo, not working while the empty data state overlay is on screen. Shortcuts that change cell content no longer run while the grid renders no cells or an overlay covers them. Tab now moves the focus out of the overlay.",
+  "type": "fixed",
+  "issueOrPR": 13489,
+  "breaking": false,
+  "framework": "none"
+}
