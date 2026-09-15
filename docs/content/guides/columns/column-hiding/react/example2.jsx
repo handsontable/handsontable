@@ -1,32 +1,24 @@
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-
 // register Handsontable's modules
 registerAllModules();
-
 const ExampleComponent = () => {
-  return (
-    <HotTable
-      autoWrapRow={true}
-      autoWrapCol={true}
-      licenseKey="non-commercial-and-evaluation"
-      data={[
-        ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1', 'K1', 'L1'],
-        ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2', 'K2', 'L2'],
-        ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3', 'J3', 'K3', 'L3'],
-        ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4', 'J4', 'K4', 'L4'],
-        ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5', 'I5', 'J5', 'K5', 'L5'],
-      ]}
-      height="auto"
-      colHeaders={true}
-      rowHeaders={true}
-      // enable the `HiddenColumns` plugin
-      hiddenColumns={{
-        // specify columns hidden by default
-        columns: [3, 5, 9],
-      }}
-    />
-  );
+    return (<HotTable autoWrapRow={true} autoWrapCol={true} licenseKey="non-commercial-and-evaluation" data={[
+            ['SKU-4821', 'Stainless Steel Water Bottle', 'Harbor Goods', 'Drinkware', 'Seattle', 142, 24.99, 40, 'In stock', '2026-03-12'],
+            ['SKU-0093', 'Wireless Mouse', 'Alpine Supply Co.', 'Electronics', 'Denver', 0, 29.5, 25, 'Backorder', '2026-01-08'],
+            ['SKU-1170', 'Ergonomic Office Chair', 'Cascade Distributors', 'Furniture', 'Portland', 67, 349, 20, 'In stock', '2026-04-21'],
+            ['SKU-2208', 'USB-C Charging Cable', 'Summit Trading', 'Electronics', 'Austin', 215, 12.99, 80, 'In stock', '2026-02-17'],
+            ['SKU-3341', 'Aluminum Water Filter', 'Northgate Wholesale', 'Drinkware', 'Minneapolis', 38, 89, 30, 'Low stock', '2026-05-03'],
+            ['SKU-4412', 'Canvas Tote Bag', 'Nordic Traders', 'Apparel', 'Boston', 190, 18.5, 50, 'In stock', '2026-03-29'],
+            ['SKU-5088', 'USB-C Hub', 'Harbor Goods', 'Electronics', 'Chicago', 54, 45, 20, 'In stock', '2026-06-11'],
+            ['SKU-6120', 'Ceramic Mug Set', 'Alpine Supply Co.', 'Drinkware', 'Phoenix', 88, 32, 24, 'In stock', '2026-04-02'],
+            ['SKU-7294', 'Desk Lamp', 'Cascade Distributors', 'Furniture', 'Atlanta', 12, 54.99, 15, 'Low stock', '2026-07-19'],
+            ['SKU-8015', 'Laptop Stand', 'Summit Trading', 'Furniture', 'Dallas', 73, 79, 20, 'In stock', '2026-05-28'],
+        ]} height={200} colHeaders={true} rowHeaders={true} 
+    // enable the `HiddenColumns` plugin
+    hiddenColumns={{
+            // specify columns hidden by default
+            columns: [3, 5, 9],
+        }}/>);
 };
-
 export default ExampleComponent;

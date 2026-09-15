@@ -8,6 +8,11 @@ import { test, expect } from '@playwright/test';
  * and every gap between paragraphs, code blocks and lists collapses to zero on
  * every docs page, while unlayered heading margins keep working and hide the
  * breakage (DEV-2742). These assertions read the gap the reader actually sees.
+ *
+ * Only a block whose spacing still comes from that layered rule can prove the
+ * order, so keep at least one such assertion here. An unlayered docs override
+ * beats every layer, broken order included, which is what took the code block
+ * below out of the backstop (see the comment on that test).
  */
 
 const PAGE = '/javascript-data-grid/batch-operations/';
@@ -69,16 +74,40 @@ test.describe('markdown prose spacing', () => {
     await expect(secondParagraph).toHaveCSS('margin-top', contentGap);
   });
 
-  test('a code block after a paragraph keeps the markdown content gap', async({ page, baseURL }) => {
+  test('a list after a paragraph keeps the markdown content gap', async({ page, baseURL }) => {
     await page.goto(`${baseURL}${PAGE}`);
 
     const contentGap = await resolveCssLength(page, 'var(--sl-content-gap-y)');
 
     expect(parseFloat(contentGap)).toBeGreaterThan(0);
 
+    const list = page.locator('.sl-markdown-content p + ul, .sl-markdown-content p + ol').first();
+
+    await expect(list).toBeVisible();
+    await expect(list).toHaveCSS('margin-top', contentGap);
+  });
+
+  /*
+   * Fenced code blocks left the layered rule behind in #13409: the docs give
+   * them the block margin the embedded interactive examples carry
+   * (`.hot-example`, `margin: 2rem 0`), through an unlayered
+   * `.sl-markdown-content .expressive-code { margin-block: 2rem }` in
+   * `src/styles/components/code.css`. Unlayered beats every layer, so this
+   * value holds even when the layer order breaks - this test pins the docs'
+   * own spacing decision, and the two above it are the layer-order backstop.
+   */
+  test("a code block after a paragraph keeps the docs' own block margin", async({ page, baseURL }) => {
+    await page.goto(`${baseURL}${PAGE}`);
+
+    const blockMargin = await resolveCssLength(page, '2rem');
+
+    expect(parseFloat(blockMargin)).toBeGreaterThan(0);
+
     const codeBlock = page.locator('.sl-markdown-content p + .expressive-code').first();
 
     await expect(codeBlock).toBeVisible();
-    await expect(codeBlock).toHaveCSS('margin-top', contentGap);
+    await expect(codeBlock).toHaveCSS('margin-top', blockMargin);
+    // `margin-block` sets both sides; Starlight's flow rule only ever sets the top.
+    await expect(codeBlock).toHaveCSS('margin-bottom', blockMargin);
   });
 });

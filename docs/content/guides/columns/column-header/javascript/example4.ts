@@ -7,9 +7,9 @@ registerAllModules();
 const container = document.querySelector('#example4')!;
 const hot = new Handsontable(container, {
   data: [
-    ['A1', 'B1', 'C1'],
-    ['A2', 'B2', 'C2'],
-    ['A3', 'B3', 'C3'],
+    ['SKU-4821', 'Stainless Steel Water Bottle', 'Harbor Goods'],
+    ['SKU-0093', 'Wireless Mouse', 'Alpine Supply Co.'],
+    ['SKU-1170', 'Ergonomic Office Chair', 'Cascade Distributors'],
   ],
   colHeaders: true,
   rowHeaders: true,

@@ -688,6 +688,8 @@ Two things establish that order, and both matter:
 
 So an `@layer starlight.<name>` block in a docs stylesheet (`src/styles/**`) or in a component `<style>` block (`src/components/*.astro`) is only safe while `custom.css` lists that layer. Adding one that it does not list makes that layer's first appearance land wherever the bundler happens to put it.
 
+**Not every markdown block can prove the order.** An unlayered docs override beats every layer, a broken order included, so a block that carries one is blind to this class of bug. Fenced code blocks are the case in point: #13409 gave them the interactive examples' block margin through an unlayered `.sl-markdown-content .expressive-code { margin-block: 2rem }` in `src/styles/components/code.css`, and their gap holds at 32px with the layers in the wrong order, while `p + p` and `p + ul` collapse to 0. So `tests/markdownProseSpacing.spec.ts` asserts two different things: the paragraph and list cases are the backstop, and the code block case pins the docs' own 2rem decision. Keep at least one assertion there on a block the layered rule still spaces, and check which rule wins - the Styles pane names the layer, and `CSS.getMatchedStylesForNode` over CDP prints it - before you read a gap assertion as a layer-order guard.
+
 Both halves are guarded, on three different triggers - know which one you are relying on:
 
 | Guard | What it checks | Runs |
