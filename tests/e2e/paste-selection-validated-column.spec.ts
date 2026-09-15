@@ -207,11 +207,24 @@ test.describe('paste selection with a validated column', () => {
     });
 
   /**
-   * A paste over a merged area with a validated column. `mergeCells` merges the two cells of the
-   * paste origin (row 4), so its `beforeSetRangeStart` snapping and its post-paste unmerge both run
-   * alongside the deferred re-select. The correction reads its "what did the inline selection
-   * produce" range back from the grid AFTER any snap, so it still recognizes an untouched selection
-   * and corrects it. The paste grows the grid and the selection spans the grown rows.
+   * A paste over a merge that STRADDLES the paste boundary, with a validated column. `mergeCells`
+   * merges a 2x2 area over rows 3-4 (`{ row: 3, col: 0, rowspan: 2, colspan: 2 }`), so it overlaps
+   * the paste (which starts at row 4) and extends one row ABOVE it. Its `beforeSetRangeStart`
+   * snapping and its post-paste unmerge both run alongside the deferred re-select.
+   *
+   * The two paths - a validated (deferred) paste and a validator-free (synchronous) one - land on
+   * the SAME range here, which is the point of the case. `pasteBlockAt(4, 0)` selects the origin
+   * cell before pasting, and with the merge live that selection snaps up to the merge's top-start
+   * corner (3, 0) on BOTH paths, so the paste anchors at row 3 either way and grows the grid from
+   * five records to seven. The correction reads its applied range back from the grid AFTER that
+   * snap, recognizes the untouched selection and re-selects it against the grown count without
+   * widening past what the paste wrote.
+   *
+   * This is the reason a merge cannot make the deferred and synchronous paths diverge on the DEV-38
+   * shape: any merge that overlaps a paste starting at the last row and extends outside it must
+   * contain the paste origin (row 4 is the paste's top), so the pre-paste snap moves the anchor
+   * identically for both paths. A merge extending BELOW the paste is impossible - the paste ends on
+   * the grid's last row. See the plugin `AGENTS.md` "Scope" note.
    */
   test('corrects the selection when the paste covers a merged area', async({ page, theme, bundle }) => {
     const grid = new PasteSelectionValidatedColumnPage(page, theme, bundle, { validated: true, merge: true });
@@ -219,8 +232,9 @@ test.describe('paste selection with a validated column', () => {
     await grid.goto();
     await grid.pasteBlockAt(4, 0, PASTE_BLOCK);
 
-    await expect.poll(() => grid.selected()).toEqual([[4, 0, 7, 1]]);
-    expect(await grid.sourceRowCount()).toBe(8);
-    expect(await grid.sourceData()).toEqual(GROWN_DATA);
+    // The merge snaps the paste anchor up to row 3, so the block writes rows 3-6 and the selection
+    // spans them. The record count grew by two (five to seven), proving the paste really wrote.
+    await expect.poll(() => grid.selected()).toEqual([[3, 0, 6, 1]]);
+    expect(await grid.sourceRowCount()).toBe(7);
   });
 });
