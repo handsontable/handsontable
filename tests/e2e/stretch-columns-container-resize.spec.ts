@@ -78,9 +78,27 @@ test.describe('stretched columns after a container resize', () => {
     expect((await grid.geometry()).scrollbar).toEqual({ vertical: 0, horizontal: 0 });
   });
 
+  test('all: with autoColumnSize on (the library default) the header clone still spans the grid', async() => {
+    // AutoColumnSize is the other `modifyColWidth` producer that drops the same engine cache, and it
+    // supplies the base widths StretchColumns stretches. The exact-count tests keep it off; this one
+    // runs the default setup and asserts the geometry only.
+    await grid.goto({ stretchH: 'all', height: 'auto', autoColumnSize: true });
+
+    await grid.setContainerWidth(900);
+
+    const after = await grid.geometry();
+
+    expect(after.apiColumnWidthSum).toBe(900);
+    expect(after.topCloneRootWidth).toBe(after.hiderWidth);
+    expect(after.lastHeaderOverflow).toBeLessThanOrEqual(0);
+    expect(await grid.rootScrollClasses()).toEqual([]);
+  });
+
   test('all: a render with nothing changed drops the column-width cache zero times', async() => {
     // Steady state must stay free: an unconditional invalidation on every full render would pass
-    // every geometry assertion above while re-summing every column on every draw.
+    // every geometry assertion above while re-summing every column on every draw. The counter sits
+    // on the engine cache itself, so a drop through any path (the plugin, `updateSettings`, the
+    // engine's own remeasure) would show here.
     await grid.goto({ stretchH: 'all', height: 'auto' });
 
     await grid.setContainerWidth(900);
@@ -88,16 +106,52 @@ test.describe('stretched columns after a container resize', () => {
     expect(await grid.renderWithoutChange()).toBe(0);
   });
 
-  test('none: the control — a resize neither stretches nor drops the cache', async() => {
-    await grid.goto({ stretchH: 'none', height: 'auto' });
+  test('all: shrinking below the base width sum switches stretching off with exactly one cache drop', async() => {
+    // The all-`null` write in `#applyWidths`: at 400px the base widths (50 + 50 + 190 + 165 = 455) no
+    // longer fit, the strategy returns no widths, the map goes from stretched to empty in ONE write
+    // with ONE cache drop, the hider stops following the container, and a plain render afterwards
+    // costs nothing. The hider does not reach 400, so the wait is on the resize-driven render.
+    await grid.goto({ stretchH: 'all', height: 'auto' });
 
-    const before = await grid.geometry();
+    const dropsBefore = await grid.invalidationCount();
 
-    await grid.setContainerWidth(900, false);
+    await grid.setContainerWidth(400, 'render');
 
     const after = await grid.geometry();
 
-    expect(after.apiColumnWidthSum).toBe(before.apiColumnWidthSum);
+    expect(after.apiColumnWidthSum).toBe(455);
+    expect(after.hiderWidth).toBe(455);
+    expect((await grid.invalidationCount()) - dropsBefore).toBe(1);
     expect(await grid.renderWithoutChange()).toBe(0);
+  });
+
+  test('all: in window mode a shrink stretches to the root, not to the document', async() => {
+    // Without `height` the window owns both axes, and `Viewport#measureWorkspaceWidth` decides the
+    // workspace by summing the columns live through `modifyColWidth`. If the previous stretched
+    // widths answer that sum, a shrink reads the OLD viewport back, the measurement falls through to
+    // the document's client width, and the columns overshoot the root by the body padding (32px) —
+    // permanently, since the next refresh reads the overshoot back. The plugin must measure against
+    // the base widths (review finding on #13493).
+    await grid.goto({ stretchH: 'all', height: 'none' });
+
+    expect(await grid.horizontalAxisOwnedByWindow()).toBe(true);
+
+    const before = await grid.geometry();
+
+    expect(before.apiColumnWidthSum).toBe(before.rootWidth);
+
+    await grid.resizeViewport(800, 600);
+
+    const after = await grid.geometry();
+
+    expect(after.rootWidth).toBeLessThan(before.rootWidth);
+    expect(after.apiColumnWidthSum, 'columns fill the root, not the document').toBe(after.rootWidth);
+    expect(after.hiderWidth).toBe(after.rootWidth);
+    expect(await grid.rootScrollClasses()).toEqual([]);
+    expect(await grid.documentOverflowsHorizontally()).toBe(false);
+
+    // The second refresh must land on the same numbers: the measurement is idempotent.
+    expect(await grid.renderWithoutChange()).toBe(0);
+    expect((await grid.geometry()).apiColumnWidthSum).toBe(after.rootWidth);
   });
 });

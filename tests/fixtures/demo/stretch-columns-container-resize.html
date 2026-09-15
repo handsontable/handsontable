@@ -40,18 +40,30 @@
 
     // `auto` is the reported shape (the docs demo). A pixel height is the second shape the defect
     // has: the phantom HORIZONTAL scrollbar is still predicted there, only the vertical one is not.
+    // `none` leaves `height` out altogether, so the WINDOW owns both scroll axes — the mode in which
+    // the engine decides the workspace width by summing the columns live through `modifyColWidth`.
     const htHeightParam = htParams.get('height') ?? 'auto';
 
-    if (htHeightParam !== 'auto' && !/^[1-9][0-9]{1,3}$/.test(htHeightParam)) {
+    if (htHeightParam !== 'auto' && htHeightParam !== 'none' && !/^[1-9][0-9]{1,3}$/.test(htHeightParam)) {
       throw new Error('Unknown ?height= value: ' + JSON.stringify(htHeightParam));
     }
 
-    window.htHeight = htHeightParam === 'auto' ? 'auto' : Number(htHeightParam);
+    window.htHeight = htHeightParam === 'auto' ? 'auto' : (htHeightParam === 'none' ? undefined : Number(htHeightParam));
+
+    // `autoColumnSize` is the other `modifyColWidth` producer that drops the same engine cache (through
+    // `observeMapChange`). Off by default here so the invalidation counts are this plugin's alone;
+    // `on` covers the library default.
+    window.htAutoColumnSize = htPick(
+      { on: true, off: false }, htParams.get('autoColumnSize'), 'off', 'autoColumnSize');
   </script>
   <style>
+    /* The body padding is load-bearing for the window-mode case: it is what makes the grid root
+       narrower than the document, so a measurement that falls through to the document's client
+       width overshoots the root by a visible 32px. */
     body { font-family: sans-serif; margin: 0; padding: 1rem; }
     /* The grid takes the wrapper's width; the spec resizes the WRAPPER, which is how a responsive
-       page (the docs site collapsing its sidebar) resizes a grid without touching its settings. */
+       page (the docs site collapsing its sidebar) resizes a grid without touching its settings.
+       In window mode (`?height=none`) the wrapper is fluid instead and the spec resizes the viewport. */
     #wrap { width: 1200px; }
   </style>
 </head>
@@ -94,6 +106,10 @@
 
     container.className = `ht-theme-${window.htTheme}`;
 
+    if (window.htHeight === undefined) {
+      document.getElementById('wrap').style.width = 'auto';
+    }
+
     window.hot = new Handsontable(container, {
       data,
       colHeaders: ['Task', 'Assignee', 'Deadline', 'Created'],
@@ -108,7 +124,7 @@
       stretchH: window.htStretch,
       height: window.htHeight,
       renderer: testIdRenderer,
-      autoColumnSize: false,
+      autoColumnSize: window.htAutoColumnSize,
       // Rows must keep their height when the columns change width, so the spec isolates the
       // column-width cache. With wrapping on, the narrower `task`/`assignee` columns at 900px wrap
       // two cells, rows 0-1 grow 29→49px, and the auto-height root lags one draw behind the taller
@@ -122,16 +138,31 @@
     // Counts the engine column-width cache drops the grid performs, so the spec can pin the
     // steady-state cost at ZERO (the same rule the row-height cache lives under, see
     // `walkontable/AGENTS.md`, "Steady state must cost zero row-height cache invalidations").
+    // Patched at the CACHE, not at `TableView#invalidateColumnWidthCache`: `invalidateIndexSizesCache()`,
+    // `Viewport#invalidateAllCaches()` and the scroll-sync remeasure all reach `wtViewport` directly,
+    // and a regression dropping the cache through any of them must count too.
+    const columnWidthCache = window.hot.view._wt.wtViewport.columnWidthCache;
+    const originalInvalidate = columnWidthCache.invalidate.bind(columnWidthCache);
     let invalidations = 0;
-    const originalInvalidate = window.hot.view.invalidateColumnWidthCache.bind(window.hot.view);
 
-    window.hot.view.invalidateColumnWidthCache = function() {
+    columnWidthCache.invalidate = function() {
       invalidations += 1;
 
       return originalInvalidate();
     };
 
     window.htInvalidationCount = () => invalidations;
+
+    // Counts full renders, so a spec can wait for the render a resize schedules (Walkontable's
+    // ResizeMonitor calls `refreshDimensions()` on the next animation frame) even when the render
+    // leaves the hider width unchanged.
+    let renders = 0;
+
+    window.hot.addHook('afterRender', () => {
+      renders += 1;
+    });
+
+    window.htRenderCount = () => renders;
 
     // Resizes the WRAPPER. Walkontable's ResizeMonitor observes the grid root's parent and calls
     // `refreshDimensions()` on the next animation frame; nothing here waits — the spec waits on

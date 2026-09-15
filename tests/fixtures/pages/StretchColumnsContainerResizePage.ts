@@ -15,6 +15,7 @@ interface StretchFixtureHot {
   view: {
     hasVerticalScroll(): boolean;
     hasHorizontalScroll(): boolean;
+    isHorizontallyScrollableByWindow(): boolean;
   };
 }
 
@@ -37,6 +38,8 @@ export interface StretchGeometry {
   scrollbar: { vertical: number; horizontal: number };
   /** Sum of `hot.getColWidth()` over every column — the plugin's own answer. */
   apiColumnWidthSum: number;
+  /** The grid root's rendered width — in window mode the box the columns must fill, not the document. */
+  rootWidth: number;
 }
 
 /**
@@ -59,16 +62,25 @@ export class StretchColumnsContainerResizePage {
   /**
    * Navigate and wait for the first render (a real DOM condition, no sleep).
    *
-   * @param options.stretchH The strategy under test; `none` is the control.
-   * @param options.height `auto` (the reported shape) or a pixel height.
+   * @param options.stretchH The strategy under test.
+   * @param options.height `auto` (the reported shape), a pixel height, or `none` to leave `height`
+   *                       out so the window owns both scroll axes (the wrapper turns fluid).
+   * @param options.autoColumnSize `true` runs the library default; `false` (the default here) keeps
+   *                               the invalidation counts this plugin's alone.
    */
-  async goto(options: { stretchH?: 'all' | 'last' | 'none'; height?: 'auto' | number } = {}): Promise<void> {
+  async goto(options: {
+    stretchH?: 'all' | 'last' | 'none';
+    height?: 'auto' | 'none' | number;
+    autoColumnSize?: boolean;
+  } = {}): Promise<void> {
     const stretchH = options.stretchH ?? 'all';
     const height = options.height ?? 'auto';
+    const autoColumnSize = options.autoColumnSize ? 'on' : 'off';
 
     await this.page.goto(
       `/tests/fixtures/demo/stretch-columns-container-resize.html` +
-      `?theme=${this.theme}&bundle=${this.bundle}&stretchH=${stretchH}&height=${height}`
+      `?theme=${this.theme}&bundle=${this.bundle}&stretchH=${stretchH}&height=${height}` +
+      `&autoColumnSize=${autoColumnSize}`
     );
     // The `document.write`-injected bundle and the block that builds the grid are separate scripts;
     // wait for the bundle itself before touching anything the fixture rendered.
@@ -92,23 +104,76 @@ export class StretchColumnsContainerResizePage {
   }
 
   /**
-   * Resizes the wrapper and waits until the engine has re-rendered against the new width: the
-   * master hider is the element the engine writes the summed column widths to, so it reaching the
-   * new width IS the render having happened. For the `none` control the hider does not follow the
-   * container, so the caller passes `expectHiderFollows: false` and only the wrapper is awaited.
+   * Resizes the wrapper and waits until the engine has re-rendered against the new width.
+   *
+   * `'hider'` (the default) waits for the master hider to reach the new width: the hider is the
+   * element the engine writes the summed column widths to, so it arriving there IS the render having
+   * happened. `'render'` waits for the `afterRender` the resize schedules instead — for a width at
+   * which the hider does not follow the container (stretching switched off), where waiting on the
+   * wrapper's CSS width alone would read the state before the rAF-scheduled `refreshDimensions()`.
    */
-  async setContainerWidth(px: number, expectHiderFollows = true): Promise<void> {
+  async setContainerWidth(px: number, waitFor: 'hider' | 'render' = 'hider'): Promise<void> {
+    const rendersBefore = await this.renderCount();
+
     await this.page.evaluate(width => window.htSetContainerWidth(width), px);
 
     await expect.poll(async() => (await this.geometry()).containerWidth, {
       message: `wrapper reaches ${px}px`,
     }).toBe(px);
 
-    if (expectHiderFollows) {
+    if (waitFor === 'hider') {
       await expect.poll(async() => (await this.geometry()).hiderWidth, {
         message: `master hider follows the container to ${px}px`,
       }).toBe(px);
+    } else {
+      await expect.poll(() => this.renderCount(), {
+        message: 'the resize-driven render ran',
+      }).toBeGreaterThan(rendersBefore);
     }
+  }
+
+  /**
+   * Resizes the browser viewport (window mode: the window is the scroller, so this is the resize
+   * the grid reacts to) and waits for the render it schedules.
+   */
+  async resizeViewport(width: number, height: number): Promise<void> {
+    const rendersBefore = await this.renderCount();
+
+    await this.page.setViewportSize({ width, height });
+
+    await expect.poll(() => this.renderCount(), {
+      message: 'the viewport-resize render ran',
+    }).toBeGreaterThan(rendersBefore);
+  }
+
+  /**
+   * How many full renders the grid has done since load (the fixture's `afterRender` counter).
+   */
+  async renderCount(): Promise<number> {
+    return this.page.evaluate(() => window.htRenderCount());
+  }
+
+  /**
+   * The fixture's count of engine column-width cache drops since load.
+   */
+  async invalidationCount(): Promise<number> {
+    return this.page.evaluate(() => window.htInvalidationCount());
+  }
+
+  /**
+   * Whether the window owns the horizontal scroll axis (no ancestor traps it).
+   */
+  async horizontalAxisOwnedByWindow(): Promise<boolean> {
+    return this.page.evaluate(() => (window as unknown as { hot: StretchFixtureHot }).hot.view
+      .isHorizontallyScrollableByWindow());
+  }
+
+  /**
+   * Whether the document itself overflows horizontally — the page-level scrollbar a window-mode
+   * grid wider than its root would summon.
+   */
+  async documentOverflowsHorizontally(): Promise<boolean> {
+    return this.page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
   }
 
   /**
@@ -142,6 +207,7 @@ export class StretchColumnsContainerResizePage {
           horizontal: holder.offsetHeight - holder.clientHeight,
         },
         apiColumnWidthSum,
+        rootWidth: grid.getBoundingClientRect().width,
       };
     });
   }
@@ -192,5 +258,6 @@ declare global {
   interface Window {
     htSetContainerWidth(px: number): void;
     htInvalidationCount(): number;
+    htRenderCount(): number;
   }
 }
