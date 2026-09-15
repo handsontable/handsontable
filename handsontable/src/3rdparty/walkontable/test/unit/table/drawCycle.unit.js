@@ -1,4 +1,4 @@
-import { refillDisagreesWithFrozenColumnSync } from '../../../src/table/drawCycle';
+import { refillDisagreesWithFrozenColumnSync, resolveRefillPaintWindow } from '../../../src/table/drawCycle';
 
 describe('refillDisagreesWithFrozenColumnSync', () => {
   /**
@@ -83,5 +83,104 @@ describe('refillDisagreesWithFrozenColumnSync', () => {
 
     expect(refillDisagreesWithFrozenColumnSync(table, { syncFrozenRows: false }, 'render')).toBe(false);
     expect(refillDisagreesWithFrozenColumnSync(table, { syncFrozenRows: true }, 'render')).toBe(true);
+  });
+});
+
+describe('resolveRefillPaintWindow', () => {
+  /**
+   * Builds the slice of a master table the window decision reads: the band the refill just
+   * assigned (first rendered row, first rendered column, rendered column count), the host's
+   * `renderEpoch` setting, and the TBODY the previous pass rendered.
+   *
+   * @param {object} options Stub knobs.
+   * @param {number} options.firstRenderedRow The band's first row after the refill's recompute.
+   * @param {number} options.firstRenderedColumn The band's first column after the recompute.
+   * @param {number} options.renderedColumnsCount The band's column count after the recompute.
+   * @param {number} options.previousRows How many TRs the previous pass rendered.
+   * @param {number} [options.renderEpoch=7] The host's render epoch after the recompute.
+   * @param {Array<[number, number, number]>} [options.rowSpans] `[visibleRow, cellIndex, rowSpan]` triples to stamp.
+   * @returns {object}
+   */
+  function createTableStub({
+    firstRenderedRow,
+    firstRenderedColumn,
+    renderedColumnsCount,
+    previousRows,
+    renderEpoch = 7,
+    rowSpans = [],
+  }) {
+    const TBODY = document.createElement('tbody');
+
+    for (let row = 0; row < previousRows; row++) {
+      const TR = document.createElement('tr');
+
+      for (let column = 0; column < renderedColumnsCount; column++) {
+        TR.appendChild(document.createElement('td'));
+      }
+      TBODY.appendChild(TR);
+    }
+    rowSpans.forEach(([row, cell, rowSpan]) => {
+      TBODY.children[row].children[cell].rowSpan = rowSpan;
+    });
+
+    return {
+      TBODY,
+      wtSettings: { getSetting: key => ({ renderEpoch })[key] },
+      getFirstRenderedRow: () => firstRenderedRow,
+      getFirstRenderedColumn: () => firstRenderedColumn,
+      getRenderedColumnsCount: () => renderedColumnsCount,
+    };
+  }
+
+  const previousBand = { rowsCount: 5, startColumn: 3, columnsCount: 4, renderEpoch: 7 };
+  const agreeing = { firstRenderedRow: 10, firstRenderedColumn: 3, renderedColumnsCount: 4, previousRows: 5 };
+
+  it('should window the paint to the appended rows when the start row, the column band and the epoch are unchanged', () => {
+    const table = createTableStub(agreeing);
+
+    expect(resolveRefillPaintWindow(table, 10, previousBand)).toBe(5);
+  });
+
+  it('should repaint everything when the band start row moved', () => {
+    const table = createTableStub({ ...agreeing, firstRenderedRow: 9 });
+
+    expect(resolveRefillPaintWindow(table, 10, previousBand)).toBe(0);
+  });
+
+  it('should repaint everything when the column band start moved', () => {
+    const table = createTableStub({ ...agreeing, firstRenderedColumn: 2 });
+
+    expect(resolveRefillPaintWindow(table, 10, previousBand)).toBe(0);
+  });
+
+  it('should repaint everything when the column band count moved', () => {
+    const table = createTableStub({ ...agreeing, renderedColumnsCount: 5 });
+
+    expect(resolveRefillPaintWindow(table, 10, previousBand)).toBe(0);
+  });
+
+  it('should repaint everything when the host advanced the render epoch since the draw started', () => {
+    // A structural change from inside a render hook (a column reorder or hide) can keep the column
+    // start and count while changing what every TD holds. `previousBand.renderEpoch` is the
+    // draw-start snapshot, so a change made by the previous pass' own hooks is caught too.
+    const table = createTableStub({ ...agreeing, renderEpoch: 8 });
+
+    expect(resolveRefillPaintWindow(table, 10, previousBand)).toBe(0);
+  });
+
+  it('should repaint everything when the band renders a merged cell, wherever its span ends', () => {
+    // MergeCells writes neighbor heights from pre-measure row heights in its after-renderer, so a
+    // skipped row next to a merged block would keep a stale height; a merged grid takes no window.
+    const spanEndingInsideTheBand = createTableStub({ ...agreeing, rowSpans: [[0, 0, 2]] });
+    const spanReachingTheBandEnd = createTableStub({ ...agreeing, rowSpans: [[2, 1, 3]] });
+
+    expect(resolveRefillPaintWindow(spanEndingInsideTheBand, 10, previousBand)).toBe(0);
+    expect(resolveRefillPaintWindow(spanReachingTheBandEnd, 10, previousBand)).toBe(0);
+  });
+
+  it('should return the previous rendered row count itself, not a derivation of the calculator bounds', () => {
+    const table = createTableStub(agreeing);
+
+    expect(resolveRefillPaintWindow(table, 10, { ...previousBand, rowsCount: 9 })).toBe(9);
   });
 });

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Handsontable e2e fixture — viewport refill after column autosize (#6452 / DEV-406)</title>
+  <title>Handsontable e2e fixture — row-band refill with merged cells (DEV-2908)</title>
   <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
   <script>
     // Theme and bundle come from the ?theme=/?bundle= query params set by the
@@ -31,14 +31,19 @@
 </head>
 <body>
   <!--
-    #6452 / DEV-406. Column C starts 40px wide. Rows 1-7 get a long sentence written via
-    `setDataAtCell` AFTER the grid is constructed (matching the original report's fiddle), so a
-    second draw settles those rows to their wrapped, tall height and shrinks the rendered band to
-    a handful of rows before the test starts — writing the long values into the initial `data`
-    instead would let the very first draw's height guess absorb them, leaving the precondition
-    vacuous. Widening C (double-click autosize) or replacing the sentences collapses the rows
-    again; the grid must then render enough rows to fill the viewport in the same draw. Cells
-    carry data-testid="cell-<row>-<col>".
+    DEV-2908. Same shape as column-autosize-viewport-refill.html (column C starts 40px wide, rows
+    1-7 get a long sentence AFTER construction so a second draw settles them tall and shrinks the
+    rendered band), plus a merged block in column D spanning rows 1-3, inside the tall band (column
+    D, because the wide themes push later columns out of the rendered column band once C is 320px
+    wide). It has
+    to sit inside: MergeCells extends the rendered band to cover a merged block whole, so a block
+    reaching past the band would defeat the short-band precondition — and the full-repaint gate only
+    matters when the block is already rendered when the refill starts. Widening C or shortening the
+    texts collapses the rows and the band is refilled within the draw.
+    A grid that renders a merged cell must take the FULL repaint on every refill pass (MergeCells
+    writes neighbor cell heights from pre-measure row heights), and the merged block must come out
+    intact: full rowspan on the anchor, covered cells hidden, the neighbor cell as tall as its row.
+    Cells carry data-testid="cell-<row>-<col>".
   -->
   <div id="toolbar">
     <button data-testid="shorten-texts" type="button">Shorten texts</button>
@@ -66,18 +71,14 @@
       colHeaders: true,
       width: 800,
       height: 320,
-      // Column C is persisted narrow, as in the original report (the fiddle used the removed
-      // persistentState plugin for that); the other columns keep their automatic width.
       manualColumnResize: [undefined, undefined, 40],
+      mergeCells: [{ row: 1, col: 3, rowspan: 3, colspan: 1 }],
       renderer: testIdRenderer,
       licenseKey: 'non-commercial-and-evaluation',
     });
 
     window.hot = hot;
 
-    // Paint counters for the DEV-2908 assertion: `afterViewRender` fires once per draw, and the
-    // cell renderer (with the `afterRenderer` hook) must run for cell (0, 0) at most once per draw.
-    // A refill pass that repainted the whole band would paint it once more per pass.
     window.drawCount = 0;
     window.cell00Paints = 0;
     hot.addHook('afterViewRender', () => {
@@ -89,9 +90,6 @@
       }
     });
 
-    // Written after init on purpose (matches the original report's fiddle): this second draw is
-    // what settles rows 1-7 into their wrapped, tall height and shrinks the rendered band, which
-    // is the starting state the reported double-click/replace bug needs.
     for (let row = 1; row <= 7; row++) {
       hot.setDataAtCell(row, 2, LONG_TEXT);
     }
