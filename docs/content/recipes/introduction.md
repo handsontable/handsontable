@@ -27,6 +27,7 @@ This is a collection of practical, production-ready recipes for common Handsonta
 - [Filtering and search](@/recipes/filtering-and-search/filtering-and-search.md) - External search boxes, highlighted matches, and multi-column filter panels.
 - [Import and export](@/recipes/import-export/import-export.md) - CSV and Excel import, PDF export.
 - [Performance](@/recipes/performance/performance.md) - Lazy loading and persisted column layout.
+- [Platforms and embedding](@/recipes/platforms/platforms.md) - Salesforce Lightning Web Components and custom elements with their own shadow root.
 - [Real-time and integrations](@/recipes/real-time/real-time.md) - WebSocket updates and Chart.js synchronization.
 - [Rendering and styling](@/recipes/rendering-styling/rendering-styling.md) - Conditional row coloring, frozen summary rows, and sparkline renderers.
 - [Themes](@/recipes/themes/themes.md) - Integration with Ant Design, MUI, Fluent UI, Base Web, and shadcn/ui.
