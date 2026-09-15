@@ -22,7 +22,12 @@ export type MenuPlugin = 'dropdownMenu' | 'contextMenu';
 /**
  * What the fixture's menu item does each time its menu paints it (see `htItemMode` in the fixture).
  */
-export type ItemMode = 'throw' | 'none' | 'probe' | 'close' | 'reopen';
+export type ItemMode = 'throw' | 'none' | 'probe' | 'close' | 'reopen' | 'swap';
+
+/**
+ * What the fixture's menu item does while the item list is filtered (see `htHiddenMode`).
+ */
+export type HiddenMode = 'none' | 'swap';
 
 /**
  * The fixture's failure switches (see `htArm` in the fixture).
@@ -52,7 +57,15 @@ export interface MenuProbe {
  */
 export interface HookEntry {
   event: 'beforeShow' | 'afterShow' | 'afterHide';
-  isOpened: boolean;
+  isOpened: boolean | null;
+}
+
+/**
+ * Whether the plugin under test still holds a menu, and whether it is still switched on.
+ */
+export interface PluginState {
+  hasMenu: boolean;
+  enabled: boolean;
 }
 
 const MENU_CLASS: Record<MenuPlugin, string> = {
@@ -139,6 +152,16 @@ export class MenuOpenFailurePage {
    */
   async hoverMenuItem(plugin: MenuPlugin, label: string): Promise<void> {
     await this.openMenu(plugin).locator('td').filter({ hasText: label }).first().hover();
+  }
+
+  /**
+   * Run one row of the open menu, the way a user does.
+   *
+   * @param {MenuPlugin} plugin Which plugin's menu.
+   * @param {string} label The row's visible text.
+   */
+  async clickMenuItem(plugin: MenuPlugin, label: string): Promise<void> {
+    await this.openMenu(plugin).locator('td').filter({ hasText: label }).first().click();
   }
 
   /**
@@ -312,5 +335,79 @@ export class MenuOpenFailurePage {
     return this.page.evaluate(() => (window as unknown as {
       htListenerCount: () => number;
     }).htListenerCount());
+  }
+
+  /** Pick what the item's `hidden()` does next, and which plugin's menu it reaches into. */
+  async setHiddenMode(mode: HiddenMode, plugin: MenuPlugin): Promise<void> {
+    await this.page.evaluate(([nextMode, pluginName]) => (window as unknown as {
+      htSetHiddenMode: (mode: string, plugin: string) => void;
+    }).htSetHiddenMode(nextMode, pluginName), [mode, plugin] as const);
+  }
+
+  /**
+   * The HOST grid's `outsideClickDeselects`.
+   *
+   * The menu turns it off while it is open and puts it back when it closes, so a menu abandoned
+   * mid-build leaves it off for the life of the page - clicking outside the grid then never clears
+   * the selection again.
+   */
+  async hostOutsideClickDeselects(): Promise<boolean | null> {
+    return this.page.evaluate(() => (window as unknown as {
+      htHostState: () => boolean | null;
+    }).htHostState());
+  }
+
+  /** Whether the plugin still holds a menu, and whether it is still switched on. */
+  async pluginState(): Promise<PluginState> {
+    return this.page.evaluate(() => (window as unknown as {
+      htPluginState: () => PluginState;
+    }).htPluginState());
+  }
+
+  /** Remember the menu object, before a settings change swaps the plugin's menu for a fresh one. */
+  async captureMenu(): Promise<void> {
+    await this.page.evaluate(() => (window as unknown as {
+      htCaptureMenu: () => void;
+    }).htCaptureMenu());
+  }
+
+  /** What the remembered menu ended up as: still open, and still holding a grid? */
+  async capturedMenuState(): Promise<{ isOpened: boolean; hasGrid: boolean }> {
+    return this.page.evaluate(() => (window as unknown as {
+      htCapturedMenuState: () => { isOpened: boolean; hasGrid: boolean };
+    }).htCapturedMenuState());
+  }
+
+  /** Remember the menu's container, so a later teardown can be checked after the page lost it. */
+  async captureMenuContainer(): Promise<void> {
+    await this.page.evaluate(() => (window as unknown as {
+      htCaptureMenuContainer: () => void;
+    }).htCaptureMenuContainer());
+  }
+
+  /** Whether the remembered container was detached, which is what `Menu#destroy()` does last. */
+  async menuContainerDetached(): Promise<boolean> {
+    return this.page.evaluate(() => (window as unknown as {
+      htMenuContainerDetached: () => boolean;
+    }).htMenuContainerDetached());
+  }
+
+  /** Switch the plugin under test off. Returns `'ok'` or the message it threw. */
+  async disableMenuPlugin(): Promise<string> {
+    return this.page.evaluate(() => (window as unknown as {
+      htDisableMenuPlugin: () => string;
+    }).htDisableMenuPlugin());
+  }
+
+  /** How many times the menu under test rebuilt its item list, through its public hook. */
+  async setItemsCount(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as { htSetItemsCount: number }).htSetItemsCount);
+  }
+
+  /** How many `afterSetTheme` hooks the host grid holds - one per menu ever built. */
+  async themeHookCount(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as {
+      htThemeHookCount: () => number;
+    }).htThemeHookCount());
   }
 }

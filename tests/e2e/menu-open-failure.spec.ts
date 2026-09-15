@@ -127,9 +127,6 @@ test.describe('a menu item that throws while the menu is opening', () => {
   });
 
   test('destroys the grid cleanly, so the document listener cannot leak', async () => {
-    // Read before the menu is ever touched, so the comparison is against a known-clean grid.
-    const baseline = await grid.listenerCount();
-
     await failTheOpenAndResetErrors();
 
     // `destroy()` threw here on the broken build, which meant `eventManager.destroy()` never ran.
@@ -139,12 +136,10 @@ test.describe('a menu item that throws while the menu is opening', () => {
     // for a page error cannot: a leaked `mousedown` handler early-returns once the menu reports
     // itself closed, so a leaking build stays silent on the click below too.
     //
-    // The bar is measured, not guessed. On this fixture: 148 before the menu is touched, 270 while
-    // a menu is open, 176 after it closes again - and a FAILED open also lands on 176, twice in a
-    // row, so the rollback ends as clean as an ordinary close and does not accumulate. A completed
-    // `destroy()` takes it to 0; the build where `destroy()` threw never ran `eventManager
-    // .destroy()` and sat at 176, which is what this assertion catches.
-    await expect.poll(() => grid.listenerCount()).toBeLessThanOrEqual(baseline);
+    // Zero, not "no worse than before": a completed `destroy()` releases every listener the page
+    // ever took. The build where `destroy()` threw never ran `eventManager.destroy()` and sat at
+    // 176, and a build that released only part of what it holds would still be a leak.
+    await expect.poll(() => grid.listenerCount()).toBe(0);
 
     await grid.clickPageBackground();
 
@@ -342,6 +337,111 @@ for (const plugin of ['dropdownMenu', 'contextMenu'] as const) {
       // Nothing outlives the grid.
       expect(await grid.destroyGrid()).toBe('ok');
       await expect.poll(() => grid.listenerCount()).toBe(0);
+    });
+
+    test('a throwing hide hook does not stop the grid teardown from releasing the menu', async() => {
+      await grid.setItemMode('none', plugin);
+      await grid.openMenuOf(plugin);
+      await expect(grid.openMenu(plugin)).toBeVisible();
+      // Taken now: tearing the grid down detaches the whole portal first, so afterwards no selector
+      // can reach the container and only this reference can say whether the MENU released it.
+      await grid.captureMenuContainer();
+
+      await grid.arm('hideThrows');
+
+      // The application's error still reaches the caller.
+      expect(await grid.destroyGrid()).toBe(await grid.fixtureError('hide'));
+
+      // And the menu was torn down around it. The plugin used to call its own `close()` on the line
+      // before `menu.destroy()` with nothing around it, so a throwing `after*Hide` listener skipped
+      // the destroy - and with it `eventManager.destroy()`, which is the document listener that
+      // carried this bug onto the next page of an SPA.
+      expect(await grid.menuContainerDetached()).toBe(true);
+    });
+
+    test('a throwing hide hook does not stop the plugin from being switched off', async() => {
+      await grid.setItemMode('none', plugin);
+      await grid.openMenuOf(plugin);
+      await expect(grid.openMenu(plugin)).toBeVisible();
+
+      await grid.arm('hideThrows');
+
+      expect(await grid.disableMenuPlugin()).toBe(await grid.fixtureError('hide'));
+
+      // Same teardown shape as above, through `disablePlugin()`. Before, the plugin kept a live
+      // menu and still reported itself switched on, so the next `updateSettings()` built a second
+      // menu on top of one nothing could reach.
+      expect(await grid.pluginState()).toEqual({ hasMenu: false, enabled: false });
+    });
+
+    test('a settings change from an item callback leaves no menu running', async() => {
+      const hostSetting = await grid.hostOutsideClickDeselects();
+
+      await grid.setItemMode('swap', plugin);
+      // The menu that is about to be abandoned. `updateSettings()` destroys it and the plugin builds
+      // a fresh, closed one, so afterwards the plugin no longer points at it.
+      await grid.captureMenu();
+      await grid.openMenuOf(plugin);
+      await grid.settle();
+
+      // The build in flight has to stop instead of finishing. It used to reach its commit point and
+      // leave a menu that says it is open and holds a live grid, with nothing left that could close
+      // it - and with the grid's own `outsideClickDeselects` switched off for the life of the page.
+      expect(pageErrors).toEqual([]);
+      expect(await grid.capturedMenuState()).toEqual({ isOpened: false, hasGrid: false });
+      expect(await grid.hostOutsideClickDeselects()).toBe(hostSetting);
+    });
+
+    test('a settings change while the item list is filtered leaves no menu running', async() => {
+      const hostSetting = await grid.hostOutsideClickDeselects();
+
+      await grid.setItemMode('none', plugin);
+      await grid.setHiddenMode('swap', plugin);
+      await grid.captureMenu();
+      await grid.openMenuOf(plugin);
+      await grid.settle();
+
+      // The same swap one step earlier, before the menu has shown anything, and it used to end the
+      // same way: a finished menu that nobody holds.
+      expect(pageErrors).toEqual([]);
+      expect(await grid.capturedMenuState()).toEqual({ isOpened: false, hasGrid: false });
+      expect(await grid.hostOutsideClickDeselects()).toBe(hostSetting);
+    });
+
+    test('a close() that is ignored does not rebuild the item list under the open menu', async() => {
+      await grid.setItemMode('close', plugin);
+      await grid.openMenuOf(plugin);
+      await expect(grid.openMenu(plugin)).toBeVisible();
+
+      const rebuildsAfterOpen = await grid.setItemsCount();
+
+      await grid.clickMenuItem(plugin, 'Safe item');
+      await grid.settle();
+
+      // One build of the item list for one open. `ContextMenu#close()` used to drop its item factory
+      // even when the close was ignored mid-build, so running a command from the still-open menu
+      // rebuilt the items under it and fired the public "set items" hook over the top.
+      expect(await grid.setItemsCount()).toBe(rebuildsAfterOpen);
+      expect(pageErrors).toEqual([]);
+    });
+
+    test('a sub-menu removes the grid hook it added when it closes', async() => {
+      const hooksAtRest = await grid.themeHookCount();
+
+      await grid.setItemMode('none', plugin);
+      await grid.openMenuOf(plugin);
+      await expect(grid.openMenu(plugin)).toBeVisible();
+      await grid.hoverMenuItem(plugin, 'Parent');
+      await expect(grid.subMenu(plugin)).toBeVisible();
+
+      await grid.clickPageBackground();
+      await expect.poll(() => grid.menuState()).toMatchObject({ isOpened: false });
+
+      // Every menu adds an `afterSetTheme` hook to the HOST grid when it is built, and a sub-menu is
+      // built and destroyed on every hover. The hook has to go with it, or the grid collects one
+      // more - each holding a destroyed menu - for every sub-menu the user ever opens. The listener
+      // counter cannot see this: grid hooks are not DOM listeners.
+      expect(await grid.themeHookCount()).toBe(hooksAtRest);
     });
   });
 }

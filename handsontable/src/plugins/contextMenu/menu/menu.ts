@@ -184,6 +184,16 @@ export class Menu {
    */
   #lifecycle: MenuLifecycle = 'closed';
   /**
+   * Set by `destroy()`. A build already in flight stops instead of finishing into a menu that
+   * nothing holds any more.
+   */
+  #isDestroyed = false;
+  /**
+   * The host grid's theme hook. Kept so `destroy()` can take it off the grid again - a sub-menu is
+   * built and destroyed on every hover, and each one adds its own.
+   */
+  #onAfterSetTheme: (themeName: string, firstRun: boolean) => void;
+  /**
    * The border width of the table used in the menu.
    *
    * @type {number}
@@ -296,7 +306,7 @@ export class Menu {
         (...args: unknown[]) => this.parentMenu!.runLocalHooks('afterSelectionChange', ...args));
     }
 
-    this.hot.addHook('afterSetTheme', (themeName: string, firstRun: boolean) => {
+    this.#onAfterSetTheme = (themeName: string, firstRun: boolean) => {
       if (this.options.container !== this.hot.rootPortalElement) {
         const menuContainer = this.options.container;
 
@@ -307,7 +317,9 @@ export class Menu {
       if (!firstRun) {
         this.close();
       }
-    });
+    };
+
+    this.hot.addHook('afterSetTheme', this.#onAfterSetTheme);
   }
 
   /**
@@ -521,18 +533,13 @@ export class Menu {
       return;
     }
 
-    // Shown only once the item list is settled. Above this line the menu can still bail - the
-    // empty-items return right there, or a throw from an item's own `hidden()` callback inside
-    // the filter - and either used to leave an empty, themed box sitting over the page. It still
-    // has to happen before `hotMenu.init()` below, because `updateMenuDimensions()` measures the
-    // rendered rows and a `display: none` container measures as zero.
-    this.container.removeAttribute('style');
-    this.container.style.display = 'block';
-
-    // Registered per-open (and after the empty-items early return, which would leak
-    // them) so that scroll listeners fire in menu open order — a menu anchored inside
-    // another menu then always repositions AFTER its anchor was moved.
-    this.#registerScrollListeners();
+    // Filtering the items ran application code too - each item's `hidden()` - and it can destroy this
+    // menu, by switching the plugin off, replacing its settings, or destroying the grid. Checked
+    // before the settings below are built, because building them reads the host grid, which throws
+    // once that grid is gone. Nothing has been acquired yet, so there is nothing to release either.
+    if (this.#isDestroyed) {
+      return;
+    }
 
     filteredItems = filterSeparators(filteredItems);
 
@@ -670,15 +677,29 @@ export class Menu {
       },
     };
 
-    // User code runs from here on: painting the items calls each item's `name()`, `disabled()`,
-    // `checked()` and `ariaLabel()`. On a throw, `#rollbackFailedOpen()` releases what this block
-    // acquired - including the HOST grid's `outsideClickDeselects`, which is why the two settings
-    // lines sit inside the guard too; outside it, a throwing constructor would pin the setting to
-    // `false` for good. The menu cannot be stranded "open" either way (DEV-41): that is set only at
-    // the commit point below.
+    // Everything this menu takes hold of is acquired from here on, and `#rollbackFailedOpen()`
+    // releases all of it on a throw: the HOST grid's `outsideClickDeselects`, the visible container,
+    // the document scroll listeners and the menu grid. Acquiring anything above this line leaks it
+    // instead, because `close()` bails unless the menu is open. Painting the items runs application
+    // code again - `name()`, `disabled()`, `checked()` and `ariaLabel()` - and the menu still cannot
+    // be stranded "open" (DEV-41): that is set only at the commit point below.
     try {
       this.origOutsideClickDeselects = this.hot.getSettings().outsideClickDeselects;
       this.hot.getSettings().outsideClickDeselects = false;
+
+      // Shown only once the item list is settled. Above this line the menu can still bail - the
+      // empty-items return, or a throw from an item's own `hidden()` callback inside the filter -
+      // and either used to leave an empty, themed box sitting over the page. It still has to happen
+      // before `hotMenu.init()` below, because `updateMenuDimensions()` measures the rendered rows
+      // and a `display: none` container measures as zero.
+      this.container.removeAttribute('style');
+      this.container.style.display = 'block';
+
+      // Registered per-open (and after the empty-items early return, which would leak
+      // them) so that scroll listeners fire in menu open order — a menu anchored inside
+      // another menu then always repositions AFTER its anchor was moved.
+      this.#registerScrollListeners();
+
       this.hotMenu = new (
         this.hot.constructor as new (element: HTMLElement, settings: object) => HotInstance
       )(this.container, settings);
@@ -693,6 +714,15 @@ export class Menu {
 
       // The menu is consistent again, but the caller's own bug still has to reach them.
       throw error;
+    }
+
+    // Painting the grid above ran application code once more, and it can destroy this menu the same
+    // way. Committing now would leave a menu that reports itself open, holds the keyboard and keeps
+    // the host grid's `outsideClickDeselects` switched off, with nothing left that could close it.
+    if (this.#isDestroyed) {
+      this.#rollbackFailedOpen();
+
+      return;
     }
 
     // The commit point. From here the menu grid, the navigator and the keyboard controller all
@@ -1025,12 +1055,19 @@ export class Menu {
   destroy() {
     const menuContainerParentElement = this.container.parentNode;
 
+    this.#isDestroyed = true;
     this.clearLocalHooks();
 
     // A throwing `close()` must not keep the document listeners alive - that leak is what carried
     // the DEV-41 crash onto the next page of an SPA.
     runEveryStep([
       () => this.close(),
+      () => {
+        // Skipped once the host is gone: it clears every hook itself, and its methods throw by then.
+        if (!this.hot.isDestroyed) {
+          this.hot.removeHook('afterSetTheme', this.#onAfterSetTheme);
+        }
+      },
       () => {
         this.parentMenu = null;
         this.eventManager.destroy();

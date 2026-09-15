@@ -67,8 +67,16 @@
      * - `probe`  - records what the owning menu reports about itself at that moment.
      * - `close`  - asks the owning plugin to close the menu, once.
      * - `reopen` - asks the owning plugin to open the menu again, once.
+     * - `swap`   - replaces the plugin's settings, once, which destroys the menu being painted.
      */
     window.htItemMode = 'throw';
+
+    /**
+     * What the item's `hidden()` does. `hidden()` runs while the item list is still being filtered,
+     * before the menu shows its container - the earlier half of the same window `name()` reaches
+     * into. `swap` replaces the plugin's settings there, once.
+     */
+    window.htHiddenMode = 'none';
 
     /** Which plugin's menu the page object opened, so the item knows which menu to reach into. */
     window.htMenuPlugin = 'dropdownMenu';
@@ -78,6 +86,9 @@
 
     /** Every public show/hide hook of the menu under test, with what `isOpened()` said inside it. */
     window.htHookLog = [];
+
+    /** How many times the menu under test rebuilt its item list, through its public hook. */
+    window.htSetItemsCount = 0;
 
     /** The message the item throws, asserted on so the rethrow is proven to survive the rollback. */
     window.HT_MENU_ITEM_ERROR = 'DEV-41 fixture: menu item name() failed';
@@ -160,7 +171,27 @@
         plugin.open({ top: 0, left: 0 });
       }
 
+      if (mode === 'swap') {
+        window.htItemMode = 'none';
+        window.hot.updateSettings({ [window.htMenuPlugin]: menuItems() });
+      }
+
       return 'Recovered item';
+    }
+
+    /**
+     * The item's `hidden()`. The menu calls it while filtering the item list, so this runs one step
+     * earlier than `name()` - before the menu shows its container or registers anything.
+     *
+     * @returns {boolean}
+     */
+    function itemHidden() {
+      if (window.htHiddenMode === 'swap') {
+        window.htHiddenMode = 'none';
+        window.hot.updateSettings({ [window.htMenuPlugin]: menuItems() });
+      }
+
+      return false;
     }
 
     /**
@@ -174,10 +205,24 @@
         return;
       }
 
-      window.htHookLog.push({ event, isOpened: window.hot.getPlugin(pluginName).menu.isOpened() });
+      const menu = window.hot.getPlugin(pluginName).menu;
+
+      window.htHookLog.push({ event, isOpened: menu ? menu.isOpened() : null });
 
       if (event === 'afterHide' && window.htThrowOnHide) {
         throw new Error(window.HT_HIDE_ERROR);
+      }
+    }
+
+    /**
+     * Counts one rebuild of the item list, but only for the menu under test. Kept out of the hook
+     * log on purpose: that log is what pins the public show/hide order.
+     *
+     * @param {string} pluginName The plugin the hook belongs to.
+     */
+    function countSetItems(pluginName) {
+      if (pluginName === window.htMenuPlugin) {
+        window.htSetItemsCount += 1;
       }
     }
 
@@ -190,7 +235,7 @@
       return {
         items: {
           safe_item: { name: 'Safe item' },
-          exploding_item: { name: itemName },
+          exploding_item: { name: itemName, hidden: itemHidden },
           sub_item: {
             // A plain name, so the sub-menu's container class is exactly `...Sub_Parent`.
             name: 'Parent',
@@ -227,6 +272,8 @@
         },
         dropdownMenu: menuItems(),
         contextMenu: menuItems(),
+        beforeDropdownMenuSetItems: () => countSetItems('dropdownMenu'),
+        beforeContextMenuSetItems: () => countSetItems('contextMenu'),
         beforeDropdownMenuShow: () => logHook('dropdownMenu', 'beforeShow'),
         afterDropdownMenuShow: () => logHook('dropdownMenu', 'afterShow'),
         afterDropdownMenuHide: () => logHook('dropdownMenu', 'afterHide'),
@@ -325,6 +372,118 @@
       } catch (error) {
         return String(error && error.message);
       }
+    };
+
+    /**
+     * Pick what the item's `hidden()` does on its next run, and which plugin's menu it reaches into.
+     *
+     * @param {string} mode One of the modes documented on `htHiddenMode`.
+     * @param {string} pluginName `dropdownMenu` or `contextMenu`.
+     */
+    window.htSetHiddenMode = (mode, pluginName) => {
+      window.htHiddenMode = mode;
+      window.htMenuPlugin = pluginName;
+    };
+
+    /**
+     * The HOST grid's `outsideClickDeselects`. The menu turns it off for as long as it is open and
+     * puts it back when it closes, so a menu that was abandoned mid-build leaves it off for good -
+     * clicking outside the grid then no longer clears the selection, for the life of the page.
+     *
+     * @returns {boolean|null}
+     */
+    window.htHostState = () => {
+      try {
+        return window.hot.getSettings().outsideClickDeselects;
+      } catch (error) {
+        return null;
+      }
+    };
+
+    /**
+     * Whether the plugin under test still holds a menu, and whether it is still switched on.
+     *
+     * @returns {object}
+     */
+    window.htPluginState = () => {
+      const plugin = window.hot.getPlugin(window.htMenuPlugin);
+
+      return { hasMenu: plugin.menu !== null && plugin.menu !== undefined, enabled: plugin.enabled === true };
+    };
+
+    /**
+     * Remember the menu object itself, before something replaces it. A settings change swaps the
+     * plugin's menu for a fresh one, so afterwards only a reference taken beforehand can say what
+     * became of the one that was being built.
+     */
+    window.htCaptureMenu = () => {
+      window.htMenuRef = window.hot.getPlugin(window.htMenuPlugin).menu;
+    };
+
+    /**
+     * What the remembered menu ended up as. A build that ran on after its menu was destroyed
+     * finishes as a menu that reports itself open and still holds a grid, with nothing left that
+     * could ever close it.
+     *
+     * @returns {object}
+     */
+    window.htCapturedMenuState = () => ({
+      isOpened: window.htMenuRef.isOpened(),
+      hasGrid: window.htMenuRef.hotMenu !== null && window.htMenuRef.hotMenu !== undefined,
+    });
+
+    /**
+     * Remember the menu's container element. Grid teardown detaches the whole portal before the
+     * plugins are destroyed, so after a `destroy()` no selector can find the container any more -
+     * only a reference taken beforehand can tell whether the MENU released it.
+     */
+    window.htCaptureMenuContainer = () => {
+      window.htMenuContainerRef = window.hot.getPlugin(window.htMenuPlugin).menu.container;
+    };
+
+    /**
+     * Whether the remembered container was detached from its parent, which `Menu#destroy()` is what
+     * does. It is the one step after `eventManager.destroy()`, so a detached container means the
+     * menu's document listeners were released too.
+     *
+     * @returns {boolean}
+     */
+    window.htMenuContainerDetached = () => window.htMenuContainerRef.parentNode === null;
+
+    /**
+     * Switch the plugin under test off the way an application does. Reported rather than thrown:
+     * a hide hook that throws has to keep reaching the caller, and the menu still has to be torn
+     * down around it.
+     *
+     * @returns {string}
+     */
+    window.htDisableMenuPlugin = () => {
+      try {
+        window.hot.updateSettings({ [window.htMenuPlugin]: false });
+
+        return 'ok';
+      } catch (error) {
+        return String(error && error.message);
+      }
+    };
+
+    /**
+     * How many `afterSetTheme` hooks the host grid holds. Every menu adds one when it is built, so
+     * a menu that does not remove it on teardown leaves one behind per sub-menu ever opened. The
+     * listener counter cannot see these - they are grid hooks, not DOM listeners.
+     *
+     * @returns {number}
+     */
+    window.htThemeHookCount = () => {
+      const list = Handsontable.hooks.getBucket(window.hot).getList('afterSetTheme');
+      let count = 0;
+
+      // The bucket stores each hook as a linked list, so there is nothing to read a length from.
+      for (let entry = list ? list.head : null; entry !== null; entry = entry.next) {
+        count += 1;
+      }
+
+      return count;
     };
 
     /**

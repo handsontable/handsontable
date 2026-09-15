@@ -189,6 +189,14 @@ Rules for anyone touching this:
   `closing` for good. That last one shipped for one commit: `navigator.clear()` sat before the
   guard, so a throwing `afterDeselect` stranded the menu where neither `open()` nor `close()` would
   run. Put a new teardown statement inside a step, never before or after the list.
+- **The plugins' own teardown runs every step too.** `ContextMenu` and `DropdownMenu` (`destroy()`
+  and `disablePlugin()`) and the sheets bar's `Menus#destroy()` call their own `close()` before
+  `menu.destroy()`, and `close()` runs the application's `after*Hide` listener. Plain statements
+  there meant a throwing listener skipped `menu.destroy()` — and with it `eventManager.destroy()`,
+  the document listeners that carried DEV-41 onto the next page of an SPA. They go through
+  `runEveryStep()` as well, with `this.menu = null` as its own step. One limit worth knowing:
+  `hot.destroy()` destroys plugins in a plain `forEach` (`core.ts`), so the rethrow still stops that
+  loop and the plugins after it are skipped. That is wider than the menu and is not fixed here.
 - **Re-entry is a no-op in both transitions.** `open()` does nothing unless `isClosed()`, and
   `close()` does nothing unless `isOpened()`. So a `close()` from an item callback mid-build is
   ignored and the open in progress wins — tearing the grid down under its own `init()` is what
@@ -203,9 +211,12 @@ Rules for anyone touching this:
   the real cause. `openSubMenu()` guards its `subMenu.destroy()` the same way.
 - **Anything that mutates the HOST grid belongs inside the guard.** `outsideClickDeselects` is set
   to `false` on `this.hot`; a throw before it is restored pins it off for the life of the page.
-- **The container is shown only once the item list is settled.** Above that point `open()` can still
-  bail — the empty-items early return, or a throw from an item's own `hidden()` — and an earlier flip
-  left an empty themed box over the page. It must still happen before the grid is built, because
+- **Acquire nothing above the `try`.** The visible container, the document scroll listeners, the host
+  grid's `outsideClickDeselects` and the menu grid are all taken inside it, because the rollback is
+  the only thing that releases them — `close()` bails unless the menu is open. The container is
+  still shown only once the item list is settled: above that point `open()` can bail, through the
+  empty-items return or a throw from an item's own `hidden()`, and an earlier flip left an empty
+  themed box over the page. It must also stay before the grid is built, because
   `updateMenuDimensions()` measures rendered rows and a `display: none` container measures as zero.
 - **The rollback fires `afterClose` even though `afterOpen` never fired, and marks the menu `closed`
   first.** The callers announce the menu before opening it (`beforeDropdownMenuShow` /
@@ -224,16 +235,32 @@ Rules for anyone touching this:
   container by its `...Sub_<name>` class and reuses it. `closeSubMenu()` does the parent's
   bookkeeping — the `hotSubMenus` entry, `aria-expanded` — BEFORE destroying the sub-menu, so a
   throwing teardown cannot leave a destroyed menu registered.
-- **`destroy()` while `opening` is cleaned up by the throw it causes.** A `hot.destroy()` from inside
-  an item callback cannot close the menu — `close()` is a no-op mid-build — but the renderer reads
-  the destroyed grid's settings as soon as the callback returns, which throws, and the rollback
-  releases the menu grid. Measured: no menu grid left in the page, a listener count of 0, and one
-  page error naming the destroyed instance.
+- **`destroy()` while `opening` stops the build, through `#isDestroyed`.** `close()` cannot do it —
+  it is a no-op mid-build — so `destroy()` marks the menu and `#open()` checks the mark twice: after
+  the item list is filtered (nothing acquired yet, so it just returns) and again before the commit
+  point (rollback, then return). Without that, a build carried on into a menu that reports itself
+  open, holds a grid and the keyboard, and keeps the host grid's `outsideClickDeselects` switched
+  off, with nothing left that could close it. Both halves are reachable from application code that
+  is doing nothing exotic: an item's `hidden()` or `name()` calling `updateSettings()` or
+  `disablePlugin()` on the plugin being painted. A `hot.destroy()` from an item callback is the one
+  case that cleaned itself up before the mark existed, and only by accident: the renderer reads the
+  destroyed grid's settings, that throws, and the rollback runs.
+- **`ContextMenu#close()` drops its `itemsFactory` only once the menu really closed.** `Menu#close()`
+  is ignored while the menu is still opening, and a null factory makes the next command rebuild the
+  items — firing the public `beforeContextMenuSetItems` hook again — under a menu that is on screen.
+  `DropdownMenu#executeCommand()` already asks `isClosed()` before rebuilding.
+- **Every `Menu` adds an `afterSetTheme` hook to the HOST grid, and `destroy()` takes it off again.**
+  A sub-menu is built and destroyed on every hover, so a missed `removeHook` collects one dead menu
+  per hover for the grid's lifetime. `Handsontable._getListenersCounter()` cannot see it — grid
+  hooks are not DOM listeners — so the spec counts the hook list instead.
 
 Coverage is `tests/e2e/menu-open-failure.spec.ts`: the throw path, and — for both plugins — a probe
 that fails if `isOpened()` ever reports a menu without a navigator, a `close()` and a nested `open()`
 fired mid-build, the three public hooks, a throwing hide listener during the rollback, a throwing
 sub-menu item, and a throwing sub-menu teardown (a global `afterDestroy` on the sub-menu's grid).
+Round 5 adds, for both plugins: a throwing hide listener during `hot.destroy()` and during
+`disablePlugin()`, a settings change from an item's `name()` and from its `hidden()`, a `close()`
+that was ignored mid-build followed by a command, and the sub-menu's grid hook.
 Every "no page error" read there goes through the page object's `settle()` first: a web-first poll
 cannot prove a negative, because `expect.poll(...).toEqual([])` passes on its first read and waits
 for nothing. Note what that spec cannot do by watching for errors:

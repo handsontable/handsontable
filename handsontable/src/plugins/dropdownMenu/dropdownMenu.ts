@@ -1,5 +1,6 @@
 import type { HotInstance } from '../../core/types';
 import { BasePlugin } from '../base';
+import { runEveryStep } from '../../helpers/function';
 import { arrayEach } from '../../helpers/array';
 import { objectEach } from '../../helpers/object';
 import { CommandExecutor } from '../contextMenu/commandExecutor';
@@ -316,18 +317,22 @@ export class DropdownMenu extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.close();
-
-    if (this.menu) {
-      this.menu.destroy();
-      // Cleared, as ContextMenu does. A destroyed menu left in the field still passes the guard in
-      // `prepareMenuItems()`, so a later `open()` or `executeCommand()` would rebuild items against
-      // a detached container on a plugin that is off.
-      this.menu = null;
-    }
-
-    this.unregisterShortcuts();
-    super.disablePlugin();
+    // Every step runs even when an earlier one throws. `close()` runs the application's `after*Hide`
+    // listener, and a throw there used to skip the menu's own teardown - with it
+    // `eventManager.destroy()`, the document listeners that carried DEV-41 onto the next page.
+    runEveryStep([
+      () => this.close(),
+      () => this.menu?.destroy(),
+      () => {
+        // Cleared, as ContextMenu does, and in its own step so a throwing teardown above cannot skip
+        // it. A destroyed menu left in the field still passes the guard in `prepareMenuItems()`, so
+        // a later `open()` or `executeCommand()` would rebuild items against a detached container on
+        // a plugin that is off.
+        this.menu = null;
+      },
+      () => this.unregisterShortcuts(),
+      () => super.disablePlugin(),
+    ]);
   }
 
   /**
@@ -856,12 +861,14 @@ export class DropdownMenu extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.close();
-
-    if (this.menu) {
-      this.menu.destroy();
-    }
-    super.destroy();
+    // Every step runs even when an earlier one throws. `close()` runs the application's `after*Hide`
+    // listener, and a throw there used to skip the menu's own teardown - with it
+    // `eventManager.destroy()`, the document listeners that carried DEV-41 onto the next page.
+    runEveryStep([
+      () => this.close(),
+      () => this.menu?.destroy(),
+      () => super.destroy(),
+    ]);
   }
 }
 
