@@ -81,8 +81,15 @@ test('the matrix measures what it renders: no retries, every render attempted, a
   assert.match(renderBlock, /status=0/);
   assert.match(renderBlock, /exit \$status/);
   assert.equal((renderBlock.match(/\|\| status=1/g) || []).length, 3);
-  // "Re-run failed jobs" re-uploads under a name the first attempt published.
-  assert.match(renderBlock, /name: stability-\$\{\{ matrix\.iteration \}\}\n(?:\s+.*\n)*?\s+overwrite: true/);
+  // "Re-run failed jobs" re-uploads under a name the first attempt published. Sliced to the upload
+  // step and asserted with two flat patterns rather than one spanning regex: `(?:\s+.*\n)*?` between
+  // them is ambiguous (`\s` matches the newline `.*\n` already consumed), which is exponential
+  // backtracking on the right input and a CodeQL `js/redos` alert.
+  const upload = renderBlock.slice(renderBlock.indexOf('name: Upload the screenshots'));
+
+  assert.ok(upload, 'the render job lost its upload step');
+  assert.match(upload, /name: stability-\$\{\{ matrix\.iteration \}\}/);
+  assert.match(upload, /overwrite: true/);
 });
 
 test('the cross-browser render owns the port before the shared server starts', () => {
