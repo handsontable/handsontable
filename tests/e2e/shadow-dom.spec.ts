@@ -77,6 +77,51 @@ test.describe('grid inside a native shadow root', () => {
     await grid.expectCell(0, 0, 'A1');
   });
 
+  test('selects the first cell when tabbed into from a light-DOM element above', async () => {
+    await grid.beforeGrid.focus();
+    await grid.page.keyboard.press('Tab');
+
+    await expect.poll(() => grid.selected()).toEqual([[0, 0, 0, 0]]);
+    expect(await grid.isListening()).toBe(true);
+
+    await grid.page.keyboard.press('ArrowDown');
+
+    await expect.poll(() => grid.selected()).toEqual([[1, 0, 1, 0]]);
+  });
+
+  test('selects the last cell when shift-tabbed into from a light-DOM element below', async () => {
+    await grid.outsideTextarea.focus();
+    await grid.page.keyboard.press('Shift+Tab');
+
+    await expect.poll(() => grid.selected()).toEqual([[4, 2, 4, 2]]);
+    expect(await grid.isListening()).toBe(true);
+
+    await grid.page.keyboard.press('ArrowUp');
+
+    await expect.poll(() => grid.selected()).toEqual([[3, 2, 3, 2]]);
+  });
+
+  test('keeps the grid active when a web component rendered in a cell is clicked', async () => {
+    await grid.cell(0, 0).click();
+    await expect.poll(() => grid.selected()).toEqual([[0, 0, 0, 0]]);
+
+    await grid.cellWidgetButton.click();
+
+    await expect.poll(() => grid.selected()).toEqual([[1, 2, 1, 2]]);
+    await expect.poll(() => grid.isListening()).toBe(true);
+  });
+
+  test('tabs out of the grid from a web component rendered in a cell', async () => {
+    await grid.cellWidgetButton.click();
+    await expect.poll(() => grid.selected()).toEqual([[1, 2, 1, 2]]);
+
+    await grid.page.keyboard.press('Tab');
+    await expect(grid.cellWidgetButton).toBeFocused();
+
+    await grid.page.keyboard.press('Tab');
+    await expect(grid.outsideTextarea).toBeFocused();
+  });
+
   test('executes a context menu action on the selection that opened it', async () => {
     await grid.cell(1, 0).click({ button: 'right' });
 

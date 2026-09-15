@@ -75,6 +75,20 @@
 
     window.hot = hot;
 
+    // Paint counters for the DEV-2908 assertion: `afterViewRender` fires once per draw, and the
+    // cell renderer (with the `afterRenderer` hook) must run for cell (0, 0) at most once per draw.
+    // A refill pass that repainted the whole band would paint it once more per pass.
+    window.drawCount = 0;
+    window.cell00Paints = 0;
+    hot.addHook('afterViewRender', () => {
+      window.drawCount += 1;
+    });
+    hot.addHook('afterRenderer', (TD, row, col) => {
+      if (row === 0 && col === 0) {
+        window.cell00Paints += 1;
+      }
+    });
+
     // Written after init on purpose (matches the original report's fiddle): this second draw is
     // what settles rows 1-7 into their wrapped, tall height and shrinks the rendered band, which
     // is the starting state the reported double-click/replace bug needs.

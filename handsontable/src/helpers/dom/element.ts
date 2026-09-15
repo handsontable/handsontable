@@ -63,6 +63,40 @@ export function eventTargetEl<T extends HTMLElement = HTMLElement>(event: Event)
 }
 
 /**
+ * Gets the element the event was raised on, looking through the shadow boundaries the browser
+ * retargets across.
+ *
+ * An event raised inside a shadow root is retargeted for every listener bound above that root,
+ * so `event.target` reports the shadow host instead of the node that was focused or clicked.
+ * `composedPath()` still carries the real node - but a sandboxed host (e.g. Salesforce Lightning
+ * Web Security) collapses that path to the shadow host chain, so the composed node is trusted
+ * only when it is rendered within the retargeted target's own shadow tree. In every other case
+ * the retargeted `event.target` is returned unchanged.
+ *
+ * @param {Event} event The event.
+ * @returns {HTMLElement|null} The element the event was raised on, or null.
+ */
+export function getComposedEventTargetEl(event: Event): HTMLElement | null {
+  const target = eventTargetEl(event);
+
+  if (target === null || typeof event.composedPath !== 'function') {
+    return target;
+  }
+
+  const [composedTarget] = event.composedPath();
+
+  if (
+    !isHTMLElement(composedTarget) ||
+    composedTarget === target ||
+    !getShadowHostChain(composedTarget).includes(target)
+  ) {
+    return target;
+  }
+
+  return composedTarget;
+}
+
+/**
  * Gets `frameElement` of the specified frame. Returns null if it is a top frame or if script has no access to read property.
  *
  * @param {Window} frame Frame from which should be get frameElement in safe way.

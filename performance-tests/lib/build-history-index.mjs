@@ -2,8 +2,8 @@
 
 // Generates an index.html for the develop/ performance reports directory.
 // Lists all timestamped run directories with links to their reports, plus the commit and the
-// Chromium build each one was recorded on -- the second is what the baseline compatibility key
-// selects on, so a browser change reads as a visible boundary in the list rather than as a
+// Chromium build and platform each one was recorded on -- those are what the baseline compatibility key
+// selects on, so an environment change reads as a visible boundary in the list rather than as a
 // week of unexplained deltas.
 //
 // Usage: node build-history-index.mjs <develop-dir-on-gh-pages>
@@ -31,7 +31,7 @@ const runs = entries
 
 /**
  * @param {string} name -- the run directory
- * @returns {Promise<{ commit: string, chromium: string, cpu: string }>} '--' where unknown
+ * @returns {Promise<{ commit: string, chromium: string, platform: string, cpu: string }>} '--' where unknown
  */
 async function provenanceOf(name) {
   try {
@@ -41,13 +41,14 @@ async function provenanceOf(name) {
     return {
       commit: snapshot.commit ? String(snapshot.commit).slice(0, 7) : '--',
       chromium: env.chromium || '--',
+      platform: env.platform || '--',
       cpu: env.cpuModel || '--',
     };
   } catch {
     // A run deployed before snapshots.json carried provenance, or one whose deploy was cut short,
     // has nothing to show here. Placeholders keep the rest of the index page rendering; a throw
     // would take every other run's row down with it.
-    return { commit: '--', chromium: '--', cpu: '--' };
+    return { commit: '--', chromium: '--', platform: '--', cpu: '--' };
   }
 }
 
@@ -62,12 +63,13 @@ const rows = runs.map((name, index) => {
     .replace('Z', '')
     .replace('T', ' ')
     .replace(/ (\d{2})-(\d{2})-(\d{2})$/, ' $1:$2:$3 UTC');
-  const { commit, chromium, cpu } = provenance[index];
+  const { commit, chromium, platform, cpu } = provenance[index];
 
   return `      <tr>
         <td><a href="${name}/">${readable}</a></td>
         <td><code>${escapeHtml(commit)}</code></td>
         <td>${escapeHtml(chromium)}</td>
+        <td>${escapeHtml(platform)}</td>
         <td>${escapeHtml(cpu)}</td>
         <td><a href="${name}/snapshots.json">JSON</a></td>
       </tr>`;
@@ -103,7 +105,7 @@ code { font-size: 12px; }
 <p class="count">${runs.length} run${runs.length !== 1 ? 's' : ''}</p>
 <table>
   <thead>
-    <tr><th>Run</th><th>Commit</th><th>Chromium</th><th>CPU</th><th>Data</th></tr>
+    <tr><th>Run</th><th>Commit</th><th>Chromium</th><th>Platform</th><th>CPU</th><th>Data</th></tr>
   </thead>
   <tbody>
 ${rows.join('\n')}
