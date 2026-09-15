@@ -27,8 +27,11 @@ jobs:
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
         with:
           node-version-file: '.nvmrc'
+      # pipefail, or the run reports tee's exit status and a dead link passes silently.
       - name: Resolve every README link
-        run: node scripts/readme-check.mjs --links=all | tee -a "$GITHUB_STEP_SUMMARY"
+        run: |
+          set -o pipefail
+          node scripts/readme-check.mjs --links=all | tee -a "$GITHUB_STEP_SUMMARY"
 
   feature-review:
     name: key features review

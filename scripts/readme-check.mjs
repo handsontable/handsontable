@@ -63,7 +63,13 @@ const INTERNAL = [/^([a-z0-9-]+\.)*handsontable\.com$/, /^github\.com$/, /^raw\.
 export function extractLinks(md) {
   const out = [];
   const patterns = [
-    /\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g, // [text](url)
+    // ![alt](image) — the badge image itself.
+    /!\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g,
+    // [text](url), where `text` may itself be an image: every badge in these READMEs is written
+    // `[![alt](image)](destination)`, and a label matcher that stops at the first `]` captures the
+    // image and silently drops the destination — which is how the live demo link went unchecked.
+    // The lookbehind keeps this from re-matching the image handled above.
+    /(?<!!)\[(?:[^\][]|!\[[^\]]*\]\([^)]*\))*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g,
     /\b(?:href|src|srcset)="([^"]+)"/g, // <a href> / <img src> / <source srcset>
   ];
 
@@ -367,9 +373,11 @@ async function main() {
     console.log(`  warn  ${warning}`);
   }
   if (failures.length > 0) {
-    console.error(`\n${failures.length} README problem(s):\n`);
-    failures.forEach(f => console.error(`  ✗ ${f}`));
-    console.error('');
+    // stdout, not stderr: the non-zero exit is what signals failure, and the nightly job tees
+    // stdout into the GitHub step summary — on stderr the summary would list nothing.
+    console.log(`\n${failures.length} README problem(s):\n`);
+    failures.forEach(f => console.log(`  ✗ ${f}`));
+    console.log('');
     process.exit(1);
   }
   console.log(`\nREADMEs are consistent (${files.length} files, ${files[0].features.length} features).`);

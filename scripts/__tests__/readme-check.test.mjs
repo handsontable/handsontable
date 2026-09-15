@@ -21,6 +21,34 @@ test('extractLinks finds markdown links, HTML attributes and srcset URLs', () =>
   ]);
 });
 
+test('extractLinks keeps a badge\'s destination, not just its image', () => {
+  // Every badge in these READMEs is `[![alt](image)](destination)`. A label matcher that stops at
+  // the first `]` captures the image and drops the destination, which left the live demo link and
+  // every badge target unresolved.
+  const md = '[![Static Badge](https://img.shields.io/badge/x)](https://demos.handsontable.com/?example=javascript)';
+
+  assert.deepEqual(extractLinks(md), [
+    { url: 'https://img.shields.io/badge/x', line: 1 },
+    { url: 'https://demos.handsontable.com/?example=javascript', line: 1 },
+  ]);
+});
+
+test('extractLinks reports a standalone image once, not twice', () => {
+  assert.deepEqual(extractLinks('![preview](./resources/preview.png)'), [
+    { url: './resources/preview.png', line: 1 },
+  ]);
+});
+
+test('extractLinks still handles a plain link next to a badge on one line', () => {
+  const md = '[![b](https://img.example/b.svg)](https://dest.example) and [Docs](https://handsontable.com/docs)';
+
+  assert.deepEqual(extractLinks(md).map(l => l.url), [
+    'https://img.example/b.svg',
+    'https://dest.example',
+    'https://handsontable.com/docs',
+  ]);
+});
+
 test('extractLinks ignores anchors and mailto, which have nothing to resolve', () => {
   assert.deepEqual(extractLinks('[top](#installation) [mail](mailto:support@handsontable.com)'), []);
 });
