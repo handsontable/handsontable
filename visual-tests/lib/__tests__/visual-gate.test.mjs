@@ -54,8 +54,11 @@ test('a real comparison overrides a stale bootstrap probe', () => {
   // actuals for real. Passing that would overwrite the baseline with this build.
   const v = evaluate({ report: report({ changed: 12, passed: 1634 }), bootstrap: true });
 
-  assert.equal(v.blocked, true);
+  // The differences go to the approval job like any other; what must never
+  // happen is the `bootstrap` verdict, which the workflow seeds on.
+  assert.equal(v.verdict, 'changed');
   assert.match(v.comment, /changes detected/);
+  assert.doesNotMatch(v.comment, /baseline created/);
 });
 
 test('deleted-only differences count as a real comparison', () => {
@@ -64,7 +67,7 @@ test('deleted-only differences count as a real comparison', () => {
   // be able to seed over it.
   const v = evaluate({ report: report({ deleted: 1646, added: 1646 }), bootstrap: true });
 
-  assert.equal(v.blocked, true);
+  assert.equal(v.verdict, 'changed');
   assert.doesNotMatch(v.comment, /baseline created/);
 });
 
@@ -100,57 +103,59 @@ test('an empty report blocks instead of reporting a pass', () => {
   assert.doesNotMatch(v.comment, /All 0 screenshots match/);
 });
 
-test('changed items block and the comment explains how to approve', () => {
-  const v = evaluate({ report: report({ changed: 1573, passed: 73 }), reportUrl: 'https://x/i.html' });
+test('changed items yield the approval verdict and the comment explains where to approve', () => {
+  // Differences no longer fail the gate step; they hand the run to the
+  // environment-protected `approve` job in visual.yml. The step must therefore
+  // stay green AND say `changed`, or the job never waits and the check passes
+  // with nothing reviewed.
+  const v = evaluate({
+    report: report({ changed: 1573, passed: 73 }),
+    reportUrl: 'https://x/i.html',
+    runUrl: 'https://r/1',
+  });
 
-  assert.equal(v.blocked, true);
+  assert.equal(v.blocked, false);
+  assert.equal(v.verdict, 'changed');
   assert.match(v.comment, /\| 1573 \| 0 \| 0 \| 73 \|/);
-  assert.match(v.comment, /visual-approved/);
+  assert.match(v.comment, /Review pending\s+deployments → visual-approval → Approve/);
   assert.match(v.comment, /https:\/\/x\/i\.html/);
+  assert.match(v.comment, /https:\/\/r\/1/);
+  assert.doesNotMatch(v.comment, /visual-approved/, 'the label is gone; the comment must not send anyone to apply it');
 });
 
-test('new items alone block', () => {
-  assert.equal(evaluate({ report: report({ added: 3 }) }).blocked, true);
+test('new items alone need approval', () => {
+  assert.equal(evaluate({ report: report({ added: 3 }) }).verdict, 'changed');
 });
 
-test('deleted items alone block', () => {
-  assert.equal(evaluate({ report: report({ deleted: 2 }) }).blocked, true);
+test('deleted items alone need approval', () => {
+  assert.equal(evaluate({ report: report({ deleted: 2 }) }).verdict, 'changed');
 });
 
-test('the approval label unblocks the same differences', () => {
-  const counts = { changed: 1573, passed: 73 };
-
-  assert.equal(evaluate({ report: report(counts) }).blocked, true);
-  assert.equal(evaluate({ report: report(counts), approved: true }).blocked, false);
+test('no differences is the clean verdict', () => {
+  assert.equal(evaluate({ report: report({ passed: 4 }) }).verdict, 'clean');
 });
 
-test('an approved verdict says so rather than reprinting the instructions', () => {
-  const v = evaluate({ report: report({ changed: 5 }), approved: true });
-
-  assert.match(v.comment, /changes approved/);
-  // Anchored on the section heading, not on a sentence: the wording of the
-  // instructions is edited freely, and an assertion pinned to a phrasing that
-  // no branch emits any more passes whatever the approved branch prints.
-  assert.doesNotMatch(v.comment, /### What to do next/);
+test('the error verdicts are the only blocking ones', () => {
+  // The gate blocks only when it cannot tell what the visual state is; a human
+  // decides the rest through the environment approval.
+  assert.equal(evaluate({ report: null }).verdict, 'error');
+  assert.equal(evaluate({ report: null }).blocked, true);
+  assert.equal(evaluate({ report: report({}) }).verdict, 'error');
+  assert.equal(evaluate({ report: report({}) }).blocked, true);
+  assert.equal(evaluate({ report: null, bootstrap: true }).verdict, 'bootstrap');
+  assert.equal(evaluate({ report: null, bootstrap: true }).blocked, false);
 });
 
-test('a run that cannot approve is not told to apply the label', () => {
+test('a fork run is told where its images are and that a maintainer approves the same way', () => {
   // Fork and Dependabot runs read this in the job summary — the sticky comment
-  // is guarded off there — and their label is ignored, so instructions to apply
-  // it are a promise nothing keeps.
+  // is guarded off there. The environment gate does not depend on their token,
+  // so the instructions are the same; only the report location differs.
   const v = evaluate({ report: report({ changed: 5 }), seeded: false });
 
-  assert.equal(v.blocked, true);
+  assert.equal(v.verdict, 'changed');
   assert.match(v.comment, /### What to do next/);
-  assert.match(v.comment, /re-raise this branch from the main repository/);
-  assert.doesNotMatch(v.comment, /add the \*\*`visual-approved`\*\* label to/);
-});
-
-test('approval cannot fabricate a pass out of an unreadable report', () => {
-  // Approval accepts differences; it must not paper over not knowing what they are.
-  const v = evaluate({ report: null, approved: true });
-
-  assert.equal(v.blocked, true);
+  assert.match(v.comment, /visual-diff-report/);
+  assert.match(v.comment, /A maintainer approves the/);
 });
 
 test('a missing report URL degrades to the artifact instructions', () => {

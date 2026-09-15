@@ -1,7 +1,8 @@
 import { promisify } from 'util';
 import psTree from 'ps-tree';
 import execa from 'execa';
-import { BASE_BRANCH, REFERENCE_FRAMEWORK, WRAPPERS } from '../../src/config.mjs';
+import { BASE_BRANCH } from '../../src/config.mjs';
+import { resolveTier } from '../../lib/visual-tiers.mjs';
 
 const psTreePromisified = promisify(psTree);
 
@@ -39,17 +40,23 @@ export function isReferenceBranch() {
 }
 
 /**
- * Returns a list of frameworks to be tested,
- * depending on which branch the scripts are run on.
+ * Returns the tier this run renders and compares: `VISUAL_TIER` when set, else by branch
+ * (`lib/visual-tiers.mjs`). `build.mjs`, `run-tests.mjs` and both comparison scripts resolve it
+ * through this one call, so they cannot disagree about what a build contains.
+ *
+ * @returns {object} The resolved tier.
+ */
+export function getTier() {
+  return resolveTier(process.env, { currentBranch: getCurrentBranchName });
+}
+
+/**
+ * Returns a list of frameworks to be tested — the tier's frameworks.
  *
  * @returns {string[]}
  */
 export function getFrameworkList() {
-  if (isReferenceBranch()) {
-    return [REFERENCE_FRAMEWORK];
-  }
-
-  return [REFERENCE_FRAMEWORK, ...WRAPPERS];
+  return getTier().frameworks;
 }
 
 /**

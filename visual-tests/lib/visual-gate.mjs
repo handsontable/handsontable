@@ -8,7 +8,9 @@
 
 /**
  * @typedef {object} Verdict
- * @property {boolean} blocked Whether the check should fail.
+ * @property {boolean} blocked Whether the check should fail outright (the comparison itself failed).
+ * @property {'bootstrap' | 'error' | 'clean' | 'changed'} verdict What the comparison found; `changed`
+ * is the one verdict a human has to act on — the workflow holds an environment-protected job on it.
  * @property {string} summary One-line result for the job log.
  * @property {string} comment Markdown body for the pull request comment.
  */
@@ -16,17 +18,22 @@
 /**
  * Evaluate a comparison result.
  *
+ * Differences do not fail the gate here. They yield the `changed` verdict, and the workflow turns that
+ * into a job that waits on the `visual-approval` environment: a reviewer approves the pending
+ * deployment on the run page (one click, recorded with their name), or rejects it and the run goes
+ * red. Approval is per run, so a push re-asks; nothing is re-committed and nothing is re-run. The gate
+ * therefore blocks only when it cannot tell what the visual state is.
+ *
  * @param {object} options Evaluation inputs.
  * @param {object|null} options.report Parsed `out.json`, or `null` when unreadable.
  * @param {boolean} [options.bootstrap] Whether the probe found no golden records.
  * @param {boolean} [options.seeded] Whether this run may write the baseline.
- * @param {boolean} [options.approved] Whether `visual-approved` is on the pull request.
  * @param {string} [options.reportUrl] Published report URL, or '' when nothing was published.
  * @param {string} [options.runUrl] Workflow run URL, when known.
  * @returns {Verdict} The verdict.
  */
 export function evaluate({
-  report, bootstrap = false, seeded = true, approved = false, reportUrl = '', runUrl = '',
+  report, bootstrap = false, seeded = true, reportUrl = '', runUrl = '',
 }) {
   // `bootstrap` comes from a probe of `out.json`, which is a different source of
   // truth from the comparison itself. A base build killed mid-publish can leave
@@ -51,6 +58,7 @@ export function evaluate({
     + report.deletedItems.length + report.passedItems.length === 0) {
     return {
       blocked: true,
+      verdict: 'error',
       summary: 'The comparison found no screenshots at all, so nothing was checked.',
       comment: [
         '## Visual tests — nothing was compared',
@@ -66,6 +74,7 @@ export function evaluate({
     return seeded
       ? {
         blocked: false,
+        verdict: 'bootstrap',
         summary: 'No golden records existed for this base branch, so this build seeds them.',
         comment: [
           '## Visual tests — baseline created',
@@ -78,6 +87,7 @@ export function evaluate({
       }
       : {
         blocked: false,
+        verdict: 'bootstrap',
         summary: 'No golden records exist for this base branch, and this run cannot seed them.',
         comment: [
           '## Visual tests — nothing to compare',
@@ -95,6 +105,7 @@ export function evaluate({
   if (!report) {
     return {
       blocked: true,
+      verdict: 'error',
       summary: 'The comparison step produced no report, so the visual state is unknown.',
       comment: [
         '## Visual tests — could not compare',
@@ -118,6 +129,7 @@ export function evaluate({
   if (changed + added + deleted === 0) {
     return {
       blocked: false,
+      verdict: 'clean',
       summary: `No visual changes. ${passed} screenshots match the golden records.`,
       comment: [
         '## Visual tests — no changes',
@@ -128,30 +140,13 @@ export function evaluate({
     };
   }
 
-  const summary = `Visual changes detected: ${changed} changed, ${added} new, ${deleted} deleted.`;
-
-  if (approved) {
-    return {
-      blocked: false,
-      summary: `${summary} Accepted via the visual-approved label.`,
-      comment: [
-        '## Visual tests — changes approved',
-        '',
-        ...table,
-        '',
-        'The **`visual-approved`** label accepted these differences as intentional.',
-        reportUrl ? `\n[Review the report](${reportUrl}) if you want to double-check them.\n` : '',
-        'The label is removed on the next push, so a later change is compared again.',
-        '',
-      ].join('\n'),
-    };
-  }
-
   return {
-    blocked: true,
-    summary,
+    blocked: false,
+    verdict: 'changed',
+    summary: `Visual changes detected: ${changed} changed, ${added} new, ${deleted} deleted. `
+      + 'Waiting for a reviewer to approve the visual-approval deployment.',
     comment: [
-      '## Visual tests — changes detected',
+      '## Visual tests — changes detected, approval pending',
       '',
       ...table,
       '',
@@ -165,37 +160,29 @@ export function evaluate({
       '',
       '### What to do next',
       '',
-      '**If these differences are a regression** — push a commit that fixes them. The check',
-      'goes green on its own.',
+      '**If these differences are a regression** — push a commit that fixes them. The next run',
+      'compares again and the approval request goes away on its own.',
       '',
-      // `seeded` is false on exactly the runs where the label is ignored, so it
-      // is also what says whether promising an automatic re-run is honest. A
-      // fork contributor reads this in the job summary — the sticky comment is
-      // guarded off there — so "nothing else is needed" would be a promise
-      // nothing keeps.
+      '**If these differences are intentional** — a reviewer approves them on the workflow run',
+      `page: ${runUrl ? `[open the run](${runUrl}), then` : 'open the run, then'} **Review pending`
+        + ' deployments → visual-approval → Approve**. One click, no new commit, no re-run; the',
+      'approval is recorded with the reviewer\'s name. **Reject** turns the run red instead.',
+      '',
+      'Approval is all-or-nothing and per run: it accepts every difference in this build at once,',
+      'so read the report before approving, and a new push asks for a new approval, so',
+      'screenshots nobody looked at never inherit one.',
+      '',
+      // A fork or Dependabot contributor reads this in the job summary. Their
+      // token cannot post the comment, but the environment gate does not depend
+      // on their token at all: a maintainer approves the deployment the same way.
       ...(seeded
-        ? [
-          '**If these differences are intentional** — add the **`visual-approved`** label to',
-          'this pull request to accept them as the new baseline. The label also re-runs the',
-          'failed jobs, so the visual check turns green without a manual re-run. If the rest of',
-          'the pipeline is still running, the re-run starts once it finishes. Any other job that',
-          'is red stays red.',
-          '',
-          'Approval is all-or-nothing: the label accepts every difference in this build at once,',
-          'so read the report before applying it.',
-          '',
-          '> The label is removed automatically on every push, so an approval only ever covers',
-          '> the screenshots someone actually looked at. If you push again, re-apply it.',
-        ]
+        ? []
         : [
-          '**If these differences are intentional** — the **`visual-approved`** label does not',
-          'work here. A fork or Dependabot run gets no secrets, so nothing can clear the label',
-          'when you push again; it is ignored rather than trusted, and no re-run is started.',
+          '> This run comes from a fork or from Dependabot, so it published no report; the',
+          '> `visual-diff-report` artifact holds the images. A maintainer approves the',
+          '> deployment as above.',
           '',
-          'A maintainer has to re-raise this branch from the main repository to accept these',
-          'differences.',
         ]),
-      '',
     ].join('\n'),
   };
 }
