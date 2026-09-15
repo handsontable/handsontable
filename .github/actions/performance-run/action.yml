@@ -199,7 +199,7 @@ runs:
     - name: Deploy PR report to GitHub Pages
       # Write-token runs only. Fork PRs AND Dependabot PRs both get a read-only
       # GITHUB_TOKEN, so this would 403 and take CI Gate down with it.
-      # See AGENTS.md, "fork and Dependabot pull requests".
+      # See .ai/CI.md, "fork and Dependabot pull requests".
       if: always() && github.event_name == 'pull_request'
         && github.event.pull_request.head.repo.full_name == github.repository
         && github.actor != 'dependabot[bot]'
@@ -289,7 +289,7 @@ runs:
     - name: Post performance summary to pull request
       # Write-token runs only. Fork PRs AND Dependabot PRs both get a read-only
       # GITHUB_TOKEN, so this would 403 and take CI Gate down with it.
-      # See AGENTS.md, "fork and Dependabot pull requests".
+      # See .ai/CI.md, "fork and Dependabot pull requests".
       if: always() && github.event_name == 'pull_request'
         && github.event.pull_request.head.repo.full_name == github.repository
         && github.actor != 'dependabot[bot]'

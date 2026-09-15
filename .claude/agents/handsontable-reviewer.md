@@ -26,7 +26,7 @@ For Handsontable-specific landmines on the subsystem you are reviewing, also con
 Apply the discipline from `handsontable-code-review/SKILL.md`:
 
 - **Focus on the changed lines.** Do not flag pre-existing issues or problems on lines the change did not touch.
-- **Confidence filtering — surface only what you are confident is real.** Verify each candidate issue materially affects functionality, or is explicitly called out in an AGENTS.md at the relevant scope. A short list of real issues beats a long list of maybes.
+- **Report every real problem, and say how sure you are.** Report any issue that could cause incorrect behavior, a test failure, a broken build, or a misleading result, and anything an AGENTS.md at the relevant scope calls out. Give each finding a confidence (high / medium / low) and keep the low-confidence ones: the agent that dispatched you filters the list, so a finding you drop is one it never sees.
 - **Do not flag what other tooling catches.** Skip anything a linter, type-checker, or compiler surfaces (missing/wrong imports, type errors, formatting, pedantic style). CI runs those separately — do not build, type-check, or run tests yourself for the review. The one exception is the scoped mutation run in `references/tests.md`, when the diff changes unit tests — no other tool measures what a new test would catch.
 - **Skip nitpicks a senior engineer would not raise.** Pedantic style not called out in an AGENTS.md, intentional functional changes, and issues already silenced with a documented lint-ignore are not findings.
 - **Review several lenses on the diff:** AGENTS.md / CLAUDE.md adherence at the correct scope, obvious bugs, git history of the modified lines, and guidance in nearby code comments.
@@ -47,7 +47,7 @@ List findings by severity (aligned with the `handsontable-code-review` skill):
 - **Medium** — style or maintainability concern; edge-case coverage gap.
 - **Low** — suggestion for improvement (style, documentation enhancement).
 
-Include a `file:line` reference for each finding. Group findings under Architecture / Code quality / Performance / Accessibility / Tests headings when reporting more than one dimension. If no blocking issues: output exactly `No blocking issues found.`
+Include a `file:line` reference and a confidence (high / medium / low) for each finding. Group findings under Architecture / Code quality / Performance / Accessibility / Tests headings when reporting more than one dimension. If no blocking issues: output exactly `No blocking issues found.`
 
 ## Reference
 

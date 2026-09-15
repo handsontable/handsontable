@@ -28,7 +28,7 @@ function applyPlugin(plugin, outputPath) {
  * BOM, and it lands after the preserved `/*!` license banner rather than at offset 0. Nothing
  * strips a BOM in that position, and U+FEFF is an ident code point in CSS, so it fuses with the
  * selector that follows and `.ht-root-wrapper` stops matching — both in the shipped stylesheet and
- * in the copy inlined into the bundles. See the postcss entry in the root `AGENTS.md`.
+ * in the copy inlined into the bundles. See the BOM entry in `.ai/CI.md`.
  */
 describe('minified CSS BOM handling', () => {
   it('should strip a BOM that sits after the license banner, not just a leading one', async() => {
