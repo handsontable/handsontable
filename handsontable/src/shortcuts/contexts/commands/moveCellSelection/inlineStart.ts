@@ -1,4 +1,5 @@
 import type { HotInstance } from '../../../../core/types';
+import { hasRenderedCells } from '../../../guards';
 
 export const command = {
   name: 'moveCellSelectionInlineStart',
@@ -20,8 +21,7 @@ export const command = {
         (selectedRanges?.length ?? 0) > 1
       ) &&
       !selectedRange?.isHeader() &&
-      hot.countRenderedCols() > 0 &&
-      hot.countRenderedRows() > 0
+      hasRenderedCells(hot)
     ) {
       selection.transformFocus(tabMoves?.row ?? 0, tabMoves?.col ?? 0);
     } else {

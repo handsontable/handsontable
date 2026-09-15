@@ -72,8 +72,12 @@ Do **not** guard the override on `isVisible()`. The context being active is the 
 adds another way for the shortcut to go dead.
 
 **The safety half of this lives in `../../shortcuts/guards.ts`, not here.** Inheriting is only safe because
-every grid shortcut that reads or writes cell CONTENT calls `canAccessCellContent()` and refuses while the
-grid draws no cell - which is exactly the state that puts this overlay on screen. Without it, the `Ctrl`+`A` above hands the user a selection over hidden data and
+every grid shortcut that reads or writes cell CONTENT calls `canAccessCellContent()`, and that helper asks
+two things: are cells drawn, and is anything covering them. **This plugin needs the second one**, which is
+why the scope declares `coversGridBody: true`. The overlay is not only shown when the grid is empty - the
+`#loadingActive` branch of `#toggleEmptyDataState()` shows it over a FULLY RENDERED grid while a
+DataProvider fetch runs, and there the drawing check answers `yes` on its own. Measured: `Delete` wiped the
+whole dataset under the loading overlay. Without it, the `Ctrl`+`A` above hands the user a selection over hidden data and
 `Delete` blanks the whole dataset — measured, 40 cells, on a grid whose columns were all hidden. If you add
 a destructive shortcut to the grid context, from anywhere, guard it with that helper; every inheriting
 overlay depends on it. `Tab` carries the same guard for the opposite reason: the grid's tab-navigation pair
@@ -93,8 +97,11 @@ completely normal, with every shortcut dead until the user clicked a cell.
 
 `disablePlugin()` is the same story through a different door: `unregisterScope()` deactivates an active
 scope before destroying it, which is what rolls the context back when `updateSettings({ emptyDataState:
-false })` turns the plugin off while the overlay is up. `updatePlugin()` re-activates the scope when the
-overlay is still on screen, because the `disablePlugin()` half of it gave the keyboard back to the grid.
+false })` turns the plugin off while the overlay is up.
+
+`updatePlugin()` re-activates the scope only when it was the ACTIVE scope before the update. Doing it
+whenever the overlay happens to be visible steals the keyboard from wherever the user really is - an open
+modal dialog owns the active scope over an empty grid, and any `updateSettings` call took it away.
 
 Two explanations for why only the context-menu path broke were measured and are **both wrong**, so do not
 reach for either when changing this: it is not which branch `#hide()` takes (the `updateData` path takes

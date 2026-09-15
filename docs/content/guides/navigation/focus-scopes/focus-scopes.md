@@ -269,8 +269,12 @@ const focusScopeManager = hot.getFocusScopeManager();
 focusScopeManager.registerScope('customOverlay', containerElement, {
   shortcutsContextName: 'plugin:customOverlay',
   fallbackShortcutsContextName: 'grid',
+  coversGridBody: true,
 });
 ```
+
+Set `shortcutsContextName` as well. It defaults to `'grid'`, so a scope that declares only the fallback
+names the same context twice, and Handsontable throws.
 
 A shortcut in the scope's own context wins over the fallback's shortcut for the same keys, as long as its
 `runOnlyIf` returns `true`. When `runOnlyIf` returns `false`, the fallback answers instead. Use that to
@@ -280,8 +284,18 @@ Leave the option unset for a modal scope. A modal blocks the rest of the grid, s
 shortcuts through it defeats the point. The fallback may declare a fallback of its own, and Handsontable
 walks the chain; a chain that loops back on itself stops rather than repeating.
 
-A shortcut that writes cell content refuses to run while the grid draws no cells, so inheriting cannot
-hand the user a way to change data the grid is not showing.
+Set `coversGridBody` to `true` when the scope's container is painted over the grid body. A shortcut that
+writes cell content then refuses to run, both while the grid draws no cells and while your scope covers
+the cells it does draw. Those are different states: an overlay shown during a data fetch covers rows that
+are still on screen, and without this flag a shortcut would ask only "does the grid draw a cell", get
+`yes`, and change data the user cannot reach.
+
+Covering and inheriting are separate questions, which is why they are separate options. A pagination bar
+may inherit the grid's shortcuts without covering the body — the cells stay visible and usable.
+
+Two write paths sit outside the shortcut manager and are not affected by either option: the clipboard
+`paste` and `cut` handlers, which listen for the browser's own events, and anything your own code calls
+through the API.
 
 ### Add conditional scope activation
 

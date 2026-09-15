@@ -1,6 +1,17 @@
 import { createShortcutManager } from '../manager';
 
 /**
+ * Managers created by a test, torn down in `afterEach`.
+ *
+ * Every test mounts a real recorder on the shared `document.documentElement`, so a `destroy()` written
+ * as the last statement of an `it()` is skipped the moment an assertion throws - and the leaked keydown
+ * listener then turns one real failure into a cascade of confusing ones in every later test.
+ *
+ * @type {object[]}
+ */
+let managers = [];
+
+/**
  * @param {object} [overrides] - Optional overrides for the shortcut manager configuration.
  */
 function createTestManager(overrides = {}) {
@@ -12,10 +23,16 @@ function createTestManager(overrides = {}) {
     ...overrides,
   });
 
+  managers.push(manager);
   manager.addContext('grid');
 
   return manager;
 }
+
+afterEach(() => {
+  managers.forEach(manager => manager.destroy());
+  managers = [];
+});
 
 describe('Shortcut Manager', () => {
   describe('`setActiveContextName`', () => {
@@ -28,8 +45,6 @@ describe('Shortcut Manager', () => {
         'You\'ve tried to activate the "not_existed_context" shortcut context that does not exist. ',
         'Before activation, register the context using the "addContext" method.',
       ].join(''), { handsontable: true });
-
-      manager.destroy();
     });
   });
 
@@ -59,8 +74,6 @@ describe('Shortcut Manager', () => {
       pressKey('a');
 
       expect(gridSpy).toHaveBeenCalledTimes(1);
-
-      manager.destroy();
     });
 
     it('should prefer the active context\'s own shortcut over the fallback\'s', () => {
@@ -86,8 +99,6 @@ describe('Shortcut Manager', () => {
 
       expect(pluginSpy).toHaveBeenCalledTimes(1);
       expect(gridSpy).not.toHaveBeenCalled();
-
-      manager.destroy();
     });
 
     it('should walk a chain of fallbacks', () => {
@@ -108,8 +119,6 @@ describe('Shortcut Manager', () => {
       pressKey('a');
 
       expect(gridSpy).toHaveBeenCalledTimes(1);
-
-      manager.destroy();
     });
 
     it('should fall through to the fallback when its own shortcut declines', () => {
@@ -136,8 +145,6 @@ describe('Shortcut Manager', () => {
 
       expect(pluginSpy).not.toHaveBeenCalled();
       expect(gridSpy).toHaveBeenCalledTimes(1);
-
-      manager.destroy();
     });
 
     it('should stop the walk on a shortcut that ran, even when its callback did nothing', () => {
@@ -161,8 +168,6 @@ describe('Shortcut Manager', () => {
       pressKey('a');
 
       expect(gridSpy).not.toHaveBeenCalled();
-
-      manager.destroy();
     });
 
     it('should visit each context at most once when the fallbacks form a cycle', () => {
@@ -194,8 +199,6 @@ describe('Shortcut Manager', () => {
       // are bounded by the counts below - `not.toThrow()` would sit in the loop instead of failing.
       expect(firstGuard).toHaveBeenCalledTimes(1);
       expect(secondGuard).toHaveBeenCalledTimes(1);
-
-      manager.destroy();
     });
 
     it('should leave `hasShortcut` answering for a single context', () => {
@@ -211,8 +214,6 @@ describe('Shortcut Manager', () => {
 
       expect(pluginContext.hasShortcut(['a'])).toBe(false);
       expect(pluginContext.getShortcuts(['a'])).toEqual([]);
-
-      manager.destroy();
     });
   });
 
@@ -236,8 +237,6 @@ describe('Shortcut Manager', () => {
       document.documentElement.dispatchEvent(event);
 
       expect(spy).toHaveBeenCalledTimes(1);
-
-      manager.destroy();
     });
 
     it('should not reach a table-scoped fallback from a global context', () => {
@@ -257,8 +256,6 @@ describe('Shortcut Manager', () => {
       document.documentElement.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', bubbles: true }));
 
       expect(gridSpy).not.toHaveBeenCalled();
-
-      manager.destroy();
     });
 
     it('should not run table-scoped shortcuts when handleEvent returns false', () => {
@@ -278,8 +275,6 @@ describe('Shortcut Manager', () => {
       document.documentElement.dispatchEvent(event);
 
       expect(spy).not.toHaveBeenCalled();
-
-      manager.destroy();
     });
 
     it('should run table-scoped shortcuts when handleEvent returns true', () => {
@@ -299,8 +294,6 @@ describe('Shortcut Manager', () => {
       document.documentElement.dispatchEvent(event);
 
       expect(spy).toHaveBeenCalledTimes(1);
-
-      manager.destroy();
     });
   });
 });
