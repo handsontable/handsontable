@@ -38,11 +38,21 @@
     if (window.htAllowInsertRow === undefined) {
       throw new Error('Unknown ?allowInsertRow= value: ' + JSON.stringify(htParams.get('allowInsertRow')));
     }
+
+    // `async` gives column 0 a custom validator that does NOT resolve on its own - it parks its
+    // callback so the test controls exactly when the write settles. That is what makes the deferral
+    // long enough to model a real async validator and lets a case move focus OUT of the grid while
+    // the paste is still pending. `none` keeps the synchronous behavior the `validated` axis drives.
+    window.htValidatorMode = ({ none: 'none', async: 'async' })[htParams.get('validator') ?? 'none'];
+    if (!window.htValidatorMode) {
+      throw new Error('Unknown ?validator= value: ' + JSON.stringify(htParams.get('validator')));
+    }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
 </head>
 <body>
   <div id="grid" data-testid="grid"></div>
+
 
   <script>
     document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
@@ -75,20 +85,45 @@
     // about a clamp that a deferred validator would only have undone a microtask later.
     window.htChanges = [];
 
+    // Callbacks parked by the async validator, and the release valve for them. `applyChanges` (and
+    // with it the deferred re-select) cannot run until every validator in the batch has called back,
+    // so parking these lets a case hold the write open, move focus out of the grid, and only THEN
+    // release - reproducing a slow async validator whose correction lands after the user clicked away.
+    window.htPendingValidations = [];
+    window.htResolveValidations = function() {
+      const parked = window.htPendingValidations.splice(0);
+
+      parked.forEach(function(callback) { callback(true); });
+
+      return parked.length;
+    };
+
+    // A genuinely asynchronous validator: it never resolves synchronously. Every changed cell in
+    // column 0 parks its callback here until `htResolveValidations()` releases it.
+    function asyncColumnValidator(value, callback) {
+      window.htPendingValidations.push(callback);
+    }
+
+    // Column 0's config, by axis. `?validator=async` wins - a plain column carrying the parked
+    // validator above (the focus-steal cases need control over WHEN the write settles). Otherwise
+    // `?validated=on` gives a `dropdown` (validated, defers to a microtask) and `off` a plain column
+    // with no validator. Column 1 is always plain, so a validated range spans one of each.
+    let firstColumn;
+
+    if (window.htValidatorMode === 'async') {
+      firstColumn = { validator: asyncColumnValidator };
+    } else if (window.htValidated) {
+      firstColumn = { type: 'dropdown', source: ['A0', 'A1', 'A2', 'A3', 'A4'].concat(PASTED_LABELS) };
+    } else {
+      firstColumn = {};
+    }
+
     let hot;
 
     try {
       hot = new Handsontable(container, {
         data: DATA,
-        // Column 0 is the axis: a `dropdown` (validated, defers row creation to a microtask) when
-        // `?validated=on`, a plain text column with no validator when `?validated=off`. Column 1 is
-        // always plain, so the pasted range spans one validated and one unvalidated column.
-        columns: window.htValidated
-          ? [
-            { type: 'dropdown', source: ['A0', 'A1', 'A2', 'A3', 'A4'].concat(PASTED_LABELS) },
-            {},
-          ]
-          : [{}, {}],
+        columns: [firstColumn, {}],
         colHeaders: ['A', 'B'],
         rowHeaders: true,
         // The clamp-invariant axis. Default is `true`; `?allowInsertRow=off` stops a paste from

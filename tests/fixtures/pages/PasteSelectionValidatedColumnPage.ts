@@ -9,6 +9,8 @@ interface HandsontableFixture {
   getSelected(): number[][] | undefined;
   selectCells(ranges: number[][]): void;
   listen(): void;
+  unlisten(): void;
+  isListening(): boolean;
   countSourceRows(): number;
   getSourceData(): unknown[][];
   getSourceDataAtCell(row: number, col: number): unknown;
@@ -20,11 +22,14 @@ interface HandsontableFixture {
 interface FixtureWindow {
   hot: HandsontableFixture;
   htChanges: unknown[][];
+  htPendingValidations: unknown[];
+  htResolveValidations(): number;
 }
 
 interface PageOptions {
   validated?: boolean;
   allowInsertRow?: boolean;
+  asyncValidator?: boolean;
 }
 
 /**
@@ -42,6 +47,7 @@ export class PasteSelectionValidatedColumnPage {
   readonly bundle: string;
   readonly validated: boolean;
   readonly allowInsertRow: boolean;
+  readonly asyncValidator: boolean;
 
   constructor(page: Page, theme = 'main', bundle = 'umd', options: PageOptions = {}) {
     this.page = page;
@@ -49,6 +55,7 @@ export class PasteSelectionValidatedColumnPage {
     this.bundle = bundle;
     this.validated = options.validated ?? true;
     this.allowInsertRow = options.allowInsertRow ?? true;
+    this.asyncValidator = options.asyncValidator ?? false;
   }
 
   /**
@@ -57,7 +64,8 @@ export class PasteSelectionValidatedColumnPage {
   async goto(): Promise<void> {
     const query = `theme=${this.theme}&bundle=${this.bundle}` +
       `&validated=${this.validated ? 'on' : 'off'}` +
-      `&allowInsertRow=${this.allowInsertRow ? 'on' : 'off'}`;
+      `&allowInsertRow=${this.allowInsertRow ? 'on' : 'off'}` +
+      `&validator=${this.asyncValidator ? 'async' : 'none'}`;
 
     await this.page.goto(`/tests/fixtures/demo/paste-selection-validated-column.html?${query}`);
 
@@ -82,6 +90,44 @@ export class PasteSelectionValidatedColumnPage {
    */
   cell(row: number, col: number): Locator {
     return this.page.getByTestId(`cell-${row}-${col}`);
+  }
+
+  /**
+   * Reports whether the grid is currently listening for keyboard and clipboard input. This is the
+   * exact state the re-select guard reads, and it is the observable proxy for a focus steal:
+   * `selectCell` re-listens (and focuses the grid's own input), so it flips this back to `true`.
+   */
+  async isListening(): Promise<boolean> {
+    return this.page.evaluate(() => (window as unknown as FixtureWindow).hot.isListening());
+  }
+
+  /**
+   * Makes the grid stop listening while leaving the selection untouched.
+   *
+   * This is the exact precondition the focus-steal guard exists for: focus has left the grid, yet
+   * the selection range still starts where the paste did - so the guard's later origin check would
+   * PASS and only the `isListening()` test can stop the re-select. A real outside CLICK is the wrong
+   * gesture here: it deselects the cell, and a null selection is caught by the earlier origin guard,
+   * which would let this case pass without ever exercising the `isListening()` branch.
+   */
+  async unlisten(): Promise<void> {
+    await this.page.evaluate(() => (window as unknown as FixtureWindow).hot.unlisten());
+  }
+
+  /**
+   * Releases every callback the async validator has parked, letting the deferred write settle.
+   * Returns how many were released, so a case can prove the write really was held open.
+   */
+  async resolveValidations(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as FixtureWindow).htResolveValidations());
+  }
+
+  /**
+   * Returns how many validator callbacks are currently parked. The positive control that the paste's
+   * write is genuinely deferred: greater than zero means row creation has not run yet.
+   */
+  async pendingValidationCount(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as FixtureWindow).htPendingValidations.length);
   }
 
   /**
