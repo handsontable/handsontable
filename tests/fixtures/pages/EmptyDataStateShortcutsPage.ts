@@ -156,6 +156,18 @@ export class EmptyDataStateShortcutsPage {
     }, content);
   }
 
+  /**
+   * Empties the grid through the API, so the overlay shows from a clean state, and takes the focus out
+   * of the page's controls - the starting point of a user who Tabs INTO the grid.
+   */
+  async loadEmptyDataAndLeaveFocus(): Promise<void> {
+    await this.page.evaluate(() => {
+      window.hot.loadData([]);
+      (document.activeElement as HTMLElement | null)?.blur();
+    });
+    await expect(this.overlay).toBeVisible();
+  }
+
   /** Applies setting overrides to the live grid. */
   async updateSettings(settings: Record<string, unknown>): Promise<void> {
     await this.page.evaluate((overrides) => {

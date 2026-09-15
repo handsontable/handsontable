@@ -66,20 +66,25 @@ export function canAccessCellContent(hot: HotInstance): boolean {
 
 /**
  * Whether the grid has somewhere for the selection to move: a drawn cell, or a header when
- * `navigableHeaders` is on, and nothing covering the body.
+ * `navigableHeaders` is on.
  *
- * Weaker than `canAccessCellContent()` on the header half and identical on the covering half. The
- * covering half is what lets the user leave: the grid's tab-navigation pair claims `Tab` by calling
- * `preventDefault()` whenever the selection is still in range, so without it an overlay that inherits
- * these shortcuts swallowed `Tab` and trapped the user inside itself.
+ * While an overlay covers the body, only moves between HEADERS count. The overlay covers the cells,
+ * not the headers above it, and those stay on screen and reachable - the empty-data-state visual tests
+ * Tab from the corner to a column header and open its filter menu, and blocking that left the filter
+ * unapplied and the overlay showing the wrong message. Moves among the covered cells stay blocked:
+ * the grid's tab-navigation pair claims `Tab` with `preventDefault()` while the selection is in range,
+ * so allowing them walked an invisible selection through the cells under the loading overlay instead
+ * of letting the user leave.
  *
  * @param {Core} hot The Handsontable instance.
  * @returns {boolean}
  */
 export function canNavigateGrid(hot: HotInstance): boolean {
+  const { navigableHeaders } = hot.getSettings();
+
   if (isGridBodyCovered(hot)) {
-    return false;
+    return navigableHeaders === true && hot.getSelectedRangeActive()?.highlight.isHeader() === true;
   }
 
-  return hot.getSettings().navigableHeaders === true || hasRenderedCells(hot);
+  return navigableHeaders === true || hasRenderedCells(hot);
 }

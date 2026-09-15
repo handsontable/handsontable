@@ -124,6 +124,24 @@ test.describe('emptyDataState keyboard shortcuts', () => {
     expect(await grid.selection()).toBeNull();
   });
 
+  test('moves between the headers above the overlay with navigable headers', async() => {
+    // The overlay covers the CELLS; the headers stay on screen above it. This is the path the
+    // empty-data-state visual tests drive to reach a column's filter menu - Tab into the grid, Tab to a
+    // header, `Alt`+`Shift`+`ArrowDown` - and a covering check that also blocked headers left the filter
+    // unapplied and the overlay showing the wrong message on 20 screenshots.
+    await grid.updateSettings({ navigableHeaders: true });
+    await grid.loadEmptyDataAndLeaveFocus();
+
+    await grid.page.keyboard.press('Tab');
+    expect(await grid.selection()).toEqual([[-1, -1, -1, -1]]);
+
+    await grid.page.keyboard.press('Tab');
+    expect(await grid.selection()).toEqual([[-1, 0, -1, 0]]);
+
+    await grid.page.keyboard.press('ArrowRight');
+    expect(await grid.selection()).toEqual([[-1, 1, -1, 1]]);
+  });
+
   test('does not let Delete clear the data it cannot show', async() => {
     const before = await grid.allValues();
 
