@@ -116,6 +116,34 @@ export class EmptyDataStateShortcutsPage {
     return this.page.evaluate(() => window.hot.getPlugin('emptyDataState').isVisible());
   }
 
+  /**
+   * Shows the overlay through the plugin's DataProvider loading branch, which is the one path that puts
+   * it over cells that are still DRAWN. The hook is fired by hand because it is exactly the signal the
+   * plugin listens for - a real fetch is this plus a network round trip, which would add nothing here.
+   */
+  async startDataProviderFetch(): Promise<void> {
+    await this.page.evaluate(() => {
+      window.hot.runHooks('beforeDataProviderFetch', {});
+    });
+    await expect(this.overlay).toBeVisible();
+  }
+
+  /** Ends the fetch started above, so the overlay hides again. */
+  async finishDataProviderFetch(): Promise<void> {
+    await this.page.evaluate(() => {
+      window.hot.runHooks('afterDataProviderFetch');
+    });
+    await expect(this.overlay).toBeHidden();
+  }
+
+  /** How many rows and columns the grid currently draws. */
+  async renderedCounts(): Promise<{ rows: number, cols: number }> {
+    return this.page.evaluate(() => ({
+      rows: window.hot.countRenderedRows(),
+      cols: window.hot.countRenderedCols(),
+    }));
+  }
+
   /** Applies setting overrides to the live grid. */
   async updateSettings(settings: Record<string, unknown>): Promise<void> {
     await this.page.evaluate((overrides) => {

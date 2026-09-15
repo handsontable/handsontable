@@ -123,6 +123,9 @@ export interface FixtureHotInstance {
   getShortcutManager(): {
     getActiveContextName(): string,
   };
+  runHooks(name: string, ...args: unknown[]): unknown;
+  countRenderedRows(): number;
+  countRenderedCols(): number;
   getActiveEditor(): {
     isOpened(): boolean,
     beginEditing(): void,

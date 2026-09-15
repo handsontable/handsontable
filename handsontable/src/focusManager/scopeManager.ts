@@ -12,6 +12,7 @@ type FocusScopeActivationSource = 'unknown' | 'click' | 'tab_from_above' | 'tab_
 export type FocusScopeOptions = {
   shortcutsContextName?: string;
   fallbackShortcutsContextName?: string;
+  coversGridBody?: boolean;
   type?: FocusScopeType;
   contains?: (target: HTMLElement) => boolean;
   runOnlyIf?: () => boolean;
@@ -22,6 +23,7 @@ export type FocusScopeOptions = {
 
 export interface FocusScopeManager {
   getActiveScopeId(): string | null;
+  isGridBodyCovered(): boolean;
   registerScope(scopeId: string, container: HTMLElement, options?: FocusScopeOptions): void;
   unregisterScope(scopeId: string): void;
   activateScope(scopeId: string, focusSource?: string): void;
@@ -32,6 +34,7 @@ export interface FocusScopeManager {
 /**
  * @typedef {object} FocusScopeManager
  * @property {function(): string | null} getActiveScopeId Returns the ID of the active scope.
+ * @property {function(): boolean} isGridBodyCovered Whether any enabled scope currently covers the grid body.
  * @property {function(string, HTMLElement, object): void} registerScope Registers a new focus scope.
  * @property {function(string): void} unregisterScope Unregisters a scope by its ID.
  * @property {function(string, ('unknown' | 'click' | 'tab_from_above' | 'tab_from_below')?): void} activateScope Activates a focus scope by its ID.
@@ -77,6 +80,21 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
   }
 
   /**
+   * Whether any enabled scope currently covers the grid body.
+   *
+   * Asked of every registered scope rather than only the active one: an overlay is on screen whether or
+   * not it holds the keyboard, and that is what puts the cells underneath out of reach. Shortcuts that
+   * act on cell content consult this through `canAccessCellContent()` in `../shortcuts/guards.ts`.
+   *
+   * @memberof FocusScopeManager#
+   * @returns {boolean}
+   */
+  function isGridBodyCovered(): boolean {
+    return (SCOPES.getValues() as ReturnType<typeof createFocusScope>[])
+      .some((scope: ReturnType<typeof createFocusScope>) => scope.getCoversGridBody() && scope.runOnlyIf());
+  }
+
+  /**
    * Registers a new focus scope.
    *
    * @memberof FocusScopeManager#
@@ -87,6 +105,10 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
    * the scope is activated.
    * @param {string} [options.fallbackShortcutsContextName] The name of a shortcuts context consulted for keys the
    * scope's own context does not define. Pass `'grid'` for a scope that covers the grid without replacing it.
+   * It must differ from `shortcutsContextName`, which defaults to `'grid'`.
+   * @param {boolean} [options.coversGridBody=false] Whether the scope covers the grid body while it is showing,
+   * so the cells underneath are drawn but out of reach. Covering and inheriting are separate questions: a
+   * pagination bar may inherit without covering.
    * @param {'modal' | 'inline'} [options.type='inline'] The type of the scope:<br/>
    *   - `modal`: The scope is modal and blocks the rest of the grid from receiving focus.<br/>
    *   - `inline`: The scope is inline and allows the rest of the grid to receive focus in the order of the rendered elements in the DOM.
@@ -135,12 +157,37 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
 
     SCOPES.addItem(scopeId, scope);
 
-    const scopeContext = shortcutManager.getOrCreateContext(scope.getShortcutsContextName());
+    const contextName = scope.getShortcutsContextName();
+    const scopeContext = shortcutManager.getOrCreateContext(contextName);
     const fallbackContextName = scope.getFallbackShortcutsContextName();
+
+    if (fallbackContextName === contextName) {
+      SCOPES.removeItem(scopeId);
+      scope.destroy();
+      throwWithCause(`The "${scopeId}" focus scope falls back to its own shortcuts context ` +
+        `("${contextName}"). \`shortcutsContextName\` defaults to "grid", so a scope that declares only ` +
+        '`fallbackShortcutsContextName` names the same context twice.');
+    }
 
     if (fallbackContextName !== null) {
       scopeContext.setFallbackContext(shortcutManager.getOrCreateContext(fallbackContextName));
     }
+  }
+
+  /**
+   * Whether a scope other than the one given still declares the same context/fallback pair.
+   *
+   * The fallback lives on the shortcuts CONTEXT, which several scopes may share, so unregistering one
+   * of them must not drop a fallback the others still rely on.
+   *
+   * @param {object} scopeToSkip The scope being unregistered.
+   * @returns {boolean}
+   */
+  function hasOtherScopeWithSameFallback(scopeToSkip: ReturnType<typeof createFocusScope>): boolean {
+    return (SCOPES.getValues() as ReturnType<typeof createFocusScope>[]).some(
+      (scope: ReturnType<typeof createFocusScope>) => scope !== scopeToSkip &&
+        scope.getShortcutsContextName() === scopeToSkip.getShortcutsContextName() &&
+        scope.getFallbackShortcutsContextName() === scopeToSkip.getFallbackShortcutsContextName());
   }
 
   /**
@@ -163,7 +210,7 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
       deactivateScope(scope);
     }
 
-    if (scope.getFallbackShortcutsContextName() !== null) {
+    if (scope.getFallbackShortcutsContextName() !== null && !hasOtherScopeWithSameFallback(scope)) {
       shortcutManager.getContext(scope.getShortcutsContextName())?.setFallbackContext(null);
     }
 
@@ -221,12 +268,16 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
     }
 
     activeScope = scope;
-    activeScope.activate(focusSource);
 
-    // Captured AFTER the scope above was deactivated, so its own rollback already ran and nesting
-    // unwinds in order.
+    // Captured and switched BEFORE `activate()`. Its `onActivate` commonly moves DOM focus, which fires
+    // `focusin` and re-enters `processScopes()` - and a deactivation in that window would find nothing
+    // recorded to restore, leaving the manager on the plugin's context with no active scope: the dead
+    // shortcuts of DEV-2917 by another route. The previous scope was already deactivated above, so what
+    // is read here is the rolled-back name and nesting still unwinds in order.
     scope.setDisplacedShortcutsContextName(shortcutManager.getActiveContextName());
     shortcutManager.setActiveContextName(scope.getShortcutsContextName());
+
+    activeScope.activate(focusSource);
   }
 
   /**
@@ -369,6 +420,7 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
 
   return {
     getActiveScopeId,
+    isGridBodyCovered,
     registerScope,
     unregisterScope,
     activateScope: (scopeId: string, focusSource?: string) => activateScopeById(scopeId, focusSource),

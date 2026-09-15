@@ -350,15 +350,24 @@ export class EmptyDataState extends BasePlugin {
    * Update plugin state after Handsontable settings update.
    */
   updatePlugin() {
+    // `disablePlugin()` below unregisters the scope, which deactivates it and rolls the shortcuts
+    // context back. Only re-activate it when it was the active scope to begin with: re-activating
+    // unconditionally steals the keyboard from wherever the user actually is - an open modal dialog,
+    // or an element outside the grid they tabbed to - and `activateScope()` would then deactivate that
+    // scope on the way.
+    const hadActiveScope = isRootInstance(this.hot) &&
+      this.hot.getFocusScopeManager().getActiveScopeId() === PLUGIN_KEY;
+
     this.disablePlugin();
     this.enablePlugin();
     this.#update();
 
     if (this.isVisible()) {
       this.#ui?.show();
-      // `disablePlugin()` unregistered the scope, which deactivated it and rolled the shortcuts
-      // context back. The overlay is on screen again, so the scope owns the keyboard again too.
-      this.hot.getFocusScopeManager().activateScope(PLUGIN_KEY);
+
+      if (hadActiveScope) {
+        this.hot.getFocusScopeManager().activateScope(PLUGIN_KEY);
+      }
     }
 
     super.updatePlugin();
@@ -433,6 +442,10 @@ export class EmptyDataState extends BasePlugin {
         // The overlay covers the grid, it does not replace it, so everything the grid answers stays
         // answered - including shortcuts added to it after this line was written.
         fallbackShortcutsContextName: GRID_SCOPE,
+        // The overlay is painted over the grid body, and during a DataProvider fetch it does that while
+        // the cells underneath are still DRAWN. Without this a shortcut that writes cell content asked
+        // only "are cells drawn", got `true`, and `Delete` wiped the data under the overlay.
+        coversGridBody: true,
         runOnlyIf: () => this.isVisible(),
         onActivate: (focusSource: string) => {
           const focusableElements = this.#ui?.getFocusableElements() ?? [];

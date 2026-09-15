@@ -242,6 +242,42 @@ test.describe('emptyDataState keyboard shortcuts', () => {
     expect(await grid.allValues()).toEqual(baseline);
   });
 
+  test('does not let Delete clear the data the loading overlay covers', async() => {
+    const before = await grid.allValues();
+
+    // Positive control: the very same selection and key, with the overlay NOT up. Delete works, so the
+    // negative half below is about the overlay and not about a grid where Delete never worked.
+    await grid.selectAllWithKeyboard(1, 1);
+    await grid.page.keyboard.press('Delete');
+    await expect.poll(() => grid.allValues()).not.toEqual(before);
+    await grid.page.keyboard.press('ControlOrMeta+z');
+    await expect.poll(() => grid.allValues()).toEqual(before);
+
+    await grid.selectAllWithKeyboard(2, 2);
+    await grid.startDataProviderFetch();
+
+    // The point of this test: the cells are still DRAWN, only covered. A guard that asks "does the grid
+    // draw a cell" answers yes here and lets the keystroke through.
+    expect(await grid.renderedCounts()).toEqual({ rows: 8, cols: 6 });
+    expect(await grid.selection()).toEqual([[-1, -1, 7, 5]]);
+
+    await grid.page.keyboard.press('Delete');
+
+    await grid.finishDataProviderFetch();
+    expect(await grid.allValues()).toEqual(before);
+  });
+
+  test('lets Tab out of the loading overlay it covers the grid with', async() => {
+    await grid.cell(0, 0).click();
+    await grid.startDataProviderFetch();
+
+    expect(await grid.selection()).toEqual([[0, 0, 0, 0]]);
+
+    // Drawn cells would otherwise make the tab-navigation pair claim the chord and trap the user under
+    // an overlay they cannot leave.
+    expect(await grid.pressAndReadDefaultPrevented('Tab')).toBe(false);
+  });
+
   test('restores the grid shortcut context once the overlay hides', async() => {
     await grid.selectAllWithKeyboard();
     await grid.runContextMenuItem('rowHeader', /^Remove rows$/);

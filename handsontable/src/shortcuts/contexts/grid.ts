@@ -2,7 +2,7 @@ import type { HotInstance } from '../../core/types';
 import { isDefined } from '../../helpers/mixed';
 import { GRID_GROUP, EDITOR_EDIT_GROUP, GRID_SCOPE, GRID_TAB_NAVIGATION_GROUP } from './constants';
 import { createKeyboardShortcutCommandsPool } from './commands';
-import { canAccessCellContent } from '../guards';
+import { canAccessCellContent, canNavigateGrid } from '../guards';
 import { getSelectedCellLink } from './commands/openCellLink';
 
 /**
@@ -24,18 +24,12 @@ export function shortcutsGridContext(hot: HotInstance) {
    */
   const canAccessCells = (): boolean => canAccessCellContent(hot);
   /**
-   * Whether the grid has somewhere for the selection to move: a drawn cell, or a header when
-   * `navigableHeaders` is on. This is what every selection-moving shortcut requires, and it is
-   * deliberately weaker than `canAccessCells()` - moving a selection destroys nothing.
+   * Whether a selection-moving shortcut has a selection to move and somewhere to move it. Weaker than
+   * `canAccessCells()` on the header half - moving a selection destroys nothing.
    *
    * @returns {boolean}
    */
-  const isGridNavigable = (): boolean => {
-    const { navigableHeaders } = hot.getSettings();
-
-    return isDefined(hot.getSelected()) &&
-      (navigableHeaders || hot.countRenderedRows() > 0 && hot.countRenderedCols() > 0);
-  };
+  const isGridNavigable = (): boolean => isDefined(hot.getSelected()) && canNavigateGrid(hot);
   const config = {
     runOnlyIf: isGridNavigable,
     group: GRID_GROUP,
@@ -84,9 +78,9 @@ export function shortcutsGridContext(hot: HotInstance) {
     // so it must claim the chord only for a cell that actually renders a link. Testing just
     // `isCell()` would swallow `Alt`+`Enter` grid-wide and break a host application's own handler.
     //
-    // `canAccessCells()` is redundant beside that lookup today - an undrawn cell has no link to find -
-    // and it is kept for uniformity: every shortcut that acts on cell content declares it, so changing
-    // how the link is looked up cannot silently leave this one unguarded.
+    // `canAccessCells()` is load-bearing beside that lookup, not decoration: under an overlay that
+    // covers the body the cell is still DRAWN and the link is still found, so opening it would send the
+    // user somewhere from a cell they cannot see.
     runOnlyIf: () => canAccessCells() && getSelectedCellLink(hot) !== null,
   }, {
     keys: [['Control', 'Space']],
@@ -214,12 +208,10 @@ export function shortcutsGridContext(hot: HotInstance) {
   type TabNavCommand = { before: (event: KeyboardEvent) => void; after: (event: KeyboardEvent) => boolean | void };
   const tabNavigationCommand = commandsPool.tabNavigation() as unknown as TabNavCommand;
 
-  // The pair wraps the Tab entries above, so it takes the same guard they do - it used to have none at
-  // all. That matters because `after()` calls `event.preventDefault()` whenever the selection is still
-  // in range: unguarded, an overlay that inherits these shortcuts swallowed Tab and left the user no
-  // way out of it. `before()` takes the guard too, so the pair can never run half-applied. A
-  // per-shortcut `runOnlyIf` REPLACES a group-level one instead of being ANDed with it, so it is
-  // written on each entry.
+  // This pair is BOOKKEEPING and stays unguarded on purpose: `before()` sets state that `after()` clears,
+  // so a guard that can change its answer mid-keystroke - the Tab move itself drops the selection - would
+  // run one half and skip the other, leaving the command's flags set for a later, unrelated selection.
+  // The one thing that needed gating is the `preventDefault()` inside `after()`, and it is gated there.
   context.addShortcuts([{
     keys: [['Tab'], ['Shift', 'Tab']],
     preventDefault: false,
@@ -227,7 +219,6 @@ export function shortcutsGridContext(hot: HotInstance) {
     relativeToGroup: GRID_GROUP,
     group: GRID_TAB_NAVIGATION_GROUP,
     position: 'before',
-    runOnlyIf: isGridNavigable,
     callback: (event: KeyboardEvent) => tabNavigationCommand.before(event),
   }, {
     keys: [['Tab'], ['Shift', 'Tab']],
@@ -235,7 +226,6 @@ export function shortcutsGridContext(hot: HotInstance) {
     stopPropagation: false,
     relativeToGroup: GRID_GROUP,
     group: GRID_TAB_NAVIGATION_GROUP,
-    runOnlyIf: isGridNavigable,
     callback: (event: KeyboardEvent) => tabNavigationCommand.after(event),
     position: 'after',
   }]);

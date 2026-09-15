@@ -8,6 +8,7 @@ import { SCOPE_TYPES, FOCUS_SOURCES, DEFAULT_SHORTCUTS_CONTEXT } from './constan
  * @property {function(): boolean} hasContainerDetached Whether the container is detached from the root Handsontable wrapper element.
  * @property {function(): string} getShortcutsContextName The name of the shortcuts context to switch to when the scope is activated.
  * @property {function(): string|null} getFallbackShortcutsContextName The name of the shortcuts context consulted for keys the scope's own context does not define.
+ * @property {function(): boolean} getCoversGridBody Whether the scope covers the grid body while it is showing.
  * @property {function(): string|null} getDisplacedShortcutsContextName The shortcuts context this scope displaced when it was activated.
  * @property {function(string|null): void} setDisplacedShortcutsContextName Stores the shortcuts context this scope displaced.
  * @property {function(): boolean} runOnlyIf Whether the scope is enabled or not depends on the custom logic.
@@ -32,6 +33,13 @@ import { SCOPE_TYPES, FOCUS_SOURCES, DEFAULT_SHORTCUTS_CONTEXT } from './constan
  * scope's own context does not define. Pass `'grid'` for a scope that covers the grid without replacing it, so the
  * grid's shortcuts keep working - including ones added later - instead of dying while the scope is active. Leave it
  * unset for a modal scope, which must not let grid shortcuts through.
+ * @param {boolean} [options.coversGridBody=false] Whether the scope's container covers the grid body while the
+ * scope is showing, so the cells underneath are drawn but out of reach. Shortcuts that act on cell content
+ * refuse to run while any such scope is enabled.
+ *
+ * Covering and inheriting are different questions, which is why they are two options. A pagination bar may
+ * inherit the grid's shortcuts (`fallbackShortcutsContextName`) without covering the body - the cells stay
+ * visible and usable. An overlay covers the body without necessarily inheriting anything.
  * @param {'modal' | 'inline'} [options.type='inline'] The type of the scope:<br/>
  *   - `modal`: The scope is modal and blocks the rest of the grid from receiving focus.<br/>
  *   - `inline`: The scope is inline and allows the rest of the grid to receive focus in the order of the rendered elements in the DOM.
@@ -138,6 +146,7 @@ export function createFocusScope(
     hasContainerDetached: () => !hotInstance.rootWrapperElement.contains(container),
     getShortcutsContextName: () => mergedOptions.shortcutsContextName as string,
     getFallbackShortcutsContextName: () => (mergedOptions.fallbackShortcutsContextName ?? null) as string | null,
+    getCoversGridBody: () => mergedOptions.coversGridBody === true,
     getDisplacedShortcutsContextName: () => displacedShortcutsContextName,
     setDisplacedShortcutsContextName: (contextName: string | null) => {
       displacedShortcutsContextName = contextName;
