@@ -1,6 +1,6 @@
 import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
-import type { CellChange, ChangeSource } from '../../settings';
+import type { CellChange } from '../../settings';
 import { stringify, parse } from '../../3rdparty/SheetClip';
 import { arrayEach } from '../../helpers/array';
 import { isJSON } from '../../helpers/string';
@@ -302,14 +302,17 @@ export class CopyPaste extends BasePlugin {
    */
   #pastePlan: [number, number, number, number] | null = null;
   /**
-   * Whether `onPaste()` has already run its synchronous, possibly stale, selection for the
-   * current `#pastePlan`. Lets `#onAfterChange` tell apart the synchronous case, where
-   * `afterChange` fires from inside `populateFromArray()` before this flag is set, from the
-   * deferred case, where a validator pushed the row creation - and this flag - past that point.
+   * The `[startRow, startColumn, endRow, endColumn]` range `onPaste()`'s synchronous selection
+   * actually produced, read back after the selection so it reflects any adjustment a plugin made
+   * through `beforeSetRangeStart` (`mergeCells` snaps a range onto a merged area). It is `null`
+   * until that selection runs, which lets `#onAfterChange` tell the synchronous case (the change
+   * settles inside `populateFromArray()`, before this is set) from the deferred one, and it is
+   * what the deferred correction compares the live selection against, so a selection the user or
+   * an `afterPaste` handler moved in the meantime is left alone.
    *
-   * @type {boolean}
+   * @type {[number, number, number, number] | null}
    */
-  #pasteSelectionApplied = false;
+  #appliedPasteRange: [number, number, number, number] | null = null;
   /**
    * Ranges of the cells coordinates, which should be used to copy/cut/paste actions.
    *
@@ -429,7 +432,7 @@ export class CopyPaste extends BasePlugin {
     super.disablePlugin();
 
     this.#pastePlan = null;
-    this.#pasteSelectionApplied = false;
+    this.#appliedPasteRange = null;
   }
 
   /**
@@ -787,7 +790,7 @@ export class CopyPaste extends BasePlugin {
     }
 
     this.#pastePlan = [startRow, startColumn, lastVisualRow, lastVisualColumn];
-    this.#pasteSelectionApplied = false;
+    this.#appliedPasteRange = null;
     this.#preventViewportScrollOnPaste = true;
     this.hot.populateFromArray(startRow, startColumn, newRows, undefined, undefined, 'CopyPaste.paste', this.pasteMode);
 
@@ -798,17 +801,33 @@ export class CopyPaste extends BasePlugin {
    * Selects the range a paste populated, clamping its end corner to the grid's current row and
    * column counts.
    *
+   * The deferred correction passes `false` for both flags so it can fix the selection without
+   * scrolling the viewport or taking keyboard focus back into the grid - the user may have clicked
+   * elsewhere while a slow validator settled, and `changeListener: false` keeps `selectCell` from
+   * re-listening (`selectCells` only calls `listen()` when `changeListener` is true).
+   *
    * @param {number} startRow Visual row index of the selection's start corner.
    * @param {number} startColumn Visual column index of the selection's start corner.
    * @param {number} endRow Visual row index of the (unclamped) selection's end corner.
    * @param {number} endColumn Visual column index of the (unclamped) selection's end corner.
+   * @param {boolean} [scrollToCell=true] Whether to scroll the viewport to the selection.
+   * @param {boolean} [changeListener=true] Whether to switch keyboard focus to the grid.
    */
-  #selectPastedRange(startRow: number, startColumn: number, endRow: number, endColumn: number): void {
+  #selectPastedRange(
+    startRow: number,
+    startColumn: number,
+    endRow: number,
+    endColumn: number,
+    scrollToCell = true,
+    changeListener = true,
+  ): void {
     this.hot.selectCell(
       startRow,
       startColumn,
       Math.min(this.hot.countRows() - 1, endRow),
       Math.min(this.hot.countCols() - 1, endColumn),
+      scrollToCell,
+      changeListener,
     );
   }
 
@@ -979,6 +998,13 @@ export class CopyPaste extends BasePlugin {
    * @private
    */
   onPaste(event: ClipboardEvent | PasteEvent) {
+    // Start every paste from a clean slot. A paste that writes nothing - `beforeChange` returning
+    // false, or a `dropdown` under `allowInvalid: false` rejecting every value so `applyChanges`
+    // skips `afterChange` at `changes.length === 0` - never reaches `#onAfterChange` to clear the
+    // plan, so clearing here stops a stale plan from an earlier paste driving a later correction.
+    this.#pastePlan = null;
+    this.#appliedPasteRange = null;
+
     const eventTarget = this.#resolveClipboardEventTarget(event);
     const focusedElement = this.hot.getFocusManager().getRefocusElement();
     const isHotInput = isHTMLElement(eventTarget) && 'hotInput' in eventTarget.dataset;
@@ -1030,7 +1056,21 @@ export class CopyPaste extends BasePlugin {
 
     if (startRow !== null && startColumn !== null && endRow !== null && endColumn !== null) {
       this.#selectPastedRange(startRow, startColumn, endRow, endColumn);
-      this.#pasteSelectionApplied = true;
+
+      // Read the range back rather than storing what was passed in: `beforeSetRangeStart` can move
+      // it (`mergeCells` snaps onto a merged area), and `#onAfterChange` must compare the live
+      // selection against what actually landed, not against the request.
+      const appliedRange = this.hot.getSelectedRangeActive();
+
+      if (appliedRange) {
+        const { row: appliedStartRow, col: appliedStartColumn } = appliedRange.getTopStartCorner();
+        const { row: appliedEndRow, col: appliedEndColumn } = appliedRange.getBottomEndCorner();
+
+        if (appliedStartRow !== null && appliedStartColumn !== null &&
+            appliedEndRow !== null && appliedEndColumn !== null) {
+          this.#appliedPasteRange = [appliedStartRow, appliedStartColumn, appliedEndRow, appliedEndColumn];
+        }
+      }
     }
 
     this.hot.runHooks('afterPaste', pastedData, this.copyableRanges);
@@ -1284,51 +1324,66 @@ export class CopyPaste extends BasePlugin {
    * stale `countRows()`. `afterChange` is the reliable "write settled" signal: it fires from
    * inside `applyChanges()`, once rows exist and only when `changes.length > 0`.
    *
+   * The correction runs without scrolling or taking focus (`changeListener: false`), and only
+   * while the live selection still equals the exact range the inline selection produced. So it
+   * fixes the range whether or not the grid still has focus, yet never overrides a selection the
+   * user, or an `afterPaste` handler, has changed since the paste.
+   *
+   * The `source` parameter is typed `string`, not the narrower `ChangeSource` union: `afterChange`
+   * also carries a custom validator's `'...Validator'` source and any string an app passes to
+   * `setDataAtCell`, so the union would make a `switch` here look exhaustive when it is not.
+   *
    * @param {Array} changes An array of changes. Each row is a `[row, prop, oldValue, newValue]`
    *                         array.
    * @param {string} source The source of the change.
    */
-  #onAfterChange = (changes: CellChange[] | null, source: ChangeSource) => {
+  #onAfterChange = (changes: CellChange[] | null, source: string) => {
     if (source !== 'CopyPaste.paste' || this.#pastePlan === null) {
       return;
     }
 
     const [startRow, startColumn, endRow, endColumn] = this.#pastePlan;
+    const appliedRange = this.#appliedPasteRange;
 
     this.#pastePlan = null;
+    this.#appliedPasteRange = null;
 
-    // Sync paste: this fired inside `populateFromArray()`, before `onPaste()`'s inline selection,
-    // which runs next against an already-grown row count and is correct on its own.
-    if (this.#pasteSelectionApplied === false) {
+    // Synchronous paste: this fired inside `populateFromArray()`, before `onPaste()`'s inline
+    // selection, so no applied range was recorded yet. The inline selection runs next against an
+    // already-grown row count and is correct on its own.
+    if (appliedRange === null) {
       return;
     }
 
-    // Focus has left the grid (e.g. the user clicked outside before a slow async validator
-    // settled): correcting now would call `selectCell`, which re-listens and pulls focus back into
-    // the table. Leave the selection where it is - the stale collapsed range no longer matters.
-    if (!this.hot.isListening()) {
-      return;
-    }
-
-    // Deferred paste (a validated cell in range grew the grid once the validator queue drained,
-    // after the inline selection clamped against a stale count): re-select against the fresh count.
-    // Skip it when the selection no longer starts where the paste did - a synchronous `afterPaste`
-    // handler that moved the selection (e.g. to advance focus) must not be overwritten afterwards.
+    // Correct only while the live selection is still the exact (stale) range the inline selection
+    // produced. If the user, or a synchronous `afterPaste` handler, changed it since, leave it.
     const activeRange = this.hot.getSelectedRangeActive();
-    const topStart = activeRange ? activeRange.getTopStartCorner() : null;
 
-    if (topStart === null || topStart.row !== startRow || topStart.col !== startColumn) {
+    if (!activeRange) {
       return;
     }
 
-    // Re-select only if the corrected range actually differs from what is selected now.
-    const bottomEnd = activeRange!.getBottomEndCorner();
+    const topStart = activeRange.getTopStartCorner();
+    const bottomEnd = activeRange.getBottomEndCorner();
+
+    if (
+      topStart.row !== appliedRange[0] || topStart.col !== appliedRange[1] ||
+      bottomEnd.row !== appliedRange[2] || bottomEnd.col !== appliedRange[3]
+    ) {
+      return;
+    }
+
+    // Re-select against the settled count, but only if that actually changes the range. Skip the
+    // scroll and the focus grab so a paste whose validator settled after the user moved on is fixed
+    // in place, not yanked back.
     const clampedEndRow = Math.min(this.hot.countRows() - 1, endRow);
     const clampedEndColumn = Math.min(this.hot.countCols() - 1, endColumn);
 
-    if (bottomEnd.row !== clampedEndRow || bottomEnd.col !== clampedEndColumn) {
-      this.#preventViewportScrollOnPaste = true;
-      this.#selectPastedRange(startRow, startColumn, endRow, endColumn);
+    if (
+      startRow !== appliedRange[0] || startColumn !== appliedRange[1] ||
+      clampedEndRow !== appliedRange[2] || clampedEndColumn !== appliedRange[3]
+    ) {
+      this.#selectPastedRange(startRow, startColumn, endRow, endColumn, false, false);
     }
   };
 
@@ -1375,7 +1430,7 @@ export class CopyPaste extends BasePlugin {
    */
   destroy(): void {
     this.#pastePlan = null;
-    this.#pasteSelectionApplied = false;
+    this.#appliedPasteRange = null;
 
     super.destroy();
   }

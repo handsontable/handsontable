@@ -103,23 +103,24 @@ test.describe('paste selection with a validated column', () => {
     });
 
   /**
-   * The focus-steal guard. With a genuinely ASYNC validator, `applyChanges` - and the deferred
+   * The no-focus-steal case. With a genuinely ASYNC validator, `applyChanges` - and the deferred
    * re-select - can land long after the paste, and focus may have left the grid in the meantime. The
-   * selection range is unchanged (still collapsed at the paste origin, so the guard's origin check
-   * would PASS), so re-selecting would call `selectCell`, which re-listens and yanks focus back into
-   * the table. The `isListening()` guard skips the correction when the grid is no longer listening.
+   * correction still fixes the selection, but through `selectCell(..., false, false)`: no scroll and
+   * `changeListener: false`, so `selectCells` does NOT call `listen()`. The range is corrected while
+   * the grid stays not listening - the pasted block ends up selected without focus being yanked back.
    *
    * Focus leaves via `hot.unlisten()`, not a real outside click, and that is load-bearing: an outside
-   * click DESELECTS the cell, and a null selection is caught by the earlier origin guard - so it
-   * would never reach the `isListening()` branch this case exists to pin. `unlisten()` is the one
-   * gesture that leaves the grid not listening WITH the selection still at the origin.
+   * click DESELECTS the cell, and a null selection would be caught by the handler's own guard before
+   * the correction. `unlisten()` is the one gesture that leaves the grid not listening WITH the
+   * selection still exactly the range the paste produced - so only `changeListener: false` keeps the
+   * correction from re-listening.
    *
    * The validator parks its callbacks, so the write is held open across the focus move and released
-   * here on purpose - the timing is the test's, not the scheduler's. This case MUST fail if the
-   * `isListening()` guard is removed: without it the correction runs, the selection expands to
-   * `[[4, 0, 7, 1]]`, and `selectCell` re-listens (the grid is listening again - the focus steal).
+   * here on purpose. This case MUST fail two ways: if the correction re-listens (`changeListener`
+   * regressed to `true`), `isListening()` flips back to `true`; if the correction is skipped
+   * altogether (an early `isListening()` bail), the selection stays collapsed at `[[4, 0, 4, 1]]`.
    */
-  test('does not re-select or re-listen when focus left the grid before an async write settled',
+  test('corrects the selection without stealing focus when focus left before an async write settled',
     async({ page, theme, bundle }) => {
       const grid = new PasteSelectionValidatedColumnPage(page, theme, bundle, { asyncValidator: true });
 
@@ -136,23 +137,20 @@ test.describe('paste selection with a validated column', () => {
       await grid.unlisten();
       expect(await grid.isListening()).toBe(false);
 
-      // Release the parked write. `afterChange` now fires and the guard gets its chance to (not) run.
+      // Release the parked write. `afterChange` fires and the correction runs against the grown count.
       await grid.resolveValidations();
-      await expect.poll(() => grid.changeCount()).toBeGreaterThan(0);
 
-      // The guard held: the grid is still not listening (no focus steal) and the selection was NOT
-      // expanded. The rows still grew - the data settled - which isolates the guard as the reason the
-      // selection did not follow, rather than the rows never being created.
+      // The correction expands the selection over the grown rows without re-listening: the range is
+      // fixed AND the grid stays not listening. Both halves are load-bearing (see the docblock).
+      await expect.poll(() => grid.selected()).toEqual([[4, 0, 7, 1]]);
       expect(await grid.isListening()).toBe(false);
-      expect(await grid.selected()).toEqual([[4, 0, 4, 1]]);
       expect(await grid.sourceRowCount()).toBe(8);
     });
 
   /**
-   * The positive control for the guard: the same async validator and the same paste, but focus stays
-   * in the grid. Releasing the parked write must now expand the selection over the grown rows. This
-   * isolates the `isListening()` guard as the ONLY difference from the case above - the async
-   * deferral path itself corrects exactly as the synchronous validated path does.
+   * The positive control for focus: the same async validator and paste, but focus stays in the grid.
+   * Releasing the parked write expands the selection over the grown rows, exactly as the case above
+   * does - the two differ only in where focus is, which is the point of the pair.
    */
   test('corrects the selection when the async write settles and focus never left the grid',
     async({ page, theme, bundle }) => {
@@ -161,7 +159,7 @@ test.describe('paste selection with a validated column', () => {
       await grid.goto();
       await grid.pasteBlockAt(4, 0, PASTE_BLOCK);
 
-      // Same held-open precondition, so the only variable versus the guard case is where focus goes.
+      // Same held-open precondition, so the only variable versus the case above is where focus goes.
       expect(await grid.selected()).toEqual([[4, 0, 4, 1]]);
       expect(await grid.pendingValidationCount()).toBeGreaterThan(0);
       expect(await grid.isListening()).toBe(true);
@@ -172,4 +170,57 @@ test.describe('paste selection with a validated column', () => {
       await expect.poll(() => grid.selected()).toEqual([[4, 0, 7, 1]]);
       expect(await grid.sourceRowCount()).toBe(8);
     });
+
+  /**
+   * The correction must not overwrite a selection an `afterPaste` handler moved. `afterPaste` runs
+   * synchronously inside the paste and here reselects the paste origin as a single cell
+   * (`[[4, 0, 4, 0]]`); the ASYNC validator then holds the write open, so the deferred correction
+   * runs only after that move. The moved selection SHARES the paste's start corner but not its
+   * extent, so only a whole-range comparison recognizes that it changed and leaves it alone.
+   *
+   * This MUST fail if the handler compared only the selection's start corner (`getTopStartCorner()`
+   * alone): that check passes here, and the correction would expand the single cell to
+   * `[[4, 0, 7, 1]]`, overwriting the handler's deliberate selection.
+   */
+  test('leaves a single-cell selection an afterPaste handler set at the paste origin',
+    async({ page, theme, bundle }) => {
+      const grid = new PasteSelectionValidatedColumnPage(page, theme, bundle, {
+        asyncValidator: true,
+        afterPasteMove: true,
+      });
+
+      await grid.goto();
+      await grid.pasteBlockAt(4, 0, PASTE_BLOCK);
+
+      // `afterPaste` already reselected the origin cell, and the write is held open, so the
+      // correction is still pending - the exact window in which it could wrongly expand this range.
+      expect(await grid.selected()).toEqual([[4, 0, 4, 0]]);
+      expect(await grid.pendingValidationCount()).toBeGreaterThan(0);
+
+      await grid.resolveValidations();
+      await expect.poll(() => grid.changeCount()).toBeGreaterThan(0);
+
+      // The moved selection stands; the rows still grew, so the write settled and the correction had
+      // its chance and correctly declined it.
+      expect(await grid.selected()).toEqual([[4, 0, 4, 0]]);
+      expect(await grid.sourceRowCount()).toBe(8);
+    });
+
+  /**
+   * A paste over a merged area with a validated column. `mergeCells` merges the two cells of the
+   * paste origin (row 4), so its `beforeSetRangeStart` snapping and its post-paste unmerge both run
+   * alongside the deferred re-select. The correction reads its "what did the inline selection
+   * produce" range back from the grid AFTER any snap, so it still recognizes an untouched selection
+   * and corrects it. The paste grows the grid and the selection spans the grown rows.
+   */
+  test('corrects the selection when the paste covers a merged area', async({ page, theme, bundle }) => {
+    const grid = new PasteSelectionValidatedColumnPage(page, theme, bundle, { validated: true, merge: true });
+
+    await grid.goto();
+    await grid.pasteBlockAt(4, 0, PASTE_BLOCK);
+
+    await expect.poll(() => grid.selected()).toEqual([[4, 0, 7, 1]]);
+    expect(await grid.sourceRowCount()).toBe(8);
+    expect(await grid.sourceData()).toEqual(GROWN_DATA);
+  });
 });

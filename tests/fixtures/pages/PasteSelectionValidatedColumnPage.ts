@@ -2,7 +2,7 @@ import { type Locator, type Page, expect } from '@playwright/test';
 import { awaitBundle } from '../bundle';
 
 interface CopyPastePlugin {
-  paste(pastableText: string): void;
+  paste(pastableText: string, pastableHtml?: string): void;
 }
 
 interface HandsontableFixture {
@@ -30,6 +30,8 @@ interface PageOptions {
   validated?: boolean;
   allowInsertRow?: boolean;
   asyncValidator?: boolean;
+  afterPasteMove?: boolean;
+  merge?: boolean;
 }
 
 /**
@@ -48,6 +50,8 @@ export class PasteSelectionValidatedColumnPage {
   readonly validated: boolean;
   readonly allowInsertRow: boolean;
   readonly asyncValidator: boolean;
+  readonly afterPasteMove: boolean;
+  readonly merge: boolean;
 
   constructor(page: Page, theme = 'main', bundle = 'umd', options: PageOptions = {}) {
     this.page = page;
@@ -56,6 +60,8 @@ export class PasteSelectionValidatedColumnPage {
     this.validated = options.validated ?? true;
     this.allowInsertRow = options.allowInsertRow ?? true;
     this.asyncValidator = options.asyncValidator ?? false;
+    this.afterPasteMove = options.afterPasteMove ?? false;
+    this.merge = options.merge ?? false;
   }
 
   /**
@@ -65,7 +71,9 @@ export class PasteSelectionValidatedColumnPage {
     const query = `theme=${this.theme}&bundle=${this.bundle}` +
       `&validated=${this.validated ? 'on' : 'off'}` +
       `&allowInsertRow=${this.allowInsertRow ? 'on' : 'off'}` +
-      `&validator=${this.asyncValidator ? 'async' : 'none'}`;
+      `&validator=${this.asyncValidator ? 'async' : 'none'}` +
+      `&afterPasteMove=${this.afterPasteMove ? 'on' : 'off'}` +
+      `&merge=${this.merge ? 'on' : 'off'}`;
 
     await this.page.goto(`/tests/fixtures/demo/paste-selection-validated-column.html?${query}`);
 
@@ -133,9 +141,11 @@ export class PasteSelectionValidatedColumnPage {
   /**
    * Selects a single cell and pastes a block into it through the `copyPaste` plugin.
    *
-   * The paste is driven through `getPlugin('copyPaste').paste(text)`, which sets only `text/plain`
-   * - the deterministic path, since a synthetic Ctrl+V is handled in the browser process and never
-   * reaches the plugin. `onPaste` bails when the grid is not listening or an editor is open, so the
+   * The paste is driven through `getPlugin('copyPaste').paste(text, '')` - the deterministic path,
+   * since a synthetic Ctrl+V is handled in the browser process and never reaches the plugin. The
+   * second argument is passed as an empty string on purpose: `paste(text)` alone defaults the HTML
+   * flavor to `text`, so the block would be set as `text/html` too; passing `''` keeps this a pure
+   * `text/plain` paste. `onPaste` bails when the grid is not listening or an editor is open, so the
    * selection goes through `selectCells()` (never a click, which could open the dropdown editor)
    * and `listen()` runs before the paste.
    */
@@ -145,7 +155,7 @@ export class PasteSelectionValidatedColumnPage {
 
       hot.selectCells([[targetRow as number, targetColumn as number, targetRow as number, targetColumn as number]]);
       hot.listen();
-      hot.getPlugin('copyPaste').paste(pasted as string);
+      hot.getPlugin('copyPaste').paste(pasted as string, '');
     }, [row, column, text] as [number, number, string]);
   }
 

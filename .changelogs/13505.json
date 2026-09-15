@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed the cell selection after pasting data into a column that uses a validator (e.g. `dropdown`), so it now covers all the pasted rows.",
+  "title": "Fixed the cell selection after an overwrite paste into a column that uses a validator (e.g. `dropdown`), so it now covers all the pasted rows.",
   "type": "fixed",
   "issueOrPR": 13505,
   "breaking": false,

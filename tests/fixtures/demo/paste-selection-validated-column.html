@@ -47,6 +47,23 @@
     if (!window.htValidatorMode) {
       throw new Error('Unknown ?validator= value: ' + JSON.stringify(htParams.get('validator')));
     }
+
+    // `on` installs an `afterPaste` handler that reselects the paste origin as a single cell - the
+    // "park focus on the anchor after paste" pattern, and the exact shape that shares the paste's
+    // start corner but not its extent. Paired with `?validator=async`, it lets a case prove the
+    // deferred correction compares the WHOLE range, not just the start, before leaving it alone.
+    window.htAfterPasteMove = ({ on: true, off: false })[htParams.get('afterPasteMove') ?? 'off'];
+    if (window.htAfterPasteMove === undefined) {
+      throw new Error('Unknown ?afterPasteMove= value: ' + JSON.stringify(htParams.get('afterPasteMove')));
+    }
+
+    // `on` merges the two cells of row 4 (the paste origin), so `mergeCells` is active and its
+    // `beforeSetRangeStart` snapping and post-paste unmerge run alongside the re-select. It is the
+    // interaction case for a paste over a merged area with a validated column.
+    window.htMerge = ({ on: true, off: false })[htParams.get('merge') ?? 'off'];
+    if (window.htMerge === undefined) {
+      throw new Error('Unknown ?merge= value: ' + JSON.stringify(htParams.get('merge')));
+    }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
 </head>
@@ -121,7 +138,7 @@
     let hot;
 
     try {
-      hot = new Handsontable(container, {
+      const settings = {
         data: DATA,
         columns: [firstColumn, {}],
         colHeaders: ['A', 'B'],
@@ -140,7 +157,22 @@
           }
         },
         licenseKey: 'non-commercial-and-evaluation',
-      });
+      };
+
+      if (window.htMerge) {
+        settings.mergeCells = [{ row: 4, col: 0, rowspan: 1, colspan: 2 }];
+      }
+
+      if (window.htAfterPasteMove) {
+        // Reselect the paste origin as a single cell - shares the paste's start corner but not its
+        // extent, so only a whole-range comparison in the correction can tell it apart. The deferred
+        // correction must not overwrite this.
+        settings.afterPaste = function() {
+          window.hot.selectCell(4, 0);
+        };
+      }
+
+      hot = new Handsontable(container, settings);
     } catch (error) {
       // Fail loud. Without this a settings error surfaces as "element(s) not found" from the page
       // object's first locator, on all six theme x bundle legs, with the real exception only in the

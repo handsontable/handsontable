@@ -189,19 +189,32 @@ validated paste, so the inline `selectCell` clamps the selection down to the pre
 bug); the fix keeps that inline selection and adds a one-shot `afterChange` correction (`#onAfterChange`,
 gated on `source === 'CopyPaste.paste'`) that re-selects against the settled count. (2) The correction lands
 **after `afterPaste` fires**, and `afterPaste` (and `populateValues`'s return value) still describe the stale
-collapsed range — only the DOM selection is corrected once the write settles. (3) `afterChange` fires only
-when `changes.length > 0`, and the shift paste modes recurse into `populateFromArray` **without** the
-`'CopyPaste.paste'` source, so the handler skips them and their inline selection stands. (4) The correction
-re-selects only while the selection still starts at the paste origin (`getTopStartCorner()`) **and** the grid
-is still listening (`isListening()`), so it never overwrites a selection a synchronous `afterPaste` handler
-moved, and never yanks focus back when a slow async validator settles after the user has clicked outside the
-grid (clicking out unlistens without moving the selection, so the origin check alone would not catch it).
+collapsed range — only the DOM selection is corrected once the write settles. (3) The correction re-selects
+with `selectCell(..., false, false)` — no scroll and `changeListener: false`, so it fixes the range whether
+or not the grid still has focus and **never re-listens**: a slow async validator that settles after the user
+clicked away corrects the selection in place instead of yanking focus back. (4) It runs only while the live
+selection still equals the **exact range the inline selection produced** — read back from the grid after that
+selection (so `mergeCells`' `beforeSetRangeStart` snap is already reflected), start and end corners both — so
+a selection the user or a synchronous `afterPaste` handler changed since the paste, even one that still starts
+at the paste origin, is left alone. (5) `#pastePlan` is cleared at the **top of `onPaste`**, not only when the
+correction consumes it: a paste that writes nothing (`beforeChange` returns false, or a `dropdown` under
+`allowInvalid: false` rejects every value so `applyChanges` skips `afterChange` at `changes.length === 0`)
+leaves the plan armed, and clearing on entry stops it driving a later paste's correction.
 
-Known limitation: `#pastePlan` is a **single slot**. With an async validator, two pastes can interleave — a
-second paste's `populateValues` overwriting the first's plan before the first's `applyChanges` settles — and
-the earlier paste's `afterChange` then corrects against the later plan. This is unreachable with a
-synchronous validator (its microtask drains before any next user paste event) and out of DEV-38's scope; a
-per-paste token (a stack, as the index-mapper does) is the fix if async-validated paste interleaving ever
+**Scope — two shapes the fix deliberately does not cover.** The changelog names the default `overwrite` mode
+for this reason. (a) `afterChange` fires only when `changes.length > 0`, and the **shift paste modes**
+(`shift_down`/`shift_right`) recurse into `populateFromArray` **without** the `'CopyPaste.paste'` source, so
+the handler never runs for them. They create rows only after the validator queue drains too, so a shift paste
+with a validated column still clamps against the stale count exactly like the unfixed overwrite path — it is
+not fixed, and widening the source gate to `'populateFromArray'` is the wrong fix (autofill uses that source,
+so a stale armed plan plus a routine autofill would re-select garbage). (b) `#pastePlan` is a **single slot**,
+so with an async validator two pastes can interleave: a second paste's `populateValues` overwrites the first's
+plan before the first's `applyChanges` settles, the first paste's `afterChange` then consumes the second's
+plan, and when the second settles it finds the slot empty and returns — leaving the **second** paste with the
+collapsed selection this fix exists to correct. That is a live defect on a grid with genuinely async
+(e.g. remote) validation, not a theoretical one; it is out of DEV-38's scope. Both are unreachable with a
+synchronous validator (its microtask drains before any next user paste event); a per-paste token (a stack, as
+the index-mapper does) is the fix if async-validated paste interleaving ever
 needs to be correct.
 
 ## Header copying
