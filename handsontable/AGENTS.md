@@ -57,7 +57,7 @@ Gotcha: Filters `conditionCollection` uses physical indexes, `getDataAtCol()` us
 
 | Type | Pattern | Framework | Run |
 |------|---------|-----------|-----|
-| Unit | `*.unit.js` | Jest (jsdom) | `npm run test:unit` |
+| Unit | `*.unit.js`, `*.unit.ts` | Jest (jsdom) | `npm run test:unit` |
 | E2E (legacy, frozen) | `*.spec.js` | Jasmine (Puppeteer) | `npm run test:e2e` |
 | E2E (new) | `tests/e2e/*.spec.ts` | Playwright | `cd tests && npm test` |
 

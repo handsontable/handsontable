@@ -55,7 +55,7 @@ Internals of the Walkontable rendering engine.
 | File | Contents |
 |---|---|
 | `handsontable/src/3rdparty/walkontable/.ai/ARCHITECTURE.md` | Overlays, viewport calculation, scroll handling, DOM reuse, the TableView bridge, rendering-pipeline diagram. |
-| `handsontable/src/3rdparty/walkontable/.ai/CONCERNS.md` | Walkontable-specific debt (DAO layer, overlay fragility, filter recreation). |
+| `handsontable/src/3rdparty/walkontable/.ai/CONCERNS.md` | Walkontable-specific debt (overlay fragility, filter recreation). |
 
 ## Conventions
 

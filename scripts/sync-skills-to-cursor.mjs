@@ -20,7 +20,9 @@ const GLOB_MAP = {
   'handsontable-renderer-dev': ['handsontable/src/renderers/**'],
   'handsontable-validator-dev': ['handsontable/src/validators/**'],
   'handsontable-celltype-dev': ['handsontable/src/cellTypes/**'],
-  'handsontable-unit-testing': ['handsontable/src/**/*.unit.js', 'handsontable/test/unit/**'],
+  'handsontable-unit-testing': [
+    'handsontable/src/**/*.unit.js', 'handsontable/src/**/*.unit.ts', 'handsontable/test/unit/**',
+  ],
   'handsontable-e2e-testing': ['handsontable/src/**/*.spec.js', 'handsontable/test/e2e/**'],
   'handsontable-playwright-e2e': ['tests/e2e/**', 'tests/fixtures/**'],
   // Auto-attach in Cursor whenever a test file is edited (parity with Claude, where
