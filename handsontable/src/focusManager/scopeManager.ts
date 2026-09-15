@@ -253,8 +253,8 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
     deactivateScope(scope, false);
     // Attempted even when this scope was no longer the active one. A focus event may have dropped it
     // already - opening a context menu does exactly that - and the caller still means "I am done, take
-    // the keyboard back". `restoreDisplacedShortcutsContext()` is a no-op unless the scope's own context
-    // is still the active one, so a scope that lost the context to someone else cannot clobber them.
+    // the keyboard back". `restoreDisplacedShortcutsContext()` is a no-op while another scope holds the
+    // keyboard or the context has moved on, so a scope that lost the keyboard cannot clobber who took it.
     restoreDisplacedShortcutsContext(scope);
   }
 
@@ -351,6 +351,13 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
     scope.setDisplacedShortcutsContextName(null);
 
     if (displacedContextName === null) {
+      return;
+    }
+
+    // Another scope holds the keyboard. Every caller runs after THIS scope stopped being the active one,
+    // so a non-null `activeScope` is someone else - and when it shares this scope's shortcuts context,
+    // the name check below cannot tell the two apart and would roll the context back from under it.
+    if (activeScope !== null) {
       return;
     }
 

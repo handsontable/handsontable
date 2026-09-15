@@ -664,6 +664,47 @@ describe('ScopeManager', () => {
       outsideInput.remove();
     });
 
+    it('should not take a shared context from another scope that holds the keyboard', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+      });
+
+      const first = createUIWithFocusScope('before', {
+        id: 'first',
+        shortcutsContextName: 'plugin:shared',
+      });
+      const second = createUIWithFocusScope('after', {
+        id: 'second',
+        shortcutsContextName: 'plugin:shared',
+      });
+      const outsideInput = document.createElement('input');
+
+      document.body.appendChild(outsideInput);
+
+      await listen();
+
+      first.querySelector('.text-input').focus();
+
+      expect(getFocusScopeManager().getActiveScopeId()).toBe('first');
+
+      // Focus leaves: 'first' is dropped but keeps the name it displaced. Then 'second', which shares
+      // the context, takes the keyboard.
+      outsideInput.focus();
+      second.querySelector('.text-input').focus();
+
+      expect(getFocusScopeManager().getActiveScopeId()).toBe('second');
+      expect(getShortcutManager().getActiveContextName()).toBe('plugin:shared');
+
+      // Tearing 'first' down must leave the context with 'second'. Comparing context names alone reads
+      // 'plugin:shared' as proof that 'first' still owns it.
+      getFocusScopeManager().unregisterScope('first');
+
+      expect(getFocusScopeManager().getActiveScopeId()).toBe('second');
+      expect(getShortcutManager().getActiveContextName()).toBe('plugin:shared');
+
+      outsideInput.remove();
+    });
+
     it('should deactivate the scope (deactivation changed by events)', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
