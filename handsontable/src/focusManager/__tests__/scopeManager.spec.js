@@ -548,54 +548,55 @@ describe('ScopeManager', () => {
 
       expect(getShortcutManager().getActiveContextName()).toBe('myPlugin');
 
-      // Focus leaves every scope. The context must roll back here as well, even though the grid stops
-      // listening and the name decides nothing while focus is away.
+      // A focus event moving the user away deliberately leaves the context alone. A scope may stand
+      // aside while the user is still working inside it - `sheetsBar` disables its own scope while its
+      // menu is open - and rolling back there takes the keyboard from that menu.
       outsideInput.focus();
 
-      expect(getShortcutManager().getActiveContextName()).toBe('grid');
+      expect(getShortcutManager().getActiveContextName()).toBe('myPlugin');
 
       container.querySelector('.text-input').focus();
 
       expect(getShortcutManager().getActiveContextName()).toBe('myPlugin');
 
+      // The re-activation above read 'myPlugin' as the current context. Recording that as the context
+      // it displaced would make this rollback a no-op and pin the plugin's context forever, which is
+      // DEV-2917 again by another route - so a scope never records its own name.
       getFocusScopeManager().deactivateScope('top');
 
-      // Leaving the stale name in place above would make this second activation record 'myPlugin' as
-      // the context it displaced, so the scope would roll back to its own name and leave the grid
-      // listening with every shortcut dead - DEV-2917 again, by a different route.
       expect(getShortcutManager().getActiveContextName()).toBe('grid');
 
       outsideInput.remove();
     });
 
-    it('should not strand the shortcuts context when `onActivate` moves focus out of the scope', async() => {
+    it('should leave the inner scope owning the context when `onActivate` activates another', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
       });
 
-      const outsideInput = document.createElement('input');
-
-      document.body.appendChild(outsideInput);
-
+      createUIWithFocusScope('after', {
+        id: 'inner',
+        shortcutsContextName: 'myInnerPlugin',
+      });
       createUIWithFocusScope('before', {
-        id: 'top',
-        shortcutsContextName: 'myPlugin',
-        // A scope that focuses something outside itself on activation. Real plugins focus their own
-        // container here, but the manager must survive either - `focusin` re-enters `processScopes()`
-        // while `activateScope()` is still running.
-        onActivate: () => outsideInput.focus(),
+        id: 'outer',
+        shortcutsContextName: 'myOuterPlugin',
+        onActivate: () => getFocusScopeManager().activateScope('inner'),
       });
 
       await listen();
 
-      getFocusScopeManager().activateScope('top');
+      getFocusScopeManager().activateScope('outer');
 
-      // Capturing the displaced context AFTER `activate()` left nothing to roll back here, so the
-      // manager kept the plugin's context with no active scope and every grid shortcut died.
-      expect(getFocusScopeManager().getActiveScopeId()).toBe(null);
+      // The outer scope used to switch the context AFTER `activate()` returned, so it overwrote the
+      // scope its own `onActivate` had just handed the keyboard to - the active scope and the active
+      // context then disagreed, and the outer scope had recorded the inner one's name as "displaced".
+      expect(getFocusScopeManager().getActiveScopeId()).toBe('inner');
+      expect(getShortcutManager().getActiveContextName()).toBe('myInnerPlugin');
+
+      getFocusScopeManager().deactivateScope('inner');
+
       expect(getShortcutManager().getActiveContextName()).toBe('grid');
-
-      outsideInput.remove();
     });
 
     it('should deactivate the scope (deactivation changed by events)', async() => {

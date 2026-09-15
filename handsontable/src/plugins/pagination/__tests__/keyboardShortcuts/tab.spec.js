@@ -238,9 +238,7 @@ describe('Pagination keyboard shortcut', () => {
         }
 
         expect(isListening()).toBe(false);
-        // Focus left the grid, so the scope deactivated and the shortcuts context rolled back to
-        // what it displaced. It used to keep the plugin's name here (DEV-2917).
-        expect(getShortcutManager().getActiveContextName()).toBe('grid');
+        expect(getShortcutManager().getActiveContextName()).toBe('plugin:pagination');
         expect(document.activeElement).toBe(bottomInput[0]);
       });
 
@@ -280,7 +278,7 @@ describe('Pagination keyboard shortcut', () => {
         }
 
         expect(isListening()).toBe(false);
-        expect(getShortcutManager().getActiveContextName()).toBe('grid');
+        expect(getShortcutManager().getActiveContextName()).toBe('plugin:pagination');
         expect(document.activeElement).toBe(bottomInput[0]);
       });
 
@@ -311,7 +309,7 @@ describe('Pagination keyboard shortcut', () => {
         await keyDownUp('tab');
 
         expect(isListening()).toBe(false);
-        expect(getShortcutManager().getActiveContextName()).toBe('grid');
+        expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
         expect(document.activeElement).toBe(bottomInput[0]);
       });
 
@@ -345,7 +343,7 @@ describe('Pagination keyboard shortcut', () => {
         await keyDownUp('tab');
 
         expect(isListening()).toBe(false);
-        expect(getShortcutManager().getActiveContextName()).toBe('grid');
+        expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
         expect(document.activeElement).toBe(bottomInput[0]);
       });
 
@@ -402,7 +400,7 @@ describe('Pagination keyboard shortcut', () => {
         }
 
         expect(isListening()).toBe(false);
-        expect(getShortcutManager().getActiveContextName()).toBe('grid');
+        expect(getShortcutManager().getActiveContextName()).toBe('plugin:pagination');
         expect(document.activeElement).toBe(bottomInput[0]);
 
         document.getElementById('uiContainer').parentElement.remove();

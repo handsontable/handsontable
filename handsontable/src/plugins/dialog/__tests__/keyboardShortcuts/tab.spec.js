@@ -42,9 +42,7 @@ describe('Dialog keyboard shortcut', () => {
 
       await keyDownUp('tab');
 
-      // Focus left the grid, so the scope deactivated and the shortcuts context rolled back to
-      // what it displaced. It used to keep the plugin's name here (DEV-2917).
-      expect(getShortcutManager().getActiveContextName()).toBe('grid');
+      expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
       expect(document.activeElement).toBe(topInput[0]);
 
       await keyDownUp('tab');
@@ -54,7 +52,7 @@ describe('Dialog keyboard shortcut', () => {
 
       await keyDownUp('tab');
 
-      expect(getShortcutManager().getActiveContextName()).toBe('grid');
+      expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
       expect(document.activeElement).toBe(bottomInput[0]);
     });
 
@@ -80,7 +78,7 @@ describe('Dialog keyboard shortcut', () => {
 
       await keyDownUp('tab');
 
-      expect(getShortcutManager().getActiveContextName()).toBe('grid');
+      expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
       expect(document.activeElement).toBe(topInput[0]);
 
       await keyDownUp('tab');
@@ -100,7 +98,7 @@ describe('Dialog keyboard shortcut', () => {
 
       await keyDownUp('tab');
 
-      expect(getShortcutManager().getActiveContextName()).toBe('grid');
+      expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
       expect(document.activeElement).toBe(bottomInput[0]);
     });
 
@@ -132,7 +130,7 @@ describe('Dialog keyboard shortcut', () => {
 
       await keyDownUp('tab');
 
-      expect(getShortcutManager().getActiveContextName()).toBe('grid');
+      expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
       expect(document.activeElement).toBe(bottomInput[0]);
     });
 
@@ -154,7 +152,7 @@ describe('Dialog keyboard shortcut', () => {
 
       await keyDownUp('tab');
 
-      expect(getShortcutManager().getActiveContextName()).toBe('grid');
+      expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
       expect(document.activeElement).toBe(topInput[0]);
 
       await keyDownUp('tab');
@@ -164,7 +162,7 @@ describe('Dialog keyboard shortcut', () => {
 
       await keyDownUp('tab');
 
-      expect(getShortcutManager().getActiveContextName()).toBe('grid');
+      expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
       expect(document.activeElement).toBe(bottomInput[0]);
     });
 
@@ -196,7 +194,7 @@ describe('Dialog keyboard shortcut', () => {
 
       await keyDownUp('tab');
 
-      expect(getShortcutManager().getActiveContextName()).toBe('grid');
+      expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
       expect(document.activeElement).toBe(topInput[0]);
 
       await keyDownUp('tab');
@@ -211,7 +209,7 @@ describe('Dialog keyboard shortcut', () => {
 
       await keyDownUp('tab');
 
-      expect(getShortcutManager().getActiveContextName()).toBe('grid');
+      expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
       expect(document.activeElement).toBe(bottomInput[0]);
     });
   });
