@@ -9,7 +9,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
-## [18.1.1-rc2] - 2026-09-15
+## [18.1.1] - 2026-09-15
 
 ### Fixed
 - Fixed copying, cutting, and pasting doing nothing in a grid embedded in a Salesforce Lightning Web Component. [#13388](https://github.com/handsontable/handsontable/issues/13388)
