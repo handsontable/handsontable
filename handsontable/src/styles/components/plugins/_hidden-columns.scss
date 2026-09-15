@@ -20,16 +20,20 @@
         }
       }
 
+      // Keep the indicator inside the cell. `hiddenColumns` already reserves 15px of column
+      // width for it (`#onModifyColWidth`), and a negative offset here overflows the scroll
+      // container: on the last stretched column it adds ~1px of scrollWidth, which paints a
+      // scrollbar that has nothing to scroll and shortens the master pane. See #13500.
       &.beforeHiddenColumn::after {
         @include mixins.pseudo;
 
-        right: -2px;
+        right: 0;
       }
 
       &.afterHiddenColumn::before {
         @include mixins.pseudo;
 
-        left: -2px;
+        left: 0;
       }
 
       &.ht__active_highlight {
@@ -48,12 +52,12 @@
     th {
       &.beforeHiddenColumn::after {
         right: initial;
-        left: -2px;
+        left: 0;
         transform: translateY(-50%) rotate(180deg);
       }
 
       &.afterHiddenColumn::before {
-        right: -2px;
+        right: 0;
         left: initial;
         transform: translateY(-50%) rotate(180deg);
       }

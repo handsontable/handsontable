@@ -87,6 +87,30 @@ relationship, so an off-by-one here is a real bug, not a style choice.
 That puts it after the default listeners — including AutoColumnSize's, which is pinned to the front. A
 hidden column's width must be zeroed *after* anything that computes a width, or the computed value wins.
 
+## The indicator must be drawn INSIDE its cell
+
+`#onModifyColWidth` already adds **15px** to any visible column next to a hidden one, and the arrow is
+10px wide — so the space is reserved and the pseudo-element never needs a negative offset. It used to
+have one anyway (`right: -2px` / `left: -2px` in
+`../../styles/components/plugins/_hidden-columns.scss`), and that is #13500: the offset is measured from
+the header's **padding** box, the header has a 1px border, so the arrow reached 1px past the table's
+right edge.
+
+One pixel is enough when the table is **flush with the scroll box**, which is exactly what `stretchH`
+produces. The browser reports `scrollWidth = clientWidth + 1`, paints a horizontal scrollbar with
+nothing to scroll, and that bar takes ~15px of height out of the master pane only. The frozen-column
+clone has no such bar, so it clamps to a `scrollTop` 15px smaller — and at the bottom of the grid every
+row across the frozen boundary sits a scrollbar apart. Turning `indicators` off "fixes" it, which is why
+this reads as a width-calculation bug and is not one: the stretch math is exact.
+
+`stretchH` is only the easiest way to reach a flush table. Plain `colWidths` that happen to sum to the
+viewport do it too. And the RTL block mirrors the arrow to the other edge, which in RTL is the scrollable
+one — fix both blocks or RTL stays broken. Covered by
+`tests/e2e/hidden-columns-indicator-stretch.spec.ts`.
+
+`../hiddenRows/` carries the mirrored CSS (`bottom: -2px`). There is no vertical counterpart to
+`stretchH`, so a flush bottom edge is only ever a coincidence — but the shape is the same.
+
 ## `disablePlugin()` resets cell meta
 
 `resetCellsMeta()` runs after `super.disablePlugin()`, because the meta this plugin wrote (the paste marker
