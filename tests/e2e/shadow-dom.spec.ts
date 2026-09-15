@@ -107,8 +107,8 @@ test.describe('grid inside a native shadow root', () => {
 
     await grid.cellWidgetButton.click();
 
-    expect(await grid.isListening()).toBe(true);
-    await expect.poll(() => grid.selected()).not.toBeNull();
+    await expect.poll(() => grid.selected()).toEqual([[1, 2, 1, 2]]);
+    await expect.poll(() => grid.isListening()).toBe(true);
   });
 
   test('tabs out of the grid from a web component rendered in a cell', async () => {

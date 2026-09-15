@@ -8,6 +8,7 @@ import {
   getComposedEventTargetEl,
   getDeepActiveElement,
   getShadowHostChain,
+  isHTMLElement,
   isVisible,
 } from '../helpers/dom/element';
 
@@ -249,7 +250,7 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
       }
 
       if (scope === activeScope) {
-        if (scopeContains(scope, getDeepActiveElement(hotInstance.rootDocument) as HTMLElement)) {
+        if (scopeContains(scope, getDeepActiveElement(hotInstance.rootDocument))) {
           scope.deactivateFocusCatchers();
         } else {
           scope.activateFocusCatchers();
@@ -274,10 +275,15 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
    * question about the elements the container can actually see.
    *
    * @param {object} scope The focus scope to ask.
-   * @param {HTMLElement} target The target element.
+   * @param {Element|null} target The target element. `getDeepActiveElement()` reports `null` for a document
+   * with no body, and no scope contains a target that is not an element to begin with.
    * @returns {boolean} `true` when the target, or one of the hosts it is rendered behind, is within the scope.
    */
-  function scopeContains(scope: ReturnType<typeof createFocusScope>, target: HTMLElement): boolean {
+  function scopeContains(scope: ReturnType<typeof createFocusScope>, target: Element | null): boolean {
+    if (!isHTMLElement(target)) {
+      return false;
+    }
+
     return scope.contains(target) ||
       getShadowHostChain(target).some((host: HTMLElement) => scope.contains(host));
   }
