@@ -54,8 +54,9 @@ test('the seed runs on every develop push and by hand, never on an ordinary pull
   // The self-validation trigger that develop.yml also carries, and the skip that
   // keeps it from seeding from a pull request.
   assert.match(seed, /pull_request:\n\s+paths: \[ '\.github\/workflows\/visual-seed\.yml' \]/);
-  // Anchored too: another clause on this condition would change which events seed.
-  assert.match(seed, /if: github\.event_name != 'pull_request'\n/);
+  // Anchored to the whole condition: another clause here would change which events
+  // or which refs seed. The ref half is covered by its own test below.
+  assert.match(seed, /if: github\.event_name != 'pull_request' && github\.ref_name == 'develop'\n/);
 });
 
 test('the seed never cancels an in-flight run', () => {
@@ -112,5 +113,24 @@ test('the seed calls the shared visual module with the secrets it needs', () => 
   // Parity with develop.yml: no caller-level permissions block, or the nested
   // grant in visual.yml would be validated against a second ceiling.
   assert.doesNotMatch(seed, /^permissions:/m, 'visual-seed.yml must not declare a permissions block');
-  assert.deepEqual(jobIds(seed), ['visual']);
+  assert.deepEqual(jobIds(seed), ['guard', 'visual']);
+});
+
+test('the seed writes develop and refuses every other ref', () => {
+  // A workflow_dispatch can be launched from ANY ref, and visual.yml resolves
+  // `REG_ACTUAL_KEY=base/<ref>` and reconciles that prefix with `aws s3 sync
+  // --delete` for master, release/* and lts/* alike. Dispatching this file from
+  // the branch someone happens to be on would therefore rewrite that branch's
+  // goldens — an lts/* baseline among them, which visual-tests/README.md says
+  // nothing ever refreshes and nothing could put back.
+  assert.match(seed, /^\s+if: github\.event_name != 'pull_request' && github\.ref_name == 'develop'$/m,
+    'the seeding job must be pinned to develop, not only to the event');
+  assert.match(seed, /^\s+if: github\.event_name == 'workflow_dispatch' && github\.ref_name != 'develop'$/m,
+    'a wrong-ref dispatch must hit a job that fails, not a silently skipped run');
+  // The guard is only worth having if it actually fails.
+  const guard = seed.slice(seed.indexOf('  guard:'), seed.indexOf('  visual:'));
+
+  assert.match(guard, /exit 1/, 'the guard job must fail the run');
+  assert.match(guard, /::error::/, 'the guard job must say why');
+  assert.match(guard, /REF_NAME: \$\{\{ github\.ref_name \}\}/, 'the ref goes through env, never into the script body');
 });

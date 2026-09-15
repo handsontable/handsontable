@@ -159,7 +159,9 @@ Eight things about this pipeline are worth knowing before changing it.
   `.github/workflows/visual-seed.yml` under a group that never cancels, so the last push of any burst is
   seeded within about 15 minutes, and a poisoned record is overwritten by the next develop push rather than
   the next run that survives. A poisoned record can also be replaced by hand: dispatch `Visual seed` on
-  develop — and **check that the dispatch actually ran**. It shares its concurrency group with the pushes
+  develop, with develop selected as the branch (a dispatch from any other ref is refused by that
+  workflow's `guard` job: `visual.yml` would otherwise reconcile that ref's own `base/` prefix, and an
+  `lts/*` baseline is one nothing else would put back) — and **check that the dispatch actually ran**. It shares its concurrency group with the pushes
   (one writer for `base/develop`, by design), so a merge landing while it is pending drops the pending
   dispatch with no reason given. Usually that is the right outcome, because the push seeds a newer commit
   over the same prefix and fixes the poisoned record anyway; if pushes have stopped, re-issue the dispatch.

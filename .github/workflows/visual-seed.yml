@@ -80,6 +80,9 @@ on:
     branches: [ develop ]
   # A re-seed by hand, for a baseline someone has confirmed is poisoned (the
   # byte-equality diagnostic in visual-tests/AGENTS.md) or after a failed seed.
+  # Select develop as the branch: a dispatch from any other ref is refused by the
+  # `guard` job below, which exists because visual.yml would otherwise reconcile
+  # that ref's own `base/` prefix.
   workflow_dispatch:
   # Self-validation, as develop.yml does it: this file never runs on an ordinary
   # pull request, so a broken workflow_call graph would first execute AFTER
@@ -103,8 +106,41 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # A `workflow_dispatch` can be launched from ANY ref, and visual.yml treats
+  # `master`, `release/*` and `lts/*` as base branches: it resolves
+  # `REG_ACTUAL_KEY=base/<that ref>` and reconciles that prefix with
+  # `aws s3 sync --delete`. So dispatching this file from the branch you happen
+  # to be standing on would rewrite that branch's golden records — including an
+  # `lts/*` baseline that visual-tests/README.md says is never refreshed, and
+  # which nothing else would ever put back.
+  #
+  # This file seeds develop and nothing else: `master` seeds through test.yml's
+  # push, `release/*` through publish.yml, and `lts/*` deliberately not at all.
+  # A wrong ref therefore fails here with the reason, rather than silently
+  # writing someone else's prefix or leaving a green run that seeded nothing.
+  # Dispatch-only and ref-conditional, so it costs nothing on the hot path: the
+  # push trigger above is already develop-only.
+  guard:
+    name: guard
+    if: github.event_name == 'workflow_dispatch' && github.ref_name != 'develop'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Refuse to seed a branch this workflow does not own
+        env:
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          echo "::error::Visual seed writes base/develop, and this run is on $REF_NAME."
+          echo "Re-dispatch it with develop selected as the branch."
+          echo "master seeds through test.yml's push, release/* through publish.yml, and lts/* is"
+          echo "deliberately never seeded (visual-tests/README.md) — seeding it here would replace a"
+          echo "baseline nothing else can restore."
+          exit 1
+
   visual:
     name: Visual
-    if: github.event_name != 'pull_request'
+    # `ref_name` as well as the event: the push trigger only fires on develop, and
+    # the guard above turns a wrong-ref dispatch red, but this is what actually
+    # keeps the reconcile away from another branch's prefix.
+    if: github.event_name != 'pull_request' && github.ref_name == 'develop'
     uses: ./.github/workflows/visual.yml
     secrets: inherit
