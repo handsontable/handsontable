@@ -19,7 +19,7 @@ These are the release notes for Handsontable 18.x.
 
 ## 18.1.1
 
-Released on TBD
+Released on September 15th, 2026
 
 For more information about this release, see:
 
