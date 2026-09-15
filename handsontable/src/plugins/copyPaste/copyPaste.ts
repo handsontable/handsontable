@@ -1303,14 +1303,22 @@ export class CopyPaste extends BasePlugin {
     }
 
     // Deferred paste (a validated cell in range grew the grid on a microtask, after the inline
-    // selection clamped against a stale count): re-select against the fresh count, but only if
-    // the corrected range actually differs from what is selected now.
+    // selection clamped against a stale count): re-select against the fresh count. Skip it when
+    // the selection no longer starts where the paste did - a synchronous `afterPaste` handler that
+    // moved the selection (e.g. to advance focus) must not be overwritten a microtask later.
     const activeRange = this.hot.getSelectedRangeActive();
-    const bottomEnd = activeRange ? activeRange.getBottomEndCorner() : null;
+    const topStart = activeRange ? activeRange.getTopStartCorner() : null;
+
+    if (topStart === null || topStart.row !== startRow || topStart.col !== startColumn) {
+      return;
+    }
+
+    // Re-select only if the corrected range actually differs from what is selected now.
+    const bottomEnd = activeRange!.getBottomEndCorner();
     const clampedEndRow = Math.min(this.hot.countRows() - 1, endRow);
     const clampedEndColumn = Math.min(this.hot.countCols() - 1, endColumn);
 
-    if (bottomEnd === null || bottomEnd.row !== clampedEndRow || bottomEnd.col !== clampedEndColumn) {
+    if (bottomEnd.row !== clampedEndRow || bottomEnd.col !== clampedEndColumn) {
       this.#preventViewportScrollOnPaste = true;
       this.#selectPastedRange(startRow, startColumn, endRow, endColumn);
     }

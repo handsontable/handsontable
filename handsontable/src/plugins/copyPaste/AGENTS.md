@@ -176,6 +176,23 @@ Paste sizing is inherently two-phase: the plugin tries to populate all copied da
 selection, but **it cannot know up front whether the populated data exceeds the selection** — some cells
 reject values, and that is only known after reading their cell meta.
 
+**Paste settling is also two-phase, and the post-paste selection rides the second phase (DEV-38).** A
+validated cell anywhere in the pasted range — a `dropdown`/`autocomplete` column always carries a validator,
+so do `numeric`/`date`/custom — makes the write settle asynchronously. `validateCell` (`core.ts`) defers
+**every** validated cell through `_registerMicrotask` ("validation should be always asynchronous"), so
+`applyChanges()` — where the new rows are actually created (`datamap.createRow`, guarded by
+`allowInsertRow`) — runs on a microtask, **after** `onPaste()` has already returned. Consequences for anyone
+touching `onPaste`: (1) any synchronous post-paste read of `countRows()`/`countCols()` is **stale** for a
+validated paste, so the inline `selectCell` clamps the selection down to the pre-paste last row (the reported
+bug); the fix keeps that inline selection and adds a one-shot `afterChange` correction (`#onAfterChange`,
+gated on `source === 'CopyPaste.paste'`) that re-selects against the settled count. (2) The correction lands
+**after `afterPaste` fires**, and `afterPaste` (and `populateValues`'s return value) still describe the stale
+collapsed range — only the DOM selection is corrected a microtask later. (3) `afterChange` fires only when
+`changes.length > 0`, and the shift paste modes recurse into `populateFromArray` **without** the
+`'CopyPaste.paste'` source, so the handler skips them and their inline selection stands. (4) The correction
+re-selects only while the selection still starts at the paste origin, so a synchronous `afterPaste` handler
+that moved the selection is not overwritten on the microtask.
+
 ## Header copying
 
 Three options control it — `copyColumnHeaders`, `copyColumnGroupHeaders` and `copyColumnHeadersOnly` —
