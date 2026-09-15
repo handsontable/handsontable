@@ -67,7 +67,7 @@ export class HiddenRowsIndicatorAutoHeightPage {
    * Which row headers carry an indicator marker, keyed by the header's own label.
    *
    * Row headers are 1-based, so row 4 reads as `5`. Keying by label pins WHICH row is marked rather
-   * than just how many are, and pins that the fix moved the arrow instead of deleting it.
+   * than just how many are, and pins that the fix did not delete the arrow.
    */
   async markedHeaders(): Promise<Record<string, string>> {
     return this.page.evaluate(() => {
@@ -92,8 +92,8 @@ export class HiddenRowsIndicatorAutoHeightPage {
    * How far the master pane's content overflows its own scroll box vertically, in pixels.
    *
    * The mechanism, measured directly. On a `height: 'auto'` grid the box is sized to the rows, so
-   * anything above zero is content the box was never sized for — here, the indicator drawn below
-   * its row header.
+   * anything above zero is content the box was never sized for — here, the indicator's box laid
+   * out below its row header.
    */
   async verticalOverflow(): Promise<number> {
     return this.page.evaluate(() => {

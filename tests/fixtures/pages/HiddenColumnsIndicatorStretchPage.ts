@@ -115,7 +115,7 @@ export class HiddenColumnsIndicatorStretchPage {
    *
    * This is the mechanism, measured directly. Anything above zero is content the browser will
    * paint a scrollbar for — and under `stretchH` the columns already fit exactly, so the only
-   * thing that can overflow is the indicator drawn outside its cell.
+   * thing that can overflow is the indicator's box laid out past its cell.
    */
   async horizontalOverflow(): Promise<number> {
     return this.page.evaluate(() => {

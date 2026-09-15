@@ -32,14 +32,12 @@ Two real differences worth knowing:
 The marker class is applied for `this.isHidden(row - 1)` — the class describes the **neighbor**
 relationship, so an off-by-one there is a real bug.
 
-## The indicator sits FLUSH with the header edge — `-1px`, not `-2px` and not `0`
+## The indicator's BOX stops at the header edge; its GLYPH does not move
 
-`../../styles/components/plugins/_hidden-rows.scss` used to draw the arrow at `bottom: -2px` on
+`../../styles/components/plugins/_hidden-rows.scss` used to lay the arrow's box out at `bottom: -2px` on
 `beforeHiddenRow::after` and `top: -2px` on `afterHiddenRow::before`. Those offsets are measured from
-the row header's **padding** box, and the header has a 1px border, so the arrow reached 1px past the
-table's bottom edge. `-1px` lands it exactly on that edge, which is the design-system position and the
-value `../hiddenColumns/` uses on the horizontal axis — read its `AGENTS.md` for the measurements.
-`0` would pull it 1px inside and visibly widen the gap to the divider, so do not "simplify" to that.
+the row header's **padding** box, and the header has a 1px border, so the `before` box reached 1px past
+the table's bottom edge. The glyph never reached that pixel — only the box did.
 
 On a `height: 'auto'` grid that 1px is enough. Such a grid must never scroll itself — it grows to its
 rows and the page scrolls instead — so its box is flush with its content **by construction**, and the
@@ -47,10 +45,17 @@ overhang made `scrollHeight` one larger than `clientHeight`. Measured on `develo
 scrollbar on a grid that should have none, and a column-header clone left 15px wider than the master's
 usable width, so columns and their headers disagreed about where they were.
 
+**The painted arrow must not move** — that is a visible change on every grid with indicators. So the
+`before` box moves to `bottom: -1px`, ending exactly on the header edge, and `mask-position: 0 1px`
+moves the icon back down by the same pixel. `../hiddenColumns/AGENTS.md` has the full story: the
+positions and clips that were tried and why each was rejected (a clip on the `th` cuts the header
+highlight bar), the glyph margins that make the mask shift safe, and the pixel measurements.
+
 Only the `bottom` offset was ever live: block-start overflow is clipped rather than scrollable, so
-`top: -2px` never reached the scroll region. Both were set to `0` anyway, to keep this file mirrored
-with `../hiddenColumns/`. Fixed in #13500 alongside the column twin, which is the same defect on the
-horizontal axis. Covered by `tests/e2e/hidden-indicator-overhang.spec.ts`.
+`top: -2px` never reached the scroll region, and it is unchanged. Fixed in #13500 alongside the column
+twin, which is the same defect on the horizontal axis. Covered by
+`tests/e2e/hidden-indicator-overhang.spec.ts`, whose third describe compares every marked row header
+byte for byte against the 18.1.0 rules.
 
 ## Known concern
 

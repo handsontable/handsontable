@@ -1,18 +1,23 @@
 import { test, expect } from '../fixtures/test';
 import { HiddenColumnsIndicatorStretchPage } from '../fixtures/pages/HiddenColumnsIndicatorStretchPage';
 import { HiddenRowsIndicatorAutoHeightPage } from '../fixtures/pages/HiddenRowsIndicatorAutoHeightPage';
+import { HiddenIndicatorPositionPage } from '../fixtures/pages/HiddenIndicatorPositionPage';
 
 /**
  * #13500 / DEV-2921: a grid with frozen columns, `stretchH` and `hiddenColumns.indicators` grew a
  * horizontal scrollbar that had nothing to scroll, and the rows either side of the frozen boundary
  * then drifted apart by that bar's height.
  *
- * `hiddenColumns` already reserves 15px of column width for the indicator arrow, but the theme drew
- * the arrow at `right: -2px` — partly outside the cell. Under `stretchH` the table's right edge is
- * flush with the scroll box, so that overhang landed ~1px past it and the browser painted a bar.
+ * `hiddenColumns` already reserves 15px of column width for the indicator arrow, but the theme laid
+ * the arrow's box out at `right: -2px` — 1px past the cell. Under `stretchH` the table's right edge
+ * is flush with the scroll box, so that 1px was content past it and the browser painted a bar.
  * The bar took ~15px of height out of the master pane only; the frozen-column clone has no
  * horizontal bar, so it could scroll 15px less. Scrolled to the bottom the two panes sat a
  * scrollbar apart.
+ *
+ * The fix must not move a painted pixel: the box now stops at the cell's edge and the icon inside
+ * it moves back out by the same 1px. The third describe pins that against the 18.1.0 rules
+ * directly, because the first two cannot see it — a fix that moved the arrow inward passed them.
  *
  * `hiddenRows` carries the mirrored rule (`bottom: -2px`) and the same defect on the vertical axis,
  * covered by the second describe below. It needs no `stretchH`: a `height: 'auto'` grid is flush
@@ -56,8 +61,7 @@ test.describe('hidden-column indicator on a stretched grid', () => {
     // Guards the subject, and pins WHICH columns are marked — a bare count would pass on an
     // off-by-one. `E` is the last column before the interior band, `J` the first after it, and `L`
     // the last stretched column before the trailing band: the defect's own case. It also pins that
-    // the fix moved the arrow rather than deleting it, and that both marker kinds are present, so
-    // the start-side offsets the fix changes are exercised too.
+    // the fix did not delete the arrow, and that both marker kinds are present.
     await grid.goto('on');
     expect(await grid.markedHeaders()).toEqual({
       E: 'beforeHiddenColumn',
@@ -70,7 +74,7 @@ test.describe('hidden-column indicator on a stretched grid', () => {
     await grid.goto('on');
 
     // The mechanism, and the assertion that discriminates this fix. The columns are stretched to
-    // fill the box exactly, so any overflow at all is the indicator drawn outside its cell.
+    // fill the box exactly, so any overflow at all is the indicator's box laid out past its cell.
     expect(await grid.horizontalOverflow(), 'master content beyond its scroll box').toBe(0);
 
     const { horizontal } = await grid.scrollbarSizes();
@@ -148,7 +152,7 @@ test.describe('hidden-row indicator on an auto-height grid', () => {
     await grid.goto('on');
 
     // The mechanism. A grid sized to its rows has no content the box was not sized for — unless the
-    // indicator is drawn below its row header.
+    // indicator's box is laid out below its row header.
     expect(await grid.verticalOverflow(), 'master content beyond its scroll box').toBe(0);
 
     const { vertical, horizontal } = await grid.scrollbarSizes();
@@ -171,5 +175,53 @@ test.describe('hidden-row indicator on an auto-height grid', () => {
     expect(await grid.verticalOverflow(), 'master content beyond its scroll box').toBe(0);
     expect((await grid.scrollbarSizes()).vertical, 'vertical scrollbar width').toBe(0);
     expect(await grid.headerCloneWiderThanMasterBy(), 'header clone beyond the master pane').toBe(0);
+  });
+});
+
+test.describe('hidden indicators paint where 18.1.0 painted them', () => {
+  let grid: HiddenIndicatorPositionPage;
+
+  test.beforeEach(async({ page, theme, bundle }) => {
+    grid = new HiddenIndicatorPositionPage(page, theme, bundle);
+  });
+
+  // Why these exist: moving the arrow is a visible change on every grid with indicators, and the
+  // describes above are blind to it — an arrow moved 1px inward clears the overflow just as well.
+  // So every marked header, and both header strips, is compared byte for byte against the same page
+  // with the 18.1.0 rules forced on top. The fixture is flush on neither axis, so those rules
+  // overflow nothing there and the indicator CSS is the only thing that differs.
+  test('every arrow paints the same pixels as in 18.1.0 (LTR)', async() => {
+    await grid.goto('ltr');
+
+    const { counts, reference, changed } = await grid.compareWithReleasedRules();
+
+    // Every marker kind is on screen, the trailing before-markers included, so none is compared
+    // vacuously.
+    expect(counts).toEqual({
+      beforeHiddenColumn: 2,
+      afterHiddenColumn: 1,
+      beforeHiddenRow: 2,
+      afterHiddenRow: 1,
+    });
+    // The positive control: the second pass really ran the 18.1.0 geometry.
+    expect(reference).toEqual({ column: '-2px / 0px 0px', row: '-2px / 0px 0px' });
+    expect(changed, 'regions painted differently from 18.1.0').toEqual([]);
+  });
+
+  test('every arrow paints the same pixels as in 18.1.0 (RTL)', async() => {
+    // The column arrows are rotated 180deg in RTL, which mirrors the icon's offset inside its box
+    // as well — the one place a compensation written for LTR could land 2px off instead of 0.
+    await grid.goto('rtl');
+
+    const { counts, reference, changed } = await grid.compareWithReleasedRules();
+
+    expect(counts).toEqual({
+      beforeHiddenColumn: 2,
+      afterHiddenColumn: 1,
+      beforeHiddenRow: 2,
+      afterHiddenRow: 1,
+    });
+    expect(reference).toEqual({ column: '-2px / 0px 0px', row: '-2px / 0px 0px' });
+    expect(changed, 'regions painted differently from 18.1.0').toEqual([]);
   });
 });

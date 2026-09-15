@@ -20,23 +20,23 @@
         }
       }
 
-      // The arrow sits FLUSH with the cell's outer edge, which is where the design system puts
-      // it: in Handsontable Design System / `header_cell`, `icon_hidden_right` spans x 110-120
-      // of a 120px cell and `icon_hidden_left` spans -1 to 9.
-      // These offsets are measured from the PADDING box and the cell has a 1px border, so -1px
-      // is that flush position. The old -2px put the arrow 1px BEYOND the cell, and on a
-      // stretched grid the table's edge is flush with the scroll box — so that 1px became
-      // scrollWidth the browser painted a scrollbar for, with nothing to scroll. See #13500.
+      // The glyph paints where it has since #11144 (box at -2px, offsets taken from the padding
+      // box of a cell with a 1px border). Only the end-side box is changed: it stops at the cell's
+      // outer edge and its mask moves back out by the same 1px. A box past that edge is scrollable
+      // content on a stretched grid, where the table is flush with its scroll box (#13500). The
+      // start-side box can overhang, because content before the scroll origin never scrolls.
       &.beforeHiddenColumn::after {
         @include mixins.pseudo;
 
         right: -1px;
+        mask-position: 1px 0;
+        mask-repeat: no-repeat;
       }
 
       &.afterHiddenColumn::before {
         @include mixins.pseudo;
 
-        left: -1px;
+        left: -2px;
       }
 
       &.ht__active_highlight {
@@ -53,6 +53,8 @@
 
   [dir="rtl"].handsontable {
     th {
+      // Keeps the LTR `mask-position`: the mask is laid out before the rotation, which mirrors
+      // the 1px shift outward, to the left.
       &.beforeHiddenColumn::after {
         right: initial;
         left: -1px;
@@ -60,7 +62,7 @@
       }
 
       &.afterHiddenColumn::before {
-        right: -1px;
+        right: -2px;
         left: initial;
         transform: translateY(-50%) rotate(180deg);
       }

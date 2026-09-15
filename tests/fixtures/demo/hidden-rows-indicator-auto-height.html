@@ -44,7 +44,8 @@
   <!--
     The vertical half of #13500 / DEV-2921, in `hiddenRows` rather than `hiddenColumns`.
 
-    The mirrored rule drew the row indicator at `bottom: -2px`, outside the row header. A grid with
+    The mirrored rule laid the row indicator's box out at `bottom: -2px`, 1px below the row
+    header. A grid with
     `height: 'auto'` sizes its box to its rows, so the box is flush with the content BY
     CONSTRUCTION — not by the coincidence the column case needs `stretchH` to arrange. The last
     visible row header's arrow therefore lands ~1px below the table's bottom edge, `scrollHeight`

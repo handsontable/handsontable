@@ -20,21 +20,22 @@
         }
       }
 
-      // Flush with the row header's outer edge, mirroring `_hidden-columns.scss` — these offsets
-      // are measured from the PADDING box and the header has a 1px border, so -1px is that edge
-      // and -2px was 1px beyond it. On a `height: 'auto'` grid the box is flush with its rows by
-      // construction, so that 1px became scrollHeight and a grid that must never scroll itself
-      // grew a vertical scrollbar. See #13500.
+      // Mirrors `_hidden-columns.scss`: the glyph paints where it has since #11144, and only the
+      // end-side box stops at the header's outer edge, with its mask moved back down by 1px. A
+      // `height: 'auto'` grid is flush with its rows, so a box past that edge is scrollable
+      // content, and the grid grew a vertical scrollbar (#13500).
       &.beforeHiddenRow::after {
         @include mixins.pseudo;
 
         bottom: -1px;
+        mask-position: 0 1px;
+        mask-repeat: no-repeat;
       }
 
       &.afterHiddenRow::before {
         @include mixins.pseudo;
 
-        top: -1px;
+        top: -2px;
       }
 
       &.ht__active_highlight {
