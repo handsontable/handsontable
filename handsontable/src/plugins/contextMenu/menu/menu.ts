@@ -631,12 +631,27 @@ export class Menu {
     this.hotMenu = new (
       this.hot.constructor as new (element: HTMLElement, settings: object) => HotInstance
     )(this.container, settings);
-    this.hotMenu.addHook('afterInit', () => this.onAfterInit());
-    this.hotMenu.init();
 
-    this.#navigator = createMenuNavigator(this.hotMenu as unknown as Record<string, Function>);
-    this.#shortcutsCtrl = createKeyboardShortcutsCtrl(this);
-    this.#shortcutsCtrl.listen();
+    // `isOpened()` is `this.hotMenu !== null`, so from the assignment above the menu already
+    // reports itself as open while `#navigator` does not exist yet. User code runs inside this
+    // window: rendering the items calls each item's `name()`, `disabled()`, `checked()` and
+    // `ariaLabel()` callbacks. A throw there used to strand the menu half-open for the life of
+    // the page - every later document `mousedown` reached `close()` and threw on the missing
+    // navigator, `open()` could never run again, and `destroy()` threw too, so the document
+    // listener leaked past an SPA page change (DEV-41). Roll back to closed instead.
+    try {
+      this.hotMenu.addHook('afterInit', () => this.onAfterInit());
+      this.hotMenu.init();
+
+      this.#navigator = createMenuNavigator(this.hotMenu as unknown as Record<string, Function>);
+      this.#shortcutsCtrl = createKeyboardShortcutsCtrl(this);
+      this.#shortcutsCtrl.listen();
+    } catch (error) {
+      this.#rollbackFailedOpen();
+
+      // The menu is consistent again, but the caller's own bug still has to reach them.
+      throw error;
+    }
 
     this.focus();
 
@@ -645,6 +660,27 @@ export class Menu {
     }
 
     this.runLocalHooks('afterOpen', this);
+  }
+
+  /**
+   * Restores the closed state after {@link Menu#open} failed partway through, so a menu that never
+   * finished opening cannot stay stranded as "open".
+   *
+   * Undoes only what `open()` had done by then: no sub-menu, scroll listener or hover timer exists
+   * yet, and `setPosition()` has not run. `afterOpen` never fired, so `afterClose` is deliberately
+   * not fired either - listeners stay balanced.
+   */
+  #rollbackFailedOpen() {
+    try {
+      this.hotMenu?.destroy();
+    } catch {
+      // A menu grid that failed mid-init can fail to tear down as well. The error `open()` is
+      // about to rethrow is the one worth reporting, so drop this one and finish the rollback.
+    }
+
+    this.hotMenu = null;
+    this.container.style.display = 'none';
+    this.hot.getSettings().outsideClickDeselects = this.origOutsideClickDeselects;
   }
 
   /**
@@ -661,7 +697,10 @@ export class Menu {
       this.parentMenu!.close();
 
     } else {
-      this.#navigator!.clear();
+      // Optional: a menu whose `open()` threw before reaching `createMenuNavigator()` has none.
+      // `close()` runs on every document `mousedown`, so a hard call here takes the whole page
+      // down rather than the one menu (DEV-41).
+      this.#navigator?.clear();
       this.closeAllSubMenus();
       this.container.style.display = 'none';
       this.hotMenu!.destroy();
