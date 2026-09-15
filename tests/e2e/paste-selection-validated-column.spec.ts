@@ -220,11 +220,13 @@ test.describe('paste selection with a validated column', () => {
    * snap, recognizes the untouched selection and re-selects it against the grown count without
    * widening past what the paste wrote.
    *
-   * This is the reason a merge cannot make the deferred and synchronous paths diverge on the DEV-38
-   * shape: any merge that overlaps a paste starting at the last row and extends outside it must
-   * contain the paste origin (row 4 is the paste's top), so the pre-paste snap moves the anchor
-   * identically for both paths. A merge extending BELOW the paste is impossible - the paste ends on
-   * the grid's last row. See the plugin `AGENTS.md` "Scope" note.
+   * This pins the ROW axis, which is closed by construction: a merge that overlaps a paste starting
+   * at the last row and extends outside it must contain the paste origin (row 4 is the paste's top,
+   * and the paste ends on the grid's last row so nothing extends below), so the pre-paste snap moves
+   * the anchor identically for both paths. The COLUMN axis is NOT closed - a narrower paste can
+   * overlap a merge extending sideways out of it without the origin snap, and there the deferred
+   * path ends wider than the synchronous one. That is a scoped-out interaction the fix introduces;
+   * see the plugin `AGENTS.md` "Scope" note (c).
    */
   test('corrects the selection when the paste covers a merged area', async({ page, theme, bundle }) => {
     const grid = new PasteSelectionValidatedColumnPage(page, theme, bundle, { validated: true, merge: true });
@@ -236,5 +238,8 @@ test.describe('paste selection with a validated column', () => {
     // spans them. The record count grew by two (five to seven), proving the paste really wrote.
     await expect.poll(() => grid.selected()).toEqual([[3, 0, 6, 1]]);
     expect(await grid.sourceRowCount()).toBe(7);
+    // The block landed at the snapped anchor: row 4 sits inside the merged area, so pin the corners.
+    expect(await grid.sourceCell(3, 0)).toBe('P0');
+    expect(await grid.sourceCell(6, 1)).toBe('Q3');
   });
 });

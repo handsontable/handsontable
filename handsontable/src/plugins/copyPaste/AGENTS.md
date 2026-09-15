@@ -217,21 +217,36 @@ synchronous validator (its microtask drains before any next user paste event); a
 the index-mapper does) is the fix if async-validated paste interleaving ever
 needs to be correct.
 
-**MergeCells cannot make the deferred and synchronous paths diverge on this shape** (raised in review). The
-worry: the deferred correction re-selects at CopyPaste's `afterChange` priority (80), *before* MergeCells'
-`#unmergeAfterPaste` (150) runs in the same cycle, so `#onBeforeSelectionHighlightSet` could `expandByRange`
-a merge that overlaps the paste but extends outside it — while a validator-free paste unmerges first and then
-selects clean. That divergence is unreachable in the DEV-38 repro. The bug is a paste that **starts at the
-last row and runs past it**, so the paste's top corner is the grid's last existing row and its bottom corner
-is the grid's last row after the grow — there is no row below the paste for a merge to extend into. Any merge
-that overlaps the paste and extends outside it therefore has to extend *above* the paste, which means it
-contains the paste's top corner (the origin). `pasteBlockAt` selects that origin before pasting, so with the
-merge live the pre-paste `selectCell` snaps the anchor up to the merge's top-start corner **identically on
-both paths**, and the paste (and both selections) anchor there. Measured: a `{ row: 3, rowspan: 2 }` merge
-straddling the boundary gives `[[3, 0, 6, 1]]` on both the validated and the validator-free paste. The
-divergence would need a paste in the middle of the grid with a merge below it extending past the paste's
-bottom but not to the grid edge — a different scenario than DEV-38. `tests/e2e/paste-selection-validated-column.spec.ts`
-`corrects the selection when the paste covers a merged area` pins the straddling-merge case.
+(c) A **merge partially overlapping the paste and extending outside it, on the COLUMN axis**, ends the
+validated (deferred) paste on a wider selection than the validator-free (synchronous) one (raised in review,
+measured, scoped out). The mechanism: the deferred correction re-selects at CopyPaste's `afterChange` priority
+(80), which runs BEFORE MergeCells' `#unmergeAfterPaste` (150) in the same cycle, so `#onBeforeSelectionHighlightSet`
+runs `expandByRange` on a merge that overlaps the corrected selection but extends outside it and pulls the
+outside cells in. A validator-free paste unmerges first (its inline `selectCell` runs after `#unmergeAfterPaste`,
+so the merge is already gone) and selects clean. The two axes behave differently:
+
+- **Row axis: closed by construction.** The DEV-38 bug is a paste that starts at the last row and runs past
+  it, so the paste's bottom corner is the grid's last row after the grow and there is no row below it for a
+  merge to extend into. A merge overlapping the paste and extending outside it therefore has to extend ABOVE,
+  which means it contains the paste's top corner (the origin). `pasteBlockAt` selects that origin before
+  pasting, so with the merge live the pre-paste `selectCell` snaps the anchor up to the merge's top-start
+  corner identically on both paths. Measured: a `{ row: 3, col: 0, rowspan: 2, colspan: 2 }` merge straddling
+  the boundary gives `[[3, 0, 6, 1]]` on both the validated and the validator-free paste. That is the case
+  `tests/e2e/paste-selection-validated-column.spec.ts` `corrects the selection when the paste covers a merged
+  area` pins.
+- **Column axis: open, and the fix introduces the divergence.** A paste narrower than the grid can overlap a
+  merge that extends sideways out of it without containing the paste origin, so no pre-paste snap fires.
+  Measured on a five-column grid, paste into cols 2-3 starting at the last row, merge `{ row: 4, col: 3,
+  rowspan: 1, colspan: 2 }` (overlaps the paste at col 3, extends to col 4): the synchronous paste ends on
+  `[[4, 2, 7, 3]]`, the validated one on `[[4, 2, 7, 4]]`.
+
+Not fixed here on purpose. The hook round's priority order is fixed (CopyPaste 80 before MergeCells 150), and
+both alternatives are worse than this narrow defect: a `queueMicrotask`/`_registerTimeout` hop to run the
+correction after `#unmergeAfterPaste` adds a new race and a new window for the user to move the selection
+first, and a post-`selectCell` shrink-back fights MergeCells' own documented selection expansion. This is a
+two-plugin hook-ordering interaction on a narrow shape (validated column AND a merge partially overlapping the
+paste sideways AND the paste extending past the last row). Unlike (a) and (b), which the fix merely fails to
+cover, this one the fix introduces, because the deferred correction did not exist before.
 
 ## Header copying
 

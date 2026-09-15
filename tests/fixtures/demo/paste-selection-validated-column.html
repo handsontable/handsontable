@@ -61,7 +61,8 @@
     // merge STRADDLES the paste boundary: it overlaps the paste origin (row 4) and extends one row
     // above it. `mergeCells` is active and its `beforeSetRangeStart` snapping and post-paste unmerge
     // run alongside the re-select. It is the interaction case for a paste over a merged area with a
-    // validated column - and the shape that shows a merge cannot make the two paths diverge here.
+    // validated column, and pins the ROW axis, where both paths agree (the column axis does not; see
+    // the plugin AGENTS.md "Scope" note (c)).
     window.htMerge = ({ on: true, off: false })[htParams.get('merge') ?? 'off'];
     if (window.htMerge === undefined) {
       throw new Error('Unknown ?merge= value: ' + JSON.stringify(htParams.get('merge')));
