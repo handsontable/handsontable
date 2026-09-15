@@ -17,6 +17,7 @@ import { Renderer } from '../render';
 import ColumnUtils from '../axisSizing/columnUtils';
 import RowUtils from '../axisSizing/rowUtils';
 import { runDrawCycle } from './drawCycle';
+import { getSpreaderOffset } from '../overlay/spreaderOffset';
 
 /**
  * Assembles the Table module's dependencies from the engine composition context. Shared by the
@@ -312,6 +313,18 @@ class Table {
       shouldPaintCell: this.wtSettings.getSettingPure<ShouldPaintCell>('shouldPaintCell'),
       stylesHandler: this.wtSettings.getSetting('stylesHandler'),
     });
+  }
+
+  /**
+   * Returns the offset at which the spreader - the box holding the rendered rows and columns - is
+   * placed inside the hider, in physical pixels (`x` is negative in RTL). The spreader is moved with
+   * a transform, so `offsetTop`/`offsetLeft` and the `offset()` helper do not see this distance;
+   * add it wherever a cell's document position is compared against an element outside the spreader.
+   *
+   * @returns {{ x: number, y: number }}
+   */
+  getSpreaderOffset(): { x: number; y: number } {
+    return getSpreaderOffset(this.spreader);
   }
 
   /**

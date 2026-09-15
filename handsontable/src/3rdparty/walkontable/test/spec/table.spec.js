@@ -395,6 +395,112 @@ describe('WalkontableTable', () => {
     expect(lastRowBottom).toBeGreaterThanOrEqual(holderBottom - 1);
   });
 
+  it('should paint each cell once on a refilled draw, not once per refill pass (DEV-2908)', async() => {
+    // Same fixture as #6452 above. The shrink draw takes several refill passes; each pass grows
+    // the band's bottom edge while the start row and the column band stay put, so every pass after
+    // the first must paint only the rows it appended. The total over the draw is therefore exactly
+    // one paint per cell of the final band - painting the whole band on each pass would make it
+    // the sum of the band sizes of every pass.
+    createDataArray(100, 4);
+    spec().$wrapper.width(300).height(300);
+
+    let tallRows = true;
+    const cellRenderer = jasmine.createSpy('cellRenderer').and.callFake((row, column, TD) => {
+      TD.innerHTML = tallRows && row >= 1 && row <= 3
+        ? `<div style="height: 200px">${getData(row, column)}</div>`
+        : getData(row, column);
+    });
+    const shouldPaintCell = jasmine.createSpy('shouldPaintCell').and.returnValue(true);
+
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      cellRenderer,
+      shouldPaintCell,
+    });
+
+    wt.draw();
+    wt.draw();
+
+    expect(getTableMaster().find('tbody tr').length).toBeLessThanOrEqual(3);
+
+    tallRows = false;
+    cellRenderer.calls.reset();
+    shouldPaintCell.calls.reset();
+    wt.draw();
+
+    const renderedCells = getTableMaster().find('tbody tr').length * getTotalColumns();
+
+    expect(getTableMaster().find('tbody tr').length).toBeGreaterThanOrEqual(13);
+    expect(cellRenderer).toHaveBeenCalledTimes(renderedCells);
+    expect(shouldPaintCell).toHaveBeenCalledTimes(renderedCells);
+    // Every row of the final band carries its content: the appended rows were painted, the earlier
+    // ones kept what the first pass painted.
+    getTableMaster().find('tbody tr').each((index, TR) => {
+      expect(TR.cells[0].textContent).toBe(`${getData(index, 0)}`);
+    });
+
+    // The window applies to the refill's passes only: a plain redraw paints the whole band again.
+    cellRenderer.calls.reset();
+    wt.draw();
+
+    expect(cellRenderer).toHaveBeenCalledTimes(renderedCells);
+  });
+
+  it('should repaint the whole band on every refill pass when the band renders a merged cell (DEV-2908)', async() => {
+    // Same fixture as above, plus one cell carrying a `rowspan` the way MergeCells' anchor does. A
+    // merged grid takes no paint window (the plugin writes neighbor heights from pre-measure row
+    // heights), so the band's first cell is painted once per band render — pass 1 plus every refill
+    // pass — instead of once for the whole draw. No overlay clone renders in this table, so
+    // `renderCycleSeq` counts the master's band renders alone.
+    createDataArray(100, 4);
+    spec().$wrapper.width(300).height(300);
+
+    let tallRows = true;
+    const cellRenderer = jasmine.createSpy('cellRenderer').and.callFake((row, column, TD) => {
+      TD.innerHTML = tallRows && row >= 1 && row <= 3
+        ? `<div style="height: 200px">${getData(row, column)}</div>`
+        : getData(row, column);
+
+      if (row === 0 && column === 3) {
+        TD.setAttribute('rowspan', '2');
+      } else {
+        TD.removeAttribute('rowspan');
+      }
+    });
+
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      cellRenderer,
+    });
+
+    wt.draw();
+    wt.draw();
+
+    expect(getTableMaster().find('tbody tr').length).toBeLessThanOrEqual(3);
+
+    tallRows = false;
+    cellRenderer.calls.reset();
+
+    const renderCycleSeqBefore = wt.wtViewport.renderCycleSeq;
+
+    wt.draw();
+
+    const bandRenders = wt.wtViewport.renderCycleSeq - renderCycleSeqBefore;
+    const firstCellPaints = cellRenderer.calls.allArgs()
+      .filter(([row, column]) => row === 0 && column === 0)
+      .length;
+
+    // The shrink really took refill passes, and each of them repainted the first cell.
+    expect(getTableMaster().find('tbody tr').length).toBeGreaterThanOrEqual(13);
+    expect(bandRenders).toBeGreaterThan(1);
+    expect(firstCellPaints).toBe(bandRenders);
+    expect(getTableMaster().find('tbody tr:first td:eq(3)').attr('rowspan')).toBe('2');
+  });
+
   it('should use column width function to get column width', async() => {
     spec().$wrapper.width(600);
 
@@ -866,6 +972,9 @@ describe('WalkontableTable', () => {
 
       tallRows = false;
       cellRenderer.calls.reset();
+
+      const renderCycleSeqBefore = wt.wtViewport.renderCycleSeq;
+
       wt.draw();
 
       const $rows = getTableMaster().find('tbody tr');
@@ -876,17 +985,18 @@ describe('WalkontableTable', () => {
       expect($rows.length).toBeGreaterThanOrEqual(13);
       expect(lastRowBottom).toBeGreaterThanOrEqual(holderBottom - 1);
 
-      // The cascade really spent more than one refill pass: the band's first cell re-rendered once
-      // per band render. The exact count is offset-sensitive (the ±1 rendering offset at the band
-      // edges decides which stale record caps which pass), so pin the range: at least the initial
-      // render plus two refill passes (one per stale out-of-band record), at most the initial
-      // render plus MAX_ROWS_BAND_REFILL_PASSES.
-      const firstCellRenders = cellRenderer.calls.allArgs()
-        .filter(([row, column]) => row === wt.wtTable.getFirstRenderedRow() && column === 0)
-        .length;
+      // The cascade really spent more than one refill pass: `renderCycleSeq` advances once per band
+      // render (the refill passes repaint only the rows they append, so cell paints cannot count the
+      // passes - see the DEV-2908 spec above). The exact count is offset-sensitive (the ±1 rendering
+      // offset at the band edges decides which stale record caps which pass), so pin the range: at
+      // least the initial render plus two refill passes (one per stale out-of-band record), at most
+      // the initial render plus MAX_ROWS_BAND_REFILL_PASSES.
+      const bandRenders = wt.wtViewport.renderCycleSeq - renderCycleSeqBefore;
 
-      expect(firstCellRenders).toBeGreaterThanOrEqual(3);
-      expect(firstCellRenders).toBeLessThanOrEqual(4);
+      expect(bandRenders).toBeGreaterThanOrEqual(3);
+      expect(bandRenders).toBeLessThanOrEqual(4);
+      // And the cascade painted each cell of the final band once, whatever the pass count.
+      expect(cellRenderer).toHaveBeenCalledTimes($rows.length * getTotalColumns());
     });
 
     it('should keep the rows the DOM already shows when the refill proposal starts lower (rows above the band shrank)', async() => {

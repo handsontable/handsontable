@@ -1,7 +1,6 @@
 name: Visual
 
-# Visual regression — the post-test budgeting gate (the orchestrator runs it
-# only after the functional tests pass). What renders is the `tier` input, one
+# Visual regression. What renders is the `tier` input, one
 # row of `VISUAL_TIERS` in visual-tests/src/config.mjs:
 #   pr    js × {main, main-dark} on chromium, plus a wrapper only when the
 #         `wrappers` input names it (the Checks scope router's `visual-wrappers`
@@ -25,7 +24,17 @@ name: Visual
 # 15.1 minutes per run, and no real regression in that window was confined to
 # one theme, browser or wrapper — every one hit all of them. Each render job
 # downloads the core + wrapper build artifacts, falling back to a local build
-# if an artifact is missing.
+# if an artifact is missing. The renders are two configs — multi-framework
+# chromium, and cross-browser chromium+firefox+webkit — run as a matrix; the
+# compare job then consumes both screenshot sets.
+#
+# Two callers, two shapes. On a pull request this is the post-test budgeting gate:
+# test.yml runs it only after the functional tests pass, and its verdict decides
+# whether the pull request can merge. On a develop push it is the golden seed, and
+# `visual-seed.yml` calls it FIRST — no functional gate, by design, because a
+# baseline describes what a commit renders rather than whether its tests passed
+# (that file's header has the reasoning). The seed also never downloads a Build
+# artifact, so it always takes the local-build fallback below.
 on:
   workflow_call:
     inputs:
@@ -52,6 +61,13 @@ jobs:
   render:
     name: ${{ matrix.config.name }}
     runs-on: ubuntu-latest
+    # A cap, because the seed's concurrency group deliberately never cancels: a
+    # render wedged on a browser install or an `aws s3 sync` would otherwise hold
+    # that group for GitHub's six-hour default and every push behind it waits —
+    # the same gap visual-seed.yml exists to close. Generous against the observed
+    # 9-11 minutes, since this job also builds the core, the three wrappers and
+    # the demos whenever it takes the artifact fallback.
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -130,6 +146,16 @@ jobs:
             npm run in handsontable build:umd.min
             npm run in handsontable build:languages
             npm run in handsontable build:languages.min
+            # Deliberately NOT build.yml's two theme UMD tasks (`build:themes-umd`,
+            # `build:themes-umd.min`). They emit `dist/themes/**` for the published
+            # package; the demos load a theme as a STYLESHEET from `styles/`
+            # (`examples/next/visual-tests/js/demo/src/index.js`), which
+            # `postbuild:partial` composes either way, so they change no pixel here.
+            # This is the only difference between the two lists, and the seed takes
+            # THIS one on every develop push — so a task that does affect rendering
+            # must be added to both, or the baseline drifts from every pull
+            # request's render with nothing to blame. `visual-seed.test.mjs` pins
+            # the delta to exactly these two names.
           fi
           # Composes a tree for the screenshot runs, not for publishing (no theme UMD
           # bundles on the fallback path), so it skips the packaging checks.
@@ -222,6 +248,9 @@ jobs:
   compare:
     name: Compare
     runs-on: ubuntu-latest
+    # Same reason as the render job's cap. Observed at 1.5-2.5 minutes; the fetch
+    # and publish of 1646 objects is the only part that can hang.
+    timeout-minutes: 30
     needs: [ render ]
     # Tags reach here through publish.yml -> test.yml. They are not base
     # branches: publishing would leave a full tree under `base/<tag>/` that
@@ -291,9 +320,10 @@ jobs:
 
             # `lts/*` is listed for correctness, but nothing triggers this
             # workflow on an LTS push today: test.yml pushes on master,
-            # develop.yml on develop, publish.yml on release/** and explicitly
-            # excludes lts/. So an LTS baseline is seeded by the first pull
-            # request into that branch and never refreshed -- see the caveat in
+            # visual-seed.yml on develop (NOT develop.yml — the seed moved out of
+            # it in DEV-2797), publish.yml on release/** and explicitly excludes
+            # lts/. So an LTS baseline is seeded by the first pull request into
+            # that branch and never refreshed -- see the caveat in
             # visual-tests/README.md.
             case "$REF_NAME" in
               develop|master|release/*|lts/*) ;;

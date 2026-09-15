@@ -450,6 +450,13 @@ export async function filterByCondition(
   if (value !== undefined) {
     const valueInput = page.getByRole('textbox', { name: 'Value', exact: true });
 
+    // BEFORE the click, not after it. Choosing a condition focuses this input on a 10 ms timer
+    // (`filters/component/condition.ts`, the `index === 0` branch), and the click focuses it too — so
+    // an assertion placed after the click passes on its first poll and waits for nothing, leaving the
+    // timer free to fire mid-typing. Waiting for the hand-off first is what makes the state
+    // deterministic; the click then only places the caret. `accepting-by-enter.spec.ts` waits the
+    // same way. The second input has no such timer (the engine defers only the first).
+    await expect(valueInput).toBeFocused();
     await valueInput.click();
     // The condition component also focuses this input on a 10 ms timer after the condition is chosen
     // (filters/component/condition.ts). Pinning the focus here keeps that timer from firing between the

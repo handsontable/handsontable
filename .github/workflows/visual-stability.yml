@@ -35,9 +35,13 @@ permissions:
   contents: read
 
 concurrency:
-  # Static prefix, per the repo rule (never the workflow-name expression).
-  group: visual-stability-${{ github.ref }}
-  cancel-in-progress: true
+  # Static prefix, per the repo rule (never the workflow-name expression), and keyed on the RUN
+  # rather than on the ref: a measurement only means something when all N renders finish, so two
+  # dispatches on one branch — `main-dark` and then `horizon` — must sit side by side instead of the
+  # second throwing away ten runners of the first mid-render. A per-run group never matches a sibling,
+  # so nothing here can cancel anything; the key is kept rather than dropped to say that on purpose.
+  group: visual-stability-${{ github.run_id }}
+  cancel-in-progress: false
 
 env:
   # The two spec groups behind every DEV-2797 sighting. Paths, not tags, so the
@@ -125,24 +129,47 @@ jobs:
         if: steps.gate.outputs.run == 'true'
         run: |
           mkdir -p visual-tests/screenshots
-          { lscpu | grep 'Model name' || echo 'Model name: unknown'; } > visual-tests/screenshots/runner.txt
+          # `-m1` and the anchor: some lscpu builds also print `BIOS Model name:`, and two lines here
+          # would spill through the verdict's Runners line (it strips one leading `Model name:`) and
+          # stop it grouping by machine.
+          { lscpu | grep -m1 '^Model name' || echo 'Model name: unknown'; } > visual-tests/screenshots/runner.txt
 
       # Order matters. The cross-browser config declares its own `webServer` on 8082 and,
       # with CI set, refuses to reuse a server it did not start — so it runs first and owns
       # the port for its duration. The multi-framework config has no `webServer`, so the
       # shared server is started afterwards and polled for readiness rather than slept on.
+      #
+      # Two things this step does NOT inherit from a normal render.
+      #
+      # `--retries=0` on all three. Both configs retry (2 and 1), and a retry overwrites the same
+      # screenshot path, so an iteration keeps whatever the LAST attempt drew. That hides exactly what
+      # this matrix measures: a stuck band now throws, Playwright re-runs the spec, and the retry's
+      # clean capture is the one compared. With no retries a stuck band becomes the missing-capture
+      # signal the verdict already reports. It costs nothing on a dispatch.
+      #
+      # A status collected per render instead of `bash -e`'s first-failure exit. Actions runs this
+      # block with -e, so one `selection` spec using up its budget ended the step and the two filters
+      # renders never ran at all — the verdict then listed every filters capture as missing, which
+      # reads as instability but was a skipped render, in the family this matrix exists to measure.
+      # The step still goes red at the end, so a broken render is not silent either.
       - name: Render the specs under investigation
         if: steps.gate.outputs.run == 'true'
         working-directory: visual-tests
         env:
           HOT_THEME_UNDER_TEST: ${{ inputs.theme }}
         run: |
-          npx playwright test --config playwright-cross-browser.config.ts --project=chromium --project=firefox --reporter=dot "$CROSS_SPECS"
+          status=0
+
+          npx playwright test --config playwright-cross-browser.config.ts --project=chromium --project=firefox --retries=0 --reporter=dot "$CROSS_SPECS" || status=1
+
           npm run serve-example &
           for i in $(seq 1 30); do curl -sf http://localhost:8082/ > /dev/null && break; sleep 1; done
           curl -sf http://localhost:8082/ > /dev/null || { echo '::error::serve-example did not come up on 8082'; exit 1; }
-          HOT_FRAMEWORK=js npx playwright test --project=chromium --reporter=dot "$MULTI_SPECS"
-          HOT_FRAMEWORK=js HOT_THEME="$HOT_THEME_UNDER_TEST" npx playwright test --project=chromium --reporter=dot "$MULTI_SPECS"
+
+          HOT_FRAMEWORK=js npx playwright test --project=chromium --retries=0 --reporter=dot "$MULTI_SPECS" || status=1
+          HOT_FRAMEWORK=js HOT_THEME="$HOT_THEME_UNDER_TEST" npx playwright test --project=chromium --retries=0 --reporter=dot "$MULTI_SPECS" || status=1
+
+          exit $status
 
       # `!cancelled()`, not the implicit success(): a spec that failed its retries in one
       # iteration still rendered the rest, and the verdict reports the gap as data.
@@ -153,6 +180,10 @@ jobs:
           name: stability-${{ matrix.iteration }}
           path: visual-tests/screenshots
           retention-days: 3
+          # "Re-run failed jobs" uploads under a name the first attempt already published; without
+          # this the render job fails on the upload and the verdict never sees the new captures.
+          # visual.yml carries the same flag for the same reason.
+          overwrite: true
 
   verdict:
     name: verdict
