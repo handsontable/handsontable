@@ -298,7 +298,7 @@ export class CopyPaste extends BasePlugin {
    * count. This plan is what `#onAfterChange` uses to re-select against the fresh count once the
    * write settles.
    *
-   * @type {[number, number, number, number] | null}
+   * @type {Array<number> | null}
    */
   #pastePlan: [number, number, number, number] | null = null;
   /**
@@ -310,7 +310,7 @@ export class CopyPaste extends BasePlugin {
    * what the deferred correction compares the live selection against, so a selection the user or
    * an `afterPaste` handler moved in the meantime is left alone.
    *
-   * @type {[number, number, number, number] | null}
+   * @type {Array<number> | null}
    */
   #appliedPasteRange: [number, number, number, number] | null = null;
   /**
