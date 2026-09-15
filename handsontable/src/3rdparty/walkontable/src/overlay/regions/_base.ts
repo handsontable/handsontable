@@ -24,6 +24,7 @@ import {
 } from '../scrollbarClearance';
 import { A11Y_PRESENTATION } from '../../../../../helpers/a11y';
 import { throwWithCause } from '../../../../../helpers/errors';
+import { getSpreaderOffset } from '../spreaderOffset';
 
 /**
  * Assembles the dependency set shared by every overlay (and its corner subclasses) from the engine
@@ -182,7 +183,7 @@ export abstract class Overlay {
    * viewport predicates (`isVerticallyScrollableByWindow()` / `isHorizontallyScrollableByWindow()`),
    * never through this field. The corner overlays, which have no axis of their own, hold the
    * single-answer trimming container of `getTrimmingContainer()` resolved at construction only – it
-   * is never refreshed – and position themselves from their two neighbours' owners, which
+   * is never refreshed – and position themselves from their two neighbors' owners, which
    * `Overlays#beforeDraw` re-resolves on every full draw.
    *
    * @type {HTMLElement | Window}
@@ -365,7 +366,7 @@ export abstract class Overlay {
    * Whether this overlay is currently keeping a strip clear along one of the scrollbar edges.
    *
    * The track band is drawn only where the answer is yes for at least one overlay. A band with nothing
-   * clipped behind it is a grey strip painted over live cells, and it swallows presses there.
+   * clipped behind it is a gray strip painted over live cells, and it swallows presses there.
    *
    * The strips are the single source of truth here, and an overlay publishes one only while its clone
    * is rendered - so this asks nothing else. Two gates for one decision is how this feature drifted: a
@@ -478,12 +479,14 @@ export abstract class Overlay {
     const fixedRowTop = rowIndex < this.wtSettings.getSetting<number>('fixedRowsTop');
     const fixedRowBottom = rowIndex >=
       this.wtSettings.getSetting<number>('totalRows') - this.wtSettings.getSetting<number>('fixedRowsBottom');
-    const spreader = this.clone.wtTable.spreader;
-
     const { geometryReader } = this.#deps;
+    // The spreader is placed with a transform (`overlay/spreaderOffset.ts`), which the offset chain
+    // does not see, so read the recorded offset. `x` is negative in RTL and the math below wants the
+    // distance from the inline start, hence the magnitude.
+    const { x: spreaderX, y: spreaderY } = getSpreaderOffset(this.clone.wtTable.spreader);
     const spreaderOffset = {
-      start: this.getRelativeStartPosition(spreader),
-      top: geometryReader.offsetTop(spreader)
+      start: Math.abs(spreaderX),
+      top: spreaderY,
     };
     const elementOffset = {
       start: this.getRelativeStartPosition(element),

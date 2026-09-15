@@ -118,6 +118,22 @@ const dictionary = {
   [C.PAGINATION_NEXT_PAGE]: 'Aller à la page suivante',
   [C.PAGINATION_LAST_PAGE]: 'Aller à la dernière page',
 
+  [C.SHEETS_BAR_SECTION]: 'Feuilles',
+  [C.SHEETS_BAR_ADD_SHEET]: 'Ajouter une feuille',
+  [C.SHEETS_BAR_ALL_SHEETS]: 'Toutes les feuilles',
+  [C.SHEETS_BAR_SHEET_MENU]: 'Actions de la feuille : [name]',
+  [C.SHEETS_BAR_RENAME_SHEET]: 'Nom de la feuille',
+  [C.SHEETS_BAR_ITEMS_DELETE]: 'Supprimer',
+  [C.SHEETS_BAR_ITEMS_DUPLICATE]: 'Dupliquer',
+  [C.SHEETS_BAR_ITEMS_RENAME]: 'Renommer',
+  [C.SHEETS_BAR_ITEMS_MOVE_RIGHT]: 'Déplacer à droite',
+  [C.SHEETS_BAR_ITEMS_MOVE_LEFT]: 'Déplacer à gauche',
+  [C.SHEETS_BAR_PAGE_PREV]: 'Faire défiler les feuilles vers l’arrière',
+  [C.SHEETS_BAR_PAGE_NEXT]: 'Faire défiler les feuilles vers l’avant',
+  [C.SHEETS_BAR_SHEET_CHANGED]: 'Feuille [name] activée',
+  [C.SHEETS_BAR_RENAME_REJECTED]: 'Nom de feuille inchangé : [name] est déjà utilisé',
+  [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Feuille',
+
   [C.LOADING_TITLE]: 'Chargement...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Fermer',
 

@@ -445,6 +445,10 @@ In the below configuration:
 
 ## Render hyperlinks in cells
 
+::: tip Built-in option
+To link the URLs in cell values without a custom renderer, use the [`autoLink`](@/guides/cell-features/clickable-links/clickable-links.md) option. It validates every URL against a fixed scheme allowlist for you.
+:::
+
 A common use of a custom renderer is to turn a cell value into a clickable hyperlink. The renderer reads the cell value, builds an anchor (`<a>`) element, and appends it to the cell's DOM node.
 
 ```js

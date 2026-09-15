@@ -1,3 +1,4 @@
+import { AutoLink } from './autoLink';
 import { AutoColumnSize } from './autoColumnSize';
 import { Autofill } from './autofill';
 import { AutoRowSize } from './autoRowSize';
@@ -33,6 +34,7 @@ import { NestedRows } from './nestedRows';
 import { Pagination } from './pagination';
 import { Search } from './search';
 import { SelectionHandles } from './selectionHandles';
+import { SheetsBar } from './sheetsBar';
 import { StretchColumns } from './stretchColumns';
 import { TouchScroll } from './touchScroll';
 import { TrimRows } from './trimRows';
@@ -52,6 +54,7 @@ import {
  */
 declare module './registry' {
   interface PluginClassMap {
+    autoLink: typeof AutoLink;
     autoColumnSize: typeof AutoColumnSize;
     autofill: typeof Autofill;
     autoRowSize: typeof AutoRowSize;
@@ -86,6 +89,7 @@ declare module './registry' {
     pagination: typeof Pagination;
     search: typeof Search;
     selectionHandles: typeof SelectionHandles;
+    sheetsBar: typeof SheetsBar;
     stretchColumns: typeof StretchColumns;
     touchScroll: typeof TouchScroll;
     trimRows: typeof TrimRows;
@@ -101,6 +105,7 @@ declare module './registry' {
  * Registers all available plugins.
  */
 export function registerAllPlugins() {
+  registerPlugin(AutoLink);
   registerPlugin(AutoColumnSize);
   registerPlugin(Autofill);
   registerPlugin(AutoRowSize);
@@ -135,6 +140,7 @@ export function registerAllPlugins() {
   registerPlugin(Pagination);
   registerPlugin(Search);
   registerPlugin(SelectionHandles);
+  registerPlugin(SheetsBar);
   registerPlugin(StretchColumns);
   registerPlugin(TouchScroll);
   registerPlugin(TrimRows);
@@ -146,6 +152,7 @@ export function registerAllPlugins() {
 }
 
 export {
+  AutoLink,
   AutoColumnSize,
   Autofill,
   AutoRowSize,
@@ -180,6 +187,7 @@ export {
   Pagination,
   Search,
   SelectionHandles,
+  SheetsBar,
   StretchColumns,
   TouchScroll,
   TrimRows,

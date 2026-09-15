@@ -64,6 +64,22 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   the target row well inside the band on every theme, which is why `cell(40, 3)`
   after an 800px window scroll in the same spec is safe. Distance from the
   band's edge is what decides, not whether the index is written down.
+- **A SHORT fixed-height fixture has no room to spare on the row axis, and
+  `hover()` turns that into a delayed failure somewhere else.** Playwright
+  scrolls a target into view before pressing it, so a `cell(row, col)` locator
+  is not only a position — it is a potential scroll. In a 260px grid,
+  `cell(5, 3)` is inside the band on `main` and `horizon` and below the fold on
+  `classic`; hovering it there scrolled the holder far enough to unrender row 1,
+  and the step that failed was a LATER hover over row 1, which timed out after
+  20s with `waiting for getByTestId('cell-1-1')` — a missing element, pointing
+  at neither the scroll nor the theme (DEV-2871). Two rules follow. Pick a cell
+  that cannot move: one a row or two below the header, in a column the fixture's
+  own floating UI does not cover. And remember the sibling failure with the same
+  symptom — a cell a portal element (a comment editor, a menu) is painted over
+  cannot receive the pointer either, so `hover()` waits out the whole timeout on
+  an element that is present and visible. Centralize the choice in one page-object
+  method so the reasoning is stated once
+  (`CommentsEditorResizePage.hoverCellWithoutComment()`).
 
 ## Fixture contract (never get these wrong)
 
@@ -317,3 +333,58 @@ recycled (the table's root, the grid), read every value a comparison needs in
 that same evaluation (`FrozenTallCellPage.rowHeights()`), and poll a pinned
 expected value rather than comparing two reads with each other — two reads
 that both landed before the draw agree with each other and prove nothing.
+
+**Where a flake goes.** In CI the config adds a `json` reporter
+(`test-results/report.json`, shipped inside the `playwright-report-*` failure
+artifact), and `.github/workflows/test-health.yml` collects every `flaky` or
+`unexpected` test of a red run into the cross-run ledger at
+<https://handsontable.github.io/handsontable/test-health/>: per test, 7- and
+30-day counts, distinct runs, legs, and a "needs ticket" flag at 2+ distinct
+runs in 30 days — the playbook's line for a fix or migration ticket. A `flaky`
+outcome (failed, then passed on retry) reaches the ledger only because
+`failOnFlakyTests` fails the leg; keep `retries` at 1 in CI for that to hold.
+The report path is pinned by `.github/scripts/lib/test-health.mjs` and asserted
+in `.github/scripts/__tests__/test-health.test.mjs`, so moving it means changing
+all three places.
+
+## Quarantine
+
+`failOnFlakyTests` stays on: a test that passes only on retry fails the leg, and
+fixing the flake is the answer. Quarantine is the narrow, expiring, capped
+exception for a *known* flake that would otherwise redden every unrelated pull
+request until the fix lands — and it exists in this tier only. The frozen
+Jasmine suite has no quarantine: a flaky legacy spec migrates here instead.
+
+- **Tag through the helper, never by hand.**
+  `test('title', quarantined('DEV-1234', '2026-10-08', 'why'), async() => …)`
+  (`fixtures/quarantine.ts`). The helper writes the `@quarantine` tag and a
+  `quarantine` annotation carrying the owning task id, the expiry and the
+  reason. A bare `'@quarantine'` literal is a lint error, and an annotation the
+  reporter cannot read fails the run: no task id, no quarantine.
+- **Locally too, not just "the leg".** The reporter runs in every configuration, and its
+  downgrade only fires when a live quarantine covers the flake. So `npx playwright test` locally
+  (where `failOnFlakyTests` is off) now exits 1 on an *un*quarantined flaky test that Playwright
+  itself would have passed — the same verdict CI reaches. Quarantine or fix the flake; do not
+  reach for `.skip`. The expiry horizon is re-checked at run time as well as at load, so a
+  hand-written annotation with a far-future date does not buy an unbounded downgrade.
+- **A quarantined test still runs and still reports.** Only its *flaky* verdict
+  is downgraded from "fail the leg" to "report": the reporter
+  (`reporters/quarantine.ts`, last in the reporter list) prints it, writes a
+  `::warning` on the checks tab, and sets the step output `quarantined-flaky`
+  so `e2e.yml` still uploads the report and the ledger records the test. A test
+  that fails outright is not covered — quarantine is for flakes, not for
+  failures. Never `.skip` a flake.
+- **Expiry: at most 30 days out**, checked when the spec loads. Past the date
+  the flaky verdict fails the leg again, and the tag on a passing test raises a
+  warning asking to be removed.
+- **Cap: 6 quarantined tests at once**, counted as distinct tests (one test
+  across six projects is one). The entry after the cap fails the run even when
+  every test passes; fix one before parking another.
+- **Visible.** The ledger at <https://handsontable.github.io/handsontable/test-health/>
+  shows quarantined tests with their entry, so nothing is parked silently.
+
+The decision logic is pure (`lib/quarantine-policy.mjs`, tested in
+`lib/__tests__/` through the root `test:tooling`); `e2e/quarantine-policy.spec.ts`
+proves the exit codes end to end by running synthetic projects in a child
+process (no browser). `QUARANTINE_CAP` and `QUARANTINE_MAX_DAYS` live in the
+policy module; change them there and in this section together.

@@ -84,7 +84,7 @@ function padRowsToWidest(data: unknown[][]) {
 const CLIPBOARD_PARSE_WARN_KEY = 'copyPaste.clipboardParse';
 
 /**
- * Reads the `text/plain` clipboard flavour.
+ * Reads the `text/plain` clipboard flavor.
  *
  * Shared by the no-table branch and by the fallback taken when the HTML parse throws, so the two
  * cannot drift on the trailing-newline rule below.
@@ -1040,7 +1040,7 @@ export class CopyPaste extends BasePlugin {
         // Every HTML parse entry point is a Trusted Types sink, so `parseFromString` throws under
         // `require-trusted-types-for 'script'` unless the value came from a policy - which it did
         // not when no `sanitizer` is configured, or when one is configured and returns a plain
-        // string. Losing the source-data flavour costs object-key fidelity on an internal paste;
+        // string. Losing the source-data flavor costs object-key fidelity on an internal paste;
         // letting the throw escape would kill the paste outright.
         try {
           const parsedSourceConfig = htmlToGridSettings(
@@ -1060,8 +1060,8 @@ export class CopyPaste extends BasePlugin {
       if (textHTML && /(<table)|(<TABLE)/g.test(String(textHTML))) {
         // Same sink as the source-data parse above. Falling back to `text/plain` is what the
         // no-table branch below already does, so a page enforcing Trusted Types with no policy of
-        // its own still pastes - it pastes the plain-text flavour, losing only the cell types and
-        // styling the HTML flavour carried.
+        // its own still pastes - it pastes the plain-text flavor, losing only the cell types and
+        // styling the HTML flavor carried.
         try {
           const parsedConfig = htmlToGridSettings(textHTML, this.hot.rootDocument, {
             normalize: typeof textHTML === 'string',
@@ -1073,7 +1073,7 @@ export class CopyPaste extends BasePlugin {
 
           const plainText = readPlainText(clipboardData);
 
-          // Only when there is something to fall back TO. An empty `text/plain` flavour parses
+          // Only when there is something to fall back TO. An empty `text/plain` flavor parses
           // into `[['']]`, which the guard in `onPaste` does not stop, so assigning it would blank
           // the target cell - a worse outcome than the no-op that `undefined` produces, and this
           // payload was valid markup the parser simply would not accept.
@@ -1096,7 +1096,7 @@ export class CopyPaste extends BasePlugin {
   /**
    * Warns once that a clipboard payload could not be parsed, and why that is usually Trusted Types.
    *
-   * Deliberately says nothing about which flavour landed. Both parse sites share this message and
+   * Deliberately says nothing about which flavor landed. Both parse sites share this message and
    * one `warnOnce` key, and their consequences differ: a refused `text/html` payload falls back to
    * `text/plain`, while a refused source-data payload costs only object-key fidelity and leaves the
    * paste itself intact. Naming one outcome would print a false statement whenever the other site
@@ -1124,7 +1124,7 @@ export class CopyPaste extends BasePlugin {
    * values it writes, so an unprojected header reaches a rich-text target as the visible characters
    * `<b>Total</b>` rather than as bold text - the same mismatch the option exists to remove.
    *
-   * The source-data flavour is left alone. It carries the values behind the cells so that a copy
+   * The source-data flavor is left alone. It carries the values behind the cells so that a copy
    * between grids restores them exactly, and a projection would corrupt that round trip.
    *
    * The rows are mapped rather than mutated, so the array handed to `beforeCopy` and `afterCopy`

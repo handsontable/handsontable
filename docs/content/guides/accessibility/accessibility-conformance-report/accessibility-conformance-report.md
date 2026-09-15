@@ -278,7 +278,7 @@ Conformance levels used in this report:
     <tr>
       <td><strong>3.3.2 Labels or Instructions</strong></td>
       <td>Partially Supports</td>
-      <td>The top-left corner button ("Select whole grid") provides an accessible name via <code>aria-label</code> for screen reader users but has no visible label, icon, or text to communicate its purpose to sighted users - particularly those with cognitive impairments (Normal severity). Other controls are generally labelled appropriately.</td>
+      <td>The top-left corner button ("Select whole grid") provides an accessible name via <code>aria-label</code> for screen reader users but has no visible label, icon, or text to communicate its purpose to sighted users - particularly those with cognitive impairments (Normal severity). Other controls are generally labeled appropriately.</td>
     </tr>
     <tr>
       <td><strong>3.3.7 Redundant Entry</strong></td>
@@ -492,7 +492,7 @@ This report targets **WCAG 2.2 Level AA**, published October 2023. WCAG 2.2 remo
 - **Level A (inherited from WCAG 2.1, now formally assessed):** 2.5.1 Pointer Gestures (Partially Supports), 2.5.2 Pointer Cancellation (Supports), 2.5.3 Label in Name (Partially Supports), 2.5.4 Motion Actuation (Not Applicable).
 - **Level AA (new):** 2.4.11 Focus Not Obscured Minimum (Not Evaluated - frozen rows/columns require dedicated testing), 2.5.7 Dragging Movements (Partially Supports - drag alternatives incomplete), 2.5.8 Target Size Minimum (Not Evaluated - formal verification pending), 3.3.8 Accessible Authentication Minimum (Not Applicable).
 
-The Kinaole audit report (December 2025 - January 2026) covered WCAG 2.1 A and AA criteria. The nine WCAG 2.2-specific criteria have been assessed internally and are clearly labelled in the tables above. A future audit cycle will include formal third-party evaluation of all WCAG 2.2 additions.
+The Kinaole audit report (December 2025 - January 2026) covered WCAG 2.1 A and AA criteria. The nine WCAG 2.2-specific criteria have been assessed internally and are clearly labeled in the tables above. A future audit cycle will include formal third-party evaluation of all WCAG 2.2 additions.
 
 ## Legal disclaimer
 

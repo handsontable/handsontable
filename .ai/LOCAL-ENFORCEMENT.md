@@ -18,10 +18,27 @@ the same floor with no manual step. (Manual fallback: `npx lefthook install` and
 | Agent-time (Claude Code) | `PostToolUse` (Edit/Write) | `eslint --fix` the edited spec | genuine lint errors in that spec |
 | Agent-time (Claude Code) | `Stop` (turn end) | new-Jasmine check + the touched Playwright specs + the touched **unit** tests | a **new** `*.spec.js`; a **failing** touched spec or unit test |
 | **pre-commit** (lefthook) | `scripts/lint-staged.mjs` | `eslint --fix` staged source/specs (determinism + anti-gaming), re-stage fixes | lint **errors** (warnings surface) |
-| **pre-push** (lefthook) | `scripts/pre-push.mjs` | presence gate (block) → eslint on changed → **determinism ratchet** (block) → test-weakening detector (warn) → changed Playwright specs → changed **unit** tests | missing test; lint errors; a **new** `sleep()`/`it.flaky()`/skip on an added spec line; a failing spec or unit test |
+| **pre-push** (lefthook) | `scripts/pre-push.mjs` | presence gate (block) → **changelog entry filenames** (block) → eslint on changed → **determinism ratchet** (block) → test-weakening detector (warn) → changed Playwright specs → changed **unit** tests | missing test; a `.changelogs/*.json` not named after the number it cites; lint errors; a **new** `sleep()`/`it.flaky()`/skip on an added spec line; a failing spec or unit test |
 | CI | `test.yml` + gates | the authoritative mirror of the above (the ratchet is a step of `Lint / core`) | see the pipeline |
 
 Same rules, escalating authority: **agent-time → pre-commit → pre-push → CI.**
+
+**The changelog entry-filename check** (`assertEntryFilenames` in `bin/changelog`,
+pure logic in `bin/lib/entry-filenames.js`). It asserts that every
+`.changelogs/*.json` is named `<issueOrPR>.json` — a plain number, equal to the
+number the entry cites. That is what makes "one PR, one entry" enforceable
+rather than advisory: a number owns exactly one file, so a
+`13442-changed.json` beside `13442.json` cannot exist. It is diff-independent,
+which is the point — it needs no base ref, and a rename cannot dodge it the way
+it dodges a check scoped to a PR's added files. The same function runs at three
+call sites: `consume` and `sync` in `bin/changelog` (so `checks.yml`'s
+`consume --date 2050-01-01 --dry-run` step covers every PR), and pre-push. The
+diff-scoped half of the rule — at most two entry files per PR, lifted by
+`[multiple changelogs]` in the description — lives in CI only, in
+`evaluateChangelogGate`, since it needs the PR's file list. Note this gate is
+**not** wired agent-time: the Claude hooks fail open in a linked worktree
+(`${CLAUDE_PROJECT_DIR}` does not follow the session there), which is exactly
+where the violations that prompted it were written, while git hooks do run.
 
 **The determinism ratchet** (`.github/scripts/lint-ratchet.mjs`, pure logic in
 `.github/scripts/lib/lint-ratchet.mjs`). The frozen Jasmine suite carries ~560

@@ -676,6 +676,19 @@ Only a cell whose root expression is `HYPERLINK` becomes a link. A nested call s
 `=CONCATENATE("see ", HYPERLINK("https://handsontable.com"))` evaluates to text, so the cell renders
 as text.
 
+To configure the links, set `hyperlinks` to an object: `target` is `'_blank'` (default) or `'_self'`, and
+`schemes` narrows the allowed URL schemes to a subset of `'http'`, `'https'`, `'mailto'`, and `'tel'`.
+
+```js
+formulas: {
+  engine: HyperFormula,
+  hyperlinks: {
+    target: '_self',
+    schemes: ['http', 'https'],
+  },
+},
+```
+
 ### Allowed URL schemes
 
 Handsontable creates a link only for the `http`, `https`, `mailto`, and `tel` schemes. Any other
@@ -685,17 +698,15 @@ the URL that the formula produces, so a URL that comes from cell data is checked
 ### Keyboard access
 
 A link inside a cell stays out of the tab order, so tabbing still moves between cells. To open the
-link of the selected cell, press <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd>. Links open in a new browser
-tab.
+link of the selected cell, press <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd>. Links open where the `target` setting says, a new browser tab by default.
 
 ### Styling
 
-Each link element gets the `ht-hyperlink` class, and takes its color from the `--ht-link-color` and
+Each link element gets the `ht-link` and `ht-hyperlink` classes, and takes its color from the `--ht-link-color` and
 `--ht-link-hover-color` [theme variables](@/guides/styling/themes/themes.md).
 
-To render links in cells that hold plain URLs rather than formulas, write a
-[custom renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md#render-hyperlinks-in-cells)
-instead.
+To render links in cells that hold plain URLs rather than formulas, use the
+[`autoLink`](@/guides/cell-features/clickable-links/clickable-links.md) option.
 
 ## [`afterFormulasValuesUpdate`](@/api/hooks.md#afterformulasvaluesupdate) hook
 

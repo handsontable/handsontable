@@ -169,7 +169,7 @@
   --ht-icon-button-hit-area-size: var(--ht-sizing-size-6);
   --ht-icon-button-hover-border-color: light-dark(var(--ht-colors-palette-100), var(--ht-colors-palette-700));
   --ht-icon-button-hover-background-color: light-dark(var(--ht-colors-palette-100), var(--ht-colors-palette-700));
-  --ht-icon-button-hover-icon-color: light-dark(var(--ht-colors-palette-300), var(--ht-colors-palette-400));
+  --ht-icon-button-hover-icon-color: light-dark(var(--ht-colors-palette-400), var(--ht-colors-palette-300));
   --ht-icon-button-active-border-color: light-dark(var(--ht-colors-primary-400), var(--ht-colors-primary-200));
   --ht-icon-button-active-background-color: var(--ht-accent-color);
   --ht-icon-button-active-icon-color: var(--ht-colors-white);
@@ -314,6 +314,18 @@
   --ht-pagination-button-focus-border-color: var(--ht-accent-color);
   --ht-pagination-button-focus-foreground-color: var(--ht-foreground-color);
   --ht-pagination-button-focus-background-color: var(--ht-pagination-bar-background-color);
+  --ht-sheets-bar-horizontal-padding: var(--ht-sizing-size-2);
+  --ht-sheets-bar-background-color: var(--ht-bar-background-color);
+  --ht-sheets-bar-tab-horizontal-padding: var(--ht-sizing-size-3);
+  --ht-sheets-bar-tab-vertical-padding: var(--ht-sizing-size-2);
+  --ht-sheets-bar-tab-foreground-color: var(--ht-bar-foreground-color);
+  --ht-sheets-bar-tab-background-color: var(--ht-bar-background-color);
+  --ht-sheets-bar-tab-hover-foreground-color: light-dark(var(--ht-colors-palette-950), var(--ht-colors-white));
+  --ht-sheets-bar-tab-hover-background-color: light-dark(var(--ht-colors-palette-100), var(--ht-colors-palette-700));
+  --ht-sheets-bar-tab-active-foreground-color: light-dark(var(--ht-colors-palette-950), var(--ht-colors-white));
+  --ht-sheets-bar-tab-active-background-color: light-dark(var(--ht-colors-palette-100), var(--ht-colors-palette-700));
+  --ht-sheets-bar-tab-active-border-width: 1px;
+  --ht-sheets-bar-tab-active-border-color: var(--ht-cell-selection-border-color);
   --ht-dialog-semi-transparent-background-color: light-dark(var(--ht-colors-white), var(--ht-colors-palette-950));
   --ht-dialog-semi-transparent-background-opacity: 80%;
   --ht-dialog-solid-background-color: light-dark(var(--ht-colors-white), var(--ht-colors-palette-950));
@@ -467,7 +479,8 @@
 
 [class*=ht-theme-main] .htDropdownMenu table tbody tr td .htItemWrapper span.selected::after,
 [class*=ht-theme-main] .htContextMenu table tbody tr td .htItemWrapper span.selected::after,
-[class*=ht-theme-main] .htFiltersConditionsMenu table tbody tr td .htItemWrapper span.selected::after {
+[class*=ht-theme-main] .htFiltersConditionsMenu table tbody tr td .htItemWrapper span.selected::after,
+[class*=ht-theme-main] .htSheetsBarMenu table tbody tr td .htItemWrapper span.selected::after {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   -webkit-mask-size: contain;
@@ -574,5 +587,61 @@
   height: var(--ht-icon-size);
   -webkit-mask-size: contain;
   -webkit-mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 8L7 10L11 6' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
+  background-color: currentColor;
+}
+
+[class*=ht-theme-main] .ht-sheets-bar__add::before {
+  width: var(--ht-icon-size);
+  height: var(--ht-icon-size);
+  -webkit-mask-size: contain;
+  -webkit-mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M7.49988 11.6667C7.49988 11.9428 7.72374 12.1667 7.99988 12.1667C8.27602 12.1667 8.49988 11.9428 8.49988 11.6667V8.50002H11.6666C11.9427 8.50002 12.1666 8.27616 12.1666 8.00002C12.1666 7.72388 11.9427 7.50002 11.6666 7.50002H8.49988V4.33337C8.49988 4.05723 8.27602 3.83337 7.99988 3.83337C7.72374 3.83337 7.49988 4.05723 7.49988 4.33337V7.50002H4.33325C4.05711 7.50002 3.83325 7.72388 3.83325 8.00002C3.83325 8.27616 4.05711 8.50002 4.33325 8.50002H7.49988V11.6667Z' fill='currentColor'/%3E%3C/svg%3E%0A");
+  background-color: currentColor;
+}
+
+[class*=ht-theme-main] .ht-sheets-bar__all::before {
+  width: var(--ht-icon-size);
+  height: var(--ht-icon-size);
+  -webkit-mask-size: contain;
+  -webkit-mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath transform='translate(3.833 4.5)' d='M7.83301 6C8.10915 6 8.33301 6.22386 8.33301 6.5C8.33281 6.77597 8.10903 7 7.83301 7H0.5C0.22398 7 0.000197811 6.77597 0 6.5C0 6.22386 0.223858 6 0.5 6H7.83301ZM7.83301 3C8.10915 3 8.33301 3.22386 8.33301 3.5C8.33281 3.77597 8.10903 4 7.83301 4H0.5C0.22398 4 0.000197811 3.77597 0 3.5C0 3.22386 0.223858 3 0.5 3H7.83301ZM7.83301 0C8.10915 0 8.33301 0.223858 8.33301 0.5C8.33281 0.775974 8.10903 1 7.83301 1H0.5C0.22398 1 0.000197811 0.775974 0 0.5C0 0.223858 0.223858 0 0.5 0H7.83301Z' fill='currentColor'/%3E%3C/svg%3E");
+  background-color: currentColor;
+}
+
+[class*=ht-theme-main] .ht-sheets-bar__tab-chevron::after {
+  width: var(--ht-icon-size);
+  height: var(--ht-icon-size);
+  -webkit-mask-size: contain;
+  -webkit-mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11.0002 6.66663C11.4262 6.66663 11.6487 7.15963 11.3917 7.47813L11.3537 7.52013L8.35372 10.5201C8.26762 10.6062 8.15307 10.6579 8.03156 10.6656C7.91005 10.6732 7.78992 10.6363 7.69372 10.5616L7.64672 10.5201L4.64672 7.52013L4.60522 7.47313L4.57822 7.43463L4.55122 7.38663L4.54272 7.36863L4.52922 7.33513L4.51322 7.28113L4.50822 7.25463L4.50322 7.22463L4.50122 7.19613V7.13713L4.50372 7.10813L4.50822 7.07813L4.51322 7.05213L4.52922 6.99813L4.54272 6.96463L4.57772 6.89863L4.61022 6.85363L4.64672 6.81313L4.69372 6.77163L4.73222 6.74463L4.78022 6.71763L4.79822 6.70913L4.83172 6.69563L4.88572 6.67963L4.91222 6.67463L4.94222 6.66963L4.97072 6.66763L11.0002 6.66663Z' fill='currentColor'/%3E%3C/svg%3E%0A");
+  background-color: currentColor;
+}
+
+[class*=ht-theme-main] .ht-sheets-bar__page-prev::before {
+  width: var(--ht-icon-size);
+  height: var(--ht-icon-size);
+  -webkit-mask-size: contain;
+  -webkit-mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9.49268 11.2929L6.19978 8.00001L9.49268 4.70712' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
+  background-color: currentColor;
+}
+
+[class*=ht-theme-main] [dir="rtl"] .ht-sheets-bar__page-prev::before {
+  width: var(--ht-icon-size);
+  height: var(--ht-icon-size);
+  -webkit-mask-size: contain;
+  -webkit-mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6.64648 10.9393L9.93938 7.64644L6.64648 4.35354' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
+  background-color: currentColor;
+}
+
+[class*=ht-theme-main] .ht-sheets-bar__page-next::before {
+  width: var(--ht-icon-size);
+  height: var(--ht-icon-size);
+  -webkit-mask-size: contain;
+  -webkit-mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6.64648 10.9393L9.93938 7.64644L6.64648 4.35354' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
+  background-color: currentColor;
+}
+
+[class*=ht-theme-main] [dir="rtl"] .ht-sheets-bar__page-next::before {
+  width: var(--ht-icon-size);
+  height: var(--ht-icon-size);
+  -webkit-mask-size: contain;
+  -webkit-mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9.49268 11.2929L6.19978 8.00001L9.49268 4.70712' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
   background-color: currentColor;
 }

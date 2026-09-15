@@ -519,7 +519,7 @@ export class BaseEditor {
   }
 
   /**
-   * Verifies result of validation or closes editor if user's cancelled changes.
+   * Verifies result of validation or closes editor if user's canceled changes.
    *
    * @param {boolean|undefined} result If `false` and the cell using allowInvalid option,
    *                                   then an editor won't be closed until validation is passed.
@@ -639,6 +639,12 @@ export class BaseEditor {
     const gridMostRightPos = rootWindow.innerWidth - containerOffset.left - containerWidth;
     const { wtTable: overlayTable } = wtOverlays.getParentOverlay(TD) ?? this.hot.view._wt;
     const overlayName = overlayTable.name;
+    // `offset()` walks the layout chain and misses the transform that places the spreader
+    // (`walkontable/src/overlay/spreaderOffset.ts`); fold that offset into the cell's document position.
+    const spreaderOffset = overlayTable.getSpreaderOffset();
+
+    currentOffset.top += spreaderOffset.y;
+    currentOffset.left += spreaderOffset.x;
 
     const scrollTop = ['master', 'inline_start'].includes(overlayName) ? containerScrollTop : 0;
     const scrollLeft = ['master', 'top', 'bottom'].includes(overlayName) ? containerScrollLeft : 0;
@@ -683,7 +689,7 @@ export class BaseEditor {
     // The position above shifted the editor 1px towards the inline start so that it covers the
     // gridline the previous cell draws on its inline-end side. A cell that draws its OWN
     // inline-start border keeps that gridline inside its box, so there is nothing to cover and the
-    // shift is cancelled here. Which cells those are is not a fixed index: with row headers the
+    // shift is canceled here. Which cells those are is not a fixed index: with row headers the
     // header owns the gridline and column 0 draws none (#6673), and `htFirstDatasetColumnNotRendered`
     // takes it off the first rendered column too - so read the border rather than the index, and
     // key it off the same value that sizes the editor below, or the two disagree by a pixel.

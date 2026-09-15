@@ -1,4 +1,5 @@
 import { type Locator, type Page, expect } from '@playwright/test';
+import { afterAnimationFrames } from '../frames';
 import { awaitBundle } from '../bundle';
 
 export interface HookLogEntry {
@@ -233,18 +234,7 @@ export class RefreshDimensionsPage {
    * assertions poll the hook log instead.
    */
   async afterAnimationFrames(count: number): Promise<void> {
-    await this.page.evaluate(frames => new Promise<void>(resolve => {
-      const step = (left: number) => {
-        if (left <= 0) {
-          resolve();
-
-          return;
-        }
-        requestAnimationFrame(() => step(left - 1));
-      };
-
-      step(frames);
-    }), count);
+    await afterAnimationFrames(this.page, count);
   }
 
   /**

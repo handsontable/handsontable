@@ -190,6 +190,50 @@ They are written in different places and can drift. Keep this in mind:
   is still on the right cell. `moveCellsMeta()` resets the moved block's own meta rather than carrying
   it across, because `LazyFactoryMap` has no move primitive; the alternative, `getCellMetas()`, takes
   visual indexes, materializes meta for every column and fires `afterSetCellMeta` per cell.
+- **Removing a parent must reach every depth, and a two-level fixture cannot tell you whether it
+  does.** `#onBeforeRemoveRow()` rewrites the core's list of rows to remove, and the data side and the
+  index side of that removal are driven by different things: `DataManager#filterData()` splices the
+  parent OBJECT out of its own parent, which takes the whole subtree with it, while
+  `rowIndexMapper.removeIndexes()` only loses the rows this hook listed. So a descendant left off the
+  list survives as a row with no source row behind it — a blank row that reads back as `null` and that
+  no further "Remove row" can clear, because it is not in the tree any more. The hook used to add the
+  parent plus its **direct children** only, so everything from the third level down was left behind
+  (DEV-56). Two levels is correct by coincidence there — "direct children" and "all descendants" are
+  the same set — which is why the whole suite stayed green: **`getSimplerNestedData()` has leaf
+  children only**, and the only remove-a-parent spec ran on it. Reach for
+  `getMoreComplexNestedData()`, or the four-level Playwright fixture
+  (`tests/fixtures/demo/nested-rows-remove-parent.html`), before believing a removal test.
+  **The expansion must stay bounded by the flatten CACHE, never by the live tree**, and the tempting
+  shortcut is exactly what breaks it. `cacheNode()` flattens depth-first, so a parent's descendants
+  *are* the contiguous block right after it — but that invariant only holds **while the cache matches
+  the tree**, and **nothing on the render path re-caches** — `rewriteCache()` is called only by the
+  tree operations listed at the `getRowIndex()` landmine above, and a plain `render()` is not one of
+  them. So
+  `physicalIndex + 1 … physicalIndex + countChildren(physicalIndex)` reads its SIZE from the live
+  `__children` while the indexes resolve against the cache: push one child straight into the source
+  data, call `render()`, then remove the parent, and the range runs past the parent's own subtree and
+  silently deletes the next sibling parent and its children (measured: 7 rows → 1, source 0 — worse
+  than the blank rows it replaced). `#collectDescendants()` therefore recurses over `__children` and
+  keeps only what `getRowIndex()` resolves — a row the cache does not know has no index to remove, and
+  the walk **stops** there rather than continuing into its children. In a consistent cache that second
+  half is a no-op, because `cacheNode()` caches a parent before its children, so an unknown node has no
+  known descendants. It earns its place in exactly the drifted state this bullet is about: a descendant
+  the cache still remembers under a parent it no longer knows would hand back an index that now
+  addresses a different row, which is the same way the range version destroyed a sibling branch. Two more rules ride along. Keep the `Array.isArray(__children)` guard: `cacheNode()`
+  iterates whatever it is handed, so `__children: 'abc'` is cached as one node per character, and a
+  walk that trusts it destroys the sibling rows. And **never `physicalRows.push(...list)`** — the list
+  is now one entry per descendant, so the spread overflows the call stack (between 80k and 130k rows),
+  which the plugin-wide `arr.push(...bigArray)` ban below already forbids. The order of the returned
+  list does not matter, and both reasons are worth knowing so nobody adds a sort: `DataMap#removeRow`
+  sorts its own copy descending before it touches the meta layer, and `filterData()` re-reads each
+  row's position with a live `parent.__children.indexOf(row)` rather than from the cache, so an earlier
+  splice cannot leave a later one pointing at the wrong sibling.
+- **Undo after removing a parent must capture the tree, not widen `amount`.** DEV-56 left this
+  open: `RemoveRowAction` stored `rowIndexesSequence` but `captureRowData()` deleted `__children`,
+  so one Ctrl+Z put the indexes back and re-inserted a single row. That is now a two-phase restore
+  (see "Nested parent undo" under How it interacts). Do not "fix" it by widening `amount` while
+  still dropping `__children`. A two-level "no error" assertion is not enough — use
+  `__tests__/integration/undoRedo.spec.js` plus `tests/e2e/nested-rows-undo.spec.ts`.
 - **`collapseRow()` and `expandRow()` are dead code.** They delegate with `doTrimming` defaulting to
   `false`, so they neither trim nor render. Do not expose them and do not copy their names.
 - **`updatePlugin()` rebuilds everything.** It unregisters the trimming map and constructs a new
@@ -252,6 +296,49 @@ They are written in different places and can drift. Keep this in mind:
   `handsontable/.ai/CONCERNS.md` as stack-overflow risks with 10k+ rows. Build index lists with a loop.
 - **`batchExecution` does not suspend rendering.** Use `hot.batch()` when a method performs two
   passes (as `expandToLevel()` does), or the grid renders the intermediate state.
+- **Several collapses reach the trimming map that the user never asked for, and `shouldRunHooks` is
+  what tells them apart.** `CollapsingUI#trimRows()` looks like the natural seam for anything that
+  reacts to a collapse — every path funnels through it — but it cannot tell a gesture from a replay.
+  At least four callers re-collapse a state the user chose earlier, and the list is not closed:
+  `updatePlugin()` (which in React runs on **every re-render**, see the `updatePlugin()` landmine
+  above), `#onAfterUpdateData()`, `collapsedRowsStash.applyStash()` — which `alter()` opens around
+  every insert and remove while it owns the selection (`selection.shiftRows()` moves it with the
+  rows) — and `RowMoveController#onBeforeRowMove()`, which stashes and restores around every row
+  move independently of `alter()`. Anything that reaches out and touches shared grid state — the
+  selection, the viewport, focus — must therefore hang off `applyCollapsedRowsChange()` and be gated
+  on `shouldRunHooks === true`, which is exactly the flag the two hook-silent replays already pass
+  `false` for and which both stash paths bypass entirely by calling `collapseMultipleChildren()`
+  directly. That is where the DEV-50 selection guard lives. Make the gate opt-**in**, never opt-out:
+  a new collapse path then leaves the selection alone until it says otherwise, instead of silently
+  inheriting a side effect — which is what keeps the row-move path safe without naming it. Run the
+  side effect after `collapseMultipleChildren()` has returned and `collapsedRows` is updated, so an
+  `afterSelection` consumer reading `getCollapsedParents()` sees the collapse that caused it.
+- **`selectCell()` scrolls and takes the focus, so gate it on `hot.isListening()` too.** That is
+  wanted when the user is working inside the grid and rude when they are not: an app calling
+  `collapseAll()` from its own toolbar button would otherwise have the focus yanked off that button
+  mid-keyboard-navigation. Measured — without the gate, `document.activeElement` moves from the
+  app's button to a grid `<td>` and `isListening()` flips to `true`. `changeListener: false` fixes
+  only half of it (the listener stays put, DOM focus still moves), so the gate is the whole answer.
+- **A collapse that strands the selection must fill in only the case the core gave up on, and start
+  the walk at the record the user picked.** `Selection#deselectIfHighlightStranded()` drops a
+  stranded single-cell selection but **clamps** an extent that tracks the grid — a full-column
+  selection anchored in the column header, a select-all — so that one survives the trim in a form the
+  user still recognises. Re-selecting unconditionally replaces that repair with a single cell and
+  throws away work the core deliberately did. Check that the selection really is gone first. Read the
+  highlight from `getSelectedRangeActive()`, not `getSelectedRangeLast()`: the active layer is the
+  one the core judges, and on a multi-layer Ctrl+click selection the two are different ranges. And
+  the core drops a selection for **two** reasons, so walking straight to the parent is wrong: the
+  picked row was trimmed, OR it survived while rows **above** it were trimmed, which slides its
+  visual index down until the stored one sits past the last row. Selecting B-1 and collapsing an
+  earlier section is the second shape — the record is still on screen, and moving the user onto the
+  parent of a section they never collapsed is a bug. Start the walk at the anchor row itself.
+- **Do not assert `document.activeElement` straight after clicking the collapse button.** The nesting
+  button is not focusable, so a real pointer press on it leaves focus on `<body>` even when the grid
+  is working perfectly — a synthetic `dispatchEvent` does not, which makes the two disagree and a
+  hand-check look green. Handsontable listens for keys on the document, so the grid still answers the
+  keyboard from there; the first key press moves the selection and pulls focus back inside. Prove
+  focus-related behavior with a **key press** (`page.keyboard.press`) and assert `activeElement`
+  only afterwards. `tests/e2e/nested-rows-collapse-selection.spec.ts` is the reference.
 
 ## How it interacts with the rest of the grid
 
@@ -268,6 +355,29 @@ They are written in different places and can drift. Keep this in mind:
   physical order never diverge because of a move. Only trimming makes them diverge.
 - **UndoRedo** deletes `__children` before storing undo data, because this plugin restores the tree
   itself.
+- **Nested parent undo is a two-phase operation.** The `beforeRemoveRow` list must contain every
+  cached descendant, while `RemoveRowAction` captures the complete subtree before `filterData`
+  mutates the source. Undo restores the tree and physical row/meta slots first, then replays the
+  generic cell values and accessors. The snapshot must also carry every row-index-map value and the
+  collapsed-parent list – restoring only `IndexesSequence` moves trimming and hiding state onto the
+  wrong physical rows. MergeCells needs its physical row anchors restored after its visual geometry.
+  Do not send that geometry through `restoreMergedCells`: `merge()` populates non-corner cells with
+  `null`, and the generic `data` snapshot only holds the parent row. Skip the visual remesh and
+  reattach physical anchors only. A nested undo that cannot land (plugin disabled,
+  `beforeCreateRow` veto) must be refused before `beforeUndo`. Formulas always calls `engine.undo()`
+  there, so a late `{ wasUndone: false }` leaves HyperFormula restored and Handsontable empty.
+  The nested restore emits the normal `beforeCreateRow`/`afterCreateRow` pair with
+  `UndoRedo.undo` as the source. Do not fix this by widening `amount` while still dropping
+  `__children`. Tests that assert the nested source tree must use `dataManager.getRawSourceData()`,
+  because the public `getSourceData()` path is intentionally flattened by `modifyRowData`.
+  Sibling roots go back in **ascending** `index` order: the live array is already compacted, and
+  inserting high indexes first writes past the remaining siblings (`A,B,C` minus `A` and `B`
+  becomes `A,C,B`). `row.index` is the position inside the parent – never use it as a visual-row
+  fallback for the probe hooks; a trimmed root would hand Formulas `0`. Context-menu removal
+  (`ContextMenu.removeRow`) never calls `selection.shiftRows`, so that undo path must not either
+  or the highlight lands below the restored subtree. The create-row probe asks **every** root
+  before deciding, otherwise a later veto leaves the earlier roots' `beforeCreateRow` unpaired
+  and the later root unasked.
 - **AutoRowHeaderSize already subsumes `HeadersUI#updateRowHeaderWidth()` — never measure labels
   here.** That method derives a width from the nesting depth alone
   (`Math.max(50, padding * 2 + 10 * levelCount + 25)`, exactly 61px on a two-level tree in
@@ -297,6 +407,9 @@ They are written in different places and can drift. Keep this in mind:
 | `__tests__/data/dataManager.unit.js` | The tree-path helpers, including the round trip across a data swap |
 | `tests/e2e/nested-rows-api.spec.ts` | Playwright: hooks, cancelling, and post-`loadData` safety |
 | `tests/e2e/nested-rows-update-data.spec.ts` | Playwright: collapsed parents across `updateData` / `loadData` |
+| `tests/e2e/nested-rows-remove-parent.spec.ts` | Playwright: removing a parent takes its whole subtree, on a **four-level** tree |
+| `tests/e2e/nested-rows-undo.spec.ts` | Playwright: undo restores a removed parent and its descendants |
+| `tests/e2e/nested-rows-collapse-selection.spec.ts` | Playwright: where the selection lands when a collapse trims the row holding it |
 
 Physical layouts of the shared fixtures, which the specs depend on:
 

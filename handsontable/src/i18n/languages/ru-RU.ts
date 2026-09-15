@@ -118,6 +118,22 @@ const dictionary = {
   [C.PAGINATION_NEXT_PAGE]: 'Перейти на следующую страницу',
   [C.PAGINATION_LAST_PAGE]: 'Перейти на последнюю страницу',
 
+  [C.SHEETS_BAR_SECTION]: 'Листы',
+  [C.SHEETS_BAR_ADD_SHEET]: 'Добавить лист',
+  [C.SHEETS_BAR_ALL_SHEETS]: 'Все листы',
+  [C.SHEETS_BAR_SHEET_MENU]: 'Действия с листом: [name]',
+  [C.SHEETS_BAR_RENAME_SHEET]: 'Имя листа',
+  [C.SHEETS_BAR_ITEMS_DELETE]: 'Удалить',
+  [C.SHEETS_BAR_ITEMS_DUPLICATE]: 'Дублировать',
+  [C.SHEETS_BAR_ITEMS_RENAME]: 'Переименовать',
+  [C.SHEETS_BAR_ITEMS_MOVE_RIGHT]: 'Переместить вправо',
+  [C.SHEETS_BAR_ITEMS_MOVE_LEFT]: 'Переместить влево',
+  [C.SHEETS_BAR_PAGE_PREV]: 'Прокрутить листы назад',
+  [C.SHEETS_BAR_PAGE_NEXT]: 'Прокрутить листы вперёд',
+  [C.SHEETS_BAR_SHEET_CHANGED]: 'Лист [name] активирован',
+  [C.SHEETS_BAR_RENAME_REJECTED]: 'Имя листа не изменено: [name] уже используется',
+  [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Лист',
+
   [C.LOADING_TITLE]: 'Загрузка...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Закрыть',
 

@@ -2,6 +2,7 @@ import type { HotInstance } from '../../core/types';
 import { isDefined } from '../../helpers/mixed';
 import { GRID_GROUP, EDITOR_EDIT_GROUP, GRID_SCOPE, GRID_TAB_NAVIGATION_GROUP } from './constants';
 import { createKeyboardShortcutCommandsPool } from './commands';
+import { getSelectedCellLink } from './commands/openCellLink';
 
 /**
  * The context that defines shortcut list available for selected cell or cells.
@@ -57,6 +58,14 @@ export function shortcutsGridContext(hot: HotInstance) {
         !hot.getSelectedRangeActive()?.highlight.isHeader() &&
         (hot.getSelectedRangeActive()?.getCellsCount() ?? 0) > 1;
     },
+  }, {
+    keys: [['Alt', 'Enter']],
+    stopPropagation: true,
+    callback: () => commandsPool.openCellLink(),
+    // The shortcut prevents the default action and stops propagation whenever `runOnlyIf` passes,
+    // so it must claim the chord only for a cell that actually renders a link. Testing just
+    // `isCell()` would swallow `Alt`+`Enter` grid-wide and break a host application's own handler.
+    runOnlyIf: () => getSelectedCellLink(hot) !== null,
   }, {
     keys: [['Control', 'Space']],
     captureCtrl: true,

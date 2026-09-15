@@ -35,6 +35,19 @@ Most actions settle the redo by calling back with **no argument**. An action tha
 redo — **currently only `MoveCellsAction`** — reports `{ wasRedone: false }`, which pushes the action back
 onto the **undone** stack instead of the done stack.
 
+An action that can legitimately fail to undo — **currently only `RemoveRowAction` with a nested
+snapshot** — exposes `canUndo(hot)`. `UndoRedo.undo()` calls it **before** `beforeUndo`. Formulas
+always calls `engine.undo()` in `beforeUndo`, so a veto or a disabled NestedRows plugin discovered
+only while applying the snapshot would leave HyperFormula restored and Handsontable empty. A late
+`{ wasUndone: false }` still puts the action back on the done stack and must **not** emit `afterUndo`.
+Write `settings.fixedRowsTop` / `fixedRowsBottom` **after** that restore lands: those two assignments
+mutate the settings object by reference, and a refused nested undo would otherwise leave the
+frozen-row counts of a state that never came back. Nested cell-meta restore must reopen the origin
+that filed each key (`startCellOptionMetaRecording`, a plain `setCellMeta`, or
+`disableUserDefinedMetaRecording`); a bare write files everything as user-defined and #5661
+returns. The merge snapshot type is `import type { PhysicalRowMergeSnapshot }` from MergeCells —
+type-only, so registering UndoRedo still does not pull that plugin into the bundle.
+
 ## `MoveCellsAction` is the asymmetric one, in three ways
 
 1. **Its `undo` restores both regions with `restoreRegion` instead of replaying the move**, so
