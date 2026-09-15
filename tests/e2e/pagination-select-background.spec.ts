@@ -10,11 +10,12 @@ test.describe('pagination page-size select background', () => {
   // transparent. These assertions pin that split; a screenshot could not, because the
   // ~4-corner delta falls under the reg-suit tolerance.
   //
-  // Note on the theme legs: the hover/focus assertions only *distinguish* the states on the
-  // main theme, where base, hover, and focus backgrounds differ. On classic/horizon those three
-  // tokens resolve to the same color, so those legs still prove the wrapper carries the right
-  // token but cannot, on their own, catch a removed :hover/:focus-within rule - the main leg is
-  // the discriminating one.
+  // Note on the theme legs: no shipped theme differentiates the hover and focus background
+  // tokens, so no leg separates those two states from each other - the value is that the wrapper
+  // carries the correct token in each state. Only main differs the base token from hover/focus,
+  // so it is the leg that separates the resting state from them. Horizon is the theme where the
+  // artifact is visible even at rest, because its select base background differs from the
+  // pagination bar background.
   test('the fill is on the wrapper, not the native select', async({ page, theme, bundle }) => {
     const paginationSelect = new PaginationSelectPage(page, theme, bundle);
 

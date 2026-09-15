@@ -51,10 +51,8 @@
           // to the select's own :hover / :focus. (`:has()` is banned in src/**.)
           background-color: var(--ht-input-background-color);
 
-          // Order matters: `:hover` and `:focus-within` have equal specificity, so the later
-          // rule wins when the control is hovered while focused. `:hover` is placed last so it
-          // dominates, matching the select's own `:hover:not(:disabled)` (which outranks
-          // `:focus`) - the whole control reads as hovered in that combined state.
+          // Keep `:hover` last so it wins over `:focus-within` when hovered while focused,
+          // matching the select's own hover-over-focus precedence.
           &:focus-within {
             background-color: var(--ht-input-focus-background-color);
           }
