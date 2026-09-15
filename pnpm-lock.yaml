@@ -290,7 +290,7 @@ importers:
         version: 0.18.5
     devDependencies:
       '@handsontable/angular-wrapper':
-        specifier: ~18.1.0
+        specifier: ~18.1.1
         version: link:../wrappers/angular-wrapper/dist/hot-table
       '@octokit/rest':
         specifier: ^18.6.7
