@@ -145,6 +145,52 @@ not a block. Coverage is `tests/e2e/submenu-hover-delay.spec.ts`; it must move t
 removed. The legacy Jasmine suite dispatches one synthetic `mouseover` per element and cannot
 express a pointer path at all.
 
+## `open()` runs user code while `isOpened()` already says `true` — mirror every side effect in the rollback
+
+`isOpened()` is nothing but `this.hotMenu !== null`, and `Menu#open()` assigns `this.hotMenu`
+*before* it builds the menu grid. Building it renders the items, and rendering calls each item's
+`name()`, `disabled()`, `checked()` and `ariaLabel()` callbacks — all public, documented features.
+So application code runs, and can throw, while the menu already reports itself open.
+
+Left alone, one such throw is unrecoverable and page-wide, not menu-wide (DEV-41):
+`onDocumentMouseDown` is bound to `document`, so **every click anywhere** hits `close()` on a menu
+that never finished opening; `DropdownMenu#open()` early-returns on `isOpened()` so the menu never
+opens again; and `hot.destroy()` throws too, which skips `eventManager.destroy()` and leaks the
+document listener past an SPA route change. That last part is why it reads as flaky — the crash
+shows up long after, and on a different page.
+
+`open()` therefore does its work inside a `try` and rolls back through `#rollbackFailedOpen()`,
+then **rethrows** so the application's own bug still reaches it and Sentry. The rule that matters
+for anyone editing `open()`:
+
+- **Any statement you add to `open()` must be undone by `#rollbackFailedOpen()`.** Nothing enforces
+  the pairing. The scroll listeners were missed exactly this way on the first attempt: `open()`
+  registers them before the guarded block, and `close()` cannot clean them up afterwards because it
+  bails on `isOpened()`.
+- **Anything that mutates the HOST grid belongs inside the guard.** `outsideClickDeselects` is set
+  to `false` on `this.hot`; a throw before it is restored pins it off for the life of the page.
+- **The container is shown only once the item list is settled.** Above that point `open()` can still
+  bail — the empty-items early return, or a throw from an item's own `hidden()` — and an earlier flip
+  left an empty themed box over the page. It must still happen before the grid is built, because
+  `updateMenuDimensions()` measures rendered rows and a `display: none` container measures as zero.
+- **The rollback fires `afterClose` even though `afterOpen` never fired.** The callers announce the
+  menu first (`beforeDropdownMenuShow` / `beforeContextMenuShow`), so staying silent strands an
+  application that tracks the documented before/after pair. Every listener on that hook only
+  restores focus and emits the matching `*Hide`.
+- **`close()` has the same shape and the same trap.** Its teardown (`closeAllSubMenus()`, then
+  `hotMenu.destroy()`) runs before `hotMenu = null`, so the reset lives in a `finally`. Without it a
+  throw during teardown re-creates the identical stranded state through the other door.
+- **`openSubMenu()` registers into `hotSubMenus` only after `subMenu.open()` returns.** A sub-menu
+  that throws while opening is therefore unreachable from `closeAllSubMenus()` and `destroy()`, so
+  it is destroyed in a `catch` before the rethrow. The hover timer re-fires every 300ms, so without
+  that a single throwing sub-menu item leaks one fully-wired `Menu` per tick.
+
+Coverage is `tests/e2e/menu-open-failure.spec.ts`. Note what that spec cannot do: a leaked
+`mousedown` listener early-returns once the menu reports itself closed, so "no page error" is green
+whether or not the listener is still attached. The leak assertion reads
+`Handsontable._getListenersCounter()` instead (`handsontable/src/index.ts`, exposed for the
+memory-leak tests). Any new assertion there needs the same care.
+
 ## Where to look next
 
 - DropdownMenu specifics: `handsontable/src/plugins/dropdownMenu/AGENTS.md`.

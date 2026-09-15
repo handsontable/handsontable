@@ -460,9 +460,6 @@ export class Menu {
   open() {
     this.runLocalHooks('beforeOpen');
 
-    this.container.removeAttribute('style');
-    this.container.style.display = 'block';
-
     this.#delayedOpenSubMenu = debounce(
       (...args: unknown[]) => this.openSubMenu(args[0] as number),
       SUB_MENU_HOVER_DELAY,
@@ -484,6 +481,14 @@ export class Menu {
     } else if (filteredItems.length === 0) {
       return;
     }
+
+    // Shown only once the item list is settled. Above this line the menu can still bail - the
+    // empty-items return right there, or a throw from an item's own `hidden()` callback inside
+    // the filter - and either used to leave an empty, themed box sitting over the page. It still
+    // has to happen before `hotMenu.init()` below, because `updateMenuDimensions()` measures the
+    // rendered rows and a `display: none` container measures as zero.
+    this.container.removeAttribute('style');
+    this.container.style.display = 'block';
 
     // Registered per-open (and after the empty-items early return, which would leak
     // them) so that scroll listeners fire in menu open order — a menu anchored inside
@@ -626,20 +631,24 @@ export class Menu {
       },
     };
 
-    this.origOutsideClickDeselects = this.hot.getSettings().outsideClickDeselects;
-    this.hot.getSettings().outsideClickDeselects = false;
-    this.hotMenu = new (
-      this.hot.constructor as new (element: HTMLElement, settings: object) => HotInstance
-    )(this.container, settings);
-
-    // `isOpened()` is `this.hotMenu !== null`, so from the assignment above the menu already
-    // reports itself as open while `#navigator` does not exist yet. User code runs inside this
-    // window: rendering the items calls each item's `name()`, `disabled()`, `checked()` and
-    // `ariaLabel()` callbacks. A throw there used to strand the menu half-open for the life of
-    // the page - every later document `mousedown` reached `close()` and threw on the missing
+    // Everything from here on is undone by `#rollbackFailedOpen()`, so it all belongs inside the
+    // guard. `isOpened()` is `this.hotMenu !== null`, so the assignment below makes the menu
+    // report itself as open while `#navigator` does not exist yet - and user code runs in that
+    // window, because rendering the items calls each item's `name()`, `disabled()`, `checked()`
+    // and `ariaLabel()` callbacks. A throw there used to strand the menu half-open for the life
+    // of the page: every later document `mousedown` reached `close()` and threw on the missing
     // navigator, `open()` could never run again, and `destroy()` threw too, so the document
-    // listener leaked past an SPA page change (DEV-41). Roll back to closed instead.
+    // listener leaked past an SPA page change (DEV-41).
+    //
+    // The two settings lines are inside the guard for their own reason: they mutate the HOST
+    // grid, so a throw from the constructor below would otherwise pin `outsideClickDeselects`
+    // to `false` for good and silently stop clicks outside the grid from deselecting.
     try {
+      this.origOutsideClickDeselects = this.hot.getSettings().outsideClickDeselects;
+      this.hot.getSettings().outsideClickDeselects = false;
+      this.hotMenu = new (
+        this.hot.constructor as new (element: HTMLElement, settings: object) => HotInstance
+      )(this.container, settings);
       this.hotMenu.addHook('afterInit', () => this.onAfterInit());
       this.hotMenu.init();
 
@@ -666,9 +675,17 @@ export class Menu {
    * Restores the closed state after {@link Menu#open} failed partway through, so a menu that never
    * finished opening cannot stay stranded as "open".
    *
-   * Undoes only what `open()` had done by then: no sub-menu, scroll listener or hover timer exists
-   * yet, and `setPosition()` has not run. `afterOpen` never fired, so `afterClose` is deliberately
-   * not fired either - listeners stay balanced.
+   * Undoes what `open()` had done by then. No sub-menu or hover timer exists yet and
+   * `setPosition()` has not run, but the container is visible and the document scroll listeners
+   * are registered - `open()` does both before building the menu grid - and `close()` cannot undo
+   * either afterwards, because it bails on `isOpened()`.
+   *
+   * `afterClose` IS fired, even though `afterOpen` never was. The callers have already announced
+   * the menu: `DropdownMenu#open()` runs `beforeDropdownMenuShow` and `ContextMenu#open()` runs
+   * `beforeContextMenuShow` before reaching here, so staying silent would leave an application
+   * that tracks the documented before/after pair stuck in the "menu showing" state for good. The
+   * three listeners on this hook only restore focus and emit the matching `*Hide` hook, which is
+   * exactly what a failed open needs.
    */
   #rollbackFailedOpen() {
     try {
@@ -679,8 +696,10 @@ export class Menu {
     }
 
     this.hotMenu = null;
+    this.#clearScrollListeners();
     this.container.style.display = 'none';
     this.hot.getSettings().outsideClickDeselects = this.origOutsideClickDeselects;
+    this.runLocalHooks('afterClose');
   }
 
   /**
@@ -701,23 +720,33 @@ export class Menu {
       // `close()` runs on every document `mousedown`, so a hard call here takes the whole page
       // down rather than the one menu (DEV-41).
       this.#navigator?.clear();
-      this.closeAllSubMenus();
-      this.container.style.display = 'none';
-      this.hotMenu!.destroy();
-      this.hotMenu = null;
-      this.#anchorRectProvider = null;
-      this.#scrollFollowBaseline = null;
-      this.#clearScrollListeners();
 
-      if (this.#suppressHoverSubMenuToggleFrameId !== null) {
-        this.hot.rootWindow.cancelAnimationFrame(this.#suppressHoverSubMenuToggleFrameId);
-        this.#suppressHoverSubMenuToggleFrameId = null;
+      // The teardown can throw: `closeAllSubMenus()` destroys each sub-menu, which runs
+      // user-facing hooks on the way, and `destroy()` can fail on a grid that never finished
+      // building. Whatever happens, the reset in `finally` has to run - skipping it leaves
+      // `hotMenu` set, so `isOpened()` keeps saying `true` and the menu is stranded exactly the
+      // way a failed `open()` used to strand it (DEV-41), only reached through this door.
+      try {
+        this.closeAllSubMenus();
+        this.hotMenu!.destroy();
+      } finally {
+        this.hotMenu = null;
+        this.container.style.display = 'none';
+        this.#anchorRectProvider = null;
+        this.#scrollFollowBaseline = null;
+        this.#clearScrollListeners();
+
+        if (this.#suppressHoverSubMenuToggleFrameId !== null) {
+          this.hot.rootWindow.cancelAnimationFrame(this.#suppressHoverSubMenuToggleFrameId);
+          this.#suppressHoverSubMenuToggleFrameId = null;
+        }
+
+        this.#suppressHoverSubMenuToggle = false;
+        // A timer that outlives the menu would call `openSubMenu` on a destroyed `hotMenu`.
+        this.#clearHoverSubMenuTimers();
+        this.hot.getSettings().outsideClickDeselects = this.origOutsideClickDeselects;
       }
 
-      this.#suppressHoverSubMenuToggle = false;
-      // A timer that outlives the menu would call `openSubMenu` on a destroyed `hotMenu`.
-      this.#clearHoverSubMenuTimers();
-      this.hot.getSettings().outsideClickDeselects = this.origOutsideClickDeselects;
       this.runLocalHooks('afterClose');
 
       if (this.isSubMenu()) {
@@ -835,11 +864,23 @@ export class Menu {
     });
 
     subMenu.setMenuItems(dataItem.submenu!.items);
-    subMenu.open();
-    subMenu.setPosition(
-      cell.getBoundingClientRect(),
-      () => (cell.isConnected ? cell.getBoundingClientRect() : null),
-    );
+
+    try {
+      subMenu.open();
+      subMenu.setPosition(
+        cell.getBoundingClientRect(),
+        () => (cell.isConnected ? cell.getBoundingClientRect() : null),
+      );
+    } catch (error) {
+      // `hotSubMenus` is only assigned below, so a sub-menu that throws while opening is
+      // unreachable from `closeAllSubMenus()` and from `destroy()` - nothing would ever tear it
+      // down, and its `document` listeners and portal container would outlive the grid. The
+      // hover timer re-fires every 300ms, so one throwing sub-menu item leaks a Menu per tick.
+      subMenu.destroy();
+
+      throw error;
+    }
+
     this.hotSubMenus[dataItem.key!] = subMenu;
 
     // Update the accessibility tags on the cell being the base for the submenu.

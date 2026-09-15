@@ -140,6 +140,14 @@
         return String(error && error.message);
       }
     };
+
+    /**
+     * How many listeners the grid's own EventManager currently holds. Handsontable exposes this
+     * counter for its memory-leak tests, and it is the only way to SEE a leaked listener from a
+     * test: a leaked `mousedown` handler early-returns once the menu reports itself closed, so
+     * "no error on the next click" is green whether or not the listener is still attached.
+     */
+    window.htListenerCount = () => Handsontable._getListenersCounter();
   </script>
 </body>
 </html>

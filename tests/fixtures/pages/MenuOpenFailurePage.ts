@@ -124,4 +124,17 @@ export class MenuOpenFailurePage {
       htDestroyGrid: () => string;
     }).htDestroyGrid());
   }
+
+  /**
+   * How many listeners the grid's EventManager holds right now.
+   *
+   * The only way to see a leaked listener from a test: a leaked `mousedown` handler early-returns
+   * once the menu reports itself closed, so watching for a page error cannot tell a torn-down
+   * listener from a live one.
+   */
+  async listenerCount(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as {
+      htListenerCount: () => number;
+    }).htListenerCount());
+  }
 }
