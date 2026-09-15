@@ -23,6 +23,10 @@ export class HiddenColumnsIndicatorStretchPage {
    * Navigate with the indicators on or off, in a given text direction, and wait for real DOM
    * conditions rather than a sleep.
    *
+   * A constructor throw is rethrown as itself. Without that, a grid that never built shows up as a
+   * 10s locator timeout on `cell-0-2` — the bundle IS defined, so `awaitBundle()` passes — and the
+   * real error never reaches the report.
+   *
    * @param indicators Whether `hiddenColumns.indicators` is enabled. `off` is the control.
    * @param dir The document's text direction. `rtl` mirrors the indicator to the scrollable edge.
    */
@@ -36,6 +40,18 @@ export class HiddenColumnsIndicatorStretchPage {
     // still undefined, and the failure then surfaces inside a later `page.evaluate` far from its
     // cause. The helper owns the reasoning and the polling interval.
     await awaitBundle(this.page);
+    await this.page.waitForFunction(
+      () => 'hot' in window || 'htBuildError' in window, undefined, { polling: BUNDLE_POLLING_MS },
+    );
+
+    const buildError = await this.page.evaluate(
+      () => (window as { htBuildError?: string }).htBuildError ?? null,
+    );
+
+    if (buildError !== null) {
+      throw new Error(`Handsontable constructor threw in the fixture:\n${buildError}`);
+    }
+
     await expect(this.masterCell(0, 2)).toBeVisible();
     await expect(this.frozenCell(0, 0)).toBeVisible();
   }
@@ -71,16 +87,27 @@ export class HiddenColumnsIndicatorStretchPage {
   }
 
   /**
-   * Whether the last visible column's header is actually carrying the indicator marker.
+   * Which column headers carry an indicator marker, keyed by the header's own label.
    *
-   * Guards the subject: the fix moves the arrow, it must not delete it. Without this a stylesheet
-   * that dropped the pseudo-element entirely would turn every assertion below green.
+   * A bare count would pass on an off-by-one in the marker's placement, which the plugin's
+   * `AGENTS.md` calls out as "a real bug, not a style choice". Keying by label pins WHICH column is
+   * marked, and pins that the fix did not delete the arrow it moves.
    */
-  async indicatorMarkerCount(): Promise<number> {
-    return this.page.evaluate(() => document.querySelectorAll(
-      '[data-testid="grid"] .ht_master th.beforeHiddenColumn,' +
-      '[data-testid="grid"] .ht_clone_top th.beforeHiddenColumn'
-    ).length);
+  async markedHeaders(): Promise<Record<string, string>> {
+    return this.page.evaluate(() => {
+      const marked: Record<string, string> = {};
+
+      document.querySelectorAll('[data-testid="grid"] .ht_master thead th').forEach((th) => {
+        const kinds = ['beforeHiddenColumn', 'afterHiddenColumn']
+          .filter(kind => th.classList.contains(kind));
+
+        if (kinds.length > 0) {
+          marked[(th.textContent ?? '').trim()] = kinds.join(' ');
+        }
+      });
+
+      return marked;
+    });
   }
 
   /**
@@ -94,7 +121,11 @@ export class HiddenColumnsIndicatorStretchPage {
     return this.page.evaluate(() => {
       const holder = document.querySelector(
         '[data-testid="grid"] .ht_master .wtHolder'
-      ) as HTMLElement;
+      ) as HTMLElement | null;
+
+      if (holder === null) {
+        throw new Error('The master scroll box (.ht_master .wtHolder) is not in the DOM.');
+      }
 
       return holder.scrollWidth - holder.clientWidth;
     });
@@ -103,14 +134,20 @@ export class HiddenColumnsIndicatorStretchPage {
   /**
    * The size a scrollbar is taking out of the master scroll box, in pixels.
    *
-   * The user-visible half of the symptom: a bar with nothing to scroll, sitting under columns that
-   * already fit.
+   * The honest signal, and the reason both it and `horizontalOverflow()` are asserted: the overflow
+   * pair are integers, so a sub-pixel overflow reads as zero while the browser is already painting
+   * a full-size bar. `offsetHeight - clientHeight` cannot miss that. The same note is on
+   * `AutoHeightScrollbarZoomPage.scrollbarSizes()`.
    */
   async scrollbarSizes(): Promise<{ vertical: number, horizontal: number }> {
     return this.page.evaluate(() => {
       const holder = document.querySelector(
         '[data-testid="grid"] .ht_master .wtHolder'
-      ) as HTMLElement;
+      ) as HTMLElement | null;
+
+      if (holder === null) {
+        throw new Error('The master scroll box (.ht_master .wtHolder) is not in the DOM.');
+      }
 
       return {
         vertical: holder.offsetWidth - holder.clientWidth,
@@ -120,48 +157,67 @@ export class HiddenColumnsIndicatorStretchPage {
   }
 
   /**
-   * Scroll the master pane to the bottom and wait until both panes have settled there.
+   * Scroll the master pane to the bottom and wait until the last row is actually rendered.
    *
    * Two assignments, not one: a single `scrollTop = scrollHeight` lands a couple of pixels short
    * once the draw that follows it grows the rendered band, and a bottom-seam defect then reads
-   * clean. The wait afterwards is a positive condition — both holders at their own maximum — so a
-   * pane that never moved fails here instead of passing the assertion that follows.
+   * clean.
+   *
+   * The wait ends on the RENDER state, never on `scrollTop`: the offset applies synchronously while
+   * the redraw it triggers is coalesced into a later animation frame, so a settled offset does not
+   * mean the band the assertions read has moved yet.
    */
   async scrollToBottom(): Promise<void> {
     await this.page.evaluate(() => {
       const holder = document.querySelector(
         '[data-testid="grid"] .ht_master .wtHolder'
-      ) as HTMLElement;
+      ) as HTMLElement | null;
+
+      if (holder === null) {
+        throw new Error('The master scroll box (.ht_master .wtHolder) is not in the DOM.');
+      }
 
       holder.scrollTop = holder.scrollHeight;
       holder.scrollTop = holder.scrollHeight;
     });
 
-    await this.page.waitForFunction(() => {
-      const grid = document.querySelector('[data-testid="grid"]') as HTMLElement;
-      const master = grid.querySelector('.ht_master .wtHolder') as HTMLElement;
-      const frozen = grid.querySelector('.ht_clone_inline_start .wtHolder') as HTMLElement;
+    await expect.poll(() => this.page.evaluate(() => {
+      const hot = (window as unknown as {
+        hot: { view: { _wt: { wtTable: { getLastRenderedRow(): number } } }, countRows(): number },
+      }).hot;
 
-      return master.scrollTop === master.scrollHeight - master.clientHeight &&
-        frozen.scrollTop === frozen.scrollHeight - frozen.clientHeight;
-    }, undefined, { polling: BUNDLE_POLLING_MS });
+      return hot.view._wt.wtTable.getLastRenderedRow() === hot.countRows() - 1;
+    })).toBe(true);
   }
 
   /**
    * How far a row in the frozen pane sits below the same row in the scrollable pane, in pixels.
    *
-   * Both reads are `getBoundingClientRect()` on the SAME row index, so this is the misalignment a
-   * user sees across the frozen boundary and not a difference in what each pane rendered. Zero is
-   * correct; the defect puts one scrollbar's height between them.
+   * Both rects are read inside ONE `page.evaluate`, on nodes queried in that same evaluation.
+   * Walkontable recycles `<tr>`/`<td>` nodes between draws, so two separately-resolved locators can
+   * straddle a redraw and be measured on nodes that no longer hold the same row — a plausible
+   * non-zero number on correct code (DEV-2827, `tests/AGENTS.md`).
+   *
+   * Zero is correct; the defect puts one scrollbar's height between them.
    *
    * @param row The visual row index to compare. Pick one that both panes render.
    */
   async rowMisalignment(row: number): Promise<number> {
-    const frozenTop = await this.frozenCell(row, 0)
-      .evaluate(el => el.getBoundingClientRect().top);
-    const masterTop = await this.masterCell(row, 2)
-      .evaluate(el => el.getBoundingClientRect().top);
+    return this.page.evaluate((visualRow) => {
+      const grid = document.querySelector('[data-testid="grid"]') as HTMLElement;
+      const frozen = grid.querySelector(
+        `.ht_clone_inline_start [data-testid="cell-${visualRow}-0"]`
+      ) as HTMLElement | null;
+      const master = grid.querySelector(
+        `.ht_master [data-testid="cell-${visualRow}-2"]`
+      ) as HTMLElement | null;
 
-    return frozenTop - masterTop;
+      if (frozen === null || master === null) {
+        throw new Error(`Row ${visualRow} is not rendered in both panes ` +
+          `(frozen: ${frozen !== null}, master: ${master !== null}).`);
+      }
+
+      return frozen.getBoundingClientRect().top - master.getBoundingClientRect().top;
+    }, row);
   }
 }

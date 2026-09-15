@@ -20,16 +20,21 @@
         }
       }
 
+      // Keep the indicator inside the cell, for the same reason as `_hidden-columns.scss`: a
+      // negative offset overflows the scroll container. On a `height: 'auto'` grid the box is
+      // flush with its rows by construction, so the last row header's arrow adds ~1px of
+      // scrollHeight, and a grid that must never scroll itself grows a vertical scrollbar. See
+      // #13500.
       &.beforeHiddenRow::after {
         @include mixins.pseudo;
 
-        bottom: -2px;
+        bottom: 0;
       }
 
       &.afterHiddenRow::before {
         @include mixins.pseudo;
 
-        top: -2px;
+        top: 0;
       }
 
       &.ht__active_highlight {

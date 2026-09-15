@@ -89,12 +89,13 @@ hidden column's width must be zeroed *after* anything that computes a width, or 
 
 ## The indicator must be drawn INSIDE its cell
 
-`#onModifyColWidth` already adds **15px** to any visible column next to a hidden one, and the arrow is
-10px wide — so the space is reserved and the pseudo-element never needs a negative offset. It used to
-have one anyway (`right: -2px` / `left: -2px` in
-`../../styles/components/plugins/_hidden-columns.scss`), and that is #13500: the offset is measured from
-the header's **padding** box, the header has a 1px border, so the arrow reached 1px past the table's
-right edge.
+`#onModifyColWidth` adds **15px** to a visible column next to a hidden one — but only when
+`indicators` is on, the width is already a number, and `hasColHeaders()` is true. Read the code for the
+guards; do not assume the 15px is always there. When it is, the arrow is 10px wide, so the space is
+reserved and the pseudo-element never needs a negative offset. It used to have one anyway
+(`right: -2px` / `left: -2px` in `../../styles/components/plugins/_hidden-columns.scss`), and that is
+#13500: the offset is measured from the header's **padding** box, the header has a 1px border, so the
+arrow reached 1px past the table's right edge.
 
 One pixel is enough when the table is **flush with the scroll box**, which is exactly what `stretchH`
 produces. The browser reports `scrollWidth = clientWidth + 1`, paints a horizontal scrollbar with
@@ -106,10 +107,16 @@ this reads as a width-calculation bug and is not one: the stretch math is exact.
 `stretchH` is only the easiest way to reach a flush table. Plain `colWidths` that happen to sum to the
 viewport do it too. And the RTL block mirrors the arrow to the other edge, which in RTL is the scrollable
 one — fix both blocks or RTL stays broken. Covered by
-`tests/e2e/hidden-columns-indicator-stretch.spec.ts`.
+`tests/e2e/hidden-indicator-overhang.spec.ts`.
 
-`../hiddenRows/` carries the mirrored CSS (`bottom: -2px`). There is no vertical counterpart to
-`stretchH`, so a flush bottom edge is only ever a coincidence — but the shape is the same.
+`../hiddenRows/` carried the mirrored rules — `beforeHiddenRow::after { bottom: -2px }` and
+`afterHiddenRow::before { top: -2px }` — and **the same defect, confirmed, not hypothetical**. Only the
+`bottom` one was ever live: block-start overflow is clipped rather than scrollable, so `top` never
+reached the scroll region. There is no vertical counterpart to `stretchH`, but `height: 'auto'` makes
+the box flush with its rows **by construction**, which is a stronger precondition than the column case
+needs. Measured on `develop`: `scrollHeight - clientHeight` = 1, a 15px vertical scrollbar on a grid
+that must never scroll itself, and a column-header clone 15px wider than the master's usable width.
+Both were fixed together in #13500.
 
 ## `disablePlugin()` resets cell meta
 

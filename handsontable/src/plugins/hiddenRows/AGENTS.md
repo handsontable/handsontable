@@ -32,6 +32,24 @@ Two real differences worth knowing:
 The marker class is applied for `this.isHidden(row - 1)` — the class describes the **neighbor**
 relationship, so an off-by-one there is a real bug.
 
+## The indicator must be drawn INSIDE its cell
+
+`../../styles/components/plugins/_hidden-rows.scss` used to draw the arrow at `bottom: -2px` on
+`beforeHiddenRow::after` and `top: -2px` on `afterHiddenRow::before`. Those offsets are measured from
+the row header's **padding** box, and the header has a 1px border, so the arrow reached 1px past the
+table's bottom edge.
+
+On a `height: 'auto'` grid that 1px is enough. Such a grid must never scroll itself — it grows to its
+rows and the page scrolls instead — so its box is flush with its content **by construction**, and the
+overhang made `scrollHeight` one larger than `clientHeight`. Measured on `develop`: a 15px vertical
+scrollbar on a grid that should have none, and a column-header clone left 15px wider than the master's
+usable width, so columns and their headers disagreed about where they were.
+
+Only the `bottom` offset was ever live: block-start overflow is clipped rather than scrollable, so
+`top: -2px` never reached the scroll region. Both were set to `0` anyway, to keep this file mirrored
+with `../hiddenColumns/`. Fixed in #13500 alongside the column twin, which is the same defect on the
+horizontal axis. Covered by `tests/e2e/hidden-indicator-overhang.spec.ts`.
+
 ## Known concern
 
 `../../../.ai/CONCERNS.md` lists `contextMenuItem/showRow.ts`'s `arr.push(...largeArray)` as a

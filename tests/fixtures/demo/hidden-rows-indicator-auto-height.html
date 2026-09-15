@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Handsontable e2e fixture — hidden-column indicator overhang on a stretched grid</title>
+  <title>Handsontable e2e fixture — hidden-row indicator overhang on an auto-height grid</title>
   <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
   <script>
     // Theme and bundle come from the ?theme=/?bundle= query params set by the Playwright
@@ -33,15 +33,8 @@
     window.htBundle = htPick(
       { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' }, htParams.get('bundle'), 'umd', 'bundle');
 
-    // The indicators are the whole subject: with them off the grid must behave identically, which
-    // is what makes the `off` leg a control rather than a second copy of the same case.
     window.htIndicators = htPick(
       { on: true, off: false }, htParams.get('indicators'), 'on', 'indicators');
-
-    // Text direction is a parameter because the RTL rules mirror the indicator to the other edge,
-    // and in RTL that edge is the scrollable one. Same defect, opposite side.
-    window.htDir = htPick({ ltr: 'ltr', rtl: 'rtl' }, htParams.get('dir'), 'ltr', 'dir');
-    document.documentElement.setAttribute('dir', window.htDir);
   </script>
   <style>
     body { font-family: sans-serif; margin: 0; padding: 1rem; }
@@ -49,21 +42,22 @@
 </head>
 <body>
   <!--
-    #13500 / DEV-2921. `hiddenColumns` reserves 15px of extra column width for the indicator
-    arrow, but the theme drew that arrow at `right: -2px`, i.e. partly OUTSIDE the cell. On a
-    `stretchH` grid the table's right edge is flush with the scroll box, so the overhang landed
-    ~1px past it. The browser answered with a horizontal scrollbar that has nothing to scroll,
-    that bar took ~15px of height out of the master pane only, and the frozen-column clone — which
-    has no such bar — was left able to scroll 15px less. Scrolled to the bottom the two panes then
-    sit 15px apart and every row across the frozen boundary is visibly misaligned.
+    The vertical half of #13500 / DEV-2921, in `hiddenRows` rather than `hiddenColumns`.
 
-    The hidden set is TWO bands, not one, and that is deliberate: a trailing band puts
-    `beforeHiddenColumn` on the last stretched column (the defect), and an interior band puts
-    `afterHiddenColumn` on the column that follows it, so the start-side offsets the fix also
-    changes are exercised rather than shipped blind.
+    The mirrored rule drew the row indicator at `bottom: -2px`, outside the row header. A grid with
+    `height: 'auto'` sizes its box to its rows, so the box is flush with the content BY
+    CONSTRUCTION — not by the coincidence the column case needs `stretchH` to arrange. The last
+    visible row header's arrow therefore lands ~1px below the table's bottom edge, `scrollHeight`
+    comes out one larger than `clientHeight`, and a grid that must never scroll itself grows a
+    vertical scrollbar. That bar then takes ~15px of width out of the master pane, while the column
+    header clone keeps the full width, and the two disagree.
 
-    The visible columns fit exactly: 8 of them stretched across a 900px box. That flush fit is the
-    real precondition — `stretchH` is just the easiest way to reach it.
+    Measured on `develop` before the fix: `scrollHeight - clientHeight` = 1, vertical scrollbar
+    width = 15, header clone 15px wider than the master's usable width. With `indicators: false`
+    all three are 0.
+
+    Two hidden bands, as in the column fixture: a trailing one to mark the LAST visible row header
+    with `beforeHiddenRow` (the defect), and an interior one so `afterHiddenRow` is exercised too.
   -->
   <div id="grid" data-testid="grid"></div>
 
@@ -73,17 +67,16 @@
     document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
   </script>
   <script>
-    const ROWS = 40;
-    const COLS = 22;
-    // Columns 0-1 are frozen. 5-8 is the interior band and 12-21 the trailing one, which leaves
-    // 0,1,2,3,4,9,10,11 visible and marks three headers:
-    //   col 4  (`E`) — beforeHiddenColumn, the interior band follows it
-    //   col 9  (`J`) — afterHiddenColumn, it follows the interior band
-    //   col 11 (`L`) — beforeHiddenColumn, the LAST stretched column: the defect's own case
-    const HIDDEN = [5, 6, 7, 8];
+    const ROWS = 20;
+    const COLS = 5;
+    // 5-7 is the interior band and 12-19 the trailing one, leaving 0-4 and 8-11 visible:
+    //   row 4  — beforeHiddenRow, the interior band follows it
+    //   row 8  — afterHiddenRow, it follows the interior band
+    //   row 11 — beforeHiddenRow, the LAST visible row: the defect's own case
+    const HIDDEN = [5, 6, 7];
 
-    for (let col = 12; col < COLS; col++) {
-      HIDDEN.push(col);
+    for (let row = 12; row < ROWS; row++) {
+      HIDDEN.push(row);
     }
 
     const data = [];
@@ -113,13 +106,13 @@
     try {
       window.hot = new Handsontable(container, {
         data,
-        width: 900,
-        height: 400,
+        width: 600,
+        // The precondition. A grid told to size itself to its rows must never scroll itself.
+        height: 'auto',
+        rowHeaders: true,
         colHeaders: true,
-        fixedColumnsStart: 2,
-        stretchH: 'all',
-        hiddenColumns: {
-          columns: HIDDEN,
+        hiddenRows: {
+          rows: HIDDEN,
           indicators: window.htIndicators,
         },
         renderer: testIdRenderer,
