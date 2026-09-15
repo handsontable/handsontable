@@ -1807,6 +1807,14 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
 
+          # The prod-docs branch was cut before these DEV-2925 scripts existed, so the
+          # `git checkout "$DOCS_BRANCH"` below deletes them from the working tree
+          # (they are tracked on the release branch, absent on prod-docs). Preserve
+          # them in $RUNNER_TEMP, which survives the branch switch, and run them from
+          # there in the two steps below. They import nothing but `node:` built-ins,
+          # so they are self-contained away from the repo tree.
+          cp .github/scripts/sync-release-docs-delta.mjs .github/scripts/set-package-version.mjs "$RUNNER_TEMP/"
+
           if git ls-remote --heads origin "$DOCS_BRANCH" | grep -q "$DOCS_BRANCH"; then
             echo "Docs branch ${DOCS_BRANCH} already exists, checking out..."
             git checkout "$DOCS_BRANCH"
@@ -1966,12 +1974,11 @@ jobs:
           VERSION='${{ needs.stable-build.outputs.version }}'
           BASE=$(node -p "require('./handsontable/package.json').version")
 
-          # Both refs are release tags; make sure they are present on the checkout
-          # before the script resolves them (a fresh minor/major short-circuits on
-          # BASE == VERSION and never reaches this).
-          git fetch --tags --quiet origin || true
-
-          node .github/scripts/sync-release-docs-delta.mjs "$BASE" "$VERSION"
+          # Run from the $RUNNER_TEMP copy: the prod-docs checkout deleted the script
+          # from the working tree. Both BASE and VERSION are release tags, already
+          # present from the job's `fetch-depth: 0` checkout (a fresh minor/major
+          # short-circuits on BASE == VERSION and resolves neither).
+          node "$RUNNER_TEMP/sync-release-docs-delta.mjs" "$BASE" "$VERSION"
 
       # DEV-2925: `docs/src/plugins/docs-version.mjs` reads `handsontable/package.json`
       # `version` as the docs' current version (breadcrumb + example-runner links). On
@@ -1979,30 +1986,23 @@ jobs:
       # released version unconditionally -- `set-package-version.mjs` does a targeted
       # line replace (a JSON round-trip would reflow the inline `exports` map) and is a
       # clean no-op when the value already matches, which is the case on a fresh branch
-      # cut from the tag. The core version is a workspace/`link:` dependency and is
-      # never pinned in `pnpm-lock.yaml`, so the write cannot change the lock and
-      # `--frozen-lockfile` at deploy stays green with no lockfile regeneration; assert
-      # both the written value and the untouched lockfile.
+      # cut from the tag. Run it from the $RUNNER_TEMP copy: the prod-docs checkout
+      # deleted the script from the working tree. The core version is a
+      # workspace/`link:` dependency, never pinned in `pnpm-lock.yaml` (a `git diff`
+      # would never show the version), so the write cannot change the lock and
+      # `--frozen-lockfile` at deploy stays green with no lockfile regeneration.
       - name: Update core version in docs branch
         id: docs-core-version
         continue-on-error: true
         env:
           VERSION: ${{ needs.stable-build.outputs.version }}
         run: |
-          cp pnpm-lock.yaml /tmp/lock-before-version.yaml
-
-          node .github/scripts/set-package-version.mjs "$VERSION" handsontable/package.json
+          node "$RUNNER_TEMP/set-package-version.mjs" "$VERSION" handsontable/package.json
 
           WROTE=$(node -p "require('./handsontable/package.json').version")
           if [ "$WROTE" != "$VERSION" ]; then
             git checkout -- handsontable/package.json
             echo "::error::handsontable/package.json version is '${WROTE}', expected '${VERSION}'"
-            exit 1
-          fi
-
-          if ! diff -q /tmp/lock-before-version.yaml pnpm-lock.yaml >/dev/null; then
-            git checkout -- handsontable/package.json
-            echo "::error::the core version write changed pnpm-lock.yaml; it must not."
             exit 1
           fi
 
@@ -2039,9 +2039,11 @@ jobs:
           VERSION='${{ needs.stable-build.outputs.version }}'
           DOCS_BRANCH="${DOCS_BRANCH_PREFIX}${VERSION%.*}"
 
-          # `docs/content` (not just `guides`) so the release delta is staged wherever
-          # under content it landed; `handsontable/package.json` for the version write.
-          git add pnpm-lock.yaml docs/package.json docs/content handsontable/package.json
+          # The release delta is already staged by `git apply --index`; this covers the
+          # rolling changelog (also under guides) and adds `handsontable/package.json`
+          # for the version write. Scoped to `guides` -- never all of `docs/content` --
+          # so a stray untracked file dropped elsewhere under content is not committed.
+          git add pnpm-lock.yaml docs/package.json docs/content/guides handsontable/package.json
           git add -f docs/content/api
 
           git commit -m "${VERSION}" || echo "No changes to commit"

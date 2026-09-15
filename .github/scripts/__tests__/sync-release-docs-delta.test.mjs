@@ -251,6 +251,11 @@ test('fails closed when a prod-docs edit conflicts with a release change', () =>
     assert.equal(result.status, 1);
     assert.match(result.stderr, /could not cleanly apply/);
     assert.match(result.stderr, /shadow-dom\.md/);
+    // The failure path restores the delta's paths, so no conflict markers linger.
+    assert.doesNotMatch(read(dir, SHADOW_DOM), /<{7}|>{7}|={7}/);
+    const status = execFileSync('git', ['status', '--porcelain', '--', 'docs/content'], { cwd: dir, encoding: 'utf8' });
+
+    assert.equal(status.trim(), '', `expected a clean docs/content tree after cleanup, got:\n${status}`);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

@@ -103,13 +103,22 @@ function main() {
     }
   }
 
-  const diff = git(['diff', `${baseVersion}..${headVersion}`, '--', 'docs/content', ...EXCLUDES]);
+  const range = `${baseVersion}..${headVersion}`;
+  const files = git(['diff', '--name-only', range, '--', 'docs/content', ...EXCLUDES])
+    .split('\n')
+    .filter(Boolean);
 
-  if (diff.trim() === '') {
+  if (files.length === 0) {
     process.stdout.write(`No docs/content delta between ${baseVersion} and ${headVersion}.\n`);
 
     return 0;
   }
+
+  // `--binary` so a change to an image, font, or other asset under docs/content
+  // round-trips through `git apply` instead of emitting an unappliable
+  // "Binary files differ" hunk that would fail the step (docs/content is text-only
+  // today, so this is a guard, not a fix for a live case).
+  const diff = git(['diff', '--binary', range, '--', 'docs/content', ...EXCLUDES]);
 
   try {
     // `--3way` merges each hunk against the branch's own copy, so a prod-docs
@@ -123,7 +132,7 @@ function main() {
   } catch (error) {
     const conflicts = git(['diff', '--name-only', '--diff-filter=U']).trim();
 
-    process.stderr.write(`Error: could not cleanly apply the release docs delta ${baseVersion}..${headVersion}.\n`);
+    process.stderr.write(`Error: could not cleanly apply the release docs delta ${range}.\n`);
 
     if (conflicts) {
       process.stderr.write(`Conflicted paths (a prod-docs edit overlaps a release change):\n${conflicts}\n`);
@@ -132,12 +141,20 @@ function main() {
       process.stderr.write(`${error.stderr ?? error.message ?? ''}\n`);
     }
 
+    // Restore exactly the delta's own paths, so a partial apply or conflict
+    // markers do not linger in the index/tree. The push is gated off this
+    // failure, but a later step (or a relaxed gate) must never see half-applied
+    // content. Scoped to `files`, so sibling steps' work is untouched.
+    try {
+      git(['checkout', 'HEAD', '--', ...files]);
+    } catch {
+      // Best effort: the branch is discarded on a failed run anyway.
+    }
+
     return 1;
   }
 
-  const applied = git(['diff', '--cached', '--name-only', '--', 'docs/content', ...EXCLUDES]).trim();
-
-  process.stdout.write(`Applied the release docs delta ${baseVersion}..${headVersion}:\n${applied}\n`);
+  process.stdout.write(`Applied the release docs delta ${range}:\n${files.join('\n')}\n`);
 
   return 0;
 }
