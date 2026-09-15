@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a `filters` plugin crash thrown when a cell in a filtered column was edited, or the data was replaced with a filter active, after `updateSettings()` was called with the `filters` option (as the React and Angular wrappers do on every update).",
-  "type": "fixed",
-  "issueOrPR": 13480,
-  "breaking": false,
-  "framework": "none"
-}
