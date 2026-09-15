@@ -160,6 +160,18 @@ export class PasteSelectionValidatedColumnPage {
   }
 
   /**
+   * Fires a paste through the plugin WITHOUT selecting a cell or calling `listen()` first, so
+   * `onPaste` hits its early-return guard (the grid is not listening) and bails before writing.
+   * This is the "an unrelated paste event reaches `onPaste` and bails" lever: it must NOT wipe a
+   * still-pending earlier async paste's plan.
+   */
+  async pasteWhileNotListening(text: string): Promise<void> {
+    await this.page.evaluate((pasted) => {
+      (window as unknown as FixtureWindow).hot.getPlugin('copyPaste').paste(pasted as string, '');
+    }, text);
+  }
+
+  /**
    * Returns the grid's current selection.
    */
   async selected(): Promise<number[][] | undefined> {

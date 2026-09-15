@@ -206,8 +206,11 @@ for this reason. (a) `afterChange` fires only when `changes.length > 0`, and the
 (`shift_down`/`shift_right`) recurse into `populateFromArray` **without** the `'CopyPaste.paste'` source, so
 the handler never runs for them. They create rows only after the validator queue drains too, so a shift paste
 with a validated column still clamps against the stale count exactly like the unfixed overwrite path — it is
-not fixed, and widening the source gate to `'populateFromArray'` is the wrong fix (autofill uses that source,
-so a stale armed plan plus a routine autofill would re-select garbage). (b) `#pastePlan` is a **single slot**,
+not fixed, and widening the source gate to `'populateFromArray'` is the wrong fix. That string is the default
+source `core.ts` stamps (`source || 'populateFromArray'`) on any `populateFromArray()` call made without a
+source argument, and CopyPaste's own shift-mode recursion is one such caller, so the gate would match those
+recursions and any other unsourced populate, and a stale armed plan plus one of them would re-select garbage.
+(Autofill is NOT one: `autofill.ts` always passes an explicit `'Autofill.fill'` source.) (b) `#pastePlan` is a **single slot**,
 so with an async validator two pastes can interleave: a second paste's `populateValues` overwrites the first's
 plan before the first's `applyChanges` settles, the first paste's `afterChange` then consumes the second's
 plan, and when the second settles it finds the slot empty and returns — leaving the **second** paste with the

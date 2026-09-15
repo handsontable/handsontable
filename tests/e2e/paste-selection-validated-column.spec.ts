@@ -242,4 +242,38 @@ test.describe('paste selection with a validated column', () => {
     expect(await grid.sourceCell(3, 0)).toBe('P0');
     expect(await grid.sourceCell(6, 1)).toBe('Q3');
   });
+
+  /**
+   * A later paste event that BAILS must not wipe a still-pending async paste's plan. The plan is
+   * cleared inside `onPaste` BELOW its early-return guard, not above it, so a paste event that returns
+   * immediately (here: the grid is not listening) leaves the pending plan intact and the first paste
+   * still corrects once its write settles.
+   *
+   * This MUST fail if the clear runs at the top of `onPaste`, before the guard: the bailing paste
+   * would wipe `#pastePlan`/`#appliedPasteRange`, the deferred `afterChange` would find an empty slot
+   * and return, and the first paste would stay collapsed at `[[4, 0, 4, 1]]`.
+   */
+  test('keeps correcting the first async paste when a later paste event bails at the guard',
+    async({ page, theme, bundle }) => {
+      const grid = new PasteSelectionValidatedColumnPage(page, theme, bundle, { asyncValidator: true });
+
+      await grid.goto();
+      await grid.pasteBlockAt(4, 0, PASTE_BLOCK);
+
+      // The first paste is held open (validators parked) and collapsed by the inline clamp.
+      expect(await grid.selected()).toEqual([[4, 0, 4, 1]]);
+      expect(await grid.pendingValidationCount()).toBeGreaterThan(0);
+
+      // A second paste event reaches `onPaste` while the grid is not listening, so it bails at the
+      // guard. It must not touch the first paste's pending plan.
+      await grid.unlisten();
+      await grid.pasteWhileNotListening('X\tY');
+      expect(await grid.isListening()).toBe(false);
+
+      // Release the first paste's write. Its plan survived the bailing event, so it corrects.
+      await grid.resolveValidations();
+
+      await expect.poll(() => grid.selected()).toEqual([[4, 0, 7, 1]]);
+      expect(await grid.sourceRowCount()).toBe(8);
+    });
 });

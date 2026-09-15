@@ -998,13 +998,6 @@ export class CopyPaste extends BasePlugin {
    * @private
    */
   onPaste(event: ClipboardEvent | PasteEvent) {
-    // Start every paste from a clean slot. A paste that writes nothing - `beforeChange` returning
-    // false, or a `dropdown` under `allowInvalid: false` rejecting every value so `applyChanges`
-    // skips `afterChange` at `changes.length === 0` - never reaches `#onAfterChange` to clear the
-    // plan, so clearing here stops a stale plan from an earlier paste driving a later correction.
-    this.#pastePlan = null;
-    this.#appliedPasteRange = null;
-
     const eventTarget = this.#resolveClipboardEventTarget(event);
     const focusedElement = this.hot.getFocusManager().getRefocusElement();
     const isHotInput = isHTMLElement(eventTarget) && 'hotInput' in eventTarget.dataset;
@@ -1023,6 +1016,16 @@ export class CopyPaste extends BasePlugin {
     ) {
       return;
     }
+
+    // Start every real paste from a clean slot. A paste that writes nothing - `beforePaste` returning
+    // false, or a `dropdown` under `allowInvalid: false` rejecting every value so `applyChanges` skips
+    // `afterChange` at `changes.length === 0` - never reaches `#onAfterChange` to clear the plan, so
+    // clearing here stops a stale plan from an earlier paste driving a later correction. This sits
+    // BELOW the early-return guard on purpose: a paste event that bails (grid not listening, an editor
+    // open, no selection, a foreign event target) must not wipe a still-pending async paste's plan.
+    // That keeps the single-slot limitation at "two real pastes interleave" (see AGENTS.md).
+    this.#pastePlan = null;
+    this.#appliedPasteRange = null;
 
     event.preventDefault?.();
 
