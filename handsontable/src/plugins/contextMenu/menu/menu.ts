@@ -1056,11 +1056,21 @@ export class Menu {
     const menuContainerParentElement = this.container.parentNode;
 
     this.#isDestroyed = true;
-    this.clearLocalHooks();
 
-    // A throwing `close()` must not keep the document listeners alive - that leak is what carried
-    // the DEV-41 crash onto the next page of an SPA.
+    // A throwing step must not keep the document listeners alive - that leak is what carried the
+    // DEV-41 crash onto the next page of an SPA.
     runEveryStep([
+      () => {
+        // A menu destroyed mid-build still owes its callers the other half of the pair. They ran
+        // `before*Show` before `open()` reached here, `close()` is a no-op while the menu is
+        // opening, and the rollback that ends the build fires into the list `clearLocalHooks()`
+        // empties on the next line. Without this the application stays in its "menu showing" state
+        // for good, and never gets the focus back.
+        if (this.#lifecycle === 'opening') {
+          this.runLocalHooks('afterClose');
+        }
+      },
+      () => this.clearLocalHooks(),
       () => this.close(),
       () => {
         // Skipped once the host is gone: it clears every hook itself, and its methods throw by then.

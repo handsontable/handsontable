@@ -390,6 +390,7 @@ for (const plugin of ['dropdownMenu', 'contextMenu'] as const) {
       expect(pageErrors).toEqual([]);
       expect(await grid.capturedMenuState()).toEqual({ isOpened: false, hasGrid: false });
       expect(await grid.hostOutsideClickDeselects()).toBe(hostSetting);
+      expect((await grid.hookLog()).map(entry => entry.event)).toEqual(['beforeShow', 'afterHide']);
     });
 
     test('a settings change while the item list is filtered leaves no menu running', async() => {
@@ -406,6 +407,7 @@ for (const plugin of ['dropdownMenu', 'contextMenu'] as const) {
       expect(pageErrors).toEqual([]);
       expect(await grid.capturedMenuState()).toEqual({ isOpened: false, hasGrid: false });
       expect(await grid.hostOutsideClickDeselects()).toBe(hostSetting);
+      expect((await grid.hookLog()).map(entry => entry.event)).toEqual(['beforeShow', 'afterHide']);
     });
 
     test('a close() that is ignored does not rebuild the item list under the open menu', async() => {

@@ -244,7 +244,10 @@ Rules for anyone touching this:
   is doing nothing exotic: an item's `hidden()` or `name()` calling `updateSettings()` or
   `disablePlugin()` on the plugin being painted. A `hot.destroy()` from an item callback is the one
   case that cleaned itself up before the mark existed, and only by accident: the renderer reads the
-  destroyed grid's settings, that throws, and the rollback runs.
+  destroyed grid's settings, that throws, and the rollback runs. `destroy()` fires `afterClose`
+  itself when it finds the menu `opening`, because the rollback that ends that build fires into the
+  list `clearLocalHooks()` has already emptied — without it the callers keep their `before*Show`
+  with no hide hook to match, exactly what the rollback's own hook call exists to prevent.
 - **`ContextMenu#close()` drops its `itemsFactory` only once the menu really closed.** `Menu#close()`
   is ignored while the menu is still opening, and a null factory makes the next command rebuild the
   items — firing the public `beforeContextMenuSetItems` hook again — under a menu that is on screen.
