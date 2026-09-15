@@ -370,14 +370,14 @@ The dialog plugin provides accessibility features through ARIA attributes. You c
 
 When a dialog opens, focus moves into it. Where it lands depends on how you configured the dialog:
 
-- With the `confirm` template, focus moves to the first button. If the template has no buttons, focus moves to the dialog's content area.
+- With the `confirm` template, focus moves to the first button in the order you declared them. [`showConfirm()`](@/api/dialog.md#showconfirm) declares **Cancel** first, so **Cancel** takes the focus and **Enter** cancels. If the template has no buttons, focus moves to the dialog's content area.
 - With the `content` option, focus moves to the dialog box itself. Handsontable does not search your HTML for focusable elements, so it never moves focus to a button inside your content. To place focus yourself, listen to the [`afterDialogFocus`](@/api/hooks.md#afterdialogfocus) hook and call `focus()` on the element you want. If you also use the [Loading](@/guides/dialog/loading/loading.md) plugin, note that it moves focus to the dialog box on that same hook, so register your callback after it or move focus on a later task.
 
-Focus moves only if the grid was focused when the dialog opened. If the user has not interacted with the grid yet, the dialog opens without taking focus away from the rest of the page. The [`afterDialogFocus`](@/api/hooks.md#afterdialogfocus) hook follows the same rule, so it does not run in that case either.
+Focus moves only if the grid is the listening instance when the dialog opens. That is normally the case after the user clicks a cell, and you can also set it yourself with [`listen()`](@/api/core.md#listen). On a grid the user has not interacted with, the dialog opens without taking focus away from the rest of the page, and the [`afterDialogFocus`](@/api/hooks.md#afterdialogfocus) hook does not run either.
 
 While the dialog is open, **Tab** and **Shift+Tab** move between the focusable elements inside it and skip the grid. They still reach the other elements on your page. **Escape** closes the dialog, but only when `closable` is set to `true`. The [`showAlert()`](@/api/dialog.md#showalert) and [`showConfirm()`](@/api/dialog.md#showconfirm) methods set `closable` to `false`, so **Escape** does not close those dialogs.
 
-To move focus to the dialog box at any time, call the [`focus()`](@/api/dialog.md#focus) method.
+To move focus to the dialog box yourself, call the [`focus()`](@/api/dialog.md#focus) method while the dialog is open. It does nothing on a dialog that is not showing.
 
 ## Programmatic control
 

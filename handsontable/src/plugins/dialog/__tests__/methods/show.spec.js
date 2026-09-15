@@ -6,6 +6,10 @@ describe('Dialog - show method', () => {
   });
 
   afterEach(function() {
+    // Removed here rather than inside a test: an assertion that throws would otherwise leave an
+    // extra tab stop in front of the grid for every later spec in this file.
+    Array.from(document.querySelectorAll('#outsideInput')).forEach(el => el.remove());
+
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -211,7 +215,7 @@ describe('Dialog - show method', () => {
   });
 
   it('should not move the focus when a click re-activates the dialog scope', async() => {
-    const outsideInput = document.createElement('input');
+    const outsideInput = $('<input type="text" id="outsideInput">')[0];
 
     document.body.appendChild(outsideInput);
 
@@ -233,9 +237,34 @@ describe('Dialog - show method', () => {
     await simulateClick(outsideInput);
     await simulateClick(getDialogTitleElement());
 
-    outsideInput.remove();
+    expect(document.activeElement).toBe(outsideInput);
+  });
 
-    expect(document.activeElement).not.toBe(getDialogSecondaryButtonElement());
+  it('should leave a focus already inside the dialog alone when the scope re-activates', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      dialog: true,
+    });
+
+    await selectCell(0, 0);
+
+    const dialogPlugin = getPlugin('dialog');
+
+    dialogPlugin.showConfirm('Are you sure?');
+
+    expect(document.activeElement).toBe(getDialogSecondaryButtonElement());
+
+    // Deactivating a scope leaves the grid listening - `activateScope` does exactly this to the
+    // previously active scope whenever another one activates, which is how a notification opening
+    // over the dialog reaches this state.
+    getFocusScopeManager().deactivateScope('dialog');
+
+    // A focus landing on an element with no `data-ht-focus-source` re-activates the scope as
+    // `unknown`, the same source `show()` uses. The focus is already inside the dialog, so it must
+    // be left where it is rather than relocated to the first button.
+    getDialogPrimaryButtonElement().focus();
+
+    expect(document.activeElement).toBe(getDialogPrimaryButtonElement());
   });
 
   it('should focus the content wrapper of a buttonless `confirm` template when the dialog is shown', async() => {

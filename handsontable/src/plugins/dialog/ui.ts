@@ -193,9 +193,15 @@ export class DialogUI {
 
     const { dialogElement } = this.#refs!;
 
-    // Set ARIA attributes
+    // Set ARIA attributes. The tab stop is one of them: the container is built once and never
+    // replaced, and the value is the same for every template, so it is an invariant of this element
+    // rather than something `updateDialog()` should rewrite on every show. It has to be present at
+    // all, or `focusDialog()` – the public `Dialog#focus()`, which `../loading/` calls – is a silent
+    // no-op: `focus()` on an element with no tab stop does nothing and throws nothing. A value of
+    // -1 adds no tab stop, so the tab order is unchanged.
     setAttribute(dialogElement, [
       A11Y_MODAL(),
+      A11Y_TABINDEX(-1),
       ['dir', this.#isRtl ? 'rtl' : 'ltr'],
     ]);
 
@@ -276,11 +282,6 @@ export class DialogUI {
       animationClass,
       showClass
     ].join(' ');
-
-    // Every template, not only `base`: `focusDialog()` (the public `Dialog#focus()`, which
-    // `../loading/` calls) is a silent no-op on a container that cannot hold the focus. A value of
-    // -1 adds no tab stop, so the tab order is the same as before.
-    setAttribute(dialogElement, [A11Y_TABINDEX(-1)]);
 
     // Dialog aria attributes
     setAttribute(dialogElement, [

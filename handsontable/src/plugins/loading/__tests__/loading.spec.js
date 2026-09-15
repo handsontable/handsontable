@@ -4,6 +4,10 @@ describe('Loading', () => {
   });
 
   afterEach(function() {
+    // Removed here rather than inside a test: an assertion that throws would otherwise leave an
+    // extra tab stop in front of the grid for every later spec in this file.
+    Array.from(document.querySelectorAll('#topInput')).forEach(el => el.remove());
+
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -165,7 +169,6 @@ describe('Loading', () => {
     getPlugin('dialog').showConfirm('Are you sure?');
 
     expect(document.activeElement).toBe(getDialogSecondaryButtonElement());
-    expect(document.activeElement).not.toBe(getDialogContainerElement());
   });
 
   it('should move the focus onto the dialog container when the loading overlay is tabbed into', async() => {
@@ -184,8 +187,6 @@ describe('Loading', () => {
     topInput[0].focus();
 
     await keyDownUp('tab');
-
-    topInput.remove();
 
     // The loading overlay renders through `content`, so it reports no focusable elements and nothing
     // inside it can hold the focus. The plugin's `afterDialogFocus` listener is what puts the focus

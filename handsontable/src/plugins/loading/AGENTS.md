@@ -35,8 +35,19 @@ unannounced.
 Without the gate, enabling `loading` silently broke the confirm-dialog focus fix from DEV-47 — the dialog
 focused the first button and this listener pulled it straight back onto the container. It stayed invisible
 because `focus()` was a no-op on the `confirm` template until that same ticket fixed it, so the two
-defects hid each other. `isVisible()` is **not** a usable guard here: it delegates to
-`dialogPlugin.isVisible()`, which is true for any dialog at all.
+defects hid each other.
+
+**`isVisible()` is not a usable guard here, and that is a defect of its own.** It delegates straight to
+`dialogPlugin.isVisible()`, which is true for **any** dialog. So it reports a loading overlay that is not
+there, and worse, `hide()` gates on it: called while an application's own `showConfirm()` dialog is open,
+`loading.hide()` passes the guard, closes someone else's dialog, and fires `beforeLoadingHide` /
+`afterLoadingHide` for a dialog this plugin never opened. Reading the dialog's `template` setting is
+deliberately the narrow fix for the focus gate only. The general repair is an ownership flag set in
+`show()` and cleared in `hide()` / on `afterDialogHide`, which would fix `isVisible()`, `hide()` and the
+focus gate together — but it changes what two public methods report, so it needs its own ticket rather
+than riding along with a focus fix. Note it cannot be a pure flag either until the
+`template`-versus-`content` accumulation in `../dialog/AGENTS.md` is resolved, since that is what
+currently makes "someone replaced my content" unreachable.
 
 ## `show()` is idempotent, and vetoable only on a real open
 

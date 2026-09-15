@@ -107,10 +107,18 @@ picks the first element; `'click'` deliberately picks **nothing**.
 Never collapse the `'unknown'` branch into a bare `else`, which would also catch `'click'`. A click on a
 **non-focusable** part of the dialog — its title, say — sends no focus event of its own, so with the scope
 deactivated (the user clicked outside the open modal first) it reaches `onActivate` as `'click'`, and a
-bare `else` then moves the focus the user did not ask to move. A click on a focusable element never gets
-that far: its own focus event activates the scope first with `'unknown'`, and `activateScope` returns early
-on the second call. `methods/show.spec.js` pins the non-focusable case, which is the only one that
-separates the two shapes.
+bare `else` then moves the focus the user did not ask to move. `methods/show.spec.js` pins it.
+
+**`'unknown'` is not only `show()`, and that is why the branch carries the same `contains` test as the
+fallback.** A focus event on an element with no `data-ht-focus-source` also arrives as `'unknown'` — and a
+plain button has none. It reaches `onActivate` whenever the scope was deactivated **without** unlistening,
+which is what `activateScope` does to the previously active scope every time another scope activates (a
+`notification` opening over an open dialog is the in-tree path; `deactivateScope` called directly is the
+other). Without the test, that focus would snap back to the first button, away from where the user put it.
+An earlier revision of this file claimed such a focus "never gets that far" because the scope would
+already be active — that is wrong whenever something else deactivated it, and a code review caught it.
+`methods/show.spec.js` pins this case too; note that `simulateClick` cannot express it, because the legacy
+harness delivers that as `'click'` — the test focuses the button directly.
 
 DEV-47 is what the missing `'unknown'` branch cost: the outer `if (focusableElements.length > 0)` was
 entered, neither Tab branch matched, and the `else if` fallback below it is unreachable from there — so a
@@ -124,14 +132,47 @@ does **not** take the focus when a dialog opens — a deliberate "don't steal fo
 not touched" rule that predates the focus-scope rewrite. It is also a WAI-ARIA APG deviation, since APG
 moves focus into a modal in all circumstances; re-deciding it is a product call, not a bug fix.
 
-### The container carries `tabindex="-1"` for EVERY template
+### The container carries `tabindex="-1"`, and it is set in `install()`
 
-`ui.ts` used to set it only when `TEMPLATE_NAME === 'base'`. That made `focusDialog()` — the public
-`Dialog#focus()`, which `../loading/` calls from its `afterDialogFocus` listener — a **silent no-op** on a
-`confirm` dialog: `dialogElement.focus()` on an element with no tab stop does nothing and throws nothing.
-`-1` adds no tab stop, so setting it everywhere changes no Tab order. (`templates/confirm.ts` already put
-`tabindex="-1"` on its own `contentElement`, which is why a buttonless `confirm` was focusable inside while
-its container was not.)
+`ui.ts` used to set it inside `updateDialog()` and only when `TEMPLATE_NAME === 'base'`. The template gate
+was the DEV-47 bug: it made `focusDialog()` — the public `Dialog#focus()`, which `../loading/` calls from
+its `afterDialogFocus` listener — a **silent no-op** on a `confirm` dialog, because `focus()` on an element
+with no tab stop does nothing and throws nothing. `-1` adds no tab stop, so setting it for every template
+changes no Tab order. (`templates/confirm.ts` already put `tabindex="-1"` on its own `contentElement`,
+which is why a buttonless `confirm` was focusable inside while its container was not.)
+
+It now lives in `install()`, in the same `setAttribute` array as `aria-modal` and `dir`, because the
+container is built once and never replaced and the value is identical for every template — an invariant of
+the element, not something to rewrite on every show. That is a tidiness argument, **not** a second bug
+fix: a code review suggested the move would also let a caller focus the dialog before the first `show()`,
+and it does not. The container is `display: none` until then, and a hidden element cannot take the focus
+whatever its tabindex — measured. Do not restate that claim; `focus()` only does anything while the dialog
+is visible, and five specs across `methods/focus.spec.js`, `methods/show.spec.js`,
+`keyboardShortcuts/escape.spec.js` and `../loading/__tests__/loading.spec.js` fail if the attribute goes
+missing.
+
+### Known, NOT fixed by DEV-47 — measured, and each needs its own ticket
+
+Found while fixing the focus branches. All four are pre-existing, and the last two were confirmed to behave
+identically with the `'unknown'` branch removed, so they are not consequences of it.
+
+1. **`template` and `content` accumulate across calls.** `updatePluginSettings` only assigns the keys the
+   new object carries, so `loading.show()` (which sets `content`) followed by `showConfirm()` (which sets
+   `template`) trips the mutual-exclusion `throwWithCause` in `update()`. Both orders throw, and the caller
+   cannot recover: `SETTINGS_VALIDATORS.template` is `isPlainObject(...)`, which rejects `null`, so
+   `update({ template: null })` is ignored with a console warning. Either accept `null` there, or have
+   `update()` reset the other key to its default when one of the pair is supplied.
+2. **The zero-focusable fallback excludes both Tab sources.** Tab into a `content` dialog with nothing
+   focusable inside and the focus stays on the hidden `htFocusCatcher` — no announcement. `../loading/`
+   patches exactly this from outside, with its `afterDialogFocus` listener; dropping the two
+   `focusSource !== 'tab_from_*'` conditions would fix it here for every `content` dialog instead, but it
+   changes what `keyboardShortcuts/tab.spec.js` pins.
+3. **`hide()` restores the focus only through the selection-restore path.** With the grid listening but
+   nothing selected, `hide()` takes the `else` branch, which only renders — so the focus falls to `body`.
+4. **`deactivateScope` does not restore the shortcut context.** After `hide()` the active context is still
+   `plugin:dialog`, so the grid's own shortcuts are dead until something re-activates the grid scope. The
+   selection restore heals it by accident; with no selection nothing does. Same family as DEV-53
+   (`emptyDataState`).
 
 ## Where to look next
 
