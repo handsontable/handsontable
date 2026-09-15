@@ -150,12 +150,33 @@ test('a fork run is told where its images are and that a maintainer approves the
   // Fork and Dependabot runs read this in the job summary — the sticky comment
   // is guarded off there. The environment gate does not depend on their token,
   // so the instructions are the same; only the report location differs.
-  const v = evaluate({ report: report({ changed: 5 }), seeded: false });
+  const v = evaluate({ report: report({ changed: 5 }), seeded: false, reportUrl: '' });
 
   assert.equal(v.verdict, 'changed');
   assert.match(v.comment, /### What to do next/);
   assert.match(v.comment, /visual-diff-report/);
   assert.match(v.comment, /A maintainer approves the/);
+});
+
+test('the no-report note follows the missing report, not the seeding flag', () => {
+  // The two say different things — `seeded` is whether a run may WRITE the
+  // baseline — and the workflow happens to set both from one condition today, so
+  // a bug here is invisible until it is not. A run that cannot seed but did
+  // publish must NOT be told it published nothing.
+  const seededWithReport = evaluate({
+    report: report({ changed: 5 }), seeded: false, reportUrl: 'https://example.test/index.html',
+  });
+
+  assert.doesNotMatch(seededWithReport.comment, /published no hosted report/,
+    'the fork notice is keyed on `seeded`, so it shows on a run that did publish');
+  assert.match(seededWithReport.comment, /Open the visual report/);
+
+  // And the mirror: a run that may seed but published nothing still gets it.
+  const publishedNothing = evaluate({
+    report: report({ changed: 5 }), seeded: true, reportUrl: '',
+  });
+
+  assert.match(publishedNothing.comment, /published no hosted report/);
 });
 
 test('a missing report URL degrades to the artifact instructions', () => {

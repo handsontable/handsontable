@@ -175,12 +175,20 @@ export function evaluate({
       // A fork or Dependabot contributor reads this in the job summary. Their
       // token cannot post the comment, but the environment gate does not depend
       // on their token at all: a maintainer approves the deployment the same way.
-      ...(seeded
+      //
+      // Keyed on `reportUrl`, not on `seeded`. They say different things —
+      // `seeded` is whether this run may WRITE the baseline, and this note is
+      // about whether it PUBLISHED a report. The workflow happens to set both
+      // from one condition today, so the two are indistinguishable here; the day
+      // a same-repo run seeds without publishing, keying on `seeded` would hide
+      // the note on the run that needs it and show a fork notice on a run that is
+      // not a fork. The absent URL is the fact the sentence is actually about.
+      ...(reportUrl
         ? []
         : [
-          '> This run comes from a fork or from Dependabot, so it published no report; the',
-          '> `visual-diff-report` artifact holds the images. A maintainer approves the',
-          '> deployment as above.',
+          '> This run published no hosted report — normally a fork or Dependabot pull',
+          '> request, whose token cannot publish one — so the `visual-diff-report`',
+          '> artifact holds the images. A maintainer approves the deployment as above.',
           '',
         ]),
     ].join('\n'),

@@ -399,8 +399,12 @@ jobs:
       # below turns that into a human decision. It runs on `always()`, not the
       # implicit `success()`: an earlier failure would otherwise skip it, leave
       # `.reg/comment.md` unwritten, and let the sticky step below fail on a
-      # missing path while the previous push's verdict stayed up -- the staleness
-      # this whole arrangement avoids.
+      # missing path, leaving the previous push's verdict standing as if it
+      # described this one. That is the staleness this arrangement rules out -- a
+      # verdict outliving the commit it was about. It is NOT a live status within
+      # a run: the approval necessarily happens after this step, so the comment
+      # would otherwise ask for a review that has already happened. The `approve`
+      # job rewrites it once a reviewer has acted.
       - name: Visual verdict
         id: gate
         if: always() && github.event_name == 'pull_request'
@@ -433,9 +437,15 @@ jobs:
       # fork run has no hosted report, and a reviewer approving a `changed`
       # verdict may want the images without the CDN. A clean same-repo run needs
       # it for nothing, so it is skipped there.
+      #
+      # `== 'changed'` rather than `!= 'clean'`: the latter also matched
+      # `bootstrap`, a run that compared nothing and seeded the baseline instead,
+      # so it uploaded the whole `.reg` tree with nothing in it to review. The
+      # `error` verdict still uploads, through `failure()` — the gate step exits
+      # non-zero there, which is what a reader needs the images for.
       - name: Upload the visual diff report
         if: ${{ !cancelled() && github.event_name == 'pull_request'
-          && (failure() || steps.gate.outputs.verdict != 'clean') }}
+          && (failure() || steps.gate.outputs.verdict == 'changed') }}
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
         with:
           name: visual-diff-report
@@ -469,22 +479,55 @@ jobs:
   # whose downgraded token the old label machinery could not clear -- the
   # reviewer's approval does not go through that token.
   #
-  # Cutover (repo admin): create the `visual-approval` environment WITH required
-  # reviewers before this lands. A job that references a missing environment
-  # silently auto-creates it UNPROTECTED and runs straight through, so the step
-  # below asserts the control's OUTCOME -- an approval recorded against this run
-  # -- rather than trusting its configuration, and fails closed when none is.
+  # Cutover (repo admin), both steps before this lands:
+  #
+  #   1. Create the `visual-approval` environment WITH required reviewers, and
+  #      TICK "Prevent self-review". The tick is part of the decision, not an
+  #      option: without it the person who pushed the branch can approve their own
+  #      differences, which is the rubber-stamping this replaces rather than a fix
+  #      for it. The assertion below cannot stand in for the box — a self-approval
+  #      is still a recorded approval, and reads identically through the API.
+  #      `manual-qa`'s environment is configured the same way.
+  #
+  #   2. DELETE the `visual-approved` label from the repository's label list. The
+  #      workflows that acted on it go with this change, so a label left in the
+  #      picker is a button that silently does nothing: whoever applies it waits
+  #      for a re-run that never comes. Open pull requests carrying it need no
+  #      other action — deleting the label removes it from them too.
+  #
+  # A job that references a missing environment silently auto-creates it
+  # UNPROTECTED and runs straight through, so the step below asserts the
+  # control's OUTCOME -- an approval recorded against this run -- rather than
+  # trusting its configuration, and fails closed when none is.
   approve:
     name: approve
     runs-on: ubuntu-latest
     needs: [ compare ]
-    if: ${{ !cancelled() && github.event_name == 'pull_request'
+    # `!failure()` as well as `!cancelled()`, matching `compare`'s own guard. Any
+    # `if:` replaces the implicit `success()` on `needs`, so `!cancelled()` alone
+    # would run this job when `compare` FAILED — and the verdict step writes its
+    # output on `always()`, so a failure in a later step of `compare` leaves
+    # `verdict == 'changed'` on a red job. A reviewer would then be asked to
+    # approve a build that cannot go green whatever they click.
+    if: ${{ !failure() && !cancelled() && github.event_name == 'pull_request'
       && needs.compare.outputs.verdict == 'changed' }}
+    # The approvals API below reads the run's environment approvals, which needs
+    # `actions: read`. Requested explicitly rather than inherited: a nested
+    # job-level request is validated against the caller's grant at run startup,
+    # so a repository default too narrow for it fails loudly and immediately
+    # instead of 403ing later, on the first pull request that has differences.
+    # `compare` already requests `pull-requests: write` through the same path, so
+    # the caller's grant is known to be wider than this. `pull-requests: write` is
+    # for the comment the last step rewrites.
+    permissions:
+      actions: read
+      pull-requests: write
     environment:
       name: visual-approval
       url: ${{ needs.compare.outputs.report-url }}
     steps:
       - name: Assert a human approval is recorded for this run
+        id: assert
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # https://github.com/actions/github-script/releases/tag/v8.0.0
         with:
           script: |
@@ -517,5 +560,35 @@ jobs:
                 + 'is not enforcing anything until then.');
               return;
             }
+            core.setOutput('approved-by', approval.user.login);
             core.notice(`Visual differences approved by @${approval.user.login}`
               + `${approval.comment ? `: ${approval.comment}` : ''}.`);
+
+      # `compare` posted a comment asking for an approval, and nothing else would
+      # ever take that request back down: the sticky comment keeps asking through
+      # review, merge, and afterwards. The label flow got this for free, because
+      # approving started a re-run that rewrote the comment; the environment gate
+      # has no re-run, so the rewrite has to be explicit. Same sticky header, so
+      # this replaces that comment rather than adding a second one, and the
+      # message is inline because this job has no checkout and the compare job's
+      # `.reg/comment.md` lives on a different runner.
+      # `success()`, not `!cancelled()`: the step above fails when no approval is
+      # recorded, and `!cancelled()` would let this one post "approved by @" with
+      # an empty login on exactly that run — announcing the opposite of what
+      # happened. This is the step-level shape of the bug the job's own `if:`
+      # guards against.
+      - name: Record the approval on the pull request
+        if: ${{ success() && github.event_name == 'pull_request'
+          && (github.event.pull_request.head.repo.full_name == github.repository
+              && github.actor != 'dependabot[bot]') }}
+        uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # https://github.com/marocchino/sticky-pull-request-comment/releases/tag/v3.0.4
+        with:
+          header: visual-tests
+          message: |
+            ## Visual tests — differences approved
+
+            @${{ steps.assert.outputs.approved-by }} approved this build's visual differences on the
+            [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}),
+            where the report and the images are linked.
+
+            Approval covers this build only: a new push renders again and asks again.
