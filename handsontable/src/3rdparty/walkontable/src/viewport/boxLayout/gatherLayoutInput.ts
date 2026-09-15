@@ -105,9 +105,13 @@ export function gatherLayoutInput(deps: LayoutDeps): LayoutInput {
   // columns to make room, and no bar is ever painted.
   const hiderHeightCompensation = getHiderHeightCompensation(wtSettings);
   // The column total comes from the prefix-sum cache, which `isCurrent()` keys on the item COUNT
-  // only. It is exact here because every producer whose widths can move at a constant count
-  // (`StretchColumns`, `ManualColumnResize`, `AutoColumnSize`) drops the cache through
-  // `view.invalidateColumnWidthCache()` when its map changes — `StretchColumns` since DEV-2902.
+  // only. It is exact only while every producer that can move a width at a constant count drops the
+  // cache. Of the five `modifyColWidth` registrants, three own a widths map and do (`StretchColumns`
+  // since DEV-2902, `ManualColumnResize`, `AutoColumnSize`, each through
+  // `view.invalidateColumnWidthCache()` when its map changes); `HiddenColumns` rides on the
+  // `hiddenIndexesChanged` invalidation in `core.ts`. NOT covered: `NestedHeaders` (a ghost-table
+  // width per column) and a per-column `width` written through cell meta (`getCellMeta(0, col).width`,
+  // read by `_getColWidthFromSettings` with no hook and no map) — the DEV-2902 follow-up.
   // A producer that forgets leaves this total stale until something ELSE invalidates the cache — and
   // at a constant column count that may never come. The solver then predicts a scrollbar the browser
   // never paints on every draw after the change (the DEV-2902 symptom: a header clone one scrollbar

@@ -40,6 +40,14 @@ export class StretchCalculator {
    * @type {'all' | 'last' | 'none'}
    */
   #activeStrategy = 'none';
+  /**
+   * Whether the viewport is being measured for the next calculation. While set, the plugin hides its
+   * own stretched widths from `modifyColWidth`, so the measurement sums the base widths — exactly what
+   * clearing the map before the measurement used to give it.
+   *
+   * @type {boolean}
+   */
+  #isMeasuringViewport = false;
 
   /**
    * Initializes the stretch columns calculator with the Handsontable instance and registers the stretch widths index map.
@@ -81,15 +89,8 @@ export class StretchCalculator {
       : this.#stretchStrategies.get(this.#activeStrategy);
 
     if (stretchStrategy) {
-      const view = this.#hot.view;
-      let viewportWidth = view.getViewportWidth();
-
-      if (this.#willVerticalScrollAppear()) {
-        viewportWidth -= getScrollbarWidth(this.#hot.rootDocument);
-      }
-
       stretchStrategy.prepare({
-        viewportWidth,
+        viewportWidth: this.#measureViewportWidth(),
       });
 
       for (let columnIndex = 0; columnIndex < this.#hot.countCols(); columnIndex++) {
@@ -138,7 +139,43 @@ export class StretchCalculator {
    * @returns {number | null}
    */
   getStretchedWidth(columnVisualIndex: number) {
+    if (this.#isMeasuringViewport) {
+      return null;
+    }
+
     return this.#widthsMap.getValueAtIndex(this.#hot.toPhysicalColumn(columnVisualIndex));
+  }
+
+  /**
+   * Measures the width the strategy stretches into, with the plugin's own stretched widths hidden.
+   *
+   * When the window owns the horizontal axis, `Viewport#measureWorkspaceWidth` sums the columns live
+   * through `modifyColWidth` to decide between the holder's width and the document's client width.
+   * With the previous stretched widths still answering that hook, a shrink sums to the OLD viewport,
+   * which is wider than the new holder, so the measurement falls through to the document width and
+   * the columns overshoot the root by the page's margins — and stay there, because the next refresh
+   * reads the same overshoot back. Clearing the map before measuring used to prevent that as a side
+   * effect; hiding the widths for the duration of the measurement keeps the behavior without a map
+   * write. The engine cannot build its column-width cache in between: with this plugin's hook
+   * registered the column widths are not uniform, so `getViewportWidth()` measures the DOM directly
+   * instead of resolving the layout snapshot.
+   *
+   * @returns {number} The viewport width in pixels, less the vertical scrollbar about to appear.
+   */
+  #measureViewportWidth(): number {
+    this.#isMeasuringViewport = true;
+
+    try {
+      let viewportWidth = this.#hot.view.getViewportWidth();
+
+      if (this.#willVerticalScrollAppear()) {
+        viewportWidth -= getScrollbarWidth(this.#hot.rootDocument);
+      }
+
+      return viewportWidth;
+    } finally {
+      this.#isMeasuringViewport = false;
+    }
   }
 
   /**
