@@ -364,8 +364,8 @@ handsontable/src/
 
 **Directories:**
 - Plugin directories: `camelCase` (e.g., `autoColumnSize/`, `manualRowMove/`)
-- Feature modules: `camelCase` (e.g., `dataMap/`, `focusManager/`, `shortcutContexts/`)
-- Walkontable subdirectories: `camelCase` (e.g., `calculator/`, `renderer/`, `overlay/`)
+- Feature modules: `camelCase` (e.g., `dataMap/`, `focusManager/`, `cellTypes/`)
+- Walkontable subdirectories: `camelCase` (e.g., `axisSizing/`, `domMeasure/`, `overlay/`)
 
 **Exports:**
 - Plugin barrel files export: `{ PLUGIN_KEY, PLUGIN_PRIORITY, PluginClassName }`
