@@ -45,7 +45,15 @@ export class PaginationSelectPage {
    */
   resolveToken(varName: string): Promise<string> {
     return this.page.evaluate((name) => {
-      const root = document.querySelector('.ht-pagination') ?? document.body;
+      // No `document.body` fallback: the token only resolves inside the themed pagination bar,
+      // so a missing bar must throw rather than silently compute to transparent - a transparent
+      // token would let an unfixed (also transparent) wrapper match it and pass vacuously.
+      const root = document.querySelector('.ht-pagination');
+
+      if (!root) {
+        throw new Error('pagination bar (.ht-pagination) not found');
+      }
+
       const probe = document.createElement('div');
 
       probe.style.backgroundColor = `var(${name})`;
@@ -57,5 +65,24 @@ export class PaginationSelectPage {
 
       return resolved;
     }, varName);
+  }
+
+  /**
+   * Reads the rendered pixel size of the wrapper and the select. The whole fix rests on the two
+   * boxes coinciding: only then is a hover anywhere on the wrapper also a hover on the select, so
+   * the wrapper `:hover` fill and the select's own `:hover` border/foreground stay in step.
+   *
+   * @returns {Promise<{ wrapper: [number, number]; select: [number, number] }>} Both box sizes.
+   */
+  boxDimensions(): Promise<{ wrapper: [number, number]; select: [number, number] }> {
+    return this.page.evaluate(() => {
+      const wrapper = document.querySelector('.ht-page-size-section__select-wrapper') as HTMLElement;
+      const select = wrapper.querySelector('select') as HTMLElement;
+
+      return {
+        wrapper: [wrapper.offsetWidth, wrapper.offsetHeight] as [number, number],
+        select: [select.offsetWidth, select.offsetHeight] as [number, number],
+      };
+    });
   }
 }
