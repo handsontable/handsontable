@@ -224,7 +224,7 @@ add this line anywhere in your test:
 await page.screenshot({ path: helpers.screenshotPath() });
 ```
 
-In each test, you can take as many screenshots as you want. For example:
+Capture one screenshot per distinct visual state, and assert that state first (`await expect(locator).toBeFocused()`, `.toBeVisible()`, …) — a capture straight after an action photographs whichever half of the transition the runner reached. The determinism rules are in `AGENTS.md`. For example:
 
 ```js
 await cell.click();
