@@ -599,6 +599,71 @@ describe('ScopeManager', () => {
       expect(getShortcutManager().getActiveContextName()).toBe('grid');
     });
 
+    it('should keep the context it first displaced across a focus-leave and a re-activation', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+      });
+
+      getShortcutManager().addContext('myOtherPlugin');
+
+      const container = createUIWithFocusScope('before', {
+        id: 'top',
+        shortcutsContextName: 'myPlugin',
+      });
+      const outsideInput = document.createElement('input');
+
+      document.body.appendChild(outsideInput);
+
+      await listen();
+      getShortcutManager().setActiveContextName('myOtherPlugin');
+
+      container.querySelector('.text-input').focus();
+
+      expect(getShortcutManager().getActiveContextName()).toBe('myPlugin');
+
+      // Focus leaves and comes back. The context stays on 'myPlugin' throughout, so the re-activation
+      // reads the scope's own name - and must keep what it recorded the first time rather than
+      // replacing it with the default.
+      outsideInput.focus();
+      container.querySelector('.text-input').focus();
+
+      getFocusScopeManager().deactivateScope('top');
+
+      expect(getShortcutManager().getActiveContextName()).toBe('myOtherPlugin');
+
+      outsideInput.remove();
+    });
+
+    it('should restore the context when a scope is unregistered after focus left it', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+      });
+
+      const container = createUIWithFocusScope('before', {
+        id: 'top',
+        shortcutsContextName: 'myPlugin',
+      });
+      const outsideInput = document.createElement('input');
+
+      document.body.appendChild(outsideInput);
+
+      await listen();
+
+      container.querySelector('.text-input').focus();
+
+      expect(getShortcutManager().getActiveContextName()).toBe('myPlugin');
+
+      // The focus event drops the scope but keeps the context, so by the time the plugin is disabled
+      // this scope is no longer the active one. Unregistering must still hand the keyboard back, or the
+      // manager is left on a context whose shortcuts and fallback are both gone with it.
+      outsideInput.focus();
+      getFocusScopeManager().unregisterScope('top');
+
+      expect(getShortcutManager().getActiveContextName()).toBe('grid');
+
+      outsideInput.remove();
+    });
+
     it('should deactivate the scope (deactivation changed by events)', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),

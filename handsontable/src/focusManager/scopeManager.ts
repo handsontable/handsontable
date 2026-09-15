@@ -203,12 +203,12 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
 
     const scope = SCOPES.getItem(scopeId) as ReturnType<typeof createFocusScope>;
 
-    // Without this the manager keeps pointing at a destroyed scope, and the shortcuts context it
-    // displaced is never rolled back - which is how disabling the plugin that owns the active scope
-    // left every grid shortcut dead (DEV-2917).
-    if (activeScope === scope) {
-      deactivateScope(scope);
-    }
+    // Unregistering is as explicit as `deactivateScope(scopeId)` - the scope is going away - so it
+    // restores the same way, and for the same reason it does not check whether this scope is the active
+    // one. A focus event may have dropped it already while keeping the context, and destroying it then
+    // would leave the manager on a context whose shortcuts and fallback are both gone (DEV-2917).
+    deactivateScope(scope, false);
+    restoreDisplacedShortcutsContext(scope);
 
     if (scope.getFallbackShortcutsContextName() !== null && !hasOtherScopeWithSameFallback(scope)) {
       shortcutManager.getContext(scope.getShortcutsContextName())?.setFallbackContext(null);
@@ -286,10 +286,18 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
     // deactivation through a focus event leaves the context alone (see `deactivateScope`), so a scope
     // that stood aside and was re-activated reads its own name back. Recording it would make the later
     // rollback a no-op that pins the plugin's context forever.
+    //
+    // What it keeps instead is whatever it recorded the FIRST time, which that same focus-event path
+    // deliberately preserved - overwriting it with the default would send a scope that displaced
+    // `editor` back to `grid`. The default is only for a scope that has nothing recorded at all.
     const currentContextName = shortcutManager.getActiveContextName();
 
-    scope.setDisplacedShortcutsContextName(
-      currentContextName === scope.getShortcutsContextName() ? DEFAULT_SHORTCUTS_CONTEXT : currentContextName);
+    if (currentContextName !== scope.getShortcutsContextName()) {
+      scope.setDisplacedShortcutsContextName(currentContextName);
+    } else if (scope.getDisplacedShortcutsContextName() === null) {
+      scope.setDisplacedShortcutsContextName(DEFAULT_SHORTCUTS_CONTEXT);
+    }
+
     shortcutManager.setActiveContextName(scope.getShortcutsContextName());
 
     activeScope.activate(focusSource);
