@@ -30,6 +30,10 @@ export function shortcutsGridContext(hot: HotInstance) {
    * @returns {boolean}
    */
   const isGridNavigable = (): boolean => isDefined(hot.getSelected()) && canNavigateGrid(hot);
+  // A shortcut in this batch that declares its OWN `runOnlyIf` does not get this one - a per-shortcut
+  // `runOnlyIf` replaces the group's instead of being ANDed with it. Each such entry therefore starts
+  // with `isGridNavigable()` itself: without it `Home`, `End` and `Ctrl`+`Shift`+arrows kept moving a
+  // selection hidden under a covering overlay, and `Home`/`End` consumed the key doing it.
   const config = {
     runOnlyIf: isGridNavigable,
     group: GRID_GROUP,
@@ -104,7 +108,7 @@ export function shortcutsGridContext(hot: HotInstance) {
     keys: [['ArrowUp', 'Shift', 'Control/Meta']],
     captureCtrl: true,
     callback: () => commandsPool.extendCellsSelectionToMostTop(),
-    runOnlyIf: () => isDefined(hot.getSelected()) &&
+    runOnlyIf: () => isGridNavigable() &&
       !(hot.selection.isSelectedByCorner() || hot.selection.isSelectedByColumnHeader()),
   }, {
     keys: [['ArrowDown']],
@@ -120,7 +124,7 @@ export function shortcutsGridContext(hot: HotInstance) {
     keys: [['ArrowDown', 'Shift', 'Control/Meta']],
     captureCtrl: true,
     callback: () => commandsPool.extendCellsSelectionToMostBottom(),
-    runOnlyIf: () => isDefined(hot.getSelected()) &&
+    runOnlyIf: () => isGridNavigable() &&
       !(hot.selection.isSelectedByCorner() || hot.selection.isSelectedByColumnHeader()),
   }, {
     keys: [['ArrowLeft']],
@@ -136,7 +140,7 @@ export function shortcutsGridContext(hot: HotInstance) {
     keys: [['ArrowLeft', 'Shift', 'Control/Meta']],
     captureCtrl: true,
     callback: () => commandsPool.extendCellsSelectionToMostLeft(),
-    runOnlyIf: () => isDefined(hot.getSelected()) &&
+    runOnlyIf: () => isGridNavigable() &&
       !(hot.selection.isSelectedByCorner() || hot.selection.isSelectedByRowHeader()),
   }, {
     keys: [['ArrowRight']],
@@ -152,13 +156,13 @@ export function shortcutsGridContext(hot: HotInstance) {
     keys: [['ArrowRight', 'Shift', 'Control/Meta']],
     captureCtrl: true,
     callback: () => commandsPool.extendCellsSelectionToMostRight(),
-    runOnlyIf: () => isDefined(hot.getSelected()) &&
+    runOnlyIf: () => isGridNavigable() &&
       !(hot.selection.isSelectedByCorner() || hot.selection.isSelectedByRowHeader()),
   }, {
     keys: [['Home']],
     captureCtrl: true,
     callback: () => commandsPool.moveCellSelectionToMostInlineStart(),
-    runOnlyIf: () => isDefined(hot.getSelected()) && hot.view.isMainTableNotFullyCoveredByOverlays(),
+    runOnlyIf: () => isGridNavigable() && hot.view.isMainTableNotFullyCoveredByOverlays(),
   }, {
     keys: [['Home', 'Shift']],
     callback: () => commandsPool.extendCellsSelectionToMostInlineStart(),
@@ -166,12 +170,12 @@ export function shortcutsGridContext(hot: HotInstance) {
     keys: [['Home', 'Control/Meta']],
     captureCtrl: true,
     callback: () => commandsPool.moveCellSelectionToMostTopInlineStart(),
-    runOnlyIf: () => isDefined(hot.getSelected()) && hot.view.isMainTableNotFullyCoveredByOverlays(),
+    runOnlyIf: () => isGridNavigable() && hot.view.isMainTableNotFullyCoveredByOverlays(),
   }, {
     keys: [['End']],
     captureCtrl: true,
     callback: () => commandsPool.moveCellSelectionToMostInlineEnd(),
-    runOnlyIf: () => isDefined(hot.getSelected()) && hot.view.isMainTableNotFullyCoveredByOverlays(),
+    runOnlyIf: () => isGridNavigable() && hot.view.isMainTableNotFullyCoveredByOverlays(),
   }, {
     keys: [['End', 'Shift']],
     callback: () => commandsPool.extendCellsSelectionToMostInlineEnd(),
@@ -179,7 +183,7 @@ export function shortcutsGridContext(hot: HotInstance) {
     keys: [['End', 'Control/Meta']],
     captureCtrl: true,
     callback: () => commandsPool.moveCellSelectionToMostBottomInlineEnd(),
-    runOnlyIf: () => isDefined(hot.getSelected()) && hot.view.isMainTableNotFullyCoveredByOverlays(),
+    runOnlyIf: () => isGridNavigable() && hot.view.isMainTableNotFullyCoveredByOverlays(),
   }, {
     keys: [['PageUp']],
     callback: () => commandsPool.moveCellSelectionUpByViewportHight(),

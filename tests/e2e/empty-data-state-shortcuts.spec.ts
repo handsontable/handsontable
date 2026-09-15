@@ -285,6 +285,25 @@ test.describe('emptyDataState keyboard shortcuts', () => {
     expect(await grid.allValues()).toEqual(before);
   });
 
+  test('does not move a selection hidden under the loading overlay with Home, End or Ctrl+Shift+arrows', async() => {
+    // These keys declare their own `runOnlyIf`, which REPLACES the navigation group's guard instead of
+    // adding to it - so they kept moving a selection the overlay hides, and `Home`/`End` consumed the key.
+    await grid.cell(0, 0).click();
+
+    // Positive control: with the overlay down, `End` does move the selection.
+    await grid.selectCell(1, 2);
+    await grid.page.keyboard.press('End');
+    expect(await grid.selection()).toEqual([[1, 5, 1, 5]]);
+
+    await grid.selectCell(1, 2);
+    await grid.startDataProviderFetch();
+
+    for (const key of ['Home', 'End', 'ControlOrMeta+Shift+ArrowDown']) {
+      expect(await grid.pressAndReadDefaultPrevented(key)).toBe(false);
+      expect(await grid.selection()).toEqual([[1, 2, 1, 2]]);
+    }
+  });
+
   test('lets Tab out of the loading overlay it covers the grid with', async() => {
     await grid.cell(0, 0).click();
     await grid.startDataProviderFetch();
