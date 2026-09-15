@@ -154,9 +154,21 @@ Eight things about this pipeline are worth knowing before changing it.
   The `Reconcile the golden records` step runs on every non-pull-request event and `aws s3 sync --delete`s
   that build's own render over `base/<branch>/actual`, unreviewed — so a green `develop` build that
   happened to photograph a transient state makes that state the reference. The build reports no failure
-  and no retry; it simply captured something else. It then persists, because most `develop` runs are
-  cancelled by the next push (2 of 10 finished on the day this was found), so the next reseed can be hours
-  away. **The diagnostic is byte equality across pull requests:** if two unrelated pull requests fail on
+  and no retry; it simply captured something else. It persisted for hours while the seed lived in
+  `develop.yml`, whose `cancel-in-progress` cancelled most runs before they reached it (23 of 30 on 2026-09-08). The seed now runs in
+  `.github/workflows/visual-seed.yml` under a group that never cancels, so the last push of any burst is
+  seeded within about 15 minutes, and a poisoned record is overwritten by the next develop push rather than
+  the next run that survives. A poisoned record can also be replaced by hand: dispatch `Visual seed` on
+  develop, with develop selected as the branch (a dispatch from any other ref is refused by that
+  workflow's `guard` job: `visual.yml` would otherwise reconcile that ref's own `base/` prefix, and an
+  `lts/*` baseline is one nothing else would put back) — and **check that the dispatch actually ran**. It shares its concurrency group with the pushes
+  (one writer for `base/develop`, by design), so a merge landing while it is pending drops the pending
+  dispatch with no reason given. Usually that is the right outcome, because the push seeds a newer commit
+  over the same prefix and fixes the poisoned record anyway; if pushes have stopped, re-issue the dispatch.
+  **When a baseline looks stale rather than poisoned, start at that workflow's last successful run**:
+  `Visual seed` is not a required check, it is not in `test-health.yml`'s list, and since DEV-2797 it no
+  longer reds the `Develop` run, so a broken seed is quiet — GitHub notifies the pusher and nothing else
+  does. **The diagnostic is byte equality across pull requests:** if two unrelated pull requests fail on
   the same item, `shasum -a 256` their `actual/<item>` from the two reports. Identical bytes mean the
   render is deterministic and the golden record is the odd one out — neither pull request is at fault, and
   `visual-approved` on one of them fixes nothing for the others. Confirmed on `columns-filter-2` under
