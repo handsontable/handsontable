@@ -85,9 +85,17 @@ calls `preventDefault()` whenever a selection survives, which used to trap the u
 
 ## The shortcut context rolls back in the scope manager, not here
 
-`deactivateScope()` (`../../focusManager/scopeManager.ts`) restores the shortcuts context the scope
-displaced when it was activated — the name is captured on the scope itself, so nesting unwinds in order,
-and the rollback is skipped when something else (an open editor) took the context over meanwhile.
+Calling `deactivateScope(PLUGIN_KEY)` (`../../focusManager/scopeManager.ts`) restores the shortcuts
+context this scope displaced when it was activated — the name is captured on the scope itself, so nesting
+unwinds in order, and the rollback is skipped when something else (an open editor) took the context over
+meanwhile.
+
+**Only that EXPLICIT call restores.** A deactivation driven by a focus event leaves the context alone, and
+that asymmetry is load-bearing in both directions. `sheetsBar` needs it: it disables its own scope while
+its menu is open, so rolling back there hands the keyboard to the grid and kills every command in that
+menu (all six Playwright legs went red on this). And this plugin needs the other half: opening the context
+menu already deactivated the scope by the time `#hide()` runs, so the explicit call restores even when the
+scope is no longer the active one, and the implicit path keeps the displaced name for it to find.
 
 Do **not** add a second rollback in `#hide()`. There used to be one, hardcoded to `grid`, and two rollbacks
 that can disagree is worse than the bug it fixed. The bug is worth remembering: deactivation used to leave
