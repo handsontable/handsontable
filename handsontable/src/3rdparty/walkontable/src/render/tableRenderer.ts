@@ -13,10 +13,13 @@ import { applyRowHeight } from './exactRowHeight';
 
 /**
  * Asked for every cell in the rendered band before the cell element is reset and painted.
- * Answering `false` leaves the element exactly as the previous draw left it.
+ * Answering `false` leaves the element exactly as the previous draw left it. `band` is the identity
+ * of the rendered band (the overlay with its offsets and sizes); `stableBand` is the overlay name
+ * alone, offered where the rows recycle so a cell that kept its element across a scroll can read as
+ * unchanged, and `null` where it may not be used.
  */
 export type ShouldPaintCell = (
-  sourceRow: number, sourceColumn: number, TD: HTMLTableCellElement, band: string
+  sourceRow: number, sourceColumn: number, TD: HTMLTableCellElement, band: string, stableBand: string | null
 ) => boolean;
 
 /**
@@ -215,6 +218,21 @@ export class TableRenderer {
    */
   #columnHeadersRenderSkippable: boolean = false;
   /**
+   * `true` when this draw was entered as a scroll draw (`Overlays#isScrollDrivenDraw`). Set once per
+   * draw by the draw cycle; together with `#rowRecyclingAllowed` it decides whether the rows
+   * renderer may rotate the TR elements to follow the band.
+   *
+   * @type {boolean}
+   */
+  #scrollDrivenDraw: boolean = false;
+  /**
+   * `true` when the viewport allows row recycling on this draw (`Viewport#allowsRowRecycling`):
+   * element-scrolled on both axes. Set once per draw by the draw cycle.
+   *
+   * @type {boolean}
+   */
+  #rowRecyclingAllowed: boolean = false;
+  /**
    * `true` once the column-header pass has rendered at least once and stored its render window.
    *
    * @type {boolean}
@@ -324,6 +342,49 @@ export class TableRenderer {
    */
   setColumnHeadersRenderSkippable(skippable: boolean) {
     this.#columnHeadersRenderSkippable = skippable;
+  }
+
+  /**
+   * Records whether this draw was entered as a scroll draw.
+   *
+   * @param {boolean} scrollDriven Whether the draw is scroll-driven.
+   */
+  setScrollDrivenDraw(scrollDriven: boolean) {
+    this.#scrollDrivenDraw = scrollDriven;
+  }
+
+  /**
+   * Records whether the viewport allows row recycling on this draw.
+   *
+   * @param {boolean} allowed Whether row recycling is allowed.
+   */
+  setRowRecyclingAllowed(allowed: boolean) {
+    this.#rowRecyclingAllowed = allowed;
+  }
+
+  /**
+   * Whether the cells renderer may offer the host a stable paint identity for a cell: the overlay name
+   * alone instead of the band's offsets and sizes (see `CellsRenderer#render`). `true` exactly where
+   * the rows recycle, so an element that kept its row across a scroll can read as unchanged. The host
+   * still decides per cell, because it knows which cells paint something that depends on where the
+   * band starts or ends: MergeCells clamps a merged block's span to the rendered band, and the block's
+   * cells keep the full identity.
+   *
+   * @returns {boolean}
+   */
+  hasStableCellIdentity(): boolean {
+    return this.#rowRecyclingAllowed;
+  }
+
+  /**
+   * Whether the rows renderer may rotate the TR elements on this draw, so a row that stays in the
+   * band keeps its element. Only on a scroll-driven draw (any other draw keeps the band where it is
+   * or rebuilds it) and only where the viewport allows it (element-scrolled on both axes).
+   *
+   * @returns {boolean}
+   */
+  isRowRecyclingAllowed(): boolean {
+    return this.#scrollDrivenDraw && this.#rowRecyclingAllowed;
   }
 
   /**
@@ -457,11 +518,18 @@ export class TableRenderer {
 
       // Stationary bands: the TR/TD/TH nodes keep their DOM positions on every draw — the
       // `OrderView`s reuse the children in place and the renderers below overwrite their content.
-      // Rows and cells are deliberately NEVER moved, inserted, or removed while a band merely shifts
-      // (the draw cycle keeps both band sizes stable on scroll-driven draws — see
-      // `stabilizeRenderedRowsBand`/`stabilizeRenderedColumnsBand`). Structural DOM mutations here
-      // would trigger the host page's `:has()` style invalidation on every scroll, at a cost that
-      // scales with the host document.
+      // Rows and cells are never inserted or removed while a band merely shifts (the draw cycle keeps
+      // both band sizes stable on scroll-driven draws — see `stabilizeRenderedRowsBand`/
+      // `stabilizeRenderedColumnsBand`). Structural DOM mutations here would trigger the host page's
+      // `:has()` style invalidation on every scroll, at a cost that scales with the host document.
+      //
+      // The one move: on a scroll-driven draw where row recycling is allowed
+      // (`isRowRecyclingAllowed()`) the rows renderer rotates the TR elements by the band's offset
+      // delta, so a row that stays in the band keeps its TR and its TDs, and the host can then leave
+      // those cells untouched (`renderMode: 'onChange'`, through `shouldPaintCell`). That is one
+      // `DocumentFragment` move of `delta` rows per full draw, not a per-frame re-insertion of the
+      // band: measured against the `:has()` cost above (a host document of 30,000 nodes and three
+      // `:has()` rules) style recalculation stayed flat.
       this.rows!.render();
       this.rowHeaders!.render();
       this.cells!.render();

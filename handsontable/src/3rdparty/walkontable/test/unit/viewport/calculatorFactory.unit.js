@@ -110,6 +110,35 @@ describe('directionalBandOverscan', () => {
   });
 });
 
+describe('allowsRowRecycling', () => {
+  function createViewportStub({ singlePassLayout = true, verticalByWindow = false, horizontalByWindow = false } = {}) {
+    return {
+      wtSettings: { getSetting: () => singlePassLayout },
+      isVerticallyScrollableByWindow: () => verticalByWindow,
+      isHorizontallyScrollableByWindow: () => horizontalByWindow,
+    };
+  }
+
+  it('should allow recycling when the grid scrolls inside its own box on both axes', () => {
+    expect(calculatorFactory.allowsRowRecycling.call(createViewportStub())).toBe(true);
+  });
+
+  it('should not ask for single-pass layout, unlike the stationary bands', () => {
+    const viewport = createViewportStub({ singlePassLayout: false });
+
+    expect(calculatorFactory.allowsRowRecycling.call(viewport)).toBe(true);
+    expect(calculatorFactory.allowsStationaryBands.call(viewport)).toBe(false);
+  });
+
+  it('should refuse recycling when the window owns the vertical axis', () => {
+    expect(calculatorFactory.allowsRowRecycling.call(createViewportStub({ verticalByWindow: true }))).toBe(false);
+  });
+
+  it('should refuse recycling when the window owns the horizontal axis', () => {
+    expect(calculatorFactory.allowsRowRecycling.call(createViewportStub({ horizontalByWindow: true }))).toBe(false);
+  });
+});
+
 describe('extendRenderedRowsBandTo', () => {
   const ROW_HEIGHT = 23;
 

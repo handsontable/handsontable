@@ -139,6 +139,30 @@ class Renderer {
   }
 
   /**
+   * Sets whether this draw was entered as a scroll draw.
+   *
+   * @param {boolean} scrollDriven Whether the draw is scroll-driven.
+   * @returns {Renderer}
+   */
+  setScrollDrivenDraw(scrollDriven: boolean) {
+    this.renderer.setScrollDrivenDraw(scrollDriven);
+
+    return this;
+  }
+
+  /**
+   * Sets whether the viewport allows row recycling on this draw.
+   *
+   * @param {boolean} allowed Whether row recycling is allowed.
+   * @returns {Renderer}
+   */
+  setRowRecyclingAllowed(allowed: boolean) {
+    this.renderer.setRowRecyclingAllowed(allowed);
+
+    return this;
+  }
+
+  /**
    * Renders the table.
    */
   render() {

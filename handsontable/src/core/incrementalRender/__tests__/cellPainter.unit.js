@@ -25,7 +25,7 @@ function createHarness() {
   };
   const painter = new CellPainter(hot, new RenderChangeTracker(), (row, column) => [row, column]);
 
-  return { painter, state, rendered };
+  return { painter, state, rendered, cellProperties };
 }
 
 describe('CellPainter', () => {
@@ -55,5 +55,45 @@ describe('CellPainter', () => {
 
     expect(rendered).toEqual(['v1', 'v2']);
     expect(painter.shouldPaint(0, 0, TD, 'band')).toBe(true);
+  });
+
+  it('should stamp the stable identity when the engine offers one, so a moved band does not repaint the cell', () => {
+    const { painter, rendered } = createHarness();
+    const TD = document.createElement('td');
+
+    // The rows recycle: the element keeps its row while the band's offsets move underneath.
+    expect(painter.shouldPaint(0, 0, TD, 'master,0,20,0,10', 'master')).toBe(true);
+    painter.paint(0, 0, TD);
+
+    expect(painter.shouldPaint(0, 0, TD, 'master,3,20,0,10', 'master')).toBe(false);
+    expect(rendered).toEqual(['v1']);
+  });
+
+  it('should keep the full band identity for a spanned cell, so a moved band repaints it', () => {
+    const { painter, rendered, cellProperties } = createHarness();
+    const TD = document.createElement('td');
+
+    // MergeCells marks the origin of a merged block `spanned` (covered cells resolve to that meta) and
+    // clamps the block's span to the rendered band, so the paint depends on where the band starts.
+    cellProperties.spanned = true;
+
+    expect(painter.shouldPaint(0, 0, TD, 'master,0,20,0,10', 'master')).toBe(true);
+    painter.paint(0, 0, TD);
+
+    expect(painter.shouldPaint(0, 0, TD, 'master,0,20,0,10', 'master')).toBe(false);
+    expect(painter.shouldPaint(0, 0, TD, 'master,3,20,0,10', 'master')).toBe(true);
+    painter.paint(0, 0, TD);
+
+    expect(rendered).toEqual(['v1', 'v1']);
+  });
+
+  it('should keep the full band identity when the engine offers no stable one', () => {
+    const { painter } = createHarness();
+    const TD = document.createElement('td');
+
+    expect(painter.shouldPaint(0, 0, TD, 'master,0,20,0,10', null)).toBe(true);
+    painter.paint(0, 0, TD);
+
+    expect(painter.shouldPaint(0, 0, TD, 'master,3,20,0,10', null)).toBe(true);
   });
 });
