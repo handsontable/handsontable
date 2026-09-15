@@ -191,5 +191,5 @@
 - `docs-visual-tests.yml` - visual regression testing for docs
 
 Fork PRs and Dependabot PRs both run on a read-only token with no Actions secrets. Read the two
-fork-guard bullets in the root `AGENTS.md` before touching any step that comments, pushes to a ref,
+fork-guard bullets in `.ai/CI.md` before touching any step that comments, pushes to a ref,
 or depends on a secret. Some paths degrade gracefully and must not be guarded.
