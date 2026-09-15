@@ -52,12 +52,18 @@ runs:
       if: ${{ (github.event_name == 'push' && 'golden' || 'compare') == 'compare' }}
       shell: bash
       run: |
-        if ! git fetch --force origin gh-pages 2>/dev/null; then
-          if git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
+        if ! git fetch --force origin "+refs/heads/gh-pages:refs/remotes/origin/gh-pages" 2>/dev/null; then
+          # `git ls-remote --exit-code` returns 2 for "no such ref" and 128 for a
+          # network/auth failure -- discriminate, so a blip does not read as an
+          # empty remote and let a self-compared run pass silently.
+          ls_status=0
+          git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1 || ls_status=$?
+          if [ "$ls_status" = 2 ]; then
+            echo "gh-pages does not exist on the remote yet"
+          else
             echo "::error::gh-pages exists on the remote but could not be fetched"
             exit 1
           fi
-          echo "gh-pages does not exist on the remote yet"
         fi
         mkdir -p performance-tests/golden
 
@@ -133,11 +139,15 @@ runs:
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
 
-        if ! git fetch --force origin gh-pages 2>/dev/null; then
-          if git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
-            echo "::warning::gh-pages exists on the remote but could not be fetched"
-          else
+        if ! git fetch --force origin "+refs/heads/gh-pages:refs/remotes/origin/gh-pages" 2>/dev/null; then
+          # 2 = no such ref, 128 = network/auth failure. Discriminate so a blip is
+          # not reported as an empty remote.
+          ls_status=0
+          git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1 || ls_status=$?
+          if [ "$ls_status" = 2 ]; then
             echo "gh-pages does not exist on the remote yet"
+          else
+            echo "::warning::gh-pages exists on the remote but could not be fetched"
           fi
         fi
 
@@ -178,7 +188,7 @@ runs:
               break
             fi
             echo "Push attempt $attempt failed, pulling and retrying..."
-            git fetch --force origin gh-pages && git rebase origin/gh-pages
+            git fetch --force origin "+refs/heads/gh-pages:refs/remotes/origin/gh-pages" && git rebase origin/gh-pages
           done
           if [ "$pushed" = false ]; then
             echo "ERROR: all push attempts failed"
@@ -205,11 +215,15 @@ runs:
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
 
-        if ! git fetch --force origin gh-pages 2>/dev/null; then
-          if git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
-            echo "::warning::gh-pages exists on the remote but could not be fetched"
-          else
+        if ! git fetch --force origin "+refs/heads/gh-pages:refs/remotes/origin/gh-pages" 2>/dev/null; then
+          # 2 = no such ref, 128 = network/auth failure. Discriminate so a blip is
+          # not reported as an empty remote.
+          ls_status=0
+          git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1 || ls_status=$?
+          if [ "$ls_status" = 2 ]; then
             echo "gh-pages does not exist on the remote yet"
+          else
+            echo "::warning::gh-pages exists on the remote but could not be fetched"
           fi
         fi
 
@@ -243,7 +257,7 @@ runs:
               break
             fi
             echo "Push attempt $attempt failed, pulling and retrying..."
-            git fetch --force origin gh-pages && git rebase origin/gh-pages
+            git fetch --force origin "+refs/heads/gh-pages:refs/remotes/origin/gh-pages" && git rebase origin/gh-pages
           done
           if [ "$pushed" = false ]; then
             echo "ERROR: all push attempts failed"

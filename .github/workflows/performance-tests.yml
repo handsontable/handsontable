@@ -41,8 +41,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
         with:
-          # This removes ignored output and dependency directories left by an earlier
-          # job on the persistent runner. It requires Git on the runner.
+          # `clean: true` is already the checkout default; it is pinned here to
+          # document intent, not to fix a broken default, because the persistent
+          # runner keeps ignored output and dependency directories between jobs and a
+          # future default change must not stop removing them. Requires Git on the
+          # runner; the Verify Git checkout step below fails loudly when it is
+          # missing.
           clean: true
 
       - name: Verify Git checkout
@@ -83,12 +87,18 @@ jobs:
       # The snapshot it saves is never derived from history (teardown.mjs saves before it loads).
       - name: Fetch golden snapshots from GitHub Pages
         run: |
-          if ! git fetch --force origin gh-pages 2>/dev/null; then
-            if git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
+          if ! git fetch --force origin "+refs/heads/gh-pages:refs/remotes/origin/gh-pages" 2>/dev/null; then
+            # `git ls-remote --exit-code` returns 2 for "no such ref" and 128 for a
+            # network/auth failure -- discriminate, so a blip does not read as an
+            # empty remote and let a self-compared run pass silently.
+            ls_status=0
+            git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1 || ls_status=$?
+            if [ "$ls_status" = 2 ]; then
+              echo "gh-pages does not exist on the remote yet"
+            else
               echo "::error::gh-pages exists on the remote but could not be fetched"
               exit 1
             fi
-            echo "gh-pages does not exist on the remote yet"
           fi
           mkdir -p performance-tests/golden
 
@@ -189,26 +199,30 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          if ! git fetch --force origin gh-pages 2>/dev/null; then
-            if git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
-              echo "::warning::gh-pages exists on the remote but could not be fetched"
-            else
+          if ! git fetch --force origin "+refs/heads/gh-pages:refs/remotes/origin/gh-pages" 2>/dev/null; then
+            # 2 = no such ref, 128 = network/auth failure. Discriminate so a blip is
+            # not reported as an empty remote.
+            ls_status=0
+            git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1 || ls_status=$?
+            if [ "$ls_status" = 2 ]; then
               echo "gh-pages does not exist on the remote yet"
+            else
+              echo "::warning::gh-pages exists on the remote but could not be fetched"
             fi
           fi
 
           TIMESTAMP=$(date -u +"%Y-%m-%dT%H-%M-%SZ")
           DEPLOY_DIR="performance-reports/develop/${TIMESTAMP}"
 
-        WORKTREE_PREFIX="${RUNNER_TEMP}/handsontable-performance-gh-pages."
-        for stale_dir in "${WORKTREE_PREFIX}"*; do
-          [ -d "$stale_dir" ] || continue
-          git worktree remove --force "$stale_dir" 2>/dev/null || rm -rf "$stale_dir"
-        done
+          WORKTREE_PREFIX="${RUNNER_TEMP}/handsontable-performance-gh-pages."
+          for stale_dir in "${WORKTREE_PREFIX}"*; do
+            [ -d "$stale_dir" ] || continue
+            git worktree remove --force "$stale_dir" 2>/dev/null || rm -rf "$stale_dir"
+          done
           git worktree prune
-        WORK_DIR=$(mktemp -d "${WORKTREE_PREFIX}XXXXXX")
+          WORK_DIR=$(mktemp -d "${WORKTREE_PREFIX}XXXXXX")
           git worktree add --detach "$WORK_DIR" origin/gh-pages
-        trap 'cd "$GITHUB_WORKSPACE"; git worktree remove "$WORK_DIR" --force 2>/dev/null || true; rm -rf "$WORK_DIR"; git worktree prune' EXIT
+          trap 'cd "$GITHUB_WORKSPACE"; git worktree remove "$WORK_DIR" --force 2>/dev/null || true; rm -rf "$WORK_DIR"; git worktree prune' EXIT
 
           # Deploy timestamped snapshot + report
           mkdir -p "${WORK_DIR}/${DEPLOY_DIR}"
@@ -237,7 +251,7 @@ jobs:
                 break
               fi
               echo "Push attempt $attempt failed, pulling and retrying..."
-              git fetch --force origin gh-pages && git rebase origin/gh-pages
+              git fetch --force origin "+refs/heads/gh-pages:refs/remotes/origin/gh-pages" && git rebase origin/gh-pages
             done
             if [ "$pushed" = false ]; then
               echo "ERROR: all push attempts failed"
@@ -260,25 +274,29 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          if ! git fetch --force origin gh-pages 2>/dev/null; then
-            if git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
-              echo "::warning::gh-pages exists on the remote but could not be fetched"
-            else
+          if ! git fetch --force origin "+refs/heads/gh-pages:refs/remotes/origin/gh-pages" 2>/dev/null; then
+            # 2 = no such ref, 128 = network/auth failure. Discriminate so a blip is
+            # not reported as an empty remote.
+            ls_status=0
+            git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1 || ls_status=$?
+            if [ "$ls_status" = 2 ]; then
               echo "gh-pages does not exist on the remote yet"
+            else
+              echo "::warning::gh-pages exists on the remote but could not be fetched"
             fi
           fi
 
           DEPLOY_DIR="performance-reports/${BRANCH_SLUG}"
 
-        WORKTREE_PREFIX="${RUNNER_TEMP}/handsontable-performance-gh-pages."
-        for stale_dir in "${WORKTREE_PREFIX}"*; do
-          [ -d "$stale_dir" ] || continue
-          git worktree remove --force "$stale_dir" 2>/dev/null || rm -rf "$stale_dir"
-        done
+          WORKTREE_PREFIX="${RUNNER_TEMP}/handsontable-performance-gh-pages."
+          for stale_dir in "${WORKTREE_PREFIX}"*; do
+            [ -d "$stale_dir" ] || continue
+            git worktree remove --force "$stale_dir" 2>/dev/null || rm -rf "$stale_dir"
+          done
           git worktree prune
-        WORK_DIR=$(mktemp -d "${WORKTREE_PREFIX}XXXXXX")
+          WORK_DIR=$(mktemp -d "${WORKTREE_PREFIX}XXXXXX")
           git worktree add --detach "$WORK_DIR" origin/gh-pages
-        trap 'cd "$GITHUB_WORKSPACE"; git worktree remove "$WORK_DIR" --force 2>/dev/null || true; rm -rf "$WORK_DIR"; git worktree prune' EXIT
+          trap 'cd "$GITHUB_WORKSPACE"; git worktree remove "$WORK_DIR" --force 2>/dev/null || true; rm -rf "$WORK_DIR"; git worktree prune' EXIT
 
           mkdir -p "${WORK_DIR}/${DEPLOY_DIR}"
           cp performance-tests/output/report.html "${WORK_DIR}/${DEPLOY_DIR}/index.html"
@@ -298,7 +316,7 @@ jobs:
                 break
               fi
               echo "Push attempt $attempt failed, pulling and retrying..."
-              git fetch --force origin gh-pages && git rebase origin/gh-pages
+              git fetch --force origin "+refs/heads/gh-pages:refs/remotes/origin/gh-pages" && git rebase origin/gh-pages
             done
             if [ "$pushed" = false ]; then
               echo "ERROR: all push attempts failed"

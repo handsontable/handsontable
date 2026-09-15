@@ -23,7 +23,9 @@ const preflightSites = [
 describe('performance gh-pages Git steps', () => {
   for (const site of checkoutSites) {
     test(`${site} explicitly cleans the Git checkout`, () => {
-      assert.match(read(site), /uses: actions\/checkout@[^\n]+\n\s+with:[\s\S]{0,250}?clean: true/);
+      // The `(?!\n\s*-\s)` guard stops the lazy span from crossing into a later
+      // step, so this cannot pass on a `clean: true` that belongs to a nearby step.
+      assert.match(read(site), /uses: actions\/checkout@[^\n]+\n\s+with:(?:(?!\n\s*-\s)[\s\S]){0,250}?clean: true/);
     });
   }
 
@@ -56,8 +58,63 @@ describe('performance gh-pages Git steps', () => {
       const fetches = read(site).match(/git fetch.*gh-pages.*$/gm) ?? [];
 
       assert.equal(fetches.length, 5);
-      assert.ok(fetches.every(command => command.includes('git fetch --force origin gh-pages')));
-      assert.ok(fetches.every(command => !command.includes(':gh-pages')));
+      assert.ok(fetches.every(command => command.includes(
+        'git fetch --force origin "+refs/heads/gh-pages:refs/remotes/origin/gh-pages"'
+      )));
+      // The old local-branch form `gh-pages:gh-pages` is what must stay gone; the
+      // explicit refspec's only colon precedes `refs/remotes/...`, not `gh-pages`.
+      assert.ok(fetches.every(command => !command.includes('gh-pages:gh-pages')));
+    });
+
+    // Regex checks over the raw text miss indentation, the exact defect that once
+    // shipped a `run: |` block GitHub could not parse while all ten assertions above
+    // stayed green. This parses every block scalar's structure without a YAML
+    // dependency: inside a `run:` block, no non-blank line may sit at or below the
+    // `run:` key's own indent (that ends the block early and orphans the line), and
+    // none may be indented less than the block's first body line.
+    test(`${site} has no dedented lines inside a run: block`, () => {
+      const lines = read(site).split('\n');
+
+      for (let i = 0; i < lines.length; i += 1) {
+        const start = lines[i].match(/^(\s*)run: [|>]/);
+
+        if (!start) {
+          continue;
+        }
+
+        const keyIndent = start[1].length;
+        let bodyIndent = null;
+
+        for (let j = i + 1; j < lines.length; j += 1) {
+          const line = lines[j];
+
+          if (line.trim() === '') {
+            continue;
+          }
+
+          const indent = line.match(/^\s*/)[0].length;
+
+          // A line at or below the key indent ends the block. If it is not itself a
+          // YAML key, list item, or comment, the block was broken by a bad dedent.
+          if (indent <= keyIndent) {
+            assert.match(
+              line,
+              /^\s*(#|- |[\w".\-/]+:(\s|$))/,
+              `${site}: line ${j + 1} dedents out of a run: block without starting a new key:\n${line}`
+            );
+            break;
+          }
+
+          if (bodyIndent === null) {
+            bodyIndent = indent;
+          }
+
+          assert.ok(
+            indent >= bodyIndent,
+            `${site}: line ${j + 1} is indented less than its run: block body (${indent} < ${bodyIndent}):\n${line}`
+          );
+        }
+      }
     });
   }
 });

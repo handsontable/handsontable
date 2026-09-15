@@ -211,6 +211,10 @@ describe('describeKey / describeKeyMismatch / formatEnvironment', () => {
       formatEnvironment({ chromium: '140.0.1', platform: 'darwin arm64' }),
       'Chromium 140.0.1 · darwin arm64'
     );
+    // No platform: exercises the `if (environment.platform)` false branch, which older goldens read
+    // back off gh-pages still hit. Without it a regression printing `Chromium 140.0.1 · undefined`
+    // would pass, since both cases above carry a platform.
+    assert.equal(formatEnvironment({ chromium: '140.0.1' }), 'Chromium 140.0.1');
     assert.equal(formatEnvironment(null), '');
   });
 });

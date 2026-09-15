@@ -215,6 +215,27 @@ describe('loadSnapshots (history-median path)', () => {
     assert.ok(unavailableReason.includes('next develop push'));
   });
 
+  test('refuses an incompatible single-file fallback on a Chromium change', async() => {
+    // Kept beside the platform case above, not replaced by it: the single-file path must keep its own
+    // direct proof that a Chromium bump is refused. A regression that compared platform while ignoring
+    // chromium would slip past the platform case alone.
+    await mkdir(historyDir, { recursive: true });
+
+    const old = validSnapshot('2026-09-03T10:08:00Z');
+
+    old.environment = envOf('138.0.1', 'linux x64');
+    old.harnessVersion = 1;
+    await writeFile(join(historyDir, 'c.json'), JSON.stringify(old), 'utf8');
+    await writeFile(goldenPath, JSON.stringify(old), 'utf8');
+
+    const { snapshot, unavailableReason } = await loadBaseline(baseDir, {
+      compatibleWith: { key: keyOf('140.0.1', 'linux x64') },
+    });
+
+    assert.equal(snapshot, null);
+    assert.ok(unavailableReason.includes('Chromium 138.0.1 -> 140.0.1'));
+  });
+
   test('an empty history directory is a stated refusal, not a silent absence', async() => {
     // Golden mode has no single-file fallback and no self-comparison, so without this the develop
     // job summary shows raw numbers with nothing saying the comparison did not happen.
