@@ -29,7 +29,7 @@ import {
   removeClass,
 } from '../../../helpers/dom/element';
 import { isRightClick } from '../../../helpers/dom/event';
-import { debounce } from '../../../helpers/function';
+import { debounce, runEveryStep } from '../../../helpers/function';
 import { isDefined } from '../../../helpers/mixed';
 import { mixin } from '../../../helpers/object';
 import localHooks from '../../../mixins/localHooks';
@@ -91,33 +91,6 @@ interface MenuOptions {
  * Where a menu is in its open/close cycle: `closed` -> `opening` -> `opened` -> `closing` -> `closed`.
  */
 type MenuLifecycle = 'closed' | 'opening' | 'opened' | 'closing';
-
-/**
- * Runs every step, even when an earlier one throws, then rethrows the first error. For teardown:
- * the steps run application code (grid hooks, menu hooks), and a step skipped by an earlier throw
- * would leave behind exactly what it was there to release.
- *
- * @param {Array<Function>} steps The steps, in order.
- */
-function runEveryStep(steps: Array<() => void>) {
-  let failed = false;
-  let firstError: unknown;
-
-  steps.forEach((step) => {
-    try {
-      step();
-    } catch (error) {
-      if (!failed) {
-        failed = true;
-        firstError = error;
-      }
-    }
-  });
-
-  if (failed) {
-    throw firstError;
-  }
-}
 
 /**
  * @private

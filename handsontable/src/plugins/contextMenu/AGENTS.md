@@ -181,8 +181,8 @@ Rules for anyone touching this:
   `finally` that returns the menu to `closed` unless `#open()` reached its single commit point.
   Do not move the commit point, and do not add a second place that sets `opened`.
 - **Teardown runs every step, and rethrows the first error after.** `close()`, `closeAllSubMenus()`,
-  `destroy()` and the rollback all go through the module-level `runEveryStep()`. Each step can run
-  application code — clearing the navigator deselects through the grid's hooks, and sub-menu
+  `destroy()` and the rollback all go through `runEveryStep()` from `helpers/function`. Each step
+  can run application code — clearing the navigator deselects through the grid's hooks, and sub-menu
   teardown destroys grids — and a step skipped by an earlier throw leaves behind exactly what it was
   there to release: the grid alive with its DOM in the container (so the next open builds a second
   grid on top), `afterClose` unfired, the sub-menu's document listeners attached, or the menu

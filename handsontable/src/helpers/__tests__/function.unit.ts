@@ -8,6 +8,7 @@ import {
   curryRight,
   isFunction,
   fastCall,
+  runEveryStep,
 } from 'handsontable/helpers/function';
 import { sleep, waitForNextAnimationFrames } from '../../../test/helpers/common';
 
@@ -360,6 +361,85 @@ describe('Function helper', () => {
       expect(func).toHaveBeenCalledTimes(1);
       expect(func.calls.first().object).toBe(context);
       expect(func).toHaveBeenCalledWith('a', undefined, 'c', 1, undefined, 3);
+    });
+  });
+
+  //
+  // Handsontable.helper.runEveryStep
+  //
+  describe('runEveryStep', () => {
+    /**
+     * Runs the steps and returns what they threw, if anything.
+     *
+     * @param {Array<Function>} steps The steps to run.
+     * @returns {object}
+     */
+    function runAndCatch(steps: Array<() => void>) {
+      try {
+        runEveryStep(steps);
+      } catch (error) {
+        return { threw: true, error };
+      }
+
+      return { threw: false, error: undefined };
+    }
+
+    it('should run every step in order when none of them throws', () => {
+      const calls: string[] = [];
+
+      const result = runAndCatch([
+        () => { calls.push('a'); },
+        () => { calls.push('b'); },
+        () => { calls.push('c'); },
+      ]);
+
+      expect(result.threw).toBe(false);
+      expect(calls).toEqual(['a', 'b', 'c']);
+    });
+
+    it('should run the steps after one that throws, then rethrow its error', () => {
+      const calls: string[] = [];
+      const failure = new Error('b failed');
+
+      const result = runAndCatch([
+        () => { calls.push('a'); },
+        () => { throw failure; },
+        () => { calls.push('c'); },
+      ]);
+
+      expect(calls).toEqual(['a', 'c']);
+      expect(result.threw).toBe(true);
+      expect(result.error).toBe(failure);
+    });
+
+    it('should rethrow the first error when more than one step throws', () => {
+      const calls: string[] = [];
+      const first = new Error('first');
+      const second = new Error('second');
+
+      const result = runAndCatch([
+        () => { throw first; },
+        () => { throw second; },
+        () => { calls.push('c'); },
+      ]);
+
+      expect(calls).toEqual(['c']);
+      expect(result.error).toBe(first);
+    });
+
+    it('should rethrow even when the thrown value is `undefined`', () => {
+      const calls: string[] = [];
+      const nothing = undefined;
+
+      const result = runAndCatch([
+        () => { throw nothing; },
+        () => { throw new Error('later'); },
+        () => { calls.push('c'); },
+      ]);
+
+      expect(calls).toEqual(['c']);
+      expect(result.threw).toBe(true);
+      expect(result.error).toBeUndefined();
     });
   });
 });
