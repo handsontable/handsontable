@@ -5,6 +5,7 @@ const hot = Handsontable(element, {});
 const focusScopeManager = hot.getFocusScopeManager();
 
 const activeScopeId: string | null = focusScopeManager.getActiveScopeId();
+const isGridBodyCovered: boolean = focusScopeManager.isGridBodyCovered();
 
 focusScopeManager.registerScope('test', element);
 focusScopeManager.registerScope('test', element, {
@@ -34,6 +35,7 @@ focusScopeManager.registerScope('test', element, {
 focusScopeManager.registerScope('test', element, {
   shortcutsContextName: 'test',
   fallbackShortcutsContextName: 'grid',
+  coversGridBody: true,
 });
 
 focusScopeManager.unregisterScope('test');

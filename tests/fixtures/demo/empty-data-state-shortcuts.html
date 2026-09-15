@@ -70,6 +70,9 @@
         mergeCells: true,
         undo: true,
         emptyDataState: true,
+        // A modal surface to test that re-registering the overlay's scope does not take the keyboard
+        // away from whatever actually owns it.
+        dialog: true,
         // Stamped from a hook rather than a grid-wide `renderer`, which would replace the checkbox
         // column's own renderer and take the case under test with it.
         afterRenderer: function(td, row, col) {

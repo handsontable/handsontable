@@ -278,6 +278,34 @@ test.describe('emptyDataState keyboard shortcuts', () => {
     expect(await grid.pressAndReadDefaultPrevented('Tab')).toBe(false);
   });
 
+  test('does not take the keyboard from an open dialog when settings change', async() => {
+    await grid.selectAllWithKeyboard();
+    await grid.runContextMenuItem('rowHeader', /^Remove rows$/);
+    await expect(grid.overlay).toBeVisible();
+
+    await grid.showDialog('Working');
+    expect(await grid.activeScopeId()).toBe('dialog');
+
+    // `updatePlugin()` re-registers the overlay's scope. Re-activating it whenever the overlay happens
+    // to be visible stole the keyboard from the modal that actually owns it.
+    await grid.updateSettings({ emptyDataState: { message: 'Nothing here' } });
+
+    expect(await grid.activeScopeId()).toBe('dialog');
+    expect(await grid.activeShortcutContext()).toBe('plugin:dialog');
+  });
+
+  test('keeps the keyboard through a settings change when it already had it', async() => {
+    await grid.selectAllWithKeyboard();
+    await grid.runContextMenuItem('rowHeader', /^Remove rows$/);
+    await expect(grid.overlay).toBeVisible();
+    expect(await grid.activeScopeId()).toBe('emptyDataState');
+
+    await grid.updateSettings({ emptyDataState: { message: 'Still nothing' } });
+
+    expect(await grid.activeScopeId()).toBe('emptyDataState');
+    expect(await grid.activeShortcutContext()).toBe('plugin:emptyDataState');
+  });
+
   test('restores the grid shortcut context once the overlay hides', async() => {
     await grid.selectAllWithKeyboard();
     await grid.runContextMenuItem('rowHeader', /^Remove rows$/);

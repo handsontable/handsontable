@@ -120,6 +120,12 @@ export interface FixtureHotInstance {
   getPlugin(name: 'emptyDataState'): {
     isVisible(): boolean,
   };
+  getPlugin(name: 'dialog'): {
+    show(options: { content: string }): void,
+  };
+  getFocusScopeManager(): {
+    getActiveScopeId(): string | null,
+  };
   getShortcutManager(): {
     getActiveContextName(): string,
   };

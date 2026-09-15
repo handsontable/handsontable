@@ -144,6 +144,18 @@ export class EmptyDataStateShortcutsPage {
     }));
   }
 
+  /** The id of the focus scope that currently owns the keyboard. */
+  async activeScopeId(): Promise<string | null> {
+    return this.page.evaluate(() => window.hot.getFocusScopeManager().getActiveScopeId());
+  }
+
+  /** Opens a modal dialog over the grid. */
+  async showDialog(content: string): Promise<void> {
+    await this.page.evaluate((text) => {
+      window.hot.getPlugin('dialog').show({ content: text });
+    }, content);
+  }
+
   /** Applies setting overrides to the live grid. */
   async updateSettings(settings: Record<string, unknown>): Promise<void> {
     await this.page.evaluate((overrides) => {
