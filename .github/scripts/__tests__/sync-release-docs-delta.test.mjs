@@ -175,6 +175,34 @@ test('applies the release docs delta and preserves an unrelated prod-docs edit',
   }
 });
 
+test('3-way merges a non-overlapping prod-docs edit in a file the release also changed', () => {
+  const dir = makeFixture({
+    mutateProdDocs: ({ write }) => {
+      // Change a CONTEXT line of the release's shadow-dom hunk (the line just
+      // above its inserted paragraph). Plain `git apply` rejects a patch whose
+      // context no longer matches; only `--3way` reconciles it. So this test
+      // fails if `--3way` is dropped.
+      write(SHADOW_DOM, SHADOW_DOM_BASE.replace(
+        'Salesforce LWS filters composedPath.',
+        'Salesforce LWS filters composedPath. (prod-docs clarification)'
+      ));
+    },
+  });
+
+  try {
+    const result = run(dir, ['18.1.0', '18.1.1']);
+
+    assert.equal(result.status, 0, result.stderr);
+    // Both the prod-docs clarification and the release's inserted paragraph land.
+    const shadow = read(dir, SHADOW_DOM);
+
+    assert.match(shadow, /prod-docs clarification/);
+    assert.match(shadow, /binds copy, cut, and paste/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test('is a no-op when base equals head (a fresh minor/major branch)', () => {
   const dir = makeFixture();
 

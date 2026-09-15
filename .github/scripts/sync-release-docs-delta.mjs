@@ -115,7 +115,10 @@ function main() {
     // `--3way` merges each hunk against the branch's own copy, so a prod-docs
     // edit to an untouched part of a file survives; a genuine overlap conflicts
     // and throws. `--index` stages what applies so the commit step needs no
-    // extra `git add`.
+    // extra `git add` -- it also requires that every delta-touched file match
+    // between the working tree and the index, which holds because the steps that
+    // run before this one write only EXCLUDED trees (the rolling changelog and
+    // `content/api`). Keeping those excludes is what keeps the index clean here.
     git(['apply', '--3way', '--index', '-'], diff);
   } catch (error) {
     const conflicts = git(['diff', '--name-only', '--diff-filter=U']).trim();

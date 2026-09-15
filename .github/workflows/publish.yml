@@ -1976,12 +1976,13 @@ jobs:
       # DEV-2925: `docs/src/plugins/docs-version.mjs` reads `handsontable/package.json`
       # `version` as the docs' current version (breadcrumb + example-runner links). On
       # a patch the checked-out branch still records the previous version. Write the
-      # released version unconditionally (a no-op on a fresh branch cut from the tag),
-      # via a targeted line replace so the diff is exactly the version line -- a JSON
-      # round-trip would reflow the inline `exports` map. The core version is a
-      # workspace/`link:` dependency and is never pinned in `pnpm-lock.yaml`, so the
-      # write cannot change the lock and `--frozen-lockfile` at deploy stays green with
-      # no lockfile regeneration; assert both.
+      # released version unconditionally -- `set-package-version.mjs` does a targeted
+      # line replace (a JSON round-trip would reflow the inline `exports` map) and is a
+      # clean no-op when the value already matches, which is the case on a fresh branch
+      # cut from the tag. The core version is a workspace/`link:` dependency and is
+      # never pinned in `pnpm-lock.yaml`, so the write cannot change the lock and
+      # `--frozen-lockfile` at deploy stays green with no lockfile regeneration; assert
+      # both the written value and the untouched lockfile.
       - name: Update core version in docs branch
         id: docs-core-version
         continue-on-error: true
@@ -1990,18 +1991,7 @@ jobs:
         run: |
           cp pnpm-lock.yaml /tmp/lock-before-version.yaml
 
-          node -e '
-            const fs = require("fs");
-            const p = "handsontable/package.json";
-            const s = fs.readFileSync(p, "utf8");
-            const version = process.env.VERSION;
-            const next = s.replace(/^(\s*"version":\s*")[^"]*(",)/m, `$1${version}$2`);
-            if (next === s) {
-              console.error("::error::version line not found in handsontable/package.json");
-              process.exit(1);
-            }
-            fs.writeFileSync(p, next);
-          '
+          node .github/scripts/set-package-version.mjs "$VERSION" handsontable/package.json
 
           WROTE=$(node -p "require('./handsontable/package.json').version")
           if [ "$WROTE" != "$VERSION" ]; then
