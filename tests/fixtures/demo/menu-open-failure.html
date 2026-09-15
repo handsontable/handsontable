@@ -82,6 +82,50 @@
     /** The message the item throws, asserted on so the rethrow is proven to survive the rollback. */
     window.HT_MENU_ITEM_ERROR = 'DEV-41 fixture: menu item name() failed';
 
+    /** `throw` makes the sub-menu's only item throw as it paints, `none` paints it normally. */
+    window.htSubItemMode = 'none';
+
+    /** The message the sub-menu's item throws. */
+    window.HT_SUB_ITEM_ERROR = 'DEV-41 fixture: sub-menu item name() failed';
+
+    /** While true, the menu's public hide hook throws after it is logged. */
+    window.htThrowOnHide = false;
+
+    /** The message the hide hook throws. */
+    window.HT_HIDE_ERROR = 'DEV-41 fixture: after*Hide listener failed';
+
+    /** While true, the next sub-menu grid to be destroyed throws from `afterDestroy`. Once only. */
+    window.htThrowOnSubMenuTeardown = false;
+
+    /** The message the sub-menu teardown throws. */
+    window.HT_TEARDOWN_ERROR = 'DEV-41 fixture: sub-menu teardown failed';
+
+    /**
+     * Throws from `afterDestroy`, but only for a sub-menu's grid, and only once. `afterDestroy` runs
+     * after the grid has already emptied its DOM and dropped its listeners, so this models teardown
+     * that did its own work and then failed in application code - the case where every step of the
+     * menu's teardown that comes after it still has to run.
+     */
+    Handsontable.hooks.add('afterDestroy', function() {
+      if (window.htThrowOnSubMenuTeardown && this.rootContainer.className.includes('Sub_Parent')) {
+        window.htThrowOnSubMenuTeardown = false;
+        throw new Error(window.HT_TEARDOWN_ERROR);
+      }
+    });
+
+    /**
+     * The sub-menu item's `name()`.
+     *
+     * @returns {string}
+     */
+    function subItemName() {
+      if (window.htSubItemMode === 'throw') {
+        throw new Error(window.HT_SUB_ITEM_ERROR);
+      }
+
+      return 'Child item';
+    }
+
     /**
      * The item's `name()`. `name` as a function is a public menu-item feature, and the menu calls
      * it while PAINTING the item - the first paint happens inside `open()`, while the menu grid is
@@ -131,6 +175,10 @@
       }
 
       window.htHookLog.push({ event, isOpened: window.hot.getPlugin(pluginName).menu.isOpened() });
+
+      if (event === 'afterHide' && window.htThrowOnHide) {
+        throw new Error(window.HT_HIDE_ERROR);
+      }
     }
 
     /**
@@ -143,6 +191,13 @@
         items: {
           safe_item: { name: 'Safe item' },
           exploding_item: { name: itemName },
+          sub_item: {
+            // A plain name, so the sub-menu's container class is exactly `...Sub_Parent`.
+            name: 'Parent',
+            submenu: {
+              items: [{ key: 'sub_item:child', name: subItemName }],
+            },
+          },
         },
       };
     }
@@ -223,6 +278,39 @@
     window.htRepaintMenu = () => {
       window.hot.getPlugin(window.htMenuPlugin).menu.hotMenu.render();
     };
+
+    /**
+     * Arm one of the fixture's failure switches.
+     *
+     * @param {string} name `subItemThrows`, `hideThrows` or `subMenuTeardownThrows`.
+     */
+    window.htArm = (name) => {
+      if (name === 'subItemThrows') {
+        window.htSubItemMode = 'throw';
+      } else if (name === 'hideThrows') {
+        window.htThrowOnHide = true;
+      } else if (name === 'subMenuTeardownThrows') {
+        window.htThrowOnSubMenuTeardown = true;
+      } else {
+        throw new Error('Unknown switch: ' + JSON.stringify(name));
+      }
+    };
+
+    /**
+     * How many sub-menu containers sit in the page. A sub-menu that failed to open, or whose menu
+     * failed to tear down, used to leave its container behind.
+     *
+     * @returns {number}
+     */
+    window.htSubMenuContainerCount = () => document.querySelectorAll('.htMenu[class*="Sub_Parent"]').length;
+
+    /**
+     * How many menu grids are alive in the page. A closed menu's grid empties its container, so
+     * after a close this is 0 - and a grid that teardown skipped is still counted.
+     *
+     * @returns {number}
+     */
+    window.htMenuGridCount = () => document.querySelectorAll('.htMenu .ht_master').length;
 
     /**
      * Tear the grid down the way an SPA route change does. Reported rather than thrown, because

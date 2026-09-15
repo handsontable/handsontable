@@ -1,5 +1,6 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 import { awaitBundle } from '../bundle';
+import { afterAnimationFrames } from '../frames';
 
 /**
  * What the menu under test believes about itself, read through the plugin rather than the DOM.
@@ -22,6 +23,21 @@ export type MenuPlugin = 'dropdownMenu' | 'contextMenu';
  * What the fixture's menu item does each time its menu paints it (see `htItemMode` in the fixture).
  */
 export type ItemMode = 'throw' | 'none' | 'probe' | 'close' | 'reopen';
+
+/**
+ * The fixture's failure switches (see `htArm` in the fixture).
+ */
+export type FailureSwitch = 'subItemThrows' | 'hideThrows' | 'subMenuTeardownThrows';
+
+/**
+ * The fixture's thrown messages, by what throws them.
+ */
+const FIXTURE_ERROR = {
+  item: 'HT_MENU_ITEM_ERROR',
+  subItem: 'HT_SUB_ITEM_ERROR',
+  hide: 'HT_HIDE_ERROR',
+  teardown: 'HT_TEARDOWN_ERROR',
+} as const;
 
 /**
  * One `probe` paint: what `isOpened()` said, and whether the menu could actually be driven then.
@@ -96,10 +112,83 @@ export class MenuOpenFailurePage {
    * Handsontable removes the inner table when a menu closes, so filtering on visibility resolves
    * to the single open menu.
    *
+   * A sub-menu's container carries the same plugin class plus a `...Sub_<name>` one, so it is
+   * excluded here - `subMenu()` is the way to it.
+   *
    * @param {MenuPlugin} [plugin] Which plugin's menu.
    */
   openMenu(plugin: MenuPlugin = 'dropdownMenu'): Locator {
-    return this.page.locator(`.${MENU_CLASS[plugin]}:visible`).last();
+    return this.page.locator(`.${MENU_CLASS[plugin]}:not([class*="Sub_"]):visible`).last();
+  }
+
+  /**
+   * The fixture's sub-menu (`Parent` > `Child item`) of one plugin, when it is on screen.
+   *
+   * @param {MenuPlugin} plugin Which plugin's menu.
+   */
+  subMenu(plugin: MenuPlugin): Locator {
+    return this.page.locator(`.${MENU_CLASS[plugin]}[class*="Sub_Parent"]:visible`);
+  }
+
+  /**
+   * Move the pointer onto one row of the open menu. Hovering the `Parent` row is what opens the
+   * sub-menu, after the menu's 300ms hover delay.
+   *
+   * @param {MenuPlugin} plugin Which plugin's menu.
+   * @param {string} label The row's visible text.
+   */
+  async hoverMenuItem(plugin: MenuPlugin, label: string): Promise<void> {
+    await this.openMenu(plugin).locator('td').filter({ hasText: label }).first().hover();
+  }
+
+  /**
+   * Arm one of the fixture's failure switches.
+   *
+   * @param {FailureSwitch} name The switch.
+   */
+  async arm(name: FailureSwitch): Promise<void> {
+    await this.page.evaluate(switchName => (window as unknown as {
+      htArm: (name: string) => void;
+    }).htArm(switchName), name);
+  }
+
+  /**
+   * The message one of the fixture's failures throws.
+   *
+   * @param {keyof typeof FIXTURE_ERROR} source What throws it.
+   */
+  async fixtureError(source: keyof typeof FIXTURE_ERROR): Promise<string> {
+    return this.page.evaluate(key => (window as unknown as Record<string, string>)[key], FIXTURE_ERROR[source]);
+  }
+
+  /**
+   * How many sub-menu containers sit in the page.
+   */
+  async subMenuContainerCount(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as {
+      htSubMenuContainerCount: () => number;
+    }).htSubMenuContainerCount());
+  }
+
+  /**
+   * How many menu grids are alive in the page.
+   */
+  async menuGridCount(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as {
+      htMenuGridCount: () => number;
+    }).htMenuGridCount());
+  }
+
+  /**
+   * The bounded settle that goes before every "no page error" read.
+   *
+   * A web-first poll cannot prove a negative: `expect.poll(...).toEqual([])` passes on its first
+   * read, the moment the buffer is empty, so it waits for nothing. Two animation frames are what the
+   * grid and the menu schedule their follow-up work on, so an error from anything a gesture set in
+   * motion has landed by then. Sound only beside a positive control in the same test.
+   */
+  async settle(): Promise<void> {
+    await afterAnimationFrames(this.page, 2);
   }
 
   /**

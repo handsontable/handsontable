@@ -179,9 +179,16 @@ Rules for anyone touching this:
   key event cannot land mid-transition, so both answers are equal there.
 - **The reset is structural — keep it that way.** `open()` sets `opening` and runs `#open()` inside a
   `finally` that returns the menu to `closed` unless `#open()` reached its single commit point.
-  `close()` sets `closing` before its teardown and `closed` in a `finally`. That is what makes the
-  stranding impossible whatever exits early. Do not move the commit point, and do not add a second
-  place that sets `opened`.
+  Do not move the commit point, and do not add a second place that sets `opened`.
+- **Teardown runs every step, and rethrows the first error after.** `close()`, `closeAllSubMenus()`,
+  `destroy()` and the rollback all go through the module-level `runEveryStep()`. Each step can run
+  application code — clearing the navigator deselects through the grid's hooks, and sub-menu
+  teardown destroys grids — and a step skipped by an earlier throw leaves behind exactly what it was
+  there to release: the grid alive with its DOM in the container (so the next open builds a second
+  grid on top), `afterClose` unfired, the sub-menu's document listeners attached, or the menu
+  `closing` for good. That last one shipped for one commit: `navigator.clear()` sat before the
+  guard, so a throwing `afterDeselect` stranded the menu where neither `open()` nor `close()` would
+  run. Put a new teardown statement inside a step, never before or after the list.
 - **Re-entry is a no-op in both transitions.** `open()` does nothing unless `isClosed()`, and
   `close()` does nothing unless `isOpened()`. So a `close()` from an item callback mid-build is
   ignored and the open in progress wins — tearing the grid down under its own `init()` is what
@@ -189,8 +196,11 @@ Rules for anyone touching this:
 - **`#rollbackFailedOpen()` is resource cleanup now, not the guarantee.** It still releases what
   `#open()` acquired — the menu grid, the scroll listeners, the visible container, the HOST grid's
   `outsideClickDeselects` — so mirror every new side effect of `#open()` in it. A miss now leaks
-  instead of breaking the page. It rethrows, so the application's own bug still reaches it and
-  Sentry. The scroll listeners were missed exactly this way on the first attempt.
+  instead of breaking the page. The scroll listeners were missed exactly this way on the first
+  attempt. `open()` rethrows the original error, so the application's own bug still reaches it and
+  Sentry — which is why the rollback DROPS its own failures instead of rethrowing them: a grid that
+  cannot tear down after a failed init, or a throwing `after*Hide` listener, would otherwise replace
+  the real cause. `openSubMenu()` guards its `subMenu.destroy()` the same way.
 - **Anything that mutates the HOST grid belongs inside the guard.** `outsideClickDeselects` is set
   to `false` on `this.hot`; a throw before it is restored pins it off for the life of the page.
 - **The container is shown only once the item list is settled.** Above that point `open()` can still
@@ -208,8 +218,12 @@ Rules for anyone touching this:
   the lifecycle is not a breaking change. The spec below pins all three.
 - **`openSubMenu()` registers into `hotSubMenus` only after `subMenu.open()` returns.** A sub-menu
   that throws while opening is therefore unreachable from `closeAllSubMenus()` and `destroy()`, so
-  it is destroyed in a `catch` before the rethrow. The hover timer re-fires every 300ms, so without
-  that a single throwing sub-menu item leaks one fully-wired `Menu` per tick.
+  it is destroyed in a `catch` before the rethrow. Every hover that reaches the row tries again, and
+  without that `catch` each attempt leaks another set of the sub-menu's document listeners. It is
+  the listeners that pile up, not containers: `createContainer()` finds an existing sub-menu
+  container by its `...Sub_<name>` class and reuses it. `closeSubMenu()` does the parent's
+  bookkeeping — the `hotSubMenus` entry, `aria-expanded` — BEFORE destroying the sub-menu, so a
+  throwing teardown cannot leave a destroyed menu registered.
 - **`destroy()` while `opening` is cleaned up by the throw it causes.** A `hot.destroy()` from inside
   an item callback cannot close the menu — `close()` is a no-op mid-build — but the renderer reads
   the destroyed grid's settings as soon as the callback returns, which throws, and the rollback
@@ -218,7 +232,11 @@ Rules for anyone touching this:
 
 Coverage is `tests/e2e/menu-open-failure.spec.ts`: the throw path, and — for both plugins — a probe
 that fails if `isOpened()` ever reports a menu without a navigator, a `close()` and a nested `open()`
-fired mid-build, and the three public hooks. Note what that spec cannot do by watching for errors:
+fired mid-build, the three public hooks, a throwing hide listener during the rollback, a throwing
+sub-menu item, and a throwing sub-menu teardown (a global `afterDestroy` on the sub-menu's grid).
+Every "no page error" read there goes through the page object's `settle()` first: a web-first poll
+cannot prove a negative, because `expect.poll(...).toEqual([])` passes on its first read and waits
+for nothing. Note what that spec cannot do by watching for errors:
 a leaked `mousedown` listener early-returns once the menu reports itself closed, so "no page error"
 is green whether or not the listener is still attached. The leak assertion reads
 `Handsontable._getListenersCounter()` instead (`handsontable/src/index.ts`, exposed for the

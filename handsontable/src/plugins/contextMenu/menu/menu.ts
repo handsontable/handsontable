@@ -93,6 +93,33 @@ interface MenuOptions {
 type MenuLifecycle = 'closed' | 'opening' | 'opened' | 'closing';
 
 /**
+ * Runs every step, even when an earlier one throws, then rethrows the first error. For teardown:
+ * the steps run application code (grid hooks, menu hooks), and a step skipped by an earlier throw
+ * would leave behind exactly what it was there to release.
+ *
+ * @param {Array<Function>} steps The steps, in order.
+ */
+function runEveryStep(steps: Array<() => void>) {
+  let failed = false;
+  let firstError: unknown;
+
+  steps.forEach((step) => {
+    try {
+      step();
+    } catch (error) {
+      if (!failed) {
+        failed = true;
+        firstError = error;
+      }
+    }
+  });
+
+  if (failed) {
+    throw firstError;
+  }
+}
+
+/**
  * @private
  * @class Menu
  */
@@ -727,18 +754,23 @@ export class Menu {
    */
   #rollbackFailedOpen() {
     try {
-      this.hotMenu?.destroy();
+      runEveryStep([
+        () => this.hotMenu?.destroy(),
+        () => {
+          this.hotMenu = null;
+          this.#lifecycle = 'closed';
+          this.#clearScrollListeners();
+          this.container.style.display = 'none';
+          this.hot.getSettings().outsideClickDeselects = this.origOutsideClickDeselects;
+        },
+        () => this.runLocalHooks('afterClose'),
+      ]);
     } catch {
-      // A menu grid that failed mid-init can fail to tear down as well. The error `open()` is
-      // about to rethrow is the one worth reporting, so drop this one and finish the rollback.
+      // Dropped on purpose. `open()` rethrows the error that started this rollback, and that one is
+      // the application's own bug. A second failure here - a grid that cannot tear down after a
+      // failed init, or a throwing `after*Hide` listener - would replace it, and the real cause
+      // would never reach the caller or Sentry.
     }
-
-    this.hotMenu = null;
-    this.#clearScrollListeners();
-    this.container.style.display = 'none';
-    this.hot.getSettings().outsideClickDeselects = this.origOutsideClickDeselects;
-    this.#lifecycle = 'closed';
-    this.runLocalHooks('afterClose');
   }
 
   /**
@@ -759,54 +791,69 @@ export class Menu {
       // re-entered from one of them finds a menu neither open nor closed, and does nothing.
       this.#lifecycle = 'closing';
 
-      // Safe because `isOpened()` passed: `opened` is set only after the navigator exists (DEV-41).
-      this.#navigator!.clear();
+      // Every step runs even when an earlier one throws, and the first error is rethrown after. Each
+      // can run application code - clearing the navigator deselects through the grid's hooks, and
+      // `closeAllSubMenus()` destroys grids - and a skipped step leaves the grid alive, the menu
+      // `closing` for good (so it never opens again), or `afterClose` unfired (DEV-41).
+      runEveryStep([
+        // Safe because `isOpened()` passed: `opened` is set only after the navigator exists.
+        () => this.#navigator!.clear(),
+        () => this.closeAllSubMenus(),
+        () => this.hotMenu!.destroy(),
+        () => this.#resetToClosed(),
+        () => this.runLocalHooks('afterClose'),
+        () => this.#returnToParentMenu(),
+      ]);
+    }
+  }
 
-      // The teardown can throw: `closeAllSubMenus()` destroys each sub-menu, which runs
-      // user-facing hooks on the way. Whatever happens, the reset in `finally` has to run -
-      // skipping it would leave the menu `closing` for good, so it could never be opened again.
-      try {
-        this.closeAllSubMenus();
-        this.hotMenu!.destroy();
-      } finally {
-        this.hotMenu = null;
-        this.container.style.display = 'none';
-        this.#anchorRectProvider = null;
-        this.#scrollFollowBaseline = null;
-        this.#clearScrollListeners();
+  /**
+   * Returns the menu's own state to closed once its grid is gone. Plain resets only, so it runs to
+   * the end even after an earlier teardown step threw.
+   */
+  #resetToClosed() {
+    this.hotMenu = null;
+    this.#lifecycle = 'closed';
+    this.container.style.display = 'none';
+    this.#anchorRectProvider = null;
+    this.#scrollFollowBaseline = null;
+    this.#clearScrollListeners();
 
-        if (this.#suppressHoverSubMenuToggleFrameId !== null) {
-          this.hot.rootWindow.cancelAnimationFrame(this.#suppressHoverSubMenuToggleFrameId);
-          this.#suppressHoverSubMenuToggleFrameId = null;
+    if (this.#suppressHoverSubMenuToggleFrameId !== null) {
+      this.hot.rootWindow.cancelAnimationFrame(this.#suppressHoverSubMenuToggleFrameId);
+      this.#suppressHoverSubMenuToggleFrameId = null;
+    }
+
+    this.#suppressHoverSubMenuToggle = false;
+    // A timer that outlives the menu would call `openSubMenu` on a destroyed `hotMenu`.
+    this.#clearHoverSubMenuTimers();
+    this.hot.getSettings().outsideClickDeselects = this.origOutsideClickDeselects;
+  }
+
+  /**
+   * After a sub-menu closes, marks its anchor row collapsed and hands the keyboard back to the
+   * parent menu. Does nothing for a top-level menu.
+   */
+  #returnToParentMenu() {
+    if (!this.isSubMenu()) {
+      return;
+    }
+
+    if (this.hot.getSettings().ariaTags) {
+      const selection = this.parentMenu!.hotMenu!.getSelectedActive();
+
+      if (selection) {
+        const cell = this.parentMenu!.hotMenu!.getCell(selection[0], 0);
+
+        if (cell) {
+          setAttribute(cell, [
+            A11Y_EXPANDED(false),
+          ]);
         }
-
-        this.#suppressHoverSubMenuToggle = false;
-        // A timer that outlives the menu would call `openSubMenu` on a destroyed `hotMenu`.
-        this.#clearHoverSubMenuTimers();
-        this.hot.getSettings().outsideClickDeselects = this.origOutsideClickDeselects;
-        this.#lifecycle = 'closed';
-      }
-
-      this.runLocalHooks('afterClose');
-
-      if (this.isSubMenu()) {
-        if (this.hot.getSettings().ariaTags) {
-          const selection = this.parentMenu!.hotMenu!.getSelectedActive();
-
-          if (selection) {
-            const cell = this.parentMenu!.hotMenu!.getCell(selection[0], 0);
-
-            if (cell) {
-              setAttribute(cell, [
-                A11Y_EXPANDED(false),
-              ]);
-            }
-          }
-        }
-
-        this.parentMenu!.hotMenu!.listen();
       }
     }
+
+    this.parentMenu!.hotMenu!.listen();
   }
 
   /**
@@ -914,9 +961,13 @@ export class Menu {
     } catch (error) {
       // `hotSubMenus` is only assigned below, so a sub-menu that throws while opening is
       // unreachable from `closeAllSubMenus()` and from `destroy()` - nothing would ever tear it
-      // down, and its `document` listeners and portal container would outlive the grid. The
-      // hover timer re-fires every 300ms, so one throwing sub-menu item leaks a Menu per tick.
-      subMenu.destroy();
+      // down, and its `document` listeners and portal container would outlive the grid. Every
+      // hover that reaches the row tries again, so each attempt would leak another set.
+      try {
+        subMenu.destroy();
+      } catch {
+        // The open error below is the application's own bug; a failed teardown must not replace it.
+      }
 
       throw error;
     }
@@ -943,7 +994,8 @@ export class Menu {
     const menus = this.hotSubMenus[dataItem.key!];
 
     if (menus) {
-      menus.destroy();
+      // The parent's own bookkeeping comes first: the sub-menu's teardown runs grid hooks and can
+      // throw, and it must not leave a destroyed menu registered here.
       delete this.hotSubMenus[dataItem.key!];
 
       const cell = this.hotMenu!.getCell(row, 0);
@@ -954,14 +1006,22 @@ export class Menu {
           A11Y_EXPANDED(false),
         ]);
       }
+
+      menus.destroy();
     }
   }
 
   /**
-   * Close all opened sub menus.
+   * Close all opened sub menus. Each one is closed even when an earlier one throws.
    */
   closeAllSubMenus() {
-    arrayEach(this.hotMenu!.getData(), (value: unknown, row: number) => this.closeSubMenu(row));
+    const steps: Array<() => void> = [];
+
+    arrayEach(this.hotMenu!.getData(), (value: unknown, row: number) => {
+      steps.push(() => this.closeSubMenu(row));
+    });
+
+    runEveryStep(steps);
   }
 
   /**
@@ -993,14 +1053,20 @@ export class Menu {
     const menuContainerParentElement = this.container.parentNode;
 
     this.clearLocalHooks();
-    this.close();
-    this.parentMenu = null;
 
-    this.eventManager.destroy();
+    // A throwing `close()` must not keep the document listeners alive - that leak is what carried
+    // the DEV-41 crash onto the next page of an SPA.
+    runEveryStep([
+      () => this.close(),
+      () => {
+        this.parentMenu = null;
+        this.eventManager.destroy();
 
-    if (menuContainerParentElement) {
-      menuContainerParentElement.removeChild(this.container);
-    }
+        if (menuContainerParentElement) {
+          menuContainerParentElement.removeChild(this.container);
+        }
+      },
+    ]);
   }
 
   /**
