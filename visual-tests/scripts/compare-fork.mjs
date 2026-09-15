@@ -4,7 +4,7 @@
  * Fork and Dependabot pull requests run on a downgraded token and receive no
  * Actions secrets, so they cannot authenticate against R2. Guarding the
  * comparison away would delete visual review for every external contributor,
- * which the fork-guard rules in the root `AGENTS.md` forbid.
+ * which the fork-guard rules in `.ai/CI.md` forbid.
  *
  * The bucket is public-read — that is what makes the report URLs work — so a
  * fork can read the golden records over plain HTTPS, diff locally, and publish

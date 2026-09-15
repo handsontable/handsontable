@@ -111,18 +111,18 @@ test('every fork-hostile site carries both halves of the canonical guard', () =>
   }
 });
 
-test('the guarded-site list in AGENTS.md names every file that carries a guard', () => {
-  const agents = read('AGENTS.md');
+test('the guarded-site list in .ai/CI.md names every file that carries a guard', () => {
+  const agents = read('.ai/CI.md');
   const start = agents.indexOf('Do not guard a step just because it names a secret');
 
-  assert.notEqual(start, -1, 'AGENTS.md has no fork-guard bullet');
+  assert.notEqual(start, -1, '.ai/CI.md has no fork-guard bullet');
 
   const bullet = agents.slice(start, agents.indexOf('\n- ', start + 1));
 
   for (const file of new Set(GUARDED_SITES.map(([f]) => path.basename(f)))) {
     assert.ok(
       bullet.includes(file),
-      `AGENTS.md's guarded-site list does not mention ${file}; the docs and the workflows have drifted`
+      `.ai/CI.md's guarded-site list does not mention ${file}; the docs and the workflows have drifted`
     );
   }
 });

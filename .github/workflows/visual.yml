@@ -261,7 +261,7 @@ jobs:
       # A fork gets no secrets, so it reads the golden records over anonymous
       # HTTPS and publishes nothing. Guarding the comparison away instead would
       # delete visual review for external contributors -- see the fork-guard
-      # rules in the root AGENTS.md.
+      # rules in .ai/CI.md.
       - name: Compare against the golden records (no credentials)
         if: github.event_name == 'pull_request'
           && (github.event.pull_request.head.repo.full_name != github.repository
@@ -422,7 +422,7 @@ jobs:
       # they are excluded by the same guard the rest of the repo uses.
       # Unguarded, and needs no token: on a fork run the comment step below is
       # guarded off, so this is the only place the verdict is readable. Root
-      # AGENTS.md: "Withheld content goes to $GITHUB_STEP_SUMMARY".
+      # .ai/CI.md: "Withheld content goes to $GITHUB_STEP_SUMMARY".
       - name: Mirror the verdict to the job summary
         if: always() && github.event_name == 'pull_request'
         run: cat visual-tests/.reg/comment.md >> "$GITHUB_STEP_SUMMARY" || true
