@@ -45,8 +45,14 @@ type VisualProbe = { pointer: { x: number; y: number } | null };
 /**
  * Records the pointer's last viewport position from inside the page, before any navigation.
  *
- * Wired the way the engine wires its own tracker (`overlays.ts`): `pointermove` in the capture phase,
- * and `pointerleave` on `documentElement` in the bubble phase, which fires only when the pointer leaves
+ * Deliberately NOT wired the way the engine wires its own tracker. `overlays.ts:531` registers
+ * `pointermove` on the window with `{ passive: true }` and no capture flag — the bubble phase — while
+ * this listens in the capture phase, so the probe still records a move that something upstream stops
+ * from bubbling. The two therefore agree on every event the engine sees and the probe sees a superset;
+ * a handler that called `stopPropagation()` would split them, and the fixture's copy is the one that
+ * must not go blind, because a missed move makes a pinned band read as a stuck one.
+ *
+ * `pointerleave` is on `documentElement` in the bubble phase, which fires only when the pointer leaves
  * the window. A capture-phase `pointerleave` on `document` would fire on every cell-to-cell crossing and
  * on the hover re-evaluation a scroll triggers under a resting pointer, clearing the record exactly when
  * the engine still holds its own and pins the band.
@@ -103,11 +109,16 @@ function installPointerProbe(page: Page) {
  * re-renders the spec and a persistent defect turns the render job red — the silent 5 s give-up this
  * replaces produced diffs nobody could explain.
  *
- * @param {Page} page The page about to be captured.
- * @returns {Promise<void>} Resolves once nothing transient is on screen, or once the band is known to
- * be pinned; rejects when a band is stuck.
+ * This reports the state and decides nothing. Two callers act on it, and they want different things:
+ * a capture can live with a pinned band (it is deterministic), while a spec that is about to click
+ * into that strip cannot. {@link settleScrollbarClearanceForCapture} and
+ * {@link waitForScrollbarClearanceToClose} are those two policies.
+ *
+ * @param {Page} page The page to inspect.
+ * @returns {Promise<'closed' | 'pinned' | 'stuck'>} `closed` when nothing transient is on screen,
+ * `pinned` when a resting pointer holds a band open by design, `stuck` when neither is true in time.
  */
-async function waitForScrollbarClearanceToSettle(page: Page) {
+async function awaitScrollbarClearance(page: Page): Promise<'closed' | 'pinned' | 'stuck'> {
   // The callbacks run in the browser, where `window` and `document` are the right globals to use.
   /* eslint-disable no-restricted-globals */
   await page.evaluate(() => new Promise<void>((resolve) => {
@@ -131,8 +142,16 @@ async function waitForScrollbarClearanceToSettle(page: Page) {
   });
 
   if (await settledWithin(FADE_ALLOWANCE)) {
-    return;
+    return 'closed';
   }
+
+  // The slow path is about to spend up to another SETTLE_TIMEOUT - FADE_ALLOWANCE, so buy that budget
+  // here rather than from the config. A flat per-test bump only helps a test that still has room left:
+  // `tab-navigation-through-all-components.spec.ts` takes a dozen captures plus keyed navigation, so a
+  // band stuck on a late one would die on "Test timeout of 15000ms exceeded" and the message naming
+  // the cause — the whole point of failing loudly — would never be printed. Granting it here makes the
+  // diagnosis win on whichever capture hits it.
+  baseTest.info().setTimeout(baseTest.info().timeout + SETTLE_TIMEOUT);
 
   // Still open after the fade: a pointer resting beside an OPEN band's scrollbar holds exactly that
   // band open, with no timer. Judge the open fillers, which carry their edge and live in the holder
@@ -169,6 +188,28 @@ async function waitForScrollbarClearanceToSettle(page: Page) {
   /* eslint-enable no-restricted-globals */
 
   if (pinned) {
+    return 'pinned';
+  }
+
+  return await settledWithin(SETTLE_TIMEOUT - FADE_ALLOWANCE) ? 'closed' : 'stuck';
+}
+
+/**
+ * The capture-time policy: wait the band out, and accept a pinned one.
+ *
+ * A band a resting pointer holds open is a deterministic state — the pointer is where the spec left
+ * it, every run — so the capture proceeds and the test is annotated rather than failed. Anything still
+ * open with the pointer away is a stuck transient, and failing here makes Playwright re-render the
+ * spec; a persistent one turns the render job red with a message naming the cause, which is what the
+ * silent 5 s give-up this replaces never did.
+ *
+ * @param {Page} page The page about to be captured.
+ * @returns {Promise<void>} Resolves once the capture may proceed; rejects on a stuck band.
+ */
+async function settleScrollbarClearanceForCapture(page: Page) {
+  const state = await awaitScrollbarClearance(page);
+
+  if (state === 'pinned') {
     baseTest.info().annotations.push({
       type: 'scrollbar-band',
       description: 'captured with the scrollbar clearance band pinned open by the pointer',
@@ -177,13 +218,40 @@ async function waitForScrollbarClearanceToSettle(page: Page) {
     return;
   }
 
-  if (await settledWithin(SETTLE_TIMEOUT - FADE_ALLOWANCE)) {
+  if (state === 'stuck') {
+    throw new Error(`The scrollbar clearance band was still open ${SETTLE_TIMEOUT} ms after the last action, `
+      + 'with the pointer away from the scrollbar. The capture would record a transient state, so it is '
+      + 'refused; see settleScrollbarClearanceForCapture() in visual-tests/src/test-runner.ts.');
+  }
+}
+
+/**
+ * The spec-facing policy: wait until the band is really gone.
+ *
+ * For a spec that is about to CLICK where the band is, "pinned" is not good enough — the strip belongs
+ * to the scrollbar while it is up, so the click is swallowed and the spec goes on with a selection it
+ * never made (`copy-paste.spec.ts` copies one cell instead of the range, and its assertions still
+ * pass, so it surfaces only as a changed screenshot). That is why this is a separate export from the
+ * capture policy: the capture may proceed on a pinned band, a click may not, and one function cannot
+ * promise both.
+ *
+ * @param {Page} page The page to wait on.
+ * @returns {Promise<void>} Resolves once no band and no clip are on screen; rejects otherwise.
+ */
+async function waitForScrollbarClearanceToClose(page: Page) {
+  const state = await awaitScrollbarClearance(page);
+
+  if (state === 'closed') {
     return;
   }
 
-  throw new Error(`The scrollbar clearance band was still open ${SETTLE_TIMEOUT} ms after the last action, `
-    + 'with the pointer away from the scrollbar. The capture would record a transient state, so it is '
-    + 'refused; see waitForScrollbarClearanceToSettle() in visual-tests/src/test-runner.ts.');
+  throw new Error(state === 'pinned'
+    ? 'The scrollbar clearance band is pinned open by a pointer resting beside the scrollbar, so it '
+      + 'will not close on its own and a click into that strip would be swallowed. Move the pointer '
+      + 'away from the edge first; see waitForScrollbarClearanceToClose() in visual-tests/src/test-runner.ts.'
+    : `The scrollbar clearance band was still open ${SETTLE_TIMEOUT} ms after the last action, with the `
+      + 'pointer away from the scrollbar. A click into that strip would be swallowed; see '
+      + 'waitForScrollbarClearanceToClose() in visual-tests/src/test-runner.ts.');
 }
 
 /**
@@ -226,8 +294,12 @@ async function waitForScrollbarClearanceToSettle(page: Page) {
  */
 async function clearNativeTextSelection(page: Page) {
   // Only WebKit paints a selection the API no longer reports (see the docblock); the reset under a
-  // focused text control costs Chromium a re-rasterized grid, so it is engine-gated.
-  const resetUnderTextControl = baseTest.info().project.name === 'webkit';
+  // focused text control costs Chromium a re-rasterized grid, so it is engine-gated. Read from the
+  // browser that is actually running, never from the project's name or its `use`: a renamed project or
+  // a second WebKit project for another theme would silently stop resetting and let `columns-filter-2`
+  // poison the baseline again, and `use.browserName` is undefined here anyway — the cross-browser
+  // config builds its projects from `devices['Desktop Safari']`, which carries `defaultBrowserType`.
+  const resetUnderTextControl = page.context().browser()?.browserType().name() === 'webkit';
 
   // The callback runs in the browser, where `window` and `document` are the right globals to use.
   /* eslint-disable no-restricted-globals */
@@ -277,7 +349,7 @@ async function clearNativeTextSelection(page: Page) {
  * a stuck band is the one thing that artifact exists to show — and a second 5 s settle inside teardown
  * would only re-throw into a recorder that swallows it.
  *
- * The two steps fail differently. A stuck band fails the capture (see `waitForScrollbarClearanceToSettle`).
+ * The two steps fail differently. A stuck band fails the capture (see `settleScrollbarClearanceForCapture`).
  * The selection clear stays best-effort: a page torn down mid-capture must not turn into a failure, and
  * a selection that survived changes pixels the comparison will report rather than hide.
  *
@@ -298,7 +370,7 @@ function installScrollbarClearanceSettle(page: Page) {
       return capture(options);
     }
 
-    await waitForScrollbarClearanceToSettle(page);
+    await settleScrollbarClearanceForCapture(page);
     await clearNativeTextSelection(page).catch(() => {});
 
     return capture(options);
@@ -424,4 +496,4 @@ const test = baseTest.extend<TestParams>({
 });
 
 // Export the custom fixture
-export { expect, test, waitForScrollbarClearanceToSettle };
+export { expect, test, waitForScrollbarClearanceToClose };

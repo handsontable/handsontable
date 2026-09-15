@@ -129,8 +129,17 @@ Eight things about this pipeline are worth knowing before changing it.
   giving up silently: a pointer resting within 26 px of that scrollbar's edge (`OVERLAY_SCROLLBAR_PROXIMITY`,
   mirrored in the fixture) pins the band open by design, so the capture proceeds with a `scrollbar-band`
   annotation on the test; anything else throws, Playwright re-renders the spec, and a persistent stuck
-  band reds the render job with a message naming the cause. `locator.screenshot()` bypasses the wrapper —
-  capture through `tablePage.screenshot()`.
+  band reds the render job with a message naming the cause — and the fixture buys that message its time
+  with `testInfo.setTimeout()` when it enters the slow path, because a flat per-test budget is spent by
+  whichever capture comes first. `locator.screenshot()` bypasses the wrapper — capture through
+  `tablePage.screenshot()`.
+  **A pinned band is fine for a capture and not for a click**, so the two policies are separate
+  functions over one state machine (`awaitScrollbarClearance` → `closed | pinned | stuck`).
+  `settleScrollbarClearanceForCapture` is the wrapper's, and accepts a pinned band. A spec that is about
+  to click where the band is imports `waitForScrollbarClearanceToClose`, which throws on a pinned one:
+  while the band is up that strip belongs to the scrollbar, so the click is swallowed and the spec
+  carries on with a selection it never made. `copy-paste.spec.ts` is the spec that shape bit — one cell
+  copied instead of the range, its assertions still passing, visible only as a changed screenshot.
 - **A missing baseline never blocks.** `Check for golden records` probes
   `https://<domain>/base/<branch>/out.json` over plain HTTPS. When that 404s the run sets
   `VISUAL_BOOTSTRAP=true`: `visual-gate.mjs` passes without reading a report, and a same-repo build promotes

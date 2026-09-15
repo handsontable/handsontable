@@ -79,3 +79,22 @@ test('verdictLine fails on changed items and on pairs that could not be compared
   // A comparison error must never read as a pass, whatever the other pairs said.
   assert.equal(verdictLine([null]).failed, true);
 });
+
+test('a capture missing from any render is a failed verdict, not a footnote', () => {
+  // reg-cli runs with `-I`, so it exits 0 whatever it finds. A matrix whose renders died early
+  // compares nothing, counts 0 changed, and would otherwise print "passed every pair" directly under
+  // a byte-stability table full of "missing in stability-4" — the worst way for an acceptance
+  // instrument to be wrong.
+  const clean = verdictLine([0, 0], { missing: 0 });
+  const missingOnly = verdictLine([0, 0], { missing: 3 });
+  const both = verdictLine([0, 2], { missing: 1 });
+
+  assert.equal(clean.failed, false);
+  assert.equal(missingOnly.failed, true);
+  assert.match(missingOnly.line, /3 capture\(s\) are missing from at least one render/);
+  assert.doesNotMatch(missingOnly.line, /passed every pair/);
+  assert.equal(both.failed, true);
+  assert.match(both.line, /failed on 2 item\(s\), and 1 capture\(s\) are missing/);
+  // The default keeps every existing caller's behavior.
+  assert.deepEqual(verdictLine([0, 0]), clean);
+});

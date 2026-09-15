@@ -101,10 +101,26 @@ export function byteStability(runs, hashOf, listPngs = pngsUnder) {
 /**
  * The closing line of the summary, from the pairwise comparison results.
  *
- * @param {Array<number | null>} changedPerPair Changed-item counts, `null` for a pair reg-cli could not compare.
+ * Two things this has to get right, because the matrix is an acceptance instrument and the worst way
+ * for one to be wrong is to read green.
+ *
+ * The per-pair count is every bucket the real gate blocks on — `failedItems + newItems +
+ * deletedItems`, the sum `visual-gate.mjs` uses — not `failedItems` alone. A capture present in one
+ * render and absent from another is classified by reg-cli as new or deleted, so counting only the
+ * changed bucket printed "the gate would have passed every pair" for a matrix the gate would block.
+ *
+ * And a render that produced nothing is not a pass. reg-cli runs with `-I`, so it exits 0 whatever it
+ * finds; a job that died before rendering leaves an empty directory, every pair compares nothing, and
+ * the count is 0. `missing` — captures absent from at least one run, which the byte-stability table
+ * above already lists — is therefore part of the verdict rather than table decoration.
+ *
+ * @param {Array<number | null>} changedPerPair Per-pair differing-item counts, `null` for a pair reg-cli
+ * could not compare.
+ * @param {object} [options] Extra signals.
+ * @param {number} [options.missing] How many captures are absent from at least one run.
  * @returns {{ line: string, failed: boolean }} The Markdown line and whether the run should be red.
  */
-export function verdictLine(changedPerPair) {
+export function verdictLine(changedPerPair, { missing = 0 } = {}) {
   const errored = changedPerPair.filter(c => c === null).length;
   const changed = changedPerPair.reduce((sum, c) => sum + (c ?? 0), 0);
 
@@ -112,8 +128,24 @@ export function verdictLine(changedPerPair) {
     return { line: `**Verdict: ${errored} pair(s) could not be compared; no verdict.**`, failed: true };
   }
 
+  if (changed > 0 && missing > 0) {
+    return {
+      line: `**Verdict: the gate would have failed on ${changed} item(s), and ${missing} capture(s) `
+        + 'are missing from at least one render.**',
+      failed: true,
+    };
+  }
+
   if (changed > 0) {
     return { line: `**Verdict: the gate would have failed on ${changed} item(s).**`, failed: true };
+  }
+
+  if (missing > 0) {
+    return {
+      line: `**Verdict: no pair differed, but ${missing} capture(s) are missing from at least one render — `
+        + 'a render that did not finish is not a stable one.**',
+      failed: true,
+    };
   }
 
   return { line: '**Verdict: the gate would have passed every pair.**', failed: false };
