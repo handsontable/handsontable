@@ -454,8 +454,21 @@ export class Filters extends BasePlugin {
         component?.destroy();
         this.components.set(key, null);
       });
+      // Destroy and null the observer alongside the collection, the way `destroy()` tears down
+      // both. The observer holds its own reference to the collection, so leaving it bound to a
+      // destroyed collection strands it: `enablePlugin()` recreates the collection but skips the
+      // observer it still holds, and the next data change reads the destroyed collection and throws
+      // (DEV-2889). Order between the two does not matter - neither `destroy()` fires a hook the
+      // other listens to.
+      this.conditionUpdateObserver?.destroy();
+      this.conditionUpdateObserver = null;
       this.conditionCollection?.destroy();
       this.conditionCollection = null;
+      // Drop the focus navigator too. It caches `focusableItems` built from the component elements
+      // just destroyed, and its `enablePlugin()` rebuild sits behind an `if (!this.#menuFocusNavigator)`
+      // guard - so a surviving instance keeps pointing the Tab focus at detached elements and blocks
+      // a fresh one. Same stale-reference family as the collection/observer above (DEV-2889).
+      this.#menuFocusNavigator = undefined;
       this.hot.rowIndexMapper.unregisterMap(this.pluginName ?? '');
     }
 

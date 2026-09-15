@@ -24,6 +24,7 @@ import {
 } from '../scrollbarClearance';
 import { A11Y_PRESENTATION } from '../../../../../helpers/a11y';
 import { throwWithCause } from '../../../../../helpers/errors';
+import { getSpreaderOffset } from '../spreaderOffset';
 
 /**
  * Assembles the dependency set shared by every overlay (and its corner subclasses) from the engine
@@ -478,12 +479,14 @@ export abstract class Overlay {
     const fixedRowTop = rowIndex < this.wtSettings.getSetting<number>('fixedRowsTop');
     const fixedRowBottom = rowIndex >=
       this.wtSettings.getSetting<number>('totalRows') - this.wtSettings.getSetting<number>('fixedRowsBottom');
-    const spreader = this.clone.wtTable.spreader;
-
     const { geometryReader } = this.#deps;
+    // The spreader is placed with a transform (`overlay/spreaderOffset.ts`), which the offset chain
+    // does not see, so read the recorded offset. `x` is negative in RTL and the math below wants the
+    // distance from the inline start, hence the magnitude.
+    const { x: spreaderX, y: spreaderY } = getSpreaderOffset(this.clone.wtTable.spreader);
     const spreaderOffset = {
-      start: this.getRelativeStartPosition(spreader),
-      top: geometryReader.offsetTop(spreader)
+      start: Math.abs(spreaderX),
+      top: spreaderY,
     };
     const elementOffset = {
       start: this.getRelativeStartPosition(element),

@@ -4,7 +4,13 @@ import { throwWithCause } from '../helpers/errors';
 import { createFocusScope } from './scope';
 import { useEventListener } from './eventListener';
 import { FOCUS_SOURCES, DEFAULT_SHORTCUTS_CONTEXT } from './constants';
-import { eventTargetEl, getDeepActiveElement, isVisible } from '../helpers/dom/element';
+import {
+  getComposedEventTargetEl,
+  getDeepActiveElement,
+  getShadowHostChain,
+  isHTMLElement,
+  isVisible,
+} from '../helpers/dom/element';
 
 type FocusScopeType = 'modal' | 'inline';
 type FocusScopeActivationSource = 'unknown' | 'click' | 'tab_from_above' | 'tab_from_below';
@@ -391,7 +397,7 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
       }
 
       if (scope === activeScope) {
-        if (scope.contains(getDeepActiveElement(hotInstance.rootDocument) as HTMLElement)) {
+        if (scopeContains(scope, getDeepActiveElement(hotInstance.rootDocument))) {
           scope.deactivateFocusCatchers();
         } else {
           scope.activateFocusCatchers();
@@ -404,6 +410,29 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
         scope.deactivateFocusCatchers();
       }
     });
+  }
+
+  /**
+   * Checks whether the scope contains the target element, looking through the shadow boundaries
+   * the target is rendered behind.
+   *
+   * A scope answers containment with `Node.contains()`, which stops at a shadow root, so a target
+   * resolved from inside a shadow tree the scope's container merely hosts (a web component rendered
+   * in a cell) is reported as outside it. Falling back to the target's shadow hosts asks the same
+   * question about the elements the container can actually see.
+   *
+   * @param {object} scope The focus scope to ask.
+   * @param {Element|null} target The target element. `getDeepActiveElement()` reports `null` for a document
+   * with no body, and no scope contains a target that is not an element to begin with.
+   * @returns {boolean} `true` when the target, or one of the hosts it is rendered behind, is within the scope.
+   */
+  function scopeContains(scope: ReturnType<typeof createFocusScope>, target: Element | null): boolean {
+    if (!isHTMLElement(target)) {
+      return false;
+    }
+
+    return scope.contains(target) ||
+      getShadowHostChain(target).some((host: HTMLElement) => scope.contains(host));
   }
 
   /**
@@ -423,7 +452,7 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
     let hasActiveScope = false;
 
     allEnabledScopes.forEach((scope: ReturnType<typeof createFocusScope>) => {
-      if (!hasActiveScope && scope.contains(target)) {
+      if (!hasActiveScope && scopeContains(scope, target)) {
         hasActiveScope = true;
 
         if (focusSource !== FOCUS_SOURCES.UNKNOWN) {
@@ -444,10 +473,12 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
     hotInstance.rootWindow,
     {
       onFocus: (event) => {
-        processScopes(eventTargetEl(event)!, eventTargetEl(event)!.dataset.htFocusSource ?? FOCUS_SOURCES.UNKNOWN);
+        const target = getComposedEventTargetEl(event)!;
+
+        processScopes(target, target.dataset.htFocusSource ?? FOCUS_SOURCES.UNKNOWN);
       },
       onClick: (event) => {
-        processScopes(eventTargetEl(event)!, FOCUS_SOURCES.CLICK);
+        processScopes(getComposedEventTargetEl(event)!, FOCUS_SOURCES.CLICK);
       },
       onTabKeyDown: () => {
         updateScopesFocusVisibilityState();

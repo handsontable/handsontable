@@ -21,12 +21,20 @@ import type { default as Table } from '../table/baseTable';
  * The two knobs `markOversizedRows` exposes purely for the frozen-column row sync. Grouped so the
  * shared measurement function keeps a two-argument signature for its ordinary callers.
  */
-interface FrozenPassOptions {
+interface MarkOversizedRowsOptions {
   /**
    * Leave a wiped record this table could not re-detect alone, rather than reading it as a row that
    * shrank back. Only the caller that measures every frozen table can tell the two apart.
    */
   deferShrinkDetection?: boolean;
+  /**
+   * Measure only the rendered rows at and after this visible index. A row-band refill pass that
+   * repainted only the rows it appended passes the same window here: the rows before it were
+   * measured by the previous pass and their records are current. `0` (the default) measures the
+   * whole band and is the only value that may take the uniform-band fast path, which reads the
+   * TBODY as a whole.
+   */
+  fromVisibleRow?: number;
   /**
    * Receives the source index of every row this call records.
    */
@@ -415,10 +423,14 @@ export function syncOversizedRowsWithFrozenOverlays(
  * can re-engage once no oversized records remain.
  *
  * @param {Table} table The table (master or bottom clone) whose rendered band is reset.
+ * @param {number} [fromVisibleRow=0] The first visible (rendered) row index to wipe from. `0` wipes the
+ *   whole band. A row-band refill pass that repaints only the rows it appended passes the same window
+ *   it hands `TableRenderer#setPaintWindow` and `markOversizedRows`, so the wipe, the paint and the
+ *   measure cover the same rows; the rows before it keep the records the previous pass just verified.
  * @returns {Map<number, number>|undefined} The previous oversized heights of the rendered band,
  *   keyed by source row index, or `undefined` when this table does not measure oversized rows.
  */
-export function resetOversizedRows(table: Table): Map<number, number> | undefined {
+export function resetOversizedRows(table: Table, fromVisibleRow = 0): Map<number, number> | undefined {
   const { wtSettings } = table;
   const wtViewport = table.deps.getWtViewport();
 
@@ -433,8 +445,10 @@ export function resetOversizedRows(table: Table): Map<number, number> | undefine
   const rowsToRender = table.getRenderedRowsCount();
   const wipedOversizedRows = new Map<number, number>();
 
-  // Reset the oversized row cache for rendered rows
-  for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
+  // Reset the oversized row cache for rendered rows (only from `fromVisibleRow` on when a refill
+  // pass repaints and re-measures just the rows it appended — the rows before it keep the records
+  // the previous pass just verified).
+  for (let visibleRowIndex = fromVisibleRow; visibleRowIndex < rowsToRender; visibleRowIndex++) {
     const sourceRow = table.rowFilter!.renderedToSource(visibleRowIndex);
     const previousHeight = wtViewport.oversizedRows?.[sourceRow];
 
@@ -532,19 +546,24 @@ export function resetFrozenOversizedRows(table: Table): Map<number, number> | un
  * @param {Table} table The table (master or bottom clone) whose rendered rows are measured.
  * @param {Map<number, number>} [wipedOversizedRows] The oversized heights recorded before this
  *   render, as returned by `resetOversizedRows`.
- * @param {object} [frozenPass] Options used only by the frozen-column row sync.
- * @param {boolean} [frozenPass.deferShrinkDetection=false] When `true`, a wiped record this table could not
+ * @param {object} [options] Measurement options. `deferShrinkDetection` and `recordedRows` are used
+ *   only by the frozen-column row sync; `fromVisibleRow` only by the row-band refill.
+ * @param {boolean} [options.deferShrinkDetection=false] When `true`, a wiped record this table could not
  *   re-detect is NOT treated as a shrunk row. The master passes this when the frozen-column row
  *   sync runs later in the same draw: those records belong to rows whose tall content lives only in
  *   the inline-start clone, so only that pass can tell "shrank back" from "the master never renders
  *   it". Without the deferral a steady-state redraw would invalidate the row-height cache twice per
  *   draw — and with a non-uniform row-size source each invalidation costs a full prefix-sum walk.
  *   The caller keeps the map and must settle whatever is left in it.
- * @param {Set<number>} [frozenPass.recordedRows] Filled with the source index of every row this call recorded.
+ * @param {Set<number>} [options.recordedRows] Filled with the source index of every row this call recorded.
  *   The frozen sync marks exactly these as frozen-derived — a row that is oversized for a reason the
  *   MASTER can see is not recorded here (the measured height does not exceed what is already known),
  *   and must stay the master's to own. Adopting it would be fatal: the frozen overlays cannot
  *   re-detect a height they never saw, so it would read as "shrank" on the next draw.
+ * @param {number} [options.fromVisibleRow=0] Measure only the rendered rows at and after this visible
+ *   index; `0` measures the whole band. The row-band refill passes the window it repainted with, so
+ *   the rows before it — measured by the previous pass — are neither wiped nor re-measured. A windowed
+ *   call never takes the uniform-band fast path, which reads the TBODY as a whole.
  * @returns {boolean} `true` when this call invalidated the row-height cache. The frozen-column row
  *   sync reads it: an invalidation there lands AFTER `wtOverlays.refresh()` sized the overlay
  *   elements for the draw, so it has to re-size them.
@@ -552,12 +571,23 @@ export function resetFrozenOversizedRows(table: Table): Map<number, number> | un
 export function markOversizedRows(
   table: Table,
   wipedOversizedRows?: Map<number, number>,
-  { deferShrinkDetection = false, recordedRows }: FrozenPassOptions = {},
+  { deferShrinkDetection = false, recordedRows, fromVisibleRow = 0 }: MarkOversizedRowsOptions = {},
 ): boolean {
   if (table.wtSettings.getSetting('externalRowCalculator')) {
     return false;
   }
+  // Bound by what is IN the DOM, not by `getRenderedRowsCount()`: this loop reads a TR per row, and
+  // the two counts can differ mid-draw — a bottom clone measured from `syncScrollPositions` has
+  // fewer TRs than its calculator reports, and a calculator-bound loop threw on the missing TR
+  // (`Cannot read properties of undefined (reading 'querySelector')`, the full E2E suite). The wipe in
+  // `resetOversizedRows` runs BEFORE the render, so it can only use the calculator count; after a
+  // normal render the TBODY holds exactly that many TRs and the two agree, and a windowed call comes
+  // only from the refill, right after such a render. A row wiped but not visited here reads as a
+  // shrink and drops the row-height cache — a wasted rebuild, never a wrong height.
   let rowCount = table.TBODY!.childNodes.length;
+  // A windowed measure never takes the whole-band fast path below: that path reads the TBODY's
+  // height, and the rows before the window are not this call's to judge.
+  const measuresWholeBand = fromVisibleRow === 0;
   const stylesHandler = table.wtSettings.getSetting('stylesHandler');
   const { rowUtils } = table;
   // A uniform exact band has nothing to measure: every row is pinned at its provided height and its
@@ -582,9 +612,6 @@ export function markOversizedRows(
   // the master's own row heights.
   const drawsFirstRowTopBorder = !table.THEAD?.hasChildNodes();
   const expectedTableHeight = rowCount * stylesHandler.getDefaultRowHeight();
-  const actualTableHeight = isExactBand
-    ? expectedTableHeight
-    : table.deps.geometryReader.innerHeight(table.TBODY!) - (drawsFirstRowTopBorder ? 1 : 0);
   const borderBoxSizing = stylesHandler.areCellsBorderBox();
   const rowHeightFn = borderBoxSizing
     ? (element: HTMLElement) => table.deps.geometryReader.outerHeight(element)
@@ -601,8 +628,17 @@ export function markOversizedRows(
   // zoom (`StylesHandler#getDefaultRowHeight`, issue #6280) while `actualTableHeight` comes from an
   // integer `clientHeight`, so an exact match is unreachable there and this fast path would be dead
   // for every user below 100% — walking every rendered row on every draw, however uniform the grid.
-  // Strictly-less-than-1 keeps a genuinely oversized row (>= 1px) falling through to the walk.
-  const isUniformHeight = Math.abs(expectedTableHeight - actualTableHeight) < 1;
+  // Strictly-less-than-1 keeps a genuinely oversized row (>= 1px) falling through to the walk. One
+  // expression decides the fast path: a windowed measure never takes it (the TBODY height describes
+  // rows this call does not judge), an exact band always does, and everything else reads the TBODY
+  // — inside the branch, so a windowed call pays no layout read.
+  const isUniformHeight = measuresWholeBand && (
+    isExactBand ||
+    Math.abs(
+      expectedTableHeight -
+      (table.deps.geometryReader.innerHeight(table.TBODY!) - (drawsFirstRowTopBorder ? 1 : 0))
+    ) < 1
+  );
 
   if (isUniformHeight && !table.wtSettings.getSetting('fixedRowsBottom')) {
     // If the actual table height equals rowCount * default single row height, no row is oversized -> no need to iterate over them.
@@ -620,7 +656,7 @@ export function markOversizedRows(
   const wtViewport = table.deps.getWtViewport();
   let hasChanges = false;
 
-  while (rowCount) {
+  while (rowCount > fromVisibleRow) {
     rowCount -= 1;
     sourceRowIndex = table.rowFilter!.renderedToSource(rowCount);
 

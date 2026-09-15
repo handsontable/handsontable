@@ -194,4 +194,67 @@ describe('Dialog - show method', () => {
 
     expect(document.activeElement).toBe(getDialogContainerElement());
   });
+
+  it('should focus the first button of the `confirm` template when the dialog is shown', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      dialog: true,
+    });
+
+    await selectCell(0, 0);
+
+    const dialogPlugin = getPlugin('dialog');
+
+    dialogPlugin.showConfirm('Are you sure?');
+
+    expect(document.activeElement).toBe(getDialogSecondaryButtonElement());
+  });
+
+  it('should not move the focus when a click re-activates the dialog scope', async() => {
+    const outsideInput = document.createElement('input');
+
+    document.body.appendChild(outsideInput);
+
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      dialog: true,
+    });
+
+    await selectCell(0, 0);
+
+    const dialogPlugin = getPlugin('dialog');
+
+    dialogPlugin.showConfirm('Are you sure?');
+
+    expect(document.activeElement).toBe(getDialogSecondaryButtonElement());
+
+    // Clicking outside the modal deactivates its focus scope. Clicking a non-focusable part of the
+    // dialog afterwards re-activates it with the `click` source and no focus event of its own.
+    await simulateClick(outsideInput);
+    await simulateClick(getDialogTitleElement());
+
+    outsideInput.remove();
+
+    expect(document.activeElement).not.toBe(getDialogSecondaryButtonElement());
+  });
+
+  it('should focus the content wrapper of a buttonless `confirm` template when the dialog is shown', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      dialog: true,
+    });
+
+    await selectCell(0, 0);
+
+    const dialogPlugin = getPlugin('dialog');
+
+    dialogPlugin.show({
+      template: {
+        type: 'confirm',
+        title: 'Are you sure?',
+      },
+    });
+
+    expect(document.activeElement).toBe(getDialogInnerWrapperElement());
+  });
 });

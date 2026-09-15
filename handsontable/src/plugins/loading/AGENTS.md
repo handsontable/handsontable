@@ -22,6 +22,22 @@ plugin.
   shape and it silently loses the hook on the first `updateSettings()` (fixed in #13410, covered by
   `src/plugins/__tests__/hooksReleasedOnDisable.unit.js`).
 
+### `afterDialogFocus` fires for EVERY dialog, so the listener must check whose it is
+
+`#onAfterDialogFocus()` re-focuses the dialog container, which is what lets a screen reader announce the
+loading overlay — a loading screen always renders through `content`, so it reports no focusable elements
+and nothing inside it can hold the focus. But the hook is the **dialog's**, not this plugin's, so it also
+fires for a dialog the application opened for its own reasons. It is therefore gated on
+`getSetting('template') !== null`: a `template` dialog reports its own focusable elements and the dialog
+plugin has just focused one of them, so re-focusing the container would undo that and leave the buttons
+unannounced.
+
+Without the gate, enabling `loading` silently broke the confirm-dialog focus fix from DEV-47 — the dialog
+focused the first button and this listener pulled it straight back onto the container. It stayed invisible
+because `focus()` was a no-op on the `confirm` template until that same ticket fixed it, so the two
+defects hid each other. `isVisible()` is **not** a usable guard here: it delegates to
+`dialogPlugin.isVisible()`, which is true for any dialog at all.
+
 ## `show()` is idempotent, and vetoable only on a real open
 
 If the dialog is already visible, `show(options)` **updates and returns** — it does not re-run
