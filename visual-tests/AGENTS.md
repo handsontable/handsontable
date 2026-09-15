@@ -159,7 +159,14 @@ Eight things about this pipeline are worth knowing before changing it.
   `.github/workflows/visual-seed.yml` under a group that never cancels, so the last push of any burst is
   seeded within about 15 minutes, and a poisoned record is overwritten by the next develop push rather than
   the next run that survives. A poisoned record can also be replaced by hand: dispatch `Visual seed` on
-  develop. **The diagnostic is byte equality across pull requests:** if two unrelated pull requests fail on
+  develop — and **check that the dispatch actually ran**. It shares its concurrency group with the pushes
+  (one writer for `base/develop`, by design), so a merge landing while it is pending drops the pending
+  dispatch with no reason given. Usually that is the right outcome, because the push seeds a newer commit
+  over the same prefix and fixes the poisoned record anyway; if pushes have stopped, re-issue the dispatch.
+  **When a baseline looks stale rather than poisoned, start at that workflow's last successful run**:
+  `Visual seed` is not a required check, it is not in `test-health.yml`'s list, and since DEV-2797 it no
+  longer reds the `Develop` run, so a broken seed is quiet — GitHub notifies the pusher and nothing else
+  does. **The diagnostic is byte equality across pull requests:** if two unrelated pull requests fail on
   the same item, `shasum -a 256` their `actual/<item>` from the two reports. Identical bytes mean the
   render is deterministic and the golden record is the odd one out — neither pull request is at fault, and
   `visual-approved` on one of them fixes nothing for the others. Confirmed on `columns-filter-2` under
