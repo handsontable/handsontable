@@ -192,9 +192,10 @@ gated on `source === 'CopyPaste.paste'`) that re-selects against the settled cou
 collapsed range — only the DOM selection is corrected once the write settles. (3) `afterChange` fires only
 when `changes.length > 0`, and the shift paste modes recurse into `populateFromArray` **without** the
 `'CopyPaste.paste'` source, so the handler skips them and their inline selection stands. (4) The correction
-re-selects only while the selection still starts at the paste origin (`getTopStartCorner()`), so a
-synchronous `afterPaste` handler that moved the selection, or a late async validator resolving after the user
-clicked away, is not overwritten.
+re-selects only while the selection still starts at the paste origin (`getTopStartCorner()`) **and** the grid
+is still listening (`isListening()`), so it never overwrites a selection a synchronous `afterPaste` handler
+moved, and never yanks focus back when a slow async validator settles after the user has clicked outside the
+grid (clicking out unlistens without moving the selection, so the origin check alone would not catch it).
 
 Known limitation: `#pastePlan` is a **single slot**. With an async validator, two pastes can interleave — a
 second paste's `populateValues` overwriting the first's plan before the first's `applyChanges` settles — and

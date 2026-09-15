@@ -1303,6 +1303,13 @@ export class CopyPaste extends BasePlugin {
       return;
     }
 
+    // Focus has left the grid (e.g. the user clicked outside before a slow async validator
+    // settled): correcting now would call `selectCell`, which re-listens and pulls focus back into
+    // the table. Leave the selection where it is - the stale collapsed range no longer matters.
+    if (!this.hot.isListening()) {
+      return;
+    }
+
     // Deferred paste (a validated cell in range grew the grid once the validator queue drained,
     // after the inline selection clamped against a stale count): re-select against the fresh count.
     // Skip it when the selection no longer starts where the paste did - a synchronous `afterPaste`
