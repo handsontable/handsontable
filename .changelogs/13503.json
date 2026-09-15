@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a throwing menu item callback leaving the grid unusable for the rest of the page.",
+  "type": "fixed",
+  "issueOrPR": 13503,
+  "breaking": false,
+  "framework": "none"
+}
