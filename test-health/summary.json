@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-15T07:48:46.251Z",
+  "generatedAt": "2026-09-15T09:18:22.286Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -9,11 +9,44 @@
   "retentionDays": 90,
   "totals": {
     "tests": 11,
-    "needsTicket": 2,
+    "needsTicket": 3,
     "quarantined": 0,
-    "entries": 39
+    "entries": 40
   },
   "rows": [
+    {
+      "key": "playwright|e2e/unlaid-out-init-scroll-sync.spec.ts|grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
+      "tier": "playwright",
+      "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
+      "line": 65,
+      "title": "grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
+      "count7": 3,
+      "count30": 3,
+      "countAll": 3,
+      "runs30": 2,
+      "flakyRuns30": 2,
+      "branches30": 2,
+      "legs": [
+        "e2e-classic",
+        "e2e-horizon-min",
+        "e2e-main"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-15T09:17:38Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34950093138",
+        "branch": "feature/DEV-2921_Hidden-Column-Indicator-Overhang",
+        "leg": "e2e-classic",
+        "status": "flaky",
+        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
     {
       "key": "jasmine|handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js|AutocompleteEditor choices should not sort the choices list, when the `sortByRelevance` option is set to `true`",
       "tier": "jasmine",
@@ -214,38 +247,6 @@
         "branch": "feature/DEV-2912_Spreader-transform-no-layout-shift",
         "leg": "e2e-horizon",
         "status": "failed",
-        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "playwright|e2e/unlaid-out-init-scroll-sync.spec.ts|grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
-      "tier": "playwright",
-      "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
-      "line": 65,
-      "title": "grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
-      "count7": 2,
-      "count30": 2,
-      "countAll": 2,
-      "runs30": 1,
-      "flakyRuns30": 1,
-      "branches30": 1,
-      "legs": [
-        "e2e-horizon-min",
-        "e2e-main"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-09-15T07:48:03Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34941949393",
-        "branch": "develop",
-        "leg": "e2e-horizon-min",
-        "status": "flaky",
         "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
       },
