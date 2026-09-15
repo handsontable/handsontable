@@ -34,6 +34,14 @@ function validSnapshot(timestamp) {
   };
 }
 
+function envOf(chromium = '140.0.1', platform = 'linux x64') {
+  return { chromium, platform };
+}
+
+function keyOf(chromium = '140.0.1', platform = 'linux x64', harnessVersion = 1) {
+  return { chromium, platform, harnessVersion };
+}
+
 beforeEach(async() => {
   baseDir = await mkdtemp(join(tmpdir(), 'perf-golden-'));
   goldenPath = join(baseDir, 'snapshots.json');
@@ -167,7 +175,7 @@ describe('loadSnapshots (history-median path)', () => {
     const keyed = (timestamp, chromium, scripting) => {
       const snapshot = validSnapshot(timestamp);
 
-      snapshot.environment = { chromium };
+      snapshot.environment = envOf(chromium);
       snapshot.harnessVersion = 1;
       snapshot.scenarios.sorting.categories.scripting = scripting;
 
@@ -180,7 +188,7 @@ describe('loadSnapshots (history-median path)', () => {
     await writeFile(join(historyDir, 'd.json'), JSON.stringify(keyed('2026-09-03T09:47:00Z', '138.0.1', 155)), 'utf8');
 
     const { snapshot, unavailableReason } = await loadBaseline(baseDir, {
-      compatibleWith: { key: { chromium: '140.0.1', harnessVersion: 1 } },
+      compatibleWith: { key: keyOf() },
     });
 
     assert.equal(unavailableReason, null);
@@ -193,18 +201,39 @@ describe('loadSnapshots (history-median path)', () => {
 
     const old = validSnapshot('2026-09-03T10:08:00Z');
 
-    old.environment = { chromium: '138.0.1' };
+    old.environment = envOf();
     old.harnessVersion = 1;
     await writeFile(join(historyDir, 'c.json'), JSON.stringify(old), 'utf8');
     await writeFile(goldenPath, JSON.stringify(old), 'utf8');
 
     const { snapshot, unavailableReason } = await loadBaseline(baseDir, {
-      compatibleWith: { key: { chromium: '140.0.1', harnessVersion: 1 } },
+      compatibleWith: { key: keyOf('140.0.1', 'darwin arm64') },
+    });
+
+    assert.equal(snapshot, null);
+    assert.ok(unavailableReason.includes('platform linux x64 -> darwin arm64'));
+    assert.ok(unavailableReason.includes('next develop push'));
+  });
+
+  test('refuses an incompatible single-file fallback on a Chromium change', async() => {
+    // Kept beside the platform case above, not replaced by it: the single-file path must keep its own
+    // direct proof that a Chromium bump is refused. A regression that compared platform while ignoring
+    // chromium would slip past the platform case alone.
+    await mkdir(historyDir, { recursive: true });
+
+    const old = validSnapshot('2026-09-03T10:08:00Z');
+
+    old.environment = envOf('138.0.1', 'linux x64');
+    old.harnessVersion = 1;
+    await writeFile(join(historyDir, 'c.json'), JSON.stringify(old), 'utf8');
+    await writeFile(goldenPath, JSON.stringify(old), 'utf8');
+
+    const { snapshot, unavailableReason } = await loadBaseline(baseDir, {
+      compatibleWith: { key: keyOf('140.0.1', 'linux x64') },
     });
 
     assert.equal(snapshot, null);
     assert.ok(unavailableReason.includes('Chromium 138.0.1 -> 140.0.1'));
-    assert.ok(unavailableReason.includes('next develop push'));
   });
 
   test('an empty history directory is a stated refusal, not a silent absence', async() => {
@@ -213,7 +242,7 @@ describe('loadSnapshots (history-median path)', () => {
     await mkdir(historyDir, { recursive: true });
 
     const { snapshot, unavailableReason } = await loadBaseline(baseDir, {
-      compatibleWith: { key: { chromium: '140.0.1', harnessVersion: 1 } },
+      compatibleWith: { key: keyOf() },
       allowSingleFile: false,
     });
 
@@ -224,11 +253,11 @@ describe('loadSnapshots (history-median path)', () => {
   test('a single-file golden with no scenarios is refused rather than returned as a baseline', async() => {
     // A latest.json cut short by a failed deploy: key fields present, scenarios empty.
     await writeFile(goldenPath, JSON.stringify({
-      timestamp: '2026-09-03T10:31:00Z', environment: { chromium: '140.0.1' }, harnessVersion: 1, scenarios: {},
+      timestamp: '2026-09-03T10:31:00Z', environment: envOf(), harnessVersion: 1, scenarios: {},
     }), 'utf8');
 
     const { snapshot, unavailableReason } = await loadBaseline(baseDir, {
-      compatibleWith: { key: { chromium: '140.0.1', harnessVersion: 1 }, scenarioVersions: { sorting: 1 } },
+      compatibleWith: { key: keyOf(), scenarioVersions: { sorting: 1 } },
     });
 
     assert.equal(snapshot, null);
@@ -243,14 +272,14 @@ describe('loadSnapshots (history-median path)', () => {
     for (const [file, timestamp, name] of goldens) {
       await writeFile(join(historyDir, file), JSON.stringify({
         timestamp,
-        environment: { chromium: '140.0.1' },
+        environment: envOf(),
         harnessVersion: 1,
         scenarios: { [name]: { categories: { scripting: 80 }, windowSource: 'marks' } },
       }), 'utf8');
     }
 
     const { snapshot, unavailableReason } = await loadBaseline(baseDir, {
-      compatibleWith: { key: { chromium: '140.0.1', harnessVersion: 1 }, scenarioVersions: { sorting: 1 } },
+      compatibleWith: { key: keyOf(), scenarioVersions: { sorting: 1 } },
     });
 
     assert.equal(snapshot, null);
@@ -263,14 +292,14 @@ describe('loadSnapshots (history-median path)', () => {
     for (const [file, timestamp] of [['a.json', '2026-09-03T10:49:00Z'], ['b.json', '2026-09-03T10:31:00Z']]) {
       const snapshot = validSnapshot(timestamp);
 
-      snapshot.environment = { chromium: '140.0.1' };
+      snapshot.environment = envOf();
       snapshot.harnessVersion = 1;
       // measurementVersion absent: the default, 1. The run below measures sorting at 2.
       await writeFile(join(historyDir, file), JSON.stringify(snapshot), 'utf8');
     }
 
     const { snapshot, unavailableReason } = await loadBaseline(baseDir, {
-      compatibleWith: { key: { chromium: '140.0.1', harnessVersion: 1 }, scenarioVersions: { sorting: 2 } },
+      compatibleWith: { key: keyOf(), scenarioVersions: { sorting: 2 } },
     });
 
     assert.equal(snapshot, null);
@@ -280,12 +309,12 @@ describe('loadSnapshots (history-median path)', () => {
   test('a single-file golden at other scenario versions is refused, a partial overlap is returned', async() => {
     const single = validSnapshot('2026-09-03T10:31:00Z');
 
-    single.environment = { chromium: '140.0.1' };
+    single.environment = envOf();
     single.harnessVersion = 1;
     single.scenarios.filtering = { categories: { scripting: 40 }, windowSource: 'marks', measurementVersion: 1 };
     await writeFile(goldenPath, JSON.stringify(single), 'utf8');
 
-    const key = { chromium: '140.0.1', harnessVersion: 1 };
+    const key = keyOf();
     const allMismatch = await loadBaseline(baseDir, {
       compatibleWith: { key, scenarioVersions: { sorting: 2, filtering: 2 } },
     });
@@ -306,7 +335,7 @@ describe('loadSnapshots (history-median path)', () => {
     await writeFile(goldenPath, JSON.stringify(validSnapshot('2026-08-29T00:00:00Z')), 'utf8');
 
     const { snapshot, unavailableReason } = await loadBaseline(baseDir, {
-      compatibleWith: { key: { chromium: '140.0.1', harnessVersion: 1 } },
+      compatibleWith: { key: keyOf() },
     });
 
     assert.equal(snapshot, null);
