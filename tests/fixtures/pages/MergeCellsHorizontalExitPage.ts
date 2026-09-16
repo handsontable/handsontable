@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle, BUNDLE_POLLING_MS } from '../bundle';
 
 interface Highlight {
   row: number;
@@ -30,6 +31,11 @@ export class MergeCellsHorizontalExitPage {
       `/tests/fixtures/demo/merge-cells-horizontal-exit.html?theme=${this.theme}&bundle=${this.bundle}` +
       `&scenario=${scenario}`,
     );
+    // Wait for the bundle and the grid the fixture builds against the test budget, not the 10s
+    // `expect` timeout: dist/handsontable.js is ~6 MB and every worker pulls its own copy, so a cold
+    // or busy server outlasts `toBeVisible()` and flakes the first render (see fixtures/bundle.ts).
+    await awaitBundle(this.page);
+    await this.page.waitForFunction(() => 'hot' in window, undefined, { polling: BUNDLE_POLLING_MS });
     await expect(this.cell(0, 0)).toBeVisible();
   }
 
