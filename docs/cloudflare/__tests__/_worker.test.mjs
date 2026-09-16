@@ -876,13 +876,32 @@ test('answers 200 with a null date when the credentials are unset (rule 18c)', a
   // Until someone sets the secrets in Cloudflare, the endpoint must still
   // answer in the page's one shape - the field just stays hidden. A 500 here
   // would surface as a console error on a page that is otherwise fine.
-  for (const missing of [{ FIGMA_TOKEN: undefined }, { FIGMA_FILE_KEY: undefined }]) {
+  //
+  // `reason` names which half is missing. The two are indistinguishable from
+  // outside otherwise, and that is exactly what an operator needs to know.
+  const cases = [
+    [{ FIGMA_TOKEN: undefined }, 'no-credentials'],
+    [{ FIGMA_FILE_KEY: undefined }, 'no-file-key'],
+  ];
+
+  for (const [missing, reason] of cases) {
     const env = figmaEnv({}, missing);
     const response = await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), env);
 
     assert.equal(response.status, 200);
-    assert.deepEqual(await response.json(), { date: null, source: null });
+    assert.deepEqual(await response.json(), { date: null, source: null, reason });
   }
+});
+
+test('says which OAuth secret is missing rather than going quiet (rule 18c)', async() => {
+  const worker = loadWorker();
+  // A half-configured OAuth setup falls back to the personal token, so this is
+  // only reachable once that token is gone - which is the state staging ends
+  // up in, and the state where a silent null is hardest to explain.
+  const env = figmaEnv({}, { FIGMA_TOKEN: undefined, FIGMA_CLIENT_ID: 'client-id' });
+  const response = await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), env);
+
+  assert.deepEqual(await response.json(), { date: null, source: null, reason: 'oauth-incomplete' });
 });
 
 test('an unset file key short-circuits before any Figma call (rule 18c)', async() => {
@@ -987,7 +1006,13 @@ test('a rejected refresh hides the field instead of erroring (rule 18c)', async(
   const response = await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), env);
 
   assert.equal(response.status, 200);
-  assert.deepEqual(await response.json(), { date: null, source: null });
+  // The status is carried through: 401 is a revoked or mistyped refresh token,
+  // which is the difference between "fix the secret" and "Figma is down".
+  assert.deepEqual(await response.json(), {
+    date: null,
+    source: null,
+    reason: 'oauth-refresh-http-401',
+  });
   assert.equal(env.seen.length, 1, 'a failed refresh must not go on to call the API');
 });
 
@@ -1015,7 +1040,7 @@ test('answers 200 with a null date when Figma fails outright (rule 18c)', async(
   const response = await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), figmaEnv({}));
 
   assert.equal(response.status, 200);
-  assert.deepEqual(await response.json(), { date: null, source: null });
+  assert.deepEqual(await response.json(), { date: null, source: null, reason: 'figma-http-500' });
 });
 
 test('answers 200 with a null date when the Figma call throws (rule 18c)', async() => {
@@ -1028,7 +1053,7 @@ test('answers 200 with a null date when the Figma call throws (rule 18c)', async
   const response = await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), env);
 
   assert.equal(response.status, 200);
-  assert.deepEqual(await response.json(), { date: null, source: null });
+  assert.deepEqual(await response.json(), { date: null, source: null, reason: 'figma-unreachable' });
 });
 
 test('a real date is cacheable for a day (rule 18c)', async() => {

@@ -884,7 +884,8 @@ const DESIGN_SYSTEM_DATE_ERROR_MAX_AGE = 300;
 // 3: staging moved from a personal access token to the OAuth credentials, and
 // the cached date would otherwise have kept answering from the old read, which
 // would have looked identical whether or not the refresh worked.
-const DESIGN_SYSTEM_CACHE_VERSION = 3;
+// 4: `reason` added to failure responses - the cached ones predate the field.
+const DESIGN_SYSTEM_CACHE_VERSION = 4;
 
 /**
  * Wraps a `{ date, source }` pair in the endpoint's only response shape.
@@ -893,7 +894,13 @@ const DESIGN_SYSTEM_CACHE_VERSION = 3;
  * shape to read and never has to branch on a status code. See
  * `readDesignSystemDate()` for why failures are not surfaced as errors.
  *
- * @param {{date: string|null, source: string|null}} body
+ * A failure also carries `reason`, naming the step that failed - the page
+ * ignores it, but without it a hidden field is indistinguishable from a
+ * missing secret, a revoked token and a Figma outage, none of which leave a
+ * trace anywhere else. It names a step and an HTTP status only, never a
+ * credential or any part of one.
+ *
+ * @param {{date: string|null, source: string|null, reason?: string|null}} body
  * @returns {Response}
  */
 function designSystemDateResponse(body) {
@@ -927,7 +934,8 @@ function designSystemDateResponse(body) {
  *
  * @param {object} env The worker environment.
  * @param {Function} fetchImpl
- * @returns {Promise<object|null>} Headers to send, or null if unconfigured.
+ * @returns {Promise<{headers: object|null, reason: string|null}>} Headers to
+ *   send, or a reason naming the step that failed.
  */
 async function figmaAuthHeaders(env, fetchImpl) {
   const clientId = env.FIGMA_CLIENT_ID;
@@ -946,17 +954,30 @@ async function figmaAuthHeaders(env, fetchImpl) {
     });
 
     if (!response.ok) {
-      return null;
+      // A revoked or mistyped refresh token, or a client id/secret that do not
+      // match it. The status is the only detail worth surfacing - the body can
+      // quote the credential back.
+      return { headers: null, reason: `oauth-refresh-http-${response.status}` };
     }
 
     const payload = await response.json();
 
     // The refresh response carries no new refresh token - the same one is
     // reused - so there is nothing to persist here.
-    return payload?.access_token ? { Authorization: `Bearer ${payload.access_token}` } : null;
+    return payload?.access_token
+      ? { headers: { Authorization: `Bearer ${payload.access_token}` }, reason: null }
+      : { headers: null, reason: 'oauth-refresh-no-access-token' };
   }
 
-  return env.FIGMA_TOKEN ? { 'X-Figma-Token': env.FIGMA_TOKEN } : null;
+  if (env.FIGMA_TOKEN) {
+    return { headers: { 'X-Figma-Token': env.FIGMA_TOKEN }, reason: null };
+  }
+
+  // Name which half is missing: a half-configured OAuth setup and no
+  // credentials at all look identical from outside otherwise.
+  const partialOAuth = Boolean(clientId || clientSecret || refreshToken);
+
+  return { headers: null, reason: partialOAuth ? 'oauth-incomplete' : 'no-credentials' };
 }
 
 /**
@@ -999,18 +1020,19 @@ async function readDesignSystemDate(env) {
   const fileKey = env.FIGMA_FILE_KEY;
 
   if (!fileKey) {
-    return { date: null, source: null };
+    return { date: null, source: null, reason: 'no-file-key' };
   }
 
   // Injectable so the tests can exercise every branch without a network call
   // or a global stub; production passes nothing and gets the runtime's fetch.
   const fetchImpl = env.FIGMA_FETCH ?? globalThis.fetch;
-  const headers = await figmaAuthHeaders(env, fetchImpl);
+  const auth = await figmaAuthHeaders(env, fetchImpl);
 
-  if (headers === null) {
-    return { date: null, source: null };
+  if (auth.headers === null) {
+    return { date: null, source: null, reason: auth.reason };
   }
 
+  const headers = auth.headers;
   const file = encodeURIComponent(fileKey);
 
   const versionsResponse = await fetchImpl(`${FIGMA_API_ORIGIN}/v1/files/${file}/versions`, { headers });
@@ -1037,7 +1059,16 @@ async function readDesignSystemDate(env) {
     }
   }
 
-  return { date: null, source: null };
+  // Both reads failed, or both answered without a date. The versions status is
+  // the more useful of the two: 403 means the credential lacks the scope or
+  // the file, 404 means the file key is wrong.
+  return {
+    date: null,
+    source: null,
+    reason: versionsResponse.ok && metaResponse.ok
+      ? 'figma-no-date'
+      : `figma-http-${versionsResponse.status}`,
+  };
 }
 
 async function route(request, env) {
@@ -1622,7 +1653,7 @@ async function route(request, env) {
       try {
         body = await readDesignSystemDate(env);
       } catch {
-        body = { date: null, source: null };
+        body = { date: null, source: null, reason: 'figma-unreachable' };
       }
 
       const response = designSystemDateResponse(body);
