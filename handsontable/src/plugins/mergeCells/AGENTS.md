@@ -284,6 +284,15 @@ cleared and are not. E2E coverage is extensive; the unit-level highlight logic i
 **When changing selection logic, test all combinations of: merged cells, hidden rows/columns, frozen
 rows/columns, and navigable headers.** Run both the `selectAll` and `selectCells` suites.
 
+## `getSourceDataAtCell` takes a visual column
+
+`getSourceDataAtCell(row, column)` takes a **physical row** but a **visual column** — `core.ts`
+documents that split and carries a TODO. `colToProp()` translates the column again. Passing
+`toPhysicalColumn()` into it double-translates and reads a different cell whenever the two orders
+differ (`manualColumnMove`, a hiding map plus a move). `#getStoredValueAt` is the correct pattern.
+`mergeRange()` must match it when it copies the anchor value for `populateFromArray` (DEV-2669).
+Do not "fix" `#getStoredValueAt` back to a physical column.
+
 ## Pagination cannot coexist with this plugin
 
 `registerConflict('pagination', ['mergeCells', …])` — Pagination is the plugin that stays disabled. See
