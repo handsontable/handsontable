@@ -2,7 +2,7 @@
 
 The `multipleSelectionHandles` plugin drives the two round grab-points on a selection's corners on touch devices. Read this before touching `multipleSelectionHandles.ts`.
 
-It is `@private` and has no setting: `isEnabled()` returns `isMobileOrIpadOS()`, which is evaluated when the plugin initializes. That covers a mobile user-agent **and** iPadOS 13+ Safari/Chrome, which report a desktop Macintosh UA (`isMobileBrowser()` is false, `isIpadOS()` is true). Switching a browser into device emulation after the grid was built does nothing — reload, or no handles exist. That single fact is the most common reason a mobile test or manual check "fails" for the wrong reason.
+It is `@private` and has no setting: `isEnabled()` returns `isMobileOrIpadOS()`, which is evaluated when the plugin initializes. That covers a mobile user-agent **and** iPadOS 13+ Safari/Chrome, which report a desktop Macintosh UA (`isMobileBrowser()` is false, `isIpadOS()` is true). Switching a browser into device emulation after the grid was built does not create handles — reload, or no handles exist. `disappear()` / `appear()` must still guard `this.selectionHandles`, because `isIpadOS()` reads `maxTouchPoints` live and used to throw when the object was missing. That constructor-only create is the most common reason a mobile test or manual check "fails" for the wrong reason.
 
 **Do not fold iPadOS into `isMobileBrowser()`.** Walkontable `event.ts` keys listener registration on `isMobileBrowser()` only, so iPad keeps both touch and mouse listeners (DEV-2687). Selection-handle UI uses `isMobileOrIpadOS()`; the two predicates must stay distinct.
 
@@ -19,7 +19,8 @@ On iPad (`isIpadOS()` but not `isMobileBrowser()`):
 - Mobile range handles are shown and the fill square is hidden.
 - Desktop resize handles stay off.
 - `moveCells` edge bands still render when the option is on.
-- A plain finger drag across cells is **native scrolling by design** — `walkontable/src/event.ts` defers the synthesized mousedown to `touchend` so a drag scrolls instead of selecting.
+
+On both, a plain finger drag across cells is **native scrolling by design** — `walkontable/src/event.ts` defers the synthesized mousedown to `touchend` so a drag scrolls instead of selecting.
 
 Both together mean: if a feature should work while dragging on mobile, it has to hook into *this* plugin. DragToScroll does exactly that, by asking `isDraggedBy(touch.identifier)` from its own document-level `touchstart` listener (see `../dragToScroll/AGENTS.md`).
 
