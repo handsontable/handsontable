@@ -3537,8 +3537,9 @@ describe('ColumnSorting', () => {
           ['Apple', 10],
           ['Date', 40],
           ['Cherry', 30],
-          // Middle value: 111 was the extreme and landed last whether or not `Total`
-          // took part in the sort, so the overlap (DEV-2881) was invisible here.
+          // Middle value: 111 was the largest among sortable rows (`Header` holds
+          // 999, but `fixedRowsTop` holds it out) and landed last whether or not
+          // `Total` took part in the sort, so the overlap (DEV-2881) was invisible.
           ['Total', 25],
           [null, null], // spare row
         ],
