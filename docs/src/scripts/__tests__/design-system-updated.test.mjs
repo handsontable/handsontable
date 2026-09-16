@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import vm from 'node:vm';
@@ -169,6 +169,51 @@ test('makes no request when the browser has no fetch', async() => {
   await run([target], null);
 
   assert.equal(target.style.display, 'none');
+});
+
+// ---------------------------------------------------------------------------
+// Where the field lives
+// ---------------------------------------------------------------------------
+
+const GUIDES_ROOT = fileURLToPath(new URL('../../../content/guides/', import.meta.url));
+const MIGRATION_ROOT = `${GUIDES_ROOT}upgrade-and-migration/`;
+const FIELD = 'data-design-system-updated';
+
+test('the design system guide carries the field', () => {
+  const page = readFileSync(`${GUIDES_ROOT}styling/design-system/design-system.md`, 'utf8');
+
+  assert.ok(page.includes(FIELD));
+});
+
+test('the newest changelog-N page carries the field', () => {
+  // Readers reach the changelog through the sidebar and the Introduction page,
+  // and both point at `changelog-<latest major>` - never at the aggregated
+  // `/changelog/` page, which nothing links to. So the field has to live on
+  // whichever changelog-N is newest, and it has to move when a major release
+  // adds a new one. Nothing documents that step, so this test is the reminder:
+  // it fails the moment `changelog-19` exists without the field.
+  const newest = readdirSync(MIGRATION_ROOT, { withFileTypes: true })
+    .filter(entry => entry.isDirectory() && /^changelog-\d+$/.test(entry.name))
+    .map(entry => Number(entry.name.slice('changelog-'.length)))
+    .sort((a, b) => b - a)[0];
+  const page = readFileSync(`${MIGRATION_ROOT}changelog-${newest}/changelog-${newest}.md`, 'utf8');
+
+  assert.ok(page.includes(FIELD), `changelog-${newest}.md is the newest changelog page and must carry the field`);
+});
+
+test('no older changelog page keeps a stale copy of the field', () => {
+  // The date is the design system's *current* state. On an older major's page
+  // it would read as if it belonged to that release, and leaving it behind is
+  // the easy mistake when moving it forward.
+  const pages = readdirSync(MIGRATION_ROOT, { withFileTypes: true })
+    .filter(entry => entry.isDirectory() && /^changelog(-\d+)?$/.test(entry.name))
+    .map(entry => entry.name);
+  const newest = `changelog-${Math.max(...pages.filter(n => n !== 'changelog').map(n => Number(n.slice(10))))}`;
+  const stale = pages
+    .filter(name => name !== newest)
+    .filter(name => readFileSync(`${MIGRATION_ROOT}${name}/${name}.md`, 'utf8').includes(FIELD));
+
+  assert.deepEqual(stale, []);
 });
 
 test('requests the same-origin worker route, never the Figma API directly', async() => {
