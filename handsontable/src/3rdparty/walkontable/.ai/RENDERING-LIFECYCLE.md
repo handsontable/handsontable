@@ -175,6 +175,15 @@ order (order is load-bearing — see CONCERNS "Directional overscan invariants")
    whose cost scales with the host document. Both axes stabilize on ANY scroll-driven draw (per-axis
    gating would let each axis shrink the other's band back and re-oscillate it). Works for non-uniform
    sizes too.
+3. **Row recycling** (`render/rows.ts`, in the render phase; gated by
+   `TableRenderer#isRowRecyclingAllowed()` = scroll-driven AND `allowsRowRecycling()`, which is the
+   stationary-bands predicate without the single-pass term, so merged grids recycle too): before the
+   cell pass, the TR elements are rotated by the band's offset delta, so a row that stays in the band
+   keeps its TR and its TDs. Wherever `allowsRowRecycling()` holds — on every draw, scroll-driven or
+   not, so consecutive draws' stamps stay comparable — `render/cells.ts` hands `shouldPaintCell` the
+   stable identity (the overlay name) next to the full band, and the host picks per cell (a merged block's
+   cell keeps the full one), so a host in `renderMode: 'onChange'` paints only the rows that entered
+   plus the merged blocks. See AGENTS.md, "Row recycling".
 
 Specs: `test/spec/scroll/stationaryColumnsBandOverscan.spec.js`, `stationaryRowsBandOverscan.spec.js`
 (directional extension, fast draws inside the overscan, pixel parity vs `draw(false)`, zero-delta rules,
@@ -310,7 +319,8 @@ All line numbers are in `table.ts` unless noted. "Master only" = guarded by `thi
   its `rowspan` itself never needs growing). Row headers and cells skip the same rows — they share one
   order-view size set per TR. Under the host's `renderMode: 'onChange'` a skipped row keeps the
   `shouldPaintCell` stamp of its own pass, so the next ordinary draw repaints those cells once
-  (self-healing).
+  (self-healing); where the rows recycle, the stable identity carries no band size, so the stamp
+  still matches and nothing repaints.
   Every pass rebuilds both size caches, which is why the Phase F skip below reads
   `rowHeightsChanged` rather than the caches alone.
 

@@ -72,6 +72,19 @@ It also reacts to `afterSetTheme` (a theme changes row heights, and `useTheme()`
 `updateSettings`), `afterLanguageChange` (the pager's labels), `beforeHeightChange` and
 `afterDataProviderFetch`.
 
+## Styling: the page-size select fill lives on the wrapper, not the select
+
+In `../../styles/components/plugins/_pagination.scss`, the page-size control's background, border-radius
+and hover/focus fills sit on `.ht-page-size-section__select-wrapper` (a `<div>`), and the inner `<select>`
+is `background-color: transparent`. **Do not move the fill back onto the `<select>`.** A native `<select>`
+clips its own `background-color` to a radius smaller than its `border-radius`, so its rounded corners stay
+unfilled and the layer behind shows through (DEV-42); a `<div>` fills them correctly. The select fills the
+wrapper exactly (asserted in `tests/e2e/pagination-select-background.spec.ts`), so the wrapper's `:hover` /
+`:focus-within` stand in for the select's `:hover` / `:focus` — needed because `:has()` is banned in core
+CSS. The select's `:disabled` background was dropped: it is safe only because `setPageSizeSectionVisibility`
+in `ui.ts` sets `pageSizeSelect.disabled` *only* while it hides the section (`display: none`), so a disabled
+select is never rendered. That coupling is pinned by `__tests__/ui.unit.js` — keep it.
+
 ## Where to look next
 
 - The plugins it hard-conflicts with: `../nestedRows/AGENTS.md`, `../mergeCells/AGENTS.md`.
