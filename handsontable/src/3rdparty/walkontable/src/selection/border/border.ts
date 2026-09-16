@@ -11,7 +11,7 @@ import {
 } from '../../../../../helpers/dom/element';
 import { stopImmediatePropagation, isRightClick } from '../../../../../helpers/dom/event';
 import { isMobileBrowser, isMobileOrIpadOS } from '../../../../../helpers/browser';
-import { getCornerStyle, standsBelowColumnHeader } from './utils';
+import { getCornerStyle, resolveHeaderLevel, standsBelowColumnHeader } from './utils';
 import { CUSTOM_SELECTION_TYPE } from '../constants';
 import { getSpreaderOffset } from '../../overlay/spreaderOffset';
 
@@ -1525,8 +1525,9 @@ class Border {
     }
 
     if (this.isEntireColumnSelected(fromRow, toRow)) {
-      const rowHeader = fromRow;
-      const modifiedValues = this.getDimensionsFromHeader('columns', fromColumn, toColumn, rowHeader, containerOffset);
+      const modifiedValues = this.getDimensionsFromHeader(
+        'columns', fromColumn, toColumn, originalFromRow, containerOffset
+      );
       let fromTH = null;
 
       if (modifiedValues) {
@@ -1542,8 +1543,9 @@ class Border {
     let height = toOffset.top + geometryReader.outerHeight(toTDEl) - minTop;
 
     if (this.isEntireRowSelected(fromColumn, toColumn)) {
-      const columnHeader = fromColumn;
-      const modifiedValues = this.getDimensionsFromHeader('rows', fromRow, toRow, columnHeader, containerOffset);
+      const modifiedValues = this.getDimensionsFromHeader(
+        'rows', fromRow, toRow, originalFromColumn, containerOffset
+      );
       let fromTH = null;
 
       if (modifiedValues) {
@@ -1845,7 +1847,9 @@ class Border {
    * @param {string} direction `rows` or `columns`, defines if an entire column or row is selected.
    * @param {number} fromIndex Start index of the selection.
    * @param {number} toIndex End index of the selection.
-   * @param {number} headerIndex The header index as negative value.
+   * @param {number} headerIndex The unclamped selection corner on the perpendicular axis. A
+   *   negative value is a header coordinate (`-1` is closest to the cells). A non-negative value is
+   *   a body index and resolves to the closest header.
    * @param {number} containerOffset Offset of the container.
    * @returns {Array|boolean} Returns an array of [headerElement, left, width] or [headerElement, top, height], depending on `direction` (`false` in case of an error getting the headers).
    */
@@ -1883,11 +1887,13 @@ class Border {
     }
 
     if (entireSelectionClassname && rootHotElement.classList.contains(entireSelectionClassname)) {
-      type ColHeadersFn = (...args: unknown[]) => unknown;
-      const columnHeaderLevelCount = (this.wot.getSetting('columnHeaders') as ColHeadersFn[]).length;
+      const headerCount = direction === 'rows'
+        ? wtTable.getRowHeadersCount()
+        : wtTable.getColumnHeadersCount();
+      const headerLevel = resolveHeaderLevel(headerCount, headerIndex);
 
-      startHeader = getHeaderFn?.(fromIndex, columnHeaderLevelCount - headerIndex);
-      endHeader = getHeaderFn?.(toIndex, columnHeaderLevelCount - headerIndex);
+      startHeader = getHeaderFn?.(fromIndex, headerLevel);
+      endHeader = getHeaderFn?.(toIndex, headerLevel);
 
       if (!startHeader || !endHeader) {
         return false;

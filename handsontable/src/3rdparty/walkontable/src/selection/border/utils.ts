@@ -17,6 +17,29 @@ export const getCornerStyle = (wot: WalkontableInstance): CornerDefaultStyle => 
 };
 
 /**
+ * Translates a selection header coordinate into the Walkontable header level
+ * `getRowHeader` and `getColumnHeader` expect.
+ *
+ * Header coordinates are negative: `-1` is the header closest to the cells, `-N` is the farthest.
+ * Levels are the opposite: `0` is the farthest header, `count - 1` is the closest. A non-negative
+ * index is a body coordinate and maps to the closest header (`count - 1`), which is what a
+ * clamped full-row or full-column selection still needs when the original header corner was not
+ * kept.
+ *
+ * @param {number} headerCount How many header levels that axis renders.
+ * @param {number} headerIndex The selection corner on that axis. Negative for a header, otherwise
+ *   a body index.
+ * @returns {number} The level to pass to `getRowHeader` / `getColumnHeader`.
+ */
+export const resolveHeaderLevel = (headerCount: number, headerIndex: number): number => {
+  if (headerIndex < 0) {
+    return headerCount + headerIndex;
+  }
+
+  return headerCount - 1;
+};
+
+/**
  * Whether this cell sits in the first body row of a table that renders a head row, which is where
  * the column header owns the gridline above the cell (DEV-2786) instead of the cell drawing it.
  *

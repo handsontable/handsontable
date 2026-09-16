@@ -288,6 +288,25 @@ does. `getStyleForTD` is therefore declared optional on the `StylesHandler` inte
 and calling it unguarded threw inside the draw and took out 695 of 816 specs. Guard every method you
 add a dependency on, and teach the harness stub the same method.
 
+## `getDimensionsFromHeader` header levels (DEV-1176)
+
+`Border#getDimensionsFromHeader` looks up a header `th` so a full-row or full-column selection can
+measure from the header instead of the first data cell. Custom header padding lives on that `th`
+(or its inner `.relative`); `offset` / `outerHeight` already include it, but only if the lookup
+succeeds.
+
+The header level is **not** `columnHeaders.length - headerIndex`:
+
+- Use the **axis** count: `getRowHeadersCount()` for `'rows'`, `getColumnHeadersCount()` for
+  `'columns'`.
+- Translate the coordinate with `resolveHeaderLevel` in `selection/border/utils.ts`. Header coords
+  are negative (`-1` = closest to the cells). Levels are the opposite (`0` = farthest).
+  `count - headerIndex` with `-1` is `count + 1` (out of range); with a clamped body `0` it is
+  `count` (also out of range). The method then returns `false` and the selection ignores the
+  header box.
+- Pass the **unclamped** corner (`originalFromRow` / `originalFromColumn`). After `appear` clamps
+  a `selectRows` range, `fromColumn` is `0` even though the selection started at `-1`.
+
 ## Border ownership: the header owns its gridline, on both axes
 
 Both axes are settled, and they are now symmetric. On the column axis a row header `th` carries its
