@@ -184,8 +184,9 @@ Four rules come with it.
 
 Pinned by `test/unit/overlay/cloneScrollTargets.unit.ts` (the drift measure and the ledger) and
 `tests/e2e/clone-holder-scroll.spec.ts` (the computed `overflow` per axis, no scrollbar space, the
-tab order, the mirror, a scroll of the clone itself landing on the master, a synthesized touch pan
-over the row headers through CDP, and the frozen column staying in step under a page scroll). The
+tab order, the mirror, a scroll of the clone itself landing on the master, a touch pan over the row
+headers driven through CDP `Input.dispatchTouchEvent` — `Input.synthesizeScrollGesture` moves nothing
+on the CI runners — and the frozen column staying in step under a page scroll). The
 stylesheet half has no unit test that can see it, so the E2E is what stops a future stylesheet edit
 from silently giving the paint back. Window-scroll mode was probed at device scale 0.67–1.5 and CSS
 zoom 0.8–1.33: every clone holder has zero scroll range on both axes there, so a wheel over a frozen

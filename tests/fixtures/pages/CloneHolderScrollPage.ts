@@ -200,6 +200,36 @@ export class CloneHolderScrollPage {
   }
 
   /**
+   * Pans a finger over a holder: a touch press at its center, a run of moves by `dy` pixels (negative
+   * drags the content up, which scrolls down), and a release. Trusted touch events through CDP, the
+   * way `fixtures/pages/mobile/DragToScrollPage.ts` drives them - `Input.synthesizeScrollGesture`
+   * moved nothing on the CI runners.
+   *
+   * @param {HolderName} name Which holder the finger lands on.
+   * @param {number} dy The vertical distance of the pan, in pixels.
+   */
+  async panTouch(name: HolderName, dy: number): Promise<void> {
+    const rect = await this.holderRect(name);
+    const x = Math.round(rect.x + rect.width / 2);
+    const startY = Math.round(rect.y + rect.height / 2);
+    const cdp = await this.page.context().newCDPSession(this.page);
+    const touch = (type: 'touchStart' | 'touchMove' | 'touchEnd', y?: number) => cdp.send('Input.dispatchTouchEvent', {
+      type,
+      touchPoints: y === undefined ? [] : [{ x, y, radiusX: 12, radiusY: 12, force: 1, id: 1 }],
+    });
+    const steps = 12;
+
+    await touch('touchStart', startY);
+
+    for (let step = 1; step <= steps; step++) {
+      await touch('touchMove', Math.round(startY + (dy * step) / steps));
+    }
+
+    await touch('touchEnd');
+    await cdp.detach();
+  }
+
+  /**
    * How far, in pixels, the inline-start clone's rendered row sits from the master's row at the same
    * band position. Zero while the clone follows the master; anything else is a frozen column out of
    * step with its rows. Reads the two `tbody > tr` at the same index, since both tables render the

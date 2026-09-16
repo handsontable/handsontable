@@ -114,19 +114,9 @@ test.describe('Clone holders as composited scroll containers', () => {
       await grid.goto('element');
     });
 
-    test('scrolls the grid when a finger pans over the frozen row headers', async({ page }) => {
-      const rect = await grid.holderRect('inline_start');
-      const client = await page.context().newCDPSession(page);
-
-      // Start the pan well inside the frozen row-header column and move the content up (a negative
-      // Y distance scrolls the page down), the way a thumb dragging up the headers does.
-      await client.send('Input.synthesizeScrollGesture', {
-        x: Math.round(rect.x + rect.width / 2),
-        y: Math.round(rect.y + rect.height / 2),
-        yDistance: -150,
-        gestureSourceType: 'touch',
-        speed: 800,
-      });
+    test('scrolls the grid when a finger pans over the frozen row headers', async() => {
+      // A thumb dragging the frozen row-header column upwards by 150px.
+      await grid.panTouch('inline_start', -150);
 
       // The pan reaches the master through the clone's drift; the clone realigns from the master.
       await expect.poll(async() => (await grid.offsets()).master.top).toBeGreaterThan(0);
