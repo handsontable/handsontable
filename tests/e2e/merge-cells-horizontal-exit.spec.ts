@@ -51,4 +51,49 @@ test.describe('MergeCells: a horizontal move off a merge keeps its top row (DEV-
     // C2 - the merge's top row on the other side.
     expect(await grid.highlight()).toEqual({ row: 1, col: 2 });
   });
+
+  test('the top-row landing changes which cell is selected, not just its row', async({ page, theme, bundle }) => {
+    // A second merge, A3:A5, sits left of B2:B4 and overlaps its rows. Old behavior kept the entered
+    // row (3), landing inside A3:A5 and selecting that whole merge; the top-row snap lands on plain A2.
+    const grid = new MergeCellsHorizontalExitPage(page, theme, bundle);
+
+    await grid.goto('multi');
+
+    await grid.selectCell(4, 1); // B5
+    await grid.pressKeys('ArrowUp'); // into B2:B4 from below
+    await grid.pressKeys('ArrowLeft'); // leave it to the left
+
+    // A2, a single plain cell - not row 3, which would fall inside the A3:A5 merge.
+    expect(await grid.highlight()).toEqual({ row: 1, col: 0 });
+  });
+
+  test('when the merge top row is hidden it lands on the topmost visible row', async({ page, theme, bundle }) => {
+    // B2 (the merge's top row) is hidden. The snap must resolve to the topmost visible row, never the
+    // hidden one - a non-renderable target throws inside the transform.
+    const grid = new MergeCellsHorizontalExitPage(page, theme, bundle);
+
+    await grid.goto('hidden-top');
+
+    await grid.selectCell(4, 1); // B5
+    await grid.pressKeys('ArrowUp'); // into the merge from below
+    await grid.pressKeys('ArrowLeft'); // leave it to the left
+
+    // A3 - the merge's topmost visible row, since B2 is hidden.
+    expect(await grid.highlight()).toEqual({ row: 2, col: 0 });
+  });
+
+  test('the top-row snap holds in an RTL layout', async({ page, theme, bundle }) => {
+    // The snap is direction-agnostic: it re-pins the row, and the column follows the RTL direction
+    // (ArrowLeft steps toward the higher column index).
+    const grid = new MergeCellsHorizontalExitPage(page, theme, bundle);
+
+    await grid.goto('rtl');
+
+    await grid.selectCell(4, 1); // B5
+    await grid.pressKeys('ArrowUp'); // into the merge from below
+    await grid.pressKeys('ArrowLeft'); // leave it horizontally
+
+    // Row 1 (the merge's top row); column 2 is where ArrowLeft lands under RTL.
+    expect(await grid.highlight()).toEqual({ row: 1, col: 2 });
+  });
 });

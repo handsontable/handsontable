@@ -21,11 +21,14 @@ export class MergeCellsHorizontalExitPage {
   }
 
   /**
-   * Opens the fixture and waits for the first cell to render.
+   * Opens the fixture for a given merge scenario and waits for the first cell to render.
+   *
+   * @param {string} scenario One of `default`, `multi`, `hidden-top`, `rtl`.
    */
-  async goto(): Promise<void> {
+  async goto(scenario = 'default'): Promise<void> {
     await this.page.goto(
-      `/tests/fixtures/demo/merge-cells-horizontal-exit.html?theme=${this.theme}&bundle=${this.bundle}`,
+      `/tests/fixtures/demo/merge-cells-horizontal-exit.html?theme=${this.theme}&bundle=${this.bundle}` +
+      `&scenario=${scenario}`,
     );
     await expect(this.cell(0, 0)).toBeVisible();
   }

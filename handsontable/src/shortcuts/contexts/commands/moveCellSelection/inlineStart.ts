@@ -15,20 +15,26 @@ export const command = {
     selection.markSource('keyboard');
     selection.markTabNavigation();
 
-    if (
-      (
-        selectedRanges?.some((range: object) =>
-          selection.isMultiple(range as import('../../../../3rdparty/walkontable/src/cell/range').default)) ||
-        (selectedRanges?.length ?? 0) > 1
-      ) &&
-      !selectedRange?.isHeader() &&
-      hasRenderedCells(hot)
-    ) {
-      selection.transformFocus(tabMoves?.row ?? 0, tabMoves?.col ?? 0);
-    } else {
-      selection.transformStart(tabMoves?.row ?? 0, tabMoves?.col ?? 0);
+    // `markEndSource()` clears the Tab-navigation flag, so run it from a `finally`: a throw during the
+    // transform would otherwise leave the flag set and misclassify the next horizontal arrow move as
+    // Tab (mergeCells reads it). The plain `markSource` pattern does not need this because a stale
+    // source is not user-visible.
+    try {
+      if (
+        (
+          selectedRanges?.some((range: object) =>
+            selection.isMultiple(range as import('../../../../3rdparty/walkontable/src/cell/range').default)) ||
+          (selectedRanges?.length ?? 0) > 1
+        ) &&
+        !selectedRange?.isHeader() &&
+        hasRenderedCells(hot)
+      ) {
+        selection.transformFocus(tabMoves?.row ?? 0, tabMoves?.col ?? 0);
+      } else {
+        selection.transformStart(tabMoves?.row ?? 0, tabMoves?.col ?? 0);
+      }
+    } finally {
+      selection.markEndSource();
     }
-
-    selection.markEndSource();
   },
 };

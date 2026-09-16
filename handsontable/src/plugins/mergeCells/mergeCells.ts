@@ -1959,11 +1959,12 @@ export class MergeCells extends BasePlugin {
       }
     }
 
-    // An arrow-key horizontal move (Left/Right) that lands on the cell next to the merge keeps the
-    // merge's top row, so the same merge is always addressed by its top-left corner whatever row it
-    // was entered on (DEV-102). Excluded, so their entry-row memory survives: a wrap to another row
-    // (no adjacent cell), any vertical or diagonal move, and Tab / Shift+Tab - which cycles through
-    // cells keeping the row it moves along and reaches this hook with the same delta as an arrow.
+    // A non-Tab horizontal move (Left/Right arrow, or Enter when `enterMoves` is configured to step
+    // horizontally) that lands on the cell next to the merge keeps the merge's top row, so the same
+    // merge is always addressed by its top-left corner whatever row it was entered on (DEV-102).
+    // Excluded, so their entry-row memory survives: a wrap to another row (no adjacent cell), any
+    // vertical or diagonal move, and Tab / Shift+Tab - which cycles through cells keeping the row it
+    // moves along and reaches this hook with the same delta as an arrow.
     if (delta.row === 0 && landsOnAdjacentColumn && !this.hot.selection.isDuringTabNavigation()) {
       // The top row can be hidden, so snap to the merge's topmost visible row - assigning a
       // non-renderable row throws "Renderable coords are not visible" from the transform below.

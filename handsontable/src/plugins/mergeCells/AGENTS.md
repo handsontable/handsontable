@@ -288,12 +288,20 @@ rows/columns, and navigable headers.** Run both the `selectAll` and `selectCells
 
 `#onModifyTransformStart` snaps the highlight to the merge's top-left while stashing the entered cell
 in `#lastSelectedFocus`, and restores that focus before the next move — that entry-row/entry-column
-memory is what PR #10732's range navigation relies on. A **Left/Right arrow** move that leaves the
+memory is what PR #10732's range navigation relies on. A **non-Tab horizontal** move that leaves the
 merge onto the adjacent cell is the one exception: it re-snaps the result to the merge's topmost
 **visible** row (`getNearestNotHiddenIndex(mergedParent.row, 1)`, bounded to the span — assigning a
 hidden top row throws `Renderable coords are not visible` from the transform). So a merge is always
 addressed by its top-left corner however it was entered; before this, entering B2:B4 from below (B5
 up) then leaving left landed on A4, from above (B1 down) on A2.
+
+The gate is `delta.row === 0 && landsOnAdjacentColumn && !isDuringTabNavigation()` — "any non-Tab
+horizontal `transformStart`", which is the Left/Right arrows, the editor's arrow-key exit, and a
+horizontally-configured `enterMoves`; it is not literally arrows-only. Home/End do not reach it (they
+`setRangeStart` to a computed cell, never `transformStart`), and Shift+Arrow goes through
+`modifyTransformEnd`. A `transformStart(0, ±1)` called directly by other code (no Tab flag) also gets
+the snap, which is the reasonable default for a discrete horizontal move; only Tab's row-cycling is
+excluded.
 
 Three things this override must **not** catch, each behind a separate condition, each with a red spec
 if you drop it:
