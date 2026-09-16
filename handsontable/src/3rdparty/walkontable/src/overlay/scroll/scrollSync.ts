@@ -196,7 +196,10 @@ export class ScrollSync {
    * The offset last written to each clone holder, per axis. The clone holders are composited scroll
    * containers, so the browser can scroll one on its own; `NativeScrollInput#onCloneScroll` reads this
    * ledger to tell such a scroll from the engine's own writes. Every write to a clone holder in this
-   * class goes through `#writeCloneScrollTop`/`#writeCloneScrollLeft` so the ledger stays complete.
+   * class goes through `#writeCloneScrollTop`/`#writeCloneScrollLeft` so the ledger stays complete,
+   * and this class is the only writer of those offsets in the engine: the one other write,
+   * `#onCloneScroll`'s correction, re-applies the ledger's own value. A new writer elsewhere would
+   * make the ledger lie and its write read as a user scroll - route it through here instead.
    *
    * @type {WeakMap<HTMLElement, CloneScrollTarget>}
    */
@@ -428,8 +431,11 @@ export class ScrollSync {
    * @param {HTMLElement} holder A clone's `.wtHolder` element.
    * @returns {CloneScrollTarget}
    */
-  getCloneScrollTarget(holder: HTMLElement): Readonly<CloneScrollTarget> {
-    return this.#cloneScrollTargets.get(holder) ?? { top: 0, left: 0 };
+  getCloneScrollTarget(holder: HTMLElement): CloneScrollTarget {
+    const target = this.#cloneScrollTargets.get(holder);
+
+    // A copy: the ledger entry is mutated in place on every write.
+    return target ? { top: target.top, left: target.left } : { top: 0, left: 0 };
   }
 
   /**

@@ -1,3 +1,5 @@
+import { clamp } from '../../../../../helpers/number';
+
 /**
  * The scroll offset the engine last wrote to a clone holder, per axis.
  */
@@ -32,18 +34,6 @@ export interface CloneScrollDrift {
   expectedLeft: number;
   driftTop: number;
   driftLeft: number;
-}
-
-/**
- * Clamps a value to `[min, max]`.
- *
- * @param {number} value The value to clamp.
- * @param {number} min The lower bound.
- * @param {number} max The upper bound.
- * @returns {number}
- */
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, value));
 }
 
 /**

@@ -25,12 +25,20 @@ test.describe('Clone holders as composited scroll containers', () => {
       await grid.goto('element');
     });
 
-    test('makes the three scroll-mirrored clone holders scroll containers with no scrollbar of their own', async() => {
+    test('makes each scroll-mirrored clone holder a scroll container on the axis the engine writes, with no scrollbar', async() => {
+      // One axis each: the inline-start clone follows the master's rows, the top and bottom clones
+      // its columns. The cross axis stays clipped so a pan can never take it.
+      const axes = {
+        inline_start: { overflowY: 'auto', overflowX: 'hidden' },
+        top: { overflowY: 'hidden', overflowX: 'auto' },
+        bottom: { overflowY: 'hidden', overflowX: 'auto' },
+      } as const;
+
       for (const name of ['inline_start', 'top', 'bottom'] as const) {
         const box = await grid.holderBox(name);
 
-        expect(box.overflowY, `${name} overflow-y`).toBe('auto');
-        expect(box.overflowX, `${name} overflow-x`).toBe('auto');
+        expect(box.overflowY, `${name} overflow-y`).toBe(axes[name].overflowY);
+        expect(box.overflowX, `${name} overflow-x`).toBe(axes[name].overflowX);
         expect(box.scrollbarWidth, `${name} scrollbar-width`).toBe('none');
         // A visible scrollbar would take space inside the box, and the clone is sized to the pixel
         // against the master: 9px of row-header column gone under a track is exactly the defect.
@@ -44,12 +52,15 @@ test.describe('Clone holders as composited scroll containers', () => {
       expect((await grid.holderBox('master')).overflowY).toBe('auto');
     });
 
-    test('keeps every holder out of the tab order', async() => {
+    test('keeps the scroll containers out of the tab order and leaves the corner alone', async() => {
       // Chrome 127+ makes a scroll container with no focusable content a keyboard tab stop; the
-      // engine stamps `tabindex="-1"` on every holder so the frozen panes never become one.
-      for (const name of ['master', 'inline_start', 'top', 'bottom', 'top_inline_start_corner'] as const) {
-        expect((await grid.holderBox(name)).tabIndex, `${name} tabindex`).toBe(-1);
+      // engine stamps `tabindex="-1"` on the four scroll containers so the frozen panes never
+      // become one. The corner is not a scroll container and carries no tabindex.
+      for (const name of ['master', 'inline_start', 'top', 'bottom'] as const) {
+        expect((await grid.holderBox(name)).tabindex, `${name} tabindex`).toBe('-1');
       }
+
+      expect((await grid.holderBox('top_inline_start_corner')).tabindex).toBeNull();
     });
 
     test('mirrors the master offset onto the clone holders', async() => {
@@ -91,6 +102,43 @@ test.describe('Clone holders as composited scroll containers', () => {
     });
   });
 
+  test.describe('touch', () => {
+    // A synthesized touch pan is the one gesture that reaches a clone holder before any script runs:
+    // the compositor moves it, and only then does the `scroll` event let the engine react. Through
+    // CDP, which every project here has (all six run Chromium) - nothing else emits a trusted touch
+    // scroll (`tests/AGENTS.md`).
+    test.use({ hasTouch: true });
+
+    test.beforeEach(async({ page, theme, bundle }) => {
+      grid = new CloneHolderScrollPage(page, theme, bundle);
+      await grid.goto('element');
+    });
+
+    test('scrolls the grid when a finger pans over the frozen row headers', async({ page }) => {
+      const rect = await grid.holderRect('inline_start');
+      const client = await page.context().newCDPSession(page);
+
+      // Start the pan well inside the frozen row-header column and move the content up (a negative
+      // Y distance scrolls the page down), the way a thumb dragging up the headers does.
+      await client.send('Input.synthesizeScrollGesture', {
+        x: Math.round(rect.x + rect.width / 2),
+        y: Math.round(rect.y + rect.height / 2),
+        yDistance: -150,
+        gestureSourceType: 'touch',
+        speed: 800,
+      });
+
+      // The pan reaches the master through the clone's drift; the clone realigns from the master.
+      await expect.poll(async() => (await grid.offsets()).master.top).toBeGreaterThan(0);
+      await expect.poll(async() => {
+        const { master, inlineStart } = await grid.offsets();
+
+        return inlineStart.top - master.top;
+      }).toBe(0);
+      expect(await grid.rowMisalignment(3)).toBe(0);
+    });
+  });
+
   test.describe('window-scrolled', () => {
     test.beforeEach(async({ page, theme, bundle }) => {
       grid = new CloneHolderScrollPage(page, theme, bundle);
@@ -101,16 +149,18 @@ test.describe('Clone holders as composited scroll containers', () => {
       expect(await grid.windowOwnsVerticalAxis()).toBe(true);
     });
 
-    test('keeps the inline-start clone holder at offset zero under a page scroll', async() => {
-      // In window mode the clone's rows follow the page through the spreader offset, and the holder
-      // must not accumulate the page offset (`ScrollSync#syncScrollPositions`). The holder is still
-      // a scroll container - the rule is not mode-dependent - so this pins that it stays at zero.
+    test('keeps the frozen column in step with its rows under a page scroll', async() => {
+      // In window mode the clone's rows follow the page through the spreader offset, not through
+      // the holder's own offset (`ScrollSync#syncScrollPositions` writes zero there). The holder is
+      // a scroll container all the same - the rule is not mode-dependent - so what has to hold is
+      // the visible contract: the frozen column's rows line up with the master's after the scroll.
       expect((await grid.holderBox('inline_start')).overflowY).toBe('auto');
 
       await grid.scrollWindowTo(400);
 
       await expect.poll(async() => (await grid.offsets()).master.top).toBe(0);
-      await expect.poll(async() => (await grid.offsets()).inlineStart.top).toBe(0);
+      await expect.poll(async() => grid.rowMisalignment(3)).toBe(0);
+      expect(await grid.rowMisalignment(10)).toBe(0);
     });
   });
 });

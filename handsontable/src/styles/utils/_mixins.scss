@@ -75,3 +75,14 @@
   scrollbar-width: auto;
   scrollbar-color: var(--ht-scrollbar-thumb-color) var(--ht-scrollbar-track-color);
 }
+
+// A scroll container that paints no scrollbar and takes no space for one. `scrollbar-width` is the
+// standard property; the `::-webkit-scrollbar` rule covers engines without it, and beats any
+// `::-webkit-scrollbar` sizing of the same specificity declared earlier.
+@mixin scrollbar-hidden {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

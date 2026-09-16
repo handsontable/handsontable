@@ -231,11 +231,8 @@ $all-sheets-visible-items: 8;
         flex: 1 1 auto;
         min-width: 0;
         overflow-x: auto;
-        scrollbar-width: none;
 
-        &::-webkit-scrollbar {
-          display: none;
-        }
+        @include mixins.scrollbar-hidden;
       }
 
       .ht-sheets-bar__tab {

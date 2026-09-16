@@ -14,10 +14,18 @@ export interface HolderBox {
   overflowX: string;
   overflowY: string;
   scrollbarWidth: string;
-  tabIndex: number;
-  /** `offsetWidth - clientWidth`: the space a vertical scrollbar takes inside the box. */
+  /**
+   * The `tabindex` attribute as written, or `null` when the holder carries none. The attribute, not
+   * the `tabIndex` property: a `div` with no attribute reports the property as `-1` too.
+   */
+  tabindex: string | null;
+  /**
+   * `offsetWidth - clientWidth`: the space a vertical scrollbar takes inside the box.
+   */
   scrollbarGutterX: number;
-  /** `offsetHeight - clientHeight`: the space a horizontal scrollbar takes inside the box. */
+  /**
+   * `offsetHeight - clientHeight`: the space a horizontal scrollbar takes inside the box.
+   */
   scrollbarGutterY: number;
 }
 
@@ -95,7 +103,7 @@ export class CloneHolderScrollPage {
         overflowX: style.overflowX,
         overflowY: style.overflowY,
         scrollbarWidth: style.scrollbarWidth,
-        tabIndex: holder.tabIndex,
+        tabindex: holder.getAttribute('tabindex'),
         scrollbarGutterX: holder.offsetWidth - holder.clientWidth,
         scrollbarGutterY: holder.offsetHeight - holder.clientHeight,
       };
@@ -173,6 +181,44 @@ export class CloneHolderScrollPage {
         holder.scrollLeft = target.left;
       }
     }, { selector: CloneHolderScrollPage.holderSelector(name), target: offset });
+  }
+
+  /**
+   * The screen-space bounding box of a holder, for a synthesized gesture aimed at it.
+   *
+   * @param {HolderName} name Which holder.
+   * @returns {Promise<{ x: number, y: number, width: number, height: number }>}
+   */
+  async holderRect(name: HolderName): Promise<{ x: number; y: number; width: number; height: number }> {
+    const rect = await this.grid.locator(CloneHolderScrollPage.holderSelector(name)).boundingBox();
+
+    if (!rect) {
+      throw new Error(`No box for ${name}`);
+    }
+
+    return rect;
+  }
+
+  /**
+   * How far, in pixels, the inline-start clone's rendered row sits from the master's row at the same
+   * band position. Zero while the clone follows the master; anything else is a frozen column out of
+   * step with its rows. Reads the two `tbody > tr` at the same index, since both tables render the
+   * same row band.
+   *
+   * @param {number} bandIndex Which rendered row of the band to compare.
+   * @returns {Promise<number>}
+   */
+  async rowMisalignment(bandIndex: number): Promise<number> {
+    return this.grid.evaluate((root, index) => {
+      const masterRow = root.querySelector<HTMLElement>(`.ht_master tbody > tr:nth-child(${index + 1})`);
+      const cloneRow = root.querySelector<HTMLElement>(`.ht_clone_inline_start tbody > tr:nth-child(${index + 1})`);
+
+      if (!masterRow || !cloneRow) {
+        throw new Error(`No rendered row at band index ${index}`);
+      }
+
+      return cloneRow.getBoundingClientRect().top - masterRow.getBoundingClientRect().top;
+    }, bandIndex);
   }
 
   /**

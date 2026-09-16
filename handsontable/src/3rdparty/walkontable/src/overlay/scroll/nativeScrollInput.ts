@@ -62,6 +62,13 @@ export function createNativeScrollInputDeps(
       overlays.topInlineStartCornerOverlay,
       overlays.bottomInlineStartCornerOverlay,
     ],
+    // The three clones `ScrollSync` mirrors the master's offset onto, and so the three whose
+    // holders are scroll containers (the clone-holder rule in `src/styles/base/_base.scss`).
+    getScrollMirroredOverlays: () => [
+      overlays.topOverlay,
+      overlays.bottomOverlay,
+      overlays.inlineStartOverlay,
+    ],
     getScrollableElement: () => overlays.scrollableElement,
     syncScrollPositions: () => overlays.syncScrollPositions(),
     getCloneScrollTarget: (holder: HTMLElement) => overlays.getCloneScrollTarget(holder),
@@ -174,6 +181,13 @@ export class NativeScrollInput {
         (event: WheelEvent) => this.#onCloneWheel(event, preventWheel),
         wheelEventOptions
       );
+    });
+
+    this.#deps.getScrollMirroredOverlays().forEach((overlay) => {
+      if (!overlay.clone) {
+        return;
+      }
+
       eventManager.addEventListener(
         overlay.clone.wtTable.holder,
         'scroll',
@@ -308,6 +322,11 @@ export class NativeScrollInput {
    * master's in the same frame: the clone still holds last frame's offset while the master already
    * moved on, and a comparison against the master would read that as a user scroll backwards.
    *
+   * The engine's own writes are the common case - three per scroll frame - and they land exactly on
+   * the ledger, so they return before any geometry read. The holder's scroll range is measured only
+   * for an offset that differs, to absorb a write the browser clamped. The corrective write below
+   * re-applies the ledger's own value, so the ledger stays true through it.
+   *
    * @param {Event} event The scroll event object.
    */
   #onCloneScroll(event: Event) {
@@ -317,24 +336,26 @@ export class NativeScrollInput {
       return;
     }
 
-    const { geometryReader } = this.#deps;
-    const drift = measureCloneScrollDrift(
-      { top: holder.scrollTop, left: holder.scrollLeft },
-      { maxTop: geometryReader.getMaximumScrollTop(holder), maxLeft: geometryReader.getMaximumScrollLeft(holder) },
-      this.#deps.getCloneScrollTarget(holder),
-    );
+    const current = { top: holder.scrollTop, left: holder.scrollLeft };
+    const target = this.#deps.getCloneScrollTarget(holder);
 
-    if (drift.driftTop === 0 && drift.driftLeft === 0) {
+    if (current.top === target.top && current.left === target.left) {
       return;
     }
 
-    holder.scrollTop = drift.expectedTop;
-    holder.scrollLeft = drift.expectedLeft;
+    const { geometryReader } = this.#deps;
+    const drift = measureCloneScrollDrift(
+      current,
+      { maxTop: geometryReader.getMaximumScrollTop(holder), maxLeft: geometryReader.getMaximumScrollLeft(holder) },
+      target,
+    );
 
     if (drift.driftTop !== 0) {
+      holder.scrollTop = drift.expectedTop;
       this.#deps.scrollVertically(drift.driftTop);
     }
     if (drift.driftLeft !== 0) {
+      holder.scrollLeft = drift.expectedLeft;
       this.#deps.scrollHorizontally(drift.driftLeft);
     }
   }

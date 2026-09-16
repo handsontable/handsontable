@@ -846,21 +846,30 @@
   // pan over a frozen header, a wheel the engine did not cancel - is caught by
   // `NativeScrollInput#onCloneScroll`, which hands the delta to the master and puts the clone back
   // where the engine left it. The corner clones are left alone: nothing ever scrolls them.
+  // Each clone is a scroll container on the ONE axis the engine writes, and stays clipped on the
+  // other: the cross axis has no range today, and a rule that opened it would hand it to a pan the
+  // moment rounding gave it a pixel. `src/3rdparty/walkontable/css/walkontable.scss` carries the
+  // same rule for the engine's own test runner - keep the two in sync.
   .ht_clone_inline_start .wtHolder,
   .ht_clone_top .wtHolder,
   .ht_clone_bottom .wtHolder {
-    overflow: auto;
-    scrollbar-width: none;
     // A scroll container gets scroll anchoring, and a full draw rewrites the rows inside this box;
     // an anchoring nudge here is a frozen header out of step with the master. The same opt-out as
     // `.htScrollbarClearanceFillers` below.
     overflow-anchor: none;
 
-    // Beats the `.handsontable .wtHolder::-webkit-scrollbar` sizing above at equal specificity by
-    // source order, and covers engines without `scrollbar-width`.
-    &::-webkit-scrollbar {
-      display: none;
-    }
+    @include mixins.scrollbar-hidden;
+  }
+
+  .ht_clone_inline_start .wtHolder {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .ht_clone_top .wtHolder,
+  .ht_clone_bottom .wtHolder {
+    overflow-x: auto;
+    overflow-y: hidden;
   }
 
   // Floating ("overlay") scrollbars (#10370): the frozen overlays stop short of the strip the
