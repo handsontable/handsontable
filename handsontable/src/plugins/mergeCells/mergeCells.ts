@@ -740,8 +740,10 @@ export class MergeCells extends BasePlugin {
         }
 
         if (i === 0 && j === 0) {
+          // Same contract as `#getStoredValueAt`: physical row, visual column.
+          // `getSourceDataAtCell` runs `colToProp()`, which translates the column itself.
           clearedValue = this.hot.getSourceDataAtCell(this.hot.toPhysicalRow(mergeParent.row),
-            this.hot.toPhysicalColumn(mergeParent.col));
+            mergeParent.col);
 
         } else {
           this.hot.setCellMeta(mergeParent.row + i, mergeParent.col + j, 'hidden', true);
