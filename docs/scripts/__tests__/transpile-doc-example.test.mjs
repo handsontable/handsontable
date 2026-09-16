@@ -47,7 +47,7 @@ test('preserves blank lines that sit in code', async () => {
 
 test('is idempotent -- re-running on the generated output changes nothing', async () => {
   const output = await transpileDocExample(REACT_SOURCE, 'example.tsx');
-  const again = await transpileDocExample(output, 'example.jsx');
+  const again = await transpileDocExample(output, 'example.tsx');
 
   assert.equal(again, output);
 });
@@ -81,4 +81,41 @@ export default ExampleComponent;
   assert.match(output, /`line one\n\nline three`/);
   // The blank line between the two spans survives as valid JSX, not a stray comment.
   assert.match(output, /<span>first<\/span>\n\n\s*<span>second<\/span>/);
+});
+
+test('does not corrupt a blank line inside a raw block comment', async () => {
+  const source = `/*
+ first line of comment
+
+ last line after a blank
+*/
+const value = 1;
+
+export default value;
+`;
+  const output = await transpileDocExample(source, 'example.ts');
+
+  // A sentinel inside the comment would close it early and make Prettier throw.
+  assert.doesNotMatch(output, /HOT_BLANK/);
+  assert.match(output, /first line of comment\n\n\s*last line after a blank/);
+});
+
+test('restores a code blank line inside a JSX expression container callback', async () => {
+  const source = `const ExampleComponent = () => (
+  <ul>
+    {['a', 'b'].map((item) => {
+      const label = item.toUpperCase();
+
+      return <li key={item}>{label}</li>;
+    })}
+  </ul>
+);
+
+export default ExampleComponent;
+`;
+  const output = await transpileDocExample(source, 'example.tsx');
+
+  assert.doesNotMatch(output, /HOT_BLANK/);
+  // The blank line between the two statements in the callback body is kept.
+  assert.match(output, /const label = item\.toUpperCase\(\);\n\n\s*return <li/);
 });
