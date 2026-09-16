@@ -14,7 +14,9 @@ const PASSWORD_FIXTURE = 'filters-password-value-list.html';
  *
  * Source values have unique lengths so each default hash is distinct:
  * `ab` → `**`, `xyz` → `***`, `secret` → `******`. Unify sorts them as
- * `ab`, `secret`, `xyz`, so the listed labels are `**`, `******`, `***`.
+ * `''`, `ab`, `secret`, `xyz`, so the listed labels are `(Blank cells)`,
+ * `**`, `******`, `***`. The empty row must stay `(Blank cells)` — the
+ * password formatter would otherwise hash that label.
  */
 test.describe('Filters — password Filter-by-value display', () => {
   test('lists hashed password values, not the source plaintext', async({ page, theme, bundle }) => {
@@ -24,6 +26,7 @@ test.describe('Filters — password Filter-by-value display', () => {
     await grid.openMenu('Password');
 
     expect(await grid.listedValues()).toEqual([
+      { checked: true, label: '(Blank cells)' },
       { checked: true, label: '**' },
       { checked: true, label: '******' },
       { checked: true, label: '***' },
@@ -38,8 +41,10 @@ test.describe('Filters — password Filter-by-value display', () => {
       await grid.openMenu('PIN');
 
       // unifyColumnValues uniques on source values, then hashes each one, so
-      // three distinct PINs become three identical `####` rows.
+      // three distinct PINs become three identical `####` rows. The empty
+      // cell stays `(Blank cells)` instead of a fourth `####`.
       expect(await grid.listedValues()).toEqual([
+        { checked: true, label: '(Blank cells)' },
         { checked: true, label: '####' },
         { checked: true, label: '####' },
         { checked: true, label: '####' },
@@ -56,6 +61,7 @@ test.describe('Filters — password Filter-by-value display', () => {
       { checked: true, label: '$10.00' },
       { checked: true, label: '$20.00' },
       { checked: true, label: '$30.00' },
+      { checked: true, label: '$40.00' },
     ]);
   });
 
@@ -81,7 +87,7 @@ test.describe('Filters — password Filter-by-value display', () => {
     await grid.uncheckValue('**');
     await grid.confirmMenu();
 
-    expect(await grid.columnValues(0)).toEqual(['***', '******']);
-    expect(await grid.visibleRowCount()).toBe(2);
+    expect(await grid.columnValues(0)).toEqual(['***', '******', '']);
+    expect(await grid.visibleRowCount()).toBe(3);
   });
 });
