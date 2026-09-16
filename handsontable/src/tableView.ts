@@ -1138,8 +1138,9 @@ class TableView {
           !this.hot.hasHook('modifyColWidth');
       },
       shouldPaintCell: (
-        renderedRowIndex: number, renderedColumnIndex: number, TD: HTMLTableCellElement, band: string
-      ) => this.#cellPainter.shouldPaint(renderedRowIndex, renderedColumnIndex, TD, band),
+        renderedRowIndex: number, renderedColumnIndex: number, TD: HTMLTableCellElement, band: string,
+        stableBand: string | null,
+      ) => this.#cellPainter.shouldPaint(renderedRowIndex, renderedColumnIndex, TD, band, stableBand),
       cellRenderer: (renderedRowIndex: number, renderedColumnIndex: number, TD: HTMLTableCellElement) => {
         this.#cellPainter.paint(renderedRowIndex, renderedColumnIndex, TD);
       },

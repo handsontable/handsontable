@@ -20,6 +20,7 @@ import { createMergeCellRenderer } from './renderer';
 import { sumCellsHeights, toMergeAreaKey } from './utils';
 import { toMergeAreaRange, type MergeAreaGeometry } from '../../utils/mergeAreas';
 import type { CellChange } from '../../settings';
+import { canAccessCellContent } from '../../shortcuts/guards';
 
 Hooks.getSingleton().register('beforeMergeCells');
 Hooks.getSingleton().register('afterMergeCells');
@@ -739,8 +740,10 @@ export class MergeCells extends BasePlugin {
         }
 
         if (i === 0 && j === 0) {
+          // Same contract as `#getStoredValueAt`: physical row, visual column.
+          // `getSourceDataAtCell` runs `colToProp()`, which translates the column itself.
           clearedValue = this.hot.getSourceDataAtCell(this.hot.toPhysicalRow(mergeParent.row),
-            this.hot.toPhysicalColumn(mergeParent.col));
+            mergeParent.col);
 
         } else {
           this.hot.setCellMeta(mergeParent.row + i, mergeParent.col + j, 'hidden', true);
@@ -1825,7 +1828,9 @@ export class MergeCells extends BasePlugin {
           this.hot.render();
         }
       },
-      runOnlyIf: (event?: KeyboardEvent) => !event?.altKey, // right ALT in some systems triggers ALT+CTRL
+      // Un-merging clears every cell but the top-left one, so the chord takes the shared cell-content
+      // guard. The right ALT on some systems triggers ALT+CTRL, which is why the modifier is tested.
+      runOnlyIf: (event?: KeyboardEvent) => !event?.altKey && canAccessCellContent(this.hot),
       group: SHORTCUTS_GROUP,
     });
   }
@@ -3093,7 +3098,10 @@ export class MergeCells extends BasePlugin {
   /**
    * Opts the table out of single-pass rendering while merged cells are present. A virtualized merged
    * cell's height depends on which rows are in the viewport — the very thing the predicted layout is
-   * trying to compute — so merge tables keep the legacy measure-then-render path.
+   * trying to compute — so merge tables keep the legacy measure-then-render path. The opt-out is about
+   * the layout model only: the engine still recycles its rows on a vertical scroll and offers the
+   * cells outside merged blocks a stable paint identity (`Viewport#allowsRowRecycling`); the blocks'
+   * own cells stay viewport-bound through the `spanned` meta flag.
    *
    * @returns {boolean}
    */

@@ -139,6 +139,42 @@ class Renderer {
   }
 
   /**
+   * Sets whether this draw was entered as a scroll draw.
+   *
+   * @param {boolean} scrollDriven Whether the draw is scroll-driven.
+   * @returns {Renderer}
+   */
+  setScrollDrivenDraw(scrollDriven: boolean) {
+    this.renderer.setScrollDrivenDraw(scrollDriven);
+
+    return this;
+  }
+
+  /**
+   * Records the host's render epoch this draw started from (see `TableRenderer#renderEpoch`).
+   *
+   * @param {number} epoch The `renderEpoch` setting at draw start.
+   * @returns {Renderer}
+   */
+  setRenderEpoch(epoch: number) {
+    this.renderer.setRenderEpoch(epoch);
+
+    return this;
+  }
+
+  /**
+   * Sets whether the viewport allows row recycling on this draw.
+   *
+   * @param {boolean} allowed Whether row recycling is allowed.
+   * @returns {Renderer}
+   */
+  setRowRecyclingAllowed(allowed: boolean) {
+    this.renderer.setRowRecyclingAllowed(allowed);
+
+    return this;
+  }
+
+  /**
    * Renders the table.
    */
   render() {

@@ -388,3 +388,71 @@ test('leaves no focus highlight in the value list after the menu is reopened', a
   // The list is not the focused component any more, so it must show no focus ring.
   await expect(grid.focusedListItems()).toHaveCount(0);
 });
+
+/**
+ * Regression coverage for DEV-105.
+ *
+ * Two columns are filtered by value, a row is added, and the new row is edited in the FIRST
+ * column. That edit must leave the SECOND column's filter alone. Before the fix the value list
+ * rewrote the conditions from whatever the grid happened to show: the edited column lost every
+ * value that another column's filter had hidden, gained the typed one, and the second column's
+ * unchecked value vanished from its list — so the user's choice was silently dropped.
+ */
+test.describe('Filters — a row added to a grid filtered on two columns', () => {
+  test('editing the new row in one column leaves the other column\'s filter intact',
+    async({ page, theme, bundle }) => {
+      const grid = new FiltersValueListPage(page, theme, bundle);
+
+      await grid.goto();
+
+      // Name is filtered first, so the Color list is scoped by it: Bob and Dave are Green,
+      // Charlie is Blue, Eve is Red.
+      await grid.openMenu('Name');
+      await grid.uncheckValue('Alice');
+      await grid.confirmMenu();
+
+      await grid.openMenu('Color');
+      await grid.uncheckValue('Green');
+      await grid.confirmMenu();
+
+      expect(await grid.columnValues(0)).toEqual(['Charlie', 'Eve']);
+
+      // Bob and Dave now pass the Name filter but not the Color one, so they are absent from
+      // every list on screen while still belonging to the Name condition. That is what the
+      // edit below used to wipe out.
+      const conditionsBeforeEdit = await grid.exportedConditions();
+
+      expect(conditionsBeforeEdit).toEqual([
+        {
+          column: 0,
+          operation: 'conjunction',
+          conditions: [{ name: 'by_value', args: [['Bob', 'Charlie', 'Dave', 'Eve']] }],
+        },
+        {
+          column: 1,
+          operation: 'conjunction',
+          conditions: [{ name: 'by_value', args: [['Blue', 'Red']] }],
+        },
+      ]);
+
+      const newRow = await grid.insertRowBelowLast();
+
+      // `Zoe` sorts after every existing name, so a list rebuilt from the wrong source cannot
+      // land on the same array by chance.
+      await grid.typeIntoCell(newRow, 0, 'Zoe');
+
+      // The Color filter was never touched, so its list must still offer Green - unchecked.
+      await grid.openMenu('Color');
+
+      expect(await grid.listedValues()).toEqual([
+        { checked: true, label: 'Blue' },
+        { checked: false, label: 'Green' },
+        { checked: true, label: 'Red' },
+      ]);
+
+      await grid.escapeMenu();
+
+      // Neither column's condition may move: not the edited one, and not the untouched one.
+      expect(await grid.exportedConditions()).toEqual(conditionsBeforeEdit);
+    });
+});

@@ -77,6 +77,14 @@ It also reacts to `afterSetTheme` (a theme changes row heights, and `useTheme()`
 `updateSettings`), `afterLanguageChange` (the pager's labels), `beforeHeightChange` and
 `afterDataProviderFetch`.
 
+## `beforePaste` keeps the clipboard prefix when it overflows the page
+
+`#onBeforePaste` truncates `pastedData` to the remaining rows on the current page
+(`pastedData.length = remainingRowCount`). **Do not `splice(0, n)`.** That removes the head
+and keeps the last *n* rows, so a mid-page paste of a long clipboard writes the suffix
+(DEV-1119 / private #2861). The unique-value case in `__tests__/plugins/copyPaste.spec.js`
+is the regression pin; the older case used identical letters and could not catch it.
+
 ## Styling: the page-size select fill lives on the wrapper, not the select
 
 In `../../styles/components/plugins/_pagination.scss`, the page-size control's background, border-radius

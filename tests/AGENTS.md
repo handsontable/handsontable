@@ -190,6 +190,19 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   nothing asked the master where its band was. Reference:
   `e2e/iframe-cross-realm-scroll.spec.ts` (`masterRowBand()`).
 
+## Two clicks on the same cell are a double click
+
+`locator.click()` twice at the same point, with only `page.evaluate` calls in between, lands inside the
+browser's double-click interval and the grid opens the editor. The failure surfaces far away: the shortcut
+manager is on the `editor` context, so the `Ctrl`+`A` that follows selects nothing, and the test dies
+several steps later on a context-menu item that is missing because the selection is wrong. Nothing in the
+message mentions an editor.
+
+A page-object helper that starts with a click therefore takes the cell as a parameter
+(`EmptyDataStateShortcutsPage.selectAllWithKeyboard(row, col)`), so a test that calls it twice aims at a
+different cell the second time. Selecting through `hot.selectCell()` avoids it entirely where the spec does
+not need a real press.
+
 ## Touch and mobile specs
 
 - Page objects for mobile specs live in `fixtures/pages/mobile/` (as walkontable's do in
