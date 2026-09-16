@@ -387,4 +387,26 @@ describe('UndoRedo -> RemoveRow action with a function dataSchema', () => {
       expect(hot.getData()).toEqual([['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']]);
     });
   });
+
+  describe('a removal that removes nothing (#280 / DEV-45)', () => {
+    it('should not stack an undo action for a remove_row that took no rows', () => {
+      hot = new Handsontable(container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [[5]],
+        undo: true,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+
+      hot.alter('remove_row'); // removes the only row
+      hot.alter('remove_row'); // no-op: the grid is already empty
+
+      // The empty grid removal changed nothing, so only the first removal is on the stack.
+      expect(plugin.doneActions.length).toBe(1);
+
+      // A single undo restores the last real state - it is not spent on a dead no-op action.
+      plugin.undo();
+
+      expect(hot.getData()).toEqual([[5]]);
+    });
+  });
 });
