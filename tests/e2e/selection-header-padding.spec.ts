@@ -21,6 +21,13 @@ test.describe('Selection highlight with custom header padding', () => {
     await grid.goto();
   });
 
+  test('finds the row header when a full row is selected on padded headers', async () => {
+    await grid.selectRow('padded', 0);
+
+    // The old level formula returned false here, so this is the spec that fails without the fix.
+    await expect.poll(() => grid.rowHeaderDimensions('padded', 0)).toEqual({ found: true, tagName: 'TH' });
+  });
+
   test('aligns the full-row highlight with a padded row header', async () => {
     await grid.selectRow('padded', 0);
 

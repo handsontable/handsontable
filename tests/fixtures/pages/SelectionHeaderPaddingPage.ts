@@ -63,6 +63,63 @@ export class SelectionHeaderPaddingPage {
   }
 
   /**
+   * Whether `getDimensionsFromHeader` found a header TH for a full-row selection.
+   *
+   * The old level formula (`columnHeaders.length - headerIndex`) is out of range for `-1`, so this
+   * used to return `{ found: false }` even when the grid had row headers (DEV-1176). The method
+   * name is kept in the minified bundle (the two `this.getDimensionsFromHeader` call sites), so
+   * this works on every theme × bundle leg.
+   *
+   * @param {string} name The grid's key in `window.grids`.
+   * @param {number} row The visual row index.
+   * @returns {Promise<{ found: boolean, tagName: string | null }>}
+   */
+  async rowHeaderDimensions(name: string, row: number): Promise<{ found: boolean; tagName: string | null }> {
+    return this.page.evaluate(
+      ([gridName, r]) => {
+        const hot = (window as unknown as {
+          grids: Record<string, {
+            view: {
+              _wt: {
+                selectionManager: {
+                  getFocusSelection: () => unknown;
+                  getBorderInstance: (selection: unknown) => {
+                    getDimensionsFromHeader: (
+                      direction: string,
+                      fromIndex: number,
+                      toIndex: number,
+                      headerIndex: number,
+                      containerOffset: { top: number; left: number }
+                    ) => false | [HTMLElement, number, number];
+                  } | null;
+                };
+              };
+            };
+          }>
+        }).grids[gridName as string];
+        const wt = hot.view._wt;
+        const focus = wt.selectionManager.getFocusSelection();
+        const border = wt.selectionManager.getBorderInstance(focus);
+
+        if (!focus || !border) {
+          throw new Error('The focus selection has no border');
+        }
+
+        const result = border.getDimensionsFromHeader(
+          'rows', r as number, r as number, -1, { top: 0, left: 0 }
+        );
+
+        if (result === false) {
+          return { found: false, tagName: null };
+        }
+
+        return { found: true, tagName: result[0].tagName };
+      },
+      [name, row]
+    );
+  }
+
+  /**
    * How far the selection's top edge sits from the selected row header's top boundary, in CSS
    * pixels. `0` means the edge is drawn just inside the header (first body row under a column
    * header). `-1` means it straddles the gridline shared with the row above.
