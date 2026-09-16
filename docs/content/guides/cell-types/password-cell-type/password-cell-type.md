@@ -13,6 +13,7 @@ vue:
   metaTitle: Password cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
+menuTag: updated
 ---
 Use the password cell type to mask confidential values by rendering entered characters as symbols.
 
