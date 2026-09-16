@@ -1031,7 +1031,7 @@ test('answers 200 with a null date when the Figma call throws (rule 18c)', async
   assert.deepEqual(await response.json(), { date: null, source: null });
 });
 
-test('the date endpoint is cacheable for a day (rule 18c)', async() => {
+test('a real date is cacheable for a day (rule 18c)', async() => {
   const worker = loadWorker();
   const env = figmaEnv({
     '/versions': { versions: [{ id: '1', created_at: '2026-09-01T09:00:00Z', label: 'v2.1' }] },
@@ -1039,6 +1039,22 @@ test('the date endpoint is cacheable for a day (rule 18c)', async() => {
   const response = await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), env);
 
   assert.equal(response.headers.get('cache-control'), 'public, max-age=86400');
+});
+
+test('a null date is cached for minutes, not a day (rule 18c)', async() => {
+  const worker = loadWorker();
+
+  // Regression for a real incident on staging: the `null` cached before the
+  // Figma secrets were set outlived them, so the endpoint returned the real
+  // date to a cache-busted request while the page still read a stale `null`.
+  // Caching a failure for a day turns any blip - unset secret, expired token,
+  // rate limit, outage - into 24 hours of blank field after it is fixed.
+  for (const env of [figmaEnv({}), figmaEnv({}, { FIGMA_FILE_KEY: undefined })]) {
+    const response = await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), env);
+
+    assert.equal((await response.json()).date, null);
+    assert.equal(response.headers.get('cache-control'), 'public, max-age=300');
+  }
 });
 
 test('non-GET requests to the date endpoint fall through to assets (rule 18c)', async() => {

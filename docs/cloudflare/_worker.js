@@ -863,6 +863,14 @@ const DESIGN_SYSTEM_DATE_PATH = '/docs/api/design-system-updated.json';
 // stale by more than one, at a cost of one Figma call per edge location.
 const DESIGN_SYSTEM_DATE_MAX_AGE = 86400;
 
+// A *failure* must never be cached for a day. Whatever caused it - an unset
+// secret, an expired token, a rate limit, a Figma outage - the fix would then
+// take up to 24 hours to show, long after someone believed they had fixed it.
+// This is not hypothetical: on staging the `null` cached before the secrets
+// were set outlived them, so the endpoint answered the real date to a
+// cache-busted request while the page still read a stale `null`.
+const DESIGN_SYSTEM_DATE_ERROR_MAX_AGE = 300;
+
 /**
  * Wraps a `{ date, source }` pair in the endpoint's only response shape.
  *
@@ -874,11 +882,13 @@ const DESIGN_SYSTEM_DATE_MAX_AGE = 86400;
  * @returns {Response}
  */
 function designSystemDateResponse(body) {
+  const maxAge = body.date === null ? DESIGN_SYSTEM_DATE_ERROR_MAX_AGE : DESIGN_SYSTEM_DATE_MAX_AGE;
+
   return new Response(JSON.stringify(body), {
     status: 200,
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
-      'Cache-Control': `public, max-age=${DESIGN_SYSTEM_DATE_MAX_AGE}`,
+      'Cache-Control': `public, max-age=${maxAge}`,
     },
   });
 }
