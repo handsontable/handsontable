@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the `Ctrl`/`Cmd`+`Enter` shortcut, so confirming an edit now fills every selected cell across all selection layers, not only the layer that holds the focus.",
+  "type": "fixed",
+  "issueOrPR": 13524,
+  "breaking": false,
+  "framework": "none"
+}
