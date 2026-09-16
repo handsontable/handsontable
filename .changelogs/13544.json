@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed mouse selection of a cell larger than the viewport leaving the start of the cell clipped.",
+  "type": "fixed",
+  "issueOrPR": 13544,
+  "breaking": false,
+  "framework": "none"
+}
