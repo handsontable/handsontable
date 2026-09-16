@@ -873,7 +873,7 @@ test('sends the Figma token as a header and never in the URL (rule 18c)', async(
 test('answers 200 with a null date when the credentials are unset (rule 18c)', async() => {
   const worker = loadWorker();
 
-  // Until someone sets the two secrets in Cloudflare, the endpoint must still
+  // Until someone sets the secrets in Cloudflare, the endpoint must still
   // answer in the page's one shape - the field just stays hidden. A 500 here
   // would surface as a console error on a page that is otherwise fine.
   for (const missing of [{ FIGMA_TOKEN: undefined }, { FIGMA_FILE_KEY: undefined }]) {
@@ -882,7 +882,129 @@ test('answers 200 with a null date when the credentials are unset (rule 18c)', a
 
     assert.equal(response.status, 200);
     assert.deepEqual(await response.json(), { date: null, source: null });
-    assert.equal(env.calls.length, 0, 'no point calling Figma without both credentials');
+  }
+});
+
+test('an unset file key short-circuits before any Figma call (rule 18c)', async() => {
+  const worker = loadWorker();
+  const env = figmaEnv({}, { FIGMA_FILE_KEY: undefined });
+
+  await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), env);
+
+  assert.equal(env.calls.length, 0, 'no point calling Figma without a file key');
+});
+
+// ---------------------------------------------------------------------------
+// Rule 18c: OAuth credentials
+//
+// A personal access token is capped at 90 days by Figma, and a plan access
+// token needs an Organization/Enterprise plan this account does not have. So
+// OAuth is the only credential that keeps the date alive without a diarised
+// rotation, and it must be preferred whenever it is configured.
+// ---------------------------------------------------------------------------
+
+const OAUTH_ENV = {
+  FIGMA_CLIENT_ID: 'client-id',
+  FIGMA_CLIENT_SECRET: 'client-secret',
+  FIGMA_REFRESH_TOKEN: 'refresh-token',
+};
+
+/**
+ * Records each Figma request with its init, so the auth headers can be
+ * asserted. Answers the OAuth refresh with an access token, and the versions
+ * endpoint with one named version.
+ *
+ * @param {object} [overrides] Extra env fields.
+ * @param {boolean} [refreshOk] Whether the refresh call succeeds.
+ * @returns {object}
+ */
+function oauthEnv(overrides = {}, refreshOk = true) {
+  const seen = [];
+
+  return {
+    ASSETS: { fetch: async() => new Response('static-asset-passthrough') },
+    FIGMA_FILE_KEY: 'test-file-key',
+    ...OAUTH_ENV,
+    seen,
+    FIGMA_FETCH: async(url, init) => {
+      seen.push({ url, init });
+
+      if (url.includes('/oauth/refresh')) {
+        return new Response(
+          JSON.stringify({ access_token: 'fresh-access-token', token_type: 'bearer', expires_in: 7776000 }),
+          { status: refreshOk ? 200 : 401 },
+        );
+      }
+
+      return new Response(
+        JSON.stringify({ versions: [{ id: '1', created_at: '2026-09-01T09:00:00Z', label: 'v2.1' }] }),
+        { status: 200 },
+      );
+    },
+    ...overrides,
+  };
+}
+
+test('exchanges the refresh token and calls Figma as Bearer (rule 18c)', async() => {
+  const worker = loadWorker();
+  const env = oauthEnv();
+  const response = await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), env);
+
+  assert.deepEqual(await response.json(), { date: '2026-09-01T09:00:00Z', source: 'named-version' });
+
+  const [refresh, versions] = env.seen;
+
+  assert.ok(refresh.url.endsWith('/v1/oauth/refresh'), 'the refresh must come first');
+  assert.equal(refresh.init.method, 'POST');
+  assert.equal(refresh.init.headers['Content-Type'], 'application/x-www-form-urlencoded');
+  // Figma authenticates the refresh with HTTP Basic, not body parameters.
+  assert.equal(refresh.init.headers.Authorization, `Basic ${btoa('client-id:client-secret')}`);
+  assert.equal(refresh.init.body, 'refresh_token=refresh-token');
+
+  // An OAuth token is a Bearer token; sending it as X-Figma-Token 401s.
+  assert.equal(versions.init.headers.Authorization, 'Bearer fresh-access-token');
+  assert.equal(versions.init.headers['X-Figma-Token'], undefined);
+});
+
+test('OAuth wins over a personal access token when both are set (rule 18c)', async() => {
+  const worker = loadWorker();
+  // The personal token is the stopgap. If someone leaves it behind after
+  // setting OAuth up, the 90-day cap must not quietly come back.
+  const env = oauthEnv({ FIGMA_TOKEN: 'stale-personal-token' });
+
+  await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), env);
+
+  const versions = env.seen.find(call => call.url.includes('/versions'));
+
+  assert.equal(versions.init.headers.Authorization, 'Bearer fresh-access-token');
+  assert.equal(versions.init.headers['X-Figma-Token'], undefined);
+});
+
+test('a rejected refresh hides the field instead of erroring (rule 18c)', async() => {
+  const worker = loadWorker();
+  // This is what an expired or revoked refresh token looks like.
+  const env = oauthEnv({}, false);
+  const response = await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), env);
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { date: null, source: null });
+  assert.equal(env.seen.length, 1, 'a failed refresh must not go on to call the API');
+});
+
+test('a partial OAuth setup falls back to the personal token (rule 18c)', async() => {
+  const worker = loadWorker();
+
+  // Half-configured OAuth must not disable a working personal token - that
+  // would take the date down while someone is midway through the setup.
+  for (const partial of ['FIGMA_CLIENT_ID', 'FIGMA_CLIENT_SECRET', 'FIGMA_REFRESH_TOKEN']) {
+    const env = oauthEnv({ [partial]: undefined, FIGMA_TOKEN: 'personal-token' });
+
+    await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), env);
+
+    const versions = env.seen.find(call => call.url.includes('/versions'));
+
+    assert.equal(versions.init.headers['X-Figma-Token'], 'personal-token', `missing ${partial}`);
+    assert.ok(!env.seen.some(call => call.url.includes('/oauth/refresh')), `missing ${partial}`);
   }
 });
 

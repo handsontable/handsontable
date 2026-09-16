@@ -884,6 +884,57 @@ function designSystemDateResponse(body) {
 }
 
 /**
+ * Resolves the authorization header for the Figma calls, preferring OAuth.
+ *
+ * Figma caps a personal access token at **90 days**, and a plan access token
+ * (1 year) needs an Organization or Enterprise plan, which this account is not
+ * on. Either would make the date silently disappear on a timer. An OAuth
+ * refresh token has no such cap and can be exchanged for a fresh access token
+ * as often as needed, so it is the only credential here that keeps working
+ * without someone diarising a rotation.
+ *
+ * The personal-token path is kept because it is one secret instead of three,
+ * which makes it the quick way to prove the endpoint works before setting the
+ * OAuth app up. It is a stopgap, not the intended production credential.
+ *
+ * Costs one extra request per cache miss - about one a day per edge location -
+ * which is cheaper than storing the access token and tracking its expiry.
+ *
+ * @param {object} env The worker environment.
+ * @param {Function} fetchImpl
+ * @returns {Promise<object|null>} Headers to send, or null if unconfigured.
+ */
+async function figmaAuthHeaders(env, fetchImpl) {
+  const clientId = env.FIGMA_CLIENT_ID;
+  const clientSecret = env.FIGMA_CLIENT_SECRET;
+  const refreshToken = env.FIGMA_REFRESH_TOKEN;
+
+  if (clientId && clientSecret && refreshToken) {
+    const response = await fetchImpl(`${FIGMA_API_ORIGIN}/v1/oauth/refresh`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        // Figma authenticates the refresh with HTTP Basic, not body params.
+        Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
+      },
+      body: `refresh_token=${encodeURIComponent(refreshToken)}`,
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const payload = await response.json();
+
+    // The refresh response carries no new refresh token - the same one is
+    // reused - so there is nothing to persist here.
+    return payload?.access_token ? { Authorization: `Bearer ${payload.access_token}` } : null;
+  }
+
+  return env.FIGMA_TOKEN ? { 'X-Figma-Token': env.FIGMA_TOKEN } : null;
+}
+
+/**
  * Reads the date the Design System Figma file was last updated.
  *
  * Prefers the newest *named* version over the file's raw last-touched time.
@@ -905,17 +956,21 @@ function designSystemDateResponse(body) {
  * @returns {Promise<{date: string|null, source: string|null}>}
  */
 async function readDesignSystemDate(env) {
-  const token = env.FIGMA_TOKEN;
   const fileKey = env.FIGMA_FILE_KEY;
 
-  if (!token || !fileKey) {
+  if (!fileKey) {
     return { date: null, source: null };
   }
 
   // Injectable so the tests can exercise every branch without a network call
   // or a global stub; production passes nothing and gets the runtime's fetch.
   const fetchImpl = env.FIGMA_FETCH ?? globalThis.fetch;
-  const headers = { 'X-Figma-Token': token };
+  const headers = await figmaAuthHeaders(env, fetchImpl);
+
+  if (headers === null) {
+    return { date: null, source: null };
+  }
+
   const file = encodeURIComponent(fileKey);
 
   const versionsResponse = await fetchImpl(`${FIGMA_API_ORIGIN}/v1/files/${file}/versions`, { headers });
