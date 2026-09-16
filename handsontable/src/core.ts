@@ -2095,6 +2095,20 @@ export default function Core(
           width = instance.rootWrapperElement.offsetWidth;
         }
 
+        // The slot aligns with the TABLE (a narrow table gets a narrow bar), but never past the
+        // wrapper when the WINDOW owns the horizontal axis: the table can then be wider than its
+        // CSS-sized container, and a slot sized to the table ran out of that container – up to the
+        // full page width (DEV-2848). Only that mode is clamped: with a definite `width` option the
+        // root owns the axis and `getWorkspaceWidth()` is the grid's own box, which the slot keeps
+        // following even inside a narrower container (the user sized the grid explicitly).
+        // `clientWidth` is the wrapper's own box; the slot's previous inline width cannot inflate
+        // it, because the wrapper takes its width from its parent.
+        const wrapperWidth = instance.rootWrapperElement?.clientWidth ?? 0;
+
+        if (view.isHorizontallyScrollableByWindow() && wrapperWidth > 0) {
+          width = Math.min(width, wrapperWidth);
+        }
+
         // Only write when the value actually changes — avoids a reflow → dimension-refresh
         // → re-sync feedback loop, and needless layout writes during volatile renders.
         if (instance.rootSlotBottomElement && width !== lastEdgeWidths.bottom) {
