@@ -679,9 +679,9 @@ Since version 18.0.0, a frozen row holds its position no matter which column you
 
 Both sorting plugins behave this way: [`ColumnSorting`](@/api/columnSorting.md) and [`MultiColumnSorting`](@/api/multiColumnSorting.md).
 
-Formulas in the sortable body are a different case. Sorting a column of formula cells can produce `#REF!`. Further sorts do not recover the original references. Handsontable does not remap formula addresses after a sort.
+Formulas from the [`Formulas`](@/api/formulas.md) plugin (HyperFormula) in the sortable body are a different case. Sorting a column of those formula cells can produce `#REF!`. Further sorts do not recover the original references. Handsontable does not rewrite formula references to follow sorted rows.
 
-Keep aggregate formulas on a [`fixedRowsBottom`](@/api/options.md#fixedrowsbottom) row so they stay out of the sortable body. That is the supported workaround ([#12627](https://github.com/handsontable/handsontable/pull/12627)). A hook that pins a non-frozen totals row does not protect other formula cells in the body. See [Sorting formula cells](@/guides/formulas/formula-calculation/formula-calculation.md#sorting-formula-cells).
+Keep aggregate HyperFormula formulas on a [`fixedRowsBottom`](@/api/options.md#fixedrowsbottom) row so they stay out of the sortable body. That is the supported workaround ([#12627](https://github.com/handsontable/handsontable/pull/12627)). A hook that pins a non-frozen totals row does not protect other formula cells in the body. See [Sorting formula cells](@/guides/formulas/formula-calculation/formula-calculation.md#sorting-formula-cells).
 
 To sort the whole dataset instead, frozen rows included, set the `sortFixedRows` option to `true`. That restores the behavior Handsontable had before version 18.0.0.
 
@@ -1493,7 +1493,7 @@ These header-focused shortcuts work only when a column header is focused. Enable
 
 ## Known limitations
 
-- Sorting a column of formula cells can produce `#REF!`. Handsontable does not remap those addresses, and a later sort does not restore the formulas. Keep summary formulas on a [`fixedRowsBottom`](@/api/options.md#fixedrowsbottom) row. See [Sorting formula cells](@/guides/formulas/formula-calculation/formula-calculation.md#sorting-formula-cells).
+- Sorting a column of [`Formulas`](@/api/formulas.md) (HyperFormula) cells can produce `#REF!`. Handsontable does not rewrite those addresses to follow sorted rows, and a later sort does not restore the formulas. Keep summary formulas on a [`fixedRowsBottom`](@/api/options.md#fixedrowsbottom) row, and leave [`sortFixedRows`](#configure-sorting) at `false` so the footer stays out of the sort. See [Sorting formula cells](@/guides/formulas/formula-calculation/formula-calculation.md#sorting-formula-cells).
 
 ## Reference
 

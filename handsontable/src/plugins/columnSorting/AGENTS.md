@@ -192,6 +192,8 @@ state needs the same treatment.
 
 ## Where to look next
 
+- Sort-after-`#REF!` is a known limitation (DEV-917), not a remapping feature: `../formulas/AGENTS.md`.
+- User-facing copy: `docs/content/guides/rows/rows-sorting/rows-sorting.md`.
 - Multi-column variant and the conflict between the two: `../multiColumnSorting/AGENTS.md`.
 - The drag that competes for the same gesture: `../manualColumnMove/AGENTS.md`.
 - Compare-function registry per cell type: `sortService/`, `sortFunction/`.

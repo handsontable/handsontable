@@ -167,6 +167,8 @@ summary formulas stay out of the sort (#12627). User-facing copy:
 
 ## Where to look next
 
+- Sort-after-`#REF!` is a known limitation (DEV-917), not a remapping feature: `../columnSorting/AGENTS.md`.
+- User-facing copy: `docs/content/guides/formulas/formula-calculation/formula-calculation.md`.
 - Integration overview and the peer-dependency contract: `../../../.ai/INTEGRATIONS.md`.
 - Undo action shapes this plugin reasons about: `../undoRedo/AGENTS.md`.
 - Trimming plugins that make HF and visual indexes diverge: `../trimRows/AGENTS.md`,
