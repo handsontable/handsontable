@@ -15,22 +15,22 @@ import { GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
 export class AppComponent {
 
   readonly hotData = [
-    ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1'],
-    ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2'],
-    ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3'],
+    ['Hydrogen', 'H', 1, 1.008, 7, -434.4, -423.2],
+    ['Helium', 'He', 2, 4.003, 9, -458.3, -452.1],
+    ['Lithium', 'Li', 3, 6.94, 9, 356.9, 2447.6],
+    ['Beryllium', 'Be', 4, 9.012, 11, 2348.6, 4478.8],
+    ['Boron', 'B', 5, 10.81, 11, 3768.8, 7100.6],
   ];
 
   readonly hotSettings: GridSettings = {
     colHeaders: [
-      'ID',
-      'Full name',
-      'Position',
-      'Country',
-      'City',
-      'Address',
-      'Zip code',
-      'Mobile',
-      'E-mail',
+      'Name',
+      'Symbol',
+      'Atomic Number',
+      'Atomic Mass (u)',
+      'Known Isotopes',
+      'Melting Point (°F)',
+      'Boiling Point (°F)',
     ],
     rowHeaders: true,
     height: 'auto',

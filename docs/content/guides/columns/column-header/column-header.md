@@ -326,7 +326,7 @@ A negative number is kept as it is, because numbers behave exactly as they did b
 read strings. A negative string is rejected, so a typo cannot collapse the header.
 
 The height you set is the header's **border-box** height: it includes the header's own top and
-bottom borders. A column header carries a 1px border on each side, so `columnHeaderHeight: 40`
+bottom borders. A column header carries a `1px` border on each side, so `columnHeaderHeight: 40`
 leaves a `38px` content box for the label. Before Handsontable 18.2 the bottom border was dropped
 while the grid sat at the top of its scroll range and added back as soon as you scrolled, so the
 same setting gave a `39px` content box unscrolled and `38px` scrolled. The header now keeps that border

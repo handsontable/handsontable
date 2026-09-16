@@ -9,15 +9,16 @@ registerAllModules();
 
 const hotSettings = ref<GridSettings>({
   data: [
-    [1, 'Ana Garcia', 'Product Manager', 'Spain', '2022-03-14'],
-    [2, 'James Okafor', 'Senior Engineer', 'Nigeria', '2021-07-02'],
-    [3, 'Li Wei', 'Data Analyst', 'China', '2023-01-19'],
-    [4, 'Sofia Rossi', 'UX Designer', 'Italy', '2020-11-30'],
-    [5, 'Mateo Fernandez', 'Engineering Lead', 'Argentina', '2019-05-08'],
+    ['Hydrogen', 'H', 1, 1.008, 7, -434.4, -423.2],
+    ['Helium', 'He', 2, 4.003, 9, -458.3, -452.1],
+    ['Lithium', 'Li', 3, 6.94, 9, 356.9, 2447.6],
+    ['Beryllium', 'Be', 4, 9.012, 11, 2348.6, 4478.8],
+    ['Boron', 'B', 5, 10.81, 11, 3768.8, 7100.6],
   ],
-  colHeaders: ['Employee ID', 'Employee full name', 'Current job title', 'Country of residence', 'Employment start date'],
+  colHeaders: ['Name', 'Symbol', 'Atomic Number', 'Atomic Mass (u)', 'Known Isotopes', 'Melting Point (°F)', 'Boiling Point (°F)'],
   rowHeaders: true,
-  colWidths: [100, 130, 130, 130, 130],
+  // Wide enough that no label gets cut off by the header's ellipsis truncation.
+  colWidths: [90, 90, 120, 130, 120, 155, 155],
   columnHeaderHeight: 50,
   height: 'auto',
   autoWrapRow: true,

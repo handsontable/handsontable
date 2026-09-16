@@ -8,21 +8,23 @@ const ExampleComponent = () => {
   return (
     <HotTable
       data={[
-        ['SKU-4821', 'Stainless Steel Water Bottle', 'Harbor Goods', '142'],
-        ['SKU-0093', 'Wireless Mouse', 'Alpine Supply Co.', '0'],
-        ['SKU-1170', 'Ergonomic Office Chair', 'Cascade Distributors', '67'],
+        ['Hydrogen', 'H', 1],
+        ['Helium', 'He', 2],
+        ['Lithium', 'Li', 3],
+        ['Beryllium', 'Be', 4],
+        ['Boron', 'B', 5],
       ]}
-      colHeaders={true}
+      colHeaders={['Name', 'Symbol', 'Atomic Number']}
       rowHeaders={true}
       autoWrapRow={true}
       autoWrapCol={true}
       height="auto"
+      stretchH="all"
       headerClassName="htCenter"
       licenseKey="non-commercial-and-evaluation"
     >
       <HotColumn headerClassName="htRight" />
       <HotColumn headerClassName="htLeft" />
-      <HotColumn />
       <HotColumn />
     </HotTable>
   );

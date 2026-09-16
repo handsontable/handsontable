@@ -8,6 +8,8 @@ const hot = new Handsontable(container, {
         ['Hydrogen', 'H', 1],
         ['Helium', 'He', 2],
         ['Lithium', 'Li', 3],
+        ['Beryllium', 'Be', 4],
+        ['Boron', 'B', 5],
     ],
     colHeaders: ['Name', 'Symbol', 'Atomic Number'],
     rowHeaders: true,
