@@ -141,6 +141,7 @@ export class ExactRowHeightsPage {
     arrow: { left: number, right: number, top: number, bottom: number } | null,
     clipContentBoxRight: number,
     clipContentBoxLeft: number,
+    clipPaddingBoxRight: number,
   }> {
     return this.cell(row, column).evaluate((td) => {
       const clip = td.querySelector('.htCellClip');
@@ -154,6 +155,7 @@ export class ExactRowHeightsPage {
       const rect = clip.getBoundingClientRect();
       const paddingLeft = parseFloat(cs.paddingLeft);
       const paddingRight = parseFloat(cs.paddingRight);
+      const borderRight = parseFloat(cs.borderRightWidth);
       const arrowRect = arrowEl?.getBoundingClientRect();
 
       return {
@@ -163,8 +165,9 @@ export class ExactRowHeightsPage {
             top: arrowRect.top, bottom: arrowRect.bottom,
           }
           : null,
-        clipContentBoxRight: rect.right - parseFloat(cs.borderRightWidth) - paddingRight,
+        clipContentBoxRight: rect.right - borderRight - paddingRight,
         clipContentBoxLeft: rect.left + parseFloat(cs.borderLeftWidth) + paddingLeft,
+        clipPaddingBoxRight: rect.right - borderRight,
       };
     });
   }

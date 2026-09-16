@@ -35,6 +35,17 @@
     if (!window.htDir) {
       throw new Error('Unknown ?dir= value: ' + JSON.stringify(htParams.get('dir')));
     }
+    // Context-menu Alignment writes these classes onto the cell (`_text-renderer.scss`).
+    window.htAlign = ({ top: 'top', middle: 'middle', bottom: 'bottom' })[htParams.get('align') ?? 'top'];
+    if (!window.htAlign) {
+      throw new Error('Unknown ?align= value: ' + JSON.stringify(htParams.get('align')));
+    }
+    // Handsontable does not expose `rowHeightMode` yet; the engine is flipped after init, matching
+    // `exact-row-heights.html`. `exact` zeros TD padding and clips through `.htCellClip`.
+    window.htRowHeightMode = ({ min: 'min', exact: 'exact' })[htParams.get('rowHeightMode') ?? 'min'];
+    if (!window.htRowHeightMode) {
+      throw new Error('Unknown ?rowHeightMode= value: ' + JSON.stringify(htParams.get('rowHeightMode')));
+    }
   </script>
 </head>
 <body>
@@ -52,7 +63,14 @@
     const BREAKABLE = 'Connecticut readjustment authority';
     const SHORT = 'Al';
     const CHOICES = [UNBREAKABLE, BREAKABLE, SHORT];
-    const value = window.htMode === 'wrap' ? BREAKABLE : UNBREAKABLE;
+    const ALIGN_CLASS = { top: undefined, middle: 'htMiddle', bottom: 'htBottom' }[window.htAlign];
+    // Alignment cases need a compact line box that `vertical-align` / `align-content` can move;
+    // the unbreakable token is for the wrap/clip reproductions.
+    const value = window.htMode === 'wrap'
+      ? BREAKABLE
+      : (window.htAlign === 'middle' || window.htAlign === 'bottom')
+        ? SHORT
+        : UNBREAKABLE;
 
     // `autocomplete` / `dropdown` take a flat `source`; `handsontable` takes a nested grid config.
     // All three resolve to `autocompleteRenderer` and the `htAutocomplete` class.
@@ -62,6 +80,7 @@
 
     // 100px is wide enough for the arrow itself on every theme and still far narrower than the
     // unbreakable token, so the float-wrap (arrow on a second line) is what the spec measures.
+    // 90px rows match the DEV-348 review measurement for `htMiddle` / `htBottom`.
     const settings = window.htMode === 'autosize'
       ? {
         data: [[UNBREAKABLE], [SHORT]],
@@ -72,7 +91,7 @@
         data: [[value], [SHORT], [null]],
         columns: [column],
         colWidths: 100,
-        ...(window.htMode === 'tall' ? { rowHeights: 80 } : {}),
+        ...(window.htMode === 'tall' ? { rowHeights: 90 } : {}),
       };
 
     window.hot = new Handsontable(container, {
@@ -80,6 +99,7 @@
       layoutDirection: window.htDir,
       colHeaders: true,
       rowHeaders: true,
+      ...(ALIGN_CLASS ? { className: ALIGN_CLASS } : {}),
       // Stamp test ids from `afterRenderer`: a column `type` installs its own renderer, which would
       // override a grid-level `renderer` and leave the typed columns with no test id.
       afterRenderer(td, row, col) {
@@ -87,6 +107,12 @@
       },
       licenseKey: 'non-commercial-and-evaluation',
     });
+
+    // Overlay clones share the master's settings object, so one update reaches every table.
+    if (window.htRowHeightMode === 'exact') {
+      window.hot.view._wt.wtSettings.update('rowHeightMode', 'exact');
+      window.hot.render();
+    }
   </script>
 </body>
 </html>

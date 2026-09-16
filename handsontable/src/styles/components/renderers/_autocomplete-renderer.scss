@@ -36,18 +36,37 @@
     // Do not add `white-space: nowrap` or `text-overflow: ellipsis` here. That combination
     // (#13463) overrode `wordWrap` / `textEllipsis` and was a 19.0 breaking change; #13508
     // reverted it. Those options still apply.
+    // The trailing `+ 1px` restores the released `margin-inline-end: 1px` gap the float carried
+    // (DEV-348 review): without it the absolute arrow sits 1px closer to the cell edge.
     td.htAutocomplete {
       position: relative;
       padding-inline-end: calc(
-        var(--ht-cell-horizontal-padding) + var(--ht-icon-size) + var(--ht-gap-size) * 2
+        var(--ht-cell-horizontal-padding) + var(--ht-icon-size) + var(--ht-gap-size) * 2 + 1px
       );
 
       .htAutocompleteArrow {
         position: absolute;
         float: none;
-        inset-inline-end: var(--ht-cell-horizontal-padding);
+        inset-inline-end: calc(var(--ht-cell-horizontal-padding) + 1px);
         top: calc(var(--ht-cell-vertical-padding) + (var(--ht-line-height) - var(--ht-icon-size)) / 2);
         margin: 0;
+      }
+
+      // The float used to live in the cell's in-flow content, so `htMiddle` / `htBottom`
+      // (`vertical-align` in `_text-renderer.scss`, Alignment in the context menu) moved it with
+      // the value. Absolute `top` does not. Mirror those classes: middle matches the select
+      // editor's `top: 50%; transform: translateY(-50%)` (physical Y, so RTL-safe); bottom
+      // mirrors the default first-line offset from the trailing block edge.
+      &.htMiddle .htAutocompleteArrow {
+        top: 50%;
+        transform: translateY(-50%);
+      }
+
+      &.htBottom .htAutocompleteArrow {
+        top: auto;
+        inset-block-end: calc(
+          var(--ht-cell-vertical-padding) + (var(--ht-line-height) - var(--ht-icon-size)) / 2
+        );
       }
     }
 
@@ -55,12 +74,27 @@
     // absolute; overflow: hidden`), so that wrapper — not the TD — is the arrow's containing
     // block. Re-reserve the arrow slot on the wrapper and pin the arrow to its trailing edge;
     // using the TD offsets would double-count the cell padding the wrapper already insets.
-    tr.htExactRow > td.htAutocomplete > .htCellClip {
-      padding-inline-end: calc(var(--ht-icon-size) + var(--ht-gap-size) * 2);
+    // Alignment rules repeat here at this higher specificity: the default `top` on the clip
+    // would otherwise beat `td.htAutocomplete.htMiddle .htAutocompleteArrow`. Offsets skip
+    // `--ht-cell-vertical-padding` because the clip's `inset` already provides it.
+    tr.htExactRow > td.htAutocomplete {
+      > .htCellClip {
+        padding-inline-end: calc(var(--ht-icon-size) + var(--ht-gap-size) * 2 + 1px);
 
-      .htAutocompleteArrow {
-        inset-inline-end: 0;
-        top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
+        .htAutocompleteArrow {
+          inset-inline-end: 1px;
+          top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
+        }
+      }
+
+      &.htMiddle > .htCellClip .htAutocompleteArrow {
+        top: 50%;
+        transform: translateY(-50%);
+      }
+
+      &.htBottom > .htCellClip .htAutocompleteArrow {
+        top: auto;
+        inset-block-end: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
       }
     }
   }

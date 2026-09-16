@@ -10,6 +10,8 @@ interface FixtureWindow {
 export type ListCellType = 'autocomplete' | 'dropdown' | 'handsontable';
 export type Mode = 'colWidths' | 'autosize' | 'wrap' | 'tall';
 export type Dir = 'ltr' | 'rtl';
+export type Align = 'top' | 'middle' | 'bottom';
+export type RowHeightMode = 'min' | 'exact';
 
 interface Box {
   left: number;
@@ -46,6 +48,15 @@ interface CellMetrics {
   lineHeight: number;
   /** The cell's resolved top padding, in pixels. */
   paddingTop: number;
+  /**
+   * Distance from the arrow's trailing edge to the content root's padding-box trailing edge.
+   * On a normal cell that is `--ht-cell-horizontal-padding + 1px`; on `.htCellClip` it is `1px`.
+   */
+  arrowEndGap: number | null;
+  /** Resolved `--ht-cell-horizontal-padding` on the cell, in pixels. */
+  cellHorizontalPadding: number;
+  /** Whether the cell clips through `div.htCellClip` (exact-height rows). */
+  hasClip: boolean;
 }
 
 /**
@@ -77,18 +88,27 @@ export class ListCellArrowLayoutPage {
    * @param {Mode} [options.mode] `colWidths` (fixed 100px column), `autosize` (`autoColumnSize`),
    *   `wrap` (fixed column + breakable phrase), or `tall` (fixed column + large `rowHeights`).
    * @param {Dir} [options.dir] Layout direction.
+   * @param {Align} [options.align] Cell vertical alignment class (`htMiddle` / `htBottom`).
+   * @param {RowHeightMode} [options.rowHeightMode] Engine row-height mode; `exact` clips through
+   *   `.htCellClip`.
    */
-  async goto({ mode = 'colWidths', dir = 'ltr' }: {
-    mode?: Mode, dir?: Dir,
+  async goto({ mode = 'colWidths', dir = 'ltr', align = 'top', rowHeightMode = 'min' }: {
+    mode?: Mode, dir?: Dir, align?: Align, rowHeightMode?: RowHeightMode,
   } = {}): Promise<void> {
     const query = `theme=${this.theme}&bundle=${this.bundle}&cellType=${this.cellType}`
-      + `&mode=${mode}&dir=${dir}`;
+      + `&mode=${mode}&dir=${dir}&align=${align}&rowHeightMode=${rowHeightMode}`;
 
     await this.page.goto(`/tests/fixtures/demo/list-cell-arrow-layout.html?${query}`);
 
     await awaitBundle(this.page);
 
-    await expect(this.page.locator('.ht_master').getByTestId('cell-0-0')).toBeVisible();
+    const cell = this.page.locator('.ht_master').getByTestId('cell-0-0');
+
+    await expect(cell).toBeVisible();
+
+    if (rowHeightMode === 'exact') {
+      await expect(cell.locator('.htCellClip')).toBeVisible();
+    }
   }
 
   /**
@@ -130,9 +150,8 @@ export class ListCellArrowLayoutPage {
         return { left, right, top, bottom, width: right - left, height: bottom - top };
       };
 
-      const contentRoot = td.firstElementChild?.classList.contains('htCellClip')
-        ? td.firstElementChild
-        : td;
+      const hasClip = td.firstElementChild?.classList.contains('htCellClip') === true;
+      const contentRoot = hasClip ? td.firstElementChild as HTMLElement : td;
       const arrowEl = contentRoot.querySelector('.htAutocompleteArrow');
       const cs = getComputedStyle(td);
       const cellRect = td.getBoundingClientRect();
@@ -158,16 +177,33 @@ export class ListCellArrowLayoutPage {
         }
       });
 
+      const rootRect = contentRoot.getBoundingClientRect();
+      const rootCs = getComputedStyle(contentRoot);
+      const rootBorderStart = parseFloat(rootCs.borderLeftWidth);
+      const rootBorderEnd = parseFloat(rootCs.borderRightWidth);
+      const arrowRect = arrowEl ? arrowEl.getBoundingClientRect() : null;
+      const isRtl = cs.direction === 'rtl';
+      let arrowEndGap: number | null = null;
+
+      if (arrowRect) {
+        arrowEndGap = isRtl
+          ? arrowRect.left - (rootRect.left + rootBorderStart)
+          : rootRect.right - rootBorderEnd - arrowRect.right;
+      }
+
       return {
         cell: toBox(cellRect),
         scrollWidth: td.scrollWidth,
         clientWidth: td.clientWidth,
-        arrow: arrowEl ? toBox(arrowEl.getBoundingClientRect()) : null,
+        arrow: arrowRect ? toBox(arrowRect) : null,
         content: unionOf(contentRects),
         contentBoxRight: cellRect.right - borderRight - paddingRight,
         contentBoxLeft: cellRect.left + borderLeft + paddingLeft,
         lineHeight: parseFloat(cs.lineHeight),
         paddingTop: parseFloat(cs.paddingTop),
+        arrowEndGap,
+        cellHorizontalPadding: parseFloat(cs.getPropertyValue('--ht-cell-horizontal-padding')),
+        hasClip,
       };
     }, { row, col });
   }

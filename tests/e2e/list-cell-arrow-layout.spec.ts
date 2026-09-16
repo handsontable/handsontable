@@ -32,7 +32,10 @@ CELL_TYPES.forEach((cellType) => {
     test('keeps the arrow on the first line under colWidths with a long value', async() => {
       await grid.goto({ mode: 'colWidths' });
 
-      const { arrow, cell, contentBoxRight, lineHeight, paddingTop } = await grid.metrics(0, 0);
+      const {
+        arrow, cell, contentBoxRight, lineHeight, paddingTop, arrowEndGap, cellHorizontalPadding,
+        hasClip,
+      } = await grid.metrics(0, 0);
 
       expect(arrow).not.toBeNull();
 
@@ -41,6 +44,10 @@ CELL_TYPES.forEach((cellType) => {
       // The reserved padding places the arrow at or past the content-box trailing edge, so the
       // value clips (or wraps) before the arrow rather than under it.
       expect(arrow!.left).toBeGreaterThanOrEqual(contentBoxRight - 1);
+      // The old float's `margin-inline-end: 1px` gap from the cell padding-box edge.
+      expect(hasClip).toBe(false);
+      expect(arrowEndGap).not.toBeNull();
+      expect(Math.abs(arrowEndGap! - (cellHorizontalPadding + 1))).toBeLessThan(1);
     });
 
     test('grows the column to fit the value plus the arrow under autoColumnSize', async() => {
@@ -98,7 +105,9 @@ CELL_TYPES.forEach((cellType) => {
     test('reserves the arrow at the leading edge in RTL', async() => {
       await grid.goto({ mode: 'colWidths', dir: 'rtl' });
 
-      const { arrow, cell, contentBoxLeft, lineHeight, paddingTop } = await grid.metrics(0, 0);
+      const {
+        arrow, cell, contentBoxLeft, lineHeight, paddingTop, arrowEndGap, cellHorizontalPadding,
+      } = await grid.metrics(0, 0);
 
       expect(arrow).not.toBeNull();
 
@@ -112,6 +121,96 @@ CELL_TYPES.forEach((cellType) => {
       // ...and the arrow sits at or past the content-box leading edge, so the value never
       // paints under it.
       expect(arrow!.right).toBeLessThanOrEqual(contentBoxLeft + 1);
+      expect(arrowEndGap).not.toBeNull();
+      expect(Math.abs(arrowEndGap! - (cellHorizontalPadding + 1))).toBeLessThan(1);
+    });
+
+    test('vertically centers the arrow with the value under htMiddle', async() => {
+      await grid.goto({ mode: 'tall', align: 'middle' });
+
+      const { arrow, cell, content, lineHeight, paddingTop, hasClip } = await grid.metrics(0, 0);
+
+      expect(arrow).not.toBeNull();
+      expect(content).not.toBeNull();
+      expect(hasClip).toBe(false);
+      expect(cell.height).toBeGreaterThan(lineHeight * 2);
+
+      const cellCenterY = cell.top + (cell.height / 2);
+      const arrowCenterY = arrow!.top + ((arrow!.bottom - arrow!.top) / 2);
+      const contentCenterY = content!.top + ((content!.bottom - content!.top) / 2);
+
+      // Fixture actually applied `htMiddle`: the value is in the middle, not on the first line.
+      expect(contentCenterY).toBeGreaterThan(cell.top + paddingTop + lineHeight);
+      expect(Math.abs(contentCenterY - cellCenterY)).toBeLessThan(lineHeight);
+      // A fixed `top` from cell padding leaves the arrow near the first line (~8px); the float
+      // used to sit with the value (~37px in a 90px cell).
+      expect(Math.abs(arrowCenterY - contentCenterY)).toBeLessThan(6);
+    });
+
+    test('anchors the arrow with the value under htBottom', async() => {
+      await grid.goto({ mode: 'tall', align: 'bottom' });
+
+      const { arrow, cell, content, lineHeight, paddingTop, hasClip } = await grid.metrics(0, 0);
+
+      expect(arrow).not.toBeNull();
+      expect(content).not.toBeNull();
+      expect(hasClip).toBe(false);
+      expect(cell.height).toBeGreaterThan(lineHeight * 2);
+
+      const cellCenterY = cell.top + (cell.height / 2);
+      const arrowCenterY = arrow!.top + ((arrow!.bottom - arrow!.top) / 2);
+      const contentCenterY = content!.top + ((content!.bottom - content!.top) / 2);
+
+      // Fixture actually applied `htBottom`: the value sits in the lower half, not the first line.
+      expect(contentCenterY).toBeGreaterThan(cellCenterY);
+      expect(content!.bottom).toBeGreaterThan(cell.top + paddingTop + lineHeight * 2);
+      expect(Math.abs(arrowCenterY - contentCenterY)).toBeLessThan(6);
+    });
+
+    test('vertically centers the arrow with the value under htMiddle on an exact-height row', async() => {
+      await grid.goto({ mode: 'tall', align: 'middle', rowHeightMode: 'exact' });
+
+      const {
+        arrow, cell, content, lineHeight, paddingTop, arrowEndGap, hasClip,
+      } = await grid.metrics(0, 0);
+
+      expect(arrow).not.toBeNull();
+      expect(content).not.toBeNull();
+      expect(hasClip).toBe(true);
+      expect(cell.height).toBeGreaterThan(lineHeight * 2);
+      expect(arrowEndGap).not.toBeNull();
+      expect(Math.abs(arrowEndGap! - 1)).toBeLessThan(1);
+
+      const cellCenterY = cell.top + (cell.height / 2);
+      const arrowCenterY = arrow!.top + ((arrow!.bottom - arrow!.top) / 2);
+      const contentCenterY = content!.top + ((content!.bottom - content!.top) / 2);
+
+      expect(contentCenterY).toBeGreaterThan(cell.top + paddingTop + lineHeight);
+      expect(Math.abs(contentCenterY - cellCenterY)).toBeLessThan(lineHeight);
+      expect(Math.abs(arrowCenterY - contentCenterY)).toBeLessThan(6);
+    });
+
+    test('anchors the arrow with the value under htBottom on an exact-height row', async() => {
+      await grid.goto({ mode: 'tall', align: 'bottom', rowHeightMode: 'exact' });
+
+      const {
+        arrow, cell, content, lineHeight, paddingTop, arrowEndGap, hasClip,
+      } = await grid.metrics(0, 0);
+
+      expect(arrow).not.toBeNull();
+      expect(content).not.toBeNull();
+      expect(hasClip).toBe(true);
+      expect(cell.height).toBeGreaterThan(lineHeight * 2);
+      expect(arrowEndGap).not.toBeNull();
+      expect(Math.abs(arrowEndGap! - 1)).toBeLessThan(1);
+
+      const cellCenterY = cell.top + (cell.height / 2);
+      const arrowCenterY = arrow!.top + ((arrow!.bottom - arrow!.top) / 2);
+      const contentCenterY = content!.top + ((content!.bottom - content!.top) / 2);
+
+      expect(contentCenterY).toBeGreaterThan(cellCenterY);
+      expect(content!.bottom).toBeGreaterThan(cell.top + paddingTop + lineHeight * 2);
+      expect(Math.abs(arrowCenterY - contentCenterY)).toBeLessThan(6);
     });
   });
 });
