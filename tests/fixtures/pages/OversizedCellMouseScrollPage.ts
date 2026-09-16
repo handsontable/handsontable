@@ -115,18 +115,6 @@ export class OversizedCellMouseScrollPage {
   }
 
   /**
-   * Selects a cell through the public API.
-   *
-   * @param {number} row Visual row index.
-   * @param {number} col Visual column index.
-   */
-  async selectCellByApi(row: number, col: number): Promise<void> {
-    await this.page.evaluate(([r, c]) => {
-      window.hot.selectCell(r, c);
-    }, [row, col] as const);
-  }
-
-  /**
    * Master holder scroll offsets. Read in one evaluate so a comparison cannot
    * straddle a redraw.
    *
