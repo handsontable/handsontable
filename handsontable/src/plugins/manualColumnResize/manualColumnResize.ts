@@ -1,27 +1,12 @@
 import type { HotInstance } from '../../core/types';
-import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 import { BasePlugin } from '../base';
-import {
-  addClass,
-  closest,
-  eventTargetEl,
-  hasClass,
-  removeClass,
-  outerHeight,
-  outerWidth,
-  isDetached
-} from '../../helpers/dom/element';
-import { arrayEach } from '../../helpers/array';
-import { rangeEach } from '../../helpers/number';
 import { deprecatedWarnOnce } from '../../helpers/console';
 import type { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
+import { COLUMN_RESIZE_AXIS } from '../manualResize/axis';
+import { ResizeGesture } from '../manualResize/resizeGesture';
 import {
   COLUMN_SIZE_OPTIONS,
-  getElementScaleFactor,
-  normalizeVisualDelta,
   redeclaresManualSizes,
-  shouldRefreshHandleAfterAutoResize,
-  shouldSkipResizeHandlePositioning,
 } from './utils';
 
 // Developer note! Whenever you make a change in this file, make an analogous change in manualRowResize.js
@@ -41,11 +26,6 @@ export const PLUGIN_PRIORITY = 130;
  * - guide - the helper guide that shows the desired width as a vertical guide.
  */
 export class ManualColumnResize extends BasePlugin {
-  /**
-   * Stores the horizontal pointer position at the start of a column resize drag operation.
-   */
-  declare startX: number;
-
   /**
    * Returns the plugin key used to identify this plugin in Handsontable settings.
    */
@@ -72,65 +52,10 @@ export class ManualColumnResize extends BasePlugin {
   }
 
   /**
-   * @type {HTMLTableHeaderCellElement}
+   * The resize handle, the guide, and the drag and double-click state behind them. Shared with
+   * `ManualRowResize` - see `../manualResize/AGENTS.md`.
    */
-  #currentTH: HTMLTableHeaderCellElement | null = null;
-  /**
-   * @type {number}
-   */
-  #currentCol: number | null = null;
-  /**
-   * @type {number[]}
-   */
-  #selectedCols: number[] = [];
-  /**
-   * @type {number}
-   */
-  #currentWidth: number | null = null;
-  /**
-   * @type {number}
-   */
-  #newSize: number | null = null;
-  /**
-   * @type {number}
-   */
-  #startY: number | null = null;
-  /**
-   * @type {number}
-   */
-  #startWidth: number | null = null;
-  /**
-   * @type {number}
-   */
-  #startOffset: number | null = null;
-  /**
-   * @type {number}
-   */
-  #horizontalScaleFactor = 1;
-  /**
-   * @type {HTMLElement}
-   */
-  #handle = this.hot.rootDocument.createElement('DIV');
-  /**
-   * @type {HTMLElement}
-   */
-  #guide = this.hot.rootDocument.createElement('DIV');
-  /**
-   * @type {boolean}
-   */
-  #pressed: boolean | null = null;
-  /**
-   * @type {boolean}
-   */
-  #isTriggeredByRMB = false;
-  /**
-   * @type {number}
-   */
-  #dblclick = 0;
-  /**
-   * @type {number}
-   */
-  #autoresizeTimeout: ReturnType<typeof setTimeout> | null = null;
+  #gesture: ResizeGesture;
   /**
    * PhysicalIndexToValueMap to keep and track widths for physical column indexes.
    *
@@ -151,21 +76,15 @@ export class ManualColumnResize extends BasePlugin {
   #config!: unknown[];
 
   /**
-   * Initializes the plugin and applies CSS classes to the resize handle and guide elements.
+   * Initializes the plugin and creates the resize gesture.
    */
   constructor(hotInstance: HotInstance) {
     super(hotInstance);
 
-    addClass(this.#handle, 'manualColumnResizer');
-    addClass(this.#guide, 'manualColumnResizerGuide');
-  }
-
-  /**
-   * @private
-   * @returns {string}
-   */
-  get inlineDir() {
-    return this.hot.isRtl() ? 'right' : 'left';
+    this.#gesture = new ResizeGesture(this.hot, COLUMN_RESIZE_AXIS, {
+      isEnabled: () => this.enabled,
+      setManualSize: (column, width) => this.setManualSize(column, width),
+    });
   }
 
   /**
@@ -206,7 +125,7 @@ export class ManualColumnResize extends BasePlugin {
     this.addHook('beforeStretchingColumnWidth', this.#onBeforeStretchingColumnWidth, 1);
     this.addHook('beforeColumnResize', this.#onBeforeColumnResize);
 
-    this.bindEvents();
+    this.#gesture.bindEvents(this.eventManager);
 
     super.enablePlugin();
   }
@@ -253,7 +172,8 @@ export class ManualColumnResize extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.#detachHandleAndGuide();
+    // Leaves a drag in flight alone on purpose - see `ResizeGesture#detach()`.
+    this.#gesture.detach();
 
     if (this.#disposeMapObserver) {
       this.#disposeMapObserver();
@@ -441,6 +361,18 @@ export class ManualColumnResize extends BasePlugin {
   }
 
   /**
+   * Auto-size column after doubleclick - callback. Kept on the plugin because the frozen
+   * `autoRowSize.spec.js` calls it directly to close a double-click window between simulated clicks.
+   *
+   * @private
+   * @fires Hooks#beforeColumnResize
+   * @fires Hooks#afterColumnResize
+   */
+  afterMouseDownTimeout() {
+    this.#gesture.afterMouseDownTimeout();
+  }
+
+  /**
    * Callback to call on map's `init` local hook.
    *
    * @private
@@ -464,466 +396,6 @@ export class ManualColumnResize extends BasePlugin {
         });
       }, true);
     }
-  }
-
-  /**
-   * Set the resize handle position.
-   *
-   * @private
-   * @param {HTMLCellElement} TH TH HTML element.
-   */
-  setupHandlePosition(TH: HTMLTableHeaderCellElement) {
-    if (shouldSkipResizeHandlePositioning(TH, this.#dblclick)) {
-      return;
-    }
-
-    this.#currentTH = TH;
-
-    const { _wt: wt } = this.hot.view;
-    const cellCoords = wt.wtTable.getCoords(this.#currentTH);
-
-    if (!cellCoords) {
-      return;
-    }
-
-    const col = cellCoords.col;
-
-    // Ignore column headers.
-    if (col === null || col < 0) {
-      return;
-    }
-
-    const headerHeight = outerHeight(this.#currentTH);
-    // Read "fixedColumnsStart" through the Walkontable as in that context, the fixed columns
-    // are modified (reduced by the number of hidden columns) by TableView module.
-    const fixedColumn = col < (wt.getSetting('fixedColumnsStart') as number);
-    let relativeHeaderPosition;
-
-    const coordRow = cellCoords.row ?? 0;
-    const coordCol = cellCoords.col ?? 0;
-
-    if (fixedColumn) {
-      relativeHeaderPosition = wt
-        .wtOverlays
-        .topInlineStartCornerOverlay
-        .getRelativeCellPosition(this.#currentTH, coordRow, coordCol);
-    }
-
-    // If the TH is not a child of the top-left overlay, recalculate using
-    // the top overlay - as this overlay contains the rest of the headers.
-    if (!relativeHeaderPosition) {
-      relativeHeaderPosition = wt
-        .wtOverlays
-        .topOverlay
-        .getRelativeCellPosition(this.#currentTH, coordRow, coordCol);
-    }
-
-    this.#currentCol = this.hot.columnIndexMapper.getVisualFromRenderableIndex(col);
-    this.#selectedCols = [];
-
-    const isFullColumnSelected = this.hot.selection.isSelectedByCorner() ||
-      this.hot.selection.isSelectedByColumnHeader();
-
-    if (this.hot.selection.isSelected() && isFullColumnSelected) {
-      const selectionRanges = this.hot.getSelectedRange() ?? [];
-      const seenColumns = new Set<number>();
-
-      arrayEach(selectionRanges, (selectionRange) => {
-        const fromColumn = (selectionRange as CellRange).getTopStartCorner().col;
-        const toColumn = (selectionRange as CellRange).getBottomEndCorner().col;
-
-        if (fromColumn === null || toColumn === null) {
-          return;
-        }
-
-        // Add every selected column for resize action.
-        rangeEach(fromColumn, toColumn, (columnIndex) => {
-          if (!seenColumns.has(columnIndex)) {
-            seenColumns.add(columnIndex);
-            this.#selectedCols.push(columnIndex);
-          }
-        });
-      });
-    }
-
-    if (this.#currentCol === null) {
-      return;
-    }
-
-    // Resizing element beyond the current selection (also when there is no selection).
-    if (!this.#selectedCols.includes(this.#currentCol)) {
-      this.#selectedCols = [this.#currentCol];
-    }
-
-    if (!relativeHeaderPosition) {
-      return;
-    }
-
-    this.#startOffset = relativeHeaderPosition.start - 6;
-    this.#startWidth = outerWidth(this.#currentTH);
-    this.#horizontalScaleFactor = getElementScaleFactor(this.#currentTH);
-
-    this.#handle.style.top = `${relativeHeaderPosition.top}px`;
-    this.#handle.style[this.inlineDir] = `${this.#startOffset + this.#startWidth}px`;
-
-    this.#handle.style.height = `${headerHeight}px`;
-    this.hot.rootElement.appendChild(this.#handle);
-  }
-
-  /**
-   * Refresh the resize handle position.
-   *
-   * @private
-   */
-  refreshHandlePosition() {
-    this.#handle.style[this.inlineDir] = `${(this.#startOffset ?? 0) + (this.#currentWidth ?? 0)}px`;
-  }
-
-  /**
-   * Sets the resize guide position.
-   *
-   * @private
-   */
-  setupGuidePosition() {
-    const handleHeight = outerHeight(this.#handle);
-    const handleBottomPosition = Number.parseInt(this.#handle.style.top, 10) + handleHeight;
-    const tableHeight = this.hot.view.getTableHeight();
-
-    addClass(this.#handle, 'active');
-    addClass(this.#guide, 'active');
-
-    this.#guide.style.top = `${handleBottomPosition}px`;
-    this.refreshGuidePosition();
-    this.#guide.style.height = `${tableHeight - handleHeight}px`;
-    this.hot.rootElement.appendChild(this.#guide);
-  }
-
-  /**
-   * Refresh the resize guide position.
-   *
-   * @private
-   */
-  refreshGuidePosition() {
-    this.#guide.style[this.inlineDir] = this.#handle.style[this.inlineDir];
-  }
-
-  /**
-   * Hides both the resize handle and resize guide.
-   *
-   * @private
-   */
-  hideHandleAndGuide() {
-    removeClass(this.#handle, 'active');
-    removeClass(this.#guide, 'active');
-  }
-
-  /**
-   * Detaches the resize handle and the resize guide from the root element and clears their active
-   * state. Shared by the context menu handler, `disablePlugin()` and `destroy()`, so a plugin that
-   * is turned off leaves nothing of its own in the container.
-   *
-   * Both elements are detached with `remove()`, which is a no-op on an element that has no
-   * parent. The guide is attached only once a "mousedown" over the handle reaches
-   * `#onMouseDown`, so a context menu opened over a merely hovered handle reaches a guide that
-   * was never attached, and `removeChild` threw there (DEV-2708).
-   *
-   * The pressed flag is deliberately NOT reset here, and that is a trade rather than a safe
-   * default. `updatePlugin()` runs `disablePlugin(); enablePlugin();` on any `updateSettings()`
-   * carrying the plugin's own key, which is what a framework wrapper sends on every re-render -
-   * clearing the flag there would make the "mouseup" that ends an in-flight drag take the idle
-   * branch, so the drag would be dropped with no `afterColumnResize` and the dragged size never confirmed.
-   * That path is common, so it wins. The context menu handler resets the flag at its own call
-   * site, where aborting the drag is the point.
-   *
-   * Two consequences to know, neither introduced here. On a real disable - `manualColumnResize: false`
-   * rather than a re-init - `super.disablePlugin()` clears the events, so the "mouseup" never
-   * arrives and the flag stays latched true; after a later re-enable `#onMouseMove` then reads
-   * plain pointer movement as a drag and writes sizes from a stale start offset. And a drag in
-   * flight when the re-init fires loses both elements until its "mouseup" calls
-   * `setupHandlePosition()` again, because `enablePlugin()` does not re-attach them and
-   * `#onMouseOver` early-returns while the flag is set - the resize itself still lands, so that
-   * one is visual only. An `event.buttons === 0` check in `#onMouseMove` would close the latch,
-   * but the frozen Jasmine helpers simulate "mousemove" without `buttons`, so it reds 41 of the
-   * 147 specs in the two plugin suites and belongs with a sweep of those instead.
-   */
-  #detachHandleAndGuide() {
-    this.hideHandleAndGuide();
-    this.#handle.remove();
-    this.#guide.remove();
-  }
-
-  /**
-   * Checks if provided element is considered a column header.
-   *
-   * @private
-   * @param {HTMLElement} element HTML element.
-   * @returns {boolean}
-   */
-  checkIfColumnHeader(element: HTMLElement) {
-    const thead = closest(element, ['THEAD'], this.hot.rootElement) as HTMLElement | null;
-    const { topOverlay, topInlineStartCornerOverlay } = this.hot.view._wt.wtOverlays;
-
-    return ([
-      topOverlay.clone!.wtTable.THEAD,
-      topInlineStartCornerOverlay.clone!.wtTable.THEAD,
-    ] as (HTMLElement | null)[]).includes(thead);
-  }
-
-  /**
-   * Gets the TH element from the provided element.
-   *
-   * @private
-   * @param {HTMLElement} element HTML element.
-   * @returns {HTMLElement}
-   */
-  getClosestTHParent(element: HTMLElement): HTMLElement | null {
-    if (element.tagName !== 'TABLE') {
-      if (element.tagName === 'TH') {
-        return element;
-      }
-
-      return this.getClosestTHParent(element.parentNode as HTMLElement);
-    }
-
-    return null;
-  }
-
-  /**
-   * 'mouseover' event callback - set the handle position.
-   *
-   * @param {MouseEvent} event The mouse event.
-   */
-  #onMouseOver(event: MouseEvent) {
-    // Workaround for #6926 - if the `event.target` is temporarily detached, we can skip this callback and wait for
-    // the next `onmouseover`.
-    if (isDetached(eventTargetEl(event)!)) {
-      return;
-    }
-
-    // A "mouseover" action is triggered right after executing "contextmenu" event. It should be ignored.
-    if (this.#isTriggeredByRMB === true) {
-      return;
-    }
-
-    if (this.checkIfColumnHeader(eventTargetEl(event)!)) {
-      const th = this.getClosestTHParent(eventTargetEl(event)!);
-
-      if (!th) {
-        return;
-      }
-
-      const colspan = th.getAttribute('colspan');
-
-      if (th && (colspan === null || colspan === '1')) {
-        if (!this.#pressed) {
-          this.setupHandlePosition(th as HTMLTableHeaderCellElement);
-        }
-      }
-    }
-  }
-
-  /**
-   * Auto-size row after doubleclick - callback.
-   *
-   * @private
-   * @fires Hooks#beforeColumnResize
-   * @fires Hooks#afterColumnResize
-   */
-  afterMouseDownTimeout() {
-    // A double-click arms this through `hot._registerTimeout`, which is only cleared by
-    // `Core#destroy()` - so an `updateSettings({ manualColumnResize: false })` landing inside the
-    // 500ms window leaves it pending on a plugin that is already off. Everything below would then
-    // be wrong: it runs the resize hooks, writes through `setManualSize()` into a column widths map
-    // `disablePlugin()` has already unregistered, renders, and ends by appending the handle back
-    // into the container the teardown just cleaned. Reset the state the way a completed run does,
-    // so `#onMouseDown` can arm a fresh timer after a re-enable - it only does so while
-    // `#autoresizeTimeout` is null.
-    if (!this.enabled) {
-      this.#autoresizeTimeout = null;
-      this.#dblclick = 0;
-
-      return;
-    }
-
-    const shouldRefreshHandlePosition = shouldRefreshHandleAfterAutoResize(
-      this.#currentTH,
-      this.#dblclick,
-    );
-    const render = () => {
-      this.hot.render();
-    };
-    const resize = (column: number, forceRender?: boolean) => {
-      const hookNewSize = this.hot.runHooks('beforeColumnResize', this.#newSize, column, true);
-
-      if (hookNewSize === false) {
-        return;
-      }
-
-      if (typeof hookNewSize === 'number') {
-        this.#newSize = hookNewSize;
-      }
-
-      this.setManualSize(column, this.#newSize ?? 0); // double click sets by auto row size plugin
-
-      this.hot.runHooks('afterColumnResize', this.#newSize, column, true);
-
-      if (forceRender) {
-        render();
-      }
-    };
-
-    if (this.#dblclick >= 2) {
-      const selectedColsLength = this.#selectedCols.length;
-
-      if (selectedColsLength > 1) {
-        arrayEach(this.#selectedCols, (selectedCol) => {
-          resize(selectedCol);
-        });
-        render();
-      } else {
-        arrayEach(this.#selectedCols, (selectedCol) => {
-          resize(selectedCol, true);
-        });
-      }
-    }
-    this.#autoresizeTimeout = null;
-    this.#dblclick = 0;
-
-    if (shouldRefreshHandlePosition && this.#currentTH) {
-      this.setupHandlePosition(this.#currentTH);
-    }
-  }
-
-  /**
-   * 'mousedown' event callback.
-   *
-   * @param {MouseEvent} event The mouse event.
-   */
-  #onMouseDown(event: MouseEvent) {
-    if (eventTargetEl(event)!.parentNode !== this.hot.rootElement) {
-      return;
-    }
-
-    if (hasClass(eventTargetEl(event)!, 'manualColumnResizer') && this.#currentTH) {
-      this.setupHandlePosition(this.#currentTH);
-      this.setupGuidePosition();
-      this.#pressed = true;
-
-      if (this.#autoresizeTimeout === null) {
-        this.#autoresizeTimeout = this.hot._registerTimeout(() => this.afterMouseDownTimeout(), 500);
-      }
-      this.#dblclick += 1;
-
-      this.startX = event.pageX;
-      this.#newSize = this.#startWidth;
-    }
-  }
-
-  /**
-   * 'mousemove' event callback - refresh the handle and guide positions, cache the new column width.
-   *
-   * @param {MouseEvent} event The mouse event.
-   */
-  #onMouseMove(event: MouseEvent) {
-    if (this.#pressed) {
-      const visualChange = (event.pageX - this.startX) * this.hot.getDirectionFactor();
-      const change = normalizeVisualDelta(visualChange, this.#horizontalScaleFactor);
-
-      this.#currentWidth = (this.#startWidth ?? 0) + change;
-
-      arrayEach(this.#selectedCols, (selectedCol) => {
-        this.#newSize = this.setManualSize(selectedCol, this.#currentWidth ?? 0);
-      });
-
-      this.refreshHandlePosition();
-      this.refreshGuidePosition();
-    }
-  }
-
-  /**
-   * 'mouseup' event callback - apply the column resizing.
-   *
-   * @fires Hooks#beforeColumnResize
-   * @fires Hooks#afterColumnResize
-   */
-  #onMouseUp() {
-    const render = () => {
-      this.hot.render();
-    };
-    const resize = (column: number, forceRender?: boolean) => {
-      const hookNewSize = this.hot.runHooks('beforeColumnResize', this.#newSize, column, false);
-
-      if (hookNewSize === false) {
-        this.setManualSize(column, this.#startWidth ?? 0);
-        this.#newSize = this.#startWidth;
-      } else if (typeof hookNewSize === 'number') {
-        this.#newSize = hookNewSize;
-        this.setManualSize(column, this.#newSize);
-      }
-
-      if (forceRender) {
-        render();
-      }
-
-      if (hookNewSize !== false) {
-        this.hot.runHooks('afterColumnResize', this.#newSize, column, false);
-      }
-    };
-
-    if (this.#pressed) {
-      this.hideHandleAndGuide();
-      this.#pressed = false;
-
-      if (this.#newSize !== this.#startWidth) {
-        const selectedColsLength = this.#selectedCols.length;
-
-        if (selectedColsLength > 1) {
-          arrayEach(this.#selectedCols, (selectedCol) => {
-            resize(selectedCol);
-          });
-          render();
-        } else {
-          arrayEach(this.#selectedCols, (selectedCol) => {
-            resize(selectedCol, true);
-          });
-        }
-      }
-
-      if (this.#currentTH) {
-        this.setupHandlePosition(this.#currentTH);
-      }
-    }
-  }
-
-  /**
-   * Callback for "contextmenu" event triggered on element showing move handle. It removes handle and guide elements.
-   */
-  #onContextMenu() {
-    this.#detachHandleAndGuide();
-
-    this.#pressed = false;
-    this.#isTriggeredByRMB = true;
-
-    // There is thrown "mouseover" event right after opening a context menu. This flag inform that handle
-    // shouldn't be drawn just after removing it.
-    (this.hot as Record<string, (cb: () => void) => void>)._registerMicrotask(() => {
-      this.#isTriggeredByRMB = false;
-    });
-  }
-
-  /**
-   * Binds the mouse events.
-   *
-   * @private
-   */
-  bindEvents() {
-    const { rootWindow, rootElement } = this.hot;
-
-    this.eventManager.addEventListener(rootElement, 'mouseover', (e: MouseEvent) => this.#onMouseOver(e));
-    this.eventManager.addEventListener(rootElement, 'mousedown', (e: MouseEvent) => this.#onMouseDown(e));
-    this.eventManager.addEventListener(rootWindow, 'mousemove', (e: MouseEvent) => this.#onMouseMove(e));
-    this.eventManager.addEventListener(rootWindow, 'mouseup', () => this.#onMouseUp());
-    this.eventManager.addEventListener(this.#handle, 'contextmenu', () => this.#onContextMenu());
   }
 
   /**
@@ -977,7 +449,7 @@ export class ManualColumnResize extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.#detachHandleAndGuide();
+    this.#gesture.detach();
     super.destroy();
   }
 }
