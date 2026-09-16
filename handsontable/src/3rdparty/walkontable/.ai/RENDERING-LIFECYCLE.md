@@ -179,8 +179,9 @@ order (order is load-bearing — see CONCERNS "Directional overscan invariants")
    `TableRenderer#isRowRecyclingAllowed()` = scroll-driven AND `allowsRowRecycling()`, which is the
    stationary-bands predicate without the single-pass term, so merged grids recycle too): before the
    cell pass, the TR elements are rotated by the band's offset delta, so a row that stays in the band
-   keeps its TR and its TDs. Under the same gate `render/cells.ts` hands `shouldPaintCell` the stable
-   identity (the overlay name) next to the full band, and the host picks per cell (a merged block's
+   keeps its TR and its TDs. Wherever `allowsRowRecycling()` holds — on every draw, scroll-driven or
+   not, so consecutive draws' stamps stay comparable — `render/cells.ts` hands `shouldPaintCell` the
+   stable identity (the overlay name) next to the full band, and the host picks per cell (a merged block's
    cell keeps the full one), so a host in `renderMode: 'onChange'` paints only the rows that entered
    plus the merged blocks. See AGENTS.md, "Row recycling".
 

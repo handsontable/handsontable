@@ -3,7 +3,7 @@ import { awaitBundle } from '../bundle';
 
 export type IncrementalRenderScenario =
   'text' | 'always' | 'mixed' | 'frozen-merge' | 'formulas' | 'search' | 'cells-fn' | 'resize' | 'merge-height' | 'comments' |
-  'scroll' | 'frozen' | 'merge';
+  'scroll' | 'frozen' | 'merge' | 'mapping';
 
 /**
  * A merged block of the `merge` scenario, as the fixture declares it.
@@ -133,6 +133,30 @@ export class IncrementalRenderPage {
    */
   async paintedCells(): Promise<string[]> {
     return this.page.evaluate(() => (window as unknown as { htPaintedCells: () => string[] }).htPaintedCells());
+  }
+
+  /**
+   * Asserts that every rendered master cell shows the value of its own coordinates: no element holds
+   * a row it was recorded for under an earlier row mapping. Narrower than `expectEqualToFullRepaint`
+   * on purpose, for a draw that follows a mapping change with no render in between: a plugin's own
+   * per-cell state (HiddenRows' marker class) is filled from the meta memo the last host render left,
+   * and that memo clears on a host render only, so it waits for the render the plugin documents.
+   */
+  async expectCellsMatchData(): Promise<void> {
+    const mismatches = await this.read<string[]>(`(() => {
+      const out = [];
+      for (let row = hot.getFirstRenderedVisibleRow(); row <= hot.getLastRenderedVisibleRow(); row++) {
+        for (let col = 0; col < hot.countCols(); col++) {
+          const td = hot.getCell(row, col, true);
+          if (td && td.textContent !== String(hot.getDataAtCell(row, col))) {
+            out.push(row + ',' + col + ': ' + td.textContent);
+          }
+        }
+      }
+      return out;
+    })()`);
+
+    expect(mismatches).toEqual([]);
   }
 
   /**

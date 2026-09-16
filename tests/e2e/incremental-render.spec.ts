@@ -531,6 +531,20 @@ test.describe('renderMode: onChange, scrolling', () => {
     await grid.expectEqualToFullRepaint();
     await grid.scrollToRow(60);
     await grid.expectEqualToFullRepaint();
+
+    // A mapping change with NO render before the next scroll: the scroll draw is the first draw
+    // that sees the new mapping, so the band it recorded belongs to the old one. The targets sit
+    // past the rendered band, so the scroll draw re-renders instead of resolving as a fast draw.
+    // Every rendered cell must show its own row; the plugin's marker class on the rows after the
+    // hidden ones waits for the render the plugin documents (see `expectCellsMatchData`).
+    await grid.run('hot.getPlugin("hiddenRows").hideRows([64, 65]);');
+    await grid.scrollToRow(75);
+    await grid.expectCellsMatchData();
+    await grid.run('hot.getPlugin("hiddenRows").showRows([64, 65]);');
+    await grid.scrollToRow(50);
+    await grid.expectCellsMatchData();
+    await grid.run('hot.render();');
+    await grid.expectEqualToFullRepaint();
   });
 
   test('keeps the focus in the grid when the selected row leaves the band', async({ page, theme, bundle }) => {

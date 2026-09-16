@@ -151,6 +151,18 @@ class Renderer {
   }
 
   /**
+   * Records the host's render epoch this draw started from (see `TableRenderer#renderEpoch`).
+   *
+   * @param {number} epoch The `renderEpoch` setting at draw start.
+   * @returns {Renderer}
+   */
+  setRenderEpoch(epoch: number) {
+    this.renderer.setRenderEpoch(epoch);
+
+    return this;
+  }
+
+  /**
    * Sets whether the viewport allows row recycling on this draw.
    *
    * @param {boolean} allowed Whether row recycling is allowed.

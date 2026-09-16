@@ -776,12 +776,20 @@ depends on where the band starts or ends:
   repaints whenever the band moves or resizes. MergeCells needs that for a merged block's cells: it
   clamps the block's `rowspan`/`colspan` to the rendered band, so the cell's paint changes even though
   its coordinates did not. It marks the block's origin meta `spanned`, the covered cells resolve to
-  that meta, and `CellPainter#bandIdentity` keeps the full band for them. No other cell paint in the
-  tree reads the band: the remaining `getFirstRenderedVisibleRow` readers feed row heights
-  (`stylesHandler`, `autoRowSize`), meta eviction (`dynamicCellMeta`) and the selection layer
-  (`customBorders`).
+  that meta, and `CellPainter#bandIdentity` keeps the full band for them. The other
+  `getFirstRenderedVisibleRow` readers feed row heights (`stylesHandler`, `autoRowSize`), meta
+  eviction (`dynamicCellMeta`) and the selection layer (`customBorders`), not a cell's paint — with
+  one indirect exception: `mergeCells/renderer.ts` `getHeightNextToMergedBlock` runs in
+  `afterRenderer` for the cell RIGHT OF a block and, on Safari with no row headers and no row-height
+  setting, sums cell heights through `getRowHeight` → `modifyRowHeight` → `autoRowSize`, which adds
+  1px on the band's first rendered row. That neighbor cell carries no `spanned`, so it takes the
+  stable identity and keeps a sub-pixel height across a scroll. Narrow, known, accepted; do not read
+  the list above as a proof that no paint depends on the band.
 - **`stableBand`**, the overlay name alone where the rows recycle (`TableRenderer#hasStableCellIdentity()`,
-  from `Overlays#rowRecyclingAllowed`), `null` otherwise. A cell's own source coordinates then carry
+  from `Overlays#rowRecyclingAllowed`), `null` otherwise. It is offered on EVERY draw of such a table,
+  scroll-driven or not: the host compares a stamp with the one the previous draw wrote, so the identity
+  has to be the same kind on consecutive draws or a full draw after a scroll draw would repaint every
+  cell; only the rotation is scroll-driven. A cell's own source coordinates then carry
   its identity, so a band that grows or shrinks repaints only the cells it adds, and an element that
   kept its row across a scroll (next section) reads as unchanged.
 
@@ -793,6 +801,11 @@ call right there, so it is not stored. The two predicates differ by the single-p
 MergeCells opts out of single-pass layout for the height-versus-viewport circularity, and that must
 not switch the recycling off for the rest of the grid.
 
+A paint outside `'onChange'` drops the element's stamp (`CellPainter#paint`,
+`deleteCellPaintStamp`): a TD that painted row 11 under `'onChange'`, then row 60 under `'always'`
+(a column-level override), then rotated back to row 11 would otherwise rebuild the same stamp field
+for field, match, and keep showing row 60. Pinned in `core/incrementalRender/__tests__/cellPainter.unit.js`.
+
 ## Row recycling: a scroll keeps a row's TR
 
 `render/rows.ts` rotates the TR elements on a scroll-driven draw by the band's offset delta (one
@@ -802,7 +815,14 @@ elements the leaving rows freed. The DOM order stays the band order, so `TR.rowI
 order still say which row an element holds; what changed is that an element now follows its row
 across a scroll. Gated by `TableRenderer#isRowRecyclingAllowed()` = scroll-driven draw AND
 `Viewport#allowsRowRecycling()` (element-scrolled on both axes, single-pass layout NOT required, so a
-grid with merged cells recycles too). The host leaves a carried-over cell untouched
+grid with merged cells recycles too), on the master and the inline-start clone only
+(`recyclesRowsOnClone`, `table/drawCycle.ts`): the top and bottom clones and their corners hold the
+frozen rows, which never scroll, and the bottom clone's band offset moves in renderable space on a
+hide or trim, so they keep the stationary elements and the full band identity. The rotation also
+needs the host's `renderEpoch` unchanged since the previous render (`TableRenderer#renderEpoch`,
+recorded with the band): a renderable index names the same row only within one index-mapper state,
+so after a mapping change with no render in between the rows are rebuilt in place — the host repaints
+every cell then anyway. The host leaves a carried-over cell untouched
 (`renderMode: 'onChange'`) only when the cell took the stable identity above, which a merged block's
 cell never does. A `forceFullRender`
 (`hot.render()`) enters as `draw(false)` and never rotates: it rebuilds the band in place, and the
@@ -813,9 +833,12 @@ the new band's size scrolling up. It is also skipped when the band is empty, and
 not hold exactly the previous band (something else touched it). A focused cell in a leaving row is detached with its row for the
 duration of the move; Chromium blurs a removed element only at its next rendering step, by which
 time the row is back, and for an engine that blurs at once the renderer gives the element the focus
-back without scrolling, so the keyboard keeps reaching the grid either way. The restore keeps the
-focus WHERE it was, on an element about to show another row; it does not preserve what the element
-shows (a TD outlives the paint, an embedded control only if its renderer updates it in place, as on a
+back without scrolling, so the keyboard keeps reaching the grid either way. The restore runs after
+the row pass has settled the TBODY (`#restoreFocus`, after `orderView.end()`), so the `focusin` it
+fires sees every TR in place, and only while `document.hasFocus()`: `activeElement` stays set in a
+blurred iframe, and refocusing it would pull the focus into the frame. The restore keeps the focus
+WHERE it was, on an element about to show another row; it does not preserve what the element shows
+(a TD outlives the paint, an embedded control only if its renderer updates it in place, as on a
 stationary grid). Both reads cross shadow
 boundaries: the focused element comes from `getDeepActiveElement()` (inside a shadow root
 `document.activeElement` is the host), and "in the band" holds when the TBODY contains the element
@@ -838,10 +861,15 @@ now maps elsewhere repaints whatever its TR held. Core's `onIndexMapperCacheUpda
 depend on that; `tests/e2e/incremental-render.spec.ts` (the `mapping` scenario) interleaves
 scroll-driven draws with hiding, moving, and sorting rows and checks the tables equal a full repaint.
 
-It is a move, not an insertion or removal, so the stationary-DOM invariant (no structural mutation
-while scrolling, see the comment above `rows.render()` in `tableRenderer.ts`) holds: measured against
-a host document of 30,000 nodes and three `:has()` rules, style recalculation stayed flat. The row
-axis only; the column axis renders a contiguous band into stationary TDs as before.
+While the band size is unchanged it is a move, not an insertion or removal, so the stationary-DOM
+invariant (no structural mutation while scrolling, see the comment above `rows.render()` in
+`tableRenderer.ts`) holds; a band that grows while it moves up obtains fresh TRs for the front slots
+(above), which is the same growth `start()` would perform at the tail. Measured against a host
+document of 30,000 nodes and three `:has()` rules (one anchored on the host nodes), style recalculation
+stayed flat: 55 ms with the rows in place, 53 ms rotated, on an identical 2,702 ms of main-thread time;
+the worst frame went from 210 ms to 100 ms. No `performance-tests/` scenario carries a host-page
+`:has()` rule yet, so that number lives in the DEV-2892 research notes and the PR body, not in CI. The
+row axis only; the column axis renders a contiguous band into stationary TDs as before.
 
 What it buys, measured on the reporter's Angular grid (#13446, SVG-rich component cells, 65 rows by
 7 columns, one 1,000 px scroll): under `renderMode: 'onChange'` the official Angular renderer's worst

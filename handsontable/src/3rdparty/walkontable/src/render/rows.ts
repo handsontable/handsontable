@@ -54,6 +54,11 @@ export class RowsRenderer extends BaseRenderer {
    * @type {number}
    */
   #lastSize: number = 0;
+  /**
+   * The host's render epoch the previous render recorded with `#lastOffset` (see
+   * `TableRenderer#renderEpoch`).
+   */
+  #lastEpoch = 0;
 
   /**
    * Creates a new RowsRenderer instance.
@@ -100,8 +105,7 @@ export class RowsRenderer extends BaseRenderer {
     }
 
     const nextOffset = rowsToRender > 0 ? this.table.renderedRowToSource(0) : 0;
-
-    this.#recycleRows(nextOffset, rowsToRender);
+    const focusedElement = this.#recycleRows(nextOffset, rowsToRender);
 
     this.orderView
       .setSize(rowsToRender)
@@ -109,9 +113,11 @@ export class RowsRenderer extends BaseRenderer {
       .start();
 
     // Recorded right after the elements were rotated and the band was sized, so the record describes
-    // the TBODY from here on whatever a later pass does with it.
+    // the TBODY from here on whatever a later pass does with it. The epoch says which index-mapper
+    // state the offset belongs to.
     this.#lastOffset = nextOffset;
     this.#lastSize = rowsToRender;
+    this.#lastEpoch = this.table.renderEpoch;
 
     for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       this.orderView.render();
@@ -145,6 +151,28 @@ export class RowsRenderer extends BaseRenderer {
     }
 
     this.orderView.end();
+    this.#restoreFocus(focusedElement);
+  }
+
+  /**
+   * Gives the focus back to an element the rotation detached and re-attached, on an engine that
+   * blurred it on removal. Runs after the row pass has settled the TBODY, so the `focusin` this fires
+   * reaches its listeners with every TR in place; nothing in the tree renders or reads a cell element
+   * from a focus event, and an editor's input lives outside the TBODY, so it is never the element
+   * this refocuses.
+   *
+   * @param {HTMLElement|null} focusedElement The element `#recycleRows` found focused inside the band.
+   */
+  #restoreFocus(focusedElement: HTMLElement | null) {
+    if (focusedElement === null) {
+      return;
+    }
+
+    const rootDocument = (this.rootNode as HTMLElement).ownerDocument;
+
+    if (getDeepActiveElement(rootDocument) !== focusedElement) {
+      focusedElement.focus({ preventScroll: true });
+    }
   }
 
   /**
@@ -160,10 +188,13 @@ export class RowsRenderer extends BaseRenderer {
    *
    * @param {number} nextOffset The source row the first TR will hold on this draw.
    * @param {number} nextSize The number of rows this draw will render.
+   * @returns {HTMLElement|null} The focused element the move detached, for `#restoreFocus` to give the
+   *   focus back to once the band has settled; `null` when nothing was rotated or nothing was focused
+   *   inside the band.
    */
-  #recycleRows(nextOffset: number, nextSize: number) {
+  #recycleRows(nextOffset: number, nextSize: number): HTMLElement | null {
     if (!this.table.isRowRecyclingAllowed()) {
-      return;
+      return null;
     }
 
     const rootNode = this.rootNode as HTMLElement;
@@ -186,9 +217,14 @@ export class RowsRenderer extends BaseRenderer {
       // still keeps the rows past the shift (`start()` trims the rest).
       shift >= lastSize ||
       (delta < 0 && shift >= nextSize) ||
+      // The offsets are renderable indexes, and a renderable index names the same row only within one
+      // index-mapper state. A mapping change with no render in between (a hide, a trim, a move, a
+      // sort) advances the host's epoch; the delta then compares two different spaces and the rows
+      // are rebuilt in place instead. The host repaints every cell after such a change anyway.
+      this.table.renderEpoch !== this.#lastEpoch ||
       rootNode.childElementCount !== lastSize
     ) {
-      return;
+      return null;
     }
 
     const rootDocument = rootNode.ownerDocument;
@@ -203,8 +239,10 @@ export class RowsRenderer extends BaseRenderer {
     // `getDeepActiveElement`: inside a shadow root `document.activeElement` is the host, which the
     // TBODY never contains. The reverse holds for a control inside a web-component cell: `contains`
     // stops at the cell's shadow boundary, so the band holds the element when it holds the element
-    // itself or one of its shadow hosts.
-    const focusedElement = getDeepActiveElement(rootDocument);
+    // itself or one of its shadow hosts. `activeElement` stays set while the document does not hold
+    // the focus (a blurred iframe), and giving it the focus back would pull the focus into the frame,
+    // so the restore is only armed while the document has it.
+    const focusedElement = rootDocument.hasFocus() ? getDeepActiveElement(rootDocument) : null;
     const focusedInBand = focusedElement !== null && (
       rootNode.contains(focusedElement) ||
       getShadowHostChain(focusedElement).some(host => rootNode.contains(host))
@@ -234,12 +272,6 @@ export class RowsRenderer extends BaseRenderer {
       rootNode.insertBefore(fragment, rootNode.firstChild);
     }
 
-    // The restore fires `focusin` from inside the render pass, after the TBODY holds the whole band
-    // again. Nothing in the tree renders or reads a cell element from a focus event: the focus
-    // manager's listeners set a flag or switch the active scope (`hot.listen()`), and an editor's
-    // input lives outside the TBODY, so it is never the element this detaches.
-    if (focusedInBand && getDeepActiveElement(rootDocument) !== focusedElement) {
-      (focusedElement as HTMLElement).focus({ preventScroll: true });
-    }
+    return focusedInBand ? focusedElement as HTMLElement : null;
   }
 }

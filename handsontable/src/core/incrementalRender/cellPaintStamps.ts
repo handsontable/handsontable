@@ -42,6 +42,17 @@ export function writeCellPaintStamp(TD: HTMLTableCellElement, stamp: CellPaintSt
 }
 
 /**
+ * Forgets the stamp of an element that a paint outside `'onChange'` just overwrote. The stamp
+ * described content the element no longer holds, and a row rotation can bring that cell back to
+ * this element later; a stale stamp would then match and the element would keep the other cell.
+ *
+ * @param {HTMLTableCellElement} TD The cell element that was painted.
+ */
+export function deleteCellPaintStamp(TD: HTMLTableCellElement): void {
+  stamps.delete(TD);
+}
+
+/**
  * Tells whether two stamps describe the same paint. Values and renderers are compared by identity:
  * a value object mutated in place is deliberately not detected (see the `renderMode` option docs).
  *

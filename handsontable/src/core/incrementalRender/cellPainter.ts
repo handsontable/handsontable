@@ -2,7 +2,12 @@ import type { BaseRenderer } from '../../renderers/baseRenderer';
 import { formatCellValue, renderCell } from '../../renderers/renderCell';
 import type { CellProperties } from '../../settings';
 import type { HotInstance } from '../types';
-import { isSameCellPaint, readCellPaintStamp, writeCellPaintStamp } from './cellPaintStamps';
+import {
+  deleteCellPaintStamp,
+  isSameCellPaint,
+  readCellPaintStamp,
+  writeCellPaintStamp,
+} from './cellPaintStamps';
 import type { CellPaintStamp } from './cellPaintStamps';
 import { getCellRenderVersion, RENDER_MODE_ON_CHANGE } from './renderChangeTracker';
 import type { RenderChangeTracker } from './renderChangeTracker';
@@ -146,6 +151,12 @@ export class CellPainter {
 
     if (pending?.stamp) {
       writeCellPaintStamp(TD, pending.stamp);
+    } else {
+      // The element now shows a cell painted outside `'onChange'`, or a direct paint that came with
+      // no decision. A stamp left from an earlier `'onChange'` paint would describe content the
+      // element no longer holds, and a row rotation can bring that cell back to this element: the
+      // stale stamp would match and the element would keep showing the other cell.
+      deleteCellPaintStamp(TD);
     }
   }
 

@@ -363,12 +363,34 @@ export class TableRenderer {
   }
 
   /**
+   * The host's `renderEpoch` setting as this draw started (`DrawContext#renderEpochAtDrawStart`). The
+   * rows renderer records it with the band it rendered: a renderable row index means the same row
+   * only within one index-mapper state, so a rotation between two draws is sound only while the
+   * epoch did not move in between.
+   *
+   * @type {number}
+   */
+  renderEpoch: number = 0;
+
+  /**
+   * Records the host's render epoch this draw started from.
+   *
+   * @param {number} epoch The `renderEpoch` setting at draw start.
+   */
+  setRenderEpoch(epoch: number) {
+    this.renderEpoch = epoch;
+  }
+
+  /**
    * Whether the cells renderer may offer the host a stable paint identity for a cell: the overlay name
-   * alone instead of the band's offsets and sizes (see `CellsRenderer#render`). `true` exactly where
-   * the rows recycle, so an element that kept its row across a scroll can read as unchanged. The host
-   * still decides per cell, because it knows which cells paint something that depends on where the
-   * band starts or ends: MergeCells clamps a merged block's span to the rendered band, and the block's
-   * cells keep the full identity.
+   * alone instead of the band's offsets and sizes (see `CellsRenderer#render`). `true` for every draw
+   * of a table whose rows recycle, scroll-driven or not: the host compares a cell's stamp against the
+   * one the previous draw wrote, so the identity has to be the same kind on consecutive draws, or a
+   * full draw after a scroll draw would read every cell as changed. The rotation itself is what only
+   * a scroll-driven draw performs (`isRowRecyclingAllowed()`). The host still decides per cell,
+   * because it knows which cells paint something that depends on where the band starts or ends:
+   * MergeCells clamps a merged block's span to the rendered band, and the block's cells keep the
+   * full identity.
    *
    * @returns {boolean}
    */

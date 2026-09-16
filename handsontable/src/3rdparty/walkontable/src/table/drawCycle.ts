@@ -3,6 +3,7 @@ import RowFilter from '../filter/row';
 import {
   CLONE_BOTTOM,
   CLONE_BOTTOM_INLINE_START_CORNER,
+  CLONE_INLINE_START,
 } from '../overlay';
 import {
   adjustColumnHeaderHeights,
@@ -138,10 +139,12 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
   // other's band back and re-oscillate it. On top of that, both bands gain directional overscan
   // (`applyRenderedColumnsBandOverscan` / `applyRenderedRowsBandOverscan`) so consecutive scroll
   // steps land inside the rendered band and resolve as fast draws.
-  // Resolved once per draw, after `beforeDraw()` refreshed the axis owners, and shared with the render
-  // phase and the clones, so the row recycling and the cell identity the cells renderer offers the
-  // host read one answer. It is the stationary-bands predicate below without the single-pass term: a
-  // grid with merged cells keeps the measured layout and still recycles its rows.
+  // Resolved once per draw from the axis owners (`beforeDraw()` refreshes them on a full draw; a
+  // scroll-driven draw keeps the ones the last full draw resolved, like `allowsStationaryBands()`
+  // below) and shared with the render phase and the clones, so the row recycling and the cell identity
+  // the cells renderer offers the host read one answer. It is the stationary-bands predicate below
+  // without the single-pass term: a grid with merged cells keeps the measured layout and still
+  // recycles its rows.
   wtOverlays.rowRecyclingAllowed = wtViewport.allowsRowRecycling();
 
   ctx.runFastDraw = wtViewport.createCalculators(ctx.runFastDraw, {
@@ -331,7 +334,7 @@ function runCloneDrawCycle(table: Table, ctx: DrawContext): void {
       filters,
       isPureVerticalScrollDraw(cloneSourceOverlays),
       cloneSourceOverlays.isScrollDrivenDraw,
-      cloneSourceOverlays.rowRecyclingAllowed,
+      cloneSourceOverlays.rowRecyclingAllowed && recyclesRowsOnClone(table.name),
     );
 
     if (table.is(CLONE_BOTTOM)) {
@@ -456,6 +459,23 @@ function restoreRenderedStateIfSafe(
 }
 
 /**
+ * Whether an overlay clone takes part in the row recycling. Only the inline-start clone does: its
+ * rows are the master's rows, so a vertical scroll moves its band the same way. The top and bottom
+ * clones and their corners hold the frozen rows, which never scroll; the bottom clone's band offset
+ * still moves in renderable space when rows are hidden or trimmed, and a rotation there would be a
+ * move inside a band that never scrolls. Those clones keep the stationary elements and, with them,
+ * the full band identity for `shouldPaintCell`.
+ *
+ * Exported for unit tests only (`test/unit/table/drawCycle.unit.js`).
+ *
+ * @param {string} cloneName The clone's overlay name (`Table#name`).
+ * @returns {boolean}
+ */
+export function recyclesRowsOnClone(cloneName: string): boolean {
+  return cloneName === CLONE_INLINE_START;
+}
+
+/**
  * Returns `true` when this draw is a pure vertical scroll (only the vertical scroll position moved),
  * so the column window (and thus the THEAD) is unchanged. The scroll-direction flags live on the
  * master's overlays, so the master passes its own overlays and a clone passes its clone source's —
@@ -509,6 +529,7 @@ function renderCellBand(
   table.tableRenderer.setHeaderContentRenderers(ctx.rowHeaders, ctx.columnHeaders);
   table.tableRenderer.setScrollDrivenDraw(scrollDrivenDraw);
   table.tableRenderer.setRowRecyclingAllowed(rowRecyclingAllowed);
+  table.tableRenderer.setRenderEpoch(ctx.renderEpochAtDrawStart);
 
   if (table.is(CLONE_BOTTOM) ||
       table.is(CLONE_BOTTOM_INLINE_START_CORNER)) {

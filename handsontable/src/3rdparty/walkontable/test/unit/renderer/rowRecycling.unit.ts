@@ -4,7 +4,7 @@ import type { TableRenderer } from 'walkontable/render/tableRenderer';
 interface Fixture {
   renderer: RowsRenderer;
   rootNode: HTMLElement;
-  state: { offset: number; size: number; recyclable: boolean };
+  state: { offset: number; size: number; recyclable: boolean; renderEpoch: number };
   /**
    * Renders the band and stamps every TR with the source row the cell pass would paint into it.
    */
@@ -23,7 +23,7 @@ interface Fixture {
 function createFixture(): Fixture {
   const rootNode = document.createElement('tbody');
   const renderer = new RowsRenderer(rootNode);
-  const state = { offset: 0, size: 0, recyclable: false };
+  const state = { offset: 0, size: 0, recyclable: false, renderEpoch: 0 };
 
   renderer.setTable({
     rootDocument: document,
@@ -33,6 +33,9 @@ function createFixture(): Fixture {
     renderedRowToSource: (renderedRow: number) => state.offset + renderedRow,
     isAriaEnabled: () => false,
     isRowRecyclingAllowed: () => state.recyclable,
+    get renderEpoch() {
+      return state.renderEpoch;
+    },
   } as unknown as TableRenderer);
 
   const sources = () => Array.from(rootNode.children, tr => (tr as HTMLElement).dataset.source ?? '');
@@ -161,6 +164,7 @@ describe('RowsRenderer row recycling', () => {
     draw(0, 5, false);
 
     const trs = Array.from(rootNode.children);
+    const fragmentSpy = jest.spyOn(document, 'createDocumentFragment');
 
     state.offset = 2;
     state.recyclable = false;
@@ -168,6 +172,34 @@ describe('RowsRenderer row recycling', () => {
 
     expect(sources()).toEqual(['0', '1', '2', '3', '4']);
     expect(Array.from(rootNode.children)).toEqual(trs);
+    // Not "rotated by zero": the rows never went through the fragment.
+    expect(fragmentSpy).not.toHaveBeenCalled();
+  });
+
+  it('should not rotate when the render epoch moved since the previous draw', () => {
+    const { rootNode, draw, sources, state, renderer } = createFixture();
+
+    draw(0, 5, false);
+
+    const trs = Array.from(rootNode.children);
+    const fragmentSpy = jest.spyOn(document, 'createDocumentFragment');
+
+    // A row mapping change with no render in between: the offsets no longer name the same rows.
+    state.renderEpoch = 1;
+    state.offset = 2;
+    state.recyclable = true;
+    renderer.render();
+
+    expect(sources()).toEqual(['0', '1', '2', '3', '4']);
+    expect(Array.from(rootNode.children)).toEqual(trs);
+    expect(fragmentSpy).not.toHaveBeenCalled();
+
+    // The next scroll draw in the new epoch rotates again.
+    draw(2, 5, true);
+    state.offset = 4;
+    renderer.render();
+
+    expect(sources()).toEqual(['4', '5', '6', '2', '3']);
   });
 
   it('should not rotate when the band did not move', () => {
@@ -299,7 +331,7 @@ describe('RowsRenderer row recycling', () => {
     expect(Array.from(rootNode.children).slice(5)).toEqual(trs.slice(0, 17));
   });
 
-  it('should keep the focus on a cell whose row leaves the band', () => {
+  it('should give the focus back to a cell whose row leaves the band, on an engine that blurs a detached element', () => {
     const { rootNode, draw, state, renderer } = createFixture();
     const table = document.createElement('table');
 
@@ -317,13 +349,14 @@ describe('RowsRenderer row recycling', () => {
 
     const blurSpy = jest.spyOn(td, 'blur');
 
+    jest.spyOn(document, 'hasFocus').mockReturnValue(true);
     emulateEagerBlur();
     state.offset = 3;
     state.recyclable = true;
     renderer.render();
 
-    // Row 1 left the band: its TR wrapped to the end, the engine blurred the element on the way out,
-    // and the renderer gave it the focus back.
+    // Row 1 left the band: its TR wrapped to the end, the emulated engine blurred the element on the
+    // way out (the spy proves the emulation fired), and the renderer gave it the focus back.
     expect(blurSpy).toHaveBeenCalledTimes(1);
     expect(rootNode.children[3]).toBe(td.parentElement);
     expect(document.activeElement).toBe(td);
@@ -331,7 +364,35 @@ describe('RowsRenderer row recycling', () => {
     table.remove();
   });
 
-  it('should keep the focus on a control inside a shadow root of a cell whose row leaves the band', () => {
+  it('should leave the focus alone when the document does not hold it', () => {
+    const { rootNode, draw, state, renderer } = createFixture();
+    const table = document.createElement('table');
+
+    table.appendChild(rootNode);
+    document.body.appendChild(table);
+    draw(0, 5, false);
+
+    const td = document.createElement('td');
+
+    td.tabIndex = -1;
+    rootNode.children[1].appendChild(td);
+    td.focus();
+
+    // A blurred frame: `activeElement` still names the cell, but giving it the focus back would pull
+    // the focus into the frame.
+    jest.spyOn(document, 'hasFocus').mockReturnValue(false);
+    emulateEagerBlur();
+    state.offset = 3;
+    state.recyclable = true;
+    renderer.render();
+
+    expect(rootNode.children[3]).toBe(td.parentElement);
+    expect(document.activeElement).not.toBe(td);
+
+    table.remove();
+  });
+
+  it('should give the focus back to a control inside a shadow root of a cell whose row leaves the band, on an engine that blurs a detached element', () => {
     const { rootNode, draw, state, renderer } = createFixture();
     const table = document.createElement('table');
 
@@ -354,6 +415,7 @@ describe('RowsRenderer row recycling', () => {
 
     const blurSpy = jest.spyOn(input, 'blur');
 
+    jest.spyOn(document, 'hasFocus').mockReturnValue(true);
     emulateEagerBlur();
     state.offset = 3;
     state.recyclable = true;
@@ -385,6 +447,7 @@ describe('RowsRenderer row recycling', () => {
 
   it('should not rotate on the first draw', () => {
     const { rootNode, state, renderer } = createFixture();
+    const fragmentSpy = jest.spyOn(document, 'createDocumentFragment');
 
     state.offset = 7;
     state.size = 4;
@@ -392,6 +455,7 @@ describe('RowsRenderer row recycling', () => {
     renderer.render();
 
     expect(rootNode.children.length).toBe(4);
+    expect(fragmentSpy).not.toHaveBeenCalled();
   });
 
   it('should rotate by the previous band and then grow the band at the bottom', () => {
