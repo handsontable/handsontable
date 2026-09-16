@@ -7,7 +7,7 @@ import { ResizeGesture } from '../../utils/manualResize/resizeGesture';
 import {
   COLUMN_SIZE_OPTIONS,
   redeclaresManualSizes,
-} from './utils';
+} from '../../utils/manualResize/utils';
 
 export const PLUGIN_KEY = 'manualColumnResize';
 export const PLUGIN_PRIORITY = 130;

@@ -1,7 +1,7 @@
 # ManualColumnResize plugin — dragging a header edge to set a width
 
 The `manualColumnResize` plugin stores widths the user set by dragging the header's right edge. Read this
-before touching `manualColumnResize.ts` or `utils.ts`.
+before touching `manualColumnResize.ts`.
 
 **The drag itself is not in this plugin.** The handle, the guide, the press and double-click state and the
 resize hooks live in `../../utils/manualResize/resizeGesture.ts`, shared with `../manualRowResize/`, and the column

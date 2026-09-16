@@ -169,6 +169,47 @@ describe('ResizeGesture', () => {
       expect(owner.setManualSize.mock.calls).toEqual([[2, 25]]);
     });
 
+    it('should resize only the dragged index when the selection is not a whole-row selection', () => {
+      // The gate, not the range, is what limits this one: rows 1-3 DO contain the dragged row 2, so
+      // if `isSelectedByHeader` stopped being consulted the drag would resize all three.
+      const range = {
+        getTopStartCorner: () => ({ row: 1, col: 0 }),
+        getBottomEndCorner: () => ({ row: 3, col: 4 }),
+      };
+      const { th, owner, handle } = createGesture({
+        selectedRanges: [range],
+        axis: { isSelectedByHeader: () => false },
+      });
+
+      mouse('mouseover', th);
+      mouse('mousedown', handle(), { pageY: 0 });
+      mouse('mousemove', window, { pageY: 25 });
+
+      expect(owner.setManualSize.mock.calls).toEqual([[2, 25]]);
+    });
+
+    it('should resize an index once when two selection ranges overlap', () => {
+      // Rows 1-3 and 2-4 share rows 2 and 3. Without the `Set` those two get `setManualSize()` twice
+      // and their resize hooks fire twice.
+      const ranges = [
+        {
+          getTopStartCorner: () => ({ row: 1, col: 0 }),
+          getBottomEndCorner: () => ({ row: 3, col: 4 }),
+        },
+        {
+          getTopStartCorner: () => ({ row: 2, col: 0 }),
+          getBottomEndCorner: () => ({ row: 4, col: 4 }),
+        },
+      ];
+      const { th, owner, handle } = createGesture({ selectedRanges: ranges });
+
+      mouse('mouseover', th);
+      mouse('mousedown', handle(), { pageY: 0 });
+      mouse('mousemove', window, { pageY: 25 });
+
+      expect(owner.setManualSize.mock.calls).toEqual([[1, 25], [2, 25], [3, 25], [4, 25]]);
+    });
+
     it('should do nothing on a mouseup that ends no drag', () => {
       const { hot, th } = createGesture();
 
