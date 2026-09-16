@@ -838,6 +838,108 @@ test('falls back to last_touched_at when the file has no named versions (rule 18
   });
 });
 
+test('a rejected versions call never falls back to the metadata date (rule 18c)', async() => {
+  const worker = loadWorker();
+  // The two endpoints carry different scopes, so a credential granted only
+  // `file_metadata:read` answers 403 here and 200 there. Falling through would
+  // publish the last-touched date under the "last published" wording - the
+  // exact substitution this feature exists to avoid - and say nothing.
+  const env = figmaEnv({
+    '/meta': { file: { last_touched_at: '2026-09-11T10:00:00Z' } },
+  }, {
+    FIGMA_FETCH: async(url) => {
+      if (url.includes('/versions')) {
+        return new Response('{}', { status: 403 });
+      }
+
+      return new Response(
+        JSON.stringify({ file: { last_touched_at: '2026-09-11T10:00:00Z' } }),
+        { status: 200 },
+      );
+    },
+  });
+  const response = await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), env);
+
+  assert.deepEqual(await response.json(), { date: null, source: null, reason: 'figma-http-403' });
+});
+
+test('a failed metadata call reports its own status, not the versions one (rule 18c)', async() => {
+  const worker = loadWorker();
+  // `reason` exists to point an operator at the failing call. Reporting the
+  // versions status here names a 200 as the cause of a 403.
+  const env = figmaEnv({}, {
+    FIGMA_FETCH: async(url) => {
+      if (url.includes('/versions')) {
+        return new Response(
+          JSON.stringify({ versions: [{ id: '1', created_at: '2026-09-15T10:00:00Z', label: null }] }),
+          { status: 200 },
+        );
+      }
+
+      return new Response('{}', { status: 403 });
+    },
+  });
+  const response = await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), env);
+
+  assert.deepEqual(await response.json(), { date: null, source: null, reason: 'figma-http-403' });
+});
+
+test('a version with an unparseable date cannot win the sort (rule 18c)', async() => {
+  const worker = loadWorker();
+  // `Date.parse` returns NaN for a malformed value, and a comparator that
+  // returns NaN leaves the sort order unspecified - one bad entry is enough to
+  // publish the oldest named version as the newest.
+  const env = figmaEnv({
+    '/versions': {
+      versions: [
+        { id: '1', created_at: '2026-01-01T00:00:00Z', label: 'old' },
+        { id: '2', label: 'no date at all' },
+        { id: '3', created_at: 'not-a-date', label: 'malformed' },
+        { id: '4', created_at: '2026-09-01T09:00:00Z', label: 'newest' },
+      ],
+    },
+  });
+  const response = await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), env);
+
+  assert.deepEqual(await response.json(), {
+    date: '2026-09-01T09:00:00Z',
+    source: 'named-version',
+  });
+});
+
+test('a 200 that is not JSON is reported as such, not as unreachable (rule 18c)', async() => {
+  const worker = loadWorker();
+  // A proxy error page, a maintenance notice or a challenge: Figma answered,
+  // so "unreachable" sends an operator to check connectivity that is fine.
+  const env = figmaEnv({}, {
+    FIGMA_FETCH: async() => new Response('<html>maintenance</html>', {
+      status: 200,
+      headers: { 'Content-Type': 'text/html' },
+    }),
+  });
+  const response = await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), env);
+
+  assert.deepEqual(await response.json(), { date: null, source: null, reason: 'figma-bad-json' });
+});
+
+test('an OAuth refresh answering with non-JSON is reported as such (rule 18c)', async() => {
+  const worker = loadWorker();
+  const env = oauthEnv({}, true);
+
+  env.FIGMA_FETCH = async() => new Response('<html>maintenance</html>', {
+    status: 200,
+    headers: { 'Content-Type': 'text/html' },
+  });
+
+  const response = await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), env);
+
+  assert.deepEqual(await response.json(), {
+    date: null,
+    source: null,
+    reason: 'oauth-refresh-bad-json',
+  });
+});
+
 test('does not call the metadata endpoint when a named version answered (rule 18c)', async() => {
   const worker = loadWorker();
   const env = figmaEnv({
@@ -918,7 +1020,7 @@ test('an unset file key short-circuits before any Figma call (rule 18c)', async(
 //
 // A personal access token is capped at 90 days by Figma, and a plan access
 // token needs an Organization/Enterprise plan this account does not have. So
-// OAuth is the only credential that keeps the date alive without a diarised
+// OAuth is the only credential that keeps the date alive without a diarized
 // rotation, and it must be preferred whenever it is configured.
 // ---------------------------------------------------------------------------
 
@@ -1149,10 +1251,23 @@ test('a cache-busting query string does not create a second entry (rule 18c)', a
   }
 });
 
-test('non-GET requests to the date endpoint fall through to assets (rule 18c)', async() => {
+test('HEAD answers like GET, so probes do not read the endpoint as dead (rule 18c)', async() => {
+  const worker = loadWorker();
+  // Link checkers, uptime probes and CDN preflights default to HEAD. Falling
+  // through to env.ASSETS would 404 a working endpoint.
+  const env = figmaEnv({
+    '/versions': { versions: [{ id: '1', created_at: '2026-09-01T09:00:00Z', label: 'v2.1' }] },
+  });
+  const response = await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH, undefined, 'HEAD'), env);
+
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('content-type'), 'application/json; charset=utf-8');
+});
+
+test('other methods on the date endpoint fall through to assets (rule 18c)', async() => {
   const worker = loadWorker();
 
-  for (const method of ['POST', 'HEAD']) {
+  for (const method of ['POST', 'PUT', 'DELETE']) {
     const env = figmaEnv({});
     const response = await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH, undefined, method), env);
 

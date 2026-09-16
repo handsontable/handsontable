@@ -858,6 +858,28 @@ function withSecurityHeaders(response) {
 const FIGMA_API_ORIGIN = 'https://api.figma.com';
 const DESIGN_SYSTEM_DATE_PATH = '/docs/api/design-system-updated.json';
 
+// Returned by `readJson()` instead of throwing, so a body that is not JSON is
+// reported as itself rather than as the route's catch-all "unreachable".
+const BAD_JSON = Symbol('bad-json');
+
+/**
+ * Parses a response body as JSON, or returns `BAD_JSON`.
+ *
+ * A 2xx carrying HTML - a proxy error page, a maintenance notice, a
+ * challenge - is a reachable Figma answering with something unusable, and
+ * saying "unreachable" sends an operator to check connectivity that is fine.
+ *
+ * @param {Response} response
+ * @returns {Promise<object|symbol>}
+ */
+async function readJson(response) {
+  try {
+    return await response.json();
+  } catch {
+    return BAD_JSON;
+  }
+}
+
 // One day. The design system changes a few times a year at most, so a longer
 // window would be defensible - a day just keeps the page from ever looking
 // stale by more than one, at a cost of one Figma call per edge location.
@@ -877,7 +899,7 @@ const DESIGN_SYSTEM_DATE_ERROR_MAX_AGE = 300;
 //
 // The Cache API survives deployments, and `*.pages.dev` cannot be purged from
 // the dashboard or the API - zone purge needs a zone you own, and this
-// hostname is Cloudflare's. `cache.delete()` only clears the one data centre
+// hostname is Cloudflare's. `cache.delete()` only clears the one data center
 // that ran it. So a version in the cache key is the only lever that drops a
 // bad entry everywhere without waiting out its TTL.
 //
@@ -923,7 +945,7 @@ function designSystemDateResponse(body) {
  * on. Either would make the date silently disappear on a timer. An OAuth
  * refresh token has no such cap and can be exchanged for a fresh access token
  * as often as needed, so it is the only credential here that keeps working
- * without someone diarising a rotation.
+ * without someone diarizing a rotation.
  *
  * The personal-token path is kept because it is one secret instead of three,
  * which makes it the quick way to prove the endpoint works before setting the
@@ -960,7 +982,11 @@ async function figmaAuthHeaders(env, fetchImpl) {
       return { headers: null, reason: `oauth-refresh-http-${response.status}` };
     }
 
-    const payload = await response.json();
+    const payload = await readJson(response);
+
+    if (payload === BAD_JSON) {
+      return { headers: null, reason: 'oauth-refresh-bad-json' };
+    }
 
     // The refresh response carries no new refresh token - the same one is
     // reused - so there is nothing to persist here.
@@ -1014,7 +1040,7 @@ async function figmaAuthHeaders(env, fetchImpl) {
  * more visible than hide one line on one page.
  *
  * @param {object} env The worker environment.
- * @returns {Promise<{date: string|null, source: string|null}>}
+ * @returns {Promise<{date: string|null, source: string|null, reason?: string|null}>}
  */
 async function readDesignSystemDate(env) {
   const fileKey = env.FIGMA_FILE_KEY;
@@ -1037,41 +1063,59 @@ async function readDesignSystemDate(env) {
 
   const versionsResponse = await fetchImpl(`${FIGMA_API_ORIGIN}/v1/files/${file}/versions`, { headers });
 
-  if (versionsResponse.ok) {
-    const payload = await versionsResponse.json();
-    const newestNamed = (payload?.versions ?? [])
-      .filter(version => typeof version?.label === 'string' && version.label !== '')
-      .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at))[0];
-
-    if (newestNamed?.created_at) {
-      return { date: newestNamed.created_at, source: 'named-version' };
-    }
+  // A rejected versions call must NOT fall through to the metadata endpoint.
+  // The two carry different scopes, so a credential granted only
+  // `file_metadata:read` would answer 403 here, 200 there, and the page would
+  // quietly show the last-touched date under the "last published" wording -
+  // the exact substitution this whole function exists to avoid, and with no
+  // trace that the versions call was ever refused.
+  if (!versionsResponse.ok) {
+    return { date: null, source: null, reason: `figma-http-${versionsResponse.status}` };
   }
 
-  // No named versions at all - fall back to the cheap metadata endpoint.
+  const payload = await readJson(versionsResponse);
+
+  if (payload === BAD_JSON) {
+    return { date: null, source: null, reason: 'figma-bad-json' };
+  }
+
+  const newestNamed = (payload?.versions ?? [])
+    // `Number.isFinite` is not decoration: an entry with a missing or
+    // malformed `created_at` makes the comparator return NaN, which leaves the
+    // whole sort order unspecified - one bad entry from Figma is enough to
+    // publish the oldest named version as the newest.
+    .filter(version => typeof version?.label === 'string'
+      && version.label !== ''
+      && Number.isFinite(Date.parse(version.created_at)))
+    .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at))[0];
+
+  if (newestNamed) {
+    return { date: newestNamed.created_at, source: 'named-version' };
+  }
+
+  // The versions call succeeded and simply held no named version - the one
+  // case the metadata fallback is for.
   const metaResponse = await fetchImpl(`${FIGMA_API_ORIGIN}/v1/files/${file}/meta`, { headers });
 
-  if (metaResponse.ok) {
-    const meta = await metaResponse.json();
-
-    if (meta?.file?.last_touched_at) {
-      return { date: meta.file.last_touched_at, source: 'last-touched' };
-    }
+  if (!metaResponse.ok) {
+    return { date: null, source: null, reason: `figma-http-${metaResponse.status}` };
   }
 
-  // Both reads failed, or both answered without a date. The versions status is
-  // the more useful of the two: 403 means the credential lacks the scope or
-  // the file, 404 means the file key is wrong.
-  return {
-    date: null,
-    source: null,
-    reason: versionsResponse.ok && metaResponse.ok
-      ? 'figma-no-date'
-      : `figma-http-${versionsResponse.status}`,
-  };
+  const meta = await readJson(metaResponse);
+
+  if (meta === BAD_JSON) {
+    return { date: null, source: null, reason: 'figma-bad-json' };
+  }
+
+  if (meta?.file?.last_touched_at) {
+    return { date: meta.file.last_touched_at, source: 'last-touched' };
+  }
+
+  // Both calls answered, neither carried a date.
+  return { date: null, source: null, reason: 'figma-no-date' };
 }
 
-async function route(request, env) {
+async function route(request, env, ctx) {
     const url = new URL(request.url);
     const path = url.pathname;
 
@@ -1627,11 +1671,14 @@ async function route(request, env) {
     // anyway. Same-origin keeps it under `connect-src 'self'`, so serving it
     // from this worker needs no CSP change.
     //
-    // Answers GET only. Anything else falls through to env.ASSETS, which 404s
+    // Answers GET and HEAD. HEAD matters because link checkers, uptime probes
+    // and CDN preflights all default to it, and answering 404 there while GET
+    // answers 200 reports a working endpoint as dead. The runtime drops the
+    // body for a HEAD. Anything else falls through to env.ASSETS, which 404s
     // the path - there is no asset behind it.
     //
     // Serving content, so this must stay below rule 12a.
-    if (path === DESIGN_SYSTEM_DATE_PATH && request.method === 'GET') {
+    if (path === DESIGN_SYSTEM_DATE_PATH && (request.method === 'GET' || request.method === 'HEAD')) {
       const cache = typeof caches !== 'undefined' ? caches.default : null;
       // A key of our own rather than the incoming request: it carries the
       // version above, and it ignores any query string a caller adds, so a
@@ -1658,10 +1705,20 @@ async function route(request, env) {
 
       const response = designSystemDateResponse(body);
 
-      // Only ever store a real date. Storing a failure is what stranded the
-      // staging preview on a stale `null` after the secrets were fixed.
+      // Only ever store a real date. Storing a failure strands the page on a
+      // stale `null` long after the secret behind it was fixed.
       if (cacheKey && body.date !== null) {
-        await cache.put(cacheKey, response.clone());
+        const write = cache.put(cacheKey, response.clone());
+
+        // Hand the write to the runtime where possible: on a cache miss the
+        // reader has already waited for two Figma round trips, and the edge
+        // write adds nothing they need. `ctx` is absent in the tests, which
+        // call the worker with two arguments.
+        if (ctx?.waitUntil) {
+          ctx.waitUntil(write);
+        } else {
+          await write;
+        }
       }
 
       return response;
@@ -1672,7 +1729,9 @@ async function route(request, env) {
 }
 
 export default {
-  async fetch(request, env) {
-    return withSecurityHeaders(await route(request, env));
+  // `ctx` is only used by rule 18c, to hand its edge-cache write to
+  // `ctx.waitUntil` instead of making the reader wait for it.
+  async fetch(request, env, ctx) {
+    return withSecurityHeaders(await route(request, env, ctx));
   },
 };

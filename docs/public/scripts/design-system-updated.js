@@ -35,6 +35,11 @@
    * Formats an ISO timestamp as a long US date, or returns null if the date
    * did not parse.
    *
+   * Rendered in UTC, not the reader's zone. The timestamp is the moment a
+   * version was saved in Figma, and a version saved at 22:00 UTC would
+   * otherwise read as the next day in Warsaw and the same day in New York -
+   * two readers seeing two different publish dates for one event.
+   *
    * @param {string} iso
    * @returns {string|null}
    */
@@ -45,7 +50,12 @@
       return null;
     }
 
-    return parsed.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    return parsed.toLocaleDateString('en-US', {
+      timeZone: 'UTC',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
   }
 
   /**

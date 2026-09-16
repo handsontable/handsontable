@@ -43,7 +43,7 @@ function field({ withSlot = true } = {}) {
  * @param {Function} fetchImpl Stand-in for `window.fetch`.
  * @returns {Promise<{selectors: string[], fetched: string[]}>}
  */
-async function run(fields, fetchImpl) {
+async function run(fields, fetchImpl, extraGlobals = {}) {
   const selectors = [];
   const fetched = [];
   const window = {
@@ -67,7 +67,7 @@ async function run(fields, fetchImpl) {
     },
   };
 
-  vm.runInContext(scriptSource, vm.createContext({ window, document }));
+  vm.runInContext(scriptSource, vm.createContext({ window, document, ...extraGlobals }));
 
   // Let the fetch chain settle. Two turns cover the two chained `.then()`s.
   await new Promise(resolve => setImmediate(resolve));
@@ -96,17 +96,42 @@ test('writes the date into the slot and reveals the field', async() => {
   assert.equal(target.style.display, '', 'the field must be revealed');
 });
 
-test('keeps the content the page authored around the slot, such as a link', async() => {
+test('never writes the field itself, only the slot', async() => {
   // The changelog wraps "Design system" in a link to the design system page.
-  // Writing the field's whole textContent - what the first version did -
-  // would replace that link with plain text.
+  // Writing the field's own `textContent` or `innerHTML` would replace that
+  // link with plain text, so both are pinned: they stay `undefined` because
+  // the script never assigns them.
   const target = field();
-  const authored = target.content;
 
   await run([target], respondWith({ date: '2026-09-01T09:00:00Z', source: 'named-version' }));
 
-  assert.equal(target.content, authored);
-  assert.equal(target.textContent, undefined, 'the script must never write the field itself');
+  assert.equal(target.textContent, undefined, 'writing textContent would delete the link');
+  assert.equal(target.innerHTML, undefined, 'writing innerHTML would delete the link');
+  assert.equal(target.slot.textContent, 'last published: September 1, 2026');
+});
+
+test('formats the date in UTC, not the reader time zone', async() => {
+  // CI runs in UTC, where a missing `timeZone` option is invisible. So assert
+  // the option itself: without it, a version saved at 22:00 UTC reads as the
+  // next day in Warsaw and the same day in New York.
+  const seen = [];
+
+  class RecordingDate extends Date {
+    toLocaleDateString(locale, options) {
+      seen.push(options);
+
+      return super.toLocaleDateString(locale, options);
+    }
+  }
+
+  await run(
+    [field()],
+    respondWith({ date: '2026-08-20T22:00:00Z', source: 'named-version' }),
+    { Date: RecordingDate },
+  );
+
+  assert.equal(seen.length, 1);
+  assert.equal(seen[0].timeZone, 'UTC');
 });
 
 test('leaves a field without a date slot hidden', async() => {

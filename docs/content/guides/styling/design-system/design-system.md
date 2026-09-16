@@ -68,7 +68,7 @@ The design system is our primary reference when planning new features or redesig
 (rule 18c in docs/cloudflare/_worker.js). Starts hidden and is revealed only
 once a real date arrives, so the page is unchanged when the Figma credentials
 are unset or Figma is unreachable. -->
-<p data-design-system-updated style="display:none">Design system <span data-design-system-updated-date></span></p>
+<p data-design-system-updated style="display:none">Design system - <span data-design-system-updated-date></span></p>
 
 ## Known limitations
 
