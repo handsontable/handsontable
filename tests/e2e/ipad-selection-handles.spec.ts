@@ -106,6 +106,10 @@ test.describe('iPadOS selection range handles', () => {
     await grid.selectRange(1, 1, 1, 1);
     await grid.expectHandlesVisible();
 
+    // Fail closed if the move band covers the painted handle: the drag would then start a
+    // move (or miss both) instead of proving the handle itself ignores mouse.
+    expect(await grid.isBottomHandleHitAreaAtHandleCenter()).toBe(true);
+
     await grid.mouseDragBottomHandleBy(80, 80);
 
     await expect.poll(() => grid.selectedLast()).toEqual([1, 1, 1, 1]);
