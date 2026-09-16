@@ -205,9 +205,9 @@ export function evaluate({
       ...(reportUrl
         ? []
         : [
-          '> This run published no hosted report — normally a fork or Dependabot pull',
-          `> request, whose token cannot publish one — so the \`${artifact}\``,
-          '> artifact holds the images. A maintainer approves the deployment as above.',
+          '> This run published no hosted report — normally a fork or Dependabot pull request,',
+          `> whose token cannot publish one — so the \`${artifact}\` artifact holds the images.`,
+          '> A maintainer approves the deployment as above.',
           '',
         ]),
     ].join('\n'),
