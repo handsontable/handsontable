@@ -25,7 +25,7 @@ const hotSettings = ref<GridSettings>({
   columns: [
     { headerClassName: 'htRight' },
     { headerClassName: 'htLeft' },
-    {},
+    { type: 'numeric', numericFormat: { pattern: '0' } },
   ],
   licenseKey: 'non-commercial-and-evaluation',
 });

@@ -25,8 +25,8 @@ const hotSettings = ref<GridSettings>({
   columns: [
     { headerClassName: 'italic-text' },
     { headerClassName: 'bold-text italic-text' },
-    { headerClassName: 'htRight bold-text italic-text' },
-    {},
+    { headerClassName: 'htRight bold-text italic-text', type: 'numeric', numericFormat: { pattern: '0' } },
+    { type: 'numeric', numericFormat: { pattern: '0.0' } },
   ],
   licenseKey: 'non-commercial-and-evaluation',
 });

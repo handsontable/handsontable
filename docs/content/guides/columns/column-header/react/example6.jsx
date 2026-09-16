@@ -18,11 +18,11 @@ const ExampleComponent = () => {
       columns={[
         { title: 'Name' },
         { title: 'Symbol' },
-        { title: 'Atomic Number' },
-        { title: 'Atomic Mass (u)' },
-        { title: 'Known Isotopes' },
-        { title: 'Melting Point (°F)' },
-        { title: 'Boiling Point (°F)' },
+        { title: 'Atomic Number', type: 'numeric', numericFormat: { pattern: '0' } },
+        { title: 'Atomic Mass (u)', type: 'numeric', numericFormat: { pattern: '0.0' } },
+        { title: 'Known Isotopes', type: 'numeric', numericFormat: { pattern: '0' } },
+        { title: 'Melting Point (°F)', type: 'numeric', numericFormat: { pattern: '0.0' } },
+        { title: 'Boiling Point (°F)', type: 'numeric', numericFormat: { pattern: '0.0' } },
       ]}
       rowHeaders={true}
       height="auto"

@@ -18,6 +18,6 @@ const hot = new Handsontable(container, {
     height: 'auto',
     stretchH: 'all',
     headerClassName: 'htCenter',
-    columns: [{ headerClassName: 'htRight' }, { headerClassName: 'htLeft' }, {}],
+    columns: [{ headerClassName: 'htRight' }, { headerClassName: 'htLeft' }, { type: 'numeric', numericFormat: { pattern: '0' } }],
     licenseKey: 'non-commercial-and-evaluation',
 });

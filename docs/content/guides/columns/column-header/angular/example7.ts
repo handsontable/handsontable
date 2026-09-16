@@ -21,6 +21,15 @@ export class AppComponent {
 
   readonly hotSettings: GridSettings = {
     colHeaders: ['Name', 'Symbol', 'Atomic Number', 'Atomic Mass (u)', 'Known Isotopes', 'Melting Point (°F)', 'Boiling Point (°F)'],
+    columns: [
+      {},
+      {},
+      { type: 'numeric', numericFormat: { pattern: '0' } },
+      { type: 'numeric', numericFormat: { pattern: '0.0' } },
+      { type: 'numeric', numericFormat: { pattern: '0' } },
+      { type: 'numeric', numericFormat: { pattern: '0.0' } },
+      { type: 'numeric', numericFormat: { pattern: '0.0' } },
+    ],
     rowHeaders: true,
     // Wide enough that no label gets cut off by the header's ellipsis truncation.
     colWidths: [90, 90, 120, 130, 120, 155, 155],

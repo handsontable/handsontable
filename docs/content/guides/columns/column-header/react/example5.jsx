@@ -12,8 +12,8 @@ const ExampleComponent = () => {
         ]} colHeaders={['Name', 'Symbol', 'Atomic Number', 'Atomic Mass (u)']} rowHeaders={true} autoWrapRow={true} autoWrapCol={true} height="auto" stretchH="all" headerClassName="htLeft" licenseKey="non-commercial-and-evaluation">
       <HotColumn headerClassName="italic-text"/>
       <HotColumn headerClassName="bold-text italic-text"/>
-      <HotColumn headerClassName="htRight bold-text italic-text"/>
-      <HotColumn />
+      <HotColumn headerClassName="htRight bold-text italic-text" type="numeric" numericFormat={{ pattern: '0' }}/>
+      <HotColumn type="numeric" numericFormat={{ pattern: '0.0' }}/>
     </HotTable>);
 };
 export default ExampleComponent;

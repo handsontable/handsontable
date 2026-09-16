@@ -15,6 +15,15 @@ const ExampleComponent = () => {
         ['Boron', 'B', 5, 10.81, 11, 3768.8, 7100.6],
       ]}
       colHeaders={true}
+      columns={[
+        {},
+        {},
+        { type: 'numeric', numericFormat: { pattern: '0' } },
+        { type: 'numeric', numericFormat: { pattern: '0.0' } },
+        { type: 'numeric', numericFormat: { pattern: '0' } },
+        { type: 'numeric', numericFormat: { pattern: '0.0' } },
+        { type: 'numeric', numericFormat: { pattern: '0.0' } },
+      ]}
       rowHeaders={true}
       height="auto"
       autoWrapRow={true}

@@ -12,7 +12,7 @@ const ExampleComponent = () => {
         ]} colHeaders={['Name', 'Symbol', 'Atomic Number']} rowHeaders={true} autoWrapRow={true} autoWrapCol={true} height="auto" stretchH="all" headerClassName="htCenter" licenseKey="non-commercial-and-evaluation">
       <HotColumn headerClassName="htRight"/>
       <HotColumn headerClassName="htLeft"/>
-      <HotColumn />
+      <HotColumn type="numeric" numericFormat={{ pattern: '0' }}/>
     </HotTable>);
 };
 export default ExampleComponent;

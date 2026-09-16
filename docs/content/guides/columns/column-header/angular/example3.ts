@@ -29,6 +29,15 @@ export class AppComponent {
     colHeaders: (index: number) => {
       return `${index + 1}. ${this.columnHeaders[index]}`;
     },
+    columns: [
+      {},
+      {},
+      { type: 'numeric', numericFormat: { pattern: '0' } },
+      { type: 'numeric', numericFormat: { pattern: '0.0' } },
+      { type: 'numeric', numericFormat: { pattern: '0' } },
+      { type: 'numeric', numericFormat: { pattern: '0.0' } },
+      { type: 'numeric', numericFormat: { pattern: '0.0' } },
+    ],
     rowHeaders: true,
     height: 'auto',
     autoWrapRow: true,
