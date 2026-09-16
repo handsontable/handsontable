@@ -1,15 +1,14 @@
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-
 // register Handsontable's modules
 registerAllModules();
 
 const data = [
-  ['SKU-4821', 'Bolt', 142],
-  ['SKU-0093', 'Stainless steel mounting bracket', 67],
-  ['SKU-1147', 'Washer', 210],
-  ['SKU-2205', 'Hex nut assortment pack', 38],
-  ['SKU-3310', 'Cable tie', 95],
+  ['H', 'Nonmetal', 1],
+  ['He', 'Noble gas', 2],
+  ['Li', 'Alkali metal', 3],
+  ['Be', 'Alkaline earth', 4],
+  ['B', 'Metalloid', 5],
 ];
 
 const ExampleComponent = () => {
@@ -18,7 +17,7 @@ const ExampleComponent = () => {
       data={data}
       width="100%"
       height="auto"
-      colHeaders={['SKU', 'Product', 'Stock']}
+      colHeaders={['Symbol', 'Group', 'Atomic Number']}
       rowHeaders={true}
       colWidths={[90, undefined, 60]}
       modifyColWidth={(width, column) => {
@@ -32,5 +31,4 @@ const ExampleComponent = () => {
     />
   );
 };
-
 export default ExampleComponent;
