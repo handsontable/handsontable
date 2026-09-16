@@ -17,6 +17,24 @@ const tester = (testerFunc: (a: string, b?: string) => boolean): TesterResult =>
   return result;
 };
 
+const MOBILE_BROWSER_UA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+
+/**
+ * Navigator-shaped input for the browser/platform helpers.
+ *
+ * When the whole argument is omitted, `userAgent` and `platform` use the
+ * {@link setBrowserMeta} / {@link setPlatformMeta} caches, and `maxTouchPoints`
+ * is read from the live `navigator`. When an object is passed, only the fields
+ * it provides are used: a missing `userAgent` or `platform` still uses the
+ * cache, and a missing `maxTouchPoints` is `0`. A custom navigator is never
+ * mixed with the process-wide cache for a field it actually provides.
+ */
+type NavigatorLike = {
+  userAgent?: string;
+  maxTouchPoints?: number;
+  platform?: string;
+};
+
 const browsers: Record<string, TesterResult> = {
   chrome: tester((ua, vendor) => /Chrome/.test(ua) && /Google/.test(vendor ?? '')),
   chromeWebKit: tester(ua => /CriOS/.test(ua)),
@@ -24,7 +42,7 @@ const browsers: Record<string, TesterResult> = {
   edgeWebKit: tester(ua => /EdgiOS/.test(ua)),
   firefox: tester(ua => /Firefox/.test(ua)),
   firefoxWebKit: tester(ua => /FxiOS/.test(ua)),
-  mobile: tester(ua => /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)),
+  mobile: tester(ua => MOBILE_BROWSER_UA.test(ua)),
   safari: tester((ua, vendor) => /Safari/.test(ua) && /Apple Computer/.test(vendor ?? '')),
   safariBefore261: tester((ua, vendor) => {
     if (!/Safari/.test(ua) || !/Apple Computer/.test(vendor ?? '')) {
@@ -122,9 +140,21 @@ export function isEdgeWebKit(): boolean {
 }
 
 /**
+ * Returns `true` when the user-agent matches a mobile device.
  *
+ * With no argument, uses the UA cached by {@link setBrowserMeta} at module load (or the last
+ * `setBrowserMeta` call). Passing `{ userAgent }` evaluates that string instead, so a custom
+ * navigator is not mixed with the process-wide cache.
+ *
+ * @param {object} [navigatorLike] Navigator-like object. Omit to use the cached UA.
+ * @param {string} [navigatorLike.userAgent] User-agent to test.
+ * @returns {boolean}
  */
-export function isMobileBrowser(): boolean {
+export function isMobileBrowser(navigatorLike?: NavigatorLike): boolean {
+  if (typeof navigatorLike?.userAgent === 'string') {
+    return MOBILE_BROWSER_UA.test(navigatorLike.userAgent);
+  }
+
   return browsers.mobile.value;
 }
 
@@ -136,10 +166,26 @@ export function isIOS(): boolean {
 }
 
 /**
+ * Returns `true` on iPadOS 13+, which reports a desktop Macintosh UA (`MacIntel` +
+ * `maxTouchPoints > 2`).
  *
+ * `maxTouchPoints` is read from the argument, or from the live `navigator` when omitted.
+ * `platform` is read from the argument when provided; otherwise it uses the value cached by
+ * {@link setPlatformMeta}. The no-arg path keeps that cache authoritative.
+ *
+ * @param {object} [navigatorLike] Navigator-like object. Omit for live `maxTouchPoints` and the
+ * cached platform.
+ * @param {number} [navigatorLike.maxTouchPoints] Maximum simultaneous touch points.
+ * @param {string} [navigatorLike.platform] Navigator platform string.
+ * @returns {boolean}
  */
-export function isIpadOS({ maxTouchPoints }: { maxTouchPoints?: number } = navigator): boolean {
-  return (maxTouchPoints ?? 0) > 2 && platforms.mac.value;
+export function isIpadOS(navigatorLike?: NavigatorLike): boolean {
+  const maxTouchPoints = (navigatorLike ?? navigator).maxTouchPoints ?? 0;
+  const isMac = typeof navigatorLike?.platform === 'string'
+    ? /^Mac/.test(navigatorLike.platform)
+    : platforms.mac.value;
+
+  return maxTouchPoints > 2 && isMac;
 }
 
 /**
@@ -149,14 +195,15 @@ export function isIpadOS({ maxTouchPoints }: { maxTouchPoints?: number } = navig
  * `isMobileBrowser()` so dual-listener devices still register both sets. Do not use
  * it to hide desktop mouse-driven affordances iPad should keep (`moveCells`).
  *
- * @param {object} [navigatorLike=navigator] Navigator-like object with `maxTouchPoints`.
+ * @param {object} [navigatorLike] Navigator-like object. Omit to use the cached UA, the live
+ * `maxTouchPoints`, and the cached platform.
+ * @param {string} [navigatorLike.userAgent] User-agent forwarded to {@link isMobileBrowser}.
  * @param {number} [navigatorLike.maxTouchPoints] Maximum simultaneous touch points.
+ * @param {string} [navigatorLike.platform] Navigator platform string.
  * @returns {boolean}
  */
-export function isMobileOrIpadOS(
-  navigatorLike: { maxTouchPoints?: number } = navigator
-): boolean {
-  return isMobileBrowser() || isIpadOS(navigatorLike);
+export function isMobileOrIpadOS(navigatorLike?: NavigatorLike): boolean {
+  return isMobileBrowser(navigatorLike) || isIpadOS(navigatorLike);
 }
 
 /**

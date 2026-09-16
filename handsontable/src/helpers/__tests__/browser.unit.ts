@@ -171,6 +171,40 @@ describe('Browser helper', () => {
 
       expect(isMobileBrowser()).toBeFalsy();
     });
+
+    describe('custom navigatorLike', () => {
+      const ANDROID_UA = 'Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 ' +
+        '(KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36';
+      const DESKTOP_CHROME_UA = 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 ' +
+        '(KHTML, like Gecko) Chrome/38.0.2125.111 Safari/537.36';
+
+      afterEach(() => {
+        setBrowserMeta();
+        setPlatformMeta();
+      });
+
+      it('should evaluate a passed userAgent instead of the cached UA', () => {
+        setBrowserMeta({ userAgent: DESKTOP_CHROME_UA });
+
+        expect(isMobileBrowser()).toBeFalsy();
+        expect(isMobileBrowser({ userAgent: ANDROID_UA })).toBeTruthy();
+
+        setBrowserMeta({ userAgent: ANDROID_UA });
+
+        expect(isMobileBrowser()).toBeTruthy();
+        expect(isMobileBrowser({ userAgent: DESKTOP_CHROME_UA })).toBeFalsy();
+      });
+
+      it('should keep using the cached UA when the argument has no userAgent', () => {
+        setBrowserMeta({ userAgent: DESKTOP_CHROME_UA });
+
+        expect(isMobileBrowser({ maxTouchPoints: 5 })).toBeFalsy();
+
+        setBrowserMeta({ userAgent: ANDROID_UA });
+
+        expect(isMobileBrowser({ maxTouchPoints: 5 })).toBeTruthy();
+      });
+    });
   });
 
   describe('isEdge', () => {
@@ -919,6 +953,17 @@ describe('Browser helper', () => {
 
       expect(isIpadOS(navigator)).toBeTruthy();
     });
+
+    it('should honor a passed platform instead of the cached one', () => {
+      setPlatformMeta({ platform: 'Win32' });
+
+      expect(isIpadOS({ maxTouchPoints: 5, platform: 'MacIntel' })).toBeTruthy();
+
+      setPlatformMeta({ platform: 'MacIntel' });
+
+      expect(isIpadOS({ maxTouchPoints: 5, platform: 'Win32' })).toBeFalsy();
+      expect(isIpadOS({ maxTouchPoints: 5 })).toBeTruthy();
+    });
   });
 
   describe('isMobileOrIpadOS', () => {
@@ -964,6 +1009,14 @@ describe('Browser helper', () => {
 
       expect(isMobileBrowser()).toBeTruthy();
       expect(isMobileOrIpadOS()).toBeTruthy();
+    });
+
+    it('should honor a passed userAgent on isMobileOrIpadOS instead of the cached UA', () => {
+      setBrowserMeta({ userAgent: IPAD_DESKTOP_SAFARI_UA });
+      setPlatformMeta({ platform: 'MacIntel' });
+
+      expect(isMobileOrIpadOS({ userAgent: ANDROID_UA })).toBeTruthy();
+      expect(isMobileOrIpadOS({ userAgent: IPAD_DESKTOP_SAFARI_UA, maxTouchPoints: 0 })).toBeFalsy();
     });
   });
 });
