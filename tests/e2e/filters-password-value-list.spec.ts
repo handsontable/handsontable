@@ -17,9 +17,6 @@ const PASSWORD_FIXTURE = 'filters-password-value-list.html';
  * `ab`, `secret`, `xyz`, so the listed labels are `**`, `******`, `***`.
  */
 test.describe('Filters — password Filter-by-value display', () => {
-  // Pin the browser locale so the numeric Amount list is `$10.00`, not a host-default currency.
-  test.use({ locale: 'en-US' });
-
   test('lists hashed password values, not the source plaintext', async({ page, theme, bundle }) => {
     const grid = new FiltersValueListPage(page, theme, bundle, PASSWORD_FIXTURE);
 
