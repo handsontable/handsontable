@@ -367,10 +367,14 @@ describe('Cells-related a11y configuration', () => {
         rowHeaders: true,
         colHeaders: true,
         nestedHeaders: [
-          ['Group', 'Group', 'Group', 'Group'],
+          [{ label: 'Group', colspan: 4 }],
           [{ label: 'AB', colspan: 2 }, 'C', 'D'],
         ],
       });
+
+      // Guard against the config silently degrading to plain headers (an overlapping nested config
+      // makes NestedHeaders clear its state): the leaf row must actually carry the colspan.
+      expect(getMaster().get(0).querySelector('thead tr:last-child th[colspan="2"]')).not.toBe(null);
 
       const cells = [...spec().$container.get(0).querySelectorAll('td[role="gridcell"]')];
 
