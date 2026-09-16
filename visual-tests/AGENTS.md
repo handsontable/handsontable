@@ -160,8 +160,11 @@ Seven things about this pipeline are worth knowing before changing it.
   over the same prefix and fixes the poisoned record anyway; if pushes have stopped, re-issue the dispatch.
   **When a baseline looks stale rather than poisoned, start at that workflow's last successful run**:
   `Visual seed` is not a required check, it is not in `test-health.yml`'s list, and since DEV-2797 it no
-  longer reds the `Develop` run, so a broken seed is quiet — GitHub notifies the pusher and nothing else
-  does. **The diagnostic is byte equality across pull requests:** if two unrelated pull requests fail on
+  longer reds the `Develop` run, so a broken seed is quiet in the pipeline itself. Two things announce it:
+  that workflow's `notify` job posts a failed seed to Slack when `SLACK_VISUAL_WEBHOOK_URL` is set (absent,
+  the step skips itself and nothing changes), and GitHub notifies whoever pushed. Only a *failed* seed
+  pings — a seed that succeeds with differences is the normal case, and `seed-report.mjs` already reports
+  those. **The diagnostic is byte equality across pull requests:** if two unrelated pull requests fail on
   the same item, `shasum -a 256` their `actual/<item>` from the two reports. Identical bytes mean the
   render is deterministic and the golden record is the odd one out — neither pull request is at fault, and
   approving one of them fixes nothing for the others. Confirmed on `columns-filter-2` under
