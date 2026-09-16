@@ -83,7 +83,7 @@ describe('ResizeGesture', () => {
 
   function createOwner() {
     return {
-      isEnabled: jest.fn(() => true),
+      isActive: jest.fn(() => true),
       setManualSize: jest.fn((_index, size) => size),
     };
   }
@@ -298,14 +298,14 @@ describe('ResizeGesture', () => {
 
       expect(hot._registerTimeout).toHaveBeenCalledTimes(1);
 
-      owner.isEnabled.mockReturnValue(false);
+      owner.isActive.mockReturnValue(false);
       timeouts[0]();
 
       expect(hot.runHooks).not.toHaveBeenCalled();
       expect(owner.setManualSize).not.toHaveBeenCalled();
 
       // The bail resets the window, so a press after a re-enable arms a fresh one.
-      owner.isEnabled.mockReturnValue(true);
+      owner.isActive.mockReturnValue(true);
       mouse('mouseover', th);
       mouse('mousedown', handle());
 

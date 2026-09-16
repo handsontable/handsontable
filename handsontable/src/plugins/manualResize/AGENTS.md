@@ -21,7 +21,7 @@ Each plugin owns its sizes: the index map, every public size accessor, `SETTING_
 row plugin also keeps `getLastDesiredRowHeight()`, and the column plugin keeps its stretching hooks.
 
 **The seam runs both ways.** Facts flow in through the axis descriptor. Calls flow out through the owner the
-plugin passes in: `isEnabled()` and `setManualSize()`. That second one is the plugin's **public**
+plugin passes in: `isActive()` and `setManualSize()`. That second one is the plugin's **public**
 `setManualSize` on purpose - the gesture never writes a size map itself, so the clamping rules (the 20px
 column floor, the theme's default row height) stay in one place.
 
@@ -96,12 +96,20 @@ header, the guide on `mousedown` over the handle. Four traps come with that, and
   drag. An `event.buttons === 0` check in `#onMouseMove` would close it, but the frozen Jasmine helpers
   simulate `mousemove` without `buttons`, so it reds 41 of the 147 specs across the two plugin suites - it
   needs a sweep of those helpers, not a drive-by.
+- **Build the gesture in the plugin constructor, never in `enablePlugin()`.** The rule above only holds
+  because a single `ResizeGesture` spans the whole `disablePlugin(); enablePlugin();` cycle, carrying
+  `#pressed`, `#startSize`, `#startOffset` and `#selectedIndexes` across it. Moving the `new ResizeGesture()`
+  into `enablePlugin()` reads as a lifecycle tidy-up and satisfies every sentence above, yet it hands the
+  `mouseup` that ends the drag a gesture whose `#pressed` is `false`. That is the idle branch again, and the
+  fourth trap is back. The spec that would catch it is
+  `../../../../tests/e2e/manual-resize-drag-interruption.spec.ts`, which drives that cycle mid-drag. The unit
+  suite does not: it builds the gesture directly and never goes through a plugin.
 
 **`afterMouseDownTimeout()` can outlive the plugin.** `#onMouseDown` arms it through `hot._registerTimeout`,
 which only `Core#destroy()` clears - `disablePlugin()` does not. So a disable inside the 500ms window leaves
 the callback pending on a plugin that is already off, where it would run the resize hooks, write into a size
 map that was already unregistered, and re-append the handle into the container the teardown just cleaned. It
-therefore opens with a bail on `owner.isEnabled()` that still resets the timeout and the click count, because
+therefore opens with a bail on `owner.isActive()` that still resets the timeout and the click count, because
 `#onMouseDown` only arms a fresh timer while no timer is pending.
 
 ## `afterMouseDownTimeout()` stays on both plugins

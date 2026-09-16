@@ -80,7 +80,7 @@ export class ManualRowResize extends BasePlugin {
     super(hotInstance);
 
     this.#gesture = new ResizeGesture(this.hot, ROW_RESIZE_AXIS, {
-      isEnabled: () => this.enabled,
+      isActive: () => this.enabled,
       setManualSize: (row, height) => this.setManualSize(row, height),
     });
   }

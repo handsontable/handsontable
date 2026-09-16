@@ -21,7 +21,7 @@ export type HeaderPosition = {
 /**
  * Everything the shared resize gesture needs to know about one axis.
  *
- * Only `orientation` decides the geometry - which CSS property moves, which one stays, what is
+ * Only `orientation` decides the geometry – which CSS property moves, which one stays, what is
  * measured, and which pointer coordinate is read. The remaining entries hold the parts that are
  * genuinely different between the two plugins rather than mirrored.
  */
@@ -136,7 +136,7 @@ export const ROW_RESIZE_AXIS: ResizeAxis = {
     }
 
     // If the TH is not a child of the top-left/bottom-left overlay, recalculate using
-    // the left overlay - as this overlay contains the rest of the headers.
+    // the left overlay – as this overlay contains the rest of the headers.
     if (!position) {
       position = wt.wtOverlays.inlineStartOverlay.getRelativeCellPosition(header, row, column);
     }
@@ -146,7 +146,7 @@ export const ROW_RESIZE_AXIS: ResizeAxis = {
 
   getHookSize(hot, row, newSize) {
     // A declared row height is a minimum, not a target, so a row renders taller than the dragged size
-    // when its content needs it - and the hooks report what renders.
+    // when its content needs it – and the hooks report what renders.
     // TODO: this should utilize `hot.getRowHeight` after it's fixed and working properly.
     const walkontableHeight = hot.view._wt.wtTable.getRowHeight(row);
 
@@ -211,7 +211,7 @@ export const COLUMN_RESIZE_AXIS: ResizeAxis = {
     }
 
     // If the TH is not a child of the top-left overlay, recalculate using
-    // the top overlay - as this overlay contains the rest of the headers.
+    // the top overlay – as this overlay contains the rest of the headers.
     if (!position) {
       position = wt.wtOverlays.topOverlay.getRelativeCellPosition(header, row, column);
     }

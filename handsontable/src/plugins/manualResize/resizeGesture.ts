@@ -30,9 +30,13 @@ type ResizeHookName = ResizeAxis['beforeResizeHook'] | ResizeAxis['afterResizeHo
  */
 export interface ResizeGestureOwner {
   /**
-   * Checks whether the owning plugin is enabled.
+   * Checks whether the owning plugin is currently switched on – the runtime flag that
+   * `disablePlugin()` clears. Deliberately not called `isEnabled()`: `BasePlugin#isEnabled()` asks a
+   * different question, whether the plugin option is truthy in the settings, and that stays true
+   * through the `disablePlugin(); enablePlugin();` cycle `updatePlugin()` runs. Wiring this to the
+   * settings answer would re-open the `afterMouseDownTimeout()` trap below.
    */
-  isEnabled(): boolean;
+  isActive(): boolean;
   /**
    * Stores a size for a visual index and returns the size actually stored.
    */
@@ -204,13 +208,13 @@ export class ResizeGesture {
    * confirmed. That path is common, so it wins. The context menu handler resets the flag at its own
    * call site, where aborting the drag is the point.
    *
-   * Two consequences to know, neither introduced here. On a real disable - the plugin option set to
-   * `false` rather than a re-init - `super.disablePlugin()` clears the events, so the "mouseup" never
+   * Two consequences to know, neither introduced here. On a real disable – the plugin option set to
+   * `false` rather than a re-init – `super.disablePlugin()` clears the events, so the "mouseup" never
    * arrives and the flag stays latched true; after a later re-enable `#onMouseMove` then reads
    * plain pointer movement as a drag and writes sizes from a stale start offset. And a drag in
    * flight when the re-init fires loses both elements until its "mouseup" positions the handle
    * again, because `enablePlugin()` does not re-attach them and `#onMouseOver` early-returns while
-   * the flag is set - the resize itself still lands, so that one is visual only. An
+   * the flag is set – the resize itself still lands, so that one is visual only. An
    * `event.buttons === 0` check in `#onMouseMove` would close the latch, but the frozen Jasmine
    * helpers simulate "mousemove" without `buttons`, so it reds 41 of the 147 specs in the two plugin
    * suites and belongs with a sweep of those instead.
@@ -231,13 +235,13 @@ export class ResizeGesture {
    */
   afterMouseDownTimeout() {
     // A double-click arms this through `hot._registerTimeout`, which is only cleared by
-    // `Core#destroy()` - so an `updateSettings()` turning the plugin off inside the 500ms window
+    // `Core#destroy()` – so an `updateSettings()` turning the plugin off inside the 500ms window
     // leaves it pending on a plugin that is already off. Everything below would then be wrong: it
     // runs the resize hooks, writes through `setManualSize()` into a size map `disablePlugin()` has
     // already unregistered, renders, and ends by appending the handle back into the container the
     // teardown just cleaned. Reset the state the way a completed run does, so `#onMouseDown` can arm
-    // a fresh timer after a re-enable - it only does so while `#autoresizeTimeout` is null.
-    if (!this.#owner.isEnabled()) {
+    // a fresh timer after a re-enable – it only does so while `#autoresizeTimeout` is null.
+    if (!this.#owner.isActive()) {
       this.#autoresizeTimeout = null;
       this.#dblclick = 0;
 
@@ -499,7 +503,7 @@ export class ResizeGesture {
   }
 
   /**
-   * Hides both the resize handle and the resize guide. It does not detach either of them - see
+   * Hides both the resize handle and the resize guide. It does not detach either of them – see
    * `detach()`, and do not move the detach in here: `#onMouseUp` calls this and then positions the
    * handle again, which early-returns on the second "mouseup" of a double-click, so a detach here
    * would leave the handle gone for the 500ms until `afterMouseDownTimeout()` restores it.
@@ -510,14 +514,14 @@ export class ResizeGesture {
   }
 
   /**
-   * "mouseover" listener - positions the handle over the hovered header.
+   * "mouseover" listener – positions the handle over the hovered header.
    *
    * @param {MouseEvent} event The mouse event.
    */
   #onMouseOver = (event: MouseEvent) => {
     const target = eventTargetEl(event)!;
 
-    // Workaround for #6926 - if the `event.target` is temporarily detached, we can skip this callback and wait for
+    // Workaround for #6926 – if the `event.target` is temporarily detached, we can skip this callback and wait for
     // the next `onmouseover`.
     if (isDetached(target)) {
       return;
@@ -540,7 +544,7 @@ export class ResizeGesture {
   };
 
   /**
-   * "mousedown" listener - starts a drag on the handle, and counts it towards a double-click.
+   * "mousedown" listener – starts a drag on the handle, and counts it towards a double-click.
    *
    * @param {MouseEvent} event The mouse event.
    */
@@ -567,7 +571,7 @@ export class ResizeGesture {
   };
 
   /**
-   * "mousemove" listener - stores the size the pointer describes and moves the handle and guide.
+   * "mousemove" listener – stores the size the pointer describes and moves the handle and guide.
    *
    * @param {MouseEvent} event The mouse event.
    */
@@ -592,7 +596,7 @@ export class ResizeGesture {
   };
 
   /**
-   * "mouseup" listener - ends a drag and confirms the size through the resize hooks.
+   * "mouseup" listener – ends a drag and confirms the size through the resize hooks.
    *
    * @fires Hooks#beforeRowResize
    * @fires Hooks#afterRowResize
@@ -647,7 +651,7 @@ export class ResizeGesture {
   };
 
   /**
-   * "contextmenu" listener on the handle - detaches the handle and guide and aborts any drag.
+   * "contextmenu" listener on the handle – detaches the handle and guide and aborts any drag.
    */
   #onContextMenu = () => {
     this.detach();

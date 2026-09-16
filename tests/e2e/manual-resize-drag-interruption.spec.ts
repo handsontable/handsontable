@@ -3,7 +3,7 @@ import { ManualResizeDragInterruptionPage } from '../fixtures/pages/ManualResize
 
 /**
  * DEV-2719, fourth trap. `updateSettings()` carrying a resize plugin's OWN key runs
- * `disablePlugin(); enablePlugin();` - which is what a framework wrapper sends on every re-render.
+ * `disablePlugin(); enablePlugin();` – which is what a framework wrapper sends on every re-render.
  * That cycle shares its teardown with the real disable path, so resetting the plugin's drag state
  * there looks like tidying up. It is not: the `mouseup` ending an in-flight drag then takes the
  * idle branch, and the drag is dropped with no `afterRowResize`/`afterColumnResize` and the size
@@ -12,14 +12,14 @@ import { ManualResizeDragInterruptionPage } from '../fixtures/pages/ManualResize
  * Nothing pinned that before this spec. `manual-resize-teardown.spec.ts` covers the other three
  * traps thoroughly, but every one of its tests completes or abandons the drag BEFORE it changes an
  * option, so the drag state is already idle by the time the update lands. And no spec in the
- * Playwright suite asserted either resize hook fires at all - they are pinned only in the frozen
+ * Playwright suite asserted either resize hook fires at all – they are pinned only in the frozen
  * Jasmine suite.
  *
- * These tests are GREEN on today's code. They are characterisation tests: they exist to go red if
+ * These tests are GREEN on today's code. They are characterization tests: they exist to go red if
  * the reset is ever moved into the shared teardown, which is the single most likely mistake when
  * the two plugins' duplicated gesture is collapsed into one module.
  *
- * Each case carries a positive control - the same drag without the interruption - because the
+ * Each case carries a positive control – the same drag without the interruption – because the
  * failure this spec watches for is a hook that does NOT fire, and an assertion that something is
  * absent passes just as happily when the recorder itself is broken.
  */
@@ -97,7 +97,7 @@ test.describe('Manual resize drag interrupted by updateSettings', () => {
 
   test('completes a row drag across an update that touches neither resize plugin', async () => {
     // Isolates the failure. If this one ever goes red alongside the re-statement case, the cause is
-    // `updateSettings()` or the render it triggers - not the plugin re-initialization the fourth
+    // `updateSettings()` or the render it triggers – not the plugin re-initialization the fourth
     // trap is about.
     const startHeight = await grid.renderedRowHeight(2);
 

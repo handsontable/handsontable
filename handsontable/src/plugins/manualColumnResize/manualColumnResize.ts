@@ -80,7 +80,7 @@ export class ManualColumnResize extends BasePlugin {
     super(hotInstance);
 
     this.#gesture = new ResizeGesture(this.hot, COLUMN_RESIZE_AXIS, {
-      isEnabled: () => this.enabled,
+      isActive: () => this.enabled,
       setManualSize: (column, width) => this.setManualSize(column, width),
     });
   }
