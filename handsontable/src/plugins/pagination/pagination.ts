@@ -260,13 +260,8 @@ export class Pagination extends BasePlugin {
     // (disabled → enabled) calls `enablePlugin()` before `updatePluginSettings()`,
     // so `#pluginSettings` is still stale. Core has already merged the new
     // `pagination` object onto `hot.getSettings()`.
-    if (declaredInitialPage !== undefined && declaredInitialPage !== this.#appliedInitialPage) {
-      if (typeof declaredInitialPage === 'number') {
-        this.#setCurrentPage(declaredInitialPage);
-      } else {
-        this.#currentPage = this.getSetting<number>('initialPage')!;
-      }
-
+    if (typeof declaredInitialPage === 'number' && declaredInitialPage !== this.#appliedInitialPage) {
+      this.#setCurrentPage(declaredInitialPage);
       this.#appliedInitialPage = declaredInitialPage;
     }
 
