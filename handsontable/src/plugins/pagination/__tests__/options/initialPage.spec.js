@@ -35,6 +35,55 @@ describe('Pagination `initialPage` option', () => {
     expect(countVisibleRows()).toBe(5);
   });
 
+  it('should apply `initialPage` when pagination is first enabled via `updateSettings`', async() => {
+    handsontable({
+      data: createSpreadsheetData(45, 10),
+      pagination: false,
+    });
+
+    await updateSettings({
+      pagination: {
+        initialPage: 5,
+        pageSize: 10,
+      },
+    });
+
+    const plugin = getPlugin('pagination');
+
+    expect(plugin.getPaginationData().currentPage).toBe(5);
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A41');
+  });
+
+  it('should apply `initialPage` again after a real disable and re-enable', async() => {
+    handsontable({
+      data: createSpreadsheetData(45, 10),
+      pagination: {
+        initialPage: 2,
+        pageSize: 10,
+      },
+    });
+
+    const plugin = getPlugin('pagination');
+
+    plugin.nextPage();
+
+    expect(plugin.getPaginationData().currentPage).toBe(3);
+
+    await updateSettings({
+      pagination: false,
+    });
+
+    await updateSettings({
+      pagination: {
+        initialPage: 2,
+        pageSize: 10,
+      },
+    });
+
+    expect(plugin.getPaginationData().currentPage).toBe(2);
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A11');
+  });
+
   it('should keep the current page when `updateSettings` repeats the same `initialPage` after navigation', async() => {
     handsontable({
       data: createSpreadsheetData(45, 10),

@@ -166,12 +166,20 @@ export class Pagination extends BasePlugin {
    *
    * Re-enabling with the same declared value (the React wrapper re-sends the full
    * `pagination` object on every render) must not reset the page after the user
-   * has navigated. Do not clear this in `disablePlugin()` – `updatePlugin()`
-   * always goes through disable then enable (DEV-1140).
+   * has navigated. Cleared on a real disable, kept across `updatePlugin()`
+   * (DEV-1140).
    *
    * @type {*}
    */
   #appliedInitialPage: unknown;
+  /**
+   * True while `updatePlugin()` is running its disable/enable cycle. Lets
+   * `disablePlugin()` keep `#appliedInitialPage` so a React re-render does not
+   * look like a fresh enable.
+   *
+   * @type {boolean}
+   */
+  #isUpdatingPlugin = false;
   /**
    * Page size setup by the user. It can be a number or 'auto' (in which case the plugin will
    * calculate the page size based on the viewport size and row heights).
@@ -248,8 +256,17 @@ export class Pagination extends BasePlugin {
     const settings = this.hot.getSettings()[PLUGIN_KEY];
     const declaredInitialPage = readDeclaredInitialPage(settings);
 
+    // Use the raw grid value, not `getSetting()`. `onUpdateSettings` branch 2
+    // (disabled → enabled) calls `enablePlugin()` before `updatePluginSettings()`,
+    // so `#pluginSettings` is still stale. Core has already merged the new
+    // `pagination` object onto `hot.getSettings()`.
     if (declaredInitialPage !== undefined && declaredInitialPage !== this.#appliedInitialPage) {
-      this.#currentPage = this.getSetting<number>('initialPage')!;
+      if (typeof declaredInitialPage === 'number') {
+        this.#setCurrentPage(declaredInitialPage);
+      } else {
+        this.#currentPage = this.getSetting<number>('initialPage')!;
+      }
+
       this.#appliedInitialPage = declaredInitialPage;
     }
 
@@ -422,8 +439,14 @@ export class Pagination extends BasePlugin {
    * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
-    this.disablePlugin();
-    this.enablePlugin();
+    this.#isUpdatingPlugin = true;
+
+    try {
+      this.disablePlugin();
+      this.enablePlugin();
+    } finally {
+      this.#isUpdatingPlugin = false;
+    }
 
     this.#refreshUI();
 
@@ -447,6 +470,10 @@ export class Pagination extends BasePlugin {
 
     this.#ui?.destroy();
     this.#ui = null;
+
+    if (!this.#isUpdatingPlugin) {
+      this.#appliedInitialPage = undefined;
+    }
 
     super.disablePlugin();
   }

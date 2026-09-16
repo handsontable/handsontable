@@ -35,11 +35,21 @@ settings object declared the key. `updatePlugin()` is always
 `disablePlugin(); enablePlugin()`, and the React wrapper re-sends the full
 `pagination` object on every render, so next/prev snapped back to `initialPage`.
 `#appliedInitialPage` records the last applied declared value; the same number
-on a later enable is a no-op. Do not reset that tracker in `disablePlugin()` —
-`updatePlugin` goes through disable. Changing `initialPage` to a different
-number via `updateSettings` still jumps, which `__tests__/options/initialPage.spec.js`
+on a later enable is a no-op. `updatePlugin()` sets `#isUpdatingPlugin` around
+its disable/enable cycle so the tracker survives that path. A real disable
+(`pagination: false`) clears the tracker, and the next enable applies
+`initialPage` again. Changing `initialPage` to a different number via
+`updateSettings` still jumps, which `__tests__/options/initialPage.spec.js`
 pins. To force the declared page after the user has navigated, call `setPage()`
 or `resetPage()`.
+
+Copy `#currentPage` from the raw `hot.getSettings().pagination.initialPage`, not
+from `getSetting('initialPage')`. `onUpdateSettings` branch 2 (disabled →
+enabled) calls `enablePlugin()` before `updatePluginSettings()`, so
+`#pluginSettings` still holds the previous value. Stamping the tracker from the
+new declared number while applying the stale `getSetting()` result would skip
+the later `updatePlugin()` pass and leave the wrong page. The grid settings
+object is already merged when `enablePlugin()` runs.
 
 ## `PLUGIN_PRIORITY = 900`, and the `init` hook is pinned early
 
