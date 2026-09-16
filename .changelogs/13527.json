@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed Filter-by-value listing plaintext source values in password columns.",
+  "type": "fixed",
+  "issueOrPR": 13527,
+  "breaking": false,
+  "framework": "none"
+}
