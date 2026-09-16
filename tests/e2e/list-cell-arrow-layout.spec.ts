@@ -55,9 +55,13 @@ CELL_TYPES.forEach((cellType) => {
 
       // The reserved padding widens the AutoColumnSize ghost sample (it renders the real
       // renderer), so an autosized column fits the value plus the arrow on one line.
+      // `content.height` alone is not enough: an unbreakable token already sits on one line
+      // when it overflows a too-narrow column (`overflow: hidden` on the cell). The value
+      // ending before the arrow is what proves the column grew to include the arrow slot.
       expect(content!.height).toBeLessThanOrEqual(lineHeight + 1);
       expect(arrow!.top).toBeLessThan(cell.top + paddingTop + lineHeight);
       expect(arrow!.left).toBeGreaterThanOrEqual(contentBoxRight - 1);
+      expect(content!.right).toBeLessThanOrEqual(arrow!.left + 1);
     });
 
     test('still wraps a breakable value when wordWrap is left at its default', async() => {
