@@ -455,6 +455,31 @@ test('the comparison scripts run the tiered pipeline', () => {
   assert.match(compare, /sync-expected/);
   assert.match(compare, /'compare'/);
   assert.match(compare, /'publish'/);
+
+  // ORDER, not just presence. The sequence is the whole change: a prune moved
+  // after `regSuit('compare')`, or a publish hoisted above it, leaves every
+  // assertion above green while restoring the phantom deletions the prune exists
+  // to remove — the expected tree would be trimmed after the comparison had
+  // already read it. Indexes of the call sites, so a reorder fails here.
+  const callAt = (needle) => {
+    const at = compare.indexOf(needle);
+
+    assert.notEqual(at, -1, `compare.mjs no longer contains ${needle}`);
+
+    return at;
+  };
+  const syncAt = callAt("regSuit('sync-expected')");
+  const pruneAt = callAt('pruneExpected(');
+  const compareAt = callAt("regSuit('compare')");
+  const publishAt = callAt("regSuit('publish')");
+
+  assert.ok(syncAt < pruneAt,
+    'the expected tree must be fetched before it is pruned, or the prune finds nothing');
+  assert.ok(pruneAt < compareAt,
+    'the prune must run before the comparison, or the subset render is compared against the full '
+      + 'baseline and reports ~1178 phantom deletions');
+  assert.ok(compareAt < publishAt,
+    'the comparison must run before the publish, or the report published describes nothing');
   assert.doesNotMatch(compare, /'reg-suit',\s*'run'|reg-suit run/,
     'a bare `reg-suit run` fetches, compares and publishes in one go, leaving nowhere to prune the expected tree');
   assert.match(compare, /import \{[^}]*\bpruneExpected\b[^}]*\} from '[^']*visual-tiers\.mjs'/);

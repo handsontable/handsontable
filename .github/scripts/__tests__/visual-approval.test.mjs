@@ -133,8 +133,10 @@ test('nothing lets the verdict go missing while compare stays green', () => {
 
   // Scoped to the verdict step rather than the whole job. The seed's out-of-tier
   // comment step carries `continue-on-error` on purpose — a failed comment must
-  // never keep a seed from landing — and it runs after the gate, on push events
-  // only, so it cannot affect whether a `changed` verdict reached the outputs.
+  // never keep a seed from landing. What makes that safe is EVENT separation, not
+  // step order: that step is `github.event_name == 'push'` and the verdict step is
+  // `github.event_name == 'pull_request'`, so the two never run in the same job.
+  // (It also sits earlier in the file than the verdict step, not later.)
   const fromVerdict = compare.slice(compare.indexOf('- name: Visual verdict'));
   const verdictStep = fromVerdict.slice(0, fromVerdict.indexOf('- name:', 10));
 
