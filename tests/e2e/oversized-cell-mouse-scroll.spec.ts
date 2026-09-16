@@ -42,4 +42,52 @@ test.describe('oversized cell mouse scroll', () => {
 
     await expect.poll(async () => (await grid.holderScroll()).top).toBeLessThan(clippedTop / 2);
   });
+
+  test('last-partial row skip stays when only the column is oversized', async () => {
+    await grid.goto('oversized-col');
+    await grid.scrollUntilCellStartClipped(200, 0, 0, 0);
+
+    const lastPartialRow = await grid.lastPartiallyVisibleRow();
+    const before = await grid.holderScroll();
+
+    expect(lastPartialRow).toBeGreaterThan(0);
+    expect(before.left).toBeGreaterThan(0);
+
+    await grid.clickVisiblePart(lastPartialRow, 0);
+
+    await expect.poll(async () => (await grid.holderScroll()).left).toBeLessThan(before.left / 2);
+    await expect.poll(async () => (await grid.holderScroll()).top).toBe(before.top);
+  });
+
+  test('last-partial column skip stays when only the row is oversized', async () => {
+    await grid.goto('oversized-row');
+    await grid.scrollUntilCellStartClipped(0, 150, 0, 0);
+
+    const lastPartialCol = await grid.lastPartiallyVisibleColumn();
+    const before = await grid.holderScroll();
+
+    expect(lastPartialCol).toBeGreaterThan(0);
+    expect(before.top).toBeGreaterThan(0);
+
+    await grid.clickVisiblePart(0, lastPartialCol);
+
+    await expect.poll(async () => (await grid.holderScroll()).top).toBeLessThan(before.top / 2);
+    await expect.poll(async () => (await grid.holderScroll()).left).toBe(before.left);
+  });
+
+  test('mouse-selecting a content-tall row without rowHeights start-snaps the clipped start', async () => {
+    await grid.goto('content-tall');
+
+    expect(await grid.settingsRowHeight(0)).toBeUndefined();
+
+    await grid.scrollUntilCellStartClipped(0, 150, 0, 0);
+
+    const clippedTop = (await grid.holderScroll()).top;
+
+    expect(clippedTop).toBeGreaterThan(0);
+
+    await grid.clickVisiblePart(0, 0);
+
+    await expect.poll(async () => (await grid.holderScroll()).top).toBeLessThan(clippedTop / 2);
+  });
 });

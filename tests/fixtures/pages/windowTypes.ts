@@ -148,7 +148,10 @@ export interface FixtureHotInstance {
   rootElement: HTMLElement;
   getFirstFullyVisibleRow(): number;
   getLastFullyVisibleRow(): number;
+  getLastPartiallyVisibleRow(): number;
+  getLastPartiallyVisibleColumn(): number;
   getLastRenderedVisibleRow(): number;
+  getRowHeight(row: number): number | undefined;
   scrollViewportTo(options: { row?: number, col?: number, verticalSnap?: string }): boolean;
   selectCells(ranges: number[][]): boolean;
   selectColumns(fromCol: number, toCol: number): boolean;

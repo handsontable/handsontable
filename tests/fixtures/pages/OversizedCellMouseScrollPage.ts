@@ -22,13 +22,44 @@ export class OversizedCellMouseScrollPage {
 
   /**
    * Navigate to the fixture and wait for the bundle and first cell.
+   *
+   * @param {string} [scrollCase='both'] Fixture variant: both axes oversized,
+   *   one-axis oversized, or a content-tall row without `rowHeights`.
    */
-  async goto(): Promise<void> {
+  async goto(scrollCase = 'both'): Promise<void> {
     await this.page.goto(
-      `/tests/fixtures/demo/oversized-cell-mouse-scroll.html?theme=${this.theme}&bundle=${this.bundle}`
+      `/tests/fixtures/demo/oversized-cell-mouse-scroll.html?theme=${this.theme}&bundle=${this.bundle}&case=${scrollCase}`
     );
     await awaitBundle(this.page);
     await expect(this.cell(0, 0)).toBeVisible();
+  }
+
+  /**
+   * Last partially visible visual row, from the public Core API.
+   *
+   * @returns {Promise<number>}
+   */
+  async lastPartiallyVisibleRow(): Promise<number> {
+    return this.page.evaluate(() => window.hot.getLastPartiallyVisibleRow());
+  }
+
+  /**
+   * Last partially visible visual column, from the public Core API.
+   *
+   * @returns {Promise<number>}
+   */
+  async lastPartiallyVisibleColumn(): Promise<number> {
+    return this.page.evaluate(() => window.hot.getLastPartiallyVisibleColumn());
+  }
+
+  /**
+   * Settings-level row height from {@link Core#getRowHeight}.
+   *
+   * @param {number} row Visual row index.
+   * @returns {Promise<number|undefined>}
+   */
+  async settingsRowHeight(row: number): Promise<number | undefined> {
+    return this.page.evaluate(visualRow => window.hot.getRowHeight(visualRow), row);
   }
 
   /**

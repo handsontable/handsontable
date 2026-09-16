@@ -26,6 +26,17 @@
     if (!window.htBundle) {
       throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
     }
+    // Case variants for the per-axis skip and measured-height paths. An
+    // unknown value throws so a typo cannot silently run the default grid.
+    window.htCase = ({
+      both: 'both',
+      'oversized-col': 'oversized-col',
+      'oversized-row': 'oversized-row',
+      'content-tall': 'content-tall',
+    })[htParams.get('case') ?? 'both'];
+    if (!window.htCase) {
+      throw new Error('Unknown ?case= value: ' + JSON.stringify(htParams.get('case')));
+    }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
 </head>
@@ -50,20 +61,44 @@
     const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
       Handsontable.renderers.TextRenderer.apply(this, arguments);
       td.setAttribute('data-testid', `cell-${row}-${col}`);
+
+      if (window.htCase === 'content-tall' && row === 0) {
+        const tall = document.createElement('div');
+
+        tall.style.height = '400px';
+        td.appendChild(tall);
+      }
     };
 
+    const caseSettings = {
+      both: {
+        data: Handsontable.helper.createSpreadsheetData(6, 6),
+        colWidths: 500,
+        rowHeights: 400,
+      },
+      'oversized-col': {
+        data: Handsontable.helper.createSpreadsheetData(20, 6),
+        colWidths: 500,
+      },
+      'oversized-row': {
+        data: Handsontable.helper.createSpreadsheetData(6, 12),
+        rowHeights: 400,
+      },
+      'content-tall': {
+        data: Handsontable.helper.createSpreadsheetData(6, 6),
+      },
+    }[window.htCase];
+
     window.hot = new Handsontable(container, {
-      data: Handsontable.helper.createSpreadsheetData(6, 6),
       colHeaders: true,
       rowHeaders: true,
       width: 300,
       height: 240,
-      colWidths: 500,
-      rowHeights: 400,
       autoColumnSize: false,
       autoRowSize: false,
       renderer: testIdRenderer,
       licenseKey: 'non-commercial-and-evaluation',
+      ...caseSettings,
     });
   </script>
 </body>
