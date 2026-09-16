@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the Serbian context menu label for inserting a column on the right.",
+  "type": "fixed",
+  "issueOrPR": 13545,
+  "breaking": false,
+  "framework": "none"
+}
