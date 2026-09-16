@@ -3,6 +3,7 @@ import RowFilter from '../filter/row';
 import {
   CLONE_BOTTOM,
   CLONE_BOTTOM_INLINE_START_CORNER,
+  CLONE_INLINE_START,
 } from '../overlay';
 import {
   adjustColumnHeaderHeights,
@@ -138,6 +139,14 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
   // other's band back and re-oscillate it. On top of that, both bands gain directional overscan
   // (`applyRenderedColumnsBandOverscan` / `applyRenderedRowsBandOverscan`) so consecutive scroll
   // steps land inside the rendered band and resolve as fast draws.
+  // Resolved once per draw from the axis owners (`beforeDraw()` refreshes them on a full draw; a
+  // scroll-driven draw keeps the ones the last full draw resolved, like `allowsStationaryBands()`
+  // below) and shared with the render phase and the clones, so the row recycling and the cell identity
+  // the cells renderer offers the host read one answer. It is the stationary-bands predicate below
+  // without the single-pass term: a grid with merged cells keeps the measured layout and still
+  // recycles its rows.
+  wtOverlays.rowRecyclingAllowed = wtViewport.allowsRowRecycling();
+
   ctx.runFastDraw = wtViewport.createCalculators(ctx.runFastDraw, {
     stationaryBands: wtOverlays.isScrollDrivenDraw && wtViewport.allowsStationaryBands(),
   });
@@ -196,14 +205,27 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
       wtOverlays.adjustElementsSize();
     } else {
       const columnHeadersRenderSkippable = isPureVerticalScrollDraw(wtOverlays);
-      const rowHeightsChanged = renderCellBand(table, ctx, filters, columnHeadersRenderSkippable);
+      const rowHeightsChanged = renderCellBand(
+        table,
+        ctx,
+        filters,
+        columnHeadersRenderSkippable,
+        wtOverlays.isScrollDrivenDraw,
+        wtOverlays.rowRecyclingAllowed,
+      );
       const hasExternalRowCalculator = wtSettings.getSetting<boolean>('externalRowCalculator');
 
       // `rowHeightsChanged` alone gates the refill: `markOversizedRows` returns `false` before
       // measuring anything when `externalRowCalculator` is on, so the flag already carries that
       // condition.
       if (rowHeightsChanged) {
-        refillRenderedRowsBandIfShrunk(table, ctx, columnHeadersRenderSkippable);
+        refillRenderedRowsBandIfShrunk(
+          table,
+          ctx,
+          columnHeadersRenderSkippable,
+          wtOverlays.isScrollDrivenDraw,
+          wtOverlays.rowRecyclingAllowed,
+        );
       }
 
       if (!hasExternalRowCalculator) {
@@ -311,6 +333,8 @@ function runCloneDrawCycle(table: Table, ctx: DrawContext): void {
       ctx,
       filters,
       isPureVerticalScrollDraw(cloneSourceOverlays),
+      cloneSourceOverlays.isScrollDrivenDraw,
+      cloneSourceOverlays.rowRecyclingAllowed && recyclesRowsOnClone(table.name),
     );
 
     if (table.is(CLONE_BOTTOM)) {
@@ -435,6 +459,23 @@ function restoreRenderedStateIfSafe(
 }
 
 /**
+ * Whether an overlay clone takes part in the row recycling. Only the inline-start clone does: its
+ * rows are the master's rows, so a vertical scroll moves its band the same way. The top and bottom
+ * clones and their corners hold the frozen rows, which never scroll; the bottom clone's band offset
+ * still moves in renderable space when rows are hidden or trimmed, and a rotation there would be a
+ * move inside a band that never scrolls. Those clones keep the stationary elements and, with them,
+ * the full band identity for `shouldPaintCell`.
+ *
+ * Exported for unit tests only (`test/unit/table/drawCycle.unit.js`).
+ *
+ * @param {string} cloneName The clone's overlay name (`Table#name`).
+ * @returns {boolean}
+ */
+export function recyclesRowsOnClone(cloneName: string): boolean {
+  return cloneName === CLONE_INLINE_START;
+}
+
+/**
  * Returns `true` when this draw is a pure vertical scroll (only the vertical scroll position moved),
  * so the column window (and thus the THEAD) is unchanged. The scroll-direction flags live on the
  * master's overlays, so the master passes its own overlays and a clone passes its clone source's —
@@ -464,6 +505,14 @@ function isPureVerticalScrollDraw(wtOverlays: Overlays): boolean {
  *   `buildRenderFilters` (passed non-null rather than re-read off the nullable `table.*Filter`).
  * @param {boolean} columnHeadersRenderSkippable Whether the column-header (THEAD) pass may be skipped
  *   for this draw (a pure vertical scroll); resolved per role by the caller.
+ * @param {boolean} scrollDrivenDraw Whether the draw was entered as a scroll draw (the master's
+ *   `isScrollDrivenDraw`, read off the clone source for a clone).
+ * @param {boolean} rowRecyclingAllowed Whether the draw allows row recycling (the master's
+ *   `rowRecyclingAllowed`, resolved once per draw, read off the clone source for a clone). With
+ *   `scrollDrivenDraw` it lets the rows renderer keep a row's TR across the scroll, and on its own it
+ *   lets the cells renderer offer the host a stable identity for a cell.
+ * @param {number} [paintFromVisibleRow=0] The first visible row the cell and row-header renderers
+ *   repaint (the refill's paint window, see `resolveRefillPaintWindow`); `0` repaints the whole band.
  * @returns {boolean} `true` when the post-render row measurement (`markOversizedRows`) found heights
  *   that differ from the records the band was computed from and invalidated the row-height cache.
  *   Always `false` for the tables that do not measure rows (every clone but the bottom one).
@@ -473,9 +522,14 @@ function renderCellBand(
   ctx: DrawContext,
   filters: { rowFilter: RowFilter; columnFilter: ColumnFilter },
   columnHeadersRenderSkippable: boolean,
+  scrollDrivenDraw: boolean,
+  rowRecyclingAllowed: boolean,
   paintFromVisibleRow = 0,
 ): boolean {
   table.tableRenderer.setHeaderContentRenderers(ctx.rowHeaders, ctx.columnHeaders);
+  table.tableRenderer.setScrollDrivenDraw(scrollDrivenDraw);
+  table.tableRenderer.setRowRecyclingAllowed(rowRecyclingAllowed);
+  table.tableRenderer.setRenderEpoch(ctx.renderEpochAtDrawStart);
 
   if (table.is(CLONE_BOTTOM) ||
       table.is(CLONE_BOTTOM_INLINE_START_CORNER)) {
@@ -609,7 +663,9 @@ const MAX_ROWS_BAND_REFILL_PASSES = 3;
  * carries `rowsToRender`, and a skipped row keeps the stamp its own pass wrote, so after a refilled
  * draw the DOM carries one stamp per pass and the next ordinary draw repaints the skipped cells once
  * (their stamp no longer matches) — self-healing, no correctness effect; the engine cannot re-stamp
- * them because the host owns the stamps. The draw-level hooks never repeat: the
+ * them because the host owns the stamps. Where the rows recycle
+ * (`TableRenderer#hasStableCellIdentity()`) the stable identity carries no band size, so a skipped
+ * row's stamp still matches and nothing repaints. The draw-level hooks never repeat: the
  * `beforeDraw` setting (core's `beforeViewRender`) fires once before the first pass and the `onDraw`
  * setting (core's `afterViewRender`) once after the last, both outside this loop. `renderCycleSeq`
  * advances once per pass whatever the window, and its only consumer is the `skipRender` rollback
@@ -619,14 +675,24 @@ const MAX_ROWS_BAND_REFILL_PASSES = 3;
  * call site reads `rowHeightsChanged` and not `rowHeightCache.isCurrent()` alone — see the comment
  * on `skipSecondPass`.
  *
+ * The row-recycling flags are forwarded unchanged. A pass that takes the paint window keeps the band's
+ * start, so the rows renderer rotates nothing. A full-repaint pass whose start edge folded back keeps
+ * every tail row's TR in place and creates fresh TRs for the front slots (`RowsRenderer`, only rows
+ * that leave the band wrap), so the union's added rows are the only ones painted into new elements,
+ * and a cell whose paint stamp still matches is skipped like on any other draw.
+ *
  * @param {Table} table The master table.
  * @param {DrawContext} ctx The per-draw scratch (supplies the header renderers for the re-render).
  * @param {boolean} columnHeadersRenderSkippable Forwarded to `renderCellBand`, same value as the first pass.
+ * @param {boolean} scrollDrivenDraw Forwarded to `renderCellBand`, same value as the first pass.
+ * @param {boolean} rowRecyclingAllowed Forwarded to `renderCellBand`, same value as the first pass.
  */
 function refillRenderedRowsBandIfShrunk(
   table: Table,
   ctx: DrawContext,
   columnHeadersRenderSkippable: boolean,
+  scrollDrivenDraw: boolean,
+  rowRecyclingAllowed: boolean,
 ): void {
   const { wtSettings } = table;
   const wtViewport = table.deps.getWtViewport();
@@ -720,7 +786,17 @@ function refillRenderedRowsBandIfShrunk(
 
     // A pass that measures no further change has settled the band; anything else is another shrink
     // the grown band just exposed, and the next iteration decides whether it must grow again.
-    if (!renderCellBand(table, ctx, filters, columnHeadersRenderSkippable, paintFromVisibleRow)) {
+    const rowHeightsChanged = renderCellBand(
+      table,
+      ctx,
+      filters,
+      columnHeadersRenderSkippable,
+      scrollDrivenDraw,
+      rowRecyclingAllowed,
+      paintFromVisibleRow,
+    );
+
+    if (!rowHeightsChanged) {
       return;
     }
   }

@@ -428,3 +428,12 @@ jobs:
           node-version-file: '.nvmrc'
       - name: Run enforcement-machinery unit tests
         run: npm run test:tooling
+
+      # The four published READMEs (the repository root, which npm also renders, and the three
+      # wrappers) are the first page a developer meets, and they drift: a Community link outliving
+      # GitHub Discussions, a wrapper left behind when the root gained a feature bullet, a Vue link
+      # under a prefix that 404s. This resolves only links on our own hosts — a third party rate-
+      # limiting the runner must never fail someone's PR — and the nightly readme.yml sweeps the
+      # rest. Zero dependencies, so it belongs in this dependency-free job.
+      - name: README consistency
+        run: node scripts/readme-check.mjs --links=internal

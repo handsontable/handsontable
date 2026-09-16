@@ -284,6 +284,15 @@ cleared and are not. E2E coverage is extensive; the unit-level highlight logic i
 **When changing selection logic, test all combinations of: merged cells, hidden rows/columns, frozen
 rows/columns, and navigable headers.** Run both the `selectAll` and `selectCells` suites.
 
+## `getSourceDataAtCell` takes a visual column
+
+`getSourceDataAtCell(row, column)` takes a **physical row** but a **visual column** — `core.ts`
+documents that split and carries a TODO. `colToProp()` translates the column again. Passing
+`toPhysicalColumn()` into it double-translates and reads a different cell whenever the two orders
+differ (`manualColumnMove`, a hiding map plus a move). `#getStoredValueAt` is the correct pattern.
+`mergeRange()` must match it when it copies the anchor value for `populateFromArray` (DEV-2669).
+Do not "fix" `#getStoredValueAt` back to a physical column.
+
 ## Pagination cannot coexist with this plugin
 
 `registerConflict('pagination', ['mergeCells', …])` — Pagination is the plugin that stays disabled. See
@@ -313,6 +322,18 @@ rows/columns, and navigable headers.** Run both the `selectAll` and `selectCells
 `cellCoords`, `cellsCollection`, `focusOrder`, `selection` and `autofillCalculations`; prefer adding there.
 
 ## Rendering under `renderMode: 'onChange'`
+
+**A merged block's cells never take the stable paint identity.** The engine recycles its rows on a
+vertical scroll (`Viewport#allowsRowRecycling()`, which does NOT require single-pass layout) and offers
+the host the overlay name as a cell's paint identity, so a carried-over cell can be skipped. The
+`spanned` flag this plugin sets on a block's origin meta in `afterGetCellMeta` (covered cells resolve
+to the origin through `modifyGetCellCoords`) is what `CellPainter#bandIdentity` reads to keep the full
+band — offsets and sizes — for the block's cells instead: the renderer clamps the block's span to the
+rendered band, so those cells must repaint when the band moves, while every other cell of the grid
+skips. Keep `spanned` on the origin meta; removing it would let a clamped block keep a stale span
+across a scroll. The single-pass opt-out (`modifySinglePassLayout` → `false`) is about the layout
+model only (the height-versus-viewport circularity); it no longer switches the recycling or the stable
+identity off for the rest of the grid.
 
 Two writes of this plugin are invisible to the incremental render and are marked by hand:
 

@@ -3,6 +3,9 @@ import { EmptyDataStateUI } from './ui';
 import { isObject } from '../../helpers/object';
 import { isButtonType } from '../../helpers/uiButton';
 import { isRootInstance } from '../../utils/rootInstance';
+import { GRID_SCOPE } from '../../shortcuts/contexts/constants';
+import { command as selectAllCellsCommand } from '../../shortcuts/contexts/commands/selectAllCells';
+import { hasRenderedCells } from '../../shortcuts/guards';
 import * as C from '../../i18n/constants';
 import type { SelectionState } from '../../selection/types';
 
@@ -34,6 +37,7 @@ const SOURCE = Object.freeze({
   LOADING: 'loading',
 });
 const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
+const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 /**
  * @plugin EmptyDataState
@@ -317,6 +321,7 @@ export class EmptyDataState extends BasePlugin {
       });
 
       this.#registerFocusScope();
+      this.#registerShortcuts();
       this.#registerEvents();
     }
 
@@ -346,12 +351,24 @@ export class EmptyDataState extends BasePlugin {
    * Update plugin state after Handsontable settings update.
    */
   updatePlugin() {
+    // `disablePlugin()` below unregisters the scope, which deactivates it and rolls the shortcuts
+    // context back. Only re-activate it when it was the active scope to begin with: re-activating
+    // unconditionally steals the keyboard from wherever the user actually is - an open modal dialog,
+    // or an element outside the grid they tabbed to - and `activateScope()` would then deactivate that
+    // scope on the way.
+    const hadActiveScope = isRootInstance(this.hot) &&
+      this.hot.getFocusScopeManager().getActiveScopeId() === PLUGIN_KEY;
+
     this.disablePlugin();
     this.enablePlugin();
     this.#update();
 
     if (this.isVisible()) {
       this.#ui?.show();
+
+      if (hadActiveScope) {
+        this.hot.getFocusScopeManager().activateScope(PLUGIN_KEY);
+      }
     }
 
     super.updatePlugin();
@@ -363,6 +380,7 @@ export class EmptyDataState extends BasePlugin {
   disablePlugin() {
     this.#loadingActive = false;
 
+    this.#unregisterShortcuts();
     this.#unregisterFocusScope();
 
     this.#ui?.destroy();
@@ -422,6 +440,13 @@ export class EmptyDataState extends BasePlugin {
     this.hot.getFocusScopeManager()
       .registerScope(PLUGIN_KEY, this.#ui!.getElement()!, {
         shortcutsContextName: SHORTCUTS_CONTEXT_NAME,
+        // The overlay covers the grid, it does not replace it, so everything the grid answers stays
+        // answered - including shortcuts added to it after this line was written.
+        fallbackShortcutsContextName: GRID_SCOPE,
+        // The overlay is painted over the grid body, and during a DataProvider fetch it does that while
+        // the cells underneath are still DRAWN. Without this a shortcut that writes cell content asked
+        // only "are cells drawn", got `true`, and `Delete` wiped the data under the overlay.
+        coversGridBody: true,
         runOnlyIf: () => this.isVisible(),
         onActivate: (focusSource: string) => {
           const focusableElements = this.#ui?.getFocusableElements() ?? [];
@@ -436,6 +461,41 @@ export class EmptyDataState extends BasePlugin {
           }
         },
       });
+  }
+
+  /**
+   * Registers the one shortcut the overlay answers differently from the grid.
+   *
+   * Everything else is inherited, through the scope's `fallbackShortcutsContextName`. Select all is
+   * the exception: the grid's own entry is guarded on `isDefined(getSelected())`, and the overlay
+   * starts with nothing selected, so the inherited one would be silently inert exactly when the user
+   * needs it - with every column hidden, where selecting the data is the way back to a context menu.
+   */
+  #registerShortcuts() {
+    const manager = this.hot.getShortcutManager();
+    const pluginContext = manager.getOrCreateContext(SHORTCUTS_CONTEXT_NAME);
+
+    pluginContext.addShortcut({
+      keys: [['Control/Meta', 'A']],
+      callback: () => selectAllCellsCommand.callback(this.hot),
+      // The data is still there when only the columns are hidden, which is the case worth selecting.
+      // With no rows or no columns at all there is nothing to select, so the chord stays unclaimed.
+      //
+      // `!hasRenderedCells()` keeps the override to the case it was written for. While a DataProvider
+      // fetch covers a grid whose cells are still DRAWN, selecting them all would put the selection on
+      // cells the user cannot see - the very move the grid's own guards refuse there.
+      runOnlyIf: () => this.hot.countRows() > 0 && this.hot.countCols() > 0 &&
+        !hasRenderedCells(this.hot),
+      group: SHORTCUTS_GROUP,
+    });
+  }
+
+  /**
+   * Unregisters the plugin's shortcut group.
+   */
+  #unregisterShortcuts() {
+    this.hot.getShortcutManager()
+      .getContext(SHORTCUTS_CONTEXT_NAME)?.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**
@@ -587,6 +647,8 @@ export class EmptyDataState extends BasePlugin {
     this.#ui?.hide();
     this.#isVisible = false;
 
+    // `deactivateScope()` restores the shortcuts context this scope displaced. Do not roll it back
+    // here as well - two rollbacks eventually disagree, and this one cannot know what it displaced.
     this.hot.getFocusScopeManager().deactivateScope(PLUGIN_KEY);
 
     if (this.#selectionState && this.#selectionState.ranges.length > 0) {
