@@ -30,9 +30,24 @@ on:
         default: false
 
 concurrency:
-  # Static prefix — see docs-staging.yml.
-  group: docs-visual-${{ github.ref }}
-  cancel-in-progress: true
+  # Static prefix — see docs-staging.yml. The key SPLITS on what the run does,
+  # because the two modes want opposite policies.
+  #
+  # With `update-snapshots` ticked this dispatch seeds: it passes `mode: seed` and
+  # an `actual-key` of `docs/base/<branch>`, and the action's `Seed the golden
+  # records` step reconciles that prefix with `aws s3 sync --delete`. Killing a run
+  # mid-reconcile leaves a mixture of the old and the new goldens under a prefix the
+  # probe still reports as present — a torn baseline nothing detects. So a seeding
+  # dispatch joins docs-visual-seed.yml's key and never cancels, which is also the
+  # one-writer-per-prefix rule the core seed follows (visual-tests/AGENTS.md).
+  #
+  # A comparing dispatch writes only `docs/dispatch/<branch>/<run id>`, which nothing
+  # else reads, so it keeps the cancelling group it has always had: a newer dispatch
+  # should supersede it. Note this workflow lost its `workflow_call` trigger in
+  # DEV-2860 — cancelling used to serve the in-pipeline fragment runs, and that
+  # consumer is gone.
+  group: ${{ inputs.update-snapshots && format('docs-visual-seed-{0}', github.ref_name) || format('docs-visual-{0}', github.ref) }}
+  cancel-in-progress: ${{ !inputs.update-snapshots }}
 
 jobs:
   run-tests:

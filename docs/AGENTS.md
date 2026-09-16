@@ -816,7 +816,16 @@ concluding anything from a golden you read back.
   gate already reads. It finds a test's golden through a `snapshot` annotation, so the first statement of a
   visual test body must be
   `test.info().annotations.push({ type: 'snapshot', description: 'visualDocs.spec.ts/<name>.png' })` –
-  before `test.fixme()`, so a fixme'd page still declares its golden and never reads as deleted. Buckets:
+  before `test.fixme()`, so a fixme'd page still declares its golden and never reads as deleted.
+  **`<name>` must be sanitized the way Playwright sanitizes it**, because Playwright writes the file
+  and the annotation only names it: `snapshotPath()` puts the argument through `sanitizeForFilePath`
+  before substituting `{arg}`, turning every character outside `[\w-]` into `-`. The 35
+  `migration-from-X.Y-to-Z.0` pages are the ones this bites – they land on disk as
+  `migration-from-X-Y-to-Z-0.png`, and an annotation that kept the dots names a file that does not
+  exist, so each reads as a deleted golden plus a new render and the verdict is `changed` forever
+  with nothing to fix. The spec builds the name already sanitized; `docs-visual-baseline.test.mjs`
+  derives the expected key from the template and checks it against every slug in `paths.js`. Measured
+  on @playwright/test 1.61.1 – 1.45 did not sanitize here, so a Playwright bump can move this. Buckets:
   `expected` and `flaky` → passed; `unexpected` → new when an error says the snapshot doesn't exist, failed
   otherwise; `skipped` → declared but uncounted; a baseline path that no test declares → deleted. A test
   without the annotation is ignored. Tests: `tests/lib/__tests__/visual-manifest.test.mjs`, in the root

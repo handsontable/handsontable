@@ -2,7 +2,11 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
+import { createRequire } from 'node:module';
 import { repoRoot } from '../lib/repo-root.mjs';
+
+// docs/tests/paths.js is CommonJS, and this file is ESM.
+const require = createRequire(import.meta.url);
 
 // The docs visual suite (docs/tests/visualDocs.spec.ts, 441 full-page
 // captures) had a baseline that was not one (DEV-2860): both CI entry points
@@ -267,6 +271,66 @@ test('every visual page declares its golden before it can be fixme\'d, so a fixm
   assert.match(spec, /description: `visualDocs\.spec\.ts\/\$\{screenshotName\}`/);
 });
 
+test('the annotated key names the file Playwright actually writes, for every page', () => {
+  // The equality that IS the manifest adapter. `visual-manifest.mjs` diffs the
+  // annotation strings against the `baseline.txt` keys, so if the name the spec
+  // builds and the path Playwright resolves drift apart, every affected page
+  // reports as a deleted golden PLUS a new render and the verdict is `changed`
+  // forever, with nothing to fix and nothing red. Asserting the template and the
+  // annotation prefix independently — which is all this file used to do — cannot
+  // see that.
+  //
+  // This is not hypothetical: `snapshotPath()` runs its argument through
+  // `sanitizeForFilePath` before substituting `{arg}`, so the 35 `migration-from-X.Y-to-Z.0`
+  // pages were written as `migration-from-X-Y-to-Z-0.png` while the annotation kept
+  // the dots. Measured on @playwright/test 1.61.1; 1.45 did not sanitize, so the
+  // behaviour is version-sensitive and worth a test rather than a comment.
+  const config = read('docs/playwright.config.ts');
+  const spec = read('docs/tests/visualDocs.spec.ts');
+
+  // The template is resolved relative to configDir and must stay single-valued:
+  // Playwright resolves {testFilePath} against the PROJECT's testDir, so a
+  // project-level override would change the answer while a regex kept reading the
+  // top-level one.
+  assert.equal((config.match(/^\s*testDir:/gm) || []).length, 1,
+    'a second testDir means {testFilePath} may resolve against a project override this test cannot see');
+
+  const template = config.match(/snapshotPathTemplate:\s*'([^']+)'/);
+
+  assert.ok(template, 'the snapshot path template is gone');
+
+  // {testFilePath} is the spec path relative to testDir — `visualDocs.spec.ts`.
+  const prefix = template[1].split('{testFilePath}')[1].split('{arg}')[0];
+
+  assert.equal(prefix, '/', 'the template puts something between {testFilePath} and {arg}; the annotation prefix must follow');
+
+  const annotated = spec.match(/description: `(visualDocs\.spec\.ts)\/\$\{screenshotName\}`/);
+
+  assert.ok(annotated, 'the annotation no longer names visualDocs.spec.ts/<name>');
+
+  // Playwright's own rule, from playwright-core's `sanitizeForFilePath`.
+  const sanitize = value => value.replace(/[\x00-\x2C\x2E-\x2F\x3A-\x40\x5B-\x60\x7B-\x7F]+/g, '-');
+  const built = spec.match(/const screenshotName = `\$\{prefix\}-\$\{slug\.replace\(([^)]+)\)\}\.png`/);
+
+  assert.ok(built,
+    'the spec no longer sanitizes the slug into the screenshot name, so a page whose slug contains a '
+      + 'dot annotates a file Playwright never wrote — 35 pages do');
+
+  // And prove the spec's expression agrees with Playwright's on the real slugs,
+  // rather than merely being present.
+  const specSanitize = new Function('slug', `return slug.replace(${built[1]});`);
+  const paths = require(path.join(root, 'docs/tests/paths.js'));
+  const slugs = Object.values(paths)
+    .filter(Array.isArray)
+    .flatMap(list => list.map(entry => entry.path.split('/').pop()));
+  const disagree = slugs.filter(slug => specSanitize(slug) !== sanitize(slug));
+
+  assert.ok(slugs.length > 100, `only ${slugs.length} slugs found; paths.js is not being read`);
+  assert.deepEqual(disagree, [],
+    'the spec sanitizes these slugs differently from Playwright, so their annotations name files it '
+      + `never wrote: ${disagree.slice(0, 5).join(', ')}`);
+});
+
 test('docs.yml compares a pull request against its base branch and exports the verdict the approval keys on', () => {
   const visual = job(docs, 'visual');
 
@@ -342,9 +406,20 @@ test('pr-cleanup purges the docs suite\'s prefix alongside the core suite\'s', (
   const purge = job(cleanup, 'purge-visual-screenshots');
 
   assert.ok(purge, 'pr-cleanup.yml lost its purge job');
-  assert.match(purge, /aws s3 rm "s3:\/\/\$R2_BUCKET_NAME\/pr-\$\{\{ github\.event\.number \}\}\/"/);
-  assert.match(purge, /aws s3 rm "s3:\/\/\$R2_BUCKET_NAME\/docs\/pr-\$\{\{ github\.event\.number \}\}\/"/,
+  assert.match(purge, /aws s3 rm "s3:\/\/\$R2_BUCKET_NAME\/pr-\$PR_NUMBER\/"/);
+  assert.match(purge, /aws s3 rm "s3:\/\/\$R2_BUCKET_NAME\/docs\/pr-\$PR_NUMBER\/"/,
     'docs/pr-<n>/ is never purged, so every docs pull request leaves its report in the bucket forever');
+  // Context values reach the script through `env:`, never interpolated into the
+  // body — the convention the fork guards rely on being greppable, and the shape
+  // every other R2 step here uses.
+  assert.match(purge, /PR_NUMBER: \$\{\{ github\.event\.number \}\}/,
+    'the pull request number must travel through env, not into the shell body');
+  assert.match(purge, /R2_ENDPOINT: https:\/\/\$\{\{ secrets\.R2_ACCOUNT_ID \}\}/,
+    'the endpoint must travel through env, like visual.yml and docs-visual-run do');
+  const [, body = ''] = purge.split('run: |');
+
+  assert.doesNotMatch(body, /\$\{\{/,
+    'no `${{ }}` may appear in the run body — route it through env: instead');
 });
 
 test('the docs seed chains on the staging deploy, seeds only a successful push build, and matches the deployed commit', () => {
@@ -389,7 +464,17 @@ test('the dispatch workflow is a thin caller of the action: no workflow_call, no
   assert.match(dispatch, /base-key: docs\/base\/\$\{\{ github\.ref_name \}\}/);
   assert.match(dispatch, /format\('docs\/dispatch\/\{0\}\/\{1\}', github\.ref_name, github\.run_id\)/,
     'a dispatch compare publishes under a per-run key');
-  assert.match(dispatch, /concurrency:\n(?:\s+#.*\n)*\s+group: docs-visual-\$\{\{ github\.ref \}\}\n\s+cancel-in-progress: true/);
+  // The key splits on the mode. A SEEDING dispatch reconciles `docs/base/<branch>`
+  // with `aws s3 sync --delete`, so it joins the seed workflow's key and must never
+  // be cancelled mid-reconcile — a killed run leaves a torn baseline the probe still
+  // reports as present. A COMPARING dispatch writes only `docs/dispatch/...`, so it
+  // keeps cancelling: a newer dispatch should supersede it.
+  assert.match(dispatch, /group: \$\{\{ inputs\.update-snapshots && format\('docs-visual-seed-\{0\}'/,
+    'a seeding dispatch must share the seed workflow key, or two runs can write docs/base/<branch> at once');
+  assert.match(dispatch, /cancel-in-progress: \$\{\{ !inputs\.update-snapshots \}\}/,
+    'a seeding dispatch must not be cancellable — it reconciles the baseline with --delete');
+  assert.doesNotMatch(dispatch, /cancel-in-progress: true/,
+    'an unconditional cancel puts the torn-baseline hole back');
 });
 
 test('the core gate script honors the variables the docs suite reuses it through', () => {

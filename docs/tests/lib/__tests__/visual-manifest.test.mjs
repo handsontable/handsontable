@@ -166,7 +166,13 @@ test('nested suites are walked, and a test without the annotation is ignored', (
             title: 'deeper',
             specs: [{
               title: 'take screenshot for vue on demo',
-              tests: [reportTest({ status: 'unexpected', snapshot: 'visualDocs.spec.ts/vue-demo.png', errors: ['diff'] })],
+              // A real matcher message, not a placeholder: a failure is only a visual DIFFERENCE
+              // when its error names the comparison, so `'diff'` would now classify as a run error.
+              tests: [reportTest({
+                status: 'unexpected',
+                snapshot: 'visualDocs.spec.ts/vue-demo.png',
+                errors: ['Error: expect(page).toHaveScreenshot(vue-demo.png) failed'],
+              })],
             }],
           }],
         }],
@@ -244,4 +250,73 @@ test('listPngs walks the tree, returns posix paths, and tolerates a missing dire
     'visualDocs.spec.ts/js-demo.png',
   ]);
   assert.deepEqual(listPngs(join(dir, 'does-not-exist')), []);
+});
+
+test('a page that failed before comparing anything is an error, not a difference to approve', () => {
+  // The whole point: a docs page can fail long before `toHaveScreenshot` — the preview 500s,
+  // navigation times out, the loading overlay never clears. Classified as `failed`, those pages
+  // become a `changed` verdict and a reviewer is asked to approve a page that never rendered,
+  // in the same all-or-nothing click as the real diffs, while the Playwright step's
+  // `continue-on-error: true` keeps anything else from going red.
+  //
+  // The bare test timeout is the shape that matters most and the one a message list is likeliest
+  // to miss: docs/playwright.config.ts gives the test and the matcher the same 60s budget and the
+  // spec passes no per-call timeout, so the TEST clock — started at `goto` — nearly always fires
+  // first and the report carries no matcher name at all.
+  const neverRendered = [
+    ['a bare test timeout', 'Test timeout of 60000ms exceeded.'],
+    ['a navigation failure', 'page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:4321/docs/x'],
+    ['a stuck loading overlay', 'expect(locator).toHaveCount(expected) failed\n\nLocator: locator(\'.hot-example-preview--loading\')'],
+    ['a page error', 'Error: page rendered an error boundary'],
+    ['no error message at all', undefined],
+  ];
+
+  neverRendered.forEach(([why, message]) => {
+    const manifest = manifestFromReport({
+      report: report([reportTest({
+        status: 'unexpected',
+        snapshot: 'visualDocs.spec.ts/js-demo.png',
+        errors: message === undefined ? [] : [message],
+      })]),
+      baseline: ['visualDocs.spec.ts/js-demo.png'],
+    });
+
+    assert.deepEqual(manifest.erroredItems, ['visualDocs.spec.ts/js-demo.png'], why);
+    assert.deepEqual(manifest.failedItems, [], `${why} must not read as a visual difference`);
+    assert.deepEqual(manifest.newItems, [], why);
+  });
+});
+
+test('a real screenshot mismatch is still a difference, and a missing golden is still new', () => {
+  // The other side of the same boundary — the change must not turn genuine diffs into errors.
+  const compared = [
+    'Error: expect(page).toHaveScreenshot(js-demo.png) failed',
+    'Screenshot comparison failed:\n\n  12345 pixels (ratio 0.02) are different.',
+    'Timeout 60000ms exceeded.\n\nFailed to take two consecutive stable screenshots.',
+  ];
+
+  compared.forEach((message) => {
+    const manifest = manifestFromReport({
+      report: report([reportTest({
+        status: 'unexpected', snapshot: 'visualDocs.spec.ts/js-demo.png', errors: [message],
+      })]),
+      baseline: ['visualDocs.spec.ts/js-demo.png'],
+    });
+
+    assert.deepEqual(manifest.failedItems, ['visualDocs.spec.ts/js-demo.png'], message.slice(0, 40));
+    assert.deepEqual(manifest.erroredItems, [], message.slice(0, 40));
+  });
+
+  // A missing golden is checked before the comparison question and stays `new`.
+  const missing = manifestFromReport({
+    report: report([reportTest({
+      status: 'unexpected',
+      snapshot: 'visualDocs.spec.ts/js-demo.png',
+      errors: ["A snapshot doesn't exist at /x/js-demo.png, writing actual."],
+    })]),
+    baseline: [],
+  });
+
+  assert.deepEqual(missing.newItems, ['visualDocs.spec.ts/js-demo.png']);
+  assert.deepEqual(missing.erroredItems, []);
 });

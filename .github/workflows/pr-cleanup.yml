@@ -93,14 +93,23 @@ jobs:
       # a no-op, so an unlabeled pull request that never ran the docs suite
       # costs nothing here.
       - name: Delete this pull request's screenshots from R2
+        # Context values go through `env:` rather than into the script body, the way
+        # every other R2 step in this repo does it. The pull request number is a
+        # GitHub-assigned integer so nothing here is exploitable — the point is that
+        # the pattern stays greppable, which is what the fork-guard and shell-safety
+        # conventions rely on. `R2_ENDPOINT` moves with it: five sibling steps
+        # (visual.yml, docs-visual-run) already name it, and this was the only place
+        # still building the URL inline.
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: auto
+          R2_ENDPOINT: https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
+          PR_NUMBER: ${{ github.event.number }}
         run: |
-          aws s3 rm "s3://$R2_BUCKET_NAME/pr-${{ github.event.number }}/" \
+          aws s3 rm "s3://$R2_BUCKET_NAME/pr-$PR_NUMBER/" \
             --recursive \
-            --endpoint-url "https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com"
-          aws s3 rm "s3://$R2_BUCKET_NAME/docs/pr-${{ github.event.number }}/" \
+            --endpoint-url "$R2_ENDPOINT"
+          aws s3 rm "s3://$R2_BUCKET_NAME/docs/pr-$PR_NUMBER/" \
             --recursive \
-            --endpoint-url "https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com"
+            --endpoint-url "$R2_ENDPOINT"

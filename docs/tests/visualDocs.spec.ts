@@ -68,7 +68,20 @@ testCases.forEach(({ paths, prefix, urlPath }) => {
   test.describe(`${prefix} tests`, () => {
     paths.forEach((pathObj) => {
       test(`take screenshot for ${prefix} on ${pathObj.path.split('/').pop()}`, async({ page, baseURL }) => {
-        const screenshotName = `${prefix}-${pathObj.path.split('/').pop()}.png`;
+        const slug = pathObj.path.split('/').pop() ?? '';
+
+        /*
+         * Sanitized the way Playwright sanitizes it, because Playwright writes the file and this
+         * name has to match what it wrote. `snapshotPath()` runs the argument through
+         * `sanitizeForFilePath` before substituting `{arg}`, turning every character outside
+         * `[\w-]` into `-`, so `migration-from-7.4-to-8.0` lands on disk as
+         * `migration-from-7-4-to-8-0.png`. Leaving the dots in makes the annotation below name a
+         * file that does not exist: the manifest adapter diffs those strings against the baseline
+         * keys, so all 35 dotted pages read as deleted goldens plus new renders, and the verdict is
+         * `changed` on every run with nothing to fix. Verified against @playwright/test 1.61.1 —
+         * 1.45 did not sanitize here, so this is version-sensitive rather than eternal.
+         */
+        const screenshotName = `${prefix}-${slug.replace(/[^\w-]+/g, '-')}.png`;
 
         /*
          * Which golden record this test owns, for `tests/lib/visual-manifest.mjs`: Playwright's report
@@ -86,7 +99,6 @@ testCases.forEach(({ paths, prefix, urlPath }) => {
          * Pages with dynamic/random data use 0.05 to avoid false positives from changing values.
          * All other pages use 0.01 to allow for minor anti-aliasing differences between runs.
          */
-        const slug = pathObj.path.split('/').pop() ?? '';
         const maxDiffPixelRatioValue = pathsNeedingMoreTolerance.includes(slug) ? 0.05 : 0.01;
 
         if (slugsToFix.includes(slug)) {

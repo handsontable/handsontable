@@ -76,6 +76,7 @@ const GUARDED_SITES = [
   ['.github/workflows/visual.yml', 'name: Seed the golden records'],
   ['.github/workflows/visual.yml', 'name: Comment the visual verdict on the pull request'],
   ['.github/workflows/visual.yml', 'name: Record the approval on the pull request'],
+  ['.github/workflows/docs.yml', 'name: Record the docs approval on the pull request'],
   ['.github/workflows/pr-cleanup.yml', '  purge-visual-screenshots:'],
   // The docs visual suite (DEV-2860): the sticky comment in docs.yml, and the
   // two R2 writes inside the composite action both entry points call.

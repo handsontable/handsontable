@@ -87,6 +87,21 @@ if (mode === 'seed') {
       console.log(`Docs visual manifest: ${manifest.failedItems.length} changed, ${manifest.newItems.length} new, `
         + `${manifest.deletedItems.length} deleted, ${manifest.passedItems.length} passing `
         + `(baseline: ${manifest.expectedItems.length}).`);
+
+      // A page that failed before it compared anything is not a difference to approve. Left in
+      // `failedItems` it would read as `changed`, and a reviewer would be asked to accept a page
+      // that never rendered in the same all-or-nothing click as the real diffs — while the
+      // Playwright step's `continue-on-error: true` keeps anything else from going red. So the run
+      // fails here instead, the way the gate blocks when it cannot tell the visual state.
+      if (manifest.erroredItems.length > 0) {
+        console.error('');
+        console.error(`${manifest.erroredItems.length} page(s) failed without comparing a screenshot — `
+          + 'the preview did not render them, so there is nothing to approve:');
+        manifest.erroredItems.forEach(item => console.error(`  ${item}`));
+        console.error('');
+        console.error('Read the Playwright report before treating this as a visual difference.');
+        process.exitCode = 1;
+      }
     }
   }
 } else {

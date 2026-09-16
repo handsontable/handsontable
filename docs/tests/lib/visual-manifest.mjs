@@ -35,6 +35,25 @@ import { join, relative, sep } from 'node:path';
 const MISSING_SNAPSHOT = /snapshot doesn't exist/i;
 
 /**
+ * An `unexpected` result that actually COMPARED something.
+ *
+ * A docs test can fail long before it reaches `toHaveScreenshot`: the preview 500s, navigation times
+ * out, `.hot-example-preview--loading` never clears, the page throws. Classified as a difference,
+ * those pages land in `failedItems`, the gate reads `changed`, and a reviewer is asked to approve a
+ * page that never rendered in the same click as the real diffs — while the Playwright step's
+ * `continue-on-error: true` keeps anything else from going red.
+ *
+ * So a failure is only a visual DIFFERENCE when its error names the comparison. Anything else is a
+ * run error and blocks, the way `visual-gate.mjs` blocks when it cannot tell the visual state.
+ *
+ * The bare test timeout is the case that matters most and the one a message list is likeliest to
+ * miss: `playwright.config.ts` gives the test and the matcher the same 60s budget and the spec passes
+ * no per-call timeout, so the test clock — started at `goto` — nearly always fires first, and the
+ * report carries `Test timeout of 60000ms exceeded.` with no matcher name at all.
+ */
+const SCREENSHOT_COMPARISON = /toHaveScreenshot|screenshot comparison failed|Screenshot comparison failed|two consecutive stable screenshots/i;
+
+/**
  * The annotation type every `toHaveScreenshot` test pushes to name its golden.
  */
 const SNAPSHOT_ANNOTATION = 'snapshot';
@@ -82,14 +101,34 @@ function snapshotsOf(test) {
  * @returns {boolean} `true` when an error says the snapshot does not exist.
  */
 function isMissingSnapshot(test) {
-  return (Array.isArray(test.results) ? test.results : []).some((result) => {
-    const messages = [
-      result?.error?.message,
-      ...(Array.isArray(result?.errors) ? result.errors.map(error => error?.message) : []),
-    ];
+  return errorMessagesOf(test).some(message => MISSING_SNAPSHOT.test(message));
+}
 
-    return messages.some(message => typeof message === 'string' && MISSING_SNAPSHOT.test(message));
-  });
+/**
+ * Every error message a test's results carry, as strings.
+ *
+ * @param {object} test One `JSONReportTest`.
+ * @returns {string[]} The messages, empty when there are none.
+ */
+function errorMessagesOf(test) {
+  return (Array.isArray(test.results) ? test.results : []).flatMap((result) => [
+    result?.error?.message,
+    ...(Array.isArray(result?.errors) ? result.errors.map(error => error?.message) : []),
+  ]).filter(message => typeof message === 'string');
+}
+
+/**
+ * Whether a failing test got far enough to compare a screenshot.
+ *
+ * A test that never reached the comparison is a run error, not a visual difference — see
+ * `SCREENSHOT_COMPARISON`. A test with no error message at all counts as one too: there is nothing
+ * to say it compared anything.
+ *
+ * @param {object} test One `JSONReportTest`.
+ * @returns {boolean} `true` when an error names the screenshot comparison.
+ */
+function comparedAScreenshot(test) {
+  return errorMessagesOf(test).some(message => SCREENSHOT_COMPARISON.test(message));
 }
 
 /**
@@ -125,6 +164,7 @@ export function manifestFromReport({ report, baseline = [] }) {
   const passed = new Set();
   const failed = new Set();
   const added = new Set();
+  const errored = new Set();
   const declared = new Set();
 
   walkSuites(report?.suites, (test) => {
@@ -148,7 +188,15 @@ export function manifestFromReport({ report, baseline = [] }) {
     }
 
     if (test.status === 'unexpected') {
-      const bucket = isMissingSnapshot(test) ? added : failed;
+      if (isMissingSnapshot(test)) {
+        snapshots.forEach(snapshot => added.add(snapshot));
+
+        return;
+      }
+
+      // Never reached the comparison — the page 500'd, navigation timed out, the loading overlay
+      // never cleared. That is a broken run, not a difference a reviewer can approve.
+      const bucket = comparedAScreenshot(test) ? failed : errored;
 
       snapshots.forEach(snapshot => bucket.add(snapshot));
     }
@@ -166,6 +214,10 @@ export function manifestFromReport({ report, baseline = [] }) {
     expectedItems,
     actualItems: sorted(new Set([...passed, ...failed, ...added])),
     diffItems: sorted(failed),
+    // Not a reg-suit key, and deliberately outside the four buckets: these pages produced no
+    // comparison at all, so they are neither a difference to approve nor a pass. The CLI turns a
+    // non-empty list into a failed run.
+    erroredItems: sorted(errored),
   };
 }
 
