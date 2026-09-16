@@ -11,7 +11,7 @@ import {
 } from '../../../../../helpers/dom/element';
 import { stopImmediatePropagation, isRightClick } from '../../../../../helpers/dom/event';
 import { isMobileBrowser, isMobileOrIpadOS } from '../../../../../helpers/browser';
-import { getCornerStyle, resolveHeaderLevel, standsBelowColumnHeader } from './utils';
+import { getCornerStyle, lookupSelectionHeader, resolveHeaderLevel, standsBelowColumnHeader } from './utils';
 import { CUSTOM_SELECTION_TYPE } from '../constants';
 import { getSpreaderOffset } from '../../overlay/spreaderOffset';
 
@@ -1891,9 +1891,11 @@ class Border {
         ? wtTable.getRowHeadersCount()
         : wtTable.getColumnHeadersCount();
       const headerLevel = resolveHeaderLevel(headerCount, headerIndex);
+      const closestLevel = headerCount - 1;
+      const getHeader = (index: number, level: number) => getHeaderFn?.(index, level);
 
-      startHeader = getHeaderFn?.(fromIndex, headerLevel);
-      endHeader = getHeaderFn?.(toIndex, headerLevel);
+      startHeader = lookupSelectionHeader(getHeader, fromIndex, headerLevel, closestLevel);
+      endHeader = lookupSelectionHeader(getHeader, toIndex, headerLevel, closestLevel);
 
       if (!startHeader || !endHeader) {
         return false;
