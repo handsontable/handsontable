@@ -1,8 +1,10 @@
 import { useRef, useState } from 'react';
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
+
 // register Handsontable's modules
 registerAllModules();
+
 const projectPlan = [
   {
     task: 'Marketing',
@@ -36,48 +38,78 @@ const projectPlan = [
     ],
   },
 ];
+
 const ExampleComponent = () => {
   const hotRef = useRef(null);
   const [output, setOutput] = useState('Click a button to call a method.');
+
   const getPlugin = () => hotRef.current?.hotInstance?.getPlugin('nestedRows');
   const countRows = () => hotRef.current?.hotInstance?.countRows();
-  return (<>
-   <div className="example-controls-container">
-    <div className="controls">
-     <button className="button button--primary" onClick={() => {
-      getPlugin()?.collapseAll();
-      setOutput(`collapseAll() -> ${countRows()} rows are visible now`);
-    }}>
-      collapseAll()
-     </button>
-     <button className="button button--primary" onClick={() => {
-      getPlugin()?.expandAll();
-      setOutput(`expandAll() -> ${countRows()} rows are visible now`);
-    }}>
-      expandAll()
-     </button>
-     <button className="button button--primary" onClick={() => {
-      // `toggleParent` takes a visual row index and returns `true` when the state changed.
-      const plugin = getPlugin();
-      const changed = plugin?.toggleParent(0);
-      setOutput(`toggleParent(0) -> ${changed}, collapsed: ${plugin?.isParentCollapsed(0)}`);
-    }}>
-      toggleParent(0)
-     </button>
-     <button className="button button--primary" onClick={() => {
-      // `getCollapsedParents` returns physical row indexes, because a parent collapsed
-      // inside another collapsed parent has no visual index at all.
-      const plugin = getPlugin();
-      setOutput(`getCollapsedParents() -> [${plugin?.getCollapsedParents()}]\n` +
-        `getRowLevel(0) -> ${plugin?.getRowLevel(0)}\n` +
-        `countChildren(0) -> ${plugin?.countChildren(0)}`);
-    }}>
-      Read the state
-     </button>
-    </div>
-    <output className="console">{output}</output>
-   </div>
-   <HotTable ref={hotRef} data={projectPlan} columns={[{ data: 'task' }, { data: 'owner' }, { data: 'status' }]} colHeaders={['Task', 'Owner', 'Status']} rowHeaders={true} nestedRows={true} contextMenu={true} height="auto" licenseKey="non-commercial-and-evaluation"/>
-  </>);
+
+  return (
+    <>
+      <div className="example-controls-container">
+        <div className="controls">
+          <button
+            className="button button--primary"
+            onClick={() => {
+              getPlugin()?.collapseAll();
+              setOutput(`collapseAll() -> ${countRows()} rows are visible now`);
+            }}
+          >
+            collapseAll()
+          </button>
+          <button
+            className="button button--primary"
+            onClick={() => {
+              getPlugin()?.expandAll();
+              setOutput(`expandAll() -> ${countRows()} rows are visible now`);
+            }}
+          >
+            expandAll()
+          </button>
+          <button
+            className="button button--primary"
+            onClick={() => {
+              // `toggleParent` takes a visual row index and returns `true` when the state changed.
+              const plugin = getPlugin();
+              const changed = plugin?.toggleParent(0);
+              setOutput(`toggleParent(0) -> ${changed}, collapsed: ${plugin?.isParentCollapsed(0)}`);
+            }}
+          >
+            toggleParent(0)
+          </button>
+          <button
+            className="button button--primary"
+            onClick={() => {
+              // `getCollapsedParents` returns physical row indexes, because a parent collapsed
+              // inside another collapsed parent has no visual index at all.
+              const plugin = getPlugin();
+              setOutput(
+                `getCollapsedParents() -> [${plugin?.getCollapsedParents()}]\n` +
+                  `getRowLevel(0) -> ${plugin?.getRowLevel(0)}\n` +
+                  `countChildren(0) -> ${plugin?.countChildren(0)}`,
+              );
+            }}
+          >
+            Read the state
+          </button>
+        </div>
+        <output className="console">{output}</output>
+      </div>
+      <HotTable
+        ref={hotRef}
+        data={projectPlan}
+        columns={[{ data: 'task' }, { data: 'owner' }, { data: 'status' }]}
+        colHeaders={['Task', 'Owner', 'Status']}
+        rowHeaders={true}
+        nestedRows={true}
+        contextMenu={true}
+        height="auto"
+        licenseKey="non-commercial-and-evaluation"
+      />
+    </>
+  );
 };
+
 export default ExampleComponent;

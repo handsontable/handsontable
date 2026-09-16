@@ -1,8 +1,10 @@
 import { useRef, useState } from 'react';
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
+
 // register Handsontable's modules
 registerAllModules();
+
 const projectPlan = [
   {
     task: 'Marketing',
@@ -36,10 +38,13 @@ const projectPlan = [
     ],
   },
 ];
+
 // Physical row indexes follow the source data, depth first. Walk the tree once to map every task
 // name to its physical row - that is the index `expandToRow` needs.
 const physicalRowOf = new Map();
+
 let physicalRow = 0;
+
 (function walk(rows) {
   rows.forEach((row) => {
     physicalRowOf.set(row.task, physicalRow);
@@ -47,47 +52,74 @@ let physicalRow = 0;
     walk(row.__children ?? []);
   });
 })(projectPlan);
+
 const ExampleComponent = () => {
   const hotRef = useRef(null);
   const [output, setOutput] = useState('Everything starts collapsed. Pick a task to jump to.');
+
   // Reveals a task that is currently hidden inside collapsed parents, then selects it.
   const revealTask = (taskName) => {
     const hot = hotRef.current?.hotInstance;
+
     if (!hot) {
       return;
     }
+
     const plugin = hot.getPlugin('nestedRows');
     const row = physicalRowOf.get(taskName);
     const wasHidden = hot.toVisualRow(row) === null;
+
     // `expandToRow` takes a PHYSICAL index, because a hidden row has no visual index yet.
     plugin.expandToRow(row);
+
     const visualRow = hot.toVisualRow(row);
+
     hot.selectCell(visualRow, 0);
-    setOutput(`"${taskName}" was ${wasHidden ? 'hidden' : 'already visible'}.\n` +
-      `physical row ${row} -> visual row ${visualRow}, nesting level ${plugin.getRowLevel(visualRow)}`);
+
+    setOutput(
+      `"${taskName}" was ${wasHidden ? 'hidden' : 'already visible'}.\n` +
+        `physical row ${row} -> visual row ${visualRow}, nesting level ${plugin.getRowLevel(visualRow)}`,
+    );
   };
-  return (<>
-   <div className="example-controls-container">
-    <div className="controls">
-     <button className="button button--primary" onClick={() => revealTask('Auth endpoints')}>
-      Find "Auth endpoints"
-     </button>
-     <button className="button button--primary" onClick={() => revealTask('Visual design')}>
-      Find "Visual design"
-     </button>
-     <button className="button button--primary" onClick={() => {
-      const hot = hotRef.current?.hotInstance;
-      hot?.getPlugin('nestedRows').collapseAll();
-      setOutput(`Collapsed again - ${hot?.countRows()} rows are visible.`);
-    }}>
-      Collapse everything
-     </button>
-    </div>
-    <output className="console">{output}</output>
-   </div>
-   <HotTable ref={hotRef} data={projectPlan} columns={[{ data: 'task' }, { data: 'owner' }, { data: 'status' }]} colHeaders={['Task', 'Owner', 'Status']} rowHeaders={true} nestedRows={true} height="auto" licenseKey="non-commercial-and-evaluation" afterInit={function () {
-      this.getPlugin('nestedRows').collapseAll();
-    }}/>
-  </>);
+
+  return (
+    <>
+      <div className="example-controls-container">
+        <div className="controls">
+          <button className="button button--primary" onClick={() => revealTask('Auth endpoints')}>
+            Find "Auth endpoints"
+          </button>
+          <button className="button button--primary" onClick={() => revealTask('Visual design')}>
+            Find "Visual design"
+          </button>
+          <button
+            className="button button--primary"
+            onClick={() => {
+              const hot = hotRef.current?.hotInstance;
+              hot?.getPlugin('nestedRows').collapseAll();
+              setOutput(`Collapsed again - ${hot?.countRows()} rows are visible.`);
+            }}
+          >
+            Collapse everything
+          </button>
+        </div>
+        <output className="console">{output}</output>
+      </div>
+      <HotTable
+        ref={hotRef}
+        data={projectPlan}
+        columns={[{ data: 'task' }, { data: 'owner' }, { data: 'status' }]}
+        colHeaders={['Task', 'Owner', 'Status']}
+        rowHeaders={true}
+        nestedRows={true}
+        height="auto"
+        licenseKey="non-commercial-and-evaluation"
+        afterInit={function () {
+          this.getPlugin('nestedRows').collapseAll();
+        }}
+      />
+    </>
+  );
 };
+
 export default ExampleComponent;
