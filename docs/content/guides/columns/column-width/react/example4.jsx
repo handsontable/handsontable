@@ -9,6 +9,6 @@ const ExampleComponent = () => {
             ['Lithium', 'Li', 3, 356.9, 'Solid'],
             ['Beryllium', 'Be', 4, 2348.6, 'Solid'],
             ['Boron', 'B', 5, 3768.8, 'Solid'],
-        ]} width="100%" height="auto" colHeaders={['Name', 'Symbol', 'Atomic Number', 'Melting Point (°F)', 'State']} rowHeaders={true} colWidths={[200, 100, 100]} manualColumnResize={true} autoWrapRow={true} autoWrapCol={true} licenseKey="non-commercial-and-evaluation"/>);
+        ]} width="100%" height="auto" colHeaders={['Name', 'Symbol', 'Atomic Number', 'Melting Point (°F)', 'State']} rowHeaders={true} colWidths={[200, 100, 100, 150, 100]} manualColumnResize={true} autoWrapRow={true} autoWrapCol={true} licenseKey="non-commercial-and-evaluation"/>);
 };
 export default ExampleComponent;
