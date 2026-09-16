@@ -31,11 +31,16 @@ import { execFileSync } from 'node:child_process';
 const ROOT = process.cwd();
 
 // The rolling changelog is written by `update-docs-changelog.mjs` in a sibling
-// step, and `content/api` is regenerated (and gitignored). Excluding both keeps
-// this delta from fighting steps that already own those trees.
+// step; excluding it keeps this delta from fighting the step that owns it.
+//
+// `content/api` is deliberately NOT excluded. Its generated reference is gitignored,
+// so it never appears in this tracked diff; the only tracked files there are the
+// three hand-maintained stubs (introduction.md, plugins.md, sidebar.js), which the
+// `docs:api` step leaves untouched (its rimraf glob is `!(introduction|plugins).md`
+// and nothing writes sidebar.js). So a release edit to one of them must port here,
+// like every other doc -- excluding the tree would freeze exactly what this fixes.
 const EXCLUDES = [
   ':(exclude)docs/content/guides/upgrade-and-migration/changelog/changelog.md',
-  ':(exclude)docs/content/api',
 ];
 
 /**
@@ -123,11 +128,11 @@ function main() {
   try {
     // `--3way` merges each hunk against the branch's own copy, so a prod-docs
     // edit to an untouched part of a file survives; a genuine overlap conflicts
-    // and throws. `--index` stages what applies so the commit step needs no
-    // extra `git add` -- it also requires that every delta-touched file match
-    // between the working tree and the index, which holds because the steps that
-    // run before this one write only EXCLUDED trees (the rolling changelog and
-    // `content/api`). Keeping those excludes is what keeps the index clean here.
+    // and throws. `--index` stages what applies so the commit step needs no extra
+    // `git add` -- it also requires each delta-touched file to match between the
+    // working tree and the index, which holds because the steps before this one
+    // leave those files clean (the rolling changelog they rewrite is excluded, the
+    // generated api tree is gitignored, and the api stubs are left untouched).
     git(['apply', '--3way', '--index', '-'], diff);
   } catch (error) {
     const conflicts = git(['diff', '--name-only', '--diff-filter=U']).trim();
@@ -142,11 +147,26 @@ function main() {
     }
 
     // Restore exactly the delta's own paths, so a partial apply or conflict
-    // markers do not linger in the index/tree. The push is gated off this
-    // failure, but a later step (or a relaxed gate) must never see half-applied
-    // content. Scoped to `files`, so sibling steps' work is untouched.
+    // markers do not linger in the index/tree. The push is gated off this failure,
+    // but a later step (or a relaxed gate) must never see half-applied content.
+    // `git checkout HEAD -- <paths>` aborts the WHOLE command on any path HEAD does
+    // not know (a page the release ADDS), restoring nothing, so split the paths:
+    // check out the ones HEAD has (restores edits and files the release deleted),
+    // and `git rm` the ones it added. Scoped to `files`, so sibling steps' work is
+    // untouched.
     try {
-      git(['checkout', 'HEAD', '--', ...files]);
+      const tracked = git(['ls-tree', '-r', '--name-only', 'HEAD', '--', ...files])
+        .split('\n')
+        .filter(Boolean);
+      const added = files.filter(file => !tracked.includes(file));
+
+      if (tracked.length) {
+        git(['checkout', 'HEAD', '--', ...tracked]);
+      }
+
+      if (added.length) {
+        git(['rm', '-f', '--quiet', '--ignore-unmatch', '--', ...added]);
+      }
     } catch {
       // Best effort: the branch is discarded on a failed run anyway.
     }
