@@ -4,7 +4,7 @@ import { stopImmediatePropagation } from '../../../helpers/dom/event';
 import { arrayEach, arrayFilter, arrayMap } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
 import * as C from '../../../i18n/constants';
-import { unifyColumnValues, intersectValues, createArrayAssertion } from '../utils';
+import { unifyColumnValues, intersectValues, createArrayAssertion, isBlankFilterListValue } from '../utils';
 import { getSortComparatorForMeta } from '../sortComparators';
 import { BaseComponent } from './_base';
 import { MultipleSelectUI } from '../ui/multipleSelect';
@@ -428,10 +428,19 @@ export class ValueComponent extends BaseComponent {
   /**
    * Trigger the `modifyFiltersMultiSelectValue` hook.
    *
+   * Skips the empty-cell bucket (`item.value === ''`). `toVisualValue` already
+   * replaced that with the translated `(Blank cells)` label; running the hook
+   * would hash it (password) or turn it into `#bad-value#` (date/time).
+   * `#onModifyDisplayedValue` only sees `visualValue`, so the skip lives here.
+   *
    * @param {object} item Item from the multiple select list.
    * @param {Map|null} metaMap Map of row meta objects, or `null` when the hook is not registered.
    */
   #triggerModifyMultipleSelectionValueHook(item: Record<string, unknown>, metaMap: Map<unknown, unknown> | null) {
+    if (isBlankFilterListValue(item.value)) {
+      return;
+    }
+
     if (metaMap && this.hot?.hasHook('modifyFiltersMultiSelectValue')) {
       item.visualValue =
         this.hot?.runHooks('modifyFiltersMultiSelectValue', item.visualValue, metaMap.get(item.value));
