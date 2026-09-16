@@ -168,6 +168,33 @@ test.describe('emptyDataState keyboard shortcuts', () => {
     expect(await grid.selection()).toEqual([[-1, 2, -1, 2]]);
   });
 
+  test('still lets Tab off the headers it keeps the selection on', async() => {
+    // The guard above reverts a move that would leave the headers while the body is covered, and Tab
+    // moves through the same commands pool. Reverting Tab could have re-armed the trap this PR exists
+    // to remove: `tabNavigation`'s `after()` reads the selection AFTER the callback, so a reverted move
+    // leaves it looking at a header, and it calls `preventDefault()` whenever the grid is navigable.
+    //
+    // It does not, and the reason is worth pinning: `after()` releases Tab on the WRAP state, which the
+    // revert never touches. Tab walks the headers and then lets go at the end of the row.
+    await grid.cell(0, 0).click();
+    await grid.updateSettings({ navigableHeaders: true });
+    await grid.selectCell(-1, 3);
+    await grid.startDataProviderFetch();
+
+    expect(await grid.renderedCounts()).toEqual({ rows: 8, cols: 6 });
+
+    // Along the headers Tab claims the key, which is the header navigation the test above relies on.
+    expect(await grid.pressAndReadDefaultPrevented('Tab')).toBe(true);
+    expect(await grid.selection()).toEqual([[-1, 4, -1, 4]]);
+
+    expect(await grid.pressAndReadDefaultPrevented('Tab')).toBe(true);
+    expect(await grid.selection()).toEqual([[-1, 5, -1, 5]]);
+
+    // Off the last header the move wraps, so Tab is released and the user leaves the grid.
+    expect(await grid.pressAndReadDefaultPrevented('Tab')).toBe(false);
+    expect(await grid.selection()).toBeNull();
+  });
+
   test('does not select the covered cells while a data provider fetch is in flight', async() => {
     // The plugin overrides Ctrl+A so select all still works with every column hidden, where the
     // grid's own entry is inert and selecting the data is the way back to a context menu. That
