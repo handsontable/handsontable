@@ -435,4 +435,54 @@ describe('Single selection scroll', () => {
       });
     });
   });
+
+  describe('for a cell larger than the viewport (#dev-1159)', () => {
+    it('should scroll to the start of an oversized column after mouse click', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        width: 300,
+        height: 200,
+        colWidths: 400,
+        rowHeaders: true,
+        colHeaders: true,
+      });
+
+      await scrollViewportHorizontally(150);
+
+      expect(inlineStartOverlay().getScrollPosition()).toBe(150);
+
+      await simulateClick(getCell(0, 0));
+
+      expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 0, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
+    });
+
+    it('should scroll to the start of an oversized row after mouse click', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        width: 300,
+        height: 200,
+        rowHeights: 400,
+        rowHeaders: true,
+        colHeaders: true,
+      });
+
+      await scrollViewportVertically(150);
+
+      expect(topOverlay().getScrollPosition()).toBe(150);
+
+      await simulateClick(getCell(0, 0));
+
+      expect(topOverlay().getScrollPosition()).toBe(0);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 0, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
+    });
+  });
 });

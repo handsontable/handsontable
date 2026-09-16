@@ -2,6 +2,24 @@ import type { HotInstance } from '../../types';
 import { scrollWindowToCell } from '../utils';
 
 /**
+ * Returns `true` when the cell is wider or taller than the viewport.
+ *
+ * Mouse selection skips scrolling for the last partially visible cell so a
+ * click does not jump the viewport. That skip leaves the start of an
+ * oversized cell clipped. Keyboard and API selection start-snap those cells,
+ * and mouse selection must match.
+ *
+ * @param {Core} hot Handsontable instance.
+ * @param {number} row Visual row index.
+ * @param {number} col Visual column index.
+ * @returns {boolean}
+ */
+function isCellLargerThanViewport(hot: HotInstance, row: number, col: number): boolean {
+  return hot.getColWidth(col) > hot.view.getViewportWidth() ||
+    hot.getRowHeight(row) > hot.view.getViewportHeight();
+}
+
+/**
  * Scroll strategy for single cell selection.
  *
  * @param {Core} hot Handsontable instance.
@@ -27,7 +45,7 @@ export function singleScrollStrategy(hot: HotInstance) {
 
     // navigating through the cells
     } else {
-      if (selectionSource === 'mouse') {
+      if (selectionSource === 'mouse' && !isCellLargerThanViewport(hot, row, col)) {
         if (
           col === hot.view.getLastPartiallyVisibleColumn() ||
           row === hot.view.getLastPartiallyVisibleRow()
