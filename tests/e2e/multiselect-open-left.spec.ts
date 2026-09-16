@@ -25,6 +25,7 @@ test.describe('multiselect opens to the left when there is no room on the right'
     expect(Math.abs(placement.dropdownLeft - placement.cellLeft)).toBeLessThanOrEqual(2);
     expect(await grid.isFlippedHorizontally()).toBe(false);
     expect(await grid.visibleWidthOf(grid.lastOption())).toBeGreaterThan(20);
+    await grid.revealInDropdown(grid.lastOption());
     expect(await grid.isReachable(grid.lastOption())).toBe(true);
     expect(await grid.isReachable(grid.searchInput())).toBe(true);
   });
@@ -40,6 +41,7 @@ test.describe('multiselect opens to the left when there is no room on the right'
     expect(placement.dropdownRight).toBeLessThanOrEqual(placement.gridRight + 1);
     expect(await grid.isFlippedHorizontally()).toBe(true);
     expect(await grid.visibleWidthOf(grid.lastOption())).toBeGreaterThan(20);
+    await grid.revealInDropdown(grid.lastOption());
     expect(await grid.isReachable(grid.lastOption())).toBe(true);
     expect(await grid.isReachable(grid.searchInput())).toBe(true);
   });

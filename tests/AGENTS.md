@@ -80,6 +80,18 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   an element that is present and visible. Centralize the choice in one page-object
   method so the reasoning is stated once
   (`CommentsEditorResizePage.hoverCellWithoutComment()`).
+- **A last dropdown option's unclipped centre is not a theme-stable hit-test.**
+  Horizon's menu-item padding is 8px (main is 4px), so the same four-row
+  multiselect list that fits on `main` is height-constrained by
+  `updateDimensions` and the last `<li>` sits below the dropdown's
+  `overflow: auto` fold. `getBoundingClientRect()` still reports that row;
+  `elementFromPoint` at its centre hits the page (`HTML`) and
+  `isReachable()` fails while the list is correctly placed and scrollable
+  (DEV-1198). Scroll the option inside the dropdown only
+  (`MultiselectOpenLeftPage.revealInDropdown()`) before the hit-test. The
+  last-column open-left contract still fails without the product flip:
+  after that scroll the option's centre stays past the grid's
+  `overflow: clip`.
 
 ## Fixture contract (never get these wrong)
 
