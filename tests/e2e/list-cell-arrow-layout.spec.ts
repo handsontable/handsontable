@@ -1,0 +1,113 @@
+import { test, expect } from '../fixtures/test';
+import { ListCellArrowLayoutPage, type ListCellType } from '../fixtures/pages/ListCellArrowLayoutPage';
+
+// The three cell types that render `htAutocompleteArrow`: `dropdown` and `handsontable` both
+// delegate to `autocompleteRenderer` like `autocomplete`. `date` and `time` carry no arrow and
+// are out of scope. `multiselect` uses a different element (`.ht-multi-select-arrow`) and is
+// covered by `cell-dropdown-arrow-button.spec.ts`.
+const CELL_TYPES: ListCellType[] = ['autocomplete', 'dropdown', 'handsontable'];
+
+/**
+ * DEV-348 (GitHub #3116). A long value in an `autocomplete` / `dropdown` / `handsontable` cell
+ * wrapped the right-floated `.htAutocompleteArrow` onto a second line when `colWidths` pinned the
+ * column (and silently disabled AutoColumnSize). The in-cell arrow is now out of flow with its
+ * width reserved as trailing padding: AutoColumnSize expands to fit the value plus the arrow, and
+ * a fixed `colWidths` column keeps the arrow on the first line. `wordWrap` / `textEllipsis` still
+ * apply — restoring the #13463 nowrap+ellipsis was a 19.0 breaking change (#13508 reverted it).
+ *
+ * The load-bearing assertion under `colWidths` is the arrow's top sitting inside the first line
+ * box. On the pre-fix float layout that unbreakable token fills the line and the arrow drops
+ * below it; every other property (trailing-edge placement, one-line autosize) can hold on a
+ * "fix" that only recenters the wrapped arrow. The wrap case is the #13508 guard: a breakable
+ * phrase must still be allowed to wrap, or we have re-landed the breaking change.
+ */
+CELL_TYPES.forEach((cellType) => {
+  test.describe(`${cellType} list-cell arrow layout`, () => {
+    let grid: ListCellArrowLayoutPage;
+
+    test.beforeEach(({ page, theme, bundle }) => {
+      grid = new ListCellArrowLayoutPage(page, theme, bundle, cellType);
+    });
+
+    test('keeps the arrow on the first line under colWidths with a long value', async() => {
+      await grid.goto({ mode: 'colWidths' });
+
+      const { arrow, cell, contentBoxRight, lineHeight, paddingTop } = await grid.metrics(0, 0);
+
+      expect(arrow).not.toBeNull();
+
+      // Pre-fix: the unbreakable token fills the line and the floated arrow wraps onto line 2.
+      expect(arrow!.top).toBeLessThan(cell.top + paddingTop + lineHeight);
+      // The reserved padding places the arrow at or past the content-box trailing edge, so the
+      // value clips (or wraps) before the arrow rather than under it.
+      expect(arrow!.left).toBeGreaterThanOrEqual(contentBoxRight - 1);
+    });
+
+    test('grows the column to fit the value plus the arrow under autoColumnSize', async() => {
+      await grid.goto({ mode: 'autosize' });
+
+      const {
+        arrow, cell, content, contentBoxRight, lineHeight, paddingTop,
+      } = await grid.metrics(0, 0);
+
+      expect(arrow).not.toBeNull();
+      expect(content).not.toBeNull();
+
+      // The reserved padding widens the AutoColumnSize ghost sample (it renders the real
+      // renderer), so an autosized column fits the value plus the arrow on one line.
+      expect(content!.height).toBeLessThanOrEqual(lineHeight + 1);
+      expect(arrow!.top).toBeLessThan(cell.top + paddingTop + lineHeight);
+      expect(arrow!.left).toBeGreaterThanOrEqual(contentBoxRight - 1);
+    });
+
+    test('still wraps a breakable value when wordWrap is left at its default', async() => {
+      await grid.goto({ mode: 'wrap' });
+
+      const { arrow, cell, content, contentBoxRight, lineHeight, paddingTop } = await grid.metrics(0, 0);
+
+      expect(arrow).not.toBeNull();
+      expect(content).not.toBeNull();
+
+      // #13508: do not restore nowrap. A phrase with spaces in a 100px column must wrap.
+      expect(content!.height).toBeGreaterThan(lineHeight + 1);
+      // The arrow stays on the first line even while the value wraps beside the reserved slot.
+      expect(arrow!.top).toBeLessThan(cell.top + paddingTop + lineHeight);
+      expect(arrow!.left).toBeGreaterThanOrEqual(contentBoxRight - 1);
+    });
+
+    test('anchors the arrow beside the first line on a tall row', async() => {
+      await grid.goto({ mode: 'tall' });
+
+      const { arrow, cell, lineHeight, paddingTop } = await grid.metrics(0, 0);
+
+      expect(arrow).not.toBeNull();
+
+      // Precondition: the row is much taller than one line, so "beside the first line" and
+      // "centered in the cell" are far apart.
+      expect(cell.height).toBeGreaterThan(lineHeight * 2);
+
+      const arrowCenterY = arrow!.top + ((arrow!.bottom - arrow!.top) / 2);
+
+      expect(arrowCenterY).toBeLessThanOrEqual(cell.top + paddingTop + lineHeight);
+    });
+
+    test('reserves the arrow at the leading edge in RTL', async() => {
+      await grid.goto({ mode: 'colWidths', dir: 'rtl' });
+
+      const { arrow, cell, contentBoxLeft, lineHeight, paddingTop } = await grid.metrics(0, 0);
+
+      expect(arrow).not.toBeNull();
+
+      expect(arrow!.top).toBeLessThan(cell.top + paddingTop + lineHeight);
+
+      const cellCenterX = cell.left + (cell.width / 2);
+      const arrowCenterX = arrow!.left + ((arrow!.right - arrow!.left) / 2);
+
+      // `inset-inline-end` flips to the visual left in RTL...
+      expect(arrowCenterX).toBeLessThan(cellCenterX);
+      // ...and the arrow sits at or past the content-box leading edge, so the value never
+      // paints under it.
+      expect(arrow!.right).toBeLessThanOrEqual(contentBoxLeft + 1);
+    });
+  });
+});

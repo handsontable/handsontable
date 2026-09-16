@@ -25,8 +25,48 @@
         opacity: 0.6;
       }
     }
+
+    // A long value next to the floated arrow used to wrap the arrow onto a second line (DEV-348,
+    // GitHub #3116), and AutoColumnSize measured the text alone so an autosized column still left
+    // no room for the arrow. The in-cell arrow is taken out of flow with its width reserved as
+    // trailing padding: GhostTable renders the real renderer, so the extra padding widens the
+    // sample and an autosized column grows to fit the value plus the arrow. Under `colWidths`
+    // (which disables AutoColumnSize) the column stays at the set width, but the arrow stays on
+    // the first line and the value wraps or clips in the reserved content box.
+    // Do not add `white-space: nowrap` or `text-overflow: ellipsis` here. That combination
+    // (#13463) overrode `wordWrap` / `textEllipsis` and was a 19.0 breaking change; #13508
+    // reverted it. Those options still apply.
+    td.htAutocomplete {
+      position: relative;
+      padding-inline-end: calc(
+        var(--ht-cell-horizontal-padding) + var(--ht-icon-size) + var(--ht-gap-size) * 2
+      );
+
+      .htAutocompleteArrow {
+        position: absolute;
+        float: none;
+        inset-inline-end: var(--ht-cell-horizontal-padding);
+        top: calc(var(--ht-cell-vertical-padding) + (var(--ht-line-height) - var(--ht-icon-size)) / 2);
+        margin: 0;
+      }
+    }
+
+    // Exact-height rows zero the TD padding and clip through `div.htCellClip` (`position:
+    // absolute; overflow: hidden`), so that wrapper — not the TD — is the arrow's containing
+    // block. Re-reserve the arrow slot on the wrapper and pin the arrow to its trailing edge;
+    // using the TD offsets would double-count the cell padding the wrapper already insets.
+    tr.htExactRow > td.htAutocomplete > .htCellClip {
+      padding-inline-end: calc(var(--ht-icon-size) + var(--ht-gap-size) * 2);
+
+      .htAutocompleteArrow {
+        inset-inline-end: 0;
+        top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
+      }
+    }
   }
 
+  // Kept for arrow usages outside a grid cell (e.g. the select editor overlay); the in-cell
+  // arrow above is out of flow and flips through `inset-inline-end`, so it needs no float here.
   [dir="rtl"].handsontable {
     .htAutocompleteArrow {
       float: left;
