@@ -3,6 +3,7 @@ import { isDefined } from '../../helpers/mixed';
 import { GRID_GROUP, EDITOR_EDIT_GROUP, GRID_SCOPE, GRID_TAB_NAVIGATION_GROUP } from './constants';
 import { createKeyboardShortcutCommandsPool } from './commands';
 import { getSelectedCellLink } from './commands/openCellLink';
+import { selectionFillsOtherCells } from '../../selection/fillSelection';
 
 /**
  * The context that defines shortcut list available for selected cell or cells.
@@ -53,10 +54,20 @@ export function shortcutsGridContext(hot: HotInstance) {
   }, {
     keys: [['Control/Meta', 'Enter']],
     callback: () => commandsPool.populateSelectedCellsData(),
+    // The shortcut claims the chord only when the fill would write something. Counting the ACTIVE
+    // layer's cells refused the gesture whenever the focused layer held a single cell, however many
+    // other layers were selected - and an open editor answered the same keystroke by filling them
+    // all (DEV-103). Asking which cells the fill reaches keeps the two paths in step.
     runOnlyIf: () => {
-      return isDefined(hot.getSelected()) &&
-        !hot.getSelectedRangeActive()?.highlight.isHeader() &&
-        (hot.getSelectedRangeActive()?.getCellsCount() ?? 0) > 1;
+      const activeHighlight = hot.getSelectedRangeActive()?.highlight;
+
+      if (!isDefined(hot.getSelected()) || activeHighlight === undefined || activeHighlight.isHeader()) {
+        return false;
+      }
+
+      const { row, col } = activeHighlight.normalize();
+
+      return selectionFillsOtherCells(hot, hot.getDataAtCell(row as number, col as number), row, col);
     },
   }, {
     keys: [['Alt', 'Enter']],

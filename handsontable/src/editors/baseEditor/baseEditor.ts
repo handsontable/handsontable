@@ -1,9 +1,10 @@
 import type { HotInstance } from '../../core/types';
 import type { CellProperties } from '../../settings';
+import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 import { stringify } from '../../helpers/mixed';
 import { throwWithCause } from '../../helpers/errors';
 import { warn } from '../../helpers/console';
-import { deepClone, mixin } from '../../helpers/object';
+import { mixin } from '../../helpers/object';
 import hooksRefRegisterer from '../../mixins/hooksRefRegisterer';
 import {
   getScrollbarWidth,
@@ -14,6 +15,7 @@ import {
   outerHeight,
 } from '../../helpers/dom/element';
 import { getValueGetterValue } from '../../utils/valueAccessors';
+import { collectSelectionFillChanges, selectionFillsOtherCells } from '../../selection/fillSelection';
 
 export const EDITOR_TYPE = 'base';
 export const EDITOR_STATE = Object.freeze({
@@ -291,9 +293,15 @@ export class BaseEditor {
   saveValue(value: unknown, ctrlDown?: boolean): void {
     // if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
     if (ctrlDown) {
-      this.#saveValueToSelection(value as unknown[][]);
+      const selectedRanges = this.hot.getSelectedRange();
 
-      return;
+      // The editor can outlive the selection - a custom editor saving from a detached UI, say - and
+      // then there is no layer to fill, so the value goes to the cell the editor was opened on.
+      if (selectedRanges?.length) {
+        this.#saveValueToSelection(value, selectedRanges);
+
+        return;
+      }
     }
 
     this.#saveValueToEditedCell(value as unknown[][]);
@@ -321,89 +329,21 @@ export class BaseEditor {
   /**
    * Writes the editor's value into every cell of every selection layer.
    *
-   * `populateFromArray()` fills one rectangle per call, and one call is one `afterChange` - so
-   * looping it over the layers would cost an undo step per layer and split a single gesture into
-   * several. This collects the whole fill first and commits it once instead, the shape
-   * `emptySelectedCells()` and the grid's `populateSelectedCellsData` command already use.
+   * The collecting is shared with the grid's own `Ctrl`/`Cmd`+`Enter` fill, so both answer that
+   * keystroke the same way - see `selection/fillSelection.ts` for what the walk skips and why the
+   * whole fill has to leave through a single `setDataAtCell()` call.
    *
-   * A cell reached by two overlapping layers is written once, and `readOnly` cells are skipped, as
-   * they are on every other populate path.
-   *
-   * @param {Array[]} value The editor value, in the 2D form `saveValue()` receives it.
+   * @param {*} value The editor value, as `saveValue()` receives it.
+   * @param {CellRange[]} selectedRanges The selection layers to fill.
    */
-  #saveValueToSelection(value: unknown[][]): void {
-    const selectedRanges = this.hot.getSelectedRange();
-
-    // The editor can outlive the selection (a custom editor saving from a detached UI, say). There
-    // is no layer to read then, so the fill falls back to the cell the editor was opened on. A
-    // non-array or empty input goes the same way rather than into the row lookup below: `%
-    // value.length` would divide by zero on an empty array, and a bare string would index its own
-    // characters. `populateFromArray()` answers the first with a no-op and the second by throwing,
-    // as both always have.
-    if (!selectedRanges?.length || !Array.isArray(value) || value.length === 0) {
-      this.#saveValueToEditedCell(value);
-
-      return;
-    }
-
-    const changes: Array<[number, number, unknown]> = [];
-    const visited = new Set<string>();
-    const lastRow = this.hot.countRows() - 1;
-    const lastColumn = this.hot.countCols() - 1;
-
-    selectedRanges.forEach((cellRange) => {
-      if (cellRange.isSingleHeader()) {
-        return;
-      }
-
-      let fromRow = cellRange.getTopStartCorner().row;
-      let fromColumn = cellRange.getTopStartCorner().col;
-
-      // A merged cell reports its parent's coordinates, so the walk has to start from the
-      // translated corner - the same translation the single-cell save above applies.
-      const modifiedCellCoords = this.hot.runHooks('modifyGetCellCoords', fromRow, fromColumn, false, 'meta');
-
-      if (Array.isArray(modifiedCellCoords)) {
-        [fromRow, fromColumn] = modifiedCellCoords as [number, number];
-      }
-
-      // A layer may reach into the headers (negative indexes) or, after a `modifyGetCellCoords`
-      // translation, past the last row or column. Clamp both ends before walking them.
-      fromRow = Math.max(fromRow as number, 0);
-      fromColumn = Math.max(fromColumn as number, 0);
-
-      const toRow = Math.min(cellRange.getBottomEndCorner().row as number, lastRow);
-      const toColumn = Math.min(cellRange.getBottomEndCorner().col as number, lastColumn);
-
-      for (let row = fromRow; row <= toRow; row++) {
-        for (let column = fromColumn; column <= toColumn; column++) {
-          const key = `${row}x${column}`;
-
-          if (visited.has(key)) {
-            continue;
-          }
-
-          visited.add(key);
-
-          // The transient read keeps a fill over a large selection from permanently materializing
-          // one meta object per target cell - only `readOnly` is read here.
-          if (this.hot.getCellMetaTransient(row, column).readOnly) {
-            continue;
-          }
-
-          const valueRow = value[(row - fromRow) % value.length];
-          const cellValue = valueRow[(column - fromColumn) % valueRow.length];
-
-          // One object value spread over many cells must not leave them sharing a reference -
-          // `populateFromArray()` clones per cell on the `'edit'` source for the same reason.
-          changes.push([
-            row,
-            column,
-            cellValue !== null && typeof cellValue === 'object' ? deepClone(cellValue) : cellValue,
-          ]);
-        }
-      }
-    });
+  #saveValueToSelection(value: unknown, selectedRanges: CellRange[]): void {
+    // `saveValue()` is called with the value wrapped in a 2D array, which is the shape
+    // `populateFromArray()` tiles over a rectangle. A fill writes one value into every cell, so the
+    // wrapper is unwrapped here rather than indexed per cell - and anything that is not that shape
+    // (a custom editor passing the raw value) is written as it stands instead of being indexed into
+    // characters.
+    const cellValue: unknown = Array.isArray(value) && Array.isArray(value[0]) ? value[0][0] : value;
+    const changes = collectSelectionFillChanges(this.hot, cellValue, selectedRanges);
 
     if (changes.length > 0) {
       this.hot.setDataAtCell(changes, null, null, 'edit');
@@ -520,19 +460,15 @@ export class BaseEditor {
       }
 
       // Ctrl/Meta + Enter over a real range copies the edited value into every other cell of the
-      // selection, so an unchanged editor still has work to do there. Over a single cell it writes
-      // only the edited cell, which makes it the same gesture as a plain Enter. A missing range has
-      // no other cells to fill either, so `?? true` reads it as single and leaves the guard armed.
-      // `!== true` did the opposite: it sent a missing range into the fill branch, which wrote the
-      // editor's `''` over a `null` cell - the #3927 case this guard exists to stop.
+      // selection, so an unchanged editor still has work to do there. Where it writes only the
+      // edited cell it is the same gesture as a plain Enter, and the guard has to stay armed: that
+      // is the #3927 case, where the editor's `''` was written over a `null` cell.
       //
-      // The layer count is asked first because the active layer alone cannot answer the question:
-      // a second layer holds other cells to fill even when the active one is a lone cell, and
-      // reading only the active layer left that gesture writing nothing at all (DEV-103).
-      const fillsOtherCells = ctrlDown === true && (
-        (this.hot.getSelectedRange()?.length ?? 0) > 1 ||
-        (this.hot.getSelectedRangeActive()?.isSingle() ?? true) === false
-      );
+      // The question is asked of the cells the fill would actually reach, not of the selection's
+      // shape. A single-cell active layer says nothing about the other layers (DEV-103), and a
+      // layer that contributes no writable cell - all `readOnly`, or a header - is not work either.
+      const fillsOtherCells = ctrlDown === true &&
+        selectionFillsOtherCells(this.hot, this.getValue(), this.row, this.col);
 
       let value = this.getValue();
 

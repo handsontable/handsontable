@@ -775,7 +775,7 @@ test.describe('commit paths that read the selection after trimming', () => {
    * through the post-update mapper; a corner whose record was trimmed used to fall back to the
    * visual slot it held BEFORE the update. When the same trim also removes records ABOVE the range,
    * those two spaces differ by exactly that many records, so the restored range slides off its
-   * survivors - and `Ctrl+Enter`, which fills the active range, writes to the wrong ones.
+   * survivors - and `Ctrl+Enter`, which fills every selected range, writes to the wrong ones.
    *
    * Physical rows 1-4 are selected with the focus on row 1. Trimming rows 0 and 1 leaves rows 2, 3
    * and 4 selected at visual 0-2. Mixing the spaces pinned `from` to the stale visual 1 and left

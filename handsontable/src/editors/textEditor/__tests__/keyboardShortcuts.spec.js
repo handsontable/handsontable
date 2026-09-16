@@ -207,6 +207,99 @@ describe('TextEditor keyboard shortcut', () => {
       expect(getDataAtCell(1, 0)).toBe('filled');
       expect(getDataAtCell(1, 1)).toBe('filled');
       expect(getDataAtCell(4, 4)).toBe('filled');
+      // The layers survive the save. `moveSelectionAfterEnter()` used to ask the active layer alone
+      // whether the selection was multiple, and a single-cell active layer sent it down the branch
+      // that lays a fresh selection - silently discarding A1:B2.
+      expect(getSelectedRange().length).toBe(2);
+    });
+
+    it('should keep every selection layer after the fill', async() => {
+      handsontable({
+        data: createSpreadsheetData(6, 6),
+      });
+
+      await selectCells([[0, 0, 1, 1], [3, 3, 4, 4]]);
+      await keyDownUp('f2');
+
+      getActiveEditor().setValue('filled');
+
+      await keyDownUp(['control/meta', 'enter']);
+
+      expect(getSelectedRange().length).toBe(2);
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 0,0 from: 0,0 to: 1,1',
+        'highlight: 4,3 from: 3,3 to: 4,4',
+      ]);
+    });
+
+    it('should translate a merged cell in a layer other than the active one', async() => {
+      handsontable({
+        data: createSpreadsheetData(6, 6),
+        mergeCells: [{ row: 3, col: 3, rowspan: 2, colspan: 2 }],
+      });
+
+      await selectCells([[3, 3, 4, 4], [0, 0, 0, 1]]);
+      await keyDownUp('f2');
+
+      getActiveEditor().setValue('filled');
+
+      await keyDownUp(['control/meta', 'enter']);
+
+      // The merged area reports its parent's coordinates, so each layer needs its own translation.
+      // Translating once for the whole call would describe only whichever layer came first.
+      expect(getDataAtCell(3, 3)).toBe('filled');
+      expect(getDataAtCell(0, 0)).toBe('filled');
+      expect(getDataAtCell(0, 1)).toBe('filled');
+    });
+
+    it('should not overwrite a cell whose value is an object', async() => {
+      handsontable({
+        data: [
+          ['A1', 'B1'],
+          [{ id: 1, label: 'kept' }, 'B2'],
+        ],
+        renderer(instance, td, row, col, prop, value) {
+          td.textContent = value && typeof value === 'object' ? value.label : value;
+        },
+      });
+
+      await selectCell(0, 0, 1, 1);
+      await keyDownUp('f2');
+
+      getActiveEditor().setValue('filled');
+
+      await keyDownUp(['control/meta', 'enter']);
+
+      // A cell holding an object holds a record a renderer displays, not a displayable value, so a
+      // typed string must not replace it - the rule `populateFromArray()` applies at `core.ts`. The
+      // rest of the selection still fills.
+      expect(getDataAtCell(1, 0)).toEqual({ id: 1, label: 'kept' });
+      expect(getDataAtCell(0, 0)).toBe('filled');
+      expect(getDataAtCell(0, 1)).toBe('filled');
+      expect(getDataAtCell(1, 1)).toBe('filled');
+    });
+
+    it('should insert a line break when every other selected cell is read-only', async() => {
+      handsontable({
+        data: createSpreadsheetData(6, 6),
+        cell: [
+          { row: 3, col: 3, readOnly: true },
+          { row: 3, col: 4, readOnly: true },
+          { row: 4, col: 3, readOnly: true },
+          { row: 4, col: 4, readOnly: true },
+        ],
+      });
+
+      // The editable cell is selected last, so it is the one the editor opens on.
+      await selectCells([[3, 3, 4, 4], [0, 0, 0, 0]]);
+      await keyDownUp('f2');
+      await keyDownUp(['control/meta', 'enter']);
+
+      // A second layer that offers no writable cell is not "other cells to fill". Counting layers
+      // instead would close the editor here and write nothing.
+      expect(isEditorVisible()).toBe(true);
+      expect(getActiveEditor().getValue()).toBe('A1\n');
+      expect(getDataAtCell(3, 3)).toBe('D4');
     });
 
     it('should revert the whole fill with a single undo step', async() => {
