@@ -29,7 +29,7 @@ describe('Walkontable.Renderer.CellsRenderer', () => {
       return false;
     }
 
-    getAriaColumnHeaderId() {
+    getAriaColumnHeaderIdPrefix() {
       return '';
     }
   }

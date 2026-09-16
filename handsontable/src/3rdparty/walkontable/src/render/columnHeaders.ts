@@ -70,6 +70,9 @@ export class ColumnHeadersRenderer extends BaseRenderer {
       columnHeadersCount, columnHeaderFunctions, columnsToRender, rowHeadersCount, columnHeaderRows
     } = this.table;
     const allColumnsToRender = columnsToRender + rowHeadersCount;
+    // Draw-constant, so resolved once rather than per header (mirrors the cells renderer): the id
+    // prefix a data cell references through `aria-describedby`, empty without an instance id (DEV-29).
+    const columnHeaderIdPrefix = this.table.isAriaEnabled() ? this.table.getAriaColumnHeaderIdPrefix() : '';
 
     for (let visibleRowIndex = 0; visibleRowIndex < columnHeadersCount; visibleRowIndex++) {
       const TR = columnHeaderRows!.getRenderedNode(visibleRowIndex);
@@ -116,10 +119,11 @@ export class ColumnHeadersRenderer extends BaseRenderer {
           // (a frozen column is owned by the inline-start overlay, every other column by the master -
           // see `ownsAriaColumnHeaderId`). The leaf row is the one that is 1:1 with a column; higher
           // rows in nested headers are colspanned group labels and are left out of v1.
-          const columnHeaderId = renderedColumnIndex >= 0 &&
+          const columnHeaderId = columnHeaderIdPrefix &&
+            renderedColumnIndex >= 0 &&
             visibleRowIndex === columnHeadersCount - 1 &&
             this.table.ownsAriaColumnHeaderId(sourceColumnIndex)
-            ? this.table.getAriaColumnHeaderId(sourceColumnIndex)
+            ? `${columnHeaderIdPrefix}${sourceColumnIndex}`
             : '';
 
           setAttribute(TH, [

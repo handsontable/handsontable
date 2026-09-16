@@ -762,8 +762,10 @@ sets `aria-describedby` on each data cell to `` `${guid}-colheader-${sourceColum
 `render/columnHeaders.ts` stamps that `id` on the matching header (DEV-29). `guid` is the core
 instance's id, threaded in as a wtSetting (`tableView.ts` → `defaults.ts`), so the id is unique when
 several grids share a page; keyed by the rendered (renderable) column index, so it survives horizontal
-scroll and pooled-node reuse. The id builder, the ownership predicate, and the grid-wide header test
-live together on `TableRenderer` (`getAriaColumnHeaderId`, `ownsAriaColumnHeaderId`, `hasColumnHeaders`).
+scroll and pooled-node reuse. The id-prefix builder, the ownership predicate, and the grid-wide header
+test live together on `TableRenderer` (`getAriaColumnHeaderIdPrefix`, `ownsAriaColumnHeaderId`,
+`hasColumnHeaders`); the prefix is draw-constant and both renderers hoist it out of their per-element
+loop, appending the column index per element.
 
 Four things are load-bearing, and each was a bug first:
 
@@ -781,12 +783,23 @@ Four things are load-bearing, and each was a bug first:
 - **`id` is not covered by the `aria-*`/`role` strip, so `render/columnHeaders.ts` strips it explicitly
   (`/^id$/`) each paint.** Header nodes are pooled and reused across draws; without the strip a header
   that stops owning an id (scrolled to a different column, or a corner cell reused as a header) keeps a
-  stale id a data cell points at. The strip runs before the user's `columnHeaderFunctions`, so a
-  custom header renderer's own `id` survives.
+  stale id a data cell points at.
 - **A renderer spec's `TableRendererMock` must provide `hasColumnHeaders`, `ownsAriaColumnHeaderId`,
-  and `getAriaColumnHeaderId`** (same reason the mock must provide `shouldPaintCell`). The
+  and `getAriaColumnHeaderIdPrefix`** (same reason the mock must provide `shouldPaintCell`). The
   no-column-header path is inert without a `guid`, so a standalone Walkontable host that sets none
   behaves exactly as before.
+
+Two v1 limitations, both of which degrade to the pre-DEV-29 behavior for the affected column (the
+cell's `aria-describedby` resolves to nothing, so the header is not announced — no worse than before,
+never a duplicate or a wrong header):
+
+- **A custom `columnHeaders` renderer that assigns its own `TH.id` clobbers the stamped id.** It runs
+  (`columnHeaderFunctions[...]`) after the stamp, so that column's cells then dangle. Setting a DOM
+  `id` on a header is rare; a future revision could re-stamp after the header function if it matters.
+- **A colspan on the *leaf* header row (nested headers).** The stamp assumes the leaf row is 1:1 with
+  columns; a leaf colspan makes the continuation columns' ids land on `hiddenHeader` (`display:none`)
+  THs, which assistive tech ignores. Colspans on higher (group) rows are fine — those rows are not the
+  leaf and are never stamped. Group-label announcement is a deliberate v1 scope-out.
 
 ## The engine decides for itself when the overlays need resizing — never ask it from outside
 

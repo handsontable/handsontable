@@ -134,11 +134,14 @@ export class CellsRenderer extends BaseRenderer {
 
         if (this.table.isAriaEnabled()) {
           // Point the cell at its column header so a screen reader announces the header label with the
-          // cell (e.g. "Position, C1" instead of just "C1"). The header is stamped by whichever overlay
-          // owns the column (master or inline-start), so a cell in any overlay resolves to it (see
-          // `ownsAriaColumnHeaderId`). The prefix is grid-wide and draw-constant, so a bottom-overlay
-          // cell - whose own clone renders no header row - still gets the reference; it is empty when
-          // the grid has no column headers, and then no attribute is written.
+          // cell - the header is read after the cell's own name, so "C1" becomes "C1, Position". The
+          // header is stamped by whichever overlay owns the column (master or inline-start), so a cell
+          // in any overlay resolves to it (see `ownsAriaColumnHeaderId`). The prefix is grid-wide and
+          // draw-constant, so a bottom-overlay cell - whose own clone renders no header row - still
+          // gets the reference; it is empty when the grid has no column headers, and then no attribute
+          // is written. Defer to a custom cell renderer that set its own `aria-describedby` (the aria
+          // strip above cleared it, so `hasAttribute` is true only when this draw's renderer set one),
+          // the same way the `role` above defers to a renderer-set role.
           const columnHeaderId = columnHeaderIdPrefix ? `${columnHeaderIdPrefix}${sourceColumnIndex}` : '';
 
           setAttribute(TD, [
@@ -148,7 +151,7 @@ export class CellsRenderer extends BaseRenderer {
             A11Y_COLINDEX(sourceColumnIndex + (
               (this.table.rowUtils?.deps?.getRowHeaders() as Function[])?.length ?? 0
             ) + 1),
-            ...(columnHeaderId ? [A11Y_DESCRIBED_BY(columnHeaderId)] : []),
+            ...(columnHeaderId && !TD.hasAttribute('aria-describedby') ? [A11Y_DESCRIBED_BY(columnHeaderId)] : []),
           ]);
         }
       }

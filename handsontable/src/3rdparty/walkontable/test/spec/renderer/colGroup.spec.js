@@ -24,7 +24,7 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
       return false;
     }
 
-    getAriaColumnHeaderId() {
+    getAriaColumnHeaderIdPrefix() {
       return '';
     }
   }

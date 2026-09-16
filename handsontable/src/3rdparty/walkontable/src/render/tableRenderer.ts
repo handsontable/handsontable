@@ -10,6 +10,7 @@ import type RowUtils from '../axisSizing/rowUtils';
 import type ColumnUtils from '../axisSizing/columnUtils';
 import type { StylesHandler } from '../types';
 import { applyRowHeight } from './exactRowHeight';
+import { CLONE_INLINE_START } from '../overlay/constants';
 
 /**
  * Asked for every cell in the rendered band before the cell element is reset and painted.
@@ -415,27 +416,14 @@ export class TableRenderer {
   }
 
   /**
-   * Returns the `id` used to tie a data cell to its column header for screen readers, or an empty
-   * string when the host supplied no instance id. The column-header renderer stamps this id on the
-   * owning overlay's header, and the cells renderer points at it through `aria-describedby`, so the
-   * header label is announced together with the cell. Keyed by the rendered column index (the
-   * Walkontable column, which core has already collapsed from physical to renderable space), so the
+   * Returns the instance-unique prefix a column-header id is built from (`${prefix}${columnIndex}`),
+   * or an empty string when the host supplied no instance id. The column-header renderer stamps the id
+   * on the owning overlay's header and the cells renderer points at it through `aria-describedby`, so
+   * the header label is announced together with the cell. Keyed by the rendered column index (the
+   * Walkontable column, which core has already collapsed from physical to renderable space), the
    * reference stays valid across horizontal scroll and pooled-node reuse; the instance id keeps it
-   * unique when several grids share a page.
-   *
-   * @param {number} sourceColumnIndex The rendered (renderable) column index the header labels.
-   * @returns {string}
-   */
-  getAriaColumnHeaderId(sourceColumnIndex: number): string {
-    const prefix = this.getAriaColumnHeaderIdPrefix();
-
-    return prefix ? `${prefix}${sourceColumnIndex}` : '';
-  }
-
-  /**
-   * Returns the instance-unique prefix the column-header id is built from, or an empty string when the
-   * host supplied no instance id. Draw-constant, so the cells renderer resolves it once per draw and
-   * appends the column index per cell instead of reading the setting on every cell.
+   * unique when several grids share a page. Draw-constant, so both renderers resolve it once per draw
+   * and append the column index per element instead of reading the setting on every one.
    *
    * @returns {string}
    */
@@ -460,10 +448,12 @@ export class TableRenderer {
   ownsAriaColumnHeaderId(sourceColumnIndex: number): boolean {
     const isFrozenColumn = sourceColumnIndex < this.rowUtils!.wtSettings.getSetting<number>('fixedColumnsStart');
 
-    if (this.activeOverlayName === 'inline_start') {
+    if (this.activeOverlayName === CLONE_INLINE_START) {
       return isFrozenColumn;
     }
 
+    // 'master' is the master table's own name (`baseTable.ts`); it is not a clone type, so there is no
+    // `CLONE_*` constant for it.
     if (this.activeOverlayName === 'master') {
       return !isFrozenColumn;
     }
