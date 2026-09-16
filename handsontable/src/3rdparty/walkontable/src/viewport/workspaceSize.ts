@@ -166,7 +166,13 @@ export function measureWorkspaceHeight(viewport: Viewport): number {
 
     // returns height without DIV scrollbar
     if (elemHeight > 0 && geometryReader.clientHeight(trimmingContainer as HTMLElement) > 0) {
-      height = geometryReader.clientHeight(trimmingContainer as HTMLElement);
+      // The owner's box is shared with the host's layout slots (see `layoutReservedHeight`); the
+      // table gets what is left, and at least one pixel so a bar taller than the box cannot
+      // collapse the viewport to nothing.
+      const reservedHeight = viewport.wtSettings
+        .getSetting('layoutReservedHeight', trimmingContainer as HTMLElement);
+
+      height = Math.max(geometryReader.clientHeight(trimmingContainer as HTMLElement) - reservedHeight, 1);
     } else {
       // Fall back to window height when the trimming container has zero client height
       // (e.g. a parent with overflow set but no explicit height). Returning Infinity

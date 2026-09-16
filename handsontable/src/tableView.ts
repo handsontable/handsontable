@@ -1025,6 +1025,7 @@ class TableView {
       table: this.#table,
       isDataViewInstance: () => isRootInstance(this.hot),
       preventOverflow: () => this.settings.preventOverflow,
+      layoutReservedHeight: (trimmingContainer: HTMLElement) => this.#getReservedSlotHeight(trimmingContainer),
       preventWheel: () => this.settings.preventWheel,
       viewportColumnRenderingThreshold: () => this.settings.viewportColumnRenderingThreshold,
       viewportRowRenderingThreshold: () => this.settings.viewportRowRenderingThreshold,
@@ -2755,6 +2756,26 @@ class TableView {
     const colCount = this.#getAriaColcount() + delta;
 
     setAttribute(this.hot.rootElement, [A11Y_COLCOUNT(colCount)]);
+  }
+
+  /**
+   * Sums the height of the root wrapper's edge slots (top and bottom) that live INSIDE the given
+   * vertical axis owner. Those slots share the owner's box with the grid, so the engine has to leave
+   * room for them – otherwise the holder takes the whole box and pushes the slot content past the
+   * owner's edge, which is how a pagination or sheets bar ended up clipped out of reach inside a
+   * scrollable ancestor (DEV-2848). A root element that owns the axis itself (an explicit `height`
+   * option) contains no slot and reserves nothing; the pagination plugin handles that case through
+   * `beforeHeightChange`. Non-root instances have no slots.
+   *
+   * @param {HTMLElement} trimmingContainer The resolved vertical axis owner.
+   * @returns {number}
+   */
+  #getReservedSlotHeight(trimmingContainer: HTMLElement): number {
+    const { rootSlotTopElement, rootSlotBottomElement } = this.hot;
+
+    return [rootSlotTopElement, rootSlotBottomElement]
+      .filter((slot): slot is HTMLElement => !!slot && trimmingContainer.contains(slot))
+      .reduce((sum, slot) => sum + slot.offsetHeight, 0);
   }
 
   /**
