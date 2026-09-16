@@ -45,6 +45,21 @@ For custom mocking, use `jest.fn()` for stubs and `jest.spyOn(object, 'method')`
 - **Targeted:** `npm run test:unit --prefix handsontable --testPathPattern=<regex>` - the pattern is matched against test file paths (e.g. `filters`, `ghostTable.unit`, `metaManager`)
 - **Example:** `npm run test:unit --prefix handsontable --testPathPattern=filters`
 
+### Two ways a unit run reports green while testing nothing
+
+- **Never put `|` in a `--testPathPattern` for `test:unit`.** The `test:unit.jest` task runs through
+  `cross-env-shell`, which hands the whole line to a shell, so `--testPathPattern=a|b` becomes a pipe: Jest
+  runs `a` alone and prints its own green summary, then the step fails with
+  `/bin/sh: b: command not found` and exit 127. A `grep` on the `Tests:` line shows only passes, so the
+  missing suites go unnoticed. Run one pattern per call, or pass file paths directly (below). The Puppeteer
+  `test:e2e` runner is not affected - it carries the pattern in an environment variable.
+- **A bare `npx jest` from `handsontable/` does not run anything.** Without `BABEL_ENV=commonjs` every file
+  fails to parse ("Jest encountered an unexpected token"), and the summary reads `Tests: 0 total`. That is
+  easy to misread as "no failures" - which makes a mutation check that greps for `✕` useless. To run specific
+  files without the styles build, use the task's own command:
+  `BABEL_ENV=commonjs npx env-cmd -f ../hot.config.js jest src/plugins/a src/plugins/b`
+  and read the `Test Suites:` count against the number of files you expected.
+
 ## Large Dataset Testing
 
 When the code under test handles data arrays, include tests with 50k+ rows. Use `forEach` loops to populate arrays - never `arr.push(...largeArray)` (causes stack overflow at scale).

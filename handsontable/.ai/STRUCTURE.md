@@ -302,8 +302,8 @@ handsontable/src/
 - Convention: Each plugin directory exports `{ PLUGIN_KEY, PLUGIN_PRIORITY, PluginClassName }` from `index.ts`
 - Convention: Each plugin directory also has an `AGENTS.md` (with `CLAUDE.md` symlinked to it) carrying that
   plugin's own knowledge - read it before changing the plugin. `base/AGENTS.md` documents the plugin contract
-  itself, including the full `PLUGIN_PRIORITY` table; `manualResize/AGENTS.md` documents the helpers the two
-  resize plugins share (that directory holds no plugin).
+  itself, including the full `PLUGIN_PRIORITY` table; `manualResize/AGENTS.md` documents the drag gesture and
+  helpers the two resize plugins share (that directory holds no plugin).
 
 **`handsontable/src/3rdparty/walkontable/`:**
 - Purpose: Self-contained rendering engine with its own test suite

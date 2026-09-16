@@ -39,8 +39,8 @@ Gold standard: `src/plugins/pagination/pagination.ts`
 carries what the plugin owns, what it does not, and the traps specific to it. Two of them are not features
 and are worth knowing by name: `src/plugins/base/AGENTS.md` holds the plugin contract itself (the five
 statics, the `onUpdateSettings` state machine, hard conflicts, and the full `PLUGIN_PRIORITY` table with
-its load-bearing orderings), and `src/plugins/manualResize/AGENTS.md` holds the helpers the two resize
-plugins share. When a plugin-specific rule is discovered, it belongs in that plugin's file, not here.
+its load-bearing orderings), and `src/plugins/manualResize/AGENTS.md` holds the drag gesture and helpers the
+two resize plugins share. When a plugin-specific rule is discovered, it belongs in that plugin's file, not here.
 
 ## Three Coordinate Systems
 

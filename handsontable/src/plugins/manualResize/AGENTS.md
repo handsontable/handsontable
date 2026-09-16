@@ -1,8 +1,115 @@
-# manualResize — shared helpers for the two manual resize plugins
+# manualResize — the drag gesture and helpers shared by the two manual resize plugins
 
-This directory holds **no plugin**. It is `utils.ts`, imported by `../manualRowResize/manualRowResize.ts`
-and (via its own `utils.ts`) `../manualColumnResize/manualColumnResize.ts`. Read this before touching either
-resize plugin, because the rules below are what those two share.
+This directory holds **no plugin**. It holds what `../manualRowResize/` and `../manualColumnResize/` share:
+
+- `resizeGesture.ts` — `ResizeGesture`: the resize handle, the guide, the drag and double-click state, and
+  the resize hooks a drag fires.
+- `axis.ts` — `ROW_RESIZE_AXIS` and `COLUMN_RESIZE_AXIS`, which tell the gesture which axis it resizes.
+- `utils.ts` — the size-option rules and the pointer math.
+
+Read this before touching either resize plugin. The two plugins used to carry the whole gesture twice, with a
+note in each file to keep them in sync by hand; there is now one copy, here.
+
+## What the gesture owns, and what the plugins own
+
+`ResizeGesture` owns everything about the drag: attaching and detaching the handle and guide, the press,
+double-click and autoresize state, the pointer math, the #6926 detached-`event.target` workaround, the
+`mouseover` that fires right after `contextmenu`, and firing `before*Resize` / `after*Resize`.
+
+Each plugin owns its sizes: the index map, every public size accessor, `SETTING_KEYS` and the
+`updatePlugin()` rules below, the `#onMapInit` replay, and its `modifyRowHeight` / `modifyColWidth` hook. The
+row plugin also keeps `getLastDesiredRowHeight()`, and the column plugin keeps its stretching hooks.
+
+**The seam runs both ways.** Facts flow in through the axis descriptor. Calls flow out through the owner the
+plugin passes in: `isEnabled()` and `setManualSize()`. That second one is the plugin's **public**
+`setManualSize` on purpose - the gesture never writes a size map itself, so the clamping rules (the 20px
+column floor, the theme's default row height) stay in one place.
+
+## One gesture for both axes: along and across
+
+The two plugins were never a vocabulary swap of each other. Their CSS geometry is a complete swap:
+
+| | Row (resized vertically) | Column (resized horizontally) |
+|---|---|---|
+| moves with the pointer | `style.top` | the inline start edge |
+| stays put | the inline start edge | `style.top` |
+| extent across | `style.width` | `style.height` |
+| pointer coordinate | `pageY` | `pageX`, times `getDirectionFactor()` |
+
+So the gesture is written once in *along* / *across* terms, and `ResizeAxis#orientation` alone decides the
+geometry.
+
+**The inline start edge is resolved when it is written, never at construction.** It is `left`, or `right`
+under RTL, and RTL can change through `updateSettings()`. It is *across* for a row and *along* for a column,
+so capturing it once would move the wrong edge on either axis after an RTL switch. `resizeGesture.unit.js`
+pins this.
+
+## What genuinely differs per axis: `axis.ts`
+
+Most descriptor entries are naming. Four hold real logic, and each is easy to get wrong:
+
+- **`getHeaderPosition` - the frozen bands.** Rows test `fixedRowsTop` **and** `fixedRowsBottom`, and a row
+  in the bottom band resolves against `bottomInlineStartCornerOverlay`; columns test `fixedColumnsStart`
+  only. Both read the counts through Walkontable, not the settings, because `TableView` reduces them by the
+  number of hidden rows or columns. When the header is not inside a corner overlay, the fallback is the
+  inline-start overlay for rows and the top overlay for columns - that is where the rest of the headers live.
+- **`canResizeHeader`.** The column axis refuses a header spanning more than one column (nested headers):
+  there is no single column to resize. The row axis resizes every header.
+- **`getHookSize` - rows can only grow.** A declared row height is a minimum, not a target
+  (`../autoRowSize/AGENTS.md`), so the row axis reports `max(dragged, rendered)` to the hooks. The column axis
+  reports the stored width unchanged. The row side's standing TODO lives here too: it measures through
+  `wtTable.getRowHeight()` because `hot.getRowHeight()` is not yet trustworthy - do not swap them without
+  verifying that.
+- **`isHeaderElement`.** Rows look for a `TBODY` in three overlays and read `clone?.`; columns look for a
+  `THEAD` in two and read `clone!.`. The null-policy difference predates the shared module and was kept as it
+  was.
+
+Two differences looked real while the plugins were copies and were not. **Do not re-add them.** The row
+plugin read `getBottomStartCorner()` where the column read `getBottomEndCorner()`: both corners take
+`Math.max(from.row, to.row)`, so one corner serves both axes. And "rows can only grow" is not a separate
+flag - it is `getHookSize` above.
+
+## The teardown traps (DEV-2719)
+
+The handle and guide are created with the gesture and attached lazily - the handle on `mouseover` over a
+header, the guide on `mousedown` over the handle. Four traps come with that, and all of them now live in
+`ResizeGesture`:
+
+- **Hiding does not detach.** `#hideHandleAndGuide()` only strips the `active` class. `detach()` is the
+  teardown, and each plugin calls it from `disablePlugin()` and `destroy()`; the context menu handler calls it
+  too.
+- **An orphaned handle swallows the click on the header underneath it.** It is `opacity: 0` at rest, so
+  nothing looks broken, but it keeps `z-index: 210`, `pointer-events: auto` and a resize cursor, and the core
+  resolves a cell from `event.target` - so a click on the band hits the orphan and selects nothing. The guide
+  is inert by comparison (`display: none` without `active`).
+- **Do not move the detach into `#hideHandleAndGuide()`.** `#onMouseUp` calls it and then positions the
+  handle again, which early-returns when `shouldSkipResizeHandlePositioning()` sees a click count above one -
+  exactly the second `mouseup` of a double-click. The handle would then be gone for the 500ms until
+  `afterMouseDownTimeout()` restores it: a flicker on every double-click autosize. For the same reason a
+  completed drag deliberately leaves both elements attached.
+- **`detach()` must not reset the drag.** `updatePlugin()` runs `disablePlugin(); enablePlugin();` on any
+  `updateSettings()` carrying the plugin's own key, which a framework wrapper sends on every re-render.
+  Resetting the pressed flag in the teardown made the `mouseup` ending an in-flight drag take the idle branch:
+  the drag was dropped with no after-resize hook and the size never confirmed. The reset lives in the context
+  menu handler only, where aborting the drag is the point. Known cost, pre-existing: on a *real* disable the
+  `mouseup` never arrives, so the flag latches true and a later re-enable reads plain pointer movement as a
+  drag. An `event.buttons === 0` check in `#onMouseMove` would close it, but the frozen Jasmine helpers
+  simulate `mousemove` without `buttons`, so it reds 41 of the 147 specs across the two plugin suites - it
+  needs a sweep of those helpers, not a drive-by.
+
+**`afterMouseDownTimeout()` can outlive the plugin.** `#onMouseDown` arms it through `hot._registerTimeout`,
+which only `Core#destroy()` clears - `disablePlugin()` does not. So a disable inside the 500ms window leaves
+the callback pending on a plugin that is already off, where it would run the resize hooks, write into a size
+map that was already unregistered, and re-append the handle into the container the teardown just cleaned. It
+therefore opens with a bail on `owner.isEnabled()` that still resets the timeout and the click count, because
+`#onMouseDown` only arms a fresh timer while no timer is pending.
+
+## `afterMouseDownTimeout()` stays on both plugins
+
+Every other gesture method left the plugins. This one is kept as a one-line forward, because the frozen
+`../autoRowSize/__tests__/autoRowSize.spec.js` calls `manualColumnResizePlugin.afterMouseDownTimeout()`
+directly to close a double-click window between simulated clicks. The row plugin keeps the same forward for
+parity. Do not remove either without migrating that spec.
 
 ## The size options each plugin answers to
 
@@ -71,4 +178,13 @@ measurement, which is what a grid built inside a `display: none` container measu
 ## Testing
 
 - `npm run test:unit --prefix handsontable -- --testPathPattern='manualResize'`
-- `npm run test:e2e --prefix handsontable -- --testPathPattern='manualRowResize|manualColumnResize'`
+- `npm run test:e2e --prefix handsontable -- --testPathPattern='manualRowResize|manualColumnResize|autoRowSize'`
+- `cd tests && npx playwright test --project=e2e-main e2e/manual-resize-teardown.spec.ts e2e/manual-resize-drag-interruption.spec.ts`
+
+`__tests__/resizeGesture.unit.js` drives the gesture through its constructor, with a small grid, axis and owner
+passed in - no module is mocked. Each of its tests was checked against a deliberate regression of the
+behavior it names: resetting the drag in `detach()`, capturing the inline edge at construction, dropping the
+disabled-owner bail, not aborting on a context menu, and dropping the RTL direction factor each turn exactly
+one test red. The browser half of the traps is pinned by `tests/e2e/manual-resize-teardown.spec.ts` (hiding,
+the swallowed click, the double-click flicker, the pending timeout) and
+`tests/e2e/manual-resize-drag-interruption.spec.ts` (the drag surviving the update cycle).
