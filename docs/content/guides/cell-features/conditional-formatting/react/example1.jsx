@@ -29,15 +29,19 @@ const ExampleComponent = () => {
       ]}
       cells={function (row, col) {
         const cellProperties = {};
+
         if (col > 0) {
           cellProperties.className = '';
+
           const value = data[row]?.[col];
+
           if (typeof value === 'number' && value < 0) {
             cellProperties.className = 'loss';
           } else if (typeof value === 'number' && value > 10) {
             cellProperties.className = 'strong-quarter';
           }
         }
+
         return cellProperties;
       }}
     />

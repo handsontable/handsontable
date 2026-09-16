@@ -96,6 +96,7 @@ const ExampleComponent = () => {
             className="button button--primary"
             onClick={() => {
               const hot = hotRef.current?.hotInstance;
+
               hot?.getPlugin('nestedRows').collapseAll();
               setOutput(`Collapsed again - ${hot?.countRows()} rows are visible.`);
             }}

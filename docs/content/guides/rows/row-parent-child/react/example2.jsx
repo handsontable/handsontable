@@ -74,6 +74,7 @@ const ExampleComponent = () => {
               // `toggleParent` takes a visual row index and returns `true` when the state changed.
               const plugin = getPlugin();
               const changed = plugin?.toggleParent(0);
+
               setOutput(`toggleParent(0) -> ${changed}, collapsed: ${plugin?.isParentCollapsed(0)}`);
             }}
           >
@@ -85,6 +86,7 @@ const ExampleComponent = () => {
               // `getCollapsedParents` returns physical row indexes, because a parent collapsed
               // inside another collapsed parent has no visual index at all.
               const plugin = getPlugin();
+
               setOutput(
                 `getCollapsedParents() -> [${plugin?.getCollapsedParents()}]\n` +
                   `getRowLevel(0) -> ${plugin?.getRowLevel(0)}\n` +

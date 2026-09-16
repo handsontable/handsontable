@@ -30,6 +30,7 @@ const ExampleComponent = () => {
             if (typeof value !== 'number') {
               return value;
             }
+
             return `₿${value.toFixed(4)}`;
           },
         },

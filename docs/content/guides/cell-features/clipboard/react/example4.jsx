@@ -54,9 +54,11 @@ const ExampleComponent = () => {
       }}
       afterPaste={function (_data, coords) {
         const target = coords[0];
+
         if (!target) {
           return;
         }
+
         this.batch(() => {
           copiedClassNames.current.forEach((rowClassNames, rowOffset) => {
             rowClassNames.forEach((className, colOffset) => {
@@ -64,6 +66,7 @@ const ExampleComponent = () => {
             });
           });
         });
+
         this.render();
       }}
       height="auto"

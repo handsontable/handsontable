@@ -56,14 +56,17 @@ const ExampleComponent = () => {
       afterPaste={function (_data, coords) {
         const target = coords[0];
         const comments = this.getPlugin('comments');
+
         if (!target) {
           return;
         }
+
         this.batch(() => {
           copiedComments.current.forEach((rowComments, rowOffset) => {
             rowComments.forEach((comment, colOffset) => {
               const row = target.startRow + rowOffset;
               const col = target.startCol + colOffset;
+
               if (comment) {
                 comments.setCommentAtCell(row, col, comment);
               } else {
@@ -72,6 +75,7 @@ const ExampleComponent = () => {
             });
           });
         });
+
         this.render();
       }}
       height="auto"

@@ -30,6 +30,7 @@ const ExampleComponent = () => {
       afterValidate={function (isValid, value, row, prop) {
         const column = this.propToCol(prop);
         const comments = this.getPlugin('comments');
+
         if (!isValid) {
           comments.setCommentAtCell(row, column, `"${value}" is not valid. Enter a whole number of 0 or more.`);
         } else {
