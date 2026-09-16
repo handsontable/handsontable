@@ -146,15 +146,15 @@ data, so it sits *inside* the band `fixedRowsBottom` already reserves. The bound
 `numberOfRows - Math.max(spareRows, fixedRowsBottom)` - subtracting the terms independently
 dropped one real data row per overlapping row. `sortFixedRows: true` zeroes the pinned term,
 which used to *mask* the overlap rather than fix it; the `max` still has to run so spare rows
-stay out. The `maxRows` early return is the same family: `countRows()` is already capped, and
-that branch still has to count spare rows rather than subtract only `fixedRowsBottom`.
+stay out. There is no separate `maxRows` formula: `countRows()` is already
+`min(length, maxRows)`, so the walk always runs and the bound is always that `max`.
 
 The spec that sets both options (`__tests__/columnSorting.spec.js`, "should respect
 `fixedRowsTop`, `fixedRowsBottom`, and `minSpareRows` together") must keep a **non-extreme**
 `Total` value. `111` was the largest in the column, so `Total` landed last whether or not it
 took part in the sort and the overlap was invisible. `sortableRowRange.unit.js` covers both
 directions of the overlap (more spares than pinned rows, and more pinned rows than spares)
-plus the `maxRows` branch.
+plus `maxRows` capping the displayed count.
 
 ## The sort indicator reserves room on the header *container*
 

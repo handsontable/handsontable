@@ -77,8 +77,8 @@ describe.each([
       expect(upperBound()).toBe(6);
     });
 
-    it('should honor `sortFixedRows` on the `maxRows` branch', () => {
-      // `maxRows` equal to the row count takes a separate early return.
+    it('should honor `sortFixedRows` when `maxRows` equals the row count', () => {
+      // `countRows()` is already min(length, maxRows); there is no separate formula.
       hot = build({ [pluginKey]: true, fixedRowsBottom: 1, maxRows: 6 });
 
       expect(upperBound()).toBe(5);
@@ -127,11 +127,16 @@ describe.each([
       // 6 data + 1 spare. The pinned band covers the spare and `Total`, so drop 2, not 3.
       expect(hot.countRows()).toBe(7);
       expect(upperBound()).toBe(5);
+
+      hot.updateSettings({ [pluginKey]: { sortFixedRows: true } });
+
+      // The flag zeroes the pinned term; only the spare stays out (bound 6, not 5).
+      expect(upperBound()).toBe(6);
     });
 
-    it('should apply the same overlap on the `maxRows` branch', () => {
-      // `maxRows` equal to the displayed count takes the early return. Spare rows still
-      // occupy the trailing visual rows, so they must be excluded the same way.
+    it('should apply the same overlap when `maxRows` caps the displayed count', () => {
+      // `countRows()` is already min(length, maxRows). Spare rows still occupy the
+      // trailing visual rows, so they must be excluded the same way.
       hot = build({
         [pluginKey]: true,
         minSpareRows: 2,
@@ -147,7 +152,7 @@ describe.each([
       expect(upperBound()).toBe(6);
     });
 
-    it('should honor a larger `fixedRowsBottom` on the `maxRows` branch', () => {
+    it('should honor a larger `fixedRowsBottom` when `maxRows` caps the displayed count', () => {
       hot = build({
         [pluginKey]: true,
         minSpareRows: 1,
@@ -207,6 +212,12 @@ describe.each([
 
       // Rows 5 (`Total`, 35) and 6 (spare) are the pinned band. Cherry (30) must sort.
       expect(hot.getDataAtCol(1)).toEqual([10, 20, 25, 30, 40, 35, null]);
+
+      hot.updateSettings({ [pluginKey]: { sortFixedRows: true } });
+      sortAsc();
+
+      // `Total` is no longer pinned; the spare still stays last.
+      expect(hot.getDataAtCol(1)).toEqual([10, 20, 25, 30, 35, 40, null]);
     });
   });
 

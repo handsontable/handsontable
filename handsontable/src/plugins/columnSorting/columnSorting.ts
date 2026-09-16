@@ -744,9 +744,10 @@ export class ColumnSorting extends BasePlugin {
     // that simply ends blank) would pay for rows the cap then discards. `adjustRowsAndCols()`
     // caps its `minSpareCols` count the same way, for the same reason.
     //
-    // Count on the `maxRows` path too. `countRows()` is already capped, so that branch used to
-    // skip this walk and subtract only `fixedRowsBottom`. Trailing spare rows that filled the
-    // cap then took part in the sort.
+    // Always count. `countRows()` is already `min(length, maxRows)`, so a separate
+    // `maxRows - fixedRowsBottom` return was the same formula once spares are counted,
+    // and skipping the walk let trailing spare rows that filled the cap take part in
+    // the sort.
     let spareRows = 0;
 
     for (let row = numberOfRows - 1; row >= 0 && spareRows < minSpareRows; row--) {
@@ -760,13 +761,7 @@ export class ColumnSorting extends BasePlugin {
     // Spare rows are appended at the end of the data, so they sit inside the band
     // `fixedRowsBottom` already reserves. Subtracting both independently dropped one real
     // data row per overlapping row (DEV-2881).
-    const excludedFromBottom = Math.max(spareRows, fixedRowsBottom);
-
-    if ((settings.maxRows ?? Infinity) <= numberOfRows) {
-      return Math.max(0, (settings.maxRows ?? 0) - excludedFromBottom);
-    }
-
-    return Math.max(0, numberOfRows - excludedFromBottom);
+    return Math.max(0, numberOfRows - Math.max(spareRows, fixedRowsBottom));
   }
 
   /**
