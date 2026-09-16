@@ -47,25 +47,21 @@ function collectProtectedLines(sourceFile, sourceText) {
       protectedLines.add(line);
     }
   };
-  const seenComments = new Set();
-  const markComments = (ranges) => {
-    for (const range of ranges ?? []) {
-      if (range.kind !== ts.SyntaxKind.MultiLineCommentTrivia) {
-        continue;
-      }
-      const key = `${range.pos}:${range.end}`;
+  // Block comments are not AST nodes and a JSX `{/* ... */}` comment attaches to nothing, so
+  // sweep every block comment straight off the token stream. Over-matching a `/*` inside JSX
+  // text would only leave a blank line unrestored, never corrupt output; a missed comment would
+  // corrupt it, so completeness matters more than precision here.
+  const scanner = ts.createScanner(ts.ScriptTarget.Latest, false, ts.LanguageVariant.Standard, sourceText);
+  let token = scanner.scan();
 
-      if (seenComments.has(key)) {
-        continue;
-      }
-      seenComments.add(key);
-      markSpan(range.pos, range.end);
+  while (token !== ts.SyntaxKind.EndOfFileToken) {
+    if (token === ts.SyntaxKind.MultiLineCommentTrivia) {
+      markSpan(scanner.getTokenPos(), scanner.getTextPos());
     }
-  };
-  const visit = (node) => {
-    markComments(ts.getLeadingCommentRanges(sourceText, node.getFullStart()));
-    markComments(ts.getTrailingCommentRanges(sourceText, node.getEnd()));
+    token = scanner.scan();
+  }
 
+  const visit = (node) => {
     if (ts.isJsxText(node)) {
       // JsxText carries the whitespace between JSX children, so use its full extent.
       markSpan(node.getFullStart(), node.getEnd());
