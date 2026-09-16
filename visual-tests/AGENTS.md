@@ -82,8 +82,9 @@ The table is `VISUAL_TIERS` in `src/config.mjs` — one object per tier (`framew
 - **`VISUAL_TIER` selects the tier; `VISUAL_WRAPPERS` adds wrappers to `pr`.** `lib/visual-tiers.mjs`
   `resolveTier()` reads both. An unknown `VISUAL_TIER` throws (it never renders nothing); unset, it resolves
   to `seed` when the current branch (`GITHUB_REF_NAME`, else `git rev-parse`) is `develop` and to `full`
-  otherwise — exactly what `getFrameworkList()` did before tiers existed, so a bare `npm run test` on a
-  feature branch still renders everything and on `develop` still renders js and copies. `VISUAL_WRAPPERS`
+  otherwise — the same branch rule the pre-tier `getFrameworkList()` applied (now deleted, so there is one
+  answer to "what does this branch render" rather than two), so a bare `npm run test` on a feature branch
+  still renders everything and on `develop` still renders js and copies. `VISUAL_WRAPPERS`
   is read in the `pr` tier only (`seed` copies, `full` renders all three regardless) and accepts a JSON
   array of names (the router's `visual-wrappers` output), the Integration matrix shape
   (`[{"pkg":"react-wrapper",…}]`), or a comma- or space-separated list; an entry that is not in `WRAPPERS` throws, because a typo that silently rendered

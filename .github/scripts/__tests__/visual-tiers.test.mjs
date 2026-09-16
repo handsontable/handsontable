@@ -363,7 +363,19 @@ test('the scope router keeps the visual routing narrower than the test scopes', 
   // lockfiles stay out: a path filter cannot tell a Playwright bump from any
   // other dependency bump, and the pr tier exists to stop paying for a full
   // render on every one of those.
-  assert.deepEqual(filter('visual-full'), ['- \'./examples/next/visual-tests/**\'', '- \'./visual-tests/**\'']);
+  // Through the shared anchor, so the two filters cannot drift: `test-visual`
+  // carries the same pair plus the lockfiles, and the demos have moved once
+  // already. Editing only `test-visual` would still run the Visual module while
+  // quietly dropping the pull request from `full` to `pr`.
+  assert.deepEqual(filter('visual-full'), ['- *visual-sources']);
+  // The anchor carries the anchor name on its key line, so `filter()` cannot read it.
+  assert.match(
+    filters,
+    /visual-sources: &visual-sources\n\s+- '\.\/examples\/next\/visual-tests\/\*\*'\n\s+- '\.\/visual-tests\/\*\*'\n/,
+    'the anchor must define exactly the visual tier\'s own two paths'
+  );
+  assert.match(filters, /test-visual:\n\s+- \*visual-sources\n/,
+    'test-visual must take the same anchor, or the copies drift apart again');
   // Per wrapper, its own tree only — never the `*hot-shared` anchor the
   // Integration scopes carry, or a core change renders all three wrappers.
   assert.deepEqual(filter('visual-angular-wrapper'), ['- \'wrappers/angular-wrapper/**\'']);
@@ -399,12 +411,24 @@ test('the nightly renders the full tier on a weekday schedule and never writes t
   // keeps a pull request from rendering the nightly.
   assert.match(nightly, /pull_request:\n\s+paths: \[ '\.github\/workflows\/visual-nightly\.yml' \]/);
   assert.match(nightly, new RegExp([
-    'if: github\\.event_name != \'pull_request\'',
+    'if: github\\.event_name != \'pull_request\' && github\\.ref_name == \'develop\'',
     'uses: \\./\\.github/workflows/visual\\.yml',
     'with:',
     'tier: full',
     'secrets: inherit',
   ].join('\\n\\s+')), 'the nightly must call visual.yml with tier: full, and skip itself on a pull request');
+  // A dispatch can come from ANY ref, and visual.yml only checks the branch in
+  // `compare` — after both render legs. Without a guard before the call, a
+  // dispatch from a feature branch spends ~15 minutes on two runners rendering
+  // the full matrix and then compares nothing. Same shape as visual-seed.yml's.
+  assert.match(nightly, /^\s+if: github\.event_name == 'workflow_dispatch' && github\.ref_name != 'develop'$/m,
+    'a wrong-ref dispatch must hit a job that fails, not render the whole matrix and discard it');
+
+  const guard = nightly.slice(nightly.indexOf('  guard:'), nightly.indexOf('  visual:'));
+
+  assert.match(guard, /exit 1/, 'the guard job must fail the run');
+  assert.match(guard, /::error::/, 'the guard job must say why');
+  assert.match(guard, /REF_NAME: \$\{\{ github\.ref_name \}\}/, 'the ref goes through env, never into the script body');
   // Parity with visual-seed.yml and develop.yml: no caller-level permissions
   // block, or the nested grant in visual.yml is validated against a second ceiling.
   assert.doesNotMatch(nightly, /^permissions:/m, 'visual-nightly.yml must not declare a permissions block');
@@ -418,7 +442,7 @@ test('the nightly renders the full tier on a weekday schedule and never writes t
   assert.match(nightly, /if: env\.SLACK_WEBHOOK_URL != ''\n\s+uses: slackapi\/slack-github-action@/,
     'the Slack step must skip itself when the webhook secret is absent');
   assert.match(nightly, /if: \$\{\{ failure\(\) && github\.event_name != 'pull_request' \}\}/);
-  assert.deepEqual(jobIds(nightly), ['visual', 'notify']);
+  assert.deepEqual(jobIds(nightly), ['guard', 'visual', 'notify']);
 });
 
 test('the comparison scripts run the tiered pipeline', () => {

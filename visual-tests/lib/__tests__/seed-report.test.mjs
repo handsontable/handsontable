@@ -197,7 +197,13 @@ test('a seed with out-of-tier differences and a pull request number comments on 
   });
 
   assert.equal(s.pull, '13471');
-  assert.match(s.comment, /^## Visual seed — this merge changed screenshots the pull request did not render$/m);
+  // "may not have rendered", not "did not render". The split is computed from the raw `pr` table row,
+  // which carries no wrapper, but the `pr` tier does render one when `VISUAL_WRAPPERS` names it — so a
+  // wrapper item here can be one this pull request rendered and its author already reviewed.
+  assert.match(s.comment,
+    /^## Visual seed — this merge changed screenshots the pull request may not have rendered$/m);
+  assert.doesNotMatch(s.comment, /a pull request does not render\s+these variants/,
+    'the comment must not tell an author their check could not have shown a wrapper it did render');
   assert.match(s.comment, /The `develop` seed for #13471 \(`abc1234`\) found 3 differences in/);
   assert.match(s.comment, /- `cross-browser\/webkit\/columns-filter-2\.png`/);
   assert.match(s.comment, /- `react-wrapper\/chromium\/multi-frameworks\/tab-navigation-1\.png \(new\)`/);
@@ -210,7 +216,7 @@ test('a seed with out-of-tier differences and a pull request number comments on 
   // The sticky action adds its own header marker; the body must not carry one.
   assert.doesNotMatch(s.comment, /Sticky Pull Request Comment/);
   // The summary points at the comment.
-  assert.match(s.markdown, /3 of them are in variants the `pr` tier does not render.*commented on #13471/);
+  assert.match(s.markdown, /3 of them are in variants a pull request may not render.*commented on #13471/);
 });
 
 test('no comment without a pull request number, without out-of-tier differences, or on the nightly', () => {
@@ -225,8 +231,8 @@ test('no comment without a pull request number, without out-of-tier differences,
 
   assert.equal(noPull.comment, '');
   assert.equal(noPull.pull, null);
-  assert.match(noPull.markdown, /3 of them are in variants the `pr` tier does not render/);
-  assert.match(noPull.markdown, /could not have shown them\.$/m, 'no number, so no "commented on" suffix');
+  assert.match(noPull.markdown, /3 of them are in variants a pull request may not render/);
+  assert.match(noPull.markdown, /may not have shown them\.$/m, 'no number, so no "commented on" suffix');
   assert.doesNotMatch(noPull.markdown, /commented on #/);
   assert.equal(inTierOnly.comment, '');
   assert.deepEqual(inTierOnly.outsidePrItems, []);

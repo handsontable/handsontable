@@ -38,8 +38,11 @@ const CDN_NOTE = 'the images behind it are cached for four hours; add `?cb=<anyt
  * @property {string} summary One-line result for the job log.
  * @property {string} markdown Body for `$GITHUB_STEP_SUMMARY`.
  * @property {string[]} changedItems Every differing item; new and deleted ones tagged.
- * @property {string[]} outsidePrItems The differing items in variants the `pr` tier does not render — what
- * the merged pull request's own visual check could not have shown.
+ * @property {string[]} outsidePrItems The differing items outside the `pr` tier's base prefixes — the
+ * variants a pull request usually does not render. "Usually", not "never": the `pr` tier also renders a
+ * wrapper when `VISUAL_WRAPPERS` names it, and this split is computed from the raw table row, which has
+ * no wrapper in it. A wrapper item here may therefore be one the merged pull request did render and its
+ * author already reviewed, so nothing downstream may claim these were invisible to that check.
  * @property {string | null} pull The squash-merged pull request number, when the commit message names one.
  * @property {string} comment Markdown for a comment on that pull request: set only for a seed whose
  * out-of-tier differences and pull request number are both known, '' otherwise.
@@ -170,8 +173,8 @@ export function summarizeBuild({
 
     if (!nightly && outsidePrItems.length > 0) {
       markdown.push(
-        `${outsidePrItems.length} of them are in variants the \`pr\` tier does not render, so the merged pull`
-          + ` request's own visual check could not have shown them${pull ? ` — commented on #${pull}` : ''}.`,
+        `${outsidePrItems.length} of them are in variants a pull request may not render, so the merged pull`
+          + ` request's own visual check may not have shown them${pull ? ` — commented on #${pull}` : ''}.`,
         '',
       );
     }
@@ -245,11 +248,13 @@ function pullRequestComment({ pull, shortSha, branch, outsidePrItems, insideCoun
   }
 
   return [
-    '## Visual seed — this merge changed screenshots the pull request did not render',
+    '## Visual seed — this merge changed screenshots the pull request may not have rendered',
     '',
     `The \`${branch}\` seed for #${pull} (\`${shortSha}\`) found ${count} difference${count === 1 ? '' : 's'} in`
-      + ' variants the `pr` tier does not render — the classic delivery path, the horizon themes, Firefox,'
-      + ' WebKit, or the wrapper copies:',
+      + ' variants a pull request may not render — the classic delivery path, the horizon themes, Firefox,'
+      + ' WebKit, or the wrapper copies. The wrappers are the reason for "may": a pull request renders one'
+      + ' for real when it changed that wrapper\'s own tree, so a wrapper item below may be one this pull'
+      + ' request already rendered and reviewed.',
     '',
     ...itemList(outsidePrItems),
     ...(link ? [link, ''] : []),
@@ -261,7 +266,7 @@ function pullRequestComment({ pull, shortSha, branch, outsidePrItems, insideCoun
       ]
       : []),
     'These renders are now the golden records every open pull request compares against. If the change is',
-    'intended, there is nothing to do. If it is not, fix forward or revert; a pull request does not render',
-    'these variants, so its own visual check cannot show the fix either — the next seed will, here.',
+    'intended, there is nothing to do. If it is not, fix forward or revert, and read the next seed here:',
+    'a pull request re-renders only the variants its own tier covers, so its check may not show the fix.',
   ].join('\n');
 }
