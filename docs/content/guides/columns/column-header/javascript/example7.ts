@@ -8,15 +8,13 @@ const container = document.querySelector('#example7')!;
 
 new Handsontable(container, {
   data: [
-    [1, 'Ana Garcia', 'Product Manager', 'Spain', '2022-03-14'],
-    [2, 'James Okafor', 'Senior Engineer', 'Nigeria', '2021-07-02'],
-    [3, 'Li Wei', 'Data Analyst', 'China', '2023-01-19'],
-    [4, 'Sofia Rossi', 'UX Designer', 'Italy', '2020-11-30'],
-    [5, 'Mateo Fernandez', 'Engineering Lead', 'Argentina', '2019-05-08'],
+    ['Hydrogen', 'H', 1, 1.008, 7, -434.4, -423.2],
+    ['Helium', 'He', 2, 4.003, 9, -458.0, -452.0],
+    ['Lithium', 'Li', 3, 6.94, 9, 356.9, 2447.6],
   ],
-  colHeaders: ['Employee ID', 'Employee full name', 'Current job title', 'Country of residence', 'Employment start date'],
+  colHeaders: ['Name', 'Symbol', 'Atomic Number', 'Atomic Mass (u)', 'Known Isotopes', 'Melting Point (°F)', 'Boiling Point (°F)'],
   rowHeaders: true,
-  colWidths: [100, 130, 130, 130, 130],
+  colWidths: 100,
   columnHeaderHeight: 50,
   height: 'auto',
   autoWrapRow: true,

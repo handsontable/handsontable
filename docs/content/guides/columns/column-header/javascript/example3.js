@@ -6,14 +6,16 @@ registerAllModules();
 
 const container = document.querySelector('#example3');
 
+const columnHeaders = ['Name', 'Symbol', 'Atomic Number', 'Atomic Mass (u)', 'Known Isotopes', 'Melting Point (°F)', 'Boiling Point (°F)'];
+
 new Handsontable(container, {
   data: [
-    ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1', 'K1'],
-    ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2', 'K2'],
-    ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3', 'J3', 'K3'],
+    ['Hydrogen', 'H', 1, 1.008, 7, -434.4, -423.2],
+    ['Helium', 'He', 2, 4.003, 9, -458.0, -452.0],
+    ['Lithium', 'Li', 3, 6.94, 9, 356.9, 2447.6],
   ],
   colHeaders(index) {
-    return `Col ${index + 1}`;
+    return columnHeaders[index];
   },
   rowHeaders: true,
   height: 'auto',
