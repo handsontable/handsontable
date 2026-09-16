@@ -287,6 +287,15 @@ Each example must use data from a coherent, plausible real-world domain. Pick on
 | **Analytics** | Campaign names (Spring Sale 2025, Brand Awareness Q3), conversion rates (3.4%, 8.1%), channels (Email, Paid Search, Organic) |
 | **Project management** | Task names (Update API docs, Deploy hotfix), assignees, due dates (2025-06-30), statuses (In progress, Blocked) |
 
+**Canonical reusable datasets:**
+
+Two literal datasets are shared across guides so an example doesn't invent new data for a domain that already has one. Reuse the exact values (or a slice from the left/top of them) instead of writing a new one.
+
+| Dataset | Shape | Example data | Lives at |
+|---|---|---|---|
+| **Inventory long set** (DEV-2915) | 12 rows x 12 columns | SKU (SKU-4821, SKU-0093), product (Stainless Steel Water Bottle, Wireless Mouse), supplier (Harbor Goods, Alpine Supply Co.), category (Drinkware, Electronics), warehouse (Seattle, Denver), quantity (142, 0), unit price ($24.99, $29.5), status (In stock, Backorder) | `docs/content/guides/rows/row-moving/javascript/example1.js` |
+| **Periodic table narrow set** (DEV-2885) | 3 rows x 7 columns | Name (Hydrogen, Helium, Lithium), symbol (H, He, Li), atomic number (1, 2, 3), atomic mass (1.008, 4.003, 6.94), known isotopes (7, 9, 9), melting point (-434.4°F, -458.0°F, 356.9°F), boiling point (-423.2°F, -452.0°F, 2447.6°F) | `docs/content/guides/columns/column-header/javascript/example1.js` |
+
 ### Data coherence rules
 
 - All rows in an example use the same domain.
