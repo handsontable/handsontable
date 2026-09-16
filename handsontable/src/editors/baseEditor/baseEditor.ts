@@ -333,6 +333,11 @@ export class BaseEditor {
    * keystroke the same way - see `selection/fillSelection.ts` for what the walk skips and why the
    * whole fill has to leave through a single `setDataAtCell()` call.
    *
+   * Only the first cell of the 2D wrapper is read. A fill writes one value into every selected
+   * cell, so there is nothing to tile - unlike `#saveValueToEditedCell()`, which hands the block to
+   * `populateFromArray()` and does tile it over a rectangle. A custom editor passing a real 2D block
+   * with `ctrlDown` therefore has every cell of that block but the first ignored.
+   *
    * @param {*} value The editor value, as `saveValue()` receives it.
    * @param {CellRange[]} selectedRanges The selection layers to fill.
    */
@@ -459,17 +464,6 @@ export class BaseEditor {
         return;
       }
 
-      // Ctrl/Meta + Enter over a real range copies the edited value into every other cell of the
-      // selection, so an unchanged editor still has work to do there. Where it writes only the
-      // edited cell it is the same gesture as a plain Enter, and the guard has to stay armed: that
-      // is the #3927 case, where the editor's `''` was written over a `null` cell.
-      //
-      // The question is asked of the cells the fill would actually reach, not of the selection's
-      // shape. A single-cell active layer says nothing about the other layers (DEV-103), and a
-      // layer that contributes no writable cell - all `readOnly`, or a header - is not work either.
-      const fillsOtherCells = ctrlDown === true &&
-        selectionFillsOtherCells(this.hot, this.getValue(), this.row, this.col);
-
       let value = this.getValue();
 
       // Normalization runs BEFORE the comparison, so an unchanged confirm still trims whitespace and
@@ -482,6 +476,21 @@ export class BaseEditor {
       if (typeof this.cellProperties.valueParser === 'function') {
         value = this.cellProperties.valueParser(value, this.cellProperties);
       }
+
+      // Ctrl/Meta + Enter over a real range copies the edited value into every other cell of the
+      // selection, so an unchanged editor still has work to do there. Where it writes only the
+      // edited cell it is the same gesture as a plain Enter, and the guard has to stay armed: that
+      // is the #3927 case, where the editor's `''` was written over a `null` cell.
+      //
+      // The question is asked of the cells the fill would actually reach, not of the selection's
+      // shape. A single-cell active layer says nothing about the other layers (DEV-103), and a
+      // layer that contributes no writable cell - all `readOnly`, or a header - is not work either.
+      //
+      // It is asked of the NORMALIZED value, which is the one `saveValue()` goes on to write. A
+      // `valueParser` returning an object would otherwise have the guard read the raw string and the
+      // write read the object, and the two answer the object-cell rule differently.
+      const fillsOtherCells = ctrlDown === true &&
+        selectionFillsOtherCells(this.hot, value, this.row, this.col);
 
       // The editor still holds exactly what it was opened with, so the user confirmed without changing
       // anything. Writing the editor's stringified value back over the cell is what turned a `null`

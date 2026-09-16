@@ -8,6 +8,20 @@ import { deepClone } from '../helpers/object';
 type CellChange = [number, number, unknown];
 
 /**
+ * A rectangle of cells, in visual coordinates.
+ */
+type CellArea = { fromRow: number; fromColumn: number; toRow: number; toColumn: number };
+
+/**
+ * The state one fill walk shares across every layer it visits.
+ */
+type FillWalkContext = {
+  visited: Set<number> | null;
+  columnCount: number;
+  skipArea: CellArea | null;
+};
+
+/**
  * Decides whether an edited value may be written over what the cell already holds.
  *
  * This is the one value rule `Core.populateFromArray()` applies on its `'overwrite'` branch that
@@ -63,36 +77,95 @@ export function collectSelectionFillChanges(
   skipColumn?: number | null,
 ): CellChange[] {
   const changes: CellChange[] = [];
-  // One layer cannot overlap itself, so the bookkeeping is only worth it from the second layer on -
-  // a fill over a whole large grid would otherwise allocate a key per cell for nothing.
-  const visited = selectedRanges.length > 1 ? new Set<number>() : null;
-  const columnCount = hot.countCols();
-  const skipArea = resolveSkipArea(hot, skipRow, skipColumn);
 
-  selectedRanges.forEach((cellRange) => {
-    const bounds = resolveLayerBounds(hot, cellRange);
-
-    if (bounds === null) {
-      return;
-    }
-
-    for (let row = bounds.fromRow; row <= bounds.toRow; row++) {
-      for (let column = bounds.fromColumn; column <= bounds.toColumn; column++) {
-        if (isCellAlreadyCovered(visited, columnCount, row, column) ||
-            isInSkipArea(skipArea, row, column)) {
-          continue;
-        }
-
-        const change = buildFillChange(hot, value, row, column);
-
-        if (change !== null) {
-          changes.push(change);
-        }
-      }
-    }
-  });
+  walkSelectionFill(hot, value, selectedRanges, skipRow, skipColumn, changes);
 
   return changes;
+}
+
+/**
+ * Walks every selection layer, either collecting the changes or answering whether one exists.
+ *
+ * `changes` doubles as the mode: an array collects the whole fill, and `null` makes the walk a probe
+ * that returns on the first writable cell. The probe is the question the `Ctrl`/`Cmd`+`Enter` gates
+ * ask on every keystroke, so it must not pay for cells whose answer it does not need - collecting
+ * the whole list only to test it for emptiness made each gate cost a walk of the entire selection.
+ *
+ * @param {HotInstance} hot The Handsontable instance.
+ * @param {*} value The value to write into every selected cell.
+ * @param {CellRange[]} selectedRanges The selection layers to fill.
+ * @param {number} [skipRow] Visual row of a cell to leave out - the cell the value came from.
+ * @param {number} [skipColumn] Visual column of that cell.
+ * @param {Array[]|null} changes The list to append to, or `null` to probe.
+ * @returns {boolean} Whether a writable cell was found. Only the probe reads this.
+ */
+function walkSelectionFill(
+  hot: HotInstance,
+  value: unknown,
+  selectedRanges: CellRange[],
+  skipRow: number | null | undefined,
+  skipColumn: number | null | undefined,
+  changes: CellChange[] | null,
+): boolean {
+  const context: FillWalkContext = {
+    // One layer cannot overlap itself, so the bookkeeping is only worth it from the second layer on -
+    // a fill over a whole large grid would otherwise allocate a key per cell for nothing.
+    visited: selectedRanges.length > 1 ? new Set<number>() : null,
+    columnCount: hot.countCols(),
+    skipArea: resolveSkipArea(hot, skipRow, skipColumn),
+  };
+
+  for (let i = 0; i < selectedRanges.length; i++) {
+    const bounds = resolveLayerBounds(hot, selectedRanges[i]);
+
+    if (bounds !== null && walkLayerFill(hot, value, bounds, context, changes)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Walks one layer's rectangle, appending the change every writable cell contributes.
+ *
+ * @param {HotInstance} hot The Handsontable instance.
+ * @param {*} value The value to write.
+ * @param {object} bounds The layer's clamped rectangle.
+ * @param {object} context The state shared across the layers of one walk.
+ * @param {Array[]|null} changes The list to append to, or `null` to probe.
+ * @returns {boolean} `true` once a probe has found its cell, which ends the whole walk.
+ */
+function walkLayerFill(
+  hot: HotInstance,
+  value: unknown,
+  bounds: CellArea,
+  context: FillWalkContext,
+  changes: CellChange[] | null,
+): boolean {
+  for (let row = bounds.fromRow; row <= bounds.toRow; row++) {
+    for (let column = bounds.fromColumn; column <= bounds.toColumn; column++) {
+      if (isCellAlreadyCovered(context.visited, context.columnCount, row, column) ||
+          isInSkipArea(context.skipArea, row, column)) {
+        continue;
+      }
+
+      if (!canFillCell(hot, value, row, column)) {
+        continue;
+      }
+
+      // A probe only has to prove that one such cell exists, so it stops here - without building a
+      // change, and without cloning an object value that it would immediately throw away.
+      if (changes === null) {
+        return true;
+      }
+
+      // One object spread over many cells must not leave them sharing a reference.
+      changes.push([row, column, value !== null && typeof value === 'object' ? deepClone(value) : value]);
+    }
+  }
+
+  return false;
 }
 
 /**
@@ -109,9 +182,9 @@ export function collectSelectionFillChanges(
  * @param {number} [skipColumn] Visual column of that cell.
  * @returns {object|null} The area to skip, or `null` when there is no such cell.
  */
-function resolveSkipArea(hot: HotInstance, skipRow?: number | null, skipColumn?: number | null): {
-  fromRow: number; fromColumn: number; toRow: number; toColumn: number;
-} | null {
+function resolveSkipArea(
+  hot: HotInstance, skipRow?: number | null, skipColumn?: number | null
+): CellArea | null {
   if (typeof skipRow !== 'number' || typeof skipColumn !== 'number') {
     return null;
   }
@@ -145,7 +218,7 @@ function resolveSkipArea(hot: HotInstance, skipRow?: number | null, skipColumn?:
  * @returns {boolean}
  */
 function isInSkipArea(
-  skipArea: { fromRow: number; fromColumn: number; toRow: number; toColumn: number } | null,
+  skipArea: CellArea | null,
   row: number,
   column: number,
 ): boolean {
@@ -164,9 +237,7 @@ function isInSkipArea(
  * @param {CellRange} cellRange The selection layer.
  * @returns {object|null} The clamped bounds, or `null` when the layer contributes no cell.
  */
-function resolveLayerBounds(hot: HotInstance, cellRange: CellRange): {
-  fromRow: number; fromColumn: number; toRow: number; toColumn: number;
-} | null {
+function resolveLayerBounds(hot: HotInstance, cellRange: CellRange): CellArea | null {
   if (cellRange.isSingleHeader()) {
     return null;
   }
@@ -232,21 +303,21 @@ function isCellAlreadyCovered(
 }
 
 /**
- * Builds the change one cell contributes, or `null` when the cell refuses the value.
+ * Reports whether one cell would accept the value.
  *
  * @param {HotInstance} hot The Handsontable instance.
  * @param {*} value The value to write.
  * @param {number} row Visual row index.
  * @param {number} column Visual column index.
- * @returns {Array|null}
+ * @returns {boolean}
  */
-function buildFillChange(hot: HotInstance, value: unknown, row: number, column: number): CellChange | null {
+function canFillCell(hot: HotInstance, value: unknown, row: number, column: number): boolean {
   // The transient read keeps a fill over a large selection from permanently materializing one meta
   // object per target cell - only `readOnly` and `valueSetter` are read here.
   const cellMeta = hot.getCellMetaTransient(row, column);
 
   if (cellMeta.readOnly) {
-    return null;
+    return false;
   }
 
   // `getSourceDataAtCell()` takes a PHYSICAL row and a VISUAL column. The walk produces visual
@@ -254,12 +325,7 @@ function buildFillChange(hot: HotInstance, value: unknown, row: number, column: 
   // record than the one about to be written.
   const originalValue = hot.getSourceDataAtCell(hot.toPhysicalRow(row), column) ?? null;
 
-  if (!canOverwriteValue(value, originalValue, !!cellMeta.valueSetter)) {
-    return null;
-  }
-
-  // One object spread over many cells must not leave them sharing a reference.
-  return [row, column, value !== null && typeof value === 'object' ? deepClone(value) : value];
+  return canOverwriteValue(value, originalValue, !!cellMeta.valueSetter);
 }
 
 /**
@@ -271,9 +337,10 @@ function buildFillChange(hot: HotInstance, value: unknown, row: number, column: 
  * other layers it had. The editor then did nothing at all: the text editor inserted a line break, and
  * the unchanged-edit guard treated the keystroke as a plain `Enter`.
  *
- * The answer is derived from the changes themselves rather than from a layer count, so a layer that
+ * The answer is derived from the cells themselves rather than from a layer count, so a layer that
  * contributes nothing - all `readOnly`, a header, or a repeat of the same cell - correctly reads as
- * nothing to fill.
+ * nothing to fill. The walk stops at the first cell that would be written, so a gate asking this on
+ * every keystroke does not pay for the rest of the selection.
  *
  * The value matters, because whether a cell accepts it is part of the answer: a plain value cannot
  * land on a cell holding an object. So the caller passes what it would actually write.
@@ -293,5 +360,5 @@ export function selectionFillsOtherCells(
     return false;
   }
 
-  return collectSelectionFillChanges(hot, value, selectedRanges, row, column).length > 0;
+  return walkSelectionFill(hot, value, selectedRanges, row, column, null);
 }
