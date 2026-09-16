@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-16T14:01:14.494Z",
+  "generatedAt": "2026-09-16T15:30:01.224Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 14,
+    "tests": 19,
     "needsTicket": 4,
     "quarantined": 0,
-    "entries": 55
+    "entries": 72
   },
   "rows": [
     {
@@ -260,6 +260,142 @@
       "needsTicket": false
     },
     {
+      "key": "playwright|e2e/filters-value-list.spec.ts|Filters — \"filter by value\" list › \"Clear\" also clears the selected values the list cannot show",
+      "tier": "playwright",
+      "file": "e2e/filters-value-list.spec.ts",
+      "line": 235,
+      "title": "Filters — \"filter by value\" list › \"Clear\" also clears the selected values the list cannot show",
+      "count7": 4,
+      "count30": 4,
+      "countAll": 4,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "legs": [
+        "e2e-horizon",
+        "e2e-horizon-min",
+        "e2e-main",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-16T15:29:02Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35113048951",
+        "branch": "feature/dev-1159_oversized-cell-mouse-scroll-1b24",
+        "leg": "e2e-horizon",
+        "status": "failed",
+        "error": "Error: expect(locator).not.toBeChecked() failed",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/filters-value-list.spec.ts|Filters — \"filter by value\" list › \"Select all\" clears the column even when the list cannot show every selected value",
+      "tier": "playwright",
+      "file": "e2e/filters-value-list.spec.ts",
+      "line": 197,
+      "title": "Filters — \"filter by value\" list › \"Select all\" clears the column even when the list cannot show every selected value",
+      "count7": 4,
+      "count30": 4,
+      "countAll": 4,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "legs": [
+        "e2e-horizon",
+        "e2e-horizon-min",
+        "e2e-main",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-16T15:29:02Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35113048951",
+        "branch": "feature/dev-1159_oversized-cell-mouse-scroll-1b24",
+        "leg": "e2e-horizon",
+        "status": "failed",
+        "error": "Error: expect(locator).not.toBeChecked() failed",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/filters-value-list.spec.ts|Filters — \"filter by value\" list › confirming a list whose every shown value is ticked keeps the rest of the filter",
+      "tier": "playwright",
+      "file": "e2e/filters-value-list.spec.ts",
+      "line": 156,
+      "title": "Filters — \"filter by value\" list › confirming a list whose every shown value is ticked keeps the rest of the filter",
+      "count7": 4,
+      "count30": 4,
+      "countAll": 4,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "legs": [
+        "e2e-horizon",
+        "e2e-horizon-min",
+        "e2e-main",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-16T15:29:02Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35113048951",
+        "branch": "feature/dev-1159_oversized-cell-mouse-scroll-1b24",
+        "leg": "e2e-horizon",
+        "status": "failed",
+        "error": "Error: expect(locator).not.toBeChecked() failed",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/filters-value-list.spec.ts|Filters — \"filter by value\" list › confirming a narrowed list keeps the values it cannot show",
+      "tier": "playwright",
+      "file": "e2e/filters-value-list.spec.ts",
+      "line": 112,
+      "title": "Filters — \"filter by value\" list › confirming a narrowed list keeps the values it cannot show",
+      "count7": 4,
+      "count30": 4,
+      "countAll": 4,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "legs": [
+        "e2e-horizon",
+        "e2e-horizon-min",
+        "e2e-main",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-16T15:29:02Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35113048951",
+        "branch": "feature/dev-1159_oversized-cell-mouse-scroll-1b24",
+        "leg": "e2e-horizon",
+        "status": "failed",
+        "error": "Error: expect(locator).not.toBeChecked() failed",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
       "key": "playwright|e2e/walkontable/spreader-layout-shift.spec.ts|walkontable spreader layout shift › right-to-left, with frozen rows and columns › the editor opens over its cell after a scroll on both axes",
       "tier": "playwright",
       "file": "e2e/walkontable/spreader-layout-shift.spec.ts",
@@ -416,6 +552,37 @@
         "leg": "e2e-main",
         "status": "flaky",
         "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/oversized-cell-mouse-scroll.spec.ts|oversized cell mouse scroll › last-partial row skip stays when only the column is oversized",
+      "tier": "playwright",
+      "file": "e2e/oversized-cell-mouse-scroll.spec.ts",
+      "line": 46,
+      "title": "oversized cell mouse scroll › last-partial row skip stays when only the column is oversized",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 1,
+      "branches30": 1,
+      "legs": [
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-16T15:29:02Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35113048951",
+        "branch": "feature/dev-1159_oversized-cell-mouse-scroll-1b24",
+        "leg": "e2e-main-min",
+        "status": "flaky",
+        "error": "Error: expect(received).toBeLessThan(expected)",
         "source": "ci"
       },
       "needsTicket": false
