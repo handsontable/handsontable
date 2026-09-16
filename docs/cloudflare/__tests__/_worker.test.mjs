@@ -949,7 +949,35 @@ test('never follows a next_page pointing away from Figma (rule 18c)', async() =>
 
   await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), env);
 
-  assert.ok(!env.calls.some(url => url.startsWith('https://example.com')));
+  // Match the origin exactly. `startsWith('https://example.com')` also matches
+  // `https://example.com.figma.com`, which is the substring check CodeQL flags
+  // and the wrong way to ask this question.
+  assert.ok(!env.calls.some(url => new URL(url).origin === 'https://example.com'));
+});
+
+test('never follows a next_page on a lookalike host (rule 18c)', async() => {
+  const worker = loadWorker();
+  // `api.figma.com.example.com` passes a `startsWith('https://api.figma.com')`
+  // test and is a different site. The cursor arrives in a response body and the
+  // worker carries a credential, so the origin is compared, not the prefix.
+  const env = paginatedVersionsEnv([[]], {
+    FIGMA_FETCH: async(url) => {
+      env.calls.push(url);
+
+      if (url.includes('/meta')) {
+        return new Response(JSON.stringify({ file: { last_touched_at: '2026-09-11T10:00:00Z' } }), { status: 200 });
+      }
+
+      return new Response(JSON.stringify({
+        versions: [{ id: '1', created_at: '2026-09-15T10:00:00Z', label: null }],
+        pagination: { next_page: 'https://api.figma.com.example.com/v1/files/x/versions' },
+      }), { status: 200 });
+    },
+  });
+
+  await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), env);
+
+  assert.ok(!env.calls.some(url => new URL(url).origin !== 'https://api.figma.com'));
 });
 
 test('a later page failing keeps the walk from erroring out (rule 18c)', async() => {

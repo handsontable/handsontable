@@ -873,6 +873,28 @@ const FIGMA_VERSIONS_PAGE_SIZE = 50;
 const FIGMA_VERSIONS_MAX_PAGES = 4;
 
 /**
+ * Returns a pagination cursor only when it points at Figma itself.
+ *
+ * The cursor comes from a response body, so it is data from elsewhere, and the
+ * worker holds a credential. Matching the parsed origin rather than a string
+ * prefix is what makes `https://api.figma.com.example.com/` fail this check.
+ *
+ * @param {unknown} candidate
+ * @returns {string|null}
+ */
+function figmaCursor(candidate) {
+  if (typeof candidate !== 'string') {
+    return null;
+  }
+
+  try {
+    return new URL(candidate).origin === FIGMA_API_ORIGIN ? candidate : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Parses a response body as JSON, or returns `BAD_JSON`.
  *
  * A 2xx carrying HTML - a proxy error page, a maintenance notice, a
@@ -917,7 +939,14 @@ const DESIGN_SYSTEM_DATE_ERROR_MAX_AGE = 300;
 // the cached date would otherwise have kept answering from the old read, which
 // would have looked identical whether or not the refresh worked.
 // 4: `reason` added to failure responses - the cached ones predate the field.
-const DESIGN_SYSTEM_CACHE_VERSION = 4;
+// 5: the versions walk can now find a named version where the single-page read
+//    saw only autosaves, so an entry cached before it holds a last-touched date
+//    where this build would return a published one.
+//
+// Bump it whenever the date is *selected* differently, not only when the
+// response shape changes: a cached body outlives the deploy that would have
+// replaced it.
+const DESIGN_SYSTEM_CACHE_VERSION = 5;
 
 /**
  * Wraps a `{ date, source }` pair in the endpoint's only response shape.
@@ -1126,10 +1155,9 @@ async function readDesignSystemDate(env) {
 
     // Follow Figma's own cursor rather than building one: the `before`/`after`
     // parameters leave which direction is "older" to interpretation, and this
-    // URL does not. Only ever follow it back to Figma.
-    const next = payload?.pagination?.next_page;
-
-    nextUrl = typeof next === 'string' && next.startsWith(`${FIGMA_API_ORIGIN}/`) ? next : null;
+    // URL does not. Only ever follow it back to Figma - and compare the parsed
+    // origin, because a prefix test also accepts `api.figma.com.example.com`.
+    nextUrl = figmaCursor(payload?.pagination?.next_page);
   }
 
   if (newestNamed) {
