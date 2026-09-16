@@ -38,7 +38,10 @@ settings object declared the key. `updatePlugin()` is always
 on a later enable is a no-op. `updatePlugin()` sets `#isUpdatingPlugin` around
 its disable/enable cycle so the tracker survives that path. A real disable
 (`pagination: false`) clears the tracker, and the next enable applies
-`initialPage` again. Changing `initialPage` to a different number via
+`initialPage` again. An `updateSettings` payload whose `pagination` object omits
+`initialPage` (or declares a non-number) also clears the tracker, so declaring
+that same number later is applied again — from the settings side the value went
+N, then absent, then N. Changing `initialPage` to a different number via
 `updateSettings` still jumps, which `__tests__/options/initialPage.spec.js`
 pins. To force the declared page after the user has navigated, call `setPage()`
 or `resetPage()`.
@@ -67,7 +70,7 @@ note in `../base/AGENTS.md`.
 The manager exists only on the root instance. `isEnabled()` is already gated on `isRootInstance`, so by
 the time `enablePlugin()` reaches that guard **the `isRootInstance` half is always true and its else-branch
 is unreachable**; it stays as a statement of the requirement, **not** as support for a nested grid. (The
-source comment at `pagination.ts:305` says "always false in practice", meaning the non-root *case* never
+source comment at `pagination.ts:312` says "always false in practice", meaning the non-root *case* never
 arises — read it that way, it is easy to take backwards.) A direct `enablePlugin()` call on a non-root
 instance dies earlier, in the UI, which reads `rootGridElement`. The same guard is mirrored later in the
 file with a comment pointing back — keep both, and keep the comments.

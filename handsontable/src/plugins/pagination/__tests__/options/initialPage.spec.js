@@ -155,6 +155,40 @@ describe('Pagination `initialPage` option', () => {
     expect(plugin.getPaginationData().currentPage).toBe(4);
   });
 
+  it('should apply the same `initialPage` again after an update that omitted it', async() => {
+    handsontable({
+      data: createSpreadsheetData(45, 10),
+      pagination: {
+        initialPage: 2,
+        pageSize: 10,
+      },
+    });
+
+    const plugin = getPlugin('pagination');
+
+    plugin.nextPage();
+
+    expect(plugin.getPaginationData().currentPage).toBe(3);
+
+    await updateSettings({
+      pagination: {
+        pageSize: 10,
+      },
+    });
+
+    expect(plugin.getPaginationData().currentPage).toBe(3);
+
+    await updateSettings({
+      pagination: {
+        initialPage: 2,
+        pageSize: 10,
+      },
+    });
+
+    expect(plugin.getPaginationData().currentPage).toBe(2);
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A11');
+  });
+
   it('should be possible to change value via `updateSettings`', async() => {
     handsontable({
       data: createSpreadsheetData(45, 10),

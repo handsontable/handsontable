@@ -29,17 +29,21 @@ const AUTO_PAGE_SIZE_WARNING = toSingleLine`The \`auto\` page size setting requi
 /**
  * Reads a declared `initialPage` from the raw `pagination` setting.
  *
- * `pagination: true` and objects that omit the key return `undefined`.
+ * `pagination: true`, objects that omit the key, and non-number values return
+ * `undefined`.
  *
  * @param {*} settings The raw `pagination` setting (`true` or a settings object).
- * @returns {*} The declared `initialPage`, or `undefined` when the key is absent.
+ * @returns {number|undefined} The declared `initialPage`, or `undefined` when the
+ * key is absent or not a number.
  */
-function readDeclaredInitialPage(settings: unknown): unknown {
+function readDeclaredInitialPage(settings: unknown): number | undefined {
   if (!isPlainObject(settings) || !('initialPage' in settings)) {
     return undefined;
   }
 
-  return settings.initialPage;
+  const value = settings.initialPage;
+
+  return typeof value === 'number' ? value : undefined;
 }
 
 /**
@@ -166,12 +170,13 @@ export class Pagination extends BasePlugin {
    *
    * Re-enabling with the same declared value (the React wrapper re-sends the full
    * `pagination` object on every render) must not reset the page after the user
-   * has navigated. Cleared on a real disable, kept across `updatePlugin()`
-   * (DEV-1140).
+   * has navigated. Cleared on a real disable, and when an `updateSettings` payload
+   * omits `initialPage` (or declares a non-number), so a later re-declaration of
+   * the same number is applied again. Kept across `updatePlugin()` (DEV-1140).
    *
-   * @type {*}
+   * @type {number | undefined}
    */
-  #appliedInitialPage: unknown;
+  #appliedInitialPage: number | undefined;
   /**
    * True while `updatePlugin()` is running its disable/enable cycle. Lets
    * `disablePlugin()` keep `#appliedInitialPage` so a React re-render does not
@@ -260,7 +265,9 @@ export class Pagination extends BasePlugin {
     // (disabled → enabled) calls `enablePlugin()` before `updatePluginSettings()`,
     // so `#pluginSettings` is still stale. Core has already merged the new
     // `pagination` object onto `hot.getSettings()`.
-    if (typeof declaredInitialPage === 'number' && declaredInitialPage !== this.#appliedInitialPage) {
+    if (typeof declaredInitialPage !== 'number') {
+      this.#appliedInitialPage = undefined;
+    } else if (declaredInitialPage !== this.#appliedInitialPage) {
       this.#setCurrentPage(declaredInitialPage);
       this.#appliedInitialPage = declaredInitialPage;
     }

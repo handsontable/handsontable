@@ -39,11 +39,12 @@ describe('HotTable pagination `initialPage`', () => {
         ...hotSettings,
         pagination: {
           initialPage: 2,
-          pageSize: 10,
+          pageSize: 15,
         },
       }, false, hotTableRef);
     });
 
+    expect(plugin.getPaginationData().pageSize).toBe(15);
     expect(plugin.getPaginationData().currentPage).toBe(3);
   });
 });
