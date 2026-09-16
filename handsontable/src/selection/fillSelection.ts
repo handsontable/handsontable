@@ -118,10 +118,19 @@ function resolveSkipArea(hot: HotInstance, skipRow?: number | null, skipColumn?:
 
   const mergedArea = hot.runHooks('modifyGetCellCoords', skipRow, skipColumn, false, 'meta');
 
-  if (Array.isArray(mergedArea)) {
+  // The hook returns `[row, column]` or `[row, column, row2, column2]` - a translation without an
+  // area, or one with it. Reading the last two off a two-element result leaves the area undefined,
+  // every comparison against it is false, and the cell the value came from stops being skipped.
+  if (Array.isArray(mergedArea) && mergedArea.length >= 4) {
     const [fromRow, fromColumn, toRow, toColumn] = mergedArea as [number, number, number, number];
 
     return { fromRow, fromColumn, toRow, toColumn };
+  }
+
+  if (Array.isArray(mergedArea) && mergedArea.length >= 2) {
+    const [row, column] = mergedArea as [number, number];
+
+    return { fromRow: row, fromColumn: column, toRow: row, toColumn: column };
   }
 
   return { fromRow: skipRow, fromColumn: skipColumn, toRow: skipRow, toColumn: skipColumn };
@@ -159,6 +168,18 @@ function resolveLayerBounds(hot: HotInstance, cellRange: CellRange): {
   fromRow: number; fromColumn: number; toRow: number; toColumn: number;
 } | null {
   if (cellRange.isSingleHeader()) {
+    return null;
+  }
+
+  // `getBottomEndCorner()` normalizes a header index to `0`, so a layer made only of headers - several
+  // column headers, say - would report row 0 at both ends and be walked as the first data row. The
+  // raw corners still carry the negative index, and a layer whose farthest corner is negative holds
+  // no body cell at all. The walk this replaced skipped negative indexes per cell for the same reason.
+  // An unset coordinate (`null`) addresses nothing either, so it reads as "no body cell" too.
+  const rawLastRow = Math.max(cellRange.from.row ?? -1, cellRange.to.row ?? -1);
+  const rawLastColumn = Math.max(cellRange.from.col ?? -1, cellRange.to.col ?? -1);
+
+  if (rawLastRow < 0 || rawLastColumn < 0) {
     return null;
   }
 

@@ -462,6 +462,25 @@ describe('TextEditor keyboard shortcut', () => {
       expect(getSourceDataAtCell(2, 0)).toEqual({ id: 3, label: 'kept' });
     });
 
+    it('should keep the line break when a hook returns a translation with no area', async() => {
+      handsontable({
+        data: createSpreadsheetData(6, 6),
+      });
+
+      // `modifyGetCellCoords` may answer with `[row, column]` instead of a four-corner area. Reading
+      // the last two off that shorter result left the skip area undefined, so the edited cell counted
+      // as a cell to fill and the chord stopped inserting a line break.
+      addHook('modifyGetCellCoords', (row, column) => [row, column]);
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await keyDownUp(['control/meta', 'enter']);
+
+      expect(isEditorVisible()).toBe(true);
+      expect(getActiveEditor().getValue()).toBe('A1\n');
+      expect(getDataAtCell(0, 0)).toBe('A1');
+    });
+
     it('should still insert a line break when the selection has nothing else to fill', async() => {
       handsontable({
         data: createSpreadsheetData(6, 6),
