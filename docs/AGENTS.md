@@ -286,6 +286,7 @@ Each example must use data from a coherent, plausible real-world domain. Pick on
 | **Inventory** | Product SKUs (SKU-4821, SKU-0093), supplier names (Harbor Goods, Alpine Supply Co.), stock quantities (142, 0, 67), categories (Electronics, Apparel) |
 | **Analytics** | Campaign names (Spring Sale 2025, Brand Awareness Q3), conversion rates (3.4%, 8.1%), channels (Email, Paid Search, Organic) |
 | **Project management** | Task names (Update API docs, Deploy hotfix), assignees, due dates (2025-06-30), statuses (In progress, Blocked) |
+| **Science / chemistry** | Element names and symbols (Hydrogen/H, Helium/He, Lithium/Li), atomic properties (atomic number, atomic mass, known isotopes, melting/boiling points) |
 
 ### Data coherence rules
 
