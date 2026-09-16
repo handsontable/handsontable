@@ -142,6 +142,55 @@ test.describe('emptyDataState keyboard shortcuts', () => {
     expect(await grid.selection()).toEqual([[-1, 1, -1, 1]]);
   });
 
+  test('keeps an arrow key from walking the selection under the overlay', async() => {
+    // `canNavigateGrid()` runs before the move and only knows where the selection IS, so it lets a
+    // move start from a header - the test above depends on that. Nothing re-checked where the move
+    // LANDED: `ArrowDown` from a column header put the selection on row 0, a drawn cell hidden under
+    // the overlay, and then no arrow could bring it back, because the entry check fails for a
+    // non-header highlight. Measured on DEV-2917 before the fix: [[-1, 2]] became [[0, 2]].
+    await grid.cell(0, 0).click();
+    await grid.updateSettings({ navigableHeaders: true });
+    await grid.selectCell(-1, 2);
+
+    // Positive control: with no overlay up, the very same key does move into the cells. Without it
+    // the assertion below would pass on a grid where `ArrowDown` never worked from a header at all.
+    await grid.page.keyboard.press('ArrowDown');
+    expect(await grid.selection()).toEqual([[0, 2, 0, 2]]);
+
+    await grid.selectCell(-1, 2);
+    await grid.startDataProviderFetch();
+
+    // The cells are still drawn - this is the covered case, not the empty one.
+    expect(await grid.renderedCounts()).toEqual({ rows: 8, cols: 6 });
+
+    await grid.page.keyboard.press('ArrowDown');
+
+    expect(await grid.selection()).toEqual([[-1, 2, -1, 2]]);
+  });
+
+  test('does not select the covered cells while a data provider fetch is in flight', async() => {
+    // The plugin overrides Ctrl+A so select all still works with every column hidden, where the
+    // grid's own entry is inert and selecting the data is the way back to a context menu. That
+    // override used to claim the chord during a fetch too, selecting a whole grid of drawn cells the
+    // overlay hides - the move the arrow keys are refused above.
+    await grid.cell(1, 1).click();
+    expect(await grid.selection()).toEqual([[1, 1, 1, 1]]);
+
+    await grid.startDataProviderFetch();
+    expect(await grid.renderedCounts()).toEqual({ rows: 8, cols: 6 });
+
+    await grid.page.keyboard.press('ControlOrMeta+a');
+
+    expect(await grid.selection()).toEqual([[1, 1, 1, 1]]);
+
+    // Positive control: end the fetch and the same key selects everything again, so the assertion
+    // above cannot pass on a grid where Ctrl+A is simply broken.
+    await grid.finishDataProviderFetch();
+    await grid.page.keyboard.press('ControlOrMeta+a');
+
+    expect(await grid.selection()).toEqual([[-1, -1, 7, 5]]);
+  });
+
   test('does not let Delete clear the data it cannot show', async() => {
     const before = await grid.allValues();
 

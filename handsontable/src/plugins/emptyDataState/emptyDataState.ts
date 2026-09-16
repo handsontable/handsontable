@@ -5,6 +5,7 @@ import { isButtonType } from '../../helpers/uiButton';
 import { isRootInstance } from '../../utils/rootInstance';
 import { GRID_SCOPE } from '../../shortcuts/contexts/constants';
 import { command as selectAllCellsCommand } from '../../shortcuts/contexts/commands/selectAllCells';
+import { hasRenderedCells } from '../../shortcuts/guards';
 import * as C from '../../i18n/constants';
 import type { SelectionState } from '../../selection/types';
 
@@ -479,7 +480,12 @@ export class EmptyDataState extends BasePlugin {
       callback: () => selectAllCellsCommand.callback(this.hot),
       // The data is still there when only the columns are hidden, which is the case worth selecting.
       // With no rows or no columns at all there is nothing to select, so the chord stays unclaimed.
-      runOnlyIf: () => this.hot.countRows() > 0 && this.hot.countCols() > 0,
+      //
+      // `!hasRenderedCells()` keeps the override to the case it was written for. While a DataProvider
+      // fetch covers a grid whose cells are still DRAWN, selecting them all would put the selection on
+      // cells the user cannot see - the very move the grid's own guards refuse there.
+      runOnlyIf: () => this.hot.countRows() > 0 && this.hot.countCols() > 0 &&
+        !hasRenderedCells(this.hot),
       group: SHORTCUTS_GROUP,
     });
   }

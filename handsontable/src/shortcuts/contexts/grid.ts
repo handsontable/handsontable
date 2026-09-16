@@ -2,7 +2,7 @@ import type { HotInstance } from '../../core/types';
 import { isDefined } from '../../helpers/mixed';
 import { GRID_GROUP, EDITOR_EDIT_GROUP, GRID_SCOPE, GRID_TAB_NAVIGATION_GROUP } from './constants';
 import { createKeyboardShortcutCommandsPool } from './commands';
-import { canAccessCellContent, canNavigateGrid } from '../guards';
+import { canAccessCellContent, canNavigateGrid, keepCoveredCellsUnselectable } from '../guards';
 import { getSelectedCellLink } from './commands/openCellLink';
 
 /**
@@ -14,7 +14,13 @@ export function shortcutsGridContext(hot: HotInstance) {
   const context = hot.getShortcutManager().addContext(GRID_SCOPE);
 
   type CommandsPool = Record<string, (...args: unknown[]) => boolean | void>;
-  const commandsPool = createKeyboardShortcutCommandsPool(hot) as unknown as CommandsPool;
+  // Wrapped, not raw: the guards below decide whether a key may RUN, and this decides where its move
+  // may land. An overlay that covers the body makes every cell unreachable, so a move that starts on a
+  // header - the one start `canNavigateGrid()` still allows there - may not end on one of them.
+  const commandsPool = keepCoveredCellsUnselectable(
+    hot,
+    createKeyboardShortcutCommandsPool(hot) as unknown as CommandsPool,
+  ) as CommandsPool;
   /**
    * Whether a shortcut may act on the CONTENT of the selected cells. The predicate lives in
    * `../guards.ts` so every registrar can reach it - `mergeCells` and `checkboxRenderer` add
@@ -56,11 +62,15 @@ export function shortcutsGridContext(hot: HotInstance) {
   context.addShortcuts([{
     keys: [['Control/Meta', 'A']],
     callback: () => commandsPool.selectAllCells(),
-    runOnlyIf: () => isDefined(hot.getSelected()) && !hot.getSelectedRangeActive()?.highlight.isHeader(),
+    // `isGridNavigable()` for the same reason the eight movement keys below carry it: a per-shortcut
+    // `runOnlyIf` replaces the group's. Without it select all reached the whole body while an overlay
+    // covered it. The overlay's own plugin claims the chord for the case that still needs it - every
+    // column hidden, where selecting the data is the way back to a context menu.
+    runOnlyIf: () => isGridNavigable() && !hot.getSelectedRangeActive()?.highlight.isHeader(),
   }, {
     keys: [['Control/Meta', 'A']],
     callback: () => {},
-    runOnlyIf: () => !!(isDefined(hot.getSelected()) && hot.getSelectedRangeActive()?.highlight.isHeader()),
+    runOnlyIf: () => !!(isGridNavigable() && hot.getSelectedRangeActive()?.highlight.isHeader()),
     preventDefault: true,
   }, {
     keys: [['Control/Meta', 'Shift', 'Space']],

@@ -276,6 +276,11 @@ focusScopeManager.registerScope('customOverlay', containerElement, {
 Set `shortcutsContextName` as well. It defaults to `'grid'`, so a scope that declares only the fallback
 names the same context twice, and Handsontable throws.
 
+The fallback belongs to the shortcuts context, not to the scope. Several scopes may share one context,
+and they must all name the same fallback. Register a second scope on a shared context with a different
+`fallbackShortcutsContextName` and Handsontable throws, because the second registration would otherwise
+replace the first one's fallback without a word.
+
 A shortcut in the scope's own context wins over the fallback's shortcut for the same keys, as long as its
 `runOnlyIf` returns `true`. When `runOnlyIf` returns `false`, the fallback answers instead. Use that to
 override one key without shadowing it the rest of the time.

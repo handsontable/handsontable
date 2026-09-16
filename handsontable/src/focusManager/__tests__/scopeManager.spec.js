@@ -338,6 +338,34 @@ describe('ScopeManager', () => {
 
       expect(sharedContext.getFallbackContext()).toBe(null);
     });
+
+    it('should throw when scopes sharing a context declare different fallbacks', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+      });
+
+      getShortcutManager().addContext('plugin:other');
+
+      createUIWithFocusScope('before', {
+        id: 'first',
+        shortcutsContextName: 'plugin:shared',
+        fallbackShortcutsContextName: 'grid',
+      });
+
+      // The fallback is a property of the CONTEXT, so the second registration would quietly replace
+      // the first one's, and unregistering 'first' would then clear a fallback 'second' still needs.
+      expect(() => {
+        createUIWithFocusScope('after', {
+          id: 'second',
+          shortcutsContextName: 'plugin:shared',
+          fallbackShortcutsContextName: 'plugin:other',
+        });
+      }).toThrowError(/declares a different `fallbackShortcutsContextName`/);
+
+      // The refused scope leaves nothing behind - the first scope's fallback is untouched.
+      expect(getShortcutManager().getContext('plugin:shared').getFallbackContext())
+        .toBe(getShortcutManager().getContext('grid'));
+    });
   });
 
   describe('`unregisterScope` method', () => {

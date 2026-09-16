@@ -71,6 +71,13 @@ hidden, where selecting the data is the only route back to a context menu.
 Do **not** guard the override on `isVisible()`. The context being active is the guard; a second one only
 adds another way for the shortcut to go dead.
 
+It **is** guarded on `!hasRenderedCells()`, and that one is load-bearing. The override exists for the case
+where the grid draws nothing, so the grid's own entry cannot work. While a DataProvider fetch covers a grid
+whose cells are still DRAWN, the grid's entry is the right one to answer, and it refuses — selecting every
+cell there would put the selection on cells the user cannot see, which is the very move the arrow keys are
+refused under the same overlay (see `keepCoveredCellsUnselectable()` in `../../shortcuts/guards.ts`).
+Measured before that guard: `Ctrl`+`A` during a fetch selected the whole 8×6 grid under the overlay.
+
 **The safety half of this lives in `../../shortcuts/guards.ts`, not here.** Inheriting is only safe because
 every grid shortcut that reads or writes cell CONTENT calls `canAccessCellContent()`, and that helper asks
 two things: are cells drawn, and is anything covering them. **This plugin needs the second one**, which is

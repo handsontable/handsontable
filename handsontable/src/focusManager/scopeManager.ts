@@ -175,6 +175,24 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
         '`fallbackShortcutsContextName` names the same context twice.');
     }
 
+    // The fallback lives on the shortcuts CONTEXT, which several scopes may share, so a second scope
+    // naming the same context with a different fallback would silently replace the first one's - and
+    // `hasOtherScopeWithSameFallback()` below, which matches on the pair, would then let the first
+    // scope's teardown clear the fallback the second one still needs. Refuse the pair instead, the
+    // same way the self-referencing one above is refused.
+    const conflicting = (SCOPES.getValues() as ReturnType<typeof createFocusScope>[]).find(
+      (other: ReturnType<typeof createFocusScope>) => other !== scope &&
+        other.getShortcutsContextName() === contextName &&
+        other.getFallbackShortcutsContextName() !== fallbackContextName);
+
+    if (conflicting) {
+      SCOPES.removeItem(scopeId);
+      scope.destroy();
+      throwWithCause(`The "${scopeId}" focus scope shares the "${contextName}" shortcuts context with a ` +
+        'scope that declares a different `fallbackShortcutsContextName`. The fallback is a property of ' +
+        'the context, not of the scope, so scopes sharing a context must agree on it.');
+    }
+
     if (fallbackContextName !== null) {
       scopeContext.setFallbackContext(shortcutManager.getOrCreateContext(fallbackContextName));
     }

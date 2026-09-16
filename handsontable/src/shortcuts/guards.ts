@@ -88,3 +88,62 @@ export function canNavigateGrid(hot: HotInstance): boolean {
 
   return navigableHeaders === true || hasRenderedCells(hot);
 }
+
+type KeyboardShortcutCommands = Record<string, (...args: unknown[]) => boolean | void>;
+
+/**
+ * Wraps the grid's keyboard commands so none of them can land the selection on a covered cell.
+ *
+ * `canNavigateGrid()` is an ENTRY check and only knows where the selection is, not where a key would
+ * take it. Under a covering overlay it deliberately lets a move start from a header, because moving
+ * along the headers still on screen is useful - `ArrowRight` between column headers is the path the
+ * empty-data-state visual tests drive. Nothing re-checked where the move LANDED.
+ *
+ * Measured on DEV-2917: with `navigableHeaders` on and the overlay up over a drawn grid, `ArrowDown`
+ * from column header `[-1, 2]` moved the selection to `[0, 2]` - a cell the user cannot see. It also
+ * stranded them there, because the entry check then failed for a non-header highlight, so no arrow
+ * could bring the selection back.
+ *
+ * `Tab` answers the same question in its own `after()` by deselecting, which is right for a key that
+ * means "leave". An arrow means "move", so a move that would leave the headers is put back instead.
+ *
+ * Only the keystroke is gated, like every other guard here - `selectCell()` through the API still
+ * reaches a covered cell.
+ *
+ * @param {Core} hot The Handsontable instance.
+ * @param {object} commands The commands pool to wrap.
+ * @returns {object}
+ */
+export function keepCoveredCellsUnselectable(
+  hot: HotInstance,
+  commands: KeyboardShortcutCommands,
+): KeyboardShortcutCommands {
+  const guarded: KeyboardShortcutCommands = {};
+
+  Object.keys(commands).forEach((name) => {
+    const run = commands[name];
+
+    guarded[name] = (...args: unknown[]) => {
+      const highlight = isGridBodyCovered(hot) ? hot.getSelectedRangeActive()?.highlight : undefined;
+
+      if (highlight?.isHeader() !== true) {
+        return run(...args);
+      }
+
+      // Read before the command runs - the move mutates the very coords object read here.
+      const { row, col } = highlight;
+      const result = run(...args);
+
+      if (
+        typeof row === 'number' && typeof col === 'number' &&
+        hot.getSelectedRangeActive()?.highlight.isHeader() === false
+      ) {
+        hot.selectCell(row, col);
+      }
+
+      return result;
+    };
+  });
+
+  return guarded;
+}
