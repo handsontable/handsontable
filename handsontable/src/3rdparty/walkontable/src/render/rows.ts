@@ -272,6 +272,44 @@ export class RowsRenderer extends BaseRenderer {
       rootNode.insertBefore(fragment, rootNode.firstChild);
     }
 
-    return focusedInBand ? focusedElement as HTMLElement : null;
+    if (!focusedInBand) {
+      return null;
+    }
+
+    // A band that shrinks on the same draw drops the TRs past `nextSize` in `start()`, and a
+    // leaving row that wrapped to that end goes with them. A dropped element cannot take the focus
+    // back, and the grid would lose the browser focus with it. Keep the focused row's TR inside the
+    // band instead: swap it with the last surviving slot, whose row then repaints into this element
+    // (its stamp names another element), exactly as a stationary grid keeps the focused element and
+    // paints another row into it.
+    const focusedRow = this.#rowOf(focusedElement as HTMLElement);
+    const focusedIndex = focusedRow === null ? -1 : Array.prototype.indexOf.call(rootNode.children, focusedRow);
+
+    if (focusedRow !== null && focusedIndex >= nextSize) {
+      const survivor = rootNode.children[nextSize - 1];
+      const after = focusedRow.nextSibling;
+
+      rootNode.insertBefore(focusedRow, survivor);
+      rootNode.insertBefore(survivor, after);
+    }
+
+    return focusedElement as HTMLElement;
+  }
+
+  /**
+   * Returns the TR of this TBODY that holds the element, crossing the shadow boundary of a
+   * web-component cell through the element's shadow hosts; `null` when no TR of this TBODY holds it.
+   *
+   * @param {HTMLElement} element The focused element.
+   * @returns {HTMLElement|null}
+   */
+  #rowOf(element: HTMLElement): HTMLElement | null {
+    const rootNode = this.rootNode as HTMLElement;
+    const lightNode = rootNode.contains(element) ?
+      element :
+      getShadowHostChain(element).find(host => rootNode.contains(host));
+    const row = lightNode?.closest('tr') ?? null;
+
+    return row !== null && row.parentNode === rootNode ? row as HTMLElement : null;
   }
 }

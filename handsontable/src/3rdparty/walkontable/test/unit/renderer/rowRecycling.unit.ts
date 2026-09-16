@@ -364,6 +364,38 @@ describe('RowsRenderer row recycling', () => {
     table.remove();
   });
 
+  it('should keep the focused element in the band when the leaving row would be trimmed by a shrink', () => {
+    const { rootNode, draw, sources, state, renderer } = createFixture();
+    const table = document.createElement('table');
+
+    table.appendChild(rootNode);
+    document.body.appendChild(table);
+    draw(0, 5, false);
+
+    const td = document.createElement('td');
+
+    td.tabIndex = -1;
+    rootNode.children[0].appendChild(td);
+    td.focus();
+
+    // Rows 2-4 replace rows 0-4: the two leaving rows wrap to the end, and a band of three keeps
+    // only the survivors, so both wrapped TRs would be dropped, the focused one included.
+    state.offset = 2;
+    state.size = 3;
+    state.recyclable = true;
+    renderer.render();
+
+    expect(rootNode.children.length).toBe(3);
+    expect(td.isConnected).toBe(true);
+    expect(document.activeElement).toBe(td);
+    // The focused TR took the last slot; the row that slot holds is rebuilt in it.
+    expect(rootNode.children[2]).toBe(td.parentElement);
+    expect(sources().slice(0, 2)).toEqual(['2', '3']);
+    expect(sources()[2]).toBe('0');
+
+    table.remove();
+  });
+
   it('should leave the focus alone when the document does not hold it', () => {
     const { rootNode, draw, state, renderer } = createFixture();
     const table = document.createElement('table');

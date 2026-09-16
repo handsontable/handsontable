@@ -839,7 +839,10 @@ fires sees every TR in place, and only while `document.hasFocus()`: `activeEleme
 blurred iframe, and refocusing it would pull the focus into the frame. The restore keeps the focus
 WHERE it was, on an element about to show another row; it does not preserve what the element shows
 (a TD outlives the paint, an embedded control only if its renderer updates it in place, as on a
-stationary grid). Both reads cross shadow
+stationary grid). A band that SHRINKS on the same draw (merged-cell grids, where the band is not
+stabilized) drops the TRs past the new size in `start()`, leaving rows that wrapped to that end
+included; the focused row's TR is swapped into the last surviving slot first, so the element stays in
+the DOM and that slot's row repaints into it. Both reads cross shadow
 boundaries: the focused element comes from `getDeepActiveElement()` (inside a shadow root
 `document.activeElement` is the host), and "in the band" holds when the TBODY contains the element
 or one of its `getShadowHostChain()` hosts (`contains()` stops at a web-component cell's shadow
