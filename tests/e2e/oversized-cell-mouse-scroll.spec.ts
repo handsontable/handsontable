@@ -45,7 +45,9 @@ test.describe('oversized cell mouse scroll', () => {
 
   test('last-partial row skip stays when only the column is oversized', async () => {
     await grid.goto('oversized-col');
-    await grid.scrollUntilCellStartClipped(200, 0, 0, 0);
+    // A default last-partial sliver sits in the overlay scrollbar. Scroll a
+    // bit so the last-partial row has a clickable strip above the bar.
+    await grid.scrollUntilCellStartClipped(200, 20, 0, 0);
 
     const lastPartialRow = await grid.lastPartiallyVisibleRow();
     const before = await grid.holderScroll();
@@ -53,10 +55,19 @@ test.describe('oversized cell mouse scroll', () => {
     expect(lastPartialRow).toBeGreaterThan(0);
     expect(before.left).toBeGreaterThan(0);
 
-    await grid.clickVisiblePart(lastPartialRow, 0);
+    await grid.clickCellByEvent(lastPartialRow, 0);
 
+    await expect.poll(async () => await grid.selectedCell()).toEqual([
+      lastPartialRow,
+      0,
+      lastPartialRow,
+      0,
+    ]);
     await expect.poll(async () => (await grid.holderScroll()).left).toBeLessThan(before.left / 2);
-    await expect.poll(async () => (await grid.holderScroll()).top).toBe(before.top);
+    // Horizontal start-snap can shift scrollTop by a couple of pixels
+    // (scrollbar coupling). A dropped row skip would snap this last-partial
+    // row to the start (hundreds of pixels).
+    await expect.poll(async () => (await grid.holderScroll()).top).toBeLessThan(before.top + 15);
   });
 
   test('last-partial column skip stays when only the row is oversized', async () => {
@@ -69,7 +80,7 @@ test.describe('oversized cell mouse scroll', () => {
     expect(lastPartialCol).toBeGreaterThan(0);
     expect(before.top).toBeGreaterThan(0);
 
-    await grid.clickVisiblePart(0, lastPartialCol);
+    await grid.clickCellByEvent(0, lastPartialCol);
 
     await expect.poll(async () => (await grid.holderScroll()).top).toBeLessThan(before.top / 2);
     await expect.poll(async () => (await grid.holderScroll()).left).toBe(before.left);

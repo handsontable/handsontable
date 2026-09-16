@@ -63,6 +63,15 @@ export class OversizedCellMouseScrollPage {
   }
 
   /**
+   * Current selection as `[startRow, startCol, endRow, endCol]`, or `null`.
+   *
+   * @returns {Promise<number[]|null>}
+   */
+  async selectedCell(): Promise<number[] | null> {
+    return this.page.evaluate(() => window.hot.getSelectedLast() ?? null);
+  }
+
+  /**
    * A data cell in the master table, by visual row/column.
    *
    * @param {number} row Visual row index.
@@ -110,9 +119,11 @@ export class OversizedCellMouseScrollPage {
    *
    * @param {number} row Visual row index.
    * @param {number} col Visual column index.
+   * @param {number} [inset=8] Pixels to stay inside the intersection. Use 1
+   *   for a last-partial sliver that is thinner than 16px.
    */
-  async clickVisiblePart(row: number, col: number): Promise<void> {
-    const point = await this.page.evaluate(([r, c]) => {
+  async clickVisiblePart(row: number, col: number, inset = 8): Promise<void> {
+    const point = await this.page.evaluate(([r, c, pad]) => {
       const holder = document.querySelector('.ht_master .wtHolder');
       const cell = document.querySelector(`.ht_master [data-testid="cell-${r}-${c}"]`);
 
@@ -130,19 +141,62 @@ export class OversizedCellMouseScrollPage {
       const dataTop = colHeader instanceof HTMLElement
         ? colHeader.getBoundingClientRect().bottom
         : holderBox.top;
-      const left = Math.max(cellBox.left, dataLeft) + 8;
-      const top = Math.max(cellBox.top, dataTop) + 8;
-      const right = Math.min(cellBox.right, holderBox.right) - 8;
-      const bottom = Math.min(cellBox.bottom, holderBox.bottom) - 8;
+      // clientWidth/Height exclude the scrollbars, so a last-partial sliver
+      // is not clicked on the bar (which would miss the cell).
+      const holderRight = holderBox.left + holder.clientWidth;
+      const holderBottom = holderBox.top + holder.clientHeight;
+      const rawLeft = Math.max(cellBox.left, dataLeft);
+      const rawTop = Math.max(cellBox.top, dataTop);
+      const rawRight = Math.min(cellBox.right, holderRight);
+      const rawBottom = Math.min(cellBox.bottom, holderBottom);
 
-      if (right <= left || bottom <= top) {
+      if (rawRight <= rawLeft || rawBottom <= rawTop) {
         throw new Error('cell has no clickable intersection with the holder');
       }
 
+      const left = Math.min(rawLeft + pad, rawRight - 1);
+      const top = Math.min(rawTop + pad, rawBottom - 1);
+      const right = Math.max(rawRight - pad, rawLeft + 1);
+      const bottom = Math.max(rawBottom - pad, rawTop + 1);
+
       return { x: (left + right) / 2, y: (top + bottom) / 2 };
-    }, [row, col] as const);
+    }, [row, col, inset] as const);
 
     await this.page.mouse.click(point.x, point.y);
+  }
+
+  /**
+   * Dispatches mouse events on the cell element itself, like the Jasmine
+   * `simulateClick` helper. Use this when the visible sliver is too thin
+   * for a page-coordinate click (last-partial row above an overlay
+   * scrollbar).
+   *
+   * @param {number} row Visual row index.
+   * @param {number} col Visual column index.
+   */
+  async clickCellByEvent(row: number, col: number): Promise<void> {
+    await this.page.evaluate(([r, c]) => {
+      const cell = document.querySelector(`.ht_master [data-testid="cell-${r}-${c}"]`);
+
+      if (!(cell instanceof HTMLElement)) {
+        throw new Error('cell is not rendered');
+      }
+
+      const box = cell.getBoundingClientRect();
+      const init: MouseEventInit = {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+        button: 0,
+        buttons: 1,
+        clientX: box.left + Math.min(20, box.width / 2),
+        clientY: box.top + Math.min(8, box.height / 2),
+      };
+
+      cell.dispatchEvent(new MouseEvent('mousedown', init));
+      cell.dispatchEvent(new MouseEvent('mouseup', { ...init, buttons: 0 }));
+      cell.dispatchEvent(new MouseEvent('click', { ...init, buttons: 0 }));
+    }, [row, col] as const);
   }
 
   /**

@@ -8,6 +8,8 @@ import { scrollWindowToCell } from '../utils';
  * @typedef {object} MouseSingleScrollTarget
  * @property {number} [row] Visual row index to scroll to.
  * @property {number} [col] Visual column index to scroll to.
+ * @property {string} [horizontalSnap] Forced snap when the column is oversized.
+ * @property {string} [verticalSnap] Forced snap when the row is oversized.
  */
 
 /**
@@ -31,6 +33,9 @@ import { scrollWindowToCell } from '../utils';
  * an oversized row does not disable the last-partial column skip, and an
  * oversized column does not disable the last-partial row skip.
  *
+ * Auto-snap can no-op when the oversized track is the only one in view, so
+ * an oversized axis also sets an explicit start snap.
+ *
  * @param {MouseSingleScrollOptions} options The selected cell and last-partial / oversized flags.
  * @returns {MouseSingleScrollTarget|null} Axes to pass to `scrollViewportTo`, or `null` to skip.
  */
@@ -48,7 +53,7 @@ export function getMouseSingleScrollTarget({
   lastPartiallyVisibleColumn: number | null;
   isRowLargerThanViewport: boolean;
   isColumnLargerThanViewport: boolean;
-}): { row?: number; col?: number } | null {
+}): { row?: number; col?: number; horizontalSnap?: string; verticalSnap?: string } | null {
   const skipColumn = col === lastPartiallyVisibleColumn && !isColumnLargerThanViewport;
   const skipRow = row === lastPartiallyVisibleRow && !isRowLargerThanViewport;
 
@@ -56,14 +61,22 @@ export function getMouseSingleScrollTarget({
     return null;
   }
 
-  const target: { row?: number; col?: number } = {};
+  const target: { row?: number; col?: number; horizontalSnap?: string; verticalSnap?: string } = {};
 
   if (!skipRow) {
     target.row = row;
+
+    if (isRowLargerThanViewport) {
+      target.verticalSnap = 'top';
+    }
   }
 
   if (!skipColumn) {
     target.col = col;
+
+    if (isColumnLargerThanViewport) {
+      target.horizontalSnap = 'start';
+    }
   }
 
   return target;
@@ -141,7 +154,7 @@ export function singleScrollStrategy(hot: HotInstance) {
 
     // navigating through the cells
     } else {
-      let target: { row?: number; col?: number } = { row, col };
+      let target: { row?: number; col?: number; horizontalSnap?: string; verticalSnap?: string } = { row, col };
 
       if (selectionSource === 'mouse') {
         const mouseTarget = getMouseSingleScrollTarget({
@@ -160,7 +173,10 @@ export function singleScrollStrategy(hot: HotInstance) {
         target = mouseTarget;
       }
 
-      hot.scrollViewportTo(target, scrollWindow);
+      // `scrollIntoView` on a last-partial cell would move the skipped axis.
+      const skippedAnAxis = target.row === undefined || target.col === undefined;
+
+      hot.scrollViewportTo(target, skippedAnAxis ? undefined : scrollWindow);
     }
   };
 }

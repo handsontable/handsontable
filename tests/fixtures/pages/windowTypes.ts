@@ -143,6 +143,8 @@ export interface FixtureHotInstance {
     isVerticallyScrollableByWindow(): boolean,
     isHorizontallyScrollableByWindow(): boolean,
     countRenderableColumns(): number,
+    getViewportWidth(): number,
+    getViewportHeight(): number,
   };
   /** The grid's own root `<div>` – a child of the container passed to the constructor. */
   rootElement: HTMLElement;
@@ -152,6 +154,7 @@ export interface FixtureHotInstance {
   getLastPartiallyVisibleColumn(): number;
   getLastRenderedVisibleRow(): number;
   getRowHeight(row: number): number | undefined;
+  getColWidth(col: number): number;
   scrollViewportTo(options: { row?: number, col?: number, verticalSnap?: string }): boolean;
   selectCells(ranges: number[][]): boolean;
   selectColumns(fromCol: number, toCol: number): boolean;
