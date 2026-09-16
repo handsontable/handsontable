@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the autocomplete and dropdown arrow wrapping onto a second line next to a long value.",
+  "type": "fixed",
+  "issueOrPR": 13532,
+  "breaking": false,
+  "framework": "none"
+}
