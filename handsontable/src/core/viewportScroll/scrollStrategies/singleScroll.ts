@@ -105,6 +105,8 @@ export function isLargerThanViewport(size: number | undefined, viewportSize: num
  * @returns {boolean}
  */
 function isColumnOversized(hot: HotInstance, col: number): boolean {
+  // `getColWidth` already falls back to `DEFAULT_COLUMN_WIDTH`. There is no
+  // Walkontable `oversizedColumns` merge like `oversizedRows` for height.
   return isLargerThanViewport(hot.getColWidth(col), hot.view.getViewportWidth());
 }
 

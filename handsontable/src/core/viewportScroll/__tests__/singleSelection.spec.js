@@ -507,6 +507,32 @@ describe('Single selection scroll', () => {
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(topOverlay().getScrollPosition()).toBe(scrollTop);
+      expect(scrollIntoViewSpy).not.toHaveBeenCalled();
+    });
+
+    it('should keep the last-partial column skip when only the row is oversized', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 20),
+        width: 300,
+        height: 200,
+        rowHeights: 400,
+        rowHeaders: true,
+        colHeaders: true,
+      });
+
+      await scrollViewportVertically(150);
+
+      const lastPartialCol = getLastPartiallyVisibleColumn();
+      const scrollLeft = inlineStartOverlay().getScrollPosition();
+
+      expect(lastPartialCol).toBeGreaterThan(0);
+      expect(topOverlay().getScrollPosition()).toBe(150);
+
+      await simulateClick(getCell(0, lastPartialCol));
+
+      expect(topOverlay().getScrollPosition()).toBe(0);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(scrollLeft);
+      expect(scrollIntoViewSpy).not.toHaveBeenCalled();
     });
 
     it('should scroll to the start of a content-tall row after mouse click', async() => {
