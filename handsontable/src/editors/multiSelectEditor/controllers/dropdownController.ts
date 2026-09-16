@@ -27,6 +27,7 @@ interface DropdownControllerCache {
   visibleRowsNumberSetting: number | null;
   entriesCount: number;
   flippedVertically: boolean;
+  flippedHorizontally: boolean;
   currentlySelectedItemIndex: number;
   checkboxChangeListeners: Map<HTMLInputElement, { change: () => void; click: (event: Event) => void }>;
   areCheckboxesDisabled: boolean;
@@ -85,6 +86,7 @@ export class DropdownController {
     visibleRowsNumberSetting: null,
     entriesCount: 0,
     flippedVertically: false,
+    flippedHorizontally: false,
     currentlySelectedItemIndex: 0,
     checkboxChangeListeners: new Map(),
     areCheckboxesDisabled: false,
@@ -363,6 +365,8 @@ export class DropdownController {
     if (this.#containerElement) {
       this.#containerElement.style.position = '';
       this.#containerElement.style.top = '';
+      this.#containerElement.style.left = '';
+      this.#containerElement.style.right = '';
       this.#containerElement.style.height = '';
       this.#containerElement.scrollTop = 0;
     }
@@ -373,6 +377,36 @@ export class DropdownController {
    */
   isFlippedVertically(): boolean {
     return this.#cache.flippedVertically;
+  }
+
+  /**
+   * Returns true when the dropdown is currently rendered toward the inline start of the edited cell.
+   *
+   * @returns {boolean}
+   */
+  isFlippedHorizontally(): boolean {
+    return this.#cache.flippedHorizontally;
+  }
+
+  /**
+   * Records whether the editor wrapper opened the dropdown toward the inline start.
+   *
+   * Horizontal placement is applied on the wrapper in `MultiSelectEditor.refreshDimensions()`,
+   * not on this container, because that wrapper already owns `left` / `right`.
+   *
+   * @param {boolean} flippedHorizontally `true` when the dropdown opens toward the inline start.
+   */
+  setFlippedHorizontally(flippedHorizontally: boolean): void {
+    this.#cache.flippedHorizontally = flippedHorizontally;
+  }
+
+  /**
+   * Returns the pixel width of the dropdown box, including padding and border.
+   *
+   * @returns {number}
+   */
+  getOuterWidth(): number {
+    return this.#containerElement ? this.#containerElement.offsetWidth : 0;
   }
 
   /**
@@ -632,6 +666,7 @@ export class DropdownController {
     this.#cache.visibleRowsNumberSetting = null;
     this.#cache.entriesCount = 0;
     this.#cache.flippedVertically = false;
+    this.#cache.flippedHorizontally = false;
     this.#cache.currentlySelectedItemIndex = 0;
     this.#cache.checkboxChangeListeners.clear();
     this.#cache.areCheckboxesDisabled = false;

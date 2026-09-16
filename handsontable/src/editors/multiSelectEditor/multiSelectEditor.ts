@@ -13,6 +13,10 @@ import {
   getValuesIntersection,
   parseStringifiedValue,
 } from './utils/utils';
+import {
+  getFlippedInlineStartOffset,
+  shouldFlipDropdownHorizontally,
+} from './controllers/positioning';
 
 export const EDITOR_TYPE = 'multiselect';
 
@@ -197,13 +201,11 @@ export class MultiSelectEditor extends BaseEditor {
     }
 
     this.#showEditableElement();
+    this.dropdownController!.updateDimensions(this.#getAvailableSpace());
     this.refreshDimensions();
     this.hot.getShortcutManager().setActiveContextName('editor');
     this.#registerShortcuts();
     this.dropdownController!.getInputController()!.listen();
-
-    this.dropdownController!.updateDimensions(this.#getAvailableSpace());
-
   }
 
   /**
@@ -231,6 +233,9 @@ export class MultiSelectEditor extends BaseEditor {
 
   /**
    * Repositions the dropdown next to the edited cell; closes the editor if the cell is no longer rendered.
+   *
+   * When the list is wider than the remaining inline-end space, the wrapper shifts toward the
+   * inline start so the list stays fully usable (DEV-1198).
    */
   refreshDimensions(): void {
     if (!this.getEditedCell()) {
@@ -239,11 +244,25 @@ export class MultiSelectEditor extends BaseEditor {
       return;
     }
 
-    const { top, start, height } = this.getEditedCellRect()!;
+    const { top, start, height, width } = this.getEditedCellRect()!;
     const editorStyle = this.#editorContainer!.style;
+    const inlineStartProp = this.hot.isRtl() ? 'right' : 'left';
+    const { spaceInlineStart, spaceInlineEnd } = this.#getInlineSpace(width);
+    const dropdownWidth = this.dropdownController!.getOuterWidth();
+    const flipHorizontally = shouldFlipDropdownHorizontally(
+      dropdownWidth,
+      spaceInlineStart,
+      spaceInlineEnd
+    );
+
+    this.dropdownController!.setFlippedHorizontally(flipHorizontally);
 
     editorStyle.top = `${top + height}px`;
-    editorStyle[this.hot.isRtl() ? 'right' : 'left'] = `${start}px`;
+    editorStyle.left = '';
+    editorStyle.right = '';
+    editorStyle[inlineStartProp] = `${
+      flipHorizontally ? getFlippedInlineStartOffset(start, dropdownWidth, width) : start
+    }px`;
 
     addClass(this.#editorContainer!, EDITOR_VISIBLE_CLASS_NAME);
   }
@@ -398,10 +417,13 @@ export class MultiSelectEditor extends BaseEditor {
 
     this.dropdownController!.fillDropdown(filteredItems, this.#selectedItems.getItemsArray());
     this.dropdownController!.updateDimensions(this.#getAvailableSpace(), true);
+    this.refreshDimensions();
   }
 
   /**
    * Calculates the available vertical space above and below the edited cell for positioning the dropdown.
+   *
+   * @returns {object} Space above and below the cell, plus the cell height.
    */
   #getAvailableSpace(): { spaceAbove: number; spaceBelow: number; cellHeight: number } {
     const cellRect = this.getEditedCellRect()!;
@@ -422,6 +444,34 @@ export class MultiSelectEditor extends BaseEditor {
       spaceAbove,
       spaceBelow,
       cellHeight: cellRect.height,
+    };
+  }
+
+  /**
+   * Calculates the remaining inline-start and inline-end space around the edited cell.
+   *
+   * Uses the same workspace / window-scroll split as
+   * `HandsontableEditor.flipDropdownHorizontallyIfNeeded()`.
+   *
+   * @param {number} cellWidth Pixel width of the edited cell.
+   * @returns {object} Remaining inline-start and inline-end space in pixels.
+   */
+  #getInlineSpace(cellWidth: number): { spaceInlineStart: number; spaceInlineEnd: number } {
+    const cellRect = this.getEditedCellRect()!;
+    const { view } = this.hot;
+    let spaceInlineStart = cellRect.start + cellWidth;
+    let workspaceWidth = view.getWorkspaceWidth();
+
+    if (view.isHorizontallyScrollableByWindow()) {
+      const inlineStartOffset = view.getTableOffset().left - this.hot.rootWindow.scrollX;
+
+      spaceInlineStart = Math.max(spaceInlineStart + inlineStartOffset, 0);
+      workspaceWidth = this.hot.rootDocument.documentElement.clientWidth;
+    }
+
+    return {
+      spaceInlineStart,
+      spaceInlineEnd: workspaceWidth - spaceInlineStart + cellWidth,
     };
   }
 

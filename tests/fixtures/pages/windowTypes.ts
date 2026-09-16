@@ -140,6 +140,7 @@ export interface FixtureHotInstance {
     isOpened(): boolean,
     beginEditing(): void,
     finishEditing(restoreOriginalValue?: boolean): void,
+    dropdownController?: { isFlippedHorizontally(): boolean },
   } | undefined;
   render(): void;
   listen(): void;
