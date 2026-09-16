@@ -420,9 +420,11 @@ describe('MergeCells', () => {
       getPlugin('mergeCells').merge(0, 0, 0, 2);
 
       expect(getDataAtCell(0, 0)).toBe('B1');
+      expect(getDataAtCell(0, 1)).toBe(null);
       expect(getDataAtCell(0, 2)).toBe(null);
+      // Physical A (visual 2) is inside the merge, so it is cleared too.
       expect(getSourceData()).toEqual([
-        ['A1', 'B1', null, 'D1'],
+        [null, 'B1', null, 'D1'],
         ['A2', 'B2', 'C2', 'D2'],
       ]);
     });
