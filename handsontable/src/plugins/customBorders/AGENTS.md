@@ -92,6 +92,15 @@ user-authored one such as `{ top: { width: 2 } }`. So it must not be required to
 write's coordinates; the canonical (complete, denormalized) object is written back to the meta, an
 all-hidden result clears the cell, and the model entry is upserted — so meta and model cannot diverge.
 
+## `width: 0` is a real value
+
+Walkontable Border reads per-side settings with nullish coalescing (`??`), not a truthy
+check. `width: 0` must stay 0 so the edge paints at 0px (DEV-1137). A truthy
+`posSettings[property] ? … : settings.border[property]` falls back to the default 1px
+and the zero-width border reappears. Do not "simplify" that helper back to a truthy test.
+The helper lives in `../../3rdparty/walkontable/src/selection/border/utils.ts`
+(`getBorderSettingsProperty`).
+
 ## `left`/`right` vs `start`/`end`
 
 `normalizeBorder()` translates the legacy `left`/`right` into the logical `start`/`end` that Walkontable's

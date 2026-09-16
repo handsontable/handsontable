@@ -1,9 +1,43 @@
 import {
+  getBorderSettingsProperty,
   isHeaderPlaceholder,
   lookupSelectionHeader,
   measureHeaderSelectionBox,
   resolveHeaderLevel,
-} from '../../../../src/selection/border/utils';
+} from 'walkontable/selection/border/utils';
+
+describe('getBorderSettingsProperty', () => {
+  const fallbackBorder = { width: 1, color: '#000' };
+
+  it('should keep an explicit side width of 0 instead of falling back to the default 1', () => {
+    // DEV-1137: a truthy check treats 0 as missing and paints a 1px edge.
+    expect(getBorderSettingsProperty({ width: 0, color: 'red' }, 'width', fallbackBorder)).toBe(0);
+  });
+
+  it('should keep other falsy-but-defined side values', () => {
+    expect(getBorderSettingsProperty({ color: '' }, 'color', fallbackBorder)).toBe('');
+  });
+
+  it('should use the per-side value when it is a positive number', () => {
+    expect(getBorderSettingsProperty({ width: 2, color: 'blue' }, 'width', fallbackBorder)).toBe(2);
+    expect(getBorderSettingsProperty({ width: 2, color: 'blue' }, 'color', fallbackBorder)).toBe('blue');
+  });
+
+  it('should fall back when the side omits the property', () => {
+    expect(getBorderSettingsProperty({ color: 'red' }, 'width', fallbackBorder)).toBe(1);
+    expect(getBorderSettingsProperty({}, 'width', fallbackBorder)).toBe(1);
+    expect(getBorderSettingsProperty(undefined, 'width', fallbackBorder)).toBe(1);
+  });
+
+  it('should fall back when the side value is undefined', () => {
+    expect(getBorderSettingsProperty({ width: undefined }, 'width', fallbackBorder)).toBe(1);
+  });
+
+  it('should return undefined when neither the side nor the fallback provides the property', () => {
+    expect(getBorderSettingsProperty(undefined, 'style', undefined)).toBeUndefined();
+    expect(getBorderSettingsProperty({}, 'style', {})).toBeUndefined();
+  });
+});
 
 describe('resolveHeaderLevel', () => {
   it('should map the closest header coordinate to the last level', () => {

@@ -119,6 +119,19 @@
 
           return element ? parseInt(element.style.zIndex, 10) : NaN;
         },
+        // Inline width/height of the first custom-border edge painted in `color`, including a
+        // 0-size edge. Hidden (`display: none` / `.hidden`) sides are skipped so a zero-width
+        // configured side is not confused with an unused hidden side.
+        edgeInlineSize(color) {
+          const element = Array.from(document.querySelectorAll(EDGE_SELECTOR))
+            .find(el => el.style.backgroundColor === color && !el.classList.contains('hidden'));
+
+          if (!element) {
+            return null;
+          }
+
+          return { width: element.style.width, height: element.style.height };
+        },
         // Right-most outer edge of the border edges of `color` (horizontal or vertical ones)
         // that touch the cell's box, with a small tolerance for edges hugging the cell border.
         outerRightNear(row, col, color, wantHorizontal) {

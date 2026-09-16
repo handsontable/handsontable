@@ -12,6 +12,7 @@ import {
 import { stopImmediatePropagation, isRightClick } from '../../../../../helpers/dom/event';
 import { isMobileBrowser, isMobileOrIpadOS } from '../../../../../helpers/browser';
 import {
+  getBorderSettingsProperty,
   getCornerStyle,
   lookupSelectionHeader,
   measureHeaderSelectionBox,
@@ -288,12 +289,11 @@ class Border {
     for (let i = 0; i < 5; i++) {
       const position = borderDivs[i];
       const div = rootDocument.createElement('div');
-      const getSettingsProperty = (property: string) => {
-        const posSettings = this.settings[position];
-
-        return (posSettings && posSettings[property])
-          ? posSettings[property] : settings.border?.[property];
-      };
+      const getSettingsProperty = (property: string) => getBorderSettingsProperty(
+        this.settings[position],
+        property,
+        settings.border,
+      );
 
       div.className = `wtBorder ${this.settings.className || ''}`; // + borderDivs[i];
 
