@@ -45,14 +45,27 @@ export class BaseComponent {
    * @type {LinkedPhysicalIndexToValueMap|null}
    */
   state;
+  /**
+   * Predicate supplied by the owning plugin, re-evaluated on every read of `isHidden()`.
+   *
+   * It answers questions the `hidden` flag cannot, because they depend on state that changes
+   * between menu openings rather than on a `hide()`/`show()` call - which column the menu was
+   * opened on, or whether a data provider filters server-side.
+   *
+   * @type {function(): boolean | undefined}
+   */
+  #hiddenWhen: (() => boolean) | undefined;
 
   /**
    * Initializes the filter component with a Handsontable instance, assigns the component ID, and optionally registers a column index map for stateful components.
    */
-  constructor(hotInstance: HotInstance, { id, stateless = true }: { id: string; stateless?: boolean }) {
+  constructor(hotInstance: HotInstance, { id, stateless = true, hiddenWhen }: {
+    id: string; stateless?: boolean; hiddenWhen?: (() => boolean);
+  }) {
     this.hot = hotInstance;
     this.id = id;
     this.stateId = `Filters.component.${this.id}`;
+    this.#hiddenWhen = hiddenWhen;
     this.state = stateless
       ? null : this.hot.columnIndexMapper.createAndRegisterIndexMap(this.stateId, 'linkedPhysicalIndexToValue');
   }
@@ -90,10 +103,19 @@ export class BaseComponent {
   /**
    * Check if component is hidden.
    *
+   * The `hiddenWhen` predicate is folded in here rather than into each subclass' menu item
+   * descriptor, so that `Filters.restoreComponents()` - which skips hidden components - sees the
+   * same answer the menu does. A component hidden for the open column must not restore state from
+   * it either.
+   *
    * @returns {boolean}
    */
   isHidden() {
-    return this.hot === null || this.hidden;
+    if (this.hot === null || this.hidden) {
+      return true;
+    }
+
+    return typeof this.#hiddenWhen === 'function' && this.#hiddenWhen();
   }
 
   /**

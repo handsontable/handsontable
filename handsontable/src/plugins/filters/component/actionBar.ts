@@ -33,10 +33,13 @@ export class ActionBarComponent extends BaseComponent {
   /**
    * Initializes the action bar component with OK and Cancel buttons.
    */
-  constructor(hotInstance: HotInstance, options: { id: string; name: string }) {
+  constructor(hotInstance: HotInstance, options: {
+    id: string; name: string; hiddenWhen?: (() => boolean);
+  }) {
     super(hotInstance, {
       id: options.id,
       stateless: true,
+      hiddenWhen: options.hiddenWhen,
     });
 
     this.name = options.name;

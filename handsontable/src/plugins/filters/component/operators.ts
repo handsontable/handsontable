@@ -28,10 +28,13 @@ export class OperatorsComponent extends BaseComponent {
   /**
    * Initializes the operators component with the given ID and display name, and builds the operators UI element.
    */
-  constructor(hotInstance: HotInstance, options: { id: string; name: string }) {
+  constructor(hotInstance: HotInstance, options: {
+    id: string; name: string; hiddenWhen?: (() => boolean);
+  }) {
     super(hotInstance, {
       id: options.id,
       stateless: false,
+      hiddenWhen: options.hiddenWhen,
     });
 
     this.name = options.name;

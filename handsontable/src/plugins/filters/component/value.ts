@@ -62,12 +62,6 @@ export class ValueComponent extends BaseComponent {
    * @type {string}
    */
   searchMode: unknown;
-  /**
-   * Callback that returns `true` when this menu item should be hidden.
-   *
-   * @type {function(): boolean | undefined}
-   */
-  hiddenWhen: (() => boolean) | undefined;
 
   /**
    * Initializes the value component with the given ID, display name, search mode, and optional visibility predicate.
@@ -78,17 +72,11 @@ export class ValueComponent extends BaseComponent {
     super(hotInstance, {
       id: options.id,
       stateless: false,
+      hiddenWhen: options.hiddenWhen,
     });
 
     this.name = options.name;
     this.searchMode = options.searchMode;
-    /**
-     * When set by the parent (Filters plugin), a callback that returns `true` when this menu item should be hidden
-     * (e.g. server-side filtering active). Used only in the menu descriptor so the item is hidden when the dropdown is shown.
-     *
-     * @type {function(): boolean | undefined}
-     */
-    this.hiddenWhen = options.hiddenWhen;
     this.elements.push(new MultipleSelectUI(hotInstance, {
       searchMode: this.searchMode
     }));
@@ -351,7 +339,7 @@ export class ValueComponent extends BaseComponent {
       name: this.name,
       isCommand: false,
       disableSelection: true,
-      hidden: () => this.isHidden() || (typeof this.hiddenWhen === 'function' && this.hiddenWhen()),
+      hidden: () => this.isHidden(),
       renderer: (hot: HotInstance, wrapper: HTMLTableCellElement, row: number, col: number,
                  prop: string | number, value: string) => {
         if (isHTMLElement(wrapper.parentNode)) {

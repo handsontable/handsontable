@@ -221,10 +221,30 @@ the configuration.
 
 ### Enable filtering for individual columns
 
-You have control over which columns are filterable and for which columns the column menu is enabled.
-In the following demo, only the **Brand** column is filterable, while the other columns are not.
-However, the **Model** column still has the column menu available in case you want to have some
-useful items in the menu such as **Clear column**.
+To turn filtering off for one column, set `filters` to `false` for that column in the
+[`columns`](@/api/options.md#columns) option:
+
+```js
+filters: true,
+dropdownMenu: true,
+columns: [
+  { data: 'brand' },
+  // no filter controls in this column's menu
+  { data: 'model', filters: false },
+],
+```
+
+The column's dropdown menu still opens, so items such as **Clear column** stay available -- only the
+filter controls are gone. Filtering that column through the API still works:
+[`addCondition()`](@/api/filters.md#addcondition) does not consult this option.
+
+Only `false` has an effect at the column level. The `filters` sub-options are read once for the whole
+grid, so an object written inside `columns` is ignored and logs a warning.
+
+For finer control, you can hide individual menu items instead. In the following demo, only the
+**Brand** column is filterable, while the other columns are not. However, the **Model** column still
+has the column menu available in case you want to have some useful items in the menu such as
+**Clear column**.
 
 ::: only-for javascript
 
@@ -809,10 +829,26 @@ value that can never match again.
 
 ## Exclude rows from filtering
 
-You can exclude any number of top or bottom rows from filtering.
+[Frozen rows](@/guides/rows/row-freezing/row-freezing.md) often hold totals or headings rather than
+data. To keep them out of filtering, set the `filterFixedRows` option to `false`:
 
-In the following demo, the first and the last row are [frozen](@/guides/rows/row-freezing/row-freezing.md), and
-filtering doesn't affect them.
+```js
+fixedRowsTop: 1,
+fixedRowsBottom: 1,
+filters: {
+  // the frozen rows take no part in filtering
+  filterFixedRows: false,
+},
+```
+
+Those rows are then never hidden by a filter, and their values are not offered in the **Filter by
+value** list. This works for any number of rows frozen at either end.
+
+`filterFixedRows` is `true` by default, which means frozen rows are filtered like any other row. It
+is a grid-level option, because [`fixedRowsTop`](@/api/options.md#fixedrowstop) and
+[`fixedRowsBottom`](@/api/options.md#fixedrowsbottom) freeze rows for the whole table.
+
+In the following demo, the first and the last row are frozen, and filtering doesn't affect them.
 
 ::: only-for javascript
 

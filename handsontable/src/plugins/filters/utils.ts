@@ -1,6 +1,59 @@
 import { getComparisonFunction } from '../../helpers/feature';
+import { warnOnce } from '../../helpers/console';
+import { toSingleLine } from '../../helpers/templateLiteralTag';
 
 const sortCompare = getComparisonFunction();
+
+/**
+ * Picks the rows pinned by `fixedRowsTop` and `fixedRowsBottom` out of a row order.
+ *
+ * The order it reads is the index SEQUENCE, not the visible rows: the sequence is untouched by
+ * trimming, so the answer does not change as a filter trims rows away, and successive `filter()`
+ * calls keep naming the same records. Physical indexes are returned, because everything the Filters
+ * plugin trims and reads is addressed physically.
+ *
+ * @param {number[]} indexesSequence Physical row indexes in their current order.
+ * @param {number} fixedRowsTop How many rows the top overlay pins.
+ * @param {number} fixedRowsBottom How many rows the bottom overlay pins.
+ * @returns {Set<number>} The pinned physical row indexes. Empty when nothing is pinned.
+ */
+export function getPinnedPhysicalRows(
+  indexesSequence: number[], fixedRowsTop: number, fixedRowsBottom: number
+): Set<number> {
+  const top = Math.max(0, fixedRowsTop);
+  const bottom = Math.max(0, fixedRowsBottom);
+
+  if (top === 0 && bottom === 0) {
+    return new Set();
+  }
+
+  // `slice(-0)` returns the WHOLE array, so the bottom slice cannot be written unguarded - that
+  // would pin every row of the grid whenever only `fixedRowsTop` is set.
+  const pinnedRows = indexesSequence.slice(0, top);
+
+  if (bottom > 0) {
+    pinnedRows.push(...indexesSequence.slice(-bottom));
+  }
+
+  // A Set, because on a dataset shorter than `fixedRowsTop + fixedRowsBottom` the two ends overlap.
+  return new Set(pinnedRows);
+}
+
+/**
+ * Warn that a per-column `filters` entry holds an object, which the plugin ignores.
+ *
+ * Only `false` is read at column level. The sub-options are resolved once, when the plugin is
+ * enabled, so an object written inside `columns` is silently dropped - and a user who found the
+ * per-column switch is likely to try configuring it there the same way.
+ *
+ * @param {object} scope The per-instance object the "warn once" state is bound to.
+ * @param {string} pluginKey The plugin the option was written under.
+ */
+export function warnAboutPerColumnFilterSettings(scope: object, pluginKey: string) {
+  warnOnce(scope, `${pluginKey}.perColumnFilterSettings`, toSingleLine`The \`${pluginKey}\` option was set\x20
+    to an object inside \`columns\`, where only \`false\` has an effect (it turns the filter UI off\x20
+    for that column). Move the plugin settings to the grid-level \`${pluginKey}\` option.`);
+}
 
 /**
  * Comparison function for sorting purposes.

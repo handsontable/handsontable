@@ -45,11 +45,13 @@ export class ConditionComponent extends BaseComponent {
    * Initializes the condition component with the given ID, display name, separator flag, and optional menu container.
    */
   constructor(hotInstance: HotInstance, options: {
-    id: string; name: string | (() => string); addSeparator: boolean; menuContainer?: HTMLElement
+    id: string; name: string | (() => string); addSeparator: boolean; menuContainer?: HTMLElement;
+    hiddenWhen?: (() => boolean);
   }) {
     super(hotInstance, {
       id: options.id,
       stateless: false,
+      hiddenWhen: options.hiddenWhen,
     });
 
     this.name = options.name;
