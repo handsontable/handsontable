@@ -449,4 +449,30 @@ describe('UndoRedo -> RemoveRow action that removes nothing (#280 / DEV-45)', ()
 
     expect(hot.getDataAtCell(0, 0)).toBe('edited');
   });
+
+  it('should not fire the undo/redo stack-change hooks when a remove_row takes no rows', () => {
+    const beforeUndoStackChange = jest.fn();
+    const afterUndoStackChange = jest.fn();
+    const beforeRedoStackChange = jest.fn();
+    const afterRedoStackChange = jest.fn();
+
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      data: [['A1'], ['A2']],
+      undo: true,
+      beforeUndoStackChange,
+      afterUndoStackChange,
+      beforeRedoStackChange,
+      afterRedoStackChange,
+    });
+
+    hot.alter('remove_row', 0, 0); // no-op: an amount of 0 removes no row
+
+    // A no-op must not announce a stack change - firing `beforeUndoStackChange` alone would leave
+    // paired listeners observing a change that never happened.
+    expect(beforeUndoStackChange).not.toHaveBeenCalled();
+    expect(afterUndoStackChange).not.toHaveBeenCalled();
+    expect(beforeRedoStackChange).not.toHaveBeenCalled();
+    expect(afterRedoStackChange).not.toHaveBeenCalled();
+  });
 });
