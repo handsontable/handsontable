@@ -1230,6 +1230,16 @@ const hotSettings = ref({
 - Formulas don't support nested data, i.e., when Handsontable's [`data`](@/api/options.md#data) is set to an [array of nested objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects).
 - [`preserveTextValue`](@/api/options.md#preservetextvalue) works only with the built-in [`text`](@/guides/cell-types/cell-type/cell-type.md) cell type. Custom cell types are not supported, even when they reuse the text editor or renderer.
 
+### Sorting formula cells
+
+Sorting a column that contains formulas can produce `#REF!`. HyperFormula does not remap formula addresses after a sort. A later sort does not restore the original formulas.
+
+This is an intentional known limitation. Handsontable does not rewrite formula references to follow sorted rows.
+
+Keep summary and totals formulas on a [`fixedRowsBottom`](@/api/options.md#fixedrowsbottom) row. Frozen footer rows stay out of the sortable body by default. That path landed in [#12627](https://github.com/handsontable/handsontable/pull/12627) and is documented in [Frozen rows stay out of the sort by default](@/guides/rows/rows-sorting/rows-sorting.md#frozen-rows-stay-out-of-the-sort-by-default).
+
+A hook or snippet that pins a non-frozen totals row does not protect other formula cells in the sortable range.
+
 ### HyperFormula version support
 
 Different versions of Handsontable support different versions of HyperFormula.

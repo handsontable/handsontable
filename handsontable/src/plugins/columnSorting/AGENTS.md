@@ -125,6 +125,14 @@ of those entries was ever used. It also paid a `getDataAtCell()` per excluded ro
 every sort. Do not re-add it - if the rows outside the band ever need to move, they need a place in
 `indexesBefore` too.
 
+## Body formulas can go `#REF!` after sort — do not remap them (DEV-917)
+
+`#12627` keeps frozen footer and header rows out of the sort. That does **not**
+protect formula cells in the sortable body. HyperFormula can return `#REF!`
+there, and a later sort does not recover the formulas. Do not add spreadsheet-style
+address remapping in this plugin. Documented as a known limitation; the
+workaround is `fixedRowsBottom`.
+
 ## Spare rows are counted, not assumed (#5983)
 
 `getNumberOfRowsToSort()` keeps the trailing spare rows out of the sortable range, and it decides
