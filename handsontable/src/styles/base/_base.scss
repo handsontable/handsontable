@@ -831,6 +831,38 @@
     }
   }
 
+  // The three clones the master's scroll offset is mirrored onto - `ScrollSync#syncScrollPositions`
+  // writes `scrollTop` on the inline-start holder and `scrollLeft` on the top and bottom ones, once
+  // per scroll frame - are composited scroll containers on purpose. A browser gives composited
+  // scrolling only to a box the user can scroll, and an `overflow: hidden` box is not one: every one
+  // of those writes then re-recorded the clone's contents on the main thread and dirtied the
+  // document's paint artifact, which made the browser re-layerize every paint chunk on the page, the
+  // master's untouched cells included. That cost scaled with how much DOM the cells render, not with
+  // what moved: on a grid of SVG-rich cells (#13446) it was ~850 ms of main-thread paint per 2.5 s
+  // scroll, and ~90 ms with `auto`, while a plain-text grid paid ~20 ms either way. With `auto` the
+  // same writes take the compositor's scroll-offset fast path.
+  // Nothing about the box changes visually: the scrollbar is suppressed the way the sheets bar does
+  // it, so the holder keeps its size and paints no track. A user scroll of the box itself - a touch
+  // pan over a frozen header, a wheel the engine did not cancel - is caught by
+  // `NativeScrollInput#onCloneScroll`, which hands the delta to the master and puts the clone back
+  // where the engine left it. The corner clones are left alone: nothing ever scrolls them.
+  .ht_clone_inline_start .wtHolder,
+  .ht_clone_top .wtHolder,
+  .ht_clone_bottom .wtHolder {
+    overflow: auto;
+    scrollbar-width: none;
+    // A scroll container gets scroll anchoring, and a full draw rewrites the rows inside this box;
+    // an anchoring nudge here is a frozen header out of step with the master. The same opt-out as
+    // `.htScrollbarClearanceFillers` below.
+    overflow-anchor: none;
+
+    // Beats the `.handsontable .wtHolder::-webkit-scrollbar` sizing above at equal specificity by
+    // source order, and covers engines without `scrollbar-width`.
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
   // Floating ("overlay") scrollbars (#10370): the frozen overlays stop short of the strip the
   // scrollbar is painted over, so a press can reach it. That uncovers the master's cells underneath,
   // scrolled to different columns and rows than the overlay shows, so JS patches the strip with opaque

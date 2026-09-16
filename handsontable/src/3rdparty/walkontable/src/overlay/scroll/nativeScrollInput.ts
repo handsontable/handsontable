@@ -1,6 +1,7 @@
 import { isKey } from '../../../../../helpers/unicode';
 import { eventTargetEl, isHTMLElement } from '../../../../../helpers/dom/element';
 import { requestAnimationFrame } from '../../../../../helpers/feature';
+import { measureCloneScrollDrift } from './cloneScrollDrift';
 import type { EngineContext } from '../../wire';
 import type { default as Overlays } from '../overlays';
 import type { StickyScrollStrategy } from '../strategies/stickyScrollStrategy';
@@ -63,6 +64,7 @@ export function createNativeScrollInputDeps(
     ],
     getScrollableElement: () => overlays.scrollableElement,
     syncScrollPositions: () => overlays.syncScrollPositions(),
+    getCloneScrollTarget: (holder: HTMLElement) => overlays.getCloneScrollTarget(holder),
     scrollVertically: (delta: number) => overlays.scrollVertically(delta),
     scrollHorizontally: (delta: number) => overlays.scrollHorizontally(delta),
     registerStickyScrollListeners: () => stickyScroll.registerListeners(),
@@ -171,6 +173,12 @@ export class NativeScrollInput {
         'wheel',
         (event: WheelEvent) => this.#onCloneWheel(event, preventWheel),
         wheelEventOptions
+      );
+      eventManager.addEventListener(
+        overlay.clone.wtTable.holder,
+        'scroll',
+        (event: Event) => this.#onCloneScroll(event),
+        { passive: true }
       );
     });
 
@@ -281,6 +289,53 @@ export class NativeScrollInput {
 
     if (preventDefault || (this.#deps.getScrollableElement() !== rootWindow && isScrollPossible)) {
       event.preventDefault();
+    }
+  }
+
+  /**
+   * Scroll listener for the clone holders.
+   *
+   * The frozen overlays' clone holders are composited scroll containers (the clone-holder rule in
+   * `src/styles/base/_base.scss`), so the browser can scroll one on its own - a touch pan over a
+   * frozen header, a wheel the clone listener did not cancel - and the clone then sits out of step
+   * with the master. The engine's own writes fire this listener too and read as no drift, through
+   * the ledger `ScrollSync` keeps of what it wrote. A real drift is undone on the holder and handed
+   * to the axis owner as a relative scroll; the owner's own scroll event then re-syncs every clone
+   * the ordinary way, so a pan over a frozen header scrolls the grid like a wheel over it does.
+   *
+   * The ledger, not the owner's current offset, is the reference on purpose. Scroll events are
+   * dispatched a frame after the offset changed, and a clone's pending event can run BEFORE the
+   * master's in the same frame: the clone still holds last frame's offset while the master already
+   * moved on, and a comparison against the master would read that as a user scroll backwards.
+   *
+   * @param {Event} event The scroll event object.
+   */
+  #onCloneScroll(event: Event) {
+    const holder = event.currentTarget;
+
+    if (!isHTMLElement(holder)) {
+      return;
+    }
+
+    const { geometryReader } = this.#deps;
+    const drift = measureCloneScrollDrift(
+      { top: holder.scrollTop, left: holder.scrollLeft },
+      { maxTop: geometryReader.getMaximumScrollTop(holder), maxLeft: geometryReader.getMaximumScrollLeft(holder) },
+      this.#deps.getCloneScrollTarget(holder),
+    );
+
+    if (drift.driftTop === 0 && drift.driftLeft === 0) {
+      return;
+    }
+
+    holder.scrollTop = drift.expectedTop;
+    holder.scrollLeft = drift.expectedLeft;
+
+    if (drift.driftTop !== 0) {
+      this.#deps.scrollVertically(drift.driftTop);
+    }
+    if (drift.driftLeft !== 0) {
+      this.#deps.scrollHorizontally(drift.driftLeft);
     }
   }
 

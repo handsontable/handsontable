@@ -132,11 +132,12 @@ const domScaffold = {
       holder.style.position = 'relative';
       holder.className = 'wtHolder';
 
-      if (this.isMaster) {
-        setAttribute(holder, [
-          A11Y_TABINDEX(-1),
-        ]);
-      }
+      // Every holder, not only the master's: the frozen overlays' holders are scroll containers
+      // too (`src/styles/base/_base.scss`, the clone-holder rule), and a scroll container with no
+      // focusable content becomes a keyboard tab stop of its own in Chrome 127+.
+      setAttribute(holder, [
+        A11Y_TABINDEX(-1),
+      ]);
 
       if (parent) {
         // if TABLE is detached (e.g. in Jasmine test), it has no parentNode so we cannot attach holder to it
