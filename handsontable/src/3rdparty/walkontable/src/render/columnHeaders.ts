@@ -4,6 +4,7 @@ import {
   removeClass,
   setAttribute,
   removeAttribute,
+  removeInlineStyle,
 } from '../../../../helpers/dom/element';
 import { BaseRenderer } from './_base';
 import { OrderView } from '../utils/orderView';
@@ -103,7 +104,7 @@ export class ColumnHeadersRenderer extends BaseRenderer {
 
         TH.className = '';
         clearAppliedSelection(TH);
-        TH.removeAttribute('style');
+        removeInlineStyle(TH);
 
         // Remove all accessibility-related attributes for the header to start fresh. `id` is stripped
         // too because it is reused across draws on pooled nodes and only the master overlay's leaf

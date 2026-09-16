@@ -202,7 +202,7 @@ When you add a new content-driven measurement, ask which tables actually render 
 
 The rendered band is computed BEFORE the cells render, from `rowHeightCache` — provided heights merged with `wtViewport.oversizedRows`, i.e. heights **measured on a previous render**. Content that shrinks between draws (column autosize widening a wrapped column, `setDataAtCell` replacing long text, `colWidths` changes) therefore yields a band that is too short for the new heights: `markOversizedRows` records the shrink and invalidates the cache, but nothing re-renders — the classic "blank area under the last row until you scroll" (#6452, DEV-406). `runMasterDrawCycle` calls `refillRenderedRowsBandIfShrunk` (`table/drawCycle.ts`) only when `renderCellBand` reports a height change AND `externalRowCalculator` is off. The helper **proposes** a fresh rendered band with `createRowsCalculator(['rendered'], …)` (no assignment), and runs `createCalculators(false)` + `buildRenderFilters` + `renderCellBand` again only if the proposal grows the BOTTOM edge (a later `endRow`). #6452 is exclusively an under-filled bottom, and an earlier proposed `startRow` on its own is **not** a refill trigger: that is the virtualized merged-cell signature — per-band `modifyRowHeightByOverlayName` heights plus rowspan-inflated `oversizedRows` records make every scroll draw of such a grid propose a band that starts one row earlier and ends far short of the rendered one, and the band it rendered is already correct (`src/plugins/mergeCells/__tests__/selection.spec.js` catches a refill there). When a pass does run, the band that gets applied is the UNION of the previous band and the proposal (`Viewport#extendRenderedRowsBandTo`), never the proposal alone: a proposal built from re-measured heights can still move the START edge inwards while `endRow` grows, and applying it wholesale would drop rows the DOM already shows from under the viewport. One pass is often not enough: a stale record for a row just *outside* the first band (never rendered on the shrink draw, so never re-measured) caps the proposal, and only rendering it reveals it shrank too — so the helper loops, bounded by `MAX_ROWS_BAND_REFILL_PASSES`, and exits as soon as a pass reports no height change or the proposal stops growing the bottom edge. **Passes scale roughly one-per-stale-out-of-band tall record** (each pass's proposal is capped at the first row below the band with a stale record, and `resetOversizedRows` wipes only in-band records, so every stale record below survives to cap the next proposal), and the overscan cannot shortcut it — but only because `applyRenderedRowsBandOverscan` runs solely under `stationaryBands`, which the refill's `createCalculators(false)` never sets. Do not reason from `rowHeightsUniform` here: it is settings-only (`rowHeights`/`minRowHeights`/`modifyRowHeight`, `tableView.ts`) and stays `true` in the #6452 fixture — measured `oversizedRows` never enter it. On a SCROLL-driven shrink draw, pass 1's overscan genuinely can fire (`allowsStationaryBands` drops the uniformity requirement) and can pull a stale out-of-band record into the band. Rules that keep it safe: (1) `MAX_ROWS_BAND_REFILL_PASSES` bounds the loop; never turn this into a "loop until stable". The practical limit follows from the growth rate: a shrink that leaves MORE stale out-of-band tall records between the pre-shrink band and the settled one than the cap keeps the blank strip — not for want of information (the last pass left every in-band height correct, so the next draw's band would reach the next stale record, re-measure it, and fire the refill again) but because nothing schedules that next draw; the viewport stays under-filled until a scroll, resize, or content change triggers one, exactly the pre-fix #6452 behavior. A deferred draw on cap exhaustion or an adaptive cap would both close that gap; neither is part of this fix (the #6452 fixture itself, rows 1-7 tall over a ~5-row band, already consumes all three passes); (2) the union keeps every row the DOM already showed inside the band, so each pass strictly grows it and the loop is bounded by monotonic growth as well as by the cap — the rows the proposal dropped stay rendered as plain overscan; never widen the trigger back to "grows at least one edge", which makes every virtualized merged-cell scroll draw refill and render rows above the viewport that the pre-fix engine never rendered; applying a grown band is safe only because `renderCellBand` runs immediately afterward and brings the TBODY into agreement with it — never insert a `getCell` call or a band-gated range query between `createCalculators` and that `renderCellBand`, and never leave a reassigned band without the re-render; (3) `stationaryBands` stays off for the re-passes — it is a content change, not a scroll step, so the overscan/stabilizer logic must not pad it; (4) zero extra passes on a steady-state redraw (`markOversizedRows` reports no change). Three more declines keep a pass cheap or safe: `renderAllRows` and a band already at the dataset end skip the proposal walk (no bottom edge can grow); a proposal that does not overlap or touch the previous band is declined, or the union would span the whole gap and one `renderCellBand` would build it (a whole-dataset shrink while scrolled deep reaches this) — this no-overlap guard is also what bounds the union's start-edge growth to the two bands' combined span; and a pass whose recomputed column band disagrees with the captured `ctx.syncFrozenRows` decision is declined (`refillDisagreesWithFrozenColumnSync` — pass 1's column band can carry the columns overscan down to column 0 while the refill's recompute, with no `stationaryBands`, starts past it, and rendering after `releaseFrozenOversizedRows()` already ran would wipe frozen-tall records the master can never re-measure). Rows that *grew* need no refill: the band then overflows the viewport, which is harmless, and the scrollbar height is already taken from the rebuilt cache. A propose-only calculator build passes `{ proposeOnly: true }` to `createRowsCalculator`/`createColumnsCalculator`, which skips the build's one side effect — the `rowHeaderWidth`/`columnHeaderHeight` memo reset — so a declined refill costs no header re-measure. One deliberate exception: `refillDisagreesWithFrozenColumnSync` resets `rowHeaderWidth` itself before its column prediction, because on the legacy measured path the column band's width is `getViewportWidth()` minus that header and the assignment (`createCalculators(false)`) re-measures it — a prediction reading pass 1's memo could land `startColumn` on the other side of 0 from the band actually assigned, which is the mismatch the guard exists to catch. That costs one extra TH measure, only with `fixedColumnsStart` set. (Do not hoist those resets out of the create methods instead: the memos re-measure lazily on the next read, so WHERE the reset happens relative to the surrounding `getViewportWidth`/`getViewportHeight` reads is load-bearing — moving them to the assigning call sites changed measurement timing and broke AutoRowSize.)
 
-Two consequences worth stating out loud. **A refill pass repaints only the rows it appends** (DEV-2908). `resolveRefillPaintWindow` gives `renderCellBand` a paint window (`TableRenderer#setPaintWindow`, one render only — `render()` clears it) that starts right after the previous band, and `resetOversizedRows`/`markOversizedRows` take the same window, so over a refilled draw the cell renderer — and with it the core `beforeRenderer` / `afterRenderer` hooks `tableView.ts` fires from inside it — runs once per cell of the FINAL band, never once per pass. Three rules keep the window sound, and each is a fallback to a full repaint, not a tweak: (1) the band's start row must be unchanged — TR/TD nodes are reused in place by visible index, so a moved start re-identifies every element; (2) the column band must be unchanged — the refill's `createCalculators(false)` recomputes both axes without pass 1's columns overscan, so compare the captured `startColumn`/count against the assigned ones; (3) the host's `renderEpoch` setting must be unchanged since the DRAW started (`ctx.renderEpochAtDrawStart`, snapshotted before pass 1 renders — snapshotting per pass would put a change made by the previous pass' own render hooks on both sides of the compare) — a structural change from inside a render hook (a column reorder or hide) can keep the column start and count while re-identifying every TD; (4) the band must render no merged cell (`rendersMergedCells`, one `td[rowspan], th[rowspan]` query) — not because a `rowspan` has to grow (MergeCells caps a span at the merge's own last non-hidden row and only ever raises the ANCHOR to the band's first row, so a span reaching the band end already carries its full value) but because the plugin's after-renderer writes `TD.style.height` on the cells NEXT TO a merged block from row heights pass 1 read before the re-measure, and a skipped row would keep that stale height until the next draw. The skip is also all-or-nothing per TR: `CellsRenderer` and `RowHeadersRenderer` share one `SharedOrderView` size set per TR, so a row skipped by one must be skipped by the other, or a lone `start()` resizes the TR's children with half the count. A windowed measure never takes `markOversizedRows`' TBODY-height fast path — that path judges the whole band — and the wipe (`resetOversizedRows`, before the render, calculator count) and the measure (`markOversizedRows`, after it, TBODY row count) are bound by different sources on purpose: the measure reads a TR per row and the two counts can differ mid-draw (a bottom clone measured from `syncScrollPositions` has fewer TRs than its calculator reports — a calculator-bound measure loop threw on the missing TR in the full E2E suite), so the DOM count is the only safe bound for it; after a normal render they agree, and a windowed call comes only from the refill right after such a render. `TableRenderer#render()` clears the window in a `finally`, so a throwing `cellRenderer` cannot leave it armed. One documented cost under the host's `renderMode: 'onChange'`: the `band` identity handed to `shouldPaintCell` carries `rowsToRender`, so a skipped row keeps the stamp of its own pass and the next ordinary draw repaints the skipped cells once (self-healing; the host owns the stamps, so the engine cannot re-stamp them). The draw-level hooks do not repeat: the `beforeDraw` setting (core's `beforeViewRender`) fires once before the first pass, and the `onDraw` setting (core's `afterViewRender`) fires once after the last one — both sit outside the loop in `runMasterDrawCycle`. `renderCycleSeq` does advance once per pass whatever the window (the pass-cap spec counts passes through it, since cell paints no longer can), but its only consumer is the `skipRender` rollback guard (`restoreRenderedStateIfSafe`). **Every pass rebuilds both size caches**, so the post-render second-calculator-pass skip right after the call site cannot ask `rowHeightCache.isCurrent()` alone — it also asks `!rowHeightsChanged`. Nothing placed between `renderCellBand` and that predicate may call `ensureBuilt()` without feeding the predicate too, or a draw whose rows changed height silently keeps pre-render visible calculators.
+Two consequences worth stating out loud. **A refill pass repaints only the rows it appends** (DEV-2908). `resolveRefillPaintWindow` gives `renderCellBand` a paint window (`TableRenderer#setPaintWindow`, one render only — `render()` clears it) that starts right after the previous band, and `resetOversizedRows`/`markOversizedRows` take the same window, so over a refilled draw the cell renderer — and with it the core `beforeRenderer` / `afterRenderer` hooks `tableView.ts` fires from inside it — runs once per cell of the FINAL band, never once per pass. Three rules keep the window sound, and each is a fallback to a full repaint, not a tweak: (1) the band's start row must be unchanged — TR/TD nodes are reused in place by visible index, so a moved start re-identifies every element; (2) the column band must be unchanged — the refill's `createCalculators(false)` recomputes both axes without pass 1's columns overscan, so compare the captured `startColumn`/count against the assigned ones; (3) the host's `renderEpoch` setting must be unchanged since the DRAW started (`ctx.renderEpochAtDrawStart`, snapshotted before pass 1 renders — snapshotting per pass would put a change made by the previous pass' own render hooks on both sides of the compare) — a structural change from inside a render hook (a column reorder or hide) can keep the column start and count while re-identifying every TD; (4) the band must render no merged cell (`rendersMergedCells`, one `td[rowspan], th[rowspan]` query) — not because a `rowspan` has to grow (MergeCells caps a span at the merge's own last non-hidden row and only ever raises the ANCHOR to the band's first row, so a span reaching the band end already carries its full value) but because the plugin's after-renderer writes `TD.style.height` on the cells NEXT TO a merged block from row heights pass 1 read before the re-measure, and a skipped row would keep that stale height until the next draw. The skip is also all-or-nothing per TR: `CellsRenderer` and `RowHeadersRenderer` share one `SharedOrderView` size set per TR, so a row skipped by one must be skipped by the other, or a lone `start()` resizes the TR's children with half the count. A windowed measure never takes `markOversizedRows`' TBODY-height fast path — that path judges the whole band — and the wipe (`resetOversizedRows`, before the render, calculator count) and the measure (`markOversizedRows`, after it, TBODY row count) are bound by different sources on purpose: the measure reads a TR per row and the two counts can differ mid-draw (a bottom clone measured from `syncScrollPositions` has fewer TRs than its calculator reports — a calculator-bound measure loop threw on the missing TR in the full E2E suite), so the DOM count is the only safe bound for it; after a normal render they agree, and a windowed call comes only from the refill right after such a render. `TableRenderer#render()` clears the window in a `finally`, so a throwing `cellRenderer` cannot leave it armed. One documented cost under the host's `renderMode: 'onChange'`: the `band` identity handed to `shouldPaintCell` carries `rowsToRender`, so a skipped row keeps the stamp of its own pass and the next ordinary draw repaints the skipped cells once (self-healing; the host owns the stamps, so the engine cannot re-stamp them); where the rows recycle (`hasStableCellIdentity()`), the stable identity carries no band size, so a skipped row's stamp still matches and no repaint follows. The draw-level hooks do not repeat: the `beforeDraw` setting (core's `beforeViewRender`) fires once before the first pass, and the `onDraw` setting (core's `afterViewRender`) fires once after the last one — both sit outside the loop in `runMasterDrawCycle`. `renderCycleSeq` does advance once per pass whatever the window (the pass-cap spec counts passes through it, since cell paints no longer can), but its only consumer is the `skipRender` rollback guard (`restoreRenderedStateIfSafe`). **Every pass rebuilds both size caches**, so the post-render second-calculator-pass skip right after the call site cannot ask `rowHeightCache.isCurrent()` alone — it also asks `!rowHeightsChanged`. Nothing placed between `renderCellBand` and that predicate may call `ensureBuilt()` without feeding the predicate too, or a draw whose rows changed height silently keeps pre-render visible calculators.
 
 ## The hider height is fractional below 100% zoom, and two coordinate spaces meet there
 
@@ -732,6 +732,17 @@ of style recalculation, not JavaScript. Three consequences:
   after (`render/cells.ts`, `render/rowHeaders.ts`, `render/columnHeaders.ts` do). Without it
   the record says "applied" while the DOM is blank, and the element stays unselected until the
   selection changes.
+- **Reset an inline style with `removeInlineStyle()` (`helpers/dom/element.ts`), never a bare
+  `removeAttribute('style')`.** Chromium synchronizes the `style` attribute lazily from the
+  `element.style` declaration; on an element whose inline style was written and never read back
+  (a covered merged cell's `display: none`, a renderer's height), the bare removal lands before the
+  synchronization and leaves an empty `style=""` behind. It is cosmetic for the user, but it makes
+  the same cell come out differently depending on what its element held before, which is exactly
+  what a byte-for-byte comparison against a full repaint catches (`incremental-render.spec.ts`, the
+  `merge` scenario: a covered cell that becomes a block's clamped origin on a scroll). jsdom does not
+  reproduce the trap, so no unit test pins it; a `no-restricted-syntax` override for `src/render/**`
+  in `handsontable/.eslintrc.js` bans the bare call instead, and the helper's `hasAttribute` read is
+  the fix, not a shortcut.
 - **The cell-range scan is cached** per layer and overlay (`selection/scanCache.ts`) under the
   layer's corners, the rendered band (offsets, counts, header counts), and the host's `renderEpoch`
   setting. Header scans are not cached: the `onBeforeHighlightingRowHeader`/`ColumnHeader` settings
@@ -753,7 +764,127 @@ of style recalculation, not JavaScript. Three consequences:
 `false` skips the reset, the `cellRenderer` call, and the ARIA re-stamp for that element. The
 engine keeps no per-cell state of its own here; the host (`TableView` through `CellPainter`) owns
 the stamps and answers from the cell's `renderMode`. The default answers `true`, so a Walkontable
-built without the setting behaves as before. A renderer spec's `TableRendererMock` must provide it.
+built without the setting behaves as before. A renderer spec's `TableRendererMock` must provide it,
+together with `hasStableCellIdentity()` and `isRowRecyclingAllowed()` (both `false` reproduces the
+pre-recycling engine).
+
+The fourth and fifth arguments are the two identities of the rendered band. The engine hands over
+both and the host picks per cell, because only the host knows which cells paint something that
+depends on where the band starts or ends:
+
+- **`band`**, always: `overlay,rowOffset,rowCount,columnOffset,columnCount`. A cell stamped with it
+  repaints whenever the band moves or resizes. MergeCells needs that for a merged block's cells: it
+  clamps the block's `rowspan`/`colspan` to the rendered band, so the cell's paint changes even though
+  its coordinates did not. It marks the block's origin meta `spanned`, the covered cells resolve to
+  that meta, and `CellPainter#bandIdentity` keeps the full band for them. The other
+  `getFirstRenderedVisibleRow` readers feed row heights (`stylesHandler`, `autoRowSize`), meta
+  eviction (`dynamicCellMeta`) and the selection layer (`customBorders`), not a cell's paint — with
+  one indirect exception: `mergeCells/renderer.ts` `getHeightNextToMergedBlock` runs in
+  `afterRenderer` for the cell RIGHT OF a block and, on Safari with no row headers and no row-height
+  setting, sums cell heights through `getRowHeight` → `modifyRowHeight` → `autoRowSize`, which adds
+  1px on the band's first rendered row. That neighbor cell carries no `spanned`, so it takes the
+  stable identity and keeps a sub-pixel height across a scroll. Narrow, known, accepted; do not read
+  the list above as a proof that no paint depends on the band.
+- **`stableBand`**, the overlay name alone where the rows recycle (`TableRenderer#hasStableCellIdentity()`,
+  from `Overlays#rowRecyclingAllowed`), `null` otherwise. It is offered on EVERY draw of such a table,
+  scroll-driven or not: the host compares a stamp with the one the previous draw wrote, so the identity
+  has to be the same kind on consecutive draws or a full draw after a scroll draw would repaint every
+  cell; only the rotation is scroll-driven. A cell's own source coordinates then carry
+  its identity, so a band that grows or shrinks repaints only the cells it adds, and an element that
+  kept its row across a scroll (next section) reads as unchanged.
+
+The master draw cycle resolves `Viewport#allowsRowRecycling()` once per draw, after `beforeDraw()`
+refreshed the axis owners, into `Overlays#rowRecyclingAllowed`, which `renderCellBand` reads for the
+master and for every clone (through the clone source), so the recycling and the stable identity never
+disagree within a draw. `Viewport#allowsStationaryBands()` has one reader, the `createCalculators`
+call right there, so it is not stored. The two predicates differ by the single-pass term only:
+MergeCells opts out of single-pass layout for the height-versus-viewport circularity, and that must
+not switch the recycling off for the rest of the grid.
+
+A paint outside `'onChange'` drops the element's stamp (`CellPainter#paint`,
+`deleteCellPaintStamp`): a TD that painted row 11 under `'onChange'`, then row 60 under `'always'`
+(a column-level override), then rotated back to row 11 would otherwise rebuild the same stamp field
+for field, match, and keep showing row 60. Pinned in `core/incrementalRender/__tests__/cellPainter.unit.js`.
+
+## Row recycling: a scroll keeps a row's TR
+
+`render/rows.ts` rotates the TR elements on a scroll-driven draw by the band's offset delta (one
+`DocumentFragment` move of the rows that left the band to the other end, in order), so a row that
+stays in the band keeps its TR and its TDs, and the cell pass paints the entering rows into the
+elements the leaving rows freed. The DOM order stays the band order, so `TR.rowIndex` and child
+order still say which row an element holds; what changed is that an element now follows its row
+across a scroll. Gated by `TableRenderer#isRowRecyclingAllowed()` = scroll-driven draw AND
+`Viewport#allowsRowRecycling()` (element-scrolled on both axes, single-pass layout NOT required, so a
+grid with merged cells recycles too), on the master and the inline-start clone only
+(`recyclesRowsOnClone`, `table/drawCycle.ts`): the top and bottom clones and their corners hold the
+frozen rows, which never scroll, and the bottom clone's band offset moves in renderable space on a
+hide or trim, so they keep the stationary elements and the full band identity. The rotation also
+needs the host's `renderEpoch` unchanged since the previous render (`TableRenderer#renderEpoch`,
+recorded with the band): a renderable index names the same row only within one index-mapper state,
+so after a mapping change with no render in between the rows are rebuilt in place — the host repaints
+every cell then anyway. The host leaves a carried-over cell untouched
+(`renderMode: 'onChange'`) only when the cell took the stable identity above, which a merged block's
+cell never does. A `forceFullRender`
+(`hot.render()`) enters as `draw(false)` and never rotates: it rebuilds the band in place, and the
+stamps' coordinates then repaint every element whose row moved. The rotation is also skipped when no
+row survives the move: the shift reaches the previous band's size in either direction (there are no
+more elements to move; scrolling up past it ran the move out of elements once, a bot-review catch), or
+the new band's size scrolling up. It is also skipped when the band is empty, and when the TBODY does
+not hold exactly the previous band (something else touched it). A focused cell in a leaving row is detached with its row for the
+duration of the move; Chromium blurs a removed element only at its next rendering step, by which
+time the row is back, and for an engine that blurs at once the renderer gives the element the focus
+back without scrolling, so the keyboard keeps reaching the grid either way. The restore runs after
+the row pass has settled the TBODY (`#restoreFocus`, after `orderView.end()`), so the `focusin` it
+fires sees every TR in place, and only while `document.hasFocus()`: `activeElement` stays set in a
+blurred iframe, and refocusing it would pull the focus into the frame. The restore keeps the focus
+WHERE it was, on an element about to show another row; it does not preserve what the element shows
+(a TD outlives the paint, an embedded control only if its renderer updates it in place, as on a
+stationary grid). A band that SHRINKS on the same draw (merged-cell grids, where the band is not
+stabilized) drops the TRs past the new size in `start()`, leaving rows that wrapped to that end
+included; the focused row's TR is swapped into the last surviving slot first, so the element stays in
+the DOM and that slot's row repaints into it. Both reads cross shadow
+boundaries: the focused element comes from `getDeepActiveElement()` (inside a shadow root
+`document.activeElement` is the host), and "in the band" holds when the TBODY contains the element
+or one of its `getShadowHostChain()` hosts (`contains()` stops at a web-component cell's shadow
+root). The unit tests emulate an engine that blurs at once by wrapping the fragment the rotation
+moves rows through; without that, jsdom keeps the focus like Chromium and the restore never runs.
+
+Only rows that LEAVE the band wrap. A band that moves up and grows past its old end at the same time
+(a refill re-pass in `table/drawCycle.ts`, or a recompute with non-uniform heights) keeps every tail
+row's TR in place and gets fresh TRs for the front slots the leaving rows cannot fill; `start()`
+counts them as part of the band. Without that, a row still in the band would hand its element (and a
+live control in it) to an unrelated row. Pinned by the "moves up and grows" cases in
+`test/unit/renderer/rowRecycling.unit.ts`.
+
+Row mapping changes (hide, trim, move, sort) need nothing here. The rotation assumes one thing: the
+TR at position `i` held renderable row `lastOffset + i` after the previous render, which every
+render records. The host's paint stamps carry the visual index and the value, so a cell whose row
+now maps elsewhere repaints whatever its TR held. Core's `onIndexMapperCacheUpdate` does set
+`forceFullRender`, which enters as `draw(false)` and skips the rotation, but the recycling does not
+depend on that; `tests/e2e/incremental-render.spec.ts` (the `mapping` scenario) interleaves
+scroll-driven draws with hiding, moving, and sorting rows and checks the tables equal a full repaint.
+
+While the band size is unchanged it is a move, not an insertion or removal, so the stationary-DOM
+invariant (no structural mutation while scrolling, see the comment above `rows.render()` in
+`tableRenderer.ts`) holds; a band that grows while it moves up obtains fresh TRs for the front slots
+(above), which is the same growth `start()` would perform at the tail. Measured against a host
+document of 30,000 nodes and three `:has()` rules (one anchored on the host nodes), style recalculation
+stayed flat: 55 ms with the rows in place, 53 ms rotated, on an identical 2,702 ms of main-thread time;
+the worst frame went from 210 ms to 100 ms. No `performance-tests/` scenario carries a host-page
+`:has()` rule yet, so that number lives in the DEV-2892 research notes and the PR body, not in CI. The
+row axis only; the column axis renders a contiguous band into stationary TDs as before.
+
+What it buys, measured on the reporter's Angular grid (#13446, SVG-rich component cells, 65 rows by
+7 columns, one 1,000 px scroll): under `renderMode: 'onChange'` the official Angular renderer's worst
+frame went from 170 ms to 70 ms and its renderer calls per run from 3,108 to 462 (the cells that entered); a renderer
+that caches per `td` (the pattern framework wrappers use) hits again for every row that stays,
+which is what the rotation exists for.
+
+Pinned by `test/unit/renderer/rowRecycling.unit.ts` (the rotation and its guards),
+`test/unit/renderer/cellBand.unit.ts` (the two band forms, and that a carried-over element is
+offered to the host with its own coordinates) and `tests/e2e/incremental-render.spec.ts` (paints on
+a scroll down and up, element identity in the master and the frozen-columns clone, equality to a
+full repaint, an open editor across a scroll).
 
 ## A data cell names its column header through `aria-describedby`, and the owner is per column
 

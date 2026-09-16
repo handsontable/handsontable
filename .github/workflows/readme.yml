@@ -1,0 +1,64 @@
+name: README
+
+# The two README checks that do not belong on a pull request.
+#
+# `checks.yml` runs the fast half on every PR (structure, versions, feature parity, and links on
+# hosts we publish). This file adds the two that are either too slow or too noisy for that: every
+# third-party link, and the Key Features review.
+on:
+  schedule:
+    - cron: '0 4 * * 1-5' # 04:00 UTC, Mon–Fri — off-peak, and nothing publishes at weekends
+  workflow_dispatch:
+
+jobs:
+  links:
+    name: all links
+    # The nightly sweep. A PR resolves only our own hosts, because it must never fail because npm
+    # rate-limited the runner; here a slow third party costs nothing but a red cron. Only 404 and
+    # 410 fail — npm answers every scripted request with 403 and GitHub 429s a burst of raw
+    # requests, and a check people learn to ignore is worse than no check.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
+        with:
+          node-version-file: '.nvmrc'
+      # pipefail, or the run reports tee's exit status and a dead link passes silently.
+      - name: Resolve every README link
+        run: |
+          set -o pipefail
+          node scripts/readme-check.mjs --links=all | tee -a "$GITHUB_STEP_SUMMARY"
+
+  feature-review:
+    name: key features review
+    # Whether a feature we shipped belongs in the READMEs' "Key Features" list is a judgment call,
+    # so this reports rather than gates: it prints the pending `added` changelog entries beside the
+    # list as it stands. Notifications, Export to Excel, date/time editing and Shadow DOM all
+    # shipped without the READMEs noticing, because nobody reads the changelog against a marketing
+    # list by hand.
+    #
+    # Deliberately NOT triggered by the release. A `push:` on `release/**` looks like the obvious
+    # hook and is dead twice over: publish.yml pushes those branches with `secrets.GITHUB_TOKEN`,
+    # and a GITHUB_TOKEN push starts no workflow (publish.yml says so itself, above its
+    # `Generate release bot token` step); and publish.yml's RC job runs `npm run changelog consume`
+    # before the branch exists, so the `.changelogs/*.json` files this reads are already folded
+    # into CHANGELOG.md by then and the report would be empty.
+    #
+    # Nightly and on demand instead: both fire while the entries still exist. Run it by hand
+    # (Actions → README → Run workflow) before cutting a release — that is the release-checklist
+    # step DEV-2900 asks for, and it reads the same list the release is about to ship.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
+        with:
+          node-version-file: '.nvmrc'
+      - name: Review the Key Features list against the pending features
+        run: |
+          {
+            echo '## README — Key Features review'
+            echo
+            echo '```'
+            node scripts/readme-feature-review.mjs
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

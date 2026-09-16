@@ -59,6 +59,14 @@ The merge base describes **this** cell regardless of the bookkeeping fields the 
 can be stale when the meta is a detached snapshot — UndoRedo restoring borders captured at pre-shift
 coordinates is the case that matters.
 
+**Any record is a merge base, not only a plugin-shaped `BorderObject`.** Cascaded or partial
+`borders` from column or cell meta carry no `id`/`row`/`col`. Requiring those fields
+(`isBorderObject`) dropped the sides the user authored: `setBorders` then wrote hidden
+defaults over them (DEV-2513). `#mergeBaseFromExisting` starts from `createEmptyBorders` and
+layers `normalizeBorder` of the existing record, matching the `afterSetCellMeta` path.
+Viewport-driven seeding of cascaded borders that `setBorders` never touched is a separate
+follow-up (#13166).
+
 A progressive load keeps **one** first-touch tracking `Set` across all its batches, so overlapping ranges
 split across batches still merge correctly. A plain synchronous call owns and clears its own.
 
