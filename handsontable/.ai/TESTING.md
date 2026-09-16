@@ -306,7 +306,7 @@ await waitForNextAnimationFrames(2);                // ← never; a frame count 
 Machine-enforced by the presence gate (`.github/scripts/test-presence-gate.mjs`): a change to `handsontable/src/**` or `wrappers/**` must ship a matching test change. Which kind:
 
 - **A user could see or do it** (rendering, editing, selection, keyboard, menus, overlays) → **E2E**. New E2E is **Playwright** in `tests/e2e/` — see the `handsontable-playwright-e2e` skill.
-- **Behavior changed but is invisible to users** (data, indexing, algorithms, internal state) → a **Jest `*.unit.js`**. Still mandatory — "not user-facing" is not a free pass.
+- **Behavior changed but is invisible to users** (data, indexing, algorithms, internal state) → a **Jest unit test** (`*.unit.js` or `*.unit.ts`). Still mandatory — "not user-facing" is not a free pass.
 - **No behavior change** (pure refactor) or **non-runtime** (types, docs, config, i18n text, re-exports) → **no new test**; declare a refactor with a `Refactor-only: <reason>` commit trailer.
 
 **New spec vs modify existing:** new public API / plugin / editor → a new spec; a bug fix → add a case to the closest existing spec (its test must fail without the fix).
@@ -541,18 +541,17 @@ npm run test:unit -- --coverage    # Show coverage after Jest run
 - Covers only `src/` directory
 
 **Coverage Goals:**
-- Aim for 100% coverage of new or modified code
-- Test all possible states including edge cases
+- Every new or modified line runs under a test. That is the floor, not the goal: what proves the change is an assertion that fails when the code is broken (the `test-writing-discipline` skill).
+- Cover the states the change can break, not every possible state.
 
 ## Test Types
 
-**Unit Tests (`*.unit.js`):**
+**Unit Tests (`*.unit.js`, `*.unit.ts`):**
 - Framework: Jest with jsdom (`jest-jasmine2` runner)
 - Location: `src/**/__tests__/`
 - Scope: Individual functions and classes in isolation
 - Synchronous (no async/await required)
 - Explicit imports needed
-- ~216 test files
 
 **E2E Tests (`*.spec.js`):**
 - Framework: Jasmine with Puppeteer (headless Chrome)

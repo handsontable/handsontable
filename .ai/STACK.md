@@ -184,13 +184,12 @@
 - `manual-qa.yml` - the human merge gate, and a `CI Gate` dependency like every module above
 - `integration.yml` - wrapper tests, ESM/CJS format checks, pkg.pr.new PR package preview
 - `performance.yml` (PR) / `performance-tests.yml` (develop golden baseline) - the CDP perf suite
-- `visual.yml` - visual regression render matrix plus the reg-suit comparison and approval gate
+- `visual.yml` - visual regression render matrix, the reg-suit comparison, and the `approve` job that holds a `changed` verdict on the `visual-approval` environment (the R2 screenshot purge lives in `pr-cleanup.yml`)
 - `visual-seed.yml` - writes `base/develop`, the baseline every pull request is compared against, on every develop push under a concurrency group that never cancels (develop.yml's cancellation kept the seed from landing; see that file's header)
-- `visual-cleanup.yml` - clears the `visual-approved` label on new commits (the R2 screenshot purge lives in `pr-cleanup.yml`)
 - `publish.yml` - package publishing pipeline to npm (the only workflow npm trusted publishing trusts)
 - `docs.yml` / `docs-staging.yml` / `docs-production.yml` - docs gates and deployment (Cloudflare Pages)
 - `docs-visual-tests.yml` - visual regression testing for docs
 
 Fork PRs and Dependabot PRs both run on a read-only token with no Actions secrets. Read the two
-fork-guard bullets in the root `AGENTS.md` before touching any step that comments, pushes to a ref,
+fork-guard bullets in `.ai/CI.md` before touching any step that comments, pushes to a ref,
 or depends on a secret. Some paths degrade gracefully and must not be guarded.
