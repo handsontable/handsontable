@@ -484,6 +484,13 @@ export class TextEditor extends BaseEditor {
       this.hot.rootDocument.execCommand('insertText', false, '\n');
     };
 
+    // `isMultiple()` reads the active layer only, so on its own it hands a newline to a gesture the
+    // editor is about to answer with a data population: a second selection layer has other cells to
+    // fill even when the active layer is a lone cell (DEV-103). Asking for the layer count as well
+    // keeps the two in step - the newline is for selections that fill nothing else.
+    const populatesOtherCells = () =>
+      this.hot.selection.isMultiple() || (this.hot.getSelectedRange()?.length ?? 0) > 1;
+
     editorContext!.addShortcuts([{
       keys: [['Control', 'Enter']],
       callback: () => {
@@ -491,7 +498,7 @@ export class TextEditor extends BaseEditor {
 
         return false; // Will block closing editor.
       },
-      runOnlyIf: (event?: KeyboardEvent) => !this.hot.selection.isMultiple() && // We trigger a data population for multiple selection.
+      runOnlyIf: (event?: KeyboardEvent) => !populatesOtherCells() && // We trigger a data population for multiple selection.
         // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
         !event?.altKey,
     }, {
@@ -501,7 +508,7 @@ export class TextEditor extends BaseEditor {
 
         return false; // Will block closing editor.
       },
-      runOnlyIf: () => !this.hot.selection.isMultiple(), // We trigger a data population for multiple selection.
+      runOnlyIf: () => !populatesOtherCells(), // We trigger a data population for multiple selection.
     }, {
       keys: [['Alt', 'Enter']],
       callback: () => {

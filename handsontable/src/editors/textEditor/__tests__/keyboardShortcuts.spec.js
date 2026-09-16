@@ -156,6 +156,165 @@ describe('TextEditor keyboard shortcut', () => {
     });
   });
 
+  // The chord is answered by three gates that each used to read only the ACTIVE selection layer, so
+  // a second layer was invisible to all of them: the editor's insert-a-line-break shortcut, the
+  // unchanged-edit guard in `finishEditing()`, and `saveValue()` itself (DEV-103).
+  //
+  // `Enter` cannot open the editor here - over several layers it moves the focus between them
+  // instead - so these open with `F2`, which has no such rule.
+  describe('"Enter + Control/Meta" over more than one selection layer', () => {
+    it('should populate the edited value into every layer, not only the active one', async() => {
+      handsontable({
+        data: createSpreadsheetData(6, 6),
+      });
+
+      await selectCells([[0, 0, 1, 1], [3, 3, 4, 4]]);
+      await keyDownUp('f2');
+
+      getActiveEditor().setValue('filled');
+
+      await keyDownUp(['control/meta', 'enter']);
+
+      expect(getDataAtCell(0, 0)).toBe('filled');
+      expect(getDataAtCell(0, 1)).toBe('filled');
+      expect(getDataAtCell(1, 0)).toBe('filled');
+      expect(getDataAtCell(1, 1)).toBe('filled');
+      expect(getDataAtCell(3, 3)).toBe('filled');
+      expect(getDataAtCell(3, 4)).toBe('filled');
+      expect(getDataAtCell(4, 3)).toBe('filled');
+      expect(getDataAtCell(4, 4)).toBe('filled');
+      // A cell between the two layers must not be dragged into the fill.
+      expect(getDataAtCell(2, 2)).toBe('C3');
+    });
+
+    it('should populate every layer when the active layer holds a single cell', async() => {
+      handsontable({
+        data: createSpreadsheetData(6, 6),
+      });
+
+      await selectCells([[0, 0, 1, 1], [4, 4, 4, 4]]);
+      await keyDownUp('f2');
+
+      getActiveEditor().setValue('filled');
+
+      await keyDownUp(['control/meta', 'enter']);
+
+      // The active layer is single, but the other layer still has cells to fill - so the chord is a
+      // population, not a line break, and the editor closes instead of staying open with a `\n`.
+      expect(isEditorVisible()).toBe(false);
+      expect(getDataAtCell(0, 0)).toBe('filled');
+      expect(getDataAtCell(0, 1)).toBe('filled');
+      expect(getDataAtCell(1, 0)).toBe('filled');
+      expect(getDataAtCell(1, 1)).toBe('filled');
+      expect(getDataAtCell(4, 4)).toBe('filled');
+    });
+
+    it('should revert the whole fill with a single undo step', async() => {
+      handsontable({
+        data: createSpreadsheetData(6, 6),
+      });
+
+      await selectCells([[0, 0, 1, 1], [3, 3, 4, 4]]);
+      await keyDownUp('f2');
+
+      getActiveEditor().setValue('filled');
+
+      await keyDownUp(['control/meta', 'enter']);
+
+      // Asserted before the undo on purpose: without it this test passes on a grid that filled only
+      // the active layer, because a layer that was never written reverts to its original value on
+      // its own.
+      expect(getDataAtCell(0, 0)).toBe('filled');
+      expect(getDataAtCell(4, 4)).toBe('filled');
+
+      await keyDownUp(['control/meta', 'z']);
+
+      // One gesture is one undo step. Filling the layers one call at a time would leave the first
+      // layer still holding `filled` here.
+      expect(getDataAtCell(0, 0)).toBe('A1');
+      expect(getDataAtCell(1, 1)).toBe('B2');
+      expect(getDataAtCell(3, 3)).toBe('D4');
+      expect(getDataAtCell(4, 4)).toBe('E5');
+    });
+
+    it('should skip a `readOnly` cell and fill the rest of the layers', async() => {
+      handsontable({
+        data: createSpreadsheetData(6, 6),
+        cell: [{ row: 0, col: 1, readOnly: true }],
+      });
+
+      await selectCells([[0, 0, 1, 1], [3, 3, 4, 4]]);
+      await keyDownUp('f2');
+
+      getActiveEditor().setValue('filled');
+
+      await keyDownUp(['control/meta', 'enter']);
+
+      expect(getDataAtCell(0, 1)).toBe('B1');
+      expect(getDataAtCell(0, 0)).toBe('filled');
+      expect(getDataAtCell(1, 1)).toBe('filled');
+      expect(getDataAtCell(3, 3)).toBe('filled');
+    });
+
+    it('should write a cell shared by two layers only once', async() => {
+      let editChangesCount = null;
+
+      handsontable({
+        data: createSpreadsheetData(6, 6),
+        afterChange(changes, source) {
+          if (source === 'edit') {
+            editChangesCount = changes.length;
+          }
+        },
+      });
+
+      // The layers overlap on B2 - four cells each, seven distinct cells between them.
+      await selectCells([[0, 0, 1, 1], [1, 1, 2, 2]]);
+      await keyDownUp('f2');
+
+      getActiveEditor().setValue('filled');
+
+      await keyDownUp(['control/meta', 'enter']);
+
+      expect(editChangesCount).toBe(7);
+      expect(getDataAtCell(1, 1)).toBe('filled');
+    });
+
+    it('should still fill a single multi-cell layer', async() => {
+      handsontable({
+        data: createSpreadsheetData(6, 6),
+      });
+
+      await selectCell(0, 0, 1, 1);
+      await keyDownUp('f2');
+
+      getActiveEditor().setValue('filled');
+
+      await keyDownUp(['control/meta', 'enter']);
+
+      expect(getDataAtCell(0, 0)).toBe('filled');
+      expect(getDataAtCell(0, 1)).toBe('filled');
+      expect(getDataAtCell(1, 0)).toBe('filled');
+      expect(getDataAtCell(1, 1)).toBe('filled');
+      expect(getDataAtCell(0, 2)).toBe('C1');
+    });
+
+    it('should still insert a line break when the selection has nothing else to fill', async() => {
+      handsontable({
+        data: createSpreadsheetData(6, 6),
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await keyDownUp(['control/meta', 'enter']);
+
+      // One cell in one layer fills nothing else, so the chord keeps its line-break meaning.
+      expect(isEditorVisible()).toBe(true);
+      expect(getActiveEditor().getValue()).toBe('A1\n');
+      expect(getDataAtCell(0, 0)).toBe('A1');
+    });
+  });
+
   describe('"PageUp"', () => {
     it('should move the selection to the first cell in a row while cell editing', async() => {
       handsontable({

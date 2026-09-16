@@ -722,11 +722,15 @@ test.describe('commit paths that read the selection after trimming', () => {
     });
 
   /**
-   * `saveValue()` fills the ACTIVE range on `Ctrl+Enter`, so dropping a partially trimmed active
-   * layer does not merely lose the highlight - it hands the commit to whichever layer inherits the
-   * active slot. The user selected physical rows 1-3 and typed into row 3; trimming row 1 leaves
-   * rows 2 and 3 selected. Dropping the layer instead filled physical row 4, from the other layer -
-   * two records the user never opened an editor on.
+   * A partially trimmed active layer must keep its own surviving records, because the `Ctrl+Enter`
+   * commit sizes itself from the selection. The user selected physical rows 1-3 and typed into
+   * row 3; trimming row 1 leaves rows 2 and 3 selected, and those two are what the edit belongs to.
+   * Dropping the layer left them untouched and wrote only physical row 4, from the other layer -
+   * records the user never opened an editor on.
+   *
+   * Since DEV-103 the commit reaches every layer, so row 4 is written too - it was selected, and the
+   * user asked for the whole selection. Rows 2 and 3 are still what this case guards: if the active
+   * layer were dropped again, they would stay `'A2'`/`'A3'` while row 4 alone changed.
    */
   test('commits to the surviving selected records when the active range loses a corner',
     async({ page, theme, bundle }) => {
@@ -743,7 +747,7 @@ test.describe('commit paths that read the selection after trimming', () => {
         ['A1', 'B1'],
         ['EDITED', 'B2'],
         ['EDITED', 'B3'],
-        ['A4', 'B4'],
+        ['EDITED', 'EDITED'],
       ]);
     });
 

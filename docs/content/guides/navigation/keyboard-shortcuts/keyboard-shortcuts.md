@@ -115,10 +115,11 @@ These keyboard shortcuts work when you're editing a cell's contents. They come f
 | <kbd>**Page Up**</kbd>                                | <kbd>**Page Up**</kbd>                                      | Complete the cell entry and move one screen up                     | &check; | &check; |
 | <kbd>**Page Down**</kbd>                              | <kbd>**Page Down**</kbd>                                    | Complete the cell entry and move one screen down                   | &check; | &check; |
 | <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd>               | <kbd>⌥</kbd>+<kbd>**Enter**</kbd>                  | Insert a line break                                                | &cross; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>              | <kbd>⌃</kbd>/<kbd>⌘</kbd>+<kbd>**Enter**</kbd> | Insert a line break                                                | &cross; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>              | <kbd>⌃</kbd>/<kbd>⌘</kbd>+<kbd>**Enter**</kbd> | Insert a line break<sup>\*\*</sup>                                 | &cross; | &check; |
 | <kbd>**Escape**</kbd>                                 | <kbd>**Escape**</kbd>                                       | Cancel the cell entry and exit the editing mode                    | &check; | &check; |
 
-<sup>\*</sup> This action depends on your layout direction.
+<sup>\*</sup> This action depends on your layout direction.<br>
+<sup>\*\*</sup> This action inserts a line break only when your selection holds a single cell. If the selection holds more cells, this shortcut saves the edited value into every selected cell instead, across all selection layers.
 
 ### Checkbox editor keyboard shortcuts
 

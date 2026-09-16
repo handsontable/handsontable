@@ -3,7 +3,7 @@ import type { CellProperties } from '../../settings';
 import { stringify } from '../../helpers/mixed';
 import { throwWithCause } from '../../helpers/errors';
 import { warn } from '../../helpers/console';
-import { mixin } from '../../helpers/object';
+import { deepClone, mixin } from '../../helpers/object';
 import hooksRefRegisterer from '../../mixins/hooksRefRegisterer';
 import {
   getScrollbarWidth,
@@ -280,40 +280,134 @@ export class BaseEditor {
   /**
    * Saves value from editor into data storage.
    *
+   * With `ctrlDown` the value goes into every cell of **every** selection layer, not only the layer
+   * that holds the focus - the same reach the grid's own `Ctrl`/`Cmd`+`Enter` fill has when no
+   * editor is open. The whole fill leaves through one `setDataAtCell()` call, so it fires one
+   * `afterChange` and costs one undo step however many layers it spans.
+   *
    * @param {*} value The editor value.
-   * @param {boolean} ctrlDown If `true`, applies value to each cell in the last selected range.
+   * @param {boolean} ctrlDown If `true`, applies value to each cell in every selected range.
    */
   saveValue(value: unknown, ctrlDown?: boolean): void {
-    let visualRowFrom;
-    let visualColumnFrom;
-    let visualRowTo;
-    let visualColumnTo;
-
     // if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
     if (ctrlDown) {
-      const activeRange = this.hot.getSelectedRangeActive();
-      const topStartCorner = activeRange?.getTopStartCorner();
-      const bottomEndCorner = activeRange?.getBottomEndCorner();
+      this.#saveValueToSelection(value as unknown[][]);
 
-      visualRowFrom = topStartCorner?.row ?? this.row;
-      visualColumnFrom = topStartCorner?.col ?? this.col;
-      visualRowTo = bottomEndCorner?.row ?? this.row;
-      visualColumnTo = bottomEndCorner?.col ?? this.col;
-
-    } else {
-      [visualRowFrom, visualColumnFrom, visualRowTo, visualColumnTo] = [this.row, this.col, null, null];
+      return;
     }
 
-    const modifiedCellCoords = this.hot.runHooks('modifyGetCellCoords', visualRowFrom, visualColumnFrom, false, 'meta');
+    this.#saveValueToEditedCell(value as unknown[][]);
+  }
+
+  /**
+   * Writes the editor's value into the single cell the editor was opened on.
+   *
+   * @param {Array[]} value The editor value, in the 2D form `saveValue()` receives it.
+   */
+  #saveValueToEditedCell(value: unknown[][]): void {
+    let visualRow: number | null = this.row;
+    let visualColumn: number | null = this.col;
+
+    const modifiedCellCoords = this.hot.runHooks('modifyGetCellCoords', visualRow, visualColumn, false, 'meta');
 
     if (Array.isArray(modifiedCellCoords)) {
-      [visualRowFrom, visualColumnFrom] = modifiedCellCoords as [number, number];
+      [visualRow, visualColumn] = modifiedCellCoords as [number, number];
     }
 
     // Saving values using the modified coordinates.
-    this.hot.populateFromArray(
-      visualRowFrom as number, visualColumnFrom as number, value as unknown[][],
-      visualRowTo as number, visualColumnTo as number, 'edit');
+    this.hot.populateFromArray(visualRow as number, visualColumn as number, value, null, null, 'edit');
+  }
+
+  /**
+   * Writes the editor's value into every cell of every selection layer.
+   *
+   * `populateFromArray()` fills one rectangle per call, and one call is one `afterChange` - so
+   * looping it over the layers would cost an undo step per layer and split a single gesture into
+   * several. This collects the whole fill first and commits it once instead, the shape
+   * `emptySelectedCells()` and the grid's `populateSelectedCellsData` command already use.
+   *
+   * A cell reached by two overlapping layers is written once, and `readOnly` cells are skipped, as
+   * they are on every other populate path.
+   *
+   * @param {Array[]} value The editor value, in the 2D form `saveValue()` receives it.
+   */
+  #saveValueToSelection(value: unknown[][]): void {
+    const selectedRanges = this.hot.getSelectedRange();
+
+    // The editor can outlive the selection (a custom editor saving from a detached UI, say). There
+    // is no layer to read then, so the fill falls back to the cell the editor was opened on. A
+    // non-array or empty input goes the same way rather than into the row lookup below: `%
+    // value.length` would divide by zero on an empty array, and a bare string would index its own
+    // characters. `populateFromArray()` answers the first with a no-op and the second by throwing,
+    // as both always have.
+    if (!selectedRanges?.length || !Array.isArray(value) || value.length === 0) {
+      this.#saveValueToEditedCell(value);
+
+      return;
+    }
+
+    const changes: Array<[number, number, unknown]> = [];
+    const visited = new Set<string>();
+    const lastRow = this.hot.countRows() - 1;
+    const lastColumn = this.hot.countCols() - 1;
+
+    selectedRanges.forEach((cellRange) => {
+      if (cellRange.isSingleHeader()) {
+        return;
+      }
+
+      let fromRow = cellRange.getTopStartCorner().row;
+      let fromColumn = cellRange.getTopStartCorner().col;
+
+      // A merged cell reports its parent's coordinates, so the walk has to start from the
+      // translated corner - the same translation the single-cell save above applies.
+      const modifiedCellCoords = this.hot.runHooks('modifyGetCellCoords', fromRow, fromColumn, false, 'meta');
+
+      if (Array.isArray(modifiedCellCoords)) {
+        [fromRow, fromColumn] = modifiedCellCoords as [number, number];
+      }
+
+      // A layer may reach into the headers (negative indexes) or, after a `modifyGetCellCoords`
+      // translation, past the last row or column. Clamp both ends before walking them.
+      fromRow = Math.max(fromRow as number, 0);
+      fromColumn = Math.max(fromColumn as number, 0);
+
+      const toRow = Math.min(cellRange.getBottomEndCorner().row as number, lastRow);
+      const toColumn = Math.min(cellRange.getBottomEndCorner().col as number, lastColumn);
+
+      for (let row = fromRow; row <= toRow; row++) {
+        for (let column = fromColumn; column <= toColumn; column++) {
+          const key = `${row}x${column}`;
+
+          if (visited.has(key)) {
+            continue;
+          }
+
+          visited.add(key);
+
+          // The transient read keeps a fill over a large selection from permanently materializing
+          // one meta object per target cell - only `readOnly` is read here.
+          if (this.hot.getCellMetaTransient(row, column).readOnly) {
+            continue;
+          }
+
+          const valueRow = value[(row - fromRow) % value.length];
+          const cellValue = valueRow[(column - fromColumn) % valueRow.length];
+
+          // One object value spread over many cells must not leave them sharing a reference -
+          // `populateFromArray()` clones per cell on the `'edit'` source for the same reason.
+          changes.push([
+            row,
+            column,
+            cellValue !== null && typeof cellValue === 'object' ? deepClone(cellValue) : cellValue,
+          ]);
+        }
+      }
+    });
+
+    if (changes.length > 0) {
+      this.hot.setDataAtCell(changes, null, null, 'edit');
+    }
   }
 
   /**
@@ -385,10 +479,10 @@ export class BaseEditor {
   }
 
   /**
-   * Finishes editing and start saving or restoring process for editing cell or last selected range.
+   * Finishes editing and start saving or restoring process for the editing cell, or for every selected range.
    *
    * @param {boolean} restoreOriginalValue If true, then closes editor without saving value from the editor into a cell.
-   * @param {boolean} ctrlDown If true, then saveValue will save editor's value to each cell in the last selected range.
+   * @param {boolean} ctrlDown If true, then saveValue will save editor's value to each cell in every selected range.
    * @param {Function} callback The callback function, fired after editor closing.
    */
   finishEditing(restoreOriginalValue?: boolean, ctrlDown?: boolean, callback?: Function): void {
@@ -431,8 +525,14 @@ export class BaseEditor {
       // no other cells to fill either, so `?? true` reads it as single and leaves the guard armed.
       // `!== true` did the opposite: it sent a missing range into the fill branch, which wrote the
       // editor's `''` over a `null` cell - the #3927 case this guard exists to stop.
-      const fillsOtherCells = ctrlDown === true &&
-        (this.hot.getSelectedRangeActive()?.isSingle() ?? true) === false;
+      //
+      // The layer count is asked first because the active layer alone cannot answer the question:
+      // a second layer holds other cells to fill even when the active one is a lone cell, and
+      // reading only the active layer left that gesture writing nothing at all (DEV-103).
+      const fillsOtherCells = ctrlDown === true && (
+        (this.hot.getSelectedRange()?.length ?? 0) > 1 ||
+        (this.hot.getSelectedRangeActive()?.isSingle() ?? true) === false
+      );
 
       let value = this.getValue();
 

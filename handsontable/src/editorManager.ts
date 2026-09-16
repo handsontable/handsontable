@@ -391,7 +391,7 @@ class EditorManager {
    * Close editor, finish editing cell.
    *
    * @param {boolean} restoreOriginalValue If `true`, then closes editor without saving value from the editor into a cell.
-   * @param {boolean} isCtrlPressed If `true`, then editor will save value to each cell in the last selected range.
+   * @param {boolean} isCtrlPressed If `true`, then editor will save value to each cell in every selected range.
    * @param {Function} callback The callback function, fired after editor closing.
    */
   closeEditor(restoreOriginalValue = false, isCtrlPressed = false, callback?: Function) {
@@ -406,7 +406,7 @@ class EditorManager {
   /**
    * Close editor and save changes.
    *
-   * @param {boolean} isCtrlPressed If `true`, then editor will save value to each cell in the last selected range.
+   * @param {boolean} isCtrlPressed If `true`, then editor will save value to each cell in every selected range.
    */
   closeEditorAndSaveChanges(isCtrlPressed?: boolean) {
     this.closeEditor(false, isCtrlPressed);
