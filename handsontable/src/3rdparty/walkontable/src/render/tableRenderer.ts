@@ -415,6 +415,74 @@ export class TableRenderer {
   }
 
   /**
+   * Returns the `id` used to tie a data cell to its column header for screen readers, or an empty
+   * string when the host supplied no instance id. The column-header renderer stamps this id on the
+   * owning overlay's header, and the cells renderer points at it through `aria-describedby`, so the
+   * header label is announced together with the cell. Keyed by the rendered column index (the
+   * Walkontable column, which core has already collapsed from physical to renderable space), so the
+   * reference stays valid across horizontal scroll and pooled-node reuse; the instance id keeps it
+   * unique when several grids share a page.
+   *
+   * @param {number} sourceColumnIndex The rendered (renderable) column index the header labels.
+   * @returns {string}
+   */
+  getAriaColumnHeaderId(sourceColumnIndex: number): string {
+    const prefix = this.getAriaColumnHeaderIdPrefix();
+
+    return prefix ? `${prefix}${sourceColumnIndex}` : '';
+  }
+
+  /**
+   * Returns the instance-unique prefix the column-header id is built from, or an empty string when the
+   * host supplied no instance id. Draw-constant, so the cells renderer resolves it once per draw and
+   * appends the column index per cell instead of reading the setting on every cell.
+   *
+   * @returns {string}
+   */
+  getAriaColumnHeaderIdPrefix(): string {
+    const guid = this.rowUtils!.wtSettings.getSetting('guid');
+
+    return guid ? `${guid}-colheader-` : '';
+  }
+
+  /**
+   * Returns `true` when the currently rendered overlay is the single owner of the `aria-describedby`
+   * id for the given column, so exactly one header in the whole grid carries it. A frozen
+   * (inline-start) column is owned by the inline-start overlay, which always renders it; every other
+   * column is owned by the master. The master also renders the frozen columns at horizontal offset 0,
+   * so it must decline them there to avoid a duplicate id; the sticky clones (top, bottom, corners)
+   * never own an id - they are duplicate copies of a header the master or the inline-start overlay
+   * already carries.
+   *
+   * @param {number} sourceColumnIndex The rendered (renderable) column index.
+   * @returns {boolean}
+   */
+  ownsAriaColumnHeaderId(sourceColumnIndex: number): boolean {
+    const isFrozenColumn = sourceColumnIndex < this.rowUtils!.wtSettings.getSetting<number>('fixedColumnsStart');
+
+    if (this.activeOverlayName === 'inline_start') {
+      return isFrozenColumn;
+    }
+
+    if (this.activeOverlayName === 'master') {
+      return !isFrozenColumn;
+    }
+
+    return false;
+  }
+
+  /**
+   * Returns `true` when the grid has at least one column-header row. Read grid-wide from the settings
+   * rather than from this table's own `columnHeadersCount`, because a clone that renders no header row
+   * (the bottom overlays) reports `0` while the grid still has headers its cells should reference.
+   *
+   * @returns {boolean}
+   */
+  hasColumnHeaders(): boolean {
+    return this.rowUtils!.wtSettings.getSetting<Function[]>('columnHeaders').length > 0;
+  }
+
+  /**
    * Returns `true` when the column-header (THEAD) pass can be skipped for this draw because it is a
    * pure vertical scroll and the exact same column render window (offset + counts) was rendered on
    * the previous header render. The THEAD content is then identical to what is already in the DOM.

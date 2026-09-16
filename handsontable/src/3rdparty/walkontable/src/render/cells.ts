@@ -8,6 +8,7 @@ import { clearAppliedSelection } from '../selection/appliedSelection';
 import { BaseRenderer } from './_base';
 import {
   A11Y_COLINDEX,
+  A11Y_DESCRIBED_BY,
   A11Y_GRIDCELL,
   A11Y_TABINDEX
 } from '../../../../helpers/a11y';
@@ -77,6 +78,9 @@ export class CellsRenderer extends BaseRenderer {
     const band = [
       activeOverlayName, rowFilter?.offset ?? 0, rowsToRender, columnFilter?.offset ?? 0, columnsToRender,
     ].join(',');
+    // Draw-constant, so resolved once rather than per cell: the column-header id prefix a cell is tied
+    // to for screen readers, empty when the grid has no column headers or no instance id (DEV-29).
+    const columnHeaderIdPrefix = this.table.hasColumnHeaders() ? this.table.getAriaColumnHeaderIdPrefix() : '';
 
     for (let visibleRowIndex = paintFromRow; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
@@ -129,6 +133,14 @@ export class CellsRenderer extends BaseRenderer {
         this.table.cellRenderer(sourceRowIndex, sourceColumnIndex, TD);
 
         if (this.table.isAriaEnabled()) {
+          // Point the cell at its column header so a screen reader announces the header label with the
+          // cell (e.g. "Position, C1" instead of just "C1"). The header is stamped by whichever overlay
+          // owns the column (master or inline-start), so a cell in any overlay resolves to it (see
+          // `ownsAriaColumnHeaderId`). The prefix is grid-wide and draw-constant, so a bottom-overlay
+          // cell - whose own clone renders no header row - still gets the reference; it is empty when
+          // the grid has no column headers, and then no attribute is written.
+          const columnHeaderId = columnHeaderIdPrefix ? `${columnHeaderIdPrefix}${sourceColumnIndex}` : '';
+
           setAttribute(TD, [
             ...(TD.hasAttribute('role') ? [] : [A11Y_GRIDCELL()]),
             A11Y_TABINDEX(-1),
@@ -136,6 +148,7 @@ export class CellsRenderer extends BaseRenderer {
             A11Y_COLINDEX(sourceColumnIndex + (
               (this.table.rowUtils?.deps?.getRowHeaders() as Function[])?.length ?? 0
             ) + 1),
+            ...(columnHeaderId ? [A11Y_DESCRIBED_BY(columnHeaderId)] : []),
           ]);
         }
       }

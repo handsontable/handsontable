@@ -1014,6 +1014,10 @@ class TableView {
   initializeWalkontable() {
     const walkontableConfig = {
       ariaTags: this.settings.ariaTags,
+      // The instance's unique id. Walkontable stamps it into the `id` on each column header so a data
+      // cell can point at its header through `aria-describedby`; the id must be unique per grid so
+      // several grids on one page never cross-reference each other's headers.
+      guid: this.hot.guid,
       rtlMode: this.hot.isRtl(),
       externalRowCalculator: this.hot.getPlugin('autoRowSize') &&
         this.hot.getPlugin('autoRowSize').isEnabled(),

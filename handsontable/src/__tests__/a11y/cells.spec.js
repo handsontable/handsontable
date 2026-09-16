@@ -266,4 +266,94 @@ describe('Cells-related a11y configuration', () => {
       expect(countElementsWithAriaReadOnly(getMaster())).toEqual(countRenderedRows());
     });
   });
+
+  describe('column header association (`aria-describedby`)', () => {
+    it('should point a data cell at its column header, and the id should resolve to that header (DEV-29)', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: ['ID', 'Name', 'Position', 'Country', 'Score'],
+        rowHeaders: true,
+      });
+
+      const describedBy = getCell(0, 2).getAttribute('aria-describedby');
+
+      expect(describedBy).toBeTruthy();
+
+      const header = document.getElementById(describedBy);
+
+      expect(header).not.toBe(null);
+      expect(header.tagName).toBe('TH');
+      expect(header.textContent).toBe('Position');
+      // The referenced id is unique in the document - overlay clones must not duplicate it.
+      expect(document.querySelectorAll(`[id="${describedBy}"]`).length).toBe(1);
+    });
+
+    it('should give every rendered data cell an `aria-describedby` that resolves to exactly one header,' +
+      ' across all overlays and scroll positions (DEV-29)', async() => {
+      handsontable({
+        data: createSpreadsheetData(50, 50),
+        colHeaders: true,
+        rowHeaders: true,
+        fixedRowsTop: 2,
+        fixedRowsBottom: 2,
+        fixedColumnsStart: 2,
+        width: 320,
+        height: 320,
+      });
+
+      // Every rendered data cell (every overlay) must reference a header, and that id must be unique
+      // in the document - one header owns it, whether the column is frozen (inline-start overlay) or
+      // scrolling (master).
+      const assertInvariant = () => {
+        const cells = [...spec().$container.get(0).querySelectorAll('td[role="gridcell"]')];
+
+        expect(cells.length).toBeGreaterThan(0);
+
+        cells.forEach((td) => {
+          const ref = td.getAttribute('aria-describedby');
+
+          expect(ref).toBeTruthy();
+          expect(document.querySelectorAll(`[id="${ref}"]`).length).toBe(1);
+        });
+      };
+
+      assertInvariant();
+
+      await scrollViewportTo({ row: 25, col: 30 });
+      assertInvariant();
+
+      // Flipping `fixedColumnsStart` moves columns between the master and inline-start overlays on
+      // pooled nodes - the id must still resolve to exactly one header afterwards.
+      await scrollViewportTo({ row: 0, col: 0 });
+      await updateSettings({ fixedColumnsStart: 4 });
+      assertInvariant();
+    });
+
+    it('should not set `aria-describedby` on cells when the grid has no column headers (DEV-29)', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: false,
+        rowHeaders: true,
+      });
+
+      const described = [...getMaster().get(0).querySelectorAll('tbody td')]
+        .filter(td => td.hasAttribute('aria-describedby'));
+
+      expect(described.length).toBe(0);
+    });
+
+    it('should not set `aria-describedby` on cells when `ariaTags` is disabled (DEV-29)', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
+        ariaTags: false,
+      });
+
+      const described = [...getMaster().get(0).querySelectorAll('tbody td')]
+        .filter(td => td.hasAttribute('aria-describedby'));
+
+      expect(described.length).toBe(0);
+    });
+  });
 });

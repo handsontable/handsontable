@@ -100,19 +100,35 @@ export class ColumnHeadersRenderer extends BaseRenderer {
         clearAppliedSelection(TH);
         TH.removeAttribute('style');
 
-        // Remove all accessibility-related attributes for the header to start fresh.
+        // Remove all accessibility-related attributes for the header to start fresh. `id` is stripped
+        // too because it is reused across draws on pooled nodes and only the master overlay's leaf
+        // header re-stamps it below - without the strip a header that stops being the leaf/master
+        // header (or a corner cell reused as a header) would keep a stale id a data cell points at.
         removeAttribute(TH, [
           /aria-(.*)/,
-          /role/
+          /role/,
+          /^id$/
         ]);
 
         if (this.table.isAriaEnabled()) {
+          // The leaf header row carries the id a data cell references through `aria-describedby`. Only
+          // the overlay that owns the column stamps it, so exactly one header in the grid holds each id
+          // (a frozen column is owned by the inline-start overlay, every other column by the master -
+          // see `ownsAriaColumnHeaderId`). The leaf row is the one that is 1:1 with a column; higher
+          // rows in nested headers are colspanned group labels and are left out of v1.
+          const columnHeaderId = renderedColumnIndex >= 0 &&
+            visibleRowIndex === columnHeadersCount - 1 &&
+            this.table.ownsAriaColumnHeaderId(sourceColumnIndex)
+            ? this.table.getAriaColumnHeaderId(sourceColumnIndex)
+            : '';
+
           setAttribute(TH, [
             A11Y_COLINDEX(visibleColumnIndex + 1),
             A11Y_TABINDEX(-1),
             A11Y_COLUMNHEADER(),
             ...(renderedColumnIndex >= 0 ? [
               A11Y_SCOPE_COL(),
+              ...(columnHeaderId ? [['id', columnHeaderId] as [string, string]] : []),
             ] : [
               // Adding `role=row` to the corner headers to prevent
               // https://github.com/handsontable/dev-handsontable/issues/1574

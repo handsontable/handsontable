@@ -15,6 +15,18 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
     isAriaEnabled() {
       return true;
     }
+
+    hasColumnHeaders() {
+      return false;
+    }
+
+    ownsAriaColumnHeaderId() {
+      return false;
+    }
+
+    getAriaColumnHeaderId() {
+      return '';
+    }
   }
 
   class ColumnUtilsMock {

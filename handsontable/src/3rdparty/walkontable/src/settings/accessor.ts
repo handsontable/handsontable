@@ -77,6 +77,7 @@ export default class Settings implements SettingsPort {
   /* eslint-disable jsdoc/require-jsdoc -- TypeScript overload signatures share the JSDoc of the first overload above */
   getSetting(key: 'preventOverflow'): 'horizontal' | 'vertical' | false;
   getSetting(key: 'rtlMode'): boolean;
+  getSetting(key: 'guid'): string;
   getSetting(key: 'isDataViewInstance'): boolean;
   getSetting(key: 'fixedColumnsStart'): number;
   getSetting(key: 'fixedRowsTop'): number;
