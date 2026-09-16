@@ -744,18 +744,21 @@ export class ColumnSorting extends BasePlugin {
     // that simply ends blank) would pay for rows the cap then discards. `adjustRowsAndCols()`
     // caps its `minSpareCols` count the same way, for the same reason.
     //
-    // Trailing empties are counted on every sort, including when `maxRows` already
-    // equals `countRows()`. Those spare rows filled the cap and must stay out of
-    // the sort. The walk is capped at `minSpareRows`, so the extra cost is at most
-    // spareRows × countCols() cell reads per sort.
+    // Skip the walk when `minSpareRows` is 0 - there is nothing to count. Do not skip it just
+    // because `maxRows` caps `countRows()`: that count is already `min(length, maxRows)`, and
+    // skipping the walk there left trailing spare rows that filled the cap inside the sortable
+    // range. With a positive cap the extra cost is at most `minSpareRows` × countCols() cell
+    // reads per sort.
     let spareRows = 0;
 
-    for (let row = numberOfRows - 1; row >= 0 && spareRows < minSpareRows; row--) {
-      if (!this.hot.isEmptyRow(row)) {
-        break;
-      }
+    if (minSpareRows > 0) {
+      for (let row = numberOfRows - 1; row >= 0 && spareRows < minSpareRows; row--) {
+        if (!this.hot.isEmptyRow(row)) {
+          break;
+        }
 
-      spareRows += 1;
+        spareRows += 1;
+      }
     }
 
     // Spare rows are appended at the end of the data, so they sit inside the band

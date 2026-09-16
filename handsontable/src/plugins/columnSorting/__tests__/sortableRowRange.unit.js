@@ -137,6 +137,7 @@ describe.each([
       // `countRows()` is already min(length, maxRows); there is no separate formula.
       // Spare rows still occupy the trailing visual rows, so they must be excluded
       // the same way. Old early return: 8 - 1 = 7. Independent subtract: 8 - 2 - 1 = 5.
+      // New: 8 - max(2, 1) = 6.
       hot = build({
         [pluginKey]: true,
         minSpareRows: 2,
@@ -206,6 +207,20 @@ describe.each([
       sortAsc();
 
       expect(hot.getDataAtCol(1)).toEqual([10, 20, 25, 30, 35, 40, null]);
+    });
+
+    it('should keep spare rows last when `maxRows` caps the count even with `sortEmptyCells`', () => {
+      hot = build({
+        [pluginKey]: { sortEmptyCells: true },
+        minSpareRows: 2,
+        maxRows: 8,
+      });
+
+      sortAsc();
+
+      // Old early return left the two spares in the sortable range, so they
+      // would rise to the top. They stay last because the bound is 6.
+      expect(hot.getDataAtCol(1)).toEqual([10, 20, 25, 30, 35, 40, null, null]);
     });
 
     it('should keep `Total` pinned when `fixedRowsBottom` is wider than the spare band', () => {

@@ -3544,6 +3544,9 @@ describe('ColumnSorting', () => {
         ],
         colHeaders: ['A', 'B'],
         fixedRowsTop: 1,
+        // Wider than `minSpareRows`: with both at 1 the bound is 6 in every composition
+        // (both options, only spares, only the pin), so the assertions could not tell
+        // the three options apart.
         fixedRowsBottom: 2,
         minSpareRows: 1,
         columnSorting: true,
@@ -3552,8 +3555,9 @@ describe('ColumnSorting', () => {
       getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
 
       expect(getDataAtCell(0, 0)).toBe('Header');
-      // Bound is 7 - max(1, 2) = 5: the pin covers the spare and `Total`. With only
-      // `minSpareRows` the bound is 6 and `Total` would sort (25 between 20 and 30).
+      // Bound is 7 - max(1, 2) = 5. `Total` stays pinned; Cherry still sorts. Only
+      // `minSpareRows` would let `Total` sort (bound 6). Subtracting both terms would
+      // pin Cherry too (bound 4).
       expect(getDataAtCol(1).slice(1, 5)).toEqual([10, 20, 30, 40]);
       expect(getDataAtCell(5, 0)).toBe('Total');
       expect(getDataAtCell(5, 1)).toBe(25);
