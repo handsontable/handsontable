@@ -92,6 +92,14 @@ export class RemoveColumnAction extends BaseAction {
   static startRegisteringEvents(hot: HotInstance, undoRedoPlugin: unknown) {
     hot.addHook('beforeRemoveCol', (index: number, amount: number, logicColumns: unknown, source: string) => {
       const wrappedAction = () => {
+        // A removal that takes no columns (e.g. `remove_col` on a grid with no visible columns)
+        // changed nothing, so it must not stack an action - `UndoRedo.done()` drops a `null` result.
+        // `beforeRemoveCol` reports the removed physical columns here, not in `amount` (which stays
+        // the requested count), so the empty list is what marks the no-op.
+        if (!Array.isArray(logicColumns) || logicColumns.length < 1) {
+          return null;
+        }
+
         const originalData = hot.getSourceDataArray();
         const columnIndex = (hot.countCols() + index) % hot.countCols();
         const lastColumnIndex = columnIndex + amount - 1;
@@ -139,7 +147,9 @@ export class RemoveColumnAction extends BaseAction {
         });
       };
 
-      (undoRedoPlugin as { done: (action: Function, source: string) => void }).done(wrappedAction, source);
+      type UndoRedoPlugin = { done: (wrappedAction: () => RemoveColumnAction | null, source: string) => void };
+
+      (undoRedoPlugin as UndoRedoPlugin).done(wrappedAction, source);
     });
   }
 
