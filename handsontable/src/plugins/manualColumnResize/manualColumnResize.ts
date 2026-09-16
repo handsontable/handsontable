@@ -9,8 +9,6 @@ import {
   redeclaresManualSizes,
 } from './utils';
 
-// Developer note! Whenever you make a change in this file, make an analogous change in manualRowResize.js
-
 export const PLUGIN_KEY = 'manualColumnResize';
 export const PLUGIN_PRIORITY = 130;
 
