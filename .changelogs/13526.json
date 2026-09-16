@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a column sort skipping the last data row when spare rows and bottom fixed rows overlapped.",
+  "type": "fixed",
+  "issueOrPR": 13526,
+  "breaking": false,
+  "framework": "none"
+}
