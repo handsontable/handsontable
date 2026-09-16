@@ -67,7 +67,7 @@ note in `../base/AGENTS.md`.
 The manager exists only on the root instance. `isEnabled()` is already gated on `isRootInstance`, so by
 the time `enablePlugin()` reaches that guard **the `isRootInstance` half is always true and its else-branch
 is unreachable**; it stays as a statement of the requirement, **not** as support for a nested grid. (The
-source comment at `pagination.ts:263` says "always false in practice", meaning the non-root *case* never
+source comment at `pagination.ts:305` says "always false in practice", meaning the non-root *case* never
 arises — read it that way, it is easy to take backwards.) A direct `enablePlugin()` call on a non-root
 instance dies earlier, in the UI, which reads `rootGridElement`. The same guard is mirrored later in the
 file with a comment pointing back — keep both, and keep the comments.
