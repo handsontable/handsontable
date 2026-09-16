@@ -23,6 +23,17 @@ describe('getMouseSingleScrollTarget', () => {
     })).toEqual({ row: 0, verticalSnap: 'top' });
   });
 
+  it('should omit a last-partial column when neither axis is oversized', () => {
+    expect(getMouseSingleScrollTarget({
+      row: 0,
+      col: 5,
+      lastPartiallyVisibleRow: 8,
+      lastPartiallyVisibleColumn: 5,
+      isRowLargerThanViewport: false,
+      isColumnLargerThanViewport: false,
+    })).toEqual({ row: 0 });
+  });
+
   it('should skip a last-partial row when only the column is oversized', () => {
     expect(getMouseSingleScrollTarget({
       row: 5,
@@ -32,6 +43,17 @@ describe('getMouseSingleScrollTarget', () => {
       isRowLargerThanViewport: false,
       isColumnLargerThanViewport: true,
     })).toEqual({ col: 0, horizontalSnap: 'start' });
+  });
+
+  it('should omit a last-partial row when neither axis is oversized', () => {
+    expect(getMouseSingleScrollTarget({
+      row: 5,
+      col: 0,
+      lastPartiallyVisibleRow: 5,
+      lastPartiallyVisibleColumn: 8,
+      isRowLargerThanViewport: false,
+      isColumnLargerThanViewport: false,
+    })).toEqual({ col: 0 });
   });
 
   it('should start-snap a last-partial row when measured height makes the row oversized', () => {
