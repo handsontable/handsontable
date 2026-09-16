@@ -962,8 +962,8 @@ export class Pagination extends BasePlugin {
    * clipboard are kept; the overflow tail is dropped.
    *
    * @param {Array} pastedData The data that was pasted.
-   * @param {Array<{startRow: number, endRow: number}>} ranges The copyable ranges passed into
-   *   `beforePaste` (`copyableRanges`) — the copy-source selection, not the paste destination.
+   * @param {Array<{startRow: number, endRow: number}>} ranges Copy-source ranges (`copyableRanges`);
+   * used as the paste start row when selection and clipboard ranges coincide.
    * @returns {boolean} Returns `false` to prevent the paste operation.
    */
   #onBeforePaste = (pastedData: unknown[][], ranges: { startRow: number; endRow: number }[]) => {
