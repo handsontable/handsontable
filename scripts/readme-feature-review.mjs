@@ -31,7 +31,9 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export function featureEntries(entries) {
   return entries
     .filter(entry => entry?.type === 'added')
-    .sort((a, b) => (b.issueOrPR ?? 0) - (a.issueOrPR ?? 0));
+    // Number(), not `?? 0`: a non-numeric issueOrPR would make every comparison NaN and quietly
+    // leave the list in directory order.
+    .sort((a, b) => (Number(b.issueOrPR) || 0) - (Number(a.issueOrPR) || 0));
 }
 
 /**

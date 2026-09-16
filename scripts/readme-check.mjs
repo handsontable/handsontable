@@ -66,11 +66,11 @@ export function extractLinks(md) {
   const patterns = [
     // ![alt](image) — the badge image itself.
     /!\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g,
-    // [text](url), where `text` may itself be an image: every badge in these READMEs is written
+    // [text](url), where `text` may hold an image or a bracketed phrase: every badge here is written
     // `[![alt](image)](destination)`, and a label matcher that stops at the first `]` captures the
     // image and silently drops the destination — which is how the live demo link went unchecked.
     // The lookbehind keeps this from re-matching the image handled above.
-    /(?<!!)\[(?:[^\][]|!\[[^\]]*\]\([^)]*\))*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g,
+    /(?<!!)\[(?:[^\][]|!\[[^\]]*\]\([^)]*\)|\[[^\][]*\])*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g,
     /\b(?:href|src|srcset)="([^"]+)"/g, // <a href> / <img src> / <source srcset>
   ];
 
@@ -95,6 +95,29 @@ export function extractLinks(md) {
 }
 
 /**
+ * Whether a URL addresses another host rather than a path in this repo. A protocol-relative URL
+ * (`//host/path`) counts: it is a network address, and treating it as a repo path would report a
+ * perfectly good link as a file that does not exist.
+ *
+ * @param {string} url The URL to classify.
+ * @returns {boolean} `true` for `http:`, `https:` and protocol-relative URLs.
+ */
+export function isAbsolute(url) {
+  return /^(https?:)?\/\//.test(url);
+}
+
+/**
+ * A fetchable form of an absolute URL: protocol-relative URLs get the scheme a browser on our own
+ * pages would give them.
+ *
+ * @param {string} url An absolute URL, per `isAbsolute`.
+ * @returns {string} The URL with a scheme.
+ */
+export function absolute(url) {
+  return url.startsWith('//') ? `https:${url}` : url;
+}
+
+/**
  * Whether a URL points at something we publish, as opposed to a third party (npm, jsDelivr,
  * SonarCloud, Figma). Only internal links are resolved on a pull request: a third party being slow
  * or rate-limiting us is not a reason to fail someone's build.
@@ -103,12 +126,12 @@ export function extractLinks(md) {
  * @returns {boolean} `true` for our own hosts and for repo-relative paths.
  */
 export function isInternal(url) {
-  if (!/^https?:/.test(url)) {
+  if (!isAbsolute(url)) {
     return true; // relative path inside the repo
   }
 
   try {
-    return INTERNAL.some(re => re.test(new URL(url).hostname));
+    return INTERNAL.some(re => re.test(new URL(absolute(url)).hostname));
   } catch {
     return false;
   }
@@ -377,7 +400,7 @@ async function main() {
 
     for (const file of files) {
       for (const link of file.links) {
-        if (!/^https?:/.test(link.url)) {
+        if (!isAbsolute(link.url)) {
           // A repo-relative path: resolve it against the file it appears in.
           const target = path.resolve(ROOT, path.dirname(file.file), link.url.split(/[?#]/)[0]);
 
@@ -387,10 +410,12 @@ async function main() {
           continue;
         }
         if (mode === 'all' || isInternal(link.url)) {
-          if (!wanted.has(link.url)) {
-            wanted.set(link.url, []);
+          const target = absolute(link.url);
+
+          if (!wanted.has(target)) {
+            wanted.set(target, []);
           }
-          wanted.get(link.url).push(`${file.file}:${link.line}`);
+          wanted.get(target).push(`${file.file}:${link.line}`);
         }
       }
     }

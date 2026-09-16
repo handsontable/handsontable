@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import {
   extractLinks, isInternal, extractFeatures, featureDrift, findStaleVersions,
-  findWrongDocsPrefix, findUnprefixedDocsLinks, DOCS_PREFIX, READMES,
+  findWrongDocsPrefix, findUnprefixedDocsLinks, isAbsolute, absolute, DOCS_PREFIX, READMES,
 } from '../readme-check.mjs';
 
 test('extractLinks finds markdown links, HTML attributes and srcset URLs', () => {
@@ -191,4 +191,26 @@ test('findUnprefixedDocsLinks does not re-report an already prefixed link', () =
   const links = extractLinks('[Licence](https://handsontable.com/docs/react-data-grid/license-key/)');
 
   assert.deepEqual(findUnprefixedDocsLinks(links, 'react'), []);
+});
+
+test('extractLinks keeps a link whose label contains plain brackets', () => {
+  // Same failure class as the badge case: a label matcher that stops at the first `]` drops
+  // `[Foo [bar]](url)` entirely. No README uses this today; the regex should not care.
+  assert.deepEqual(extractLinks('[Foo [bar]](https://handsontable.com/docs/)').map(l => l.url),
+    ['https://handsontable.com/docs/']);
+});
+
+test('isAbsolute treats a protocol-relative URL as a network address, not a repo path', () => {
+  assert.equal(isAbsolute('//cdn.jsdelivr.net/npm/handsontable'), true);
+  assert.equal(isAbsolute('https://handsontable.com'), true);
+  assert.equal(isAbsolute('./CONTRIBUTING.md'), false);
+  assert.equal(isAbsolute('resources/logo.svg'), false);
+});
+
+test('a protocol-relative URL is classified and fetched as https, not reported as a missing file', () => {
+  // Without this it falls into the repo-relative branch and fails as "does not exist in the repo".
+  assert.equal(absolute('//handsontable.com/docs/'), 'https://handsontable.com/docs/');
+  assert.equal(absolute('https://handsontable.com/docs/'), 'https://handsontable.com/docs/');
+  assert.equal(isInternal('//handsontable.com/docs/'), true);
+  assert.equal(isInternal('//www.npmjs.com/package/handsontable'), false);
 });

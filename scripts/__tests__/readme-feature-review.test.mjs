@@ -39,3 +39,13 @@ test('formatReview tags a framework-specific feature', () => {
 test('formatReview says so plainly when there is nothing to review', () => {
   assert.match(formatReview([], ['Themes']), /needs no review/);
 });
+
+test('featureEntries sorts numerically even if an entry id arrives as a string', () => {
+  // `?? 0` relied on coercion during subtraction; one non-numeric value made every comparison NaN
+  // and silently left the list in directory order.
+  assert.deepEqual(
+    featureEntries([added('7', 'a'), added(99, 'b'), added('50', 'c'), added(undefined, 'd')])
+      .map(e => e.issueOrPR),
+    [99, '50', '7', undefined],
+  );
+});
