@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-16T11:18:31.646Z",
+  "generatedAt": "2026-09-16T14:01:14.494Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 13,
+    "tests": 14,
     "needsTicket": 4,
     "quarantined": 0,
-    "entries": 49
+    "entries": 55
   },
   "rows": [
     {
@@ -179,6 +179,44 @@
         "leg": "e2e-classic",
         "status": "failed",
         "error": "Test timeout of 20000ms exceeded.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/plugins/nestedHeaders/__tests__/selection.spec.js|NestedHeaders selection should add selection borders in the expected positions, when selecting multi-columned headers",
+      "tier": "jasmine",
+      "file": "handsontable/src/plugins/nestedHeaders/__tests__/selection.spec.js",
+      "line": null,
+      "title": "NestedHeaders selection should add selection borders in the expected positions, when selecting multi-columned headers",
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "legs": [
+        "UMD (theme: classic)",
+        "UMD (theme: horizon)",
+        "UMD (theme: main)",
+        "UMD.min (theme: classic)",
+        "UMD.min (theme: horizon)",
+        "UMD.min (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "fails alone (1 failed)"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-16T14:00:32Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35102537102",
+        "branch": "feature/dev-1176_selection-header-padding-c90b",
+        "leg": "UMD (theme: classic)",
+        "status": "failed",
+        "error": "Expected 1 to equal 101.",
         "source": "ci"
       },
       "needsTicket": false
