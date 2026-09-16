@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-16T09:37:22.466Z",
+  "generatedAt": "2026-09-16T11:18:31.646Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 13,
     "needsTicket": 4,
     "quarantined": 0,
-    "entries": 48
+    "entries": 49
   },
   "rows": [
     {
@@ -49,6 +49,38 @@
       "needsTicket": true
     },
     {
+      "key": "playwright|e2e/unlaid-out-init-scroll-sync.spec.ts|grid built into a container that has no layout yet › fills its container without any interaction once the unslotted container is laid out",
+      "tier": "playwright",
+      "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
+      "line": 65,
+      "title": "grid built into a container that has no layout yet › fills its container without any interaction once the unslotted container is laid out",
+      "count7": 3,
+      "count30": 3,
+      "countAll": 3,
+      "runs30": 3,
+      "flakyRuns30": 3,
+      "branches30": 3,
+      "legs": [
+        "e2e-classic-min",
+        "e2e-horizon"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-16T11:17:45Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35086023867/attempts/2",
+        "branch": "docs/DEV-917_Formula-Sort-REF-Limitation",
+        "leg": "e2e-horizon",
+        "status": "flaky",
+        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
       "key": "jasmine|handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js|AutocompleteEditor choices should not sort the choices list, when the `sortByRelevance` option is set to `true`",
       "tier": "jasmine",
       "file": "handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js",
@@ -79,38 +111,6 @@
         "leg": "UMD.min (theme: horizon)",
         "status": "failed",
         "error": "Expected '' to equal 'cyan'.",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "playwright|e2e/unlaid-out-init-scroll-sync.spec.ts|grid built into a container that has no layout yet › fills its container without any interaction once the unslotted container is laid out",
-      "tier": "playwright",
-      "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
-      "line": 65,
-      "title": "grid built into a container that has no layout yet › fills its container without any interaction once the unslotted container is laid out",
-      "count7": 2,
-      "count30": 2,
-      "countAll": 2,
-      "runs30": 2,
-      "flakyRuns30": 2,
-      "branches30": 2,
-      "legs": [
-        "e2e-classic-min",
-        "e2e-horizon"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-09-15T11:39:19Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34962745856",
-        "branch": "develop",
-        "leg": "e2e-horizon",
-        "status": "flaky",
-        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
       },
       "needsTicket": true
