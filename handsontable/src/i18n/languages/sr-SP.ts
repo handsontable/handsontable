@@ -17,7 +17,7 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Unesi red iznad',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Unesi red ispod',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Unesi kolonu levo',
-  [C.CONTEXTMENU_ITEMS_INSERT_RIGHT]: 'Insert kolonu desno',
+  [C.CONTEXTMENU_ITEMS_INSERT_RIGHT]: 'Unesi kolonu desno',
   [C.CONTEXTMENU_ITEMS_REMOVE_ROW]: ['Ukloni red', 'Ukloni redove'],
   [C.CONTEXTMENU_ITEMS_REMOVE_COLUMN]: ['Ukloni kolonu', 'Ukloni kolone'],
   [C.CONTEXTMENU_ITEMS_UNDO]: 'Poništi',
