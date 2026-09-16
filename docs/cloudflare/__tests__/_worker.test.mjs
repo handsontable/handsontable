@@ -1057,6 +1057,73 @@ test('a null date is cached for minutes, not a day (rule 18c)', async() => {
   }
 });
 
+/**
+ * Installs a stand-in `caches.default` and returns the keys written to it.
+ *
+ * Node has no `caches`, so the worker's cache branch is otherwise dead code in
+ * these tests - which is exactly why the staging cache bug got through. The
+ * worker is loaded through `new Function`, so a global here is what it sees.
+ *
+ * @returns {{puts: string[], restore: Function}}
+ */
+function stubEdgeCache() {
+  const puts = [];
+
+  globalThis.caches = {
+    default: {
+      match: async() => undefined,
+      put: async(key) => {
+        puts.push(typeof key === 'string' ? key : key.url);
+      },
+    },
+  };
+
+  return { puts, restore: () => delete globalThis.caches };
+}
+
+test('never writes a failed lookup to the edge cache (rule 18c)', async() => {
+  const worker = loadWorker();
+  const { puts, restore } = stubEdgeCache();
+
+  // The staging incident in full: a `null` stored at the edge outlived the
+  // secrets that would have fixed it, and `*.pages.dev` cannot be purged from
+  // the dashboard. Not storing failures is the half of the fix that stops it
+  // recurring; the short max-age above only bounds caches further downstream.
+  try {
+    await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), figmaEnv({}));
+
+    assert.deepEqual(puts, [], 'a null date must never be cached');
+
+    await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), figmaEnv({
+      '/versions': { versions: [{ id: '1', created_at: '2026-09-01T09:00:00Z', label: 'v2.1' }] },
+    }));
+
+    assert.equal(puts.length, 1, 'a real date is cached');
+    assert.match(puts[0], /\/docs\/api\/design-system-updated\.json\?v=\d+$/,
+      'the cache key must carry a version, the only way to orphan a bad entry');
+  } finally {
+    restore();
+  }
+});
+
+test('a cache-busting query string does not create a second entry (rule 18c)', async() => {
+  const worker = loadWorker();
+  const { puts, restore } = stubEdgeCache();
+
+  try {
+    const env = figmaEnv({
+      '/versions': { versions: [{ id: '1', created_at: '2026-09-01T09:00:00Z', label: 'v2.1' }] },
+    });
+
+    await worker.fetch(request(`${DESIGN_SYSTEM_DATE_PATH}?cb=1`), env);
+    await worker.fetch(request(`${DESIGN_SYSTEM_DATE_PATH}?cb=2`), env);
+
+    assert.deepEqual(new Set(puts).size, 1, 'every caller shares one cache entry');
+  } finally {
+    restore();
+  }
+});
+
 test('non-GET requests to the date endpoint fall through to assets (rule 18c)', async() => {
   const worker = loadWorker();
 

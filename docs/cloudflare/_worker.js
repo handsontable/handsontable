@@ -868,8 +868,19 @@ const DESIGN_SYSTEM_DATE_MAX_AGE = 86400;
 // take up to 24 hours to show, long after someone believed they had fixed it.
 // This is not hypothetical: on staging the `null` cached before the secrets
 // were set outlived them, so the endpoint answered the real date to a
-// cache-busted request while the page still read a stale `null`.
+// cache-busted request while the page still read a stale `null`. Failures are
+// also never written to the edge cache below; this bounds any cache further
+// downstream.
 const DESIGN_SYSTEM_DATE_ERROR_MAX_AGE = 300;
+
+// Bump to orphan every previously cached entry.
+//
+// The Cache API survives deployments, and `*.pages.dev` cannot be purged from
+// the dashboard or the API - zone purge needs a zone you own, and this
+// hostname is Cloudflare's. `cache.delete()` only clears the one data centre
+// that ran it. So a version in the cache key is the only lever that drops a
+// bad entry everywhere without waiting out its TTL.
+const DESIGN_SYSTEM_CACHE_VERSION = 2;
 
 /**
  * Wraps a `{ date, source }` pair in the endpoint's only response shape.
@@ -1587,7 +1598,13 @@ async function route(request, env) {
     // Serving content, so this must stay below rule 12a.
     if (path === DESIGN_SYSTEM_DATE_PATH && request.method === 'GET') {
       const cache = typeof caches !== 'undefined' ? caches.default : null;
-      const cached = cache ? await cache.match(request) : null;
+      // A key of our own rather than the incoming request: it carries the
+      // version above, and it ignores any query string a caller adds, so a
+      // cache-busting `?x=1` cannot fill the cache with duplicate entries.
+      const cacheKey = cache
+        ? new Request(`${url.origin}${DESIGN_SYSTEM_DATE_PATH}?v=${DESIGN_SYSTEM_CACHE_VERSION}`)
+        : null;
+      const cached = cacheKey ? await cache.match(cacheKey) : null;
 
       if (cached) {
         return cached;
@@ -1606,8 +1623,10 @@ async function route(request, env) {
 
       const response = designSystemDateResponse(body);
 
-      if (cache) {
-        await cache.put(request, response.clone());
+      // Only ever store a real date. Storing a failure is what stranded the
+      // staging preview on a stale `null` after the secrets were fixed.
+      if (cacheKey && body.date !== null) {
+        await cache.put(cacheKey, response.clone());
       }
 
       return response;
