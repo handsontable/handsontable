@@ -85,13 +85,13 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   multiselect list that fits on `main` is height-constrained by
   `updateDimensions` and the last `<li>` sits below the dropdown's
   `overflow: auto` fold. `getBoundingClientRect()` still reports that row;
-  `elementFromPoint` at its centre hits the page (`HTML`) and
-  `isReachable()` fails while the list is correctly placed and scrollable
-  (DEV-1198). Scroll the option inside the dropdown only
-  (`MultiselectOpenLeftPage.revealInDropdown()`) before the hit-test. The
-  last-column open-left contract still fails without the product flip:
-  after that scroll the option's centre stays past the grid's
-  `overflow: clip`.
+  `elementFromPoint` at its centre hits the page (`HTML`) while the list is
+  correctly placed and scrollable (DEV-1198). Hit-test a painted control
+  (`MultiselectOpenLeftPage.firstOption()` / the search field), not the
+  last row. The last-column open-left contract still fails without the
+  product flip: the first option is ~350px wide, so its centre sits past
+  the grid's `overflow: clip` when the list stays left-aligned with the
+  last cell.
 
 ## Fixture contract (never get these wrong)
 

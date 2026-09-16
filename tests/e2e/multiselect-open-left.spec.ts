@@ -7,7 +7,8 @@ import { MultiselectOpenLeftPage } from '../fixtures/pages/MultiselectOpenLeftPa
  * Autocomplete / Handsontable editors already flip horizontally; this spec
  * pins the same contract for multiselect. Hit-testing and clipping-ancestor
  * width are required: `toBeVisible()` and `boundingBox()` both pass for a
- * fully clipped option.
+ * fully clipped option. Hit-test the first painted option, not the last
+ * row: horizon's taller items put the last `<li>` below the dropdown fold.
  */
 test.describe('multiselect opens to the left when there is no room on the right', () => {
   let grid: MultiselectOpenLeftPage;
@@ -24,9 +25,8 @@ test.describe('multiselect opens to the left when there is no room on the right'
 
     expect(Math.abs(placement.dropdownLeft - placement.cellLeft)).toBeLessThanOrEqual(2);
     expect(await grid.isFlippedHorizontally()).toBe(false);
-    expect(await grid.visibleWidthOf(grid.lastOption())).toBeGreaterThan(20);
-    await grid.revealInDropdown(grid.lastOption());
-    expect(await grid.isReachable(grid.lastOption())).toBe(true);
+    expect(await grid.visibleWidthOf(grid.firstOption())).toBeGreaterThan(20);
+    expect(await grid.isReachable(grid.firstOption())).toBe(true);
     expect(await grid.isReachable(grid.searchInput())).toBe(true);
   });
 
@@ -40,9 +40,8 @@ test.describe('multiselect opens to the left when there is no room on the right'
     expect(Math.abs(placement.dropdownRight - placement.cellRight)).toBeLessThanOrEqual(3);
     expect(placement.dropdownRight).toBeLessThanOrEqual(placement.gridRight + 1);
     expect(await grid.isFlippedHorizontally()).toBe(true);
-    expect(await grid.visibleWidthOf(grid.lastOption())).toBeGreaterThan(20);
-    await grid.revealInDropdown(grid.lastOption());
-    expect(await grid.isReachable(grid.lastOption())).toBe(true);
+    expect(await grid.visibleWidthOf(grid.firstOption())).toBeGreaterThan(20);
+    expect(await grid.isReachable(grid.firstOption())).toBe(true);
     expect(await grid.isReachable(grid.searchInput())).toBe(true);
   });
 });

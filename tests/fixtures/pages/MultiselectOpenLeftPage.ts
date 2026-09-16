@@ -69,38 +69,14 @@ export class MultiselectOpenLeftPage {
   }
 
   /**
-   * Last option row in the open list — the target that is cut off when the list
-   * hangs past the grid's inline end.
-   */
-  lastOption(): Locator {
-    return this.dropdown.locator('li').last();
-  }
-
-  /**
-   * Scrolls `target` into the dropdown's own overflow box.
+   * First option row in the open list — always in the dropdown's painted box.
    *
-   * Horizon's taller menu items put the last option below the fold on a short
-   * grid (`updateDimensions` shrinks the list). The list is still scrollable —
-   * do not hit-test the option's unclipped centre until this has run. Only the
-   * dropdown's `scrollTop` moves; the page and grid stay put.
+   * Horizon's taller menu items put the last row below the fold on a short
+   * grid. The first row stays on screen, and without the open-left flip its
+   * centre still sits past the grid's `overflow: clip` on the last column.
    */
-  async revealInDropdown(target: Locator): Promise<void> {
-    await target.evaluate((element: Element) => {
-      const dropdown = element.closest('.ht-multi-select-editor');
-
-      if (!(dropdown instanceof HTMLElement)) {
-        throw new Error('the option is not inside the multiselect dropdown');
-      }
-
-      const optionBox = element.getBoundingClientRect();
-      const dropdownBox = dropdown.getBoundingClientRect();
-
-      if (optionBox.bottom > dropdownBox.bottom) {
-        dropdown.scrollTop += optionBox.bottom - dropdownBox.bottom;
-      } else if (optionBox.top < dropdownBox.top) {
-        dropdown.scrollTop -= dropdownBox.top - optionBox.top;
-      }
-    });
+  firstOption(): Locator {
+    return this.dropdown.locator('li').first();
   }
 
   /**
