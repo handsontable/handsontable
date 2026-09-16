@@ -862,6 +862,16 @@ const DESIGN_SYSTEM_DATE_PATH = '/docs/api/design-system-updated.json';
 // reported as itself rather than as the route's catch-all "unreachable".
 const BAD_JSON = Symbol('bad-json');
 
+// Figma's maximum. The default is 30, and version history is mostly unnamed
+// autosaves - one per 30 minutes of editing - so a long gap between publishes
+// can bury the newest named version below the first page.
+const FIGMA_VERSIONS_PAGE_SIZE = 50;
+
+// Up to 200 versions. Enough to cross a long autosave run, bounded so a file
+// that genuinely has no named version cannot walk its whole history on every
+// cache miss.
+const FIGMA_VERSIONS_MAX_PAGES = 4;
+
 /**
  * Parses a response body as JSON, or returns `BAD_JSON`.
  *
@@ -1061,33 +1071,66 @@ async function readDesignSystemDate(env) {
   const headers = auth.headers;
   const file = encodeURIComponent(fileKey);
 
-  const versionsResponse = await fetchImpl(`${FIGMA_API_ORIGIN}/v1/files/${file}/versions`, { headers });
+  // Walk the version history newest-first until a named version turns up.
+  // One page is not the history: Figma paginates it, and the pages between two
+  // publishes are all autosaves, so reading only the first page reports "no
+  // named version" for any file with a busy stretch since its last publish.
+  let nextUrl = `${FIGMA_API_ORIGIN}/v1/files/${file}/versions?page_size=${FIGMA_VERSIONS_PAGE_SIZE}`;
+  let newestNamed = null;
+  let pagesRead = 0;
 
-  // A rejected versions call must NOT fall through to the metadata endpoint.
-  // The two carry different scopes, so a credential granted only
-  // `file_metadata:read` would answer 403 here, 200 there, and the page would
-  // quietly show the last-touched date under the "last published" wording -
-  // the exact substitution this whole function exists to avoid, and with no
-  // trace that the versions call was ever refused.
-  if (!versionsResponse.ok) {
-    return { date: null, source: null, reason: `figma-http-${versionsResponse.status}` };
+  while (nextUrl && pagesRead < FIGMA_VERSIONS_MAX_PAGES) {
+    const versionsResponse = await fetchImpl(nextUrl, { headers });
+
+    if (!versionsResponse.ok) {
+      // A rejected FIRST page must NOT fall through to the metadata endpoint.
+      // The two carry different scopes, so a credential granted only
+      // `file_metadata:read` would answer 403 here, 200 there, and the page
+      // would quietly show the last-touched date under the "last published"
+      // wording - the substitution this function exists to avoid, with no
+      // trace that the versions call was ever refused. A later page failing
+      // is different: the history read simply stops where it got to.
+      if (pagesRead === 0) {
+        return { date: null, source: null, reason: `figma-http-${versionsResponse.status}` };
+      }
+
+      break;
+    }
+
+    const payload = await readJson(versionsResponse);
+
+    if (payload === BAD_JSON) {
+      if (pagesRead === 0) {
+        return { date: null, source: null, reason: 'figma-bad-json' };
+      }
+
+      break;
+    }
+
+    pagesRead += 1;
+    newestNamed = (payload?.versions ?? [])
+      // `Number.isFinite` is not decoration: an entry with a missing or
+      // malformed `created_at` makes the comparator return NaN, which leaves
+      // the whole sort order unspecified - one bad entry from Figma is enough
+      // to publish the oldest named version as the newest.
+      .filter(version => typeof version?.label === 'string'
+        && version.label !== ''
+        && Number.isFinite(Date.parse(version.created_at)))
+      .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at))[0];
+
+    // Pages run newest-first, so the first page holding a named version holds
+    // the newest one. Nothing older can beat it.
+    if (newestNamed) {
+      break;
+    }
+
+    // Follow Figma's own cursor rather than building one: the `before`/`after`
+    // parameters leave which direction is "older" to interpretation, and this
+    // URL does not. Only ever follow it back to Figma.
+    const next = payload?.pagination?.next_page;
+
+    nextUrl = typeof next === 'string' && next.startsWith(`${FIGMA_API_ORIGIN}/`) ? next : null;
   }
-
-  const payload = await readJson(versionsResponse);
-
-  if (payload === BAD_JSON) {
-    return { date: null, source: null, reason: 'figma-bad-json' };
-  }
-
-  const newestNamed = (payload?.versions ?? [])
-    // `Number.isFinite` is not decoration: an entry with a missing or
-    // malformed `created_at` makes the comparator return NaN, which leaves the
-    // whole sort order unspecified - one bad entry from Figma is enough to
-    // publish the oldest named version as the newest.
-    .filter(version => typeof version?.label === 'string'
-      && version.label !== ''
-      && Number.isFinite(Date.parse(version.created_at)))
-    .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at))[0];
 
   if (newestNamed) {
     return { date: newestNamed.created_at, source: 'named-version' };

@@ -838,6 +838,149 @@ test('falls back to last_touched_at when the file has no named versions (rule 18
   });
 });
 
+/**
+ * Serves a paginated version history: one entry per page in `pages`, linked by
+ * Figma's own `pagination.next_page`. `/meta` answers a last-touched date, so
+ * a test that reaches the fallback shows it plainly.
+ *
+ * @param {object[][]} pages One `versions` array per page, newest page first.
+ * @param {object} [overrides]
+ * @returns {object}
+ */
+function paginatedVersionsEnv(pages, overrides = {}) {
+  const calls = [];
+
+  return {
+    ASSETS: { fetch: async() => new Response('static-asset-passthrough') },
+    FIGMA_TOKEN: 'test-token',
+    FIGMA_FILE_KEY: 'test-file-key',
+    calls,
+    FIGMA_FETCH: async(url) => {
+      calls.push(url);
+
+      if (url.includes('/meta')) {
+        return new Response(
+          JSON.stringify({ file: { last_touched_at: '2026-09-11T10:00:00Z' } }),
+          { status: 200 },
+        );
+      }
+
+      const page = Number(new URL(url).searchParams.get('page') ?? 0);
+      const isLast = page >= pages.length - 1;
+
+      return new Response(JSON.stringify({
+        versions: pages[page] ?? [],
+        pagination: isLast
+          ? {}
+          : { next_page: `https://api.figma.com/v1/files/test-file-key/versions?page=${page + 1}` },
+      }), { status: 200 });
+    },
+    ...overrides,
+  };
+}
+
+test('asks for the largest page of versions Figma allows (rule 18c)', async() => {
+  const worker = loadWorker();
+  const env = paginatedVersionsEnv([[{ id: '1', created_at: '2026-09-01T09:00:00Z', label: 'v2.1' }]]);
+
+  await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), env);
+
+  assert.match(env.calls[0], /page_size=50/, 'the default of 30 buries a named version sooner');
+});
+
+test('walks past a page of autosaves to reach the named version (rule 18c)', async() => {
+  const worker = loadWorker();
+  // The real failure this guards: version history is mostly unnamed autosaves,
+  // one per 30 minutes of editing, so a long gap since the last publish fills
+  // page one with `label: null`. Reading only that page reports "no named
+  // version" and silently downgrades the page to the last-touched date.
+  const env = paginatedVersionsEnv([
+    [
+      { id: '3', created_at: '2026-09-15T10:00:00Z', label: null },
+      { id: '2', created_at: '2026-09-11T10:00:00Z', label: null },
+    ],
+    [{ id: '1', created_at: '2026-08-20T13:29:35Z', label: 'Published to Community hub' }],
+  ]);
+  const response = await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), env);
+
+  assert.deepEqual(await response.json(), {
+    date: '2026-08-20T13:29:35Z',
+    source: 'named-version',
+  });
+  assert.ok(!env.calls.some(url => url.includes('/meta')), 'the fallback must not be reached');
+});
+
+test('stops walking the history after a bounded number of pages (rule 18c)', async() => {
+  const worker = loadWorker();
+  // A file with no named version at all must not walk its whole history on
+  // every cache miss.
+  const autosaves = Array.from({ length: 8 }, (unused, index) => (
+    [{ id: `${index}`, created_at: '2026-09-15T10:00:00Z', label: null }]
+  ));
+  const env = paginatedVersionsEnv(autosaves);
+  const response = await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), env);
+
+  const versionCalls = env.calls.filter(url => url.includes('/versions'));
+
+  assert.equal(versionCalls.length, 4);
+  // And it still falls back rather than hiding the field.
+  assert.deepEqual(await response.json(), {
+    date: '2026-09-11T10:00:00Z',
+    source: 'last-touched',
+  });
+});
+
+test('never follows a next_page pointing away from Figma (rule 18c)', async() => {
+  const worker = loadWorker();
+  const env = paginatedVersionsEnv([[]], {
+    FIGMA_FETCH: async(url) => {
+      env.calls.push(url);
+
+      if (url.includes('/meta')) {
+        return new Response(JSON.stringify({ file: { last_touched_at: '2026-09-11T10:00:00Z' } }), { status: 200 });
+      }
+
+      return new Response(JSON.stringify({
+        versions: [{ id: '1', created_at: '2026-09-15T10:00:00Z', label: null }],
+        pagination: { next_page: 'https://example.com/v1/files/test-file-key/versions' },
+      }), { status: 200 });
+    },
+  });
+
+  await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), env);
+
+  assert.ok(!env.calls.some(url => url.startsWith('https://example.com')));
+});
+
+test('a later page failing keeps the walk from erroring out (rule 18c)', async() => {
+  const worker = loadWorker();
+  const env = paginatedVersionsEnv([[]], {
+    FIGMA_FETCH: async(url) => {
+      env.calls.push(url);
+
+      if (url.includes('/meta')) {
+        return new Response(JSON.stringify({ file: { last_touched_at: '2026-09-11T10:00:00Z' } }), { status: 200 });
+      }
+
+      if (url.includes('page=1')) {
+        return new Response('{}', { status: 500 });
+      }
+
+      return new Response(JSON.stringify({
+        versions: [{ id: '2', created_at: '2026-09-15T10:00:00Z', label: null }],
+        pagination: { next_page: 'https://api.figma.com/v1/files/test-file-key/versions?page=1' },
+      }), { status: 200 });
+    },
+  });
+  const response = await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), env);
+
+  // The first page answered, so the metadata fallback is still the right path.
+  assert.deepEqual(await response.json(), {
+    date: '2026-09-11T10:00:00Z',
+    source: 'last-touched',
+  });
+});
+
 test('a rejected versions call never falls back to the metadata date (rule 18c)', async() => {
   const worker = loadWorker();
   // The two endpoints carry different scopes, so a credential granted only
