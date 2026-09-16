@@ -220,11 +220,17 @@ export class UndoRedo extends BasePlugin {
     }
 
     const newAction: unknown = wrappedAction();
+
+    // A wrappedAction returns `null` when the operation changed nothing (e.g. an `alter` that
+    // removed no rows or columns). A no-op must not stack an action, clear the redo stack, or fire
+    // the stack-change hooks.
+    if (newAction === null) {
+      return;
+    }
+
     const undoneActionsCopy = this.undoneActions.slice();
 
-    if (newAction !== null) {
-      this.doneActions.push(newAction);
-    }
+    this.doneActions.push(newAction);
 
     this.hot.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions.slice());
     this.hot.runHooks('beforeRedoStackChange', undoneActionsCopy);

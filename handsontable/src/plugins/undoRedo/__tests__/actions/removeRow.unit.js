@@ -387,26 +387,66 @@ describe('UndoRedo -> RemoveRow action with a function dataSchema', () => {
       expect(hot.getData()).toEqual([['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']]);
     });
   });
+});
 
-  describe('a removal that removes nothing (#280 / DEV-45)', () => {
-    it('should not stack an undo action for a remove_row that took no rows', () => {
-      hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
-        data: [[5]],
-        undo: true,
-      });
-      const plugin = hot.getPlugin('undoRedo');
+describe('UndoRedo -> RemoveRow action that removes nothing (#280 / DEV-45)', () => {
+  let container;
+  let hot;
 
-      hot.alter('remove_row'); // removes the only row
-      hot.alter('remove_row'); // no-op: the grid is already empty
+  beforeEach(() => {
+    container = document.createElement('div');
+    document.body.appendChild(container);
+  });
 
-      // The empty grid removal changed nothing, so only the first removal is on the stack.
-      expect(plugin.doneActions.length).toBe(1);
+  afterEach(() => {
+    if (hot) {
+      hot.destroy();
+      hot = null;
+    }
 
-      // A single undo restores the last real state - it is not spent on a dead no-op action.
-      plugin.undo();
+    container.remove();
+  });
 
-      expect(hot.getData()).toEqual([[5]]);
+  it('should not stack an undo action for a remove_row that took no rows', () => {
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      data: [[5]],
+      undo: true,
     });
+    const plugin = hot.getPlugin('undoRedo');
+
+    hot.alter('remove_row'); // removes the only row
+    hot.alter('remove_row'); // no-op: the grid is already empty
+
+    // The empty grid removal changed nothing, so only the first removal is on the stack.
+    expect(plugin.doneActions.length).toBe(1);
+
+    // A single undo restores the last real state - it is not spent on a dead no-op action.
+    plugin.undo();
+
+    expect(hot.getData()).toEqual([[5]]);
+  });
+
+  it('should keep the redo stack intact when a remove_row takes no rows', () => {
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      data: [['A1'], ['A2']],
+      undo: true,
+    });
+    const plugin = hot.getPlugin('undoRedo');
+
+    hot.setDataAtCell(0, 0, 'edited');
+    plugin.undo(); // the edit is now redoable
+
+    expect(plugin.undoneActions.length).toBe(1);
+
+    hot.alter('remove_row', 0, 0); // no-op: an amount of 0 removes no row
+
+    // A no-op removal must not clear the redo stack, so the edit is still redoable.
+    expect(plugin.undoneActions.length).toBe(1);
+
+    plugin.redo();
+
+    expect(hot.getDataAtCell(0, 0)).toBe('edited');
   });
 });

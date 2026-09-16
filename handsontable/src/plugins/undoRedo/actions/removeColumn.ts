@@ -147,7 +147,9 @@ export class RemoveColumnAction extends BaseAction {
         });
       };
 
-      (undoRedoPlugin as { done: (action: Function, source: string) => void }).done(wrappedAction, source);
+      type UndoRedoPlugin = { done: (wrappedAction: () => RemoveColumnAction | null, source: string) => void };
+
+      (undoRedoPlugin as UndoRedoPlugin).done(wrappedAction, source);
     });
   }
 
