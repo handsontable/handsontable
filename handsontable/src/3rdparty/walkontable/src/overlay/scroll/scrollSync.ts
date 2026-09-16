@@ -203,7 +203,7 @@ export class ScrollSync {
    *
    * @type {WeakMap<HTMLElement, CloneScrollTarget>}
    */
-  #cloneScrollTargets = new WeakMap<HTMLElement, CloneScrollTarget>();
+  readonly #cloneScrollTargets = new WeakMap<HTMLElement, CloneScrollTarget>();
 
   /**
    * Cached vertical scroll position used to deduplicate `onScrollVertically` callbacks.
@@ -408,15 +408,14 @@ export class ScrollSync {
       const { scrollLeft } = horizontalOwner;
 
       if (topOverlay.needFullRender && topOverlay.clone) {
-        this.#writeCloneScrollLeft(topOverlay.clone.wtTable.holder, scrollLeft); // todo rethink, *overlay.setScroll*()
+        this.#writeCloneScrollLeft(topOverlay.clone.wtTable.holder, scrollLeft);
       }
       if (bottomOverlay.needFullRender && bottomOverlay.clone) {
-        this.#writeCloneScrollLeft(bottomOverlay.clone.wtTable.holder, scrollLeft); // todo rethink, *overlay.setScroll*()
+        this.#writeCloneScrollLeft(bottomOverlay.clone.wtTable.holder, scrollLeft);
       }
     }
 
     if (isHTMLElement(verticalOwner) && inlineStartOverlay.needFullRender && inlineStartOverlay.clone) {
-      // todo rethink, *overlay.setScroll*()
       this.#writeCloneScrollTop(inlineStartOverlay.clone.wtTable.holder, verticalOwner.scrollTop);
     }
 

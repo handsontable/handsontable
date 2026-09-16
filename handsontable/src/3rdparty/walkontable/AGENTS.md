@@ -144,8 +144,9 @@ scroll was always cheap: `.ht_master .wtHolder` is `overflow: auto`.
 
 So `src/styles/base/_base.scss` makes each of those holders a scroll container on the ONE axis the
 engine writes (`overflow-y: auto` on the inline-start holder, `overflow-x: auto` on the top and
-bottom ones, the cross axis `hidden`), with the scrollbar suppressed (`mixins.scrollbar-hidden`,
-shared with the sheets bar) and `overflow-anchor: none`. The same writes then take the compositor's
+bottom ones, the cross axis `hidden`), with the scrollbar suppressed (`scrollbar-width: none` plus
+the `::-webkit-scrollbar` fallback, written out in place: a `&` inside a mixin body fails the
+SonarCloud gate as "missing scoping root", S8776) and `overflow-anchor: none`. The same writes then take the compositor's
 scroll-offset fast path: measured on that grid, paint 850 → 90 ms per run and total main-thread time
 −45…−65 % on every renderer, with renderer calls, draws and frames identical. The worst frame and the
 long tasks do not move — they are the two full draws' renderer work — so the win is per-frame

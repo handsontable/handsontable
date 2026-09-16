@@ -857,8 +857,16 @@
     // an anchoring nudge here is a frozen header out of step with the master. The same opt-out as
     // `.htScrollbarClearanceFillers` below.
     overflow-anchor: none;
+    // No scrollbar of its own, the way the sheets bar hides one: `scrollbar-width` is the standard
+    // property, the `::-webkit-scrollbar` rule covers engines without it and beats the
+    // `.handsontable .wtHolder::-webkit-scrollbar` sizing above at equal specificity by source order.
+    // Written out rather than shared through a mixin: a nesting `&` inside a mixin body has no
+    // scoping root for the SonarCloud CSS analyzer (S8776), which fails the quality gate on it.
+    scrollbar-width: none;
 
-    @include mixins.scrollbar-hidden;
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
 
   .ht_clone_inline_start .wtHolder {
