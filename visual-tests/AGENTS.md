@@ -285,7 +285,7 @@ Seven things about this pipeline are worth knowing before changing it.
   report for the gate to read. So the `out.json` keys `lib/visual-gate.mjs` consumes (`failedItems`,
   `newItems`, `deletedItems`, `passedItems`) and what the script emits (`comment.md`, the `verdict=` and
   `report-url=` outputs) are a contract with the docs gate as well — changing either changes the docs gate
-  too. `docs/AGENTS.md` section 2.17 describes that side; `.github/scripts/__tests__/docs-visual-baseline.test.mjs`
+  too. `docs/AGENTS.md` section 2.18 describes that side; `.github/scripts/__tests__/docs-visual-baseline.test.mjs`
   pins the variables.
 
 ## Determinism

@@ -4,7 +4,7 @@ import { stopImmediatePropagation } from '../../../helpers/dom/event';
 import { arrayEach, arrayFilter, arrayMap } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
 import * as C from '../../../i18n/constants';
-import { unifyColumnValues, intersectValues, createArrayAssertion } from '../utils';
+import { unifyColumnValues, intersectValues, createArrayAssertion, isBlankFilterListValue } from '../utils';
 import { getSortComparatorForMeta } from '../sortComparators';
 import { BaseComponent } from './_base';
 import { MultipleSelectUI } from '../ui/multipleSelect';
@@ -107,7 +107,8 @@ export class ValueComponent extends BaseComponent {
       .addLocalHook('listTabKeydown', (event: Event) => this.runLocalHooks('listTabKeydown', event));
 
     this.hot?.addHook('modifyFiltersMultiSelectValue',
-      (value: string, meta: Record<string, unknown>) => this.#onModifyDisplayedValue(value, meta));
+      (value: string, meta: Record<string, unknown>, itemValue?: unknown) =>
+        this.#onModifyDisplayedValue(value, meta, itemValue));
   }
 
   /**
@@ -428,24 +429,43 @@ export class ValueComponent extends BaseComponent {
   /**
    * Trigger the `modifyFiltersMultiSelectValue` hook.
    *
+   * Passes the list item's source `value` as a third argument so
+   * `#onModifyDisplayedValue` can skip formatters on the empty bucket.
+   * App handlers that declare two parameters ignore it.
+   *
    * @param {object} item Item from the multiple select list.
    * @param {Map|null} metaMap Map of row meta objects, or `null` when the hook is not registered.
    */
   #triggerModifyMultipleSelectionValueHook(item: Record<string, unknown>, metaMap: Map<unknown, unknown> | null) {
     if (metaMap && this.hot?.hasHook('modifyFiltersMultiSelectValue')) {
       item.visualValue =
-        this.hot?.runHooks('modifyFiltersMultiSelectValue', item.visualValue, metaMap.get(item.value));
+        this.hot?.runHooks(
+          'modifyFiltersMultiSelectValue',
+          item.visualValue,
+          metaMap.get(item.value),
+          item.value
+        );
     }
   }
 
   /**
    * Modify the value displayed in the multiple select list.
    *
-   * @param {*} value Cell value.
+   * Returns early when `item.value === ''`. `toVisualValue` already replaced
+   * that bucket with the translated `(Blank cells)` label; running a
+   * `valueFormatter` would hash it (password) or turn it into `#bad-value#`
+   * (date/time).
+   *
+   * @param {*} value The list label (`visualValue`).
    * @param {object} meta The cell meta object.
+   * @param {*} [itemValue] The list item's source `value` (not `visualValue`).
    * @returns {*} Returns the modified value.
    */
-  #onModifyDisplayedValue(value: unknown, meta: Record<string, unknown>) {
+  #onModifyDisplayedValue(value: unknown, meta: Record<string, unknown>, itemValue?: unknown) {
+    if (isBlankFilterListValue(itemValue)) {
+      return value;
+    }
+
     if (meta.valueFormatter) {
       return (meta.valueFormatter as (value: unknown, meta: Record<string, unknown>) => unknown)(value, meta);
     }

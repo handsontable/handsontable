@@ -464,6 +464,15 @@ would be a frozen unmaintained snapshot.
 workflow writes the root `CHANGELOG.md` and the rolling `changelog/changelog.md`, and someone copies
 the version's section into the per-major page by hand, demoting `###` to `####`.
 
+**When you create the page for a new major, move the design system date with it.** The newest
+`changelog-<N>` page carries a hidden `data-design-system-updated` block under its intro line, filled
+in live from worker rule 18c. It belongs on the newest page only - the sidebar and the Introduction
+page link there, while nothing links the rolling `changelog/changelog.md`. Cut the whole block from the
+old page and paste it into the new one, blank lines included: the `[Design system](@/...)` link inside
+the `<div>` is only parsed as Markdown - and so only resolved per framework - when blank lines separate
+it from the tags. `src/scripts/__tests__/design-system-updated.test.mjs` fails if the newest page lacks
+the block, if an older page keeps it, or if the link loses that shape.
+
 When you edit a changelog page, **link every new option, hook, method, and plugin that an `Added`
 entry names**:
 
