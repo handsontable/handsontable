@@ -28,6 +28,19 @@ While any of those top-level settings is truthy, **this plugin stays disabled** 
 Note `fixedRowsTop` / `fixedRowsBottom` are plain options no plugin owns — a hard conflict is against a
 *setting*, not a plugin. The mechanism is in `../base/AGENTS.md`.
 
+## `initialPage` is applied on first enable and when its value changes (DEV-1140)
+
+`enablePlugin()` used to copy `initialPage` onto `#currentPage` whenever the raw
+settings object declared the key. `updatePlugin()` is always
+`disablePlugin(); enablePlugin()`, and the React wrapper re-sends the full
+`pagination` object on every render, so next/prev snapped back to `initialPage`.
+`#appliedInitialPage` records the last applied declared value; the same number
+on a later enable is a no-op. Do not reset that tracker in `disablePlugin()` —
+`updatePlugin` goes through disable. Changing `initialPage` to a different
+number via `updateSettings` still jumps, which `__tests__/options/initialPage.spec.js`
+pins. To force the declared page after the user has navigated, call `setPage()`
+or `resetPage()`.
+
 ## `PLUGIN_PRIORITY = 900`, and the `init` hook is pinned early
 
 Priority 900 puts it after every ordinary plugin. Separately, **the `init` hook callback is placed before

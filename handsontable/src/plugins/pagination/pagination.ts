@@ -7,6 +7,7 @@ import { createPaginatorStrategy } from './strategies';
 import { isRootInstance } from '../../utils/rootInstance';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
+import { isPlainObject } from '../../helpers/object';
 import { registerConflict } from '../base/conflictRegistry';
 
 // Hard conflicts: Pagination stays off while any of these top-level settings is truthy.
@@ -24,6 +25,22 @@ const LAYOUT_WEIGHT = 100;
 
 const AUTO_PAGE_SIZE_WARNING = toSingleLine`The \`auto\` page size setting requires the \`autoRowSize\`\x20
   plugin to be enabled. Set the \`autoRowSize: true\` in the configuration to ensure correct behavior.`;
+
+/**
+ * Reads a declared `initialPage` from the raw `pagination` setting.
+ *
+ * `pagination: true` and objects that omit the key return `undefined`.
+ *
+ * @param {*} settings The raw `pagination` setting (`true` or a settings object).
+ * @returns {*} The declared `initialPage`, or `undefined` when the key is absent.
+ */
+function readDeclaredInitialPage(settings: unknown): unknown {
+  if (!isPlainObject(settings) || !('initialPage' in settings)) {
+    return undefined;
+  }
+
+  return settings.initialPage;
+}
 
 /**
  * @plugin Pagination
@@ -145,6 +162,17 @@ export class Pagination extends BasePlugin {
    */
   #currentPage = 1;
   /**
+   * The last `initialPage` value copied onto `#currentPage`.
+   *
+   * Re-enabling with the same declared value (the React wrapper re-sends the full
+   * `pagination` object on every render) must not reset the page after the user
+   * has navigated. Do not clear this in `disablePlugin()` – `updatePlugin()`
+   * always goes through disable then enable (DEV-1140).
+   *
+   * @type {*}
+   */
+  #appliedInitialPage: unknown;
+  /**
    * Page size setup by the user. It can be a number or 'auto' (in which case the plugin will
    * calculate the page size based on the viewport size and row heights).
    *
@@ -218,9 +246,11 @@ export class Pagination extends BasePlugin {
     }
 
     const settings = this.hot.getSettings()[PLUGIN_KEY];
+    const declaredInitialPage = readDeclaredInitialPage(settings);
 
-    if ((settings as Record<string, unknown>)?.initialPage !== undefined) {
+    if (declaredInitialPage !== undefined && declaredInitialPage !== this.#appliedInitialPage) {
       this.#currentPage = this.getSetting<number>('initialPage')!;
+      this.#appliedInitialPage = declaredInitialPage;
     }
 
     if ((settings as Record<string, unknown>)?.pageSize !== undefined) {

@@ -35,6 +35,58 @@ describe('Pagination `initialPage` option', () => {
     expect(countVisibleRows()).toBe(5);
   });
 
+  it('should keep the current page when `updateSettings` repeats the same `initialPage` after navigation', async() => {
+    handsontable({
+      data: createSpreadsheetData(45, 10),
+      pagination: {
+        initialPage: 2,
+        pageSize: 10,
+      },
+    });
+
+    const plugin = getPlugin('pagination');
+
+    plugin.nextPage();
+
+    expect(plugin.getPaginationData().currentPage).toBe(3);
+
+    await updateSettings({
+      pagination: {
+        initialPage: 2,
+        pageSize: 10,
+      },
+    });
+
+    expect(plugin.getPaginationData().currentPage).toBe(3);
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A21');
+  });
+
+  it('should still jump when `updateSettings` changes `initialPage` to a different page after navigation', async() => {
+    handsontable({
+      data: createSpreadsheetData(45, 10),
+      pagination: {
+        initialPage: 2,
+        pageSize: 10,
+      },
+    });
+
+    const plugin = getPlugin('pagination');
+
+    plugin.nextPage();
+
+    expect(plugin.getPaginationData().currentPage).toBe(3);
+
+    await updateSettings({
+      pagination: {
+        initialPage: 5,
+        pageSize: 10,
+      },
+    });
+
+    expect(plugin.getPaginationData().currentPage).toBe(5);
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A41');
+  });
+
   it('should not change the internal currentPage state when the initialPage setting is not provided', async() => {
     handsontable({
       data: createSpreadsheetData(45, 10),
