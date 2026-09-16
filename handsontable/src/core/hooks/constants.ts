@@ -743,10 +743,15 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired after one or more columns are removed.
    *
-   * When consecutive columns are removed, this hook is fired once with the `amount` reflecting
-   * the total number of removed columns. When non-consecutive columns are removed (for example,
-   * by selecting columns with Ctrl/Cmd held), this hook is fired separately for each removed
-   * column, with `amount` equal to `1` each time. This is by design.
+   * Columns are removed in consecutive runs, and this hook fires once per run, with `amount`
+   * set to the number of columns in that run. This is by design. Removing columns 1, 2, and 3
+   * fires the hook once, with `amount` set to `3`. Removing columns 0, 1, and 3 (for example,
+   * by selecting columns with Ctrl/Cmd held) fires it twice: first with `amount` set to `2`,
+   * then with `amount` set to `1`.
+   *
+   * Every call describes the data source as it stands at that moment, so the `index` and
+   * `physicalColumns` of a later call already account for the columns that the earlier calls
+   * removed.
    *
    * @event Hooks#afterRemoveCol
    * @param {number} index Visual index of starter column.
@@ -760,10 +765,15 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired after one or more rows are removed.
    *
-   * When consecutive rows are removed, this hook is fired once with the `amount` reflecting
-   * the total number of removed rows. When non-consecutive rows are removed (for example,
-   * by selecting rows with Ctrl/Cmd held), this hook is fired separately for each removed
-   * row, with `amount` equal to `1` each time. This is by design.
+   * Rows are removed in consecutive runs, and this hook fires once per run, with `amount` set
+   * to the number of rows in that run. This is by design. Removing rows 1, 2, and 3 fires the
+   * hook once, with `amount` set to `3`. Removing rows 0, 1, and 3 (for example, by selecting
+   * rows with Ctrl/Cmd held) fires it twice: first with `amount` set to `2`, then with
+   * `amount` set to `1`.
+   *
+   * Every call describes the data source as it stands at that moment, so the `index` and
+   * `physicalRows` of a later call already account for the rows that the earlier calls
+   * removed.
    *
    * @event Hooks#afterRemoveRow
    * @param {number} index Visual index of starter row.
@@ -1800,6 +1810,16 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired before one or more columns are about to be removed.
    *
+   * Columns are removed in consecutive runs, and this hook fires once per run, with `amount`
+   * set to the number of columns in that run. This is by design. Removing columns 1, 2, and 3
+   * fires the hook once, with `amount` set to `3`. Removing columns 0, 1, and 3 (for example,
+   * by selecting columns with Ctrl/Cmd held) fires it twice: first with `amount` set to `2`,
+   * then with `amount` set to `1`.
+   *
+   * Every call describes the data source as it stands at that moment, so the `index` and
+   * `physicalColumns` of a later call already account for the columns that the earlier calls
+   * removed.
+   *
    * @event Hooks#beforeRemoveCol
    * @param {number} index Visual index of starter column.
    * @param {number} amount Amount of columns to be removed.
@@ -1812,6 +1832,18 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired when one or more rows are about to be removed.
+   *
+   * Rows are removed in consecutive runs, and this hook fires once per run, with `amount` set
+   * to the number of rows in that run. This is by design. Removing rows 1, 2, and 3 fires the
+   * hook once, with `amount` set to `3`. Removing rows 0, 1, and 3 (for example, by selecting
+   * rows with Ctrl/Cmd held) fires it twice: first with `amount` set to `2`, then with
+   * `amount` set to `1`.
+   *
+   * Every call describes the data source as it stands at that moment, so the `index` and
+   * `physicalRows` of a later call already account for the rows that the earlier calls
+   * removed.
+   *
+   * The `physicalRows` array is mutable. Edit it in place to change which rows are removed.
    *
    * @event Hooks#beforeRemoveRow
    * @param {number} index Visual index of starter row.
