@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed pagination snapping back to initialPage after next or prev when that option stayed in the settings object.",
+  "type": "fixed",
+  "issueOrPR": 13536,
+  "breaking": false,
+  "framework": "none"
+}
