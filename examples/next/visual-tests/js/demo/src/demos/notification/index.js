@@ -80,7 +80,7 @@ export function init() {
 
   hot.getPlugin('notification').showMessage({
     title: position.replace(/-/g, ' '),
-    message: 'Notification visual test.',
+    message: 'Visual approval smoke test — do not merge.',
     position,
     duration: 0,
     variant,
