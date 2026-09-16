@@ -957,14 +957,15 @@ export class Pagination extends BasePlugin {
   };
 
   /**
-   * Called before the paste operation is performed. It removes the rows that are not visible
-   * from the pasted data.
+   * Called before the paste operation is performed. It truncates the clipboard so the paste
+   * cannot overflow past the last visible row of the current page. The leading rows of the
+   * clipboard are kept; the overflow tail is dropped.
    *
    * @param {Array} pastedData The data that was pasted.
    * @param {Array<{startRow: number, endRow: number}>} ranges The ranges of the pasted data.
    * @returns {boolean} Returns `false` to prevent the paste operation.
    */
-  #onBeforePaste = (pastedData: unknown[][][], ranges: { startRow: number; endRow: number }[]) => {
+  #onBeforePaste = (pastedData: unknown[][], ranges: { startRow: number; endRow: number }[]) => {
     const {
       firstVisibleRowIndex,
       lastVisibleRowIndex,
@@ -979,12 +980,11 @@ export class Pagination extends BasePlugin {
         return;
       }
 
-      const rowsToRemove = Math.min(
-        pastedData.length - (lastVisibleRowIndex - startRow + 1),
-        pastedData.length,
-      );
+      const remainingRowCount = Math.max(0, lastVisibleRowIndex - startRow + 1);
 
-      pastedData.splice(0, rowsToRemove);
+      if (pastedData.length > remainingRowCount) {
+        pastedData.length = remainingRowCount;
+      }
     });
   };
 
