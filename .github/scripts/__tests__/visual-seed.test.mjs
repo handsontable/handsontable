@@ -140,15 +140,28 @@ test('a failed seed pings Slack, and only a failed one', () => {
   // test-health.yml's list, and since DEV-2797 it no longer reds the Develop run.
   // Left unannounced, a broken seed surfaces as unrelated pull requests failing
   // on the same items hours later — the investigation DEV-2797 began with.
-  const notify = seed.slice(seed.indexOf('  notify:'));
+  // `indexOf` first, and asserted: `slice(-1)` on a miss returns the file's last
+  // character, which is a truthy string, so slicing before asserting made the
+  // `assert.ok` below unable to fail with the message it carries.
+  const notifyAt = seed.indexOf('  notify:');
 
-  assert.ok(notify, 'visual-seed.yml lost its Slack notification');
+  assert.notEqual(notifyAt, -1, 'visual-seed.yml lost its Slack notification');
+
+  const notify = seed.slice(notifyAt);
+
   assert.match(notify, /needs: \[ visual \]/);
 
+  // The status-check function is mandatory, and its absence is the bug this job
+  // shipped with: a job `if:` containing none of `always()`, `!cancelled()`,
+  // `failure()` or `success()` gets an implicit `success()` ANDed on, so a
+  // condition that only wants to run when its need FAILED can never run at all.
+  // Pinned textually because nothing here simulates GitHub's evaluator.
+  assert.match(notify, /if: \$\{\{ !cancelled\(\) && needs\.visual\.result == 'failure'/,
+    'without a status-check function the implicit success() makes this job unreachable on a failed seed');
   // Named rather than a bare `failure()`. The `guard` job fails on a wrong-ref
   // dispatch, which is operator error with its own message, not a broken seed —
   // and naming the job settles it without depending on how ancestor rules read.
-  assert.match(notify, /if: \$\{\{ needs\.visual\.result == 'failure'/,
+  assert.match(notify, /needs\.visual\.result == 'failure'/,
     'the ping must key on the seed job failing, not on any job in the run failing');
   assert.doesNotMatch(notify, /if: \$\{\{ failure\(\)/,
     'a bare failure() would also ping on a wrong-ref dispatch the guard already reported');

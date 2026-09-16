@@ -167,10 +167,20 @@ jobs:
   # wrong-ref dispatch, and that is operator error with its own loud message, not a
   # broken seed. Naming the job keeps the guard out of this regardless of how the
   # ancestor rules read.
+  #
+  # The leading status-check function is not decoration, and leaving it out is the
+  # bug this job shipped with. A job `if:` that contains NO status-check function
+  # (`always()`, `!cancelled()`, `failure()`, `success()`) gets an implicit
+  # `success()` ANDed onto it, so `needs.visual.result == 'failure'` alone requires
+  # `visual` to have both succeeded and failed — the job is simply unreachable, and
+  # a failed seed stays as quiet as it was before this file existed. Every other
+  # `needs.<job>.result` condition in this repository carries one for the same
+  # reason; publish.yml's `first-rc-notify`, `rc-notify` and `stable-notify` are the
+  # closest shape, and all three use `!cancelled()`. Do not "tidy" it away.
   notify:
     name: Notify Slack
     needs: [ visual ]
-    if: ${{ needs.visual.result == 'failure' && github.event_name != 'pull_request' }}
+    if: ${{ !cancelled() && needs.visual.result == 'failure' && github.event_name != 'pull_request' }}
     runs-on: ubuntu-latest
     env:
       # An absent secret is an empty string, not an error, so the step below skips
