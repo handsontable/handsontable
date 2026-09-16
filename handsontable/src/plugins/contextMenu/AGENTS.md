@@ -198,9 +198,15 @@ Rules for anyone touching this:
   `close()` does nothing unless `isOpened()`. So a `close()` from an item callback mid-build is
   ignored and the open in progress wins — tearing the grid down under its own `init()` is what
   broke the page before — and a `close()` or `open()` re-entered from a teardown hook does nothing.
-- **`#rollbackFailedOpen()` is resource cleanup, not the guarantee.** It resets the state first —
-  that call cannot throw — and only then destroys the half-built grid and fires `afterClose`, both
-  inside its one `catch`. It still releases what
+- **`#rollbackFailedOpen()` is resource cleanup, not the guarantee.** It resets the state first, and
+  `#resetToClosed()` must stay throw-free for that to work: it runs outside the `catch`, so a throw
+  there skips the release below it AND escapes as the caller's error. That is why its last line
+  guards the host with `!this.hot.isDestroyed`. An item callback that calls `hot.destroy()` reaches
+  exactly this path — the renderer then reads the destroyed grid and throws — and writing
+  `outsideClickDeselects` back to a destroyed host threw on the way out, so the half-built menu grid
+  was never destroyed: **79 document listeners survived the host's teardown** (measured; 0 with the
+  guard). Touch the host from a teardown path only behind that check. The rollback then destroys the
+  half-built grid and fires `afterClose`, both inside its one `catch`. It still releases what
   `#open()` acquired — the menu grid, the scroll listeners, the visible container, the HOST grid's
   `outsideClickDeselects` — so mirror every new side effect of `#open()` in it. A miss now leaks
   instead of breaking the page. The scroll listeners were missed exactly this way on the first

@@ -759,7 +759,8 @@ export class Menu {
   #rollbackFailedOpen() {
     const menuGrid = this.hotMenu;
 
-    // First, because it cannot throw: the menu is back to `closed` before anything else is tried.
+    // First, and it must stay throw-free: the menu is back to `closed` before anything else is
+    // tried, and a throw here would skip the release below and escape as the caller's error.
     this.#resetToClosed();
 
     try {
@@ -833,7 +834,14 @@ export class Menu {
     this.#suppressHoverSubMenuToggle = false;
     // A timer that outlives the menu would call `openSubMenu` on a destroyed `hotMenu`.
     this.#clearHoverSubMenuTimers();
-    this.hot.getSettings().outsideClickDeselects = this.origOutsideClickDeselects;
+
+    // Skipped once the host is gone: its methods throw by then, and there is no setting left to
+    // restore. Without the guard this reset throws on the way out of a failed open, and that error
+    // replaces the application's own - the one `open()` exists to rethrow. `destroy()` guards the
+    // host the same way.
+    if (!this.hot.isDestroyed) {
+      this.hot.getSettings().outsideClickDeselects = this.origOutsideClickDeselects;
+    }
   }
 
   /**
@@ -1018,7 +1026,8 @@ export class Menu {
   }
 
   /**
-   * Close all opened sub menus. Each one is closed even when an earlier one throws.
+   * Closes every open sub menu. A throw from one stops the rest and reaches the caller, as every
+   * other teardown here does.
    */
   closeAllSubMenus() {
     arrayEach(this.hotMenu!.getData(), (value: unknown, row: number) => {

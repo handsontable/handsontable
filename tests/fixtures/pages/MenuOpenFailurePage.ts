@@ -22,7 +22,7 @@ export type MenuPlugin = 'dropdownMenu' | 'contextMenu';
 /**
  * What the fixture's menu item does each time its menu paints it (see `htItemMode` in the fixture).
  */
-export type ItemMode = 'throw' | 'none' | 'probe' | 'close' | 'reopen' | 'swap';
+export type ItemMode = 'throw' | 'none' | 'probe' | 'close' | 'reopen' | 'swap' | 'destroy';
 
 /**
  * What the fixture's menu item does while the item list is filtered (see `htHiddenMode`).

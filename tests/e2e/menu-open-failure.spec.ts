@@ -388,6 +388,24 @@ for (const plugin of ['dropdownMenu', 'contextMenu'] as const) {
       expect(pageErrors).toEqual([]);
     });
 
+    test('an item that destroys the whole grid still releases the half-built menu', async() => {
+      await grid.setItemMode('destroy', plugin);
+      await grid.openMenuOf(plugin);
+      await grid.settle();
+
+      // The host is gone, so the failed open's cleanup must not touch it. `#resetToClosed()` ended
+      // by writing the host's `outsideClickDeselects` back, which throws once every method on a
+      // destroyed grid throws - and that throw escaped the rollback, so the half-built menu grid
+      // was never destroyed and kept 79 document listeners alive past the teardown. That is the
+      // DEV-41 leak itself: the listeners outlive the page the grid was on.
+      await expect.poll(() => grid.listenerCount()).toBe(0);
+      expect(await grid.menuGridCount()).toBe(0);
+
+      // The application still hears about its own error, and still gets the other half of the pair.
+      expect(pageErrors).toHaveLength(1);
+      expect((await grid.hookLog()).map(entry => entry.event)).toEqual(['beforeShow', 'afterHide']);
+    });
+
     test('a sub-menu removes the grid hook it added when it closes', async() => {
       const hooksAtRest = await grid.themeHookCount();
 

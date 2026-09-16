@@ -68,6 +68,7 @@
      * - `close`  - asks the owning plugin to close the menu, once.
      * - `reopen` - asks the owning plugin to open the menu again, once.
      * - `swap`   - replaces the plugin's settings, once, which destroys the menu being painted.
+     * - `destroy` - destroys the whole HOST grid, once, from inside the paint.
      */
     window.htItemMode = 'throw';
 
@@ -174,6 +175,11 @@
       if (mode === 'swap') {
         window.htItemMode = 'none';
         window.hot.updateSettings({ [window.htMenuPlugin]: menuItems() });
+      }
+
+      if (mode === 'destroy') {
+        window.htItemMode = 'none';
+        window.hot.destroy();
       }
 
       return 'Recovered item';
