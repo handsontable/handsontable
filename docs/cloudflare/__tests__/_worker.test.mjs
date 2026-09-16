@@ -735,3 +735,198 @@ test('non-agent assets keep the content type Pages assigned them', async() => {
     assert.equal(response.headers.get('content-type'), 'text/markdown; charset=utf-8', path);
   }
 });
+
+// ---------------------------------------------------------------------------
+// Rule 18c: Design System last-update date
+// ---------------------------------------------------------------------------
+
+const DESIGN_SYSTEM_DATE_PATH = '/docs/api/design-system-updated.json';
+
+/**
+ * Builds an env whose Figma calls are answered from a canned map instead of
+ * the network. Keys are matched by substring against the request URL, so a
+ * case only has to name the endpoint it cares about ('/versions', '/meta');
+ * an endpoint left out answers 500, which is what the fallback paths need.
+ *
+ * `calls` records every URL requested, so a test can prove the second endpoint
+ * was not called when the first one already answered.
+ *
+ * @param {object} responses
+ * @param {object} [overrides] Extra env fields, e.g. to unset a credential.
+ * @returns {object}
+ */
+function figmaEnv(responses, overrides = {}) {
+  const calls = [];
+
+  return {
+    ASSETS: { fetch: async() => new Response('static-asset-passthrough') },
+    FIGMA_TOKEN: 'test-token',
+    FIGMA_FILE_KEY: 'test-file-key',
+    FIGMA_FETCH: async(requestUrl) => {
+      calls.push(requestUrl);
+
+      const match = Object.keys(responses).find(fragment => requestUrl.includes(fragment));
+
+      if (!match) {
+        return new Response('{}', { status: 500 });
+      }
+
+      return new Response(JSON.stringify(responses[match]), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    },
+    calls,
+    ...overrides,
+  };
+}
+
+test('serves the newest NAMED version date, ignoring autosave checkpoints (rule 18c)', async() => {
+  const worker = loadWorker();
+  // The autosave is the newest entry by date and carries `label: null`. Taking
+  // the newest entry outright - the obvious implementation, and what
+  // `?page_size=1` returns - would report the autosave, so the published date
+  // would move every time a designer nudged a frame. This pins that.
+  const env = figmaEnv({
+    '/versions': {
+      versions: [
+        { id: '3', created_at: '2026-09-15T10:00:00Z', label: null },
+        { id: '2', created_at: '2026-09-01T09:00:00Z', label: 'v2.1 release' },
+        { id: '1', created_at: '2026-06-02T08:00:00Z', label: 'v2.0 release' },
+      ],
+    },
+  });
+  const response = await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), env);
+
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('content-type'), 'application/json; charset=utf-8');
+  assert.deepEqual(await response.json(), {
+    date: '2026-09-01T09:00:00Z',
+    source: 'named-version',
+  });
+});
+
+test('picks the newest named version by date, not by position (rule 18c)', async() => {
+  const worker = loadWorker();
+  // Figma returns newest-first in practice but does not promise it, so an
+  // out-of-order page must still resolve to the latest named version.
+  const env = figmaEnv({
+    '/versions': {
+      versions: [
+        { id: '1', created_at: '2026-06-02T08:00:00Z', label: 'older' },
+        { id: '2', created_at: '2026-09-01T09:00:00Z', label: 'newest' },
+      ],
+    },
+  });
+  const response = await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), env);
+
+  assert.equal((await response.json()).date, '2026-09-01T09:00:00Z');
+});
+
+test('falls back to last_touched_at when the file has no named versions (rule 18c)', async() => {
+  const worker = loadWorker();
+  const env = figmaEnv({
+    '/versions': { versions: [{ id: '1', created_at: '2026-09-15T10:00:00Z', label: null }] },
+    '/meta': { file: { name: 'Design System', last_touched_at: '2026-09-15T10:00:00Z' } },
+  });
+  const response = await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), env);
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), {
+    date: '2026-09-15T10:00:00Z',
+    source: 'last-touched',
+  });
+});
+
+test('does not call the metadata endpoint when a named version answered (rule 18c)', async() => {
+  const worker = loadWorker();
+  const env = figmaEnv({
+    '/versions': { versions: [{ id: '1', created_at: '2026-09-01T09:00:00Z', label: 'v2.1' }] },
+  });
+
+  await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), env);
+
+  assert.equal(env.calls.length, 1, 'the second Figma call would be wasted work');
+  assert.ok(env.calls[0].includes('/versions'));
+});
+
+test('sends the Figma token as a header and never in the URL (rule 18c)', async() => {
+  const worker = loadWorker();
+  const seen = [];
+  const env = figmaEnv({
+    '/versions': { versions: [{ id: '1', created_at: '2026-09-01T09:00:00Z', label: 'v2.1' }] },
+  });
+  const inner = env.FIGMA_FETCH;
+
+  env.FIGMA_FETCH = async(requestUrl, init) => {
+    seen.push({ requestUrl, init });
+
+    return inner(requestUrl, init);
+  };
+
+  await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), env);
+
+  assert.equal(seen[0].init.headers['X-Figma-Token'], 'test-token');
+  assert.ok(!seen[0].requestUrl.includes('test-token'), 'a token in the URL leaks into logs');
+});
+
+test('answers 200 with a null date when the credentials are unset (rule 18c)', async() => {
+  const worker = loadWorker();
+
+  // Until someone sets the two secrets in Cloudflare, the endpoint must still
+  // answer in the page's one shape - the field just stays hidden. A 500 here
+  // would surface as a console error on a page that is otherwise fine.
+  for (const missing of [{ FIGMA_TOKEN: undefined }, { FIGMA_FILE_KEY: undefined }]) {
+    const env = figmaEnv({}, missing);
+    const response = await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), env);
+
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), { date: null, source: null });
+    assert.equal(env.calls.length, 0, 'no point calling Figma without both credentials');
+  }
+});
+
+test('answers 200 with a null date when Figma fails outright (rule 18c)', async() => {
+  const worker = loadWorker();
+  // Nothing matches, so both endpoints answer 500 - a revoked token, a rate
+  // limit, or an outage all land here.
+  const response = await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), figmaEnv({}));
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { date: null, source: null });
+});
+
+test('answers 200 with a null date when the Figma call throws (rule 18c)', async() => {
+  const worker = loadWorker();
+  const env = figmaEnv({}, {
+    FIGMA_FETCH: async() => {
+      throw new TypeError('network unreachable');
+    },
+  });
+  const response = await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), env);
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { date: null, source: null });
+});
+
+test('the date endpoint is cacheable for a day (rule 18c)', async() => {
+  const worker = loadWorker();
+  const env = figmaEnv({
+    '/versions': { versions: [{ id: '1', created_at: '2026-09-01T09:00:00Z', label: 'v2.1' }] },
+  });
+  const response = await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), env);
+
+  assert.equal(response.headers.get('cache-control'), 'public, max-age=86400');
+});
+
+test('non-GET requests to the date endpoint fall through to assets (rule 18c)', async() => {
+  const worker = loadWorker();
+
+  for (const method of ['POST', 'HEAD']) {
+    const env = figmaEnv({});
+    const response = await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH, undefined, method), env);
+
+    assert.equal(await response.text(), 'static-asset-passthrough', method);
+    assert.equal(env.calls.length, 0, `${method} must not reach Figma`);
+  }
+});

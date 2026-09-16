@@ -48,6 +48,7 @@
  *  18. Versioned /docs/:ver/react-*        → /docs/:ver/react-data-grid/*
  * 18a. POST /docs/scripts/json/save.json   → mock 200 JSON (saving-data demo)
  * 18b. /docs/_md/**.md, /docs/llms*.txt   → served from assets as text/plain
+ * 18c. GET /docs/api/design-system-updated.json → Figma last-update date (JSON)
  *  19. Static asset fallback (env.ASSETS)
  */
 
@@ -850,6 +851,100 @@ function withSecurityHeaders(response) {
   return decorated;
 }
 
+// ---------------------------------------------------------------------------
+// Design System last-update date (rule 18c)
+// ---------------------------------------------------------------------------
+
+const FIGMA_API_ORIGIN = 'https://api.figma.com';
+const DESIGN_SYSTEM_DATE_PATH = '/docs/api/design-system-updated.json';
+
+// One day. The design system changes a few times a year at most, so a longer
+// window would be defensible - a day just keeps the page from ever looking
+// stale by more than one, at a cost of one Figma call per edge location.
+const DESIGN_SYSTEM_DATE_MAX_AGE = 86400;
+
+/**
+ * Wraps a `{ date, source }` pair in the endpoint's only response shape.
+ *
+ * Every failure path returns this too, with `date: null`, so the page has one
+ * shape to read and never has to branch on a status code. See
+ * `readDesignSystemDate()` for why failures are not surfaced as errors.
+ *
+ * @param {{date: string|null, source: string|null}} body
+ * @returns {Response}
+ */
+function designSystemDateResponse(body) {
+  return new Response(JSON.stringify(body), {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': `public, max-age=${DESIGN_SYSTEM_DATE_MAX_AGE}`,
+    },
+  });
+}
+
+/**
+ * Reads the date the Design System Figma file was last updated.
+ *
+ * Prefers the newest *named* version over the file's raw last-touched time.
+ * Figma's version history interleaves autosave checkpoints (`label: null`)
+ * with versions a designer deliberately named, and `last_touched_at` moves on
+ * any edit at all - so both would report "updated today" because someone
+ * nudged a frame. A named version is the team saying "this is a release",
+ * which is the only one of the three worth showing a reader.
+ *
+ * The response is ordered newest-first in practice, but the API does not
+ * promise it, so the newest labelled entry is picked by date rather than by
+ * position.
+ *
+ * Returns `date: null` rather than throwing on every failure - an unset token,
+ * a revoked token, a rate limit, or Figma being down must never do anything
+ * more visible than hide one line on one page.
+ *
+ * @param {object} env The worker environment.
+ * @returns {Promise<{date: string|null, source: string|null}>}
+ */
+async function readDesignSystemDate(env) {
+  const token = env.FIGMA_TOKEN;
+  const fileKey = env.FIGMA_FILE_KEY;
+
+  if (!token || !fileKey) {
+    return { date: null, source: null };
+  }
+
+  // Injectable so the tests can exercise every branch without a network call
+  // or a global stub; production passes nothing and gets the runtime's fetch.
+  const fetchImpl = env.FIGMA_FETCH ?? globalThis.fetch;
+  const headers = { 'X-Figma-Token': token };
+  const file = encodeURIComponent(fileKey);
+
+  const versionsResponse = await fetchImpl(`${FIGMA_API_ORIGIN}/v1/files/${file}/versions`, { headers });
+
+  if (versionsResponse.ok) {
+    const payload = await versionsResponse.json();
+    const newestNamed = (payload?.versions ?? [])
+      .filter(version => typeof version?.label === 'string' && version.label !== '')
+      .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at))[0];
+
+    if (newestNamed?.created_at) {
+      return { date: newestNamed.created_at, source: 'named-version' };
+    }
+  }
+
+  // No named versions at all - fall back to the cheap metadata endpoint.
+  const metaResponse = await fetchImpl(`${FIGMA_API_ORIGIN}/v1/files/${file}/meta`, { headers });
+
+  if (metaResponse.ok) {
+    const meta = await metaResponse.json();
+
+    if (meta?.file?.last_touched_at) {
+      return { date: meta.file.last_touched_at, source: 'last-touched' };
+    }
+  }
+
+  return { date: null, source: null };
+}
+
 async function route(request, env) {
     const url = new URL(request.url);
     const path = url.pathname;
@@ -1397,6 +1492,45 @@ async function route(request, env) {
       decorated.headers.set('Content-Type', 'text/plain; charset=utf-8');
 
       return decorated;
+    }
+
+    // -- 18c. Design System last-update date (JSON) ---------------------------
+    // The design system page shows when the Figma file was last updated. The
+    // read happens here, not in the browser: a Figma token in client JS is
+    // public, and the site's own CSP has no `api.figma.com` in `connect-src`
+    // anyway. Same-origin keeps it under `connect-src 'self'`, so serving it
+    // from this worker needs no CSP change.
+    //
+    // Answers GET only. Anything else falls through to env.ASSETS, which 404s
+    // the path - there is no asset behind it.
+    //
+    // Serving content, so this must stay below rule 12a.
+    if (path === DESIGN_SYSTEM_DATE_PATH && request.method === 'GET') {
+      const cache = typeof caches !== 'undefined' ? caches.default : null;
+      const cached = cache ? await cache.match(request) : null;
+
+      if (cached) {
+        return cached;
+      }
+
+      let body;
+
+      // One catch for the whole read. Figma being unreachable, rate-limiting
+      // us, or rejecting an expired token are all the same event here: the
+      // page hides one line and everything else keeps working.
+      try {
+        body = await readDesignSystemDate(env);
+      } catch {
+        body = { date: null, source: null };
+      }
+
+      const response = designSystemDateResponse(body);
+
+      if (cache) {
+        await cache.put(request, response.clone());
+      }
+
+      return response;
     }
 
     // -- 19. Fallback: serve static assets via env.ASSETS --------------------
