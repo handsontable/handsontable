@@ -20,7 +20,7 @@ const ExampleComponent = () => {
       height="auto"
       colHeaders={['Name', 'Symbol', 'Atomic Number', 'Melting Point (°F)', 'State']}
       rowHeaders={true}
-      colWidths={[200, 100, 100]}
+      colWidths={[200, 100, 100, 150, 100]}
       manualColumnResize={true}
       autoWrapRow={true}
       autoWrapCol={true}

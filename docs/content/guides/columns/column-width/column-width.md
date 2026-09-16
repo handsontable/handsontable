@@ -87,7 +87,7 @@ In this example, the first four columns are `30px`, `40px`, `50px`, and `60px` w
 
 ::: tip
 
-Setting `colWidths` for even one column disables the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin for the entire grid. Any column left out of the array does **not** auto-adjust to its content — it falls back to the default `50px` column width, which can cut off longer content. For this reason, if you use `colWidths`, set a width for every column.
+Setting `colWidths` for even one column disables the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin for the entire grid. Any column left out of the array does **not** auto-adjust to its content -- it falls back to the default `50px` column width, which can cut off longer content. For this reason, if you use `colWidths`, set a width for every column.
 
 :::
 
@@ -281,7 +281,11 @@ hot.getPlugin('manualColumnResize').clearManualSizes();
 hot.render();
 ```
 
+::: only-for javascript
+
 Try it in the demo below: drag a column header to resize it, then select **Clear manual sizes**, which runs the snippet above.
+
+:::
 
 ::: only-for javascript
 

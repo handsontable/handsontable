@@ -15,7 +15,7 @@ const hot = new Handsontable(container, {
     height: 'auto',
     colHeaders: ['Name', 'Symbol', 'Atomic Number', 'Melting Point (°F)', 'State'],
     rowHeaders: true,
-    colWidths: [200, 100, 100], // initial width of the first 3 columns
+    colWidths: [200, 100, 100, 150, 100], // initial width of each column
     manualColumnResize: true,
     autoWrapRow: true,
     autoWrapCol: true,
