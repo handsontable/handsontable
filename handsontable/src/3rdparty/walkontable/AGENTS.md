@@ -514,6 +514,15 @@ fields. Three rules follow.
   test and kept the window-scroll strategies' `scrollIntoView` call unreachable there — the
   `Element.prototype.scrollIntoView` stub in `test/bootstrap.js` exists because the fix made it
   reachable.
+- **The vertical owner's box is shared with the host's layout slots.** Both sizing paths ask
+  `layoutReservedHeight(trimmingContainer)` and hand the table what is left: `measureWorkspaceHeight`
+  (never below 1px) and `MasterTable#alignOverlaysWithTrimmingContainer` (the holder height, in both
+  the split-owner and the cached single-owner path — the reservation is part of the trimming-cache
+  fingerprint, or a bar that mounts after the first draw keeps the cached full-box height). The
+  host answers with the slots the owner CONTAINS – a root element that owns the axis contains none.
+  Window mode never asks: the page sizes nothing, a slot takes its own space there. Unit-pinned in
+  `test/unit/viewport/workspaceSize.unit.ts`, end-to-end in `tests/e2e/bottom-slot-sizing.spec.ts`
+  (DEV-2848).
 - **Scroll offsets are read and written per axis, off each overlay's `mainTableScrollableElement`,
   never off one shared element.** The inline-start overlay's element scrolls the horizontal axis
   and the top overlay's the vertical one, and in split mode they are different things (the holder

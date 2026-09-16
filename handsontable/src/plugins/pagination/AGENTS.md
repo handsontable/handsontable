@@ -40,6 +40,11 @@ note in `../base/AGENTS.md`.
 - **Default**: the UI registers its container with `hot.getLayoutManager()` and the manager appends it into
   the **bottom slot**. **The element stays detached until then** — do not `appendChild` it yourself.
 - **With a custom `uiContainer`**: the UI installs itself there and the slot registration is skipped.
+- **`#onBeforeHeightChange`'s `calc(height - bar)` is only for an explicit pixel `height`.** Every other
+  layout (scrollable ancestor, CSS-sized container) is sized by core: the engine reserves the slots'
+  height inside the axis owner (`layoutReservedHeight`) and the wrapper follows its content when the
+  window scrolls the rows. Do not add a second reservation here – with an explicit `height` the root
+  element is the axis owner and reserves 0, so the two never stack (DEV-2848).
 
 The manager exists only on the root instance. `isEnabled()` is already gated on `isRootInstance`, so by
 the time `enablePlugin()` reaches that guard **the `isRootInstance` half is always true and its else-branch
