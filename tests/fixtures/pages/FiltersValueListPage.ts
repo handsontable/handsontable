@@ -342,6 +342,23 @@ export class FiltersValueListPage {
   }
 
   /**
+   * Append an empty row under the last one the grid shows, the way a toolbar "add row" button does.
+   *
+   * @returns {Promise<number>} The visual index of the row that was added.
+   */
+  async insertRowBelowLast(): Promise<number> {
+    const newIndex = await this.page.evaluate(() => {
+      window.hot.alter('insert_row_below', window.hot.countRows() - 1);
+
+      return window.hot.countRows() - 1;
+    });
+
+    await expect(this.cell(newIndex, 0)).toBeVisible();
+
+    return newIndex;
+  }
+
+  /**
    * Write a value into a cell through the API, which fires `afterChange`.
    *
    * @param {number} row The visual row index.
