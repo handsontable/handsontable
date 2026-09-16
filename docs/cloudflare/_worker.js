@@ -941,8 +941,23 @@ async function figmaAuthHeaders(env, fetchImpl) {
  * Figma's version history interleaves autosave checkpoints (`label: null`)
  * with versions a designer deliberately named, and `last_touched_at` moves on
  * any edit at all - so both would report "updated today" because someone
- * nudged a frame. A named version is the team saying "this is a release",
- * which is the only one of the three worth showing a reader.
+ * nudged a frame.
+ *
+ * For this file the named versions are not just "some milestone": the design
+ * team labels one `Published to Community hub` on every publish. That matters
+ * because the Community listing the docs link to has **no** REST API of its
+ * own - searching Figma's whole OpenAPI spec for "community" returns only
+ * payment endpoints - so its publish date is otherwise unreadable. The team's
+ * labelling convention is what makes it readable at all.
+ *
+ * Measured 2026-09-16, and the gap is not academic: the newest named version
+ * was 2026-08-20 while `last_touched_at` was 2026-09-11. Reporting the latter
+ * would have claimed an update three weeks newer than anything a reader could
+ * actually download.
+ *
+ * The match is deliberately on "has a label", not on the label text - a
+ * reworded convention should degrade to the next named version, not to a
+ * wrong date.
  *
  * The response is ordered newest-first in practice, but the API does not
  * promise it, so the newest labelled entry is picked by date rather than by
