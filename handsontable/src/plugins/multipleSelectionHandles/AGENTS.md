@@ -2,11 +2,13 @@
 
 The `multipleSelectionHandles` plugin drives the two round grab-points on a selection's corners on touch devices. Read this before touching `multipleSelectionHandles.ts`.
 
-It is `@private` and has no setting: `isEnabled()` returns `isMobileBrowser()`, which is a **user-agent test evaluated when the plugin initializes**. Switching a browser into device emulation after the grid was built does nothing — reload, or no handles exist. That single fact is the most common reason a mobile test or manual check "fails" for the wrong reason.
+It is `@private` and has no setting: `isEnabled()` returns `isMobileOrIpadOS()`, which is evaluated when the plugin initializes. That covers a mobile user-agent **and** iPadOS 13+ Safari/Chrome, which report a desktop Macintosh UA (`isMobileBrowser()` is false, `isIpadOS()` is true). Switching a browser into device emulation after the grid was built does nothing — reload, or no handles exist. That single fact is the most common reason a mobile test or manual check "fails" for the wrong reason.
+
+**Do not fold iPadOS into `isMobileBrowser()`.** Walkontable `event.ts` keys listener registration on `isMobileBrowser()` only, so iPad keeps both touch and mouse listeners (DEV-2687). Selection-handle UI uses `isMobileOrIpadOS()`; the two predicates must stay distinct.
 
 ## This is the only drag path a phone has
 
-`3rdparty/walkontable/src/selection/border/border.ts` gates the desktop affordances behind `!isMobileBrowser()` and creates these handles instead (`createMultipleSelectorHandles`, keyed on `isMobileBrowser() && isDataViewInstance`). So on mobile:
+`3rdparty/walkontable/src/selection/border/border.ts` gates the desktop affordances behind `!isMobileOrIpadOS()` and creates these handles instead (`createMultipleSelectorHandles`, keyed on `isMobileOrIpadOS() && isDataViewInstance`). So on mobile and iPadOS:
 
 - The desktop `selectionHandles` resize handles and the `moveCells` edge bands are **not rendered**, and `afterOnSelectionHandleMouseDown` / `afterOnSelectionEdgeMouseDown` **never fire**. A plugin waiting on those hooks is never armed on a phone.
 - A plain finger drag across cells is **native scrolling by design** — `walkontable/src/event.ts` defers the synthesized mousedown to `touchend` so a drag scrolls instead of selecting.

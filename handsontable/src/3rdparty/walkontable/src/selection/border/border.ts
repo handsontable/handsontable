@@ -10,7 +10,7 @@ import {
   isHTMLElement,
 } from '../../../../../helpers/dom/element';
 import { stopImmediatePropagation, isRightClick } from '../../../../../helpers/dom/event';
-import { isMobileBrowser } from '../../../../../helpers/browser';
+import { isMobileOrIpadOS } from '../../../../../helpers/browser';
 import { getCornerStyle, standsBelowColumnHeader } from './utils';
 import { CUSTOM_SELECTION_TYPE } from '../constants';
 import { getSpreaderOffset } from '../../overlay/spreaderOffset';
@@ -340,7 +340,7 @@ class Border {
       this.cornerDefaultStyle.borderColor
     ].join(' ');
 
-    if (isMobileBrowser() && this.wot.getSetting('isDataViewInstance')) {
+    if (isMobileOrIpadOS() && this.wot.getSetting('isDataViewInstance')) {
       this.createMultipleSelectorHandles();
     }
     // The `selectionHandles` and `moveCells` elements are created lazily, on the first `appear()`
@@ -1665,7 +1665,7 @@ class Border {
       [,, checkRow, checkCol] = hookResult;
     }
 
-    if (isMobileBrowser() || !cornerVisibleSetting || !this.isSouthEastOfAreaSelection(checkRow, checkCol)) {
+    if (isMobileOrIpadOS() || !cornerVisibleSetting || !this.isSouthEastOfAreaSelection(checkRow, checkCol)) {
       this.cornerStyle!.display = 'none';
 
     } else {
@@ -1732,7 +1732,7 @@ class Border {
       this.cornerStyle!.display = 'block';
     }
 
-    if (isMobileBrowser() && this.wot.getSetting('isDataViewInstance')) {
+    if (isMobileOrIpadOS() && this.wot.getSetting('isDataViewInstance')) {
       this.updateMultipleSelectionHandlesPosition(
         corners[0],
         corners[1],
@@ -1750,7 +1750,7 @@ class Border {
     adjustVisible = typeof adjustVisible === 'function'
       ? adjustVisible(this.settings.layerLevel) : adjustVisible;
 
-    if (!isMobileBrowser() && adjustVisible && this.wot.getSetting('isDataViewInstance')) {
+    if (!isMobileOrIpadOS() && adjustVisible && this.wot.getSetting('isDataViewInstance')) {
       const adjustHandles = this.adjustHandles ?? this.createAdjustHandles();
 
       this.positionAdjustHandles(top, inlineStartPos, width, height, corners);
@@ -1784,7 +1784,7 @@ class Border {
     moveEnabled = typeof moveEnabled === 'function'
       ? moveEnabled(this.settings.layerLevel) : moveEnabled;
 
-    if (!isMobileBrowser() && moveEnabled && this.wot.getSetting('isDataViewInstance')) {
+    if (!isMobileOrIpadOS() && moveEnabled && this.wot.getSetting('isDataViewInstance')) {
       if (!this.moveZone) {
         this.createMoveZone();
       }
@@ -2047,7 +2047,7 @@ class Border {
     this.endStyle!.display = 'none';
     this.cornerStyle!.display = 'none';
 
-    if (isMobileBrowser() && this.wot.getSetting('isDataViewInstance')) {
+    if (isMobileOrIpadOS() && this.wot.getSetting('isDataViewInstance')) {
       this.selectionHandles.styles.top.display = 'none';
       this.selectionHandles.styles.topHitArea.display = 'none';
       this.selectionHandles.styles.bottom.display = 'none';

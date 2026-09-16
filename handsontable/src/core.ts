@@ -2,7 +2,7 @@ import { addClass, empty, isShadowRoot, observeVisibilityChangeOnce, removeClass
 import { RenderChangeTracker, markCellMetaChanged } from './core/incrementalRender/renderChangeTracker';
 import { isFunction } from './helpers/function';
 import { isDefined, isUndefined, isRegExp, isEmpty } from './helpers/mixed';
-import { isMobileBrowser, isIpadOS } from './helpers/browser';
+import { isMobileOrIpadOS } from './helpers/browser';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
 import {
@@ -2055,7 +2055,7 @@ export default function Core(
 
     instance.runHooks('beforeInit');
 
-    if (isMobileBrowser() || isIpadOS()) {
+    if (isMobileOrIpadOS()) {
       addClass(instance.rootElement, 'mobile');
     }
 

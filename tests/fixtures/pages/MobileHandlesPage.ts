@@ -1,18 +1,21 @@
-import { type Page, type Locator, expect } from '@playwright/test';
+import { type Page, type Locator, type CDPSession, expect } from '@playwright/test';
 
 /**
  * Page Object for the mobile selection handles fixture (DEV-2165).
  *
  * The spec using this page object must run with touch + mobile user agent
  * emulation (`test.use({ hasTouch: true, ... })`) — Handsontable decides
- * whether to create the selection handles from the user agent at grid
- * construction time.
+ * whether to create the selection handles from `isMobileOrIpadOS()` at grid
+ * construction time. iPadOS 13+ needs a Macintosh Safari UA plus an init
+ * script that sets `navigator.platform` to `MacIntel` and `maxTouchPoints`
+ * to 5 before the grid script loads (see `e2e/ipad-selection-handles.spec.ts`).
  */
 export class MobileHandlesPage {
   readonly page: Page;
   readonly theme: string;
   readonly bundle: string;
   readonly grid: Locator;
+  #cdp: CDPSession | null = null;
 
   constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
@@ -87,6 +90,23 @@ export class MobileHandlesPage {
   }
 
   /**
+   * The fill-handle square on the selection's bottom-end corner. On mobile and
+   * iPadOS this element exists but stays hidden; on desktop it is the visible
+   * autocomplete handle.
+   */
+  fillHandle(): Locator {
+    return this.page.locator('.ht_master .htBorders .wtBorder.corner').first();
+  }
+
+  /**
+   * The hit area of the bottom-right mobile selection handle — the element a
+   * finger grabs. It is larger than the painted handle.
+   */
+  bottomHitArea(): Locator {
+    return this.page.locator('.ht_master .htBorders .bottomSelectionHandle-HitArea:visible').first();
+  }
+
+  /**
    * Assert both mobile selection handles are attached and visible with a
    * non-zero rendered size.
    */
@@ -143,5 +163,76 @@ export class MobileHandlesPage {
 
     return handleBox.y + handleBox.height <= cellBox.y + (handleBox.height / 2)
       && handleBox.x + handleBox.width <= cellBox.x + (handleBox.width / 2);
+  }
+
+  /**
+   * Asserts the fill-handle square is not shown. On iPadOS the desktop
+   * autocomplete corner used to appear instead of the mobile range handles.
+   */
+  async expectFillHandleHidden(): Promise<void> {
+    await expect(this.fillHandle()).toBeHidden();
+  }
+
+  /**
+   * Whether MultipleSelectionHandles turned on at construction time.
+   */
+  async isHandlesPluginEnabled(): Promise<boolean> {
+    return this.page.evaluate(() => window.hot.getPlugin('multipleSelectionHandles').enabled);
+  }
+
+  /**
+   * The current selection as `[fromRow, fromCol, toRow, toCol]`.
+   */
+  async selectedLast(): Promise<number[]> {
+    return this.page.evaluate(() => window.hot.getSelectedLast());
+  }
+
+  /**
+   * Drags the bottom range handle onto another cell with a trusted touch
+   * gesture. Playwright's `touchscreen` only taps, so this goes through CDP.
+   */
+  async dragBottomHandleToCell(row: number, col: number): Promise<void> {
+    if (!this.#cdp) {
+      this.#cdp = await this.page.context().newCDPSession(this.page);
+    }
+
+    const startBox = await this.bottomHitArea().boundingBox();
+    const targetBox = await this.cell(row, col).boundingBox();
+
+    expect(startBox, 'the bottom handle hit area must be laid out').not.toBeNull();
+    expect(targetBox, 'the target cell must be laid out').not.toBeNull();
+
+    const start = {
+      x: startBox!.x + (startBox!.width / 2),
+      y: startBox!.y + (startBox!.height / 2),
+    };
+    const target = {
+      x: targetBox!.x + (targetBox!.width / 2),
+      y: targetBox!.y + (targetBox!.height / 2),
+    };
+
+    await this.#dispatchTouch('touchStart', start);
+
+    for (let step = 1; step <= 12; step++) {
+      await this.#dispatchTouch('touchMove', {
+        x: start.x + ((target.x - start.x) * step) / 12,
+        y: start.y + ((target.y - start.y) * step) / 12,
+      });
+    }
+
+    await this.#dispatchTouch('touchEnd');
+  }
+
+  /**
+   * Dispatches one touch event carrying a single touch point.
+   */
+  async #dispatchTouch(
+    type: 'touchStart' | 'touchMove' | 'touchEnd',
+    point?: { x: number, y: number },
+  ): Promise<void> {
+    await this.#cdp!.send('Input.dispatchTouchEvent', {
+      type,
+      touchPoints: point ? [{ x: point.x, y: point.y, radiusX: 12, radiusY: 12, force: 1, id: 1 }] : [],
+    });
   }
 }

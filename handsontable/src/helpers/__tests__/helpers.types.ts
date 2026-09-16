@@ -18,7 +18,7 @@ import {
 import {
   getComparisonFunction, isTouchSupported, requestAnimationFrame, cancelAnimationFrame
 } from 'handsontable/helpers/feature';
-import { isChrome, isEdge, isMobileBrowser, isSafari } from 'handsontable/helpers/browser';
+import { isChrome, isEdge, isMobileBrowser, isMobileOrIpadOS, isSafari } from 'handsontable/helpers/browser';
 import {
   countFirstRowKeys, createEmptySpreadsheetData, createSpreadsheetData, createSpreadsheetObjectData,
   dataRowToChangesArray, spreadsheetColumnIndex, spreadsheetColumnLabel
@@ -84,6 +84,7 @@ isEmpty(1);
 isFunction(1);
 isKey(1, 'foo');
 isMobileBrowser();
+isMobileOrIpadOS();
 isNumeric(true);
 isObject('foo');
 isObjectEqual([1, 2, 3], {});

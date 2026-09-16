@@ -7,7 +7,7 @@ import {
   setOverlayPosition,
   resetCssTransform,
 } from '../../../../../helpers/dom/element';
-import { isMobileBrowser } from '../../../../../helpers/browser';
+import { isMobileOrIpadOS } from '../../../../../helpers/browser';
 import TopOverlayTable from '../../table/regions/topTable';
 import { Overlay, type OverlayDeps } from './_base';
 import {
@@ -280,7 +280,7 @@ export class TopOverlay extends Overlay {
       return false;
     }
 
-    if (isMobileBrowser()) {
+    if (isMobileOrIpadOS()) {
       return true;
     }
 

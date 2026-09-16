@@ -208,9 +208,15 @@ not need a real press.
 - Page objects for mobile specs live in `fixtures/pages/mobile/` (as walkontable's do in
   `fixtures/pages/walkontable/`). A mobile spec must declare
   `test.use({ ...devices['iPhone 13'], browserName: 'chromium' })`: Handsontable decides
-  whether to create the mobile selection handles from the **user agent, at grid construction
-  time**, so without the emulation the handles never exist and the spec fails for the wrong
-  reason. Assert the handle is visible before touching it.
+  whether to create the mobile selection handles from `isMobileOrIpadOS()` at grid
+  construction time, so without the emulation the handles never exist and the spec fails for
+  the wrong reason. Assert the handle is visible before touching it.
+- iPhone emulation does **not** catch iPadOS 13+ (desktop Macintosh UA + `MacIntel` +
+  `maxTouchPoints > 2`). For that path, use Desktop Chrome, `hasTouch: true`, a Macintosh
+  Safari `userAgent`, and `addInitScript` that sets `navigator.platform = 'MacIntel'` and
+  `navigator.maxTouchPoints = 5` **before** the grid script loads (`setPlatformMeta` /
+  `setBrowserMeta` run at module load). Playwright Chromium on Linux reports `Linux x86_64`,
+  so a UA override alone is not enough. Reference: `e2e/ipad-selection-handles.spec.ts`.
 - `page.touchscreen` only **taps** — it has no drag. A touch drag needs CDP
   (`page.context().newCDPSession(page)` → `Input.dispatchTouchEvent`), which is also why those
   specs pin `browserName: 'chromium'`. Nothing else here emits trusted `touchmove`.
