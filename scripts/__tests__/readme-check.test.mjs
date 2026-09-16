@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import {
   extractLinks, isInternal, extractFeatures, featureDrift, findStaleVersions,
-  findWrongDocsPrefix, DOCS_PREFIX, READMES,
+  findWrongDocsPrefix, findUnprefixedDocsLinks, DOCS_PREFIX, READMES,
 } from '../readme-check.mjs';
 
 test('extractLinks finds markdown links, HTML attributes and srcset URLs', () => {
@@ -172,4 +172,23 @@ test('the list covers the four READMEs that exist, and every one of them is on d
   for (const { file } of READMES) {
     assert.ok(existsSync(new URL(`../../${file}`, import.meta.url)), `${file} is listed but missing`);
   }
+});
+
+test('findUnprefixedDocsLinks spots a wrapper link that drops the framework prefix', () => {
+  const links = extractLinks('[Licence](https://handsontable.com/docs/license-key/)');
+
+  assert.deepEqual(findUnprefixedDocsLinks(links, 'react').map(l => l.url),
+    ['https://handsontable.com/docs/license-key/']);
+});
+
+test('findUnprefixedDocsLinks leaves the root README alone — unprefixed is correct there', () => {
+  const links = extractLinks('[Licence](https://handsontable.com/docs/license-key/)');
+
+  assert.deepEqual(findUnprefixedDocsLinks(links, 'javascript'), []);
+});
+
+test('findUnprefixedDocsLinks does not re-report an already prefixed link', () => {
+  const links = extractLinks('[Licence](https://handsontable.com/docs/react-data-grid/license-key/)');
+
+  assert.deepEqual(findUnprefixedDocsLinks(links, 'react'), []);
 });

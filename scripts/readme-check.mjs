@@ -227,6 +227,30 @@ const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 '
   '(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
 
 /**
+ * Docs links in a wrapper README that carry no framework prefix at all. These resolve — the
+ * unprefixed page is the JavaScript one — so they are reported as a warning rather than a failure,
+ * but a React reader following one lands on JavaScript code samples. #13435 moved every such link
+ * to its own prefix and left one behind in each wrapper, which is the shape this catches.
+ *
+ * @param {{url: string, line: number}[]} links Links from `extractLinks`.
+ * @param {string} flavour The README's framework (`DOCS_PREFIX` key).
+ * @returns {{url: string, line: number}[]} Unprefixed docs links; always empty for the root README.
+ */
+export function findUnprefixedDocsLinks(links, flavour) {
+  if (flavour === 'javascript') {
+    return []; // the root README is the JavaScript one — unprefixed is correct there
+  }
+
+  const known = new Set(Object.values(DOCS_PREFIX));
+
+  return links.filter(({ url }) => {
+    const m = url.match(/handsontable\.com\/docs\/([a-z0-9-]+)(\/|$)/);
+
+    return m !== null && !known.has(m[1]);
+  });
+}
+
+/**
  * Resolve one URL, following redirects. HEAD first, falling back to GET for the hosts that answer
  * HEAD with a 405 (and for those that 404 a HEAD they would have served as a GET).
  *
@@ -327,6 +351,11 @@ async function main() {
   for (const file of files) {
     for (const stale of findStaleVersions(file.md, HOT_VERSION)) {
       failures.push(`${file.file}: '${stale.context}' is stale — we publish ${HOT_VERSION}`);
+    }
+    for (const link of findUnprefixedDocsLinks(file.links, file.flavour)) {
+      warnings.push(
+        `${file.file}:${link.line}: '${link.url}' has no framework prefix, so a reader of the ` +
+        `${file.flavour} README gets the JavaScript page (expected '${DOCS_PREFIX[file.flavour]}')`);
     }
     for (const link of findWrongDocsPrefix(file.links, file.flavour)) {
       failures.push(
