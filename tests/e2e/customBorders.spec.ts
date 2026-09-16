@@ -1417,6 +1417,46 @@ test.describe('CustomBorders and vetoed cell-meta writes', () => {
   });
 });
 
+test.describe('CustomBorders cascaded and partial borders meta', () => {
+  test('keeps a column-cascaded side when setBorders merges another side onto the same cell', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    // DEV-2513: column-level `borders` is a partial record with no plugin
+    // bookkeeping (`id`/`row`/`col`). `setBorders` used to reject that shape as
+    // a merge base, so the cascaded start became `{ hide: true }` when a
+    // different side was set on the same cell.
+    await lab.createGrid({
+      dataRows: 10,
+      dataCols: 10,
+      customBorders: true,
+      columns: Array.from({ length: 10 }, (_, col) => (
+        col === 9 ? { borders: { start: { width: 1, color: 'green' } } } : {}
+      )),
+    });
+
+    const before = await lab.cellBorders(5, 9);
+
+    expect(before?.start).toEqual({ width: 1, color: 'green' });
+    expect(await lab.borderCoords()).toEqual([]);
+
+    await page.evaluate(() => {
+      (window as any).hot.getPlugin('customBorders')
+        .setBorders([[5, 9, 5, 9]], { top: { width: 3, color: 'blue' } });
+    });
+
+    const borders = await lab.cellBorders(5, 9);
+    const neighbor = await lab.cellBorders(4, 9);
+
+    expect(borders?.start).toEqual({ width: 1, color: 'green' });
+    expect(borders?.top).toEqual({ width: 3, color: 'blue' });
+    // The merge must clone the shared column record. A neighbor in the same
+    // column still resolves only the cascaded start, with no own `top`.
+    expect(neighbor).toEqual({ start: { width: 1, color: 'green' } });
+    expect(await lab.borderCoords()).toEqual([{ row: 5, col: 9 }]);
+    expect(await lab.countVisibleCustomBorders()).toBe(2);
+  });
+});
+
 test.describe('CustomBorders row index maintenance', () => {
   test('keeps the rendered set correct across repeated add, restyle and remove', async ({ page, theme, bundle }) => {
     const lab = await gotoLab(page, theme, bundle);
