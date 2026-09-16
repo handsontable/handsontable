@@ -210,6 +210,25 @@ describe('Filters -> filterFixedRows', () => {
       expect(hot.getDataAtCol(0)).not.toContain('Header');
     });
 
+    it('should re-apply the exemption when the last frozen row is unpinned', () => {
+      // Setting the last `fixedRows*` count to 0 makes the pinned set empty, which reads exactly
+      // like "the grid never opted in". Treating the two the same skips the re-filter, so a row
+      // that was exempt stays on screen although nothing pins it any more.
+      const filters = buildGrid({
+        fixedRowsBottom: 0,
+        filters: { filterFixedRows: false },
+      }).getPlugin('filters');
+
+      filters.addCondition(2, 'eq', ['Red']);
+      filters.filter();
+      expect(hot.getDataAtCol(0)).toEqual(['Header', 'Apple', 'Cherry']);
+
+      hot.updateSettings({ fixedRowsTop: 0 });
+
+      // `Header` is Gold, so with nothing pinned the condition finally reaches it.
+      expect(hot.getDataAtCol(0)).toEqual(['Apple', 'Cherry']);
+    });
+
     it('should not re-filter when the option is off', () => {
       // The re-filter is gated so a grid that never opted in pays nothing. With the default, an
       // `updateSettings` carrying `fixedRows*` must leave the filtered result exactly as it was.
@@ -329,6 +348,25 @@ describe('Filters -> filterFixedRows', () => {
       const values = filters._getValueListDataAtColumn(2).map(({ value }) => value);
 
       expect(values).toEqual(['Green', 'Red', 'Green', 'Red']);
+    });
+
+    it('should follow a fixedRows* change with no condition applied', () => {
+      // Reading the list memoizes the pinned rows. Only `filter()` clears that memo, and with no
+      // condition there is nothing to re-filter - so a later `fixedRows*` change would keep
+      // answering from the set resolved on the first read.
+      const filters = buildGrid({
+        fixedRowsBottom: 0,
+        filters: { filterFixedRows: false },
+      }).getPlugin('filters');
+
+      expect(filters._getValueListDataAtColumn(2).map(({ value }) => value))
+        .toEqual(['Green', 'Red', 'Green', 'Red', 'Silver']);
+
+      hot.updateSettings({ fixedRowsTop: 0 });
+
+      // Nothing is pinned now, so `Gold` belongs in the list again.
+      expect(filters._getValueListDataAtColumn(2).map(({ value }) => value))
+        .toEqual(['Gold', 'Green', 'Red', 'Green', 'Red', 'Silver']);
     });
 
     it('should exclude the same pinned row from both branches when another plugin trims a row', () => {

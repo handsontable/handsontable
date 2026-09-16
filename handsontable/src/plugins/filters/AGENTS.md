@@ -59,10 +59,19 @@ captured when the plugin is enabled.
   rows as its `physicalRows` argument: subset reads intentionally bypass the memo, so that would
   re-scan the column on every condition (the DEV-2088 55 s freeze). A caller that already passes
   `physicalRows` has chosen its rows and is left alone.
-- **Resolving the set is memoized for one `filter()` call.** Every filtered column asks again, plus
-  the trimmed-state pass. `filter()` clears `#pinnedRowsCache` on the way in AND in a `finally` — the
-  hooks it fires are host code that can throw, and a memo surviving the call would answer the next
-  `filter()` from this pass's row order.
+- **Resolving the set is memoized for one `filter()` call, and ONLY inside it.** Every filtered
+  column asks again, plus the trimmed-state pass, so the memo earns its place there. It is written
+  only while `#isFilterPassActive`, because nothing clears it otherwise: the value list resolves the
+  same set on each menu opening, and with no condition applied there is no `filter()` to run — so a
+  memo written from a list read would answer every later opening from the row order of the first
+  one, across `fixedRows*` changes and row moves. `filter()` clears it on the way in AND in a
+  `finally`, since the hooks it fires are host code that can throw.
+- **"Is the exemption on" and "how many rows are pinned right now" are different questions.** The
+  counts are zero both when the grid never opted in and when the last overlay was just cleared, so
+  `#refilterForPinnedRows()` gates on `#isFixedRowExemptionActive()` (the option, and not under a
+  data provider) rather than on the counts. Gating on the counts skips the pass that puts the
+  no-longer-pinned rows back under the conditions, so setting `fixedRowsTop: 0` leaves a row on
+  screen that nothing pins any more.
 - **The exclusion means `filter()` has to put the pinned rows back.** They never reached the
   conditions, so they are absent from `rowIndexesToShow` and the trimmed-state pass marks them as
   "did not match". `filter()` forces them to `false` before `setValues()`.

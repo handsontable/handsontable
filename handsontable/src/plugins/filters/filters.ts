@@ -276,6 +276,12 @@ export class Filters extends BasePlugin {
    */
   #pinnedRowsCache: Set<number> | null | undefined;
   /**
+   * Whether a `filter()` pass is running, which is the only scope `#pinnedRowsCache` is valid in.
+   *
+   * @type {boolean}
+   */
+  #isFilterPassActive = false;
+  /**
    * Guards `#refilterForPinnedRows()` against re-entering itself.
    *
    * @type {boolean}
@@ -313,6 +319,22 @@ export class Filters extends BasePlugin {
   }
 
   /**
+   * Whether this grid exempts its frozen rows from filtering at all.
+   *
+   * Deliberately separate from "how many rows are pinned right now": those counts are zero both
+   * when the grid never opted in AND when the last overlay was just cleared. Reading the counts to
+   * decide whether to act conflates the two, so clearing `fixedRowsTop` would skip the re-filter
+   * and leave a row on screen that nothing pins any more.
+   *
+   * @private
+   */
+  #isFixedRowExemptionActive(): boolean {
+    // A data provider filters server-side, and the request carries no notion of a pinned row, so
+    // exempting rows locally would only make the grid disagree with the server's own result.
+    return !this.#isDataProviderActive && this.getSetting('filterFixedRows') === false;
+  }
+
+  /**
    * How many rows each overlay pins, or zeros while `filterFixedRows` keeps them in the filter.
    *
    * Read straight from the grid settings on every call, the same way `fixedRowsTop` and
@@ -321,9 +343,7 @@ export class Filters extends BasePlugin {
    * @private
    */
   #getPinnedRowCounts(): { top: number, bottom: number } {
-    // A data provider filters server-side, and the request carries no notion of a pinned row, so
-    // exempting rows locally would only make the grid disagree with the server's own result.
-    if (this.#isDataProviderActive || this.getSetting('filterFixedRows') !== false) {
+    if (!this.#isFixedRowExemptionActive()) {
       return { top: 0, bottom: 0 };
     }
 
@@ -373,7 +393,13 @@ export class Filters extends BasePlugin {
       pinnedRows = resolved.size > 0 ? resolved : null;
     }
 
-    this.#pinnedRowsCache = pinnedRows;
+    // Stored ONLY while `filter()` is running. Every other caller - the value list, which is built
+    // on each menu opening - must resolve afresh: nothing clears the memo between those calls, and
+    // with no condition applied there is no `filter()` to clear it, so a later `fixedRows*` change
+    // or row move would keep being answered from the set this call resolved.
+    if (this.#isFilterPassActive) {
+      this.#pinnedRowsCache = pinnedRows;
+    }
 
     return pinnedRows;
   }
@@ -403,10 +429,11 @@ export class Filters extends BasePlugin {
    * @private
    */
   #refilterForPinnedRows() {
-    const { top, bottom } = this.#getPinnedRowCounts();
-
+    // The OPTION, not the current counts: clearing the last `fixedRows*` count makes the counts
+    // zero, and gating on them would read that as "this grid never opted in" and skip the pass
+    // that puts the no-longer-pinned rows back under the conditions.
     if (this.#isRefilteringForPinnedRows ||
-        (top === 0 && bottom === 0) ||
+        !this.#isFixedRowExemptionActive() ||
         !this.conditionCollection ||
         this.conditionCollection.isEmpty()) {
       return;
@@ -1242,14 +1269,17 @@ export class Filters extends BasePlugin {
     const needToFilter = !this.conditionCollection?.isEmpty();
     const conditions = this.exportConditions();
 
-    // Resolved once here and reused by every column read below. Cleared in the `finally` rather
-    // than at the end of the body: `beforeFilter` and `afterFilter` are host code and may throw,
-    // and a memo surviving the call would answer the NEXT `filter()` from this pass's row order.
+    // Resolved once per pass and reused by every column read below. Both the flag and the memo are
+    // released in the `finally` rather than at the end of the body: `beforeFilter` and
+    // `afterFilter` are host code and may throw, and a memo surviving the call would answer the
+    // next read from this pass's row order.
     this.#pinnedRowsCache = undefined;
+    this.#isFilterPassActive = true;
 
     try {
       this.#filterInternal(navigableHeaders, needToFilter, conditions);
     } finally {
+      this.#isFilterPassActive = false;
       this.#pinnedRowsCache = undefined;
     }
   }
