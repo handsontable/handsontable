@@ -252,6 +252,14 @@ runs:
     # Same-repo runs only: a fork or Dependabot run has no credentials, and the
     # guard is the canonical one so the set stays greppable and testable
     # (root AGENTS.md, "fork and Dependabot pull requests").
+    #
+    # This condition carries NO status-check function, on purpose: GitHub therefore
+    # ANDs an implicit `success()` onto it, so a failed `Write the manifest` step —
+    # which is how a run with pages that never rendered ends — skips the publish
+    # rather than uploading a report of a comparison that did not happen. Do not
+    # add `!cancelled()` here "for consistency" with the verdict step below; that
+    # would publish the broken run. The verdict step wants the opposite, which is
+    # why it does carry one. (.ai/CI.md, the status-function entry.)
     - name: Publish the report
       if: ${{ inputs.mode == 'compare' && env.DOCS_VISUAL_BOOTSTRAP != 'true'
         && (github.event_name != 'pull_request'

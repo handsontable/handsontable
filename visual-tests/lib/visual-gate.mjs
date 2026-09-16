@@ -89,6 +89,40 @@ export function evaluate({
     };
   }
 
+  // Pages that failed before they compared anything. reg-suit never emits this key, so the core suite
+  // is untouched; the docs adapter (`docs/tests/lib/visual-manifest.mjs`) writes it for a test that
+  // never reached `toHaveScreenshot` — the preview 500'd, navigation timed out, the loading overlay
+  // never cleared.
+  //
+  // It has to block HERE rather than only in the adapter's CLI. The CLI already exits non-zero, but
+  // the action's verdict step runs on `!cancelled()`, so it executes anyway, reads the manifest the
+  // CLI had already written, and would otherwise report `clean` or `changed` over a run where pages
+  // never rendered — asking for an approval on a build whose own job has failed, and linking a report
+  // the publish step (which has no status function, so it skips) never uploaded.
+  const errored = Array.isArray(report?.erroredItems) ? report.erroredItems : [];
+
+  if (errored.length > 0) {
+    return {
+      blocked: true,
+      verdict: 'error',
+      summary: `${errored.length} page(s) failed without comparing a screenshot, so this build's visual `
+        + 'state is unknown.',
+      comment: [
+        `## ${title} — could not compare`,
+        '',
+        `${errored.length} page${errored.length === 1 ? '' : 's'} failed before taking a screenshot, so `
+          + 'there is nothing to approve. The usual causes are a preview that did not come up, a',
+        'navigation timeout, or an example that never finished loading.',
+        '',
+        ...errored.slice(0, 20).map(item => `- \`${item}\``),
+        errored.length > 20 ? `- …and ${errored.length - 20} more` : '',
+        '',
+        'Fix the run and push again; the comparison reports nothing until every page renders.',
+        runUrl ? `\n[Workflow run](${runUrl})\n` : '',
+      ].filter(line => line !== '').join('\n'),
+    };
+  }
+
   if (bootstrap && !compared) {
     return seeded
       ? {

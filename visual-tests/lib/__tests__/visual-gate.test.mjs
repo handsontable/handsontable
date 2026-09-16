@@ -250,3 +250,35 @@ test('the verdicts and the blocking flag do not depend on the labels', () => {
     assert.equal(docs.blocked, core.blocked);
   });
 });
+
+test('a run with pages that never rendered blocks, instead of reporting a visual verdict', () => {
+  // The docs adapter writes `erroredItems` for a test that failed before reaching
+  // `toHaveScreenshot`. Its CLI already exits non-zero, but the action's verdict step runs on
+  // `!cancelled()`, so it executes anyway and reads the manifest that was already written. Without
+  // this branch it would report `clean` or `changed` over a run where pages never rendered, ask for
+  // an approval on a build whose own job had failed, and link a report the publish step — which has
+  // no status function of its own, so it skips — never uploaded.
+  const v = evaluate({
+    report: {
+      ...report({ changed: 2, passed: 400 }),
+      erroredItems: ['visualDocs.spec.ts/js-a.png', 'visualDocs.spec.ts/js-b.png'],
+    },
+    runUrl: 'https://r/1',
+  });
+
+  assert.equal(v.blocked, true);
+  assert.equal(v.verdict, 'error', 'an errored run must never reach the approval job');
+  assert.match(v.comment, /could not compare/);
+  assert.match(v.comment, /visualDocs\.spec\.ts\/js-a\.png/, 'the pages that failed must be named');
+  assert.match(v.summary, /failed without comparing a screenshot/);
+});
+
+test('reg-suit reports carry no erroredItems, so the core suite is untouched', () => {
+  // The key is the docs adapter's, not reg-suit's. A core report has no such field, and an empty
+  // list must not block either.
+  assert.equal(evaluate({ report: report({ changed: 3, passed: 10 }) }).verdict, 'changed');
+  assert.equal(evaluate({
+    report: { ...report({ changed: 3, passed: 10 }), erroredItems: [] },
+  }).verdict, 'changed');
+  assert.equal(evaluate({ report: report({ passed: 10 }) }).verdict, 'clean');
+});
