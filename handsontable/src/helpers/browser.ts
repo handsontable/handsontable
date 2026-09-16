@@ -146,7 +146,8 @@ export function isIpadOS({ maxTouchPoints }: { maxTouchPoints?: number } = navig
  * Returns `true` on a mobile user-agent, or on iPadOS that reports a desktop Macintosh UA
  * (iPadOS 13+). Use this for touch-first UI such as mobile selection handles and the `.mobile`
  * CSS class. Do not use it to skip mouse listeners: Walkontable `event.ts` must keep
- * `isMobileBrowser()` so dual-listener devices still register both sets.
+ * `isMobileBrowser()` so dual-listener devices still register both sets. Do not use
+ * it to hide desktop mouse-driven affordances iPad should keep (`moveCells`).
  *
  * @param {object} [navigatorLike=navigator] Navigator-like object with `maxTouchPoints`.
  * @param {number} [navigatorLike.maxTouchPoints] Maximum simultaneous touch points.

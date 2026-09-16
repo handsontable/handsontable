@@ -1,4 +1,4 @@
-import { devices } from '@playwright/test';
+import { devices, type Page } from '@playwright/test';
 import { test, expect } from '../fixtures/test';
 import { MobileHandlesPage } from '../fixtures/pages/MobileHandlesPage';
 
@@ -17,6 +17,26 @@ import { MobileHandlesPage } from '../fixtures/pages/MobileHandlesPage';
 const IPAD_SAFARI_DESKTOP_UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) ' +
   'AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.1 Safari/605.1.15';
 
+const CLOCK_START = new Date('2026-08-28T10:00:00Z');
+
+/**
+ * Playwright Chromium on Linux reports `Linux x86_64`, so the Macintosh UA
+ * alone is not enough: set `platform` and `maxTouchPoints` before Handsontable's
+ * module-load `setPlatformMeta` / `setBrowserMeta` run.
+ */
+async function emulateIpadOS(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'platform', {
+      configurable: true,
+      get: () => 'MacIntel',
+    });
+    Object.defineProperty(navigator, 'maxTouchPoints', {
+      configurable: true,
+      get: () => 5,
+    });
+  });
+}
+
 test.use({
   ...devices['Desktop Chrome'],
   hasTouch: true,
@@ -29,16 +49,7 @@ test.describe('iPadOS selection range handles', () => {
   let grid: MobileHandlesPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {
-    await page.addInitScript(() => {
-      Object.defineProperty(navigator, 'platform', {
-        configurable: true,
-        get: () => 'MacIntel',
-      });
-      Object.defineProperty(navigator, 'maxTouchPoints', {
-        configurable: true,
-        get: () => 5,
-      });
-    });
+    await emulateIpadOS(page);
 
     grid = new MobileHandlesPage(page, theme, bundle);
     await grid.goto();
@@ -61,5 +72,39 @@ test.describe('iPadOS selection range handles', () => {
     await grid.dragBottomHandleToCell(3, 3);
 
     await expect.poll(() => grid.selectedLast()).toEqual([1, 1, 3, 3]);
+  });
+
+  test('keep the moveCells drag band on iPad when the option is on', async () => {
+    await grid.enableMoveCells();
+    await grid.selectRange(1, 1, 2, 2);
+    await grid.expectHandlesVisible();
+
+    await expect(grid.moveZones().first()).toBeVisible();
+  });
+});
+
+test.describe('iPadOS double-tap to edit with range handles present', () => {
+  let grid: MobileHandlesPage;
+
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    await page.clock.install({ time: CLOCK_START });
+    await emulateIpadOS(page);
+
+    grid = new MobileHandlesPage(page, theme, bundle);
+    await grid.goto();
+    await page.clock.pauseAt(CLOCK_START.getTime() + 60_000);
+  });
+
+  test('opens the editor on a double-tap after the cell is selected', async ({ page }) => {
+    await grid.tapCell(1, 1);
+    await page.clock.runFor(1500);
+    await grid.expectHandlesVisible();
+    await grid.expectEditorClosed();
+
+    await grid.tapCell(1, 1);
+    await page.clock.runFor(700);
+    await grid.tapCell(1, 1);
+
+    await grid.expectEditorOpen();
   });
 });

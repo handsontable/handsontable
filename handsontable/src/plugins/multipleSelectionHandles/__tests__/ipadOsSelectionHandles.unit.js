@@ -125,6 +125,28 @@ describe('MultipleSelectionHandles iPadOS detection', () => {
     expect(fillCorner().style.display).not.toBe('none');
   });
 
+  it('should not throw from disappear() when isIpadOS flips on after construction', () => {
+    emulate({
+      userAgent: IPAD_DESKTOP_SAFARI_UA,
+      platform: 'MacIntel',
+      maxTouchPoints: 0,
+    });
+    build();
+
+    expect(bottomHandle()).toBe(null);
+
+    Object.defineProperty(navigator, 'maxTouchPoints', {
+      configurable: true,
+      get: () => 5,
+    });
+
+    expect(() => {
+      hot.deselectCell();
+      hot.selectCell(1, 1);
+      hot.render();
+    }).not.toThrow();
+  });
+
   it('should still enable the plugin on an Android mobile user-agent', () => {
     emulate({
       userAgent: ANDROID_UA,

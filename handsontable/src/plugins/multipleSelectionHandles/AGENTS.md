@@ -8,9 +8,17 @@ It is `@private` and has no setting: `isEnabled()` returns `isMobileOrIpadOS()`,
 
 ## This is the only drag path a phone has
 
-`3rdparty/walkontable/src/selection/border/border.ts` gates the desktop affordances behind `!isMobileOrIpadOS()` and creates these handles instead (`createMultipleSelectorHandles`, keyed on `isMobileOrIpadOS() && isDataViewInstance`). So on mobile and iPadOS:
+`3rdparty/walkontable/src/selection/border/border.ts` gates the desktop **resize** handles (`adjustHandles` / `selectionHandles` option) behind `!isMobileOrIpadOS()` and creates these handles instead (`createMultipleSelectorHandles`, keyed on `isMobileOrIpadOS() && isDataViewInstance`). The `moveCells` edge bands stay gated on `!isMobileBrowser()` so iPad (desktop UA) keeps the drag band it had before DEV-1081. Do not fold that gate into `isMobileOrIpadOS()` — that accidentally turned `moveCells` off on iPad.
+
+On a phone (`isMobileBrowser()`):
 
 - The desktop `selectionHandles` resize handles and the `moveCells` edge bands are **not rendered**, and `afterOnSelectionHandleMouseDown` / `afterOnSelectionEdgeMouseDown` **never fire**. A plugin waiting on those hooks is never armed on a phone.
+
+On iPad (`isIpadOS()` but not `isMobileBrowser()`):
+
+- Mobile range handles are shown and the fill square is hidden.
+- Desktop resize handles stay off.
+- `moveCells` edge bands still render when the option is on.
 - A plain finger drag across cells is **native scrolling by design** — `walkontable/src/event.ts` defers the synthesized mousedown to `touchend` so a drag scrolls instead of selecting.
 
 Both together mean: if a feature should work while dragging on mobile, it has to hook into *this* plugin. DragToScroll does exactly that, by asking `isDraggedBy(touch.identifier)` from its own document-level `touchstart` listener (see `../dragToScroll/AGENTS.md`).

@@ -181,6 +181,40 @@ export class MobileHandlesPage {
   }
 
   /**
+   * Whether the active cell editor is currently open (the engine's own state, not DOM visibility —
+   * the `.handsontableInput` textarea is always rendered, off-screen when closed).
+   */
+  async isEditorOpen(): Promise<boolean> {
+    return this.page.evaluate(() => window.hot.getActiveEditor()?.isOpened() ?? false);
+  }
+
+  async expectEditorOpen(): Promise<void> {
+    await expect.poll(() => this.isEditorOpen()).toBe(true);
+  }
+
+  async expectEditorClosed(): Promise<void> {
+    await expect.poll(() => this.isEditorOpen()).toBe(false);
+  }
+
+  /**
+   * The `moveCells` edge-band overlays. iPad keeps these when the option is on
+   * (`!isMobileBrowser()`); phones do not (`isMobileOrIpadOS()` must not gate them).
+   */
+  moveZones(): Locator {
+    return this.page.locator('.ht_master .htBorders .wtMoveZone');
+  }
+
+  /**
+   * Turns `moveCells` on after construction so the iPad handle fixture can also
+   * assert the drag band still appears (DEV-1081 gate split).
+   */
+  async enableMoveCells(): Promise<void> {
+    await this.page.evaluate(() => {
+      window.hot.updateSettings({ moveCells: true });
+    });
+  }
+
+  /**
    * The current selection as `[fromRow, fromCol, toRow, toCol]`.
    */
   async selectedLast(): Promise<number[]> {
