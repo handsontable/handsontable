@@ -39,6 +39,10 @@ Three invariants ride along. `isSelectedAllValues()` compares the item list agai
 - **`ConditionUpdateObserver` memoizes full-column data maps** per state update / per `flush()` batch (`#withColumnDataCache`/`#getColumnData`). The memo is only sound because source data cannot change inside one update and rows correlate via `entry.row`. If you add a code path that mutates source data during an update cascade, it must not run inside an active memo scope. Subset reads (`physicalRows` argument) intentionally bypass the memo.
 - **Batch, don't loop, the update cascade.** `#onAfterChange` dedups changed columns per batch, and `importConditions` wraps its loop in `conditionUpdateObserver.groupChanges()`/`flush()` — the same pattern as the action-bar submit. Any new code path that adds/removes several conditions programmatically must group the same way, or every condition pays a full-dataset component update (this was a 55 s freeze for a 1,000-cell paste before DEV-2088).
 
+## Filter-by-value display formatting
+
+- **The list formats through `meta.valueFormatter` only.** `ValueComponent#onModifyDisplayedValue` calls the cell-meta formatter when it is present and otherwise shows the source value. The paint path (`formatCellValue` in `renderCell.ts`) also falls back to `renderer.valueFormatter`. A cell type that hashes or formats for display must put the same function on the type object so `extendByMetaType` copies it onto cell meta — otherwise Filter-by-value shows plaintext (DEV-1021 / password; the numeric case is #10756). Do not "fix" this by routing the list through `formatCellValue`: that would also pick up renderer-only columns, and `modifyFiltersMultiSelectValue` already owns the hook escape hatch.
+
 ## Condition inputs and date/time parsing
 
 - Date and time conditions parse BOTH the cell value and the user input with `parseToLocalDate()`/`parseToLocalTime()` (`helpers/dateTime.ts`), which accept **only strict ISO strings** (`YYYY-MM-DD` / `HH:mm[:ss]`) and return `null` otherwise — a `null` makes the condition reject every row. Never feed these parsers locale-formatted text.

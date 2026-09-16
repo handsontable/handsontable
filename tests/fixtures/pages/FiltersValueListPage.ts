@@ -1,6 +1,18 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 
 /**
+ * Escapes a Filter-by-value label so it can be used in a `^…$` exact-match
+ * regexp. Password hashes are runs of `*`, which would otherwise throw
+ * `Nothing to repeat`.
+ *
+ * @param {string} label The visible list label.
+ * @returns {string} The label with regexp special characters escaped.
+ */
+function escapeRegExp(label: string): string {
+  return label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
  * Page Object for the "filter by value" dropdown-menu fixture.
  *
  * The filters dropdown is grid-internal DOM, so it cannot carry fixture-stamped
@@ -249,7 +261,7 @@ export class FiltersValueListPage {
    */
   async checkValue(label: string): Promise<void> {
     const checkbox = this.valueList
-      .filter({ has: this.page.locator('label', { hasText: new RegExp(`^${label}$`) }) })
+      .filter({ has: this.page.locator('label', { hasText: new RegExp(`^${escapeRegExp(label)}$`) }) })
       .locator('input[type="checkbox"]');
 
     await checkbox.click();
@@ -304,7 +316,7 @@ export class FiltersValueListPage {
    */
   async uncheckValue(label: string): Promise<void> {
     const checkbox = this.valueList
-      .filter({ has: this.page.locator('label', { hasText: new RegExp(`^${label}$`) }) })
+      .filter({ has: this.page.locator('label', { hasText: new RegExp(`^${escapeRegExp(label)}$`) }) })
       .locator('input[type="checkbox"]');
 
     await checkbox.click();
