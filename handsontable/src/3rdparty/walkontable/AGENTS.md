@@ -52,6 +52,13 @@ fill handle is *repositioned* rather than re-layered at the `fixedRowsBottom` li
 clear a clone, so the master's mobile handles are repositioned instead: the top handle is inset by
 `isTopHandleOccludedByClone` and the bottom handle is lifted by `isBottomHandleOccludedByClone`.
 
+On iPad the same handles also force the top overlay to reserve the fill-corner's protruding
+half-height whenever the selection's bottom-end sits inside `fixedRowsTop`
+(`TopOverlay#shouldReserveSelectionCornerOffset`, gated on `isMobileOrIpadOS()`). That branch runs
+even when the fill square is hidden (`fillHandle: false` / `cornerVisible` false); reverting the
+gate to `isMobileBrowser()` drops iPad onto the desktop fallback and skips the reserve.
+`tests/e2e/ipad-selection-handles.spec.ts` pins the frozen-row holder overhang.
+
 **The trigger for those two is clone presence, not the fixed-pane count, and the difference is not
 cosmetic.** `shouldRenderTopOverlay` is true for `colHeaders` alone, so with `fixedRowsTop: 0` a
 row-0 selection sits flush against the `top` clone exactly as row `fixedRowsTop` does with a frozen

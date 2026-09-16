@@ -81,6 +81,35 @@ test.describe('iPadOS selection range handles', () => {
 
     await expect(grid.moveZones().first()).toBeVisible();
   });
+
+  test('starts a moveCells drag from a mouse press on the band, away from the range handle', async ({ page }) => {
+    await grid.enableMoveCells();
+    await grid.selectRange(1, 1, 3, 3);
+    await grid.expectHandlesVisible();
+    await expect(grid.moveZones().first()).toBeVisible();
+
+    // The 6px `wtMoveZone` band sits on the selection edge (mousedown). The 40px handle hit
+    // area hangs off the corner and listens for `touchstart` only. A trackpad press at the
+    // band midpoint must still enter the move-drag state.
+    await grid.pressTopMoveBandMidpoint();
+
+    await expect(grid.movingRoot()).toHaveCount(1);
+
+    await page.keyboard.press('Escape');
+    await page.mouse.up();
+
+    await expect(grid.movingRoot()).toHaveCount(0);
+  });
+
+  test('does not extend the selection from a mouse drag on the range handle', async () => {
+    await grid.enableMoveCells();
+    await grid.selectRange(1, 1, 1, 1);
+    await grid.expectHandlesVisible();
+
+    await grid.mouseDragBottomHandleBy(80, 80);
+
+    await expect.poll(() => grid.selectedLast()).toEqual([1, 1, 1, 1]);
+  });
 });
 
 test.describe('iPadOS double-tap to edit with range handles present', () => {
@@ -106,5 +135,33 @@ test.describe('iPadOS double-tap to edit with range handles present', () => {
     await grid.tapCell(1, 1);
 
     await grid.expectEditorOpen();
+  });
+});
+
+test.describe('iPadOS frozen-top corner reserve', () => {
+  let grid: MobileHandlesPage;
+
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    await emulateIpadOS(page);
+
+    grid = new MobileHandlesPage(page, theme, bundle);
+    await grid.goto({ frozen: true });
+  });
+
+  test('grows the top overlay holder for a frozen-row selection even with the fill handle off', async () => {
+    // Isolates the `isMobileOrIpadOS()` branch in `shouldReserveSelectionCornerOffset`: on iPad
+    // the fill square is hidden, so `cornerVisible` is false once `fillHandle` is off, and the
+    // desktop fallback would skip the reserve. The mobile/iPad gate still adds half the corner.
+    await grid.disableFillHandle();
+    await grid.selectRange(0, 1, 0, 1);
+
+    const expected = await grid.autofillCornerHalfHeight();
+
+    expect(expected).toBeGreaterThan(0);
+    await expect.poll(() => grid.topOverlayHolderOverhang()).toBe(expected);
+
+    await grid.selectRange(2, 1, 2, 1);
+
+    await expect.poll(() => grid.topOverlayHolderOverhang()).toBe(0);
   });
 });

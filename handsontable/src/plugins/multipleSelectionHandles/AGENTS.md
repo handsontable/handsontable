@@ -17,8 +17,10 @@ On a phone (`isMobileBrowser()`):
 On iPad (`isIpadOS()` but not `isMobileBrowser()`):
 
 - Mobile range handles are shown and the fill square is hidden.
-- Desktop resize handles stay off.
+- Desktop resize handles (`adjustHandles`) stay off.
 - `moveCells` edge bands still render when the option is on.
+
+The round handles listen for `touchstart` / `touchmove` / `touchend` only — there is no `mousedown` on `topSelectionHandle-HitArea` / `bottomSelectionHandle-HitArea`. A trackpad or mouse therefore cannot resize via those handles. It still **moves** the selection through the 6px `wtMoveZone` bands, which listen for `mousedown` and sit at z-index 100 on the selection edge. The 40×40 handle hit area hangs off the corner, so most of it does not overlap the band; a mouse press on the painted handle that misses the band is a no-op. Do not add `mousedown` to the handles to "fix" that: it would steal the band's corner pixels and change the desktop-UA iPad product. Finger resize stays on the handles (`tests/e2e/ipad-selection-handles.spec.ts` pins both the mouse-on-band move and the mouse-on-handle no-resize).
 
 On both, a plain finger drag across cells is **native scrolling by design** — `walkontable/src/event.ts` defers the synthesized mousedown to `touchend` so a drag scrolls instead of selecting.
 

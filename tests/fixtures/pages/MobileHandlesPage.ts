@@ -215,6 +215,84 @@ export class MobileHandlesPage {
   }
 
   /**
+   * Turns the fill handle off so a frozen-row overlay-size assertion can pin the
+   * `isMobileOrIpadOS()` corner-reserve branch without `cornerVisible` also being true.
+   */
+  async disableFillHandle(): Promise<void> {
+    await this.page.evaluate(() => {
+      window.hot.updateSettings({ fillHandle: false });
+    });
+  }
+
+  /**
+   * How many extra pixels the top overlay's holder is taller than its parent. On iPad this is
+   * half the autofill-corner size whenever the selection's bottom-end sits inside `fixedRowsTop`.
+   */
+  async topOverlayHolderOverhang(): Promise<number> {
+    return this.page.evaluate(() => {
+      const holder = document.querySelector('.ht_clone_top .wtHolder');
+      const parent = holder?.parentElement;
+
+      if (!(holder instanceof HTMLElement) || !(parent instanceof HTMLElement)) {
+        return Number.NaN;
+      }
+
+      return parseFloat(holder.style.height) - parseFloat(parent.style.height);
+    });
+  }
+
+  /**
+   * Half of `--ht-cell-autofill-size`, which is the strip `TopOverlay` adds when it reserves
+   * the selection-corner offset.
+   */
+  async autofillCornerHalfHeight(): Promise<number> {
+    return this.page.evaluate(() => {
+      const themeRoot = document.querySelector('[data-testid="grid"]');
+      const size = getComputedStyle(themeRoot as Element).getPropertyValue('--ht-cell-autofill-size');
+
+      return parseInt(size, 10) / 2;
+    });
+  }
+
+  /**
+   * The grid's root wrapper carrying the `ht__moving` drag-state class.
+   */
+  movingRoot(): Locator {
+    return this.page.locator('.handsontable.ht__moving');
+  }
+
+  /**
+   * Presses the midpoint of the top `moveCells` band with the mouse. That point sits on the
+   * selection edge, away from the round range handles that hang off the corners.
+   */
+  async pressTopMoveBandMidpoint(): Promise<void> {
+    const box = await this.moveZones().first().boundingBox();
+
+    expect(box, 'the top move band must be laid out').not.toBeNull();
+
+    await this.page.mouse.move(box!.x + (box!.width / 2), box!.y + (box!.height / 2));
+    await this.page.mouse.down();
+  }
+
+  /**
+   * Drags the painted bottom range handle with the mouse. The plugin listens for `touchstart`
+   * only, so a trackpad drag from this point must not extend the selection.
+   */
+  async mouseDragBottomHandleBy(deltaX: number, deltaY: number): Promise<void> {
+    const box = await this.bottomHandle().boundingBox();
+
+    expect(box, 'the bottom range handle must be laid out').not.toBeNull();
+
+    const startX = box!.x + (box!.width / 2);
+    const startY = box!.y + (box!.height / 2);
+
+    await this.page.mouse.move(startX, startY);
+    await this.page.mouse.down();
+    await this.page.mouse.move(startX + deltaX, startY + deltaY);
+    await this.page.mouse.up();
+  }
+
+  /**
    * The current selection as `[fromRow, fromCol, toRow, toCol]`.
    */
   async selectedLast(): Promise<number[]> {
