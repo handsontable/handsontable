@@ -267,9 +267,12 @@ export function findUnprefixedDocsLinks(links, flavour) {
   const known = new Set(Object.values(DOCS_PREFIX));
 
   return links.filter(({ url }) => {
-    const m = url.match(/handsontable\.com\/docs\/([a-z0-9-]+)(\/|$)/);
+    // The slug is optional: a bare `/docs` is the docs homepage, which is the unprefixed form of
+    // the Documentation header link every wrapper already prefixes. Requiring a slug would let
+    // that one through.
+    const m = url.match(/handsontable\.com\/docs(?:\/([a-z0-9-]+))?(?:[/?#]|$)/);
 
-    return m !== null && !known.has(m[1]);
+    return m !== null && (m[1] === undefined || !known.has(m[1]));
   });
 }
 

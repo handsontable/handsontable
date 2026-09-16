@@ -214,3 +214,15 @@ test('a protocol-relative URL is classified and fetched as https, not reported a
   assert.equal(isInternal('//handsontable.com/docs/'), true);
   assert.equal(isInternal('//www.npmjs.com/package/handsontable'), false);
 });
+
+test('findUnprefixedDocsLinks flags a bare /docs homepage link in a wrapper', () => {
+  // The wrappers' Documentation header link is prefixed; copying the root README's bare `/docs`
+  // over it would send a React reader to the JavaScript docs home, and used to go uncaught.
+  const inReact = href => findUnprefixedDocsLinks(extractLinks(`<a href="${href}">D</a>`), 'react');
+
+  assert.deepEqual(inReact('https://handsontable.com/docs').map(l => l.url),
+    ['https://handsontable.com/docs']);
+  assert.deepEqual(inReact('https://handsontable.com/docs/').map(l => l.url),
+    ['https://handsontable.com/docs/']);
+  assert.deepEqual(inReact('https://handsontable.com/docs/react-data-grid'), []);
+});
