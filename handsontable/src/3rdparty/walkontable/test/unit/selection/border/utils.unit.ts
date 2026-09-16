@@ -33,6 +33,10 @@ describe('getBorderSettingsProperty', () => {
     expect(getBorderSettingsProperty({ width: undefined }, 'width', fallbackBorder)).toBe(1);
   });
 
+  it('should fall back when the side value is null', () => {
+    expect(getBorderSettingsProperty({ extra: null }, 'extra', { extra: 'fallback' })).toBe('fallback');
+  });
+
   it('should return undefined when neither the side nor the fallback provides the property', () => {
     expect(getBorderSettingsProperty(undefined, 'style', undefined)).toBeUndefined();
     expect(getBorderSettingsProperty({}, 'style', {})).toBeUndefined();
