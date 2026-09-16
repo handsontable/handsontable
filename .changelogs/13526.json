@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed a column sort skipping the last data row when spare rows and bottom fixed rows overlapped.",
+  "title": "Fixed a column sort skipping the last data row when spare rows overlapped bottom-fixed rows, and sorting spare rows when `maxRows` and `minSpareRows` were set without bottom-fixed rows.",
   "type": "fixed",
   "issueOrPR": 13526,
   "breaking": false,

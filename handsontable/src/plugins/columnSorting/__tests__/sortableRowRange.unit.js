@@ -78,7 +78,6 @@ describe.each([
     });
 
     it('should honor `sortFixedRows` when `maxRows` equals the row count', () => {
-      // `countRows()` is already min(length, maxRows); there is no separate formula.
       hot = build({ [pluginKey]: true, fixedRowsBottom: 1, maxRows: 6 });
 
       expect(upperBound()).toBe(5);
@@ -135,8 +134,9 @@ describe.each([
     });
 
     it('should apply the same overlap when `maxRows` caps the displayed count', () => {
-      // `countRows()` is already min(length, maxRows). Spare rows still occupy the
-      // trailing visual rows, so they must be excluded the same way.
+      // `countRows()` is already min(length, maxRows); there is no separate formula.
+      // Spare rows still occupy the trailing visual rows, so they must be excluded
+      // the same way. Old early return: 8 - 1 = 7. Independent subtract: 8 - 2 - 1 = 5.
       hot = build({
         [pluginKey]: true,
         minSpareRows: 2,
@@ -152,16 +152,19 @@ describe.each([
       expect(upperBound()).toBe(6);
     });
 
-    it('should honor a larger `fixedRowsBottom` when `maxRows` caps the displayed count', () => {
+    it('should compose `max()` when `maxRows` caps the count and spares outnumber the pin', () => {
       hot = build({
         [pluginKey]: true,
-        minSpareRows: 1,
-        fixedRowsBottom: 2,
-        maxRows: 7,
+        minSpareRows: 3,
+        fixedRowsBottom: 1,
+        maxRows: 9,
       });
 
-      expect(hot.countRows()).toBe(7);
-      expect(upperBound()).toBe(5);
+      // 6 data + 3 spares. Old early return ignored spares: 9 - 1 = 8.
+      // Independent subtract double-counted the overlap: 9 - 3 - 1 = 5.
+      // Bound is 9 - max(3, 1) = 6.
+      expect(hot.countRows()).toBe(9);
+      expect(upperBound()).toBe(6);
     });
   });
 

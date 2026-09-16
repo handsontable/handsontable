@@ -744,10 +744,10 @@ export class ColumnSorting extends BasePlugin {
     // that simply ends blank) would pay for rows the cap then discards. `adjustRowsAndCols()`
     // caps its `minSpareCols` count the same way, for the same reason.
     //
-    // Always count. `countRows()` is already `min(length, maxRows)`, so a separate
-    // `maxRows - fixedRowsBottom` return was the same formula once spares are counted,
-    // and skipping the walk let trailing spare rows that filled the cap take part in
-    // the sort.
+    // Trailing empties are counted on every sort, including when `maxRows` already
+    // equals `countRows()`. Those spare rows filled the cap and must stay out of
+    // the sort. The walk is capped at `minSpareRows`, so the extra cost is at most
+    // spareRows × countCols() cell reads per sort.
     let spareRows = 0;
 
     for (let row = numberOfRows - 1; row >= 0 && spareRows < minSpareRows; row--) {

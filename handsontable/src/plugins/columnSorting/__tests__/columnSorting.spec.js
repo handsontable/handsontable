@@ -3544,7 +3544,7 @@ describe('ColumnSorting', () => {
         ],
         colHeaders: ['A', 'B'],
         fixedRowsTop: 1,
-        fixedRowsBottom: 1,
+        fixedRowsBottom: 2,
         minSpareRows: 1,
         columnSorting: true,
       });
@@ -3552,10 +3552,11 @@ describe('ColumnSorting', () => {
       getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
 
       expect(getDataAtCell(0, 0)).toBe('Header');
-      // The spare sits inside the `fixedRowsBottom` band, so `Total` is ordinary data
-      // and sorts among Banana/Apple/Date/Cherry (25 between 20 and 30).
-      expect(getDataAtCol(1).slice(1, 6)).toEqual([10, 20, 25, 30, 40]);
-      expect(getDataAtCell(3, 0)).toBe('Total');
+      // Bound is 7 - max(1, 2) = 5: the pin covers the spare and `Total`. With only
+      // `minSpareRows` the bound is 6 and `Total` would sort (25 between 20 and 30).
+      expect(getDataAtCol(1).slice(1, 5)).toEqual([10, 20, 30, 40]);
+      expect(getDataAtCell(5, 0)).toBe('Total');
+      expect(getDataAtCell(5, 1)).toBe(25);
       expect(getDataAtCell(6, 0)).toBeNull();
     });
   });

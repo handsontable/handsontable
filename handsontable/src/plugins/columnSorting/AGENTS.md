@@ -151,8 +151,9 @@ stay out. There is no separate `maxRows` formula: `countRows()` is already
 
 The spec that sets both options (`__tests__/columnSorting.spec.js`, "should respect
 `fixedRowsTop`, `fixedRowsBottom`, and `minSpareRows` together") must keep a **non-extreme**
-`Total` value. `111` was the largest in the column, so `Total` landed last whether or not it
-took part in the sort and the overlap was invisible. `sortableRowRange.unit.js` covers both
+`Total` value. `111` was the largest value among the sortable rows (`Header` holds `999`, but
+`fixedRowsTop` holds it out), so `Total` landed last whether or not it took part in the sort
+and the overlap was invisible. `sortableRowRange.unit.js` covers both
 directions of the overlap (more spares than pinned rows, and more pinned rows than spares)
 plus `maxRows` capping the displayed count.
 
