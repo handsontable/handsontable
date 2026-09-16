@@ -1,6 +1,9 @@
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
 import GhostTable from '../ghostTable';
 import { baseRenderer } from '../../renderers/baseRenderer';
 import { textRenderer } from '../../renderers/textRenderer';
+import { autocompleteRenderer } from '../../renderers/autocompleteRenderer';
 
 /**
  * A minimal Handsontable stand-in: GhostTable only needs the DOM handles, the cell meta, and the
@@ -23,6 +26,8 @@ function createHotMock(cellMeta: Record<string, unknown>) {
     getCellRenderer: (meta: { renderer?: unknown }) => (
       meta && meta.renderer === 'base' ? baseRenderer : textRenderer
     ),
+    getSettings: () => ({ ariaTags: false }),
+    addHookOnce: () => {},
     view: { appendRowHeader: () => {}, appendColHeader: () => {} },
   };
 }
@@ -243,6 +248,110 @@ describe('GhostTable', () => {
       ghostTable.addRow(0, createSamples() as never);
 
       expect(() => ghostTable.addRowHeadersColumn(rowSamples([0]) as never)).toThrow();
+    });
+  });
+
+  describe('autocomplete arrow width (DEV-348)', () => {
+    const ARROW_SLOT_PX = 24;
+    const AUTOCOMPLETE_RENDERER_SCSS = resolve(
+      __dirname,
+      '../../styles/components/renderers/_autocomplete-renderer.scss'
+    );
+
+    /**
+     * A Handsontable stand-in whose sampled cells go through the real autocomplete renderer.
+     *
+     * @returns {object}
+     */
+    function createAutocompleteHotMock() {
+      const hot = createHotMock({ type: 'autocomplete' });
+
+      hot.getCellRenderer = (meta: { renderer?: unknown }) => (
+        meta && meta.renderer === 'base' ? baseRenderer : autocompleteRenderer
+      ) as typeof textRenderer;
+
+      return hot;
+    }
+
+    /**
+     * jsdom does not load product SCSS. Inject the reserved-slot contract the theme applies to
+     * `td.htAutocomplete` so a measured table can grow by that padding.
+     *
+     * @returns {HTMLStyleElement}
+     */
+    function injectArrowSlotCss() {
+      const style = document.createElement('style');
+
+      style.textContent = `td.htAutocomplete { padding-inline-end: ${ARROW_SLOT_PX}px; }`;
+      document.head.appendChild(style);
+
+      return style;
+    }
+
+    /**
+     * GhostTable reads `table.getBoundingClientRect().width`. jsdom reports 0, so the stub
+     * returns a shared text base plus the TD's computed trailing padding — the reserved
+     * arrow slot the product CSS puts on `td.htAutocomplete`.
+     *
+     * @param {HTMLTableElement} table The ghost table GhostTable will measure.
+     * @param {number} baseWidth Shared text width for both the text and autocomplete samples.
+     */
+    function stubTableWidthFromTdPadding(table: HTMLTableElement, baseWidth: number) {
+      const td = table.querySelector('td');
+      const padding = parseFloat(getComputedStyle(td!).paddingInlineEnd) || 0;
+
+      jest.spyOn(table, 'getBoundingClientRect').mockReturnValue({
+        width: baseWidth + padding,
+        height: 0,
+        top: 0,
+        left: 0,
+        bottom: 0,
+        right: 0,
+        x: 0,
+        y: 0,
+        toJSON: () => ({}),
+      });
+    }
+
+    it('should measure the reserved arrow slot into an autocomplete column width', () => {
+      const style = injectArrowSlotCss();
+      const textGhost = new GhostTable(createHotMock({}));
+      const autoGhost = new GhostTable(createAutocompleteHotMock());
+
+      textGhost.addColumn(0, createSamples() as never);
+      autoGhost.addColumn(0, createSamples() as never);
+
+      const autoTd = (autoGhost.columns[0].table as HTMLTableElement).querySelector('td');
+
+      expect(autoTd!.classList.contains('htAutocomplete')).toBe(true);
+      expect(autoTd!.querySelector('.htAutocompleteArrow')).not.toBeNull();
+
+      const baseWidth = 50;
+
+      stubTableWidthFromTdPadding(textGhost.columns[0].table as HTMLTableElement, baseWidth);
+      stubTableWidthFromTdPadding(autoGhost.columns[0].table as HTMLTableElement, baseWidth);
+
+      let textWidth = 0;
+      let autoWidth = 0;
+
+      textGhost.getWidths((_column: number, width: number) => {
+        textWidth = width;
+      });
+      autoGhost.getWidths((_column: number, width: number) => {
+        autoWidth = width;
+      });
+
+      expect(textWidth).toBe(baseWidth);
+      expect(autoWidth).toBe(baseWidth + ARROW_SLOT_PX);
+
+      // Product CSS still reserves the slot. jsdom never loads SCSS, so a CSS-only removal
+      // would otherwise leave this test green.
+      const scss = readFileSync(AUTOCOMPLETE_RENDERER_SCSS, 'utf8');
+
+      expect(scss).toContain('td.htAutocomplete');
+      expect(scss).toMatch(/padding-inline-end:\s*calc\(/);
+
+      style.remove();
     });
   });
 });
