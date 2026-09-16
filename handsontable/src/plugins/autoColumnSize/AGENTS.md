@@ -35,9 +35,9 @@ Rules that hold this together:
 - **List-cell columns (autocomplete, dropdown, handsontable) include the reserved arrow
   slot (DEV-348).** The real renderer adds `td.htAutocomplete`; the product CSS reserves the
   arrow as `padding-inline-end`. GhostTable therefore measures value plus arrow, and an
-  autosized column grows on upgrade (a breaking change). `colWidths` still disables this
-  plugin and pins the width. Do not strip the arrow from the sample — that reopens the wrap
-  onto a second line.
+  autosized column grows on upgrade (a breaking change). A column `width` skips measurement
+  for that column only. `colWidths` still disables this plugin for the whole grid. Do not
+  strip the arrow from the sample — that reopens the wrap onto a second line.
 - **The ghost table must be restored even when a custom renderer throws.** A throwing renderer that leaves
   headers disabled, or the probe's columns still attached, corrupts every later full-scan measurement.
 

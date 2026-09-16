@@ -1,9 +1,11 @@
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import GhostTable from '../ghostTable';
-import { baseRenderer } from '../../renderers/baseRenderer';
-import { textRenderer } from '../../renderers/textRenderer';
 import { autocompleteRenderer } from '../../renderers/autocompleteRenderer';
+import { baseRenderer } from '../../renderers/baseRenderer';
+import { dropdownRenderer } from '../../renderers/dropdownRenderer';
+import { handsontableRenderer } from '../../renderers/handsontableRenderer';
+import { textRenderer } from '../../renderers/textRenderer';
 
 /**
  * A minimal Handsontable stand-in: GhostTable only needs the DOM handles, the cell meta, and the
@@ -14,20 +16,35 @@ import { autocompleteRenderer } from '../../renderers/autocompleteRenderer';
  * @returns {object}
  */
 function createHotMock(cellMeta: Record<string, unknown>) {
+  const rootElement = document.createElement('div');
+
+  // GhostTable copies `rootElement.className` onto the probe container. Product CSS scopes
+  // the arrow-slot rule as `.handsontable td.htAutocomplete`, so a mock without this class
+  // would miss a regression that dropped the host class from the sample.
+  rootElement.className = 'handsontable';
+
   return {
     rootDocument: document,
-    rootElement: document.createElement('div'),
+    rootElement,
     table: document.createElement('table'),
     hasRowHeaders: () => false,
     getColWidth: () => 50,
     colToProp: (col: number) => col,
     getColHeader: () => null,
     getCellMetaTransient: () => cellMeta,
-    getCellRenderer: (meta: { renderer?: unknown }) => (
-      meta && meta.renderer === 'base' ? baseRenderer : textRenderer
-    ),
     getSettings: () => ({ ariaTags: false }),
     addHookOnce: () => {},
+    getCellRenderer: (meta: { renderer?: unknown }) => {
+      if (meta && meta.renderer === 'base') {
+        return baseRenderer;
+      }
+
+      if (meta && typeof meta.renderer === 'function') {
+        return meta.renderer;
+      }
+
+      return textRenderer;
+    },
     view: { appendRowHeader: () => {}, appendColHeader: () => {} },
   };
 }
@@ -251,70 +268,171 @@ describe('GhostTable', () => {
     });
   });
 
-  describe('autocomplete arrow width (DEV-348)', () => {
-    const AUTOCOMPLETE_RENDERER_SCSS = resolve(
-      __dirname,
-      '../../styles/components/renderers/_autocomplete-renderer.scss'
-    );
+  describe('autocomplete arrow slot (AutoColumnSize / DEV-348)', () => {
+    // jsdom has no table layout, so GhostTable.getWidths would read 0 for every column. The
+    // production path is: autocompleteRenderer stamps `htAutocomplete` + `.htAutocompleteArrow`
+    // onto the sampled TD, the stylesheet reserves the arrow as `padding-inline-end` on that
+    // class, and getWidths reads the table's bounding box (which includes that padding). Stub
+    // the box from the TD's computed padding so a GhostTable that skipped the renderer, or a
+    // stylesheet that dropped the padding rule, fails here — the Playwright geometry specs
+    // cannot see either regression on their own.
+    const CONTENT_WIDTH = 80;
+    const ARROW_SLOT_PX = 37;
+    const SAMPLE_VALUE = 'Long autocomplete value';
 
     /**
-     * A Handsontable stand-in whose sampled cells go through the real autocomplete renderer.
+     * A samples map in the shape SamplesGenerator produces for one column.
      *
-     * @returns {object}
+     * @returns {Map}
      */
-    function createAutocompleteHotMock() {
-      const hot = createHotMock({ type: 'autocomplete' });
-
-      hot.getCellRenderer = (meta: { renderer?: unknown }) => (
-        meta && meta.renderer === 'base' ? baseRenderer : autocompleteRenderer
-      ) as typeof textRenderer;
-
-      return hot;
+    function columnSamples() {
+      return new Map([[0, { strings: [{ col: 0, row: 0, value: SAMPLE_VALUE }] }]]);
     }
 
-    it('should render an autocomplete sample so getWidths measures a table that carries the reserved arrow slot', () => {
-      const ghostTable = new GhostTable(createAutocompleteHotMock());
+    /**
+     * Injects the load-bearing CSS hook AutoColumnSize samples inherit: extra trailing padding
+     * on `.handsontable td.htAutocomplete` (the product selector). A distinctive pixel value so
+     * the extra width cannot be mistaken for the text sample.
+     */
+    function injectArrowSlotStylesheet() {
+      const style = document.createElement('style');
 
-      ghostTable.addColumn(0, createSamples() as never);
+      style.setAttribute('data-arrow-slot-probe', '1');
+      style.textContent = `.handsontable td.htAutocomplete { padding-inline-end: ${ARROW_SLOT_PX}px; }`;
+      document.head.appendChild(style);
+    }
 
-      const table = ghostTable.columns[0].table as HTMLTableElement;
-      const autoTd = table.querySelector('td');
+    /**
+     * GhostTable.getWidths reads `table.getBoundingClientRect().width`. jsdom reports 0, so
+     * feed it content width plus the TD's computed trailing padding — the same extras a real
+     * layout engine would add for `padding-inline-end`.
+     *
+     * @param {HTMLTableElement} table The GhostTable column table.
+     * @returns {number} The stubbed width `getWidths` will report (ceiled).
+     */
+    function stubMeasuredWidth(table: HTMLTableElement) {
+      const td = table.querySelector('td');
+      const paddingEnd = td ? (Number.parseFloat(getComputedStyle(td).paddingInlineEnd) || 0) : 0;
+      const width = CONTENT_WIDTH + paddingEnd;
 
-      // GhostTable must run the real renderer. The product CSS reserves the arrow as
-      // padding-inline-end on this class, so the table BCR AutoColumnSize stores includes it.
-      expect(autoTd!.classList.contains('htAutocomplete')).toBe(true);
-      expect(autoTd!.querySelector('.htAutocompleteArrow')).not.toBeNull();
-
-      const measuredWidth = 87;
-      const getBoundingClientRect = jest.spyOn(table, 'getBoundingClientRect').mockReturnValue({
-        width: measuredWidth,
+      jest.spyOn(table, 'getBoundingClientRect').mockReturnValue({
+        width,
         height: 0,
         top: 0,
         left: 0,
+        right: width,
         bottom: 0,
-        right: 0,
         x: 0,
         y: 0,
         toJSON: () => ({}),
+      } as DOMRect);
+
+      return width;
+    }
+
+    /**
+     * Builds one GhostTable column, stubs its measured width, and returns what getWidths
+     * reports together with the sampled TD.
+     *
+     * @param {object} cellMeta The cell meta every sampled cell resolves to.
+     * @returns {{ width: number, td: HTMLTableCellElement, ghostTable: GhostTable }}
+     */
+    function measureColumn(cellMeta: Record<string, unknown>) {
+      const ghostTable = new GhostTable(createHotMock(cellMeta));
+
+      ghostTable.addColumn(0, columnSamples() as never);
+
+      const table = ghostTable.columns[0].table as HTMLTableElement;
+      const td = table.querySelector('td') as HTMLTableCellElement;
+
+      stubMeasuredWidth(table);
+
+      let width = 0;
+
+      ghostTable.getWidths((_col: number, measured: number) => {
+        width = measured;
       });
 
-      let reportedWidth = 0;
+      return { width, td, ghostTable };
+    }
 
-      ghostTable.getWidths((_column: number, width: number) => {
-        reportedWidth = width;
+    afterEach(() => {
+      document.querySelectorAll('[data-arrow-slot-probe]').forEach((el) => {
+        el.remove();
+      });
+      jest.restoreAllMocks();
+    });
+
+    it('should keep the arrow-slot padding formula on td.htAutocomplete', () => {
+      const scssPath = '../../styles/components/renderers/_autocomplete-renderer.scss';
+      const scss = readFileSync(resolve(__dirname, scssPath), 'utf8');
+      const arrowSlotPadding = [
+        String.raw`td\.htAutocomplete\s*\{`,
+        String.raw`[\s\S]*?padding-inline-end:\s*calc\(`,
+        String.raw`\s*var\(--ht-cell-horizontal-padding\)\s*\+`,
+        String.raw`\s*var\(--ht-icon-size\)\s*\+`,
+        String.raw`\s*var\(--ht-gap-size\)\s*\*\s*2\s*\+\s*1px\s*\)`,
+      ].join('');
+
+      // A CSS-only regression that dropped `padding-inline-end` (or retargeted it off
+      // `td.htAutocomplete`) would leave GhostTable measuring the text alone. The Playwright
+      // specs assert on-screen geometry, not this off-DOM sample.
+      expect(scss).toMatch(new RegExp(arrowSlotPadding));
+    });
+
+    [
+      ['autocomplete', autocompleteRenderer],
+      ['dropdown', dropdownRenderer],
+      ['handsontable', handsontableRenderer],
+    ].forEach(([cellType, renderer]) => {
+      const article = cellType === 'autocomplete' ? 'an' : 'a';
+
+      it(`should include the arrow slot in GhostTable measured width for ${article} ${cellType} column`, () => {
+        injectArrowSlotStylesheet();
+
+        const textColumn = measureColumn({});
+        const listColumn = measureColumn({ renderer });
+
+        expect(listColumn.td.classList.contains('htAutocomplete')).toBe(true);
+        expect(listColumn.td.querySelector('.htAutocompleteArrow')).not.toBeNull();
+        expect(listColumn.td.textContent).toContain(SAMPLE_VALUE);
+
+        expect(textColumn.td.classList.contains('htAutocomplete')).toBe(false);
+        expect(textColumn.td.querySelector('.htAutocompleteArrow')).toBeNull();
+
+        expect(listColumn.width).toBe(CONTENT_WIDTH + ARROW_SLOT_PX);
+        expect(textColumn.width).toBe(CONTENT_WIDTH);
+        expect(listColumn.width).toBeGreaterThan(textColumn.width);
+
+        textColumn.ghostTable.clean();
+        listColumn.ghostTable.clean();
+      });
+    });
+
+    it('should not add the extra width when the measured TD lacks htAutocomplete', () => {
+      // Negative control: the extra width is the CSS hook on `td.htAutocomplete`, not the
+      // arrow node sitting in the cell. Stripping the class after the renderer ran is the
+      // GhostTable / CSS miss — a sample that rendered the arrow but lost the class would
+      // measure as text-only.
+      injectArrowSlotStylesheet();
+
+      const { width, td, ghostTable } = measureColumn({ renderer: autocompleteRenderer });
+
+      expect(td.querySelector('.htAutocompleteArrow')).not.toBeNull();
+
+      td.classList.remove('htAutocomplete');
+      stubMeasuredWidth(td.closest('table') as HTMLTableElement);
+
+      let widthWithoutClass = 0;
+
+      ghostTable.getWidths((_col: number, measured: number) => {
+        widthWithoutClass = measured;
       });
 
-      expect(getBoundingClientRect).toHaveBeenCalled();
-      expect(reportedWidth).toBe(measuredWidth);
+      expect(width).toBe(CONTENT_WIDTH + ARROW_SLOT_PX);
+      expect(widthWithoutClass).toBe(CONTENT_WIDTH);
 
-      // jsdom never loads SCSS. Pin the reserved-slot formula on `td.htAutocomplete` itself
-      // (not the exact-row `.htCellClip` rule) so a CSS-only removal fails this test.
-      const scss = readFileSync(AUTOCOMPLETE_RENDERER_SCSS, 'utf8');
-
-      expect(scss).toMatch(/td\.htAutocomplete\s*\{/);
-      expect(scss).toContain(
-        'var(--ht-cell-horizontal-padding) + var(--ht-icon-size) + var(--ht-gap-size) * 2 + 1px'
-      );
+      ghostTable.clean();
     });
   });
 });
