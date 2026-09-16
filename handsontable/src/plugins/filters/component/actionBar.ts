@@ -85,7 +85,7 @@ export class ActionBarComponent extends BaseComponent {
       name: this.name,
       isCommand: false,
       disableSelection: true,
-      hidden: () => this.isHidden(),
+      hidden: () => this.isHiddenInMenu(),
       renderer: (hot: HotInstance, wrapper: HTMLElement) => {
         if (isHTMLElement(wrapper.parentNode)) {
           addClass(wrapper.parentNode, 'htFiltersMenuActionBar');

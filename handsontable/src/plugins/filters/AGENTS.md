@@ -41,59 +41,95 @@ captured when the plugin is enabled.
   plugin always did — flipping that default is a breaking change, and it deliberately disagrees with
   `columnSorting`'s `sortFixedRows`, which defaults to keeping pinned rows out because 18.0.0 shipped
   that behavior before the option existed.
-- **The pinned set comes from `rowIndexMapper.getIndexesSequence()`, not from the visible rows.** The
-  sequence is untouched by trimming, so the answer does not change as the filter trims rows and
-  successive `filter()` calls keep naming the same records. Reading visible rows instead would be
-  circular: the filter decides what is visible.
-- **`slice(-0)` returns the WHOLE array.** `getPinnedPhysicalRows()` guards `fixedRowsBottom > 0`
-  before slicing the tail. Without that guard, a grid with only `fixedRowsTop` set pins every row and
-  no filter hides anything — and it fails silently, because the grid simply stops filtering.
-  `pinnedRows.unit.ts` pins this, plus the overlap on a dataset shorter than the two counts (hence a
-  `Set`).
+- **The pinned set is resolved from the rows the grid SHOWS, not from the raw index sequence.** The
+  two overlays freeze the first and last VISIBLE rows, so `#getPinnedRows()` walks
+  `getIndexesSequence()` (which carries the sort permutation) and drops whatever ANOTHER trimming map
+  removed — `trimRows`, a collapsed `nestedRows` parent. Reading the sequence alone names rows that
+  are already invisible and misses the ones actually frozen, so on such a grid the option silently
+  does nothing. This plugin's own map is excluded from that test on purpose: it is the thing being
+  recomputed, and counting it would let the pinned set drift with every pass.
+- **`slice(-0)` returns the WHOLE array**, and `push(...arr)` overflows the stack past ~10k elements.
+  `getPinnedPhysicalRows()` therefore walks index ranges and adds rows one at a time. Both traps fail
+  silently — the first pins every row so nothing ever filters, the second throws only on a large
+  `fixedRowsBottom`. `pinnedRows.unit.ts` pins both, plus the overlap on a dataset shorter than the
+  two counts (hence a `Set`).
 - **`getDataMapAtColumn()` is the ONE exclusion point, and that is on purpose.** Dropping the pinned
   rows from its full read covers `DataFilter`, the `ConditionUpdateObserver` memo, and the
   has-conditions branch of `_getValueListDataAtColumn()` at once. Do **not** instead pass the wanted
   rows as its `physicalRows` argument: subset reads intentionally bypass the memo, so that would
   re-scan the column on every condition (the DEV-2088 55 s freeze). A caller that already passes
   `physicalRows` has chosen its rows and is left alone.
+- **Resolving the set is memoized for one `filter()` call.** Every filtered column asks again, plus
+  the trimmed-state pass. `filter()` clears `#pinnedRowsCache` on the way in AND in a `finally` — the
+  hooks it fires are host code that can throw, and a memo surviving the call would answer the next
+  `filter()` from this pass's row order.
 - **The exclusion means `filter()` has to put the pinned rows back.** They never reached the
   conditions, so they are absent from `rowIndexesToShow` and the trimmed-state pass marks them as
   "did not match". `filter()` forces them to `false` before `setValues()`.
+- **The exemption goes stale on its own, so it is re-applied by hook.** It is written while
+  filtering, and nothing re-runs that when the rows move underneath: `fixedRows*` changing, an insert
+  or remove at either end, a row move, a sort. Left alone a frozen pane shows a row the filter should
+  have hidden while the record that is really pinned stays trimmed. `#onAfterUpdateSettings` covers
+  the options, `#onAfterRowSequenceChange` covers the rest, and `#refilterForPinnedRows()` returns
+  early unless the grid opted in AND is actually filtering — so a grid that never set the option pays
+  nothing. **Its guard is a re-entrancy flag, never a test on the change's source:** this plugin's
+  own trimming write and a sort both report `'update'`, so filtering by source either loops forever
+  or misses the sort.
 - **The deselect guard is no longer "did anything match".** `!rowIndexesToShow.length` used to mean
   "the grid is empty"; with pinned rows exempt, the visible rows are the matches **plus** the pinned
-  ones, and deselecting on an empty match list would drop the selection while rows are on screen.
-- **`_getValueListDataAtColumn()`'s no-conditions branch needs its OWN drop, by visual position.**
-  That branch reads `getDataAtCol()`, which is visual; the other one reads physical rows. Pinned rows
-  are never trimmed under this option, so they are always the first `fixedRowsTop` and last
-  `fixedRowsBottom` visual rows — which is why the positional drop is correct there and would not be
-  anywhere else.
+  ones, and deselecting on an empty match list would drop the selection while rows are on screen. A
+  test for this must select a cell first and assert on the selection — reading the data alone passes
+  either way.
+- **Both branches of `_getValueListDataAtColumn()` must resolve pinned rows the SAME way** — through
+  the physical set, with `toPhysicalRow()` on the visible-rows branch. Dropping by visual position
+  there instead made the two disagree the moment another plugin trimmed a row, so a column's value
+  list changed as soon as it got a condition of its own. The two branches still read different row
+  SOURCES by design (visible rows versus the whole column, so a column's own filter cannot narrow its
+  own list); that asymmetry is deliberate and is not the same thing.
+- **`filterFixedRows` is inert under DataProvider.** Filtering happens server-side and the request
+  carries no notion of a pinned row, so `#getPinnedRowCounts()` returns zeros rather than letting the
+  local reads disagree with the server's own result.
 - **`columns: [{ filters: false }]` turns the filter UI off for one column.** Read through
-  `hot.getColumnMeta(visualColumn)`. Only `false` is honored: the sub-options are resolved once, in
-  `enablePlugin()`, so an object there is ignored and warns once (`warnAboutPerColumnFilterSettings`).
-  The effect is UI-only — `addCondition()` still filters such a column, mirroring `columnSorting`'s
-  `headerAction: false`, which leaves `sort()` working.
+  `hot.getColumnMeta(visualColumn)`. Only `false` is honored; the effect is UI-only — `addCondition()`
+  still filters such a column, mirroring `columnSorting`'s `headerAction: false`, which leaves
+  `sort()` working. Hiding the UI does NOT clear an existing condition, so such a column keeps
+  filtering with no way to see it in its own menu; `clearConditions()` is the way out.
 - **That read MUST test `hasOwnProperty` first, and the legacy suite is what catches it.** Column meta
   inherits from grid meta through the prototype chain, so a plain `columnMeta.filters` also returns
   the **grid-level** value. On a grid built with `filters: false` whose plugin is then switched on by
   hand — `getPlugin('filters').enablePlugin()`, which `filters.spec.js` does — every column reads
   `false` and the whole filter menu renders blank. Whether the plugin runs at all is `BasePlugin`'s
   question (`isEnabled()`); this one answers only "did *this column* opt out", and only an own
-  property is a per-column answer. Pinned by `perColumnFilters.unit.js` ("should ignore the
-  grid-level value inherited by a column") and by the legacy spec above.
+  property is a per-column answer.
+- **The ignored-object warning is raised by scanning every column, never from a visibility check.**
+  A predicate is the wrong place for a side effect, and raising it there means a grid with no dropdown
+  menu — or a column whose menu is never opened — is never warned, while the docs promise once per
+  grid. It runs from `afterInit` (NOT from `enablePlugin()`, which is `afterPluginsInitialized`, where
+  the column meta layer is not resolvable yet and every column reads as carrying nothing) and from
+  `#onAfterUpdateSettings` when the payload carries `columns`.
 - **The option's `@configScope` is `grid columns`, and it cannot be widened.** `getColumnMeta()` reads
   the COLUMN meta layer, which the `cells` function and the `cell` option never reach — they write on
   the cell layer below it. `optionLevels.unit.js` enforces that listing `cells` also lists `cell`, so
   claiming either one turns the suite red rather than silently shipping a scope the code does not
   honor.
-- **`hiddenWhen` lives on `BaseComponent` and is folded into `isHidden()`, not into each menu item
-  descriptor.** `Filters.restoreComponents()` skips hidden components, so a component hidden for the
-  open column must give the same answer to the menu and to the restore — putting the predicate only
-  in `getMenuItemDescriptor()` would hide the item while still restoring state from that column.
-- **Writing a test here: `updateSettings({ filters: ... })` CLEARS the conditions.** The payload
-  carries the plugin key, so `updatePlugin()` runs disable+enable and the condition collection is
-  destroyed. A test that adds a condition, then updates `filters`, then calls `filter()` is measuring
-  an empty collection. To prove an option is read per filter, change `fixedRowsTop`/`fixedRowsBottom`
-  instead — they are not in `SETTING_KEYS`, so the conditions survive.
+- **`isHidden()` and `isHiddenInMenu()` are two different questions, and merging them regresses
+  DataProvider.** `isHidden()` answers the `hide()`/`show()` flag only, and is what
+  `restoreComponents()` tests; `isHiddenInMenu()` adds the `hiddenWhen` predicate and is read only by
+  the menu item descriptor. Folding the predicate into `isHidden()` makes `restoreComponents()` skip
+  the by-value component instead of resetting it — permanently under a data provider, which hides
+  that component for the whole session, so `saveState()` then stores whatever the stale component
+  returned.
+- **Writing a test here: `updateSettings({ filters: ... })` CLEARS the conditions**, because the
+  payload carries the plugin key so `updatePlugin()` runs disable+enable. `updateSettings({ columns })`
+  clears them too, for a different reason: restating `columns` re-initializes the column index maps
+  the conditions live in. Both are pre-existing Core behavior. To prove an option is read per filter,
+  change `fixedRowsTop`/`fixedRowsBottom` instead — they are not in `SETTING_KEYS`, so conditions
+  survive.
+- **A sort cannot move the pinned set unless `columnSorting.sortFixedRows` is `true`.** Under its
+  default the sorting plugin holds the frozen rows in place too, so a test that sorts to change which
+  rows are pinned passes with the re-filter deleted. Two more shapes fail the same way and were caught
+  by a negative control: removing a row whose replacement at the end matched the filter anyway, and
+  asserting only on rows that were already hidden.
 
 ## Data-map row correlation (the memoization trap)
 

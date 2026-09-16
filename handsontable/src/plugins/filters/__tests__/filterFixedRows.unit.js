@@ -4,11 +4,15 @@ import { registerCellType, CheckboxCellType } from 'handsontable/cellTypes';
 import { AutoColumnSize } from 'handsontable/plugins/autoColumnSize';
 import { DropdownMenu } from 'handsontable/plugins/dropdownMenu';
 import { HiddenRows } from 'handsontable/plugins/hiddenRows';
+import { TrimRows } from 'handsontable/plugins/trimRows';
+import { ColumnSorting } from 'handsontable/plugins/columnSorting';
 
 registerCellType(CheckboxCellType);
 registerPlugin(AutoColumnSize);
 registerPlugin(DropdownMenu);
 registerPlugin(HiddenRows);
+registerPlugin(TrimRows);
+registerPlugin(ColumnSorting);
 registerPlugin(Filters);
 
 /**
@@ -137,11 +141,11 @@ describe('Filters -> filterFixedRows', () => {
       expect(hot.getDataAtCol(0)).toEqual(['Header', 'Banana', 'Apple', 'Cherry', 'Total']);
     });
 
-    it('should recompute which rows are pinned on every filter', () => {
-      // The pinned set is read from the live grid settings each time `filter()` runs, never
-      // captured when the plugin was enabled. Changing `fixedRowsBottom` under an applied filter
-      // is what proves it: `fixedRowsBottom` is not one of the plugin's `SETTING_KEYS`, so this
-      // `updateSettings` does NOT re-enable the plugin and the condition survives it.
+    it('should re-apply the exemption when fixedRows* changes, without a manual filter() call', () => {
+      // The exemption is applied while filtering, so a change to WHICH rows are pinned has to run
+      // the filter again by itself. Calling `filter()` by hand after the update would hide the bug
+      // this covers: an `updateSettings` on its own used to leave the previous pass's answer in the
+      // trimming map, so the frozen pane showed a data row while the real footer stayed trimmed.
       const filters = buildGrid({ filters: { filterFixedRows: false } }).getPlugin('filters');
 
       filters.addCondition(2, 'eq', ['Red']);
@@ -149,15 +153,133 @@ describe('Filters -> filterFixedRows', () => {
       expect(hot.getDataAtCol(0)).toEqual(['Header', 'Apple', 'Cherry', 'Total']);
 
       hot.updateSettings({ fixedRowsBottom: 0 });
-      filters.filter();
 
       // `Total` is no longer pinned, so the `Red` condition finally reaches it.
       expect(hot.getDataAtCol(0)).toEqual(['Header', 'Apple', 'Cherry']);
 
       // And back again - unpinning is not a one-way door.
       hot.updateSettings({ fixedRowsBottom: 1 });
+      expect(hot.getDataAtCol(0)).toEqual(['Header', 'Apple', 'Cherry', 'Total']);
+    });
+
+    it('should re-apply the exemption after a row is removed from the end', () => {
+      // The row order matters here: removing the pinned footer must promote a row that the filter
+      // had ALREADY trimmed. Promoting a row that matched anyway leaves the same rows on screen
+      // either way, and the test could not tell a re-filter from a stale trimming map.
+      const filters = buildGrid({
+        data: [
+          ['Header', 25, 'Gold'],
+          ['Apple', 10, 'Red'],
+          ['Cherry', 30, 'Red'],
+          ['Date', 40, 'Green'],
+          ['Total', 35, 'Silver'],
+        ],
+        filters: { filterFixedRows: false },
+      }).getPlugin('filters');
+
+      filters.addCondition(2, 'eq', ['Red']);
       filters.filter();
       expect(hot.getDataAtCol(0)).toEqual(['Header', 'Apple', 'Cherry', 'Total']);
+
+      // Visual row 3 is `Total` in the filtered view - the grid shows four rows at this point, so
+      // there is no visual row 4 to remove.
+      hot.alter('remove_row', 3);
+
+      // `Date` is the last row now, so it is pinned and comes back despite being Green.
+      expect(hot.getDataAtCol(0)).toEqual(['Header', 'Apple', 'Cherry', 'Date']);
+    });
+
+    it('should re-apply the exemption after a sort moves other rows to the ends', () => {
+      // `sortFixedRows: true` is what makes a sort able to change WHICH rows are pinned at all -
+      // under its default the sorting plugin holds the frozen rows in place too, so the pinned set
+      // never moves and this test could not fail.
+      const filters = buildGrid({
+        columnSorting: { sortFixedRows: true },
+        filters: { filterFixedRows: false },
+      }).getPlugin('filters');
+
+      filters.addCondition(2, 'eq', ['Red']);
+      filters.filter();
+      expect(hot.getDataAtCol(0)).toEqual(['Header', 'Apple', 'Cherry', 'Total']);
+
+      // Descending by Fruit moves `Total` to the top and `Apple` to the bottom, so `Header` stops
+      // being pinned - and it is Gold, which the condition excludes. A stale trimming map would
+      // keep showing it, which is what makes this able to fail.
+      hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+
+      expect(hot.getDataAtCol(0)).not.toContain('Header');
+    });
+
+    it('should not re-filter when the option is off', () => {
+      // The re-filter is gated so a grid that never opted in pays nothing. With the default, an
+      // `updateSettings` carrying `fixedRows*` must leave the filtered result exactly as it was.
+      const filters = buildGrid().getPlugin('filters');
+      const filterSpy = jest.spyOn(filters, 'filter');
+
+      filters.addCondition(2, 'eq', ['Red']);
+      filters.filter();
+      filterSpy.mockClear();
+
+      hot.updateSettings({ fixedRowsBottom: 0 });
+
+      expect(filterSpy).not.toHaveBeenCalled();
+      expect(hot.getDataAtCol(0)).toEqual(['Apple', 'Cherry']);
+
+      filterSpy.mockRestore();
+    });
+
+    it('should not re-filter when the option is on but nothing is filtered', () => {
+      const filters = buildGrid({ filters: { filterFixedRows: false } }).getPlugin('filters');
+      const filterSpy = jest.spyOn(filters, 'filter');
+
+      hot.updateSettings({ fixedRowsBottom: 0 });
+
+      expect(filterSpy).not.toHaveBeenCalled();
+
+      filterSpy.mockRestore();
+    });
+
+    it('should pin the rows the grid SHOWS, not the raw index order', () => {
+      // `trimRows` removes row 0 from view, so the row frozen at the top is physical row 1
+      // (Banana/Green). Reading the raw index sequence instead pins row 0 - a row that is already
+      // invisible - and lets the condition filter the row the user can actually see.
+      const filters = buildGrid({
+        trimRows: [0],
+        fixedRowsBottom: 0,
+        filters: { filterFixedRows: false },
+      }).getPlugin('filters');
+
+      filters.addCondition(2, 'eq', ['Red']);
+      filters.filter();
+
+      // Banana is pinned and survives despite being Green; Date (also Green) is filtered out.
+      expect(hot.getDataAtCol(0)).toEqual(['Banana', 'Apple', 'Cherry']);
+    });
+
+    it('should keep the selection when only pinned rows are left', () => {
+      // The deselect guard used to read "no row matched the conditions", which is no longer the
+      // same question once pinned rows are exempt. Selecting first is what makes this able to fail.
+      const filters = buildGrid({ filters: { filterFixedRows: false } }).getPlugin('filters');
+
+      hot.selectCell(0, 0);
+
+      filters.addCondition(2, 'eq', ['Purple']);
+      filters.filter();
+
+      expect(hot.getDataAtCol(0)).toEqual(['Header', 'Total']);
+      expect(hot.getSelectedLast()).toBeDefined();
+    });
+
+    it('should treat a non-numeric fixedRowsTop as zero, like the table view does', () => {
+      // `Math.max(0, NaN)` is NaN, which silently empties the value-list loop that counts up to it.
+      const filters = buildGrid({
+        fixedRowsTop: 'abc',
+        fixedRowsBottom: 0,
+        filters: { filterFixedRows: false },
+      }).getPlugin('filters');
+
+      expect(filters._getValueListDataAtColumn(2).map(({ value }) => value))
+        .toEqual(['Gold', 'Green', 'Red', 'Green', 'Red', 'Silver']);
     });
 
     it('should apply the option when it arrives through updateSettings', () => {
@@ -207,6 +329,39 @@ describe('Filters -> filterFixedRows', () => {
       const values = filters._getValueListDataAtColumn(2).map(({ value }) => value);
 
       expect(values).toEqual(['Green', 'Red', 'Green', 'Red']);
+    });
+
+    it('should exclude the same pinned row from both branches when another plugin trims a row', () => {
+      // The two branches resolve pinned rows differently - one walks visual positions, the other
+      // physical indexes - so under `trimRows` they used to disagree about WHICH row is pinned, and
+      // a column's list changed the moment it got a condition of its own.
+      //
+      // They still read different row SOURCES by design (visible rows versus the whole column, so
+      // a column's own filter cannot narrow its own list), which is why this asserts on the pinned
+      // row alone. `Bronze` is unique to the row `trimRows` promotes into the top overlay.
+      const filters = buildGrid({
+        data: [
+          ['Header', 25, 'Gold'],
+          ['Banana', 20, 'Bronze'],
+          ['Apple', 10, 'Red'],
+          ['Date', 40, 'Green'],
+          ['Cherry', 30, 'Red'],
+          ['Total', 35, 'Silver'],
+        ],
+        trimRows: [0],
+        fixedRowsBottom: 0,
+        filters: { filterFixedRows: false },
+      }).getPlugin('filters');
+
+      // No conditions: the visible-rows branch. Banana is the first row on screen, so it is pinned.
+      expect(filters._getValueListDataAtColumn(2).map(({ value }) => value)).not.toContain('Bronze');
+
+      // A condition switches the column to the whole-column branch, which must call the same row
+      // pinned - not the row that merely sits first in the raw index order.
+      filters.addCondition(2, 'eq', ['Red']);
+      filters.filter();
+
+      expect(filters._getValueListDataAtColumn(2).map(({ value }) => value)).not.toContain('Bronze');
     });
 
     it('should drop them for a column filtered by another column', () => {

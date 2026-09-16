@@ -339,7 +339,7 @@ export class ValueComponent extends BaseComponent {
       name: this.name,
       isCommand: false,
       disableSelection: true,
-      hidden: () => this.isHidden(),
+      hidden: () => this.isHiddenInMenu(),
       renderer: (hot: HotInstance, wrapper: HTMLTableCellElement, row: number, col: number,
                  prop: string | number, value: string) => {
         if (isHTMLElement(wrapper.parentNode)) {

@@ -53,7 +53,7 @@ export class OperatorsComponent extends BaseComponent {
       name: this.name,
       isCommand: false,
       disableSelection: true,
-      hidden: () => this.isHidden(),
+      hidden: () => this.isHiddenInMenu(),
       renderer: (hot: HotInstance, wrapper: HTMLTableCellElement) => {
         if (isHTMLElement(wrapper.parentNode)) {
           addClass(wrapper.parentNode, 'htFiltersMenuOperators');

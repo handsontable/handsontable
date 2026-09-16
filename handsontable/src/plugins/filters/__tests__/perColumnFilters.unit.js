@@ -76,7 +76,10 @@ describe('Filters -> per-column filters switch', () => {
 
     const filters = hot.getPlugin('filters');
 
-    return COMPONENT_IDS.map(id => filters.components.get(id).isHidden());
+    // `isHiddenInMenu()`, not `isHidden()`: the per-column switch decides whether a component
+    // RENDERS in the menu, and deliberately does not make the component look hidden to
+    // `restoreComponents()`, which would stop it restoring its own state.
+    return COMPONENT_IDS.map(id => filters.components.get(id).isHiddenInMenu());
   }
 
   it('should show every filter component on a column that says nothing', () => {
@@ -167,6 +170,16 @@ describe('Filters -> per-column filters switch', () => {
       warnSpy.mockRestore();
     });
 
+    /**
+     * The per-column warnings printed so far.
+     *
+     * @returns {string[]} One entry per matching warning.
+     */
+    function perColumnWarnings() {
+      return warnSpy.mock.calls.map(args => args.join(' '))
+        .filter(message => message.includes('inside `columns`'));
+    }
+
     it('should warn once, and keep the column filterable', () => {
       buildGrid({ columns: [{ filters: { searchMode: 'apply' } }, {}, {}] });
 
@@ -174,11 +187,32 @@ describe('Filters -> per-column filters switch', () => {
       // are ignored, which is what the warning is about.
       expect(hiddenFlagsForColumn(0)).toEqual([false, false, false, false, false]);
 
-      const messages = warnSpy.mock.calls.map(args => args.join(' '))
-        .filter(message => message.includes('inside `columns`'));
+      const messages = perColumnWarnings();
 
       expect(messages.length).toBe(1);
-      expect(messages[0]).toContain('only `false` has an effect');
+      expect(messages[0]).toContain('Only `false` is read there');
+    });
+
+    it('should warn without the dropdown menu, and without opening one', () => {
+      // The warning used to be raised from the components' visibility check, so it only appeared
+      // when that column's menu was opened - and never at all on a grid with no menu, while the
+      // documentation promises it is logged once per grid.
+      buildGrid({
+        dropdownMenu: false,
+        columns: [{}, {}, { filters: { searchMode: 'apply' } }],
+      });
+
+      expect(perColumnWarnings().length).toBe(1);
+    });
+
+    it('should warn when the object arrives through updateSettings', () => {
+      buildGrid();
+
+      expect(perColumnWarnings()).toEqual([]);
+
+      hot.updateSettings({ columns: [{ filters: { searchMode: 'apply' } }, {}, {}] });
+
+      expect(perColumnWarnings().length).toBe(1);
     });
 
     it('should not warn for a plain false', () => {
@@ -186,10 +220,83 @@ describe('Filters -> per-column filters switch', () => {
 
       hiddenFlagsForColumn(0);
 
-      const messages = warnSpy.mock.calls.map(args => args.join(' '))
-        .filter(message => message.includes('inside `columns`'));
+      expect(perColumnWarnings()).toEqual([]);
+    });
+  });
 
-      expect(messages).toEqual([]);
+  describe('hiding a menu item versus hiding the component', () => {
+    it('should keep a menu-hidden component restorable', () => {
+      // `restoreComponents()` skips components that report `isHidden()`, so the two questions must
+      // stay apart. Folding the menu predicate into `isHidden()` stops the by-value component being
+      // restored on every menu opening - and with a data provider, which hides that component
+      // permanently, it would never be reset again and `saveState()` would store whatever the stale
+      // component returned.
+      const filters = buildGrid().getPlugin('filters');
+      const valueComponent = filters.components.get('filter_by_value');
+
+      // `hasExternalDataSource` is what the DataProvider plugin answers; the value list is hidden
+      // whenever it is true, because filtering then happens server-side.
+      hot.addHook('hasExternalDataSource', () => true);
+      hot.updateSettings({ filters: true });
+
+      const refreshedComponent = hot.getPlugin('filters').components.get('filter_by_value');
+
+      expect(refreshedComponent.isHiddenInMenu()).toBe(true);
+      expect(refreshedComponent.isHidden()).toBe(false);
+      expect(valueComponent).toBeDefined();
+    });
+
+    it('should report a component hidden once hide() was called', () => {
+      const filters = buildGrid().getPlugin('filters');
+      const valueComponent = filters.components.get('filter_by_value');
+
+      valueComponent.hide();
+
+      expect(valueComponent.isHidden()).toBe(true);
+      expect(valueComponent.isHiddenInMenu()).toBe(true);
+
+      valueComponent.show();
+
+      expect(valueComponent.isHidden()).toBe(false);
+      expect(valueComponent.isHiddenInMenu()).toBe(false);
+    });
+  });
+
+  describe('a column that carries a condition while its UI is off', () => {
+    it('should keep filtering, and leave the condition reachable through the API', () => {
+      // A condition added through the API on an opted-out column still filters, and its menu cannot
+      // show it - a documented limit. What matters is that the user is not stuck: `clearConditions()`
+      // reaches that column, so `Alt+A` (which clears EVERY column) is not the only way out.
+      const filters = buildGrid({ columns: [{}, {}, { filters: false }] }).getPlugin('filters');
+
+      filters.addCondition(2, 'eq', ['Red']);
+      filters.filter();
+
+      expect(hot.getDataAtCol(2)).toEqual(['Red']);
+      expect(hiddenFlagsForColumn(2)).toEqual([true, true, true, true, true]);
+      expect(filters.exportConditions().length).toBe(1);
+
+      filters.clearConditions(2);
+      filters.filter();
+
+      expect(hot.getDataAtCol(2)).toEqual(['Red', 'Green']);
+    });
+
+    it('should drop the condition when updateSettings restates columns', () => {
+      // Turning a column off through `updateSettings({ columns })` clears every condition, because
+      // restating `columns` re-initializes the column index maps the conditions live in. That is
+      // pre-existing Core behavior, not something the per-column switch introduces - pinned here so
+      // a future change to it is a deliberate decision rather than a surprise.
+      const filters = buildGrid().getPlugin('filters');
+
+      filters.addCondition(2, 'eq', ['Red']);
+      filters.filter();
+      expect(filters.exportConditions().length).toBe(1);
+
+      hot.updateSettings({ columns: [{}, {}, { filters: false }] });
+
+      expect(filters.exportConditions()).toEqual([]);
+      expect(hot.getDataAtCol(2)).toEqual(['Red', 'Green']);
     });
   });
 });

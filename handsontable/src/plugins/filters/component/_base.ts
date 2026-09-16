@@ -46,7 +46,7 @@ export class BaseComponent {
    */
   state;
   /**
-   * Predicate supplied by the owning plugin, re-evaluated on every read of `isHidden()`.
+   * Predicate supplied by the owning plugin, re-evaluated on every read of `isHiddenInMenu()`.
    *
    * It answers questions the `hidden` flag cannot, because they depend on state that changes
    * between menu openings rather than on a `hide()`/`show()` call - which column the menu was
@@ -103,15 +103,28 @@ export class BaseComponent {
   /**
    * Check if component is hidden.
    *
-   * The `hiddenWhen` predicate is folded in here rather than into each subclass' menu item
-   * descriptor, so that `Filters.restoreComponents()` - which skips hidden components - sees the
-   * same answer the menu does. A component hidden for the open column must not restore state from
-   * it either.
+   * Answers the `hide()`/`show()` flag ONLY. `hiddenWhen` is deliberately not folded in: this is
+   * also what `Filters.restoreComponents()` tests, and a component that merely does not render for
+   * the open column must still restore its state, or the state map keeps whatever it held when the
+   * menu was last confirmed.
    *
    * @returns {boolean}
    */
   isHidden() {
-    if (this.hot === null || this.hidden) {
+    return this.hot === null || this.hidden;
+  }
+
+  /**
+   * Check if the component's menu item should render for the column the menu was opened on.
+   *
+   * Separate from `isHidden()` because the two questions have different answers and different
+   * consumers: this one is re-evaluated per menu opening and is read only by the menu item
+   * descriptor, so hiding an item never changes what the component stores.
+   *
+   * @returns {boolean}
+   */
+  isHiddenInMenu() {
+    if (this.isHidden()) {
       return true;
     }
 

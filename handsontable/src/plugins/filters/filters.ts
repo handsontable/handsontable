@@ -34,7 +34,7 @@ import {
   OPERATION_OR,
   OPERATION_OR_THEN_VARIABLE
 } from './constants';
-import type { TrimmingMap } from '../../translations';
+import type { IndexMap, TrimmingMap } from '../../translations';
 import type { BaseComponent } from './component/_base';
 
 export type OperationType = 'conjunction' | 'disjunction' | 'disjunctionWithExtraCondition';
@@ -264,6 +264,23 @@ export class Filters extends BasePlugin {
    * @type {boolean}
    */
   #isDataProviderActive = false;
+  /**
+   * Memoized result of `#getPinnedRows()`, or `undefined` while nothing is memoized.
+   *
+   * Resolving the pinned rows walks every physical row against the other plugins' trimming maps,
+   * and one `filter()` asks for them once per filtered column plus once for the trimmed-state pass.
+   * The memo is only sound for the length of that call, so `filter()` clears it on the way in and
+   * on the way out - the row order and the `fixedRows*` options can both change between calls.
+   *
+   * @type {Set<number>|null|undefined}
+   */
+  #pinnedRowsCache: Set<number> | null | undefined;
+  /**
+   * Guards `#refilterForPinnedRows()` against re-entering itself.
+   *
+   * @type {boolean}
+   */
+  #isRefilteringForPinnedRows = false;
 
   /**
    * Initializes the plugin and registers the column header hook needed to inject the filter UI.
@@ -302,18 +319,22 @@ export class Filters extends BasePlugin {
    * `fixedRowsBottom` themselves are read, so `updateSettings` needs no wiring of its own.
    *
    * @private
-   * @returns {{top: number, bottom: number}} Row counts, both `0` when nothing is excluded.
    */
   #getPinnedRowCounts(): { top: number, bottom: number } {
-    if (this.getSetting('filterFixedRows') !== false) {
+    // A data provider filters server-side, and the request carries no notion of a pinned row, so
+    // exempting rows locally would only make the grid disagree with the server's own result.
+    if (this.#isDataProviderActive || this.getSetting('filterFixedRows') !== false) {
       return { top: 0, bottom: 0 };
     }
 
     const { fixedRowsTop, fixedRowsBottom } = this.hot.getSettings();
 
+    // `Number(x) || 0` rather than `?? 0`, to match how `TableView` reads the same two options.
+    // `Math.max` alone lets a non-numeric value through as NaN, which silently empties the
+    // value-list loop that counts up to it.
     return {
-      top: Math.max(0, fixedRowsTop ?? 0),
-      bottom: Math.max(0, fixedRowsBottom ?? 0),
+      top: Math.max(0, Number(fixedRowsTop) || 0),
+      bottom: Math.max(0, Number(fixedRowsBottom) || 0),
     };
   }
 
@@ -323,19 +344,84 @@ export class Filters extends BasePlugin {
    * `null` rather than an empty set, so the read loops can skip the membership test entirely on a
    * grid that pins nothing - which is every grid that has not opted in.
    *
+   * The rows are resolved from the rows the grid SHOWS, minus the ones this plugin's own map is
+   * trimming. The raw index sequence cannot answer it: it still holds rows that `trimRows` or a
+   * collapsed `nestedRows` parent removed, while the two overlays freeze the first and last
+   * VISIBLE rows - so on such a grid the sequence names rows that are not pinned and misses the
+   * ones that are. This plugin's own trim is excluded because it is the thing being recomputed;
+   * counting it would let the pinned set drift with each pass.
+   *
+   * Memoized for the duration of one `filter()` call, where every column read asks again.
+   *
    * @private
-   * @returns {Set<number>|null} Pinned physical row indexes, or `null` when nothing is pinned.
    */
   #getPinnedRows(): Set<number> | null {
-    const { top, bottom } = this.#getPinnedRowCounts();
-
-    if (top === 0 && bottom === 0) {
-      return null;
+    if (this.#pinnedRowsCache !== undefined) {
+      return this.#pinnedRowsCache;
     }
 
-    const pinnedRows = getPinnedPhysicalRows(this.hot.rowIndexMapper.getIndexesSequence(), top, bottom);
+    const { top, bottom } = this.#getPinnedRowCounts();
+    let pinnedRows: Set<number> | null = null;
 
-    return pinnedRows.size > 0 ? pinnedRows : null;
+    if (top > 0 || bottom > 0) {
+      // Visual order, so the two overlays freeze the rows the user actually sees. `getIndexesSequence()`
+      // carries the sort permutation, and the rows another plugin trims are dropped from it here.
+      const rowOrder = this.hot.rowIndexMapper.getIndexesSequence();
+      const visibleRows = rowOrder.filter(physicalRow => !this.#isTrimmedByAnotherPlugin(physicalRow));
+      const resolved = getPinnedPhysicalRows(visibleRows, top, bottom);
+
+      pinnedRows = resolved.size > 0 ? resolved : null;
+    }
+
+    this.#pinnedRowsCache = pinnedRows;
+
+    return pinnedRows;
+  }
+
+  /**
+   * Whether a row is trimmed by a map other than this plugin's own.
+   *
+   * @private
+   */
+  #isTrimmedByAnotherPlugin(physicalRow: number): boolean {
+    const trimmingMaps = this.hot.rowIndexMapper.trimmingMapsCollection.get() as IndexMap[];
+
+    return trimmingMaps.some(map => map !== this.filtersRowsMap && map.getValueAtIndex(physicalRow) === true);
+  }
+
+  /**
+   * Runs the pinned rows through `filter()` again after the set of pinned rows may have changed.
+   *
+   * The exemption is applied while filtering, so nothing re-applies it on its own when the rows
+   * move underneath: changing `fixedRows*`, inserting or removing a row at either end, moving rows
+   * or sorting all change WHICH rows are pinned, and the trimming map still holds the answer from
+   * the previous pass. Left alone, a frozen pane ends up showing a row the filter should have
+   * hidden, and the record that is really pinned stays trimmed.
+   *
+   * Only grids that opted in and are actually filtering pay for this.
+   *
+   * @private
+   */
+  #refilterForPinnedRows() {
+    const { top, bottom } = this.#getPinnedRowCounts();
+
+    if (this.#isRefilteringForPinnedRows ||
+        (top === 0 && bottom === 0) ||
+        !this.conditionCollection ||
+        this.conditionCollection.isEmpty()) {
+      return;
+    }
+
+    // `filter()` writes the trimming map, which fires the very row-sequence hook that calls this -
+    // so the guard is a re-entrancy flag rather than a test on the change's source. Filtering by
+    // source cannot work: this plugin's own write and a sort both report `'update'`.
+    this.#isRefilteringForPinnedRows = true;
+
+    try {
+      this.filter();
+    } finally {
+      this.#isRefilteringForPinnedRows = false;
+    }
   }
 
   /**
@@ -348,9 +434,6 @@ export class Filters extends BasePlugin {
    * `BasePlugin`'s question, not this one's.
    *
    * @private
-   * @param {number} [visualColumn] Visual column index. Defaults to the column the dropdown menu
-   * was opened on. A menu opened with nothing selected reports the column as filterable.
-   * @returns {boolean}
    */
   #isColumnFilterable(visualColumn = this.getSelectedColumn()?.visualIndex ?? -1): boolean {
     if (visualColumn < 0) {
@@ -363,15 +446,32 @@ export class Filters extends BasePlugin {
       return true;
     }
 
-    const columnSetting = columnMeta[PLUGIN_KEY];
-
-    // The sub-options are resolved once, for the whole grid, so an object written here is dropped.
-    if (isObject(columnSetting)) {
-      warnAboutPerColumnFilterSettings(this.hot.rootElement, PLUGIN_KEY);
-    }
-
-    return columnSetting !== false;
+    return columnMeta[PLUGIN_KEY] !== false;
   }
+
+  /**
+   * Warns once per grid when a column carries a `filters` settings OBJECT, which is ignored.
+   *
+   * Scanned over every column rather than raised from the visibility check, so a grid with no
+   * dropdown menu, or a column whose menu is never opened, still gets the message - the docs
+   * promise it is logged once per grid, not once per menu opening. A visibility predicate is also
+   * the wrong place for a side effect.
+   *
+   * @private
+   */
+  #warnAboutPerColumnSettingsObjects = () => {
+    const columnCount = this.hot.countCols();
+
+    for (let visualColumn = 0; visualColumn < columnCount; visualColumn++) {
+      const columnMeta = this.hot.getColumnMeta(visualColumn) as Record<string, unknown>;
+
+      if (hasOwnProperty(columnMeta, PLUGIN_KEY) && isObject(columnMeta[PLUGIN_KEY])) {
+        warnAboutPerColumnFilterSettings(this.hot.rootElement, PLUGIN_KEY);
+
+        return;
+      }
+    }
+  };
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -496,6 +596,12 @@ export class Filters extends BasePlugin {
     this.addHook('afterDropdownMenuHide', this.#onAfterDropdownMenuHide);
     this.addHook('afterChange', this.#onAfterChange);
     this.addHook('afterUpdateData', this.#onAfterUpdateData);
+    // Option A for the stale exemption: re-run the filter whenever the rows the overlays freeze may
+    // have moved. `afterUpdateSettings` covers the `fixedRows*` options themselves, and the row
+    // sequence hook covers an insert, a remove, a move and a sort. Both are cheap no-ops unless the
+    // grid opted in AND is actually filtering - see `#refilterForPinnedRows()`.
+    this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings);
+    this.addHook('afterRowSequenceChange', this.#onAfterRowSequenceChange);
     this.addHook('afterDataProviderFetch', this.#onAfterDataProviderFetch);
     this.addHook('afterDataProviderFetchError', this.#onAfterDataProviderFetchError);
 
@@ -557,6 +663,9 @@ export class Filters extends BasePlugin {
         ?.addLocalHook('selectTabKeydown', forwardToFocusNavigation);
     }
 
+    // Deferred to `afterInit`: `enablePlugin()` runs on `afterPluginsInitialized`, where the column
+    // meta layer is not resolvable yet and every column reads as carrying nothing.
+    this.addHook('afterInit', this.#warnAboutPerColumnSettingsObjects);
     this.registerShortcuts();
     super.enablePlugin();
   }
@@ -1133,6 +1242,27 @@ export class Filters extends BasePlugin {
     const needToFilter = !this.conditionCollection?.isEmpty();
     const conditions = this.exportConditions();
 
+    // Resolved once here and reused by every column read below. Cleared in the `finally` rather
+    // than at the end of the body: `beforeFilter` and `afterFilter` are host code and may throw,
+    // and a memo surviving the call would answer the NEXT `filter()` from this pass's row order.
+    this.#pinnedRowsCache = undefined;
+
+    try {
+      this.#filterInternal(navigableHeaders, needToFilter, conditions);
+    } finally {
+      this.#pinnedRowsCache = undefined;
+    }
+  }
+
+  /**
+   * The body of `filter()`, run inside the pinned-rows memo scope it sets up.
+   *
+   * @private
+   */
+  #filterInternal(
+    navigableHeaders: boolean | undefined, needToFilter: boolean, conditions: ColumnConditions[]
+  ): void {
+
     if (this.#isDataProviderActive) {
       this.#dataProviderFilterRollbackStack = deepClone(this.#previousConditionStack) as ColumnConditions[];
     }
@@ -1399,6 +1529,37 @@ export class Filters extends BasePlugin {
     arrayEach(filteredColumns, (physicalColumn: number) => {
       this.conditionUpdateObserver?.updateStatesAtColumn(physicalColumn);
     });
+  };
+
+  /**
+   * `afterUpdateSettings` listener.
+   *
+   * Two jobs, both keyed on the payload rather than run unconditionally. `fixedRowsTop` and
+   * `fixedRowsBottom` change WHICH rows are exempt, and they are not among this plugin's
+   * `SETTING_KEYS`, so nothing else re-applies the exemption for them. And `columns` is where a
+   * per-column `filters` value lives, which is the one place the ignored-object warning can be
+   * raised for every column rather than only for a column whose menu someone opens.
+   */
+  #onAfterUpdateSettings = (settings: Record<string, unknown>) => {
+    if (hasOwnProperty(settings, 'columns')) {
+      this.#warnAboutPerColumnSettingsObjects();
+    }
+
+    if (hasOwnProperty(settings, 'fixedRowsTop') || hasOwnProperty(settings, 'fixedRowsBottom')) {
+      this.#refilterForPinnedRows();
+    }
+  };
+
+  /**
+   * `afterRowSequenceChange` listener.
+   *
+   * An insert, a remove, a move or a sort all change which rows sit at the two ends of the grid,
+   * and the trimming map still holds the previous pass's answer. Every source is acted on:
+   * `#refilterForPinnedRows()` owns the re-entrancy guard, because this plugin's own trimming
+   * write and a sort both report the same `'update'` source and cannot be told apart here.
+   */
+  #onAfterRowSequenceChange = () => {
+    this.#refilterForPinnedRows();
   };
 
   /**
@@ -1678,15 +1839,18 @@ export class Filters extends BasePlugin {
     // conditions locally would filter data that is already filtered.
     if (stackPosition === -1 || this.#isDataProviderActive) {
       const visibleValues = this.hot.getDataAtCol(column);
-      // This branch reads VISUAL rows, so the pinned rows are dropped by position rather than by
-      // physical index. They are never trimmed while `filterFixedRows` is `false`, so the pinned
-      // ones are always the first and the last visual rows. Both bounds are the whole range when
-      // nothing is pinned, which is the read this branch has always made.
-      const { top, bottom } = this.#getPinnedRowCounts();
-      const lastUnpinnedRow = visibleValues.length - bottom;
+      // The SAME physical set the has-conditions branch below uses, translated per row rather than
+      // dropped by position. Two different ways of deciding "pinned" made the two branches disagree
+      // whenever another plugin trimmed a row, so a column's value list changed the moment it got a
+      // condition of its own.
+      const pinnedRows = this.#getPinnedRows();
       const rows: Record<string, unknown>[] = [];
 
-      for (let rowIndex = top; rowIndex < lastUnpinnedRow; rowIndex++) {
+      for (let rowIndex = 0; rowIndex < visibleValues.length; rowIndex++) {
+        if (pinnedRows !== null && pinnedRows.has(this.hot.toPhysicalRow(rowIndex))) {
+          continue; // eslint-disable-line no-continue
+        }
+
         rows.push({
           value: toEmptyString(visibleValues[rowIndex]),
           meta: this.hot.getCellMetaTransient(rowIndex, column),

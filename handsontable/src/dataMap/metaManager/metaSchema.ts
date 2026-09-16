@@ -3327,6 +3327,9 @@ export default (): Record<string, unknown> => {
      * Those rows are then never hidden by a filter, and their values are not offered in the
      * **Filter by value** list.
      *
+     * `filterFixedRows` has no effect while the [`DataProvider`](@/api/dataProvider.md) plugin is
+     * active: filtering then happens on the server, which knows nothing about frozen rows.
+     *
      * **Inside `columns`:**
      *
      * | Setting        | Description                                                                          |

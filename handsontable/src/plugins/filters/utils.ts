@@ -1,5 +1,5 @@
 import { getComparisonFunction } from '../../helpers/feature';
-import { warnOnce } from '../../helpers/console';
+import { warnAboutGridLevelOptionInColumns } from '../../helpers/console';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 
 const sortCompare = getComparisonFunction();
@@ -7,52 +7,48 @@ const sortCompare = getComparisonFunction();
 /**
  * Picks the rows pinned by `fixedRowsTop` and `fixedRowsBottom` out of a row order.
  *
- * The order it reads is the index SEQUENCE, not the visible rows: the sequence is untouched by
- * trimming, so the answer does not change as a filter trims rows away, and successive `filter()`
- * calls keep naming the same records. Physical indexes are returned, because everything the Filters
- * plugin trims and reads is addressed physically.
+ * The order it reads must be the rows the grid actually SHOWS, in visual order - the two overlays
+ * freeze the first and last visible rows, so a row another plugin trimmed away is not pinned even
+ * though it still sits at the head of the raw index sequence. Physical indexes come back, because
+ * everything the Filters plugin trims and reads is addressed physically.
  *
- * @param {number[]} indexesSequence Physical row indexes in their current order.
- * @param {number} fixedRowsTop How many rows the top overlay pins.
- * @param {number} fixedRowsBottom How many rows the bottom overlay pins.
- * @returns {Set<number>} The pinned physical row indexes. Empty when nothing is pinned.
+ * Both counts are trusted as already clamped to non-negative integers; the caller owns that.
  */
 export function getPinnedPhysicalRows(
-  indexesSequence: number[], fixedRowsTop: number, fixedRowsBottom: number
+  visibleRows: number[], fixedRowsTop: number, fixedRowsBottom: number
 ): Set<number> {
-  const top = Math.max(0, fixedRowsTop);
-  const bottom = Math.max(0, fixedRowsBottom);
+  const pinnedRows = new Set<number>();
+  const rowCount = visibleRows.length;
+  const topEnd = Math.min(fixedRowsTop, rowCount);
+  // Never `slice(-bottom)`: `slice(-0)` returns the WHOLE array, so a grid with only `fixedRowsTop`
+  // set would pin every row and no filter would ever hide anything. An index is also what keeps
+  // this from spreading a large array into `push`, which overflows the stack past ~10k elements.
+  const bottomStart = Math.max(rowCount - fixedRowsBottom, 0);
 
-  if (top === 0 && bottom === 0) {
-    return new Set();
+  for (let rowIndex = 0; rowIndex < topEnd; rowIndex++) {
+    pinnedRows.add(visibleRows[rowIndex]);
   }
 
-  // `slice(-0)` returns the WHOLE array, so the bottom slice cannot be written unguarded - that
-  // would pin every row of the grid whenever only `fixedRowsTop` is set.
-  const pinnedRows = indexesSequence.slice(0, top);
-
-  if (bottom > 0) {
-    pinnedRows.push(...indexesSequence.slice(-bottom));
+  // A Set, and a second loop rather than one merged range, because on a dataset shorter than
+  // `fixedRowsTop + fixedRowsBottom` the two ends overlap.
+  for (let rowIndex = bottomStart; rowIndex < rowCount; rowIndex++) {
+    pinnedRows.add(visibleRows[rowIndex]);
   }
 
-  // A Set, because on a dataset shorter than `fixedRowsTop + fixedRowsBottom` the two ends overlap.
-  return new Set(pinnedRows);
+  return pinnedRows;
 }
 
 /**
  * Warn that a per-column `filters` entry holds an object, which the plugin ignores.
  *
- * Only `false` is read at column level. The sub-options are resolved once, when the plugin is
- * enabled, so an object written inside `columns` is silently dropped - and a user who found the
- * per-column switch is likely to try configuring it there the same way.
- *
- * @param {object} scope The per-instance object the "warn once" state is bound to.
- * @param {string} pluginKey The plugin the option was written under.
+ * Only `false` is read at column level. The sub-options are resolved once, for the whole grid, so
+ * an object written inside `columns` is silently dropped - and a user who found the per-column
+ * switch is likely to try configuring it there the same way.
  */
 export function warnAboutPerColumnFilterSettings(scope: object, pluginKey: string) {
-  warnOnce(scope, `${pluginKey}.perColumnFilterSettings`, toSingleLine`The \`${pluginKey}\` option was set\x20
-    to an object inside \`columns\`, where only \`false\` has an effect (it turns the filter UI off\x20
-    for that column). Move the plugin settings to the grid-level \`${pluginKey}\` option.`);
+  warnAboutGridLevelOptionInColumns(scope, `${pluginKey}`, toSingleLine`Only \`false\` is read there,\x20
+    and it turns the filter UI off for that column. The plugin settings are resolved once for the\x20
+    whole grid, so move them to the grid-level \`${pluginKey}\` option.`);
 }
 
 /**
