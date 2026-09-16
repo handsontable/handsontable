@@ -67,6 +67,7 @@ export function collectSelectionFillChanges(
   // a fill over a whole large grid would otherwise allocate a key per cell for nothing.
   const visited = selectedRanges.length > 1 ? new Set<number>() : null;
   const columnCount = hot.countCols();
+  const skipArea = resolveSkipArea(hot, skipRow, skipColumn);
 
   selectedRanges.forEach((cellRange) => {
     const bounds = resolveLayerBounds(hot, cellRange);
@@ -78,7 +79,7 @@ export function collectSelectionFillChanges(
     for (let row = bounds.fromRow; row <= bounds.toRow; row++) {
       for (let column = bounds.fromColumn; column <= bounds.toColumn; column++) {
         if (isCellAlreadyCovered(visited, columnCount, row, column) ||
-            (row === skipRow && column === skipColumn)) {
+            isInSkipArea(skipArea, row, column)) {
           continue;
         }
 
@@ -92,6 +93,59 @@ export function collectSelectionFillChanges(
   });
 
   return changes;
+}
+
+/**
+ * Resolves the area the fill must leave alone - the cell the value came from.
+ *
+ * For a merged cell that is the whole merged area, not one coordinate. A merged area is one cell to
+ * the user, and `MergeCells` says so through `afterIsMultipleSelection`, which the layer walk cannot
+ * consult. Without this, editing a merged cell and pressing `Ctrl`/`Cmd`+`Enter` read its own covered
+ * cells as "other cells to fill": the editor committed a fill instead of inserting a line break, and
+ * wrote the value into cells the merge hides.
+ *
+ * @param {HotInstance} hot The Handsontable instance.
+ * @param {number} [skipRow] Visual row of the cell the value came from.
+ * @param {number} [skipColumn] Visual column of that cell.
+ * @returns {object|null} The area to skip, or `null` when there is no such cell.
+ */
+function resolveSkipArea(hot: HotInstance, skipRow?: number | null, skipColumn?: number | null): {
+  fromRow: number; fromColumn: number; toRow: number; toColumn: number;
+} | null {
+  if (typeof skipRow !== 'number' || typeof skipColumn !== 'number') {
+    return null;
+  }
+
+  const mergedArea = hot.runHooks('modifyGetCellCoords', skipRow, skipColumn, false, 'meta');
+
+  if (Array.isArray(mergedArea)) {
+    const [fromRow, fromColumn, toRow, toColumn] = mergedArea as [number, number, number, number];
+
+    return { fromRow, fromColumn, toRow, toColumn };
+  }
+
+  return { fromRow: skipRow, fromColumn: skipColumn, toRow: skipRow, toColumn: skipColumn };
+}
+
+/**
+ * Reports whether a cell falls inside the area the fill must leave alone.
+ *
+ * @param {object|null} skipArea The area resolved by `resolveSkipArea()`.
+ * @param {number} row Visual row index.
+ * @param {number} column Visual column index.
+ * @returns {boolean}
+ */
+function isInSkipArea(
+  skipArea: { fromRow: number; fromColumn: number; toRow: number; toColumn: number } | null,
+  row: number,
+  column: number,
+): boolean {
+  if (skipArea === null) {
+    return false;
+  }
+
+  return row >= skipArea.fromRow && row <= skipArea.toRow &&
+    column >= skipArea.fromColumn && column <= skipArea.toColumn;
 }
 
 /**
@@ -174,7 +228,10 @@ function buildFillChange(hot: HotInstance, value: unknown, row: number, column: 
     return null;
   }
 
-  const originalValue = hot.getSourceDataAtCell(row, column) ?? null;
+  // `getSourceDataAtCell()` takes a PHYSICAL row and a VISUAL column. The walk produces visual
+  // coordinates, so the row is translated - without it, a sorted or filtered grid reads a different
+  // record than the one about to be written.
+  const originalValue = hot.getSourceDataAtCell(hot.toPhysicalRow(row), column) ?? null;
 
   if (!canOverwriteValue(value, originalValue, !!cellMeta.valueSetter)) {
     return null;

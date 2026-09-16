@@ -392,6 +392,76 @@ describe('TextEditor keyboard shortcut', () => {
       expect(getDataAtCell(0, 2)).toBe('C1');
     });
 
+    it('should insert a line break when the only selected cell is a merged one', async() => {
+      handsontable({
+        data: createSpreadsheetData(6, 6),
+        mergeCells: [{ row: 1, col: 1, rowspan: 2, colspan: 2 }],
+      });
+
+      await selectCell(1, 1);
+      await keyDownUp('enter');
+      await keyDownUp(['control/meta', 'enter']);
+
+      // A merged area is ONE cell to the user, so this fills nothing and the chord keeps its
+      // line-break meaning. Reading the area's own covered cells as "other cells to fill" closed the
+      // editor and wrote the value into cells the merge hides.
+      expect(isEditorVisible()).toBe(true);
+      expect(getActiveEditor().getValue()).toBe('B2\n');
+      // The covered cells hold `null` because merging clears them, and they must stay that way. The
+      // tell for the bug is the parent's own value leaking into them.
+      expect(getDataAtCell(1, 2)).toBe(null);
+      expect(getDataAtCell(2, 1)).toBe(null);
+      expect(getDataAtCell(2, 2)).toBe(null);
+    });
+
+    it('should still fill from a merged cell when another layer has cells to write', async() => {
+      handsontable({
+        data: createSpreadsheetData(6, 6),
+        mergeCells: [{ row: 1, col: 1, rowspan: 2, colspan: 2 }],
+      });
+
+      await selectCells([[4, 4, 4, 5], [1, 1, 2, 2]]);
+      await keyDownUp('f2');
+
+      getActiveEditor().setValue('filled');
+
+      await keyDownUp(['control/meta', 'enter']);
+
+      // Skipping the edited merged area must not disarm the fill itself - the other layer is still
+      // work to do.
+      expect(isEditorVisible()).toBe(false);
+      expect(getDataAtCell(4, 4)).toBe('filled');
+      expect(getDataAtCell(4, 5)).toBe('filled');
+    });
+
+    it('should judge an object cell by the record it is about to write, after sorting', async() => {
+      handsontable({
+        data: [
+          ['banana', 'B1'],
+          ['apple', 'B2'],
+          [{ id: 3, label: 'kept' }, 'B3'],
+        ],
+        columnSorting: true,
+        renderer(instance, td, row, col, prop, value) {
+          td.textContent = value && typeof value === 'object' ? value.label : value;
+        },
+      });
+
+      // Sorting makes the visual and physical rows disagree. `getSourceDataAtCell()` takes a
+      // PHYSICAL row, so reading it with the visual one judged a different record: the object cell
+      // was either overwritten or spared depending on which row happened to line up.
+      getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+
+      await selectCell(0, 0, 2, 1);
+      await keyDownUp('f2');
+
+      getActiveEditor().setValue('filled');
+
+      await keyDownUp(['control/meta', 'enter']);
+
+      expect(getSourceDataAtCell(2, 0)).toEqual({ id: 3, label: 'kept' });
+    });
+
     it('should still insert a line break when the selection has nothing else to fill', async() => {
       handsontable({
         data: createSpreadsheetData(6, 6),
