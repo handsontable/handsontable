@@ -1,0 +1,125 @@
+name: Visual nightly
+
+# Renders the FULL visual matrix for real on `develop` — js bare plus the four
+# themes, the three wrappers from their own demos, and the cross-browser leg —
+# and compares it against `base/develop`. The seed copies the js render into
+# the wrapper directories (visual-tests/AGENTS.md, js-copied baselines), so
+# this is the only run where wrapper parity is actually rendered.
+#
+# It NEVER writes `base/`. visual.yml resolves the `full` tier's actual key to
+# `nightly/develop`, rewritten each night (only the latest report is kept, so
+# nothing needs purging), and its Reconcile step keys on the seed tier. Red
+# when anything differs: visual-tests/scripts/seed-report.mjs turns any
+# changed, new or deleted item into the job's failure. The job summary and the
+# `visual-diff-report` artifact carry the items; the report lives at
+# https://visual.handsontable.com/nightly/develop/index.html.
+#
+# Why this exists. Pull requests render `js × {main, main-dark}` only
+# (visual.yml's `pr` tier): measured on 82 pull requests for DEV-2797, no real
+# regression was confined to one theme, browser or wrapper — every one hit all
+# of them — while the other variants cost about 10 of the visual stage's 15
+# minutes per pull request. The develop seed renders the other js variants and
+# the cross-browser leg minutes after each merge and comments what changed on
+# the merged pull request; the wrappers it only COPIES from js. This run is the
+# one build that renders the wrappers for real, so it is where a wrapper
+# drifting from js, a flaky or poisoned golden, or a commit whose seed never
+# landed turns red. A theme- or browser-only regression cannot red this run:
+# its seed made it the baseline hours earlier, and this render matches it —
+# the seed's comment on the merged pull request is where it shows.
+#
+# Triage: an item that also appears in the latest Visual seed summary means
+# that seed did not land (the item would otherwise match) or the item is
+# flaky — hash the two renders. An item byte-identical across two nightlies but
+# different from its golden is a poisoned or flaky golden — dispatch `Visual
+# seed` on develop. A wrapper-only item is a wrapper demo that no longer
+# renders like js — sync the demo (the Rule in visual-tests/AGENTS.md). The
+# report's images are behind a four-hour CDN cache: add `?cb=<anything>` to an
+# image URL before trusting it.
+on:
+  schedule:
+    # 02:00 UTC Tue–Sat: the night after each weekday's merges (a Monday run
+    # would re-render Friday's state; nothing merges at the weekend).
+    - cron: '0 2 * * 2-6'
+  workflow_dispatch:
+  # Self-validation, as visual-seed.yml does it: this file never runs on an
+  # ordinary pull request, so a broken workflow_call graph would first execute
+  # AFTER merging, on the next scheduled night. With this trigger a pull
+  # request that touches the file gets a startup-validated run whose jobs skip
+  # themselves.
+  pull_request:
+    paths: [ '.github/workflows/visual-nightly.yml' ]
+
+# NO permissions block — same parity rule as visual-seed.yml and develop.yml:
+# the called visual.yml validates its nested job-level grant (the Compare job's
+# `pull-requests: write`) against the default token this caller hands down,
+# the same token the pull request path is proven against.
+
+concurrency:
+  # Static prefix (never the workflow-name expression, which a called workflow
+  # resolves to the caller's name). A dispatch during the scheduled run queues
+  # behind it rather than cancelling a render that is minutes from its verdict.
+  group: visual-nightly-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # A `workflow_dispatch` can be launched from ANY ref, and the branch is only
+  # checked deep inside visual.yml's "Resolve the snapshot keys", which runs in
+  # `compare` — after both render legs have finished. Dispatching this from a
+  # feature branch (the obvious way to try a change to this file) therefore
+  # spends about 15 minutes on two runners rendering the whole `full` matrix —
+  # js bare plus four themes, three wrappers for real, chromium/firefox/webkit —
+  # and then prints "not a base branch", sets `VISUAL_SKIP=true`, and compares
+  # nothing. Nothing is corrupted, unlike the seed's version of this mistake;
+  # the cost is the wasted render and a green run that measured nothing.
+  #
+  # Guarding before the call is the same shape visual-seed.yml uses, and it
+  # costs nothing on the hot path: the schedule always runs on the default
+  # branch, so only a dispatch can reach it.
+  guard:
+    name: guard
+    if: github.event_name == 'workflow_dispatch' && github.ref_name != 'develop'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Refuse to render a branch this workflow does not compare
+        env:
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          echo "::error::Visual nightly compares against base/develop, and this run is on $REF_NAME."
+          echo "Re-dispatch it with develop selected as the branch."
+          echo "visual.yml resolves the snapshot keys for base branches only, so this run would"
+          echo "render the full matrix on two runners and then compare nothing."
+          exit 1
+
+  visual:
+    name: Visual
+    # `ref_name` as well as the event: the schedule only ever fires on the
+    # default branch and the guard above turns a wrong-ref dispatch red, but this
+    # is what actually keeps the render from being spent for nothing.
+    if: github.event_name != 'pull_request' && github.ref_name == 'develop'
+    uses: ./.github/workflows/visual.yml
+    with:
+      tier: full
+    secrets: inherit
+
+  # Optional Slack ping; fires only when the webhook secret exists (an absent
+  # secret is an empty string, so the step skips itself). Create
+  # `SLACK_VISUAL_WEBHOOK_URL` (an Incoming Webhook for the channel that triages
+  # visual regressions) to turn it on; without it the red run is the signal.
+  notify:
+    name: Notify Slack
+    needs: [ visual ]
+    if: ${{ failure() && github.event_name != 'pull_request' }}
+    runs-on: ubuntu-latest
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_VISUAL_WEBHOOK_URL }}
+    steps:
+      - name: Send the failure to Slack
+        if: env.SLACK_WEBHOOK_URL != ''
+        uses: slackapi/slack-github-action@03ea5433c137af7c0495bc0cad1af10403fc800c # https://github.com/slackapi/slack-github-action/releases/tag/v3.0.2
+        with:
+          webhook: ${{ env.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": ":red_circle: Visual nightly on ${{ github.ref_name }} found differences or failed.\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\nReport: https://visual.handsontable.com/nightly/${{ github.ref_name }}/index.html (add ?cb=<anything> to the image URLs — the CDN caches them for four hours)"
+            }
