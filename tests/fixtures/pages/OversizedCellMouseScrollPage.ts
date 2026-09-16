@@ -115,6 +115,36 @@ export class OversizedCellMouseScrollPage {
   }
 
   /**
+   * Selects a cell through the public API.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} col Visual column index.
+   */
+  async selectCellByApi(row: number, col: number): Promise<void> {
+    await this.page.evaluate(([r, c]) => {
+      window.hot.selectCell(r, c);
+    }, [row, col] as const);
+  }
+
+  /**
+   * Master holder scroll offsets. Read in one evaluate so a comparison cannot
+   * straddle a redraw.
+   *
+   * @returns {Promise<{ left: number, top: number }>}
+   */
+  async holderScroll(): Promise<{ left: number, top: number }> {
+    return this.page.evaluate(() => {
+      const holder = document.querySelector('.ht_master .wtHolder');
+
+      if (!(holder instanceof HTMLElement)) {
+        throw new Error('holder is not rendered');
+      }
+
+      return { left: holder.scrollLeft, top: holder.scrollTop };
+    });
+  }
+
+  /**
    * Whether the start (left and/or top) of a cell sits past the data-area
    * origin of the holder. Measured in one evaluate so the comparison cannot
    * straddle a redraw.
