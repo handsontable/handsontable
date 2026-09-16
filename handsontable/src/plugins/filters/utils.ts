@@ -35,6 +35,21 @@ export function toVisualValue(value: unknown, defaultEmptyValue: string) {
 }
 
 /**
+ * Whether a Filter-by-value list item is the empty-cell bucket.
+ *
+ * After `unifyColumnValues`, blanks are always `''` (`null`/`undefined` already
+ * collapsed by `toEmptyString`). `toVisualValue` then swaps that `''` for the
+ * translated `(Blank cells)` label before `modifyFiltersMultiSelectValue` runs.
+ * Password hashing and date/time formatters must not run on that label.
+ *
+ * @param {*} value The list item's source `value` (not `visualValue`).
+ * @returns {boolean}
+ */
+export function isBlankFilterListValue(value: unknown): value is '' {
+  return value === '';
+}
+
+/**
  * Create an array assertion to compare if an element exists in that array (in a more efficient way than .indexOf).
  *
  * @param {Array} initialData Values to compare.

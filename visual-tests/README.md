@@ -19,9 +19,13 @@ When you push changes to a GitHub pull request:
 2. The [Tests](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/test.yml) workflow runs all
    of Handsontable's tests.
 3. After all tests pass successfully, the [Visual](https://github.com/handsontable/handsontable/blob/develop/.github/workflows/visual.yml)
-   workflow runs the visual tests, then compares the resulting screenshots against the golden records.
-4. The golden records come from the branch your pull request targets — usually `develop`. Every build of a
-   base branch rewrites that branch's golden records, so a pull request into `develop`, `master`, or a
+   workflow renders the **`pr` tier** — the vanilla JS tests on Chromium with the `main` and `main-dark`
+   themes, plus a wrapper when your change is in its scope — and compares the screenshots against the
+   matching golden records. A pull request that touches the visual tests themselves (`visual-tests/` or
+   `examples/next/visual-tests/`) renders everything instead. The other themes, browsers, and wrappers are rendered by the base branch's seed and by the
+   weekday nightly; see [Tiers](#tiers).
+4. The golden records come from the branch your pull request targets — usually `develop`. Every seed-tier
+   build of a base branch rewrites that branch's golden records, so a pull request into `develop`, `master`, or a
    release branch is compared against the right baseline with no extra configuration. On `develop` the
    seed is its own workflow, `Visual seed` (`.github/workflows/visual-seed.yml`), which runs on every push
    under a concurrency group that never cancels, so the last push of any burst is always seeded, usually
@@ -68,37 +72,67 @@ screenshots to that branch's golden records and passes, so a fresh branch cannot
 opened against it. The next build of the base branch overwrites them with the authoritative render — on
 every base branch except `lts/*`, which has no push trigger (see the exception above).
 
+## Tiers
+
+A full render is 1646 screenshots and adds about 15 minutes to a pull request run, and in 82 measured pull
+requests no real regression was confined to one theme, one browser, or one wrapper. So a pull request
+renders the variants that catch regressions, and the rest are rendered by the seed right after the merge
+and reported back to the merged pull request. The tiers are `VISUAL_TIERS` in `visual-tests/src/config.mjs`;
+`visual.yml` receives the one to render as its `tier` input.
+
+| Tier | When | Renders | Compared against | Writes the golden records? |
+|---|---|---|---|---|
+| `pr` | every pull request | vanilla JS on Chromium, `main` + `main-dark`; a wrapper only when the change touches that wrapper's own `wrappers/<pkg>/` tree | the matching subset of the target branch's golden records | no |
+| `seed` | a push to `develop` (`Visual seed`), `master`, or a release branch | vanilla JS in the classic delivery path and all four themes, the cross-browser tests, and the wrapper records copied from the JS render | the branch's previous golden records | yes — this is what a pull request compares against |
+| `full` | the weekday nightly on `develop` (`Visual nightly`); a pull request that touches `visual-tests/` or `examples/next/visual-tests/` | everything, with the wrappers rendered for real | the golden records of `develop` (nightly) or of the target branch (pull request) | never — the nightly publishes its report to `nightly/develop/` |
+
+Two things cover what a pull request does not render. The develop seed renders the classic path, all four
+themes, and the cross-browser tests minutes after each merge, and when the merge changed any of those it
+**comments the list on the merged pull request** (the `Visual seed` run summary carries the same list),
+so a horizon-only, Firefox-only, or WebKit-only change is attributed to its author the same afternoon,
+and those renders are now the golden records. The nightly is the only build that renders the wrappers for
+real (the seed copies the vanilla JS render into their golden records), and it turns red on any
+difference from the seed: a wrapper that no longer renders like vanilla JS, a flaky or poisoned golden
+record, or a commit whose seed never landed. A theme-only regression cannot red the nightly, because the
+seed has already made it the baseline; the seed's comment is where it shows. `visual-tests/AGENTS.md`
+has the diagnostic for a red nightly.
+
 ## How the comparison works
 
 ```mermaid
 flowchart TD
-    PR["Push to a pull request"] --> RENDER
-    DEV["Push to develop or a release branch"] --> RENDER
+    PR["Push to a pull request"] -->|"pr tier<br/>(full when it touches visual-tests/)"| RENDER
+    DEV["Push to develop or a release branch"] -->|"seed tier"| RENDER
+    NIGHT["Weekday nightly on develop"] -->|"full tier"| RENDER
 
-    subgraph RENDER["Render (matrix)"]
-        R1["multi-framework<br/>js + 3 wrappers, 4 themes"]
-        R2["cross-browser<br/>chromium, firefox, webkit"]
+    subgraph RENDER["Render (matrix, sized by the tier)"]
+        RPR["pr: js on chromium,<br/>main + main-dark<br/>(+ a wrapper whose own tree changed)"]
+        RSEED["seed: js classic + 4 themes,<br/>wrappers copied from js,<br/>cross-browser chromium, firefox, webkit"]
+        RFULL["full: everything,<br/>wrappers rendered for real"]
     end
 
     RENDER --> KEYS{"Which ref?"}
     KEYS -->|"pull request"| KPR["expected = base/TARGET<br/>actual = pr-NUMBER/SHA"]
     KEYS -->|"base branch"| KBR["expected = actual = base/BRANCH"]
+    KEYS -->|"nightly"| KNI["expected = base/develop<br/>actual = nightly/develop<br/>(never written to base/)"]
 
     KPR --> PROBE
     KBR --> PROBE
+    KNI -->|"credentialed, never promotes"| SUIT
     PROBE{"Do golden records exist?<br/>GET /base/BRANCH/out.json"}
 
     PROBE -->|"404, none yet"| SEED["Promote this build to<br/>the golden records"]
     SEED --> PASS
 
     PROBE -->|"200"| WHO{"Fork or Dependabot?"}
-    WHO -->|"no, has secrets"| SUIT["reg-suit run<br/>fetch, diff, publish"]
-    WHO -->|"yes, no secrets"| FORK["compare-fork.mjs<br/>anonymous HTTPS, publishes nothing"]
+    WHO -->|"no, has secrets"| SUIT["compare.mjs<br/>fetch, prune to the tier, diff, publish"]
+    WHO -->|"yes, no secrets"| FORK["compare-fork.mjs<br/>anonymous HTTPS, the tier's subset,<br/>publishes nothing"]
 
     SUIT --> OUT["screenshots compared<br/>.reg/out.json"]
     FORK --> OUT
 
-    OUT --> GATE{"visual-gate.mjs<br/>any differences?"}
+    OUT -->|"pull request"| GATE{"visual-gate.mjs<br/>any differences?"}
+    OUT -->|"base branch or nightly"| REPORT["seed-report.mjs writes the run summary;<br/>the nightly goes red on any difference"]
     GATE --> COMMENT["visual-gate.mjs writes the comment,<br/>sticky action posts it"]
     GATE -->|"none"| PASS["Check passes, PR mergeable"]
     GATE -->|"differences found"| WAIT["approve job waits on the<br/>visual-approval environment"]
@@ -119,17 +153,18 @@ Two behaviors are worth reading off the diagram:
 
 - **Approval is all or nothing, and one click.** A `changed` verdict holds the run on the `visual-approval` environment; the reviewer approves or rejects the pending deployment on the run page. An approval covers exactly the screenshots of that run: a new push is a new run and asks again.
 - **A missing baseline never blocks.** The first build for a branch promotes its own screenshots to the golden records and passes. The next build of that branch replaces them, so an unreviewed baseline survives at most one merge.
+- **The nightly reads the golden records and never writes them.** It renders the wrappers for real, while the golden records hold the JS render copied into them, so its shape is not the baseline's. Its report lives at `nightly/develop/` and is rewritten each night; a red nightly means develop changed since the seed, or a golden record went bad.
 
 ## Visual tests structure
 
 Visual tests are divided into:
 
-   - multi-frameworks: tests run on Chromium using classic, horizon, horizon-dark, main and main-dark themes against Handsontable instance created in:
+   - multi-frameworks: tests run on Chromium against a Handsontable instance created in each framework the
+     tier renders (see [Tiers](#tiers) — a pull request renders vanilla JS with the `main` and `main-dark`
+     themes; the seed and the nightly render the classic delivery path and all four themes too):
       - Vanilla JS
       - Angular
       - React
-      - React (functional)
-      - Vue 2
       - Vue 3
    - cross-browser: tests run against vanilla JS Handsontable instance using:
       - Chromium
@@ -184,7 +219,8 @@ To run the visual tests locally:
 1. From the `./visual-tests/` directory, run one of the following commands:
    | Command                               | Action                                                                                             |
    | ------------------------------------- | -------------------------------------------------------------------------------------------------- |
-   | `npm run test`                        | Run multi-framework visual tests,<br>for all the configured frameworks,<br>using Chromium only. |
+   | `VISUAL_TIER=pr npm run build && VISUAL_TIER=pr npm run test` | Render what a pull request renders (the `pr` tier):<br>the vanilla JS tests on Chromium with the `main` and `main-dark` themes.<br>Skips the wrapper installs (Angular alone is about two minutes) and the other themes. |
+   | `npm run test`                        | Run multi-framework visual tests on Chromium<br>for the tier the branch resolves to: everything on a feature branch (`full`),<br>vanilla JS copied into the wrappers on `develop` (`seed`). |
    | `npm run test:cross-browser`                        | Run cross-browser visual tests,<br>using vanilla JS framework,<br>for all the supported browsers. <br> You can pass the test name to run a single cross-browser test: `npm run test:cross-browser borders`|
    | `npx playwright test {{ file name }}` | Run a specific test.<br><br>For example: `npx playwright test mouse-wheel`                         |
 
@@ -194,7 +230,9 @@ To run the visual tests locally:
    REG_EXPECTED_KEY=base/develop REG_ACTUAL_KEY=local/$(git rev-parse --short HEAD) npm run compare
    ```
    `compare` loads `./.env` itself if the file exists, so the credentials from step 3 are picked up
-   without exporting them by hand.
+   without exporting them by hand. If you rendered the `pr` tier, prefix this command with `VISUAL_TIER=pr`
+   as well, so the golden records are trimmed to the same subset; otherwise the report lists every record
+   you did not render as deleted.
    A local run never writes to `base/`, so it cannot overwrite a golden record.
 3. Open the report URL printed in the terminal, or open `./visual-tests/.reg/index.html` directly.
 

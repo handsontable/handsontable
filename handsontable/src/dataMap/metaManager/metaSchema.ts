@@ -5489,7 +5489,7 @@ export default (): Record<string, unknown> => {
      * | ------------------------ | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
      * | `pageSize`               | A number or `auto` (default: `10`)                 | Sets the number of rows displayed per page. If `'auto'` is set, the page size will be calculated to match all rows to the currently set table's viewport height  |
      * | `pageSizeList`           | An array (default: `['auto', 5, 10, 20, 50, 100]`) | Defines the selectable values for page size in the UI                                                                                                            |
-     * | `initialPage`            | A number (default: `1`)                            | Specifies which page to display on initial load                                                                                                                  |
+     * | `initialPage`            | A number (default: `1`)                            | Specifies which page to display on initial load. The plugin applies the value when it first enables and when you change it. Passing the same number again does not reset the current page. |
      * | `showPageSize`           | Boolean (default: `true`)                          | Controls visibility of the "page size" section                                                                                                                   |
      * | `showCounter`            | Boolean (default: `true`)                          | Controls visibility of the "page counter" section (e.g., "1 - 10 of 50");                                                                                        |
      * | `showNavigation`         | Boolean (default: `true`)                          | Controls visibility of the "page navigation" section                                                                                                             |
@@ -5829,13 +5829,20 @@ export default (): Record<string, unknown> => {
      * | `'onChange'`         | The cell is painted only when the element it lands in showed something else after its last paint: another cell, another value, another renderer, a changed cell meta (through [`setCellMeta()`](@/api/core.md#setcellmeta) or the [`cells`](#cells) function), or a structural change of the grid. |
      *
      * Under `'onChange'`, a render skips the cells whose paint would produce the same result as their
-     * last paint. Some changes are not detected, because nothing in the grid sees them:
+     * last paint. A vertical scroll keeps the elements of the rows that stay rendered, so it paints
+     * only the rows that enter the rendered area, plus the cells of merged blocks, whose span depends
+     * on that area. A horizontal scroll repaints the rendered cells, and so does any scroll in a grid
+     * that scrolls with the page. Some changes are not detected, because nothing in the grid sees
+     * them:
      * - a meta object mutated directly (`getCellMeta(row, col).x = y`, including inside the
      * [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta) and [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta) hooks),
      * - a value object mutated in place (the grid compares values by identity),
      * - state outside the grid that a renderer reads,
      * - a renderer that reads the data of other cells, such as the checkbox renderer with
-     * [`label.property`](#label).
+     * [`label.property`](#label),
+     * - a renderer that reads where the rendered area starts or ends, through
+     * [`getFirstRenderedVisibleRow()`](@/api/core.md#getfirstrenderedvisiblerow) or its siblings: a
+     * vertical scroll keeps such a cell as it is.
      *
      * Set `renderMode: 'always'` on such cells, or mark them with
      * [`markCellChanged()`](@/api/core.md#markcellchanged) before rendering. A [`cells`](#cells)

@@ -109,7 +109,10 @@ test("the seed's build fallback stays in step with build.yml, or the baseline dr
 });
 
 test('the seed calls the shared visual module with the secrets it needs', () => {
-  assert.match(seed, /uses: \.\/\.github\/workflows\/visual\.yml\n\s+secrets: inherit/);
+  // The seed tier is the one that renders everything the golden records hold and
+  // writes `base/develop`; any other tier here would reconcile the baseline down
+  // to a subset (visual-tiers.test.mjs pins the tier table itself).
+  assert.match(seed, /uses: \.\/\.github\/workflows\/visual\.yml\n\s+with:\n\s+tier: seed\n\s+secrets: inherit/);
   // Parity with develop.yml: no caller-level permissions block, or the nested
   // grant in visual.yml would be validated against a second ceiling.
   assert.doesNotMatch(seed, /^permissions:/m, 'visual-seed.yml must not declare a permissions block');

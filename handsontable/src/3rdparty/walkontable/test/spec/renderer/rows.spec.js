@@ -4,6 +4,14 @@ describe('Walkontable.Renderer.RowsRenderer', () => {
       return true;
     }
 
+    isRowRecyclingAllowed() {
+      return false;
+    }
+
+    hasStableCellIdentity() {
+      return false;
+    }
+
     constructor() {
       this.rootDocument = document;
     }
