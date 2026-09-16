@@ -29,7 +29,7 @@ so its own date sits above them rather than inside a release section. Filled in
 by public/scripts/design-system-updated.js from the docs worker (rule 18c in
 docs/cloudflare/_worker.js); starts hidden and is revealed only once a real
 date arrives, so the page is unchanged when the date is unavailable. -->
-<p data-design-system-updated data-prefix="Design system — " style="display:none"></p>
+<p data-design-system-updated data-prefix="Design system - " style="display:none"></p>
 
 [[toc]]
 

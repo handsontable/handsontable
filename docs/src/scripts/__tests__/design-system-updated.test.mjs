@@ -82,11 +82,15 @@ function respondWith(payload, ok = true) {
 }
 
 test('fills and reveals the field for a named version, using the page prefix', async() => {
-  const target = field('Design system — ');
+  // The separator is a plain hyphen, matching the prefix the changelog page
+  // sets. The docs site uses hyphens and never dashes (docs/AGENTS.md 2.2),
+  // and an em dash here would look identical while rendering the wrong
+  // character on the page.
+  const target = field('Design system - ');
 
   await run([target], respondWith({ date: '2026-09-01T09:00:00Z', source: 'named-version' }));
 
-  assert.equal(target.textContent, 'Design system — last published: September 1, 2026');
+  assert.equal(target.textContent, 'Design system - last published: September 1, 2026');
   assert.equal(target.style.display, '', 'the field must be revealed');
 });
 
