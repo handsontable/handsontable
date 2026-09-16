@@ -2786,7 +2786,7 @@ class TableView {
    * to/from the root element.
    */
   #updateScrollbarClassNames() {
-    const rootElement = this.hot.rootElement;
+    const { rootElement, rootWrapperElement } = this.hot;
 
     if (this.hasVerticalScroll()) {
       addClass(rootElement, 'htHasScrollY');
@@ -2796,8 +2796,19 @@ class TableView {
 
     if (this.isVerticallyScrollableByWindow()) {
       addClass(rootElement, 'htVerticallyScrollableByWindow');
+
+      // Mirrored onto the wrapper: the stylesheet lets the wrapper follow its content there
+      // (`styles/base/_base.scss`). A wrapper pinned to a CSS-sized container while the page
+      // scrolls the rows placed the bottom slot (pagination, sheets bar) over a data row (DEV-2848).
+      if (rootWrapperElement) {
+        addClass(rootWrapperElement, 'ht-vertical-window-scroll');
+      }
     } else {
       removeClass(rootElement, 'htVerticallyScrollableByWindow');
+
+      if (rootWrapperElement) {
+        removeClass(rootWrapperElement, 'ht-vertical-window-scroll');
+      }
     }
 
     if (this.hasHorizontalScroll()) {
