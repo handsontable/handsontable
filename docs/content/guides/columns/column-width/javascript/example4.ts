@@ -27,12 +27,8 @@ const hot = new Handsontable(container, {
 
 // Demonstrates ManualColumnResize#clearManualSizes(): drag a column header
 // to resize it, then click this button to fall back to `colWidths` again.
-const clearSizesButton = document.createElement('button');
-clearSizesButton.type = 'button';
-clearSizesButton.textContent = 'Clear manual sizes';
-clearSizesButton.style.marginTop = '0.75rem';
+const clearSizesButton = document.querySelector('#example4-clearSizes')!;
 clearSizesButton.addEventListener('click', () => {
   hot.getPlugin('manualColumnResize').clearManualSizes();
   hot.render();
 });
-container.after(clearSizesButton);
