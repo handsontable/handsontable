@@ -78,6 +78,8 @@ describe.each([
     });
 
     it('should honor `sortFixedRows` when `maxRows` equals the row count', () => {
+      // Guard: the flag still wins when `maxRows` equals the row count. Old early
+      // return was `maxRows - fixedRowsBottom` (5, then 6 with the flag), same as now.
       hot = build({ [pluginKey]: true, fixedRowsBottom: 1, maxRows: 6 });
 
       expect(upperBound()).toBe(5);
@@ -135,9 +137,9 @@ describe.each([
 
     it('should apply the same overlap when `maxRows` caps the displayed count', () => {
       // `countRows()` is already min(length, maxRows); there is no separate formula.
-      // Spare rows still occupy the trailing visual rows, so they must be excluded
-      // the same way. Old early return: 8 - 1 = 7. Independent subtract: 8 - 2 - 1 = 5.
-      // New: 8 - max(2, 1) = 6.
+      // Old early return skipped the spare walk: `maxRows - fixedRowsBottom` = 7.
+      // Independent subtract: 8 - 2 - 1 = 5. New is `8 - max(2, 1)` = 6 — restoring
+      // the early return fails this case.
       hot = build({
         [pluginKey]: true,
         minSpareRows: 2,
