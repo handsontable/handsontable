@@ -434,6 +434,17 @@ export class TableRenderer {
   }
 
   /**
+   * Returns the number of frozen start columns. Draw-constant; in core the setting is a function that
+   * walks the index mapper, so the column-header renderer reads it once per draw and passes it to
+   * `ownsAriaColumnHeaderId` rather than resolving it per header cell.
+   *
+   * @returns {number}
+   */
+  getFixedColumnsStart(): number {
+    return this.rowUtils!.wtSettings.getSetting<number>('fixedColumnsStart');
+  }
+
+  /**
    * Returns `true` when the currently rendered overlay is the single owner of the `aria-describedby`
    * id for the given column, so exactly one header in the whole grid carries it. A frozen
    * (inline-start) column is owned by the inline-start overlay, which always renders it; every other
@@ -443,10 +454,13 @@ export class TableRenderer {
    * already carries.
    *
    * @param {number} sourceColumnIndex The rendered (renderable) column index.
+   * @param {number} fixedColumnsStart The number of frozen start columns, read once per draw by the
+   *                                   caller - in core it is a function that walks the index mapper, so
+   *                                   it must not be read per header cell.
    * @returns {boolean}
    */
-  ownsAriaColumnHeaderId(sourceColumnIndex: number): boolean {
-    const isFrozenColumn = sourceColumnIndex < this.rowUtils!.wtSettings.getSetting<number>('fixedColumnsStart');
+  ownsAriaColumnHeaderId(sourceColumnIndex: number, fixedColumnsStart: number): boolean {
+    const isFrozenColumn = sourceColumnIndex < fixedColumnsStart;
 
     if (this.activeOverlayName === CLONE_INLINE_START) {
       return isFrozenColumn;

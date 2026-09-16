@@ -71,8 +71,10 @@ export class ColumnHeadersRenderer extends BaseRenderer {
     } = this.table;
     const allColumnsToRender = columnsToRender + rowHeadersCount;
     // Draw-constant, so resolved once rather than per header (mirrors the cells renderer): the id
-    // prefix a data cell references through `aria-describedby`, empty without an instance id (DEV-29).
+    // prefix a data cell references through `aria-describedby`, empty without an instance id (DEV-29),
+    // and the frozen-column count the ownership check needs (a mapper-walking function in core).
     const columnHeaderIdPrefix = this.table.isAriaEnabled() ? this.table.getAriaColumnHeaderIdPrefix() : '';
+    const fixedColumnsStart = columnHeaderIdPrefix ? this.table.getFixedColumnsStart() : 0;
 
     for (let visibleRowIndex = 0; visibleRowIndex < columnHeadersCount; visibleRowIndex++) {
       const TR = columnHeaderRows!.getRenderedNode(visibleRowIndex);
@@ -122,7 +124,7 @@ export class ColumnHeadersRenderer extends BaseRenderer {
           const columnHeaderId = columnHeaderIdPrefix &&
             renderedColumnIndex >= 0 &&
             visibleRowIndex === columnHeadersCount - 1 &&
-            this.table.ownsAriaColumnHeaderId(sourceColumnIndex)
+            this.table.ownsAriaColumnHeaderId(sourceColumnIndex, fixedColumnsStart)
             ? `${columnHeaderIdPrefix}${sourceColumnIndex}`
             : '';
 

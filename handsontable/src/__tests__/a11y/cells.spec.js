@@ -355,5 +355,33 @@ describe('Cells-related a11y configuration', () => {
 
       expect(described.length).toBe(0);
     });
+
+    it('should keep every cell `aria-describedby` resolving to exactly one header with a colspan on the' +
+      ' leaf nested-header row (DEV-29)', async() => {
+      // The leaf row is not 1:1 with columns here (`AB` spans two columns). This pins the invariant -
+      // exactly one element per id, never a duplicate or a wrong header - so the documented v1 limit
+      // (a continuation column's id lands on an empty placeholder header) cannot silently become a
+      // duplicate or cross-column reference. See walkontable AGENTS.md.
+      handsontable({
+        data: createSpreadsheetData(5, 4),
+        rowHeaders: true,
+        colHeaders: true,
+        nestedHeaders: [
+          ['Group', 'Group', 'Group', 'Group'],
+          [{ label: 'AB', colspan: 2 }, 'C', 'D'],
+        ],
+      });
+
+      const cells = [...spec().$container.get(0).querySelectorAll('td[role="gridcell"]')];
+
+      expect(cells.length).toBeGreaterThan(0);
+
+      cells.forEach((td) => {
+        const ref = td.getAttribute('aria-describedby');
+
+        expect(ref).toBeTruthy();
+        expect(document.querySelectorAll(`[id="${ref}"]`).length).toBe(1);
+      });
+    });
   });
 });

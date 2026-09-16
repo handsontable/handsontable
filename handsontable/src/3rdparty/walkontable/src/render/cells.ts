@@ -79,8 +79,11 @@ export class CellsRenderer extends BaseRenderer {
       activeOverlayName, rowFilter?.offset ?? 0, rowsToRender, columnFilter?.offset ?? 0, columnsToRender,
     ].join(',');
     // Draw-constant, so resolved once rather than per cell: the column-header id prefix a cell is tied
-    // to for screen readers, empty when the grid has no column headers or no instance id (DEV-29).
-    const columnHeaderIdPrefix = this.table.hasColumnHeaders() ? this.table.getAriaColumnHeaderIdPrefix() : '';
+    // to for screen readers, empty when aria is off, the grid has no column headers, or there is no
+    // instance id (DEV-29). `isAriaEnabled()` is checked first so an `ariaTags: false` grid never calls
+    // `hasColumnHeaders()`, which fires the public `afterGetColumnHeaderRenderers` hook.
+    const columnHeaderIdPrefix = this.table.isAriaEnabled() && this.table.hasColumnHeaders()
+      ? this.table.getAriaColumnHeaderIdPrefix() : '';
 
     for (let visibleRowIndex = paintFromRow; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
