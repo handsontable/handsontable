@@ -6,9 +6,9 @@ import type { RemoveHookRecord } from './windowTypes';
  * Page object for DEV-2523: how often `beforeRemoveRow`/`afterRemoveRow` and their column
  * counterparts fire when the removed rows or columns are not one solid block.
  *
- * `alter()` folds the selection into consecutive runs and deletes one run at a time, so the
- * hooks fire once per run rather than once per selected row. The gestures below are the
- * reported ones - Ctrl/Cmd-clicking headers, then "Remove rows" from the context menu - so the
+ * `alter()` folds the selection into runs of neighboring indexes and deletes one run at a time,
+ * so the hooks fire once per run rather than once per selected row. The gestures below are the
+ * reported ones – Ctrl/Cmd-clicking headers, then "Remove rows" from the context menu – so the
  * assertions describe what a user actually triggers, not just what the API accepts.
  */
 export class RemoveHooksFiringPage {
@@ -55,7 +55,7 @@ export class RemoveHooksFiringPage {
 
   /**
    * Select whole rows the way the report describes: a plain click opens the selection, a
-   * Ctrl/Cmd-click adds each further row as its own range. Neighbouring rows stay separate
+   * Ctrl/Cmd-click adds each further row as its own range. Neighboring rows stay separate
    * ranges here, which is exactly what `alter()` then folds back into runs.
    */
   async ctrlSelectRows(rows: number[]): Promise<void> {
@@ -98,11 +98,6 @@ export class RemoveHooksFiringPage {
     return (await this.hookLog()).filter(entry => entry.hook === hook);
   }
 
-  /** Drop everything recorded so far, so one page can carry several gestures. */
-  resetLog(): Promise<boolean> {
-    return this.page.evaluate(() => window.resetRemoveHookLog());
-  }
-
   /** The first column of every remaining row, which identifies the rows that survived. */
   remainingRowIds(): Promise<string[]> {
     return this.page.evaluate(() => {
@@ -136,6 +131,45 @@ export class RemoveHooksFiringPage {
         window.hot.alter(args.action, args.index, 1, args.source);
       },
       { action, index, source }
+    );
+  }
+
+  /** Run `alter()` with a plain start index and a count, the other form the public API takes. */
+  alterWithAmount(action: string, index: number, amount: number, source: string): Promise<void> {
+    return this.page.evaluate(
+      (args: { action: string, index: number, amount: number, source: string }) => {
+        window.hot.alter(args.action, args.index, args.amount, args.source);
+      },
+      { action, index, amount, source }
+    );
+  }
+
+  /** Rebuild the grid with extra settings, clearing the log. Used for the sorted case. */
+  rebuild(overrides: Record<string, unknown>): Promise<boolean> {
+    return this.page.evaluate(
+      (settings: Record<string, unknown>) => window.initRemoveHooksGrid(settings),
+      overrides
+    );
+  }
+
+  /** Sort a column through the plugin, so visual and physical row indexes stop matching. */
+  async sortByColumn(column: number, sortOrder: 'asc' | 'desc'): Promise<void> {
+    await this.page.evaluate(
+      (config: { column: number, sortOrder: 'asc' | 'desc' }) => {
+        window.hot.getPlugin('columnSorting').sort(config);
+      },
+      { column, sortOrder }
+    );
+  }
+
+  /**
+   * Make the fixture's `beforeRemoveRow` replace the live `physicalRows` array with this list.
+   * Pass `null` to leave the array alone.
+   */
+  setBeforeRemoveRowRewrite(physicalRows: number[] | null): Promise<boolean> {
+    return this.page.evaluate(
+      (rows: number[] | null) => window.setBeforeRemoveRowRewrite(rows),
+      physicalRows
     );
   }
 }

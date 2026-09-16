@@ -743,11 +743,18 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired after one or more columns are removed.
    *
-   * Columns are removed in consecutive runs, and this hook fires once per run, with `amount`
-   * set to the number of columns in that run. This is by design. Removing columns 1, 2, and 3
-   * fires the hook once, with `amount` set to `3`. Removing columns 0, 1, and 3 (for example,
-   * by selecting columns with Ctrl/Cmd held) fires it twice: first with `amount` set to `2`,
-   * then with `amount` set to `1`.
+   * Columns are removed in runs of neighboring columns, and this hook fires once per run. This
+   * is by design. Removing columns 1, 2, and 3 fires the hook once. Removing columns 0, 1,
+   * and 3 (for example, by selecting columns with Ctrl/Cmd held) fires it twice: once for the
+   * `0, 1` run, then once for `3`.
+   *
+   * Two columns count as neighbors by their **visual** index, so sorting or moving columns
+   * changes how one selection is grouped into runs.
+   *
+   * `amount` is the number of columns the call asked to remove, which is not always the number
+   * it removed. A request that runs past the last column is cut short, but `amount` is not:
+   * `alter('remove_col', 4, 5)` on a six-column grid reports `amount` as `5` and removes two.
+   * Read `physicalColumns.length` for the count that was really removed.
    *
    * Every call describes the data source as it stands at that moment, so the `index` and
    * `physicalColumns` of a later call already account for the columns that the earlier calls
@@ -765,15 +772,24 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired after one or more rows are removed.
    *
-   * Rows are removed in consecutive runs, and this hook fires once per run, with `amount` set
-   * to the number of rows in that run. This is by design. Removing rows 1, 2, and 3 fires the
-   * hook once, with `amount` set to `3`. Removing rows 0, 1, and 3 (for example, by selecting
-   * rows with Ctrl/Cmd held) fires it twice: first with `amount` set to `2`, then with
-   * `amount` set to `1`.
+   * Rows are removed in runs of neighboring rows, and this hook fires once per run. This is by
+   * design. Removing rows 1, 2, and 3 fires the hook once, with `amount` set to `3`. Removing
+   * rows 0, 1, and 3 (for example, by selecting rows with Ctrl/Cmd held) fires it twice: first
+   * with `amount` set to `2`, then with `amount` set to `1`.
    *
-   * Every call describes the data source as it stands at that moment, so the `index` and
-   * `physicalRows` of a later call already account for the rows that the earlier calls
-   * removed.
+   * Two rows count as neighbors by their **visual** index, so sorting, moving, or hiding rows
+   * changes how one selection is grouped into runs. Two rows that sit next to each other on
+   * screen with a hidden row between them are not neighbors, and they fire two calls.
+   *
+   * `amount` is the number of rows this call really removed, which is always
+   * `physicalRows.length`. A [`beforeRemoveRow`](#beforeremoverow) handler that edits that
+   * array changes both, which is how the [`NestedRows`](@/api/nestedRows.md) plugin adds the
+   * descendants of a removed parent.
+   *
+   * `physicalRows` holds **physical** indexes, so on a sorted or reordered grid it is neither
+   * ascending nor contiguous even for a single run. Every call also describes the data source
+   * as it stands at that moment, so the `index` and `physicalRows` of a later call already
+   * account for the rows that the earlier calls removed.
    *
    * @event Hooks#afterRemoveRow
    * @param {number} index Visual index of starter row.
@@ -1810,11 +1826,27 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired before one or more columns are about to be removed.
    *
-   * Columns are removed in consecutive runs, and this hook fires once per run, with `amount`
-   * set to the number of columns in that run. This is by design. Removing columns 1, 2, and 3
-   * fires the hook once, with `amount` set to `3`. Removing columns 0, 1, and 3 (for example,
-   * by selecting columns with Ctrl/Cmd held) fires it twice: first with `amount` set to `2`,
-   * then with `amount` set to `1`.
+   * Columns are removed in runs of neighboring columns, and this hook fires once per run. This
+   * is by design. Removing columns 1, 2, and 3 fires the hook once. Removing columns 0, 1,
+   * and 3 (for example, by selecting columns with Ctrl/Cmd held) fires it twice: once for the
+   * `0, 1` run, then once for `3`.
+   *
+   * Two columns count as neighbors by their **visual** index, so sorting or moving columns
+   * changes how one selection is grouped into runs.
+   *
+   * `amount` is the number of columns the call asked to remove, which is not always the number
+   * it removes. A request that runs past the last column is cut short, but `amount` is not, so
+   * read `physicalColumns.length` for the count that is really going.
+   *
+   * Returning `false` cancels **only the run this call describes**. Any later run of the same
+   * removal still fires and still removes its columns, so blocking the first run of a
+   * multi-run removal does not block the rest. Use [`beforeAlter`](#beforealter) to stop the
+   * whole operation.
+   *
+   * Editing `physicalColumns` in place is not supported. The splice order and `amount` are
+   * fixed before this hook runs while the index mapper reads the edited array, so the change
+   * only half-applies and leaves the two disagreeing. Cancel and re-issue
+   * [`alter()`](@/api/core.md#alter) instead.
    *
    * Every call describes the data source as it stands at that moment, so the `index` and
    * `physicalColumns` of a later call already account for the columns that the earlier calls
@@ -1833,17 +1865,32 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired when one or more rows are about to be removed.
    *
-   * Rows are removed in consecutive runs, and this hook fires once per run, with `amount` set
-   * to the number of rows in that run. This is by design. Removing rows 1, 2, and 3 fires the
-   * hook once, with `amount` set to `3`. Removing rows 0, 1, and 3 (for example, by selecting
-   * rows with Ctrl/Cmd held) fires it twice: first with `amount` set to `2`, then with
-   * `amount` set to `1`.
+   * Rows are removed in runs of neighboring rows, and this hook fires once per run. This is by
+   * design. Removing rows 1, 2, and 3 fires the hook once, with `amount` set to `3`. Removing
+   * rows 0, 1, and 3 (for example, by selecting rows with Ctrl/Cmd held) fires it twice: first
+   * with `amount` set to `2`, then with `amount` set to `1`.
    *
-   * Every call describes the data source as it stands at that moment, so the `index` and
-   * `physicalRows` of a later call already account for the rows that the earlier calls
-   * removed.
+   * Two rows count as neighbors by their **visual** index, so sorting, moving, or hiding rows
+   * changes how one selection is grouped into runs. Two rows that sit next to each other on
+   * screen with a hidden row between them are not neighbors, and they fire two calls.
    *
-   * The `physicalRows` array is mutable. Edit it in place to change which rows are removed.
+   * Returning `false` cancels **only the run this call describes**. Any later run of the same
+   * removal still fires and still removes its rows, so blocking the first run of a multi-run
+   * removal does not block the rest. Use [`beforeAlter`](#beforealter) to stop the whole
+   * operation.
+   *
+   * On the [`alter()`](@/api/core.md#alter) path, `physicalRows` can be edited in place to
+   * change which rows are removed; the [`NestedRows`](@/api/nestedRows.md) plugin uses this to
+   * add the descendants of a removed parent. `amount` is counted before any such edit, so read
+   * `physicalRows.length` for the current list, and read `amount` from
+   * [`afterRemoveRow`](#afterremoverow) for the count that was really removed. Plugins that
+   * fire this hook outside `alter()`, such as `NestedRows` when a child is detached, may
+   * ignore both the edited array and the returned value.
+   *
+   * `physicalRows` holds **physical** indexes, so on a sorted or reordered grid it is neither
+   * ascending nor contiguous even for a single run. Every call also describes the data source
+   * as it stands at that moment, so the `index` and `physicalRows` of a later call already
+   * account for the rows that the earlier calls removed.
    *
    * @event Hooks#beforeRemoveRow
    * @param {number} index Visual index of starter row.

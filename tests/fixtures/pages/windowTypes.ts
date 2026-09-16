@@ -249,8 +249,10 @@ declare global {
     hookLog: { name: string, args: unknown[] }[];
     /** Recorded remove-row/remove-column hook arguments from the DEV-2523 firing fixture. */
     removeHookLog: RemoveHookRecord[];
-    /** Clears `removeHookLog`, so one page can carry several gestures (DEV-2523 fixture). */
-    resetRemoveHookLog(): boolean;
+    /** Rebuilds the DEV-2523 firing fixture grid with the given setting overrides. */
+    initRemoveHooksGrid(overrides?: Record<string, unknown>): boolean;
+    /** Makes the fixture's `beforeRemoveRow` rewrite `physicalRows` to this list (DEV-2523). */
+    setBeforeRemoveRowRewrite(physicalRows: number[] | null): boolean;
     /** Recorded remove-row hook arguments from the DEV-30 nested undo fixture. */
     removeLog: {
       hook: 'beforeRemoveRow' | 'afterRemoveRow';
