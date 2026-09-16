@@ -141,24 +141,20 @@ unsorted at the bottom. The cap matters in the other direction too: trailing emp
 
 `MultiColumnSorting` does not override the method, so both plugins share this and any change to it.
 
-**Known overlap - open as DEV-2881, do not "tidy" it here.** The count and `fixedRowsBottom` are
-subtracted independently, but a spare row is appended at the end of the data, so it sits *inside*
-the band `fixedRowsBottom` already reserves. With `minSpareRows: 1, fixedRowsBottom: 1` and no
-filter both terms describe the same row, two rows leave the sortable range, and the last real data
-row is left unsorted, which is the #5983 symptom reached through a different option. The bound
-should be `numberOfRows - Math.max(spareRows, fixedRowsBottom)`. Neither the #5983 fix nor DEV-59
-changed that: the counted value is never larger than `minSpareRows`, so the subtraction is exactly
-what it always was. One asymmetry DEV-59 did introduce - with `sortFixedRows: true` the
-`fixedRowsBottom` term is zeroed, so the overlap disappears and that path's range is correct.
+**Spare rows overlap `fixedRowsBottom` (DEV-2881).** A spare row is appended at the end of the
+data, so it sits *inside* the band `fixedRowsBottom` already reserves. The bound is
+`numberOfRows - Math.max(spareRows, fixedRowsBottom)` - subtracting the terms independently
+dropped one real data row per overlapping row. `sortFixedRows: true` zeroes the pinned term,
+which used to *mask* the overlap rather than fix it; the `max` still has to run so spare rows
+stay out. The `maxRows` early return is the same family: `countRows()` is already capped, and
+that branch still has to count spare rows rather than subtract only `fixedRowsBottom`.
 
-Nothing in either sorting suite covers the overlap. `__tests__/columnSorting.spec.js`'s "should
-respect `fixedRowsTop`, `fixedRowsBottom`, and `minSpareRows` together" is the only test in
-`columnSorting/__tests__` or `multiColumnSorting/__tests__` that sets both options, and it is
-blind to it - its `Total` row holds the largest value in the sorted column, so it lands on the
-same row whether or not it took part in the sort, and all four assertions hold either way
-(verified by removing the spare-row term from a built bundle: identical output). Whoever fixes
-the overlap has to give that spec a `Total` value that is not the extreme one before it can say
-anything.
+The spec that sets both options (`__tests__/columnSorting.spec.js`, "should respect
+`fixedRowsTop`, `fixedRowsBottom`, and `minSpareRows` together") must keep a **non-extreme**
+`Total` value. `111` was the largest in the column, so `Total` landed last whether or not it
+took part in the sort and the overlap was invisible. `sortableRowRange.unit.js` covers both
+directions of the overlap (more spares than pinned rows, and more pinned rows than spares)
+plus the `maxRows` branch.
 
 ## The sort indicator reserves room on the header *container*
 

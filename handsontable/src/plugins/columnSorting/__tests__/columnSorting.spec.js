@@ -3537,7 +3537,9 @@ describe('ColumnSorting', () => {
           ['Apple', 10],
           ['Date', 40],
           ['Cherry', 30],
-          ['Total', 111],
+          // Middle value: 111 was the extreme and landed last whether or not `Total`
+          // took part in the sort, so the overlap (DEV-2881) was invisible here.
+          ['Total', 25],
           [null, null], // spare row
         ],
         colHeaders: ['A', 'B'],
@@ -3550,8 +3552,10 @@ describe('ColumnSorting', () => {
       getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
 
       expect(getDataAtCell(0, 0)).toBe('Header');
-      expect(getDataAtCol(1).slice(1, 5)).toEqual([10, 20, 30, 40]);
-      expect(getDataAtCell(5, 0)).toBe('Total');
+      // The spare sits inside the `fixedRowsBottom` band, so `Total` is ordinary data
+      // and sorts among Banana/Apple/Date/Cherry (25 between 20 and 30).
+      expect(getDataAtCol(1).slice(1, 6)).toEqual([10, 20, 25, 30, 40]);
+      expect(getDataAtCell(3, 0)).toBe('Total');
       expect(getDataAtCell(6, 0)).toBeNull();
     });
   });

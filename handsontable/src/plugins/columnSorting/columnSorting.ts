@@ -717,6 +717,8 @@ export class ColumnSorting extends BasePlugin {
    * overrides this method decides where the sort stops. Two things keep rows below it: the
    * `fixedRowsBottom` rows, which keeps a footer row's SUM over absolute addresses from being
    * permuted into the data (unless `sortFixedRows` opts them back in), and the trailing spare rows.
+   * Those two bands overlap, so the exclusion is `Math.max(spareRows, fixedRowsBottom)`, not the
+   * sum of the two (DEV-2881).
    *
    * @private
    * @param {number} numberOfRows Total number of displayed rows.
@@ -727,12 +729,6 @@ export class ColumnSorting extends BasePlugin {
     // `sortFixedRows: true` opts back into sorting the whole dataset, pinned rows included, so the
     // bottom overlay reserves nothing from the sortable range.
     const fixedRowsBottom = this.#sortsFixedRows() ? 0 : (settings.fixedRowsBottom || 0);
-
-    // `maxRows` option doesn't take into account `minSpareRows` option in this case.
-    if ((settings.maxRows ?? Infinity) <= numberOfRows) {
-      return Math.max(0, (settings.maxRows ?? 0) - fixedRowsBottom);
-    }
-
     const minSpareRows = settings.minSpareRows ?? 0;
     // The spare rows are COUNTED, never assumed from the option. `minSpareRows` says how many
     // trailing empty rows the Core tops the grid up to, not how many are on screen right now:
@@ -747,6 +743,10 @@ export class ColumnSorting extends BasePlugin {
     // every sort, so a grid with a large block of trailing empty rows (`minRows`, or a dataset
     // that simply ends blank) would pay for rows the cap then discards. `adjustRowsAndCols()`
     // caps its `minSpareCols` count the same way, for the same reason.
+    //
+    // Count on the `maxRows` path too. `countRows()` is already capped, so that branch used to
+    // skip this walk and subtract only `fixedRowsBottom`. Trailing spare rows that filled the
+    // cap then took part in the sort.
     let spareRows = 0;
 
     for (let row = numberOfRows - 1; row >= 0 && spareRows < minSpareRows; row--) {
@@ -757,12 +757,16 @@ export class ColumnSorting extends BasePlugin {
       spareRows += 1;
     }
 
-    // The two terms are subtracted independently even though a spare row sits inside the band
-    // `fixedRowsBottom` already reserves, so with both options set they describe the same row and
-    // one real data row drops out of the sort. That is DEV-2881, and it predates `sortFixedRows` -
-    // kept as-is here on purpose, because fixing it needs the one spec that sets both options
-    // repaired first (it currently cannot tell the two behaviors apart).
-    return Math.max(0, numberOfRows - spareRows - fixedRowsBottom);
+    // Spare rows are appended at the end of the data, so they sit inside the band
+    // `fixedRowsBottom` already reserves. Subtracting both independently dropped one real
+    // data row per overlapping row (DEV-2881).
+    const excludedFromBottom = Math.max(spareRows, fixedRowsBottom);
+
+    if ((settings.maxRows ?? Infinity) <= numberOfRows) {
+      return Math.max(0, (settings.maxRows ?? 0) - excludedFromBottom);
+    }
+
+    return Math.max(0, numberOfRows - excludedFromBottom);
   }
 
   /**
