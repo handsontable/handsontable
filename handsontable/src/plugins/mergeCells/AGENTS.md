@@ -284,6 +284,37 @@ cleared and are not. E2E coverage is extensive; the unit-level highlight logic i
 **When changing selection logic, test all combinations of: merged cells, hidden rows/columns, frozen
 rows/columns, and navigable headers.** Run both the `selectAll` and `selectCells` suites.
 
+### An arrow-key horizontal exit is addressed by the merge's top row (DEV-102)
+
+`#onModifyTransformStart` snaps the highlight to the merge's top-left while stashing the entered cell
+in `#lastSelectedFocus`, and restores that focus before the next move — that entry-row/entry-column
+memory is what PR #10732's range navigation relies on. A **Left/Right arrow** move that leaves the
+merge onto the adjacent cell is the one exception: it re-snaps the result to the merge's topmost
+**visible** row (`getNearestNotHiddenIndex(mergedParent.row, 1)`, bounded to the span — assigning a
+hidden top row throws `Renderable coords are not visible` from the transform). So a merge is always
+addressed by its top-left corner however it was entered; before this, entering B2:B4 from below (B5
+up) then leaving left landed on A4, from above (B1 down) on A2.
+
+Three things this override must **not** catch, each behind a separate condition, each with a red spec
+if you drop it:
+
+- **A wrap to another row** (`autoWrapRow`, no adjacent cell) keeps the entry row, or the wrap loops
+  forever between the merge and the row below its top — gate on `landsOnAdjacentColumn` (the column
+  branch found a not-hidden neighbor), never on the mere presence of a merge.
+- **Vertical and diagonal moves** keep the entry column (the tested column memory) — gate on
+  `delta.row === 0`.
+- **Tab / Shift+Tab**, which cycles keeping the row it moves along, reaches this hook through
+  `transformStart` with the **same `(0, ±1)` delta as an arrow** (single-range case; the multi-range
+  case goes through `modifyTransformFocus` and never reaches here). There is no delta or source that
+  tells them apart — both mark source `'keyboard'`. `inlineStart`/`inlineEnd` therefore call
+  `selection.markTabNavigation()` (cleared in `markEndSource()`), and the override reads
+  `selection.isDuringTabNavigation()`. The Jasmine `keyDownUp('tab')` helper drives the real command
+  path, so it sets the flag; a `transformStart` called directly in a unit test does not.
+
+Pinned by `__tests__/keyboardShortcuts/arrowLeft.spec.js` / `arrowRight.spec.js` (top-row landing,
+including hidden columns and the multi-merge chain), the unchanged `arrowUp`/`arrowDown` and
+`tab`/`shiftTab` specs (the three exclusions), and `tests/e2e/merge-cells-horizontal-exit.spec.ts`.
+
 ## `getSourceDataAtCell` takes a visual column
 
 `getSourceDataAtCell(row, column)` takes a **physical row** but a **visual column** — `core.ts`

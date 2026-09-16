@@ -467,6 +467,12 @@ Some features remove rows from the grid entirely: [`filters`](@/api/options.md#f
 
 One limitation applies to [`undo`](@/api/options.md#undo). Unmerging a merged cell whose rows are all hidden but one records only the single cell you can see, which is not a merged cell, so undoing that unmerge restores nothing. Expand or unfilter the rows first if you want the unmerge to be reversible.
 
+## Keyboard navigation over a merged cell
+
+A merged cell behaves as a single cell at its top-left corner. When you move the selection onto a merged cell with the arrow keys, the whole merged cell is highlighted. When you then leave it to the left or right with an arrow key, the selection lands on the top row of the merged cell, whichever row you entered it from. Entering a merged cell from below and leaving it sideways lands on the same row as entering it from above, so horizontal navigation stays consistent.
+
+Vertical navigation keeps the column you were moving along, and the <kbd>**Tab**</kbd> and <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> keys keep the row they cycle along, so neither is affected.
+
 ## Result
 
 Cells at the configured positions are now merged. Users see a single cell spanning multiple rows or columns.

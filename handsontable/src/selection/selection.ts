@@ -186,6 +186,14 @@ class Selection {
    */
   #selectionSource = 'unknown';
   /**
+   * `true` while the current selection transformation is driven by Tab / Shift+Tab navigation. Tab
+   * cycles through cells keeping the row it moves along, so a plugin adjusting a horizontal move
+   * (mergeCells) can tell it apart from an arrow key, whose delta is otherwise identical.
+   *
+   * @type {boolean}
+   */
+  #duringTabNavigation = false;
+  /**
    * The number of expected layers. It is used mostly to track when the last selection layer of non-contiguous
    * selection is applied, thus the viewport scroll is triggered.
    *
@@ -408,10 +416,27 @@ class Selection {
   }
 
   /**
+   * Marks that the current selection transformation is driven by Tab / Shift+Tab navigation.
+   */
+  markTabNavigation() {
+    this.#duringTabNavigation = true;
+  }
+
+  /**
+   * Returns whether the current selection transformation is driven by Tab / Shift+Tab navigation.
+   *
+   * @returns {boolean}
+   */
+  isDuringTabNavigation() {
+    return this.#duringTabNavigation;
+  }
+
+  /**
    * Marks end of the selection source. It restores the selection source to default value which is 'unknown'.
    */
   markEndSource() {
     this.#selectionSource = 'unknown';
+    this.#duringTabNavigation = false;
   }
 
   /**
