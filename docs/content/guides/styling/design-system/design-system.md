@@ -64,52 +64,11 @@ After exporting, use our [Theme Generator](https://github.com/handsontable/hands
 
 The design system is our primary reference when planning new features or redesigns, and it’s always kept up to date. In some cases, we update the design system independently of product releases to enhance consistency and streamline the design workflow.
 
-<!-- The date is read live from the Figma API by the docs worker (rule 18c in
-docs/cloudflare/_worker.js). The field starts hidden and is only revealed once
-a date actually arrives, so the page is unchanged when the Figma credentials
-are unset or Figma is unreachable. Inline `display` rather than the `hidden`
-attribute: an author-level `p { display: block }` in the site CSS would beat
-the user-agent rule for `[hidden]` and show an empty paragraph. -->
-<p id="design-system-last-updated" style="display:none"></p>
-
-<script>
-  (function() {
-    var field = document.getElementById('design-system-last-updated');
-
-    if (!field || !window.fetch) {
-      return;
-    }
-
-    fetch('/docs/api/design-system-updated.json')
-      .then(function(response) {
-        return response.ok ? response.json() : null;
-      })
-      .then(function(payload) {
-        if (!payload || !payload.date) {
-          return;
-        }
-
-        var parsed = new Date(payload.date);
-
-        if (isNaN(parsed.getTime())) {
-          return;
-        }
-
-        // Two different dates, so say which one this is. A named version is
-        // the design team marking a release; last-touched is any edit at all.
-        var label = payload.source === 'named-version'
-          ? 'Design system last published'
-          : 'Figma file last updated';
-
-        field.textContent = label + ': ' +
-          parsed.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-        field.style.display = '';
-      })
-      .catch(function() {
-        // Endpoint unavailable - leave the field hidden.
-      });
-  }());
-</script>
+<!-- Filled in by public/scripts/design-system-updated.js from the docs worker
+(rule 18c in docs/cloudflare/_worker.js). Starts hidden and is revealed only
+once a real date arrives, so the page is unchanged when the Figma credentials
+are unset or Figma is unreachable. -->
+<p data-design-system-updated data-prefix="Design system " style="display:none"></p>
 
 ## Known limitations
 
