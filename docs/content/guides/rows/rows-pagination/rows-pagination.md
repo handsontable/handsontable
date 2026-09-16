@@ -115,7 +115,8 @@ const configurationOptions = {
     pageSize: 20,
     // Provide a list of selectable page sizes
     pageSizeList: ['auto', 10, 20, 50],
-    // Set the initial page when the grid loads
+    // Set the initial page when the grid loads.
+    // Passing the same number again does not reset the current page.
     initialPage: 2,
     // Show or hide the page size section
     showPageSize: false,

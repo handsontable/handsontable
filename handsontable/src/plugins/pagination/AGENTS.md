@@ -28,6 +28,32 @@ While any of those top-level settings is truthy, **this plugin stays disabled** 
 Note `fixedRowsTop` / `fixedRowsBottom` are plain options no plugin owns — a hard conflict is against a
 *setting*, not a plugin. The mechanism is in `../base/AGENTS.md`.
 
+## `initialPage` is applied on first enable and when its value changes (DEV-1140)
+
+`enablePlugin()` used to copy `initialPage` onto `#currentPage` whenever the raw
+settings object declared the key. `updatePlugin()` is always
+`disablePlugin(); enablePlugin()`, and the React wrapper re-sends the full
+`pagination` object on every render, so next/prev snapped back to `initialPage`.
+`#appliedInitialPage` records the last applied declared value; the same number
+on a later enable is a no-op. `updatePlugin()` sets `#isUpdatingPlugin` around
+its disable/enable cycle so the tracker survives that path. A real disable
+(`pagination: false`) clears the tracker, and the next enable applies
+`initialPage` again. An `updateSettings` payload whose `pagination` object omits
+`initialPage` (or declares a non-number) also clears the tracker, so declaring
+that same number later is applied again — from the settings side the value went
+N, then absent, then N. Changing `initialPage` to a different number via
+`updateSettings` still jumps, which `__tests__/options/initialPage.spec.js`
+pins. To force the declared page after the user has navigated, call `setPage()`
+or `resetPage()`.
+
+Copy `#currentPage` from the raw `hot.getSettings().pagination.initialPage`, not
+from `getSetting('initialPage')`. `onUpdateSettings` branch 2 (disabled →
+enabled) calls `enablePlugin()` before `updatePluginSettings()`, so
+`#pluginSettings` still holds the previous value. Stamping the tracker from the
+new declared number while applying the stale `getSetting()` result would skip
+the later `updatePlugin()` pass and leave the wrong page. The grid settings
+object is already merged when `enablePlugin()` runs.
+
 ## `PLUGIN_PRIORITY = 900`, and the `init` hook is pinned early
 
 Priority 900 puts it after every ordinary plugin. Separately, **the `init` hook callback is placed before
@@ -44,7 +70,7 @@ note in `../base/AGENTS.md`.
 The manager exists only on the root instance. `isEnabled()` is already gated on `isRootInstance`, so by
 the time `enablePlugin()` reaches that guard **the `isRootInstance` half is always true and its else-branch
 is unreachable**; it stays as a statement of the requirement, **not** as support for a nested grid. (The
-source comment at `pagination.ts:262` says "always false in practice", meaning the non-root *case* never
+source comment at `pagination.ts:312` says "always false in practice", meaning the non-root *case* never
 arises — read it that way, it is easy to take backwards.) A direct `enablePlugin()` call on a non-root
 instance dies earlier, in the UI, which reads `rootGridElement`. The same guard is mirrored later in the
 file with a comment pointing back — keep both, and keep the comments.
