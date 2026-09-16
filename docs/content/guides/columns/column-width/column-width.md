@@ -83,7 +83,13 @@ In this example we set the same width of `100px` for all columns across the enti
 
 ## Set the column width in an array
 
-In this example, the width is only set for the first four columns. Each additional column would automatically adjust to the content.
+In this example, the first four columns are `30px`, `40px`, `50px`, and `60px` wide, and the remaining columns are `90px` each.
+
+::: tip
+
+Setting `colWidths` for even one column disables the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin for the entire grid. Any column left out of the array does **not** auto-adjust to its content — it falls back to the default `50px` column width, which can cut off longer content. For this reason, if you use `colWidths`, set a width for every column.
+
+:::
 
 ::: only-for javascript
 
@@ -274,6 +280,8 @@ In each case, clear the widths explicitly.
 hot.getPlugin('manualColumnResize').clearManualSizes();
 hot.render();
 ```
+
+Try it in the demo below: drag a column header to resize it, then select **Clear manual sizes**, which runs the snippet above.
 
 ::: only-for javascript
 
