@@ -21,7 +21,7 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 [[toc]]
 
-Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way.
+Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way. Section 12 concerns when a [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column marks a value invalid, and applies only if you set [`strict`](@/api/options.md#strict) to `false` on such a column.
 
 ## 1. `date` cells reach the formula engine the same way on every data path
 
@@ -526,3 +526,49 @@ shape the editor always produced. If your own code turned a stored string back i
 after a paste, drop that workaround. If you read these cells with
 [`getSourceData()`](@/api/core.md#getsourcedata) and branched on whether the value was a string, that
 branch is now dead for values that match an option -- read the `value` property instead.
+
+## 12. A `dropdown` column with `strict: false` validates strictly
+
+This applies only to
+[`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) columns that set
+[`strict`](@/api/options.md#strict) to `false`. The dropdown cell type is strict by definition, and
+its documentation has always described it that way.
+
+Such a column used to validate strictly only in the cells the user had clicked. A value outside the
+[`source`](@/api/options.md#source) list was marked invalid when it was typed into the cell, but not
+when it arrived any other way:
+
+- pasting text
+- [`setDataAtCell()`](@/api/core.md#setdataatcell) and
+  [`populateFromArray()`](@/api/core.md#populatefromarray)
+- autofill
+- [`validateCells()`](@/api/core.md#validatecells)
+
+Clicking a cell was what changed the result, because opening that cell's editor made that one cell
+strict. An [`updateSettings()`](@/api/core.md#updatesettings) call carrying
+[`columns`](@/api/options.md#columns), [`cells`](@/api/options.md#cells) or
+[`cell`](@/api/options.md#cell) made it lenient again, which the React wrapper does on every render
+of a grid with `HotColumn` children.
+
+Every path now gives the same result: a value that is not in the `source` list is invalid.
+
+### Who is affected
+
+- You declare a `dropdown` column with `strict: false`, and values outside its `source` list reach
+  those cells by a paste, autofill, or an API call. Those cells are now marked invalid. With
+  [`allowInvalid: false`](@/api/options.md#allowinvalid) the write is rejected, as it already was
+  for a typed value.
+- You call [`validateCells()`](@/api/core.md#validatecells) on such a grid and count the invalid
+  cells, or act on the result.
+
+### How to migrate
+
+To keep accepting values outside the list, use an
+[`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md) column with
+`strict: false`, which accepts custom values by design. The editor differs in one way: an
+autocomplete column filters its list as you type, while a dropdown column sets
+[`filter`](@/api/options.md#filter) to `false` and always shows the whole list.
+
+To keep the dropdown and still store values outside the list, leave
+[`allowInvalid`](@/api/options.md#allowinvalid) at its default of `true`. The value is stored, and
+the cell is marked invalid.

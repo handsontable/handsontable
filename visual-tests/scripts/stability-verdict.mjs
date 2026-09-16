@@ -82,9 +82,15 @@ if (!process.argv[2]) {
     console.log('| Pair | Changed |');
     console.log('| --- | ---: |');
 
-    others.forEach((run, index) => {
+    // The artifact's own name, not its position: `collectRuns` returns whatever iterations uploaded,
+    // so a cancelled or failed middle render leaves a hole (stability-1, 2, 5) and a positional label
+    // would send whoever opens the summary to the wrong artifact.
+    const nameOf = run => run.split(/[\\/]/).pop();
+
+    others.forEach((run) => {
       // `runs` are absolute, so the paths mean the same thing under reg-cli's working directory.
-      const outDir = join(run, '..', `diff-${index + 2}`);
+      const pair = `${nameOf(run)} vs ${nameOf(reference)}`;
+      const outDir = join(run, '..', `diff-${nameOf(run)}`);
       const result = spawnSync('npx', [
         '--no', 'reg-cli', run, reference, join(outDir, 'diff'),
         '-J', join(outDir, 'out.json'), '-I', ...flags,
@@ -92,26 +98,35 @@ if (!process.argv[2]) {
 
       if (result.status !== 0 || !existsSync(join(outDir, 'out.json'))) {
         changedPerPair.push(null);
-        console.log(`| run ${index + 2} vs run 1 | could not compare (reg-cli exit ${result.status}) |`);
+        console.log(`| ${pair} | could not compare (reg-cli exit ${result.status}) |`);
 
         return;
       }
 
       const report = JSON.parse(readFileSync(join(outDir, 'out.json'), 'utf8'));
-      const changed = report.failedItems.length;
+      // Every bucket the real gate blocks on, not `failedItems` alone: a capture one render produced
+      // and the other did not is reg-cli's `newItems`/`deletedItems`, and the gate counts those.
+      const differing = [...report.failedItems, ...report.newItems, ...report.deletedItems];
 
-      changedPerPair.push(changed);
+      changedPerPair.push(differing.length);
 
-      if (changed) {
-        const items = report.failedItems.map(f => `\`${f}\``).join(', ');
+      if (differing.length) {
+        const items = differing.map(f => `\`${f}\``).join(', ');
 
-        console.log(`| run ${index + 2} vs run 1 | ${changed}: ${items} |`);
+        console.log(`| ${pair} | ${differing.length}: ${items} |`);
       } else {
-        console.log(`| run ${index + 2} vs run 1 | 0 |`);
+        console.log(`| ${pair} | 0 |`);
       }
     });
 
-    const { line, failed } = verdictLine(changedPerPair);
+    // A capture missing from any render is part of the verdict, not just of the table above: reg-cli
+    // exits 0 under `-I` whatever it finds, so a matrix whose renders died early would otherwise read
+    // "the gate would have passed every pair" with a byte-stability table full of "missing in".
+    const missing = unstable.filter(entry => entry.missingIn.length > 0).length;
+    // `files` is the union of what the runs produced. Zero means every render died before it
+    // photographed anything, and that is the one shape where `missing` is also zero (nothing can be
+    // absent from a set nobody filled) and every pair compares two empty directories for 0 changed.
+    const { line, failed } = verdictLine(changedPerPair, { missing, captures: files.length });
 
     console.log('');
     console.log(line);

@@ -28,8 +28,13 @@ When you push changes to a GitHub pull request:
    build of a base branch rewrites that branch's golden records, so a pull request into `develop`, `master`, or a
    release branch is compared against the right baseline with no extra configuration. On `develop` the
    seed is its own workflow, `Visual seed` (`.github/workflows/visual-seed.yml`), which runs on every push
-   under a concurrency group that never cancels, so a burst of merges cannot leave the baseline behind;
-   `master` and the release branches seed through their own pipelines as before.
+   under a concurrency group that never cancels, so the last push of any burst is always seeded, usually
+   within about 15 minutes; `master` and the release branches seed through their own pipelines as before.
+
+   That window is the one thing to know before you read a diff: a pull request opened in the middle of a
+   burst, or in the quarter of an hour after the last push, is compared against a baseline that does not
+   yet contain every merged commit. If a difference looks like someone else's change, check whether the
+   latest `Visual seed` run has finished before assuming it is yours.
 
    **Exception — LTS branches.** No workflow currently runs the visual tests on a push to `lts/*`, so an
    LTS baseline is created by the first pull request into that branch and is never replaced. Later LTS
@@ -49,7 +54,8 @@ reviewer, and `CI Gate` waits with it, so you can't merge yet. In that case:
         whole build — there is no per-screenshot review — so read the report first.
 
 Approval binds to one run. A new push starts a new run and asks again, so screenshots nobody has looked at
-never inherit an earlier approval. GitHub records who approved and any comment they left.
+never inherit an earlier approval. GitHub records who approved and any comment they left, and the comment
+on your pull request is rewritten to name them, so it stops asking for a review that has already happened.
 
 Two cases worth knowing:
 

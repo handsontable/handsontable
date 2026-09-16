@@ -1,6 +1,6 @@
 ---
 name: handsontable-unit-testing
-description: Use when writing or modifying Jest unit tests (*.unit.js) or TypeScript type tests (*.types.ts) for Handsontable core, plugins, or utilities, or when a bug fix or internal refactor needs unit or type test coverage - covers Jest setup, test location conventions, mocking patterns, module aliases, type test patterns (no declare, real assignments, ESM + UMD patterns), and when to choose unit tests over E2E tests
+description: Use when writing or modifying Jest unit tests (*.unit.js or *.unit.ts) or TypeScript type tests (*.types.ts) for Handsontable core, plugins, or utilities, or when a bug fix or internal refactor needs unit or type test coverage - covers Jest setup, test location conventions, mocking patterns, module aliases, type test patterns (no declare, real assignments, ESM + UMD patterns), and when to choose unit tests over E2E tests
 ---
 
 # Writing Jest Unit Tests for Handsontable
@@ -17,8 +17,8 @@ description: Use when writing or modifying Jest unit tests (*.unit.js) or TypeSc
 
 ## Conventions
 
-- **File naming:** Always `*.unit.js`.
-- **Location:** Co-located with source in `src/**/__tests__/` directories (e.g., `src/plugins/filters/__tests__/filters.unit.js`).
+- **File naming:** `*.unit.js` or `*.unit.ts` — Jest runs both (`testRegex` in `handsontable/jest.config.js`).
+- **Location:** Co-located with source in `src/**/__tests__/` directories (e.g., `src/plugins/filters/__tests__/dataFilter.unit.ts`).
 - **Framework:** Jest with `jsdom` environment and `jest-jasmine2` test runner.
 - **Imports:** Explicit imports are required. Unlike E2E tests, there are no auto-injected globals like `handsontable()` or `selectCell()`.
 
@@ -81,7 +81,7 @@ describe('calculateSomething', () => {
 
 Type tests (`*.types.ts`) verify that the generated declarations in `tmp/` are correct after running `npm run build:types`. They live **in `src/**/__tests__/`** alongside unit and E2E tests — never under `test/types/` (that directory holds only the `tsconfig.json` that drives compilation).
 
-**File pattern:** `*.types.ts` — e.g., `src/__tests__/common.types.ts`, `src/__tests__/core/namespace.types.ts`
+**File pattern:** `*.types.ts` — e.g., `src/__tests__/core/core.types.ts`, `src/__tests__/core/namespace.types.ts`
 
 **Run:** `node_modules/.bin/tsc --noEmit -p test/types/tsconfig.json`
 

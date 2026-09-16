@@ -1,7 +1,6 @@
 name: Visual
 
-# Visual regression — the post-test budgeting gate (the orchestrator runs it
-# only after the functional tests pass). What renders is the `tier` input, one
+# Visual regression. What renders is the `tier` input, one
 # row of `VISUAL_TIERS` in visual-tests/src/config.mjs:
 #   pr    js × {main, main-dark} on chromium, plus a wrapper only when the
 #         `wrappers` input names it (the Checks scope router's `visual-wrappers`
@@ -25,7 +24,17 @@ name: Visual
 # 15.1 minutes per run, and no real regression in that window was confined to
 # one theme, browser or wrapper — every one hit all of them. Each render job
 # downloads the core + wrapper build artifacts, falling back to a local build
-# if an artifact is missing.
+# if an artifact is missing. The renders are two configs — multi-framework
+# chromium, and cross-browser chromium+firefox+webkit — run as a matrix; the
+# compare job then consumes both screenshot sets.
+#
+# Two callers, two shapes. On a pull request this is the post-test budgeting gate:
+# test.yml runs it only after the functional tests pass, and its verdict decides
+# whether the pull request can merge. On a develop push it is the golden seed, and
+# `visual-seed.yml` calls it FIRST — no functional gate, by design, because a
+# baseline describes what a commit renders rather than whether its tests passed
+# (that file's header has the reasoning). The seed also never downloads a Build
+# artifact, so it always takes the local-build fallback below.
 on:
   workflow_call:
     inputs:
@@ -52,6 +61,13 @@ jobs:
   render:
     name: ${{ matrix.config.name }}
     runs-on: ubuntu-latest
+    # A cap, because the seed's concurrency group deliberately never cancels: a
+    # render wedged on a browser install or an `aws s3 sync` would otherwise hold
+    # that group for GitHub's six-hour default and every push behind it waits —
+    # the same gap visual-seed.yml exists to close. Generous against the observed
+    # 9-11 minutes, since this job also builds the core, the three wrappers and
+    # the demos whenever it takes the artifact fallback.
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -130,6 +146,16 @@ jobs:
             npm run in handsontable build:umd.min
             npm run in handsontable build:languages
             npm run in handsontable build:languages.min
+            # Deliberately NOT build.yml's two theme UMD tasks (`build:themes-umd`,
+            # `build:themes-umd.min`). They emit `dist/themes/**` for the published
+            # package; the demos load a theme as a STYLESHEET from `styles/`
+            # (`examples/next/visual-tests/js/demo/src/index.js`), which
+            # `postbuild:partial` composes either way, so they change no pixel here.
+            # This is the only difference between the two lists, and the seed takes
+            # THIS one on every develop push — so a task that does affect rendering
+            # must be added to both, or the baseline drifts from every pull
+            # request's render with nothing to blame. `visual-seed.test.mjs` pins
+            # the delta to exactly these two names.
           fi
           # Composes a tree for the screenshot runs, not for publishing (no theme UMD
           # bundles on the fallback path), so it skips the packaging checks.
@@ -222,6 +248,9 @@ jobs:
   compare:
     name: Compare
     runs-on: ubuntu-latest
+    # Same reason as the render job's cap. Observed at 1.5-2.5 minutes; the fetch
+    # and publish of 1646 objects is the only part that can hang.
+    timeout-minutes: 30
     needs: [ render ]
     # Tags reach here through publish.yml -> test.yml. They are not base
     # branches: publishing would leave a full tree under `base/<tag>/` that
@@ -291,9 +320,10 @@ jobs:
 
             # `lts/*` is listed for correctness, but nothing triggers this
             # workflow on an LTS push today: test.yml pushes on master,
-            # develop.yml on develop, publish.yml on release/** and explicitly
-            # excludes lts/. So an LTS baseline is seeded by the first pull
-            # request into that branch and never refreshed -- see the caveat in
+            # visual-seed.yml on develop (NOT develop.yml — the seed moved out of
+            # it in DEV-2797), publish.yml on release/** and explicitly excludes
+            # lts/. So an LTS baseline is seeded by the first pull request into
+            # that branch and never refreshed -- see the caveat in
             # visual-tests/README.md.
             case "$REF_NAME" in
               develop|master|release/*|lts/*) ;;
@@ -367,7 +397,7 @@ jobs:
       # A fork gets no secrets, so it reads the golden records over anonymous
       # HTTPS and publishes nothing. Guarding the comparison away instead would
       # delete visual review for external contributors -- see the fork-guard
-      # rules in the root AGENTS.md.
+      # rules in .ai/CI.md.
       - name: Compare against the golden records (no credentials)
         if: github.event_name == 'pull_request'
           && (github.event.pull_request.head.repo.full_name != github.repository
@@ -514,8 +544,12 @@ jobs:
       # below turns that into a human decision. It runs on `always()`, not the
       # implicit `success()`: an earlier failure would otherwise skip it, leave
       # `.reg/comment.md` unwritten, and let the sticky step below fail on a
-      # missing path while the previous push's verdict stayed up -- the staleness
-      # this whole arrangement avoids.
+      # missing path, leaving the previous push's verdict standing as if it
+      # described this one. That is the staleness this arrangement rules out -- a
+      # verdict outliving the commit it was about. It is NOT a live status within
+      # a run: the approval necessarily happens after this step, so the comment
+      # would otherwise ask for a review that has already happened. The `approve`
+      # job rewrites it once a reviewer has acted.
       - name: Visual verdict
         id: gate
         if: always() && github.event_name == 'pull_request'
@@ -539,7 +573,7 @@ jobs:
       # they are excluded by the same guard the rest of the repo uses.
       # Unguarded, and needs no token: on a fork run the comment step below is
       # guarded off, so this is the only place the verdict is readable. Root
-      # AGENTS.md: "Withheld content goes to $GITHUB_STEP_SUMMARY".
+      # .ai/CI.md: "Withheld content goes to $GITHUB_STEP_SUMMARY".
       - name: Mirror the verdict to the job summary
         if: always() && github.event_name == 'pull_request'
         run: cat visual-tests/.reg/comment.md >> "$GITHUB_STEP_SUMMARY" || true
@@ -550,9 +584,16 @@ jobs:
       # (a red run, or the report step's `changed`) keeps its images the same
       # way; so does a seed whose merge changed something. A clean run needs it
       # for nothing, so it is skipped there.
+      #
+      # `== 'changed'` rather than `!= 'clean'` on the pull-request arm: the
+      # latter also matched `bootstrap`, a run that compared nothing and seeded
+      # the baseline instead, so it uploaded the whole `.reg` tree with nothing
+      # in it to review. The `error` verdict still uploads, through `failure()` —
+      # the gate step exits non-zero there, which is exactly when a reader wants
+      # the images.
       - name: Upload the visual diff report
         if: ${{ !cancelled() && (failure()
-          || (github.event_name == 'pull_request' && steps.gate.outputs.verdict != 'clean')
+          || (github.event_name == 'pull_request' && steps.gate.outputs.verdict == 'changed')
           || steps.report.outputs.verdict == 'changed') }}
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
         with:
@@ -587,22 +628,55 @@ jobs:
   # whose downgraded token the old label machinery could not clear -- the
   # reviewer's approval does not go through that token.
   #
-  # Cutover (repo admin): create the `visual-approval` environment WITH required
-  # reviewers before this lands. A job that references a missing environment
-  # silently auto-creates it UNPROTECTED and runs straight through, so the step
-  # below asserts the control's OUTCOME -- an approval recorded against this run
-  # -- rather than trusting its configuration, and fails closed when none is.
+  # Cutover (repo admin), both steps before this lands:
+  #
+  #   1. Create the `visual-approval` environment WITH required reviewers, and
+  #      TICK "Prevent self-review". The tick is part of the decision, not an
+  #      option: without it the person who pushed the branch can approve their own
+  #      differences, which is the rubber-stamping this replaces rather than a fix
+  #      for it. The assertion below cannot stand in for the box — a self-approval
+  #      is still a recorded approval, and reads identically through the API.
+  #      `manual-qa`'s environment is configured the same way.
+  #
+  #   2. DELETE the `visual-approved` label from the repository's label list. The
+  #      workflows that acted on it go with this change, so a label left in the
+  #      picker is a button that silently does nothing: whoever applies it waits
+  #      for a re-run that never comes. Open pull requests carrying it need no
+  #      other action — deleting the label removes it from them too.
+  #
+  # A job that references a missing environment silently auto-creates it
+  # UNPROTECTED and runs straight through, so the step below asserts the
+  # control's OUTCOME -- an approval recorded against this run -- rather than
+  # trusting its configuration, and fails closed when none is.
   approve:
     name: approve
     runs-on: ubuntu-latest
     needs: [ compare ]
-    if: ${{ !cancelled() && github.event_name == 'pull_request'
+    # `!failure()` as well as `!cancelled()`, matching `compare`'s own guard. Any
+    # `if:` replaces the implicit `success()` on `needs`, so `!cancelled()` alone
+    # would run this job when `compare` FAILED — and the verdict step writes its
+    # output on `always()`, so a failure in a later step of `compare` leaves
+    # `verdict == 'changed'` on a red job. A reviewer would then be asked to
+    # approve a build that cannot go green whatever they click.
+    if: ${{ !failure() && !cancelled() && github.event_name == 'pull_request'
       && needs.compare.outputs.verdict == 'changed' }}
+    # The approvals API below reads the run's environment approvals, which needs
+    # `actions: read`. Requested explicitly rather than inherited: a nested
+    # job-level request is validated against the caller's grant at run startup,
+    # so a repository default too narrow for it fails loudly and immediately
+    # instead of 403ing later, on the first pull request that has differences.
+    # `compare` already requests `pull-requests: write` through the same path, so
+    # the caller's grant is known to be wider than this. `pull-requests: write` is
+    # for the comment the last step rewrites.
+    permissions:
+      actions: read
+      pull-requests: write
     environment:
       name: visual-approval
       url: ${{ needs.compare.outputs.report-url }}
     steps:
       - name: Assert a human approval is recorded for this run
+        id: assert
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # https://github.com/actions/github-script/releases/tag/v8.0.0
         with:
           script: |
@@ -635,5 +709,35 @@ jobs:
                 + 'is not enforcing anything until then.');
               return;
             }
+            core.setOutput('approved-by', approval.user.login);
             core.notice(`Visual differences approved by @${approval.user.login}`
               + `${approval.comment ? `: ${approval.comment}` : ''}.`);
+
+      # `compare` posted a comment asking for an approval, and nothing else would
+      # ever take that request back down: the sticky comment keeps asking through
+      # review, merge, and afterwards. The label flow got this for free, because
+      # approving started a re-run that rewrote the comment; the environment gate
+      # has no re-run, so the rewrite has to be explicit. Same sticky header, so
+      # this replaces that comment rather than adding a second one, and the
+      # message is inline because this job has no checkout and the compare job's
+      # `.reg/comment.md` lives on a different runner.
+      # `success()`, not `!cancelled()`: the step above fails when no approval is
+      # recorded, and `!cancelled()` would let this one post "approved by @" with
+      # an empty login on exactly that run — announcing the opposite of what
+      # happened. This is the step-level shape of the bug the job's own `if:`
+      # guards against.
+      - name: Record the approval on the pull request
+        if: ${{ success() && github.event_name == 'pull_request'
+          && (github.event.pull_request.head.repo.full_name == github.repository
+              && github.actor != 'dependabot[bot]') }}
+        uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # https://github.com/marocchino/sticky-pull-request-comment/releases/tag/v3.0.4
+        with:
+          header: visual-tests
+          message: |
+            ## Visual tests — differences approved
+
+            @${{ steps.assert.outputs.approved-by }} approved this build's visual differences on the
+            [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}),
+            where the report and the images are linked.
+
+            Approval covers this build only: a new push renders again and asks again.

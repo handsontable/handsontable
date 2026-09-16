@@ -59,9 +59,37 @@ test('the verdict step runs the checked-in script, and the script exists', () =>
   assert.ok(existsSync(path.join(root, 'visual-tests/lib/stability-report.mjs')));
 });
 
-test('the concurrency group carries a static prefix', () => {
-  assert.match(workflow, /group: visual-stability-\$\{\{ github\.ref \}\}/);
+test('the concurrency group carries a static prefix and never cancels a sibling dispatch', () => {
+  // A measurement means something only when all N renders finish, so a second dispatch on the same
+  // branch — `main-dark`, then `horizon` — must queue beside the first rather than throw away ten
+  // runners mid-render. Keyed on the run, that cannot happen; keyed on the ref, it is the default.
+  assert.match(workflow, /group: visual-stability-\$\{\{ github\.run_id \}\}/);
+  assert.doesNotMatch(workflow, /group: visual-stability-\$\{\{ github\.ref \}\}/);
+  assert.match(workflow, /cancel-in-progress: false/);
   assert.doesNotMatch(workflow, /\$\{\{ github\.workflow \}\}/);
+});
+
+test('the matrix measures what it renders: no retries, every render attempted, artifacts overwritable', () => {
+  const [, renderBlock = ''] = workflow.split('Render the specs under investigation');
+
+  // A retry overwrites the same screenshot path, so an iteration would keep the retry's clean capture
+  // and the matrix would under-report the flakiness it exists to measure.
+  assert.equal((renderBlock.match(/--retries=0/g) || []).length, 3,
+    'all three renders must run with --retries=0');
+  // Actions runs the block with -e: without collecting a status, one failing render ends the step and
+  // the rest never run, which the verdict then reports as missing captures rather than as a skip.
+  assert.match(renderBlock, /status=0/);
+  assert.match(renderBlock, /exit \$status/);
+  assert.equal((renderBlock.match(/\|\| status=1/g) || []).length, 3);
+  // "Re-run failed jobs" re-uploads under a name the first attempt published. Sliced to the upload
+  // step and asserted with two flat patterns rather than one spanning regex: `(?:\s+.*\n)*?` between
+  // them is ambiguous (`\s` matches the newline `.*\n` already consumed), which is exponential
+  // backtracking on the right input and a CodeQL `js/redos` alert.
+  const upload = renderBlock.slice(renderBlock.indexOf('name: Upload the screenshots'));
+
+  assert.ok(upload, 'the render job lost its upload step');
+  assert.match(upload, /name: stability-\$\{\{ matrix\.iteration \}\}/);
+  assert.match(upload, /overwrite: true/);
 });
 
 test('the cross-browser render owns the port before the shared server starts', () => {

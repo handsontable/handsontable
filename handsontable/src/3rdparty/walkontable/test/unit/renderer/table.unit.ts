@@ -207,4 +207,61 @@ describe('TableRenderer', () => {
 
     expect(columnUtils.calculateWidths).toHaveBeenCalledTimes(1);
   });
+
+  describe('paint window', () => {
+    /**
+     * Wires the six sub-renderers as inert stubs so `render()` can run without a DOM table; the
+     * cells renderer is the one that may throw.
+     *
+     * @param {Function} cellsRender What the cells renderer does when asked to render.
+     * @returns {TableRenderer}
+     */
+    function createWiredRenderer(cellsRender: () => void) {
+      const { renderer } = createRenderer();
+      const stub = () => ({ setTable() {}, render() {} });
+
+      renderer.setRenderers({
+        rowHeaders: stub(),
+        columnHeaderRows: stub(),
+        columnHeaders: stub(),
+        colGroup: stub(),
+        rows: stub(),
+        cells: { setTable() {}, render: cellsRender },
+      } as never);
+      renderer.setAxisUtils(
+        { mayHaveExactRows: () => false } as never,
+        { calculateWidths() {} } as never,
+      );
+      renderer.setViewportSize(0, 0);
+
+      return renderer;
+    }
+
+    it('should clamp the window at 0 and reset it after a render', () => {
+      const renderer = createWiredRenderer(() => {});
+
+      expect(renderer.setPaintWindow(-4)).toBe(renderer);
+      expect(renderer.paintFromRow).toBe(0);
+
+      renderer.setPaintWindow(3);
+
+      expect(renderer.paintFromRow).toBe(3);
+
+      renderer.render();
+
+      expect(renderer.paintFromRow).toBe(0);
+    });
+
+    it('should reset the window even when a cell renderer throws', () => {
+      // Otherwise the next render would silently skip the top of the band with nothing saying why.
+      const renderer = createWiredRenderer(() => {
+        throw new Error('cellRenderer failed');
+      });
+
+      renderer.setPaintWindow(3);
+
+      expect(() => renderer.render()).toThrow('cellRenderer failed');
+      expect(renderer.paintFromRow).toBe(0);
+    });
+  });
 });

@@ -70,4 +70,23 @@ describe('PaginationUI', () => {
       'ht-page-navigation-section__button ht-page-last',
     ]);
   });
+
+  // Hiding the section and disabling its select must stay coupled: the stylesheet drops the
+  // select's disabled background (the fill lives on the wrapper `<div>`, which has no `:disabled`),
+  // so a disabled-but-visible select would render undimmed. The section is never visible while the
+  // select is disabled, which is what keeps that safe.
+  it('should disable the page-size select exactly when it hides the section', () => {
+    const section = uiContainer.querySelector('.ht-page-size-section');
+    const select = section.querySelector('select');
+
+    ui.setPageSizeSectionVisibility(false);
+
+    expect(section.style.display).toBe('none');
+    expect(select.disabled).toBe(true);
+
+    ui.setPageSizeSectionVisibility(true);
+
+    expect(section.style.display).toBe('');
+    expect(select.disabled).toBe(false);
+  });
 });

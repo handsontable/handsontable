@@ -13,9 +13,14 @@ const config: PlaywrightTestConfig = {
   testDir: './tests',
   testIgnore: '**/cross-browser/**',
   /*
-   * Maximum time one test can run for. 15 s, not 10: a capture whose scrollbar-clearance band is stuck
-   * spends up to 5 s in the settle wait before it fails with a message naming the cause, and that message
-   * has to win over the generic test timeout (see waitForScrollbarClearanceToSettle in src/test-runner.ts).
+   * Maximum time one test can run for. 15 s, not 10, for headroom: every capture that follows a scroll
+   * now waits the clearance band out (up to FADE_ALLOWANCE, usually about a second), and a spec with
+   * several of those spends real time it did not spend before.
+   *
+   * This is NOT what makes a stuck band's diagnosis win over the generic timeout — a flat bump cannot,
+   * since a spec with a dozen captures can exhaust any fixed budget before it reaches the stuck one.
+   * The fixture buys the extra time where it spends it, with `testInfo.setTimeout()` on entering the
+   * slow path (see awaitScrollbarClearance in src/test-runner.ts).
    */
   timeout: 15 * 1000,
   expect: {

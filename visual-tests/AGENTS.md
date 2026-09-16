@@ -82,8 +82,9 @@ The table is `VISUAL_TIERS` in `src/config.mjs` — one object per tier (`framew
 - **`VISUAL_TIER` selects the tier; `VISUAL_WRAPPERS` adds wrappers to `pr`.** `lib/visual-tiers.mjs`
   `resolveTier()` reads both. An unknown `VISUAL_TIER` throws (it never renders nothing); unset, it resolves
   to `seed` when the current branch (`GITHUB_REF_NAME`, else `git rev-parse`) is `develop` and to `full`
-  otherwise — exactly what `getFrameworkList()` did before tiers existed, so a bare `npm run test` on a
-  feature branch still renders everything and on `develop` still renders js and copies. `VISUAL_WRAPPERS`
+  otherwise — the same branch rule the pre-tier `getFrameworkList()` applied (now deleted, so there is one
+  answer to "what does this branch render" rather than two), so a bare `npm run test` on a feature branch
+  still renders everything and on `develop` still renders js and copies. `VISUAL_WRAPPERS`
   is read in the `pr` tier only (`seed` copies, `full` renders all three regardless) and accepts a JSON
   array of names (the router's `visual-wrappers` output), the Integration matrix shape
   (`[{"pkg":"react-wrapper",…}]`), or a comma- or space-separated list; an entry that is not in `WRAPPERS` throws, because a typo that silently rendered
@@ -160,7 +161,7 @@ itself — no notifier plugin is configured. The pull request comment is written
 `.reg/comment.md` and posted by the `marocchino/sticky-pull-request-comment` step in `visual.yml`, which is
 why it carries the approval instructions as well as the counts.
 
-These things about this pipeline are worth knowing before changing it.
+Seven things about this pipeline are worth knowing before changing it.
 
 - **`reg-suit` exits 0 no matter what it finds — `run` and the `compare` / `publish` subcommands
   `compare.mjs` calls alike.** A comparison result never fails it; fetch, publish
@@ -178,11 +179,17 @@ These things about this pipeline are worth knowing before changing it.
   per-screenshot review — so read the report before approving. The deployment's URL is the diff report
   (`report-url` output), so "View deployment" opens it. The job asserts an approval is recorded through the
   approvals API and fails closed: a missing or unprotected environment turns the job red rather than waving
-  the differences through, so the environment must exist with required reviewers before the first pull
-  request with differences runs. Fork and Dependabot runs are approved the same way — the reviewer's click
+  the differences through, so the environment must exist with required reviewers — **and with "Prevent
+  self-review" ticked** — before the first pull request with differences runs. The tick carries weight the
+  assertion cannot: a self-approval is a recorded approval like any other, so without it the author signs
+  off their own differences, which is the rubber-stamping this replaces rather than a fix for it.
+  Approving also rewrites the sticky comment that asked (`Record the approval on the pull request`, same
+  header), because there is no re-run here to refresh it and the request would otherwise read as pending
+  through merge. Fork and Dependabot runs are approved the same way — the reviewer's click
   never goes through the run's downgraded token — which the old `visual-approved` label could not offer;
   that label, `visual-cleanup.yml` and `visual-approval-rerun.yml` are gone, and so is the `labeled`-event
-  actor trap they carried.
+  actor trap they carried. **Delete the label from the repository's label list at cutover**: nothing reads
+  it any more, so one left in the picker is a button that silently does nothing.
 - **The comparison has three tolerance knobs, and all three are set on purpose.** `regconfig.json`
   drives pixelmatch through reg-cli: `matchingThreshold` (0.1) is the per-pixel color distance below
   which a pixel is not counted at all; `enableAntialias` drops the pixels pixelmatch's heuristic
@@ -211,8 +218,17 @@ These things about this pipeline are worth knowing before changing it.
   giving up silently: a pointer resting within 26 px of that scrollbar's edge (`OVERLAY_SCROLLBAR_PROXIMITY`,
   mirrored in the fixture) pins the band open by design, so the capture proceeds with a `scrollbar-band`
   annotation on the test; anything else throws, Playwright re-renders the spec, and a persistent stuck
-  band reds the render job with a message naming the cause. `locator.screenshot()` bypasses the wrapper —
-  capture through `tablePage.screenshot()`.
+  band reds the render job with a message naming the cause — and the fixture buys that message its time
+  with `testInfo.setTimeout()` when it enters the slow path, because a flat per-test budget is spent by
+  whichever capture comes first. `locator.screenshot()` bypasses the wrapper — capture through
+  `tablePage.screenshot()`.
+  **A pinned band is fine for a capture and not for a click**, so the two policies are separate
+  functions over one state machine (`awaitScrollbarClearance` → `closed | pinned | stuck`).
+  `settleScrollbarClearanceForCapture` is the wrapper's, and accepts a pinned band. A spec that is about
+  to click where the band is imports `waitForScrollbarClearanceToClose`, which throws on a pinned one:
+  while the band is up that strip belongs to the scrollbar, so the click is swallowed and the spec
+  carries on with a selection it never made. `copy-paste.spec.ts` is the spec that shape bit — one cell
+  copied instead of the range, its assertions still passing, visible only as a changed screenshot.
 - **A missing baseline never blocks.** `Check for golden records` probes
   `https://<domain>/base/<branch>/out.json` over plain HTTPS. When that 404s the run sets
   `VISUAL_BOOTSTRAP=true`: `visual-gate.mjs` passes without reading a report, and a same-repo build promotes
@@ -233,12 +249,21 @@ These things about this pipeline are worth knowing before changing it.
   `.github/workflows/visual-seed.yml` under a group that never cancels, so the last push of any burst is
   seeded within about 15 minutes, and a poisoned record is overwritten by the next develop push rather than
   the next run that survives. A poisoned record can also be replaced by hand: dispatch `Visual seed` on
-  develop. The nightly (`visual-nightly.yml`) renders develop again each weekday night against that seed
-  and reds on any difference, so a poisoned or flaky golden now shows up as a red nightly naming the item
-  path, not only as red pull requests. **The diagnostic is byte equality across pull requests:** if two
-  unrelated pull requests fail on the same item, `shasum -a 256` their `actual/<item>` from the two
-  reports. Identical bytes mean the render is deterministic and the golden record is the odd one out —
-  neither pull request is at fault, and
+  develop, with develop selected as the branch (a dispatch from any other ref is refused by that
+  workflow's `guard` job: `visual.yml` would otherwise reconcile that ref's own `base/` prefix, and an
+  `lts/*` baseline is one nothing else would put back) — and **check that the dispatch actually ran**. It shares its concurrency group with the pushes
+  (one writer for `base/develop`, by design), so a merge landing while it is pending drops the pending
+  dispatch with no reason given. Usually that is the right outcome, because the push seeds a newer commit
+  over the same prefix and fixes the poisoned record anyway; if pushes have stopped, re-issue the dispatch.
+  **When a baseline looks stale rather than poisoned, start at that workflow's last successful run**:
+  `Visual seed` is not a required check, it is not in `test-health.yml`'s list, and since DEV-2797 it no
+  longer reds the `Develop` run, so a broken seed is quiet — GitHub notifies the pusher and nothing else
+  does. The nightly (`visual-nightly.yml`) renders develop again each weekday night against that
+  seed and reds on any difference, so a poisoned or flaky golden shows up as a red nightly naming
+  the item path, not only as red pull requests.
+  **The diagnostic is byte equality across pull requests:** if two unrelated pull requests fail on
+  the same item, `shasum -a 256` their `actual/<item>` from the two reports. Identical bytes mean the
+  render is deterministic and the golden record is the odd one out — neither pull request is at fault, and
   approving one of them fixes nothing for the others. Confirmed on `columns-filter-2` under
   WebKit, where the poisoned record carried a stray browser text-selection highlight on a column header;
   `test-runner.ts` now resets that selection before every capture (engine-gated — see Determinism below).

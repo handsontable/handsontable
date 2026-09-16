@@ -108,6 +108,16 @@ If the target filename already exists, a non-interactive run refuses to overwrit
 it. Edit or remove the existing JSON directly, or run the command in a terminal
 to confirm the overwrite.
 
+**Without a terminal (an agent session, CI), pass every field as a flag, and use the entry's own
+field names.** The prompts only run in a TTY; otherwise the command reads the flags straight into the
+entry. `--issue`, the flag `--help` lists, never reaches the `issueOrPR` field, and `issuesOrigin` has
+no listed flag at all, so a run with only the listed flags dies with
+`input.issuesOrigin must be one of: private,public (got: undefined)`. This works:
+
+```bash
+node bin/changelog entry --issuesOrigin private --issueOrPR 12345 --type fixed --no-breaking --framework none "Fixed ..."
+```
+
 ## One Entry Per Pull Request
 
 **A PR adds one entry. A second is correct only when it cites a different GitHub number.** The authoritative rule lives in [`.changelogs/README.md`](../../../.changelogs/README.md); this section is the short form.

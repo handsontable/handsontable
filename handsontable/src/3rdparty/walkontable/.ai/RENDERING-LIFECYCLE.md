@@ -116,7 +116,7 @@ because the content total is not exact up front.
 
 ### The layout snapshot
 
-`layout/resolveLayout.ts` `resolveLayout(input)` is a **pure function** (no DOM imports) that solves the
+`viewport/boxLayout/resolveLayout.ts` `resolveLayout(input)` is a **pure function** (no DOM imports) that solves the
 2-variable scrollbar fixpoint: a vertical scrollbar consumes width, which may force a horizontal one, and
 vice versa. Two passes always converge — a scrollbar only shrinks the box, so the predicate is monotone.
 `viewport/boxLayout/gatherLayoutInput.ts` `gatherLayoutInput()` builds the numeric `LayoutInput` (workspace box from
@@ -299,7 +299,18 @@ All line numbers are in `table.ts` unless noted. "Master only" = guarded by `thi
   already ran). Proposals are side-effect free: they pass `{ proposeOnly: true }`, which skips the
   `rowHeaderWidth`/`columnHeaderHeight` memo reset inside
   `createRowsCalculator`/`createColumnsCalculator` (the resets themselves must stay where they are —
-  their position relative to the neighboring viewport-size reads is load-bearing).
+  their position relative to the neighboring viewport-size reads is load-bearing). A pass repaints
+  only the rows it appends (DEV-2908): `resolveRefillPaintWindow` hands `renderCellBand` a paint
+  window (`TableRenderer#setPaintWindow`) that starts after the previous band, and the record reset
+  and the measure take the same window, so the cell renderer runs once per cell of the final band
+  over the whole draw. The window is dropped for a full repaint when the start row moved, when the
+  column band moved or resized, when the host's `renderEpoch` advanced since the draw started (the
+  snapshot predates pass 1, so a render hook's change in any pass counts), or when the band renders a
+  merged cell (MergeCells writes neighbor heights from pre-measure row heights in its after-renderer;
+  its `rowspan` itself never needs growing). Row headers and cells skip the same rows — they share one
+  order-view size set per TR. Under the host's `renderMode: 'onChange'` a skipped row keeps the
+  `shouldPaintCell` stamp of its own pass, so the next ordinary draw repaints those cells once
+  (self-healing).
   Every pass rebuilds both size caches, which is why the Phase F skip below reads
   `rowHeightsChanged` rather than the caches alone.
 
@@ -379,7 +390,7 @@ Sizes reach the engine through the `AxisSizeSource` ports (`axisSizing/axisSizeS
 `DefaultSizeSource` reads the `rowHeight`/`columnWidth` settings-callbacks, which in the product are the
 funnel `TableView.rowHeight`/`columnWidth` → `hot.getRowHeight`/`getColWidth` → `modifyRowHeight` /
 `modifyColWidth` hooks. `AutoRowSize` / `AutoColumnSize` answer through those hooks after measuring in an
-off-screen ghost table — unchanged. Prefix-sum totals live inside WoT (`axisSizing/positionCache.ts`), so the
+off-screen ghost table — unchanged. Prefix-sum totals live inside WoT (`axisSizing/positionCache/`), so the
 layout snapshot's content totals are O(1).
 
 **Render-size probe (HOT side, `renderSizeProbe.ts`, owned by `TableView`).** Runs from

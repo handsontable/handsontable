@@ -30,3 +30,18 @@ test('the fixture gives an unpinned band at least the engine fade delay before j
   assert.ok(Number(allowance[1]) > Number(fade[1]),
     'FADE_ALLOWANCE must exceed OVERLAY_SCROLLBAR_FADE_DELAY, or a healthy band is judged before it can close');
 });
+
+test('the settle timeout leaves room for the second wait after the fade allowance', () => {
+  // The sibling invariant of the one above, and the one nothing pinned: the fixture spends
+  // FADE_ALLOWANCE, asks whether the pointer pins the band, and then waits
+  // `SETTLE_TIMEOUT - FADE_ALLOWANCE` more. Lower SETTLE_TIMEOUT under FADE_ALLOWANCE and that second
+  // wait gets a negative timeout, which Playwright does not define; the two constants only make sense
+  // together, so they are checked together.
+  const fixture = read('visual-tests/src/test-runner.ts');
+  const settle = fixture.match(/const SETTLE_TIMEOUT = (\d+);/);
+  const allowance = fixture.match(/const FADE_ALLOWANCE = (\d+);/);
+
+  assert.ok(settle && allowance, 'SETTLE_TIMEOUT and FADE_ALLOWANCE must stay plain integer literals');
+  assert.ok(Number(settle[1]) > Number(allowance[1]),
+    'SETTLE_TIMEOUT must exceed FADE_ALLOWANCE, or settledWithin() is handed a negative timeout');
+});

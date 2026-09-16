@@ -318,7 +318,12 @@ test('a non-pull-request build reports its differences before it reconciles, and
   assert.match(upload, /steps\.report\.outputs\.verdict == 'changed'/,
     'a nightly with differences must keep its images');
   assert.match(upload, /failure\(\)/);
-  assert.match(upload, /github\.event_name == 'pull_request' && steps\.gate\.outputs\.verdict != 'clean'/);
+  // `== 'changed'`, not `!= 'clean'`: the latter also matched `bootstrap`, a run
+  // that compared nothing and seeded the baseline, so it uploaded a `.reg` tree
+  // with nothing in it to review. `error` still uploads through `failure()`.
+  assert.match(upload, /github\.event_name == 'pull_request' && steps\.gate\.outputs\.verdict == 'changed'/);
+  assert.doesNotMatch(upload, /verdict != 'clean'/,
+    'the bootstrap verdict would upload a report of a comparison that never happened');
 });
 
 test('test.yml passes the tier by event and scope, and the wrappers whose own tree changed', () => {
@@ -358,7 +363,19 @@ test('the scope router keeps the visual routing narrower than the test scopes', 
   // lockfiles stay out: a path filter cannot tell a Playwright bump from any
   // other dependency bump, and the pr tier exists to stop paying for a full
   // render on every one of those.
-  assert.deepEqual(filter('visual-full'), ['- \'./examples/next/visual-tests/**\'', '- \'./visual-tests/**\'']);
+  // Through the shared anchor, so the two filters cannot drift: `test-visual`
+  // carries the same pair plus the lockfiles, and the demos have moved once
+  // already. Editing only `test-visual` would still run the Visual module while
+  // quietly dropping the pull request from `full` to `pr`.
+  assert.deepEqual(filter('visual-full'), ['- *visual-sources']);
+  // The anchor carries the anchor name on its key line, so `filter()` cannot read it.
+  assert.match(
+    filters,
+    /visual-sources: &visual-sources\n\s+- '\.\/examples\/next\/visual-tests\/\*\*'\n\s+- '\.\/visual-tests\/\*\*'\n/,
+    'the anchor must define exactly the visual tier\'s own two paths'
+  );
+  assert.match(filters, /test-visual:\n\s+- \*visual-sources\n/,
+    'test-visual must take the same anchor, or the copies drift apart again');
   // Per wrapper, its own tree only — never the `*hot-shared` anchor the
   // Integration scopes carry, or a core change renders all three wrappers.
   assert.deepEqual(filter('visual-angular-wrapper'), ['- \'wrappers/angular-wrapper/**\'']);
@@ -394,12 +411,24 @@ test('the nightly renders the full tier on a weekday schedule and never writes t
   // keeps a pull request from rendering the nightly.
   assert.match(nightly, /pull_request:\n\s+paths: \[ '\.github\/workflows\/visual-nightly\.yml' \]/);
   assert.match(nightly, new RegExp([
-    'if: github\\.event_name != \'pull_request\'',
+    'if: github\\.event_name != \'pull_request\' && github\\.ref_name == \'develop\'',
     'uses: \\./\\.github/workflows/visual\\.yml',
     'with:',
     'tier: full',
     'secrets: inherit',
   ].join('\\n\\s+')), 'the nightly must call visual.yml with tier: full, and skip itself on a pull request');
+  // A dispatch can come from ANY ref, and visual.yml only checks the branch in
+  // `compare` — after both render legs. Without a guard before the call, a
+  // dispatch from a feature branch spends ~15 minutes on two runners rendering
+  // the full matrix and then compares nothing. Same shape as visual-seed.yml's.
+  assert.match(nightly, /^\s+if: github\.event_name == 'workflow_dispatch' && github\.ref_name != 'develop'$/m,
+    'a wrong-ref dispatch must hit a job that fails, not render the whole matrix and discard it');
+
+  const guard = nightly.slice(nightly.indexOf('  guard:'), nightly.indexOf('  visual:'));
+
+  assert.match(guard, /exit 1/, 'the guard job must fail the run');
+  assert.match(guard, /::error::/, 'the guard job must say why');
+  assert.match(guard, /REF_NAME: \$\{\{ github\.ref_name \}\}/, 'the ref goes through env, never into the script body');
   // Parity with visual-seed.yml and develop.yml: no caller-level permissions
   // block, or the nested grant in visual.yml is validated against a second ceiling.
   assert.doesNotMatch(nightly, /^permissions:/m, 'visual-nightly.yml must not declare a permissions block');
@@ -413,7 +442,7 @@ test('the nightly renders the full tier on a weekday schedule and never writes t
   assert.match(nightly, /if: env\.SLACK_WEBHOOK_URL != ''\n\s+uses: slackapi\/slack-github-action@/,
     'the Slack step must skip itself when the webhook secret is absent');
   assert.match(nightly, /if: \$\{\{ failure\(\) && github\.event_name != 'pull_request' \}\}/);
-  assert.deepEqual(jobIds(nightly), ['visual', 'notify']);
+  assert.deepEqual(jobIds(nightly), ['guard', 'visual', 'notify']);
 });
 
 test('the comparison scripts run the tiered pipeline', () => {
@@ -426,6 +455,31 @@ test('the comparison scripts run the tiered pipeline', () => {
   assert.match(compare, /sync-expected/);
   assert.match(compare, /'compare'/);
   assert.match(compare, /'publish'/);
+
+  // ORDER, not just presence. The sequence is the whole change: a prune moved
+  // after `regSuit('compare')`, or a publish hoisted above it, leaves every
+  // assertion above green while restoring the phantom deletions the prune exists
+  // to remove — the expected tree would be trimmed after the comparison had
+  // already read it. Indexes of the call sites, so a reorder fails here.
+  const callAt = (needle) => {
+    const at = compare.indexOf(needle);
+
+    assert.notEqual(at, -1, `compare.mjs no longer contains ${needle}`);
+
+    return at;
+  };
+  const syncAt = callAt("regSuit('sync-expected')");
+  const pruneAt = callAt('pruneExpected(');
+  const compareAt = callAt("regSuit('compare')");
+  const publishAt = callAt("regSuit('publish')");
+
+  assert.ok(syncAt < pruneAt,
+    'the expected tree must be fetched before it is pruned, or the prune finds nothing');
+  assert.ok(pruneAt < compareAt,
+    'the prune must run before the comparison, or the subset render is compared against the full '
+      + 'baseline and reports ~1178 phantom deletions');
+  assert.ok(compareAt < publishAt,
+    'the comparison must run before the publish, or the report published describes nothing');
   assert.doesNotMatch(compare, /'reg-suit',\s*'run'|reg-suit run/,
     'a bare `reg-suit run` fetches, compares and publishes in one go, leaving nowhere to prune the expected tree');
   assert.match(compare, /import \{[^}]*\bpruneExpected\b[^}]*\} from '[^']*visual-tiers\.mjs'/);

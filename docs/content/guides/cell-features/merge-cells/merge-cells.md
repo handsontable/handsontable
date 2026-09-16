@@ -364,7 +364,7 @@ Nothing else about the clearing changes. A range still clears its covered cells 
 
 ```js
 hot.updateSettings({
-  data: [['A1', 'B1'], ['A2', 'B2']],
+  data: [['SKU-4821', 'Stainless Steel Water Bottle'], ['SKU-0093', 'Wireless Mouse']],
   mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 2 }], // unchanged
 });
 

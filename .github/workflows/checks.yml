@@ -164,9 +164,18 @@ jobs:
             test-vue3:
               - *hot-shared
               - 'wrappers/vue3/**'
-            test-visual:
+            # The visual tier's own files: the specs and the demos they render.
+            # Anchored because `visual-full` below needs exactly this pair, and
+            # these paths have moved once already (to `examples/next/visual-tests/`).
+            # Two copies would drift silently: updating only `test-visual` still
+            # runs the Visual module, but the pull request quietly drops from the
+            # `full` tier to `pr`, so a spec or demo change stops being proven on
+            # every variant — the one thing `visual-full` exists to do.
+            visual-sources: &visual-sources
               - './examples/next/visual-tests/**'
               - './visual-tests/**'
+            test-visual:
+              - *visual-sources
               # The Playwright version (and thus the rendering browsers) lives
               # in the workspace catalog — a catalog-only bump must re-render.
               - './pnpm-lock.yaml'
@@ -180,8 +189,7 @@ jobs:
             # Dependabot pull request is the cost this tier exists to remove.
             # A browser bump is proven by the next seed and nightly instead.
             visual-full:
-              - './examples/next/visual-tests/**'
-              - './visual-tests/**'
+              - *visual-sources
             # Per wrapper, the wrapper's own tree ONLY — never `*hot-shared`.
             # The `test-<wrapper>` filters above include the core because the
             # wrapper test suites exercise it; the visual `pr` tier renders a

@@ -39,4 +39,19 @@ describe('Dialog - focus method', () => {
 
     expect(document.activeElement).toBe(getDialogContainerElement());
   });
+
+  it('should focus dialog element built from the `confirm` template', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      dialog: true,
+    });
+
+    const dialogPlugin = getPlugin('dialog');
+
+    dialogPlugin.showConfirm('Are you sure?');
+
+    dialogPlugin.focus();
+
+    expect(document.activeElement).toBe(getDialogContainerElement());
+  });
 });

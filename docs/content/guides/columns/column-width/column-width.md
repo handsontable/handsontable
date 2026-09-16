@@ -266,14 +266,14 @@ These cases never discard the stored widths, so passing `colWidths` does not res
 - A grid whose [`manualColumnResize`](@/api/options.md#manualcolumnresize) option is already a non-empty array. The plugin replays that array, so the stored widths stay.
 - The React, Angular and Vue wrappers, where a `colWidths` prop whose value did not change is not forwarded to `updateSettings()`. Re-applying the same value is not an update.
 
-In each case, clear the widths explicitly:
+In each case, clear the widths explicitly.
+
+:::
 
 ```js
 hot.getPlugin('manualColumnResize').clearManualSizes();
 hot.render();
 ```
-
-:::
 
 ::: only-for javascript
 

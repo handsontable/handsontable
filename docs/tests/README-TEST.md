@@ -50,5 +50,5 @@ request never writes a golden. The result is a sticky comment on the pull reques
 `https://visual.handsontable.com/docs/pr-<number>/<sha>/results/index.html`; differences hold the
 `docs-visual-approval` environment until a reviewer approves the pending deployment on the run page. The
 functional specs (every `tests/*.spec.ts` except `visualDocs`) run on every docs pull request in the
-`functional` project, report-only for one sprint. Details: `docs/AGENTS.md`, section 2.17.
+`functional` project, report-only for one sprint. Details: `docs/AGENTS.md`, section 2.18.
 

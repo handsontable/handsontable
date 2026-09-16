@@ -64,6 +64,11 @@ export class CellsRenderer extends BaseRenderer {
   render() {
     const { rowsToRender, columnsToRender, rows, rowHeaders } = this.table;
     const { rowFilter, columnFilter, activeOverlayName } = this.table;
+    // The rows before the window are not touched at all — not even their order view runs — because
+    // the row-headers renderer skips the same rows and the two share one size set per TR
+    // (`SharedOrderView`); running either one alone would resize the TR's children without the
+    // other's count.
+    const { paintFromRow } = this.table;
     // The identity of the rendered band: which source rows and columns the reused elements hold on
     // this draw. The host compares it against the element's last paint. The band size stays in it
     // even though a reused element's own source indexes already move with the offsets: MergeCells
@@ -73,7 +78,7 @@ export class CellsRenderer extends BaseRenderer {
       activeOverlayName, rowFilter?.offset ?? 0, rowsToRender, columnFilter?.offset ?? 0, columnsToRender,
     ].join(',');
 
-    for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
+    for (let visibleRowIndex = paintFromRow; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
       const TR = rows!.getRenderedNode(visibleRowIndex);
 
