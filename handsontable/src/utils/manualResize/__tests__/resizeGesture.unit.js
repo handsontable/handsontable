@@ -153,6 +153,22 @@ describe('ResizeGesture', () => {
       expect(owner.setManualSize.mock.calls).toEqual([[1, 25], [2, 25], [3, 25]]);
     });
 
+    it('should resize only the dragged index when the drag starts outside the selection', () => {
+      // The other half of the same rule: the selection covers rows 5-7, the drag starts on row 2.
+      // Without the fallback the drag would resize the selected rows and leave the dragged one.
+      const range = {
+        getTopStartCorner: () => ({ row: 5, col: 0 }),
+        getBottomEndCorner: () => ({ row: 7, col: 4 }),
+      };
+      const { th, owner, handle } = createGesture({ selectedRanges: [range] });
+
+      mouse('mouseover', th);
+      mouse('mousedown', handle(), { pageY: 0 });
+      mouse('mousemove', window, { pageY: 25 });
+
+      expect(owner.setManualSize.mock.calls).toEqual([[2, 25]]);
+    });
+
     it('should do nothing on a mouseup that ends no drag', () => {
       const { hot, th } = createGesture();
 
@@ -198,7 +214,10 @@ describe('ResizeGesture', () => {
       expect(handle().style.left).toBe('');
     });
 
-    it('should flip the pointer delta under RTL for a horizontal axis only', () => {
+    // Two grids cannot share one `it()`: `afterEach` tears down whichever grid the module-level
+    // `eventManager` and `rootElement` hold, so a second grid built inside the same test leaks the
+    // first one's window listeners into the rest of this file whenever an assertion throws first.
+    it('should flip the pointer delta under RTL for a horizontal axis', () => {
       const horizontal = createGesture({ orientation: 'horizontal', rtl: true });
 
       mouse('mouseover', horizontal.th);
@@ -207,10 +226,9 @@ describe('ResizeGesture', () => {
       mouse('mousemove', window, { pageX: 70 });
 
       expect(horizontal.owner.setManualSize).toHaveBeenLastCalledWith(3, 30);
+    });
 
-      eventManager.destroy();
-      rootElement.remove();
-
+    it('should not flip the pointer delta under RTL for a vertical axis', () => {
       const vertical = createGesture({ orientation: 'vertical', rtl: true });
 
       mouse('mouseover', vertical.th);

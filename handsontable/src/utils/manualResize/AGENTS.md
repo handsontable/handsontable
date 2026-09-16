@@ -48,6 +48,31 @@ under RTL, and RTL can change through `updateSettings()`. It is *across* for a r
 so capturing it once would move the wrong edge on either axis after an RTL switch. `resizeGesture.unit.js`
 pins this.
 
+## Multi-index resize: one drag can resize the whole selection
+
+A drag on a header **inside the current selection resizes every selected row or column**. A drag on a header
+**outside the selection, or with no selection at all, resizes only that one**. The rule is identical on both
+axes and the gesture owns it: `#collectSelectedIndexes()` decides the list, and `#onMouseUp()` then fires the
+before- and after-resize hooks once per index in it.
+
+Three parts of it are easy to break, and none of them is visible from a single read of the happy path:
+
+- **A selection only counts when it selects whole rows or columns.** The gate is
+  `selection.isSelected() && (selection.isSelectedByCorner() || axis.isSelectedByHeader(hot))`, so the corner
+  ("select all") or a header click. A plain cell range is a selection too, and it must not turn a resize into
+  a multi-index one.
+- **The dragged index wins over the selection.** After collecting, `#setupHandlePosition()` checks
+  `!selectedIndexes.includes(currentIndex)` and replaces the whole list with `[currentIndex]`. Remove that
+  and a drag started outside the selection resizes the selected headers while leaving the header actually
+  under the pointer untouched.
+- **Overlapping ranges are de-duplicated.** `getSelectedRange()` can return several ranges that overlap, so
+  the collector keeps a `Set` of indexes it has already added. Without it an overlapped index gets
+  `setManualSize()` called twice and its resize hooks fired twice.
+
+Both branches are pinned in `__tests__/resizeGesture.unit.js`: "should resize every index of a header
+selection the drag starts in" and "should resize only the dragged index when the drag starts outside the
+selection".
+
 ## What genuinely differs per axis: `axis.ts`
 
 Most descriptor entries are naming. Four hold real logic, and each is easy to get wrong:
