@@ -1,8 +1,8 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed the autocomplete and dropdown arrow wrapping onto a second line next to a long value.",
+  "title": "Fixed the autocomplete, dropdown, and handsontable list-cell arrow wrapping onto a second line next to a long value. AutoColumnSize now measures the reserved arrow slot into those columns' widths, so existing autosized autocomplete, dropdown, and handsontable columns grow on upgrade. Pin a width with `colWidths` to keep the previous size.",
   "type": "fixed",
   "issueOrPR": 13532,
-  "breaking": false,
+  "breaking": true,
   "framework": "none"
 }
