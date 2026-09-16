@@ -318,7 +318,12 @@ test('a non-pull-request build reports its differences before it reconciles, and
   assert.match(upload, /steps\.report\.outputs\.verdict == 'changed'/,
     'a nightly with differences must keep its images');
   assert.match(upload, /failure\(\)/);
-  assert.match(upload, /github\.event_name == 'pull_request' && steps\.gate\.outputs\.verdict != 'clean'/);
+  // `== 'changed'`, not `!= 'clean'`: the latter also matched `bootstrap`, a run
+  // that compared nothing and seeded the baseline, so it uploaded a `.reg` tree
+  // with nothing in it to review. `error` still uploads through `failure()`.
+  assert.match(upload, /github\.event_name == 'pull_request' && steps\.gate\.outputs\.verdict == 'changed'/);
+  assert.doesNotMatch(upload, /verdict != 'clean'/,
+    'the bootstrap verdict would upload a report of a comparison that never happened');
 });
 
 test('test.yml passes the tier by event and scope, and the wrappers whose own tree changed', () => {

@@ -44,7 +44,7 @@ global helpers, mocking, fixtures, custom matchers), see
   runs within 30 days is flagged as needing a fix or migration ticket. A known
   flake in the Playwright tier can be quarantined for up to 30 days (six at
   once) through `quarantined()` in `tests/fixtures/quarantine.ts`; it still
-  runs and reports. Details in the root `AGENTS.md` (monorepo gotchas) and
+  runs and reports. Details in `.ai/CI.md` (the test-health entry) and
   `tests/AGENTS.md` (Quarantine).
 
 ## Inside a package

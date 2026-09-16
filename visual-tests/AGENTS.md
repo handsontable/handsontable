@@ -178,11 +178,17 @@ Seven things about this pipeline are worth knowing before changing it.
   per-screenshot review — so read the report before approving. The deployment's URL is the diff report
   (`report-url` output), so "View deployment" opens it. The job asserts an approval is recorded through the
   approvals API and fails closed: a missing or unprotected environment turns the job red rather than waving
-  the differences through, so the environment must exist with required reviewers before the first pull
-  request with differences runs. Fork and Dependabot runs are approved the same way — the reviewer's click
+  the differences through, so the environment must exist with required reviewers — **and with "Prevent
+  self-review" ticked** — before the first pull request with differences runs. The tick carries weight the
+  assertion cannot: a self-approval is a recorded approval like any other, so without it the author signs
+  off their own differences, which is the rubber-stamping this replaces rather than a fix for it.
+  Approving also rewrites the sticky comment that asked (`Record the approval on the pull request`, same
+  header), because there is no re-run here to refresh it and the request would otherwise read as pending
+  through merge. Fork and Dependabot runs are approved the same way — the reviewer's click
   never goes through the run's downgraded token — which the old `visual-approved` label could not offer;
   that label, `visual-cleanup.yml` and `visual-approval-rerun.yml` are gone, and so is the `labeled`-event
-  actor trap they carried.
+  actor trap they carried. **Delete the label from the repository's label list at cutover**: nothing reads
+  it any more, so one left in the picker is a button that silently does nothing.
 - **The comparison has three tolerance knobs, and all three are set on purpose.** `regconfig.json`
   drives pixelmatch through reg-cli: `matchingThreshold` (0.1) is the per-pixel color distance below
   which a pixel is not counted at all; `enableAntialias` drops the pixels pixelmatch's heuristic

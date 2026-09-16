@@ -127,7 +127,7 @@ When you move columns, the default column headers (A, B, C) stay in place.
 
 :::
 
-But, if you configure the [`colHeaders`](@/api/options.md#colheaders) option with your own column labels (e.g., One, Two, Three), your headers move along with the columns.
+But, if you configure the [`colHeaders`](@/api/options.md#colheaders) option with your own column labels (e.g., SKU, Product, Supplier), your headers move along with the columns.
 
 ::: only-for javascript
 

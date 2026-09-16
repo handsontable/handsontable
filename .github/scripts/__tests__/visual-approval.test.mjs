@@ -44,7 +44,13 @@ test('Compare exports the verdict the approval keys on', () => {
   assert.match(compare, /report-url: \$\{\{ steps\.gate\.outputs\.report-url \}\}/);
   assert.match(compare, /- name: Visual verdict\n\s+id: gate\n/, 'the gate step must carry the id the outputs read');
   assert.match(compare, /node \.\/visual-tests\/scripts\/visual-gate\.mjs/);
-  assert.doesNotMatch(compare, /visual-approved|issues\/\$PR_NUMBER\/labels/, 'the gate must not read the retired label');
+  // Comments stripped first. A job block runs to the next job id, so the cutover
+  // note that tells an admin to DELETE the `visual-approved` label sits inside
+  // this block, and naming a thing in prose is not a code path. What must stay
+  // gone is any actual read of it.
+  const code = compare.split('\n').filter(line => !/^\s*#/.test(line)).join('\n');
+
+  assert.doesNotMatch(code, /visual-approved|issues\/\$PR_NUMBER\/labels/, 'the gate must not read the retired label');
 });
 
 test('the approval job waits on the environment only for a changed pull-request verdict', () => {
@@ -101,4 +107,90 @@ test('manual-qa and the visual approval assert their approvals the same way', ()
   assert.match(approve, /actions\/runs\/\{run_id\}\/approvals/);
   assert.match(manualQa, /state === 'approved'/);
   assert.match(approve, /state === 'approved'/);
+});
+
+test('a failed comparison skips the approval instead of asking a reviewer to bless a red run', () => {
+  // Any `if:` replaces the implicit `success()` on `needs`, so `!cancelled()`
+  // alone would run this job when `compare` FAILED. The verdict step writes its
+  // output on `always()`, so a failure in a later step of `compare` can leave
+  // `verdict == 'changed'` on a red job — and the reviewer would be approving a
+  // build that cannot go green whatever they click. `compare` guards itself the
+  // same way against `render`.
+  const approve = job(visual, 'approve');
+
+  assert.match(approve, /if: \$\{\{ !failure\(\) && !cancelled\(\)/,
+    'the approve job must not run when compare failed');
+});
+
+test('nothing lets the verdict go missing while compare stays green', () => {
+  // The gate's safety rests on an invariant that is otherwise unstated: an empty
+  // `verdict` only ever accompanies a red `compare`. If that broke — a
+  // `continue-on-error` on the verdict step, or a swallowed error in the wrapper
+  // — `approve` would be skipped on a green run and `CI Gate` would go green with
+  // differences nobody reviewed. Two things hold it up, so both are pinned.
+  const compare = job(visual, 'compare');
+  const wrapper = read('visual-tests/scripts/visual-gate.mjs');
+
+  // Scoped to the verdict step rather than the whole job. The seed's out-of-tier
+  // comment step carries `continue-on-error` on purpose — a failed comment must
+  // never keep a seed from landing — and it runs after the gate, on push events
+  // only, so it cannot affect whether a `changed` verdict reached the outputs.
+  const fromVerdict = compare.slice(compare.indexOf('- name: Visual verdict'));
+  const verdictStep = fromVerdict.slice(0, fromVerdict.indexOf('- name:', 10));
+
+  assert.ok(verdictStep.includes('id: gate'), 'the verdict step was not found where expected');
+  assert.doesNotMatch(verdictStep, /continue-on-error/,
+    'a continue-on-error on the verdict step decouples "verdict unset" from "compare red", which is '
+      + 'what makes a skipped approve safe');
+
+  // The wrapper writes the output BEFORE it decides the exit code, so even a
+  // blocked verdict exports one. Only a throw can leave it unset, and a throw
+  // fails the step.
+  const writesOutput = wrapper.indexOf('GITHUB_OUTPUT');
+  const setsExitCode = wrapper.indexOf('verdict.blocked');
+
+  assert.ok(writesOutput > -1 && setsExitCode > -1, 'the wrapper no longer has both halves');
+  assert.ok(writesOutput < setsExitCode,
+    'the verdict output must be written before the exit-code branch, or a blocked run exports no verdict');
+});
+
+test('the approve job requests the permission its API call needs', () => {
+  // `GET /actions/runs/{run_id}/approvals` needs `actions: read`. Requested
+  // explicitly so a repository default too narrow for it fails at run startup,
+  // rather than 403ing on the first pull request that happens to have
+  // differences — the step's own error text anticipates that, but a loud early
+  // failure beats a late one. `pull-requests: write` is for the comment below.
+  const approve = job(visual, 'approve');
+
+  assert.match(approve, /permissions:\n\s+actions: read\n\s+pull-requests: write/,
+    'the approve job must request actions: read for the approvals API');
+});
+
+test('an approval takes down the request it answered', () => {
+  // `compare` posts a comment asking for approval and nothing else would ever
+  // retract it, so it reads as "still pending" through merge. The label flow got
+  // this free from the re-run it triggered; the environment gate has no re-run.
+  // Same sticky header, or it adds a second comment instead of replacing the one
+  // that asked.
+  const compare = job(visual, 'compare');
+  const approve = job(visual, 'approve');
+
+  assert.match(approve, /- name: Record the approval on the pull request/,
+    'nothing rewrites the approval request once it has been answered');
+  assert.match(approve, /header: visual-tests/);
+  assert.match(compare, /header: visual-tests/,
+    'the two comments must share a sticky header, or the approval posts a second comment');
+  assert.match(approve, /core\.setOutput\('approved-by'/,
+    'the comment names the approver, so the assert step has to export it');
+});
+
+test('a bootstrap run uploads no diff report, because it compared nothing', () => {
+  // `!= 'clean'` also matched `bootstrap` — a run that seeded the baseline and
+  // compared nothing — and uploaded the whole `.reg` tree with nothing in it to
+  // review. `error` still uploads through `failure()`.
+  const compare = job(visual, 'compare');
+  const [, uploadBlock = ''] = compare.split('- name: Upload the visual diff report');
+
+  assert.match(uploadBlock.slice(0, 400), /steps\.gate\.outputs\.verdict == 'changed'/,
+    'the diff report should be kept for a changed verdict, not for every non-clean one');
 });
