@@ -323,6 +323,18 @@ Do not "fix" `#getStoredValueAt` back to a physical column.
 
 ## Rendering under `renderMode: 'onChange'`
 
+**A merged block's cells never take the stable paint identity.** The engine recycles its rows on a
+vertical scroll (`Viewport#allowsRowRecycling()`, which does NOT require single-pass layout) and offers
+the host the overlay name as a cell's paint identity, so a carried-over cell can be skipped. The
+`spanned` flag this plugin sets on a block's origin meta in `afterGetCellMeta` (covered cells resolve
+to the origin through `modifyGetCellCoords`) is what `CellPainter#bandIdentity` reads to keep the full
+band — offsets and sizes — for the block's cells instead: the renderer clamps the block's span to the
+rendered band, so those cells must repaint when the band moves, while every other cell of the grid
+skips. Keep `spanned` on the origin meta; removing it would let a clamped block keep a stale span
+across a scroll. The single-pass opt-out (`modifySinglePassLayout` → `false`) is about the layout
+model only (the height-versus-viewport circularity); it no longer switches the recycling or the stable
+identity off for the rest of the grid.
+
 Two writes of this plugin are invisible to the incremental render and are marked by hand:
 
 - **Collection changes** (`MergedCellsCollection#add`/`remove`/`clear`) call `hot.markAllCellsChanged()`. A merged block covers cells whose own value and meta never change, and autofill creates blocks with no meta write at all; only an epoch bump repaints them (and drops the selection scan cache, which holds the `fullySelectedMergedCell-N` extra class).

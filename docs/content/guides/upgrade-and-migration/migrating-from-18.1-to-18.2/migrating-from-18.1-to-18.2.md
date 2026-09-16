@@ -572,3 +572,41 @@ autocomplete column filters its list as you type, while a dropdown column sets
 To keep the dropdown and still store values outside the list, leave
 [`allowInvalid`](@/api/options.md#allowinvalid) at its default of `true`. The value is stored, and
 the cell is marked invalid.
+
+## 8. Row elements move with their rows on a vertical scroll
+
+This section applies whether or not you set [`renderMode`](@/api/options.md#rendermode).
+
+Since 18.0, Handsontable kept every `tr` and `td` element at its DOM position during a scroll and wrote
+the row that scrolled into it. In 18.2, a vertical scroll inside the grid's own scrollable area moves
+the `tr` elements instead: a row that stays rendered keeps its element, and the rows that scrolled out
+wrap to the other end of the `tbody` and take the rows that scrolled in. The DOM order still matches
+the rendered order, so the first `tr` is still the first rendered row. The column axis is unchanged.
+
+Handsontable does this on its own; there is no option. It applies when the grid scrolls inside its own
+container on both axes. A grid that scrolls with the page keeps the elements in place, as before.
+
+### Who is affected
+
+- A `MutationObserver` on the `tbody` now sees `childList` records on every scroll step: the moved
+  `tr` elements, removed and added again in one move. Nothing is created or dropped while the number
+  of rendered rows is unchanged.
+- Code that keeps a reference to a `tr` or `td` and expects it to show whatever row scrolled into
+  that position now finds the same row it held before, as long as that row stays rendered. Read the
+  row through [`getCell()`](@/api/core.md#getcell) or the element's position in the `tbody` instead.
+- A host page with `:has()` selectors that reach the grid pays a style recalculation for a DOM move
+  the same way it did for the 16.x re-insertion. Measured on a page with 30,000 nodes and three
+  `:has()` rules, the cost stayed flat; if your page shows one, say so in an issue.
+- The [`modifySinglePassLayout`](@/api/hooks.md#modifysinglepasslayout) hook no longer opts a grid out
+  of this behavior. It still switches the layout model, and only that.
+
+### How to migrate
+
+Nothing changes for a renderer that writes the cell from the data it receives. A renderer that caches
+per element now keeps its cache across a scroll, which is the point of the change.
+
+A renderer whose output depends on where the rendered area starts or ends, for example one that reads
+[`getFirstRenderedVisibleRow()`](@/api/core.md#getfirstrenderedvisiblerow), works as before under the
+default `renderMode`. Under `renderMode: 'onChange'` such a cell is not repainted by a scroll, so set
+`renderMode: 'always'` on that column or cell, or call
+[`markCellChanged()`](@/api/core.md#markcellchanged) before you render.
