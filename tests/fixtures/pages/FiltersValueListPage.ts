@@ -1,11 +1,11 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 
 /**
- * Escapes a Filter-by-value label so it can be used in a `^…$` exact-match
- * regexp. Password hashes are runs of `*`, which would otherwise throw
- * `Nothing to repeat`.
+ * Escapes a Filter-by-value, header, or condition label so it can be used
+ * in a `^…$` exact-match regexp. Password hashes are runs of `*`, which
+ * would otherwise throw `Nothing to repeat`.
  *
- * @param {string} label The visible list label.
+ * @param {string} label The visible list, header, or condition label.
  * @returns {string} The label with regexp special characters escaped.
  */
 function escapeRegExp(label: string): string {
@@ -114,7 +114,7 @@ export class FiltersValueListPage {
   async openMenu(headerLabel: string): Promise<void> {
     await this.page
       .locator('.ht_clone_top th')
-      .filter({ hasText: new RegExp(`^${headerLabel}$`) })
+      .filter({ hasText: new RegExp(`^${escapeRegExp(headerLabel)}$`) })
       .locator('.changeType')
       .click();
 
@@ -134,7 +134,7 @@ export class FiltersValueListPage {
   async openEmptyMenu(headerLabel: string): Promise<void> {
     await this.page
       .locator('.ht_clone_top th')
-      .filter({ hasText: new RegExp(`^${headerLabel}$`) })
+      .filter({ hasText: new RegExp(`^${escapeRegExp(headerLabel)}$`) })
       .locator('.changeType')
       .click();
 
@@ -190,7 +190,7 @@ export class FiltersValueListPage {
     const conditionsMenu = this.page.locator('.htFiltersConditionsMenu:visible');
 
     await expect(conditionsMenu).toBeVisible();
-    await conditionsMenu.locator('td').filter({ hasText: new RegExp(`^${conditionLabel}$`) }).click();
+    await conditionsMenu.locator('td').filter({ hasText: new RegExp(`^${escapeRegExp(conditionLabel)}$`) }).click();
     await expect(conditionsMenu).toBeHidden();
   }
 
