@@ -226,3 +226,21 @@ test('findUnprefixedDocsLinks flags a bare /docs homepage link in a wrapper', ()
     ['https://handsontable.com/docs/']);
   assert.deepEqual(inReact('https://handsontable.com/docs/react-data-grid'), []);
 });
+
+test('extractLinks does not backtrack exponentially on a pathological label (CodeQL 102)', () => {
+  // The label alternatives must stay mutually exclusive. When `!` could match both as a plain
+  // character and as the start of an image, this input took 7s at 28 pairs and doubled every pair.
+  const evil = `[${'![]()'.repeat(2000)}X`;
+  const started = Date.now();
+
+  extractLinks(evil);
+  const elapsed = Date.now() - started;
+
+  assert.ok(elapsed < 1000, `extractLinks took ${elapsed}ms on a 2000-pair label — ambiguity is back`);
+});
+
+test('extractLinks still reads a label ending in an exclamation mark', () => {
+  // The `!(?!\[)` branch exists for this: a trailing `!` has no following character to inspect.
+  assert.deepEqual(extractLinks('[Wow!](https://handsontable.com/docs/)').map(l => l.url),
+    ['https://handsontable.com/docs/']);
+});

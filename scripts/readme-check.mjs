@@ -70,7 +70,13 @@ export function extractLinks(md) {
     // `[![alt](image)](destination)`, and a label matcher that stops at the first `]` captures the
     // image and silently drops the destination — which is how the live demo link went unchecked.
     // The lookbehind keeps this from re-matching the image handled above.
-    /(?<!!)\[(?:[^\][]|!\[[^\]]*\]\([^)]*\)|\[[^\][]*\])*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g,
+    //
+    // The four label alternatives are deliberately mutually exclusive — a plain character that is
+    // not `!`, an `!` that does not open an image, an image, a bracketed phrase — so every position
+    // has exactly one possible parse. An earlier version let `!` match both as a plain character
+    // and as the start of an image, and that ambiguity is exponential: a label of 28 `![]()` pairs
+    // that never closed took 7 seconds, and each further pair doubled it (CodeQL alert 102).
+    /(?<!!)\[(?:[^\][!]|!(?!\[)|!\[[^\]]*\]\([^)]*\)|\[[^\][]*\])*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g,
     /\b(?:href|src|srcset)="([^"]+)"/g, // <a href> / <img src> / <source srcset>
   ];
 
