@@ -1,22 +1,113 @@
 import type { HotInstance } from '../../types';
+import type { default as CellCoords } from '../../../3rdparty/walkontable/src/cell/coords';
 import { scrollWindowToCell } from '../utils';
 
 /**
- * Returns `true` when the cell is wider or taller than the viewport.
+ * Axes `scrollViewportTo` should receive for a mouse single-cell selection.
  *
- * Mouse selection skips scrolling for the last partially visible cell so a
- * click does not jump the viewport. That skip leaves the start of an
- * oversized cell clipped. Keyboard and API selection start-snap those cells,
- * and mouse selection must match.
+ * @typedef {object} MouseSingleScrollTarget
+ * @property {number} [row] Visual row index to scroll to.
+ * @property {number} [col] Visual column index to scroll to.
+ */
+
+/**
+ * Inputs that decide which axes a mouse last-partial click may scroll.
+ *
+ * @typedef {object} MouseSingleScrollOptions
+ * @property {number} row Visual row index of the selected cell.
+ * @property {number} col Visual column index of the selected cell.
+ * @property {number|null} lastPartiallyVisibleRow Last partially visible visual row, or `null`.
+ * @property {number|null} lastPartiallyVisibleColumn Last partially visible visual column, or `null`.
+ * @property {boolean} isRowLargerThanViewport `true` when the row is taller than the viewport.
+ * @property {boolean} isColumnLargerThanViewport `true` when the column is wider than the viewport.
+ */
+
+/**
+ * Decides which axes a mouse single-cell selection should scroll.
+ *
+ * A last-partial cell skips scrolling on that axis so a click does not jump
+ * the viewport. An axis whose cell is larger than the viewport still
+ * start-snaps, matching keyboard and API selection. The skip is per axis:
+ * an oversized row does not disable the last-partial column skip, and an
+ * oversized column does not disable the last-partial row skip.
+ *
+ * @param {MouseSingleScrollOptions} options The selected cell and last-partial / oversized flags.
+ * @returns {MouseSingleScrollTarget|null} Axes to pass to `scrollViewportTo`, or `null` to skip.
+ */
+export function getMouseSingleScrollTarget({
+  row,
+  col,
+  lastPartiallyVisibleRow,
+  lastPartiallyVisibleColumn,
+  isRowLargerThanViewport,
+  isColumnLargerThanViewport,
+}: {
+  row: number;
+  col: number;
+  lastPartiallyVisibleRow: number | null;
+  lastPartiallyVisibleColumn: number | null;
+  isRowLargerThanViewport: boolean;
+  isColumnLargerThanViewport: boolean;
+}): { row?: number; col?: number } | null {
+  const skipColumn = col === lastPartiallyVisibleColumn && !isColumnLargerThanViewport;
+  const skipRow = row === lastPartiallyVisibleRow && !isRowLargerThanViewport;
+
+  if (skipColumn && skipRow) {
+    return null;
+  }
+
+  const target: { row?: number; col?: number } = {};
+
+  if (!skipRow) {
+    target.row = row;
+  }
+
+  if (!skipColumn) {
+    target.col = col;
+  }
+
+  return target;
+}
+
+/**
+ * Returns `true` when `size` is strictly larger than the viewport on that axis.
+ *
+ * `Core#getRowHeight` is `undefined` unless a height was provided, so a missing
+ * size must not count as oversized. Callers pass Walkontable's rendered height
+ * (provided height merged with measured `oversizedRows`) for rows.
+ *
+ * @param {number|undefined} size Cell size in pixels on one axis.
+ * @param {number} viewportSize Viewport size in pixels on the same axis.
+ * @returns {boolean}
+ */
+export function isLargerThanViewport(size: number | undefined, viewportSize: number): boolean {
+  return (size ?? 0) > viewportSize;
+}
+
+/**
+ * Returns `true` when the column is wider than the viewport.
  *
  * @param {Core} hot Handsontable instance.
- * @param {number} row Visual row index.
  * @param {number} col Visual column index.
  * @returns {boolean}
  */
-function isCellLargerThanViewport(hot: HotInstance, row: number, col: number): boolean {
-  return hot.getColWidth(col) > hot.view.getViewportWidth() ||
-    hot.getRowHeight(row) > hot.view.getViewportHeight();
+function isColumnOversized(hot: HotInstance, col: number): boolean {
+  return isLargerThanViewport(hot.getColWidth(col), hot.view.getViewportWidth());
+}
+
+/**
+ * Returns `true` when the row is taller than the viewport.
+ *
+ * Uses `TableView#getRenderedRowHeight` so content-tall rows recorded in
+ * Walkontable `oversizedRows` match keyboard and API start-snap. {@link Core#getRowHeight}
+ * is `undefined` unless `rowHeights`, ManualRowResize, or AutoRowSize provided a height.
+ *
+ * @param {Core} hot Handsontable instance.
+ * @param {number} row Visual row index.
+ * @returns {boolean}
+ */
+function isRowOversized(hot: HotInstance, row: number): boolean {
+  return isLargerThanViewport(hot.view.getRenderedRowHeight(row), hot.view.getViewportHeight());
 }
 
 /**
@@ -26,9 +117,14 @@ function isCellLargerThanViewport(hot: HotInstance, row: number, col: number): b
  * @returns {function(): function(CellCoords): void}
  */
 export function singleScrollStrategy(hot: HotInstance) {
-  return (cellCoords: unknown) => {
+  return (cellCoords: CellCoords) => {
     const selectionSource = hot.selection.getSelectionSource();
-    const { row, col } = cellCoords as { row: number; col: number };
+    const { row, col } = cellCoords;
+
+    if (typeof row !== 'number' || typeof col !== 'number') {
+      return;
+    }
+
     const scrollWindow = () => {
       scrollWindowToCell(hot.getCell(row, col, true));
     };
@@ -45,16 +141,26 @@ export function singleScrollStrategy(hot: HotInstance) {
 
     // navigating through the cells
     } else {
-      if (selectionSource === 'mouse' && !isCellLargerThanViewport(hot, row, col)) {
-        if (
-          col === hot.view.getLastPartiallyVisibleColumn() ||
-          row === hot.view.getLastPartiallyVisibleRow()
-        ) {
+      let target: { row?: number; col?: number } = { row, col };
+
+      if (selectionSource === 'mouse') {
+        const mouseTarget = getMouseSingleScrollTarget({
+          row,
+          col,
+          lastPartiallyVisibleRow: hot.view.getLastPartiallyVisibleRow(),
+          lastPartiallyVisibleColumn: hot.view.getLastPartiallyVisibleColumn(),
+          isRowLargerThanViewport: isRowOversized(hot, row),
+          isColumnLargerThanViewport: isColumnOversized(hot, col),
+        });
+
+        if (mouseTarget === null) {
           return;
         }
+
+        target = mouseTarget;
       }
 
-      hot.scrollViewportTo({ row, col }, scrollWindow);
+      hot.scrollViewportTo(target, scrollWindow);
     }
   };
 }

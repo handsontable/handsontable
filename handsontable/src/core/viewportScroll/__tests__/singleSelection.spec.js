@@ -484,5 +484,38 @@ describe('Single selection scroll', () => {
         inline: 'nearest',
       });
     });
+
+    it('should scroll to the start of a content-tall row after mouse click', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        width: 300,
+        height: 200,
+        autoRowSize: false,
+        rowHeaders: true,
+        colHeaders: true,
+        renderer(instance, td, row, ...rest) {
+          Handsontable.renderers.TextRenderer.apply(this, [instance, td, row, ...rest]);
+
+          if (row === 0) {
+            td.innerHTML = '<div style="height: 400px"></div>';
+          }
+
+          return td;
+        },
+      });
+
+      await scrollViewportVertically(150);
+
+      expect(topOverlay().getScrollPosition()).toBe(150);
+
+      await simulateClick(getCell(0, 0));
+
+      expect(topOverlay().getScrollPosition()).toBe(0);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 0, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
+    });
   });
 });
