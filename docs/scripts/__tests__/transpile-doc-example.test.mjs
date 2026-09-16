@@ -100,6 +100,24 @@ export default value;
   assert.match(output, /first line of comment\n\n\s*last line after a blank/);
 });
 
+test('does not corrupt a blank line inside a JSX {/* ... */} comment with no expression', async () => {
+  const source = `const ExampleComponent = () => (
+  <div>
+    {/* first line of comment
+
+    last line of comment */}
+    <span>hello</span>
+  </div>
+);
+
+export default ExampleComponent;
+`;
+  const output = await transpileDocExample(source, 'example.tsx');
+
+  assert.doesNotMatch(output, /HOT_BLANK/);
+  assert.match(output, /first line of comment\n\n\s*last line of comment/);
+});
+
 test('restores a code blank line inside a JSX expression container callback', async () => {
   const source = `const ExampleComponent = () => (
   <ul>
