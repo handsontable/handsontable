@@ -917,14 +917,17 @@ async function readJson(response) {
 // stale by more than one, at a cost of one Figma call per edge location.
 const DESIGN_SYSTEM_DATE_MAX_AGE = 86400;
 
-// A *failure* must never be cached for a day. Whatever caused it - an unset
-// secret, an expired token, a rate limit, a Figma outage - the fix would then
-// take up to 24 hours to show, long after someone believed they had fixed it.
-// This is not hypothetical: on staging the `null` cached before the secrets
-// were set outlived them, so the endpoint answered the real date to a
-// cache-busted request while the page still read a stale `null`. Failures are
-// also never written to the edge cache below; this bounds any cache further
-// downstream.
+// An unsettled answer - a failure, or a date from a history the walk could not
+// finish - is held for minutes, not a day. Whatever caused it (an unset secret,
+// an expired token, a rate limit, an outage) the fix must not take 24 hours to
+// show: on staging the `null` cached before the secrets were set outlived them,
+// so the endpoint answered the real date to a cache-busted request while the
+// page still read a stale `null`.
+//
+// These ARE written to the edge cache, at this TTL. Skipping the write instead
+// would mean every request during a Figma outage re-runs the whole read - an
+// OAuth refresh plus the history walk - and under a 429 that pattern feeds
+// itself.
 const DESIGN_SYSTEM_DATE_ERROR_MAX_AGE = 300;
 
 // Bump to orphan every previously cached entry.
@@ -942,11 +945,13 @@ const DESIGN_SYSTEM_DATE_ERROR_MAX_AGE = 300;
 // 5: the versions walk can now find a named version where the single-page read
 //    saw only autosaves, so an entry cached before it holds a last-touched date
 //    where this build would return a published one.
+// 6: failures and provisional dates are now cached at the short TTL rather than
+//    skipped, so entries written under the old rule carry the wrong lifetime.
 //
 // Bump it whenever the date is *selected* differently, not only when the
 // response shape changes: a cached body outlives the deploy that would have
 // replaced it.
-const DESIGN_SYSTEM_CACHE_VERSION = 5;
+const DESIGN_SYSTEM_CACHE_VERSION = 6;
 
 /**
  * Wraps a `{ date, source }` pair in the endpoint's only response shape.
@@ -962,10 +967,12 @@ const DESIGN_SYSTEM_CACHE_VERSION = 5;
  * credential or any part of one.
  *
  * @param {{date: string|null, source: string|null, reason?: string|null}} body
+ * @param {boolean} settled Whether the answer is a date read from a history
+ *   the walk finished. Anything else is held for minutes, not a day.
  * @returns {Response}
  */
-function designSystemDateResponse(body) {
-  const maxAge = body.date === null ? DESIGN_SYSTEM_DATE_ERROR_MAX_AGE : DESIGN_SYSTEM_DATE_MAX_AGE;
+function designSystemDateResponse(body, settled) {
+  const maxAge = settled ? DESIGN_SYSTEM_DATE_MAX_AGE : DESIGN_SYSTEM_DATE_ERROR_MAX_AGE;
 
   return new Response(JSON.stringify(body), {
     status: 200,
@@ -1107,6 +1114,10 @@ async function readDesignSystemDate(env) {
   let nextUrl = `${FIGMA_API_ORIGIN}/v1/files/${file}/versions?page_size=${FIGMA_VERSIONS_PAGE_SIZE}`;
   let newestNamed = null;
   let pagesRead = 0;
+  // Set when the walk stopped on an error rather than on an answer. The
+  // metadata fallback below is then a guess about a history we did not finish
+  // reading, so its date must not be treated as settled.
+  let walkBroke = false;
 
   while (nextUrl && pagesRead < FIGMA_VERSIONS_MAX_PAGES) {
     const versionsResponse = await fetchImpl(nextUrl, { headers });
@@ -1123,6 +1134,7 @@ async function readDesignSystemDate(env) {
         return { date: null, source: null, reason: `figma-http-${versionsResponse.status}` };
       }
 
+      walkBroke = true;
       break;
     }
 
@@ -1133,6 +1145,7 @@ async function readDesignSystemDate(env) {
         return { date: null, source: null, reason: 'figma-bad-json' };
       }
 
+      walkBroke = true;
       break;
     }
 
@@ -1179,7 +1192,12 @@ async function readDesignSystemDate(env) {
   }
 
   if (meta?.file?.last_touched_at) {
-    return { date: meta.file.last_touched_at, source: 'last-touched' };
+    // `provisional` when the walk broke: the history was not read to the end,
+    // so "no named version" is unproven and this date may be standing in for a
+    // publish we simply did not reach. The caller keeps it out of the day-long
+    // cache, which would otherwise pin the wrong one of the two dates - three
+    // weeks apart on the real file - for 24 hours after a single 429.
+    return { date: meta.file.last_touched_at, source: 'last-touched', provisional: walkBroke };
   }
 
   // Both calls answered, neither carried a date.
@@ -1763,22 +1781,28 @@ async function route(request, env, ctx) {
         return cached;
       }
 
-      let body;
+      let result;
 
       // One catch for the whole read. Figma being unreachable, rate-limiting
       // us, or rejecting an expired token are all the same event here: the
       // page hides one line and everything else keeps working.
       try {
-        body = await readDesignSystemDate(env);
+        result = await readDesignSystemDate(env);
       } catch {
-        body = { date: null, source: null, reason: 'figma-unreachable' };
+        result = { date: null, source: null, reason: 'figma-unreachable' };
       }
 
-      const response = designSystemDateResponse(body);
+      // `provisional` stays internal - the page has one shape to read.
+      const { provisional = false, ...body } = result;
+      // A settled answer holds for a day. Anything else - a failure, or a date
+      // read from a history the walk could not finish - holds for minutes, so
+      // it cannot outlive the fix by more than that. Storing the short ones
+      // rather than skipping them keeps a Figma outage from turning every
+      // single request into a fresh OAuth refresh plus history read.
+      const settled = body.date !== null && !provisional;
+      const response = designSystemDateResponse(body, settled);
 
-      // Only ever store a real date. Storing a failure strands the page on a
-      // stale `null` long after the secret behind it was fixed.
-      if (cacheKey && body.date !== null) {
+      if (cacheKey) {
         const write = cache.put(cacheKey, response.clone());
 
         // Hand the write to the runtime where possible: on a cache miss the

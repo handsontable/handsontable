@@ -33,6 +33,8 @@ This README intentionally does not re-list every rule. The Netlify-era equivalen
 
   This site deploys as a **Cloudflare Pages** project, not a standalone Worker, so these are Pages variables and `wrangler secret put` does not apply. Set them per project - `handsontable-docs` (production) and `handsontable-docs-staging` - in the dashboard: **Workers & Pages** > the project > **Settings** > **Variables and Secrets** > **Add**, then tick **Encrypt** and save. Pages keeps Production and Preview separate, so set both if the date should also show on PR previews. **A secret only reaches the worker on the next deployment after it is set**, so a value added to a project that has already built does nothing until it redeploys.
 
+  **Getting it to the live site takes a hand port.** `docs-sync.yml` carries only `docs/content/**` and `docs/public/img/**` to `prod-docs/<major>.<minor>`, and this feature also lives in `cloudflare/_worker.js`, `astro.config.mjs` and `public/scripts/design-system-updated.js` - all outside that set. So the sync ports the two page lines and nothing that makes them fill in, and the field stays hidden on the live site until someone cherry-picks the rest. It degrades safely, which is exactly why it can be forgotten.
+
   Never put the token in code or in client JavaScript, where it would be public. **Until both are set the endpoint answers `{"date": null}` and the fields stay hidden**, which is the intended fallback and also the first thing to check if the date never appears. The read is server-side for a second reason too: `api.figma.com` is not in the site's `connect-src`, so a browser could not call Figma directly even with a token.
 
 ## Tests

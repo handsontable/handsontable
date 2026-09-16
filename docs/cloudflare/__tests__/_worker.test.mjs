@@ -1364,14 +1364,17 @@ test('a null date is cached for minutes, not a day (rule 18c)', async() => {
  *
  * @returns {{puts: string[], restore: Function}}
  */
-function stubEdgeCache() {
+function stubEdgeCache({ hit = null } = {}) {
   const puts = [];
 
   globalThis.caches = {
     default: {
-      match: async() => undefined,
-      put: async(key) => {
-        puts.push(typeof key === 'string' ? key : key.url);
+      match: async() => hit ?? undefined,
+      put: async(key, value) => {
+        puts.push({
+          url: typeof key === 'string' ? key : key.url,
+          maxAge: value.headers.get('cache-control'),
+        });
       },
     },
   };
@@ -1379,26 +1382,92 @@ function stubEdgeCache() {
   return { puts, restore: () => delete globalThis.caches };
 }
 
-test('never writes a failed lookup to the edge cache (rule 18c)', async() => {
+test('a cache hit is served without touching Figma (rule 18c)', async() => {
+  const worker = loadWorker();
+  // The one path that serves a stored body, and the path the staging incident
+  // ran through. It was never exercised while the stub always missed.
+  const hit = new Response(JSON.stringify({ date: '2026-08-20T13:29:35Z', source: 'named-version' }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json; charset=utf-8' },
+  });
+  const { puts, restore } = stubEdgeCache({ hit });
+  const env = figmaEnv({
+    '/versions': { versions: [{ id: '1', created_at: '2026-09-01T09:00:00Z', label: 'newer' }] },
+  });
+
+  try {
+    const response = await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), env);
+
+    assert.deepEqual(await response.json(), { date: '2026-08-20T13:29:35Z', source: 'named-version' });
+    assert.deepEqual(env.calls, [], 'a hit must not call Figma at all');
+    assert.deepEqual(puts, [], 'a hit must not rewrite the entry');
+  } finally {
+    restore();
+  }
+});
+
+test('a failure is cached for minutes, a real date for a day (rule 18c)', async() => {
   const worker = loadWorker();
   const { puts, restore } = stubEdgeCache();
 
   // The staging incident in full: a `null` stored at the edge outlived the
   // secrets that would have fixed it, and `*.pages.dev` cannot be purged from
-  // the dashboard. Not storing failures is the half of the fix that stops it
-  // recurring; the short max-age above only bounds caches further downstream.
+  // the dashboard. The TTL is what bounds that now - five minutes, not a day -
+  // while still storing the failure, so a Figma outage does not make every
+  // request re-run the OAuth refresh and the history walk.
   try {
     await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), figmaEnv({}));
 
-    assert.deepEqual(puts, [], 'a null date must never be cached');
+    assert.equal(puts.length, 1, 'a failure is cached, briefly');
+    assert.equal(puts[0].maxAge, 'public, max-age=300');
 
     await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), figmaEnv({
       '/versions': { versions: [{ id: '1', created_at: '2026-09-01T09:00:00Z', label: 'v2.1' }] },
     }));
 
-    assert.equal(puts.length, 1, 'a real date is cached');
-    assert.match(puts[0], /\/docs\/api\/design-system-updated\.json\?v=\d+$/,
+    assert.equal(puts.length, 2);
+    assert.equal(puts[1].maxAge, 'public, max-age=86400');
+    assert.match(puts[1].url, /\/docs\/api\/design-system-updated\.json\?v=\d+$/,
       'the cache key must carry a version, the only way to orphan a bad entry');
+  } finally {
+    restore();
+  }
+});
+
+test('a date found after a broken walk is never pinned for a day (rule 18c)', async() => {
+  const worker = loadWorker();
+  const { puts, restore } = stubEdgeCache();
+  // Page one holds only autosaves and points at a page two that fails. The
+  // metadata date then stands in for a history nobody finished reading, so it
+  // may be covering a publish further back - three weeks back, on the real
+  // file. Caching that for a day pins the wrong one of the two dates.
+  const env = paginatedVersionsEnv([[]], {
+    FIGMA_FETCH: async(url) => {
+      if (url.includes('/meta')) {
+        return new Response(JSON.stringify({ file: { last_touched_at: '2026-09-11T10:00:00Z' } }), { status: 200 });
+      }
+
+      if (url.includes('page=1')) {
+        return new Response('{}', { status: 429 });
+      }
+
+      return new Response(JSON.stringify({
+        versions: [{ id: '2', created_at: '2026-09-15T10:00:00Z', label: null }],
+        pagination: { next_page: 'https://api.figma.com/v1/files/test-file-key/versions?page=1' },
+      }), { status: 200 });
+    },
+  });
+
+  try {
+    const response = await worker.fetch(request(DESIGN_SYSTEM_DATE_PATH), env);
+
+    assert.equal(response.headers.get('cache-control'), 'public, max-age=300');
+    assert.equal(puts[0].maxAge, 'public, max-age=300');
+    // `provisional` is internal bookkeeping, not part of the page's contract.
+    assert.deepEqual(await response.json(), {
+      date: '2026-09-11T10:00:00Z',
+      source: 'last-touched',
+    });
   } finally {
     restore();
   }
@@ -1416,7 +1485,7 @@ test('a cache-busting query string does not create a second entry (rule 18c)', a
     await worker.fetch(request(`${DESIGN_SYSTEM_DATE_PATH}?cb=1`), env);
     await worker.fetch(request(`${DESIGN_SYSTEM_DATE_PATH}?cb=2`), env);
 
-    assert.deepEqual(new Set(puts).size, 1, 'every caller shares one cache entry');
+    assert.equal(new Set(puts.map(put => put.url)).size, 1, 'every caller shares one cache entry');
   } finally {
     restore();
   }
