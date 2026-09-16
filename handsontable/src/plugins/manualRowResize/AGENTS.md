@@ -4,9 +4,9 @@ The `manualRowResize` plugin stores heights the user set by dragging the row hea
 before touching `manualRowResize.ts`.
 
 **The drag itself is not in this plugin.** The handle, the guide, the press and double-click state and the
-resize hooks live in `../manualResize/resizeGesture.ts`, shared with `../manualColumnResize/`, and the row
-specifics the gesture needs live in `ROW_RESIZE_AXIS` in `../manualResize/axis.ts`. Read
-`../manualResize/AGENTS.md` before touching `disablePlugin()`, `destroy()`, or anything about the drag - that
+resize hooks live in `../../utils/manualResize/resizeGesture.ts`, shared with `../manualColumnResize/`, and the row
+specifics the gesture needs live in `ROW_RESIZE_AXIS` in `../../utils/manualResize/axis.ts`. Read
+`../../utils/manualResize/AGENTS.md` before touching `disablePlugin()`, `destroy()`, or anything about the drag - that
 is where the DEV-2719 teardown traps are, including why the drag must survive the update cycle.
 
 `../manualColumnResize/AGENTS.md` documents what the two plugins still share outside the gesture: the replayed
@@ -27,7 +27,7 @@ Do not symmetrize them.
 
 ## Where the row axis differs from the column axis
 
-These live in `ROW_RESIZE_AXIS` (`../manualResize/axis.ts`), and `../manualResize/AGENTS.md` explains each:
+These live in `ROW_RESIZE_AXIS` (`../../utils/manualResize/axis.ts`), and `../../utils/manualResize/AGENTS.md` explains each:
 
 - **`fixedRowsTop` AND `fixedRowsBottom` are read through Walkontable** - `TableView` reduces both by the number
   of hidden rows. A row in the bottom band resolves against `bottomInlineStartCornerOverlay`, and a header in
@@ -62,7 +62,7 @@ this plugin's double-click autofit keeps working.
 
 ## Where to look next
 
-- The drag, the teardown traps and the along/across model: `../manualResize/AGENTS.md`.
+- The drag, the teardown traps and the along/across model: `../../utils/manualResize/AGENTS.md`.
 - The column mirror: `../manualColumnResize/AGENTS.md`.
 - Computing heights instead of storing them: `../autoRowSize/AGENTS.md`.
 - Plugin contract, lifecycle, priorities: `../base/AGENTS.md`.

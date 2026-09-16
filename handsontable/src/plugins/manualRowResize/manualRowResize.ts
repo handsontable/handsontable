@@ -2,12 +2,12 @@ import type { HotInstance } from '../../core/types';
 import { BasePlugin } from '../base';
 import { deprecatedWarnOnce } from '../../helpers/console';
 import type { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
-import { ROW_RESIZE_AXIS } from '../manualResize/axis';
-import { ResizeGesture } from '../manualResize/resizeGesture';
+import { ROW_RESIZE_AXIS } from '../../utils/manualResize/axis';
+import { ResizeGesture } from '../../utils/manualResize/resizeGesture';
 import {
   ROW_SIZE_OPTIONS,
   redeclaresManualSizes,
-} from '../manualResize/utils';
+} from '../../utils/manualResize/utils';
 
 export const PLUGIN_KEY = 'manualRowResize';
 export const PLUGIN_PRIORITY = 30;
@@ -51,7 +51,7 @@ export class ManualRowResize extends BasePlugin {
 
   /**
    * The resize handle, the guide, and the drag and double-click state behind them. Shared with
-   * `ManualColumnResize` - see `../manualResize/AGENTS.md`.
+   * `ManualColumnResize` - see `../../utils/manualResize/AGENTS.md`.
    */
   #gesture: ResizeGesture;
   /**

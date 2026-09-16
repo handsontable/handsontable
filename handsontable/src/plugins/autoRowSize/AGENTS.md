@@ -65,7 +65,7 @@ Three rules hold that in place, and all three are load-bearing:
   them in that state and you get the *defaults*, so re-applying would reset the user's `samplingRatio` and
   re-measure the whole grid on an unrelated `updateSettings({ colHeaders: true })`. Restore from
   `hot.getSettings()[PLUGIN_KEY]`, which is untouched — the same repair, for the same base-class reason, that
-  `manualRowResize` does (`../manualResize/AGENTS.md`, "Listing a foreign option in `SETTING_KEYS`").
+  `manualRowResize` does (`../../utils/manualResize/AGENTS.md`, "Listing a foreign option in `SETTING_KEYS`").
   **This is the common path, not an edge case:** the Vue wrapper omits every settings key whose value is
   unchanged (`wrappers/vue3/src/helpers.ts`, `simpleEqual`), so a Vue app sends a payload *without*
   `autoRowSize` on virtually every prop change.
@@ -179,7 +179,7 @@ Heights are also kept unchanged when every column is deleted or trimmed.
 
 - The shared pipeline, sampling rules and refresh-queue behavior: `../autoColumnSize/AGENTS.md`.
 - Row *header* widths, which run their own sampler on column `-1`: `../autoRowHeaderSize/AGENTS.md`.
-- Storing user-dragged heights instead of computing them: `../manualResize/AGENTS.md`.
+- Storing user-dragged heights instead of computing them: `../../utils/manualResize/AGENTS.md`.
 - Merged-cell interaction has its own spec: `__tests__/mergeCells.spec.js`.
 - Plugin contract, lifecycle, priorities: `../base/AGENTS.md`.
 

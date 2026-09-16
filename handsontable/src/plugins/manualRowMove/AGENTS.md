@@ -18,7 +18,7 @@ it replays on every load.
 
 Consequence: a grid configured with an array reverts a row the user had since dragged, whenever the replay
 runs again. The manual *resize* plugins hit the same class of problem and document it in detail —
-`../manualResize/AGENTS.md`.
+`../../utils/manualResize/AGENTS.md`.
 
 ## Row heights are read defensively
 

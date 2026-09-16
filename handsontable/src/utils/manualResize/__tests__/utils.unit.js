@@ -6,7 +6,7 @@ import {
   redeclaresManualSizes,
   shouldRefreshHandleAfterAutoResize,
   shouldSkipResizeHandlePositioning,
-} from 'handsontable/plugins/manualResize/utils';
+} from 'handsontable/utils/manualResize/utils';
 
 describe('manualResize/utils', () => {
   // Issue #4371. Decides whether an `updateSettings` config re-declares the sizes the plugin keeps,

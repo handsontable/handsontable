@@ -2,8 +2,8 @@ import type { HotInstance } from '../../core/types';
 import { BasePlugin } from '../base';
 import { deprecatedWarnOnce } from '../../helpers/console';
 import type { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
-import { COLUMN_RESIZE_AXIS } from '../manualResize/axis';
-import { ResizeGesture } from '../manualResize/resizeGesture';
+import { COLUMN_RESIZE_AXIS } from '../../utils/manualResize/axis';
+import { ResizeGesture } from '../../utils/manualResize/resizeGesture';
 import {
   COLUMN_SIZE_OPTIONS,
   redeclaresManualSizes,
@@ -51,7 +51,7 @@ export class ManualColumnResize extends BasePlugin {
 
   /**
    * The resize handle, the guide, and the drag and double-click state behind them. Shared with
-   * `ManualRowResize` - see `../manualResize/AGENTS.md`.
+   * `ManualRowResize` - see `../../utils/manualResize/AGENTS.md`.
    */
   #gesture: ResizeGesture;
   /**

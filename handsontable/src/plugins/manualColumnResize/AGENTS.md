@@ -4,9 +4,9 @@ The `manualColumnResize` plugin stores widths the user set by dragging the heade
 before touching `manualColumnResize.ts` or `utils.ts`.
 
 **The drag itself is not in this plugin.** The handle, the guide, the press and double-click state and the
-resize hooks live in `../manualResize/resizeGesture.ts`, shared with `../manualRowResize/`, and the column
-specifics the gesture needs live in `COLUMN_RESIZE_AXIS` in `../manualResize/axis.ts`. Read
-`../manualResize/AGENTS.md` before touching `disablePlugin()`, `destroy()`, or anything about the drag - that
+resize hooks live in `../../utils/manualResize/resizeGesture.ts`, shared with `../manualRowResize/`, and the column
+specifics the gesture needs live in `COLUMN_RESIZE_AXIS` in `../../utils/manualResize/axis.ts`. Read
+`../../utils/manualResize/AGENTS.md` before touching `disablePlugin()`, `destroy()`, or anything about the drag - that
 is where the DEV-2719 teardown traps are.
 
 What this plugin owns: the column widths map, every public size accessor, `SETTING_KEYS` and `updatePlugin()`,
@@ -21,7 +21,7 @@ static get SETTING_KEYS() { return [PLUGIN_KEY, ...COLUMN_SIZE_OPTIONS]; }   // 
 
 That is what makes `updateSettings({ colWidths })` reach this plugin at all (issue
 [#4371](https://github.com/handsontable/handsontable/issues/4371)) — and it changes what `updatePlugin()`
-must assume, in three ways. **The rules are in `../manualResize/AGENTS.md`**; the short version, all visible
+must assume, in three ways. **The rules are in `../../utils/manualResize/AGENTS.md`**; the short version, all visible
 in `updatePlugin()`:
 
 1. **Restore the plugin option from the merged settings.** `BasePlugin#onUpdateSettings` feeds
@@ -50,7 +50,7 @@ The gesture writes every width through the public `setManualSize()`, so the 20px
 
 ## Where the column axis differs from the row axis
 
-These live in `COLUMN_RESIZE_AXIS` (`../manualResize/axis.ts`), and `../manualResize/AGENTS.md` explains each:
+These live in `COLUMN_RESIZE_AXIS` (`../../utils/manualResize/axis.ts`), and `../../utils/manualResize/AGENTS.md` explains each:
 
 - **`fixedColumnsStart` is read through Walkontable, not the settings** - `TableView` reduces it by the number
   of hidden columns. A header outside the top-left corner overlay resolves against the **top** overlay.
@@ -72,7 +72,7 @@ so this plugin's double-click autofit keeps working. Do not "clean that up" ther
 
 ## Where to look next
 
-- The drag, the teardown traps and the along/across model: `../manualResize/AGENTS.md`.
+- The drag, the teardown traps and the along/across model: `../../utils/manualResize/AGENTS.md`.
 - The row mirror: `../manualRowResize/AGENTS.md`.
 - Computing widths instead of storing them: `../autoColumnSize/AGENTS.md`.
 - Growing columns to fill the width, which must respect these as minimums:
@@ -87,4 +87,4 @@ so this plugin's double-click autofit keeps working. Do not "clean that up" ther
 `__tests__/rtl/` matters here — the handle sits on the opposite edge under RTL.
 `../nestedHeaders/__tests__/resizingColumns.spec.js` resizes a column in a grid that has spanning headers, but
 it does not assert that a spanning header itself refuses the handle - that rule is pinned by
-`../manualResize/__tests__/axis.unit.js`.
+`../../utils/manualResize/__tests__/axis.unit.js`.

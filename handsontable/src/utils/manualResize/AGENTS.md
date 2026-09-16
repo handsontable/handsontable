@@ -1,6 +1,10 @@
 # manualResize — the drag gesture and helpers shared by the two manual resize plugins
 
-This directory holds **no plugin**. It holds what `../manualRowResize/` and `../manualColumnResize/` share:
+This is **not a plugin**, which is why it sits under `src/utils/` and not under `src/plugins/`. It has no
+`index.ts`, no `PLUGIN_KEY`, no `PLUGIN_PRIORITY` and no lifecycle, nothing registers it, and the packaging
+allowlist (`./plugins/*/index.*` in `package.json`) cannot reach it. `src/utils/ghostTable.ts` is the same
+shape: a class several plugins build and own. **Do not move it back into `src/plugins/`.** It holds what
+`../../plugins/manualRowResize/` and `../../plugins/manualColumnResize/` share:
 
 - `resizeGesture.ts` — `ResizeGesture`: the resize handle, the guide, the drag and double-click state, and
   the resize hooks a drag fires.
@@ -56,7 +60,7 @@ Most descriptor entries are naming. Four hold real logic, and each is easy to ge
 - **`canResizeHeader`.** The column axis refuses a header spanning more than one column (nested headers):
   there is no single column to resize. The row axis resizes every header.
 - **`getHookSize` - rows can only grow.** A declared row height is a minimum, not a target
-  (`../autoRowSize/AGENTS.md`), so the row axis reports `max(dragged, rendered)` to the hooks. The column axis
+  (`../../plugins/autoRowSize/AGENTS.md`), so the row axis reports `max(dragged, rendered)` to the hooks. The column axis
   reports the stored width unchanged. The row side's standing TODO lives here too: it measures through
   `wtTable.getRowHeight()` because `hot.getRowHeight()` is not yet trustworthy - do not swap them without
   verifying that.
@@ -115,7 +119,7 @@ therefore opens with a bail on `owner.isActive()` that still resets the timeout 
 ## `afterMouseDownTimeout()` stays on both plugins
 
 Every other gesture method left the plugins. This one is kept as a one-line forward, because the frozen
-`../autoRowSize/__tests__/autoRowSize.spec.js` calls `manualColumnResizePlugin.afterMouseDownTimeout()`
+`../../plugins/autoRowSize/__tests__/autoRowSize.spec.js` calls `manualColumnResizePlugin.afterMouseDownTimeout()`
 directly to close a double-click window between simulated clicks. The row plugin keeps the same forward for
 parity. Do not remove either without migrating that spec.
 
@@ -179,9 +183,9 @@ measurement, which is what a grid built inside a `display: none` container measu
 
 ## Where to look next
 
-- Row plugin: `../manualRowResize/AGENTS.md`. Column plugin: `../manualColumnResize/AGENTS.md`.
-- Auto-sizing counterparts, which compute rather than store sizes: `../autoRowSize/`, `../autoColumnSize/`.
-- `SETTING_KEYS` semantics in general: `../base/AGENTS.md`.
+- Row plugin: `../../plugins/manualRowResize/AGENTS.md`. Column plugin: `../../plugins/manualColumnResize/AGENTS.md`.
+- Auto-sizing counterparts, which compute rather than store sizes: `../../plugins/autoRowSize/`, `../../plugins/autoColumnSize/`.
+- `SETTING_KEYS` semantics in general: `../../plugins/base/AGENTS.md`.
 
 ## Testing
 

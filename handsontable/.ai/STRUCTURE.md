@@ -289,6 +289,10 @@ handsontable/src/
     ├── stylesHandler.ts         # Runtime CSS style handler
     ├── valueAccessors.ts        # Value getter/setter utilities
     ├── a11yAnnouncer.ts         # Accessibility announcer
+    ├── manualResize/            # Drag gesture shared by the two manual resize plugins
+    │   ├── resizeGesture.ts     # ResizeGesture: handle, guide, drag state, resize hooks
+    │   ├── axis.ts              # ROW_RESIZE_AXIS / COLUMN_RESIZE_AXIS descriptors
+    │   └── utils.ts             # Size-option rules and pointer math
     └── dataStructures/          # Data structure utilities
         └── uniqueMap.ts         # UniqueMap implementation
 ```
@@ -302,8 +306,9 @@ handsontable/src/
 - Convention: Each plugin directory exports `{ PLUGIN_KEY, PLUGIN_PRIORITY, PluginClassName }` from `index.ts`
 - Convention: Each plugin directory also has an `AGENTS.md` (with `CLAUDE.md` symlinked to it) carrying that
   plugin's own knowledge - read it before changing the plugin. `base/AGENTS.md` documents the plugin contract
-  itself, including the full `PLUGIN_PRIORITY` table; `manualResize/AGENTS.md` documents the drag gesture and
-  helpers the two resize plugins share (that directory holds no plugin).
+  itself, including the full `PLUGIN_PRIORITY` table. The drag gesture and helpers the two resize plugins
+  share are not a plugin, so they live outside this directory, in `src/utils/manualResize/` - see its own
+  `AGENTS.md`.
 
 **`handsontable/src/3rdparty/walkontable/`:**
 - Purpose: Self-contained rendering engine with its own test suite
