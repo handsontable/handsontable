@@ -13,19 +13,25 @@ const scriptPath = fileURLToPath(new URL('../../../public/scripts/design-system-
 const scriptSource = readFileSync(scriptPath, 'utf8');
 
 /**
- * Minimal stand-in for one `<p data-design-system-updated>` element.
+ * Minimal stand-in for one `data-design-system-updated` field.
  *
  * `display: 'none'` is the starting state the markup sets inline, so a test
  * asserting the field stayed hidden is asserting the script left it alone.
+ * `content` stands for what the page authored around the date - on the
+ * changelog, the "Design system" link - and must survive a render.
  *
- * @param {string} [prefix]
- * @returns {object}
+ * @param {object} [options]
+ * @param {boolean} [options.withSlot] Whether the field has a date slot.
+ * @returns {{style: object, content: string, slot: object|null, querySelector: Function}}
  */
-function field(prefix = '') {
+function field({ withSlot = true } = {}) {
+  const slot = withSlot ? { textContent: '' } : null;
+
   return {
-    textContent: '',
     style: { display: 'none' },
-    getAttribute: name => (name === 'data-prefix' ? prefix : null),
+    content: '<a href="/docs/javascript-data-grid/handsontable-design-system/">Design system</a>',
+    slot,
+    querySelector: selector => (selector === '[data-design-system-updated-date]' ? slot : null),
   };
 }
 
@@ -81,17 +87,35 @@ function respondWith(payload, ok = true) {
   return async() => ({ ok, json: async() => payload });
 }
 
-test('fills and reveals the field for a named version, using the page prefix', async() => {
-  // The separator is a plain hyphen, matching the prefix the changelog page
-  // sets. The docs site uses hyphens and never dashes (docs/AGENTS.md 2.2),
-  // and an em dash here would look identical while rendering the wrong
-  // character on the page.
-  const target = field('Design system - ');
+test('writes the date into the slot and reveals the field', async() => {
+  const target = field();
 
   await run([target], respondWith({ date: '2026-09-01T09:00:00Z', source: 'named-version' }));
 
-  assert.equal(target.textContent, 'Design system - last published: September 1, 2026');
+  assert.equal(target.slot.textContent, 'last published: September 1, 2026');
   assert.equal(target.style.display, '', 'the field must be revealed');
+});
+
+test('keeps the content the page authored around the slot, such as a link', async() => {
+  // The changelog wraps "Design system" in a link to the design system page.
+  // Writing the field's whole textContent - what the first version did -
+  // would replace that link with plain text.
+  const target = field();
+  const authored = target.content;
+
+  await run([target], respondWith({ date: '2026-09-01T09:00:00Z', source: 'named-version' }));
+
+  assert.equal(target.content, authored);
+  assert.equal(target.textContent, undefined, 'the script must never write the field itself');
+});
+
+test('leaves a field without a date slot hidden', async() => {
+  // Broken markup: revealing it would show the authored text with no date.
+  const target = field({ withSlot: false });
+
+  await run([target], respondWith({ date: '2026-09-01T09:00:00Z', source: 'named-version' }));
+
+  assert.equal(target.style.display, 'none');
 });
 
 test('labels a last-touched date differently from a published one', async() => {
@@ -102,18 +126,18 @@ test('labels a last-touched date differently from a published one', async() => {
 
   await run([target], respondWith({ date: '2026-09-15T10:00:00Z', source: 'last-touched' }));
 
-  assert.equal(target.textContent, 'last Figma update: September 15, 2026');
+  assert.equal(target.slot.textContent, 'last Figma update: September 15, 2026');
   assert.equal(target.style.display, '');
 });
 
 test('fills every field on the page, not just the first', async() => {
-  const first = field('A ');
-  const second = field('B ');
+  const first = field();
+  const second = field();
 
   await run([first, second], respondWith({ date: '2026-09-01T09:00:00Z', source: 'named-version' }));
 
-  assert.equal(first.textContent, 'A last published: September 1, 2026');
-  assert.equal(second.textContent, 'B last published: September 1, 2026');
+  assert.equal(first.slot.textContent, 'last published: September 1, 2026');
+  assert.equal(second.slot.textContent, 'last published: September 1, 2026');
 });
 
 test('leaves the field hidden when the endpoint reports no date', async() => {
@@ -124,7 +148,7 @@ test('leaves the field hidden when the endpoint reports no date', async() => {
   await run([target], respondWith({ date: null, source: null }));
 
   assert.equal(target.style.display, 'none');
-  assert.equal(target.textContent, '');
+  assert.equal(target.slot.textContent, '');
 });
 
 test('leaves the field hidden when the endpoint errors', async() => {
@@ -151,7 +175,7 @@ test('leaves the field hidden when the date does not parse', async() => {
   await run([target], respondWith({ date: 'not-a-date', source: 'named-version' }));
 
   assert.equal(target.style.display, 'none');
-  assert.equal(target.textContent, '');
+  assert.equal(target.slot.textContent, '');
 });
 
 test('makes no request on a page that carries no field', async() => {
@@ -199,6 +223,15 @@ test('the newest changelog-N page carries the field', () => {
   const page = readFileSync(`${MIGRATION_ROOT}changelog-${newest}/changelog-${newest}.md`, 'utf8');
 
   assert.ok(page.includes(FIELD), `changelog-${newest}.md is the newest changelog page and must carry the field`);
+  // On the changelog, "Design system" links to the design system page. The
+  // link must stay a Markdown `@/` link - the build resolves it per framework,
+  // which a hard-coded href cannot do - on its own line between blank lines,
+  // or the Markdown is not parsed inside the HTML block. The separator is a
+  // plain hyphen: the docs site never uses dashes (docs/AGENTS.md 2.2).
+  assert.match(
+    page,
+    /\n\n\[Design system\]\(@\/guides\/styling\/design-system\/design-system\.md\) - <span data-design-system-updated-date><\/span>\n\n/,
+  );
 });
 
 test('no older changelog page keeps a stale copy of the field', () => {

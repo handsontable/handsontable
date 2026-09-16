@@ -23,8 +23,14 @@ by public/scripts/design-system-updated.js from the docs worker (rule 18c in
 docs/cloudflare/_worker.js); starts hidden and is revealed only once a real
 date arrives, so the page is unchanged when the date is unavailable.
 Lives on the NEWEST changelog-N page only - move it when that page changes;
-design-system-updated.test.mjs fails if the newest page lacks it. -->
-<p data-design-system-updated data-prefix="Design system - " style="display:none"></p>
+design-system-updated.test.mjs fails if the newest page lacks it.
+The blank lines inside the div are load-bearing: without them the Markdown
+link is not parsed and the @/ path is not resolved per framework. -->
+<div data-design-system-updated style="display:none">
+
+[Design system](@/guides/styling/design-system/design-system.md) - <span data-design-system-updated-date></span>
+
+</div>
 
 ## 18.1.1
 

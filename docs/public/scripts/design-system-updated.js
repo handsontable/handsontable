@@ -1,19 +1,22 @@
 /**
  * Fills in the "design system last updated" fields.
  *
- * Two pages carry one: the design system guide and the changelog. Both mark
- * the spot with a `data-design-system-updated` element that starts hidden;
- * this script reveals it only once a real date arrives. So a page with no
- * date - credentials unset, Figma unreachable - looks exactly as it did
+ * Two pages carry one: the design system guide and the newest changelog. Both
+ * mark the spot with a `data-design-system-updated` element that starts
+ * hidden; this script reveals it only once a real date arrives. So a page with
+ * no date - credentials unset, Figma unreachable - looks exactly as it did
  * before, with no empty row and no error in the console.
+ *
+ * The page owns the wording around the date, and the script writes only into
+ * a `data-design-system-updated-date` slot inside the field. That split is
+ * what lets the changelog wrap "Design system" in a link: the link is a
+ * Markdown `@/` link, which the docs build resolves per framework, and writing
+ * the field's whole `textContent` would delete it.
  *
  * The date itself comes from the docs worker (rule 18c in
  * `docs/cloudflare/_worker.js`), not from Figma directly: a Figma token in
  * client JavaScript would be public, and the site's CSP has no
  * `api.figma.com` in `connect-src` anyway.
- *
- * Per-element attributes:
- *  - `data-prefix` - text placed before the label, e.g. "Design system - ".
  */
 (function() {
   'use strict';
@@ -59,12 +62,18 @@
       return;
     }
 
-    var label = LABELS[payload.source] || LABELS['last-touched'];
+    var text = (LABELS[payload.source] || LABELS['last-touched']) + ': ' + formatted;
 
     Array.prototype.forEach.call(fields, function(field) {
-      var prefix = field.getAttribute('data-prefix') || '';
+      var slot = field.querySelector('[data-design-system-updated-date]');
 
-      field.textContent = prefix + label + ': ' + formatted;
+      // A field without a slot is broken markup. Leave it hidden rather than
+      // reveal a line that is missing its date.
+      if (!slot) {
+        return;
+      }
+
+      slot.textContent = text;
       // Inline `display` rather than the `hidden` attribute: an author-level
       // `p { display: block }` in the site CSS beats the user-agent rule for
       // `[hidden]`, which would show an empty paragraph before the fetch.
