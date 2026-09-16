@@ -880,7 +880,11 @@ const DESIGN_SYSTEM_DATE_ERROR_MAX_AGE = 300;
 // hostname is Cloudflare's. `cache.delete()` only clears the one data centre
 // that ran it. So a version in the cache key is the only lever that drops a
 // bad entry everywhere without waiting out its TTL.
-const DESIGN_SYSTEM_CACHE_VERSION = 2;
+//
+// 3: staging moved from a personal access token to the OAuth credentials, and
+// the cached date would otherwise have kept answering from the old read, which
+// would have looked identical whether or not the refresh worked.
+const DESIGN_SYSTEM_CACHE_VERSION = 3;
 
 /**
  * Wraps a `{ date, source }` pair in the endpoint's only response shape.
