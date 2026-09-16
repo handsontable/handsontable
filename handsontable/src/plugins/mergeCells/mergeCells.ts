@@ -20,6 +20,7 @@ import { createMergeCellRenderer } from './renderer';
 import { sumCellsHeights, toMergeAreaKey } from './utils';
 import { toMergeAreaRange, type MergeAreaGeometry } from '../../utils/mergeAreas';
 import type { CellChange } from '../../settings';
+import { canAccessCellContent } from '../../shortcuts/guards';
 
 Hooks.getSingleton().register('beforeMergeCells');
 Hooks.getSingleton().register('afterMergeCells');
@@ -1825,7 +1826,9 @@ export class MergeCells extends BasePlugin {
           this.hot.render();
         }
       },
-      runOnlyIf: (event?: KeyboardEvent) => !event?.altKey, // right ALT in some systems triggers ALT+CTRL
+      // Un-merging clears every cell but the top-left one, so the chord takes the shared cell-content
+      // guard. The right ALT on some systems triggers ALT+CTRL, which is why the modifier is tested.
+      runOnlyIf: (event?: KeyboardEvent) => !event?.altKey && canAccessCellContent(this.hot),
       group: SHORTCUTS_GROUP,
     });
   }

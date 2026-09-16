@@ -116,7 +116,7 @@ because the content total is not exact up front.
 
 ### The layout snapshot
 
-`layout/resolveLayout.ts` `resolveLayout(input)` is a **pure function** (no DOM imports) that solves the
+`viewport/boxLayout/resolveLayout.ts` `resolveLayout(input)` is a **pure function** (no DOM imports) that solves the
 2-variable scrollbar fixpoint: a vertical scrollbar consumes width, which may force a horizontal one, and
 vice versa. Two passes always converge — a scrollbar only shrinks the box, so the predicate is monotone.
 `viewport/boxLayout/gatherLayoutInput.ts` `gatherLayoutInput()` builds the numeric `LayoutInput` (workspace box from
@@ -399,7 +399,7 @@ Sizes reach the engine through the `AxisSizeSource` ports (`axisSizing/axisSizeS
 `DefaultSizeSource` reads the `rowHeight`/`columnWidth` settings-callbacks, which in the product are the
 funnel `TableView.rowHeight`/`columnWidth` → `hot.getRowHeight`/`getColWidth` → `modifyRowHeight` /
 `modifyColWidth` hooks. `AutoRowSize` / `AutoColumnSize` answer through those hooks after measuring in an
-off-screen ghost table — unchanged. Prefix-sum totals live inside WoT (`axisSizing/positionCache.ts`), so the
+off-screen ghost table — unchanged. Prefix-sum totals live inside WoT (`axisSizing/positionCache/`), so the
 layout snapshot's content totals are O(1).
 
 **Render-size probe (HOT side, `renderSizeProbe.ts`, owned by `TableView`).** Runs from

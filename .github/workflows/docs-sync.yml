@@ -89,9 +89,9 @@ jobs:
           DOCS_SYNC_MODEL: ${{ vars.DOCS_SYNC_MODEL }}
           # Optional repository variable. Unset (empty) omits temperature from
           # the request, so the provider's own default applies -- required for a
-          # reasoning-tier model that rejects any non-default temperature. Set
-          # it to 0 to keep classifications deterministic on a model that
-          # honors temperature (e.g. Anthropic).
+          # model that rejects any non-default temperature -- many current
+          # reasoning models do, the latest Claude models included (a 400).
+          # Set it (e.g. to 0) only for a model that still accepts one.
           DOCS_SYNC_TEMPERATURE: ${{ vars.DOCS_SYNC_TEMPERATURE }}
           # Optional repository variable, on by default. Set it to off for a
           # model that rejects `response_format`; the classifier parses the JSON

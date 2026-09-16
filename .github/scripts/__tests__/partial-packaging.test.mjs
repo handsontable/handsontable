@@ -11,7 +11,7 @@ import { repoRoot } from '../lib/repo-root.mjs';
 // missing `.d.ts`/`.d.mts` files, none of which it mentions building.
 //
 // This is the "partial build inherits a red gate with no test to warn it" case
-// the root AGENTS.md already warns about in prose. The warning was not enough:
+// `.ai/CI.md` already warns about in prose. The warning was not enough:
 // `visual.yml`'s artifact-fallback path shipped without the types tasks on
 // 2026-08-20 (#13210) and stayed latent until the first pull request that
 // changed `visual-tests/**` without touching `handsontable/**`, because only

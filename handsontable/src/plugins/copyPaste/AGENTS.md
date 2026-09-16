@@ -176,6 +176,81 @@ Paste sizing is inherently two-phase: the plugin tries to populate all copied da
 selection, but **it cannot know up front whether the populated data exceeds the selection** — some cells
 reject values, and that is only known after reading their cell meta.
 
+**Paste settling is also two-phase, and the post-paste selection rides the second phase (DEV-38).** A
+validated cell anywhere in the pasted range — a `dropdown`/`autocomplete` column always carries a validator,
+so do `numeric`/`date`/custom — makes the write settle asynchronously. `validateCell` (`core.ts`) defers
+**every** validated cell through `_registerMicrotask` ("validation should be always asynchronous"), so
+`applyChanges()` — where the new rows are actually created (`datamap.createRow`, guarded by
+`allowInsertRow`) — runs only after the validator queue drains, **after** `onPaste()` has already returned.
+For a synchronous validator (the array-source `dropdown` in the test) that is one microtask; an async
+validator (function `source`, custom async) settles on a later, arbitrary boundary. Consequences for anyone
+touching `onPaste`: (1) any synchronous post-paste read of `countRows()`/`countCols()` is **stale** for a
+validated paste, so the inline `selectCell` clamps the selection down to the pre-paste last row (the reported
+bug); the fix keeps that inline selection and adds a one-shot `afterChange` correction (`#onAfterChange`,
+gated on `source === 'CopyPaste.paste'`) that re-selects against the settled count. (2) The correction lands
+**after `afterPaste` fires**, and `afterPaste` (and `populateValues`'s return value) still describe the stale
+collapsed range — only the DOM selection is corrected once the write settles. (3) The correction re-selects
+with `selectCell(..., false, false)` — no scroll and `changeListener: false`, so it fixes the range whether
+or not the grid still has focus and **never re-listens**: a slow async validator that settles after the user
+clicked away corrects the selection in place instead of yanking focus back. (4) It runs only while the live
+selection still equals the **exact range the inline selection produced** — read back from the grid after that
+selection (so `mergeCells`' `beforeSetRangeStart` snap is already reflected), start and end corners both — so
+a selection the user or a synchronous `afterPaste` handler changed since the paste, even one that still starts
+at the paste origin, is left alone. (5) `#pastePlan` is cleared at the **top of `onPaste`**, not only when the
+correction consumes it: a paste that writes nothing (`beforeChange` returns false, or a `dropdown` under
+`allowInvalid: false` rejects every value so `applyChanges` skips `afterChange` at `changes.length === 0`)
+leaves the plan armed, and clearing on entry stops it driving a later paste's correction.
+
+**Scope — two shapes the fix deliberately does not cover.** The changelog names the default `overwrite` mode
+for this reason. (a) `afterChange` fires only when `changes.length > 0`, and the **shift paste modes**
+(`shift_down`/`shift_right`) recurse into `populateFromArray` **without** the `'CopyPaste.paste'` source, so
+the handler never runs for them. They create rows only after the validator queue drains too, so a shift paste
+with a validated column still clamps against the stale count exactly like the unfixed overwrite path — it is
+not fixed, and widening the source gate to `'populateFromArray'` is the wrong fix. That string is the default
+source `core.ts` stamps (`source || 'populateFromArray'`) on any `populateFromArray()` call made without a
+source argument, and CopyPaste's own shift-mode recursion is one such caller, so the gate would match those
+recursions and any other unsourced populate, and a stale armed plan plus one of them would re-select garbage.
+(Autofill is NOT one: `autofill.ts` always passes an explicit `'Autofill.fill'` source.) (b) `#pastePlan` is a **single slot**,
+so with an async validator two pastes can interleave: a second paste's `populateValues` overwrites the first's
+plan before the first's `applyChanges` settles, the first paste's `afterChange` then consumes the second's
+plan, and when the second settles it finds the slot empty and returns — leaving the **second** paste with the
+collapsed selection this fix exists to correct. That is a live defect on a grid with genuinely async
+(e.g. remote) validation, not a theoretical one; it is out of DEV-38's scope. Both are unreachable with a
+synchronous validator (its microtask drains before any next user paste event); a per-paste token (a stack, as
+the index-mapper does) is the fix if async-validated paste interleaving ever
+needs to be correct.
+
+(c) A **merge partially overlapping the paste and extending outside it, on the COLUMN axis**, ends the
+validated (deferred) paste on a wider selection than the validator-free (synchronous) one (raised in review,
+measured, scoped out). The mechanism: the deferred correction re-selects at CopyPaste's `afterChange` priority
+(80), which runs BEFORE MergeCells' `#unmergeAfterPaste` (150) in the same cycle, so `#onBeforeSelectionHighlightSet`
+runs `expandByRange` on a merge that overlaps the corrected selection but extends outside it and pulls the
+outside cells in. A validator-free paste unmerges first (its inline `selectCell` runs after `#unmergeAfterPaste`,
+so the merge is already gone) and selects clean. The two axes behave differently:
+
+- **Row axis: closed by construction.** The DEV-38 bug is a paste that starts at the last row and runs past
+  it, so the paste's bottom corner is the grid's last row after the grow and there is no row below it for a
+  merge to extend into. A merge overlapping the paste and extending outside it therefore has to extend ABOVE,
+  which means it contains the paste's top corner (the origin). `pasteBlockAt` selects that origin before
+  pasting, so with the merge live the pre-paste `selectCell` snaps the anchor up to the merge's top-start
+  corner identically on both paths. Measured: a `{ row: 3, col: 0, rowspan: 2, colspan: 2 }` merge straddling
+  the boundary gives `[[3, 0, 6, 1]]` on both the validated and the validator-free paste. That is the case
+  `tests/e2e/paste-selection-validated-column.spec.ts` `corrects the selection when the paste covers a merged
+  area` pins.
+- **Column axis: open, and the fix introduces the divergence.** A paste narrower than the grid can overlap a
+  merge that extends sideways out of it without containing the paste origin, so no pre-paste snap fires.
+  Measured on a five-column grid, paste into cols 2-3 starting at the last row, merge `{ row: 4, col: 3,
+  rowspan: 1, colspan: 2 }` (overlaps the paste at col 3, extends to col 4): the synchronous paste ends on
+  `[[4, 2, 7, 3]]`, the validated one on `[[4, 2, 7, 4]]`.
+
+Not fixed here on purpose. The hook round's priority order is fixed (CopyPaste 80 before MergeCells 150), and
+both alternatives are worse than this narrow defect: a `queueMicrotask`/`_registerTimeout` hop to run the
+correction after `#unmergeAfterPaste` adds a new race and a new window for the user to move the selection
+first, and a post-`selectCell` shrink-back fights MergeCells' own documented selection expansion. This is a
+two-plugin hook-ordering interaction on a narrow shape (validated column AND a merge partially overlapping the
+paste sideways AND the paste extending past the last row). Unlike (a) and (b), which the fix merely fails to
+cover, this one the fix introduces, because the deferred correction did not exist before.
+
 ## Header copying
 
 Three options control it — `copyColumnHeaders`, `copyColumnGroupHeaders` and `copyColumnHeadersOnly` —

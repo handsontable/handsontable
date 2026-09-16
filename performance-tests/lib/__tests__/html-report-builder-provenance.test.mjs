@@ -120,10 +120,12 @@ describe('buildHtmlReport -- environment and refusal', () => {
   test('carries the run environment, pre-rendered, and the baseline browser', () => {
     const { results, snapshot } = run(1);
     const data = payloadOf(buildHtmlReport(results, snapshot, {
-      environment: { chromium: '140.0.7339.16', cpuModel: 'Apple M1', cpuCount: 8, runnerImage: null },
+      environment: {
+        chromium: '140.0.7339.16', cpuModel: 'Apple M1', cpuCount: 8, platform: 'darwin arm64', runnerImage: null,
+      },
     }));
 
-    assert.equal(data.meta.environment, 'Chromium 140.0.7339.16 · Apple M1 ×8');
+    assert.equal(data.meta.environment, 'Chromium 140.0.7339.16 · Apple M1 ×8 · darwin arm64');
     assert.equal(data.baseline.chromium, '140.0.7339.16');
     assert.equal(data.baseline.unavailableReason, null);
   });
