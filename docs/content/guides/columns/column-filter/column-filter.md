@@ -238,8 +238,24 @@ The column's dropdown menu still opens, so items such as **Clear column** stay a
 filter controls are gone. Filtering that column through the API still works:
 [`addCondition()`](@/api/filters.md#addcondition) does not consult this option.
 
-Only `false` has an effect at the column level. The `filters` sub-options are read once for the whole
-grid, so an object written inside `columns` is ignored and logs a warning.
+`filters` takes different values at the two levels it works at:
+
+| Level | Accepted values | What it does |
+| ----- | --------------- | ------------ |
+| Grid | `true`, `false`, or an object | Switches the plugin on or off, and carries its settings |
+| Inside [`columns`](@/api/options.md#columns) | `false` | Hides the filter controls in that column's dropdown menu |
+
+Only `false` means anything at the column level. The sub-options -- `searchMode` and
+`filterFixedRows` -- are read once for the whole grid, so an object written inside `columns` is
+ignored and logs a warning:
+
+```js
+// WRONG -- ignored, and warns once
+columns: [{ filters: { filterFixedRows: false } }],
+```
+
+TypeScript does not reject that, because a column's settings are typed from the grid's settings.
+Treat the table above as the contract rather than the type.
 
 For finer control, you can hide individual menu items instead. In the following demo, only the
 **Brand** column is filterable, while the other columns are not. However, the **Model** column still

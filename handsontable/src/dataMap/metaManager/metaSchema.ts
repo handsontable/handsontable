@@ -3303,7 +3303,11 @@ export default (): Record<string, unknown> => {
     /**
      * The `filters` option configures the [`Filters`](@/api/filters.md) plugin.
      *
-     * You can set the `filters` option to one of the following:
+     * The option takes different values at the two levels it works at, so they are listed
+     * separately below. At the grid level it switches the plugin on and carries its settings. Inside
+     * [`columns`](#columns) it does one thing only: `false` takes that column out of filtering.
+     *
+     * **At the grid level:**
      *
      * | Setting   | Description                                                          |
      * | --------- | -------------------------------------------------------------------- |
@@ -3311,24 +3315,33 @@ export default (): Record<string, unknown> => {
      * | `true`    | Enable the [`Filters`](@/api/filters.md) plugin                      |
      * | An object | Enable the [`Filters`](@/api/filters.md) plugin with custom settings |
      *
-     * If you set the `filters` option to an object, you can configure the following settings:
+     * If you set the `filters` option to an object, you can configure the following settings. Both
+     * of them are read once, for the whole grid, so neither can be set per column:
      *
-     * | Property           | Possible values       | Description                                                                                                                                                         |
-     * | ------------------ | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-     * | `searchMode`       | `'show'` \| `'apply'` | Enable filtering only visible elements                                                                                                                              |
-     * | `filterFixedRows`  | `true` \| `false`     | `true`: Filter the whole dataset, including the rows pinned by [`fixedRowsTop`](#fixedrowstop) and [`fixedRowsBottom`](#fixedrowsbottom)<br>`false`: Leave the pinned rows out of the filter<br>Grid-level only |
-     *
-     * If `filters` is set to `true`, `searchMode` is `'show'` and `filterFixedRows` is `true` by default.
+     * | Property           | Possible values       | Default  | Description                                                                                                                                                         |
+     * | ------------------ | --------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `searchMode`       | `'show'` \| `'apply'` | `'show'` | Enable filtering only visible elements                                                                                                                              |
+     * | `filterFixedRows`  | `true` \| `false`     | `true`   | `true`: Filter the whole dataset, including the rows pinned by [`fixedRowsTop`](#fixedrowstop) and [`fixedRowsBottom`](#fixedrowsbottom)<br>`false`: Leave the pinned rows out of the filter |
      *
      * Set `filterFixedRows` to `false` when the pinned rows hold totals or headings rather than data.
      * Those rows are then never hidden by a filter, and their values are not offered in the
      * **Filter by value** list.
      *
-     * You can also turn filtering off for a single column, by setting `filters` to `false` in the
-     * [`columns`](#columns) option. That column's dropdown menu then shows no filter controls. The
-     * plugin's API is not affected: [`addCondition()`](@/api/filters.md#addcondition) still filters
-     * such a column. Only `false` has an effect at the column level – the settings above are read
-     * once, for the whole grid, so an object written in `columns` is ignored and logs a warning.
+     * **Inside `columns`:**
+     *
+     * | Setting        | Description                                                                          |
+     * | -------------- | ------------------------------------------------------------------------------------ |
+     * | `false`        | Hide the filter controls in this column's dropdown menu                              |
+     * | Anything else  | No effect – the column keeps whatever the grid-level setting gave it                  |
+     *
+     * The column's dropdown menu still opens, so entries such as **Clear column** stay available.
+     * The plugin's API is not affected either: [`addCondition()`](@/api/filters.md#addcondition)
+     * still filters such a column, the same way [`columnSorting`](#columnsorting)'s `headerAction`
+     * leaves sorting through the API working.
+     *
+     * An object written inside `columns` is **ignored**, and logs a warning once per grid. TypeScript
+     * does not reject it, because a column's settings are typed from the grid's, so treat the table
+     * above as the contract rather than the type.
      *
      * The switch is read from the column meta, which the [`cells`](#cells) and [`cell`](#cell)
      * options do not reach, so filtering cannot be turned off for a single cell. Filtering works on
@@ -3340,7 +3353,7 @@ export default (): Record<string, unknown> => {
      * - [`dropdownMenu`](#dropdownMenu)
      *
      * @memberof Options#
-     * @type {boolean}
+     * @type {boolean|object}
      * @default undefined
      * @category Filters
      * @configScope grid columns
@@ -3355,10 +3368,16 @@ export default (): Record<string, unknown> => {
      *   filterFixedRows: false,
      * },
      *
-     * // turn filtering off for the first column only
+     * // turn filtering off for the second column only
+     * filters: true,
      * columns: [
-     *   { filters: false },
      *   {},
+     *   { filters: false },
+     * ],
+     *
+     * // WRONG: the sub-options are grid-level, so this object is ignored and warns
+     * columns: [
+     *   { filters: { filterFixedRows: false } },
      * ],
      * ```
      */
