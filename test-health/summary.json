@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-15T11:40:11.019Z",
+  "generatedAt": "2026-09-16T08:53:57.563Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 12,
+    "tests": 13,
     "needsTicket": 4,
     "quarantined": 0,
-    "entries": 46
+    "entries": 47
   },
   "rows": [
     {
@@ -345,6 +345,39 @@
         "leg": "e2e-main",
         "status": "flaky",
         "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/plugins/filters/__tests__/plugins/columnSorting.spec.js|Filters UI cooperation with ColumnSorting should filter values when sorting is applied",
+      "tier": "jasmine",
+      "file": "handsontable/src/plugins/filters/__tests__/plugins/columnSorting.spec.js",
+      "line": null,
+      "title": "Filters UI cooperation with ColumnSorting should filter values when sorting is applied",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "legs": [
+        "UMD (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "passes alone"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-16T08:53:12Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35074709000",
+        "branch": "feature/DEV-2922_Menu-open-crash-safety",
+        "leg": "UMD (theme: main)",
+        "status": "failed",
+        "error": "Expected 27 to equal 3.",
         "source": "ci"
       },
       "needsTicket": false
