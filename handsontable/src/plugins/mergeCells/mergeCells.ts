@@ -740,8 +740,10 @@ export class MergeCells extends BasePlugin {
         }
 
         if (i === 0 && j === 0) {
+          // Same contract as `#getStoredValueAt`: physical row, visual column.
+          // `getSourceDataAtCell` runs `colToProp()`, which translates the column itself.
           clearedValue = this.hot.getSourceDataAtCell(this.hot.toPhysicalRow(mergeParent.row),
-            this.hot.toPhysicalColumn(mergeParent.col));
+            mergeParent.col);
 
         } else {
           this.hot.setCellMeta(mergeParent.row + i, mergeParent.col + j, 'hidden', true);
@@ -1930,6 +1932,7 @@ export class MergeCells extends BasePlugin {
 
     const visualColumnIndexStart = mergedParent.col;
     const visualColumnIndexEnd = mergedParent.col + mergedParent.colspan - 1;
+    let landsOnAdjacentColumn = false;
 
     if (delta.col < 0) {
       const nextColumn = highlight.col >= visualColumnIndexStart && highlight.col <= visualColumnIndexEnd ?
@@ -1940,6 +1943,7 @@ export class MergeCells extends BasePlugin {
         delta.col = -this.hot.view.countRenderableColumnsInRange(0, highlight.col);
       } else {
         delta.col = -Math.max(this.hot.view.countRenderableColumnsInRange(notHiddenColumnIndex, highlight.col) - 1, 1);
+        landsOnAdjacentColumn = true;
       }
 
     } else if (delta.col > 0) {
@@ -1951,6 +1955,23 @@ export class MergeCells extends BasePlugin {
         delta.col = this.hot.view.countRenderableColumnsInRange(highlight.col, this.hot.countCols());
       } else {
         delta.col = Math.max(this.hot.view.countRenderableColumnsInRange(highlight.col, notHiddenColumnIndex) - 1, 1);
+        landsOnAdjacentColumn = true;
+      }
+    }
+
+    // A non-Tab horizontal move (Left/Right arrow, or Enter when `enterMoves` is configured to step
+    // horizontally) that lands on the cell next to the merge keeps the merge's top row, so the same
+    // merge is always addressed by its top-left corner whatever row it was entered on (DEV-102).
+    // Excluded, so their entry-row memory survives: a wrap to another row (no adjacent cell), any
+    // vertical or diagonal move, and Tab / Shift+Tab - which cycles through cells keeping the row it
+    // moves along and reaches this hook with the same delta as an arrow.
+    if (delta.row === 0 && landsOnAdjacentColumn && !this.hot.selection.isDuringTabNavigation()) {
+      // The top row can be hidden, so snap to the merge's topmost visible row - assigning a
+      // non-renderable row throws "Renderable coords are not visible" from the transform below.
+      const topVisibleRow = rowIndexMapper.getNearestNotHiddenIndex(mergedParent.row, 1);
+
+      if (topVisibleRow !== null && topVisibleRow <= mergedParent.row + mergedParent.rowspan - 1) {
+        highlight.row = topVisibleRow;
       }
     }
 
@@ -3096,7 +3117,10 @@ export class MergeCells extends BasePlugin {
   /**
    * Opts the table out of single-pass rendering while merged cells are present. A virtualized merged
    * cell's height depends on which rows are in the viewport — the very thing the predicted layout is
-   * trying to compute — so merge tables keep the legacy measure-then-render path.
+   * trying to compute — so merge tables keep the legacy measure-then-render path. The opt-out is about
+   * the layout model only: the engine still recycles its rows on a vertical scroll and offers the
+   * cells outside merged blocks a stable paint identity (`Viewport#allowsRowRecycling`); the blocks'
+   * own cells stay viewport-bound through the `spanned` meta flag.
    *
    * @returns {boolean}
    */

@@ -109,11 +109,14 @@ test("the seed's build fallback stays in step with build.yml, or the baseline dr
 });
 
 test('the seed calls the shared visual module with the secrets it needs', () => {
-  assert.match(seed, /uses: \.\/\.github\/workflows\/visual\.yml\n\s+secrets: inherit/);
+  // The seed tier is the one that renders everything the golden records hold and
+  // writes `base/develop`; any other tier here would reconcile the baseline down
+  // to a subset (visual-tiers.test.mjs pins the tier table itself).
+  assert.match(seed, /uses: \.\/\.github\/workflows\/visual\.yml\n\s+with:\n\s+tier: seed\n\s+secrets: inherit/);
   // Parity with develop.yml: no caller-level permissions block, or the nested
   // grant in visual.yml would be validated against a second ceiling.
   assert.doesNotMatch(seed, /^permissions:/m, 'visual-seed.yml must not declare a permissions block');
-  assert.deepEqual(jobIds(seed), ['guard', 'visual']);
+  assert.deepEqual(jobIds(seed), ['guard', 'visual', 'notify']);
 });
 
 test('the seed writes develop and refuses every other ref', () => {
@@ -133,4 +136,53 @@ test('the seed writes develop and refuses every other ref', () => {
   assert.match(guard, /exit 1/, 'the guard job must fail the run');
   assert.match(guard, /::error::/, 'the guard job must say why');
   assert.match(guard, /REF_NAME: \$\{\{ github\.ref_name \}\}/, 'the ref goes through env, never into the script body');
+});
+
+test('a failed seed pings Slack, and only a failed one', () => {
+  // The seed is the quietest failure here: not a required check, not in
+  // test-health.yml's list, and since DEV-2797 it no longer reds the Develop run.
+  // Left unannounced, a broken seed surfaces as unrelated pull requests failing
+  // on the same items hours later — the investigation DEV-2797 began with.
+  // `indexOf` first, and asserted: `slice(-1)` on a miss returns the file's last
+  // character, which is a truthy string, so slicing before asserting made the
+  // `assert.ok` below unable to fail with the message it carries.
+  const notifyAt = seed.indexOf('  notify:');
+
+  assert.notEqual(notifyAt, -1, 'visual-seed.yml lost its Slack notification');
+
+  const notify = seed.slice(notifyAt);
+
+  assert.match(notify, /needs: \[ visual \]/);
+
+  // The status-check function is mandatory, and its absence is the bug this job
+  // shipped with: a job `if:` containing none of `always()`, `!cancelled()`,
+  // `failure()` or `success()` gets an implicit `success()` ANDed on, so a
+  // condition that only wants to run when its need FAILED can never run at all.
+  // Pinned textually because nothing here simulates GitHub's evaluator.
+  assert.match(notify, /if: \$\{\{ !cancelled\(\) && needs\.visual\.result == 'failure'/,
+    'without a status-check function the implicit success() makes this job unreachable on a failed seed');
+  // Named rather than a bare `failure()`. The `guard` job fails on a wrong-ref
+  // dispatch, which is operator error with its own message, not a broken seed —
+  // and naming the job settles it without depending on how ancestor rules read.
+  assert.match(notify, /needs\.visual\.result == 'failure'/,
+    'the ping must key on the seed job failing, not on any job in the run failing');
+  assert.doesNotMatch(notify, /if: \$\{\{ failure\(\)/,
+    'a bare failure() would also ping on a wrong-ref dispatch the guard already reported');
+  assert.match(notify, /github\.event_name != 'pull_request'/,
+    'the self-validation pull request run must not ping');
+
+  // Optional by construction: an absent secret is an empty string, so the step
+  // skips itself and the seed's own result is unchanged. Without this the hook
+  // could not land before the webhook exists.
+  assert.match(notify, /SLACK_WEBHOOK_URL: \$\{\{ secrets\.SLACK_VISUAL_WEBHOOK_URL \}\}/,
+    'the webhook goes through env so the step can test it');
+  assert.match(notify, /if: env\.SLACK_WEBHOOK_URL != ''/,
+    'without the secret the step must skip itself rather than fail the run');
+  assert.match(notify, /uses: slackapi\/slack-github-action@[0-9a-f]{40} #/,
+    'the Slack action must be SHA-pinned with its release comment, like every other action here');
+
+  // A seed that succeeds WITH differences is the normal case — those differences
+  // are what the merge changed, and seed-report.mjs already reports them.
+  assert.doesNotMatch(notify, /outputs\.verdict|steps\.report/,
+    'only a failed seed pings; a seed with differences is the expected case');
 });

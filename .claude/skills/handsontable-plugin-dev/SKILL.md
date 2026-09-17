@@ -37,7 +37,7 @@ table also records which orderings are load-bearing.
 
 `SETTING_KEYS` defaults to `[this.PLUGIN_KEY]`, so declare it only when you need something else. Listing an
 option the plugin does *not* own has three consequences that have all shipped as bugs — see
-`src/plugins/manualResize/AGENTS.md`.
+`src/utils/manualResize/AGENTS.md`.
 
 ## Lifecycle Methods (in order)
 

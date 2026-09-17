@@ -305,6 +305,49 @@ describe('Selection navigation', () => {
       `).toBeMatchToSelectionPattern();
     });
 
+    it('should keep every selection layer when the active layer holds a single cell', async() => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 5,
+        startCols: 5,
+      });
+
+      await selectCells([[0, 0, 1, 1], [3, 3, 3, 3]]);
+      await keyDownUp('enter');
+
+      // `moveSelectionAfterEnter()` reads the whole selection, not just the active layer. Reading
+      // the active layer alone leaves a single-cell layer looking like a single-cell selection, and
+      // the branch that answers one - `transformStart()` - lays a fresh selection over every layer.
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 0,0 from: 0,0 to: 1,1',
+        'highlight: 3,3 from: 3,3 to: 3,3',
+      ]);
+      expect(getSelectedRangeActive().highlight.row).toBe(0);
+      expect(getSelectedRangeActive().highlight.col).toBe(0);
+    });
+
+    it('should keep every selection layer when the active layer holds a single cell ' +
+      'and `enterBeginsEditing` is disabled', async() => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 5,
+        startCols: 5,
+        enterBeginsEditing: false,
+      });
+
+      await selectCells([[0, 0, 1, 1], [3, 3, 3, 3]]);
+      await keyDownUp('enter');
+
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 0,0 from: 0,0 to: 1,1',
+        'highlight: 3,3 from: 3,3 to: 3,3',
+      ]);
+      expect(getSelectedRangeActive().highlight.row).toBe(0);
+      expect(getSelectedRangeActive().highlight.col).toBe(0);
+    });
+
     it('should move the selection down within a column header selection', async() => {
       handsontable({
         rowHeaders: true,

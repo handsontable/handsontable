@@ -3,109 +3,146 @@ import { createStore } from 'redux';
 import { Provider, useSelector, useDispatch } from 'react-redux';
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
+
 // register Handsontable's modules
 registerAllModules();
+
 const ExampleComponentContent = () => {
-    const hotSettings = useSelector((state) => state);
-    const dispatch = useDispatch();
-    const hotTableComponentRef = useRef(null);
-    const hotData = hotSettings.data;
-    const isHotData = Array.isArray(hotData);
-    const onBeforeHotChange = (changes) => {
-        dispatch({
-            type: 'updateData',
-            dataChanges: changes,
-        });
-        return false;
-    };
-    const toggleReadOnly = (event) => {
-        dispatch({
-            type: 'updateReadOnly',
-            readOnly: event.target.checked,
-        });
-    };
-    return (<div className="dump-example-container">
+  const hotSettings = useSelector((state) => state);
+  const dispatch = useDispatch();
+  const hotTableComponentRef = useRef(null);
+
+  const hotData = hotSettings.data;
+  const isHotData = Array.isArray(hotData);
+
+  const onBeforeHotChange = (changes) => {
+    dispatch({
+      type: 'updateData',
+      dataChanges: changes,
+    });
+
+    return false;
+  };
+
+  const toggleReadOnly = (event) => {
+    dispatch({
+      type: 'updateReadOnly',
+      readOnly: event.target.checked,
+    });
+  };
+
+  return (
+    <div className="dump-example-container">
       <div id="example-container">
         <div id="example-preview">
           <div className="example-controls-container">
             <div className="controls">
               <label>
-                <input onClick={toggleReadOnly} type="checkbox"/>
+                <input onClick={toggleReadOnly} type="checkbox" />
                 Toggle <code>readOnly</code> for the entire table
               </label>
             </div>
           </div>
 
-          <HotTable ref={hotTableComponentRef} beforeChange={onBeforeHotChange} autoWrapRow={true} autoWrapCol={true} {...hotSettings}/>
+          <HotTable
+            ref={hotTableComponentRef}
+            beforeChange={onBeforeHotChange}
+            autoWrapRow={true}
+            autoWrapCol={true}
+            {...hotSettings}
+          />
         </div>
         <h3>Redux store dump</h3>
         <pre id="redux-preview" className="table-container">
-          {isHotData && (<div>
+          {isHotData && (
+            <div>
               <strong>data:</strong>
               <table style={{ border: '1px solid #d6d6d6' }}>
                 <tbody>
-                  {hotData.map((row, i) => (<tr key={i}>
-                      {row.map((cell, i) => (<td key={i}>{cell}</td>))}
-                    </tr>))}
+                  {hotData.map((row, i) => (
+                    <tr key={i}>
+                      {row.map((cell, i) => (
+                        <td key={i}>{cell}</td>
+                      ))}
+                    </tr>
+                  ))}
                 </tbody>
               </table>
-            </div>)}
+            </div>
+          )}
 
           <table>
             <tbody>
-              {Object.entries(hotSettings).map(([name, value]) => name !== 'data' && (<tr key={`${name}${value}`}>
+              {Object.entries(hotSettings).map(
+                ([name, value]) =>
+                  name !== 'data' && (
+                    <tr key={`${name}${value}`}>
                       <td>
                         <strong>{name}:</strong>
                       </td>
                       <td>{value.toString()}</td>
-                    </tr>))}
+                    </tr>
+                  ),
+              )}
             </tbody>
           </table>
         </pre>
       </div>
-    </div>);
+    </div>
+  );
 };
+
 const initialReduxStoreState = {
-    data: [
-        ['SKU-4821', 'Stainless Steel Water Bottle', 'Harbor Goods'],
-        ['SKU-0093', 'Wireless Mouse', 'Alpine Supply Co.'],
-        ['SKU-1170', 'Ergonomic Office Chair', 'Cascade Distributors'],
-        ['SKU-2208', 'USB-C Charging Cable', 'Summit Trading'],
-        ['SKU-3341', 'Aluminum Water Filter', 'Northgate Wholesale'],
-    ],
-    colHeaders: true,
-    rowHeaders: true,
-    readOnly: false,
-    height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation',
+  data: [
+    ['SKU-4821', 'Stainless Steel Water Bottle', 'Harbor Goods'],
+    ['SKU-0093', 'Wireless Mouse', 'Alpine Supply Co.'],
+    ['SKU-1170', 'Ergonomic Office Chair', 'Cascade Distributors'],
+    ['SKU-2208', 'USB-C Charging Cable', 'Summit Trading'],
+    ['SKU-3341', 'Aluminum Water Filter', 'Northgate Wholesale'],
+  ],
+  colHeaders: true,
+  rowHeaders: true,
+  readOnly: false,
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation',
 };
+
 const updatesReducer = (state = initialReduxStoreState, action) => {
-    switch (action.type) {
-        case 'updateData': {
-            let hasChanged = false;
-            const newData = state.data.map((row) => [...row]);
-            action.dataChanges.forEach(([row, column, oldValue, newValue]) => {
-                if (newData[row][column] !== newValue) {
-                    newData[row][column] = newValue;
-                    hasChanged = true;
-                }
-            });
-            // Return the previous state when no value actually changed. Plugins write to the grid on
-            // their own (`mergeCells` clears the cells that a merge area covers), and handing back a new
-            // state object every time would re-render the component and resend the settings in a loop.
-            return hasChanged ? { ...state, data: newData } : state;
+  switch (action.type) {
+    case 'updateData': {
+      let hasChanged = false;
+      const newData = state.data.map((row) => [...row]);
+
+      action.dataChanges.forEach(([row, column, oldValue, newValue]) => {
+        if (newData[row][column] !== newValue) {
+          newData[row][column] = newValue;
+          hasChanged = true;
         }
-        case 'updateReadOnly':
-            return {
-                ...state,
-                readOnly: action.readOnly,
-            };
-        default:
-            return state;
+      });
+
+      // Return the previous state when no value actually changed. Plugins write to the grid on
+      // their own (`mergeCells` clears the cells that a merge area covers), and handing back a new
+      // state object every time would re-render the component and resend the settings in a loop.
+      return hasChanged ? { ...state, data: newData } : state;
     }
+
+    case 'updateReadOnly':
+      return {
+        ...state,
+        readOnly: action.readOnly,
+      };
+
+    default:
+      return state;
+  }
 };
+
 const reduxStore = createStore(updatesReducer);
-const ExampleComponent = () => (<Provider store={reduxStore}>
+
+const ExampleComponent = () => (
+  <Provider store={reduxStore}>
     <ExampleComponentContent />
-  </Provider>);
+  </Provider>
+);
+
 export default ExampleComponent;

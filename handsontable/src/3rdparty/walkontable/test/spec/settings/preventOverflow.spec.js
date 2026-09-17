@@ -54,7 +54,7 @@ describe('preventOverflow option', () => {
     expect(spec().$table.parents('.ht_master').css('overflow')).toBe('hidden');
   });
 
-  it('should set overflow-x to `hidden` for top clone when `horizontal` value is passed', async() => {
+  it('should keep the top clone holder a horizontal scroll container when `horizontal` value is passed', async() => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
@@ -69,7 +69,9 @@ describe('preventOverflow option', () => {
 
     wt.draw();
 
-    expect($(wt.wtTable.wtRootElement.parentNode).find('.ht_clone_top .wtHolder').css('overflow-x')).toBe('hidden');
+    // The top clone holder is a scroll container on the axis the engine mirrors (DEV-2937) and clipped
+    // on the other, whatever `preventOverflow` says: the option moves the axis owners, not the clones.
+    expect($(wt.wtTable.wtRootElement.parentNode).find('.ht_clone_top .wtHolder').css('overflow-x')).toBe('auto');
     expect($(wt.wtTable.wtRootElement.parentNode).find('.ht_clone_top .wtHolder').css('overflow-y')).toBe('hidden');
   });
 

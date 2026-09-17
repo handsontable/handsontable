@@ -183,6 +183,16 @@ Every PR that changes source code needs a changelog entry in `.changelogs/`. `bi
 
 Two blocking checks constrain the entry, so get both right the first time. The filename must be `<issueOrPR>.json`, a plain number with no suffix, and it must match the entry's `issueOrPR` field — `bin/changelog` fails the `changelog` job over a mismatch, and the pre-push hook fails locally. And the PR may add at most **two** entry files, the second only for a separate GitHub issue it closes; a maintenance PR back-filling entries for other PRs writes `[multiple changelogs]` in the description to lift that. Running `npm run changelog entry` satisfies the filename rule by construction; writing the JSON by hand is what breaks it.
 
+**In a non-interactive session, pass the fields `--help` does not list.** `bin/changelog entry` only prompts when stdin is a TTY, which an agent's shell is not, so every field must arrive as a flag — and the two that matter are missing from `--help`. `--issuesOrigin` is not declared at all, and the declared `--issue` is dead: the builder reads `issueOrPR`, so `--issue` is silently dropped and the command dies in `assertChangelogEntryFormat` with a stack trace rather than a usage message. The working invocation:
+
+```bash
+bin/changelog entry "Fixed …, ending with a period." \
+  --type fixed --issuesOrigin private --issueOrPR <PR-number> \
+  --breaking false --framework none
+```
+
+Confirm it landed where you expect — the command prints the destination path and the compiled markdown line before writing.
+
 For a `private` entry, after writing the file:
 
 1. Commit it on the same branch (`DEV-xxx: Add changelog entry for PR #<number>`).

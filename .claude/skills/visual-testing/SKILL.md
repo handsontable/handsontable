@@ -81,6 +81,13 @@ Check `visual-tests/package.json` for available scripts. Configuration files:
 - `visual-tests/playwright.config.ts` -- Default config.
 - `visual-tests/playwright-cross-browser.config.ts` -- Cross-browser config.
 
+What CI renders depends on the tier (`VISUAL_TIERS` in `visual-tests/src/config.mjs`; the reasoning and the measured numbers are in `visual-tests/AGENTS.md`, Tiers):
+
+- A pull request renders the `pr` tier: the vanilla JS specs on Chromium with the `main` and `main-dark` themes, plus a wrapper only when that wrapper's own `wrappers/<pkg>/` tree changed. No horizon themes, no bare "classic" run, no Firefox or WebKit.
+- Horizon, the classic delivery path, Firefox, and WebKit are rendered by the develop seed (`visual-seed.yml`) minutes after a merge; when the merge changed any of them, the seed comments the list on the merged pull request, and those renders become the golden records. The wrappers are rendered for real only by the weekday nightly (`visual-nightly.yml`; the seed copies the js render into their goldens), which goes red on any difference from the seed — a wrapper drifting from js, a flaky or poisoned golden, or a commit whose seed never landed. A theme-only regression shows in the seed's comment, never as a red nightly.
+- A pull request that touches `visual-tests/**` or `examples/next/visual-tests/**` renders everything (the `full` tier), so a spec or demo change is proven on every variant before it merges.
+- Locally, `VISUAL_TIER=pr npm run build && VISUAL_TIER=pr npm run test` (from `visual-tests/`) renders what a pull request renders and skips the wrapper installs; pass the same `VISUAL_TIER=pr` to `npm run compare`. A bare `npm run test` on a feature branch still renders everything.
+
 ## Example Structure
 
 When creating a new example at `examples/next/docs/js/demo/`, include:

@@ -724,19 +724,21 @@ describe('NestedHeaders', () => {
         expect(calls.argsFor(10)).toEqual([2, getCell(-1, 2), 2]);
         expect(calls.argsFor(11)).toEqual([3, getCell(-1, 3), 2]);
 
-        // the second render triggered by some other module
-        expect(calls.argsFor(12)).toEqual([0, getCell(-3, 0), 0]);
-        expect(calls.argsFor(13)).toEqual([1, getCell(-3, 1), 0]);
-        expect(calls.argsFor(14)).toEqual([2, getCell(-3, 2), 0]);
-        expect(calls.argsFor(15)).toEqual([3, getCell(-3, 3), 0]);
-        expect(calls.argsFor(16)).toEqual([0, getCell(-2, 0), 1]);
-        expect(calls.argsFor(17)).toEqual([1, getCell(-2, 1), 1]);
-        expect(calls.argsFor(18)).toEqual([2, getCell(-2, 2), 1]);
-        expect(calls.argsFor(19)).toEqual([3, getCell(-2, 3), 1]);
-        expect(calls.argsFor(20)).toEqual([0, getCell(-1, 0), 2]);
-        expect(calls.argsFor(21)).toEqual([1, getCell(-1, 1), 2]);
-        expect(calls.argsFor(22)).toEqual([2, getCell(-1, 2), 2]);
-        expect(calls.argsFor(23)).toEqual([3, getCell(-1, 3), 2]);
+        // the top overlay clone (headers render once per overlay); its leaf header carries no
+        // `aria-describedby` id (only the owning master header does, DEV-29), so this batch is matched
+        // against the topmost-overlay cells rather than the master ones
+        expect(calls.argsFor(12)).toEqual([0, getCell(-3, 0, true), 0]);
+        expect(calls.argsFor(13)).toEqual([1, getCell(-3, 1, true), 0]);
+        expect(calls.argsFor(14)).toEqual([2, getCell(-3, 2, true), 0]);
+        expect(calls.argsFor(15)).toEqual([3, getCell(-3, 3, true), 0]);
+        expect(calls.argsFor(16)).toEqual([0, getCell(-2, 0, true), 1]);
+        expect(calls.argsFor(17)).toEqual([1, getCell(-2, 1, true), 1]);
+        expect(calls.argsFor(18)).toEqual([2, getCell(-2, 2, true), 1]);
+        expect(calls.argsFor(19)).toEqual([3, getCell(-2, 3, true), 1]);
+        expect(calls.argsFor(20)).toEqual([0, getCell(-1, 0, true), 2]);
+        expect(calls.argsFor(21)).toEqual([1, getCell(-1, 1, true), 2]);
+        expect(calls.argsFor(22)).toEqual([2, getCell(-1, 2, true), 2]);
+        expect(calls.argsFor(23)).toEqual([3, getCell(-1, 3, true), 2]);
       });
     });
 

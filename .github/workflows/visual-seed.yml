@@ -42,13 +42,17 @@ name: Visual seed
 #    experimental publish that `publish.yml` chains on that run's conclusion.
 #    That direction of the decoupling is intended too: a visual-infrastructure
 #    failure is not a reason to withhold a package.
-# 3. Which means nothing else notices a broken seed. `Visual seed` is not a
+# 3. Which means little else notices a broken seed. `Visual seed` is not a
 #    required check and is not in test-health.yml's list. How a person finds out:
-#    GitHub notifies the pusher on a failed run, and the diagnostic in
-#    visual-tests/AGENTS.md starts by checking this workflow's last successful
-#    run whenever a baseline looks stale. A stale baseline shows up downstream as
-#    the same one-or-two-item diffs on unrelated pull requests that DEV-2797
-#    measured, so the symptom is known even when the cause is quiet.
+#    the `notify` job below pings Slack when the seed FAILS (only when
+#    `SLACK_VISUAL_WEBHOOK_URL` is set — without it the step skips itself and
+#    nothing changes); GitHub notifies the pusher on a failed run; and the
+#    diagnostic in visual-tests/AGENTS.md starts by checking this workflow's last
+#    successful run whenever a baseline looks stale. A stale baseline shows up
+#    downstream as the same one-or-two-item diffs on unrelated pull requests that
+#    DEV-2797 measured, so the symptom is known even when the cause is quiet — but
+#    it surfaces on someone else's pull request, hours later, which is why the
+#    ping is worth having.
 # 4. A hand dispatch shares this concurrency key with the pushes, so a merge
 #    landing while a re-seed is pending drops the pending dispatch. That is
 #    usually the right outcome — the push seeds a NEWER commit over the same
@@ -63,13 +67,17 @@ name: Visual seed
 # Pull requests still render Visual only after E2E and Integration (test.yml);
 # that ordering is unchanged.
 #
-# visual.yml needs nothing new: on a `push` event it already resolves
+# This run renders the `seed` tier (`with: tier: seed`) — everything the golden
+# records hold: js bare plus the four themes, the cross-browser leg, and the
+# three wrappers copied from the js render (the tier table is `VISUAL_TIERS` in
+# visual-tests/src/config.mjs). On a `push` event visual.yml resolves
 # `REG_EXPECTED_KEY=REG_ACTUAL_KEY=base/<branch>`, compares the fresh render
-# against the previous baseline and reconciles the prefix. That comparison is
-# NOT in the job summary — `visual-gate.mjs` and the summary step it writes for
-# are both pull-request-only — so a seed's own diff lives in `.reg/out.json` on
-# the runner and, after the reconcile, in `base/develop/out.json` in R2. Read
-# those, not a blank summary. With no Build artifacts to download the render
+# against the previous baseline and reconciles the prefix. That comparison DOES
+# reach the job summary — `scripts/seed-report.mjs` writes what this commit
+# changed, and comments the out-of-`pr`-tier half on the merged pull request —
+# so the summary is where to read a seed's own diff; it also survives in
+# `.reg/out.json` on the runner and, after the reconcile, in
+# `base/develop/out.json` in R2. With no Build artifacts to download the render
 # takes visual.yml's own build fallback for the core and the wrappers, which is
 # where the extra minutes go; that fallback's task list is pinned against
 # build.yml's by `visual-seed.test.mjs`, because the seed is the one caller that
@@ -143,4 +151,56 @@ jobs:
     # keeps the reconcile away from another branch's prefix.
     if: github.event_name != 'pull_request' && github.ref_name == 'develop'
     uses: ./.github/workflows/visual.yml
+    with:
+      tier: seed
     secrets: inherit
+
+  # A failed seed is the quietest failure in this pipeline, and consequence 3 in
+  # the header says why: `Visual seed` is not a required check, it is not in
+  # test-health.yml's list, and since DEV-2797 it no longer reds the `Develop`
+  # run. The only person told is whoever pushed — by an email they may well
+  # filter. Meanwhile `base/develop` stops moving, and the symptom surfaces
+  # somewhere else entirely: unrelated open pull requests failing on the same one
+  # or two items, which reads as their own regression. That is exactly the
+  # investigation DEV-2797 started from, so the seed is worth a channel ping.
+  #
+  # Only a FAILED seed. A seed that succeeds WITH differences is the normal case —
+  # those differences are what the merge changed, and `seed-report.mjs` already
+  # writes them to the job summary and comments the out-of-tier half on the merged
+  # pull request.
+  #
+  # `needs.visual.result`, not a bare `failure()`: the `guard` job above fails on a
+  # wrong-ref dispatch, and that is operator error with its own loud message, not a
+  # broken seed. Naming the job keeps the guard out of this regardless of how the
+  # ancestor rules read.
+  #
+  # The leading status-check function is not decoration, and leaving it out is the
+  # bug this job shipped with. A job `if:` that contains NO status-check function
+  # (`always()`, `!cancelled()`, `failure()`, `success()`) gets an implicit
+  # `success()` ANDed onto it, so `needs.visual.result == 'failure'` alone requires
+  # `visual` to have both succeeded and failed — the job is simply unreachable, and
+  # a failed seed stays as quiet as it was before this file existed. Every other
+  # `needs.<job>.result` condition in this repository carries one for the same
+  # reason; publish.yml's `first-rc-notify`, `rc-notify` and `stable-notify` are the
+  # closest shape, and all three use `!cancelled()`. Do not "tidy" it away.
+  notify:
+    name: Notify Slack
+    needs: [ visual ]
+    if: ${{ !cancelled() && needs.visual.result == 'failure' && github.event_name != 'pull_request' }}
+    runs-on: ubuntu-latest
+    env:
+      # An absent secret is an empty string, not an error, so the step below skips
+      # itself and the seed's own result is unaffected. That keeps this optional:
+      # without the webhook the red run is still the signal, as it is today.
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_VISUAL_WEBHOOK_URL }}
+    steps:
+      - name: Send the failure to Slack
+        if: env.SLACK_WEBHOOK_URL != ''
+        uses: slackapi/slack-github-action@03ea5433c137af7c0495bc0cad1af10403fc800c # https://github.com/slackapi/slack-github-action/releases/tag/v3.0.2
+        with:
+          webhook: ${{ env.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": ":red_circle: Visual seed failed on ${{ github.ref_name }} (${{ github.sha }}).\n`base/${{ github.ref_name }}` did NOT move, so every open pull request is still compared against the previous render — expect unrelated pull requests to fail on the same items until the next seed lands.\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\nRe-seed by hand: dispatch `Visual seed` with develop selected as the branch."
+            }

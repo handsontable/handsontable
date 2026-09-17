@@ -131,9 +131,19 @@ test('nothing lets the verdict go missing while compare stays green', () => {
   const compare = job(visual, 'compare');
   const wrapper = read('visual-tests/scripts/visual-gate.mjs');
 
-  assert.doesNotMatch(compare, /continue-on-error/,
-    'a continue-on-error in compare decouples "verdict unset" from "compare red", which is what '
-      + 'makes a skipped approve safe');
+  // Scoped to the verdict step rather than the whole job. The seed's out-of-tier
+  // comment step carries `continue-on-error` on purpose — a failed comment must
+  // never keep a seed from landing. What makes that safe is EVENT separation, not
+  // step order: that step is `github.event_name == 'push'` and the verdict step is
+  // `github.event_name == 'pull_request'`, so the two never run in the same job.
+  // (It also sits earlier in the file than the verdict step, not later.)
+  const fromVerdict = compare.slice(compare.indexOf('- name: Visual verdict'));
+  const verdictStep = fromVerdict.slice(0, fromVerdict.indexOf('- name:', 10));
+
+  assert.ok(verdictStep.includes('id: gate'), 'the verdict step was not found where expected');
+  assert.doesNotMatch(verdictStep, /continue-on-error/,
+    'a continue-on-error on the verdict step decouples "verdict unset" from "compare red", which is '
+      + 'what makes a skipped approve safe');
 
   // The wrapper writes the output BEFORE it decides the exit code, so even a
   // blocked verdict exports one. Only a throw can leave it unset, and a throw

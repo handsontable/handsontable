@@ -2,7 +2,7 @@ import { addClass, empty, isShadowRoot, observeVisibilityChangeOnce, removeClass
 import { RenderChangeTracker, markCellMetaChanged } from './core/incrementalRender/renderChangeTracker';
 import { isFunction } from './helpers/function';
 import { isDefined, isUndefined, isRegExp, isEmpty } from './helpers/mixed';
-import { isMobileBrowser, isIpadOS } from './helpers/browser';
+import { isMobileOrIpadOS } from './helpers/browser';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
 import {
@@ -371,6 +371,13 @@ export default function Core(
   // Set only when the table is initialized while invisible (see the `init` method). Kept in the closure, not on
   // the instance, because `destroy` nulls every instance property before it could be read there.
   let visibilityObserver: IntersectionObserver | null = null;
+  /**
+   * Watches the root wrapper's edge slots for a height change (a bar that mounts after init, wraps
+   * after a locale switch, or grows a horizontal scrollbar once its width is clamped). A slot's
+   * height feeds two things nothing else observes: the pixel `height` core writes on the root, and
+   * the height the engine reserves inside a scrollable ancestor (`layoutReservedHeight`).
+   */
+  let slotsResizeObserver: ResizeObserver | null = null;
 
   const mergedUserSettings: GridSettings = {
     ...userSettings.initialState,
@@ -2055,7 +2062,7 @@ export default function Core(
 
     instance.runHooks('beforeInit');
 
-    if (isMobileBrowser() || isIpadOS()) {
+    if (isMobileOrIpadOS()) {
       addClass(instance.rootElement, 'mobile');
     }
 
@@ -2095,6 +2102,23 @@ export default function Core(
           width = instance.rootWrapperElement.offsetWidth;
         }
 
+        // The slot aligns with the TABLE (a narrow table gets a narrow bar), but never past the
+        // wrapper when the WINDOW owns the horizontal axis: the table can then be wider than its
+        // CSS-sized container, and a slot sized to the table ran out of that container – up to the
+        // full page width (DEV-2848). Only that mode is clamped: with a definite `width` option the
+        // root owns the axis and `getWorkspaceWidth()` is the grid's own box, which the slot keeps
+        // following even inside a narrower container (the user sized the grid explicitly).
+        // `clientWidth` is the wrapper's own box. In a block parent the slot's previous inline width
+        // cannot inflate it. In a shrink-to-fit parent (`inline-block`, a float, a widthless flex
+        // item) the wrapper sizes to its widest child, but the table is one of those children and
+        // the slot was written no wider than the table, so `min(table, wrapper)` still tracks the
+        // table downwards – pinned by the `inline-block-host` case of `bottom-slot-sizing.spec.ts`.
+        const wrapperWidth = instance.rootWrapperElement?.clientWidth ?? 0;
+
+        if (view.isHorizontallyScrollableByWindow() && wrapperWidth > 0) {
+          width = Math.min(width, wrapperWidth);
+        }
+
         // Only write when the value actually changes — avoids a reflow → dimension-refresh
         // → re-sync feedback loop, and needless layout writes during volatile renders.
         if (instance.rootSlotBottomElement && width !== lastEdgeWidths.bottom) {
@@ -2109,6 +2133,39 @@ export default function Core(
       };
 
       this.addHook('afterRender', syncEdgeSlotsWidth);
+
+      const slots = [instance.rootSlotTopElement, instance.rootSlotBottomElement];
+      const measureSlotsHeight = () => slots.reduce((sum, slot) => sum + slot.offsetHeight, 0);
+      // Seeded with the current value: an observer delivers once on `observe()`, and that first
+      // delivery must not cost a render.
+      let lastSlotsHeight = measureSlotsHeight();
+
+      // Neither engine observer (the trimming container, the hider) resizes when a slot does, so a
+      // bar that mounts late or changes height would keep a stale reservation until an unrelated
+      // draw. The loop cannot feed itself: a render re-syncs the slot WIDTH, which can toggle the
+      // slot's horizontal scrollbar exactly once, and the next delivery then reads an unchanged
+      // height and stops here. `refreshDimensions()` is not enough – inside a scrollable ancestor the
+      // root's box does not change until the engine re-measures, so it would skip the render.
+      slotsResizeObserver = new instance.rootWindow.ResizeObserver(() => {
+        if (!instance || instance.isDestroyed || !instance.view) {
+          return;
+        }
+
+        const slotsHeight = measureSlotsHeight();
+
+        if (slotsHeight === lastSlotsHeight) {
+          return;
+        }
+
+        lastSlotsHeight = slotsHeight;
+
+        if (isPixelHeight(isFunction(tableMeta.height) ? tableMeta.height() : tableMeta.height)) {
+          applyHeightSetting(tableMeta.height);
+        }
+
+        instance.render();
+      });
+      slots.forEach(slot => slotsResizeObserver?.observe(slot));
     }
 
     instance.runHooks('init');
@@ -2683,6 +2740,10 @@ export default function Core(
     if (isRegExp(validator)) {
       validator = (function(expression: RegExp) {
         return function(cellValue: unknown, validatorCallback: Function) {
+          // Global (`g`) and sticky (`y`) flags make `RegExp#test` stateful through
+          // `lastIndex`. Reset before every cell so repeated `validateCells()` runs
+          // (and cells that share one pattern) get a stable result (DEV-110).
+          expression.lastIndex = 0;
           validatorCallback(expression.test(cellValue as string));
         };
       }(validator as RegExp));
@@ -2805,7 +2866,7 @@ export default function Core(
    * because that method reads the first row's keys.
    *
    * On an **object** data source – including one whose [`dataSchema`](@/api/options.md#dataschema) is a function –
-   * that write is **deprecated as of 18.2.0** and will be ignored from 19.0.0 on: the value cannot become a column
+   * that write is **deprecated as of 19.0.0** and will be ignored from 20.0.0 on: the value cannot become a column
    * there, so it only adds a key the schema never declared. To write a field the grid shows no column for, address it
    * by property name with [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) instead.
    *
@@ -2840,7 +2901,7 @@ export default function Core(
         // function `dataSchema`.) The index then travels on as the property name, so
         // `dataMap.set()` mints a positional key on a row whose other fields are named:
         // `{ 2: 'x', id: 1 }` (#5409). No column renders it, yet it reaches every consumer that
-        // serializes the row. Deprecated in 18.2.0; the write is skipped from 19.0.0 on.
+        // serializes the row. Deprecated in 19.0.0; the write is skipped from 20.0.0 on.
         //
         // The predicate mirrors that gate's `=== 'array'` term - so it must be `!== 'array'` here
         // rather than `=== 'object'`. A function `dataSchema` sets `dataType` to `'function'`
@@ -2854,7 +2915,7 @@ export default function Core(
         if (instance.dataType !== 'array' && this.countCols() > 0) {
           deprecatedWarnOnce('Core.setDataAtCell.pastLastColumnOnObjectData',
             'Writing past the last column of an object data source is deprecated and will be ' +
-            'ignored in Handsontable 19.0.0. The value currently lands on a property named after ' +
+            'ignored in Handsontable 20.0.0. The value currently lands on a property named after ' +
             'the column index, which no column can display. Use `setDataAtRowProp()` to write a ' +
             'field the grid shows no column for.');
         }
@@ -3189,6 +3250,45 @@ export default function Core(
   };
 
   /**
+   * Collects "empty this cell" changes for a rectangular range of cells, skipping read-only ones.
+   * The passed coordinates are clamped to the grid, so header coordinates (negative values) and
+   * corners that reach past the last row or column are safe to pass.
+   *
+   * @param {Array[]} changes The array that the collected changes are pushed into.
+   * @param {number} startRow The visual row index the range starts at.
+   * @param {number} endRow The visual row index the range ends at.
+   * @param {number} startColumn The visual column index the range starts at.
+   * @param {number} endColumn The visual column index the range ends at.
+   * @returns {void}
+   */
+  const collectEmptyCellChanges = (
+    changes: Array<[number, number, unknown]>,
+    startRow: number,
+    endRow: number,
+    startColumn: number,
+    endColumn: number,
+  ) => {
+    const fromRow = Math.max(startRow, 0);
+    const toRow = Math.min(endRow, instance.countRows() - 1);
+    const fromColumn = Math.max(startColumn, 0);
+    const toColumn = Math.min(endColumn, instance.countCols() - 1);
+
+    if (fromRow > toRow || fromColumn > toColumn) {
+      return;
+    }
+
+    rangeEach(fromRow, toRow, (row) => {
+      rangeEach(fromColumn, toColumn, (column) => {
+        // The transient read keeps clearing a large range from permanently materializing
+        // one meta object per cell - only `readOnly` is read here.
+        if (!instance.getCellMetaTransient(row, column).readOnly) {
+          changes.push([row, column, null]);
+        }
+      });
+    });
+  };
+
+  /**
    * Erases content from cells that have been selected in the table.
    *
    * @memberof Core#
@@ -3212,26 +3312,8 @@ export default function Core(
 
       const topStart = cellRange.getTopStartCorner();
       const bottomEnd = cellRange.getBottomEndCorner();
-      const fromRow = Math.max(topStart.row!, 0);
-      const toRow = Math.min(bottomEnd.row!, this.countRows() - 1);
-      const fromColumn = Math.max(topStart.col!, 0);
-      const toColumn = Math.min(bottomEnd.col!, this.countCols() - 1);
 
-      if (fromRow > toRow || fromColumn > toColumn) {
-        return;
-      }
-
-      const collectEmptyCellChanges = (row: number) => {
-        rangeEach(fromColumn, toColumn, (column) => {
-          // The transient read keeps clearing a large selection from permanently materializing
-          // one meta object per cell - only `readOnly` is read here.
-          if (!this.getCellMetaTransient(row, column).readOnly) {
-            changes.push([row, column, null]);
-          }
-        });
-      };
-
-      rangeEach(fromRow, toRow, collectEmptyCellChanges);
+      collectEmptyCellChanges(changes, topStart.row!, bottomEnd.row!, topStart.col!, bottomEnd.col!);
     });
 
     if (changes.length > 0) {
@@ -3401,7 +3483,7 @@ export default function Core(
    *
    * @memberof Core#
    * @function markCellChanged
-   * @since 18.2.0
+   * @since 19.0.0
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
    * @example
@@ -3437,7 +3519,7 @@ export default function Core(
    *
    * @memberof Core#
    * @function markAllCellsChanged
-   * @since 18.2.0
+   * @since 19.0.0
    * @example
    * ```js
    * hot.markAllCellsChanged();
@@ -3988,6 +4070,84 @@ export default function Core(
   };
 
   /**
+   * Checks whether a `height` value is a plain pixel length (a number, a digit string, or a `px`
+   * string) – the only form the edge slots can be subtracted from.
+   *
+   * @param {unknown} height The resolved `height` setting.
+   * @returns {boolean}
+   */
+  const isPixelHeight = (height: unknown): height is number | string => (
+    typeof height === 'number' ||
+    (typeof height === 'string' && (/^\d+$/.test(height) || height.endsWith('px')))
+  );
+
+  /**
+   * Subtracts the root wrapper's edge slots (the pagination bar, the sheets bar, the license
+   * notification) from a pixel `height`, so the grid plus its bars fill exactly the box the user
+   * asked for. With an explicit `height` the root element owns the vertical axis and contains no
+   * slot, so the engine's `layoutReservedHeight` reserves nothing there – this is the other half of
+   * the same rule, and it used to live in the Pagination plugin alone, which left the sheets bar
+   * 38px taller than the declared height (DEV-2848). A non-pixel height (`auto`, `100%`, a `calc()`)
+   * is left alone: it is resolved by the browser, not by us.
+   *
+   * @param {number | string} height The resolved `height` setting.
+   * @returns {number | string}
+   */
+  const reserveEdgeSlotsHeight = (height: number | string): number | string => {
+    if (!isRootInstance(instance) || !isPixelHeight(height)) {
+      return height;
+    }
+
+    const reservedHeight = [instance.rootSlotTopElement, instance.rootSlotBottomElement]
+      .reduce((sum, slot) => sum + (slot?.offsetHeight ?? 0), 0);
+
+    if (reservedHeight === 0) {
+      return height;
+    }
+
+    const heightValue = typeof height === 'string' && height.endsWith('px') ? height : `${height}px`;
+
+    return `calc(${heightValue} - ${reservedHeight}px)`;
+  };
+
+  /**
+   * Writes the `height` setting onto the root element. Split out of `updateSettings` so the slot
+   * `ResizeObserver` can re-apply it when a bar's height changes after the settings were applied.
+   *
+   * @param {*} heightSetting The `height` setting (a length, `'auto'`, `null`, or a function).
+   * @returns {*} The height as written (after `beforeHeightChange` and the slot reservation).
+   */
+  const applyHeightSetting = (heightSetting: unknown): unknown => {
+    let height = heightSetting;
+
+    if (isFunction(height)) {
+      height = (height as () => string | number)();
+    }
+
+    height = instance.runHooks('beforeHeightChange', height);
+
+    if (height === null) {
+      const initialStyle = instance.rootElement.dataset.initialstyle;
+
+      if (initialStyle && (initialStyle.indexOf('height') > -1 || initialStyle.indexOf('overflow') > -1)) {
+        instance.rootElement.setAttribute('style', initialStyle);
+
+      } else {
+        instance.rootElement.style.height = '';
+        instance.rootElement.style.overflow = '';
+      }
+
+    } else if (height !== undefined) {
+      height = reserveEdgeSlotsHeight(height as number | string);
+
+      instance.rootElement.style.height = isNaN(height as number) ? `${height}` : `${height}px`;
+      instance.rootElement.style.overflow = 'clip';
+    }
+
+    return height;
+  };
+
+  /**
    * Use it if you need to change configuration after initialization. The `settings` argument is an object containing the changed
    * settings, declared the same way as in the initial settings object.
    *
@@ -4406,30 +4566,12 @@ export default function Core(
       }
     }
 
-    let height = settings.height;
+    // The resolved value (after `beforeHeightChange` and the slot reservation) is compared against
+    // the previous inline height below, to re-pick the scrollable elements when the axis owner moved.
+    let height: unknown;
 
     if (typeof settings.height !== 'undefined') {
-      if (isFunction(height)) {
-        height = (height as () => string | number)();
-      }
-
-      height = instance.runHooks('beforeHeightChange', height);
-
-      if (height === null) {
-        const initialStyle = instance.rootElement.dataset.initialstyle;
-
-        if (initialStyle && (initialStyle.indexOf('height') > -1 || initialStyle.indexOf('overflow') > -1)) {
-          instance.rootElement.setAttribute('style', initialStyle);
-
-        } else {
-          instance.rootElement.style.height = '';
-          instance.rootElement.style.overflow = '';
-        }
-
-      } else if (height !== undefined) {
-        instance.rootElement.style.height = isNaN(height as number) ? `${height}` : `${height}px`;
-        instance.rootElement.style.overflow = 'clip';
-      }
+      height = applyHeightSetting(settings.height);
     }
 
     if (typeof settings.width !== 'undefined') {
@@ -4594,12 +4736,32 @@ export default function Core(
   /**
    * Clears the data from the table (the table settings remain intact) and clears the current selection.
    *
+   * The method empties every cell of the data set. Neither the current selection nor the
+   * [`selectionMode`](@/api/options.md#selectionmode) option limits its range. Cells set as
+   * [`readOnly`](@/api/options.md#readonly) keep their values.
+   *
    * @memberof Core#
    * @function clear
+   * @fires Hooks#beforeChange
+   * @fires Hooks#afterChange
    */
   this.clear = function(this: HotInstance & CoreInternals) {
-    this.selectAll();
-    this.emptySelectedCells();
+    const countRows = this.countRows();
+    const countCols = this.countCols();
+
+    // The whole data set is emptied directly instead of through a select-all. Routing it through
+    // the selection made the amount of cleared data depend on what the selection was allowed to
+    // cover, so `selectionMode: 'single'` left every cell but the highlighted one untouched.
+    if (countRows > 0 && countCols > 0) {
+      const changes: Array<[number, number, unknown]> = [];
+
+      collectEmptyCellChanges(changes, 0, countRows - 1, 0, countCols - 1);
+
+      if (changes.length > 0) {
+        this.setDataAtCell(changes);
+      }
+    }
+
     this.deselectCell();
   };
 
@@ -6853,6 +7015,8 @@ export default function Core(
     // delivery queued while the table was becoming visible runs its callback on a destroyed instance.
     visibilityObserver?.disconnect();
     visibilityObserver = null;
+    slotsResizeObserver?.disconnect();
+    slotsResizeObserver = null;
 
     if (instance.view) { // in case HT is destroyed before initialization has finished
       instance.view.destroy();

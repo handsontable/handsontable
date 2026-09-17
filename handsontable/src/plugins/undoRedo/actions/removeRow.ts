@@ -245,6 +245,12 @@ export class RemoveRowAction extends BaseAction {
   static startRegisteringEvents(hot: HotInstance, undoRedoPlugin: unknown) {
     hot.addHook('beforeRemoveRow', (index: number, amount: number, logicRows: unknown, source: string) => {
       const wrappedAction = () => {
+        // A removal that takes no rows (e.g. `remove_row` on a grid with no visible rows) changed
+        // nothing, so it must not stack an action - `UndoRedo.done()` drops a `null` result.
+        if (amount < 1) {
+          return null;
+        }
+
         const physicalRowIndex = hot.toPhysicalRow(index);
         const lastRowIndex = physicalRowIndex + amount - 1;
         const removedData: unknown[] = [];
@@ -299,7 +305,7 @@ export class RemoveRowAction extends BaseAction {
         });
       };
 
-      type UndoRedoPlugin = { done: (wrappedAction: () => RemoveRowAction, source: string) => void };
+      type UndoRedoPlugin = { done: (wrappedAction: () => RemoveRowAction | null, source: string) => void };
 
       (undoRedoPlugin as UndoRedoPlugin).done(wrappedAction, source);
     });

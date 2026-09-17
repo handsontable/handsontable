@@ -85,9 +85,15 @@ test('the matrix measures what it renders: no retries, every render attempted, a
   // step and asserted with two flat patterns rather than one spanning regex: `(?:\s+.*\n)*?` between
   // them is ambiguous (`\s` matches the newline `.*\n` already consumed), which is exponential
   // backtracking on the right input and a CodeQL `js/redos` alert.
-  const upload = renderBlock.slice(renderBlock.indexOf('name: Upload the screenshots'));
+  // `indexOf` asserted before the slice. On a miss `slice(-1)` returns the block's
+  // last character — truthy — so asserting after the slice could never fail with
+  // the message below; a renamed step fell through to the `assert.match` instead.
+  const uploadAt = renderBlock.indexOf('name: Upload the screenshots');
 
-  assert.ok(upload, 'the render job lost its upload step');
+  assert.notEqual(uploadAt, -1, 'the render job lost its upload step');
+
+  const upload = renderBlock.slice(uploadAt);
+
   assert.match(upload, /name: stability-\$\{\{ matrix\.iteration \}\}/);
   assert.match(upload, /overwrite: true/);
 });

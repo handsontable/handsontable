@@ -286,6 +286,16 @@ Each example must use data from a coherent, plausible real-world domain. Pick on
 | **Inventory** | Product SKUs (SKU-4821, SKU-0093), supplier names (Harbor Goods, Alpine Supply Co.), stock quantities (142, 0, 67), categories (Electronics, Apparel) |
 | **Analytics** | Campaign names (Spring Sale 2025, Brand Awareness Q3), conversion rates (3.4%, 8.1%), channels (Email, Paid Search, Organic) |
 | **Project management** | Task names (Update API docs, Deploy hotfix), assignees, due dates (2025-06-30), statuses (In progress, Blocked) |
+| **Science / chemistry** | Element names and symbols (Hydrogen/H, Helium/He, Lithium/Li), atomic properties (atomic number, atomic mass, known isotopes, melting/boiling points) |
+
+### Canonical reusable datasets
+
+Two literal datasets are shared across guides so an example doesn't invent new data for a domain that already has one. Reuse the exact values (or a slice from the left/top of them) instead of writing a new one.
+
+| Dataset | Shape | Example data | Lives at |
+|---|---|---|---|
+| **Inventory long set** (DEV-2915) | 12 rows x 5 columns | SKU (SKU-4821, SKU-0093), product (Stainless Steel Water Bottle, Wireless Mouse), supplier (Harbor Goods, Alpine Supply Co.), category (Drinkware, Electronics), warehouse (Seattle, Denver) | `docs/content/guides/rows/row-moving/javascript/example1.js` |
+| **Periodic table narrow set** (DEV-2885) | 5 rows x 7 columns | Name (Hydrogen, Helium, Lithium, Beryllium, Boron), symbol (H, He, Li, Be, B), atomic number (1, 2, 3, 4, 5), atomic mass (1.008, 4.003, 6.94, 9.012, 10.81), known isotopes (7, 9, 9, 11, 11), melting point (-434.4°F, -458.0°F, 356.9°F, 2348.6°F, 3768.8°F), boiling point (-423.2°F, -452.1°F, 2447.6°F, 4478.8°F, 7100.6°F) | `docs/content/guides/columns/column-header/javascript/example2.js` |
 
 ### Data coherence rules
 
@@ -293,6 +303,7 @@ Each example must use data from a coherent, plausible real-world domain. Pick on
 - Values must be plausible: no negative ages, no revenue of $1, no dates in 1900.
 - The dataset should make the demonstrated feature meaningful. A sorting example must use data where sorting is useful. A filtering example must use data where filtering makes sense.
 - Use at least five rows in table examples so the feature behavior is visible.
+- For real-world physical, scientific, or converted values (e.g. °F/°C, unit conversions), verify each number against a reliable source before writing it down. Don't recompute or retype a value that's already used elsewhere without checking it matches.
 
 ---
 
@@ -463,6 +474,15 @@ would be a frozen unmaintained snapshot.
 `content/guides/upgrade-and-migration/changelog-<N>/changelog-<N>.md` is hand-written: the release
 workflow writes the root `CHANGELOG.md` and the rolling `changelog/changelog.md`, and someone copies
 the version's section into the per-major page by hand, demoting `###` to `####`.
+
+**When you create the page for a new major, move the design system date with it.** The newest
+`changelog-<N>` page carries a hidden `data-design-system-updated` block under its intro line, filled
+in live from worker rule 18c. It belongs on the newest page only - the sidebar and the Introduction
+page link there, while nothing links the rolling `changelog/changelog.md`. Cut the whole block from the
+old page and paste it into the new one, blank lines included: the `[Design system](@/...)` link inside
+the `<div>` is only parsed as Markdown - and so only resolved per framework - when blank lines separate
+it from the tags. `src/scripts/__tests__/design-system-updated.test.mjs` fails if the newest page lacks
+the block, if an older page keeps it, or if the link loses that shape.
 
 When you edit a changelog page, **link every new option, hook, method, and plugin that an `Added`
 entry names**:
