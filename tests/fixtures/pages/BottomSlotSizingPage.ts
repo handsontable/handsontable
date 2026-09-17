@@ -3,7 +3,8 @@ import { awaitBundle } from '../bundle';
 import './windowTypes';
 
 export type SizingVariant =
-  | 'css-fixed' | 'tiny' | 'stretch' | 'flex-fill' | 'scrollable-ancestor' | 'explicit-height';
+  | 'css-fixed' | 'tiny' | 'stretch' | 'flex-fill' | 'scrollable-ancestor' | 'explicit-height'
+  | 'auto-height' | 'inline-block-host';
 export type BottomSlotPlugin = 'pagination' | 'sheetsBar' | 'none';
 
 /**
@@ -25,7 +26,10 @@ export interface SlotGeometry {
   container: Box;
   shell: Box;
   wrapper: Box;
+  grid: Box;
   root: Box;
+  /** The master table's own box (the `.htCore` table), what the slot width follows. */
+  table: Box;
   holder: Box;
   bar: Box | null;
   bottomSlot: Box;
@@ -133,7 +137,9 @@ export class BottomSlotSizingPage {
         container: toBox(hot.rootContainer),
         shell: toBox(shell),
         wrapper: toBox(hot.rootWrapperElement),
+        grid: toBox(hot.rootGridElement),
         root: toBox(hot.rootElement),
+        table: toBox(document.querySelector('.ht_master .htCore')),
         holder: toBox(holder),
         bar: bar ? toBox(bar) : null,
         bottomSlot: toBox(hot.rootSlotBottomElement),
@@ -157,6 +163,39 @@ export class BottomSlotSizingPage {
   async insertRows(amount: number): Promise<void> {
     await this.page.evaluate(n => window.hot.alter('insert_row_below', 0, n), amount);
     await this.waitForRender();
+  }
+
+  /** Removes columns through the grid API and waits for the first row to be back. */
+  async removeColumns(amount: number): Promise<void> {
+    await this.page.evaluate(n => window.hot.alter('remove_col', 0, n), amount);
+    await this.waitForRender();
+  }
+
+  /** Applies settings to the live grid and waits for the first row to be back. */
+  async updateSettings(settings: Record<string, unknown>): Promise<void> {
+    await this.page.evaluate(s => window.hot.updateSettings(s), settings);
+    await this.waitForRender();
+  }
+
+  /**
+   * Shows the dialog plugin's modal (animation off) and returns its box. The dialog lives in the
+   * overlays layer, which sizes against the root wrapper, so its box says what the wrapper is.
+   */
+  async openDialogBox(): Promise<Box> {
+    await this.page.evaluate(() => {
+      window.hot.updateSettings({ dialog: { animation: false } });
+      window.hot.getPlugin('dialog').show({ content: 'probe' });
+    });
+
+    const dialog = this.grid.locator('.ht-dialog');
+
+    await expect(dialog).toBeVisible();
+
+    return dialog.evaluate((element) => {
+      const { top, bottom, left, right, width, height } = element.getBoundingClientRect();
+
+      return { top, bottom, left, right, width, height };
+    });
   }
 
   /** The pagination counter text, e.g. `1 - 25 of 300`. */

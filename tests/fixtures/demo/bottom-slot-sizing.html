@@ -35,6 +35,8 @@
       'flex-fill': 'flex-fill',
       'scrollable-ancestor': 'scrollable-ancestor',
       'explicit-height': 'explicit-height',
+      'auto-height': 'auto-height',
+      'inline-block-host': 'inline-block-host',
     })[htParams.get('variant') ?? 'css-fixed'];
     if (!window.htVariant) {
       throw new Error('Unknown ?variant= value: ' + JSON.stringify(htParams.get('variant')));
@@ -51,7 +53,8 @@
     A grid WITHOUT a `height` option inside containers sized by CSS only (DEV-2848). Each variant
     is one of the layouts measured on PR #13409 (bugs 2-4): a fixed CSS box with no overflow, a
     tiny one, one with `stretchH: 'all'`, a flex-filled one, and a scrollable ancestor. The
-    `explicit-height` variant is the control: `height: 400` set through the option.
+    `explicit-height` variant is the control: `height: 400` set through the option. `auto-height`
+    is the root-owned content-driven shape, `inline-block-host` the shrink-to-fit parent.
   -->
   <div id="shell" data-testid="shell">
     <div id="grid" data-testid="grid"></div>
@@ -87,6 +90,10 @@
       },
       'scrollable-ancestor': { grid: '', shell: 'height: 300px; width: 800px; overflow: auto;', settings: {} },
       'explicit-height': { grid: '', shell: '', settings: { width: 800, height: 400 } },
+      // `height: 'auto'` clips the root, so the root owns the axis, yet it grows to its content.
+      'auto-height': { grid: 'width: 800px; height: 400px;', shell: '', settings: { height: 'auto' } },
+      // A shrink-to-fit host: the wrapper sizes to its widest child, the slots included.
+      'inline-block-host': { grid: '', shell: 'display: inline-block;', settings: {} },
     };
 
     // The sheets bar must not receive a top-level `data` (it owns the data per sheet).
