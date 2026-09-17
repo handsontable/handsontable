@@ -610,3 +610,33 @@ A renderer whose output depends on where the rendered area starts or ends, for e
 default `renderMode`. Under `renderMode: 'onChange'` such a cell is not repainted by a scroll, so set
 `renderMode: 'always'` on that column or cell, or call
 [`markCellChanged()`](@/api/core.md#markcellchanged) before you render.
+
+## 13. Leaving a merged cell with a left or right arrow lands on its top row
+
+This applies to every grid that uses [`mergeCells`](@/api/options.md#mergecells).
+
+Before 18.2.0, moving the selection off a merged cell with a left or right arrow kept the row you
+entered the merged cell on, so the result depended on the direction. Entering a three-row merged cell
+from below (arrow up) and pressing left landed one row lower than entering it from above (arrow down)
+and pressing left.
+
+A merged cell is now addressed by its top-left corner: a left or right arrow that leaves it always
+lands on its top row -- its topmost visible row when the top row is hidden -- whichever way you
+entered. Vertical navigation still keeps the column you were moving along, and the
+<kbd>**Tab**</kbd> and <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> keys still keep the row they cycle
+along.
+
+### Who is affected
+
+- You read [`getSelected()`](@/api/core.md#getselected) or
+  [`getSelectedRangeLast()`](@/api/core.md#getselectedrangelast) after a left or right arrow that
+  leaves a merged cell entered on a row other than its first. The highlight now lands on the merged
+  cell's top row rather than the entered row.
+
+A grid without merged cells is unaffected.
+
+### How to migrate
+
+Nothing to change in most cases -- the landing is now consistent with a merged cell being a single
+cell at its top-left corner. If your code compensated for the old direction-dependent landing, drop
+that workaround.
