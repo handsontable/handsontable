@@ -469,7 +469,7 @@ One limitation applies to [`undo`](@/api/options.md#undo). Unmerging a merged ce
 
 ## Keyboard navigation over a merged cell
 
-A merged cell behaves as a single cell at its top-left corner. When you move the selection onto a merged cell -- with the arrow keys or a mouse click -- the whole merged cell is highlighted. When you then leave it to the left or right with an arrow key, the selection lands on the top row of the merged cell, whichever row you entered it from. Entering a merged cell from below and leaving it sideways lands on the same row as entering it from above, so horizontal navigation stays consistent. When the top row is hidden, the selection lands on the merged cell's topmost visible row.
+A merged cell behaves as a single cell at its top-left corner. When you move the selection onto a merged cell -- with the arrow keys or a mouse click -- the whole merged cell is highlighted. When you then leave it to the left or right with a non-Tab horizontal move -- an arrow key, the editor's arrow-key exit, or <kbd>**Enter**</kbd> when [`enterMoves`](@/api/options.md#entermoves) is configured to step horizontally -- the selection lands on the top row of the merged cell, whichever row you entered it from. Entering a merged cell from below and leaving it sideways lands on the same row as entering it from above, so horizontal navigation stays consistent. When the top row is hidden, the selection lands on the merged cell's topmost visible row.
 
 Vertical navigation keeps the column you were moving along, and the <kbd>**Tab**</kbd> and <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> keys keep the row they cycle along, so neither is affected.
 

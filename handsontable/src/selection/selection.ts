@@ -408,6 +408,9 @@ class Selection {
 
   /**
    * Marks the source of the selection. It can be one of the following values: `mouse`, or any other string.
+   * Also clears the Tab-navigation flag, so a later command cannot inherit a stale Tab classification
+   * if the previous transform threw before `markEndSource()`. Call `markTabNavigation()` after this
+   * when the command itself is Tab / Shift+Tab.
    *
    * @param {'mouse' | 'unknown' | string} sourceName The source name.
    */

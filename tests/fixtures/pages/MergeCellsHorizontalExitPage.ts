@@ -22,6 +22,13 @@ export class MergeCellsHorizontalExitPage {
   }
 
   /**
+   * The opened context menu (not a submenu).
+   */
+  get contextMenu(): Locator {
+    return this.page.locator('.htContextMenu.handsontable:not([class*="Sub_"])');
+  }
+
+  /**
    * Opens the fixture for a given merge scenario and waits for the first cell to render.
    *
    * @param {string} scenario One of `default`, `multi`, `hidden-top`, `rtl`.
@@ -60,6 +67,14 @@ export class MergeCellsHorizontalExitPage {
     for (const key of keys) {
       await this.page.keyboard.press(key);
     }
+  }
+
+  /**
+   * Opens the context menu by right-clicking a cell and waits until it is visible.
+   */
+  async openContextMenu(row: number, col: number): Promise<void> {
+    await this.cell(row, col).click({ button: 'right' });
+    await expect(this.contextMenu).toBeVisible();
   }
 
   /**

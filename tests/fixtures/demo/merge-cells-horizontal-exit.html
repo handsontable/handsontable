@@ -48,6 +48,7 @@
       height: 300,
       // A one-column-wide merge, B2:B4, entered from the top (B1 down) or the bottom (B5 up).
       mergeCells: [{ row: 1, col: 1, rowspan: 3, colspan: 1 }],
+      contextMenu: true,
       afterRenderer(td, row, col) {
         td.setAttribute('data-testid', `cell-${row}-${col}`);
       },

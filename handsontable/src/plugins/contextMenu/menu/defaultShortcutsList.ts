@@ -28,7 +28,8 @@ export function createDefaultShortcutsList(menu: Menu): Shortcut[] {
       if (tabMoves) {
         // This moves the grid's own selection, so flag it as Tab navigation for the same reason the
         // grid's Tab commands do: mergeCells must keep the entry row rather than snap to the merge's
-        // top row (it reads `isDuringTabNavigation()`). Cleared by the next command's `markSource()`.
+        // top row (it reads `isDuringTabNavigation()`). `markEndSource()` clears the flag after the
+        // transform; the next command's `markSource()` is the leak fence if this path throws.
         hot.selection.markTabNavigation();
 
         if (keys?.includes('shift')) {
@@ -36,6 +37,8 @@ export function createDefaultShortcutsList(menu: Menu): Shortcut[] {
         } else {
           hot.selection.transformStart(tabMoves.row, tabMoves.col);
         }
+
+        hot.selection.markEndSource();
       }
 
       menu.close(true);

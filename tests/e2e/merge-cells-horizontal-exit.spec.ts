@@ -96,4 +96,40 @@ test.describe('MergeCells: a horizontal move off a merge keeps its top row (DEV-
     // Row 1 (the merge's top row); column 2 is where ArrowLeft lands under RTL.
     expect(await grid.highlight()).toEqual({ row: 1, col: 2 });
   });
+
+  test('entering the merge with the mouse then leaving left also lands on the top row', async({ page, theme, bundle }) => {
+    // Documented user path (Excel-like): click into the merge, then leave horizontally. A merged
+    // cell is a single origin TD, so the click itself already sits on the top-left; ArrowLeft from
+    // there is A2. This does not uniquely prove the transformStart snap (the keyboard-from-below
+    // cases do); it pins the advertised mouse-then-arrow landing.
+    const grid = new MergeCellsHorizontalExitPage(page, theme, bundle);
+
+    await grid.goto();
+
+    await grid.selectCell(4, 1); // B5, below the merge
+    await grid.selectCell(1, 1); // click the merge (B2:B4)
+    await grid.pressKeys('ArrowLeft');
+
+    // A2 - the merge's top row, the same landing as after a keyboard entry.
+    expect(await grid.highlight()).toEqual({ row: 1, col: 0 });
+  });
+
+  test('Tab from the context menu keeps the entry row instead of snapping to the top', async({ page, theme, bundle }) => {
+    // The context-menu Tab shortcut used to call transformStart without the Tab flag, so mergeCells
+    // treated it as an arrow and snapped to the top row. Enter from below, open the menu, Tab: the
+    // landing must stay on the row Tab cycles along (the merge's bottom row), not A/C2.
+    const grid = new MergeCellsHorizontalExitPage(page, theme, bundle);
+
+    await grid.goto();
+
+    await grid.selectCell(4, 1); // B5
+    await grid.pressKeys('ArrowUp'); // into the merge from below
+    await grid.openContextMenu(1, 1);
+    await grid.pressKeys('Tab');
+
+    await expect(grid.contextMenu).toBeHidden();
+
+    // C4 - Tab keeps row 3 (the row the merge was entered on from below), not C2.
+    expect(await grid.highlight()).toEqual({ row: 3, col: 2 });
+  });
 });

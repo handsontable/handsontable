@@ -297,8 +297,9 @@ up) then leaving left landed on A4, from above (B1 down) on A2.
 
 The gate is `delta.row === 0 && landsOnAdjacentColumn && !isDuringTabNavigation()` — "any non-Tab
 horizontal `transformStart`", which is the Left/Right arrows, the editor's arrow-key exit, and a
-horizontally-configured `enterMoves`; it is not literally arrows-only. Home/End do not reach it (they
-`setRangeStart` to a computed cell, never `transformStart`), and Shift+Arrow goes through
+horizontally-configured `enterMoves`; it is not literally arrows-only. Mouse entry then a horizontal
+leave is the same path (the snap does not care how the merge was entered). Home/End do not reach it
+(they `setRangeStart` to a computed cell, never `transformStart`), and Shift+Arrow goes through
 `modifyTransformEnd`. A `transformStart(0, ±1)` called directly by other code (no Tab flag) also gets
 the snap, which is the reasonable default for a discrete horizontal move; only Tab's row-cycling is
 excluded.
@@ -315,9 +316,14 @@ if you drop it:
   `transformStart` with the **same `(0, ±1)` delta as an arrow** (single-range case; the multi-range
   case goes through `modifyTransformFocus` and never reaches here). There is no delta or source that
   tells them apart — both mark source `'keyboard'`. `inlineStart`/`inlineEnd` therefore call
-  `selection.markTabNavigation()` (cleared in `markEndSource()`), and the override reads
-  `selection.isDuringTabNavigation()`. The Jasmine `keyDownUp('tab')` helper drives the real command
-  path, so it sets the flag; a `transformStart` called directly in a unit test does not.
+  `selection.markTabNavigation()` **after** `markSource()`, and the context-menu Tab shortcut calls
+  `markTabNavigation()` on its own (it never goes through those commands). The override reads
+  `selection.isDuringTabNavigation()`. `markSource()` itself clears the flag, so a throw during the
+  transform cannot leak into the next command; `markEndSource()` still clears it on the success
+  path. Do not expose `tabNavigation.ts`'s local `isTabOrShiftTabPressed` — that flag lives in a
+  shortcut-command closure, and the context-menu Tab path never goes through it. The Jasmine
+  `keyDownUp('tab')` helper drives the real command path, so it sets the flag; a `transformStart`
+  called directly in a unit test does not.
 
 Pinned by `__tests__/keyboardShortcuts/arrowLeft.spec.js` / `arrowRight.spec.js` (top-row landing,
 including hidden columns and the multi-merge chain), the unchanged `arrowUp`/`arrowDown` and
