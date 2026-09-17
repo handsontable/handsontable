@@ -86,6 +86,15 @@ that width are never written. **The widest row wins**, as in spreadsheet applica
 Then, for a row shorter than the widest one, write the **empty-cell value**, not `undefined` — `undefined`
 deletes the property outright in an object data source.
 
+## `getRangedData()` reads raw values, not `getCopyableData()` (DEV-2942)
+
+`Core#getCopyableData()` returns a **string**, as its docs and type always said. `getRangedData()`
+reads through the private `_getCopyableData()` instead, so `beforeCopy` and `beforeCut` keep handing
+consumers the values as they are stored. The clipboard text would come out identical either way,
+because `SheetClip.stringify()` already maps `null` and `undefined` to `''` and coerces everything
+else – the hooks are the reason for the split. The source-data branch keeps
+`getCopyableSourceData()`, which still returns the stored object for the JSON serialization below.
+
 ## `SheetClip` and the trailing newline
 
 Excel terminates every row, including the last, with a CRLF. For a single-cell copy that leaves a trailing

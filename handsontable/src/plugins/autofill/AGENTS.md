@@ -158,6 +158,16 @@ drag-fill or fill-down with the eager `getCellMeta` permanently materializes one
 cell. `_complexDataFormat` is a private plugin key with no public declaration — that is why the local
 `AutofillCellProperties` interface exists rather than an index-signature `any`.
 
+## Read cell values raw, through `_getCopyableData()` (DEV-2942)
+
+`Core#getCopyableData()` returns a **string**, as its docs and type always said: the value goes
+through `stringify()`. `getSelectionData()` must not call it. Its values are written back into the grid
+by `populateFromArray()` and handed to `beforeAutofill`, so a number has to stay a number. The loop
+reads through the private `_getCopyableData()` instead, which keeps the `copyable` gate and skips the
+conversion. Swap it back and a dragged `1` lands as `'1'`, a checkbox `true` as `'true'` – the
+non-string fill spec in `autofill.spec.js` and an older numeric fill spec both go red.
+`getCopyableSourceData()` is not affected: it still returns the stored value.
+
 ## Object-cell data (DEV-1659)
 
 A fill across cells whose values are objects was once silently blocked when properties were `undefined` or

@@ -143,7 +143,8 @@ export interface HotInstance {
   getSourceDataAtRow(row: number): unknown;
   getDataType(rowFrom: number, columnFrom: number, rowTo: number, columnTo: number): string;
   getCopyableData(row: number, column: number): string;
-  getCopyableSourceData(row: number, column: number): string;
+  getCopyableSourceData(row: number, column: number): unknown;
+  _getCopyableData(row: number, column: number): unknown;
   setDataAtCell(row: number | unknown[][], column?: number | string | null, value?: unknown, source?: string): void;
   setDataAtRowProp(row: number | unknown[][], prop?: string | number, value?: unknown, source?: string): void;
   setSourceDataAtCell(

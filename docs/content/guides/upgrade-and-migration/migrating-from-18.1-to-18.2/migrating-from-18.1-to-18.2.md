@@ -21,7 +21,7 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 [[toc]]
 
-Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way. Section 12 concerns when a [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column marks a value invalid, and applies only if you set [`strict`](@/api/options.md#strict) to `false` on such a column.
+Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way. Section 12 concerns when a [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column marks a value invalid, and applies only if you set [`strict`](@/api/options.md#strict) to `false` on such a column. Section 13 concerns what [`getCopyableData()`](@/api/core.md#getcopyabledata) returns, and applies only if you call it or [`getCopyableSourceData()`](@/api/core.md#getcopyablesourcedata) yourself.
 
 ## 1. `date` cells reach the formula engine the same way on every data path
 
@@ -572,6 +572,63 @@ autocomplete column filters its list as you type, while a dropdown column sets
 To keep the dropdown and still store values outside the list, leave
 [`allowInvalid`](@/api/options.md#allowinvalid) at its default of `true`. The value is stored, and
 the cell is marked invalid.
+
+## 13. `getCopyableData()` returns a string
+
+[`getCopyableData()`](@/api/core.md#getcopyabledata) was documented and typed as returning a string,
+but it returned the cell value as stored: a number, a boolean, `null`, `undefined`, an array, or an
+object. It now returns a string, as documented.
+
+A value that is not already a string is converted the same way the clipboard converts it. Numbers
+and booleans become their text form, `null` and `undefined` become an empty string, and any other
+value goes through its `toString()`. A cell with [`copyable`](@/api/options.md#copyable) set to
+`false` still returns an empty string.
+
+Copying, cutting, and autofill are unaffected. The [`beforeCopy`](@/api/hooks.md#beforecopy),
+[`beforeCut`](@/api/hooks.md#beforecut), and [`beforeAutofill`](@/api/hooks.md#beforeautofill) hooks
+still receive the values as they are stored.
+
+[`getCopyableSourceData()`](@/api/core.md#getcopyablesourcedata) behaves the same as before. It still
+returns the source value as it is stored, nested objects included. Only its TypeScript return type
+changes, from `string` to `unknown`, which matches what it returns.
+
+### Who is affected
+
+- You call `getCopyableData()` and compare its result with a value that is not a string, for example
+  `hot.getCopyableData(0, 0) === 1`.
+- You call `getCopyableSourceData()` from TypeScript and use its result as a string without checking
+  its type first.
+
+### How to migrate
+
+Compare the result of `getCopyableData()` with a string, or read the stored value with
+[`getDataAtCell()`](@/api/core.md#getdataatcell) instead.
+
+**Before:**
+
+```js
+if (hot.getCopyableData(0, 0) === 1) {
+  hot.setDataAtCell(0, 1, 'Approved');
+}
+```
+
+**After:**
+
+```js
+if (hot.getDataAtCell(0, 0) === 1) {
+  hot.setDataAtCell(0, 1, 'Approved');
+}
+```
+
+In TypeScript, narrow the result of `getCopyableSourceData()` before you use it as a string:
+
+```ts
+const value = hot.getCopyableSourceData(0, 0);
+
+if (typeof value === 'string') {
+  hot.setDataAtCell(0, 1, value.trim());
+}
+```
 
 ## 8. Row elements move with their rows on a vertical scroll
 

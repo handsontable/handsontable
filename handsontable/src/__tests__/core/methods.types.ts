@@ -94,7 +94,24 @@ hot.getColWidth(123) === 123;
 hot.getColWidth(123, 'my_source') === 123;
 hot.getCoords(elem.querySelector('td')!)!.row === 0;
 hot.getCopyableData(123, 123).toUpperCase();
-hot.getCopyableSourceData(123, 123).toUpperCase();
+
+// `getCopyableSourceData` hands back the source value as it is stored, so it needs narrowing.
+const copyableSourceData = hot.getCopyableSourceData(123, 123);
+
+if (typeof copyableSourceData === 'string') {
+  copyableSourceData.toUpperCase();
+}
+
+// Pins the widening. `unknown extends T` holds only when `T` is `unknown` itself, so narrowing
+// either return type back to `string` turns this into `false` and fails the assignment. A plain
+// narrowing block above cannot catch that — it compiles against `string` just as well.
+const copyableSourceDataIsUnknown: unknown extends ReturnType<HotInstance['getCopyableSourceData']>
+  ? true : false = true;
+const rawCopyableDataIsUnknown: unknown extends ReturnType<HotInstance['_getCopyableData']>
+  ? true : false = true;
+
+copyableSourceDataIsUnknown === true;
+rawCopyableDataIsUnknown === true;
 (hot as any).getCopyableText(123, 123, 123, 123).toUpperCase();
 hot.getData(123, 123, 123, 123).forEach((v) => {});
 hot.getDataAtCell(123, 123) === '';

@@ -521,10 +521,13 @@ export class CopyPaste extends BasePlugin {
           rowSet.push(this.hot.getColHeader(column, row));
 
         } else {
+          // The raw value, not `getCopyableData()`'s string: `SheetClip.stringify()` serializes the
+          // whole range on its way out, and the `beforeCopy`/`beforeCut` hooks hand consumers the
+          // values as they are stored.
           let copyableCellData =
             useSourceData ?
               this.hot.getCopyableSourceData(row, column) :
-              this.hot.getCopyableData(row, column);
+              this.hot._getCopyableData(row, column);
 
           if (useSourceData &&
             (isObject(copyableCellData) || Array.isArray(copyableCellData))

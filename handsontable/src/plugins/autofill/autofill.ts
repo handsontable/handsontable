@@ -310,7 +310,9 @@ export class Autofill extends BasePlugin {
           rowSet.push(this.hot.getCopyableSourceData(r, c));
 
         } else {
-          rowSet.push(this.hot.getCopyableData(r, c));
+          // The raw value, not `getCopyableData()`'s string: this data is written back into the
+          // grid by `populateFromArray()`, so a number has to stay a number.
+          rowSet.push(this.hot._getCopyableData(r, c));
         }
 
       });

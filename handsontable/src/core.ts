@@ -1,7 +1,7 @@
 import { addClass, empty, isShadowRoot, observeVisibilityChangeOnce, removeClass } from './helpers/dom/element';
 import { RenderChangeTracker, markCellMetaChanged } from './core/incrementalRender/renderChangeTracker';
 import { isFunction } from './helpers/function';
-import { isDefined, isUndefined, isRegExp, isEmpty } from './helpers/mixed';
+import { isDefined, isUndefined, isRegExp, isEmpty, stringify } from './helpers/mixed';
 import { isMobileOrIpadOS } from './helpers/browser';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
@@ -3953,7 +3953,11 @@ export default function Core(
   };
 
   /**
-   * Returns the data's copyable value at specified `row` and `column` index.
+   * Returns the data's copyable value at specified `row` and `column` index, as a string.
+   *
+   * A value that is not already a string is converted: numbers and booleans to their text form,
+   * `null` and `undefined` to an empty string, and everything else through its `toString()`.
+   * A cell with `copyable` disabled returns an empty string.
    *
    * @memberof Core#
    * @function getCopyableData
@@ -3962,21 +3966,41 @@ export default function Core(
    * @returns {string}
    */
   this.getCopyableData = function(row: number, column: number) {
-    return datamap.getCopyable(row, datamap.colToProp(column)) as string;
+    return stringify(datamap.getCopyable(row, datamap.colToProp(column)));
+  };
+
+  /**
+   * Returns the data's copyable value at specified `row` and `column` index, without converting it
+   * to a string.
+   *
+   * The clipboard and Autofill need the value as it is stored: Autofill writes it back into the
+   * grid, and both pass it to the `beforeCopy`, `beforeCut` and `beforeAutofill` hooks.
+   *
+   * @private
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @returns {*}
+   */
+  this._getCopyableData = function(row: number, column: number) {
+    return datamap.getCopyable(row, datamap.colToProp(column));
   };
 
   /**
    * Returns the source data's copyable value at specified `row` and `column` index.
+   *
+   * The value is returned as it is stored, so it can be a nested object or an array. The CopyPaste
+   * plugin serializes those to JSON when copying with source data. A cell with `copyable` disabled
+   * returns an empty string.
    *
    * @memberof Core#
    * @function getCopyableSourceData
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
    * @since 16.1.0
-   * @returns {string}
+   * @returns {*}
    */
   this.getCopyableSourceData = function(row: number, column: number) {
-    return dataSource.getCopyable(row, datamap.colToProp(column)) as string;
+    return dataSource.getCopyable(row, datamap.colToProp(column));
   };
 
   /**
