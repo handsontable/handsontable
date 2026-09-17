@@ -34,19 +34,25 @@ export class HostSpanStylesPage {
   readonly theme: string;
   readonly bundle: string;
 
-  /** The pagination bar root (a div). Cascade parent of both labels. */
+  /**
+   * The pagination bar root (a div). Cascade parent of both labels.
+   */
   readonly paginationBar: Locator;
   readonly pageSizeLabel: Locator;
   readonly pageNavLabel: Locator;
 
-  /** First multiselect cell (a td). Cascade parent of the chips. */
+  /**
+   * First multiselect cell (a td). Cascade parent of the chips.
+   */
   readonly multiselectCell: Locator;
   readonly chip: Locator;
   readonly chipLabel: Locator;
   readonly chipRemove: Locator;
   readonly overflow: Locator;
 
-  /** First column header th, and the span inside it (guarded since #11306). */
+  /**
+   * First column header th, and the span inside it (guarded since #11306).
+   */
   readonly columnHeaderCell: Locator;
   readonly columnHeaderSpan: Locator;
 
