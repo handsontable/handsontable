@@ -302,6 +302,7 @@ Two literal datasets are shared across guides so an example doesn't invent new d
 - Values must be plausible: no negative ages, no revenue of $1, no dates in 1900.
 - The dataset should make the demonstrated feature meaningful. A sorting example must use data where sorting is useful. A filtering example must use data where filtering makes sense.
 - Use at least five rows in table examples so the feature behavior is visible.
+- For real-world physical, scientific, or converted values (e.g. °F/°C, unit conversions), verify each number against a reliable source before writing it down. Don't recompute or retype a value that's already used elsewhere without checking it matches.
 
 ---
 
