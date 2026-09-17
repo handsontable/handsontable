@@ -760,6 +760,12 @@ export const REGISTERED_HOOKS = [
    * `physicalColumns` of a later call already account for the columns that the earlier calls
    * removed.
    *
+   * This hook fires on every non-canceled removal call, including a no-op that removed nothing
+   * (for example `alter('remove_col')` on a grid with no columns, where `physicalColumns` is
+   * empty). It is therefore **not** paired one-to-one with an undo-stack entry: a no-op removal
+   * does not stack an undo action, so do not treat "`afterRemoveCol` fired" as proof that an undo
+   * entry now exists.
+   *
    * @event Hooks#afterRemoveCol
    * @param {number} index Visual index of starter column.
    * @param {number} amount An amount of removed columns.
@@ -790,6 +796,12 @@ export const REGISTERED_HOOKS = [
    * ascending nor contiguous even for a single run. Every call also describes the data source
    * as it stands at that moment, so the `index` and `physicalRows` of a later call already
    * account for the rows that the earlier calls removed.
+   *
+   * This hook fires on every non-canceled removal call, including a no-op that removed nothing
+   * (for example `alter('remove_row')` on a grid with no rows, where `physicalRows` is empty and
+   * `amount` is `0`). It is therefore **not** paired one-to-one with an undo-stack entry: a no-op
+   * removal does not stack an undo action, so do not treat "`afterRemoveRow` fired" as proof that
+   * an undo entry now exists.
    *
    * @event Hooks#afterRemoveRow
    * @param {number} index Visual index of starter row.
