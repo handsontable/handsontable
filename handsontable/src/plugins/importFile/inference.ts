@@ -49,6 +49,42 @@ const CURRENCY_SYMBOLS = Object.keys(CURRENCY_SYMBOL_TO_CODE).sort((a, b) => b.l
 const CURRENCY_TOKEN_REGEX = /\[\$([^\]-]*)(?:-[^\]]*)?\]/;
 
 /**
+ * The dollar-sign composites `Intl.NumberFormat` writes under `en-US` for currencies whose symbol
+ * is a dollar but not THE dollar, mapped to their ISO 4217 codes. `intlNumFormatToExcelNumFmt`
+ * emits them bare (`HK$#,##0`), the same way it emits a bare ISO code for a currency with no
+ * symbol at all (`CHF#,##0`, `SEK#,##0`).
+ */
+const DOLLAR_COMPOSITE_TO_CODE: Record<string, string> = {
+  A$: 'AUD',
+  CA$: 'CAD',
+  HK$: 'HKD',
+  MX$: 'MXN',
+  NT$: 'TWD',
+  NZ$: 'NZD',
+  US$: 'USD',
+};
+
+/**
+ * A bare currency marker at either end of a number format: a three-letter ISO code (`CHF`, `SEK`)
+ * or a dollar composite (`HK$`, `US$`), separated from the digits by an optional space. The
+ * alternation is anchored to the pattern's number part (`#` or `0`) on the inner side so a format
+ * code that happens to be uppercase, such as `YYYY-MM-DD`, is never read as a currency.
+ */
+const BARE_CURRENCY_REGEX = /^([A-Z]{1,3}\$|[A-Z]{3}) ?(?=[#0])|(?<=[#0%]) ?([A-Z]{1,3}\$|[A-Z]{3})$/;
+
+/**
+ * Maps a bare currency marker to its ISO code: a three-letter code is its own code, a dollar
+ * composite is looked up, anything else is unknown.
+ */
+function bareMarkerToCode(marker: string): string | null {
+  if (marker.endsWith('$')) {
+    return DOLLAR_COMPOSITE_TO_CODE[marker] ?? null;
+  }
+
+  return marker;
+}
+
+/**
  * The format codes a number pattern may be composed of once its currency token and percent sign are
  * captured: digit placeholders, the grouping comma, the decimal point and spacing.
  */
@@ -249,7 +285,9 @@ interface CurrencyCapture {
 
 /**
  * Captures the currency a number format carries: Excel's `[$<symbol>-<LCID>]` / `[$<symbol>]` token
- * first, then a leading or trailing symbol the way `intlNumFormatToExcelNumFmt` writes it.
+ * first, then a leading or trailing symbol the way `intlNumFormatToExcelNumFmt` writes it, then a
+ * bare ISO code or dollar composite (`CHF#,##0`, `HK$#,##0`) the same function writes for a
+ * currency with no single-character symbol.
  */
 function captureCurrency(numFmt: string): CurrencyCapture {
   const token = numFmt.match(CURRENCY_TOKEN_REGEX);
@@ -271,6 +309,12 @@ function captureCurrency(numFmt: string): CurrencyCapture {
     if (trimmed.endsWith(symbol)) {
       return { currency: CURRENCY_SYMBOL_TO_CODE[symbol], rest: trimmed.slice(0, -symbol.length) };
     }
+  }
+
+  const bare = trimmed.match(BARE_CURRENCY_REGEX);
+
+  if (bare) {
+    return { currency: bareMarkerToCode(bare[1] ?? bare[2]), rest: trimmed.replace(BARE_CURRENCY_REGEX, '') };
   }
 
   return { currency: null, rest: numFmt };
@@ -360,7 +404,9 @@ export function inferCellType(cell: CellSnapshot): InferredType | null {
   }
 
   if (numFmt) {
-    const temporal = classifyTemporal(numFmt);
+    // The currency comes off first: `CHF`, `SEK` and `HK$` carry an `h` or an `s` that would
+    // otherwise read as a time code and turn a money column into `12:00:00`s.
+    const temporal = classifyTemporal(captureCurrency(numFmt).rest);
 
     if (temporal === 'time') {
       return { type: 'time', timeFormat: excelDateFmtToIntlOptions(numFmt) };

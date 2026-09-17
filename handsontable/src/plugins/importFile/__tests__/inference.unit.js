@@ -69,6 +69,37 @@ describe('inferCellType', () => {
     expect(inferCellType(cell({ value: 42, numFmt: '[Red]0.00' })).type).toBe('numeric');
   });
 
+  it('should read a bare currency code as a currency, not as a time code', () => {
+    // `CHF#,##0.00` carries an `h`, `SEK#,##0` an `s` and `HK$#,##0` both - the letters of a
+    // currency code, not format codes. Classifying before the currency was captured turned each
+    // into a `time` column and `1234.5` into `12:00:00`.
+    expect(inferCellType(cell({ value: 1234.5, numFmt: 'CHF#,##0.00' }))).toEqual({
+      type: 'numeric',
+      numericFormat: {
+        style: 'currency', currency: 'CHF', minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: true,
+      },
+    });
+    expect(inferCellType(cell({ value: 1234.5, numFmt: 'SEK#,##0' }))).toEqual({
+      type: 'numeric',
+      numericFormat: {
+        style: 'currency', currency: 'SEK', minimumFractionDigits: 0, maximumFractionDigits: 0, useGrouping: true,
+      },
+    });
+    expect(inferCellType(cell({ value: 1234.5, numFmt: 'HK$#,##0' })).numericFormat.currency).toBe('HKD');
+    expect(inferCellType(cell({ value: 1234.5, numFmt: '#,##0.00 PLN' })).numericFormat.currency).toBe('PLN');
+    // An uppercase format code is not a currency.
+    expect(inferCellType(cell({ value: 45000, numFmt: 'YYYY-MM-DD' })).type).toBe('date');
+    // The export's own output for these currencies has to come back numeric.
+    ['CHF', 'SEK', 'HKD', 'USD'].forEach((currency) => {
+      const numFmt = intlNumFormatToExcelNumFmt({ style: 'currency', currency }, 'en-US');
+
+      expect(inferCellType(cell({ value: 1234.5, numFmt })).type).toBe('numeric');
+    });
+    // A real time code next to a currency-looking prefix stays a time.
+    expect(inferCellType(cell({ value: 0.5, numFmt: 'h:mm' })).type).toBe('time');
+    expect(inferCellType(cell({ value: 0.5, numFmt: '[$-409]h:mm:ss AM/PM' })).type).toBe('time');
+  });
+
   it('should map numeric formats, including the export\'s own, to Intl.NumberFormat options', () => {
     const currency = intlNumFormatToExcelNumFmt(
       { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }, 'en-US'
