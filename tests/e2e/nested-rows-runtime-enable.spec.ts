@@ -102,6 +102,24 @@ test.describe('NestedRows enabled at runtime', () => {
     await expect(nestedRows.paintedNames()).toHaveText(NESTED_ROWS);
   });
 
+  test('the row header is widened for the nesting it now has to show', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsRuntimeEnablePage(page, theme, bundle);
+
+    await nestedRows.goto();
+
+    const before = await nestedRows.rowHeaderWidths();
+
+    await nestedRows.setNestedRows(true);
+
+    const after = await nestedRows.rowHeaderWidths();
+
+    // The seeding normally happens on `afterInit`, which has long since fired here. Without it the
+    // header keeps the grid default and clips the indentation and the collapse button.
+    expect(after.requested).not.toBeNull();
+    expect(after.rendered).toBe(after.requested);
+    expect(after.rendered).toBeGreaterThan(before.rendered);
+  });
+
   test('edits still reach the data array the caller passed in', async({ page, theme, bundle }) => {
     const nestedRows = new NestedRowsRuntimeEnablePage(page, theme, bundle);
 

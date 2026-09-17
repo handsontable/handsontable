@@ -133,6 +133,25 @@ export class NestedRowsRuntimeEnablePage {
     }, { r: row, c: col });
   }
 
+  /**
+   * The rendered width of the first row header, and the width the plugin asked for.
+   *
+   * They have to agree: the plugin sizes the header from the tree's depth to fit its indentation
+   * and its collapse button, and a `null` cache silently leaves the header at the grid default.
+   */
+  rowHeaderWidths(): Promise<{ rendered: number, requested: number | null }> {
+    return this.page.evaluate(() => {
+      const header = window.hot.rootElement.querySelector('.ht_clone_inline_start tbody tr th');
+      // `headersUI` only exists while the plugin runs, so this reads `null` before the first enable.
+      const headersUI = window.hot.getPlugin('nestedRows').headersUI;
+
+      return {
+        rendered: Math.round((header as HTMLElement).getBoundingClientRect().width),
+        requested: headersUI ? headersUI.rowHeaderWidthCache : null,
+      };
+    });
+  }
+
   /** What the grid currently holds for the `nestedRows` setting - the plugin's public answer. */
   nestedRowsSetting(): Promise<unknown> {
     return this.page.evaluate(() => window.hot.getSettings().nestedRows);

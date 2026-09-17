@@ -103,6 +103,11 @@ export interface FixtureHotInstance {
     countChildren(row: number, recursive?: boolean): number,
     expandToRow(row: number): boolean,
     expandToLevel(level: number): void,
+    // Private, but a spec needs it: the header width the plugin asked for has no public getter, and
+    // a grid at the default width is exactly the defect worth pinning (DEV-2938).
+    headersUI: {
+      rowHeaderWidthCache: number | null,
+    } | null,
     // Private, but a spec needs it: there is no public API for the stash window that add child,
     // detach child, remove row and row move open around themselves.
     collapsingUI: {

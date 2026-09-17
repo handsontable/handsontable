@@ -266,6 +266,13 @@ They are written in different places and can drift. Keep this in mind:
   the enabled state actually flipped; the Core renders right after that hook. Do not move that repair
   into `enablePlugin()`/`disablePlugin()`: `updatePlugin()` calls both on every rebuild, and the
   intermediate count would be wrong in each direction.
+  **The row header width has to be seeded on that path too.** `HeadersUI`'s `rowHeaderWidthCache`
+  starts empty on the instance `enablePlugin()` builds, and the only startup call to
+  `updateRowHeaderWidth()` hangs off `afterInit` — which fired long before a settings-driven enable.
+  Left empty, `#onModifyRowHeaderWidth` falls back to `?? 0` and `Math.max` keeps the grid default, so
+  the indentation and the collapse button are clipped: measured 50px against the 71px the same
+  three-level tree gets when the plugin is on at construction. `updatePlugin()` seeds it after
+  `updateWithData()`, where the cache knows the tree's depth (found by Bugbot on #13564).
   **A row-count change owes the selection and the editor the same protocol `updateData` pays**, and
   `updateSettings()` does not pay it for you: after `afterUpdateSettings` it runs only
   `adjustRowsAndCols()` and a render, neither of which touches the selection. Measured on the first

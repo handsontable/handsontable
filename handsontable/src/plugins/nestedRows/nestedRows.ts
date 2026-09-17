@@ -215,6 +215,13 @@ export class NestedRows extends BasePlugin {
     // After enabling plugin previously stored data is restored.
     this.dataManager!.updateWithData(currentSourceData!);
 
+    // `enablePlugin()` built a new HeadersUI, whose width cache starts empty, and the `afterInit`
+    // hook that normally seeds it has long since fired on a settings-driven enable. Left empty,
+    // `#onModifyRowHeaderWidth` falls back to `?? 0` and the header keeps its default width, which
+    // clips the indentation and the collapse button (measured: 50px against the 71px an
+    // init-enabled three-level tree gets). Seeded here, where the cache knows the tree's depth.
+    this.headersUI!.updateRowHeaderWidth(undefined);
+
     if (collapsedParents.length > 0) {
       // Replaying a state the user already chose is not a new action, so the hooks stay silent. Firing
       // them here would report a collapse on every settings update.
