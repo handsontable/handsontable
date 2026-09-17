@@ -716,9 +716,9 @@ Both halves are guarded, on three different triggers - know which one you are re
 |---|---|---|
 | `src/lib/__tests__/cascade-layer-order.test.mjs` | the authoring rules: statement first, full order, no undeclared layer anywhere in the docs CSS | every PR, via `docs.yml`'s `plugins` job (`npm run docs:test:plugins`) |
 | `scripts/validate-layer-order.mjs` | the built pages' stylesheets in document order (links and inline `<style>`), failing when the block order deviates | `npm run build`, after `astro build` - so every same-repo PR through the `preview` job, but **not** on a fork or Dependabot PR, where `preview` is guarded off |
-| `tests/markdownProseSpacing.spec.ts` | the reader-visible gap on a built page | only when the PR carries the `run-docs-visual` label - it lives in `testDir: './tests'`, the opt-in visual suite |
+| `tests/markdownProseSpacing.spec.ts` | the reader-visible gap on a built page | every docs PR, via `docs.yml`'s `functional` job (`npx playwright test --project=functional` against the preview) - report-only for one sprint, so a failure lands in the job summary and the `docs-functional-report` artifact, not in a red check (section 2.18) |
 
-So the label-gated spec is a backstop, not a gate. The first two are what actually hold the line on a normal PR.
+So the spec is a backstop, not a gate, until the `functional` job's `continue-on-error` is flipped off. The first two are what actually hold the line on a normal PR.
 
 ---
 
@@ -766,3 +766,156 @@ Marketing scripts inject utility iframes with no `title`, which axe and Lighthou
 - **Bound the observer, then re-arm on consent.** It disconnects once every target is patched, but a target may never appear (a blocker kills the scripts, declined consent stops the VWO tag, and VWO never appears off production), so a `setTimeout` deadline also disconnects it - a `childList`+`subtree` observer left live for the whole page churns a MutationRecord on every DOM change. The VWO tag inside GTM fires only after analytics consent and its proxy injects asynchronously after that, which can outlast the initial deadline, so the guard re-arms (re-observes with a fresh deadline) on Cookiebot's `CookiebotOnAccept` event - do not just widen the timer.
 
 The regression test is `src/components/__tests__/head-hidden-iframe-a11y.test.mjs`, which extracts the shipped script and runs it against a fake DOM that injects the iframes asynchronously (run under `npm run docs:test:plugins`).
+
+## 2.18 Visual tests have a real baseline in R2, and a missing golden fails on CI
+
+`tests/visualDocs.spec.ts` takes one full-page screenshot per guide page in `tests/paths.js` for each of
+the four frameworks – 441 as of 2026-09-14 – and compares each with `toHaveScreenshot` at a `maxDiffPixelRatio` of
+0.01, or 0.05 for the pages listed in `pathsNeedingMoreTolerance`. Chromium only, against `BASE_URL`
+(`http://localhost:4321/docs` by default; on CI the pull request's Cloudflare preview). Eleven functional
+specs (`tests/*.spec.ts` other than `visualDocs`) share its `testDir`.
+
+Until DEV-2860 the suite's baseline was not a baseline, and it passed by construction:
+
+1. **The goldens came from `actions/cache`, keyed on `github.ref` with a `refs/heads/develop` restore key
+   that nothing ever saved.** `develop.yml` never ran the docs suite, and GitHub scopes a pull request's
+   cache to that pull request, so the only possible hit was the same pull request's earlier commit. Commit 2
+   was compared against commit 1, never against develop (observed on PR #13440, 2026-09-08).
+2. **On a miss the workflow ran `playwright test --update-snapshots`,** wrote whatever the preview rendered
+   as the goldens, passed, and posted nothing. Playwright's default `updateSnapshots: 'missing'` does the
+   same thing silently for any single missing golden even without the flag – a false green.
+3. **The suite ran on one pull request in the three weeks before 2026-09-14** (the `run-docs-visual` label
+   was applied to two). On #13440 it reported 61 failures, the label was removed to escape the red, and the
+   61 accepted differences were recorded nowhere. The eleven functional specs, living in the same `testDir`,
+   only ever ran under that label.
+
+The fix reuses the core suite's contract (`visual-tests/AGENTS.md`, "Comparison and approval"): probe →
+compare → gate → comment → environment approval, in the same R2 bucket, with the baseline seeded from the
+develop staging deploy.
+
+### Where the goldens live
+
+Bucket `handsontable-visual`, public at `https://visual.handsontable.com`, the same three secrets as
+`visual.yml` (`R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_ACCOUNT_ID`):
+
+| Key | Holds |
+|---|---|
+| `docs/base/<branch>/screenshots/**` | the golden PNGs – the `tests/test-artifacts/screenshots/` tree, paths like `visualDocs.spec.ts/js-introduction.png` |
+| `docs/base/<branch>/out.json` | the baseline's manifest; what the probe reads |
+| `docs/pr-<number>/<sha>/results/**` | one pull request run's Playwright HTML report (static – `index.html` plus `data/`, served from the CDN) |
+| `docs/pr-<number>/<sha>/out.json` | that run's manifest |
+
+`pr-cleanup.yml`'s `purge-visual-screenshots` deletes `docs/pr-<number>/` when the pull request closes. A
+`Docs Visual Tests` dispatch publishes under `docs/dispatch/<branch>/<run_id>`, which nothing purges –
+retention there is the bucket's business. `visual.handsontable.com` sits behind a CDN that caches PNGs for
+four hours (`out.json` is not cached), so `curl -H 'Cache-Control: no-cache' '<url>?cb=$RANDOM'` before
+concluding anything from a golden you read back.
+
+### The contract
+
+- **One implementation, two callers.** `.github/actions/docs-visual-run/action.yml` is a composite action
+  with `mode: compare | seed`. `docs.yml`'s `visual` job calls it in `compare` mode against the pull
+  request's preview with `base-key: docs/base/${{ github.base_ref }}` and
+  `actual-key: docs/pr-<number>/<sha>`; `docs-visual-seed.yml` and `docs-visual-tests.yml` (dispatch only)
+  call it in `seed` mode with `actual-key` equal to `base-key`. The caller passes the R2 secrets as inputs –
+  a composite action cannot read `secrets` – and there is no `actions/cache` anywhere.
+- **The probe never guesses.** `curl -I` on `https://visual.handsontable.com/<base-key>/out.json`: 2xx →
+  compare; 404 → `DOCS_VISUAL_BOOTSTRAP=true`; anything else → exit 1. On bootstrap a same-repo pull request
+  renders the baseline and seeds it itself (`bootstrap` verdict), and the next seed overwrites it. Otherwise
+  `aws s3 sync` brings the goldens into `tests/test-artifacts/screenshots/` and `find` writes their list to
+  `tests/test-artifacts/baseline.txt` – that list is how a deletion is detected.
+- **A missing golden fails on CI.** `playwright.config.ts` sets `updateSnapshots: isCI ? 'none' : 'missing'`:
+  on CI a test without a golden fails with "A snapshot doesn't exist at …" instead of writing one and
+  passing; locally the old behavior stays. This is the rule of DEV-2860. The compare step runs with
+  `continue-on-error: true` – a failing test is a visual difference, and the gate reports it, not the step.
+  The seed step (`--update-snapshots`) does fail on a test failure: a seed with holes must not land, and a
+  seed whose manifest is empty is refused (a blank `out.json` would make the probe return 200 forever).
+- **Every `toHaveScreenshot` test declares its golden.** On CI the config adds a JSON reporter
+  (`tests/test-artifacts/report.json`), and `tests/lib/visual-manifest.mjs` (CLI
+  `tests/scripts/visual-manifest.mjs compare | seed`) maps that report to the reg-suit `out.json` the core
+  gate already reads. It finds a test's golden through a `snapshot` annotation, so the first statement of a
+  visual test body must be
+  `test.info().annotations.push({ type: 'snapshot', description: 'visualDocs.spec.ts/<name>.png' })` –
+  before `test.fixme()`, so a fixme'd page still declares its golden and never reads as deleted.
+  **`<name>` must be sanitized the way Playwright sanitizes it**, because Playwright writes the file
+  and the annotation only names it: `snapshotPath()` puts the argument through `sanitizeForFilePath`
+  before substituting `{arg}`, turning every character outside `[\w-]` into `-`. The 35
+  `migration-from-X.Y-to-Z.0` pages are the ones this bites – they land on disk as
+  `migration-from-X-Y-to-Z-0.png`, and an annotation that kept the dots names a file that does not
+  exist, so each reads as a deleted golden plus a new render and the verdict is `changed` forever
+  with nothing to fix. The spec builds the name already sanitized; `docs-visual-baseline.test.mjs`
+  derives the expected key from the template and checks it against every slug in `paths.js`. Measured
+  on @playwright/test 1.61.1 – 1.45 did not sanitize here, so a Playwright bump can move this. Buckets:
+  `expected` and `flaky` → passed; `unexpected` → new when an error says the snapshot doesn't exist, failed
+  otherwise; `skipped` → declared but uncounted; a baseline path that no test declares → deleted. A test
+  without the annotation is ignored. Tests: `tests/lib/__tests__/visual-manifest.test.mjs`, in the root
+  `npm run test:tooling`.
+- **The verdict, the comment, and the approval are the core gate's, relabeled.**
+  `visual-tests/scripts/visual-gate.mjs` runs with `VISUAL_GATE_DIR=tests/test-artifacts`,
+  `VISUAL_GATE_TITLE='Docs visual tests'`, `VISUAL_GATE_ENVIRONMENT=docs-visual-approval`,
+  `VISUAL_GATE_ARTIFACT=docs-visual-report`, and `VISUAL_GATE_REPORT_PATH=results/index.html`. It writes
+  `comment.md` – posted as the sticky comment `docs-visual-tests` on same-repo runs and mirrored to the job
+  summary – and the `verdict` and `report-url` outputs: `clean`, `changed`, `bootstrap`, or `error` (no
+  manifest, so a run that died reads "could not compare" and reds the job). On `changed`, `docs.yml`'s
+  `approve` job waits on the **`docs-visual-approval` environment**: a reviewer approves or rejects the
+  pending deployment on the run page, and "View deployment" opens the report at
+  `https://visual.handsontable.com/docs/pr-<number>/<sha>/results/index.html`. Approval is per run and
+  all-or-nothing, and the job fails closed – it asserts an approval through the approvals API – so **the
+  environment must exist with required reviewers before the first docs pull request with differences
+  runs**, or that pull request is stuck red until an admin creates it.
+- **The baseline is seeded from the staging deploy.** `.github/workflows/docs-visual-seed.yml` chains
+  (`workflow_run`) on a successful push run of `Docs Staging Deployment` and seeds `docs/base/<branch>`
+  from what that run deployed: `develop` from `https://handsontable-docs-staging.pages.dev/docs`,
+  `release/x.y.z` from `https://rc-x-y-z.handsontable-docs-staging.pages.dev/docs` (dots to dashes, as
+  `docs-staging.yml`'s `cf-target` does). It checks out the deploy's `head_sha` so the spec matches the
+  deployed pages, and `aws s3 sync --delete`s the screenshots, so a page removed from `paths.js` leaves the
+  baseline. It never runs for a pull request's staging deploy. Its copy on the default branch is the one
+  that runs, so a change to it is exercised only after merging – dispatch it with `branch` to test that, or
+  to re-seed by hand. **Known lag:** the staging deploy triggers on `docs/**` and `handsontable/package.json`
+  only, so a core-only merge that changes grid rendering is not in the baseline until the next docs merge,
+  and a docs pull request opened in that window reports develop's own grid change as its differences.
+  Widening that trigger is a separate call; it costs a ~10-minute docs deploy per core merge.
+- **The visual project stays opt-in through the `run-docs-visual` label** – 441 full-page captures per run
+  is the reason. Add the label and press "Re-run all jobs". Drop the label gate once the baseline has proven
+  stable; the comment in `docs.yml`'s `visual` job marks the spot.
+- **The functional specs run on every docs pull request, report-only for one sprint.**
+  `playwright.config.ts` has two projects, `visual` (`visualDocs.spec.ts`) and `functional` (everything
+  else); a bare `npx playwright test` still runs both. `docs.yml`'s `functional` job runs
+  `--project=functional` against the preview with `continue-on-error: true`, writes one line to the job
+  summary, and uploads `docs-functional-report` (7 days). After a sprint of green, flip `continue-on-error`
+  off.
+- **`PASS_COOKIE` is for `https://dev.handsontable.com/docs` only.** The spec sets it as a cookie on that
+  domain; Cloudflare previews and the staging deploys need none. Callers pass `secrets.PASS_COOKIE` through
+  the action's `pass-cookie` input.
+- **A fork pull request gets no docs visual run.** `docs.yml`'s `preview` job is fork-guarded (the deploy
+  needs Cloudflare secrets) and `visual` needs it. The action's report publish and seed steps carry the
+  canonical guard as well; `.github/scripts/__tests__/fork-guards.test.mjs` pins all three sites.
+
+### Running locally
+
+Unchanged: `npm run docs:visual-test:update-screenshot` writes the goldens under
+`tests/test-artifacts/screenshots/` on the first run, and `npm run docs:visual-test` compares against them.
+`BASE_URL` targets another environment; `tests/.env.example` lists the variables. Add `--project=visual` or
+`--project=functional` to run one project (`npx playwright test --project=visual`). Local goldens are yours,
+not the CI baseline: to compare against what CI compares against, sync
+`s3://handsontable-visual/docs/base/develop/screenshots` into that directory with the R2 credentials first,
+or read `https://visual.handsontable.com/docs/base/develop/out.json` (`actualItems`) to see what the
+baseline holds.
+
+### Adding, removing, or breaking a page
+
+- **A new page:** add it to `tests/paths.js`. The next seed – the staging deploy after your merge – writes
+  its golden. Until then every pull request that renders it reports it as **new**, which is a `changed`
+  verdict and needs the approval; that is expected, not a flake.
+- **A removed or renamed page:** its golden reads as **deleted** on every pull request until the next seed
+  reconciles the prefix.
+- **A page that cannot be captured stably:** add its slug to `slugsToFix` (`test.fixme()`), as
+  `column-filter` and `rows-sorting` are. The annotation is pushed first, so the golden stays declared and
+  the page drops out of the count without reading as deleted.
+- **Never add `{projectName}` to `snapshotPathTemplate`.** The template does not include the project name
+  today; adding it re-keys every golden, which the next pull request reports as all of them new plus all of
+  them deleted.
+
+`.github/scripts/__tests__/docs-visual-baseline.test.mjs` pins the contract above against the config, the
+spec, the action, and the workflows.
+

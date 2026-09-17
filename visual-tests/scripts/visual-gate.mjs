@@ -7,18 +7,36 @@
  * environment-protected approval job when it did not.
  *
  * All branching lives in `../lib/visual-gate.mjs`, which is pure and unit-tested;
- * this wrapper only reads `.reg/out.json`, writes `.reg/comment.md`, and sets the
+ * this wrapper only reads `out.json`, writes `comment.md` beside it, and sets the
  * exit code. The comment is always written so the sticky comment in `visual.yml`
  * is refreshed rather than left showing a verdict that no longer holds.
+ *
+ * The docs suite runs it too (DEV-2860, `.github/actions/docs-visual-run`), over a manifest
+ * `docs/tests/lib/visual-manifest.mjs` builds from Playwright's report. Everything that differs
+ * between the two suites is an environment variable, so neither carries a copy of this logic:
+ *
+ *   VISUAL_GATE_DIR           where `out.json` is and `comment.md` goes (default: reg-suit's `.reg/`)
+ *   VISUAL_GATE_TITLE         the comment's heading (default: "Visual tests")
+ *   VISUAL_GATE_ENVIRONMENT   the environment the approval waits on (default: "visual-approval")
+ *   VISUAL_GATE_ARTIFACT      the artifact holding the images (default: "visual-diff-report")
+ *   VISUAL_GATE_REPORT_PATH   the report's path under the actual key (default: "index.html")
  *
  * Usage: node visual-tests/scripts/visual-gate.mjs
  */
 
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { evaluate } from '../lib/visual-gate.mjs';
 
-const WORKING_DIR = join(import.meta.dirname, '..', '.reg');
+const WORKING_DIR = process.env.VISUAL_GATE_DIR
+  ? resolve(process.env.VISUAL_GATE_DIR)
+  : join(import.meta.dirname, '..', '.reg');
+const labels = {
+  ...(process.env.VISUAL_GATE_TITLE ? { title: process.env.VISUAL_GATE_TITLE } : {}),
+  ...(process.env.VISUAL_GATE_ENVIRONMENT ? { environment: process.env.VISUAL_GATE_ENVIRONMENT } : {}),
+  ...(process.env.VISUAL_GATE_ARTIFACT ? { artifact: process.env.VISUAL_GATE_ARTIFACT } : {}),
+};
+const reportPath = process.env.VISUAL_GATE_REPORT_PATH || 'index.html';
 const domain = process.env.VISUAL_REPORT_DOMAIN;
 const actualKey = process.env.REG_ACTUAL_KEY;
 
@@ -37,7 +55,7 @@ try {
 const published = process.env.VISUAL_PUBLISHED !== 'false';
 
 const runUrl = process.env.VISUAL_RUN_URL ?? '';
-const reportUrl = published && domain && actualKey ? `https://${domain}/${actualKey}/index.html` : '';
+const reportUrl = published && domain && actualKey ? `https://${domain}/${actualKey}/${reportPath}` : '';
 
 const verdict = evaluate({
   report,
@@ -45,6 +63,7 @@ const verdict = evaluate({
   seeded: process.env.VISUAL_SEEDED !== 'false',
   reportUrl,
   runUrl,
+  labels,
 });
 
 await mkdir(WORKING_DIR, { recursive: true });
@@ -73,9 +92,11 @@ if (verdict.blocked) {
   console.log(verdict.summary);
 
   if (verdict.verdict === 'changed') {
+    const { environment = 'visual-approval', artifact = 'visual-diff-report' } = labels;
+
     console.log('');
-    console.log('Open the report linked in the pull request comment (or the `visual-diff-report`');
+    console.log(`Open the report linked in the pull request comment (or the \`${artifact}\``);
     console.log('artifact). A regression: push a fix. Intentional: a reviewer approves the pending');
-    console.log('`visual-approval` deployment on this run\'s page — one click, nothing re-run.');
+    console.log(`\`${environment}\` deployment on this run's page — one click, nothing re-run.`);
   }
 }

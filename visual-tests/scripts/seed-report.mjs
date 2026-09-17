@@ -15,10 +15,14 @@
  */
 
 import { readFile, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { summarizeBuild } from '../lib/seed-report.mjs';
 
-const WORKING_DIR = join(import.meta.dirname, '..', '.reg');
+// The same variable `visual-gate.mjs` honors, so the docs suite (DEV-2860) can point both
+// wrappers at its own artifacts directory; unset, reg-suit's `.reg/` as before.
+const WORKING_DIR = process.env.VISUAL_GATE_DIR
+  ? resolve(process.env.VISUAL_GATE_DIR)
+  : join(import.meta.dirname, '..', '.reg');
 const domain = process.env.VISUAL_REPORT_DOMAIN;
 const actualKey = process.env.REG_ACTUAL_KEY;
 
