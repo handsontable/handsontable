@@ -10,8 +10,14 @@ import {
   isHTMLElement,
 } from '../../../../../helpers/dom/element';
 import { stopImmediatePropagation, isRightClick } from '../../../../../helpers/dom/event';
-import { isMobileBrowser } from '../../../../../helpers/browser';
-import { getCornerStyle, standsBelowColumnHeader } from './utils';
+import { isMobileBrowser, isMobileOrIpadOS } from '../../../../../helpers/browser';
+import {
+  getCornerStyle,
+  lookupSelectionHeader,
+  measureHeaderSelectionBox,
+  resolveHeaderLevel,
+  standsBelowColumnHeader,
+} from './utils';
 import { CUSTOM_SELECTION_TYPE } from '../constants';
 import { getSpreaderOffset } from '../../overlay/spreaderOffset';
 
@@ -93,9 +99,13 @@ class Border {
    */
   declare cornerStyle: CSSStyleDeclaration | null;
   /**
-   * @type {SelectionHandles}
+   * Created in the constructor only when `isMobileOrIpadOS()` is true. Guard every use —
+   * `isIpadOS()` reads `navigator.maxTouchPoints` live, so Chrome device toolbar can flip
+   * it after construction and leave this undefined.
+   *
+   * @type {SelectionHandles | undefined}
    */
-  declare selectionHandles: SelectionHandles;
+  declare selectionHandles: SelectionHandles | undefined;
   /**
    * Created lazily on the first `appear()` whose visibility predicate resolves truthy, so it stays
    * `undefined` while the `selectionHandles` option is off.
@@ -340,7 +350,7 @@ class Border {
       this.cornerDefaultStyle.borderColor
     ].join(' ');
 
-    if (isMobileBrowser() && this.wot.getSetting('isDataViewInstance')) {
+    if (isMobileOrIpadOS() && this.wot.getSetting('isDataViewInstance')) {
       this.createMultipleSelectorHandles();
     }
     // The `selectionHandles` and `moveCells` elements are created lazily, on the first `appear()`
@@ -625,6 +635,12 @@ class Border {
     width: number,
     height: number,
   ) {
+    const handles = this.selectionHandles;
+
+    if (!handles) {
+      return;
+    }
+
     const isRtl = this.wot.wtSettings.getSetting('rtlMode');
     const inlinePosProperty = isRtl ? 'right' : 'left';
     const {
@@ -632,7 +648,7 @@ class Border {
       topHitArea: topHitAreaStyles,
       bottom: bottomStyles,
       bottomHitArea: bottomHitAreaStyles,
-    } = this.selectionHandles.styles;
+    } = handles.styles;
 
     const handleBorderSize = parseInt(topStyles.borderWidth, 10);
     const handleSize = parseInt(topStyles.width, 10);
@@ -1515,8 +1531,9 @@ class Border {
     }
 
     if (this.isEntireColumnSelected(fromRow, toRow)) {
-      const rowHeader = fromRow;
-      const modifiedValues = this.getDimensionsFromHeader('columns', fromColumn, toColumn, rowHeader, containerOffset);
+      const modifiedValues = this.getDimensionsFromHeader(
+        'columns', fromColumn, toColumn, originalFromRow, containerOffset
+      );
       let fromTH = null;
 
       if (modifiedValues) {
@@ -1532,8 +1549,9 @@ class Border {
     let height = toOffset.top + geometryReader.outerHeight(toTDEl) - minTop;
 
     if (this.isEntireRowSelected(fromColumn, toColumn)) {
-      const columnHeader = fromColumn;
-      const modifiedValues = this.getDimensionsFromHeader('rows', fromRow, toRow, columnHeader, containerOffset);
+      const modifiedValues = this.getDimensionsFromHeader(
+        'rows', fromRow, toRow, originalFromColumn, containerOffset
+      );
       let fromTH = null;
 
       if (modifiedValues) {
@@ -1665,7 +1683,7 @@ class Border {
       [,, checkRow, checkCol] = hookResult;
     }
 
-    if (isMobileBrowser() || !cornerVisibleSetting || !this.isSouthEastOfAreaSelection(checkRow, checkCol)) {
+    if (isMobileOrIpadOS() || !cornerVisibleSetting || !this.isSouthEastOfAreaSelection(checkRow, checkCol)) {
       this.cornerStyle!.display = 'none';
 
     } else {
@@ -1732,7 +1750,7 @@ class Border {
       this.cornerStyle!.display = 'block';
     }
 
-    if (isMobileBrowser() && this.wot.getSetting('isDataViewInstance')) {
+    if (this.selectionHandles) {
       this.updateMultipleSelectionHandlesPosition(
         corners[0],
         corners[1],
@@ -1750,7 +1768,7 @@ class Border {
     adjustVisible = typeof adjustVisible === 'function'
       ? adjustVisible(this.settings.layerLevel) : adjustVisible;
 
-    if (!isMobileBrowser() && adjustVisible && this.wot.getSetting('isDataViewInstance')) {
+    if (!isMobileOrIpadOS() && adjustVisible && this.wot.getSetting('isDataViewInstance')) {
       const adjustHandles = this.adjustHandles ?? this.createAdjustHandles();
 
       this.positionAdjustHandles(top, inlineStartPos, width, height, corners);
@@ -1784,6 +1802,10 @@ class Border {
     moveEnabled = typeof moveEnabled === 'function'
       ? moveEnabled(this.settings.layerLevel) : moveEnabled;
 
+    // iPad reports a desktop UA (`isMobileBrowser()` is false) and kept this band
+    // before DEV-1081. Gate it with `isMobileBrowser()` only — `isMobileOrIpadOS()`
+    // would hide the band on iPad. Mobile range-handle UI stays on
+    // `isMobileOrIpadOS()` (constructor / `adjustHandles` above).
     if (!isMobileBrowser() && moveEnabled && this.wot.getSetting('isDataViewInstance')) {
       if (!this.moveZone) {
         this.createMoveZone();
@@ -1831,9 +1853,13 @@ class Border {
    * @param {string} direction `rows` or `columns`, defines if an entire column or row is selected.
    * @param {number} fromIndex Start index of the selection.
    * @param {number} toIndex End index of the selection.
-   * @param {number} headerIndex The header index as negative value.
+   * @param {number} headerIndex The unclamped selection corner on the perpendicular axis. A
+   *   negative value is a header coordinate (`-1` is closest to the cells). A non-negative value is
+   *   a body index and resolves to the closest header.
    * @param {number} containerOffset Offset of the container.
-   * @returns {Array|boolean} Returns an array of [headerElement, left, width] or [headerElement, top, height], depending on `direction` (`false` in case of an error getting the headers).
+   * @returns {Array|boolean} Returns an array of [headerElement, inlineOrBlockStart, size] —
+   *   `[th, left, width]` in LTR columns, `[th, right, width]` in RTL columns, `[th, top, height]`
+   *   for rows — or `false` when the headers cannot be resolved.
    */
   getDimensionsFromHeader(
     direction: string, fromIndex: number, toIndex: number, headerIndex: number,
@@ -1844,8 +1870,6 @@ class Border {
     let getHeaderFn: ((...args: unknown[]) => HTMLElement | undefined) | null = null;
     let dimensionFn: ((el: HTMLElement) => number) | null = null;
     let entireSelectionClassname: string | null = null;
-    let index: number | null = null;
-    let dimension: number | null = null;
     let dimensionProperty: 'top' | 'left' | null = null;
     let startHeader: HTMLElement | undefined | null = null;
     let endHeader: HTMLElement | undefined | null = null;
@@ -1869,24 +1893,47 @@ class Border {
     }
 
     if (entireSelectionClassname && rootHotElement.classList.contains(entireSelectionClassname)) {
-      type ColHeadersFn = (...args: unknown[]) => unknown;
-      const columnHeaderLevelCount = (this.wot.getSetting('columnHeaders') as ColHeadersFn[]).length;
+      const headerCount = direction === 'rows'
+        ? wtTable.getRowHeadersCount()
+        : wtTable.getColumnHeadersCount();
 
-      startHeader = getHeaderFn?.(fromIndex, columnHeaderLevelCount - headerIndex);
-      endHeader = getHeaderFn?.(toIndex, columnHeaderLevelCount - headerIndex);
+      if (!getHeaderFn || !dimensionFn) {
+        return false;
+      }
+
+      const headerLevel = resolveHeaderLevel(headerCount, headerIndex);
+      const closestLevel = headerCount - 1;
+      const getHeader = (index: number, level: number) => getHeaderFn(index, level);
+      const sizeFn = dimensionFn;
+
+      startHeader = lookupSelectionHeader(getHeader, fromIndex, headerLevel, closestLevel, sizeFn);
+      endHeader = lookupSelectionHeader(getHeader, toIndex, headerLevel, closestLevel, sizeFn);
 
       if (!startHeader || !endHeader) {
         return false;
       }
 
+      const isRtl = this.wot.wtSettings.getSetting('rtlMode');
       const startHeaderOffset = geometryReader.offset(startHeader);
       const endOffset = geometryReader.offset(endHeader);
       const startOff = startHeaderOffset[dimensionProperty!];
       const endOff = endOffset[dimensionProperty!];
       const contOff = containerOffset[dimensionProperty!];
-
-      index = startOff - contOff - 1;
-      dimension = endOff + dimensionFn!(endHeader) - startOff;
+      const startSize = sizeFn(startHeader);
+      const endSize = sizeFn(endHeader);
+      const containerWidth = direction === 'columns' && isRtl
+        ? geometryReader.outerWidth(wtTable.TABLE)
+        : 0;
+      const [index, dimension] = measureHeaderSelectionBox(
+        direction === 'rows' ? 'rows' : 'columns',
+        startOff,
+        endOff,
+        startSize,
+        endSize,
+        contOff,
+        isRtl,
+        containerWidth,
+      );
 
       return [startHeader, index, dimension];
     }
@@ -2047,7 +2094,7 @@ class Border {
     this.endStyle!.display = 'none';
     this.cornerStyle!.display = 'none';
 
-    if (isMobileBrowser() && this.wot.getSetting('isDataViewInstance')) {
+    if (this.selectionHandles) {
       this.selectionHandles.styles.top.display = 'none';
       this.selectionHandles.styles.topHitArea.display = 'none';
       this.selectionHandles.styles.bottom.display = 'none';

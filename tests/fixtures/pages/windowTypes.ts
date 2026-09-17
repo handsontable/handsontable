@@ -83,7 +83,11 @@ export interface FixtureHotInstance {
   };
   getPlugin(name: 'dragToScroll'): { isListening(): boolean };
   getPlugin(name: 'autofill'): { mouseDownOnCellCorner: boolean };
-  getPlugin(name: 'multipleSelectionHandles'): { isDragged(): boolean };
+  getPlugin(name: 'multipleSelectionHandles'): {
+    isDragged(): boolean;
+    enabled: boolean;
+    isEnabled(): boolean;
+  };
   getPlugin(name: 'nestedRows'): {
     collapseAll(): void,
     expandAll(): void,
@@ -190,6 +194,19 @@ export interface MoveCellsHookRecord {
 }
 
 /**
+ * One recorded remove-row or remove-column hook call from the DEV-2523 firing-pattern fixture.
+ * `physicalIndexes` covers both halves, since the hooks name the argument `physicalRows` for
+ * rows and `physicalColumns` for columns while passing the same shape.
+ */
+export interface RemoveHookRecord {
+  hook: 'beforeRemoveRow' | 'afterRemoveRow' | 'beforeRemoveCol' | 'afterRemoveCol';
+  index: number;
+  amount: number;
+  physicalIndexes: number[];
+  source?: string;
+}
+
+/**
  * Hook counters the DEV-2687 touch tap-to-edit fixture exposes on `window.hookCounts`.
  */
 export type HookCounterName =
@@ -244,6 +261,10 @@ declare global {
      * Rebuilds the DEV-59 sorting-with-`fixedRowsTop`/`fixedRowsBottom` fixture grid.
      */
     initSortingFixedRowsGrid(overrides?: Record<string, unknown>): boolean;
+    /**
+     * Rebuilds the DEV-2524 filtering-with-`fixedRowsTop`/`fixedRowsBottom` fixture grid.
+     */
+    initFiltersFixedRowsGrid(overrides?: Record<string, unknown>): boolean;
     /** Returns the text the browser currently reports as selected (fragmentSelection fixture). */
     readTextSelection(): string;
     /** Drops any existing text selection (fragmentSelection fixture). */
@@ -258,6 +279,12 @@ declare global {
     moveCellsHookLog: MoveCellsHookRecord[];
     /** Recorded NestedRows collapse/expand hook calls, in firing order. */
     hookLog: { name: string, args: unknown[] }[];
+    /** Recorded remove-row/remove-column hook arguments from the DEV-2523 firing fixture. */
+    removeHookLog: RemoveHookRecord[];
+    /** Rebuilds the DEV-2523 firing fixture grid with the given setting overrides. */
+    initRemoveHooksGrid(overrides?: Record<string, unknown>): boolean;
+    /** Makes the fixture's `beforeRemoveRow` rewrite `physicalRows` to this list (DEV-2523). */
+    setBeforeRemoveRowRewrite(physicalRows: number[] | null): boolean;
     /** Recorded remove-row hook arguments from the DEV-30 nested undo fixture. */
     removeLog: {
       hook: 'beforeRemoveRow' | 'afterRemoveRow';

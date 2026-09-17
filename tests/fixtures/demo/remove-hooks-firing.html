@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture - remove row/column hook firing</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[
+      htParams.get('bundle') ?? 'umd'
+    ];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+  </style>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    window.removeHookLog = [];
+
+    // When set, the fixture's `beforeRemoveRow` replaces the live `physicalRows` array with
+    // this list, which is the documented in-place edit the NestedRows plugin relies on.
+    let beforeRemoveRowRewrite = null;
+
+    // An array data source with no `columns` option: `alter('remove_col', ...)` throws on an
+    // object source or when `columns` is set, so the column half of the suite needs this shape.
+    const buildData = () => Array.from({ length: 6 }, (_, row) =>
+      Array.from({ length: 6 }, (_, col) => `r${row}c${col}`));
+
+    // The log keeps a copy, so an assertion reads the arguments as the hook saw them rather
+    // than as a later handler left them. The rewrite below is what touches the live array.
+    const recordRemove = (hook) => (index, amount, physicalIndexes, source) => {
+      window.removeHookLog.push({
+        hook,
+        index,
+        amount,
+        physicalIndexes: physicalIndexes.slice(),
+        source,
+      });
+
+      if (hook === 'beforeRemoveRow' && beforeRemoveRowRewrite !== null) {
+        physicalIndexes.length = 0;
+        beforeRemoveRowRewrite.forEach(physicalRow => physicalIndexes.push(physicalRow));
+      }
+    };
+
+    const baseSettings = () => ({
+      data: buildData(),
+      colHeaders: true,
+      rowHeaders: true,
+      contextMenu: true,
+      renderer: testIdRenderer,
+      height: 'auto',
+      licenseKey: 'non-commercial-and-evaluation',
+      beforeRemoveRow: recordRemove('beforeRemoveRow'),
+      afterRemoveRow: recordRemove('afterRemoveRow'),
+      beforeRemoveCol: recordRemove('beforeRemoveCol'),
+      afterRemoveCol: recordRemove('afterRemoveCol'),
+    });
+
+    window.hot = new Handsontable(container, baseSettings());
+
+    window.initRemoveHooksGrid = (overrides = {}) => {
+      window.hot.destroy();
+      window.removeHookLog.length = 0;
+      beforeRemoveRowRewrite = null;
+      container.innerHTML = '';
+      container.className = `ht-theme-${window.htTheme}`;
+      window.hot = new Handsontable(container, Object.assign(baseSettings(), overrides));
+
+      return true;
+    };
+
+    window.setBeforeRemoveRowRewrite = (physicalRows) => {
+      beforeRemoveRowRewrite = physicalRows;
+
+      return true;
+    };
+  </script>
+</body>
+</html>

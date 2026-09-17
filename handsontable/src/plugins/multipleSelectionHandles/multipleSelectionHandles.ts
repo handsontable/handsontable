@@ -1,7 +1,7 @@
 import { eventTargetEl, hasClass } from '../../helpers/dom/element';
 import { getCellCoordsFromMousePosition } from '../../helpers/dom/cellCoords';
 import { getFirstChangedTouch, getTouchPointById } from '../../helpers/dom/event';
-import { isMobileBrowser } from '../../helpers/browser';
+import { isMobileOrIpadOS } from '../../helpers/browser';
 import { BasePlugin } from '../base';
 import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
@@ -59,12 +59,13 @@ export class MultipleSelectionHandles extends BasePlugin {
   #dragTouches: Map<number, string> = new Map();
 
   /**
-   * Check if the plugin is enabled in the handsontable settings.
+   * Check if the plugin is enabled. There is no setting: the plugin turns on for a mobile
+   * user-agent and for iPadOS that reports a desktop Macintosh UA (iPadOS 13+).
    *
    * @returns {boolean}
    */
   isEnabled(): boolean {
-    return isMobileBrowser();
+    return isMobileOrIpadOS();
   }
 
   /**

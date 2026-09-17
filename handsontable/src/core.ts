@@ -2,7 +2,7 @@ import { addClass, empty, isShadowRoot, observeVisibilityChangeOnce, removeClass
 import { RenderChangeTracker, markCellMetaChanged } from './core/incrementalRender/renderChangeTracker';
 import { isFunction } from './helpers/function';
 import { isDefined, isUndefined, isRegExp, isEmpty } from './helpers/mixed';
-import { isMobileBrowser, isIpadOS } from './helpers/browser';
+import { isMobileOrIpadOS } from './helpers/browser';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
 import {
@@ -2055,7 +2055,7 @@ export default function Core(
 
     instance.runHooks('beforeInit');
 
-    if (isMobileBrowser() || isIpadOS()) {
+    if (isMobileOrIpadOS()) {
       addClass(instance.rootElement, 'mobile');
     }
 
@@ -2683,6 +2683,10 @@ export default function Core(
     if (isRegExp(validator)) {
       validator = (function(expression: RegExp) {
         return function(cellValue: unknown, validatorCallback: Function) {
+          // Global (`g`) and sticky (`y`) flags make `RegExp#test` stateful through
+          // `lastIndex`. Reset before every cell so repeated `validateCells()` runs
+          // (and cells that share one pattern) get a stable result (DEV-110).
+          expression.lastIndex = 0;
           validatorCallback(expression.test(cellValue as string));
         };
       }(validator as RegExp));

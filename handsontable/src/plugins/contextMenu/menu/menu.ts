@@ -16,7 +16,7 @@ import {
 } from './utils';
 import EventManager from '../../../eventManager';
 import { arrayEach, arrayFilter, arrayReduce } from '../../../helpers/array';
-import { isWindowsOS, isMobileBrowser, isIpadOS } from '../../../helpers/browser';
+import { isWindowsOS, isMobileOrIpadOS } from '../../../helpers/browser';
 import {
   addClass,
   empty,
@@ -662,7 +662,7 @@ export class Menu {
           // For mobile devices, the click event is triggered with native delay (~300ms), so when the mouseup
           // event hides the tapped element, the click event grabs the element below. As a result, the filter
           // by condition menu is closed and immediately open on tapping the "None" item.
-          if (isMobileBrowser() || isIpadOS()) {
+          if (isMobileOrIpadOS()) {
             this.hot._registerTimeout(() => this.close(true), 325);
           } else {
             this.close(true);

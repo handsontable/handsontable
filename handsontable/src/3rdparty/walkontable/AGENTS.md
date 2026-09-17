@@ -52,6 +52,13 @@ fill handle is *repositioned* rather than re-layered at the `fixedRowsBottom` li
 clear a clone, so the master's mobile handles are repositioned instead: the top handle is inset by
 `isTopHandleOccludedByClone` and the bottom handle is lifted by `isBottomHandleOccludedByClone`.
 
+On iPad the same handles also force the top overlay to reserve the fill-corner's protruding
+half-height whenever the selection's bottom-end sits inside `fixedRowsTop`
+(`TopOverlay#shouldReserveSelectionCornerOffset`, gated on `isMobileOrIpadOS()`). That branch runs
+even when the fill square is hidden (`fillHandle: false` / `cornerVisible` false); reverting the
+gate to `isMobileBrowser()` drops iPad onto the desktop fallback and skips the reserve.
+`tests/e2e/ipad-selection-handles.spec.ts` pins the frozen-row holder overhang.
+
 **The trigger for those two is clone presence, not the fixed-pane count, and the difference is not
 cosmetic.** `shouldRenderTopOverlay` is true for `colHeaders` alone, so with `fixedRowsTop: 0` a
 row-0 selection sits flush against the `top` clone exactly as row `fixedRowsTop` does with a frozen
@@ -280,6 +287,41 @@ host may implement only part of it** — the engine's own Puppeteer harness (`te
 does. `getStyleForTD` is therefore declared optional on the `StylesHandler` interface in `types.ts`,
 and calling it unguarded threw inside the draw and took out 695 of 816 specs. Guard every method you
 add a dependency on, and teach the harness stub the same method.
+
+## `getDimensionsFromHeader` header levels (DEV-1176)
+
+`Border#getDimensionsFromHeader` looks up a header `th` so a full-row or full-column selection can
+measure from the header instead of the first data cell. Custom header padding lives on that `th`
+(or its inner `.relative`); `offset` / `outerHeight` already include it, but only if the lookup
+succeeds.
+
+The header level is **not** `columnHeaders.length - headerIndex`:
+
+- Use the **axis** count: `getRowHeadersCount()` for `'rows'`, `getColumnHeadersCount()` for
+  `'columns'`.
+- Translate the coordinate with `resolveHeaderLevel` in `selection/border/utils.ts`. Header coords
+  are negative (`-1` = closest to the cells). Levels are the opposite (`0` = farthest).
+  `count - headerIndex` with `-1` is `count + 1` (out of range); with a clamped body `0` it is
+  `count` (also out of range). The method then returns `false` and the selection ignores the
+  header box.
+- Pass the **unclamped** corner (`originalFromRow` / `originalFromColumn`). After `appear` clamps
+  a `selectRows` range, `fromColumn` is `0` even though the selection started at `-1`.
+- A resolved level can still land on a nested-header **placeholder**. NestedHeaders stamps
+  `hiddenHeader` on colspan continuations and rowspan-covered cells, but Walkontable must not
+  key off that plugin class: `thead th.hiddenHeader:not(:first-of-type)` keeps the first-of-type
+  continuation as a real box, and only rowspan placeholders also set inline `display: none`.
+  `lookupSelectionHeader` takes the axis size function (`outerWidth` / `outerHeight`) and skips
+  a TH only when that size is `0`. A laid-out first-of-type `hiddenHeader` is measured. When the
+  selected level is collapsed, fall back to the closest header, which maps 1:1 onto the index.
+  Do not revert to `columnHeaders.length - headerIndex` to "fix" this; that formula is out of
+  range and drops the padding lookup.
+- Column measurements are **not** always `header.left - table.left`. `appear()` writes the inline
+  start to `style.right` in `rtlMode`. `measureHeaderSelectionBox` is the shared formula: LTR
+  columns stay left-edge math; RTL columns use
+  `table.left + table.width - (header.left + header.width) - 1` (the same identity as the
+  body-cell path, which is written in `innerWidth` / `gridRightPos` form). Feeding left-edge math
+  into `style.right` puts the full-column / select-all highlight on the wrong side of the cell.
+  Rows are top/height on both directions.
 
 ## Border ownership: the header owns its gridline, on both axes
 
@@ -659,7 +701,9 @@ Never guess a container from an empty style read, and never cache a layout decis
 
 ## Dual-listener devices: touch AND mouse events reach the grid
 
-`isMobileBrowser()` reads the user agent, `isTouchSupported()` reads `'ontouchstart' in window`. iPad Safari/Chrome (desktop UA since iPadOS 13) and Windows touchscreens are **desktop UA + touch**, so `event.ts` registers both listener sets and the browser's synthesized `mousedown`/`mouseup`/`click` sequence after every `touchend` reaches the mouse listeners. Rules:
+`isMobileBrowser()` reads the user agent, `isTouchSupported()` reads `'ontouchstart' in window`. iPad Safari/Chrome (desktop UA since iPadOS 13) and Windows touchscreens are **desktop UA + touch**, so `event.ts` registers both listener sets and the browser's synthesized `mousedown`/`mouseup`/`click` sequence after every `touchend` reaches the mouse listeners.
+
+**Keep `event.ts` on `isMobileBrowser()`.** Mobile selection-handle UI (`border.ts` constructor / `MultipleSelectionHandles.isEnabled()`, the top-overlay corner reserve) uses `isMobileOrIpadOS()` so iPad gets the round range handles instead of the desktop fill square (DEV-1081). The `moveCells` drag band in `border.ts` stays on `!isMobileBrowser()` so iPad keeps the band it had with a desktop UA — do not fold that gate into `isMobileOrIpadOS()`. Folding iPad into `isMobileBrowser()` would drop mouse listeners on iPad and break the dual-listener path. Rules:
 
 - **Drop only the first synthesized pair after a tap, gated veto → pending pair → ceiling.** `#isTouchSynthesizedMouseEvent()` gates both `mousedown` and `mouseup` in that order: an engine that reports the origin and says "not touch" wins first (Blink's `sourceCapabilities.firesTouchEvents === false` means a real mouse or pen click, always processed, even right after a tap); otherwise the event is synthesized only if a touch-driven `onMouseUp` just armed `#synthesizedPairPending` AND the `TOUCH_SYNTHESIZED_MOUSE_WINDOW` (500 ms) ceiling since `#lastTouchMouseUpAt` has not passed — a tap that drifted past the move threshold is classified as a scroll by the touch path (no `onMouseDown`/`onMouseUp`, no stamp, pair never armed) — a drift ending over the already-selected cell gets its compatibility pair processed on every engine alike (DEV-2687); a drift over an unselected cell is `preventDefault`-ed and synthesizes nothing — provided no tap armed the pair inside the ceiling; a scroll-classified gesture clears the flag at its `touchend`, before its own compatibility pair arrives. The `mouseup` half consumes the pair (`#synthesizedPairPending = false`), so any later real mouse event inside the ceiling is treated as real — a fill-handle grab, a drag-selection, or a right-click started with a mouse right after a tap works on engines that do not report the input origin (WebKit, Firefox), where the residual gap is only the FIRST synthesized pair itself. Dropping only `mouseup` (the original #12804 fix) fired `onCellMouseDown` twice per tap and re-armed the pairing slot and made iPad double-tap-to-edit nondeterministic. `TOUCH_SYNTHESIZED_MOUSE_WINDOW` lives in `helpers/dom/inputOrigin.ts`, alongside `getMouseEventTouchOrigin()`, and is shared with `tableView.ts` (its `#recentTouchEndTimeout` uses the same constant), so both layers use the same fallback window. `tableView.ts`'s own gate (`#isSyntheticMouseEvent()`) deliberately keeps its older `reported ?? #recentTouchEnd` policy instead of adopting `event.ts`'s consume-once order: a Blink-flagged pair (`firesTouchEvents === true`) must never be allowed to close the editor through the outside-click handler, so the two gates are not to be "harmonized".
 - **Touch double-taps are paired independently of the mouse double-click slots.** `#handleTouchTap()` tracks `#lastTapCoords`/`#lastTapAt` and fires the double-click callbacks when a second tap lands on the same coordinates within `TOUCH_DBLTAP_TIMEOUT` (1000 ms); a long-press, a tap outside the cells, or a tap on different coordinates resets the detector. Coordinates, not the resolved TD, because Walkontable recycles TD elements across scrolls and re-renders (DEV-2687 review). Touch taps never arm `#dblClickOrigin` — only a mouse `mousedown` with `button === 0` does — so a real mouse click right after a tap cannot complete a double-click by pairing with it. Mouse double-click timing (`DBLCLICK_MOUSEDOWN_TIMEOUT` 1000 ms / `DBLCLICK_MOUSEUP_TIMEOUT` 500 ms) is unchanged. `touchcancel` resets the per-gesture state (`onTouchCancel`) — `touchApplied`, the mouse-down flag, the long-press timer, and the pending synthesized pair — so a cancelled gesture cannot leave `touchApplied` stuck and route real mouse events into the tap detector, leave drag-selection armed with no `mouseup` coming, or leave an earlier tap's pending flag dropping the next real mouse pair inside the ceiling.
