@@ -119,11 +119,9 @@ export class OversizedCellMouseScrollPage {
    *
    * @param {number} row Visual row index.
    * @param {number} col Visual column index.
-   * @param {number} [inset=8] Pixels to stay inside the intersection. Use 1
-   *   for a last-partial sliver that is thinner than 16px.
    */
-  async clickVisiblePart(row: number, col: number, inset = 8): Promise<void> {
-    const point = await this.page.evaluate(([r, c, pad]) => {
+  async clickVisiblePart(row: number, col: number): Promise<void> {
+    const point = await this.page.evaluate(([r, c]) => {
       const holder = document.querySelector('.ht_master .wtHolder');
       const cell = document.querySelector(`.ht_master [data-testid="cell-${r}-${c}"]`);
 
@@ -154,13 +152,14 @@ export class OversizedCellMouseScrollPage {
         throw new Error('cell has no clickable intersection with the holder');
       }
 
+      const pad = 8;
       const left = Math.min(rawLeft + pad, rawRight - 1);
       const top = Math.min(rawTop + pad, rawBottom - 1);
       const right = Math.max(rawRight - pad, rawLeft + 1);
       const bottom = Math.max(rawBottom - pad, rawTop + 1);
 
       return { x: (left + right) / 2, y: (top + bottom) / 2 };
-    }, [row, col, inset] as const);
+    }, [row, col] as const);
 
     await this.page.mouse.click(point.x, point.y);
   }
