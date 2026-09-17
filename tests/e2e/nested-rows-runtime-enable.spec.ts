@@ -81,6 +81,23 @@ test.describe('NestedRows enabled at runtime', () => {
     expect(await nestedRows.collapsedParents()).toEqual([2]);
   });
 
+  test('a round trip drops the collapsed parents rather than replaying them onto the new rows', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsRuntimeEnablePage(page, theme, bundle);
+
+    await nestedRows.goto();
+    await nestedRows.setNestedRows(true);
+    await nestedRows.collapseParent(0);
+    await expect(nestedRows.paintedNames()).toHaveText(FLAT_ROWS);
+
+    await nestedRows.setNestedRows(false);
+    await nestedRows.setNestedRows(true);
+
+    // `disablePlugin()` unregisters the trimming map and `enablePlugin()` builds a new CollapsingUI,
+    // so the collapse cannot survive - and must not come back pointing at whatever now sits there.
+    expect(await nestedRows.collapsedParents()).toEqual([]);
+    await expect(nestedRows.paintedNames()).toHaveText(NESTED_ROWS);
+  });
+
   test('edits still reach the data array the caller passed in', async({ page, theme, bundle }) => {
     const nestedRows = new NestedRowsRuntimeEnablePage(page, theme, bundle);
 
