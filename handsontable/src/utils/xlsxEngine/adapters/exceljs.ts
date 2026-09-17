@@ -47,6 +47,13 @@ export interface ExcelJsCell {
   dataValidation: { type?: string; formulae?: string[]; allowBlank?: boolean } | undefined;
   note: string | { texts: Array<{ text: string }> } | undefined;
   isMerged: boolean;
+  /**
+   * The 1-based row and column of the cell, and the top-left cell of the merge it belongs to
+   * (itself when it is not merged, or is the master).
+   */
+  row: number;
+  col: number;
+  master: ExcelJsCell;
 }
 
 /**
@@ -103,7 +110,6 @@ export interface ExcelJsWorksheet {
   protect(password: string, options?: Record<string, boolean>): void | Promise<void>;
   sheetProtection: Record<string, unknown> | undefined;
   conditionalFormattings: Array<{ ref: string; rules: unknown[] }>;
-  model: { merges: string[]; sheetProtection?: Record<string, unknown> };
   rowCount: number;
   columnCount: number;
   /**
@@ -513,27 +519,56 @@ function recordUnmodelledSheetFeatures(worksheet: ExcelJsWorksheet, dropped: Dro
 }
 
 /**
- * Reads the merges, sheet view (freeze panes and RTL), protection and conditional formatting that
- * apply to the sheet as a whole, rather than to one cell.
- *
- * Sheet protection is read from `worksheet.sheetProtection` when ExcelJS exposes it after `load()`,
- * falling back to `worksheet.model.sheetProtection` otherwise. A protected sheet's password is kept
- * in the file as a salted hash, never as the password: the hash is reported as
- * `sheetProtection:password` and deliberately not modelled, so a re-export cannot pretend to carry
- * a password it was never given.
+ * The extent of one merge, grown cell by cell while the rows are read. 1-based, inclusive.
  */
-function readSheetLayout(worksheet: ExcelJsWorksheet, sheet: SheetSnapshot, dropped: DroppedFeatures): void {
-  (worksheet.model.merges ?? []).forEach((ref) => {
-    const range = parseRangeRef(ref);
+interface MergeBounds {
+  top: number;
+  left: number;
+  bottom: number;
+  right: number;
+}
 
-    if (range) {
-      sheet.merges.push({
-        row: range.startRow - 1,
-        col: range.startCol - 1,
-        rowspan: range.endRow - range.startRow + 1,
-        colspan: range.endCol - range.startCol + 1,
-      });
-    }
+/**
+ * Grows the merge that `cell` belongs to so it covers the cell. Merges are collected here, inside
+ * the row pass, rather than read from `worksheet.model.merges`: `model` is a getter that
+ * re-serializes the whole worksheet (every row, every cell) on each access, which is a second
+ * O(cells) walk plus a full copy for a sheet near the cell cap.
+ */
+function trackMerge(cell: ExcelJsCell, merges: Map<string, MergeBounds>): void {
+  const { master } = cell;
+  const key = `${master.row}:${master.col}`;
+  const bounds = merges.get(key);
+
+  if (bounds) {
+    bounds.bottom = Math.max(bounds.bottom, cell.row);
+    bounds.right = Math.max(bounds.right, cell.col);
+  } else {
+    merges.set(key, {
+      top: master.row, left: master.col, bottom: Math.max(master.row, cell.row), right: Math.max(master.col, cell.col),
+    });
+  }
+}
+
+/**
+ * Reads the sheet view (freeze panes and RTL), protection and conditional formatting that apply to
+ * the sheet as a whole, rather than to one cell, and turns the merge bounds collected by the row
+ * pass into 0-based merge snapshots.
+ *
+ * Sheet protection is `worksheet.sheetProtection`, which the reader sets straight from the XML. A
+ * protected sheet's password is kept in the file as a salted hash, never as the password: the hash
+ * is reported as `sheetProtection:password` and deliberately not modelled, so a re-export cannot
+ * pretend to carry a password it was never given.
+ */
+function readSheetLayout(
+  worksheet: ExcelJsWorksheet, sheet: SheetSnapshot, merges: Map<string, MergeBounds>, dropped: DroppedFeatures
+): void {
+  merges.forEach((bounds) => {
+    sheet.merges.push({
+      row: bounds.top - 1,
+      col: bounds.left - 1,
+      rowspan: bounds.bottom - bounds.top + 1,
+      colspan: bounds.right - bounds.left + 1,
+    });
   });
 
   const view = worksheet.views?.[0];
@@ -546,7 +581,7 @@ function readSheetLayout(worksheet: ExcelJsWorksheet, sheet: SheetSnapshot, drop
     }
   }
 
-  const sheetProtection = worksheet.sheetProtection ?? worksheet.model.sheetProtection;
+  const { sheetProtection } = worksheet;
 
   if (sheetProtection) {
     const {
@@ -609,7 +644,8 @@ function assertSheetFits(name: string, rowCount: number, cellColCount: number, l
  * contributes those and nothing else.
  */
 function readRow(
-  row: ExcelJsRow, rowNumber: number, sheet: SheetSnapshot, dropped: DroppedFeatures, mergeType: number
+  row: ExcelJsRow, rowNumber: number, sheet: SheetSnapshot, dropped: DroppedFeatures, mergeType: number,
+  merges: Map<string, MergeBounds>
 ): number {
   const cells: Array<CellSnapshot | null> = [];
 
@@ -617,6 +653,10 @@ function readRow(
     const isEmpty = (cell.value === null || cell.value === undefined) && !cell.numFmt
       && !hasKeys(cell.font) && !hasKeys(cell.fill) && !hasKeys(cell.border) && !hasKeys(cell.alignment)
       && !cell.dataValidation && cell.note === undefined && cell.protection?.locked === undefined;
+
+    if (cell.isMerged) {
+      trackMerge(cell, merges);
+    }
 
     cells[colNumber - 1] = isEmpty || cell.type === mergeType ? null : readCell(cell, dropped);
   });
@@ -696,6 +736,7 @@ function readSheet(worksheet: ExcelJsWorksheet, dropped: DroppedFeatures, mergeT
   // the sheet is padded up to `sheetWidth` — the widest of the cell column count and every row
   // actually seen. A row that exists but carries no cell at all stays `[]`.
   let sheetWidth = cellColCount;
+  const merges = new Map<string, MergeBounds>();
 
   for (let rowNumber = 1; rowNumber <= rowCount; rowNumber++) {
     // `findRow` never materializes a missing row, unlike `getRow` (which `eachRow`'s `includeEmpty`
@@ -703,13 +744,13 @@ function readSheet(worksheet: ExcelJsWorksheet, dropped: DroppedFeatures, mergeT
     const row = worksheet.findRow(rowNumber);
 
     if (row !== undefined) {
-      sheetWidth = Math.max(sheetWidth, readRow(row, rowNumber, sheet, dropped, mergeType));
+      sheetWidth = Math.max(sheetWidth, readRow(row, rowNumber, sheet, dropped, mergeType, merges));
     }
   }
 
   padRows(sheet, rowCount, sheetWidth);
   readColumnLayout(worksheet, sheet, layoutColCount);
-  readSheetLayout(worksheet, sheet, dropped);
+  readSheetLayout(worksheet, sheet, merges, dropped);
 
   return sheet;
 }

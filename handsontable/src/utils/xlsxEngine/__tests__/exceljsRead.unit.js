@@ -199,7 +199,6 @@ describe('excelJsAdapter.read', () => {
             columns: columnsLength > 0 ? new Array(columnsLength) : undefined,
             findRow: () => undefined,
             getColumn: () => ({}),
-            model: { merges: [] },
             views: [],
             conditionalFormattings: [],
           }];
