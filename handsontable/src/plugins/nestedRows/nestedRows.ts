@@ -181,6 +181,12 @@ export class NestedRows extends BasePlugin {
    *
    * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
    *  - [`nestedRows`](@/api/options.md#nestedrows)
+   *
+   * The data manager is fed by the `beforeLoadData` and `beforeUpdateData` hooks only, and neither of
+   * them runs when `updateSettings()` turns the plugin on - `BasePlugin#onUpdateSettings` enables the
+   * plugin and then updates it, without touching the data. So on a first-time enable the manager still
+   * holds `null` and the source data is read back from the grid. That read is also where the dataset
+   * gets checked on this path, because `#acceptsData()` hangs off those same data hooks.
    */
   updatePlugin() {
     // `disablePlugin` unregisters the trimming map and `enablePlugin` builds a brand new CollapsingUI,
@@ -192,9 +198,18 @@ export class NestedRows extends BasePlugin {
     this.disablePlugin();
 
     // We store a state of the data manager.
-    const currentSourceData = this.dataManager!.getData();
+    let currentSourceData = this.dataManager!.getData();
+    const isFirstEnable = currentSourceData === null;
+
+    if (isFirstEnable) {
+      currentSourceData = this.dataManager!.getRawSourceData() as RowObject[];
+    }
 
     this.enablePlugin();
+
+    if (isFirstEnable && !this.#acceptsData(currentSourceData!)) {
+      return;
+    }
 
     // After enabling plugin previously stored data is restored.
     this.dataManager!.updateWithData(currentSourceData!);
@@ -206,6 +221,29 @@ export class NestedRows extends BasePlugin {
     }
 
     super.updatePlugin();
+  }
+
+  /**
+   * Keeps the row index maps in step with a plugin that `updateSettings()` just turned on or off.
+   *
+   * The `modifySourceLength` hook answers with the flattened tree while the plugin runs, so switching
+   * the plugin changes the grid's row count. Such a call carries neither `data` nor `columns`, and
+   * those are the only payloads the Core resizes the index maps for - so without this the children
+   * never show up on an enable, and the rows the tree added stay behind, reading back as `null`, on a
+   * disable. The Core renders right after this hook.
+   *
+   * @param {object} newSettings New set of settings passed to the `updateSettings()` method.
+   */
+  onUpdateSettings(newSettings: Record<string, unknown>) {
+    const wasEnabled = this.enabled;
+
+    super.onUpdateSettings(newSettings);
+
+    if (wasEnabled === this.enabled) {
+      return;
+    }
+
+    this.hot.rowIndexMapper.fitToLength(this.hot.countSourceRows());
   }
 
   /**

@@ -683,8 +683,6 @@ describe('NestedRows Collapsing UI', () => {
         nestedRows: true
       });
 
-      const rowsBefore = countRows();
-
       await updateSettings({ nestedRows: false });
 
       const plugin = getPlugin('nestedRows');
@@ -693,7 +691,24 @@ describe('NestedRows Collapsing UI', () => {
       expect(plugin.collapseParent(0)).toBe(false);
       expect(plugin.getCollapsedParents()).toEqual([]);
       expect(plugin.getRowLevel(0)).toBe(null);
-      expect(countRows()).toBe(rowsBefore);
+    });
+
+    it('should show the top-level rows only once the plugin is disabled', async() => {
+      handsontable({
+        data: getSimplerNestedData(),
+        nestedRows: true
+      });
+
+      expect(countRows()).toBe(18);
+
+      await updateSettings({ nestedRows: false });
+
+      expect(countRows()).toBe(3);
+      expect(getDataAtCell(0, 0)).toBe('Best Rock Performance');
+
+      await updateSettings({ nestedRows: true });
+
+      expect(countRows()).toBe(18);
     });
 
     it('should keep the collapsed rows collapsed after updateSettings', async() => {

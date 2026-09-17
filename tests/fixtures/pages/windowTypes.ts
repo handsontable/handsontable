@@ -89,6 +89,7 @@ export interface FixtureHotInstance {
     isEnabled(): boolean;
   };
   getPlugin(name: 'nestedRows'): {
+    enabled: boolean,
     collapseAll(): void,
     expandAll(): void,
     collapseParent(row: number): boolean,
@@ -216,6 +217,8 @@ declare global {
   interface Window {
     /** The fixture's live Handsontable instance. */
     hot: FixtureHotInstance;
+    /** DEV-2938 fixture: everything the page logged through `console.error`, in order. */
+    consoleErrors: string[];
     /** DEV-2917 fixture: the message of a throw the fixture's own grid build caught, if any. */
     htFixtureError?: string;
     /**

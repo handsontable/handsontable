@@ -242,6 +242,20 @@ They are written in different places and can drift. Keep this in mind:
   `enablePlugin()`. The existing `collapsedRowsStash` cannot carry it — that object dies with the old
   instance. Replay with `shouldRunHooks = false`: it repeats a choice the user already made, and
   firing hooks there reports a collapse on every settings update.
+- **A settings-driven enable arrives with an EMPTY data manager and a stale row count, and the plugin
+  has to repair both itself.** `DataManager#setData()` is called from the `beforeLoadData` and
+  `beforeUpdateData` hooks only, so a grid built with `nestedRows: false` and switched on later reaches
+  `updatePlugin()` with `getData()` still `null` — `rewriteCache()` then died on `this.data.length`
+  (DEV-2938). `updatePlugin()` therefore falls back to `getRawSourceData()`, and that fallback is also
+  where the dataset is validated, because `#acceptsData()` hangs off those same data hooks and an
+  array-of-arrays dataset would otherwise be cached as one node per cell. The row count is the second
+  half: `modifySourceLength` reports the flattened tree while the plugin runs, but `updateSettings()`
+  resizes the index maps for a payload carrying `data` or `columns` only, so a bare
+  `{ nestedRows: <bool> }` left the maps on the previous length — no children on an enable, and phantom
+  rows reading back as `null` on a disable. `onUpdateSettings()` is overridden to `fitToLength()` when
+  the enabled state actually flipped; the Core renders right after that hook. Do not move that repair
+  into `enablePlugin()`/`disablePlugin()`: `updatePlugin()` calls both on every rebuild, and the
+  intermediate count would be wrong in each direction.
 - **In React, `updatePlugin()` runs on every re-render.** `SettingsMapper.getSettings()` copies every
   prop except `children` into the `updateSettings` payload, so the `nestedRows` key is always present
   and `BasePlugin#onUpdateSettings` always fires. Anything you keep outside the settings object is
