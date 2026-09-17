@@ -687,6 +687,8 @@ describe('NestedRows Collapsing UI', () => {
 
       const plugin = getPlugin('nestedRows');
 
+      expect(countRows()).toBe(3);
+
       // `disablePlugin` unregisters the trimming map, so the write is dropped without an error.
       expect(plugin.collapseParent(0)).toBe(false);
       expect(plugin.getCollapsedParents()).toEqual([]);

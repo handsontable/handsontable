@@ -203,7 +203,7 @@ test.describe('NestedRows enabled at runtime', () => {
   test('re-sending the setting draws the grid once, not twice', async({ page, theme, bundle }) => {
     const nestedRows = new NestedRowsRuntimeEnablePage(page, theme, bundle);
 
-    await nestedRows.goto();
+    await nestedRows.goto({ size: 'tall' });
     await nestedRows.setNestedRows(true);
 
     const before = await nestedRows.renderCount();
@@ -224,6 +224,8 @@ test.describe('NestedRows enabled at runtime', () => {
     expect(await nestedRows.isPluginEnabled()).toBe(false);
     expect(await nestedRows.nestedRowsSetting()).toBe(false);
     await expect(nestedRows.paintedNames()).toHaveText(FLAT_ROWS);
-    expect(await nestedRows.consoleErrors()).toHaveLength(1);
+    expect(await nestedRows.consoleErrors()).toEqual([
+      expect.stringContaining('The Nested Rows plugin requires an Array of Objects as a dataset'),
+    ]);
   });
 });
