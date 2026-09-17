@@ -3174,7 +3174,7 @@ export default (): Record<string, unknown> => {
      * @memberof Options#
      * @type {object}
      * @default undefined
-     * @since 18.2.0
+     * @since 19.0.0
      * @category ImportFile
      * @configScope grid
      *

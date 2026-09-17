@@ -488,7 +488,7 @@ export const REGISTERED_HOOKS = [
    * Fired by the {@link ImportFile} plugin after the imported result was applied to the grid.
    *
    * @event Hooks#afterImport
-   * @since 18.2.0
+   * @since 19.0.0
    * @param {object} result The applied {@link ImportFile} result.
    * @param {string} format The import format, e.g. `'xlsx'`.
    */
@@ -1681,7 +1681,7 @@ export const REGISTERED_HOOKS = [
    * result is applied to the grid. Mutating `result` changes what gets applied.
    *
    * @event Hooks#beforeImport
-   * @since 18.2.0
+   * @since 19.0.0
    * @param {object} result The {@link ImportFile} result about to be applied.
    * @param {string} format The import format, e.g. `'xlsx'`.
    * @returns {boolean|undefined} If `false`, the result is not applied. The import promise still resolves with it.
