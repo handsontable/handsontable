@@ -142,7 +142,7 @@ test.describe('Manual resize drag interrupted by updateSettings', () => {
  */
 test.describe('Manual resize second-press hold interrupted mid-timer', () => {
   let grid: ManualResizeDragInterruptionPage;
-  let pageErrors: string[];
+  let pageErrors: string[] = [];
 
   test.beforeEach(async ({ page, theme, bundle }) => {
     pageErrors = [];
