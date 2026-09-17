@@ -80,6 +80,18 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   an element that is present and visible. Centralize the choice in one page-object
   method so the reasoning is stated once
   (`CommentsEditorResizePage.hoverCellWithoutComment()`).
+- **A last dropdown option's unclipped centre is not a theme-stable hit-test.**
+  Horizon's menu-item padding is 8px (main is 4px), so the same four-row
+  multiselect list that fits on `main` is height-constrained by
+  `updateDimensions` and the last `<li>` sits below the dropdown's
+  `overflow: auto` fold. `getBoundingClientRect()` still reports that row;
+  `elementFromPoint` at its centre hits the page (`HTML`) while the list is
+  correctly placed and scrollable (DEV-1198). Hit-test a painted control
+  (`MultiselectOpenLeftPage.firstOption()` / the search field), not the
+  last row. The last-column open-left contract still fails without the
+  product flip: the first option is ~350px wide, so its centre sits past
+  the grid's `overflow: clip` when the list stays left-aligned with the
+  last cell.
 
 ## Fixture contract (never get these wrong)
 
@@ -208,9 +220,15 @@ not need a real press.
 - Page objects for mobile specs live in `fixtures/pages/mobile/` (as walkontable's do in
   `fixtures/pages/walkontable/`). A mobile spec must declare
   `test.use({ ...devices['iPhone 13'], browserName: 'chromium' })`: Handsontable decides
-  whether to create the mobile selection handles from the **user agent, at grid construction
-  time**, so without the emulation the handles never exist and the spec fails for the wrong
-  reason. Assert the handle is visible before touching it.
+  whether to create the mobile selection handles from `isMobileOrIpadOS()` at grid
+  construction time, so without the emulation the handles never exist and the spec fails for
+  the wrong reason. Assert the handle is visible before touching it.
+- iPhone emulation does **not** catch iPadOS 13+ (desktop Macintosh UA + `MacIntel` +
+  `maxTouchPoints > 2`). For that path, use Desktop Chrome, `hasTouch: true`, a Macintosh
+  Safari `userAgent`, and `addInitScript` that sets `navigator.platform = 'MacIntel'` and
+  `navigator.maxTouchPoints = 5` **before** the grid script loads (`setPlatformMeta` /
+  `setBrowserMeta` run at module load). Playwright Chromium on Linux reports `Linux x86_64`,
+  so a UA override alone is not enough. Reference: `e2e/ipad-selection-handles.spec.ts`.
 - `page.touchscreen` only **taps** — it has no drag. A touch drag needs CDP
   (`page.context().newCDPSession(page)` → `Input.dispatchTouchEvent`), which is also why those
   specs pin `browserName: 'chromium'`. Nothing else here emits trusted `touchmove`.

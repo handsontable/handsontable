@@ -65,7 +65,7 @@ silently ignored when they arrived through `updateSettings()` (DEV-2850). Four r
   them in that state and you get the *defaults*, so re-applying would reset the user's `samplingRatio`, flip
   `useHeaders` back to `true`, and re-measure every column on an unrelated `updateSettings({ readOnly: true })`.
   Restore from `hot.getSettings()[PLUGIN_KEY]`, which is untouched — the same repair `manualColumnResize`
-  makes for the same base-class reason (`../manualResize/AGENTS.md`). **This is the common path:** the Vue
+  makes for the same base-class reason (`../../utils/manualResize/AGENTS.md`). **This is the common path:** the Vue
   wrapper omits every settings key whose value is unchanged (`wrappers/vue3/src/helpers.ts`, `simpleEqual`),
   so a Vue app sends a payload *without* `autoColumnSize` on virtually every prop change.
 - **Re-measure with `recalculateAllColumnsWidth()`, not `clearCache()`.** A bare clear empties every measured
@@ -152,7 +152,7 @@ caveat is in the class JSDoc — keep it there.
 ## Where to look next
 
 - Row counterpart: `../autoRowSize/AGENTS.md`. Row *header* widths: `../autoRowHeaderSize/AGENTS.md`.
-- Storing user-dragged sizes instead of computing them: `../manualResize/AGENTS.md`.
+- Storing user-dragged sizes instead of computing them: `../../utils/manualResize/AGENTS.md`.
 - `GhostTable` / off-DOM measurement rules (the probe must mimic the real grid DOM exactly):
   `../../../AGENTS.md`.
 - Plugin contract, lifecycle, priorities: `../base/AGENTS.md`.

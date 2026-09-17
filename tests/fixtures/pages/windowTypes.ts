@@ -83,7 +83,11 @@ export interface FixtureHotInstance {
   };
   getPlugin(name: 'dragToScroll'): { isListening(): boolean };
   getPlugin(name: 'autofill'): { mouseDownOnCellCorner: boolean };
-  getPlugin(name: 'multipleSelectionHandles'): { isDragged(): boolean };
+  getPlugin(name: 'multipleSelectionHandles'): {
+    isDragged(): boolean;
+    enabled: boolean;
+    isEnabled(): boolean;
+  };
   getPlugin(name: 'nestedRows'): {
     collapseAll(): void,
     expandAll(): void,
@@ -136,19 +140,31 @@ export interface FixtureHotInstance {
     isOpened(): boolean,
     beginEditing(): void,
     finishEditing(restoreOriginalValue?: boolean): void,
+    isFlippedHorizontally?: boolean,
   } | undefined;
+  isRtl(): boolean;
   render(): void;
   listen(): void;
   view: {
     isVerticallyScrollableByWindow(): boolean,
     isHorizontallyScrollableByWindow(): boolean,
+    getViewportHeight(): number,
     countRenderableColumns(): number,
   };
   /** The grid's own root `<div>` – a child of the container passed to the constructor. */
   rootElement: HTMLElement;
+  /** The element the constructor received; the root wrapper is appended into it. */
+  rootContainer: HTMLElement;
+  /** `.ht-root-wrapper` – the flex column holding the slots, the grid box and the overlays layer. */
+  rootWrapperElement: HTMLElement;
+  /** `.ht-slot-bottom` – the bottom layout slot (pagination bar, sheets bar, license notification). */
+  rootSlotBottomElement: HTMLElement;
   getFirstFullyVisibleRow(): number;
   getLastFullyVisibleRow(): number;
+  getLastPartiallyVisibleRow(): number;
+  getLastPartiallyVisibleColumn(): number;
   getLastRenderedVisibleRow(): number;
+  getRowHeight(row: number): number | undefined;
   scrollViewportTo(options: { row?: number, col?: number, verticalSnap?: string }): boolean;
   selectCells(ranges: number[][]): boolean;
   selectColumns(fromCol: number, toCol: number): boolean;
@@ -190,6 +206,19 @@ export interface MoveCellsHookRecord {
 }
 
 /**
+ * One recorded remove-row or remove-column hook call from the DEV-2523 firing-pattern fixture.
+ * `physicalIndexes` covers both halves, since the hooks name the argument `physicalRows` for
+ * rows and `physicalColumns` for columns while passing the same shape.
+ */
+export interface RemoveHookRecord {
+  hook: 'beforeRemoveRow' | 'afterRemoveRow' | 'beforeRemoveCol' | 'afterRemoveCol';
+  index: number;
+  amount: number;
+  physicalIndexes: number[];
+  source?: string;
+}
+
+/**
  * Hook counters the DEV-2687 touch tap-to-edit fixture exposes on `window.hookCounts`.
  */
 export type HookCounterName =
@@ -224,6 +253,12 @@ declare global {
     initGrid(overrides?: Record<string, unknown>, containerWidth?: string): boolean;
     /** `afterScrollVertically` calls since the last rebuild (width-window-scroll fixture). */
     verticalScrollCount: number;
+    /**
+     * Rebuilds the bottom-slot sizing fixture grid (DEV-2848): `variant` picks the CSS layout,
+     * `plugin` the bottom-slot bar; both default to the page's query params. `overrides` are grid
+     * options applied last.
+     */
+    initSlotGrid(variant?: string, plugin?: string, overrides?: Record<string, unknown>): boolean;
     /** Rebuilds the selection-features fixture grid with the given setting overrides. */
     initSelectionGrid(overrides?: Record<string, unknown>): boolean;
     /** Rebuilds the mobile drag-to-scroll fixture grid with the given setting overrides. */
@@ -244,6 +279,12 @@ declare global {
      * Rebuilds the DEV-59 sorting-with-`fixedRowsTop`/`fixedRowsBottom` fixture grid.
      */
     initSortingFixedRowsGrid(overrides?: Record<string, unknown>): boolean;
+    /** Rebuilds the DEV-1198 multiselect open-left fixture grid. */
+    initMultiselectOpenLeftGrid(overrides?: Record<string, unknown>): boolean;
+    /**
+     * Rebuilds the DEV-2524 filtering-with-`fixedRowsTop`/`fixedRowsBottom` fixture grid.
+     */
+    initFiltersFixedRowsGrid(overrides?: Record<string, unknown>): boolean;
     /** Returns the text the browser currently reports as selected (fragmentSelection fixture). */
     readTextSelection(): string;
     /** Drops any existing text selection (fragmentSelection fixture). */
@@ -258,6 +299,12 @@ declare global {
     moveCellsHookLog: MoveCellsHookRecord[];
     /** Recorded NestedRows collapse/expand hook calls, in firing order. */
     hookLog: { name: string, args: unknown[] }[];
+    /** Recorded remove-row/remove-column hook arguments from the DEV-2523 firing fixture. */
+    removeHookLog: RemoveHookRecord[];
+    /** Rebuilds the DEV-2523 firing fixture grid with the given setting overrides. */
+    initRemoveHooksGrid(overrides?: Record<string, unknown>): boolean;
+    /** Makes the fixture's `beforeRemoveRow` rewrite `physicalRows` to this list (DEV-2523). */
+    setBeforeRemoveRowRewrite(physicalRows: number[] | null): boolean;
     /** Recorded remove-row hook arguments from the DEV-30 nested undo fixture. */
     removeLog: {
       hook: 'beforeRemoveRow' | 'afterRemoveRow';
@@ -283,6 +330,16 @@ declare global {
     instrumentDragOutsideCheck(): boolean;
     /** How many drag-outside measurements the healthy grid has taken since instrumentation. */
     dragOutsideCheckCount: number;
+    /** DEV-1159: `Element.prototype.scrollIntoView` calls since the oversized-cell counter reset. */
+    htScrollIntoViewCount: number;
+    /** DEV-1159: last `scrollIntoView` argument after the counter reset. */
+    htScrollIntoViewLastArgs: ScrollIntoViewOptions | boolean | undefined;
+    /**
+     * DEV-1159: dispatches mousedown/mouseup/click on a master cell. Installed
+     * with the `scrollIntoView` spy so last-partial clicks can read the index
+     * and fire the events in one evaluate.
+     */
+    dispatchMasterCellMouseClick: (row: number, col: number) => void;
     /**
      * Chromium-only InputDeviceCapabilities constructor, used to stamp synthetic mouse events
      * with their origin (DEV-2687).

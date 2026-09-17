@@ -1,4 +1,5 @@
 import { getScrollableElement, isHTMLElement } from '../../../../../helpers/dom/element';
+import type { CloneScrollTarget } from './cloneScrollDrift';
 import type { EngineContext } from '../../wire';
 import type { default as Overlays } from '../overlays';
 import type { StickyScrollStrategy } from '../strategies/stickyScrollStrategy';
@@ -192,6 +193,19 @@ export class ScrollSync {
   #hasRenderingStateChanged = false;
 
   /**
+   * The offset last written to each clone holder, per axis. The clone holders are composited scroll
+   * containers, so the browser can scroll one on its own; `NativeScrollInput#onCloneScroll` reads this
+   * ledger to tell such a scroll from the engine's own writes. Every write to a clone holder in this
+   * class goes through `#writeCloneScrollTop`/`#writeCloneScrollLeft` so the ledger stays complete,
+   * and this class is the only writer of those offsets in the engine: the one other write,
+   * `#onCloneScroll`'s correction, re-applies the ledger's own value. A new writer elsewhere would
+   * make the ledger lie and its write read as a user scroll - route it through here instead.
+   *
+   * @type {WeakMap<HTMLElement, CloneScrollTarget>}
+   */
+  readonly #cloneScrollTargets = new WeakMap<HTMLElement, CloneScrollTarget>();
+
+  /**
    * Cached vertical scroll position used to deduplicate `onScrollVertically` callbacks.
    *
    * @type {number | null}
@@ -323,13 +337,13 @@ export class ScrollSync {
 
     if (this.#horizontalScrolling) {
       if (isHTMLElement(topHolder)) {
-        topHolder.scrollLeft = scrollX;
+        this.#writeCloneScrollLeft(topHolder, scrollX);
       }
 
       const bottomHolder = bottomOverlay.needFullRender ? bottomOverlay.clone?.wtTable.holder : null; // todo rethink
 
       if (bottomHolder) {
-        bottomHolder.scrollLeft = scrollX;
+        this.#writeCloneScrollLeft(bottomHolder, scrollX);
       }
     }
 
@@ -341,9 +355,9 @@ export class ScrollSync {
       // shifting the visible rows and misaligning them with the master table.
       if (isHTMLElement(leftHolder)) {
         if (wtViewport.isVerticallyScrollableByWindow()) {
-          leftHolder.scrollTop = 0;
+          this.#writeCloneScrollTop(leftHolder, 0);
         } else {
-          leftHolder.scrollTop = scrollY;
+          this.#writeCloneScrollTop(leftHolder, scrollY);
         }
       }
     }
@@ -394,18 +408,93 @@ export class ScrollSync {
       const { scrollLeft } = horizontalOwner;
 
       if (topOverlay.needFullRender && topOverlay.clone) {
-        topOverlay.clone.wtTable.holder.scrollLeft = scrollLeft; // todo rethink, *overlay.setScroll*()
+        this.#writeCloneScrollLeft(topOverlay.clone.wtTable.holder, scrollLeft);
       }
       if (bottomOverlay.needFullRender && bottomOverlay.clone) {
-        bottomOverlay.clone.wtTable.holder.scrollLeft = scrollLeft; // todo rethink, *overlay.setScroll*()
+        this.#writeCloneScrollLeft(bottomOverlay.clone.wtTable.holder, scrollLeft);
       }
     }
 
     if (isHTMLElement(verticalOwner) && inlineStartOverlay.needFullRender && inlineStartOverlay.clone) {
-      inlineStartOverlay.clone.wtTable.holder.scrollTop = verticalOwner.scrollTop; // todo rethink, *overlay.setScroll*()
+      this.#writeCloneScrollTop(inlineStartOverlay.clone.wtTable.holder, verticalOwner.scrollTop);
     }
 
     this.#hasRenderingStateChanged = false;
+  }
+
+  /**
+   * Returns the offset the engine last wrote to a clone holder, per axis. A holder never written to
+   * is expected at offset zero on both axes - that is where the engine leaves a clone it does not
+   * scroll.
+   *
+   * @param {HTMLElement} holder A clone's `.wtHolder` element.
+   * @returns {CloneScrollTarget}
+   */
+  getCloneScrollTarget(holder: HTMLElement): CloneScrollTarget {
+    const target = this.#cloneScrollTargets.get(holder);
+
+    // A copy: the ledger entry is mutated in place on every write.
+    return target ? { top: target.top, left: target.left } : { top: 0, left: 0 };
+  }
+
+  /**
+   * Records the offset a clone holder actually holds after the browser clamped a write of this
+   * class to the holder's range.
+   *
+   * The engine writes the master's offset onto the clones, and during a relayout the master can sit
+   * past a clone's momentary range - the browser then clamps the write while the ledger keeps the
+   * value asked for. `NativeScrollInput#onCloneScroll` resolves that to no drift, and hands the
+   * clamped offset back here so the next scroll event on that holder matches the ledger and returns
+   * before any layout read. Only the listener calls it, and only with the value it just resolved,
+   * so `ScrollSync` stays the one place a clone's expected offset is written.
+   *
+   * @param {HTMLElement} holder A clone's `.wtHolder` element.
+   * @param {CloneScrollTarget} offset The offset the holder holds.
+   */
+  recordClampedCloneScrollTarget(holder: HTMLElement, offset: CloneScrollTarget) {
+    const target = this.#cloneScrollTarget(holder);
+
+    target.top = offset.top;
+    target.left = offset.left;
+  }
+
+  /**
+   * Writes a clone holder's `scrollTop` and records it in the ledger.
+   *
+   * @param {HTMLElement} holder A clone's `.wtHolder` element.
+   * @param {number} top The vertical offset to write.
+   */
+  #writeCloneScrollTop(holder: HTMLElement, top: number) {
+    this.#cloneScrollTarget(holder).top = top;
+    holder.scrollTop = top;
+  }
+
+  /**
+   * Writes a clone holder's `scrollLeft` and records it in the ledger.
+   *
+   * @param {HTMLElement} holder A clone's `.wtHolder` element.
+   * @param {number} left The horizontal offset to write.
+   */
+  #writeCloneScrollLeft(holder: HTMLElement, left: number) {
+    this.#cloneScrollTarget(holder).left = left;
+    holder.scrollLeft = left;
+  }
+
+  /**
+   * Returns the holder's ledger entry, creating it on the first write.
+   *
+   * @param {HTMLElement} holder A clone's `.wtHolder` element.
+   * @returns {CloneScrollTarget}
+   */
+  #cloneScrollTarget(holder: HTMLElement): CloneScrollTarget {
+    let target = this.#cloneScrollTargets.get(holder);
+
+    if (!target) {
+      target = { top: 0, left: 0 };
+      this.#cloneScrollTargets.set(holder, target);
+    }
+
+    return target;
   }
 
   /**

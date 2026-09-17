@@ -48,6 +48,7 @@
  *  18. Versioned /docs/:ver/react-*        → /docs/:ver/react-data-grid/*
  * 18a. POST /docs/scripts/json/save.json   → mock 200 JSON (saving-data demo)
  * 18b. /docs/_md/**.md, /docs/llms*.txt   → served from assets as text/plain
+ * 18c. GET /docs/api/design-system-updated.json → Figma last-update date (JSON)
  *  19. Static asset fallback (env.ASSETS)
  */
 
@@ -850,7 +851,360 @@ function withSecurityHeaders(response) {
   return decorated;
 }
 
-async function route(request, env) {
+// ---------------------------------------------------------------------------
+// Design System last-update date (rule 18c)
+// ---------------------------------------------------------------------------
+
+const FIGMA_API_ORIGIN = 'https://api.figma.com';
+const DESIGN_SYSTEM_DATE_PATH = '/docs/api/design-system-updated.json';
+
+// Returned by `readJson()` instead of throwing, so a body that is not JSON is
+// reported as itself rather than as the route's catch-all "unreachable".
+const BAD_JSON = Symbol('bad-json');
+
+// Figma's maximum. The default is 30, and version history is mostly unnamed
+// autosaves - one per 30 minutes of editing - so a long gap between publishes
+// can bury the newest named version below the first page.
+const FIGMA_VERSIONS_PAGE_SIZE = 50;
+
+// Up to 200 versions. Enough to cross a long autosave run, bounded so a file
+// that genuinely has no named version cannot walk its whole history on every
+// cache miss.
+const FIGMA_VERSIONS_MAX_PAGES = 4;
+
+/**
+ * Returns a pagination cursor only when it points at Figma itself.
+ *
+ * The cursor comes from a response body, so it is data from elsewhere, and the
+ * worker holds a credential. Matching the parsed origin rather than a string
+ * prefix is what makes `https://api.figma.com.example.com/` fail this check.
+ *
+ * @param {unknown} candidate
+ * @returns {string|null}
+ */
+function figmaCursor(candidate) {
+  if (typeof candidate !== 'string') {
+    return null;
+  }
+
+  try {
+    return new URL(candidate).origin === FIGMA_API_ORIGIN ? candidate : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Parses a response body as JSON, or returns `BAD_JSON`.
+ *
+ * A 2xx carrying HTML - a proxy error page, a maintenance notice, a
+ * challenge - is a reachable Figma answering with something unusable, and
+ * saying "unreachable" sends an operator to check connectivity that is fine.
+ *
+ * @param {Response} response
+ * @returns {Promise<object|symbol>}
+ */
+async function readJson(response) {
+  try {
+    return await response.json();
+  } catch {
+    return BAD_JSON;
+  }
+}
+
+// One day. The design system changes a few times a year at most, so a longer
+// window would be defensible - a day just keeps the page from ever looking
+// stale by more than one, at a cost of one Figma call per edge location.
+const DESIGN_SYSTEM_DATE_MAX_AGE = 86400;
+
+// An unsettled answer - a failure, or a date from a history the walk could not
+// finish - is held for minutes, not a day. Whatever caused it (an unset secret,
+// an expired token, a rate limit, an outage) the fix must not take 24 hours to
+// show: on staging the `null` cached before the secrets were set outlived them,
+// so the endpoint answered the real date to a cache-busted request while the
+// page still read a stale `null`.
+//
+// These ARE written to the edge cache, at this TTL. Skipping the write instead
+// would mean every request during a Figma outage re-runs the whole read - an
+// OAuth refresh plus the history walk - and under a 429 that pattern feeds
+// itself.
+const DESIGN_SYSTEM_DATE_ERROR_MAX_AGE = 300;
+
+// Bump to orphan every previously cached entry.
+//
+// The Cache API survives deployments, and `*.pages.dev` cannot be purged from
+// the dashboard or the API - zone purge needs a zone you own, and this
+// hostname is Cloudflare's. `cache.delete()` only clears the one data center
+// that ran it. So a version in the cache key is the only lever that drops a
+// bad entry everywhere without waiting out its TTL.
+//
+// 3: staging moved from a personal access token to the OAuth credentials, and
+// the cached date would otherwise have kept answering from the old read, which
+// would have looked identical whether or not the refresh worked.
+// 4: `reason` added to failure responses - the cached ones predate the field.
+// 5: the versions walk can now find a named version where the single-page read
+//    saw only autosaves, so an entry cached before it holds a last-touched date
+//    where this build would return a published one.
+// 6: failures and provisional dates are now cached at the short TTL rather than
+//    skipped, so entries written under the old rule carry the wrong lifetime.
+//
+// Bump it whenever the date is *selected* differently, not only when the
+// response shape changes: a cached body outlives the deploy that would have
+// replaced it.
+const DESIGN_SYSTEM_CACHE_VERSION = 6;
+
+/**
+ * Wraps a `{ date, source }` pair in the endpoint's only response shape.
+ *
+ * Every failure path returns this too, with `date: null`, so the page has one
+ * shape to read and never has to branch on a status code. See
+ * `readDesignSystemDate()` for why failures are not surfaced as errors.
+ *
+ * A failure also carries `reason`, naming the step that failed - the page
+ * ignores it, but without it a hidden field is indistinguishable from a
+ * missing secret, a revoked token and a Figma outage, none of which leave a
+ * trace anywhere else. It names a step and an HTTP status only, never a
+ * credential or any part of one.
+ *
+ * @param {{date: string|null, source: string|null, reason?: string|null}} body
+ * @param {boolean} settled Whether the answer is a date read from a history
+ *   the walk finished. Anything else is held for minutes, not a day.
+ * @returns {Response}
+ */
+function designSystemDateResponse(body, settled) {
+  const maxAge = settled ? DESIGN_SYSTEM_DATE_MAX_AGE : DESIGN_SYSTEM_DATE_ERROR_MAX_AGE;
+
+  return new Response(JSON.stringify(body), {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': `public, max-age=${maxAge}`,
+    },
+  });
+}
+
+/**
+ * Resolves the authorization header for the Figma calls, preferring OAuth.
+ *
+ * Figma caps a personal access token at **90 days**, and a plan access token
+ * (1 year) needs an Organization or Enterprise plan, which this account is not
+ * on. Either would make the date silently disappear on a timer. An OAuth
+ * refresh token has no such cap and can be exchanged for a fresh access token
+ * as often as needed, so it is the only credential here that keeps working
+ * without someone diarizing a rotation.
+ *
+ * The personal-token path is kept because it is one secret instead of three,
+ * which makes it the quick way to prove the endpoint works before setting the
+ * OAuth app up. It is a stopgap, not the intended production credential.
+ *
+ * Costs one extra request per cache miss - about one a day per edge location -
+ * which is cheaper than storing the access token and tracking its expiry.
+ *
+ * @param {object} env The worker environment.
+ * @param {Function} fetchImpl
+ * @returns {Promise<{headers: object|null, reason: string|null}>} Headers to
+ *   send, or a reason naming the step that failed.
+ */
+async function figmaAuthHeaders(env, fetchImpl) {
+  const clientId = env.FIGMA_CLIENT_ID;
+  const clientSecret = env.FIGMA_CLIENT_SECRET;
+  const refreshToken = env.FIGMA_REFRESH_TOKEN;
+
+  if (clientId && clientSecret && refreshToken) {
+    const response = await fetchImpl(`${FIGMA_API_ORIGIN}/v1/oauth/refresh`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        // Figma authenticates the refresh with HTTP Basic, not body params.
+        Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
+      },
+      body: `refresh_token=${encodeURIComponent(refreshToken)}`,
+    });
+
+    if (!response.ok) {
+      // A revoked or mistyped refresh token, or a client id/secret that do not
+      // match it. The status is the only detail worth surfacing - the body can
+      // quote the credential back.
+      return { headers: null, reason: `oauth-refresh-http-${response.status}` };
+    }
+
+    const payload = await readJson(response);
+
+    if (payload === BAD_JSON) {
+      return { headers: null, reason: 'oauth-refresh-bad-json' };
+    }
+
+    // The refresh response carries no new refresh token - the same one is
+    // reused - so there is nothing to persist here.
+    return payload?.access_token
+      ? { headers: { Authorization: `Bearer ${payload.access_token}` }, reason: null }
+      : { headers: null, reason: 'oauth-refresh-no-access-token' };
+  }
+
+  if (env.FIGMA_TOKEN) {
+    return { headers: { 'X-Figma-Token': env.FIGMA_TOKEN }, reason: null };
+  }
+
+  // Name which half is missing: a half-configured OAuth setup and no
+  // credentials at all look identical from outside otherwise.
+  const partialOAuth = Boolean(clientId || clientSecret || refreshToken);
+
+  return { headers: null, reason: partialOAuth ? 'oauth-incomplete' : 'no-credentials' };
+}
+
+/**
+ * Reads the date the Design System Figma file was last updated.
+ *
+ * Prefers the newest *named* version over the file's raw last-touched time.
+ * Figma's version history interleaves autosave checkpoints (`label: null`)
+ * with versions a designer deliberately named, and `last_touched_at` moves on
+ * any edit at all - so both would report "updated today" because someone
+ * nudged a frame.
+ *
+ * For this file the named versions are not just "some milestone": the design
+ * team labels one `Published to Community hub` on every publish. That matters
+ * because the Community listing the docs link to has **no** REST API of its
+ * own - searching Figma's whole OpenAPI spec for "community" returns only
+ * payment endpoints - so its publish date is otherwise unreadable. The team's
+ * labelling convention is what makes it readable at all.
+ *
+ * Measured 2026-09-16, and the gap is not academic: the newest named version
+ * was 2026-08-20 while `last_touched_at` was 2026-09-11. Reporting the latter
+ * would have claimed an update three weeks newer than anything a reader could
+ * actually download.
+ *
+ * The match is deliberately on "has a label", not on the label text - a
+ * reworded convention should degrade to the next named version, not to a
+ * wrong date.
+ *
+ * The response is ordered newest-first in practice, but the API does not
+ * promise it, so the newest labelled entry is picked by date rather than by
+ * position.
+ *
+ * Returns `date: null` rather than throwing on every failure - an unset token,
+ * a revoked token, a rate limit, or Figma being down must never do anything
+ * more visible than hide one line on one page.
+ *
+ * @param {object} env The worker environment.
+ * @returns {Promise<{date: string|null, source: string|null, reason?: string|null}>}
+ */
+async function readDesignSystemDate(env) {
+  const fileKey = env.FIGMA_FILE_KEY;
+
+  if (!fileKey) {
+    return { date: null, source: null, reason: 'no-file-key' };
+  }
+
+  // Injectable so the tests can exercise every branch without a network call
+  // or a global stub; production passes nothing and gets the runtime's fetch.
+  const fetchImpl = env.FIGMA_FETCH ?? globalThis.fetch;
+  const auth = await figmaAuthHeaders(env, fetchImpl);
+
+  if (auth.headers === null) {
+    return { date: null, source: null, reason: auth.reason };
+  }
+
+  const headers = auth.headers;
+  const file = encodeURIComponent(fileKey);
+
+  // Walk the version history newest-first until a named version turns up.
+  // One page is not the history: Figma paginates it, and the pages between two
+  // publishes are all autosaves, so reading only the first page reports "no
+  // named version" for any file with a busy stretch since its last publish.
+  let nextUrl = `${FIGMA_API_ORIGIN}/v1/files/${file}/versions?page_size=${FIGMA_VERSIONS_PAGE_SIZE}`;
+  let newestNamed = null;
+  let pagesRead = 0;
+  // Set when the walk stopped on an error rather than on an answer. The
+  // metadata fallback below is then a guess about a history we did not finish
+  // reading, so its date must not be treated as settled.
+  let walkBroke = false;
+
+  while (nextUrl && pagesRead < FIGMA_VERSIONS_MAX_PAGES) {
+    const versionsResponse = await fetchImpl(nextUrl, { headers });
+
+    if (!versionsResponse.ok) {
+      // A rejected FIRST page must NOT fall through to the metadata endpoint.
+      // The two carry different scopes, so a credential granted only
+      // `file_metadata:read` would answer 403 here, 200 there, and the page
+      // would quietly show the last-touched date under the "last published"
+      // wording - the substitution this function exists to avoid, with no
+      // trace that the versions call was ever refused. A later page failing
+      // is different: the history read simply stops where it got to.
+      if (pagesRead === 0) {
+        return { date: null, source: null, reason: `figma-http-${versionsResponse.status}` };
+      }
+
+      walkBroke = true;
+      break;
+    }
+
+    const payload = await readJson(versionsResponse);
+
+    if (payload === BAD_JSON) {
+      if (pagesRead === 0) {
+        return { date: null, source: null, reason: 'figma-bad-json' };
+      }
+
+      walkBroke = true;
+      break;
+    }
+
+    pagesRead += 1;
+    newestNamed = (payload?.versions ?? [])
+      // `Number.isFinite` is not decoration: an entry with a missing or
+      // malformed `created_at` makes the comparator return NaN, which leaves
+      // the whole sort order unspecified - one bad entry from Figma is enough
+      // to publish the oldest named version as the newest.
+      .filter(version => typeof version?.label === 'string'
+        && version.label !== ''
+        && Number.isFinite(Date.parse(version.created_at)))
+      .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at))[0];
+
+    // Pages run newest-first, so the first page holding a named version holds
+    // the newest one. Nothing older can beat it.
+    if (newestNamed) {
+      break;
+    }
+
+    // Follow Figma's own cursor rather than building one: the `before`/`after`
+    // parameters leave which direction is "older" to interpretation, and this
+    // URL does not. Only ever follow it back to Figma - and compare the parsed
+    // origin, because a prefix test also accepts `api.figma.com.example.com`.
+    nextUrl = figmaCursor(payload?.pagination?.next_page);
+  }
+
+  if (newestNamed) {
+    return { date: newestNamed.created_at, source: 'named-version' };
+  }
+
+  // The versions call succeeded and simply held no named version - the one
+  // case the metadata fallback is for.
+  const metaResponse = await fetchImpl(`${FIGMA_API_ORIGIN}/v1/files/${file}/meta`, { headers });
+
+  if (!metaResponse.ok) {
+    return { date: null, source: null, reason: `figma-http-${metaResponse.status}` };
+  }
+
+  const meta = await readJson(metaResponse);
+
+  if (meta === BAD_JSON) {
+    return { date: null, source: null, reason: 'figma-bad-json' };
+  }
+
+  if (meta?.file?.last_touched_at) {
+    // `provisional` when the walk broke: the history was not read to the end,
+    // so "no named version" is unproven and this date may be standing in for a
+    // publish we simply did not reach. The caller keeps it out of the day-long
+    // cache, which would otherwise pin the wrong one of the two dates - three
+    // weeks apart on the real file - for 24 hours after a single 429.
+    return { date: meta.file.last_touched_at, source: 'last-touched', provisional: walkBroke };
+  }
+
+  // Both calls answered, neither carried a date.
+  return { date: null, source: null, reason: 'figma-no-date' };
+}
+
+async function route(request, env, ctx) {
     const url = new URL(request.url);
     const path = url.pathname;
 
@@ -1399,12 +1753,80 @@ async function route(request, env) {
       return decorated;
     }
 
+    // -- 18c. Design System last-update date (JSON) ---------------------------
+    // The design system page shows when the Figma file was last updated. The
+    // read happens here, not in the browser: a Figma token in client JS is
+    // public, and the site's own CSP has no `api.figma.com` in `connect-src`
+    // anyway. Same-origin keeps it under `connect-src 'self'`, so serving it
+    // from this worker needs no CSP change.
+    //
+    // Answers GET and HEAD. HEAD matters because link checkers, uptime probes
+    // and CDN preflights all default to it, and answering 404 there while GET
+    // answers 200 reports a working endpoint as dead. The runtime drops the
+    // body for a HEAD. Anything else falls through to env.ASSETS, which 404s
+    // the path - there is no asset behind it.
+    //
+    // Serving content, so this must stay below rule 12a.
+    if (path === DESIGN_SYSTEM_DATE_PATH && (request.method === 'GET' || request.method === 'HEAD')) {
+      const cache = typeof caches !== 'undefined' ? caches.default : null;
+      // A key of our own rather than the incoming request: it carries the
+      // version above, and it ignores any query string a caller adds, so a
+      // cache-busting `?x=1` cannot fill the cache with duplicate entries.
+      const cacheKey = cache
+        ? new Request(`${url.origin}${DESIGN_SYSTEM_DATE_PATH}?v=${DESIGN_SYSTEM_CACHE_VERSION}`)
+        : null;
+      const cached = cacheKey ? await cache.match(cacheKey) : null;
+
+      if (cached) {
+        return cached;
+      }
+
+      let result;
+
+      // One catch for the whole read. Figma being unreachable, rate-limiting
+      // us, or rejecting an expired token are all the same event here: the
+      // page hides one line and everything else keeps working.
+      try {
+        result = await readDesignSystemDate(env);
+      } catch {
+        result = { date: null, source: null, reason: 'figma-unreachable' };
+      }
+
+      // `provisional` stays internal - the page has one shape to read.
+      const { provisional = false, ...body } = result;
+      // A settled answer holds for a day. Anything else - a failure, or a date
+      // read from a history the walk could not finish - holds for minutes, so
+      // it cannot outlive the fix by more than that. Storing the short ones
+      // rather than skipping them keeps a Figma outage from turning every
+      // single request into a fresh OAuth refresh plus history read.
+      const settled = body.date !== null && !provisional;
+      const response = designSystemDateResponse(body, settled);
+
+      if (cacheKey) {
+        const write = cache.put(cacheKey, response.clone());
+
+        // Hand the write to the runtime where possible: on a cache miss the
+        // reader has already waited for two Figma round trips, and the edge
+        // write adds nothing they need. `ctx` is absent in the tests, which
+        // call the worker with two arguments.
+        if (ctx?.waitUntil) {
+          ctx.waitUntil(write);
+        } else {
+          await write;
+        }
+      }
+
+      return response;
+    }
+
     // -- 19. Fallback: serve static assets via env.ASSETS --------------------
     return env.ASSETS.fetch(request);
 }
 
 export default {
-  async fetch(request, env) {
-    return withSecurityHeaders(await route(request, env));
+  // `ctx` is only used by rule 18c, to hand its edge-cache write to
+  // `ctx.waitUntil` instead of making the reader wait for it.
+  async fetch(request, env, ctx) {
+    return withSecurityHeaders(await route(request, env, ctx));
   },
 };

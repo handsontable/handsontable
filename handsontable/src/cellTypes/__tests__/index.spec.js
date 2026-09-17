@@ -124,6 +124,7 @@ describe('cellTypes', () => {
     expect(getCellType('password').renderer).toBe(renderers.PasswordRenderer);
     expect(getCellType('password').validator).not.toBeDefined();
     expect(getCellType('password').copyable).toBe(false);
+    expect(getCellType('password').valueFormatter).toBe(renderers.PasswordRenderer.valueFormatter);
 
     expect(getCellType('select').editor).toBe(editors.SelectEditor);
     expect(getCellType('select').renderer).toBe(renderers.SelectRenderer);

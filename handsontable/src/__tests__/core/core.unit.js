@@ -255,7 +255,7 @@ describe('Core.setDataAtCell past the last column', () => {
     const warnings = pastLastColumnWarnings();
 
     expect(warnings).toHaveLength(1);
-    expect(warnings[0]).toContain('19.0.0');
+    expect(warnings[0]).toContain('20.0.0');
     expect(warnings[0]).toContain('setDataAtRowProp()');
     // The write still stands while the behavior is only deprecated.
     expect(data[0]).toEqual({ 2: 'x', id: 1, name: 'Ted Right' });

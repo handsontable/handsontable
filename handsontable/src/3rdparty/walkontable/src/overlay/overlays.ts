@@ -742,6 +742,27 @@ class Overlays {
   }
 
   /**
+   * Returns the offset the engine last wrote to a clone holder (see `ScrollSync#getCloneScrollTarget`).
+   *
+   * @param {HTMLElement} holder A clone's `.wtHolder` element.
+   * @returns {object}
+   */
+  getCloneScrollTarget(holder: HTMLElement) {
+    return this.#scrollSync.getCloneScrollTarget(holder);
+  }
+
+  /**
+   * Records what a clone holder holds after the browser clamped the engine's write (see
+   * `ScrollSync#recordClampedCloneScrollTarget`).
+   *
+   * @param {HTMLElement} holder A clone's `.wtHolder` element.
+   * @param {object} offset The offset the holder holds.
+   */
+  recordClampedCloneScrollTarget(holder: HTMLElement, offset: { top: number, left: number }) {
+    this.#scrollSync.recordClampedCloneScrollTarget(holder, offset);
+  }
+
+  /**
    * Synchronize overlay scrollbars with the master scrollbar.
    */
   syncScrollWithMaster() {

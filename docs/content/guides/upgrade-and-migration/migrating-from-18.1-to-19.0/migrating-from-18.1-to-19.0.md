@@ -1,27 +1,27 @@
 ---
 type: how-to
-title: Migrating from 18.1 to 18.2
-metaTitle: Migrating from 18.1 to 18.2 - JavaScript Data Grid | Handsontable
-description: Migrate from Handsontable 18.1 to Handsontable 18.2.
-permalink: /migration-from-18.1-to-18.2
-canonicalUrl: /migration-from-18.1-to-18.2
+title: Migrating from 18.1 to 19.0
+metaTitle: Migrating from 18.1 to 19.0 - JavaScript Data Grid | Handsontable
+description: Migrate from Handsontable 18.1 to Handsontable 19.0.
+permalink: /migration-from-18.1-to-19.0
+canonicalUrl: /migration-from-18.1-to-19.0
 pageClass: migration-guide
 react:
-  metaTitle: Migrate from 18.1 to 18.2 - React Data Grid | Handsontable
+  metaTitle: Migrate from 18.1 to 19.0 - React Data Grid | Handsontable
 angular:
-  metaTitle: Migrate from 18.1 to 18.2 - Angular Data Grid | Handsontable
+  metaTitle: Migrate from 18.1 to 19.0 - Angular Data Grid | Handsontable
 vue:
-  metaTitle: Migrate from 18.1 to 18.2 - Vue Data Grid | Handsontable
+  metaTitle: Migrate from 18.1 to 19.0 - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---
-Migrate from Handsontable 18.1 to Handsontable 18.2.
+Migrate from Handsontable 18.1 to Handsontable 19.0.
 
 For a detailed list of changes in this release, see the [Changelog](@/guides/upgrade-and-migration/changelog/changelog.md).
 
 [[toc]]
 
-Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way. Section 12 concerns when a [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column marks a value invalid, and applies only if you set [`strict`](@/api/options.md#strict) to `false` on such a column. Section 13 concerns `tr` elements moving with their rows on a vertical scroll, and applies whether or not you set [`renderMode`](@/api/options.md#rendermode). Section 14 concerns how [`autoColumnSize`](@/api/autoColumnSize.md) measures [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), and [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) columns, and applies only if you leave that plugin on for those cell types and do not pin them with a column `width` or with [`colWidths`](@/api/options.md#colwidths).
+Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way. Section 12 concerns when a [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column marks a value invalid, and applies only if you set [`strict`](@/api/options.md#strict) to `false` on such a column. Section 13 concerns which row you land on when you leave a merged cell horizontally, and applies only if you use the [`MergeCells`](@/api/mergeCells.md) plugin. Section 14 concerns `tr` elements moving with their rows on a vertical scroll, and applies whether or not you set [`renderMode`](@/api/options.md#rendermode). Section 15 concerns how [`autoColumnSize`](@/api/autoColumnSize.md) measures [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), and [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) columns, and applies only if you leave that plugin on for those cell types and do not pin them with a column `width` or with [`colWidths`](@/api/options.md#colwidths).
 
 ## 1. `date` cells reach the formula engine the same way on every data path
 
@@ -364,8 +364,8 @@ This applies only if you call [`registerShortcuts()`](@/api/formulas.md#register
 
 The `Alt`+`Enter` shortcut that opens a cell's link is a core grid shortcut now, registered for
 every grid, so the `Formulas` plugin has nothing left for either method to do. Both are deprecated
-no-op methods since 18.2.0, and each prints a one-time console warning when called. They will be
-removed in 19.0.0.
+no-op methods since 19.0.0, and each prints a one-time console warning when called. They will be
+removed in 20.0.0.
 
 Nothing else about the shortcut changes: `Alt`+`Enter` still opens the link of the selected cell the
 same way it always did.
@@ -436,7 +436,7 @@ Removing row `0`:
 |  | Rows removed | Rows left |
 | --- | --- | --- |
 | Up to 18.1 | 2 | 2 blank rows |
-| From 18.2 | 4 | none |
+| From 19.0 | 4 | none |
 
 ### Who is affected
 
@@ -451,7 +451,7 @@ Removing row `0`:
   the row array that hook receives instead.
 - You relied on the blank rows staying behind, for example by writing new values into them. They are
   gone.
-- You undo a removal. From 18.2, undo restores the parent and its descendants. Up to 18.1 it put
+- You undo a removal. From 19.0, undo restores the parent and its descendants. Up to 18.1 it put
   back one row and left the rest on screen with no data behind them.
 
 A tree two levels deep is unaffected. There, the direct children and all descendants are the same
@@ -573,12 +573,12 @@ To keep the dropdown and still store values outside the list, leave
 [`allowInvalid`](@/api/options.md#allowinvalid) at its default of `true`. The value is stored, and
 the cell is marked invalid.
 
-## 13. Row elements move with their rows on a vertical scroll
+## 14. Row elements move with their rows on a vertical scroll
 
 This section applies whether or not you set [`renderMode`](@/api/options.md#rendermode).
 
 Since 18.0, Handsontable kept every `tr` and `td` element at its DOM position during a scroll and wrote
-the row that scrolled into it. In 18.2, a vertical scroll inside the grid's own scrollable area moves
+the row that scrolled into it. In 19.0, a vertical scroll inside the grid's own scrollable area moves
 the `tr` elements instead: a row that stays rendered keeps its element, and the rows that scrolled out
 wrap to the other end of the `tbody` and take the rows that scrolled in. The DOM order still matches
 the rendered order, so the first `tr` is still the first rendered row. The column axis is unchanged.
@@ -611,7 +611,37 @@ default `renderMode`. Under `renderMode: 'onChange'` such a cell is not repainte
 `renderMode: 'always'` on that column or cell, or call
 [`markCellChanged()`](@/api/core.md#markcellchanged) before you render.
 
-## 14. AutoColumnSize includes the list-cell arrow in the column width
+## 13. Leaving a merged cell with a left or right arrow lands on its top row
+
+This applies to every grid that uses [`mergeCells`](@/api/options.md#mergecells).
+
+Before 19.0.0, moving the selection off a merged cell with a left or right arrow kept the row you
+entered the merged cell on, so the result depended on the direction. Entering a three-row merged cell
+from below (arrow up) and pressing left landed one row lower than entering it from above (arrow down)
+and pressing left.
+
+A merged cell is now addressed by its top-left corner: a left or right arrow that leaves it always
+lands on its top row -- its topmost visible row when the top row is hidden -- whichever way you
+entered. Vertical navigation still keeps the column you were moving along, and the
+<kbd>**Tab**</kbd> and <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> keys still keep the row they cycle
+along.
+
+### Who is affected
+
+- You read [`getSelected()`](@/api/core.md#getselected) or
+  [`getSelectedRangeLast()`](@/api/core.md#getselectedrangelast) after a left or right arrow that
+  leaves a merged cell entered on a row other than its first. The highlight now lands on the merged
+  cell's top row rather than the entered row.
+
+A grid without merged cells is unaffected.
+
+### How to migrate
+
+Nothing to change in most cases -- the landing is now consistent with a merged cell being a single
+cell at its top-left corner. If your code compensated for the old direction-dependent landing, drop
+that workaround.
+
+## 15. AutoColumnSize includes the list-cell arrow in the column width
 
 This applies only if you leave [`autoColumnSize`](@/api/autoColumnSize.md) on -- the default -- for
 an [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md),

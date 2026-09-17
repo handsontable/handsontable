@@ -107,7 +107,7 @@ describe('HiddenColumns', () => {
           expect(actions.text()).toBe(MENU_NO_ITEMS);
         });
 
-        it('should not render context menu item for unhiding if the first visible column is selected and no column before is hidden', async() => {
+        it('should render context menu item for unhiding if the first visible column is selected and columns after it are hidden', async() => {
           handsontable({
             data: createSpreadsheetData(1, 5),
             colHeaders: true,
@@ -126,10 +126,10 @@ describe('HiddenColumns', () => {
           const items = $('.htContextMenu tbody td');
           const actions = items.not('.htSeparator');
 
-          expect(actions.text()).toBe(MENU_NO_ITEMS);
+          expect(actions.text()).toEqual(MENU_ITEM_SHOW_COLUMNS);
         });
 
-        it('should not render context menu item for unhiding if the last visible column is selected and no column after is hidden', async() => {
+        it('should render context menu item for unhiding if the last visible column is selected and columns before it are hidden', async() => {
           handsontable({
             data: createSpreadsheetData(1, 5),
             colHeaders: true,
@@ -148,10 +148,10 @@ describe('HiddenColumns', () => {
           const items = $('.htContextMenu tbody td');
           const actions = items.not('.htSeparator');
 
-          expect(actions.text()).toBe(MENU_NO_ITEMS);
+          expect(actions.text()).toEqual(MENU_ITEM_SHOW_COLUMNS);
         });
 
-        it('should not render context menu item for unhiding if selected column is not the first one and is not the last one', async() => {
+        it('should render context menu item for unhiding if a middle visible column is selected and adjacent columns are hidden', async() => {
           handsontable({
             data: createSpreadsheetData(1, 5),
             colHeaders: true,
@@ -162,6 +162,28 @@ describe('HiddenColumns', () => {
           });
 
           const header = getCell(-1, 2);
+
+          await mouseDown(header);
+          await mouseUp(header);
+          await contextMenu(header);
+
+          const items = $('.htContextMenu tbody td');
+          const actions = items.not('.htSeparator');
+
+          expect(actions.text()).toEqual(MENU_ITEM_SHOW_COLUMNS);
+        });
+
+        it('should not render context menu item for unhiding if hidden columns exist but none are adjacent to the selected column', async() => {
+          handsontable({
+            data: createSpreadsheetData(1, 5),
+            colHeaders: true,
+            contextMenu: [CONTEXTMENU_ITEM_SHOW],
+            hiddenColumns: {
+              columns: [1],
+            },
+          });
+
+          const header = getCell(-1, 3);
 
           await mouseDown(header);
           await mouseUp(header);
@@ -683,6 +705,77 @@ describe('HiddenColumns', () => {
           | - ║ A : 0 : 0 :   :   |
           | - ║ 0 : 0 : 0 :   :   |
           `).toBeMatchToSelectionPattern();
+        });
+
+        it('should unhide an initially hidden middle column from a single adjacent header', async() => {
+          handsontable({
+            data: createSpreadsheetData(2, 5),
+            rowHeaders: true,
+            colHeaders: true,
+            contextMenu: [CONTEXTMENU_ITEM_SHOW],
+            hiddenColumns: {
+              columns: [2],
+            },
+          });
+
+          expect(spec().$container.find('tr:eq(0) th').length).toBe(5);
+          expect(spec().$container.find('tr:eq(1) td').length).toBe(4);
+          expect(getCell(0, 0).innerText).toBe('A1');
+          expect(getCell(0, 1).innerText).toBe('B1');
+          expect(getCell(0, 2)).toBe(null);
+          expect(getCell(0, 3).innerText).toBe('D1');
+          expect(getCell(0, 4).innerText).toBe('E1');
+
+          await selectColumns(1);
+          await contextMenu();
+
+          getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_SHOW);
+
+          expect(spec().$container.find('tr:eq(0) th').length).toBe(6);
+          expect(spec().$container.find('tr:eq(1) td').length).toBe(5);
+          expect(getCell(0, 0).innerText).toBe('A1');
+          expect(getCell(0, 1).innerText).toBe('B1');
+          expect(getCell(0, 2).innerText).toBe('C1');
+          expect(getCell(0, 3).innerText).toBe('D1');
+          expect(getCell(0, 4).innerText).toBe('E1');
+          expect(getSelected()).toEqual([[-1, 1, 1, 3]]);
+          expect(getSelectedRangeLast().highlight.row).toBe(0);
+          expect(getSelectedRangeLast().highlight.col).toBe(1);
+          expect(getSelectedRangeLast().from.row).toBe(-1);
+          expect(getSelectedRangeLast().from.col).toBe(1);
+          expect(getSelectedRangeLast().to.row).toBe(1);
+          expect(getSelectedRangeLast().to.col).toBe(3);
+          expect(`
+          |   ║   : * : * : * :   |
+          |===:===:===:===:===:===|
+          | - ║   : A : 0 : 0 :   |
+          | - ║   : 0 : 0 : 0 :   |
+          `).toBeMatchToSelectionPattern();
+        });
+
+        it('should unhide hidden columns on both sides of a selected middle column', async() => {
+          handsontable({
+            data: createSpreadsheetData(2, 5),
+            rowHeaders: true,
+            colHeaders: true,
+            contextMenu: [CONTEXTMENU_ITEM_SHOW],
+            hiddenColumns: {
+              columns: [1, 3],
+            },
+          });
+
+          expect(getCell(0, 1)).toBe(null);
+          expect(getCell(0, 2).innerText).toBe('C1');
+          expect(getCell(0, 3)).toBe(null);
+
+          await selectColumns(2);
+          await contextMenu();
+
+          getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_SHOW);
+
+          expect(getCell(0, 1).innerText).toBe('B1');
+          expect(getCell(0, 2).innerText).toBe('C1');
+          expect(getCell(0, 3).innerText).toBe('D1');
         });
 
         it('should unhide hidden columns after the last visible and selected column', async() => {

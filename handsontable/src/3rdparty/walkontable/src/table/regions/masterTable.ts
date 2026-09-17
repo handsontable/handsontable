@@ -5,6 +5,7 @@ import {
   isVisible,
 } from '../../../../../helpers/dom/element';
 import { resolveAxisOwner } from '../../overlay/axisOwner';
+import { subtractReservedHeight } from '../../viewport/layoutReservation';
 import Table from '../baseTable';
 import { rowRangeQuery, columnRangeQuery } from '../rangeQuery/virtualRange';
 import { mixin } from '../../../../../helpers/object';
@@ -27,6 +28,11 @@ interface TrimmingContainerCache {
   trimmingHeight: string;
   hiderOffsetHeight: number;
   hiderOffsetWidth: number;
+  /**
+   * The host's layout-slot height inside the owner (`layoutReservedHeight`) the holder height
+   * was computed with.
+   */
+  reservedHeight: number;
   holderWidth: string;
   holderHeight: string;
   hasTableHeight: boolean;
@@ -114,7 +120,13 @@ function alignHolderWithSplitOwners(table: Table, ownerX: HTMLElement | Window, 
   }
 
   if (isHTMLElement(ownerY) && measureIntrinsicHeight(geometryReader, ownerY) !== 0) {
-    const height = Math.min(geometryReader.offsetHeight(ownerY), geometryReader.scrollHeight(ownerY));
+    // The owner's box is shared with the host's layout slots (`layoutReservedHeight`); the holder
+    // gets what is left, so a bar inside a scrollable ancestor is not pushed past its edge.
+    const reservedHeight = table.wtSettings.getSetting('layoutReservedHeight', ownerY);
+    const height = subtractReservedHeight(
+      Math.min(geometryReader.offsetHeight(ownerY), geometryReader.scrollHeight(ownerY)),
+      reservedHeight,
+    );
 
     holderStyle.height = `${height}px`;
     table.hasTableHeight = height > 0;
@@ -265,6 +277,9 @@ class MasterTable extends Table {
       const trimmingHeight = geometryReader.getStyle(trimmingElement, 'height') ?? '';
       const hiderOffsetHeight = geometryReader.offsetHeight(this.hider);
       const hiderOffsetWidth = geometryReader.offsetWidth(this.hider);
+      // Part of the fingerprint: a bar that mounts into a slot after the first draw (or changes
+      // height) must re-measure, or the cached holder height keeps the whole owner box.
+      const reservedHeight = this.wtSettings.getSetting('layoutReservedHeight', trimmingElement);
       const cache = this.#trimmingCache;
       const cacheValid = cache !== null
         && cache.trimmingOffsetWidth === trimmingOffsetWidth
@@ -274,7 +289,8 @@ class MasterTable extends Table {
         && cache.trimmingOverflow === trimmingOverflow
         && cache.trimmingHeight === trimmingHeight
         && cache.hiderOffsetHeight === hiderOffsetHeight
-        && cache.hiderOffsetWidth === hiderOffsetWidth;
+        && cache.hiderOffsetWidth === hiderOffsetWidth
+        && cache.reservedHeight === reservedHeight;
 
       if (cacheValid) {
         // Fast path: apply cached measurements without the expensive
@@ -340,7 +356,11 @@ class MasterTable extends Table {
           }
         }
 
-        height = Math.min(height, trimmingScrollHeight);
+        // The owner's box is shared with the host's layout slots (`layoutReservedHeight`): the
+        // holder gets what is left, so a pagination or sheets bar inside a scrollable ancestor is
+        // not pushed past the owner's edge (DEV-2848). Subtracted after the scroll-height clamp,
+        // because the owner's scroll height includes the slots themselves.
+        height = subtractReservedHeight(Math.min(height, trimmingScrollHeight), reservedHeight);
         width = Math.min(width, trimmingScrollWidth);
 
         const holderHeight = useAutoHeight ? 'auto' : `${height}px`;
@@ -370,6 +390,7 @@ class MasterTable extends Table {
             trimmingHeight,
             hiderOffsetHeight,
             hiderOffsetWidth,
+            reservedHeight,
             holderWidth,
             holderHeight,
             hasTableHeight,

@@ -63,13 +63,17 @@ name: Visual seed
 # Pull requests still render Visual only after E2E and Integration (test.yml);
 # that ordering is unchanged.
 #
-# visual.yml needs nothing new: on a `push` event it already resolves
+# This run renders the `seed` tier (`with: tier: seed`) — everything the golden
+# records hold: js bare plus the four themes, the cross-browser leg, and the
+# three wrappers copied from the js render (the tier table is `VISUAL_TIERS` in
+# visual-tests/src/config.mjs). On a `push` event visual.yml resolves
 # `REG_EXPECTED_KEY=REG_ACTUAL_KEY=base/<branch>`, compares the fresh render
-# against the previous baseline and reconciles the prefix. That comparison is
-# NOT in the job summary — `visual-gate.mjs` and the summary step it writes for
-# are both pull-request-only — so a seed's own diff lives in `.reg/out.json` on
-# the runner and, after the reconcile, in `base/develop/out.json` in R2. Read
-# those, not a blank summary. With no Build artifacts to download the render
+# against the previous baseline and reconciles the prefix. That comparison DOES
+# reach the job summary — `scripts/seed-report.mjs` writes what this commit
+# changed, and comments the out-of-`pr`-tier half on the merged pull request —
+# so the summary is where to read a seed's own diff; it also survives in
+# `.reg/out.json` on the runner and, after the reconcile, in
+# `base/develop/out.json` in R2. With no Build artifacts to download the render
 # takes visual.yml's own build fallback for the core and the wrappers, which is
 # where the extra minutes go; that fallback's task list is pinned against
 # build.yml's by `visual-seed.test.mjs`, because the seed is the one caller that
@@ -143,4 +147,6 @@ jobs:
     # keeps the reconcile away from another branch's prefix.
     if: github.event_name != 'pull_request' && github.ref_name == 'develop'
     uses: ./.github/workflows/visual.yml
+    with:
+      tier: seed
     secrets: inherit

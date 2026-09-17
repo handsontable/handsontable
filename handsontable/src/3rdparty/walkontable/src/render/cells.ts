@@ -9,6 +9,7 @@ import { clearAppliedSelection } from '../selection/appliedSelection';
 import { BaseRenderer } from './_base';
 import {
   A11Y_COLINDEX,
+  A11Y_DESCRIBED_BY,
   A11Y_GRIDCELL,
   A11Y_TABINDEX
 } from '../../../../helpers/a11y';
@@ -82,6 +83,12 @@ export class CellsRenderer extends BaseRenderer {
       activeOverlayName, rowFilter?.offset ?? 0, rowsToRender, columnFilter?.offset ?? 0, columnsToRender,
     ].join(',');
     const stableBand = this.table.hasStableCellIdentity() ? activeOverlayName : null;
+    // Draw-constant, so resolved once rather than per cell: the column-header id prefix a cell is tied
+    // to for screen readers, empty when aria is off, the grid has no column headers, or there is no
+    // instance id (DEV-29). `isAriaEnabled()` is checked first so an `ariaTags: false` grid never calls
+    // `hasColumnHeaders()`, which fires the public `afterGetColumnHeaderRenderers` hook.
+    const columnHeaderIdPrefix = this.table.isAriaEnabled() && this.table.hasColumnHeaders()
+      ? this.table.getAriaColumnHeaderIdPrefix() : '';
 
     for (let visibleRowIndex = paintFromRow; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
@@ -136,6 +143,17 @@ export class CellsRenderer extends BaseRenderer {
         this.table.cellRenderer(sourceRowIndex, sourceColumnIndex, TD);
 
         if (this.table.isAriaEnabled()) {
+          // Point the cell at its column header so a screen reader announces the header label with the
+          // cell - the header is read after the cell's own name, so "C1" becomes "C1, Position". The
+          // header is stamped by whichever overlay owns the column (master or inline-start), so a cell
+          // in any overlay resolves to it (see `ownsAriaColumnHeaderId`). The prefix is grid-wide and
+          // draw-constant, so a bottom-overlay cell - whose own clone renders no header row - still
+          // gets the reference; it is empty when the grid has no column headers, and then no attribute
+          // is written. Defer to a custom cell renderer that set its own `aria-describedby` (the aria
+          // strip above cleared it, so `hasAttribute` is true only when this draw's renderer set one),
+          // the same way the `role` above defers to a renderer-set role.
+          const columnHeaderId = columnHeaderIdPrefix ? `${columnHeaderIdPrefix}${sourceColumnIndex}` : '';
+
           setAttribute(TD, [
             ...(TD.hasAttribute('role') ? [] : [A11Y_GRIDCELL()]),
             A11Y_TABINDEX(-1),
@@ -143,6 +161,7 @@ export class CellsRenderer extends BaseRenderer {
             A11Y_COLINDEX(sourceColumnIndex + (
               (this.table.rowUtils?.deps?.getRowHeaders() as Function[])?.length ?? 0
             ) + 1),
+            ...(columnHeaderId && !TD.hasAttribute('aria-describedby') ? [A11Y_DESCRIBED_BY(columnHeaderId)] : []),
           ]);
         }
       }

@@ -45,6 +45,13 @@ on:
       # Precomputed here so the Integration wrapper matrix fans out with NO
       # per-module setup job (matrix context is illegal in a job-level if).
       wrapper-matrix: { value: '${{ jobs.scope.outputs.wrapper-matrix }}' }
+      # The visual tier's routing (visual.yml `tier` / `wrappers` inputs): true
+      # when the visual tier's own files changed (the pull request then renders
+      # the `full` tier), and the JSON list of wrappers whose own tree changed
+      # (the `pr` tier renders those for real). Both are narrower than
+      # `test-visual` and `wrapper-matrix` on purpose — see the filters.
+      visual-full: { value: '${{ jobs.scope.outputs.visual-full }}' }
+      visual-wrappers: { value: '${{ jobs.scope.outputs.visual-wrappers }}' }
       # True when the PR description ticks "MANUAL QA NEEDED" — routes the
       # Manual QA module (see manual-qa.yml).
       manual-qa: { value: '${{ jobs.scope.outputs.manual-qa }}' }
@@ -74,6 +81,8 @@ jobs:
       outside-ci: ${{ steps.path-filter.outputs.outside-ci }}
       lint-ratchet: ${{ steps.path-filter.outputs.lint-ratchet }}
       wrapper-matrix: ${{ steps.wrappers.outputs.list }}
+      visual-full: ${{ steps.path-filter.outputs.visual-full }}
+      visual-wrappers: ${{ steps.visual-wrappers.outputs.list }}
       manual-qa: ${{ steps.manual-qa.outputs.requested }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
@@ -155,13 +164,45 @@ jobs:
             test-vue3:
               - *hot-shared
               - 'wrappers/vue3/**'
-            test-visual:
+            # The visual tier's own files: the specs and the demos they render.
+            # Anchored because `visual-full` below needs exactly this pair, and
+            # these paths have moved once already (to `examples/next/visual-tests/`).
+            # Two copies would drift silently: updating only `test-visual` still
+            # runs the Visual module, but the pull request quietly drops from the
+            # `full` tier to `pr`, so a spec or demo change stops being proven on
+            # every variant — the one thing `visual-full` exists to do.
+            visual-sources: &visual-sources
               - './examples/next/visual-tests/**'
               - './visual-tests/**'
+            test-visual:
+              - *visual-sources
               # The Playwright version (and thus the rendering browsers) lives
               # in the workspace catalog — a catalog-only bump must re-render.
               - './pnpm-lock.yaml'
               - './pnpm-workspace.yaml'
+            # The visual tier's own files: a change here renders the `full`
+            # visual tier on the pull request (every theme, browser and wrapper)
+            # instead of the `pr` tier — see visual.yml and VISUAL_TIERS in
+            # visual-tests/src/config.mjs. Deliberately WITHOUT the lockfiles
+            # that `test-visual` carries: a path filter cannot tell a Playwright
+            # bump from any other dependency bump, and a full render on every
+            # Dependabot pull request is the cost this tier exists to remove.
+            # A browser bump is proven by the next seed and nightly instead.
+            visual-full:
+              - *visual-sources
+            # Per wrapper, the wrapper's own tree ONLY — never `*hot-shared`.
+            # The `test-<wrapper>` filters above include the core because the
+            # wrapper test suites exercise it; the visual `pr` tier renders a
+            # wrapper for real only when the wrapper itself changed, or a core
+            # change would render all three (3 × 92 records and the ~2-minute
+            # Angular install) on every pull request. A core change is proven
+            # against the wrappers by the nightly.
+            visual-angular-wrapper:
+              - 'wrappers/angular-wrapper/**'
+            visual-react-wrapper:
+              - 'wrappers/react-wrapper/**'
+            visual-vue3:
+              - 'wrappers/vue3/**'
             test-performance:
               # config-files (deps in package.json, babel/hot.config, bundler config)
               # can shift bundle perf — run the suite on the PR for those too, not just
@@ -242,6 +283,29 @@ jobs:
             if (all || process.env.ANGULAR === "true") w.push({ name: "Angular", pkg: "angular-wrapper", artifact: "angular-wrapper-build", test: "test:ci" });
             if (all || process.env.REACT === "true") w.push({ name: "React", pkg: "react-wrapper", artifact: "react-wrapper-build", test: "test" });
             if (all || process.env.VUE3 === "true") w.push({ name: "Vue 3", pkg: "vue3", artifact: "vue3-build", test: "test" });
+            require("fs").appendFileSync(process.env.GITHUB_OUTPUT, "list=" + JSON.stringify(w) + "\n");
+          '
+
+      # The wrappers the visual `pr` tier renders for real: only those whose own
+      # tree changed (the `visual-<wrapper>` filters), as a JSON array of the
+      # wrapper directory names visual-tests/lib/visual-tiers.mjs accepts. Not
+      # the wrapper matrix above — that one lights all three on any core change.
+      # run-all keeps parity with the matrix (all three), which the seed tier
+      # then ignores.
+      - id: visual-wrappers
+        name: Compute the wrappers the visual pr tier renders
+        env:
+          RUN_ALL: ${{ endsWith(github.ref, '/master') || endsWith(github.ref, '/develop') || contains(github.ref, '/release/') || inputs.test-all == true }}
+          ANGULAR: ${{ steps.path-filter.outputs.visual-angular-wrapper }}
+          REACT: ${{ steps.path-filter.outputs.visual-react-wrapper }}
+          VUE3: ${{ steps.path-filter.outputs.visual-vue3 }}
+        run: |
+          node -e '
+            const all = process.env.RUN_ALL === "true";
+            const w = [];
+            if (all || process.env.ANGULAR === "true") w.push("angular-wrapper");
+            if (all || process.env.REACT === "true") w.push("react-wrapper");
+            if (all || process.env.VUE3 === "true") w.push("vue3");
             require("fs").appendFileSync(process.env.GITHUB_OUTPUT, "list=" + JSON.stringify(w) + "\n");
           '
 
