@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the \"Read only\" and \"Read-only comment\" context menu items showing as checked when only some selected cells were read-only. They now show a dash and are announced as partly checked, clicking \"Read-only comment\" on such a selection sets every comment to the same state, and the `checked` option of a custom menu item accepts `'mixed'`.",
+  "type": "fixed",
+  "issueOrPR": 13562,
+  "breaking": false,
+  "framework": "none"
+}

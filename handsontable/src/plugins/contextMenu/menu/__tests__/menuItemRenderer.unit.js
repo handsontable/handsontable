@@ -2,6 +2,7 @@ import { createMenuItemRenderer } from 'handsontable/plugins/contextMenu/menu/me
 import { isItemChecked, isItemCheckable } from 'handsontable/plugins/contextMenu/menu/utils';
 
 const CHECK_MARK = String.fromCharCode(10003);
+const MIXED_MARK = String.fromCharCode(8211);
 
 /**
  * Builds the pair of instances the renderer reads from: the main grid it takes the document,
@@ -139,7 +140,27 @@ describe('menuItemRenderer', () => {
       const { wrapper } = renderItem({ key: 'a', name: 'Read only', checked: () => false });
 
       expect(wrapper.querySelector('span.selected')).toBe(null);
+      expect(wrapper.querySelector('span.htMixed')).toBe(null);
       expect(wrapper.textContent).toBe('Read only');
+    });
+
+    it('should draw a dash, not a check mark, for a partly-checked item (DEV-124)', () => {
+      const { wrapper } = renderItem({ key: 'a', name: 'Read only', checked: () => 'mixed' });
+
+      // Its own class, not `selected`: that class carries the check glyph's mask and the active-row
+      // background, and a partly-on item is neither.
+      expect(wrapper.querySelector('span.selected')).toBe(null);
+      expect(wrapper.querySelectorAll('span.htMixed').length).toBe(1);
+      expect(wrapper.firstChild.className).toBe('htMixed');
+      expect(wrapper.textContent).toBe(`${MIXED_MARK}Read only`);
+    });
+
+    it('should keep drawing the check mark, and only it, for a checked item', () => {
+      const { wrapper } = renderItem({ key: 'a', name: 'Read only', checked: () => true });
+
+      expect(wrapper.querySelector('span.htMixed')).toBe(null);
+      expect(wrapper.firstChild.className).toBe('selected');
+      expect(wrapper.textContent).toBe(`${CHECK_MARK}Read only`);
     });
 
     it('should draw no mark for an item that never declares the flag', () => {
@@ -188,6 +209,21 @@ describe('menuItemRenderer', () => {
       }, { ariaTags: true });
 
       expect(TD.getAttribute('aria-checked')).toBe('false');
+    });
+
+    it('should announce a partly-checked item as mixed (DEV-124)', () => {
+      // Announcing it as "true" is the accessibility half of the bug: a screen reader told the user
+      // a mostly-writable selection was read-only.
+      const { TD } = renderItem({
+        key: 'a',
+        name: 'Read only',
+        checkable: true,
+        checked: () => 'mixed',
+      }, { ariaTags: true });
+
+      expect(TD.getAttribute('role')).toBe('menuitemcheckbox');
+      expect(TD.getAttribute('aria-checked')).toBe('mixed');
+      expect(TD.getAttribute('aria-label')).toBe('Read only');
     });
 
     it('should still honor an explicit `ariaChecked`, which predates the flag', () => {
