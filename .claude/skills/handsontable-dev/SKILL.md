@@ -273,6 +273,24 @@ calculateColumnsWidth(colRange: number | { from: number; to: number }): void
 
 The TS `[80004]` lint warning ("JSDoc types may be moved to TypeScript types") is **suppressed** in this codebase for `.ts` source files — do not let it discourage you from writing `{Type}` annotations.
 
+**The `{Type}` braces must parse as JSDoc, not as TypeScript.** `docs:api` runs `jsdoc-to-markdown` over the compiled `handsontable/tmp/` output, and its parser (catharsis) rejects TypeScript-only type syntax. A tuple is the one that has actually broken the build: `@type {[number, number, number, number] | null}` fails with `Invalid type expression`. Write the JSDoc tag in a form catharsis accepts and leave the precise tuple on the TS annotation, which is what the compiler and editors read:
+
+```ts
+// ✗ Bad — breaks `docs:api`, so the docs staging deploy fails
+/**
+ * @type {[number, number, number, number] | null}
+ */
+#pastePlan: [number, number, number, number] | null = null;
+
+// ✓ Good — the tag parses, the TS annotation keeps the arity
+/**
+ * @type {Array<number> | null}
+ */
+#pastePlan: [number, number, number, number] | null = null;
+```
+
+Nothing in the PR pipeline catches this. The `docs` path filter in `.github/workflows/checks.yml` covers `docs/**` and `handsontable/package.json`, not `handsontable/src/**`, so a core-only PR never runs `docs:api`. The break stays hidden until the next push that touches `docs/**`, which then fails `Docs Staging Deployment` on an unrelated commit. To check a JSDoc type change yourself, build the package and run `npm --prefix docs run docs:api`.
+
 ### Private `#` fields
 
 Add a description block but omit `@private` — the `#` prefix is the privacy marker:

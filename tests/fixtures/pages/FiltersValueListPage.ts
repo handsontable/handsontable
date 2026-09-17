@@ -1,6 +1,18 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 
 /**
+ * Escapes a Filter-by-value, header, or condition label so it can be used
+ * in a `^…$` exact-match regexp. Password hashes are runs of `*`, which
+ * would otherwise throw `Nothing to repeat`.
+ *
+ * @param {string} label The visible list, header, or condition label.
+ * @returns {string} The label with regexp special characters escaped.
+ */
+function escapeRegExp(label: string): string {
+  return label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
  * Page Object for the "filter by value" dropdown-menu fixture.
  *
  * The filters dropdown is grid-internal DOM, so it cannot carry fixture-stamped
@@ -102,7 +114,7 @@ export class FiltersValueListPage {
   async openMenu(headerLabel: string): Promise<void> {
     await this.page
       .locator('.ht_clone_top th')
-      .filter({ hasText: new RegExp(`^${headerLabel}$`) })
+      .filter({ hasText: new RegExp(`^${escapeRegExp(headerLabel)}$`) })
       .locator('.changeType')
       .click();
 
@@ -122,7 +134,7 @@ export class FiltersValueListPage {
   async openEmptyMenu(headerLabel: string): Promise<void> {
     await this.page
       .locator('.ht_clone_top th')
-      .filter({ hasText: new RegExp(`^${headerLabel}$`) })
+      .filter({ hasText: new RegExp(`^${escapeRegExp(headerLabel)}$`) })
       .locator('.changeType')
       .click();
 
@@ -178,7 +190,7 @@ export class FiltersValueListPage {
     const conditionsMenu = this.page.locator('.htFiltersConditionsMenu:visible');
 
     await expect(conditionsMenu).toBeVisible();
-    await conditionsMenu.locator('td').filter({ hasText: new RegExp(`^${conditionLabel}$`) }).click();
+    await conditionsMenu.locator('td').filter({ hasText: new RegExp(`^${escapeRegExp(conditionLabel)}$`) }).click();
     await expect(conditionsMenu).toBeHidden();
   }
 
@@ -249,7 +261,7 @@ export class FiltersValueListPage {
    */
   async checkValue(label: string): Promise<void> {
     const checkbox = this.valueList
-      .filter({ has: this.page.locator('label', { hasText: new RegExp(`^${label}$`) }) })
+      .filter({ has: this.page.locator('label', { hasText: new RegExp(`^${escapeRegExp(label)}$`) }) })
       .locator('input[type="checkbox"]');
 
     await checkbox.click();
@@ -304,7 +316,7 @@ export class FiltersValueListPage {
    */
   async uncheckValue(label: string): Promise<void> {
     const checkbox = this.valueList
-      .filter({ has: this.page.locator('label', { hasText: new RegExp(`^${label}$`) }) })
+      .filter({ has: this.page.locator('label', { hasText: new RegExp(`^${escapeRegExp(label)}$`) }) })
       .locator('input[type="checkbox"]');
 
     await checkbox.click();
@@ -339,6 +351,23 @@ export class FiltersValueListPage {
     await this.page.evaluate((newData) => {
       window.hot.updateSettings({ data: newData, filters: true });
     }, data);
+  }
+
+  /**
+   * Append an empty row under the last one the grid shows, the way a toolbar "add row" button does.
+   *
+   * @returns {Promise<number>} The visual index of the row that was added.
+   */
+  async insertRowBelowLast(): Promise<number> {
+    const newIndex = await this.page.evaluate(() => {
+      window.hot.alter('insert_row_below', window.hot.countRows() - 1);
+
+      return window.hot.countRows() - 1;
+    });
+
+    await expect(this.cell(newIndex, 0)).toBeVisible();
+
+    return newIndex;
   }
 
   /**

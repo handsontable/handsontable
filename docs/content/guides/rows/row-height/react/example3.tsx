@@ -8,9 +8,9 @@ const ExampleComponent = () => {
   return (
     <HotTable
       data={[
-        ['A1', 'B1', 'C1', 'D1', 'E1'],
-        ['A2', 'B2', 'C2', 'D2', 'E2'],
-        ['A3', 'B3', 'C3', 'D3', 'E3'],
+        ['SKU-4821', 'Stainless Steel Water Bottle', 'Harbor Goods', 'Drinkware', 'Seattle'],
+        ['SKU-0093', 'Wireless Mouse', 'Alpine Supply Co.', 'Electronics', 'Denver'],
+        ['SKU-1170', 'Ergonomic Office Chair', 'Cascade Distributors', 'Furniture', 'Portland'],
       ]}
       width="100%"
       height="auto"

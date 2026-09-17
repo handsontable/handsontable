@@ -8,9 +8,9 @@
   ],
   "total": 174,
   "counts": {
-    "grid": 108,
+    "grid": 107,
     "grid columns cells cell": 61,
-    "grid columns": 4,
+    "grid columns": 5,
     "columns": 1
   },
   "options": [
@@ -122,7 +122,7 @@
         "cells",
         "cell"
       ],
-      "since": "18.2.0",
+      "since": "19.0.0",
       "note": "The plugin toggle is grid level. A column or cell `false` opts out, and a column or cell object overrides `target`, `schemes`, `strict`, `inline`, and `className` for those cells."
     },
     {
@@ -131,7 +131,7 @@
       "levels": [
         "grid"
       ],
-      "since": "18.2.0",
+      "since": "19.0.0",
       "note": null
     },
     {
@@ -611,10 +611,11 @@
       "name": "filters",
       "category": "Filters",
       "levels": [
-        "grid"
+        "grid",
+        "columns"
       ],
       "since": null,
-      "note": null
+      "note": "Turn the plugin on at the grid level. Inside `columns`, only `false` has an effect: it hides the filter controls in that column's dropdown menu, and the API still filters the column. The sub-options `searchMode` and `filterFixedRows` are grid-level only."
     },
     {
       "name": "filterSelectedItems",
@@ -1257,7 +1258,7 @@
         "cells",
         "cell"
       ],
-      "since": "18.2.0",
+      "since": "19.0.0",
       "note": null
     },
     {
@@ -1356,7 +1357,7 @@
       "levels": [
         "grid"
       ],
-      "since": "18.2.0",
+      "since": "19.0.0",
       "note": null
     },
     {
@@ -1527,7 +1528,7 @@
       "levels": [
         "grid"
       ],
-      "since": "18.2.0",
+      "since": "19.0.0",
       "note": null
     },
     {

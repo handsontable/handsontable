@@ -786,6 +786,16 @@ export default defineConfig({
           tag: 'script',
           attrs: { src: '/docs/example-tabs.js', defer: true },
         },
+        // Fills the "design system last updated" field on the design system
+        // guide and the changelog. Loaded here rather than from a <script> in
+        // page markdown: head injection is the mechanism this site already
+        // proves works (example-tabs.js above), and no guide page executes an
+        // inline script today. The file returns immediately on every page that
+        // carries no field, so the cost elsewhere is one small cached request.
+        {
+          tag: 'script',
+          attrs: { src: '/docs/scripts/design-system-updated.js', defer: true },
+        },
         // Prevent HOT from injecting a duplicate <style id="handsontable-core-styles"> at runtime.
         // StylesHandler.#injectCoreStyles() skips injection when it finds an element with this ID.
         // The actual HOT CSS is already loaded by handsontable-import.css via customCss above.

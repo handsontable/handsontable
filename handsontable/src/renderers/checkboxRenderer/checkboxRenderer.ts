@@ -16,6 +16,7 @@ import { Hooks } from '../../core/hooks';
 import { A11Y_CHECKBOX, A11Y_CHECKED, A11Y_LABEL } from '../../helpers/a11y';
 import { CHECKBOX_CHECKED, CHECKBOX_UNCHECKED } from '../../i18n/constants';
 import { BAD_VALUE_TEXT } from '../../helpers/constants';
+import { canAccessCellContent } from '../../shortcuts/guards';
 
 const isListeningKeyDownEvent = new WeakMap();
 const isCheckboxListenerAdded = new WeakMap<HotInstance, EventManager>();
@@ -196,6 +197,8 @@ export function checkboxRenderer(
   function registerShortcuts() {
     const shortcutManager = hotInstance.getShortcutManager();
     const gridContext = shortcutManager.getContext('grid');
+    // Every entry below writes a cell value, and each carries the shared guard on its own `runOnlyIf`:
+    // a per-shortcut `runOnlyIf` REPLACES a group-level one rather than being ANDed with it.
     const config = {
       group: SHORTCUTS_GROUP,
       relativeToGroup: SHORTCUTS_GROUP_EDITOR,
@@ -209,7 +212,8 @@ export function checkboxRenderer(
 
         return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
       },
-      runOnlyIf: (): boolean => !!(hotInstance.getSelectedRangeActive()?.highlight.isCell()),
+      runOnlyIf: (): boolean => canAccessCellContent(hotInstance) &&
+        !!(hotInstance.getSelectedRangeActive()?.highlight.isCell()),
     }, {
       keys: [['enter']],
       callback: () => {
@@ -220,7 +224,7 @@ export function checkboxRenderer(
       runOnlyIf: (): boolean => {
         const range = hotInstance.getSelectedRangeActive();
 
-        return !!(hotInstance.getSettings().enterBeginsEditing &&
+        return canAccessCellContent(hotInstance) && !!(hotInstance.getSettings().enterBeginsEditing &&
           range?.highlight.isCell() &&
           !hotInstance.selection.isMultiple());
       },
@@ -231,7 +235,8 @@ export function checkboxRenderer(
 
         return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
       },
-      runOnlyIf: (): boolean => !!(hotInstance.getSelectedRangeActive()?.highlight.isCell()),
+      runOnlyIf: (): boolean => canAccessCellContent(hotInstance) &&
+        !!(hotInstance.getSelectedRangeActive()?.highlight.isCell()),
     }], config);
   }
 

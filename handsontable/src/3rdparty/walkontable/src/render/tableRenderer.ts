@@ -10,13 +10,17 @@ import type RowUtils from '../axisSizing/rowUtils';
 import type ColumnUtils from '../axisSizing/columnUtils';
 import type { StylesHandler } from '../types';
 import { applyRowHeight } from './exactRowHeight';
+import { CLONE_INLINE_START } from '../overlay/constants';
 
 /**
  * Asked for every cell in the rendered band before the cell element is reset and painted.
- * Answering `false` leaves the element exactly as the previous draw left it.
+ * Answering `false` leaves the element exactly as the previous draw left it. `band` is the identity
+ * of the rendered band (the overlay with its offsets and sizes); `stableBand` is the overlay name
+ * alone, offered where the rows recycle so a cell that kept its element across a scroll can read as
+ * unchanged, and `null` where it may not be used.
  */
 export type ShouldPaintCell = (
-  sourceRow: number, sourceColumn: number, TD: HTMLTableCellElement, band: string
+  sourceRow: number, sourceColumn: number, TD: HTMLTableCellElement, band: string, stableBand: string | null
 ) => boolean;
 
 /**
@@ -215,6 +219,21 @@ export class TableRenderer {
    */
   #columnHeadersRenderSkippable: boolean = false;
   /**
+   * `true` when this draw was entered as a scroll draw (`Overlays#isScrollDrivenDraw`). Set once per
+   * draw by the draw cycle; together with `#rowRecyclingAllowed` it decides whether the rows
+   * renderer may rotate the TR elements to follow the band.
+   *
+   * @type {boolean}
+   */
+  #scrollDrivenDraw: boolean = false;
+  /**
+   * `true` when the viewport allows row recycling on this draw (`Viewport#allowsRowRecycling`):
+   * element-scrolled on both axes. Set once per draw by the draw cycle.
+   *
+   * @type {boolean}
+   */
+  #rowRecyclingAllowed: boolean = false;
+  /**
    * `true` once the column-header pass has rendered at least once and stored its render window.
    *
    * @type {boolean}
@@ -327,6 +346,71 @@ export class TableRenderer {
   }
 
   /**
+   * Records whether this draw was entered as a scroll draw.
+   *
+   * @param {boolean} scrollDriven Whether the draw is scroll-driven.
+   */
+  setScrollDrivenDraw(scrollDriven: boolean) {
+    this.#scrollDrivenDraw = scrollDriven;
+  }
+
+  /**
+   * Records whether the viewport allows row recycling on this draw.
+   *
+   * @param {boolean} allowed Whether row recycling is allowed.
+   */
+  setRowRecyclingAllowed(allowed: boolean) {
+    this.#rowRecyclingAllowed = allowed;
+  }
+
+  /**
+   * The host's `renderEpoch` setting as this draw started (`DrawContext#renderEpochAtDrawStart`). The
+   * rows renderer records it with the band it rendered: a renderable row index means the same row
+   * only within one index-mapper state, so a rotation between two draws is sound only while the
+   * epoch did not move in between.
+   *
+   * @type {number}
+   */
+  renderEpoch: number = 0;
+
+  /**
+   * Records the host's render epoch this draw started from.
+   *
+   * @param {number} epoch The `renderEpoch` setting at draw start.
+   */
+  setRenderEpoch(epoch: number) {
+    this.renderEpoch = epoch;
+  }
+
+  /**
+   * Whether the cells renderer may offer the host a stable paint identity for a cell: the overlay name
+   * alone instead of the band's offsets and sizes (see `CellsRenderer#render`). `true` for every draw
+   * of a table whose rows recycle, scroll-driven or not: the host compares a cell's stamp against the
+   * one the previous draw wrote, so the identity has to be the same kind on consecutive draws, or a
+   * full draw after a scroll draw would read every cell as changed. The rotation itself is what only
+   * a scroll-driven draw performs (`isRowRecyclingAllowed()`). The host still decides per cell,
+   * because it knows which cells paint something that depends on where the band starts or ends:
+   * MergeCells clamps a merged block's span to the rendered band, and the block's cells keep the
+   * full identity.
+   *
+   * @returns {boolean}
+   */
+  hasStableCellIdentity(): boolean {
+    return this.#rowRecyclingAllowed;
+  }
+
+  /**
+   * Whether the rows renderer may rotate the TR elements on this draw, so a row that stays in the
+   * band keeps its element. Only on a scroll-driven draw (any other draw keeps the band where it is
+   * or rebuilds it) and only where the viewport allows it (element-scrolled on both axes).
+   *
+   * @returns {boolean}
+   */
+  isRowRecyclingAllowed(): boolean {
+    return this.#scrollDrivenDraw && this.#rowRecyclingAllowed;
+  }
+
+  /**
    * Sets row and column filter instances.
    *
    * @param {RowFilter} rowFilter Row filter instance which contains all necessary information about row index transformation.
@@ -415,6 +499,77 @@ export class TableRenderer {
   }
 
   /**
+   * Returns the instance-unique prefix a column-header id is built from (`${prefix}${columnIndex}`),
+   * or an empty string when the host supplied no instance id. The column-header renderer stamps the id
+   * on the owning overlay's header and the cells renderer points at it through `aria-describedby`, so
+   * the header label is announced together with the cell. Keyed by the rendered column index (the
+   * Walkontable column, which core has already collapsed from physical to renderable space), the
+   * reference stays valid across horizontal scroll and pooled-node reuse; the instance id keeps it
+   * unique when several grids share a page. Draw-constant, so both renderers resolve it once per draw
+   * and append the column index per element instead of reading the setting on every one.
+   *
+   * @returns {string}
+   */
+  getAriaColumnHeaderIdPrefix(): string {
+    const guid = this.rowUtils!.wtSettings.getSetting('guid');
+
+    return guid ? `${guid}-colheader-` : '';
+  }
+
+  /**
+   * Returns the number of frozen start columns. Draw-constant; in core the setting is a function that
+   * walks the index mapper, so the column-header renderer reads it once per draw and passes it to
+   * `ownsAriaColumnHeaderId` rather than resolving it per header cell.
+   *
+   * @returns {number}
+   */
+  getFixedColumnsStart(): number {
+    return this.rowUtils!.wtSettings.getSetting<number>('fixedColumnsStart');
+  }
+
+  /**
+   * Returns `true` when the currently rendered overlay is the single owner of the `aria-describedby`
+   * id for the given column, so exactly one header in the whole grid carries it. A frozen
+   * (inline-start) column is owned by the inline-start overlay, which always renders it; every other
+   * column is owned by the master. The master also renders the frozen columns at horizontal offset 0,
+   * so it must decline them there to avoid a duplicate id; the sticky clones (top, bottom, corners)
+   * never own an id - they are duplicate copies of a header the master or the inline-start overlay
+   * already carries.
+   *
+   * @param {number} sourceColumnIndex The rendered (renderable) column index.
+   * @param {number} fixedColumnsStart The number of frozen start columns, read once per draw by the
+   *                                   caller - in core it is a function that walks the index mapper, so
+   *                                   it must not be read per header cell.
+   * @returns {boolean}
+   */
+  ownsAriaColumnHeaderId(sourceColumnIndex: number, fixedColumnsStart: number): boolean {
+    const isFrozenColumn = sourceColumnIndex < fixedColumnsStart;
+
+    if (this.activeOverlayName === CLONE_INLINE_START) {
+      return isFrozenColumn;
+    }
+
+    // 'master' is the master table's own name (`baseTable.ts`); it is not a clone type, so there is no
+    // `CLONE_*` constant for it.
+    if (this.activeOverlayName === 'master') {
+      return !isFrozenColumn;
+    }
+
+    return false;
+  }
+
+  /**
+   * Returns `true` when the grid has at least one column-header row. Read grid-wide from the settings
+   * rather than from this table's own `columnHeadersCount`, because a clone that renders no header row
+   * (the bottom overlays) reports `0` while the grid still has headers its cells should reference.
+   *
+   * @returns {boolean}
+   */
+  hasColumnHeaders(): boolean {
+    return this.rowUtils!.wtSettings.getSetting<Function[]>('columnHeaders').length > 0;
+  }
+
+  /**
    * Returns `true` when the column-header (THEAD) pass can be skipped for this draw because it is a
    * pure vertical scroll and the exact same column render window (offset + counts) was rendered on
    * the previous header render. The THEAD content is then identical to what is already in the DOM.
@@ -457,11 +612,18 @@ export class TableRenderer {
 
       // Stationary bands: the TR/TD/TH nodes keep their DOM positions on every draw — the
       // `OrderView`s reuse the children in place and the renderers below overwrite their content.
-      // Rows and cells are deliberately NEVER moved, inserted, or removed while a band merely shifts
-      // (the draw cycle keeps both band sizes stable on scroll-driven draws — see
-      // `stabilizeRenderedRowsBand`/`stabilizeRenderedColumnsBand`). Structural DOM mutations here
-      // would trigger the host page's `:has()` style invalidation on every scroll, at a cost that
-      // scales with the host document.
+      // Rows and cells are never inserted or removed while a band merely shifts (the draw cycle keeps
+      // both band sizes stable on scroll-driven draws — see `stabilizeRenderedRowsBand`/
+      // `stabilizeRenderedColumnsBand`). Structural DOM mutations here would trigger the host page's
+      // `:has()` style invalidation on every scroll, at a cost that scales with the host document.
+      //
+      // The one move: on a scroll-driven draw where row recycling is allowed
+      // (`isRowRecyclingAllowed()`) the rows renderer rotates the TR elements by the band's offset
+      // delta, so a row that stays in the band keeps its TR and its TDs, and the host can then leave
+      // those cells untouched (`renderMode: 'onChange'`, through `shouldPaintCell`). That is one
+      // `DocumentFragment` move of `delta` rows per full draw, not a per-frame re-insertion of the
+      // band: measured against the `:has()` cost above (a host document of 30,000 nodes and three
+      // `:has()` rules) style recalculation stayed flat.
       this.rows!.render();
       this.rowHeaders!.render();
       this.cells!.render();

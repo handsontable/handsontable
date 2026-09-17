@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed full-row and full-column selection highlights drifting from headers with custom padding, including RTL columns.",
+  "type": "fixed",
+  "issueOrPR": 13547,
+  "breaking": false,
+  "framework": "none"
+}

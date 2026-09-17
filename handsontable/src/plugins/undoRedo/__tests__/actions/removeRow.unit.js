@@ -388,3 +388,91 @@ describe('UndoRedo -> RemoveRow action with a function dataSchema', () => {
     });
   });
 });
+
+describe('UndoRedo -> RemoveRow action that removes nothing (#280 / DEV-45)', () => {
+  let container;
+  let hot;
+
+  beforeEach(() => {
+    container = document.createElement('div');
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    if (hot) {
+      hot.destroy();
+      hot = null;
+    }
+
+    container.remove();
+  });
+
+  it('should not stack an undo action for a remove_row that took no rows', () => {
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      data: [[5]],
+      undo: true,
+    });
+    const plugin = hot.getPlugin('undoRedo');
+
+    hot.alter('remove_row'); // removes the only row
+    hot.alter('remove_row'); // no-op: the grid is already empty
+
+    // The empty grid removal changed nothing, so only the first removal is on the stack.
+    expect(plugin.doneActions.length).toBe(1);
+
+    // A single undo restores the last real state - it is not spent on a dead no-op action.
+    plugin.undo();
+
+    expect(hot.getData()).toEqual([[5]]);
+  });
+
+  it('should keep the redo stack intact when a remove_row takes no rows', () => {
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      data: [['A1'], ['A2']],
+      undo: true,
+    });
+    const plugin = hot.getPlugin('undoRedo');
+
+    hot.setDataAtCell(0, 0, 'edited');
+    plugin.undo(); // the edit is now redoable
+
+    expect(plugin.undoneActions.length).toBe(1);
+
+    hot.alter('remove_row', 0, 0); // no-op: an amount of 0 removes no row
+
+    // A no-op removal must not clear the redo stack, so the edit is still redoable.
+    expect(plugin.undoneActions.length).toBe(1);
+
+    plugin.redo();
+
+    expect(hot.getDataAtCell(0, 0)).toBe('edited');
+  });
+
+  it('should not fire the undo/redo stack-change hooks when a remove_row takes no rows', () => {
+    const beforeUndoStackChange = jest.fn();
+    const afterUndoStackChange = jest.fn();
+    const beforeRedoStackChange = jest.fn();
+    const afterRedoStackChange = jest.fn();
+
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      data: [['A1'], ['A2']],
+      undo: true,
+      beforeUndoStackChange,
+      afterUndoStackChange,
+      beforeRedoStackChange,
+      afterRedoStackChange,
+    });
+
+    hot.alter('remove_row', 0, 0); // no-op: an amount of 0 removes no row
+
+    // A no-op must not announce a stack change - firing `beforeUndoStackChange` alone would leave
+    // paired listeners observing a change that never happened.
+    expect(beforeUndoStackChange).not.toHaveBeenCalled();
+    expect(afterUndoStackChange).not.toHaveBeenCalled();
+    expect(beforeRedoStackChange).not.toHaveBeenCalled();
+    expect(afterRedoStackChange).not.toHaveBeenCalled();
+  });
+});

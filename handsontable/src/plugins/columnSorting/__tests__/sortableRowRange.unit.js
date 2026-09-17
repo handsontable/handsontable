@@ -77,8 +77,9 @@ describe.each([
       expect(upperBound()).toBe(6);
     });
 
-    it('should honor `sortFixedRows` on the `maxRows` branch', () => {
-      // `maxRows` equal to the row count takes a separate early return.
+    it('should honor `sortFixedRows` when `maxRows` equals the row count', () => {
+      // Guard: the flag still wins when `maxRows` equals the row count. Old early
+      // return was `maxRows - fixedRowsBottom` (5, then 6 with the flag), same as now.
       hot = build({ [pluginKey]: true, fixedRowsBottom: 1, maxRows: 6 });
 
       expect(upperBound()).toBe(5);
@@ -99,17 +100,73 @@ describe.each([
       expect(upperBound()).toBe(6);
     });
 
-    it('should subtract the spare row and the bottom pinned row separately (DEV-2881)', () => {
+    it('should not double-subtract a spare row that sits inside `fixedRowsBottom` (DEV-2881)', () => {
       hot = build({ [pluginKey]: true, minSpareRows: 1, fixedRowsBottom: 1 });
 
-      // This pins the CURRENT, known-wrong result. Both terms count from the bottom and name the same
-      // row, so one real data row drops out of the sort: the correct bound is 7 - max(1, 1) = 6. When
-      // DEV-2881 is fixed, this expectation must change to 6.
+      // 6 data rows + 1 spare. Both terms name the last visual row, so the bound is
+      // 7 - max(1, 1) = 6. Subtracting them independently would drop `Total` (row 5).
+      expect(hot.countRows()).toBe(7);
+      expect(upperBound()).toBe(6);
+
+      hot.updateSettings({ [pluginKey]: { sortFixedRows: true } });
+
+      // The flag zeroes the pinned term; spare rows still stay out of the sort.
+      expect(upperBound()).toBe(6);
+    });
+
+    it('should exclude the larger of spare rows and `fixedRowsBottom` when there are more spares', () => {
+      hot = build({ [pluginKey]: true, minSpareRows: 2, fixedRowsBottom: 1 });
+
+      // 6 data + 2 spares. The spare band already covers the pinned row, so drop 2, not 3.
+      expect(hot.countRows()).toBe(8);
+      expect(upperBound()).toBe(6);
+    });
+
+    it('should exclude the larger of spare rows and `fixedRowsBottom` when more rows are pinned', () => {
+      hot = build({ [pluginKey]: true, minSpareRows: 1, fixedRowsBottom: 2 });
+
+      // 6 data + 1 spare. The pinned band covers the spare and `Total`, so drop 2, not 3.
+      expect(hot.countRows()).toBe(7);
       expect(upperBound()).toBe(5);
 
       hot.updateSettings({ [pluginKey]: { sortFixedRows: true } });
 
-      // With the flag on the bottom term is zeroed, so the overlap disappears here.
+      // The flag zeroes the pinned term; only the spare stays out (bound 6, not 5).
+      expect(upperBound()).toBe(6);
+    });
+
+    it('should apply the same overlap when `maxRows` caps the displayed count', () => {
+      // `countRows()` is already min(length, maxRows); there is no separate formula.
+      // Old early return skipped the spare walk: `maxRows - fixedRowsBottom` = 7.
+      // Independent subtract: 8 - 2 - 1 = 5. New is `8 - max(2, 1)` = 6 — restoring
+      // the early return fails this case.
+      hot = build({
+        [pluginKey]: true,
+        minSpareRows: 2,
+        fixedRowsBottom: 1,
+        maxRows: 8,
+      });
+
+      expect(hot.countRows()).toBe(8);
+      expect(upperBound()).toBe(6);
+
+      hot.updateSettings({ [pluginKey]: { sortFixedRows: true } });
+
+      expect(upperBound()).toBe(6);
+    });
+
+    it('should compose `max()` when `maxRows` caps the count and spares outnumber the pin', () => {
+      hot = build({
+        [pluginKey]: true,
+        minSpareRows: 3,
+        fixedRowsBottom: 1,
+        maxRows: 9,
+      });
+
+      // 6 data + 3 spares. Old early return ignored spares: 9 - 1 = 8.
+      // Independent subtract double-counted the overlap: 9 - 3 - 1 = 5.
+      // Bound is 9 - max(3, 1) = 6.
+      expect(hot.countRows()).toBe(9);
       expect(upperBound()).toBe(6);
     });
   });
@@ -142,6 +199,45 @@ describe.each([
       sortAsc();
 
       expect(hot.getDataAtCol(1)).toEqual(ALL_ASC);
+    });
+
+    it('should sort the last data row when a spare row overlaps `fixedRowsBottom` (DEV-2881)', () => {
+      // `Total` holds 35, in the middle of 10/20/30/40. If the overlap dropped it from
+      // the sort it would stay at visual row 5; taking part puts it between 30 and 40.
+      hot = build({ [pluginKey]: true, minSpareRows: 1, fixedRowsBottom: 1 });
+
+      sortAsc();
+
+      expect(hot.getDataAtCol(1)).toEqual([10, 20, 25, 30, 35, 40, null]);
+    });
+
+    it('should keep spare rows last when `maxRows` caps the count even with `sortEmptyCells`', () => {
+      hot = build({
+        [pluginKey]: { sortEmptyCells: true },
+        minSpareRows: 2,
+        maxRows: 8,
+      });
+
+      sortAsc();
+
+      // Old early return left the two spares in the sortable range, so they
+      // would rise to the top. They stay last because the bound is 6.
+      expect(hot.getDataAtCol(1)).toEqual([10, 20, 25, 30, 35, 40, null, null]);
+    });
+
+    it('should keep `Total` pinned when `fixedRowsBottom` is wider than the spare band', () => {
+      hot = build({ [pluginKey]: true, minSpareRows: 1, fixedRowsBottom: 2 });
+
+      sortAsc();
+
+      // Rows 5 (`Total`, 35) and 6 (spare) are the pinned band. Cherry (30) must sort.
+      expect(hot.getDataAtCol(1)).toEqual([10, 20, 25, 30, 40, 35, null]);
+
+      hot.updateSettings({ [pluginKey]: { sortFixedRows: true } });
+      sortAsc();
+
+      // `Total` is no longer pinned; the spare still stays last.
+      expect(hot.getDataAtCol(1)).toEqual([10, 20, 25, 30, 35, 40, null]);
     });
   });
 

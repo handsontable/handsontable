@@ -38,6 +38,7 @@ export interface CalculatorFactory {
   createVisibleCalculators(): void;
   usesLayoutSnapshotForCalculators(): boolean;
   allowsStationaryBands(): boolean;
+  allowsRowRecycling(): boolean;
   applyRenderedColumnsBandOverscan(renderedColumns: ColumnsCalculationType | null): void;
   applyRenderedRowsBandOverscan(renderedRows: RowsCalculationType | null): void;
   extendRenderedRowsBandTo(startRow: number, endRow: number): void;
@@ -470,6 +471,22 @@ export const calculatorFactory: CalculatorFactory = {
     return this.wtSettings.getSetting<boolean>('singlePassLayout') &&
       !this.isVerticallyScrollableByWindow() &&
       !this.isHorizontallyScrollableByWindow();
+  },
+
+  /**
+   * Decides whether the rows renderer may keep a row's TR across a scroll-driven draw, and whether the
+   * host may be offered a stable paint identity for a cell (see `TableRenderer#hasStableCellIdentity`).
+   * Unlike {@link CalculatorFactory#allowsStationaryBands} this does not ask for single-pass layout:
+   * the layout model decides how the viewport is predicted, not which element holds which row. A grid
+   * with merged cells, which keeps the measured layout for the height-versus-viewport circularity,
+   * recycles its rows too; the host keeps the merged blocks' own cells viewport-bound. Window scrolling
+   * stays out on both axes, as it does for the stationary bands.
+   *
+   * @this Viewport
+   * @returns {boolean}
+   */
+  allowsRowRecycling(this: Viewport): boolean {
+    return !this.isVerticallyScrollableByWindow() && !this.isHorizontallyScrollableByWindow();
   },
 
   /**

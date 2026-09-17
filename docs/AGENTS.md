@@ -464,6 +464,15 @@ would be a frozen unmaintained snapshot.
 workflow writes the root `CHANGELOG.md` and the rolling `changelog/changelog.md`, and someone copies
 the version's section into the per-major page by hand, demoting `###` to `####`.
 
+**When you create the page for a new major, move the design system date with it.** The newest
+`changelog-<N>` page carries a hidden `data-design-system-updated` block under its intro line, filled
+in live from worker rule 18c. It belongs on the newest page only - the sidebar and the Introduction
+page link there, while nothing links the rolling `changelog/changelog.md`. Cut the whole block from the
+old page and paste it into the new one, blank lines included: the `[Design system](@/...)` link inside
+the `<div>` is only parsed as Markdown - and so only resolved per framework - when blank lines separate
+it from the tags. `src/scripts/__tests__/design-system-updated.test.mjs` fails if the newest page lacks
+the block, if an older page keeps it, or if the link loses that shape.
+
 When you edit a changelog page, **link every new option, hook, method, and plugin that an `Added`
 entry names**:
 
@@ -564,7 +573,7 @@ Worker rule 18b is the first rule in `_worker.js` that is neither a redirect nor
 
 The interactive grids rendered directly on a docs page are built from `docs/package.json`. That is a **third** copy of every example dependency, separate from the `handsontable` npm package (which carries its own `hyperformula` devDependency into `handsontable.full.js`) and from the demos.handsontable.com runner (which has its own `package.json`). Fixing one fixes neither of the others – check all three when a report names a version.
 
-A caret range does not track new releases. `pnpm-lock.yaml` pins the resolved version, so `"hyperformula": "^3.2.0"` still resolved to 3.3.0 a month after 3.4.0 shipped (DEV-2826: the page-freeze fix never reached the site). To move one, raise the specifier's floor in `docs/package.json`, then run `pnpm install --lockfile-only` from the repository root. The lockfile diff must be the two lines in the `docs:` importer and nothing else – see the lockfile-float entry in the root `AGENTS.md` for why a wider diff is a problem.
+A caret range does not track new releases. `pnpm-lock.yaml` pins the resolved version, so `"hyperformula": "^3.2.0"` still resolved to 3.3.0 a month after 3.4.0 shipped (DEV-2826: the page-freeze fix never reached the site). To move one, raise the specifier's floor in `docs/package.json`, then run `pnpm install --lockfile-only` from the repository root. The lockfile diff must be the two lines in the `docs:` importer and nothing else – see the lockfile-float entry in `.ai/CI.md` for why a wider diff is a problem.
 
 `docs-production.yml` deploys from `prod-docs/**` and installs with `--frozen-lockfile`, so develop is not what the live site serves, and `publish.yml` never regenerates the lockfile at a release cut. A bump on develop protects the next cut only. To fix what a user sees today, repeat the change on the live `prod-docs/<major>.<minor>` branch. Redo the edit there rather than cherry-picking the lockfile hunk: an older branch usually has no package or snapshot stanza for the new version at all, so applying the importer hunk by itself leaves an invalid lockfile. Copy both stanzas across too, then validate with `pnpm install --lockfile-only --frozen-lockfile`.
 
@@ -688,6 +697,8 @@ Two things establish that order, and both matter:
 
 So an `@layer starlight.<name>` block in a docs stylesheet (`src/styles/**`) or in a component `<style>` block (`src/components/*.astro`) is only safe while `custom.css` lists that layer. Adding one that it does not list makes that layer's first appearance land wherever the bundler happens to put it.
 
+**Not every markdown block can prove the order.** An unlayered docs override beats every layer, a broken order included, so a block that carries one is blind to this class of bug. Fenced code blocks are the case in point: #13409 gave them the interactive examples' block margin through an unlayered `.sl-markdown-content .expressive-code { margin-block: 2rem }` in `src/styles/components/code.css`, and their gap holds at 32px with the layers in the wrong order, while `p + p` and `p + ul` collapse to 0. So `tests/markdownProseSpacing.spec.ts` asserts two different things: the paragraph and list cases are the backstop, and the code block case pins the docs' own 2rem decision. Keep at least one assertion there on a block the layered rule still spaces, and check which rule wins - the Styles pane names the layer, and `CSS.getMatchedStylesForNode` over CDP prints it - before you read a gap assertion as a layer-order guard.
+
 Both halves are guarded, on three different triggers - know which one you are relying on:
 
 | Guard | What it checks | Runs |
@@ -733,3 +744,14 @@ Two things make this easy to get wrong, and both cost a red pipeline:
   `name` and `levels`; it never reads `note`. So a `NOTES`-only change committed to the page with a
   stale JSON passes the suite green. Re-run the generator rather than hand-editing either file, and
   if you want the gap closed, add `payload.options.map(o => o.note)` to that assertion.
+
+---
+
+## 2.17 Naming third-party utility iframes for accessibility
+
+Marketing scripts inject utility iframes with no `title`, which axe and Lighthouse flag under `frame-title` and screen readers announce as an empty frame (DEV-63). An `is:inline` guard in `src/components/Head.astro` (a sibling of the Starlight TOC guard in §2.14 - same head-script pattern, different subject) gives each an accessible name once it appears: Headway's changelog panel (`#HW_frame`) and the Visual Website Optimizer communication proxy (`#_vwo_communication_proxy`). The scripts inject asynchronously - Headway through a deferred CDN script, VWO through a tag inside the externally managed Google Tag Manager container, so `#_vwo_communication_proxy` never appears on a non-production build - so the guard uses a `MutationObserver`. Two rules:
+
+- **`title` names a frame; `aria-hidden` removes it.** They are different remediations. A frame that is real UI when shown (`#HW_frame` is the changelog panel) gets a `title` only - `aria-hidden="true"` on it would hide a working feature, and `aria-hidden` over a cross-origin frame you cannot inspect also risks the `aria-hidden-focus` violation. Only a genuinely contentless, never-displayed frame (`#_vwo_communication_proxy`) also gets `aria-hidden="true"` + `tabindex="-1"`.
+- **Bound the observer, then re-arm on consent.** It disconnects once every target is patched, but a target may never appear (a blocker kills the scripts, declined consent stops the VWO tag, and VWO never appears off production), so a `setTimeout` deadline also disconnects it - a `childList`+`subtree` observer left live for the whole page churns a MutationRecord on every DOM change. The VWO tag inside GTM fires only after analytics consent and its proxy injects asynchronously after that, which can outlast the initial deadline, so the guard re-arms (re-observes with a fresh deadline) on Cookiebot's `CookiebotOnAccept` event - do not just widen the timer.
+
+The regression test is `src/components/__tests__/head-hidden-iframe-a11y.test.mjs`, which extracts the shipped script and runs it against a fake DOM that injects the iframes asynchronously (run under `npm run docs:test:plugins`).

@@ -22,6 +22,35 @@ Handsontable(document.createElement('div'), {
   }
 });
 
+// Grid level. NOTE: `filters` is declared `boolean | object`, so nothing here checks the VALUE of a
+// sub-option - a planted `filterFixedRows: 'nope'` compiles. These pin the shape a user writes, not
+// its type. Making them able to fail means giving `filters` a real interface, which is a breaking
+// type change (an unknown key inside an object literal would stop compiling) and belongs in its own
+// task. The same already applies to `searchMode` above.
+Handsontable(document.createElement('div'), {
+  filters: {
+    filterFixedRows: false,
+  }
+});
+
+Handsontable(document.createElement('div'), {
+  filters: {
+    searchMode: 'show',
+    filterFixedRows: true,
+  }
+});
+
+// The per-column switch. This one DOES check the type: `ColumnSettings['filters']` is
+// `boolean | object | undefined`, so a wrong type is a compile error. Only `false` is read there -
+// an object is accepted by the type and ignored at runtime, with a console warning.
+Handsontable(document.createElement('div'), {
+  columns: [
+    { filters: false },
+    { filters: true },
+    {},
+  ],
+});
+
 const filters = hot.getPlugin('filters');
 
 filters.enablePlugin();

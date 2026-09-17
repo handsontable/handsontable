@@ -1,4 +1,27 @@
-import { refillDisagreesWithFrozenColumnSync, resolveRefillPaintWindow } from '../../../src/table/drawCycle';
+import {
+  recyclesRowsOnClone,
+  refillDisagreesWithFrozenColumnSync,
+  resolveRefillPaintWindow,
+} from '../../../src/table/drawCycle';
+import {
+  CLONE_BOTTOM,
+  CLONE_BOTTOM_INLINE_START_CORNER,
+  CLONE_INLINE_START,
+  CLONE_TOP,
+  CLONE_TOP_INLINE_START_CORNER,
+} from '../../../src/overlay/constants';
+
+describe('recyclesRowsOnClone', () => {
+  it('should let only the inline-start clone recycle its rows', () => {
+    expect(recyclesRowsOnClone(CLONE_INLINE_START)).toBe(true);
+  });
+
+  it('should keep the frozen-row clones and their corners on stationary elements', () => {
+    [CLONE_TOP, CLONE_BOTTOM, CLONE_TOP_INLINE_START_CORNER, CLONE_BOTTOM_INLINE_START_CORNER].forEach((name) => {
+      expect(recyclesRowsOnClone(name)).toBe(false);
+    });
+  });
+});
 
 describe('refillDisagreesWithFrozenColumnSync', () => {
   /**

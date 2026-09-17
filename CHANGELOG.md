@@ -9,6 +9,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
+## [18.1.1] - 2026-09-15
+
+### Fixed
+- Fixed copying, cutting, and pasting doing nothing in a grid embedded in a Salesforce Lightning Web Component. [#13388](https://github.com/handsontable/handsontable/issues/13388)
+- Fixed a `filters` plugin crash thrown when a cell in a filtered column was edited, or the data was replaced with a filter active, after `updateSettings()` was called with the `filters` option (as the React and Angular wrappers do on every update). [#13480](https://github.com/handsontable/handsontable/pull/13480)
+
 ## [18.1.0] - 2026-09-01
 
 ### Added

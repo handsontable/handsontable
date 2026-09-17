@@ -1807,6 +1807,14 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
 
+          # The prod-docs branch was cut before these DEV-2925 scripts existed, so the
+          # `git checkout "$DOCS_BRANCH"` below deletes them from the working tree
+          # (they are tracked on the release branch, absent on prod-docs). Preserve
+          # them in $RUNNER_TEMP, which survives the branch switch, and run them from
+          # there in the two steps below. They import nothing but `node:` built-ins,
+          # so they are self-contained away from the repo tree.
+          cp .github/scripts/sync-release-docs-delta.mjs .github/scripts/set-package-version.mjs "$RUNNER_TEMP/"
+
           if git ls-remote --heads origin "$DOCS_BRANCH" | grep -q "$DOCS_BRANCH"; then
             echo "Docs branch ${DOCS_BRANCH} already exists, checking out..."
             git checkout "$DOCS_BRANCH"
@@ -1949,6 +1957,55 @@ jobs:
           CHANGELOG_CONTENT: ${{ steps.docs-changelog-content.outputs.content }}
         run: node .github/scripts/update-docs-changelog.mjs '${{ needs.stable-build.outputs.version }}'
 
+      # DEV-2925: on a PATCH release the docs branch is checked out, not re-cut from
+      # the tag, so every `docs/content` change the release introduced stays frozen
+      # at the minor's cut -- the per-major `changelog-<major>.md` section, and any
+      # edit that rode in a mixed source+docs commit that `docs-sync` skips (the
+      # 18.1.1 `shadow-dom.md` fix). Apply that delta here. `BASE` is the version the
+      # branch currently records; on a fresh minor/major branch it equals the release
+      # version, so the delta is empty and this is a no-op. `git apply --3way` inside
+      # the script keeps prod-docs's own docs-sync'd edits and fails closed on a real
+      # overlap, which (being continue-on-error) then skips the push below. This runs
+      # BEFORE the version write, so `BASE` still reads the previous version.
+      - name: Sync release docs delta to the docs branch
+        id: docs-content-delta
+        continue-on-error: true
+        run: |
+          VERSION='${{ needs.stable-build.outputs.version }}'
+          BASE=$(node -p "require('./handsontable/package.json').version")
+
+          # Run from the $RUNNER_TEMP copy: the prod-docs checkout deleted the script
+          # from the working tree. Both BASE and VERSION are release tags, already
+          # present from the job's `fetch-depth: 0` checkout (a fresh minor/major
+          # short-circuits on BASE == VERSION and resolves neither).
+          node "$RUNNER_TEMP/sync-release-docs-delta.mjs" "$BASE" "$VERSION"
+
+      # DEV-2925: `docs/src/plugins/docs-version.mjs` reads `handsontable/package.json`
+      # `version` as the docs' current version (breadcrumb + example-runner links). On
+      # a patch the checked-out branch still records the previous version. Write the
+      # released version unconditionally -- `set-package-version.mjs` does a targeted
+      # line replace (a JSON round-trip would reflow the inline `exports` map) and is a
+      # clean no-op when the value already matches, which is the case on a fresh branch
+      # cut from the tag. Run it from the $RUNNER_TEMP copy: the prod-docs checkout
+      # deleted the script from the working tree. The core version is a
+      # workspace/`link:` dependency, never pinned in `pnpm-lock.yaml` (a `git diff`
+      # would never show the version), so the write cannot change the lock and
+      # `--frozen-lockfile` at deploy stays green with no lockfile regeneration.
+      - name: Update core version in docs branch
+        id: docs-core-version
+        continue-on-error: true
+        env:
+          VERSION: ${{ needs.stable-build.outputs.version }}
+        run: |
+          node "$RUNNER_TEMP/set-package-version.mjs" "$VERSION" handsontable/package.json
+
+          WROTE=$(node -p "require('./handsontable/package.json').version")
+          if [ "$WROTE" != "$VERSION" ]; then
+            git checkout -- handsontable/package.json
+            echo "::error::handsontable/package.json version is '${WROTE}', expected '${VERSION}'"
+            exit 1
+          fi
+
       # This used to run a bare `git add .` in a workspace that also holds the
       # downloaded release artifacts, so every release committed four `_tmp_packs/*.tgz`
       # (5.5 MB+) onto the docs branch. Stage the paths this job actually produces.
@@ -1974,13 +2031,19 @@ jobs:
           && steps.docs-angular.outcome == 'success'
           && steps.docs-lockfile.outcome == 'success'
           && steps.docs-changelog.outcome == 'success'
+          && steps.docs-content-delta.outcome == 'success'
+          && steps.docs-core-version.outcome == 'success'
         env:
           GITHUB_TOKEN: ${{ steps.release-token.outputs.token }}
         run: |
           VERSION='${{ needs.stable-build.outputs.version }}'
           DOCS_BRANCH="${DOCS_BRANCH_PREFIX}${VERSION%.*}"
 
-          git add pnpm-lock.yaml docs/package.json docs/content/guides
+          # The release delta is already staged by `git apply --index`; this covers the
+          # rolling changelog (also under guides) and adds `handsontable/package.json`
+          # for the version write. Scoped to `guides` -- never all of `docs/content` --
+          # so a stray untracked file dropped elsewhere under content is not committed.
+          git add pnpm-lock.yaml docs/package.json docs/content/guides handsontable/package.json
           git add -f docs/content/api
 
           git commit -m "${VERSION}" || echo "No changes to commit"
@@ -2005,6 +2068,8 @@ jobs:
             docs-angular:${{ steps.docs-angular.outcome }}
             docs-lockfile:${{ steps.docs-lockfile.outcome }}
             docs-changelog:${{ steps.docs-changelog.outcome }}
+            docs-content-delta:${{ steps.docs-content-delta.outcome }}
+            docs-core-version:${{ steps.docs-core-version.outcome }}
             docs-commit:${{ steps.docs-commit.outcome }}
         run: |
           FAILED=""

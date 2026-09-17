@@ -11,8 +11,10 @@ const ExampleComponentContent = () => {
   const hotSettings = useSelector((state) => state);
   const dispatch = useDispatch();
   const hotTableComponentRef = useRef(null);
+
   const hotData = hotSettings.data;
   const isHotData = Array.isArray(hotData);
+
   const onBeforeHotChange = (changes) => {
     dispatch({
       type: 'updateData',
@@ -80,7 +82,7 @@ const ExampleComponentContent = () => {
                       </td>
                       <td>{value.toString()}</td>
                     </tr>
-                  )
+                  ),
               )}
             </tbody>
           </table>
@@ -92,11 +94,11 @@ const ExampleComponentContent = () => {
 
 const initialReduxStoreState = {
   data: [
-    ['A1', 'B1', 'C1'],
-    ['A2', 'B2', 'C2'],
-    ['A3', 'B3', 'C3'],
-    ['A4', 'B4', 'C4'],
-    ['A5', 'B5', 'C5'],
+    ['SKU-4821', 'Stainless Steel Water Bottle', 'Harbor Goods'],
+    ['SKU-0093', 'Wireless Mouse', 'Alpine Supply Co.'],
+    ['SKU-1170', 'Ergonomic Office Chair', 'Cascade Distributors'],
+    ['SKU-2208', 'USB-C Charging Cable', 'Summit Trading'],
+    ['SKU-3341', 'Aluminum Water Filter', 'Northgate Wholesale'],
   ],
   colHeaders: true,
   rowHeaders: true,
@@ -123,17 +125,20 @@ const updatesReducer = (state = initialReduxStoreState, action) => {
       // state object every time would re-render the component and resend the settings in a loop.
       return hasChanged ? { ...state, data: newData } : state;
     }
+
     case 'updateReadOnly':
       return {
         ...state,
         readOnly: action.readOnly,
       };
+
     default:
       return state;
   }
 };
 
 const reduxStore = createStore(updatesReducer);
+
 const ExampleComponent = () => (
   <Provider store={reduxStore}>
     <ExampleComponentContent />

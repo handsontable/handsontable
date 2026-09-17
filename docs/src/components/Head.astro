@@ -77,6 +77,99 @@ import Default from '@astrojs/starlight/components/Head.astro';
   })();
 </script>
 
+<script is:inline>
+  // Third-party marketing scripts inject utility iframes with no accessible name, so axe and
+  // Lighthouse flag them (frame-title) and screen readers announce an empty frame (DEV-63).
+  // Give each iframe a title once it appears. The Visual Website Optimizer communication proxy
+  // carries no content and is never displayed, so also remove it from the accessibility tree
+  // and the tab order. Headway's #HW_frame is the changelog panel, which is real UI when shown,
+  // so it gets a title only - never aria-hidden, which would hide a working feature.
+  //
+  // Both iframes are injected asynchronously - Headway through a deferred CDN script, VWO through
+  // a tag inside the externally managed Google Tag Manager container - so a one-shot lookup at
+  // head-parse time would race the injection. A MutationObserver catches each iframe whenever it
+  // lands, and disconnects once every target has been patched.
+  (function () {
+    var TARGETS = [
+      { id: 'HW_frame', title: 'Product updates', removeFromA11yTree: false },
+      { id: '_vwo_communication_proxy', title: 'A/B testing communication frame', removeFromA11yTree: true },
+    ];
+
+    var pending = TARGETS.slice();
+    var observer;
+    var deadline;
+
+    function stop() {
+      clearTimeout(deadline);
+
+      if (observer) {
+        observer.disconnect();
+        observer = null;
+      }
+    }
+
+    function patch() {
+      pending = pending.filter(function (target) {
+        var iframe = document.getElementById(target.id);
+
+        if (!iframe) {
+          return true;
+        }
+
+        if (!iframe.getAttribute('title')) {
+          iframe.setAttribute('title', target.title);
+        }
+
+        if (target.removeFromA11yTree) {
+          iframe.setAttribute('aria-hidden', 'true');
+          iframe.setAttribute('tabindex', '-1');
+        }
+
+        return false;
+      });
+
+      if (pending.length === 0) {
+        stop();
+      }
+    }
+
+    function arm() {
+      if (pending.length === 0) {
+        return;
+      }
+
+      patch();
+
+      if (pending.length === 0) {
+        return;
+      }
+
+      if (!observer) {
+        observer = new MutationObserver(patch);
+      }
+
+      observer.observe(document.documentElement, { childList: true, subtree: true });
+
+      // Bound the observer's lifetime. A childList+subtree observer left live for the page's
+      // lifetime queues a MutationRecord for every DOM change (example-runner injection, island
+      // hydration, grids re-rendering on scroll), and a target may never appear at all - an ad
+      // blocker kills the scripts, and #_vwo_communication_proxy never appears off production.
+      // Third-party injection lands within a few seconds of its trigger.
+      clearTimeout(deadline);
+      deadline = setTimeout(stop, 15000);
+    }
+
+    arm();
+
+    // The VWO tag inside Google Tag Manager fires only after analytics consent, and its proxy
+    // iframe injects asynchronously after that - which can be well past the initial deadline for
+    // a reader who lingers in the Cookiebot banner. Cookiebot dispatches CookiebotOnAccept on the
+    // consent click and again on every later load once consent is stored, so re-arm the watcher
+    // there rather than widen the deadline. The listener is inert where Cookiebot is absent.
+    window.addEventListener('CookiebotOnAccept', arm);
+  })();
+</script>
+
 <script>
   import Handsontable from 'handsontable/base';
 

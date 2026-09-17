@@ -2,12 +2,6 @@
 
 ## Tech Debt
 
-**Walkontable DAO Layer (Data Access Objects):**
-- Issue: The Walkontable rendering engine uses a DAO (Data Access Object) pattern with deeply nested getter properties that should be replaced with proper dependency injection (IOC). Over 20 TODO comments across Walkontable files acknowledge this debt.
-- Files: `handsontable/src/3rdparty/walkontable/src/core/_base.ts`, `handsontable/src/3rdparty/walkontable/src/core/core.ts`, `handsontable/src/3rdparty/walkontable/src/table.ts`
-- Impact: Makes Walkontable difficult to test in isolation, creates tight coupling between components, and hinders refactoring. Every overlay, table, and viewport component reaches through DAOs rather than receiving dependencies explicitly.
-- Fix approach: Introduce constructor-based dependency injection. Replace DAO getter objects with direct parameter passing. Start with `createScrollDao()` and `getTableDao()` in `_base.ts`.
-
 **Broken Plugin Initialization Abstraction (#6806):**
 - Issue: Multiple plugins contain explicit workarounds for a broken plugin initialization order. Plugins must guard against uninitialized state (`!this.hot.view`) and force `updatePlugin()` calls during `enablePlugin()`.
 - Files: `handsontable/src/plugins/nestedHeaders/nestedHeaders.ts`, `handsontable/src/plugins/collapsibleColumns/collapsibleColumns.ts`
@@ -91,19 +85,19 @@
 
 **Spread Operator with Potentially Large Arrays:**
 - Problem: At least 28 instances of `array.push(...otherArray)` exist in production source code. With arrays of 10k+ elements, this causes stack overflow due to argument count limits.
-- Files: `handsontable/src/dataMap/metaManager/metaLayers/cellMeta.ts`, `handsontable/src/plugins/nestedRows/nestedRows.ts`, `handsontable/src/plugins/nestedRows/ui/collapsing.ts`, `handsontable/src/plugins/collapsibleColumns/collapsibleColumns.ts`, `handsontable/src/plugins/hiddenRows/contextMenuItem/showRow.ts`, `handsontable/src/plugins/hiddenColumns/contextMenuItem/showColumn.ts`, `handsontable/src/core.ts`
+- Files: `handsontable/src/dataMap/metaManager/metaLayers/cellMeta.ts`, `handsontable/src/plugins/nestedRows/nestedRows.ts`, `handsontable/src/plugins/nestedRows/ui/collapsing.ts`, `handsontable/src/plugins/collapsibleColumns/collapsibleColumns.ts`, `handsontable/src/core.ts`
 - Cause: `Function.prototype.apply` (which spread desugars to) has a maximum argument count (~65k in V8, lower in other engines).
 - Improvement path: Replace `arr.push(...largeArr)` with `for` or `forEach` loops in all code paths that may handle large datasets. Priority: `cellMeta.ts` handles per-cell metadata and scales with table size.
 
 **Walkontable Filter Object Recreation:**
 - Problem: `rowFilter` and `columnFilter` are set to `null` and recreated on every render pass instead of updating state in place. Two TODO comments acknowledge this.
-- Files: `handsontable/src/3rdparty/walkontable/src/table.ts`
+- Files: `handsontable/src/3rdparty/walkontable/src/table/baseTable.ts`, `handsontable/src/3rdparty/walkontable/src/table/drawCycle.ts`
 - Cause: The filter objects are recreated rather than having their state updated incrementally.
 - Improvement path: Refactor filter objects to support state updates without full reconstruction.
 
 **Limited requestAnimationFrame Batching:**
-- Problem: `requestAnimationFrame` is used in only 7 source files, primarily in `autoRowSize`, `autoColumnSize`, and the overlay system. Scroll events and resize operations in other areas may not be batched.
-- Files: `handsontable/src/helpers/feature.ts`, `handsontable/src/utils/interval.ts`, `handsontable/src/3rdparty/walkontable/src/overlays.ts`, `handsontable/src/plugins/autoRowSize/autoRowSize.ts`, `handsontable/src/plugins/autoColumnSize/autoColumnSize.ts`
+- Problem: `requestAnimationFrame` is used in only a handful of source files: the helpers, two Walkontable overlay modules, and a few plugin UIs. Scroll events and resize operations in other areas may not be batched.
+- Files: `handsontable/src/helpers/feature.ts`, `handsontable/src/utils/interval.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/resizeMonitor.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/scroll/nativeScrollInput.ts`, `handsontable/src/plugins/contextMenu/menu/menu.ts`, `handsontable/src/plugins/stretchColumns/stretchColumns.ts`
 - Cause: Not all rendering-triggering events are routed through a rAF-based scheduler.
 - Improvement path: Introduce a central render scheduler that batches all render-triggering events through `requestAnimationFrame`.
 
@@ -122,7 +116,7 @@
 - Test coverage: Good E2E coverage exists but the workarounds themselves are not directly tested.
 
 **Overlay System (Walkontable):**
-- Files: `handsontable/src/3rdparty/walkontable/src/overlays.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/top.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/inlineStart.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/bottom.ts`
+- Files: `handsontable/src/3rdparty/walkontable/src/overlay/overlays.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/regions/topOverlay.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/regions/inlineStartOverlay.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/regions/bottomOverlay.ts`
 - Why fragile: The overlay system manages 6 overlay types (top, bottom, left, and 3 corners) with complex positioning logic. TODO comments indicate a workaround for `innerBorderTop` that is documented to be clearable only after SVG borders are merged. Lazy creation of corner overlays adds initialization complexity.
 - Safe modification: Test with combinations of `fixedRowsTop`, `fixedRowsBottom`, `fixedColumnsStart`. Test RTL layout. Verify no visual artifacts at overlay boundaries.
 - Test coverage: Walkontable has its own test pipeline (`npm run test:walkontable`), separate from the main E2E tests.
@@ -158,12 +152,6 @@
 - Files: `handsontable/src/plugins/touchScroll/`
 - Risk: Touch scrolling regressions on mobile browsers go undetected.
 - Priority: Medium (mobile usage is increasing).
-
-**Walkontable DAO Layer:**
-- What's not tested: The DAO objects in `_base.ts` are not unit tested. They are exercised only indirectly through higher-level integration tests.
-- Files: `handsontable/src/3rdparty/walkontable/src/core/_base.ts`
-- Risk: Refactoring the DAO layer could break property access patterns without test detection.
-- Priority: Medium (blocks the DAO refactoring effort).
 
 **Visual Selection Highlight Internals:**
 - What's not tested: The coordinate adjustment logic in `visualSelection.ts` with MergeCells interaction has TODO comments but no dedicated unit tests.

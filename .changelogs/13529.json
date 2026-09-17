@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed setBorders dropping cascaded or partial custom border sides.",
+  "type": "fixed",
+  "issueOrPR": 13529,
+  "breaking": false,
+  "framework": "none"
+}

@@ -17,6 +17,37 @@ category: Upgrade and migration
 
 These are the release notes for Handsontable 18.x.
 
+<!-- The design system is versioned in Figma, not in the release notes below,
+so its own date sits above them rather than inside a release section. Filled in
+by public/scripts/design-system-updated.js from the docs worker (rule 18c in
+docs/cloudflare/_worker.js); starts hidden and is revealed only once a real
+date arrives, so the page is unchanged when the date is unavailable.
+Lives on the NEWEST changelog-N page only - move it when that page changes;
+design-system-updated.test.mjs fails if the newest page lacks it.
+The blank lines inside the div are load-bearing: without them the Markdown
+link is not parsed and the @/ path is not resolved per framework. -->
+<div data-design-system-updated style="display:none">
+
+[Design system](@/guides/styling/design-system/design-system.md) - <span data-design-system-updated-date></span>
+
+</div>
+
+## 18.1.1
+
+Released on September 15th, 2026
+
+For more information about this release, see:
+
+<div class="boxes-list gray">
+
+- [Documentation (18.1)](https://handsontable.com/docs/18.1)
+
+</div>
+
+#### Fixed
+- Fixed copying, cutting, and pasting doing nothing in a grid embedded in a Salesforce Lightning Web Component. [#13388](https://github.com/handsontable/handsontable/issues/13388)
+- Fixed a `filters` plugin crash thrown when a cell in a filtered column was edited, or the data was replaced with a filter active, after `updateSettings()` was called with the `filters` option (as the React and Angular wrappers do on every update). [#13480](https://github.com/handsontable/handsontable/pull/13480)
+
 ## 18.1.0
 
 Released on September 1st, 2026
