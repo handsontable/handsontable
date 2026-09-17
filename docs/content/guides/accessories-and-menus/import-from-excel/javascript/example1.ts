@@ -34,7 +34,7 @@ const importPlugin = hot.getPlugin('importFile');
 const fileInput = document.querySelector<HTMLInputElement>('#import-file')!;
 
 fileInput.addEventListener('change', async() => {
-  const [file] = fileInput.files ?? [];
+  const file = fileInput.files?.[0];
 
   if (!file) {
     return;

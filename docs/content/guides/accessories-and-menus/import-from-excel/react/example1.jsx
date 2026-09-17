@@ -17,7 +17,7 @@ const ExampleComponent = () => {
   const hotRef = useRef(null);
 
   const importFile = async (event) => {
-    const [file] = event.target.files ?? [];
+    const file = event.target.files?.[0];
 
     if (!file) {
       return;

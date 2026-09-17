@@ -38,7 +38,7 @@ const hotSettings = ref<GridSettings>({
 
 async function importFile(event: Event): Promise<void> {
   const input = event.target as HTMLInputElement;
-  const [file] = input.files ?? [];
+  const file = input.files?.[0];
 
   if (!file) {
     return;

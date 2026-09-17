@@ -17,7 +17,7 @@ const ExampleComponent = () => {
   const hotRef = useRef<HotTableRef>(null);
 
   const importFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const [file] = event.target.files ?? [];
+    const file = event.target.files?.[0];
 
     if (!file) {
       return;
