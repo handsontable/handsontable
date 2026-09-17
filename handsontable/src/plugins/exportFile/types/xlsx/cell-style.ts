@@ -1,5 +1,6 @@
 import { isDefined } from '../../../../helpers/mixed';
 import { normalizeClassNames } from '../../../../helpers/dom/element';
+import { READ_ONLY_FILL_ARGB, READ_ONLY_TEXT_ARGB } from '../../../../utils/xlsxEngine/readOnlyStyle';
 
 export interface CssStyle {
   fontBold: boolean;
@@ -25,14 +26,12 @@ export interface CellMeta {
     useGrouping?: boolean;
   } | null;
   locale?: string;
+  dateFormat?: Intl.DateTimeFormatOptions;
+  timeFormat?: Intl.DateTimeFormatOptions;
+  dateTimeFormat?: Intl.DateTimeFormatOptions;
   checkedTemplate?: unknown;
   [key: string]: unknown;
 }
-
-// Default ARGB colors applied to read-only cells when no explicit styling is set.
-// Values match the Handsontable design-system tokens for dimmed/disabled cell state.
-const READ_ONLY_BG_ARGB = 'FFF0F0F0';
-const READ_ONLY_TEXT_ARGB = 'FF808080';
 
 // Per-export cache for detectExplicitBackgroundColor results.
 // Keyed by document (WeakMap — avoids leaking document references) then by the
@@ -40,8 +39,10 @@ const READ_ONLY_TEXT_ARGB = 'FF808080';
 // changes between exports are always picked up.
 const backgroundColorByDoc = new WeakMap<Document, Map<string, string | null>>();
 
-// Per-export cache for getCssStyleFromProbe results (used when the real cell element
-// is not available — i.e. the cell is outside the render viewport).
+// Per-export cache for getCssStyleFromProbe results. Used both when the real cell element is not
+// available (the cell is outside the render viewport) and, for font color only, from the rendered
+// element path in getCssStyleFromElement — the probe's alignment-only baseline diff is what keeps a
+// non-alignment class that never touched color from reporting the cell's ambient text color.
 const cssStyleProbeByDoc = new WeakMap<Document, Map<string, CssStyle>>();
 
 /**
@@ -252,13 +253,15 @@ function getCssStyleFromProbe(doc: Document, view: Window, metaClasses: string[]
  * Reads visual style properties from a rendered Handsontable cell element via
  * `getComputedStyle`.
  *
- * Font color is only read when the cell has at least one CSS class that is not a
- * Handsontable alignment class (`htLeft`, `htRight`, etc.), because alignment-only
- * cells carry only the inherited default text color.
- *
- * Background color is only emitted when a custom meta class actually changes the
- * computed background. Detection is done via a temporary off-screen probe element
- * (see `detectExplicitBackgroundColor`) — the actual table cell is never modified.
+ * Bold, italic and underline are read straight off the rendered element's computed style. Font
+ * color and background color are both baseline-compared instead: reading `style.color` directly
+ * off the rendered element would report the cell's ambient (inherited default) text color for
+ * ANY non-alignment class, even one that never touched color — the same class-only probe used
+ * for `null`-element cells (`getCssStyleFromProbe`) diffs a "full classes" probe against an
+ * "alignment classes only" one and reports `null` unless the class list actually changes the
+ * value, so both code paths (rendered element and off-viewport probe) now agree on the same
+ * baseline for font color. Background color uses the same idea through
+ * `detectExplicitBackgroundColor`, which has always been probe-based.
  *
  * When `element` is `null` (cell outside the render viewport) but `rootDocument`
  * and `rootWindow` are provided, style information is derived via a temporary probe
@@ -307,7 +310,9 @@ export function getCssStyleFromElement(
     fontBold: Number.parseInt(style.fontWeight, 10) >= 700 || style.fontWeight === 'bold',
     fontItalic: style.fontStyle === 'italic',
     fontUnderline: (style.textDecorationLine || style.textDecoration || '').includes('underline'),
-    fontColor: hasCustomClass ? rgbComputedToHex(style.color) : null,
+    fontColor: hasCustomClass
+      ? getCssStyleFromProbe(element.ownerDocument, view, metaClasses).fontColor
+      : null,
     backgroundColor: hasCustomClass
       ? detectExplicitBackgroundColor(element.ownerDocument, metaClasses, view)
       : null,
@@ -514,7 +519,7 @@ export function getFontFromMeta(meta: CellMeta | undefined, cssStyle: CssStyle |
  *
  * Background color is read exclusively from `cssStyle.backgroundColor`.
  * When `meta.readOnly` is `true` and no explicit color is found, a default light gray fill
- * (`READ_ONLY_BG_ARGB`) is applied.
+ * (`READ_ONLY_FILL_ARGB`) is applied.
  *
  * @private
  * @param {object|undefined} meta Cell meta object.
@@ -530,7 +535,7 @@ export function getFillFromMeta(
   if (cssStyle?.backgroundColor) {
     bgColor = cssColorToArgb(cssStyle.backgroundColor);
   } else if (meta?.readOnly === true) {
-    bgColor = READ_ONLY_BG_ARGB;
+    bgColor = READ_ONLY_FILL_ARGB;
   }
 
   if (!bgColor) {

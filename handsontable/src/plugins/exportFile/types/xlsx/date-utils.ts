@@ -165,3 +165,219 @@ export function parseIsoDateTimeStringToSerial(value: unknown): number | null {
 export function getDateTimeNumFmt(): string {
   return 'mm-dd-yy h:mm:ss';
 }
+
+/**
+ * Excel month tokens keyed by the `Intl.DateTimeFormatOptions#month` value they stand for. `narrow`
+ * has no Excel equivalent and is deliberately absent, so it drops out of the pattern.
+ *
+ * @private
+ */
+const MONTH_TOKENS: Record<string, string | undefined> = {
+  numeric: 'm',
+  '2-digit': 'mm',
+  short: 'mmm',
+  long: 'mmmm',
+};
+
+/**
+ * Excel day-of-month tokens keyed by the `Intl.DateTimeFormatOptions#day` value they stand for.
+ *
+ * @private
+ */
+const DAY_TOKENS: Record<string, string | undefined> = {
+  numeric: 'd',
+  '2-digit': 'dd',
+};
+
+/**
+ * Excel year tokens keyed by the `Intl.DateTimeFormatOptions#year` value they stand for.
+ *
+ * @private
+ */
+const YEAR_TOKENS: Record<string, string | undefined> = {
+  numeric: 'yyyy',
+  '2-digit': 'yy',
+};
+
+/**
+ * Excel weekday-name tokens keyed by the `Intl.DateTimeFormatOptions#weekday` value they stand for.
+ *
+ * @private
+ */
+const WEEKDAY_TOKENS: Record<string, string | undefined> = {
+  short: 'ddd',
+  long: 'dddd',
+};
+
+/**
+ * Excel hour tokens keyed by the `Intl.DateTimeFormatOptions#hour` value they stand for.
+ *
+ * @private
+ */
+const HOUR_TOKENS: Record<string, string | undefined> = {
+  numeric: 'h',
+  '2-digit': 'hh',
+};
+
+/**
+ * Excel second tokens keyed by the `Intl.DateTimeFormatOptions#second` value they stand for.
+ *
+ * @private
+ */
+const SECOND_TOKENS: Record<string, string | undefined> = {
+  numeric: 's',
+  '2-digit': 'ss',
+};
+
+/**
+ * Builds the date half of an Excel number format from `Intl.DateTimeFormatOptions`, in Excel's US
+ * `m-d-y` order, so that the import's `excelDateFmtToIntlOptions` reads the same options back.
+ * Omitted components are omitted from the pattern. A month NAME switches the separator to a space
+ * (`mmmm yyyy`), because `mmmm-yyyy` is not a shape Excel writes.
+ *
+ * A weekday name is expressible on its own (`dddd`), which the import reads back as `weekday`, so
+ * options naming only a weekday build a pattern rather than falling back and dropping it.
+ *
+ * Returns `null` when the options are missing, are a legacy pattern string, or name no date
+ * component at all — the caller then falls back to the fixed format the export has always written.
+ *
+ * @private
+ * @param {object|undefined} options The cell's Intl date options.
+ * @returns {string|null}
+ */
+function buildDatePattern(options: Intl.DateTimeFormatOptions | undefined): string | null {
+  if (!options || typeof options !== 'object') {
+    return null;
+  }
+
+  const month = MONTH_TOKENS[options.month ?? ''];
+  const day = DAY_TOKENS[options.day ?? ''];
+  const year = YEAR_TOKENS[options.year ?? ''];
+  const weekday = WEEKDAY_TOKENS[options.weekday ?? ''];
+  const parts = [month, day, year].filter(part => part !== undefined);
+
+  if (parts.length === 0) {
+    return weekday ?? null;
+  }
+
+  const body = parts.join(month === 'mmm' || month === 'mmmm' ? ' ' : '-');
+
+  return weekday === undefined ? body : `${weekday}, ${body}`;
+}
+
+/**
+ * Answers whether an hour-carrying format renders on a 12-hour clock. An explicit `hour12` decides
+ * it; an unspecified one is resolved from the locale the way `Intl` does, because that is what the
+ * grid rendered — the time renderer builds its formatter as `new Intl.DateTimeFormat(locale,
+ * timeFormat)` with the same `locale` cell property, so `{ hour: '2-digit', minute: '2-digit' }`
+ * under `en-US` shows `09:30 AM`. Assuming 24-hour there wrote `hh:mm`, which the import reads back
+ * as `hour12: false`, and the target grid then rendered `09:30`.
+ *
+ * A malformed locale tag makes `Intl.DateTimeFormat` throw, which is treated as a 24-hour clock —
+ * the shape the export has always written.
+ *
+ * @private
+ * @param {object} options The cell's Intl time options, known to carry an hour.
+ * @param {string|undefined} locale BCP 47 locale tag from the `locale` cell property.
+ * @returns {boolean}
+ */
+function resolveHour12(options: Intl.DateTimeFormatOptions, locale: string | undefined): boolean {
+  if (options.hour12 !== undefined) {
+    return options.hour12 === true;
+  }
+
+  try {
+    return new Intl.DateTimeFormat(locale, options).resolvedOptions().hour12 === true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Builds the time half of an Excel number format from `Intl.DateTimeFormatOptions`, in Excel's
+ * `h:mm:ss` order. A minute is always written as `mm`: Excel reads an `m` run as a minute only when
+ * an hour precedes it or a second follows it, and as a month everywhere else, so a minute with
+ * neither neighbour cannot be expressed and returns `null` instead of an `mm` the import would read
+ * back as a month.
+ *
+ * Returns `null` when the options are missing, are a legacy pattern string, or name no time
+ * component at all.
+ *
+ * @private
+ * @param {object|undefined} options The cell's Intl time options.
+ * @param {string|undefined} locale BCP 47 locale tag from the `locale` cell property.
+ * @returns {string|null}
+ */
+function buildTimePattern(
+  options: Intl.DateTimeFormatOptions | undefined, locale: string | undefined
+): string | null {
+  if (!options || typeof options !== 'object') {
+    return null;
+  }
+
+  const hour = HOUR_TOKENS[options.hour ?? ''];
+  const minute = options.minute === undefined ? undefined : 'mm';
+  const second = SECOND_TOKENS[options.second ?? ''];
+  const parts = [hour, minute, second].filter(part => part !== undefined);
+
+  if (parts.length === 0 || (minute !== undefined && hour === undefined && second === undefined)) {
+    return null;
+  }
+
+  const body = parts.join(':');
+
+  return hour !== undefined && resolveHour12(options, locale) ? `${body} AM/PM` : body;
+}
+
+/**
+ * Derives the Excel `numFmt` string for a date cell from its `dateFormat` Intl options, so an export
+ * followed by an import recovers the options the source grid rendered with. Falls back to
+ * {@link getDateNumFmt} for a cell that carries no usable options.
+ *
+ * @private
+ * @param {object|undefined} options The cell's `dateFormat` option.
+ * @returns {string}
+ */
+export function intlDateFmtToExcelNumFmt(options: Intl.DateTimeFormatOptions | undefined): string {
+  return buildDatePattern(options) ?? getDateNumFmt();
+}
+
+/**
+ * Derives the Excel `numFmt` string for a time cell from its `timeFormat` Intl options. Falls back
+ * to {@link getTimeNumFmt} for a cell that carries no usable options.
+ *
+ * @private
+ * @param {object|undefined} options The cell's `timeFormat` option.
+ * @param {string|undefined} locale The cell's `locale` option, which decides the clock when the
+ *   options name no `hour12`.
+ * @returns {string}
+ */
+export function intlTimeFmtToExcelNumFmt(
+  options: Intl.DateTimeFormatOptions | undefined, locale?: string | undefined
+): string {
+  return buildTimePattern(options, locale) ?? getTimeNumFmt();
+}
+
+/**
+ * Derives the Excel `numFmt` string for a date-time cell from its `dateTimeFormat` Intl options,
+ * which carry both halves in one object. Falls back to {@link getDateTimeNumFmt} unless BOTH halves
+ * are expressible, so a half-derived pattern never reaches the file.
+ *
+ * @private
+ * @param {object|undefined} options The cell's `dateTimeFormat` option.
+ * @param {string|undefined} locale The cell's `locale` option, which decides the clock when the
+ *   options name no `hour12`.
+ * @returns {string}
+ */
+export function intlDateTimeFmtToExcelNumFmt(
+  options: Intl.DateTimeFormatOptions | undefined, locale?: string | undefined
+): string {
+  const datePattern = buildDatePattern(options);
+  const timePattern = buildTimePattern(options, locale);
+
+  if (datePattern === null || timePattern === null) {
+    return getDateTimeNumFmt();
+  }
+
+  return `${datePattern} ${timePattern}`;
+}

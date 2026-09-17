@@ -1,3 +1,13 @@
+import { colIndexToLetter, colLetterToIndex } from '../../../../utils/xlsxEngine/cellRef';
+import { mapFormulaReferences } from '../../../../utils/xlsxEngine/formulaRefs';
+
+/**
+ * The column-letter converters, re-exported from the shared xlsx engine layer so the export's own
+ * formula helpers stay one import for callers: `colIndexToLetter` turns a 1-based column index into
+ * an Excel column letter string (1 → `'A'`, 27 → `'AA'`), `colLetterToIndex` inverts it.
+ */
+export { colIndexToLetter, colLetterToIndex };
+
 /**
  * Maps ColumnSummary type names to their Excel function equivalents.
  *
@@ -12,48 +22,6 @@ const SUMMARY_TYPE_TO_EXCEL_FN: Record<string, string> = {
   count: 'COUNT',
   average: 'AVERAGE',
 };
-
-/**
- * Converts a 1-based column index to an Excel column letter string.
- *
- * Examples: 1 → `'A'`, 26 → `'Z'`, 27 → `'AA'`, 28 → `'AB'`.
- *
- * @private
- * @param {number} colIndex 1-based column index.
- * @returns {string}
- */
-export function colIndexToLetter(colIndex: number): string {
-  let letter = '';
-  let n = colIndex;
-
-  while (n > 0) {
-    const remainder = (n - 1) % 26;
-
-    letter = String.fromCharCode(65 + remainder) + letter;
-    n = Math.floor((n - 1) / 26);
-  }
-
-  return letter;
-}
-
-/**
- * Converts an Excel column letter string to a 1-based column index.
- *
- * Examples: `'A'` → 1, `'Z'` → 26, `'AA'` → 27.
- *
- * @private
- * @param {string} letters Column letter string (uppercase).
- * @returns {number}
- */
-export function colLetterToIndex(letters: string): number {
-  let index = 0;
-
-  for (let i = 0; i < letters.length; i++) {
-    index = (index * 26) + (letters.charCodeAt(i) - 64);
-  }
-
-  return index;
-}
 
 /**
  * Returns `true` when `value` is a string that starts with `=` (a formula).
@@ -209,30 +177,23 @@ export function normalizeFormula(
   const hasColExclusions = (excludedHiddenCols?.size ?? 0) > 0;
 
   if (rowOffset !== 0 || colOffset !== 0 || hasRowExclusions || hasColExclusions) {
-    // The leading alternative matches string literals (double-quoted Excel strings use "" to escape a quote;
-    // single-quoted tokens are sheet name references like 'Sheet 1'!A1). When matched, they are returned
-    // as-is so that cell-reference-like patterns inside string values are not offset.
-    formula = formula.replace(
-      /("(?:[^"]|"")*"|'[^']*')|(?<!\d)(\$?)([A-Z]{1,3})(\$?)(\d{1,7})(?!\()/g,
-      (match, strLiteral, colAbs, colLetters, rowAbs, rowStr) => {
-        if (strLiteral !== undefined) {
-          return strLiteral as string;
-        }
+    // `mapFormulaReferences` owns the walk (string literals and the sheet part of a qualified
+    // reference are copied through untouched); this mapper owns the arithmetic. Unlike the import
+    // direction, the offset applies to ABSOLUTE components too: the whole data block moves to a new
+    // origin in the sheet, which is a translation of the coordinate space rather than a copy, so a
+    // `$A$1` pinned to a grid cell has to follow it. The mapper never rejects a reference, so the
+    // result is never `null`.
+    formula = mapFormulaReferences(formula, ({ row, col }) => {
+      const hotPhysCol = col - 1; // 0-based physical HOT column
+      const hotPhysRow = row - 1; // 0-based physical HOT row
 
-        const hotPhysCol = colLetterToIndex(colLetters) - 1; // 0-based physical HOT column
-        const hotPhysRow = Number.parseInt(rowStr, 10) - 1; // 0-based physical HOT row
+      const hiddenColsBefore = (hasColExclusions && excludedHiddenCols)
+        ? countBelow(excludedHiddenCols, hotPhysCol) : 0;
+      const hiddenRowsBefore = (hasRowExclusions && excludedHiddenRows)
+        ? countBelow(excludedHiddenRows, hotPhysRow) : 0;
 
-        const hiddenColsBefore = (hasColExclusions && excludedHiddenCols)
-          ? countBelow(excludedHiddenCols, hotPhysCol) : 0;
-        const hiddenRowsBefore = (hasRowExclusions && excludedHiddenRows)
-          ? countBelow(excludedHiddenRows, hotPhysRow) : 0;
-
-        const newCol = colLetterToIndex(colLetters) + colOffset - hiddenColsBefore;
-        const newRow = Number.parseInt(rowStr, 10) + rowOffset - hiddenRowsBefore;
-
-        return `${colAbs}${colIndexToLetter(newCol)}${rowAbs}${newRow}`;
-      }
-    );
+      return { row: row + rowOffset - hiddenRowsBefore, col: col + colOffset - hiddenColsBefore };
+    }) ?? formula;
   }
 
   if (separator && separator !== ',') {

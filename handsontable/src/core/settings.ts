@@ -16,6 +16,7 @@ import type { LayoutConfig } from './layout';
 import type { PredefinedMenuItemKey, MenuItemConfig, ContextMenu } from '../plugins/contextMenu';
 import type { DropdownMenu } from '../plugins/dropdownMenu';
 import type { SheetsBarSettings, SheetsBarViewState } from '../plugins/sheetsBar';
+import type { ImportFileSettings, ImportResult } from '../plugins/importFile';
 import type { ColumnSortingConfig } from '../plugins/columnSorting';
 import type { NestedHeader } from '../plugins/nestedHeaders';
 import type { UndoRedoAction } from '../plugins/undoRedo';
@@ -303,6 +304,7 @@ export interface GridSettings {
   nestedRows?: boolean;
   pagination?: boolean | object;
   search?: boolean | object;
+  importFile?: boolean | ImportFileSettings;
   sheetsBar?: boolean | SheetsBarSettings;
   trimRows?: boolean | number[];
 
@@ -437,6 +439,7 @@ export interface GridSettings {
     actionPossible: boolean, stateChanged: boolean) => void;
   afterHideRows?: (currentHideConfig: number[], destinationHideConfig: number[],
     actionPossible: boolean, stateChanged: boolean) => void;
+  afterImport?: (result: ImportResult, format: string) => void;
   afterInit?: () => void;
   afterLanguageChange?: (languageCode: string) => void;
   afterListen?: () => void;
@@ -626,6 +629,7 @@ export interface GridSettings {
     highlightMeta: { selectionType: string; columnCursor: number; selectionWidth: number }) => number | void;
   beforeHighlightingRowHeader?: (row: number, headerLevel: number,
     highlightMeta: { selectionType: string; rowCursor: number; selectionHeight: number }) => number | void;
+  beforeImport?: (result: ImportResult, format: string) => boolean | void;
   beforeInit?: (() => void) | (() => void)[];
   beforeInitWalkontable?: (walkontableConfig: object) => void;
   beforeKeyDown?: (event: KeyboardEvent) => void;
