@@ -515,12 +515,17 @@ fields. Three rules follow.
   `Element.prototype.scrollIntoView` stub in `test/bootstrap.js` exists because the fix made it
   reachable.
 - **The vertical owner's box is shared with the host's layout slots.** Both sizing paths ask
-  `layoutReservedHeight(trimmingContainer)` and hand the table what is left: `measureWorkspaceHeight`
-  (never below 1px) and `MasterTable#alignOverlaysWithTrimmingContainer` (the holder height, in both
-  the split-owner and the cached single-owner path — the reservation is part of the trimming-cache
-  fingerprint, or a bar that mounts after the first draw keeps the cached full-box height). The
-  host answers with the slots the owner CONTAINS – a root element that owns the axis contains none.
-  Window mode never asks: the page sizes nothing, a slot takes its own space there. Unit-pinned in
+  `layoutReservedHeight(trimmingContainer)` and hand the table what is left through ONE helper,
+  `subtractReservedHeight()` (`viewport/layoutReservation.ts`): `measureWorkspaceHeight` and
+  `MasterTable#alignOverlaysWithTrimmingContainer` (the holder height, in both the split-owner and
+  the cached single-owner path — the reservation is part of the trimming-cache fingerprint, or a bar
+  that mounts after the first draw keeps the cached full-box height). The helper floors a REAL
+  subtraction at 1px, so the two paths cannot disagree once a bar is taller than the box, and
+  passes a zero reservation or a zero-height box through untouched — that `0` is the master
+  table's "no defined size" signal (`hasDefinedSize()`, the `#3119` fallback), and flooring it
+  broke six engine specs. The host answers with the slots the owner CONTAINS – a root element that
+  owns the axis contains none. Window mode never asks: the page sizes nothing, a slot takes its own
+  space there. Unit-pinned in `test/unit/viewport/layoutReservation.unit.ts` and
   `test/unit/viewport/workspaceSize.unit.ts`, end-to-end in `tests/e2e/bottom-slot-sizing.spec.ts`
   (DEV-2848).
 - **Scroll offsets are read and written per axis, off each overlay's `mainTableScrollableElement`,
