@@ -26,11 +26,12 @@ export class NestedRowsRuntimeEnablePage {
    *
    * `data: 'arrays'` seeds an array-of-arrays dataset, which the plugin cannot work with.
    */
-  async goto(options: { data?: 'objects' | 'arrays' } = {}): Promise<void> {
+  async goto(options: { data?: 'objects' | 'arrays', size?: 'small' | 'tall' } = {}): Promise<void> {
     const dataShape = options.data ? `&data=${options.data}` : '';
+    const size = options.size ? `&size=${options.size}` : '';
 
     await this.page.goto(
-      `/tests/fixtures/demo/nested-rows-runtime-enable.html?theme=${this.theme}&bundle=${this.bundle}${dataShape}`
+      `/tests/fixtures/demo/nested-rows-runtime-enable.html?theme=${this.theme}&bundle=${this.bundle}${dataShape}${size}`
     );
 
     await awaitBundle(this.page);
@@ -84,13 +85,15 @@ export class NestedRowsRuntimeEnablePage {
    * without an auto-retrying assertion would otherwise race the draw.
    */
   async setNestedRows(value: boolean): Promise<void> {
+    const drawsBefore = await this.renderCount();
+
     await this.page.evaluate(enabled => window.hot.updateSettings({ nestedRows: enabled }), value);
 
-    await this.page.waitForFunction(() => {
-      const master = window.hot.rootElement.querySelectorAll('.ht_master tbody tr');
-
-      return master.length === window.hot.countRows();
-    }, undefined, { polling: BUNDLE_POLLING_MS });
+    // Waits for a draw rather than for a row count: on a grid taller than its viewport the master
+    // only ever holds the rendered band, so comparing it against `countRows()` never settles.
+    await this.page.waitForFunction(
+      drawn => (window.renderCount ?? 0) > drawn, drawsBefore, { polling: BUNDLE_POLLING_MS }
+    );
   }
 
   /** The text of the first column, top to bottom - what the user actually sees. */
@@ -162,6 +165,36 @@ export class NestedRowsRuntimeEnablePage {
         requested: headersUI ? headersUI.rowHeaderWidthCache : null,
       };
     });
+  }
+
+  /** Scrolls the viewport to a row and returns where the master holder ended up. */
+  async scrollToRow(row: number): Promise<number> {
+    return this.page.evaluate((target) => {
+      window.hot.scrollViewportTo({ row: target });
+
+      const holder = window.hot.rootElement.querySelector('.ht_master .wtHolder') as HTMLElement;
+
+      return holder.scrollTop;
+    }, row);
+  }
+
+  /** The master holder's current vertical scroll offset. */
+  scrollTop(): Promise<number> {
+    return this.page.evaluate(() => {
+      const holder = window.hot.rootElement.querySelector('.ht_master .wtHolder') as HTMLElement;
+
+      return holder.scrollTop;
+    });
+  }
+
+  /** How many times the grid has drawn since the fixture loaded. */
+  renderCount(): Promise<number> {
+    return this.page.evaluate(() => window.renderCount ?? 0);
+  }
+
+  /** Writes a value, then undoes it, the way Ctrl+Z would. */
+  async undo(): Promise<void> {
+    await this.page.evaluate(() => window.hot.getPlugin('undoRedo').undo());
   }
 
   /** What the grid currently holds for the `nestedRows` setting - the plugin's public answer. */

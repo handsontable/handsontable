@@ -165,6 +165,55 @@ test.describe('NestedRows enabled at runtime', () => {
     expect(await nestedRows.callerDataNames()).toEqual({ parent: 'Root A', child: 'A-1' });
   });
 
+  test('the toggle drops the undo history instead of letting it delete rows', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsRuntimeEnablePage(page, theme, bundle);
+
+    await nestedRows.goto();
+    await nestedRows.setCell(0, 0, 'Root A edited');
+
+    await nestedRows.setNestedRows(true);
+    await nestedRows.undo();
+
+    // The recorded action measured itself against the old numbering - `countSourceRows` was 2 - and
+    // on undo it removes every physical row past that baseline as one the change created. Unguarded,
+    // one Ctrl+Z deleted A-3 and Root B outright. The history is dropped instead, the way `loadData`
+    // drops it, so the edit stays and no record is lost.
+    const painted = ['Root A edited', 'A-1', 'A-2', 'A-2-a', 'A-3', 'Root B'];
+
+    await expect(nestedRows.paintedNames()).toHaveText(painted);
+  });
+
+  test('the toggle leaves the viewport where the user scrolled it', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsRuntimeEnablePage(page, theme, bundle);
+
+    await nestedRows.goto({ size: 'tall' });
+    await nestedRows.selectRange(0, 0, 0, 0);
+
+    const scrolledTo = await nestedRows.scrollToRow(11);
+
+    expect(scrolledTo).toBeGreaterThan(0);
+
+    await nestedRows.setNestedRows(true);
+
+    // `refresh()` labels itself `refresh`, which the Core does not ignore for scrolling, so the
+    // toggle used to scroll the viewport back onto the cell selected at the top.
+    expect(await nestedRows.scrollTop()).toBe(scrolledTo);
+  });
+
+  test('re-sending the setting draws the grid once, not twice', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsRuntimeEnablePage(page, theme, bundle);
+
+    await nestedRows.goto();
+    await nestedRows.setNestedRows(true);
+
+    const before = await nestedRows.renderCount();
+
+    // In React, Angular and Vue this runs on every re-render, so a second draw here is paid per commit.
+    await nestedRows.setNestedRows(true);
+
+    expect(await nestedRows.renderCount() - before).toBe(1);
+  });
+
   test('enabling on a dataset the plugin cannot handle reports it and stays off', async({ page, theme, bundle }) => {
     const nestedRows = new NestedRowsRuntimeEnablePage(page, theme, bundle);
 

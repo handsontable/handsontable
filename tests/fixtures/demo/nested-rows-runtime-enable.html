@@ -24,6 +24,11 @@
     if (!window.htDataShape) {
       throw new Error('Unknown ?data= value: ' + JSON.stringify(htParams.get('data')));
     }
+
+    window.htSize = ({ small: 'small', tall: 'tall' })[htParams.get('size') ?? 'small'];
+    if (!window.htSize) {
+      throw new Error('Unknown ?size= value: ' + JSON.stringify(htParams.get('size')));
+    }
   </script>
   <style>
     body { font-family: sans-serif; margin: 1rem; }
@@ -80,7 +85,19 @@
     const arrayData = [['Root A'], ['Root B']];
     const isNested = window.htDataShape === 'objects';
 
-    window.sourceData = isNested ? nestedData : arrayData;
+    // `?size=tall` seeds a tree taller than the viewport, so a spec can scroll away from the
+    // selection and prove the toggle leaves the viewport where the user put it.
+    const tallData = [];
+
+    for (let i = 0; i < 12; i++) {
+      tallData.push({ name: `Root ${i}`, __children: [{ name: `${i}-a` }] });
+    }
+
+    const isTall = window.htSize === 'tall';
+
+    window.sourceData = isTall ? tallData : (isNested ? nestedData : arrayData);
+
+    window.renderCount = 0;
 
     window.consoleErrors = [];
 
@@ -99,12 +116,17 @@
         rowHeaders: true,
         nestedRows: false,
         contextMenu: true,
+        undo: true,
         renderer: testIdRenderer,
-        // Deliberately `auto`: the row-count half of DEV-2938 only shows on a grid that sizes itself
-        // to its rows, and with a fixed height the off/on round trip paints all six rows even on the
-        // unfixed build. The cost is that the collapse/expand path - which this PR does not touch -
-        // re-measures through a ResizeObserver, so that one case is asserted on the model instead.
-        height: 'auto',
+        afterRender: () => {
+          window.renderCount += 1;
+        },
+        // Deliberately `auto` for the small tree: the row-count half of DEV-2938 only shows on a grid
+        // that sizes itself to its rows, and with a fixed height the off/on round trip paints all six
+        // rows even on the unfixed build. The cost is that the collapse/expand path - which this PR
+        // does not touch - re-measures through a ResizeObserver, so that one case is asserted on the
+        // model instead. The tall tree takes a fixed height, because it has to be scrollable.
+        height: isTall ? 150 : 'auto',
         licenseKey: 'non-commercial-and-evaluation',
       });
     } catch (error) {

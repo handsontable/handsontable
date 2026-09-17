@@ -281,6 +281,21 @@ They are written in different places and can drift. Keep this in mind:
   or paste — and an editor opened on row 4 stayed open over a record that no longer existed. So the
   override discards an open editor with `cancelChanges()` (never a commit: the value would be written
   through coordinates the shrink has invalidated) and ends on `selection.refresh()`.
+  **The undo history cannot survive the toggle either.** `DataChangeAction` records `countSourceRows`
+  when the edit happens, and on undo `#collectCreatedRows()` removes every physical row past that
+  baseline as one the change created. After an enable the baseline is two and the grid has six, so one
+  Ctrl+Z deletes real records — measured: edit a cell, enable, undo, and A-3 and Root B are gone. The
+  override drops the history (`getPlugin('undoRedo')?.clear()`), which is what `loadData` does for the
+  same reason. The cost is that an edit made before the toggle stops being undoable, and that is the
+  right trade against deleting records.
+  **Source the `refresh()` as `updateData`, or the toggle scrolls the grid.** `Selection#refresh()`
+  labels itself `refresh`, which is NOT in `core.ts`'s `ignoreScrollSources`, so the clamp scrolls the
+  viewport onto the selected cell: measured, a grid scrolled to row 11 jumped back to the top on a
+  toggle. `updateData` is in that list and is what the operation is from the selection's side.
+  **Seed the header width without its render.** `HeadersUI#updateRowHeaderWidth()` ends with
+  `hot.render()`, and `updatePlugin()` runs on every `updateSettings()` carrying the `nestedRows` key —
+  every re-render in React. Pass `shouldRender: false` there; the Core draws right after the hook, and
+  leaving the render in doubled every re-render's draw (measured: 2 draws per no-op re-send, now 1).
   **The toggle also resets every other row map above the new length**, because `fitToLength()` shrinks
   by dropping the tail and grows by appending defaults, while flattening a tree inserts rows in the
   INTERIOR. For a map a plugin re-applies from its own settings this is invisible and correct — a grid

@@ -226,6 +226,8 @@ declare global {
     consoleErrors?: string[];
     /** DEV-2938 fixture: the very array passed to the constructor, kept to prove writes reach it. */
     sourceData?: unknown[];
+    /** DEV-2938 fixture: how many times the grid has drawn since it was built. */
+    renderCount?: number;
     /** DEV-2917 fixture: the message of a throw the fixture's own grid build caught, if any. */
     htFixtureError?: string;
     /**
