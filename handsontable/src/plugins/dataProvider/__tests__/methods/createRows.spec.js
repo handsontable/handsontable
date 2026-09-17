@@ -147,7 +147,8 @@ describe('DataProvider `createRows` method', () => {
           const rows = getSourceData();
 
           rows.push(created);
-          await loadData(rows);
+          // `updateData()` is the documented pattern: `loadData()` would reset the column sort state.
+          await updateData(rows);
 
           return [created];
         },

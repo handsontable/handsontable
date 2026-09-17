@@ -48,7 +48,9 @@ Called when the user inserts rows (for example from the context menu). Payload s
 
 Your API should create the rows and return a promise. By default, Handsontable refetches the current query after success.
 
-Set `refetchAfterCreate: false` to skip that refetch. Use it when your `onRowsCreate` applies the server response to the grid itself. For example, when the grid is sorted, a refetched new row can land on a different page. With the refetch off, you decide where the row appears and how pagination updates. [`afterRowsMutation`](@/api/hooks.md#afterrowsmutation) still fires with `('create', { rowsCreate })`. Rows created from the context menu are not inserted locally, so with the refetch off the grid does not change until your code updates it.
+Set `refetchAfterCreate: false` to skip that refetch. Use it when your `onRowsCreate` applies the server response to the grid itself. For example, when the grid is sorted, a refetched new row can land on a different page. With the refetch off, you decide where the row appears. [`afterRowsMutation`](@/api/hooks.md#afterrowsmutation) still fires with `('create', { rowsCreate })`. Rows created from the context menu are not inserted locally, so with the refetch off the grid does not change until your code updates it.
+
+Apply the rows with [`updateData()`](@/api/core.md#updatedata), not [`loadData()`](@/api/core.md#loaddata). `loadData()` is a full reload: it resets the column sort state and the cell meta, so the header loses its sort indicator and the next fetch runs unsorted. The pagination total does not change with this pattern; it updates on the next `fetchRows` call.
 
 ```js
 dataProvider: {
@@ -65,7 +67,7 @@ dataProvider: {
     const insertAt = anchor >= 0 ? anchor + (position === 'above' ? 0 : 1) : rows.length;
 
     rows.splice(insertAt, 0, ...created);
-    hot.loadData(rows);
+    hot.updateData(rows);
 
     return created;
   },
