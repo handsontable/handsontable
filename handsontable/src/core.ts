@@ -3193,6 +3193,45 @@ export default function Core(
   };
 
   /**
+   * Collects "empty this cell" changes for a rectangular range of cells, skipping read-only ones.
+   * The passed coordinates are clamped to the grid, so header coordinates (negative values) and
+   * corners that reach past the last row or column are safe to pass.
+   *
+   * @param {Array[]} changes The array that the collected changes are pushed into.
+   * @param {number} startRow The visual row index the range starts at.
+   * @param {number} endRow The visual row index the range ends at.
+   * @param {number} startColumn The visual column index the range starts at.
+   * @param {number} endColumn The visual column index the range ends at.
+   * @returns {void}
+   */
+  const collectEmptyCellChanges = (
+    changes: Array<[number, number, unknown]>,
+    startRow: number,
+    endRow: number,
+    startColumn: number,
+    endColumn: number,
+  ) => {
+    const fromRow = Math.max(startRow, 0);
+    const toRow = Math.min(endRow, instance.countRows() - 1);
+    const fromColumn = Math.max(startColumn, 0);
+    const toColumn = Math.min(endColumn, instance.countCols() - 1);
+
+    if (fromRow > toRow || fromColumn > toColumn) {
+      return;
+    }
+
+    rangeEach(fromRow, toRow, (row) => {
+      rangeEach(fromColumn, toColumn, (column) => {
+        // The transient read keeps clearing a large range from permanently materializing
+        // one meta object per cell - only `readOnly` is read here.
+        if (!instance.getCellMetaTransient(row, column).readOnly) {
+          changes.push([row, column, null]);
+        }
+      });
+    });
+  };
+
+  /**
    * Erases content from cells that have been selected in the table.
    *
    * @memberof Core#
@@ -3216,26 +3255,8 @@ export default function Core(
 
       const topStart = cellRange.getTopStartCorner();
       const bottomEnd = cellRange.getBottomEndCorner();
-      const fromRow = Math.max(topStart.row!, 0);
-      const toRow = Math.min(bottomEnd.row!, this.countRows() - 1);
-      const fromColumn = Math.max(topStart.col!, 0);
-      const toColumn = Math.min(bottomEnd.col!, this.countCols() - 1);
 
-      if (fromRow > toRow || fromColumn > toColumn) {
-        return;
-      }
-
-      const collectEmptyCellChanges = (row: number) => {
-        rangeEach(fromColumn, toColumn, (column) => {
-          // The transient read keeps clearing a large selection from permanently materializing
-          // one meta object per cell - only `readOnly` is read here.
-          if (!this.getCellMetaTransient(row, column).readOnly) {
-            changes.push([row, column, null]);
-          }
-        });
-      };
-
-      rangeEach(fromRow, toRow, collectEmptyCellChanges);
+      collectEmptyCellChanges(changes, topStart.row!, bottomEnd.row!, topStart.col!, bottomEnd.col!);
     });
 
     if (changes.length > 0) {
@@ -4598,12 +4619,32 @@ export default function Core(
   /**
    * Clears the data from the table (the table settings remain intact) and clears the current selection.
    *
+   * The method empties every cell of the data set. Neither the current selection nor the
+   * [`selectionMode`](@/api/options.md#selectionmode) option limits its range. Cells set as
+   * [`readOnly`](@/api/options.md#readonly) keep their values.
+   *
    * @memberof Core#
    * @function clear
+   * @fires Hooks#beforeChange
+   * @fires Hooks#afterChange
    */
   this.clear = function(this: HotInstance & CoreInternals) {
-    this.selectAll();
-    this.emptySelectedCells();
+    const countRows = this.countRows();
+    const countCols = this.countCols();
+
+    // The whole data set is emptied directly instead of through a select-all. Routing it through
+    // the selection made the amount of cleared data depend on what the selection was allowed to
+    // cover, so `selectionMode: 'single'` left every cell but the highlighted one untouched.
+    if (countRows > 0 && countCols > 0) {
+      const changes: Array<[number, number, unknown]> = [];
+
+      collectEmptyCellChanges(changes, 0, countRows - 1, 0, countCols - 1);
+
+      if (changes.length > 0) {
+        this.setDataAtCell(changes);
+      }
+    }
+
     this.deselectCell();
   };
 
