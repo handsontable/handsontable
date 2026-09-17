@@ -339,6 +339,62 @@ async function clearNativeTextSelection(page: Page) {
 }
 
 /**
+ * Fails the render when a stylesheet the demo asked for did not arrive.
+ *
+ * The js demo loads its theme, and each route's own CSS, as a `<link class="dynamic-css">` and waits
+ * for the `load` event before it builds the grid. That event is not proof the stylesheet exists: vite's
+ * preview server answers an unknown path with `index.html` and a 200, Chromium fires `load` for it, and
+ * the demo carries on with no theme applied. The first CI dispatch of the stability matrix rendered every
+ * themed pass that way (run 35230835319, 2026-09-17): the job had built the base stylesheet but never
+ * the theme ones, ten runners agreed byte for byte on an unthemed grid, and because that matrix compares
+ * runners with each other nothing downstream could tell. A stylesheet that arrived has at least one rule; one that did not has a
+ * null `sheet` or an empty rule list, and that is what is asserted — the place the wrong picture is
+ * cheapest to catch is before the first capture, with the missing file named.
+ *
+ * With `HOT_THEME` set the theme link itself must be among them: a demo that rendered a themed run
+ * without ever asking for a theme stylesheet is the same wrong picture by another route. A demo that
+ * does not use the convention has no such links and passes trivially — the wrapper demos, which render
+ * bare, are that case. A cross-origin sheet hides its rules behind a SecurityError; that is reported as
+ * unknown, not as empty, so a demo that ever loads a CDN stylesheet is not failed for being unreadable.
+ *
+ * @param {Page} page The page whose grid has just rendered.
+ * @returns {Promise<void>} Resolves when every requested stylesheet carries rules.
+ */
+async function assertStylesheetsLoaded(page: Page) {
+  // The callback runs in the browser, where `document` is the right global to use.
+  /* eslint-disable no-restricted-globals */
+  const links = await page.evaluate(() => [...document.querySelectorAll<HTMLLinkElement>('link.dynamic-css')]
+    .map((link) => {
+      let rules: number;
+
+      try {
+        rules = link.sheet ? link.sheet.cssRules.length : 0;
+      } catch {
+        rules = -1;
+      }
+
+      return { href: link.getAttribute('href') ?? '', rules };
+    }));
+  /* eslint-enable no-restricted-globals */
+
+  const empty = links.filter(link => link.rules === 0);
+
+  if (empty.length > 0) {
+    throw new Error(`The demo asked for ${empty.length} stylesheet(s) that carry no rules — `
+      + `${empty.map(link => link.href).join(', ')} — so the grid is about to be photographed unstyled. `
+      + 'The file is missing from the served tree (a build that never produced `styles/`, or a preview '
+      + 'server answering the path with index.html and a 200). See assertStylesheetsLoaded() in '
+      + 'visual-tests/src/test-runner.ts.');
+  }
+
+  if (helpers.hotTheme && !links.some(link => /ht-theme-/.test(link.href))) {
+    throw new Error(`HOT_THEME is "${helpers.hotTheme}" but the demo attached no theme stylesheet link, so `
+      + 'the capture would carry the theme\'s name and none of its pixels. See assertStylesheetsLoaded() in '
+      + 'visual-tests/src/test-runner.ts.');
+  }
+}
+
+/**
  * Makes every `screenshot()` on this page wait for that settle first, and drop any stray native text
  * selection. Wrapping the page is what makes it uniform: the specs call `tablePage.screenshot()`
  * directly, in a few hundred places. `locator.screenshot()` is not wrapped, and the lint tier bans it
@@ -441,6 +497,7 @@ const test = baseTest.extend<TestParams>({
     const table = page.locator(helpers.selectors.anyTable).first();
 
     await table.waitFor();
+    await assertStylesheetsLoaded(page);
     await use(page);
   },
   // eslint-disable-next-line no-empty-pattern
@@ -491,6 +548,7 @@ const test = baseTest.extend<TestParams>({
       const table = page.locator(helpers.selectors.anyTable).first();
 
       await table.waitFor();
+      await assertStylesheetsLoaded(page);
     });
   }
 });

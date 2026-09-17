@@ -331,6 +331,16 @@ element screenshots and the settle the fixture does for you):
 - **`.only`, a bare or titled `.skip`, `test.fixme`, and `locator.screenshot()` are errors** too; the
   conditional `test.skip(condition, why)` that scopes a spec to a framework or a browser is the one legal
   skip, and an element capture is a clipped `tablePage.screenshot()` so the settle still runs.
+- **The fixture refuses to photograph a grid whose stylesheet never arrived.** The js demo loads its
+  theme and each route's CSS as `<link class="dynamic-css">` and waits for `load` before it builds the
+  grid, but `load` is not proof of a stylesheet: vite's preview server answers an unknown path with
+  `index.html` and a 200, Chromium fires `load` for it, and the demo carries on unthemed. The first CI
+  dispatch of the stability matrix rendered every themed pass that way (run 35230835319) — the job had
+  built the base stylesheet but not the theme ones (`build:themes-css` is a prerequisite of `build:umd`
+  alone, see `handsontable/scripts/tasks.json`), and because that matrix compares runners with each
+  other, ten identical unthemed renders read as "stable". `assertStylesheetsLoaded()` in `test-runner.ts` runs after the table appears
+  and fails the render naming any requested stylesheet with no rules, and, under `HOT_THEME`, a demo that
+  attached no theme link at all. Demos without the convention (the wrappers) have no such links and pass.
 - **Prove a determinism change with the stability matrix**, not a local loop: `Visual stability`
   (`.github/workflows/visual-stability.yml`, `workflow_dispatch`) renders the filters family (classic plus
   one chosen theme) and the whole cross-browser `selection.spec.ts` on chromium and firefox, on up to ten
