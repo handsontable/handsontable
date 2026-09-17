@@ -948,6 +948,52 @@ offered to the host with its own coordinates) and `tests/e2e/incremental-render.
 a scroll down and up, element identity in the master and the frozen-columns clone, equality to a
 full repaint, an open editor across a scroll).
 
+## A data cell names its column header through `aria-describedby`, and the owner is per column
+
+So a screen reader announces the header with the cell ("Position, C1", not "C1"), `render/cells.ts`
+sets `aria-describedby` on each data cell to `` `${guid}-colheader-${sourceColumnIndex}` `` and
+`render/columnHeaders.ts` stamps that `id` on the matching header (DEV-29). `guid` is the core
+instance's id, threaded in as a wtSetting (`tableView.ts` → `defaults.ts`), so the id is unique when
+several grids share a page; keyed by the rendered (renderable) column index, so it survives horizontal
+scroll and pooled-node reuse. The id-prefix builder, the ownership predicate, and the grid-wide header
+test live together on `TableRenderer` (`getAriaColumnHeaderIdPrefix`, `ownsAriaColumnHeaderId`,
+`hasColumnHeaders`); the prefix is draw-constant and both renderers hoist it out of their per-element
+loop, appending the column index per element.
+
+Four things are load-bearing, and each was a bug first:
+
+- **No single overlay owns every column header.** The master renders a contiguous band and does **not**
+  render the frozen (inline-start) columns once scrolled past column 0; those headers live only in the
+  inline-start overlay (and the top corner). So ownership is per column: a frozen column
+  (`sourceColumnIndex < fixedColumnsStart`, in the renderable space Walkontable already works in) is
+  owned by the `inline_start` overlay, every other column by the `master`. The sticky clones (`top`,
+  `bottom`, the corners) are duplicate copies and never stamp an id. The master also renders the frozen
+  columns at horizontal offset 0, so it must **decline** them there or two elements carry the same id.
+  The invariant to hold: every rendered data cell's `aria-describedby` resolves to exactly one element.
+- **The cell gate is grid-wide, not this table's `columnHeadersCount`.** A bottom clone renders no
+  header row, so its own count is `0` while the grid has headers its cells must still reference — read
+  `hasColumnHeaders()` (from the grid-level `columnHeaders` setting), not the per-table count.
+- **`id` is not covered by the `aria-*`/`role` strip, so `render/columnHeaders.ts` strips it explicitly
+  (`/^id$/`) each paint.** Header nodes are pooled and reused across draws; without the strip a header
+  that stops owning an id (scrolled to a different column, or a corner cell reused as a header) keeps a
+  stale id a data cell points at.
+- **A renderer spec's `TableRendererMock` must provide `hasColumnHeaders`, `ownsAriaColumnHeaderId`,
+  and `getAriaColumnHeaderIdPrefix`** (same reason the mock must provide `shouldPaintCell`). The
+  no-column-header path is inert without a `guid`, so a standalone Walkontable host that sets none
+  behaves exactly as before.
+
+Two v1 limitations, both of which degrade to the pre-DEV-29 behavior for the affected column (the
+cell's `aria-describedby` resolves to nothing, so the header is not announced — no worse than before,
+never a duplicate or a wrong header):
+
+- **A custom `columnHeaders` renderer that assigns its own `TH.id` clobbers the stamped id.** It runs
+  (`columnHeaderFunctions[...]`) after the stamp, so that column's cells then dangle. Setting a DOM
+  `id` on a header is rare; a future revision could re-stamp after the header function if it matters.
+- **A colspan on the *leaf* header row (nested headers).** The stamp assumes the leaf row is 1:1 with
+  columns; a leaf colspan makes the continuation columns' ids land on `hiddenHeader` (`display:none`)
+  THs, which assistive tech ignores. Colspans on higher (group) rows are fine — those rows are not the
+  leaf and are never stamped. Group-label announcement is a deliberate v1 scope-out.
+
 ## The engine decides for itself when the overlays need resizing — never ask it from outside
 
 `Overlays#adjustElementsSize()` writes the hider's size and re-sizes the three region overlays. It is
