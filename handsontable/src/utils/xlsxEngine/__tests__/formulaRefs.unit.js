@@ -22,8 +22,19 @@ describe('shiftFormulaReferences', () => {
     expect(shiftFormulaReferences('A1:C3', 1, 1)).toBe('B2:D4');
   });
 
-  it('should keep the sheet part of a qualified reference and shift only the cell part', () => {
-    expect(shiftFormulaReferences('\'Sheet 1\'!B2', 1, 1)).toBe('\'Sheet 1\'!C3');
+  it('should leave a qualified reference untouched, quoted or bare, and shift only the unqualified ones', () => {
+    // A header band added to or removed from THIS sheet moves nothing on another sheet, so a reference
+    // that names one keeps its cell part. Only the references into this sheet follow the shift.
+    expect(shiftFormulaReferences('\'Sheet 1\'!B2', 1, 1)).toBe('\'Sheet 1\'!B2');
+    expect(shiftFormulaReferences('Data!A2', -1, 0)).toBe('Data!A2');
+    expect(shiftFormulaReferences('SUM(Rates!A1:A3)+A2', -1, 0)).toBe('SUM(Rates!A1:A3)+A1');
+    expect(shiftFormulaReferences('\'My Rates\'!$A$1:$B$2*C2', -1, -1)).toBe('\'My Rates\'!$A$1:$B$2*B1');
+  });
+
+  it('should not reject a qualified reference that would leave the sheet if it were shifted', () => {
+    // `Data!A1` under a `firstRow` header window used to shift to row 0 and drop the whole formula.
+    expect(shiftFormulaReferences('Data!A1', -1, -1)).toBe('Data!A1');
+    expect(shiftFormulaReferences('Data!A1+B2', -1, -1)).toBe('Data!A1+A1');
   });
 
   it('should not touch a reference-shaped string literal', () => {
@@ -75,6 +86,19 @@ describe('mapFormulaReferences', () => {
       { row: 1, col: 1, rowAbsolute: false, colAbsolute: true },
       { row: 2, col: 2, rowAbsolute: true, colAbsolute: false },
     ]);
+  });
+
+  it('should not hand a qualified reference to the mapper', () => {
+    const seen = [];
+
+    const result = mapFormulaReferences('Data!A1+\'Sheet 1\'!B2:C3+D4', (reference) => {
+      seen.push(reference);
+
+      return { row: reference.row + 1, col: reference.col };
+    });
+
+    expect(seen).toEqual([{ row: 4, col: 4, rowAbsolute: false, colAbsolute: false }]);
+    expect(result).toBe('Data!A1+\'Sheet 1\'!B2:C3+D5');
   });
 
   it('should return null as soon as the mapper rejects a reference', () => {

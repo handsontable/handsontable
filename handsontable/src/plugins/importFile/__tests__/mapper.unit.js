@@ -303,6 +303,28 @@ describe('mapWorkbook', () => {
     expect(dropped.list()).not.toContain('formula:outOfRange');
   });
 
+  it('should keep a cross-sheet reference where it is while shifting the same-sheet ones', () => {
+    const sheet = createSheetSnapshot('Data');
+    const rates = createSheetSnapshot('Rates');
+
+    // The header band is dropped from THIS sheet only. `Rates!A1` still means the first cell of
+    // `Rates`, so shifting it would point the formula one row too high - or, for row 1, drop it.
+    sheet.rows = [
+      [text('Name'), text('Salary'), text('Bonus')],
+      [text('Ana'), text('4200'), cell({ value: null, formula: { text: 'B2*Rates!A1', result: 840 } })],
+    ];
+
+    const { result, dropped } = map(
+      workbook(sheet, rates),
+      { colHeaders: 'firstRow' },
+      { formulasEnabled: true, commentsEnabled: false }
+    );
+
+    expect(result.data[0][2]).toBe('=B1*Rates!A1');
+    expect(result.formulas).toBeUndefined();
+    expect(dropped.list()).not.toContain('formula:outOfRange');
+  });
+
   it('should fall back to the cached value for a formula pointing into the removed header band', () => {
     const sheet = createSheetSnapshot('Data');
 
@@ -355,6 +377,24 @@ describe('mapWorkbook', () => {
     expect(result.columns[1]).toEqual({ type: 'text' });
     expect(dropped.list()).toEqual(['dataValidation:unresolvedList']);
     expect(result.sheetNames).toEqual(['Data', '_HotValidation']);
+  });
+
+  it('should turn a same-sheet list range into a dropdown column', () => {
+    const data = createSheetSnapshot('Data');
+
+    // How Excel stores a list validation whose source range is on the same sheet: no sheet name.
+    // The options live in a column outside the list's own, as a real workbook lays them out.
+    data.rows = [
+      [cell({ value: 'Yes', validation: { type: 'list', allowBlank: true, formulae: ['$C$1:$C$2'] } }),
+        text('x'), text('Yes')],
+      [cell({ value: 'No', validation: { type: 'list', allowBlank: true, formulae: ['$C$1:$C$2'] } }),
+        text('y'), text('No')],
+    ];
+
+    const { result, dropped } = map(workbook(data));
+
+    expect(result.columns[0]).toEqual({ type: 'dropdown', source: ['Yes', 'No'] });
+    expect(dropped.list()).not.toContain('dataValidation:unresolvedList');
   });
 
   it('should report styling as dropped and map conditional formatting into grid coordinates', () => {

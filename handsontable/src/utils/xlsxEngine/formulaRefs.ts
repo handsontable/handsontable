@@ -38,12 +38,14 @@ export interface MappedReference {
 }
 
 /**
- * Matches either a string-shaped token or an A1-style cell reference.
+ * Matches either a token to copy through untouched or an A1-style cell reference to rewrite.
  *
- * The leading alternative captures tokens that must be copied through untouched: a double-quoted
- * Excel string (`""` escapes a quote inside one) and a single-quoted sheet name such as `'Sheet 1'`
- * in `'Sheet 1'!B2` - the sheet part of a qualified reference is left alone while the cell part
- * after the `!` is matched on its own and rewritten.
+ * The leading alternative captures the untouched tokens: a double-quoted Excel string (`""`
+ * escapes a quote inside one) and a **qualified** reference - a sheet name, single-quoted
+ * (`'Sheet 1'!B2`) or bare (`Data!A2`), followed by `!` and a cell or a range. A qualified
+ * reference points at another sheet, and a header band added to or removed from THIS sheet moves
+ * nothing there, so its cell part is left alone along with the name. The range form is captured
+ * whole because the reference after the `:` inherits the qualifier.
  *
  * The second alternative is the reference itself: an optional `$` before each component, one to
  * three column letters, then up to seven row digits. `(?<!\d)` keeps it from starting inside a
@@ -52,11 +54,16 @@ export interface MappedReference {
  * rejecting a following digit as well is what closes that. A real row number is never followed by
  * a digit, because the run is greedy.
  */
-const REFERENCE_REGEX = /("(?:[^"]|"")*"|'[^']*')|(?<!\d)(\$?)([A-Z]{1,3})(\$?)(\d{1,7})(?![\d(])/g;
+const CELL_PATTERN = String.raw`\$?[A-Z]{1,3}\$?\d{1,7}(?![\d(])`;
+const REFERENCE_REGEX = new RegExp(
+  String.raw`("(?:[^"]|"")*"|(?:'[^']*'|[A-Za-z0-9_.]+)!${CELL_PATTERN}(?::${CELL_PATTERN})?)` +
+  String.raw`|(?<!\d)(\$?)([A-Z]{1,3})(\$?)(\d{1,7})(?![\d(])`,
+  'g'
+);
 
 /**
- * Rewrites every A1-style cell reference in a formula through `map`, leaving string literals and
- * the sheet part of a qualified reference untouched. Returns `null` when `map` rejects any
+ * Rewrites every unqualified A1-style cell reference in a formula through `map`, leaving string
+ * literals and qualified references (`Data!A2`, `'Sheet 1'!B2:C3`) untouched. Returns `null` when `map` rejects any
  * reference, so a caller that cannot express a reference in the target coordinate space can drop
  * the whole formula rather than emit a wrong one.
  *
@@ -96,9 +103,10 @@ export function mapFormulaReferences(
 }
 
 /**
- * Shifts every A1-style cell reference in a formula by `rowDelta` rows and `colDelta` columns,
- * keeping each `$` marker where it was written. Ranges are shifted at both ends, because each end
- * is a reference of its own.
+ * Shifts every unqualified A1-style cell reference in a formula by `rowDelta` rows and `colDelta`
+ * columns, keeping each `$` marker where it was written. Ranges are shifted at both ends, because
+ * each end is a reference of its own. A reference that names another sheet is left where it is:
+ * the band this shift accounts for exists on this sheet only.
  *
  * An **absolute** component shifts like a relative one. This is a translation of the whole
  * coordinate space - a header band added by the export or removed by the import moves every cell

@@ -177,8 +177,9 @@ export function normalizeFormula(
   const hasColExclusions = (excludedHiddenCols?.size ?? 0) > 0;
 
   if (rowOffset !== 0 || colOffset !== 0 || hasRowExclusions || hasColExclusions) {
-    // `mapFormulaReferences` owns the walk (string literals and the sheet part of a qualified
-    // reference are copied through untouched); this mapper owns the arithmetic. Unlike the import
+    // `mapFormulaReferences` owns the walk (string literals and qualified references are copied
+    // through untouched - the header band is prepended to this sheet only); this mapper owns the
+    // arithmetic. Unlike the import
     // direction, the offset applies to ABSOLUTE components too: the whole data block moves to a new
     // origin in the sheet, which is a translation of the coordinate space rather than a copy, so a
     // `$A$1` pinned to a grid cell has to follow it. The mapper never rejects a reference, so the

@@ -153,8 +153,9 @@ These are the keys the import can report, beyond `cellStyles`:
 | `comments` | The workbook carries cell comments and the `Comments` plugin is not enabled on the target grid. Set `comments: true` on the grid to import them. |
 | `layoutDirection` | The sheet's layout direction disagrees with the grid's. Handsontable resolves [`layoutDirection`](@/api/options.md#layoutdirection) at initialization and ignores it afterwards, so construct the grid with `layoutDirection: 'rtl'` to follow a right-to-left workbook. The direction is on `result.layoutDirection` either way. |
 | `dataValidation:<type>` | A non-list data validation, which has no grid equivalent. |
+| `dataValidation:unresolvedList` | A list validation whose source cannot be read - a formula such as `INDIRECT()`, or a range on a sheet the workbook does not contain. An inline list and a range on the same or another sheet become a `dropdown` column. |
 | `numFmt:<pattern>` | A number format with no `Intl.NumberFormat` equivalent - scientific notation, a fraction, or more than the 100 fraction digits `Intl.NumberFormat` accepts. |
-| `formula:outOfRange` | A formula referencing a cell outside the imported window. Its cached value is imported instead. |
+| `formula:outOfRange` | A formula referencing a cell outside the imported window. Its cached value is imported instead. A reference to another sheet, such as `Rates!A1`, is kept as written. |
 
 Click **Import XLSX** and pick a `.xlsx` file to load it into the grid below.
 

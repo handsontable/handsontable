@@ -41,9 +41,12 @@ describe('normalizeFormula', () => {
       expect(normalizeFormula('=IF(A1>0,"A1=""yes""","no")', ',', 1, 0)).toBe('IF(A2>0,"A1=""yes""","no")');
     });
 
-    it('should not offset cell-reference-like patterns inside single-quoted sheet name references', () => {
-      // Single-quoted tokens are sheet names (e.g. 'Sheet A1'!B2); the name must stay unchanged.
-      expect(normalizeFormula('=\'Sheet A1\'!B2', ',', 1, 1)).toBe('\'Sheet A1\'!C3');
+    it('should not offset a qualified reference, its sheet name or its cell part', () => {
+      // The header band is prepended to the exported sheet only; a reference that names another
+      // sheet (quoted or bare) points at cells the export never moved.
+      expect(normalizeFormula('=\'Sheet A1\'!B2', ',', 1, 1)).toBe('\'Sheet A1\'!B2');
+      expect(normalizeFormula('=Rates!A1+A1', ',', 1, 1)).toBe('Rates!A1+B2');
+      expect(normalizeFormula('=SUM(Rates!$A$1:$A$3)', ',', 1, 1)).toBe('SUM(Rates!$A$1:$A$3)');
     });
   });
 

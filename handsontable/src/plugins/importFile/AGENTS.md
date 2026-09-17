@@ -57,6 +57,11 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
 - **A number index in `sheet` skips very-hidden sheets** (`selectSheet` in `mapper.ts`). The export writes
   its dropdown sources into a `veryHidden` `_HotValidation` sheet; picking it by index would import a list
   of options as data. By name it is still reachable.
+- **An unqualified list range reads from the sheet the validation sits on.** Excel stores a Data Validation →
+  List → range-on-this-sheet as a bare `$C$1:$C$10`; only a range on another sheet carries a `Sheet!`
+  qualifier, and the export's own `_HotValidation` helper is the only shape the round-trip tests ever
+  produced, which is how the bare form shipped as `dataValidation:unresolvedList` (Bugbot on #13551).
+  `resolveListSource` therefore takes the current `SheetSnapshot` as its third argument.
 - **Only strings are promoted to headers; the row-header column is discarded.** Handsontable generates
   row headers, so the values in the dropped column are not data anyone can get back.
 - **`locked` becomes `readOnly` only under sheet protection, and only unless the cell was explicitly
@@ -137,6 +142,10 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   walks a formula. A reference that would land above row 1 or left of column A pointed into the removed
   header band: the formula cannot be expressed in grid coordinates at all, so the cached value is imported,
   the formula is recorded in `result.formulas`, and `formula:outOfRange` lands in `result.dropped`.
+  **A qualified reference (`Rates!A1`, `'My Rates'!$A$1:$B$2`) is never shifted, in either direction**: the
+  band exists on this sheet only, so the regex captures the whole `Sheet!ref[:ref]` as an untouched token
+  and the mapper never sees it. Shifting it used to turn `=Data!A2` into `=Data!A1` under a `firstRow`
+  header and drop `=Data!A1` outright (Bugbot on #13551).
   **Absolute components shift like relative ones**, in both directions: a header band is a translation of the
   whole coordinate space, and `$` pins a reference against copy and fill, not against the sheet moving — so
   `$A$1` goes out as `$B$2` and comes back as `$A$1`, `$` markers preserved. The **function-argument
