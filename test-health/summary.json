@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-17T08:48:57.249Z",
+  "generatedAt": "2026-09-17T09:28:56.572Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 22,
     "needsTicket": 5,
     "quarantined": 0,
-    "entries": 81
+    "entries": 82
   },
   "rows": [
     {
@@ -54,12 +54,12 @@
       "file": "handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js",
       "line": null,
       "title": "AutocompleteEditor choices should not sort the choices list, when the `sortByRelevance` option is set to `true`",
-      "count7": 5,
-      "count30": 5,
-      "countAll": 5,
-      "runs30": 4,
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 5,
       "flakyRuns30": 0,
-      "branches30": 4,
+      "branches30": 5,
       "legs": [
         "UMD.min (theme: classic)",
         "UMD.min (theme: horizon)",
@@ -73,9 +73,9 @@
       ],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-09-17T08:22:39Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35195741951/attempts/2",
-        "branch": "feature/dev-1176_selection-header-padding-c90b",
+        "seenAt": "2026-09-17T09:28:20Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35202295389",
+        "branch": "feature/DEV-117_Alter-Out-Of-Range-Remove-Index",
         "leg": "UMD.min (theme: classic)",
         "status": "failed",
         "error": "Expected '' to equal 'cyan'.",
