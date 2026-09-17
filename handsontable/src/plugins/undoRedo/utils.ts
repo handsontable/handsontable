@@ -13,12 +13,13 @@ export type SettleCallback = (result?: { wasUndone?: boolean, wasRedone?: boolea
  * Runs a removal that settles an undo or redo through a remove hook, and settles it anyway when the
  * removal fires no hook.
  *
- * The row and column actions settle on `afterRemoveRow` / `afterRemoveCol`. `alter()` fires neither when
- * the index it gets names no row or column, which a recorded index does once the grid has changed shape
- * since the action was recorded - rows trimmed, or data loaded again. The settle callback would then
- * never run, `ignoreNewActions` would stay on, and every later action would be dropped from the stack
- * for the rest of the session. The fallback settles with `notAppliedResult` instead, which puts the
- * action back on the stack it came from, so it can apply once the grid allows it again.
+ * The row and column actions settle on `afterRemoveRow` / `afterRemoveCol`, and a removal that removes
+ * nothing fires neither. `canUndo()` / `canRedo()` already keep a removal that would name no row or
+ * column from starting, so this is the safety net for the one case they cannot see coming: a
+ * `beforeRemoveRow` / `beforeRemoveCol` listener that vetoes the removal. Without it the settle callback
+ * would never run, `ignoreNewActions` would stay on, and every later action would be dropped from the
+ * stack for the rest of the session. It settles with `notAppliedResult` instead, which puts the action
+ * back on the stack it came from.
  *
  * The hook listener settles with no argument rather than forwarding the hook's own arguments: those are
  * the removed index and amount, and a preceding listener's return value can be folded into the first of
@@ -44,10 +45,20 @@ export function settleOnRemoveHook(
   };
 
   hot.addHookOnce(hookName, onRemove);
-  removal();
+
+  try {
+    removal();
+
+  } finally {
+    // A removal that throws is not settled here: `UndoRedo#undo()` / `#redo()` catch it, reset the flag
+    // and discard the action. The listener must still go, or the next real removal would settle that
+    // discarded action onto a stack.
+    if (!hasSettled) {
+      hot.removeHook(hookName, onRemove);
+    }
+  }
 
   if (!hasSettled) {
-    hot.removeHook(hookName, onRemove);
     settleCallback(notAppliedResult);
   }
 }

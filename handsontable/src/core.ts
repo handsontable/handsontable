@@ -70,6 +70,7 @@ import {
 import { initLicenseNotification } from './utils/licenseNotification';
 import { initLicenseBranding } from './utils/licenseBranding';
 import { getValueSetterValue } from './utils/valueAccessors';
+import { clipRemovalRange } from './utils/removalRange';
 import { createThemeManager, isThemeOverrideEmpty } from './themes/engine';
 import { LayoutManager, type LayoutConfig } from './core/layout';
 import { getTheme, hasTheme, registerTheme, mainTheme } from './themes';
@@ -1374,32 +1375,19 @@ export default function Core(
               // Normalize the {index, amount} groups into bigger groups.
               arrayEach(indexes, ([groupIndex, groupAmount]) => {
                 // Rows the group names above the first one or past the last one do not exist, so they
-                // are dropped from it. Without this they were translated into existing rows and the
-                // caller lost data it never named: a negative index was clamped to the first row, and
-                // an index at or past the last row wrapped around to the start (DEV-117). The part of
-                // the group that does exist is still removed - `normalizeIndexesGroup` above may have
+                // are dropped from it rather than translated into rows the caller never named (DEV-117).
+                // The part that does exist is still removed - `normalizeIndexesGroup` above may have
                 // merged a valid group into one that starts above the table. An empty index keeps its
-                // own meaning, "take the rows from the end", so it is left to `datamap.removeRow`.
+                // own meaning, "take the rows from the end", so it is left to `datamap.removeRow`. The
+                // rule lives in `clipRemovalRange()` because UndoRedo reads it too.
                 if (Number.isInteger(groupIndex)) {
-                  let startIndex = groupIndex - offset;
+                  const clippedRange = clipRemovalRange(groupIndex - offset, groupAmount, instance.countRows());
 
-                  if (startIndex < 0) {
-                    // `startIndex` is negative here, so this subtracts the rows above the first one.
-                    groupAmount += startIndex;
-
-                    if (groupAmount <= 0) {
-                      return;
-                    }
-
-                    startIndex = 0;
-                  }
-
-                  // Checked after the clipping, so that a grid with no rows rejects the clipped start
-                  // as well. Left before it, an empty grid ran the removal from row 0 and fired the
-                  // remove hooks with a `NaN` index.
-                  if (startIndex >= instance.countRows()) {
+                  if (clippedRange === null) {
                     return;
                   }
+
+                  groupAmount = clippedRange.amount;
                 }
 
                 const calcIndex = isEmpty(groupIndex) ? instance.countRows() - 1 : Math.max(groupIndex - offset, 0);
@@ -1498,32 +1486,19 @@ export default function Core(
               // Normalize the {index, amount} groups into bigger groups.
               arrayEach(indexes, ([groupIndex, groupAmount]) => {
                 // Columns the group names before the first one or past the last one do not exist, so
-                // they are dropped from it. Without this they were translated into existing columns and
-                // the caller lost data it never named: a negative index was clamped to the first column,
-                // and an index at or past the last column wrapped around to the start (DEV-117). The
-                // part of the group that does exist is still removed - `normalizeIndexesGroup` above may
-                // have merged a valid group into one that starts before the table. An empty index keeps
-                // its own meaning, "take the columns from the end".
+                // they are dropped from it rather than translated into columns the caller never named
+                // (DEV-117). The part that does exist is still removed - `normalizeIndexesGroup` above
+                // may have merged a valid group into one that starts before the table. An empty index
+                // keeps its own meaning, "take the columns from the end". The rule lives in
+                // `clipRemovalRange()` because UndoRedo reads it too.
                 if (Number.isInteger(groupIndex)) {
-                  let startIndex = groupIndex - offset;
+                  const clippedRange = clipRemovalRange(groupIndex - offset, groupAmount, instance.countCols());
 
-                  if (startIndex < 0) {
-                    // `startIndex` is negative here, so this subtracts the columns before the first one.
-                    groupAmount += startIndex;
-
-                    if (groupAmount <= 0) {
-                      return;
-                    }
-
-                    startIndex = 0;
-                  }
-
-                  // Checked after the clipping, so that a grid with no columns rejects the clipped
-                  // start as well. Left before it, an empty grid ran the removal from column 0 and
-                  // fired the remove hooks with a `NaN` index.
-                  if (startIndex >= instance.countCols()) {
+                  if (clippedRange === null) {
                     return;
                   }
+
+                  groupAmount = clippedRange.amount;
                 }
 
                 const calcIndex = isEmpty(groupIndex) ? instance.countCols() - 1 : Math.max(groupIndex - offset, 0);

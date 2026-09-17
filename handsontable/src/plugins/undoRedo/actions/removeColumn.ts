@@ -10,6 +10,7 @@ import {
 } from '../utils';
 import { rangeEach } from '../../../helpers/number';
 import { arrayMap, arrayEach } from '../../../helpers/array';
+import { clipRemovalRange } from '../../../utils/removalRange';
 
 /**
  * Action that tracks changes in column removal.
@@ -228,6 +229,20 @@ export class RemoveColumnAction extends BaseAction {
 
     hot.addHookOnce('afterViewRender', undoneCallback);
     hot.setSourceDataAtCell(changes, undefined, undefined, 'UndoRedo.undo');
+  }
+
+  /**
+   * Reports whether redoing the removal would remove any column.
+   *
+   * UndoRedo must call this before `beforeRedo`. Formulas always calls `engine.redo()` in `beforeRedo`,
+   * so a redo whose removal names no column any more - the grid changed shape outside the stack since the
+   * columns were removed - would otherwise step HyperFormula while Handsontable stays unchanged.
+   *
+   * @param {Core} hot The Handsontable instance.
+   * @returns {boolean} `true` when redo can proceed.
+   */
+  canRedo(hot: HotInstance): boolean {
+    return clipRemovalRange(this.index, this.amount, hot.countCols()) !== null;
   }
 
   /**
