@@ -68,6 +68,26 @@ focus, dropdown selection, the offscreen `.htGhostTable`) uses
 `// stylelint-disable-next-line handsontable/no-has-selector -- <reason>` with a reason that says why it
 is off the scroll path.
 
+## Text-bearing UI spans declare their own text metrics
+
+Any `<span>` (or other inline element) the grid renders with visible text must declare `font-size`,
+`line-height`, `font-weight`, and `letter-spacing` itself. Inheritance from `.handsontable` is not
+enough: a host page rule on the bare element (`span { font-size: 20px }`) has specificity (0,0,1) and
+beats any inherited value. This bit headers first (`span.colHeader`, #11306), then the pagination
+labels and the multiselect chips (DEV-75).
+
+Pattern: the component root (`.ht-pagination`, `td`, `.ht-sheets-bar`) carries the token
+(`font-size: var(--ht-font-size)`); every span below it declares `inherit`. `inherit` wins over the
+host's element selector and still follows a user's override on the component root, so it is never a
+breaking change. Do **not** add a blanket `.handsontable span { ... }` rule – its specificity (0,1,1)
+would override a user's own `.my-class` on spans inside custom cell renderers.
+
+`tests/e2e/host-span-styles.spec.ts` (fixture `tests/fixtures/demo/host-span-styles.html`) hosts a
+hostile `span {}` rule and asserts the guarded spans against their cascade parent. Add any new
+text-bearing span to that spec. The fixture loads the compiled `handsontable/styles/*.min.css`, so
+after an SCSS edit run both `build:styles` and `build:styles.min` before trusting a spec run –
+`build:styles` alone leaves the minified files stale.
+
 ## Browser Compatibility
 
 All CSS features must work in browsers listed in `browser-targets.js` (latest 2 major versions of Chrome, Firefox, Safari, Edge). The `eslint-plugin-compat` rule enforces this.
