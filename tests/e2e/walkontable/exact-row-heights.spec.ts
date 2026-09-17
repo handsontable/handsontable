@@ -77,6 +77,19 @@ test.describe('walkontable exact row heights', { tag: '@walkontable' }, () => {
       expect(await wt.rowHeight(wt.master, 2)).toBe(ROW_HEIGHT);
     });
 
+    test('reserves the autocomplete arrow at the clipping wrapper trailing edge', async () => {
+      // Exact rows zero TD padding and clip through `div.htCellClip`, so that wrapper — not the
+      // TD — is the arrow's containing block. Measuring the TD would pass on a rule that pinned
+      // the arrow to the cell while overlapping the clipped content (DEV-348).
+      const { arrow, clipContentBoxRight, clipPaddingBoxRight } =
+        await wt.autocompleteArrowClipMetrics(2, AUTOCOMPLETE_COLUMN);
+
+      expect(arrow).not.toBeNull();
+      expect(arrow!.left).toBeGreaterThanOrEqual(clipContentBoxRight - 1);
+      // The old float's `margin-inline-end: 1px` — `inset-inline-end: 1px` on the clip path.
+      expect(Math.abs(clipPaddingBoxRight - arrow!.right - 1)).toBeLessThan(1);
+    });
+
     test('keeps the scroll range stable and the row-height cache settled', async () => {
       const before = await wt.masterScrollHeight();
 

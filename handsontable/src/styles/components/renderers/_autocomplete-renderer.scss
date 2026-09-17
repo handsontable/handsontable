@@ -26,51 +26,81 @@
       }
     }
 
-    // A narrow arrow cell (autocomplete / dropdown / handsontable) used to render its contents
-    // tangled around the right-floated arrow (DEV-28). These list cell types now keep their value
-    // on a single line and truncate it with an ellipsis, so the content clips at the content-box
-    // edge - which the reserved trailing padding places before the arrow - instead of wrapping or
-    // overflowing under it. This overrides `wordWrap` / `textEllipsis` for these three types by
-    // design (documented on both options in `metaSchema.ts`); a float shortens line boxes but not
-    // the content box, so the arrow is taken out of flow for the ellipsis to land in front of it.
-    // The reserved padding also widens the AutoColumnSize ghost sample (it renders the real
-    // renderer, which adds the `htAutocomplete` class), so an autosized column fits the value plus
-    // the arrow. The arrow keeps the base rule's vertical offset - beside the first line, not
-    // centered - so it stays aligned with top-anchored text on a tall row and with the still-
-    // floated `.ht-multi-select-arrow`.
+    // A long value next to the floated arrow used to wrap the arrow onto a second line (DEV-348,
+    // GitHub #3116), and AutoColumnSize measured the text alone so an autosized column still left
+    // no room for the arrow. The in-cell arrow is taken out of flow with its width reserved as
+    // trailing padding: GhostTable renders the real renderer, so the extra padding widens the
+    // sample and an autosized column grows to fit the value plus the arrow.
+    // These three list cell types also keep their value on a single line and truncate it with an
+    // ellipsis, so the content clips at the content-box edge - which the reserved trailing padding
+    // places before the arrow - instead of wrapping under it. This overrides `wordWrap` /
+    // `textEllipsis` for `autocomplete` / `dropdown` / `handsontable` by design (DEV-28, a 19.0
+    // breaking change documented on both options in `metaSchema.ts` and in the migration guide);
+    // #13463 first added it, #13508 reverted it, and this relands it for 19.0.
+    // The trailing `+ 1px` restores the released `margin-inline-end: 1px` gap the float carried
+    // (DEV-348 review): without it the absolute arrow sits 1px closer to the cell edge.
     td.htAutocomplete {
       position: relative;
       white-space: nowrap;
       text-overflow: ellipsis;
       padding-inline-end: calc(
-        var(--ht-cell-horizontal-padding) + var(--ht-icon-size) + var(--ht-gap-size) * 2
+        var(--ht-cell-horizontal-padding) + var(--ht-icon-size) + var(--ht-gap-size) * 2 + 1px
       );
 
       .htAutocompleteArrow {
         position: absolute;
         float: none;
-        inset-inline-end: var(--ht-cell-horizontal-padding);
+        inset-inline-end: calc(var(--ht-cell-horizontal-padding) + 1px);
         top: calc(var(--ht-cell-vertical-padding) + (var(--ht-line-height) - var(--ht-icon-size)) / 2);
         margin: 0;
       }
+
+      // The float used to live in the cell's in-flow content, so `htMiddle` / `htBottom`
+      // (`vertical-align` in `_text-renderer.scss`, Alignment in the context menu) moved it with
+      // the value. Absolute `top` does not. Mirror those classes: middle matches the select
+      // editor's `top: 50%; transform: translateY(-50%)` (physical Y, so RTL-safe); bottom
+      // mirrors the default first-line offset from the trailing block edge.
+      &.htMiddle .htAutocompleteArrow {
+        top: 50%;
+        transform: translateY(-50%);
+      }
+
+      &.htBottom .htAutocompleteArrow {
+        top: auto;
+        inset-block-end: calc(
+          var(--ht-cell-vertical-padding) + (var(--ht-line-height) - var(--ht-icon-size)) / 2
+        );
+      }
     }
 
-    // In an exact-height row (`rowHeightMode: 'exact'`) the engine moves the cell's content - the
-    // value and the arrow - into an absolutely positioned `.htCellClip` wrapper and zeroes the
-    // cell's own padding, so the reservation above (set on the TD) never reaches the arrow: the
-    // arrow's containing block becomes the wrapper, not the TD. Reapply the single-line treatment
-    // on the wrapper. Its `inset: <vpad> <hpad>` already carries the cell padding, so the arrow
-    // sits flush with the wrapper's trailing inner edge (`inset-inline-end: 0`) and the reserved
-    // padding drops the horizontal cell padding it would otherwise count twice; the wrapper's own
-    // vertical inset likewise removes the vertical padding from the arrow's offset.
-    tr.htExactRow > td.htAutocomplete > .htCellClip {
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      padding-inline-end: calc(var(--ht-icon-size) + var(--ht-gap-size) * 2);
+    // Exact-height rows zero the TD padding and clip through `div.htCellClip` (`position:
+    // absolute; overflow: hidden`), so that wrapper - not the TD - is the arrow's containing
+    // block. Re-reserve the arrow slot on the wrapper, re-apply the single-line truncation there,
+    // and pin the arrow to its trailing edge; using the TD offsets would double-count the cell
+    // padding the wrapper already insets. Alignment rules repeat here at this higher specificity:
+    // the default `top` on the clip would otherwise beat `td.htAutocomplete.htMiddle
+    // .htAutocompleteArrow`. Offsets skip `--ht-cell-vertical-padding` because the clip's `inset`
+    // already provides it.
+    tr.htExactRow > td.htAutocomplete {
+      > .htCellClip {
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        padding-inline-end: calc(var(--ht-icon-size) + var(--ht-gap-size) * 2 + 1px);
 
-      .htAutocompleteArrow {
-        inset-inline-end: 0;
-        top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
+        .htAutocompleteArrow {
+          inset-inline-end: 1px;
+          top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
+        }
+      }
+
+      &.htMiddle > .htCellClip .htAutocompleteArrow {
+        top: 50%;
+        transform: translateY(-50%);
+      }
+
+      &.htBottom > .htCellClip .htAutocompleteArrow {
+        top: auto;
+        inset-block-end: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
       }
     }
   }
