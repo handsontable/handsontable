@@ -73,7 +73,7 @@ CELL_TYPES.forEach((cellType) => {
       expect(content!.right).toBeLessThanOrEqual(arrow!.left + 1);
     });
 
-    test('keeps a breakable value on one line even when wordWrap is left at its default', async() => {
+    test('keeps a breakable value on one line by default and truncates it with an ellipsis', async() => {
       await grid.goto({ mode: 'wrap' });
 
       const { arrow, cell, content, contentBoxRight, lineHeight, paddingTop } = await grid.metrics(0, 0);
@@ -81,13 +81,60 @@ CELL_TYPES.forEach((cellType) => {
       expect(arrow).not.toBeNull();
       expect(content).not.toBeNull();
 
-      // DEV-28 reland: the single-line treatment overrides `wordWrap`, so a breakable phrase in a
-      // 100px column that used to wrap onto several lines (#13508) now stays on one line. This is
-      // the inverse of the pre-reland assertion and is what proves `wordWrap` no longer applies.
+      // DEV-28 reland: these three cell types default `textEllipsis: true`, so a breakable phrase in
+      // a 100px column that used to wrap onto several lines (#13508) now stays on one line. The
+      // inverse of the pre-reland assertion.
       expect(content!.height).toBeLessThanOrEqual(lineHeight + 1);
+      // Pin the ellipsis itself, not only "one line": without `text-overflow` the value would still
+      // be one line (the TD clips), so this is the load-bearing part of the reland.
+      await expect(grid.cell(0, 0)).toHaveCSS('text-overflow', 'ellipsis');
       // The arrow stays on the first line, clear of the value at the reserved content-box edge.
       expect(arrow!.top).toBeLessThan(cell.top + paddingTop + lineHeight);
       expect(arrow!.left).toBeGreaterThanOrEqual(contentBoxRight - 1);
+    });
+
+    test('wraps again when the column opts out with textEllipsis: false', async() => {
+      await grid.goto({ mode: 'wrap', listEllipsis: 'off' });
+
+      const { content, lineHeight } = await grid.metrics(0, 0);
+
+      expect(content).not.toBeNull();
+
+      // The single-line rendering is a recoverable type default, not a fixed rule: `textEllipsis:
+      // false` on the column restores wrapping, so the breakable phrase spans several lines again.
+      expect(content!.height).toBeGreaterThan(lineHeight + 1);
+    });
+
+    test('leaves a sibling text column wrapping (the default is scoped to the list types)', async() => {
+      await grid.goto({ mode: 'wrap', sideColumn: 'wrap' });
+
+      const list = await grid.metrics(0, 0);
+      const text = await grid.metrics(0, 1);
+
+      expect(list.content).not.toBeNull();
+      expect(text.content).not.toBeNull();
+
+      // The list cell is single-line by default; the neighbouring `text` cell with the same value
+      // still wraps, proving the default comes from the cell type and not a wide CSS selector.
+      expect(list.content!.height).toBeLessThanOrEqual(list.lineHeight + 1);
+      expect(text.content!.height).toBeGreaterThan(text.lineHeight + 1);
+    });
+
+    test('shows the ellipsis inside the clip on an exact-height row, for a list and a text cell', async() => {
+      // `tall` provides a positive `rowHeights`, which an exact-height row requires.
+      await grid.goto({ mode: 'tall', rowHeightMode: 'exact', sideColumn: 'ellipsis' });
+
+      const list = await grid.metrics(0, 0);
+      const text = await grid.metrics(0, 1);
+
+      expect(list.hasClip).toBe(true);
+      expect(text.hasClip).toBe(true);
+
+      // `text-overflow` does not inherit into the absolutely positioned `.htCellClip`, so the
+      // general `_base.scss` rule sets it there for any `htTextEllipsis` cell — the list cell (via
+      // its type default) and a plain `text` column that opts in with `textEllipsis: true`.
+      await expect(grid.cell(0, 0).locator('.htCellClip')).toHaveCSS('text-overflow', 'ellipsis');
+      await expect(grid.cell(0, 1).locator('.htCellClip')).toHaveCSS('text-overflow', 'ellipsis');
     });
 
     test('anchors the arrow beside the first line on a tall row', async() => {

@@ -31,18 +31,14 @@
     // no room for the arrow. The in-cell arrow is taken out of flow with its width reserved as
     // trailing padding: GhostTable renders the real renderer, so the extra padding widens the
     // sample and an autosized column grows to fit the value plus the arrow.
-    // These three list cell types also keep their value on a single line and truncate it with an
-    // ellipsis, so the content clips at the content-box edge – which the reserved trailing padding
-    // places before the arrow – instead of wrapping under it. This overrides `wordWrap` /
-    // `textEllipsis` for `autocomplete` / `dropdown` / `handsontable` by design (DEV-28, a 19.0
-    // breaking change documented on both options in `metaSchema.ts` and in the migration guide);
-    // #13463 first added it, #13508 reverted it, and this relands it for 19.0.
+    // The single-line-with-ellipsis rendering itself is NOT here: the three list cell types default
+    // to `textEllipsis: true` in their type definitions (DEV-28), which the base renderer turns into
+    // the `htTextEllipsis` class (`nowrap` + `text-overflow: ellipsis`). A column restores wrapping
+    // with `textEllipsis: false`, so this rule stays limited to the arrow slot.
     // The trailing `+ 1px` restores the released `margin-inline-end: 1px` gap the float carried
     // (DEV-348 review): without it the absolute arrow sits 1px closer to the cell edge.
     td.htAutocomplete {
       position: relative;
-      white-space: nowrap;
-      text-overflow: ellipsis;
       padding-inline-end: calc(
         var(--ht-cell-horizontal-padding) + var(--ht-icon-size) + var(--ht-gap-size) * 2 + 1px
       );
@@ -75,16 +71,15 @@
 
     // Exact-height rows zero the TD padding and clip through `div.htCellClip` (`position:
     // absolute; overflow: hidden`), so that wrapper – not the TD – is the arrow's containing
-    // block. Re-reserve the arrow slot on the wrapper, re-apply the single-line truncation there,
-    // and pin the arrow to its trailing edge; using the TD offsets would double-count the cell
-    // padding the wrapper already insets. Alignment rules repeat here at this higher specificity:
-    // the default `top` on the clip would otherwise beat `td.htAutocomplete.htMiddle
-    // .htAutocompleteArrow`. Offsets skip `--ht-cell-vertical-padding` because the clip's `inset`
-    // already provides it.
+    // block. Re-reserve the arrow slot on the wrapper and pin the arrow to its trailing edge;
+    // using the TD offsets would double-count the cell padding the wrapper already insets. (The
+    // ellipsis on the clip is handled generally in `_base.scss` for any `htTextEllipsis` cell,
+    // since `text-overflow` does not inherit into the wrapper.) Alignment rules repeat here at this
+    // higher specificity: the default `top` on the clip would otherwise beat
+    // `td.htAutocomplete.htMiddle .htAutocompleteArrow`. Offsets skip `--ht-cell-vertical-padding`
+    // because the clip's `inset` already provides it.
     tr.htExactRow > td.htAutocomplete {
       > .htCellClip {
-        white-space: nowrap;
-        text-overflow: ellipsis;
         padding-inline-end: calc(var(--ht-icon-size) + var(--ht-gap-size) * 2 + 1px);
 
         .htAutocompleteArrow {

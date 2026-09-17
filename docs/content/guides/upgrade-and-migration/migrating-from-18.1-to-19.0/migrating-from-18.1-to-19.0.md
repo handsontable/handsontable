@@ -21,7 +21,7 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 [[toc]]
 
-Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way. Section 12 concerns when a [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column marks a value invalid, and applies only if you set [`strict`](@/api/options.md#strict) to `false` on such a column. Section 13 concerns which row you land on when you leave a merged cell horizontally, and applies only if you use the [`MergeCells`](@/api/mergeCells.md) plugin. Section 14 concerns `tr` elements moving with their rows on a vertical scroll, and applies whether or not you set [`renderMode`](@/api/options.md#rendermode). Section 15 concerns how [`autoColumnSize`](@/api/autoColumnSize.md) measures [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), and [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) columns, and applies only if you leave that plugin on for those cell types and do not pin them with a column `width` or with [`colWidths`](@/api/options.md#colwidths). Section 16 concerns whether [`wordWrap`](@/api/options.md#wordwrap) and [`textEllipsis`](@/api/options.md#textellipsis) affect those same three cell types, and applies only if you use one of them.
+Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way. Section 12 concerns when a [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column marks a value invalid, and applies only if you set [`strict`](@/api/options.md#strict) to `false` on such a column. Section 13 concerns which row you land on when you leave a merged cell horizontally, and applies only if you use the [`MergeCells`](@/api/mergeCells.md) plugin. Section 14 concerns `tr` elements moving with their rows on a vertical scroll, and applies whether or not you set [`renderMode`](@/api/options.md#rendermode). Section 15 concerns how [`autoColumnSize`](@/api/autoColumnSize.md) measures [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), and [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) columns, and applies only if you leave that plugin on for those cell types and do not pin them with a column `width` or with [`colWidths`](@/api/options.md#colwidths). Section 16 concerns the new single-line default for those same three cell types, and applies only if you use one of them.
 
 ## 1. `date` cells reach the formula engine the same way on every data path
 
@@ -689,20 +689,38 @@ columns: [
 
 To pin every column, set `colWidths`. That option disables AutoColumnSize for the whole grid.
 
-## 16. `wordWrap` and `textEllipsis` no longer apply to the list cell types
+## 16. The list cell types default to a single line
 
 This applies only to the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), and [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) cell types, which render a dropdown arrow.
 
-In a narrow column, the value in one of these cells used to wrap onto several lines and tangle with the arrow. The value now stays on a single line and truncates with an ellipsis, clear of the arrow (the arrow's own space is reserved -- see the previous section). Because that single-line behavior is fixed for these three cell types, [`wordWrap`](@/api/options.md#wordwrap) (default `true`) and [`textEllipsis`](@/api/options.md#textellipsis) (default `false`) have no effect on them. Every other cell type still honors both options.
+In a narrow column, the value in one of these cells used to wrap onto several lines and tangle with the arrow. Each of these three cell types now defaults [`textEllipsis`](@/api/options.md#textellipsis) to `true`, so the value stays on a single line and truncates with an ellipsis, clear of the arrow (the arrow's own space is reserved -- see the previous section).
 
-This also changes [`autoRowSize`](@/api/options.md#autorowsize). It measures each row by rendering the real cell, so on an `autocomplete`, `dropdown`, or `handsontable` column a long value used to wrap and grow the row. That value now stays on one line, so such rows size to a single line instead of growing to fit the wrapped text.
+This is a default, not a fixed rule -- [`textEllipsis`](@/api/options.md#textellipsis) and [`wordWrap`](@/api/options.md#wordwrap) still work, so you can turn wrapping back on. The default comes from the cell **type**, so it reaches a column that sets `type: 'autocomplete'` (or `'dropdown'` / `'handsontable'`); a column that only sets `renderer: 'autocomplete'` without the type keeps its previous wrapping.
+
+This also changes [`autoRowSize`](@/api/options.md#autorowsize). It measures each row by rendering the real cell, so on such a column a long value used to wrap and grow the row. That value now stays on one line, so those rows size to a single line instead of growing to fit the wrapped text.
 
 ### Who is affected
 
-You are affected only if you use the `autocomplete`, `dropdown`, or `handsontable` cell type **and** relied on its value wrapping onto multiple lines within the cell.
+You are affected only if you use `type: 'autocomplete'`, `'dropdown'`, or `'handsontable'` and relied on the value wrapping onto multiple lines within the cell. A value that carries its own line breaks -- a `<br>` or block-level HTML in an [`allowHtml`](@/api/options.md#allowhtml) cell -- can still render on more than one line.
 
 ### How to migrate
 
-Nothing to change in most cases, because a single-line value with the arrow clear of the text is what these cells were meant to show.
+To turn wrapping back on for such a column, set [`textEllipsis`](@/api/options.md#textellipsis) to `false`:
 
-If you need a column whose cells wrap their content over several lines, use a cell type that has no dropdown arrow (for example [`text`](@/guides/cell-types/text-cell-type/text-cell-type.md)), or widen the column so the value fits.
+**Before:**
+
+```js
+columns: [
+  { type: 'autocomplete', source: countries },
+],
+```
+
+**After:**
+
+```js
+columns: [
+  { type: 'autocomplete', source: countries, textEllipsis: false },
+],
+```
+
+Set it on the column, in [`cells`](@/api/options.md#cells), or with [`setCellMeta()`](@/api/core.md#setcellmeta) -- the layer that declares the `type`, or one below it. A grid-level `textEllipsis: false` does not reach a column that declares the type, because the type's own value shadows it.

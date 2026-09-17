@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "The `autocomplete`, `dropdown`, and `handsontable` cell types now keep their value on a single line and truncate it with an ellipsis so the dropdown arrow no longer overlaps the content; `wordWrap` and `textEllipsis` no longer apply to these cell types, and `autoRowSize` sizes their rows to a single line.",
+  "title": "The `autocomplete`, `dropdown`, and `handsontable` cell types now default `textEllipsis` to `true`, so a long value stays on a single line and truncates with an ellipsis clear of the dropdown arrow, and `autoRowSize` sizes their rows to one line; set `textEllipsis: false` on the column to restore wrapping.",
   "type": "changed",
   "issueOrPR": 13509,
   "breaking": true,

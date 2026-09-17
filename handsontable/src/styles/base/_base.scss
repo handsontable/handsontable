@@ -730,6 +730,15 @@
       white-space: nowrap;
     }
 
+    // `text-overflow` does not inherit, so a `textEllipsis` cell in an exact-height row shows no
+    // ellipsis on its own: the value is moved into the absolutely positioned `.htCellClip`, which
+    // clips and inherits `nowrap` from the `htTextEllipsis` TD but not its `text-overflow`. Set it
+    // on the wrapper. Keyed on `td.htTextEllipsis`, so it matches only cells that opted into the
+    // ellipsis (the list cell types default to it; any cell can via `textEllipsis: true`).
+    tr.htExactRow > td.htTextEllipsis > .htCellClip {
+      text-overflow: ellipsis;
+    }
+
     // Box-sizing normalize — grid chrome only. Scoped so it never forces `content-box` onto a
     // table/div/input a user renders inside a cell, which would fight a host `border-box` (#4363).
     table.htCore,

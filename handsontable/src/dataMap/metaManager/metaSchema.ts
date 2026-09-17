@@ -7153,9 +7153,10 @@ export default (): Record<string, unknown> => {
      * | `true`            | Truncate text content with an ellipsis        |
      *
      * ::: tip
-     * The `autocomplete`, `dropdown`, and `handsontable` cell types always truncate their value with an
-     * ellipsis so their dropdown arrow never overlaps the content, regardless of this option. This
-     * changed in 19.0.0.
+     * The `autocomplete`, `dropdown`, and `handsontable` cell types default this option to `true`, so a
+     * long value stays on one line and truncates with an ellipsis, clear of the dropdown arrow. To
+     * restore wrapping, set `textEllipsis: false` on the column that declares the type (or in `cells` /
+     * `setCellMeta`). This changed in 19.0.0.
      * :::
      *
      * @since 16.0.0
@@ -8330,9 +8331,10 @@ export default (): Record<string, unknown> => {
      * :::
      *
      * ::: tip
-     * The `autocomplete`, `dropdown`, and `handsontable` cell types always keep their value on a single
-     * line and truncate it with an ellipsis, so their dropdown arrow never overlaps the content. For
-     * those types this option has no effect. This changed in 19.0.0.
+     * The `autocomplete`, `dropdown`, and `handsontable` cell types default
+     * [`textEllipsis`](#textellipsis) to `true`, and its styling also keeps the value on a single line,
+     * so `wordWrap` has no visible effect on them until you set `textEllipsis: false` on the column that
+     * declares the type (or in `cells` / `setCellMeta`). This changed in 19.0.0.
      * :::
      *
      * This option can be set at any level of the [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration):
