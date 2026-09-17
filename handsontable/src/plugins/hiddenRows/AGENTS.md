@@ -7,7 +7,10 @@ before touching `hiddenRows.ts` or anything in `contextMenuItem/`.
 `../hiddenColumns/AGENTS.md` — the hiding-vs-trimming distinction, the replayed `init` local hook, the
 `afterGetCellMeta` hygiene rules (`className` normalization, compare-before-assign, gating the write on
 finding the marker, token matching) and the
-`disablePlugin()` meta reset are all the same. **Fix a bug in one and check the other.**
+`disablePlugin()` meta reset are all the same. **Fix a bug in one and check the other.** The Show
+column adjacent-stretch trap in that file applies to `contextMenuItem/showRow.ts` as well (DEV-1040).
+Both Show items call `collectAdjacentHiddenPhysicalIndexes` from `../../../utils/hiddenIndexes.ts`
+— do not copy that helper into this plugin.
 
 What follows is only what differs.
 
@@ -59,8 +62,9 @@ byte for byte against the 18.1.0 rules.
 
 ## Known concern
 
-`../../../.ai/CONCERNS.md` lists `contextMenuItem/showRow.ts`'s `arr.push(...largeArray)` as a
-stack-overflow risk with 10k+ elements. Use a `forEach` loop.
+`../../../.ai/CONCERNS.md` used to list `contextMenuItem/showRow.ts`'s `arr.push(...largeArray)` as a
+stack-overflow risk. The `hidden()` path now copies with loops (DEV-1040). Do not reintroduce
+`push(...array)` here.
 
 ## Where to look next
 
