@@ -395,7 +395,7 @@ export default (): Record<string, unknown> => {
      * autofill stops at the last column, so nothing is written there at all. A direct
      * [`setDataAtCell()`](@/api/core.md#setdataatcell) or [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) call
      * writes the value whatever this option is set to. On an object [`data`](#data) source that direct write is
-     * deprecated as of 18.2.0. See [`setDataAtCell()`](@/api/core.md#setdataatcell), which owns that rule.
+     * deprecated as of 19.0.0. See [`setDataAtCell()`](@/api/core.md#setdataatcell), which owns that rule.
      *
      * The option does not stop these ways of adding columns:
      * - The [`alter()`](@/api/core.md#alter) method, including its `insert_col_start` and `insert_col_end` actions.
@@ -639,7 +639,7 @@ export default (): Record<string, unknown> => {
      * @memberof Options#
      * @type {boolean|object}
      * @default false
-     * @since 18.2.0
+     * @since 19.0.0
      * @category AutoLink
      * @configScope grid columns cells cell
      *
@@ -1222,7 +1222,7 @@ export default (): Record<string, unknown> => {
      *
      * The height is the header's **border-box** height, so it includes the header's own top and
      * bottom borders. A column header carries a 1px border on each side, which makes
-     * `columnHeaderHeight: 40` leave a 38px content box for the label. Before Handsontable 18.2 the
+     * `columnHeaderHeight: 40` leave a 38px content box for the label. Before Handsontable 19.0 the
      * bottom border was dropped while the grid sat at the top of its scroll range and added back as
      * soon as it scrolled, so the same setting produced a 39px content box unscrolled and 38px
      * scrolled. The header keeps that border at every scroll position now, so the option resolves to
@@ -5914,7 +5914,7 @@ export default (): Record<string, unknown> => {
      * @default 'always'
      * @category Core
      * @configScope grid columns cells cell
-     * @since 18.2.0
+     * @since 19.0.0
      *
      * @example
      * ```js
@@ -6345,7 +6345,7 @@ export default (): Record<string, unknown> => {
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
-     * @since 18.2.0
+     * @since 19.0.0
      * @memberof Options#
      * @type {object|boolean}
      * @default undefined
@@ -6640,7 +6640,7 @@ export default (): Record<string, unknown> => {
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
-     * @since 18.2.0
+     * @since 19.0.0
      * @memberof Options#
      * @type {boolean|object}
      * @default undefined
@@ -8497,7 +8497,7 @@ export default (): Record<string, unknown> => {
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
-     * @since 18.2.0
+     * @since 19.0.0
      * @memberof Options#
      * @type {boolean|function(string, TextExtractorContext): string}
      * @default undefined
