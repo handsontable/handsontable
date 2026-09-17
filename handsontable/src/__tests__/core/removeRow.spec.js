@@ -341,6 +341,31 @@ describe('Core.alter', () => {
         expect(getDataAtCol(0)).toEqual(['A1', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
         expect(countRows()).toBe(9);
       });
+
+      it('should remove the existing part of a group that starts above the first row', async() => {
+        handsontable({
+          data: createSpreadsheetData(10, 5),
+        });
+
+        // The groups overlap, so they are merged into one that starts at -2 and spans rows
+        // -2, -1, 0 and 1. Only rows 0 and 1 exist, so only `A1` and `A2` are removed.
+        await alter('remove_row', [[-2, 4], [1, 1]]);
+
+        expect(getDataAtCol(0)).toEqual(['A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+        expect(countRows()).toBe(8);
+      });
+
+      it('should remove the existing part of a group that runs past the last row', async() => {
+        handsontable({
+          data: createSpreadsheetData(10, 5),
+        });
+
+        // Merged into one group spanning rows 8 to 13; rows 10 and up do not exist.
+        await alter('remove_row', [[8, 2], [9, 5]]);
+
+        expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8']);
+        expect(countRows()).toBe(8);
+      });
     });
 
     it('should fire beforeRemoveRow event before removing row', async() => {

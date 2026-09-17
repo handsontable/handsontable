@@ -1373,14 +1373,28 @@ export default function Core(
 
               // Normalize the {index, amount} groups into bigger groups.
               arrayEach(indexes, ([groupIndex, groupAmount]) => {
-                // An explicit index that points outside the table names no row, so the group is skipped.
-                // Without this the index was translated into an existing one and rows the caller never
-                // named were removed: a negative index was clamped to the first row, and an index at or
-                // past the last row wrapped around to the start (DEV-117). An empty index keeps its own
-                // meaning - "take the rows from the end" - so it is left to `datamap.removeRow`.
-                if (Number.isInteger(groupIndex) &&
-                    (groupIndex - offset < 0 || groupIndex - offset >= instance.countRows())) {
-                  return;
+                // Rows the group names above the first one or past the last one do not exist, so they
+                // are dropped from it. Without this they were translated into existing rows and the
+                // caller lost data it never named: a negative index was clamped to the first row, and
+                // an index at or past the last row wrapped around to the start (DEV-117). The part of
+                // the group that does exist is still removed - `normalizeIndexesGroup` above may have
+                // merged a valid group into one that starts above the table. An empty index keeps its
+                // own meaning, "take the rows from the end", so it is left to `datamap.removeRow`.
+                if (Number.isInteger(groupIndex)) {
+                  const startIndex = groupIndex - offset;
+
+                  if (startIndex >= instance.countRows()) {
+                    return;
+                  }
+
+                  if (startIndex < 0) {
+                    // `startIndex` is negative here, so this subtracts the rows above the first one.
+                    groupAmount += startIndex;
+
+                    if (groupAmount <= 0) {
+                      return;
+                    }
+                  }
                 }
 
                 const calcIndex = isEmpty(groupIndex) ? instance.countRows() - 1 : Math.max(groupIndex - offset, 0);
@@ -1478,14 +1492,28 @@ export default function Core(
 
               // Normalize the {index, amount} groups into bigger groups.
               arrayEach(indexes, ([groupIndex, groupAmount]) => {
-                // An explicit index that points outside the table names no column, so the group is
-                // skipped. Without this the index was translated into an existing one and columns the
-                // caller never named were removed: a negative index was clamped to the first column, and
-                // an index at or past the last column wrapped around to the start (DEV-117). An empty
-                // index keeps its own meaning - "take the columns from the end".
-                if (Number.isInteger(groupIndex) &&
-                    (groupIndex - offset < 0 || groupIndex - offset >= instance.countCols())) {
-                  return;
+                // Columns the group names before the first one or past the last one do not exist, so
+                // they are dropped from it. Without this they were translated into existing columns and
+                // the caller lost data it never named: a negative index was clamped to the first column,
+                // and an index at or past the last column wrapped around to the start (DEV-117). The
+                // part of the group that does exist is still removed - `normalizeIndexesGroup` above may
+                // have merged a valid group into one that starts before the table. An empty index keeps
+                // its own meaning, "take the columns from the end".
+                if (Number.isInteger(groupIndex)) {
+                  const startIndex = groupIndex - offset;
+
+                  if (startIndex >= instance.countCols()) {
+                    return;
+                  }
+
+                  if (startIndex < 0) {
+                    // `startIndex` is negative here, so this subtracts the columns before the first one.
+                    groupAmount += startIndex;
+
+                    if (groupAmount <= 0) {
+                      return;
+                    }
+                  }
                 }
 
                 const calcIndex = isEmpty(groupIndex) ? instance.countCols() - 1 : Math.max(groupIndex - offset, 0);
@@ -4667,9 +4695,10 @@ export default function Core(
    * </ul>
    * @param {number|number[]} [index] A visual index of the row/column before or after which the new row/column will be
    *                                inserted or removed. Can also be an array of arrays, in format `[[index, amount],...]`.
-   *                                For `'remove_row'` and `'remove_col'`, an index that points outside the table
-   *                                (a negative one, or one at or past the last row/column) removes nothing. In the
-   *                                array format, only the groups that point at existing rows/columns are removed.
+   *                                For `'remove_row'` and `'remove_col'`, rows and columns that do not exist are
+   *                                never removed. An index that points outside the table (a negative one, or one at
+   *                                or past the last row/column) removes nothing, and in the array format any part of
+   *                                a range that falls outside the table is ignored while the rest is still removed.
    * @param {number} [amount] The amount of rows or columns to be inserted or removed (default: `1`).
    * @param {string} [source] Source indicator passed to related hooks.
    * @param {boolean} [keepEmptyRows] If set to `true`, skips the automatic adjustment that normally adds empty rows

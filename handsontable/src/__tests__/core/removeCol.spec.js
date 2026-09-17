@@ -239,6 +239,31 @@ describe('Core.alter', () => {
         expect(getDataAtRow(0)).toEqual(['A1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
         expect(countCols()).toBe(9);
       });
+
+      it('should remove the existing part of a group that starts before the first column', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 10),
+        });
+
+        // The groups overlap, so they are merged into one that starts at -2 and spans columns
+        // -2, -1, 0 and 1. Only columns 0 and 1 exist, so only `A` and `B` are removed.
+        await alter('remove_col', [[-2, 4], [1, 1]]);
+
+        expect(getDataAtRow(0)).toEqual(['C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
+        expect(countCols()).toBe(8);
+      });
+
+      it('should remove the existing part of a group that runs past the last column', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 10),
+        });
+
+        // Merged into one group spanning columns 8 to 13; columns 10 and up do not exist.
+        await alter('remove_col', [[8, 2], [9, 5]]);
+
+        expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1']);
+        expect(countCols()).toBe(8);
+      });
     });
 
     it('should remove one column if amount parameter is empty', async() => {
