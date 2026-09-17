@@ -713,8 +713,10 @@ export class BaseEditor {
       topPos += wtOverlays.topOverlay?.getOverlayOffset() ?? 0;
     }
 
+    // Only the part the offset chain cannot see: a clone pinned with `position: sticky` is already
+    // shifted in the layout `offset()` walks (DEV-127).
     if (['inline_start', 'top_inline_start_corner'].includes(overlayName)) {
-      inlineStartPos += Math.abs(wtOverlays.inlineStartOverlay?.getOverlayOffset() ?? 0);
+      inlineStartPos += Math.abs(wtOverlays.inlineStartOverlay?.getOverlayTransformOffset() ?? 0);
     }
 
     const hasColumnHeaders = this.hot.hasColHeaders();

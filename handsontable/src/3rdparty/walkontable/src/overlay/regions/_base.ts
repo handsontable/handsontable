@@ -25,6 +25,7 @@ import {
 import { A11Y_PRESENTATION } from '../../../../../helpers/a11y';
 import { throwWithCause } from '../../../../../helpers/errors';
 import { getSpreaderOffset } from '../spreaderOffset';
+import { InlineStartRail } from '../inlineStartRail';
 
 /**
  * Assembles the dependency set shared by every overlay (and its corner subclasses) from the engine
@@ -216,6 +217,11 @@ export abstract class Overlay {
   #clearanceStrips: OverlayScrollbarClearanceStrips | null = null;
 
   /**
+   * The rail that pins this overlay's clone to the viewport's inline-start edge, once asked for.
+   */
+  #inlineStartRail: InlineStartRail | null = null;
+
+  /**
    * @param {OverlayDeps} deps The overlay module dependencies.
    * @param {CLONE_TYPES_ENUM} type The overlay type name (clone name).
    */
@@ -335,6 +341,42 @@ export abstract class Overlay {
   abstract adjustElementsSize(): void;
   abstract applyToDOM(): void;
   abstract scrollTo(sourceIndex: number, snapToEdge: boolean): boolean;
+
+  /**
+   * The rail that pins this overlay's clone to the viewport's inline-start edge while the window
+   * scrolls the grid sideways (`overlay/inlineStartRail.ts`). Used by the three overlays that follow
+   * the page horizontally: the inline-start one and both inline-start corners.
+   *
+   * @returns {InlineStartRail | null} `null` when the overlay has no clone.
+   */
+  getInlineStartRail(): InlineStartRail | null {
+    if (!this.clone) {
+      return null;
+    }
+
+    if (this.#inlineStartRail === null) {
+      this.#inlineStartRail = new InlineStartRail(
+        this.clone.wtTable.holder.parentNode as HTMLElement,
+        this.#deps.rootDocument
+      );
+    }
+
+    return this.#inlineStartRail;
+  }
+
+  /**
+   * The part of {@link Overlay#getOverlayOffset} that the layout does not already carry.
+   *
+   * A reader that places something from a clone element's document position (`offsetLeft`, the
+   * `offset()` helper) has to add the overlay offset only when the clone is moved by something that
+   * position cannot see - a transform. A clone pinned by its rail is shifted by `position: sticky`,
+   * which IS in the layout, so adding the offset again would count the scroll twice.
+   *
+   * @returns {number}
+   */
+  getOverlayTransformOffset(): number {
+    return this.#inlineStartRail?.isPinned() ? 0 : this.getOverlayOffset();
+  }
 
   /**
    * Checks if the overlay rendering state has changed.
@@ -717,6 +759,10 @@ export abstract class Overlay {
     if (!this.clone) {
       return;
     }
+
+    // Back out of the rail too: a clone in normal flow with its width cleared would stretch to the
+    // rail's full width, where an absolutely positioned one shrinks to its empty table.
+    this.#inlineStartRail?.release();
 
     const holder = this.clone.wtTable.holder; // todo refactoring: DEMETER
     const hider = this.clone.wtTable.hider; // todo refactoring: DEMETER

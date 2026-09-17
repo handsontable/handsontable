@@ -72,35 +72,50 @@ export class BottomInlineStartCornerOverlay extends Overlay {
     }
 
     const overlayRoot = clone.wtTable.holder.parentNode as HTMLElement;
+    const rail = this.getInlineStartRail();
+    // The inline axis is held by the rail whenever the window owns it (DEV-127).
+    const pinnedInline = this.inlineStartOverlay.trimmingContainer === rootWindow;
+
+    if (!pinnedInline) {
+      // Before the insets below: releasing restores the clone's own top inset.
+      rail?.release();
+    }
 
     overlayRoot.style.top = '';
 
+    // Measured before positioning: a rail hangs the clone from its top edge, so it needs the height.
+    let tableHeight = this.deps.geometryReader.outerHeight(clone.wtTable.TABLE);
+    const tableWidth = this.deps.geometryReader.outerWidth(clone.wtTable.TABLE);
+
+    if (!this.deps.getWtTable().hasDefinedSize()) {
+      tableHeight = 0;
+    }
+
     // Same rule as the top corner: the positioned form whenever either neighbor's axis is owned by
     // the window; each neighbor reports a 0 offset on an element-owned axis.
-    const anyAxisOnWindow = this.bottomOverlay.trimmingContainer === rootWindow ||
-      this.inlineStartOverlay.trimmingContainer === rootWindow;
+    const anyAxisOnWindow = this.bottomOverlay.trimmingContainer === rootWindow || pinnedInline;
 
     if (anyAxisOnWindow) {
-      const inlineStartOffset = this.inlineStartOverlay.getOverlayOffset();
       const { geometryReader } = this.deps;
       const masterTableRect = geometryReader.getBoundingClientRect(this.deps.getWtTable().TABLE);
       const masterHolderRect = geometryReader.getBoundingClientRect(this.deps.getWtTable().holder);
       const masterTableOverflow = Math.max(0, masterTableRect.bottom - masterHolderRect.bottom);
       const bottom = this.bottomOverlay.getOverlayOffset() - masterTableOverflow;
 
-      overlayRoot.style[this.isRtl() ? 'right' : 'left'] = `${inlineStartOffset}px`;
-      overlayRoot.style.bottom = `${bottom}px`;
+      if (pinnedInline && rail) {
+        rail.pin(this.deps.getWtTable().getTotalWidth(), this.isRtl(), {
+          edge: 'bottom',
+          offset: bottom,
+          height: tableHeight,
+        });
+      } else {
+        overlayRoot.style[this.isRtl() ? 'right' : 'left'] = `${this.inlineStartOverlay.getOverlayOffset()}px`;
+        overlayRoot.style.bottom = `${bottom}px`;
+      }
 
     } else {
       resetCssTransform(overlayRoot);
       this.repositionOverlay();
-    }
-
-    let tableHeight = this.deps.geometryReader.outerHeight(clone.wtTable.TABLE);
-    const tableWidth = this.deps.geometryReader.outerWidth(clone.wtTable.TABLE);
-
-    if (!this.deps.getWtTable().hasDefinedSize()) {
-      tableHeight = 0;
     }
 
     // This corner is drawn over the bottom edge, on top of both the frozen-column and frozen-bottom-row

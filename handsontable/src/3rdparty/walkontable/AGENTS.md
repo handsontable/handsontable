@@ -216,6 +216,73 @@ from silently giving the paint back. Window-scroll mode was probed at device sca
 zoom 0.8–1.33: every clone holder has zero scroll range on both axes there, so a wheel over a frozen
 header cannot latch to a clone and `#onCloneWheel`'s window branch stays as it is.
 
+## A window-scrolled grid pins its inline-start clones with CSS, not from the scroll listener
+
+When the WINDOW owns the horizontal axis, three clones must stay at the viewport's inline-start edge
+while the page slides sideways: `inline_start`, `top_inline_start_corner` and
+`bottom_inline_start_corner`. They used to be moved from the `scroll` listener (a `translate3d` on the
+first two, a `left` inset on the bottom corner). In window mode the wheel listener is passive, so the
+browser scrolls the page on its compositor and the listener runs afterwards: the clone was painted one
+step behind on about every other frame of a wheel scroll — the row headers torn away or gone, 49 of
+98 frames on Chromium, 49% on Firefox, 15-24% on WebKit (DEV-127). Element mode never had it: there
+the wheel listener is not passive and JavaScript scrolls the holder itself, in the same frame.
+
+The clones are now held by `position: sticky` (`overlay/inlineStartRail.ts`, reached through
+`Overlay#getInlineStartRail()`), which the browser resolves on the scroll's own frame. Six rules
+follow; the first, second and fourth were each a measured defect of a simpler version.
+
+- **A sticky box only travels inside its parent's box, and every ancestor of the clones is as wide as
+  the viewport, not the table.** Pinned where it stands, a clone stops after one viewport width. So
+  the clone is moved into a rail: an absolutely positioned `div.htInlineStartRail`, as wide as the
+  master's total width, with **no height** (it covers nothing and needs no `pointer-events` rule),
+  holding only the clone, at the clone's old slot among the master's siblings. The bottom corner hangs
+  from its rail's bottom edge, so that rail's `bottom` is the corner's offset PLUS its height.
+- **A sticky shift is part of the layout; a transform never was.** `offsetLeft` and the `offset()`
+  helper see it (measured on Chromium, Firefox and WebKit: 300 against 0 at a 300px scroll), so a
+  reader that walks that chain and then adds `getOverlayOffset()` counts the scroll twice.
+  `BaseEditor#getEditedCellRect` did exactly that for a frozen-column cell and now adds
+  `Overlay#getOverlayTransformOffset()`, which is 0 while a rail pins the clone. Readers that subtract
+  two offsets inside the same clone (the fill-handle anchor, `Border#appear`) cancel the shift and need
+  nothing; `getRelativeCellPosition` derives it from the root's rect and needs nothing either.
+  `getOverlayOffset()` itself keeps its meaning — `manualColumnMove` places its backlight in the
+  master's hider from it.
+- **No vertical inset on a pinned clone.** On a sticky box `top`/`bottom` are sticky constraints, not
+  offsets: the `top: 0` the clone factory writes would pin the row headers to the viewport top as the
+  page scrolls down. The rail clears them and carries the vertical place itself; `release()` restores
+  `position: absolute; top: 0`. The corner's VERTICAL part is still the listener's transform (only the
+  inline part moved to the rail), and so is the whole top clone and the bottom clone.
+- **An overlay that stops rendering must leave its rail.** `Overlay#reset()` clears the clone's inline
+  `width`, and a width-less clone behaves differently in the two positioning schemes: absolutely
+  positioned it shrinks to its empty table (0px), in the rail's normal flow it stretches to the rail's
+  full table width. `InlineStartOverlay#resetFixedPosition` returns early for a non-rendering overlay,
+  so nothing else would release it; `reset()` does. Four legacy specs caught this
+  (`rowHeader.spec.js` and `settings/fixedColumnsStart.spec.js` turn the overlay off and expect
+  `getInlineStartClone().width()` to be 0) — the frame-capture spec cannot, it never turns an overlay off.
+- **Anything that recognises a clone by its PARENT must look through the rail — stylesheets and
+  JavaScript alike.** `_base.scss` carries `.ht_master ~ .htInlineStartRail > .handsontable` next to
+  `.ht_master ~ .handsontable` for the row-header seam colour. `isInternalElement()`
+  (`helpers/dom/element.ts`) decided "this element belongs to this grid" by requiring the nearest
+  `.handsontable` to be a direct child of the root; with the clone in a rail it answered `false` for
+  every frozen-column, row-header and corner cell of a window-scrolled grid, and copy/paste, the text
+  editor's focus check and the focus manager all ask it. It now steps over a rail (pinned by
+  `element.unit.ts` and the legacy `helpers/dom/__tests__/element.spec.js`, which caught it).
+  Descendant queries (`root.querySelector('.ht_clone_*')`, `closest('.ht_clone_*')`) need nothing.
+- **Not a pixel moves at rest, and one edge case moves by design.** A clone in a zero-height rail at
+  `top: 0` lays out exactly where the absolute clone did. Past the table's END, the listener reset the
+  offset to 0 (the headers jumped back to the table start); sticky keeps them against the table's end
+  instead. That regime needs a page wider than the grid, scrolled past the grid.
+
+**No DOM read can test this.** The engine's read-back agrees with itself on every frame, and a
+`page.screenshot()` forces a composite, which is the step the race loses. The pinning is pinned by
+`tests/e2e/walkontable/window-scroll-pinned-overlays.spec.ts`, which records a real wheel scroll through
+a CDP screencast (lossless PNG, the compositor's own `scrollOffsetX` per frame) and scans the colour the
+fixture paints each clone's row headers, next to a positive control whose clones stay behind; its
+placement tests (editor, fill handle, row-resize handle over the frozen columns, LTR and RTL) are the
+ones that fail on the double-counted offset. Two traps for anyone extending it: keep the scroll profile
+inside the table (parking at max scroll measures end-of-table handling), and do not record a scroll
+after an axis-owner flip — the wheel listener bound in element mode stays non-passive, JavaScript then
+scrolls the page itself, and nothing can tear either way.
+
 ## Naming gotcha: `moveCells` grid option vs. HyperFormula engine method
 
 The Handsontable `moveCells` grid option (added 18.0.0) enables drag-to-move for selections. HyperFormula exposes an identically named `engine.moveCells()` method that the `Formulas` plugin calls internally to relocate formula references. They are unrelated -- do not confuse the user-facing option with the HyperFormula engine API.

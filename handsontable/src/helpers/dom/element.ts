@@ -3,6 +3,7 @@ import { isSafariBefore261, isMobileOrIpadOS, isWindowsOS } from '../browser';
 import { throwWithCause } from '../../helpers/errors';
 import { warnOnce } from '../../helpers/console';
 import type { SanitizerContext, TrustedHTMLLike } from '../../core/settings';
+import { INLINE_START_RAIL_CLASS_NAME } from '../../3rdparty/walkontable/src/overlay/inlineStartRail';
 
 /**
  * Get the parent of the specified node in the DOM tree.
@@ -44,11 +45,19 @@ export function getParent(element: HTMLElement | Node, level: number = 0): HTMLE
 export function isInternalElement(element: HTMLElement, thisHotContainer: HTMLElement) {
   const closestHandsontableContainer = element.closest('.handsontable');
 
-  return !!closestHandsontableContainer &&
-    (
-      closestHandsontableContainer.parentNode === thisHotContainer ||
-      closestHandsontableContainer === thisHotContainer
-    );
+  if (!closestHandsontableContainer) {
+    return false;
+  }
+
+  let owner = closestHandsontableContainer.parentNode;
+
+  // An overlay clone pinned while the window scrolls the grid sideways sits one level deeper, inside
+  // its rail (`walkontable/src/overlay/inlineStartRail.ts`).
+  if (isHTMLElement(owner) && owner.classList.contains(INLINE_START_RAIL_CLASS_NAME)) {
+    owner = owner.parentNode;
+  }
+
+  return closestHandsontableContainer === thisHotContainer || owner === thisHotContainer;
 }
 
 /**

@@ -415,7 +415,10 @@
     // marker instead, the carve-outs reach the seam whatever the row-header count.
     &.htRowHeaders {
       .ht_master:not(.emptyColumns),
-      .ht_master:not(.emptyColumns) ~ .handsontable:not(.htGhostTable) {
+      .ht_master:not(.emptyColumns) ~ .handsontable:not(.htGhostTable),
+      // A clone pinned while the window scrolls the grid sideways sits inside a rail, not beside the
+      // master (`walkontable/src/overlay/inlineStartRail.ts`).
+      .ht_master:not(.emptyColumns) ~ .htInlineStartRail > .handsontable:not(.htGhostTable) {
         $seam-owner: ":not(.ht__active_highlight):not(.ht__active_highlight-prev)";
 
         :where(#{$grid-head-row}) > th.htLastRowHeaderColumn#{$seam-owner},
