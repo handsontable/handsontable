@@ -438,6 +438,27 @@ export class ScrollSync {
   }
 
   /**
+   * Records the offset a clone holder actually holds after the browser clamped a write of this
+   * class to the holder's range.
+   *
+   * The engine writes the master's offset onto the clones, and during a relayout the master can sit
+   * past a clone's momentary range - the browser then clamps the write while the ledger keeps the
+   * value asked for. `NativeScrollInput#onCloneScroll` resolves that to no drift, and hands the
+   * clamped offset back here so the next scroll event on that holder matches the ledger and returns
+   * before any layout read. Only the listener calls it, and only with the value it just resolved,
+   * so `ScrollSync` stays the one place a clone's expected offset is written.
+   *
+   * @param {HTMLElement} holder A clone's `.wtHolder` element.
+   * @param {CloneScrollTarget} offset The offset the holder holds.
+   */
+  recordClampedCloneScrollTarget(holder: HTMLElement, offset: CloneScrollTarget) {
+    const target = this.#cloneScrollTarget(holder);
+
+    target.top = offset.top;
+    target.left = offset.left;
+  }
+
+  /**
    * Writes a clone holder's `scrollTop` and records it in the ledger.
    *
    * @param {HTMLElement} holder A clone's `.wtHolder` element.

@@ -1,7 +1,7 @@
 import { isKey } from '../../../../../helpers/unicode';
 import { eventTargetEl, isHTMLElement } from '../../../../../helpers/dom/element';
 import { requestAnimationFrame } from '../../../../../helpers/feature';
-import { measureCloneScrollDrift } from './cloneScrollDrift';
+import { matchesCloneScrollTarget, measureCloneScrollDrift } from './cloneScrollDrift';
 import type { EngineContext } from '../../wire';
 import type { default as Overlays } from '../overlays';
 import type { StickyScrollStrategy } from '../strategies/stickyScrollStrategy';
@@ -72,6 +72,8 @@ export function createNativeScrollInputDeps(
     getScrollableElement: () => overlays.scrollableElement,
     syncScrollPositions: () => overlays.syncScrollPositions(),
     getCloneScrollTarget: (holder: HTMLElement) => overlays.getCloneScrollTarget(holder),
+    recordClampedCloneScrollTarget: (holder: HTMLElement, offset: { top: number, left: number }) =>
+      overlays.recordClampedCloneScrollTarget(holder, offset),
     scrollVertically: (delta: number) => overlays.scrollVertically(delta),
     scrollHorizontally: (delta: number) => overlays.scrollHorizontally(delta),
     registerStickyScrollListeners: () => stickyScroll.registerListeners(),
@@ -322,10 +324,14 @@ export class NativeScrollInput {
    * master's in the same frame: the clone still holds last frame's offset while the master already
    * moved on, and a comparison against the master would read that as a user scroll backwards.
    *
-   * The engine's own writes are the common case - three per scroll frame - and they land exactly on
-   * the ledger, so they return before any geometry read. The holder's scroll range is measured only
-   * for an offset that differs, to absorb a write the browser clamped. The corrective write below
-   * re-applies the ledger's own value, so the ledger stays true through it.
+   * The engine's own writes are the common case - three per scroll frame - and an in-range write
+   * lands on the ledger, so it returns before any geometry read. Two things can put the holder a
+   * little off the ledger without a user touching it, and both are resolved to no drift: a zoomed
+   * page stores a fraction of a pixel for an integer write, which the tolerance absorbs, and a write
+   * made while the master sat past the clone's momentary range is clamped by the browser, which the
+   * range measure absorbs. The clamped offset is handed back to the ledger so the next event on that
+   * holder returns early instead of measuring the range again. A corrective write below re-applies
+   * the ledger's own value, so the ledger stays true through it.
    *
    * @param {Event} event The scroll event object.
    */
@@ -339,7 +345,7 @@ export class NativeScrollInput {
     const current = { top: holder.scrollTop, left: holder.scrollLeft };
     const target = this.#deps.getCloneScrollTarget(holder);
 
-    if (current.top === target.top && current.left === target.left) {
+    if (matchesCloneScrollTarget(current, target)) {
       return;
     }
 
@@ -349,6 +355,12 @@ export class NativeScrollInput {
       { maxTop: geometryReader.getMaximumScrollTop(holder), maxLeft: geometryReader.getMaximumScrollLeft(holder) },
       target,
     );
+
+    if (drift.driftTop === 0 && drift.driftLeft === 0) {
+      this.#deps.recordClampedCloneScrollTarget(holder, { top: drift.expectedTop, left: drift.expectedLeft });
+
+      return;
+    }
 
     if (drift.driftTop !== 0) {
       holder.scrollTop = drift.expectedTop;

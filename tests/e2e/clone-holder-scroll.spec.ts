@@ -47,9 +47,15 @@ test.describe('Clone holders as composited scroll containers', () => {
       }
 
       // The corner is never scrolled, so it is not a scroll container at all (the base stylesheet
-      // never clipped its holder); the master is the reference.
-      expect((await grid.holderBox('top_inline_start_corner')).overflowY).toBe('visible');
-      expect((await grid.holderBox('master')).overflowY).toBe('auto');
+      // never clipped its holder); the master is the reference. Both axes on both, so a rule that
+      // clipped one of them cannot slip through the axis this file does not name.
+      const corner = await grid.holderBox('top_inline_start_corner');
+      const master = await grid.holderBox('master');
+
+      expect(corner.overflowY).toBe('visible');
+      expect(corner.overflowX).toBe('visible');
+      expect(master.overflowY).toBe('auto');
+      expect(master.overflowX).toBe('auto');
     });
 
     test('keeps the scroll containers out of the tab order and leaves the corner alone', async() => {
@@ -91,6 +97,32 @@ test.describe('Clone holders as composited scroll containers', () => {
       await expect.poll(async() => (await grid.offsets()).bottom.left).toBe(330);
     });
 
+    test('judges a clone scroll event against the engine ledger, not the master offset', async() => {
+      // The load-bearing design decision, made falsifiable. The clone's pending scroll event is
+      // delivered while the master has already moved on - the sub-frame race, forced in one
+      // synchronous block rather than waited for.
+      //
+      // The reference decides what the listener does with that 100px gap. Against the ledger the
+      // clone sits exactly where the engine left it, so nothing moves. Against the master's live
+      // offset the gap reads as a user scroll backwards, and the listener pulls the master to 300
+      // and pushes the clone to 400 - measured, on a build with that reference.
+      //
+      // The offsets are asserted as the listener left them, not after they settle: a second
+      // correction a frame later happens to undo the first, so the settled state is 400/400 either
+      // way and proves nothing.
+      await grid.scrollMasterTo({ top: 300, left: 0 });
+      await expect.poll(async() => (await grid.offsets()).inlineStart.top).toBe(300);
+
+      const raced = await grid.raceCloneScrollAgainstMaster('inline_start', 400);
+
+      expect(raced.master, 'the listener must not move the master').toBe(400);
+      expect(raced.clone, 'the listener must leave the clone where the engine wrote it').toBe(300);
+
+      // The engine then syncs the clone the ordinary way, off the master's own scroll event.
+      await expect.poll(async() => (await grid.offsets()).inlineStart.top).toBe(400);
+      expect(await grid.rowMisalignment(3)).toBe(0);
+    });
+
     test('scrolls the master back when a clone holder is scrolled back', async() => {
       await grid.scrollMasterTo({ top: 300, left: 0 });
       await expect.poll(async() => (await grid.offsets()).inlineStart.top).toBe(300);
@@ -116,7 +148,7 @@ test.describe('Clone holders as composited scroll containers', () => {
 
     test('scrolls the grid when a finger pans over the frozen row headers', async() => {
       // A thumb dragging the frozen row-header column upwards by 150px.
-      await grid.panTouch('inline_start', -150);
+      await grid.panTouch('inline_start', { dy: -150 });
 
       // The pan reaches the master through the clone's drift; the clone realigns from the master.
       await expect.poll(async() => (await grid.offsets()).master.top).toBeGreaterThan(0);
@@ -126,6 +158,69 @@ test.describe('Clone holders as composited scroll containers', () => {
         return inlineStart.top - master.top;
       }).toBe(0);
       expect(await grid.rowMisalignment(3)).toBe(0);
+    });
+
+    test('scrolls the grid when a finger pans across the frozen column headers', async() => {
+      // The other axis, and the one the headline case names: the top clone is a scroll container on
+      // `overflow-x` alone, so this is the gesture an axis-specific clipping regression would break
+      // while the vertical pan above stayed green.
+      await grid.panTouch('top', { dx: -150 });
+
+      await expect.poll(async() => (await grid.offsets()).master.left).toBeGreaterThan(0);
+      await expect.poll(async() => {
+        const { master, top } = await grid.offsets();
+
+        return top.left - master.left;
+      }).toBe(0);
+      // The bottom clone follows the master on the same axis.
+      await expect.poll(async() => {
+        const { master, bottom } = await grid.offsets();
+
+        return bottom.left - master.left;
+      }).toBe(0);
+    });
+  });
+
+  test.describe('right-to-left', () => {
+    test.beforeEach(async({ page, theme, bundle }) => {
+      grid = new CloneHolderScrollPage(page, theme, bundle);
+      await grid.goto('element', 'rtl');
+    });
+
+    test('mirrors the master offset onto the horizontal clones, into negative scrollLeft', async() => {
+      // An RTL holder scrolls into NEGATIVE `scrollLeft`, which is the branch
+      // `measureCloneScrollDrift` clamps symmetrically around zero. Nothing but this fixture drives
+      // it with a live DOM.
+      await grid.scrollMasterTo({ top: 0, left: -250 });
+
+      await expect.poll(async() => (await grid.offsets()).master.left).toBeLessThan(0);
+      await expect.poll(async() => {
+        const { master, top } = await grid.offsets();
+
+        return top.left - master.left;
+      }).toBe(0);
+    });
+
+    test('hands a scroll of an RTL clone holder to the master', async() => {
+      await grid.scrollMasterTo({ top: 0, left: -250 });
+      await expect.poll(async() => (await grid.offsets()).top.left).toBe(-250);
+
+      // Further towards the end of the grid, which in RTL is further negative.
+      await grid.scrollCloneTo('top', { left: -330 });
+
+      await expect.poll(async() => (await grid.offsets()).master.left).toBe(-330);
+      await expect.poll(async() => (await grid.offsets()).top.left).toBe(-330);
+    });
+
+    test('scrolls the grid when a finger pans across the frozen column headers', async() => {
+      await grid.panTouch('top', { dx: 150 });
+
+      await expect.poll(async() => (await grid.offsets()).master.left).toBeLessThan(0);
+      await expect.poll(async() => {
+        const { master, top } = await grid.offsets();
+
+        return top.left - master.left;
+      }).toBe(0);
     });
   });
 
@@ -152,5 +247,6 @@ test.describe('Clone holders as composited scroll containers', () => {
       await expect.poll(async() => grid.rowMisalignment(3)).toBe(0);
       expect(await grid.rowMisalignment(10)).toBe(0);
     });
+
   });
 });

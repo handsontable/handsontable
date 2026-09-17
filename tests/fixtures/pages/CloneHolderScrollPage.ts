@@ -61,10 +61,12 @@ export class CloneHolderScrollPage {
    * Navigate and wait for the grid to render - a real DOM condition, never a sleep.
    *
    * @param {'element' | 'window'} mode Which scroll mode the fixture builds.
+   * @param {'ltr' | 'rtl'} dir Which layout direction the grid takes.
    */
-  async goto(mode: 'element' | 'window' = 'element'): Promise<void> {
+  async goto(mode: 'element' | 'window' = 'element', dir: 'ltr' | 'rtl' = 'ltr'): Promise<void> {
     await this.page.goto(
-      `/tests/fixtures/demo/clone-holder-scroll.html?theme=${this.theme}&bundle=${this.bundle}&mode=${mode}`
+      `/tests/fixtures/demo/clone-holder-scroll.html?theme=${this.theme}&bundle=${this.bundle}` +
+      `&mode=${mode}&dir=${dir}`
     );
     // The bundle first, through the shared helper: it owns both the `waitForFunction`-over-`expect`
     // choice and the polling interval, so neither is re-inlined here.
@@ -200,33 +202,92 @@ export class CloneHolderScrollPage {
   }
 
   /**
-   * Pans a finger over a holder: a touch press at its center, a run of moves by `dy` pixels (negative
-   * drags the content up, which scrolls down), and a release. Trusted touch events through CDP, the
-   * way `fixtures/pages/mobile/DragToScrollPage.ts` drives them - `Input.synthesizeScrollGesture`
-   * moved nothing on the CI runners.
+   * Pans a finger over a holder: a touch press at its center, a run of moves by the given distance,
+   * and a release. A negative distance drags the content up or start-wards, which scrolls the grid
+   * down or towards its end. Trusted touch events through CDP, the way
+   * `fixtures/pages/mobile/DragToScrollPage.ts` drives them - `Input.synthesizeScrollGesture` moved
+   * nothing on the CI runners.
    *
    * @param {HolderName} name Which holder the finger lands on.
-   * @param {number} dy The vertical distance of the pan, in pixels.
+   * @param {object} offset The distance of the pan, in pixels.
    */
-  async panTouch(name: HolderName, dy: number): Promise<void> {
+  async panTouch(name: HolderName, offset: { dx?: number; dy?: number }): Promise<void> {
     const rect = await this.holderRect(name);
-    const x = Math.round(rect.x + rect.width / 2);
+    const startX = Math.round(rect.x + rect.width / 2);
     const startY = Math.round(rect.y + rect.height / 2);
+    const dx = offset.dx ?? 0;
+    const dy = offset.dy ?? 0;
     const cdp = await this.page.context().newCDPSession(this.page);
-    const touch = (type: 'touchStart' | 'touchMove' | 'touchEnd', y?: number) => cdp.send('Input.dispatchTouchEvent', {
+    const touch = (
+      type: 'touchStart' | 'touchMove' | 'touchEnd',
+      point?: { x: number; y: number }
+    ) => cdp.send('Input.dispatchTouchEvent', {
       type,
-      touchPoints: y === undefined ? [] : [{ x, y, radiusX: 12, radiusY: 12, force: 1, id: 1 }],
+      touchPoints: point ? [{ x: point.x, y: point.y, radiusX: 12, radiusY: 12, force: 1, id: 1 }] : [],
     });
     const steps = 12;
 
-    await touch('touchStart', startY);
+    await touch('touchStart', { x: startX, y: startY });
 
     for (let step = 1; step <= steps; step++) {
-      await touch('touchMove', Math.round(startY + (dy * step) / steps));
+      await touch('touchMove', {
+        x: Math.round(startX + (dx * step) / steps),
+        y: Math.round(startY + (dy * step) / steps),
+      });
     }
 
     await touch('touchEnd');
     await cdp.detach();
+  }
+
+  /**
+   * Reproduces the sub-frame race the clone-scroll listener is designed around, deterministically.
+   *
+   * A scroll event is dispatched a frame after the offset changed, so a clone's pending event can run
+   * while the master has already moved on. Both steps here happen in ONE synchronous block: the
+   * master's offset is set (its own `scroll` event is queued, not yet delivered) and the clone's
+   * pending event is then delivered by hand, with the clone still holding the offset the engine last
+   * wrote to it.
+   *
+   * A listener judging the clone against the master's live offset reads that gap as a user scroll
+   * backwards and drags the master back. One judging it against the ledger sees no drift and leaves
+   * the master where it is.
+   *
+   * The offsets are read back in the SAME block, right after the listener returns, because that is
+   * the only moment the two policies differ: reading the master makes the listener move it, and a
+   * second correction a frame later happens to put it back, so the settled state cannot tell them
+   * apart.
+   *
+   * @param {HolderName} name Which clone holder's pending event to deliver.
+   * @param {number} masterTop The offset the master moves to in the same block.
+   * @returns {Promise<{ master: number, clone: number }>} The offsets the listener left behind.
+   */
+  async raceCloneScrollAgainstMaster(
+    name: HolderName,
+    masterTop: number
+  ): Promise<{ master: number; clone: number }> {
+    return this.grid.evaluate((root, { selector, top }) => {
+      const master = root.querySelector<HTMLElement>('.ht_master > .wtHolder');
+      const holder = root.querySelector<HTMLElement>(selector);
+
+      if (!master || !holder) {
+        throw new Error(`No holder for ${selector}`);
+      }
+
+      master.scrollTop = top;
+      holder.dispatchEvent(new Event('scroll'));
+
+      return { master: master.scrollTop, clone: holder.scrollTop };
+    }, { selector: CloneHolderScrollPage.holderSelector(name), top: masterTop });
+  }
+
+  /**
+   * The page's vertical scroll offset, for the window-scrolled fixture.
+   *
+   * @returns {Promise<number>}
+   */
+  async windowScrollTop(): Promise<number> {
+    return this.page.evaluate(() => window.scrollY);
   }
 
   /**

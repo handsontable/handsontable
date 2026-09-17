@@ -48,6 +48,23 @@ function dropSubpixelDifference(difference: number): number {
 }
 
 /**
+ * Whether a holder sits where the engine left it, by the same sub-pixel rule the drift measure uses.
+ *
+ * The listener asks this before it measures the holder's scroll range, so the engine's own writes -
+ * three per scroll frame - cost no layout read. It compares against the ledger and never against the
+ * previous offset, so a run of sub-pixel user scrolls cannot creep past the tolerance one step at a
+ * time.
+ *
+ * @param {ScrollOffset} current The holder's current `scrollTop`/`scrollLeft`.
+ * @param {CloneScrollTarget} target The offset the engine last wrote to the holder.
+ * @returns {boolean}
+ */
+export function matchesCloneScrollTarget(current: ScrollOffset, target: CloneScrollTarget): boolean {
+  return dropSubpixelDifference(current.top - target.top) === 0 &&
+    dropSubpixelDifference(current.left - target.left) === 0;
+}
+
+/**
  * Measures how far a clone holder sits from the offset the engine last wrote to it.
  *
  * The frozen overlays' clone holders are composited scroll containers (see the clone-holder rule in

@@ -169,12 +169,22 @@ Four rules come with it.
   is the only writer of those offsets, and a new writer elsewhere must go through it or its write reads
   as a user scroll), and `measureCloneScrollDrift` (`overlay/scroll/cloneScrollDrift.ts`) clamps the
   target to the range the holder has NOW — the browser clamped the write the same way — and ignores
-  sub-pixel differences. The listener compares the raw offset with the ledger first and measures the
-  range only on a mismatch, so the engine's own three writes per frame cost no geometry read.
+  sub-pixel differences. The listener compares the offset with the ledger first, by the same
+  sub-pixel rule (`matchesCloneScrollTarget`), and measures the range only on a mismatch, so the
+  engine's own three writes per frame cost no geometry read — on a fractionally zoomed page too,
+  where an integer write reads back fractional. A write the browser DID clamp (the master sits past
+  the clone's momentary range during a relayout) resolves to no drift, and the clamped offset is
+  handed back to the ledger (`recordClampedCloneScrollTarget`, the one writer outside `ScrollSync`
+  and only with the value the listener just resolved), or the two disagree until the next in-range
+  write and every scroll event on that holder pays both range reads to reach the same answer.
   Comparing against the master instead is wrong by one frame: scroll events dispatch a frame after the
   offset changed, and a clone's pending event can run before the master's in the same frame, so the
   clone still reads last frame's offset while the master already moved — a comparison would call that a
-  user scroll backwards and undo the master's own move.
+  user scroll backwards and undo the master's own move. **That is measurable only in the same
+  synchronous block**: with the master reference the listener pulls the master back and pushes the
+  clone forward, and a second correction a frame later happens to undo both, so the settled offsets
+  are identical either way. The spec's race case therefore reads the offsets the listener left behind,
+  not the ones that settle.
 - **The four scroll containers carry `tabindex="-1"`** (`table/domScaffold.ts`): the master's holder
   and the three clone holders above. Chrome 127+ makes a scroll container with no focusable content a
   keyboard tab stop of its own. The corner clones are not scroll containers and get no tabindex.
@@ -183,10 +193,12 @@ Four rules come with it.
   new caller that walks up from a clone's cell would now find the clone holder; do not add one.
 
 Pinned by `test/unit/overlay/cloneScrollTargets.unit.ts` (the drift measure and the ledger) and
-`tests/e2e/clone-holder-scroll.spec.ts` (the computed `overflow` per axis, no scrollbar space, the
-tab order, the mirror, a scroll of the clone itself landing on the master, a touch pan over the row
-headers driven through CDP `Input.dispatchTouchEvent` — `Input.synthesizeScrollGesture` moves nothing
-on the CI runners — and the frozen column staying in step under a page scroll). The
+`tests/e2e/clone-holder-scroll.spec.ts` (the computed `overflow` per axis on every holder, no
+scrollbar space, the tab order, the mirror, a scroll of the clone itself landing on the master, the
+ledger-versus-master race above, touch pans over the row headers AND the column headers driven
+through CDP `Input.dispatchTouchEvent` — `Input.synthesizeScrollGesture` moves nothing on the CI
+runners — an RTL grid driving the clones into negative `scrollLeft` and forwarding from there, and
+the frozen column staying in step under a page scroll). The
 stylesheet half has no unit test that can see it, so the E2E is what stops a future stylesheet edit
 from silently giving the paint back. Window-scroll mode was probed at device scale 0.67–1.5 and CSS
 zoom 0.8–1.33: every clone holder has zero scroll range on both axes there, so a wheel over a frozen

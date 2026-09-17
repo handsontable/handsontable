@@ -1,4 +1,4 @@
-import { measureCloneScrollDrift } from '../../../src/overlay/scroll/cloneScrollDrift';
+import { matchesCloneScrollTarget, measureCloneScrollDrift } from '../../../src/overlay/scroll/cloneScrollDrift';
 import { ScrollSync, type ScrollSyncDeps } from '../../../src/overlay/scroll/scrollSync';
 
 describe('measureCloneScrollDrift', () => {
@@ -46,6 +46,31 @@ describe('measureCloneScrollDrift', () => {
 
     expect(drift.driftTop).toBe(0);
     expect(drift.driftLeft).toBe(0);
+  });
+});
+
+describe('matchesCloneScrollTarget', () => {
+  it('should match an offset the engine wrote', () => {
+    expect(matchesCloneScrollTarget({ top: 300, left: 120 }, { top: 300, left: 120 })).toBe(true);
+  });
+
+  it('should match a sub-pixel rounding of the written offset, so a zoomed page measures no range', () => {
+    // The listener asks this BEFORE the two layout-forcing range reads. A fractionally zoomed page
+    // stores 300.4 for a write of 300 on every scroll frame; without the tolerance here every one of
+    // those frames would pay both reads.
+    expect(matchesCloneScrollTarget({ top: 300.4, left: 119.6 }, { top: 300, left: 120 })).toBe(true);
+  });
+
+  it('should not match a real scroll on either axis', () => {
+    expect(matchesCloneScrollTarget({ top: 340, left: 120 }, { top: 300, left: 120 })).toBe(false);
+    expect(matchesCloneScrollTarget({ top: 300, left: 90 }, { top: 300, left: 120 })).toBe(false);
+  });
+
+  it('should not let a run of sub-pixel scrolls creep past the tolerance', () => {
+    // The comparison is against the ledger, never against the previous offset, so half-pixel steps
+    // do not accumulate into an unreported scroll.
+    expect(matchesCloneScrollTarget({ top: 300.5, left: 0 }, { top: 300, left: 0 })).toBe(true);
+    expect(matchesCloneScrollTarget({ top: 301, left: 0 }, { top: 300, left: 0 })).toBe(false);
   });
 });
 
@@ -134,5 +159,46 @@ describe('ScrollSync#getCloneScrollTarget', () => {
 
     expect(scrollSync.getCloneScrollTarget(topHolder)).toEqual({ top: 0, left: 0 });
     expect(scrollSync.getCloneScrollTarget(inlineStartHolder)).toEqual({ top: 0, left: 0 });
+  });
+
+  it('should hand out a copy, so a caller cannot reach into the ledger', () => {
+    const { scrollSync, inlineStartHolder } = createScrollSync({ scrollTop: 300, scrollLeft: 0 });
+
+    scrollSync.setRenderingStateChanged(true);
+    scrollSync.syncScrollWithMaster();
+
+    const target = scrollSync.getCloneScrollTarget(inlineStartHolder);
+
+    target.top = 999;
+
+    expect(scrollSync.getCloneScrollTarget(inlineStartHolder).top).toBe(300);
+  });
+
+  it('should take the clamped offset back after a write the browser could not honor', () => {
+    // The engine wrote 300 while the holder could only reach 120, so the DOM sits at 120 and the
+    // ledger asked for 300. The listener resolves that to no drift and hands 120 back; without this
+    // the two disagree until the next in-range write, and every scroll event on that holder pays two
+    // layout-forcing range reads to reach the same answer.
+    const { scrollSync, inlineStartHolder } = createScrollSync({ scrollTop: 300, scrollLeft: 0 });
+
+    scrollSync.setRenderingStateChanged(true);
+    scrollSync.syncScrollWithMaster();
+
+    expect(scrollSync.getCloneScrollTarget(inlineStartHolder)).toEqual({ top: 300, left: 0 });
+
+    scrollSync.recordClampedCloneScrollTarget(inlineStartHolder, { top: 120, left: 0 });
+
+    expect(scrollSync.getCloneScrollTarget(inlineStartHolder)).toEqual({ top: 120, left: 0 });
+    expect(matchesCloneScrollTarget({ top: 120, left: 0 },
+      scrollSync.getCloneScrollTarget(inlineStartHolder))).toBe(true);
+  });
+
+  it('should record a clamped offset for a holder it never wrote to', () => {
+    const { scrollSync } = createScrollSync({ scrollTop: 0, scrollLeft: 0 });
+    const holder = document.createElement('div');
+
+    scrollSync.recordClampedCloneScrollTarget(holder, { top: 40, left: 15 });
+
+    expect(scrollSync.getCloneScrollTarget(holder)).toEqual({ top: 40, left: 15 });
   });
 });
