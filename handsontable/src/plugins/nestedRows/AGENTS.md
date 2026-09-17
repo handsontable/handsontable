@@ -296,6 +296,14 @@ They are written in different places and can drift. Keep this in mind:
   `hot.render()`, and `updatePlugin()` runs on every `updateSettings()` carrying the `nestedRows` key —
   every re-render in React. Pass `shouldRender: false` there; the Core draws right after the hook, and
   leaving the render in doubled every re-render's draw (measured: 2 draws per no-op re-send, now 1).
+  **Formulas does NOT survive the toggle, and that one is still open (DEV-2978).** The plugin resyncs
+  its sheet from `afterLoadData` / `afterUpdateData` and from `afterCellMetaReset`, which the Core
+  fires *before* `afterUpdateSettings` — a toggle reaches none of them with the new layout. Measured:
+  after a runtime enable the grid shows four rows while HyperFormula's sheet is still two, so a
+  formula on a row the flatten moved renders as raw text and its value lands on a different row. A
+  grid built with both settings at construction is fine, because the engine is built from the already
+  flattened data. Do not paper over it from here by firing `afterUpdateData` by hand; the fix is for a
+  settings-driven row-count change to notify plugins the way a data replacement does.
   **The toggle also resets every other row map above the new length**, because `fitToLength()` shrinks
   by dropping the tail and grows by appending defaults, while flattening a tree inserts rows in the
   INTERIOR. For a map a plugin re-applies from its own settings this is invisible and correct — a grid
