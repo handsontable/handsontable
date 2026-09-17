@@ -294,7 +294,7 @@ Two literal datasets are shared across guides so an example doesn't invent new d
 | Dataset | Shape | Example data | Lives at |
 |---|---|---|---|
 | **Inventory long set** (DEV-2915) | 12 rows x 5 columns | SKU (SKU-4821, SKU-0093), product (Stainless Steel Water Bottle, Wireless Mouse), supplier (Harbor Goods, Alpine Supply Co.), category (Drinkware, Electronics), warehouse (Seattle, Denver) | `docs/content/guides/rows/row-moving/javascript/example1.js` |
-| **Periodic table narrow set** (DEV-2885) | 5 rows x 7 columns | Name (Hydrogen, Helium, Lithium, Beryllium, Boron), symbol (H, He, Li, Be, B), atomic number (1, 2, 3, 4, 5), atomic mass (1.008, 4.003, 6.94, 9.012, 10.81), known isotopes (7, 9, 9, 11, 11), melting point (-434.4°F, -458.3°F, 356.9°F, 2348.6°F, 3768.8°F), boiling point (-423.2°F, -452.1°F, 2447.6°F, 4478.8°F, 7100.6°F) | `docs/content/guides/columns/column-header/javascript/example2.js` |
+| **Periodic table narrow set** (DEV-2885) | 5 rows x 7 columns | Name (Hydrogen, Helium, Lithium, Beryllium, Boron), symbol (H, He, Li, Be, B), atomic number (1, 2, 3, 4, 5), atomic mass (1.008, 4.003, 6.94, 9.012, 10.81), known isotopes (7, 9, 9, 11, 11), melting point (-434.4°F, -458.0°F, 356.9°F, 2348.6°F, 3768.8°F), boiling point (-423.2°F, -452.1°F, 2447.6°F, 4478.8°F, 7100.6°F) | `docs/content/guides/columns/column-header/javascript/example2.js` |
 
 ### Data coherence rules
 
