@@ -291,6 +291,12 @@ declare global {
     /** DEV-1159: last `scrollIntoView` argument after the counter reset. */
     htScrollIntoViewLastArgs: ScrollIntoViewOptions | boolean | undefined;
     /**
+     * DEV-1159: dispatches mousedown/mouseup/click on a master cell. Installed
+     * with the `scrollIntoView` spy so last-partial clicks can read the index
+     * and fire the events in one evaluate.
+     */
+    dispatchMasterCellMouseClick: (row: number, col: number) => void;
+    /**
      * Chromium-only InputDeviceCapabilities constructor, used to stamp synthetic mouse events
      * with their origin (DEV-2687).
      */

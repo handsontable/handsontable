@@ -71,19 +71,31 @@ export class OversizedCellMouseScrollPage {
 
         return original.call(this, arg);
       };
-    });
-  }
 
-  /**
-   * Starts counting `scrollIntoView` calls from now on.
-   *
-   * Reset after `goto()` / holder scroll so the count covers one named gesture,
-   * not construction or the setup scroll.
-   */
-  async startScrollIntoViewCounter(): Promise<void> {
-    await this.page.evaluate(() => {
-      window.htScrollIntoViewCount = 0;
-      window.htScrollIntoViewLastArgs = undefined;
+      // Shared by last-partial clicks so the index is read and the mouse
+      // events fire in the same evaluate (see `clickLastPartiallyVisibleRow`).
+      window.dispatchMasterCellMouseClick = (row: number, col: number) => {
+        const cell = document.querySelector(`.ht_master [data-testid="cell-${row}-${col}"]`);
+
+        if (!(cell instanceof HTMLElement)) {
+          throw new Error('cell is not rendered');
+        }
+
+        const box = cell.getBoundingClientRect();
+        const init: MouseEventInit = {
+          bubbles: true,
+          cancelable: true,
+          view: window,
+          button: 0,
+          buttons: 1,
+          clientX: box.left + Math.min(20, box.width / 2),
+          clientY: box.top + Math.min(8, box.height / 2),
+        };
+
+        cell.dispatchEvent(new MouseEvent('mousedown', init));
+        cell.dispatchEvent(new MouseEvent('mouseup', { ...init, buttons: 0 }));
+        cell.dispatchEvent(new MouseEvent('click', { ...init, buttons: 0 }));
+      };
     });
   }
 
@@ -218,43 +230,80 @@ export class OversizedCellMouseScrollPage {
   }
 
   /**
-   * Dispatches mouse events on the cell element itself, like the Jasmine
-   * `simulateClick` helper. Use this when the visible sliver is too thin
-   * for a page-coordinate click (last-partial row above an overlay
-   * scrollbar).
+   * Clicks the last-partial row that is last-partial in this same turn.
    *
-   * @param {number} row Visual row index.
-   * @param {number} col Visual column index.
+   * A prior `getLastPartiallyVisibleRow()` round trip can name a different
+   * row than mouse `singleScrollStrategy` sees: the overlay redraws (or a
+   * horizontal scrollbar shrinks `clientHeight`) between the snapshot and
+   * the click, skip does not apply, and leftover auto-snap plus
+   * `scrollIntoView` both fire. Reset the spy, read the index and holder
+   * scroll, and dispatch the click in one evaluate.
+   *
+   * @param {number} col Visual column to click in that row.
+   * @returns {Promise<{ row: number, left: number, top: number }>} The
+   *   clicked visual row and holder scroll just before the click.
    */
-  async clickCellByEvent(row: number, col: number): Promise<void> {
-    await this.page.evaluate(([r, c]) => {
-      const cell = document.querySelector(`.ht_master [data-testid="cell-${r}-${c}"]`);
+  async clickLastPartiallyVisibleRow(col: number): Promise<{ row: number, left: number, top: number }> {
+    const { index, left, top } = await this.clickLastPartial('row', col);
 
-      if (!(cell instanceof HTMLElement)) {
-        throw new Error('cell is not rendered');
-      }
-
-      const box = cell.getBoundingClientRect();
-      const init: MouseEventInit = {
-        bubbles: true,
-        cancelable: true,
-        view: window,
-        button: 0,
-        buttons: 1,
-        clientX: box.left + Math.min(20, box.width / 2),
-        clientY: box.top + Math.min(8, box.height / 2),
-      };
-
-      cell.dispatchEvent(new MouseEvent('mousedown', init));
-      cell.dispatchEvent(new MouseEvent('mouseup', { ...init, buttons: 0 }));
-      cell.dispatchEvent(new MouseEvent('click', { ...init, buttons: 0 }));
-    }, [row, col] as const);
+    return { row: index, left, top };
   }
 
   /**
-   * Master holder scroll offsets plus `scrollIntoView` count since
-   * `startScrollIntoViewCounter()`. Read in one evaluate so a comparison
-   * cannot straddle a redraw.
+   * Clicks the last-partial column that is last-partial in this same turn.
+   *
+   * Same snapshot-vs-click gap as {@link clickLastPartiallyVisibleRow}.
+   *
+   * @param {number} row Visual row to click in that column.
+   * @returns {Promise<{ col: number, left: number, top: number }>} The
+   *   clicked visual column and holder scroll just before the click.
+   */
+  async clickLastPartiallyVisibleColumn(row: number): Promise<{ col: number, left: number, top: number }> {
+    const { index, left, top } = await this.clickLastPartial('column', row);
+
+    return { col: index, left, top };
+  }
+
+  /**
+   * Resets the `scrollIntoView` spy, reads the current last-partial index
+   * and holder scroll, and clicks that cell in one evaluate.
+   *
+   * @param {'row'|'column'} axis Which last-partial edge to click.
+   * @param {number} otherIndex The other visual index of the cell.
+   * @returns {Promise<{ index: number, left: number, top: number }>}
+   */
+  private async clickLastPartial(
+    axis: 'row' | 'column',
+    otherIndex: number,
+  ): Promise<{ index: number, left: number, top: number }> {
+    return this.page.evaluate(([which, other]) => {
+      window.htScrollIntoViewCount = 0;
+      window.htScrollIntoViewLastArgs = undefined;
+
+      const index = which === 'row'
+        ? window.hot.getLastPartiallyVisibleRow()
+        : window.hot.getLastPartiallyVisibleColumn();
+      const holder = document.querySelector('.ht_master .wtHolder');
+
+      if (!(holder instanceof HTMLElement)) {
+        throw new Error('holder is not rendered');
+      }
+
+      const left = holder.scrollLeft;
+      const top = holder.scrollTop;
+      const row = which === 'row' ? index : other;
+      const col = which === 'row' ? other : index;
+
+      window.dispatchMasterCellMouseClick(row, col);
+
+      return { index, left, top };
+    }, [axis, otherIndex] as const);
+  }
+
+  /**
+   * Master holder scroll offsets plus `scrollIntoView` count since the last
+   * counter reset (`goto()` or a last-partial click). Read in one evaluate so
+   * a comparison cannot straddle a redraw.
    *
    * @returns {Promise<{ left: number, top: number, scrollIntoViewCount: number, scrollIntoViewLastArgs: ScrollIntoViewOptions | boolean | undefined }>}
    */

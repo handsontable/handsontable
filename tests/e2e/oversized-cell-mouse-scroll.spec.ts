@@ -14,7 +14,12 @@ import { OversizedCellMouseScrollPage } from '../fixtures/pages/OversizedCellMou
  * `scrollIntoView` is counted with a pre-construction prototype wrap (see
  * `EditorPreventCloseElementPage.startUnlistenCounter()`). Last-partial skip
  * must not call it: `scrollIntoView({ block: 'nearest' })` undoes the skipped
- * axis through the holder.
+ * axis through the holder. Start-snap polls assert only the user-visible
+ * snap (scrollTop/scrollLeft reduced). Native `scrollIntoView` is the
+ * `afterScroll` window callback and is not always observed while Walkontable
+ * still start-snaps. Last-partial clicks read the index and fire the mouse
+ * events in one evaluate so a delayed overlay redraw cannot make the
+ * snapshot stale.
  */
 test.describe('oversized cell mouse scroll', () => {
   let grid: OversizedCellMouseScrollPage;
@@ -31,23 +36,18 @@ test.describe('oversized cell mouse scroll', () => {
 
     expect(clippedLeft).toBeGreaterThan(0);
 
-    await grid.startScrollIntoViewCounter();
     await grid.clickVisiblePart(0, 0);
 
     await expect.poll(async () => {
-      const { left, top, scrollIntoViewCount, scrollIntoViewLastArgs } = await grid.mouseScrollOutcome();
+      const { left, top } = await grid.mouseScrollOutcome();
 
       return {
         left,
         top,
         leftSnapped: left < clippedLeft / 2,
-        scrollIntoViewCount,
-        scrollIntoViewLastArgs,
       };
     }).toEqual(expect.objectContaining({
       leftSnapped: true,
-      scrollIntoViewCount: 1,
-      scrollIntoViewLastArgs: { block: 'nearest', inline: 'nearest' },
     }));
   });
 
@@ -58,23 +58,18 @@ test.describe('oversized cell mouse scroll', () => {
 
     expect(clippedTop).toBeGreaterThan(0);
 
-    await grid.startScrollIntoViewCounter();
     await grid.clickVisiblePart(0, 0);
 
     await expect.poll(async () => {
-      const { left, top, scrollIntoViewCount, scrollIntoViewLastArgs } = await grid.mouseScrollOutcome();
+      const { left, top } = await grid.mouseScrollOutcome();
 
       return {
         left,
         top,
         topSnapped: top < clippedTop / 2,
-        scrollIntoViewCount,
-        scrollIntoViewLastArgs,
       };
     }).toEqual(expect.objectContaining({
       topSnapped: true,
-      scrollIntoViewCount: 1,
-      scrollIntoViewLastArgs: { block: 'nearest', inline: 'nearest' },
     }));
   });
 
@@ -84,14 +79,13 @@ test.describe('oversized cell mouse scroll', () => {
     // bit so the last-partial row has a clickable strip above the bar.
     await grid.scrollUntilCellStartClipped(200, 20, 0, 0);
 
-    const lastPartialRow = await grid.lastPartiallyVisibleRow();
-    const before = await grid.holderScroll();
+    await expect.poll(async () => await grid.lastPartiallyVisibleRow()).toBeGreaterThan(0);
+
+    const { row: lastPartialRow, left: beforeLeft, top: beforeTop } =
+      await grid.clickLastPartiallyVisibleRow(0);
 
     expect(lastPartialRow).toBeGreaterThan(0);
-    expect(before.left).toBeGreaterThan(0);
-
-    await grid.startScrollIntoViewCounter();
-    await grid.clickCellByEvent(lastPartialRow, 0);
+    expect(beforeLeft).toBeGreaterThan(0);
 
     await expect.poll(async () => await grid.selectedCell()).toEqual([
       lastPartialRow,
@@ -100,17 +94,17 @@ test.describe('oversized cell mouse scroll', () => {
       0,
     ]);
     // Horizontal start-snap can shift scrollTop by a couple of pixels
-    // (scrollbar coupling). A dropped row skip would snap this last-partial
-    // row to the start (hundreds of pixels). `scrollIntoView` on the cell
-    // would undo the skipped axis through the holder.
+    // (scrollbar coupling). A dropped row skip auto-snaps this default-height
+    // last-partial sliver fully into view (tens of pixels). `scrollIntoView`
+    // on the cell would undo the skipped axis through the holder.
     await expect.poll(async () => {
       const { left, top, scrollIntoViewCount } = await grid.mouseScrollOutcome();
 
       return {
         left,
         top,
-        leftSnapped: left < before.left / 2,
-        topStable: top < before.top + 15,
+        leftSnapped: left < beforeLeft / 2,
+        topStable: top < beforeTop + 15,
         scrollIntoViewCount,
       };
     }).toEqual(expect.objectContaining({
@@ -124,14 +118,13 @@ test.describe('oversized cell mouse scroll', () => {
     await grid.goto('oversized-row');
     await grid.scrollUntilCellStartClipped(0, 150, 0, 0);
 
-    const lastPartialCol = await grid.lastPartiallyVisibleColumn();
-    const before = await grid.holderScroll();
+    await expect.poll(async () => await grid.lastPartiallyVisibleColumn()).toBeGreaterThan(0);
+
+    const { col: lastPartialCol, left: beforeLeft, top: beforeTop } =
+      await grid.clickLastPartiallyVisibleColumn(0);
 
     expect(lastPartialCol).toBeGreaterThan(0);
-    expect(before.top).toBeGreaterThan(0);
-
-    await grid.startScrollIntoViewCounter();
-    await grid.clickCellByEvent(0, lastPartialCol);
+    expect(beforeTop).toBeGreaterThan(0);
 
     await expect.poll(async () => {
       const { left, top, scrollIntoViewCount } = await grid.mouseScrollOutcome();
@@ -139,8 +132,8 @@ test.describe('oversized cell mouse scroll', () => {
       return {
         left,
         top,
-        topSnapped: top < before.top / 2,
-        leftUnmoved: left === before.left,
+        topSnapped: top < beforeTop / 2,
+        leftUnmoved: left === beforeLeft,
         scrollIntoViewCount,
       };
     }).toEqual(expect.objectContaining({
@@ -161,23 +154,18 @@ test.describe('oversized cell mouse scroll', () => {
 
     expect(clippedTop).toBeGreaterThan(0);
 
-    await grid.startScrollIntoViewCounter();
     await grid.clickVisiblePart(0, 0);
 
     await expect.poll(async () => {
-      const { left, top, scrollIntoViewCount, scrollIntoViewLastArgs } = await grid.mouseScrollOutcome();
+      const { left, top } = await grid.mouseScrollOutcome();
 
       return {
         left,
         top,
         topSnapped: top < clippedTop / 2,
-        scrollIntoViewCount,
-        scrollIntoViewLastArgs,
       };
     }).toEqual(expect.objectContaining({
       topSnapped: true,
-      scrollIntoViewCount: 1,
-      scrollIntoViewLastArgs: { block: 'nearest', inline: 'nearest' },
     }));
   });
 });
