@@ -73,8 +73,10 @@ boundary edges; routing the handle *position* through it silently drops the head
 other axis, `rowHeaders` plus `shouldRenderInlineStartOverlay`). Both helpers also return `false` off
 the master on purpose. Handles drawn by a frozen overlay itself need no treatment: they
 already land flush against the `.wtHolder` edge that clips them, which `border.spec.js` pins to the
-pixel on both axes. Note `.wtHolder` is the clipping box (`overflow: hidden`), while the clone element
-is `overflow: visible` and ends a few pixels earlier — measure the holder, not the clone.
+pixel on both axes. Note `.wtHolder` is the clipping box on the three scroll-mirrored clones
+(`overflow: auto` with the scrollbar suppressed, which clips like `hidden` did — see "The clone
+holders are composited scroll containers" below), while the clone element is `overflow: visible`
+and ends a few pixels earlier — measure the holder, not the clone.
 
 One case is *not* covered and is not a regression: with both headers off and no frozen panes, a row-0
 top handle is drawn at a negative offset and the master's `.wtHolder` clips it. It was invisible
@@ -136,6 +138,83 @@ which reads the browser's own `layout-shift` entries under a real wheel scroll �
 `scrollTop` assignment is not a scroll-driven draw — and carries a positive control, because an
 observer that saw nothing reports the same zero as a spreader that moved no layout. The spec fails
 on the inset write (1.17 blamed on `div.wtSpreader` after 12 wheel steps).
+
+## The clone holders are composited scroll containers
+
+`ScrollSync` mirrors the master's scroll offset onto three clones once per scroll frame:
+`syncScrollPositions` writes `scrollTop` on the inline-start holder and `scrollLeft` on the top and
+bottom ones, and `syncScrollWithMaster` repeats the write after a draw that changed a clone's render
+state. Those holders used to be `overflow: hidden` like every other `.wtHolder`, and that made each
+write expensive out of all proportion: a browser composites only a box the user can scroll, so a
+`hidden` holder has no compositor layer, every write re-recorded the clone's contents on the main
+thread (one Paint per row-header cell) and dirtied the document's paint artifact, and the browser then
+re-layerized every paint chunk on the page — the master's untouched cells included. The cost scaled
+with how much DOM the cells render, not with what moved: ~850 ms of main-thread paint per 2.5 s scroll
+on a grid of SVG-rich cells (#13446, DEV-2937), ~20 ms on a plain-text grid. It is also why CSS
+containment on the cells made things worse (more chunks to re-layerize) and why the master's own
+scroll was always cheap: `.ht_master .wtHolder` is `overflow: auto`.
+
+So `src/styles/base/_base.scss` makes each of those holders a scroll container on the ONE axis the
+engine writes (`overflow-y: auto` on the inline-start holder, `overflow-x: auto` on the top and
+bottom ones, the cross axis `hidden`), with the scrollbar suppressed (`scrollbar-width: none` plus
+the `::-webkit-scrollbar` fallback, written out in place: a `&` inside a mixin body fails the
+SonarCloud gate as "missing scoping root", S8776) and `overflow-anchor: none`. The same writes then take the compositor's
+scroll-offset fast path: measured on that grid, paint 850 → 90 ms per run and total main-thread time
+−45…−65 % on every renderer, with renderer calls, draws and frames identical. The worst frame and the
+long tasks do not move — they are the two full draws' renderer work — so the win is per-frame
+headroom, not a shorter stall. The corner clones are untouched (their holders were never clipped):
+nothing scrolls them. `css/walkontable.scss` carries the same rule for the engine's own test runner
+and must be kept in sync, or `npm run test:walkontable` runs against the old clip.
+
+Four rules come with it.
+
+- **A user can now scroll a clone holder, and the engine must catch that.** A touch pan over a frozen
+  header, or a wheel `#onCloneWheel` did not cancel (window-scroll mode), moves the clone on the
+  compositor before any script runs. `NativeScrollInput#onCloneScroll` listens to `scroll` on every
+  clone holder, undoes the drift on the holder and hands it to the axis owner through
+  `scrollVertically`/`scrollHorizontally`, whose own scroll event then re-syncs every clone the
+  ordinary way — so a pan over a frozen header scrolls the grid, like a wheel over it does. (Before,
+  such a pan chained to the page; a hidden box cannot be panned.)
+- **The reference for "drift" is the ledger of what the engine wrote, never the master's current
+  offset.** `ScrollSync` records every clone write in `#cloneScrollTargets` (all writes go through
+  `#writeCloneScrollTop`/`#writeCloneScrollLeft`; a holder never written is expected at zero; `ScrollSync`
+  is the only writer of those offsets, and a new writer elsewhere must go through it or its write reads
+  as a user scroll), and `measureCloneScrollDrift` (`overlay/scroll/cloneScrollDrift.ts`) clamps the
+  target to the range the holder has NOW — the browser clamped the write the same way — and ignores
+  sub-pixel differences. The listener compares the offset with the ledger first, by the same
+  sub-pixel rule (`matchesCloneScrollTarget`), and measures the range only on a mismatch, so the
+  engine's own three writes per frame cost no geometry read — on a fractionally zoomed page too,
+  where an integer write reads back fractional. A write the browser DID clamp (the master sits past
+  the clone's momentary range during a relayout) resolves to no drift, and the clamped offset is
+  handed back to the ledger (`recordClampedCloneScrollTarget`, the one writer outside `ScrollSync`
+  and only with the value the listener just resolved), or the two disagree until the next in-range
+  write and every scroll event on that holder pays both range reads to reach the same answer.
+  Comparing against the master instead is wrong by one frame: scroll events dispatch a frame after the
+  offset changed, and a clone's pending event can run before the master's in the same frame, so the
+  clone still reads last frame's offset while the master already moved — a comparison would call that a
+  user scroll backwards and undo the master's own move. **That is measurable only in the same
+  synchronous block**: with the master reference the listener pulls the master back and pushes the
+  clone forward, and a second correction a frame later happens to undo both, so the settled offsets
+  are identical either way. The spec's race case therefore reads the offsets the listener left behind,
+  not the ones that settle.
+- **The four scroll containers carry `tabindex="-1"`** (`table/domScaffold.ts`): the master's holder
+  and the three clone holders above. Chrome 127+ makes a scroll container with no focusable content a
+  keyboard tab stop of its own. The corner clones are not scroll containers and get no tabindex.
+- **`getTrimmingContainer` counts `hidden` and `auto` alike, and `getScrollableElement`'s callers walk
+  up from the MASTER table**, so the axis owners and the scrolling element are unchanged by this. A
+  new caller that walks up from a clone's cell would now find the clone holder; do not add one.
+
+Pinned by `test/unit/overlay/cloneScrollTargets.unit.ts` (the drift measure and the ledger) and
+`tests/e2e/clone-holder-scroll.spec.ts` (the computed `overflow` per axis on every holder, no
+scrollbar space, the tab order, the mirror, a scroll of the clone itself landing on the master, the
+ledger-versus-master race above, touch pans over the row headers AND the column headers driven
+through CDP `Input.dispatchTouchEvent` — `Input.synthesizeScrollGesture` moves nothing on the CI
+runners — an RTL grid driving the clones into negative `scrollLeft` and forwarding from there, and
+the frozen column staying in step under a page scroll). The
+stylesheet half has no unit test that can see it, so the E2E is what stops a future stylesheet edit
+from silently giving the paint back. Window-scroll mode was probed at device scale 0.67–1.5 and CSS
+zoom 0.8–1.33: every clone holder has zero scroll range on both axes there, so a wheel over a frozen
+header cannot latch to a clone and `#onCloneWheel`'s window branch stays as it is.
 
 ## Naming gotcha: `moveCells` grid option vs. HyperFormula engine method
 
