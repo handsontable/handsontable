@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-17T09:28:56.572Z",
+  "generatedAt": "2026-09-17T10:44:31.436Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 22,
+    "tests": 23,
     "needsTicket": 5,
     "quarantined": 0,
-    "entries": 82
+    "entries": 83
   },
   "rows": [
     {
@@ -618,6 +618,39 @@
         "leg": "e2e-main",
         "status": "flaky",
         "error": "Error: expect(received).toBe(expected) // Object.is equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js|AutocompleteEditor allow html mode should allow render the html items without sanitizing the content",
+      "tier": "jasmine",
+      "file": "handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js",
+      "line": null,
+      "title": "AutocompleteEditor allow html mode should allow render the html items without sanitizing the content",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "legs": [
+        "UMD.min (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "passes alone"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-17T10:43:49Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35210307639",
+        "branch": "develop",
+        "leg": "UMD.min (theme: main)",
+        "status": "failed",
+        "error": "Expected undefined to be true.",
         "source": "ci"
       },
       "needsTicket": false
