@@ -18,6 +18,24 @@ rowMove  unmergeCells
 Adding an action means a new file plus a registration in `actions/index.ts`. Do not add a branch to
 `undoRedo.ts`.
 
+## `RemoveColumnAction` records the CLAMPED removed count, not the requested one
+
+`beforeRemoveCol` reports the requested `amount` (which `alter()` does not clamp — `remove_col` past
+the last column is cut short but `amount` stays the request) plus the columns actually removed in its
+`logicColumns` 3rd argument. The capture in `actions/removeColumn.ts` derives `indexes` / `headers` /
+`lastColumnIndex` / stored `amount` / the merged-cell scan from `removedAmount = logicColumns.length`,
+**not** from `amount` — otherwise a partial removal records out-of-range physical indexes and undo
+restores `undefined` (DEV-2936). `removeRow` needs no such clamp: `dataMap.removeRow` passes the already
+clamped `removedPhysicalIndexes.length` as `beforeRemoveRow`'s `amount`.
+
+This is correct only because `dataMap.removeCol` splices from a **pre-hook** `.slice(0)` snapshot and no
+`beforeRemoveCol` listener mutates its 3rd argument — unlike `removeRow`, which re-reads the array
+`.length` *after* the hook precisely because a listener (NestedRows) may grow it. A future column plugin
+that mutates the `beforeRemoveCol` column list the way NestedRows mutates the row list would over-record
+here. Keep the visual walk `toPhysicalColumn(columnIndex + i)` — its order must match the `data` column
+order that `undo()`'s `ascendingIndexes` / `sortByIndexes` pairing depends on; do not substitute
+`logicColumns` directly.
+
 ## A throwing action resets the flag and is discarded
 
 Both `undo()` and `redo()` carry the same contract:
