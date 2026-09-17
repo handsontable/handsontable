@@ -90,6 +90,45 @@ describe('Layout slot height reservation', () => {
       expect(core.rootElement.style.height).toBe('auto');
     });
 
+    it('should re-apply the last readable height when a slot resizes after an ignored update', () => {
+      const originalResizeObserver = window.ResizeObserver;
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const observers = [];
+
+      // The shared stub cannot deliver, so this one records each observer and what it watches.
+      window.ResizeObserver = class {
+        constructor(callback) {
+          this.callback = callback;
+          this.targets = [];
+          observers.push(this);
+        }
+
+        observe(target) {
+          this.targets.push(target);
+        }
+
+        unobserve() {}
+
+        disconnect() {}
+      };
+
+      try {
+        createGrid({ height: 400 });
+        core.updateSettings({ height: 'abc' });
+        slotHeights['ht-slot-bottom'] = 38;
+
+        observers
+          .filter(observer => observer.targets.includes(core.rootSlotBottomElement))
+          .forEach(observer => observer.callback([]));
+
+        expect(observers.some(observer => observer.targets.includes(core.rootSlotBottomElement))).toBe(true);
+        expect(core.rootElement.style.height).toBe('calc(400px - 38px)');
+      } finally {
+        window.ResizeObserver = originalResizeObserver;
+        warnSpy.mockRestore();
+      }
+    });
+
     it('should re-apply the reservation on `updateSettings` with the current slot height', () => {
       createGrid({ height: 400 });
       slotHeights['ht-slot-bottom'] = 59;

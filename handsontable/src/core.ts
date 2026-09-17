@@ -4146,6 +4146,14 @@ export default function Core(
         '`rowHeights` will be used as the row height configuration.');
     }
 
+    // The stored `height` and `width` before this call. An unreadable value is ignored by
+    // `applyRootSize()` below, and the stored setting must stay on the size the grid uses. On init the
+    // meta already holds the user's value, so the fallback is the schema default, `undefined` for both.
+    const previousRootSize = {
+      height: init ? undefined : tableMeta.height,
+      width: init ? undefined : tableMeta.width,
+    };
+
     // eslint-disable-next-line no-restricted-syntax
     for (i in settings) {
       if (i === 'data' || i === 'language') {
@@ -4475,6 +4483,10 @@ export default function Core(
 
     // The root's inline `height`, `width`, and `overflow*` have one writer: `core/rootSize.ts`.
     const rootSize = applyRootSize(instance, settings, init);
+
+    rootSize.ignoredAxes.forEach((axis) => {
+      globalMeta[axis] = previousRootSize[axis];
+    });
 
     if (!init) {
       if (instance.view) {

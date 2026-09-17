@@ -211,6 +211,46 @@ describe('root size options', () => {
     });
   });
 
+  describe('the stored setting', () => {
+    it('should keep the previous `height` in the settings when an update is ignored', () => {
+      buildGrid({ height: 300 });
+
+      hot!.updateSettings({ height: 'abc' });
+
+      expect(sizeWarnings().length).toBe(1);
+      expect(inlineSize(hot!).height).toBe('300px');
+      expect(hot!.getSettings().height).toBe(300);
+    });
+
+    it('should keep the previous `width` in the settings when an update is ignored', () => {
+      buildGrid({ width: 200 });
+
+      hot!.updateSettings({ width: 'min-content' });
+
+      expect(sizeWarnings().length).toBe(1);
+      expect(inlineSize(hot!).width).toBe('200px');
+      expect(hot!.getSettings().width).toBe(200);
+    });
+
+    it('should keep the default in the settings when the initial value is ignored', () => {
+      buildGrid({ height: 'abc', width: true });
+
+      expect(sizeWarnings().length).toBe(2);
+      expect(hot!.getSettings().height).toBeUndefined();
+      expect(hot!.getSettings().width).toBeUndefined();
+    });
+
+    it('should store a readable value and a function as passed', () => {
+      const heightFn = () => 250;
+
+      buildGrid({ height: 300 });
+      hot!.updateSettings({ height: heightFn, width: '50%' });
+
+      expect(hot!.getSettings().height).toBe(heightFn);
+      expect(hot!.getSettings().width).toBe('50%');
+    });
+  });
+
   describe('`null`', () => {
     it('should reset the height only, keeping a width set through the option', () => {
       const grid = buildGrid({ height: 300, width: 200 });

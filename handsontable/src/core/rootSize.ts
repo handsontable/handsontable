@@ -14,7 +14,12 @@ import type { HotInstance } from './types';
 /**
  * The two root size options, which are also the inline style properties they write.
  */
-type RootSizeAxis = 'height' | 'width';
+export type RootSizeAxis = 'height' | 'width';
+
+/**
+ * What `applyAxis()` did with one axis of the payload.
+ */
+type AxisOutcome = 'untouched' | 'written' | 'reset' | 'ignored';
 
 /**
  * The state of the root's inline size, read before and after an `updateSettings` call to tell
@@ -34,6 +39,11 @@ export interface RootSizeResult {
    * its scrollable elements.
    */
   scrollOwnerChanged: boolean;
+  /**
+   * The axes whose value was unreadable and ignored. `updateSettings` keeps the previous value in the
+   * stored settings for them, so `getSettings()` and a later re-apply read a size the grid used.
+   */
+  ignoredAxes: RootSizeAxis[];
 }
 
 /**
@@ -193,11 +203,11 @@ function reserveEdgeSlotsHeight(instance: HotInstance, pixelHeight: string): str
  * @param {RootSizeAxis} axis The option to apply.
  * @param {*} rawValue The value from the payload, `undefined` when the payload does not carry it.
  * @param {string} hookName The hook that may replace the value.
- * @returns {boolean} `true` when the axis was reset to its initial value.
+ * @returns {AxisOutcome}
  */
-function applyAxis(instance: HotInstance, axis: RootSizeAxis, rawValue: unknown, hookName: string): boolean {
+function applyAxis(instance: HotInstance, axis: RootSizeAxis, rawValue: unknown, hookName: string): AxisOutcome {
   if (rawValue === undefined) {
-    return false;
+    return 'untouched';
   }
 
   let value: unknown = isFunction(rawValue) ? (rawValue as () => unknown)() : rawValue;
@@ -207,24 +217,28 @@ function applyAxis(instance: HotInstance, axis: RootSizeAxis, rawValue: unknown,
   if (value === null) {
     resetAxis(instance.rootElement, axis);
 
-    return true;
+    return 'reset';
   }
 
   if (value === undefined) {
-    return false;
+    return 'untouched';
   }
 
   const resolution = resolveRootSize(value, createCssValueOracle(instance.rootWindow, axis));
 
   if (resolution.kind === 'invalid') {
     warnInvalidSize(instance.rootElement, axis, value);
-  } else if (resolution.kind === 'px' && axis === 'height') {
+
+    return 'ignored';
+  }
+
+  if (resolution.kind === 'px' && axis === 'height') {
     instance.rootElement.style.height = reserveEdgeSlotsHeight(instance, resolution.cssValue ?? '');
   } else {
     instance.rootElement.style[axis] = resolution.cssValue ?? '';
   }
 
-  return false;
+  return 'written';
 }
 
 /**
@@ -320,16 +334,25 @@ export function applyRootSize(instance: HotInstance, settings: Partial<GridSetti
 
   const before = snapshot(rootElement);
 
-  const heightRestored = applyAxis(instance, 'height', settings.height, 'beforeHeightChange');
-
-  applyAxis(instance, 'width', settings.width, 'beforeWidthChange');
+  const heightOutcome = applyAxis(instance, 'height', settings.height, 'beforeHeightChange');
+  const widthOutcome = applyAxis(instance, 'width', settings.width, 'beforeWidthChange');
+  const ignoredAxes: RootSizeAxis[] = [];
 
   if (settings.height !== undefined || settings.width !== undefined) {
-    applyOverflow(rootElement, heightRestored);
+    applyOverflow(rootElement, heightOutcome === 'reset');
+  }
+
+  if (heightOutcome === 'ignored') {
+    ignoredAxes.push('height');
+  }
+
+  if (widthOutcome === 'ignored') {
+    ignoredAxes.push('width');
   }
 
   return {
     scrollOwnerChanged: hasScrollOwnerChanged(before, snapshot(rootElement), settings.height !== undefined),
+    ignoredAxes,
   };
 }
 
