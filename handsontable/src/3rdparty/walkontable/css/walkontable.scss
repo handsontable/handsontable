@@ -110,7 +110,9 @@
   box-sizing: border-box;
 }
 
-/* `align-content` on the block box, not flex: the indicator renderers float their arrows. */
+/* `align-content` on the block box, not flex: `.ht-multi-select-arrow` and the select-editor
+   overlay's `.htAutocompleteArrow` still float. In-cell `.htAutocompleteArrow` is absolutely
+   positioned (DEV-348) and would survive flex, but the remaining floats would not. */
 .handsontable tr.htExactRow > td.htMiddle > .htCellClip {
   align-content: center;
 }
