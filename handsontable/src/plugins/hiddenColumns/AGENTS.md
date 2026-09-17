@@ -184,10 +184,20 @@ Both were fixed together in #13500, the same way: the row box at `bottom: -1px`,
 `resetCellsMeta()` runs after `super.disablePlugin()`, because the meta this plugin wrote (the paste marker
 and the indicator classes) must not survive the plugin.
 
+## Show column from a single adjacent header
+
+`contextMenuItem/showColumn.ts` `hidden()` collects the contiguous hidden stretch immediately before
+and/or after a selected visible header. A middle gap — column 2 hidden, header 1 or 3 selected —
+must produce a Show column item. Do not restore the old first-rendered / last-rendered-only check:
+that left initially hidden middle columns unrestorable until the user hid another column or
+multi-selected across the gap (DEV-1040). `../hiddenRows/` `showRow.ts` mirrors this.
+
+Non-adjacent hidden columns stay out of the item (hidden `[1]`, select column 3: no Show column).
+
 ## Known concern
 
-`../../../.ai/CONCERNS.md` lists `showColumn.ts`'s `arr.push(...largeArray)` as a stack-overflow risk at
-large scale; use a loop.
+`../../../.ai/CONCERNS.md` used to list `showColumn.ts`'s `arr.push(...largeArray)` as a stack-overflow
+risk. The `hidden()` path now copies with loops (DEV-1040). Do not reintroduce `push(...array)` here.
 
 This plugin used to ask the view to resize the overlays after hiding or showing a column, with a
 `@TODO Should call once per render cycle` on it, as did `autoColumnSize` and `autoRowSize`. Walkontable

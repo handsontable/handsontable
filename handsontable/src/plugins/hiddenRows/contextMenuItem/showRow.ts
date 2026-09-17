@@ -3,6 +3,51 @@ import { arrayEach, arrayMap } from '../../../helpers/array';
 import * as C from '../../../i18n/constants';
 
 /**
+ * Collect physical indexes of the contiguous hidden stretches next to a visual index.
+ *
+ * @param {number} visualIndex The selected visible visual index.
+ * @param {number} visualCount Total visual index count.
+ * @param {number[]} notTrimmedIndexes Map from visual index to physical index.
+ * @param {Set<number>} hiddenPhysicalIndexes Hidden physical indexes.
+ * @returns {number[]} Adjacent hidden physical indexes in visual order.
+ */
+function collectAdjacentHiddenPhysicalIndexes(
+  visualIndex: number,
+  visualCount: number,
+  notTrimmedIndexes: number[],
+  hiddenPhysicalIndexes: Set<number>,
+): number[] {
+  const physicalIndexes: number[] = [];
+  const leftPhysicalIndexes: number[] = [];
+
+  for (let visual = visualIndex - 1; visual >= 0; visual -= 1) {
+    const physical = notTrimmedIndexes[visual];
+
+    if (typeof physical !== 'number' || !hiddenPhysicalIndexes.has(physical)) {
+      break;
+    }
+
+    leftPhysicalIndexes.push(physical);
+  }
+
+  for (let i = leftPhysicalIndexes.length - 1; i >= 0; i -= 1) {
+    physicalIndexes.push(leftPhysicalIndexes[i]);
+  }
+
+  for (let visual = visualIndex + 1; visual < visualCount; visual += 1) {
+    const physical = notTrimmedIndexes[visual];
+
+    if (typeof physical !== 'number' || !hiddenPhysicalIndexes.has(physical)) {
+      break;
+    }
+
+    physicalIndexes.push(physical);
+  }
+
+  return physicalIndexes;
+}
+
+/**
  * @param {HiddenRows} hiddenRowsPlugin The plugin instance.
  * @returns {object}
  */
@@ -73,7 +118,10 @@ export default function showRowItem(hiddenRowsPlugin: Record<string, Function>) 
         ? rowIndexMapper.getRenderableFromVisualIndex(visualEndRow)
         : null;
       const notTrimmedRowIndexes = rowIndexMapper.getNotTrimmedIndexes();
-      const physicalRowIndexes = [];
+      const hiddenPhysicalLookup = new Set(
+        hiddenPhysicalRows.filter((physical): physical is number => typeof physical === 'number')
+      );
+      const physicalRowIndexes: number[] = [];
 
       if (visualStartRow !== visualEndRow) {
         if (visualStartRow === null || visualEndRow === null) {
@@ -86,38 +134,32 @@ export default function showRowItem(hiddenRowsPlugin: Record<string, Function>) 
         // Collect not trimmed rows if there are some hidden rows in the selection range.
         if (visualRowsInRange > renderedRowsInRange) {
           const physicalIndexesInRange = notTrimmedRowIndexes.slice(visualStartRow, visualEndRow + 1);
-          const hiddenPhysicalRowsLookup = new Set(hiddenPhysicalRows);
 
           physicalIndexesInRange.forEach((physicalIndex: number) => {
-            if (hiddenPhysicalRowsLookup.has(physicalIndex)) {
+            if (hiddenPhysicalLookup.has(physicalIndex)) {
               physicalRowIndexes.push(physicalIndex);
             }
           });
         }
 
-        // Handled row is the first rendered index and there are some visual indexes before it.
-      } else if (renderableStartRow === 0 && visualStartRow !== null && renderableStartRow < visualStartRow) {
-        // not trimmed indexes -> array of mappings from visual (native array's index) to physical indexes (value).
-        physicalRowIndexes.push(...notTrimmedRowIndexes.slice(0, visualStartRow)); // physical indexes
-
         // When all rows are hidden and the context menu is triggered using top-left corner.
       } else if (renderableStartRow === null) {
-        // Show all hidden rows.
-        physicalRowIndexes.push(...notTrimmedRowIndexes.slice(0, this.countRows()));
+        const visualRowCount = this.countRows();
 
-      } else {
-        const lastVisualIndex = this.countRows() - 1;
-        const lastRenderableIndex = rowIndexMapper.getRenderableFromVisualIndex(
-          rowIndexMapper.getNearestNotHiddenIndex(lastVisualIndex, -1) ?? lastVisualIndex
-        );
-
-        if (renderableEndRow === null) {
-          return true;
+        for (let visual = 0; visual < visualRowCount; visual += 1) {
+          physicalRowIndexes.push(notTrimmedRowIndexes[visual]);
         }
 
-        // Handled row is the last rendered index and there are some visual indexes after it.
-        if (visualEndRow !== null && renderableEndRow === lastRenderableIndex && lastVisualIndex > visualEndRow) {
-          physicalRowIndexes.push(...notTrimmedRowIndexes.slice(visualEndRow + 1));
+      } else if (visualStartRow !== null) {
+        const adjacentHiddenPhysicalIndexes = collectAdjacentHiddenPhysicalIndexes(
+          visualStartRow,
+          this.countRows(),
+          notTrimmedRowIndexes,
+          hiddenPhysicalLookup,
+        );
+
+        for (let i = 0; i < adjacentHiddenPhysicalIndexes.length; i += 1) {
+          physicalRowIndexes.push(adjacentHiddenPhysicalIndexes[i]);
         }
       }
 

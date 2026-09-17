@@ -3,6 +3,51 @@ import * as C from '../../../i18n/constants';
 import type { HotInstance } from '../../../core/types';
 
 /**
+ * Collect physical indexes of the contiguous hidden stretches next to a visual index.
+ *
+ * @param {number} visualIndex The selected visible visual index.
+ * @param {number} visualCount Total visual index count.
+ * @param {number[]} notTrimmedIndexes Map from visual index to physical index.
+ * @param {Set<number>} hiddenPhysicalIndexes Hidden physical indexes.
+ * @returns {number[]} Adjacent hidden physical indexes in visual order.
+ */
+function collectAdjacentHiddenPhysicalIndexes(
+  visualIndex: number,
+  visualCount: number,
+  notTrimmedIndexes: number[],
+  hiddenPhysicalIndexes: Set<number>,
+): number[] {
+  const physicalIndexes: number[] = [];
+  const leftPhysicalIndexes: number[] = [];
+
+  for (let visual = visualIndex - 1; visual >= 0; visual -= 1) {
+    const physical = notTrimmedIndexes[visual];
+
+    if (typeof physical !== 'number' || !hiddenPhysicalIndexes.has(physical)) {
+      break;
+    }
+
+    leftPhysicalIndexes.push(physical);
+  }
+
+  for (let i = leftPhysicalIndexes.length - 1; i >= 0; i -= 1) {
+    physicalIndexes.push(leftPhysicalIndexes[i]);
+  }
+
+  for (let visual = visualIndex + 1; visual < visualCount; visual += 1) {
+    const physical = notTrimmedIndexes[visual];
+
+    if (typeof physical !== 'number' || !hiddenPhysicalIndexes.has(physical)) {
+      break;
+    }
+
+    physicalIndexes.push(physical);
+  }
+
+  return physicalIndexes;
+}
+
+/**
  * @param {HiddenColumns} hiddenColumnsPlugin The plugin instance.
  * @returns {object}
  */
@@ -45,9 +90,12 @@ export default function showColumnItem(hiddenColumnsPlugin: Record<string, Funct
     },
     disabled: false,
     hidden(this: HotInstance) {
-      const hiddenPhysicalColumns = arrayMap(hiddenColumnsPlugin.getHiddenColumns(), (visualColumnIndex) => {
-        return this.toPhysicalColumn(visualColumnIndex as number) as number;
-      });
+      const hiddenPhysicalColumns = arrayMap(
+        hiddenColumnsPlugin.getHiddenColumns(),
+        (visualColumnIndex): number | null => {
+          return this.toPhysicalColumn(visualColumnIndex as number);
+        }
+      );
 
       if (!(this.selection.isSelectedByColumnHeader() || this.selection.isSelectedByCorner()) ||
           hiddenPhysicalColumns.length < 1) {
@@ -73,7 +121,10 @@ export default function showColumnItem(hiddenColumnsPlugin: Record<string, Funct
         ? columnIndexMapper.getRenderableFromVisualIndex(visualEndColumn)
         : null;
       const notTrimmedColumnIndexes = columnIndexMapper.getNotTrimmedIndexes();
-      const physicalColumnIndexes = [];
+      const hiddenPhysicalLookup = new Set(
+        hiddenPhysicalColumns.filter((physical): physical is number => typeof physical === 'number')
+      );
+      const physicalColumnIndexes: number[] = [];
 
       if (visualStartColumn !== visualEndColumn) {
         if (visualStartColumn === null || visualEndColumn === null) {
@@ -86,37 +137,32 @@ export default function showColumnItem(hiddenColumnsPlugin: Record<string, Funct
         // Collect not trimmed columns if there are some hidden columns in the selection range.
         if (visualColumnsInRange > renderedColumnsInRange) {
           const physicalIndexesInRange = notTrimmedColumnIndexes.slice(visualStartColumn, visualEndColumn + 1);
-          const hiddenPhysicalColumnsLookup = new Set(hiddenPhysicalColumns);
 
           physicalIndexesInRange.forEach((physicalIndex: number) => {
-            if (hiddenPhysicalColumnsLookup.has(physicalIndex)) {
+            if (hiddenPhysicalLookup.has(physicalIndex)) {
               physicalColumnIndexes.push(physicalIndex);
             }
           });
         }
 
-      // Handled column is the first rendered index and there are some visual indexes before it.
-      } else if (renderableStartColumn === 0 && visualStartColumn !== null &&
-        renderableStartColumn < visualStartColumn) {
-        // not trimmed indexes -> array of mappings from visual (native array's index) to physical indexes (value).
-        physicalColumnIndexes.push(...notTrimmedColumnIndexes.slice(0, visualStartColumn)); // physical indexes
-
       // When all columns are hidden and the context menu is triggered using top-left corner.
       } else if (renderableStartColumn === null) {
-        // Show all hidden columns.
-        physicalColumnIndexes.push(...notTrimmedColumnIndexes.slice(0, this.countCols()));
+        const visualColumnCount = this.countCols();
 
-      } else {
-        const lastVisualIndex = this.countCols() - 1;
-        const nearestNotHidden = columnIndexMapper.getNearestNotHiddenIndex(lastVisualIndex, -1);
-        const lastRenderableIndex = nearestNotHidden !== null
-          ? columnIndexMapper.getRenderableFromVisualIndex(nearestNotHidden)
-          : null;
+        for (let visual = 0; visual < visualColumnCount; visual += 1) {
+          physicalColumnIndexes.push(notTrimmedColumnIndexes[visual]);
+        }
 
-        // Handled column is the last rendered index and there are some visual indexes after it.
-        if (renderableEndColumn !== null && visualEndColumn !== null &&
-            renderableEndColumn === lastRenderableIndex && lastVisualIndex > visualEndColumn) {
-          physicalColumnIndexes.push(...notTrimmedColumnIndexes.slice(visualEndColumn + 1));
+      } else if (visualStartColumn !== null) {
+        const adjacentHiddenPhysicalIndexes = collectAdjacentHiddenPhysicalIndexes(
+          visualStartColumn,
+          this.countCols(),
+          notTrimmedColumnIndexes,
+          hiddenPhysicalLookup,
+        );
+
+        for (let i = 0; i < adjacentHiddenPhysicalIndexes.length; i += 1) {
+          physicalColumnIndexes.push(adjacentHiddenPhysicalIndexes[i]);
         }
       }
 
