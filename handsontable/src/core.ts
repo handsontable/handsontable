@@ -1381,11 +1381,7 @@ export default function Core(
                 // merged a valid group into one that starts above the table. An empty index keeps its
                 // own meaning, "take the rows from the end", so it is left to `datamap.removeRow`.
                 if (Number.isInteger(groupIndex)) {
-                  const startIndex = groupIndex - offset;
-
-                  if (startIndex >= instance.countRows()) {
-                    return;
-                  }
+                  let startIndex = groupIndex - offset;
 
                   if (startIndex < 0) {
                     // `startIndex` is negative here, so this subtracts the rows above the first one.
@@ -1394,6 +1390,15 @@ export default function Core(
                     if (groupAmount <= 0) {
                       return;
                     }
+
+                    startIndex = 0;
+                  }
+
+                  // Checked after the clipping, so that a grid with no rows rejects the clipped start
+                  // as well. Left before it, an empty grid ran the removal from row 0 and fired the
+                  // remove hooks with a `NaN` index.
+                  if (startIndex >= instance.countRows()) {
+                    return;
                   }
                 }
 
@@ -1500,11 +1505,7 @@ export default function Core(
                 // have merged a valid group into one that starts before the table. An empty index keeps
                 // its own meaning, "take the columns from the end".
                 if (Number.isInteger(groupIndex)) {
-                  const startIndex = groupIndex - offset;
-
-                  if (startIndex >= instance.countCols()) {
-                    return;
-                  }
+                  let startIndex = groupIndex - offset;
 
                   if (startIndex < 0) {
                     // `startIndex` is negative here, so this subtracts the columns before the first one.
@@ -1513,6 +1514,15 @@ export default function Core(
                     if (groupAmount <= 0) {
                       return;
                     }
+
+                    startIndex = 0;
+                  }
+
+                  // Checked after the clipping, so that a grid with no columns rejects the clipped
+                  // start as well. Left before it, an empty grid ran the removal from column 0 and
+                  // fired the remove hooks with a `NaN` index.
+                  if (startIndex >= instance.countCols()) {
+                    return;
                   }
                 }
 

@@ -355,6 +355,28 @@ describe('Core.alter', () => {
         expect(countRows()).toBe(8);
       });
 
+      it('should not fire the remove hooks when the grid has no rows', async() => {
+        const beforeRemoveRow = jasmine.createSpy('beforeRemoveRow');
+        const afterRemoveRow = jasmine.createSpy('afterRemoveRow');
+
+        handsontable({
+          data: [],
+          startCols: 5,
+          minRows: 0,
+          minSpareRows: 0,
+          beforeRemoveRow,
+          afterRemoveRow,
+        });
+
+        // Clipping the part above the first row leaves an amount to remove, but there is no row
+        // to remove it from, so nothing runs.
+        await alter('remove_row', -2, 4);
+
+        expect(beforeRemoveRow).not.toHaveBeenCalled();
+        expect(afterRemoveRow).not.toHaveBeenCalled();
+        expect(countRows()).toBe(0);
+      });
+
       it('should remove the existing part of a group that runs past the last row', async() => {
         handsontable({
           data: createSpreadsheetData(10, 5),

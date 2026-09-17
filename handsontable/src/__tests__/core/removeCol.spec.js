@@ -253,6 +253,28 @@ describe('Core.alter', () => {
         expect(countCols()).toBe(8);
       });
 
+      it('should not fire the remove hooks when the grid has no columns', async() => {
+        const beforeRemoveCol = jasmine.createSpy('beforeRemoveCol');
+        const afterRemoveCol = jasmine.createSpy('afterRemoveCol');
+
+        handsontable({
+          data: [],
+          startCols: 0,
+          minCols: 0,
+          minSpareCols: 0,
+          beforeRemoveCol,
+          afterRemoveCol,
+        });
+
+        // Clipping the part before the first column leaves an amount to remove, but there is no
+        // column to remove it from, so nothing runs.
+        await alter('remove_col', -2, 4);
+
+        expect(beforeRemoveCol).not.toHaveBeenCalled();
+        expect(afterRemoveCol).not.toHaveBeenCalled();
+        expect(countCols()).toBe(0);
+      });
+
       it('should remove the existing part of a group that runs past the last column', async() => {
         handsontable({
           data: createSpreadsheetData(5, 10),
