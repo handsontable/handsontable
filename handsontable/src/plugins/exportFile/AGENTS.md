@@ -89,7 +89,10 @@ Other rules:
   deflated on a repetitive sheet), which is the only assertion that can tell the two apart.
 - **Sheet names are sanitized by the export, not by the engine.** ExcelJS throws for an illegal character
   (`* ? : / \ [ ]`), a leading or trailing `'`, the reserved name `History`, an empty name and a duplicate
-  (compared case-INsensitively), so a grid named `Q1: Sales` used to abandon the whole export.
+  (compared case-INsensitively), so a grid named `Q1: Sales` used to abandon the whole export. ExcelJS
+  tests `History` in that exact case only (`lib/doc/worksheet.js`), but Excel reserves the name in any
+  case, so the sanitizer renames `history` and `HISTORY` too — a Bugbot finding on #13551 that was right
+  about the fix and wrong about the reason.
   `#uniqueSheetName` sanitizes, then truncates to 31, then de-duplicates — **in that order**. Truncating
   last lets two 35-character names that differ only past character 31 pass the duplicate check and then
   collide, which is why the counter's room is reserved inside the 31 characters. The `_HotValidation` helper

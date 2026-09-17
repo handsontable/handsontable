@@ -79,6 +79,8 @@ const VALIDATION_SHEET_NAME = '_HotValidation';
 /**
  * Turns a user-supplied sheet name into one the format accepts: illegal characters removed, leading
  * and trailing single quotes stripped, the reserved `History` renamed, and an empty result replaced.
+ * The reserved name is matched in any case: ExcelJS rejects the exact `History` only, but Excel
+ * reserves the name case-insensitively, the same way it compares names for duplicates.
  *
  * This is the only place the export enforces the rules, and it has to: ExcelJS answers each of them
  * with a thrown `Error`, so a grid whose sheet name carries a colon — a date, `Q1: Sales` — used to
@@ -98,7 +100,7 @@ function sanitizeSheetName(baseName: string): string {
     return FALLBACK_SHEET_NAME;
   }
 
-  return stripped === RESERVED_SHEET_NAME ? `${RESERVED_SHEET_NAME}_` : stripped;
+  return stripped.toLowerCase() === RESERVED_SHEET_NAME.toLowerCase() ? `${stripped}_` : stripped;
 }
 
 /**

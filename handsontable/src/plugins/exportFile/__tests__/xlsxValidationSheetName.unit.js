@@ -186,8 +186,12 @@ describe('Xlsx sheet-name sanitization', () => {
     expect(await exportSheetsNamed('   ')).toEqual(['Sheet', '_HotValidation']);
   });
 
-  it('should rename the reserved History sheet', async() => {
+  it('should rename the reserved History sheet whatever its case', async() => {
+    // ExcelJS rejects the exact `History` only; Excel reserves the name case-insensitively, and the
+    // duplicate check above already compares names that way.
     expect(await exportSheetsNamed('History')).toEqual(['History_', '_HotValidation']);
+    expect(await exportSheetsNamed('history')).toEqual(['history_', '_HotValidation']);
+    expect(await exportSheetsNamed('HISTORY')).toEqual(['HISTORY_', '_HotValidation']);
   });
 
   it('should truncate to 31 characters before de-duplicating, not after', async() => {
