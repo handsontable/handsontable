@@ -2564,28 +2564,6 @@ class TableView {
   }
 
   /**
-   * Returns the row height Walkontable uses for layout.
-   *
-   * That value is the maximum of the provided height (`rowHeights`, ManualRowResize,
-   * AutoRowSize) and the measured `oversizedRows` record. {@link Core#getRowHeight}
-   * omits the measured record, so content-tall rows without those plugins look
-   * like the default height there.
-   *
-   * @param {number} visualRow Visual row index.
-   * @returns {number|undefined} Height in pixels, or `undefined` when the row is
-   *   not renderable or has no provided or measured height.
-   */
-  getRenderedRowHeight(visualRow: number): number | undefined {
-    const renderableRow = this.hot.rowIndexMapper.getRenderableFromVisualIndex(visualRow);
-
-    if (renderableRow === null) {
-      return undefined;
-    }
-
-    return this._wt.wtTable.getRowHeight(renderableRow);
-  }
-
-  /**
    * Returns the table's total height including the scrollbar height.
    *
    * @returns {number}

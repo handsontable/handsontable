@@ -1,5 +1,6 @@
 import {
   getMouseSingleScrollTarget,
+  getRenderedRowHeight,
   isColumnOversized,
   isLargerThanViewport,
   isRowOversized,
@@ -15,15 +16,23 @@ function createOversizedHot({
   fixedRowsTop = 0,
   fixedRowsBottom = 0,
   totalRows = 10,
+  renderableRow = 0,
 } = {}) {
   return {
     getColWidth: () => colWidth,
     getSettings: () => ({ fixedColumnsStart, fixedRowsTop, fixedRowsBottom }),
     countRows: () => totalRows,
+    rowIndexMapper: {
+      getRenderableFromVisualIndex: () => renderableRow,
+    },
     view: {
       getViewportWidth: () => viewportWidth,
       getViewportHeight: () => viewportHeight,
-      getRenderedRowHeight: () => rowHeight,
+      _wt: {
+        wtTable: {
+          getRowHeight: () => rowHeight,
+        },
+      },
     },
   };
 }
@@ -157,6 +166,37 @@ describe('isLargerThanViewport', () => {
   it('should not treat a size equal to the viewport as oversized', () => {
     expect(isLargerThanViewport(200, 200)).toBe(false);
   });
+
+  it('should not treat a non-zero size as oversized when the viewport is 0', () => {
+    expect(isLargerThanViewport(50, 0)).toBe(false);
+    expect(isLargerThanViewport(400, 0)).toBe(false);
+  });
+});
+
+describe('getRenderedRowHeight', () => {
+  it('should read Walkontable row height at the renderable index', () => {
+    const getRowHeight = jest.fn().mockReturnValue(400);
+    const getRenderableFromVisualIndex = jest.fn().mockReturnValue(3);
+    const hot = {
+      rowIndexMapper: { getRenderableFromVisualIndex },
+      view: { _wt: { wtTable: { getRowHeight } } },
+    };
+
+    expect(getRenderedRowHeight(hot, 1)).toBe(400);
+    expect(getRenderableFromVisualIndex).toHaveBeenCalledWith(1);
+    expect(getRowHeight).toHaveBeenCalledWith(3);
+  });
+
+  it('should return undefined when the visual row is not renderable', () => {
+    const getRowHeight = jest.fn();
+    const hot = {
+      rowIndexMapper: { getRenderableFromVisualIndex: () => null },
+      view: { _wt: { wtTable: { getRowHeight } } },
+    };
+
+    expect(getRenderedRowHeight(hot, 1)).toBeUndefined();
+    expect(getRowHeight).not.toHaveBeenCalled();
+  });
 });
 
 describe('isColumnOversized', () => {
@@ -206,6 +246,12 @@ describe('isRowOversized', () => {
     const hot = createOversizedHot({ fixedRowsTop: 0, fixedRowsBottom: 0 });
 
     expect(isRowOversized(hot, 0)).toBe(true);
+  });
+
+  it('should not treat a tall row as oversized when the viewport height is 0', () => {
+    const hot = createOversizedHot({ viewportHeight: 0 });
+
+    expect(isRowOversized(hot, 0)).toBe(false);
   });
 });
 

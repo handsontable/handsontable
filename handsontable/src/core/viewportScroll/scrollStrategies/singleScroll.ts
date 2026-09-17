@@ -103,12 +103,41 @@ export function getMouseSingleScrollTarget({
  * size must not count as oversized. Callers pass Walkontable's rendered height
  * (provided height merged with measured `oversizedRows`) for rows.
  *
+ * A zero viewport (an unrendered or hidden-init grid) is never oversized: every
+ * non-zero size would otherwise win and invert the last-partial skip.
+ *
  * @param {number|undefined} size Cell size in pixels on one axis.
  * @param {number} viewportSize Viewport size in pixels on the same axis.
  * @returns {boolean}
  */
 export function isLargerThanViewport(size: number | undefined, viewportSize: number): boolean {
-  return (size ?? 0) > viewportSize;
+  return viewportSize > 0 && (size ?? 0) > viewportSize;
+}
+
+/**
+ * Returns the row height Walkontable uses for layout.
+ *
+ * Translates visual → renderable and reads `wtTable.getRowHeight`, which is the
+ * provided height merged with measured `oversizedRows`. {@link Core#getRowHeight}
+ * omits the measured record, so content-tall rows without `rowHeights`,
+ * ManualRowResize, or AutoRowSize look like the default height there.
+ *
+ * Kept next to `isRowOversized` rather than on public `TableView`: one internal
+ * consumer, and reaching `oversizedRows` directly is a Law of Demeter miss.
+ *
+ * @param {Core} hot Handsontable instance.
+ * @param {number} visualRow Visual row index.
+ * @returns {number|undefined} Height in pixels, or `undefined` when the row is
+ *   not renderable.
+ */
+export function getRenderedRowHeight(hot: HotInstance, visualRow: number): number | undefined {
+  const renderableRow = hot.rowIndexMapper.getRenderableFromVisualIndex(visualRow);
+
+  if (renderableRow === null) {
+    return undefined;
+  }
+
+  return hot.view._wt.wtTable.getRowHeight(renderableRow);
 }
 
 /**
@@ -151,8 +180,8 @@ export function isColumnOversized(hot: HotInstance, col: number): boolean {
  * `fixedRowsTop` / `fixedRowsBottom` and {@link Core#countRows} with the
  * visual `row` from mouse `cellCoords`.
  *
- * Uses `TableView#getRenderedRowHeight` so content-tall rows recorded in
- * Walkontable `oversizedRows` match keyboard and API start-snap. {@link Core#getRowHeight}
+ * Uses `getRenderedRowHeight` so content-tall rows recorded in Walkontable
+ * `oversizedRows` match keyboard and API start-snap. {@link Core#getRowHeight}
  * is `undefined` unless `rowHeights`, ManualRowResize, or AutoRowSize provided a height.
  *
  * @param {Core} hot Handsontable instance.
@@ -168,7 +197,7 @@ export function isRowOversized(hot: HotInstance, row: number): boolean {
     return false;
   }
 
-  return isLargerThanViewport(hot.view.getRenderedRowHeight(row), hot.view.getViewportHeight());
+  return isLargerThanViewport(getRenderedRowHeight(hot, row), hot.view.getViewportHeight());
 }
 
 /**

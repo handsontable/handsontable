@@ -12,6 +12,7 @@ export class OversizedCellMouseScrollPage {
   readonly theme: string;
   readonly bundle: string;
   readonly grid: Locator;
+  private scrollIntoViewCounterInstalled = false;
 
   constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
@@ -27,11 +28,63 @@ export class OversizedCellMouseScrollPage {
    *   one-axis oversized, or a content-tall row without `rowHeights`.
    */
   async goto(scrollCase = 'both'): Promise<void> {
+    await this.installScrollIntoViewCounter();
     await this.page.goto(
       `/tests/fixtures/demo/oversized-cell-mouse-scroll.html?theme=${this.theme}&bundle=${this.bundle}&case=${scrollCase}`
     );
     await awaitBundle(this.page);
     await expect(this.cell(0, 0)).toBeVisible();
+  }
+
+  /**
+   * Wraps `Element.prototype.scrollIntoView` before the next navigation.
+   *
+   * Native `scrollIntoView` on a last-partial cell can undo a skipped axis, so
+   * the unique last-partial assertion is "this click did not call it". A count
+   * taken after the click cannot see a call that already happened, and wrapping
+   * after construction misses nothing only if the click is later — install
+   * before `goto()` so construction-time calls are in the same counter.
+   * Pattern: `EditorPreventCloseElementPage.startUnlistenCounter()`.
+   */
+  async installScrollIntoViewCounter(): Promise<void> {
+    if (this.scrollIntoViewCounterInstalled) {
+      return;
+    }
+
+    this.scrollIntoViewCounterInstalled = true;
+    await this.page.addInitScript(() => {
+      window.htScrollIntoViewCount = 0;
+      window.htScrollIntoViewLastArgs = undefined;
+
+      const original = Element.prototype.scrollIntoView;
+
+      Element.prototype.scrollIntoView = function scrollIntoViewCounter(
+        this: Element,
+        arg?: boolean | ScrollIntoViewOptions,
+      ) {
+        window.htScrollIntoViewCount += 1;
+        window.htScrollIntoViewLastArgs = arg;
+
+        if (arg === undefined) {
+          return original.call(this);
+        }
+
+        return original.call(this, arg);
+      };
+    });
+  }
+
+  /**
+   * Starts counting `scrollIntoView` calls from now on.
+   *
+   * Reset after `goto()` / holder scroll so the count covers one named gesture,
+   * not construction or the setup scroll.
+   */
+  async startScrollIntoViewCounter(): Promise<void> {
+    await this.page.evaluate(() => {
+      window.htScrollIntoViewCount = 0;
+      window.htScrollIntoViewLastArgs = undefined;
+    });
   }
 
   /**
@@ -199,12 +252,18 @@ export class OversizedCellMouseScrollPage {
   }
 
   /**
-   * Master holder scroll offsets. Read in one evaluate so a comparison cannot
-   * straddle a redraw.
+   * Master holder scroll offsets plus `scrollIntoView` count since
+   * `startScrollIntoViewCounter()`. Read in one evaluate so a comparison
+   * cannot straddle a redraw.
    *
-   * @returns {Promise<{ left: number, top: number }>}
+   * @returns {Promise<{ left: number, top: number, scrollIntoViewCount: number, scrollIntoViewLastArgs: ScrollIntoViewOptions | boolean | undefined }>}
    */
-  async holderScroll(): Promise<{ left: number, top: number }> {
+  async mouseScrollOutcome(): Promise<{
+    left: number,
+    top: number,
+    scrollIntoViewCount: number,
+    scrollIntoViewLastArgs: ScrollIntoViewOptions | boolean | undefined,
+  }> {
     return this.page.evaluate(() => {
       const holder = document.querySelector('.ht_master .wtHolder');
 
@@ -212,8 +271,25 @@ export class OversizedCellMouseScrollPage {
         throw new Error('holder is not rendered');
       }
 
-      return { left: holder.scrollLeft, top: holder.scrollTop };
+      return {
+        left: holder.scrollLeft,
+        top: holder.scrollTop,
+        scrollIntoViewCount: window.htScrollIntoViewCount ?? 0,
+        scrollIntoViewLastArgs: window.htScrollIntoViewLastArgs,
+      };
     });
+  }
+
+  /**
+   * Master holder scroll offsets. Read in one evaluate so a comparison cannot
+   * straddle a redraw.
+   *
+   * @returns {Promise<{ left: number, top: number }>}
+   */
+  async holderScroll(): Promise<{ left: number, top: number }> {
+    const { left, top } = await this.mouseScrollOutcome();
+
+    return { left, top };
   }
 
   /**

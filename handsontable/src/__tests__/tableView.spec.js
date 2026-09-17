@@ -406,29 +406,6 @@ describe('TableView', () => {
     });
   });
 
-  describe('getRenderedRowHeight()', () => {
-    it('should read Walkontable row height at the renderable index', async() => {
-      const hot = handsontable({});
-
-      spyOn(hot.rowIndexMapper, 'getRenderableFromVisualIndex').and.returnValue(3);
-      spyOn(tableView()._wt.wtTable, 'getRowHeight').and.returnValue(400);
-
-      expect(tableView().getRenderedRowHeight(1)).toBe(400);
-      expect(hot.rowIndexMapper.getRenderableFromVisualIndex).toHaveBeenCalledOnceWith(1);
-      expect(tableView()._wt.wtTable.getRowHeight).toHaveBeenCalledOnceWith(3);
-    });
-
-    it('should return undefined when the visual row is not renderable', async() => {
-      const hot = handsontable({});
-
-      spyOn(hot.rowIndexMapper, 'getRenderableFromVisualIndex').and.returnValue(null);
-      spyOn(tableView()._wt.wtTable, 'getRowHeight');
-
-      expect(tableView().getRenderedRowHeight(1)).toBeUndefined();
-      expect(tableView()._wt.wtTable.getRowHeight).not.toHaveBeenCalled();
-    });
-  });
-
   describe('getWorkspaceHeight()', () => {
     it('should internally call `getWorkspaceHeight` method of the Viewport module of the Walkontable', async() => {
       handsontable({});

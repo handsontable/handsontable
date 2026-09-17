@@ -286,6 +286,10 @@ declare global {
     instrumentDragOutsideCheck(): boolean;
     /** How many drag-outside measurements the healthy grid has taken since instrumentation. */
     dragOutsideCheckCount: number;
+    /** DEV-1159: `Element.prototype.scrollIntoView` calls since the oversized-cell counter reset. */
+    htScrollIntoViewCount: number;
+    /** DEV-1159: last `scrollIntoView` argument after the counter reset. */
+    htScrollIntoViewLastArgs: ScrollIntoViewOptions | boolean | undefined;
     /**
      * Chromium-only InputDeviceCapabilities constructor, used to stamp synthetic mouse events
      * with their origin (DEV-2687).
