@@ -10,7 +10,7 @@ import {
   isHTMLElement,
 } from '../../../../../helpers/dom/element';
 import { stopImmediatePropagation, isRightClick } from '../../../../../helpers/dom/event';
-import { isMobileBrowser } from '../../../../../helpers/browser';
+import { isMobileBrowser, isMobileOrIpadOS } from '../../../../../helpers/browser';
 import { getCornerStyle, standsBelowColumnHeader } from './utils';
 import { CUSTOM_SELECTION_TYPE } from '../constants';
 import { getSpreaderOffset } from '../../overlay/spreaderOffset';
@@ -93,9 +93,13 @@ class Border {
    */
   declare cornerStyle: CSSStyleDeclaration | null;
   /**
-   * @type {SelectionHandles}
+   * Created in the constructor only when `isMobileOrIpadOS()` is true. Guard every use —
+   * `isIpadOS()` reads `navigator.maxTouchPoints` live, so Chrome device toolbar can flip
+   * it after construction and leave this undefined.
+   *
+   * @type {SelectionHandles | undefined}
    */
-  declare selectionHandles: SelectionHandles;
+  declare selectionHandles: SelectionHandles | undefined;
   /**
    * Created lazily on the first `appear()` whose visibility predicate resolves truthy, so it stays
    * `undefined` while the `selectionHandles` option is off.
@@ -340,7 +344,7 @@ class Border {
       this.cornerDefaultStyle.borderColor
     ].join(' ');
 
-    if (isMobileBrowser() && this.wot.getSetting('isDataViewInstance')) {
+    if (isMobileOrIpadOS() && this.wot.getSetting('isDataViewInstance')) {
       this.createMultipleSelectorHandles();
     }
     // The `selectionHandles` and `moveCells` elements are created lazily, on the first `appear()`
@@ -625,6 +629,12 @@ class Border {
     width: number,
     height: number,
   ) {
+    const handles = this.selectionHandles;
+
+    if (!handles) {
+      return;
+    }
+
     const isRtl = this.wot.wtSettings.getSetting('rtlMode');
     const inlinePosProperty = isRtl ? 'right' : 'left';
     const {
@@ -632,7 +642,7 @@ class Border {
       topHitArea: topHitAreaStyles,
       bottom: bottomStyles,
       bottomHitArea: bottomHitAreaStyles,
-    } = this.selectionHandles.styles;
+    } = handles.styles;
 
     const handleBorderSize = parseInt(topStyles.borderWidth, 10);
     const handleSize = parseInt(topStyles.width, 10);
@@ -1665,7 +1675,7 @@ class Border {
       [,, checkRow, checkCol] = hookResult;
     }
 
-    if (isMobileBrowser() || !cornerVisibleSetting || !this.isSouthEastOfAreaSelection(checkRow, checkCol)) {
+    if (isMobileOrIpadOS() || !cornerVisibleSetting || !this.isSouthEastOfAreaSelection(checkRow, checkCol)) {
       this.cornerStyle!.display = 'none';
 
     } else {
@@ -1732,7 +1742,7 @@ class Border {
       this.cornerStyle!.display = 'block';
     }
 
-    if (isMobileBrowser() && this.wot.getSetting('isDataViewInstance')) {
+    if (this.selectionHandles) {
       this.updateMultipleSelectionHandlesPosition(
         corners[0],
         corners[1],
@@ -1750,7 +1760,7 @@ class Border {
     adjustVisible = typeof adjustVisible === 'function'
       ? adjustVisible(this.settings.layerLevel) : adjustVisible;
 
-    if (!isMobileBrowser() && adjustVisible && this.wot.getSetting('isDataViewInstance')) {
+    if (!isMobileOrIpadOS() && adjustVisible && this.wot.getSetting('isDataViewInstance')) {
       const adjustHandles = this.adjustHandles ?? this.createAdjustHandles();
 
       this.positionAdjustHandles(top, inlineStartPos, width, height, corners);
@@ -1784,6 +1794,10 @@ class Border {
     moveEnabled = typeof moveEnabled === 'function'
       ? moveEnabled(this.settings.layerLevel) : moveEnabled;
 
+    // iPad reports a desktop UA (`isMobileBrowser()` is false) and kept this band
+    // before DEV-1081. Gate it with `isMobileBrowser()` only — `isMobileOrIpadOS()`
+    // would hide the band on iPad. Mobile range-handle UI stays on
+    // `isMobileOrIpadOS()` (constructor / `adjustHandles` above).
     if (!isMobileBrowser() && moveEnabled && this.wot.getSetting('isDataViewInstance')) {
       if (!this.moveZone) {
         this.createMoveZone();
@@ -2047,7 +2061,7 @@ class Border {
     this.endStyle!.display = 'none';
     this.cornerStyle!.display = 'none';
 
-    if (isMobileBrowser() && this.wot.getSetting('isDataViewInstance')) {
+    if (this.selectionHandles) {
       this.selectionHandles.styles.top.display = 'none';
       this.selectionHandles.styles.topHitArea.display = 'none';
       this.selectionHandles.styles.bottom.display = 'none';
