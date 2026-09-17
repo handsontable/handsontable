@@ -38,7 +38,9 @@ export function collectAdjacentHiddenPhysicalIndexes(
 
   // Reverse after the left walk so visual order is preserved without an indexed copy loop
   // (typescript:S4138) and without `push(...array)` (stack overflow on a long stretch).
-  arrayEach(leftPhysicalIndexes.reverse(), (physical) => {
+  // Keep `reverse()` in its own statement (typescript:S4043).
+  leftPhysicalIndexes.reverse();
+  arrayEach(leftPhysicalIndexes, (physical) => {
     target.push(physical);
   });
 
