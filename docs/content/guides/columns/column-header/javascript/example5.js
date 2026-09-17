@@ -21,8 +21,8 @@ const hot = new Handsontable(container, {
     columns: [
         { headerClassName: 'italic-text' },
         { headerClassName: 'bold-text italic-text' },
-        { headerClassName: 'htRight bold-text italic-text', type: 'numeric', numericFormat: { pattern: '0' } },
-        { type: 'numeric', numericFormat: { pattern: '0.0' } },
+        { headerClassName: 'htRight bold-text italic-text', type: 'numeric', numericFormat: { maximumFractionDigits: 0, useGrouping: false } },
+        { type: 'numeric', numericFormat: { minimumFractionDigits: 1, maximumFractionDigits: 1, useGrouping: false } },
     ],
     licenseKey: 'non-commercial-and-evaluation',
 });

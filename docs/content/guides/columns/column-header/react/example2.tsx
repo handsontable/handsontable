@@ -18,11 +18,11 @@ const ExampleComponent = () => {
       columns={[
         {},
         {},
-        { type: 'numeric', numericFormat: { pattern: '0' } },
-        { type: 'numeric', numericFormat: { pattern: '0.0' } },
-        { type: 'numeric', numericFormat: { pattern: '0' } },
-        { type: 'numeric', numericFormat: { pattern: '0.0' } },
-        { type: 'numeric', numericFormat: { pattern: '0.0' } },
+        { type: 'numeric', numericFormat: { maximumFractionDigits: 0, useGrouping: false } },
+        { type: 'numeric', numericFormat: { minimumFractionDigits: 1, maximumFractionDigits: 1, useGrouping: false } },
+        { type: 'numeric', numericFormat: { maximumFractionDigits: 0, useGrouping: false } },
+        { type: 'numeric', numericFormat: { minimumFractionDigits: 1, maximumFractionDigits: 1, useGrouping: false } },
+        { type: 'numeric', numericFormat: { minimumFractionDigits: 1, maximumFractionDigits: 1, useGrouping: false } },
       ]}
       rowHeaders={true}
       height="auto"

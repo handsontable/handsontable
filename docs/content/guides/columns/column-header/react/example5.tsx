@@ -25,8 +25,8 @@ const ExampleComponent = () => {
     >
       <HotColumn headerClassName="italic-text" />
       <HotColumn headerClassName="bold-text italic-text" />
-      <HotColumn headerClassName="htRight bold-text italic-text" type="numeric" numericFormat={{ pattern: '0' }} />
-      <HotColumn type="numeric" numericFormat={{ pattern: '0.0' }} />
+      <HotColumn headerClassName="htRight bold-text italic-text" type="numeric" numericFormat={{ maximumFractionDigits: 0, useGrouping: false }} />
+      <HotColumn type="numeric" numericFormat={{ minimumFractionDigits: 1, maximumFractionDigits: 1, useGrouping: false }} />
     </HotTable>
   );
 };
