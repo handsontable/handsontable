@@ -674,8 +674,10 @@
     }
 
     // `vertical-align` on the cell no longer moves out-of-flow content; map it onto the wrapper.
-    // `align-content` on the block box, NOT `display: flex`: the indicator renderers place their
-    // arrows with floats, which a flex container ignores.
+    // `align-content` on the block box, NOT `display: flex`: `.ht-multi-select-arrow` (and the
+    // select-editor overlay's `.htAutocompleteArrow`) still use floats, which a flex container
+    // ignores. In-cell `.htAutocompleteArrow` is absolutely positioned (DEV-348) and would
+    // survive flex, but the remaining floats would not.
     tr.htExactRow > td.htMiddle > .htCellClip {
       align-content: center;
     }

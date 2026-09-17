@@ -141,6 +141,22 @@ map that was already unregistered, and re-append the handle into the container t
 therefore opens with a bail on `owner.isActive()` that still resets the timeout and the click count, because
 `#onMouseDown` only arms a fresh timer while no timer is pending.
 
+**A held double-click must hide the guide when autosize runs (DEV-1038).** `#onMouseDown` shows the guide
+and `#onMouseUp` is what used to hide it. Autosize is not mouseup: it is this 500ms timer, so a second
+press that is held left the guide `active` (`display: block`) until the button came up. The timer hides
+it when `#dblclick >= 2`. It still must not detach – that is the flicker trap above. A first press that
+is held is a drag, so the same timer must leave the guide alone when the count is below two.
+
+**Do not clear `#pressed` on every dblclick timeout.** `#newSize` is reset to `#startSize` on each press
+and written on mousemove. They still matching is a still hold: clear `#pressed` so a later mousemove
+cannot overwrite the autosize and mouseup takes the idle branch (no second round of drag-end hooks).
+They differing means the second press already started a drag: keep `#pressed`. The `#setupHandlePosition`
+that follows then resets `#startSize`, so later mousemove/mouseup keep following the pointer – the
+develop path a blanket `#pressed = false` dropped. Pinned in `__tests__/resizeGesture.unit.js` ("should
+hide the guide as soon as a held double-click autosizes", "should keep a drag that starts on the second
+press alive after the autosize timer"). The still-hold hide is also in
+`../../../../tests/e2e/manual-resize-dblclick-hold-guide.spec.ts`.
+
 ## `afterMouseDownTimeout()` stays on both plugins
 
 Every other gesture method left the plugins. This one is kept as a one-line forward, because the frozen
@@ -216,7 +232,7 @@ measurement, which is what a grid built inside a `display: none` container measu
 
 - `npm run test:unit --prefix handsontable -- --testPathPattern='manualResize'`
 - `npm run test:e2e --prefix handsontable -- --testPathPattern='manualRowResize|manualColumnResize|autoRowSize'`
-- `cd tests && npx playwright test --project=e2e-main e2e/manual-resize-teardown.spec.ts e2e/manual-resize-drag-interruption.spec.ts`
+- `cd tests && npx playwright test --project=e2e-main e2e/manual-resize-teardown.spec.ts e2e/manual-resize-drag-interruption.spec.ts e2e/manual-resize-dblclick-hold-guide.spec.ts`
 
 `__tests__/resizeGesture.unit.js` drives the gesture through its constructor, with a small grid, axis and owner
 passed in - no module is mocked. Each of its tests was checked against a deliberate regression of the
@@ -224,4 +240,8 @@ behavior it names: resetting the drag in `detach()`, capturing the inline edge a
 disabled-owner bail, not aborting on a context menu, and dropping the RTL direction factor each turn exactly
 one test red. The browser half of the traps is pinned by `tests/e2e/manual-resize-teardown.spec.ts` (hiding,
 the swallowed click, the double-click flicker, the pending timeout) and
-`tests/e2e/manual-resize-drag-interruption.spec.ts` (the drag surviving the update cycle).
+`tests/e2e/manual-resize-drag-interruption.spec.ts` (the drag surviving the update cycle, and a
+held second press whose 500ms window is interrupted by the same re-init).
+DEV-1038 is pinned by `__tests__/resizeGesture.unit.js` (the held double-click hides the guide, a held
+single press does not, a second press that already moved keeps the drag). The still-hold hide is also
+in `tests/e2e/manual-resize-dblclick-hold-guide.spec.ts`.
