@@ -1,6 +1,10 @@
 import Xlsx from '../types/xlsx';
 import DataProvider from '../dataProvider';
 
+// Read lazily by the mock below (jest hoists the factory above these, so they must be `mock`-prefixed).
+let mockData = [[null]];
+let mockCellsMeta = [[{ type: 'dropdown', source: ['a', 'b'] }]];
+
 jest.mock('../dataProvider', () => ({
   __esModule: true,
   default: class DataProviderMock {
@@ -11,11 +15,11 @@ jest.mock('../dataProvider', () => ({
     setOptions() {}
 
     getData() {
-      return [[null]];
+      return mockData;
     }
 
     getCellsMeta() {
-      return [[{ type: 'dropdown', source: ['a', 'b'] }]];
+      return mockCellsMeta;
     }
 
     getCellElements() {
@@ -100,12 +104,18 @@ jest.mock('../dataProvider', () => ({
  */
 function createRecordingEngine() {
   const sheetNames = [];
+  const cells = [];
+  const recorded = { writeOptions: undefined };
 
   class FakeWorkbook {
     constructor() {
       this.worksheets = [];
       this.xlsx = {
-        writeBuffer: async() => new Uint8Array(),
+        writeBuffer: async(options) => {
+          recorded.writeOptions = options;
+
+          return new Uint8Array();
+        },
       };
     }
 
@@ -117,7 +127,24 @@ function createRecordingEngine() {
         state: 'visible',
         views: [],
         getColumn: () => ({}),
-        getRow: () => ({ getCell: () => ({}), commit: () => {} }),
+        // Cells are memoized per address so a test can read back what the adapter wrote on them.
+        getRow: rowNumber => ({
+          getCell: (colNumber) => {
+            const key = `${name}!${rowNumber}:${colNumber}`;
+            const existing = cells.find(entry => entry.key === key);
+
+            if (existing) {
+              return existing.cell;
+            }
+
+            const cell = {};
+
+            cells.push({ key, cell });
+
+            return cell;
+          },
+          commit: () => {},
+        }),
         mergeCells: () => {},
         addConditionalFormatting: () => {},
         protect: () => {},
@@ -129,7 +156,35 @@ function createRecordingEngine() {
     }
   }
 
-  return { engine: { Workbook: FakeWorkbook }, sheetNames };
+  return { engine: { Workbook: FakeWorkbook }, sheetNames, cells, recorded };
+}
+
+/**
+ * Exports one single-cell sheet with the given type options and cell meta, and returns what the
+ * engine received: the `writeBuffer` options and every cell the adapter wrote on.
+ *
+ * @param {object} typeOptions Extra options for the XLSX type (e.g. `compression`).
+ * @param {object} [meta] The one cell's meta.
+ * @param {*} [value] The one cell's value.
+ * @returns {Promise<{ writeOptions: object, cells: object[] }>}
+ */
+async function exportOneCell(typeOptions, meta = { type: 'text' }, value = 'x') {
+  const instance = { rootDocument: document, rootWindow: window };
+  const { engine, cells, recorded } = createRecordingEngine();
+
+  mockData = [[value]];
+  mockCellsMeta = [[meta]];
+
+  try {
+    const xlsx = new Xlsx(new DataProvider(instance), { engine, sheets: [{ instance, name: 'Data' }], ...typeOptions });
+
+    await xlsx.export();
+  } finally {
+    mockData = [[null]];
+    mockCellsMeta = [[{ type: 'dropdown', source: ['a', 'b'] }]];
+  }
+
+  return { writeOptions: recorded.writeOptions, cells: cells.map(entry => entry.cell) };
 }
 
 /**
@@ -209,5 +264,36 @@ describe('Xlsx sheet-name sanitization', () => {
     expect(await exportSheetsNamed('Data', 'data')).toEqual(
       ['Data', '_HotValidation', 'data1', '_HotValidation1'],
     );
+  });
+});
+
+describe('Xlsx compression default', () => {
+  it('should DEFLATE at level 6 when compression is not set, as every 18.x export did', async() => {
+    // `null` used to pass no `zip` options, and JSZip's own default is DEFLATE. Mapping the default
+    // to STORE made every default export several times larger.
+    const { writeOptions } = await exportOneCell({});
+
+    expect(writeOptions).toEqual({ zip: { compression: 'DEFLATE', compressionOptions: { level: 6 } } });
+  });
+
+  it('should store the entries only for an explicit false, and honor a numeric level', async() => {
+    expect((await exportOneCell({ compression: false })).writeOptions).toEqual({ zip: { compression: 'STORE' } });
+    expect((await exportOneCell({ compression: 3 })).writeOptions)
+      .toEqual({ zip: { compression: 'DEFLATE', compressionOptions: { level: 3 } } });
+  });
+});
+
+describe('Xlsx default date and time formats', () => {
+  it('should write a default-options date cell as mm-dd-yyyy and a default time cell as hh:mm AM/PM', async() => {
+    // The grid's defaults (`metaSchema.ts`): `dateFormat: { year: 'numeric', month: '2-digit',
+    // day: '2-digit' }`, `timeFormat: { hour: '2-digit', minute: '2-digit' }`, `locale: 'en-US'`.
+    // A time format that sets no `hour12` takes the locale's clock, which is 12-hour for en-US.
+    const dateFormat = { year: 'numeric', month: '2-digit', day: '2-digit' };
+    const dateMeta = { type: 'date', dateFormat, locale: 'en-US' };
+    const timeMeta = { type: 'time', timeFormat: { hour: '2-digit', minute: '2-digit' }, locale: 'en-US' };
+    const numFmts = cells => cells.map(cell => cell.numFmt).filter(Boolean);
+
+    expect(numFmts((await exportOneCell({}, dateMeta, '2024-01-15')).cells)).toEqual(['mm-dd-yyyy']);
+    expect(numFmts((await exportOneCell({}, timeMeta, '08:30')).cells)).toEqual(['hh:mm AM/PM']);
   });
 });

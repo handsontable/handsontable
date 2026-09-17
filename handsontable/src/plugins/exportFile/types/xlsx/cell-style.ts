@@ -1,4 +1,5 @@
 import { isDefined } from '../../../../helpers/mixed';
+import type { CellStyleSnapshot, CellValidationSnapshot } from '../../../../utils/xlsxEngine/model';
 import { normalizeClassNames } from '../../../../helpers/dom/element';
 import { READ_ONLY_FILL_ARGB, READ_ONLY_TEXT_ARGB } from '../../../../utils/xlsxEngine/readOnlyStyle';
 
@@ -359,7 +360,7 @@ export function cssColorToArgb(color: string): string {
  * @param {string|undefined} className CSS class string.
  * @returns {object|null}
  */
-export function getAlignmentFromClassName(className: string | undefined): object | null {
+export function getAlignmentFromClassName(className: string | undefined): CellStyleSnapshot['alignment'] {
   if (!className) {
     return null;
   }
@@ -378,13 +379,13 @@ export function getAlignmentFromClassName(className: string | undefined): object
  * @param {object|undefined} meta Cell meta object.
  * @returns {object|null}
  */
-export function getAlignmentFromMeta(meta: CellMeta | undefined): object | null {
+export function getAlignmentFromMeta(meta: CellMeta | undefined): CellStyleSnapshot['alignment'] {
   if (!meta?.className) {
     return null;
   }
 
   const classes = normalizeClassNames(meta.className);
-  const alignment: Record<string, string> = {};
+  const alignment: NonNullable<CellStyleSnapshot['alignment']> = {};
 
   if (classes.includes('htLeft')) {
     alignment.horizontal = 'left';
@@ -442,15 +443,16 @@ function borderWidthToExcelStyle(width: number): string {
  * @param {object|undefined} meta Cell meta object.
  * @returns {object|null}
  */
-export function getBorderFromMeta(meta: CellMeta | undefined): object | null {
+export function getBorderFromMeta(meta: CellMeta | undefined): CellStyleSnapshot['border'] {
   if (!meta?.borders) {
     return null;
   }
 
   const { borders } = meta;
-  const excelBorder: Record<string, { style: string; color: { argb: string } }> = {};
+  const excelBorder: NonNullable<CellStyleSnapshot['border']> = {};
+  const sides: Array<'top' | 'bottom' | 'left' | 'right'> = ['top', 'bottom', 'left', 'right'];
 
-  ['top', 'bottom', 'left', 'right'].forEach((side) => {
+  sides.forEach((side) => {
     if (borders[side] && borders[side].width > 0) {
       excelBorder[side] = {
         style: borderWidthToExcelStyle(borders[side].width),
@@ -479,7 +481,9 @@ export function getBorderFromMeta(meta: CellMeta | undefined): object | null {
  *   `getCssStyleFromElement`, or `null` for non-rendered cells.
  * @returns {object|null}
  */
-export function getFontFromMeta(meta: CellMeta | undefined, cssStyle: CssStyle | null = null): object | null {
+export function getFontFromMeta(
+  meta: CellMeta | undefined, cssStyle: CssStyle | null = null
+): CellStyleSnapshot['font'] {
   const isReadOnly = meta?.readOnly === true;
 
   const bold = cssStyle?.fontBold || false;
@@ -491,7 +495,7 @@ export function getFontFromMeta(meta: CellMeta | undefined, cssStyle: CssStyle |
     return null;
   }
 
-  const font: Record<string, boolean | { argb: string }> = {};
+  const font: NonNullable<CellStyleSnapshot['font']> = {};
 
   if (bold) {
     font.bold = true;
@@ -529,7 +533,7 @@ export function getFontFromMeta(meta: CellMeta | undefined, cssStyle: CssStyle |
  */
 export function getFillFromMeta(
   meta: CellMeta | undefined, cssStyle: { backgroundColor: string | null } | null = null
-): object | null {
+): CellStyleSnapshot['fill'] {
   let bgColor = null;
 
   if (cssStyle?.backgroundColor) {
@@ -558,7 +562,9 @@ export function getFillFromMeta(
  *   (e.g. `'_HotValidation'!$A$1:$A$3`). When `null` or `undefined`, returns `null`.
  * @returns {object|null}
  */
-export function getDropdownValidation(meta: CellMeta | undefined, rangeRef: string | null): object | null {
+export function getDropdownValidation(
+  meta: CellMeta | undefined, rangeRef: string | null
+): CellValidationSnapshot | null {
   if (!meta || !rangeRef) {
     return null;
   }

@@ -82,11 +82,15 @@ Other rules:
   that has no color of its own, and `importFile/styles.ts` recognizes exactly those two values and drops them
   again so a round trip does not bake the grid's own dimming into a generated class. Change the value in the
   shared module or the two directions silently stop agreeing — never re-declare either constant locally.
-- **`compression: true` means DEFLATE level 6; a number 1–9 is that level; falsy means STORED — and STORED
-  has to be named.** `toWriteOptions` in the ExcelJS adapter returns `{ zip: { compression: 'STORE' } }` for
-  `false`. Passing no `zip` options at all leaves JSZip on its own default, which is DEFLATE, so the option
-  did nothing for its whole life. `exceljsWrite.unit.js` pins it by SIZE (stored output larger than
-  deflated on a repetitive sheet), which is the only assertion that can tell the two apart.
+- **`compression` unset, `null` or `true` means DEFLATE level 6; a number 1–9 is that level; only an explicit
+  `false` means STORED — and STORED has to be named.** `toWriteOptions` in the ExcelJS adapter returns
+  `{ zip: { compression: 'STORE' } }` for `false`. Passing no `zip` options at all leaves JSZip on its own
+  default, which is DEFLATE, so `false` did nothing for its whole life — but the DEFAULT was always DEFLATE,
+  and mapping `null` to STORE (as the first cut of #13551 did) made every default export several times
+  larger. `#getCompressionLevel` therefore returns `6` for anything but `false` and a valid level;
+  `xlsxValidationSheetName.unit.js` pins the `writeBuffer` options for unset, `false` and `3`, and
+  `exceljsWrite.unit.js` pins STORE-vs-DEFLATE by SIZE (stored output larger than deflated on a repetitive
+  sheet), which is the only assertion that can tell the two apart at the adapter.
 - **Sheet names are sanitized by the export, not by the engine.** ExcelJS throws for an illegal character
   (`* ? : / \ [ ]`), a leading or trailing `'`, the reserved name `History`, an empty name and a duplicate
   (compared case-INsensitively), so a grid named `Q1: Sales` used to abandon the whole export. ExcelJS

@@ -121,11 +121,11 @@ function truncateSheetName(name: string, maxLength: number): string {
  * left in a cell by a custom renderer would abandon the export from inside the summary branch.
  */
 function toPrimitiveResult(value: unknown): CellValue {
-  const type = typeof value;
+  if (value === null || typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+    return value;
+  }
 
-  return value === null || type === 'string' || type === 'number' || type === 'boolean'
-    ? value as CellValue
-    : null;
+  return null;
 }
 
 /**
@@ -285,7 +285,9 @@ class Xlsx extends BaseType {
       fileExtension: 'xlsx',
       bom: false,
       engine: null,
-      // DEFLATE compression: true = level 6, number 1–9 = that level, falsy = no compression.
+      // DEFLATE compression: null (the default) and true = level 6, a number 1–9 = that level,
+      // false = stored. The default has always been DEFLATE: before the option was mapped
+      // explicitly, an absent `zip` option left JSZip on its own DEFLATE default.
       compression: null,
       // Array of { rows?, cols?, rules } conditional formatting descriptors.
       conditionalFormatting: [],
@@ -590,7 +592,7 @@ class Xlsx extends BaseType {
       if (context.hasRowHeaders) {
         const rowHeaderCell = sheet.cell(excelRowNumber, 1);
 
-        rowHeaderCell.value = (context.rowHeaders[rowIndex] ?? null) as CellValue;
+        rowHeaderCell.value = context.rowHeaders[rowIndex] ?? null;
         this.#applyHeaderStyle(rowHeaderCell, null, context.headerFill, context.headerBorder);
       }
 
@@ -653,10 +655,10 @@ class Xlsx extends BaseType {
   #writeCellStyling(
     cell: CellSnapshot, meta: CellMeta, cssStyle: CssStyle | null, context: SheetContext
   ): void {
-    const alignment = getAlignmentFromMeta(meta) as CellStyleSnapshot['alignment'];
-    const border = getBorderFromMeta(meta) as CellStyleSnapshot['border'];
-    const font = getFontFromMeta(meta, cssStyle) as CellStyleSnapshot['font'];
-    const fill = getFillFromMeta(meta, cssStyle) as CellStyleSnapshot['fill'];
+    const alignment = getAlignmentFromMeta(meta);
+    const border = getBorderFromMeta(meta);
+    const font = getFontFromMeta(meta, cssStyle);
+    const fill = getFillFromMeta(meta, cssStyle);
 
     if (alignment || border || font || fill) {
       cell.style = { alignment, border, font, fill };
@@ -665,7 +667,7 @@ class Xlsx extends BaseType {
     const rangeRef = Array.isArray(meta.source)
       ? (context.validationMap.get(JSON.stringify(meta.source)) ?? null)
       : null;
-    const dropdownValidation = getDropdownValidation(meta, rangeRef) as CellValidationSnapshot | null;
+    const dropdownValidation = getDropdownValidation(meta, rangeRef);
 
     if (dropdownValidation) {
       cell.validation = dropdownValidation;
@@ -890,21 +892,23 @@ class Xlsx extends BaseType {
   }
 
   /**
-   * Maps the `compression` option to the neutral level: `true` = 6, a number 1–9 = that level,
-   * anything else = no compression.
+   * Maps the `compression` option to the neutral level: `false` = stored, a number 1–9 = that
+   * DEFLATE level, anything else (`true`, `null`, `undefined`) = DEFLATE level 6. Only an explicit
+   * `false` turns compression off: the default has been DEFLATE since the option existed, and an
+   * unset option must keep producing the same file size.
    */
   #getCompressionLevel(): false | number {
     const { compression } = this.options;
 
-    if (compression === true) {
-      return 6;
+    if (compression === false) {
+      return false;
     }
 
     if (typeof compression === 'number' && compression >= 1 && compression <= 9) {
       return compression;
     }
 
-    return false;
+    return 6;
   }
 
   /**
@@ -1042,7 +1046,7 @@ class Xlsx extends BaseType {
 
       cell.value = columnHeaders[index] ?? null;
       this.#applyHeaderStyle(
-        cell, getAlignmentFromClassName(classNames[index]) as CellStyleSnapshot['alignment'],
+        cell, getAlignmentFromClassName(classNames[index]),
         headerFill, headerBorder
       );
     }
@@ -1081,7 +1085,7 @@ class Xlsx extends BaseType {
 
         cell.value = header.label ?? null;
         this.#applyHeaderStyle(
-          cell, getAlignmentFromClassName(header.className) as CellStyleSnapshot['alignment'],
+          cell, getAlignmentFromClassName(header.className),
           headerFill, headerBorder
         );
 
