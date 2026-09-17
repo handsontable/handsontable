@@ -49,8 +49,11 @@ export interface MappedReference {
  * whole because the reference after the `:` inherits the qualifier.
  *
  * The second alternative is the reference itself: an optional `$` before each component, one to
- * three column letters, then up to seven row digits. `(?<!\d)` keeps it from starting inside a
- * number. The trailing `(?![\d(])` keeps a function name from reading as a reference: a bare
+ * three column letters, then up to seven row digits, matched case-insensitively because
+ * HyperFormula accepts `=sum(a1)` and the export hands the source string over as typed (the
+ * rewritten reference comes back uppercase). The leading `(?<![\p{L}\p{N}_.$])` keeps it from
+ * starting inside a number, a defined name (`TOTAL1` must not yield `AL1`) or a structured
+ * reference (`TABLE1[Col]`). The trailing `(?![\d(])` keeps a function name from reading as a reference: a bare
  * `(?!\()` lets the digit run backtrack, so `LOG10(` matches `G1` and is rewritten to `H2`, and
  * rejecting a following digit as well is what closes that. A real row number is never followed by
  * a digit, because the run is greedy.
@@ -58,8 +61,8 @@ export interface MappedReference {
 const CELL_PATTERN = String.raw`\$?[A-Z]{1,3}\$?\d{1,7}(?![\d(])`;
 const REFERENCE_REGEX = new RegExp(
   String.raw`("(?:[^"]|"")*"|(?:'(?:[^']|'')*'|[\p{L}\p{N}_.]+)!${CELL_PATTERN}(?::${CELL_PATTERN})?)` +
-  String.raw`|(?<!\d)(\$?)([A-Z]{1,3})(\$?)(\d{1,7})(?![\d(])`,
-  'gu'
+  String.raw`|(?<![\p{L}\p{N}_.$])(\$?)([A-Z]{1,3})(\$?)(\d{1,7})(?![\d(])`,
+  'giu'
 );
 
 /**

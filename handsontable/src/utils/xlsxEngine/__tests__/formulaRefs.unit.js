@@ -40,6 +40,23 @@ describe('shiftFormulaReferences', () => {
     expect(shiftFormulaReferences('Arkusz_1.a!A1', -1, 0)).toBe('Arkusz_1.a!A1');
   });
 
+  it('should shift a lowercase reference like an uppercase one, writing it back uppercase', () => {
+    // HyperFormula accepts `=sum(a1:b2)`, and the export hands the raw source string over. A
+    // case-sensitive match shifted `B2` but not `a1`, so the two ends of one range came apart.
+    expect(shiftFormulaReferences('sum(a1:B2)', 1, 1)).toBe('sum(B2:C3)');
+    expect(shiftFormulaReferences('data!a1+a2', -1, 0)).toBe('data!a1+A1');
+  });
+
+  it('should not start a reference inside a defined name or a structured reference', () => {
+    // `TOTAL1` used to match `AL1`, `TABLE1[Col]` matched `BLE1`, and `ABCD1` matched `BCD1`.
+    expect(shiftFormulaReferences('TOTAL1+A1', 1, 1)).toBe('TOTAL1+B2');
+    expect(shiftFormulaReferences('SUM(TABLE1[Col])', 1, 1)).toBe('SUM(TABLE1[Col])');
+    expect(shiftFormulaReferences('ABCD1*2', 1, 1)).toBe('ABCD1*2');
+    expect(shiftFormulaReferences('my_range1+A1', 1, 1)).toBe('my_range1+B2');
+    // A `$` before the column is the reference's own absolute marker, not a name character.
+    expect(shiftFormulaReferences('$A$1+$B2', 1, 1)).toBe('$B$2+$C3');
+  });
+
   it('should not reject a qualified reference that would leave the sheet if it were shifted', () => {
     // `Data!A1` under a `firstRow` header window used to shift to row 0 and drop the whole formula.
     expect(shiftFormulaReferences('Data!A1', -1, -1)).toBe('Data!A1');
