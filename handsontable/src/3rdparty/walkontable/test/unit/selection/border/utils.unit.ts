@@ -41,6 +41,34 @@ describe('getBorderSettingsProperty', () => {
     expect(getBorderSettingsProperty(undefined, 'style', undefined)).toBeUndefined();
     expect(getBorderSettingsProperty({}, 'style', {})).toBeUndefined();
   });
+
+  it('should keep an explicit empty style instead of inheriting the shared style', () => {
+    // `if (borderStyle)` in createBorders then takes the solid-fill path.
+    expect(getBorderSettingsProperty(
+      { style: '' },
+      'style',
+      { style: 'dashed' },
+    )).toBe('');
+  });
+
+  it('should keep an explicit dashed style', () => {
+    expect(getBorderSettingsProperty(
+      { style: 'dashed' },
+      'style',
+      { style: 'dotted' },
+    )).toBe('dashed');
+  });
+
+  it('should fall back to the shared style when the side omits it', () => {
+    expect(getBorderSettingsProperty({}, 'style', { style: 'dashed' })).toBe('dashed');
+    expect(getBorderSettingsProperty({ width: 1 }, 'style', { style: 'dashed' })).toBe('dashed');
+    expect(getBorderSettingsProperty(undefined, 'style', { style: 'dashed' })).toBe('dashed');
+  });
+
+  it('should fall back to the shared style when the side style is null or undefined', () => {
+    expect(getBorderSettingsProperty({ style: undefined }, 'style', { style: 'dashed' })).toBe('dashed');
+    expect(getBorderSettingsProperty({ style: null }, 'style', { style: 'dashed' })).toBe('dashed');
+  });
 });
 
 describe('resolveHeaderLevel', () => {

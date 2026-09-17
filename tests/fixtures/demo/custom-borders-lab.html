@@ -122,7 +122,7 @@
         // Painted box of the first custom-border edge of `color`, including a 0-size edge.
         // Hidden (`display: none`) sides have no client rects; a zero-height block still
         // returns one, so this is the painted size rather than the inline style string.
-        edgeInlineSize(color) {
+        edgeBoxSize(color) {
           const [rect] = visibleEdgeRectsOfColor(color);
 
           if (!rect) {

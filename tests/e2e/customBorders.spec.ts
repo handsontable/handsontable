@@ -102,9 +102,9 @@ test.describe('CustomBorders explicit zero width (DEV-1137)', () => {
     expect((await lab.cellBorders(0, 0))?.top).toEqual({ width: 0, color: 'red' });
     expect((await lab.cellBorders(0, 0))?.start).toEqual({ width: 2, color: 'green' });
 
-    const zeroTop = await lab.edgeInlineSize('red');
-    const thickStart = await lab.edgeInlineSize('green');
-    const onePxControl = await lab.edgeInlineSize('blue');
+    const zeroTop = await lab.edgeBoxSize('red');
+    const thickStart = await lab.edgeBoxSize('green');
+    const onePxControl = await lab.edgeBoxSize('blue');
 
     // Painted box size (`getBoundingClientRect`), not the inline style string `createBorders`
     // wrote. Horizontal thickness is `height`; vertical thickness is `width`. A truthy width

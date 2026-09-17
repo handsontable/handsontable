@@ -94,12 +94,8 @@ all-hidden result clears the cell, and the model entry is upserted — so meta a
 
 ## `width: 0` is a real value
 
-Walkontable Border reads per-side settings with nullish coalescing (`??`), not a truthy
-check. `width: 0` must stay 0 so the edge paints at 0px (DEV-1137). A truthy
-`posSettings[property] ? … : settings.border[property]` falls back to the default 1px
-and the zero-width border reappears. Do not "simplify" that helper back to a truthy test.
-The helper lives in `../../3rdparty/walkontable/src/selection/border/utils.ts`
-(`getBorderSettingsProperty`).
+Walkontable honors an explicit `width: 0` (DEV-1137). See `../../3rdparty/walkontable/AGENTS.md`
+("Custom border `width: 0` is a real value").
 
 ## `left`/`right` vs `start`/`end`
 
