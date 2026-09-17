@@ -35,55 +35,79 @@ describe('resolveHeaderLevel', () => {
 });
 
 describe('isHeaderPlaceholder', () => {
-  it('should detect the nested-header hiddenHeader class', () => {
-    const placeholder = document.createElement('th');
+  const sizeOf = (el: HTMLElement) => Number(el.dataset.size ?? '0');
+  const header = (size: number, className = '') => {
+    const th = document.createElement('th');
 
-    placeholder.className = 'hiddenHeader';
+    th.dataset.size = String(size);
+    th.className = className;
 
-    expect(isHeaderPlaceholder(placeholder)).toBe(true);
-    expect(isHeaderPlaceholder(document.createElement('th'))).toBe(false);
-    expect(isHeaderPlaceholder(undefined)).toBe(false);
-    expect(isHeaderPlaceholder(null)).toBe(false);
+    return th;
+  };
+
+  it('should treat a zero-size header as a collapsed placeholder', () => {
+    expect(isHeaderPlaceholder(header(0), sizeOf)).toBe(true);
+    expect(isHeaderPlaceholder(header(40), sizeOf)).toBe(false);
+    expect(isHeaderPlaceholder(undefined, sizeOf)).toBe(false);
+    expect(isHeaderPlaceholder(null, sizeOf)).toBe(false);
+  });
+
+  it('should keep a laid-out hiddenHeader (first-of-type colspan continuation)', () => {
+    // NestedHeaders CSS hides `thead th.hiddenHeader:not(:first-of-type)` only.
+    // A first-of-type continuation is still a real box and must be measured.
+    expect(isHeaderPlaceholder(header(80, 'hiddenHeader'), sizeOf)).toBe(false);
+    expect(isHeaderPlaceholder(header(0, 'hiddenHeader'), sizeOf)).toBe(true);
   });
 });
 
 describe('lookupSelectionHeader', () => {
-  const visible = (label: string) => {
+  const sizeOf = (el: HTMLElement) => Number(el.dataset.size ?? '0');
+  const header = (label: string, size: number, className = '') => {
     const th = document.createElement('th');
 
     th.textContent = label;
-
-    return th;
-  };
-  const placeholder = () => {
-    const th = document.createElement('th');
-
-    th.className = 'hiddenHeader';
+    th.dataset.size = String(size);
+    th.className = className;
 
     return th;
   };
 
   it('should use the selected level when that header is laid out', () => {
-    const nested = visible('I');
+    const nested = header('I', 40);
     const getHeader = jest.fn((index: number, level: number) => {
       if (index === 1 && level === 2) {
         return nested;
       }
 
-      return visible('leaf');
+      return header('leaf', 40);
     });
 
-    expect(lookupSelectionHeader(getHeader, 1, 2, 3)).toBe(nested);
+    expect(lookupSelectionHeader(getHeader, 1, 2, 3, sizeOf)).toBe(nested);
     expect(getHeader).toHaveBeenCalledTimes(1);
   });
 
-  it('should fall back to the closest header when the selected level is a colspan placeholder', () => {
+  it('should use a laid-out hiddenHeader at the selected level', () => {
+    const firstOfType = header('I', 80, 'hiddenHeader');
+    const getHeader = jest.fn((index: number, level: number) => {
+      if (index === 0 && level === 2) {
+        return firstOfType;
+      }
+
+      return header('leaf', 40);
+    });
+
+    expect(lookupSelectionHeader(getHeader, 0, 2, 3, sizeOf)).toBe(firstOfType);
+    expect(getHeader).toHaveBeenCalledTimes(1);
+  });
+
+  it('should fall back to the closest header when the selected level is collapsed', () => {
     // Selecting nested header "I" (colspan 2) looks up the last covered column at the
-    // group level and hits `hiddenHeader`. The closest leaf maps 1:1 onto that column.
-    const leaf = visible('P');
+    // group level and hits a display:none continuation. The closest leaf maps 1:1
+    // onto that column.
+    const leaf = header('P', 40);
     const getHeader = jest.fn((index: number, level: number) => {
       if (index === 2 && level === 2) {
-        return placeholder();
+        return header('', 0, 'hiddenHeader');
       }
       if (index === 2 && level === 3) {
         return leaf;
@@ -92,27 +116,27 @@ describe('lookupSelectionHeader', () => {
       return undefined;
     });
 
-    expect(lookupSelectionHeader(getHeader, 2, 2, 3)).toBe(leaf);
+    expect(lookupSelectionHeader(getHeader, 2, 2, 3, sizeOf)).toBe(leaf);
     expect(getHeader).toHaveBeenCalledWith(2, 2);
     expect(getHeader).toHaveBeenCalledWith(2, 3);
   });
 
   it('should not look up the closest level twice when the preferred level already is closest', () => {
-    const getHeader = jest.fn(() => placeholder());
+    const getHeader = jest.fn(() => header('', 0));
 
-    expect(lookupSelectionHeader(getHeader, 0, 1, 1)).toBeUndefined();
+    expect(lookupSelectionHeader(getHeader, 0, 1, 1, sizeOf)).toBeUndefined();
     expect(getHeader).toHaveBeenCalledTimes(1);
     expect(getHeader).toHaveBeenCalledWith(0, 1);
   });
 
-  it('should return undefined when both levels are placeholders', () => {
-    const getHeader = jest.fn(() => placeholder());
+  it('should return undefined when both levels are collapsed', () => {
+    const getHeader = jest.fn(() => header('', 0));
 
-    expect(lookupSelectionHeader(getHeader, 2, 2, 3)).toBeUndefined();
+    expect(lookupSelectionHeader(getHeader, 2, 2, 3, sizeOf)).toBeUndefined();
   });
 
   it('should fall back to the closest header when the selected level is missing', () => {
-    const leaf = visible('O');
+    const leaf = header('O', 40);
     const getHeader = jest.fn((_index: number, level: number) => {
       if (level === 3) {
         return leaf;
@@ -121,7 +145,7 @@ describe('lookupSelectionHeader', () => {
       return undefined;
     });
 
-    expect(lookupSelectionHeader(getHeader, 1, 2, 3)).toBe(leaf);
+    expect(lookupSelectionHeader(getHeader, 1, 2, 3, sizeOf)).toBe(leaf);
   });
 });
 

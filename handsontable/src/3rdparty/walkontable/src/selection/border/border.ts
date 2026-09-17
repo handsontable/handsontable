@@ -1896,12 +1896,18 @@ class Border {
       const headerCount = direction === 'rows'
         ? wtTable.getRowHeadersCount()
         : wtTable.getColumnHeadersCount();
+
+      if (!getHeaderFn || !dimensionFn) {
+        return false;
+      }
+
       const headerLevel = resolveHeaderLevel(headerCount, headerIndex);
       const closestLevel = headerCount - 1;
-      const getHeader = (index: number, level: number) => getHeaderFn?.(index, level);
+      const getHeader = (index: number, level: number) => getHeaderFn(index, level);
+      const sizeFn = dimensionFn;
 
-      startHeader = lookupSelectionHeader(getHeader, fromIndex, headerLevel, closestLevel);
-      endHeader = lookupSelectionHeader(getHeader, toIndex, headerLevel, closestLevel);
+      startHeader = lookupSelectionHeader(getHeader, fromIndex, headerLevel, closestLevel, sizeFn);
+      endHeader = lookupSelectionHeader(getHeader, toIndex, headerLevel, closestLevel, sizeFn);
 
       if (!startHeader || !endHeader) {
         return false;
@@ -1913,8 +1919,8 @@ class Border {
       const startOff = startHeaderOffset[dimensionProperty!];
       const endOff = endOffset[dimensionProperty!];
       const contOff = containerOffset[dimensionProperty!];
-      const startSize = dimensionFn!(startHeader);
-      const endSize = dimensionFn!(endHeader);
+      const startSize = sizeFn(startHeader);
+      const endSize = sizeFn(endHeader);
       const containerWidth = direction === 'columns' && isRtl
         ? geometryReader.outerWidth(wtTable.TABLE)
         : 0;

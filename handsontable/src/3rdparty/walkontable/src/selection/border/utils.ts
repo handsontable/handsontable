@@ -1,13 +1,5 @@
 import type { WalkontableInstance } from '../../types';
 import type { CornerDefaultStyle } from './types';
-import { hasClass } from '../../../../../helpers/dom/element';
-
-/**
- * Nested headers stamp this class on TH placeholders that sit under a colspan or
- * rowspan. Those cells are not laid out (`display: none`), so a width or height
- * read from them collapses the selection border.
- */
-const HEADER_PLACEHOLDER_CLASS = 'hiddenHeader';
 
 export const getCornerStyle = (wot: WalkontableInstance): CornerDefaultStyle => {
   const stylesHandler = wot.wtSettings.getSetting('stylesHandler');
@@ -49,30 +41,37 @@ export const resolveHeaderLevel = (headerCount: number, headerIndex: number): nu
 };
 
 /**
- * Whether this header TH is a nested-header placeholder rather than a laid-out cell.
+ * Whether this header TH has no layout box, so a selection measured from it would collapse.
  *
- * Colspan continuations and rowspan-covered cells carry `hiddenHeader` and are
- * `display: none`. Measuring a selection from them yields a collapsed box.
+ * NestedHeaders stamps `hiddenHeader` on colspan continuations and rowspan-covered cells,
+ * but `:first-of-type` continuations stay laid out (`display: none` applies only to
+ * `:not(:first-of-type)`; rowspan placeholders also set inline `display: none`). Walkontable
+ * therefore keys off size, not that plugin class.
  *
  * @param {HTMLElement|undefined|null} header The TH `getRowHeader` / `getColumnHeader` returned.
+ * @param {Function} sizeFn `outerWidth` or `outerHeight` for the axis being measured.
  * @returns {boolean}
  */
-export const isHeaderPlaceholder = (header: HTMLElement | undefined | null): boolean => {
-  return !!header && hasClass(header, HEADER_PLACEHOLDER_CLASS);
+export const isHeaderPlaceholder = (
+  header: HTMLElement | undefined | null,
+  sizeFn: (el: HTMLElement) => number,
+): boolean => {
+  return !!header && sizeFn(header) === 0;
 };
 
 /**
  * Returns the TH to measure a full-row or full-column selection from.
  *
  * Prefers the selected header level so a padded or rowspan header is the box
- * that is measured (DEV-1176). When that cell is a `hiddenHeader` placeholder
- * (the covered columns of a nested colspan), falls back to the closest header,
- * which maps 1:1 onto the column or row index and is laid out.
+ * that is measured (DEV-1176). When that cell has no layout box (a collapsed
+ * nested-header continuation), falls back to the closest header, which maps 1:1
+ * onto the column or row index and is laid out.
  *
  * @param {Function} getHeader `getRowHeader` or `getColumnHeader`.
  * @param {number} index The column or row index to look up.
  * @param {number} preferredLevel The level `resolveHeaderLevel` produced.
  * @param {number} closestLevel The header closest to the cells (`count - 1`).
+ * @param {Function} sizeFn `outerWidth` or `outerHeight` for the axis being measured.
  * @returns {HTMLElement|undefined} A laid-out header, or `undefined` to measure from the body.
  */
 export const lookupSelectionHeader = (
@@ -80,10 +79,11 @@ export const lookupSelectionHeader = (
   index: number,
   preferredLevel: number,
   closestLevel: number,
+  sizeFn: (el: HTMLElement) => number,
 ): HTMLElement | undefined => {
   const preferred = getHeader(index, preferredLevel);
 
-  if (preferred && !isHeaderPlaceholder(preferred)) {
+  if (preferred && !isHeaderPlaceholder(preferred, sizeFn)) {
     return preferred;
   }
 
@@ -93,7 +93,7 @@ export const lookupSelectionHeader = (
 
   const closest = getHeader(index, closestLevel);
 
-  if (closest && !isHeaderPlaceholder(closest)) {
+  if (closest && !isHeaderPlaceholder(closest, sizeFn)) {
     return closest;
   }
 
@@ -116,7 +116,7 @@ export const lookupSelectionHeader = (
  * @param {number} containerEdge The table's `offset.top` (rows) or `offset.left` (columns).
  * @param {boolean} isRtl Whether the grid is in RTL. Ignored for rows.
  * @param {number} containerWidth The table's outerWidth. Used only for RTL columns.
- * @returns {[number, number]} `[start, size]`. For RTL columns, `start` is the `right` offset
+ * @returns {Array<number>} `[start, size]`. For RTL columns, `start` is the `right` offset
  *   `appear()` assigns to `style.right`.
  */
 export const measureHeaderSelectionBox = (

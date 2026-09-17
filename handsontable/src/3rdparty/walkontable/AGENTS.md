@@ -306,13 +306,15 @@ The header level is **not** `columnHeaders.length - headerIndex`:
   header box.
 - Pass the **unclamped** corner (`originalFromRow` / `originalFromColumn`). After `appear` clamps
   a `selectRows` range, `fromColumn` is `0` even though the selection started at `-1`.
-- A resolved level can still land on a nested-header **placeholder**. Nested headers stamp
-  `hiddenHeader` on the TH that continues a colspan (and on rowspan-covered cells). Those cells
-  are `display: none`, so `offset` / `outerWidth` collapse the box (`1px` border, end edge at
-  `-1`). `lookupSelectionHeader` keeps the selected level when that TH is real — that is the
-  padded-header / rowspan box — and otherwise measures from the closest header, which maps 1:1
-  onto the index. Do not revert to `columnHeaders.length - headerIndex` to "fix" this; that
-  formula is out of range and drops the padding lookup.
+- A resolved level can still land on a nested-header **placeholder**. NestedHeaders stamps
+  `hiddenHeader` on colspan continuations and rowspan-covered cells, but Walkontable must not
+  key off that plugin class: `thead th.hiddenHeader:not(:first-of-type)` keeps the first-of-type
+  continuation as a real box, and only rowspan placeholders also set inline `display: none`.
+  `lookupSelectionHeader` takes the axis size function (`outerWidth` / `outerHeight`) and skips
+  a TH only when that size is `0`. A laid-out first-of-type `hiddenHeader` is measured. When the
+  selected level is collapsed, fall back to the closest header, which maps 1:1 onto the index.
+  Do not revert to `columnHeaders.length - headerIndex` to "fix" this; that formula is out of
+  range and drops the padding lookup.
 - Column measurements are **not** always `header.left - table.left`. `appear()` writes the inline
   start to `style.right` in `rtlMode`. `measureHeaderSelectionBox` is the shared formula: LTR
   columns stay left-edge math; RTL columns use
