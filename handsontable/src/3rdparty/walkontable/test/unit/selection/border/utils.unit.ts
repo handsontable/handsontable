@@ -43,7 +43,7 @@ describe('getBorderSettingsProperty', () => {
   });
 
   it('should keep an explicit empty style instead of inheriting the shared style', () => {
-    // `if (borderStyle)` in createBorders then takes the solid-fill path.
+    // Empty style is falsy, so Border#createBorders takes the solid-fill else branch.
     expect(getBorderSettingsProperty(
       { style: '' },
       'style',

@@ -19,10 +19,10 @@ export const getCornerStyle = (wot: WalkontableInstance): CornerDefaultStyle => 
 
 /**
  * Reads a per-side border setting, falling back to the shared `border` object when the side omits it.
- * An explicit `0` or empty string is a real setting — only `null` and `undefined` fall through.
- * For `style`, that means `style: ''` stays empty (`Border#createBorders` then takes the solid-fill path)
- * instead of inheriting `settings.border.style`. Keep `??` for every property on this helper; a truthy
- * check would also resurrect the width-0 bug (DEV-1137).
+ * An explicit `0` or empty string is a real setting – only `null` and `undefined` fall through.
+ * For `style`, that means `style: ''` stays empty (`Border#createBorders` then takes the solid-fill
+ * `else` path) instead of inheriting `settings.border.style`. Keep `??` for every property on this
+ * helper; a truthy check would also resurrect the width-0 bug (DEV-1137).
  *
  * @param {object|undefined} sideSettings The per-side settings (`top`, `start`, `bottom`, `end`, or `corner`).
  * @param {string} property The setting name (`width`, `color`, `style`).
