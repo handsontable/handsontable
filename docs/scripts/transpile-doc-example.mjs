@@ -33,12 +33,17 @@ const BLANK_SENTINEL = '/*__HOT_BLANK__*/';
  * valid JSX text. Code embedded in a JSX expression container (`{ ... }`) is deliberately left
  * unprotected so its own blank lines are restored like any other code.
  *
+ * Comments are found from the parsed tree, not a raw re-scan: walking every token with
+ * `getChildren` and reading each one's leading and trailing comment trivia catches an empty JSX
+ * expression-container comment (as leading trivia of its close-brace token) without letting a
+ * stray backtick in JSX text mis-lex the rest of the file.
+ *
  * @param {import('typescript').SourceFile} sourceFile The parsed example.
- * @param {string} sourceText The raw example source (for comment-range lookup).
  * @returns {Set<number>} The protected line numbers.
  */
-function collectProtectedLines(sourceFile, sourceText) {
+function collectProtectedLines(sourceFile) {
   const protectedLines = new Set();
+  const fullText = sourceFile.getFullText();
   const markSpan = (startPos, endPos) => {
     const start = sourceFile.getLineAndCharacterOfPosition(startPos).line;
     const end = sourceFile.getLineAndCharacterOfPosition(endPos).line;
@@ -47,21 +52,25 @@ function collectProtectedLines(sourceFile, sourceText) {
       protectedLines.add(line);
     }
   };
-  // Block comments are not AST nodes and a JSX `{/* ... */}` comment attaches to nothing, so
-  // sweep every block comment straight off the token stream. Over-matching a `/*` inside JSX
-  // text would only leave a blank line unrestored, never corrupt output; a missed comment would
-  // corrupt it, so completeness matters more than precision here.
-  const scanner = ts.createScanner(ts.ScriptTarget.Latest, false, ts.LanguageVariant.Standard, sourceText);
-  let token = scanner.scan();
+  const seenComments = new Set();
+  const markComments = (ranges) => {
+    for (const range of ranges ?? []) {
+      if (range.kind !== ts.SyntaxKind.MultiLineCommentTrivia) {
+        continue;
+      }
+      const key = `${range.pos}:${range.end}`;
 
-  while (token !== ts.SyntaxKind.EndOfFileToken) {
-    if (token === ts.SyntaxKind.MultiLineCommentTrivia) {
-      markSpan(scanner.getTokenPos(), scanner.getTextPos());
+      if (seenComments.has(key)) {
+        continue;
+      }
+      seenComments.add(key);
+      markSpan(range.pos, range.end);
     }
-    token = scanner.scan();
-  }
-
+  };
   const visit = (node) => {
+    markComments(ts.getLeadingCommentRanges(fullText, node.getFullStart()));
+    markComments(ts.getTrailingCommentRanges(fullText, node.getEnd()));
+
     if (ts.isJsxText(node)) {
       // JsxText carries the whitespace between JSX children, so use its full extent.
       markSpan(node.getFullStart(), node.getEnd());
@@ -73,7 +82,9 @@ function collectProtectedLines(sourceFile, sourceText) {
 
       return;
     }
-    ts.forEachChild(node, visit);
+    for (const child of node.getChildren(sourceFile)) {
+      visit(child);
+    }
   };
 
   visit(sourceFile);
@@ -96,7 +107,7 @@ export async function transpileDocExample(sourceText, fileName) {
     false,
     fileName.endsWith('tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS
   );
-  const protectedLines = collectProtectedLines(sourceFile, sourceText);
+  const protectedLines = collectProtectedLines(sourceFile);
   const markedSource = sourceText
     .split('\n')
     .map((line, index) => (line.trim() === '' && !protectedLines.has(index) ? BLANK_SENTINEL : line))
