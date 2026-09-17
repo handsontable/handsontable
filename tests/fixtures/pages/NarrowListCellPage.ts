@@ -8,7 +8,7 @@ interface FixtureWindow {
 }
 
 export type ListCellType = 'autocomplete' | 'dropdown' | 'handsontable';
-export type Mode = 'narrow' | 'tall' | 'autosize';
+export type Mode = 'narrow' | 'tall' | 'autosize' | 'exact';
 export type Dir = 'ltr' | 'rtl';
 
 interface Box {
@@ -73,7 +73,7 @@ export class NarrowListCellPage {
    *
    * @param {object} [options] Fixture options.
    * @param {Mode} [options.mode] `narrow` (fixed 60px column), `tall` (narrow + large `rowHeights`),
-   *   or `autosize` (`autoColumnSize`).
+   *   `autosize` (`autoColumnSize`), or `exact` (narrow + engine `rowHeightMode: 'exact'`).
    * @param {Dir} [options.dir] Layout direction.
    */
   async goto({ mode = 'narrow', dir = 'ltr' }: {
@@ -129,16 +129,22 @@ export class NarrowListCellPage {
       };
 
       const arrowEl = td.querySelector('.htAutocompleteArrow');
+      // In an exact-height row the engine moves the cell content (value + arrow) into an absolutely
+      // positioned `.htCellClip` wrapper and zeroes the cell's own padding, so the value clips at
+      // the wrapper's content box, not the cell's. Measure the actual content root either way.
+      const contentRoot = (td.querySelector('.htCellClip') as HTMLElement | null) ?? td;
       const cs = getComputedStyle(td);
+      const rootCs = getComputedStyle(contentRoot);
       const cellRect = td.getBoundingClientRect();
-      const borderLeft = parseFloat(cs.borderLeftWidth);
-      const borderRight = parseFloat(cs.borderRightWidth);
-      const paddingLeft = parseFloat(cs.paddingLeft);
-      const paddingRight = parseFloat(cs.paddingRight);
+      const rootRect = contentRoot.getBoundingClientRect();
+      const borderLeft = parseFloat(rootCs.borderLeftWidth);
+      const borderRight = parseFloat(rootCs.borderRightWidth);
+      const paddingLeft = parseFloat(rootCs.paddingLeft);
+      const paddingRight = parseFloat(rootCs.paddingRight);
 
       const contentRects: DOMRect[] = [];
 
-      td.childNodes.forEach((node) => {
+      contentRoot.childNodes.forEach((node) => {
         if (node === arrowEl) {
           return;
         }
@@ -155,12 +161,12 @@ export class NarrowListCellPage {
 
       return {
         cell: toBox(cellRect),
-        scrollWidth: td.scrollWidth,
-        clientWidth: td.clientWidth,
+        scrollWidth: contentRoot.scrollWidth,
+        clientWidth: contentRoot.clientWidth,
         arrow: arrowEl ? toBox(arrowEl.getBoundingClientRect()) : null,
         content: unionOf(contentRects),
-        contentBoxRight: cellRect.right - borderRight - paddingRight,
-        contentBoxLeft: cellRect.left + borderLeft + paddingLeft,
+        contentBoxRight: rootRect.right - borderRight - paddingRight,
+        contentBoxLeft: rootRect.left + borderLeft + paddingLeft,
         lineHeight: parseFloat(cs.lineHeight),
         paddingTop: parseFloat(cs.paddingTop),
       };

@@ -73,6 +73,38 @@ CELL_TYPES.forEach((cellType) => {
       expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 1);
     });
 
+    test('truncates to one line, clear of the arrow, in an exact-height row', async() => {
+      await grid.goto({ mode: 'exact' });
+
+      const { content, arrow, contentBoxRight, scrollWidth, clientWidth, lineHeight } = await grid.metrics(0, 0);
+
+      expect(content).not.toBeNull();
+      expect(arrow).not.toBeNull();
+
+      // An exact-height row moves the value and the arrow into the `.htCellClip` wrapper. The
+      // reservation must follow: without it the arrow anchors to the wrapper and the value paints
+      // under it (the pre-fix behavior for this row shape).
+      expect((content as { height: number }).height).toBeLessThanOrEqual(lineHeight + 1);
+      // The value still overflows the narrow column, so "one line" means truncated.
+      expect(scrollWidth).toBeGreaterThan(clientWidth + 1);
+      // The arrow sits at or past the wrapper's content-box edge, so the value clips before it.
+      expect((arrow as { left: number }).left).toBeGreaterThanOrEqual(contentBoxRight - 1);
+    });
+
+    test('reserves the arrow at the leading edge in an exact-height RTL row', async() => {
+      await grid.goto({ mode: 'exact', dir: 'rtl' });
+
+      const { content, arrow, contentBoxLeft, lineHeight } = await grid.metrics(0, 0);
+
+      expect(content).not.toBeNull();
+      expect(arrow).not.toBeNull();
+
+      // Still one line inside the clip wrapper.
+      expect((content as { height: number }).height).toBeLessThanOrEqual(lineHeight + 1);
+      // `inset-inline-end: 0` flips to the wrapper's leading (left) edge, so the value clips before it.
+      expect((arrow as { right: number }).right).toBeLessThanOrEqual(contentBoxLeft + 1);
+    });
+
     test('reserves the arrow at the leading edge in RTL', async() => {
       await grid.goto({ mode: 'narrow', dir: 'rtl' });
 

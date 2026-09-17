@@ -54,6 +54,25 @@
         margin: 0;
       }
     }
+
+    // In an exact-height row (`rowHeightMode: 'exact'`) the engine moves the cell's content - the
+    // value and the arrow - into an absolutely positioned `.htCellClip` wrapper and zeroes the
+    // cell's own padding, so the reservation above (set on the TD) never reaches the arrow: the
+    // arrow's containing block becomes the wrapper, not the TD. Reapply the single-line treatment
+    // on the wrapper. Its `inset: <vpad> <hpad>` already carries the cell padding, so the arrow
+    // sits flush with the wrapper's trailing inner edge (`inset-inline-end: 0`) and the reserved
+    // padding drops the horizontal cell padding it would otherwise count twice; the wrapper's own
+    // vertical inset likewise removes the vertical padding from the arrow's offset.
+    tr.htExactRow > td.htAutocomplete > .htCellClip {
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      padding-inline-end: calc(var(--ht-icon-size) + var(--ht-gap-size) * 2);
+
+      .htAutocompleteArrow {
+        inset-inline-end: 0;
+        top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
+      }
+    }
   }
 
   // Kept for arrow usages outside a grid cell (e.g. the select editor overlay); the in-cell
