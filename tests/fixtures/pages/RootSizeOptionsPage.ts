@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 
 /**
  * The root element's inline size properties, plus the computed overflow the browser resolved from
@@ -61,7 +62,7 @@ export class RootSizeOptionsPage {
    */
   async goto(): Promise<void> {
     await this.page.goto(`/tests/fixtures/demo/root-size-options.html?theme=${this.theme}&bundle=${this.bundle}`);
-    await this.page.waitForFunction(() => 'Handsontable' in window);
+    await awaitBundle(this.page);
     await this.waitForRender();
   }
 
