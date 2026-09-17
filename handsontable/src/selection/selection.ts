@@ -2470,10 +2470,10 @@ class Selection {
 
   /**
    * Restores one range. A partially trimmed range SHRINKS onto its surviving records rather than
-   * being dropped, because `BaseEditor#saveValue()` fills the active range on `Ctrl+Enter`: dropping
-   * a partially trimmed active layer would hand that commit to whichever layer inherits the active
-   * slot, writing the typed value onto a record the user never edited. Trimming only removes
-   * records, so the survivors of a contiguous range stay contiguous and a `CellRange` still
+   * being dropped, because `Ctrl+Enter` fills every selected layer: dropping a partially trimmed
+   * layer would leave the records the user actually selected unwritten while the fill still reached
+   * the layers that survived, writing the typed value onto records they never edited. Trimming only
+   * removes records, so the survivors of a contiguous range stay contiguous and a `CellRange` still
    * describes them exactly. The ACTIVE layer with nothing left parks on its focus's pre-update slot
    * when the trim left that slot in range, and is dropped when the slot addresses nothing; a
    * non-active layer is dropped either way, as it is when its focus alone was trimmed, rather than
