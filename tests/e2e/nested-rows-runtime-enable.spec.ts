@@ -72,16 +72,18 @@ test.describe('NestedRows enabled at runtime', () => {
   test('re-sending the same setting leaves the rows and the collapsed state alone', async({ page, theme, bundle }) => {
     const nestedRows = new NestedRowsRuntimeEnablePage(page, theme, bundle);
 
+    const COLLAPSED_A2 = ['Root A', 'A-1', 'A-2', 'A-3', 'Root B'];
+
     await nestedRows.goto();
     await nestedRows.setNestedRows(true);
-    await nestedRows.collapseParent(2);
 
-    const painted = await nestedRows.paintedNames().allTextContents();
+    expect(await nestedRows.collapseParent(2)).toBe(true);
+    await expect(nestedRows.paintedNames()).toHaveText(COLLAPSED_A2);
 
     // What every React, Angular and Vue re-render sends: the same value, again.
     await nestedRows.setNestedRows(true);
 
-    await expect(nestedRows.paintedNames()).toHaveText(painted);
+    await expect(nestedRows.paintedNames()).toHaveText(COLLAPSED_A2);
     expect(await nestedRows.collapsedParents()).toEqual([2]);
   });
 
@@ -141,11 +143,10 @@ test.describe('NestedRows enabled at runtime', () => {
 
     await nestedRows.setNestedRows(false);
 
-    const selection = await nestedRows.selection();
-
     // Row 4 does not exist in the two-row grid. Left alone, a fill or a paste through those corners
-    // sizes itself from them and appends records.
-    expect(selection === null || selection[2] <= 1).toBe(true);
+    // sizes itself from them and appends records. The grid still has rows and columns, so the clamp
+    // is deterministic and never the deselect branch.
+    expect(await nestedRows.selection()).toEqual([0, 0, 1, 0]);
   });
 
   test('turning the plugin off discards an editor open on a row that disappears', async({ page, theme, bundle }) => {

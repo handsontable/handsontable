@@ -1,5 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
-import { awaitBundle } from '../bundle';
+import { awaitBundle, BUNDLE_POLLING_MS } from '../bundle';
 
 /**
  * Page Object for the fixture that starts with NestedRows turned OFF (DEV-2938).
@@ -76,9 +76,21 @@ export class NestedRowsRuntimeEnablePage {
     return this.page.evaluate(() => window.hot.getSelectedLast() ?? null);
   }
 
-  /** Turns the plugin on or off the way an app toggling the feature does. */
+  /**
+   * Turns the plugin on or off the way an app toggling the feature does, and waits for the grid to
+   * have drawn the row count that follows from it.
+   *
+   * The wait is the point: the toggle changes how many rows exist, and a caller that reads the DOM
+   * without an auto-retrying assertion would otherwise race the draw.
+   */
   async setNestedRows(value: boolean): Promise<void> {
     await this.page.evaluate(enabled => window.hot.updateSettings({ nestedRows: enabled }), value);
+
+    await this.page.waitForFunction(() => {
+      const master = window.hot.rootElement.querySelectorAll('.ht_master tbody tr');
+
+      return master.length === window.hot.countRows();
+    }, undefined, { polling: BUNDLE_POLLING_MS });
   }
 
   /** The text of the first column, top to bottom - what the user actually sees. */
