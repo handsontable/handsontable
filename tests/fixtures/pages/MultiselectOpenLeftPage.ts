@@ -82,10 +82,28 @@ export class MultiselectOpenLeftPage {
   }
 
   /**
+   * First option's checkbox in the open list.
+   */
+  firstOptionCheckbox(): Locator {
+    return this.firstOption().locator('input[type="checkbox"]');
+  }
+
+  /**
    * Search field at the top of the open list.
    */
   searchInput(): Locator {
     return this.dropdown.locator('.ht-multi-select-editor-search-input');
+  }
+
+  /**
+   * Filters the open list by typing into the search field.
+   *
+   * Waits on the first option showing the query so the next geometry read is
+   * after the filter, not a stale layout from the unfiltered list.
+   */
+  async filterBy(query: string): Promise<void> {
+    await this.searchInput().fill(query);
+    await expect(this.firstOption()).toContainText(query, { ignoreCase: true });
   }
 
   /**

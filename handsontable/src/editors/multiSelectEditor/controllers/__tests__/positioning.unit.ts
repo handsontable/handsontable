@@ -1,4 +1,5 @@
 import {
+  getDropdownInlineSpace,
   getFlippedInlineStartOffset,
   shouldFlipDropdownHorizontally,
 } from '../positioning';
@@ -41,5 +42,46 @@ describe('getFlippedInlineStartOffset', () => {
   it('shifts the dropdown so its inline end aligns with the cell inline end', () => {
     // Cell starts at 200, is 80px wide; dropdown is 250px → left = 200 - (250 - 80) = 30.
     expect(getFlippedInlineStartOffset(200, 250, 80)).toBe(30);
+  });
+});
+
+describe('getDropdownInlineSpace', () => {
+  it('computes start and end space from the given cell rect', () => {
+    // start 200 + width 80 = 280 to the cell's inline end; workspace 400 → 200 on the end side.
+    expect(getDropdownInlineSpace({ start: 200, width: 80 }, 400)).toEqual({
+      spaceInlineStart: 280,
+      spaceInlineEnd: 200,
+    });
+  });
+
+  it('changes the result when a different cell rect is passed', () => {
+    const leftCell = getDropdownInlineSpace({ start: 50, width: 80 }, 400);
+    const rightCell = getDropdownInlineSpace({ start: 250, width: 80 }, 400);
+
+    expect(leftCell.spaceInlineStart).toBe(130);
+    expect(rightCell.spaceInlineStart).toBe(330);
+    expect(leftCell.spaceInlineEnd).not.toBe(rightCell.spaceInlineEnd);
+  });
+
+  it('switches to viewport width and applies the window-scroll offset', () => {
+    expect(getDropdownInlineSpace(
+      { start: 200, width: 80 },
+      400,
+      { inlineStartOffset: -50, viewportWidth: 800 }
+    )).toEqual({
+      spaceInlineStart: 230,
+      spaceInlineEnd: 650,
+    });
+  });
+
+  it('clamps a window-scrolled start that would go negative', () => {
+    expect(getDropdownInlineSpace(
+      { start: 10, width: 20 },
+      400,
+      { inlineStartOffset: -100, viewportWidth: 800 }
+    )).toEqual({
+      spaceInlineStart: 0,
+      spaceInlineEnd: 820,
+    });
   });
 });

@@ -14,9 +14,11 @@ import {
   parseStringifiedValue,
 } from './utils/utils';
 import {
+  getDropdownInlineSpace,
   getFlippedInlineStartOffset,
   shouldFlipDropdownHorizontally,
 } from './controllers/positioning';
+import type { CellInlineBox, WindowScrollInlineMetrics } from './controllers/positioning';
 
 export const EDITOR_TYPE = 'multiselect';
 
@@ -246,24 +248,30 @@ export class MultiSelectEditor extends BaseEditor {
    *
    * When the list is wider than the remaining inline-end space, the wrapper shifts toward the
    * inline start so the list stays fully usable (DEV-1198).
+   *
+   * Filter keystrokes pass `false` so the side chosen on open/scroll cannot jump as the
+   * filtered list narrows. Check/uncheck uses the same sticky path. The wrapper offset
+   * still updates, so a flipped list stays pinned to the cell's inline end at the new width.
+   *
+   * @param {boolean} [reevaluateHorizontalFlip=true] When `false`, keep the current horizontal flip.
    */
-  refreshDimensions(): void {
-    if (!this.getEditedCell()) {
+  refreshDimensions(reevaluateHorizontalFlip: boolean = true): void {
+    const cellRect = this.getEditedCellRect();
+
+    if (!cellRect) {
       this.close();
 
       return;
     }
 
-    const { top, start, height, width } = this.getEditedCellRect()!;
+    const { top, start, height, width } = cellRect;
     const editorStyle = this.#editorContainer!.style;
     const inlineStartProp = this.hot.isRtl() ? 'right' : 'left';
-    const { spaceInlineStart, spaceInlineEnd } = this.#getInlineSpace(width);
+    const { spaceInlineStart, spaceInlineEnd } = this.#getInlineSpace(cellRect);
     const dropdownWidth = this.dropdownController!.getOuterWidth();
-    const flipHorizontally = shouldFlipDropdownHorizontally(
-      dropdownWidth,
-      spaceInlineStart,
-      spaceInlineEnd
-    );
+    const flipHorizontally = reevaluateHorizontalFlip
+      ? shouldFlipDropdownHorizontally(dropdownWidth, spaceInlineStart, spaceInlineEnd)
+      : this.isFlippedHorizontally;
 
     this.isFlippedHorizontally = flipHorizontally;
 
@@ -426,8 +434,11 @@ export class MultiSelectEditor extends BaseEditor {
     });
 
     this.dropdownController!.fillDropdown(filteredItems, this.#selectedItems.getItemsArray());
+    // Height-only: `updateDimensions(..., true)` keeps the vertical flip sticky.
+    // Pass `false` so the horizontal side chosen on open/scroll cannot jump as
+    // the filtered list narrows or widens (develop only called `updateDimensions`).
     this.dropdownController!.updateDimensions(this.#getAvailableSpace(), true);
-    this.refreshDimensions();
+    this.refreshDimensions(false);
   }
 
   /**
@@ -463,26 +474,23 @@ export class MultiSelectEditor extends BaseEditor {
    * Uses the same workspace / window-scroll split as
    * `HandsontableEditor.flipDropdownHorizontallyIfNeeded()`.
    *
-   * @param {number} cellWidth Pixel width of the edited cell.
+   * @param {object} cellRect Edited-cell box already returned by `getEditedCellRect()`.
+   * @param {number} cellRect.start Inline-start position of the cell.
+   * @param {number} cellRect.width Pixel width of the cell.
    * @returns {object} Remaining inline-start and inline-end space in pixels.
    */
-  #getInlineSpace(cellWidth: number): { spaceInlineStart: number; spaceInlineEnd: number } {
-    const cellRect = this.getEditedCellRect()!;
+  #getInlineSpace(cellRect: CellInlineBox): { spaceInlineStart: number; spaceInlineEnd: number } {
     const { view } = this.hot;
-    let spaceInlineStart = cellRect.start + cellWidth;
-    let workspaceWidth = view.getWorkspaceWidth();
+    let windowScroll: WindowScrollInlineMetrics | undefined;
 
     if (view.isHorizontallyScrollableByWindow()) {
-      const inlineStartOffset = view.getTableOffset().left - this.hot.rootWindow.scrollX;
-
-      spaceInlineStart = Math.max(spaceInlineStart + inlineStartOffset, 0);
-      workspaceWidth = this.hot.rootDocument.documentElement.clientWidth;
+      windowScroll = {
+        inlineStartOffset: view.getTableOffset().left - this.hot.rootWindow.scrollX,
+        viewportWidth: this.hot.rootDocument.documentElement.clientWidth,
+      };
     }
 
-    return {
-      spaceInlineStart,
-      spaceInlineEnd: workspaceWidth - spaceInlineStart + cellWidth,
-    };
+    return getDropdownInlineSpace(cellRect, view.getWorkspaceWidth(), windowScroll);
   }
 
   /**
@@ -504,7 +512,7 @@ export class MultiSelectEditor extends BaseEditor {
       this.#selectedItems.add(selectedValue);
     }
     this.#saveCurrentSelection();
-    this.refreshDimensions();
+    this.refreshDimensions(false);
   }
 
   /**
@@ -517,7 +525,7 @@ export class MultiSelectEditor extends BaseEditor {
       this.#selectedItems.remove(deselectedValue);
     }
     this.#saveCurrentSelection();
-    this.refreshDimensions();
+    this.refreshDimensions(false);
   }
 
   /**

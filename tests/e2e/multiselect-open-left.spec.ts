@@ -79,4 +79,53 @@ test.describe('multiselect opens to the left when there is no room on the right'
     expect(await grid.isReachable(grid.firstOption())).toBe(true);
     expect(await grid.isReachable(grid.searchInput())).toBe(true);
   });
+
+  test('last column — filtering a shorter match keeps the open-left flip', async () => {
+    const mixedSource = [
+      'Alpha port of call with a very long name',
+      'Bravo warehouse district on the northern quay',
+      'Zed',
+    ];
+
+    await grid.rebuild({
+      width: 400,
+      columns: [
+        { type: 'multiselect', source: mixedSource },
+        {},
+        { type: 'multiselect', source: mixedSource },
+      ],
+    });
+    await grid.openEditorAt(0, 2);
+
+    const before = await grid.placement(0, 2);
+
+    expect(await grid.isFlippedHorizontally()).toBe(true);
+    expect(before.dropdownLeft).toBeLessThan(before.cellLeft - 20);
+
+    await grid.filterBy('Zed');
+
+    const after = await grid.placement(0, 2);
+    const filteredWidth = after.dropdownRight - after.dropdownLeft;
+    const leftoverInlineEnd = after.gridRight - after.cellLeft;
+
+    // Precondition: the narrowed list would fit on the inline end, so a
+    // keystroke re-eval of the flip predicate would unflip. Width 400 leaves
+    // ~210px there vs the 120px min-width.
+    expect(filteredWidth).toBeLessThan(leftoverInlineEnd);
+
+    // Without a sticky flip the 120px min-width list would fit on the inline end
+    // and jump to the cell's left edge mid-typing.
+    expect(await grid.isFlippedHorizontally()).toBe(true);
+    expect(after.dropdownLeft).toBeLessThan(after.cellLeft - 20);
+    expect(Math.abs(after.dropdownRight - after.cellRight)).toBeLessThanOrEqual(3);
+    expect(await grid.isReachable(grid.firstOption())).toBe(true);
+    expect(await grid.isReachable(grid.searchInput())).toBe(true);
+
+    await grid.firstOptionCheckbox().click();
+
+    const afterToggle = await grid.placement(0, 2);
+
+    expect(await grid.isFlippedHorizontally()).toBe(true);
+    expect(Math.abs(afterToggle.dropdownRight - afterToggle.cellRight)).toBeLessThanOrEqual(3);
+  });
 });
