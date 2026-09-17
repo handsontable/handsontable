@@ -28,6 +28,12 @@ describe('collectAdjacentHiddenPhysicalIndexes', () => {
     expect(collectAdjacentHiddenPhysicalIndexes(2, 5, identityMap(5), new Set([1, 3]))).toEqual([1, 3]);
   });
 
+  it('should collect physical indexes from the visual map, not the visual indexes themselves', () => {
+    const notTrimmedIndexes = [10, 20, 30, 40, 50];
+
+    expect(collectAdjacentHiddenPhysicalIndexes(2, 5, notTrimmedIndexes, new Set([20, 40]))).toEqual([20, 40]);
+  });
+
   it('should stop at the first visible neighbor, leaving a non-adjacent hidden index out', () => {
     expect(collectAdjacentHiddenPhysicalIndexes(3, 5, identityMap(5), new Set([1]))).toEqual([]);
     expect(collectAdjacentHiddenPhysicalIndexes(2, 5, identityMap(5), new Set([0, 4]))).toEqual([]);
@@ -40,7 +46,7 @@ describe('collectAdjacentHiddenPhysicalIndexes', () => {
   it('should stop when a visual slot has no physical index', () => {
     const notTrimmedIndexes = [0, undefined, 2] as number[];
 
-    expect(collectAdjacentHiddenPhysicalIndexes(2, 3, notTrimmedIndexes, new Set([1]))).toEqual([]);
+    expect(collectAdjacentHiddenPhysicalIndexes(2, 3, notTrimmedIndexes, new Set([0]))).toEqual([]);
   });
 
   it('should not walk past visualCount even when the map is longer', () => {
@@ -55,7 +61,7 @@ describe('collectAdjacentHiddenPhysicalIndexes', () => {
     expect(target).toEqual([99, 2]);
   });
 
-  it('should collect a long contiguous stretch without overflowing the stack', () => {
+  it('should collect a long contiguous stretch after the visual index without overflowing the stack', () => {
     const visualCount = 50001;
     const notTrimmedIndexes = identityMap(visualCount);
     const hiddenPhysicalIndexes = new Set<number>();
@@ -74,5 +80,26 @@ describe('collectAdjacentHiddenPhysicalIndexes', () => {
     expect(result).toHaveLength(50000);
     expect(result[0]).toBe(1);
     expect(result[result.length - 1]).toBe(50000);
+  });
+
+  it('should collect a long contiguous stretch before the visual index in visual order', () => {
+    const visualCount = 50001;
+    const notTrimmedIndexes = identityMap(visualCount);
+    const hiddenPhysicalIndexes = new Set<number>();
+
+    for (let i = 0; i < visualCount - 1; i += 1) {
+      hiddenPhysicalIndexes.add(i);
+    }
+
+    const result = collectAdjacentHiddenPhysicalIndexes(
+      visualCount - 1,
+      visualCount,
+      notTrimmedIndexes,
+      hiddenPhysicalIndexes,
+    );
+
+    expect(result).toHaveLength(50000);
+    expect(result[0]).toBe(0);
+    expect(result[result.length - 1]).toBe(49999);
   });
 });
