@@ -89,13 +89,20 @@ deletes the property outright in an object data source.
 ## `getRangedData()` reads raw values, not `getCopyableData()` (DEV-2942)
 
 `Core#getCopyableData()` returns a **string**, as its docs and type always said. `getRangedData()`
-reads through the private `_getCopyableData()` instead, so `beforeCopy` and `beforeCut` keep handing
-consumers the values as they are stored. The clipboard text would come out identical either way,
-because `SheetClip.stringify()` already maps `null` and `undefined` to `''` and coerces everything
-else – the hooks are the reason for the split, and only `hooks/beforeCopy.spec.js` ("should be called
-with the cell values as they are stored") catches a swap back: no clipboard-text assertion can. The
-source-data branch keeps `getCopyableSourceData()`, which still returns the stored object for the JSON
-serialization below.
+reads through the private `_getCopyableData()` instead, for two reasons:
+
+- **The hooks.** `beforeCopy`, `afterCopy`, `beforeCut`, and `afterCut` all receive `getRangedData()`'s
+  output, and hand consumers the values as they are stored.
+- **The clipboard text.** `SheetClip.stringify()` builds the text with `str += value`, which reads an
+  object through `valueOf()` first. `getCopyableData()` runs `helpers/mixed#stringify()`, which calls
+  `toString()`. The two agree for primitives and `Date`, and differ for any object with its own
+  `valueOf()`, such as a Moment instance: the clipboard gets `1789`, `getCopyableData()` returns
+  `'2026-09-17'`.
+
+`_getCopyableData()` is not on the public `HotInstance` type, so the call goes through the local
+`HotInstanceInternal` type at the top of `copyPaste.ts`. `hooks/beforeCopy.spec.js` ("should be called
+with the cell values as they are stored") pins both reasons in one case. The source-data branch keeps
+`getCopyableSourceData()`, which still returns the stored object for the JSON serialization below.
 
 ## `SheetClip` and the trailing newline
 

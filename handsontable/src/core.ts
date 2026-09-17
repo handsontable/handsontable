@@ -4016,6 +4016,9 @@ export default function Core(
    * `null` and `undefined` to an empty string, and everything else through its `toString()`.
    * A cell with `copyable` disabled returns an empty string.
    *
+   * The text copied to the clipboard can differ for an object with its own `valueOf()`, because the
+   * clipboard reads such an object through `valueOf()` first.
+   *
    * @memberof Core#
    * @function getCopyableData
    * @param {number} row Visual row index.
@@ -4030,10 +4033,17 @@ export default function Core(
    * Returns the data's copyable value at specified `row` and `column` index, without converting it
    * to a string.
    *
-   * The clipboard and Autofill need the value as it is stored: Autofill writes it back into the
-   * grid, and both pass it to the `beforeCopy`, `beforeCut` and `beforeAutofill` hooks.
+   * The clipboard and Autofill need the value as it is stored. Autofill writes it back into the grid,
+   * the `beforeCopy`, `afterCopy`, `beforeCut`, `afterCut`, and `beforeAutofill` hooks hand it to
+   * consumers, and the clipboard text reads an object through `valueOf()` rather than `toString()`.
+   *
+   * Internal API: deliberately NOT declared on the public `HotInstance` type (`core/types.ts`), so it
+   * is not exposed to third-party code or the published `.d.ts`. The Autofill and CopyPaste plugins
+   * reach it through a local internal type. Do not add it to `HotInstance`.
    *
    * @private
+   * @memberof Core#
+   * @function _getCopyableData
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
    * @returns {*}

@@ -102,16 +102,17 @@ if (typeof copyableSourceData === 'string') {
   copyableSourceData.toUpperCase();
 }
 
-// Pins the widening. `unknown extends T` holds only when `T` is `unknown` itself, so narrowing
-// either return type back to `string` turns this into `false` and fails the assignment. A plain
-// narrowing block above cannot catch that — it compiles against `string` just as well.
-const copyableSourceDataIsUnknown: unknown extends ReturnType<HotInstance['getCopyableSourceData']>
-  ? true : false = true;
-const rawCopyableDataIsUnknown: unknown extends ReturnType<HotInstance['_getCopyableData']>
-  ? true : false = true;
+// Pins the widening. `0 extends 1 & T` holds only for `any`, so that case is rejected first, and
+// `unknown extends T` then holds only for `unknown` itself. Narrowing the return type back to `string`,
+// or loosening it to `any`, fails the assignment. The narrowing block above compiles against both.
+const copyableSourceDataIsUnknown: 0 extends 1 & ReturnType<HotInstance['getCopyableSourceData']>
+  ? false : unknown extends ReturnType<HotInstance['getCopyableSourceData']> ? true : false = true;
 
 copyableSourceDataIsUnknown === true;
-rawCopyableDataIsUnknown === true;
+
+// `_getCopyableData` is internal, so it must stay off the public `HotInstance` type.
+// @ts-expect-error `_getCopyableData` is not a declared `HotInstance` method, so it is not callable.
+hot._getCopyableData(123, 123);
 (hot as any).getCopyableText(123, 123, 123, 123).toUpperCase();
 hot.getData(123, 123, 123, 123).forEach((v) => {});
 hot.getDataAtCell(123, 123) === '';

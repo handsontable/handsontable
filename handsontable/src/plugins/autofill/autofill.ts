@@ -1,6 +1,7 @@
 import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
 import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 import type { CellProperties } from '../../settings';
+import type { HotInstance } from '../../core/types';
 import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import { isObject, isObjectEqual } from '../../helpers/object';
@@ -28,6 +29,15 @@ const INTERVAL_FOR_ADDING_ROW = 200;
 interface AutofillCellProperties extends CellProperties {
   _complexDataFormat?: unknown;
 }
+
+/**
+ * `HotInstance` augmented with the internal `_getCopyableData` method. It exists on the Core runtime
+ * object but is intentionally NOT part of the public `HotInstance` type, so it is not exposed to
+ * third-party code. Autofill reads cell values through it because they are written back into the grid.
+ */
+type HotInstanceInternal = HotInstance & {
+  _getCopyableData(row: number, column: number): unknown;
+};
 
 /**
  * This plugin provides "drag-down" and "copy-down" functionalities, both operated using the small square in the right
@@ -312,7 +322,7 @@ export class Autofill extends BasePlugin {
         } else {
           // The raw value, not `getCopyableData()`'s string: this data is written back into the
           // grid by `populateFromArray()`, so a number has to stay a number.
-          rowSet.push(this.hot._getCopyableData(r, c));
+          rowSet.push((this.hot as HotInstanceInternal)._getCopyableData(r, c));
         }
 
       });

@@ -164,7 +164,8 @@ cell. `_complexDataFormat` is a private plugin key with no public declaration �
 through `stringify()`. `getSelectionData()` must not call it. Its values are written back into the grid
 by `populateFromArray()` and handed to `beforeAutofill`, so a number has to stay a number. The loop
 reads through the private `_getCopyableData()` instead, which keeps the `copyable` gate and skips the
-conversion. Swap it back and a dragged `1` lands as `'1'`, a checkbox `true` as `'true'` – the
+conversion. The method is not on the public `HotInstance` type, so the call goes through the local
+`HotInstanceInternal` type at the top of `autofill.ts` – do not add it to `HotInstance`. Swap it back and a dragged `1` lands as `'1'`, a checkbox `true` as `'true'` – the
 non-string fill spec in `autofill.spec.js` and an older numeric fill spec both go red.
 `getCopyableSourceData()` is not affected: it still returns the stored value.
 

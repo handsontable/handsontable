@@ -647,30 +647,38 @@ that workaround.
 but it returned the cell value as stored: a number, a boolean, `null`, `undefined`, an array, or an
 object. It now returns a string, as documented.
 
-A value that is not already a string is converted the same way the clipboard converts it. Numbers
-and booleans become their text form, `null` and `undefined` become an empty string, and any other
-value goes through its `toString()`. A cell with [`copyable`](@/api/options.md#copyable) set to
-`false` still returns an empty string.
+A value that is not already a string is converted. Numbers and booleans become their text form,
+`null` and `undefined` become an empty string, and any other value goes through its `toString()`. A
+cell with [`copyable`](@/api/options.md#copyable) set to `false` still returns an empty string.
+
+The result can differ from the text copied to the clipboard for an object with its own `valueOf()`,
+such as an instance of a date library. The clipboard reads that object through `valueOf()`, while
+`getCopyableData()` uses `toString()`.
 
 Copying, cutting, and autofill are unaffected. The [`beforeCopy`](@/api/hooks.md#beforecopy),
-[`beforeCut`](@/api/hooks.md#beforecut), and [`beforeAutofill`](@/api/hooks.md#beforeautofill) hooks
+[`afterCopy`](@/api/hooks.md#aftercopy), [`beforeCut`](@/api/hooks.md#beforecut),
+[`afterCut`](@/api/hooks.md#aftercut), and [`beforeAutofill`](@/api/hooks.md#beforeautofill) hooks
 still receive the values as they are stored.
 
-[`getCopyableSourceData()`](@/api/core.md#getcopyablesourcedata) behaves the same as before. It still
-returns the source value as it is stored, nested objects included. Only its TypeScript return type
-changes, from `string` to `unknown`, which matches what it returns.
+[`getCopyableSourceData()`](@/api/core.md#getcopyablesourcedata) behaves the same as before at run
+time. It still returns the source value as it is stored, nested objects included. Its TypeScript
+return type changes from `string` to `unknown`, which matches what it returns.
 
 ### Who is affected
 
-- You call `getCopyableData()` and compare its result with a value that is not a string, for example
+- You compare the result of `getCopyableData()` with a value that is not a string, for example
   `hot.getCopyableData(0, 0) === 1`.
+- You read a property or an item of the result, for example `hot.getCopyableData(0, 0).name` on a
+  cell that holds an object. You now read it from a string, so you get `undefined` or a single
+  character, and no error is thrown.
 - You call `getCopyableSourceData()` from TypeScript and use its result as a string without checking
-  its type first.
+  its type first. That code no longer compiles.
 
 ### How to migrate
 
-Compare the result of `getCopyableData()` with a string, or read the stored value with
-[`getDataAtCell()`](@/api/core.md#getdataatcell) instead.
+To keep reading the value as it is stored, call [`getDataAtCell()`](@/api/core.md#getdataatcell)
+instead. Unlike `getCopyableData()`, it does not check the `copyable` option, so check it yourself if
+your code relies on it.
 
 **Before:**
 
@@ -683,7 +691,7 @@ if (hot.getCopyableData(0, 0) === 1) {
 **After:**
 
 ```js
-if (hot.getDataAtCell(0, 0) === 1) {
+if (hot.getCellMeta(0, 0).copyable && hot.getDataAtCell(0, 0) === 1) {
   hot.setDataAtCell(0, 1, 'Approved');
 }
 ```

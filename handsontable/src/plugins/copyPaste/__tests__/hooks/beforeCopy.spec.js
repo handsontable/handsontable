@@ -44,9 +44,10 @@ describe('CopyPaste', () => {
 
     it('should be called with the cell values as they are stored, not converted to strings', async() => {
       const beforeCopy = jasmine.createSpy('beforeCopy');
+      const releaseDate = { valueOf: () => 1789, toString: () => '2026-09-17' };
 
       handsontable({
-        data: [[1, true, null]],
+        data: [[1, true, null, releaseDate]],
         copyPaste: true,
         beforeCopy,
       });
@@ -54,15 +55,16 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      await selectCell(0, 0, 0, 2);
+      await selectCell(0, 0, 0, 3);
 
       plugin.copyCellsOnly();
       plugin.onCopy(copyEvent); // emulate native "copy" event
 
       expect(beforeCopy.calls.count()).toBe(1);
-      expect(beforeCopy.calls.argsFor(0)[0]).toEqual([[1, true, null]]);
-      // `SheetClip` serializes the raw values on the way out, so the clipboard text is unchanged.
-      expect(copyEvent.clipboardData.getData('text/plain')).toBe('1\ttrue\t');
+      expect(beforeCopy.calls.argsFor(0)[0]).toEqual([[1, true, null, releaseDate]]);
+      // `SheetClip` reads an object through `valueOf()`, so the clipboard gets `1789` where
+      // `getCopyableData()` would return the `toString()` result.
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe('1\ttrue\t\t1789');
     });
 
     it('should be called with coords and dataset points to the cells and the first column headers ' +
