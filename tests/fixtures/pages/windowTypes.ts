@@ -161,7 +161,10 @@ export interface FixtureHotInstance {
   rootSlotBottomElement: HTMLElement;
   getFirstFullyVisibleRow(): number;
   getLastFullyVisibleRow(): number;
+  getLastPartiallyVisibleRow(): number;
+  getLastPartiallyVisibleColumn(): number;
   getLastRenderedVisibleRow(): number;
+  getRowHeight(row: number): number | undefined;
   scrollViewportTo(options: { row?: number, col?: number, verticalSnap?: string }): boolean;
   selectCells(ranges: number[][]): boolean;
   selectColumns(fromCol: number, toCol: number): boolean;
@@ -334,6 +337,16 @@ declare global {
     instrumentDragOutsideCheck(): boolean;
     /** How many drag-outside measurements the healthy grid has taken since instrumentation. */
     dragOutsideCheckCount: number;
+    /** DEV-1159: `Element.prototype.scrollIntoView` calls since the oversized-cell counter reset. */
+    htScrollIntoViewCount: number;
+    /** DEV-1159: last `scrollIntoView` argument after the counter reset. */
+    htScrollIntoViewLastArgs: ScrollIntoViewOptions | boolean | undefined;
+    /**
+     * DEV-1159: dispatches mousedown/mouseup/click on a master cell. Installed
+     * with the `scrollIntoView` spy so last-partial clicks can read the index
+     * and fire the events in one evaluate.
+     */
+    dispatchMasterCellMouseClick: (row: number, col: number) => void;
     /**
      * Chromium-only InputDeviceCapabilities constructor, used to stamp synthetic mouse events
      * with their origin (DEV-2687).

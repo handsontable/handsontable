@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed custom borders configured with width 0 still painting a 1px edge.",
+  "type": "fixed",
+  "issueOrPR": 13550,
+  "breaking": false,
+  "framework": "none"
+}

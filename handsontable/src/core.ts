@@ -2865,7 +2865,7 @@ export default function Core(
    * because that method reads the first row's keys.
    *
    * On an **object** data source – including one whose [`dataSchema`](@/api/options.md#dataschema) is a function –
-   * that write is **deprecated as of 18.2.0** and will be ignored from 19.0.0 on: the value cannot become a column
+   * that write is **deprecated as of 19.0.0** and will be ignored from 20.0.0 on: the value cannot become a column
    * there, so it only adds a key the schema never declared. To write a field the grid shows no column for, address it
    * by property name with [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) instead.
    *
@@ -2900,7 +2900,7 @@ export default function Core(
         // function `dataSchema`.) The index then travels on as the property name, so
         // `dataMap.set()` mints a positional key on a row whose other fields are named:
         // `{ 2: 'x', id: 1 }` (#5409). No column renders it, yet it reaches every consumer that
-        // serializes the row. Deprecated in 18.2.0; the write is skipped from 19.0.0 on.
+        // serializes the row. Deprecated in 19.0.0; the write is skipped from 20.0.0 on.
         //
         // The predicate mirrors that gate's `=== 'array'` term - so it must be `!== 'array'` here
         // rather than `=== 'object'`. A function `dataSchema` sets `dataType` to `'function'`
@@ -2914,7 +2914,7 @@ export default function Core(
         if (instance.dataType !== 'array' && this.countCols() > 0) {
           deprecatedWarnOnce('Core.setDataAtCell.pastLastColumnOnObjectData',
             'Writing past the last column of an object data source is deprecated and will be ' +
-            'ignored in Handsontable 19.0.0. The value currently lands on a property named after ' +
+            'ignored in Handsontable 20.0.0. The value currently lands on a property named after ' +
             'the column index, which no column can display. Use `setDataAtRowProp()` to write a ' +
             'field the grid shows no column for.');
         }
@@ -3461,7 +3461,7 @@ export default function Core(
    *
    * @memberof Core#
    * @function markCellChanged
-   * @since 18.2.0
+   * @since 19.0.0
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
    * @example
@@ -3497,7 +3497,7 @@ export default function Core(
    *
    * @memberof Core#
    * @function markAllCellsChanged
-   * @since 18.2.0
+   * @since 19.0.0
    * @example
    * ```js
    * hot.markAllCellsChanged();

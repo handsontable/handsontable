@@ -1,21 +1,21 @@
 ---
 type: how-to
-title: Migrating from 18.1 to 18.2
-metaTitle: Migrating from 18.1 to 18.2 - JavaScript Data Grid | Handsontable
-description: Migrate from Handsontable 18.1 to Handsontable 18.2.
-permalink: /migration-from-18.1-to-18.2
-canonicalUrl: /migration-from-18.1-to-18.2
+title: Migrating from 18.1 to 19.0
+metaTitle: Migrating from 18.1 to 19.0 - JavaScript Data Grid | Handsontable
+description: Migrate from Handsontable 18.1 to Handsontable 19.0.
+permalink: /migration-from-18.1-to-19.0
+canonicalUrl: /migration-from-18.1-to-19.0
 pageClass: migration-guide
 react:
-  metaTitle: Migrate from 18.1 to 18.2 - React Data Grid | Handsontable
+  metaTitle: Migrate from 18.1 to 19.0 - React Data Grid | Handsontable
 angular:
-  metaTitle: Migrate from 18.1 to 18.2 - Angular Data Grid | Handsontable
+  metaTitle: Migrate from 18.1 to 19.0 - Angular Data Grid | Handsontable
 vue:
-  metaTitle: Migrate from 18.1 to 18.2 - Vue Data Grid | Handsontable
+  metaTitle: Migrate from 18.1 to 19.0 - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---
-Migrate from Handsontable 18.1 to Handsontable 18.2.
+Migrate from Handsontable 18.1 to Handsontable 19.0.
 
 For a detailed list of changes in this release, see the [Changelog](@/guides/upgrade-and-migration/changelog/changelog.md).
 
@@ -364,8 +364,8 @@ This applies only if you call [`registerShortcuts()`](@/api/formulas.md#register
 
 The `Alt`+`Enter` shortcut that opens a cell's link is a core grid shortcut now, registered for
 every grid, so the `Formulas` plugin has nothing left for either method to do. Both are deprecated
-no-op methods since 18.2.0, and each prints a one-time console warning when called. They will be
-removed in 19.0.0.
+no-op methods since 19.0.0, and each prints a one-time console warning when called. They will be
+removed in 20.0.0.
 
 Nothing else about the shortcut changes: `Alt`+`Enter` still opens the link of the selected cell the
 same way it always did.
@@ -436,7 +436,7 @@ Removing row `0`:
 |  | Rows removed | Rows left |
 | --- | --- | --- |
 | Up to 18.1 | 2 | 2 blank rows |
-| From 18.2 | 4 | none |
+| From 19.0 | 4 | none |
 
 ### Who is affected
 
@@ -451,7 +451,7 @@ Removing row `0`:
   the row array that hook receives instead.
 - You relied on the blank rows staying behind, for example by writing new values into them. They are
   gone.
-- You undo a removal. From 18.2, undo restores the parent and its descendants. Up to 18.1 it put
+- You undo a removal. From 19.0, undo restores the parent and its descendants. Up to 18.1 it put
   back one row and left the rest on screen with no data behind them.
 
 A tree two levels deep is unaffected. There, the direct children and all descendants are the same
@@ -578,7 +578,7 @@ the cell is marked invalid.
 This section applies whether or not you set [`renderMode`](@/api/options.md#rendermode).
 
 Since 18.0, Handsontable kept every `tr` and `td` element at its DOM position during a scroll and wrote
-the row that scrolled into it. In 18.2, a vertical scroll inside the grid's own scrollable area moves
+the row that scrolled into it. In 19.0, a vertical scroll inside the grid's own scrollable area moves
 the `tr` elements instead: a row that stays rendered keeps its element, and the rows that scrolled out
 wrap to the other end of the `tbody` and take the rows that scrolled in. The DOM order still matches
 the rendered order, so the first `tr` is still the first rendered row. The column axis is unchanged.
@@ -615,7 +615,7 @@ default `renderMode`. Under `renderMode: 'onChange'` such a cell is not repainte
 
 This applies to every grid that uses [`mergeCells`](@/api/options.md#mergecells).
 
-Before 18.2.0, moving the selection off a merged cell with a left or right arrow kept the row you
+Before 19.0.0, moving the selection off a merged cell with a left or right arrow kept the row you
 entered the merged cell on, so the result depended on the direction. Entering a three-row merged cell
 from below (arrow up) and pressing left landed one row lower than entering it from above (arrow down)
 and pressing left.

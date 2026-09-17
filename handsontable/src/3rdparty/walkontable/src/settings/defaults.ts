@@ -7,6 +7,9 @@ import type { SettingsPort } from '../ports';
  *
  * @property {Option} facade @todo desc.
  * @property {Option} ariaTags Option `ariaTags`.
+ * @property {Option} guid Option `guid` - the host instance's unique id, used to build the
+ *                         per-grid `id` on column headers that data cells reference through
+ *                         `aria-describedby` so a screen reader announces the header with the cell.
  * @property {Option} cellRenderer Option `cellRenderer`.
  * @property {Option} shouldPaintCell Option `shouldPaintCell` - asked before a cell element is reset and
  *                                    painted; answering `false` leaves the element exactly as it is.
@@ -256,6 +259,7 @@ export function getDefaults(settings: SettingsPort): Record<string, unknown> {
     headerClassName: null,
     rtlMode: false,
     ariaTags: true,
+    guid: '',
     stylesHandler: null,
   };
 }
