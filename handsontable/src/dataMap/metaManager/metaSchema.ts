@@ -395,7 +395,7 @@ export default (): Record<string, unknown> => {
      * autofill stops at the last column, so nothing is written there at all. A direct
      * [`setDataAtCell()`](@/api/core.md#setdataatcell) or [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) call
      * writes the value whatever this option is set to. On an object [`data`](#data) source that direct write is
-     * deprecated as of 18.2.0. See [`setDataAtCell()`](@/api/core.md#setdataatcell), which owns that rule.
+     * deprecated as of 19.0.0. See [`setDataAtCell()`](@/api/core.md#setdataatcell), which owns that rule.
      *
      * The option does not stop these ways of adding columns:
      * - The [`alter()`](@/api/core.md#alter) method, including its `insert_col_start` and `insert_col_end` actions.
@@ -639,7 +639,7 @@ export default (): Record<string, unknown> => {
      * @memberof Options#
      * @type {boolean|object}
      * @default false
-     * @since 18.2.0
+     * @since 19.0.0
      * @category AutoLink
      * @configScope grid columns cells cell
      *
@@ -1222,7 +1222,7 @@ export default (): Record<string, unknown> => {
      *
      * The height is the header's **border-box** height, so it includes the header's own top and
      * bottom borders. A column header carries a 1px border on each side, which makes
-     * `columnHeaderHeight: 40` leave a 38px content box for the label. Before Handsontable 18.2 the
+     * `columnHeaderHeight: 40` leave a 38px content box for the label. Before Handsontable 19.0 the
      * bottom border was dropped while the grid sat at the top of its scroll range and added back as
      * soon as it scrolled, so the same setting produced a 39px content box unscrolled and 38px
      * scrolled. The header keeps that border at every scroll position now, so the option resolves to
@@ -3303,7 +3303,11 @@ export default (): Record<string, unknown> => {
     /**
      * The `filters` option configures the [`Filters`](@/api/filters.md) plugin.
      *
-     * You can set the `filters` option to one of the following:
+     * The option takes different values at the two levels it works at, so they are listed
+     * separately below. At the grid level it switches the plugin on and carries its settings. Inside
+     * [`columns`](#columns) it does one thing only: `false` takes that column out of filtering.
+     *
+     * **At the grid level:**
      *
      * | Setting   | Description                                                          |
      * | --------- | -------------------------------------------------------------------- |
@@ -3311,32 +3315,80 @@ export default (): Record<string, unknown> => {
      * | `true`    | Enable the [`Filters`](@/api/filters.md) plugin                      |
      * | An object | Enable the [`Filters`](@/api/filters.md) plugin with custom settings |
      *
-     * If you set the `filters` option to an object, you can configure the following settings:
+     * If you set the `filters` option to an object, you can configure the following settings. Both
+     * of them are read once, for the whole grid, so neither can be set per column:
      *
-     * | Property                 | Possible values   | Description                            |
-     * | ------------------------ | ----------------- | -------------------------------------- |
-     * | `searchMode` | `'show'` \| `'apply'` | Enable filtering only visible elements |
+     * | Property           | Possible values       | Default  | Description                                                                                                                                                         |
+     * | ------------------ | --------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `searchMode`       | `'show'` \| `'apply'` | `'show'` | Enable filtering only visible elements                                                                                                                              |
+     * | `filterFixedRows`  | `true` \| `false`     | `true`   | `true`: Filter the whole dataset, including the rows pinned by [`fixedRowsTop`](#fixedrowstop) and [`fixedRowsBottom`](#fixedrowsbottom)<br>`false`: Leave the pinned rows out of the filter |
      *
-     * If filers is set to `true`, the `searchMode` option is set to `'show'` by default.
+     * Set `filterFixedRows` to `false` when the pinned rows hold totals or headings rather than data.
+     * Those rows are then never hidden by a filter, and their values are not offered in the
+     * **Filter by value** list.
+     *
+     * `filterFixedRows` has no effect while the [`DataProvider`](@/api/dataProvider.md) plugin is
+     * active: filtering then happens on the server, which knows nothing about frozen rows.
+     *
+     * With `filterFixedRows: false` and a filter applied, changing the row order re-runs the filter.
+     * Inserting, removing, or moving a row, and sorting, all change which rows sit in the frozen
+     * panes, so the exemption has to be worked out again. The
+     * [`beforeFilter`](@/api/hooks.md#beforefilter) and [`afterFilter`](@/api/hooks.md#afterfilter)
+     * hooks fire on those changes as well. Read them as "the filter ran", not as "the user changed
+     * a filter".
+     *
+     * **Inside `columns`:**
+     *
+     * | Setting        | Description                                                                          |
+     * | -------------- | ------------------------------------------------------------------------------------ |
+     * | `false`        | Hide the filter controls in this column's dropdown menu                              |
+     * | Anything else  | No effect – the column keeps whatever the grid-level setting gave it                  |
+     *
+     * The column's dropdown menu still opens, so entries such as **Clear column** stay available.
+     * The plugin's API is not affected either: [`addCondition()`](@/api/filters.md#addcondition)
+     * still filters such a column, the same way [`columnSorting`](#columnsorting)'s `headerAction`
+     * leaves sorting through the API working.
+     *
+     * An object written inside `columns` is **ignored**, and logs a warning once per grid. TypeScript
+     * does not reject it, because a column's settings are typed from the grid's, so treat the table
+     * above as the contract rather than the type.
+     *
+     * The switch is read from the column meta, which the [`cells`](#cells) and [`cell`](#cell)
+     * options do not reach, so filtering cannot be turned off for a single cell. Filtering works on
+     * whole columns, so there would be nothing for a per-cell value to mean.
      *
      * Read more:
      * - [Column filter](@/guides/columns/column-filter/column-filter.md)
      * - [Plugins: `Filters`](@/api/filters.md)
      * - [`dropdownMenu`](#dropdownMenu)
      *
-     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
-     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
-     *
      * @memberof Options#
-     * @type {boolean}
+     * @type {boolean|object}
      * @default undefined
      * @category Filters
-     * @configScope grid
+     * @configScope grid columns
      *
      * @example
      * ```js
      * // enable the `Filters` plugin
      * filters: true,
+     *
+     * // enable it, and keep the frozen rows out of the filter
+     * filters: {
+     *   filterFixedRows: false,
+     * },
+     *
+     * // turn filtering off for the second column only
+     * filters: true,
+     * columns: [
+     *   {},
+     *   { filters: false },
+     * ],
+     *
+     * // WRONG: the sub-options are grid-level, so this object is ignored and warns
+     * columns: [
+     *   { filters: { filterFixedRows: false } },
+     * ],
      * ```
      */
     filters: undefined,
@@ -5489,7 +5541,7 @@ export default (): Record<string, unknown> => {
      * | ------------------------ | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
      * | `pageSize`               | A number or `auto` (default: `10`)                 | Sets the number of rows displayed per page. If `'auto'` is set, the page size will be calculated to match all rows to the currently set table's viewport height  |
      * | `pageSizeList`           | An array (default: `['auto', 5, 10, 20, 50, 100]`) | Defines the selectable values for page size in the UI                                                                                                            |
-     * | `initialPage`            | A number (default: `1`)                            | Specifies which page to display on initial load                                                                                                                  |
+     * | `initialPage`            | A number (default: `1`)                            | Specifies which page to display on initial load. The plugin applies the value when it first enables and when you change it. Passing the same number again does not reset the current page. |
      * | `showPageSize`           | Boolean (default: `true`)                          | Controls visibility of the "page size" section                                                                                                                   |
      * | `showCounter`            | Boolean (default: `true`)                          | Controls visibility of the "page counter" section (e.g., "1 - 10 of 50");                                                                                        |
      * | `showNavigation`         | Boolean (default: `true`)                          | Controls visibility of the "page navigation" section                                                                                                             |
@@ -5829,13 +5881,20 @@ export default (): Record<string, unknown> => {
      * | `'onChange'`         | The cell is painted only when the element it lands in showed something else after its last paint: another cell, another value, another renderer, a changed cell meta (through [`setCellMeta()`](@/api/core.md#setcellmeta) or the [`cells`](#cells) function), or a structural change of the grid. |
      *
      * Under `'onChange'`, a render skips the cells whose paint would produce the same result as their
-     * last paint. Some changes are not detected, because nothing in the grid sees them:
+     * last paint. A vertical scroll keeps the elements of the rows that stay rendered, so it paints
+     * only the rows that enter the rendered area, plus the cells of merged blocks, whose span depends
+     * on that area. A horizontal scroll repaints the rendered cells, and so does any scroll in a grid
+     * that scrolls with the page. Some changes are not detected, because nothing in the grid sees
+     * them:
      * - a meta object mutated directly (`getCellMeta(row, col).x = y`, including inside the
      * [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta) and [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta) hooks),
      * - a value object mutated in place (the grid compares values by identity),
      * - state outside the grid that a renderer reads,
      * - a renderer that reads the data of other cells, such as the checkbox renderer with
-     * [`label.property`](#label).
+     * [`label.property`](#label),
+     * - a renderer that reads where the rendered area starts or ends, through
+     * [`getFirstRenderedVisibleRow()`](@/api/core.md#getfirstrenderedvisiblerow) or its siblings: a
+     * vertical scroll keeps such a cell as it is.
      *
      * Set `renderMode: 'always'` on such cells, or mark them with
      * [`markCellChanged()`](@/api/core.md#markcellchanged) before rendering. A [`cells`](#cells)
@@ -5855,7 +5914,7 @@ export default (): Record<string, unknown> => {
      * @default 'always'
      * @category Core
      * @configScope grid columns cells cell
-     * @since 18.2.0
+     * @since 19.0.0
      *
      * @example
      * ```js
@@ -6286,7 +6345,7 @@ export default (): Record<string, unknown> => {
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
-     * @since 18.2.0
+     * @since 19.0.0
      * @memberof Options#
      * @type {object|boolean}
      * @default undefined
@@ -6581,7 +6640,7 @@ export default (): Record<string, unknown> => {
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
-     * @since 18.2.0
+     * @since 19.0.0
      * @memberof Options#
      * @type {boolean|object}
      * @default undefined
@@ -8450,7 +8509,7 @@ export default (): Record<string, unknown> => {
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
-     * @since 18.2.0
+     * @since 19.0.0
      * @memberof Options#
      * @type {boolean|function(string, TextExtractorContext): string}
      * @default undefined

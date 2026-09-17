@@ -80,6 +80,18 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   an element that is present and visible. Centralize the choice in one page-object
   method so the reasoning is stated once
   (`CommentsEditorResizePage.hoverCellWithoutComment()`).
+- **A last dropdown option's unclipped centre is not a theme-stable hit-test.**
+  Horizon's menu-item padding is 8px (main is 4px), so the same four-row
+  multiselect list that fits on `main` is height-constrained by
+  `updateDimensions` and the last `<li>` sits below the dropdown's
+  `overflow: auto` fold. `getBoundingClientRect()` still reports that row;
+  `elementFromPoint` at its centre hits the page (`HTML`) while the list is
+  correctly placed and scrollable (DEV-1198). Hit-test a painted control
+  (`MultiselectOpenLeftPage.firstOption()` / the search field), not the
+  last row. The last-column open-left contract still fails without the
+  product flip: the first option is ~350px wide, so its centre sits past
+  the grid's `overflow: clip` when the list stays left-aligned with the
+  last cell.
 
 ## Fixture contract (never get these wrong)
 
@@ -190,14 +202,33 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   nothing asked the master where its band was. Reference:
   `e2e/iframe-cross-realm-scroll.spec.ts` (`masterRowBand()`).
 
+## Two clicks on the same cell are a double click
+
+`locator.click()` twice at the same point, with only `page.evaluate` calls in between, lands inside the
+browser's double-click interval and the grid opens the editor. The failure surfaces far away: the shortcut
+manager is on the `editor` context, so the `Ctrl`+`A` that follows selects nothing, and the test dies
+several steps later on a context-menu item that is missing because the selection is wrong. Nothing in the
+message mentions an editor.
+
+A page-object helper that starts with a click therefore takes the cell as a parameter
+(`EmptyDataStateShortcutsPage.selectAllWithKeyboard(row, col)`), so a test that calls it twice aims at a
+different cell the second time. Selecting through `hot.selectCell()` avoids it entirely where the spec does
+not need a real press.
+
 ## Touch and mobile specs
 
 - Page objects for mobile specs live in `fixtures/pages/mobile/` (as walkontable's do in
   `fixtures/pages/walkontable/`). A mobile spec must declare
   `test.use({ ...devices['iPhone 13'], browserName: 'chromium' })`: Handsontable decides
-  whether to create the mobile selection handles from the **user agent, at grid construction
-  time**, so without the emulation the handles never exist and the spec fails for the wrong
-  reason. Assert the handle is visible before touching it.
+  whether to create the mobile selection handles from `isMobileOrIpadOS()` at grid
+  construction time, so without the emulation the handles never exist and the spec fails for
+  the wrong reason. Assert the handle is visible before touching it.
+- iPhone emulation does **not** catch iPadOS 13+ (desktop Macintosh UA + `MacIntel` +
+  `maxTouchPoints > 2`). For that path, use Desktop Chrome, `hasTouch: true`, a Macintosh
+  Safari `userAgent`, and `addInitScript` that sets `navigator.platform = 'MacIntel'` and
+  `navigator.maxTouchPoints = 5` **before** the grid script loads (`setPlatformMeta` /
+  `setBrowserMeta` run at module load). Playwright Chromium on Linux reports `Linux x86_64`,
+  so a UA override alone is not enough. Reference: `e2e/ipad-selection-handles.spec.ts`.
 - `page.touchscreen` only **taps** — it has no drag. A touch drag needs CDP
   (`page.context().newCDPSession(page)` → `Input.dispatchTouchEvent`), which is also why those
   specs pin `browserName: 'chromium'`. Nothing else here emits trusted `touchmove`.

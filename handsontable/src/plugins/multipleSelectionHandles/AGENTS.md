@@ -2,14 +2,27 @@
 
 The `multipleSelectionHandles` plugin drives the two round grab-points on a selection's corners on touch devices. Read this before touching `multipleSelectionHandles.ts`.
 
-It is `@private` and has no setting: `isEnabled()` returns `isMobileBrowser()`, which is a **user-agent test evaluated when the plugin initializes**. Switching a browser into device emulation after the grid was built does nothing — reload, or no handles exist. That single fact is the most common reason a mobile test or manual check "fails" for the wrong reason.
+It is `@private` and has no setting: `isEnabled()` returns `isMobileOrIpadOS()`, which is evaluated when the plugin initializes. That covers a mobile user-agent **and** iPadOS 13+ Safari/Chrome, which report a desktop Macintosh UA (`isMobileBrowser()` is false, `isIpadOS()` is true). Switching a browser into device emulation after the grid was built does not create handles — reload, or no handles exist. `disappear()` / `appear()` must still guard `this.selectionHandles`, because `isIpadOS()` reads `maxTouchPoints` live and used to throw when the object was missing. That constructor-only create is the most common reason a mobile test or manual check "fails" for the wrong reason.
+
+**Do not fold iPadOS into `isMobileBrowser()`.** Walkontable `event.ts` keys listener registration on `isMobileBrowser()` only, so iPad keeps both touch and mouse listeners (DEV-2687). Selection-handle UI uses `isMobileOrIpadOS()`; the two predicates must stay distinct.
 
 ## This is the only drag path a phone has
 
-`3rdparty/walkontable/src/selection/border/border.ts` gates the desktop affordances behind `!isMobileBrowser()` and creates these handles instead (`createMultipleSelectorHandles`, keyed on `isMobileBrowser() && isDataViewInstance`). So on mobile:
+`3rdparty/walkontable/src/selection/border/border.ts` gates the desktop **resize** handles (`adjustHandles` / `selectionHandles` option) behind `!isMobileOrIpadOS()` and creates these handles instead (`createMultipleSelectorHandles`, keyed on `isMobileOrIpadOS() && isDataViewInstance`). The `moveCells` edge bands stay gated on `!isMobileBrowser()` so iPad (desktop UA) keeps the drag band it had before DEV-1081. Do not fold that gate into `isMobileOrIpadOS()` — that accidentally turned `moveCells` off on iPad.
+
+On a phone (`isMobileBrowser()`):
 
 - The desktop `selectionHandles` resize handles and the `moveCells` edge bands are **not rendered**, and `afterOnSelectionHandleMouseDown` / `afterOnSelectionEdgeMouseDown` **never fire**. A plugin waiting on those hooks is never armed on a phone.
-- A plain finger drag across cells is **native scrolling by design** — `walkontable/src/event.ts` defers the synthesized mousedown to `touchend` so a drag scrolls instead of selecting.
+
+On iPad (`isIpadOS()` but not `isMobileBrowser()`):
+
+- Mobile range handles are shown and the fill square is hidden.
+- Desktop resize handles (`adjustHandles`) stay off.
+- `moveCells` edge bands still render when the option is on.
+
+The round handles listen for `touchstart` / `touchmove` / `touchend` only — there is no `mousedown` on `topSelectionHandle-HitArea` / `bottomSelectionHandle-HitArea`. A trackpad or mouse therefore cannot resize via those handles. It still **moves** the selection through the 6px `wtMoveZone` bands, which listen for `mousedown` and sit at z-index 100 on the selection edge. The 40×40 handle hit area hangs off the corner, so most of it does not overlap the band; a mouse press on the painted handle that misses the band is a no-op. Do not add `mousedown` to the handles to "fix" that: it would steal the band's corner pixels and change the desktop-UA iPad product. Finger resize stays on the handles (`tests/e2e/ipad-selection-handles.spec.ts` pins both the mouse-on-band move and the mouse-on-handle no-resize).
+
+On both, a plain finger drag across cells is **native scrolling by design** — `walkontable/src/event.ts` defers the synthesized mousedown to `touchend` so a drag scrolls instead of selecting.
 
 Both together mean: if a feature should work while dragging on mobile, it has to hook into *this* plugin. DragToScroll does exactly that, by asking `isDraggedBy(touch.identifier)` from its own document-level `touchstart` listener (see `../dragToScroll/AGENTS.md`).
 

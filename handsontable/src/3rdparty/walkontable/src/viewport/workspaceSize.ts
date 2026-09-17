@@ -12,6 +12,7 @@
  * layout; off that path they measure the DOM directly.
  */
 import type { default as Viewport } from './viewport';
+import { subtractReservedHeight } from './layoutReservation';
 
 /**
  * The sub-pixel remainder between a used height read from the computed style and the whole-pixel
@@ -166,7 +167,12 @@ export function measureWorkspaceHeight(viewport: Viewport): number {
 
     // returns height without DIV scrollbar
     if (elemHeight > 0 && geometryReader.clientHeight(trimmingContainer as HTMLElement) > 0) {
-      height = geometryReader.clientHeight(trimmingContainer as HTMLElement);
+      // The owner's box is shared with the host's layout slots (see `layoutReservedHeight`); the
+      // table gets what is left, floored the same way the master table floors the holder.
+      const reservedHeight = viewport.wtSettings
+        .getSetting('layoutReservedHeight', trimmingContainer as HTMLElement);
+
+      height = subtractReservedHeight(geometryReader.clientHeight(trimmingContainer as HTMLElement), reservedHeight);
     } else {
       // Fall back to window height when the trimming container has zero client height
       // (e.g. a parent with overflow set but no explicit height). Returning Infinity

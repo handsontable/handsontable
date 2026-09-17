@@ -89,6 +89,7 @@
     "glob": "^7.2.0",
     "inquirer": "^8.1.1",
     "jsdoc-to-markdown": "^7.0.1",
+    "prettier": "^3.9.7",
     "rimraf": "^3.0.2",
     "semver": "^5.7.1",
     "typescript": "^5.4.0",

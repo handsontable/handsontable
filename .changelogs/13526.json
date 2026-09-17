@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a column sort that skipped the last data row when spare rows overlapped bottom-fixed rows, and that left spare rows sortable when `maxRows` and `minSpareRows` were set without bottom-fixed rows.",
+  "type": "fixed",
+  "issueOrPR": 13526,
+  "breaking": false,
+  "framework": "none"
+}

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed missing mobile selection range handles on iPadOS.",
+  "type": "fixed",
+  "issueOrPR": 13540,
+  "breaking": false,
+  "framework": "none"
+}

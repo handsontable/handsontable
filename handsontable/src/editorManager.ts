@@ -391,7 +391,7 @@ class EditorManager {
    * Close editor, finish editing cell.
    *
    * @param {boolean} restoreOriginalValue If `true`, then closes editor without saving value from the editor into a cell.
-   * @param {boolean} isCtrlPressed If `true`, then editor will save value to each cell in the last selected range.
+   * @param {boolean} isCtrlPressed If `true`, then editor will save value to each cell in every selected range.
    * @param {Function} callback The callback function, fired after editor closing.
    */
   closeEditor(restoreOriginalValue = false, isCtrlPressed = false, callback?: Function) {
@@ -406,7 +406,7 @@ class EditorManager {
   /**
    * Close editor and save changes.
    *
-   * @param {boolean} isCtrlPressed If `true`, then editor will save value to each cell in the last selected range.
+   * @param {boolean} isCtrlPressed If `true`, then editor will save value to each cell in every selected range.
    */
   closeEditorAndSaveChanges(isCtrlPressed?: boolean) {
     this.closeEditor(false, isCtrlPressed);
@@ -482,7 +482,15 @@ class EditorManager {
       enterMoves.col = -(enterMoves.col ?? 0);
     }
 
-    if (this.hot.selection.isMultiple()) {
+    // `transformStart()` lays a fresh selection, which drops every layer, so it is only right when
+    // there is nothing else selected to move within. `isMultiple()` reads the active layer alone, so
+    // a selection whose focused layer held a single cell took that branch and lost its other layers
+    // - visible since `Ctrl`/`Cmd`+`Enter` began filling them all (DEV-103), but wrong before that
+    // too, because a plain Enter discarded them just as silently.
+    const hasMoreThanOneCellSelected = this.hot.selection.isMultiple() ||
+      (this.hot.getSelectedRange()?.length ?? 0) > 1;
+
+    if (hasMoreThanOneCellSelected) {
       this.selection.transformFocus(enterMoves.row ?? 0, enterMoves.col ?? 0);
     } else {
       this.selection.transformStart(enterMoves.row ?? 0, enterMoves.col ?? 0, true);
@@ -603,10 +611,11 @@ class EditorManager {
    * For a pure trimming update, `Selection` separately snapshots every layer in physical coordinates
    * before the cache rebuild and restores surviving ranges afterwards. Keeping that operation out of
    * this manager prevents selection hooks from preparing an editor while the mapper is still
-   * unwinding. It lets editor-specific commit paths, including DropdownEditor and Ctrl+Enter, keep
+   * unwinding. It lets editor-specific commit paths, including DropdownEditor and `Ctrl+Enter`, keep
    * targeting a surviving record that moved because earlier records were trimmed. A range that loses
-   * only part of itself shrinks onto its surviving records instead of being dropped, so `Ctrl+Enter`
-   * keeps filling the layer holding the editor rather than one that merely inherited the active slot.
+   * only part of itself shrinks onto its surviving records instead of being dropped, so the
+   * `Ctrl+Enter` fill still reaches the records the user selected rather than only the layers that
+   * happened to survive the trim intact.
    *
    * A sequence permutation is deliberately outside that selection repair. Reordering can make the
    * records from one rectangular range non-contiguous, which `CellRange` cannot represent without

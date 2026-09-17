@@ -84,7 +84,7 @@ which **wipes** the stored settings (this plugin declares no `SETTINGS_VALIDATOR
 straight through). The re-enable then reads the *defaults*, so `allowSampleDuplicates: true` silently
 reverted to `false` on every unrelated `updateSettings()` call. `updatePlugin()` therefore restores the
 option from `hot.getSettings()[PLUGIN_KEY]` when the payload omits the key — the same repair
-`manualRowResize` makes for the same reason (`../manualResize/AGENTS.md`). The Vue wrapper makes this the
+`manualRowResize` makes for the same reason (`../../utils/manualResize/AGENTS.md`). The Vue wrapper makes this the
 common path: it omits every settings key whose value is unchanged.
 
 `samplingRatio` and `allowSampleDuplicates` go through the shared

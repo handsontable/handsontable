@@ -464,6 +464,15 @@ would be a frozen unmaintained snapshot.
 workflow writes the root `CHANGELOG.md` and the rolling `changelog/changelog.md`, and someone copies
 the version's section into the per-major page by hand, demoting `###` to `####`.
 
+**When you create the page for a new major, move the design system date with it.** The newest
+`changelog-<N>` page carries a hidden `data-design-system-updated` block under its intro line, filled
+in live from worker rule 18c. It belongs on the newest page only - the sidebar and the Introduction
+page link there, while nothing links the rolling `changelog/changelog.md`. Cut the whole block from the
+old page and paste it into the new one, blank lines included: the `[Design system](@/...)` link inside
+the `<div>` is only parsed as Markdown - and so only resolved per framework - when blank lines separate
+it from the tags. `src/scripts/__tests__/design-system-updated.test.mjs` fails if the newest page lacks
+the block, if an older page keeps it, or if the link loses that shape.
+
 When you edit a changelog page, **link every new option, hook, method, and plugin that an `Added`
 entry names**:
 
@@ -564,7 +573,7 @@ Worker rule 18b is the first rule in `_worker.js` that is neither a redirect nor
 
 The interactive grids rendered directly on a docs page are built from `docs/package.json`. That is a **third** copy of every example dependency, separate from the `handsontable` npm package (which carries its own `hyperformula` devDependency into `handsontable.full.js`) and from the demos.handsontable.com runner (which has its own `package.json`). Fixing one fixes neither of the others – check all three when a report names a version.
 
-A caret range does not track new releases. `pnpm-lock.yaml` pins the resolved version, so `"hyperformula": "^3.2.0"` still resolved to 3.3.0 a month after 3.4.0 shipped (DEV-2826: the page-freeze fix never reached the site). To move one, raise the specifier's floor in `docs/package.json`, then run `pnpm install --lockfile-only` from the repository root. The lockfile diff must be the two lines in the `docs:` importer and nothing else – see the lockfile-float entry in the root `AGENTS.md` for why a wider diff is a problem.
+A caret range does not track new releases. `pnpm-lock.yaml` pins the resolved version, so `"hyperformula": "^3.2.0"` still resolved to 3.3.0 a month after 3.4.0 shipped (DEV-2826: the page-freeze fix never reached the site). To move one, raise the specifier's floor in `docs/package.json`, then run `pnpm install --lockfile-only` from the repository root. The lockfile diff must be the two lines in the `docs:` importer and nothing else – see the lockfile-float entry in `.ai/CI.md` for why a wider diff is a problem.
 
 `docs-production.yml` deploys from `prod-docs/**` and installs with `--frozen-lockfile`, so develop is not what the live site serves, and `publish.yml` never regenerates the lockfile at a release cut. A bump on develop protects the next cut only. To fix what a user sees today, repeat the change on the live `prod-docs/<major>.<minor>` branch. Redo the edit there rather than cherry-picking the lockfile hunk: an older branch usually has no package or snapshot stanza for the new version at all, so applying the importer hunk by itself leaves an invalid lockfile. Copy both stanzas across too, then validate with `pnpm install --lockfile-only --frozen-lockfile`.
 

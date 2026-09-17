@@ -1,5 +1,5 @@
 import { A11Y_HIDDEN } from '../a11y';
-import { isSafariBefore261, isMobileBrowser, isIpadOS, isWindowsOS } from '../browser';
+import { isSafariBefore261, isMobileOrIpadOS, isWindowsOS } from '../browser';
 import { throwWithCause } from '../../helpers/errors';
 import { warnOnce } from '../../helpers/console';
 import type { SanitizerContext, TrustedHTMLLike } from '../../core/settings';
@@ -1496,7 +1496,7 @@ function walkontableCalculateScrollbarWidth(rootDocument = document) {
   // forces that via htScrollbarSafariTest so we get a correct non-zero width. We must only run
   // this fallback when isSafariBefore261(), otherwise Safari 26.1+ with overlay scrollbars would
   // be given 9px from the probe (which has no theme) while .wtHolder actually has 0-width overlay.
-  if (defaultScrollbarWidth === 0 && isSafariBefore261() && !isMobileBrowser() && !isIpadOS()) {
+  if (defaultScrollbarWidth === 0 && isSafariBefore261() && !isMobileOrIpadOS()) {
     return calculateScrollbarWidth(true);
   }
 
@@ -1838,4 +1838,24 @@ export function getChildEl<T extends HTMLElement = HTMLElement>(parent: ParentNo
   const node = parent.childNodes[index];
 
   return node ? (node as T) : null;
+}
+
+/**
+ * Removes the element's inline `style` attribute so that nothing of it remains. A bare
+ * `removeAttribute('style')` is not enough in Chromium: the attribute is synchronized lazily from the
+ * `element.style` declaration, and when the declaration was written and never read back, the removal
+ * lands before the synchronization and an empty `style=""` attribute is left behind. Reading the
+ * attribute first settles it, and the removal is then complete.
+ *
+ * The `hasAttribute` read IS the fix, not a shortcut: do not reduce the body to a bare
+ * `removeAttribute('style')`. jsdom does not reproduce the lazy synchronization, so no unit test can
+ * catch that; the `no-restricted-syntax` override for the Walkontable renderers in `.eslintrc.js`
+ * bans the bare call there instead.
+ *
+ * @param {HTMLElement} element The element to clear.
+ */
+export function removeInlineStyle(element: HTMLElement): void {
+  if (element.hasAttribute('style')) {
+    element.removeAttribute('style');
+  }
 }

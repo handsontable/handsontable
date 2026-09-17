@@ -70,6 +70,27 @@ export function warnOnce(scope: object, key: string, ...args: unknown[]): void {
 }
 
 /**
+ * Warns that a grid-level option was written inside `columns`, where it does nothing.
+ *
+ * Several plugins accept an options object at the grid level while a few of its keys only make
+ * sense for the whole table. A user who has learned that the other keys resolve per column will
+ * try those the same way and get no feedback at all, so each such plugin warns once per grid.
+ *
+ * Printed once per `scope` and `optionPath` pair: the column configuration is resolved again on
+ * every column meta cache rebuild, so an `updateSettings` would otherwise repeat the message.
+ *
+ * @param scope The per-instance object the "warn once" state is bound to, usually `hot.rootElement`.
+ * @param optionPath How the user would name the offending option, for example `columnSorting.sortFixedRows`.
+ * @param reason One sentence saying why the option cannot resolve per column.
+ */
+export function warnAboutGridLevelOptionInColumns(scope: object, optionPath: string, reason: string): void {
+  const optionName = optionPath.split('.').pop();
+
+  warnOnce(scope, `perColumn.${optionPath}`,
+    `The \`${optionName}\` option was set inside \`columns\`, where it has no effect. ${reason}`);
+}
+
+/**
  * Keys of deprecation and removal warnings that were already printed. Module-level on purpose:
  * a deprecated or removed API is reported once per page, regardless of how many grid instances
  * touch it, which is what the deprecation policy promises.

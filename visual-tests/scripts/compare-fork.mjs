@@ -4,12 +4,16 @@
  * Fork and Dependabot pull requests run on a downgraded token and receive no
  * Actions secrets, so they cannot authenticate against R2. Guarding the
  * comparison away would delete visual review for every external contributor,
- * which the fork-guard rules in the root `AGENTS.md` forbid.
+ * which the fork-guard rules in `.ai/CI.md` forbid.
  *
  * The bucket is public-read — that is what makes the report URLs work — so a
  * fork can read the golden records over plain HTTPS, diff locally, and publish
- * nothing. It writes the same `.reg/out.json` and `.reg/index.html` that
- * `reg-suit run` produces, so `visual-gate.mjs` gates both paths identically.
+ * nothing. It downloads only the records of the tier this build rendered
+ * (`lib/visual-tiers.mjs`) — the same subset `compare.mjs` prunes the fetched
+ * goldens to — so a pr-tier render is not reported as having deleted every
+ * variant it did not render. It writes the same `.reg/out.json` and
+ * `.reg/index.html` that `reg-suit run` produces, so `visual-gate.mjs` gates
+ * both paths identically.
  * What a fork does not get is the hosted report URL and the pull request
  * comment, both of which need write access it does not have.
  *
@@ -20,6 +24,8 @@ import { cp, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve, sep } from 'node:path';
 import { spawn } from 'node:child_process';
 import { toleranceFlags } from '../lib/tolerance-flags.mjs';
+import { isInTier } from '../lib/visual-tiers.mjs';
+import { getTier } from './utils/utils.mjs';
 
 const CONCURRENCY = 16;
 const ROOT = join(import.meta.dirname, '..');
@@ -36,6 +42,11 @@ const domain = process.env.VISUAL_REPORT_DOMAIN;
 // Golden PNGs are served with a 4-hour max-age and the keys are rewritten in
 // place, so a fresh manifest can otherwise be paired with stale cached images.
 const cacheBuster = process.env.GITHUB_RUN_ID || String(Date.now());
+
+// The tier the render job used, resolved the way `compare.mjs` resolves it, so
+// the downloaded subset matches what `screenshots/` holds. Resolved before the
+// fetch: an unknown VISUAL_TIER is a configuration error, not a network one.
+const tier = getTier();
 
 /**
  * Read the comparison tolerances from `regconfig.json` so both comparison paths
@@ -114,6 +125,7 @@ if (!expectedKey || !domain) {
     }
 
     const items = Array.isArray(manifest?.actualItems) ? manifest.actualItems : null;
+    const inTier = items ? items.filter(item => isInTier(item, tier.prefixes)) : [];
 
     if (manifest && (items === null || items.length === 0)) {
       // Treating this as an empty baseline would report every screenshot as new
@@ -123,10 +135,23 @@ if (!expectedKey || !domain) {
       console.error('Refusing to compare against an empty baseline; it is more likely truncated '
         + 'or malformed than genuinely empty.');
       process.exitCode = 1;
+    } else if (items && inTier.length === 0) {
+      // The goldens exist, so this is not the bootstrap path — but none of them
+      // is a variant this tier renders. Every tier renders `main` and
+      // `main-dark`, so no tier can seed such a baseline: it is an older golden
+      // layout or one left half-written by a killed seed, and comparing against
+      // it would report every screenshot as new with the same unexplained
+      // verdict as above.
+      console.error(`Tier "${tier.name}": the golden records at ${goldenUrl} hold none of this tier's `
+        + `variants (${tier.prefixes.join(', ')}).`);
+      console.error('That is an older golden layout or a half-written baseline, not a subset; a seed-tier '
+        + 'build of the base branch has to replace it before this tier can be compared.');
+      process.exitCode = 1;
     } else if (items) {
-      console.log(`Downloading ${items.length} golden records from ${goldenUrl} …`);
+      console.log(`Tier "${tier.name}": comparing ${inTier.length} of ${items.length} golden records.`);
+      console.log(`Downloading ${inTier.length} golden records from ${goldenUrl} …`);
 
-      const queue = [...items];
+      const queue = [...inTier];
       const failures = [];
 
       const worker = async() => {

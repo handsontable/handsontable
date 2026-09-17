@@ -49,3 +49,11 @@ When you deprecate a public API, do all of the following in the same PR:
 ## What is NOT considered breaking
 
 Changes to JavaScript APIs not listed in the public API reference (e.g., internal Walkontable code that does not affect the DOM or CSS). Note such changes in release notes.
+
+### `Handsontable.helper` and `Handsontable.dom` are internal
+
+Neither namespace has a page in the API reference — `docs/content/api/sidebar.js` lists no helpers and no DOM entry — and nothing generates one. They are filled at runtime by a loop in `handsontable/src/index.ts` that copies every export of the modules in its `HELPERS` and `DOM` lists (`helpers/array`, `helpers/function`, `helpers/dom/element`, and the rest), skipping names that start with `_`. `base.ts` types them the same way, as an intersection of `typeof import(...)`.
+
+So a new export added to one of those modules lands on the global object automatically, and that is **additive, not breaking**: it needs no changelog line, no docs page and no deprecation cycle. Use the `_` prefix only when you want the runtime copy skipped — `_injectProductInfo` and `_getLicenseState` in `helpers/mixed.ts` do — and know that the type still lists it, so the prefix hides it from the object, not from TypeScript.
+
+Two members escaped that rule by being taught to users, and they are the exception rather than the pattern: `Handsontable.dom.empty()` appears in a guide's cell-renderer example, and `Handsontable.helper.sanitize()` has a row in the deprecation policy table. A member a guide teaches is public in practice and earns a deprecation cycle. Removing or renaming anything else in these namespaces is still a judgement call, not a free action: it ships in the bundle and applications do reach for it.

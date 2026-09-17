@@ -300,10 +300,10 @@ export class HandsontableEditor extends TextEditor {
   }
 
   /**
-   * Finishes editing and start saving or restoring process for editing cell or last selected range.
+   * Finishes editing and start saving or restoring process for the editing cell, or for every selected range.
    *
    * @param {boolean} restoreOriginalValue If true, then closes editor without saving value from the editor into a cell.
-   * @param {boolean} ctrlDown If true, then saveValue will save editor's value to each cell in the last selected range.
+   * @param {boolean} ctrlDown If true, then saveValue will save editor's value to each cell in every selected range.
    * @param {Function} callback The callback function, fired after editor closing.
    */
   finishEditing(restoreOriginalValue?: boolean, ctrlDown?: boolean, callback?: () => void): void {

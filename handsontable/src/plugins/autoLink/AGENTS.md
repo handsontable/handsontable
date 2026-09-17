@@ -32,7 +32,7 @@ shares with `Formulas`.
   nothing on screen; a memoizing renderer never repaints, and under `renderMode: 'onChange'` no cell would
   otherwise be marked. `enablePlugin()` also calls `markAllCellsChanged()`, for the mirror reason: under
   `renderMode: 'onChange'` a bare `enablePlugin()` advances no render epoch, so nothing would paint the anchors.
-  Both `AutoLink` and `Formulas` (since 18.2.0) call `markAllCellsChanged()` in `enablePlugin()`, for that mirror
+  Both `AutoLink` and `Formulas` (since 19.0.0) call `markAllCellsChanged()` in `enablePlugin()`, for that mirror
   reason - `Formulas` gates its call on `#hyperlinksEnabled`, since with `hyperlinks` off there is nothing to
   repaint. `AutoLink` calls it in `disablePlugin()` too, as does `Comments`. `Formulas` calls it on BOTH
   transitions when hyperlinks were or become on - `disablePlugin()`, and the `hyperlinks`-off branch of

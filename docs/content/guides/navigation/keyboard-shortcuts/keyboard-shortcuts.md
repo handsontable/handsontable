@@ -85,14 +85,14 @@ These keyboard shortcuts help you select cells. They come from Handsontable's [`
 | <kbd>**Shift**</kbd>+<kbd>**End**</kbd>                                                               | <kbd>⇧</kbd>+<kbd>**End**</kbd>                                                             | Extend the selection to the last non-frozen cell of the current row<sup>\*\*\*</sup>  | &cross; | &cross; |
 | <kbd>**Shift**</kbd>+<kbd>**Page Up**</kbd>                                                           | <kbd>⇧</kbd>+<kbd>**Page Up**</kbd>                                                         | Extend the selection by one screen up                                             | &check; | &check; |
 | <kbd>**Shift**</kbd>+<kbd>**Page Down**</kbd>                                                         | <kbd>⇧</kbd>+<kbd>**Page Down**</kbd>                                                       | Extend the selection by one screen down                                           | &check; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>                                                              | <kbd>⌘</kbd>+<kbd>**Enter**</kbd>                                                             | Fill the selected range of cells with the value of the active cell<sup>\*\*\*\*</sup> | &cross; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>                                                              | <kbd>⌘</kbd>+<kbd>**Enter**</kbd>                                                             | Fill all the selected cells with the value of the active cell<sup>\*\*\*\*</sup> | &cross; | &check; |
 | <kbd>**Delete**</kbd>                                                                                 | <kbd>**Delete**</kbd>                                                                               | Clear the contents of the selected cells                                          | &check; | &check; |
 | <kbd>**Backspace**</kbd>                                                                              | <kbd>**Backspace**</kbd>                                                                            | Clear the contents of the selected cells                                          | &check; | &check; |
 
 <sup>*</sup> Does not work on macOS with multiple keyboard layouts. To work around this issue, add <kbd>Fn</kbd> to the key combination.<br>
 <sup>\*\*</sup> In case of multiple selection layers, only the last selection layer gets extended.<br>
 <sup>\*\*\*</sup> This action depends on your layout direction.<br> 
-<sup>\*\*\*\*</sup> This action works only for selections of two or more cells. The active highlight must be on a cell, not on a row header, column header, or corner.<br>
+<sup>\*\*\*\*</sup> This action works only when your selection holds at least one other cell you can edit, across any selection layer. The active highlight must be on a cell, not on a row header, column header, or corner.<br>
 
 ## Edition keyboard shortcuts
 
@@ -115,10 +115,11 @@ These keyboard shortcuts work when you're editing a cell's contents. They come f
 | <kbd>**Page Up**</kbd>                                | <kbd>**Page Up**</kbd>                                      | Complete the cell entry and move one screen up                     | &check; | &check; |
 | <kbd>**Page Down**</kbd>                              | <kbd>**Page Down**</kbd>                                    | Complete the cell entry and move one screen down                   | &check; | &check; |
 | <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd>               | <kbd>⌥</kbd>+<kbd>**Enter**</kbd>                  | Insert a line break                                                | &cross; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>              | <kbd>⌃</kbd>/<kbd>⌘</kbd>+<kbd>**Enter**</kbd> | Insert a line break                                                | &cross; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>              | <kbd>⌃</kbd>/<kbd>⌘</kbd>+<kbd>**Enter**</kbd> | Insert a line break<sup>\*\*</sup>                                 | &cross; | &check; |
 | <kbd>**Escape**</kbd>                                 | <kbd>**Escape**</kbd>                                       | Cancel the cell entry and exit the editing mode                    | &check; | &check; |
 
-<sup>\*</sup> This action depends on your layout direction.
+<sup>\*</sup> This action depends on your layout direction.<br>
+<sup>\*\*</sup> This action inserts a line break only when the shortcut has no other cell to write to. If your selection holds any other cell you can edit, across any selection layer, this shortcut saves the edited value into all of those cells instead.
 
 ### Checkbox editor keyboard shortcuts
 
