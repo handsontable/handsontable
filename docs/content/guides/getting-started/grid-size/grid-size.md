@@ -32,6 +32,8 @@ You need to define the grid's container as a starting point to initialize it. Us
 
 Both `width` and `height` could be defined as inline styles or as a CSS class property. In this case, it's important to define what should be an `overflow` parent properly. Handsontable looks for the closest element with `overflow: auto` or `overflow: hidden` to use it as a scrollable container. If no such element is found, a window will be used.
 
+A container with a CSS `height` but no `overflow` does not size the grid. The grid then follows the window and grows past that container. Handsontable's own bars (the pagination bar, the sheets bar) share the scrollable container with the grid, and the grid leaves room for them.
+
 ::: tip
 
 Handsontable doesn't observe CSS changes for containers out of the box.
@@ -473,7 +475,7 @@ For live examples of both modes, see the [column stretching](@/guides/columns/co
 
 Handsontable observes window resizing. If the window's dimensions have changed, then we check if Handsontable should resize itself too. Due to the performance issue, we use the debounce method to respond on window resize.
 
-You can easily overwrite this behaviour by returning `false` in the [`beforeRefreshDimensions`](@/api/hooks.md#beforerefreshdimensions) hook.
+You can easily overwrite this behavior by returning `false` in the [`beforeRefreshDimensions`](@/api/hooks.md#beforerefreshdimensions) hook.
 
 ::: only-for javascript
 

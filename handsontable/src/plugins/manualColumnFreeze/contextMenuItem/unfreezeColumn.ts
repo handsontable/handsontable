@@ -19,7 +19,6 @@ export default function unfreezeColumnItem(manualColumnFreezePlugin: unknown) {
 
       (manualColumnFreezePlugin as { unfreezeColumn: Function }).unfreezeColumn(selectedColumn);
 
-      this.view.adjustElementsSize();
       this.render();
     },
     // The menu rebuilds its items on every open, so a disabled plugin contributes none. The

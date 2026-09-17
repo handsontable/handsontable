@@ -211,19 +211,15 @@ describe('settings', () => {
       // header + 1 data row
       expect(getMaster().height()).toBe(layout.overlayHeight({ rows: 2 }));
       // header only (with data present, no first-row compensation)
-      expect(getTopClone().height()).toBe(layout.overlayHeight({ rows: 1, includeFirstRowCompensation: false }));
-      expect(getTopInlineStartClone().height()).toBe(
-        layout.overlayHeight({ rows: 1, includeFirstRowCompensation: false })
-      );
+      expect(getTopClone().height()).toBe(layout.columnHeaderBandHeight());
+      expect(getTopInlineStartClone().height()).toBe(layout.columnHeaderBandHeight());
       expect(getInlineStartClone().height()).toBe(layout.overlayHeight({ rows: 2 }));
       await alter('insert_row_above', 0);
 
       // header + 2 data rows
       expect(getMaster().height()).toBe(layout.overlayHeight({ rows: 3 }));
-      expect(getTopClone().height()).toBe(layout.overlayHeight({ rows: 1, includeFirstRowCompensation: false }));
-      expect(getTopInlineStartClone().height()).toBe(
-        layout.overlayHeight({ rows: 1, includeFirstRowCompensation: false })
-      );
+      expect(getTopClone().height()).toBe(layout.columnHeaderBandHeight());
+      expect(getTopInlineStartClone().height()).toBe(layout.columnHeaderBandHeight());
       expect(getInlineStartClone().height()).toBe(layout.overlayHeight({ rows: 3 }));
     });
 
@@ -237,20 +233,20 @@ describe('settings', () => {
         columns: [{}]
       });
 
-      expect(getTopClone().height()).toBe(layout.overlayHeight({ rows: 1, includeFirstRowCompensation: false }));
+      expect(getTopClone().height()).toBe(layout.columnHeaderBandHeight());
 
       await updateSettings({ fixedRowsBottom: 0 });
 
-      expect(getTopClone().height()).toBe(layout.overlayHeight({ rows: 1, includeFirstRowCompensation: false }));
+      expect(getTopClone().height()).toBe(layout.columnHeaderBandHeight());
 
       await updateSettings({ fixedRowsBottom: 1 });
 
-      expect(getTopClone().height()).toBe(layout.overlayHeight({ rows: 1, includeFirstRowCompensation: false }));
+      expect(getTopClone().height()).toBe(layout.columnHeaderBandHeight());
 
       await updateSettings({ data: [] });
 
       // The only header (when there is no cells - even when the `fixedRowsBottom` isn't defined) has such height.
-      expect(getTopClone().height()).toBe(layout.firstRenderedRowDefaultHeight);
+      expect(getTopClone().height()).toBe(layout.columnHeaderBandHeight());
     });
 
     it('should not throw an error when the row is removed from the bottom overlay (#dev-2351)', async() => {

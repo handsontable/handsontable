@@ -1,5 +1,39 @@
 const { BROWSERS_LIST } = require('../browser-targets');
 
+// The `no-restricted-syntax` bans every source file shares. A const, because an override that adds
+// a ban for one directory REPLACES the rule options for those files, so it has to spread this list.
+const RESTRICTED_SYNTAX = [
+  'error',
+  'ForInStatement',
+  'LabeledStatement',
+  'WithStatement',
+  {
+    selector: "CallExpression[callee.property.name='toLocaleLowerCase'], CallExpression[callee.property.name='toLocaleUpperCase']",
+    message: 'Do not call String.prototype.toLocaleLowerCase/toLocaleUpperCase directly. Use localeLowerCase() from helpers/string — it avoids the slow Intl path for non-tailoring locales and is locale-correct. See handsontable/.ai/CONVENTIONS.md.',
+  },
+  // ES-version compliance with the library's declared build target (../browser-targets.js:
+  // Chrome >= 130, Edge >= 130, Firefox >= 132, Safari >= 18.2, iOS >= 18.2). swc lowers
+  // *syntax* only — it never injects core-js polyfills — so any instance/static method newer
+  // than the oldest targeted engine throws `X is not a function` on a supported browser. The
+  // API floor is also pinned as `lib` in ./tsconfig.json (kept in sync with
+  // ../browser-targets.js by ES_TARGET), which catches prototype methods this rule would miss;
+  // both must be pruned together whenever the floors move. `compat/compat` cannot see these: it
+  // does not resolve prototype methods on non-literal receivers, which is how `toSorted` and
+  // `Array#at` shipped in 18.0.0.
+  //
+  // `with` is the only method this repo's own core-js-compat data.json places above the floor,
+  // and it is above on two engines at once: `Array#with` is Firefox 140 against our Firefox 132,
+  // and `TypedArray#with` is Safari/iOS 26.0 against our 18.2. The selector cannot tell the two
+  // receivers apart, so the message names both — a developer who hits this on a typed array and
+  // reads only the Firefox number would conclude the rule misfired and add a disable. Their
+  // ES2023 siblings toSorted/toSpliced/toReversed sit inside the floor and are allowed.
+  // Test files are exempt (no-restricted-syntax is off for them).
+  {
+    selector: "CallExpression[callee.property.name='with']",
+    message: 'Array#with needs Firefox 140+ and TypedArray#with needs Safari/iOS 26+, both above the ../browser-targets.js baseline (Firefox >= 132, Safari >= 18.2, iOS >= 18.2). Use arr.slice() plus an index assignment instead.',
+  },
+];
+
 module.exports = {
   extends: ['../.eslintrc.js'],
   parser: '@babel/eslint-parser',
@@ -19,37 +53,8 @@ module.exports = {
   rules: {
     'compat/compat': 'error',
     'handsontable/no-native-error-throw': 'error',
-    'no-restricted-syntax': [
-      'error',
-      'ForInStatement',
-      'LabeledStatement',
-      'WithStatement',
-      {
-        selector: "CallExpression[callee.property.name='toLocaleLowerCase'], CallExpression[callee.property.name='toLocaleUpperCase']",
-        message: 'Do not call String.prototype.toLocaleLowerCase/toLocaleUpperCase directly. Use localeLowerCase() from helpers/string — it avoids the slow Intl path for non-tailoring locales and is locale-correct. See handsontable/.ai/CONVENTIONS.md.',
-      },
-      // ES-version compliance with the library's declared build target (../browser-targets.js:
-      // Chrome >= 130, Edge >= 130, Firefox >= 132, Safari >= 18.2, iOS >= 18.2). swc lowers
-      // *syntax* only — it never injects core-js polyfills — so any instance/static method newer
-      // than the oldest targeted engine throws `X is not a function` on a supported browser. The
-      // API floor is also pinned as `lib` in ./tsconfig.json (kept in sync with
-      // ../browser-targets.js by ES_TARGET), which catches prototype methods this rule would miss;
-      // both must be pruned together whenever the floors move. `compat/compat` cannot see these: it
-      // does not resolve prototype methods on non-literal receivers, which is how `toSorted` and
-      // `Array#at` shipped in 18.0.0.
-      //
-      // `with` is the only method this repo's own core-js-compat data.json places above the floor,
-      // and it is above on two engines at once: `Array#with` is Firefox 140 against our Firefox 132,
-      // and `TypedArray#with` is Safari/iOS 26.0 against our 18.2. The selector cannot tell the two
-      // receivers apart, so the message names both — a developer who hits this on a typed array and
-      // reads only the Firefox number would conclude the rule misfired and add a disable. Their
-      // ES2023 siblings toSorted/toSpliced/toReversed sit inside the floor and are allowed.
-      // Test files are exempt (no-restricted-syntax is off for them).
-      {
-        selector: "CallExpression[callee.property.name='with']",
-        message: 'Array#with needs Firefox 140+ and TypedArray#with needs Safari/iOS 26+, both above the ../browser-targets.js baseline (Firefox >= 132, Safari >= 18.2, iOS >= 18.2). Use arr.slice() plus an index assignment instead.',
-      },
-    ],
+    'handsontable/require-tracked-hook-in-enable': 'error',
+    'no-restricted-syntax': RESTRICTED_SYNTAX,
     'handsontable/restricted-module-imports': [
       'error',
       '**/cellTypes',
@@ -67,6 +72,24 @@ module.exports = {
     ],
   },
   overrides: [
+    // The renderers reset a cell element between rows. A bare `removeAttribute('style')` leaves an
+    // empty `style=""` behind in Chromium when the inline style was written and never read back (the
+    // attribute is synchronized lazily); `removeInlineStyle()` from helpers/dom/element reads it
+    // first. jsdom does not reproduce the trap, so no unit test can pin it — this rule does.
+    {
+      files: ['src/3rdparty/walkontable/src/render/**/*.ts'],
+      rules: {
+        'no-restricted-syntax': [
+          ...RESTRICTED_SYNTAX,
+          {
+            selector: "CallExpression[callee.property.name='removeAttribute'][arguments.0.value='style']",
+            message: 'Do not call removeAttribute(\'style\') in a renderer: Chromium leaves an empty '
+              + 'style="" behind when the inline style was never read back. '
+              + 'Use removeInlineStyle() from helpers/dom/element.',
+          },
+        ],
+      },
+    },
     // TypeScript source files — use @typescript-eslint/parser so all rules
     // (max-len, no-native-error-throw, restricted-module-imports, …) apply to .ts.
     // Type-aware rules are active via projectService, which resolves the correct tsconfig

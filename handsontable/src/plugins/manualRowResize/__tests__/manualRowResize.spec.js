@@ -739,8 +739,11 @@ describe('manualRowResize', () => {
     $resizer.simulate('mousemove', { clientY: resizerPosition.top + 30 });
     $resizer.simulate('mouseup');
 
+    // The same content height in all three rows now. Row 0 used to report one pixel less, because it
+    // drew its own `border-top` inside the same border-box height; the column header owns that
+    // gridline since DEV-2786.
     expect(getInlineStartClone().find('tbody tr:eq(0) th:eq(0)').height()).toBe(
-      getThemeLayout().defaultDataRowHeight + 28);
+      getThemeLayout().defaultDataRowHeight + 29);
     expect(getInlineStartClone().find('tbody tr:eq(1) th:eq(0)').height()).toBe(
       getThemeLayout().defaultDataRowHeight + 29);
     expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height()).toBe(

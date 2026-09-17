@@ -4,6 +4,7 @@ import {
   removeClass,
   setAttribute,
   removeAttribute,
+  removeInlineStyle,
 } from '../../../../helpers/dom/element';
 import { BaseRenderer } from './_base';
 import { OrderView } from '../utils/orderView';
@@ -70,6 +71,11 @@ export class ColumnHeadersRenderer extends BaseRenderer {
       columnHeadersCount, columnHeaderFunctions, columnsToRender, rowHeadersCount, columnHeaderRows
     } = this.table;
     const allColumnsToRender = columnsToRender + rowHeadersCount;
+    // Draw-constant, so resolved once rather than per header (mirrors the cells renderer): the id
+    // prefix a data cell references through `aria-describedby`, empty without an instance id (DEV-29),
+    // and the frozen-column count the ownership check needs (a mapper-walking function in core).
+    const columnHeaderIdPrefix = this.table.isAriaEnabled() ? this.table.getAriaColumnHeaderIdPrefix() : '';
+    const fixedColumnsStart = columnHeaderIdPrefix ? this.table.getFixedColumnsStart() : 0;
 
     for (let visibleRowIndex = 0; visibleRowIndex < columnHeadersCount; visibleRowIndex++) {
       const TR = columnHeaderRows!.getRenderedNode(visibleRowIndex);
@@ -98,21 +104,38 @@ export class ColumnHeadersRenderer extends BaseRenderer {
 
         TH.className = '';
         clearAppliedSelection(TH);
-        TH.removeAttribute('style');
+        removeInlineStyle(TH);
 
-        // Remove all accessibility-related attributes for the header to start fresh.
+        // Remove all accessibility-related attributes for the header to start fresh. `id` is stripped
+        // too because it is reused across draws on pooled nodes and only the master overlay's leaf
+        // header re-stamps it below - without the strip a header that stops being the leaf/master
+        // header (or a corner cell reused as a header) would keep a stale id a data cell points at.
         removeAttribute(TH, [
           /aria-(.*)/,
-          /role/
+          /role/,
+          /^id$/
         ]);
 
         if (this.table.isAriaEnabled()) {
+          // The leaf header row carries the id a data cell references through `aria-describedby`. Only
+          // the overlay that owns the column stamps it, so exactly one header in the grid holds each id
+          // (a frozen column is owned by the inline-start overlay, every other column by the master -
+          // see `ownsAriaColumnHeaderId`). The leaf row is the one that is 1:1 with a column; higher
+          // rows in nested headers are colspanned group labels and are left out of v1.
+          const columnHeaderId = columnHeaderIdPrefix &&
+            renderedColumnIndex >= 0 &&
+            visibleRowIndex === columnHeadersCount - 1 &&
+            this.table.ownsAriaColumnHeaderId(sourceColumnIndex, fixedColumnsStart)
+            ? `${columnHeaderIdPrefix}${sourceColumnIndex}`
+            : '';
+
           setAttribute(TH, [
             A11Y_COLINDEX(visibleColumnIndex + 1),
             A11Y_TABINDEX(-1),
             A11Y_COLUMNHEADER(),
             ...(renderedColumnIndex >= 0 ? [
               A11Y_SCOPE_COL(),
+              ...(columnHeaderId ? [['id', columnHeaderId] as [string, string]] : []),
             ] : [
               // Adding `role=row` to the corner headers to prevent
               // https://github.com/handsontable/dev-handsontable/issues/1574
@@ -123,6 +146,17 @@ export class ColumnHeadersRenderer extends BaseRenderer {
         }
 
         columnHeaderFunctions[visibleRowIndex](sourceColumnIndex, TH, visibleRowIndex);
+
+        // The LAST of this row's `rowHeadersCount` corner cells: it owns the head row's copy of the
+        // seam to column 0, which the theme rule colors. CSS cannot pick it out - a corner is a `th`
+        // like the column headers beside it - so `:first-child` was the rule's old key and it selects
+        // the wrong corner once there are two. `rowHeadersCount === 0` needs no guard: the target is
+        // then -1 and this loop counts up from 0. Stamped after the header renderer runs, which is
+        // free to assign to `TH.className`. Why no clearing pass, and what would need one:
+        // AGENTS.md, "Column-axis border ownership".
+        if (visibleColumnIndex === rowHeadersCount - 1) {
+          addClass(TH, 'htLastRowHeaderColumn');
+        }
       }
 
       orderView.end();

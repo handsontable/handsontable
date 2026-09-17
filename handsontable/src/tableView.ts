@@ -227,15 +227,6 @@ class TableView {
    */
   #rowHeadersCount = 0;
   /**
-   * The flag determines if the `adjustElementsSize` method call was made during
-   * the render suspending. If true, the method has to be triggered once after render
-   * resuming.
-   *
-   * @private
-   * @type {boolean}
-   */
-  postponedAdjustElementsSize = false;
-  /**
    * The measurement-only probe of the rendered grid. Runs after each full master draw to record
    * content-driven row and column-header heights. It does not yet feed those values back into
    * rendering (see {@link RenderSizeProbe}).
@@ -294,6 +285,11 @@ class TableView {
    * @type {number}
    */
   #lastHeight = 0;
+  /**
+   * The layout-slot height reserved inside the vertical axis owner, memoized for one render (see
+   * `#getReservedSlotHeight`).
+   */
+  #reservedSlotHeight: { owner: HTMLElement, height: number } | null = null;
   /**
    * The last mouse position of the mousedown event.
    *
@@ -356,15 +352,10 @@ class TableView {
       this.hot.runHooks('beforeRender', isFullRender);
 
       this.#discardSizesMeasuredWithoutStyles();
+      this.#reservedSlotHeight = null;
 
       this._wt.draw(!isFullRender);
       this.#updateScrollbarClassNames();
-
-      if (this.postponedAdjustElementsSize) {
-        this.postponedAdjustElementsSize = false;
-
-        this.adjustElementsSize(true);
-      }
 
       this.hot.runHooks('afterRender', isFullRender);
       this.hot.forceFullRender = false;
@@ -372,20 +363,27 @@ class TableView {
   }
 
   /**
-   * Adjust overlays elements size and master table size. By default the internal `adjustElementsSize`
-   * call of the Walkontable is postponed to the next render cycle. If `flush` is set to `true`, the method
-   * will be executed immediately.
+   * Adjust overlays elements size and master table size.
    *
-   * TODO: This method should not exist. It is a workaround for the issue with updating the elements
-   * size after render. It should be calculated and updated automatically in Walkontable.
+   * Legacy. Nothing in the codebase needs to call this any more: Walkontable compares the geometry
+   * it is about to write against the geometry it last wrote, and resizes itself on the draw where
+   * those differ (`Overlays#currentLayoutSignature`).
    *
-   * @param {boolean} [flush=false] If `true`, the method will be executed immediately.
+   * Kept because it is reachable as `hot.view.adjustElementsSize()`, and still useful to an
+   * integrator who moved or resized the grid outside anything the engine observes and wants the new
+   * sizes in the same tick, before the next draw. Its contract has changed: it used to schedule a
+   * resize for the next render, and it now resizes straight away — but only if the geometry really
+   * differs, so calling it on a steady grid costs nothing. `flush` skips that check and resizes
+   * unconditionally.
+   *
+   * @param {boolean} [flush=false] If `true`, resize unconditionally instead of only when the
+   *                                geometry changed.
    */
   adjustElementsSize(flush = false) {
     if (flush) {
       this._wt.wtOverlays.adjustElementsSize();
     } else {
-      this.postponedAdjustElementsSize = true;
+      this._wt.wtOverlays.adjustElementsSizeIfNeeded();
     }
   }
 
@@ -595,20 +593,27 @@ class TableView {
 
       const activeElement = getDeepActiveElement(rootDocument);
       const activeHTMLElement = isHTMLElement(activeElement) ? activeElement : null;
-      const isOutsideInputElement = activeHTMLElement !== null && isOutsideInput(activeHTMLElement);
+      // Both resolved once and handed to the verdicts below. Each is needed twice, and this
+      // listener runs for every `mouseup` on the document: the surface test walks the focused
+      // element's ancestors up to the open editor's `preventCloseElement`, and the roots are an
+      // array that would otherwise be rebuilt per call.
+      const isFocusInEditorSurface = this.#isFocusWithinEditorSurface(activeHTMLElement);
+      const gridUiRoots = this.#getGridUiRoots();
+      const isForeignInputElement = this.#isForeignInput(
+        activeHTMLElement, isFocusInEditorSurface, gridUiRoots
+      );
 
-      if (activeHTMLElement !== null && isInput(activeHTMLElement) && !isOutsideInputElement) {
+      if (activeHTMLElement !== null && isInput(activeHTMLElement) && !isForeignInputElement) {
         return;
       }
 
       const eventPath = event.composedPath();
-      const isPathThroughGridUi = eventPath.includes(rootWrapperElement ?? rootElement) ||
-        (this.hot.rootPortalElement && eventPath.includes(this.hot.rootPortalElement));
-      const isFocusLostToOutside = !this.#isFocusWithinEditorSurface(activeHTMLElement) &&
+      const isPathThroughGridUi = gridUiRoots.some(root => eventPath.includes(root));
+      const isFocusLostToOutside = !isFocusInEditorSurface &&
         (this.hot.getFocusManager().isForeignFocusTarget(activeHTMLElement) ||
         (!wasInsideGridClick && !this.hot.getFocusManager().hasBrowserFocus() && !isPathThroughGridUi));
 
-      if (isOutsideInputElement || isFocusLostToOutside ||
+      if (isForeignInputElement || isFocusLostToOutside ||
           (!selection.isSelected() && !selection.isSelectedByAnyHeader() &&
           !this.#isPathWithinGrid(eventPath) && !isRightClick(event))) {
         this.hot.unlisten();
@@ -990,6 +995,10 @@ class TableView {
   initializeWalkontable() {
     const walkontableConfig = {
       ariaTags: this.settings.ariaTags,
+      // The instance's unique id. Walkontable stamps it into the `id` on each column header so a data
+      // cell can point at its header through `aria-describedby`; the id must be unique per grid so
+      // several grids on one page never cross-reference each other's headers.
+      guid: this.hot.guid,
       rtlMode: this.hot.isRtl(),
       externalRowCalculator: this.hot.getPlugin('autoRowSize') &&
         this.hot.getPlugin('autoRowSize').isEnabled(),
@@ -1001,6 +1010,7 @@ class TableView {
       table: this.#table,
       isDataViewInstance: () => isRootInstance(this.hot),
       preventOverflow: () => this.settings.preventOverflow,
+      layoutReservedHeight: (trimmingContainer: HTMLElement) => this.#getReservedSlotHeight(trimmingContainer),
       preventWheel: () => this.settings.preventWheel,
       viewportColumnRenderingThreshold: () => this.settings.viewportColumnRenderingThreshold,
       viewportRowRenderingThreshold: () => this.settings.viewportRowRenderingThreshold,
@@ -1113,8 +1123,9 @@ class TableView {
           !this.hot.hasHook('modifyColWidth');
       },
       shouldPaintCell: (
-        renderedRowIndex: number, renderedColumnIndex: number, TD: HTMLTableCellElement, band: string
-      ) => this.#cellPainter.shouldPaint(renderedRowIndex, renderedColumnIndex, TD, band),
+        renderedRowIndex: number, renderedColumnIndex: number, TD: HTMLTableCellElement, band: string,
+        stableBand: string | null,
+      ) => this.#cellPainter.shouldPaint(renderedRowIndex, renderedColumnIndex, TD, band, stableBand),
       cellRenderer: (renderedRowIndex: number, renderedColumnIndex: number, TD: HTMLTableCellElement) => {
         this.#cellPainter.paint(renderedRowIndex, renderedColumnIndex, TD);
       },
@@ -1889,6 +1900,130 @@ class TableView {
   }
 
   /**
+   * Decides whether the focused input belongs to the page rather than to the grid.
+   *
+   * `isOutsideInput()` answers that question from the `data-hot-input` stamp alone, which the grid
+   * puts on the inputs it builds itself (the text editor's textarea, the select editor's `select`,
+   * the filters and pagination controls). An editor supplied by a user - the React and Angular
+   * component editors, and every hand-written native one (which is how a Vue editor is written,
+   * that wrapper having no component-editor API) - renders a plain `<input>` with no stamp, and
+   * the raw helper then reads it as a page input while it holds the focus. On the
+   * document's `mouseup` that verdict is what unlistens the grid, and `unlisten()` blocks EVERY
+   * `table`-scoped shortcut context (see the `handleEvent` callback in `core.ts`), the `editor`
+   * one included - so the editor loses its own Enter, Escape and Tab (DEV-2787). A LEFT press
+   * hides how bad that is: the focus scope manager re-listens on the `click` that closes the
+   * gesture, so the grid is deaf only between the two events. A RIGHT press ends in `contextmenu`
+   * and no `click`, and the grid then stays deaf for the rest of the edit.
+   *
+   * The stamp is therefore treated as one of two ways to prove ownership, containment being the
+   * other, and `isOutsideInput()` itself is left alone: it has four other call sites, and
+   * `FocusGridManager#focusCell()` BLURS the element it answers `true` for, so widening the helper
+   * would blur a component editor's field on every selection change.
+   *
+   * Answering `false` also takes the early return above, which skips the `outsideClickDeselects`
+   * block further down - the same treatment the guard has always given the grid's own stamped
+   * textarea. The deselect is unchanged rather than newly suppressed, and the reason is the two
+   * guards that block already carries, neither of which depends on where the focus sits: a press
+   * OUTSIDE the grid has set `#outsideClickHandled` on the `mousedown` (that path does its own
+   * deselect or `destroyEditor()`), which this handler reads as `wasOutsideClickHandled`; and a
+   * press INSIDE the grid fails the block's `!#isPathWithinGrid(eventPath)` test. Unlisten, not
+   * the deselect, is what this predicate is written for.
+   *
+   * @private
+   * @param {HTMLElement|null} element The deepest reachable focused element.
+   * @param {boolean} isFocusInEditorSurface Whether that element sits inside the open editor's
+   *                                         `preventCloseElement` subtree. Passed in rather than
+   *                                         resolved here because the caller needs the same answer
+   *                                         for its own focus verdict.
+   * @param {HTMLElement[]} gridUiRoots The grid's own UI roots, from `#getGridUiRoots()`. Passed
+   *                                    in for the same reason: the caller tests the event path
+   *                                    against the same list.
+   * @returns {boolean}
+   */
+  #isForeignInput(
+    element: HTMLElement | null, isFocusInEditorSurface: boolean, gridUiRoots: HTMLElement[]
+  ): boolean {
+    if (element === null || !isOutsideInput(element)) {
+      return false;
+    }
+
+    return !this.#isWithinOpenEditorDom(element, gridUiRoots) && !isFocusInEditorSurface;
+  }
+
+  /**
+   * Checks whether the given element sits in the grid's own DOM while an editor is OPEN.
+   *
+   * Gated on the open editor on purpose, and that gate is what keeps the change narrow: an input
+   * the grid renders INSIDE a cell must keep counting as the page's. A custom renderer that puts
+   * an `<input>` in its TD relies on the grid unlistening while that field holds the focus -
+   * otherwise the arrow keys would move the selection while they move the caret - and the
+   * checkbox renderer's own `setTimeout(instance.listen)` exists to re-listen after exactly that.
+   * With no editor open, none of that changes. With one open, an input inside the grid's own DOM
+   * is the grid's, and the grid must keep listening for the editor's sake - whichever root the
+   * editor mounted into: `editorFactory` appends the container to `rootPortalElement` for
+   * `position: 'portal'` and to `rootElement` otherwise, the React wrapper's editor portal host
+   * lives in `rootPortalElement`, and the Angular adapter appends its placeholder to
+   * `rootElement`. The test is deliberately not per-cell: it does not try to prove the field
+   * belongs to the edited cell, only that it is not the page's.
+   *
+   * On paper that widens the answer to an unstamped input the grid renders in some OTHER cell - a
+   * checkbox renderer's `<input>`, say - while an editor is open elsewhere. Measured, that shape
+   * does not occur for a pointer gesture: a press which moves the focus onto another cell's input
+   * also changes the selection, and the selection change closes the editor in the same local hook
+   * that runs `afterSelection`. That hook skips the close for five selection sources - `'shift'`
+   * (the row/column SHIFT an insert or a remove performs), `'refresh'`, `'loadData'`,
+   * `'updateData'` and `'deselect'` - and every one of them is data-driven, so none coincides with
+   * the press that would have to move the focus. By the time the `mouseup` verdict runs,
+   * `isCellEdited()` is already false and this test is never consulted for that input.
+   * `tests/e2e/editor-open-checkbox-focus.spec.ts` pins that, and goes red if an editor ever
+   * survives the selection change - which is when the widening would start to matter.
+   *
+   * Walks with `closest()`, not `Node#contains()`, mirroring `#isFocusWithinEditorSurface()`:
+   * the element comes from `getDeepActiveElement()`, which reaches into shadow roots, while
+   * `contains()` stops at a shadow boundary - so an editor rendering its field inside a web
+   * component would read as outside the grid. No spec discriminates the two (the fixture's
+   * `host=shadow` variant puts the GRID in a shadow root, which a plain parent walk still
+   * covers), so treat the choice as convention rather than as pinned behavior.
+   *
+   * @private
+   * @param {HTMLElement} element The deepest reachable focused element.
+   * @param {HTMLElement[]} gridUiRoots The grid's own UI roots, from `#getGridUiRoots()`.
+   * @returns {boolean}
+   */
+  #isWithinOpenEditorDom(element: HTMLElement, gridUiRoots: HTMLElement[]): boolean {
+    if (!this.isCellEdited()) {
+      return false;
+    }
+
+    return closest(element, gridUiRoots) !== null;
+  }
+
+  /**
+   * The elements that hold the grid's own UI: the root wrapper (the grid, plus whatever a plugin
+   * renders into its layout slots and overlay layer) and the portal layer (menus, dialogs, every
+   * `position: 'portal'` editor container, the React wrapper's editor portal host).
+   *
+   * Shared by the two `mouseup` tests that ask "is this the grid's own UI" of an element or an
+   * event path. It is NOT the only copy: `FocusGridManager` builds the same pair, with the same
+   * `rootWrapperElement ?? rootElement` fallback and the same `isHTMLElement` filter, to bind its
+   * `focusin`/`focusout` listeners - and `isForeignFocusTarget()`/`hasBrowserFocus()`, which
+   * answer the other half of this same verdict, read from that copy. A new mount root has to be
+   * added in both places, and the two drifting apart would split the verdict against itself.
+   *
+   * Deliberately NOT shared with `#isPathWithinGrid()`, which tests a different list -
+   * `rootElement` rather than the wrapper, plus the open editor's surface - and folding the two
+   * together would change what that method accepts.
+   *
+   * @private
+   * @returns {HTMLElement[]}
+   */
+  #getGridUiRoots(): HTMLElement[] {
+    const { rootElement, rootWrapperElement, rootPortalElement } = this.hot;
+
+    return [rootWrapperElement ?? rootElement, rootPortalElement].filter(root => isHTMLElement(root));
+  }
+
+  /**
    * Checks whether the browser focus sits inside the open editor's `preventCloseElement` subtree.
    *
    * `FocusGridManager#isForeignFocusTarget()` answers `true` for anything outside the grid's root,
@@ -2610,6 +2745,40 @@ class TableView {
   }
 
   /**
+   * Sums the height of the root wrapper's edge slots (top and bottom) that live INSIDE the given
+   * vertical axis owner. Those slots share the owner's box with the grid, so the engine has to leave
+   * room for them – otherwise the holder takes the whole box and pushes the slot content past the
+   * owner's edge, which is how a pagination or sheets bar ended up clipped out of reach inside a
+   * scrollable ancestor (DEV-2848). A root element that owns the axis itself (an explicit `height`
+   * option) contains no slot and reserves nothing here; core subtracts the slots from the pixel
+   * `height` it writes on the root instead. Non-root instances have no slots.
+   *
+   * Memoized per render: the engine asks several times per draw off the single-pass path (every
+   * `getWorkspaceHeight()` measures the live DOM there), and each ask is two layout-forcing
+   * `offsetHeight` reads. `render()` drops the memo before the draw; the slot `ResizeObserver` in
+   * core renders when a slot changes height, so a value cached across draws cannot go stale.
+   *
+   * @param {HTMLElement} trimmingContainer The resolved vertical axis owner.
+   * @returns {number}
+   */
+  #getReservedSlotHeight(trimmingContainer: HTMLElement): number {
+    const cached = this.#reservedSlotHeight;
+
+    if (cached && cached.owner === trimmingContainer) {
+      return cached.height;
+    }
+
+    const { rootSlotTopElement, rootSlotBottomElement } = this.hot;
+    const height = [rootSlotTopElement, rootSlotBottomElement]
+      .filter((slot): slot is HTMLElement => !!slot && trimmingContainer.contains(slot))
+      .reduce((sum, slot) => sum + slot.offsetHeight, 0);
+
+    this.#reservedSlotHeight = { owner: trimmingContainer, height };
+
+    return height;
+  }
+
+  /**
    * Updates the class names on the root element based on the presence of scrollbars.
    *
    * This method checks if the table has vertical and/or horizontal scrollbars and
@@ -2617,7 +2786,7 @@ class TableView {
    * to/from the root element.
    */
   #updateScrollbarClassNames() {
-    const rootElement = this.hot.rootElement;
+    const { rootElement, rootWrapperElement } = this.hot;
 
     if (this.hasVerticalScroll()) {
       addClass(rootElement, 'htHasScrollY');
@@ -2625,10 +2794,27 @@ class TableView {
       removeClass(rootElement, 'htHasScrollY');
     }
 
-    if (this.isVerticallyScrollableByWindow()) {
+    const isVerticallyScrollableByWindow = this.isVerticallyScrollableByWindow();
+
+    if (isVerticallyScrollableByWindow) {
       addClass(rootElement, 'htVerticallyScrollableByWindow');
     } else {
       removeClass(rootElement, 'htVerticallyScrollableByWindow');
+    }
+
+    if (rootWrapperElement) {
+      // The grid's height follows its content when the page scrolls the rows, and with
+      // `height: 'auto'` (core writes `overflow: clip` for it, so the root owns the axis, yet the
+      // root grows to its content). The stylesheet then keeps the grid box from shrinking to a
+      // CSS-sized container (`styles/base/_base.scss`), which placed the bottom slot over a data
+      // row (DEV-2848).
+      const followsContent = isVerticallyScrollableByWindow || rootElement.style.height === 'auto';
+
+      if (followsContent) {
+        addClass(rootWrapperElement, 'ht-grid-follows-content');
+      } else {
+        removeClass(rootWrapperElement, 'ht-grid-follows-content');
+      }
     }
 
     if (this.hasHorizontalScroll()) {

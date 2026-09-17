@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a grid with `height: 'auto'` showing a vertical scrollbar, and a horizontal one behind it, when it was rendered below 100% browser zoom or system display scaling.",
+  "type": "fixed",
+  "issueOrPR": 13392,
+  "breaking": false,
+  "framework": "none"
+}

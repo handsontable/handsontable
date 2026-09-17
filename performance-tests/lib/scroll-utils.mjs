@@ -16,7 +16,7 @@ export async function scrollToRow(page, row) {
     const hot = /** @type {any} */ (window).__hot;
 
     return hot.rowIndexMapper.getRenderableFromVisualIndex(r) !== null;
-  }, row);
+  }, row, { polling: 100 });
 }
 
 /**
@@ -34,5 +34,5 @@ export async function scrollToColumn(page, col) {
     const hot = /** @type {any} */ (window).__hot;
 
     return hot.columnIndexMapper.getRenderableFromVisualIndex(c) !== null;
-  }, col);
+  }, col, { polling: 100 });
 }

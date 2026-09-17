@@ -1,9 +1,12 @@
 import { type Locator, type Page, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 
 interface HandsontableFixture {
   getSelected(): number[][] | undefined;
   getActiveEditor(): { isOpened(): boolean; state: string } | undefined;
   getDataAtCell(row: number, col: number): unknown;
+  isListening(): boolean;
+  addHook(name: string, callback: () => void): void;
 }
 
 // Deliberately not `extends Window`: `windowTypes.ts` already declares `hot` globally with the full
@@ -13,6 +16,7 @@ interface FixtureWindow {
   hot: HandsontableFixture;
   htChanges: unknown[][];
   htWarnLog: string[];
+  htUnlistenCount: number;
 }
 
 interface PageOptions {
@@ -71,7 +75,7 @@ export class EditorPreventCloseElementPage {
 
     // Wait for the bundle before the cell. The test id comes from the fixture's `afterRenderer`, so
     // "cell not found" alone cannot tell a slow bundle apart from a grid that failed to render.
-    await this.page.waitForFunction(() => 'Handsontable' in window);
+    await awaitBundle(this.page);
 
     await expect(this.cell(0, 0)).toBeVisible();
   }
@@ -114,9 +118,10 @@ export class EditorPreventCloseElementPage {
    * input never reaches the focus-driven outside-click verdict, because that input sits inside
    * `rootElement` and `isForeignFocusTarget()` therefore reads `false` - which is why the
    * `color-picker` recipe survives the defect this suite covers and the `flatpickr` one does not.
-   * (Not because `tableView`'s `mouseup` handler returns early on a focused input: that return
-   * needs `!isOutsideInput(element)`, and `isOutsideInput` is only `false` for an element carrying
-   * `data-hot-input`, which `editorFactory` never stamps on `editor.input`.) Without asserting the
+   * (Not because `tableView`'s `mouseup` handler returns early on a focused input. That return
+   * needs the input to be the grid's own, which since DEV-2787 means either the `data-hot-input`
+   * stamp - `editorFactory` never puts it on `editor.input` - or containment in the grid's DOM
+   * while an editor is open, which the panel outside `rootElement` is not.) Without asserting the
    * focus move, a spec here would go green on unfixed code and pin nothing.
    */
   async clickPanelFocusTarget(): Promise<boolean> {
@@ -237,6 +242,60 @@ export class EditorPreventCloseElementPage {
    */
   async commitFromPanel(): Promise<void> {
     await this.panelCommitTarget.click();
+  }
+
+  /**
+   * Reports whether the browser focus landed in the editor's own input.
+   */
+  async isFocusInEditorInput(): Promise<boolean> {
+    return this.page.evaluate(() => (
+      document.activeElement?.getAttribute('data-testid') === 'editor-input'
+    ));
+  }
+
+  /**
+   * Starts counting `afterUnlisten` calls from now on.
+   *
+   * The count is what makes the DEV-2787 verdict observable at all. `unlisten()` runs on the
+   * document's `mouseup`, and the focus scope manager re-listens on the `click` that follows it in
+   * the same gesture whenever the press landed inside the grid - so by the time a click returns,
+   * `isListening()` has healed and reports nothing. The hook still records the call, and a
+   * listener on it is the shape of user code the defect actually reaches.
+   *
+   * Installed from the spec rather than the fixture so the count covers one named gesture instead
+   * of everything the page did since it loaded (opening the editor unlistens nothing, but
+   * selecting a cell and pressing keys both run through paths that may).
+   */
+  async startUnlistenCounter(): Promise<void> {
+    await this.page.evaluate(() => {
+      const fixtureWindow = window as unknown as FixtureWindow;
+
+      fixtureWindow.htUnlistenCount = 0;
+      fixtureWindow.hot.addHook('afterUnlisten', () => {
+        fixtureWindow.htUnlistenCount += 1;
+      });
+    });
+  }
+
+  /**
+   * Returns how many times the grid stopped listening since `startUnlistenCounter()`.
+   */
+  async unlistenCount(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as FixtureWindow).htUnlistenCount);
+  }
+
+  /**
+   * Reports whether the grid is still listening for keystrokes.
+   *
+   * `unlisten()` blocks every `table`-scoped shortcut context, the `editor` one included, so a
+   * grid that stops listening while its editor is open has lost the editor's own Enter, Escape and
+   * Tab. Nothing else this Page Object exposes can see that: the editor stays open, the cell stays
+   * selected, and no value is committed.
+   */
+  async isListening(): Promise<boolean> {
+    return this.page.evaluate(() => (
+      (window as unknown as FixtureWindow).hot.isListening()
+    ));
   }
 
   /**

@@ -3,6 +3,7 @@ import RowFilter from '../filter/row';
 import {
   CLONE_BOTTOM,
   CLONE_BOTTOM_INLINE_START_CORNER,
+  CLONE_INLINE_START,
 } from '../overlay';
 import {
   adjustColumnHeaderHeights,
@@ -16,6 +17,7 @@ import {
 import type Table from './baseTable';
 import type { default as Overlays } from '../overlay/overlays';
 import type Viewport from '../viewport/viewport';
+import type { ViewportBand } from '../viewport/calculatorFactory';
 import type { ColumnsCalculationType, RowsCalculationType } from '../calculator/viewportBase';
 
 /**
@@ -42,13 +44,18 @@ interface DrawContext {
   runFastDraw: boolean;
   /** Default `true`; only the master `beforeDraw`/`skipRender` gate writes `false`. */
   performRedraw: boolean;
-  /** Default `false`; only the master fixed-position pass writes `true`. */
-  positionChanged: boolean;
   /**
    * Whether this draw runs the frozen-column row sync. Decided once, before the master renders, and
    * read again when the frozen records are cleared and measured, so the two can never disagree.
    */
   syncFrozenRows: boolean;
+  /**
+   * The host's `renderEpoch` setting when this draw started — before pass 1 rendered anything. The
+   * row-band refill compares the live value against it before taking a paint window, so a
+   * structural change made from inside ANY render hook of this draw (pass 1's included) drops the
+   * window. Snapshotting it later, per pass, would put such a change on both sides of the compare.
+   */
+  renderEpochAtDrawStart: number;
   rowHeaders: Function[];
   columnHeaders: Function[];
   rowHeadersCount: number;
@@ -64,7 +71,7 @@ interface DrawContext {
  * Behavior is byte-identical to the previous single `Table.draw()`: the master cycle keeps every
  * step in its original order, and the clone cycle is the strict subset a clone executed (a clone
  * never has a begin-layout phase, never fires the view hooks, and never runs the fixed-position
- * pass, so `positionChanged` stays `false` and it always renders selections through the else-path).
+ * pass).
  *
  * @param {Table} table The table instance (master or an overlay clone).
  * @param {boolean} fastDraw If `true`, try to only reposition rather than re-render cells.
@@ -76,8 +83,8 @@ export function runDrawCycle(table: Table, fastDraw: boolean): void {
   const ctx: DrawContext = {
     runFastDraw: fastDraw,
     performRedraw: true,
-    positionChanged: false,
     syncFrozenRows: false,
+    renderEpochAtDrawStart: wtSettings.getSetting<number>('renderEpoch'),
     rowHeaders,
     columnHeaders,
     rowHeadersCount: rowHeaders.length,
@@ -119,18 +126,6 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
   wtViewport.rowHeightCache.ensureBuilt();
   wtViewport.columnWidthCache.ensureBuilt();
 
-  // On the single-pass gated path, decide and apply the header-border classes
-  // (`innerBorderTop` / `innerBorderInlineStart`) BEFORE resolving the snapshot and rendering the
-  // cells, from the pre-render scroll position + settings. Cells then render in their final
-  // position, so the post-render `resetFixedPosition` toggle is a no-op (`positionChanged` stays
-  // `false`) and the nested `wot.draw(true)` re-render never fires. That saving is `innerBorderTop`'s
-  // alone — the inline-start class shifts no layout and reports nothing whenever it is applied
-  // (#6673). Element mode only (guaranteed by the gate); the border box is thus present when
-  // `beginDrawLayout` measures the workspace, matching a steady-state scrolled draw.
-  if (wtViewport.usesLayoutSnapshotForCalculators()) {
-    wtOverlays.prepareHeaderBorders();
-  }
-
   // Resolve the single-pass layout snapshot for this draw (scrollbar prediction from numbers).
   // Not yet the source of truth for the calculators below — see Viewport#beginDrawLayout.
   wtViewport.beginDrawLayout();
@@ -144,6 +139,14 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
   // other's band back and re-oscillate it. On top of that, both bands gain directional overscan
   // (`applyRenderedColumnsBandOverscan` / `applyRenderedRowsBandOverscan`) so consecutive scroll
   // steps land inside the rendered band and resolve as fast draws.
+  // Resolved once per draw from the axis owners (`beforeDraw()` refreshes them on a full draw; a
+  // scroll-driven draw keeps the ones the last full draw resolved, like `allowsStationaryBands()`
+  // below) and shared with the render phase and the clones, so the row recycling and the cell identity
+  // the cells renderer offers the host read one answer. It is the stationary-bands predicate below
+  // without the single-pass term: a grid with merged cells keeps the measured layout and still
+  // recycles its rows.
+  wtOverlays.rowRecyclingAllowed = wtViewport.allowsRowRecycling();
+
   ctx.runFastDraw = wtViewport.createCalculators(ctx.runFastDraw, {
     stationaryBands: wtOverlays.isScrollDrivenDraw && wtViewport.allowsStationaryBands(),
   });
@@ -191,15 +194,41 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
       // the end of the stale DOM. Put the pre-draw state back when doing so is provably safe — the
       // guard conditions and the deliberate fallbacks are documented on the helper.
       restoreRenderedStateIfSafe(table, wtViewport, renderedStateBeforeDraw, renderCycleSeqBeforeHook);
+      // The only path through a master draw that never reaches `wtOverlays.refresh()`, which is what
+      // sizes the master hider/spreader on every other path (the per-overlay `adjustElementsSize()`
+      // calls in `placeFixedOverlays` size the clone roots, not the master hider). The bands this
+      // reads are current whether or not the cell render ran, so without it a skipped draw keeps a
+      // stale scrollbar until an unrelated full draw. It used to be reached from the
+      // `ctx.positionChanged` branch below, which DEV-2786 removed — and only on the draws where an
+      // `innerBorder*` class happened to toggle, so the coverage is now complete rather than
+      // incidental.
+      wtOverlays.adjustElementsSize();
     } else {
-      renderCellBand(
+      const columnHeadersRenderSkippable = isPureVerticalScrollDraw(wtOverlays);
+      const rowHeightsChanged = renderCellBand(
         table,
         ctx,
         filters,
-        isPureVerticalScrollDraw(wtOverlays),
+        columnHeadersRenderSkippable,
+        wtOverlays.isScrollDrivenDraw,
+        wtOverlays.rowRecyclingAllowed,
       );
+      const hasExternalRowCalculator = wtSettings.getSetting<boolean>('externalRowCalculator');
 
-      if (!wtSettings.getSetting('externalRowCalculator')) {
+      // `rowHeightsChanged` alone gates the refill: `markOversizedRows` returns `false` before
+      // measuring anything when `externalRowCalculator` is on, so the flag already carries that
+      // condition.
+      if (rowHeightsChanged) {
+        refillRenderedRowsBandIfShrunk(
+          table,
+          ctx,
+          columnHeadersRenderSkippable,
+          wtOverlays.isScrollDrivenDraw,
+          wtOverlays.rowRecyclingAllowed,
+        );
+      }
+
+      if (!hasExternalRowCalculator) {
         // Single-pass: the fully/partially-visible calculators were already computed in pass 1
         // (`createCalculators`) from the layout snapshot. On the snapshot path, the only thing that
         // can change them post-render is `markOversizedRows` invalidating the row-height cache when
@@ -209,7 +238,18 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
         // cache. Validated non-destructively across the full e2e: this predicate would skip 595
         // draws with byte-identical ranges and 0 divergences.) The legacy measured path, and any
         // draw with an oversized row, still recompute here.
+        //
+        // The hazard the `!rowHeightsChanged` clause closes: nothing between `renderCellBand` and
+        // this line may call `rowHeightCache.ensureBuilt()` without also feeding this predicate. An
+        // `ensureBuilt()` rebuilds an invalidated cache, so `isCurrent()` answers `true` again and
+        // the recompute this draw needs is skipped. `refillRenderedRowsBandIfShrunk` above does
+        // exactly that — it builds both caches on every pass, including a pass that then declines
+        // to grow the band (the ordinary case: a row GREW, `renderAllRows`, a band already large
+        // enough). Asking `rowHeightsChanged` instead of the cache restores what `isCurrent()`
+        // reported at this point before the refill existed: `markOversizedRows` reporting a change
+        // is precisely what invalidated the row-height cache.
         const skipSecondPass = wtViewport.usesLayoutSnapshotForCalculators() &&
+          !rowHeightsChanged &&
           wtViewport.rowHeightCache.isCurrent() && wtViewport.columnWidthCache.isCurrent();
 
         wtViewport.rowHeightCache.ensureBuilt();
@@ -233,13 +273,14 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
       // so a taller frozen header is already reflected in the THEAD when the body rows are re-sized.
       const frozenRowHeightsChanged = syncOversizedRowsWithFrozenOverlays(table, wipedFrozenRows);
 
-      if (frozenRowHeightsChanged && !wtSettings.getSetting('externalRowCalculator')) {
+      if (frozenRowHeightsChanged && !hasExternalRowCalculator) {
         // The calculators above were built from row heights this sync has since changed, and a
         // frozen-derived height cannot be known any earlier — the frozen overlays had not rendered.
-        // An ordinary oversized row never reaches here: the master invalidates inside
-        // `renderCellBand`, before the calculators are computed. Left alone, the frame reports a
-        // visible row range measured against the old heights, which self-corrects on the next draw
-        // and so reads as an intermittent off-by-a-row to anything asking during this one.
+        // An ordinary oversized row never reaches here: the master measures it inside
+        // `renderCellBand`, and a shrink that leaves the band too short is refilled right after it
+        // (`refillRenderedRowsBandIfShrunk`). Left alone, the frame reports a visible row range
+        // measured against the old heights, which self-corrects on the next draw and so reads as
+        // an intermittent off-by-a-row to anything asking during this one.
         // Both caches, as at the sibling call above: `createVisibleCalculators` builds the COLUMN
         // visible calculators too, and an unbuilt strategy answers every offset with 0.
         wtViewport.rowHeightCache.ensureBuilt();
@@ -253,37 +294,15 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
     }
   }
 
-  placeFixedOverlays(table, ctx);
+  placeFixedOverlays(table);
 
-  if (ctx.positionChanged) {
-    if (ctx.performRedraw) {
-      // It refreshes the cells borders caused by a 1px shift (introduced by overlays which add or
-      // remove the `innerBorderTop` / `innerBorderBottom` CSS classes on the DOM element. This
-      // happens when there is a switch between rendering from 0 to N rows and vice versa). The
-      // inline-start class is still toggled for backward compatibility but no longer shifts the
-      // layout — the row header owns its inline-end border at every scroll position (#6673).
-      wtOverlays.refreshAll(); // `refreshAll()` internally already calls `refreshSelections()` method
-    } else {
-      // A skipped render must not run the nested reconciliation draw above (`refreshAll` is
-      // `wot.draw(true)`): the rolled-back band would fail its fast-draw check and escalate it to a
-      // full render that fires `beforeDraw` a second time and renders the cells the hook just
-      // cancelled. But the `innerBorder*` toggle has already shifted the layout by 1px AFTER the
-      // overlay positions were computed, so rerun the fixed-position pass against the post-toggle
-      // layout — it converges, because the second border-state check finds the class already in
-      // place — and render the selections that `refreshAll` would have refreshed.
-      placeFixedOverlays(table, ctx);
-      renderActiveSelections(table);
-    }
-
-    // Outside the render gate on purpose: the master hider/spreader size is written ONLY here on the
-    // 1px-shift path (the per-overlay `adjustElementsSize()` calls inside `placeFixedOverlays` size
-    // the clone roots, not the master hider), and the bands it reads are current whether or not the
-    // cell render ran — a skipped draw would otherwise keep a stale scrollbar until an unrelated
-    // full draw.
-    wtOverlays.adjustElementsSize();
-  } else {
-    renderActiveSelections(table);
-  }
+  // No reconciliation draw. Both `innerBorder*` classes used to trade a gridline between the header
+  // and the first body row, which shifted the layout by 1px AFTER the overlay positions had been
+  // computed, so the master and every clone were re-drawn (`wtOverlays.refreshAll()`, a nested
+  // `wot.draw(true)`) to settle it. Since DEV-2786 the header carries its `border-bottom` at every
+  // scroll position and the classes shift nothing, so `ctx.positionChanged`, the branch it selected
+  // and the whole re-draw are gone.
+  renderActiveSelections(table);
 
   wtOverlays.afterDraw(!ctx.runFastDraw && ctx.performRedraw);
 
@@ -314,6 +333,8 @@ function runCloneDrawCycle(table: Table, ctx: DrawContext): void {
       ctx,
       filters,
       isPureVerticalScrollDraw(cloneSourceOverlays),
+      cloneSourceOverlays.isScrollDrivenDraw,
+      cloneSourceOverlays.rowRecyclingAllowed && recyclesRowsOnClone(table.name),
     );
 
     if (table.is(CLONE_BOTTOM)) {
@@ -371,7 +392,7 @@ function captureRenderedState(table: Table, wtViewport: Viewport): RenderedState
 
 /**
  * Puts the pre-draw rendered state back, undoing the band and filter advance of a draw whose render
- * the `beforeDraw` hook cancelled — but only when the rollback is provably safe. When any guard
+ * the `beforeDraw` hook canceled — but only when the rollback is provably safe. When any guard
  * fails, the this-draw state is kept, which is exactly the pre-rollback behavior of the engine, so
  * a blocked rollback is never worse than what shipped before the rollback existed.
  *
@@ -438,6 +459,23 @@ function restoreRenderedStateIfSafe(
 }
 
 /**
+ * Whether an overlay clone takes part in the row recycling. Only the inline-start clone does: its
+ * rows are the master's rows, so a vertical scroll moves its band the same way. The top and bottom
+ * clones and their corners hold the frozen rows, which never scroll; the bottom clone's band offset
+ * still moves in renderable space when rows are hidden or trimmed, and a rotation there would be a
+ * move inside a band that never scrolls. Those clones keep the stationary elements and, with them,
+ * the full band identity for `shouldPaintCell`.
+ *
+ * Exported for unit tests only (`test/unit/table/drawCycle.unit.js`).
+ *
+ * @param {string} cloneName The clone's overlay name (`Table#name`).
+ * @returns {boolean}
+ */
+export function recyclesRowsOnClone(cloneName: string): boolean {
+  return cloneName === CLONE_INLINE_START;
+}
+
+/**
  * Returns `true` when this draw is a pure vertical scroll (only the vertical scroll position moved),
  * so the column window (and thus the THEAD) is unchanged. The scroll-direction flags live on the
  * master's overlays, so the master passes its own overlays and a clone passes its clone source's —
@@ -467,14 +505,31 @@ function isPureVerticalScrollDraw(wtOverlays: Overlays): boolean {
  *   `buildRenderFilters` (passed non-null rather than re-read off the nullable `table.*Filter`).
  * @param {boolean} columnHeadersRenderSkippable Whether the column-header (THEAD) pass may be skipped
  *   for this draw (a pure vertical scroll); resolved per role by the caller.
+ * @param {boolean} scrollDrivenDraw Whether the draw was entered as a scroll draw (the master's
+ *   `isScrollDrivenDraw`, read off the clone source for a clone).
+ * @param {boolean} rowRecyclingAllowed Whether the draw allows row recycling (the master's
+ *   `rowRecyclingAllowed`, resolved once per draw, read off the clone source for a clone). With
+ *   `scrollDrivenDraw` it lets the rows renderer keep a row's TR across the scroll, and on its own it
+ *   lets the cells renderer offer the host a stable identity for a cell.
+ * @param {number} [paintFromVisibleRow=0] The first visible row the cell and row-header renderers
+ *   repaint (the refill's paint window, see `resolveRefillPaintWindow`); `0` repaints the whole band.
+ * @returns {boolean} `true` when the post-render row measurement (`markOversizedRows`) found heights
+ *   that differ from the records the band was computed from and invalidated the row-height cache.
+ *   Always `false` for the tables that do not measure rows (every clone but the bottom one).
  */
 function renderCellBand(
   table: Table,
   ctx: DrawContext,
   filters: { rowFilter: RowFilter; columnFilter: ColumnFilter },
   columnHeadersRenderSkippable: boolean,
-): void {
+  scrollDrivenDraw: boolean,
+  rowRecyclingAllowed: boolean,
+  paintFromVisibleRow = 0,
+): boolean {
   table.tableRenderer.setHeaderContentRenderers(ctx.rowHeaders, ctx.columnHeaders);
+  table.tableRenderer.setScrollDrivenDraw(scrollDrivenDraw);
+  table.tableRenderer.setRowRecyclingAllowed(rowRecyclingAllowed);
+  table.tableRenderer.setRenderEpoch(ctx.renderEpochAtDrawStart);
 
   if (table.is(CLONE_BOTTOM) ||
       table.is(CLONE_BOTTOM_INLINE_START_CORNER)) {
@@ -484,12 +539,15 @@ function renderCellBand(
 
   table.tableRenderer.setColumnHeadersRenderSkippable(columnHeadersRenderSkippable);
 
-  const wipedOversizedRows = resetOversizedRows(table);
+  const wipedOversizedRows = resetOversizedRows(table, paintFromVisibleRow);
 
+  // The paint window, the record reset above and the measure below all cover the same rows: a
+  // refill pass that repaints only the rows it appended also wipes and re-measures only those.
   table.tableRenderer
     .setActiveOverlayName(table.name)
     .setViewportSize(table.getRenderedRowsCount(), table.getRenderedColumnsCount())
     .setFilters(filters.rowFilter, filters.columnFilter)
+    .setPaintWindow(paintFromVisibleRow)
     .render();
 
   // Mark that a cell band reached the DOM. The viewport is shared by the master and all overlay
@@ -500,8 +558,403 @@ function renderCellBand(
   adjustColumnHeaderHeights(table);
 
   if (table.isMaster || table.is(CLONE_BOTTOM)) {
-    markOversizedRows(table, wipedOversizedRows);
+    return markOversizedRows(table, wipedOversizedRows, { fromVisibleRow: paintFromVisibleRow });
   }
+
+  return false;
+}
+
+/**
+ * The upper bound on how many extra cell-band renders one draw may spend refilling the viewport
+ * after the rendered rows measured shorter than the band was computed from.
+ *
+ * Passes scale with the number of stale tall records BELOW the band, roughly one pass per record:
+ * each pass's proposal is capped at the first row below the band that still holds a stale tall
+ * record (the axis calculator stops where the cumulative offsets — stale record included — cross
+ * the viewport, and `resetOversizedRows` wipes only the rows inside the band, so every
+ * previously-measured tall row below it survives to cap the next proposal). Only rendering that row
+ * re-measures it and lets the following pass propose past it. The overscan cannot shortcut the
+ * cascade, but only because `applyRenderedRowsBandOverscan` runs solely under `stationaryBands`,
+ * which the refill's `createCalculators(false)` never sets. Do not reason from `rowHeightsUniform`
+ * here: that setting is settings-only (`rowHeights`/`minRowHeights`/the `modifyRowHeight` hook,
+ * `tableView.ts`) and stays `true` in the #6452 fixture — measured `oversizedRows` never enter it;
+ * `PositionCache` ANDs the record count in separately. And on a SCROLL-driven shrink draw, pass 1's
+ * overscan genuinely can fire (`allowsStationaryBands` deliberately drops the uniformity
+ * requirement) and can pull a stale out-of-band record into the band. So the practical limit is a shrink that
+ * leaves at most `MAX_ROWS_BAND_REFILL_PASSES` stale out-of-band tall records between the pre-shrink
+ * band and the settled one — the #6452 fixture (rows 1-7 tall, a ~5-row pre-fix band) already
+ * consumes all three passes.
+ *
+ * Exhausting the cap leaves the grid stuck for want of a DRAW, not for want of information. The loop
+ * exits through the cap only right after a `renderCellBand` that reported a further height change (a
+ * pass that measures none returns first), so at that point every row inside the final band is
+ * measured correctly and only the band is stale. The next draw would make progress: its band is
+ * built from the corrected heights, so it reaches the first stale tall record below the old band,
+ * renders that row, `resetOversizedRows` wipes the record, `markOversizedRows` reports the change,
+ * and the refill fires again. What stops the recovery is that nothing schedules that draw. The
+ * viewport stays under-filled until a scroll, a resize, or a content change triggers one, i.e.
+ * exactly the pre-fix #6452 behavior. That is not a regression; the cap buys it against letting one
+ * draw re-render the band an unbounded number of times. A single deferred draw scheduled when the
+ * cap is hit, or a cap that adapts to the number of stale records, would both close the gap; neither
+ * is part of this fix. Do not "fix" it by dropping the out-of-band records instead: a record for a
+ * row that is still genuinely tall is legitimate, and dropping it would shrink the scroll range on
+ * unrelated edits.
+ */
+const MAX_ROWS_BAND_REFILL_PASSES = 3;
+
+/**
+ * Master-only. Re-renders the cell band when the rows just rendered measured SHORTER than the
+ * heights the band was computed from, so the viewport is filled in this draw instead of the next one.
+ *
+ * The rendered band is computed BEFORE the cells render, from `rowHeightCache` — the provided heights
+ * merged with `wtViewport.oversizedRows`, i.e. heights measured on a PREVIOUS render. When content
+ * shrinks between two draws (a column autosized wider so wrapped text fits on one line, a long value
+ * replaced by a short one, `colWidths` changed), that band is too short for the new heights:
+ * `markOversizedRows` measures the shrink and invalidates the cache, the visible calculators are
+ * recomputed, but the rendered band and the DOM stay as sized for the tall rows — a blank area
+ * under the last row until an unrelated draw (issue #6452, DEV-406).
+ *
+ * A pass runs only when the proposal grows the BOTTOM edge (a later `endRow`). #6452 is exclusively
+ * an under-filled bottom: the rows shrank, so the band no longer reaches the bottom of the viewport.
+ * An earlier proposed `startRow` on its own is NOT a refill trigger. That is the virtualized
+ * merged-cell signature — `mergeCells` serves per-band heights through `modifyRowHeightByOverlayName`
+ * and the rowspan inflates the `oversizedRows` records of the few spanned rows the band renders, so
+ * every scroll draw proposes a band that starts one row earlier and ends far short of the rendered
+ * one. The band rendered on such a draw is already correct, and refilling from that proposal is what
+ * broke `src/plugins/mergeCells/__tests__/selection.spec.js`.
+ *
+ * The band that then gets applied is the UNION of the previous band and the proposal
+ * (`extendRenderedRowsBandTo`, `viewport/calculatorFactory.ts`), never the proposal alone: a proposal
+ * built from re-measured heights can move the START edge inwards while `endRow` grows — the
+ * legitimate scrolled-shrink case has rows above the viewport shrinking, which pushes `startRow`
+ * later — and applying it wholesale would drop rows the DOM already shows from under the viewport.
+ * With the union each pass strictly grows the band, so the loop is bounded by monotonic growth (the
+ * band cannot pass `totalRows`) as well as by `MAX_ROWS_BAND_REFILL_PASSES`. Applying a grown band is
+ * safe because nothing reads `getCell` or a band-gated range query between `createCalculators`
+ * assigning the band and the `renderCellBand` on the next line bringing the TBODY into agreement
+ * with it.
+ *
+ * The loop also stops as soon as a pass proposes no further growth of the bottom edge, or measures
+ * no further height change.
+ *
+ * Three more declines keep a pass cheap or safe. `renderAllRows`, and a band already at the dataset
+ * end, skip the proposal walk — the bottom edge cannot grow there. A proposal that does not overlap
+ * (or touch) the previous band is declined: the union would span the whole gap between them and one
+ * `renderCellBand` would build it all (a whole-dataset shrink while scrolled deep reaches this).
+ * And a pass whose recomputed column band disagrees with the captured `ctx.syncFrozenRows` decision
+ * is declined — see {@link refillDisagreesWithFrozenColumnSync}. Every decline leaves the rendered
+ * state exactly as pass 1 rendered it, which is the pre-fix #6452 behavior: under-filled until the
+ * next scroll, resize, or content draw.
+ *
+ * Accepted trade-off: `createCalculators(false)` runs with `stationaryBands` off, so a scroll-driven
+ * draw that reaches a refill loses the columns overscan/stabilization for that draw. A shrink during
+ * a scroll draw is rare, and the recompute is answering a content change rather than a scroll step,
+ * where the stabilization has nothing to hold steady.
+ *
+ * A pass repaints only the rows it appends, when it can: `resolveRefillPaintWindow` hands
+ * `renderCellBand` a paint window that starts right after the previous band, and the rows before it
+ * keep their elements untouched — no cell reset, no `cellRenderer` (so none of the core
+ * `beforeRenderer`/`afterRenderer` hooks that `tableView.ts` fires from inside it), no
+ * `shouldPaintCell` question, no row-header repaint, no re-measure. Over a refilled draw the cell
+ * renderer therefore runs once per cell of the FINAL band. The window is dropped and the whole band
+ * repainted when the start row moved, when the column band moved or resized, when the host's
+ * `renderEpoch` advanced, or when the band renders a merged cell (see the helper). One cost stays
+ * with the host's `renderMode: 'onChange'`: the `band` identity `CellsRenderer` hands `shouldPaintCell`
+ * carries `rowsToRender`, and a skipped row keeps the stamp its own pass wrote, so after a refilled
+ * draw the DOM carries one stamp per pass and the next ordinary draw repaints the skipped cells once
+ * (their stamp no longer matches) — self-healing, no correctness effect; the engine cannot re-stamp
+ * them because the host owns the stamps. Where the rows recycle
+ * (`TableRenderer#hasStableCellIdentity()`) the stable identity carries no band size, so a skipped
+ * row's stamp still matches and nothing repaints. The draw-level hooks never repeat: the
+ * `beforeDraw` setting (core's `beforeViewRender`) fires once before the first pass and the `onDraw`
+ * setting (core's `afterViewRender`) once after the last, both outside this loop. `renderCycleSeq`
+ * advances once per pass whatever the window, and its only consumer is the `skipRender` rollback
+ * guard.
+ *
+ * Every pass rebuilds both size caches, which is why the second-calculator-pass skip right after the
+ * call site reads `rowHeightsChanged` and not `rowHeightCache.isCurrent()` alone — see the comment
+ * on `skipSecondPass`.
+ *
+ * The row-recycling flags are forwarded unchanged. A pass that takes the paint window keeps the band's
+ * start, so the rows renderer rotates nothing. A full-repaint pass whose start edge folded back keeps
+ * every tail row's TR in place and creates fresh TRs for the front slots (`RowsRenderer`, only rows
+ * that leave the band wrap), so the union's added rows are the only ones painted into new elements,
+ * and a cell whose paint stamp still matches is skipped like on any other draw.
+ *
+ * @param {Table} table The master table.
+ * @param {DrawContext} ctx The per-draw scratch (supplies the header renderers for the re-render).
+ * @param {boolean} columnHeadersRenderSkippable Forwarded to `renderCellBand`, same value as the first pass.
+ * @param {boolean} scrollDrivenDraw Forwarded to `renderCellBand`, same value as the first pass.
+ * @param {boolean} rowRecyclingAllowed Forwarded to `renderCellBand`, same value as the first pass.
+ */
+function refillRenderedRowsBandIfShrunk(
+  table: Table,
+  ctx: DrawContext,
+  columnHeadersRenderSkippable: boolean,
+  scrollDrivenDraw: boolean,
+  rowRecyclingAllowed: boolean,
+): void {
+  const { wtSettings } = table;
+  const wtViewport = table.deps.getWtViewport();
+
+  // With `renderAllRows` every row is already in the band, so the bottom edge can never grow —
+  // skip the proposal walk entirely.
+  if (wtSettings.getSetting<boolean>('renderAllRows')) {
+    return;
+  }
+
+  const lastDatasetRow = wtSettings.getSetting<number>('totalRows') - 1;
+
+  for (let pass = 0; pass < MAX_ROWS_BAND_REFILL_PASSES; pass++) {
+    // The render calculator's start/end rows of the band this pass starts from — Walkontable's
+    // gapless row space, not Handsontable source or visual indexes.
+    const previousStartRow = table.getFirstRenderedRow();
+    const previousEndRow = table.getLastRenderedRow();
+
+    // A band that already reaches the dataset end cannot grow its bottom edge; skip the cache
+    // builds and the proposal walk that would only conclude the same. Rows that merely GREW
+    // still pay one proposal walk per pass-triggering draw — the walk is the only place the
+    // viewport-fill question is answered without duplicating the axis math.
+    if (previousEndRow >= lastDatasetRow) {
+      return;
+    }
+
+    // Both caches, as at the other `createVisibleCalculators` call sites: an unbuilt column strategy
+    // answers every offset with 0.
+    wtViewport.rowHeightCache.ensureBuilt();
+    wtViewport.columnWidthCache.ensureBuilt();
+
+    // Propose only — this does not assign the viewport's calculators, and `proposeOnly` skips the
+    // `rowHeaderWidth` memo reset (the build's one side effect), so a declined pass leaves the
+    // rendered state alone and costs no header re-measure.
+    // Mirror `createCalculators`: the render band reads the scrollbar-unaware box on the single-pass
+    // path; the legacy measured path serves render and visible from the same 'visible' band.
+    const renderBand: ViewportBand = wtViewport.usesLayoutSnapshotForCalculators() ? 'render' : 'visible';
+    const proposedBand = wtViewport
+      .createRowsCalculator(['rendered'], renderBand, { proposeOnly: true })
+      .getResultsFor('rendered');
+
+    // Only a bottom edge that must grow takes a pass. An earlier proposed `startRow` on its own is
+    // not a refill signal — see the JSDoc: it is the virtualized-merged-cell signature, and the band
+    // rendered above it is already correct.
+    if (
+      !proposedBand ||
+      proposedBand.startRow === null || proposedBand.endRow === null ||
+      proposedBand.endRow <= previousEndRow
+    ) {
+      return;
+    }
+
+    // A proposal that shares no row with (and is not adjacent to) the previous band would union into
+    // a band spanning the whole gap between them — a whole-dataset shrink while scrolled deep puts
+    // the proposal near the dataset end with the previous band thousands of rows above it, and the
+    // `renderCellBand` below would build all of it in one go. Decline the pass instead: the viewport
+    // stays under-filled until the next scroll or resize (the pre-fix #6452 behavior). This guard is
+    // also what bounds `extendRenderedRowsBandTo`'s start-edge growth: with it, the union can never
+    // exceed the two bands' combined span.
+    if (proposedBand.startRow > previousEndRow + 1) {
+      return;
+    }
+
+    if (refillDisagreesWithFrozenColumnSync(table, ctx, renderBand)) {
+      return;
+    }
+
+    // What the previous pass rendered, captured before the recompute: the paint window below is
+    // only valid while none of it moves. `rowsCount` is the rendered row count itself, not a
+    // difference of calculator bounds. The epoch is NOT read here — a render hook of the previous
+    // pass may already have advanced it, which would put the change on both sides of the compare;
+    // the draw-start snapshot in `ctx` predates every pass of this draw.
+    const previousBand = {
+      rowsCount: table.getRenderedRowsCount(),
+      startColumn: table.getFirstRenderedColumn(),
+      columnsCount: table.getRenderedColumnsCount(),
+      renderEpoch: ctx.renderEpochAtDrawStart,
+    };
+
+    // Full recompute (no stationary bands: this is a content change, not a scroll step) so the
+    // rendered and visible calculators are rebuilt from the freshly measured heights together.
+    wtViewport.createCalculators(false);
+
+    // Apply the UNION of the previous band and the proposal, never the proposal alone: a proposal
+    // built from re-measured heights can move one edge inwards, and an edge inside the band the
+    // DOM already shows would leave the viewport shorter than it was.
+    wtViewport.extendRenderedRowsBandTo(previousStartRow, previousEndRow);
+
+    const filters = buildRenderFilters(table, ctx);
+    const paintFromVisibleRow = resolveRefillPaintWindow(table, previousStartRow, previousBand);
+
+    // A pass that measures no further change has settled the band; anything else is another shrink
+    // the grown band just exposed, and the next iteration decides whether it must grow again.
+    const rowHeightsChanged = renderCellBand(
+      table,
+      ctx,
+      filters,
+      columnHeadersRenderSkippable,
+      scrollDrivenDraw,
+      rowRecyclingAllowed,
+      paintFromVisibleRow,
+    );
+
+    if (!rowHeightsChanged) {
+      return;
+    }
+  }
+}
+
+/**
+ * What the previous refill pass (or pass 1) rendered, as far as the paint window needs to know.
+ */
+interface PreviousRenderedBand {
+  /**
+   * How many rows the previous pass rendered (`getRenderedRowsCount()`).
+   */
+  rowsCount: number;
+  /**
+   * The first rendered column of the previous pass' column band.
+   */
+  startColumn: number;
+  /**
+   * How many columns the previous pass rendered.
+   */
+  columnsCount: number;
+  /**
+   * The host's `renderEpoch` setting when this DRAW started (`DrawContext#renderEpochAtDrawStart`),
+   * before pass 1 rendered — not when the previous pass did, or a structural change from one of
+   * that pass' render hooks would already be on both sides of the compare.
+   */
+  renderEpoch: number;
+}
+
+/**
+ * Whether the band as the previous pass left it renders any merged cell. A merged grid never takes
+ * the paint window. Not because a `rowspan` has to grow — MergeCells caps a span at the merge's own
+ * last non-hidden row (`translateMergedCellToRenderable`) and only ever raises the ANCHOR to the
+ * band's first row, so a span reaching the band end already carries its full value — but because
+ * its after-renderer writes `TD.style.height` on the cells NEXT TO a merged block from row heights
+ * pass 1 read before this draw's re-measure; a skipped row would keep that stale height until the
+ * next draw. One selector query, no per-cell walk, no layout.
+ *
+ * @param {HTMLTableSectionElement} TBODY The master TBODY as the previous pass left it.
+ * @returns {boolean}
+ */
+function rendersMergedCells(TBODY: HTMLTableSectionElement): boolean {
+  return TBODY.querySelector('td[rowspan], th[rowspan]') !== null;
+}
+
+/**
+ * Decides how much of the band a refill pass has to repaint, as the visible row index the paint
+ * starts from (`0` = the whole band). The band the pass renders is the union of the previous band
+ * and the proposal, so the rows the previous pass rendered are already correct in the DOM — but the
+ * TR and TD nodes are reused in place by visible index, so skipping them is only sound while each
+ * node still holds the same source cell. Four things break that, and each falls back to a full
+ * repaint: the band's START row moved (every TR now holds a different source row); the column band
+ * moved or resized (`createCalculators(false)` recomputes both axes, and pass 1's columns overscan
+ * is not re-applied — every TD would hold a different source column); the host's `renderEpoch`
+ * advanced since the DRAW started (a structural change from inside any render hook of this draw,
+ * pass 1's included, that kept the column count and start — e.g. a reorder or a hide); or the band
+ * renders a merged cell (see {@link rendersMergedCells}).
+ *
+ * `previousStartRow` is the render calculator's start row (the first rendered row of the band, in
+ * Walkontable's gapless row space), not a Handsontable source or visual index.
+ *
+ * Exported for unit tests only (`test/unit/table/drawCycle.unit.js`).
+ *
+ * @param {Table} table The master table, after the refill's recompute assigned the new band.
+ * @param {number} previousStartRow The render calculator's start row of the band the previous pass rendered.
+ * @param {PreviousRenderedBand} previousBand What the previous pass rendered.
+ * @returns {number} The first visible row to repaint; `0` repaints the whole band.
+ */
+export function resolveRefillPaintWindow(
+  table: Table,
+  previousStartRow: number,
+  previousBand: PreviousRenderedBand,
+): number {
+  if (table.getFirstRenderedRow() !== previousStartRow) {
+    return 0;
+  }
+
+  if (
+    table.getFirstRenderedColumn() !== previousBand.startColumn ||
+    table.getRenderedColumnsCount() !== previousBand.columnsCount
+  ) {
+    return 0;
+  }
+
+  if (table.wtSettings.getSetting<number>('renderEpoch') !== previousBand.renderEpoch) {
+    return 0;
+  }
+
+  if (rendersMergedCells(table.TBODY!)) {
+    return 0;
+  }
+
+  return previousBand.rowsCount;
+}
+
+/**
+ * Whether a refill pass would render with a frozen-column sync decision different from the one this
+ * draw already acted on. `ctx.syncFrozenRows` is a function of the master's first rendered column
+ * (`shouldSyncOversizedRowsWithFrozenOverlays`), captured from THIS draw's pass-1 column band —
+ * the one `createCalculators` assigned before the first `renderCellBand`, columns overscan
+ * included. That timing is what this guard relies on, so do not move the capture: pass 1's band
+ * got the columns overscan, which the refill's `createCalculators(false)` (no `stationaryBands`)
+ * does not re-apply, so the recomputed band can start past column 0 where the captured one
+ * started at 0. Rendering with that mismatch is destructive when the flag was captured
+ * `false`: `releaseFrozenOversizedRows()` already ran, so the refill's `resetOversizedRows` would
+ * wipe frozen-tall records with no exemption left, on a master that no longer renders the frozen
+ * columns and therefore can never re-measure them. The refill declines the pass on any disagreement
+ * (the opposite direction merely leaves the records one draw staler, but a declined pass is the
+ * pre-fix behavior either way and settles on the next draw).
+ *
+ * The column proposal here is prediction, not assignment: `createColumnsCalculator` builds the same
+ * band `createCalculators(false)` would assign, without touching the viewport's calculators. For
+ * the prediction to match, it must read the same row-header width the assignment will: on the
+ * legacy measured path the column band's width is `getViewportWidth()` minus `getRowHeaderWidth()`,
+ * and `createCalculators(false)` resets that memo (inside `createRowsCalculator`) and re-measures the
+ * TH, while a propose-only build deliberately does not. A row-header width that moved during this
+ * render would therefore land the predicted `startColumn` on the other side of 0 from the assigned
+ * one — the very mismatch this guard exists to stop. So the guard resets the memo itself before
+ * predicting. The memo re-measures lazily on the next read, so the accept path pays one extra TH
+ * measure and a declined pass pays it on the next `getRowHeaderWidth()` read; both only with
+ * `fixedColumnsStart` set. (On the snapshot path the width comes from the per-draw `LayoutSnapshot`,
+ * which neither build re-derives, so prediction and assignment agree there regardless.)
+ * `externalRowCalculator` needs no re-check — the refill only runs when `markOversizedRows`
+ * reported a change, which it never does with that setting on.
+ *
+ * Exported for unit tests only (`test/unit/table/drawCycle.unit.js`); nothing outside this module
+ * calls it.
+ *
+ * The disagreeing branch is untested by design, not by omission: staging it needs a SCROLL-driven
+ * draw whose columns overscan lands the pass-1 band at column 0 (natural `startColumn` 1..8, moving
+ * toward the inline start, uniform widths, 'auto' offset) on the same draw a row shrinks, and the
+ * Jasmine harness cannot force that alignment deterministically. The agreeing path is covered by
+ * the `fixedColumnsStart` refill spec in `test/spec/table.spec.js`.
+ *
+ * @param {Table} table The master table.
+ * @param {DrawContext} ctx The per-draw scratch (supplies the captured `syncFrozenRows` flag).
+ * @param {ViewportBand} renderBand The viewport band the refill's proposals read.
+ * @returns {boolean} `true` when the pass must be declined.
+ */
+export function refillDisagreesWithFrozenColumnSync(
+  table: Table,
+  ctx: DrawContext,
+  renderBand: ViewportBand,
+): boolean {
+  if (!table.wtSettings.getSetting<number>('fixedColumnsStart')) {
+    return false;
+  }
+
+  const wtViewport = table.deps.getWtViewport();
+
+  // Read the row-header width the assignment will read, not the one pass 1 left behind (see JSDoc).
+  wtViewport.rowHeaderWidth = NaN;
+
+  const proposedStartColumn = wtViewport
+    .createColumnsCalculator(['rendered'], renderBand, { proposeOnly: true })
+    .getResultsFor('rendered')?.startColumn ?? null;
+
+  return (proposedStartColumn !== null && proposedStartColumn > 0) !== ctx.syncFrozenRows;
 }
 
 /**
@@ -517,36 +970,29 @@ function renderActiveSelections(table: Table): void {
 }
 
 /**
- * Master-only fixed-position pass: repositions the top / bottom / inline-start / corner overlays and
- * records in `ctx.positionChanged` whether an `innerBorder*` toggle shifted the layout by 1px.
+ * Master-only fixed-position pass: repositions the top / bottom / inline-start / corner overlays.
  *
- * Only the TOP and BOTTOM overlays contribute to the flag. The corners never did, and the
- * inline-start overlay no longer does: its `innerBorderInlineStart` class shifts no layout since
- * #6673, so its report meant nothing — `false` on most draws, and `true` on the draws where the
- * class toggled, which cost a nested reconciliation draw over the master and every clone for a 1px
- * shift that cannot happen. It is still repositioned here, its result is just not read.
+ * No overlay's result is read. Every one of them satisfies the `boolean` the base class declares
+ * without having anything to report: since #6673 (inline-start) and DEV-2786 (top, bottom) no
+ * `innerBorder*` class shifts the layout, and the two corners never had a border class at all —
+ * both still `return true` unconditionally. `ctx.positionChanged` and the nested reconciliation draw
+ * it used to select are gone with the shift, so never reintroduce a flag from these returns: a
+ * `true` from either corner would have made every draw of a grid with row headers and frozen
+ * columns pay a full re-draw of the master and every clone.
  *
  * @param {Table} table The master table.
- * @param {DrawContext} ctx The per-draw scratch (receives `positionChanged`).
  */
-function placeFixedOverlays(table: Table, ctx: DrawContext): void {
+function placeFixedOverlays(table: Table): void {
   const wtOverlays = table.deps.getWtOverlays();
 
-  ctx.positionChanged = wtOverlays.topOverlay.resetFixedPosition();
+  wtOverlays.topOverlay.resetFixedPosition();
 
   if (wtOverlays.bottomOverlay.clone) {
-    ctx.positionChanged = wtOverlays.bottomOverlay.resetFixedPosition() || ctx.positionChanged;
+    wtOverlays.bottomOverlay.resetFixedPosition();
   }
 
   wtOverlays.inlineStartOverlay.resetFixedPosition();
 
-  // The two corner overlays' results are CONSTANTS - both `return true` unconditionally
-  // (`topInlineStartCornerOverlay`, `bottomInlineStartCornerOverlay`), because they satisfy the
-  // `boolean` the base class declares without having a border class to decide. Never OR either of
-  // them in to make this pass look symmetrical: `positionChanged` would then be `true` on every draw
-  // of any grid with row headers and frozen columns, and every draw would pay a nested `refreshAll()`
-  // over the master and every clone. Only an overlay that actually toggles a layout-shifting
-  // `innerBorder*` class may feed the flag, which today means the top and bottom overlays alone.
   if (wtOverlays.topInlineStartCornerOverlay) {
     wtOverlays.topInlineStartCornerOverlay.resetFixedPosition();
   }

@@ -210,6 +210,60 @@ export class RowHeaderBorderOwnershipPage {
   }
 
   /**
+   * The LAST corner cell of a head row - the head-row counterpart of `lastRowHeaderCell()`, and the
+   * one whose inline-end is the head row's copy of the seam to column 0.
+   *
+   * Selected by the engine's marker rather than by position. `:last-child` is the wrong tool here:
+   * with `fixedColumnsStart` the corner clone also renders the frozen column's header, so the last
+   * child of that row is a COLUMN header, not a corner cell.
+   *
+   * @param {string} testId The grid's test id.
+   * @param {number} level Which header row to read, for nested headers.
+   * @returns {Locator}
+   */
+  lastCornerHeaderCell(testId: string, level = 0): Locator {
+    return this.grid(testId)
+      .locator('.ht_clone_top_inline_start_corner table.htCore > thead > tr').nth(level)
+      .locator('th.htLastRowHeaderColumn');
+  }
+
+  /**
+   * How many `th`s in a head row carry the engine's marker. Exactly one when the grid has row
+   * headers, or the seam rule would color more than one gridline.
+   *
+   * @param {string} testId The grid's test id.
+   * @param {string} overlay The overlay to count in.
+   * @param {number} level Which header row to read.
+   * @returns {Promise<number>}
+   */
+  async markedHeaderCellCount(
+    testId: string,
+    overlay = '.ht_clone_top_inline_start_corner',
+    level = 0
+  ): Promise<number> {
+    return this.grid(testId)
+      .locator(`${overlay} table.htCore > thead > tr`).nth(level)
+      .locator('th.htLastRowHeaderColumn')
+      .count();
+  }
+
+  /**
+   * The zero-based index of the marked `th` within its row, for one overlay's head or body row.
+   * `-1` when nothing in that row carries the marker.
+   *
+   * @param {string} testId The grid's test id.
+   * @param {string} rowSelector A selector resolving to one TR within the grid.
+   * @returns {Promise<number>}
+   */
+  async markedCellIndex(testId: string, rowSelector: string): Promise<number> {
+    return this.grid(testId).locator(rowSelector).evaluate((row) => {
+      const cells = Array.from(row.children);
+
+      return cells.findIndex(cell => cell.classList.contains('htLastRowHeaderColumn'));
+    });
+  }
+
+  /**
    * The header cell of the first data column.
    *
    * @param {string} testId The grid's test id.

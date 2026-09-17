@@ -189,9 +189,22 @@ jobs:
     # Gated on the ES+CJS build (the visual examples consume it) OR the visual
     # scope — NOT on the build module merely succeeding. A tests/**-only PR
     # builds UMD (for Playwright) but not ES+CJS, and must not pay for the full
-    # visual suite (matches the pre-split behaviour).
+    # visual suite (matches the pre-split behavior).
     if: ${{ !failure() && !cancelled() && (needs.build.outputs.es-cjs-built == 'true' || needs.checks.outputs.test-visual == 'true') }}
     uses: ./.github/workflows/visual.yml
+    with:
+      # Pull requests render the pr tier (js × main, main-dark on chromium; a
+      # wrapper for real only when that wrapper's own tree changed —
+      # `visual-wrappers`, never the Integration matrix, which lights all three
+      # on any core change). A pull request that touches the visual tier itself
+      # (`visual-full`: visual-tests/**, its demos) renders everything (full),
+      # so a change to a spec or a demo is proven on every variant; a lockfile
+      # bump does not, or every Dependabot pull request would pay for a full
+      # render. The master push and the RC path (publish.yml → test.yml,
+      # test-all) seed their branch's goldens (seed). `&&`/`||` return
+      # operands, so this is a ternary.
+      tier: ${{ github.event_name != 'pull_request' && 'seed' || (needs.checks.outputs.visual-full == 'true' && 'full' || 'pr') }}
+      wrappers: ${{ needs.checks.outputs.visual-wrappers }}
     secrets: inherit
 
   # ── Docs: its own internal DAG (lint/plugins/angular → preview → visual).
@@ -218,7 +231,7 @@ jobs:
   # then sit as "Expected — waiting for status to be reported" and block the PR
   # forever. This job instead ALWAYS runs (so it always reports one stable name)
   # and derives a single verdict from every other job's result: it fails if any
-  # job that actually ran failed or was cancelled, and passes when everything
+  # job that actually ran failed or was canceled, and passes when everything
   # else succeeded or was legitimately scope-skipped. Branch protection should
   # require ONLY "CI Gate" and unpin every individual/matrix check name. The
   # manual-QA gate blocks through its needs edge here: a ticked PR's pending

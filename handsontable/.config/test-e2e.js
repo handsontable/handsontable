@@ -27,6 +27,7 @@ const ALLOWED_E2E_MODULES = [
   './helpers/custom-matchers',
   './helpers/jasmine-helpers',
   '../helpers/it-themes-extension',
+  '../scripts/lib/failed-specs.mjs',
   './asciiTable',
   './__mocks__/*',
   './MemoryLeakTest',

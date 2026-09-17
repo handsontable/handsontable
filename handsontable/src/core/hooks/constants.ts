@@ -284,7 +284,7 @@ export const REGISTERED_HOOKS = [
    * @param {number} amount Number of newly created columns in the data source array.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
-   * @returns {*} If `false` then creating columns is cancelled.
+   * @returns {*} If `false` then creating columns is canceled.
    * @example
    * ::: only-for javascript
    * ```js
@@ -743,14 +743,33 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired after one or more columns are removed.
    *
-   * When consecutive columns are removed, this hook is fired once with the `amount` reflecting
-   * the total number of removed columns. When non-consecutive columns are removed (for example,
-   * by selecting columns with Ctrl/Cmd held), this hook is fired separately for each removed
-   * column, with `amount` equal to `1` each time. This is by design.
+   * Columns are removed in runs of neighboring columns, and this hook fires once per run. This
+   * is by design. Removing columns 1, 2, and 3 fires the hook once. Removing columns 0, 1,
+   * and 3 (for example, by selecting columns with Ctrl/Cmd held) fires it twice: once for the
+   * `0, 1` run, then once for `3`.
+   *
+   * Two columns count as neighbors by their **visual** index, so sorting or moving columns
+   * changes how one selection is grouped into runs.
+   *
+   * `amount` is the number of columns the call asked to remove, which is not always the number
+   * it removed. A request that runs past the last column is cut short, but `amount` is not:
+   * `alter('remove_col', 4, 5)` on a six-column grid reports `amount` as `5` and removes two.
+   * Read `physicalColumns.length` for the count that was really removed.
+   *
+   * Every call describes the data source as it stands at that moment, so the `index` and
+   * `physicalColumns` of a later call already account for the columns that the earlier calls
+   * removed.
+   *
+   * This hook fires on every non-canceled removal call, including a no-op that removed nothing
+   * (for example `alter('remove_col')` on a grid with no columns, where `physicalColumns` is
+   * empty). It is therefore **not** paired one-to-one with an undo-stack entry: a no-op removal
+   * does not stack an undo action, so do not treat "`afterRemoveCol` fired" as proof that an undo
+   * entry now exists.
    *
    * @event Hooks#afterRemoveCol
    * @param {number} index Visual index of starter column.
-   * @param {number} amount An amount of removed columns.
+   * @param {number} amount The number of columns the call requested to remove, which may exceed the
+   *                        number actually removed - read `physicalColumns.length` for the removed count.
    * @param {number[]} physicalColumns An array of physical columns removed from the data source.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
@@ -760,10 +779,30 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired after one or more rows are removed.
    *
-   * When consecutive rows are removed, this hook is fired once with the `amount` reflecting
-   * the total number of removed rows. When non-consecutive rows are removed (for example,
-   * by selecting rows with Ctrl/Cmd held), this hook is fired separately for each removed
-   * row, with `amount` equal to `1` each time. This is by design.
+   * Rows are removed in runs of neighboring rows, and this hook fires once per run. This is by
+   * design. Removing rows 1, 2, and 3 fires the hook once, with `amount` set to `3`. Removing
+   * rows 0, 1, and 3 (for example, by selecting rows with Ctrl/Cmd held) fires it twice: first
+   * with `amount` set to `2`, then with `amount` set to `1`.
+   *
+   * Two rows count as neighbors by their **visual** index, so sorting, moving, or hiding rows
+   * changes how one selection is grouped into runs. Two rows that sit next to each other on
+   * screen with a hidden row between them are not neighbors, and they fire two calls.
+   *
+   * `amount` is the number of rows this call really removed, which is always
+   * `physicalRows.length`. A [`beforeRemoveRow`](#beforeremoverow) handler that edits that
+   * array changes both, which is how the [`NestedRows`](@/api/nestedRows.md) plugin adds the
+   * descendants of a removed parent.
+   *
+   * `physicalRows` holds **physical** indexes, so on a sorted or reordered grid it is neither
+   * ascending nor contiguous even for a single run. Every call also describes the data source
+   * as it stands at that moment, so the `index` and `physicalRows` of a later call already
+   * account for the rows that the earlier calls removed.
+   *
+   * This hook fires on every non-canceled removal call, including a no-op that removed nothing
+   * (for example `alter('remove_row')` on a grid with no rows, where `physicalRows` is empty and
+   * `amount` is `0`). It is therefore **not** paired one-to-one with an undo-stack entry: a no-op
+   * removal does not stack an undo action, so do not treat "`afterRemoveRow` fired" as proof that
+   * an undo entry now exists.
    *
    * @event Hooks#afterRemoveRow
    * @param {number} index Visual index of starter row.
@@ -1313,8 +1352,15 @@ export const REGISTERED_HOOKS = [
    * before they are validated and applied to the data source.
    * Use [`afterChange`](@/api/hooks.md#afterchange) if you need to react after the data has been written.
    *
+   * This hook fires for every `setDataAtCell()` call – not only when you call it directly, but also
+   * for regular cell edits, paste, cut, Delete/Backspace, the fill handle, Ctrl+Enter, a checkbox
+   * click, and undo/redo, since those are applied internally via `setDataAtCell()` too. It also fires
+   * when a `beforeChange` handler cancels the change, with an empty `changes` array. Changes made
+   * through `setDataAtRowProp()` fire [`afterSetDataAtRowProp`](@/api/hooks.md#aftersetdataatrowprop)
+   * instead – never both for the same change.
+   *
    * @event Hooks#afterSetDataAtCell
-   * @param {Array} changes An array of changes in format `[[row, column, oldValue, value], ...]`.
+   * @param {Array} changes An array of changes in format `[[row, prop, oldValue, value], ...]`.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    */
@@ -1324,6 +1370,13 @@ export const REGISTERED_HOOKS = [
    * Fired after [`setDataAtRowProp`](@/api/core.md#setdataatrowprop) is called and changes are processed,
    * before they are validated and applied to the data source.
    * Use [`afterChange`](@/api/hooks.md#afterchange) if you need to react after the data has been written.
+   *
+   * This hook fires for every `setDataAtRowProp()` call, yours or a plugin's – for example, the
+   * DataProvider plugin calls it internally (with `source` set to `'DataProvider.revert'`) to roll
+   * back an optimistic edit after a failed server update. Changes made through `setDataAtCell()` –
+   * including regular cell edits, paste, cut, Delete/Backspace, the fill handle, Ctrl+Enter, a
+   * checkbox click, and undo/redo, which apply internally via `setDataAtCell()` – fire
+   * [`afterSetDataAtCell`](@/api/hooks.md#aftersetdataatcell) instead – never both for the same change.
    *
    * @event Hooks#afterSetDataAtRowProp
    * @param {Array} changes An array of changes in format `[[row, prop, oldValue, value], ...]`.
@@ -1407,7 +1460,7 @@ export const REGISTERED_HOOKS = [
    * @param {CellRange} targetRange The range new values will be filled into.
    * @param {string} direction Declares the direction of the autofill. Possible values: `up`, `down`, `left`, `right`.
    *
-   * @returns {boolean|Array[]} If false, the operation is cancelled. If array of arrays, the returned data
+   * @returns {boolean|Array[]} If false, the operation is canceled. If array of arrays, the returned data
    *                              will be passed into [`populateFromArray`](@/api/core.md#populatefromarray) instead of the default autofill
    *                              algorithm's result.
    */
@@ -1464,7 +1517,7 @@ export const REGISTERED_HOOKS = [
    *                          [Binding to data: Identify changed columns in hooks](@/guides/getting-started/binding-to-data/binding-to-data.md#identify-changed-columns-in-hooks).
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
-   * @returns {undefined | boolean} If `false` all changes were cancelled, `true` otherwise.
+   * @returns {undefined | boolean} If `false` all changes were canceled, `true` otherwise.
    * @example
    * ::: only-for javascript
    * ```js
@@ -1786,6 +1839,32 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired before one or more columns are about to be removed.
    *
+   * Columns are removed in runs of neighboring columns, and this hook fires once per run. This
+   * is by design. Removing columns 1, 2, and 3 fires the hook once. Removing columns 0, 1,
+   * and 3 (for example, by selecting columns with Ctrl/Cmd held) fires it twice: once for the
+   * `0, 1` run, then once for `3`.
+   *
+   * Two columns count as neighbors by their **visual** index, so sorting or moving columns
+   * changes how one selection is grouped into runs.
+   *
+   * `amount` is the number of columns the call asked to remove, which is not always the number
+   * it removes. A request that runs past the last column is cut short, but `amount` is not, so
+   * read `physicalColumns.length` for the count that is really going.
+   *
+   * Returning `false` cancels **only the run this call describes**. Any later run of the same
+   * removal still fires and still removes its columns, so blocking the first run of a
+   * multi-run removal does not block the rest. Use [`beforeAlter`](#beforealter) to stop the
+   * whole operation.
+   *
+   * Editing `physicalColumns` in place is not supported. The splice order and `amount` are
+   * fixed before this hook runs while the index mapper reads the edited array, so the change
+   * only half-applies and leaves the two disagreeing. Cancel and re-issue
+   * [`alter()`](@/api/core.md#alter) instead.
+   *
+   * Every call describes the data source as it stands at that moment, so the `index` and
+   * `physicalColumns` of a later call already account for the columns that the earlier calls
+   * removed.
+   *
    * @event Hooks#beforeRemoveCol
    * @param {number} index Visual index of starter column.
    * @param {number} amount Amount of columns to be removed.
@@ -1798,6 +1877,33 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired when one or more rows are about to be removed.
+   *
+   * Rows are removed in runs of neighboring rows, and this hook fires once per run. This is by
+   * design. Removing rows 1, 2, and 3 fires the hook once, with `amount` set to `3`. Removing
+   * rows 0, 1, and 3 (for example, by selecting rows with Ctrl/Cmd held) fires it twice: first
+   * with `amount` set to `2`, then with `amount` set to `1`.
+   *
+   * Two rows count as neighbors by their **visual** index, so sorting, moving, or hiding rows
+   * changes how one selection is grouped into runs. Two rows that sit next to each other on
+   * screen with a hidden row between them are not neighbors, and they fire two calls.
+   *
+   * Returning `false` cancels **only the run this call describes**. Any later run of the same
+   * removal still fires and still removes its rows, so blocking the first run of a multi-run
+   * removal does not block the rest. Use [`beforeAlter`](#beforealter) to stop the whole
+   * operation.
+   *
+   * On the [`alter()`](@/api/core.md#alter) path, `physicalRows` can be edited in place to
+   * change which rows are removed; the [`NestedRows`](@/api/nestedRows.md) plugin uses this to
+   * add the descendants of a removed parent. `amount` is counted before any such edit, so read
+   * `physicalRows.length` for the current list, and read `amount` from
+   * [`afterRemoveRow`](#afterremoverow) for the count that was really removed. Plugins that
+   * fire this hook outside `alter()`, such as `NestedRows` when a child is detached, may
+   * ignore both the edited array and the returned value.
+   *
+   * `physicalRows` holds **physical** indexes, so on a sorted or reordered grid it is neither
+   * ascending nor contiguous even for a single run. Every call also describes the data source
+   * as it stands at that moment, so the `index` and `physicalRows` of a later call already
+   * account for the rows that the earlier calls removed.
    *
    * @event Hooks#beforeRemoveRow
    * @param {number} index Visual index of starter row.
@@ -2203,6 +2309,7 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#beforeColumnSort
    * @param {Array} currentSortConfig Current sort configuration (for all sorted columns).
    * @param {Array} destinationSortConfigs Destination sort configuration (for all sorted columns).
+   * @param {boolean} sortPossible Indicates if it's possible to sort the table with the provided configuration.
    * @returns {boolean | undefined} If `false` the column will not be sorted, `true` otherwise.
    */
   'beforeColumnSort',
@@ -2214,6 +2321,8 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#afterColumnSort
    * @param {Array} currentSortConfig Current sort configuration (for all sorted columns).
    * @param {Array} destinationSortConfigs Destination sort configuration (for all sorted columns).
+   *                                       It repeats `currentSortConfig` when `sortPossible` is `false`.
+   * @param {boolean} sortPossible Indicates if it was possible to sort the table with the provided configuration.
    */
   'afterColumnSort',
 
@@ -3080,6 +3189,154 @@ export const REGISTERED_HOOKS = [
    * @param {boolean} isVisible The visibility state of the page size section.
    */
   'afterPageNavigationVisibilityChange',
+
+  /**
+   * Fired by {@link SheetsBar} plugin before changing the active sheet. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 19.0.0
+   * @event Hooks#beforeSheetTabChange
+   * @param {number} oldSheetId The id of the sheet being left.
+   * @param {number} newSheetId The id of the sheet being activated.
+   * @param {string} source String that identifies source of hook call.
+   * @returns {*|boolean} If `false` is returned the action is canceled.
+   */
+  'beforeSheetTabChange',
+
+  /**
+   * Fired by {@link SheetsBar} plugin after changing the active sheet. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 19.0.0
+   * @event Hooks#afterSheetTabChange
+   * @param {number} oldSheetId The id of the sheet being left.
+   * @param {number} newSheetId The id of the sheet being activated.
+   * @param {string} source String that identifies source of hook call.
+   */
+  'afterSheetTabChange',
+
+  /**
+   * Fired by {@link SheetsBar} plugin before adding a new sheet. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 19.0.0
+   * @event Hooks#beforeSheetTabAdd
+   * @param {string|null} name The requested sheet name, or `null` for a default-generated name.
+   * @param {string} source String that identifies source of hook call.
+   * @returns {*|boolean} If `false` is returned the action is canceled.
+   */
+  'beforeSheetTabAdd',
+
+  /**
+   * Fired by {@link SheetsBar} plugin after adding a new sheet. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 19.0.0
+   * @event Hooks#afterSheetTabAdd
+   * @param {number} sheetId The id of the added sheet.
+   * @param {string} name The name of the added sheet.
+   * @param {string} source String that identifies source of hook call.
+   */
+  'afterSheetTabAdd',
+
+  /**
+   * Fired by {@link SheetsBar} plugin before removing a sheet. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 19.0.0
+   * @event Hooks#beforeSheetTabRemove
+   * @param {number} sheetId The id of the sheet to be removed.
+   * @param {string} source String that identifies source of hook call.
+   * @returns {*|boolean} If `false` is returned the action is canceled.
+   */
+  'beforeSheetTabRemove',
+
+  /**
+   * Fired by {@link SheetsBar} plugin after removing a sheet. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 19.0.0
+   * @event Hooks#afterSheetTabRemove
+   * @param {number} sheetId The id of the removed sheet.
+   * @param {string} source String that identifies source of hook call.
+   */
+  'afterSheetTabRemove',
+
+  /**
+   * Fired by {@link SheetsBar} plugin before renaming a sheet. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 19.0.0
+   * @event Hooks#beforeSheetTabRename
+   * @param {number} sheetId The id of the sheet being renamed.
+   * @param {string} oldName The current name of the sheet.
+   * @param {string} newName The requested new name of the sheet.
+   * @param {string} source String that identifies source of hook call.
+   * @returns {*|boolean} If `false` is returned the action is canceled.
+   */
+  'beforeSheetTabRename',
+
+  /**
+   * Fired by {@link SheetsBar} plugin after renaming a sheet. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 19.0.0
+   * @event Hooks#afterSheetTabRename
+   * @param {number} sheetId The id of the renamed sheet.
+   * @param {string} oldName The previous name of the sheet.
+   * @param {string} newName The new name of the sheet.
+   * @param {string} source String that identifies source of hook call.
+   */
+  'afterSheetTabRename',
+
+  /**
+   * Fired by {@link SheetsBar} plugin before moving a sheet to a new tab position. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 19.0.0
+   * @event Hooks#beforeSheetTabMove
+   * @param {number} sheetId The id of the sheet being moved.
+   * @param {number} finalIndex The requested tab index.
+   * @param {string} source String that identifies source of hook call.
+   * @returns {*|boolean} If `false` is returned the action is canceled.
+   */
+  'beforeSheetTabMove',
+
+  /**
+   * Fired by {@link SheetsBar} plugin after moving a sheet to a new tab position. This hook is fired when
+   * {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 19.0.0
+   * @event Hooks#afterSheetTabMove
+   * @param {number} sheetId The id of the moved sheet.
+   * @param {number} finalIndex The tab index the sheet was moved to.
+   * @param {string} source String that identifies source of hook call.
+   */
+  'afterSheetTabMove',
+
+  /**
+   * Fired by {@link SheetsBar} plugin after capturing a sheet's runtime view state (e.g. scroll position,
+   * selection) before switching away from it. This hook is fired when {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 19.0.0
+   * @event Hooks#afterSheetTabStateCapture
+   * @param {number} sheetId The id of the sheet the view state was captured from.
+   * @param {object} viewState The captured view state.
+   * @param {string} source String that identifies source of hook call.
+   */
+  'afterSheetTabStateCapture',
+
+  /**
+   * Fired by {@link SheetsBar} plugin after restoring a sheet's runtime view state (e.g. scroll position,
+   * selection) when switching to it. This hook is fired when {@link Options#sheetsBar} option is enabled.
+   *
+   * @since 19.0.0
+   * @event Hooks#afterSheetTabStateRestore
+   * @param {number} sheetId The id of the sheet the view state was restored to.
+   * @param {object} viewState The restored view state.
+   * @param {string} source String that identifies source of hook call.
+   */
+  'afterSheetTabStateRestore',
 
   /**
    * Fired by the {@link Formulas} plugin, when any cell value changes.

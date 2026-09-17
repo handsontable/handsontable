@@ -1,6 +1,7 @@
 import { isKey } from '../../../../../helpers/unicode';
 import { eventTargetEl, isHTMLElement } from '../../../../../helpers/dom/element';
 import { requestAnimationFrame } from '../../../../../helpers/feature';
+import { matchesCloneScrollTarget, measureCloneScrollDrift } from './cloneScrollDrift';
 import type { EngineContext } from '../../wire';
 import type { default as Overlays } from '../overlays';
 import type { StickyScrollStrategy } from '../strategies/stickyScrollStrategy';
@@ -92,8 +93,18 @@ export function createNativeScrollInputDeps(
       overlays.topInlineStartCornerOverlay,
       overlays.bottomInlineStartCornerOverlay,
     ],
+    // The three clones `ScrollSync` mirrors the master's offset onto, and so the three whose
+    // holders are scroll containers (the clone-holder rule in `src/styles/base/_base.scss`).
+    getScrollMirroredOverlays: () => [
+      overlays.topOverlay,
+      overlays.bottomOverlay,
+      overlays.inlineStartOverlay,
+    ],
     getScrollableElement: () => overlays.scrollableElement,
     syncScrollPositions: () => overlays.syncScrollPositions(),
+    getCloneScrollTarget: (holder: HTMLElement) => overlays.getCloneScrollTarget(holder),
+    recordClampedCloneScrollTarget: (holder: HTMLElement, offset: { top: number, left: number }) =>
+      overlays.recordClampedCloneScrollTarget(holder, offset),
     scrollVertically: (delta: number) => overlays.scrollVertically(delta),
     scrollHorizontally: (delta: number) => overlays.scrollHorizontally(delta),
     registerStickyScrollListeners: () => stickyScroll.registerListeners(),
@@ -205,6 +216,19 @@ export class NativeScrollInput {
       );
     });
 
+    this.#deps.getScrollMirroredOverlays().forEach((overlay) => {
+      if (!overlay.clone) {
+        return;
+      }
+
+      eventManager.addEventListener(
+        overlay.clone.wtTable.holder,
+        'scroll',
+        (event: Event) => this.#onCloneScroll(event),
+        { passive: true }
+      );
+    });
+
     let resizeTimeout: ReturnType<typeof setTimeout>;
 
     eventManager.addEventListener(rootWindow, 'resize', () => {
@@ -312,6 +336,70 @@ export class NativeScrollInput {
 
     if (preventDefault || (this.#deps.getScrollableElement() !== rootWindow && isScrollPossible)) {
       event.preventDefault();
+    }
+  }
+
+  /**
+   * Scroll listener for the clone holders.
+   *
+   * The frozen overlays' clone holders are composited scroll containers (the clone-holder rule in
+   * `src/styles/base/_base.scss`), so the browser can scroll one on its own - a touch pan over a
+   * frozen header, a wheel the clone listener did not cancel - and the clone then sits out of step
+   * with the master. The engine's own writes fire this listener too and read as no drift, through
+   * the ledger `ScrollSync` keeps of what it wrote. A real drift is undone on the holder and handed
+   * to the axis owner as a relative scroll; the owner's own scroll event then re-syncs every clone
+   * the ordinary way, so a pan over a frozen header scrolls the grid like a wheel over it does.
+   *
+   * The ledger, not the owner's current offset, is the reference on purpose. Scroll events are
+   * dispatched a frame after the offset changed, and a clone's pending event can run BEFORE the
+   * master's in the same frame: the clone still holds last frame's offset while the master already
+   * moved on, and a comparison against the master would read that as a user scroll backwards.
+   *
+   * The engine's own writes are the common case - three per scroll frame - and an in-range write
+   * lands on the ledger, so it returns before any geometry read. Two things can put the holder a
+   * little off the ledger without a user touching it, and both are resolved to no drift: a zoomed
+   * page stores a fraction of a pixel for an integer write, which the tolerance absorbs, and a write
+   * made while the master sat past the clone's momentary range is clamped by the browser, which the
+   * range measure absorbs. The clamped offset is handed back to the ledger so the next event on that
+   * holder returns early instead of measuring the range again. A corrective write below re-applies
+   * the ledger's own value, so the ledger stays true through it.
+   *
+   * @param {Event} event The scroll event object.
+   */
+  #onCloneScroll(event: Event) {
+    const holder = event.currentTarget;
+
+    if (!isHTMLElement(holder)) {
+      return;
+    }
+
+    const current = { top: holder.scrollTop, left: holder.scrollLeft };
+    const target = this.#deps.getCloneScrollTarget(holder);
+
+    if (matchesCloneScrollTarget(current, target)) {
+      return;
+    }
+
+    const { geometryReader } = this.#deps;
+    const drift = measureCloneScrollDrift(
+      current,
+      { maxTop: geometryReader.getMaximumScrollTop(holder), maxLeft: geometryReader.getMaximumScrollLeft(holder) },
+      target,
+    );
+
+    if (drift.driftTop === 0 && drift.driftLeft === 0) {
+      this.#deps.recordClampedCloneScrollTarget(holder, { top: drift.expectedTop, left: drift.expectedLeft });
+
+      return;
+    }
+
+    if (drift.driftTop !== 0) {
+      holder.scrollTop = drift.expectedTop;
+      this.#deps.scrollVertically(drift.driftTop);
+    }
+    if (drift.driftLeft !== 0) {
+      holder.scrollLeft = drift.expectedLeft;
+      this.#deps.scrollHorizontally(drift.driftLeft);
     }
   }
 

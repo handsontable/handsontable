@@ -395,7 +395,7 @@ export default (): Record<string, unknown> => {
      * autofill stops at the last column, so nothing is written there at all. A direct
      * [`setDataAtCell()`](@/api/core.md#setdataatcell) or [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) call
      * writes the value whatever this option is set to. On an object [`data`](#data) source that direct write is
-     * deprecated as of 18.2.0. See [`setDataAtCell()`](@/api/core.md#setdataatcell), which owns that rule.
+     * deprecated as of 19.0.0. See [`setDataAtCell()`](@/api/core.md#setdataatcell), which owns that rule.
      *
      * The option does not stop these ways of adding columns:
      * - The [`alter()`](@/api/core.md#alter) method, including its `insert_col_start` and `insert_col_end` actions.
@@ -584,6 +584,91 @@ export default (): Record<string, unknown> => {
      * @since 14.0.0
      */
     ariaTags: true,
+
+    /**
+     * @description
+     * The `autoLink` option configures the [`AutoLink`](@/api/autoLink.md) plugin, which renders the
+     * URLs found in cell values as clickable links.
+     *
+     * You can set the `autoLink` option to one of the following:
+     *
+     * | Setting           | Description                                                                              |
+     * | ----------------- | ---------------------------------------------------------------------------------------- |
+     * | `false` (default) | Disable the [`AutoLink`](@/api/autoLink.md) plugin                                       |
+     * | `true`            | Enable the [`AutoLink`](@/api/autoLink.md) plugin with the default settings               |
+     * | An object         | Enable the [`AutoLink`](@/api/autoLink.md) plugin and configure its settings              |
+     *
+     * If you set the `autoLink` option to an object, you can configure the following settings:
+     *
+     * | Option      | Possible settings                                                       | Description                                                                 |
+     * | ----------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+     * | `target`    | `'_blank'` (default) \| `'_self'`                                       | Where the links open                                                         |
+     * | `schemes`   | An array of `'http'`, `'https'`, `'mailto'`, `'tel'` (default: all four) | The URL schemes to link. Narrows the fixed four-scheme allowlist, never widens it. A column or cell `schemes` replaces the grid-level list for those cells. |
+     * | `inline`    | `true` (default) \| `false`                                             | `true`: link URLs inside longer text<br>`false`: link only a cell whose whole value is one URL |
+     * | `strict`    | `true` (default) \| `false`                                             | `true`: link only URLs that carry a scheme<br>`false`: also link bare domains (`example.com`) as `https` and bare email addresses as `mailto`, validated against the IANA top-level domain list bundled with Handsontable |
+     * | `className` | A string (default: `''`)                                                | Extra class name(s) added to every link                                      |
+     *
+     * The full IANA top-level domain list is used, so a file name whose extension is also a
+     * top-level domain, such as `report.zip` or `README.md`, links too. Keep the default unless your
+     * data holds bare domains or email addresses, and keep `strict: true` or set `autoLink: false` on
+     * columns that hold file names. The bundled list is fixed at build time - Handsontable makes no
+     * network request to validate a bare domain, which keeps `strict: false` usable in an
+     * air-gapped environment. Punycode top-level domains (`xn--...`) are skipped, since nobody types
+     * those into a cell.
+     *
+     * The cell keeps its own renderer and its value stays unchanged, so copying, autofill, sorting,
+     * and export are unaffected. Every link element gets the `ht-link` and `ht-auto-link` classes,
+     * and always carries `rel="noopener noreferrer"`. Press <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd>
+     * to open the first link of the selected cell.
+     *
+     * For `mailto:` and `tel:` links, the scheme prefix is wrapped in a `ht-link-scheme` element and
+     * hidden, so the cell shows only the address or the number. The cell value and the link target
+     * keep the prefix.
+     *
+     * Only the `http`, `https`, `mailto`, and `tel` schemes are ever linked. A cell that already
+     * contains a link element, such as a `HYPERLINK` cell rendered through
+     * [`formulas.hyperlinks`](#formulas) or an `html` cell holding an anchor, is left as it is.
+     *
+     * The plugin is enabled at the grid level. Set `autoLink: false` for a column or a cell to opt it
+     * out, or set an object to override the grid-level settings for that column or cell.
+     *
+     * Read more:
+     * - [Clickable links](@/guides/cell-features/clickable-links/clickable-links.md)
+     * - [Plugins: `AutoLink`](@/api/autoLink.md)
+     *
+     * @memberof Options#
+     * @type {boolean|object}
+     * @default false
+     * @since 19.0.0
+     * @category AutoLink
+     * @configScope grid columns cells cell
+     *
+     * @example
+     * ```js
+     * // link every URL, email address and phone number found in cell values
+     * autoLink: true,
+     *
+     * // open links in the same tab, link web URLs only, and add a class to every link
+     * autoLink: {
+     *   target: '_self',
+     *   schemes: ['http', 'https'],
+     *   className: 'company-link',
+     * },
+     *
+     * // also link bare domains (as `https`) and bare email addresses (as `mailto`)
+     * autoLink: {
+     *   strict: false,
+     * },
+     *
+     * // enable the plugin, but keep one column as plain text
+     * autoLink: true,
+     * columns: [
+     *   { data: 'website' },
+     *   { data: 'notes', autoLink: false },
+     * ],
+     * ```
+     */
+    autoLink: false,
 
     /**
      * The `autoColumnSize` option configures the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin.
@@ -1135,6 +1220,14 @@ export default (): Record<string, unknown> => {
      * option read strings at all. A negative string is rejected instead, so a typo cannot collapse
      * the header.
      *
+     * The height is the header's **border-box** height, so it includes the header's own top and
+     * bottom borders. A column header carries a 1px border on each side, which makes
+     * `columnHeaderHeight: 40` leave a 38px content box for the label. Before Handsontable 19.0 the
+     * bottom border was dropped while the grid sat at the top of its scroll range and added back as
+     * soon as it scrolled, so the same setting produced a 39px content box unscrolled and 38px
+     * scrolled. The header keeps that border at every scroll position now, so the option resolves to
+     * the same height wherever the grid is scrolled to.
+     *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
@@ -1239,6 +1332,7 @@ export default (): Record<string, unknown> => {
      * | `indicator`              | `true`: Display the arrow icon in the column header, to indicate a sortable column<br>`false`: Don't display the arrow icon in the column header  |
      * | `headerAction`           | `true`: Enable clicking on the column header to sort the column<br>`false`: Disable clicking on the column header to sort the column             |
      * | `sortEmptyCells`         | `true`: Sort empty cells as well<br>`false`: Place empty cells at the end                                                                        |
+     * | `sortFixedRows`          | `true`: Sort the whole dataset, including the rows pinned by [`fixedRowsTop`](#fixedrowstop) and [`fixedRowsBottom`](#fixedrowsbottom)<br>`false`: Keep the pinned rows in place<br>Grid-level only |
      * | `compareFunctionFactory` | A [custom compare function](@/guides/rows/rows-sorting/rows-sorting.md#add-a-custom-comparator)                                                                |
      *
      * If you set the `columnSorting` option to an object,
@@ -1275,6 +1369,8 @@ export default (): Record<string, unknown> => {
      *   indicator: true,
      *   // disable clicking on the column header to sort the column
      *   headerAction: false,
+     *   // sort the pinned rows along with the rest of the dataset
+     *   sortFixedRows: true,
      *   // add a custom compare function
      *   compareFunctionFactory(sortOrder, columnMeta) {
      *     return function(value, nextValue) {
@@ -3207,7 +3303,11 @@ export default (): Record<string, unknown> => {
     /**
      * The `filters` option configures the [`Filters`](@/api/filters.md) plugin.
      *
-     * You can set the `filters` option to one of the following:
+     * The option takes different values at the two levels it works at, so they are listed
+     * separately below. At the grid level it switches the plugin on and carries its settings. Inside
+     * [`columns`](#columns) it does one thing only: `false` takes that column out of filtering.
+     *
+     * **At the grid level:**
      *
      * | Setting   | Description                                                          |
      * | --------- | -------------------------------------------------------------------- |
@@ -3215,32 +3315,80 @@ export default (): Record<string, unknown> => {
      * | `true`    | Enable the [`Filters`](@/api/filters.md) plugin                      |
      * | An object | Enable the [`Filters`](@/api/filters.md) plugin with custom settings |
      *
-     * If you set the `filters` option to an object, you can configure the following settings:
+     * If you set the `filters` option to an object, you can configure the following settings. Both
+     * of them are read once, for the whole grid, so neither can be set per column:
      *
-     * | Property                 | Possible values   | Description                            |
-     * | ------------------------ | ----------------- | -------------------------------------- |
-     * | `searchMode` | `'show'` \| `'apply'` | Enable filtering only visible elements |
+     * | Property           | Possible values       | Default  | Description                                                                                                                                                         |
+     * | ------------------ | --------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `searchMode`       | `'show'` \| `'apply'` | `'show'` | Enable filtering only visible elements                                                                                                                              |
+     * | `filterFixedRows`  | `true` \| `false`     | `true`   | `true`: Filter the whole dataset, including the rows pinned by [`fixedRowsTop`](#fixedrowstop) and [`fixedRowsBottom`](#fixedrowsbottom)<br>`false`: Leave the pinned rows out of the filter |
      *
-     * If filers is set to `true`, the `searchMode` option is set to `'show'` by default.
+     * Set `filterFixedRows` to `false` when the pinned rows hold totals or headings rather than data.
+     * Those rows are then never hidden by a filter, and their values are not offered in the
+     * **Filter by value** list.
+     *
+     * `filterFixedRows` has no effect while the [`DataProvider`](@/api/dataProvider.md) plugin is
+     * active: filtering then happens on the server, which knows nothing about frozen rows.
+     *
+     * With `filterFixedRows: false` and a filter applied, changing the row order re-runs the filter.
+     * Inserting, removing, or moving a row, and sorting, all change which rows sit in the frozen
+     * panes, so the exemption has to be worked out again. The
+     * [`beforeFilter`](@/api/hooks.md#beforefilter) and [`afterFilter`](@/api/hooks.md#afterfilter)
+     * hooks fire on those changes as well. Read them as "the filter ran", not as "the user changed
+     * a filter".
+     *
+     * **Inside `columns`:**
+     *
+     * | Setting        | Description                                                                          |
+     * | -------------- | ------------------------------------------------------------------------------------ |
+     * | `false`        | Hide the filter controls in this column's dropdown menu                              |
+     * | Anything else  | No effect – the column keeps whatever the grid-level setting gave it                  |
+     *
+     * The column's dropdown menu still opens, so entries such as **Clear column** stay available.
+     * The plugin's API is not affected either: [`addCondition()`](@/api/filters.md#addcondition)
+     * still filters such a column, the same way [`columnSorting`](#columnsorting)'s `headerAction`
+     * leaves sorting through the API working.
+     *
+     * An object written inside `columns` is **ignored**, and logs a warning once per grid. TypeScript
+     * does not reject it, because a column's settings are typed from the grid's, so treat the table
+     * above as the contract rather than the type.
+     *
+     * The switch is read from the column meta, which the [`cells`](#cells) and [`cell`](#cell)
+     * options do not reach, so filtering cannot be turned off for a single cell. Filtering works on
+     * whole columns, so there would be nothing for a per-cell value to mean.
      *
      * Read more:
      * - [Column filter](@/guides/columns/column-filter/column-filter.md)
      * - [Plugins: `Filters`](@/api/filters.md)
      * - [`dropdownMenu`](#dropdownMenu)
      *
-     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
-     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
-     *
      * @memberof Options#
-     * @type {boolean}
+     * @type {boolean|object}
      * @default undefined
      * @category Filters
-     * @configScope grid
+     * @configScope grid columns
      *
      * @example
      * ```js
      * // enable the `Filters` plugin
      * filters: true,
+     *
+     * // enable it, and keep the frozen rows out of the filter
+     * filters: {
+     *   filterFixedRows: false,
+     * },
+     *
+     * // turn filtering off for the second column only
+     * filters: true,
+     * columns: [
+     *   {},
+     *   { filters: false },
+     * ],
+     *
+     * // WRONG: the sub-options are grid-level, so this object is ignored and warns
+     * columns: [
+     *   { filters: { filterFixedRows: false } },
+     * ],
      * ```
      */
     filters: undefined,
@@ -3430,16 +3578,22 @@ export default (): Record<string, unknown> => {
      * | `sheetId`   | A number                                                                                                                                                                                                               |
      * | `sheetName` | A string                                                                                                                                                                                                               |
      * | `language`  | A [HyperFormula language pack](https://handsontable.github.io/hyperformula/guide/localizing-functions.html), imported from `hyperformula/es/i18n/languages`                                                          |
-     * | `hyperlinks` | `true` \|<br>`false` (default)                                                                                                                                                                                        |
+     * | `hyperlinks` | `true` \|<br>`false` (default) \|<br>An object with `target` and `schemes`                                                                                                                                                   |
      *
      * Set `hyperlinks` to `true` to render a cell whose formula is `HYPERLINK()` as a link. The cell
      * keeps its own renderer, and the link label is the value the formula returns. Only a cell whose
      * root expression is `HYPERLINK()` becomes a link, so a nested call such as
      * `=CONCATENATE("see ", HYPERLINK("https://example.com"))` renders as plain text.
      *
+     * Set `hyperlinks` to an object to configure the links: `target` is `'_blank'` (default) or
+     * `'_self'`, and `schemes` narrows the allowed URL schemes to a subset of `'http'`, `'https'`,
+     * `'mailto'`, and `'tel'`.
+     *
      * A link is created only for the `http`, `https`, `mailto` and `tel` schemes. Any other scheme,
      * `javascript:` included, renders the label as plain text instead. Press
-     * <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd> to open the link of the selected cell.
+     * <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd> to open the link of the selected cell. Each link
+     * element gets the `ht-link` and `ht-hyperlink` classes. To link plain URLs in cell values, see
+     * [`autoLink`](#autoLink).
      *
      * Read more:
      * - [Plugins: `Formulas`](@/api/formulas.md)
@@ -3470,6 +3624,15 @@ export default (): Record<string, unknown> => {
      * formulas: {
      *   engine: HyperFormula,
      *   hyperlinks: true
+     * }
+     *
+     * // or, open `HYPERLINK()` links in the same tab and link only web URLs
+     * formulas: {
+     *   engine: HyperFormula,
+     *   hyperlinks: {
+     *     target: '_self',
+     *     schemes: ['http', 'https']
+     *   }
      * }
      *
      * // or, add a HyperFormula instance
@@ -4901,6 +5064,7 @@ export default (): Record<string, unknown> => {
      * | `indicator`              | `true`: Display the arrow icon in the column header, to indicate a sortable column<br>`false`: Don't display the arrow icon in the column header |
      * | `headerAction`           | `true`: Enable clicking on the column header to sort the column<br>`false`: Disable clicking on the column header to sort the column             |
      * | `sortEmptyCells`         | `true`: Sort empty cells as well<br>`false`: Place empty cells at the end                                                                        |
+     * | `sortFixedRows`          | `true`: Sort the whole dataset, including the rows pinned by [`fixedRowsTop`](#fixedrowstop) and [`fixedRowsBottom`](#fixedrowsbottom)<br>`false`: Keep the pinned rows in place<br>Grid-level only |
      * | `compareFunctionFactory` | A [custom compare function](@/guides/rows/rows-sorting/rows-sorting.md#add-a-custom-comparator)                                                               |
      *
      * If you set the `multiColumnSorting` option to an object,
@@ -4936,6 +5100,8 @@ export default (): Record<string, unknown> => {
      *   indicator: true,
      *   // disable clicking on the column header to sort the column
      *   headerAction: false,
+     *   // sort the pinned rows along with the rest of the dataset
+     *   sortFixedRows: true,
      *   // add a custom compare function
      *   compareFunctionFactory(sortOrder, columnMeta) {
      *     return function(value, nextValue) {
@@ -5218,10 +5384,14 @@ export default (): Record<string, unknown> => {
      *
      * This option affects only the displayed output in the cell renderer.
      * It has no effect on the numeric cell editor. In the source data, numeric values
-     * are stored as JavaScript numbers.
+     * are stored as JavaScript numbers, so a value beyond the safe-integer limit
+     * (`9007199254740991`) loses precision before the formatter ever sees it. To store and display
+     * such a value exactly, set [`preserveNumericLiteral`](@/api/options.md#preservenumericliteral)
+     * to `true` and provide the value as a string.
      *
      * Read more:
      * - [`locale`](@/api/options.md#locale)
+     * - [`preserveNumericLiteral`](@/api/options.md#preservenumericliteral)
      * - [Numeric cell type](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md)
      * - [Cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md)
      * - [Third-party licenses](@/guides/technical-specification/third-party-licenses/third-party-licenses.md)
@@ -5266,8 +5436,14 @@ export default (): Record<string, unknown> => {
      * behaving like a number in those features: column sorting and filter conditions compare it
      * numerically, and the [`Formulas`](@/api/formulas.md) engine parses the literal as a number,
      * so functions such as `SUM` still include the cell. The cell renderer still formats
-     * the value according to [`numericFormat`](@/api/options.md#numericformat); only the editor
-     * shows the preserved literal. One exception: the filter menu's "Filter by value" checkbox
+     * the value according to [`numericFormat`](@/api/options.md#numericformat), and it keeps every
+     * digit of the literal: `Intl.NumberFormat` reads a string operand as an exact decimal instead
+     * of converting it to a JavaScript number. That makes `preserveNumericLiteral` the supported
+     * way to display a value beyond the safe-integer limit: the literal `'9007199254740993'`
+     * renders with every digit intact, while the same value held as a number renders as
+     * `9007199254740992`. Grouping and decimals still follow
+     * [`numericFormat`](@/api/options.md#numericformat). One exception: the filter menu's
+     * "Filter by value" checkbox
      * list compares values strictly, so a preserved literal (`'9.0'`) and its plain number (`9`)
      * appear as two separate entries.
      *
@@ -5380,7 +5556,7 @@ export default (): Record<string, unknown> => {
      * | ------------------------ | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
      * | `pageSize`               | A number or `auto` (default: `10`)                 | Sets the number of rows displayed per page. If `'auto'` is set, the page size will be calculated to match all rows to the currently set table's viewport height  |
      * | `pageSizeList`           | An array (default: `['auto', 5, 10, 20, 50, 100]`) | Defines the selectable values for page size in the UI                                                                                                            |
-     * | `initialPage`            | A number (default: `1`)                            | Specifies which page to display on initial load                                                                                                                  |
+     * | `initialPage`            | A number (default: `1`)                            | Specifies which page to display on initial load. The plugin applies the value when it first enables and when you change it. Passing the same number again does not reset the current page. |
      * | `showPageSize`           | Boolean (default: `true`)                          | Controls visibility of the "page size" section                                                                                                                   |
      * | `showCounter`            | Boolean (default: `true`)                          | Controls visibility of the "page counter" section (e.g., "1 - 10 of 50");                                                                                        |
      * | `showNavigation`         | Boolean (default: `true`)                          | Controls visibility of the "page navigation" section                                                                                                             |
@@ -5720,13 +5896,20 @@ export default (): Record<string, unknown> => {
      * | `'onChange'`         | The cell is painted only when the element it lands in showed something else after its last paint: another cell, another value, another renderer, a changed cell meta (through [`setCellMeta()`](@/api/core.md#setcellmeta) or the [`cells`](#cells) function), or a structural change of the grid. |
      *
      * Under `'onChange'`, a render skips the cells whose paint would produce the same result as their
-     * last paint. Some changes are not detected, because nothing in the grid sees them:
+     * last paint. A vertical scroll keeps the elements of the rows that stay rendered, so it paints
+     * only the rows that enter the rendered area, plus the cells of merged blocks, whose span depends
+     * on that area. A horizontal scroll repaints the rendered cells, and so does any scroll in a grid
+     * that scrolls with the page. Some changes are not detected, because nothing in the grid sees
+     * them:
      * - a meta object mutated directly (`getCellMeta(row, col).x = y`, including inside the
      * [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta) and [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta) hooks),
      * - a value object mutated in place (the grid compares values by identity),
      * - state outside the grid that a renderer reads,
      * - a renderer that reads the data of other cells, such as the checkbox renderer with
-     * [`label.property`](#label).
+     * [`label.property`](#label),
+     * - a renderer that reads where the rendered area starts or ends, through
+     * [`getFirstRenderedVisibleRow()`](@/api/core.md#getfirstrenderedvisiblerow) or its siblings: a
+     * vertical scroll keeps such a cell as it is.
      *
      * Set `renderMode: 'always'` on such cells, or mark them with
      * [`markCellChanged()`](@/api/core.md#markcellchanged) before rendering. A [`cells`](#cells)
@@ -5746,7 +5929,7 @@ export default (): Record<string, unknown> => {
      * @default 'always'
      * @category Core
      * @configScope grid columns cells cell
-     * @since 18.2.0
+     * @since 19.0.0
      *
      * @example
      * ```js
@@ -6177,7 +6360,7 @@ export default (): Record<string, unknown> => {
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
-     * @since 18.2.0
+     * @since 19.0.0
      * @memberof Options#
      * @type {object|boolean}
      * @default undefined
@@ -6439,6 +6622,62 @@ export default (): Record<string, unknown> => {
      * ```
      */
     selectionHandles: false,
+
+    /**
+     * The `sheetsBar` option configures the [`SheetsBar`](@/api/sheetsBar.md) plugin, which renders a tab bar
+     * below the grid — or above it, with the `position` option — and lets the user
+     * switch between the sheets of a multi-sheet workbook.
+     *
+     * You can set the `sheetsBar` option to one of the following:
+     *
+     * | Setting                          | Description                                                       |
+     * | -------------------------------- | ------------------------------------------------------------------|
+     * | `undefined` (default)            | Disable the `SheetsBar` plugin                                    |
+     * | `false`                          | Disable the `SheetsBar` plugin                                    |
+     * | `true`                           | Enable the [`SheetsBar`](@/api/sheetsBar.md) plugin                |
+     *
+     * ##### sheetsBar: Additional options
+     *
+     * If you set the `sheetsBar` option to an object, you can set the following `SheetsBar` plugin options:
+     *
+     * | Option        | Possible settings                                  | Description                                                                                 |
+     * | ------------- | --------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+     * | `sheets`      | An array of `{ name, data, settings }` objects, or `null` | Defines the initial workbook. When omitted, the grid's own data becomes a single `Sheet1`     |
+     * | `activeSheet` | A number (default: `0`)                              | The index (within `sheets`) of the sheet to activate on initialization. Passed later through [`updateSettings()`](@/api/core.md#updatesettings) with a changed value, it switches the active sheet without rebuilding the workbook; a re-passed identical value is ignored |
+     * | `controls`    | Boolean (default: `true`)                            | Controls visibility of the add-sheet and sheet-menu controls                                  |
+     * | `paging`      | Boolean (default: `true`)                            | Controls visibility of the tab-scrolling controls, shown when tabs overflow the bar's width    |
+     * | `position`    | `'top'` \| `'bottom'` (default: `'bottom'`)          | The edge of the grid the bar renders on                                                        |
+     * | `uiContainer` | An HTML element (default: `null`)                    | The container element where the sheets bar UI will be installed. If not provided, the bar is injected below the root table element |
+     *
+     * Read more:
+     * - [Plugins: `SheetsBar`](@/api/sheetsBar.md)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * @since 19.0.0
+     * @memberof Options#
+     * @type {boolean|object}
+     * @default undefined
+     * @category SheetsBar
+     * @configScope grid
+     *
+     * @example
+     * ```js
+     * // enable the `SheetsBar` plugin
+     * sheetsBar: true,
+     *
+     * // or, with a predefined workbook
+     * sheetsBar: {
+     *   sheets: [
+     *     { name: 'Budget', data: [['Item', 'Cost'], ['Rent', 1200]] },
+     *     { name: 'Notes', data: [['Draft']] },
+     *   ],
+     *   activeSheet: 0,
+     * },
+     * ```
+     */
+    sheetsBar: undefined,
 
     /**
      * The `moveCells` option lets you move a [selection](@/guides/cell-features/selection/selection.md) by
@@ -6841,6 +7080,8 @@ export default (): Record<string, unknown> => {
      * | ------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
      * | `true`  | [Strict mode](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md#autocomplete-strict-mode)         | The end user:<br>- Can only choose one of suggested values<br>- Can't enter a custom value |
      * | `false` | [Flexible mode](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md#autocomplete-flexible-mode)     | The end user:<br>- Can choose one of suggested values<br>- Can enter a custom value        |
+     *
+     * The [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cell type always runs in strict mode, so it ignores `strict: false`.
      *
      * This option can be set at any level of the [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration):
      * the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
@@ -8282,7 +8523,7 @@ export default (): Record<string, unknown> => {
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
-     * @since 18.2.0
+     * @since 19.0.0
      * @memberof Options#
      * @type {boolean|function(string, TextExtractorContext): string}
      * @default undefined

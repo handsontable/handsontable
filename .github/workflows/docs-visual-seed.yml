@@ -1,0 +1,112 @@
+name: Docs visual seed
+
+# Writes the golden records of the docs visual suite -- `docs/base/<branch>/`
+# in R2, the baseline every docs pull request into <branch> is compared
+# against -- from the staging deploy of the commit that was just pushed.
+#
+# Why `workflow_run` on the staging deploy. The docs are built from a base
+# branch in exactly one place: docs-staging.yml's push build, which deploys
+# develop to handsontable-docs-staging.pages.dev and release/x.y.z to
+# rc-x-y-z.handsontable-docs-staging.pages.dev. Chaining on its completion
+# seeds `docs/base/<branch>` from exactly what it deployed, with the specs of
+# the same commit (the job checks out `head_sha`), and costs no second docs
+# build. Before DEV-2860 nothing seeded the docs baseline at all: the cache the
+# suite restored from was scoped to the pull request, so commit 2 of a pull
+# request was compared against commit 1 and never against develop (PR #13440),
+# and a cache miss wrote the preview's own render as the goldens and passed.
+#
+# Two consequences of the trigger, the same ones test-health.yml lives with.
+# GitHub runs the copy of this file on the DEFAULT branch, whatever branch the
+# deploy came from, so a change here is exercised only after it lands on
+# develop -- the dispatch exists for that, and for re-seeding a baseline
+# someone has confirmed is poisoned. And it never runs for a pull request: a
+# pull request's staging deploy is the `workflow_call` path inside Tests, which
+# produces no run of its own, and a deploy whose triggering event is not a
+# push is skipped below in any case (a dispatched staging deploy does not
+# chain; dispatch this workflow after it).
+#
+# The known lag, stated so nobody rediscovers it: docs-staging.yml's push
+# trigger fires on `docs/**` and `handsontable/package.json` only, so a
+# core-only merge that changes how the grid renders is not in the docs baseline
+# until the next docs merge deploys, and a docs pull request opened in that gap
+# reports develop's own rendering change as its difference. Widening that
+# trigger is a separate call: it costs a docs deploy of about 10 minutes per
+# core merge.
+#
+# The group never cancels (visual-seed.yml's rule): GitHub keeps one running
+# and one pending run per group, so the LAST deploy of a burst is always
+# seeded, and an in-flight seed is never killed halfway through its
+# `--delete` reconcile.
+on:
+  workflow_run:
+    workflows: ['Docs Staging Deployment']
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'develop or release/x.y.z — which staging deploy to seed from'
+        type: string
+        default: 'develop'
+
+concurrency:
+  # Static prefix, keyed on the branch being seeded rather than on `github.ref`,
+  # which is the default branch for every workflow_run.
+  group: docs-visual-seed-${{ github.event.workflow_run.head_branch || inputs.branch }}
+  cancel-in-progress: false
+
+jobs:
+  seed:
+    name: seed
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    # A failed or canceled deploy has nothing to seed from, and a deploy that a
+    # pull request or a dispatch triggered is not a base branch's.
+    if: github.event_name == 'workflow_dispatch'
+      || (github.event.workflow_run.conclusion == 'success'
+          && github.event.workflow_run.event == 'push')
+    # Read-only: no comment, no pull request. The R2 writes go through the
+    # action's inputs, not the token.
+    permissions:
+      contents: read
+    steps:
+      # The specs must match the deployed docs: a page added to paths.js in the
+      # deployed commit has to be declared by the suite that seeds it.
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || inputs.branch }}
+
+      # The URL shapes are docs-staging.yml's cf-target step: develop is the
+      # project's apex branch; a release branch deploys to `rc-<version>` with
+      # the dots turned into dashes. Anything else is not a base branch and has
+      # no baseline to seed. The branch name goes through `env:`, never into the
+      # script body.
+      - name: Resolve the staging deploy to seed from
+        id: target
+        env:
+          BRANCH: ${{ github.event.workflow_run.head_branch || inputs.branch }}
+        run: |
+          if [ "$BRANCH" = "develop" ]; then
+            url="https://handsontable-docs-staging.pages.dev/docs"
+          elif [[ "$BRANCH" =~ ^release/[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            version="${BRANCH#release/}"
+            url="https://rc-${version//./-}.handsontable-docs-staging.pages.dev/docs"
+          else
+            echo "::error::$BRANCH is neither develop nor release/x.y.z; only those have a staging deploy and a docs baseline."
+            exit 1
+          fi
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+          echo "Seeding docs/base/$BRANCH from $url."
+
+      - name: Seed the docs golden records
+        uses: ./.github/actions/docs-visual-run
+        with:
+          test-url: ${{ steps.target.outputs.url }}
+          mode: seed
+          base-key: docs/base/${{ steps.target.outputs.branch }}
+          actual-key: docs/base/${{ steps.target.outputs.branch }}
+          pass-cookie: ${{ secrets.PASS_COOKIE }}
+          r2-access-key-id: ${{ secrets.R2_ACCESS_KEY_ID }}
+          r2-secret-access-key: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          r2-account-id: ${{ secrets.R2_ACCOUNT_ID }}
+          run-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

@@ -127,7 +127,7 @@ export class ResizeMonitor {
 
   /**
    * Whether the monitor was destroyed. Every callback that outlives a task boundary opens with this,
-   * because cancelling a handle cannot undo a callback the engine already dispatched.
+   * because canceling a handle cannot undo a callback the engine already dispatched.
    *
    * @type {boolean}
    */
@@ -183,7 +183,7 @@ export class ResizeMonitor {
    * listeners whenever the scrollable element changes, so an explicit re-observe can land in the middle
    * of a cooldown and must not leave a timer behind to observe a second time.
    *
-   * Cancelling that timer is only safe while this call can replace it. When the wrapper is detached
+   * Canceling that timer is only safe while this call can replace it. When the wrapper is detached
    * there is nothing to attach to, so a call landing mid-cooldown has to put the reconnect back or it
    * would consume the retry and leave the container watched by nobody - the permanent disconnect
    * again, one call further along. A failed attach OUTSIDE a cooldown arms nothing, which is the

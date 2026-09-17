@@ -26,6 +26,17 @@ This page aggregates all Handsontable release notes. For upgrade instructions, s
 
 [[toc]]
 
+## 18.1.1
+
+Released on September 15th, 2026
+
+For more information about this release, see:
+- [Documentation (18.1)](https://handsontable.com/docs/18.1)
+
+#### Fixed
+- Fixed copying, cutting, and pasting doing nothing in a grid embedded in a Salesforce Lightning Web Component. [#13388](https://github.com/handsontable/handsontable/issues/13388)
+- Fixed a `filters` plugin crash thrown when a cell in a filtered column was edited, or the data was replaced with a filter active, after `updateSettings()` was called with the `filters` option (as the React and Angular wrappers do on every update). [#13480](https://github.com/handsontable/handsontable/pull/13480)
+
 ## 18.1.0
 
 Released on September 1st, 2026
@@ -1897,7 +1908,7 @@ For more information on this release, see:
 
 - Fixed an issue where the validator function was called twice when the `Formulas` plugin was
   enabled. ([#8138](https://github.com/handsontable/handsontable/issues/8138))
-- Introduced a new CSS style for cells of the `checkbox` type to restore previous behaviour.
+- Introduced a new CSS style for cells of the `checkbox` type to restore previous behavior.
   ([#8196](https://github.com/handsontable/handsontable/issues/8196))
 
 ## 9.0.0
@@ -1963,7 +1974,7 @@ For more information on this release, see:
 
 - Introduced a `separated` attribute for the label options (the `label` DOM element may wrap `input`
   or be placed next to it). ([#3172](https://github.com/handsontable/handsontable/issues/3172))
-- Introduced the `modifyAutoColumnSizeSeed` hook to let developers overwrite the default behaviour
+- Introduced the `modifyAutoColumnSizeSeed` hook to let developers overwrite the default behavior
   of the AutoColumnSize sampling.
   ([#3339](https://github.com/handsontable/handsontable/issues/3339))
 - Added support for hiding columns for the `NestedHeaders` plugin.
@@ -2388,7 +2399,7 @@ methods and hooks were added and there are few depreciations and removals, too.
   `boolean`. [#6547](https://github.com/handsontable/handsontable/pull/6547)
 - Added additional information available in the cell meta object - the language.
   [#6254](https://github.com/handsontable/handsontable/pull/6254).
-- Added a possibility to allow cancelling of `autofill` in the `beforeAutofill` hook.
+- Added a possibility to allow canceling of `autofill` in the `beforeAutofill` hook.
   [#4441](https://github.com/handsontable/handsontable/issues/4441)
 - Added support for newer versions of moment, numbro and pikaday.
   [#5159](https://github.com/handsontable/handsontable/issues/5159)

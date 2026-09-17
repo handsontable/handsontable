@@ -105,7 +105,7 @@ Create `DbInitializer.cs`:
 
 **What's happening:**
 
-- The seed script inserts 50 orders across realistic statuses (`pending`, `paid`, `shipped`, `delivered`, `cancelled`). It checks whether data already exists, so restarting the app doesn't duplicate rows.
+- The seed script inserts 50 orders across realistic statuses (`pending`, `paid`, `shipped`, `delivered`, `canceled`). It checks whether data already exists, so restarting the app doesn't duplicate rows.
 - This recipe calls `Database.EnsureCreated()` in `Program.cs` (Step 4) instead of running EF Core migrations. `EnsureCreated()` creates the schema directly from the model, which is enough for a tutorial. For a production app, use `dotnet ef migrations add` and `Database.Migrate()` instead, so schema changes are versioned.
 
 ## Step 4: Wire up `Program.cs`

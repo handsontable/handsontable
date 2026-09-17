@@ -1,4 +1,5 @@
 import { type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 import { ManualResizePage } from './ManualResizePage';
 
 /**
@@ -65,7 +66,7 @@ export class ManualResizeContextMenuPage extends ManualResizePage {
       `/tests/fixtures/demo/manual-resize-contextmenu.html?theme=${this.theme}&bundle=${this.bundle}`
     );
 
-    await this.awaitBundle();
+    await awaitBundle(this.page);
 
     await expect(this.grid.locator('.ht_clone_top')).toBeVisible();
     await expect(this.grid.locator('.ht_clone_inline_start')).toBeVisible();

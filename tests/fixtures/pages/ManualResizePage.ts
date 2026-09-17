@@ -1,5 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
-import { dragResizeHandle } from '../gestures';
+import { dblclickHoldResizeHandle, dragResizeHandle } from '../gestures';
 
 /**
  * Base Page Object for the manual resize fixtures.
@@ -137,6 +137,27 @@ export abstract class ManualResizePage {
   }
 
   /**
+   * Double-clicks a row resize handle and leaves the button down. That is the DEV-1038 gesture:
+   * autosize runs from the 500ms window while the guide is still shown from the second press.
+   *
+   * @param {number} row The visual row index.
+   */
+  async dblclickHoldRowHandle(row: number): Promise<void> {
+    await this.hoverRowHeader(row);
+    await dblclickHoldResizeHandle(this.page, this.rowHandle);
+  }
+
+  /**
+   * Double-clicks a column resize handle and leaves the button down.
+   *
+   * @param {number} column The visual column index.
+   */
+  async dblclickHoldColumnHandle(column: number): Promise<void> {
+    await this.hoverColumnHeader(column);
+    await dblclickHoldResizeHandle(this.page, this.columnHandle);
+  }
+
+  /**
    * Parks the pointer outside the grid.
    *
    * Detaching the handle from UNDER the pointer changes the element the cursor is over, so the
@@ -149,23 +170,9 @@ export abstract class ManualResizePage {
   }
 
   /**
-   * Waits for the bundle under test to have evaluated. Every `goto()` here must call this before
-   * it asserts on anything the grid rendered.
-   *
-   * A fixture's own readiness is not a substitute: the `document.write`-injected bundle script and
-   * the block that builds the grid are separate, so the page can look ready while `Handsontable`
-   * is still undefined, and the failure then surfaces as a visibility timeout on an overlay clone -
-   * far from the cause, and only on a cold or busy server. `waitForFunction` rather than `expect`,
-   * because it polls against the test budget: `dist/handsontable.js` is ~6MB and every worker
-   * pulls its own copy, which outlasts the 10s `expect` timeout.
-   */
-  async awaitBundle(): Promise<void> {
-    await this.page.waitForFunction(() => 'Handsontable' in window);
-  }
-
-  /**
    * Navigate and wait for the fixture's grid to have rendered - a real DOM condition, never a
-   * sleep. Implementations must open with `await this.awaitBundle()`.
+   * sleep. Implementations must open with `await awaitBundle(this.page)` (from `../bundle`): a
+   * failure to do so surfaces as a visibility timeout on an overlay clone, far from the cause.
    */
   abstract goto(): Promise<void>;
 }

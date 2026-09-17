@@ -4,10 +4,17 @@ import handsontableStyles from '../../styles/handsontableStyles';
 const CORE_STYLES_ID = 'handsontable-core-styles';
 
 describe('StylesHandler', () => {
+  // The RENDERED column-header count decides whether the first rendered row draws its own
+  // `border-top`, which is what `getDefaultRowHeight` compensates for. Both are on the mock because
+  // the predicate reads the count and falls back to the setting only before the view exists, and the
+  // two genuinely disagree on a grid whose head rows come from a plugin rather than from
+  // `colHeaders`. Both default to "no header", the state the compensation exists for.
   const createMockHot = () => ({
     view: {
       getFirstRenderedVisibleRow: jest.fn().mockReturnValue(0),
+      getColumnHeadersCount: jest.fn().mockReturnValue(0),
     },
+    hasColHeaders: jest.fn().mockReturnValue(false),
   });
 
   const createMockDocument = () => {
@@ -524,6 +531,111 @@ describe('StylesHandler', () => {
 
       document.body.removeChild(rootElement);
       document.head.removeChild(style);
+    });
+
+    it('should not compensate the first rendered row when column headers own the seam', () => {
+      // With a column header above it, the first rendered row draws no `border-top` of its own - the
+      // header carries that gridline at every scroll position - so there is no missing pixel to add
+      // back and every row reports the same height. Compensating anyway is what made the reported
+      // symptom: one row a pixel taller than the rest.
+      const mockHot = createMockHot();
+
+      mockHot.view.getFirstRenderedVisibleRow.mockReturnValue(0);
+      mockHot.view.getColumnHeadersCount.mockReturnValue(1);
+
+      const rootElement = document.createElement('div');
+
+      rootElement.style.setProperty('--ht-line-height', '20px');
+      rootElement.style.setProperty('--ht-cell-vertical-padding', '5px');
+      document.body.appendChild(rootElement);
+
+      const style = document.createElement('style');
+
+      style.textContent = 'td { border-bottom-width: 1px; }';
+      document.head.appendChild(style);
+
+      const handler = new StylesHandler({
+        hot: mockHot,
+        rootElement,
+        rootDocument: document,
+      });
+
+      handler.clearCache();
+
+      expect(handler.getDefaultRowHeight(0)).toBe(31);
+      expect(handler.getDefaultRowHeight(1)).toBe(31);
+
+      document.body.removeChild(rootElement);
+      document.head.removeChild(style);
+    });
+  });
+
+  // The predicate the compensation is gated on, asserted on its own because three call sites read it
+  // - `getDefaultRowHeight` here, `AutoRowSize`, and `ManualRowMove`'s drop guideline - and a change
+  // to any one of them must not be able to drift from the others.
+  describe('firstRenderedRowDrawsTopBorder', () => {
+    it('should report that the first rendered row draws the border on a headerless grid', () => {
+      const mockHot = createMockHot();
+
+      mockHot.view.getColumnHeadersCount.mockReturnValue(0);
+
+      const handler = new StylesHandler({
+        hot: mockHot,
+        rootElement: document.createElement('div'),
+        rootDocument: document,
+      });
+
+      expect(handler.firstRenderedRowDrawsTopBorder()).toBe(true);
+    });
+
+    it('should report that it does not when the grid renders column headers', () => {
+      const mockHot = createMockHot();
+
+      mockHot.view.getColumnHeadersCount.mockReturnValue(1);
+
+      const handler = new StylesHandler({
+        hot: mockHot,
+        rootElement: document.createElement('div'),
+        rootDocument: document,
+      });
+
+      expect(handler.firstRenderedRowDrawsTopBorder()).toBe(false);
+    });
+
+    it('should follow the rendered head rows, not the colHeaders setting, when they disagree', () => {
+      // `afterGetColumnHeaderRenderers` lets a plugin add head rows to a grid that declared none, and
+      // NestedHeaders does exactly that. The grid then renders a `thead`, the CSS rule fires, and the
+      // first body row draws no top border while `hasColHeaders()` still reports `false`. Keyed on
+      // the setting, every row-height sum in the core would be 1px long.
+      const mockHot = createMockHot();
+
+      mockHot.hasColHeaders.mockReturnValue(false);
+      mockHot.view.getColumnHeadersCount.mockReturnValue(2);
+
+      const handler = new StylesHandler({
+        hot: mockHot,
+        rootElement: document.createElement('div'),
+        rootDocument: document,
+      });
+
+      expect(handler.firstRenderedRowDrawsTopBorder()).toBe(false);
+    });
+
+    it('should fall back to the setting before the view exists', () => {
+      // `StylesHandler` outlives no grid, but it is constructed before the first render, and the
+      // header renderers are resolved by the view. The setting is the only answer available there.
+      const mockHot = createMockHot();
+
+      mockHot.view = undefined;
+      mockHot.hasColHeaders.mockReturnValue(true);
+
+      const handler = new StylesHandler({
+        hot: mockHot,
+        rootElement: document.createElement('div'),
+        rootDocument: document,
+      });
+
+      expect(handler.firstRenderedRowDrawsTopBorder()).toBe(false);
     });
   });
 

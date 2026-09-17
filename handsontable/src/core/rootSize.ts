@@ -1,6 +1,7 @@
 import { isFunction } from '../helpers/function';
 import { warnOnce } from '../helpers/console';
 import { describeValue } from '../utils/describeValue';
+import { isRootInstance } from '../utils/rootInstance';
 import {
   classifyInlineSize,
   createCssValueOracle,
@@ -13,7 +14,12 @@ import type { HotInstance } from './types';
 /**
  * The two root size options, which are also the inline style properties they write.
  */
-type RootSizeAxis = 'height' | 'width';
+export type RootSizeAxis = 'height' | 'width';
+
+/**
+ * What `applyAxis()` did with one axis of the payload.
+ */
+type AxisOutcome = 'untouched' | 'written' | 'reset' | 'ignored';
 
 /**
  * The state of the root's inline size, read before and after an `updateSettings` call to tell
@@ -33,6 +39,11 @@ export interface RootSizeResult {
    * its scrollable elements.
    */
   scrollOwnerChanged: boolean;
+  /**
+   * The axes whose value was unreadable and ignored. `updateSettings` keeps the previous value in the
+   * stored settings for them, so `getSettings()` and a later re-apply read a size the grid used.
+   */
+  ignoredAxes: RootSizeAxis[];
 }
 
 /**
@@ -163,6 +174,28 @@ function warnInvalidSize(rootElement: HTMLElement, axis: RootSizeAxis, value: un
 }
 
 /**
+ * Subtracts the root wrapper's edge slots (the pagination bar, the sheets bar, the license
+ * notification) from a pixel `height`, so the grid plus its bars fill exactly the box the user
+ * asked for. With a sized height the root element owns the vertical axis and contains no slot, so
+ * the engine's `layoutReservedHeight` reserves nothing there - this is the other half of the same
+ * rule (DEV-2848). Any other height is resolved by the browser and left alone.
+ *
+ * @param {HotInstance} instance The grid instance.
+ * @param {string} pixelHeight The resolved pixel height, such as `'400px'`.
+ * @returns {string}
+ */
+function reserveEdgeSlotsHeight(instance: HotInstance, pixelHeight: string): string {
+  if (!isRootInstance(instance)) {
+    return pixelHeight;
+  }
+
+  const reservedHeight = [instance.rootSlotTopElement, instance.rootSlotBottomElement]
+    .reduce((sum, slot) => sum + (slot?.offsetHeight ?? 0), 0);
+
+  return reservedHeight === 0 ? pixelHeight : `calc(${pixelHeight} - ${reservedHeight}px)`;
+}
+
+/**
  * Applies one axis of the payload: calls a function value, runs the `before*Change` hook, then
  * resets on `null`, ignores an unreadable value with a warning, and writes anything else.
  *
@@ -170,11 +203,11 @@ function warnInvalidSize(rootElement: HTMLElement, axis: RootSizeAxis, value: un
  * @param {RootSizeAxis} axis The option to apply.
  * @param {*} rawValue The value from the payload, `undefined` when the payload does not carry it.
  * @param {string} hookName The hook that may replace the value.
- * @returns {boolean} `true` when the axis was reset to its initial value.
+ * @returns {AxisOutcome}
  */
-function applyAxis(instance: HotInstance, axis: RootSizeAxis, rawValue: unknown, hookName: string): boolean {
+function applyAxis(instance: HotInstance, axis: RootSizeAxis, rawValue: unknown, hookName: string): AxisOutcome {
   if (rawValue === undefined) {
-    return false;
+    return 'untouched';
   }
 
   let value: unknown = isFunction(rawValue) ? (rawValue as () => unknown)() : rawValue;
@@ -184,22 +217,28 @@ function applyAxis(instance: HotInstance, axis: RootSizeAxis, rawValue: unknown,
   if (value === null) {
     resetAxis(instance.rootElement, axis);
 
-    return true;
+    return 'reset';
   }
 
   if (value === undefined) {
-    return false;
+    return 'untouched';
   }
 
   const resolution = resolveRootSize(value, createCssValueOracle(instance.rootWindow, axis));
 
   if (resolution.kind === 'invalid') {
     warnInvalidSize(instance.rootElement, axis, value);
+
+    return 'ignored';
+  }
+
+  if (resolution.kind === 'px' && axis === 'height') {
+    instance.rootElement.style.height = reserveEdgeSlotsHeight(instance, resolution.cssValue ?? '');
   } else {
     instance.rootElement.style[axis] = resolution.cssValue ?? '';
   }
 
-  return false;
+  return 'written';
 }
 
 /**
@@ -295,15 +334,41 @@ export function applyRootSize(instance: HotInstance, settings: Partial<GridSetti
 
   const before = snapshot(rootElement);
 
-  const heightRestored = applyAxis(instance, 'height', settings.height, 'beforeHeightChange');
-
-  applyAxis(instance, 'width', settings.width, 'beforeWidthChange');
+  const heightOutcome = applyAxis(instance, 'height', settings.height, 'beforeHeightChange');
+  const widthOutcome = applyAxis(instance, 'width', settings.width, 'beforeWidthChange');
+  const ignoredAxes: RootSizeAxis[] = [];
 
   if (settings.height !== undefined || settings.width !== undefined) {
-    applyOverflow(rootElement, heightRestored);
+    applyOverflow(rootElement, heightOutcome === 'reset');
+  }
+
+  if (heightOutcome === 'ignored') {
+    ignoredAxes.push('height');
+  }
+
+  if (widthOutcome === 'ignored') {
+    ignoredAxes.push('width');
   }
 
   return {
     scrollOwnerChanged: hasScrollOwnerChanged(before, snapshot(rootElement), settings.height !== undefined),
+    ignoredAxes,
   };
+}
+
+/**
+ * Re-applies a pixel `height` after an edge slot changed its height, so the reservation follows the
+ * slot: a bar that mounts after init, wraps after a locale switch, or grows a scrollbar. Any other
+ * height reserves nothing, so it is not re-applied. The pass goes through `applyRootSize()`, so
+ * `beforeHeightChange` runs again and the overflow is re-written - a no-op for a sized height.
+ *
+ * @param {HotInstance} instance The grid instance.
+ * @param {*} height The current `height` setting.
+ */
+export function reapplyPixelRootHeight(instance: HotInstance, height: unknown): void {
+  const value = isFunction(height) ? (height as () => unknown)() : height;
+
+  if (resolveRootSize(value).kind === 'px') {
+    applyRootSize(instance, { height: value as GridSettings['height'] }, false);
+  }
 }

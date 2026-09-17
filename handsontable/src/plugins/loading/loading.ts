@@ -13,6 +13,7 @@ interface DialogPlugin {
   isVisible(): boolean;
   show(): void;
   hide(): void;
+  getSetting<T = unknown>(settingName?: string): T;
   update(options: {
     // `HTMLElement` since `loadingContent()` builds nodes rather than a string. The dialog UI has
     // always accepted both (`dialog/ui.ts` branches on the type); only this local structural type
@@ -210,9 +211,12 @@ export class Loading extends BasePlugin {
       if (!this.#dialogPlugin?.isEnabled()) {
         this.hot.getSettings().dialog = true;
       }
-
-      this.hot.addHook('afterDialogFocus', () => this.#onAfterDialogFocus());
     }
+
+    // Registered on every enable, not only on the first: disabling the plugin removes its hooks
+    // while the dialog reference above survives, so a hook inside that branch would be gone
+    // after the first updateSettings.
+    this.addHook('afterDialogFocus', () => this.#onAfterDialogFocus());
 
     super.enablePlugin();
   }
@@ -338,8 +342,19 @@ export class Loading extends BasePlugin {
 
   /**
    * Handle dialog focus event.
+   *
+   * The hook fires for every dialog on the grid, not only for the one this plugin opened. A loading
+   * screen always renders through the `content` option, so it reports no focusable elements and
+   * nothing inside it can take the focus - putting it on the container is what lets a screen reader
+   * announce the dialog. A dialog built from a `template` is the opposite case: it reports its own
+   * focusable elements and the dialog plugin has just focused one of them, so pulling the focus back
+   * onto the container would undo that and leave the buttons unannounced.
    */
   #onAfterDialogFocus() {
+    if (this.#dialogPlugin!.getSetting('template') !== null) {
+      return;
+    }
+
     this.#dialogPlugin!.focus();
   }
 

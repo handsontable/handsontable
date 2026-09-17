@@ -55,7 +55,6 @@ export default function hideColumnItem(hiddenColumnsPlugin: Record<string, Funct
         this.deselectCell();
       }
 
-      this.view.adjustElementsSize();
       this.render();
     },
     disabled: false,

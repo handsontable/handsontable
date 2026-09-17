@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture — multiselect opens to the left</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    E2E fixture for DEV-1198: a narrow grid whose first and last columns are
+    the same multiselect with long option labels. Opening the last column
+    leaves too little room on the inline end, so the list must open toward
+    the inline start and stay usable. Column 0 is the control: the same list
+    has room on the inline end and must stay aligned with the cell. RTL is
+    one `initMultiselectOpenLeftGrid({ layoutDirection: 'rtl' })` rebuild,
+    not a second fixture. Cells are stamped in afterRenderer because the
+    multiselect cell type owns its renderer.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+    const longChoices = [
+      'Alpha port of call with a very long name',
+      'Bravo warehouse district on the northern quay',
+      'Charlie distribution hub for outbound freight',
+      'Delta customs warehouse and bonded storage',
+    ];
+
+    window.initMultiselectOpenLeftGrid = function(overrides) {
+      if (window.hot) {
+        window.hot.destroy();
+      }
+
+      container.className = `ht-theme-${window.htTheme}`;
+
+      window.hot = new Handsontable(container, {
+        data: [
+          [[], 'B1', longChoices.slice(0, 3)],
+          [[], 'B2', longChoices.slice(1, 4)],
+        ],
+        colHeaders: true,
+        rowHeaders: true,
+        autoColumnSize: false,
+        width: 320,
+        height: 240,
+        colWidths: [70, 70, 80],
+        columns: [
+          { type: 'multiselect', source: longChoices },
+          {},
+          { type: 'multiselect', source: longChoices },
+        ],
+        afterRenderer(TD, row, col) {
+          TD.setAttribute('data-testid', `cell-${row}-${col}`);
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+        ...overrides,
+      });
+
+      return true;
+    };
+
+    window.initMultiselectOpenLeftGrid();
+  </script>
+</body>
+</html>

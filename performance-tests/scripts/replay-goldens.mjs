@@ -111,7 +111,7 @@ function loadGoldens({ since }) {
 
 /**
  * The goldens a run may be compared against, as CI would select them: the same compatibility key
- * (Chromium build, harness version) when the run carries one, and only other unkeyed goldens when it
+ * (Chromium build, platform, and harness version) when the run carries one, and only other unkeyed goldens when it
  * does not -- so a replay across a Playwright bump, or across the commit that introduced
  * provenance, never medians the two environments together.
  *
@@ -223,7 +223,7 @@ function replay(goldens, windowSize) {
 }
 
 /**
- * How many goldens sit in each compatibility group. A replay that spans a Chromium change shows two
+ * How many goldens sit in each compatibility group. A replay that spans a platform or Chromium change shows two
  * rows here, and the thin-window count above tells how many runs after the boundary went unreplayed.
  *
  * @param {Array<{ timestamp: string, snapshot: object }>} goldens

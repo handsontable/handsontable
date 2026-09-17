@@ -91,6 +91,60 @@ fills anyway. So `updatePlugin()` compares the **resolved** configuration (`dire
 drag. `tests/e2e/fill-handle-disable-mid-drag.spec.ts` pins all three outcomes: the disable ends the
 gesture, the same-value re-send does not, the direction change does.
 
+## The `documentElement` listeners outlive a failed init (DEV-2874)
+
+`enablePlugin()` runs on `afterPluginsInitialized`, which fires **while `Core#init`'s
+`runHooks('beforeInit')` executes**. `hot.table` is assigned later and exactly once, by
+`TableView#createElements()`, reached from the `this.view = new TableView(this)` that follows in the
+same function. So between those two statements this plugin already holds live `mousemove`/`mouseup`
+listeners on `rootDocument.documentElement` while `hot.table` is still `undefined`. (Cited by symbol,
+not by line: `core.ts` moves constantly and a stale line number is worse than none. Grep the calls.)
+
+An init that aborts inside that window leaves those listeners bound forever. The constructor threw, so
+the caller holds no instance and can never `destroy()` it, and the leak is cumulative – one live
+listener per aborted attempt. The `this.updateSettings(mergedUserSettings, true)` between those two
+statements sits right in the gap: the deprecated `rows`/`cols`/`ganttChart` settings throw there
+unconditionally (the three `'is no longer supported'` `throwWithCause` calls at the top of
+`Core#updateSettings`), an unresolvable string cell type in `columns` throws during meta resolution, and
+a user `beforeInit` hook that throws does it even earlier (settings-declared `beforeInit` is registered
+after the plugin constructors, so the plugins are enabled first). The set of throw sites is not
+enumerable, which is why the **consumer** is guarded and not the producer.
+
+`#onMouseMove` therefore must not touch `this.hot.table` unless a gesture is armed. It used to call
+`getIfMouseWasDraggedOutside()` outside the `mouseDownOnCellCorner` block, so every pointer move
+anywhere on the page threw `Cannot read properties of undefined (reading 'ownerDocument')` out of
+`offset()` – Sentry DEMOS-6J, reproduced from a demo runner where a live-typed config aborted the init
+once per keystroke. The guard now short-circuits on `handleDraggedCells > 0`, which is the same
+conjunction the branch already carried, so nothing changed except when the measurement is evaluated.
+The result is named `shouldMarkDragOutside`, not for the row insertion: that is gated separately on
+`autoInsertRow`, which the `fillHandle` schema default (`metaSchema.ts`) leaves `false`.
+
+Two things not to get wrong here:
+
+- **This guard uses the step counter, and the flag rule above does not apply.** Not because the flag
+  would be unsafe – `#resetDragState()` clears `mouseDragOutside` on every teardown path, so there is
+  no stale-true state for `addRow()` to fire from. The reason is narrower and stronger: `handleDraggedCells > 0`
+  was **already** the second conjunct of this predicate, so hoisting it changes nothing but *when* the
+  read-only measurement is evaluated. Gating on `mouseDownOnCellCorner` instead would also skip the
+  `else` write, which is a different change needing its own equivalence argument for no gain. The
+  counter is only ever raised together with the flag (`#onAfterCellCornerMouseDown`), so it implies a
+  live gesture either way.
+- **`undefined` and `null` are different bugs.** Every teardown path – `disablePlugin()`,
+  `BasePlugin#destroy()`, `hot.destroy()` – clears this plugin's `EventManager` and so removes the
+  document listeners, and `hot.destroy()` runs its plugin `destroy()` loop *before* the `objectEach`
+  sweep that nulls instance properties. A future stack reading `ownerDocument` of **null** is a
+  teardown-ordering regression; **undefined** is this pre-view window. Read the message before assuming
+  a stale-reference-after-unmount story.
+
+`tests/e2e/fill-handle-aborted-init.spec.ts` pins both halves: no page error on a pointer move after an
+aborted init, and zero drag-outside measurements while nothing is held (with a real drag as the
+positive control for the counter).
+
+Do **not** guard `offset()` itself. Its parameter is a non-nullable `HTMLElement` and it has many call
+sites; tolerating `undefined` there would hide unrelated bugs. A `return false` fallback inside
+`getIfMouseWasDraggedOutside()` is no better – it is a silent wrong answer, and after the hoist it is
+unreachable from its only caller.
+
 ## Auto-inserting rows
 
 With `autoInsertRow: true`, dragging past the last row inserts rows (`insert_row_below`) on a 200 ms

@@ -125,6 +125,22 @@ const dictionary = {
   [C.PAGINATION_NEXT_PAGE]: 'Przejdź do następnej strony',
   [C.PAGINATION_LAST_PAGE]: 'Przejdź do ostatniej strony',
 
+  [C.SHEETS_BAR_SECTION]: 'Arkusze',
+  [C.SHEETS_BAR_ADD_SHEET]: 'Dodaj arkusz',
+  [C.SHEETS_BAR_ALL_SHEETS]: 'Wszystkie arkusze',
+  [C.SHEETS_BAR_SHEET_MENU]: 'Działania arkusza: [name]',
+  [C.SHEETS_BAR_RENAME_SHEET]: 'Nazwa arkusza',
+  [C.SHEETS_BAR_ITEMS_DELETE]: 'Usuń',
+  [C.SHEETS_BAR_ITEMS_DUPLICATE]: 'Duplikuj',
+  [C.SHEETS_BAR_ITEMS_RENAME]: 'Zmień nazwę',
+  [C.SHEETS_BAR_ITEMS_MOVE_RIGHT]: 'Przesuń w prawo',
+  [C.SHEETS_BAR_ITEMS_MOVE_LEFT]: 'Przesuń w lewo',
+  [C.SHEETS_BAR_PAGE_PREV]: 'Przewiń arkusze wstecz',
+  [C.SHEETS_BAR_PAGE_NEXT]: 'Przewiń arkusze do przodu',
+  [C.SHEETS_BAR_SHEET_CHANGED]: 'Arkusz [name] aktywowany',
+  [C.SHEETS_BAR_RENAME_REJECTED]: 'Nazwa arkusza nie została zmieniona: [name] jest już zajęta',
+  [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Arkusz',
+
   [C.CHECKBOX_CHECKED]: 'Zaznaczony',
   [C.CHECKBOX_UNCHECKED]: 'Odznaczony',
 

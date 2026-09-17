@@ -18,15 +18,38 @@ Documentation-only, test-only, and CI/tooling PRs **pass automatically** — no 
 ...and re-run the failed **Changelog** check from the PR's checks tab (or push any new commit — `git commit --allow-empty` works). The check reads the PR body at run time; editing the description alone does not re-trigger it. The override is logged together with the source files it waves through, so reviewers can judge it.
 
 
-## One entry per changelog section
+## One entry per pull request
 
-**A PR never adds two entries that land in the same `CHANGELOG.md` section for the same package.** One entry per PR is the norm.
+**A PR adds one entry. A second is correct only when it cites a different GitHub number.**
 
-One entry stays the norm even when the PR fixes several issues, touches several packages, or makes several distinct user-facing changes — the single title describes the overall change. Two entries that share a `type` and a `framework` land as two overlapping lines in the same section, and a reader cannot tell they came from one change. If one title cannot carry everything the PR does, split the PR, not the entry.
+One entry stays the norm even when the PR fixes several issues, touches several packages, or makes several distinct user-facing changes — the single title describes the overall change. Two entries for one change land as two lines of the same release, and a reader cannot tell they came from one change. If one title cannot carry everything the PR does, split the PR, not the entry.
 
-A second entry is correct only when it lands somewhere else — a different `type`, or a different `framework`. The common case is a public issue fixed alongside a private behavior change: `fixed` plus `changed`. Those two cannot fold into one file, because a file carries one `type` and `type` picks the section.
+The one routine second entry is a public GitHub issue closed alongside the PR's own change: one file citing the issue number, one citing the PR number. Each cites a number of its own, so each is a line about a distinct thing.
 
-The CI gate does not count entries. It only asserts that a source change adds at least one, so this rule rests on the author and the reviewer.
+**A different `type` is not a reason to add a second file, and neither is a different `framework`.** A fix that also changes an API is still one change: describe both in the one title, and let the `type` that matters most pick the section. A fix that spans the React, Vue, and Angular wrappers is one change too, filed once with `framework: none`.
+
+### What enforces this
+
+Two checks, both blocking, and neither rests on the reviewer:
+
+| Check | Where | What it asserts |
+|---|---|---|
+| Entry filenames | `bin/changelog` (`consume` and `sync`), and the pre-push hook | Every `.changelogs/*.json` is named `<issueOrPR>.json` — a plain number, matching the number the entry cites |
+| Entry count | `.github/scripts/check-changelog.js` | A PR adds at most two entry files |
+
+The filename check is the load-bearing one. A number owns exactly one file, so two entries citing one number cannot coexist on disk — which is what makes a `13442-changed.json` beside `13442.json` impossible rather than merely discouraged. It runs on every PR through the `consume --date 2050-01-01 --dry-run` step of `checks.yml`'s `changelog` job, and it needs no diff, so a rename cannot slip past it.
+
+The filename assertion is intentionally fail-closed in both `consume` and `sync`. There is no bypass for a stale or misnamed file: release compilation must stop until the file is renamed, folded, removed, or corrected. This means one stray file on `develop` can fail an unrelated PR and can stop a release cut, but it prevents invalid release notes from being published silently. The command names every offending file and prints the safe remedy.
+
+`bin/changelog entry` has always written that filename and cannot write another, so **the way to stay on the right side of both checks is to use it** rather than writing the JSON by hand.
+
+**To add more than two entries**, which only a maintenance PR back-filling entries for *other* pull requests should need, write the following in the **PR description**, outside any HTML comment, and re-run the failed **Changelog** check:
+
+```
+[multiple changelogs]
+```
+
+This is a separate marker from `[skip changelog]` on purpose. That one answers "does this change need an entry at all"; it never lifts the entry limit.
 
 Check before you commit the entry:
 
@@ -35,7 +58,7 @@ git fetch origin develop
 git diff --name-only --diff-filter=A origin/develop...HEAD -- '.changelogs/*.json'
 ```
 
-Read the `type` and `framework` of every path it lists. Two paths that share both are wrong — fold them together and delete the extra. Swap `develop` for the PR's base branch when you target a release branch.
+More than two paths is wrong. Two paths citing the same number cannot happen. Swap `develop` for the PR's base branch when you target a release branch.
 
 
 ## Entry format
@@ -58,7 +81,7 @@ Every `.json` file in this directory holds a single entry with six required fiel
 | `issuesOrigin` | `private`, `public` | Whether `issueOrPR` is a public GitHub issue number. See below. |
 | `title` | non-empty string | User-facing description of the change, ending with a period. |
 | `type` | `added`, `changed`, `deprecated`, `removed`, `fixed`, `security` | The `CHANGELOG.md` section the entry lands in. |
-| `issueOrPR` | number | The cited GitHub number. Also the filename. |
+| `issueOrPR` | number | The cited GitHub number. Also the filename, exactly — `<issueOrPR>.json`, never a suffixed variant. Asserted; see [One entry per pull request](#one-entry-per-pull-request). |
 | `breaking` | boolean | Breaking changes are listed first within their section. |
 | `framework` | `none`, `react`, `vue`, `angular` | Prefixes the entry with the framework name; `none` for core. |
 
@@ -118,6 +141,59 @@ bin/changelog consume
 This command "consumes" all changelog entries, asserts that they're all valid, formats them, and inserts the result into `CHANGELOG.md`. It also deletes all existing `.changelogs/*.json` files.
 
 It is side-effect free (as in it does nothing outside of your local copy of this repository), to undo just checkout the old versions of `.changelogs` and `CHANGELOG.md`.
+
+
+## Publishing to the docs changelog page
+
+`consume` and `sync` write the root `CHANGELOG.md`, and the release workflow copies that version's
+section into `docs/content/guides/upgrade-and-migration/changelog/changelog.md`. **Nothing writes the
+per-major page** `docs/content/guides/upgrade-and-migration/changelog-<N>/changelog-<N>.md`. Someone
+copies the section there by hand, demoting `###` to `####`, and that page is what the docs site and
+the version-comparison UI read.
+
+That hand step owns one editorial rule, and it is the reason this section exists: **every new option,
+hook, method, and plugin named in an `Added` entry links to its reference page.** The practice ran
+from 10.0.0 to 14.2.0, was never written down, and lapsed at 14.3.0 when the person doing it left
+(DEV-2790).
+
+Use the bracketed form, with a lowercase anchor:
+
+```markdown
+- Added an Enter key handler and a new [`searchMode`](@/api/options.md#searchmode) option to the
+  [`Filters`](@/api/filters.md) plugin. [#11871](https://github.com/handsontable/handsontable/pull/11871)
+```
+
+| Named thing | Link target |
+|---|---|
+| configuration option | `@/api/options.md#<lowercased name>` |
+| hook | `@/api/hooks.md#<lowercased name>` |
+| Core method | `@/api/core.md#<lowercased name>` |
+| plugin, or a plugin method | `@/api/<pluginName>.md`, `@/api/<pluginName>.md#<lowercased method>` |
+
+Anchors are the plain lowercased member name, because the reference page emits the name verbatim as a
+heading. `#minRowHeights` never resolves; `#minrowheights` does.
+
+Leave unlinked anything that has no reference page: theme tokens and CSS class names, TypeScript type
+names, external APIs such as `Intl.NumberFormat`, object keys that are not API members, and wrapper
+package names. A link to a page that does not document the name is worse than no link.
+
+`npm run docs:validate-changelog-links --prefix docs` lists the candidates and flags `@/api/` links
+whose file or anchor cannot resolve. It is report-only, runs on every docs pull request, and its
+candidate set is a heuristic: a backticked word that happens to match an option name is not proof the
+entry introduced that option. Judge each finding.
+
+It sees options, hooks, plugin classes, and `Core` members. **It does not see plugin methods**, and
+cannot: a bare `collapseAll()` belongs to both the `CollapsibleColumns` and the `NestedRows` plugin,
+and only the sentence around it says which. Link those by hand.
+
+### Why the link cannot live in the entry `title`
+
+`bin/changelog` renders `title` verbatim into four destinations: the root `CHANGELOG.md`, the GitHub
+release body, the docs changelog page, and the version-comparison UI. Only the docs page resolves
+`@/api/` links. On GitHub the same text renders as a link to a literal `@/api/...` path, which 404s,
+and the version-comparison UI drops the link and keeps the text. So an entry title that needs a docs
+link uses an absolute `https://handsontable.com/docs/...` URL, and reference linking happens later,
+on the docs page.
 
 
 ## No entry may be published twice

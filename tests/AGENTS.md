@@ -17,6 +17,37 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   (`e2e-main` used to load `full.min` — never assume the hooks cover min.)
 - `handsontable.full.js` and `handsontable.min.js` are deliberately untested
   here — they belong to the nightly on develop (DEV-2058).
+- **A PARTIAL build leaves the `-min` legs on the PREVIOUS bundle, and they
+  fail without saying so.** `npm run build:umd` writes `dist/handsontable.js`
+  only; `dist/handsontable.full.min.js` comes from the separate
+  `build:umd.min`. So after `build:umd` the three `umd` legs carry the change
+  and the three `-min` legs still run the code from before it — same spec, same
+  machine, opposite verdicts. **Read the failures PER LEG before calling
+  anything a race:** `45 failed / 90` on `--repeat-each=15` is not "50% flaky",
+  it is 3 legs × 15 failing every time. A failure count that is a multiple of
+  the repeat count is worth checking per leg for exactly that shape — it is a
+  prompt to look, not a verdict, since a genuine one-in-three race across 90
+  runs lands on 30 often enough. Always `npm --prefix handsontable run build`
+  (the full task, which also runs the strict `postbuild`) before a cross-leg
+  run, and confirm both files moved with
+  `ls -l handsontable/dist/handsontable.js handsontable/dist/handsontable.full.min.js`.
+  Then **re-run before concluding "the code was fine"**: a clean 3-red/3-green
+  split by bundle is equally consistent with a real difference in bundle
+  CONTENT, because the `-min` legs load `handsontable.full.min.js` with
+  HyperFormula and Formulas registered. Only the same legs going green on a
+  verified full build separates staleness from a genuine full-bundle
+  difference. Both shapes were seen on one ticket. The staleness one cost
+  DEV-2756 a ticket — a deterministic `-min` failure filed as load-dependent
+  nondeterminism, where a full build then passed 90/90 on all six legs. The
+  content one showed up on the same branch minutes later, on a verified full
+  build: after `updateData()` discards a stranded editor, `getActiveEditor()`
+  is `null` on `umd` and a fresh editor at row 0 on `full-min`, so an assertion
+  on the editor reference split exactly along the bundle axis with nothing
+  stale involved. **Assert the observable outcome** — committed changes, source
+  data — rather than which internal objects survived, and where a difference is
+  real, say so in the test instead of pinning one bundle's answer. A real one is
+  still a defect: that editor split is tracked as DEV-2862, since the fixture
+  enables no Formulas and only the bundle differs.
 - **Never hardcode a row or column index that sits near the edge of the
   rendered band.** Each theme's padding feeds `autoColumnSize`, so the same
   content measures differently: in `width-window-scroll.html` (500px wide, 30
@@ -45,6 +76,34 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   or the other. Leave "which side, and does it leave the grid" to a spec whose
   grid is deliberately shaped to force that outcome on all three themes, and
   run it on all three (`--theme=horizon`, `--project=e2e-horizon`).
+- **A SHORT fixed-height fixture has no room to spare on the row axis, and
+  `hover()` turns that into a delayed failure somewhere else.** Playwright
+  scrolls a target into view before pressing it, so a `cell(row, col)` locator
+  is not only a position — it is a potential scroll. In a 260px grid,
+  `cell(5, 3)` is inside the band on `main` and `horizon` and below the fold on
+  `classic`; hovering it there scrolled the holder far enough to unrender row 1,
+  and the step that failed was a LATER hover over row 1, which timed out after
+  20s with `waiting for getByTestId('cell-1-1')` — a missing element, pointing
+  at neither the scroll nor the theme (DEV-2871). Two rules follow. Pick a cell
+  that cannot move: one a row or two below the header, in a column the fixture's
+  own floating UI does not cover. And remember the sibling failure with the same
+  symptom — a cell a portal element (a comment editor, a menu) is painted over
+  cannot receive the pointer either, so `hover()` waits out the whole timeout on
+  an element that is present and visible. Centralize the choice in one page-object
+  method so the reasoning is stated once
+  (`CommentsEditorResizePage.hoverCellWithoutComment()`).
+- **A last dropdown option's unclipped centre is not a theme-stable hit-test.**
+  Horizon's menu-item padding is 8px (main is 4px), so the same four-row
+  multiselect list that fits on `main` is height-constrained by
+  `updateDimensions` and the last `<li>` sits below the dropdown's
+  `overflow: auto` fold. `getBoundingClientRect()` still reports that row;
+  `elementFromPoint` at its centre hits the page (`HTML`) while the list is
+  correctly placed and scrollable (DEV-1198). Hit-test a painted control
+  (`MultiselectOpenLeftPage.firstOption()` / the search field), not the
+  last row. The last-column open-left contract still fails without the
+  product flip: the first option is ~350px wide, so its centre sits past
+  the grid's `overflow: clip` when the list stays left-aligned with the
+  last cell.
 
 ## Fixture contract (never get these wrong)
 
@@ -66,11 +125,15 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   `Handsontable` is still undefined. The spec then fails inside its first
   `page.evaluate()` with a bare `Handsontable is not defined` — far from the
   cause, and only under load. Wait for the bundle itself in `goto()`, with
-  `await page.waitForFunction(() => 'Handsontable' in window)`, before
-  asserting on any fixture status. `expect` is the wrong tool for that wait:
-  `dist/handsontable.js` is ~6 MB uncompressed and every worker pulls its own
-  copy, so a cold or busy server outlasts the 10s `expect` timeout, while
-  `waitForFunction` polls against the test budget.
+  `await awaitBundle(this.page)` from `fixtures/bundle.ts`, before asserting
+  on any fixture status. The helper is the one place the wait is spelled out:
+  `waitForFunction` rather than `expect` (`dist/handsontable.js` is ~6 MB
+  uncompressed and every worker pulls its own copy, so a cold or busy server
+  outlasts the 10s `expect` timeout, while `waitForFunction` polls against the
+  test budget), with the interval in `BUNDLE_POLLING_MS` — see Determinism
+  below for why the rAF default times out on a healthy page. Do not inline a
+  copy: the lint catches a missing `{ polling }`, but only the helper keeps
+  the value from drifting between page objects.
 - The `umd` legs run the BASE bundle: **no HyperFormula** (a formulas fixture
   loads HF as an external script beside the bundle, or the plugin logs a
   warning and silently stays off) and **no languages pack** (an i18n fixture
@@ -151,14 +214,33 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   nothing asked the master where its band was. Reference:
   `e2e/iframe-cross-realm-scroll.spec.ts` (`masterRowBand()`).
 
+## Two clicks on the same cell are a double click
+
+`locator.click()` twice at the same point, with only `page.evaluate` calls in between, lands inside the
+browser's double-click interval and the grid opens the editor. The failure surfaces far away: the shortcut
+manager is on the `editor` context, so the `Ctrl`+`A` that follows selects nothing, and the test dies
+several steps later on a context-menu item that is missing because the selection is wrong. Nothing in the
+message mentions an editor.
+
+A page-object helper that starts with a click therefore takes the cell as a parameter
+(`EmptyDataStateShortcutsPage.selectAllWithKeyboard(row, col)`), so a test that calls it twice aims at a
+different cell the second time. Selecting through `hot.selectCell()` avoids it entirely where the spec does
+not need a real press.
+
 ## Touch and mobile specs
 
 - Page objects for mobile specs live in `fixtures/pages/mobile/` (as walkontable's do in
   `fixtures/pages/walkontable/`). A mobile spec must declare
   `test.use({ ...devices['iPhone 13'], browserName: 'chromium' })`: Handsontable decides
-  whether to create the mobile selection handles from the **user agent, at grid construction
-  time**, so without the emulation the handles never exist and the spec fails for the wrong
-  reason. Assert the handle is visible before touching it.
+  whether to create the mobile selection handles from `isMobileOrIpadOS()` at grid
+  construction time, so without the emulation the handles never exist and the spec fails for
+  the wrong reason. Assert the handle is visible before touching it.
+- iPhone emulation does **not** catch iPadOS 13+ (desktop Macintosh UA + `MacIntel` +
+  `maxTouchPoints > 2`). For that path, use Desktop Chrome, `hasTouch: true`, a Macintosh
+  Safari `userAgent`, and `addInitScript` that sets `navigator.platform = 'MacIntel'` and
+  `navigator.maxTouchPoints = 5` **before** the grid script loads (`setPlatformMeta` /
+  `setBrowserMeta` run at module load). Playwright Chromium on Linux reports `Linux x86_64`,
+  so a UA override alone is not enough. Reference: `e2e/ipad-selection-handles.spec.ts`.
 - `page.touchscreen` only **taps** — it has no drag. A touch drag needs CDP
   (`page.context().newCDPSession(page)` → `Input.dispatchTouchEvent`), which is also why those
   specs pin `browserName: 'chromium'`. Nothing else here emits trusted `touchmove`.
@@ -210,6 +292,22 @@ ratio faithfully but never inflates the border, so a test built on it is vacuous
 undefined` in `test.use` does not clear it, and `launchOptions` is rejected inside a
 `describe` — it forces its own worker).
 
+## Observing `unlisten()`
+
+`hot.isListening()` read at the END of a gesture cannot see an `unlisten()` that
+happened inside it. The focus scope manager re-listens on the `click` that follows
+the `mouseup` whenever the press landed inside the grid or its portal, so the state
+heals before the assertion runs, and a spec built on it goes green against a real
+defect (that is one of the two reasons DEV-2787 escaped this tier; the other is
+that no case asserted the listening state at all). Count `afterUnlisten` calls
+over the named gesture instead — `EditorPreventCloseElementPage.startUnlistenCounter()` is
+the pattern. Two gestures do NOT heal and are the ones to reach for when the spec
+needs a user-visible symptom rather than a counter: a RIGHT click (it ends in
+`contextmenu`, no `click`), and a press whose focus target sits outside the grid's
+portal (nothing re-listens, and there the scope manager unlistens by design — so a
+counter cannot tell the two mechanisms apart, and an `isListening()` assertion
+there pins the scope manager, not the mouseup verdict).
+
 ## The server port
 
 The webServer binds `8123` and has `reuseExistingServer` on outside CI, so a second
@@ -229,7 +327,11 @@ banned `waitForTimeout` usually reappears; `test.setTimeout(ms)` and
 `testInfo.setTimeout(ms)` set a budget, not a wait, and stay legal),
 `networkidle`, `.only`, `.skip`, or bare `test.fixme` in specs **and page
 objects** — the lint script covers `e2e` and `fixtures`, so a timer moved into
-the page object a spec drives is the same fixed wait and is caught there. Wait on web-first assertions;
+the page object a spec drives is the same fixed wait and is caught there — and
+no `waitForFunction()` without an explicit `{ polling }`: the rAF default is
+starved under parallel-worker load and times out on a healthy page, so the
+call site states the interval (an options literal, also when wrapped in a
+type assertion, is judged; a plain options variable is not). Wait on web-first assertions;
 `expect.poll` for data probes. `test.fixme` is the tracked exception for a real
 product bug: it requires an eslint-disable line naming the task
 (`// eslint-disable-next-line no-restricted-syntax -- DEV-1234: <why>`), which
@@ -240,3 +342,92 @@ prove a negative) takes the same disable line, naming the owning work and
 carrying a TODO for the probe that will replace it; `e2e/customBorders.spec.ts`
 `macrotaskBarrier()` is the one such site. Full rules: the
 `handsontable-playwright-e2e` skill and its `references/determinism.md`.
+
+The waits lint cannot see live beyond the spec's own text — a timer in a
+fixture's inline script, a string-form `evaluate`, and the state a page-object
+wait ends on. Six rules, one line each; the measured incident behind each one
+is in
+`references/determinism.md`:
+
+- A `setTimeout` in the browser is `sleep()` moved into the page: probe the
+  state and `expect.poll` it from the spec.
+- `page.waitForFunction()` passes `{ polling: <ms> }`; a page object takes it
+  from `awaitBundle()` (`fixtures/bundle.ts`), the one place the interval lives.
+- A method that scrolls or mutates the grid ends on a render-state probe (first
+  rendered row, draw counter), never on `scrollTop`/`scrollLeft`.
+- A trigger that can deliver more than once is asserted on the LATEST entry of
+  its kind, inside one `expect.poll`.
+- A fixture build fails loud: the fixture captures the constructor throw, and
+  `goto()` rethrows it.
+- A negative assertion ("nothing fired") uses a bounded settle ONLY beside a
+  positive control in the same test.
+
+**A geometry read is two round trips, and the grid recycles its rows.**
+`locator.boundingBox()` and `locator.evaluate()` resolve the node in one round
+trip and act on it in another (`innerText()` and `getAttribute()` do both in one
+injected call and are safe), and Walkontable reuses the same `<tr>`/`<td>` nodes
+across a re-render. A node resolved as row 4 before a
+scroll-driven draw is row 0 after it, so the read reports a normal row's height
+for the tall one — `frozen-column-row-heights.spec.ts` failed 3 of 150 runs
+under load with `Expected: 69, Received: 30` while the DOM was consistent at
+every task boundary (traced in DEV-2827, after the flake had first been blamed
+on the engine). Query and measure inside ONE `evaluate` on a node that is never
+recycled (the table's root, the grid), read every value a comparison needs in
+that same evaluation (`FrozenTallCellPage.rowHeights()`), and poll a pinned
+expected value rather than comparing two reads with each other — two reads
+that both landed before the draw agree with each other and prove nothing.
+
+**Where a flake goes.** In CI the config adds a `json` reporter
+(`test-results/report.json`, shipped inside the `playwright-report-*` failure
+artifact), and `.github/workflows/test-health.yml` collects every `flaky` or
+`unexpected` test of a red run into the cross-run ledger at
+<https://handsontable.github.io/handsontable/test-health/>: per test, 7- and
+30-day counts, distinct runs, legs, and a "needs ticket" flag at 2+ distinct
+runs in 30 days — the playbook's line for a fix or migration ticket. A `flaky`
+outcome (failed, then passed on retry) reaches the ledger only because
+`failOnFlakyTests` fails the leg; keep `retries` at 1 in CI for that to hold.
+The report path is pinned by `.github/scripts/lib/test-health.mjs` and asserted
+in `.github/scripts/__tests__/test-health.test.mjs`, so moving it means changing
+all three places.
+
+## Quarantine
+
+`failOnFlakyTests` stays on: a test that passes only on retry fails the leg, and
+fixing the flake is the answer. Quarantine is the narrow, expiring, capped
+exception for a *known* flake that would otherwise redden every unrelated pull
+request until the fix lands — and it exists in this tier only. The frozen
+Jasmine suite has no quarantine: a flaky legacy spec migrates here instead.
+
+- **Tag through the helper, never by hand.**
+  `test('title', quarantined('DEV-1234', '2026-10-08', 'why'), async() => …)`
+  (`fixtures/quarantine.ts`). The helper writes the `@quarantine` tag and a
+  `quarantine` annotation carrying the owning task id, the expiry and the
+  reason. A bare `'@quarantine'` literal is a lint error, and an annotation the
+  reporter cannot read fails the run: no task id, no quarantine.
+- **Locally too, not just "the leg".** The reporter runs in every configuration, and its
+  downgrade only fires when a live quarantine covers the flake. So `npx playwright test` locally
+  (where `failOnFlakyTests` is off) now exits 1 on an *un*quarantined flaky test that Playwright
+  itself would have passed — the same verdict CI reaches. Quarantine or fix the flake; do not
+  reach for `.skip`. The expiry horizon is re-checked at run time as well as at load, so a
+  hand-written annotation with a far-future date does not buy an unbounded downgrade.
+- **A quarantined test still runs and still reports.** Only its *flaky* verdict
+  is downgraded from "fail the leg" to "report": the reporter
+  (`reporters/quarantine.ts`, last in the reporter list) prints it, writes a
+  `::warning` on the checks tab, and sets the step output `quarantined-flaky`
+  so `e2e.yml` still uploads the report and the ledger records the test. A test
+  that fails outright is not covered — quarantine is for flakes, not for
+  failures. Never `.skip` a flake.
+- **Expiry: at most 30 days out**, checked when the spec loads. Past the date
+  the flaky verdict fails the leg again, and the tag on a passing test raises a
+  warning asking to be removed.
+- **Cap: 6 quarantined tests at once**, counted as distinct tests (one test
+  across six projects is one). The entry after the cap fails the run even when
+  every test passes; fix one before parking another.
+- **Visible.** The ledger at <https://handsontable.github.io/handsontable/test-health/>
+  shows quarantined tests with their entry, so nothing is parked silently.
+
+The decision logic is pure (`lib/quarantine-policy.mjs`, tested in
+`lib/__tests__/` through the root `test:tooling`); `e2e/quarantine-policy.spec.ts`
+proves the exit codes end to end by running synthetic projects in a child
+process (no browser). `QUARANTINE_CAP` and `QUARANTINE_MAX_DAYS` live in the
+policy module; change them there and in this section together.

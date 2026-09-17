@@ -5,37 +5,51 @@
  * and _redirects is ignored. This worker is the sole, hand-maintained authority
  * for every redirect rule below - there is no generator.
  *
- * Redirect priority order (first match wins):
+ * Legacy hostnames (see LEGACY_DOCS_HOSTS) collapse onto handsontable.com.
+ * That is rule 12a, and its placement is load-bearing - read its comment
+ * before moving it. `abs()` also swaps in the canonical origin for a legacy
+ * host, so every rule above 12a redirects cross-host in a single hop with the
+ * path's meaning resolved; rule 18 sits below the cut and so takes two.
+ *
+ * A rule that SERVES content rather than redirecting must stay below 12a, or
+ * it answers 200 on a legacy host and keeps that host indexable.
+ *
+ * Redirect priority order (first match wins). Keep these numbers in step with
+ * the `// -- N.` markers in route() - this list is the documented authority
+ * (docs/cloudflare/README.md), and a stale entry here has already produced a
+ * wrong code-review finding:
  *   1. /docs/next/:splat                   → /docs/:splat
  *  1a. /docs/sitemap.xml                   → /docs/sitemap-index.xml
  *  1b. /docs/{LATEST_VERSION}/:splat       → /docs/:splat
- *   2. / → /docs
+ *   2. /{/}                                → /docs
  *  2a. /0.8.0/*                            → /docs/javascript-data-grid/changelog
  *  2b. /docs/redirect?pageId=*             → /docs/javascript-data-grid/changelog
  *  2c. Blog article redirects              → /blog/... or /blog
  *  2d. /demo/*                             → /demo
  *  2e. /customers/*                        → /customers/
  *   3. Legacy versioned angular-data-grid  → /docs/angular-data-grid/ or /docs/javascript-data-grid/
- *   3. /docs/hyperformula[/*]              → external hyperformula site
- *   4. Exact versioned HTML redirects      → framework-specific pages
- *   5. /docs/:ver/:page.html               → versioned framework pages (cookie)
- *   6. /docs/(javascript|angular|react)-data-grid/(row-sorting|column-sorting|release-notes)
- *   7. Cross-framework page fixes (angular/react wrong-prefix pages)
- *  7a. Vue 3 legacy page redirects      → /docs/vue-data-grid/*
+ *   4. /docs/hyperformula[/*]              → external hyperformula site
+ *   5. Exact versioned HTML redirects      → framework-specific pages
+ *   6. Cross-framework page fixes (angular/react wrong-prefix pages)
+ *   7. /docs/(javascript|angular|react)-data-grid/(row-sorting|column-sorting|release-notes)
+ *  7a. Vue 3 legacy page redirects         → /docs/vue-data-grid/*
+ *  7b. Versioned Vue 3 legacy pages        → /docs/:ver/vue-data-grid/*
  *   8. Recipe cell-type slug mismatches
- *   9. Angular-only recipe redirects for React/JS
- *  10. JS/React-only recipe redirects for Angular/React
- *  11. Flat /docs/react-* redirects        → /docs/react-data-grid/*
- *  12. Tutorial flat redirects             → /docs/javascript-data-grid/*
- *  13. Versioned /docs/:ver/react-*        → /docs/:ver/react-data-grid/*
- *  14. /docs/:ver{/}                       → version root or framework home
- *  15. /docs/(page).html                   → framework page (cookie)
- *  16. /docs/(page){/}                     → framework page (cookie)
- *  17. /docs/react, /docs/angular, etc.    → framework homes
- *  18. /{/}                               → /docs
- *  19. /docs{/}                           → /docs/(framework)/ (cookie)
- * 19a. POST /docs/scripts/json/save.json  → mock 200 JSON (saving-data demo)
- *  20. Static asset fallback (env.ASSETS)
+ *   9. Flat /docs/react-data-grid/row-sorting etc.
+ *  10. Flat /docs/react-*                  → /docs/react-data-grid/*
+ *  11. Tutorial flat redirects             → /docs/javascript-data-grid/*
+ *  12. Framework shorthand redirects       → framework homes
+ * 12a. Legacy hostname (GET/HEAD)          → same path on handsontable.com (301)
+ *  13. /docs/:ver/:page.html               → versioned framework pages (cookie, 302)
+ *  14. /docs/:ver{/}                       → version root or framework home (cookie, 302)
+ *  15. /docs/(page).html                   → flat framework page (cookie, 302)
+ *  16. /docs/(page){/}                     → flat framework page (cookie, 302)
+ *  17. /docs{/}                            → /docs/(framework)/ (cookie, 302)
+ *  18. Versioned /docs/:ver/react-*        → /docs/:ver/react-data-grid/*
+ * 18a. POST /docs/scripts/json/save.json   → mock 200 JSON (saving-data demo)
+ * 18b. /docs/_md/**.md, /docs/llms*.txt   → served from assets as text/plain
+ * 18c. GET /docs/api/design-system-updated.json → Figma last-update date (JSON)
+ *  19. Static asset fallback (env.ASSETS)
  */
 
 // ---------------------------------------------------------------------------
@@ -77,6 +91,47 @@ function getCookie(request, name) {
 }
 
 // ---------------------------------------------------------------------------
+// Data: canonical host and the legacy hosts that collapse onto it
+// ---------------------------------------------------------------------------
+
+// The canonical origin for every documentation page. Astro already emits a
+// matching `<link rel="canonical">`, but a canonical tag is only a hint: a
+// duplicate host that answers 200 stays crawlable, so both URLs can sit in the
+// index and each copy burns crawl budget. The rules below turn the hint into a
+// permanent redirect.
+const CANONICAL_DOCS_ORIGIN = 'https://handsontable.com';
+
+// Hosts whose every URL must end up on CANONICAL_DOCS_ORIGIN.
+//
+// This is an exact-match allowlist, and deliberately NOT "any host that is not
+// handsontable.com". The same worker serves staging and every PR preview from
+// `handsontable-docs-staging.pages.dev` and its per-branch subdomains, so a
+// negative match would 301 all of them into production and break docs review
+// with no visible error. The production Pages apex
+// (`handsontable-docs.pages.dev`) is left out too - it is the documented way
+// to verify a production deploy directly (see `docs/README-DEPLOYMENT.md`).
+const LEGACY_DOCS_HOSTS = new Set([
+  // The pre-Astro documentation home, still bound to the production Pages
+  // project as a custom domain. Without the rules below it answers 200 for the
+  // whole `/docs` tree - a byte-identical duplicate of handsontable.com/docs.
+  'docs.handsontable.com',
+]);
+
+/**
+ * Returns true when the request arrived on a legacy host that must be
+ * collapsed onto the canonical one.
+ *
+ * @param {URL} url
+ * @returns {boolean}
+ */
+function isLegacyDocsHost(url) {
+  // The URL parser lowercases a hostname but keeps a fully-qualified trailing
+  // dot, so `docs.handsontable.com.` would miss an exact-match Set and serve
+  // 200 - the classic allowlist bypass on a CDN-fronted host.
+  return LEGACY_DOCS_HOSTS.has(url.hostname.replace(/\.$/, ''));
+}
+
+// ---------------------------------------------------------------------------
 // Redirect helpers
 // ---------------------------------------------------------------------------
 
@@ -101,15 +156,23 @@ function redirect302(destination) {
 }
 
 /**
- * Builds an absolute URL string from a path relative to the original request
- * origin.
+ * Builds an absolute URL string from a path, relative to the request origin.
+ *
+ * Staging and preview hosts keep their own origin, so a redirect matched there
+ * stays inside the deployment under review. A legacy host instead gets the
+ * canonical origin, which is what lets every path rule below double as a
+ * one-hop cross-host redirect: the rule resolves what the path MEANS, and the
+ * reader lands on that page's real URL on handsontable.com rather than being
+ * bounced to the same stale path twice.
  *
  * @param {string} path  – must begin with /
  * @param {URL} base
  * @returns {string}
  */
 function abs(path, base) {
-  return `${base.origin}${path}`;
+  const origin = isLegacyDocsHost(base) ? CANONICAL_DOCS_ORIGIN : base.origin;
+
+  return `${origin}${path}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -755,7 +818,7 @@ const VUE3_LEGACY_PAGES = {
 // Set here rather than in a Pages `_headers` file because the policy exceeds the
 // 2000-character-per-line `_headers` limit and a CSP cannot be split across
 // multiple Content-Security-Policy lines.
-const CONTENT_SECURITY_POLICY = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://google.com https://js-eu1.hsforms.net https://static.reo.dev/ https://static.hsappstatic.net https://js-eu1.hs-analytics.net https://js-eu1.hsadspixel.net https://js-eu1.hscollectedforms.net https://js-eu1.hs-banner.com https://js-eu1.hs-scripts.com https://www.redditstatic.com https://bat.bing.com https://bat.bing.net https://dev.visualwebsiteoptimizer.com https://analytics.ahrefs.com https://*.cloudflareinsights.com https://sbl.onfastspring.com https://plausible.io https://*.typeform.com https://*.zendesk.com https://*.zdassets.com https://*.hotjar.com https://snap.licdn.com https://static.ads-twitter.com https://analytics.twitter.com https://consentcdn.cookiebot.com https://consent.cookiebot.com https://handsontable.piwik.pro https://handsontable.containers.piwik.pro https://*.list-manage.com https://docs.handsontable.com https://s3.amazonaws.com https://unpkg.com https://cdn.jsdelivr.net https://buttons.github.io https://code.jquery.com https://cdn.headwayapp.co https://www.google.com https://www.gstatic.com https://www.googleadservices.com https://www.googletagmanager.com https://*.google-analytics.com https://tagmanager.google.com https://script.crazyegg.com https://*.cloudfront.net https://*.cloudflare.com https://*.s3.amazonaws.com https://*.doubleclick.net https://connect.facebook.net https://*.sentry-cdn.com; img-src * 'self' data: https:; style-src 'self' 'unsafe-inline' https://sbl.onfastspring.com https://plausible.io https://*.typeform.com https://*.zendesk.com https://*.zdassets.com https://www.googletagmanager.com https://*.hotjar.com https://*.cloudflare.com https://fonts.googleapis.com https://tagmanager.google.com https://cdn.jsdelivr.net; font-src 'self' data: https://*.zendesk.com https://*.zdassets.com https://*.hotjar.com https://fonts.gstatic.com; frame-src 'self' 'unsafe-inline' https://google.com https://js-eu1.hsforms.net https://handsontablestore.onfastspring.com https://handsontablestore.test.onfastspring.com https://*.doubleclick.net https://plausible.io https://*.typeform.com https://*.zendesk.com https://*.zdassets.com https://examples.handsontable.com https://demos.handsontable.com https://handsontable.github.io https://*.hotjar.com https://consentcdn.cookiebot.com https://www.google.com https://headway-widget.net https://www.youtube.com https://player.vimeo.com https://codesandbox.io https://www.youtube-nocookie.com https://www.facebook.com https://www.googletagmanager.com/ https://embed.figma.com; object-src 'self'; connect-src 'self' https://hot-docs-assistant.netlify.app https://hot-docs-assistant-dev.handsontable-sandbox.workers.dev https://hot-docs-assistant.handsontable-sandbox.workers.dev https://*.algolia.net https://*.algolianet.com https://browser.sentry-cdn.com https://api.reo.dev https://api-eu1.hubapi.com https://static.hsappstatic.net https://forms-eu1.hscollectedforms.net https://ads.reddit.com https://www.redditstatic.com https://pixel-config.reddit.com https://www.googleadservices.com https://bat.bing.net https://bat.bing.com https://dev.visualwebsiteoptimizer.com https://api.github.com https://analytics.ahrefs.com https://ingesteer.services-prod.nsvcs.net https://plausible.io https://*.linkedin.com https://*.zendesk.com https://adservice.google.com https://*.zdassets.com https://*.hotjar.com https://*.hotjar.io wss://*.hotjar.com https://consentcdn.cookiebot.com https://cdn.linkedin.oribi.io https://www.google.com https://google.com https://stats.g.doubleclick.net https://googleads.g.doubleclick.net https://*.doubleclick.net https://www.google.pl https://*.google-analytics.com https://*.analytics.google.com https://*.googlesyndication.com https://*.handsontable.com https://www.googletagmanager.com https://handsontable.com https://handsontablestore.test.onfastspring.com https://handsontablestore.onfastspring.com https://snap.licdn.com https://www.facebook.com https://*.sentry.io https://jsonplaceholder.typicode.com https://graphqlzero.almansi.me; worker-src 'self' blob:; frame-ancestors 'self';";
+const CONTENT_SECURITY_POLICY = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://google.com https://js-eu1.hsforms.net https://static.reo.dev/ https://static.hsappstatic.net https://js-eu1.hs-analytics.net https://js-eu1.hsadspixel.net https://js-eu1.hscollectedforms.net https://js-eu1.hs-banner.com https://js-eu1.hs-scripts.com https://www.redditstatic.com https://bat.bing.com https://bat.bing.net https://dev.visualwebsiteoptimizer.com https://analytics.ahrefs.com https://*.cloudflareinsights.com https://sbl.onfastspring.com https://plausible.io https://*.typeform.com https://*.zendesk.com https://*.zdassets.com https://*.hotjar.com https://snap.licdn.com https://static.ads-twitter.com https://analytics.twitter.com https://consentcdn.cookiebot.com https://consent.cookiebot.com https://handsontable.piwik.pro https://handsontable.containers.piwik.pro https://*.list-manage.com https://s3.amazonaws.com https://unpkg.com https://cdn.jsdelivr.net https://buttons.github.io https://code.jquery.com https://cdn.headwayapp.co https://www.google.com https://www.gstatic.com https://www.googleadservices.com https://www.googletagmanager.com https://*.google-analytics.com https://tagmanager.google.com https://script.crazyegg.com https://*.cloudfront.net https://*.cloudflare.com https://*.s3.amazonaws.com https://*.doubleclick.net https://connect.facebook.net https://*.sentry-cdn.com; img-src * 'self' data: https:; style-src 'self' 'unsafe-inline' https://sbl.onfastspring.com https://plausible.io https://*.typeform.com https://*.zendesk.com https://*.zdassets.com https://www.googletagmanager.com https://*.hotjar.com https://*.cloudflare.com https://fonts.googleapis.com https://tagmanager.google.com https://cdn.jsdelivr.net; font-src 'self' data: https://*.zendesk.com https://*.zdassets.com https://*.hotjar.com https://fonts.gstatic.com; frame-src 'self' 'unsafe-inline' https://google.com https://js-eu1.hsforms.net https://handsontablestore.onfastspring.com https://handsontablestore.test.onfastspring.com https://*.doubleclick.net https://plausible.io https://*.typeform.com https://*.zendesk.com https://*.zdassets.com https://examples.handsontable.com https://demos.handsontable.com https://handsontable.github.io https://*.hotjar.com https://consentcdn.cookiebot.com https://www.google.com https://headway-widget.net https://www.youtube.com https://player.vimeo.com https://codesandbox.io https://www.youtube-nocookie.com https://www.facebook.com https://www.googletagmanager.com/ https://embed.figma.com; object-src 'self'; connect-src 'self' https://hot-docs-assistant.netlify.app https://hot-docs-assistant-dev.handsontable-sandbox.workers.dev https://hot-docs-assistant.handsontable-sandbox.workers.dev https://*.algolia.net https://*.algolianet.com https://browser.sentry-cdn.com https://api.reo.dev https://api-eu1.hubapi.com https://static.hsappstatic.net https://forms-eu1.hscollectedforms.net https://ads.reddit.com https://www.redditstatic.com https://pixel-config.reddit.com https://www.googleadservices.com https://bat.bing.net https://bat.bing.com https://dev.visualwebsiteoptimizer.com https://api.github.com https://analytics.ahrefs.com https://ingesteer.services-prod.nsvcs.net https://plausible.io https://*.linkedin.com https://*.zendesk.com https://adservice.google.com https://*.zdassets.com https://*.hotjar.com https://*.hotjar.io wss://*.hotjar.com https://consentcdn.cookiebot.com https://cdn.linkedin.oribi.io https://www.google.com https://google.com https://stats.g.doubleclick.net https://googleads.g.doubleclick.net https://*.doubleclick.net https://www.google.pl https://*.google-analytics.com https://*.analytics.google.com https://*.googlesyndication.com https://*.handsontable.com https://www.googletagmanager.com https://handsontable.com https://handsontablestore.test.onfastspring.com https://handsontablestore.onfastspring.com https://snap.licdn.com https://www.facebook.com https://*.sentry.io https://jsonplaceholder.typicode.com https://graphqlzero.almansi.me; worker-src 'self' blob:; frame-ancestors 'self';";
 
 const SECURITY_HEADERS = {
   'Content-Security-Policy': CONTENT_SECURITY_POLICY,
@@ -765,23 +828,383 @@ const SECURITY_HEADERS = {
   'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
 };
 
-// Apply the security headers to served documents/assets. Redirects (3xx) are
-// passed through untouched.
+// Apply the security headers to served documents/assets.
+//
+// A redirect carries no body, so the document-scoped headers (CSP, framing,
+// sniffing, referrer) have nothing to act on and are skipped. HSTS is the one
+// exception, because it is a promise about the HOST rather than about this
+// response: since rule 12a every GET/HEAD on a legacy host is a redirect, so
+// leaving redirects bare would stop that host from refreshing its own pin and
+// let a year-long promise age out with no renewal. The apex does send
+// `includeSubDomains`, which covers the subdomain, but relying on it would
+// make the legacy host's transport security depend on apex configuration.
 function withSecurityHeaders(response) {
-  if (response.status >= 300 && response.status < 400) {
-    return response;
-  }
-
   const decorated = new Response(response.body, response);
+  const isRedirect = response.status >= 300 && response.status < 400;
 
   for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
-    decorated.headers.set(name, value);
+    if (!isRedirect || name === 'Strict-Transport-Security') {
+      decorated.headers.set(name, value);
+    }
   }
 
   return decorated;
 }
 
-async function route(request, env) {
+// ---------------------------------------------------------------------------
+// Design System last-update date (rule 18c)
+// ---------------------------------------------------------------------------
+
+const FIGMA_API_ORIGIN = 'https://api.figma.com';
+const DESIGN_SYSTEM_DATE_PATH = '/docs/api/design-system-updated.json';
+
+// Returned by `readJson()` instead of throwing, so a body that is not JSON is
+// reported as itself rather than as the route's catch-all "unreachable".
+const BAD_JSON = Symbol('bad-json');
+
+// Figma's maximum. The default is 30, and version history is mostly unnamed
+// autosaves - one per 30 minutes of editing - so a long gap between publishes
+// can bury the newest named version below the first page.
+const FIGMA_VERSIONS_PAGE_SIZE = 50;
+
+// Up to 200 versions. Enough to cross a long autosave run, bounded so a file
+// that genuinely has no named version cannot walk its whole history on every
+// cache miss.
+const FIGMA_VERSIONS_MAX_PAGES = 4;
+
+/**
+ * Returns a pagination cursor only when it points at Figma itself.
+ *
+ * The cursor comes from a response body, so it is data from elsewhere, and the
+ * worker holds a credential. Matching the parsed origin rather than a string
+ * prefix is what makes `https://api.figma.com.example.com/` fail this check.
+ *
+ * @param {unknown} candidate
+ * @returns {string|null}
+ */
+function figmaCursor(candidate) {
+  if (typeof candidate !== 'string') {
+    return null;
+  }
+
+  try {
+    return new URL(candidate).origin === FIGMA_API_ORIGIN ? candidate : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Parses a response body as JSON, or returns `BAD_JSON`.
+ *
+ * A 2xx carrying HTML - a proxy error page, a maintenance notice, a
+ * challenge - is a reachable Figma answering with something unusable, and
+ * saying "unreachable" sends an operator to check connectivity that is fine.
+ *
+ * @param {Response} response
+ * @returns {Promise<object|symbol>}
+ */
+async function readJson(response) {
+  try {
+    return await response.json();
+  } catch {
+    return BAD_JSON;
+  }
+}
+
+// One day. The design system changes a few times a year at most, so a longer
+// window would be defensible - a day just keeps the page from ever looking
+// stale by more than one, at a cost of one Figma call per edge location.
+const DESIGN_SYSTEM_DATE_MAX_AGE = 86400;
+
+// An unsettled answer - a failure, or a date from a history the walk could not
+// finish - is held for minutes, not a day. Whatever caused it (an unset secret,
+// an expired token, a rate limit, an outage) the fix must not take 24 hours to
+// show: on staging the `null` cached before the secrets were set outlived them,
+// so the endpoint answered the real date to a cache-busted request while the
+// page still read a stale `null`.
+//
+// These ARE written to the edge cache, at this TTL. Skipping the write instead
+// would mean every request during a Figma outage re-runs the whole read - an
+// OAuth refresh plus the history walk - and under a 429 that pattern feeds
+// itself.
+const DESIGN_SYSTEM_DATE_ERROR_MAX_AGE = 300;
+
+// Bump to orphan every previously cached entry.
+//
+// The Cache API survives deployments, and `*.pages.dev` cannot be purged from
+// the dashboard or the API - zone purge needs a zone you own, and this
+// hostname is Cloudflare's. `cache.delete()` only clears the one data center
+// that ran it. So a version in the cache key is the only lever that drops a
+// bad entry everywhere without waiting out its TTL.
+//
+// 3: staging moved from a personal access token to the OAuth credentials, and
+// the cached date would otherwise have kept answering from the old read, which
+// would have looked identical whether or not the refresh worked.
+// 4: `reason` added to failure responses - the cached ones predate the field.
+// 5: the versions walk can now find a named version where the single-page read
+//    saw only autosaves, so an entry cached before it holds a last-touched date
+//    where this build would return a published one.
+// 6: failures and provisional dates are now cached at the short TTL rather than
+//    skipped, so entries written under the old rule carry the wrong lifetime.
+//
+// Bump it whenever the date is *selected* differently, not only when the
+// response shape changes: a cached body outlives the deploy that would have
+// replaced it.
+const DESIGN_SYSTEM_CACHE_VERSION = 6;
+
+/**
+ * Wraps a `{ date, source }` pair in the endpoint's only response shape.
+ *
+ * Every failure path returns this too, with `date: null`, so the page has one
+ * shape to read and never has to branch on a status code. See
+ * `readDesignSystemDate()` for why failures are not surfaced as errors.
+ *
+ * A failure also carries `reason`, naming the step that failed - the page
+ * ignores it, but without it a hidden field is indistinguishable from a
+ * missing secret, a revoked token and a Figma outage, none of which leave a
+ * trace anywhere else. It names a step and an HTTP status only, never a
+ * credential or any part of one.
+ *
+ * @param {{date: string|null, source: string|null, reason?: string|null}} body
+ * @param {boolean} settled Whether the answer is a date read from a history
+ *   the walk finished. Anything else is held for minutes, not a day.
+ * @returns {Response}
+ */
+function designSystemDateResponse(body, settled) {
+  const maxAge = settled ? DESIGN_SYSTEM_DATE_MAX_AGE : DESIGN_SYSTEM_DATE_ERROR_MAX_AGE;
+
+  return new Response(JSON.stringify(body), {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': `public, max-age=${maxAge}`,
+    },
+  });
+}
+
+/**
+ * Resolves the authorization header for the Figma calls, preferring OAuth.
+ *
+ * Figma caps a personal access token at **90 days**, and a plan access token
+ * (1 year) needs an Organization or Enterprise plan, which this account is not
+ * on. Either would make the date silently disappear on a timer. An OAuth
+ * refresh token has no such cap and can be exchanged for a fresh access token
+ * as often as needed, so it is the only credential here that keeps working
+ * without someone diarizing a rotation.
+ *
+ * The personal-token path is kept because it is one secret instead of three,
+ * which makes it the quick way to prove the endpoint works before setting the
+ * OAuth app up. It is a stopgap, not the intended production credential.
+ *
+ * Costs one extra request per cache miss - about one a day per edge location -
+ * which is cheaper than storing the access token and tracking its expiry.
+ *
+ * @param {object} env The worker environment.
+ * @param {Function} fetchImpl
+ * @returns {Promise<{headers: object|null, reason: string|null}>} Headers to
+ *   send, or a reason naming the step that failed.
+ */
+async function figmaAuthHeaders(env, fetchImpl) {
+  const clientId = env.FIGMA_CLIENT_ID;
+  const clientSecret = env.FIGMA_CLIENT_SECRET;
+  const refreshToken = env.FIGMA_REFRESH_TOKEN;
+
+  if (clientId && clientSecret && refreshToken) {
+    const response = await fetchImpl(`${FIGMA_API_ORIGIN}/v1/oauth/refresh`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        // Figma authenticates the refresh with HTTP Basic, not body params.
+        Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
+      },
+      body: `refresh_token=${encodeURIComponent(refreshToken)}`,
+    });
+
+    if (!response.ok) {
+      // A revoked or mistyped refresh token, or a client id/secret that do not
+      // match it. The status is the only detail worth surfacing - the body can
+      // quote the credential back.
+      return { headers: null, reason: `oauth-refresh-http-${response.status}` };
+    }
+
+    const payload = await readJson(response);
+
+    if (payload === BAD_JSON) {
+      return { headers: null, reason: 'oauth-refresh-bad-json' };
+    }
+
+    // The refresh response carries no new refresh token - the same one is
+    // reused - so there is nothing to persist here.
+    return payload?.access_token
+      ? { headers: { Authorization: `Bearer ${payload.access_token}` }, reason: null }
+      : { headers: null, reason: 'oauth-refresh-no-access-token' };
+  }
+
+  if (env.FIGMA_TOKEN) {
+    return { headers: { 'X-Figma-Token': env.FIGMA_TOKEN }, reason: null };
+  }
+
+  // Name which half is missing: a half-configured OAuth setup and no
+  // credentials at all look identical from outside otherwise.
+  const partialOAuth = Boolean(clientId || clientSecret || refreshToken);
+
+  return { headers: null, reason: partialOAuth ? 'oauth-incomplete' : 'no-credentials' };
+}
+
+/**
+ * Reads the date the Design System Figma file was last updated.
+ *
+ * Prefers the newest *named* version over the file's raw last-touched time.
+ * Figma's version history interleaves autosave checkpoints (`label: null`)
+ * with versions a designer deliberately named, and `last_touched_at` moves on
+ * any edit at all - so both would report "updated today" because someone
+ * nudged a frame.
+ *
+ * For this file the named versions are not just "some milestone": the design
+ * team labels one `Published to Community hub` on every publish. That matters
+ * because the Community listing the docs link to has **no** REST API of its
+ * own - searching Figma's whole OpenAPI spec for "community" returns only
+ * payment endpoints - so its publish date is otherwise unreadable. The team's
+ * labelling convention is what makes it readable at all.
+ *
+ * Measured 2026-09-16, and the gap is not academic: the newest named version
+ * was 2026-08-20 while `last_touched_at` was 2026-09-11. Reporting the latter
+ * would have claimed an update three weeks newer than anything a reader could
+ * actually download.
+ *
+ * The match is deliberately on "has a label", not on the label text - a
+ * reworded convention should degrade to the next named version, not to a
+ * wrong date.
+ *
+ * The response is ordered newest-first in practice, but the API does not
+ * promise it, so the newest labelled entry is picked by date rather than by
+ * position.
+ *
+ * Returns `date: null` rather than throwing on every failure - an unset token,
+ * a revoked token, a rate limit, or Figma being down must never do anything
+ * more visible than hide one line on one page.
+ *
+ * @param {object} env The worker environment.
+ * @returns {Promise<{date: string|null, source: string|null, reason?: string|null}>}
+ */
+async function readDesignSystemDate(env) {
+  const fileKey = env.FIGMA_FILE_KEY;
+
+  if (!fileKey) {
+    return { date: null, source: null, reason: 'no-file-key' };
+  }
+
+  // Injectable so the tests can exercise every branch without a network call
+  // or a global stub; production passes nothing and gets the runtime's fetch.
+  const fetchImpl = env.FIGMA_FETCH ?? globalThis.fetch;
+  const auth = await figmaAuthHeaders(env, fetchImpl);
+
+  if (auth.headers === null) {
+    return { date: null, source: null, reason: auth.reason };
+  }
+
+  const headers = auth.headers;
+  const file = encodeURIComponent(fileKey);
+
+  // Walk the version history newest-first until a named version turns up.
+  // One page is not the history: Figma paginates it, and the pages between two
+  // publishes are all autosaves, so reading only the first page reports "no
+  // named version" for any file with a busy stretch since its last publish.
+  let nextUrl = `${FIGMA_API_ORIGIN}/v1/files/${file}/versions?page_size=${FIGMA_VERSIONS_PAGE_SIZE}`;
+  let newestNamed = null;
+  let pagesRead = 0;
+  // Set when the walk stopped on an error rather than on an answer. The
+  // metadata fallback below is then a guess about a history we did not finish
+  // reading, so its date must not be treated as settled.
+  let walkBroke = false;
+
+  while (nextUrl && pagesRead < FIGMA_VERSIONS_MAX_PAGES) {
+    const versionsResponse = await fetchImpl(nextUrl, { headers });
+
+    if (!versionsResponse.ok) {
+      // A rejected FIRST page must NOT fall through to the metadata endpoint.
+      // The two carry different scopes, so a credential granted only
+      // `file_metadata:read` would answer 403 here, 200 there, and the page
+      // would quietly show the last-touched date under the "last published"
+      // wording - the substitution this function exists to avoid, with no
+      // trace that the versions call was ever refused. A later page failing
+      // is different: the history read simply stops where it got to.
+      if (pagesRead === 0) {
+        return { date: null, source: null, reason: `figma-http-${versionsResponse.status}` };
+      }
+
+      walkBroke = true;
+      break;
+    }
+
+    const payload = await readJson(versionsResponse);
+
+    if (payload === BAD_JSON) {
+      if (pagesRead === 0) {
+        return { date: null, source: null, reason: 'figma-bad-json' };
+      }
+
+      walkBroke = true;
+      break;
+    }
+
+    pagesRead += 1;
+    newestNamed = (payload?.versions ?? [])
+      // `Number.isFinite` is not decoration: an entry with a missing or
+      // malformed `created_at` makes the comparator return NaN, which leaves
+      // the whole sort order unspecified - one bad entry from Figma is enough
+      // to publish the oldest named version as the newest.
+      .filter(version => typeof version?.label === 'string'
+        && version.label !== ''
+        && Number.isFinite(Date.parse(version.created_at)))
+      .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at))[0];
+
+    // Pages run newest-first, so the first page holding a named version holds
+    // the newest one. Nothing older can beat it.
+    if (newestNamed) {
+      break;
+    }
+
+    // Follow Figma's own cursor rather than building one: the `before`/`after`
+    // parameters leave which direction is "older" to interpretation, and this
+    // URL does not. Only ever follow it back to Figma - and compare the parsed
+    // origin, because a prefix test also accepts `api.figma.com.example.com`.
+    nextUrl = figmaCursor(payload?.pagination?.next_page);
+  }
+
+  if (newestNamed) {
+    return { date: newestNamed.created_at, source: 'named-version' };
+  }
+
+  // The versions call succeeded and simply held no named version - the one
+  // case the metadata fallback is for.
+  const metaResponse = await fetchImpl(`${FIGMA_API_ORIGIN}/v1/files/${file}/meta`, { headers });
+
+  if (!metaResponse.ok) {
+    return { date: null, source: null, reason: `figma-http-${metaResponse.status}` };
+  }
+
+  const meta = await readJson(metaResponse);
+
+  if (meta === BAD_JSON) {
+    return { date: null, source: null, reason: 'figma-bad-json' };
+  }
+
+  if (meta?.file?.last_touched_at) {
+    // `provisional` when the walk broke: the history was not read to the end,
+    // so "no named version" is unproven and this date may be standing in for a
+    // publish we simply did not reach. The caller keeps it out of the day-long
+    // cache, which would otherwise pin the wrong one of the two dates - three
+    // weeks apart on the real file - for 24 hours after a single 429.
+    return { date: meta.file.last_touched_at, source: 'last-touched', provisional: walkBroke };
+  }
+
+  // Both calls answered, neither carried a date.
+  return { date: null, source: null, reason: 'figma-no-date' };
+}
+
+async function route(request, env, ctx) {
     const url = new URL(request.url);
     const path = url.pathname;
 
@@ -1095,6 +1518,38 @@ async function route(request, env) {
       }
     }
 
+    // -- 12a. Legacy hostname → canonical hostname (GET/HEAD) ---------------
+    // The cut lands here, immediately before the first cookie-reading rule,
+    // for two reasons.
+    //
+    // Rules 13-17 answer with a 302, because their destination depends on the
+    // `docs_fw` cookie and must not be cached as permanent. A 302 is not a
+    // canonicalisation signal, so a legacy URL answered by one would never
+    // leave the search index - which is the entire point of this collapse.
+    // Before this rule existed, `/docs`, `/docs/`, `/docs/{ver}` and every
+    // flat slug took that path and stayed indexed on the legacy host.
+    //
+    // And cookies are host-scoped, so the reader's saved framework preference
+    // lives on handsontable.com, not here. Deciding the framework from this
+    // host's cookie jar would silently default a React reader to the
+    // JavaScript page. Handing the bare path to the canonical host fixes both
+    // at once: this hop is a 301, and the origin that owns the cookie makes
+    // the framework decision.
+    //
+    // Everything above this line runs first on purpose - those rules resolve
+    // a path whose meaning differs from what it says, and `abs()` has already
+    // pointed them at the canonical origin, so they cross hosts in one hop
+    // with the destination resolved. Collapsing the host before them would
+    // send `/` to the marketing homepage and `/0.8.0/` to a 404, because only
+    // `/docs/*` reaches this worker on handsontable.com.
+    //
+    // GET/HEAD only, so the rule 18a POST mock still answers on this host: a
+    // 301 is downgraded to GET by every client and loses the body, and a POST
+    // is never indexed, so there is nothing to canonicalise.
+    if (isLegacyDocsHost(url) && (request.method === 'GET' || request.method === 'HEAD')) {
+      return redirect301(abs(`${path}${url.search}`, url));
+    }
+
     // -- 13. /docs/{ver}/{page}.html → versioned framework page (cookie) -----
     {
       const m = path.match(/^\/docs\/(\d+)\.(\d+)\/([^/]+)\.html$/);
@@ -1278,12 +1733,100 @@ async function route(request, env) {
       });
     }
 
+    // -- 18b. Agent-facing text files: force text/plain -----------------------
+    // The Markdown twins under /docs/_md/ and the llms.txt indexes exist for
+    // AI agents, but Pages serves .md as `text/markdown` — a content type
+    // OpenAI's web-search fetch tool refuses to parse (verified 2026-09-08:
+    // the tool fetched a twin, reported "unsupported content type", and fell
+    // back to the HTML page). `text/plain` is what raw.githubusercontent.com
+    // and hyperformula.handsontable.com/llms.txt serve, and every major agent
+    // stack consumes it. Serving content, so this must stay below rule 12a.
+    if (/^\/docs\/(?:_md\/.+\.md|llms(?:-full)?\.txt)$/.test(path)) {
+      const assetResponse = await env.ASSETS.fetch(request);
+
+      if (assetResponse.status !== 200) return assetResponse;
+
+      const decorated = new Response(assetResponse.body, assetResponse);
+
+      decorated.headers.set('Content-Type', 'text/plain; charset=utf-8');
+
+      return decorated;
+    }
+
+    // -- 18c. Design System last-update date (JSON) ---------------------------
+    // The design system page shows when the Figma file was last updated. The
+    // read happens here, not in the browser: a Figma token in client JS is
+    // public, and the site's own CSP has no `api.figma.com` in `connect-src`
+    // anyway. Same-origin keeps it under `connect-src 'self'`, so serving it
+    // from this worker needs no CSP change.
+    //
+    // Answers GET and HEAD. HEAD matters because link checkers, uptime probes
+    // and CDN preflights all default to it, and answering 404 there while GET
+    // answers 200 reports a working endpoint as dead. The runtime drops the
+    // body for a HEAD. Anything else falls through to env.ASSETS, which 404s
+    // the path - there is no asset behind it.
+    //
+    // Serving content, so this must stay below rule 12a.
+    if (path === DESIGN_SYSTEM_DATE_PATH && (request.method === 'GET' || request.method === 'HEAD')) {
+      const cache = typeof caches !== 'undefined' ? caches.default : null;
+      // A key of our own rather than the incoming request: it carries the
+      // version above, and it ignores any query string a caller adds, so a
+      // cache-busting `?x=1` cannot fill the cache with duplicate entries.
+      const cacheKey = cache
+        ? new Request(`${url.origin}${DESIGN_SYSTEM_DATE_PATH}?v=${DESIGN_SYSTEM_CACHE_VERSION}`)
+        : null;
+      const cached = cacheKey ? await cache.match(cacheKey) : null;
+
+      if (cached) {
+        return cached;
+      }
+
+      let result;
+
+      // One catch for the whole read. Figma being unreachable, rate-limiting
+      // us, or rejecting an expired token are all the same event here: the
+      // page hides one line and everything else keeps working.
+      try {
+        result = await readDesignSystemDate(env);
+      } catch {
+        result = { date: null, source: null, reason: 'figma-unreachable' };
+      }
+
+      // `provisional` stays internal - the page has one shape to read.
+      const { provisional = false, ...body } = result;
+      // A settled answer holds for a day. Anything else - a failure, or a date
+      // read from a history the walk could not finish - holds for minutes, so
+      // it cannot outlive the fix by more than that. Storing the short ones
+      // rather than skipping them keeps a Figma outage from turning every
+      // single request into a fresh OAuth refresh plus history read.
+      const settled = body.date !== null && !provisional;
+      const response = designSystemDateResponse(body, settled);
+
+      if (cacheKey) {
+        const write = cache.put(cacheKey, response.clone());
+
+        // Hand the write to the runtime where possible: on a cache miss the
+        // reader has already waited for two Figma round trips, and the edge
+        // write adds nothing they need. `ctx` is absent in the tests, which
+        // call the worker with two arguments.
+        if (ctx?.waitUntil) {
+          ctx.waitUntil(write);
+        } else {
+          await write;
+        }
+      }
+
+      return response;
+    }
+
     // -- 19. Fallback: serve static assets via env.ASSETS --------------------
     return env.ASSETS.fetch(request);
 }
 
 export default {
-  async fetch(request, env) {
-    return withSecurityHeaders(await route(request, env));
+  // `ctx` is only used by rule 18c, to hand its edge-cache write to
+  // `ctx.waitUntil` instead of making the reader wait for it.
+  async fetch(request, env, ctx) {
+    return withSecurityHeaders(await route(request, env, ctx));
   },
 };

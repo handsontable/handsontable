@@ -2,6 +2,7 @@
 .stylelintcache
 test/E2ERunner.html
 test/E2ERunner-*.html
+test/e2e-results/
 test/UnitRunner.html
 test/MobileRunner.html
 test/dist/

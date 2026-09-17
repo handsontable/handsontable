@@ -178,6 +178,72 @@ test.describe('Row header border ownership', () => {
       .toEqual([declared - 1, declared - 1, declared - 1, declared - 1]);
   });
 
+  test('marks the last corner cell of every head row, and no body cell', async () => {
+    // The structural half, and the only half `main` and `classic` can see: both map
+    // `--ht-cell-horizontal-border-color` to `--ht-border-color`, so the color assertion below is
+    // true there whichever cell the rule picks. This one is not - it pins WHICH cell carries the
+    // marker, on every leg.
+    //
+    // Position, not `:last-child`. In the corner clone of the frozen shape the last child of the
+    // head row is the frozen COLUMN header, so the marker has to sit at index `rowHeadersCount - 1`
+    // rather than at the end of the row.
+    const bodyRow = '.ht_clone_inline_start table.htCore > tbody > tr:first-child';
+    const cornerRow = '.ht_clone_top_inline_start_corner table.htCore > thead > tr:last-child';
+    const topRow = '.ht_clone_top table.htCore > thead > tr:last-child';
+
+    // One row header: the marker is on the only corner cell, which is what `:first-child` used to
+    // select - so this shape's rendered output is unchanged by the re-key.
+    for (const row of [cornerRow, topRow]) {
+      expect(await grid.markedCellIndex('row-headers', row)).toBe(0);
+    }
+
+    // Two row headers: the marker moves to the second corner cell, in both head-row overlays.
+    for (const testId of ['multi-row-headers', 'multi-frozen']) {
+      for (const row of [cornerRow, topRow]) {
+        expect(await grid.markedCellIndex(testId, row)).toBe(1);
+      }
+    }
+
+    // Exactly one per row, or the seam rule would color more than one gridline.
+    expect(await grid.markedHeaderCellCount('multi-row-headers')).toBe(1);
+    expect(await grid.markedHeaderCellCount('multi-row-headers', '.ht_clone_top')).toBe(1);
+
+    // HEAD rows only. A body row needs no marker - every `th` there is a row header, so the seam
+    // rule matches them all and the inner ones fall through to the same color anyway. Marking them
+    // would put a class no stylesheet reads on every row header of every rendered row, which is
+    // what the exact-markup specs in `hiddenRows` and `nestedHeaders` caught when it was tried.
+    for (const testId of ['row-headers', 'multi-row-headers', 'multi-frozen']) {
+      expect(await grid.markedCellIndex(testId, bodyRow)).toBe(-1);
+    }
+
+    // No row headers, no marker.
+    expect(await grid.markedCellIndex('control', topRow)).toBe(-1);
+  });
+
+  test('gives the head-row seam the same color as the body seam with several row headers', async () => {
+    // The defect this marker exists for, and it is only observable on `horizon`, where the
+    // cell-border token is transparent and the frame token is not. CSS cannot pick the last corner
+    // cell out of a head row - a corner is a `th` like the column headers beside it - so the rule
+    // was keyed on `:first-child`, which selects the WRONG corner once there are two: the real seam
+    // then fell through to the `th:last-child` frame rule and drew the grid's outer-frame color in
+    // the corner clone while the body drew the cell-border color.
+    //
+    // Read relatively, against a body cell of the single-header grid, which is this file's idiom -
+    // naming a palette literal would only ever hold on one theme.
+    const reference = await grid.inlineEndBorderColor(grid.firstBodyCell('row-headers'));
+
+    for (const testId of ['multi-row-headers', 'multi-frozen']) {
+      expect(await grid.rowHeaderCount(testId)).toBe(2);
+      // The head row and the body row must agree, which is the whole point.
+      expect(await grid.inlineEndBorderColor(grid.lastCornerHeaderCell(testId))).toBe(reference);
+      expect(await grid.inlineEndBorderColor(grid.lastRowHeaderCell(testId))).toBe(reference);
+    }
+
+    // The single-header shape keeps the color it already had - the re-key must not disturb it.
+    expect(await grid.inlineEndBorderColor(grid.cornerHeaderCell('row-headers'))).toBe(reference);
+    expect(await grid.inlineEndBorderColor(grid.cornerHeaderCell('frozen'))).toBe(reference);
+  });
+
   test('keeps the active accent on the seam an active row header owns', async () => {
     // The seam color rule must not outrank the active-header accent: the seam is the active row
     // header's OWN inline-end. The expected value is read from the accent the column axis already
