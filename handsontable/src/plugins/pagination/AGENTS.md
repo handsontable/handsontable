@@ -66,6 +66,12 @@ note in `../base/AGENTS.md`.
 - **Default**: the UI registers its container with `hot.getLayoutManager()` and the manager appends it into
   the **bottom slot**. **The element stays detached until then** — do not `appendChild` it yourself.
 - **With a custom `uiContainer`**: the UI installs itself there and the slot registration is skipped.
+- **This plugin no longer reserves its own height.** Its `beforeHeightChange` `calc(height - bar)` hook
+  moved into core (`reserveEdgeSlotsHeight` in `core.ts`), which subtracts EVERY bottom- and top-slot
+  bar from a pixel `height` — the sheets bar and the license notification too, so both bars behave
+  the same. Inside a scrollable ancestor or a CSS-sized container the engine reserves the slots'
+  height instead (`layoutReservedHeight`). Do not add a reservation back here: it would stack on
+  core's and shrink the grid twice (DEV-2848).
 
 The manager exists only on the root instance. `isEnabled()` is already gated on `isRootInstance`, so by
 the time `enablePlugin()` reaches that guard **the `isRootInstance` half is always true and its else-branch
@@ -95,8 +101,7 @@ Because the auto strategy computes a size *per page*, page boundaries are not un
 selection entry point means adding it here too.
 
 It also reacts to `afterSetTheme` (a theme changes row heights, and `useTheme()` does not go through
-`updateSettings`), `afterLanguageChange` (the pager's labels), `beforeHeightChange` and
-`afterDataProviderFetch`.
+`updateSettings`), `afterLanguageChange` (the pager's labels) and `afterDataProviderFetch`.
 
 ## `beforePaste` keeps the clipboard prefix when it overflows the page
 
