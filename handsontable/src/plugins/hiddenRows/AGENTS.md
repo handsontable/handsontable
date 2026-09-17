@@ -9,6 +9,8 @@ before touching `hiddenRows.ts` or anything in `contextMenuItem/`.
 finding the marker, token matching) and the
 `disablePlugin()` meta reset are all the same. **Fix a bug in one and check the other.** The Show
 column adjacent-stretch trap in that file applies to `contextMenuItem/showRow.ts` as well (DEV-1040).
+Both Show items call `collectAdjacentHiddenPhysicalIndexes` from `../../../utils/hiddenIndexes.ts`
+— do not copy that helper into this plugin.
 
 What follows is only what differs.
 

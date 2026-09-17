@@ -1,51 +1,7 @@
 import { arrayEach, arrayMap } from '../../../helpers/array';
 import * as C from '../../../i18n/constants';
 import type { HotInstance } from '../../../core/types';
-
-/**
- * Collect physical indexes of the contiguous hidden stretches next to a visual index.
- *
- * @param {number} visualIndex The selected visible visual index.
- * @param {number} visualCount Total visual index count.
- * @param {number[]} notTrimmedIndexes Map from visual index to physical index.
- * @param {Set<number>} hiddenPhysicalIndexes Hidden physical indexes.
- * @returns {number[]} Adjacent hidden physical indexes in visual order.
- */
-function collectAdjacentHiddenPhysicalIndexes(
-  visualIndex: number,
-  visualCount: number,
-  notTrimmedIndexes: number[],
-  hiddenPhysicalIndexes: Set<number>,
-): number[] {
-  const physicalIndexes: number[] = [];
-  const leftPhysicalIndexes: number[] = [];
-
-  for (let visual = visualIndex - 1; visual >= 0; visual -= 1) {
-    const physical = notTrimmedIndexes[visual];
-
-    if (typeof physical !== 'number' || !hiddenPhysicalIndexes.has(physical)) {
-      break;
-    }
-
-    leftPhysicalIndexes.push(physical);
-  }
-
-  for (let i = leftPhysicalIndexes.length - 1; i >= 0; i -= 1) {
-    physicalIndexes.push(leftPhysicalIndexes[i]);
-  }
-
-  for (let visual = visualIndex + 1; visual < visualCount; visual += 1) {
-    const physical = notTrimmedIndexes[visual];
-
-    if (typeof physical !== 'number' || !hiddenPhysicalIndexes.has(physical)) {
-      break;
-    }
-
-    physicalIndexes.push(physical);
-  }
-
-  return physicalIndexes;
-}
+import { collectAdjacentHiddenPhysicalIndexes } from '../../../utils/hiddenIndexes';
 
 /**
  * @param {HiddenColumns} hiddenColumnsPlugin The plugin instance.
@@ -147,23 +103,18 @@ export default function showColumnItem(hiddenColumnsPlugin: Record<string, Funct
 
       // When all columns are hidden and the context menu is triggered using top-left corner.
       } else if (renderableStartColumn === null) {
-        const visualColumnCount = this.countCols();
-
-        for (let visual = 0; visual < visualColumnCount; visual += 1) {
-          physicalColumnIndexes.push(notTrimmedColumnIndexes[visual]);
-        }
+        arrayEach(notTrimmedColumnIndexes.slice(0, this.countCols()), (physicalIndex) => {
+          physicalColumnIndexes.push(physicalIndex);
+        });
 
       } else if (visualStartColumn !== null) {
-        const adjacentHiddenPhysicalIndexes = collectAdjacentHiddenPhysicalIndexes(
+        collectAdjacentHiddenPhysicalIndexes(
           visualStartColumn,
           this.countCols(),
           notTrimmedColumnIndexes,
           hiddenPhysicalLookup,
+          physicalColumnIndexes,
         );
-
-        for (let i = 0; i < adjacentHiddenPhysicalIndexes.length; i += 1) {
-          physicalColumnIndexes.push(adjacentHiddenPhysicalIndexes[i]);
-        }
       }
 
       arrayEach(physicalColumnIndexes, (physicalColumnIndex) => {

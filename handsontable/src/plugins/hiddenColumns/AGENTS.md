@@ -192,6 +192,10 @@ must produce a Show column item. Do not restore the old first-rendered / last-re
 that left initially hidden middle columns unrestorable until the user hid another column or
 multi-selected across the gap (DEV-1040). `../hiddenRows/` `showRow.ts` mirrors this.
 
+The walk lives in `../../../utils/hiddenIndexes.ts` (`collectAdjacentHiddenPhysicalIndexes`). Do not
+copy it back into this plugin or into HiddenRows — the plugins must not import each other, and a
+duplicate trips Sonar CPD on new code.
+
 Non-adjacent hidden columns stay out of the item (hidden `[1]`, select column 3: no Show column).
 
 ## Known concern
