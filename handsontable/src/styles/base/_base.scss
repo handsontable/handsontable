@@ -49,13 +49,16 @@
       isolation: isolate;
     }
 
-    // Kept in sync by `TableView` (`#updateScrollbarClassNames`). When the WINDOW owns the vertical
-    // axis (no `height` option, no ancestor trapping `overflow-y`) the rows belong to the page, so
-    // the wrapper follows its content: the bottom slot lands after the last row instead of being
-    // pinned to the bottom of a CSS-sized container while the table overflows it (DEV-2848). `100%`
-    // stays the default because a `height: '100%'` option resolves through this chain.
-    &.ht-vertical-window-scroll {
-      height: auto;
+    // Kept in sync by `TableView` (`#updateScrollbarClassNames`). When the grid's height is driven by
+    // its content – the WINDOW owns the vertical axis (no `height` option, no ancestor trapping
+    // `overflow-y`), or `height: 'auto'` – the grid box must not shrink to the wrapper: `min-height: 0`
+    // let a CSS-sized container squeeze it while the table overflowed, which pinned the bottom slot
+    // over a data row (DEV-2848). Only the GRID item gives up shrinking. The wrapper keeps its
+    // `height: 100%`, so the overlays layer (dialog, notification) still sizes to the container and a
+    // content change never resizes the wrapper.
+    &.ht-grid-follows-content > .ht-grid {
+      flex-shrink: 0;
+      min-height: auto;
     }
 
     // The `ht-slot-*-filled` classes are kept in sync by the `LayoutManager` (they mean "the slot

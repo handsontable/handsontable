@@ -311,6 +311,11 @@ class TableView {
    */
   #lastHeight = 0;
   /**
+   * The layout-slot height reserved inside the vertical axis owner, memoized for one render (see
+   * `#getReservedSlotHeight`).
+   */
+  #reservedSlotHeight: { owner: HTMLElement, height: number } | null = null;
+  /**
    * The last mouse position of the mousedown event.
    *
    * @type {{ x: number, y: number } | null}
@@ -372,6 +377,7 @@ class TableView {
       this.hot.runHooks('beforeRender', isFullRender);
 
       this.#discardSizesMeasuredWithoutStyles();
+      this.#reservedSlotHeight = null;
 
       this._wt.draw(!isFullRender);
       this.#updateScrollbarClassNames();
@@ -2765,18 +2771,32 @@ class TableView {
    * room for them – otherwise the holder takes the whole box and pushes the slot content past the
    * owner's edge, which is how a pagination or sheets bar ended up clipped out of reach inside a
    * scrollable ancestor (DEV-2848). A root element that owns the axis itself (an explicit `height`
-   * option) contains no slot and reserves nothing; the pagination plugin handles that case through
-   * `beforeHeightChange`. Non-root instances have no slots.
+   * option) contains no slot and reserves nothing here; core subtracts the slots from the pixel
+   * `height` it writes on the root instead. Non-root instances have no slots.
+   *
+   * Memoized per render: the engine asks several times per draw off the single-pass path (every
+   * `getWorkspaceHeight()` measures the live DOM there), and each ask is two layout-forcing
+   * `offsetHeight` reads. `render()` drops the memo before the draw; the slot `ResizeObserver` in
+   * core renders when a slot changes height, so a value cached across draws cannot go stale.
    *
    * @param {HTMLElement} trimmingContainer The resolved vertical axis owner.
    * @returns {number}
    */
   #getReservedSlotHeight(trimmingContainer: HTMLElement): number {
-    const { rootSlotTopElement, rootSlotBottomElement } = this.hot;
+    const cached = this.#reservedSlotHeight;
 
-    return [rootSlotTopElement, rootSlotBottomElement]
+    if (cached && cached.owner === trimmingContainer) {
+      return cached.height;
+    }
+
+    const { rootSlotTopElement, rootSlotBottomElement } = this.hot;
+    const height = [rootSlotTopElement, rootSlotBottomElement]
       .filter((slot): slot is HTMLElement => !!slot && trimmingContainer.contains(slot))
       .reduce((sum, slot) => sum + slot.offsetHeight, 0);
+
+    this.#reservedSlotHeight = { owner: trimmingContainer, height };
+
+    return height;
   }
 
   /**
@@ -2795,20 +2815,26 @@ class TableView {
       removeClass(rootElement, 'htHasScrollY');
     }
 
-    if (this.isVerticallyScrollableByWindow()) {
-      addClass(rootElement, 'htVerticallyScrollableByWindow');
+    const isVerticallyScrollableByWindow = this.isVerticallyScrollableByWindow();
 
-      // Mirrored onto the wrapper: the stylesheet lets the wrapper follow its content there
-      // (`styles/base/_base.scss`). A wrapper pinned to a CSS-sized container while the page
-      // scrolls the rows placed the bottom slot (pagination, sheets bar) over a data row (DEV-2848).
-      if (rootWrapperElement) {
-        addClass(rootWrapperElement, 'ht-vertical-window-scroll');
-      }
+    if (isVerticallyScrollableByWindow) {
+      addClass(rootElement, 'htVerticallyScrollableByWindow');
     } else {
       removeClass(rootElement, 'htVerticallyScrollableByWindow');
+    }
 
-      if (rootWrapperElement) {
-        removeClass(rootWrapperElement, 'ht-vertical-window-scroll');
+    if (rootWrapperElement) {
+      // The grid's height follows its content when the page scrolls the rows, and with
+      // `height: 'auto'` (core writes `overflow: clip` for it, so the root owns the axis, yet the
+      // root grows to its content). The stylesheet then keeps the grid box from shrinking to a
+      // CSS-sized container (`styles/base/_base.scss`), which placed the bottom slot over a data
+      // row (DEV-2848).
+      const followsContent = isVerticallyScrollableByWindow || rootElement.style.height === 'auto';
+
+      if (followsContent) {
+        addClass(rootWrapperElement, 'ht-grid-follows-content');
+      } else {
+        removeClass(rootWrapperElement, 'ht-grid-follows-content');
       }
     }
 
