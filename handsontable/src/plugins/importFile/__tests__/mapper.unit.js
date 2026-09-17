@@ -156,6 +156,23 @@ describe('mapWorkbook', () => {
     expect(result.rowHeights).toEqual([40, undefined]);
   });
 
+  it('should promote a header from a formula cell\'s cached result and a date cell\'s ISO string', () => {
+    const sheet = createSheetSnapshot('Data');
+
+    // A formula cell keeps its display text in `formula.result` with `value` null, and a date cell
+    // is a serial under a date format - both read as data through `toGridValue`, so a header has to
+    // read the same way or come out as `''` and `44927`.
+    sheet.rows = [
+      [cell({ value: null, formula: { text: 'CONCAT("Q",1)', result: 'Q1' } }),
+        cell({ value: 44927, numFmt: 'yyyy-mm-dd' }), text('Plain')],
+      [text('a'), text('b'), text('c')],
+    ];
+
+    const { result } = map(workbook(sheet), { colHeaders: 'firstRow' });
+
+    expect(result.colHeaders).toEqual(['Q1', '2023-01-01', 'Plain']);
+  });
+
   it('should escape a promoted header, which the grid renders as HTML', () => {
     const sheet = createSheetSnapshot('Data');
 
@@ -635,6 +652,16 @@ describe('mapWorkbook – headerRows', () => {
       ['Ana García', 'Analyst', 4200.5],
       ['Li Wei', 'Engineer', 950.25],
     ]);
+  });
+
+  it('should read a nested header label from a formula cell\'s cached result', () => {
+    const sheet = nestedSheet();
+
+    sheet.rows[0][0] = cell({ value: null, formula: { text: 'UPPER("group")', result: 'GROUP' } });
+
+    const { result } = map(workbook(sheet), { colHeaders: 'firstRow', headerRows: 2 });
+
+    expect(result.nestedHeaders[0][0]).toEqual(expect.objectContaining({ label: 'GROUP' }));
   });
 
   it('should keep header-band merges out of mergeCells', () => {

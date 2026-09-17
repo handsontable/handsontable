@@ -385,6 +385,21 @@ describe('resolveListSource', () => {
     )).toEqual(['Open', 'Closed']);
   });
 
+  it('should read a list option from a formula cell\'s cached result and format a date serial', () => {
+    const workbook = workbookWithHelper();
+    const [data] = workbook.sheets;
+
+    data.rows = [
+      [cell({ value: null, formula: { text: 'A9', result: 'Computed' } })],
+      [cell({ value: 44927, numFmt: 'yyyy-mm-dd' })],
+      [cell({ value: null, formula: { text: 'A10' } })],
+    ];
+
+    expect(resolveListSource(
+      { type: 'list', allowBlank: true, formulae: ['$A$1:$A$3'] }, workbook, data
+    )).toEqual(['Computed', '2023-01-01']);
+  });
+
   it('should return null for a reference it cannot resolve', () => {
     const workbook = workbookWithHelper();
     const [data] = workbook.sheets;

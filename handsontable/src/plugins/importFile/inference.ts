@@ -3,6 +3,7 @@ import { PIXELS_PER_EXCEL_COLUMN_WIDTH_UNIT, POINTS_PER_PIXEL } from '../../util
 import type {
   CellSnapshot,
   CellValidationSnapshot,
+  CellValue,
   SheetSnapshot,
   WorkbookSnapshot,
 } from '../../utils/xlsxEngine/model';
@@ -352,7 +353,7 @@ function toNumericType(numFmt: string): InferredType {
  */
 export function inferCellType(cell: CellSnapshot): InferredType | null {
   const { numFmt } = cell;
-  const value = cell.formula ? cell.formula.result ?? null : cell.value;
+  const value = cellDisplayValue(cell);
 
   if (numFmt === '@') {
     return { type: 'text' };
@@ -451,6 +452,48 @@ function findSheet(workbook: WorkbookSnapshot, quotedName: string): SheetSnapsho
 }
 
 /**
+ * The value a cell shows: a formula cell keeps its display text in `formula.result` with `value`
+ * left `null`, every other cell in `value`.
+ */
+export function cellDisplayValue(cell: CellSnapshot): CellValue {
+  return cell.formula ? cell.formula.result ?? null : cell.value;
+}
+
+/**
+ * Converts one cell to the grid value, using the inferred type to turn serials into strings.
+ */
+export function toGridValue(cell: CellSnapshot, inferred: InferredType | null): unknown {
+  const value = cellDisplayValue(cell);
+
+  if (typeof value !== 'number' || !inferred) {
+    return value;
+  }
+
+  // The presence of an hour in the derived options is what separates a date-time format from a
+  // date-only one; the value the grid stores stays the ISO string either way.
+  if (inferred.type === 'date') {
+    return inferred.dateFormat.hour === undefined ? serialToIsoDate(value) : serialToIsoDateTime(value);
+  }
+
+  if (inferred.type === 'time') {
+    return serialToTimeString(value);
+  }
+
+  return value;
+}
+
+/**
+ * Reads a cell as the text a header label or a dropdown option carries: `null` for an empty cell,
+ * otherwise the grid value as a string. Reading `cell.value` directly is wrong for exactly the
+ * cells `toGridValue` exists for - a formula cell's `value` is `null` and a date cell's is a serial.
+ */
+export function toDisplayText(cell: CellSnapshot): string | null {
+  const value = toGridValue(cell, inferCellType(cell));
+
+  return value === null || value === undefined ? null : String(value);
+}
+
+/**
  * Reads a resolved range from a sheet, column-first, skipping empty cells.
  */
 function readRangeValues(sheet: SheetSnapshot, range: RangeRef): string[] {
@@ -459,9 +502,10 @@ function readRangeValues(sheet: SheetSnapshot, range: RangeRef): string[] {
   for (let col = range.startCol; col <= range.endCol; col++) {
     for (let row = range.startRow; row <= range.endRow; row++) {
       const cell = sheet.rows[row - 1]?.[col - 1];
+      const text = cell ? toDisplayText(cell) : null;
 
-      if (cell && cell.value !== null) {
-        source.push(String(cell.value));
+      if (text !== null) {
+        source.push(text);
       }
     }
   }

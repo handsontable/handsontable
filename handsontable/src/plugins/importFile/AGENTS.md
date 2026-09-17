@@ -64,6 +64,17 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   `resolveListSource` therefore takes the current `SheetSnapshot` as its third argument.
 - **Only strings are promoted to headers; the row-header column is discarded.** Handsontable generates
   row headers, so the values in the dropped column are not data anyone can get back.
+- **Never read `cell.value` for anything a user sees — go through `toDisplayText` / `toGridValue` in
+  `inference.ts`.** A formula cell keeps its display text in `formula.result` with `value` left `null`,
+  and a date cell's `value` is an Excel serial under a date format. The data path always knew this
+  (`toGridValue`), but header promotion, nested-header labels and list-validation ranges read
+  `cell.value` directly, so a `colHeaders: 'firstRow'` import turned a formula header into `''` and a
+  date header into `44927`, and a dropdown pointing at formula cells lost those options (Bugbot round
+  3 on #13551). `cellDisplayValue` is the one place the formula/value choice is made.
+- **`applyImportResult` relies on `hot.batch` resuming in `finally`.** The callback runs host hooks
+  (`beforeLoadData`, `afterUpdateSettings`) that can throw, and before #13551 the core helpers
+  resumed only on the happy path, leaving the grid render-suspended for good. The fix lives in
+  `core.ts` (`batch`, `batchRender`, `batchExecution`), pinned by `src/__tests__/core/core.unit.js`.
 - **`locked` becomes `readOnly` only under sheet protection, and only unless the cell was explicitly
   unlocked.** `mapper.ts` marks a cell read-only when `sheet.protection?.enabled && cell.locked !== false`.
   Without `<sheetProtection>` Excel ignores per-cell lock flags, and every cell in a fresh workbook is

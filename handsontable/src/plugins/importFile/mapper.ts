@@ -9,9 +9,8 @@ import {
   inferCellType,
   pointsToPx,
   resolveListSource,
-  serialToIsoDate,
-  serialToIsoDateTime,
-  serialToTimeString,
+  toDisplayText,
+  toGridValue,
   type InferredType,
 } from './inference';
 import { alignmentClassNames, borderEntry, fontFillRule, type ImportedBorder, type StyleRule } from './styles';
@@ -174,29 +173,6 @@ function computeWindow(sheet: SheetSnapshot, options: ResolvedImportOptions): Sh
     lastRow: rangeEndRow,
     lastCol: rangeEndCol,
   };
-}
-
-/**
- * Converts one cell to the grid value, using the inferred type to turn serials into strings.
- */
-function toGridValue(cell: CellSnapshot, inferred: InferredType | null): unknown {
-  const value = cell.formula ? cell.formula.result ?? null : cell.value;
-
-  if (typeof value !== 'number' || !inferred) {
-    return value;
-  }
-
-  // The presence of an hour in the derived options is what separates a date-time format from a
-  // date-only one; the value the grid stores stays the ISO string either way.
-  if (inferred.type === 'date') {
-    return inferred.dateFormat.hour === undefined ? serialToIsoDate(value) : serialToIsoDateTime(value);
-  }
-
-  if (inferred.type === 'time') {
-    return serialToTimeString(value);
-  }
-
-  return value;
 }
 
 /**
@@ -764,9 +740,10 @@ function mapHeaders(sheet: SheetSnapshot, window: SheetWindow, options: Resolved
   const headers: string[] = [];
 
   for (let col = window.firstCol; col <= window.lastCol; col++) {
-    const value = headerRow[col]?.value;
+    const cell = headerRow[col];
+    const text = cell ? toDisplayText(cell) : null;
 
-    headers.push(value === null || value === undefined ? '' : escapeHtml(String(value)));
+    headers.push(text === null ? '' : escapeHtml(text));
   }
 
   return headers;
@@ -811,9 +788,10 @@ function buildHeaderCoverage(
  * escaping keeps `5 < 10` whole, which stripping does not.
  */
 function headerLabelAt(sheet: SheetSnapshot, row: number, col: number): string {
-  const value = sheet.rows[row]?.[col]?.value;
+  const cell = sheet.rows[row]?.[col];
+  const text = cell ? toDisplayText(cell) : null;
 
-  return value === null || value === undefined ? '' : escapeHtml(String(value));
+  return text === null ? '' : escapeHtml(text);
 }
 
 /**
