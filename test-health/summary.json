@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-17T11:36:32.458Z",
+  "generatedAt": "2026-09-17T12:08:43.023Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 26,
+    "tests": 27,
     "needsTicket": 5,
     "quarantined": 0,
-    "entries": 101
+    "entries": 105
   },
   "rows": [
     {
@@ -397,6 +397,40 @@
         "leg": "UMD (theme: classic)",
         "status": "failed",
         "error": "Expected 0 to be greater than 0.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/nested-rows-runtime-enable.spec.ts|NestedRows enabled at runtime › a plugin enabled at runtime collapses and expands like any other",
+      "tier": "playwright",
+      "file": "e2e/nested-rows-runtime-enable.spec.ts",
+      "line": 35,
+      "title": "NestedRows enabled at runtime › a plugin enabled at runtime collapses and expands like any other",
+      "count7": 4,
+      "count30": 4,
+      "countAll": 4,
+      "runs30": 1,
+      "flakyRuns30": 1,
+      "branches30": 1,
+      "legs": [
+        "e2e-classic-min",
+        "e2e-horizon",
+        "e2e-main",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-17T12:07:51Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35217555397",
+        "branch": "feature/DEV-2938_NestedRows-runtime-enable",
+        "leg": "e2e-classic-min",
+        "status": "flaky",
+        "error": "Error: expect(locator).toHaveText(expected) failed",
         "source": "ci"
       },
       "needsTicket": false
