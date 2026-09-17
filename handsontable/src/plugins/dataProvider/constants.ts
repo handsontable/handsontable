@@ -28,6 +28,21 @@ export const SETTINGS_VALIDATORS: Record<string, (value: unknown) => boolean> = 
 };
 
 /**
+ * Keys that must be present and valid for a `dataProvider` object to count as a complete server-backed
+ * configuration (`hasExternalDataSource` returns `true`). Optional keys such as `refetchAfterCreate` have
+ * validators too, but they are not required for completeness.
+ *
+ * @package
+ */
+export const REQUIRED_CONFIG_KEYS: readonly (keyof typeof SETTINGS_VALIDATORS)[] = Object.freeze([
+  'rowId',
+  'fetchRows',
+  'onRowsCreate',
+  'onRowsUpdate',
+  'onRowsRemove',
+]);
+
+/**
  * Message used when an in-flight `fetchRows` is aborted because a newer request started.
  *
  * @package
