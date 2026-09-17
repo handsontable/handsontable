@@ -42,7 +42,8 @@ export interface MappedReference {
  *
  * The leading alternative captures the untouched tokens: a double-quoted Excel string (`""`
  * escapes a quote inside one) and a **qualified** reference - a sheet name, single-quoted
- * (`'Sheet 1'!B2`) or bare (`Data!A2`), followed by `!` and a cell or a range. A qualified
+ * (`'Sheet 1'!B2`, with `''` escaping an apostrophe inside) or bare (`Data!A2`, letters and digits
+ * of any script, `_` and `.`), followed by `!` and a cell or a range. A qualified
  * reference points at another sheet, and a header band added to or removed from THIS sheet moves
  * nothing there, so its cell part is left alone along with the name. The range form is captured
  * whole because the reference after the `:` inherits the qualifier.
@@ -56,9 +57,9 @@ export interface MappedReference {
  */
 const CELL_PATTERN = String.raw`\$?[A-Z]{1,3}\$?\d{1,7}(?![\d(])`;
 const REFERENCE_REGEX = new RegExp(
-  String.raw`("(?:[^"]|"")*"|(?:'[^']*'|[A-Za-z0-9_.]+)!${CELL_PATTERN}(?::${CELL_PATTERN})?)` +
+  String.raw`("(?:[^"]|"")*"|(?:'(?:[^']|'')*'|[\p{L}\p{N}_.]+)!${CELL_PATTERN}(?::${CELL_PATTERN})?)` +
   String.raw`|(?<!\d)(\$?)([A-Z]{1,3})(\$?)(\d{1,7})(?![\d(])`,
-  'g'
+  'gu'
 );
 
 /**

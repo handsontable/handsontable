@@ -145,7 +145,10 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   **A qualified reference (`Rates!A1`, `'My Rates'!$A$1:$B$2`) is never shifted, in either direction**: the
   band exists on this sheet only, so the regex captures the whole `Sheet!ref[:ref]` as an untouched token
   and the mapper never sees it. Shifting it used to turn `=Data!A2` into `=Data!A1` under a `firstRow`
-  header and drop `=Data!A1` outright (Bugbot on #13551).
+  header and drop `=Data!A1` outright (Bugbot on #13551). The sheet-name alternatives are deliberately
+  wide: `''` escapes an apostrophe inside a quoted name (`'O''Brien'!A1`) and a bare name is
+  `[\p{L}\p{N}_.]+` under the `u` flag, because Excel leaves `Лист1` unquoted — an ASCII-only class
+  shifted both (Bugbot round 2).
   **Absolute components shift like relative ones**, in both directions: a header band is a translation of the
   whole coordinate space, and `$` pins a reference against copy and fill, not against the sheet moving — so
   `$A$1` goes out as `$B$2` and comes back as `$A$1`, `$` markers preserved. The **function-argument

@@ -31,6 +31,15 @@ describe('shiftFormulaReferences', () => {
     expect(shiftFormulaReferences('\'My Rates\'!$A$1:$B$2*C2', -1, -1)).toBe('\'My Rates\'!$A$1:$B$2*B1');
   });
 
+  it('should recognize a quoted sheet name with an escaped apostrophe and a bare non-ASCII one', () => {
+    // Excel doubles an apostrophe inside a quoted name and leaves a name made of letters from any
+    // script unquoted, so `O'Brien` and `Лист1` are both real shapes a workbook stores.
+    expect(shiftFormulaReferences('\'O\'\'Brien\'!A1+A2', -1, 0)).toBe('\'O\'\'Brien\'!A1+A1');
+    expect(shiftFormulaReferences('Лист1!A1+A2', -1, 0)).toBe('Лист1!A1+A1');
+    expect(shiftFormulaReferences('SUM(\'Лист 1\'!$A$1:B2)', -1, -1)).toBe('SUM(\'Лист 1\'!$A$1:B2)');
+    expect(shiftFormulaReferences('Arkusz_1.a!A1', -1, 0)).toBe('Arkusz_1.a!A1');
+  });
+
   it('should not reject a qualified reference that would leave the sheet if it were shifted', () => {
     // `Data!A1` under a `firstRow` header window used to shift to row 0 and drop the whole formula.
     expect(shiftFormulaReferences('Data!A1', -1, -1)).toBe('Data!A1');
