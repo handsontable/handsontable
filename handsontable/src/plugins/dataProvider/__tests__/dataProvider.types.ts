@@ -32,7 +32,15 @@ const minimalConfig: DataProviderConfig = {
   },
   onRowsUpdate: async() => {},
   onRowsRemove: async() => {},
+  refetchAfterCreate: false,
 };
+
+const configWithDefaultRefetch: DataProviderConfig = {
+  rowId: 'id',
+  fetchRows: minimalConfig.fetchRows,
+};
+
+void configWithDefaultRefetch.refetchAfterCreate;
 
 const hot = new Handsontable(document.createElement('div'), {
   dataProvider: minimalConfig,

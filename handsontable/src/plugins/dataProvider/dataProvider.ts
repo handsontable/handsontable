@@ -179,6 +179,12 @@ export interface DataProviderConfig {
   onRowsCreate?: (payload: RowsCreatePayload) => Promise<unknown[]>;
   onRowsUpdate?: (payload: RowUpdatePayload[]) => Promise<void>;
   onRowsRemove?: (payload: unknown[]) => Promise<void>;
+  /**
+   * Whether a successful `onRowsCreate` is followed by an automatic `fetchRows` refetch of the current query.
+   * Set to `false` to apply the server response yourself (for example inside `onRowsCreate`), which keeps a new
+   * row visible on the current page when the grid is sorted. Defaults to `true`.
+   */
+  refetchAfterCreate?: boolean;
 }
 
 export {
@@ -191,10 +197,11 @@ export {
  * @class DataProvider
  *
  * @description
- * A truthy {@link Options#dataProvider} value enables this plugin. Each key (`rowId`, `fetchRows`, `onRowsCreate`, `onRowsUpdate`, `onRowsRemove`) is validated like other plugin options.
+ * A truthy {@link Options#dataProvider} value enables this plugin. Each key (`rowId`, `fetchRows`, `onRowsCreate`, `onRowsUpdate`, `onRowsRemove`, and the optional `refetchAfterCreate`) is validated like other plugin options.
  * When the object is a **complete** server-backed configuration (all of those keys present and valid), Handsontable loads rows via `fetchRows`, runs mutations through the callbacks, and the {@link Hooks#hasExternalDataSource} hook returns `true` so plugins such as Filters and Pagination can treat the grid as server-driven.
  * If required callbacks are missing or invalid, `fetchRows` and the affected mutation paths no-op until the configuration is valid.
  * Valid edits apply to the grid immediately; if `onRowsUpdate` fails, if validation fails later, or if `beforeRowsMutation` cancels, those cells revert to their previous values.
+ * After a successful `onRowsCreate`, the plugin refetches the current query; set `refetchAfterCreate: false` to skip that refetch and apply the server response yourself.
  * When the {@link Options#notification} plugin is enabled, failed `fetchRows`, `onRowsCreate`, `onRowsUpdate`, or `onRowsRemove` requests (including a refetch after a successful mutation) show an error notification toast with the same translated titles and description text as before.
  *
  * If `trimRows`, `manualRowMove`, `manualColumnMove`, or `multiColumnSorting` is enabled, the DataProvider plugin does not enable. Handsontable logs a console warning when you still set a complete `dataProvider` configuration.
@@ -450,6 +457,8 @@ export class DataProvider extends BasePlugin {
 
   /**
    * Server create via `onRowsCreate`. Use `rowsAmount` to insert more than one row in one call.
+   * After a successful `onRowsCreate`, refetches the current query unless `refetchAfterCreate` is `false`;
+   * {@link Hooks#afterRowsMutation} fires in both cases.
    *
    * @param {object} [options] `position`, `referenceRowId`, `rowsAmount`.
    * @returns {Promise<void>}
@@ -473,6 +482,10 @@ export class DataProvider extends BasePlugin {
       payload,
       () => Promise.resolve(onRowsCreate(rowsCreatePayload)),
       async() => {
+        if (!this.#shouldRefetchAfterCreate()) {
+          return;
+        }
+
         await this.fetchData({ skipLoading: true });
       }
     );
@@ -591,6 +604,17 @@ export class DataProvider extends BasePlugin {
     const c = this.#getConfig();
 
     return c && isFunction(c.onRowsCreate) ? c.onRowsCreate as DataProviderConfig['onRowsCreate'] : undefined;
+  }
+
+  /**
+   * Whether `createRows()` refetches after a successful `onRowsCreate`. Reads the raw config so it follows the
+   * current `dataProvider` object after `updateSettings()` (a key omitted later means "default" again). Any value
+   * other than `false` means refetch; a non-boolean value is warned about by `BasePlugin#updatePluginSettings`.
+   *
+   * @returns {boolean}
+   */
+  #shouldRefetchAfterCreate(): boolean {
+    return this.#getConfig()?.refetchAfterCreate !== false;
   }
 
   /**

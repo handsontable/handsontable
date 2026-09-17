@@ -11,12 +11,14 @@ export const DEFAULT_SETTINGS: {
   onRowsCreate: DataProviderConfig['onRowsCreate'] | undefined;
   onRowsUpdate: DataProviderConfig['onRowsUpdate'] | undefined;
   onRowsRemove: DataProviderConfig['onRowsRemove'] | undefined;
+  refetchAfterCreate: boolean;
 } = {
   rowId: undefined,
   fetchRows: undefined,
   onRowsCreate: undefined,
   onRowsUpdate: undefined,
   onRowsRemove: undefined,
+  refetchAfterCreate: true,
 };
 
 export const SETTINGS_VALIDATORS: Record<string, (value: unknown) => boolean> = {
@@ -25,6 +27,7 @@ export const SETTINGS_VALIDATORS: Record<string, (value: unknown) => boolean> = 
   onRowsCreate: (value: unknown) => isFunction(value),
   onRowsUpdate: (value: unknown) => isFunction(value),
   onRowsRemove: (value: unknown) => isFunction(value),
+  refetchAfterCreate: (value: unknown) => typeof value === 'boolean',
 };
 
 /**

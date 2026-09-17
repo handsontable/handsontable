@@ -96,4 +96,155 @@ describe('DataProvider `createRows` method', () => {
     expect(out).toBeUndefined();
     expect(countRows()).toBe(1);
   });
+
+  it('should not refetch after successful create when `refetchAfterCreate` is false', async() => {
+    const fetchRows = jasmine.createSpy('fetchRows').and.returnValue(Promise.resolve({
+      rows: [{ id: 1, name: 'A' }],
+      totalRows: 1,
+    }));
+    const afterMutation = jasmine.createSpy('afterRowsMutation');
+    const afterMutationError = jasmine.createSpy('afterRowsMutationError');
+
+    handsontable({
+      data: [],
+      columns: [{ data: 'id' }, { data: 'name' }],
+      dataProvider: createDataProviderConfig({
+        fetchRows,
+        onRowsCreate: () => Promise.resolve([{ id: 2, name: 'B' }]),
+        refetchAfterCreate: false,
+      }),
+      afterRowsMutation: afterMutation,
+      afterRowsMutationError: afterMutationError,
+    });
+
+    await waitUntil(() => fetchRows.calls.count() === 1);
+
+    const plugin = getPlugin('dataProvider');
+
+    await plugin.createRows({ rowsAmount: 1 });
+
+    expect(fetchRows).toHaveBeenCalledTimes(1);
+    expect(countRows()).toBe(1);
+    expect(afterMutation).toHaveBeenCalledWith('create', jasmine.objectContaining({
+      rowsCreate: jasmine.objectContaining({ rowsAmount: 1 }),
+    }));
+    expect(afterMutationError).not.toHaveBeenCalled();
+  });
+
+  it('should let `onRowsCreate` apply the server response itself when `refetchAfterCreate` is false', async() => {
+    const fetchRows = jasmine.createSpy('fetchRows').and.returnValue(Promise.resolve({
+      rows: [{ id: 1, name: 'A' }],
+      totalRows: 1,
+    }));
+
+    handsontable({
+      data: [],
+      columns: [{ data: 'id' }, { data: 'name' }],
+      dataProvider: createDataProviderConfig({
+        fetchRows,
+        onRowsCreate: async() => {
+          const created = { id: 2, name: 'B' };
+          const rows = getSourceData();
+
+          rows.push(created);
+          await loadData(rows);
+
+          return [created];
+        },
+        refetchAfterCreate: false,
+      }),
+    });
+
+    await waitUntil(() => fetchRows.calls.count() === 1);
+
+    await getPlugin('dataProvider').createRows({ rowsAmount: 1 });
+
+    expect(fetchRows).toHaveBeenCalledTimes(1);
+    expect(countRows()).toBe(2);
+    expect(getDataAtRowProp(1, 'name')).toBe('B');
+  });
+
+  it('should keep refetching after create when `refetchAfterCreate` is true', async() => {
+    const fetchRows = jasmine.createSpy('fetchRows').and.returnValue(Promise.resolve({
+      rows: [{ id: 1, name: 'A' }],
+      totalRows: 1,
+    }));
+
+    handsontable({
+      data: [],
+      columns: [{ data: 'id' }, { data: 'name' }],
+      dataProvider: createDataProviderConfig({
+        fetchRows,
+        onRowsCreate: () => Promise.resolve(),
+        refetchAfterCreate: true,
+      }),
+    });
+
+    await waitUntil(() => fetchRows.calls.count() === 1);
+
+    await getPlugin('dataProvider').createRows({ rowsAmount: 1 });
+
+    expect(fetchRows).toHaveBeenCalledTimes(2);
+  });
+
+  it('should follow the current config after `updateSettings` toggles `refetchAfterCreate`', async() => {
+    const fetchRows = jasmine.createSpy('fetchRows').and.returnValue(Promise.resolve({
+      rows: [{ id: 1, name: 'A' }],
+      totalRows: 1,
+    }));
+    const config = createDataProviderConfig({
+      fetchRows,
+      onRowsCreate: () => Promise.resolve(),
+      refetchAfterCreate: false,
+    });
+
+    handsontable({
+      data: [],
+      columns: [{ data: 'id' }, { data: 'name' }],
+      dataProvider: config,
+    });
+
+    await waitUntil(() => fetchRows.calls.count() === 1);
+
+    await getPlugin('dataProvider').createRows({ rowsAmount: 1 });
+
+    expect(fetchRows).toHaveBeenCalledTimes(1);
+
+    // Omitting the key again must restore the default (refetch), not keep the previous `false`.
+    const { refetchAfterCreate, ...configWithoutFlag } = config;
+
+    void refetchAfterCreate;
+    await updateSettings({ dataProvider: configWithoutFlag });
+    // `updatePlugin()` refetches once on its own.
+    await waitUntil(() => fetchRows.calls.count() === 2);
+
+    await getPlugin('dataProvider').createRows({ rowsAmount: 1 });
+
+    expect(fetchRows).toHaveBeenCalledTimes(3);
+  });
+
+  it('should warn and keep the default when `refetchAfterCreate` is not a boolean', async() => {
+    const warnSpy = spyOn(console, 'warn');
+    const fetchRows = jasmine.createSpy('fetchRows').and.returnValue(Promise.resolve({
+      rows: [{ id: 1, name: 'A' }],
+      totalRows: 1,
+    }));
+
+    handsontable({
+      data: [],
+      columns: [{ data: 'id' }, { data: 'name' }],
+      dataProvider: createDataProviderConfig({
+        fetchRows,
+        onRowsCreate: () => Promise.resolve(),
+        refetchAfterCreate: 'no',
+      }),
+    });
+
+    await waitUntil(() => fetchRows.calls.count() === 1);
+
+    await getPlugin('dataProvider').createRows({ rowsAmount: 1 });
+
+    expect(warnSpy).toHaveBeenCalledWith(jasmine.stringMatching(/"refetchAfterCreate" option is not valid/));
+    expect(fetchRows).toHaveBeenCalledTimes(2);
+  });
 });
