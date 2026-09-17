@@ -296,6 +296,53 @@ describe('Core.alter', () => {
       expect(countRows()).toBe(countedRows);
     });
 
+    describe('when the passed index does not exist', () => {
+      it('should not remove any row when the index is negative', async() => {
+        handsontable({
+          data: createSpreadsheetData(10, 5),
+        });
+
+        await alter('remove_row', -2, 1);
+
+        expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+        expect(countRows()).toBe(10);
+      });
+
+      it('should not remove any row when the index equals the number of rows', async() => {
+        handsontable({
+          data: createSpreadsheetData(10, 5),
+        });
+
+        await alter('remove_row', 10, 1);
+
+        expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+        expect(countRows()).toBe(10);
+      });
+
+      it('should not remove any row when the index is past the last row', async() => {
+        handsontable({
+          data: createSpreadsheetData(10, 5),
+        });
+
+        await alter('remove_row', 12, 10);
+
+        expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+        expect(countRows()).toBe(10);
+      });
+
+      it('should remove only the groups that exist when index groups are passed', async() => {
+        handsontable({
+          data: createSpreadsheetData(10, 5),
+        });
+
+        await alter('remove_row', [[1, 1], [20, 1]]);
+
+        // Only the first group points at an existing row, so only `A2` is removed.
+        expect(getDataAtCol(0)).toEqual(['A1', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+        expect(countRows()).toBe(9);
+      });
+    });
+
     it('should fire beforeRemoveRow event before removing row', async() => {
       const onBeforeRemoveRow = jasmine.createSpy('onBeforeRemoveRow');
 
@@ -482,7 +529,8 @@ describe('Core.alter', () => {
       });
 
       await alter('remove_row', 1);
-      await alter('remove_row', 1);
+      // The second row is gone, so the last one left is at index 0.
+      await alter('remove_row', 0);
 
       expect(countRows()).toEqual(0);
 

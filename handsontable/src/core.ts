@@ -1373,6 +1373,16 @@ export default function Core(
 
               // Normalize the {index, amount} groups into bigger groups.
               arrayEach(indexes, ([groupIndex, groupAmount]) => {
+                // An explicit index that points outside the table names no row, so the group is skipped.
+                // Without this the index was translated into an existing one and rows the caller never
+                // named were removed: a negative index was clamped to the first row, and an index at or
+                // past the last row wrapped around to the start (DEV-117). An empty index keeps its own
+                // meaning - "take the rows from the end" - so it is left to `datamap.removeRow`.
+                if (Number.isInteger(groupIndex) &&
+                    (groupIndex - offset < 0 || groupIndex - offset >= instance.countRows())) {
+                  return;
+                }
+
                 const calcIndex = isEmpty(groupIndex) ? instance.countRows() - 1 : Math.max(groupIndex - offset, 0);
 
                 // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
@@ -1468,6 +1478,16 @@ export default function Core(
 
               // Normalize the {index, amount} groups into bigger groups.
               arrayEach(indexes, ([groupIndex, groupAmount]) => {
+                // An explicit index that points outside the table names no column, so the group is
+                // skipped. Without this the index was translated into an existing one and columns the
+                // caller never named were removed: a negative index was clamped to the first column, and
+                // an index at or past the last column wrapped around to the start (DEV-117). An empty
+                // index keeps its own meaning - "take the columns from the end".
+                if (Number.isInteger(groupIndex) &&
+                    (groupIndex - offset < 0 || groupIndex - offset >= instance.countCols())) {
+                  return;
+                }
+
                 const calcIndex = isEmpty(groupIndex) ? instance.countCols() - 1 : Math.max(groupIndex - offset, 0);
 
                 let physicalColumnIndex = instance.toPhysicalColumn(calcIndex);
@@ -4647,6 +4667,9 @@ export default function Core(
    * </ul>
    * @param {number|number[]} [index] A visual index of the row/column before or after which the new row/column will be
    *                                inserted or removed. Can also be an array of arrays, in format `[[index, amount],...]`.
+   *                                For `'remove_row'` and `'remove_col'`, an index that points outside the table
+   *                                (a negative one, or one at or past the last row/column) removes nothing. In the
+   *                                array format, only the groups that point at existing rows/columns are removed.
    * @param {number} [amount] The amount of rows or columns to be inserted or removed (default: `1`).
    * @param {string} [source] Source indicator passed to related hooks.
    * @param {boolean} [keepEmptyRows] If set to `true`, skips the automatic adjustment that normally adds empty rows
