@@ -2,14 +2,6 @@ import { warn } from '../../helpers/console';
 import type { HotInstance } from '../../core/types';
 import type { ImportResult } from './importFile';
 
-/**
- * A plugin the applier may hand data to.
- */
-interface CommentsLike {
-  isEnabled(): boolean;
-  setCommentAtCell(row: number, column: number, value: string): void;
-}
-
 const STYLE_ATTRIBUTE = 'data-hot-imported-styles';
 
 /**
@@ -171,7 +163,7 @@ export function applyImportResult(hot: HotInstance, result: ImportResult): void 
 
     result.cellsMeta?.forEach(({ row, col, meta }) => hot.setCellMetaObject(row, col, meta));
 
-    const comments = hot.getPlugin('comments') as unknown as CommentsLike | undefined;
+    const comments = hot.getPlugin('comments');
 
     if (result.comments && comments?.isEnabled()) {
       result.comments.forEach(({ row, col, value }) => comments.setCommentAtCell(row, col, value));
