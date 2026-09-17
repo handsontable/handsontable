@@ -151,6 +151,8 @@ export function buildLlmsIndex(pageMeta, sections) {
     `- [Full guides corpus (Markdown)](${SITE_URL}/docs/llms-full.txt): Every guide page concatenated into one plain-text file`,
     `- [Docs pages as Markdown](${SITE_URL}/docs/_md/${CANONICAL_PREFIX}/installation.md): Every docs page, guides and API alike, has a Markdown twin at /docs/_md/{framework}/{slug}.md`,
     `- [Skills for Claude Code](${SITE_URL}/docs/${CANONICAL_PREFIX}/skills-for-claude-code/): Versioned skills for Handsontable and HyperFormula (repo: https://github.com/handsontable/handsontable-skills)`,
+    '- [Docs MCP server](https://docs-assistant.handsontable.com/mcp): First-party MCP server (streamable HTTP) with semantic search over Handsontable and HyperFormula docs guides, API reference, code recipes, release notes, blog posts, and GitHub issues, always current with the latest release',
+    '- [Context7](https://context7.com/handsontable/handsontable): Third-party MCP route serving these docs to any agent',
     '',
     '## API reference',
     '',
