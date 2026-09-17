@@ -288,6 +288,41 @@ does. `getStyleForTD` is therefore declared optional on the `StylesHandler` inte
 and calling it unguarded threw inside the draw and took out 695 of 816 specs. Guard every method you
 add a dependency on, and teach the harness stub the same method.
 
+## `getDimensionsFromHeader` header levels (DEV-1176)
+
+`Border#getDimensionsFromHeader` looks up a header `th` so a full-row or full-column selection can
+measure from the header instead of the first data cell. Custom header padding lives on that `th`
+(or its inner `.relative`); `offset` / `outerHeight` already include it, but only if the lookup
+succeeds.
+
+The header level is **not** `columnHeaders.length - headerIndex`:
+
+- Use the **axis** count: `getRowHeadersCount()` for `'rows'`, `getColumnHeadersCount()` for
+  `'columns'`.
+- Translate the coordinate with `resolveHeaderLevel` in `selection/border/utils.ts`. Header coords
+  are negative (`-1` = closest to the cells). Levels are the opposite (`0` = farthest).
+  `count - headerIndex` with `-1` is `count + 1` (out of range); with a clamped body `0` it is
+  `count` (also out of range). The method then returns `false` and the selection ignores the
+  header box.
+- Pass the **unclamped** corner (`originalFromRow` / `originalFromColumn`). After `appear` clamps
+  a `selectRows` range, `fromColumn` is `0` even though the selection started at `-1`.
+- A resolved level can still land on a nested-header **placeholder**. NestedHeaders stamps
+  `hiddenHeader` on colspan continuations and rowspan-covered cells, but Walkontable must not
+  key off that plugin class: `thead th.hiddenHeader:not(:first-of-type)` keeps the first-of-type
+  continuation as a real box, and only rowspan placeholders also set inline `display: none`.
+  `lookupSelectionHeader` takes the axis size function (`outerWidth` / `outerHeight`) and skips
+  a TH only when that size is `0`. A laid-out first-of-type `hiddenHeader` is measured. When the
+  selected level is collapsed, fall back to the closest header, which maps 1:1 onto the index.
+  Do not revert to `columnHeaders.length - headerIndex` to "fix" this; that formula is out of
+  range and drops the padding lookup.
+- Column measurements are **not** always `header.left - table.left`. `appear()` writes the inline
+  start to `style.right` in `rtlMode`. `measureHeaderSelectionBox` is the shared formula: LTR
+  columns stay left-edge math; RTL columns use
+  `table.left + table.width - (header.left + header.width) - 1` (the same identity as the
+  body-cell path, which is written in `innerWidth` / `gridRightPos` form). Feeding left-edge math
+  into `style.right` puts the full-column / select-all highlight on the wrong side of the cell.
+  Rows are top/height on both directions.
+
 ## Border ownership: the header owns its gridline, on both axes
 
 Both axes are settled, and they are now symmetric. On the column axis a row header `th` carries its
