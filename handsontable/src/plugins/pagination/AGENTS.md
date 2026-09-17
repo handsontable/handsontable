@@ -139,9 +139,11 @@ select is never rendered. That coupling is pinned by `__tests__/ui.unit.js` — 
 `font-size`, `line-height`, `font-weight`, and `letter-spacing` as `inherit` in `_pagination.scss`
 (DEV-75). Without a declaration of their own they only inherit from `.ht-pagination`, and a host
 page rule as plain as `span { font-size: 20px }` beats inheritance – the labels grew while the
-buttons and the select beside them kept the token. `inherit` rather than the token keeps a user's
-own `.ht-pagination` override working. Any new text-bearing span added to the bar needs the same
-four lines; `tests/e2e/host-span-styles.spec.ts` pins the existing ones.
+rest of the bar kept the theme token (the buttons and the select are not spans, and they declare
+`font-size: inherit` for a different reason: resetting native control fonts). `inherit` rather
+than the token keeps a user's own `.ht-pagination` override working. Any new text-bearing span
+added to the bar needs the same four lines; `tests/e2e/host-span-styles.spec.ts` pins the
+existing ones.
 
 ## Where to look next
 
