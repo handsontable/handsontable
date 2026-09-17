@@ -8,6 +8,7 @@ Self-contained rendering engine for viewport calculation, DOM rendering, scroll 
 - The bridge to core Handsontable is `src/tableView.ts` (TableView class)
 - Plugins must NEVER access Walkontable internals directly - always go through TableView
 - Do not import core Handsontable modules from Walkontable code
+- `Core#getRowHeight` is the provided height only (`rowHeights` / ManualRowResize / AutoRowSize). Walkontable layout uses `max(provided, wtViewport.oversizedRows[renderable])`. Handsontable code that must match that measurement goes through `getRenderedRowHeight` in `src/core/viewportScroll/scrollStrategies/singleScroll.ts` (visual → renderable → `wtTable.getRowHeight`) — never `hot.view._wt.wtViewport.oversizedRows` (Law of Demeter) and never `Core#getRowHeight` alone. Content-tall rows without those plugins keep `getRowHeight` at `undefined`. Forced mouse start-snap on an oversized axis bypasses Walkontable's auto-snap frozen-row/column guard, so frozen start columns and frozen top/bottom rows must not count as oversized.
 
 ## Dependency injection & DOM reads (mandatory)
 
