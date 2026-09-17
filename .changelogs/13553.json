@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the Show column menu item not restoring an initially hidden middle column from an adjacent header.",
+  "type": "fixed",
+  "issueOrPR": 13553,
+  "breaking": false,
+  "framework": "none"
+}
