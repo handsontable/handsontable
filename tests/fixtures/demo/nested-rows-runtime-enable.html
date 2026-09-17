@@ -100,6 +100,10 @@
         nestedRows: false,
         contextMenu: true,
         renderer: testIdRenderer,
+        // Deliberately `auto`: the row-count half of DEV-2938 only shows on a grid that sizes itself
+        // to its rows, and with a fixed height the off/on round trip paints all six rows even on the
+        // unfixed build. The cost is that the collapse/expand path - which this PR does not touch -
+        // re-measures through a ResizeObserver, so that one case is asserted on the model instead.
         height: 'auto',
         licenseKey: 'non-commercial-and-evaluation',
       });

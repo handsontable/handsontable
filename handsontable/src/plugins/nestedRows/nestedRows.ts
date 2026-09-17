@@ -256,8 +256,8 @@ export class NestedRows extends BasePlugin {
     this.hot.selection.refresh();
 
     // The grid needs two draw passes to settle on the new row count - the second one, the Core's own,
-    // runs right after this hook. With one pass an off/on round trip paints four of the six rows and
-    // stays there until something unrelated nudges it (measured on `e2e-main`, 24 polls over 10s).
+    // runs right after this hook. Measured without this line, on a `height: 'auto'` grid: an off/on
+    // round trip paints four of the six rows and stays there until something unrelated nudges it.
     this.hot.render();
   }
 
