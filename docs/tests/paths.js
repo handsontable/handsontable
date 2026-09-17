@@ -467,7 +467,7 @@ const vuePaths = [
   { path: 'guides/upgrade-and-migration/versioning-policy/versioning-policy' },
   { path: 'guides/upgrade-and-migration/deprecation-policy/deprecation-policy' },
   { path: 'guides/upgrade-and-migration/long-term-support/long-term-support' },
-  { path: 'guides/upgrade-and-migration/migrating-from-18.1-to-18.2/migration-from-18.1-to-18.2' },
+  { path: 'guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migration-from-18.1-to-19.0' },
   { path: 'guides/upgrade-and-migration/migrating-from-18.0-to-18.1/migration-from-18.0-to-18.1' },
   { path: 'guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migration-from-17.1-to-18.0' },
   { path: 'guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migration-from-16.2-to-17.0' },

@@ -31,7 +31,7 @@ option is passed.
 
 Both manual resize plugins list their size option beside their own key, so `updateSettings({ rowHeights })`
 reaches them at all. That changes what `updatePlugin()` must assume, in three ways that have all shipped as
-bugs — the full rules are in `../manualResize/AGENTS.md`. The one to remember here: `onUpdateSettings` calls
+bugs — the full rules are in `../../utils/manualResize/AGENTS.md`. The one to remember here: `onUpdateSettings` calls
 `updatePluginSettings(newSettings[PLUGIN_KEY])`, and a call that carries only a *foreign* key passes
 `undefined`, which **wipes the stored setting** for the rest of the session.
 

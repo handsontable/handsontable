@@ -13,7 +13,7 @@ describe('MergeCells keyboard shortcut', () => {
   });
 
   describe('"ArrowRight"', () => {
-    it('should move the cell selection right keeping the internal current focus position', async() => {
+    it('should move the cell selection right onto the merge\'s top row when leaving it, whatever row it was entered on (DEV-102)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -39,7 +39,8 @@ describe('MergeCells keyboard shortcut', () => {
 
       await keyDownUp('arrowright');
 
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,4 from: 2,4 to: 2,4']);
+      // entered on row 2, but a horizontal exit lands on the merge's top row
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,4 from: 1,4 to: 1,4']);
 
       await selectCell(3, 0);
       await keyDownUp('arrowright');
@@ -48,10 +49,11 @@ describe('MergeCells keyboard shortcut', () => {
 
       await keyDownUp('arrowright');
 
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 3,4 from: 3,4 to: 3,4']);
+      // entered on row 3, but a horizontal exit lands on the merge's top row
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,4 from: 1,4 to: 1,4']);
     });
 
-    it('should move the cell selection right keeping the internal current focus position when some columns are hidden', async() => {
+    it('should move the cell selection right onto the merge\'s top row when leaving it, with some columns hidden (DEV-102)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 6),
         rowHeaders: true,
@@ -74,7 +76,8 @@ describe('MergeCells keyboard shortcut', () => {
 
       await keyDownUp('arrowright');
 
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,5 from: 2,5 to: 2,5']);
+      // entered on row 2, but a horizontal exit lands on the merge's top row
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,5 from: 1,5 to: 1,5']);
     });
 
     it('should not move the cell selection when there is only one merged cell', async() => {
@@ -127,7 +130,8 @@ describe('MergeCells keyboard shortcut', () => {
 
       await keyDownUp('arrowright');
 
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,9 from: 2,9 to: 2,9']);
+      // a horizontal exit off the last merge lands on that merge's top row (DEV-102)
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,9 from: 0,9 to: 0,9']);
 
       await selectCell(1, 4);
       await keyDownUp('arrowright');
@@ -136,7 +140,8 @@ describe('MergeCells keyboard shortcut', () => {
 
       await keyDownUp('arrowright');
 
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,9 from: 1,9 to: 1,9']);
+      // a horizontal exit off the last merge lands on that merge's top row (DEV-102)
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,9 from: 0,9 to: 0,9']);
     });
 
     describe('with autoWrap disabled', () => {

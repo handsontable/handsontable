@@ -87,15 +87,121 @@ relationship, so an off-by-one here is a real bug, not a style choice.
 That puts it after the default listeners — including AutoColumnSize's, which is pinned to the front. A
 hidden column's width must be zeroed *after* anything that computes a width, or the computed value wins.
 
+## The indicator's BOX stops at the cell edge; its GLYPH does not move
+
+**The painted arrow is the contract.** It paints exactly where it has since the theming system landed
+(#11144), and moving it — even by 1px — is a visible change on every grid with indicators. That is a
+design decision, not a bug fix. A 1px move was tried for #13500 and rejected in review as a visual
+breaking change.
+
+The offsets in `../../styles/components/plugins/_hidden-columns.scss` are measured from the header's
+**padding** box, and the header carries a 1px border. Up to 18.1.0 the `before` arrow's 10px box sat at
+`right: -2px`, 1px **past** the cell. The glyph never reached that pixel, but the box did, and a box
+past the cell is scrollable content: on a table **flush with the scroll box** — exactly what `stretchH`
+produces — the browser reports `scrollWidth = clientWidth + 1`, paints a horizontal scrollbar with
+nothing to scroll, and that bar takes ~15px of height out of the master pane only. The frozen-column
+clone has no such bar, so it clamps to a `scrollTop` 15px smaller, and at the bottom of the grid every
+row across the frozen boundary sits a scrollbar apart. Turning `indicators` off "fixes" it, which is why
+this reads as a width-calculation bug and is not one: the stretch math is exact.
+
+The fix separates the layout box from the painted glyph. The `beforeHiddenColumn::after` box moves to
+`right: -1px`, so it ends exactly on the cell edge, and `mask-position: 1px 0` moves the icon back out
+by the same pixel (`mask-repeat: no-repeat` stops the shifted tile wrapping its last column into the
+box's first). What was tried, so nobody walks the loop again:
+
+| approach | painted arrow | scrollable overflow | verdict |
+|---|---|---|---|
+| box `-2px`, no mask shift (≤ 18.1.0) | the reference | +1px | **the bug** |
+| box `-1px`, no mask shift | 1px inward | none | visible change — rejected |
+| box `0` | 2px inward | none | visible change |
+| `overflow: clip` on the marked `th` | unchanged until selected | none | cuts a selected header (below) |
+| `overflow: clip` + `overflow-clip-margin: 1px` | unchanged | none | Safari has no `overflow-clip-margin` |
+| **box `-1px` + `mask-position: 1px 0`** | **unchanged** | **none** | **shipped** |
+
+The clip looks like the obvious fix and is the trap. The header highlight bar is a `.relative::after`
+inset by `-1px` on its sides so it meets the gridlines (`../../styles/base/_base.scss`, "header highlight
+line"), and a clip on the `th` cuts those ends off whenever a marked column or row is highlighted — the
+base stylesheet already warns about exactly this for exact-height rows. Measured: 3–4 pixels per
+selected header change, by up to 176/255, on horizon, the one theme whose bar is visible (1px; main and
+classic draw it 0px tall, so there the clip changes nothing). A pixel check of an unselected grid, or of
+main alone, does not see it. Nor do the other obvious tools help, measured on the same flush grid: a
+`transform` that moves the box back out keeps the 1px of overflow, and so does `clip-path`.
+
+Three things hold the shipped rules up:
+
+- **Only the end side needed changing.** The `afterHiddenColumn::before` box still hangs 2px past the
+  start of its cell, and that is fine: content before the scroll origin never scrolls. `before` is the
+  end side in both directions.
+- **RTL takes the LTR `mask-position` unchanged.** The mask is laid out in the box's own coordinates
+  before the `rotate(180deg)`, which mirrors the 1px shift outward, to the left. A compensation written
+  per direction would land 2px off.
+- **Every shipped glyph stops at least 2.8px short of its box's outer side** (measured on main, horizon
+  and classic), so the pixel the box now cuts off is transparent. A redesigned icon that paints into its
+  last column would lose that column — it used to land outside the cell anyway. An icon supplied as a
+  `background-image` or as text instead of a mask ignores `mask-position`, so it would move 1px inward.
+
+Measured against the 18.1.0 rules forced on the same page: 191 of 192 combinations byte-identical —
+main, horizon and classic; LTR and RTL; 100, 125, 150, 175, 200 and 300% zoom; plain, selected, crowded
+(sorting, dropdown menu, filters, long labels), nested-and-collapsible headers, and a header that is
+both `before` and `after`. The exception is 4 device pixels at 1/255 on one glyph edge at 150% zoom,
+where the box moves by 1.5 screen pixels — anti-aliasing, not a move. The third describe in
+`tests/e2e/hidden-indicator-overhang.spec.ts` compares every marked header and both header strips byte
+for byte against those rules, in LTR and RTL; it fails on the rejected `-1px` move and on a missing
+mask shift.
+
+**The design system disagrees by 1px, deliberately.** In Handsontable Design System → `header_cell`
+(120px wide), `icon_hidden_right` spans x 110–120 and `icon_hidden_left` spans −1 to 9 — each arrow's
+outer edge on the cell's own edge, 1px further in than the shipped glyph. Matching it would move every
+arrow for every user, so it needs a design ticket and a changelog line of its own, not a bug fix.
+
+The arrow is **10px**, and that is from the design system too: the sticker sheet's icons are 16×16
+except four at 10×10, which are exactly the four hidden indicators. The `10px !important` in the SCSS
+is therefore correct, even though it hardcodes what `--ht-icon-size` would otherwise give (16px on
+main/horizon, 12px on classic). Leave it alone unless design adds a `hidden-indicator-size` token —
+today the design system defines only `hidden-indicator-color`.
+
+`#onModifyColWidth` adds **15px** to a visible column next to a hidden one — but only when
+`indicators` is on, the width is already a number, and `hasColHeaders()` is true. Read the code for the
+guards; do not assume the 15px is always there. That reservation and the 10px arrow hold each other up:
+moving the arrow to `--ht-icon-size` (16px) would not fit in 15px.
+
+`stretchH` is only the easiest way to reach a flush table. Plain `colWidths` that happen to sum to the
+viewport do it too. And the RTL block mirrors the arrow to the other edge, which in RTL is the scrollable
+one — fix both blocks or RTL stays broken. Covered by
+`tests/e2e/hidden-indicator-overhang.spec.ts`.
+
+`../hiddenRows/` carried the mirrored rules — `beforeHiddenRow::after { bottom: -2px }` and
+`afterHiddenRow::before { top: -2px }` — and **the same defect, confirmed, not hypothetical**. Only the
+`bottom` one was ever live: block-start overflow is clipped rather than scrollable, so `top` never
+reached the scroll region. There is no vertical counterpart to `stretchH`, but `height: 'auto'` makes
+the box flush with its rows **by construction**, which is a stronger precondition than the column case
+needs. Measured on `develop`: `scrollHeight - clientHeight` = 1, a 15px vertical scrollbar on a grid
+that must never scroll itself, and a column-header clone 15px wider than the master's usable width.
+Both were fixed together in #13500, the same way: the row box at `bottom: -1px`, its mask at `0 1px`.
+
 ## `disablePlugin()` resets cell meta
 
 `resetCellsMeta()` runs after `super.disablePlugin()`, because the meta this plugin wrote (the paste marker
 and the indicator classes) must not survive the plugin.
 
+## Show column from a single adjacent header
+
+`contextMenuItem/showColumn.ts` `hidden()` collects the contiguous hidden stretch immediately before
+and/or after a selected visible header. A middle gap — column 2 hidden, header 1 or 3 selected —
+must produce a Show column item. Do not restore the old first-rendered / last-rendered-only check:
+that left initially hidden middle columns unrestorable until the user hid another column or
+multi-selected across the gap (DEV-1040). `../hiddenRows/` `showRow.ts` mirrors this.
+
+The walk lives in `../../../utils/hiddenIndexes.ts` (`collectAdjacentHiddenPhysicalIndexes`). Do not
+copy it back into this plugin or into HiddenRows — the plugins must not import each other, and a
+duplicate trips Sonar CPD on new code.
+
+Non-adjacent hidden columns stay out of the item (hidden `[1]`, select column 3: no Show column).
+
 ## Known concern
 
-`../../../.ai/CONCERNS.md` lists `showColumn.ts`'s `arr.push(...largeArray)` as a stack-overflow risk at
-large scale; use a loop.
+`../../../.ai/CONCERNS.md` used to list `showColumn.ts`'s `arr.push(...largeArray)` as a stack-overflow
+risk. The `hidden()` path now copies with loops (DEV-1040). Do not reintroduce `push(...array)` here.
 
 This plugin used to ask the view to resize the overlays after hiding or showing a column, with a
 `@TODO Should call once per render cycle` on it, as did `autoColumnSize` and `autoRowSize`. Walkontable

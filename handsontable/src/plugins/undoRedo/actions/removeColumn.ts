@@ -92,9 +92,23 @@ export class RemoveColumnAction extends BaseAction {
   static startRegisteringEvents(hot: HotInstance, undoRedoPlugin: unknown) {
     hot.addHook('beforeRemoveCol', (index: number, amount: number, logicColumns: unknown, source: string) => {
       const wrappedAction = () => {
+        // A removal that takes no columns (e.g. `remove_col` on a grid with no visible columns)
+        // changed nothing, so it must not stack an action - `UndoRedo.done()` drops a `null` result.
+        // `beforeRemoveCol` reports the removed physical columns here, not in `amount` (which stays
+        // the requested count), so the empty list is what marks the no-op.
+        if (!Array.isArray(logicColumns) || logicColumns.length < 1) {
+          return null;
+        }
+
+        // `beforeRemoveCol`'s `amount` stays the requested count, while `logicColumns` lists the
+        // columns actually removed. A partial removal (more columns requested than exist) must record
+        // the clamped count, or the recorded indexes/headers run out of range and `undo()` restores
+        // `undefined`. `removeRow` needs no equivalent - `dataMap.removeRow` passes the clamped
+        // `removedPhysicalIndexes.length` as `beforeRemoveRow`'s `amount`.
+        const removedAmount = logicColumns.length;
         const originalData = hot.getSourceDataArray();
         const columnIndex = (hot.countCols() + index) % hot.countCols();
-        const lastColumnIndex = columnIndex + amount - 1;
+        const lastColumnIndex = columnIndex + removedAmount - 1;
         const removedData: unknown[][] = [];
         const headers: unknown[] = [];
         const indexes: number[] = [];
@@ -113,14 +127,14 @@ export class RemoveColumnAction extends BaseAction {
           removedData.push(collectColumnData(originalData[i], columnIndex, lastColumnIndex));
         });
 
-        rangeEach(amount - 1, (i: number) => {
+        rangeEach(removedAmount - 1, (i: number) => {
           indexes.push(hot.toPhysicalColumn(columnIndex + i));
         });
 
         if (Array.isArray(hot.getSettings().colHeaders)) {
           const colHeadersArr = hot.getSettings().colHeaders as string[];
 
-          rangeEach(amount - 1, (i: number) => {
+          rangeEach(removedAmount - 1, (i: number) => {
             headers.push(colHeadersArr[hot.toPhysicalColumn(columnIndex + i)] || null);
           });
         }
@@ -129,17 +143,19 @@ export class RemoveColumnAction extends BaseAction {
           index: columnIndex,
           indexes,
           data: removedData,
-          amount,
+          amount: removedAmount,
           headers,
           columnPositions: hot.columnIndexMapper.getIndexesSequence(),
           rowPositions: hot.rowIndexMapper.getIndexesSequence(),
           fixedColumnsStart: hot.getSettings().fixedColumnsStart ?? 0,
           removedCellMetas: getCellMetas(hot, 0, hot.countRows(), columnIndex, lastColumnIndex),
-          removedMergedCells: collectAffectedMergedCells(hot, 'col', columnIndex, amount),
+          removedMergedCells: collectAffectedMergedCells(hot, 'col', columnIndex, removedAmount),
         });
       };
 
-      (undoRedoPlugin as { done: (action: Function, source: string) => void }).done(wrappedAction, source);
+      type UndoRedoPlugin = { done: (wrappedAction: () => RemoveColumnAction | null, source: string) => void };
+
+      (undoRedoPlugin as UndoRedoPlugin).done(wrappedAction, source);
     });
   }
 

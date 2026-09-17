@@ -137,6 +137,14 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   element's top border assuming the grid's edge sits flush above, which fails when the table
   overflows or ends in a scrollbar; `_sheets-bar.scss` reinstates it (same specificity, later
   in the sheet — keep that ordering).
+- **The bar does not size the grid; core does — in every layout.** No `beforeHeightChange` hook here.
+  With an explicit pixel `height` core subtracts the bar from the height it writes on the root
+  (`reserveEdgeSlotsHeight`), so `{ height: 400, sheetsBar }` is a 400px box, bar included, exactly
+  like pagination. Inside a scrollable ancestor the engine leaves the bar's height out of the table
+  (`layoutReservedHeight`); with window scroll or `height: 'auto'` the grid box follows its content
+  so the bar sits after the last row. A layout where the bar covers a row, is clipped, or overshoots
+  the declared height is a core/layout bug, not a plugin one (`tests/e2e/bottom-slot-sizing.spec.ts`,
+  DEV-2848).
 - **`render()` cancels an in-flight rename silently.** The cancel-hook handler repaints the
   strip, and dispatching it from inside `render()` re-enters the render pass — the outer pass
   then restores focus and scroll against tabs the inner pass replaced.

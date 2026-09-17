@@ -156,8 +156,19 @@ and the cell does not become a link. Two deliberate choices:
 - **The guard cannot be delegated to a sanitizer**, because default sanitization in this codebase is a
   pass-through (DOMPurify was removed in v18.0).
 
+## Sorting does not remap formula addresses (DEV-917)
+
+Do not implement spreadsheet-style formula address remapping after `ColumnSorting`.
+HyperFormula can yield `#REF!` on formula cells in the sortable body, and further
+sorts do not restore the original formulas. Product decision (2026-09-16): document
+this as a known limitation. The supported workaround is `fixedRowsBottom` so
+summary formulas stay out of the sort (#12627). User-facing copy:
+`docs/content/guides/formulas/formula-calculation/formula-calculation.md`.
+
 ## Where to look next
 
+- Sort-after-`#REF!` is a known limitation (DEV-917), not a remapping feature: `../columnSorting/AGENTS.md`.
+- User-facing copy: `docs/content/guides/formulas/formula-calculation/formula-calculation.md`.
 - Integration overview and the peer-dependency contract: `../../../.ai/INTEGRATIONS.md`.
 - Undo action shapes this plugin reasons about: `../undoRedo/AGENTS.md`.
 - Trimming plugins that make HF and visual indexes diverge: `../trimRows/AGENTS.md`,

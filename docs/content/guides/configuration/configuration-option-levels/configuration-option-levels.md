@@ -170,7 +170,7 @@ Search for an option by name, or filter the list down to a single level.
 | <span data-option="fillHandle" data-levels="grid"></span>[`fillHandle`](@/api/options.md#fillhandle) | Yes | No | No | No | Core |  |
 | <span data-option="filter" data-levels="grid columns cells cell"></span>[`filter`](@/api/options.md#filter) | Yes | Yes | Yes | Yes | Core |  |
 | <span data-option="filteringCaseSensitive" data-levels="grid columns cells cell"></span>[`filteringCaseSensitive`](@/api/options.md#filteringcasesensitive) | Yes | Yes | Yes | Yes | Core |  |
-| <span data-option="filters" data-levels="grid"></span>[`filters`](@/api/options.md#filters) | Yes | No | No | No | Filters |  |
+| <span data-option="filters" data-levels="grid columns"></span>[`filters`](@/api/options.md#filters) | Yes | Yes | No | No | Filters | Turn the plugin on at the grid level. Inside `columns`, only `false` has an effect: it hides the filter controls in that column's dropdown menu, and the API still filters the column. The sub-options `searchMode` and `filterFixedRows` are grid-level only. |
 | <span data-option="filterSelectedItems" data-levels="grid columns cells cell"></span>[`filterSelectedItems`](@/api/options.md#filterselecteditems) | Yes | Yes | Yes | Yes | Core |  |
 | <span data-option="fixedColumnsLeft" data-levels="grid"></span>[`fixedColumnsLeft`](@/api/options.md#fixedcolumnsleft) | Yes | No | No | No | Core |  |
 | <span data-option="fixedColumnsStart" data-levels="grid"></span>[`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart) | Yes | No | No | No | Core |  |

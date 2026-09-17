@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the `clear()` method emptying only the highlighted cell when `selectionMode` was set to `single`, and only the current page when the `pagination` plugin was enabled. `clear()` now empties every cell of the data set without selecting all cells first. As a result, it no longer triggers selection hooks such as `beforeSelectAll`, `afterSelectAll`, and `afterSelection`, it triggers `afterDeselect` only when cells were selected, and undoing it restores the selection you had before instead of selecting every cell.",
+  "type": "fixed",
+  "issueOrPR": 13557,
+  "breaking": false,
+  "framework": "none"
+}

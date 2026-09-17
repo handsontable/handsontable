@@ -64,6 +64,12 @@ After exporting, use our [Theme Generator](https://github.com/handsontable/hands
 
 The design system is our primary reference when planning new features or redesigns, and it’s always kept up to date. In some cases, we update the design system independently of product releases to enhance consistency and streamline the design workflow.
 
+<!-- Filled in by public/scripts/design-system-updated.js from the docs worker
+(rule 18c in docs/cloudflare/_worker.js). Starts hidden and is revealed only
+once a real date arrives, so the page is unchanged when the Figma credentials
+are unset or Figma is unreachable. -->
+<p data-design-system-updated style="display:none">Design system - <span data-design-system-updated-date></span></p>
+
 ## Known limitations
 
 - The legacy style is not part of the design system. Starting from version 17.0.0, legacy styles are no longer supported and you need to migrate to the Classic theme.

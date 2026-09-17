@@ -124,6 +124,15 @@ class Overlays {
    * @type {boolean}
    */
   isScrollDrivenDraw: boolean = false;
+  /**
+   * `true` while the in-progress master draw allows row recycling (`Viewport#allowsRowRecycling`),
+   * resolved once per master draw after `beforeDraw()` refreshed the axis owners. Read by the draw
+   * cycle for the row recycling and the stable cell identity handed to `shouldPaintCell`, on the
+   * master and on its clones (through the clone source), so the two never disagree within a draw.
+   *
+   * @type {boolean}
+   */
+  rowRecyclingAllowed: boolean = false;
 
   /**
    * Binds the native DOM input listeners (scroll, wheel, key, resize) and translates them into the
@@ -730,6 +739,27 @@ class Overlays {
    */
   syncScrollPositions() {
     this.#scrollSync.syncScrollPositions();
+  }
+
+  /**
+   * Returns the offset the engine last wrote to a clone holder (see `ScrollSync#getCloneScrollTarget`).
+   *
+   * @param {HTMLElement} holder A clone's `.wtHolder` element.
+   * @returns {object}
+   */
+  getCloneScrollTarget(holder: HTMLElement) {
+    return this.#scrollSync.getCloneScrollTarget(holder);
+  }
+
+  /**
+   * Records what a clone holder holds after the browser clamped the engine's write (see
+   * `ScrollSync#recordClampedCloneScrollTarget`).
+   *
+   * @param {HTMLElement} holder A clone's `.wtHolder` element.
+   * @param {object} offset The offset the holder holds.
+   */
+  recordClampedCloneScrollTarget(holder: HTMLElement, offset: { top: number, left: number }) {
+    this.#scrollSync.recordClampedCloneScrollTarget(holder, offset);
   }
 
   /**

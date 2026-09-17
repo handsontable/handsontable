@@ -16,6 +16,7 @@ import { rangeEach } from '../../helpers/number';
 import { createInputElementResizer } from '../../utils/autoResize';
 import { isDefined } from '../../helpers/mixed';
 import { updateCaretPosition } from './caretPositioner';
+import { selectionFillsOtherCells } from '../../selection/fillSelection';
 import {
   A11Y_TABINDEX,
 } from '../../helpers/a11y';
@@ -484,6 +485,13 @@ export class TextEditor extends BaseEditor {
       this.hot.rootDocument.execCommand('insertText', false, '\n');
     };
 
+    // The newline is for a selection the editor's own save would not spread the value across. That
+    // has to be the same question `finishEditing()` asks, or the two disagree and the keystroke both
+    // inserts a line break and populates - `isMultiple()` alone reads the active layer only, so it
+    // missed every other layer (DEV-103).
+    const populatesOtherCells = () =>
+      selectionFillsOtherCells(this.hot, this.getValue(), this.row, this.col);
+
     editorContext!.addShortcuts([{
       keys: [['Control', 'Enter']],
       callback: () => {
@@ -491,7 +499,7 @@ export class TextEditor extends BaseEditor {
 
         return false; // Will block closing editor.
       },
-      runOnlyIf: (event?: KeyboardEvent) => !this.hot.selection.isMultiple() && // We trigger a data population for multiple selection.
+      runOnlyIf: (event?: KeyboardEvent) => !populatesOtherCells() && // We trigger a data population for multiple selection.
         // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
         !event?.altKey,
     }, {
@@ -501,7 +509,7 @@ export class TextEditor extends BaseEditor {
 
         return false; // Will block closing editor.
       },
-      runOnlyIf: () => !this.hot.selection.isMultiple(), // We trigger a data population for multiple selection.
+      runOnlyIf: () => !populatesOtherCells(), // We trigger a data population for multiple selection.
     }, {
       keys: [['Alt', 'Enter']],
       callback: () => {

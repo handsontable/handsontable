@@ -438,7 +438,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
     const _source: 'init' | 'remove' | 'insert' | 'move' | 'update' | undefined =
       indexesChangesState.indexesChangeSource;
   },
-  afterColumnSort: (currentSortConfig, destinationSortConfigs) => {},
+  afterColumnSort: (currentSortConfig, destinationSortConfigs, sortPossible) => {
+    const _sortPossible: boolean = sortPossible;
+  },
   afterColumnUnfreeze: (columnIndex, isFreezingPerformed) => {},
   beforeCompositionStart: (event) => {
     const _event: CompositionEvent = event;
@@ -638,7 +640,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeColumnFreeze: (columnIndex, isFreezingPerformed) => false,
   beforeColumnMove: (columns, target) => {},
   beforeColumnResize: (newSize, column, isDoubleClick) => false,
-  beforeColumnSort: (currentSortConfig, destinationSortConfigs) => {},
+  beforeColumnSort: (currentSortConfig, destinationSortConfigs, sortPossible) => {
+    const _sortPossible: boolean = sortPossible;
+  },
   beforeColumnWrap: (isActionInterrupted, newCoords, isColumnFlipped) => {
     const _isActionInterrupted: boolean = isActionInterrupted.value;
     const _isColumnFlipped: boolean = isColumnFlipped;

@@ -212,6 +212,18 @@ export class UndoRedo extends BasePlugin {
       return;
     }
 
+    // A wrappedAction returns `null` when the operation changed nothing (e.g. an `alter` that
+    // removed no rows or columns). A no-op must not stack an action, clear the redo stack, or fire
+    // any stack-change hook, so resolve it before announcing anything. wrappedAction only snapshots
+    // grid state (every registered one is a pure capture), and `done()` runs inside the
+    // `beforeRemove*`/`beforeCreate*` hook before the operation applies, so capturing it here rather
+    // than after `beforeUndoStackChange` reads the same state.
+    const newAction: unknown = wrappedAction();
+
+    if (newAction === null) {
+      return;
+    }
+
     const doneActionsCopy = this.doneActions.slice();
     const continueAction = this.hot.runHooks('beforeUndoStackChange', doneActionsCopy, source);
 
@@ -219,12 +231,9 @@ export class UndoRedo extends BasePlugin {
       return;
     }
 
-    const newAction: unknown = wrappedAction();
     const undoneActionsCopy = this.undoneActions.slice();
 
-    if (newAction !== null) {
-      this.doneActions.push(newAction);
-    }
+    this.doneActions.push(newAction);
 
     this.hot.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions.slice());
     this.hot.runHooks('beforeRedoStackChange', undoneActionsCopy);

@@ -186,6 +186,14 @@ class Selection {
    */
   #selectionSource = 'unknown';
   /**
+   * `true` while the current selection transformation is driven by Tab / Shift+Tab navigation. Tab
+   * cycles through cells keeping the row it moves along, so a plugin adjusting a horizontal move
+   * (mergeCells) can tell it apart from an arrow key, whose delta is otherwise identical.
+   *
+   * @type {boolean}
+   */
+  #duringTabNavigation = false;
+  /**
    * The number of expected layers. It is used mostly to track when the last selection layer of non-contiguous
    * selection is applied, thus the viewport scroll is triggered.
    *
@@ -400,11 +408,34 @@ class Selection {
 
   /**
    * Marks the source of the selection. It can be one of the following values: `mouse`, or any other string.
+   * Also clears the Tab-navigation flag, so a later command cannot inherit a stale Tab classification
+   * if the previous transform threw before `markEndSource()`. Call `markTabNavigation()` after this
+   * when the command itself is Tab / Shift+Tab.
    *
    * @param {'mouse' | 'unknown' | string} sourceName The source name.
    */
   markSource(sourceName: string) {
     this.#selectionSource = sourceName;
+    // Every command opens with `markSource()`, so clearing the Tab-navigation flag here resets a
+    // flag a throw might have left set, before the next command's transform reads it. A Tab command
+    // calls `markTabNavigation()` right after, to set it for its own transform.
+    this.#duringTabNavigation = false;
+  }
+
+  /**
+   * Marks that the current selection transformation is driven by Tab / Shift+Tab navigation.
+   */
+  markTabNavigation() {
+    this.#duringTabNavigation = true;
+  }
+
+  /**
+   * Returns whether the current selection transformation is driven by Tab / Shift+Tab navigation.
+   *
+   * @returns {boolean}
+   */
+  isDuringTabNavigation() {
+    return this.#duringTabNavigation;
   }
 
   /**
@@ -412,6 +443,7 @@ class Selection {
    */
   markEndSource() {
     this.#selectionSource = 'unknown';
+    this.#duringTabNavigation = false;
   }
 
   /**
@@ -2470,10 +2502,10 @@ class Selection {
 
   /**
    * Restores one range. A partially trimmed range SHRINKS onto its surviving records rather than
-   * being dropped, because `BaseEditor#saveValue()` fills the active range on `Ctrl+Enter`: dropping
-   * a partially trimmed active layer would hand that commit to whichever layer inherits the active
-   * slot, writing the typed value onto a record the user never edited. Trimming only removes
-   * records, so the survivors of a contiguous range stay contiguous and a `CellRange` still
+   * being dropped, because `Ctrl+Enter` fills every selected layer: dropping a partially trimmed
+   * layer would leave the records the user actually selected unwritten while the fill still reached
+   * the layers that survived, writing the typed value onto records they never edited. Trimming only
+   * removes records, so the survivors of a contiguous range stay contiguous and a `CellRange` still
    * describes them exactly. The ACTIVE layer with nothing left parks on its focus's pre-update slot
    * when the trim left that slot in range, and is dropped when the slot addresses nothing; a
    * non-active layer is dropped either way, as it is when its focus alone was trimmed, rather than

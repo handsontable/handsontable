@@ -1,7 +1,9 @@
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
+
 // register Handsontable's modules
 registerAllModules();
+
 const ExampleComponent = () => {
     return (<HotTable data={[
             ['H', 'Hydrogen', 'Nonmetal'],
@@ -11,4 +13,5 @@ const ExampleComponent = () => {
             ['B', 'Boron', 'Metalloid'],
         ]} width="100%" height="auto" colHeaders={['Symbol', 'Name', 'Group']} rowHeaders={true} stretchH="all" contextMenu={true} autoWrapRow={true} autoWrapCol={true} licenseKey="non-commercial-and-evaluation"/>);
 };
+
 export default ExampleComponent;

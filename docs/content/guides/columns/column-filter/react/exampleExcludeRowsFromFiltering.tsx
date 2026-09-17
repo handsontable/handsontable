@@ -1,25 +1,12 @@
-// you need `useRef` to call Handsontable's instance methods
-import { useRef } from 'react';
-import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 
 // register Handsontable's modules
 registerAllModules();
 
 const ExampleComponent = () => {
-  const hotTableComponentRef = useRef<HotTableRef>(null);
-  const exclude = () => {
-    const hotInstance = hotTableComponentRef.current?.hotInstance;
-    // @ts-ignore
-    const filtersRowsMap = hotInstance?.getPlugin('filters').filtersRowsMap;
-
-    filtersRowsMap.setValueAtIndex(0, false);
-    filtersRowsMap.setValueAtIndex(filtersRowsMap.getLength() - 1, false);
-  };
-
   return (
     <HotTable
-      ref={hotTableComponentRef}
       data={[
         {
           brand: 'Gigabox',
@@ -185,9 +172,8 @@ const ExampleComponent = () => {
       fixedRowsTop={1}
       fixedRowsBottom={1}
       colHeaders={true}
-      filters={true}
+      filters={{ filterFixedRows: false }}
       dropdownMenu={true}
-      afterFilter={exclude}
       autoWrapRow={true}
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"

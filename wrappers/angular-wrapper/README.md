@@ -228,7 +228,7 @@ For commercial use, a paid license is required. This license includes support an
 
 For projects covered by the free non-commercial license, simply use the phrase `'non-commercial-and-evaluation'` as your license key.
 
-If you're using Handsontable in a project that supports commercial activities, you'll need to purchase a license key at [handsontable.com/pricing](https://handsontable.com/pricing). You can find more details in [our documentation](https://handsontable.com/docs/license-key/).
+If you're using Handsontable in a project that supports commercial activities, you'll need to purchase a license key at [handsontable.com/pricing](https://handsontable.com/pricing). You can find more details in [our documentation](https://handsontable.com/docs/angular-data-grid/license-key/).
 
 <br>
 

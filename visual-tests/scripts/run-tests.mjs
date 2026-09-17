@@ -3,15 +3,16 @@
  * - Runs a background `http-server` for each framework example.
  * - Runs Handsontable's visual tests.
  * - Takes screenshots and prepares them for comparison against the golden records.
+ *
+ * What it renders is the tier: `VISUAL_TIER`, else by branch (`VISUAL_TIERS` in ../src/config.mjs).
  */
 import path from 'path';
 import execa from 'execa';
 import fse from 'fs-extra';
 import chalk from 'chalk';
-import { isReferenceBranch, getFrameworkList, sleep, killProcess } from './utils/utils.mjs';
+import { getTier, sleep, killProcess } from './utils/utils.mjs';
 import {
   WRAPPERS,
-  THEMES,
   REFERENCE_FRAMEWORK,
   EXAMPLES_SERVER_PORT
 } from '../src/config.mjs';
@@ -22,10 +23,21 @@ const dirs = {
   screenshots: './screenshots',
 };
 
-console.log(chalk.green('Running Visual Tests...'));
+const tier = getTier();
 
-// if we're on the reference branch, we create screenshots for the main framework only
-const frameworksToTest = getFrameworkList();
+// The wrapper copy duplicates the bare js render, so a tier that copies without rendering it would
+// copy a directory that does not exist — after a ten-minute render. A table error, caught first.
+if (tier.copyWrappers && !tier.classic) {
+  throw new Error(`Visual tier "${tier.name}" copies the js render into the wrappers (copyWrappers) `
+    + 'but does not render it (classic: false). Fix VISUAL_TIERS in src/config.mjs.');
+}
+
+console.log(chalk.green('Running Visual Tests...'));
+console.log(chalk.green(`Visual tier "${tier.name}": frameworks ${tier.frameworks.join(', ')}; `
+  + `classic ${tier.classic ? 'yes' : 'no'}; themes ${tier.themes.join(', ') || 'none'}; `
+  + `wrappers copied ${tier.copyWrappers ? 'yes' : 'no'}`));
+
+const frameworksToTest = tier.frameworks;
 
 for (let i = 0; i < frameworksToTest.length; i++) {
   const frameworkName = frameworksToTest[i];
@@ -43,31 +55,36 @@ for (let i = 0; i < frameworksToTest.length; i++) {
     throw new Error(`The examples static server startup failed. The port ${EXAMPLES_SERVER_PORT} is already in use.`);
   }
 
-  console.log(chalk.green(`Testing "${frameworkName}" examples...`));
+  // A wrapper always renders bare. js renders bare only in a tier with the classic variant: the pr
+  // tier drops it (byte-identical to `main` on 199 of its 234 goldens, it is a delivery-path check
+  // the seed and the nightly keep) and renders the themes alone.
+  if (frameworkName !== REFERENCE_FRAMEWORK || tier.classic) {
+    console.log(chalk.green(`Testing "${frameworkName}" examples...`));
 
-  try {
-    await execa.command('npx playwright test --reporter=dot', {
-      env: {
-        HOT_FRAMEWORK: frameworkName
-      },
-      stdout: 'inherit'
-    });
-  } catch (ex) {
-    await killProcess(localhostProcess.pid);
-    throw new Error(ex.message);
-  }
+    try {
+      await execa.command('npx playwright test --reporter=dot', {
+        env: {
+          HOT_FRAMEWORK: frameworkName
+        },
+        stdout: 'inherit'
+      });
+    } catch (ex) {
+      await killProcess(localhostProcess.pid);
+      throw new Error(ex.message);
+    }
 
-  if (frameworkName === 'js') {
     console.log('');
     console.log(chalk.green(`Finished testing "${frameworkName}" examples.`));
+  }
 
+  if (frameworkName === REFERENCE_FRAMEWORK && tier.themes.length > 0) {
     const themeProcesses = [];
     // All theme runs share the same static file server on port 8082 — concurrent reads are safe.
     // --reporter=dot overrides the html reporter in playwright.config.ts, so there are no
     // concurrent writes to playwright-report/. Screenshots go to separate per-theme directories.
     // Each theme gets its own --output directory so failure artifacts (traces, screenshots) don't
     // collide when the same test fails in multiple themes simultaneously.
-    const themeRuns = THEMES.map((themeName) => {
+    const themeRuns = tier.themes.map((themeName) => {
       console.log(chalk.green(`Testing JavaScript examples with "${themeName}" theme...`));
 
       const proc = execa.command(`npx playwright test --reporter=dot --output=test-results/theme-${themeName}`, {
@@ -93,9 +110,6 @@ for (let i = 0; i < frameworksToTest.length; i++) {
       await killProcess(localhostProcess.pid);
       throw new Error(ex.message);
     }
-  } else {
-    console.log('');
-    console.log(chalk.green(`Finished testing "${frameworkName}" examples.`));
   }
 
   await killProcess(localhostProcess.pid);
@@ -104,8 +118,10 @@ for (let i = 0; i < frameworksToTest.length; i++) {
 // the screenshots are ready
 console.log(chalk.green('Done.'));
 
-// if we're on the reference branch, we copy the screenshots to the remaining frameworks
-if (isReferenceBranch()) {
+// The seed tier renders js once and copies it into every wrapper directory, so the golden set keeps its
+// full shape and every other tier is compared against an exact subset of it (the js-copied-baseline
+// gotcha in ../AGENTS.md).
+if (tier.copyWrappers) {
   if (!fse.existsSync(dirs.screenshots)) {
     throw new Error(`Directory \`${dirs.screenshots}\` doesn't exist.`);
   }

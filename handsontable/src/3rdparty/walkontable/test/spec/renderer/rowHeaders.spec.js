@@ -4,6 +4,14 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
       return true;
     }
 
+    isRowRecyclingAllowed() {
+      return false;
+    }
+
+    hasStableCellIdentity() {
+      return false;
+    }
+
     constructor() {
       this.rootDocument = document;
       this.paintFromRow = 0;
@@ -17,6 +25,18 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
 
     isAriaEnabled() {
       return true;
+    }
+
+    hasColumnHeaders() {
+      return false;
+    }
+
+    ownsAriaColumnHeaderId() {
+      return false;
+    }
+
+    getAriaColumnHeaderIdPrefix() {
+      return '';
     }
   }
 

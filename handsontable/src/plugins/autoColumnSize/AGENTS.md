@@ -32,6 +32,12 @@ Rules that hold this together:
   actually produce (cell-level `valueFormatter`, then the renderer's static). See the `renderCell.ts`
   bullet in `../../../AGENTS.md`.
 - Cells covered by a merged cell carry `null` and are skipped — they contribute no sample.
+- **List-cell columns (autocomplete, dropdown, handsontable) include the reserved arrow
+  slot (DEV-348).** The real renderer adds `td.htAutocomplete`; the product CSS reserves the
+  arrow as `padding-inline-end`. GhostTable therefore measures value plus arrow, and an
+  autosized column grows on upgrade (a breaking change). A column `width` skips measurement
+  for that column only. `colWidths` still disables this plugin for the whole grid. Do not
+  strip the arrow from the sample — that reopens the wrap onto a second line.
 - **The ghost table must be restored even when a custom renderer throws.** A throwing renderer that leaves
   headers disabled, or the probe's columns still attached, corrupts every later full-scan measurement.
 
@@ -59,7 +65,7 @@ silently ignored when they arrived through `updateSettings()` (DEV-2850). Four r
   them in that state and you get the *defaults*, so re-applying would reset the user's `samplingRatio`, flip
   `useHeaders` back to `true`, and re-measure every column on an unrelated `updateSettings({ readOnly: true })`.
   Restore from `hot.getSettings()[PLUGIN_KEY]`, which is untouched — the same repair `manualColumnResize`
-  makes for the same base-class reason (`../manualResize/AGENTS.md`). **This is the common path:** the Vue
+  makes for the same base-class reason (`../../utils/manualResize/AGENTS.md`). **This is the common path:** the Vue
   wrapper omits every settings key whose value is unchanged (`wrappers/vue3/src/helpers.ts`, `simpleEqual`),
   so a Vue app sends a payload *without* `autoColumnSize` on virtually every prop change.
 - **Re-measure with `recalculateAllColumnsWidth()`, not `clearCache()`.** A bare clear empties every measured
@@ -146,7 +152,7 @@ caveat is in the class JSDoc — keep it there.
 ## Where to look next
 
 - Row counterpart: `../autoRowSize/AGENTS.md`. Row *header* widths: `../autoRowHeaderSize/AGENTS.md`.
-- Storing user-dragged sizes instead of computing them: `../manualResize/AGENTS.md`.
+- Storing user-dragged sizes instead of computing them: `../../utils/manualResize/AGENTS.md`.
 - `GhostTable` / off-DOM measurement rules (the probe must mimic the real grid DOM exactly):
   `../../../AGENTS.md`.
 - Plugin contract, lifecycle, priorities: `../base/AGENTS.md`.

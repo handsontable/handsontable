@@ -3,19 +3,14 @@
 The `manualRowResize` plugin stores heights the user set by dragging the row header's bottom edge. Read this
 before touching `manualRowResize.ts`.
 
-The file opens with a standing instruction:
+**The drag itself is not in this plugin.** The handle, the guide, the press and double-click state and the
+resize hooks live in `../../utils/manualResize/resizeGesture.ts`, shared with `../manualColumnResize/`, and the row
+specifics the gesture needs live in `ROW_RESIZE_AXIS` in `../../utils/manualResize/axis.ts`. Read
+`../../utils/manualResize/AGENTS.md` before touching `disablePlugin()`, `destroy()`, or anything about the drag - that
+is where the DEV-2719 teardown traps are, including why the drag must survive the update cycle.
 
-> **Developer note! Whenever you make a change in this file, make an analogous change in
-> manualColumnResize.js**
-
-Take it literally. **`../manualColumnResize/AGENTS.md` documents everything the two share** — the foreign
-`SETTING_KEYS` entry and its three `updatePlugin()` consequences, the replayed map `init` hook, the two
-guards on writing a size, the overlay-relative handle resolution, multi-row resize, the #6926 detached
-`event.target` workaround, and — added under DEV-2719 — the lazy attach/teardown rules for the handle and
-guide plus the `afterMouseDownTimeout()` bail. Those last two are where an orphaned handle silently
-swallows header clicks and why `#pressed` must survive the update cycle; read them before touching
-`disablePlugin()`, `destroy()`, `hideHandleAndGuide()` or `#onMouseUp()` here. The shared helpers are in
-`../manualResize/AGENTS.md`.
+`../manualColumnResize/AGENTS.md` documents what the two plugins still share outside the gesture: the replayed
+map `init` hook and the two guards on writing a size.
 
 What differs for rows:
 
@@ -30,28 +25,35 @@ static get SETTING_KEYS() { return [PLUGIN_KEY, ...ROW_SIZE_OPTIONS]; }
 `rowHeights ?? minRowHeights`). The column plugin has one entry, because there is no `minColWidths` alias.
 Do not symmetrize them.
 
-## Read `fixedRowsTop` AND `fixedRowsBottom` through Walkontable
+## Where the row axis differs from the column axis
 
-Both counts are reduced by the number of hidden rows by the `TableView` module, so the raw settings are
-wrong in that context. And when the `TH` is not a child of the top-left **or bottom-left** overlay,
-recalculate using the **inline-start** overlay — that is where the rest of the row headers live. The column
-plugin has one such fallback; rows have two overlays to exclude first.
+These live in `ROW_RESIZE_AXIS` (`../../utils/manualResize/axis.ts`), and `../../utils/manualResize/AGENTS.md` explains each:
 
-## A `mouseover` fires right after `contextmenu`
-
-It must be ignored. The column plugin needs the same guard — keep the two in step.
+- **`fixedRowsTop` AND `fixedRowsBottom` are read through Walkontable** - `TableView` reduces both by the number
+  of hidden rows. A row in the bottom band resolves against `bottomInlineStartCornerOverlay`, and a header in
+  neither corner overlay resolves against the **inline-start** overlay. The column axis has one band to
+  exclude; rows have two.
+- **Rows can only grow.** A declared row height is a minimum, not a target (`../autoRowSize/AGENTS.md`: "we can
+  shrink column but cannot shrink rows"), and the auto-size measurement still runs after a drag. So
+  `ROW_RESIZE_AXIS.getHookSize` reports `max(dragged, rendered)` to `beforeRowResize` / `afterRowResize`,
+  where the column axis reports the stored width.
+- **The pointer delta is not flipped under RTL** - the block axis never runs the other way.
 
 ## Standing TODO
 
-`// TODO: this should utilize this.hot.getRowHeight after it's fixed and working properly.` The plugin
-measures the row itself instead. Do not swap to `getRowHeight()` without verifying the underlying issue is
-resolved.
+`ROW_RESIZE_AXIS.getHookSize` measures the row through `wtTable.getRowHeight()`, with the note "this should
+utilize `hot.getRowHeight` after it's fixed and working properly". Do not swap to `getRowHeight()` without
+verifying the underlying issue is resolved.
 
-## Rows can only grow
+## `getLastDesiredRowHeight()` reads the gesture
 
-A declared row height is a **minimum**, not a target — `../autoRowSize/AGENTS.md` spells that out ("we can
-shrink column but cannot shrink rows"). A dragged height interacts with that: the auto-size measurement
-still runs.
+It is public and row-only, and it returns the size the pointer described last - `ResizeGesture#getCurrentSize()`,
+or `0` before the first drag.
+
+## `afterMouseDownTimeout()` is a forward
+
+Every other gesture method moved into `ResizeGesture`. This one stays as a one-line forward for parity with the
+column plugin, whose forward a frozen spec calls directly.
 
 ## Double-click autofit needs AutoRowSize's listener
 
@@ -60,7 +62,8 @@ this plugin's double-click autofit keeps working.
 
 ## Where to look next
 
-- Everything shared: `../manualColumnResize/AGENTS.md` and `../manualResize/AGENTS.md`.
+- The drag, the teardown traps and the along/across model: `../../utils/manualResize/AGENTS.md`.
+- The column mirror: `../manualColumnResize/AGENTS.md`.
 - Computing heights instead of storing them: `../autoRowSize/AGENTS.md`.
 - Plugin contract, lifecycle, priorities: `../base/AGENTS.md`.
 
