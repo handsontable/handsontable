@@ -3538,11 +3538,11 @@ export default function Core(
   this.batchRender = function<T>(wrappedOperations: () => T): T {
     instance.suspendRender();
 
-    const result = wrappedOperations();
-
-    instance.resumeRender();
-
-    return result;
+    try {
+      return wrappedOperations();
+    } finally {
+      instance.resumeRender();
+    }
   };
 
   /**
@@ -3652,11 +3652,11 @@ export default function Core(
   this.batchExecution = function<T>(wrappedOperations: () => T, forceFlushChanges = false): T {
     instance.suspendExecution();
 
-    const result = wrappedOperations();
-
-    instance.resumeExecution(forceFlushChanges);
-
-    return result;
+    try {
+      return wrappedOperations();
+    } finally {
+      instance.resumeExecution(forceFlushChanges);
+    }
   };
 
   /**
@@ -3665,7 +3665,8 @@ export default function Core(
    * as well aggregates the table logic changes such as index changes into one call
    * after which the cache is updated. After the execution of the operations, the
    * table is rendered, and the cache is updated once. As a result, it improves the
-   * performance of wrapped operations.
+   * performance of wrapped operations. Rendering and execution resume even when the
+   * callback throws; the error is rethrown.
    *
    * @memberof Core#
    * @function batch
@@ -3697,12 +3698,14 @@ export default function Core(
     instance.suspendRender();
     instance.suspendExecution();
 
-    const result = wrappedOperations();
-
-    instance.resumeExecution();
-    instance.resumeRender();
-
-    return result;
+    // Resume in `finally`: the callback runs host hooks, and a throw there used to leave the
+    // instance suspended for the rest of its life, so it never painted again.
+    try {
+      return wrappedOperations();
+    } finally {
+      instance.resumeExecution();
+      instance.resumeRender();
+    }
   };
 
   /**

@@ -67,6 +67,40 @@ describe('Core', () => {
     });
   });
 
+  describe('batch', () => {
+    it.each([
+      ['batch', core => [core.isRenderSuspended(), core.isExecutionSuspended()], [false, false]],
+      ['batchRender', core => [core.isRenderSuspended()], [false]],
+      ['batchExecution', core => [core.isExecutionSuspended()], [false]],
+    ])('%s should resume after the wrapped operations throw, and rethrow', (method, probe, resumed) => {
+      // Host hooks run inside the callback (`beforeLoadData`, `afterUpdateSettings`), so a throw
+      // there used to leave the instance suspended for the rest of its life: it never painted again.
+      const core = new Core(container, { data: [['a']] });
+
+      core.init();
+
+      expect(() => core[method](() => {
+        throw new Error('hook failed');
+      })).toThrow('hook failed');
+
+      expect(probe(core)).toEqual(resumed);
+
+      core.destroy();
+    });
+
+    it('should return the callback result when it does not throw', () => {
+      const core = new Core(container, { data: [['a']] });
+
+      core.init();
+
+      expect(core.batch(() => 42)).toBe(42);
+      expect(core.isRenderSuspended()).toBe(false);
+      expect(core.isExecutionSuspended()).toBe(false);
+
+      core.destroy();
+    });
+  });
+
   describe('markCellChanged', () => {
     it('should advance the render version of a stored cell meta and create none for an unstored one', () => {
       const core = new Core(container, { data: [['a', 'b'], ['c', 'd']] });
