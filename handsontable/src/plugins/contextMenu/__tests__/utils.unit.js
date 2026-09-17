@@ -1,6 +1,9 @@
 import {
+  checkSelectionConsistency,
   getAlignmentClasses,
   getAlignmentComparatorByClass,
+  getSelectionCheckState,
+  MENU_ITEM_MIXED,
   prepareHorizontalAlignClass,
   prepareVerticalAlignClass,
 } from 'handsontable/plugins/contextMenu/utils';
@@ -13,7 +16,143 @@ function createRange(coords) {
   };
 }
 
+/**
+ * A range that stops when the callback returns `false`, as `CellRange#forAll` does. `createRange`
+ * above ignores the return value, so a walk that exits early would look like a full walk there.
+ *
+ * @param {number[][]} coords The coordinates to visit, in order.
+ * @returns {object}
+ */
+function createStoppableRange(coords) {
+  return {
+    forAll(callback) {
+      for (const [row, col] of coords) {
+        if (callback(row, col) === false) {
+          return;
+        }
+      }
+    },
+  };
+}
+
 describe('contextMenu/utils', () => {
+  describe('getSelectionCheckState', () => {
+    const isFlagged = flagged => (row, col) => flagged.some(([r, c]) => r === row && c === col);
+
+    it('should report true when every selected cell matches', () => {
+      const ranges = [createStoppableRange([[0, 0], [0, 1], [1, 0]])];
+
+      expect(getSelectionCheckState(ranges, isFlagged([[0, 0], [0, 1], [1, 0]]))).toBe(true);
+    });
+
+    it('should report false when no selected cell matches', () => {
+      const ranges = [createStoppableRange([[0, 0], [0, 1]])];
+
+      expect(getSelectionCheckState(ranges, isFlagged([]))).toBe(false);
+    });
+
+    it('should report mixed when only some selected cells match (DEV-124)', () => {
+      // The reported case: one read-only cell inside a range of writable ones. The "at least one"
+      // helper answers `true` here, which is the check mark the ticket reports as wrong.
+      const ranges = [createStoppableRange([[0, 0], [0, 1], [1, 0], [1, 1]])];
+      const comparator = isFlagged([[0, 0]]);
+
+      expect(getSelectionCheckState(ranges, comparator)).toBe(MENU_ITEM_MIXED);
+      expect(checkSelectionConsistency(ranges, comparator)).toBe(true);
+    });
+
+    it('should report mixed whichever state the walk meets first', () => {
+      const ranges = [createStoppableRange([[0, 0], [0, 1], [0, 2]])];
+
+      expect(getSelectionCheckState(ranges, isFlagged([[0, 2]]))).toBe(MENU_ITEM_MIXED);
+    });
+
+    it('should report mixed when the two states sit in different selection layers', () => {
+      const ranges = [
+        createStoppableRange([[0, 0], [0, 1]]),
+        createStoppableRange([[5, 5]]),
+      ];
+
+      expect(getSelectionCheckState(ranges, isFlagged([[5, 5]]))).toBe(MENU_ITEM_MIXED);
+    });
+
+    it('should stop walking as soon as the selection is known to be mixed', () => {
+      const visited = [];
+      const flagged = isFlagged([[0, 0]]);
+      const ranges = [
+        createStoppableRange([[0, 0], [0, 1], [0, 2], [0, 3]]),
+        createStoppableRange([[1, 0], [1, 1]]),
+      ];
+
+      getSelectionCheckState(ranges, (row, col) => {
+        visited.push([row, col]);
+
+        return flagged(row, col);
+      });
+
+      // The menu draws this on every open, over the whole selection, so a mixed column of 100k rows
+      // must not cost 100k meta reads – and the second layer must not be entered at all.
+      expect(visited).toEqual([[0, 0], [0, 1]]);
+    });
+
+    it('should skip header coordinates, so a header selection is judged by its cells', () => {
+      const visited = [];
+      const ranges = [createStoppableRange([[-1, 0], [0, -1], [0, 0], [1, 0]])];
+
+      const state = getSelectionCheckState(ranges, (row, col) => {
+        visited.push([row, col]);
+
+        return true;
+      });
+
+      expect(visited).toEqual([[0, 0], [1, 0]]);
+      expect(state).toBe(true);
+    });
+
+    it('should leave out the cells the comparator returns null for', () => {
+      // `null` is how an item says "this cell does not take part", for a hidden cell under a merged
+      // block or, for the comment item, a cell with no comment.
+      const answers = { '0:0': true, '0:1': null, '0:2': null, '1:0': false };
+      const comparator = (row, col) => answers[`${row}:${col}`];
+
+      const stateOf = coords => getSelectionCheckState([createStoppableRange(coords)], comparator);
+
+      expect(stateOf([[0, 0], [0, 1], [0, 2]])).toBe(true);
+      expect(stateOf([[0, 1], [1, 0]])).toBe(false);
+      expect(stateOf([[0, 0], [0, 1], [1, 0]])).toBe(MENU_ITEM_MIXED);
+    });
+
+    it('should read undefined as a non-match, and only null as "leave out"', () => {
+      // A comparator returning an unset `meta.readOnly` gives `undefined` for a writable cell.
+      // Skipping it would read one read-only cell beside writable ones as fully read-only.
+      const meta = { '0:0': { readOnly: true }, '0:1': {} };
+      const comparator = (row, col) => meta[`${row}:${col}`].readOnly;
+
+      expect(getSelectionCheckState([createStoppableRange([[0, 0], [0, 1]])], comparator)).toBe(MENU_ITEM_MIXED);
+    });
+
+    it('should report false when the comparator leaves out every cell', () => {
+      expect(getSelectionCheckState([createStoppableRange([[0, 0], [0, 1]])], () => null)).toBe(false);
+    });
+
+    it('should report false for a selection holding no cell at all', () => {
+      expect(getSelectionCheckState([], () => true)).toBe(false);
+      expect(getSelectionCheckState([createStoppableRange([[-1, -1]])], () => true)).toBe(false);
+      expect(getSelectionCheckState(undefined, () => true)).toBe(false);
+    });
+  });
+
+  describe('checkSelectionConsistency', () => {
+    it('should keep answering "at least one" for existing callers', () => {
+      // Legacy export. It stays importable and unchanged, because the module ships a declaration file
+      // that `moduleResolution: node` resolves whatever the `exports` map says.
+      const ranges = [createStoppableRange([[0, 0], [0, 1]])];
+
+      expect(checkSelectionConsistency(ranges, (row, col) => col === 1)).toBe(true);
+      expect(checkSelectionConsistency(ranges, () => false)).toBe(false);
+    });
+  });
+
   describe('getAlignmentClasses', () => {
     it('should collect class names into row-indexed arrays', () => {
       const classes = getAlignmentClasses([
