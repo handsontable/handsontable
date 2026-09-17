@@ -120,6 +120,61 @@ export class SelectionHeaderPaddingPage {
   }
 
   /**
+   * Whether `getDimensionsFromHeader` found a header TH for a full-column selection.
+   *
+   * Needed in RTL: if lookup fails, `appear()` keeps body-cell math (which is already RTL-aware)
+   * and an alignment assertion can pass without ever exercising the header-box path.
+   *
+   * @param {string} name The grid's key in `window.grids`.
+   * @param {number} column The visual column index.
+   * @returns {Promise<{ found: boolean, tagName: string | null }>}
+   */
+  async columnHeaderDimensions(name: string, column: number): Promise<{ found: boolean; tagName: string | null }> {
+    return this.page.evaluate(
+      ([gridName, c]) => {
+        const hot = (window as unknown as {
+          grids: Record<string, {
+            view: {
+              _wt: {
+                selectionManager: {
+                  getFocusSelection: () => unknown;
+                  getBorderInstance: (selection: unknown) => {
+                    getDimensionsFromHeader: (
+                      direction: string,
+                      fromIndex: number,
+                      toIndex: number,
+                      headerIndex: number,
+                      containerOffset: { top: number; left: number }
+                    ) => false | [HTMLElement, number, number];
+                  } | null;
+                };
+              };
+            };
+          }>
+        }).grids[gridName as string];
+        const wt = hot.view._wt;
+        const focus = wt.selectionManager.getFocusSelection();
+        const border = wt.selectionManager.getBorderInstance(focus);
+
+        if (!focus || !border) {
+          throw new Error('The focus selection has no border');
+        }
+
+        const result = border.getDimensionsFromHeader(
+          'columns', c as number, c as number, -1, { top: 0, left: 0 }
+        );
+
+        if (result === false) {
+          return { found: false, tagName: null };
+        }
+
+        return { found: true, tagName: result[0].tagName };
+      },
+      [name, column]
+    );
+  }
+
+  /**
    * How far the selection's top edge sits from the selected row header's top boundary, in CSS
    * pixels. `0` means the edge is drawn just inside the header (first body row under a column
    * header). `-1` means it straddles the gridline shared with the row above.

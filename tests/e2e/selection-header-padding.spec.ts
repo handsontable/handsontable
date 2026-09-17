@@ -61,6 +61,7 @@ test.describe('Selection highlight with custom header padding', () => {
   test('aligns the full-column highlight with a padded column header', async () => {
     await grid.selectColumn('padded', 0);
 
+    await expect.poll(() => grid.columnHeaderDimensions('padded', 0)).toEqual({ found: true, tagName: 'TH' });
     await expect.poll(() => grid.selectionStartOffsetFromColumnHeader('padded', 0)).toBe(0);
   });
 
@@ -74,6 +75,7 @@ test.describe('Selection highlight with custom header padding', () => {
     await grid.selectColumn('paddedRtl', 0);
 
     // Left-edge math written to `style.right` places this highlight on the wrong side of the cell.
+    await expect.poll(() => grid.columnHeaderDimensions('paddedRtl', 0)).toEqual({ found: true, tagName: 'TH' });
     await expect.poll(() => grid.selectionStartOffsetFromColumnHeader('padded-rtl', 0)).toBe(0);
   });
 });
