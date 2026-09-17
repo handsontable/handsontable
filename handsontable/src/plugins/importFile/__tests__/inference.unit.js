@@ -351,30 +351,52 @@ describe('resolveListSource', () => {
   }
 
   it('should split an inline quoted list', () => {
-    expect(resolveListSource({ type: 'list', allowBlank: true, formulae: ['"a,b,c"'] }, createWorkbookSnapshot()))
+    const workbook = createWorkbookSnapshot();
+    const sheet = createSheetSnapshot('Data');
+
+    expect(resolveListSource({ type: 'list', allowBlank: true, formulae: ['"a,b,c"'] }, workbook, sheet))
       .toEqual(['a', 'b', 'c']);
-    expect(resolveListSource(
-      { type: 'list', allowBlank: true, formulae: ['"Open, Closed"'] }, createWorkbookSnapshot()
-    )).toEqual(['Open', 'Closed']);
+    expect(resolveListSource({ type: 'list', allowBlank: true, formulae: ['"Open, Closed"'] }, workbook, sheet))
+      .toEqual(['Open', 'Closed']);
   });
 
   it('should read a sheet range reference from the referenced sheet', () => {
+    const workbook = workbookWithHelper();
     const source = resolveListSource(
-      { type: 'list', allowBlank: true, formulae: ['\'_HotValidation\'!$A$1:$A$3'] }, workbookWithHelper()
+      { type: 'list', allowBlank: true, formulae: ['\'_HotValidation\'!$A$1:$A$3'] }, workbook, workbook.sheets[0]
     );
 
     expect(source).toEqual(['Open', 'Closed', 'Blocked']);
   });
 
+  it('should read an unqualified range from the sheet the validation sits on', () => {
+    // Excel stores a Data Validation → List → range-on-this-sheet as a bare `$A$1:$A$10`; only the
+    // export's own `_HotValidation` helper sheet ever qualifies the range with a name.
+    const workbook = workbookWithHelper();
+    const [data, helper] = workbook.sheets;
+
+    data.rows = [[cell({ value: 'Yes' })], [cell({ value: 'No' })], [cell({ value: null })]];
+
+    expect(resolveListSource(
+      { type: 'list', allowBlank: true, formulae: ['$A$1:$A$3'] }, workbook, data
+    )).toEqual(['Yes', 'No']);
+    expect(resolveListSource(
+      { type: 'list', allowBlank: true, formulae: ['A1:A2'] }, workbook, helper
+    )).toEqual(['Open', 'Closed']);
+  });
+
   it('should return null for a reference it cannot resolve', () => {
+    const workbook = workbookWithHelper();
+    const [data] = workbook.sheets;
+
     expect(resolveListSource(
-      { type: 'list', allowBlank: true, formulae: ['\'Missing\'!$A$1:$A$3'] }, workbookWithHelper()
+      { type: 'list', allowBlank: true, formulae: ['\'Missing\'!$A$1:$A$3'] }, workbook, data
     )).toBeNull();
     expect(resolveListSource(
-      { type: 'list', allowBlank: true, formulae: ['INDIRECT("x")'] }, workbookWithHelper()
+      { type: 'list', allowBlank: true, formulae: ['INDIRECT("x")'] }, workbook, data
     )).toBeNull();
     expect(resolveListSource(
-      { type: 'list', allowBlank: true, formulae: [] }, workbookWithHelper()
+      { type: 'list', allowBlank: true, formulae: [] }, workbook, data
     )).toBeNull();
   });
 });

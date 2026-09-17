@@ -268,17 +268,19 @@ interface CellPass {
 }
 
 /**
- * Resolves the meta of one cell: dropdown from its list validation, else the inferred type.
+ * Resolves the meta of one cell: dropdown from its list validation, else the inferred type. `sheet`
+ * is the one the cell sits on, which is where an unqualified list range is read from.
  */
 function resolveCellMeta(
-  cell: CellSnapshot, inferred: InferredType | null, workbook: WorkbookSnapshot, dropped: DroppedFeatures
+  cell: CellSnapshot, inferred: InferredType | null, sheet: SheetSnapshot, workbook: WorkbookSnapshot,
+  dropped: DroppedFeatures
 ): ImportColumn | null {
   if (inferred?.type === 'numeric' && inferred.unsupportedNumFmt) {
     dropped.record(`numFmt:${inferred.unsupportedNumFmt}`);
   }
 
   if (cell.validation) {
-    const source = resolveListSource(cell.validation, workbook);
+    const source = resolveListSource(cell.validation, workbook, sheet);
 
     if (source) {
       return { type: 'dropdown', source };
@@ -444,7 +446,7 @@ interface CollectContext {
 function collectCell(pass: CellPass, cell: CellSnapshot, row: number, col: number, scope: CollectContext): void {
   const { sheet, workbook, options, context, shift, dropped } = scope;
   const inferred = options.inferCellTypes ? inferCellType(cell) : null;
-  const meta = options.inferCellTypes ? resolveCellMeta(cell, inferred, workbook, dropped) : null;
+  const meta = options.inferCellTypes ? resolveCellMeta(cell, inferred, sheet, workbook, dropped) : null;
 
   if (meta) {
     pass.metaByCell.set(`${row}:${col}`, meta);

@@ -471,9 +471,14 @@ function readRangeValues(sheet: SheetSnapshot, range: RangeRef): string[] {
 
 /**
  * Turns a list validation into a dropdown source: an inline `"a,b,c"` list is split, a range
- * reference is read column-first from the referenced sheet. Anything else returns `null`.
+ * reference is read column-first from the sheet it names - or from `sheet`, the one the validation
+ * sits on, when it names none. Excel stores a list whose source range is on the same sheet as a
+ * bare `$A$1:$A$10`; only a range on another sheet, such as the export's own `_HotValidation`
+ * helper, carries a `Sheet!` qualifier. Anything else returns `null`.
  */
-export function resolveListSource(validation: CellValidationSnapshot, workbook: WorkbookSnapshot): string[] | null {
+export function resolveListSource(
+  validation: CellValidationSnapshot, workbook: WorkbookSnapshot, sheet: SheetSnapshot
+): string[] | null {
   const [formula] = validation.formulae;
 
   if (typeof formula !== 'string' || formula === '') {
@@ -487,17 +492,12 @@ export function resolveListSource(validation: CellValidationSnapshot, workbook: 
   }
 
   const separator = formula.lastIndexOf('!');
-
-  if (separator === -1) {
-    return null;
-  }
-
-  const sheet = findSheet(workbook, formula.slice(0, separator));
+  const source = separator === -1 ? sheet : findSheet(workbook, formula.slice(0, separator));
   const range = parseRangeRef(formula.slice(separator + 1));
 
-  if (!sheet || !range) {
+  if (!source || !range) {
     return null;
   }
 
-  return readRangeValues(sheet, range);
+  return readRangeValues(source, range);
 }
