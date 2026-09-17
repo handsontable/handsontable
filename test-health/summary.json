@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-17T08:09:26.915Z",
+  "generatedAt": "2026-09-17T08:23:26.186Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 19,
     "needsTicket": 4,
     "quarantined": 0,
-    "entries": 73
+    "entries": 74
   },
   "rows": [
     {
@@ -54,9 +54,9 @@
       "file": "handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js",
       "line": null,
       "title": "AutocompleteEditor choices should not sort the choices list, when the `sortByRelevance` option is set to `true`",
-      "count7": 4,
-      "count30": 4,
-      "countAll": 4,
+      "count7": 5,
+      "count30": 5,
+      "countAll": 5,
       "runs30": 4,
       "flakyRuns30": 0,
       "branches30": 4,
@@ -73,8 +73,8 @@
       ],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-09-17T08:08:40Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35195741951",
+        "seenAt": "2026-09-17T08:22:39Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35195741951/attempts/2",
         "branch": "feature/dev-1176_selection-header-padding-c90b",
         "leg": "UMD.min (theme: classic)",
         "status": "failed",
