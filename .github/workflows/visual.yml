@@ -652,8 +652,11 @@ jobs:
     name: approve
     runs-on: ubuntu-latest
     needs: [ compare ]
-    # `!failure()` as well as `!cancelled()`, matching `compare`'s own guard. Any
-    # `if:` replaces the implicit `success()` on `needs`, so `!cancelled()` alone
+    # `!failure()` as well as `!cancelled()`, matching `compare`'s own guard. An
+    # `if:` that CONTAINS a status-check function replaces the implicit `success()`
+    # on `needs` — one that contains none has `success()` ANDed onto it instead,
+    # which is its own trap (see `.ai/CI.md`). Here a function is present, so
+    # `!cancelled()` alone
     # would run this job when `compare` FAILED — and the verdict step writes its
     # output on `always()`, so a failure in a later step of `compare` leaves
     # `verdict == 'changed'` on a red job. A reviewer would then be asked to
