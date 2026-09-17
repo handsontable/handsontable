@@ -71,6 +71,25 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   `cell.value` directly, so a `colHeaders: 'firstRow'` import turned a formula header into `''` and a
   date header into `44927`, and a dropdown pointing at formula cells lost those options (Bugbot round
   3 on #13551). `cellDisplayValue` is the one place the formula/value choice is made.
+- **Capture the currency BEFORE classifying a number format as temporal.** `CHF#,##0.00`, `SEK#,##0` and
+  `HK$#,##0` carry an `h` or an `s` that `classifyTemporal` reads as a format code, so the export's own
+  output for those currencies came back as `time` columns with `1234.5` turned into `12:00:00`.
+  `inferCellType` therefore classifies `captureCurrency(numFmt).rest`, and `captureCurrency` recognizes a
+  bare ISO code or dollar composite (`BARE_CURRENCY_REGEX`, anchored to the `#`/`0` digits so `YYYY-MM-DD`
+  is never a currency) on top of the symbol table.
+- **A list validation is resolved once per formula per pass** (`resolveDropdownMeta`, cache on
+  `CollectContext.listMetaByFormula`). A validated column repeats the same formula on every cell and
+  `readRangeValues` walks the whole range each time, so a 100k-row dropdown over a 1,000-row list used to
+  cost 10^8 cell reads. The cached meta object is shared by every cell that carries the formula, which is
+  also what lets `columnMetaAgrees` settle a dropdown column by reference instead of `JSON.stringify`-ing a
+  source list per cell. Do not clone the meta per cell.
+- **Guard `this.hot` after every `await`.** The workbook read (and `blob.arrayBuffer()`) is the plugin's
+  async boundary; `BasePlugin#destroy` deletes `hot`, so a grid torn down mid-read used to surface as a raw
+  `Cannot read properties of undefined`. Both entry points now reject with a Handsontable error instead.
+- **Never read `worksheet.model` in the ExcelJS adapter.** It is a getter that re-serializes the whole
+  worksheet (every row, every cell) on each access. Merges are collected inside the row pass
+  (`trackMerge`, keyed by the master cell) and sheet protection is `worksheet.sheetProtection`, which the
+  reader sets straight from the XML.
 - **`applyImportResult` relies on `hot.batch` resuming in `finally`.** The callback runs host hooks
   (`beforeLoadData`, `afterUpdateSettings`) that can throw, and before #13551 the core helpers
   resumed only on the happy path, leaving the grid render-suspended for good. The fix lives in
@@ -156,7 +175,10 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   **A qualified reference (`Rates!A1`, `'My Rates'!$A$1:$B$2`) is never shifted, in either direction**: the
   band exists on this sheet only, so the regex captures the whole `Sheet!ref[:ref]` as an untouched token
   and the mapper never sees it. Shifting it used to turn `=Data!A2` into `=Data!A1` under a `firstRow`
-  header and drop `=Data!A1` outright (Bugbot on #13551). The sheet-name alternatives are deliberately
+  header and drop `=Data!A1` outright (Bugbot on #13551). The cell alternative is case-insensitive (`i`
+  flag: HyperFormula accepts `=sum(a1)` and the export hands the source string over as typed) and guarded
+  on the left by `(?<![\p{L}\p{N}_.$])`, so a defined name (`TOTAL1` → `AL1`) or a structured reference
+  (`TABLE1[Col]` → `BLE1`) never yields a reference. The sheet-name alternatives are deliberately
   wide: `''` escapes an apostrophe inside a quoted name (`'O''Brien'!A1`) and a bare name is
   `[\p{L}\p{N}_.]+` under the `u` flag, because Excel leaves `Лист1` unquoted — an ASCII-only class
   shifted both (Bugbot round 2).
