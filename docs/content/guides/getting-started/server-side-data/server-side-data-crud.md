@@ -46,7 +46,31 @@ Called when the user inserts rows (for example from the context menu). Payload s
 - `referenceRowId`: anchor row id when inserting next to a row (from `rowId`); may be `undefined` when there is no anchor (for example some programmatic inserts).
 - `rowsAmount`: how many rows to create in one request.
 
-Your API should create the rows and return a promise. Handsontable refetches the current query after success.
+Your API should create the rows and return a promise. By default, Handsontable refetches the current query after success.
+
+Set `refetchAfterCreate: false` to skip that refetch. Use it when your `onRowsCreate` applies the server response to the grid itself. For example, when the grid is sorted, a refetched new row can land on a different page. With the refetch off, you decide where the row appears and how pagination updates. [`afterRowsMutation`](@/api/hooks.md#afterrowsmutation) still fires with `('create', { rowsCreate })`. Rows created from the context menu are not inserted locally, so with the refetch off the grid does not change until your code updates it.
+
+```js
+dataProvider: {
+  // ...
+  refetchAfterCreate: false,
+  onRowsCreate: async ({ position, referenceRowId, rowsAmount }) => {
+    const response = await fetch('/api/products', {
+      method: 'POST',
+      body: JSON.stringify({ position, referenceRowId, rowsAmount }),
+    });
+    const created = await response.json();
+    const rows = hot.getSourceData();
+    const anchor = rows.findIndex((row) => row.id === referenceRowId);
+    const insertAt = anchor >= 0 ? anchor + (position === 'above' ? 0 : 1) : rows.length;
+
+    rows.splice(insertAt, 0, ...created);
+    hot.loadData(rows);
+
+    return created;
+  },
+},
+```
 
 Create, update, and remove requests are **serialized**: if the user triggers another mutation before the previous one finishes, work runs in order so your backend sees a single stream of operations.
 
@@ -71,7 +95,7 @@ From the plugin instance (`hot.getPlugin('dataProvider')`), you can also call [`
 ### Mutation hooks
 
 - [`beforeRowsMutation`](@/api/hooks.md#beforerowsmutation) — `(operation, payload)`; return `false` to cancel. For **create** and **remove**, the server callback is not invoked and there is no refetch. For **update** from the grid, `false` reverts optimistic cell values and skips `onRowsUpdate`; cell validators run only when the hook allows the mutation to continue.
-- [`afterRowsMutation`](@/api/hooks.md#afterrowsmutation) — runs after the server mutation callback succeeds and before the post-mutation refetch.
+- [`afterRowsMutation`](@/api/hooks.md#afterrowsmutation) — runs after the server mutation callback succeeds and before the post-mutation refetch (for `create`, the refetch is skipped when `refetchAfterCreate` is `false`).
 - [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror) — runs when the mutation callback throws or rejects, when validation fails before the request, or when the refetch after a successful update fails.
 
 `operation` is `'create'`, `'update'`, or `'remove'`. The hook `payload` is a wrapper object, not the same reference as the callback argument: `'create'` uses `{ rowsCreate }` (same inner shape as `onRowsCreate`), `'update'` uses `{ rows }` (the array passed to `onRowsUpdate`), and `'remove'` uses `{ rowsRemove }` (the id array passed to `onRowsRemove`).

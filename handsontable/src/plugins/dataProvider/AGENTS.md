@@ -16,8 +16,24 @@ The `dataProvider` plugin backs the grid with a remote source via `fetchRows` an
 - **`#commitRowsUpdate`'s ctx (`fetchData: () => this.fetchData({ skipLoading: true })`) must keep rejecting.** `query/crud.ts` catches it to revert the optimistic cell values and log `Data reload failed:`. Do not "consistency-fix" this one to the silent wrapper.
 - **Pagination ctx callbacks stay rejecting too** — `query/pagination.ts` catches them to revert the page or page size.
 
+## Optional config keys vs the completeness check
+
+`isCompleteDataProviderConfig()` (`utils.ts`) decides `hasExternalDataSource`. It iterates `REQUIRED_CONFIG_KEYS`, **not** `Object.keys(SETTINGS_VALIDATORS)`. Every validator in `SETTINGS_VALIDATORS` runs only when the key is present (`BasePlugin#updatePluginSettings`), but the completeness check runs the validator on the *absent* value. So a new optional key with a strict validator (`refetchAfterCreate`, `typeof value === 'boolean'`) would have made every existing config incomplete and silently turned server mode off — the pre-existing "complete config" unit test fails the moment the check iterates the validator keys again. Add optional keys to `SETTINGS_VALIDATORS` and `DEFAULT_SETTINGS`; add a key to `REQUIRED_CONFIG_KEYS` only when the plugin cannot run without it (DEV-1679).
+
+`refetchAfterCreate` is read from the raw config (`#shouldRefetchAfterCreate()`), like every other key here, not through `getSetting()`. `#pluginSettings` in the base class keeps keys a later `updateSettings()` omits, so `getSetting()` would keep an old `false` alive after the integrator drops the key. Only the create path honors the flag; update and remove keep their unconditional refetch (remove also owns page-rollback logic that a skip would have to reason about).
+
 ## Where to look next
 
 - Plugin source: `dataProvider.ts`.
 - Plugin contract, hooks, settings validation, lifecycle: `handsontable-plugin-dev` skill.
 - Data flow and error-UI architecture: `handsontable/.ai/ARCHITECTURE.md` (Plugin System).
+
+## Testing
+
+From `handsontable/`:
+
+- Unit: `npm run test:unit --testPathPattern=plugins/dataProvider`
+- Legacy specs for one area: `npm run test:e2e --testPathPattern=dataProvider/__tests__/methods/createRows` (the pattern is compiled into the bundle; re-run `test:e2e.dump` when you change it)
+- Whole plugin: `npm run test:e2e --testPathPattern=plugins/dataProvider`
+
+The `__tests__/` tree is split by kind: `methods/`, `hooks/`, `plugins/` (interactions with Pagination, Filters, ColumnSorting), `query/*.unit.js`, plus `alter.spec.js` for the context-menu insert/remove path. Specs that must assert "no refetch happened" wait on the `afterRowsMutation` spy: the refetch, when enabled, starts synchronously right after that hook, so `fetchRows` already reflects it.
