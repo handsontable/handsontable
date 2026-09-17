@@ -44,6 +44,10 @@
 <body>
   <div id="grid" data-testid="grid"></div>
 
+  <!-- Positive control: a span the grid does not own. The spec asserts this one DOES take the host
+       rule, so a fixture edit that silences the rule turns the spec red instead of vacuously green. -->
+  <span data-testid="host-control">host control</span>
+
   <script>
     // The bundle under test is appended and the fixture waits for its `load` before building the
     // grid, so a late or failed request can never run the init below with no `Handsontable`.

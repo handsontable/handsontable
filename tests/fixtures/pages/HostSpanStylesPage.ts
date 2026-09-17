@@ -35,6 +35,11 @@ export class HostSpanStylesPage {
   readonly bundle: string;
 
   /**
+   * A span outside the grid. It must compute the host values; that proves the hostile rule is live.
+   */
+  readonly hostControl: Locator;
+
+  /**
    * The pagination bar root (a div). Cascade parent of both labels.
    */
   readonly paginationBar: Locator;
@@ -51,7 +56,8 @@ export class HostSpanStylesPage {
   readonly overflow: Locator;
 
   /**
-   * First column header th, and the span inside it (guarded since #11306).
+   * The "Airport" column header th (index 1: index 0 is the row-header corner cell) and the span
+   * inside it. Any `span.colHeader` serves the #11306 regression pin; do not "fix" the index.
    */
   readonly columnHeaderCell: Locator;
   readonly columnHeaderSpan: Locator;
@@ -60,6 +66,8 @@ export class HostSpanStylesPage {
     this.page = page;
     this.theme = theme;
     this.bundle = bundle;
+
+    this.hostControl = page.getByTestId('host-control');
 
     this.paginationBar = page.locator('.ht-pagination');
     this.pageSizeLabel = this.paginationBar.locator('.ht-page-size-section__label');
@@ -85,6 +93,12 @@ export class HostSpanStylesPage {
     await awaitBundle(this.page);
 
     const errorMessage = pageErrors.length > 0 ? `the fixture page threw: ${pageErrors.join(' | ')}` : undefined;
+
+    // Fail loud if the fixture's hostile `span {}` rule is not applying: without it every later
+    // "span equals parent" assertion would pass with the guard reverted.
+    for (const property of TEXT_PROPERTIES) {
+      await expect(this.hostControl, errorMessage).toHaveCSS(property, HOST_SPAN_STYLES[property]);
+    }
 
     await expect(this.pageNavLabel, errorMessage).toBeVisible();
     await expect(this.chip, errorMessage).toBeVisible();

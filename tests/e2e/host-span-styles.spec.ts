@@ -16,10 +16,11 @@ import {
  * Each test compares a span with its non-span cascade parent rather than with a hardcoded token,
  * so the assertion holds across main/horizon/classic and light/dark. A guard first proves the
  * parent's value differs from the host's, so an unfixed span (which computes to the host value)
- * can never match by coincidence.
+ * can never match by coincidence. A control span outside the grid must compute the host values
+ * first, so a fixture that silences the hostile rule fails loud instead of passing vacuously.
  */
 test.describe('host-page span styles do not leak into grid UI spans', () => {
-  async function expectNotHostValues(metrics: TextMetrics): Promise<void> {
+  function expectNotHostValues(metrics: TextMetrics): void {
     for (const property of TEXT_PROPERTIES) {
       expect(metrics[property], `${property} of the cascade parent coincides with the host value`)
         .not.toBe(HOST_SPAN_STYLES[property]);
@@ -33,7 +34,7 @@ test.describe('host-page span styles do not leak into grid UI spans', () => {
 
     const expected = await fixture.textMetrics(fixture.paginationBar);
 
-    await expectNotHostValues(expected);
+    expectNotHostValues(expected);
 
     for (const label of [fixture.pageSizeLabel, fixture.pageNavLabel]) {
       for (const property of TEXT_PROPERTIES) {
@@ -49,7 +50,7 @@ test.describe('host-page span styles do not leak into grid UI spans', () => {
 
     const expected = await fixture.textMetrics(fixture.multiselectCell);
 
-    await expectNotHostValues(expected);
+    expectNotHostValues(expected);
 
     for (const span of [fixture.chip, fixture.chipLabel, fixture.chipRemove, fixture.overflow]) {
       for (const property of TEXT_PROPERTIES) {
