@@ -227,7 +227,8 @@ export class ResizeGesture {
 
   /**
    * Ends the double-click window, and applies the auto-size when the window saw a double-click.
-   * A held second press hides the guide here rather than on mouseup (DEV-1038).
+   * A held second press hides the guide here rather than on mouseup (DEV-1038). A second press
+   * that already moved the pointer is a drag: the press stays so mouseup can still save a size.
    *
    * @fires Hooks#beforeRowResize
    * @fires Hooks#afterRowResize
@@ -277,11 +278,19 @@ export class ResizeGesture {
       // DEV-1038: the second mousedown already showed the guide, and autosize runs from this
       // timer rather than from mouseup. A hold after that press therefore used to leave the
       // guide `active` until the button came up. Hide it now. Do not detach – that is the
-      // DEV-2719 flicker, and `#hideHandleAndGuide()` only strips `active`. End the press so
-      // a later mousemove cannot overwrite the autosize, and so the matching mouseup takes
-      // the idle branch instead of firing the drag-end hooks a second time.
+      // DEV-2719 flicker, and `#hideHandleAndGuide()` only strips `active`.
+      //
+      // `#newSize` is reset to `#startSize` on every press and written on mousemove, so they
+      // still matching means a still hold: end the press so a later mousemove cannot
+      // overwrite the autosize, and so the matching mouseup takes the idle branch instead of
+      // firing the drag-end hooks a second time. A press that already moved is a drag – keep
+      // `#pressed` so later mousemove/mouseup continue. `#setupHandlePosition` below then
+      // resets `#startSize` the way a completed autosize always did.
       this.#hideHandleAndGuide();
-      this.#pressed = false;
+
+      if (this.#newSize === this.#startSize) {
+        this.#pressed = false;
+      }
 
       if (this.#selectedIndexes.length > 1) {
         arrayEach(this.#selectedIndexes, index => resize(index));

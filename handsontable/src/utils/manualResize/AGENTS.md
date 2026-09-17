@@ -144,10 +144,18 @@ therefore opens with a bail on `owner.isActive()` that still resets the timeout 
 **A held double-click must hide the guide when autosize runs (DEV-1038).** `#onMouseDown` shows the guide
 and `#onMouseUp` is what used to hide it. Autosize is not mouseup: it is this 500ms timer, so a second
 press that is held left the guide `active` (`display: block`) until the button came up. The timer hides
-it (and clears `#pressed`) when `#dblclick >= 2`. It still must not detach – that is the flicker trap
-above. A first press that is held is a drag, so the same timer must leave the guide alone when the count
-is below two. Pinned in `__tests__/resizeGesture.unit.js` ("should hide the guide as soon as a held
-double-click autosizes") and `../../../../tests/e2e/manual-resize-dblclick-hold-guide.spec.ts`.
+it when `#dblclick >= 2`. It still must not detach – that is the flicker trap above. A first press that
+is held is a drag, so the same timer must leave the guide alone when the count is below two.
+
+**Do not clear `#pressed` on every dblclick timeout.** `#newSize` is reset to `#startSize` on each press
+and written on mousemove. They still matching is a still hold: clear `#pressed` so a later mousemove
+cannot overwrite the autosize and mouseup takes the idle branch (no second round of drag-end hooks).
+They differing means the second press already started a drag: keep `#pressed`. The `#setupHandlePosition`
+that follows then resets `#startSize`, so later mousemove/mouseup keep following the pointer – the
+develop path a blanket `#pressed = false` dropped. Pinned in `__tests__/resizeGesture.unit.js` ("should
+hide the guide as soon as a held double-click autosizes", "should keep a drag that starts on the second
+press alive after the autosize timer"). The still-hold hide is also in
+`../../../../tests/e2e/manual-resize-dblclick-hold-guide.spec.ts`.
 
 ## `afterMouseDownTimeout()` stays on both plugins
 
@@ -234,4 +242,5 @@ one test red. The browser half of the traps is pinned by `tests/e2e/manual-resiz
 the swallowed click, the double-click flicker, the pending timeout) and
 `tests/e2e/manual-resize-drag-interruption.spec.ts` (the drag surviving the update cycle).
 DEV-1038 is pinned by `__tests__/resizeGesture.unit.js` (the held double-click hides the guide, a held
-single press does not) and `tests/e2e/manual-resize-dblclick-hold-guide.spec.ts`.
+single press does not, a second press that already moved keeps the drag). The still-hold hide is also
+in `tests/e2e/manual-resize-dblclick-hold-guide.spec.ts`.

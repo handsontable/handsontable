@@ -440,16 +440,58 @@ describe('ResizeGesture', () => {
 
     it('should keep the guide active through a held single press whose window closes without autosize', () => {
       // The other half of DEV-1038: a first mousedown that is held is a drag, not an autosize.
-      // Closing the 500ms window must not hide the guide while the button is still down.
-      const { th, handle, guide, timeouts } = createGesture();
+      // Closing the 500ms window must not hide the guide while the button is still down, and
+      // must not clear `#pressed` – a later mousemove has to keep following the pointer.
+      const { th, owner, handle, guide, timeouts } = createGesture();
 
       mouse('mouseover', th);
-      mouse('mousedown', handle());
+      mouse('mousedown', handle(), { pageY: 10 });
 
       timeouts[0]();
 
       expect(handle().classList.contains('active')).toBe(true);
       expect(guide().classList.contains('active')).toBe(true);
+
+      mouse('mousemove', window, { pageY: 40 });
+
+      expect(owner.setManualSize).toHaveBeenCalledWith(2, 30);
+    });
+
+    it('should keep a drag that starts on the second press alive after the autosize timer', () => {
+      // A click on the handle followed by a press that starts dragging before the 500ms window
+      // closes: the timer still autosizes and hides the guide (DEV-1038), but `#pressed` stays
+      // so later mousemove follows the pointer and mouseup saves that size. `#newSize` already
+      // differs from `#startSize` after the in-window move, which is how the timeout tells a
+      // drag from a still hold.
+      const { hot, th, owner, handle, guide, timeouts } = createGesture();
+
+      hot.runHooks.mockImplementation(hookName => (hookName === 'beforeTestResize' ? 55 : undefined));
+
+      mouse('mouseover', th);
+      mouse('mousedown', handle(), { pageY: 10 });
+      mouse('mouseup', window);
+      mouse('mousedown', handle(), { pageY: 10 });
+      mouse('mousemove', window, { pageY: 40 });
+
+      expect(owner.setManualSize).toHaveBeenCalledWith(2, 30);
+
+      timeouts[0]();
+
+      expect(owner.setManualSize).toHaveBeenCalledWith(2, 55);
+      expect(afterResizeCalls(hot)).toEqual([['afterTestResize', 55, 2, true]]);
+      expect(handle().classList.contains('active')).toBe(false);
+      expect(guide().classList.contains('active')).toBe(false);
+
+      owner.setManualSize.mockClear();
+      hot.runHooks.mockReset();
+      mouse('mousemove', window, { pageY: 70 });
+
+      expect(owner.setManualSize).toHaveBeenCalledWith(2, 60);
+
+      mouse('mouseup', window);
+
+      expect(hot.runHooks).toHaveBeenCalledWith('beforeTestResize', 60, 2, false);
+      expect(hot.runHooks).toHaveBeenCalledWith('afterTestResize', 60, 2, false);
     });
   });
 });
