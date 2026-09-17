@@ -120,6 +120,9 @@ describe('Core.clear', () => {
     await clear();
 
     expect(getDataAtCell(2, 2)).toBe('C3');
+    // Asserted away from the highlighted cell on purpose: `(0, 0)` is emptied even when `clear()`
+    // is limited to the selection, so checking it alone would pass with the limitation in place.
+    expect(getDataAtCell(2, 1)).toBeNull();
     expect(getDataAtCell(0, 0)).toBeNull();
   });
 
