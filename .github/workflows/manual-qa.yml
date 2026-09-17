@@ -9,8 +9,8 @@ name: Manual QA
 # no runner is spent on it. When it does run, the `sign-off` job pauses on
 # the `manual-qa` ENVIRONMENT until a designated reviewer approves the run
 # ("Review pending deployments" on the run page — GitHub records the
-# approver and any comment as the deployment review, and the environment's
-# "Prevent self-review" keeps the person who triggered the run out). While
+# approver and any comment as the deployment review; the environment does
+# NOT block self-review, by decision — see the cutover note below). While
 # it waits, this module never completes, so CI Gate — which needs it —
 # cannot report and the merge stays blocked; a rejection fails the job and
 # turns CI Gate red.
@@ -30,7 +30,11 @@ name: Manual QA
 # is a marker for the PR list, never the trigger.
 #
 # Cutover (repo admin): create the `manual-qa` environment with required
-# reviewers (users or teams) plus "Prevent self-review". It MUST exist with
+# reviewers (users or teams). "Prevent self-review" is deliberately OFF
+# (decided 2026-09-17, the same as `visual-approval`): the reviewer list is
+# the team, and a designated reviewer approving a run they also pushed is
+# accepted — the name recorded on the deployment review is the
+# accountability, not the exclusion. It MUST exist with
 # reviewers before the first ticked PR — a job that references a missing
 # environment silently auto-creates it UNPROTECTED, and the gate would wave
 # everything through. From this pipeline, branch protection needs only
@@ -85,8 +89,8 @@ jobs:
             if (!signOff) {
               core.setFailed('This job ran without a recorded manual-qa approval, which means the '
                 + '`manual-qa` environment has no required reviewers (a missing environment is '
-                + 'auto-created unprotected). Configure it — required reviewers plus "Prevent '
-                + 'self-review" — and re-run; the gate is not enforcing anything until then.');
+                + 'auto-created unprotected). Configure it with required reviewers and re-run; the '
+                + 'gate is not enforcing anything until then.');
               return;
             }
             core.notice(`Manual QA signed off by @${signOff.user.login}`

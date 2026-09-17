@@ -179,10 +179,11 @@ Seven things about this pipeline are worth knowing before changing it.
   per-screenshot review — so read the report before approving. The deployment's URL is the diff report
   (`report-url` output), so "View deployment" opens it. The job asserts an approval is recorded through the
   approvals API and fails closed: a missing or unprotected environment turns the job red rather than waving
-  the differences through, so the environment must exist with required reviewers — **and with "Prevent
-  self-review" ticked** — before the first pull request with differences runs. The tick carries weight the
-  assertion cannot: a self-approval is a recorded approval like any other, so without it the author signs
-  off their own differences, which is the rubber-stamping this replaces rather than a fix for it.
+  the differences through, so the environment must exist with required reviewers before the first pull
+  request with differences runs. "Prevent self-review" is deliberately **off** on `visual-approval` and on
+  `manual-qa` (decided 2026-09-17): the reviewer list is the whole team, and an author approving their own
+  run is accepted — the deployment review records who clicked, and that name is the accountability. The
+  assertion cannot tell a self-approval from any other, so this is policy, not something the job enforces.
   Approving also rewrites the sticky comment that asked (`Record the approval on the pull request`, same
   header), because there is no re-run here to refresh it and the request would otherwise read as pending
   through merge. Fork and Dependabot runs are approved the same way — the reviewer's click
