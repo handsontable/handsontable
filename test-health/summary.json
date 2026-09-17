@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-17T12:08:43.023Z",
+  "generatedAt": "2026-09-17T14:59:00.138Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 27,
     "needsTicket": 5,
     "quarantined": 0,
-    "entries": 105
+    "entries": 106
   },
   "rows": [
     {
@@ -89,12 +89,12 @@
       "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
       "line": 65,
       "title": "grid built into a container that has no layout yet › fills its container without any interaction once the unslotted container is laid out",
-      "count7": 4,
-      "count30": 4,
-      "countAll": 4,
-      "runs30": 4,
-      "flakyRuns30": 4,
-      "branches30": 4,
+      "count7": 5,
+      "count30": 5,
+      "countAll": 5,
+      "runs30": 5,
+      "flakyRuns30": 5,
+      "branches30": 5,
       "legs": [
         "e2e-classic-min",
         "e2e-horizon",
@@ -106,10 +106,10 @@
       "isolation": [],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-09-17T08:32:26Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35195783195/attempts/2",
-        "branch": "feature/DEV-102_Merged-cell-horizontal-exit-top-row",
-        "leg": "e2e-main",
+        "seenAt": "2026-09-17T14:58:12Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35234941839",
+        "branch": "feature/DEV-2825_Dropdown-editor-list-clipped-by-grid",
+        "leg": "e2e-classic-min",
         "status": "flaky",
         "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
