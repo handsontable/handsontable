@@ -396,6 +396,27 @@ describe('mapWorkbook', () => {
     expect(result.sheetNames).toEqual(['Data', '_HotValidation']);
   });
 
+  it('should resolve one list formula once per pass and share the dropdown meta across its cells', () => {
+    const data = createSheetSnapshot('Data');
+    const helper = createSheetSnapshot('_HotValidation');
+    const validation = { type: 'list', allowBlank: true, formulae: ['\'_HotValidation\'!$A$1:$A$2'] };
+
+    helper.rows = [[text('Open')], [text('Closed')]];
+    // Two columns, three rows each, all pointing at the same range: six validated cells.
+    data.rows = [
+      [cell({ value: 'Open', validation }), cell({ value: 'Closed', validation })],
+      [cell({ value: 'Open', validation }), cell({ value: 'Open', validation })],
+      [cell({ value: 'Closed', validation }), cell({ value: 'Closed', validation })],
+    ];
+
+    const { result } = map(workbook(data, helper));
+
+    expect(result.columns[0]).toEqual({ type: 'dropdown', source: ['Open', 'Closed'] });
+    // The same object, not an equal copy: the range was read once and the meta reused, so a
+    // 100k-row dropdown column costs one range walk rather than one per cell.
+    expect(result.columns[1]).toBe(result.columns[0]);
+  });
+
   it('should turn a same-sheet list range into a dropdown column', () => {
     const data = createSheetSnapshot('Data');
 

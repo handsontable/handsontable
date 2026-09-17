@@ -244,25 +244,54 @@ interface CellPass {
 }
 
 /**
- * Resolves the meta of one cell: dropdown from its list validation, else the inferred type. `sheet`
- * is the one the cell sits on, which is where an unqualified list range is read from.
+ * Resolves a list validation into its dropdown meta, once per distinct formula within a pass. A
+ * validated column repeats the same formula on every cell, and reading the range each time walks
+ * it in full: a 100k-row dropdown column over a 1,000-row list used to cost 10^8 cell reads. The
+ * cached meta object is shared by every cell that carries the formula, so `columnMetaAgrees` can
+ * recognize the column by reference instead of serializing each entry. `null` is cached too, so an
+ * unresolvable list is reported once per pass rather than once per cell.
+ */
+function resolveDropdownMeta(cell: CellSnapshot, scope: CollectContext): ImportColumn | null {
+  const validation = cell.validation;
+
+  if (!validation) {
+    return null;
+  }
+
+  const key = validation.formulae.join('\u0000');
+
+  if (scope.listMetaByFormula.has(key)) {
+    return scope.listMetaByFormula.get(key) ?? null;
+  }
+
+  const source = resolveListSource(validation, scope.workbook, scope.sheet);
+  const meta: ImportColumn | null = source ? { type: 'dropdown', source } : null;
+
+  if (!meta) {
+    scope.dropped.record('dataValidation:unresolvedList');
+  }
+
+  scope.listMetaByFormula.set(key, meta);
+
+  return meta;
+}
+
+/**
+ * Resolves the meta of one cell: dropdown from its list validation, else the inferred type.
  */
 function resolveCellMeta(
-  cell: CellSnapshot, inferred: InferredType | null, sheet: SheetSnapshot, workbook: WorkbookSnapshot,
-  dropped: DroppedFeatures
+  cell: CellSnapshot, inferred: InferredType | null, scope: CollectContext
 ): ImportColumn | null {
   if (inferred?.type === 'numeric' && inferred.unsupportedNumFmt) {
-    dropped.record(`numFmt:${inferred.unsupportedNumFmt}`);
+    scope.dropped.record(`numFmt:${inferred.unsupportedNumFmt}`);
   }
 
   if (cell.validation) {
-    const source = resolveListSource(cell.validation, workbook, sheet);
+    const dropdown = resolveDropdownMeta(cell, scope);
 
-    if (source) {
-      return { type: 'dropdown', source };
+    if (dropdown) {
+      return dropdown;
     }
-
-    dropped.record('dataValidation:unresolvedList');
   }
 
   return inferred ? toMeta(inferred) : null;
@@ -414,15 +443,20 @@ interface CollectContext {
    * Where dropped features are recorded.
    */
   dropped: DroppedFeatures;
+  /**
+   * Dropdown meta already resolved in this pass, keyed by the list validation's formula. `null`
+   * marks a formula that could not be resolved.
+   */
+  listMetaByFormula: Map<string, ImportColumn | null>;
 }
 
 /**
  * Collects one cell into the pass, in the window's own 0-based coordinates.
  */
 function collectCell(pass: CellPass, cell: CellSnapshot, row: number, col: number, scope: CollectContext): void {
-  const { sheet, workbook, options, context, shift, dropped } = scope;
+  const { sheet, options, context, shift, dropped } = scope;
   const inferred = options.inferCellTypes ? inferCellType(cell) : null;
-  const meta = options.inferCellTypes ? resolveCellMeta(cell, inferred, sheet, workbook, dropped) : null;
+  const meta = options.inferCellTypes ? resolveCellMeta(cell, inferred, scope) : null;
 
   if (meta) {
     pass.metaByCell.set(`${row}:${col}`, meta);
@@ -480,6 +514,7 @@ function collectCells(
       ? { rowDelta: -window.firstRow, colDelta: -window.firstCol }
       : null,
     dropped,
+    listMetaByFormula: new Map(),
   };
 
   for (let row = window.firstRow; row <= window.lastRow; row++) {
@@ -552,17 +587,26 @@ function cellMetaEntryAt(
 
 /**
  * Whether every cell of one column derived the same meta, which is what lets it be lifted to
- * `columns`. The first entry is serialized once and compared against each of the others, so a column
- * that disagrees on its second cell costs two serializations rather than one per cell.
+ * `columns`. Reference-equal entries agree at once; otherwise the first entry is serialized once
+ * and compared against each of the others, so a column that disagrees on its second cell costs two
+ * serializations rather than one per cell.
  */
 function columnMetaAgrees(entries: Array<[number, ImportColumn]>): boolean {
   if (entries.length === 0) {
     return false;
   }
 
-  const first = JSON.stringify(entries[0][1]);
+  let first: string | null = null;
 
   for (let index = 1; index < entries.length; index++) {
+    // A dropdown column shares one cached meta object across its cells, so the reference check
+    // settles it without serializing a source list per cell.
+    if (entries[index][1] === entries[0][1]) {
+      continue;
+    }
+
+    first = first ?? JSON.stringify(entries[0][1]);
+
     if (JSON.stringify(entries[index][1]) !== first) {
       return false;
     }
