@@ -38,6 +38,13 @@
 
         &__label {
           white-space: nowrap;
+          // DEV-75. Declared, not inherited by default: a host rule on bare `span` beats inheritance,
+          // so the label took the host's size while the buttons and select beside it kept the token.
+          // `inherit` (not the token) keeps a user's own `.ht-pagination` override in force.
+          font-size: inherit;
+          line-height: inherit;
+          font-weight: inherit;
+          letter-spacing: inherit;
         }
 
         &__select-wrapper {
@@ -157,6 +164,11 @@
           white-space: nowrap;
           min-width: 100px;
           text-align: center;
+          // DEV-75. See `.ht-page-size-section__label`.
+          font-size: inherit;
+          line-height: inherit;
+          font-weight: inherit;
+          letter-spacing: inherit;
         }
       }
     }
