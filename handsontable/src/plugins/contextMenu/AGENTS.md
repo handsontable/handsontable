@@ -279,6 +279,16 @@ is green whether or not the listener is still attached. The leak assertion reads
 `Handsontable._getListenersCounter()` instead (`handsontable/src/index.ts`, exposed for the
 memory-leak tests). Any new assertion there needs the same care.
 
+## Tab from the menu must mark Tab navigation (DEV-102)
+
+`menu/defaultShortcutsList.ts` handles Tab / Shift+Tab by calling `hot.selection.transformStart`
+with the same `(0, ±1)` delta as an arrow key, then closing the menu. MergeCells snaps a non-Tab
+horizontal `transformStart` to the merge's top row, so this path has to call
+`selection.markTabNavigation()` (and `markEndSource()` after the transform) or Tab from an open
+menu would leave a merged cell on the top row instead of the row it cycles along. It does not go
+through `inlineStart`/`inlineEnd`, so the grid Tab commands cannot cover it. Pinned by
+`tests/e2e/merge-cells-horizontal-exit.spec.ts`.
+
 ## Where to look next
 
 - DropdownMenu specifics: `handsontable/src/plugins/dropdownMenu/AGENTS.md`.

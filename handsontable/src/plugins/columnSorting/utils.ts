@@ -4,7 +4,7 @@ import { eventTargetEl, isBottomMostColumnHeader } from '../../helpers/dom/eleme
 import { isEmpty } from '../../helpers/mixed';
 import { parseToLocalDate, parseToLocalTime, parseToLocalDateTime } from '../../helpers/dateTime';
 import { DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND } from './sortService';
-import { warn, warnOnce } from '../../helpers/console';
+import { warn, warnAboutGridLevelOptionInColumns } from '../../helpers/console';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 
 export const ASC_SORT_STATE = 'asc';
@@ -260,8 +260,7 @@ export function warnAboutPluginsConflict(workingPlugin: string, disabledPlugin: 
  * @param {string} pluginKey The plugin the option was written under.
  */
 export function warnAboutPerColumnSortFixedRows(scope: object, pluginKey: string) {
-  warnOnce(scope, `${pluginKey}.perColumnSortFixedRows`, toSingleLine`The \`sortFixedRows\` option was set\x20
-    inside \`columns\`, where it has no effect.\x20
-    It is a grid-level option, because \`fixedRowsTop\` and \`fixedRowsBottom\` pin rows for the whole\x20
-    table. Move it to the grid-level \`${pluginKey}\` settings.`);
+  warnAboutGridLevelOptionInColumns(scope, `${pluginKey}.sortFixedRows`, toSingleLine`It is a grid-level\x20
+    option, because \`fixedRowsTop\` and \`fixedRowsBottom\` pin rows for the whole table. Move it to\x20
+    the grid-level \`${pluginKey}\` settings.`);
 }

@@ -11,7 +11,14 @@ import {
 } from '../../../../../helpers/dom/element';
 import { stopImmediatePropagation, isRightClick } from '../../../../../helpers/dom/event';
 import { isMobileBrowser, isMobileOrIpadOS } from '../../../../../helpers/browser';
-import { getCornerStyle, standsBelowColumnHeader } from './utils';
+import {
+  getBorderSettingsProperty,
+  getCornerStyle,
+  lookupSelectionHeader,
+  measureHeaderSelectionBox,
+  resolveHeaderLevel,
+  standsBelowColumnHeader,
+} from './utils';
 import { CUSTOM_SELECTION_TYPE } from '../constants';
 import { getSpreaderOffset } from '../../overlay/spreaderOffset';
 
@@ -282,12 +289,11 @@ class Border {
     for (let i = 0; i < 5; i++) {
       const position = borderDivs[i];
       const div = rootDocument.createElement('div');
-      const getSettingsProperty = (property: string) => {
-        const posSettings = this.settings[position];
-
-        return (posSettings && posSettings[property])
-          ? posSettings[property] : settings.border?.[property];
-      };
+      const getSettingsProperty = (property: string) => getBorderSettingsProperty(
+        this.settings[position],
+        property,
+        settings.border,
+      );
 
       div.className = `wtBorder ${this.settings.className || ''}`; // + borderDivs[i];
 
@@ -1525,8 +1531,9 @@ class Border {
     }
 
     if (this.isEntireColumnSelected(fromRow, toRow)) {
-      const rowHeader = fromRow;
-      const modifiedValues = this.getDimensionsFromHeader('columns', fromColumn, toColumn, rowHeader, containerOffset);
+      const modifiedValues = this.getDimensionsFromHeader(
+        'columns', fromColumn, toColumn, originalFromRow, containerOffset
+      );
       let fromTH = null;
 
       if (modifiedValues) {
@@ -1542,8 +1549,9 @@ class Border {
     let height = toOffset.top + geometryReader.outerHeight(toTDEl) - minTop;
 
     if (this.isEntireRowSelected(fromColumn, toColumn)) {
-      const columnHeader = fromColumn;
-      const modifiedValues = this.getDimensionsFromHeader('rows', fromRow, toRow, columnHeader, containerOffset);
+      const modifiedValues = this.getDimensionsFromHeader(
+        'rows', fromRow, toRow, originalFromColumn, containerOffset
+      );
       let fromTH = null;
 
       if (modifiedValues) {
@@ -1845,9 +1853,13 @@ class Border {
    * @param {string} direction `rows` or `columns`, defines if an entire column or row is selected.
    * @param {number} fromIndex Start index of the selection.
    * @param {number} toIndex End index of the selection.
-   * @param {number} headerIndex The header index as negative value.
+   * @param {number} headerIndex The unclamped selection corner on the perpendicular axis. A
+   *   negative value is a header coordinate (`-1` is closest to the cells). A non-negative value is
+   *   a body index and resolves to the closest header.
    * @param {number} containerOffset Offset of the container.
-   * @returns {Array|boolean} Returns an array of [headerElement, left, width] or [headerElement, top, height], depending on `direction` (`false` in case of an error getting the headers).
+   * @returns {Array|boolean} Returns an array of [headerElement, inlineOrBlockStart, size] —
+   *   `[th, left, width]` in LTR columns, `[th, right, width]` in RTL columns, `[th, top, height]`
+   *   for rows — or `false` when the headers cannot be resolved.
    */
   getDimensionsFromHeader(
     direction: string, fromIndex: number, toIndex: number, headerIndex: number,
@@ -1858,8 +1870,6 @@ class Border {
     let getHeaderFn: ((...args: unknown[]) => HTMLElement | undefined) | null = null;
     let dimensionFn: ((el: HTMLElement) => number) | null = null;
     let entireSelectionClassname: string | null = null;
-    let index: number | null = null;
-    let dimension: number | null = null;
     let dimensionProperty: 'top' | 'left' | null = null;
     let startHeader: HTMLElement | undefined | null = null;
     let endHeader: HTMLElement | undefined | null = null;
@@ -1883,24 +1893,47 @@ class Border {
     }
 
     if (entireSelectionClassname && rootHotElement.classList.contains(entireSelectionClassname)) {
-      type ColHeadersFn = (...args: unknown[]) => unknown;
-      const columnHeaderLevelCount = (this.wot.getSetting('columnHeaders') as ColHeadersFn[]).length;
+      const headerCount = direction === 'rows'
+        ? wtTable.getRowHeadersCount()
+        : wtTable.getColumnHeadersCount();
 
-      startHeader = getHeaderFn?.(fromIndex, columnHeaderLevelCount - headerIndex);
-      endHeader = getHeaderFn?.(toIndex, columnHeaderLevelCount - headerIndex);
+      if (!getHeaderFn || !dimensionFn) {
+        return false;
+      }
+
+      const headerLevel = resolveHeaderLevel(headerCount, headerIndex);
+      const closestLevel = headerCount - 1;
+      const getHeader = (index: number, level: number) => getHeaderFn(index, level);
+      const sizeFn = dimensionFn;
+
+      startHeader = lookupSelectionHeader(getHeader, fromIndex, headerLevel, closestLevel, sizeFn);
+      endHeader = lookupSelectionHeader(getHeader, toIndex, headerLevel, closestLevel, sizeFn);
 
       if (!startHeader || !endHeader) {
         return false;
       }
 
+      const isRtl = this.wot.wtSettings.getSetting('rtlMode');
       const startHeaderOffset = geometryReader.offset(startHeader);
       const endOffset = geometryReader.offset(endHeader);
       const startOff = startHeaderOffset[dimensionProperty!];
       const endOff = endOffset[dimensionProperty!];
       const contOff = containerOffset[dimensionProperty!];
-
-      index = startOff - contOff - 1;
-      dimension = endOff + dimensionFn!(endHeader) - startOff;
+      const startSize = sizeFn(startHeader);
+      const endSize = sizeFn(endHeader);
+      const containerWidth = direction === 'columns' && isRtl
+        ? geometryReader.outerWidth(wtTable.TABLE)
+        : 0;
+      const [index, dimension] = measureHeaderSelectionBox(
+        direction === 'rows' ? 'rows' : 'columns',
+        startOff,
+        endOff,
+        startSize,
+        endSize,
+        contOff,
+        isRtl,
+        containerWidth,
+      );
 
       return [startHeader, index, dimension];
     }

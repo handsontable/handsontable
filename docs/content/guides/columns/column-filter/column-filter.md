@@ -221,10 +221,97 @@ the configuration.
 
 ### Enable filtering for individual columns
 
-You have control over which columns are filterable and for which columns the column menu is enabled.
-In the following demo, only the **Brand** column is filterable, while the other columns are not.
-However, the **Model** column still has the column menu available in case you want to have some
-useful items in the menu such as **Clear column**.
+To turn filtering off for one column, set `filters` to `false` for that column in the
+[`columns`](@/api/options.md#columns) option:
+
+```js
+filters: true,
+dropdownMenu: true,
+columns: [
+  { data: 'brand' },
+  // no filter controls in this column's menu
+  { data: 'model', filters: false },
+],
+```
+
+The column's dropdown menu still opens, so items such as **Clear column** stay available -- only the
+filter controls are gone. Filtering that column through the API still works:
+[`addCondition()`](@/api/filters.md#addcondition) does not consult this option.
+
+`filters` takes different values at the two levels it works at:
+
+| Level | Accepted values | What it does |
+| ----- | --------------- | ------------ |
+| Grid | `true`, `false`, or an object | Switches the plugin on or off, and carries its settings |
+| Inside [`columns`](@/api/options.md#columns) | `false` | Hides the filter controls in that column's dropdown menu |
+
+Only `false` means anything at the column level. The sub-options -- `searchMode` and
+`filterFixedRows` -- are read once for the whole grid, so an object written inside `columns` is
+ignored and logs a warning:
+
+```js
+// WRONG -- ignored, and warns once
+columns: [{ filters: { filterFixedRows: false } }],
+```
+
+TypeScript does not reject that, because a column's settings are typed from the grid's settings.
+Treat the table above as the contract rather than the type.
+
+Turning a column off hides its filter controls; it does not clear a filter the column already has.
+A condition added through the API keeps filtering, and the menu can no longer show it, so clear it
+with [`clearConditions()`](@/api/filters.md#clearconditions) rather than from the menu.
+
+In the following demo, every column is filterable except **Model**. Open that column's menu and the
+filter controls are gone, while the rest of the menu still works.
+
+::: only-for javascript
+
+::: example #exampleDisableFilterForColumn --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/columns/column-filter/javascript/exampleDisableFilterForColumn.html)
+@[code](@/content/guides/columns/column-filter/javascript/exampleDisableFilterForColumn.js)
+@[code](@/content/guides/columns/column-filter/javascript/exampleDisableFilterForColumn.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #exampleDisableFilterForColumn :react --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-filter/react/exampleDisableFilterForColumn.jsx)
+@[code](@/content/guides/columns/column-filter/react/exampleDisableFilterForColumn.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example15 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-filter/angular/example15.ts)
+@[code](@/content/guides/columns/column-filter/angular/example15.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #exampleDisableFilterForColumn :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleDisableFilterForColumn.vue)
+
+:::
+
+:::
+
+For finer control, you can hide individual menu items instead. In the following demo, only the
+**Brand** column is filterable, while the other columns are not. However, the **Model** column still
+has the column menu available in case you want to have some useful items in the menu such as
+**Clear column**.
 
 ::: only-for javascript
 
@@ -809,10 +896,31 @@ value that can never match again.
 
 ## Exclude rows from filtering
 
-You can exclude any number of top or bottom rows from filtering.
+[Frozen rows](@/guides/rows/row-freezing/row-freezing.md) often hold totals or headings rather than
+data. To keep them out of filtering, set the `filterFixedRows` option to `false`:
 
-In the following demo, the first and the last row are [frozen](@/guides/rows/row-freezing/row-freezing.md), and
-filtering doesn't affect them.
+```js
+fixedRowsTop: 1,
+fixedRowsBottom: 1,
+filters: {
+  // the frozen rows take no part in filtering
+  filterFixedRows: false,
+},
+```
+
+Those rows are then never hidden by a filter, and their values are not offered in the **Filter by
+value** list. This works for any number of rows frozen at either end.
+
+`filterFixedRows` is `true` by default, which means frozen rows are filtered like any other row. It
+is a grid-level option, because [`fixedRowsTop`](@/api/options.md#fixedrowstop) and
+[`fixedRowsBottom`](@/api/options.md#fixedrowsbottom) freeze rows for the whole table.
+
+Which rows are exempt follows the rows on screen, so it keeps up as the grid changes: adding or
+removing a row at either end, moving rows, and sorting all re-apply the filter with the new frozen
+rows. The option has no effect while the [`DataProvider`](@/api/dataProvider.md) plugin is active,
+because filtering then happens on the server, which knows nothing about frozen rows.
+
+In the following demo, the first and the last row are frozen, and filtering doesn't affect them.
 
 ::: only-for javascript
 

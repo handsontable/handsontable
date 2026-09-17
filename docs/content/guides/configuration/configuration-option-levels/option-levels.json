@@ -8,9 +8,9 @@
   ],
   "total": 173,
   "counts": {
-    "grid": 107,
+    "grid": 106,
     "grid columns cells cell": 61,
-    "grid columns": 4,
+    "grid columns": 5,
     "columns": 1
   },
   "options": [
@@ -611,10 +611,11 @@
       "name": "filters",
       "category": "Filters",
       "levels": [
-        "grid"
+        "grid",
+        "columns"
       ],
       "since": null,
-      "note": null
+      "note": "Turn the plugin on at the grid level. Inside `columns`, only `false` has an effect: it hides the filter controls in that column's dropdown menu, and the API still filters the column. The sub-options `searchMode` and `filterFixedRows` are grid-level only."
     },
     {
       "name": "filterSelectedItems",

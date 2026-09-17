@@ -140,16 +140,25 @@ export interface FixtureHotInstance {
     isOpened(): boolean,
     beginEditing(): void,
     finishEditing(restoreOriginalValue?: boolean): void,
+    isFlippedHorizontally?: boolean,
   } | undefined;
+  isRtl(): boolean;
   render(): void;
   listen(): void;
   view: {
     isVerticallyScrollableByWindow(): boolean,
     isHorizontallyScrollableByWindow(): boolean,
+    getViewportHeight(): number,
     countRenderableColumns(): number,
   };
   /** The grid's own root `<div>` – a child of the container passed to the constructor. */
   rootElement: HTMLElement;
+  /** The element the constructor received; the root wrapper is appended into it. */
+  rootContainer: HTMLElement;
+  /** `.ht-root-wrapper` – the flex column holding the slots, the grid box and the overlays layer. */
+  rootWrapperElement: HTMLElement;
+  /** `.ht-slot-bottom` – the bottom layout slot (pagination bar, sheets bar, license notification). */
+  rootSlotBottomElement: HTMLElement;
   getFirstFullyVisibleRow(): number;
   getLastFullyVisibleRow(): number;
   getLastRenderedVisibleRow(): number;
@@ -241,6 +250,12 @@ declare global {
     initGrid(overrides?: Record<string, unknown>, containerWidth?: string): boolean;
     /** `afterScrollVertically` calls since the last rebuild (width-window-scroll fixture). */
     verticalScrollCount: number;
+    /**
+     * Rebuilds the bottom-slot sizing fixture grid (DEV-2848): `variant` picks the CSS layout,
+     * `plugin` the bottom-slot bar; both default to the page's query params. `overrides` are grid
+     * options applied last.
+     */
+    initSlotGrid(variant?: string, plugin?: string, overrides?: Record<string, unknown>): boolean;
     /** Rebuilds the selection-features fixture grid with the given setting overrides. */
     initSelectionGrid(overrides?: Record<string, unknown>): boolean;
     /** Rebuilds the mobile drag-to-scroll fixture grid with the given setting overrides. */
@@ -261,6 +276,12 @@ declare global {
      * Rebuilds the DEV-59 sorting-with-`fixedRowsTop`/`fixedRowsBottom` fixture grid.
      */
     initSortingFixedRowsGrid(overrides?: Record<string, unknown>): boolean;
+    /** Rebuilds the DEV-1198 multiselect open-left fixture grid. */
+    initMultiselectOpenLeftGrid(overrides?: Record<string, unknown>): boolean;
+    /**
+     * Rebuilds the DEV-2524 filtering-with-`fixedRowsTop`/`fixedRowsBottom` fixture grid.
+     */
+    initFiltersFixedRowsGrid(overrides?: Record<string, unknown>): boolean;
     /** Returns the text the browser currently reports as selected (fragmentSelection fixture). */
     readTextSelection(): string;
     /** Drops any existing text selection (fragmentSelection fixture). */

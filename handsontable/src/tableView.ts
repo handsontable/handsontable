@@ -311,6 +311,11 @@ class TableView {
    */
   #lastHeight = 0;
   /**
+   * The layout-slot height reserved inside the vertical axis owner, memoized for one render (see
+   * `#getReservedSlotHeight`).
+   */
+  #reservedSlotHeight: { owner: HTMLElement, height: number } | null = null;
+  /**
    * The last mouse position of the mousedown event.
    *
    * @type {{ x: number, y: number } | null}
@@ -372,6 +377,7 @@ class TableView {
       this.hot.runHooks('beforeRender', isFullRender);
 
       this.#discardSizesMeasuredWithoutStyles();
+      this.#reservedSlotHeight = null;
 
       this._wt.draw(!isFullRender);
       this.#updateScrollbarClassNames();
@@ -1014,6 +1020,10 @@ class TableView {
   initializeWalkontable() {
     const walkontableConfig = {
       ariaTags: this.settings.ariaTags,
+      // The instance's unique id. Walkontable stamps it into the `id` on each column header so a data
+      // cell can point at its header through `aria-describedby`; the id must be unique per grid so
+      // several grids on one page never cross-reference each other's headers.
+      guid: this.hot.guid,
       rtlMode: this.hot.isRtl(),
       externalRowCalculator: this.hot.getPlugin('autoRowSize') &&
         this.hot.getPlugin('autoRowSize').isEnabled(),
@@ -1025,6 +1035,7 @@ class TableView {
       table: this.#table,
       isDataViewInstance: () => isRootInstance(this.hot),
       preventOverflow: () => this.settings.preventOverflow,
+      layoutReservedHeight: (trimmingContainer: HTMLElement) => this.#getReservedSlotHeight(trimmingContainer),
       preventWheel: () => this.settings.preventWheel,
       viewportColumnRenderingThreshold: () => this.settings.viewportColumnRenderingThreshold,
       viewportRowRenderingThreshold: () => this.settings.viewportRowRenderingThreshold,
@@ -2759,6 +2770,40 @@ class TableView {
   }
 
   /**
+   * Sums the height of the root wrapper's edge slots (top and bottom) that live INSIDE the given
+   * vertical axis owner. Those slots share the owner's box with the grid, so the engine has to leave
+   * room for them – otherwise the holder takes the whole box and pushes the slot content past the
+   * owner's edge, which is how a pagination or sheets bar ended up clipped out of reach inside a
+   * scrollable ancestor (DEV-2848). A root element that owns the axis itself (an explicit `height`
+   * option) contains no slot and reserves nothing here; core subtracts the slots from the pixel
+   * `height` it writes on the root instead. Non-root instances have no slots.
+   *
+   * Memoized per render: the engine asks several times per draw off the single-pass path (every
+   * `getWorkspaceHeight()` measures the live DOM there), and each ask is two layout-forcing
+   * `offsetHeight` reads. `render()` drops the memo before the draw; the slot `ResizeObserver` in
+   * core renders when a slot changes height, so a value cached across draws cannot go stale.
+   *
+   * @param {HTMLElement} trimmingContainer The resolved vertical axis owner.
+   * @returns {number}
+   */
+  #getReservedSlotHeight(trimmingContainer: HTMLElement): number {
+    const cached = this.#reservedSlotHeight;
+
+    if (cached && cached.owner === trimmingContainer) {
+      return cached.height;
+    }
+
+    const { rootSlotTopElement, rootSlotBottomElement } = this.hot;
+    const height = [rootSlotTopElement, rootSlotBottomElement]
+      .filter((slot): slot is HTMLElement => !!slot && trimmingContainer.contains(slot))
+      .reduce((sum, slot) => sum + slot.offsetHeight, 0);
+
+    this.#reservedSlotHeight = { owner: trimmingContainer, height };
+
+    return height;
+  }
+
+  /**
    * Updates the class names on the root element based on the presence of scrollbars.
    *
    * This method checks if the table has vertical and/or horizontal scrollbars and
@@ -2766,7 +2811,7 @@ class TableView {
    * to/from the root element.
    */
   #updateScrollbarClassNames() {
-    const rootElement = this.hot.rootElement;
+    const { rootElement, rootWrapperElement } = this.hot;
 
     if (this.hasVerticalScroll()) {
       addClass(rootElement, 'htHasScrollY');
@@ -2774,10 +2819,27 @@ class TableView {
       removeClass(rootElement, 'htHasScrollY');
     }
 
-    if (this.isVerticallyScrollableByWindow()) {
+    const isVerticallyScrollableByWindow = this.isVerticallyScrollableByWindow();
+
+    if (isVerticallyScrollableByWindow) {
       addClass(rootElement, 'htVerticallyScrollableByWindow');
     } else {
       removeClass(rootElement, 'htVerticallyScrollableByWindow');
+    }
+
+    if (rootWrapperElement) {
+      // The grid's height follows its content when the page scrolls the rows, and with
+      // `height: 'auto'` (core writes `overflow: clip` for it, so the root owns the axis, yet the
+      // root grows to its content). The stylesheet then keeps the grid box from shrinking to a
+      // CSS-sized container (`styles/base/_base.scss`), which placed the bottom slot over a data
+      // row (DEV-2848).
+      const followsContent = isVerticallyScrollableByWindow || rootElement.style.height === 'auto';
+
+      if (followsContent) {
+        addClass(rootWrapperElement, 'ht-grid-follows-content');
+      } else {
+        removeClass(rootWrapperElement, 'ht-grid-follows-content');
+      }
     }
 
     if (this.hasHorizontalScroll()) {

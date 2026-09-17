@@ -29,6 +29,10 @@ Self-contained rendering engine for viewport calculation, DOM rendering, scroll 
 
 `Border` in `src/selection/border/border.ts` has TWO distinct handle systems: `selectionHandles` (mobile touch handles, created by `createMultipleSelectorHandles()`, CSS classes `topSelectionHandle`/`bottomSelectionHandle`) and `adjustHandles` (desktop drag-to-resize handles added in 18.0.0, CSS class `.wtSelectionHandle`, controlled by the `selectionHandles` grid option). Do not conflate them.
 
+## Custom border `width: 0` is a real value (DEV-1137)
+
+`getBorderSettingsProperty` in `src/selection/border/utils.ts` reads per-side settings with `??`, not a truthy check. `width: 0` must stay 0 so the edge paints at 0px. A truthy `posSettings[property] ? … : settings.border[property]` falls back to the default 1px and the zero-width border reappears. The same helper keeps an explicit empty `style: ''` rather than inheriting `settings.border.style`; `Border#createBorders` then takes the solid-fill `else` path (`if (borderStyle)` is false). Omitting the key, or setting `null`/`undefined`, still falls through. Do not special-case `style`; keep `??` for every property on this helper, because a truthy check would resurrect the width-0 bug.
+
 ## The master table must remain a stacking context below overlay clones
 
 `.ht_master` is `position: relative` with `z-index: 0`. The explicit zero is load-bearing: it traps
@@ -288,6 +292,41 @@ does. `getStyleForTD` is therefore declared optional on the `StylesHandler` inte
 and calling it unguarded threw inside the draw and took out 695 of 816 specs. Guard every method you
 add a dependency on, and teach the harness stub the same method.
 
+## `getDimensionsFromHeader` header levels (DEV-1176)
+
+`Border#getDimensionsFromHeader` looks up a header `th` so a full-row or full-column selection can
+measure from the header instead of the first data cell. Custom header padding lives on that `th`
+(or its inner `.relative`); `offset` / `outerHeight` already include it, but only if the lookup
+succeeds.
+
+The header level is **not** `columnHeaders.length - headerIndex`:
+
+- Use the **axis** count: `getRowHeadersCount()` for `'rows'`, `getColumnHeadersCount()` for
+  `'columns'`.
+- Translate the coordinate with `resolveHeaderLevel` in `selection/border/utils.ts`. Header coords
+  are negative (`-1` = closest to the cells). Levels are the opposite (`0` = farthest).
+  `count - headerIndex` with `-1` is `count + 1` (out of range); with a clamped body `0` it is
+  `count` (also out of range). The method then returns `false` and the selection ignores the
+  header box.
+- Pass the **unclamped** corner (`originalFromRow` / `originalFromColumn`). After `appear` clamps
+  a `selectRows` range, `fromColumn` is `0` even though the selection started at `-1`.
+- A resolved level can still land on a nested-header **placeholder**. NestedHeaders stamps
+  `hiddenHeader` on colspan continuations and rowspan-covered cells, but Walkontable must not
+  key off that plugin class: `thead th.hiddenHeader:not(:first-of-type)` keeps the first-of-type
+  continuation as a real box, and only rowspan placeholders also set inline `display: none`.
+  `lookupSelectionHeader` takes the axis size function (`outerWidth` / `outerHeight`) and skips
+  a TH only when that size is `0`. A laid-out first-of-type `hiddenHeader` is measured. When the
+  selected level is collapsed, fall back to the closest header, which maps 1:1 onto the index.
+  Do not revert to `columnHeaders.length - headerIndex` to "fix" this; that formula is out of
+  range and drops the padding lookup.
+- Column measurements are **not** always `header.left - table.left`. `appear()` writes the inline
+  start to `style.right` in `rtlMode`. `measureHeaderSelectionBox` is the shared formula: LTR
+  columns stay left-edge math; RTL columns use
+  `table.left + table.width - (header.left + header.width) - 1` (the same identity as the
+  body-cell path, which is written in `innerWidth` / `gridRightPos` form). Feeding left-edge math
+  into `style.right` puts the full-column / select-all highlight on the wrong side of the cell.
+  Rows are top/height on both directions.
+
 ## Border ownership: the header owns its gridline, on both axes
 
 Both axes are settled, and they are now symmetric. On the column axis a row header `th` carries its
@@ -521,6 +560,20 @@ fields. Three rules follow.
   test and kept the window-scroll strategies' `scrollIntoView` call unreachable there — the
   `Element.prototype.scrollIntoView` stub in `test/bootstrap.js` exists because the fix made it
   reachable.
+- **The vertical owner's box is shared with the host's layout slots.** Both sizing paths ask
+  `layoutReservedHeight(trimmingContainer)` and hand the table what is left through ONE helper,
+  `subtractReservedHeight()` (`viewport/layoutReservation.ts`): `measureWorkspaceHeight` and
+  `MasterTable#alignOverlaysWithTrimmingContainer` (the holder height, in both the split-owner and
+  the cached single-owner path — the reservation is part of the trimming-cache fingerprint, or a bar
+  that mounts after the first draw keeps the cached full-box height). The helper floors a REAL
+  subtraction at 1px, so the two paths cannot disagree once a bar is taller than the box, and
+  passes a zero reservation or a zero-height box through untouched — that `0` is the master
+  table's "no defined size" signal (`hasDefinedSize()`, the `#3119` fallback), and flooring it
+  broke six engine specs. The host answers with the slots the owner CONTAINS – a root element that
+  owns the axis contains none. Window mode never asks: the page sizes nothing, a slot takes its own
+  space there. Unit-pinned in `test/unit/viewport/layoutReservation.unit.ts` and
+  `test/unit/viewport/workspaceSize.unit.ts`, end-to-end in `tests/e2e/bottom-slot-sizing.spec.ts`
+  (DEV-2848).
 - **Scroll offsets are read and written per axis, off each overlay's `mainTableScrollableElement`,
   never off one shared element.** The inline-start overlay's element scrolls the horizontal axis
   and the top overlay's the vertical one, and in split mode they are different things (the holder
@@ -894,6 +947,52 @@ Pinned by `test/unit/renderer/rowRecycling.unit.ts` (the rotation and its guards
 offered to the host with its own coordinates) and `tests/e2e/incremental-render.spec.ts` (paints on
 a scroll down and up, element identity in the master and the frozen-columns clone, equality to a
 full repaint, an open editor across a scroll).
+
+## A data cell names its column header through `aria-describedby`, and the owner is per column
+
+So a screen reader announces the header with the cell ("Position, C1", not "C1"), `render/cells.ts`
+sets `aria-describedby` on each data cell to `` `${guid}-colheader-${sourceColumnIndex}` `` and
+`render/columnHeaders.ts` stamps that `id` on the matching header (DEV-29). `guid` is the core
+instance's id, threaded in as a wtSetting (`tableView.ts` → `defaults.ts`), so the id is unique when
+several grids share a page; keyed by the rendered (renderable) column index, so it survives horizontal
+scroll and pooled-node reuse. The id-prefix builder, the ownership predicate, and the grid-wide header
+test live together on `TableRenderer` (`getAriaColumnHeaderIdPrefix`, `ownsAriaColumnHeaderId`,
+`hasColumnHeaders`); the prefix is draw-constant and both renderers hoist it out of their per-element
+loop, appending the column index per element.
+
+Four things are load-bearing, and each was a bug first:
+
+- **No single overlay owns every column header.** The master renders a contiguous band and does **not**
+  render the frozen (inline-start) columns once scrolled past column 0; those headers live only in the
+  inline-start overlay (and the top corner). So ownership is per column: a frozen column
+  (`sourceColumnIndex < fixedColumnsStart`, in the renderable space Walkontable already works in) is
+  owned by the `inline_start` overlay, every other column by the `master`. The sticky clones (`top`,
+  `bottom`, the corners) are duplicate copies and never stamp an id. The master also renders the frozen
+  columns at horizontal offset 0, so it must **decline** them there or two elements carry the same id.
+  The invariant to hold: every rendered data cell's `aria-describedby` resolves to exactly one element.
+- **The cell gate is grid-wide, not this table's `columnHeadersCount`.** A bottom clone renders no
+  header row, so its own count is `0` while the grid has headers its cells must still reference — read
+  `hasColumnHeaders()` (from the grid-level `columnHeaders` setting), not the per-table count.
+- **`id` is not covered by the `aria-*`/`role` strip, so `render/columnHeaders.ts` strips it explicitly
+  (`/^id$/`) each paint.** Header nodes are pooled and reused across draws; without the strip a header
+  that stops owning an id (scrolled to a different column, or a corner cell reused as a header) keeps a
+  stale id a data cell points at.
+- **A renderer spec's `TableRendererMock` must provide `hasColumnHeaders`, `ownsAriaColumnHeaderId`,
+  and `getAriaColumnHeaderIdPrefix`** (same reason the mock must provide `shouldPaintCell`). The
+  no-column-header path is inert without a `guid`, so a standalone Walkontable host that sets none
+  behaves exactly as before.
+
+Two v1 limitations, both of which degrade to the pre-DEV-29 behavior for the affected column (the
+cell's `aria-describedby` resolves to nothing, so the header is not announced — no worse than before,
+never a duplicate or a wrong header):
+
+- **A custom `columnHeaders` renderer that assigns its own `TH.id` clobbers the stamped id.** It runs
+  (`columnHeaderFunctions[...]`) after the stamp, so that column's cells then dangle. Setting a DOM
+  `id` on a header is rare; a future revision could re-stamp after the header function if it matters.
+- **A colspan on the *leaf* header row (nested headers).** The stamp assumes the leaf row is 1:1 with
+  columns; a leaf colspan makes the continuation columns' ids land on `hiddenHeader` (`display:none`)
+  THs, which assistive tech ignores. Colspans on higher (group) rows are fine — those rows are not the
+  leaf and are never stamped. Group-label announcement is a deliberate v1 scope-out.
 
 ## The engine decides for itself when the overlays need resizing — never ask it from outside
 
