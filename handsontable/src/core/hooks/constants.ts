@@ -2296,6 +2296,7 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#beforeColumnSort
    * @param {Array} currentSortConfig Current sort configuration (for all sorted columns).
    * @param {Array} destinationSortConfigs Destination sort configuration (for all sorted columns).
+   * @param {boolean} sortPossible Indicates if it's possible to sort the table with the provided configuration.
    * @returns {boolean | undefined} If `false` the column will not be sorted, `true` otherwise.
    */
   'beforeColumnSort',
@@ -2307,6 +2308,8 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#afterColumnSort
    * @param {Array} currentSortConfig Current sort configuration (for all sorted columns).
    * @param {Array} destinationSortConfigs Destination sort configuration (for all sorted columns).
+   *                                       It repeats `currentSortConfig` when `sortPossible` is `false`.
+   * @param {boolean} sortPossible Indicates if it was possible to sort the table with the provided configuration.
    */
   'afterColumnSort',
 
