@@ -83,8 +83,9 @@ export class SelectionHeaderPaddingPage {
    * The old level formula (`columnHeaders.length - headerIndex`) is out of range for `-1`, so this
    * used to return `{ found: false }` even when the grid had row headers (DEV-1176). The method
    * name is kept in the minified bundle (the two `this.getDimensionsFromHeader` call sites), so
-   * this works on every theme × bundle leg. `text` is the measured TH's label — nested row headers
-   * use it to prove the closest of two levels was chosen, not just that some TH was found.
+   * this works on every theme × bundle leg. `text` is the measured TH's `textContent` — nested row
+   * headers use it to prove the closest of two levels was chosen, not just that some TH was found.
+   * `innerText` is empty on master header cells because the overlay clones cover them.
    *
    * @param {string} name The grid's key in `window.grids`.
    * @param {number} row The visual row index.
@@ -135,7 +136,7 @@ export class SelectionHeaderPaddingPage {
         return {
           found: true,
           tagName: result[0].tagName,
-          text: result[0].innerText.trim(),
+          text: (result[0].textContent ?? '').trim(),
         };
       },
       [name, row]
@@ -197,7 +198,7 @@ export class SelectionHeaderPaddingPage {
         return {
           found: true,
           tagName: result[0].tagName,
-          text: result[0].innerText.trim(),
+          text: (result[0].textContent ?? '').trim(),
         };
       },
       [name, column]
