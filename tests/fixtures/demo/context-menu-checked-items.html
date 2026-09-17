@@ -73,6 +73,7 @@
         contextMenu: true,
         customBorders: true,
         comments: true,
+        mergeCells: true,
         licenseKey: 'non-commercial-and-evaluation',
       });
     } catch (error) {
@@ -114,6 +115,19 @@
       window.hot.getPlugin('comments').setCommentAtCell(0, 1, 'another note');
       window.hot.getPlugin('comments').updateCommentMeta(0, 1, { readOnly: true });
       window.hot.setCellMeta(0, 1, 'readOnly', true);
+      window.hot.render();
+    };
+
+    /**
+     * Merge (2, 0) through (3, 1), and make only the top-left cell read-only, with a read-only
+     * comment - the shape the `cell` option or `setCellMeta` produces. Selecting the block selects
+     * all four cells, and the three hidden ones carry no read-only state of their own.
+     */
+    window.mergeReadOnlyBlock = () => {
+      window.hot.getPlugin('mergeCells').merge(2, 0, 3, 1);
+      window.hot.setCellMeta(2, 0, 'readOnly', true);
+      window.hot.getPlugin('comments').setCommentAtCell(2, 0, 'a note');
+      window.hot.getPlugin('comments').updateCommentMeta(2, 0, { readOnly: true });
       window.hot.render();
     };
 

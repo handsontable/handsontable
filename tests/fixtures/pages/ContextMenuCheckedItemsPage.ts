@@ -104,6 +104,15 @@ export class ContextMenuCheckedItemsPage {
   }
 
   /**
+   * Merge (2, 0) through (3, 1) with only its top-left cell read-only.
+   */
+  async mergeReadOnlyBlock(): Promise<void> {
+    await this.page.evaluate(() => (window as unknown as {
+      mergeReadOnlyBlock: () => void;
+    }).mergeReadOnlyBlock());
+  }
+
+  /**
    * Select cells (0, 0) through (0, 1).
    */
   async selectFirstTwoCells(): Promise<void> {
@@ -135,7 +144,17 @@ export class ContextMenuCheckedItemsPage {
    * Right-click cell (0, 0) to open the context menu, and wait for it to be on screen.
    */
   async openMenuOnFirstCell(): Promise<void> {
-    await this.cell(0, 0).click({ button: 'right' });
+    await this.openMenuOnCell(0, 0);
+  }
+
+  /**
+   * Right-click a data cell to open the context menu, and wait for it to be on screen.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   */
+  async openMenuOnCell(row: number, col: number): Promise<void> {
+    await this.cell(row, col).click({ button: 'right' });
     await expect(this.page.locator('.htContextMenu:visible').last()).toBeVisible();
   }
 

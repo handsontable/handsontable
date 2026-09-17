@@ -282,14 +282,22 @@ enforcing `require-trusted-types-for 'script'` rejected. Each item now declares 
 `checked` option, and Handsontable builds the mark as a DOM node.
 
 `checked` is therefore read on every menu item. An item of your own that already carries a property
-of that name, holding a boolean or a function returning one, now does two things it did not do
-before:
+of that name, holding a boolean, the string `'mixed'`, or a function returning either, now does two
+things it did not do before:
 
-- it draws a check mark before its label whenever the value resolves to `true`
+- it draws a mark before its label: a check mark when the value resolves to `true`, and a dash when
+  it resolves to `'mixed'`
 - it is announced to assistive technology as a checkbox with a state, rather than as a plain menu
   item
 
-A property named `checked` holding anything else, such as a string or a number, is ignored.
+A property named `checked` holding anything else, such as any other string or a number, is ignored.
+
+The built-in "Read only" and "Read-only comment" items use `'mixed'` when only some of the selected
+cells are read-only. They show a dash there, where they used to show a check mark.
+
+If you use a theme without icons, such as `ht-theme-main-no-icons.css`, and draw the check mark
+yourself with a rule for `span.selected::after`, add a matching rule for `span.htMixed::after`.
+Otherwise the dash is not visible.
 
 If the property was your own bookkeeping and you want neither effect, rename it:
 

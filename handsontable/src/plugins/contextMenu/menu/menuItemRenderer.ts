@@ -33,7 +33,7 @@ import { getSanitizer } from '../../../utils/sanitizer';
 const CHECK_MARK = String.fromCharCode(10003);
 
 /**
- * The mark a partly-checked menu item is prefixed with - an en dash, the conventional glyph for a
+ * The mark a partly-checked menu item is prefixed with – an en dash, the conventional glyph for a
  * checkbox that is neither on nor off. Both marks are hidden by `font-size: 0` wherever the themes
  * paint the real one from an icon mask, so this is the text a bare, unthemed menu falls back to.
  */

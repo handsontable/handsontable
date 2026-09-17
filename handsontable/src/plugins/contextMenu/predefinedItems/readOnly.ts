@@ -1,21 +1,22 @@
 import type { HotInstance } from '../../../core/types';
-import { getSelectionCheckState } from '../utils';
+import { checkSelectionConsistency, getSelectionCheckState } from '../utils';
 import * as C from '../../../i18n/constants';
 
 export const KEY = 'make_read_only';
 
 /**
- * Reports whether every, no, or only some of the selected cells are read-only.
+ * Reports whether every, no, or only some of the selected cells are read-only. A hidden cell under a
+ * merged block is left out: the block's state sits on its top-left cell.
  *
  * @param {Core} hot The Handsontable instance.
- * @param {CellRange[]} [ranges] The ranges to check. Defaults to the whole selection.
  * @returns {boolean|string}
  */
-function getReadOnlyState(hot: HotInstance, ranges = hot.getSelectedRange() ?? []) {
-  return getSelectionCheckState(
-    ranges,
-    (row: number, col: number) => Boolean(hot.getCellMetaTransient(row, col).readOnly)
-  );
+function getReadOnlyState(hot: HotInstance) {
+  return getSelectionCheckState(hot.getSelectedRange() ?? [], (row: number, col: number) => {
+    const cellMeta = hot.getCellMetaTransient(row, col);
+
+    return cellMeta.hidden ? null : Boolean(cellMeta.readOnly);
+  });
 }
 
 /**
@@ -40,7 +41,11 @@ export default function readOnlyItem() {
     callback(this: HotInstance) {
       const ranges = this.getSelectedRange() ?? [];
       // "At least one", unlike the mark: a partly read-only selection is made writable as a whole.
-      const atLeastOneReadOnly = getReadOnlyState(this, ranges) !== false;
+      // Asked of `checkSelectionConsistency()`, which stops at the first read-only cell.
+      const atLeastOneReadOnly = checkSelectionConsistency(
+        ranges,
+        (row: number, col: number) => Boolean(this.getCellMetaTransient(row, col).readOnly)
+      );
 
       for (const range of ranges) {
         range.forAll((row: number, col: number) => {

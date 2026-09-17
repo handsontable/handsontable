@@ -139,12 +139,15 @@ function applyAlignClassName(
  * check mark; `checkSelectionConsistency()` answers "at least one", which marks a partly-on
  * selection as fully on. Stops as soon as both a match and a non-match are seen.
  *
+ * The comparator returns `null` for a cell that does not take part, such as a hidden cell under a
+ * merged block. A selection in which no cell takes part reports `false`.
+ *
  * @param {CellRange[]} ranges An array of the cell ranges.
  * @param {Function} comparator The comparator function.
  * @returns {boolean|string}
  */
 export function getSelectionCheckState(
-  ranges: CellRangeLike[], comparator: (row: number, col: number) => boolean
+  ranges: CellRangeLike[], comparator: (row: number, col: number) => boolean | null
 ): MenuItemCheckedState {
   let seenMatch = false;
   let seenMiss = false;
@@ -158,7 +161,13 @@ export function getSelectionCheckState(
           return;
         }
 
-        if (comparator(row, col)) {
+        const matches = comparator(row, col);
+
+        if (matches === null) {
+          return;
+        }
+
+        if (matches) {
           seenMatch = true;
         } else {
           seenMiss = true;

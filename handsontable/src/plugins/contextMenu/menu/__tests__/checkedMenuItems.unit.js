@@ -228,6 +228,62 @@ describe('menu items whose selection is only partly on (DEV-124)', () => {
       [0, 1, 'readOnly', false],
     ]);
   });
+
+  it('should decide the toggle from the first read-only cell, without reading the rest', () => {
+    // The mark has to walk a fully read-only selection to the end; the click does not, and on a
+    // 100k-cell column that is 100k meta reads before the writes even start.
+    const getCellMetaTransient = jest.fn(() => ({ readOnly: true }));
+    const hot = {
+      ...createTwoCellHotStub({}, {}),
+      getCellMetaTransient,
+      setCellMeta: jest.fn(),
+      render: jest.fn(),
+    };
+
+    readOnlyItem().callback.call(hot);
+
+    expect(getCellMetaTransient).toHaveBeenCalledTimes(1);
+    expect(hot.setCellMeta).toHaveBeenCalledTimes(2);
+  });
+
+  describe('cells that do not take part in the mark', () => {
+    it('should read a merged block by its top-left cell, not by the hidden cells under it', () => {
+      // MergeCells stretches the selection over the whole block and marks every covered cell
+      // `hidden`, but the block's `readOnly` usually sits on the top-left cell alone.
+      const hot = createTwoCellHotStub({ readOnly: true }, { hidden: true });
+
+      expect(getItemCheckedState(readOnlyItem(), hot)).toBe(true);
+    });
+
+    it('should read a merged block\'s comment by its top-left cell as well', () => {
+      const hot = createTwoCellHotStub(
+        { comment: { value: 'a note', readOnly: true } },
+        { hidden: true, comment: { value: 'stale', readOnly: false } },
+      );
+
+      expect(getItemCheckedState(readOnlyCommentItem({}), hot)).toBe(true);
+    });
+
+    it('should judge the comment item only by the cells that hold a comment', () => {
+      const readOnlyComment = { comment: { value: 'a note', readOnly: true } };
+
+      // No comment at all, and comment meta with no value – which the item's own callback leaves
+      // behind on a cell without a comment – both stay out of it.
+      expect(getItemCheckedState(readOnlyCommentItem({}), createTwoCellHotStub(readOnlyComment, {})))
+        .toBe(true);
+      expect(getItemCheckedState(readOnlyCommentItem({}),
+        createTwoCellHotStub(readOnlyComment, { comment: { readOnly: false } }))).toBe(true);
+    });
+
+    it('should still report mixed when a commented cell is writable', () => {
+      const hot = createTwoCellHotStub(
+        { comment: { value: 'a note', readOnly: true } },
+        { comment: { value: 'another note' } },
+      );
+
+      expect(getItemCheckedState(readOnlyCommentItem({}), hot)).toBe(MENU_ITEM_MIXED);
+    });
+  });
 });
 
 describe('resolving the checked state of an item', () => {

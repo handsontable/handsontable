@@ -91,7 +91,7 @@ describe('contextMenu/utils', () => {
       });
 
       // The menu draws this on every open, over the whole selection, so a mixed column of 100k rows
-      // must not cost 100k meta reads - and the second layer must not be entered at all.
+      // must not cost 100k meta reads – and the second layer must not be entered at all.
       expect(visited).toEqual([[0, 0], [0, 1]]);
     });
 
@@ -107,6 +107,23 @@ describe('contextMenu/utils', () => {
 
       expect(visited).toEqual([[0, 0], [1, 0]]);
       expect(state).toBe(true);
+    });
+
+    it('should leave out the cells the comparator returns null for', () => {
+      // `null` is how an item says "this cell does not take part", for a hidden cell under a merged
+      // block or, for the comment item, a cell with no comment.
+      const answers = { '0:0': true, '0:1': null, '0:2': null, '1:0': false };
+      const comparator = (row, col) => answers[`${row}:${col}`];
+
+      const stateOf = coords => getSelectionCheckState([createStoppableRange(coords)], comparator);
+
+      expect(stateOf([[0, 0], [0, 1], [0, 2]])).toBe(true);
+      expect(stateOf([[0, 1], [1, 0]])).toBe(false);
+      expect(stateOf([[0, 0], [0, 1], [1, 0]])).toBe(MENU_ITEM_MIXED);
+    });
+
+    it('should report false when the comparator leaves out every cell', () => {
+      expect(getSelectionCheckState([createStoppableRange([[0, 0], [0, 1]])], () => null)).toBe(false);
     });
 
     it('should report false for a selection holding no cell at all', () => {

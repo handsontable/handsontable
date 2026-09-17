@@ -40,8 +40,11 @@ export interface MenuItemConfig {
   name: string | (() => string);
   hidden?: boolean | (() => boolean);
   disabled?: boolean | (() => boolean);
-  // `'mixed'` is the third state, for an item whose selection is only partly on. It draws a dash
-  // instead of a check mark and sets `aria-checked="mixed"`; `true` and `false` are unaffected.
+  /**
+   * Whether the item is marked as checked. `true` draws a check mark, `false` draws none, and
+   * `'mixed'` draws a dash for a state that applies to only part of the selection. The value also
+   * sets the item's `aria-checked` attribute.
+   */
   checked?: MenuItemCheckedState | (() => MenuItemCheckedState);
   callback?: (key: string, selection: unknown[], clickEvent: MouseEvent) => void;
   renderer?: (
