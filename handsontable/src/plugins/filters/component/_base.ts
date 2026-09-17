@@ -45,14 +45,27 @@ export class BaseComponent {
    * @type {LinkedPhysicalIndexToValueMap|null}
    */
   state;
+  /**
+   * Predicate supplied by the owning plugin, re-evaluated on every read of `isHiddenInMenu()`.
+   *
+   * It answers questions the `hidden` flag cannot, because they depend on state that changes
+   * between menu openings rather than on a `hide()`/`show()` call - which column the menu was
+   * opened on, or whether a data provider filters server-side.
+   *
+   * @type {function(): boolean | undefined}
+   */
+  #hiddenWhen: (() => boolean) | undefined;
 
   /**
    * Initializes the filter component with a Handsontable instance, assigns the component ID, and optionally registers a column index map for stateful components.
    */
-  constructor(hotInstance: HotInstance, { id, stateless = true }: { id: string; stateless?: boolean }) {
+  constructor(hotInstance: HotInstance, { id, stateless = true, hiddenWhen }: {
+    id: string; stateless?: boolean; hiddenWhen?: (() => boolean);
+  }) {
     this.hot = hotInstance;
     this.id = id;
     this.stateId = `Filters.component.${this.id}`;
+    this.#hiddenWhen = hiddenWhen;
     this.state = stateless
       ? null : this.hot.columnIndexMapper.createAndRegisterIndexMap(this.stateId, 'linkedPhysicalIndexToValue');
   }
@@ -90,10 +103,32 @@ export class BaseComponent {
   /**
    * Check if component is hidden.
    *
+   * Answers the `hide()`/`show()` flag ONLY. `hiddenWhen` is deliberately not folded in: this is
+   * also what `Filters.restoreComponents()` tests, and a component that merely does not render for
+   * the open column must still restore its state, or the state map keeps whatever it held when the
+   * menu was last confirmed.
+   *
    * @returns {boolean}
    */
   isHidden() {
     return this.hot === null || this.hidden;
+  }
+
+  /**
+   * Check if the component's menu item should render for the column the menu was opened on.
+   *
+   * Separate from `isHidden()` because the two questions have different answers and different
+   * consumers: this one is re-evaluated per menu opening and is read only by the menu item
+   * descriptor, so hiding an item never changes what the component stores.
+   *
+   * @returns {boolean}
+   */
+  isHiddenInMenu() {
+    if (this.isHidden()) {
+      return true;
+    }
+
+    return typeof this.#hiddenWhen === 'function' && this.#hiddenWhen();
   }
 
   /**

@@ -10,6 +10,7 @@ import type RowUtils from '../axisSizing/rowUtils';
 import type ColumnUtils from '../axisSizing/columnUtils';
 import type { StylesHandler } from '../types';
 import { applyRowHeight } from './exactRowHeight';
+import { CLONE_INLINE_START } from '../overlay/constants';
 
 /**
  * Asked for every cell in the rendered band before the cell element is reset and painted.
@@ -495,6 +496,77 @@ export class TableRenderer {
    */
   isAriaEnabled() {
     return this.rowUtils!.wtSettings.getSetting<boolean>('ariaTags');
+  }
+
+  /**
+   * Returns the instance-unique prefix a column-header id is built from (`${prefix}${columnIndex}`),
+   * or an empty string when the host supplied no instance id. The column-header renderer stamps the id
+   * on the owning overlay's header and the cells renderer points at it through `aria-describedby`, so
+   * the header label is announced together with the cell. Keyed by the rendered column index (the
+   * Walkontable column, which core has already collapsed from physical to renderable space), the
+   * reference stays valid across horizontal scroll and pooled-node reuse; the instance id keeps it
+   * unique when several grids share a page. Draw-constant, so both renderers resolve it once per draw
+   * and append the column index per element instead of reading the setting on every one.
+   *
+   * @returns {string}
+   */
+  getAriaColumnHeaderIdPrefix(): string {
+    const guid = this.rowUtils!.wtSettings.getSetting('guid');
+
+    return guid ? `${guid}-colheader-` : '';
+  }
+
+  /**
+   * Returns the number of frozen start columns. Draw-constant; in core the setting is a function that
+   * walks the index mapper, so the column-header renderer reads it once per draw and passes it to
+   * `ownsAriaColumnHeaderId` rather than resolving it per header cell.
+   *
+   * @returns {number}
+   */
+  getFixedColumnsStart(): number {
+    return this.rowUtils!.wtSettings.getSetting<number>('fixedColumnsStart');
+  }
+
+  /**
+   * Returns `true` when the currently rendered overlay is the single owner of the `aria-describedby`
+   * id for the given column, so exactly one header in the whole grid carries it. A frozen
+   * (inline-start) column is owned by the inline-start overlay, which always renders it; every other
+   * column is owned by the master. The master also renders the frozen columns at horizontal offset 0,
+   * so it must decline them there to avoid a duplicate id; the sticky clones (top, bottom, corners)
+   * never own an id - they are duplicate copies of a header the master or the inline-start overlay
+   * already carries.
+   *
+   * @param {number} sourceColumnIndex The rendered (renderable) column index.
+   * @param {number} fixedColumnsStart The number of frozen start columns, read once per draw by the
+   *                                   caller - in core it is a function that walks the index mapper, so
+   *                                   it must not be read per header cell.
+   * @returns {boolean}
+   */
+  ownsAriaColumnHeaderId(sourceColumnIndex: number, fixedColumnsStart: number): boolean {
+    const isFrozenColumn = sourceColumnIndex < fixedColumnsStart;
+
+    if (this.activeOverlayName === CLONE_INLINE_START) {
+      return isFrozenColumn;
+    }
+
+    // 'master' is the master table's own name (`baseTable.ts`); it is not a clone type, so there is no
+    // `CLONE_*` constant for it.
+    if (this.activeOverlayName === 'master') {
+      return !isFrozenColumn;
+    }
+
+    return false;
+  }
+
+  /**
+   * Returns `true` when the grid has at least one column-header row. Read grid-wide from the settings
+   * rather than from this table's own `columnHeadersCount`, because a clone that renders no header row
+   * (the bottom overlays) reports `0` while the grid still has headers its cells should reference.
+   *
+   * @returns {boolean}
+   */
+  hasColumnHeaders(): boolean {
+    return this.rowUtils!.wtSettings.getSetting<Function[]>('columnHeaders').length > 0;
   }
 
   /**

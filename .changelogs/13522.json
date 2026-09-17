@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added two ways to narrow what the `Filters` plugin covers. The new `filterFixedRows` option, set to `false`, keeps the rows frozen by `fixedRowsTop` and `fixedRowsBottom` out of filtering: they are never hidden by a filter, and their values are no longer listed under `Filter by value`. Setting `filters` to `false` for a column in the `columns` option now hides that column's filter controls in its dropdown menu.",
+  "type": "added",
+  "issueOrPR": 13522,
+  "breaking": false,
+  "framework": "none"
+}

@@ -371,6 +371,13 @@ export default function Core(
   // Set only when the table is initialized while invisible (see the `init` method). Kept in the closure, not on
   // the instance, because `destroy` nulls every instance property before it could be read there.
   let visibilityObserver: IntersectionObserver | null = null;
+  /**
+   * Watches the root wrapper's edge slots for a height change (a bar that mounts after init, wraps
+   * after a locale switch, or grows a horizontal scrollbar once its width is clamped). A slot's
+   * height feeds two things nothing else observes: the pixel `height` core writes on the root, and
+   * the height the engine reserves inside a scrollable ancestor (`layoutReservedHeight`).
+   */
+  let slotsResizeObserver: ResizeObserver | null = null;
 
   const mergedUserSettings: GridSettings = {
     ...userSettings.initialState,
@@ -2095,6 +2102,23 @@ export default function Core(
           width = instance.rootWrapperElement.offsetWidth;
         }
 
+        // The slot aligns with the TABLE (a narrow table gets a narrow bar), but never past the
+        // wrapper when the WINDOW owns the horizontal axis: the table can then be wider than its
+        // CSS-sized container, and a slot sized to the table ran out of that container – up to the
+        // full page width (DEV-2848). Only that mode is clamped: with a definite `width` option the
+        // root owns the axis and `getWorkspaceWidth()` is the grid's own box, which the slot keeps
+        // following even inside a narrower container (the user sized the grid explicitly).
+        // `clientWidth` is the wrapper's own box. In a block parent the slot's previous inline width
+        // cannot inflate it. In a shrink-to-fit parent (`inline-block`, a float, a widthless flex
+        // item) the wrapper sizes to its widest child, but the table is one of those children and
+        // the slot was written no wider than the table, so `min(table, wrapper)` still tracks the
+        // table downwards – pinned by the `inline-block-host` case of `bottom-slot-sizing.spec.ts`.
+        const wrapperWidth = instance.rootWrapperElement?.clientWidth ?? 0;
+
+        if (view.isHorizontallyScrollableByWindow() && wrapperWidth > 0) {
+          width = Math.min(width, wrapperWidth);
+        }
+
         // Only write when the value actually changes — avoids a reflow → dimension-refresh
         // → re-sync feedback loop, and needless layout writes during volatile renders.
         if (instance.rootSlotBottomElement && width !== lastEdgeWidths.bottom) {
@@ -2109,6 +2133,39 @@ export default function Core(
       };
 
       this.addHook('afterRender', syncEdgeSlotsWidth);
+
+      const slots = [instance.rootSlotTopElement, instance.rootSlotBottomElement];
+      const measureSlotsHeight = () => slots.reduce((sum, slot) => sum + slot.offsetHeight, 0);
+      // Seeded with the current value: an observer delivers once on `observe()`, and that first
+      // delivery must not cost a render.
+      let lastSlotsHeight = measureSlotsHeight();
+
+      // Neither engine observer (the trimming container, the hider) resizes when a slot does, so a
+      // bar that mounts late or changes height would keep a stale reservation until an unrelated
+      // draw. The loop cannot feed itself: a render re-syncs the slot WIDTH, which can toggle the
+      // slot's horizontal scrollbar exactly once, and the next delivery then reads an unchanged
+      // height and stops here. `refreshDimensions()` is not enough – inside a scrollable ancestor the
+      // root's box does not change until the engine re-measures, so it would skip the render.
+      slotsResizeObserver = new instance.rootWindow.ResizeObserver(() => {
+        if (!instance || instance.isDestroyed || !instance.view) {
+          return;
+        }
+
+        const slotsHeight = measureSlotsHeight();
+
+        if (slotsHeight === lastSlotsHeight) {
+          return;
+        }
+
+        lastSlotsHeight = slotsHeight;
+
+        if (isPixelHeight(isFunction(tableMeta.height) ? tableMeta.height() : tableMeta.height)) {
+          applyHeightSetting(tableMeta.height);
+        }
+
+        instance.render();
+      });
+      slots.forEach(slot => slotsResizeObserver?.observe(slot));
     }
 
     instance.runHooks('init');
@@ -4016,6 +4073,84 @@ export default function Core(
   };
 
   /**
+   * Checks whether a `height` value is a plain pixel length (a number, a digit string, or a `px`
+   * string) – the only form the edge slots can be subtracted from.
+   *
+   * @param {unknown} height The resolved `height` setting.
+   * @returns {boolean}
+   */
+  const isPixelHeight = (height: unknown): height is number | string => (
+    typeof height === 'number' ||
+    (typeof height === 'string' && (/^\d+$/.test(height) || height.endsWith('px')))
+  );
+
+  /**
+   * Subtracts the root wrapper's edge slots (the pagination bar, the sheets bar, the license
+   * notification) from a pixel `height`, so the grid plus its bars fill exactly the box the user
+   * asked for. With an explicit `height` the root element owns the vertical axis and contains no
+   * slot, so the engine's `layoutReservedHeight` reserves nothing there – this is the other half of
+   * the same rule, and it used to live in the Pagination plugin alone, which left the sheets bar
+   * 38px taller than the declared height (DEV-2848). A non-pixel height (`auto`, `100%`, a `calc()`)
+   * is left alone: it is resolved by the browser, not by us.
+   *
+   * @param {number | string} height The resolved `height` setting.
+   * @returns {number | string}
+   */
+  const reserveEdgeSlotsHeight = (height: number | string): number | string => {
+    if (!isRootInstance(instance) || !isPixelHeight(height)) {
+      return height;
+    }
+
+    const reservedHeight = [instance.rootSlotTopElement, instance.rootSlotBottomElement]
+      .reduce((sum, slot) => sum + (slot?.offsetHeight ?? 0), 0);
+
+    if (reservedHeight === 0) {
+      return height;
+    }
+
+    const heightValue = typeof height === 'string' && height.endsWith('px') ? height : `${height}px`;
+
+    return `calc(${heightValue} - ${reservedHeight}px)`;
+  };
+
+  /**
+   * Writes the `height` setting onto the root element. Split out of `updateSettings` so the slot
+   * `ResizeObserver` can re-apply it when a bar's height changes after the settings were applied.
+   *
+   * @param {*} heightSetting The `height` setting (a length, `'auto'`, `null`, or a function).
+   * @returns {*} The height as written (after `beforeHeightChange` and the slot reservation).
+   */
+  const applyHeightSetting = (heightSetting: unknown): unknown => {
+    let height = heightSetting;
+
+    if (isFunction(height)) {
+      height = (height as () => string | number)();
+    }
+
+    height = instance.runHooks('beforeHeightChange', height);
+
+    if (height === null) {
+      const initialStyle = instance.rootElement.dataset.initialstyle;
+
+      if (initialStyle && (initialStyle.indexOf('height') > -1 || initialStyle.indexOf('overflow') > -1)) {
+        instance.rootElement.setAttribute('style', initialStyle);
+
+      } else {
+        instance.rootElement.style.height = '';
+        instance.rootElement.style.overflow = '';
+      }
+
+    } else if (height !== undefined) {
+      height = reserveEdgeSlotsHeight(height as number | string);
+
+      instance.rootElement.style.height = isNaN(height as number) ? `${height}` : `${height}px`;
+      instance.rootElement.style.overflow = 'clip';
+    }
+
+    return height;
+  };
+
+  /**
    * Use it if you need to change configuration after initialization. The `settings` argument is an object containing the changed
    * settings, declared the same way as in the initial settings object.
    *
@@ -4434,30 +4569,12 @@ export default function Core(
       }
     }
 
-    let height = settings.height;
+    // The resolved value (after `beforeHeightChange` and the slot reservation) is compared against
+    // the previous inline height below, to re-pick the scrollable elements when the axis owner moved.
+    let height: unknown;
 
     if (typeof settings.height !== 'undefined') {
-      if (isFunction(height)) {
-        height = (height as () => string | number)();
-      }
-
-      height = instance.runHooks('beforeHeightChange', height);
-
-      if (height === null) {
-        const initialStyle = instance.rootElement.dataset.initialstyle;
-
-        if (initialStyle && (initialStyle.indexOf('height') > -1 || initialStyle.indexOf('overflow') > -1)) {
-          instance.rootElement.setAttribute('style', initialStyle);
-
-        } else {
-          instance.rootElement.style.height = '';
-          instance.rootElement.style.overflow = '';
-        }
-
-      } else if (height !== undefined) {
-        instance.rootElement.style.height = isNaN(height as number) ? `${height}` : `${height}px`;
-        instance.rootElement.style.overflow = 'clip';
-      }
+      height = applyHeightSetting(settings.height);
     }
 
     if (typeof settings.width !== 'undefined') {
@@ -6881,6 +6998,8 @@ export default function Core(
     // delivery queued while the table was becoming visible runs its callback on a destroyed instance.
     visibilityObserver?.disconnect();
     visibilityObserver = null;
+    slotsResizeObserver?.disconnect();
+    slotsResizeObserver = null;
 
     if (instance.view) { // in case HT is destroyed before initialization has finished
       instance.view.destroy();

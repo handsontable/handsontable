@@ -6,6 +6,12 @@ tools:
   - Grep
   - Glob
   - Bash
+  - mcp__code-review-graph__query_graph_tool
+  - mcp__code-review-graph__get_impact_radius_tool
+  - mcp__code-review-graph__get_minimal_context_tool
+  - mcp__code-review-graph__get_review_context_tool
+  - mcp__code-review-graph__semantic_search_nodes_tool
+  - mcp__code-review-graph__traverse_graph_tool
 ---
 
 # Handsontable Reviewer Agent

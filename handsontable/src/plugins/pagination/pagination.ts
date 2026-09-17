@@ -327,7 +327,6 @@ export class Pagination extends BasePlugin {
     this.addHook('beforePaste', this.#onBeforePaste);
     this.addHook('afterViewRender', this.#onAfterViewRender);
     this.addHook('afterLanguageChange', this.#onAfterLanguageChange);
-    this.addHook('beforeHeightChange', this.#onBeforeHeightChange);
     this.addHook('afterSetTheme', this.#onAfterSetTheme);
     this.addHook('afterDataProviderFetch', this.#onAfterDataProviderFetch, -1);
 
@@ -1064,34 +1063,6 @@ export class Pagination extends BasePlugin {
 
     this.#internalRenderCall = true;
     this.#refreshUI();
-  };
-
-  /**
-   * Called before the height of the table is changed. It adjusts the table height to fit the pagination container
-   * in declared height.
-   *
-   * @param {number|string} height Table height.
-   * @returns {string} Returns the new table height.
-   */
-  #onBeforeHeightChange = (height: number | string) => {
-    if (this.getSetting('uiContainer')) {
-      return height;
-    }
-
-    const isPixelValue = (
-      typeof height === 'number' ||
-      (typeof height === 'string' && /^\d+$/.test(height)) ||
-      (typeof height === 'string' && height.endsWith('px'))
-    );
-
-    if (!isPixelValue) {
-      return height;
-    }
-
-    const heightValue = typeof height === 'string' && height.endsWith('px')
-      ? height : `${height}px`;
-
-    return `calc(${heightValue} - ${this.#ui?.getHeight()}px)`;
   };
 
   /**

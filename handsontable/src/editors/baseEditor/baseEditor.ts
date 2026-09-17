@@ -1,5 +1,6 @@
 import type { HotInstance } from '../../core/types';
 import type { CellProperties } from '../../settings';
+import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 import { stringify } from '../../helpers/mixed';
 import { throwWithCause } from '../../helpers/errors';
 import { warn } from '../../helpers/console';
@@ -14,6 +15,7 @@ import {
   outerHeight,
 } from '../../helpers/dom/element';
 import { getValueGetterValue } from '../../utils/valueAccessors';
+import { collectSelectionFillChanges, selectionFillsOtherCells } from '../../selection/fillSelection';
 
 export const EDITOR_TYPE = 'base';
 export const EDITOR_STATE = Object.freeze({
@@ -280,40 +282,77 @@ export class BaseEditor {
   /**
    * Saves value from editor into data storage.
    *
+   * With `ctrlDown` the value goes into every cell of **every** selection layer, not only the layer
+   * that holds the focus - the same reach the grid's own `Ctrl`/`Cmd`+`Enter` fill has when no
+   * editor is open. The whole fill leaves through one `setDataAtCell()` call, so it fires one
+   * `afterChange` and costs one undo step however many layers it spans.
+   *
    * @param {*} value The editor value.
-   * @param {boolean} ctrlDown If `true`, applies value to each cell in the last selected range.
+   * @param {boolean} ctrlDown If `true`, applies value to each cell in every selected range.
    */
   saveValue(value: unknown, ctrlDown?: boolean): void {
-    let visualRowFrom;
-    let visualColumnFrom;
-    let visualRowTo;
-    let visualColumnTo;
-
     // if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
     if (ctrlDown) {
-      const activeRange = this.hot.getSelectedRangeActive();
-      const topStartCorner = activeRange?.getTopStartCorner();
-      const bottomEndCorner = activeRange?.getBottomEndCorner();
+      const selectedRanges = this.hot.getSelectedRange();
 
-      visualRowFrom = topStartCorner?.row ?? this.row;
-      visualColumnFrom = topStartCorner?.col ?? this.col;
-      visualRowTo = bottomEndCorner?.row ?? this.row;
-      visualColumnTo = bottomEndCorner?.col ?? this.col;
+      // The editor can outlive the selection - a custom editor saving from a detached UI, say - and
+      // then there is no layer to fill, so the value goes to the cell the editor was opened on.
+      if (selectedRanges?.length) {
+        this.#saveValueToSelection(value, selectedRanges);
 
-    } else {
-      [visualRowFrom, visualColumnFrom, visualRowTo, visualColumnTo] = [this.row, this.col, null, null];
+        return;
+      }
     }
 
-    const modifiedCellCoords = this.hot.runHooks('modifyGetCellCoords', visualRowFrom, visualColumnFrom, false, 'meta');
+    this.#saveValueToEditedCell(value as unknown[][]);
+  }
+
+  /**
+   * Writes the editor's value into the single cell the editor was opened on.
+   *
+   * @param {Array[]} value The editor value, in the 2D form `saveValue()` receives it.
+   */
+  #saveValueToEditedCell(value: unknown[][]): void {
+    let visualRow: number | null = this.row;
+    let visualColumn: number | null = this.col;
+
+    const modifiedCellCoords = this.hot.runHooks('modifyGetCellCoords', visualRow, visualColumn, false, 'meta');
 
     if (Array.isArray(modifiedCellCoords)) {
-      [visualRowFrom, visualColumnFrom] = modifiedCellCoords as [number, number];
+      [visualRow, visualColumn] = modifiedCellCoords as [number, number];
     }
 
     // Saving values using the modified coordinates.
-    this.hot.populateFromArray(
-      visualRowFrom as number, visualColumnFrom as number, value as unknown[][],
-      visualRowTo as number, visualColumnTo as number, 'edit');
+    this.hot.populateFromArray(visualRow as number, visualColumn as number, value, null, null, 'edit');
+  }
+
+  /**
+   * Writes the editor's value into every cell of every selection layer.
+   *
+   * The collecting is shared with the grid's own `Ctrl`/`Cmd`+`Enter` fill, so both answer that
+   * keystroke the same way - see `selection/fillSelection.ts` for what the walk skips and why the
+   * whole fill has to leave through a single `setDataAtCell()` call.
+   *
+   * Only the first cell of the 2D wrapper is read. A fill writes one value into every selected
+   * cell, so there is nothing to tile - unlike `#saveValueToEditedCell()`, which hands the block to
+   * `populateFromArray()` and does tile it over a rectangle. A custom editor passing a real 2D block
+   * with `ctrlDown` therefore has every cell of that block but the first ignored.
+   *
+   * @param {*} value The editor value, as `saveValue()` receives it.
+   * @param {CellRange[]} selectedRanges The selection layers to fill.
+   */
+  #saveValueToSelection(value: unknown, selectedRanges: CellRange[]): void {
+    // `saveValue()` is called with the value wrapped in a 2D array, which is the shape
+    // `populateFromArray()` tiles over a rectangle. A fill writes one value into every cell, so the
+    // wrapper is unwrapped here rather than indexed per cell - and anything that is not that shape
+    // (a custom editor passing the raw value) is written as it stands instead of being indexed into
+    // characters.
+    const cellValue: unknown = Array.isArray(value) && Array.isArray(value[0]) ? value[0][0] : value;
+    const changes = collectSelectionFillChanges(this.hot, cellValue, selectedRanges);
+
+    if (changes.length > 0) {
+      this.hot.setDataAtCell(changes, null, null, 'edit');
+    }
   }
 
   /**
@@ -385,10 +424,10 @@ export class BaseEditor {
   }
 
   /**
-   * Finishes editing and start saving or restoring process for editing cell or last selected range.
+   * Finishes editing and start saving or restoring process for the editing cell, or for every selected range.
    *
    * @param {boolean} restoreOriginalValue If true, then closes editor without saving value from the editor into a cell.
-   * @param {boolean} ctrlDown If true, then saveValue will save editor's value to each cell in the last selected range.
+   * @param {boolean} ctrlDown If true, then saveValue will save editor's value to each cell in every selected range.
    * @param {Function} callback The callback function, fired after editor closing.
    */
   finishEditing(restoreOriginalValue?: boolean, ctrlDown?: boolean, callback?: Function): void {
@@ -425,15 +464,6 @@ export class BaseEditor {
         return;
       }
 
-      // Ctrl/Meta + Enter over a real range copies the edited value into every other cell of the
-      // selection, so an unchanged editor still has work to do there. Over a single cell it writes
-      // only the edited cell, which makes it the same gesture as a plain Enter. A missing range has
-      // no other cells to fill either, so `?? true` reads it as single and leaves the guard armed.
-      // `!== true` did the opposite: it sent a missing range into the fill branch, which wrote the
-      // editor's `''` over a `null` cell - the #3927 case this guard exists to stop.
-      const fillsOtherCells = ctrlDown === true &&
-        (this.hot.getSelectedRangeActive()?.isSingle() ?? true) === false;
-
       let value = this.getValue();
 
       // Normalization runs BEFORE the comparison, so an unchanged confirm still trims whitespace and
@@ -446,6 +476,21 @@ export class BaseEditor {
       if (typeof this.cellProperties.valueParser === 'function') {
         value = this.cellProperties.valueParser(value, this.cellProperties);
       }
+
+      // Ctrl/Meta + Enter over a real range copies the edited value into every other cell of the
+      // selection, so an unchanged editor still has work to do there. Where it writes only the
+      // edited cell it is the same gesture as a plain Enter, and the guard has to stay armed: that
+      // is the #3927 case, where the editor's `''` was written over a `null` cell.
+      //
+      // The question is asked of the cells the fill would actually reach, not of the selection's
+      // shape. A single-cell active layer says nothing about the other layers (DEV-103), and a
+      // layer that contributes no writable cell - all `readOnly`, or a header - is not work either.
+      //
+      // It is asked of the NORMALIZED value, which is the one `saveValue()` goes on to write. A
+      // `valueParser` returning an object would otherwise have the guard read the raw string and the
+      // write read the object, and the two answer the object-cell rule differently.
+      const fillsOtherCells = ctrlDown === true &&
+        selectionFillsOtherCells(this.hot, value, this.row, this.col);
 
       // The editor still holds exactly what it was opened with, so the user confirmed without changing
       // anything. Writing the editor's stringified value back over the cell is what turned a `null`
