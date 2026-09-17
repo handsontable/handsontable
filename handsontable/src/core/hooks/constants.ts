@@ -3181,7 +3181,7 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin before changing the active sheet. This hook is fired when
    * {@link Options#sheetsBar} option is enabled.
    *
-   * @since 18.2.0
+   * @since 19.0.0
    * @event Hooks#beforeSheetTabChange
    * @param {number} oldSheetId The id of the sheet being left.
    * @param {number} newSheetId The id of the sheet being activated.
@@ -3194,7 +3194,7 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin after changing the active sheet. This hook is fired when
    * {@link Options#sheetsBar} option is enabled.
    *
-   * @since 18.2.0
+   * @since 19.0.0
    * @event Hooks#afterSheetTabChange
    * @param {number} oldSheetId The id of the sheet being left.
    * @param {number} newSheetId The id of the sheet being activated.
@@ -3206,7 +3206,7 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin before adding a new sheet. This hook is fired when
    * {@link Options#sheetsBar} option is enabled.
    *
-   * @since 18.2.0
+   * @since 19.0.0
    * @event Hooks#beforeSheetTabAdd
    * @param {string|null} name The requested sheet name, or `null` for a default-generated name.
    * @param {string} source String that identifies source of hook call.
@@ -3218,7 +3218,7 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin after adding a new sheet. This hook is fired when
    * {@link Options#sheetsBar} option is enabled.
    *
-   * @since 18.2.0
+   * @since 19.0.0
    * @event Hooks#afterSheetTabAdd
    * @param {number} sheetId The id of the added sheet.
    * @param {string} name The name of the added sheet.
@@ -3230,7 +3230,7 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin before removing a sheet. This hook is fired when
    * {@link Options#sheetsBar} option is enabled.
    *
-   * @since 18.2.0
+   * @since 19.0.0
    * @event Hooks#beforeSheetTabRemove
    * @param {number} sheetId The id of the sheet to be removed.
    * @param {string} source String that identifies source of hook call.
@@ -3242,7 +3242,7 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin after removing a sheet. This hook is fired when
    * {@link Options#sheetsBar} option is enabled.
    *
-   * @since 18.2.0
+   * @since 19.0.0
    * @event Hooks#afterSheetTabRemove
    * @param {number} sheetId The id of the removed sheet.
    * @param {string} source String that identifies source of hook call.
@@ -3253,7 +3253,7 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin before renaming a sheet. This hook is fired when
    * {@link Options#sheetsBar} option is enabled.
    *
-   * @since 18.2.0
+   * @since 19.0.0
    * @event Hooks#beforeSheetTabRename
    * @param {number} sheetId The id of the sheet being renamed.
    * @param {string} oldName The current name of the sheet.
@@ -3267,7 +3267,7 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin after renaming a sheet. This hook is fired when
    * {@link Options#sheetsBar} option is enabled.
    *
-   * @since 18.2.0
+   * @since 19.0.0
    * @event Hooks#afterSheetTabRename
    * @param {number} sheetId The id of the renamed sheet.
    * @param {string} oldName The previous name of the sheet.
@@ -3280,7 +3280,7 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin before moving a sheet to a new tab position. This hook is fired when
    * {@link Options#sheetsBar} option is enabled.
    *
-   * @since 18.2.0
+   * @since 19.0.0
    * @event Hooks#beforeSheetTabMove
    * @param {number} sheetId The id of the sheet being moved.
    * @param {number} finalIndex The requested tab index.
@@ -3293,7 +3293,7 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin after moving a sheet to a new tab position. This hook is fired when
    * {@link Options#sheetsBar} option is enabled.
    *
-   * @since 18.2.0
+   * @since 19.0.0
    * @event Hooks#afterSheetTabMove
    * @param {number} sheetId The id of the moved sheet.
    * @param {number} finalIndex The tab index the sheet was moved to.
@@ -3305,7 +3305,7 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin after capturing a sheet's runtime view state (e.g. scroll position,
    * selection) before switching away from it. This hook is fired when {@link Options#sheetsBar} option is enabled.
    *
-   * @since 18.2.0
+   * @since 19.0.0
    * @event Hooks#afterSheetTabStateCapture
    * @param {number} sheetId The id of the sheet the view state was captured from.
    * @param {object} viewState The captured view state.
@@ -3317,7 +3317,7 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin after restoring a sheet's runtime view state (e.g. scroll position,
    * selection) when switching to it. This hook is fired when {@link Options#sheetsBar} option is enabled.
    *
-   * @since 18.2.0
+   * @since 19.0.0
    * @event Hooks#afterSheetTabStateRestore
    * @param {number} sheetId The id of the sheet the view state was restored to.
    * @param {object} viewState The restored view state.

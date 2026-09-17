@@ -343,7 +343,7 @@ reads the first row's keys.
 
 ::: tip
 
-On an object data source this write is deprecated as of 18.2.0 and will be ignored from 19.0.0 on,
+On an object data source this write is deprecated as of 19.0.0 and will be ignored from 20.0.0 on,
 because the value can never become a column there - it only adds a key your
 [`dataSchema`](@/api/options.md#dataschema) does not declare. Set
 [`allowInsertColumn`](@/api/options.md#allowinsertcolumn) to `false` to drop such pasted values

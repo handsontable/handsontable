@@ -8,6 +8,7 @@ Self-contained rendering engine for viewport calculation, DOM rendering, scroll 
 - The bridge to core Handsontable is `src/tableView.ts` (TableView class)
 - Plugins must NEVER access Walkontable internals directly - always go through TableView
 - Do not import core Handsontable modules from Walkontable code
+- `Core#getRowHeight` is the provided height only (`rowHeights` / ManualRowResize / AutoRowSize). Walkontable layout uses `max(provided, wtViewport.oversizedRows[renderable])`. Handsontable code that must match that measurement goes through `getRenderedRowHeight` in `src/core/viewportScroll/scrollStrategies/singleScroll.ts` (visual → renderable → `wtTable.getRowHeight`) — never `hot.view._wt.wtViewport.oversizedRows` (Law of Demeter) and never `Core#getRowHeight` alone. Content-tall rows without those plugins keep `getRowHeight` at `undefined`. Forced mouse start-snap on an oversized axis bypasses Walkontable's auto-snap frozen-row/column guard, so frozen start columns and frozen top/bottom rows must not count as oversized.
 
 ## Dependency injection & DOM reads (mandatory)
 
@@ -72,8 +73,10 @@ boundary edges; routing the handle *position* through it silently drops the head
 other axis, `rowHeaders` plus `shouldRenderInlineStartOverlay`). Both helpers also return `false` off
 the master on purpose. Handles drawn by a frozen overlay itself need no treatment: they
 already land flush against the `.wtHolder` edge that clips them, which `border.spec.js` pins to the
-pixel on both axes. Note `.wtHolder` is the clipping box (`overflow: hidden`), while the clone element
-is `overflow: visible` and ends a few pixels earlier — measure the holder, not the clone.
+pixel on both axes. Note `.wtHolder` is the clipping box on the three scroll-mirrored clones
+(`overflow: auto` with the scrollbar suppressed, which clips like `hidden` did — see "The clone
+holders are composited scroll containers" below), while the clone element is `overflow: visible`
+and ends a few pixels earlier — measure the holder, not the clone.
 
 One case is *not* covered and is not a regression: with both headers off and no frozen panes, a row-0
 top handle is drawn at a negative offset and the master's `.wtHolder` clips it. It was invisible
@@ -135,6 +138,83 @@ which reads the browser's own `layout-shift` entries under a real wheel scroll �
 `scrollTop` assignment is not a scroll-driven draw — and carries a positive control, because an
 observer that saw nothing reports the same zero as a spreader that moved no layout. The spec fails
 on the inset write (1.17 blamed on `div.wtSpreader` after 12 wheel steps).
+
+## The clone holders are composited scroll containers
+
+`ScrollSync` mirrors the master's scroll offset onto three clones once per scroll frame:
+`syncScrollPositions` writes `scrollTop` on the inline-start holder and `scrollLeft` on the top and
+bottom ones, and `syncScrollWithMaster` repeats the write after a draw that changed a clone's render
+state. Those holders used to be `overflow: hidden` like every other `.wtHolder`, and that made each
+write expensive out of all proportion: a browser composites only a box the user can scroll, so a
+`hidden` holder has no compositor layer, every write re-recorded the clone's contents on the main
+thread (one Paint per row-header cell) and dirtied the document's paint artifact, and the browser then
+re-layerized every paint chunk on the page — the master's untouched cells included. The cost scaled
+with how much DOM the cells render, not with what moved: ~850 ms of main-thread paint per 2.5 s scroll
+on a grid of SVG-rich cells (#13446, DEV-2937), ~20 ms on a plain-text grid. It is also why CSS
+containment on the cells made things worse (more chunks to re-layerize) and why the master's own
+scroll was always cheap: `.ht_master .wtHolder` is `overflow: auto`.
+
+So `src/styles/base/_base.scss` makes each of those holders a scroll container on the ONE axis the
+engine writes (`overflow-y: auto` on the inline-start holder, `overflow-x: auto` on the top and
+bottom ones, the cross axis `hidden`), with the scrollbar suppressed (`scrollbar-width: none` plus
+the `::-webkit-scrollbar` fallback, written out in place: a `&` inside a mixin body fails the
+SonarCloud gate as "missing scoping root", S8776) and `overflow-anchor: none`. The same writes then take the compositor's
+scroll-offset fast path: measured on that grid, paint 850 → 90 ms per run and total main-thread time
+−45…−65 % on every renderer, with renderer calls, draws and frames identical. The worst frame and the
+long tasks do not move — they are the two full draws' renderer work — so the win is per-frame
+headroom, not a shorter stall. The corner clones are untouched (their holders were never clipped):
+nothing scrolls them. `css/walkontable.scss` carries the same rule for the engine's own test runner
+and must be kept in sync, or `npm run test:walkontable` runs against the old clip.
+
+Four rules come with it.
+
+- **A user can now scroll a clone holder, and the engine must catch that.** A touch pan over a frozen
+  header, or a wheel `#onCloneWheel` did not cancel (window-scroll mode), moves the clone on the
+  compositor before any script runs. `NativeScrollInput#onCloneScroll` listens to `scroll` on every
+  clone holder, undoes the drift on the holder and hands it to the axis owner through
+  `scrollVertically`/`scrollHorizontally`, whose own scroll event then re-syncs every clone the
+  ordinary way — so a pan over a frozen header scrolls the grid, like a wheel over it does. (Before,
+  such a pan chained to the page; a hidden box cannot be panned.)
+- **The reference for "drift" is the ledger of what the engine wrote, never the master's current
+  offset.** `ScrollSync` records every clone write in `#cloneScrollTargets` (all writes go through
+  `#writeCloneScrollTop`/`#writeCloneScrollLeft`; a holder never written is expected at zero; `ScrollSync`
+  is the only writer of those offsets, and a new writer elsewhere must go through it or its write reads
+  as a user scroll), and `measureCloneScrollDrift` (`overlay/scroll/cloneScrollDrift.ts`) clamps the
+  target to the range the holder has NOW — the browser clamped the write the same way — and ignores
+  sub-pixel differences. The listener compares the offset with the ledger first, by the same
+  sub-pixel rule (`matchesCloneScrollTarget`), and measures the range only on a mismatch, so the
+  engine's own three writes per frame cost no geometry read — on a fractionally zoomed page too,
+  where an integer write reads back fractional. A write the browser DID clamp (the master sits past
+  the clone's momentary range during a relayout) resolves to no drift, and the clamped offset is
+  handed back to the ledger (`recordClampedCloneScrollTarget`, the one writer outside `ScrollSync`
+  and only with the value the listener just resolved), or the two disagree until the next in-range
+  write and every scroll event on that holder pays both range reads to reach the same answer.
+  Comparing against the master instead is wrong by one frame: scroll events dispatch a frame after the
+  offset changed, and a clone's pending event can run before the master's in the same frame, so the
+  clone still reads last frame's offset while the master already moved — a comparison would call that a
+  user scroll backwards and undo the master's own move. **That is measurable only in the same
+  synchronous block**: with the master reference the listener pulls the master back and pushes the
+  clone forward, and a second correction a frame later happens to undo both, so the settled offsets
+  are identical either way. The spec's race case therefore reads the offsets the listener left behind,
+  not the ones that settle.
+- **The four scroll containers carry `tabindex="-1"`** (`table/domScaffold.ts`): the master's holder
+  and the three clone holders above. Chrome 127+ makes a scroll container with no focusable content a
+  keyboard tab stop of its own. The corner clones are not scroll containers and get no tabindex.
+- **`getTrimmingContainer` counts `hidden` and `auto` alike, and `getScrollableElement`'s callers walk
+  up from the MASTER table**, so the axis owners and the scrolling element are unchanged by this. A
+  new caller that walks up from a clone's cell would now find the clone holder; do not add one.
+
+Pinned by `test/unit/overlay/cloneScrollTargets.unit.ts` (the drift measure and the ledger) and
+`tests/e2e/clone-holder-scroll.spec.ts` (the computed `overflow` per axis on every holder, no
+scrollbar space, the tab order, the mirror, a scroll of the clone itself landing on the master, the
+ledger-versus-master race above, touch pans over the row headers AND the column headers driven
+through CDP `Input.dispatchTouchEvent` — `Input.synthesizeScrollGesture` moves nothing on the CI
+runners — an RTL grid driving the clones into negative `scrollLeft` and forwarding from there, and
+the frozen column staying in step under a page scroll). The
+stylesheet half has no unit test that can see it, so the E2E is what stops a future stylesheet edit
+from silently giving the paint back. Window-scroll mode was probed at device scale 0.67–1.5 and CSS
+zoom 0.8–1.33: every clone holder has zero scroll range on both axes there, so a wheel over a frozen
+header cannot latch to a clone and `#onCloneWheel`'s window branch stays as it is.
 
 ## Naming gotcha: `moveCells` grid option vs. HyperFormula engine method
 
@@ -487,7 +567,7 @@ Four things hold a row up, and exactness has to defeat each of them:
 
 1. **The DOM read-back.** `markOversizedRows` skips exact rows (before the geometry read, so they cost nothing), `RowUtils` returns the provided height without the `Math.max` against `oversizedRows`, and a record an exact row may still hold from before it became exact stays wiped so the shrink detection reports the change. The frozen sync inherits the skip because it calls `markOversizedRows`. A **uniform exact band skips the walk outright**: the uniform early-out compares the TBODY against `rowCount * defaultRowHeight`, which an exact band never matches, so without the shortcut the most common exact configuration (`rowHeights: <number>`) would walk every rendered row on every draw. The shortcut needs the sizes AND the mode to be uniform (`RowSizeSource#isModeUniform`: the setting is a literal — neither a function nor an array, both of which `getSetting` resolves per row) — `isUniform()` describes the size source alone, and one row's mode cannot stand for the band's otherwise, so a host that wants the shortcut passes a literal mode when it applies to every row. On an exact row, `getHeightByOverlayName` falls back to the row's own height when an overlay listener answers nothing, so no overlay can drop to the floor shape while the row-height cache carries the exact value.
 2. **The cells the height is not written to.** The floor shape writes the height to `TR.firstChild` only. That is enough for a floor, and it is why the stylesheet's default `height` on every `td`/`th` holds an exact row up even when the cells are empty. The exact shape (`render/exactRowHeight.ts`, used by both the render loop and `applyRowHeightsToRenderedRows`) marks the **row** with `htExactRow`, and the stylesheet releases the cells' minimum height through that class (`tr.htExactRow > td { height: auto }`), so the height still goes on one cell only — the first that spans a single row and is rendered; a cell spanning several rows (a merged cell) never carries it, the span sizes it, and a cell MergeCells covers is `display: none` with its `rowspan` removed, so a height on it would hold nothing up. When no cell can carry it at all (every cell covered or spanning) the height goes on the `tr` instead, or the row would collapse to its borders now that the stylesheet released the cells' minimum. **The marker must stay on the row, not the cells.** The cell renderers reset every cell's class and inline style on each draw, and a per-cell marker was measured at +2.2 ms of style recalculation per draw on 462 cells (the browser recomputed the whole band); the row renderer leaves the row's class alone, so re-asserting the row marker each draw costs nothing (adding a present class is a no-op) and heals a hook that rewrote `className`. The release clears every cell's inline height, because the carrier need not be the first cell and the out-of-render path has no renderer to reset it.
-3. **CSS table layout.** A table cell's `height` is a minimum, full stop: `overflow: hidden` on the cell does not shrink it, and a `height: 100%` child resolves to the content height (measured, not guessed). The only thing that works is taking the content out of flow: each data cell's content is moved into `div.htCellClip`, which the stylesheet positions absolutely over the cell's padding box and clips; the cell drops its own padding through the row class (a border-box cell cannot be shorter than its padding plus border — 17px in `horizon`), while the wrapper's insets carry the same padding so the text does not move. Row headers keep their `.relative` wrapper (taken out of flow the same way; it must stay `TH.firstChild` or `appendRowHeader` rebuilds it every draw) and the header's own `span.rowHeader` clips — never `.relative` and never the `th`: the active-row accent bar is a `.relative::after` inset by -1px on three sides to meet the gridlines, and a clip on either box cuts it off (a body-row `th` has `padding: 0`, so its padding box is its content box). A custom row-header renderer that builds no `.rowHeader` is simply unclipped; it can never grow the row, because `.relative` is out of flow. Vertical alignment (`htMiddle`/`htBottom`) maps onto the wrapper through `align-content` on the block box, never `display: flex` — the indicator renderers float their arrows, and a flex container ignores floats.
+3. **CSS table layout.** A table cell's `height` is a minimum, full stop: `overflow: hidden` on the cell does not shrink it, and a `height: 100%` child resolves to the content height (measured, not guessed). The only thing that works is taking the content out of flow: each data cell's content is moved into `div.htCellClip`, which the stylesheet positions absolutely over the cell's padding box and clips; the cell drops its own padding through the row class (a border-box cell cannot be shorter than its padding plus border — 17px in `horizon`), while the wrapper's insets carry the same padding so the text does not move. Row headers keep their `.relative` wrapper (taken out of flow the same way; it must stay `TH.firstChild` or `appendRowHeader` rebuilds it every draw) and the header's own `span.rowHeader` clips — never `.relative` and never the `th`: the active-row accent bar is a `.relative::after` inset by -1px on three sides to meet the gridlines, and a clip on either box cuts it off (a body-row `th` has `padding: 0`, so its padding box is its content box). A custom row-header renderer that builds no `.rowHeader` is simply unclipped; it can never grow the row, because `.relative` is out of flow. Vertical alignment (`htMiddle`/`htBottom`) maps onto the wrapper through `align-content` on the block box, never `display: flex` — `.ht-multi-select-arrow` and the select-editor overlay's `.htAutocompleteArrow` still float, and a flex container ignores floats. In-cell `.htAutocompleteArrow` is absolutely positioned (DEV-348) and would survive flex, but the remaining floats would not.
 4. **The renderers.** The cell renderer resets a painted cell's class and inline style, so the one inline height is re-applied on every draw (the reason the height pass must stay after `cells.render()`). The pass runs for every rendered row whatever the cell painter decided, which is what keeps it correct under `renderMode: 'onChange'`: a cell the diffing pass skips keeps its wrapper and its height, and re-applying them is idempotent. The painter reads its own stamps and never inspects cell DOM, so the wrapper is invisible to it. The wrapper is the expensive part: `fastInnerText`'s fast lane needs `firstChild` to be a text node, and `empty(TD)`/`innerHTML` wipe it. Every built-in renderer therefore writes through `getCellContentRoot(TD)` (`helpers/dom/element.ts`), which returns the wrapper when it is the cell's only child, and `fastInnerText`/`fastInnerHTML` do the same — so the wrapper survives a redraw and the row-height pass sees "already wrapped" and does nothing. A custom renderer that wipes the cell costs one re-wrap per draw, on exact rows only; that is the accepted cost, and it is the exception to the "no structural DOM mutation per draw" rule in `tableRenderer.ts`. A renderer that inserts a node **next to** the wrapper (the old `TD.insertBefore(ARROW, TD.firstChild)` shape) grows the row back — in-flow content outside the wrapper counts — which is why the arrow renderers went through the content root too.
 
 Switching a row back to the floor shape unwraps it once (a `WeakSet` of exact rows, so floor rows are never inspected). Column headers are out of scope on purpose: `adjustColumnHeaderHeights` writes a minimum by design.

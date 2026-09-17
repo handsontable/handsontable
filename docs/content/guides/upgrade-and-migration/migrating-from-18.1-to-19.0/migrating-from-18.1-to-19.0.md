@@ -21,7 +21,7 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 [[toc]]
 
-Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way. Section 12 concerns when a [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column marks a value invalid, and applies only if you set [`strict`](@/api/options.md#strict) to `false` on such a column. Section 13 concerns which row you land on when you leave a merged cell horizontally, and applies only if you use the [`MergeCells`](@/api/mergeCells.md) plugin. Section 14 concerns what [`getCopyableData()`](@/api/core.md#getcopyabledata) returns, and applies only if you call it or [`getCopyableSourceData()`](@/api/core.md#getcopyablesourcedata) yourself.
+Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way. Section 12 concerns when a [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column marks a value invalid, and applies only if you set [`strict`](@/api/options.md#strict) to `false` on such a column. Section 13 concerns which row you land on when you leave a merged cell horizontally, and applies only if you use the [`MergeCells`](@/api/mergeCells.md) plugin. Section 14 concerns `tr` elements moving with their rows on a vertical scroll, and applies whether or not you set [`renderMode`](@/api/options.md#rendermode). Section 15 concerns how [`autoColumnSize`](@/api/autoColumnSize.md) measures [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), and [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) columns, and applies only if you leave that plugin on for those cell types and do not pin them with a column `width` or with [`colWidths`](@/api/options.md#colwidths). Section 16 concerns what [`getCopyableData()`](@/api/core.md#getcopyabledata) returns, and applies only if you call it or [`getCopyableSourceData()`](@/api/core.md#getcopyablesourcedata) yourself.
 
 ## 1. `date` cells reach the formula engine the same way on every data path
 
@@ -573,7 +573,7 @@ To keep the dropdown and still store values outside the list, leave
 [`allowInvalid`](@/api/options.md#allowinvalid) at its default of `true`. The value is stored, and
 the cell is marked invalid.
 
-## 8. Row elements move with their rows on a vertical scroll
+## 14. Row elements move with their rows on a vertical scroll
 
 This section applies whether or not you set [`renderMode`](@/api/options.md#rendermode).
 
@@ -641,7 +641,55 @@ Nothing to change in most cases -- the landing is now consistent with a merged c
 cell at its top-left corner. If your code compensated for the old direction-dependent landing, drop
 that workaround.
 
-## 14. `getCopyableData()` returns a string
+## 15. AutoColumnSize includes the list-cell arrow in the column width
+
+This applies only if you leave [`autoColumnSize`](@/api/autoColumnSize.md) on -- the default -- for
+an [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md),
+[`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), or
+[`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) column, and
+you do not pin those columns with a column [`width`](@/api/options.md#width) or with
+[`colWidths`](@/api/options.md#colwidths).
+
+A long value next to the list-cell arrow used to wrap the arrow onto a second line. AutoColumnSize
+measured the text alone, so an autosized column was narrower than the value plus the arrow. The
+arrow is now out of flow, and its width is reserved as trailing padding on the cell. AutoColumnSize
+renders the real cell renderer off-DOM, so that padding is part of the measured width and the
+column grows.
+
+### Who is affected
+
+You are affected if you use the default AutoColumnSize plugin on an autocomplete, dropdown, or
+handsontable column. Those columns become wider on upgrade by the reserved arrow slot. A column
+you pin with `width` or `colWidths` keeps the width you set.
+
+### How to migrate
+
+Nothing to change if the extra width is acceptable.
+
+To keep the previous size on one column without turning AutoColumnSize off for the rest of the
+grid, set that column's `width`:
+
+**Before:**
+
+```js
+columns: [
+  { type: 'autocomplete', source: countries },
+  { type: 'text' },
+],
+```
+
+**After:**
+
+```js
+columns: [
+  { type: 'autocomplete', source: countries, width: 120 },
+  { type: 'text' },
+],
+```
+
+To pin every column, set `colWidths`. That option disables AutoColumnSize for the whole grid.
+
+## 16. `getCopyableData()` returns a string
 
 [`getCopyableData()`](@/api/core.md#getcopyabledata) was documented and typed as returning a string,
 but it returned the cell value as stored: a number, a boolean, `null`, `undefined`, an array, or an

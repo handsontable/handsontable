@@ -100,6 +100,15 @@ Because the auto strategy computes a size *per page*, page boundaries are not un
 `beforePaste` — all so a selection or a paste cannot reach rows that are off-page. Adding a new
 selection entry point means adding it here too.
 
+**These hooks scope the *selection*, not the data.** They only reach a data method that routes
+through the selection, and that coupling is a trap in both directions. `Core#clear()` used to call
+`selectAll()` and then empty the selection, so `#onBeforeSelectAllRows` silently narrowed it to the
+current page and `clear()` left every other page filled. It now empties the data set directly
+(DEV-121), so it crosses page boundaries **on purpose** — do not "restore" the page scoping. The
+rule to carry over: a method that changes *data* must not borrow the selection to decide its range,
+because every selection constraint — this plugin's page window, and `selectionMode: 'single'`, which
+collapses any range to the highlighted cell — then silently becomes a data constraint.
+
 It also reacts to `afterSetTheme` (a theme changes row heights, and `useTheme()` does not go through
 `updateSettings`), `afterLanguageChange` (the pager's labels) and `afterDataProviderFetch`.
 

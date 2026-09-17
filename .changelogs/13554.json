@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the row and column resize guide remaining visible after a held double-click autosize.",
+  "type": "fixed",
+  "issueOrPR": 13554,
+  "breaking": false,
+  "framework": "none"
+}

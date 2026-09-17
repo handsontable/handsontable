@@ -122,7 +122,7 @@
         "cells",
         "cell"
       ],
-      "since": "18.2.0",
+      "since": "19.0.0",
       "note": "The plugin toggle is grid level. A column or cell `false` opts out, and a column or cell object overrides `target`, `schemes`, `strict`, `inline`, and `className` for those cells."
     },
     {
@@ -131,7 +131,7 @@
       "levels": [
         "grid"
       ],
-      "since": "18.2.0",
+      "since": "19.0.0",
       "note": null
     },
     {
@@ -1249,7 +1249,7 @@
         "cells",
         "cell"
       ],
-      "since": "18.2.0",
+      "since": "19.0.0",
       "note": null
     },
     {
@@ -1348,7 +1348,7 @@
       "levels": [
         "grid"
       ],
-      "since": "18.2.0",
+      "since": "19.0.0",
       "note": null
     },
     {
@@ -1519,7 +1519,7 @@
       "levels": [
         "grid"
       ],
-      "since": "18.2.0",
+      "since": "19.0.0",
       "note": null
     },
     {
