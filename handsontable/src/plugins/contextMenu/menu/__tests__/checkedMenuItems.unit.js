@@ -246,6 +246,58 @@ describe('menu items whose selection is only partly on (DEV-124)', () => {
     expect(hot.setCellMeta).toHaveBeenCalledTimes(2);
   });
 
+  describe('the "Read-only comment" click', () => {
+    /**
+     * Clicks the item over a two-cell selection and returns the comment meta it wrote.
+     *
+     * @param {object} firstMeta The meta of cell (0, 0).
+     * @param {object} secondMeta The meta of cell (0, 1).
+     * @returns {Array[]}
+     */
+    function clickCommentItem(firstMeta, secondMeta) {
+      const hot = createTwoCellHotStub(firstMeta, secondMeta);
+      const updateCommentMeta = jest.fn();
+      const plugin = {
+        getCommentMeta: (row, col, key) => (col === 0 ? firstMeta : secondMeta).comment?.[key],
+        updateCommentMeta,
+      };
+
+      hot.getSelectedRangeActive = () => hot.getSelectedRange()[0];
+      readOnlyCommentItem(plugin).callback.call(hot);
+
+      return updateCommentMeta.mock.calls;
+    }
+
+    it('should make every comment writable when one is read-only, so a mixed mark clears', () => {
+      // Flipping each cell on its own turned a mixed selection into the opposite mixed selection,
+      // so the dash came back after every click.
+      expect(clickCommentItem(
+        { comment: { value: 'a note', readOnly: true } },
+        { comment: { value: 'another note' } },
+      )).toEqual([
+        [0, 0, { readOnly: false }],
+        [0, 1, { readOnly: false }],
+      ]);
+    });
+
+    it('should make every comment read-only when none is', () => {
+      expect(clickCommentItem(
+        { comment: { value: 'a note' } },
+        { comment: { value: 'another note' } },
+      )).toEqual([
+        [0, 0, { readOnly: true }],
+        [0, 1, { readOnly: true }],
+      ]);
+    });
+
+    it('should not write to a cell without a comment, or to a hidden merged cell', () => {
+      expect(clickCommentItem({ comment: { value: 'a note' } }, {}))
+        .toEqual([[0, 0, { readOnly: true }]]);
+      expect(clickCommentItem({ comment: { value: 'a note' } }, { hidden: true, comment: { value: 'x' } }))
+        .toEqual([[0, 0, { readOnly: true }]]);
+    });
+  });
+
   describe('cells that do not take part in the mark', () => {
     it('should read a merged block by its top-left cell, not by the hidden cells under it', () => {
       // MergeCells stretches the selection over the whole block and marks every covered cell

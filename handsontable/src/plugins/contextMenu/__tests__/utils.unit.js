@@ -122,6 +122,15 @@ describe('contextMenu/utils', () => {
       expect(stateOf([[0, 0], [0, 1], [1, 0]])).toBe(MENU_ITEM_MIXED);
     });
 
+    it('should read undefined as a non-match, and only null as "leave out"', () => {
+      // A comparator returning an unset `meta.readOnly` gives `undefined` for a writable cell.
+      // Skipping it would read one read-only cell beside writable ones as fully read-only.
+      const meta = { '0:0': { readOnly: true }, '0:1': {} };
+      const comparator = (row, col) => meta[`${row}:${col}`].readOnly;
+
+      expect(getSelectionCheckState([createStoppableRange([[0, 0], [0, 1]])], comparator)).toBe(MENU_ITEM_MIXED);
+    });
+
     it('should report false when the comparator leaves out every cell', () => {
       expect(getSelectionCheckState([createStoppableRange([[0, 0], [0, 1]])], () => null)).toBe(false);
     });

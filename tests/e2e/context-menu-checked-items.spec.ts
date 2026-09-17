@@ -211,6 +211,29 @@ test.describe('context menu items that draw a check mark', () => {
       });
     });
 
+    test('clears the "Read-only comment" dash with one click', async () => {
+      // (0, 0) holds a read-only comment, (0, 1) a writable one. The click must leave every comment
+      // in one state; flipping each cell on its own just swaps which one is read-only.
+      await menu.markCellChecked();
+      await menu.markNeighborUnchecked();
+      await menu.selectFirstTwoCells();
+      await menu.openMenuOnFirstCell();
+
+      expect((await menu.itemState('Read-only comment')).ariaChecked).toBe('mixed');
+
+      await menu.clickItem('Read-only comment');
+      await menu.openMenuOnFirstCell();
+
+      expect(await menu.selectedRange()).toEqual([0, 0, 0, 1]);
+      expect(await menu.itemState('Read-only comment')).toEqual({
+        role: 'menuitemcheckbox',
+        ariaChecked: 'false',
+        ariaLabel: 'Read-only comment',
+        checkMarks: 0,
+        mixedMarks: 0,
+      });
+    });
+
     test('paints the mixed state with its own glyph, not the check mark', async () => {
       // Counting spans proves the DOM only. This reads the icon mask the theme's stylesheet puts on
       // each mark, which is what the user actually sees - and which a missing icon rule for

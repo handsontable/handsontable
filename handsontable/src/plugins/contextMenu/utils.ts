@@ -140,7 +140,9 @@ function applyAlignClassName(
  * selection as fully on. Stops as soon as both a match and a non-match are seen.
  *
  * The comparator returns `null` for a cell that does not take part, such as a hidden cell under a
- * merged block. A selection in which no cell takes part reports `false`.
+ * merged block. Only `null` skips a cell: any other falsy value, `undefined` included, is a
+ * non-match, so a comparator that returns an unset `meta.readOnly` still reads a writable cell as
+ * "no". A selection in which no cell takes part reports `false`.
  *
  * @param {CellRange[]} ranges An array of the cell ranges.
  * @param {Function} comparator The comparator function.

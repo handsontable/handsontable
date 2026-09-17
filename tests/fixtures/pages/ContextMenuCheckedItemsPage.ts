@@ -192,6 +192,16 @@ export class ContextMenuCheckedItemsPage {
   }
 
   /**
+   * Click a main-menu item by its visible label, and wait for the menu to close.
+   *
+   * @param {string} label The item's visible text.
+   */
+  async clickItem(label: string): Promise<void> {
+    await (await this.#item(label)).click();
+    await expect(this.page.locator('.htContextMenu:visible')).toHaveCount(0);
+  }
+
+  /**
    * Read how the theme paints one item's mark - the first mark span in it, whichever kind.
    *
    * @param {string} label The item's visible text.
