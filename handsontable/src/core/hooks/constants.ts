@@ -768,7 +768,8 @@ export const REGISTERED_HOOKS = [
    *
    * @event Hooks#afterRemoveCol
    * @param {number} index Visual index of starter column.
-   * @param {number} amount An amount of removed columns.
+   * @param {number} amount The number of columns the call requested to remove, which may exceed the
+   *                        number actually removed - read `physicalColumns.length` for the removed count.
    * @param {number[]} physicalColumns An array of physical columns removed from the data source.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
