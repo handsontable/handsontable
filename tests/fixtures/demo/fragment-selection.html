@@ -163,6 +163,33 @@
       return borderMoveCount;
     };
 
+    let headerMoveCount = 0;
+
+    // Counts the mouse moves whose target sits inside one of the grid's headers. A hover test asserts
+    // this is above zero, so a pointer that stopped short of the header fails loudly instead of
+    // passing because nothing ever asked the grid to judge a header.
+    document.addEventListener('mousemove', (event) => {
+      if (event.target instanceof Element && event.target.closest('th') && container.contains(event.target)) {
+        headerMoveCount += 1;
+      }
+    }, true);
+
+    /**
+     * Resets the count of mouse moves that landed on a header.
+     */
+    window.resetHeaderMoveCount = function() {
+      headerMoveCount = 0;
+
+      return true;
+    };
+
+    /**
+     * Returns how many mouse moves have landed on a header since the last reset.
+     */
+    window.getHeaderMoveCount = function() {
+      return headerMoveCount;
+    };
+
     // Built on `load`, not during parsing. A container that still measures zero when Handsontable
     // is constructed sends it down the hidden-init path, where the first render waits on an
     // observer that never fires for an element that was visible all along — the grid then stays

@@ -271,6 +271,14 @@ declare global {
     resetBorderMoveCount(): boolean;
     /** Returns how many mouse moves landed on a selection border since the reset (fragmentSelection fixture). */
     getBorderMoveCount(): number;
+    /**
+     * Resets the count of mouse moves that landed on a header (fragmentSelection fixture).
+     */
+    resetHeaderMoveCount(): boolean;
+    /**
+     * Returns how many mouse moves landed on a header since the reset (fragmentSelection fixture).
+     */
+    getHeaderMoveCount(): number;
     /** Recorded moveCells hook calls for the current grid instance. */
     moveCellsHookLog: MoveCellsHookRecord[];
     /** Recorded NestedRows collapse/expand hook calls, in firing order. */

@@ -94,6 +94,19 @@ export class FragmentSelectionPage {
   }
 
   /**
+   * Locates a row header inside one specific overlay.
+   *
+   * @param {OverlayName} overlay The overlay to look in.
+   * @param {number} row Visual row index.
+   * @returns {Locator}
+   */
+  rowHeader(overlay: OverlayName, row: number): Locator {
+    return this.grid
+      .locator(OVERLAY_SELECTORS[overlay])
+      .locator(`tbody tr:nth-child(${row + 1}) > th`);
+  }
+
+  /**
    * Fails loudly when a drag would run outside the grid's visible box. An element the grid's width
    * or height clips still reports a layout box, so a drag aimed at it would silently land on
    * whatever is really at those pixels and the test would assert against the wrong gesture.
@@ -251,6 +264,99 @@ export class FragmentSelectionPage {
     await this.page.mouse.move(startX + (((endX - startX) * 2) / 3), startY + (((endY - startY) * 2) / 3), { steps: 5 });
     await this.page.mouse.move(endX, endY, { steps: 5 });
     await this.page.mouse.up();
+  }
+
+  /**
+   * Drags from a cell's text out past the grid's end edge and releases the button off the grid, so
+   * the `mouseup` lands on the page instead of on the grid.
+   *
+   * It leaves through the end edge because the top and start edges cross a header, which cancels the
+   * selection before the release. Leaving the grid starts drag-to-scroll, so the columns may have
+   * shifted sideways by the time the drag ends.
+   *
+   * @param {OverlayName} overlay The overlay holding the cell.
+   * @param {number} row Visual row index.
+   * @param {number} col Visual column index.
+   */
+  async dragFromCellOutOfGrid(overlay: OverlayName, row: number, col: number): Promise<void> {
+    const label = `cell ${row},${col} in the ${overlay} overlay`;
+    const box = await this.cell(overlay, row, col).boundingBox();
+    const gridBox = await this.grid.boundingBox();
+    const viewport = this.page.viewportSize();
+
+    if (!box || !gridBox || !viewport) {
+      throw new Error(`${label}, the grid, or the viewport has no size`);
+    }
+
+    const y = box.y + (box.height / 2);
+    const startX = box.x + 15;
+    const endX = gridBox.x + gridBox.width + 60;
+
+    await this.#assertDragStaysInsideGrid(label, startX, startX, y);
+
+    if (endX >= viewport.width) {
+      throw new Error(`The release point (x ${endX}) is outside the ${viewport.width}px viewport`);
+    }
+
+    await this.page.mouse.move(startX, y);
+    await this.page.mouse.down();
+
+    for (let step = 1; step <= 20; step += 1) {
+      await this.page.mouse.move(startX + (((endX - startX) * step) / 20), y, { steps: 2 });
+    }
+
+    await this.page.mouse.up();
+  }
+
+  /**
+   * Hovers a row header with no button held.
+   *
+   * @param {number} row Visual row index.
+   * @returns {Promise<number>} How many mouse moves landed on a header.
+   */
+  async hoverRowHeader(row: number): Promise<number> {
+    const box = await this.rowHeader('inlineStart', row).boundingBox();
+
+    if (!box) {
+      throw new Error(`The header of row ${row} has no layout box`);
+    }
+
+    return this.#hoverAt(`the header of row ${row}`, box.x + (box.width / 2), box.y + (box.height / 2));
+  }
+
+  /**
+   * Hovers the column header row at the grid's horizontal center, with no button held. It aims at a
+   * point rather than at a column, because the columns under that point depend on how far an earlier
+   * drag scrolled the grid.
+   *
+   * @returns {Promise<number>} How many mouse moves landed on a header.
+   */
+  async hoverColumnHeader(): Promise<number> {
+    const headerRow = await this.grid.locator(OVERLAY_SELECTORS.top).locator('thead tr').first().boundingBox();
+    const gridBox = await this.grid.boundingBox();
+
+    if (!headerRow || !gridBox) {
+      throw new Error('The column header row or the grid has no layout box');
+    }
+
+    return this.#hoverAt(
+      'the column header row', gridBox.x + (gridBox.width / 2), headerRow.y + (headerRow.height / 2));
+  }
+
+  /**
+   * Moves the pointer to a point inside the grid with no button held.
+   *
+   * @param {string} label Describes the target, for the guard's error message.
+   * @param {number} x Where the pointer ends, horizontally.
+   * @param {number} y Where the pointer ends, vertically.
+   * @returns {Promise<number>} How many mouse moves landed on a header.
+   */
+  async #hoverAt(label: string, x: number, y: number): Promise<number> {
+    await this.#assertDragStaysInsideGrid(label, x, x, y);
+    await this.page.evaluate(() => window.resetHeaderMoveCount());
+    await this.page.mouse.move(x, y, { steps: 20 });
+
+    return this.page.evaluate(() => window.getHeaderMoveCount());
   }
 
   /**
