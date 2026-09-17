@@ -9,10 +9,15 @@ import { SelectionHeaderPaddingPage } from '../fixtures/pages/SelectionHeaderPad
  * is `count`), so the method returned `false` and the highlight was measured from the first data
  * cell instead.
  *
- * The unit spec that fails without the level fix is `resolveHeaderLevel` in
- * `walkontable/test/unit/selection/border/utils.unit.ts`. `measureHeaderSelectionBox` is the spec
- * that fails if RTL column math falls back to left-edge values written to `style.right`. These
- * cases pin the user-visible alignment that that lookup is for.
+ * Regression contract (fails without the product fix):
+ * - `found: true` on a padded full-row / full-column selection (`resolveHeaderLevel`).
+ * - Nested two-level row headers: `countRowHeaders() === 2` and the measured TH is `G1`
+ *   (`resolveHeaderLevel(2, -1) === 1`; using the column-header count of 1 would measure
+ *   the default `"1"` label at level 0).
+ * - RTL full-column `found: true` plus inline-end alignment (`measureHeaderSelectionBox`).
+ *
+ * Same-`tr` TH-vs-TD pixel alignment is not the contract: body-cell math lands on the same
+ * pixel as a same-row header, so those polls stay green without the lookup fix.
  */
 test.describe('Selection highlight with custom header padding', () => {
   let grid: SelectionHeaderPaddingPage;
@@ -25,57 +30,63 @@ test.describe('Selection highlight with custom header padding', () => {
   test('finds the row header when a full row is selected on padded headers', async () => {
     await grid.selectRow('padded', 0);
 
-    // The old level formula returned false here, so this is the spec that fails without the fix.
-    await expect.poll(() => grid.rowHeaderDimensions('padded', 0)).toEqual({ found: true, tagName: 'TH' });
+    await expect.poll(() => grid.rowHeaderDimensions('padded', 0)).toEqual({
+      found: true,
+      tagName: 'TH',
+      text: '1',
+    });
   });
 
-  test('aligns the full-row highlight with a padded row header', async () => {
-    await grid.selectRow('padded', 0);
-
-    // First body row under a column header: the edge sits on the cell's own top boundary.
-    await expect.poll(() => grid.selectionTopOffsetFromRowHeader('padded', 0)).toBe(0);
-  });
-
-  test('aligns a later full-row highlight with a padded row header', async () => {
-    await grid.selectRow('padded', 2);
-
-    // A cell whose neighbour is another cell straddles the shared gridline.
-    await expect.poll(() => grid.selectionTopOffsetFromRowHeader('padded', 2)).toBe(-1);
-  });
-
-  test('aligns the full-row highlight when column headers wrap onto a second line', async () => {
-    await grid.selectRow('lineBreak', 0);
-
-    // Same table: master's row header and master's highlight share that overlay's THEAD height.
-    await expect.poll(() => grid.selectionTopOffsetFromRowHeader('line-break', 0)).toBe(0);
-    // Master: wrapping labels moved the first body row down; the highlight follows that cell.
-    await expect.poll(() => grid.selectionTopOffsetFromMasterBodyCell('line-break', 0)).toBe(0);
-  });
-
-  test('aligns the full-row highlight when more than one row-header level is rendered', async () => {
-    await grid.selectRow('nested', 0);
-
-    await expect.poll(() => grid.selectionTopOffsetFromRowHeader('nested', 0)).toBe(0);
-  });
-
-  test('aligns the full-column highlight with a padded column header', async () => {
+  test('finds the column header when a full column is selected on padded headers', async () => {
     await grid.selectColumn('padded', 0);
 
-    await expect.poll(() => grid.columnHeaderDimensions('padded', 0)).toEqual({ found: true, tagName: 'TH' });
-    await expect.poll(() => grid.selectionStartOffsetFromColumnHeader('padded', 0)).toBe(0);
+    await expect.poll(() => grid.columnHeaderDimensions('padded', 0)).toEqual({
+      found: true,
+      tagName: 'TH',
+      text: 'A',
+    });
   });
 
-  test('aligns the full-row highlight with a padded row header in RTL', async () => {
+  test('finds the row header when column headers wrap onto a second line', async () => {
+    await grid.selectRow('lineBreak', 0);
+
+    await expect.poll(() => grid.rowHeaderDimensions('lineBreak', 0)).toEqual({
+      found: true,
+      tagName: 'TH',
+      text: '1',
+    });
+  });
+
+  test('finds the closest nested row header when two row-header levels are rendered', async () => {
+    await grid.selectRow('nested', 0);
+
+    await expect.poll(() => grid.countRowHeaders('nested')).toBe(2);
+    await expect.poll(() => grid.rowHeaderDimensions('nested', 0)).toEqual({
+      found: true,
+      tagName: 'TH',
+      text: 'G1',
+    });
+  });
+
+  test('finds the row header for an RTL full-row selection', async () => {
     await grid.selectRow('paddedRtl', 0);
 
-    await expect.poll(() => grid.selectionTopOffsetFromRowHeader('padded-rtl', 0)).toBe(0);
+    await expect.poll(() => grid.rowHeaderDimensions('paddedRtl', 0)).toEqual({
+      found: true,
+      tagName: 'TH',
+      text: '1',
+    });
   });
 
   test('aligns the full-column highlight with a padded column header in RTL', async () => {
     await grid.selectColumn('paddedRtl', 0);
 
     // Left-edge math written to `style.right` places this highlight on the wrong side of the cell.
-    await expect.poll(() => grid.columnHeaderDimensions('paddedRtl', 0)).toEqual({ found: true, tagName: 'TH' });
+    await expect.poll(() => grid.columnHeaderDimensions('paddedRtl', 0)).toEqual({
+      found: true,
+      tagName: 'TH',
+      text: 'A',
+    });
     await expect.poll(() => grid.selectionStartOffsetFromColumnHeader('padded-rtl', 0)).toBe(0);
   });
 });

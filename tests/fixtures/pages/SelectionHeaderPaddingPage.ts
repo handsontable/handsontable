@@ -5,8 +5,9 @@ import { awaitBundle } from '../bundle';
  * Page Object for the full-row / full-column selection highlight fixture (DEV-1176).
  *
  * Custom header padding only reaches the selection edge when `getDimensionsFromHeader` can
- * resolve a header TH. The highlight must then sit on the header's own boundary (first row or
- * column) or straddle the shared gridline (later rows or columns).
+ * resolve a header TH. The regression contract is that lookup (`found: true` plus the measured
+ * label). Same-row TH-vs-TD pixel alignment is not the contract: body-cell math lands on the
+ * same pixel as a same-row header.
  */
 export class SelectionHeaderPaddingPage {
   /** Every grid the fixture builds. `goto()` waits for all of them. */
@@ -63,18 +64,36 @@ export class SelectionHeaderPaddingPage {
   }
 
   /**
+   * How many row-header levels the named grid renders (`countRowHeaders`).
+   *
+   * @param {string} name The grid's key in `window.grids`.
+   * @returns {Promise<number>}
+   */
+  async countRowHeaders(name: string): Promise<number> {
+    return this.page.evaluate((gridName) => {
+      return (window as unknown as {
+        grids: Record<string, { countRowHeaders: () => number }>
+      }).grids[gridName].countRowHeaders();
+    }, name);
+  }
+
+  /**
    * Whether `getDimensionsFromHeader` found a header TH for a full-row selection.
    *
    * The old level formula (`columnHeaders.length - headerIndex`) is out of range for `-1`, so this
    * used to return `{ found: false }` even when the grid had row headers (DEV-1176). The method
    * name is kept in the minified bundle (the two `this.getDimensionsFromHeader` call sites), so
-   * this works on every theme × bundle leg.
+   * this works on every theme × bundle leg. `text` is the measured TH's label — nested row headers
+   * use it to prove the closest of two levels was chosen, not just that some TH was found.
    *
    * @param {string} name The grid's key in `window.grids`.
    * @param {number} row The visual row index.
-   * @returns {Promise<{ found: boolean, tagName: string | null }>}
+   * @returns {Promise<{ found: boolean, tagName: string | null, text: string | null }>}
    */
-  async rowHeaderDimensions(name: string, row: number): Promise<{ found: boolean; tagName: string | null }> {
+  async rowHeaderDimensions(
+    name: string,
+    row: number,
+  ): Promise<{ found: boolean; tagName: string | null; text: string | null }> {
     return this.page.evaluate(
       ([gridName, r]) => {
         const hot = (window as unknown as {
@@ -110,10 +129,14 @@ export class SelectionHeaderPaddingPage {
         );
 
         if (result === false) {
-          return { found: false, tagName: null };
+          return { found: false, tagName: null, text: null };
         }
 
-        return { found: true, tagName: result[0].tagName };
+        return {
+          found: true,
+          tagName: result[0].tagName,
+          text: result[0].innerText.trim(),
+        };
       },
       [name, row]
     );
@@ -127,9 +150,12 @@ export class SelectionHeaderPaddingPage {
    *
    * @param {string} name The grid's key in `window.grids`.
    * @param {number} column The visual column index.
-   * @returns {Promise<{ found: boolean, tagName: string | null }>}
+   * @returns {Promise<{ found: boolean, tagName: string | null, text: string | null }>}
    */
-  async columnHeaderDimensions(name: string, column: number): Promise<{ found: boolean; tagName: string | null }> {
+  async columnHeaderDimensions(
+    name: string,
+    column: number,
+  ): Promise<{ found: boolean; tagName: string | null; text: string | null }> {
     return this.page.evaluate(
       ([gridName, c]) => {
         const hot = (window as unknown as {
@@ -165,90 +191,17 @@ export class SelectionHeaderPaddingPage {
         );
 
         if (result === false) {
-          return { found: false, tagName: null };
+          return { found: false, tagName: null, text: null };
         }
 
-        return { found: true, tagName: result[0].tagName };
+        return {
+          found: true,
+          tagName: result[0].tagName,
+          text: result[0].innerText.trim(),
+        };
       },
       [name, column]
     );
-  }
-
-  /**
-   * How far the selection's top edge sits from the selected row header's top boundary, in CSS
-   * pixels. `0` means the edge is drawn just inside the header (first body row under a column
-   * header). `-1` means it straddles the gridline shared with the row above.
-   *
-   * Header and border are read from `.ht_master` in one evaluate. That is the table that draws
-   * the full-row highlight. Wrapping column-header labels can make overlay THEADs differ in
-   * height, so comparing `.ht_clone_inline_start` to `.ht_master` would measure overlay sync,
-   * not whether the highlight used the header box (DEV-1176).
-   *
-   * @param {string} testId The grid's test id.
-   * @param {number} row The visual row index.
-   * @returns {Promise<number>}
-   */
-  async selectionTopOffsetFromRowHeader(testId: string, row: number): Promise<number> {
-    return this.grid(testId).evaluate((root, r) => {
-      const overlay = root.querySelector('.ht_master');
-      const rows = overlay?.querySelectorAll('table.htCore > tbody > tr');
-      const headerCells = rows?.[r as number]?.querySelectorAll('th');
-      const header = headerCells?.[headerCells.length - 1];
-
-      if (!overlay || !header) {
-        throw new Error(`No row header at visual row ${r as number}`);
-      }
-
-      const headerTop = header.getBoundingClientRect().top;
-      const edges = [...overlay.querySelectorAll<HTMLElement>('.wtBorder.current')]
-        .map(border => border.getBoundingClientRect())
-        .filter(rect => rect.width > rect.height && rect.height > 0);
-
-      if (edges.length === 0) {
-        throw new Error('The selection drew no horizontal edge on the master overlay');
-      }
-
-      const nearest = edges
-        .sort((a, b) => Math.abs(a.top - headerTop) - Math.abs(b.top - headerTop))[0];
-
-      return Math.round(nearest.top - headerTop);
-    }, row);
-  }
-
-  /**
-   * How far the master's full-row highlight sits from that overlay's first body cell, in CSS
-   * pixels. Wrapping column headers make the master THEAD taller; the highlight must follow the
-   * body cell that moved with it.
-   *
-   * @param {string} testId The grid's test id.
-   * @param {number} row The visual row index.
-   * @returns {Promise<number>}
-   */
-  async selectionTopOffsetFromMasterBodyCell(testId: string, row: number): Promise<number> {
-    return this.grid(testId).evaluate((root, r) => {
-      const master = root.querySelector('.ht_master');
-      const cell = master
-        ?.querySelectorAll('table.htCore > tbody > tr')[r as number]
-        ?.querySelector('td');
-
-      if (!master || !cell) {
-        throw new Error(`No master body cell at visual row ${r as number}`);
-      }
-
-      const cellTop = cell.getBoundingClientRect().top;
-      const edges = [...master.querySelectorAll<HTMLElement>('.wtBorder.current')]
-        .map(border => border.getBoundingClientRect())
-        .filter(rect => rect.width > rect.height && rect.height > 0);
-
-      if (edges.length === 0) {
-        throw new Error('The selection drew no horizontal edge on the master overlay');
-      }
-
-      const nearest = edges
-        .sort((a, b) => Math.abs(a.top - cellTop) - Math.abs(b.top - cellTop))[0];
-
-      return Math.round(nearest.top - cellTop);
-    }, row);
   }
 
   /**

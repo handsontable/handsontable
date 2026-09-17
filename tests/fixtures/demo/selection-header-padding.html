@@ -101,14 +101,15 @@
       paddedRtl: build('padded-rtl', { layoutDirection: 'rtl' }),
       lineBreak: build('line-break', { colHeaders: lineBreakHeaders }),
       nested: build('nested', {
-        rowHeaders: [
-          function(row, TH) {
+        // `rowHeaders` as an array is one label per row, not extra header levels.
+        // Extra levels come from `afterGetRowHeaderRenderers` (TableView already
+        // pushed the default renderer). Pushing here makes `G*` the closest level,
+        // so `resolveHeaderLevel(2, -1)` must return 1.
+        afterGetRowHeaderRenderers(renderers) {
+          renderers.push(function(row, TH) {
             TH.innerText = `G${row + 1}`;
-          },
-          function(row, TH) {
-            TH.innerText = String(row + 1);
-          },
-        ],
+          });
+        },
       }),
     };
   </script>
