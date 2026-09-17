@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 
 /**
  * A box in viewport coordinates.
@@ -52,7 +53,7 @@ export class DropdownEditorClipPage {
    */
   async goto(): Promise<void> {
     await this.page.goto(`/tests/fixtures/demo/dropdown-editor-clip.html?theme=${this.theme}&bundle=${this.bundle}`);
-    await this.page.waitForFunction(() => 'Handsontable' in window);
+    await awaitBundle(this.page);
     await expect(this.cell(0, 0)).toBeVisible();
   }
 
