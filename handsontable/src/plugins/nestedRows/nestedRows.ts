@@ -182,11 +182,9 @@ export class NestedRows extends BasePlugin {
    * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
    *  - [`nestedRows`](@/api/options.md#nestedrows)
    *
-   * The data manager is fed by the `beforeLoadData` and `beforeUpdateData` hooks only, and neither of
-   * them runs when `updateSettings()` turns the plugin on - `BasePlugin#onUpdateSettings` enables the
-   * plugin and then updates it, without touching the data. So on a first-time enable the manager still
-   * holds `null` and the source data is read back from the grid. That read is also where the dataset
-   * gets checked on this path, because `#acceptsData()` hangs off those same data hooks.
+   * Whenever the data manager is empty – which is every enable transition, because `enablePlugin()`
+   * builds a fresh one – the source data is taken from the settings. See the plugin's `AGENTS.md` for
+   * why it cannot come from `getSourceData()`.
    */
   updatePlugin() {
     // `disablePlugin` unregisters the trimming map and `enablePlugin` builds a brand new CollapsingUI,
@@ -199,17 +197,20 @@ export class NestedRows extends BasePlugin {
 
     // We store a state of the data manager.
     let currentSourceData = this.dataManager!.getData();
-    const isFirstEnable = currentSourceData === null;
+    const isDataManagerEmpty = currentSourceData === null;
 
-    if (isFirstEnable) {
-      currentSourceData = this.dataManager!.getRawSourceData() as RowObject[];
+    if (isDataManagerEmpty) {
+      currentSourceData = this.hot.getSettings().data as RowObject[];
+
+      // Checked before `enablePlugin()`, so a dataset the plugin cannot work with costs neither the
+      // build-up of five collaborators nor the two index map cache rebuilds that registering and
+      // unregistering the trimming map would pay for.
+      if (!this.#acceptsData(currentSourceData)) {
+        return;
+      }
     }
 
     this.enablePlugin();
-
-    if (isFirstEnable && !this.#acceptsData(currentSourceData!)) {
-      return;
-    }
 
     // After enabling plugin previously stored data is restored.
     this.dataManager!.updateWithData(currentSourceData!);
@@ -226,12 +227,7 @@ export class NestedRows extends BasePlugin {
   /**
    * Keeps the row index maps in step with a plugin that `updateSettings()` just turned on or off.
    *
-   * The `modifySourceLength` hook answers with the flattened tree while the plugin runs, so switching
-   * the plugin changes the grid's row count. Such a call carries neither `data` nor `columns`, and
-   * those are the only payloads the Core resizes the index maps for - so without this the children
-   * never show up on an enable, and the rows the tree added stay behind, reading back as `null`, on a
-   * disable. The Core renders right after this hook.
-   *
+   * @private
    * @param {object} newSettings New set of settings passed to the `updateSettings()` method.
    */
   onUpdateSettings(newSettings: Record<string, unknown>) {
@@ -243,7 +239,26 @@ export class NestedRows extends BasePlugin {
       return;
     }
 
+    // The toggle renumbers the physical space, so an editor open over it addresses a record that is
+    // about to move or disappear. It is discarded rather than committed: saving would write the
+    // in-progress value through coordinates the shrink has already invalidated.
+    const activeEditor = this.hot.getActiveEditor();
+
+    if (activeEditor?.isOpened()) {
+      activeEditor.cancelChanges();
+    }
+
     this.hot.rowIndexMapper.fitToLength(this.hot.countSourceRows());
+
+    // Nothing else clamps here: `updateSettings()` follows this hook with `adjustRowsAndCols()` and a
+    // render, neither of which touches the selection, so a range laid over the flattened tree would
+    // survive into the shorter grid and append records on the next fill or paste.
+    this.hot.selection.refresh();
+
+    // The grid needs two draw passes to settle on the new row count - the second one, the Core's own,
+    // runs right after this hook. With one pass an off/on round trip paints four of the six rows and
+    // stays there until something unrelated nudges it (measured on `e2e-main`, 24 polls over 10s).
+    this.hot.render();
   }
 
   /**

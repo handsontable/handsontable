@@ -80,6 +80,8 @@
     const arrayData = [['Root A'], ['Root B']];
     const isNested = window.htDataShape === 'objects';
 
+    window.sourceData = isNested ? nestedData : arrayData;
+
     window.consoleErrors = [];
 
     const nativeConsoleError = console.error.bind(console);
@@ -89,17 +91,21 @@
       nativeConsoleError(...args);
     };
 
-    window.hot = new Handsontable(container, {
-      data: isNested ? nestedData : arrayData,
-      columns: isNested ? [{ data: 'name' }] : [{}],
-      colHeaders: ['Name'],
-      rowHeaders: true,
-      nestedRows: false,
-      contextMenu: true,
-      renderer: testIdRenderer,
-      height: 'auto',
-      licenseKey: 'non-commercial-and-evaluation',
-    });
+    try {
+      window.hot = new Handsontable(container, {
+        data: window.sourceData,
+        columns: isNested ? [{ data: 'name' }] : [{}],
+        colHeaders: ['Name'],
+        rowHeaders: true,
+        nestedRows: false,
+        contextMenu: true,
+        renderer: testIdRenderer,
+        height: 'auto',
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      window.htFixtureError = error && error.message ? error.message : String(error);
+    }
   </script>
 </body>
 </html>

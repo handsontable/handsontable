@@ -218,7 +218,9 @@ declare global {
     /** The fixture's live Handsontable instance. */
     hot: FixtureHotInstance;
     /** DEV-2938 fixture: everything the page logged through `console.error`, in order. */
-    consoleErrors: string[];
+    consoleErrors?: string[];
+    /** DEV-2938 fixture: the very array passed to the constructor, kept to prove writes reach it. */
+    sourceData?: unknown[];
     /** DEV-2917 fixture: the message of a throw the fixture's own grid build caught, if any. */
     htFixtureError?: string;
     /**
