@@ -9,7 +9,7 @@ const ExampleComponent = () => {
             ['Li', 'Alkali metal', 3],
             ['Be', 'Alkaline earth', 4],
             ['B', 'Metalloid', 5],
-        ]} width="100%" height="auto" colHeaders={['Symbol', 'Group', 'Atomic Number']} rowHeaders={true} colWidths={[90, undefined, 60]} modifyColWidth={(width, column) => {
+        ]} width="100%" height="auto" colHeaders={['Symbol', 'Group', 'Atomic Number']} rowHeaders={true} columns={[{ width: 90 }, {}, { width: 60 }]} modifyColWidth={(width, column) => {
             if (column === 1 && width > 150) {
                 return 100;
             }

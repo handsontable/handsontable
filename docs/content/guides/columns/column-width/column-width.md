@@ -188,7 +188,7 @@ Use the [`modifyColWidth`](@/api/hooks.md#modifycolwidth) hook to cap how wide a
 
 Unlike [`colWidths`](@/api/options.md#colwidths), a cap in `modifyColWidth` does not force every cell onto one width. Short values keep a narrow column on a single line. When content would exceed your threshold, the column shrinks to your cap and the text wraps.
 
-Leave `colWidths` unset for columns you want to auto-size (or set the entry to `undefined` in an array). The [`AutoColumnSize`](@/api/autoColumnSize.md) plugin must stay enabled so Handsontable can measure content first. Setting `colWidths` as a single number disables auto-sizing for all columns.
+Don't set the top-level [`colWidths`](@/api/options.md#colwidths) option at all if you want columns to auto-size: even an array with `undefined` entries disables the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin for the entire grid, so none of its columns get measured. To fix a width on some columns while letting others auto-size, set `width` per column in the [`columns`](@/api/options.md#columns) array instead -- only the columns you give a `width` skip auto-sizing.
 
 You can also enforce a minimum width by returning `Math.max(width, minWidth)` from the same hook.
 
