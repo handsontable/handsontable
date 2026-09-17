@@ -100,9 +100,15 @@ export class RemoveColumnAction extends BaseAction {
           return null;
         }
 
+        // `beforeRemoveCol`'s `amount` stays the requested count, while `logicColumns` lists the
+        // columns actually removed. A partial removal (more columns requested than exist) must record
+        // the clamped count, or the recorded indexes/headers run out of range and `undo()` restores
+        // `undefined`. `removeRow` needs no equivalent - `dataMap.removeRow` passes the clamped
+        // `removedPhysicalIndexes.length` as `beforeRemoveRow`'s `amount`.
+        const removedAmount = logicColumns.length;
         const originalData = hot.getSourceDataArray();
         const columnIndex = (hot.countCols() + index) % hot.countCols();
-        const lastColumnIndex = columnIndex + amount - 1;
+        const lastColumnIndex = columnIndex + removedAmount - 1;
         const removedData: unknown[][] = [];
         const headers: unknown[] = [];
         const indexes: number[] = [];
@@ -121,14 +127,14 @@ export class RemoveColumnAction extends BaseAction {
           removedData.push(collectColumnData(originalData[i], columnIndex, lastColumnIndex));
         });
 
-        rangeEach(amount - 1, (i: number) => {
+        rangeEach(removedAmount - 1, (i: number) => {
           indexes.push(hot.toPhysicalColumn(columnIndex + i));
         });
 
         if (Array.isArray(hot.getSettings().colHeaders)) {
           const colHeadersArr = hot.getSettings().colHeaders as string[];
 
-          rangeEach(amount - 1, (i: number) => {
+          rangeEach(removedAmount - 1, (i: number) => {
             headers.push(colHeadersArr[hot.toPhysicalColumn(columnIndex + i)] || null);
           });
         }
@@ -137,13 +143,13 @@ export class RemoveColumnAction extends BaseAction {
           index: columnIndex,
           indexes,
           data: removedData,
-          amount,
+          amount: removedAmount,
           headers,
           columnPositions: hot.columnIndexMapper.getIndexesSequence(),
           rowPositions: hot.rowIndexMapper.getIndexesSequence(),
           fixedColumnsStart: hot.getSettings().fixedColumnsStart ?? 0,
           removedCellMetas: getCellMetas(hot, 0, hot.countRows(), columnIndex, lastColumnIndex),
-          removedMergedCells: collectAffectedMergedCells(hot, 'col', columnIndex, amount),
+          removedMergedCells: collectAffectedMergedCells(hot, 'col', columnIndex, removedAmount),
         });
       };
 
