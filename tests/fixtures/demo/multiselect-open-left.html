@@ -30,10 +30,12 @@
   <!--
     E2E fixture for DEV-1198: a narrow grid whose first and last columns are
     the same multiselect with long option labels. Opening the last column
-    leaves too little room on the right, so the list must open to the left
-    and stay fully usable. Column 0 is the control: the same list has room
-    on the right and must stay left-aligned with the cell. Cells are stamped
-    in afterRenderer because the multiselect cell type owns its renderer.
+    leaves too little room on the inline end, so the list must open toward
+    the inline start and stay usable. Column 0 is the control: the same list
+    has room on the inline end and must stay aligned with the cell. RTL is
+    one `initMultiselectOpenLeftGrid({ layoutDirection: 'rtl' })` rebuild,
+    not a second fixture. Cells are stamped in afterRenderer because the
+    multiselect cell type owns its renderer.
   -->
   <div id="grid" data-testid="grid"></div>
 
@@ -42,9 +44,6 @@
   </script>
   <script>
     const container = document.querySelector('[data-testid="grid"]');
-
-    container.className = `ht-theme-${window.htTheme}`;
-
     const longChoices = [
       'Alpha port of call with a very long name',
       'Bravo warehouse district on the northern quay',
@@ -52,27 +51,40 @@
       'Delta customs warehouse and bonded storage',
     ];
 
-    window.hot = new Handsontable(container, {
-      data: [
-        [[], 'B1', longChoices.slice(0, 3)],
-        [[], 'B2', longChoices.slice(1, 4)],
-      ],
-      colHeaders: true,
-      rowHeaders: true,
-      autoColumnSize: false,
-      width: 320,
-      height: 240,
-      colWidths: [70, 70, 80],
-      columns: [
-        { type: 'multiselect', source: longChoices },
-        {},
-        { type: 'multiselect', source: longChoices },
-      ],
-      afterRenderer(TD, row, col) {
-        TD.setAttribute('data-testid', `cell-${row}-${col}`);
-      },
-      licenseKey: 'non-commercial-and-evaluation',
-    });
+    window.initMultiselectOpenLeftGrid = function(overrides) {
+      if (window.hot) {
+        window.hot.destroy();
+      }
+
+      container.className = `ht-theme-${window.htTheme}`;
+
+      window.hot = new Handsontable(container, {
+        data: [
+          [[], 'B1', longChoices.slice(0, 3)],
+          [[], 'B2', longChoices.slice(1, 4)],
+        ],
+        colHeaders: true,
+        rowHeaders: true,
+        autoColumnSize: false,
+        width: 320,
+        height: 240,
+        colWidths: [70, 70, 80],
+        columns: [
+          { type: 'multiselect', source: longChoices },
+          {},
+          { type: 'multiselect', source: longChoices },
+        ],
+        afterRenderer(TD, row, col) {
+          TD.setAttribute('data-testid', `cell-${row}-${col}`);
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+        ...overrides,
+      });
+
+      return true;
+    };
+
+    window.initMultiselectOpenLeftGrid();
   </script>
 </body>
 </html>

@@ -46,6 +46,15 @@ export class MultiSelectEditor extends BaseEditor {
    * The outer wrapper element that positions the dropdown relative to the edited cell.
    */
   #editorContainer: HTMLDivElement | null = null;
+  /**
+   * `true` when the editor wrapper opened the dropdown toward the inline start of the edited cell.
+   *
+   * Horizontal placement is applied on this wrapper in `refreshDimensions()`, so the flag
+   * lives here — the same place `HandsontableEditor` keeps `isFlippedHorizontally`.
+   *
+   * @type {boolean}
+   */
+  isFlippedHorizontally: boolean = false;
 
   /**
    * The container element passed to `DropdownController` that holds the dropdown UI.
@@ -215,6 +224,7 @@ export class MultiSelectEditor extends BaseEditor {
     this.#hideEditableElement();
     this.#unregisterShortcuts();
     this.dropdownController!.getInputController()!.unlisten();
+    this.isFlippedHorizontally = false;
   }
 
   /**
@@ -255,7 +265,7 @@ export class MultiSelectEditor extends BaseEditor {
       spaceInlineEnd
     );
 
-    this.dropdownController!.setFlippedHorizontally(flipHorizontally);
+    this.isFlippedHorizontally = flipHorizontally;
 
     editorStyle.top = `${top + height}px`;
     editorStyle.left = '';

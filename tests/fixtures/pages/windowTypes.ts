@@ -140,8 +140,9 @@ export interface FixtureHotInstance {
     isOpened(): boolean,
     beginEditing(): void,
     finishEditing(restoreOriginalValue?: boolean): void,
-    dropdownController?: { isFlippedHorizontally(): boolean },
+    isFlippedHorizontally?: boolean,
   } | undefined;
+  isRtl(): boolean;
   render(): void;
   listen(): void;
   view: {
@@ -262,6 +263,8 @@ declare global {
      * Rebuilds the DEV-59 sorting-with-`fixedRowsTop`/`fixedRowsBottom` fixture grid.
      */
     initSortingFixedRowsGrid(overrides?: Record<string, unknown>): boolean;
+    /** Rebuilds the DEV-1198 multiselect open-left fixture grid. */
+    initMultiselectOpenLeftGrid(overrides?: Record<string, unknown>): boolean;
     /**
      * Rebuilds the DEV-2524 filtering-with-`fixedRowsTop`/`fixedRowsBottom` fixture grid.
      */

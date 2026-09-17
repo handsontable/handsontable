@@ -6,12 +6,14 @@ interface Placement {
   cellRight: number;
   dropdownLeft: number;
   dropdownRight: number;
+  gridLeft: number;
   gridRight: number;
+  isRtl: boolean;
 }
 
 /**
  * Page object for the DEV-1198 fixture: a narrow grid whose last multiselect
- * column has too little room on the right for its option list.
+ * column has too little room on the inline end for its option list.
  */
 export class MultiselectOpenLeftPage {
   readonly page: Page;
@@ -40,6 +42,14 @@ export class MultiselectOpenLeftPage {
   }
 
   /**
+   * Rebuilds the grid with the given setting overrides (RTL is one rebuild, not a second page).
+   */
+  async rebuild(overrides: Record<string, unknown> = {}): Promise<void> {
+    await this.page.evaluate(settings => window.initMultiselectOpenLeftGrid(settings), overrides);
+    await expect(this.cell(0, 0)).toBeVisible();
+  }
+
+  /**
    * A data cell in the master table, addressed by the stamped test id.
    */
   cell(row: number, col: number): Locator {
@@ -58,14 +68,6 @@ export class MultiselectOpenLeftPage {
     }, { rowIndex: row, colIndex: col });
     await this.page.keyboard.press('Enter');
     await expect(this.dropdown).toBeVisible();
-  }
-
-  /**
-   * Closes the editor so the next case starts from a hidden list.
-   */
-  async closeEditor(): Promise<void> {
-    await this.page.keyboard.press('Escape');
-    await expect(this.dropdown).toBeHidden();
   }
 
   /**
@@ -113,9 +115,23 @@ export class MultiselectOpenLeftPage {
         cellRight: cellBox.right,
         dropdownLeft: dropdownBox.left,
         dropdownRight: dropdownBox.right,
+        gridLeft: gridBox.left,
         gridRight: gridBox.right,
+        isRtl: window.hot.isRtl(),
       };
     }, await cell.elementHandle());
+  }
+
+  /**
+   * How much of the dropdown overlaps the grid root, in CSS pixels.
+   *
+   * The flip may still overhang the inline-start side (HandsontableEditor
+   * parity). Overlap proves the painted box was not traded for a fully clipped
+   * list on the other edge.
+   */
+  overlapWithGrid(placement: Placement): number {
+    return Math.min(placement.dropdownRight, placement.gridRight) -
+      Math.max(placement.dropdownLeft, placement.gridLeft);
   }
 
   /**
@@ -172,7 +188,7 @@ export class MultiselectOpenLeftPage {
    */
   async isFlippedHorizontally(): Promise<boolean> {
     return this.page.evaluate(() => {
-      return window.hot.getActiveEditor()?.dropdownController?.isFlippedHorizontally() === true;
+      return window.hot.getActiveEditor()?.isFlippedHorizontally === true;
     });
   }
 }

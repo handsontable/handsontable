@@ -28,6 +28,13 @@ describe('shouldFlipDropdownHorizontally', () => {
   it('returns false for a zero-width dropdown', () => {
     expect(shouldFlipDropdownHorizontally(0, 400, 10)).toBe(false);
   });
+
+  it('returns true when the start side is bigger even if the list still overhangs there', () => {
+    // HandsontableEditor parity: the DEV-1198 fixture (grid 320, row header ~50,
+    // last column 80, list ~350) offers ~270 on the start side. The flip still
+    // happens; a leftover overhang is the same tradeoff autocomplete already makes.
+    expect(shouldFlipDropdownHorizontally(350, 270, 80)).toBe(true);
+  });
 });
 
 describe('getFlippedInlineStartOffset', () => {
