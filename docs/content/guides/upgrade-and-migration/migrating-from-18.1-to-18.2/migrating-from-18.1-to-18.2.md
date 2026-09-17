@@ -21,7 +21,7 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 [[toc]]
 
-Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way. Section 12 concerns when a [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column marks a value invalid, and applies only if you set [`strict`](@/api/options.md#strict) to `false` on such a column.
+Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way. Section 12 concerns when a [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column marks a value invalid, and applies only if you set [`strict`](@/api/options.md#strict) to `false` on such a column. Section 13 concerns which row you land on when you leave a merged cell horizontally, and applies only if you use the [`MergeCells`](@/api/mergeCells.md) plugin.
 
 ## 1. `date` cells reach the formula engine the same way on every data path
 
@@ -610,3 +610,33 @@ A renderer whose output depends on where the rendered area starts or ends, for e
 default `renderMode`. Under `renderMode: 'onChange'` such a cell is not repainted by a scroll, so set
 `renderMode: 'always'` on that column or cell, or call
 [`markCellChanged()`](@/api/core.md#markcellchanged) before you render.
+
+## 13. Leaving a merged cell with a left or right arrow lands on its top row
+
+This applies to every grid that uses [`mergeCells`](@/api/options.md#mergecells).
+
+Before 18.2.0, moving the selection off a merged cell with a left or right arrow kept the row you
+entered the merged cell on, so the result depended on the direction. Entering a three-row merged cell
+from below (arrow up) and pressing left landed one row lower than entering it from above (arrow down)
+and pressing left.
+
+A merged cell is now addressed by its top-left corner: a left or right arrow that leaves it always
+lands on its top row -- its topmost visible row when the top row is hidden -- whichever way you
+entered. Vertical navigation still keeps the column you were moving along, and the
+<kbd>**Tab**</kbd> and <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> keys still keep the row they cycle
+along.
+
+### Who is affected
+
+- You read [`getSelected()`](@/api/core.md#getselected) or
+  [`getSelectedRangeLast()`](@/api/core.md#getselectedrangelast) after a left or right arrow that
+  leaves a merged cell entered on a row other than its first. The highlight now lands on the merged
+  cell's top row rather than the entered row.
+
+A grid without merged cells is unaffected.
+
+### How to migrate
+
+Nothing to change in most cases -- the landing is now consistent with a merged cell being a single
+cell at its top-left corner. If your code compensated for the old direction-dependent landing, drop
+that workaround.

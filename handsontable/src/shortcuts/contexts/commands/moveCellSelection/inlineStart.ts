@@ -13,6 +13,7 @@ export const command = {
       : settings.tabMoves;
 
     selection.markSource('keyboard');
+    selection.markTabNavigation();
 
     if (
       (
