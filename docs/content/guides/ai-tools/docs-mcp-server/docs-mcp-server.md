@@ -12,6 +12,7 @@ vue:
   metaTitle: Docs MCP Server - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: AI Tools
+menuTag: new
 ---
 The Docs MCP Server is a public <a href="https://modelcontextprotocol.io/" target="_blank" rel="noopener noreferrer">Model Context Protocol</a> endpoint that gives any MCP-capable AI agent live semantic search over the Handsontable and HyperFormula knowledge base:
 
