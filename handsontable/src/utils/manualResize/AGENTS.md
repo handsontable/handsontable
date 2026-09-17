@@ -240,7 +240,8 @@ behavior it names: resetting the drag in `detach()`, capturing the inline edge a
 disabled-owner bail, not aborting on a context menu, and dropping the RTL direction factor each turn exactly
 one test red. The browser half of the traps is pinned by `tests/e2e/manual-resize-teardown.spec.ts` (hiding,
 the swallowed click, the double-click flicker, the pending timeout) and
-`tests/e2e/manual-resize-drag-interruption.spec.ts` (the drag surviving the update cycle).
+`tests/e2e/manual-resize-drag-interruption.spec.ts` (the drag surviving the update cycle, and a
+held second press whose 500ms window is interrupted by the same re-init).
 DEV-1038 is pinned by `__tests__/resizeGesture.unit.js` (the held double-click hides the guide, a held
 single press does not, a second press that already moved keeps the drag). The still-hold hide is also
 in `tests/e2e/manual-resize-dblclick-hold-guide.spec.ts`.

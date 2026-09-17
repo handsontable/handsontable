@@ -127,3 +127,95 @@ test.describe('Manual resize drag interrupted by updateSettings', () => {
     await expect.poll(() => grid.renderedRowHeight(2)).toBeGreaterThan(startHeight + 20);
   });
 });
+
+/**
+ * DEV-1038 + the fourth trap together. `afterMouseDownTimeout()` writes `#pressed = false` on a
+ * still second press, and that callback is armed through `hot._registerTimeout`, which only
+ * `Core#destroy()` clears. A framework re-render mid-window therefore runs
+ * `disablePlugin(); enablePlugin();` while the timer is still pending. `isActive()` (the runtime
+ * `enabled` flag, not the settings `isEnabled()`) still gates the path, so a re-init that leaves
+ * the plugin on must not throw, must not leave the guide `active`, and must still autosize.
+ *
+ * The clock is what makes the 500ms boundary an assertion rather than a sleep, and it has to be
+ * installed before the page loads – same reason the pending-autoresize describe in
+ * `manual-resize-teardown.spec.ts` is its own block.
+ */
+test.describe('Manual resize second-press hold interrupted mid-timer', () => {
+  let grid: ManualResizeDragInterruptionPage;
+  let pageErrors: string[];
+
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    pageErrors = [];
+    page.on('pageerror', error => pageErrors.push(error.message));
+
+    await page.clock.install();
+
+    grid = new ManualResizeDragInterruptionPage(page, theme, bundle);
+    await grid.goto();
+  });
+
+  test.afterEach(async () => {
+    expect(pageErrors).toEqual([]);
+  });
+
+  test('autosizes a held row second press when the plugin is re-stated mid-timer', async ({ page }) => {
+    await grid.dblclickHoldRowHandle(2);
+
+    // Premise: the second press attached the guide and left it active. Without this a gesture
+    // that never reached `#onMouseDown` would make the hide assertion pass on nothing.
+    await expect(grid.rowGuide).toHaveCount(1);
+    await expect(grid.rowGuide).toHaveClass(/active/);
+
+    await grid.restateResizeOption('manualRowResize', true);
+
+    // The gate `afterMouseDownTimeout()` reads. A re-init that left the plugin on must keep it
+    // true, or the pending timer would bail and this test would stay green on a dead autosize.
+    await expect.poll(() => grid.isResizePluginActive('manualRowResize')).toBe(true);
+
+    await page.clock.runFor(1500);
+
+    await expect.poll(() => grid.isResizePluginActive('manualRowResize')).toBe(true);
+    await expect(grid.rowGuide).toHaveCount(0);
+
+    await expect.poll(async () => await grid.resizeHooks()).toHaveLength(1);
+
+    const [call] = await grid.resizeHooks();
+
+    expect(call.hook).toBe('afterRowResize');
+    expect(call.index).toBe(2);
+    expect(call.isDoubleClick).toBe(true);
+
+    await grid.releaseDrag();
+
+    // Still hold: `#pressed` was cleared, so mouseup takes the idle branch.
+    await expect.poll(async () => await grid.resizeHooks()).toHaveLength(1);
+  });
+
+  test('autosizes a held column second press when the plugin is re-stated mid-timer', async ({ page }) => {
+    await grid.dblclickHoldColumnHandle(2);
+
+    await expect(grid.columnGuide).toHaveCount(1);
+    await expect(grid.columnGuide).toHaveClass(/active/);
+
+    await grid.restateResizeOption('manualColumnResize', true);
+
+    await expect.poll(() => grid.isResizePluginActive('manualColumnResize')).toBe(true);
+
+    await page.clock.runFor(1500);
+
+    await expect.poll(() => grid.isResizePluginActive('manualColumnResize')).toBe(true);
+    await expect(grid.columnGuide).toHaveCount(0);
+
+    await expect.poll(async () => await grid.resizeHooks()).toHaveLength(1);
+
+    const [call] = await grid.resizeHooks();
+
+    expect(call.hook).toBe('afterColumnResize');
+    expect(call.index).toBe(2);
+    expect(call.isDoubleClick).toBe(true);
+
+    await grid.releaseDrag();
+
+    await expect.poll(async () => await grid.resizeHooks()).toHaveLength(1);
+  });
+});
