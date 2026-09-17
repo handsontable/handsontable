@@ -42,6 +42,29 @@ describe('CopyPaste', () => {
       );
     });
 
+    it('should be called with the cell values as they are stored, not converted to strings', async() => {
+      const beforeCopy = jasmine.createSpy('beforeCopy');
+
+      handsontable({
+        data: [[1, true, null]],
+        copyPaste: true,
+        beforeCopy,
+      });
+
+      const copyEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      await selectCell(0, 0, 0, 2);
+
+      plugin.copyCellsOnly();
+      plugin.onCopy(copyEvent); // emulate native "copy" event
+
+      expect(beforeCopy.calls.count()).toBe(1);
+      expect(beforeCopy.calls.argsFor(0)[0]).toEqual([[1, true, null]]);
+      // `SheetClip` serializes the raw values on the way out, so the clipboard text is unchanged.
+      expect(copyEvent.clipboardData.getData('text/plain')).toBe('1\ttrue\t');
+    });
+
     it('should be called with coords and dataset points to the cells and the first column headers ' +
        'nearest the cells (single-line column headers configuration)', async() => {
       const beforeCopy = jasmine.createSpy('beforeCopy');

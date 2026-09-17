@@ -92,8 +92,10 @@ deletes the property outright in an object data source.
 reads through the private `_getCopyableData()` instead, so `beforeCopy` and `beforeCut` keep handing
 consumers the values as they are stored. The clipboard text would come out identical either way,
 because `SheetClip.stringify()` already maps `null` and `undefined` to `''` and coerces everything
-else – the hooks are the reason for the split. The source-data branch keeps
-`getCopyableSourceData()`, which still returns the stored object for the JSON serialization below.
+else – the hooks are the reason for the split, and only `hooks/beforeCopy.spec.js` ("should be called
+with the cell values as they are stored") catches a swap back: no clipboard-text assertion can. The
+source-data branch keeps `getCopyableSourceData()`, which still returns the stored object for the JSON
+serialization below.
 
 ## `SheetClip` and the trailing newline
 
