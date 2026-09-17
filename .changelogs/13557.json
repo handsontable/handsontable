@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the clear() method emptying only the highlighted cell when selectionMode was set to single, and only the current page when the pagination plugin was enabled. It now empties every cell of the data set.",
+  "type": "fixed",
+  "issueOrPR": 13557,
+  "breaking": false,
+  "framework": "none"
+}
