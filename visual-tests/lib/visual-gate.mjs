@@ -66,29 +66,6 @@ export function evaluate({
   const compared = Boolean(report
     && (report.failedItems.length || report.passedItems.length || report.deletedItems.length));
 
-  // Checked before `bootstrap`, not after. reg-suit exits 0 having globbed
-  // nothing when the config or the screenshots are missing, and that report has
-  // no failed and no passed items either -- so it looks exactly like a legitimate
-  // first build. Left later in the order, a broken first run would pass as
-  // "baseline created" and seed a blank manifest, after which the probe returns
-  // 200 forever and every later pull request compares against nothing.
-  // A null report is the credential-free path, which legitimately writes none.
-  if (report && report.failedItems.length + report.newItems.length
-    + report.deletedItems.length + report.passedItems.length === 0) {
-    return {
-      blocked: true,
-      verdict: 'error',
-      summary: 'The comparison found no screenshots at all, so nothing was checked.',
-      comment: [
-        `## ${title} — nothing was compared`,
-        '',
-        'The report lists no passing, changed, new, or deleted screenshots. That means',
-        'the comparison never found them, not that they match.',
-        runUrl ? `\n[Workflow run](${runUrl})\n` : '',
-      ].join('\n'),
-    };
-  }
-
   // Pages that failed before they compared anything. reg-suit never emits this key, so the core suite
   // is untouched; the docs adapter (`docs/tests/lib/visual-manifest.mjs`) writes it for a test that
   // never reached `toHaveScreenshot` — the preview 500'd, navigation timed out, the loading overlay
@@ -99,6 +76,13 @@ export function evaluate({
   // CLI had already written, and would otherwise report `clean` or `changed` over a run where pages
   // never rendered — asking for an approval on a build whose own job has failed, and linking a report
   // the publish step (which has no status function, so it skips) never uploaded.
+  //
+  // FIRST, above the empty-report check, and that placement is the point rather than a style choice.
+  // When the preview is down EVERY page fails before its screenshot, so the four reg-suit buckets are
+  // all empty and the "nothing was compared" branch below would answer first — blocking correctly, but
+  // with a generic message, in exactly the case this branch exists to explain. Both verdicts are
+  // `error`, so only the reader notices the difference; that is what makes it easy to reorder by
+  // accident, and why a test pins it.
   const errored = Array.isArray(report?.erroredItems) ? report.erroredItems : [];
 
   if (errored.length > 0) {
@@ -120,6 +104,29 @@ export function evaluate({
         'Fix the run and push again; the comparison reports nothing until every page renders.',
         runUrl ? `\n[Workflow run](${runUrl})\n` : '',
       ].filter(line => line !== '').join('\n'),
+    };
+  }
+
+  // Checked before `bootstrap`, not after. reg-suit exits 0 having globbed
+  // nothing when the config or the screenshots are missing, and that report has
+  // no failed and no passed items either -- so it looks exactly like a legitimate
+  // first build. Left later in the order, a broken first run would pass as
+  // "baseline created" and seed a blank manifest, after which the probe returns
+  // 200 forever and every later pull request compares against nothing.
+  // A null report is the credential-free path, which legitimately writes none.
+  if (report && report.failedItems.length + report.newItems.length
+    + report.deletedItems.length + report.passedItems.length === 0) {
+    return {
+      blocked: true,
+      verdict: 'error',
+      summary: 'The comparison found no screenshots at all, so nothing was checked.',
+      comment: [
+        `## ${title} — nothing was compared`,
+        '',
+        'The report lists no passing, changed, new, or deleted screenshots. That means',
+        'the comparison never found them, not that they match.',
+        runUrl ? `\n[Workflow run](${runUrl})\n` : '',
+      ].join('\n'),
     };
   }
 

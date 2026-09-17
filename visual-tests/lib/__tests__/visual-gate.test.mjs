@@ -273,6 +273,39 @@ test('a run with pages that never rendered blocks, instead of reporting a visual
   assert.match(v.summary, /failed without comparing a screenshot/);
 });
 
+test('a run where EVERY page failed still names them, rather than the generic empty-report message', () => {
+  // The ordering case. A preview that is down fails every page before its screenshot, so all four
+  // reg-suit buckets are empty and the "nothing was compared" branch would answer first — blocking
+  // correctly, but with a message that explains nothing, in exactly the situation the errored branch
+  // exists for. Both verdicts are `error`, so only the comment tells them apart, which is what makes
+  // the order easy to undo by accident.
+  const v = evaluate({
+    report: {
+      ...report({}),
+      erroredItems: ['visualDocs.spec.ts/js-a.png', 'visualDocs.spec.ts/js-b.png'],
+    },
+    runUrl: 'https://r/1',
+  });
+
+  assert.equal(v.blocked, true);
+  assert.equal(v.verdict, 'error');
+  assert.match(v.comment, /could not compare/);
+  assert.doesNotMatch(v.comment, /nothing was compared/,
+    'the errored branch must be evaluated before the empty-report branch');
+  assert.match(v.comment, /visualDocs\.spec\.ts\/js-a\.png/);
+  assert.match(v.comment, /visualDocs\.spec\.ts\/js-b\.png/);
+});
+
+test('an empty report with no errored pages keeps its own message', () => {
+  // The other side of that boundary: reg-suit globbing nothing is a different failure, and its
+  // message must not be replaced by the errored one.
+  const v = evaluate({ report: report({}) });
+
+  assert.equal(v.verdict, 'error');
+  assert.match(v.comment, /nothing was compared/);
+  assert.doesNotMatch(v.comment, /could not compare/);
+});
+
 test('reg-suit reports carry no erroredItems, so the core suite is untouched', () => {
   // The key is the docs adapter's, not reg-suit's. A core report has no such field, and an empty
   // list must not block either.
