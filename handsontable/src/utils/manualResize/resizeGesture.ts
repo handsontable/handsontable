@@ -227,6 +227,7 @@ export class ResizeGesture {
 
   /**
    * Ends the double-click window, and applies the auto-size when the window saw a double-click.
+   * A held second press hides the guide here rather than on mouseup (DEV-1038).
    *
    * @fires Hooks#beforeRowResize
    * @fires Hooks#afterRowResize
@@ -273,6 +274,15 @@ export class ResizeGesture {
     };
 
     if (this.#dblclick >= 2) {
+      // DEV-1038: the second mousedown already showed the guide, and autosize runs from this
+      // timer rather than from mouseup. A hold after that press therefore used to leave the
+      // guide `active` until the button came up. Hide it now. Do not detach – that is the
+      // DEV-2719 flicker, and `#hideHandleAndGuide()` only strips `active`. End the press so
+      // a later mousemove cannot overwrite the autosize, and so the matching mouseup takes
+      // the idle branch instead of firing the drag-end hooks a second time.
+      this.#hideHandleAndGuide();
+      this.#pressed = false;
+
       if (this.#selectedIndexes.length > 1) {
         arrayEach(this.#selectedIndexes, index => resize(index));
         render();

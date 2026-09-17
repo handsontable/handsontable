@@ -402,5 +402,54 @@ describe('ResizeGesture', () => {
       expect(hot.runHooks).not.toHaveBeenCalled();
       expect(owner.setManualSize).not.toHaveBeenCalled();
     });
+
+    it('should hide the guide as soon as a held double-click autosizes, without detaching it (DEV-1038)', () => {
+      // The second mousedown shows the guide and arms the 500ms window. Autosize runs on that
+      // timer, not on mouseup, so a hold after the second press used to leave the guide `active`
+      // until the button came up. Hide it when autosize runs. Do not detach it: that is the
+      // DEV-2719 flicker, and `hideHandleAndGuide()` only strips `active`.
+      const { hot, th, owner, handle, guide, timeouts } = createGesture();
+
+      hot.runHooks.mockImplementation(hookName => (hookName === 'beforeTestResize' ? 55 : undefined));
+
+      mouse('mouseover', th);
+      mouse('mousedown', handle());
+      mouse('mouseup', window);
+      mouse('mousedown', handle());
+
+      expect(handle().classList.contains('active')).toBe(true);
+      expect(guide().classList.contains('active')).toBe(true);
+
+      timeouts[0]();
+
+      expect(owner.setManualSize).toHaveBeenCalledWith(2, 55);
+      expect(afterResizeCalls(hot)).toEqual([['afterTestResize', 55, 2, true]]);
+      expect(handle().classList.contains('active')).toBe(false);
+      expect(guide().classList.contains('active')).toBe(false);
+      expect(handle().parentNode).toBe(rootElement);
+      expect(guide().parentNode).toBe(rootElement);
+
+      owner.setManualSize.mockClear();
+      hot.runHooks.mockClear();
+      mouse('mousemove', window, { pageY: 40 });
+      mouse('mouseup', window);
+
+      expect(owner.setManualSize).not.toHaveBeenCalled();
+      expect(hot.runHooks).not.toHaveBeenCalled();
+    });
+
+    it('should keep the guide active through a held single press whose window closes without autosize', () => {
+      // The other half of DEV-1038: a first mousedown that is held is a drag, not an autosize.
+      // Closing the 500ms window must not hide the guide while the button is still down.
+      const { th, handle, guide, timeouts } = createGesture();
+
+      mouse('mouseover', th);
+      mouse('mousedown', handle());
+
+      timeouts[0]();
+
+      expect(handle().classList.contains('active')).toBe(true);
+      expect(guide().classList.contains('active')).toBe(true);
+    });
   });
 });
