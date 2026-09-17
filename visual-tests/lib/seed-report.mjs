@@ -7,9 +7,14 @@
  * js and stayed green. Pure: `scripts/seed-report.mjs` reads `.reg/out.json` and the environment.
  *
  * The seed's summary also carries the attribution a pull request cannot give itself. The `pr` tier
- * renders js × {main, main-dark} only, so a merge that changed the classic render, a horizon theme,
- * Firefox, WebKit or a wrapper copy passed its own visual check without showing it; the seed is the first
- * build that renders those variants, and it reconciles them straight into the baseline. The
+ * renders js × {main, main-dark}, plus a wrapper when `VISUAL_WRAPPERS` names one — so a merge that
+ * changed the classic render, a horizon theme, Firefox or WebKit passed its own visual check without
+ * showing it, and so did a wrapper copy UNLESS that pull request changed that wrapper's own tree. The
+ * split here cannot tell those apart: it is computed from the raw `VISUAL_TIERS.pr` row, which lists no
+ * wrapper, while `resolveTier` appends whatever `VISUAL_WRAPPERS` carried. So a wrapper item in
+ * `outsidePrItems` MAY be one the merged pull request rendered and its author already reviewed, and
+ * nothing downstream may tell them it could not have been shown. The seed is the first build that
+ * renders the rest of those variants, and it reconciles them straight into the baseline. The
  * out-of-tier differences are therefore turned into a comment on the merged pull request, so the author
  * sees them minutes after the merge rather than in a run summary nobody opens — and so the nightly,
  * which compares against that same seed, is not expected to catch them (it cannot: they are the baseline

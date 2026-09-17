@@ -68,6 +68,30 @@ testCases.forEach(({ paths, prefix, urlPath }) => {
   test.describe(`${prefix} tests`, () => {
     paths.forEach((pathObj) => {
       test(`take screenshot for ${prefix} on ${pathObj.path.split('/').pop()}`, async({ page, baseURL }) => {
+        const slug = pathObj.path.split('/').pop() ?? '';
+
+        /*
+         * Sanitized the way Playwright sanitizes it, because Playwright writes the file and this
+         * name has to match what it wrote. `snapshotPath()` runs the argument through
+         * `sanitizeForFilePath` before substituting `{arg}`, turning every character outside
+         * `[\w-]` into `-`, so `migration-from-7.4-to-8.0` lands on disk as
+         * `migration-from-7-4-to-8-0.png`. Leaving the dots in makes the annotation below name a
+         * file that does not exist: the manifest adapter diffs those strings against the baseline
+         * keys, so all 35 dotted pages read as deleted goldens plus new renders, and the verdict is
+         * `changed` on every run with nothing to fix. Verified against @playwright/test 1.61.1 —
+         * 1.45 did not sanitize here, so this is version-sensitive rather than eternal.
+         */
+        const screenshotName = `${prefix}-${slug.replace(/[^\w-]+/g, '-')}.png`;
+
+        /*
+         * Which golden record this test owns, for `tests/lib/visual-manifest.mjs`: Playwright's report
+         * carries the test's title, not the file it compared, so the manifest the visual gate reads is
+         * built from these annotations. FIRST statement of the body on purpose — `test.fixme()` below
+         * throws where it stands, and a parked page that declared nothing would be read as a golden
+         * nobody owns any more and dropped from the baseline by the next seed.
+         */
+        test.info().annotations.push({ type: 'snapshot', description: `visualDocs.spec.ts/${screenshotName}` });
+
         const path = `/${urlPath}/${pathObj.path.split('/').pop()}`.replace('introduction', '');
 
         /**
@@ -75,7 +99,6 @@ testCases.forEach(({ paths, prefix, urlPath }) => {
          * Pages with dynamic/random data use 0.05 to avoid false positives from changing values.
          * All other pages use 0.01 to allow for minor anti-aliasing differences between runs.
          */
-        const slug = pathObj.path.split('/').pop() ?? '';
         const maxDiffPixelRatioValue = pathsNeedingMoreTolerance.includes(slug) ? 0.05 : 0.01;
 
         if (slugsToFix.includes(slug)) {
@@ -92,8 +115,6 @@ testCases.forEach(({ paths, prefix, urlPath }) => {
         // Angular and Vue examples can take several seconds to bootstrap; without
         // this wait the screenshot captures a loading shimmer instead of the grid.
         await expect(page.locator('.hot-example-preview--loading')).toHaveCount(0, { timeout: 30000 });
-
-        const screenshotName = `${prefix}-${pathObj.path.split('/').pop()}.png`;
 
         // Third-party Figma embeds (e.g. the design-system "Live preview") load
         // asynchronously and are sometimes blank when the screenshot is taken.

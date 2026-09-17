@@ -4,7 +4,22 @@
  * Pure: no file, network, or environment access, so the branching that governs
  * whether a pull request can merge is unit-testable. `scripts/visual-gate.mjs`
  * is the thin wrapper that reads `.reg/out.json` and writes `.reg/comment.md`.
+ *
+ * Two suites go through it. The core one names itself "Visual tests" and holds a `changed` verdict on
+ * the `visual-approval` environment; the docs one (DEV-2860, `.github/actions/docs-visual-run`) reads
+ * the manifest `docs/tests/lib/visual-manifest.mjs` builds from Playwright's report and holds its own
+ * on `docs-visual-approval`. Only the three names differ, so they are the `labels` option and nothing
+ * else is duplicated — a change to the verdicts or to the comment reaches both suites at once.
  */
+
+/**
+ * The names the core suite calls itself by. `labels` overrides them per suite.
+ */
+const DEFAULT_LABELS = {
+  title: 'Visual tests',
+  environment: 'visual-approval',
+  artifact: 'visual-diff-report',
+};
 
 /**
  * @typedef {object} Verdict
@@ -30,11 +45,15 @@
  * @param {boolean} [options.seeded] Whether this run may write the baseline.
  * @param {string} [options.reportUrl] Published report URL, or '' when nothing was published.
  * @param {string} [options.runUrl] Workflow run URL, when known.
+ * @param {object} [options.labels] What this suite calls itself: `title` (the comment's heading),
+ * `environment` (the one the approval waits on) and `artifact` (the images when the report is not
+ * reachable). Defaults are the core suite's.
  * @returns {Verdict} The verdict.
  */
 export function evaluate({
-  report, bootstrap = false, seeded = true, reportUrl = '', runUrl = '',
+  report, bootstrap = false, seeded = true, reportUrl = '', runUrl = '', labels = {},
 }) {
+  const { title, environment, artifact } = { ...DEFAULT_LABELS, ...labels };
   // `bootstrap` comes from a probe of `out.json`, which is a different source of
   // truth from the comparison itself. A base build killed mid-publish can leave
   // `actual/**` uploaded with no manifest: the probe then says "no baseline"
@@ -46,6 +65,47 @@ export function evaluate({
   // renames every screenshot slips through and seeds over the real records.
   const compared = Boolean(report
     && (report.failedItems.length || report.passedItems.length || report.deletedItems.length));
+
+  // Pages that failed before they compared anything. reg-suit never emits this key, so the core suite
+  // is untouched; the docs adapter (`docs/tests/lib/visual-manifest.mjs`) writes it for a test that
+  // never reached `toHaveScreenshot` — the preview 500'd, navigation timed out, the loading overlay
+  // never cleared.
+  //
+  // It has to block HERE rather than only in the adapter's CLI. The CLI already exits non-zero, but
+  // the action's verdict step runs on `!cancelled()`, so it executes anyway, reads the manifest the
+  // CLI had already written, and would otherwise report `clean` or `changed` over a run where pages
+  // never rendered — asking for an approval on a build whose own job has failed, and linking a report
+  // the publish step (which has no status function, so it skips) never uploaded.
+  //
+  // FIRST, above the empty-report check, and that placement is the point rather than a style choice.
+  // When the preview is down EVERY page fails before its screenshot, so the four reg-suit buckets are
+  // all empty and the "nothing was compared" branch below would answer first — blocking correctly, but
+  // with a generic message, in exactly the case this branch exists to explain. Both verdicts are
+  // `error`, so only the reader notices the difference; that is what makes it easy to reorder by
+  // accident, and why a test pins it.
+  const errored = Array.isArray(report?.erroredItems) ? report.erroredItems : [];
+
+  if (errored.length > 0) {
+    return {
+      blocked: true,
+      verdict: 'error',
+      summary: `${errored.length} page(s) failed without comparing a screenshot, so this build's visual `
+        + 'state is unknown.',
+      comment: [
+        `## ${title} — could not compare`,
+        '',
+        `${errored.length} page${errored.length === 1 ? '' : 's'} failed before taking a screenshot, so `
+          + 'there is nothing to approve. The usual causes are a preview that did not come up, a',
+        'navigation timeout, or an example that never finished loading.',
+        '',
+        ...errored.slice(0, 20).map(item => `- \`${item}\``),
+        errored.length > 20 ? `- …and ${errored.length - 20} more` : '',
+        '',
+        'Fix the run and push again; the comparison reports nothing until every page renders.',
+        runUrl ? `\n[Workflow run](${runUrl})\n` : '',
+      ].filter(line => line !== '').join('\n'),
+    };
+  }
 
   // Checked before `bootstrap`, not after. reg-suit exits 0 having globbed
   // nothing when the config or the screenshots are missing, and that report has
@@ -61,7 +121,7 @@ export function evaluate({
       verdict: 'error',
       summary: 'The comparison found no screenshots at all, so nothing was checked.',
       comment: [
-        '## Visual tests — nothing was compared',
+        `## ${title} — nothing was compared`,
         '',
         'The report lists no passing, changed, new, or deleted screenshots. That means',
         'the comparison never found them, not that they match.',
@@ -77,7 +137,7 @@ export function evaluate({
         verdict: 'bootstrap',
         summary: 'No golden records existed for this base branch, so this build seeds them.',
         comment: [
-          '## Visual tests — baseline created',
+          `## ${title} — baseline created`,
           '',
           'This branch had no golden records, so this build became the baseline.',
           'There was nothing to compare against yet, and the next build of the base',
@@ -90,7 +150,7 @@ export function evaluate({
         verdict: 'bootstrap',
         summary: 'No golden records exist for this base branch, and this run cannot seed them.',
         comment: [
-          '## Visual tests — nothing to compare',
+          `## ${title} — nothing to compare`,
           '',
           'This base branch has no golden records yet, and a fork or Dependabot run',
           'cannot create them. Nothing was compared and nothing was seeded.',
@@ -108,7 +168,7 @@ export function evaluate({
       verdict: 'error',
       summary: 'The comparison step produced no report, so the visual state is unknown.',
       comment: [
-        '## Visual tests — could not compare',
+        `## ${title} — could not compare`,
         '',
         'The comparison step produced no report, so the visual state is unknown.',
         runUrl ? `\n[Workflow run](${runUrl})\n` : '',
@@ -132,7 +192,7 @@ export function evaluate({
       verdict: 'clean',
       summary: `No visual changes. ${passed} screenshots match the golden records.`,
       comment: [
-        '## Visual tests — no changes',
+        `## ${title} — no changes`,
         '',
         `All ${passed} screenshots match the golden records.`,
         '',
@@ -144,18 +204,18 @@ export function evaluate({
     blocked: false,
     verdict: 'changed',
     summary: `Visual changes detected: ${changed} changed, ${added} new, ${deleted} deleted. `
-      + 'Waiting for a reviewer to approve the visual-approval deployment.',
+      + `Waiting for a reviewer to approve the ${environment} deployment.`,
     comment: [
-      '## Visual tests — changes detected, approval pending',
+      `## ${title} — changes detected, approval pending`,
       '',
       ...table,
       '',
       reportUrl
         ? `**[Open the visual report](${reportUrl})** — compare each screenshot side by side, `
           + 'with slider, blend, and toggle views.'
-        : 'The report URL is unavailable; download the `visual-diff-report` artifact instead.',
+        : `The report URL is unavailable; download the \`${artifact}\` artifact instead.`,
       '',
-      'If the report is unreachable, the `visual-diff-report` artifact on the '
+      `If the report is unreachable, the \`${artifact}\` artifact on the `
         + `${runUrl ? `[workflow run](${runUrl})` : 'workflow run'} holds the same thing.`,
       '',
       '### What to do next',
@@ -165,7 +225,7 @@ export function evaluate({
       '',
       '**If these differences are intentional** — a reviewer approves them on the workflow run',
       `page: ${runUrl ? `[open the run](${runUrl}), then` : 'open the run, then'} **Review pending`
-        + ' deployments → visual-approval → Approve**. One click, no new commit, no re-run; the',
+        + ` deployments → ${environment} → Approve**. One click, no new commit, no re-run; the`,
       'approval is recorded with the reviewer\'s name. **Reject** turns the run red instead.',
       '',
       'Approval is all-or-nothing and per run: it accepts every difference in this build at once,',
@@ -186,9 +246,9 @@ export function evaluate({
       ...(reportUrl
         ? []
         : [
-          '> This run published no hosted report — normally a fork or Dependabot pull',
-          '> request, whose token cannot publish one — so the `visual-diff-report`',
-          '> artifact holds the images. A maintainer approves the deployment as above.',
+          '> This run published no hosted report — normally a fork or Dependabot pull request,',
+          `> whose token cannot publish one — so the \`${artifact}\` artifact holds the images.`,
+          '> A maintainer approves the deployment as above.',
           '',
         ]),
     ].join('\n'),

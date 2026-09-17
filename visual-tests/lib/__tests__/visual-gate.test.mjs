@@ -184,3 +184,134 @@ test('a missing report URL degrades to the artifact instructions', () => {
 
   assert.match(v.comment, /visual-diff-report/);
 });
+
+// The docs suite (DEV-2860) runs this same evaluator over a manifest built from Playwright's report,
+// and only three names differ. Pinned because the alternative is a second copy of every branch above,
+// and because a docs comment naming the CORE environment would send a reviewer to an approval that
+// does not exist on that run.
+const DOCS_LABELS = {
+  title: 'Docs visual tests',
+  environment: 'docs-visual-approval',
+  artifact: 'docs-visual-report',
+};
+
+test('the labels rename the suite in every verdict that has a heading', () => {
+  const headings = [
+    [{ report: report({}) }, /^## Docs visual tests — nothing was compared$/m],
+    [{ report: null, bootstrap: true }, /^## Docs visual tests — baseline created$/m],
+    [{ report: null, bootstrap: true, seeded: false }, /^## Docs visual tests — nothing to compare$/m],
+    [{ report: null }, /^## Docs visual tests — could not compare$/m],
+    [{ report: report({ passed: 441 }) }, /^## Docs visual tests — no changes$/m],
+    [{ report: report({ changed: 1 }) }, /^## Docs visual tests — changes detected, approval pending$/m],
+  ];
+
+  headings.forEach(([options, heading]) => {
+    const v = evaluate({ ...options, labels: DOCS_LABELS });
+
+    assert.match(v.comment, heading);
+    assert.doesNotMatch(v.comment, /## Visual tests —/);
+  });
+});
+
+test('the labels rename the environment and the artifact wherever a reviewer is instructed', () => {
+  const v = evaluate({ report: report({ changed: 2, added: 1 }), runUrl: 'https://r/1', labels: DOCS_LABELS });
+
+  assert.match(v.summary, /Waiting for a reviewer to approve the docs-visual-approval deployment\./);
+  assert.match(v.comment, /Review pending deployments → docs-visual-approval → Approve/);
+  assert.match(v.comment, /`docs-visual-report` artifact/);
+  // The lookbehind matters: `docs-visual-approval` contains `visual-approval`, so a bare negative
+  // would pass on the very string it is meant to forbid.
+  assert.doesNotMatch(v.comment, /(?<!docs-)visual-approval →/);
+  assert.doesNotMatch(v.comment, /`visual-diff-report`/);
+
+  const fork = evaluate({ report: report({ changed: 1 }), seeded: false, labels: DOCS_LABELS });
+
+  assert.match(fork.comment, /`docs-visual-report` artifact holds the images/);
+});
+
+test('a partial labels object keeps the core defaults for the rest', () => {
+  const v = evaluate({ report: report({ changed: 1 }), labels: { title: 'Docs visual tests' } });
+
+  assert.match(v.comment, /^## Docs visual tests — changes detected/m);
+  assert.match(v.comment, /visual-approval → Approve/, 'the environment falls back to the core one');
+  assert.match(v.comment, /`visual-diff-report`/);
+});
+
+test('the verdicts and the blocking flag do not depend on the labels', () => {
+  // The names are cosmetic by construction: relabeling must never change what a run is allowed to do.
+  const cases = [{ report: null }, { report: report({}) }, { report: null, bootstrap: true },
+    { report: report({ passed: 10 }) }, { report: report({ changed: 1 }) }];
+
+  cases.forEach((options) => {
+    const core = evaluate(options);
+    const docs = evaluate({ ...options, labels: DOCS_LABELS });
+
+    assert.equal(docs.verdict, core.verdict);
+    assert.equal(docs.blocked, core.blocked);
+  });
+});
+
+test('a run with pages that never rendered blocks, instead of reporting a visual verdict', () => {
+  // The docs adapter writes `erroredItems` for a test that failed before reaching
+  // `toHaveScreenshot`. Its CLI already exits non-zero, but the action's verdict step runs on
+  // `!cancelled()`, so it executes anyway and reads the manifest that was already written. Without
+  // this branch it would report `clean` or `changed` over a run where pages never rendered, ask for
+  // an approval on a build whose own job had failed, and link a report the publish step — which has
+  // no status function of its own, so it skips — never uploaded.
+  const v = evaluate({
+    report: {
+      ...report({ changed: 2, passed: 400 }),
+      erroredItems: ['visualDocs.spec.ts/js-a.png', 'visualDocs.spec.ts/js-b.png'],
+    },
+    runUrl: 'https://r/1',
+  });
+
+  assert.equal(v.blocked, true);
+  assert.equal(v.verdict, 'error', 'an errored run must never reach the approval job');
+  assert.match(v.comment, /could not compare/);
+  assert.match(v.comment, /visualDocs\.spec\.ts\/js-a\.png/, 'the pages that failed must be named');
+  assert.match(v.summary, /failed without comparing a screenshot/);
+});
+
+test('a run where EVERY page failed still names them, rather than the generic empty-report message', () => {
+  // The ordering case. A preview that is down fails every page before its screenshot, so all four
+  // reg-suit buckets are empty and the "nothing was compared" branch would answer first — blocking
+  // correctly, but with a message that explains nothing, in exactly the situation the errored branch
+  // exists for. Both verdicts are `error`, so only the comment tells them apart, which is what makes
+  // the order easy to undo by accident.
+  const v = evaluate({
+    report: {
+      ...report({}),
+      erroredItems: ['visualDocs.spec.ts/js-a.png', 'visualDocs.spec.ts/js-b.png'],
+    },
+    runUrl: 'https://r/1',
+  });
+
+  assert.equal(v.blocked, true);
+  assert.equal(v.verdict, 'error');
+  assert.match(v.comment, /could not compare/);
+  assert.doesNotMatch(v.comment, /nothing was compared/,
+    'the errored branch must be evaluated before the empty-report branch');
+  assert.match(v.comment, /visualDocs\.spec\.ts\/js-a\.png/);
+  assert.match(v.comment, /visualDocs\.spec\.ts\/js-b\.png/);
+});
+
+test('an empty report with no errored pages keeps its own message', () => {
+  // The other side of that boundary: reg-suit globbing nothing is a different failure, and its
+  // message must not be replaced by the errored one.
+  const v = evaluate({ report: report({}) });
+
+  assert.equal(v.verdict, 'error');
+  assert.match(v.comment, /nothing was compared/);
+  assert.doesNotMatch(v.comment, /could not compare/);
+});
+
+test('reg-suit reports carry no erroredItems, so the core suite is untouched', () => {
+  // The key is the docs adapter's, not reg-suit's. A core report has no such field, and an empty
+  // list must not block either.
+  assert.equal(evaluate({ report: report({ changed: 3, passed: 10 }) }).verdict, 'changed');
+  assert.equal(evaluate({
+    report: { ...report({ changed: 3, passed: 10 }), erroredItems: [] },
+  }).verdict, 'changed');
+  assert.equal(evaluate({ report: report({ passed: 10 }) }).verdict, 'clean');
+});

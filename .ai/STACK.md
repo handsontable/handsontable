@@ -188,7 +188,7 @@
 - `visual-seed.yml` / `visual-nightly.yml` - writes `base/develop` on every develop push under a concurrency group that never cancels (develop.yml's cancellation kept the seed from landing; see that file's header) / the weekday full-matrix render that compares against that seed and never writes the goldens
 - `publish.yml` - package publishing pipeline to npm (the only workflow npm trusted publishing trusts)
 - `docs.yml` / `docs-staging.yml` / `docs-production.yml` - docs gates and deployment (Cloudflare Pages)
-- `docs-visual-tests.yml` - visual regression testing for docs
+- `docs-visual-tests.yml` (dispatch) / `docs-visual-seed.yml` (seeds `docs/base/<branch>` after a staging deploy) / the `docs-visual-run` action - docs visual regression against an R2 baseline, gated like `visual.yml`
 
 Fork PRs and Dependabot PRs both run on a read-only token with no Actions secrets. Read the two
 fork-guard bullets in `.ai/CI.md` before touching any step that comments, pushes to a ref,
