@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-17T15:25:30.163Z",
+  "generatedAt": "2026-09-17T15:41:04.524Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 27,
     "needsTicket": 5,
     "quarantined": 0,
-    "entries": 107
+    "entries": 108
   },
   "rows": [
     {
@@ -20,9 +20,9 @@
       "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
       "line": 65,
       "title": "grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
-      "count7": 8,
-      "count30": 8,
-      "countAll": 8,
+      "count7": 9,
+      "count30": 9,
+      "countAll": 9,
       "runs30": 5,
       "flakyRuns30": 5,
       "branches30": 5,
@@ -38,8 +38,8 @@
       "isolation": [],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-09-17T15:24:25Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35237645516",
+        "seenAt": "2026-09-17T15:40:15Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35237645516/attempts/2",
         "branch": "feature/DEV-2938_NestedRows-runtime-enable",
         "leg": "e2e-classic-min",
         "status": "flaky",
