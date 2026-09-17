@@ -418,6 +418,51 @@ const hotSettings = ref({
 
 :::
 
+## Switch between registered themes at runtime
+
+Use [`useTheme()`](@/api/core.md#usetheme) to swap the grid's active theme for another theme that's already registered. Pass the theme's name as a string -- `useTheme()` only accepts a name, not a theme config object or a `ThemeBuilder` instance.
+
+::: only-for javascript
+
+```js
+import Handsontable from 'handsontable';
+import { mainTheme, registerTheme } from 'handsontable/themes';
+
+const hot = new Handsontable(container, {
+  theme: mainTheme,
+  // ... other options
+});
+
+function toggleTheme(isDarkMode) {
+  hot.useTheme(isDarkMode ? 'ht-theme-main-dark' : 'ht-theme-main');
+}
+```
+
+:::
+
+An unsupported value -- anything other than a registered theme name -- is ignored. The grid logs a warning and keeps its current theme.
+
+If you need to apply a theme config object or a `ThemeBuilder` instance instead of a name (for example, a theme you customized with `registerTheme()` and `setColorScheme()`), pass it to [`updateSettings()`](@/api/core.md#updatesettings) through the `theme` option:
+
+::: only-for javascript
+
+```js
+import { mainTheme, registerTheme } from 'handsontable/themes';
+
+function toggleTheme(isDarkMode) {
+  const newTheme = registerTheme(`my-theme-${isDarkMode ? 'dark' : 'light'}`, {
+    ...mainTheme.getThemeConfig(),
+    colorScheme: isDarkMode ? 'dark' : 'light',
+  });
+
+  hot.updateSettings({ theme: newTheme });
+}
+```
+
+:::
+
+Register the customized theme under its own name, rather than reusing a built-in theme's name (such as `'ht-theme-main'`). Reusing a built-in name returns the existing, shared theme instance, and configuring it affects every other grid on the page that uses that same theme by name.
+
 ## Set the color scheme or density without a theme
 
 If the only thing you want to change is the color scheme or the amount of white space, you don't have to import, register, and configure a theme. Set the [`colorScheme`](@/api/options.md#colorscheme) or [`density`](@/api/options.md#density) option directly, and the grid applies it on top of the theme it already uses.
