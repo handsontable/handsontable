@@ -112,20 +112,44 @@ export function isLargerThanViewport(size: number | undefined, viewportSize: num
 }
 
 /**
- * Returns `true` when the column is wider than the viewport.
+ * Returns `true` when a mouse click on this column should force a start snap.
+ *
+ * Frozen start columns (`col < fixedColumnsStart`) never count as oversized.
+ * Forced `horizontalSnap: 'start'` bypasses Walkontable's auto-snap guard
+ * (`autoSnapping && column < fixedColumnsStart` returns false) and jumps the
+ * main viewport to scroll 0. A frozen cell cannot have a clipped start, so
+ * the snap buys nothing. Pair visual `fixedColumnsStart` with the visual
+ * `col` from mouse `cellCoords` — Walkontable's not-hidden frozen count
+ * would mismatch if hidden columns sit in the frozen band.
+ *
+ * `getColWidth` already falls back to `DEFAULT_COLUMN_WIDTH`. There is no
+ * Walkontable `oversizedColumns` merge like `oversizedRows` for height.
  *
  * @param {Core} hot Handsontable instance.
  * @param {number} col Visual column index.
  * @returns {boolean}
  */
-function isColumnOversized(hot: HotInstance, col: number): boolean {
-  // `getColWidth` already falls back to `DEFAULT_COLUMN_WIDTH`. There is no
-  // Walkontable `oversizedColumns` merge like `oversizedRows` for height.
+export function isColumnOversized(hot: HotInstance, col: number): boolean {
+  const fixedColumnsStart = hot.getSettings().fixedColumnsStart ?? 0;
+
+  if (col < fixedColumnsStart) {
+    return false;
+  }
+
   return isLargerThanViewport(hot.getColWidth(col), hot.view.getViewportWidth());
 }
 
 /**
- * Returns `true` when the row is taller than the viewport.
+ * Returns `true` when a mouse click on this row should force a top snap.
+ *
+ * Frozen top and bottom rows (`row < fixedRowsTop` or
+ * `row >= totalRows - fixedRowsBottom`) never count as oversized. Forced
+ * `verticalSnap: 'top'` bypasses Walkontable's auto-snap guard
+ * (`autoSnapping && (row < fixedRowsTop || row > totalRows - fixedRowsBottom - 1)`
+ * returns false) and jumps the main viewport to the top. A frozen cell
+ * cannot have a clipped start, so the snap buys nothing. Pair visual
+ * `fixedRowsTop` / `fixedRowsBottom` and {@link Core#countRows} with the
+ * visual `row` from mouse `cellCoords`.
  *
  * Uses `TableView#getRenderedRowHeight` so content-tall rows recorded in
  * Walkontable `oversizedRows` match keyboard and API start-snap. {@link Core#getRowHeight}
@@ -135,7 +159,15 @@ function isColumnOversized(hot: HotInstance, col: number): boolean {
  * @param {number} row Visual row index.
  * @returns {boolean}
  */
-function isRowOversized(hot: HotInstance, row: number): boolean {
+export function isRowOversized(hot: HotInstance, row: number): boolean {
+  const settings = hot.getSettings();
+  const fixedRowsTop = settings.fixedRowsTop ?? 0;
+  const fixedRowsBottom = settings.fixedRowsBottom ?? 0;
+
+  if (row < fixedRowsTop || row >= hot.countRows() - fixedRowsBottom) {
+    return false;
+  }
+
   return isLargerThanViewport(hot.view.getRenderedRowHeight(row), hot.view.getViewportHeight());
 }
 

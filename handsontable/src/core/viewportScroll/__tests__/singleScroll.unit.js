@@ -1,4 +1,32 @@
-import { getMouseSingleScrollTarget, isLargerThanViewport } from '../scrollStrategies/singleScroll';
+import {
+  getMouseSingleScrollTarget,
+  isColumnOversized,
+  isLargerThanViewport,
+  isRowOversized,
+} from '../scrollStrategies/singleScroll';
+
+// Minimal Core stub for `isColumnOversized` / `isRowOversized`.
+function createOversizedHot({
+  colWidth = 400,
+  viewportWidth = 200,
+  rowHeight = 400,
+  viewportHeight = 200,
+  fixedColumnsStart = 0,
+  fixedRowsTop = 0,
+  fixedRowsBottom = 0,
+  totalRows = 10,
+} = {}) {
+  return {
+    getColWidth: () => colWidth,
+    getSettings: () => ({ fixedColumnsStart, fixedRowsTop, fixedRowsBottom }),
+    countRows: () => totalRows,
+    view: {
+      getViewportWidth: () => viewportWidth,
+      getViewportHeight: () => viewportHeight,
+      getRenderedRowHeight: () => rowHeight,
+    },
+  };
+}
 
 describe('getMouseSingleScrollTarget', () => {
   it('should scroll both axes when the cell is not last-partial on either edge', () => {
@@ -128,5 +156,131 @@ describe('isLargerThanViewport', () => {
 
   it('should not treat a size equal to the viewport as oversized', () => {
     expect(isLargerThanViewport(200, 200)).toBe(false);
+  });
+});
+
+describe('isColumnOversized', () => {
+  it('should treat a frozen start column as not oversized even when it is wider than the viewport', () => {
+    const hot = createOversizedHot({ fixedColumnsStart: 2 });
+
+    expect(isColumnOversized(hot, 0)).toBe(false);
+    expect(isColumnOversized(hot, 1)).toBe(false);
+  });
+
+  it('should treat the first scrollable column as oversized when it is wider than the viewport', () => {
+    const hot = createOversizedHot({ fixedColumnsStart: 2 });
+
+    expect(isColumnOversized(hot, 2)).toBe(true);
+  });
+
+  it('should treat a wide column as oversized when no columns are frozen', () => {
+    const hot = createOversizedHot({ fixedColumnsStart: 0 });
+
+    expect(isColumnOversized(hot, 0)).toBe(true);
+  });
+});
+
+describe('isRowOversized', () => {
+  it('should treat a frozen top row as not oversized even when it is taller than the viewport', () => {
+    const hot = createOversizedHot({ fixedRowsTop: 2 });
+
+    expect(isRowOversized(hot, 0)).toBe(false);
+    expect(isRowOversized(hot, 1)).toBe(false);
+  });
+
+  it('should treat a frozen bottom row as not oversized even when it is taller than the viewport', () => {
+    const hot = createOversizedHot({ fixedRowsBottom: 2, totalRows: 10 });
+
+    expect(isRowOversized(hot, 8)).toBe(false);
+    expect(isRowOversized(hot, 9)).toBe(false);
+  });
+
+  it('should treat the first scrollable row as oversized when it is taller than the viewport', () => {
+    const hot = createOversizedHot({ fixedRowsTop: 2, fixedRowsBottom: 2, totalRows: 10 });
+
+    expect(isRowOversized(hot, 2)).toBe(true);
+    expect(isRowOversized(hot, 7)).toBe(true);
+  });
+
+  it('should treat a tall row as oversized when no rows are frozen', () => {
+    const hot = createOversizedHot({ fixedRowsTop: 0, fixedRowsBottom: 0 });
+
+    expect(isRowOversized(hot, 0)).toBe(true);
+  });
+});
+
+describe('getMouseSingleScrollTarget with frozen oversized cells', () => {
+  it('should start-snap only the scrollable axis when the other axis is a frozen oversized cell', () => {
+    const hot = createOversizedHot({ fixedColumnsStart: 2 });
+
+    expect(getMouseSingleScrollTarget({
+      row: 5,
+      col: 0,
+      lastPartiallyVisibleRow: 8,
+      lastPartiallyVisibleColumn: 8,
+      isRowLargerThanViewport: isRowOversized(hot, 5),
+      isColumnLargerThanViewport: isColumnOversized(hot, 0),
+    })).toEqual({ row: 5, col: 0, verticalSnap: 'top' });
+  });
+
+  it('should start-snap only the scrollable column when the row is a frozen oversized cell', () => {
+    const hot = createOversizedHot({ fixedRowsTop: 2 });
+
+    expect(getMouseSingleScrollTarget({
+      row: 0,
+      col: 3,
+      lastPartiallyVisibleRow: 8,
+      lastPartiallyVisibleColumn: 8,
+      isRowLargerThanViewport: isRowOversized(hot, 0),
+      isColumnLargerThanViewport: isColumnOversized(hot, 3),
+    })).toEqual({ row: 0, col: 3, horizontalSnap: 'start' });
+  });
+
+  it('should start-snap only the scrollable column when the row is a frozen-bottom oversized cell', () => {
+    const hot = createOversizedHot({ fixedRowsBottom: 2, totalRows: 10 });
+
+    expect(getMouseSingleScrollTarget({
+      row: 9,
+      col: 3,
+      lastPartiallyVisibleRow: 8,
+      lastPartiallyVisibleColumn: 8,
+      isRowLargerThanViewport: isRowOversized(hot, 9),
+      isColumnLargerThanViewport: isColumnOversized(hot, 3),
+    })).toEqual({ row: 9, col: 3, horizontalSnap: 'start' });
+  });
+
+  it('should skip the whole move when a last-partial frozen column is treated as not oversized', () => {
+    const hot = createOversizedHot({
+      fixedColumnsStart: 1,
+      colWidth: 400,
+      viewportWidth: 200,
+      rowHeight: 20,
+      viewportHeight: 200,
+    });
+
+    expect(getMouseSingleScrollTarget({
+      row: 4,
+      col: 0,
+      lastPartiallyVisibleRow: 8,
+      lastPartiallyVisibleColumn: 0,
+      isRowLargerThanViewport: isRowOversized(hot, 4),
+      isColumnLargerThanViewport: isColumnOversized(hot, 0),
+    })).toBeNull();
+  });
+
+  it('should not force snap when both axes are frozen oversized cells', () => {
+    const hot = createOversizedHot({
+      fixedColumnsStart: 1,
+      fixedRowsTop: 1,
+    });
+
+    expect(getMouseSingleScrollTarget({
+      row: 0,
+      col: 0,
+      lastPartiallyVisibleRow: 8,
+      lastPartiallyVisibleColumn: 8,
+      isRowLargerThanViewport: isRowOversized(hot, 0),
+      isColumnLargerThanViewport: isColumnOversized(hot, 0),
+    })).toEqual({ row: 0, col: 0 });
   });
 });
