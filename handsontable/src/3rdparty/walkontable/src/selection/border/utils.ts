@@ -1,5 +1,5 @@
 import type { WalkontableInstance } from '../../types';
-import type { CornerDefaultStyle } from './types';
+import type { BorderInstanceSettings, BorderPositionSettings, CornerDefaultStyle } from './types';
 
 export const getCornerStyle = (wot: WalkontableInstance): CornerDefaultStyle => {
   const stylesHandler = wot.wtSettings.getSetting('stylesHandler');
@@ -16,6 +16,26 @@ export const getCornerStyle = (wot: WalkontableInstance): CornerDefaultStyle => 
     borderColor: cornerColorFromVar,
   });
 };
+
+/**
+ * Reads a per-side border setting, falling back to the shared `border` object when the side omits it.
+ * An explicit `0` or empty string is a real setting – only `null` and `undefined` fall through.
+ * For `style`, that means `style: ''` stays empty (`Border#createBorders` then takes the solid-fill
+ * `else` path) instead of inheriting `settings.border.style`. Keep `??` for every property on this
+ * helper; a truthy check would also resurrect the width-0 bug (DEV-1137).
+ *
+ * @param {object|undefined} sideSettings The per-side settings (`top`, `start`, `bottom`, `end`, or `corner`).
+ * @param {string} property The setting name (`width`, `color`, `style`).
+ * @param {object|undefined} fallbackBorder The shared `settings.border` object used when the side omits the property.
+ * @returns {*} The configured value, or `undefined` when neither source provides it.
+ */
+export function getBorderSettingsProperty(
+  sideSettings: BorderPositionSettings | undefined,
+  property: string,
+  fallbackBorder: BorderInstanceSettings['border'] | undefined,
+): unknown {
+  return sideSettings?.[property] ?? fallbackBorder?.[property];
+}
 
 /**
  * Translates a selection header coordinate into the Walkontable header level

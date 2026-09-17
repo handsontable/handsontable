@@ -29,6 +29,10 @@ Self-contained rendering engine for viewport calculation, DOM rendering, scroll 
 
 `Border` in `src/selection/border/border.ts` has TWO distinct handle systems: `selectionHandles` (mobile touch handles, created by `createMultipleSelectorHandles()`, CSS classes `topSelectionHandle`/`bottomSelectionHandle`) and `adjustHandles` (desktop drag-to-resize handles added in 18.0.0, CSS class `.wtSelectionHandle`, controlled by the `selectionHandles` grid option). Do not conflate them.
 
+## Custom border `width: 0` is a real value (DEV-1137)
+
+`getBorderSettingsProperty` in `src/selection/border/utils.ts` reads per-side settings with `??`, not a truthy check. `width: 0` must stay 0 so the edge paints at 0px. A truthy `posSettings[property] ? … : settings.border[property]` falls back to the default 1px and the zero-width border reappears. The same helper keeps an explicit empty `style: ''` rather than inheriting `settings.border.style`; `Border#createBorders` then takes the solid-fill `else` path (`if (borderStyle)` is false). Omitting the key, or setting `null`/`undefined`, still falls through. Do not special-case `style`; keep `??` for every property on this helper, because a truthy check would resurrect the width-0 bug.
+
 ## The master table must remain a stacking context below overlay clones
 
 `.ht_master` is `position: relative` with `z-index: 0`. The explicit zero is load-bearing: it traps
