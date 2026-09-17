@@ -413,6 +413,10 @@ class Selection {
    */
   markSource(sourceName: string) {
     this.#selectionSource = sourceName;
+    // Every command opens with `markSource()`, so clearing the Tab-navigation flag here resets a
+    // flag a throw might have left set, before the next command's transform reads it. A Tab command
+    // calls `markTabNavigation()` right after, to set it for its own transform.
+    this.#duringTabNavigation = false;
   }
 
   /**
