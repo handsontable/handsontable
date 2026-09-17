@@ -46,7 +46,7 @@ test.describe('Selection highlight with custom header padding', () => {
   test('aligns the full-row highlight when column headers wrap onto a second line', async () => {
     await grid.selectRow('lineBreak', 0);
 
-    // Same overlay: the row header the user sees, even when wrapping THEADs differ in height.
+    // Same table: master's row header and master's highlight share that overlay's THEAD height.
     await expect.poll(() => grid.selectionTopOffsetFromRowHeader('line-break', 0)).toBe(0);
     // Master: wrapping labels moved the first body row down; the highlight follows that cell.
     await expect.poll(() => grid.selectionTopOffsetFromMasterBodyCell('line-break', 0)).toBe(0);

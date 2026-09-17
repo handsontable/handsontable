@@ -124,10 +124,10 @@ export class SelectionHeaderPaddingPage {
    * pixels. `0` means the edge is drawn just inside the header (first body row under a column
    * header). `-1` means it straddles the gridline shared with the row above.
    *
-   * Header and border are read from `.ht_clone_inline_start` in one evaluate. That clone is the
-   * row header the user sees. Wrapping column-header labels can make overlay THEADs differ in
-   * height, so comparing this clone to `.ht_master` would measure overlay sync, not whether the
-   * highlight used the header box (DEV-1176).
+   * Header and border are read from `.ht_master` in one evaluate. That is the table that draws
+   * the full-row highlight. Wrapping column-header labels can make overlay THEADs differ in
+   * height, so comparing `.ht_clone_inline_start` to `.ht_master` would measure overlay sync,
+   * not whether the highlight used the header box (DEV-1176).
    *
    * @param {string} testId The grid's test id.
    * @param {number} row The visual row index.
@@ -135,7 +135,7 @@ export class SelectionHeaderPaddingPage {
    */
   async selectionTopOffsetFromRowHeader(testId: string, row: number): Promise<number> {
     return this.grid(testId).evaluate((root, r) => {
-      const overlay = root.querySelector('.ht_clone_inline_start');
+      const overlay = root.querySelector('.ht_master');
       const rows = overlay?.querySelectorAll('table.htCore > tbody > tr');
       const headerCells = rows?.[r as number]?.querySelectorAll('th');
       const header = headerCells?.[headerCells.length - 1];
@@ -150,7 +150,7 @@ export class SelectionHeaderPaddingPage {
         .filter(rect => rect.width > rect.height && rect.height > 0);
 
       if (edges.length === 0) {
-        throw new Error('The selection drew no horizontal edge on the row-header overlay');
+        throw new Error('The selection drew no horizontal edge on the master overlay');
       }
 
       const nearest = edges
