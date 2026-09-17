@@ -1,3 +1,5 @@
+import { arrayEach } from '../helpers/array';
+
 /**
  * Collect physical indexes of the contiguous hidden stretches next to a visual index.
  *
@@ -34,9 +36,11 @@ export function collectAdjacentHiddenPhysicalIndexes(
     leftPhysicalIndexes.push(physical);
   }
 
-  for (let i = leftPhysicalIndexes.length - 1; i >= 0; i -= 1) {
-    target.push(leftPhysicalIndexes[i]);
-  }
+  // Reverse after the left walk so visual order is preserved without an indexed copy loop
+  // (typescript:S4138) and without `push(...array)` (stack overflow on a long stretch).
+  arrayEach(leftPhysicalIndexes.reverse(), (physical) => {
+    target.push(physical);
+  });
 
   for (let visual = visualIndex + 1; visual < visualCount; visual += 1) {
     const physical = notTrimmedIndexes[visual];
