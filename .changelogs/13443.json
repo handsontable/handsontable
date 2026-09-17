@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the `AutoRowSize` and `AutoColumnSize` sampling options (`samplingRatio` and `allowSampleDuplicates`, plus `useHeaders` on `AutoColumnSize`) being silently ignored when changed through `updateSettings()`. They now apply, and the measured sizes are recalculated when one of them actually changes. Fixed `AutoRowHeaderSize` resetting its own `samplingRatio` and `allowSampleDuplicates` to the defaults whenever an `updateSettings()` call did not mention the plugin. All three plugins also read `samplingRatio` the same way now: it must be a whole number above zero, and any other value falls back to the default of 3.",
+  "type": "fixed",
+  "issueOrPR": 13443,
+  "breaking": false,
+  "framework": "none"
+}

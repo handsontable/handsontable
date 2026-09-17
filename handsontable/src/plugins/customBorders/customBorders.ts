@@ -56,16 +56,14 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 /**
- * Type guard returning true when the value is a BorderObject (has `id`, `row`, `col` string/number fields).
+ * Type guard returning true when the value can be used as a custom-border configuration
+ * record. Cascaded or partial `borders` meta is a record without `id`/`row`/`col`.
  *
  * @param {unknown} value The value to test.
  * @returns {boolean}
  */
-function isBorderObject(value: unknown): value is BorderObject {
-  return isRecord(value)
-    && typeof value.id === 'string'
-    && typeof value.row === 'number'
-    && typeof value.col === 'number';
+function isCustomBorderConfig(value: unknown): value is CustomBorderConfig {
+  return isRecord(value);
 }
 
 /**
@@ -531,18 +529,7 @@ export class CustomBorders extends BasePlugin {
       // A descriptor means "update these sides": start from the cell's existing borders so the
       // sides it does not mention are kept, then layer the descriptor on top. With no descriptor
       // the border stays all-hidden, which is the "clear this cell" intent handled below.
-      const existing = this.#readExistingBordersForMerge(row, column);
-
-      if (isBorderObject(existing)) {
-        border = normalizeBorder(deepClone(existing));
-        // The merge base describes THIS cell regardless of the bookkeeping fields the stored meta
-        // carries - they can be stale when the meta is a detached snapshot (e.g. UndoRedo restoring
-        // borders captured at pre-shift coordinates).
-        border.row = row;
-        border.col = column;
-        border.id = createId(row, column);
-      }
-
+      border = this.#mergeBaseFromExisting(row, column, this.#readExistingBordersForMerge(row, column));
       border = extendDefaultBorder(border, borderDescriptor);
     }
 
@@ -622,6 +609,29 @@ export class CustomBorders extends BasePlugin {
   }
 
   /**
+   * Builds the merge base for a cell from whatever `borders` meta it currently
+   * resolves. Cascaded or partial records (column or cell meta without `id`/`row`/`col`)
+   * are accepted the same way the `afterSetCellMeta` listener accepts a partial write:
+   * start from empty (hidden) sides and layer the normalized existing object on top.
+   * Bookkeeping fields always describe this cell – they can be missing or stale when
+   * the meta is a cascaded record or a detached snapshot (DEV-2513).
+   *
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {*} existing The resolved `borders` meta, or `undefined`.
+   * @returns {object} A complete plugin-shaped border object for this cell.
+   */
+  #mergeBaseFromExisting(row: number, column: number, existing: unknown): BorderObject {
+    const border = createEmptyBorders(row, column);
+
+    if (!isCustomBorderConfig(existing)) {
+      return border;
+    }
+
+    return extendDefaultBorder(border, normalizeBorder(deepClone(existing)));
+  }
+
+  /**
    * Writes or removes the plugin-owned `borders` cell meta with the re-entrancy guard raised, so
    * the external-write listeners ignore it. Pass `null` to remove the meta.
    *
@@ -692,9 +702,7 @@ export class CustomBorders extends BasePlugin {
     range: { from: { row: number; col: number }; to: { row: number; col: number } }
   ): { border: BorderObject; add: number } {
     const existing = this.#readExistingBordersForMerge(rowIndex, colIndex);
-    const border = isBorderObject(existing)
-      ? normalizeBorder(deepClone(existing))
-      : createEmptyBorders(rowIndex, colIndex);
+    const border = this.#mergeBaseFromExisting(rowIndex, colIndex, existing);
     let add = 0;
 
     const applyEdge = (isEdge: boolean, sideKey: BorderSide) => {
@@ -752,13 +760,7 @@ export class CustomBorders extends BasePlugin {
    */
   setBorder(row: number, column: number, place: string, remove: boolean | undefined) {
     const meta = this.hot.getCellMeta<BordersCellProperties>(row, column).borders;
-    let bordersMeta: BorderObject;
-
-    if (isBorderObject(meta)) {
-      bordersMeta = normalizeBorder(meta);
-    } else {
-      bordersMeta = createEmptyBorders(row, column);
-    }
+    const bordersMeta = this.#mergeBaseFromExisting(row, column, meta);
 
     if (remove) {
       bordersMeta[place] = createSingleEmptyBorder();
@@ -1301,7 +1303,7 @@ export class CustomBorders extends BasePlugin {
 
   /**
    * Applies one progressive batch, renders so the newly in-viewport borders appear, then schedules
-   * the next batch or finishes. Aborts if the load was cancelled/superseded (token mismatch).
+   * the next batch or finishes. Aborts if the load was canceled/superseded (token mismatch).
    *
    * @param {number} token The generation token captured when the load started.
    */

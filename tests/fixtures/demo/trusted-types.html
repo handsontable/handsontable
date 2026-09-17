@@ -221,8 +221,9 @@
 
       document.querySelector('[data-testid="open-context-menu"]').addEventListener('click', async() => {
         try {
-          // A read-only selection makes the `readOnly` item render its checkmark through
-          // `markLabelAsSelected`, which is the surface that still builds markup as a string.
+          // A read-only selection makes the `readOnly` item render its check mark. The mark used
+          // to be a `<span>` baked into the item's label, which put the grid's own markup through
+          // `fastInnerHTML`; the renderer now builds it with `createElement` (DEV-2650).
           window.hot.updateSettings({
             contextMenu: ['make_read_only'],
             cells: () => ({ readOnly: true }),

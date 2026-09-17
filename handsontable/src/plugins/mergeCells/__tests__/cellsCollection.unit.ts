@@ -933,6 +933,28 @@ describe('MergeCells', () => {
         expect(collection.mergedCells[0].row).toBe(5);
       });
 
+      it('should keep a single-cell fragment on the column axis whose physical column the caller retained', () => {
+        const collection = new MergedCellsCollection({
+          hot: createHot(new Map([[0, 0], [1, 4], [2, 1], [3, 2], [4, 3]])),
+        });
+
+        // the merge is already `rowspan: 1` (its other rows are trimmed) and spans physical columns
+        // 1,2,3; physical 1 leaves the block, so it comes out as a single cell and must be retained
+        collection.add({ row: 2, col: 1, rowspan: 1, colspan: 3 });
+
+        const merge = collection.mergedCells[0];
+        const snapshot = new Map([[merge, [1, 2, 3]]]);
+        const retained = new Map([[merge, new Set([1, 2, 3])]]);
+
+        collection.translateAfterAxisMove('column', snapshot, retained);
+
+        expect(collection.mergedCells.map(({ row, col, rowspan, colspan }) => ({ row, col, rowspan, colspan })))
+          .toEqual([
+            { row: 2, col: 1, rowspan: 1, colspan: 2 },
+            { row: 2, col: 4, rowspan: 1, colspan: 1 },
+          ]);
+      });
+
       it('should drop a merge whose physical indexes are all unmapped', () => {
         const collection = new MergedCellsCollection({
           hot: createHot(new Map()),

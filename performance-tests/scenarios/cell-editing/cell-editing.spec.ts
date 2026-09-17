@@ -8,7 +8,7 @@ const CELLS_TO_EDIT = 20;
 
 test(config.name, async({ page }) => {
   await page.goto(`file://${fixturePath}`);
-  await page.waitForFunction(() => (window as any).__hot);
+  await page.waitForFunction(() => (window as any).__hot, undefined, { polling: 100 });
 
   await runTracedScenario({
     page,
@@ -45,7 +45,7 @@ test(config.name, async({ page }) => {
         const hot = (window as any).__hot;
 
         return hot.countRenderedRows() > 0;
-      });
+      }, undefined, { polling: 100 });
     },
   });
 });

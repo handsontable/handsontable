@@ -1,6 +1,7 @@
 import { isFunction } from '../helpers/function';
 import { warnOnce } from '../helpers/console';
 import { describeValue } from '../utils/describeValue';
+import { isRootInstance } from '../utils/rootInstance';
 import {
   classifyInlineSize,
   createCssValueOracle,
@@ -163,6 +164,28 @@ function warnInvalidSize(rootElement: HTMLElement, axis: RootSizeAxis, value: un
 }
 
 /**
+ * Subtracts the root wrapper's edge slots (the pagination bar, the sheets bar, the license
+ * notification) from a pixel `height`, so the grid plus its bars fill exactly the box the user
+ * asked for. With a sized height the root element owns the vertical axis and contains no slot, so
+ * the engine's `layoutReservedHeight` reserves nothing there - this is the other half of the same
+ * rule (DEV-2848). Any other height is resolved by the browser and left alone.
+ *
+ * @param {HotInstance} instance The grid instance.
+ * @param {string} pixelHeight The resolved pixel height, such as `'400px'`.
+ * @returns {string}
+ */
+function reserveEdgeSlotsHeight(instance: HotInstance, pixelHeight: string): string {
+  if (!isRootInstance(instance)) {
+    return pixelHeight;
+  }
+
+  const reservedHeight = [instance.rootSlotTopElement, instance.rootSlotBottomElement]
+    .reduce((sum, slot) => sum + (slot?.offsetHeight ?? 0), 0);
+
+  return reservedHeight === 0 ? pixelHeight : `calc(${pixelHeight} - ${reservedHeight}px)`;
+}
+
+/**
  * Applies one axis of the payload: calls a function value, runs the `before*Change` hook, then
  * resets on `null`, ignores an unreadable value with a warning, and writes anything else.
  *
@@ -195,6 +218,8 @@ function applyAxis(instance: HotInstance, axis: RootSizeAxis, rawValue: unknown,
 
   if (resolution.kind === 'invalid') {
     warnInvalidSize(instance.rootElement, axis, value);
+  } else if (resolution.kind === 'px' && axis === 'height') {
+    instance.rootElement.style.height = reserveEdgeSlotsHeight(instance, resolution.cssValue ?? '');
   } else {
     instance.rootElement.style[axis] = resolution.cssValue ?? '';
   }
@@ -306,4 +331,21 @@ export function applyRootSize(instance: HotInstance, settings: Partial<GridSetti
   return {
     scrollOwnerChanged: hasScrollOwnerChanged(before, snapshot(rootElement), settings.height !== undefined),
   };
+}
+
+/**
+ * Re-applies a pixel `height` after an edge slot changed its height, so the reservation follows the
+ * slot: a bar that mounts after init, wraps after a locale switch, or grows a scrollbar. Any other
+ * height reserves nothing, so it is not re-applied. The pass goes through `applyRootSize()`, so
+ * `beforeHeightChange` runs again and the overflow is re-written - a no-op for a sized height.
+ *
+ * @param {HotInstance} instance The grid instance.
+ * @param {*} height The current `height` setting.
+ */
+export function reapplyPixelRootHeight(instance: HotInstance, height: unknown): void {
+  const value = isFunction(height) ? (height as () => unknown)() : height;
+
+  if (resolveRootSize(value).kind === 'px') {
+    applyRootSize(instance, { height: value as GridSettings['height'] }, false);
+  }
 }

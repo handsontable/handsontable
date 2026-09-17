@@ -1,5 +1,5 @@
 import { spawnSync } from 'child_process';
-import { mkdtempSync, readFileSync, rmSync } from 'fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import { resolve, join, sep } from 'path';
 
@@ -108,8 +108,11 @@ describe('preview package composition', () => {
       // Only the preview publish composes a complete package.
       expect([...callers.strict].sort()).toEqual(['workflows/integration.yml']);
       // The ES + CJS build runs before the UMD bundles and the theme stylesheets exist; the
-      // visual runs compose a tree for screenshots that never reaches a registry.
-      expect([...callers.partial].sort()).toEqual(['workflows/build.yml', 'workflows/visual.yml']);
+      // visual runs and the on-demand stability matrix compose a tree for screenshots that never
+      // reaches a registry.
+      expect([...callers.partial].sort()).toEqual([
+        'workflows/build.yml', 'workflows/visual-stability.yml', 'workflows/visual.yml',
+      ]);
     });
 
     it('should compose the preview package after the artifacts land and before the publish', () => {
@@ -133,6 +136,21 @@ describe('preview package composition', () => {
       );
 
       expect(afterCompose).not.toMatch(/\b(cp|mv|rsync)\b[^\n]*handsontable\/tmp/);
+    });
+  });
+
+  describe('the published README', () => {
+    it('should ship the repository root README, not a package-local copy', () => {
+      // `handsontable/README.md` used to be a second, hand-maintained copy of the root one, and it
+      // drifted: it lost the Themes sections, kept a stale copyright year and still pointed at the
+      // retired GitHub Discussions. Nothing syncs the two, and the package copy is the npm landing
+      // page, so the root file is the single source and the copy step reaches up for it. Re-adding
+      // a package-local README would silently take the npm page back to a fork of the real one.
+      const { handsontable: config } = JSON.parse(readRepoFile('handsontable/package.json'));
+
+      expect(config.copy).toContain('../README.md');
+      expect(config.copy).not.toContain('README.md');
+      expect(existsSync(resolve(__dirname, '../../README.md'))).toBe(false);
     });
   });
 

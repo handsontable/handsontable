@@ -56,6 +56,7 @@ const cellTypesItems = [
 const performanceItems = [
   { path: 'performance/lazy-loading/lazy-loading', title: 'Lazy loading with pagination', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
   { path: 'performance/persist-column-layout/persist-column-layout', title: 'Persist column layout', onlyFor: ['javascript', 'angular', 'react'] },
+  { path: 'performance/expensive-cell-renderer/expensive-cell-renderer', title: 'Cache an expensive cell renderer', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
 ];
 
 const renderingStylingItems = [
@@ -115,6 +116,19 @@ const editingValidationItems = [
   },
 ];
 
+const platformsItems = [
+  {
+    path: 'platforms/salesforce-lwc/salesforce-lwc',
+    title: 'Salesforce Lightning Web Components',
+    onlyFor: ['javascript'],
+  },
+  {
+    path: 'platforms/web-components/web-components',
+    title: 'Web components',
+    onlyFor: ['javascript'],
+  },
+];
+
 const accessibilityItems = [
   { path: 'accessibility/keyboard-shortcuts/keyboard-shortcuts', title: 'Custom keyboard shortcuts', onlyFor: ['javascript', 'react', 'angular'] },
   { path: 'accessibility/aria-grid/aria-grid', title: 'ARIA grid', onlyFor: ['javascript', 'angular', 'react'] },
@@ -161,6 +175,7 @@ module.exports = {
       onlyFor: ['javascript', 'angular', 'react', 'vue'],
     },
     { title: 'Performance', path: 'performance', children: performanceItems, collapsable: false, onlyFor: ['javascript', 'react', 'angular', 'vue'] },
+    { title: 'Platforms and embedding', path: 'platforms', children: platformsItems, collapsable: false, onlyFor: ['javascript'] },
     { title: 'Themes', path: 'themes', children: themesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
   ],
 };

@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 
 /**
  * Page Object for the "hiding plugins receive an array `className`" fixture
@@ -56,7 +57,7 @@ export class HidingArrayClassNamePage {
     // `Handsontable` is still undefined - and `data-init-error` would then read as "no error"
     // simply because the script had not run. `expect` is the wrong tool here: its 10s timeout is
     // shorter than a cold server takes, while `waitForFunction` polls against the test budget.
-    await this.page.waitForFunction(() => 'Handsontable' in window);
+    await awaitBundle(this.page);
 
     const gridIds = HidingArrayClassNamePage.ALL_GRIDS;
 

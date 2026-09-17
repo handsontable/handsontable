@@ -280,7 +280,7 @@ test.describe('overlay scrollbar clearance', () => {
 
     await page.waitForFunction(
       () => document.querySelectorAll('#clearance-grid .htScrollbarClearanceFiller').length === 0,
-      undefined, { timeout: 5000 });
+      undefined, { timeout: 5000, polling: 100 });
 
     await page.mouse.click(point.x, point.y);
 

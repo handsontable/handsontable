@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 
 /**
  * Page object for the GH #7553 fixture: one grid whose validator resolves on demand, so a test can
@@ -32,15 +33,10 @@ export class InvalidMarkUpdateSettingsPage {
 
   /**
    * Navigate to the fixture and wait for the grid to render.
-   *
-   * The bundle is injected with `document.write`, so it loads separately from the block that builds
-   * the grid. Wait for `Handsontable` itself first, and with `waitForFunction` rather than `expect`:
-   * the plain UMD bundle is ~6 MB and every worker pulls its own copy, so a cold or busy server
-   * outlasts the 10s `expect` timeout while `waitForFunction` polls against the test budget.
    */
   async goto(): Promise<void> {
     await this.page.goto(`/tests/fixtures/demo/invalid-mark-update-settings.html?theme=${this.theme}&bundle=${this.bundle}`);
-    await this.page.waitForFunction(() => 'Handsontable' in window);
+    await awaitBundle(this.page);
     await expect(this.cell(0, 0)).toBeVisible();
   }
 

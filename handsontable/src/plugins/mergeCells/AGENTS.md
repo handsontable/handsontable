@@ -37,6 +37,11 @@ trimming and reordering. The merge's own `row`/`col`/`rowspan` are re-derived fr
 `rowIndexMapper` `cacheUpdated`, so treat them as a snapshot of how the merge currently *draws*, not as
 what it owns.
 
+`restorePhysicalRowSpansAfterRemoval` must match a snapshot to a merge by **that merge's own
+anchor** (`merge.row === snapshot.row && merge.col === snapshot.col`). `mergedCellsCollection.get()`
+answers for every covered cell, so after a removal has slid another merge onto those coords the
+lookup hands back the wrong object and the snapshot's `physicalRows` are written onto it.
+
 The rows are an explicit list, not a `{ start, length }` range: merging on a sorted grid, or over a row a
 filter has hidden, gives a merge whose physical rows are not consecutive.
 
@@ -154,15 +159,37 @@ flat set: two merges in different columns can cover the same rows, and a shared 
 genuinely-single fragment of the merge that carries nothing, leaving a phantom `1x1` entry in both the list
 and the lookup matrix.
 
-**The hatch is wired to the row move only, and the column axis still loses those merges (DEV-2805).** The
-trimming re-anchor shrinks a merge's own `rowspan` to its visible count, so a merge trimmed to one visible
-row *is* `rowspan: 1` — and a column translation copies that shrunk value onto every fragment. A
-`colspan: 1` merge in that state is therefore dropped by any `manualColumnMove` or `manualColumnFreeze`,
-including one that touches none of its own columns, and `translateAfterAxisMove` has already cleared
-`mergedCells` by then, so the rows returning bring nothing back. Verified on all three shapes; pre-existing
-on `develop`, which is why it is a separate task rather than part of this change. The column axis needs no
-attribution to fix it — every fragment there covers the same rows — so it can retain all of a merge's
-physical columns whenever the merge owns a trimmed row.
+**Both axes need the hatch, and the column axis needs it for a less obvious reason.** The trimming
+re-anchor shrinks a merge's own `rowspan` to its visible count, so a merge trimmed to one visible row *is*
+`rowspan: 1` — and a column translation copies that shrunk value onto every fragment. A `colspan: 1` merge
+in that state reaches the singleton guard already at `1x1`, so without retention any `manualColumnMove` or
+`manualColumnFreeze` deleted it, including one that touched none of its own columns, and
+`translateAfterAxisMove` had already cleared `mergedCells` by then, so the rows returning brought nothing
+back (DEV-2805). `#onAfterColumnMove` and `#onAfterColumnFreeze` therefore pass
+`#planColumnMoveRetention(snapshot)`: every physical column of every merge that owns **more than one**
+row, at least one of them trimmed. The floor matters: a `rowspan: 1` merge whose only row is trimmed has
+nothing to come back, so its one-column fragment is a genuine single cell and is dropped as on `develop`
+(pinned by `should drop the single-column fragment of a one-row merge whose row is trimmed when a column
+move splits it`). The column axis needs no attribution and no `#describesOwnRows` guard — a column reorder never changes which
+rows a merge covers, so `#transferAnchorsAfterAxisMove` hands every fragment the whole anchor either way,
+and a retained single cell is treated exactly like a wider fragment of the same merge. Pinned by the three
+column specs next to the row-move ones in the trimming describe (unrelated move, freeze, and a split that
+leaves a single-column fragment).
+
+**`translateAfterAxisMove` re-adds purged merges to the matrix, and the purged flag dies with the old
+object.** The collection rebuilds the lookup matrix from every replacement, so a merge whose rows are all
+trimmed comes back into the matrix at its stale visual coordinates, over whatever physical rows now sit
+there, and the replacement is a new object that `#purgedMerges` (a `WeakSet` keyed on identity) knows
+nothing about. On the row axis the mapper's `cacheUpdated` re-anchor ran *before* `afterRowMove`, so it
+could not see the replacements; on the column axis it never runs at all. Every axis-move handler therefore
+calls `#reanchorMergesToVisibleRows()` once more after `#captureMergeAnchors()`, gated on
+`#isRowTrimmingActive()`: fully trimmed merges are purged and flagged again, and the visible ones are left
+alone because their replacements already sit where the re-anchor would put them. The gate keeps the pass
+off the untrimmed column-move path, where nothing can be purged. Two shapes reach this: a merge trimmed in
+one go keeps `rowspan >= 2` and drew a phantom multi-row merge over foreign rows (pre-existing on both
+axes), and a merge trimmed one row at a time is `rowspan: 1` when the last row goes, so the column
+retention above keeps its `1x1` fragment and it would have drawn a phantom single cell. Pinned by the
+three `should keep a ... merge out of the lookup matrix across a ... move` specs in the trimming describe.
 
 Retention is keyed on the carrier, so a split leaving two single cells where only one of them owns trimmed
 rows keeps that one and drops its sibling. That asymmetry is the rule working, not a wrinkle in it: the
@@ -257,6 +284,60 @@ cleared and are not. E2E coverage is extensive; the unit-level highlight logic i
 **When changing selection logic, test all combinations of: merged cells, hidden rows/columns, frozen
 rows/columns, and navigable headers.** Run both the `selectAll` and `selectCells` suites.
 
+### An arrow-key horizontal exit is addressed by the merge's top row (DEV-102)
+
+`#onModifyTransformStart` snaps the highlight to the merge's top-left while stashing the entered cell
+in `#lastSelectedFocus`, and restores that focus before the next move — that entry-row/entry-column
+memory is what PR #10732's range navigation relies on. A **non-Tab horizontal** move that leaves the
+merge onto the adjacent cell is the one exception: it re-snaps the result to the merge's topmost
+**visible** row (`getNearestNotHiddenIndex(mergedParent.row, 1)`, bounded to the span — assigning a
+hidden top row throws `Renderable coords are not visible` from the transform). So a merge is always
+addressed by its top-left corner however it was entered; before this, entering B2:B4 from below (B5
+up) then leaving left landed on A4, from above (B1 down) on A2.
+
+The gate is `delta.row === 0 && landsOnAdjacentColumn && !isDuringTabNavigation()` — "any non-Tab
+horizontal `transformStart`", which is the Left/Right arrows, the editor's arrow-key exit, and a
+horizontally-configured `enterMoves`; it is not literally arrows-only. Mouse entry then a horizontal
+leave is the same path (the snap does not care how the merge was entered). Home/End do not reach it
+(they `setRangeStart` to a computed cell, never `transformStart`), and Shift+Arrow goes through
+`modifyTransformEnd`. A `transformStart(0, ±1)` called directly by other code (no Tab flag) also gets
+the snap, which is the reasonable default for a discrete horizontal move; only Tab's row-cycling is
+excluded.
+
+Three things this override must **not** catch, each behind a separate condition, each with a red spec
+if you drop it:
+
+- **A wrap to another row** (`autoWrapRow`, no adjacent cell) keeps the entry row, or the wrap loops
+  forever between the merge and the row below its top — gate on `landsOnAdjacentColumn` (the column
+  branch found a not-hidden neighbor), never on the mere presence of a merge.
+- **Vertical and diagonal moves** keep the entry column (the tested column memory) — gate on
+  `delta.row === 0`.
+- **Tab / Shift+Tab**, which cycles keeping the row it moves along, reaches this hook through
+  `transformStart` with the **same `(0, ±1)` delta as an arrow** (single-range case; the multi-range
+  case goes through `modifyTransformFocus` and never reaches here). There is no delta or source that
+  tells them apart — both mark source `'keyboard'`. `inlineStart`/`inlineEnd` therefore call
+  `selection.markTabNavigation()` **after** `markSource()`, and the context-menu Tab shortcut calls
+  `markTabNavigation()` on its own (it never goes through those commands). The override reads
+  `selection.isDuringTabNavigation()`. `markSource()` itself clears the flag, so a throw during the
+  transform cannot leak into the next command; `markEndSource()` still clears it on the success
+  path. Do not expose `tabNavigation.ts`'s local `isTabOrShiftTabPressed` — that flag lives in a
+  shortcut-command closure, and the context-menu Tab path never goes through it. The Jasmine
+  `keyDownUp('tab')` helper drives the real command path, so it sets the flag; a `transformStart`
+  called directly in a unit test does not.
+
+Pinned by `__tests__/keyboardShortcuts/arrowLeft.spec.js` / `arrowRight.spec.js` (top-row landing,
+including hidden columns and the multi-merge chain), the unchanged `arrowUp`/`arrowDown` and
+`tab`/`shiftTab` specs (the three exclusions), and `tests/e2e/merge-cells-horizontal-exit.spec.ts`.
+
+## `getSourceDataAtCell` takes a visual column
+
+`getSourceDataAtCell(row, column)` takes a **physical row** but a **visual column** — `core.ts`
+documents that split and carries a TODO. `colToProp()` translates the column again. Passing
+`toPhysicalColumn()` into it double-translates and reads a different cell whenever the two orders
+differ (`manualColumnMove`, a hiding map plus a move). `#getStoredValueAt` is the correct pattern.
+`mergeRange()` must match it when it copies the anchor value for `populateFromArray` (DEV-2669).
+Do not "fix" `#getStoredValueAt` back to a physical column.
+
 ## Pagination cannot coexist with this plugin
 
 `registerConflict('pagination', ['mergeCells', …])` — Pagination is the plugin that stays disabled. See
@@ -286,6 +367,18 @@ rows/columns, and navigable headers.** Run both the `selectAll` and `selectCells
 `cellCoords`, `cellsCollection`, `focusOrder`, `selection` and `autofillCalculations`; prefer adding there.
 
 ## Rendering under `renderMode: 'onChange'`
+
+**A merged block's cells never take the stable paint identity.** The engine recycles its rows on a
+vertical scroll (`Viewport#allowsRowRecycling()`, which does NOT require single-pass layout) and offers
+the host the overlay name as a cell's paint identity, so a carried-over cell can be skipped. The
+`spanned` flag this plugin sets on a block's origin meta in `afterGetCellMeta` (covered cells resolve
+to the origin through `modifyGetCellCoords`) is what `CellPainter#bandIdentity` reads to keep the full
+band — offsets and sizes — for the block's cells instead: the renderer clamps the block's span to the
+rendered band, so those cells must repaint when the band moves, while every other cell of the grid
+skips. Keep `spanned` on the origin meta; removing it would let a clamped block keep a stale span
+across a scroll. The single-pass opt-out (`modifySinglePassLayout` → `false`) is about the layout
+model only (the height-versus-viewport circularity); it no longer switches the recycling or the stable
+identity off for the rest of the grid.
 
 Two writes of this plugin are invisible to the incremental render and are marked by hand:
 

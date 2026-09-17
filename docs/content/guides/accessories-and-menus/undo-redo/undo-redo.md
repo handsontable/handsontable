@@ -112,6 +112,12 @@ For data edits, UndoRedo records only effective changes:
 
 When you undo a data-change action, Handsontable can also remove rows or columns that were created as a side effect of that edit, and then restore the previous selection.
 
+An undo puts each value back on the row you edited, even when that row moved or is no longer visible. If a [filter](@/guides/columns/column-filter/column-filter.md) or [row trimming](@/guides/rows/row-trimming/row-trimming.md) hides the row after your edit, Handsontable writes the value straight to the source data. Three things follow from that:
+
+- The [`beforeChange`](@/api/hooks.md#beforechange), [`afterChange`](@/api/hooks.md#afterchange), and [`modifyData`](@/api/hooks.md#modifydata) hooks do not run for those values. [`afterSetSourceDataAtCell`](@/api/hooks.md#aftersetsourcedataatcell) and [`modifySourceData`](@/api/hooks.md#modifysourcedata) run instead, so a listener that vetoes, rewrites, or normalizes edited values has to cover the source hooks as well.
+- The write does not re-run the filter, so the row stays hidden until you filter again.
+- Handsontable identifies the row by its position in the source data, not by a stable ID. If you remove rows without going through the undo stack, an undo recorded before that removal can land on a neighboring row.
+
 ## Hooks and stack lifecycle
 
 UndoRedo exposes hooks for both stack updates and action execution:

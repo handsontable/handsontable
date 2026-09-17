@@ -49,6 +49,18 @@
       isolation: isolate;
     }
 
+    // Kept in sync by `TableView` (`#updateScrollbarClassNames`). When the grid's height is driven by
+    // its content – the WINDOW owns the vertical axis (no `height` option, no ancestor trapping
+    // `overflow-y`), or `height: 'auto'` – the grid box must not shrink to the wrapper: `min-height: 0`
+    // let a CSS-sized container squeeze it while the table overflowed, which pinned the bottom slot
+    // over a data row (DEV-2848). Only the GRID item gives up shrinking. The wrapper keeps its
+    // `height: 100%`, so the overlays layer (dialog, notification) still sizes to the container and a
+    // content change never resizes the wrapper.
+    &.ht-grid-follows-content > .ht-grid {
+      flex-shrink: 0;
+      min-height: auto;
+    }
+
     // The `ht-slot-*-filled` classes are kept in sync by the `LayoutManager` (they mean "the slot
     // has at least one `.ht-slot-element` child"). Selecting on `:has()` here instead makes every
     // grid DOM mutation trigger a style invalidation scaled to the whole host page.
@@ -357,9 +369,9 @@
 
       // An active header's inline-start edge has width 0 (only `:first-child` reserves
       // it), so its accent went missing there while the inline-end side kept it — most visible on
-      // frozen columns. Color the shared gridline on the inline-start neighbour instead, so every
+      // frozen columns. Color the shared gridline on the inline-start neighbor instead, so every
       // active column header shows a matching inline-start accent. `SelectionManager` stamps the
-      // neighbour with this class; selecting on `:has(+ th.ht__active_highlight)` instead makes every
+      // neighbor with this class; selecting on `:has(+ th.ht__active_highlight)` instead makes every
       // toggle of the active class (it moves between recycled header nodes on scroll) trigger a style
       // invalidation scaled to the whole host page.
       &.ht__active_highlight-prev {
@@ -368,7 +380,7 @@
 
       // Boundary seam: when the first non-frozen column is the active header, its inline-start edge
       // falls on the frozen-pane seam drawn by the frozen overlay (a separate table), out of reach of
-      // the neighbour class above (stamped within one table). `SelectionManager` tags the last frozen
+      // the neighbor class above (stamped within one table). `SelectionManager` tags the last frozen
       // header with this class so the seam gets the same accent.
       &.ht__active_highlight-seam {
         border-inline-end-color: var(--ht-header-active-border-color);
@@ -386,22 +398,27 @@
     // (`afterGetRowHeaderRenderers` lets a grid carry several), and the one that owns the seam to
     // column 0 is the LAST of them — which is exactly the one that goes `:last-child` in the
     // row-header-only overlay. The inner ones need no override: they are never `:last-child`, so the
-    // base cell rule already gives them this color. In a HEAD row the corner cells cannot be counted
-    // in CSS, so that half stays keyed on `:first-child` and a grid with two or more row headers
-    // keeps drawing its head-row seam in the frame color, exactly as it does today — same value as
-    // before this change, not a new divergence.
+    // base cell rule already gives them this color.
+    // The HEAD row keys on `.htLastRowHeaderColumn` instead, because CSS cannot pick the last corner
+    // cell out of a head row — a corner is a `th` like the column headers beside it, and only the
+    // engine knows how many of them there are. `render/columnHeaders.ts` stamps that class on the
+    // last corner cell of each head row, and only there. It used to key on
+    // `:first-child`, which selects the same cell when there is one row header and the WRONG one
+    // when there are more: the first corner, whose inline-end is an inner seam, while the real seam
+    // fell through to the `th:last-child` frame rule above.
     // Two exclusions. `.emptyColumns` is the one case where the row header really is the grid's
     // inline-end edge, so it keeps the frame rule. And an ACTIVE header keeps its accent: the seam is
     // the active row header's own inline-end, and the active column-0 header's inline-start accent is
     // drawn by the corner (`ht__active_highlight-prev`), which is where that pixel now lives. Without
-    // these two the accent went missing on the seam — and it went missing only in the shape with one
-    // row header, because a second one is not `:first-child`.
+    // these two the accent went missing on the seam. That used to be true only of a grid with one
+    // row header, because a second one is not `:first-child`; now that the head row keys on the
+    // marker instead, the carve-outs reach the seam whatever the row-header count.
     &.htRowHeaders {
       .ht_master:not(.emptyColumns),
       .ht_master:not(.emptyColumns) ~ .handsontable:not(.htGhostTable) {
         $seam-owner: ":not(.ht__active_highlight):not(.ht__active_highlight-prev)";
 
-        :where(#{$grid-head-row}) > th:first-child#{$seam-owner},
+        :where(#{$grid-head-row}) > th.htLastRowHeaderColumn#{$seam-owner},
         :where(#{$grid-body-row}) > th#{$seam-owner} {
           border-inline-end-color: var(--ht-cell-horizontal-border-color);
         }
@@ -461,7 +478,7 @@
         }
       }
 
-      // An active row header's top edge sits on the bottom gridline of the row above. Colour that
+      // An active row header's top edge sits on the bottom gridline of the row above. Color that
       // real border instead of drawing a box-shadow on the active header itself, so the accent rides
       // the layout gridline and never drifts a pixel (the box-shadow rounded independently and, on
       // the first row of each overlay table, doubled with the `tr:first-child` border-top below).
@@ -520,14 +537,35 @@
       }
     }
 
+    // Row axis border ownership (DEV-2786), the twin of #6673 below. A head row's `th` carries its
+    // own `border-bottom` at every scroll position, so a body row sitting directly under one draws
+    // no `border-top` of its own: the seam belongs to the header, and the body row keeps the same
+    // content height as every other row.
+    // `thead:not(:empty) + tbody` is a PER-TABLE test, not a grid-wide one, and it has to be. Every
+    // overlay clone carries its own `thead`, empty unless that clone renders the head row, so this
+    // matches exactly the tables whose first body row abuts a header: the master and the inline-start
+    // clone (no frozen top rows), the top clone and the top corner (frozen top rows, where the frozen
+    // row is the one under the header). The bottom clones' `thead` is always empty, so their first
+    // row keeps its `border-top` — there it is the bottom-freeze seam, not a header seam. A grid with
+    // no column headers keeps the border everywhere for the same reason: it is the grid's top frame.
+    :where(table.htCore, #{$ghost-table}) > thead:not(:empty) + tbody > tr:first-child {
+      > th,
+      > td {
+        border-top-width: 0;
+      }
+    }
+
     :where(#{$grid-sections}) > tr:last-child {
       > th,
       > td {
         border-bottom-color: var(--ht-border-color);
 
-        // `-row-seam-top`: tagged by SelectionManager on the last top-frozen row header when the first
-        // non-frozen row is active. Its bottom border is the top-freeze seam, out of reach of the
-        // `-prev-row` accent rule (separate overlay table), so color it here.
+        // `-row-seam-top`: tagged by SelectionManager on a header cell whose BOTTOM border is the
+        // seam above an active row, which the `-prev-row` accent rule cannot reach (separate overlay
+        // table), so color it here. Two cases share the class: the last top-frozen row header when
+        // the first non-frozen row is active, and a head row's corner cells when the row below the
+        // column header is active (DEV-2786 — the header owns that gridline now). This rule matches a
+        // `thead`'s last row as well as a `tbody`'s, so it covers both.
         &.ht__active_highlight,
         &.ht__active_highlight-row-seam-top {
           border-bottom-color: var(--ht-header-active-border-color);
@@ -776,35 +814,16 @@
     // once the grid scrolled (`correctHeaderWidth` in the engine) while column 0 held two borders
     // inside one `col` width, so its content box was 1px narrower than every other column's.
     // `innerBorderInlineStart`, `innerBorderLeft` and `emptyColumns` are still stamped on
-    // `.ht_master` for backward compatibility, but no rule reads them any more. The row axis
-    // (`innerBorderTop` / `innerBorderBottom`, below) still works the old way.
-
-    //  innerBorderTop - Property controlled by top overlay
-    //  innerBorderBottom - Property controlled by bottom overlay
-    .ht_master:not(.innerBorderTop):not(.innerBorderBottom) {
-      :where(table.htCore) > thead > tr:last-child > th,
-      & ~ .handsontable :where(table.htCore) > thead > tr:last-child > th,
-      :where(table.htCore) > thead > tr.lastChild > th,
-      & ~ .handsontable :where(table.htCore) > thead > tr.lastChild > th {
-        border-bottom-width: 0;
-      }
-    }
-
-    &.htAutoRowSize {
-      .ht_master.innerBorderTop {
-        :where(table.htCore) > tbody > tr:first-child > th,
-        :where(table.htCore) > tbody > tr:first-child > td {
-          border-top-width: 0;
-        }
-
-        & ~ .ht_clone_inline_start {
-          :where(table.htCore) > tbody > tr:first-child > th,
-          :where(table.htCore) > tbody > tr:first-child > td {
-            border-top-width: 0;
-          }
-        }
-      }
-    }
+    // `.ht_master` for backward compatibility, but no rule reads them any more, and the row axis
+    // works the same way since DEV-2786: the head row's `border-bottom` comes from the shared cell
+    // rule above at every scroll position, and the `.ht_master:not(.innerBorderTop)` block that used
+    // to zero it — trading the seam with the first body row's `border-top` — is gone. Trading it made
+    // the column header 1px taller once the grid scrolled, and the whole table with it, while the
+    // first rendered body row held two borders inside one row height. `innerBorderTop`,
+    // `innerBorderBottom` and `emptyRows` are still stamped for backward compatibility.
+    // The `htAutoRowSize` block that zeroed the first body row's `border-top` under `innerBorderTop`
+    // is gone with it: the `thead:not(:empty) + tbody` rule above now does that for every table with
+    // a head row, whether or not AutoRowSize is on.
 
     .ht_master table.htCore > thead,
     .ht_master table.htCore > tbody > tr > th,
@@ -844,11 +863,15 @@
     // so without opting out, the browser's scroll anchoring treats it as content appearing above the
     // scroll position, nudges the offset to compensate, and emits a scroll event nobody asked for.
     overflow-anchor: none;
-    // Above the master's cells AND above the selection decorations drawn over them. `.wtHider` and
-    // `.wtSpreader` are positioned but carry no z-index, so they open no stacking context and the
-    // selection's own layers compete directly with this one: border lines 1-6, the moveCells bands
-    // 100, the autofill corner 150, the resize pills 200. At z-index 1 those all won, and a border
-    // painted across the track while the cell it belongs to sat hidden underneath it.
+    // Above the master's cells AND above the selection decorations drawn over them. `.wtHider` is
+    // positioned but carries no z-index, so it opens no stacking context. `.wtSpreader` opens one
+    // only while it carries a transform - it is placed with one once the grid is scrolled
+    // (`walkontable/src/overlay/spreaderOffset.ts`, DEV-54), and none at offset 0 - so the
+    // selection's own layers inside it (border lines 1-6, the moveCells bands 100, the autofill
+    // corner 110, the resize pills 115) compete with this box directly at offset 0 and as one
+    // z-index-auto group once scrolled. This value must win in BOTH states, so it does not lean on
+    // the context: 300 outranks every one of those layers on its own. At z-index 1 those all won,
+    // and a border painted across the track while the cell it belongs to sat hidden underneath it.
     // Safe to raise: the cell editor is NOT in this holder - it lives in `.ht-wrapper` alongside it -
     // so nothing here can cover an open editor. And the scrollbar is not a DOM node; the browser paints
     // it above the scroller's contents whatever they declare, so the thumb stays visible and grabbable.

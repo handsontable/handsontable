@@ -37,7 +37,7 @@ table also records which orderings are load-bearing.
 
 `SETTING_KEYS` defaults to `[this.PLUGIN_KEY]`, so declare it only when you need something else. Listing an
 option the plugin does *not* own has three consequences that have all shipped as bugs — see
-`src/plugins/manualResize/AGENTS.md`.
+`src/utils/manualResize/AGENTS.md`.
 
 ## Lifecycle Methods (in order)
 
@@ -118,11 +118,38 @@ this.#map = this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginName, '
 this.hot.batch(() => {
   // multiple operations here - only one render at the end
 });
-// Or for render-only batching:
-this.hot.suspendRender();
-// ... operations ...
-this.hot.resumeRender();
 ```
+`Core#batch`/`batchRender` do not resume in a `finally`, so never wrap host-reachable code in them - a
+listener that throws mid-batch leaves the grid render-suspended for the rest of its life. When the batched
+work runs host code (`updateSettings`, `loadData`, another plugin's hooks), suspend and resume yourself:
+```js
+this.hot.suspendRender();
+
+try {
+  // operations that can run host code
+} finally {
+  this.hot.resumeRender();
+}
+```
+
+**Sliced per-unit settings** - When a plugin manages several logical units that each need their own partial configuration layered over the grid's base settings (for example, one sheet in a multi-sheet workbook), treat each unit's settings object as a partial slice: apply only the declared keys and leave every undeclared key at its current grid-level value. Apply the slice and its data together, batched into a single render - guarded with a `finally`, since both calls run host code:
+```ts
+#applySheet(sheet: Sheet, source: string) {
+  const apply = () => {
+    if (sheet.settings) {
+      this.hot.updateSettings(sheet.settings);  // only declared keys change
+    }
+    this.hot.loadData(sheet.data, `${source}.switch`);
+  };
+
+  if (this.hot.view) {
+    this.#batchRender(apply);  // suspendRender() + try/finally resumeRender()
+  } else {
+    apply();  // view doesn't exist yet during initial plugin setup
+  }
+}
+```
+Reference implementation: `src/plugins/sheetsBar/sheetsBar.ts` (`#applySheet`). If the plugin also owns a layout slot for its UI (see `handsontable/AGENTS.md` "Wrapper UI placement"), register that UI once in `enablePlugin()` and let this method own only the settings/data swap, not the UI placement.
 
 ## Decoupling Rules
 
@@ -155,7 +182,9 @@ If your plugin provides UI elements (buttons, inputs, navigation bars), you must
 - **Implement focus entry logic** - when the scope is activated, focus the first or last focusable element depending on the navigation direction (Tab = first, Shift+Tab = last).
 - The focus manager listens to Tab/Shift+Tab keyboard events and blocks or allows them to ensure the correct UI module is focused during normal focus navigation.
 - **Scopes switch automatically** based on which element the user clicks or focuses. The Core switches the active scope and sets the listen mode so the user can interact with either the grid or another module (e.g., pagination bar).
-- See the Pagination plugin for a reference implementation (`#registerFocusScope` / `#unregisterFocusScope`).
+- **Decide whether your scope COVERS the grid or REPLACES it, and say so.** Activating a scope switches the shortcut manager to the scope's `shortcutsContextName`, and only that context runs - so an empty one kills every grid shortcut while your UI is up (`emptyDataState` shipped that way; DEV-53). An overlay the user still thinks of as "the grid underneath" adds `fallbackShortcutsContextName: 'grid'` to `registerScope()` and inherits the lot, including shortcuts added to the grid after you wrote the plugin. A **modal** scope leaves it unset - letting grid shortcuts through a modal is the bug. Register a shortcut in your own context only to OVERRIDE one, and record in your `AGENTS.md` why the grid's version does not fit.
+- **If your UI is painted OVER the grid body, add `coversGridBody: true` as well.** Inheriting and covering are separate questions, and both options exist because a pagination bar may inherit without covering. Without the flag, a shortcut that writes cell content asks only "does the grid draw a cell" - and an overlay shown over rows that are still on screen answers yes, so `Delete` reaches data the user cannot touch. Measured on DEV-2917: `emptyDataState` covers a fully rendered grid during a DataProvider fetch, and the whole dataset was wiped under it. The flag is read from every ENABLED scope, not only the active one, so it keeps working while the keyboard is somewhere else.
+- See the Pagination plugin for a reference implementation (`#registerFocusScope` / `#unregisterFocusScope`). `emptyDataState` is the reference for an inheriting overlay.
 
 ## Important Gotchas
 

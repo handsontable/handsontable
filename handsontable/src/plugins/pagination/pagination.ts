@@ -7,6 +7,7 @@ import { createPaginatorStrategy } from './strategies';
 import { isRootInstance } from '../../utils/rootInstance';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
+import { isPlainObject } from '../../helpers/object';
 import { registerConflict } from '../base/conflictRegistry';
 
 // Hard conflicts: Pagination stays off while any of these top-level settings is truthy.
@@ -24,6 +25,26 @@ const LAYOUT_WEIGHT = 100;
 
 const AUTO_PAGE_SIZE_WARNING = toSingleLine`The \`auto\` page size setting requires the \`autoRowSize\`\x20
   plugin to be enabled. Set the \`autoRowSize: true\` in the configuration to ensure correct behavior.`;
+
+/**
+ * Reads a declared `initialPage` from the raw `pagination` setting.
+ *
+ * `pagination: true`, objects that omit the key, and non-number values return
+ * `undefined`.
+ *
+ * @param {*} settings The raw `pagination` setting (`true` or a settings object).
+ * @returns {number|undefined} The declared `initialPage`, or `undefined` when the
+ * key is absent or not a number.
+ */
+function readDeclaredInitialPage(settings: unknown): number | undefined {
+  if (!isPlainObject(settings) || !('initialPage' in settings)) {
+    return undefined;
+  }
+
+  const value = settings.initialPage;
+
+  return typeof value === 'number' ? value : undefined;
+}
 
 /**
  * @plugin Pagination
@@ -145,6 +166,26 @@ export class Pagination extends BasePlugin {
    */
   #currentPage = 1;
   /**
+   * The last `initialPage` value copied onto `#currentPage`.
+   *
+   * Re-enabling with the same declared value (the React wrapper re-sends the full
+   * `pagination` object on every render) must not reset the page after the user
+   * has navigated. Cleared on a real disable, and when an `updateSettings` payload
+   * omits `initialPage` (or declares a non-number), so a later re-declaration of
+   * the same number is applied again. Kept across `updatePlugin()` (DEV-1140).
+   *
+   * @type {number | undefined}
+   */
+  #appliedInitialPage: number | undefined;
+  /**
+   * True while `updatePlugin()` is running its disable/enable cycle. Lets
+   * `disablePlugin()` keep `#appliedInitialPage` so a React re-render does not
+   * look like a fresh enable.
+   *
+   * @type {boolean}
+   */
+  #isUpdatingPlugin = false;
+  /**
    * Page size setup by the user. It can be a number or 'auto' (in which case the plugin will
    * calculate the page size based on the viewport size and row heights).
    *
@@ -218,9 +259,17 @@ export class Pagination extends BasePlugin {
     }
 
     const settings = this.hot.getSettings()[PLUGIN_KEY];
+    const declaredInitialPage = readDeclaredInitialPage(settings);
 
-    if ((settings as Record<string, unknown>)?.initialPage !== undefined) {
-      this.#currentPage = this.getSetting<number>('initialPage')!;
+    // Use the raw grid value, not `getSetting()`. `onUpdateSettings` branch 2
+    // (disabled → enabled) calls `enablePlugin()` before `updatePluginSettings()`,
+    // so `#pluginSettings` is still stale. Core has already merged the new
+    // `pagination` object onto `hot.getSettings()`.
+    if (typeof declaredInitialPage !== 'number') {
+      this.#appliedInitialPage = undefined;
+    } else if (declaredInitialPage !== this.#appliedInitialPage) {
+      this.#setCurrentPage(declaredInitialPage);
+      this.#appliedInitialPage = declaredInitialPage;
     }
 
     if ((settings as Record<string, unknown>)?.pageSize !== undefined) {
@@ -255,7 +304,6 @@ export class Pagination extends BasePlugin {
         .addLocalHook('nextPageClick', () => this.nextPage())
         .addLocalHook('lastPageClick', () => this.lastPage())
         .addLocalHook('pageSizeChange', (pageSize: number | 'auto') => this.setPageSize(pageSize));
-
     }
 
     // The layout manager owns the bottom-slot placement and ordering. With a custom `uiContainer`
@@ -279,7 +327,6 @@ export class Pagination extends BasePlugin {
     this.addHook('beforePaste', this.#onBeforePaste);
     this.addHook('afterViewRender', this.#onAfterViewRender);
     this.addHook('afterLanguageChange', this.#onAfterLanguageChange);
-    this.addHook('beforeHeightChange', this.#onBeforeHeightChange);
     this.addHook('afterSetTheme', this.#onAfterSetTheme);
     this.addHook('afterDataProviderFetch', this.#onAfterDataProviderFetch, -1);
 
@@ -357,7 +404,6 @@ export class Pagination extends BasePlugin {
    */
   #refreshUI() {
     this.#computeAndApplyState();
-    this.hot.view.adjustElementsSize();
     this.hot.render();
   }
 
@@ -394,8 +440,14 @@ export class Pagination extends BasePlugin {
    * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
-    this.disablePlugin();
-    this.enablePlugin();
+    this.#isUpdatingPlugin = true;
+
+    try {
+      this.disablePlugin();
+      this.enablePlugin();
+    } finally {
+      this.#isUpdatingPlugin = false;
+    }
 
     this.#refreshUI();
 
@@ -419,6 +471,10 @@ export class Pagination extends BasePlugin {
 
     this.#ui?.destroy();
     this.#ui = null;
+
+    if (!this.#isUpdatingPlugin) {
+      this.#appliedInitialPage = undefined;
+    }
 
     super.disablePlugin();
   }
@@ -959,14 +1015,16 @@ export class Pagination extends BasePlugin {
   };
 
   /**
-   * Called before the paste operation is performed. It removes the rows that are not visible
-   * from the pasted data.
+   * Called before the paste operation is performed. It truncates the clipboard so the paste
+   * cannot overflow past the last visible row of the current page. The leading rows of the
+   * clipboard are kept; the overflow tail is dropped.
    *
    * @param {Array} pastedData The data that was pasted.
-   * @param {Array<{startRow: number, endRow: number}>} ranges The ranges of the pasted data.
+   * @param {Array<{startRow: number, endRow: number}>} ranges Copy-source ranges (`copyableRanges`);
+   * used as the paste start row when selection and clipboard ranges coincide.
    * @returns {boolean} Returns `false` to prevent the paste operation.
    */
-  #onBeforePaste = (pastedData: unknown[][][], ranges: { startRow: number; endRow: number }[]) => {
+  #onBeforePaste = (pastedData: unknown[][], ranges: { startRow: number; endRow: number }[]) => {
     const {
       firstVisibleRowIndex,
       lastVisibleRowIndex,
@@ -981,12 +1039,11 @@ export class Pagination extends BasePlugin {
         return;
       }
 
-      const rowsToRemove = Math.min(
-        pastedData.length - (lastVisibleRowIndex - startRow + 1),
-        pastedData.length,
-      );
+      const remainingRowCount = Math.max(0, lastVisibleRowIndex - startRow + 1);
 
-      pastedData.splice(0, rowsToRemove);
+      if (pastedData.length > remainingRowCount) {
+        pastedData.length = remainingRowCount;
+      }
     });
   };
 
@@ -1006,34 +1063,6 @@ export class Pagination extends BasePlugin {
 
     this.#internalRenderCall = true;
     this.#refreshUI();
-  };
-
-  /**
-   * Called before the height of the table is changed. It adjusts the table height to fit the pagination container
-   * in declared height.
-   *
-   * @param {number|string} height Table height.
-   * @returns {string} Returns the new table height.
-   */
-  #onBeforeHeightChange = (height: number | string) => {
-    if (this.getSetting('uiContainer')) {
-      return height;
-    }
-
-    const isPixelValue = (
-      typeof height === 'number' ||
-      (typeof height === 'string' && /^\d+$/.test(height)) ||
-      (typeof height === 'string' && height.endsWith('px'))
-    );
-
-    if (!isPixelValue) {
-      return height;
-    }
-
-    const heightValue = typeof height === 'string' && height.endsWith('px')
-      ? height : `${height}px`;
-
-    return `calc(${heightValue} - ${this.#ui?.getHeight()}px)`;
   };
 
   /**

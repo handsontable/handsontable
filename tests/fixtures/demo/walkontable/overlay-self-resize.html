@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Overlay self-resize e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+    #grid { width: 600px; height: 300px; }
+  </style>
+</head>
+<body>
+  <!--
+    DEV-19 — Walkontable decides for itself when the overlays need resizing.
+
+    The grid is deliberately virtualized: 500 rows and 40 columns in a 600x300 box, so only a
+    handful of each is ever in the DOM. That is what separates the two quantities this fixture is
+    about. The hider carries the size of the WHOLE grid (it is what gives the scrollbar its range),
+    while the rendered band is only what fits on screen.
+
+    Until DEV-19 the engine decided whether to resize by measuring the spreader, and the spreader
+    can answer neither question: `.handsontable .wtSpreader` is `width: 0` in the stylesheet, so its
+    `clientWidth` is always 0, and its `height: auto` describes the rendered band rather than the
+    total. So hiding 20 columns or dropping 440 rows moved the hider by thousands of pixels while
+    the engine's own check reported "nothing changed" — and 30 call sites across core and the
+    plugins had to force the resize by hand.
+
+    Every operation below therefore runs through the PUBLIC api only. Nothing here calls
+    `view.adjustElementsSize()`, and `hiderWasResizedWithoutAnExternalCall` asserts the grid never
+    did either.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const ROWS = 500;
+    const COLS = 40;
+
+    const hot = new Handsontable(container, {
+      data: Handsontable.helper.createSpreadsheetData(ROWS, COLS),
+      rowHeaders: true,
+      colHeaders: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    window.hot = hot;
+
+    // Two counters. `engineResizes` counts calls to `Overlays#adjustElementsSize` — the MASTER
+    // hider write plus the scrollbar-band sync. It is the perf side of the contract, since that
+    // write walks every column and the whole point is that it must not run on every draw. It does
+    // NOT count the three region overlays re-sizing their own roots: `placeFixedOverlays` does that
+    // on every master draw, by design, outside anything this gate governs — so a zero here means
+    // "the master write and the band sync were skipped", never "no overlay resized at all".
+    // `externalRequests` counts anything outside the engine asking for a resize, which is the
+    // correctness side: it has to stay at 0 for the self-detection claim to mean anything.
+    window.counters = { engineResizes: 0, externalRequests: 0 };
+
+    const wtOverlays = hot.view._wt.wtOverlays;
+    const engineWriter = wtOverlays.adjustElementsSize.bind(wtOverlays);
+
+    wtOverlays.adjustElementsSize = function countedAdjustElementsSize() {
+      window.counters.engineResizes += 1;
+
+      return engineWriter();
+    };
+
+    const viewEntryPoint = hot.view.adjustElementsSize.bind(hot.view);
+
+    hot.view.adjustElementsSize = function countedViewAdjustElementsSize(flush) {
+      window.counters.externalRequests += 1;
+
+      return viewEntryPoint(flush);
+    };
+
+    /**
+     * Reads the hider's written size plus the rendered band, so a test can show the two moving
+     * independently. The hider styles are what `SpreaderSize#adjustElementsSize` writes.
+     *
+     * @returns {{hiderWidth: number, hiderHeight: number, renderedRows: number, spreaderWidth: number, spreaderHeight: number}}
+     */
+    window.readGeometry = function readGeometry() {
+      const hider = container.querySelector('.ht_master .wtHider');
+      const spreader = container.querySelector('.ht_master .wtSpreader');
+
+      return {
+        hiderWidth: parseFloat(hider.style.width) || 0,
+        hiderHeight: parseFloat(hider.style.height) || 0,
+        renderedRows: container.querySelectorAll('.ht_master tbody tr').length,
+        spreaderWidth: spreader.clientWidth,
+        spreaderHeight: spreader.clientHeight,
+      };
+    };
+
+    /**
+     * The engine's own view of the geometry — the layout snapshot it resolves once per draw, which
+     * is what the resize gate compares. Reading it shows WHY a resize did or did not happen, where
+     * `readGeometry` only shows the DOM that came out.
+     *
+     * @returns {{workspaceWidth: number, workspaceHeight: number, rowHeaderWidth: number, columnHeaderHeight: number, hiderWidth: number, hiderHeight: number}}
+     */
+    window.readLayoutInputs = function readLayoutInputs() {
+      const layout = hot.view._wt.wtViewport.getLayout();
+
+      return {
+        workspaceWidth: layout.workspaceWidth,
+        workspaceHeight: layout.workspaceHeight,
+        rowHeaderWidth: layout.rowHeaderWidth,
+        columnHeaderHeight: layout.columnHeaderHeight,
+        hiderWidth: layout.hiderWidth,
+        hiderHeight: layout.hiderHeight,
+      };
+    };
+
+    /** Zeroes both counters so a test can measure one operation on its own. */
+    window.resetCounters = function resetCounters() {
+      window.counters.engineResizes = 0;
+      window.counters.externalRequests = 0;
+    };
+  </script>
+</body>
+</html>

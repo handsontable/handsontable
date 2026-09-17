@@ -17,6 +17,7 @@ import {
   CLONE_BOTTOM,
 } from '../constants';
 import { throwWithCause } from '../../../../../helpers/errors';
+import { setSpreaderOffset } from '../spreaderOffset';
 
 /**
  * @class BottomOverlay
@@ -73,6 +74,9 @@ export class BottomOverlay extends Overlay {
   /**
    * Updates the top overlay position.
    *
+   * Reports no position change, for the same reason `TopOverlay#resetFixedPosition` does not:
+   * `innerBorderBottom` shifts no layout since DEV-2786, so the draw cycle has nothing to reconcile.
+   *
    * @returns {boolean}
    */
   resetFixedPosition() {
@@ -107,11 +111,11 @@ export class BottomOverlay extends Overlay {
       this.repositionOverlay();
     }
 
-    const positionChanged = this.adjustHeaderBordersPosition(overlayPosition);
+    this.adjustHeaderBordersPosition(overlayPosition);
 
     this.adjustElementsSize();
 
-    return positionChanged;
+    return false;
   }
 
   /**
@@ -368,14 +372,17 @@ export class BottomOverlay extends Overlay {
     const total = this.wtSettings.getSetting<number>('totalRows');
 
     const rowsRenderCalculator = this.deps.getWtViewport().rowsRenderCalculator;
+    // During a native scrollbar drag the sticky-scroll strategy positions the spreader itself;
+    // the offset is only recorded then, and the transform returns on release.
+    const suspended = this.deps.getWtOverlays().isStickyScrollActive();
 
     if (typeof rowsRenderCalculator?.startPosition === 'number') {
-      this.spreader.style.top = `${rowsRenderCalculator.startPosition}px`;
+      setSpreaderOffset(this.spreader, 'y', rowsRenderCalculator.startPosition, suspended);
 
     } else if (total === 0 || rowsRenderCalculator === null) {
       // 0 rows, or nothing rendered yet — a `null` calculator is the drawn-but-never-rendered state
       // a skipped first draw leaves behind (see `restoreRenderedStateIfSafe` in `table/drawCycle.ts`).
-      this.spreader.style.top = '0';
+      setSpreaderOffset(this.spreader, 'y', 0, suspended);
 
     } else {
       throwWithCause('Incorrect value of the rowsRenderCalculator');
@@ -396,17 +403,15 @@ export class BottomOverlay extends Overlay {
       return;
     }
 
-    const styleProperty = this.isRtl() ? 'right' : 'left';
     const { spreader } = this.clone.wtTable;
-
     const columnsRenderCalculator = this.deps.getWtViewport().columnsRenderCalculator;
+    const start = typeof columnsRenderCalculator?.startPosition === 'number'
+      ? columnsRenderCalculator.startPosition : 0;
 
-    if (typeof columnsRenderCalculator?.startPosition === 'number') {
-      spreader.style[styleProperty] = `${columnsRenderCalculator.startPosition}px`;
+    // The clone is suspended only while the strategy positions the clones itself (element mode).
+    const suspended = this.deps.getWtOverlays().isStickyScrollOwningClones();
 
-    } else {
-      spreader.style[styleProperty] = '';
-    }
+    setSpreaderOffset(spreader, 'x', this.isRtl() ? -start : start, suspended);
   }
 
   /**
@@ -490,72 +495,29 @@ export class BottomOverlay extends Overlay {
   }
 
   /**
-   * Pre-applies the header-border class before the cell render (single-pass gated path), so the
-   * post-render `resetFixedPosition` toggle is a no-op and the nested re-draw is skipped. Element mode
-   * only — see `TopOverlay#prepareHeaderBorders`.
-   */
-  prepareHeaderBorders() {
-    if (!this.needFullRender || !this.shouldBeRendered() ||
-        !this.deps.getWtTable().holder.parentNode || !this.clone ||
-        this.trimmingContainer === this.deps.rootWindow) {
-      return;
-    }
-
-    this.adjustHeaderBordersPosition(this.getScrollPosition());
-  }
-
-  /**
-   * Adds css classes to hide the header border's header (cell-selection border hiding issue).
+   * Stamps the `innerBorderBottom` class on the master's root element.
+   *
+   * Kept for backward compatibility only: no stylesheet has read it since DEV-2786 handed the seam
+   * under the column header to the header's own `border-bottom` at every scroll position. See
+   * `TopOverlay#adjustHeaderBordersPosition`.
    *
    * @param {number} position Header Y position if trimming container is window or scroll top if not.
-   * @returns {boolean}
    */
   adjustHeaderBordersPosition(position: number) {
-    const masterParent = this.deps.getWtTable().holder.parentNode as HTMLElement;
-    const state = this.#computeHeaderBordersState(position);
-
-    if (state.innerBorderBottom === 'add') {
-      addClass(masterParent, 'innerBorderBottom');
-    } else if (state.innerBorderBottom === 'remove') {
-      removeClass(masterParent, 'innerBorderBottom');
-    }
-
-    if (state.innerBorderBottom !== 'keep') {
-      this.cachedFixedRowsBottom = this.wtSettings.getSetting<number>('fixedRowsBottom');
-    }
-
-    return state.positionChanged;
-  }
-
-  /**
-   * Computes the bottom overlay's header-border state without mutating the DOM. Pure: reads settings
-   * and the current class state only. Splitting the decision from the write lets the single-pass draw
-   * resolve the `innerBorderBottom` toggle before rendering, instead of after.
-   *
-   * @param {number} position Header Y position if trimming container is window or scroll top if not.
-   * @returns {{ innerBorderBottom: string, positionChanged: boolean }}
-   */
-  #computeHeaderBordersState(position: number) {
     const { wtSettings } = this;
     const masterParent = this.deps.getWtTable().holder.parentNode as HTMLElement;
     const fixedRowsBottom = wtSettings.getSetting<number>('fixedRowsBottom');
     const areFixedRowsBottomChanged = this.cachedFixedRowsBottom !== fixedRowsBottom;
     const columnHeaders = wtSettings.getSetting('columnHeaders') as ((...args: unknown[]) => unknown)[];
-    let innerBorderBottom = 'keep';
-    let positionChanged = false;
 
     if ((areFixedRowsBottomChanged || fixedRowsBottom === 0) && columnHeaders.length > 0) {
-      const previousState = hasClass(masterParent, 'innerBorderBottom');
-
       if (position || wtSettings.getSetting('totalRows') === 0) {
-        innerBorderBottom = 'add';
-        positionChanged = !previousState;
+        addClass(masterParent, 'innerBorderBottom');
       } else {
-        innerBorderBottom = 'remove';
-        positionChanged = previousState;
+        removeClass(masterParent, 'innerBorderBottom');
       }
-    }
 
-    return { innerBorderBottom, positionChanged };
+      this.cachedFixedRowsBottom = fixedRowsBottom;
+    }
   }
 }

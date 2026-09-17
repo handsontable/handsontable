@@ -3,7 +3,8 @@
     "workingDir": ".reg",
     "actualDir": "screenshots",
     "enableAntialias": true,
-    "thresholdPixel": 150
+    "thresholdPixel": 150,
+    "matchingThreshold": 0.1
   },
   "plugins": {
     "reg-simple-keygen-plugin": {

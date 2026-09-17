@@ -9,6 +9,7 @@ new Handsontable(document.createElement('div'), {
     sortEmptyCells: true,
     indicator: true,
     headerAction: true,
+    sortFixedRows: true,
     compareFunctionFactory(sortOrder: string, columnMeta: Record<string, unknown>) {
       return (a: any, b: any) => (columnMeta.type === 'text' && sortOrder === 'asc' ? -1 : 1);
     },

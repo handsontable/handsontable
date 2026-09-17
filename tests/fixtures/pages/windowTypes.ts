@@ -17,16 +17,26 @@ interface FixtureCellRange {
 }
 
 /**
+ * One entry of a sort config, as both sorting plugins take and return it.
+ */
+export interface FixtureSortConfig {
+  column: number;
+  sortOrder: 'asc' | 'desc';
+}
+
+/**
  * The slice of the Handsontable instance API the fixture-driving evaluate
  * callbacks use, so the in-page calls stay typed without importing the core
  * types into the test tier.
  */
 export interface FixtureHotInstance {
   getDataAtCell(row: number, col: number): CellValue;
+  getData(): CellValue[][];
   getDataAtCol(col: number): CellValue[];
   getSourceDataAtCell(row: number, col: number): CellValue;
   getSourceData(): unknown[];
   setDataAtCell(row: number, col: number, value: CellValue): void;
+  setCellMeta(row: number, col: number, key: string, value: unknown): void;
   getCellMeta(row: number, col: number): { className?: string, readOnly?: boolean };
   getPlugin(name: 'formulas'): {
     getCellType(row: number, col: number): string,
@@ -61,9 +71,23 @@ export interface FixtureHotInstance {
     clearConditions(column?: number): void,
     filter(): void,
   };
+  /**
+   * Both sorting plugins expose the same `sort()` signature - `MultiColumnSorting` extends
+   * `ColumnSorting` and only widens what an array of configs means - so one overload covers
+   * a fixture that swaps between them. The `column` is a VISUAL index.
+   */
+  getPlugin(name: 'columnSorting' | 'multiColumnSorting'): {
+    sort(sortConfig?: FixtureSortConfig | FixtureSortConfig[]): void,
+    getSortConfig(): FixtureSortConfig[],
+    clearSort(): void,
+  };
   getPlugin(name: 'dragToScroll'): { isListening(): boolean };
   getPlugin(name: 'autofill'): { mouseDownOnCellCorner: boolean };
-  getPlugin(name: 'multipleSelectionHandles'): { isDragged(): boolean };
+  getPlugin(name: 'multipleSelectionHandles'): {
+    isDragged(): boolean;
+    enabled: boolean;
+    isEnabled(): boolean;
+  };
   getPlugin(name: 'nestedRows'): {
     collapseAll(): void,
     expandAll(): void,
@@ -88,6 +112,7 @@ export interface FixtureHotInstance {
     },
     dataManager: {
       getDataObject(row: number): object | null,
+      getRawSourceData(): unknown[],
       addChild(parent: object): void,
     },
   };
@@ -96,19 +121,44 @@ export interface FixtureHotInstance {
     enablePlugin(): void,
     disablePlugin(): void,
   };
+  getPlugin(name: 'emptyDataState'): {
+    isVisible(): boolean,
+  };
+  getPlugin(name: 'dialog'): {
+    show(options: { content: string }): void,
+  };
+  getFocusScopeManager(): {
+    getActiveScopeId(): string | null,
+  };
+  getShortcutManager(): {
+    getActiveContextName(): string,
+  };
+  runHooks(name: string, ...args: unknown[]): unknown;
+  countRenderedRows(): number;
+  countRenderedCols(): number;
   getActiveEditor(): {
     isOpened(): boolean,
     beginEditing(): void,
     finishEditing(restoreOriginalValue?: boolean): void,
+    isFlippedHorizontally?: boolean,
   } | undefined;
+  isRtl(): boolean;
   render(): void;
   listen(): void;
   view: {
     isVerticallyScrollableByWindow(): boolean,
     isHorizontallyScrollableByWindow(): boolean,
+    getViewportHeight(): number,
+    countRenderableColumns(): number,
   };
   /** The grid's own root `<div>` – a child of the container passed to the constructor. */
   rootElement: HTMLElement;
+  /** The element the constructor received; the root wrapper is appended into it. */
+  rootContainer: HTMLElement;
+  /** `.ht-root-wrapper` – the flex column holding the slots, the grid box and the overlays layer. */
+  rootWrapperElement: HTMLElement;
+  /** `.ht-slot-bottom` – the bottom layout slot (pagination bar, sheets bar, license notification). */
+  rootSlotBottomElement: HTMLElement;
   getFirstFullyVisibleRow(): number;
   getLastFullyVisibleRow(): number;
   getLastRenderedVisibleRow(): number;
@@ -118,6 +168,8 @@ export interface FixtureHotInstance {
   deselectCell(): void;
   getSelectedRangeLast(): FixtureCellRange;
   getSelectedRange(): FixtureCellRange[];
+  getSelectedRangeActive(): FixtureCellRange | undefined;
+  getSelected(): number[][] | undefined;
   addHook(name: string, callback: () => void): void;
   addHookOnce(name: string, callback: () => unknown): void;
   getSelectedLast(): number[];
@@ -131,6 +183,7 @@ export interface FixtureHotInstance {
   loadData(data: unknown[]): void;
   updateData(data: unknown[]): void;
   updateSettings(settings: Record<string, unknown>): void;
+  alter(action: string, index?: number | number[][], amount?: number, source?: string): void;
   countCols(): number;
   rowIndexMapper: { getIndexesSequence(): number[] };
   columnIndexMapper: { getIndexesSequence(): number[] };
@@ -150,6 +203,19 @@ export interface MoveCellsHookRecord {
 }
 
 /**
+ * One recorded remove-row or remove-column hook call from the DEV-2523 firing-pattern fixture.
+ * `physicalIndexes` covers both halves, since the hooks name the argument `physicalRows` for
+ * rows and `physicalColumns` for columns while passing the same shape.
+ */
+export interface RemoveHookRecord {
+  hook: 'beforeRemoveRow' | 'afterRemoveRow' | 'beforeRemoveCol' | 'afterRemoveCol';
+  index: number;
+  amount: number;
+  physicalIndexes: number[];
+  source?: string;
+}
+
+/**
  * Hook counters the DEV-2687 touch tap-to-edit fixture exposes on `window.hookCounts`.
  */
 export type HookCounterName =
@@ -159,6 +225,13 @@ declare global {
   interface Window {
     /** The fixture's live Handsontable instance. */
     hot: FixtureHotInstance;
+    /** DEV-2917 fixture: the message of a throw the fixture's own grid build caught, if any. */
+    htFixtureError?: string;
+    /**
+     * DEV-2917: `defaultPrevented` of the last `keydown` seen at the window, or `null` when none
+     * reached it. Written by a bubble-phase listener, so it reads the verdict of every handler below.
+     */
+    htLastKeyDefaultPrevented: boolean | null;
     /** #5833 fixture: the "getter" grid – constructor rows with a non-configurable derived getter. */
     hotGetter: FixtureHotInstance;
     /** #5833 fixture: the "accessor" grid – the docs' function-data-source pattern (function `columns[].data`). */
@@ -184,6 +257,12 @@ declare global {
     wheelLog: { deltaX: number, deltaY: number, defaultPrevented: boolean }[];
     /** Rebuilds the root-size-options fixture grid with setting overrides and a parent layout class. */
     initRootSizeGrid(overrides?: Record<string, unknown>, containerClass?: string): boolean;
+    /**
+     * Rebuilds the bottom-slot sizing fixture grid (DEV-2848): `variant` picks the CSS layout,
+     * `plugin` the bottom-slot bar; both default to the page's query params. `overrides` are grid
+     * options applied last.
+     */
+    initSlotGrid(variant?: string, plugin?: string, overrides?: Record<string, unknown>): boolean;
     /** Rebuilds the selection-features fixture grid with the given setting overrides. */
     initSelectionGrid(overrides?: Record<string, unknown>): boolean;
     /** Rebuilds the mobile drag-to-scroll fixture grid with the given setting overrides. */
@@ -200,6 +279,16 @@ declare global {
     pendingValidationCount(): number;
     /** Rebuilds the GH #5983 sorting-a-filtered-grid-with-`minSpareRows` fixture grid. */
     initSortingSpareRowsGrid(overrides?: Record<string, unknown>): boolean;
+    /**
+     * Rebuilds the DEV-59 sorting-with-`fixedRowsTop`/`fixedRowsBottom` fixture grid.
+     */
+    initSortingFixedRowsGrid(overrides?: Record<string, unknown>): boolean;
+    /** Rebuilds the DEV-1198 multiselect open-left fixture grid. */
+    initMultiselectOpenLeftGrid(overrides?: Record<string, unknown>): boolean;
+    /**
+     * Rebuilds the DEV-2524 filtering-with-`fixedRowsTop`/`fixedRowsBottom` fixture grid.
+     */
+    initFiltersFixedRowsGrid(overrides?: Record<string, unknown>): boolean;
     /** Returns the text the browser currently reports as selected (fragmentSelection fixture). */
     readTextSelection(): string;
     /** Drops any existing text selection (fragmentSelection fixture). */
@@ -214,6 +303,20 @@ declare global {
     moveCellsHookLog: MoveCellsHookRecord[];
     /** Recorded NestedRows collapse/expand hook calls, in firing order. */
     hookLog: { name: string, args: unknown[] }[];
+    /** Recorded remove-row/remove-column hook arguments from the DEV-2523 firing fixture. */
+    removeHookLog: RemoveHookRecord[];
+    /** Rebuilds the DEV-2523 firing fixture grid with the given setting overrides. */
+    initRemoveHooksGrid(overrides?: Record<string, unknown>): boolean;
+    /** Makes the fixture's `beforeRemoveRow` rewrite `physicalRows` to this list (DEV-2523). */
+    setBeforeRemoveRowRewrite(physicalRows: number[] | null): boolean;
+    /** Recorded remove-row hook arguments from the DEV-30 nested undo fixture. */
+    removeLog: {
+      hook: 'beforeRemoveRow' | 'afterRemoveRow';
+      index: number;
+      amount: number;
+      physicalRows: number[];
+      source?: string;
+    }[];
     /** Makes the fixture's `beforeMoveCells` listener return `false`. */
     setBeforeMoveCellsVeto(shouldVeto: boolean): boolean;
     /** Makes the fixture's `beforeRowMove` listener return `false`. */
@@ -222,6 +325,15 @@ declare global {
     setBeforeColumnMoveVeto(shouldVeto: boolean): boolean;
     /** Per-hook invocation counters of the touch tap-to-edit fixture (DEV-2687). */
     hookCounts: Record<HookCounterName, number>;
+    /**
+     * Builds a grid whose init aborts inside `updateSettings()` and returns the message it threw
+     * with, or `null` when it unexpectedly succeeded (DEV-2874 fixture).
+     */
+    abortGridInit(): string | null;
+    /** Starts counting the healthy grid's `getIfMouseWasDraggedOutside()` calls (DEV-2874 fixture). */
+    instrumentDragOutsideCheck(): boolean;
+    /** How many drag-outside measurements the healthy grid has taken since instrumentation. */
+    dragOutsideCheckCount: number;
     /**
      * Chromium-only InputDeviceCapabilities constructor, used to stamp synthetic mouse events
      * with their origin (DEV-2687).

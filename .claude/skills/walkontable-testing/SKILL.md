@@ -6,7 +6,7 @@ description: Use when writing tests for the Walkontable rendering engine - has i
 
 # Testing the Walkontable Rendering Engine
 
-> **Paradigm note:** Walkontable follows the **same freeze** as the main suite. It now has a **Playwright home** at `tests/e2e/walkontable/` (which drives overlay / frozen-pane / scroll-sync behavior through a real grid — see `tests/fixtures/pages/WalkontablePage.ts`). So: **maintenance edits to existing `*.spec.js` here are allowed; new or flaky walkontable tests move to Playwright** (the presence gate blocks a new walkontable `*.spec.js`). In CI the legacy Jasmine/Puppeteer walkontable job and the Playwright e2e job run **in parallel**; walkontable migrates by attrition, worst/flakiest first. The guide below is for *maintaining* the frozen Jasmine specs.
+> **Paradigm note:** Walkontable follows the **same freeze** as the main suite. It now has a **Playwright home** at `tests/e2e/walkontable/` (which drives overlay / frozen-pane / scroll-sync behavior through a real grid — see the page objects in `tests/fixtures/pages/walkontable/`). So: **maintenance edits to existing `*.spec.js` here are allowed; new or flaky walkontable tests move to Playwright** (the presence gate blocks a new walkontable `*.spec.js`). In CI the legacy Jasmine/Puppeteer walkontable job and the Playwright e2e job run **in parallel**; walkontable migrates by attrition, worst/flakiest first. The guide below is for *maintaining* the frozen Jasmine specs.
 
 ## Separate Test Pipeline
 

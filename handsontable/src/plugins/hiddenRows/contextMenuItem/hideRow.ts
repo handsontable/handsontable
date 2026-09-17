@@ -55,7 +55,6 @@ export default function hideRowItem(hiddenRowsPlugin: Record<string, Function>) 
         this.deselectCell();
       }
 
-      this.view.adjustElementsSize();
       this.render();
     },
     disabled: false,

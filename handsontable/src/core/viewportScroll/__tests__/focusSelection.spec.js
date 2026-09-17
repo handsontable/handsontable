@@ -16,8 +16,10 @@ describe('Focus selection scroll', () => {
   });
 
   it('should scroll the viewport vertically', async() => {
-    // the viewport height shows exactly 4 rows + 1 header row + 15px (scrollbar) + 1px (border top)
-    const height = getDefaultColumnHeaderHeight() + (4 * getDefaultRowHeight()) + 16;
+    // the viewport height shows exactly 4 rows + 1 header row + 15px (scrollbar). The header band
+    // carries the grid's 1px top frame and its own 1px border-bottom (DEV-2786), both of which
+    // `getColumnHeaderBandHeight()` accounts for.
+    const height = getColumnHeaderBandHeight() + (4 * getDefaultRowHeight()) + 15;
 
     handsontable({
       data: createSpreadsheetData(50, 5),
@@ -50,7 +52,9 @@ describe('Focus selection scroll', () => {
 
     await keyDownUp('enter'); // B5
 
-    expect(topOverlay().getScrollPosition()).toBe(getDefaultRowHeight() + 2);
+    // One pixel of slack, not two: `TopOverlay#scrollTo`'s own `newY += 1` is what is left after
+    // DEV-2786 removed the column-header border compensation that used to be added beside it.
+    expect(topOverlay().getScrollPosition()).toBe(getDefaultRowHeight() + 1);
     expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(4, 1, true));
     expect(scrollIntoViewSpy).toHaveBeenCalledWith({
       block: 'nearest',
@@ -61,7 +65,7 @@ describe('Focus selection scroll', () => {
 
     await keyDownUp('enter'); // B6
 
-    expect(topOverlay().getScrollPosition()).toBe((getDefaultRowHeight() * 2) + 2);
+    expect(topOverlay().getScrollPosition()).toBe((getDefaultRowHeight() * 2) + 1);
     expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(5, 1, true));
     expect(scrollIntoViewSpy).toHaveBeenCalledWith({
       block: 'nearest',
@@ -73,7 +77,7 @@ describe('Focus selection scroll', () => {
     await keyDownUp(['shift', 'enter']); // B5
     await keyDownUp(['shift', 'enter']); // B4
 
-    expect(topOverlay().getScrollPosition()).toBe((getDefaultRowHeight() * 2) + 2);
+    expect(topOverlay().getScrollPosition()).toBe((getDefaultRowHeight() * 2) + 1);
     expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(4, 1, true));
     expect(scrollIntoViewSpy.calls.thisFor(1)).toBe(getCell(3, 1, true));
     expect(scrollIntoViewSpy).toHaveBeenCalledWith({
@@ -118,7 +122,9 @@ describe('Focus selection scroll', () => {
 
     await keyDownUp(['shift', 'enter']); // B50
 
-    expect(topOverlay().getScrollPosition()).toBe((getDefaultRowHeight() * 46) + 2);
+    // No slack at all here: the scroll is clamped to the holder's maximum, and the extra pixel the
+    // hider used to carry for the first rendered row's `border-top` is gone (DEV-2786).
+    expect(topOverlay().getScrollPosition()).toBe(getDefaultRowHeight() * 46);
     expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(49, 1, true));
     expect(scrollIntoViewSpy).toHaveBeenCalledWith({
       block: 'nearest',

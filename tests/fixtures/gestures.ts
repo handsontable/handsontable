@@ -41,3 +41,27 @@ export async function dragResizeHandle(
   await page.mouse.move(startX + deltaX, startY + deltaY);
   await page.mouse.up();
 }
+
+/**
+ * Drags the autofill fill handle onto a target cell and releases, the way a user drag-fills. The
+ * caller selects the range first (that is what draws the handle) and passes both elements in,
+ * because how a grid is addressed differs per fixture while the gesture does not.
+ *
+ * @param {Page} page The page the handle lives on.
+ * @param {Locator} handle The fill handle to drag.
+ * @param {Locator} target The cell to drag onto.
+ */
+export async function dragFillHandle(page: Page, handle: Locator, target: Locator): Promise<void> {
+  const handleBox = await handle.boundingBox();
+  const targetBox = await target.boundingBox();
+
+  if (!handleBox || !targetBox) {
+    throw new Error('The fill handle or the target cell is not rendered.');
+  }
+
+  await page.mouse.move(handleBox.x + (handleBox.width / 2), handleBox.y + (handleBox.height / 2));
+  await page.mouse.down();
+  // Several moves, because the plugin counts drag steps through `mousemove` and `beforeOnCellMouseOver`.
+  await page.mouse.move(targetBox.x + (targetBox.width / 2), targetBox.y + (targetBox.height / 2), { steps: 8 });
+  await page.mouse.up();
+}

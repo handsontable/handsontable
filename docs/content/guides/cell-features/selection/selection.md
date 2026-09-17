@@ -46,6 +46,25 @@ Possible values of [`selectionMode`](@/api/options.md#selectionmode):
 - [`range`](@/api/options.md#selectionmode) - You can select multiple cells within a single rangeselected.
 - [`multiple`](@/api/options.md#selectionmode) - Multiple non-contiguous ranges of cells can be selected.
 
+### Ctrl+click in `multiple` mode
+
+In [`multiple`](@/api/options.md#selectionmode) mode, <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click adds
+a cell to the selection. Clicking a cell that is already selected does one of two things, depending on
+where the highlight is:
+
+- The cell does not hold the highlight: the highlight moves to it. The cell stays selected, and so does
+  every other selected cell. Use this to move the highlight around inside a selection without losing it.
+- The cell already holds the highlight: the cell is deselected. Clicking the last remaining cell this way
+  clears the selection.
+
+Two <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + clicks on the same cell therefore still deselect it: the
+first click moves the highlight there, and the second removes it. How quickly you click makes no
+difference, so a <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + double-click has the same effect as those
+two clicks.
+
+The rule reads where the highlight is, not whether you can see it, so it works the same way when
+[`disableVisualSelection`](@/api/options.md#disablevisualselection) hides the highlight.
+
 ::: only-for javascript
 
 ::: example #example1 --html 1 --js 2 --ts 3 --css 4

@@ -13,10 +13,13 @@ import { applyRowHeight } from './exactRowHeight';
 
 /**
  * Asked for every cell in the rendered band before the cell element is reset and painted.
- * Answering `false` leaves the element exactly as the previous draw left it.
+ * Answering `false` leaves the element exactly as the previous draw left it. `band` is the identity
+ * of the rendered band (the overlay with its offsets and sizes); `stableBand` is the overlay name
+ * alone, offered where the rows recycle so a cell that kept its element across a scroll can read as
+ * unchanged, and `null` where it may not be used.
  */
 export type ShouldPaintCell = (
-  sourceRow: number, sourceColumn: number, TD: HTMLTableCellElement, band: string
+  sourceRow: number, sourceColumn: number, TD: HTMLTableCellElement, band: string, stableBand: string | null
 ) => boolean;
 
 /**
@@ -149,6 +152,16 @@ export class TableRenderer {
    */
   columnsToRender: number = 0;
   /**
+   * The visible row index the cell and row-header renderers start painting from on this render.
+   * The rows before it keep their TR children exactly as the previous render left them: no reset,
+   * no `cellRenderer` call, no `shouldPaintCell` question, no header repaint. `0` paints the whole
+   * band — the default, and the state after every `render()`. Set per render through
+   * `setPaintWindow`; the row-band refill in `table/drawCycle.ts` is the one caller.
+   *
+   * @type {number}
+   */
+  paintFromRow: number = 0;
+  /**
    * An array of functions to be used as a content factory to row headers.
    *
    * @type {Function[]}
@@ -204,6 +217,21 @@ export class TableRenderer {
    * @type {boolean}
    */
   #columnHeadersRenderSkippable: boolean = false;
+  /**
+   * `true` when this draw was entered as a scroll draw (`Overlays#isScrollDrivenDraw`). Set once per
+   * draw by the draw cycle; together with `#rowRecyclingAllowed` it decides whether the rows
+   * renderer may rotate the TR elements to follow the band.
+   *
+   * @type {boolean}
+   */
+  #scrollDrivenDraw: boolean = false;
+  /**
+   * `true` when the viewport allows row recycling on this draw (`Viewport#allowsRowRecycling`):
+   * element-scrolled on both axes. Set once per draw by the draw cycle.
+   *
+   * @type {boolean}
+   */
+  #rowRecyclingAllowed: boolean = false;
   /**
    * `true` once the column-header pass has rendered at least once and stored its render window.
    *
@@ -289,6 +317,22 @@ export class TableRenderer {
   }
 
   /**
+   * Restricts the next `render()`'s cell and row-header repaint to the rows at and after
+   * `fromVisibleRow`. The caller guarantees that every row before it holds the same source row, in
+   * the same column band, as on the previous render: the TR nodes are reused in place, so a band
+   * whose start row or column band moved re-identifies every element and must repaint everything.
+   * The window applies to one render only; `render()` clears it.
+   *
+   * @param {number} fromVisibleRow The first visible row index to repaint; `0` repaints the whole band.
+   * @returns {TableRenderer}
+   */
+  setPaintWindow(fromVisibleRow: number) {
+    this.paintFromRow = Math.max(0, fromVisibleRow);
+
+    return this;
+  }
+
+  /**
    * Marks this draw as one where the column-header (THEAD) pass may be skipped, provided the column
    * render window is unchanged since the last header render. The draw cycle sets this to `true` only
    * for a pure vertical scroll (nothing but the vertical scroll position changed), and to `false`
@@ -298,6 +342,71 @@ export class TableRenderer {
    */
   setColumnHeadersRenderSkippable(skippable: boolean) {
     this.#columnHeadersRenderSkippable = skippable;
+  }
+
+  /**
+   * Records whether this draw was entered as a scroll draw.
+   *
+   * @param {boolean} scrollDriven Whether the draw is scroll-driven.
+   */
+  setScrollDrivenDraw(scrollDriven: boolean) {
+    this.#scrollDrivenDraw = scrollDriven;
+  }
+
+  /**
+   * Records whether the viewport allows row recycling on this draw.
+   *
+   * @param {boolean} allowed Whether row recycling is allowed.
+   */
+  setRowRecyclingAllowed(allowed: boolean) {
+    this.#rowRecyclingAllowed = allowed;
+  }
+
+  /**
+   * The host's `renderEpoch` setting as this draw started (`DrawContext#renderEpochAtDrawStart`). The
+   * rows renderer records it with the band it rendered: a renderable row index means the same row
+   * only within one index-mapper state, so a rotation between two draws is sound only while the
+   * epoch did not move in between.
+   *
+   * @type {number}
+   */
+  renderEpoch: number = 0;
+
+  /**
+   * Records the host's render epoch this draw started from.
+   *
+   * @param {number} epoch The `renderEpoch` setting at draw start.
+   */
+  setRenderEpoch(epoch: number) {
+    this.renderEpoch = epoch;
+  }
+
+  /**
+   * Whether the cells renderer may offer the host a stable paint identity for a cell: the overlay name
+   * alone instead of the band's offsets and sizes (see `CellsRenderer#render`). `true` for every draw
+   * of a table whose rows recycle, scroll-driven or not: the host compares a cell's stamp against the
+   * one the previous draw wrote, so the identity has to be the same kind on consecutive draws, or a
+   * full draw after a scroll draw would read every cell as changed. The rotation itself is what only
+   * a scroll-driven draw performs (`isRowRecyclingAllowed()`). The host still decides per cell,
+   * because it knows which cells paint something that depends on where the band starts or ends:
+   * MergeCells clamps a merged block's span to the rendered band, and the block's cells keep the
+   * full identity.
+   *
+   * @returns {boolean}
+   */
+  hasStableCellIdentity(): boolean {
+    return this.#rowRecyclingAllowed;
+  }
+
+  /**
+   * Whether the rows renderer may rotate the TR elements on this draw, so a row that stays in the
+   * band keeps its element. Only on a scroll-driven draw (any other draw keeps the band where it is
+   * or rebuilds it) and only where the viewport allows it (element-scrolled on both axes).
+   *
+   * @returns {boolean}
+   */
+  isRowRecyclingAllowed(): boolean {
+    return this.#scrollDrivenDraw && this.#rowRecyclingAllowed;
   }
 
   /**
@@ -419,55 +528,69 @@ export class TableRenderer {
    * Renders the table.
    */
   render() {
-    // On a pure vertical scroll the THEAD (column header rows + cells) is identical draw-to-draw, so
-    // skip re-rendering it. The selection highlight classes on headers are (re)applied by the
-    // separate selection pass, and are unchanged while only the vertical scroll position moves.
-    if (!this.#canSkipColumnHeadersRender()) {
-      this.columnHeaderRows!.render();
-      this.columnHeaders!.render();
-      this.#storeColumnHeaderRenderWindow();
-    }
-
-    // Stationary bands: the TR/TD/TH nodes keep their DOM positions on every draw — the
-    // `OrderView`s reuse the children in place and the renderers below overwrite their content.
-    // Rows and cells are deliberately NEVER moved, inserted, or removed while a band merely shifts
-    // (the draw cycle keeps both band sizes stable on scroll-driven draws — see
-    // `stabilizeRenderedRowsBand`/`stabilizeRenderedColumnsBand`). Structural DOM mutations here
-    // would trigger the host page's `:has()` style invalidation on every scroll, at a cost that
-    // scales with the host document.
-    this.rows!.render();
-    this.rowHeaders!.render();
-    this.cells!.render();
-
-    // After the cells are rendered calculate columns width to prepare proper values
-    // for colGroup renderer (which renders COL elements).
-    this.columnUtils!.calculateWidths();
-    this.colGroup!.render();
-
-    const { rowsToRender, rows } = this;
-
-    // Fix for multi-line content and for supporting `rowHeights` option. Must stay after
-    // `cells.render()`: the cell renderer resets every cell's inline style and class on each draw.
-    const rowUtils = this.rowUtils!;
-    // Asked once per draw, not once per row: on a grid that never sets the mode this is one
-    // constant settings read for the whole band instead of one per rendered row. Kept behind the
-    // row count so a table with nothing to render still touches nothing.
-    const mayHaveExactRows = rowsToRender > 0 && rowUtils.mayHaveExactRows();
-
-    for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
-      const TR = rows!.getRenderedNode(visibleRowIndex);
-
-      if (TR) {
-        const sourceRowIndex = this.renderedRowToSource(visibleRowIndex);
-        const isExact = mayHaveExactRows && rowUtils.isExact(sourceRowIndex);
-
-        applyRowHeight(
-          TR,
-          rowUtils.getHeightByOverlayName(sourceRowIndex, this.activeOverlayName, isExact),
-          isExact,
-          this.stylesHandler.areCellsBorderBox(),
-        );
+    try {
+      // On a pure vertical scroll the THEAD (column header rows + cells) is identical draw-to-draw, so
+      // skip re-rendering it. The selection highlight classes on headers are (re)applied by the
+      // separate selection pass, and are unchanged while only the vertical scroll position moves.
+      if (!this.#canSkipColumnHeadersRender()) {
+        this.columnHeaderRows!.render();
+        this.columnHeaders!.render();
+        this.#storeColumnHeaderRenderWindow();
       }
+
+      // Stationary bands: the TR/TD/TH nodes keep their DOM positions on every draw — the
+      // `OrderView`s reuse the children in place and the renderers below overwrite their content.
+      // Rows and cells are never inserted or removed while a band merely shifts (the draw cycle keeps
+      // both band sizes stable on scroll-driven draws — see `stabilizeRenderedRowsBand`/
+      // `stabilizeRenderedColumnsBand`). Structural DOM mutations here would trigger the host page's
+      // `:has()` style invalidation on every scroll, at a cost that scales with the host document.
+      //
+      // The one move: on a scroll-driven draw where row recycling is allowed
+      // (`isRowRecyclingAllowed()`) the rows renderer rotates the TR elements by the band's offset
+      // delta, so a row that stays in the band keeps its TR and its TDs, and the host can then leave
+      // those cells untouched (`renderMode: 'onChange'`, through `shouldPaintCell`). That is one
+      // `DocumentFragment` move of `delta` rows per full draw, not a per-frame re-insertion of the
+      // band: measured against the `:has()` cost above (a host document of 30,000 nodes and three
+      // `:has()` rules) style recalculation stayed flat.
+      this.rows!.render();
+      this.rowHeaders!.render();
+      this.cells!.render();
+
+      // After the cells are rendered calculate columns width to prepare proper values
+      // for colGroup renderer (which renders COL elements).
+      this.columnUtils!.calculateWidths();
+      this.colGroup!.render();
+
+      const { rowsToRender, rows } = this;
+
+      // Fix for multi-line content and for supporting `rowHeights` option. Must stay after
+      // `cells.render()`: the cell renderer resets every cell's inline style and class on each draw.
+      const rowUtils = this.rowUtils!;
+      // Asked once per draw, not once per row: on a grid that never sets the mode this is one
+      // constant settings read for the whole band instead of one per rendered row. Kept behind the
+      // row count so a table with nothing to render still touches nothing.
+      const mayHaveExactRows = rowsToRender > 0 && rowUtils.mayHaveExactRows();
+
+      for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
+        const TR = rows!.getRenderedNode(visibleRowIndex);
+
+        if (TR) {
+          const sourceRowIndex = this.renderedRowToSource(visibleRowIndex);
+          const isExact = mayHaveExactRows && rowUtils.isExact(sourceRowIndex);
+
+          applyRowHeight(
+            TR,
+            rowUtils.getHeightByOverlayName(sourceRowIndex, this.activeOverlayName, isExact),
+            isExact,
+            this.stylesHandler.areCellsBorderBox(),
+          );
+        }
+      }
+    } finally {
+      // One render only — the next draw (or the next refill pass) decides its own window. In a
+      // `finally` so a throwing `cellRenderer` (or an `afterRenderer` hook) cannot leave the window
+      // armed and make the next render silently skip the top of the band.
+      this.paintFromRow = 0;
     }
   }
 }

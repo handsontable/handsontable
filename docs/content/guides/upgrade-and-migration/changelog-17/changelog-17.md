@@ -32,8 +32,8 @@ For more information about this release, see:
 
 #### Added
 - Added a hit area for dropdown menu and collapsible buttons [#12070](https://github.com/handsontable/handsontable/pull/12070)
-- Added `rowspan` support to the NestedHeaders plugin, allowing column headers to span multiple header rows. [#191](https://github.com/handsontable/handsontable/issues/191)
-- Added the DataProvider plugin and `dataProvider` table option for server-side row loading and mutations. [#12147](https://github.com/handsontable/handsontable/pull/12147)
+- Added `rowspan` support to the [`NestedHeaders`](@/api/nestedHeaders.md) plugin, allowing column headers to span multiple header rows. [#191](https://github.com/handsontable/handsontable/issues/191)
+- Added the [`DataProvider`](@/api/dataProvider.md) plugin and [`dataProvider`](@/api/options.md#dataprovider) table option for server-side row loading and mutations. [#12147](https://github.com/handsontable/handsontable/pull/12147)
 - Added XLSX export support to the ExportFile plugin [#12166](https://github.com/handsontable/handsontable/pull/12166)
 - Added build weight comparison tables to the Modules guide, showing the minified and gzip size added by each optional module when imported on top of `handsontable/base`. [#12262](https://github.com/handsontable/handsontable/issues/12262)
 - Added Notification plugin for non-blocking toast notifications. [#12299](https://github.com/handsontable/handsontable/issues/12299)
@@ -143,12 +143,12 @@ For more information about this release, see:
 
 #### Added
 - **Breaking change**: Added the Theme API. [#11950](https://github.com/handsontable/handsontable/pull/11950)
-- Introduced a simple way to define custom editors using the new `BaseEditor.factory` method. [#11899](https://github.com/handsontable/handsontable/pull/11899)
+- Introduced a simple way to define custom editors using the new [`BaseEditor.factory`](@/api/baseEditor.md) method. [#11899](https://github.com/handsontable/handsontable/pull/11899)
 - Implemented a new MultiSelect cell type with a dedicated editor, renderer, and validator. [#11981](https://github.com/handsontable/handsontable/pull/11981)
 - Added support for `Intl.NumberFormat` options. [#11997](https://github.com/handsontable/handsontable/pull/11997)
 - Added support for `Intl.DateTimeFormat` options. [#11999](https://github.com/handsontable/handsontable/pull/11999)
 - Added a copy-as-Markdown button to the documentation pages. [#12009](https://github.com/handsontable/handsontable/pull/12009)
-- Added a new `sanitizer` table option. [#12016](https://github.com/handsontable/handsontable/pull/12016)
+- Added a new [`sanitizer`](@/api/options.md#sanitizer) table option. [#12016](https://github.com/handsontable/handsontable/pull/12016)
 - React: Introduced a simple way to define custom editors using the new `ComponentEditor`. [#11978](https://github.com/handsontable/handsontable/pull/11978)
 
 #### Changed

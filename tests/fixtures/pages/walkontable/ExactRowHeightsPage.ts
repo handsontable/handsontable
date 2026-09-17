@@ -1,4 +1,6 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../../bundle';
+import * as geometry from './rowGeometry';
 
 /**
  * Page Object for the "exact row heights" Walkontable fixture.
@@ -60,7 +62,7 @@ export class ExactRowHeightsPage {
     Object.entries(options).forEach(([key, value]) => params.set(key, String(value)));
 
     await this.page.goto(`/tests/fixtures/demo/walkontable/exact-row-heights.html?${params}`);
-    await this.page.waitForFunction(() => 'Handsontable' in window);
+    await awaitBundle(this.page);
     await expect(this.master).toBeVisible();
     await expect(this.row(this.master, 1)).toBeAttached();
   }
@@ -77,22 +79,22 @@ export class ExactRowHeightsPage {
     return table.locator('tbody').getByTestId(`row-${row}`);
   }
 
-  /** The rendered height of one row in one table. */
+  /**
+   * The rendered height of one row in one table, or `NaN` when that table does not render it. One
+   * evaluation on the table's root, never `row().boundingBox()` — see `rowGeometry.ts` for why.
+   */
   async rowHeight(table: Locator, row: number): Promise<number> {
-    const box = await this.row(table, row).boundingBox();
-
-    return box?.height ?? 0;
+    return geometry.rowHeight(table, row);
   }
 
-  /**
-   * The vertical offset of a row relative to its own table's body, so the master
-   * and a clone are comparable even though they sit at different page positions.
-   */
-  async rowOffsetWithinTable(table: Locator, row: number): Promise<number> {
-    const rowBox = await this.row(table, row).boundingBox();
-    const bodyBox = await table.locator('tbody').boundingBox();
+  /** The height of one row in the master and in the inline-start overlay, read together. */
+  async rowHeights(row: number): Promise<{ master: number, overlay: number }> {
+    return geometry.rowHeights(this.grid, row);
+  }
 
-    return (rowBox?.y ?? 0) - (bodyBox?.y ?? 0);
+  /** How far each row's offset in the master differs from the inline-start overlay's; zeroes = aligned. */
+  async rowOffsetDrift(rows: number[]): Promise<number[]> {
+    return geometry.rowOffsetDrift(this.grid, rows);
   }
 
   /** The distinct rendered heights of every body row the master currently renders. */
@@ -152,7 +154,11 @@ export class ExactRowHeightsPage {
     }
   }
 
-  /** Scroll the master viewport horizontally and let the overlays sync. */
+  /**
+   * Scroll the master viewport horizontally and wait for the scroll position to land. The
+   * scroll-driven draw that moves the master's column band comes a task LATER, so a caller that
+   * depends on the band having moved polls `masterFirstRenderedColumn()` before reading anything.
+   */
   async scrollHorizontallyTo(left: number): Promise<void> {
     await this.holder().evaluate((el, value) => {
       el.scrollLeft = value;

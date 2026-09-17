@@ -364,7 +364,7 @@ Nothing else about the clearing changes. A range still clears its covered cells 
 
 ```js
 hot.updateSettings({
-  data: [['A1', 'B1'], ['A2', 'B2']],
+  data: [['SKU-4821', 'Stainless Steel Water Bottle'], ['SKU-0093', 'Wireless Mouse']],
   mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 2 }], // unchanged
 });
 
@@ -449,7 +449,7 @@ When a merged cell's underlying rows or columns are reordered (through [`manualC
 
 - **Auto-split**: if the move bisects a merge so the underlying cells are no longer contiguous in the new visual order, the merge is split into separate merges, one per contiguous run. The cross-axis span (`rowspan` for column moves, `colspan` for row moves) is preserved on every fragment.
 - **Silent drop of single-cell fragments**: any resulting fragment that ends up as a single cell (`rowspan === 1 && colspan === 1`) is removed, because a single cell is no longer a merge. The [`afterMergeCells`](@/api/hooks.md#aftermergecells) hook is not fired for the dropped fragment.
-- **Rows removed from view count as spanned, for a row move only**: a [`manualRowMove`](@/api/options.md#manualrowmove) keeps a fragment that shows a single cell only because the rest of its rows are removed from view, and it spans them again when they come back, unless a sort has separated the merged cell's rows (see the next section). A [`manualColumnMove`](@/api/options.md#manualcolumnmove) or a [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze) does not: a merged cell showing a single cell because its other rows are removed from view is dropped there like any other single cell, even when the column you move is not one of its own.
+- **Rows removed from view count as spanned**: a fragment that shows a single cell only because the rest of its rows are removed from view is kept, and it spans them again when they come back. This holds for [`manualRowMove`](@/api/options.md#manualrowmove), [`manualColumnMove`](@/api/options.md#manualcolumnmove), and [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze) alike. The one exception is a row move of a merged cell whose rows a sort has separated (see the next section).
 
 [`undo`](@/api/options.md#undo) and [`redo`](@/api/options.md#redo) restore the row and column order the reorder changed. They do not restore merged cells: an [`undo`](@/api/options.md#undo) replays the opposite move, so a merged cell the reorder split stays split, and one it dropped stays dropped. Merge the cells again if you need the original merged cell back.
 
@@ -466,6 +466,12 @@ Some features remove rows from the grid entirely: [`filters`](@/api/options.md#f
 [`hiddenRows`](@/api/options.md#hiddenrows) works differently. A hidden row keeps its position, so a merged cell spanning one keeps its configured `rowspan` and simply draws over less space.
 
 One limitation applies to [`undo`](@/api/options.md#undo). Unmerging a merged cell whose rows are all hidden but one records only the single cell you can see, which is not a merged cell, so undoing that unmerge restores nothing. Expand or unfilter the rows first if you want the unmerge to be reversible.
+
+## Keyboard navigation over a merged cell
+
+A merged cell behaves as a single cell at its top-left corner. When you move the selection onto a merged cell -- with the arrow keys or a mouse click -- the whole merged cell is highlighted. When you then leave it to the left or right with a non-Tab horizontal move -- an arrow key, the editor's arrow-key exit, or <kbd>**Enter**</kbd> when [`enterMoves`](@/api/options.md#entermoves) is configured to step horizontally -- the selection lands on the top row of the merged cell, whichever row you entered it from. Entering a merged cell from below and leaving it sideways lands on the same row as entering it from above, so horizontal navigation stays consistent. When the top row is hidden, the selection lands on the merged cell's topmost visible row.
+
+Vertical navigation keeps the column you were moving along, and the <kbd>**Tab**</kbd> and <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> keys keep the row they cycle along, so neither is affected.
 
 ## Result
 

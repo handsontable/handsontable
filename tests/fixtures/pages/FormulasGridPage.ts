@@ -112,16 +112,16 @@ export class FormulasGridPage {
     // can move — boxes captured before the loop would aim the drag at stale
     // coordinates (inside the grid, or far below the 20px the comment assumes).
     const gridBox = await this.grid.boundingBox();
-    const handle = await this.areaCorner.boundingBox();
 
-    if (!gridBox || !handle) {
-      throw new Error('the grid or the area fill handle is not rendered');
+    if (!gridBox) {
+      throw new Error('the grid is not rendered');
     }
 
-    const startX = handle.x + handle.width / 2;
+    const grab = await this.#pressablePointOn(this.areaCorner, 'area fill handle');
+    const startX = grab.x;
     const belowGridY = gridBox.y + gridBox.height + 20;
 
-    await this.page.mouse.move(startX, handle.y + handle.height / 2);
+    await this.page.mouse.move(grab.x, grab.y);
     await this.page.mouse.down();
     await this.page.mouse.move(startX, belowGridY, { steps: 8 });
 
@@ -215,6 +215,61 @@ export class FormulasGridPage {
       top: holderBox.y + (headerBox ? headerBox.height : 0),
       bottom: holderBox.y + holderBox.height,
     };
+  }
+
+  /**
+   * A point on `target` that the browser will actually deliver a press to.
+   *
+   * Chromium draws OVERLAY scrollbars: they sit over the holder's end and bottom
+   * strips, take no layout space, and are invisible to `clientWidth` /
+   * `clientHeight` — so no bounds arithmetic can subtract them. A press inside
+   * such a strip is swallowed by the scrollbar and `elementFromPoint` there falls
+   * through to the page. The fill handle of a range ending at the grid's last
+   * column straddles that corner, so its geometric centre is the wrong point to
+   * grab by: a 1px shift in the theme's row metrics is enough to move the centre
+   * from just outside the strip to just inside it, and the press then arms
+   * nothing while the box still reports the handle exactly where it is (measured
+   * on `horizon`: the handle spans 408-416 x 139-147, and everything at x >= 412
+   * AND y >= 143 hit-tests to the page).
+   *
+   * So ask the document instead, and step inward toward the box's top-start
+   * corner — away from both strips — until the topmost element is the target.
+   * `target.contains(...)` is the test rather than a class check: the selection's
+   * bottom EDGE line is a `.wtBorder` too and is hit at points the corner handle
+   * does not cover, so matching on the class would accept a point that grabs the
+   * wrong element. Bounded by the box's own size, so it cannot become a wait.
+   *
+   * @param {Locator} target The element to press.
+   * @param {string} what Its name, for the failure message.
+   * @returns {Promise<{ x: number, y: number }>} The point to press.
+   */
+  async #pressablePointOn(target: Locator, what: string): Promise<{ x: number, y: number }> {
+    const box = await target.boundingBox();
+
+    if (!box) {
+      throw new Error(`the ${what} is not rendered`);
+    }
+
+    const point = await target.evaluate((element, b) => {
+      const steps = Math.ceil(Math.min(b.width, b.height) / 2);
+
+      for (let step = 0; step <= steps; step += 1) {
+        const x = (b.x + b.width / 2) - step;
+        const y = (b.y + b.height / 2) - step;
+
+        if (element.contains(document.elementFromPoint(x, y))) {
+          return { x, y };
+        }
+      }
+
+      return null;
+    }, box);
+
+    if (!point) {
+      throw new Error(`no point on the ${what} is pressable — it is covered or off-screen`);
+    }
+
+    return point;
   }
 
   /**

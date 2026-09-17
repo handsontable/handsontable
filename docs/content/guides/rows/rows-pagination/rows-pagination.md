@@ -115,7 +115,8 @@ const configurationOptions = {
     pageSize: 20,
     // Provide a list of selectable page sizes
     pageSizeList: ['auto', 10, 20, 50],
-    // Set the initial page when the grid loads
+    // Set the initial page when the grid loads.
+    // Passing the same number again does not reset the current page.
     initialPage: 2,
     // Show or hide the page size section
     showPageSize: false,
@@ -463,6 +464,7 @@ When pagination is enabled:
 - [`fixedRowsTop`](@/api/options.md#fixedrowstop) and [`fixedRowsBottom`](@/api/options.md#fixedrowsbottom) options should be disabled.
 - [`NestedRows`](@/api/nestedRows.md) and [`MergeCells`](@/api/mergeCells.md) plugins should be disabled.
 - The [`height`](@/api/options.md#height) option set as `auto` is not supported when the `pageSize: 'auto'` is set.
+- When the window scrolls the grid (no [`height`](@/api/options.md#height) option and no scrollable ancestor), the pagination bar follows the last row of the page. To keep it in view, give the grid an explicit `height`, or put it in a container with a fixed height and `overflow: auto`.
 - Pagination always displays a fixed number of rows per page (default is `10`), regardless of data changes such as hiding, trimming, filtering, removing, adding, or pasting rows - unless `pageSize: 'auto'` is set.
 
 Pagination also works on the main grid only. A grid nested in a cell, that is a cell of the [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md), [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), or [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cell type, has no layout slot to render the pagination bar into, so the [`pagination`](@/api/options.md#pagination) option has no effect there. A custom `uiContainer` does not change that.

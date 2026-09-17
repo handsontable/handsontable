@@ -93,6 +93,17 @@ Search for an option by name, or filter the list down to a single level.
   <p class="option-levels-status" data-option-levels-status aria-live="polite"></p>
 </div>
 
+<!--
+  GENERATED BLOCK — DO NOT EDIT anything between the two option-levels markers below.
+  `handsontable/scripts/generate-option-levels.mjs` rewrites it, and an edit made here is lost on
+  its next run. Change the source instead:
+    levels       -> the `@configScope` tag on the option in
+                    `handsontable/src/dataMap/metaManager/metaSchema.ts`
+    Notes column -> the `NOTES` map in `handsontable/scripts/utils/option-levels.js`
+  Then run `npm run generate:option-levels --prefix handsontable` and commit BOTH this page and
+  `option-levels.json`. `handsontable/test/__tests__/optionLevels.unit.js` fails the build when the
+  committed files do not match the source, even if a hand-edit here looks correct.
+-->
 <!-- option-levels:start -->
 
 <div class="option-levels" data-option-levels>
@@ -109,6 +120,7 @@ Search for an option by name, or filter the list down to a single level.
 | <span data-option="allowRemoveRow" data-levels="grid"></span>[`allowRemoveRow`](@/api/options.md#allowremoverow) | Yes | No | No | No | Core |  |
 | <span data-option="ariaTags" data-levels="grid"></span>[`ariaTags`](@/api/options.md#ariatags) | Yes | No | No | No | Core | The switch is grid level. A per-cell value only changes that cell's ARIA attributes. |
 | <span data-option="autoColumnSize" data-levels="grid"></span>[`autoColumnSize`](@/api/options.md#autocolumnsize) | Yes | No | No | No | AutoColumnSize |  |
+| <span data-option="autoLink" data-levels="grid columns cells cell"></span>[`autoLink`](@/api/options.md#autolink) | Yes | Yes | Yes | Yes | AutoLink | The plugin toggle is grid level. A column or cell `false` opts out, and a column or cell object overrides `target`, `schemes`, `strict`, `inline`, and `className` for those cells. |
 | <span data-option="autoRowHeaderSize" data-levels="grid"></span>[`autoRowHeaderSize`](@/api/options.md#autorowheadersize) | Yes | No | No | No | AutoRowHeaderSize |  |
 | <span data-option="autoRowSize" data-levels="grid"></span>[`autoRowSize`](@/api/options.md#autorowsize) | Yes | No | No | No | AutoRowSize |  |
 | <span data-option="autoWrapCol" data-levels="grid"></span>[`autoWrapCol`](@/api/options.md#autowrapcol) | Yes | No | No | No | Core |  |
@@ -123,7 +135,7 @@ Search for an option by name, or filter the list down to a single level.
 | <span data-option="colorScheme" data-levels="grid"></span>[`colorScheme`](@/api/options.md#colorscheme) | Yes | No | No | No | Core |  |
 | <span data-option="columnHeaderHeight" data-levels="grid"></span>[`columnHeaderHeight`](@/api/options.md#columnheaderheight) | Yes | No | No | No | Core |  |
 | <span data-option="columns" data-levels="grid"></span>[`columns`](@/api/options.md#columns) | Yes | No | No | No | Core |  |
-| <span data-option="columnSorting" data-levels="grid columns"></span>[`columnSorting`](@/api/options.md#columnsorting) | Yes | Yes | No | No | ColumnSorting | Turn the plugin on at the grid level. Inside `columns` you can override its sub-options for one column, such as `indicator` and `headerAction`, but not enable sorting there. Read from the raw `columns` setting, like `title`. |
+| <span data-option="columnSorting" data-levels="grid columns"></span>[`columnSorting`](@/api/options.md#columnsorting) | Yes | Yes | No | No | ColumnSorting | Turn the plugin on at the grid level. Inside `columns` you can override its sub-options for one column, such as `indicator` and `headerAction`, but not enable sorting there. `sortFixedRows` is the exception: it is grid-level only, because the frozen rows belong to the whole table. Read from the raw `columns` setting, like `title`. |
 | <span data-option="columnSummary" data-levels="grid"></span>[`columnSummary`](@/api/options.md#columnsummary) | Yes | No | No | No | ColumnSummary |  |
 | <span data-option="colWidths" data-levels="grid"></span>[`colWidths`](@/api/options.md#colwidths) | Yes | No | No | No | Core |  |
 | <span data-option="commentedCellClassName" data-levels="grid columns cells cell"></span>[`commentedCellClassName`](@/api/options.md#commentedcellclassname) | Yes | Yes | Yes | Yes | Core |  |
@@ -158,7 +170,7 @@ Search for an option by name, or filter the list down to a single level.
 | <span data-option="fillHandle" data-levels="grid"></span>[`fillHandle`](@/api/options.md#fillhandle) | Yes | No | No | No | Core |  |
 | <span data-option="filter" data-levels="grid columns cells cell"></span>[`filter`](@/api/options.md#filter) | Yes | Yes | Yes | Yes | Core |  |
 | <span data-option="filteringCaseSensitive" data-levels="grid columns cells cell"></span>[`filteringCaseSensitive`](@/api/options.md#filteringcasesensitive) | Yes | Yes | Yes | Yes | Core |  |
-| <span data-option="filters" data-levels="grid"></span>[`filters`](@/api/options.md#filters) | Yes | No | No | No | Filters |  |
+| <span data-option="filters" data-levels="grid columns"></span>[`filters`](@/api/options.md#filters) | Yes | Yes | No | No | Filters | Turn the plugin on at the grid level. Inside `columns`, only `false` has an effect: it hides the filter controls in that column's dropdown menu, and the API still filters the column. The sub-options `searchMode` and `filterFixedRows` are grid-level only. |
 | <span data-option="filterSelectedItems" data-levels="grid columns cells cell"></span>[`filterSelectedItems`](@/api/options.md#filterselecteditems) | Yes | Yes | Yes | Yes | Core |  |
 | <span data-option="fixedColumnsLeft" data-levels="grid"></span>[`fixedColumnsLeft`](@/api/options.md#fixedcolumnsleft) | Yes | No | No | No | Core |  |
 | <span data-option="fixedColumnsStart" data-levels="grid"></span>[`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart) | Yes | No | No | No | Core |  |
@@ -201,7 +213,7 @@ Search for an option by name, or filter the list down to a single level.
 | <span data-option="minSpareCols" data-levels="grid"></span>[`minSpareCols`](@/api/options.md#minsparecols) | Yes | No | No | No | Core |  |
 | <span data-option="minSpareRows" data-levels="grid"></span>[`minSpareRows`](@/api/options.md#minsparerows) | Yes | No | No | No | Core |  |
 | <span data-option="moveCells" data-levels="grid"></span>[`moveCells`](@/api/options.md#movecells) | Yes | No | No | No | Core |  |
-| <span data-option="multiColumnSorting" data-levels="grid columns"></span>[`multiColumnSorting`](@/api/options.md#multicolumnsorting) | Yes | Yes | No | No | MultiColumnSorting | Turn the plugin on at the grid level. Inside `columns` you can override its sub-options for one column, such as `indicator` and `headerAction`, but not enable sorting there. Read from the raw `columns` setting, like `title`. |
+| <span data-option="multiColumnSorting" data-levels="grid columns"></span>[`multiColumnSorting`](@/api/options.md#multicolumnsorting) | Yes | Yes | No | No | MultiColumnSorting | Turn the plugin on at the grid level. Inside `columns` you can override its sub-options for one column, such as `indicator` and `headerAction`, but not enable sorting there. `sortFixedRows` is the exception: it is grid-level only, because the frozen rows belong to the whole table. Read from the raw `columns` setting, like `title`. |
 | <span data-option="navigableHeaders" data-levels="grid"></span>[`navigableHeaders`](@/api/options.md#navigableheaders) | Yes | No | No | No | Core |  |
 | <span data-option="nestedHeaders" data-levels="grid"></span>[`nestedHeaders`](@/api/options.md#nestedheaders) | Yes | No | No | No | NestedHeaders |  |
 | <span data-option="nestedRows" data-levels="grid"></span>[`nestedRows`](@/api/options.md#nestedrows) | Yes | No | No | No | NestedRows |  |
@@ -232,6 +244,7 @@ Search for an option by name, or filter the list down to a single level.
 | <span data-option="selectionHandles" data-levels="grid"></span>[`selectionHandles`](@/api/options.md#selectionhandles) | Yes | No | No | No | Core |  |
 | <span data-option="selectionMode" data-levels="grid"></span>[`selectionMode`](@/api/options.md#selectionmode) | Yes | No | No | No | Core |  |
 | <span data-option="selectOptions" data-levels="grid columns cells cell"></span>[`selectOptions`](@/api/options.md#selectoptions) | Yes | Yes | Yes | Yes | Core |  |
+| <span data-option="sheetsBar" data-levels="grid"></span>[`sheetsBar`](@/api/options.md#sheetsbar) | Yes | No | No | No | SheetsBar |  |
 | <span data-option="skipColumnOnPaste" data-levels="grid columns cells cell"></span>[`skipColumnOnPaste`](@/api/options.md#skipcolumnonpaste) | Yes | Yes | Yes | Yes | Core |  |
 | <span data-option="skipRowOnPaste" data-levels="grid columns cells cell"></span>[`skipRowOnPaste`](@/api/options.md#skiprowonpaste) | Yes | Yes | Yes | Yes | Core |  |
 | <span data-option="sortByRelevance" data-levels="grid columns cells cell"></span>[`sortByRelevance`](@/api/options.md#sortbyrelevance) | Yes | Yes | Yes | Yes | Core |  |

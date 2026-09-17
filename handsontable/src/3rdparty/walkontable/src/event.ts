@@ -755,7 +755,7 @@ class Event {
    * It also releases the mouse-down flag: a long-press fires `onMouseDown` from its timer, and
    * after a cancel no `mouseup` ever follows, which would leave mouse-move selection dragging
    * armed until the next click. The pending synthesized-pair flag is cleared for the same reason
-   * the scroll branch of `onTouchEnd` clears it: a cancelled gesture armed nothing, so a
+   * the scroll branch of `onTouchEnd` clears it: a canceled gesture armed nothing, so a
    * still-pending flag belongs to an earlier gesture whose pair never came, and left in place it
    * would drop the next real mouse pair inside the ceiling on engines that do not report the
    * input origin.

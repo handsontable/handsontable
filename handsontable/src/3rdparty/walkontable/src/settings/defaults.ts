@@ -32,6 +32,7 @@ import type { SettingsPort } from '../ports';
  *                                change (index remap, data or settings reload); the selection scan cache
  *                                keys on it.
  * @property {Option} preventOverflow Option `preventOverflow`.
+ * @property {Option} layoutReservedHeight Option `layoutReservedHeight`.
  * @property {Option} preventWheel Option `preventWheel`.
  * @property {Option} renderAllColumns Option `renderAllColumns`.
  * @property {Option} renderAllRows Option `renderAllRows`.
@@ -123,6 +124,11 @@ export function getDefaults(settings: SettingsPort): Record<string, unknown> {
       return false;
     },
     preventWheel: false,
+    // Height the host keeps for its own UI inside the VERTICAL axis owner: the root wrapper's top and
+    // bottom layout slots (pagination bar, sheets bar, license notification). Called with the
+    // resolved owner; only slots that owner CONTAINS count, so a root element that owns the axis
+    // itself (an explicit `height`) reserves nothing there. Engine default: no host UI.
+    layoutReservedHeight: () => 0,
 
     // data source
     data: undefined,

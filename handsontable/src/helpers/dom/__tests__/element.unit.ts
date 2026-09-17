@@ -26,6 +26,7 @@ import {
   isHTMLInputElement,
   isHTMLTableCellElement,
   isShadowRoot,
+  getComposedEventTargetEl,
   getDeepActiveElement,
   getShadowHostChain,
   outerHeight,
@@ -1498,6 +1499,135 @@ describe('DomElement helper', () => {
     });
   });
 
+  // Handsontable.helper.getComposedEventTargetEl
+  //
+  describe('getComposedEventTargetEl', () => {
+    /**
+     * Dispatches a composed event from the node and reads the target resolved by a listener
+     * bound on the document, the way the focus manager binds its own listeners.
+     *
+     * @param {Node} node The node to dispatch the event from.
+     * @param {Function} [decorate] Callback applied to the event before it is dispatched.
+     * @returns {object} The target reported by `event.target` and the resolved one.
+     */
+    function dispatchAndResolve(node: Node, decorate: (event: Event) => void = () => {}) {
+      const result: { eventTarget: EventTarget | null, resolvedTarget: HTMLElement | null } = {
+        eventTarget: null,
+        resolvedTarget: null,
+      };
+      const listener = (event: Event) => {
+        result.eventTarget = event.target;
+        result.resolvedTarget = getComposedEventTargetEl(event);
+      };
+
+      document.addEventListener('focusin', listener);
+
+      const event = new Event('focusin', { bubbles: true, composed: true });
+
+      decorate(event);
+      node.dispatchEvent(event);
+      document.removeEventListener('focusin', listener);
+
+      return result;
+    }
+
+    it('should return the event target when no shadow boundary is crossed', () => {
+      const div = document.createElement('div');
+
+      document.body.appendChild(div);
+
+      const { eventTarget, resolvedTarget } = dispatchAndResolve(div);
+
+      expect(eventTarget).toBe(div);
+      expect(resolvedTarget).toBe(div);
+
+      div.remove();
+    });
+
+    it('should return the element within the shadow root the event was raised on', () => {
+      const host = document.createElement('div');
+
+      document.body.appendChild(host);
+
+      const shadow = host.attachShadow({ mode: 'open' });
+      const catcher = document.createElement('div');
+
+      shadow.appendChild(catcher);
+
+      const { eventTarget, resolvedTarget } = dispatchAndResolve(catcher);
+
+      expect(eventTarget).toBe(host);
+      expect(resolvedTarget).toBe(catcher);
+
+      host.remove();
+    });
+
+    it('should return the element within nested shadow roots', () => {
+      const outerHost = document.createElement('div');
+
+      document.body.appendChild(outerHost);
+
+      const outerShadow = outerHost.attachShadow({ mode: 'open' });
+      const innerHost = document.createElement('div');
+
+      outerShadow.appendChild(innerHost);
+
+      const innerShadow = innerHost.attachShadow({ mode: 'open' });
+      const catcher = document.createElement('div');
+
+      innerShadow.appendChild(catcher);
+
+      const { eventTarget, resolvedTarget } = dispatchAndResolve(catcher);
+
+      expect(eventTarget).toBe(outerHost);
+      expect(resolvedTarget).toBe(catcher);
+
+      outerHost.remove();
+    });
+
+    it('should keep the retargeted target when the composed path is collapsed to the host chain', () => {
+      const host = document.createElement('div');
+
+      document.body.appendChild(host);
+
+      const shadow = host.attachShadow({ mode: 'open' });
+      const catcher = document.createElement('div');
+
+      shadow.appendChild(catcher);
+
+      const { resolvedTarget } = dispatchAndResolve(catcher, (event) => {
+        event.composedPath = () => [host, document.body, document.documentElement, document, window];
+      });
+
+      expect(resolvedTarget).toBe(host);
+
+      host.remove();
+    });
+
+    it('should keep the retargeted target when the composed path leads outside of its shadow tree', () => {
+      const host = document.createElement('div');
+      const foreignNode = document.createElement('span');
+
+      document.body.appendChild(host);
+      document.body.appendChild(foreignNode);
+
+      const shadow = host.attachShadow({ mode: 'open' });
+      const catcher = document.createElement('div');
+
+      shadow.appendChild(catcher);
+
+      const { resolvedTarget } = dispatchAndResolve(catcher, (event) => {
+        event.composedPath = () => [foreignNode, document.body, document.documentElement, document, window];
+      });
+
+      expect(resolvedTarget).toBe(host);
+
+      host.remove();
+      foreignNode.remove();
+    });
+  });
+
+  //
   // Handsontable.helper.getDeepActiveElement
   //
   describe('getDeepActiveElement', () => {

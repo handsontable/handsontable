@@ -283,7 +283,6 @@ export class CollapsibleColumns extends BasePlugin {
         });
 
       } else if (Array.isArray(collapsibleColumns)) {
-
         this.headerStateManager?.mapState(() => {
           return { collapsible: false };
         });
@@ -622,7 +621,6 @@ export class CollapsibleColumns extends BasePlugin {
       isActionPerformed,
     );
 
-    this.hot.view.adjustElementsSize();
     this.hot.render();
   }
 

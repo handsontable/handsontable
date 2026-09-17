@@ -376,6 +376,15 @@ export class DropdownController {
   }
 
   /**
+   * Returns the pixel width of the dropdown box, including padding and border.
+   *
+   * @returns {number}
+   */
+  getOuterWidth(): number {
+    return this.#containerElement ? this.#containerElement.offsetWidth : 0;
+  }
+
+  /**
    * Calculates the total pixel height of the dropdown including the item list and search input wrapper.
    */
   getHeight(maxRowsCalculation = false, outerWidth = false): number {

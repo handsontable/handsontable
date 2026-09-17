@@ -1,5 +1,5 @@
 import { A11Y_HIDDEN } from '../a11y';
-import { isSafariBefore261, isMobileBrowser, isIpadOS, isWindowsOS } from '../browser';
+import { isSafariBefore261, isMobileOrIpadOS, isWindowsOS } from '../browser';
 import { throwWithCause } from '../../helpers/errors';
 import { warnOnce } from '../../helpers/console';
 import type { SanitizerContext, TrustedHTMLLike } from '../../core/settings';
@@ -60,6 +60,40 @@ export function isInternalElement(element: HTMLElement, thisHotContainer: HTMLEl
  */
 export function eventTargetEl<T extends HTMLElement = HTMLElement>(event: Event): T | null {
   return event.target as T | null;
+}
+
+/**
+ * Gets the element the event was raised on, looking through the shadow boundaries the browser
+ * retargets across.
+ *
+ * An event raised inside a shadow root is retargeted for every listener bound above that root,
+ * so `event.target` reports the shadow host instead of the node that was focused or clicked.
+ * `composedPath()` still carries the real node - but a sandboxed host (e.g. Salesforce Lightning
+ * Web Security) collapses that path to the shadow host chain, so the composed node is trusted
+ * only when it is rendered within the retargeted target's own shadow tree. In every other case
+ * the retargeted `event.target` is returned unchanged.
+ *
+ * @param {Event} event The event.
+ * @returns {HTMLElement|null} The element the event was raised on, or null.
+ */
+export function getComposedEventTargetEl(event: Event): HTMLElement | null {
+  const target = eventTargetEl(event);
+
+  if (target === null || typeof event.composedPath !== 'function') {
+    return target;
+  }
+
+  const [composedTarget] = event.composedPath();
+
+  if (
+    !isHTMLElement(composedTarget) ||
+    composedTarget === target ||
+    !getShadowHostChain(composedTarget).includes(target)
+  ) {
+    return target;
+  }
+
+  return composedTarget;
 }
 
 /**
@@ -1470,7 +1504,7 @@ function walkontableCalculateScrollbarWidth(rootDocument = document) {
   // forces that via htScrollbarSafariTest so we get a correct non-zero width. We must only run
   // this fallback when isSafariBefore261(), otherwise Safari 26.1+ with overlay scrollbars would
   // be given 9px from the probe (which has no theme) while .wtHolder actually has 0-width overlay.
-  if (defaultScrollbarWidth === 0 && isSafariBefore261() && !isMobileBrowser() && !isIpadOS()) {
+  if (defaultScrollbarWidth === 0 && isSafariBefore261() && !isMobileOrIpadOS()) {
     return calculateScrollbarWidth(true);
   }
 
@@ -1812,4 +1846,24 @@ export function getChildEl<T extends HTMLElement = HTMLElement>(parent: ParentNo
   const node = parent.childNodes[index];
 
   return node ? (node as T) : null;
+}
+
+/**
+ * Removes the element's inline `style` attribute so that nothing of it remains. A bare
+ * `removeAttribute('style')` is not enough in Chromium: the attribute is synchronized lazily from the
+ * `element.style` declaration, and when the declaration was written and never read back, the removal
+ * lands before the synchronization and an empty `style=""` attribute is left behind. Reading the
+ * attribute first settles it, and the removal is then complete.
+ *
+ * The `hasAttribute` read IS the fix, not a shortcut: do not reduce the body to a bare
+ * `removeAttribute('style')`. jsdom does not reproduce the lazy synchronization, so no unit test can
+ * catch that; the `no-restricted-syntax` override for the Walkontable renderers in `.eslintrc.js`
+ * bans the bare call there instead.
+ *
+ * @param {HTMLElement} element The element to clear.
+ */
+export function removeInlineStyle(element: HTMLElement): void {
+  if (element.hasAttribute('style')) {
+    element.removeAttribute('style');
+  }
 }

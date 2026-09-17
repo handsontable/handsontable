@@ -9,6 +9,7 @@ Read and apply the review checklists from these files:
 - @.claude/skills/handsontable-code-review/references/code-quality.md -- ESLint rules, JSDoc, naming, cognitive complexity, bundle size
 - @.claude/skills/handsontable-code-review/references/architecture.md -- SOLID, Law of Demeter, plugin decoupling, breaking changes, convention over configuration
 - @.claude/skills/handsontable-code-review/references/performance-a11y.md -- large arrays, render batching, WCAG 2.1 AA, keyboard navigation
+- @.claude/skills/handsontable-code-review/references/tests.md -- a named exercising test per new interaction path, scoped mutation when unit tests changed, near-duplicate DOM helpers, timing-semantics JSDoc checked against its primitive, a ticket on every weakened assertion
 
 ## Core-specific context
 

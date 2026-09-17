@@ -676,6 +676,19 @@ Only a cell whose root expression is `HYPERLINK` becomes a link. A nested call s
 `=CONCATENATE("see ", HYPERLINK("https://handsontable.com"))` evaluates to text, so the cell renders
 as text.
 
+To configure the links, set `hyperlinks` to an object: `target` is `'_blank'` (default) or `'_self'`, and
+`schemes` narrows the allowed URL schemes to a subset of `'http'`, `'https'`, `'mailto'`, and `'tel'`.
+
+```js
+formulas: {
+  engine: HyperFormula,
+  hyperlinks: {
+    target: '_self',
+    schemes: ['http', 'https'],
+  },
+},
+```
+
 ### Allowed URL schemes
 
 Handsontable creates a link only for the `http`, `https`, `mailto`, and `tel` schemes. Any other
@@ -685,17 +698,15 @@ the URL that the formula produces, so a URL that comes from cell data is checked
 ### Keyboard access
 
 A link inside a cell stays out of the tab order, so tabbing still moves between cells. To open the
-link of the selected cell, press <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd>. Links open in a new browser
-tab.
+link of the selected cell, press <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd>. Links open where the `target` setting says, a new browser tab by default.
 
 ### Styling
 
-Each link element gets the `ht-hyperlink` class, and takes its color from the `--ht-link-color` and
+Each link element gets the `ht-link` and `ht-hyperlink` classes, and takes its color from the `--ht-link-color` and
 `--ht-link-hover-color` [theme variables](@/guides/styling/themes/themes.md).
 
-To render links in cells that hold plain URLs rather than formulas, write a
-[custom renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md#render-hyperlinks-in-cells)
-instead.
+To render links in cells that hold plain URLs rather than formulas, use the
+[`autoLink`](@/guides/cell-features/clickable-links/clickable-links.md) option.
 
 ## [`afterFormulasValuesUpdate`](@/api/hooks.md#afterformulasvaluesupdate) hook
 
@@ -1218,6 +1229,17 @@ const hotSettings = ref({
 - Formulas don't support [`getSourceData()`](@/api/core.md#getsourcedata), as this method operates on source data (using [physical indexes](@/api/indexMapper.md)), whereas formulas operate on visual data (using visual indexes).
 - Formulas don't support nested data, i.e., when Handsontable's [`data`](@/api/options.md#data) is set to an [array of nested objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects).
 - [`preserveTextValue`](@/api/options.md#preservetextvalue) works only with the built-in [`text`](@/guides/cell-types/cell-type/cell-type.md) cell type. Custom cell types are not supported, even when they reuse the text editor or renderer.
+- Sorting a column that contains formulas can produce `#REF!`. Handsontable does not rewrite formula references to follow sorted rows. See [Sorting formula cells](#sorting-formula-cells).
+
+### Sorting formula cells
+
+Sorting a column that contains formulas can produce `#REF!`. A later sort does not restore the original formulas.
+
+This is a known limitation. Handsontable does not rewrite formula references to follow sorted rows.
+
+Keep summary and totals formulas on a [`fixedRowsBottom`](@/api/options.md#fixedrowsbottom) row. Frozen footer rows stay out of the sortable body by default. See [Frozen rows stay out of the sort by default](@/guides/rows/rows-sorting/rows-sorting.md#frozen-rows-stay-out-of-the-sort-by-default) and [#12627](https://github.com/handsontable/handsontable/pull/12627).
+
+A hook or snippet that pins a non-frozen totals row does not protect other formula cells in the sortable range.
 
 ### HyperFormula version support
 
