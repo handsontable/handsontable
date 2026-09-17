@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-17T10:44:31.436Z",
+  "generatedAt": "2026-09-17T11:36:32.458Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 23,
+    "tests": 26,
     "needsTicket": 5,
     "quarantined": 0,
-    "entries": 83
+    "entries": 101
   },
   "rows": [
     {
@@ -213,6 +213,114 @@
         "leg": "e2e-classic",
         "status": "failed",
         "error": "Test timeout of 20000ms exceeded.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/list-cell-arrow-layout.spec.ts|autocomplete list-cell arrow layout › still wraps a breakable value when wordWrap is left at its default",
+      "tier": "playwright",
+      "file": "e2e/list-cell-arrow-layout.spec.ts",
+      "line": 74,
+      "title": "autocomplete list-cell arrow layout › still wraps a breakable value when wordWrap is left at its default",
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-classic-min",
+        "e2e-horizon",
+        "e2e-horizon-min",
+        "e2e-main",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-17T11:35:39Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35214466128",
+        "branch": "feature/DEV-28_Truncate-narrow-dropdown-cells-reland",
+        "leg": "e2e-classic",
+        "status": "failed",
+        "error": "Error: expect(received).toBeGreaterThan(expected)",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/list-cell-arrow-layout.spec.ts|dropdown list-cell arrow layout › still wraps a breakable value when wordWrap is left at its default",
+      "tier": "playwright",
+      "file": "e2e/list-cell-arrow-layout.spec.ts",
+      "line": 74,
+      "title": "dropdown list-cell arrow layout › still wraps a breakable value when wordWrap is left at its default",
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-classic-min",
+        "e2e-horizon",
+        "e2e-horizon-min",
+        "e2e-main",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-17T11:35:39Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35214466128",
+        "branch": "feature/DEV-28_Truncate-narrow-dropdown-cells-reland",
+        "leg": "e2e-classic",
+        "status": "failed",
+        "error": "Error: expect(received).toBeGreaterThan(expected)",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/list-cell-arrow-layout.spec.ts|handsontable list-cell arrow layout › still wraps a breakable value when wordWrap is left at its default",
+      "tier": "playwright",
+      "file": "e2e/list-cell-arrow-layout.spec.ts",
+      "line": 74,
+      "title": "handsontable list-cell arrow layout › still wraps a breakable value when wordWrap is left at its default",
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-classic-min",
+        "e2e-horizon",
+        "e2e-horizon-min",
+        "e2e-main",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-17T11:35:39Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35214466128",
+        "branch": "feature/DEV-28_Truncate-narrow-dropdown-cells-reland",
+        "leg": "e2e-classic",
+        "status": "failed",
+        "error": "Error: expect(received).toBeGreaterThan(expected)",
         "source": "ci"
       },
       "needsTicket": false
