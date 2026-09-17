@@ -51,6 +51,13 @@
       flex-shrink: 0;
       max-width: 100px;
       box-sizing: border-box;
+      // DEV-75. The chip and everything inside it are spans. A host rule on bare `span` beats the
+      // inheritance they relied on, so the chips grew while the cell text kept the token. `inherit`
+      // (not the token) keeps a user's own `td` override in force.
+      font-size: inherit;
+      line-height: inherit;
+      font-weight: inherit;
+      letter-spacing: inherit;
     }
 
     .ht-multi-select-chip-label {
@@ -58,6 +65,8 @@
       text-overflow: ellipsis;
       color: var(--ht-foreground-color);
       font-style: normal;
+      // DEV-75. `font-size` was the one text metric left to inheritance; see `.ht-multi-select-chip`.
+      font-size: inherit;
       font-weight: var(--ht-font-weight);
       line-height: var(--ht-line-height, 40px);
       letter-spacing: var(--ht-letter-spacing, 0);
@@ -78,6 +87,11 @@
       background-size: contain;
       background-repeat: no-repeat;
       background-position: center;
+      // DEV-75. Icon-only, but still a span: a host `span` rule changed its line box. See `.ht-multi-select-chip`.
+      font-size: inherit;
+      line-height: inherit;
+      font-weight: inherit;
+      letter-spacing: inherit;
 
       &::before {
         @include mixins.pseudo;
@@ -102,6 +116,11 @@
       color: var(--ht-foreground-color);
       white-space: nowrap;
       flex-shrink: 0;
+      // DEV-75. See `.ht-multi-select-chip`.
+      font-size: inherit;
+      line-height: inherit;
+      font-weight: inherit;
+      letter-spacing: inherit;
     }
   }
 
