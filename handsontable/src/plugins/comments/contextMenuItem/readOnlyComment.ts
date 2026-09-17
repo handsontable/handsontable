@@ -1,6 +1,6 @@
 import type { HotInstance } from '../../../core/types';
 import * as C from '../../../i18n/constants';
-import { checkSelectionConsistency } from '../../contextMenu/utils';
+import { getSelectionCheckState } from '../../contextMenu/utils';
 import { META_COMMENT, META_READONLY, type CommentObject, type Comments } from '../comments';
 
 /**
@@ -14,7 +14,7 @@ export default function readOnlyCommentItem(plugin: Comments) {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT);
     },
     checked(this: HotInstance) {
-      return checkSelectionConsistency(this.getSelectedRange() ?? [], (row: number, col: number) => {
+      return getSelectionCheckState(this.getSelectedRange() ?? [], (row: number, col: number) => {
         // Read transiently rather than through `plugin.getCommentMeta()`, which resolves via
         // `getCellMeta`. This walks the whole selection on every menu draw and only breaks early
         // on a hit, so the materializing read would retain one meta object per visited cell for

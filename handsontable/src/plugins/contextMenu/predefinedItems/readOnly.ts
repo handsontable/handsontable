@@ -1,18 +1,18 @@
 import type { HotInstance } from '../../../core/types';
-import { checkSelectionConsistency } from '../utils';
+import { getSelectionCheckState } from '../utils';
 import * as C from '../../../i18n/constants';
 
 export const KEY = 'make_read_only';
 
 /**
- * Checks whether any cell in the current selection is already read-only.
+ * Reports whether every, no, or only some of the selected cells are read-only.
  *
  * @param {Core} hot The Handsontable instance.
  * @param {CellRange[]} [ranges] The ranges to check. Defaults to the whole selection.
- * @returns {boolean}
+ * @returns {boolean|string}
  */
-function hasReadOnlyCell(hot: HotInstance, ranges = hot.getSelectedRange() ?? []) {
-  return checkSelectionConsistency(
+function getReadOnlyState(hot: HotInstance, ranges = hot.getSelectedRange() ?? []) {
+  return getSelectionCheckState(
     ranges,
     (row: number, col: number) => Boolean(hot.getCellMetaTransient(row, col).readOnly)
   );
@@ -29,7 +29,7 @@ export default function readOnlyItem() {
     // The single source for both the check mark the renderer draws and the item's `aria-checked`
     // state, which is why this item declares no `ariaChecked` of its own any more.
     checked(this: HotInstance) {
-      return hasReadOnlyCell(this);
+      return getReadOnlyState(this);
     },
 
     // No `ariaLabel`: the renderer falls back to the item's label, and these two were the same
@@ -39,7 +39,8 @@ export default function readOnlyItem() {
     },
     callback(this: HotInstance) {
       const ranges = this.getSelectedRange() ?? [];
-      const atLeastOneReadOnly = hasReadOnlyCell(this, ranges);
+      // "At least one", unlike the mark: a partly read-only selection is made writable as a whole.
+      const atLeastOneReadOnly = getReadOnlyState(this, ranges) !== false;
 
       for (const range of ranges) {
         range.forAll((row: number, col: number) => {

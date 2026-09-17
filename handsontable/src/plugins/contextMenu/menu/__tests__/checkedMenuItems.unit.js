@@ -1,4 +1,9 @@
-import { isItemChecked, isItemCheckable } from 'handsontable/plugins/contextMenu/menu/utils';
+import {
+  getItemCheckedState,
+  isItemChecked,
+  isItemCheckable,
+  MENU_ITEM_MIXED,
+} from 'handsontable/plugins/contextMenu/menu/utils';
 import readOnlyItem from 'handsontable/plugins/contextMenu/predefinedItems/readOnly';
 import readOnlyCommentItem from 'handsontable/plugins/comments/contextMenuItem/readOnlyComment';
 import topItem from 'handsontable/plugins/customBorders/contextMenuItem/top';
@@ -7,7 +12,7 @@ import leftItem from 'handsontable/plugins/customBorders/contextMenuItem/left';
 import rightItem from 'handsontable/plugins/customBorders/contextMenuItem/right';
 
 /**
- * A range covering a single cell, in the shape `checkSelectionConsistency` and
+ * A range covering a single cell, in the shape `getSelectionCheckState` and
  * `checkSelectionBorders` both walk.
  *
  * @returns {object}
@@ -141,5 +146,122 @@ describe('menu items that draw a check mark', () => {
     // A tripwire against this list falling behind: if a seventh item starts drawing a mark, it
     // has to be added here rather than shipping untested.
     expect(CHECKED_ITEMS.length).toBe(6);
+  });
+});
+
+describe('menu items whose selection is only partly on (DEV-124)', () => {
+  /**
+   * A stub whose selection is two cells, each reporting its own meta.
+   *
+   * @param {object} firstMeta The meta of cell (0, 0).
+   * @param {object} secondMeta The meta of cell (0, 1).
+   * @returns {object}
+   */
+  function createTwoCellHotStub(firstMeta, secondMeta) {
+    return {
+      getSelectedRange: () => [{
+        forAll(callback) {
+          if (callback(0, 0) !== false) {
+            callback(0, 1);
+          }
+        },
+      }],
+      getCellMetaTransient: (row, col) => (col === 0 ? firstMeta : secondMeta),
+      getTranslatedPhrase: phrase => phrase,
+    };
+  }
+
+  const MIXED_ITEMS = [
+    {
+      label: 'make_read_only',
+      build: () => readOnlyItem(),
+      onMeta: { readOnly: true },
+      offMeta: { readOnly: false },
+    },
+    {
+      label: 'commentsReadOnly',
+      build: () => readOnlyCommentItem({}),
+      onMeta: { comment: { value: 'a note', readOnly: true } },
+      offMeta: { comment: { value: 'another note' } },
+    },
+  ];
+
+  MIXED_ITEMS.forEach((spec) => {
+    describe(spec.label, () => {
+      it('should report mixed, not checked, when one cell is on and the other is off', () => {
+        const hot = createTwoCellHotStub(spec.onMeta, spec.offMeta);
+        const item = spec.build();
+
+        expect(getItemCheckedState(item, hot)).toBe(MENU_ITEM_MIXED);
+        // The two-state reader must not read a partly-on selection as checked.
+        expect(isItemChecked(item, hot)).toBe(false);
+      });
+
+      it('should still report checked when every cell is on', () => {
+        const hot = createTwoCellHotStub(spec.onMeta, spec.onMeta);
+
+        expect(getItemCheckedState(spec.build(), hot)).toBe(true);
+      });
+
+      it('should still report unchecked when no cell is on', () => {
+        const hot = createTwoCellHotStub(spec.offMeta, spec.offMeta);
+
+        expect(getItemCheckedState(spec.build(), hot)).toBe(false);
+      });
+    });
+  });
+
+  it('should keep the toggle acting on "at least one", so a mixed selection is cleared', () => {
+    const cells = [{ readOnly: true }, { readOnly: false }];
+    const setCellMeta = jest.fn();
+    const hot = {
+      ...createTwoCellHotStub(cells[0], cells[1]),
+      setCellMeta,
+      render: jest.fn(),
+    };
+
+    readOnlyItem().callback.call(hot);
+
+    // Unchanged since 2014 and pinned by `readOnly.spec.js`: the mark changed, the action did not.
+    expect(setCellMeta.mock.calls).toEqual([
+      [0, 0, 'readOnly', false],
+      [0, 1, 'readOnly', false],
+    ]);
+  });
+});
+
+describe('resolving the checked state of an item', () => {
+  it('should pass the mixed literal through, from a value or from a function', () => {
+    expect(getItemCheckedState({ checked: MENU_ITEM_MIXED }, {})).toBe(MENU_ITEM_MIXED);
+    expect(getItemCheckedState({ checked: () => MENU_ITEM_MIXED }, {})).toBe(MENU_ITEM_MIXED);
+  });
+
+  it('should read anything other than `true` or the mixed literal as unchecked', () => {
+    // Items written against the two-state API keep behaving as they did: a truthy value that is
+    // not `true` was never checked, and a string other than the literal is not a third state.
+    [false, undefined, null, 1, 'true', 'Mixed', {}].forEach((checked) => {
+      expect(getItemCheckedState({ checked }, {})).toBe(false);
+      expect(getItemCheckedState({ checked: () => checked }, {})).toBe(false);
+    });
+  });
+
+  it('should call a `checked` function with the Handsontable instance as `this`', () => {
+    const hot = {};
+    let receiver;
+
+    getItemCheckedState({ checked() {
+      receiver = this;
+
+      return true;
+    } }, hot);
+
+    expect(receiver).toBe(hot);
+  });
+
+  it('should treat a static mixed state as checkable, and no other string', () => {
+    // A mark drawn on a plain `menuitem` has no accessible equivalent, so a static `'mixed'` must
+    // announce as a checkbox. An unrelated string property named `checked` must still not.
+    expect(isItemCheckable({ checked: MENU_ITEM_MIXED })).toBe(true);
+    expect(isItemCheckable({ checked: 'something else' })).toBe(false);
   });
 });

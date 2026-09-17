@@ -38,6 +38,7 @@ test.describe('context menu items that draw a check mark', () => {
       ariaChecked: 'true',
       ariaLabel: 'Read only',
       checkMarks: 1,
+      mixedMarks: 0,
     });
   });
 
@@ -54,6 +55,7 @@ test.describe('context menu items that draw a check mark', () => {
       ariaChecked: 'true',
       ariaLabel: 'Read-only comment',
       checkMarks: 1,
+      mixedMarks: 0,
     });
   });
 
@@ -70,6 +72,7 @@ test.describe('context menu items that draw a check mark', () => {
       ariaChecked: 'true',
       ariaLabel: 'Top',
       checkMarks: 1,
+      mixedMarks: 0,
     });
 
     for (const side of ['Right', 'Bottom', 'Left']) {
@@ -78,6 +81,7 @@ test.describe('context menu items that draw a check mark', () => {
         ariaChecked: 'false',
         ariaLabel: side,
         checkMarks: 0,
+        mixedMarks: 0,
       });
     }
   });
@@ -101,6 +105,7 @@ test.describe('context menu items that draw a check mark', () => {
       ariaChecked: 'false',
       ariaLabel: 'Top',
       checkMarks: 0,
+      mixedMarks: 0,
     });
   });
 
@@ -117,5 +122,83 @@ test.describe('context menu items that draw a check mark', () => {
       expect(state.ariaLabel).toBe(label);
       expect(state.ariaLabel).not.toContain('<');
     }
+  });
+
+  /**
+   * DEV-124. With one read-only cell in a selection of writable ones, both read-only items drew a
+   * full check mark and announced `aria-checked="true"`, because the state was "at least one cell".
+   * A partly-on selection is now drawn as a dash and announced as `mixed`. The click is unchanged:
+   * it still makes the whole selection writable, which `readOnly.spec.js` pins.
+   */
+  test.describe('a selection that is only partly on (DEV-124)', () => {
+    test('draws and announces both read-only items as mixed, not checked', async () => {
+      await menu.markCellChecked();
+      await menu.markNeighborUnchecked();
+      await menu.selectFirstTwoCells();
+      await menu.openMenuOnFirstCell();
+
+      // A precondition, not decoration: if the right-click collapsed the selection to (0, 0), the
+      // items would read as checked for a reason unrelated to the fix.
+      expect(await menu.selectedRange()).toEqual([0, 0, 0, 1]);
+
+      for (const label of ['Read only', 'Read-only comment']) {
+        expect(await menu.itemState(label)).toEqual({
+          role: 'menuitemcheckbox',
+          ariaChecked: 'mixed',
+          ariaLabel: label,
+          checkMarks: 0,
+          mixedMarks: 1,
+        });
+      }
+    });
+
+    test('keeps a selection whose every cell is on checked, not mixed', async () => {
+      // The control for the test above. Without it, an implementation that reported every
+      // multi-cell selection as mixed would pass.
+      await menu.markCellChecked();
+      await menu.markNeighborChecked();
+      await menu.selectFirstTwoCells();
+      await menu.openMenuOnFirstCell();
+
+      expect(await menu.selectedRange()).toEqual([0, 0, 0, 1]);
+
+      for (const label of ['Read only', 'Read-only comment']) {
+        expect(await menu.itemState(label)).toEqual({
+          role: 'menuitemcheckbox',
+          ariaChecked: 'true',
+          ariaLabel: label,
+          checkMarks: 1,
+          mixedMarks: 0,
+        });
+      }
+    });
+
+    test('paints the mixed state with its own glyph, not the check mark', async () => {
+      // Counting spans proves the DOM only. This reads the icon mask the theme's stylesheet puts on
+      // each mark, which is what the user actually sees - and which a missing icon rule for
+      // `htMixed` would leave as `none`, an invisible mark on a correctly announced item.
+      await menu.markCellChecked();
+      await menu.markNeighborUnchecked();
+      await menu.selectFirstTwoCells();
+      await menu.openMenuOnFirstCell();
+
+      const mixed = await menu.markGlyph('Read only');
+
+      await menu.closeMenu();
+      await menu.markNeighborChecked();
+      await menu.selectFirstTwoCells();
+      await menu.openMenuOnFirstCell();
+
+      const checked = await menu.markGlyph('Read only');
+
+      expect(mixed.className).toBe('htMixed');
+      expect(checked.className).toBe('selected');
+      expect(mixed.maskImage).toContain('svg');
+      expect(checked.maskImage).toContain('svg');
+      expect(mixed.maskImage).not.toBe(checked.maskImage);
+      // The dash sits where the check mark sits, at the same icon size.
+      expect(mixed.width).toBeGreaterThan(0);
+      expect(mixed.width).toBe(checked.width);
+    });
   });
 });
