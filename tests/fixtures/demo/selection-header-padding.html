@@ -28,7 +28,9 @@
     body { font-family: sans-serif; margin: 1rem; }
     .case { margin-bottom: 2rem; }
     #padded .htCore thead th,
-    #padded .htCore tbody th {
+    #padded .htCore tbody th,
+    #padded-rtl .htCore thead th,
+    #padded-rtl .htCore tbody th {
       padding: 16px 8px;
     }
     #line-break .htCore thead th,
@@ -52,6 +54,10 @@
   <div class="case">
     <h2>Padded headers</h2>
     <div id="padded" data-testid="padded"></div>
+  </div>
+  <div class="case">
+    <h2>Padded headers (RTL)</h2>
+    <div id="padded-rtl" data-testid="padded-rtl"></div>
   </div>
   <div class="case">
     <h2>Line-break column headers</h2>
@@ -92,6 +98,7 @@
 
     window.grids = {
       padded: build('padded', {}),
+      paddedRtl: build('padded-rtl', { layoutDirection: 'rtl' }),
       lineBreak: build('line-break', { colHeaders: lineBreakHeaders }),
       nested: build('nested', {
         rowHeaders: [

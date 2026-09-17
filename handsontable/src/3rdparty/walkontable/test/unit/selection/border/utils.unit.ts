@@ -1,6 +1,7 @@
 import {
   isHeaderPlaceholder,
   lookupSelectionHeader,
+  measureHeaderSelectionBox,
   resolveHeaderLevel,
 } from '../../../../src/selection/border/utils';
 
@@ -121,5 +122,28 @@ describe('lookupSelectionHeader', () => {
     });
 
     expect(lookupSelectionHeader(getHeader, 1, 2, 3)).toBe(leaf);
+  });
+});
+
+describe('measureHeaderSelectionBox', () => {
+  it('should measure a row from the start header top to the end header bottom', () => {
+    expect(measureHeaderSelectionBox('rows', 40, 80, 20, 24, 10, false, 0)).toEqual([29, 64]);
+    expect(measureHeaderSelectionBox('rows', 40, 80, 20, 24, 10, true, 400)).toEqual([29, 64]);
+  });
+
+  it('should measure an LTR column from the start header left to the end header right', () => {
+    expect(measureHeaderSelectionBox('columns', 30, 90, 50, 40, 10, false, 400)).toEqual([19, 100]);
+  });
+
+  it('should measure an RTL column from the table inline-end, matching appear() body math', () => {
+    // Start header (fromIndex) sits on the visual right; end header on the visual left.
+    // appear() writes this start to `style.right`:
+    //   container.left + container.width - (start.left + start.width) - 1
+    //   width = start.left + start.width - end.left
+    expect(measureHeaderSelectionBox('columns', 200, 80, 50, 40, 10, true, 400)).toEqual([159, 170]);
+  });
+
+  it('should keep a single RTL column width equal to that header width', () => {
+    expect(measureHeaderSelectionBox('columns', 200, 200, 50, 50, 10, true, 400)).toEqual([159, 50]);
   });
 });

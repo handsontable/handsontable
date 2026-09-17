@@ -10,8 +10,9 @@ import { SelectionHeaderPaddingPage } from '../fixtures/pages/SelectionHeaderPad
  * cell instead.
  *
  * The unit spec that fails without the level fix is `resolveHeaderLevel` in
- * `walkontable/test/unit/selection/border/utils.unit.ts`. These cases pin the user-visible
- * alignment that that lookup is for.
+ * `walkontable/test/unit/selection/border/utils.unit.ts`. `measureHeaderSelectionBox` is the spec
+ * that fails if RTL column math falls back to left-edge values written to `style.right`. These
+ * cases pin the user-visible alignment that that lookup is for.
  */
 test.describe('Selection highlight with custom header padding', () => {
   let grid: SelectionHeaderPaddingPage;
@@ -45,7 +46,10 @@ test.describe('Selection highlight with custom header padding', () => {
   test('aligns the full-row highlight when column headers wrap onto a second line', async () => {
     await grid.selectRow('lineBreak', 0);
 
+    // Same overlay: the row header the user sees, even when wrapping THEADs differ in height.
     await expect.poll(() => grid.selectionTopOffsetFromRowHeader('line-break', 0)).toBe(0);
+    // Master: wrapping labels moved the first body row down; the highlight follows that cell.
+    await expect.poll(() => grid.selectionTopOffsetFromMasterBodyCell('line-break', 0)).toBe(0);
   });
 
   test('aligns the full-row highlight when more than one row-header level is rendered', async () => {
@@ -58,5 +62,18 @@ test.describe('Selection highlight with custom header padding', () => {
     await grid.selectColumn('padded', 0);
 
     await expect.poll(() => grid.selectionStartOffsetFromColumnHeader('padded', 0)).toBe(0);
+  });
+
+  test('aligns the full-row highlight with a padded row header in RTL', async () => {
+    await grid.selectRow('paddedRtl', 0);
+
+    await expect.poll(() => grid.selectionTopOffsetFromRowHeader('padded-rtl', 0)).toBe(0);
+  });
+
+  test('aligns the full-column highlight with a padded column header in RTL', async () => {
+    await grid.selectColumn('paddedRtl', 0);
+
+    // Left-edge math written to `style.right` places this highlight on the wrong side of the cell.
+    await expect.poll(() => grid.selectionStartOffsetFromColumnHeader('padded-rtl', 0)).toBe(0);
   });
 });

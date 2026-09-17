@@ -101,6 +101,50 @@ export const lookupSelectionHeader = (
 };
 
 /**
+ * Container-relative start and size of a full-row or full-column selection measured from header
+ * cells (DEV-1176).
+ *
+ * Row measurements use top/height. Column measurements follow `Border#appear`'s body-cell math so
+ * RTL writes `style.right` from the table's inline-end, not from the left edge. Left-edge math
+ * on RTL puts the full-column highlight on the wrong side of the cell.
+ *
+ * @param {string} axis `'rows'` (top/height) or `'columns'` (inline-start/width).
+ * @param {number} startEdge The start header's `offset.top` (rows) or `offset.left` (columns).
+ * @param {number} endEdge The end header's `offset.top` (rows) or `offset.left` (columns).
+ * @param {number} startSize The start header's outerHeight (rows) or outerWidth (columns).
+ * @param {number} endSize The end header's outerHeight (rows) or outerWidth (columns).
+ * @param {number} containerEdge The table's `offset.top` (rows) or `offset.left` (columns).
+ * @param {boolean} isRtl Whether the grid is in RTL. Ignored for rows.
+ * @param {number} containerWidth The table's outerWidth. Used only for RTL columns.
+ * @returns {[number, number]} `[start, size]`. For RTL columns, `start` is the `right` offset
+ *   `appear()` assigns to `style.right`.
+ */
+export const measureHeaderSelectionBox = (
+  axis: 'rows' | 'columns',
+  startEdge: number,
+  endEdge: number,
+  startSize: number,
+  endSize: number,
+  containerEdge: number,
+  isRtl: boolean,
+  containerWidth: number,
+): [number, number] => {
+  if (axis === 'columns' && isRtl) {
+    const startInlineEnd = startEdge + startSize;
+
+    return [
+      containerEdge + containerWidth - startInlineEnd - 1,
+      startInlineEnd - endEdge,
+    ];
+  }
+
+  return [
+    startEdge - containerEdge - 1,
+    endEdge + endSize - startEdge,
+  ];
+};
+
+/**
  * Whether this cell sits in the first body row of a table that renders a head row, which is where
  * the column header owns the gridline above the cell (DEV-2786) instead of the cell drawing it.
  *

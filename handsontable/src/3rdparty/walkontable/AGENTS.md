@@ -313,6 +313,13 @@ The header level is **not** `columnHeaders.length - headerIndex`:
   padded-header / rowspan box — and otherwise measures from the closest header, which maps 1:1
   onto the index. Do not revert to `columnHeaders.length - headerIndex` to "fix" this; that
   formula is out of range and drops the padding lookup.
+- Column measurements are **not** always `header.left - table.left`. `appear()` writes the inline
+  start to `style.right` in `rtlMode`. `measureHeaderSelectionBox` is the shared formula: LTR
+  columns stay left-edge math; RTL columns use
+  `table.left + table.width - (header.left + header.width) - 1` (the same identity as the
+  body-cell path, which is written in `innerWidth` / `gridRightPos` form). Feeding left-edge math
+  into `style.right` puts the full-column / select-all highlight on the wrong side of the cell.
+  Rows are top/height on both directions.
 
 ## Border ownership: the header owns its gridline, on both axes
 

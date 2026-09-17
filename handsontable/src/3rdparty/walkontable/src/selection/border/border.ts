@@ -11,7 +11,13 @@ import {
 } from '../../../../../helpers/dom/element';
 import { stopImmediatePropagation, isRightClick } from '../../../../../helpers/dom/event';
 import { isMobileBrowser, isMobileOrIpadOS } from '../../../../../helpers/browser';
-import { getCornerStyle, lookupSelectionHeader, resolveHeaderLevel, standsBelowColumnHeader } from './utils';
+import {
+  getCornerStyle,
+  lookupSelectionHeader,
+  measureHeaderSelectionBox,
+  resolveHeaderLevel,
+  standsBelowColumnHeader,
+} from './utils';
 import { CUSTOM_SELECTION_TYPE } from '../constants';
 import { getSpreaderOffset } from '../../overlay/spreaderOffset';
 
@@ -1851,7 +1857,9 @@ class Border {
    *   negative value is a header coordinate (`-1` is closest to the cells). A non-negative value is
    *   a body index and resolves to the closest header.
    * @param {number} containerOffset Offset of the container.
-   * @returns {Array|boolean} Returns an array of [headerElement, left, width] or [headerElement, top, height], depending on `direction` (`false` in case of an error getting the headers).
+   * @returns {Array|boolean} Returns an array of [headerElement, inlineOrBlockStart, size] —
+   *   `[th, left, width]` in LTR columns, `[th, right, width]` in RTL columns, `[th, top, height]`
+   *   for rows — or `false` when the headers cannot be resolved.
    */
   getDimensionsFromHeader(
     direction: string, fromIndex: number, toIndex: number, headerIndex: number,
@@ -1862,8 +1870,6 @@ class Border {
     let getHeaderFn: ((...args: unknown[]) => HTMLElement | undefined) | null = null;
     let dimensionFn: ((el: HTMLElement) => number) | null = null;
     let entireSelectionClassname: string | null = null;
-    let index: number | null = null;
-    let dimension: number | null = null;
     let dimensionProperty: 'top' | 'left' | null = null;
     let startHeader: HTMLElement | undefined | null = null;
     let endHeader: HTMLElement | undefined | null = null;
@@ -1901,14 +1907,27 @@ class Border {
         return false;
       }
 
+      const isRtl = this.wot.wtSettings.getSetting('rtlMode');
       const startHeaderOffset = geometryReader.offset(startHeader);
       const endOffset = geometryReader.offset(endHeader);
       const startOff = startHeaderOffset[dimensionProperty!];
       const endOff = endOffset[dimensionProperty!];
       const contOff = containerOffset[dimensionProperty!];
-
-      index = startOff - contOff - 1;
-      dimension = endOff + dimensionFn!(endHeader) - startOff;
+      const startSize = dimensionFn!(startHeader);
+      const endSize = dimensionFn!(endHeader);
+      const containerWidth = direction === 'columns' && isRtl
+        ? geometryReader.outerWidth(wtTable.TABLE)
+        : 0;
+      const [index, dimension] = measureHeaderSelectionBox(
+        direction === 'rows' ? 'rows' : 'columns',
+        startOff,
+        endOff,
+        startSize,
+        endSize,
+        contOff,
+        isRtl,
+        containerWidth,
+      );
 
       return [startHeader, index, dimension];
     }
