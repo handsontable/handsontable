@@ -1,19 +1,9 @@
-// you need `useRef` to call Handsontable's instance methods
-import { useRef } from 'react';
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 const ExampleComponent = () => {
-    const hotTableComponentRef = useRef(null);
-    const exclude = () => {
-        const hotInstance = hotTableComponentRef.current?.hotInstance;
-        // @ts-ignore
-        const filtersRowsMap = hotInstance?.getPlugin('filters').filtersRowsMap;
-        filtersRowsMap.setValueAtIndex(0, false);
-        filtersRowsMap.setValueAtIndex(filtersRowsMap.getLength() - 1, false);
-    };
-    return (<HotTable ref={hotTableComponentRef} data={[
+    return (<HotTable data={[
             {
                 brand: 'Gigabox',
                 model: 'HL Mountain Frame',
@@ -171,6 +161,6 @@ const ExampleComponent = () => {
                 data: 'inStock',
                 className: 'htCenter',
             },
-        ]} height={200} colWidths={[120, 150, 120, 140, 120, 120]} fixedRowsTop={1} fixedRowsBottom={1} colHeaders={true} filters={true} dropdownMenu={true} afterFilter={exclude} autoWrapRow={true} autoWrapCol={true} licenseKey="non-commercial-and-evaluation"/>);
+        ]} height={200} colWidths={[120, 150, 120, 140, 120, 120]} fixedRowsTop={1} fixedRowsBottom={1} colHeaders={true} filters={{ filterFixedRows: false }} dropdownMenu={true} autoWrapRow={true} autoWrapCol={true} licenseKey="non-commercial-and-evaluation"/>);
 };
 export default ExampleComponent;
