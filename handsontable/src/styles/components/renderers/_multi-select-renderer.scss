@@ -65,11 +65,12 @@
       text-overflow: ellipsis;
       color: var(--ht-foreground-color);
       font-style: normal;
-      // DEV-75. `font-size` was the one text metric left to inheritance; see `.ht-multi-select-chip`.
+      // DEV-75. All four text metrics follow the cell through the chip, so a host `span` rule cannot
+      // reach them and a user's own `td` override still does. See `.ht-multi-select-chip`.
       font-size: inherit;
-      font-weight: var(--ht-font-weight);
+      font-weight: inherit;
       line-height: var(--ht-line-height, 40px);
-      letter-spacing: var(--ht-letter-spacing, 0);
+      letter-spacing: inherit;
       padding: 0 var(--ht-chip-gap);
     }
 
