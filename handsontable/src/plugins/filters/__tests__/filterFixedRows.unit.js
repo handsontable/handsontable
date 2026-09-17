@@ -275,6 +275,30 @@ describe('Filters -> filterFixedRows', () => {
       expect(hot.getDataAtCol(0)).toEqual(['Banana', 'Apple', 'Cherry']);
     });
 
+    it('should pin the whole frozen SPAN, including a row HiddenRows hides inside it', () => {
+      // The exemption is positional: visual rows [0, fixedRowsTop-1]. That is the same span
+      // `countNotHiddenFixedRowsTop()` measures, and the span never stretches to make up for a
+      // hidden row inside it - with row 0 hidden and `fixedRowsTop: 2` the pane paints ONE row,
+      // visual row 1. So the painted row must be exempt, and the hidden row stays exempt too.
+      // Exempting only the painted row would trim `Header`, which reappears inside the frozen pane
+      // the moment it is un-hidden.
+      const filters = buildGrid({
+        fixedRowsTop: 2,
+        fixedRowsBottom: 0,
+        hiddenRows: { rows: [0] },
+        filters: { filterFixedRows: false },
+      }).getPlugin('filters');
+
+      expect(hot.view.countNotHiddenFixedRowsTop()).toBe(1);
+
+      filters.addCondition(2, 'eq', ['Red']);
+      filters.filter();
+
+      // Banana is the row the frozen pane paints: Green, yet it survives. Header is hidden inside
+      // the span and survives too. Date is Green and outside the span, so it goes.
+      expect(hot.getDataAtCol(0)).toEqual(['Header', 'Banana', 'Apple', 'Cherry']);
+    });
+
     it('should keep the selection when only pinned rows are left', () => {
       // The deselect guard used to read "no row matched the conditions", which is no longer the
       // same question once pinned rows are exempt. Selecting first is what makes this able to fail.

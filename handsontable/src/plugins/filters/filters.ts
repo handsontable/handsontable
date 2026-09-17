@@ -439,9 +439,11 @@ export class Filters extends BasePlugin {
       return;
     }
 
-    // `filter()` writes the trimming map, which fires the very row-sequence hook that calls this -
-    // so the guard is a re-entrancy flag rather than a test on the change's source. Filtering by
-    // source cannot work: this plugin's own write and a sort both report `'update'`.
+    // A re-entrancy flag, not a test on the change's source. Writing `filtersRowsMap` does not fire
+    // this hook - only a change to the index SEQUENCE does, and a trimming map is not the sequence -
+    // so `filter()` cannot re-enter here on its own. The flag stops a consumer that sorts or moves
+    // rows from `beforeFilter`/`afterFilter`. Source is no help: a sort reports `'update'`, the same
+    // value ordinary changes carry.
     this.#isRefilteringForPinnedRows = true;
 
     try {
@@ -1584,9 +1586,10 @@ export class Filters extends BasePlugin {
    * `afterRowSequenceChange` listener.
    *
    * An insert, a remove, a move or a sort all change which rows sit at the two ends of the grid,
-   * and the trimming map still holds the previous pass's answer. Every source is acted on:
-   * `#refilterForPinnedRows()` owns the re-entrancy guard, because this plugin's own trimming
-   * write and a sort both report the same `'update'` source and cannot be told apart here.
+   * and the trimming map still holds the previous pass's answer. Every source is acted on, because
+   * none of them identifies a change this plugin caused - writing `filtersRowsMap` does not reach
+   * this hook at all, and a sort reports `'update'`, the same value ordinary changes carry.
+   * `#refilterForPinnedRows()` owns the re-entrancy guard.
    */
   #onAfterRowSequenceChange = () => {
     this.#refilterForPinnedRows();

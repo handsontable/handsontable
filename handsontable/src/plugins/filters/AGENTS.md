@@ -81,9 +81,19 @@ captured when the plugin is enabled.
   have hidden while the record that is really pinned stays trimmed. `#onAfterUpdateSettings` covers
   the options, `#onAfterRowSequenceChange` covers the rest, and `#refilterForPinnedRows()` returns
   early unless the grid opted in AND is actually filtering — so a grid that never set the option pays
-  nothing. **Its guard is a re-entrancy flag, never a test on the change's source:** this plugin's
-  own trimming write and a sort both report `'update'`, so filtering by source either loops forever
-  or misses the sort.
+  nothing. **Its guard is a re-entrancy flag, not a test on the change's source.** Writing
+  `filtersRowsMap` does NOT fire `afterRowSequenceChange`: `indexMapper.ts` raises
+  `indexesSequenceChange` from `indexesSequence`'s own `change` handler alone, and the trimming-map
+  handler only sets `trimmedIndexesChanged`. So `filter()` cannot re-enter this path by itself — the
+  flag is there for a consumer that sorts or moves rows from `beforeFilter`/`afterFilter`. Source is
+  no help either: a sort reports `'update'`, the same value ordinary changes carry.
+- **The exemption is POSITIONAL — the visual span, not the rows that get painted.** It covers visual
+  rows `[0, fixedRowsTop-1]` and the last `fixedRowsBottom`, which is exactly the span
+  `countNotHiddenFixedRowsTop()` measures; that span never stretches to make up for a hidden row
+  inside it. So a row hidden by `HiddenRows` within the span is exempt although nothing renders it.
+  That is deliberate, and it is the stable choice: un-hiding such a row needs no re-filter, because
+  it was already exempt. Exempting only the painted rows would trim a row that is about to reappear
+  inside the frozen pane, so it would need a `HiddenRows` hook to stay correct.
 - **The deselect guard is no longer "did anything match".** `!rowIndexesToShow.length` used to mean
   "the grid is empty"; with pinned rows exempt, the visible rows are the matches **plus** the pinned
   ones, and deselecting on an empty match list would drop the selection while rows are on screen. A

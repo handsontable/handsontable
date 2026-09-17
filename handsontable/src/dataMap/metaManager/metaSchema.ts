@@ -3330,6 +3330,13 @@ export default (): Record<string, unknown> => {
      * `filterFixedRows` has no effect while the [`DataProvider`](@/api/dataProvider.md) plugin is
      * active: filtering then happens on the server, which knows nothing about frozen rows.
      *
+     * With `filterFixedRows: false` and a filter applied, changing the row order re-runs the filter.
+     * Inserting, removing, or moving a row, and sorting, all change which rows sit in the frozen
+     * panes, so the exemption has to be worked out again. The
+     * [`beforeFilter`](@/api/hooks.md#beforefilter) and [`afterFilter`](@/api/hooks.md#afterfilter)
+     * hooks fire on those changes as well. Read them as "the filter ran", not as "the user changed
+     * a filter".
+     *
      * **Inside `columns`:**
      *
      * | Setting        | Description                                                                          |
