@@ -12,14 +12,16 @@ const CELL_TYPES: ListCellType[] = ['autocomplete', 'dropdown', 'handsontable'];
  * wrapped the right-floated `.htAutocompleteArrow` onto a second line when `colWidths` pinned the
  * column (and silently disabled AutoColumnSize). The in-cell arrow is now out of flow with its
  * width reserved as trailing padding: AutoColumnSize expands to fit the value plus the arrow, and
- * a fixed `colWidths` column keeps the arrow on the first line. `wordWrap` / `textEllipsis` still
- * apply — restoring the #13463 nowrap+ellipsis was a 19.0 breaking change (#13508 reverted it).
+ * a fixed `colWidths` column keeps the arrow on the first line. These three cell types also keep
+ * their value on a single line and truncate it with an ellipsis, which overrides `wordWrap` /
+ * `textEllipsis` (DEV-28, a 19.0 breaking change: #13463 added it, #13508 reverted it, this
+ * relands it).
  *
  * The load-bearing assertion under `colWidths` is the arrow's top sitting inside the first line
  * box. On the pre-fix float layout that unbreakable token fills the line and the arrow drops
  * below it; every other property (trailing-edge placement, one-line autosize) can hold on a
- * "fix" that only recenters the wrapped arrow. The wrap case is the #13508 guard: a breakable
- * phrase must still be allowed to wrap, or we have re-landed the breaking change.
+ * "fix" that only recenters the wrapped arrow. The single-line case pins the reland: a breakable
+ * phrase that used to wrap now stays on one line, so `wordWrap` no longer reaches these types.
  */
 CELL_TYPES.forEach((cellType) => {
   test.describe(`${cellType} list-cell arrow layout`, () => {
@@ -71,7 +73,7 @@ CELL_TYPES.forEach((cellType) => {
       expect(content!.right).toBeLessThanOrEqual(arrow!.left + 1);
     });
 
-    test('still wraps a breakable value when wordWrap is left at its default', async() => {
+    test('keeps a breakable value on one line even when wordWrap is left at its default', async() => {
       await grid.goto({ mode: 'wrap' });
 
       const { arrow, cell, content, contentBoxRight, lineHeight, paddingTop } = await grid.metrics(0, 0);
@@ -79,9 +81,11 @@ CELL_TYPES.forEach((cellType) => {
       expect(arrow).not.toBeNull();
       expect(content).not.toBeNull();
 
-      // #13508: do not restore nowrap. A phrase with spaces in a 100px column must wrap.
-      expect(content!.height).toBeGreaterThan(lineHeight + 1);
-      // The arrow stays on the first line even while the value wraps beside the reserved slot.
+      // DEV-28 reland: the single-line treatment overrides `wordWrap`, so a breakable phrase in a
+      // 100px column that used to wrap onto several lines (#13508) now stays on one line. This is
+      // the inverse of the pre-reland assertion and is what proves `wordWrap` no longer applies.
+      expect(content!.height).toBeLessThanOrEqual(lineHeight + 1);
+      // The arrow stays on the first line, clear of the value at the reserved content-box edge.
       expect(arrow!.top).toBeLessThan(cell.top + paddingTop + lineHeight);
       expect(arrow!.left).toBeGreaterThanOrEqual(contentBoxRight - 1);
     });
