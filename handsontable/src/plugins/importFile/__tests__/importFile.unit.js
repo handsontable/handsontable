@@ -69,6 +69,7 @@ function pluginWithFakeHot(importFileSettings, { formulasEnabled = false, rtl = 
     // `BasePlugin`'s constructor registers three hooks straight on `hot` (not on itself), so a
     // real `new ImportFile(hot)` needs this stub even though this suite never fires a hook.
     addHook: () => {},
+    removeHook: () => {},
     getSettings: () => ({ importFile: importFileSettings }),
     getPlugin: name => ({
       formulas: { isEnabled: () => formulasEnabled },
@@ -162,6 +163,29 @@ describe('ImportFile#importFromArrayBuffer', () => {
     const result = await plugin.importFromArrayBuffer('xlsx', fixture('values'), { engine: ExcelJS, apply: false });
 
     expect(result.engine.kind).toBe('exceljs');
+  });
+
+  it('should reject with a Handsontable error, not a TypeError, when the grid is destroyed mid-read', async() => {
+    // A file read is the plugin's one async boundary. `BasePlugin#destroy` deletes `hot`, so
+    // continuing into `this.hot.getPlugin(...)` used to surface as a raw
+    // `Cannot read properties of undefined`.
+    let plugin;
+    const engine = {
+      Workbook: class {
+        constructor() {
+          this.worksheets = [];
+          this.xlsx = {
+            load: async() => {
+              plugin.destroy();
+            },
+          };
+        }
+      },
+    };
+
+    ({ plugin } = pluginWithFakeHot({ engines: { xlsx: engine } }));
+
+    await expect(plugin.importFromArrayBuffer('xlsx', new ArrayBuffer(0))).rejects.toThrow(/destroyed/);
   });
 
   it('should reject unknown formats, missing engines and unreadable buffers with Handsontable errors', async() => {

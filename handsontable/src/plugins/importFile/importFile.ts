@@ -406,6 +406,13 @@ export class ImportFile extends BasePlugin {
     const resolved = resolveImportOptions(options);
     const dropped = new DroppedFeatures();
     const workbook = await detected.adapter.read(buffer, detected.module, dropped);
+
+    // The read is the one async boundary: `BasePlugin#destroy` deletes `hot`, so a grid torn down
+    // while the file was being parsed has nothing left to apply the result to.
+    if (!this.hot) {
+      throwWithCause('ImportFile: the Handsontable instance was destroyed while the workbook was being read.');
+    }
+
     const formulasPlugin = this.hot.getPlugin('formulas');
     const commentsPlugin = this.hot.getPlugin('comments');
     const customBordersPlugin = this.hot.getPlugin('customBorders');
@@ -441,10 +448,17 @@ export class ImportFile extends BasePlugin {
 
   /**
    * Reads a workbook from a `Blob` (e.g. a `File` from an `<input type="file">`) and maps it into
-   * an {@link ImportResult}. Applies the result to the grid unless `options.apply` is `false`.
+   * an {@link ImportResult}. Applies the result to the grid unless `options.apply` is `false` or a
+   * `beforeImport` hook returns `false`.
    */
   async importFromBlob(format: string, blob: Blob, options: ImportOptions = {}): Promise<ImportResult> {
-    return this.importFromArrayBuffer(format, await blob.arrayBuffer(), options);
+    const buffer = await blob.arrayBuffer();
+
+    if (!this.hot) {
+      throwWithCause('ImportFile: the Handsontable instance was destroyed while the file was being read.');
+    }
+
+    return this.importFromArrayBuffer(format, buffer, options);
   }
 
   /**
