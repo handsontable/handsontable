@@ -32,8 +32,8 @@
     // trailing padding: GhostTable renders the real renderer, so the extra padding widens the
     // sample and an autosized column grows to fit the value plus the arrow.
     // These three list cell types also keep their value on a single line and truncate it with an
-    // ellipsis, so the content clips at the content-box edge - which the reserved trailing padding
-    // places before the arrow - instead of wrapping under it. This overrides `wordWrap` /
+    // ellipsis, so the content clips at the content-box edge – which the reserved trailing padding
+    // places before the arrow – instead of wrapping under it. This overrides `wordWrap` /
     // `textEllipsis` for `autocomplete` / `dropdown` / `handsontable` by design (DEV-28, a 19.0
     // breaking change documented on both options in `metaSchema.ts` and in the migration guide);
     // #13463 first added it, #13508 reverted it, and this relands it for 19.0.
@@ -74,7 +74,7 @@
     }
 
     // Exact-height rows zero the TD padding and clip through `div.htCellClip` (`position:
-    // absolute; overflow: hidden`), so that wrapper - not the TD - is the arrow's containing
+    // absolute; overflow: hidden`), so that wrapper – not the TD – is the arrow's containing
     // block. Re-reserve the arrow slot on the wrapper, re-apply the single-line truncation there,
     // and pin the arrow to its trailing edge; using the TD offsets would double-count the cell
     // padding the wrapper already insets. Alignment rules repeat here at this higher specificity:

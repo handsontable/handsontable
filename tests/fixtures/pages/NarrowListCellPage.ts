@@ -8,7 +8,7 @@ interface FixtureWindow {
 }
 
 export type ListCellType = 'autocomplete' | 'dropdown' | 'handsontable';
-export type Mode = 'narrow' | 'tall' | 'autosize' | 'exact';
+export type Mode = 'narrow' | 'tall' | 'autosize' | 'exact' | 'autorowsize';
 export type Dir = 'ltr' | 'rtl';
 
 interface Box {
@@ -73,7 +73,8 @@ export class NarrowListCellPage {
    *
    * @param {object} [options] Fixture options.
    * @param {Mode} [options.mode] `narrow` (fixed 60px column), `tall` (narrow + large `rowHeights`),
-   *   `autosize` (`autoColumnSize`), or `exact` (narrow + engine `rowHeightMode: 'exact'`).
+   *   `autosize` (`autoColumnSize`), `exact` (narrow + engine `rowHeightMode: 'exact'`), or
+   *   `autorowsize` (fixed 100px column + `autoRowSize`).
    * @param {Dir} [options.dir] Layout direction.
    */
   async goto({ mode = 'narrow', dir = 'ltr' }: {

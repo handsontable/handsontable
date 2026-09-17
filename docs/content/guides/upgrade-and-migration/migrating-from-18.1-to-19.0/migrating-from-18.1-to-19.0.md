@@ -695,6 +695,8 @@ This applies only to the [`autocomplete`](@/guides/cell-types/autocomplete-cell-
 
 In a narrow column, the value in one of these cells used to wrap onto several lines and tangle with the arrow. The value now stays on a single line and truncates with an ellipsis, clear of the arrow (the arrow's own space is reserved -- see the previous section). Because that single-line behavior is fixed for these three cell types, [`wordWrap`](@/api/options.md#wordwrap) (default `true`) and [`textEllipsis`](@/api/options.md#textellipsis) (default `false`) have no effect on them. Every other cell type still honors both options.
 
+This also changes [`autoRowSize`](@/api/options.md#autorowsize). It measures each row by rendering the real cell, so on an `autocomplete`, `dropdown`, or `handsontable` column a long value used to wrap and grow the row. That value now stays on one line, so such rows size to a single line instead of growing to fit the wrapped text.
+
 ### Who is affected
 
 You are affected only if you use the `autocomplete`, `dropdown`, or `handsontable` cell type **and** relied on its value wrapping onto multiple lines within the cell.

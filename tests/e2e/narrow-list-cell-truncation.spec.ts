@@ -73,6 +73,21 @@ CELL_TYPES.forEach((cellType) => {
       expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 1);
     });
 
+    test('keeps the row one line tall under autoRowSize (no wrapped growth)', async() => {
+      await grid.goto({ mode: 'autorowsize' });
+
+      const { cell, content, lineHeight } = await grid.metrics(0, 0);
+
+      expect(content).not.toBeNull();
+
+      // A breakable phrase in a fixed 100px column. Before the reland, `autoRowSize` measured it as
+      // several wrapped lines and grew the row; the single-line override collapses that to one
+      // line, so the row is now short. This is an observable, previously undocumented consequence
+      // of `wordWrap` no longer applying to these cell types.
+      expect((content as { height: number }).height).toBeLessThanOrEqual(lineHeight + 1);
+      expect(cell.height).toBeLessThan(lineHeight * 2);
+    });
+
     test('truncates to one line, clear of the arrow, in an exact-height row', async() => {
       await grid.goto({ mode: 'exact' });
 
