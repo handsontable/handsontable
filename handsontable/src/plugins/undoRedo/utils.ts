@@ -3,6 +3,56 @@ import { rangeEach } from '../../helpers/number';
 import { toMergeAreaRange, type MergeAreaGeometry as MergedCell } from '../../utils/mergeAreas';
 
 /**
+ * The callback an action calls once its undo or redo has landed. Called with no argument, the action
+ * applied. `{ wasUndone: false }` or `{ wasRedone: false }` tells the stack it did not, and puts the
+ * action back on the stack it came from.
+ */
+export type SettleCallback = (result?: { wasUndone?: boolean, wasRedone?: boolean }) => void;
+
+/**
+ * Runs a removal that settles an undo or redo through a remove hook, and settles it anyway when the
+ * removal fires no hook.
+ *
+ * The row and column actions settle on `afterRemoveRow` / `afterRemoveCol`. `alter()` fires neither when
+ * the index it gets names no row or column, which a recorded index does once the grid has changed shape
+ * since the action was recorded - rows trimmed, or data loaded again. The settle callback would then
+ * never run, `ignoreNewActions` would stay on, and every later action would be dropped from the stack
+ * for the rest of the session. The fallback settles with `notAppliedResult` instead, which puts the
+ * action back on the stack it came from, so it can apply once the grid allows it again.
+ *
+ * The hook listener settles with no argument rather than forwarding the hook's own arguments: those are
+ * the removed index and amount, and a preceding listener's return value can be folded into the first of
+ * them, so reading one as a settle result could wrongly report the action as not applied.
+ *
+ * @param {Core} hot The Handsontable instance.
+ * @param {string} hookName The remove hook the removal fires when it runs.
+ * @param {Function} settleCallback The undo or redo settle callback.
+ * @param {object} notAppliedResult The result that tells the stack the action did not apply.
+ * @param {Function} removal The callback that runs the removal.
+ */
+export function settleOnRemoveHook(
+  hot: HotInstance,
+  hookName: 'afterRemoveRow' | 'afterRemoveCol',
+  settleCallback: SettleCallback,
+  notAppliedResult: { wasUndone: false } | { wasRedone: false },
+  removal: () => void,
+) {
+  let hasSettled = false;
+  const onRemove = () => {
+    hasSettled = true;
+    settleCallback();
+  };
+
+  hot.addHookOnce(hookName, onRemove);
+  removal();
+
+  if (!hasSettled) {
+    hot.removeHook(hookName, onRemove);
+    settleCallback(notAppliedResult);
+  }
+}
+
+/**
  * Gets all cell metas from the provided range.
  *
  * @param {Core} hot The Handsontable instance.

@@ -1,5 +1,6 @@
 import type { HookCallback } from '../../../core/hooks/bucket';
 import type { HotInstance } from '../../../core/types';
+import { settleOnRemoveHook, type SettleCallback } from '../utils';
 import { BaseAction } from './_base';
 import { FIXED_ROW_COUNTS, removeAndKeepFixedCounts } from './fixedCounts';
 
@@ -43,7 +44,7 @@ export class CreateRowAction extends BaseAction {
    * @param {Core} hot The Handsontable instance.
    * @param {function(): void} undoneCallback The callback to be called after the action is undone.
    */
-  undo(hot: HotInstance, undoneCallback: HookCallback) {
+  undo(hot: HotInstance, undoneCallback: SettleCallback) {
     const rowCount = hot.countRows();
     const minSpareRows = hot.getSettings().minSpareRows;
 
@@ -51,10 +52,10 @@ export class CreateRowAction extends BaseAction {
       this.index -= (minSpareRows ?? 0); // work around the situation where the needed row was removed due to an 'undo' of a made change
     }
 
-    hot.addHookOnce('afterRemoveRow', undoneCallback);
-
-    removeAndKeepFixedCounts(hot, FIXED_ROW_COUNTS, () => {
-      hot.alter('remove_row', this.index, this.amount, 'UndoRedo.undo');
+    settleOnRemoveHook(hot, 'afterRemoveRow', undoneCallback, { wasUndone: false }, () => {
+      removeAndKeepFixedCounts(hot, FIXED_ROW_COUNTS, () => {
+        hot.alter('remove_row', this.index, this.amount, 'UndoRedo.undo');
+      });
     });
   }
 

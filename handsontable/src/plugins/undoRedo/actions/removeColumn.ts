@@ -1,7 +1,13 @@
 import type { HookCallback } from '../../../core/hooks/bucket';
 import type { HotInstance } from '../../../core/types';
 import { BaseAction } from './_base';
-import { getCellMetas, collectAffectedMergedCells, restoreMergedCells } from '../utils';
+import {
+  getCellMetas,
+  collectAffectedMergedCells,
+  restoreMergedCells,
+  settleOnRemoveHook,
+  type SettleCallback,
+} from '../utils';
 import { rangeEach } from '../../../helpers/number';
 import { arrayMap, arrayEach } from '../../../helpers/array';
 
@@ -228,8 +234,9 @@ export class RemoveColumnAction extends BaseAction {
    * @param {Core} hot The Handsontable instance.
    * @param {function(): void} redoneCallback The callback to be called after the action is redone.
    */
-  redo(hot: HotInstance, redoneCallback: HookCallback) {
-    hot.addHookOnce('afterRemoveCol', redoneCallback);
-    hot.alter('remove_col', this.index, this.amount, 'UndoRedo.redo');
+  redo(hot: HotInstance, redoneCallback: SettleCallback) {
+    settleOnRemoveHook(hot, 'afterRemoveCol', redoneCallback, { wasRedone: false }, () => {
+      hot.alter('remove_col', this.index, this.amount, 'UndoRedo.redo');
+    });
   }
 }

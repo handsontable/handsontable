@@ -1,8 +1,13 @@
-import type { HookCallback } from '../../../core/hooks/bucket';
 import type { HotInstance } from '../../../core/types';
 import type { UndoRedoActionResult } from '../undoRedo';
 import { BaseAction } from './_base';
-import { getCellMetas, collectAffectedMergedCells, restoreMergedCells } from '../utils';
+import {
+  getCellMetas,
+  collectAffectedMergedCells,
+  restoreMergedCells,
+  settleOnRemoveHook,
+  type SettleCallback,
+} from '../utils';
 import { deepClone, isPlainObject, stripFunctionValues } from '../../../helpers/object';
 import { isDataAccessorFn } from '../../../dataMap/dataSource';
 import type { DataAccessorFn } from '../../../dataMap/dataSource';
@@ -515,8 +520,9 @@ export class RemoveRowAction extends BaseAction {
    * @param {Core} hot The Handsontable instance.
    * @param {function(): void} redoneCallback The callback to be called after the action is redone.
    */
-  redo(hot: HotInstance, redoneCallback: HookCallback) {
-    hot.addHookOnce('afterRemoveRow', redoneCallback);
-    hot.alter('remove_row', hot.toVisualRow(this.index), this.data.length, 'UndoRedo.redo');
+  redo(hot: HotInstance, redoneCallback: SettleCallback) {
+    settleOnRemoveHook(hot, 'afterRemoveRow', redoneCallback, { wasRedone: false }, () => {
+      hot.alter('remove_row', hot.toVisualRow(this.index), this.data.length, 'UndoRedo.redo');
+    });
   }
 }
