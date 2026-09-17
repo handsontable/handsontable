@@ -8,12 +8,17 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data: string[][] = [['SKU-4821', 'Stainless Steel Water Bottle', 'Harbor Goods']];
+
 const ExampleComponent = () => {
+  const rows: number = data.length;
+
   return (
     <HotTable
-      data={[['SKU-4821', 'Stainless Steel Water Bottle', 'Harbor Goods']]}
+      data={data}
       height="auto"
       colHeaders={true}
+      rowHeaders={rows > 0}
       licenseKey="non-commercial-and-evaluation"
     />
   );
@@ -34,7 +39,13 @@ test('formats JSX one prop per line instead of collapsing it onto a single line'
 test('strips TypeScript types and keeps 2-space, single-quote output', async () => {
   const output = await transpileDocExample(REACT_SOURCE, 'example.tsx');
 
-  assert.doesNotMatch(output, /: string|: number/);
+  // The fixture is typed (`: string[][]`, `: number`), so a real transpile must drop both.
+  assert.doesNotMatch(output, /: string\[\]\[\]/);
+  assert.doesNotMatch(output, /: number/);
+  assert.match(output, /^const data = \[/m);
+  // Two-space indentation inside the component body.
+  assert.match(output, /\n {2}const rows = data\.length;/);
+  assert.match(output, /\n {2}return \(/);
   assert.doesNotMatch(output, /"@handsontable\/react-wrapper"/);
   assert.match(output, /'@handsontable\/react-wrapper'/);
 });
@@ -42,7 +53,7 @@ test('strips TypeScript types and keeps 2-space, single-quote output', async () 
 test('preserves blank lines that sit in code', async () => {
   const output = await transpileDocExample(REACT_SOURCE, 'example.tsx');
 
-  assert.match(output, /registerAllModules\(\);\n\nconst ExampleComponent/);
+  assert.match(output, /registerAllModules\(\);\n\nconst data =/);
 });
 
 test('is idempotent -- re-running on the generated output changes nothing', async () => {
@@ -107,6 +118,26 @@ test('does not corrupt a blank line inside a JSX {/* ... */} comment with no exp
 
     last line of comment */}
     <span>hello</span>
+  </div>
+);
+
+export default ExampleComponent;
+`;
+  const output = await transpileDocExample(source, 'example.tsx');
+
+  assert.doesNotMatch(output, /HOT_BLANK/);
+  assert.match(output, /first line of comment\n\n\s*last line of comment/);
+});
+
+test('finds a JSX comment even after a lone backtick in JSX text', async () => {
+  // A stray backtick in JSX text must not hide a later comment from the protection pass.
+  const source = `const ExampleComponent = () => (
+  <div>
+    <span>press the \` key</span>
+    {/* first line of comment
+
+    last line of comment */}
+    <span>done</span>
   </div>
 );
 
