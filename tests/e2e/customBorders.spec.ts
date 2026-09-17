@@ -106,12 +106,13 @@ test.describe('CustomBorders explicit zero width (DEV-1137)', () => {
     const thickStart = await lab.edgeInlineSize('green');
     const onePxControl = await lab.edgeInlineSize('blue');
 
-    // Horizontal thickness is `height`; vertical thickness is `width`. A truthy width lookup
-    // would paint the red top at 1px — the same size as the blue control.
+    // Painted box size (`getBoundingClientRect`), not the inline style string `createBorders`
+    // wrote. Horizontal thickness is `height`; vertical thickness is `width`. A truthy width
+    // lookup would paint the red top at 1px — the same size as the blue control.
     expect(zeroTop).not.toBeNull();
-    expect(parseInt(zeroTop!.height, 10)).toBe(0);
-    expect(parseInt(thickStart!.width, 10)).toBe(2);
-    expect(parseInt(onePxControl!.height, 10)).toBe(1);
+    expect(zeroTop!.height).toBe(0);
+    expect(thickStart!.width).toBe(2);
+    expect(onePxControl!.height).toBe(1);
   });
 });
 

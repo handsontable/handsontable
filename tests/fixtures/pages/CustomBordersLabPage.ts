@@ -134,10 +134,10 @@ export class CustomBordersLabPage {
   }
 
   /**
-   * Inline `width`/`height` of the first custom-border edge painted in `color`, including a
-   * 0-size edge. Hidden sides are skipped.
+   * Painted box size of the first custom-border edge of `color`, including a 0-size edge.
+   * Hidden sides (`display: none`) have no client rects and are skipped.
    */
-  async edgeInlineSize(color: string): Promise<{ width: string, height: string } | null> {
+  async edgeInlineSize(color: string): Promise<{ width: number, height: number } | null> {
     return this.page.evaluate(c => (window as any).borderUtils.edgeInlineSize(c), color);
   }
 
