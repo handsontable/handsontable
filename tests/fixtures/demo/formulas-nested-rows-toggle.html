@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture - formulas across a nestedRows runtime toggle</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the Playwright projects,
+    // mapped through fixed allowlists to LITERALS so a crafted param can never be reflected into the
+    // document. An absent param keeps the default (main / plain UMD); an unknown value THROWS, so a
+    // typo in the project config is one red leg rather than a silently mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[
+      htParams.get('bundle') ?? 'umd'
+    ];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+
+    // `on` builds the grid with the plugin already enabled, which is the reference layout a runtime
+    // toggle has to reproduce. `off` is the case under test.
+    window.htNestedRows = ({ off: false, on: true })[htParams.get('nested') ?? 'off'];
+    if (window.htNestedRows === undefined) {
+      throw new Error('Unknown ?nested= value: ' + JSON.stringify(htParams.get('nested')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+  </style>
+</head>
+<body>
+  <!--
+    Fixture for DEV-2978: the HyperFormula sheet after `updateSettings({ nestedRows: true })`.
+
+    The grid starts with the plugin OFF, so the engine is built from the two top-level rows only.
+    Turning the plugin on flattens the tree to four rows, and nothing on the settings path replays
+    the new layout into the engine - `afterLoadData` / `afterUpdateData` never fire, and
+    `afterCellMetaReset` fires BEFORE the plugins update.
+
+    Physical layout once the plugin flattens the tree:
+      0  Root A        calc: ''
+      1    A-1         calc: '=UPPER(A2)'   -> reads its own name, so it must stay 'A-1'
+      2    A-2         calc: ''
+      3  Root B        calc: '=UPPER(A1)'   -> reads 'Root A'
+
+    With the plugin off the engine holds two rows, where `=UPPER(A1)` on `Root B` reads `Root A` all
+    the same. So the toggle is the only thing that moves the formulas, which is what makes the two
+    `?nested=` legs directly comparable.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // HyperFormula comes from THIS package's own node_modules. Loaded only on the base-bundle legs:
+    // handsontable.full.min.js sets `window.HyperFormula` itself.
+    if (window.htBundle === 'handsontable.js') {
+      document.write('<scr' + 'ipt src="/tests/node_modules/hyperformula/dist/hyperformula.full.min.js"></scr' + 'ipt>');
+    }
+  </script>
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    window.sourceData = [
+      {
+        name: 'Root A',
+        calc: '',
+        __children: [
+          { name: 'A-1', calc: '=UPPER(A2)' },
+          { name: 'A-2', calc: '' },
+        ],
+      },
+      { name: 'Root B', calc: '=UPPER(A1)' },
+    ];
+
+    window.consoleErrors = [];
+
+    const nativeConsoleError = console.error.bind(console);
+
+    console.error = (...args) => {
+      window.consoleErrors.push(args.map(String).join(' '));
+      nativeConsoleError(...args);
+    };
+
+    try {
+      window.hot = new Handsontable(container, {
+        data: window.sourceData,
+        columns: [{ data: 'name' }, { data: 'calc' }],
+        colHeaders: ['Name', 'Calc'],
+        rowHeaders: true,
+        nestedRows: window.htNestedRows,
+        formulas: {
+          engine: HyperFormula,
+        },
+        afterRenderer(td, row, col) {
+          td.setAttribute('data-testid', `cell-${row}-${col}`);
+        },
+        height: 'auto',
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      window.htFixtureError = error && error.message ? error.message : String(error);
+    }
+  </script>
+</body>
+</html>

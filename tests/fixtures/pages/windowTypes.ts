@@ -41,6 +41,13 @@ export interface FixtureHotInstance {
   getPlugin(name: 'formulas'): {
     getCellType(row: number, col: number): string,
     indexSyncer: { isPerformingUndoRedo(): boolean },
+    sheetId: number | null,
+    // The engine itself, so a spec can ask HyperFormula what it holds rather than inferring it
+    // from the grid - which is the whole point when the two have drifted apart (DEV-2978).
+    engine: {
+      getSheetDimensions(sheetId: number): { width: number, height: number },
+      getSheetSerialized(sheetId: number): unknown[][],
+    } | null,
   };
   getPlugin(name: 'undoRedo'): {
     undo(): void,

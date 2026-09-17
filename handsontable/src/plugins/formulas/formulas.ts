@@ -267,6 +267,17 @@ export class Formulas extends BasePlugin {
   #hotWasInitializedWithEmptyData = false;
 
   /**
+   * How many source rows the grid held the last time `afterCellMetaReset` resynced the sheet, or
+   * `null` before the first such resync.
+   *
+   * Compared against the count the settings update ends on, which is what tells a settings-driven
+   * row-count change apart from an ordinary `updateSettings()` call.
+   *
+   * @type {number|null}
+   */
+  #sourceRowCountAtLastSync: number | null = null;
+
+  /**
    * Stores the HyperFormula source range and destination address prepared in `beforeMoveCells` so that
    * `commitPendingMoveCells` can execute the corresponding HF operation without recomputing
    * visual-to-HF coordinates. `rect` carries the same operation in visual coordinates for the
@@ -755,6 +766,11 @@ export class Formulas extends BasePlugin {
     // initialization, where `afterLoadData` returns early) and in `afterLoadData` /
     // `afterUpdateData`, where the transient meta read provides composed cell properties.
     this.addHook('afterCellMetaReset', this.#onAfterCellMetaReset);
+
+    // `orderIndex: 1` puts this after every default-order listener, and the plugins' own
+    // `onUpdateSettings` is one of them - which is the whole point: the row count is only final once
+    // they have run. See `#onAfterUpdateSettingsRowCount`.
+    this.addHook('afterUpdateSettings', this.#onAfterUpdateSettingsRowCount, 1);
 
     // Handling undo actions on data just using HyperFormula's UndoRedo mechanism
     this.addHook('beforeUndo', () => {
@@ -2218,6 +2234,8 @@ export class Formulas extends BasePlugin {
   #onAfterCellMetaReset = () => {
     this.#closeLeakedGuards();
 
+    this.#sourceRowCountAtLastSync = this.hot.countSourceRows();
+
     // Runs on every `updateSettings()` call, and both branches below re-run a full-dataset scan
     // whose per-cell meta read fires `cells()` and the `beforeGetCellMeta`/`afterGetCellMeta`
     // listeners – see `#escapeSourceDataArray` for what that changes for a listener with side
@@ -2240,6 +2258,32 @@ export class Formulas extends BasePlugin {
     this.indexSyncer!.setupSyncEndpoint(this.engine!, this.sheetId);
     this.renderDependentSheets(dependentCells);
     this.#internalOperationPending = false;
+  };
+
+  /**
+   * `afterUpdateSettings` hook callback, registered to run after every other listener.
+   *
+   * The sheet is normally resynced from `afterCellMetaReset`, which the Core fires in the middle of
+   * `updateSettings()` - before the plugins update. A setting that changes how many rows the grid
+   * holds is therefore invisible to that pass: turning `nestedRows` on flattens the tree into twice
+   * as many rows, and the engine kept the layout it was built with, so a formula the flatten moved
+   * rendered as raw text and its value landed on another row (DEV-2978).
+   *
+   * Nothing here knows which plugin did it. The row count the settings update ends on is compared
+   * with the one the mid-update resync saw, so any settings-driven row-count change is carried over,
+   * and an ordinary `updateSettings()` call - the one a React re-render sends - pays one integer
+   * comparison.
+   */
+  #onAfterUpdateSettingsRowCount = () => {
+    if (!this.engine || this.#sourceRowCountAtLastSync === null) {
+      return;
+    }
+
+    if (this.hot.countSourceRows() === this.#sourceRowCountAtLastSync) {
+      return;
+    }
+
+    this.#onAfterCellMetaReset();
   };
 
   /**
