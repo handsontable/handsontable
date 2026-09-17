@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-17T08:33:11.750Z",
+  "generatedAt": "2026-09-17T08:48:57.249Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 19,
-    "needsTicket": 4,
+    "tests": 22,
+    "needsTicket": 5,
     "quarantined": 0,
-    "entries": 75
+    "entries": 81
   },
   "rows": [
     {
@@ -112,6 +112,39 @@
         "leg": "e2e-main",
         "status": "flaky",
         "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "playwright|e2e/oversized-cell-mouse-scroll.spec.ts|oversized cell mouse scroll › last-partial row skip stays when only the column is oversized",
+      "tier": "playwright",
+      "file": "e2e/oversized-cell-mouse-scroll.spec.ts",
+      "line": 81,
+      "title": "oversized cell mouse scroll › last-partial row skip stays when only the column is oversized",
+      "count7": 3,
+      "count30": 3,
+      "countAll": 3,
+      "runs30": 2,
+      "flakyRuns30": 2,
+      "branches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-horizon",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-17T08:48:05Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35198019774/attempts/3",
+        "branch": "feature/dev-1159_oversized-cell-mouse-scroll-1b24",
+        "leg": "e2e-classic",
+        "status": "flaky",
+        "error": "Error: expect(received).toEqual(expected) // deep equality",
         "source": "ci"
       },
       "needsTicket": true
@@ -461,6 +494,38 @@
       "needsTicket": false
     },
     {
+      "key": "playwright|e2e/oversized-cell-mouse-scroll.spec.ts|oversized cell mouse scroll › mouse-selecting an oversized row start-snaps the clipped start into view",
+      "tier": "playwright",
+      "file": "e2e/oversized-cell-mouse-scroll.spec.ts",
+      "line": 54,
+      "title": "oversized cell mouse scroll › mouse-selecting an oversized row start-snaps the clipped start into view",
+      "count7": 2,
+      "count30": 2,
+      "countAll": 2,
+      "runs30": 1,
+      "flakyRuns30": 1,
+      "branches30": 1,
+      "legs": [
+        "e2e-classic",
+        "e2e-horizon-min"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-17T08:48:05Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35198019774/attempts/3",
+        "branch": "feature/dev-1159_oversized-cell-mouse-scroll-1b24",
+        "leg": "e2e-classic",
+        "status": "flaky",
+        "error": "Error: expect(received).toEqual(expected) // deep equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
       "key": "jasmine|handsontable/src/plugins/filters/__tests__/plugins/columnSorting.spec.js|Filters UI cooperation with ColumnSorting should filter values when sorting is applied",
       "tier": "jasmine",
       "file": "handsontable/src/plugins/filters/__tests__/plugins/columnSorting.spec.js",
@@ -558,11 +623,11 @@
       "needsTicket": false
     },
     {
-      "key": "playwright|e2e/oversized-cell-mouse-scroll.spec.ts|oversized cell mouse scroll › last-partial row skip stays when only the column is oversized",
+      "key": "playwright|e2e/oversized-cell-mouse-scroll.spec.ts|oversized cell mouse scroll › mouse-selecting a content-tall row without rowHeights start-snaps the clipped start",
       "tier": "playwright",
       "file": "e2e/oversized-cell-mouse-scroll.spec.ts",
-      "line": 46,
-      "title": "oversized cell mouse scroll › last-partial row skip stays when only the column is oversized",
+      "line": 153,
+      "title": "oversized cell mouse scroll › mouse-selecting a content-tall row without rowHeights start-snaps the clipped start",
       "count7": 1,
       "count30": 1,
       "countAll": 1,
@@ -570,7 +635,7 @@
       "flakyRuns30": 1,
       "branches30": 1,
       "legs": [
-        "e2e-main-min"
+        "e2e-horizon"
       ],
       "statuses": [
         "flaky"
@@ -578,12 +643,43 @@
       "isolation": [],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-09-16T15:29:02Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35113048951",
+        "seenAt": "2026-09-17T08:48:05Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35198019774/attempts/3",
         "branch": "feature/dev-1159_oversized-cell-mouse-scroll-1b24",
-        "leg": "e2e-main-min",
+        "leg": "e2e-horizon",
         "status": "flaky",
-        "error": "Error: expect(received).toBeLessThan(expected)",
+        "error": "Error: expect(received).toEqual(expected) // deep equality",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/oversized-cell-mouse-scroll.spec.ts|oversized cell mouse scroll › mouse-selecting an oversized column start-snaps the clipped start into view",
+      "tier": "playwright",
+      "file": "e2e/oversized-cell-mouse-scroll.spec.ts",
+      "line": 27,
+      "title": "oversized cell mouse scroll › mouse-selecting an oversized column start-snaps the clipped start into view",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 1,
+      "branches30": 1,
+      "legs": [
+        "e2e-classic"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-17T08:48:05Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35198019774/attempts/3",
+        "branch": "feature/dev-1159_oversized-cell-mouse-scroll-1b24",
+        "leg": "e2e-classic",
+        "status": "flaky",
+        "error": "Error: expect(received).toEqual(expected) // deep equality",
         "source": "ci"
       },
       "needsTicket": false
