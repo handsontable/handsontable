@@ -5,6 +5,7 @@ import {
   isVisible,
 } from '../../../../../helpers/dom/element';
 import { resolveAxisOwner } from '../../overlay/axisOwner';
+import { subtractReservedHeight } from '../../viewport/layoutReservation';
 import Table from '../baseTable';
 import { rowRangeQuery, columnRangeQuery } from '../rangeQuery/virtualRange';
 import { mixin } from '../../../../../helpers/object';
@@ -27,7 +28,10 @@ interface TrimmingContainerCache {
   trimmingHeight: string;
   hiderOffsetHeight: number;
   hiderOffsetWidth: number;
-  /** The host's layout-slot height inside the owner (`layoutReservedHeight`) the holder height was computed with. */
+  /**
+   * The host's layout-slot height inside the owner (`layoutReservedHeight`) the holder height
+   * was computed with.
+   */
   reservedHeight: number;
   holderWidth: string;
   holderHeight: string;
@@ -119,9 +123,9 @@ function alignHolderWithSplitOwners(table: Table, ownerX: HTMLElement | Window, 
     // The owner's box is shared with the host's layout slots (`layoutReservedHeight`); the holder
     // gets what is left, so a bar inside a scrollable ancestor is not pushed past its edge.
     const reservedHeight = table.wtSettings.getSetting('layoutReservedHeight', ownerY);
-    const height = Math.max(
-      Math.min(geometryReader.offsetHeight(ownerY), geometryReader.scrollHeight(ownerY)) - reservedHeight,
-      0,
+    const height = subtractReservedHeight(
+      Math.min(geometryReader.offsetHeight(ownerY), geometryReader.scrollHeight(ownerY)),
+      reservedHeight,
     );
 
     holderStyle.height = `${height}px`;
@@ -356,7 +360,7 @@ class MasterTable extends Table {
         // holder gets what is left, so a pagination or sheets bar inside a scrollable ancestor is
         // not pushed past the owner's edge (DEV-2848). Subtracted after the scroll-height clamp,
         // because the owner's scroll height includes the slots themselves.
-        height = Math.max(Math.min(height, trimmingScrollHeight) - reservedHeight, 0);
+        height = subtractReservedHeight(Math.min(height, trimmingScrollHeight), reservedHeight);
         width = Math.min(width, trimmingScrollWidth);
 
         const holderHeight = useAutoHeight ? 'auto' : `${height}px`;
