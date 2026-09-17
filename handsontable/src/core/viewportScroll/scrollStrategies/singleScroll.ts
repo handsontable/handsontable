@@ -27,11 +27,16 @@ import { scrollWindowToCell } from '../utils';
 /**
  * Decides which axes a mouse single-cell selection should scroll.
  *
- * A last-partial cell skips scrolling on that axis so a click does not jump
- * the viewport. An axis whose cell is larger than the viewport still
- * start-snaps, matching keyboard and API selection. The skip is per axis:
- * an oversized row does not disable the last-partial column skip, and an
- * oversized column does not disable the last-partial row skip.
+ * A last-partial cell skips scrolling so a click does not jump the viewport.
+ * When neither axis is oversized, a last-partial click on either axis skips
+ * the whole move – the pre-DEV-1159 rule. A one-column nested list (Filters
+ * "filter by value") is last-partial on its only column, so scrolling the
+ * other axis would move the checkbox under the pointer.
+ *
+ * An oversized axis still start-snaps, matching keyboard and API selection.
+ * That skip is per axis: an oversized row does not disable the last-partial
+ * column skip, and an oversized column does not disable the last-partial
+ * row skip.
  *
  * Auto-snap can no-op when the oversized track is the only one in view, so
  * an oversized axis also sets an explicit start snap.
@@ -54,13 +59,22 @@ export function getMouseSingleScrollTarget({
   isRowLargerThanViewport: boolean;
   isColumnLargerThanViewport: boolean;
 }): { row?: number; col?: number; horizontalSnap?: string; verticalSnap?: string } | null {
-  const skipColumn = col === lastPartiallyVisibleColumn && !isColumnLargerThanViewport;
-  const skipRow = row === lastPartiallyVisibleRow && !isRowLargerThanViewport;
+  const lastPartialColumn = col === lastPartiallyVisibleColumn;
+  const lastPartialRow = row === lastPartiallyVisibleRow;
 
-  if (skipColumn && skipRow) {
+  // A normal last-partial click skips the whole move. Per-axis skip is only
+  // for an oversized start-snap: otherwise a last-partial column still
+  // scrolls the row (the Filters value list is one last-partial column).
+  if (
+    !isRowLargerThanViewport &&
+    !isColumnLargerThanViewport &&
+    (lastPartialColumn || lastPartialRow)
+  ) {
     return null;
   }
 
+  const skipColumn = lastPartialColumn && !isColumnLargerThanViewport;
+  const skipRow = lastPartialRow && !isRowLargerThanViewport;
   const target: { row?: number; col?: number; horizontalSnap?: string; verticalSnap?: string } = {};
 
   if (!skipRow) {
