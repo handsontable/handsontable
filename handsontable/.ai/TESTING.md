@@ -24,7 +24,7 @@ npm run test:e2e                   # Build + run the LEGACY Jasmine E2E suite (~
 npm run test:walkontable           # Run Walkontable-specific tests
 npm run test:types                 # TypeScript type checking only
 # New Playwright E2E (from the repo root):
-cd tests && npm test               # Playwright functional + visual projects
+cd tests && npm test               # Playwright functional E2E (visual regression is the separate visual-tests/ package)
 
 # From monorepo root (npm --prefix):
 npm --prefix handsontable run test:unit
@@ -306,6 +306,7 @@ await waitForNextAnimationFrames(2);                // ← never; a frame count 
 Machine-enforced by the presence gate (`.github/scripts/test-presence-gate.mjs`): a change to `handsontable/src/**` or `wrappers/**` must ship a matching test change. Which kind:
 
 - **A user could see or do it** (rendering, editing, selection, keyboard, menus, overlays) → **E2E**. New E2E is **Playwright** in `tests/e2e/` — see the `handsontable-playwright-e2e` skill.
+- **Only pixels can prove it** (a theme token, geometry, compositing) → a **visual spec** in `visual-tests/tests/`, **in addition to, never instead of** the E2E above — a screenshot proves pixels only, and the presence gate counts it as coverage, so the reviewer holds this line. The rule is `visual-tests/AGENTS.md` → Decision rule.
 - **Behavior changed but is invisible to users** (data, indexing, algorithms, internal state) → a **Jest unit test** (`*.unit.js` or `*.unit.ts`). Still mandatory — "not user-facing" is not a free pass.
 - **No behavior change** (pure refactor) or **non-runtime** (types, docs, config, i18n text, re-exports) → **no new test**; declare a refactor with a `Refactor-only: <reason>` commit trailer.
 
@@ -577,6 +578,7 @@ npm run test:unit -- --coverage    # Show coverage after Jest run
 - Location: `visual-tests/`
 - Config: `visual-tests/playwright.config.ts` and `playwright-cross-browser.config.ts`
 - Screenshots stored in `visual-tests/screenshots/`
+- What earns a capture, and why a visual spec is in addition to, never instead of a Playwright assertion: `visual-tests/AGENTS.md` → Decision rule
 
 ## Plugin Testing Requirements
 

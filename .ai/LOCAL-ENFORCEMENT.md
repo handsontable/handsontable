@@ -16,9 +16,9 @@ the same floor with no manual step. (Manual fallback: `npx lefthook install` and
 | When | Gate | Runs | Blocks on |
 |---|---|---|---|
 | Agent-time (Claude Code) | `PostToolUse` (Edit/Write) | `eslint --fix` the edited spec | genuine lint errors in that spec |
-| Agent-time (Claude Code) | `Stop` (turn end) | new-Jasmine check + the touched Playwright specs + the touched **unit** tests | a **new** `*.spec.js`; a **failing** touched spec or unit test |
+| Agent-time (Claude Code) | `Stop` (turn end) | new-Jasmine check + the touched Playwright specs (`tests/e2e/` only — the visual tier's enforcement map in §1 says why) + the touched **unit** tests | a **new** `*.spec.js`; a **failing** touched spec or unit test |
 | **pre-commit** (lefthook) | `scripts/lint-staged.mjs` | `eslint --fix` staged source/specs (determinism + anti-gaming), re-stage fixes | lint **errors** (warnings surface) |
-| **pre-push** (lefthook) | `scripts/pre-push.mjs` | presence gate (block) → **changelog entry filenames** (block) → eslint on changed → **determinism ratchet** (block) → test-weakening detector (warn) → changed Playwright specs → changed **unit** tests | missing test; a `.changelogs/*.json` not named after the number it cites; lint errors; a **new** `sleep()`/`it.flaky()`/skip on an added spec line; a failing spec or unit test |
+| **pre-push** (lefthook) | `scripts/pre-push.mjs` | presence gate (block) → **changelog entry filenames** (block) → eslint on changed → **determinism ratchet** (block) → test-weakening detector (warn) → changed Playwright specs (`tests/e2e/` only) → changed **unit** tests | missing test; a `.changelogs/*.json` not named after the number it cites; lint errors; a **new** `sleep()`/`it.flaky()`/skip on an added spec line; a failing spec or unit test |
 | CI | `test.yml` + gates | the authoritative mirror of the above (the ratchet is a step of `Lint / core`) | see the pipeline |
 
 Same rules, escalating authority: **agent-time → pre-commit → pre-push → CI.**
@@ -229,6 +229,7 @@ Machine-enforced by the presence gate; full decision rules in
 [`handsontable/.ai/TESTING.md`](../handsontable/.ai/TESTING.md).
 
 - **User-visible** (render, interaction, keyboard, menus, overlays) → **Playwright E2E**, `tests/e2e/**/*.spec.ts`.
+- **Only pixels can prove it** (theme tokens, geometry, compositing) → a **visual spec**, `visual-tests/tests/**/*.spec.ts`, **in addition to, never instead of** the Playwright E2E. The presence gate counts a `.spec.ts` under `visual-tests/` as coverage (`presence-gate.mjs`), so this line is policy the reviewer checks, not a gate — rule: `visual-tests/AGENTS.md` → Decision rule.
 - **Logic / invisible** (data, indexing, algorithms, internal state) → **Jest unit**, `*.unit.js` in a `__tests__/` dir next to the source.
 - **Public API / type surface** → a **type test**, `*.types.ts`.
 - **Framework consumption** (wrapper / npm) → an integration demo (matrix; being built).
@@ -253,6 +254,7 @@ agree on what a "fixed wait" is:
 | Tier | Where | Level | Flags |
 |---|---|---|---|
 | Playwright (`tests/`) | `tests/.eslintrc.cjs` (`no-restricted-syntax`) | **error** | `waitForTimeout(`, `sleep(`, `setTimeout(` (the global timer only — bare, `window.`, or `globalThis.` — inside `page.evaluate` too; `test.setTimeout(ms)` / `testInfo.setTimeout(ms)` set a budget, not a wait, and pass), `'networkidle'`, `.only`, `.skip`, bare `test.fixme` |
+| Visual (`visual-tests/src`, `visual-tests/tests`) | `visual-tests/.eslintrc.js` (`no-restricted-syntax`, the functional tier's list copied) | **error** | the same flags, plus `locator.screenshot()` / `elementHandle.screenshot()` (bypasses the settle and the selection clear in `src/test-runner.ts` — clip a `tablePage.screenshot()` instead) and `test.fixme`; the conditional `test.skip(condition, why)` is the one legal skip — plus, once landed, the capture after an unasserted action rule and the spec docblock (`visual-tests/AGENTS.md`, Guardrails) |
 | Frozen Jasmine + Jest (`*.spec.js`, `*.unit.js`, `*.unit.ts`) | `handsontable/no-fixed-sleep-in-spec` (`handsontable/.config/plugin/eslint/rules/`) | warn | `sleep(` (`noSleep`), `setTimeout(fn, <non-zero numeric literal>)` on the global timer (`noSetTimeout` — a literal `0` is a macrotask hand-off, not a wait, and passes), `waitForNextAnimationFrames(` (`noFrameWait` — a literal `0` resolves at once and passes too) |
 | Evals scorer | `evals/score.mjs` `findDeterminismSmells()` | verdict `suspect` | `sleep-call`, `wait-for-timeout`, `network-idle`, `set-timeout`, `fixed-frame-wait` — with the frozen rule's exemptions: the global timer only, a non-zero numeric-literal delay only, a literal `0` frame count passes — plus `theme-sensitive-viewport`, a rendered-row count read from a grid with no pinned viewport (a different number on each leg of the theme matrix) |
 
@@ -274,6 +276,54 @@ a verdict flip (the contract: `evals/lib/counterexamples.mjs`); the hollow-test 
 gaming signals are covered by the inline-source unit tests in
 `evals/__tests__/score.test.mjs` only. All of it runs under the root
 `npm run test:tooling` (CI: `Checks / tooling tests`).
+
+### The visual tier's enforcement map
+
+Anything syntactic is lint, and therefore local and immediate; anything that
+needs a rendered `out.json` is CI-only; running a visual spec is never a hook,
+because it needs the built example apps and the port-8082 server. What a
+capture is *for* is `visual-tests/AGENTS.md` → Decision rule (a visual spec is
+in addition to, never instead of a Playwright assertion); this map says where
+each enforceable half of that rule runs.
+
+- **Lint, everywhere.** `visual-tests/.eslintrc.js` (the `Visual` row of the
+  determinism table above) runs at PostToolUse for any edited `*.spec.ts`
+  (`scripts/claude/post-tool-use.mjs`, `npx eslint --fix <file>` — fail-open in
+  a linked worktree, like every agent hook), at pre-commit and pre-push through
+  `scripts/lint-files.mjs` (`SCOPES` admits `visual-tests/(src|tests)/` and
+  nothing else in the package — `lib/` and `scripts/` drive no page;
+  `scripts/__tests__/lint-files.test.mjs` pins the scope), and in CI as
+  `lint.yml`'s `visual-tests` job (`npm run in visual-tests lint`, the whole
+  package), which `test.yml` runs when `checks.yml`'s `test-visual` filter
+  (`visual-tests/**`, `examples/next/visual-tests/**`, `pnpm-lock.yaml`,
+  `pnpm-workspace.yaml`) or `run-all` fires. The rule against a
+  capture after an unasserted action, and the spec docblock (G4 under
+  `visual-tests/AGENTS.md`, Guardrails), join this row when they land; they are
+  lint too, so they inherit all three points.
+- **A rendered `out.json`, CI only.** `visual-tests/scripts/visual-gate.mjs`
+  (the pull request verdict), `scripts/seed-report.mjs` (the seed and nightly
+  summaries), and the tier prune in `scripts/compare.mjs` read `.reg/out.json`,
+  which exists only after `visual.yml`'s `Compare` job rendered and reg-suit
+  compared. The golden budget, the compare record, and the quarantine (G3 and
+  G5, same section) read the same file and are CI-only for the same reason.
+  Nothing local produces it.
+- **Never a hook.** `visual-tests/scripts/run-tests.mjs` needs `npm run build`
+  first (it installs and builds the tier's example apps) and starts
+  `npm run serve -- --port=8082` from `examples/next/visual-tests/<framework>/demo`
+  per framework; `playwright.config.ts` starts no server of its own (the
+  cross-browser config does, on the same port). `changedPlaywrightSpecs` in
+  `scripts/pre-push.mjs` (shared by `scripts/claude/stop.mjs`) matches
+  `tests/e2e/` only, by design, so a changed visual spec is never run by
+  pre-push or the Stop hook. A visual spec is proven by the pull request's
+  `Visual / Compare` job — the `full` tier when the spec or its demo changed
+  (`visual-full`), the `pr` tier otherwise. The local loop is
+  `VISUAL_TIER=pr npm run build && VISUAL_TIER=pr npm run test` in
+  `visual-tests/`, by hand, from one checkout at a time (`.ai/WORKTREES.md`).
+
+`.github/scripts/__tests__/visual-decision-rule.test.mjs` pins this map to the
+code — the `SCOPES` regex in `scripts/lint-files.mjs` and the `tests/e2e/`
+filter in `changedPlaywrightSpecs` — so a change that makes a hook run visual
+specs fails that test naming this map.
 
 ### The tracked human exception (the manual-QA tickbox)
 
