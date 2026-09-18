@@ -223,6 +223,35 @@ describe('ColumnSummary reversedRowCoords with alter()', () => {
     warnSpy.mockRestore();
   });
 
+  it('keeps a sibling endpoint updating when another reversed anchor re-derives below zero', async() => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    // Endpoint A (column 0, offset 0) tracks the last row. Endpoint B (column 1, offset 3) re-derives
+    // below zero after a removal. B must not poison A: a negative index left on B would make the
+    // all-or-nothing bounds check in `resetAllEndpoints` skip clearing A too.
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      data: [[10, 1], [20, 2], [30, 3], [40, 4]],
+      columnSummary: [
+        { destinationColumn: 0, destinationRow: 0, reversedRowCoords: true, ranges: [[1, 1]], type: 'sum' },
+        { destinationColumn: 1, destinationRow: 3, reversedRowCoords: true, ranges: [[2, 2]], type: 'sum' },
+      ],
+    });
+
+    // A: last row of four = row 3, summing row 1 of column 0 (= 20).
+    expect(hot.getDataAtCell(3, 0)).toBe(20);
+
+    await hot.alter('remove_row', 0);
+
+    // Three rows now. A re-anchors to the new last row (row 2) and still updates — its range shifted
+    // to row 0 (was row 1, = 20). B re-derives to 3 - 3 - 1 = -1, so it warns and parks.
+    expect(hot.getDataAtCell(2, 0)).toBe(20);
+    expect(hot.getCellMeta(2, 0).className).toContain('columnSummaryResult');
+    expect(warnSpy).toHaveBeenCalled();
+
+    warnSpy.mockRestore();
+  });
+
   it('moves a reversed summary onto the new last row when a row is removed', async() => {
     hot = new Handsontable(container, {
       licenseKey: 'non-commercial-and-evaluation',

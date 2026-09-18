@@ -128,9 +128,12 @@ Three rules the re-derive follows, each with a reason:
   behavior). An **insert** re-anchoring onto data *is* allowed — it mirrors the initial parse planting the
   anchor on whatever the reversed slot holds. Residual: a parked endpoint sits at a stale offset until the
   next alteration frees the slot.
-- **A below-zero re-derive is out of bounds.** Enough removals drive `count - reversedRowOffset - 1`
-  negative; `isEndpointOutOfBounds()` now checks the lower bound too, so the user gets the out-of-bounds
-  warning instead of the summary silently disappearing.
+- **A below-zero re-derive warns and parks.** Enough removals drive `count - reversedRowOffset - 1`
+  negative; the re-derive raises the out-of-bounds warning and leaves the endpoint parked at its last
+  valid row rather than storing the negative index. Storing it would poison the all-or-nothing bounds
+  check in `resetAllEndpoints()` — one endpoint below zero would make later alterations skip clearing
+  every sibling. For the same reason the lower bound is handled here, not added to
+  `isEndpointOutOfBounds()` (which that shared gate calls).
 
 One related bug is tracked separately: the default `ranges: [[0, countAddressableRows() - 1]]` is also
 resolved once and does not grow on append. `reversedRowCoordsAlter.unit.js` pins the add, remove,

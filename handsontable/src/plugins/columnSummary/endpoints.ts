@@ -179,11 +179,7 @@ class Endpoints {
     const destinationRow = endpoint.destinationRow! + rowOffset;
     const destinationVisualRow = this.hot.toVisualRow(destinationRow);
 
-    // A negative destination row is out of bounds too - a reversed endpoint whose offset outgrows the
-    // shrinking table re-derives below zero, and without this lower bound it would vanish silently
-    // instead of raising the out-of-bounds warning (DEV-144).
-    return destinationRow < 0 ||
-      destinationRow >= this.countPhysicalRows() ||
+    return destinationRow >= this.countPhysicalRows() ||
       endpoint.destinationColumn! + colOffset >= this.hot.countCols() ||
       (destinationVisualRow !== null && destinationVisualRow >= this.hot.countRows());
   }
@@ -459,8 +455,23 @@ class Endpoints {
           return;
         }
 
-        const oldDestinationRow = endpoint.destinationRow!;
         const newDestinationRow = this.countAddressableRows() - reversedRowOffset - 1;
+
+        // Enough removals drive `count - reversedRowOffset - 1` below zero (the generic shift above can
+        // have already left `destinationRow` negative, so this is checked before the equality guard).
+        // Warn instead of letting the summary vanish silently. The negative index is left as-is rather
+        // than added to `isEndpointOutOfBounds`, whose result feeds the all-or-nothing gate in
+        // `resetAllEndpoints` - catching negatives there would make one below-zero endpoint skip
+        // clearing every sibling (DEV-144).
+        if (newDestinationRow < 0) {
+          this.throwOutOfBoundsWarning();
+
+          return;
+        }
+
+        // The generic shift already set `destinationRow` to where the old summary cell now sits, so it
+        // is both the comparison point and the cell whose declarative meta must be dropped on a move.
+        const oldDestinationRow = endpoint.destinationRow!;
 
         if (newDestinationRow === oldDestinationRow) {
           return;
@@ -471,11 +482,10 @@ class Endpoints {
         // `resetAllEndpoints` cleared the old cell and the refresh rewrites the summary there, which
         // matches the pre-fix (non-destructive) behavior. An INSERT re-anchoring onto data is
         // allowed - it matches what the initial parse does when it plants the anchor on the reversed
-        // slot, whatever that slot holds.
-        if (isRemoval && newDestinationRow >= 0) {
-          const targetValue = this.hot.getSourceDataAtCell(
-            newDestinationRow, this.hot.toVisualColumn(endpoint.destinationColumn!)
-          );
+        // slot, whatever that slot holds. `destinationColumn` is passed as a visual column, the same
+        // way `setEndpointValue`/`_setCellMetaDeclarative` address it in this block.
+        if (isRemoval) {
+          const targetValue = this.hot.getSourceDataAtCell(newDestinationRow, endpoint.destinationColumn!);
 
           if (targetValue !== null && targetValue !== undefined && targetValue !== '') {
             return;
