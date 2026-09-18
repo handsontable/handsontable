@@ -454,7 +454,23 @@ test('visual-only coverage fires on a modified or renamed visual spec and ignore
   // is gone. Fixing the gate itself changes verdicts and is not this detector's job.
   assert.equal(isCoverage(deletedSpec), true, 'the gate accepts a deleted visual spec as coverage');
   assert.equal(visualOnlyCoverage([VISUAL_SRC, deletedSpec]), null, 'the detector does not');
-  assert.equal(visualOnlyCoverage([{ ...VISUAL_SRC, status: 'D' }, VISUAL_SPEC]), null, 'a deleted source file needs no coverage');
+  assert.equal(visualOnlyCoverage([{ ...VISUAL_SRC, status: 'D' }, VISUAL_SPEC]), null,
+    'a deleted source file needs no coverage');
+});
+
+test('a unit test under visual-tests/ is behavioral coverage, not a capture, so it pairs the source change', () => {
+  // Prevents: VISUAL_SPEC_RE regressing to a bare package prefix, which reported
+  // a `*.unit.js` for the visual package's own lib as "a visual spec" and drew
+  // the screenshot message on a change set that carried a real assertion. No
+  // such file exists yet; the G3 and G5 guardrails add lib code under
+  // visual-tests/lib/, and someone will test it beside a core change.
+  const visualUnit = { status: 'A', path: 'visual-tests/lib/__tests__/manifest.unit.js' };
+
+  assert.equal(isCoverage(visualUnit), true, 'a unit test under visual-tests/ is coverage to the gate');
+  assert.equal(visualOnlyCoverage([VISUAL_SRC, visualUnit]), null,
+    'as the only coverage: a unit test, not a capture');
+  assert.equal(visualOnlyCoverage([VISUAL_SRC, visualUnit, VISUAL_SPEC]), null,
+    'beside a capture spec: it pairs the change');
 });
 
 test('visual-only coverage is silent when the gate itself is red, and fires beside a new Jasmine spec', () => {
@@ -471,13 +487,17 @@ test('visual-only coverage is silent when the gate itself is red, and fires besi
   assert.ok(visualOnlyCoverage([VISUAL_SRC, newJasmine, VISUAL_SPEC]), 'so the visual spec is the only coverage');
 });
 
-test('VISUAL_SPEC_RE names the visual package and nothing else', () => {
-  // Prevents: the prefix drifting to admit `tests/e2e` or `docs/tests` specs,
-  // which would turn a paired change into a finding, or the visual demos.
+test('VISUAL_SPEC_RE matches a capture spec under visual-tests/tests/ and nothing else', () => {
+  // Prevents: the matcher drifting to admit `tests/e2e` or `docs/tests` specs
+  // (a paired change would become a finding) or the visual demos — and, as a
+  // bare package prefix, the visual package's own unit tests or a spec outside
+  // its Playwright `testDir`.
   assert.equal(VISUAL_SPEC_RE.test('visual-tests/tests/cross-browser/alignment.spec.ts'), true);
   assert.equal(VISUAL_SPEC_RE.test('tests/e2e/x.spec.ts'), false);
   assert.equal(VISUAL_SPEC_RE.test('docs/tests/visualDocs.spec.ts'), false);
   assert.equal(VISUAL_SPEC_RE.test('examples/next/visual-tests/js/demo/src/main.ts'), false);
+  assert.equal(VISUAL_SPEC_RE.test('visual-tests/lib/__tests__/manifest.unit.js'), false, 'a unit test in the package');
+  assert.equal(VISUAL_SPEC_RE.test('visual-tests/src/page-helpers.spec.ts'), false, 'a spec outside the testDir');
 });
 
 test('the visual-only-coverage message says a screenshot proves pixels, not behavior, and points at the decision rule', () => {
@@ -503,35 +523,9 @@ test('the visual-only-coverage message says a screenshot proves pixels, not beha
   assert.ok(lines.some(l => l.includes(`\`${VISUAL_SPEC.path} (A)\``)));
 });
 
-test('every prose enumeration of the detectors names visual-only coverage, and the tally recipe filters on the annotation title', () => {
-  // Prevents: the places that list the detectors drifting apart (the lib
-  // header, the CLI header, the checks.yml comment, LOCAL-ENFORCEMENT's advisory
-  // paragraph, TESTING.md's Pillar 1 sentence), and the month-later `gh` recipe
-  // filtering on a title the CLI no longer emits — which would read as zero
-  // firings and decide the question the wrong way.
-  const read = file => readFileSync(path.join(repoRoot(), file), 'utf8');
-
-  for (const file of [
-    '.github/scripts/lib/presence-warnings.mjs',
-    '.github/scripts/test-presence-gate.mjs',
-    '.github/workflows/checks.yml',
-    '.ai/LOCAL-ENFORCEMENT.md',
-    'handsontable/.ai/TESTING.md',
-  ]) {
-    assert.match(read(file), /visual-only[ -]coverage/, `${file} names the fifth detector`);
-  }
-
-  const cli = read('.github/scripts/test-presence-gate.mjs');
-  const enforcement = read('.ai/LOCAL-ENFORCEMENT.md');
-
-  assert.match(cli, /::warning title=Test-presence gate \(\$\{warning\.type\}\)::/,
-    'the CLI\'s annotation title format');
-  assert.ok(enforcement.includes('Test-presence gate (visual-only-coverage)'),
-    'the recipe filters on the exact title the CLI emits');
-  assert.ok(enforcement.includes('Checks / test presence'),
-    'the recipe names the check run as GitHub does (called through test.yml)');
-  assert.match(enforcement, /COVERAGE_ANY_STATUS/, 'the criterion names what a "stop counting" decision narrows');
-});
+// The prose enumerations of the detectors and the month-later tally recipe are
+// pinned in visual-only-coverage-pins.test.mjs (doc pins live in their own file,
+// region-sliced so a deleted enumeration cannot hide behind another mention).
 
 // --- collectWarnings / renderWarnings ---
 test('collectWarnings composes every detector and stays silent on a clean change', () => {

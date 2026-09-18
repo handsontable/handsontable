@@ -28,8 +28,8 @@
  *   `walkontable/test/` is never "the engine changed") and ignores a D status
  *   (a deletion needs no new coverage).
  * - visual-only coverage — production source changed and every change the
- *   gate counts as coverage is a spec under `visual-tests/` (the gate's
- *   `.spec.ts` rule admits one, whatever its status). A screenshot proves
+ *   gate counts as coverage is a capture spec under `visual-tests/tests/` (the
+ *   gate's `.spec.ts` rule admits one, whatever its status). A screenshot proves
  *   pixels, not behavior. Added, modified, and renamed specs count; a deleted
  *   one counts on neither side; and it is silent when there is no coverage at
  *   all, because the verdict already says `missing-coverage`. It reads the
@@ -65,18 +65,23 @@ const TEST_RTL_RE = /rtl|layoutDirection/i;
 const TESTS_PACKAGE_RE = /^tests\//;
 
 /**
- * The visual regression package. Its `*.spec.ts` files satisfy the gate through
+ * A capture spec: a `*.spec.ts` under `visual-tests/tests/`, the `testDir` of
+ * `visual-tests/playwright.config.ts`. Such a file satisfies the gate through
  * the `.spec.ts` rule in presence-gate.mjs (`COVERAGE_ANY_STATUS`), which makes
  * a screenshot the cheapest coverage a source change can carry. All 112 visual
- * specs live under `visual-tests/tests/` (measured 2026-09-18: 69 js-only, 23
- * multi-frameworks, 20 cross-browser), and `tests/playwright.config.ts` reserves
- * `tests/visual/` as a later home — so this constant is the one place to widen.
- * Deliberately not `docs/tests/`: its screenshot spec counts as coverage for a
- * core change too, but a docs spec beside a core change is not the shape this
- * warning is about, and admitting it invites the false positive that gets a
- * hook disabled. Exported so the tests assert the prefix instead of re-deriving it.
+ * specs live there (measured 2026-09-18: 69 js-only, 23 multi-frameworks, 20
+ * cross-browser; none elsewhere under the package), and `tests/playwright.config.ts`
+ * reserves `tests/visual/` as a later home — so this constant is the one place to
+ * widen. The suffix is deliberate, not a package prefix: a `*.unit.js` for the
+ * visual package's own lib is behavioral coverage, not a capture, and must pair
+ * a source change rather than draw this warning (none exists today, but the G3
+ * and G5 guardrails add lib code there). Deliberately not `docs/tests/` either:
+ * its screenshot spec counts as coverage for a core change too, but a docs spec
+ * beside a core change is not the shape this warning is about, and admitting it
+ * invites the false positive that gets a hook disabled. Exported so the tests
+ * assert the matcher instead of re-deriving it.
  */
-export const VISUAL_SPEC_RE = /^visual-tests\//;
+export const VISUAL_SPEC_RE = /^visual-tests\/tests\/.*\.spec\.ts$/;
 
 const WALKONTABLE_SOURCE_RE = /^handsontable\/src\/3rdparty\/walkontable\/src\//;
 const WALKONTABLE_TEST_RE = [
@@ -355,9 +360,10 @@ export function walkontableRouting(changes) {
 
 /**
  * Visual-only coverage: production source changed and every change that
- * satisfies the gate is a spec under `visual-tests/` — no unit test, no
- * `tests/e2e` spec, no wrapper spec, no `*.types.ts`, no edited Jasmine spec.
- * A screenshot proves pixels, not behavior.
+ * satisfies the gate is a capture spec under `visual-tests/tests/` — no unit
+ * test (the visual package's own included), no `tests/e2e` spec, no wrapper
+ * spec, no `*.types.ts`, no edited Jasmine spec. A screenshot proves pixels,
+ * not behavior.
  *
  * Deletions count on neither side. A removed source file needs no test, and a
  * removed visual spec is not the coverage this warning is about — that the gate
@@ -371,10 +377,11 @@ export function walkontableRouting(changes) {
  * `--name-status` list: it never reads the diff, so `isAdvisoryPath()` and the
  * CLI's pathspec stay as they are.
  *
- * Measured over 1244 first-parent commits since 2026-03-01 (a scratch script
- * running this predicate over `git diff-tree -M --name-status`): one would have
- * fired — #12086, a `preventOverflow` scroll fix in `overlays.js` proven by a
- * new visual spec — and none since the gate shipped on 2026-07-22. A count
+ * Measured over 1251 first-parent commits since 2026-03-01 (origin/develop at
+ * 06b74cfcd, 2026-09-18; a scratch script running this predicate over
+ * `git diff-tree -M --name-status`): one would have fired — #12086, a
+ * `preventOverflow` scroll fix in `overlays.js` proven by a new visual spec —
+ * and none since the gate shipped on 2026-07-22. A count
  * alone therefore decides nothing, which is why the decision this feeds is
  * written down in advance (the advisory paragraph in .ai/LOCAL-ENFORCEMENT.md):
  * the `::warning` annotations are the month of data, and a month of zero is a
@@ -469,10 +476,13 @@ export function collectWarnings({ changes = [], diff = '', prBody } = {}) {
       type: 'visual-only-coverage',
       // One line, no backticks or asterisks: the CLI's annotation() strips both
       // before the text becomes a `::warning`, and the pointer has to survive it.
-      message: 'Source changed and the only test changes beside it are visual specs under visual-tests/. A screenshot '
-        + 'proves pixels, not behavior — add the Playwright assertion in tests/e2e/ (or a unit test) that would fail '
-        + 'if the behavior broke, and keep the visual spec for what only pixels can show. '
-        + 'Rule: visual-tests/AGENTS.md → Decision rule.',
+      // "Every change the gate counts as coverage", not "the only test change":
+      // a deleted tests/e2e spec or a NEW Jasmine spec can sit beside the capture
+      // spec — neither is coverage to the gate, and the detector fires anyway.
+      message: 'Source changed and every change the gate counts as coverage is a visual spec under '
+        + 'visual-tests/tests/. A screenshot proves pixels, not behavior — add the Playwright assertion in '
+        + 'tests/e2e/ (or a unit test) that would fail if the behavior broke, and keep the visual spec for what '
+        + 'only pixels can show. Rule: visual-tests/AGENTS.md → Decision rule.',
       files: [...visualOnly.sourceFiles, ...visualOnly.visualSpecs],
     });
   }

@@ -311,7 +311,7 @@ Machine-enforced by the presence gate (`.github/scripts/test-presence-gate.mjs`)
 
 **New spec vs modify existing:** new public API / plugin / editor → a new spec; a bug fix → add a case to the closest existing spec (its test must fail without the fix).
 
-**A visual spec is coverage to the gate, not proof of behavior:** a spec under `visual-tests/` satisfies the presence gate but proves pixels, not behavior — it accompanies the E2E or unit assertion above and never replaces one, so a source change whose only test change is a visual spec draws the non-blocking `visual-only-coverage` advisory under the gate's verdict (`.ai/LOCAL-ENFORCEMENT.md`).
+**The gate warns when a visual spec is the only test change:** a source change whose only test change is a capture spec under `visual-tests/tests/` draws the non-blocking `visual-only-coverage` advisory under the gate's verdict. The criterion that decides whether such a spec keeps counting as coverage, and the recipe that tallies the warning, are in `.ai/LOCAL-ENFORCEMENT.md`.
 
 **The Jasmine suite is frozen — and migrates by attrition:**
 - Adding a **new** `*.spec.js` is blocked; new E2E goes to Playwright.

@@ -133,36 +133,36 @@ pin that plumbing), **Walkontable routing**
 (engine source changed with nothing
 under `handsontable/src/3rdparty/walkontable/test/` or `tests/e2e/walkontable/`),
 and **visual-only coverage** (a source file changed and every change the gate
-counts as coverage is a spec under `visual-tests/` — added, modified, or
-renamed; a deleted spec counts on neither side, and the check is silent when
-there is no coverage at all, because the verdict already says
-`missing-coverage`. A screenshot proves pixels, not behavior: the rule is
-`visual-tests/AGENTS.md` → Decision rule, and the remedy is the `tests/e2e/`
-or unit assertion that would fail if the behavior broke, with the visual spec
-kept for what only pixels can show. It reads the `--name-status` list, never
-the diff, so `isAdvisoryPath()` is untouched).
+counts as coverage is a capture spec under `visual-tests/tests/`. Added,
+modified, and renamed specs count; a deleted spec counts on neither side. The
+check is silent when there is no coverage at all, because the verdict already
+says `missing-coverage`. A screenshot proves pixels, not behavior. The rule is
+`visual-tests/AGENTS.md` → Decision rule. The remedy is the `tests/e2e/` or
+unit assertion that would fail if the behavior broke; the visual spec stays for
+what only pixels can show. It reads the `--name-status` list, never the diff,
+so `isAdvisoryPath()` is untouched).
 In CI each one is also a `::warning` annotation. A new detector is a pure
 function in that lib plus a `node --test` case in
 `.github/scripts/__tests__/presence-warnings.test.mjs`; a gap in the input (no
 body, no diff) must be silence, never a finding.
 
-**The visual-only-coverage advisory is a one-month measurement, and its
-decision is written down here in advance.** The gate counts a visual spec as
-coverage on its own — `COVERAGE_ANY_STATUS` in
-`.github/scripts/lib/presence-gate.mjs`, pinned by `presence-gate.test.mjs`
-(the `visual-tests/…/menu.spec.ts` → `test` classification, and the
-modified-visual-spec change set that passes as test-only). Measured before the
-detector shipped: over 1244 first-parent commits since 2026-03-01 it would have
-fired once (#12086) and never since the gate landed on 2026-07-22, so a count
-alone decides nothing and the rule is fixed now. **One month after the detector
-merges: if any pull request merged with the annotation still standing on its
-final SHA, narrow `COVERAGE_ANY_STATUS` so a spec under `visual-tests/` no
-longer counts alone** — a verdict change: `evaluate()` gains a reason, and
-those two pins flip. **A month of zero means keep counting.** The step summary
-has no API and the presence job posts no comment, so the check-run annotation
-is the one countable channel, and its title is the aggregation key. The tally,
-over the pull requests merged since the detector's merge date (raise `--limit`
-if the month had more):
+**The visual-only-coverage advisory is a one-month measurement. Its decision
+is written down here in advance.** The gate counts a visual spec as coverage
+on its own: `COVERAGE_ANY_STATUS` in `.github/scripts/lib/presence-gate.mjs`,
+pinned by `presence-gate.test.mjs` (the `visual-tests/…/menu.spec.ts` → `test`
+classification, and the modified-visual-spec change set that passes as
+test-only). Measured before the detector shipped, on `origin/develop` at
+`06b74cfcd` (2026-09-18): over 1251 first-parent commits since 2026-03-01 it
+would have fired once (#12086), and never since the gate landed on 2026-07-22.
+A count alone therefore decides nothing, so the rule is fixed now. **One month
+after the detector merges, run the tally below. If any pull request merged with
+the annotation still standing on its final SHA, narrow `COVERAGE_ANY_STATUS` so
+a spec under `visual-tests/` no longer counts alone.** That is a verdict
+change: `evaluate()` gains a reason, and those two pins flip. **A month of zero
+means keep counting.** The step summary has no API and the presence job posts
+no comment. The check-run annotation is therefore the one countable channel,
+and its title is the aggregation key. The tally, over the pull requests merged
+since the detector's merge date (raise `--limit` if the month had more):
 
 ```sh
 gh pr list --repo handsontable/handsontable --state merged --base develop --limit 200 \
@@ -177,12 +177,18 @@ done | sort -u
 ```
 
 It lists the pull requests that merged with the warning still standing on
-their final push, and it must be read exactly that way: an author who added
-the unit test after the warning fired leaves no annotation on the final SHA,
-which is the warning doing its job, and the earlier firing lives only in that
-push's own check run. The check run is named `Checks / test presence` (the job
-is called through `test.yml`), not `test presence`, and check runs hang off the
-pull request's head SHA — the squash commit on `develop` carries none.
+their final push, and it must be read exactly that way. An author who added
+the unit test after the warning fired leaves no annotation on the final SHA —
+that is the warning doing its job — and the earlier firing lives only in that
+push's own check run. Two facts about the API shape the recipe. The check run
+is named `Checks / test presence` (the job is called through `test.yml`), not
+`test presence`. And the recipe reads each pull request's `headRefOid`, never
+the squash commit on `develop`: that commit does carry check runs, a
+`Checks / test presence` run among them, but the `presence` job is PR-only
+(`if: github.event_name == 'pull_request'` in `checks.yml`), so on a `develop`
+push that run is `skipped` and holds no annotations (measured 2026-09-18 on
+`06b74cfcd`: 49 check runs, the presence run skipped with zero annotations).
+The annotations live only on the runs against the pull request's head SHAs.
 
 **Coverage is a CI floor, not a hook** (it needs a full instrumented run, too slow
 for a hook): the `[CHECK] Coverage floor` job measures the percent of *added*
