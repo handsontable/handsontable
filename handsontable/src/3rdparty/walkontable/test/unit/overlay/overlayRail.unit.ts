@@ -295,6 +295,23 @@ describe('OverlayRail', () => {
       expect(clone.style.pointerEvents).toBe('auto');
     });
 
+    it('should leave no bottom inset behind on release', () => {
+      // The clone gets its `top` back, and an absolutely positioned box carrying BOTH insets is
+      // stretched to its container instead of shrinking to its table: a bottom overlay that stops
+      // rendering would go on measuring the whole grid.
+      clone.style.bottom = '40px';
+
+      const rail = new OverlayRail(clone, document);
+
+      rail.pin({
+        isRtl: false, width: 900, height: 4000, inline: false, block: { pinned: true, edge: 'bottom' },
+      });
+      rail.release();
+
+      expect(clone.style.bottom).toBe('');
+      expect(clone.style.top).toBe('0px');
+    });
+
     it('should report no pinned axis once released', () => {
       const rail = new OverlayRail(clone, document);
 

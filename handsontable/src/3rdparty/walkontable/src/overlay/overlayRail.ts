@@ -214,6 +214,12 @@ export class OverlayRail {
     this.#pinsBlock = false;
     cloneStyle.position = 'absolute';
     cloneStyle.top = '0';
+    // The clone factory leaves the bottom edge to the content, and a released clone gets its `top`
+    // back: an absolutely positioned box carrying BOTH insets is stretched to its container instead
+    // of shrinking to its table, so a bottom overlay that stops rendering would still measure the
+    // whole grid (`core/batch.spec.js` catches it). The bottom overlays write their own inset again
+    // on the next draw that needs one.
+    cloneStyle.bottom = '';
     cloneStyle.pointerEvents = '';
     cloneStyle.marginTop = '';
   }

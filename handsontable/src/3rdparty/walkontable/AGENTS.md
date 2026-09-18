@@ -274,8 +274,9 @@ measured defect of a simpler version.
   `top`/`bottom`/`left`/`right` are constraints, not offsets: the `top: 0` the clone factory writes
   would pin the row headers to the viewport top as the page scrolls down. The rail clears every inset
   it does not mean and carries that axis's place itself; `release()` restores `position: absolute;
-  top: 0`. Whatever the rail does not hold stays the listener's transform, which is what a corner in a
-  grid whose other axis an element owns still uses for that half.
+  top: 0` and drops every inset `pin()` wrote. Whatever the rail does not hold stays the listener's
+  transform, which is what a corner in a grid whose other axis an element owns still uses for that
+  half.
 - **An overlay that stops rendering must leave its rail.** `Overlay#reset()` clears the clone's inline
   `width`, and a width-less clone behaves differently in the two positioning schemes: absolutely
   positioned it shrinks to its empty table (0px), in the rail's normal flow it stretches to the rail's
@@ -283,6 +284,11 @@ measured defect of a simpler version.
   so nothing else would release it; `reset()` does. Four legacy specs caught this
   (`rowHeader.spec.js` and `settings/fixedColumnsStart.spec.js` turn the overlay off and expect
   `getInlineStartClone().width()` to be 0) — the frame-capture spec cannot, it never turns an overlay off.
+  The height has the same twin, and it is why `release()` must drop the `bottom` inset: a released
+  clone gets its `top` back, and an absolutely positioned box carrying BOTH insets is stretched to its
+  container instead of shrinking to its table, so a bottom overlay turned off went on measuring the
+  whole grid (`core/batch.spec.js`). Both bottom overlays write their own `bottom` again on every
+  element-mode draw, after the release, so nothing is lost by clearing it.
   The corners go on positioning while they do not render (their `resetFixedPosition()` has no render
   gate), so they pin only while `needFullRender` is set; otherwise the next draw would move an idle
   corner straight back into a rail.
