@@ -774,4 +774,49 @@ describe('MetaManager', () => {
       expect(meta.editor).toBe('password');
     });
   });
+
+  describe('cell type `textEllipsis` default (DEV-28)', () => {
+    it('should default `textEllipsis` to `true` for the autocomplete/dropdown/handsontable types', () => {
+      const metaManager = new MetaManager();
+
+      metaManager.updateColumnMeta(0, { type: 'autocomplete' });
+      metaManager.updateColumnMeta(1, { type: 'dropdown' });
+      metaManager.updateColumnMeta(2, { type: 'handsontable' });
+
+      expect(metaManager.getCellMeta(0, 0, { visualRow: 0, visualColumn: 0 }).textEllipsis).toBe(true);
+      expect(metaManager.getCellMeta(0, 1, { visualRow: 0, visualColumn: 1 }).textEllipsis).toBe(true);
+      expect(metaManager.getCellMeta(0, 2, { visualRow: 0, visualColumn: 2 }).textEllipsis).toBe(true);
+    });
+
+    it('should let a column override the type default with `textEllipsis: false`', () => {
+      const metaManager = new MetaManager();
+
+      metaManager.updateColumnMeta(0, { type: 'dropdown', textEllipsis: false });
+
+      expect(metaManager.getCellMeta(0, 0, { visualRow: 0, visualColumn: 0 }).textEllipsis).toBe(false);
+    });
+
+    it('should let `setCellMeta` override the type default and keep it across re-extension', () => {
+      const metaManager = new MetaManager();
+
+      metaManager.updateColumnMeta(0, { type: 'dropdown' });
+      metaManager.setCellMeta(0, 0, 'textEllipsis', false);
+
+      // The type re-extends on every read; the user's own value must keep winning.
+      expect(metaManager.getCellMeta(0, 0, { visualRow: 0, visualColumn: 0 }).textEllipsis).toBe(false);
+      expect(metaManager.getCellMeta(0, 0, { visualRow: 0, visualColumn: 0 }).textEllipsis).toBe(false);
+    });
+
+    it('should NOT let a grid-level `textEllipsis: false` reach a column that declares the type', () => {
+      const metaManager = new MetaManager();
+
+      metaManager.updateGlobalMeta({ textEllipsis: false });
+      metaManager.updateColumnMeta(0, { type: 'dropdown' });
+
+      // The type's own value lands on the column meta as an own property and shadows the
+      // grid-level setting, which lives on the column meta's prototype. Recovery must be at the
+      // column (or below), not at the grid level.
+      expect(metaManager.getCellMeta(0, 0, { visualRow: 0, visualColumn: 0 }).textEllipsis).toBe(true);
+    });
+  });
 });

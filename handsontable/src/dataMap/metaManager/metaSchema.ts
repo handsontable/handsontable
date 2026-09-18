@@ -7152,6 +7152,13 @@ export default (): Record<string, unknown> => {
      * | `false` (default) | Don't truncate text content with an ellipsis  |
      * | `true`            | Truncate text content with an ellipsis        |
      *
+     * ::: tip
+     * The `autocomplete`, `dropdown`, and `handsontable` cell types default this option to `true`, so a
+     * long value stays on one line and truncates with an ellipsis, clear of the dropdown arrow. To
+     * restore wrapping, set `textEllipsis: false` on the column that declares the type (or in `cells` /
+     * `setCellMeta`). This changed in 19.0.0.
+     * :::
+     *
      * @since 16.0.0
      * @memberof Options#
      * @type {boolean}
@@ -8321,6 +8328,13 @@ export default (): Record<string, unknown> => {
      * Word wrapping only applies to content that contains spaces or other soft-wrap opportunities.
      * A long unbroken string without spaces (e.g. a URL or a continuous number sequence) does not wrap
      * regardless of this setting.
+     * :::
+     *
+     * ::: tip
+     * The `autocomplete`, `dropdown`, and `handsontable` cell types default
+     * [`textEllipsis`](#textellipsis) to `true`, and its styling also keeps the value on a single line,
+     * so `wordWrap` has no visible effect on them until you set `textEllipsis: false` on the column that
+     * declares the type (or in `cells` / `setCellMeta`). This changed in 19.0.0.
      * :::
      *
      * This option can be set at any level of the [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration):
