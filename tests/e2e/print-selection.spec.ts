@@ -44,14 +44,17 @@ test.describe('DEV-133 — selection UI on print', () => {
     expect(await grid.areaCellBorderTopColor()).toBe(await grid.plainCellBorderTopColor());
   });
 
-  test('a custom border stays visible on print', async({ page, theme, bundle }) => {
+  test('the print rule does not hide a custom border', async({ page, theme, bundle }) => {
     const grid = new PrintSelectionPage(page, theme, bundle);
 
     await grid.goto();
     await grid.selectRange(1, 1, 2, 2);
 
-    // The print rule is scoped to the selection classes only. A user-configured custom border must
-    // survive on both media, or hiding the selection would break configured decoration.
+    // The print rule's selectors must not match a custom border, or hiding the selection would break
+    // configured decoration. This asserts the rule leaves the custom border's element displayed under
+    // print media — not real-print visibility: `emulateMedia({ media: 'print' })` activates @media
+    // print but does not simulate the browser's own background drop (which this background-based
+    // custom border would take on a real printout regardless, exactly like the grid's cell borders).
     await grid.emulateScreen();
     expect(await grid.visibleCustomBorderEdgeCount()).toBeGreaterThan(0);
 
