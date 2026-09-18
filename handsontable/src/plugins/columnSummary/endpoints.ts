@@ -19,6 +19,7 @@ type HotInstanceInternal = HotInstance & {
 export interface EndpointConfig {
   ranges?: number[][];
   reversedRowCoords?: boolean;
+  reversedRowOffset?: number;
   destinationRow?: number;
   destinationColumn?: number;
   sourceColumn?: number;
@@ -323,6 +324,9 @@ class Endpoints {
     } else {
       /* eslint-disable no-lonely-if */
       if (name === 'destinationRow' && endpoint.reversedRowCoords) {
+        // Keep the caller's offset-from-the-bottom so the destination can be re-derived after a
+        // structure alteration (DEV-144); resolving it here loses it otherwise.
+        endpoint.reversedRowOffset = settings[name] as number;
         endpoint[name] = this.countAddressableRows() - (settings[name] as number) - 1;
 
       } else {
@@ -431,6 +435,21 @@ class Endpoints {
     } else {
       arrayEach(endpoints, (endpoint: EndpointConfig) => {
         this.shiftEndpointCoordinates(endpoint, placeOfAlteration);
+      });
+    }
+
+    if (type === 'row' && !rowMoving) {
+      arrayEach(endpoints, (endpoint: EndpointConfig) => {
+        // A reversed endpoint is anchored to the bottom of the table, so a row inserted or removed
+        // re-derives its destination from the current physical row count (DEV-144). The generic
+        // shift above only moves an endpoint whose destination sits at or below the alteration,
+        // which misses a row appended past the anchor. The old destination cell was already cleared
+        // by `resetAllEndpoints` above (its offset is 0 for a below-anchor alteration, so it clears
+        // the pre-move position), and the refresh below writes the value onto the new anchor. A move
+        // leaves the row count unchanged, so it is excluded - the anchor cannot have moved.
+        if (endpoint.reversedRowCoords && typeof endpoint.reversedRowOffset === 'number') {
+          endpoint.destinationRow = this.countAddressableRows() - endpoint.reversedRowOffset - 1;
+        }
       });
     }
 

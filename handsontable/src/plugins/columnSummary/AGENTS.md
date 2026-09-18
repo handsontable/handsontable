@@ -90,6 +90,34 @@ DOM write it replaced.
 
 `refreshCellMetas()` exists because `updateSettings({ columns })` resets cell metas to their initial state.
 
+## A `reversedRowCoords` endpoint is anchored to the bottom and must be re-derived on alteration (DEV-144)
+
+`reversedRowCoords: true` means the destination is counted from the **bottom** of the table, so
+`destinationRow: 0` is the last row and the summary must follow the bottom as rows are added or removed.
+`assignSetting()` resolves that once, at parse time, into an absolute physical index
+(`countAddressableRows() - destinationRow - 1`) and keeps **only** the boolean — so the original
+offset-from-the-bottom is otherwise lost. It is preserved on `endpoint.reversedRowOffset` for exactly this
+reason.
+
+The array-form `resetSetupAfterStructureAlteration()` shift is a gated shift: it moves an endpoint only
+when the alteration index sits **at or below** its destination. That is correct for a fixed (non-reversed)
+endpoint, and it happens to be correct for a reversed one when a row is inserted *above* the anchor. It is
+**wrong** for a row appended *below* the anchor — `2 >= 3` is false for an append past the last row — which
+left the summary parked on the old last row instead of moving down (issue #129). So after the generic
+shift, every reversed **row** endpoint re-derives `destinationRow` from `countAddressableRows()` and its
+stored offset. The generic `resetAllEndpoints()` pass already ran first and cleared the old destination
+cell's **value** (its `alterRowOffset` is 0 for a below-anchor alteration, so it clears the pre-move
+position); the refresh afterwards writes the value onto the new anchor.
+
+**Known limitation, deliberately not fixed here:** the old anchor cell keeps its declarative meta
+(`readOnly` + `columnSummaryResult`), because the declarative tier has no per-cell removal — plugins *set*
+declarative meta and rely on the `updateSettings` cache reset to drop it (see
+`../../dataMap/metaManager/metaSchema.ts` and "Styling uses `_setCellMetaDeclarative`" above). Cleaning it
+would need a new mechanism in that tier, which is out of scope. Two related row bugs share this root cause
+and are tracked separately: the default `ranges: [[0, countAddressableRows() - 1]]` is also resolved once
+and does not grow on append, and a non-last reversed anchor with a row removed below it re-anchors onto a
+data row (data the summary then overwrites). `reversedRowCoordsAlter.unit.js` pins the add cases.
+
 ## The refresh pass caches every endpoint, not just the matched ones
 
 `cacheSummaryDestinations(endpoints)` is called with **all** endpoints even though only the matched ones are
