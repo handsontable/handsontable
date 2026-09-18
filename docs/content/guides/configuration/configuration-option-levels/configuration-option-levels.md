@@ -187,6 +187,7 @@ Search for an option by name, or filter the list down to a single level.
 | <span data-option="hiddenColumns" data-levels="grid"></span>[`hiddenColumns`](@/api/options.md#hiddencolumns) | Yes | No | No | No | HiddenColumns |  |
 | <span data-option="hiddenRows" data-levels="grid"></span>[`hiddenRows`](@/api/options.md#hiddenrows) | Yes | No | No | No | HiddenRows |  |
 | <span data-option="imeFastEdit" data-levels="grid"></span>[`imeFastEdit`](@/api/options.md#imefastedit) | Yes | No | No | No | Core |  |
+| <span data-option="importFile" data-levels="grid"></span>[`importFile`](@/api/options.md#importfile) | Yes | No | No | No | ImportFile |  |
 | <span data-option="initialState" data-levels="grid"></span>[`initialState`](@/api/options.md#initialstate) | Yes | No | No | No | Core |  |
 | <span data-option="injectCoreCss" data-levels="grid"></span>[`injectCoreCss`](@/api/options.md#injectcorecss) | Yes | No | No | No | Core |  |
 | <span data-option="invalidCellClassName" data-levels="grid columns cells cell"></span>[`invalidCellClassName`](@/api/options.md#invalidcellclassname) | Yes | Yes | Yes | Yes | Core |  |

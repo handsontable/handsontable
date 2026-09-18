@@ -31,6 +31,7 @@ describe('built-in plugins', () => {
       'ColumnSummary',
       'DropdownMenu',
       'ExportFile',
+      'ImportFile',
       'Filters',
       'Formulas',
       'AutoLink',

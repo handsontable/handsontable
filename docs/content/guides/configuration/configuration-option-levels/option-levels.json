@@ -8,7 +8,7 @@
   ],
   "total": 174,
   "counts": {
-    "grid": 106,
+    "grid": 107,
     "grid columns cells cell": 61,
     "grid columns": 6,
     "columns": 1
@@ -773,6 +773,15 @@
         "grid"
       ],
       "since": "14.0.0",
+      "note": null
+    },
+    {
+      "name": "importFile",
+      "category": "ImportFile",
+      "levels": [
+        "grid"
+      ],
+      "since": "19.0.0",
       "note": null
     },
     {

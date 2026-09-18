@@ -10,6 +10,7 @@ import {
   getFractionalScalingCompensation,
   hasClass,
   isInput,
+  isInternalElement,
   isBottomMostColumnHeader,
   removeAttribute,
   removeClass,
@@ -53,6 +54,72 @@ describe('DomElement helper', () => {
       div.contentEditable = 'true';
 
       expect(isInput(div)).toBe(true);
+    });
+  });
+
+  describe('isInternalElement', () => {
+    /**
+     * Builds `<div class="handsontable">` (the grid root) holding one clone, optionally inside a rail
+     * the way a window-scrolled grid pins its inline-start clones, and a cell inside the clone.
+     *
+     * @param {boolean} railed Whether the clone sits inside a rail.
+     * @returns {{ root: HTMLElement, cell: HTMLElement }}
+     */
+    function buildGrid(railed: boolean) {
+      const root = document.createElement('div');
+      const clone = document.createElement('div');
+      const cell = document.createElement('td');
+
+      root.className = 'handsontable';
+      clone.className = 'ht_clone_inline_start handsontable';
+      clone.appendChild(document.createElement('table')).appendChild(cell);
+
+      if (railed) {
+        const rail = document.createElement('div');
+
+        rail.className = 'htOverlayRail';
+        rail.appendChild(clone);
+        root.appendChild(rail);
+      } else {
+        root.appendChild(clone);
+      }
+
+      return { root, cell };
+    }
+
+    it('should recognize a cell of a clone standing directly in the grid root', () => {
+      const { root, cell } = buildGrid(false);
+
+      expect(isInternalElement(cell, root)).toBe(true);
+    });
+
+    it('should recognize a cell of a clone pinned inside a rail', () => {
+      // DEV-127: while the window scrolls the grid sideways, the inline-start clones sit one level
+      // deeper. Copy/paste and the focus handling ask this helper, so answering `false` here made
+      // frozen and header cells read as foreign.
+      const { root, cell } = buildGrid(true);
+
+      expect(isInternalElement(cell, root)).toBe(true);
+    });
+
+    it('should not claim a cell of a grid nested inside a cell of the outer grid', () => {
+      const outer = buildGrid(true);
+      const nested = buildGrid(true);
+
+      outer.cell.appendChild(nested.root);
+
+      expect(isInternalElement(nested.cell, outer.root)).toBe(false);
+      expect(isInternalElement(nested.cell, nested.root)).toBe(true);
+    });
+
+    it('should step over the rail and no further', () => {
+      // A rail step that climbed one level too far would answer for the element holding the grid.
+      const { root, cell } = buildGrid(true);
+      const host = document.createElement('div');
+
+      host.appendChild(root);
+
+      expect(isInternalElement(cell, host)).toBe(false);
     });
   });
 

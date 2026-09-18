@@ -216,6 +216,119 @@ from silently giving the paint back. Window-scroll mode was probed at device sca
 zoom 0.8–1.33: every clone holder has zero scroll range on both axes there, so a wheel over a frozen
 header cannot latch to a clone and `#onCloneWheel`'s window branch stays as it is.
 
+## A window-scrolled grid pins its clones with CSS, not from the scroll listener
+
+Whichever axis the WINDOW owns, the clones along that axis must stay at the viewport's edge while the
+page slides underneath them: `inline_start` and both corners sideways (DEV-127), `top`, `bottom` and
+both corners up and down (DEV-126). They used to be moved from the `scroll` listener (a `translate3d`
+on most of them, a `left` or `bottom` inset on the bottom ones). In window mode the wheel listener is
+passive, so the browser scrolls the page on its compositor and the listener runs afterwards: the clone
+was painted one step behind on about every other frame of a wheel scroll — the row headers torn away
+or gone, 49 of 98 frames on Chromium, 49% on Firefox, 15-24% on WebKit; the column headers 49 of 98
+frames, measured with the same harness. Element mode never had it: there the wheel listener is not
+passive and JavaScript scrolls the holder itself, in the same frame.
+
+The clones are now held by `position: sticky` (`overlay/overlayRail.ts`, reached through
+`Overlay#getRail()`), which the browser resolves on the scroll's own frame. A rail spans the table on
+each axis its clone travels, and each region overlay names the axes it follows: the inline-start one
+sideways, the top and bottom ones up and down, the corners both. Nine rules follow; most were a
+measured defect of a simpler version.
+
+- **A sticky box only travels inside its parent's box, and every ancestor of the clones is as large as
+  the viewport, not the table.** Pinned where it stands, a clone stops after one viewport width or
+  height. So the clone is moved into a rail: an absolutely positioned `div.htOverlayRail` holding only
+  that clone, at the clone's old slot among the master's siblings, as wide as the master's total width
+  when the clone travels sideways and as tall as its total height when the clone travels up and down.
+  A rail that spans neither axis has **no height** and covers nothing; one that spans the block axis
+  lies over the cells, so it takes `pointer-events: none` and the clone takes its own back. A corner
+  that travels on one axis only keeps the zero-height form, and a bottom one hangs from its rail's
+  bottom edge, so that rail's `bottom` is the corner's offset PLUS its height. Moving the clone in or
+  out detaches it for a moment, and the focus manager focuses the topmost copy of a cell – for a
+  frozen-column, header or corner cell, one inside this clone – so `pin()`/`release()` give the focus
+  back the way row recycling does (`render/rows.ts`), for an engine that blurs a detached element at
+  once.
+- **A sticky box only shifts from where it would otherwise stand, so a `bottom`-anchored clone has to
+  stand at the rail's BOTTOM.** Inside the rail a clone is the only child and stands at its top, where
+  a `bottom: 0` inset engages never: the clone is already above the viewport's bottom edge, so the
+  browser leaves it at the table's top (measured — the frozen bottom rows sat under the column
+  headers). The rail is a column flex box for that case, with the clone pushed down by `margin-top:
+  auto`, and `align-items: flex-start` so the clone keeps its own width instead of stretching to the
+  table's.
+- **A bottom rail reaches the table's PAINTED bottom, not its CSS-integer one.** At fractional zoom the
+  browser rounds each row's border to a physical pixel, so the table ends a fraction below the hider's
+  integer height. The bottom overlay used to subtract that fraction from its own inset; the rail's
+  height carries it instead (`getTotalHeight()` plus the master table's overflow), or the frozen rows
+  come to rest a fraction above the table's last row.
+- **A sticky shift is part of the layout; a transform never was.** `offsetLeft`/`offsetTop` and the
+  `offset()` helper see it (measured on Chromium, Firefox and WebKit: 300 against 0 at a 300px scroll),
+  so a reader that walks that chain and then adds `getOverlayOffset()` counts the scroll twice.
+  `BaseEditor#getEditedCellRect` did exactly that for a frozen-column cell, and on the vertical axis
+  for a frozen row; both add `Overlay#getOverlayTransformOffset()` instead, which is 0 while a rail
+  holds that overlay's OWN axis. `Overlay#railAxis` names it: `inline` for the inline-start overlay,
+  `block` for the top and bottom ones, nothing for the corners, which no such reader asks. Readers that subtract
+  two offsets inside the same clone (the fill-handle anchor, `Border#appear`) cancel the shift and need
+  nothing; `getRelativeCellPosition` derives it from the root's rect and needs nothing either.
+  `getOverlayOffset()` itself keeps its meaning — `manualColumnMove` places its backlight in the
+  master's hider from it.
+- **An inset on an axis the clone does NOT travel is a sticky constraint too.** On a sticky box
+  `top`/`bottom`/`left`/`right` are constraints, not offsets: the `top: 0` the clone factory writes
+  would pin the row headers to the viewport top as the page scrolls down. The rail clears every inset
+  it does not mean and carries that axis's place itself; `release()` restores `position: absolute;
+  top: 0` and drops every inset `pin()` wrote. Whatever the rail does not hold stays the listener's
+  transform, which is what a corner in a grid whose other axis an element owns still uses for that
+  half.
+- **An overlay that stops rendering must leave its rail.** `Overlay#reset()` clears the clone's inline
+  `width`, and a width-less clone behaves differently in the two positioning schemes: absolutely
+  positioned it shrinks to its empty table (0px), in the rail's normal flow it stretches to the rail's
+  full table width. `InlineStartOverlay#resetFixedPosition` returns early for a non-rendering overlay,
+  so nothing else would release it; `reset()` does. Four legacy specs caught this
+  (`rowHeader.spec.js` and `settings/fixedColumnsStart.spec.js` turn the overlay off and expect
+  `getInlineStartClone().width()` to be 0) — the frame-capture spec cannot, it never turns an overlay off.
+  The height has the same twin, and it is why `release()` must drop the `bottom` inset: a released
+  clone gets its `top` back, and an absolutely positioned box carrying BOTH insets is stretched to its
+  container instead of shrinking to its table, so a bottom overlay turned off went on measuring the
+  whole grid (`core/batch.spec.js`). Both bottom overlays write their own `bottom` again on every
+  element-mode draw, after the release, so nothing is lost by clearing it.
+  The corners go on positioning while they do not render (their `resetFixedPosition()` has no render
+  gate), so they pin only while `needFullRender` is set; otherwise the next draw would move an idle
+  corner straight back into a rail.
+- **Anything that recognizes a clone by its PARENT must look through the rail — stylesheets and
+  JavaScript alike.** `_base.scss` carries `.ht_master ~ .htOverlayRail > .handsontable` next to
+  `.ht_master ~ .handsontable` for the row-header seam color. `isInternalElement()`
+  (`helpers/dom/element.ts`) decided "this element belongs to this grid" by requiring the nearest
+  `.handsontable` to be a direct child of the root; with the clone in a rail it answered `false` for
+  every frozen-column, row-header and corner cell of a window-scrolled grid, and copy/paste, the text
+  editor's focus check and the focus manager all ask it. It now steps over a rail (pinned by
+  `element.unit.ts` and the legacy `helpers/dom/__tests__/element.spec.js`, which caught it).
+  `Border#getDimensionsFromHeader` reads the root's `ht__selection--rows`/`--columns` classes, and a
+  `Border` belongs to one clone, so it takes the root through the master (`cloneSource`), never
+  through its own table's parent. The class name lives in `overlay/constants.ts`: the rail imports its
+  focus helpers from `helpers/dom/element.ts`, which reads the class name, and the rail module would
+  close a cycle. Descendant queries (`root.querySelector('.ht_clone_*')`, `closest('.ht_clone_*')`)
+  need nothing.
+- **Not a pixel moves at rest, and one edge case moves by design.** A clone in a rail at `top: 0` lays
+  out exactly where the absolute clone did, and a bottom-anchored one at the rail's bottom edge lands
+  where its inset put it. Past the table's END, the listener reset the offset to 0 (the headers jumped
+  back to the table start); sticky keeps them against the table's end instead, on either axis. That
+  regime needs a page larger than the grid, scrolled past it. There `getOverlayOffset()` still snaps to
+  0 (legacy specs assert that reset), so a reader that places something over the clone from it – the
+  `manualColumnMove` backlight over a frozen column, `manualRowMove` over a frozen row – is off by the
+  parked distance in that regime only.
+
+**No DOM read can test this.** The engine's read-back agrees with itself on every frame, and a
+`page.screenshot()` forces a composite, which is the step the race loses. The pinning is pinned by
+`tests/e2e/walkontable/window-scroll-pinned-overlays.spec.ts`, which records a real wheel scroll through
+a CDP screencast (lossless PNG, the compositor's own scroll offset per frame) and scans the color the
+fixture paints each clone, next to a positive control whose clones stay behind; its placement tests
+(editor, fill handle, row-resize handle over the frozen columns and rows, LTR and RTL) are the ones
+that fail on a double-counted offset. The fixture is wide and short for the sideways legs and tall and
+narrow for the up-and-down ones (`?tall=1`), so one wheel moves one axis. Three traps for anyone
+extending it: keep the scroll profile inside the table (parking at max scroll measures end-of-table
+handling); do not record a scroll after an axis-owner flip — the wheel listener bound in element mode
+stays non-passive, JavaScript then scrolls the page itself, and nothing can tear either way; and scan
+only the clones a leg can see — with the clones unpinned they all stand at the table's top, where the
+top clone covers the bottom one, so the control names the two it scans.
+
 ## Naming gotcha: `moveCells` grid option vs. HyperFormula engine method
 
 The Handsontable `moveCells` grid option (added 18.0.0) enables drag-to-move for selections. HyperFormula exposes an identically named `engine.moveCells()` method that the `Formulas` plugin calls internally to relocate formula references. They are unrelated -- do not confuse the user-facing option with the HyperFormula engine API.

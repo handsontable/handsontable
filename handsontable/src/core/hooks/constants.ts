@@ -485,6 +485,16 @@ export const REGISTERED_HOOKS = [
   'afterGetRowHeader',
 
   /**
+   * Fired by the {@link ImportFile} plugin after the imported result was applied to the grid.
+   *
+   * @event Hooks#afterImport
+   * @since 19.0.0
+   * @param {object} result The applied {@link ImportFile} result.
+   * @param {string} format The import format, e.g. `'xlsx'`.
+   */
+  'afterImport',
+
+  /**
    * Fired after the Handsontable instance is initiated.
    *
    * @event Hooks#afterInit
@@ -1678,6 +1688,18 @@ export const REGISTERED_HOOKS = [
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   'beforeRemoveCellMeta',
+
+  /**
+   * Fired by the {@link ImportFile} plugin after a workbook was read and mapped, and before the
+   * result is applied to the grid. Mutating `result` changes what gets applied.
+   *
+   * @event Hooks#beforeImport
+   * @since 19.0.0
+   * @param {object} result The {@link ImportFile} result about to be applied.
+   * @param {string} format The import format, e.g. `'xlsx'`.
+   * @returns {boolean|undefined} If `false`, the result is not applied. The import promise still resolves with it.
+   */
+  'beforeImport',
 
   /**
    * Fired before the Handsontable instance is initiated.
