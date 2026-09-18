@@ -1,11 +1,16 @@
-import { test } from '../../../src/test-runner';
+import { visualTest, JS_VARIANTS, WRAPPERS, WRAPPERS_REASON_UNAUDITED } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 import { selectCell, tryToEscapeFromTheComponentsFocus } from '../../../src/page-helpers';
 
 /**
  * Checks whether pressing the Shift+Tab moves the focus backward within the filter's components.
  */
-test(__filename, async({ tablePage }) => {
+visualTest(__filename, {
+  themes: JS_VARIANTS,
+  browsers: ['chromium'],
+  wrappers: WRAPPERS,
+  wrappersReason: WRAPPERS_REASON_UNAUDITED,
+}, async({ tablePage }) => {
   const cell = await selectCell(0, 2);
 
   await cell.click();

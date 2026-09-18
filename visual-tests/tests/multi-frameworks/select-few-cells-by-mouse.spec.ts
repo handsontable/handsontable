@@ -1,8 +1,13 @@
-import { test } from '../../src/test-runner';
+import { visualTest, JS_VARIANTS, WRAPPERS, WRAPPERS_REASON_UNAUDITED } from '../../src/test-runner';
 import { helpers } from '../../src/helpers';
 import { selectCell, makeSelectionFromCell } from '../../src/page-helpers';
 
-test(__filename, async({ tablePage }) => {
+visualTest(__filename, {
+  themes: JS_VARIANTS,
+  browsers: ['chromium'],
+  wrappers: WRAPPERS,
+  wrappersReason: WRAPPERS_REASON_UNAUDITED,
+}, async({ tablePage }) => {
   const cell = await selectCell(1, 0);
 
   await makeSelectionFromCell(cell, 100);
