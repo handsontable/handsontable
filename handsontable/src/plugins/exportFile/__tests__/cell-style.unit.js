@@ -1,4 +1,6 @@
-import { getAlignmentFromMeta, getCssStyleFromElement, getDropdownValidation } from '../types/xlsx/cell-style';
+import {
+  clearStyleCaches, getAlignmentFromMeta, getCssStyleFromElement, getDropdownValidation,
+} from '../types/xlsx/cell-style';
 
 describe('getAlignmentFromMeta', () => {
   it('should return null when meta is falsy or has no className', () => {
@@ -116,6 +118,30 @@ describe('getCssStyleFromElement', () => {
     const { td } = renderedCell('htCenter boldOnly');
 
     expect(getCssStyleFromElement(td, 'htCenter boldOnly').fontColor).toBeNull();
+  });
+
+  it('should rebuild the baseline probe after clearStyleCaches, so a later export sees new CSS', () => {
+    // The probe cache is keyed by the mount element under the document; clearing by document has
+    // to reach it, or a second export keeps the first export's baseline.
+    const { td } = renderedCell('htCenter myClass', 'rgb(255, 0, 0)');
+    const probesBuilt = () => document.createElement.mock.calls.filter(([tag]) => tag === 'div').length;
+
+    jest.spyOn(document, 'createElement');
+    getCssStyleFromElement(td, 'htCenter myClass');
+    getCssStyleFromElement(td, 'htCenter myClass');
+
+    expect(probesBuilt()).toBe(1);
+
+    clearStyleCaches(document);
+    getCssStyleFromElement(td, 'htCenter myClass');
+
+    // Both the font-color probe and the background probe are rebuilt once, then cached again.
+    const afterClear = probesBuilt();
+
+    expect(afterClear).toBeGreaterThan(1);
+    getCssStyleFromElement(td, 'htCenter myClass');
+    expect(probesBuilt()).toBe(afterClear);
+    document.createElement.mockRestore();
   });
 
   it('should export no color for a cell with alignment classes only, whatever it renders', () => {

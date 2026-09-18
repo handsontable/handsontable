@@ -47,10 +47,11 @@ export interface CellMeta {
 const backgroundColorByDoc = new WeakMap<Document, Map<string, string | null>>();
 
 // Per-export cache for getCssStyleFromProbe results. Used both when the real cell element is not
-// available (the cell is outside the render viewport) and, for font color only, from the rendered
-// element path in getCssStyleFromElement — the probe's alignment-only baseline diff is what keeps a
-// non-alignment class that never touched color from reporting the cell's ambient text color.
-const cssStyleProbeByDoc = new WeakMap<object, Map<string, CssStyle>>();
+// available (the cell is outside the render viewport) and, for the font-color baseline, from the
+// rendered element path in getCssStyleFromElement. Keyed by document first so `clearStyleCaches`
+// can drop everything for a document, then by the element the probe was mounted in (a grid's
+// `.ht-root-wrapper`, or `document.body`), because a probe inherits from its mount.
+const cssStyleProbeByDoc = new WeakMap<Document, WeakMap<object, Map<string, CssStyle>>>();
 
 /**
  * Clears the per-export CSS style caches for the given document.
@@ -197,11 +198,18 @@ function getCssStyleFromProbe(
   doc: Document, view: Window, metaClasses: string[], mount: HTMLElement = doc.body
 ): CssStyle {
   const cacheKey = metaClasses.join(' ');
-  let docCache = cssStyleProbeByDoc.get(mount);
+  let byMount = cssStyleProbeByDoc.get(doc);
+
+  if (!byMount) {
+    byMount = new WeakMap();
+    cssStyleProbeByDoc.set(doc, byMount);
+  }
+
+  let docCache = byMount.get(mount);
 
   if (!docCache) {
     docCache = new Map();
-    cssStyleProbeByDoc.set(mount, docCache);
+    byMount.set(mount, docCache);
   }
 
   if (docCache.has(cacheKey)) {

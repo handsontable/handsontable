@@ -117,7 +117,8 @@ Other rules:
   or a renderer set on the cell itself — and that is what exports. Reading the probe's colour INSTEAD of
   the cell's (the first cut of #13551) dropped `#my-grid td.red`, `.htCore td.red`, `tr:nth-child(odd)`
   variations and renderer-written colours that 18.x exported; review round 4 caught it. The probe cache is
-  keyed by mount element (`WeakMap`), so a per-wrapper probe is built once per class list. A `null`-element
+  keyed by document, then by mount element (nested `WeakMap`s), so `clearStyleCaches(doc)` still drops every
+  wrapper's entries at the start of an export and a per-wrapper probe is built once per class list. A `null`-element
   cell (outside the viewport) still gets the class-only probe diff, so a colour only a scoped rule sets is
   exported for rendered cells only — the guide says so.
 - **A date `numFmt` follows the cell's `locale`.** `buildDatePattern(options, locale)` orders the components

@@ -124,14 +124,18 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
 - **The applier resets the layout a previous import left, and merges into options objects.** With
   `importLayout` on, every `RESETTABLE_LAYOUT_KEYS` entry the result omits and the grid currently has is
   cleared (`mergeCells`/`hiddenRows`/`hiddenColumns` keep their options object with an empty list,
-  `fixedRowsTop`/`fixedColumnsStart` go to `0`, `customBorders` to `[]`); widths and heights are not on
-  the list because `updateSettings` skips `undefined` and there is no empty shape for them. A list the
+  `fixedRowsTop`/`fixedColumnsStart` go to `0`, `customBorders` to `[]`, `colWidths`/`rowHeights` to an OWN
+  `undefined` — `updateSettings` writes every own property it is handed, `hasOwnProperty`, not `isDefined`,
+  so an explicit `undefined` restores the default where an absent key keeps the old value). `columns` resets
+  the same way whenever the result omits it, regardless of `importLayout`: types are not layout, and the
+  previous file's types, locks, classes and pinned column count must not survive (Bugbot round 5). A list the
   result does carry is merged into an existing options object (`{ indicators: true }` on `hiddenRows`,
   `{ virtualized: true }` on `mergeCells`) rather than replacing it. `hiddenRows`/`hiddenColumns` are
   ALWAYS the object shape; only `mergeCells` may be a bare array.
 - **The result is in sheet coordinates; the grid API takes visual ones.** `applyImportResult` runs every
   `cellsMeta` and comment coordinate through `toVisualRow`/`toVisualColumn`, because a `manualRowMove`
-  array reorders rows inside `loadData`.
+  array reorders rows inside `loadData`. Both return `null` for a trimmed index (`trimRows`,
+  `trimColumns`) even though the type says `number`; such an entry is skipped, not written.
 - **The generated stylesheet is mounted in `hot.rootWrapperElement`, not `document.head`**, the way the
   theme engine mounts its per-instance `<style>`: a rule in the outer head never reaches a grid inside a
   shadow root. `removeImportedStyles` queries the same element.

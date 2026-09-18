@@ -17,14 +17,16 @@ export interface ApplyOptions {
 /**
  * The layout keys a result may omit. Each is reset when `importLayout` is on, the result does not
  * carry it, and the grid currently has one - so a plain sheet imported after a merged, frozen one
- * does not keep the first file's merges and freeze on the second file's data. Widths and heights are
- * not on the list: `updateSettings` skips an `undefined` value and there is no empty shape for them.
+ * does not keep the first file's merges and freeze on the second file's data. Widths and heights
+ * reset to an own `undefined`: `updateSettings` writes every own property it is handed, so an
+ * explicit `undefined` restores the default where an absent key would leave the old value.
  */
 type ResettableLayoutKey = 'mergeCells' | 'hiddenRows' | 'hiddenColumns' | 'fixedRowsTop'
-  | 'fixedColumnsStart' | 'customBorders';
+  | 'fixedColumnsStart' | 'customBorders' | 'colWidths' | 'rowHeights';
 
 const RESETTABLE_LAYOUT_KEYS: ResettableLayoutKey[] = [
   'mergeCells', 'hiddenRows', 'hiddenColumns', 'fixedRowsTop', 'fixedColumnsStart', 'customBorders',
+  'colWidths', 'rowHeights',
 ];
 
 /**
@@ -113,6 +115,14 @@ function toSettings(hot: HotInstance, result: ImportResult, options: ApplyOption
     resetOmittedLayout(result, current, settings);
   }
 
+  // `columns` follows the same "an import describes the whole sheet" rule as the layout, and it is
+  // not layout, so it resets regardless of `importLayout`: the previous file's types, locks and
+  // classes, and the column count its array pinned, must not survive onto a workbook that has
+  // nothing to say at the column level.
+  if (result.columns === undefined && current.columns !== undefined) {
+    settings.columns = undefined;
+  }
+
   return settings;
 }
 
@@ -140,6 +150,10 @@ function resetOmittedLayout(
         break;
       case 'customBorders':
         settings.customBorders = [];
+        break;
+      case 'colWidths':
+      case 'rowHeights':
+        settings[key] = undefined;
         break;
       default:
         settings[key] = 0;
@@ -254,15 +268,32 @@ export function applyImportResult(
     // take visual ones. They agree unless something reordered the rows during `loadData` - a
     // `manualRowMove` array does, in its `afterLoadData` - so every coordinate goes through the
     // index mappers first.
+    // A trimmed index (`trimRows`, `trimColumns`) has no visual counterpart and comes back `null`;
+    // there is no cell to write to, so the entry is skipped instead of throwing mid-batch.
+    const visual = (row: number, col: number): [number, number] | null => {
+      const visualRow: number | null = hot.toVisualRow(row);
+      const visualCol: number | null = hot.toVisualColumn(col);
+
+      return visualRow === null || visualCol === null ? null : [visualRow, visualCol];
+    };
+
     result.cellsMeta?.forEach(({ row, col, meta }) => {
-      hot.setCellMetaObject(hot.toVisualRow(row), hot.toVisualColumn(col), meta);
+      const target = visual(row, col);
+
+      if (target) {
+        hot.setCellMetaObject(target[0], target[1], meta);
+      }
     });
 
     const comments = hot.getPlugin('comments');
 
     if (result.comments && comments?.isEnabled()) {
       result.comments.forEach(({ row, col, value }) => {
-        comments.setCommentAtCell(hot.toVisualRow(row), hot.toVisualColumn(col), value);
+        const target = visual(row, col);
+
+        if (target) {
+          comments.setCommentAtCell(target[0], target[1], value);
+        }
       });
     }
   });

@@ -358,6 +358,29 @@ describe('applyImportResult – layout across imports', () => {
     }]);
   });
 
+  it('should reset widths, heights and columns the previous import left, as own undefined properties', () => {
+    // `updateSettings` writes every own property it is handed, so an explicit `undefined` restores
+    // the default where an absent key would keep the previous file's value.
+    const hot = fakeHot({
+      gridSettings: { colWidths: [70, 90], rowHeights: [40], columns: [{ type: 'numeric', readOnly: true }] },
+    });
+
+    applyImportResult(hot, { data: [['a']], sheetNames: ['Plain'], dropped: [] }, { importLayout: true });
+
+    const [, settings] = hot.calls[2];
+
+    expect(Object.keys(settings).sort()).toEqual(['colWidths', 'columns', 'rowHeights']);
+    expect(settings).toEqual({ colWidths: undefined, rowHeights: undefined, columns: undefined });
+  });
+
+  it('should reset columns even without importLayout, since types are not layout', () => {
+    const hot = fakeHot({ gridSettings: { columns: [{ type: 'numeric' }], colWidths: [70] } });
+
+    applyImportResult(hot, { data: [['a']], sheetNames: ['Plain'], dropped: [] }, { importLayout: false });
+
+    expect(hot.calls[2]).toEqual(['updateSettings', { columns: undefined }]);
+  });
+
   it('should leave the grid layout alone when the result was produced without importLayout', () => {
     const hot = fakeHot({
       gridSettings: { mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 1 }], fixedRowsTop: 1 },
@@ -420,6 +443,29 @@ describe('applyImportResult – coordinates', () => {
       ['setCellMetaObject', 1, 0, { readOnly: true }],
       ['setCommentAtCell', 0, 0, 'note'],
     ]));
+  });
+});
+
+describe('applyImportResult – trimmed indexes', () => {
+  it('should skip meta and comments whose physical index has no visual counterpart', () => {
+    // `trimRows` leaves a trimmed physical row with `toVisualRow() === null`; there is no cell to
+    // write to, and passing `null` on used to throw mid-batch and skip the rest.
+    const hot = fakeHot({ commentsEnabled: true, toVisualRow: row => (row === 0 ? null : row) });
+
+    applyImportResult(hot, {
+      data: [['a'], ['b']],
+      cellsMeta: [{ row: 0, col: 0, meta: { readOnly: true } }, { row: 1, col: 0, meta: { className: 'x' } }],
+      comments: [{ row: 0, col: 0, value: 'gone' }, { row: 1, col: 0, value: 'kept' }],
+      sheetNames: ['Data'],
+      dropped: [],
+    });
+
+    const writes = hot.calls.filter(([name]) => name === 'setCellMetaObject' || name === 'setCommentAtCell');
+
+    expect(writes).toEqual([
+      ['setCellMetaObject', 1, 0, { className: 'x' }],
+      ['setCommentAtCell', 1, 0, 'kept'],
+    ]);
   });
 });
 
