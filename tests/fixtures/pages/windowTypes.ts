@@ -89,6 +89,7 @@ export interface FixtureHotInstance {
     isEnabled(): boolean;
   };
   getPlugin(name: 'nestedRows'): {
+    enabled: boolean,
     collapseAll(): void,
     expandAll(): void,
     collapseParent(row: number): boolean,
@@ -102,6 +103,11 @@ export interface FixtureHotInstance {
     countChildren(row: number, recursive?: boolean): number,
     expandToRow(row: number): boolean,
     expandToLevel(level: number): void,
+    // Private, but a spec needs it: the header width the plugin asked for has no public getter, and
+    // a grid at the default width is exactly the defect worth pinning (DEV-2938).
+    headersUI: {
+      rowHeaderWidthCache: number | null,
+    } | null,
     // Private, but a spec needs it: there is no public API for the stash window that add child,
     // detach child, remove row and row move open around themselves.
     collapsingUI: {
@@ -228,6 +234,12 @@ declare global {
   interface Window {
     /** The fixture's live Handsontable instance. */
     hot: FixtureHotInstance;
+    /** DEV-2938 fixture: everything the page logged through `console.error`, in order. */
+    consoleErrors?: string[];
+    /** DEV-2938 fixture: the very array passed to the constructor, kept to prove writes reach it. */
+    sourceData?: unknown[];
+    /** DEV-2938 fixture: how many times the grid has drawn since it was built. */
+    renderCount?: number;
     /** DEV-2917 fixture: the message of a throw the fixture's own grid build caught, if any. */
     htFixtureError?: string;
     /**
@@ -253,6 +265,13 @@ declare global {
     initGrid(overrides?: Record<string, unknown>, containerWidth?: string): boolean;
     /** `afterScrollVertically` calls since the last rebuild (width-window-scroll fixture). */
     verticalScrollCount: number;
+    /**
+     * Wheel events recorded by `WidthWindowScrollPage#watchWheelEvents()`, with the
+     * `defaultPrevented` each one carried once the grid's own handler had run.
+     */
+    wheelLog: { deltaX: number, deltaY: number, defaultPrevented: boolean }[];
+    /** Rebuilds the root-size-options fixture grid with setting overrides and a parent layout class. */
+    initRootSizeGrid(overrides?: Record<string, unknown>, containerClass?: string): boolean;
     /**
      * Rebuilds the bottom-slot sizing fixture grid (DEV-2848): `variant` picks the CSS layout,
      * `plugin` the bottom-slot bar; both default to the page's query params. `overrides` are grid

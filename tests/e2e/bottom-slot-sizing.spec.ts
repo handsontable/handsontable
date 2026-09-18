@@ -47,14 +47,14 @@ for (const plugin of PLUGINS) {
       expect(geometry.bar!.width).toBeLessThanOrEqual(geometry.container.width + 1);
     });
 
-    // `height: 'auto'` clips the root, so the root owns the vertical axis and nothing is reserved
-    // inside it - yet the root grows to its content, so the grid box must follow it the same way.
+    // `height: 'auto'` does not clip the root, so it grows out of the fixed CSS box and the page
+    // owns the vertical axis (DEV-2789) - the grid box must still follow its content.
     test('follows the last row with `height: "auto"` inside a fixed CSS box', async () => {
       await grid.goto('auto-height', plugin);
 
       const geometry = await grid.geometry();
 
-      expect(geometry.verticalByWindow).toBe(false);
+      expect(geometry.verticalByWindow).toBe(true);
       expect(geometry.wrapperClasses).toContain('ht-grid-follows-content');
       expect(geometry.bar).not.toBeNull();
       expect(geometry.bar!.top).toBeGreaterThanOrEqual(geometry.lastRowBottom - 1);
