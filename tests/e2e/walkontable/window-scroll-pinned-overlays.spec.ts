@@ -205,8 +205,17 @@ test.describe('walkontable window-scroll pinned overlays', { tag: '@walkontable'
     });
 
     test('the editor opens over a frozen-top-row cell after a vertical page scroll', async() => {
-      // The twin of the sideways case: a sticky clone is shifted in the layout the editor's offset
-      // chain walks, so adding the overlay offset on top would open the editor a scroll away.
+      // The twin of the sideways case, and the one that fails on the double-counted offset: the top
+      // clone is sticky, so it is already shifted in the layout the editor's offset chain walks.
+      await wt.goto({ frozen: true, tall: true });
+      await wt.wheelScrollVertically(400);
+
+      const cell = wt.frozenTopRowCell();
+
+      await expectEditorOverCell(await wt.openEditor(cell), cell);
+    });
+
+    test('the editor opens over a frozen-bottom-row cell after a vertical page scroll', async() => {
       await wt.goto({ frozen: true, tall: true });
       await wt.wheelScrollVertically(400);
 

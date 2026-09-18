@@ -106,6 +106,9 @@
       colHeaders: true,
       fixedColumnsStart: window.htFrozen ? 2 : 0,
       fixedRowsBottom: window.htFrozen ? 2 : 0,
+      // Only on the tall legs: a frozen top row is what the top clone holds, and the short legs'
+      // scanlines are taken through the clones as they are.
+      fixedRowsTop: (window.htFrozen && window.htTall) ? 2 : 0,
       layoutDirection: window.htRtl ? 'rtl' : 'ltr',
       // The resize handles are placed from a header's position relative to the root element, and the
       // editor from a cell's document position – both read the clone's placement.

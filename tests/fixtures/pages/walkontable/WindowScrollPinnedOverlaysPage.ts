@@ -361,6 +361,14 @@ export class WindowScrollPinnedOverlaysPage {
   }
 
   /**
+   * A data cell of a frozen top row, as the top clone renders it, outside the frozen columns: the
+   * top-inline-start corner draws its own copy of those and covers this clone's.
+   */
+  frozenTopRowCell(): Locator {
+    return this.grid.locator('.ht_clone_top tbody tr').first().locator('td').last();
+  }
+
+  /**
    * A data cell of a frozen bottom row, as the bottom clone renders it, outside the frozen columns:
    * the bottom-inline-start corner draws its own copy of those and covers this clone's.
    */
