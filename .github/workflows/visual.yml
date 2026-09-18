@@ -630,13 +630,14 @@ jobs:
   #
   # Cutover (repo admin), both steps before this lands:
   #
-  #   1. Create the `visual-approval` environment WITH required reviewers, and
-  #      TICK "Prevent self-review". The tick is part of the decision, not an
-  #      option: without it the person who pushed the branch can approve their own
-  #      differences, which is the rubber-stamping this replaces rather than a fix
-  #      for it. The assertion below cannot stand in for the box — a self-approval
-  #      is still a recorded approval, and reads identically through the API.
-  #      `manual-qa`'s environment is configured the same way.
+  #   1. Create the `visual-approval` environment WITH required reviewers.
+  #      "Prevent self-review" is deliberately OFF (decided 2026-09-17, the same
+  #      as `manual-qa`): the reviewer list is the whole team, and a developer
+  #      approving differences on a run they pushed is accepted — the name
+  #      recorded on the deployment review is the accountability. The assertion
+  #      below cannot tell a self-approval from any other (both are recorded
+  #      approvals and read identically through the API), so this is a policy
+  #      choice, not something the workflow enforces either way.
   #
   #   2. DELETE the `visual-approved` label from the repository's label list. The
   #      workflows that acted on it go with this change, so a label left in the
