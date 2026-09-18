@@ -187,6 +187,32 @@ test.describe('dropdown editor list escapes the grid clip (#8688)', () => {
       expect(list.bottom).toBeLessThanOrEqual(page.viewportSize()!.height + 1);
     });
 
+    test('flips a `multiselect` list back below the cell once a scroll gives it room again', async () => {
+      // The round trip of the case above: at the grid's bottom edge the list has to open upwards,
+      // and back at the top it has room below again. A flip that is set but never cleared keeps the
+      // list above a cell at the top of the grid - off the screen, with nothing reachable.
+      await grid.rebuild({ height: 640, rows: 80, editorType: 'multiselect' });
+      await grid.scrollGridToRow(40, 'top');
+      await grid.openEditor(40, 1);
+      await grid.scrollGridToRow(40, 'bottom');
+
+      const options = await grid.optionCount();
+
+      await expect.poll(() => grid.reachableOptions()).toBe(options);
+      expect(await grid.isFlippedVertically()).toBe(true);
+
+      const flipped = await grid.boxes();
+
+      await grid.scrollGridToRow(40, 'top');
+
+      // The control: the list followed the cell back up, so the re-decision has run.
+      await expect.poll(async () => (await grid.boxes()).list.top).toBeLessThan(flipped.list.top - 100);
+
+      expect(await grid.isFlippedVertically()).toBe(false);
+      expect((await grid.boxes()).list.top).toBeGreaterThanOrEqual(0);
+      expect(await grid.reachableOptions()).toBe(options);
+    });
+
     test('hides a `multiselect` list without throwing when a page scroll unrenders its row',
       async ({ page }) => {
         const errors: string[] = [];
