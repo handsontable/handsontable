@@ -38,8 +38,12 @@ when printing but keep real CSS `border`s, so the fill handle (`.wtBorder.corner
 inline `border` from `Border#createBorders` **plus** a `background-color`) printed as an empty
 bordered square — the reported "pit" — while the background-only outline divs vanished. The rule
 hides the whole transient selection overlay set on print (`.wtBorder.current`/`.area`/`.fill`/`.corner`,
-every `SelectionHandle` element, `.wtMoveZone`, the `td.area::before` fill) and resets the `td.area`
-border color to the unselected cell colors.
+every `SelectionHandle` element, `.wtMoveZone`, the `td.area::before` fill). It deliberately does NOT
+normalize the `td.area` border color: a real CSS border prints regardless (so the color-mixed
+selection border is unchanged from screen, as it was before this fix), and a `td.area` color override
+with the specificity needed to beat the screen rule also beats the grid's own outer-frame rules
+(`tr:first-child > td` etc. in `_base.scss`) on an edge selection like select-all — repainting the
+frame in the inner cell-border token, which is transparent in some themes (bugbot, PR #13574).
 
 Never widen the rule to a bare `.wtBorder`; that would hide user-configured borders on paper. The
 four EDGE classes (`current`/`area`/`fill`) are genuinely selection-scoped: a custom border renders

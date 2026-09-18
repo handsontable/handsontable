@@ -83,16 +83,4 @@ export class PrintSelectionPage {
       }).length;
     });
   }
-
-  /** Computed `border-top-color` of an area (selected) cell in the master overlay. */
-  async areaCellBorderTopColor(): Promise<string> {
-    return this.page.locator('.ht_master td.area').first()
-      .evaluate(el => getComputedStyle(el).borderTopColor);
-  }
-
-  /** Computed `border-top-color` of an unselected, non-custom-bordered cell (0, 7). */
-  async plainCellBorderTopColor(): Promise<string> {
-    return this.page.locator('.ht_master [data-testid="cell-0-7"]')
-      .evaluate(el => getComputedStyle(el).borderTopColor);
-  }
 }

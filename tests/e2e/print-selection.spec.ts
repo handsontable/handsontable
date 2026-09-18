@@ -26,24 +26,6 @@ test.describe('DEV-133 — selection UI on print', () => {
     await expect(grid.visibleAreaBorder()).toHaveCount(0);
   });
 
-  test('a selected cell prints the same border color as an unselected cell', async({ page, theme, bundle }) => {
-    const grid = new PrintSelectionPage(page, theme, bundle);
-
-    await grid.goto();
-    await grid.selectRange(1, 1, 2, 2);
-
-    // Precondition: on screen a selected cell's border is color-mixed, so it differs from an
-    // unselected cell — without this the print assertion below could pass vacuously on a theme
-    // where the two happen to resolve equal.
-    await grid.emulateScreen();
-    expect(await grid.areaCellBorderTopColor()).not.toBe(await grid.plainCellBorderTopColor());
-
-    // The selected-cell border residue is reset on print, so it matches its unselected neighbours
-    // instead of printing a different (color-mixed) border.
-    await grid.emulatePrint();
-    expect(await grid.areaCellBorderTopColor()).toBe(await grid.plainCellBorderTopColor());
-  });
-
   test('the print rule does not hide a custom border', async({ page, theme, bundle }) => {
     const grid = new PrintSelectionPage(page, theme, bundle);
 
