@@ -180,8 +180,8 @@ Seven things about this pipeline are worth knowing before changing it.
   (`report-url` output), so "View deployment" opens it. The job asserts an approval is recorded through the
   approvals API and fails closed: a missing or unprotected environment turns the job red rather than waving
   the differences through, so the environment must exist with required reviewers before the first pull
-  request with differences runs. "Prevent self-review" is deliberately **off** on `visual-approval` and on
-  `manual-qa` (decided 2026-09-17): the reviewer list is the whole team, and an author approving their own
+  request with differences runs. "Prevent self-review" is deliberately **off** on `visual-approval`, on
+  `manual-qa` and on `docs-visual-approval` (decided 2026-09-17): the reviewer list is the whole team, and an author approving their own
   run is accepted — the deployment review records who clicked, and that name is the accountability. The
   assertion cannot tell a self-approval from any other, so this is policy, not something the job enforces.
   Approving also rewrites the sticky comment that asked (`Record the approval on the pull request`, same

@@ -222,7 +222,7 @@ jobs:
   #
   # Cutover (repo admin): create the `docs-visual-approval` environment WITH
   # required reviewers before the first labeled pull request with differences
-  # runs. Leave "Prevent self-review" OFF, as on `visual-approval` and
+  # runs. "Prevent self-review" is OFF on it, as on `visual-approval` and
   # `manual-qa` (decided 2026-09-17; the reasoning is in .ai/CI.md — the name
   # recorded on the deployment review is the accountability, and the assertion
   # below cannot tell a self-approval from any other either way).
