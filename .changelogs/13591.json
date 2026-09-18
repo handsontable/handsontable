@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed the `nestedRows` plugin disabling itself on init when the `sheetsBar` plugin supplied the sheet data.",
-  "type": "fixed",
-  "issueOrPR": 13591,
-  "breaking": false,
-  "framework": "none"
-}

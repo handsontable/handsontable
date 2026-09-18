@@ -31,7 +31,7 @@ the index type from *whether the row can be trimmed*, not from the house rule al
 
 | File | Role |
 |---|---|
-| `nestedRows.ts` | The plugin. Lifecycle, 22 core hooks, the shortcut, and the **public API** |
+| `nestedRows.ts` | The plugin. Lifecycle, 21 core hooks, the shortcut, and the **public API** |
 | `data/dataManager.ts` | The tree: flatten, cache, read structure, add/detach/move children |
 | `ui/collapsing.ts` | All collapse/expand logic and the hook choke point |
 | `ui/headers.ts` | The `+`/`-` button and the indent markers in row headers |
@@ -323,13 +323,17 @@ They are written in different places and can drift. Keep this in mind:
   top-level `data` next to a `sheetsBar` workbook therefore validated the host's placeholder array,
   self-disabled, and never saw the nested sheet that replaced it (DEV-2939). The positive
   `orderIndex` moves only this listener behind every default-ordered `beforeLoadData` listener,
-  including that redirect. Do not "fix" this by raising `PLUGIN_PRIORITY` — that reorders all 22
-  hooks and the whole lifecycle. The bug does **not** reproduce with `data` omitted: sheetsBar's
-  `enablePlugin` already loads the sheet through `loadData()`, so core's init pass skips its own
-  load and the plugin only ever sees the valid array. Pin any change here with
-  `sheetsBar.unit.js`'s `keeps \`nestedRows\` enabled when the active sheet supplies the nested data
-  on init`, and keep the top-level `data` in that fixture — without it the test passes on the
-  unfixed code.
+  including that redirect. Do not "fix" this by raising `PLUGIN_PRIORITY` — that reorders all 21
+  hooks and the whole lifecycle. The same move puts every host-declared `beforeLoadData` listener
+  (the settings object, `hot.addHook()`, a wrapper prop) ahead of this validation too — they land at
+  the default order after the plugin hooks, so a host hook that returns a nested array now keeps the
+  plugin on, and a host hook reading `dataManager` inside `beforeLoadData` sees the previous
+  dataset. The bug does **not** reproduce with `data` omitted: sheetsBar's `enablePlugin` already
+  loads the sheet through `loadData()`, so core's init pass skips its own load and the plugin only
+  ever sees the valid array. Three specs in `sheetsBar.unit.js` pin this — the top-level `data`
+  shape (keep that `data` in the fixture; without it the test passes on the unfixed code), the
+  no-`data` two-sheet shape that guards sheetsBar's enable-time load, and a host `beforeLoadData`
+  returning a nested array.
 - **In React, `updatePlugin()` runs on every re-render.** `SettingsMapper.getSettings()` copies every
   prop except `children` into the `updateSettings` payload, so the `nestedRows` key is always present
   and `BasePlugin#onUpdateSettings` always fires. Anything you keep outside the settings object is
