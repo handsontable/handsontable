@@ -19,11 +19,6 @@ export interface RootSizeResolution {
    * The value to write to the root's inline style, or `null` when the value is invalid.
    */
   cssValue: string | null;
-  /**
-   * `true` when the size resolves against something outside the grid (the container, the viewport,
-   * a custom property), so the grid cannot know the pixel box up front.
-   */
-  isContainerDriven: boolean;
 }
 
 /**
@@ -87,7 +82,7 @@ const REJECTED_KEYWORDS = new Set([
  * @returns {RootSizeResolution}
  */
 function invalid(): RootSizeResolution {
-  return { kind: 'invalid', cssValue: null, isContainerDriven: false };
+  return { kind: 'invalid', cssValue: null };
 }
 
 /**
@@ -97,7 +92,7 @@ function invalid(): RootSizeResolution {
  * @returns {RootSizeResolution}
  */
 function css(cssValue: string): RootSizeResolution {
-  return { kind: 'css', cssValue, isContainerDriven: CONTAINER_DRIVEN_PATTERN.test(cssValue) };
+  return { kind: 'css', cssValue };
 }
 
 /**
@@ -112,13 +107,13 @@ function resolveString(value: string, isSupported?: CssValueOracle): RootSizeRes
   const lowerValue = value.toLowerCase();
 
   if (lowerValue === 'auto') {
-    return { kind: 'auto', cssValue: 'auto', isContainerDriven: true };
+    return { kind: 'auto', cssValue: 'auto' };
   }
 
   const pixelMatch = PIXEL_PATTERN.exec(value);
 
   if (pixelMatch !== null) {
-    return { kind: 'px', cssValue: `${pixelMatch[1]}px`, isContainerDriven: false };
+    return { kind: 'px', cssValue: `${pixelMatch[1]}px` };
   }
 
   if (REJECTED_KEYWORDS.has(lowerValue) || lowerValue.startsWith('fit-content(')) {
@@ -153,7 +148,7 @@ function resolveString(value: string, isSupported?: CssValueOracle): RootSizeRes
 export function resolveRootSize(value: unknown, isSupported?: CssValueOracle): RootSizeResolution {
   if (typeof value === 'number') {
     return Number.isFinite(value) && value >= 0 ?
-      { kind: 'px', cssValue: `${value}px`, isContainerDriven: false } :
+      { kind: 'px', cssValue: `${value}px` } :
       invalid();
   }
 

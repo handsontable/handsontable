@@ -262,20 +262,21 @@ function applyAxis(instance: HotInstance, axis: RootSizeAxis, rawValue: unknown,
  * @param {boolean} heightRestored `true` when the height was just reset to its initial inline value.
  * A restored sized height keeps the overflow restored with it, so the initial style comes back
  * whole; a sized height set through the option clips whatever it owns.
+ * @param {boolean} widthWritten `true` when the payload wrote a width. It still clips the horizontal
+ * axis beside a restored sized height, as it would in a call of its own; only the vertical overflow
+ * is the restore's to bring back.
  */
-function applyOverflow(rootElement: HTMLElement, heightRestored: boolean): void {
+function applyOverflow(rootElement: HTMLElement, heightRestored: boolean, widthWritten: boolean): void {
   const { style } = rootElement;
   const heightState = classifyInlineSize(style.height);
   const widthState = classifyInlineSize(style.width);
 
   if (!isFreeHeight(heightState)) {
-    if (!heightRestored) {
-      if (isOwnedOverflow(inlineOverflow(style, 'overflowX'))) {
-        style.overflowX = 'clip';
-      }
-      if (isOwnedOverflow(inlineOverflow(style, 'overflowY'))) {
-        style.overflowY = 'clip';
-      }
+    if ((!heightRestored || widthWritten) && isOwnedOverflow(inlineOverflow(style, 'overflowX'))) {
+      style.overflowX = 'clip';
+    }
+    if (!heightRestored && isOwnedOverflow(inlineOverflow(style, 'overflowY'))) {
+      style.overflowY = 'clip';
     }
 
     return;
@@ -295,6 +296,10 @@ function applyOverflow(rootElement: HTMLElement, heightRestored: boolean): void 
  * `updateSettings` used before this module: a re-pick costs one re-resolution, a missed one leaves
  * a stale scroller. It fires on every payload without a height (as before), when the height moves
  * between free and sized, and when a free height changes its inline value (`'' → 'auto'`).
+ *
+ * The width is deliberately not read here. A width that moves the horizontal owner is caught by the
+ * engine on the same render: `Overlays#beforeDraw` re-resolves the owners on every draw, and
+ * `ScrollSync` rebinds the listeners after it.
  *
  * @param {RootSizeSnapshot} before The state before the payload was applied.
  * @param {RootSizeSnapshot} after The state after.
@@ -339,7 +344,7 @@ export function applyRootSize(instance: HotInstance, settings: Partial<GridSetti
   const ignoredAxes: RootSizeAxis[] = [];
 
   if (settings.height !== undefined || settings.width !== undefined) {
-    applyOverflow(rootElement, heightOutcome === 'reset');
+    applyOverflow(rootElement, heightOutcome === 'reset', widthOutcome === 'written');
   }
 
   if (heightOutcome === 'ignored') {

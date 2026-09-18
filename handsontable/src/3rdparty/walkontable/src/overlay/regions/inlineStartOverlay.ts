@@ -198,11 +198,13 @@ export class InlineStartOverlay extends Overlay {
     // horizontally inside its box and vertically with the window.
     const rootSized = !wtViewport.isVerticallyScrollableByWindow();
     // The master's horizontal scrollbar sits along the bottom edge this overlay covers. Only worth a
-    // strip when the holder owns that scrollbar - otherwise the page scrolls, the scrollbar is not
-    // under this overlay, and clipping would expose the master for nothing.
+    // strip when the holder paints that scrollbar - otherwise the page scrolls, the scrollbar is not
+    // under this overlay, and clipping would expose the master for nothing. Read from the element
+    // that scrolls the columns, not from the horizontal owner: in the reverse split the window owns
+    // the axis while the holder scrolls it (`Overlay#ownsWindowScroll()`).
     // A touch-only device has no pointer that could reach the scrollbar - see `canGrabScrollbar`.
     // Clip and band together, or not at all - see `TopOverlay#adjustRootElementSize`.
-    const clearanceApplies = holderOwnsAxisScrollbar(wtViewport.isHorizontallyScrollableByWindow(), rootWindow);
+    const clearanceApplies = holderOwnsAxisScrollbar(this.mainTableScrollableElement === rootWindow, rootWindow);
 
     this.#holderClearance = axisScrollbarClearance(
       this.deps.geometryReader,

@@ -7,9 +7,9 @@ import {
 describe('resolveRootSize', () => {
   describe('numbers', () => {
     it('should resolve a non-negative number to pixels', () => {
-      expect(resolveRootSize(500)).toEqual({ kind: 'px', cssValue: '500px', isContainerDriven: false });
-      expect(resolveRootSize(0)).toEqual({ kind: 'px', cssValue: '0px', isContainerDriven: false });
-      expect(resolveRootSize(12.5)).toEqual({ kind: 'px', cssValue: '12.5px', isContainerDriven: false });
+      expect(resolveRootSize(500)).toEqual({ kind: 'px', cssValue: '500px' });
+      expect(resolveRootSize(0)).toEqual({ kind: 'px', cssValue: '0px' });
+      expect(resolveRootSize(12.5)).toEqual({ kind: 'px', cssValue: '12.5px' });
     });
 
     it('should reject a negative or non-finite number', () => {
@@ -22,14 +22,14 @@ describe('resolveRootSize', () => {
 
   describe('pixel strings', () => {
     it('should resolve a bare numeric string and a pixel string to pixels', () => {
-      expect(resolveRootSize('250')).toEqual({ kind: 'px', cssValue: '250px', isContainerDriven: false });
-      expect(resolveRootSize('250px')).toEqual({ kind: 'px', cssValue: '250px', isContainerDriven: false });
+      expect(resolveRootSize('250')).toEqual({ kind: 'px', cssValue: '250px' });
+      expect(resolveRootSize('250px')).toEqual({ kind: 'px', cssValue: '250px' });
       expect(resolveRootSize('12.5px').cssValue).toBe('12.5px');
       expect(resolveRootSize('0').cssValue).toBe('0px');
     });
 
     it('should ignore whitespace and the unit letter case', () => {
-      expect(resolveRootSize(' 250 PX ')).toEqual({ kind: 'px', cssValue: '250px', isContainerDriven: false });
+      expect(resolveRootSize(' 250 PX ')).toEqual({ kind: 'px', cssValue: '250px' });
       expect(resolveRootSize('250 px').cssValue).toBe('250px');
     });
 
@@ -41,27 +41,27 @@ describe('resolveRootSize', () => {
 
   describe('the `auto` keyword', () => {
     it('should resolve `auto` in any letter case as container-driven', () => {
-      expect(resolveRootSize('auto')).toEqual({ kind: 'auto', cssValue: 'auto', isContainerDriven: true });
-      expect(resolveRootSize(' AUTO ')).toEqual({ kind: 'auto', cssValue: 'auto', isContainerDriven: true });
+      expect(resolveRootSize('auto')).toEqual({ kind: 'auto', cssValue: 'auto' });
+      expect(resolveRootSize(' AUTO ')).toEqual({ kind: 'auto', cssValue: 'auto' });
     });
   });
 
   describe('CSS lengths', () => {
     it('should pass through percentages, viewport and container-query units as container-driven', () => {
-      expect(resolveRootSize('50%')).toEqual({ kind: 'css', cssValue: '50%', isContainerDriven: true });
-      expect(resolveRootSize('75vh').isContainerDriven).toBe(true);
-      expect(resolveRootSize('100dvh').isContainerDriven).toBe(true);
-      expect(resolveRootSize('100svw').isContainerDriven).toBe(true);
-      expect(resolveRootSize('50cqw').isContainerDriven).toBe(true);
-      expect(resolveRootSize('50cqi').isContainerDriven).toBe(true);
+      expect(resolveRootSize('50%')).toEqual({ kind: 'css', cssValue: '50%' });
+      expect(classifyInlineSize(resolveRootSize('75vh').cssValue!)).toBe('container-driven');
+      expect(classifyInlineSize(resolveRootSize('100dvh').cssValue!)).toBe('container-driven');
+      expect(classifyInlineSize(resolveRootSize('100svw').cssValue!)).toBe('container-driven');
+      expect(classifyInlineSize(resolveRootSize('50cqw').cssValue!)).toBe('container-driven');
+      expect(classifyInlineSize(resolveRootSize('50cqi').cssValue!)).toBe('container-driven');
       expect(resolveRootSize('75vh').kind).toBe('css');
     });
 
     it('should pass through font-relative and absolute units as definite', () => {
-      expect(resolveRootSize('20em')).toEqual({ kind: 'css', cssValue: '20em', isContainerDriven: false });
-      expect(resolveRootSize('10rem').isContainerDriven).toBe(false);
-      expect(resolveRootSize('40ch').isContainerDriven).toBe(false);
-      expect(resolveRootSize('10cm').isContainerDriven).toBe(false);
+      expect(resolveRootSize('20em')).toEqual({ kind: 'css', cssValue: '20em' });
+      expect(classifyInlineSize(resolveRootSize('10rem').cssValue!)).toBe('definite');
+      expect(classifyInlineSize(resolveRootSize('40ch').cssValue!)).toBe('definite');
+      expect(classifyInlineSize(resolveRootSize('10cm').cssValue!)).toBe('definite');
       expect(resolveRootSize('12pt').kind).toBe('css');
     });
 
@@ -74,14 +74,14 @@ describe('resolveRootSize', () => {
   describe('CSS functions', () => {
     it('should pass through math and substitution functions without an oracle', () => {
       expect(resolveRootSize('calc(100% - 40px)')).toEqual({
-        kind: 'css', cssValue: 'calc(100% - 40px)', isContainerDriven: true,
+        kind: 'css', cssValue: 'calc(100% - 40px)',
       });
-      expect(resolveRootSize('calc(20em + 4px)').isContainerDriven).toBe(false);
-      expect(resolveRootSize('min(500px, 100%)').isContainerDriven).toBe(true);
-      expect(resolveRootSize('max(300px, 20em)').isContainerDriven).toBe(false);
-      expect(resolveRootSize('clamp(200px, 50vh, 600px)').isContainerDriven).toBe(true);
-      expect(resolveRootSize('var(--grid-height)').isContainerDriven).toBe(true);
-      expect(resolveRootSize('env(safe-area-inset-bottom)').isContainerDriven).toBe(true);
+      expect(classifyInlineSize(resolveRootSize('calc(20em + 4px)').cssValue!)).toBe('definite');
+      expect(classifyInlineSize(resolveRootSize('min(500px, 100%)').cssValue!)).toBe('container-driven');
+      expect(classifyInlineSize(resolveRootSize('max(300px, 20em)').cssValue!)).toBe('definite');
+      expect(classifyInlineSize(resolveRootSize('clamp(200px, 50vh, 600px)').cssValue!)).toBe('container-driven');
+      expect(classifyInlineSize(resolveRootSize('var(--grid-height)').cssValue!)).toBe('container-driven');
+      expect(classifyInlineSize(resolveRootSize('env(safe-area-inset-bottom)').cssValue!)).toBe('container-driven');
     });
 
     it('should let the oracle reject a malformed function', () => {
@@ -145,7 +145,7 @@ describe('resolveRootSize', () => {
     });
 
     it('should carry no css value for an invalid resolution', () => {
-      expect(resolveRootSize('abc')).toEqual({ kind: 'invalid', cssValue: null, isContainerDriven: false });
+      expect(resolveRootSize('abc')).toEqual({ kind: 'invalid', cssValue: null });
     });
   });
 });

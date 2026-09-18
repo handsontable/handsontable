@@ -181,6 +181,10 @@ export class NestedRows extends BasePlugin {
    *
    * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
    *  - [`nestedRows`](@/api/options.md#nestedrows)
+   *
+   * Whenever the data manager is empty – which is every enable transition, because `enablePlugin()`
+   * builds a fresh one – the source data is taken from the settings. See the plugin's `AGENTS.md` for
+   * why it cannot come from `getSourceData()`.
    */
   updatePlugin() {
     // `disablePlugin` unregisters the trimming map and `enablePlugin` builds a brand new CollapsingUI,
@@ -192,12 +196,33 @@ export class NestedRows extends BasePlugin {
     this.disablePlugin();
 
     // We store a state of the data manager.
-    const currentSourceData = this.dataManager!.getData();
+    let currentSourceData = this.dataManager!.getData();
+    const isDataManagerEmpty = currentSourceData === null;
+
+    if (isDataManagerEmpty) {
+      currentSourceData = this.hot.getSettings().data as RowObject[];
+
+      // Checked before the second `enablePlugin()`. On an enable transition the first one already
+      // ran inside `BasePlugin#onUpdateSettings`, so this only skips the rebuild, not the whole
+      // build-up.
+      if (!this.#acceptsData(currentSourceData)) {
+        return;
+      }
+    }
 
     this.enablePlugin();
 
     // After enabling plugin previously stored data is restored.
     this.dataManager!.updateWithData(currentSourceData!);
+
+    // `enablePlugin()` built a new HeadersUI, whose width cache starts empty, and the `afterInit`
+    // hook that normally seeds it has long since fired on a settings-driven enable. Left empty,
+    // `#onModifyRowHeaderWidth` falls back to `?? 0` and the header keeps its default width, which
+    // clips the indentation and the collapse button (measured: 50px against the 71px an
+    // init-enabled three-level tree gets). Seeded here, where the cache knows the tree's depth, and
+    // without its render: the Core draws right after `afterUpdateSettings`, and this method runs on
+    // every re-render in React.
+    this.headersUI!.updateRowHeaderWidth(undefined, false);
 
     if (collapsedParents.length > 0) {
       // Replaying a state the user already chose is not a new action, so the hooks stay silent. Firing
@@ -206,6 +231,60 @@ export class NestedRows extends BasePlugin {
     }
 
     super.updatePlugin();
+  }
+
+  /**
+   * Keeps the row index maps in step with a plugin that `updateSettings()` just turned on or off.
+   *
+   * @private
+   * @param {object} newSettings New set of settings passed to the `updateSettings()` method.
+   */
+  onUpdateSettings(newSettings: Record<string, unknown>) {
+    const wasEnabled = this.enabled;
+
+    super.onUpdateSettings(newSettings);
+
+    if (wasEnabled === this.enabled) {
+      return;
+    }
+
+    // The toggle renumbers the physical space, so an editor open over it addresses a record that is
+    // about to move or disappear. It is discarded rather than committed: saving would write the
+    // in-progress value through coordinates the shrink has already invalidated.
+    const activeEditor = this.hot.getActiveEditor();
+
+    if (activeEditor?.isOpened()) {
+      activeEditor.cancelChanges();
+    }
+
+    this.hot.rowIndexMapper.fitToLength(this.hot.countSourceRows());
+
+    // Nothing else clamps here: `updateSettings()` follows this hook with `adjustRowsAndCols()` and a
+    // render, neither of which touches the selection, so a range laid over the flattened tree would
+    // survive into the shorter grid and append records on the next fill or paste.
+    //
+    // Sourced as `updateData`, which is what this is from the selection's point of view, and which
+    // `core.ts` lists in `ignoreScrollSources`. Left unsourced, `refresh()` labels itself `refresh`,
+    // which is NOT in that list, so a toggle scrolled the viewport back onto the selected cell -
+    // measured, a grid scrolled to row 11 jumped back to the top.
+    this.hot.selection.markSource('updateData');
+
+    try {
+      this.hot.selection.refresh();
+    } finally {
+      this.hot.selection.markEndSource();
+    }
+
+    // Every recorded undo action measured itself against the previous numbering: `DataChangeAction`
+    // stores `countSourceRows` and, on undo, removes every physical row past that baseline as one
+    // the change created. Measured without this: edit a cell, enable the plugin, press Ctrl+Z once,
+    // and two records are deleted outright. `loadData` drops the history for the same reason.
+    this.hot.getPlugin('undoRedo')?.clear();
+
+    // The grid needs two draw passes to settle on the new row count - the second one, the Core's own,
+    // runs right after this hook. Measured without this line, on a `height: 'auto'` grid: an off/on
+    // round trip paints four of the six rows and stays there until something unrelated nudges it.
+    this.hot.render();
   }
 
   /**

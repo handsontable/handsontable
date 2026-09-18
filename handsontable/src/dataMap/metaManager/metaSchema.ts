@@ -3855,9 +3855,13 @@ export default (): Record<string, unknown> => {
      *
      * Any other value the browser can read as a CSS length or expression (`'20em'`,
      * `'calc(100% - 40px)'`, `'var(--grid-height)'`) is passed through as written. A value the
-     * browser cannot read as a size (`'abc'`, `-100`, `true`), and a CSS keyword that would
-     * collapse the grid (`'min-content'`, `'inherit'`), is ignored: the grid's height stays as it
-     * was, and a warning is printed once per grid and value.
+     * browser cannot read as a size (`'abc'`, `-100`, `true`) is ignored, and so are these CSS
+     * keywords: `'inherit'`, `'initial'`, `'unset'`, `'revert'`, `'revert-layer'`, `'none'`, and
+     * `'normal'`, which do not set a size; `'min-content'`, `'max-content'`, and `'fit-content'`,
+     * which size the grid to its full content, so it cannot scroll inside its box; and `'stretch'`,
+     * `'-webkit-fill-available'`, and `'-moz-available'`, which fill the container but read as a
+     * fixed size. An ignored value leaves the grid's height as it was, and a warning is printed once
+     * per grid and value.
      *
      * A number or a CSS length sizes the grid's box. Handsontable writes
      * `height: <value>; overflow: clip;` as inline styles on the root element, and the grid
@@ -7167,6 +7171,13 @@ export default (): Record<string, unknown> => {
      * | `false` (default) | Don't truncate text content with an ellipsis  |
      * | `true`            | Truncate text content with an ellipsis        |
      *
+     * ::: tip
+     * The `autocomplete`, `dropdown`, and `handsontable` cell types default this option to `true`, so a
+     * long value stays on one line and truncates with an ellipsis, clear of the dropdown arrow. To
+     * restore wrapping, set `textEllipsis: false` on the column that declares the type (or in `cells` /
+     * `setCellMeta`). This changed in 19.0.0.
+     * :::
+     *
      * @since 16.0.0
      * @memberof Options#
      * @type {boolean}
@@ -8283,9 +8294,13 @@ export default (): Record<string, unknown> => {
      *
      * Any other value the browser can read as a CSS length or expression (`'20em'`,
      * `'calc(100% - 40px)'`, `'var(--grid-width)'`) is passed through as written. A value the
-     * browser cannot read as a size (`'abc'`, `-100`, `true`), and a CSS keyword that would
-     * collapse the grid (`'min-content'`, `'inherit'`), is ignored: the grid's width stays as it
-     * was, and a warning is printed once per grid and value.
+     * browser cannot read as a size (`'abc'`, `-100`, `true`) is ignored, and so are these CSS
+     * keywords: `'inherit'`, `'initial'`, `'unset'`, `'revert'`, `'revert-layer'`, `'none'`, and
+     * `'normal'`, which do not set a size; `'min-content'`, `'max-content'`, and `'fit-content'`,
+     * which size the grid to its full content, so it cannot scroll inside its box; and `'stretch'`,
+     * `'-webkit-fill-available'`, and `'-moz-available'`, which fill the container but read as a
+     * fixed size. An ignored value leaves the grid's width as it was, and a warning is printed once
+     * per grid and value.
      *
      * With `width: 'auto'`, Handsontable writes `width: auto` as an inline style on the root
      * element. The grid then follows the width of its parent container, like a plain block
@@ -8347,6 +8362,13 @@ export default (): Record<string, unknown> => {
      * Word wrapping only applies to content that contains spaces or other soft-wrap opportunities.
      * A long unbroken string without spaces (e.g. a URL or a continuous number sequence) does not wrap
      * regardless of this setting.
+     * :::
+     *
+     * ::: tip
+     * The `autocomplete`, `dropdown`, and `handsontable` cell types default
+     * [`textEllipsis`](#textellipsis) to `true`, and its styling also keeps the value on a single line,
+     * so `wordWrap` has no visible effect on them until you set `textEllipsis: false` on the column that
+     * declares the type (or in `cells` / `setCellMeta`). This changed in 19.0.0.
      * :::
      *
      * This option can be set at any level of the [cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration):

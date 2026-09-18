@@ -278,6 +278,19 @@ describe('root size options', () => {
       });
     });
 
+    it('should clip a definite width set in the same call that restores a sized height', () => {
+      // A nested grid can start with an inline height. The restore brings the vertical overflow back
+      // as it was; the width set alongside it still clips, as it does in a call of its own.
+      const grid = buildGrid({ height: 100 });
+
+      grid.rootElement.dataset.initialstyle = 'height: 300px';
+      grid.updateSettings({ height: null, width: 200 });
+
+      expect(inlineSize(grid)).toEqual({
+        height: '300px', width: '200px', overflowX: 'clip', overflowY: '',
+      });
+    });
+
     it('should restore the initial inline style per property', () => {
       const grid = buildGrid({ height: 300, width: 200 });
 

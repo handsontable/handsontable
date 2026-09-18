@@ -541,7 +541,7 @@ describe('Root size options', () => {
     testWrapper.unmount();
   });
 
-  it('should ignore an unreadable size with a warning and keep the height', async() => {
+  it('should warn once for an unreadable size, even though later prop changes re-send it', async() => {
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
     const testWrapper = mount(HotTable, {
       props: {
@@ -550,15 +550,23 @@ describe('Root size options', () => {
         licenseKey: 'non-commercial-and-evaluation',
       },
     });
+    const { hotInstance } = testWrapper.getComponent(HotTable).vm;
+    const updateSettingsSpy = jest.spyOn(hotInstance, 'updateSettings');
 
     await testWrapper.setProps({ height: 'abc' });
+    // The ignored value is not stored, so the wrapper's diff against `getSettings()` sends it again
+    // with every later change.
+    await testWrapper.setProps({ colHeaders: true });
+    await testWrapper.setProps({ rowHeaders: true });
 
-    const { rootElement } = testWrapper.getComponent(HotTable).vm.hotInstance;
+    const resentHeights = updateSettingsSpy.mock.calls
+      .filter(([settings]) => (settings as { height?: unknown }).height === 'abc');
     const sizeWarnings = warnSpy.mock.calls
       .map(([message]) => message)
       .filter(message => typeof message === 'string' && message.includes('cannot be read as a size'));
 
-    expect(rootElement.style.height).toBe('300px');
+    expect(resentHeights).toHaveLength(3);
+    expect(hotInstance.rootElement.style.height).toBe('300px');
     expect(sizeWarnings).toHaveLength(1);
 
     warnSpy.mockRestore();
