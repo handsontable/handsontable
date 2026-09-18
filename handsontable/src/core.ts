@@ -367,6 +367,9 @@ export default function Core(
   let focusGridManager: FocusGridManager;
   let viewportScroller: ViewportScrollerInstance;
   let firstRun: boolean | [null, string] = true;
+  // Guards `init()` so it runs once per instance. Set at the very top of `init()`, before any work, so
+  // that a second call is a no-op regardless of how the first one ended (see the `init` method).
+  let initialized = false;
   // Guards the "colorScheme/density need the theme engine" warning so it is logged once per
   // instance instead of on every `updateSettings()` call that carries the options.
   let themeOverridesWarningShown = false;
@@ -2071,6 +2074,25 @@ export default function Core(
   }
 
   this.init = function() {
+    // `init()` is idempotent: it builds the view and Walkontable overlays once. A second call on the same
+    // instance would create a duplicate overlays DOM structure without tearing down the first, so guard it.
+    // Use `updateSettings()` to reconfigure a live instance.
+    if (initialized) {
+      if (this.view) {
+        warn('Handsontable instance has already been initialized. Calling `init()` again is a no-op; ' +
+          'use `updateSettings()` to reconfigure a live instance.');
+      } else {
+        // The first `init()` set the flag but threw before building the view, so the instance is unusable
+        // and `updateSettings()` cannot recover it. Point the caller at a fresh instance instead.
+        warn('Handsontable `init()` was already called but did not finish - the first call threw before ' +
+          'the grid was built. Calling `init()` again is a no-op; create a new instance instead.');
+      }
+
+      return;
+    }
+
+    initialized = true;
+
     const theme = tableMeta.theme;
     const themeName = tableMeta.themeName;
     const rootContainerThemeClassName = getThemeClassName(instance.rootContainer);
