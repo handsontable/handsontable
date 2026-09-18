@@ -1,18 +1,19 @@
 ---
 name: docs-bugproof-review
-description: Use before opening or pushing any handsontable/handsontable docs PR (guide edits, code examples, changelog/API text) written by or with Claude for aleksandra.budnik@handsontable.com -- run this self-review after the content looks finished, before asking for human review.
+description: Use before opening or pushing any handsontable/handsontable docs PR (guide edits, new or renamed pages, code examples, changelog/API text) written by or with Claude for aleksandra.budnik@handsontable.com -- run this self-review after the content looks finished, before asking for human review.
 ---
 
 # Docs bugproof review
 
 ## Why this exists
 
-Built from a review of AMBudnik's actual PR history (24 PRs). Every item below is a
-mistake a real reviewer (Artur or others) actually caught, not a hypothetical. The
-pattern in all of them is the same: the content *looked* finished -- structurally
-consistent, plausible-sounding, style-correct at a glance -- and was pushed without
-independently verifying it against source code, against every framework variant, or
-against the rest of the page. "Looks done" is not "is done."
+Built from a review of AMBudnik's actual PR history (24 PRs) plus a sample of other
+authors' merged docs PRs in the same repo. Every item below is a mistake a real
+reviewer (Artur or others) actually caught, not a hypothetical. The pattern in all
+of them is the same: the content *looked* finished -- structurally consistent,
+plausible-sounding, style-correct at a glance -- and was pushed without independently
+verifying it against source code, against every framework variant, against the rest
+of the page, or against every registry that tracks pages. "Looks done" is not "is done."
 
 ## The rule
 
@@ -28,6 +29,7 @@ small snippets are exactly where these slipped through before.**
 | 4 | Run the mechanical style pass: grep the diff for em dashes (site uses hyphens/`--`), British spellings, banned placeholder data (`foo`/`bar`/`A1`/`Column1`/etc.), and confirm `menuTag: new`/`updated` is set per `docs/CLAUDE.md` section 2.6 when the page changed substantively. | Style-rule violations caught by rote | #13517, #13449 (em dash), #13398 (missing `menuTag`) |
 | 5 | When the fix touches a dataset, a claim repeated elsewhere, or a convention applied across files, grep the whole repo/page for every other place carrying the same content -- not just the file you opened. | Stale content left behind after a partial fix | #13530 (banned data left in 3 of 4 framework folders, stale comment referencing a removed option), #13517 (a second paragraph elsewhere on the same page still asserted the false claim this PR was fixing) |
 | 6 | Before pushing, diff your branch against the target base (`develop` for `handsontable`, per `dec_0001`) and confirm the commit list contains only your own intended commits. | Scope bleed from a stale base or accidental merge | #13101 (PR carried commits from an already-merged unrelated PR) |
+| 7 | If you add a new page, rename a page, or rename a version label, grep for **every registry/reference that tracks it**, not just the page itself: `content/guides/sidebar.js` (nav), `tests/paths.js` (visual-test coverage), and every other file in the repo (JSDoc, changelogs, deprecation notices, other guides) that names the same version string or slug. Adding the page/rename is not the same as propagating it everywhere it needs to exist. | New page missing from a required registry; a version-label rename left stale elsewhere in the repo | #13569 (new guide added to `sidebar.js` but never added to `tests/paths.js`, so it got zero visual-test coverage), #13560 (18.2→19.0 version rename left other files outside `docs/` still saying "18.2") |
 
 ## Red flags -- if you catch yourself thinking this, stop and go back to the table
 
@@ -35,10 +37,12 @@ small snippets are exactly where these slipped through before.**
 - "This sentence sounds right, it matches how I've seen this documented elsewhere." -- Sounding right is not verified. Grep the source. (#13588, #13449, #13398)
 - "I already fixed the file the ticket named." -- Check for siblings: other framework folders, other paragraphs on the same page, other pages making the same claim. (#13530, #13517)
 - "It's just a small docs snippet, no need for the full checklist." -- Every incident this skill is built from was a small docs snippet.
+- "The page renders fine, so it's registered everywhere it needs to be." -- Rendering only proves the page exists, not that it's in `tests/paths.js` or that no other file still names the old version/slug. (#13569, #13560)
 
 ## How to apply
 
 1. Read the diff (`git diff` against the base branch) end to end.
 2. Walk the table above, item by item, against that diff. For item 1 and 3, actually open the relevant source file or run/build the example -- don't rely on recall.
 3. For item 2, list every framework variant the page covers and confirm you checked each one this pass, not just the one you edited first.
-4. Only after all six pass, tell the user the PR is ready for human review -- and say plainly which items you actually verified (e.g. "checked JS+source for the dictionary-registration behavior; ran the demo for the hook-firing claim") rather than a bare "looks good."
+4. For item 7, if the diff adds/renames a page or a version label, explicitly grep `sidebar.js`, `tests/paths.js`, and the old slug/version string across the repo before calling it done.
+5. Only after all seven pass, tell the user the PR is ready for human review -- and say plainly which items you actually verified (e.g. "checked JS+source for the dictionary-registration behavior; ran the demo for the hook-firing claim") rather than a bare "looks good."
