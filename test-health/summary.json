@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-18T11:35:22.363Z",
+  "generatedAt": "2026-09-18T11:40:37.201Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 30,
     "needsTicket": 5,
     "quarantined": 0,
-    "entries": 130
+    "entries": 131
   },
   "rows": [
     {
@@ -20,9 +20,9 @@
       "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
       "line": 65,
       "title": "grid built into a container that has no layout yet › fills its container without any interaction once the detached container is laid out",
-      "count7": 12,
-      "count30": 12,
-      "countAll": 12,
+      "count7": 13,
+      "count30": 13,
+      "countAll": 13,
       "runs30": 7,
       "flakyRuns30": 7,
       "branches30": 7,
@@ -39,8 +39,8 @@
       "isolation": [],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-09-18T11:19:14Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35337372108",
+        "seenAt": "2026-09-18T11:39:53Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35337372108/attempts/2",
         "branch": "feature/DEV-133_Print-selection-hide",
         "leg": "e2e-main-min",
         "status": "flaky",
