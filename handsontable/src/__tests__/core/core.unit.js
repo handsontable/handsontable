@@ -75,11 +75,18 @@ describe('Core', () => {
       // constructor cannot be invoked with `new` in this Jest version.
       const OriginalResizeObserver = window.ResizeObserver;
       const resizeObserverInstances = [];
+      const observedTargets = [];
 
       window.ResizeObserver = class extends OriginalResizeObserver {
         constructor(...args) {
           super(...args);
           resizeObserverInstances.push(this);
+        }
+
+        observe(target, ...rest) {
+          observedTargets.push(target);
+
+          return super.observe(target, ...rest);
         }
       };
 
@@ -107,6 +114,9 @@ describe('Core', () => {
         expect(beforeInitCount).toBe(1);
         expect(htCoreCountAfterFirstInit).toBeGreaterThan(0);
         expect(resizeObserverCountAfterFirstInit).toBeGreaterThan(0);
+        // Pin the ROOT-only edge-slot observer specifically (Walkontable's own `ResizeMonitor` is created
+        // on any instance, so counts alone would not prove the root branch ran).
+        expect(observedTargets).toContain(core.rootSlotBottomElement);
 
         // Ignore any unrelated warning the first init may emit (e.g. the theme-name notice).
         warnSpy.mockClear();
@@ -124,6 +134,30 @@ describe('Core', () => {
         expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('already been initialized'));
       } finally {
         window.ResizeObserver = OriginalResizeObserver;
+        warnSpy.mockRestore();
+        core.destroy();
+      }
+    });
+
+    it('should guard a re-entrant init() from `beforeInit` (flag set before any work, not after)', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const core = new Core(container, { data: [['a', 'b'], ['c', 'd']] });
+      let beforeInitCount = 0;
+
+      core.addHook('beforeInit', () => {
+        beforeInitCount += 1;
+        // A nested init() must hit the guard and return. If the flag were set at the END of init()
+        // instead of the top, this would re-enter the whole setup and recurse until the stack overflows.
+        core.init();
+      });
+
+      try {
+        expect(() => core.init()).not.toThrow();
+        expect(beforeInitCount).toBe(1);
+        // `beforeInit` fires before the view is built, so the nested call takes the "did not finish" branch;
+        // both guard messages share this phrase.
+        expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Calling `init()` again is a no-op'));
+      } finally {
         warnSpy.mockRestore();
         core.destroy();
       }

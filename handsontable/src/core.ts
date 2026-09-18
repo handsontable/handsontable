@@ -2078,8 +2078,15 @@ export default function Core(
     // instance would create a duplicate overlays DOM structure without tearing down the first, so guard it.
     // Use `updateSettings()` to reconfigure a live instance.
     if (initialized) {
-      warn('Handsontable instance has already been initialized. Calling `init()` again is a no-op; ' +
-        'use `updateSettings()` to reconfigure a live instance.');
+      if (this.view) {
+        warn('Handsontable instance has already been initialized. Calling `init()` again is a no-op; ' +
+          'use `updateSettings()` to reconfigure a live instance.');
+      } else {
+        // The first `init()` set the flag but threw before building the view, so the instance is unusable
+        // and `updateSettings()` cannot recover it. Point the caller at a fresh instance instead.
+        warn('Handsontable `init()` was already called but did not finish - the first call threw before ' +
+          'the grid was built. Calling `init()` again is a no-op; create a new instance instead.');
+      }
 
       return;
     }
