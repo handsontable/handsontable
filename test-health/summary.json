@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-18T09:22:32.982Z",
+  "generatedAt": "2026-09-18T10:03:59.699Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 28,
+    "tests": 29,
     "needsTicket": 5,
     "quarantined": 0,
-    "entries": 114
+    "entries": 120
   },
   "rows": [
     {
@@ -213,6 +213,44 @@
         "leg": "e2e-classic",
         "status": "failed",
         "error": "Test timeout of 20000ms exceeded.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/plugins/multiColumnSorting/__tests__/sortingConflicts.spec.js|MultiColumnSorting cooperation with ColumnSorting should print warning and set the correct plugin's enabled state when the both plugins are enabled",
+      "tier": "jasmine",
+      "file": "handsontable/src/plugins/multiColumnSorting/__tests__/sortingConflicts.spec.js",
+      "line": null,
+      "title": "MultiColumnSorting cooperation with ColumnSorting should print warning and set the correct plugin's enabled state when the both plugins are enabled",
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "legs": [
+        "UMD (theme: classic)",
+        "UMD (theme: horizon)",
+        "UMD (theme: main)",
+        "UMD.min (theme: classic)",
+        "UMD.min (theme: horizon)",
+        "UMD.min (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "fails alone (1 failed)"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-18T10:03:03Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35330724465",
+        "branch": "feature/DEV-2206_Shrink-grid-when-min-rows-cols-decrease",
+        "leg": "UMD (theme: classic)",
+        "status": "failed",
+        "error": "Failed: Cannot read properties of undefined (reading 'getLength')",
         "source": "ci"
       },
       "needsTicket": false
