@@ -279,6 +279,15 @@ declare global {
      * Returns how many mouse moves landed on a header since the reset (fragmentSelection fixture).
      */
     getHeaderMoveCount(): number;
+    /**
+     * Forgets the latest `mouseup` (fragmentSelection fixture).
+     */
+    resetLastMouseUp(): boolean;
+    /**
+     * Whether the latest `mouseup` landed off the grid; `null` when none has since the reset
+     * (fragmentSelection fixture).
+     */
+    wasLastMouseUpOffGrid(): boolean | null;
     /** Recorded moveCells hook calls for the current grid instance. */
     moveCellsHookLog: MoveCellsHookRecord[];
     /** Recorded NestedRows collapse/expand hook calls, in firing order. */

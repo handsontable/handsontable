@@ -97,7 +97,8 @@ export class FragmentSelectionPage {
    * Locates a row header inside one specific overlay.
    *
    * @param {OverlayName} overlay The overlay to look in.
-   * @param {number} row Visual row index.
+   * @param {number} row Position among the rendered rows. It matches the visual row index only while
+   * the grid has not scrolled vertically.
    * @returns {Locator}
    */
   rowHeader(overlay: OverlayName, row: number): Locator {
@@ -128,7 +129,7 @@ export class FragmentSelectionPage {
 
     if (!withinX || !withinY) {
       throw new Error(
-        `The drag across ${label} leaves the grid's visible box `
+        `The pointer path over ${label} leaves the grid's visible box `
         + `(x ${Math.min(startX, endX)}–${Math.max(startX, endX)}, y ${y} vs grid `
         + `x ${gridBox.x}–${gridBox.x + gridBox.width}, y ${gridBox.y}–${gridBox.y + gridBox.height}). `
         + 'Pick a target the grid actually shows.');
@@ -267,20 +268,40 @@ export class FragmentSelectionPage {
   }
 
   /**
-   * Drags from a cell's text out past the grid's end edge and releases the button off the grid, so
-   * the `mouseup` lands on the page instead of on the grid.
+   * Fails loudly unless a press at a point lands on the given master-table cell. A box-derived point
+   * can sit under a header clone or past the fold, and a press there starts a different gesture.
    *
-   * It leaves through the end edge because the top and start edges cross a header, which cancels the
-   * selection before the release. Leaving the grid starts drag-to-scroll, so the columns may have
-   * shifted sideways by the time the drag ends.
+   * @param {string} label Describes the cell, for the error message.
+   * @param {number} x The press's horizontal position.
+   * @param {number} y The press's vertical position.
+   * @param {string} testId The `data-testid` the cell carries.
+   */
+  async #assertPressLandsOnCell(label: string, x: number, y: number, testId: string): Promise<void> {
+    const hit = await this.page.evaluate(([px, py]) => {
+      const td = document.elementFromPoint(px, py)?.closest('td');
+
+      return td?.closest('.ht_master') ? td.getAttribute('data-testid') : null;
+    }, [x, y]);
+
+    if (hit !== testId) {
+      throw new Error(`A press at (${x}, ${y}) lands on ${hit ?? 'no master cell'}, not on ${label}.`);
+    }
+  }
+
+  /**
+   * Drags from a master-table cell's text out past the grid's right edge and releases the button off
+   * the grid, so the `mouseup` lands on the page instead of on the grid.
    *
-   * @param {OverlayName} overlay The overlay holding the cell.
+   * It leaves through the right edge because the top and left edges cross a header, which cancels the
+   * selection before the release. The fixture is left-to-right.
+   *
    * @param {number} row Visual row index.
    * @param {number} col Visual column index.
+   * @returns {Promise<boolean>} Whether the `mouseup` landed off the grid.
    */
-  async dragFromCellOutOfGrid(overlay: OverlayName, row: number, col: number): Promise<void> {
-    const label = `cell ${row},${col} in the ${overlay} overlay`;
-    const box = await this.cell(overlay, row, col).boundingBox();
+  async dragFromCellOutOfGrid(row: number, col: number): Promise<boolean> {
+    const label = `cell ${row},${col} in the master overlay`;
+    const box = await this.cell('master', row, col).boundingBox();
     const gridBox = await this.grid.boundingBox();
     const viewport = this.page.viewportSize();
 
@@ -292,12 +313,13 @@ export class FragmentSelectionPage {
     const startX = box.x + 15;
     const endX = gridBox.x + gridBox.width + 60;
 
-    await this.#assertDragStaysInsideGrid(label, startX, startX, y);
+    await this.#assertPressLandsOnCell(label, startX, y, `cell-${row}-${col}`);
 
     if (endX >= viewport.width) {
       throw new Error(`The release point (x ${endX}) is outside the ${viewport.width}px viewport`);
     }
 
+    await this.page.evaluate(() => window.resetLastMouseUp());
     await this.page.mouse.move(startX, y);
     await this.page.mouse.down();
 
@@ -306,12 +328,27 @@ export class FragmentSelectionPage {
     }
 
     await this.page.mouse.up();
+
+    return (await this.page.evaluate(() => window.wasLastMouseUpOffGrid())) === true;
+  }
+
+  /**
+   * Returns the master table's scroll position.
+   *
+   * @returns {Promise<{left: number, top: number}>}
+   */
+  scrollPosition(): Promise<{ left: number, top: number }> {
+    return this.grid.evaluate((grid) => {
+      const holder = grid.querySelector('.ht_master .wtHolder')!;
+
+      return { left: holder.scrollLeft, top: holder.scrollTop };
+    });
   }
 
   /**
    * Hovers a row header with no button held.
    *
-   * @param {number} row Visual row index.
+   * @param {number} row Position among the rendered rows.
    * @returns {Promise<number>} How many mouse moves landed on a header.
    */
   async hoverRowHeader(row: number): Promise<number> {
@@ -325,9 +362,7 @@ export class FragmentSelectionPage {
   }
 
   /**
-   * Hovers the column header row at the grid's horizontal center, with no button held. It aims at a
-   * point rather than at a column, because the columns under that point depend on how far an earlier
-   * drag scrolled the grid.
+   * Hovers the column header row at the grid's horizontal center, with no button held.
    *
    * @returns {Promise<number>} How many mouse moves landed on a header.
    */
