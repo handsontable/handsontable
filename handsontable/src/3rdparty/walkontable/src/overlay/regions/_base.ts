@@ -26,7 +26,7 @@ import {
 import { A11Y_PRESENTATION } from '../../../../../helpers/a11y';
 import { throwWithCause } from '../../../../../helpers/errors';
 import { getSpreaderOffset } from '../spreaderOffset';
-import { OverlayRail } from '../overlayRail';
+import { OverlayRail, railCarriesAxis } from '../overlayRail';
 
 /**
  * Assembles the dependency set shared by every overlay (and its corner subclasses) from the engine
@@ -405,7 +405,9 @@ export abstract class Overlay {
 
   /**
    * The axis this overlay follows while the window owns it, which decides whether a rail already
-   * carries its offset. The corners follow both and are read by nobody, so they keep the default.
+   * carries its offset. The corners follow both, so they name none and keep the default: there is no
+   * single axis to answer for, and {@link Overlay#getOverlayTransformOffset} then reports the whole
+   * offset rather than the answer for the other axis.
    *
    * @returns {'inline' | 'block' | null}
    */
@@ -424,10 +426,7 @@ export abstract class Overlay {
    * @returns {number}
    */
   getOverlayTransformOffset(): number {
-    const rail = this.#rail;
-    const pinned = this.railAxis === 'inline' ? rail?.pinsInline() : rail?.pinsBlock();
-
-    return pinned ? 0 : this.getOverlayOffset();
+    return railCarriesAxis(this.#rail, this.railAxis) ? 0 : this.getOverlayOffset();
   }
 
   /**

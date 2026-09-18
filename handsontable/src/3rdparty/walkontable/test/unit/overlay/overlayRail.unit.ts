@@ -1,4 +1,4 @@
-import { OverlayRail } from '../../../src/overlay/overlayRail';
+import { OverlayRail, railCarriesAxis } from '../../../src/overlay/overlayRail';
 import { OVERLAY_RAIL_CLASS_NAME } from '../../../src/overlay/constants';
 
 /**
@@ -344,5 +344,37 @@ describe('OverlayRail', () => {
 
     expect(rail.isPinned()).toBe(false);
     expect(detached.parentElement).toBeNull();
+  });
+
+  describe('railCarriesAxis', () => {
+    it('should answer for the axis the overlay names, not the other one', () => {
+      const rail = new OverlayRail(clone, document);
+
+      rail.pin({ isRtl: false, width: 900, height: 4000, inline: true, block: { pinned: false, edge: 'top' } });
+
+      expect(railCarriesAxis(rail, 'inline')).toBe(true);
+      expect(railCarriesAxis(rail, 'block')).toBe(false);
+
+      rail.pin({ isRtl: false, width: 900, height: 4000, inline: false, block: { pinned: true, edge: 'top' } });
+
+      expect(railCarriesAxis(rail, 'inline')).toBe(false);
+      expect(railCarriesAxis(rail, 'block')).toBe(true);
+    });
+
+    it('should carry no axis for an overlay that names none, whatever the rail holds', () => {
+      // The corners travel both axes and name neither. Reading the answer for one of them would tell
+      // a caller asking about the whole clone that the layout already carries its offset.
+      const rail = new OverlayRail(clone, document);
+
+      rail.pin({ isRtl: false, width: 900, height: 4000, inline: true, block: { pinned: true, edge: 'top' } });
+
+      expect(railCarriesAxis(rail, null)).toBe(false);
+    });
+
+    it('should carry no axis without a rail', () => {
+      expect(railCarriesAxis(null, 'inline')).toBe(false);
+      expect(railCarriesAxis(null, 'block')).toBe(false);
+      expect(railCarriesAxis(null, null)).toBe(false);
+    });
   });
 });

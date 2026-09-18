@@ -210,14 +210,25 @@ test.describe('walkontable window-scroll pinned overlays', { tag: '@walkontable'
       await wt.goto({ frozen: true, tall: true });
       await wt.wheelScrollVertically(400);
 
+      // The two preconditions, or the test passes on a page that never scrolled and a clone that
+      // never travelled: both would put the editor over the cell for the wrong reason.
+      expect(await wt.windowScrollDistanceY()).toBeGreaterThan(1000);
+      expect(await wt.isInRail(wt.topClone)).toBe(true);
+
       const cell = wt.frozenTopRowCell();
 
       await expectEditorOverCell(await wt.openEditor(cell), cell);
     });
 
     test('the editor opens over a frozen-bottom-row cell after a vertical page scroll', async() => {
+      // The bottom clone takes NO offset compensation, here or on `develop`: its place has always
+      // been an inset and is now a sticky shift, and the editor's offset chain sees both. This is
+      // what proves the compensation would be a double count rather than a missing correction.
       await wt.goto({ frozen: true, tall: true });
       await wt.wheelScrollVertically(400);
+
+      expect(await wt.windowScrollDistanceY()).toBeGreaterThan(1000);
+      expect(await wt.isInRail(wt.bottomClone)).toBe(true);
 
       const cell = wt.frozenBottomRowCell();
 

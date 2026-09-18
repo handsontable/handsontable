@@ -33,6 +33,25 @@ export type RailPlacement = {
 };
 
 /**
+ * Whether a rail already carries the offset of the axis an overlay names.
+ *
+ * An overlay that names NO axis gets `false`: the question is about one axis, and there is none to
+ * answer for, so the caller keeps the whole offset rather than the answer for some other axis. The
+ * corners are that case – their clone travels both axes, and a rail may hold either one.
+ *
+ * @param {OverlayRail | null} rail The overlay's rail, if it has one.
+ * @param {'inline' | 'block' | null} axis The axis the overlay follows.
+ * @returns {boolean}
+ */
+export function railCarriesAxis(rail: OverlayRail | null, axis: 'inline' | 'block' | null): boolean {
+  if (rail === null || axis === null) {
+    return false;
+  }
+
+  return axis === 'inline' ? rail.pinsInline() : rail.pinsBlock();
+}
+
+/**
  * Keeps an overlay clone at the viewport's edge with CSS while the WINDOW scrolls the grid
  * (DEV-127 for the inline axis, DEV-126 for the block axis).
  *

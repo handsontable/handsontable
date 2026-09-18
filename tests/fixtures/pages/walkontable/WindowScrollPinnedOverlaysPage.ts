@@ -52,6 +52,8 @@ export class WindowScrollPinnedOverlaysPage {
   readonly master: Locator;
   readonly inlineStartClone: Locator;
   readonly topCornerClone: Locator;
+  readonly topClone: Locator;
+  readonly bottomClone: Locator;
 
   /** Whether the current page was opened right-to-left (`goto({ rtl: true })`). */
   rtl = false;
@@ -70,6 +72,8 @@ export class WindowScrollPinnedOverlaysPage {
     this.master = this.grid.locator('.ht_master');
     this.inlineStartClone = this.grid.locator('.ht_clone_inline_start');
     this.topCornerClone = this.grid.locator('.ht_clone_top_inline_start_corner');
+    this.topClone = this.grid.locator('.ht_clone_top');
+    this.bottomClone = this.grid.locator('.ht_clone_bottom');
 
     page.on('pageerror', error => this.#pageProblems.push(`pageerror: ${error.message}`));
     page.on('requestfailed', request =>
