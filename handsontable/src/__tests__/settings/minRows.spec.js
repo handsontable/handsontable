@@ -45,8 +45,7 @@ describe('settings', () => {
         expect(countEmptyRows()).toEqual(2);
       });
 
-      // Currently this is a bug (#6571)
-      xit('should show data properly after `minRows` is updated from 5 to 3', async() => {
+      it('should show data properly after `minRows` is updated from 5 to 3', async() => {
         handsontable({
           data: createSpreadsheetData(1, 1),
           minRows: 5
