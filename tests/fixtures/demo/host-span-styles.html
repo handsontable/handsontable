@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture - host span styles leaking into grid UI</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document. An ABSENT param
+    // keeps the default (main / plain UMD); an unknown value THROWS instead of
+    // falling back, so a config typo is one red leg, never a mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+
+    /*
+     * DEV-75. A host page that styles bare <span> elements. The values are deliberately odd so no
+     * shipped theme token can coincide with them (main/horizon/classic use 12-14px sizes, 20-22px
+     * line heights, weight 400, letter-spacing 0). The spec asserts the grid's own spans do NOT
+     * compute to these. Keep these values in sync with HOST_SPAN_STYLES in
+     * tests/fixtures/pages/HostSpanStylesPage.ts.
+     */
+    span {
+      font-size: 23px;
+      line-height: 41px;
+      font-weight: 700;
+      letter-spacing: 3px;
+    }
+  </style>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+
+  <!-- Positive control: a span the grid does not own. The spec asserts this one DOES take the host
+       rule, so a fixture edit that silences the rule turns the spec red instead of vacuously green. -->
+  <span data-testid="host-control">host control</span>
+
+  <script>
+    // The bundle under test is appended and the fixture waits for its `load` before building the
+    // grid, so a late or failed request can never run the init below with no `Handsontable`.
+    const loadBundle = () => {
+      const bundleScript = document.createElement('script');
+
+      bundleScript.src = `/handsontable/dist/${window.htBundle}`;
+      bundleScript.addEventListener('load', initFixture);
+      bundleScript.addEventListener('error', () => {
+        throw new Error(`Failed to load the bundle: ${bundleScript.src}`);
+      });
+      document.head.appendChild(bundleScript);
+    };
+
+    function initFixture() {
+      const container = document.querySelector('[data-testid="grid"]');
+
+      container.className = `ht-theme-${window.htTheme}`;
+
+      const categories = ['Electronics', 'Medical Supplies', 'Auto Parts', 'Fresh Produce', 'Textiles'];
+
+      // Every multiselect cell holds four values, each long enough to hit the chip's own 100px
+      // max-width cap on its own (verified against both the unfixed, host-inherited chip font and
+      // the fixed, theme-inherited one). So exactly one chip fits in the 200px column and the
+      // renderer always emits the "+N" overflow indicator, whichever font size is in effect.
+      const data = Array.from({ length: 12 }, (_, row) => [
+        `Airport ${row}`,
+        categories.slice(0, 4),
+      ]);
+
+      const hot = new Handsontable(container, {
+        data,
+        colHeaders: ['Airport', 'Shipment'],
+        rowHeaders: true,
+        columns: [
+          { type: 'text' },
+          { type: 'multiselect', source: categories, width: 200 },
+        ],
+        height: 400,
+        pagination: {
+          pageSize: 5,
+          showPageSize: true,
+          showCounter: true,
+          showNavigation: true,
+        },
+        layoutDirection: 'ltr',
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      window.hot = hot;
+    }
+
+    loadBundle();
+  </script>
+</body>
+</html>

@@ -68,6 +68,36 @@ focus, dropdown selection, the offscreen `.htGhostTable`) uses
 `// stylelint-disable-next-line handsontable/no-has-selector -- <reason>` with a reason that says why it
 is off the scroll path.
 
+## Text-bearing UI spans declare their own text metrics
+
+Any `<span>` (or other inline element) the grid renders with visible text must declare `font-size`,
+`line-height`, `font-weight`, and `letter-spacing` itself. Inheritance from `.handsontable` is not
+enough: a host page rule on the bare element (`span { font-size: 20px }`) has specificity (0,0,1) and
+beats any inherited value. This bit headers first (`span.colHeader`, #11306), then the pagination
+labels and the multiselect chips (DEV-75). The four-property `inherit` form is the target for new
+spans. The older guards cover two properties only: `span.colHeader`/`span.rowHeader` declare
+`font-size` and `line-height` as tokens in `_base.scss`, and `.htCheckboxRendererLabel` and
+`.ht-sheets-bar__tab-label` declare the same two as `inherit`. Their `font-weight` and
+`letter-spacing` still leak.
+
+Pattern: the component root (`.ht-pagination`, `td`, `.ht-sheets-bar`) carries the token
+(`font-size: var(--ht-font-size)`); every text-bearing span below it declares the four properties as
+`inherit`. `inherit` wins over the host's element selector and still follows a user's override on a
+root whose own rule it can tie or beat (a user's `.handsontable td` rule keeps working). Two limits
+to state in a PR: a user rule on the guarded class itself at lower specificity
+(`.ht-multi-select-chip { font-size: 16px }`) loses to the guard where it used to win, and a bare
+`.ht-pagination { font-size }` never beat the bar's own `.handsontable.ht-pagination` rule, so it
+neither worked before nor works now. Do **not** add a blanket `.handsontable span { ... }` rule –
+its specificity (0,1,1) would override a user's own `.my-class` on spans inside custom cell
+renderers.
+
+`tests/e2e/host-span-styles.spec.ts` (fixture `tests/fixtures/demo/host-span-styles.html`) hosts a
+hostile `span {}` rule and asserts the guarded spans against their cascade parent. Add any new
+text-bearing span to that spec. The fixture loads the compiled `handsontable/styles/handsontable.min.css`
+and `ht-theme-<name>.min.css`. After an SCSS edit run `npm --prefix handsontable run build` (or at
+least `build:styles`, `build:styles.min`, and `build:themes-css.min`) before trusting a spec run –
+`build:styles` alone leaves every minified file stale.
+
 ## Browser Compatibility
 
 All CSS features must work in browsers listed in `browser-targets.js` (latest 2 major versions of Chrome, Firefox, Safari, Edge). The `eslint-plugin-compat` rule enforces this.
