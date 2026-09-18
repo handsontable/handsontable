@@ -614,8 +614,10 @@ fields. Seven rules follow.
 - **A wheel gesture must move each axis exactly once, so the grid scrolls BOTH axes itself and then
   always consumes the event.** `Overlays#scrollVertically` / `scrollHorizontally` move whatever owns
   the axis, and for a window owner that means `rootWindow.scrollBy({ behavior: 'instant' })` — the
-  page is scrolled by the grid, not by the browser. So `NativeScrollInput#onWheel` calls
-  `preventDefault()` on any gesture the translation reports as scrolled, in every mode. **Do not add
+  page is scrolled by the grid, not by the browser. So `NativeScrollInput#onCloneWheel` calls
+  `preventDefault()` on any gesture the translation reports as scrolled, in every mode where an
+  element scrolls the grid. Full window mode is the exception: there `#onCloneWheel` returns before
+  the translation, the listeners are passive, and the browser scrolls the page itself. **Do not add
   a guard that refuses `preventDefault` when a named axis is window-owned.** That was tried on the
   root-size branch, to stop the page freezing under the pointer while `scrollableElement` is the
   holder for the whole grid — a real defect, but one `scrollBy` had already fixed. With the delta

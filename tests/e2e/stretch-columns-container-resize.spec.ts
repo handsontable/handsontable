@@ -76,6 +76,25 @@ test.describe('stretched columns after a container resize', () => {
     });
   }
 
+  test('all: growing past the viewport in window mode gives the page a real horizontal scrollbar', async() => {
+    // The other side of the grow case above: with `'auto'` and no `width` the page owns the columns,
+    // so a container wider than the 1280px viewport makes the PAGE scroll sideways. `htHasScrollX` is
+    // then the truth, not a phantom, and the header clone must still follow the stretched columns.
+    await grid.goto({ stretchH: 'all', height: 'auto' });
+
+    expect(await grid.horizontalAxisOwnedByWindow()).toBe(true);
+
+    await grid.setContainerWidth(900);
+    await grid.setContainerWidth(1500);
+
+    const after = await grid.geometry();
+
+    expect(after.apiColumnWidthSum).toBe(1500);
+    expect(after.lastHeaderOverflow).toBeLessThanOrEqual(0);
+    expect(await grid.documentOverflowsHorizontally()).toBe(true);
+    expect(await grid.rootScrollClasses()).toEqual(['htHasScrollX']);
+  });
+
   test('all: a fixed-height grid reports no horizontal scrollbar after shrinking', async() => {
     // The second shape of the defect: with a pixel height the vertical prediction stays correct,
     // but the stale content width still summons a horizontal bar. Five rows never fill 300px.

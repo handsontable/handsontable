@@ -722,15 +722,52 @@ Anyone using `height: 'auto'`, in particular with:
 
 For the common case, nothing. The grid still grows to fit its rows and the page still scrolls it.
 
-To keep an internal vertical scrollbar, set a numeric `height`, or place the grid inside a parent
-with a fixed height and `overflow: auto`. Inside such a parent, a grid with `height: 'auto'` fills
-the parent and scrolls inside it.
+To keep an internal vertical scrollbar, set a numeric `height`:
 
-Two smaller changes ship with this one:
+```js
+// Before: the grid clipped itself and scrolled its rows inside.
+height: 'auto',
 
-- A `width` or `height` value the browser cannot read as a size (`'abc'`, `-100`, `true`), or a CSS
-  keyword that would collapse the grid (`'min-content'`, `'inherit'`), is ignored with a one-time
-  console warning. It used to be written to the root element as it was.
+// After: size the grid, and it scrolls its rows inside that box.
+height: 500,
+```
+
+Or place the grid inside a parent with a fixed height and `overflow: auto`. Inside such a parent, a
+grid with `height: 'auto'` fills the parent and scrolls inside it:
+
+```html
+<div style="height: 500px; overflow: auto;">
+  <div id="grid"></div>
+</div>
+```
+
+```js
+new Handsontable(document.querySelector('#grid'), {
+  height: 'auto',
+  // ...
+});
+```
+
+Three smaller changes ship with this one:
+
+- A `width` or `height` value the browser cannot read as a size (`'abc'`, `-100`, `true`) is ignored
+  with a one-time console warning, and so are these CSS keywords. It used to be written to the root
+  element as it was.
+  - `'inherit'`, `'initial'`, `'unset'`, `'revert'`, `'revert-layer'`, `'none'`, and `'normal'` do not
+    set a size.
+  - `'min-content'`, `'max-content'`, `'fit-content'`, and `fit-content()` size the grid to its full
+    content, so it cannot scroll inside its box and renders every row or column.
+  - `'stretch'`, `'-webkit-fill-available'`, and `'-moz-available'` fill the container but read as a
+    fixed size, so the grid would clip the columns past the container with no scrollbar.
+
+  If you used one of them, use `'auto'` or a length instead. For a grid that fills its container,
+  use `'100%'` or `'auto'`.
+- With a free height (`'auto'` or unset), a `width` that resolves against something outside the
+  grid, such as a `var()` (`'var(--grid-width)'`) or a container-query unit (`'50cqw'`), is no longer
+  clipped. It used to write `overflow-x: clip` like a fixed width, so the grid scrolled its columns
+  inside that width. It now leaves the horizontal overflow to the page, the way `'100%'` does, so the
+  page scrolls the columns. To keep the grid scrolling its own columns, give it a fixed width, such
+  as a number or a `px` or `em` length. A sized `height` still clips both axes, whatever the width.
 - `width: null` clears the inline width, the way `height: null` clears the height. It used to write
   `width: nullpx`. Both resets restore their own property only, so `height: null` no longer removes a
   `width` set through the option.

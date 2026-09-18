@@ -384,11 +384,20 @@ Inside a parent with a fixed height and `overflow: auto`, a grid with `height: '
 
 Any other value the browser can read as a CSS length or expression (`'20em'`, `'calc(100% - 40px)'`, `'var(--grid-height)'`) is passed through as written.
 
-A value the browser cannot read as a size (`'abc'`, `-100`, `true`), and a CSS keyword that would collapse the grid (`'min-content'`, `'inherit'`), is ignored. The grid's size stays as it was, and Handsontable prints a warning once per grid and value.
+A value the browser cannot read as a size (`'abc'`, `-100`, `true`) is ignored, and so are these CSS keywords:
+
+- `'inherit'`, `'initial'`, `'unset'`, `'revert'`, `'revert-layer'`, `'none'`, and `'normal'`, which do not set a size.
+- `'min-content'`, `'max-content'`, and `'fit-content'`, which size the grid to its full content, so it cannot scroll inside its box.
+- `'stretch'`, `'-webkit-fill-available'`, and `'-moz-available'`, which fill the container but read as a fixed size. Use `'100%'` or `'auto'` instead.
+
+An ignored value leaves the grid's size as it was, and Handsontable prints a warning once per grid and value.
 
 Passing `null` to either option through [`updateSettings()`](@/api/core.md#updatesettings) restores that axis to the root element's initial inline style and leaves the other axis in place.
 
-A definite `width` (a number, `'500px'`, `'20em'`) clips the grid horizontally, and the grid scrolls its columns inside that width on its own, with or without a `height`. A relative width (`'100%'`, `'80vw'`, `'var(--grid-width)'`) leaves the horizontal overflow to the page.
+The two options accept the same values, but they clip differently:
+
+- Any `height` other than `'auto'`, including a percentage or a viewport unit, sizes the grid's box. The grid clips both axes and scrolls inside that box, as the table above shows.
+- A `width` clips only when it is definite (a number, `'500px'`, `'20em'`). The grid then scrolls its columns inside that width on its own, with or without a `height`. A relative width (`'100%'`, `'80vw'`, `'var(--grid-width)'`) leaves the horizontal overflow to the page, so the columns past it stay reachable.
 
 ### Troubleshooting with 100% height
 

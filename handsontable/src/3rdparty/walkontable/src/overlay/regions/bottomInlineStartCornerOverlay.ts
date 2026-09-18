@@ -136,9 +136,10 @@ export class BottomInlineStartCornerOverlay extends Overlay {
     // The strip is the frozen-bottom-rows overlay's own, read rather than recomputed: this corner is
     // drawn over that overlay, so if the two disagree the band is left half-covered - a notch along
     // the bottom edge where the frozen columns stop and the frozen rows carry on. That overlay keys
-    // the strip on the HORIZONTAL axis owner (the scrollbar it clears is the horizontal one; its own
-    // `trimmingContainer` is the vertical owner, and in split mode that is the window) and on
-    // whether it rests on the holder's bottom edge, and the draw cycle positions it before this corner.
+    // the strip on the element that scrolls the COLUMNS (the scrollbar it clears is the horizontal
+    // one; its own `trimmingContainer` is the vertical owner, and in split mode that is the window)
+    // and on whether it rests on the holder's bottom edge, and the draw cycle positions it before
+    // this corner.
     const bottomClearance = this.needFullRender ? this.bottomOverlay.getBottomClearance() : 0;
 
     overlayRoot.style.height = `${tableHeight}px`;

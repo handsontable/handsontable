@@ -274,19 +274,21 @@ export class BottomOverlay extends Overlay {
     // Width is a horizontal question: sized against the scrollport whenever an element owns the
     // horizontal axis (see `TopOverlay#adjustRootElementSize`).
     const rootSized = !wtViewport.isHorizontallyScrollableByWindow();
-    // Each strip reads the owner of the axis it lies on. The inline-end strip clears the master's
-    // VERTICAL scrollbar, so it asks the vertical owner; the bottom strip clears the HORIZONTAL one,
-    // so it asks the horizontal owner. In split mode the two differ - the window owns the rows, the
-    // holder owns the columns - and one predicate taken from the vertical owner said "the window's
-    // scrollbar" for both, leaving the holder's horizontal scrollbar under the frozen bottom rows at
-    // the grid's end. The axis is named at the call site rather than read off this overlay, which
-    // holds the vertical owner only. Clip and band together, or not at all - see
-    // `TopOverlay#adjustRootElementSize`.
+    // Each strip reads the axis it lies on. The inline-end strip clears the master's VERTICAL
+    // scrollbar, so it asks the vertical owner; the bottom strip clears the HORIZONTAL one, so it
+    // asks the element that scrolls the columns. In split mode the two differ - the window owns the
+    // rows, the holder owns the columns - and one predicate taken from the vertical owner said "the
+    // window's scrollbar" for both, leaving the holder's horizontal scrollbar under the frozen bottom
+    // rows at the grid's end. The horizontal question reads the scroller, not the owner: in the
+    // reverse split the window owns the columns while the holder scrolls them
+    // (`Overlay#ownsWindowScroll()`), and the owner's identity would leave that scrollbar covered.
+    // Clip and band together, or not at all - see `TopOverlay#adjustRootElementSize`.
     const verticalClearanceApplies =
       holderOwnsAxisScrollbar(wtViewport.isVerticallyScrollableByWindow(), rootWindow);
-    const horizontalClearanceApplies =
-      holderOwnsAxisScrollbar(wtViewport.isHorizontallyScrollableByWindow(), rootWindow) &&
-      this.#restsOnHolderBottomEdge();
+    const horizontalClearanceApplies = holderOwnsAxisScrollbar(
+      this.wot.wtOverlays.inlineStartOverlay.mainTableScrollableElement === rootWindow,
+      rootWindow
+    ) && this.#restsOnHolderBottomEdge();
 
     // The master's vertical scrollbar sits along the inline-end edge this overlay spans.
     this.#holderClearance = axisScrollbarClearance(
