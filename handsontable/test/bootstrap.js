@@ -19,6 +19,20 @@ beforeAll(() => {
   // that `getScrollTop(window)` returns a number there (it used to return `undefined`, which made
   // every comparison false and kept this path dead). A no-op, like the observers above.
   Element.prototype.scrollIntoView = Element.prototype.scrollIntoView ?? (() => {});
+
+  // jsdom loads no theme stylesheet, so every grid built here warns "The "ht-theme-main" theme is
+  // enabled, but its stylesheets are missing" (`Core#onThemeChange` probes `--ht-line-height` on
+  // the themed wrapper). Declare that one variable for every `ht-theme-*` element, the way the real
+  // stylesheets do. Only this variable: `#calculateRowHeight()`, NestedHeaders, and the multi-select
+  // dropdown each need a second variable as well, so with only this one defined they resolve to the
+  // same `NaN`/`undefined` they resolve to today, and no measurement changes.
+  if (!document.getElementById('ht-jsdom-theme-vars')) {
+    const themeVars = document.createElement('style');
+
+    themeVars.id = 'ht-jsdom-theme-vars';
+    themeVars.textContent = '[class*="ht-theme-"] { --ht-line-height: 22px; }';
+    document.head.appendChild(themeVars);
+  }
 });
 
 beforeEach(() => {
