@@ -1,6 +1,7 @@
 import type { HotInstance } from '../../core/types';
 import { BasePlugin } from '../base';
-import { arrayEach, arrayFilter, arrayMap } from '../../helpers/array';
+import { arrayEach, arrayFilter } from '../../helpers/array';
+import { isFunction } from '../../helpers/function';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
 import { addClass, isBottomMostColumnHeader, isHTMLElement, removeClass } from '../../helpers/dom/element';
@@ -36,6 +37,25 @@ import {
 } from './constants';
 import type { IndexMap, TrimmingMap } from '../../translations';
 import type { BaseComponent } from './component/_base';
+import { ColumnDataMap } from './columnDataMap';
+import type { CellProperties } from '../../settings';
+
+/**
+ * Writes the coordinate stamps a filter condition and a `valueGetter` read off cell meta.
+ *
+ * Both pairs get the PHYSICAL indexes. That is a historical quirk of this read, kept on purpose:
+ * consumers correlate rows through the entry's own `row`, never through these stamps.
+ *
+ * @param {object} cellMeta The cell meta to stamp.
+ * @param {number} physicalRow The physical row index.
+ * @param {number} physicalColumn The physical column index.
+ */
+function stampPhysicalCoordinates(cellMeta: CellProperties, physicalRow: number, physicalColumn: number) {
+  cellMeta.visualRow = physicalRow;
+  cellMeta.visualCol = physicalColumn;
+  cellMeta.row = physicalRow;
+  cellMeta.col = physicalColumn;
+}
 
 export type OperationType = 'conjunction' | 'disjunction' | 'disjunctionWithExtraCondition';
 
@@ -611,7 +631,7 @@ export class Filters extends BasePlugin {
         this.hot,
         this.conditionCollection,
         (physicalColumn: number, physicalRows?: number[]) =>
-          this.getDataMapAtColumn(physicalColumn, physicalRows),
+          this._readColumn(physicalColumn, physicalRows),
       );
       this.conditionUpdateObserver.addLocalHook('update',
         (conditionState: Record<string, unknown>) => this.#updateComponents(conditionState));
@@ -1317,8 +1337,7 @@ export class Filters extends BasePlugin {
 
     if (allowFiltering !== false && needToFilter) {
       const dataFilter = this._createDataFilter();
-      const rowIndexesToShow = arrayMap(dataFilter.filter(),
-        rowData => (rowData as { row: number }).row);
+      const rowIndexesToShow = dataFilter.filter();
       const rowIndexesToShowAssertion = createArrayAssertion(rowIndexesToShow);
       const countSourceRows = this.hot.countSourceRows();
       // `getDataMapAtColumn()` never handed the pinned rows to the conditions, so they are absent
@@ -1430,10 +1449,42 @@ export class Filters extends BasePlugin {
    * the coordinate stamps on `meta` are shared with other readers and may change after this method returns.
    */
   getDataMapAtColumn(physicalColumn: number, physicalRows?: number[]): Record<string, unknown>[] {
+    return this._readColumn(physicalColumn, physicalRows).toArray();
+  }
+
+  /**
+   * Reads a column into the columnar form the filter scan runs on: the physical row indexes and the
+   * cell values in two parallel arrays, with each entry's cell meta resolved on demand. Every rule
+   * `getDataMapAtColumn()` documents applies here - it is the same read, and that method is this
+   * one plus `toArray()`.
+   *
+   * The scan reads the value of every row and the meta of almost none, so resolving the meta lazily
+   * is what keeps a filter run off the meta pipeline. Rows that already store per-cell meta are
+   * found during the read and keep their own object, so per-cell overrides stay exact.
+   *
+   * @private
+   * @param {number} physicalColumn The physical column index.
+   * @param {number[]} [physicalRows] When provided, only these physical rows are read (in the given
+   * order) instead of every source row.
+   * @returns {ColumnDataMap} The column read.
+   */
+  _readColumn(physicalColumn: number, physicalRows?: number[]): ColumnDataMap {
     const rowsCount = physicalRows ? physicalRows.length : this.hot.countSourceRows();
     const visualColumn = this.hot.toVisualColumn(physicalColumn);
     const excludedRows = physicalRows ? null : this.#getPinnedRows();
-    const data: Record<string, unknown>[] = [];
+    const metaManager = this.hot._getMetaManager();
+    // A `valueGetter` is declared by the cell type, so it resolves through the column layer for
+    // every row that carries no per-cell meta. Probing it once keeps the whole meta destructure out
+    // of the loop for every column that has none.
+    const columnHasValueGetter = isFunction(metaManager.createTransientColumnMeta(physicalColumn).valueGetter);
+    const hasModifyDataHook = this.hot.hasHook('modifyData');
+    const rows: number[] = [];
+    const values: unknown[] = [];
+    // Sparse on purpose: on a painted grid only the rows inside the meta-eviction band store meta,
+    // so this holds a few hundred entries whatever the dataset size. Rows whose value went through
+    // a `valueGetter` are in here too - that getter already got the row's own meta, and the
+    // conditions must get the same object.
+    const resolvedMetas = new Map<number, CellProperties>();
 
     for (let rowIndex = 0; rowIndex < rowsCount; rowIndex++) {
       const physicalRow = physicalRows ? physicalRows[rowIndex] : rowIndex;
@@ -1442,16 +1493,25 @@ export class Filters extends BasePlugin {
         continue; // eslint-disable-line no-continue
       }
 
-      const cellMeta = this.hot._getMetaManager().getCellMetaUncached(physicalRow, physicalColumn, {
-        visualRow: physicalRow,
-        visualColumn: physicalColumn,
-      });
-      let value = getValueGetterValue(
-        this.hot.getSourceDataAtCell(physicalRow, visualColumn),
-        cellMeta
-      );
+      const storedMeta = metaManager.getCellMetaIfExists(physicalRow, physicalColumn);
+      let value = this.hot.getSourceDataAtCell(physicalRow, visualColumn);
 
-      if (this.hot.hasHook('modifyData')) {
+      if (storedMeta !== undefined) {
+        stampPhysicalCoordinates(storedMeta, physicalRow, physicalColumn);
+        resolvedMetas.set(rows.length, storedMeta);
+
+        value = getValueGetterValue(value, storedMeta);
+
+      } else if (columnHasValueGetter) {
+        const cellMeta = metaManager.createTransientColumnMeta(physicalColumn);
+
+        stampPhysicalCoordinates(cellMeta, physicalRow, physicalColumn);
+        resolvedMetas.set(rows.length, cellMeta);
+
+        value = getValueGetterValue(value, cellMeta);
+      }
+
+      if (hasModifyDataHook) {
         const valueHolder: ObjectPropListener = createObjectPropListener(value);
 
         this.hot.runHooks('modifyData', physicalRow, physicalColumn, valueHolder, 'get');
@@ -1461,14 +1521,25 @@ export class Filters extends BasePlugin {
         }
       }
 
-      data.push({
-        row: physicalRow,
-        meta: cellMeta,
-        value: toEmptyString(value),
-      });
+      rows.push(physicalRow);
+      values.push(toEmptyString(value));
     }
 
-    return data;
+    return new ColumnDataMap(rows, values, (index: number) => {
+      const resolvedMeta = resolvedMetas.get(index);
+
+      if (resolvedMeta !== undefined) {
+        stampPhysicalCoordinates(resolvedMeta, rows[index], physicalColumn);
+
+        return resolvedMeta;
+      }
+
+      const cellMeta = metaManager.createTransientColumnMeta(physicalColumn);
+
+      stampPhysicalCoordinates(cellMeta, rows[index], physicalColumn);
+
+      return cellMeta;
+    });
   }
 
   /**
@@ -1904,12 +1975,10 @@ export class Filters extends BasePlugin {
 
     splitConditionCollection.importAllConditions(conditionsBefore);
 
-    // Rows are correlated through the entry's own `row` property - the coordinate stamps on `meta`
-    // are shared with every other meta reader and may have been overwritten since.
-    // `DataFilter` is typed against `unknown[]` throughout, so its entries are narrowed here - the
-    // same boundary cast `DataFilter.filter()` and `ConditionUpdateObserver` already make.
-    const survivingRows = arrayMap(this._createDataFilter(splitConditionCollection).filter(),
-      rowData => (rowData as { row: number }).row);
+    // Rows are correlated through their physical index, which `DataFilter.filter()` returns
+    // directly - the coordinate stamps on `meta` are shared with every other meta reader and may
+    // have been overwritten since.
+    const survivingRows = this._createDataFilter(splitConditionCollection).filter();
     const survivingRowsAssertion = createArrayAssertion(survivingRows);
 
     splitConditionCollection.destroy();
@@ -1930,7 +1999,7 @@ export class Filters extends BasePlugin {
     }
 
     return new DataFilter(conditionCollection,
-      (physicalColumn: number, physicalRows?: number[]) => this.getDataMapAtColumn(physicalColumn, physicalRows));
+      (physicalColumn: number, physicalRows?: number[]) => this._readColumn(physicalColumn, physicalRows));
   }
 
   /**

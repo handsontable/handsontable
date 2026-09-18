@@ -75,6 +75,67 @@ describe('Filters - getDataMapAtColumn method', () => {
     ]);
   });
 
+  it('should return a plain array of `{row, meta, value}` objects, one per row', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      filters: true,
+    });
+
+    const data = getPlugin('filters').getDataMapAtColumn(1);
+
+    // The read is columnar internally. This is the shape the public method publishes, and the two
+    // must not drift: a consumer indexes the array, reads `entry.value`, and keeps `entry.meta`.
+    expect(Array.isArray(data)).toBe(true);
+    expect(data.map(entry => Object.keys(entry)))
+      .toEqual([
+        ['row', 'meta', 'value'],
+        ['row', 'meta', 'value'],
+        ['row', 'meta', 'value'],
+        ['row', 'meta', 'value'],
+        ['row', 'meta', 'value'],
+      ]);
+  });
+
+  it('should give every entry its own cell meta object', async() => {
+    handsontable({
+      data: createSpreadsheetData(500, 5),
+      filters: true,
+      width: 300,
+      height: 100,
+      colWidths: 50,
+      rowHeights: 23,
+      autoColumnSize: false,
+      autoRowSize: false,
+    });
+
+    // Rows this far below the render band store no cell meta of their own, so this is where a
+    // shared object would surface. Painted rows always have one.
+    const data = getPlugin('filters').getDataMapAtColumn(1);
+
+    expect(data.length).toBe(500);
+    expect(new Set(data.map(entry => entry.meta)).size).toBe(500);
+    expect(data[400].meta.row).toBe(400);
+    expect(data[400].meta.visualRow).toBe(400);
+    expect(data[450].meta.row).toBe(450);
+    // Reading a later entry must not re-point an earlier one.
+    expect(data[400].meta.row).toBe(400);
+  });
+
+  it('should read only the given physical rows, in the given order', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      filters: true,
+    });
+
+    const data = getPlugin('filters').getDataMapAtColumn(1, [4, 1]);
+
+    expect(data.length).toBe(2);
+    expect(data.map(entry => entry.row)).toEqual([4, 1]);
+    expect(data.map(entry => entry.value)).toEqual(['B5', 'B2']);
+    expect(data[0].meta.row).toBe(4);
+    expect(data[1].meta.row).toBe(1);
+  });
+
   it('should return the full dataset for a column when the data is already filtered', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),

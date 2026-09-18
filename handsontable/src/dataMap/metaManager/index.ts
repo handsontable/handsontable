@@ -246,6 +246,21 @@ export default class MetaManager {
   }
 
   /**
+   * Creates a cell meta object that inherits from the column layer and is not stored anywhere. It
+   * carries no per-cell overrides and no coordinate stamps, so it stands for "any cell of this
+   * column" until a caller stamps it.
+   *
+   * A bulk read that has already established the cell stores no meta of its own uses this instead
+   * of `getCellMetaUncached`, which would repeat the stored-meta lookup the read just did.
+   *
+   * @param {number} physicalColumn The physical column index.
+   * @returns {object}
+   */
+  createTransientColumnMeta(physicalColumn: number): CellProperties {
+    return this.cellMeta.createTransientMeta(physicalColumn);
+  }
+
+  /**
    * Gets a fully-extended cell meta object without retaining it. Unlike `getCellMetaUncached`, the
    * dynamic extension DOES run - the `beforeGetCellMeta`/`afterGetCellMeta` hooks and the `cells`
    * function are applied (through the `extendTransientCellMeta` local hook), so hook-driven
