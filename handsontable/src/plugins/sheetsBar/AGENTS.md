@@ -112,7 +112,11 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   load at the active sheet's array (warning once about a clashing top-level `data`): the grid's
   init pass loads `data` after the plugin already applied its sheet, and without the redirect
   the first switch-away would capture the host array over the sheet's declared rows —
-  destroying them.
+  destroying them. The redirect is a `beforeLoadData` filter at the default `orderIndex`, and
+  another plugin that validates the incoming array in the same hook must register behind it —
+  `nestedRows` does so with `orderIndex: 1`, because at its `PLUGIN_PRIORITY` (300) it otherwise
+  judged the host's placeholder array and self-disabled before this redirect ran (DEV-2939).
+  Keep this listener at the default order, or that ordering silently inverts.
 - **`removeSheet` prunes the declared entry out of the configured `sheets` arrays**
   (`#pruneDeclaredSheet`, entries mapped per sheet id in `#declaredEntries`), mirroring how
   `Core` keeps `settings.data` in sync on `loadData` — the settings object would otherwise

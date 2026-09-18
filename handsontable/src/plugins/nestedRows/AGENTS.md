@@ -314,6 +314,22 @@ They are written in different places and can drift. Keep this in mind:
   **imperatively** — a `trimRows()` call, a `manualRowMove` order, a hand-registered IndexMap — across
   an off/on round trip. That is inherent to the physical space meaning two different things, and it is
   the reason a runtime toggle is not a free operation to hand a user a button for.
+- **The `beforeLoadData` listener is registered with `orderIndex: 1`, and that number is load-bearing.**
+  `#onBeforeLoadData` validates the incoming array through `#acceptsData()` and, on a non-nested
+  shape, flips the `nestedRows` setting to `false` and disables the plugin for the grid's life. It
+  is a filter hook: every listener sees the value the previous one returned, in registration order,
+  and registration follows ascending `PLUGIN_PRIORITY` — so at 300 this plugin used to run before
+  `sheetsBar` (910) redirected the init load at the active sheet's array. A grid declaring a
+  top-level `data` next to a `sheetsBar` workbook therefore validated the host's placeholder array,
+  self-disabled, and never saw the nested sheet that replaced it (DEV-2939). The positive
+  `orderIndex` moves only this listener behind every default-ordered `beforeLoadData` listener,
+  including that redirect. Do not "fix" this by raising `PLUGIN_PRIORITY` — that reorders all 22
+  hooks and the whole lifecycle. The bug does **not** reproduce with `data` omitted: sheetsBar's
+  `enablePlugin` already loads the sheet through `loadData()`, so core's init pass skips its own
+  load and the plugin only ever sees the valid array. Pin any change here with
+  `sheetsBar.unit.js`'s `keeps \`nestedRows\` enabled when the active sheet supplies the nested data
+  on init`, and keep the top-level `data` in that fixture — without it the test passes on the
+  unfixed code.
 - **In React, `updatePlugin()` runs on every re-render.** `SettingsMapper.getSettings()` copies every
   prop except `children` into the `updateSettings` payload, so the `nestedRows` key is always present
   and `BasePlugin#onUpdateSettings` always fires. Anything you keep outside the settings object is

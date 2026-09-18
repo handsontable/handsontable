@@ -10,6 +10,7 @@ import { AutoColumnSize } from '../../autoColumnSize/autoColumnSize';
 import { ColumnSorting } from '../../columnSorting/columnSorting';
 import { Formulas } from '../../formulas/formulas';
 import { HiddenRows } from '../../hiddenRows/hiddenRows';
+import { NestedRows } from '../../nestedRows/nestedRows';
 import { TrimRows } from '../../trimRows/trimRows';
 import { UndoRedo } from '../../undoRedo/undoRedo';
 import { SheetsBarMenus } from '../ui/menus';
@@ -98,6 +99,7 @@ describe('SheetsBar plugin', () => {
     registerPlugin(ColumnSorting);
     registerPlugin(Formulas);
     registerPlugin(HiddenRows);
+    registerPlugin(NestedRows);
     registerPlugin(TrimRows);
     registerPlugin(UndoRedo);
     Object.defineProperty(Element.prototype, 'scrollIntoView', { configurable: true, value: () => {} });
@@ -408,6 +410,42 @@ describe('SheetsBar plugin', () => {
     expect(hot.getPlugin('hiddenRows').getHiddenRows()).toEqual([0]);
     expect(hot.getDataAtCell(0, 0)).toBe('hidden');
     expect(hot.getDataAtCell(1, 0)).toBe('shown');
+  });
+
+  it('keeps `nestedRows` enabled when the active sheet supplies the nested data on init', () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    hot = new Handsontable(container, {
+      data: [['ignored', 'top-level', 'data']],
+      nestedRows: true,
+      sheetsBar: {
+        sheets: [
+          {
+            name: 'Tree',
+            data: [
+              { a: 'Group 1', __children: [{ a: 'Line 1' }, { a: 'Line 2' }] },
+              { a: 'Group 2', __children: [{ a: 'Line 3' }] },
+            ],
+          },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const nestedRows = hot.getPlugin('nestedRows');
+
+    expect(nestedRows.isEnabled()).toBe(true);
+    expect(hot.getSettings().nestedRows).toBe(true);
+    expect(errorSpy).not.toHaveBeenCalledWith(expect.stringContaining('Nested Rows plugin requires'));
+    expect(hot.countRows()).toBe(5);
+    expect(hot.getData().map(row => row[0])).toEqual(['Group 1', 'Line 1', 'Line 2', 'Group 2', 'Line 3']);
+    expect(nestedRows.dataManager.hasChildren(0)).toBe(true);
+    expect(nestedRows.dataManager.getRowLevel(1)).toBe(1);
+
+    nestedRows.collapsingUI.collapseChildren(0);
+
+    expect(hot.getData().map(row => row[0])).toEqual(['Group 1', 'Group 2', 'Line 3']);
   });
 
   it('leaves the row order alone when the sheet data changed size while it was away', () => {
