@@ -2129,7 +2129,8 @@ export default (): Record<string, unknown> => {
      * map cleanly to your backend. Pair with **`pagination`** for server-side paging.
      * The optional **`refetchAfterCreate`** key (default `true`) controls whether a successful **`onRowsCreate`** is followed by a
      * `fetchRows` refetch of the current query. Set it to `false` when your `onRowsCreate` applies the server response to the
-     * grid itself, for example to keep a new row on the current page while the grid is sorted.
+     * grid itself, for example to keep a new row on the current page while the grid is sorted. With **`pagination`** enabled,
+     * a skipped refetch leaves the row total and the page count stale until the next `fetchRows` call, so reconcile them yourself.
      * Valid cell edits apply at once; if **`onRowsUpdate`** fails or **`beforeRowsMutation`** blocks the update, affected cells roll back.
      *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
@@ -2163,8 +2164,8 @@ export default (): Record<string, unknown> => {
      *   onRowsCreate: async ({ position, referenceRowId, rowsAmount }) => { ... },
      *   onRowsUpdate: async (rows) => { ... },
      *   onRowsRemove: async (rowIds) => { ... },
-     *   // Optional: skip the automatic refetch after a successful create (default `true`).
-     *   refetchAfterCreate: false,
+     *   // Optional: set to `false` to skip the automatic refetch after a successful create (default `true`).
+     *   // refetchAfterCreate: false,
      * },
      * ```
      */

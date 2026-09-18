@@ -51,11 +51,18 @@ Your API should create the rows and return a promise. By default, Handsontable r
 
 Set `refetchAfterCreate: false` to skip that refetch. Use it when your `onRowsCreate` applies the server response to the grid itself. For example, when the grid is sorted, a refetched new row can land on a different page. With the refetch off, you decide where the row appears. [`afterRowsMutation`](@/api/hooks.md#afterrowsmutation) still fires with `('create', { rowsCreate })`. Rows created from the context menu are not inserted locally, so with the refetch off the grid does not change until your code updates it.
 
-Apply the rows with [`updateData()`](@/api/core.md#updatedata), not [`loadData()`](@/api/core.md#loaddata). `loadData()` is a full reload: it resets the column sort state and the cell meta, so the header loses its sort indicator and the next fetch runs unsorted. The pagination total does not change with this pattern; it updates on the next `fetchRows` call.
+Apply the rows with [`updateData()`](@/api/core.md#updatedata), not [`loadData()`](@/api/core.md#loaddata). `loadData()` is a full reload: it resets the column sort state and the cell meta, so the header loses its sort indicator and the next fetch runs unsorted.
+
+Append the new rows at the end of the current page. `updateData()` keeps cell meta by physical row index, so a row spliced into the middle takes over the meta of the row it pushes down (an invalid-cell mark, a comment, or a `readOnly` set with [`setCellMeta()`](@/api/core.md#setcellmeta)), and every row below shifts the same way, until the next fetch. The next `fetchRows` call puts the row where the server sorts it.
+
+With [`pagination`](@/api/options.md#pagination) enabled, two things stay stale until that next `fetchRows` call: the row total does not change, and the current page grows past `pageSize` (for example, page 1 shows 11 rows with `pageSize: 10`), because in server mode Pagination does not hide rows on its side.
+
+If a `fetchRows` request is still running when the create finishes (for example, a sort or filter change made just before the insert), Handsontable refetches anyway, so the late response cannot remove the rows you applied.
+
+The example shows only the keys that change; the other keys stay as in [Configuration](@/guides/getting-started/server-side-data/server-side-data-configuration.md).
 
 ```js
 dataProvider: {
-  // ...
   refetchAfterCreate: false,
   onRowsCreate: async ({ position, referenceRowId, rowsAmount }) => {
     const response = await fetch('/api/products', {
@@ -64,10 +71,8 @@ dataProvider: {
     });
     const created = await response.json();
     const rows = hot.getSourceData();
-    const anchor = rows.findIndex((row) => row.id === referenceRowId);
-    const insertAt = anchor >= 0 ? anchor + (position === 'above' ? 0 : 1) : rows.length;
 
-    rows.splice(insertAt, 0, ...created);
+    rows.push(...created);
     hot.updateData(rows);
 
     return created;
