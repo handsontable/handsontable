@@ -529,13 +529,16 @@ export class MultiSelectEditor extends BaseEditor {
       // realm - a grid built inside an iframe from the parent's constructor - and a bare
       // `instanceof` is bound to the realm this file was compiled in, so it answers `false`
       // there and the skip silently stops working.
-      const target = event?.target;
-
-      if (isHTMLElement(target) && this.hot.rootElement.contains(target)) {
+      // The liveness check comes FIRST, the order `handsontable/AGENTS.md` requires of any
+      // callback that can outlive a task boundary: `Core#destroy()` nulls `rootElement` on its way
+      // past, so reading it before asking whether the grid is gone would throw rather than return.
+      if (this.hot.isDestroyed || !this.hot.rootElement || !this.isOpened()) {
         return;
       }
 
-      if (this.hot.isDestroyed || !this.isOpened()) {
+      const target = event?.target;
+
+      if (isHTMLElement(target) && this.hot.rootElement.contains(target)) {
         return;
       }
 

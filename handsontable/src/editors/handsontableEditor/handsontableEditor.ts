@@ -621,6 +621,15 @@ export class HandsontableEditor extends TextEditor {
       // realm - a grid built inside an iframe from the parent's constructor - and a bare
       // `instanceof` is bound to the realm this file was compiled in, so it answers `false`
       // there and the skip silently stops working.
+      //
+      // The liveness check comes FIRST, the order `handsontable/AGENTS.md` requires of any
+      // callback that can outlive a task boundary: `Core#destroy()` nulls `rootElement` on its
+      // way past, so reading it before asking whether the grid is gone would throw rather than
+      // return.
+      if (this.hot.isDestroyed || !this.hot.rootElement) {
+        return;
+      }
+
       if (isHTMLElement(event.target) && this.hot.rootElement.contains(event.target)) {
         return;
       }

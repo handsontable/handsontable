@@ -163,6 +163,24 @@ test.describe('dropdown editor list escapes the grid clip (#8688)', () => {
       expect(await grid.reachableOptions()).toBe(await grid.optionCount());
     });
 
+    test('grows a trimmed list back when the cell gains room again', async ({ page }) => {
+      // A viewport too short for the list on either side of the cell, so the clamp has to trim it.
+      // Growing the viewport then gives the cell room for every option, and goes through the same
+      // follow path a scroll does.
+      await page.setViewportSize({ width: 1280, height: 260 });
+      await grid.rebuild({ height: 120 });
+      await grid.openEditor(2, 1);
+
+      const options = await grid.optionCount();
+
+      expect(await grid.reachableOptions()).toBeLessThan(options);
+
+      await page.setViewportSize({ width: 1280, height: 900 });
+
+      // A clamp that only ever shrinks leaves the list as short as it was at the edge.
+      await expect.poll(() => grid.reachableOptions()).toBe(options);
+    });
+
     test('re-clamps a `multiselect` list when the grid\'s own scroll moves the cell', async ({ page }) => {
       // A grid almost as tall as the viewport, scrolled so the edited row starts at its top: the
       // list opens downwards with room to spare on every theme. Scrolling the grid's OWN holder then

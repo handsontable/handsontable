@@ -730,7 +730,11 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @param {number} spaceAvailable The free space as height defined in px available for dropdown list.
    */
   limitDropdownIfNeeded(spaceAvailable: number): void {
-    const dropdownHeight = this.getDropdownHeight();
+    // The height the list WANTS, computed from its choices, not the height it currently has:
+    // `getDropdownHeight()` reports the trimmed size once the clamp below has run, so a cell that
+    // gains room again could never grow its list back, and one that loses more room could not trim
+    // it further. The scroll follow calls this on every scroll, so both directions matter.
+    const dropdownHeight = this.getTargetEditorHeight();
 
     if (dropdownHeight > spaceAvailable) {
       const rowHeight = this.htEditor.stylesHandler.getDefaultRowHeight() ?? 0;
@@ -773,6 +777,17 @@ export class AutocompleteEditor extends HandsontableEditor {
       // hand-edited `top` can express. Reading the flag rather than re-deciding: the caller has
       // just decided the flip from the untrimmed height, and re-deciding here on the trimmed one
       // could disagree with the space figure it passed in.
+      if (this.isFlippedVertically) {
+        this.flipDropdownVertically();
+      } else {
+        this.unflipDropdownVertically();
+      }
+    } else if (this.getDropdownHeight() < dropdownHeight) {
+      // The list fits now and is still carrying a trim from when it did not. Restore it through the
+      // same measurement `open()` uses, then re-place it at its full height. Gated on the current
+      // height, so a list that was never trimmed pays no `updateSettings()` per scroll event.
+      this.updateDropdownDimensions();
+
       if (this.isFlippedVertically) {
         this.flipDropdownVertically();
       } else {
