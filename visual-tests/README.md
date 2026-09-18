@@ -178,7 +178,8 @@ Visual tests are divided into:
 All the test examples are available at `examples/next/visual-tests` and configured to be served from `localhost:8082`
 
 The main demo, served for every framework on `/`, is the shared multi-feature grid that the `multi-frameworks`
-specs photograph; the wrapper demos also serve `/scenario-grid`. The vanilla JS demo adds one `/<name>-demo`
+specs photograph; the react and angular demos also serve `/scenario-grid` (the vue3 demo has no router and
+serves `/` only). The vanilla JS demo adds one `/<name>-demo`
 route per feature (27 on 2026-09-18 — the list is the Navigo router in
 `examples/next/visual-tests/js/demo/src/index.js`), used by the `js-only` and `cross-browser` specs. A new
 feature gets its own route there, never a change to `/`: the rule and its trade-off for wrapper coverage are

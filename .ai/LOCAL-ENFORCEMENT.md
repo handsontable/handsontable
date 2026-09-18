@@ -301,12 +301,15 @@ each enforceable half of that rule runs.
   `visual-tests/AGENTS.md`, Guardrails), join this row when they land; they are
   lint too, so they inherit all three points.
 - **A rendered `out.json`, CI only.** `visual-tests/scripts/visual-gate.mjs`
-  (the pull request verdict), `scripts/seed-report.mjs` (the seed and nightly
-  summaries), and the tier prune in `scripts/compare.mjs` read `.reg/out.json`,
-  which exists only after `visual.yml`'s `Compare` job rendered and reg-suit
-  compared. The golden budget, the compare record, and the quarantine (G3 and
-  G5, same section) read the same file and are CI-only for the same reason.
-  Nothing local produces it.
+  (the pull request verdict) and `scripts/seed-report.mjs` (the seed and
+  nightly summaries) read `.reg/out.json`, which `scripts/compare.mjs` (or
+  `scripts/compare-fork.mjs`, on the credential-free fork path) writes only
+  after `visual.yml`'s `Compare` job rendered and reg-suit compared. The tier
+  prune in `compare.mjs` runs before that compare and trims the synced
+  `.reg/expected/`, not the report — CI-only for the same reason, since the
+  baseline it trims is fetched from R2. The golden budget, the compare record,
+  and the quarantine (G3 and G5, same section) read the same `out.json` and are
+  CI-only for the same reason. Nothing local produces it.
 - **Never a hook.** `visual-tests/scripts/run-tests.mjs` needs `npm run build`
   first (it installs and builds the tier's example apps) and starts
   `npm run serve -- --port=8082` from `examples/next/visual-tests/<framework>/demo`
@@ -321,9 +324,15 @@ each enforceable half of that rule runs.
   `visual-tests/`, by hand, from one checkout at a time (`.ai/WORKTREES.md`).
 
 `.github/scripts/__tests__/visual-decision-rule.test.mjs` pins this map to the
-code — the `SCOPES` regex in `scripts/lint-files.mjs` and the `tests/e2e/`
-filter in `changedPlaywrightSpecs` — so a change that makes a hook run visual
-specs fails that test naming this map.
+code, from both sides. The `SCOPES` regex in `scripts/lint-files.mjs` covers
+`visual-tests/(src|tests)/`. `changedPlaywrightSpecs` in `scripts/pre-push.mjs`
+keeps its `tests/e2e/` filter, and `scripts/claude/stop.mjs` imports it rather
+than filtering on its own. Neither hook script names the visual package in a
+form a runner would need (a `visual-tests/tests` path, a `visual-tests\/`
+regex, a quoted `visual-tests` path), and every Playwright either spawns runs
+from `tests/`. So a hook that starts running visual specs — by widening the
+filter, by adding a second runner beside it, or by spawning from
+`visual-tests/` — fails that test naming this map.
 
 ### The tracked human exception (the manual-QA tickbox)
 

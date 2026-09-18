@@ -81,7 +81,7 @@ visualTest(__filename, { themes: ['main', 'main-dark'], browsers: ['chromium'], 
 });
 ```
 
-A route exists on the js demo only (the wrapper demos serve `/` and `/scenario-grid`), so a spec that navigates is js-only by construction. The trade-off for wrapper coverage is in the decision rule.
+A route exists on the js demo only (the wrapper demos serve `/`; react and angular also serve `/scenario-grid`, and no spec navigates there), so a spec that navigates is js-only by construction. The trade-off for wrapper coverage is in the decision rule.
 
 ## Available Helpers
 

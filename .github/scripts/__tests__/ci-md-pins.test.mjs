@@ -52,12 +52,16 @@ test('the tooling glob still covers the directories basenames resolve against', 
 });
 
 test('every test file a bullet in .ai/CI.md names exists', () => {
+  // A renamed pin silently orphans its bullet; nothing else reads these names.
   assert.ok(bullets.length >= 17, `.ai/CI.md lost its bullets (${bullets.length} found)`);
 
   const mentions = new Map();
 
   for (const bullet of bullets) {
-    for (const [, mention] of bullet.matchAll(/`([A-Za-z0-9_./-]+\.(?:test\.mjs|unit\.js|test\.js))`/g)) {
+    // A mention may carry a line suffix (`foo.test.mjs:26-28`), as CI.md writes for workflow files
+    // today; the suffix is dropped before the name is resolved, so a suffixed mention is checked
+    // instead of silently skipped. `*.unit.ts` is a unit test too (root AGENTS.md, checklist item 1).
+    for (const [, mention] of bullet.matchAll(/`([A-Za-z0-9_./-]+\.(?:test\.mjs|unit\.[jt]s|test\.js))(?::[\d,-]+)?`/g)) {
       mentions.set(mention, bullet.slice(0, 80));
     }
   }

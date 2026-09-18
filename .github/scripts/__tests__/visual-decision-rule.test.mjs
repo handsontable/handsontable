@@ -7,26 +7,37 @@ import { repoRoot } from '../lib/repo-root.mjs';
 // The visual suite's decision rule — a screenshot proves pixels only, in addition to, never instead
 // of a Playwright assertion; one capture per visual state; a new feature gets its own demo route — is
 // one paragraph in visual-tests/AGENTS.md, and every surface an author reads before writing a spec
-// links to it. Measured on 2026-09-17, before the paragraph existed: both visual skills and
-// visual-tests/AGENTS.md sent authors to `examples/next/docs/` while `visual-tests/scripts/run-tests.mjs`
-// serves `examples/next/visual-tests`; visual-tests/README.md taught a `locator.screenshot()` the lint
-// bans at `error` two screens below the only sentence that said "one screenshot per state"; and no
-// surface said what earns a capture at all, so 57 of 112 specs hold more than one. Each of those is a
-// sentence that drifts silently — nothing reads a skill or an AGENTS.md but the next author. So the rule
-// is pinned to one file, every surface to a link, and the enforcement map (G7) to the two hook scripts
-// whose behavior it describes, so that the map cannot say "never a hook" after a hook starts running
-// visual specs.
+// links to it. Measured on 2026-09-17 (the counts the documents quote were re-measured on 2026-09-18),
+// before the paragraph existed: both visual skills and visual-tests/AGENTS.md sent authors to
+// `examples/next/docs/` while `visual-tests/scripts/run-tests.mjs` serves `examples/next/visual-tests`;
+// visual-tests/README.md taught a `locator.screenshot()` the lint bans at `error` two screens below the
+// only sentence that said "one screenshot per state"; and no surface said what earns a capture at all,
+// so 57 of 112 specs hold more than one. Each of those is a sentence that drifts silently — nothing
+// reads a skill or an AGENTS.md but the next author. So the rule is pinned to one file, every surface
+// to a link, and the enforcement map (G7) to the two hook scripts whose behavior it describes, so that
+// the map cannot say "never a hook" after a hook starts running visual specs.
 //
-// Text-based, like fork-guards.test.mjs: no Markdown parser is a dependency of the repo root.
+// Text-based, like fork-guards.test.mjs: no Markdown parser is a dependency of the repo root. Two
+// constraints of the text approach, so a false failure is recognized for what it is: `section()`
+// matches a heading line after trimming trailing whitespace and skips fenced code blocks when it looks
+// for the next heading, but a fence must open and close on lines that start with three backticks or
+// three tildes.
 
 const root = repoRoot();
 const read = rel => readFileSync(path.join(root, rel), 'utf8');
 
 const RULE_FILE = 'visual-tests/AGENTS.md';
-// The phrase every linking surface must carry verbatim. Dash-free on purpose: AGENTS.md and README.md
-// use em dashes, .ai/ uses en dashes, and a marker with a dash in it would miss whichever file matched
-// its surroundings.
+// The phrase every linking surface must carry verbatim. Dash-free on purpose: every surface writes em
+// dashes, the budget marker writes an en dash, and a marker containing either would need one spelling
+// per file.
 const MARKER = 'in addition to, never instead of';
+// The link every surface carries, section name included. The bare path is not enough: the root
+// AGENTS.md routing table and the visual-testing skill's Tiers sentence named `visual-tests/AGENTS.md`
+// before the rule existed, so a pin on the path alone stayed green when the sentence lost its link
+// (measured: removing "; the rule is `visual-tests/AGENTS.md` → Decision rule" from either file
+// failed nothing). The PR template writes the link inside an HTML comment, without backticks.
+const LINK = '`visual-tests/AGENTS.md` → Decision rule';
+const PLAIN_LINK = 'visual-tests/AGENTS.md → Decision rule';
 // The canonical paragraph's opening clause — the one string that must occur in exactly one file.
 const CANONICAL = 'asserts pixels no DOM or API probe can express';
 const CANONICAL_SENTENCES = [
@@ -39,14 +50,28 @@ const CANONICAL_SENTENCES = [
 // Every surface that links to the rule, with the phrases it must carry. The pr-creation skill's body
 // block mirrors the template bullet verbatim (a separate test below), so it needs the marker only.
 const SURFACES = [
-  ['handsontable/.ai/TESTING.md', [MARKER, 'visual-tests/AGENTS.md']],
-  ['AGENTS.md', [MARKER, 'visual-tests/AGENTS.md']],
-  ['.claude/skills/visual-testing/SKILL.md', [MARKER, 'visual-tests/AGENTS.md', 'examples/next/visual-tests/']],
-  ['.claude/skills/creating-visual-test-examples/SKILL.md', [MARKER, 'visual-tests/AGENTS.md', 'examples/next/visual-tests/']],
-  ['.github/PULL_REQUEST_TEMPLATE.md', [MARKER, 'visual-tests/AGENTS.md']],
+  ['handsontable/.ai/TESTING.md', [MARKER, LINK]],
+  ['AGENTS.md', [MARKER, LINK]],
+  ['.claude/skills/visual-testing/SKILL.md', [MARKER, LINK, 'examples/next/visual-tests/']],
+  ['.claude/skills/creating-visual-test-examples/SKILL.md', [MARKER, LINK, 'examples/next/visual-tests/']],
+  ['.github/PULL_REQUEST_TEMPLATE.md', [MARKER, PLAIN_LINK]],
   ['.claude/skills/pr-creation/SKILL.md', [MARKER]],
-  ['.claude/skills/handsontable-code-review/references/tests.md', [MARKER, 'visual-tests/AGENTS.md']],
-  ['.ai/LOCAL-ENFORCEMENT.md', [MARKER, 'visual-tests/AGENTS.md']],
+  ['.claude/skills/handsontable-code-review/references/tests.md', [MARKER, LINK]],
+  ['.ai/LOCAL-ENFORCEMENT.md', [MARKER, LINK]],
+];
+
+// The two hook scripts the enforcement map describes as never running a visual spec. Both spawn
+// Playwright from `tests/`; a visual run would need the built example apps and the port-8082 server.
+const HOOKS = ['scripts/pre-push.mjs', 'scripts/claude/stop.mjs'];
+// How a hook would name the visual package if it started running its specs: a spec path, a regex on
+// the package, or a quoted path (a `cwd`, a spec list). A comment stays free to say "the visual tier"
+// or to write `visual-tests/` in backticks; one that spells out a spec path trips the pin, and the
+// failure message says so.
+const HOOK_MUST_NOT_NAME = [
+  'visual-tests/tests',
+  String.raw`visual-tests\/`,
+  "'visual-tests",
+  '"visual-tests',
 ];
 
 // The exact sentences the rule replaced. Exact strings, not paraphrases: a pin on a whole paragraph
@@ -73,29 +98,44 @@ const ABSENT = [
  * level. The fork-guards idiom (slice a bullet to the next `\n- `) applied to headings, so an
  * assertion about a section cannot be satisfied by text that lives in a different one.
  *
+ * Line-based on purpose. A heading line with trailing whitespace still matches, and a `# comment`
+ * inside a fenced code block does not end the section — both produced a false failure with a
+ * misleading "lost: …" message when the slicer was a plain `indexOf`. Fences are recognized by a line
+ * starting with three backticks or three tildes (any length, no indentation deeper than three
+ * spaces); that is how every fence in the pinned documents is written.
+ *
  * @param {string} text The whole document.
  * @param {string} heading The heading line, e.g. `## Decision rule` — its `#` count sets the level.
  * @param {string} file The document's path, for the failure message.
  * @returns {string} The section text, heading included.
  */
 function section(text, heading, file) {
-  const at = text.indexOf(`\n${heading}\n`);
+  const lines = text.split('\n');
+  const start = lines.findIndex(line => line.trimEnd() === heading);
 
-  assert.notEqual(at, -1, `${file} has no "${heading}" heading`);
+  assert.notEqual(start, -1, `${file} has no "${heading}" heading`);
 
   const level = heading.match(/^#+/)[0].length;
-  let end = text.length;
+  const isFence = line => /^ {0,3}(`{3,}|~{3,})/.test(line);
+  let inFence = false;
+  let end = lines.length;
 
-  // The next heading at this level or above ends the section; a deeper heading is part of it.
-  for (let depth = 1; depth <= level; depth += 1) {
-    const next = text.indexOf(`\n${'#'.repeat(depth)} `, at + 1);
+  // The next heading at this level or above ends the section; a deeper heading is part of it, and so
+  // is anything inside a fence.
+  for (let i = start + 1; i < lines.length; i += 1) {
+    if (isFence(lines[i])) {
+      inFence = !inFence;
+    } else if (!inFence) {
+      const hashes = lines[i].match(/^(#{1,6}) /);
 
-    if (next !== -1 && next < end) {
-      end = next;
+      if (hashes && hashes[1].length <= level) {
+        end = i;
+        break;
+      }
     }
   }
 
-  return text.slice(at + 1, end);
+  return lines.slice(start, end).join('\n');
 }
 
 /**
@@ -128,6 +168,8 @@ test('the decision rule is one paragraph in visual-tests/AGENTS.md, and no surfa
 });
 
 test('every authoring surface carries the marker sentence and links to the rule', () => {
+  // A surface that drops the sentence or the link sends its readers to no rule at all — the drift the
+  // header describes. The link is pinned with its section name, not as a bare path (see LINK).
   for (const [file, phrases] of SURFACES) {
     const text = read(file);
 
@@ -203,8 +245,7 @@ test('the enforcement map describes the hooks as they are', () => {
     'visual.yml',
     '8082',
     'changedPlaywrightSpecs',
-    // Owned by the capture lint (G4). Required here so that guardrail cannot land without touching
-    // the map, and so the map cannot drop the rule once it has landed.
+    // Owned by the capture lint (G4); required so the map cannot drop the rule once it has landed.
     'capture after an unasserted action',
   ]) {
     assert.ok(map.includes(phrase), `the visual tier's enforcement map in .ai/LOCAL-ENFORCEMENT.md lost: "${phrase}"`);
@@ -218,13 +259,49 @@ test('the enforcement map describes the hooks as they are', () => {
   assert.ok(rows[0].includes('visual-tests/.eslintrc.js'), 'the Visual determinism row no longer names visual-tests/.eslintrc.js');
   assert.ok(rows[0].includes('capture after an unasserted action'), 'the Visual determinism row no longer names the capture-after-unasserted-action rule');
 
-  // Cross-check the two hook claims against the code, so the map cannot rot: the hook lint scope
-  // covers visual-tests/(src|tests), and the spec runner in pre-push (shared by the Stop hook) is
-  // scoped to tests/e2e/. Exact source substrings, not regexes over regexes.
+  // Cross-check the hook claims against the code, so the map cannot rot. The lint claim: the hook lint
+  // scope covers visual-tests/(src|tests). Exact source substrings, not regexes over regexes.
   assert.ok(read('scripts/lint-files.mjs').includes(String.raw`/^visual-tests\/(src|tests)\//`),
     'the hook lint scope in scripts/lint-files.mjs no longer covers visual-tests/(src|tests); the enforcement map says it does');
+
+  // The "never a hook" claim, from both sides. The positive side: `changedPlaywrightSpecs` keeps its
+  // tests/e2e/ filter and the Stop hook keeps importing it rather than growing a filter of its own.
+  // The positive side alone was a presence test — it stayed green when a hook gained a SEPARATE
+  // visual-spec runner beside the e2e one (measured: a `changedVisualSpecs` appended to pre-push.mjs
+  // failed nothing, and stop.mjs was never read). So the negative side: neither hook names the visual
+  // package in any form a runner would need, and every Playwright it spawns runs from `tests/`.
   assert.ok(read('scripts/pre-push.mjs').includes(String.raw`/^tests\/e2e\/.+\.spec\.ts$/`),
     'changedPlaywrightSpecs in scripts/pre-push.mjs no longer scopes to tests/e2e — the enforcement map in .ai/LOCAL-ENFORCEMENT.md says a visual spec is never a hook');
+  assert.ok(/import \{[^}]*\bchangedPlaywrightSpecs\b[^}]*\} from '\.\.\/pre-push\.mjs'/.test(read('scripts/claude/stop.mjs')),
+    'scripts/claude/stop.mjs no longer imports changedPlaywrightSpecs from scripts/pre-push.mjs — the enforcement map says the Stop hook shares that filter');
+
+  for (const file of HOOKS) {
+    const source = read(file);
+
+    for (const needle of HOOK_MUST_NOT_NAME) {
+      assert.ok(!source.includes(needle),
+        `${file} names the visual package (${needle}) — the enforcement map in .ai/LOCAL-ENFORCEMENT.md says a visual spec is never a hook; `
+        + 'a visual run belongs to the pull request\'s Visual / Compare job (say "the visual tier" in prose)');
+    }
+
+    // Each spawn statement, from its call to the first `);` after it — enough to hold its options
+    // object, since no argument in these files closes a call before a `;`.
+    const statements = [...source.matchAll(/\bspawn(?:Sync)?\(/g)]
+      .map(({ index }) => {
+        const close = source.indexOf(');', index);
+
+        return source.slice(index, close === -1 ? undefined : close + 2);
+      });
+    const playwrightRuns = statements.filter(statement => statement.includes('playwright'));
+
+    assert.ok(playwrightRuns.length > 0, `${file} no longer spawns Playwright at all; the enforcement map describes the run it makes from tests/`);
+
+    for (const run of playwrightRuns) {
+      assert.equal(count(run, 'cwd:'), 1, `${file}: a Playwright spawn must set exactly one cwd\n${run}`);
+      assert.ok(run.includes("cwd: path.join(root, 'tests')"),
+        `${file}: a Playwright spawn no longer runs from tests/ — the enforcement map in .ai/LOCAL-ENFORCEMENT.md says a visual spec is never a hook\n${run}`);
+    }
+  }
 });
 
 test('every AGENTS.md section a lint message points at exists, and the guardrails section exists once', () => {

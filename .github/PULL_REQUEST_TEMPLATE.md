@@ -22,8 +22,10 @@ OUTSIDE any HTML comment — here, inside a comment, it is inert. N is the
 full-tier golden total after the change (1676 on 2026-09-18). The `Visual
 budget` step of Visual / Compare reads the live description and refuses
 undeclared net growth; a render under the checked-in budget asks you to lower
-visual-tests/visual-budget.json in the same PR. What earns a capture at all is
-visual-tests/AGENTS.md → Decision rule; the budget is under Guardrails there.
+visual-tests/visual-budget.json in the same PR. That step is the golden-budget
+guardrail (G3); until it lands, the marker is read by nothing and costs nothing.
+What earns a capture at all is visual-tests/AGENTS.md → Decision rule; the
+budget, with whether it has landed, is under Guardrails there.
 
 Changelog: a change under handsontable/src/** or wrappers/** (tests and .md
 excluded) requires a new .changelogs/*.json entry — run `npm run changelog
