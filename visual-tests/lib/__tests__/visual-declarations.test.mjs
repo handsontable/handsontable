@@ -51,6 +51,16 @@ const LIVE_GOLDEN_TOTAL = 1676;
 // no capture, and carries its own eslint-disable line naming the task that owns it.
 const PARKED_SPEC = 'cross-browser/merging.spec.ts';
 
+// How many live specs the sweep expects to read a declaration out of, on 2026-09-18: 112 files, one of
+// them parked. Adding or deleting a spec moves this number, and moves a number in LIVE_GOLDENS too — the
+// pair is the review a description cannot give, so update both in the pull request that adds the spec.
+const LIVE_SPEC_COUNT = 111;
+
+// How many of the 23 specs under `tests/multi-frameworks/` still carry the shared unaudited reason.
+// The consolidation audit replaces it with a per-spec reason one spec at a time, so this number falls as
+// the debt is paid; it must never rise.
+const UNAUDITED_WRAPPER_SPECS = 23;
+
 /**
  * Every `.spec.ts` under `tests/`, as paths relative to `tests/`, sorted.
  *
@@ -81,19 +91,282 @@ const VOCABULARY = {
   CLASSIC, CROSS_BROWSERS, JS_VARIANTS, WRAPPERS, WRAPPERS_REASON_UNAUDITED,
 };
 
+// What opens a string in a spec. The backtick is in the set because the five looped cross-browser specs
+// title their tests with a template literal (`Test rows resizing for: ${url}`), whose `${` would otherwise
+// read as the opening brace of the declaration object.
+const QUOTES = new Set(['\'', '"', '`']);
+
+/**
+ * The index just past the string literal that opens at `start`.
+ *
+ * A template literal's `${…}` is walked rather than skipped, because an expression inside one can hold a
+ * string of its own and a stray quote there would swallow the rest of the file.
+ *
+ * @param {string} source The source text.
+ * @param {number} start The index of the opening quote.
+ * @param {string} where The spec path, for the message.
+ * @returns {number} The index just past the closing quote.
+ */
+function endOfString(source, start, where) {
+  const quote = source[start];
+  let index = start + 1;
+
+  while (index < source.length) {
+    const char = source[index];
+
+    if (char === '\\') {
+      index += 2;
+      continue;
+    }
+
+    if (char === quote) {
+      return index + 1;
+    }
+
+    if (quote === '`' && char === '$' && source[index + 1] === '{') {
+      index = endOfTemplateExpression(source, index + 2, where);
+      continue;
+    }
+
+    index += 1;
+  }
+
+  throw new Error(`${where}: a string literal opened at index ${start} and never closed, so the sweep `
+    + 'cannot tell code from text.');
+}
+
+/**
+ * The index just past the `${…}` expression whose body starts at `start`.
+ *
+ * @param {string} source The source text.
+ * @param {number} start The index just past the `${`.
+ * @param {string} where The spec path, for the message.
+ * @returns {number} The index just past the closing brace.
+ */
+function endOfTemplateExpression(source, start, where) {
+  let depth = 1;
+  let index = start;
+
+  while (index < source.length) {
+    const char = source[index];
+
+    if (QUOTES.has(char)) {
+      index = endOfString(source, index, where);
+      continue;
+    }
+
+    if (char === '{') {
+      depth += 1;
+    } else if (char === '}') {
+      depth -= 1;
+
+      if (depth === 0) {
+        return index + 1;
+      }
+    }
+
+    index += 1;
+  }
+
+  throw new Error(`${where}: a template expression opened at index ${start} and never closed.`);
+}
+
+/**
+ * The source with every line and block comment replaced by spaces, the line breaks kept.
+ *
+ * Everything below reads the spec as text, and prose is text too. Measured on this tree before the strip:
+ * one in-body comment naming `screenshotPath()` moved the derived golden total from 1676 to 1681 and red
+ * the no-op proof on all five js prefixes, although no golden had moved; a comment naming `test(` reads as
+ * a bare test call to the scan below in the same way. That is not hypothetical — the consolidation lands
+ * about 130 eslint-disable lines and about 91 docblocks on these same spec bodies, describing the captures
+ * they sit above. Strings are preserved exactly, so the route literals the cross-browser derivation reads
+ * are untouched.
+ *
+ * A regex literal is not tracked, because a `/…/` holding a quote or a `//` is the only shape that could
+ * fool this and the spec tree holds none (measured 2026-09-18: zero regex literals under `tests/`). A `/`
+ * that opens neither a comment nor a string is left where it is, so a division survives.
+ *
+ * @param {string} source The spec file's text.
+ * @param {string} where The spec path, for the message.
+ * @returns {string} The source with the comments blanked out.
+ */
+function stripComments(source, where) {
+  let out = '';
+  let index = 0;
+
+  while (index < source.length) {
+    const char = source[index];
+
+    if (QUOTES.has(char)) {
+      const end = endOfString(source, index, where);
+
+      out += source.slice(index, end);
+      index = end;
+      continue;
+    }
+
+    if (char === '/' && source[index + 1] === '/') {
+      const newline = source.indexOf('\n', index);
+      const end = newline === -1 ? source.length : newline;
+
+      out += ' '.repeat(end - index);
+      index = end;
+      continue;
+    }
+
+    if (char === '/' && source[index + 1] === '*') {
+      const closing = source.indexOf('*/', index + 2);
+      const end = closing === -1 ? source.length : closing + 2;
+
+      out += source.slice(index, end).replace(/[^\n]/g, ' ');
+      index = end;
+      continue;
+    }
+
+    out += char;
+    index += 1;
+  }
+
+  return out;
+}
+
+/**
+ * The index of the bracket that closes the one at `open`.
+ *
+ * @param {string} source Comment-free source text.
+ * @param {number} open The index of the opening bracket.
+ * @param {string} where The spec path, for the message.
+ * @returns {number} The index of the matching closing bracket.
+ */
+function matchingBracket(source, open, where) {
+  let depth = 0;
+  let index = open;
+
+  while (index < source.length) {
+    const char = source[index];
+
+    if (QUOTES.has(char)) {
+      index = endOfString(source, index, where);
+      continue;
+    }
+
+    if (char === '(' || char === '[' || char === '{') {
+      depth += 1;
+    } else if (char === ')' || char === ']' || char === '}') {
+      depth -= 1;
+
+      if (depth === 0) {
+        return index;
+      }
+    }
+
+    index += 1;
+  }
+
+  throw new Error(`${where}: the bracket at index ${open} is never closed.`);
+}
+
+/**
+ * `text` split on the commas that sit outside every bracket and every string, with the empty parts of a
+ * trailing comma dropped.
+ *
+ * This is what makes the declaration's layout free: `{ themes: ['main'], browsers: ['chromium'] }` on one
+ * line and the same object spread over four lines split into the same parts.
+ *
+ * @param {string} text Comment-free source text.
+ * @param {string} where The spec path, for the message.
+ * @param {string} [separator=','] The single character to split on.
+ * @returns {string[]} The trimmed, non-empty parts.
+ */
+function splitTopLevel(text, where, separator = ',') {
+  const parts = [];
+  let depth = 0;
+  let start = 0;
+  let index = 0;
+
+  while (index < text.length) {
+    const char = text[index];
+
+    if (QUOTES.has(char)) {
+      index = endOfString(text, index, where);
+      continue;
+    }
+
+    if (char === '(' || char === '[' || char === '{') {
+      depth += 1;
+    } else if (char === ')' || char === ']' || char === '}') {
+      depth -= 1;
+    } else if (char === separator && depth === 0) {
+      parts.push(text.slice(start, index));
+      start = index + 1;
+    }
+
+    index += 1;
+  }
+
+  parts.push(text.slice(start));
+
+  return parts.map(part => part.trim()).filter(part => part !== '');
+}
+
+/**
+ * The value of a declaration written as one string literal, or as several joined with `+`.
+ *
+ * The concatenated form is accepted because the audit's per-spec `wrappersReason` is prose and the
+ * package's line limit is 120 characters, so a reason long enough to be worth reading is written in
+ * pieces. A quote that does not close the whole value is not a string literal here — it falls through to
+ * the vocabulary and throws, rather than being sliced into a half-expression nobody notices.
+ *
+ * @param {string} text Comment-free source text of one value.
+ * @param {string} where The spec path, for the message.
+ * @returns {string|null} The string, or `null` when the value is not a string literal expression.
+ */
+function readStringLiteral(text, where) {
+  const parts = splitTopLevel(text, where, '+');
+  const literals = parts.filter(part => QUOTES.has(part[0]) && endOfString(part, 0, where) === part.length);
+
+  if (literals.length !== parts.length || parts.length === 0) {
+    return null;
+  }
+
+  return literals.map(part => part.slice(1, -1)).join('');
+}
+
 /**
  * Resolves one declaration value written in a spec: an array literal of string literals or vocabulary
- * names, or a bare vocabulary name.
+ * names, a bare string literal, or a bare vocabulary name.
+ *
+ * An identifier the vocabulary does not hold throws rather than resolving to `undefined`. Failing open
+ * here is what let `wrappersReason: 'a real reason'` read as a missing reason and what would let
+ * `themes: THEMES` read as the two-theme default — the same loud-failure rule `normalizeDeclaration()`
+ * applies to an unknown key, for the same reason: a value nothing can resolve changes every count derived
+ * from the declarations and turns nothing red at the place it was written.
  *
  * @param {string} raw The source text of the value.
+ * @param {object} context Where the value was read.
+ * @param {string} context.where The spec path, for the message.
+ * @param {string} context.key The declaration key, for the message.
  * @returns {string[] | string} The value.
  */
-function resolveDeclarationValue(raw) {
+function resolveDeclarationValue(raw, { where, key }) {
   const text = raw.trim();
 
   if (text.startsWith('[')) {
-    return text.slice(1, -1).split(',').map(part => part.trim()).filter(Boolean)
-      .map(item => (/^'/.test(item) ? item.slice(1, -1) : VOCABULARY[item]));
+    return splitTopLevel(text.slice(1, matchingBracket(text, 0, where)), where)
+      .map(item => resolveDeclarationValue(item, { where, key }));
+  }
+
+  const literal = readStringLiteral(text, where);
+
+  if (literal !== null) {
+    return literal;
+  }
+
+  if (!Object.prototype.hasOwnProperty.call(VOCABULARY, text)) {
+    throw new Error(`${where}: cannot resolve "${text}" in the "${key}" declaration. A declaration names `
+      + `a string literal or one of ${Object.keys(VOCABULARY).join(', ')}; anything else resolves to `
+      + 'nothing here and silently changes every golden count derived from the declarations. Add the '
+      + 'constant to VOCABULARY in lib/__tests__/visual-declarations.test.mjs, or write the value out.');
   }
 
   return VOCABULARY[text];
@@ -102,24 +375,60 @@ function resolveDeclarationValue(raw) {
 /**
  * Every `visualTest()` call in one spec's source, with the declaration each one wrote.
  *
+ * The declaration is read by matching the call's own brackets, not by matching lines: the inline form the
+ * `visual-testing` skill shows and the one-property-per-line form `AGENTS.md` and the specs use are the
+ * same declaration, and a reader that accepts only one of them turns a whitespace choice into three red
+ * tooling tests. Comments are stripped first, so a docblock between two calls belongs to neither.
+ *
  * @param {string} source The spec file's text.
+ * @param {string} where The spec path, for the messages.
  * @returns {{ declarationSource: string, declaration: object }[]} One entry per call, in source order.
  */
-function readDeclarations(source) {
-  return [...source.matchAll(/visualTest\([\s\S]*?, \{\n([\s\S]*?)\n[ ]*\}, async\(/g)].map((match) => {
-    const declarationSource = match[1];
+function readDeclarations(source, where) {
+  const clean = stripComments(source, where);
+
+  return visualTestCallOffsets(clean).map((callStart) => {
+    const argsOpen = clean.indexOf('(', callStart);
+    const args = splitTopLevel(clean.slice(argsOpen + 1, matchingBracket(clean, argsOpen, where)), where);
+
+    if (args.length !== 3) {
+      throw new Error(`${where}: visualTest() takes (title, declaration, body) and this call passes `
+        + `${args.length} arguments. The declaration is the second one.`);
+    }
+
+    const declarationSource = args[1];
+
+    if (!declarationSource.startsWith('{') || !declarationSource.endsWith('}')) {
+      throw new Error(`${where}: the second argument of visualTest() must be an object literal written in `
+        + 'the file, for example { themes: [\'main\', \'main-dark\'], browsers: [\'chromium\'], '
+        + `wrappers: [] }; got "${declarationSource}". The sweep reads it as text, so a variable cannot `
+        + 'be used here.');
+    }
+
     const declaration = {};
 
-    declarationSource.split('\n').forEach((line) => {
-      const property = line.trim().match(/^(\w+): (.*),$/);
+    splitTopLevel(declarationSource.slice(1, -1), where).forEach((property) => {
+      const parsed = property.match(/^(\w+)\s*:\s*([\s\S]+)$/);
 
-      assert.ok(property, `Cannot read the declaration property from "${line.trim()}". `
-        + 'Every declaration property is one `key: value,` line, so the sweep below can read it.');
-      declaration[property[1]] = resolveDeclarationValue(property[2]);
+      if (!parsed) {
+        throw new Error(`${where}: cannot read "${property}" as a "key: value" declaration property.`);
+      }
+
+      declaration[parsed[1]] = resolveDeclarationValue(parsed[2], { where, key: parsed[1] });
     });
 
     return { declarationSource, declaration };
   });
+}
+
+/**
+ * The offset of every `visualTest(` call in comment-free source.
+ *
+ * @param {string} clean Comment-free source text.
+ * @returns {number[]} The offsets, in source order.
+ */
+function visualTestCallOffsets(clean) {
+  return [...clean.matchAll(/(?<![.\w])visualTest\(/g)].map(match => match.index);
 }
 
 /**
@@ -131,23 +440,29 @@ function readDeclarations(source) {
  * is why this returns a set and not a count, and it is why the five `urls.forEach` specs hold 33 capture
  * calls but 66 goldens per browser.
  *
+ * Counted over comment-free source, and that is load-bearing: the slice runs from one `visualTest(` offset
+ * to the next, so in a multi-call spec a docblock written above the second call sits inside the first
+ * call's slice. One sentence naming `screenshotPath()` there used to add a golden to the derived total and
+ * red the no-op proof although no golden had moved.
+ *
  * @param {string} source The spec file's text.
  * @param {string} relativePath The spec path relative to `tests/`.
  * @returns {Set<string>} The stems, relative to the variant prefix.
  */
 function captureStems(source, relativePath) {
+  const clean = stripComments(source, relativePath);
   const crossBrowser = relativePath.startsWith('cross-browser/');
   // `helpers.setTestDetails()` makes the directory name relative to the run's root, and the
   // cross-browser leg's root is `tests/cross-browser` itself.
   const specDir = relativePath.replace(/\.spec\.ts$/, '').replace(crossBrowser ? /^cross-browser\// : /^$/, '');
-  const urlsBlock = source.match(/const urls = \[([\s\S]*?)\];/);
+  const urlsBlock = clean.match(/const urls = \[([\s\S]*?)\];/);
   const loopedUrls = urlsBlock ? [...urlsBlock[1].matchAll(/'([^']+)'/g)].map(m => m[1]) : null;
-  const callOffsets = [...source.matchAll(/visualTest\(/g)].map(match => match.index);
+  const callOffsets = visualTestCallOffsets(clean);
   const stems = new Set();
 
   callOffsets.forEach((start, index) => {
-    const end = index + 1 < callOffsets.length ? callOffsets[index + 1] : source.length;
-    const body = source.slice(start, end);
+    const end = index + 1 < callOffsets.length ? callOffsets[index + 1] : clean.length;
+    const body = clean.slice(start, end);
     const captures = (body.match(/screenshotPath\(\)/g) || []).length;
 
     if (captures === 0) {
@@ -237,6 +552,9 @@ test('normalizeDeclaration rejects a duplicate', () => {
 });
 
 test('normalizeDeclaration rejects a non-array axis and a non-object declaration', () => {
+  // A bare string or an array passed where the declaration object belongs would otherwise be read as a
+  // declaration and silently defaulted: `themes: 'main'` has a `length` and an `includes`, so every axis
+  // check would pass on the characters of the word and the spec would render the two-theme default.
   assert.throws(() => normalizeDeclaration({ themes: 'main' }), /"themes" must be an array/);
   assert.throws(() => normalizeDeclaration(undefined), /must be an object/);
   assert.throws(() => normalizeDeclaration(['main']), /must be an object/);
@@ -293,6 +611,9 @@ test('isDeclared reads themes on the js pass and wrappers on a wrapper pass', ()
 });
 
 test('declaredPrefixes maps each axis onto the golden layout', () => {
+  // This is the per-spec mirror of `helpers.screenshotPath()` — the directory each golden lands in. A
+  // drift here renames every record under that prefix at once: reg-suit matches by path, so the whole
+  // prefix reads as deleted and the new one as new, on every variant the spec declares.
   const jsOnly = normalizeDeclaration({ themes: JS_VARIANTS, browsers: ['chromium'], wrappers: [] });
   const multi = normalizeDeclaration({
     themes: JS_VARIANTS, browsers: ['chromium'], wrappers: WRAPPERS, wrappersReason: 'why',
@@ -387,24 +708,130 @@ test('assertDeclarationFitsLeg rejects over-declaration on both legs', () => {
   );
 });
 
+test('the reader accepts the inline declaration and the one-per-line declaration alike', () => {
+  // The three authoring surfaces do not agree on whitespace, and they should not have to: the skill's
+  // fenced example writes the declaration inline, `AGENTS.md`, the template and all 111 codemod-written
+  // specs put one `key: value,` per line. A reader that accepted only one of them turned a line break
+  // into three red tooling tests, on a message that said the spec declared nothing when it declared
+  // exactly what the skill told the author to copy. The reader matches the call's brackets instead.
+  const inline = 'visualTest(__filename, { themes: [\'main\'], browsers: [\'chromium\'], wrappers: [] },\n'
+    + '  async({ tablePage }) => { await tablePage.screenshot({ path: helpers.screenshotPath() }); });\n';
+  const multiLine = 'visualTest(__filename, {\n'
+    + '  themes: [\'main\'],\n'
+    + '  browsers: [\'chromium\'],\n'
+    + '  wrappers: [],\n'
+    + '}, async({ tablePage }) => {\n'
+    + '  await tablePage.screenshot({ path: helpers.screenshotPath() });\n'
+    + '});\n';
+  const expected = { themes: ['main'], browsers: ['chromium'], wrappers: [] };
+
+  assert.deepEqual(readDeclarations(inline, 'probe.spec.ts')[0].declaration, expected);
+  assert.deepEqual(readDeclarations(multiLine, 'probe.spec.ts')[0].declaration, expected);
+  // The template-literal title of the five looped cross-browser specs holds an interpolation, whose brace
+  // would be read as the declaration's opening brace by anything that looks for the first `{`. The
+  // interpolation is assembled here so this fixture is not itself read as an accidental template string.
+  const interpolation = ['$', '{url}'].join('');
+  const loopedTitle = `visualTest(\`Rows for: ${interpolation}\`, { themes: [CLASSIC], `
+    + 'browsers: CROSS_BROWSERS, wrappers: [] }, async({ goto }) => {});';
+
+  assert.deepEqual(readDeclarations(loopedTitle, 'probe.spec.ts')[0].declaration, {
+    themes: [CLASSIC], browsers: CROSS_BROWSERS, wrappers: [],
+  });
+});
+
+test('the reader resolves a string-literal reason and refuses a name it cannot resolve', () => {
+  // The audit this guardrail exists to enable replaces the shared constant with a per-spec sentence, one
+  // spec at a time. Before this, that sentence resolved to `undefined` and the sweep reported the reason
+  // as missing on the very specs that had just been given one. An identifier outside the vocabulary now
+  // throws instead of resolving to nothing — `themes: THEMES` would otherwise have read as the two-theme
+  // default and moved 111 specs' derived counts with nothing turning red where it was written.
+  const withReason = 'visualTest(__filename, { themes: [CLASSIC], browsers: [\'chromium\'], '
+    + 'wrappers: WRAPPERS, wrappersReason: \'Wrapper scroll handlers differ; the js render cannot prove '
+    + 'them.\' }, async({ tablePage }) => {});';
+
+  assert.equal(
+    readDeclarations(withReason, 'probe.spec.ts')[0].declaration.wrappersReason,
+    'Wrapper scroll handlers differ; the js render cannot prove them.',
+  );
+  // A reason worth reading is longer than the package's 120-character line, so it arrives in pieces.
+  assert.equal(
+    readDeclarations('visualTest(__filename, { themes: [CLASSIC], browsers: [\'chromium\'], '
+      + 'wrappers: WRAPPERS, wrappersReason: \'Wrapper scroll handlers differ; \'\n'
+      + '    + \'the js render cannot prove them.\' }, async({ tablePage }) => {});',
+    'probe.spec.ts')[0].declaration.wrappersReason,
+    'Wrapper scroll handlers differ; the js render cannot prove them.',
+  );
+  assert.throws(
+    () => readDeclarations('visualTest(__filename, { themes: THEMES, browsers: [\'chromium\'], '
+      + 'wrappers: [] }, async({ tablePage }) => {});', 'probe.spec.ts'),
+    /probe\.spec\.ts: cannot resolve "THEMES" in the "themes" declaration/,
+  );
+  assert.throws(
+    () => readDeclarations('visualTest(__filename, { themes: [MAIN], browsers: [\'chromium\'], '
+      + 'wrappers: [] }, async({ tablePage }) => {});', 'probe.spec.ts'),
+    /probe\.spec\.ts: cannot resolve "MAIN" in the "themes" declaration/,
+  );
+  assert.throws(
+    () => readDeclarations('visualTest(__filename, declaration, async({ tablePage }) => {});',
+      'probe.spec.ts'),
+    /probe\.spec\.ts: the second argument of visualTest\(\) must be an object literal/,
+  );
+});
+
+test('a comment that names screenshotPath() or test() is prose, not a capture', () => {
+  // The derivation counts `screenshotPath()` over a spec's source, and the consolidation lands about 130
+  // eslint-disable lines and about 91 docblocks on these exact spec bodies, describing the captures they
+  // sit above. One such sentence used to add a golden to the derived total per declared variant and red
+  // the no-op proof on all five js prefixes although no golden had moved.
+  const body = 'visualTest(__filename, {\n  themes: [\'main\'],\n  browsers: [\'chromium\'],\n'
+    + '  wrappers: [],\n}, async({ tablePage }) => {\n'
+    + '  await tablePage.screenshot({ path: helpers.screenshotPath() });\n});\n';
+  const commented = `${body.replace('async({ tablePage }) => {\n',
+    'async({ tablePage }) => {\n  // The capture goes through helpers.screenshotPath() so the name is '
+    + 'deterministic, and a bare test() would not.\n')}`;
+
+  assert.equal(captureStems(body, 'js-only/probe.spec.ts').size, 1);
+  assert.deepEqual(
+    [...captureStems(commented, 'js-only/probe.spec.ts')],
+    [...captureStems(body, 'js-only/probe.spec.ts')],
+  );
+  assert.equal(/(?<![.\w])test\(/.test(stripComments(commented, 'js-only/probe.spec.ts')), false);
+  // A route literal is code, not prose, so the cross-browser derivation still reads it.
+  assert.deepEqual(
+    [...captureStems('visualTest(\'t\', { themes: [CLASSIC], browsers: [\'chromium\'], wrappers: [] },\n'
+      + '  async({ goto, tablePage }) => {\n    await goto(\'/merged-cells-demo\'); // the demo route\n'
+      + '    await tablePage.screenshot({ path: helpers.screenshotPath() });\n  });\n',
+    'cross-browser/probe.spec.ts')],
+    ['probe-merged-cells-demo-1'],
+  );
+});
+
 test('every live spec declares its variants through visualTest', () => {
   // The rename is the enforcement's premise: a spec that still called `test()` would render on every
-  // variant the tier launches while contributing nothing to the derived count below.
+  // variant the tier launches while contributing nothing to the derived count below. Read over
+  // comment-free source, so a spec cannot pass on a sentence that merely names the helper.
   const missing = specPaths().filter((relativePath) => {
     if (relativePath === PARKED_SPEC) {
       return false;
     }
 
-    return !readFileSync(join(TESTS_ROOT, relativePath), 'utf8').includes('visualTest(');
+    const source = readFileSync(join(TESTS_ROOT, relativePath), 'utf8');
+
+    return visualTestCallOffsets(stripComments(source, relativePath)).length === 0;
   });
 
-  assert.deepEqual(missing, []);
+  assert.deepEqual(missing, [], 'Every live spec registers through visualTest(title, { themes, browsers, '
+    + 'wrappers }, fn) — see visual-tests/AGENTS.md, Variant declaration.');
 });
 
 test('no spec scopes itself with a bare test() or a hand-written test.skip()', () => {
   // The lint override in `.eslintrc.js` is the live gate; this is the same rule stated where the rest of
   // the declaration rules live, so a future change to that override cannot quietly drop it. The parked
   // spec is the one exception and it must keep the disable line that makes it one.
+  //
+  // Comments are stripped before the scan, and the disable line is checked on the raw source for the same
+  // reason: prose about a bare `test(` is prose, and the line that makes the parked spec legal IS a
+  // comment. Without the strip, the consolidation's ~91 docblocks would each be a candidate offender.
   const offenders = specPaths().filter((relativePath) => {
     const source = readFileSync(join(TESTS_ROOT, relativePath), 'utf8');
 
@@ -415,15 +842,21 @@ test('no spec scopes itself with a bare test() or a hand-written test.skip()', (
       return false;
     }
 
-    return /(?<![.\w])test\(/.test(source) || /(?<![.\w])test\.skip\(/.test(source);
+    const clean = stripComments(source, relativePath);
+
+    return /(?<![.\w])test\(/.test(clean) || /(?<![.\w])test\.skip\(/.test(clean);
   });
 
-  assert.deepEqual(offenders, []);
+  assert.deepEqual(offenders, [], 'A spec names its variants in its visualTest() declaration and '
+    + 'visualTest() emits the skip; a hand-written one applies at file scope too, so the two combine and '
+    + 'the declaration stops describing what renders.');
 });
 
 test('every spec holds one declaration, and its leg can render it', () => {
-  // A file-scope modifier applies to every test in the file, so two declarations in one file would skip
-  // both tests by the union of the two and neither declaration would describe what renders.
+  // Two declarations in one file do not combine the way a reader expects: both skips are file-scope
+  // modifiers, so each applies to every test in the file and the file renders only the variants BOTH
+  // declarations name — the intersection, which can be empty. Neither declaration then describes what
+  // renders, so one declaration per file is the rule.
   let specsChecked = 0;
 
   specPaths().forEach((relativePath) => {
@@ -432,71 +865,118 @@ test('every spec holds one declaration, and its leg can render it', () => {
     }
 
     const source = readFileSync(join(TESTS_ROOT, relativePath), 'utf8');
-    const declarations = readDeclarations(source);
-    const callCount = (source.match(/visualTest\(/g) || []).length;
+    const declarations = readDeclarations(source, relativePath);
+    const callCount = visualTestCallOffsets(stripComments(source, relativePath)).length;
 
     assert.equal(declarations.length, callCount,
       `${relativePath}: every visualTest() call must carry a readable declaration object.`);
     assert.ok(declarations.length >= 1, `${relativePath}: no declaration found.`);
-    declarations.slice(1).forEach(({ declarationSource }) => {
-      assert.equal(declarationSource, declarations[0].declarationSource,
-        `${relativePath}: every visualTest() call in one file must declare the same variants.`);
+
+    const [first] = declarations;
+    const firstShape = JSON.stringify(normalizeDeclaration(first.declaration));
+
+    declarations.slice(1).forEach(({ declaration }) => {
+      assert.equal(JSON.stringify(normalizeDeclaration(declaration)), firstShape,
+        `${relativePath}: every visualTest() call in one file must declare the same variants. The two `
+        + 'skips are file-scope modifiers, so the file would render only the variants both calls name.');
     });
 
     assertDeclarationFitsLeg(
-      normalizeDeclaration(declarations[0].declaration),
+      normalizeDeclaration(first.declaration),
       { crossBrowser: relativePath.startsWith('cross-browser/') },
     );
     specsChecked += 1;
   });
 
-  assert.equal(specsChecked, 111, 'The spec tree holds 112 files, one of them parked (2026-09-18).');
+  assert.equal(specsChecked, LIVE_SPEC_COUNT, 'The spec tree held 112 files on 2026-09-18, one of them '
+    + 'parked. Adding or deleting a spec moves this count: update LIVE_SPEC_COUNT in this file, and '
+    + 'expect LIVE_GOLDENS to move with it. A moved number is the review this pin exists for, not a bug.');
 });
 
-test('the declaration codemod wrote today behavior out per directory', () => {
-  // The codemod's contract was that no golden record moves, which means it wrote the rendered set every
-  // directory already had: five js variants everywhere, all three wrappers on the multi-framework specs
-  // the seed copies wholesale, and all three browsers on the cross-browser leg except the clipboard specs
-  // Chromium alone can run. A change to any of these is a change to the golden set, never a tidy-up.
-  const shapes = { 'js-only': new Set(), 'multi-frameworks': new Set(), 'cross-browser': new Set() };
+test('every spec declares a shape its own directory can host', () => {
+  // The codemod wrote the rendered set every directory already had, so no golden record moved: five js
+  // variants everywhere, all three wrappers on the multi-framework specs the seed copies wholesale, and
+  // all three browsers on the cross-browser leg except the clipboard specs Chromium alone can run.
+  //
+  // This pin is NOT "one shape per directory". The guardrail's whole point is that a new spec takes the
+  // two-theme default, and a pin that rejected the default would block the behavior the default exists to
+  // encourage — the first new js-only spec would have failed with a bare diff of two JSON strings. What is
+  // load-bearing per directory is narrower, and it is the seed's wholesale copy: every multi-framework
+  // spec must declare all three wrappers, because `scripts/run-tests.mjs` copies the whole
+  // `js/chromium/multi-frameworks` directory into the three wrapper baselines. A spec there that declares
+  // fewer gets wrapper goldens the `full` tier then never renders, and the nightly reports them deleted
+  // every night until the per-spec copy lands.
+  //
+  // The reason string is deliberately not part of the shape: the audit's job is to replace the shared
+  // constant with a per-spec reason, and the count that tracks it is the next test.
+  const shapeOf = declaration => JSON.stringify({
+    themes: declaration.themes,
+    browsers: declaration.browsers,
+    wrappers: declaration.wrappers,
+  });
+  const allowedShapes = {
+    'js-only': [
+      { themes: JS_VARIANTS, browsers: ['chromium'], wrappers: [] },
+      { ...DEFAULT_DECLARATION },
+    ],
+    'multi-frameworks': [
+      { themes: JS_VARIANTS, browsers: ['chromium'], wrappers: WRAPPERS, wrappersReason: 'any' },
+    ],
+    'cross-browser': [
+      { themes: [CLASSIC], browsers: ['chromium'], wrappers: [] },
+      { themes: [CLASSIC], browsers: CROSS_BROWSERS, wrappers: [] },
+    ],
+  };
+  const remedies = {
+    'js-only': 'A js-only spec renders the five js variants (what the codemod wrote) or the documented '
+      + 'default { themes: [\'main\', \'main-dark\'], browsers: [\'chromium\'], wrappers: [] }.',
+    'multi-frameworks': 'Every spec here declares all three wrappers, because the seed copies the whole '
+      + 'js/chromium/multi-frameworks directory into the three wrapper baselines (scripts/run-tests.mjs). '
+      + 'A spec that needs no wrapper belongs in tests/js-only/; trimming a wrapper here needs the '
+      + 'per-spec seed copy first, or the nightly reports the orphaned goldens deleted every night.',
+    'cross-browser': 'The cross-browser leg sets no HOT_THEME and no HOT_FRAMEWORK, so themes is '
+      + '[\'classic\'] and wrappers is empty; browsers is all three, or chromium alone for the clipboard '
+      + 'specs only Chromium can run.',
+  };
 
   specPaths().forEach((relativePath) => {
     if (relativePath === PARKED_SPEC) {
       return;
     }
 
-    const [first] = readDeclarations(readFileSync(join(TESTS_ROOT, relativePath), 'utf8'));
+    const [first] = readDeclarations(readFileSync(join(TESTS_ROOT, relativePath), 'utf8'), relativePath);
 
     assert.ok(first, `${relativePath} declares no variants; every live spec calls visualTest().`);
-    shapes[relativePath.split('/')[0]].add(JSON.stringify(normalizeDeclaration(first.declaration)));
-  });
 
-  assert.deepEqual([...shapes['js-only']], [
-    JSON.stringify({ themes: JS_VARIANTS, browsers: ['chromium'], wrappers: [] }),
-  ]);
-  assert.deepEqual([...shapes['multi-frameworks']], [
-    JSON.stringify({
-      themes: JS_VARIANTS,
-      browsers: ['chromium'],
-      wrappers: WRAPPERS,
-      wrappersReason: WRAPPERS_REASON_UNAUDITED,
-    }),
-  ]);
-  assert.deepEqual([...shapes['cross-browser']].sort(), [
-    JSON.stringify({ themes: [CLASSIC], browsers: ['chromium'], wrappers: [] }),
-    JSON.stringify({ themes: [CLASSIC], browsers: CROSS_BROWSERS, wrappers: [] }),
-  ].sort());
+    const directory = relativePath.split('/')[0];
+    const allowed = allowedShapes[directory].map(shape => shapeOf(normalizeDeclaration(shape)));
+    const written = shapeOf(normalizeDeclaration(first.declaration));
+
+    assert.ok(allowed.includes(written), `${relativePath} declares ${written}, which this directory `
+      + `cannot host. ${remedies[directory]} Another shape is a change to the golden set: add it to `
+      + 'allowedShapes in lib/__tests__/visual-declarations.test.mjs, say in the pull request what it '
+      + 'buys, and expect the per-prefix numbers below to move — a moved number there is the review, '
+      + 'not a bug.');
+  });
 });
 
-test('all 23 multi-framework specs carry the shared unaudited wrappers reason', () => {
+test('the multi-framework specs still carry the shared unaudited wrappers reason', () => {
   // The audit that trims those 69 wrapper goldens greps for this constant, so the constant has to be the
-  // literal every one of those specs names. A per-spec reason replaces it one spec at a time.
-  const carrying = specPaths()
-    .filter(relativePath => relativePath.startsWith('multi-frameworks/'))
-    .filter(relativePath => readFileSync(join(TESTS_ROOT, relativePath), 'utf8')
-      .includes('wrappersReason: WRAPPERS_REASON_UNAUDITED,'));
+  // literal every one of those specs names. A per-spec reason replaces it one spec at a time, so this
+  // count falls as the debt is paid and must never rise.
+  const multiFrameworkSpecs = specPaths().filter(relativePath => relativePath.startsWith('multi-frameworks/'));
+  const carrying = multiFrameworkSpecs.filter((relativePath) => {
+    const [first] = readDeclarations(readFileSync(join(TESTS_ROOT, relativePath), 'utf8'), relativePath);
 
-  assert.equal(carrying.length, 23);
+    return first.declaration.wrappersReason === WRAPPERS_REASON_UNAUDITED;
+  });
+
+  assert.equal(carrying.length, UNAUDITED_WRAPPER_SPECS,
+    'WRAPPERS_REASON_UNAUDITED marks a wrapper declaration nobody has argued for yet. A FALLING count is '
+    + 'the consolidation audit paying that debt one spec at a time: lower UNAUDITED_WRAPPER_SPECS in this '
+    + 'file by the number of specs that gained a real reason. A RISING count is a new spec under '
+    + 'tests/multi-frameworks/ that copied the placeholder instead of saying what its wrapper render '
+    + 'proves that the js render does not.');
 });
 
 test('the declarations derive exactly the live golden set', () => {
@@ -513,7 +993,7 @@ test('the declarations derive exactly the live golden set', () => {
     }
 
     const source = readFileSync(join(TESTS_ROOT, relativePath), 'utf8');
-    const [first] = readDeclarations(source);
+    const [first] = readDeclarations(source, relativePath);
 
     assert.ok(first, `${relativePath} declares no variants, so its goldens cannot be derived. `
       + 'Every live spec renders through visualTest(title, { themes, browsers, wrappers }, fn).');
@@ -528,9 +1008,16 @@ test('the declarations derive exactly the live golden set', () => {
     });
   });
 
+  const remedy = 'A number moved because a spec was added, deleted, trimmed or given a capture — which '
+    + 'is exactly what this pin is for. Re-read the live baseline the way the LIVE_GOLDENS comment above '
+    + 'says, update LIVE_GOLDENS and LIVE_GOLDEN_TOTAL to the set this change produces, and say in the '
+    + 'pull request why it moved. A moved number is the review, not a bug; an UNEXPLAINED one is the bug.';
+
   process.stdout.write(`golden records implied by the checked-in declarations: ${total}\n`);
-  assert.deepEqual(perPrefix, LIVE_GOLDENS);
-  assert.equal(total, LIVE_GOLDEN_TOTAL);
+  assert.deepEqual(perPrefix, LIVE_GOLDENS, 'The per-prefix golden counts derived from the checked-in '
+    + `declarations are not the live baseline's. ${remedy}`);
+  assert.equal(total, LIVE_GOLDEN_TOTAL, `The declarations imply ${total} golden records, not `
+    + `${LIVE_GOLDEN_TOTAL}. ${remedy}`);
 });
 
 test('visualTest emits both skips before it registers the annotated test', () => {

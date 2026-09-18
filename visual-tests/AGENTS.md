@@ -91,8 +91,10 @@ visualTest(__filename, {
   copied. And `wrappers` non-empty implies a `wrappersReason`: three goldens a capture is the most
   expensive thing a spec can ask for, so that axis argues for itself in the file.
 - **One declaration per file.** Both skips are file-scope modifiers, so they apply to every test in the
-  file; two `visualTest()` calls with different declarations would skip both by the union of the two.
-  `tests/cross-browser/copy-paste.spec.ts` is the only file with several tests and all five agree.
+  file and the skips of two `visualTest()` calls combine: the file renders only the variants both
+  declarations name — the intersection, which can be empty, so a variant either one asked for on its own
+  can stop rendering entirely. `tests/cross-browser/copy-paste.spec.ts` is the only file with several
+  tests and all five agree.
 - **Over-declaration is silent, so it is a static error.** The main Playwright config has one chromium
   project and ignores `tests/cross-browser/**`; the cross-browser leg sets neither `HOT_THEME` nor
   `HOT_FRAMEWORK`. A js-only spec naming `firefox`, or a cross-browser spec naming a theme or a wrapper,
@@ -110,7 +112,21 @@ visualTest(__filename, {
 - **`npx playwright test --list --reporter=json` reports every declaration** as a `visual-variants`
   annotation, including on a spec the current variant skips. That is the only form a reader outside the
   run can trust: the browser axis uses the callback form of `test.skip`, which Playwright evaluates in a
-  worker and never reports in `--list`.
+  worker and never reports in `--list`. Read the spec path from the enclosing suite's `file`, never from
+  the test's own `spec.file` — see the next bullet for why that one names the runner.
+- **Every test's reported location is now `src/test-runner.ts`,** because Playwright records the file and
+  line a test was registered from and `visualTest()` registers all of them. `--list` therefore prints
+  `92 tests in 1 file` and `129 tests in 2 files` where it printed `92 tests in 92 files` and
+  `129 tests in 20 files`; the HTML report's per-test location link points at the runner, and the JSON
+  reporter's `spec.file` reads `../src/test-runner.ts` for all 92. Nothing downstream reads it: the visual
+  configs use the `html` reporter, `visual.yml` uploads screenshot tarballs rather than a
+  `playwright-report-*` artifact, and the flake ledger (`.github/scripts/lib/test-health.mjs`) collects
+  only the `Tests`, `Develop` and `Publish` runs' Playwright JSON. The spec path itself is never lost —
+  the enclosing file suite still carries it, `testInfo.outputDir` is still derived from it, and every
+  golden path goes through `specFilePath()` in `src/test-runner.ts` rather than through `testInfo.file`.
+  What the collapse costs is one click in the report, and the trade was taken with that in view:
+  a file-scope skip costs nothing, and the in-body form it replaces cost about 40 ms per test on CI's
+  single worker.
 
 ## Golden snapshots: js-copied baselines (critical gotcha)
 

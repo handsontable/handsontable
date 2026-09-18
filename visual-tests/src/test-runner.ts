@@ -538,6 +538,11 @@ const test = baseTest.extend<TestParams>({
  * `browsers` is the cross-browser leg's projects. `wrappers` are the wrappers that hold a golden of this
  * spec, and `wrappersReason` says what their render proves; it is mandatory whenever `wrappers` is not
  * empty. `lib/visual-declarations.mjs` validates the whole shape.
+ *
+ * All three axes are required on purpose, although `normalizeDeclaration()` defaults each one: what a
+ * spec costs is meant to be readable in the spec, so the default is a shape you copy (from the template,
+ * or from the example in `AGENTS.md`) rather than a shape you get by leaving a key out. The defaulting
+ * exists so a half-written declaration cannot render on a variant nobody named.
  */
 export type VisualDeclaration = {
   themes: string[];
@@ -557,10 +562,12 @@ type VisualTestBody = Parameters<typeof test>[2];
  * The runner still launches every variant the tier asks for (`scripts/run-tests.mjs` runs one Playwright
  * pass per framework and one per theme); a variant this spec does not declare skips here. Both skips are
  * file-scope modifiers, which is what makes them free and also why a file may hold only one declaration:
- * a modifier declared at file scope applies to every test in the file, so two `visualTest()` calls with
- * different declarations would skip both tests by the union of the two. The static sweep in
- * `lib/__tests__/visual-declarations.test.mjs` enforces that rule; `tests/cross-browser/copy-paste.spec.ts`
- * is the only file with several tests today and all five agree.
+ * a modifier declared at file scope applies to every test in the file, so the skips of two `visualTest()`
+ * calls COMBINE. The file then renders only the variants both declarations name — the intersection, which
+ * can be empty, so a variant either declaration asked for on its own can stop rendering entirely
+ * (measured: `main`-only and `horizon`-only declarations in one file render nothing under `HOT_THEME=main`).
+ * The static sweep in `lib/__tests__/visual-declarations.test.mjs` enforces the one-declaration rule;
+ * `tests/cross-browser/copy-paste.spec.ts` is the only file with several tests today and all five agree.
  *
  * The framework and theme axis uses the boolean form, which Playwright resolves at collection and never
  * dispatches to a worker: measured, the 69 js-only skips added nothing to the 3.5 s collection, while the

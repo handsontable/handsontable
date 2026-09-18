@@ -17,8 +17,6 @@
 
 import { CLASSIC, CROSS_BROWSERS, JS_VARIANTS, REFERENCE_FRAMEWORK, WRAPPERS } from '../src/config.mjs';
 
-export { CLASSIC, JS_VARIANTS };
-
 /**
  * @typedef {object} VisualDeclaration
  * @property {string[]} themes The js variants the spec renders on — `CLASSIC` plus any of `THEMES`.

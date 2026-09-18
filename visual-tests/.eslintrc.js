@@ -102,8 +102,9 @@ const DETERMINISM_RESTRICTIONS = [
 // every variant the tier launches and states nothing, which is how the golden set grew from 1646 to 1676
 // records in nine days with no number to review; a spec-side `test.skip()` is the ad hoc scoping the
 // declaration replaces, and the two together would fight — a file-scope modifier applies to every test in
-// the file, so a hand-written skip beside a declaration skips by the union of the two and the declaration
-// stops describing what renders. `tests/cross-browser/merging.spec.ts` is the one exception: it parks a
+// the file, so a hand-written skip beside a declaration COMBINES with the one `visualTest()` emits: the
+// file renders only what both allow, which can be nothing, and the declaration stops describing what
+// renders. `tests/cross-browser/merging.spec.ts` is the one exception: it parks a
 // test that renders nothing and already carries its own disable line.
 const SPEC_DECLARATION_RESTRICTIONS = [
   {
@@ -117,8 +118,9 @@ const SPEC_DECLARATION_RESTRICTIONS = [
     selector: 'CallExpression[callee.object.name="test"][callee.property.name="skip"]',
     message: 'A spec does not call test.skip() to scope itself — name the variants in its visualTest() '
       + 'declaration and visualTest() emits the skip. A hand-written skip beside a declaration applies at '
-      + 'file scope too, so the two combine and the declaration stops describing what renders. A parked '
-      + 'test carries `// eslint-disable-next-line no-restricted-syntax -- DEV-1234: <why>`.',
+      + 'file scope too, so the two combine: the file renders only what both allow, which can be nothing, '
+      + 'and the declaration stops describing what renders. A parked test carries '
+      + '`// eslint-disable-next-line no-restricted-syntax -- DEV-1234: <why>`.',
   },
 ];
 // A rule setting replaces the inherited one rather than merging with it, so the airbnb list every

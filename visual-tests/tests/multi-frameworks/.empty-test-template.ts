@@ -13,6 +13,11 @@ visualTest(__filename, {
   // not — each wrapper is one more golden per capture. A spec that renders under no wrapper belongs in
   // `tests/js-only/`: the seed copies this whole directory into the three wrapper baselines, so a spec
   // that sits here without declaring them gets wrapper goldens nothing ever renders again.
+  //
+  // So a copy of this file that STAYS in `tests/multi-frameworks/` needs `CLASSIC` in `themes`, all three
+  // `WRAPPERS`, and a `wrappersReason` saying what the wrapper render proves. Copied anywhere else, the
+  // declaration below is the one to keep. The sweep in `lib/__tests__/visual-declarations.test.mjs`
+  // enforces that, and its message names this rule.
   themes: ['main', 'main-dark'],
   browsers: ['chromium'],
   wrappers: [],
