@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-18T10:59:08.510Z",
+  "generatedAt": "2026-09-18T11:01:28.432Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 29,
+    "tests": 30,
     "needsTicket": 5,
     "quarantined": 0,
-    "entries": 122
+    "entries": 128
   },
   "rows": [
     {
@@ -214,6 +214,44 @@
         "leg": "e2e-classic",
         "status": "failed",
         "error": "Test timeout of 20000ms exceeded.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/__tests__/core/batch.spec.js|Core.batch should batch adjusting fixed headers correctly",
+      "tier": "jasmine",
+      "file": "handsontable/src/__tests__/core/batch.spec.js",
+      "line": null,
+      "title": "Core.batch should batch adjusting fixed headers correctly",
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "legs": [
+        "UMD (theme: classic)",
+        "UMD (theme: horizon)",
+        "UMD (theme: main)",
+        "UMD.min (theme: classic)",
+        "UMD.min (theme: horizon)",
+        "UMD.min (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "fails alone (1 failed)"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-18T11:00:49Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35335647751",
+        "branch": "feature/DEV-127_Pin-row-headers-on-window-scroll",
+        "leg": "UMD (theme: classic)",
+        "status": "failed",
+        "error": "Expected 131 to be 0.",
         "source": "ci"
       },
       "needsTicket": false
