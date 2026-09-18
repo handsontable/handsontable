@@ -109,4 +109,66 @@ describe('Filters sort comparators', () => {
       expect(result).toEqual([2, 10, 30]);
     });
   });
+
+  describe('getSortComparatorForMeta with the filterValueComparator option', () => {
+    it('should return the comparator the column defines', () => {
+      const custom = () => 0;
+
+      expect(getSortComparatorForMeta({ type: 'text', filterValueComparator: custom })).toBe(custom);
+    });
+
+    it('should let the option win over the cell type comparator', () => {
+      const custom = () => 0;
+
+      expect(getSortComparatorForMeta({ type: 'date', filterValueComparator: custom })).toBe(custom);
+      expect(getSortComparatorForMeta({ type: 'intl-datetime', filterValueComparator: custom })).toBe(custom);
+    });
+
+    it('should read the option even when the meta carries no type', () => {
+      const custom = () => 0;
+
+      expect(getSortComparatorForMeta({ filterValueComparator: custom })).toBe(custom);
+    });
+
+    it('should ignore a value that is not a function', () => {
+      expect(getSortComparatorForMeta({ type: 'text', filterValueComparator: ['a', 'b'] })).toBeUndefined();
+      expect(getSortComparatorForMeta({ type: 'text', filterValueComparator: 'asc' })).toBeUndefined();
+      expect(getSortComparatorForMeta({ type: 'text', filterValueComparator: null })).toBeUndefined();
+
+      // falls back to the cell-type comparator, not to nothing
+      const dateFallback = getSortComparatorForMeta({ type: 'date', filterValueComparator: 'asc' });
+
+      expect(typeof dateFallback).toBe('function');
+      expect(dateFallback('2023-01-01', '2023-06-15')).toBeLessThan(0);
+    });
+  });
+
+  describe('unifyColumnValues with a custom comparator', () => {
+    const ORDER = ['Critical', 'High', 'Medium', 'Low'];
+    const rank = value => (ORDER.indexOf(value) === -1 ? ORDER.length : ORDER.indexOf(value));
+    const byPriority = (a, b) => rank(a) - rank(b);
+
+    it('should order the values by the comparator', () => {
+      expect(unifyColumnValues(['Low', 'High', 'Critical', 'Medium', 'High'], byPriority))
+        .toEqual(['Critical', 'High', 'Medium', 'Low']);
+    });
+
+    it('should hand blanks to the comparator as an empty string and place them where it says', () => {
+      // unknown values (the blank) rank last under `byPriority`
+      expect(unifyColumnValues(['Low', '', 'Critical'], byPriority)).toEqual(['Critical', 'Low', '']);
+    });
+
+    it('should keep every distinct value regardless of the comparator', () => {
+      const values = ['Low', 'High', 'Critical', 'Medium', '', 'Unknown'];
+      const alwaysEqual = () => 0;
+
+      expect([...unifyColumnValues(values, alwaysEqual)].sort()).toEqual([...values].sort());
+    });
+
+    it('should keep the default order byte-identical when no comparator is given', () => {
+      expect(unifyColumnValues(['Low', 'High', 'Critical', 'Medium', '']))
+        .toEqual(['', 'Critical', 'High', 'Low', 'Medium']);
+      expect(unifyColumnValues([300, 5, 1000, 20])).toEqual([5, 20, 300, 1000]);
+    });
+  });
 });
