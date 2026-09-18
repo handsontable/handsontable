@@ -103,23 +103,38 @@ The array-form `resetSetupAfterStructureAlteration()` shift is a gated shift: it
 when the alteration index sits **at or below** its destination. That is correct for a fixed (non-reversed)
 endpoint, and it happens to be correct for a reversed one when a row is inserted *above* the anchor. It is
 **wrong** for a row appended *below* the anchor — `2 >= 3` is false for an append past the last row — which
-left the summary parked on the old last row instead of moving down (issue #129). So after the generic
+left the summary parked on the old last row instead of moving down (DEV-144). So after the generic
 shift, every reversed **row** endpoint re-derives `destinationRow` from `countAddressableRows()` and its
 stored offset. The generic `resetAllEndpoints()` pass already ran first and cleared the old destination
 cell's **value** (its `alterRowOffset` is 0 for a below-anchor alteration, so it clears the pre-move
 position); the refresh afterwards writes the value onto the new anchor.
 
-**Known limitation, deliberately not fixed here:** the old anchor cell keeps its declarative meta
-(`readOnly` + `columnSummaryResult`), because the declarative tier has no per-cell removal — plugins *set*
-declarative meta and rely on the `updateSettings` cache reset to drop it (see
-`../../dataMap/metaManager/metaSchema.ts` and "Styling uses `_setCellMetaDeclarative`" above). Cleaning it
-would need a new mechanism in that tier, which is out of scope. Two related row bugs share this root cause
-and are tracked separately: the default `ranges: [[0, countAddressableRows() - 1]]` is also resolved once
-and does not grow on append, and a non-last reversed anchor (`reversedRowOffset > 0`) with a row removed
-*below* it re-anchors onto a data row, which the refresh then overwrites. The second one's failure mode
-**changed here**: the old gated shift left such an endpoint parked in place (stale but non-destructive),
-whereas the unconditional re-derive moves it onto the data row — so the follow-up must prevent the
-overwrite, not merely re-anchor. `reversedRowCoordsAlter.unit.js` pins the add and remove cases.
+`reversedRowOffset` is the caller's original offset-from-the-bottom, kept because `assignSetting()` resolves
+the reversed destination into an absolute index and would otherwise lose it. It is an **internal** field:
+it is deliberately *not* declared on the exported `EndpointConfig` interface (it rides the interface's
+`[key: string]: unknown` index signature) and `parseSettings()` never copies it, so a caller cannot set it.
+
+Three rules the re-derive follows, each with a reason:
+
+- **The vacated cell is fully de-summarized.** When the anchor moves, the old cell's value is cleared by
+  `resetAllEndpoints()` and its declarative `readOnly` + `columnSummaryResult` class are dropped with
+  `_setCellMetaDeclarative(...)` — otherwise it stays uneditable and `getCellValue` keeps treating it as a
+  summary result, so it never counts in any range. `readOnly` is reset to `false` (the schema default), not
+  to a column-level override the cell may carry; the cell had shadowed that override since the initial
+  parse, so this is not a new shadow, but it is an approximation rather than a true cascade restore.
+- **A removal never re-anchors onto occupied data.** On a removal the re-derived slot can be a row that
+  already holds user data; moving there would let the refresh overwrite it. So the move is gated on the
+  target cell being empty and the endpoint is otherwise left parked (non-destructive, matching pre-fix
+  behavior). An **insert** re-anchoring onto data *is* allowed — it mirrors the initial parse planting the
+  anchor on whatever the reversed slot holds. Residual: a parked endpoint sits at a stale offset until the
+  next alteration frees the slot.
+- **A below-zero re-derive is out of bounds.** Enough removals drive `count - reversedRowOffset - 1`
+  negative; `isEndpointOutOfBounds()` now checks the lower bound too, so the user gets the out-of-bounds
+  warning instead of the summary silently disappearing.
+
+One related bug is tracked separately: the default `ranges: [[0, countAddressableRows() - 1]]` is also
+resolved once and does not grow on append. `reversedRowCoordsAlter.unit.js` pins the add, remove,
+data-safety, multi-endpoint, and out-of-bounds cases.
 
 ## The refresh pass caches every endpoint, not just the matched ones
 

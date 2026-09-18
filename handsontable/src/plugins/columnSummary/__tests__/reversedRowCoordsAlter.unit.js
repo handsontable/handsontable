@@ -10,7 +10,7 @@ registerPlugin(ColumnSummary);
  * table, so appending a row past the current last row must move the summary down onto the new last
  * row. The endpoint's destination is resolved once at parse time and only shifted when the
  * alteration index sits at or before it, so an append below the anchor left the summary parked on
- * the old last row (issue #129, reproduced on 15.0.0).
+ * the old last row (DEV-144, reproduced on 15.0.0).
  */
 describe('ColumnSummary reversedRowCoords with alter()', () => {
   let container;
@@ -80,6 +80,10 @@ describe('ColumnSummary reversedRowCoords with alter()', () => {
     // `''` (not `null`) proves the reset actually wrote the old anchor blank — the seed value there
     // was `null`, so `null` would mean the clear never ran.
     expect(hot.getDataAtCell(2, 0)).toBe('');
+    // The vacated cell must lose its summary styling too, or it stays uneditable and keeps counting
+    // as a summary result.
+    expect(hot.getCellMeta(2, 0).readOnly).toBe(false);
+    expect(hot.getCellMeta(2, 0).className || '').not.toContain('columnSummaryResult');
   });
 
   it('moves the summary onto the new last row when a row is appended without an index', async() => {
@@ -110,10 +114,12 @@ describe('ColumnSummary reversedRowCoords with alter()', () => {
 
   it('re-derives a non-last reversed anchor when a row is appended, using the stored offset', async() => {
     // `destinationRow: 1` anchors the summary to the SECOND row from the bottom, so the arithmetic
-    // must use the offset (1), not a bare `count - 1`. With three rows the anchor resolves to row 1.
+    // must use the offset (1), not a bare `count - 1`. With four rows the anchor resolves to row 2.
+    // Row 3 seeds real data so the assertions discriminate WHERE the summary lands, not just that a
+    // null became a number.
     hot = new Handsontable(container, {
       licenseKey: 'non-commercial-and-evaluation',
-      data: [[10], [20], [null]],
+      data: [[10], [20], [null], [99]],
       columnSummary: [{
         destinationColumn: 0,
         destinationRow: 1,
@@ -123,16 +129,98 @@ describe('ColumnSummary reversedRowCoords with alter()', () => {
       }],
     });
 
-    // Second row from the bottom of three rows is row 1; the range sums only row 0 (= 10).
-    expect(hot.getDataAtCell(1, 0)).toBe(10);
+    // Second row from the bottom of four rows is row 2; the range sums only row 0 (= 10).
+    expect(hot.getDataAtCell(2, 0)).toBe(10);
+
+    await hot.alter('insert_row_below', 3);
+
+    // Five rows now; second from the bottom is row 3. `count - offset - 1` = 5 - 1 - 1 = 3. That row
+    // held 99 — an APPEND re-anchoring onto data is by design (it mirrors the initial parse planting
+    // the anchor on the reversed slot), so the summary correctly overwrites it.
+    expect(hot.getDataAtCell(3, 0)).toBe(10);
+    expect(hot.getCellMeta(3, 0).className).toContain('columnSummaryResult');
+    // The old anchor (row 2) is cleared, and the untouched data row 0 survives.
+    expect(hot.getDataAtCell(2, 0)).toBe('');
+    expect(hot.getDataAtCell(0, 0)).toBe(10);
+  });
+
+  it('does not overwrite user data when a removal would re-anchor a reversed summary onto it', async() => {
+    // `destinationRow: 1` = second row from the bottom. With four rows the anchor is row 2 (its
+    // seeded 30 is replaced by the summary at parse time). Removing the last row shrinks the table so
+    // the reversed anchor would re-derive onto row 1, which holds real data (20). Moving there would
+    // overwrite it — the regression this guards against — so the endpoint stays parked instead.
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      data: [[10], [20], [30], [40]],
+      columnSummary: [{
+        destinationColumn: 0,
+        destinationRow: 1,
+        reversedRowCoords: true,
+        ranges: [[0, 0]],
+        type: 'sum',
+      }],
+    });
+
+    // Anchor at row 2 = sum of row 0 = 10; row 1 holds the user's 20.
+    expect(hot.getDataAtCell(2, 0)).toBe(10);
+    expect(hot.getDataAtCell(1, 0)).toBe(20);
+
+    await hot.alter('remove_row', 3);
+
+    // The user's data on row 1 must survive; the summary stays where it was rather than clobbering it.
+    expect(hot.getDataAtCell(1, 0)).toBe(20);
+    expect(hot.getDataAtCell(2, 0)).toBe(10);
+    expect(hot.getCellMeta(2, 0).className).toContain('columnSummaryResult');
+  });
+
+  it('re-anchors several reversed endpoints together when a row is appended', async() => {
+    // Two reversed endpoints, one per column. Both must re-anchor; this also exercises the
+    // `resetAllEndpoints` all-or-nothing bounds check across more than one endpoint.
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      data: [[10, 1], [20, 2], [null, null]],
+      columnSummary: [
+        { destinationColumn: 0, destinationRow: 0, reversedRowCoords: true, ranges: [[0, 1]], type: 'sum' },
+        { destinationColumn: 1, destinationRow: 0, reversedRowCoords: true, ranges: [[0, 1]], type: 'sum' },
+      ],
+    });
+
+    expect(hot.getDataAtCell(2, 0)).toBe(30);
+    expect(hot.getDataAtCell(2, 1)).toBe(3);
 
     await hot.alter('insert_row_below', 2);
 
-    // Four rows now; second from the bottom is row 2. `count - offset - 1` = 4 - 1 - 1 = 2.
-    expect(hot.getDataAtCell(2, 0)).toBe(10);
-    expect(hot.getCellMeta(2, 0).className).toContain('columnSummaryResult');
-    // The old anchor (row 1) is cleared.
-    expect(hot.getDataAtCell(1, 0)).toBe('');
+    expect(hot.getDataAtCell(3, 0)).toBe(30);
+    expect(hot.getDataAtCell(3, 1)).toBe(3);
+  });
+
+  it('warns instead of silently vanishing when removals push a reversed anchor below zero', async() => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    // Offset 2 on four rows resolves to row 1. Removing three rows leaves one, where
+    // `count - offset - 1` = 1 - 2 - 1 = -2, i.e. out of bounds.
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      data: [[10], [20], [30], [40]],
+      columnSummary: [{
+        destinationColumn: 0,
+        destinationRow: 2,
+        reversedRowCoords: true,
+        ranges: [[0, 0]],
+        type: 'sum',
+      }],
+    });
+
+    expect(hot.getDataAtCell(1, 0)).toBe(10);
+
+    warnSpy.mockClear();
+    await hot.alter('remove_row', 1, 3);
+
+    expect(hot.countRows()).toBe(1);
+    // The out-of-bounds warning fires rather than the summary disappearing with nothing logged.
+    expect(warnSpy).toHaveBeenCalled();
+
+    warnSpy.mockRestore();
   });
 
   it('moves a reversed summary onto the new last row when a row is removed', async() => {
