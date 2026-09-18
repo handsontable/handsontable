@@ -140,7 +140,7 @@ function resolveMetaNumFmt(meta: CellMeta): string | null {
       return intlDateTimeFmtToExcelNumFmt(meta.dateTimeFormat, meta.locale);
     case 'date':
     case 'intl-date':
-      return intlDateFmtToExcelNumFmt(meta.dateFormat);
+      return intlDateFmtToExcelNumFmt(meta.dateFormat, meta.locale);
     case 'time':
     case 'intl-time':
       return intlTimeFmtToExcelNumFmt(meta.timeFormat, meta.locale);

@@ -88,6 +88,53 @@ describe('Core', () => {
       core.destroy();
     });
 
+    it('should still resume rendering when resuming execution itself throws', () => {
+      // `resumeExecution` fires hooks on the flush; a throw there used to replace the callback's
+      // error and skip `resumeRender`, the permanent suspension through a narrower door.
+      const core = new Core(container, { data: [['a']] });
+
+      core.init();
+
+      const original = core.resumeExecution;
+
+      core.resumeExecution = () => {
+        core.resumeExecution = original;
+        original.call(core);
+        throw new Error('flush failed');
+      };
+
+      expect(() => core.batch(() => 'ok')).toThrow('flush failed');
+      expect(core.isRenderSuspended()).toBe(false);
+      expect(core.isExecutionSuspended()).toBe(false);
+
+      core.destroy();
+    });
+
+    it('should not force a flush when the batchExecution callback throws', () => {
+      const core = new Core(container, { data: [['a']] });
+
+      core.init();
+
+      const resumeArgs = [];
+      const original = core.resumeExecution;
+
+      core.resumeExecution = (...args) => {
+        resumeArgs.push(args);
+
+        return original.apply(core, args);
+      };
+
+      expect(() => core.batchExecution(() => {
+        throw new Error('mid-alter');
+      }, true)).toThrow('mid-alter');
+      expect(resumeArgs).toEqual([[false]]);
+
+      core.batchExecution(() => {}, true);
+      expect(resumeArgs).toEqual([[false], [true]]);
+
+      core.destroy();
+    });
+
     it('should return the callback result when it does not throw', () => {
       const core = new Core(container, { data: [['a']] });
 

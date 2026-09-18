@@ -8,6 +8,7 @@ new Handsontable(document.createElement('div'), {
   importFile: { engines: { xlsx: {} } },
 });
 new Handsontable(document.createElement('div'), { importFile: true });
+new Handsontable(document.createElement('div'), { importFile: false });
 
 const settings: ImportFileSettings = { engines: { xlsx: {} } };
 const hot = new Handsontable(document.createElement('div'), {});

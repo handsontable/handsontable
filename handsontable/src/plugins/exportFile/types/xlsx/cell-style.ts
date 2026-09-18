@@ -9,6 +9,12 @@ export interface CssStyle {
   fontUnderline: boolean;
   fontColor: string | null;
   backgroundColor: string | null;
+  /**
+   * The computed `color` of the alignment-only baseline probe, as the browser reports it. A rendered
+   * cell's own computed color is compared against it, so a color the cell inherits from its context
+   * is not exported while one a rule or a renderer set on the cell is.
+   */
+  baselineFontColor?: string;
 }
 
 export interface CellMeta {
@@ -44,7 +50,7 @@ const backgroundColorByDoc = new WeakMap<Document, Map<string, string | null>>()
 // available (the cell is outside the render viewport) and, for font color only, from the rendered
 // element path in getCssStyleFromElement — the probe's alignment-only baseline diff is what keeps a
 // non-alignment class that never touched color from reporting the cell's ambient text color.
-const cssStyleProbeByDoc = new WeakMap<Document, Map<string, CssStyle>>();
+const cssStyleProbeByDoc = new WeakMap<object, Map<string, CssStyle>>();
 
 /**
  * Clears the per-export CSS style caches for the given document.
@@ -187,13 +193,15 @@ function detectExplicitBackgroundColor(doc: Document, metaClasses: string[], vie
  * @returns {{ fontBold: boolean, fontItalic: boolean, fontUnderline: boolean,
  *             fontColor: string|null, backgroundColor: string|null }}
  */
-function getCssStyleFromProbe(doc: Document, view: Window, metaClasses: string[]): CssStyle {
+function getCssStyleFromProbe(
+  doc: Document, view: Window, metaClasses: string[], mount: HTMLElement = doc.body
+): CssStyle {
   const cacheKey = metaClasses.join(' ');
-  let docCache = cssStyleProbeByDoc.get(doc);
+  let docCache = cssStyleProbeByDoc.get(mount);
 
   if (!docCache) {
     docCache = new Map();
-    cssStyleProbeByDoc.set(doc, docCache);
+    cssStyleProbeByDoc.set(mount, docCache);
   }
 
   if (docCache.has(cacheKey)) {
@@ -225,7 +233,7 @@ function getCssStyleFromProbe(doc: Document, view: Window, metaClasses: string[]
   tbody.appendChild(tr);
   table.appendChild(tbody);
   probe.appendChild(table);
-  doc.body.appendChild(probe);
+  mount.appendChild(probe);
 
   const styleFull = view.getComputedStyle(tdFull);
   const styleBase = view.getComputedStyle(tdBase);
@@ -235,14 +243,15 @@ function getCssStyleFromProbe(doc: Document, view: Window, metaClasses: string[]
   const colorFull = styleFull.color;
   const colorBase = styleBase.color;
 
-  doc.body.removeChild(probe);
+  mount.removeChild(probe);
 
-  const result = {
+  const result: CssStyle = {
     fontBold: Number.parseInt(styleFull.fontWeight, 10) >= 700 || styleFull.fontWeight === 'bold',
     fontItalic: styleFull.fontStyle === 'italic',
     fontUnderline: (styleFull.textDecorationLine || styleFull.textDecoration || '').includes('underline'),
     fontColor: colorFull !== colorBase ? rgbComputedToHex(colorFull) : null,
     backgroundColor: bgFull !== bgBase ? rgbComputedToHex(bgFull) : null,
+    baselineFontColor: colorBase,
   };
 
   docCache.set(cacheKey, result);
@@ -255,11 +264,12 @@ function getCssStyleFromProbe(doc: Document, view: Window, metaClasses: string[]
  * `getComputedStyle`.
  *
  * Bold, italic and underline are read straight off the rendered element's computed style. Font
- * color and background color are both baseline-compared instead: reading `style.color` directly
- * off the rendered element would report the cell's ambient (inherited default) text color for
- * ANY non-alignment class, even one that never touched color — the same class-only probe used
- * for `null`-element cells (`getCssStyleFromProbe`) diffs a "full classes" probe against an
- * "alignment classes only" one and reports `null` unless the class list actually changes the
+ * color is the element's own computed `color`, exported only when it differs from an
+ * alignment-only baseline probe mounted in the same root wrapper — the ambient text color the cell
+ * would show with no custom class — so a class that never touched color exports none while a
+ * scoped rule or a renderer-written color does. Background color is baseline-compared through the
+ * same class-only probe used for `null`-element cells (`getCssStyleFromProbe`), which diffs a
+ * "full classes" probe against an "alignment classes only" one and reports `null` unless the
  * value, so both code paths (rendered element and off-viewport probe) now agree on the same
  * baseline for font color. Background color uses the same idea through
  * `detectExplicitBackgroundColor`, which has always been probe-based.
@@ -306,14 +316,22 @@ export function getCssStyleFromElement(
 
   const metaClasses = normalizeClassNames(className);
   const hasCustomClass = metaClasses.some(c => !ALIGNMENT_CLASS_NAMES.has(c));
+  // The baseline probe is mounted inside the cell's own root wrapper, so it inherits everything
+  // the cell inherits (a container-scoped CSS variable included) and differs from the cell only by
+  // what a rule or a renderer set on the cell itself. That is what gets exported: the cell's OWN
+  // computed color, not the probe's, so a rule scoped beyond `.handsontable td.x`, a color a custom
+  // renderer wrote, or a per-row variation under one class name all survive the way they did in
+  // 18.x, while a bold-only class still exports no color.
+  const mount = element.closest<HTMLElement>('.ht-root-wrapper') ?? element.ownerDocument.body;
+  const baseline = hasCustomClass
+    ? getCssStyleFromProbe(element.ownerDocument, view, metaClasses, mount).baselineFontColor
+    : undefined;
 
   return {
     fontBold: Number.parseInt(style.fontWeight, 10) >= 700 || style.fontWeight === 'bold',
     fontItalic: style.fontStyle === 'italic',
     fontUnderline: (style.textDecorationLine || style.textDecoration || '').includes('underline'),
-    fontColor: hasCustomClass
-      ? getCssStyleFromProbe(element.ownerDocument, view, metaClasses).fontColor
-      : null,
+    fontColor: hasCustomClass && style.color !== baseline ? rgbComputedToHex(style.color) : null,
     backgroundColor: hasCustomClass
       ? detectExplicitBackgroundColor(element.ownerDocument, metaClasses, view)
       : null,

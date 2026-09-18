@@ -284,7 +284,7 @@ describe('Xlsx compression default', () => {
 });
 
 describe('Xlsx default date and time formats', () => {
-  it('should write a default-options date cell as mm-dd-yyyy and a default time cell as hh:mm AM/PM', async() => {
+  it('should write a default-options date cell as mm/dd/yyyy and a default time cell as hh:mm AM/PM', async() => {
     // The grid's defaults (`metaSchema.ts`): `dateFormat: { year: 'numeric', month: '2-digit',
     // day: '2-digit' }`, `timeFormat: { hour: '2-digit', minute: '2-digit' }`, `locale: 'en-US'`.
     // A time format that sets no `hour12` takes the locale's clock, which is 12-hour for en-US.
@@ -293,7 +293,7 @@ describe('Xlsx default date and time formats', () => {
     const timeMeta = { type: 'time', timeFormat: { hour: '2-digit', minute: '2-digit' }, locale: 'en-US' };
     const numFmts = cells => cells.map(cell => cell.numFmt).filter(Boolean);
 
-    expect(numFmts((await exportOneCell({}, dateMeta, '2024-01-15')).cells)).toEqual(['mm-dd-yyyy']);
+    expect(numFmts((await exportOneCell({}, dateMeta, '2024-01-15')).cells)).toEqual(['mm/dd/yyyy']);
     expect(numFmts((await exportOneCell({}, timeMeta, '08:30')).cells)).toEqual(['hh:mm AM/PM']);
   });
 });

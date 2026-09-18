@@ -124,6 +124,20 @@ describe('intlDateFmtToExcelNumFmt', () => {
     expect(intlDateFmtToExcelNumFmt({ weekday: 'short' })).toBe('ddd');
   });
 
+  it('should order the components and pick the separators the cell\'s locale renders', () => {
+    // The grid renders a `de-DE` cell as `15.01.2024`; the file has to show the same, not `01-15-2024`.
+    const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+
+    expect(intlDateFmtToExcelNumFmt(options, 'de-DE')).toBe('dd.mm.yyyy');
+    expect(intlDateFmtToExcelNumFmt(options, 'en-GB')).toBe('dd/mm/yyyy');
+    expect(intlDateFmtToExcelNumFmt(options, 'en-US')).toBe('mm/dd/yyyy');
+    expect(intlDateFmtToExcelNumFmt({ year: 'numeric', month: 'long', day: 'numeric' }, 'en-US')).toBe('mmmm d, yyyy');
+    // No locale keeps the US order and the `-` separator the export has always written.
+    expect(intlDateFmtToExcelNumFmt(options)).toBe('mm-dd-yyyy');
+    // A malformed locale falls back the same way.
+    expect(intlDateFmtToExcelNumFmt(options, 'not a locale')).toBe('mm-dd-yyyy');
+  });
+
   it('should fall back to the fixed format for options that name no date component', () => {
     expect(intlDateFmtToExcelNumFmt(undefined)).toBe(getDateNumFmt());
     // A legacy pattern string — Handsontable 18 types `dateFormat` as Intl options, but a grid
@@ -194,7 +208,7 @@ describe('intlDateTimeFmtToExcelNumFmt', () => {
   it('should join both halves of the cell\'s single dateTimeFormat object', () => {
     expect(intlDateTimeFmtToExcelNumFmt({
       year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit',
-    }, 'de-DE')).toBe('mm-dd-yyyy hh:mm:ss');
+    }, 'de-DE')).toBe('dd.mm.yyyy hh:mm:ss');
   });
 
   it('should resolve an unspecified hour12 from the locale in the time half', () => {
@@ -202,8 +216,8 @@ describe('intlDateTimeFmtToExcelNumFmt', () => {
       year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit',
     };
 
-    expect(intlDateTimeFmtToExcelNumFmt(options, 'en-US')).toBe('mm-dd-yyyy hh:mm AM/PM');
-    expect(intlDateTimeFmtToExcelNumFmt(options, 'de-DE')).toBe('mm-dd-yyyy hh:mm');
+    expect(intlDateTimeFmtToExcelNumFmt(options, 'en-US')).toBe('mm/dd/yyyy hh:mm AM/PM');
+    expect(intlDateTimeFmtToExcelNumFmt(options, 'de-DE')).toBe('dd.mm.yyyy hh:mm');
   });
 
   it('should fall back unless BOTH halves are expressible', () => {

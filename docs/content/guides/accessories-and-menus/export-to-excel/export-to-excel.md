@@ -359,7 +359,7 @@ The following Handsontable cell types are recognized and written to the `.xlsx` 
 | Handsontable type            | Excel behavior |
 | ---------------------------- | -------------- |
 | `numeric`                    | Number cell. The `numericFormat` option is translated to an Excel `numFmt` string using `Intl.NumberFormat`. |
-| `date`                       | Date cell with an Excel date serial number. Reads ISO 8601 strings (`YYYY-MM-DD`). The `dateFormat` option is translated to an Excel `numFmt` string, so `{ year: 'numeric', month: '2-digit', day: '2-digit' }` is written as `mm-dd-yyyy`, and `{ weekday: 'long' }` is written as `dddd`. |
+| `date`                       | Date cell with an Excel date serial number. Reads ISO 8601 strings (`YYYY-MM-DD`). The `dateFormat` option is translated to an Excel `numFmt` string, ordered and separated the way the cell's [`locale`](@/api/options.md#locale) renders it: `{ year: 'numeric', month: '2-digit', day: '2-digit' }` is written as `mm/dd/yyyy` under `en-US` and `dd.mm.yyyy` under `de-DE`, and `{ weekday: 'long' }` is written as `dddd`. |
 | `time`                       | Time cell with an Excel time serial number. Reads `HH:mm`, `HH:mm:ss`, and 12-hour (`h:mm AM/PM`) formats. The `timeFormat` option is translated the same way, so `{ hour: '2-digit', minute: '2-digit', hour12: false }` is written as `hh:mm`. A `timeFormat` that sets no `hour12` takes its clock from the cell's [`locale`](@/api/options.md#locale), just as the grid does, so the same options under `en-US` are written as `hh:mm AM/PM`. |
 | `checkbox`                   | Boolean cell (`TRUE` / `FALSE`). |
 | `dropdown` / `autocomplete`  | Text cell. The validation list is not exported. |
@@ -382,9 +382,7 @@ A `timeFormat` or `dateTimeFormat` that sets no `hour12` is exported with the cl
 
 ::: tip Behavior note
 
-On a rendered cell, the font color is compared against a baseline probe - a cell wearing the same alignment classes and nothing else - and exported only when it differs. A text color that a class inherits from a CSS variable scoped to the grid container therefore exports as absent, because the baseline probe resolves the same variable and shows the same color. This matches how background colors have always been read, and how a cell outside the viewport is read, so the same cell exports the same way whether or not it is scrolled into view.
-
-To export such a color, set it on the cell with a value the baseline does not share - a literal color in the class, or a `style` the renderer writes.
+On a rendered cell, the exported font color is the cell's own computed color, compared against a baseline probe - a cell wearing the same alignment classes and nothing else, mounted inside the same grid wrapper - and exported only when it differs. A color a rule sets on the cell, whatever selector it uses, or a color a custom renderer writes, is exported. A text color the cell only inherits, such as one from a CSS variable scoped to the grid container, is not, because the baseline shows the same color. A cell outside the viewport has no rendered element, so its color comes from the class-only probe instead; a color that only a rule scoped beyond `.handsontable td.<class>` sets is exported for rendered cells only.
 
 :::
 

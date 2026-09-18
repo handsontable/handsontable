@@ -3515,6 +3515,8 @@ export default function Core(
    * rendered once. As a result, it improves the performance of wrapped operations.
    * Without batching, a similar case could trigger multiple table render calls.
    *
+   * Rendering resumes even when the callback throws; the error is rethrown.
+   *
    * @memberof Core#
    * @function batchRender
    * @param {Function} wrappedOperations Batched operations wrapped in a function.
@@ -3629,6 +3631,9 @@ export default function Core(
    * cache is recalculated once. As a result, it improves the performance of wrapped
    * operations. Without batching, a similar case could trigger multiple table cache rebuilds.
    *
+   * Execution resumes even when the callback throws; the error is rethrown, and `forceFlushChanges`
+   * is not applied on that path.
+   *
    * @memberof Core#
    * @function batchExecution
    * @param {Function} wrappedOperations Batched operations wrapped in a function.
@@ -3652,10 +3657,18 @@ export default function Core(
   this.batchExecution = function<T>(wrappedOperations: () => T, forceFlushChanges = false): T {
     instance.suspendExecution();
 
+    let completed = false;
+
     try {
-      return wrappedOperations();
+      const result = wrappedOperations();
+
+      completed = true;
+
+      return result;
     } finally {
-      instance.resumeExecution(forceFlushChanges);
+      // A forced flush rebuilds the index mappers from whatever the callback left behind, which
+      // after a throw is a half-applied change, so the flag is honored only on the happy path.
+      instance.resumeExecution(completed && forceFlushChanges);
     }
   };
 
@@ -3699,12 +3712,17 @@ export default function Core(
     instance.suspendExecution();
 
     // Resume in `finally`: the callback runs host hooks, and a throw there used to leave the
-    // instance suspended for the rest of its life, so it never painted again.
+    // instance suspended for the rest of its life, so it never painted again. The two resumes are
+    // nested so that a throw from `resumeExecution` (an `afterUpdateSettings`-style hook firing on
+    // the flush) still lets `resumeRender` run.
     try {
       return wrappedOperations();
     } finally {
-      instance.resumeExecution();
-      instance.resumeRender();
+      try {
+        instance.resumeExecution();
+      } finally {
+        instance.resumeRender();
+      }
     }
   };
 

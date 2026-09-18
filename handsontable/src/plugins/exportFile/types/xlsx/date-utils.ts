@@ -245,7 +245,7 @@ const SECOND_TOKENS: Record<string, string | undefined> = {
  * @param {object|undefined} options The cell's Intl date options.
  * @returns {string|null}
  */
-function buildDatePattern(options: Intl.DateTimeFormatOptions | undefined): string | null {
+function buildDatePattern(options: Intl.DateTimeFormatOptions | undefined, locale?: string): string | null {
   if (!options || typeof options !== 'object') {
     return null;
   }
@@ -260,9 +260,69 @@ function buildDatePattern(options: Intl.DateTimeFormatOptions | undefined): stri
     return weekday ?? null;
   }
 
+  const localized = locale === undefined
+    ? null
+    : buildLocalizedDatePattern(options, locale, { month, day, year, weekday });
+
+  if (localized !== null) {
+    return localized;
+  }
+
   const body = parts.join(month === 'mmm' || month === 'mmmm' ? ' ' : '-');
 
   return weekday === undefined ? body : `${weekday}, ${body}`;
+}
+
+/**
+ * The literal characters a localized date pattern may carry between its components. Anything else
+ * (a locale's era word, a right-to-left mark) makes the pattern fall back to the US order.
+ */
+const DATE_LITERAL_REGEX = /^[-./, ]+$/;
+
+/**
+ * Orders the date components and picks their separators the way the cell's locale renders them,
+ * through `Intl.DateTimeFormat#formatToParts` — the same call the grid's date renderer makes. A
+ * `de-DE` cell showing `15.01.2024` therefore exports `dd.mm.yyyy`, not `mm-dd-yyyy`, and Excel
+ * shows what the grid showed. Returns `null` when the locale is malformed or a part cannot be
+ * expressed, and the caller keeps the US order.
+ */
+function buildLocalizedDatePattern(
+  options: Intl.DateTimeFormatOptions, locale: string,
+  tokens: { month?: string; day?: string; year?: string; weekday?: string }
+): string | null {
+  let parts: Intl.DateTimeFormatPart[];
+
+  try {
+    parts = new Intl.DateTimeFormat(locale, {
+      year: options.year, month: options.month, day: options.day, weekday: options.weekday,
+    }).formatToParts(new Date(Date.UTC(2024, 0, 15)));
+  } catch {
+    return null;
+  }
+
+  const pattern: string[] = [];
+
+  for (const part of parts) {
+    if (part.type === 'literal') {
+      if (!DATE_LITERAL_REGEX.test(part.value)) {
+        return null;
+      }
+
+      pattern.push(part.value);
+    } else if (part.type === 'month' || part.type === 'day' || part.type === 'year' || part.type === 'weekday') {
+      const token = tokens[part.type];
+
+      if (token === undefined) {
+        return null;
+      }
+
+      pattern.push(token);
+    } else {
+      return null;
+    }
+  }
+
+  return pattern.join('').trim();
 }
 
 /**
@@ -336,10 +396,14 @@ function buildTimePattern(
  *
  * @private
  * @param {object|undefined} options The cell's `dateFormat` option.
+ * @param {string|undefined} [locale] The cell's `locale` option, which orders the components and picks
+ *   their separators the way the grid renders them.
  * @returns {string}
  */
-export function intlDateFmtToExcelNumFmt(options: Intl.DateTimeFormatOptions | undefined): string {
-  return buildDatePattern(options) ?? getDateNumFmt();
+export function intlDateFmtToExcelNumFmt(
+  options: Intl.DateTimeFormatOptions | undefined, locale?: string | undefined
+): string {
+  return buildDatePattern(options, locale) ?? getDateNumFmt();
 }
 
 /**
@@ -372,7 +436,7 @@ export function intlTimeFmtToExcelNumFmt(
 export function intlDateTimeFmtToExcelNumFmt(
   options: Intl.DateTimeFormatOptions | undefined, locale?: string | undefined
 ): string {
-  const datePattern = buildDatePattern(options);
+  const datePattern = buildDatePattern(options, locale);
   const timePattern = buildTimePattern(options, locale);
 
   if (datePattern === null || timePattern === null) {

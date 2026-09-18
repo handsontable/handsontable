@@ -1,4 +1,4 @@
-import { getAlignmentFromMeta, getDropdownValidation } from '../types/xlsx/cell-style';
+import { getAlignmentFromMeta, getCssStyleFromElement, getDropdownValidation } from '../types/xlsx/cell-style';
 
 describe('getAlignmentFromMeta', () => {
   it('should return null when meta is falsy or has no className', () => {
@@ -78,5 +78,49 @@ describe('getDropdownValidation', () => {
       allowBlank: true,
       formulae: ['\'_HotValidation\'!$B$1:$B$2'],
     });
+  });
+});
+
+describe('getCssStyleFromElement', () => {
+  function renderedCell(className, inlineColor) {
+    const wrapper = document.createElement('div');
+
+    wrapper.className = 'ht-root-wrapper';
+
+    const td = document.createElement('td');
+
+    td.className = className;
+
+    if (inlineColor) {
+      td.style.color = inlineColor;
+    }
+
+    wrapper.appendChild(document.createElement('table')).appendChild(document.createElement('tbody'))
+      .appendChild(document.createElement('tr')).appendChild(td);
+    document.body.appendChild(wrapper);
+
+    return { td, wrapper };
+  }
+
+  afterEach(() => {
+    document.querySelectorAll('.ht-root-wrapper').forEach(element => element.remove());
+  });
+
+  it('should export a color set on the rendered cell itself, the way a custom renderer writes it', () => {
+    const { td } = renderedCell('htCenter myClass', 'rgb(255, 0, 0)');
+
+    expect(getCssStyleFromElement(td, 'htCenter myClass').fontColor).toBe('#FF0000');
+  });
+
+  it('should export no color for a custom class that leaves the cell at its ambient color', () => {
+    const { td } = renderedCell('htCenter boldOnly');
+
+    expect(getCssStyleFromElement(td, 'htCenter boldOnly').fontColor).toBeNull();
+  });
+
+  it('should export no color for a cell with alignment classes only, whatever it renders', () => {
+    const { td } = renderedCell('htRight', 'rgb(255, 0, 0)');
+
+    expect(getCssStyleFromElement(td, 'htRight').fontColor).toBeNull();
   });
 });

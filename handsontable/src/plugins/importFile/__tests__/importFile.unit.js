@@ -200,7 +200,12 @@ describe('ImportFile#importFromArrayBuffer', () => {
     const { plugin } = pluginWithFakeHot({ engines: { xlsx: ExcelJS } });
     const noEngine = pluginWithFakeHot(undefined).plugin;
 
-    await expect(plugin.importFromArrayBuffer('csv', fixture('values'))).rejects.toThrow(/cannot import "csv".*xlsx/);
+    // `engines` is keyed by format, so a format with no engine of its own is named as such.
+    await expect(plugin.importFromArrayBuffer('csv', fixture('values')))
+      .rejects.toThrow(/no engine is configured for "csv".*Configured formats: xlsx/);
+    // A per-call engine still goes through the format check of the engine it detects.
+    await expect(plugin.importFromArrayBuffer('csv', fixture('values'), { engine: ExcelJS }))
+      .rejects.toThrow(/cannot import "csv".*xlsx/);
     await expect(noEngine.importFromArrayBuffer('xlsx', fixture('values')))
       .rejects.toThrow(/Missing or invalid ExcelJS engine.*`importFile: \{ engines: \{ xlsx: ExcelJS \} \}`/);
     await expect(plugin.importFromArrayBuffer('xlsx', new Uint8Array([1, 2]).buffer))
@@ -241,7 +246,35 @@ describe('ImportFile#importFromBlob', () => {
   });
 });
 
+describe('ImportFile#isEnabled', () => {
+  it('should honor importFile: false, like every other plugin option', () => {
+    expect(pluginWithFakeHot(false).plugin.isEnabled()).toBe(false);
+    expect(pluginWithFakeHot(undefined).plugin.isEnabled()).toBe(true);
+    expect(pluginWithFakeHot({ engines: {} }).plugin.isEnabled()).toBe(true);
+  });
+});
+
+describe('ImportFile#disablePlugin', () => {
+  it('should remove the imported stylesheet so its rules stop painting cells', () => {
+    const { plugin, hot } = pluginWithFakeHot({});
+    const selector = 'style[data-hot-imported-styles="hot-1"]';
+
+    installImportedStyles(hot, { 'htImported-a': 'color:red' });
+    plugin.disablePlugin();
+
+    expect(hot.rootDocument.head.querySelector(selector)).toBeNull();
+  });
+});
+
 describe('ImportFile#destroy', () => {
+  it('should survive a second call after the base teardown deleted hot', () => {
+    const { plugin } = pluginWithFakeHot({});
+
+    plugin.destroy();
+
+    expect(() => plugin.destroy()).not.toThrow();
+  });
+
   it('should remove the imported stylesheet element before delegating to the base plugin teardown', () => {
     const { plugin, hot } = pluginWithFakeHot({});
     const selector = 'style[data-hot-imported-styles="hot-1"]';

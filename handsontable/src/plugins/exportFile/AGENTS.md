@@ -111,15 +111,20 @@ Other rules:
   renderer leaving an object or an array in the cell is all it takes.
 - **An overlapping merge is dropped, not thrown.** The adapter catches ExcelJS's
   `Cannot merge already merged cells`, records `merge:overlap` and skips that range.
-- **On a rendered cell the exported font color is diffed against an alignment-only baseline probe.** This
-  is the same trap `../importFile/AGENTS.md` carries from the other side, and it belongs here too because
-  this is the direction that decides it. `getCssStyleFromElement` (`types/xlsx/cell-style.ts`) takes
-  `fontColor` from `getCssStyleFromProbe(...)` — a cell wearing the same non-alignment classes and nothing
-  else — rather than from the rendered element's own `style.color`, so a color the class only inherits from
-  a CSS variable scoped to the grid container exports as ABSENT. That is deliberate: it matches how
-  `backgroundColor` has always been read (`detectExplicitBackgroundColor`) and how an off-viewport cell is
-  read, so the same cell exports the same way whether or not it is scrolled into view. It is documented as a
-  Behavior note in the export guide; change it in both places or not at all.
+- **On a rendered cell the exported font color is the cell's OWN computed color, diffed against an
+  alignment-only baseline probe mounted in the cell's `.ht-root-wrapper`.** The probe inherits everything the
+  cell inherits (a container-scoped CSS variable included), so it differs from the cell only by what a rule
+  or a renderer set on the cell itself — and that is what exports. Reading the probe's colour INSTEAD of
+  the cell's (the first cut of #13551) dropped `#my-grid td.red`, `.htCore td.red`, `tr:nth-child(odd)`
+  variations and renderer-written colours that 18.x exported; review round 4 caught it. The probe cache is
+  keyed by mount element (`WeakMap`), so a per-wrapper probe is built once per class list. A `null`-element
+  cell (outside the viewport) still gets the class-only probe diff, so a colour only a scoped rule sets is
+  exported for rendered cells only — the guide says so.
+- **A date `numFmt` follows the cell's `locale`.** `buildDatePattern(options, locale)` orders the components
+  and takes the separators from `Intl.DateTimeFormat#formatToParts`, the same call the date renderer makes,
+  so a `de-DE` cell showing `15.01.2024` writes `dd.mm.yyyy` and the default `en-US` cell writes
+  `mm/dd/yyyy`. No locale (or a malformed one, or a literal outside `-./, `) keeps the historic US
+  `mm-dd-yyyy`. The import parser reads tokens and ignores separators, so every shape round-trips.
 - **A date, time or date-time `numFmt` is DERIVED from the cell's own Intl options, and it is the exact
   inverse of the import's reader.** `intlDateFmtToExcelNumFmt` / `intlTimeFmtToExcelNumFmt` /
   `intlDateTimeFmtToExcelNumFmt` (`types/xlsx/date-utils.ts`) turn `dateFormat` / `timeFormat` /

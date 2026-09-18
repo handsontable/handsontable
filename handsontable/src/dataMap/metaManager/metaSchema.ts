@@ -3165,7 +3165,9 @@ export default (): Record<string, unknown> => {
      *
      * | Option    | Type     | Default | Description                                                                         |
      * | --------- | -------- | ------- | ----------------------------------------------------------------------------------- |
-     * | `engines` | `Object` | –       | A map of format keys to engine modules. Pass `{ xlsx: ExcelJS }` to enable XLSX import. |
+     * | `engines` | `Object` | –       | A map of format keys to engine modules. Pass `{ xlsx: ExcelJS }` to enable XLSX import. The key is the file format the engine reads; the import looks up `engines[format]`. |
+     *
+     * `false` disables the plugin. `true` or an object enables it; an engine is still needed to import a file.
      *
      * Read more:
      * - [Import from Excel](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md)

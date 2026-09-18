@@ -260,12 +260,23 @@ function getPluginSettings(settings: unknown): ImportFileSettings | undefined {
 }
 
 /**
- * Detects the engine from the per-call override or the plugin settings. Returns `null` instead
- * of throwing when nothing usable was injected.
+ * The engine module configured for `format` under `engines`, keyed by format name the way the
+ * option is documented and the way `exportFile` reads its own `engines`.
  */
-function tryDetectEngine(hot: HotInstance, override: object | undefined): DetectedXlsxEngine | null {
-  const settings = getPluginSettings(hot.getSettings()[PLUGIN_KEY]);
-  const injected = override ?? settings?.engines?.xlsx;
+function configuredEngine(
+  hot: HotInstance, format: string
+): { engines: Record<string, object> | undefined; injected: object | undefined } {
+  const engines = getPluginSettings(hot.getSettings()[PLUGIN_KEY])?.engines;
+
+  return { engines, injected: engines?.[format] };
+}
+
+/**
+ * Detects the engine from the per-call override or the plugin settings for `format`. Returns
+ * `null` instead of throwing when nothing usable was injected.
+ */
+function tryDetectEngine(hot: HotInstance, override: object | undefined, format: string): DetectedXlsxEngine | null {
+  const injected = override ?? configuredEngine(hot, format).injected;
 
   if (injected === undefined) {
     return null;
@@ -284,8 +295,16 @@ function tryDetectEngine(hot: HotInstance, override: object | undefined): Detect
  * cannot read the format.
  */
 function requireEngine(hot: HotInstance, format: string, override: object | undefined): DetectedXlsxEngine {
-  const settings = getPluginSettings(hot.getSettings()[PLUGIN_KEY]);
-  const detected = detectXlsxEngine(override ?? settings?.engines?.xlsx, PLUGIN_KEY);
+  const { engines, injected } = configuredEngine(hot, format);
+
+  if (override === undefined && injected === undefined && engines && Object.keys(engines).length > 0) {
+    throwWithCause(
+      `ImportFile: no engine is configured for "${format}" files. ` +
+      `Configured formats: ${Object.keys(engines).join(', ')}.`
+    );
+  }
+
+  const detected = detectXlsxEngine(override ?? injected, PLUGIN_KEY);
 
   if (!detected.capabilities.readFormats.includes(format)) {
     throwWithCause(
@@ -301,13 +320,10 @@ function requireEngine(hot: HotInstance, format: string, override: object | unde
  * Records `layoutDirection` as dropped when the workbook's sheet direction disagrees with the grid
  * the result is about to be applied to.
  *
- * Handsontable resolves `layoutDirection` once, while the instance is built (`src/core.ts:545`
- * reads it from the merged user settings and `isRtl()` closes over the resolved value), and
- * `metaSchema.ts` documents that a later `updateSettings` is ignored. So there is nothing the
- * applier could do with the direction, and silently keeping the grid's own would be the one lossy
- * import nothing named. Recording it here - after the mapping, before `dropped.warn()` - keeps the
- * one-warning-per-call rule: the plugin still warns exactly once and the direction is inside that
- * warning. Nothing is recorded when the result is not applied, since no grid is being written to.
+ * Handsontable resolves `layoutDirection` once, while the instance is built, and `metaSchema.ts`
+ * documents that a later `updateSettings` is ignored, so the applier cannot follow the workbook's
+ * direction. Recording the mismatch here keeps it inside the plugin's one warning per call; nothing
+ * is recorded when the result is not applied. The full reasoning is in this plugin's `AGENTS.md`.
  */
 function recordLayoutDirectionMismatch(
   hot: HotInstance, mapped: MappedResult, apply: boolean, dropped: DroppedFeatures
@@ -372,10 +388,10 @@ export class ImportFile extends BasePlugin {
   }
 
   /**
-   * The plugin is always enabled; the engine decides what it can import.
+   * Enabled unless the `importFile` option is `false`; the engine decides what it can import.
    */
   isEnabled(): boolean {
-    return true;
+    return this.hot.getSettings()[PLUGIN_KEY] !== false;
   }
 
   /**
@@ -390,9 +406,12 @@ export class ImportFile extends BasePlugin {
   }
 
   /**
-   * Disables the plugin functionality for this Handsontable instance.
+   * Disables the plugin functionality for this Handsontable instance and removes the stylesheet a
+   * previous import installed, so `htImported-*` rules stop painting cells whose meta still carries
+   * the class.
    */
   disablePlugin() {
+    removeImportedStyles(this.hot);
     super.disablePlugin();
   }
 
@@ -401,7 +420,7 @@ export class ImportFile extends BasePlugin {
    * the only engine supported today, reads `xlsx` only.
    */
   supportsImportFormat(format: string): boolean {
-    const detected = tryDetectEngine(this.hot, undefined);
+    const detected = tryDetectEngine(this.hot, undefined, format);
 
     return detected !== null && detected.capabilities.readFormats.includes(format);
   }
@@ -475,6 +494,12 @@ export class ImportFile extends BasePlugin {
    * teardown runs.
    */
   destroy(): void {
+    // `BasePlugin#destroy` deletes `hot`; a second direct `destroy()` must not throw inside core's
+    // teardown loop and leave the plugins after this one undestroyed.
+    if (!this.hot) {
+      return;
+    }
+
     removeImportedStyles(this.hot);
     super.destroy();
   }
