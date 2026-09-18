@@ -72,16 +72,18 @@ same place.
 
 ## Two sort shapes, and the guard that picks between them
 
-`sortByPresetSortStates()` has two gather-and-sort paths, and they must stay behaviorally identical.
+`sortByPresetSortStates()` has two sort paths, and they must stay behaviorally identical. Both start from
+one gather, `#gatherBand()`: one physical-row array, one value array per sorted column, and the highest
+physical index. The physical-row array is a plain array, never an `Int32Array`: `getNumberOfRowsToSort()`
+is an overridable seam, a widening override makes `toPhysicalRow()` return `null`, and a typed array would
+store that as physical row 0. It is never permuted, so it is both paths' `indexesBefore`.
 
-- **Parallel value arrays (the default).** `#sortRowPositions()` gathers one physical-row array plus one
-  value array per sorted column, with no per-row object, and sorts a plain `number[]` of positions
-  0..n-1 with `positionComparator()` from `rootComparator.ts`, which reads `columnValues[k][position]`.
-  A plain array, never an `Int32Array`: `getNumberOfRowsToSort()` is an overridable seam, a widening
-  override makes `toPhysicalRow()` return `null`, and a typed array would store that as physical row 0.
-- **`[rowIndex, ...values]` tuples (the fallback).** `#sortRowTuples()` keeps the original shape and goes
-  through the registered root comparator, so the only sorted column's value sits at index **1**. This is
-  the shape a **custom root comparator** receives, and the only path that calls one.
+- **Parallel value arrays (the default).** `#sortRowPositions()` builds no per-row object. It sorts a plain
+  `number[]` of positions 0..n-1 with `positionComparator()` from `rootComparator.ts`, which reads
+  `columnValues[k][position]`.
+- **`[rowIndex, ...values]` tuples (the fallback).** `#sortRowTuples()` builds the original shape from the
+  gather and goes through the registered root comparator, so the only sorted column's value sits at index
+  **1**. This is the shape a **custom root comparator** receives, and the only path that calls one.
 
 **The guard is an identity check on the registered comparator function, re-evaluated on every sort run** —
 `getBuiltInPositionComparator(this.pluginKey)`. A key whitelist would be wrong: `staticRegister.register()`
@@ -307,7 +309,7 @@ spares) plus `maxRows` capping the displayed count.
 
 `sortByPresetSortStates()` rewrites the indexes sequence through an `Int32Array` keyed BY physical row
 index, so **its length is `highestPhysicalIndex + 1`, where `highestPhysicalIndex` is the largest physical
-index the sorted band actually gathered** — tracked in the gather loop of whichever path ran. That is the
+index the sorted band actually gathered** — tracked in `#gatherBand()`, which both paths share. That is the
 whole rule, and it is sufficient by construction: every write index comes from the band, so no write can
 land above it, and every read above it falls through by design (`undefined >= 0` is `false`).
 

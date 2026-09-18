@@ -953,10 +953,10 @@ class DataMap {
   }
 
   /**
-   * Reads one column's values for a block of consecutive visual rows in a single pass.
+   * Reads one column's values for a list of physical rows, in any order, in a single pass.
    *
    * `get()` resolves the column property, the visual and physical column, the settings and the hook
-   * answers once per cell, although every one of them is constant across the block. This resolves
+   * answers once per cell, although every one of them is constant across the rows. This resolves
    * them once and then reads the source rows directly, which is what a full-column scan such as a
    * sort needs.
    *

@@ -14,7 +14,7 @@ type CompareFnFactory = (order: unknown, meta: unknown, settings: unknown) => Co
  * @param {object} columnMeta Column meta object.
  * @returns {Function} The compare function.
  */
-export function createColumnCompareFunction(sortingOrder: string, columnMeta: Record<string, unknown>): CompareFn {
+function createColumnCompareFunction(sortingOrder: string, columnMeta: Record<string, unknown>): CompareFn {
   const pluginSettings = columnMeta.multiColumnSorting as { compareFunctionFactory?: CompareFnFactory };
   const compareFunctionFactory: CompareFnFactory = pluginSettings.compareFunctionFactory ?
     pluginSettings.compareFunctionFactory : getCompareFunctionFactory(columnMeta.type as string) as CompareFnFactory;

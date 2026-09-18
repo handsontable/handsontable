@@ -13,7 +13,7 @@ type CompareFnFactory = (order: unknown, meta: unknown, settings: unknown) => Co
  * @param {unknown} columnMeta Column meta object.
  * @returns {Function} The compare function.
  */
-export function createColumnCompareFunction(sortingOrder: unknown, columnMeta: unknown): CompareFn {
+function createColumnCompareFunction(sortingOrder: unknown, columnMeta: unknown): CompareFn {
   const typedMeta = columnMeta as { columnSorting?: { compareFunctionFactory?: CompareFnFactory }; type?: string };
   const pluginSettings = typedMeta.columnSorting;
   const compareFunctionFactory: CompareFnFactory = pluginSettings?.compareFunctionFactory ?

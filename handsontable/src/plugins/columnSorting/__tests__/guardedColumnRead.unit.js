@@ -98,7 +98,12 @@ describe('the guarded bulk column read behind the sort gather loop', () => {
     expect(bulk).toEqual(perCell);
   });
 
-  it('should keep a `valueGetter` stored on a single cell far outside the viewport', () => {
+  it('should keep a `valueGetter` a declarative `cell` entry puts on a single cell', () => {
+    // A declarative `cell` entry stores meta for that one cell, which no column-layer probe sees.
+    //
+    // This case does NOT cover an unrendered row: jsdom renders every row, so row 400 carries stored
+    // meta anyway. That case needs a real browser - see `tests/e2e/sort-value-getter-guard` ("keeps a
+    // `valueGetter` a declarative `cell` entry puts on one unrendered row").
     const data = [];
 
     for (let row = 0; row < 500; row++) {
@@ -109,8 +114,9 @@ describe('the guarded bulk column read behind the sort gather loop', () => {
 
     hot = build({
       data,
-      // A declarative `cell` entry stores meta for that one cell, which no column-layer probe sees.
-      cell: [{ row: 400, col: 0, type: 'dropdown', source: ['M'] }],
+      // The getter is written out, as in the real-browser fixture, so the case reads the `cell`
+      // entry's own getter rather than depending on when a `type` gets expanded into one.
+      cell: [{ row: 400, col: 0, valueGetter: value => value?.value ?? value }],
     });
 
     const { perCell, bulk } = readBothWays(0);

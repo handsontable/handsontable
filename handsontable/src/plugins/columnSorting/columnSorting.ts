@@ -861,24 +861,15 @@ export class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Sorts the band by sorting a plain array of positions against one value array per sorted column.
-   *
-   * No per-row object is built: the gather loop fills one physical-row array and `k` value arrays,
-   * and the sort moves small integers instead of array pointers. `Array.prototype.sort` is stable
-   * and the comparator is a pure function of the gathered values, so tied rows keep the order the
-   * gather gave them - the same order the tuple path produces.
+   * Reads the sortable band: its physical rows in visual order, one value array per sorted column,
+   * and the highest physical index it holds. Both sort paths start from this.
    *
    * @param {Array} sortConfigs Sort configuration for all sorted columns.
    * @param {number} from The first visual row of the sortable band.
    * @param {number} to The sortable band's exclusive upper bound.
-   * @param {Function} positionComparatorFactory Builds the comparator over the parallel value arrays.
-   * @returns {{ indexesBefore: number[], indexesAfter: number[], highestPhysicalIndex: number }} The
-   *   band's pre-sort and post-sort physical indexes, and the highest one it holds - which is what
-   *   sizes the caller's remap table.
+   * @returns {{ physicalRows: number[], columnValues: unknown[][], highestPhysicalIndex: number }}
    */
-  #sortRowPositions(
-    sortConfigs: SortConfig[], from: number, to: number, positionComparatorFactory: PositionComparatorFactory
-  ) {
+  #gatherBand(sortConfigs: SortConfig[], from: number, to: number) {
     // A plain array, never an `Int32Array`: `getNumberOfRowsToSort()` is an overridable seam, and a
     // widening override makes `toPhysicalRow()` return `null`, which a typed array would store as
     // the real physical row 0.
@@ -904,14 +895,38 @@ export class ColumnSorting extends BasePlugin {
     // The column property, the physical column and the hook answers are constant across the band, so
     // the accessor resolves them once; it falls back to the per-cell path, value for value, whenever
     // anything on the read path could transform a value. The physical rows the loop above computed
-    // are handed over rather than translated a second time inside every read. This is the columnar
-    // shape the position comparator already wants, so no per-row transposition is needed.
+    // are handed over rather than translated a second time inside every read.
     const columnValues: unknown[][] = arrayMap(
       sortConfigs,
       (sortConfig: SortConfig) =>
         (this.hot as HotInstanceInternal)._getDataAtColumnForRows(sortConfig.column, physicalRows)
     );
 
+    return { physicalRows, columnValues, highestPhysicalIndex };
+  }
+
+  /**
+   * Sorts the band by sorting a plain array of positions against one value array per sorted column.
+   *
+   * No per-row object is built: `#gatherBand()` fills one physical-row array and `k` value arrays,
+   * and the sort moves small integers instead of array pointers. `Array.prototype.sort` is stable
+   * and the comparator is a pure function of the gathered values, so tied rows keep the order the
+   * gather gave them - the same order the tuple path produces.
+   *
+   * @param {Array} sortConfigs Sort configuration for all sorted columns.
+   * @param {number} from The first visual row of the sortable band.
+   * @param {number} to The sortable band's exclusive upper bound.
+   * @param {Function} positionComparatorFactory Builds the comparator over the parallel value arrays.
+   * @returns {{ indexesBefore: number[], indexesAfter: number[], highestPhysicalIndex: number }} The
+   *   band's pre-sort and post-sort physical indexes, and the highest one it holds - which is what
+   *   sizes the caller's remap table.
+   */
+  #sortRowPositions(
+    sortConfigs: SortConfig[], from: number, to: number, positionComparatorFactory: PositionComparatorFactory
+  ) {
+    // The gather is already columnar - the shape the position comparator wants - so no per-row
+    // transposition is needed.
+    const { physicalRows, columnValues, highestPhysicalIndex } = this.#gatherBand(sortConfigs, from, to);
     const positions: number[] = [];
 
     for (let position = 0; position < physicalRows.length; position += 1) {
@@ -946,55 +961,17 @@ export class ColumnSorting extends BasePlugin {
    *   sizes the caller's remap table.
    */
   #sortRowTuples(sortConfigs: SortConfig[], from: number, to: number) {
+    const { physicalRows, columnValues, highestPhysicalIndex } = this.#gatherBand(sortConfigs, from, to);
     const indexesWithData: [number, ...unknown[]][] = [];
-
-    const physicalRows: number[] = [];
-
-    for (let visualRowIndex = from; visualRowIndex < to; visualRowIndex += 1) {
-      physicalRows.push(this.hot.toPhysicalRow(visualRowIndex));
-    }
-
-    // One resolved read per sorted column instead of a full `getDataAtCell()` round trip per cell.
-    // The column property, the physical column and the hook answers are constant across the band, so
-    // the accessor resolves them once; it falls back to the per-cell path, value for value, whenever
-    // anything on the read path could transform a value. The physical rows the loop above computed
-    // are handed over rather than translated a second time inside every read.
-    const columnsData = arrayMap(
-      sortConfigs,
-      (sortConfig: SortConfig) =>
-        (this.hot as HotInstanceInternal)._getDataAtColumnForRows(sortConfig.column, physicalRows)
-    );
 
     for (let rowIndex = 0; rowIndex < physicalRows.length; rowIndex += 1) {
       const rowWithData: [number, ...unknown[]] = [physicalRows[rowIndex]];
 
-      for (let columnIndex = 0; columnIndex < columnsData.length; columnIndex += 1) {
-        rowWithData.push(columnsData[columnIndex][rowIndex]);
+      for (let columnIndex = 0; columnIndex < columnValues.length; columnIndex += 1) {
+        rowWithData.push(columnValues[columnIndex][rowIndex]);
       }
 
       indexesWithData.push(rowWithData);
-    }
-
-    // The engine sorts `indexesWithData` in place, so the pre-sort physical indexes have to be
-    // snapshotted here. The highest one is tracked in the same pass: it sizes the remap table below
-    // and costs nothing extra.
-    const rowCountInBand = indexesWithData.length;
-    // Grown by ascending assignment from an empty literal, the way `arrayMap()` builds its result:
-    // a preallocated `new Array(n)` stays holey in V8 even once every slot is written, and
-    // `IndexesSequence.setValues()` slices the array it is handed, so the mapper's caches would read
-    // a holey array on every sort.
-    const indexesBefore: number[] = [];
-    let highestPhysicalIndex = -1;
-
-    for (let i = 0; i < rowCountInBand; i += 1) {
-      const physicalIndex = indexesWithData[i][0];
-
-      indexesBefore[i] = physicalIndex;
-
-      // Guarded where the value is first read - see `#sortRowPositions()`: `null > -1` is `true`.
-      if (isUnsignedNumber(physicalIndex) && physicalIndex > highestPhysicalIndex) {
-        highestPhysicalIndex = physicalIndex;
-      }
     }
 
     sort(
@@ -1006,7 +983,13 @@ export class ColumnSorting extends BasePlugin {
 
     const indexesAfter = arrayMap(indexesWithData, (indexWithData: [number, ...unknown[]]) => indexWithData[0]);
 
-    return { indexesBefore, indexesAfter, highestPhysicalIndex };
+    return {
+      // The engine sorts `indexesWithData` in place, never `physicalRows`, so it still holds the
+      // pre-sort order.
+      indexesBefore: physicalRows,
+      indexesAfter,
+      highestPhysicalIndex,
+    };
   }
 
   /**
