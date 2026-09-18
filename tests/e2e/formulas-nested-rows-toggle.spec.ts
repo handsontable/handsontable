@@ -40,6 +40,11 @@ test.describe('Formulas across a nestedRows runtime toggle', () => {
       ['A-2', ''],
       ['Root B', 'ROOT A'],
     ]);
+
+    // Read off the painted cells too, not only the model: "renders as raw text" is what the user
+    // reports, and a fix that corrected the data while leaving the paint stale would pass above.
+    await expect(grid.cell(1, 1)).toHaveText('A-1');
+    await expect(grid.cell(3, 1)).toHaveText('ROOT A');
   });
 
   test('matches a grid built with both settings at construction', async() => {
@@ -70,6 +75,44 @@ test.describe('Formulas across a nestedRows runtime toggle', () => {
     ]);
 
     expect(await grid.consoleErrors()).toEqual([]);
+  });
+
+  test('leaves the sheet alone when the row count did not change', async() => {
+    await grid.goto();
+
+    await grid.setNestedRows(true);
+    await grid.resetSheetWriteCount();
+
+    // A payload that touches no row. The mid-update pass rebuilds the sheet once, as it always
+    // has; what must NOT happen is the late listener adding a second rebuild. The React wrapper
+    // sends a payload of this shape on every re-render.
+    await grid.updateUnrelatedSetting(false);
+
+    expect(await grid.sheetWriteCount()).toBe(1);
+    expect(await grid.rowCount()).toBe(4);
+    expect(await grid.sheetHeight()).toBe(4);
+  });
+
+  test('does not write the grid back into a sheet it just switched to', async() => {
+    await grid.goto({ scenario: 'sheet-switch' });
+
+    // Q2 is taller than Q1 and three columns wide; the grid declares only the first column. The
+    // switch changes the row count for a reason this plugin caused itself, so treating it as a
+    // foreign layout change wrote the grid's one-column projection over Q2 and destroyed the other
+    // two columns for every grid sharing the engine.
+    await grid.switchSheet('Q2');
+
+    expect(await grid.sharedSheetContent('Q2')).toEqual([
+      ['q2-a', 'q2-b', 'q2-c'],
+      ['q2-d', 'q2-e', 'q2-f'],
+      ['q2-g', 'q2-h', 'q2-i'],
+      ['q2-j', 'q2-k', 'q2-l'],
+    ]);
+
+    // Q1 is deliberately not asserted whole: the grid is bound to it and declares one column, so
+    // the plugin narrows Q1 to that projection at build time. That is long-standing behavior for
+    // the sheet a grid OWNS; the defect was doing it to a sheet the grid merely switched to.
+    expect(await grid.rowCount()).toBe(4);
   });
 
   test('follows the grid back down when the plugin is turned off again', async() => {

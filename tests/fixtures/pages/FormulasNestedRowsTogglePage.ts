@@ -27,11 +27,13 @@ export class FormulasNestedRowsTogglePage {
    * `nested: 'on'` builds the grid with the plugin already enabled, which is the reference layout a
    * runtime toggle has to reproduce.
    */
-  async goto(options: { nested?: 'off' | 'on' } = {}): Promise<void> {
+  async goto(options: { nested?: 'off' | 'on', scenario?: 'tree' | 'sheet-switch' } = {}): Promise<void> {
     const nested = options.nested ? `&nested=${options.nested}` : '';
+    const scenario = options.scenario ? `&scenario=${options.scenario}` : '';
 
     await this.page.goto(
-      `/tests/fixtures/demo/formulas-nested-rows-toggle.html?theme=${this.theme}&bundle=${this.bundle}${nested}`
+      `/tests/fixtures/demo/formulas-nested-rows-toggle.html` +
+      `?theme=${this.theme}&bundle=${this.bundle}${nested}${scenario}`
     );
 
     await awaitBundle(this.page);
@@ -114,8 +116,56 @@ export class FormulasNestedRowsTogglePage {
     );
   }
 
-  /** Everything the page logged through `console.error`, in order. */
-  consoleErrors(): Promise<string[]> {
-    return this.page.evaluate(() => window.consoleErrors ?? []);
+  /**
+   * Everything the page logged through `console.error`, in order.
+   *
+   * Throws rather than defaulting to `[]` when the fixture's capture is missing: the spec's only
+   * negative assertion is `toEqual([])`, and a silent default would let it pass against a fixture
+   * that no longer records anything.
+   */
+  async consoleErrors(): Promise<string[]> {
+    const errors = await this.page.evaluate(() => window.consoleErrors);
+
+    if (errors === undefined) {
+      throw new Error('The fixture is not capturing console errors, so asserting on them proves nothing.');
+    }
+
+    return errors;
+  }
+
+  /**
+   * How many full sheet rebuilds the engine has taken since the last reset.
+   *
+   * One resync is one `setSheetContent`, so this is what proves an `updateSettings()` that changes
+   * no row count skipped the scan entirely.
+   */
+  sheetWriteCount(): Promise<number> {
+    return this.page.evaluate(() => window.sheetWriteCount ?? 0);
+  }
+
+  /** Zeroes the sheet-rebuild counter. */
+  async resetSheetWriteCount(): Promise<void> {
+    await this.page.evaluate(() => {
+      window.sheetWriteCount = 0;
+    });
+  }
+
+  /** Sends a settings payload that changes nothing about the row count. */
+  async updateUnrelatedSetting(value: boolean): Promise<void> {
+    await this.page.evaluate(rowHeaders => window.hot.updateSettings({ rowHeaders }), value);
+  }
+
+  /** Switches the bound engine sheet the way an app does — through `updateSettings`. */
+  async switchSheet(sheetName: string): Promise<void> {
+    await this.page.evaluate(
+      name => window.hot.updateSettings({ formulas: { engine: window.htEngine, sheetName: name } }), sheetName
+    );
+  }
+
+  /** The serialized content of one sheet in the shared engine, by name (sheet-switch scenario). */
+  sharedSheetContent(sheetName: string): Promise<unknown[][]> {
+    return this.page.evaluate(
+      name => window.htEngine!.getSheetSerialized(window.htEngine!.getSheetId(name)), sheetName
+    );
   }
 }

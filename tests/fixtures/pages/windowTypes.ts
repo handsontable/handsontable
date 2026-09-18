@@ -241,8 +241,18 @@ declare global {
   interface Window {
     /** The fixture's live Handsontable instance. */
     hot: FixtureHotInstance;
-    /** DEV-2938 fixture: everything the page logged through `console.error`, in order. */
+    /** DEV-2938 / DEV-2978 fixtures: everything the page logged through `console.error`, in order. */
     consoleErrors?: string[];
+    /** DEV-2978 fixture: how many `setSheetContent` calls the bound engine has taken since the last reset. */
+    sheetWriteCount?: number;
+    /**
+     * DEV-2978 fixture, `sheet-switch` scenario: the shared HyperFormula instance the grid and the
+     * spec both address, so a spec can read a sheet the grid is not currently bound to.
+     */
+    htEngine?: {
+      getSheetId(name: string): number,
+      getSheetSerialized(sheetId: number): unknown[][],
+    };
     /** DEV-2938 fixture: the very array passed to the constructor, kept to prove writes reach it. */
     sourceData?: unknown[];
     /** DEV-2938 fixture: how many times the grid has drawn since it was built. */

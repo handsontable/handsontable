@@ -31,6 +31,14 @@
     if (window.htNestedRows === undefined) {
       throw new Error('Unknown ?nested= value: ' + JSON.stringify(htParams.get('nested')));
     }
+
+    // `sheet-switch` builds a different grid entirely: two sheets on one shared engine, with the
+    // grid showing fewer columns than the sheets hold. It has no nested data — it covers the other
+    // way a settings update moves the row count, which is this plugin switching sheets itself.
+    window.htScenario = ({ tree: 'tree', 'sheet-switch': 'sheet-switch' })[htParams.get('scenario') ?? 'tree'];
+    if (!window.htScenario) {
+      throw new Error('Unknown ?scenario= value: ' + JSON.stringify(htParams.get('scenario')));
+    }
   </script>
   <style>
     body { font-family: sans-serif; margin: 1rem; }
@@ -86,6 +94,11 @@
 
     window.consoleErrors = [];
 
+    // Counts full sheet rebuilds. A resync is exactly one `setSheetContent`, so this is the direct
+    // probe for "did the gate run the scan"; counting cell-meta reads instead does not work,
+    // because an ordinary render reads meta per cell too.
+    window.sheetWriteCount = 0;
+
     const nativeConsoleError = console.error.bind(console);
 
     console.error = (...args) => {
@@ -93,22 +106,72 @@
       nativeConsoleError(...args);
     };
 
-    try {
-      window.hot = new Handsontable(container, {
-        data: window.sourceData,
-        columns: [{ data: 'name' }, { data: 'calc' }],
-        colHeaders: ['Name', 'Calc'],
+    const buildTreeGrid = () => new Handsontable(container, {
+      data: window.sourceData,
+      columns: [{ data: 'name' }, { data: 'calc' }],
+      colHeaders: ['Name', 'Calc'],
+      rowHeaders: true,
+      nestedRows: window.htNestedRows,
+      formulas: {
+        engine: HyperFormula,
+      },
+      afterRenderer(td, row, col) {
+        td.setAttribute('data-testid', `cell-${row}-${col}`);
+      },
+      height: 'auto',
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    // Two sheets on ONE engine instance, of different heights, both three columns wide - while the
+    // grid declares only the first column. Switching between them changes the grid's row count for a
+    // reason the Formulas plugin caused itself, and the grid's narrow column projection is what
+    // turns a wrong resync there into data loss in the shared sheet.
+    const buildSheetSwitchGrid = () => {
+      const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+      window.htEngine = engine;
+
+      engine.addSheet('Q1');
+      engine.setSheetContent(engine.getSheetId('Q1'), [
+        ['q1-a', 'q1-b', 'q1-c'],
+        ['q1-d', 'q1-e', 'q1-f'],
+      ]);
+      engine.addSheet('Q2');
+      engine.setSheetContent(engine.getSheetId('Q2'), [
+        ['q2-a', 'q2-b', 'q2-c'],
+        ['q2-d', 'q2-e', 'q2-f'],
+        ['q2-g', 'q2-h', 'q2-i'],
+        ['q2-j', 'q2-k', 'q2-l'],
+      ]);
+
+      return new Handsontable(container, {
+        data: [['q1-a', 'q1-b', 'q1-c'], ['q1-d', 'q1-e', 'q1-f']],
+        columns: [{ data: 0 }],
+        colHeaders: ['First column only'],
         rowHeaders: true,
-        nestedRows: window.htNestedRows,
-        formulas: {
-          engine: HyperFormula,
-        },
+        formulas: { engine, sheetName: 'Q1' },
         afterRenderer(td, row, col) {
           td.setAttribute('data-testid', `cell-${row}-${col}`);
         },
         height: 'auto',
         licenseKey: 'non-commercial-and-evaluation',
       });
+    };
+
+    try {
+      window.hot = window.htScenario === 'sheet-switch' ? buildSheetSwitchGrid() : buildTreeGrid();
+
+      // Wrapped after construction, so the count covers what a spec triggers rather than the
+      // initial build. The tree scenario lets the plugin build its own engine, so the instance is
+      // only reachable through the plugin.
+      const boundEngine = window.hot.getPlugin('formulas').engine;
+      const nativeSetSheetContent = boundEngine.setSheetContent.bind(boundEngine);
+
+      boundEngine.setSheetContent = (sheetId, content) => {
+        window.sheetWriteCount += 1;
+
+        return nativeSetSheetContent(sheetId, content);
+      };
     } catch (error) {
       window.htFixtureError = error && error.message ? error.message : String(error);
     }
