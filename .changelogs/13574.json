@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the cell selection borders and fill handle printing as broken artifacts when printing the grid.",
+  "type": "fixed",
+  "issueOrPR": 13574,
+  "breaking": false,
+  "framework": "none"
+}
