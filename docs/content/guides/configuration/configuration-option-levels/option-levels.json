@@ -637,7 +637,7 @@
         "columns"
       ],
       "since": "19.0.0",
-      "note": "Orders a column's \"Filter by value\" list, which is built once per column. Set it at the grid level or inside `columns`; a `cells` or `cell` value is not meaningful for a whole-column list."
+      "note": "Orders a column's \"Filter by value\" list, which is built once per column. The comparator is read from the first listed row's cell meta, so a `cells` or `cell` value is not a reliable way to set it. Set it at the grid level or inside `columns`."
     },
     {
       "name": "fixedColumnsLeft",

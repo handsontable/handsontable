@@ -553,7 +553,7 @@ set the condition through the API instead, pass the value as an ISO 8601 string
 ## Change the order of values in the filter list
 
 By default, the **Filter by value** list places blank cells first and then sorts the values: numbers
-by value, text by code point, and dates chronologically. To set your own order for a column, pass a
+by value, text by character code, and dates chronologically. To set your own order for a column, pass a
 comparator function to the [`filterValueComparator`](@/api/options.md#filtervaluecomparator) option.
 The function takes two cell values and returns a negative number, zero, or a positive number, the
 same way as the callback of `Array.prototype.sort()`.

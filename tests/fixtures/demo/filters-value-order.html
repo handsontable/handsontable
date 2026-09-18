@@ -40,9 +40,11 @@
     inherits a grid-level one (garment size order), Amount is numeric and has
     NO comparator that fits it, so the grid-level comparator applies there too
     and ranks every number as "unknown" – which proves the grid value really
-    cascades. A blank in Priority covers `(Blank cells)` placement. Cells are
-    stamped with data-testid via a renderer (data-testid="cell-<row>-<col>") so
-    the spec can read the filtered result without structural selectors.
+    cascades. A blank in Priority covers `(Blank cells)` placement. Text cells
+    are stamped with data-testid via the grid-level renderer
+    (data-testid="cell-<row>-<col>") so the spec can read the filtered result
+    without structural selectors; the numeric Amount column installs its own
+    renderer and carries no test id, so the spec reads Amount through its menu.
   -->
   <div id="grid" data-testid="grid"></div>
 

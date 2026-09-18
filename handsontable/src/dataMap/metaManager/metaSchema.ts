@@ -3269,7 +3269,7 @@ export default (): Record<string, unknown> => {
      * list of the [`Filters`](@/api/filters.md) dropdown.
      *
      * By default the list places blank cells first and then sorts the values with a built-in
-     * comparator: numbers by value, text by code point, and `date`, `intl-date`, and
+     * comparator: numbers by value, text by character code, and `date`, `intl-date`, and
      * `intl-datetime` cells chronologically. Set `filterValueComparator` to a function to replace
      * that order. The function takes two cell values and returns a negative number, zero, or a
      * positive number, like the callback of `Array.prototype.sort()`.
@@ -3285,8 +3285,10 @@ export default (): Record<string, unknown> => {
      *
      * A value that is not a function is ignored, and the built-in order applies.
      *
-     * The list is built per column, so the [`cells`](#cells) and [`cell`](#cell) options have no
-     * meaningful effect here.
+     * The list is built once per column, and the comparator is read from the cell meta of the
+     * first row the list is built from. A per-cell value set through [`cells`](#cells) or
+     * [`cell`](#cell) is therefore not a reliable way to configure it. Set it at the grid level or
+     * inside `columns`.
      *
      * Read more:
      * - [Column filter: Change the order of values in the filter list](@/guides/columns/column-filter/column-filter.md#change-the-order-of-values-in-the-filter-list)

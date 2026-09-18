@@ -69,14 +69,23 @@ test.describe('Filters — "filter by value" list order', () => {
     expect((await grid.listedValues()).map(item => item.label)).toEqual(['XS', 'S', 'M', 'L', 'XL']);
   });
 
+  test('applies the grid-level order to a numeric column too, keeping every value', async({ page, theme, bundle }) => {
+    const grid = new FiltersValueListPage(page, theme, bundle, FIXTURE);
+
+    await grid.goto();
+    await grid.openMenu('Amount');
+
+    // The grid-level comparator knows no number, so it ranks them all equal and the stable sort
+    // keeps the deduplicated insertion order - which is what proves the grid value reached a
+    // column that inherits it. The built-in order would be 5, 7, 20, 100, 1000.
+    expect((await grid.listedValues()).map(item => item.label)).toEqual(['100', '5', '1000', '20', '7']);
+  });
+
   test('a comparator that ranks everything equal still lists every value', async({ page, theme, bundle }) => {
     const grid = new FiltersValueListPage(page, theme, bundle, FIXTURE);
 
     await grid.goto();
-    await page.evaluate(() => {
-      (window as unknown as { hot: { updateSettings(settings: object): void } }).hot
-        .updateSettings({ columns: [{ filterValueComparator: () => 0 }, {}, { type: 'numeric' }] });
-    });
+    await grid.updateSettings('{ columns: [{ filterValueComparator: () => 0 }, {}, { type: "numeric" }] }');
     await grid.openMenu('Priority');
 
     expect((await grid.listedValues()).map(item => item.label).sort())

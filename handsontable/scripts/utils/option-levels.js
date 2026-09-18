@@ -39,8 +39,8 @@ const NOTES = {
     + 'that gates dragging a selection with `moveCells`.',
   cells: 'A grid-level function that is called for every cell.',
   filterValueComparator: 'Orders a column\'s "Filter by value" list, which is built once per column. '
-    + 'Set it at the grid level or inside `columns`; a `cells` or `cell` value is not meaningful for a '
-    + 'whole-column list.',
+    + 'The comparator is read from the first listed row\'s cell meta, so a `cells` or `cell` value is '
+    + 'not a reliable way to set it. Set it at the grid level or inside `columns`.',
   filters: 'Turn the plugin on at the grid level. Inside `columns`, only `false` has an effect: it '
     + 'hides the filter controls in that column\'s dropdown menu, and the API still filters the '
     + 'column. The sub-options `searchMode` and `filterFixedRows` are grid-level only.',

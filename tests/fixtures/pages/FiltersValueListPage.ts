@@ -37,7 +37,8 @@ export class FiltersValueListPage {
    * @param {string} theme The active theme.
    * @param {string} bundle The active bundle.
    * @param {string} fixture The fixture file to open. The locale variant seeds Turkish values on a
-   *   `tr-TR` grid; everything else about the two pages is the same, so they share this object.
+   *   `tr-TR` grid, the value-order variant configures `filterValueComparator`; everything else
+   *   about these pages is the same, so they share this object.
    */
   constructor(page: Page, theme = 'main', bundle = 'umd', fixture = 'filters-value-list.html') {
     this.page = page;
@@ -351,6 +352,20 @@ export class FiltersValueListPage {
     await this.page.evaluate((newData) => {
       window.hot.updateSettings({ data: newData, filters: true });
     }, data);
+  }
+
+  /**
+   * Re-configure the grid with `updateSettings()`, the way a host application changes options at
+   * runtime. The payload crosses into the page, so it must be serializable, and any function it
+   * carries (a comparator, for example) is built inside the page from a source string.
+   *
+   * @param {string} settingsSource JavaScript source of an object literal, evaluated in the page.
+   */
+  async updateSettings(settingsSource: string): Promise<void> {
+    await this.page.evaluate((source) => {
+      // eslint-disable-next-line no-new-func
+      window.hot.updateSettings(new Function(`return (${source});`)());
+    }, settingsSource);
   }
 
   /**
