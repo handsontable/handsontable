@@ -336,6 +336,8 @@ To switch the language after the grid initializes, update the [`language`](@/api
 
 Both hooks receive the same payload: `languageCode` (`string`), the new language code.
 
+Register the target language's dictionary with `registerLanguageDictionary` before switching to it. If the dictionary isn't registered, the switch is ignored: neither hook fires, and Handsontable logs a console warning instead.
+
 ::: only-for javascript
 
 ```javascript
@@ -407,12 +409,25 @@ const App = () => {
 ::: only-for angular
 
 ```typescript
+import { Component, ViewChild } from '@angular/core';
+import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
+import { registerAllModules } from 'handsontable/registry';
+import { registerLanguageDictionary, itIT } from 'handsontable/i18n';
+
+registerAllModules();
+registerLanguageDictionary(itIT);
+
 @Component({
   standalone: true,
   imports: [HotTableModule],
-  template: `<hot-table [settings]="gridSettings" />`,
+  template: `
+    <button (click)="switchLanguage()">Switch to Italian</button>
+    <hot-table [settings]="gridSettings" />
+  `,
 })
 export class AppComponent {
+  @ViewChild(HotTableComponent, { static: false }) hotTable!: HotTableComponent;
+
   gridSettings: GridSettings = {
     language: 'en-US',
     beforeLanguageChange: (languageCode: string) => {
@@ -422,6 +437,12 @@ export class AppComponent {
       console.log('Switched to:', languageCode);
     },
   };
+
+  switchLanguage() {
+    this.hotTable.hotInstance?.updateSettings({
+      language: 'it-IT',
+    });
+  }
 }
 ```
 
@@ -429,7 +450,8 @@ export class AppComponent {
 
 ::: only-for vue
 
-```js
+```vue
+<script setup>
 import { ref } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
@@ -447,6 +469,16 @@ const hotSettings = ref({
     console.log('Switched to:', languageCode);
   },
 });
+
+function switchLanguage() {
+  hotSettings.value.language = 'it-IT';
+}
+</script>
+
+<template>
+  <button @click="switchLanguage">Switch to Italian</button>
+  <HotTable :settings="hotSettings" />
+</template>
 ```
 
 :::
