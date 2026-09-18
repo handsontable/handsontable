@@ -6,10 +6,10 @@
     "cells",
     "cell"
   ],
-  "total": 173,
+  "total": 174,
   "counts": {
     "grid": 106,
-    "grid columns cells cell": 61,
+    "grid columns cells cell": 62,
     "grid columns": 5,
     "columns": 1
   },
@@ -1200,6 +1200,18 @@
     },
     {
       "name": "readOnlyCellClassName",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": null,
+      "note": null
+    },
+    {
+      "name": "readOnlyStyling",
       "category": "Core",
       "levels": [
         "grid",

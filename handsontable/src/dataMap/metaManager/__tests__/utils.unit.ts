@@ -222,6 +222,59 @@ describe('MetaManager utils', () => {
         editor: getCellType('text').editor,
       });
     });
+
+    it('should not supply the type\'s editor when editing is disabled on the meta object', () => {
+      const metaObject: Record<string, unknown> = { editor: false };
+
+      extendByMetaType(metaObject, { type: 'numeric' });
+
+      expect(metaObject.editor).toBe(false);
+    });
+
+    it('should still supply every other property of the type when editing is disabled', () => {
+      const metaObject: Record<string, unknown> = { editor: false };
+
+      extendByMetaType(metaObject, { type: 'numeric' });
+
+      // The point of the carve-out: a non-editable column keeps its type's formatting.
+      expect(metaObject.renderer).toBe(getCellType('numeric').renderer);
+      expect(metaObject.validator).toBe(getCellType('numeric').validator);
+    });
+
+    it('should not supply the type\'s editor when editing is disabled on a PROTOTYPE of the meta object', () => {
+      // The shape a grid-level `editor: false` takes for a column: the column meta inherits it
+      // rather than owning it, so `hasOwnProperty()` reports it as absent.
+      const gridLevel = { editor: false };
+      const metaObject: Record<string, unknown> = Object.create(gridLevel);
+
+      extendByMetaType(metaObject, { type: 'numeric' });
+
+      expect(metaObject.editor).toBe(false);
+      expect(metaObject.renderer).toBe(getCellType('numeric').renderer);
+    });
+
+    it('should let a type overwrite an `editor` of false that an earlier type assigned', () => {
+      // A custom type MAY declare `editor: false`. That is the type's default, not the user's
+      // policy, so the next type is still free to replace it.
+      const metaObject: Record<string, unknown> = {};
+
+      extendByMetaType(metaObject, { type: { editor: false } });
+
+      expect(metaObject.editor).toBe(false);
+      expect(metaObject._automaticallyAssignedMetaProps).toEqual(new Set(['editor']));
+
+      extendByMetaType(metaObject, { type: 'numeric' });
+
+      expect(metaObject.editor).toBe(getCellType('numeric').editor);
+    });
+
+    it('should let the same settings payload re-enable editing the meta object had disabled', () => {
+      const metaObject: Record<string, unknown> = { editor: 'text' };
+
+      extendByMetaType(metaObject, { type: 'numeric', editor: 'text' }, { editor: 'text' });
+
+      expect(metaObject.editor).toBe('text');
+    });
   });
 
   describe('columnFactory', () => {

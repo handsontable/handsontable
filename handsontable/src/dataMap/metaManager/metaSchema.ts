@@ -2871,6 +2871,51 @@ export default (): Record<string, unknown> => {
      * option was not set at all. The cell keeps the editor that its [`type`](#type) provides, or the
      * editor inherited from a higher configuration level.
      *
+     * An `editor` of `false` is not overridden by a [`type`](#type) set at a lower configuration
+     * level. A [`type`](#type) normally supplies its own editor, but it never re-enables editing
+     * that you disabled higher up, so `editor: false` for the whole grid keeps a typed column
+     * non-editable. Everything else the [`type`](#type) provides still applies, so such a column
+     * keeps its renderer and its validator:
+     *
+     * ```js
+     * // no cell in this grid can be edited, and the second column still
+     * // renders and validates as numeric
+     * editor: false,
+     * columns: [
+     *   { type: 'text' },
+     *   { type: 'numeric' }
+     * ]
+     * ```
+     *
+     * To let one column opt back in, give it an `editor` of its own, at the same configuration
+     * level as its [`type`](#type):
+     *
+     * ```js
+     * editor: false,
+     * columns: [
+     *   { type: 'text' },
+     *   // editable, despite the grid-level `editor: false`
+     *   { type: 'numeric', editor: 'numeric' }
+     * ]
+     * ```
+     *
+     * A named editor behaves differently: a [`type`](#type) set at a lower configuration level
+     * does override it, because both name an editor and the more specific level wins.
+     *
+     * One limitation applies when you switch editing off at runtime. A column's [`type`](#type)
+     * writes its editor onto that column when the column is built, so an
+     * [`updateSettings()`](@/api/core.md#updatesettings) call that passes `editor: false` without
+     * also passing [`columns`](#columns) does not reach a column that declares a
+     * [`type`](#type). Pass [`columns`](#columns) in the same call to rebuild those columns:
+     *
+     * ```js
+     * // the numeric column stays editable
+     * hot.updateSettings({ editor: false });
+     *
+     * // the numeric column becomes non-editable too
+     * hot.updateSettings({ editor: false, columns: [{ type: 'text' }, { type: 'numeric' }] });
+     * ```
+     *
      * To set the [`editor`](#editor), [`renderer`](#renderer), and [`validator`](#validator)
      * options all at once, use the [`type`](#type) option.
      *
@@ -5862,6 +5907,52 @@ export default (): Record<string, unknown> => {
      * ```
      */
     readOnlyCellClassName: 'htDimmed',
+
+    /**
+     * The `readOnlyStyling` option controls whether [read-only](#readOnly) cells look different from
+     * editable ones.
+     *
+     * You can set the `readOnlyStyling` option to one of the following:
+     *
+     * | Setting          | Description                                                                                      |
+     * | ---------------- | ------------------------------------------------------------------------------------------------ |
+     * | `true` (default) | Read-only cells are dimmed, through the [`readOnlyCellClassName`](#readOnlyCellClassName) CSS class |
+     * | `false`          | Read-only cells look exactly like editable ones                                                    |
+     *
+     * Set `readOnlyStyling` to `false` to make a grid non-editable without the cells looking
+     * different. Only the appearance changes: read-only cells still reject edits, pasting, and
+     * autofill, and are still announced as read-only by screen readers.
+     *
+     * When `readOnlyStyling` is `false`, no [`readOnlyCellClassName`](#readOnlyCellClassName) class
+     * is added at all, so setting both options means `readOnlyStyling` wins.
+     *
+     * Read more:
+     * - [`readOnly`](#readOnly)
+     * - [`readOnlyCellClassName`](#readOnlyCellClassName)
+     *
+     * @memberof Options#
+     * @type {boolean}
+     * @default true
+     * @category Core
+     * @configScope grid columns cells cell
+     *
+     * @example
+     * ```js
+     * // make the whole grid read-only, but keep it looking like a normal table
+     * readOnly: true,
+     * readOnlyStyling: false,
+     *
+     * // apply the option to individual columns
+     * columns: [
+     *   {
+     *     readOnly: true,
+     *     // this column is read-only, and is not dimmed
+     *     readOnlyStyling: false
+     *   }
+     * ]
+     * ```
+     */
+    readOnlyStyling: true,
 
     /**
      * The `renderAllRows` option controls Handsontable's [row virtualization](@/guides/rows/row-virtualization/row-virtualization.md).

@@ -231,6 +231,7 @@ Search for an option by name, or filter the list down to a single level.
 | <span data-option="preventOverflow" data-levels="grid"></span>[`preventOverflow`](@/api/options.md#preventoverflow) | Yes | No | No | No | Core |  |
 | <span data-option="readOnly" data-levels="grid columns cells cell"></span>[`readOnly`](@/api/options.md#readonly) | Yes | Yes | Yes | Yes | Core |  |
 | <span data-option="readOnlyCellClassName" data-levels="grid columns cells cell"></span>[`readOnlyCellClassName`](@/api/options.md#readonlycellclassname) | Yes | Yes | Yes | Yes | Core |  |
+| <span data-option="readOnlyStyling" data-levels="grid columns cells cell"></span>[`readOnlyStyling`](@/api/options.md#readonlystyling) | Yes | Yes | Yes | Yes | Core |  |
 | <span data-option="renderAllColumns" data-levels="grid"></span>[`renderAllColumns`](@/api/options.md#renderallcolumns) | Yes | No | No | No | Core |  |
 | <span data-option="renderAllRows" data-levels="grid"></span>[`renderAllRows`](@/api/options.md#renderallrows) | Yes | No | No | No | Core |  |
 | <span data-option="renderer" data-levels="grid columns cells cell"></span>[`renderer`](@/api/options.md#renderer) | Yes | Yes | Yes | Yes | Core |  |

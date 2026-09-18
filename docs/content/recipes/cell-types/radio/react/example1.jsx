@@ -13,8 +13,12 @@ class RadioEditor extends BaseEditor {
   open() {}
   close() {}
   focus() {}
-  getValue() { return this.originalValue; }
-  setValue(value) { this.originalValue = value; }
+  getValue() {
+    return this.originalValue;
+  }
+  setValue(value) {
+    this.originalValue = value;
+  }
 }
 
 const radioRenderer = rendererFactory(({ instance, td, row, column, value, cellProperties }) => {
@@ -30,7 +34,10 @@ const radioRenderer = rendererFactory(({ instance, td, row, column, value, cellP
 
   if (colHeader) wrapper.setAttribute('aria-label', String(colHeader));
 
-  const isReadOnly = !!cellProperties.readOnly;
+  // A cell the grid resolves to no editor cannot be changed by the user, so its radios are
+  // disabled the same way `readOnly` disables them. `getCellEditor()` answers both questions:
+  // it returns `false` when `editor: false` is set at any configuration level.
+  const isEditable = !cellProperties.readOnly && !!instance.getCellEditor(cellProperties);
 
   const hasChecked = options.some((opt) => {
     const v = typeof opt === 'object' ? opt.value : opt;
@@ -46,9 +53,7 @@ const radioRenderer = rendererFactory(({ instance, td, row, column, value, cellP
       return String(v) === String(value);
     });
     const last = options.length - 1;
-    const next = direction === 'next'
-      ? (i === last || i === -1 ? 0 : i + 1)
-      : (i <= 0 ? last : i - 1);
+    const next = direction === 'next' ? (i === last || i === -1 ? 0 : i + 1) : i <= 0 ? last : i - 1;
     const newValue = typeof options[next] === 'object' ? options[next].value : options[next];
 
     instance.setDataAtCell(row, column, newValue);
@@ -73,8 +78,8 @@ const radioRenderer = rendererFactory(({ instance, td, row, column, value, cellP
     input.name = `radio-r${row}-c${column}`;
     input.value = optValue;
     input.checked = String(optValue) === String(value);
-    input.tabIndex = (input.checked || (!hasChecked && idx === 0)) ? 0 : -1;
-    input.disabled = isReadOnly;
+    input.tabIndex = input.checked || (!hasChecked && idx === 0) ? 0 : -1;
+    input.disabled = !isEditable;
 
     const span = document.createElement('span');
 
@@ -97,7 +102,14 @@ const radioRenderer = rendererFactory(({ instance, td, row, column, value, cellP
       });
     });
 
-    label.addEventListener('mousedown', (e) => e.stopPropagation());
+    // Stop mousedown so Handsontable doesn't hijack the click for cell selection - but only
+    // while the radios are interactive. On a non-editable cell the click would otherwise do
+    // nothing at all, leaving no way to select the cell by clicking it.
+    label.addEventListener('mousedown', (e) => {
+      if (isEditable) {
+        e.stopPropagation();
+      }
+    });
 
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
@@ -131,54 +143,56 @@ const radioRenderer = rendererFactory(({ instance, td, row, column, value, cellP
 
 registerCellType('radio', { editor: RadioEditor, renderer: radioRenderer });
 
-/* start:skip-in-preview */
 const data = [
-  { task: 'Refactor licensing app navigation', priority: 'high',   status: 'in-progress' },
-  { task: 'Theme Builder onboarding tour',     priority: 'medium', status: 'todo'        },
-  { task: 'MCP server v1 release prep',        priority: 'high',   status: 'in-progress' },
-  { task: 'GitHub triage rotation docs',       priority: 'low',    status: 'done'        },
-  { task: 'shadcn/ui integration recipe',      priority: 'medium', status: 'todo'        },
+  { task: 'Refactor licensing app navigation', priority: 'high', status: 'in-progress' },
+  { task: 'Theme Builder onboarding tour', priority: 'medium', status: 'todo' },
+  { task: 'MCP server v1 release prep', priority: 'high', status: 'in-progress' },
+  { task: 'GitHub triage rotation docs', priority: 'low', status: 'done' },
+  { task: 'shadcn/ui integration recipe', priority: 'medium', status: 'todo' },
 ];
 /* end:skip-in-preview */
 
 const priorityOptions = [
-  { value: 'low',    label: 'Low'    },
+  { value: 'low', label: 'Low' },
   { value: 'medium', label: 'Medium' },
-  { value: 'high',   label: 'High'   },
+  { value: 'high', label: 'High' },
 ];
 
 const statusOptions = [
-  { value: 'todo',        label: 'Todo'        },
+  { value: 'todo', label: 'Todo' },
   { value: 'in-progress', label: 'In progress' },
-  { value: 'done',        label: 'Done'        },
+  { value: 'done', label: 'Done' },
 ];
 
 const ExampleComponent = () => {
   const hotRef = useRef(null);
 
-  const afterInit = function() {
-    this.rootElement.addEventListener('keydown', (e) => {
-      if (e.target.tagName === 'INPUT') return;
-      if (e.key !== 'Enter' && e.key !== 'F2') return;
+  const afterInit = function () {
+    this.rootElement.addEventListener(
+      'keydown',
+      (e) => {
+        if (e.target.tagName === 'INPUT') return;
+        if (e.key !== 'Enter' && e.key !== 'F2') return;
 
-      const sel = this.getSelectedLast();
+        const sel = this.getSelectedLast();
 
-      if (!sel) return;
+        if (!sel) return;
 
-      const [r, c] = sel;
+        const [r, c] = sel;
 
-      if (this.getCellMeta(r, c).type !== 'radio') return;
+        if (this.getCellMeta(r, c).type !== 'radio') return;
 
-      const td = this.getCell(r, c);
-      const target = td?.querySelector('input[type="radio"]:checked')
-        ?? td?.querySelector('input[type="radio"]');
+        const td = this.getCell(r, c);
+        const target = td?.querySelector('input[type="radio"]:checked') ?? td?.querySelector('input[type="radio"]');
 
-      if (target) {
-        e.stopImmediatePropagation();
-        e.preventDefault();
-        target.focus();
-      }
-    }, true);
+        if (target) {
+          e.stopImmediatePropagation();
+          e.preventDefault();
+          target.focus();
+        }
+      },
+      true
+    );
   };
 
   return (
@@ -193,9 +207,9 @@ const ExampleComponent = () => {
       afterInit={afterInit}
       licenseKey="non-commercial-and-evaluation"
     >
-      <HotColumn data="task"     type="text"  width={300} />
-      <HotColumn data="priority" type="radio" width={160} options={priorityOptions} />
-      <HotColumn data="status"   type="radio" width={170} options={statusOptions}   />
+      <HotColumn data="task" type="text" width={300} />
+      <HotColumn data="priority" type="radio" width={160} {...{ options: priorityOptions }} />
+      <HotColumn data="status" type="radio" width={170} {...{ options: statusOptions }} />
     </HotTable>
   );
 };

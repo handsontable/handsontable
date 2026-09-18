@@ -41,7 +41,12 @@ export function baseRenderer(
   }
 
   if (cellProperties.readOnly) {
-    classesToAdd.push(cellProperties.readOnlyCellClassName);
+    // `readOnlyStyling: false` withholds the class, so the cell looks like an editable one. Only
+    // the appearance is affected - the `aria-readonly` attribute below is applied either way, and
+    // nothing about what the cell rejects is decided here.
+    if (cellProperties.readOnlyStyling !== false) {
+      classesToAdd.push(cellProperties.readOnlyCellClassName);
+    }
 
     if (ariaEnabled) {
       attributesToAdd.push(A11Y_READONLY());

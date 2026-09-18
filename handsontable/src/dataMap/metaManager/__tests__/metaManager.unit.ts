@@ -775,6 +775,67 @@ describe('MetaManager', () => {
     });
   });
 
+  describe('grid-level `editor: false` against a column "type"', () => {
+    it('should keep editing disabled when a column declares a "type"', () => {
+      const metaManager = new MetaManager(null, { editor: false });
+
+      metaManager.updateColumnMeta(0, { type: 'numeric' });
+
+      expect(metaManager.getCellMeta(0, 0, { visualRow: 0, visualColumn: 0 }).editor).toBe(false);
+    });
+
+    it('should still apply the rest of the column "type" so formatting survives', () => {
+      const metaManager = new MetaManager(null, { editor: false });
+
+      metaManager.updateColumnMeta(0, { type: 'numeric' });
+
+      const meta = metaManager.getCellMeta(0, 0, { visualRow: 0, visualColumn: 0 });
+
+      expect(meta.renderer).toBe(getCellType('numeric').renderer);
+      expect(meta.validator).toBe(getCellType('numeric').validator);
+    });
+
+    it('should let a column opt back in with a named editor of its own', () => {
+      const metaManager = new MetaManager(null, { editor: false });
+
+      metaManager.updateColumnMeta(0, { type: 'numeric', editor: 'text' });
+
+      expect(metaManager.getCellMeta(0, 0, { visualRow: 0, visualColumn: 0 }).editor).toBe('text');
+    });
+
+    it('should keep editing disabled for a "type" declared on a single cell', () => {
+      const metaManager = new MetaManager(null, { editor: false });
+
+      metaManager.setCellMeta(0, 0, 'type', 'numeric');
+
+      expect(metaManager.getCellMeta(0, 0, { visualRow: 0, visualColumn: 0 }).editor).toBe(false);
+    });
+
+    // Documented limitation, pinned so a change to it is noticed. The carve-out acts when the type
+    // is EXPANDED, and a column built earlier already owns its type's editor - so switching editing
+    // off afterwards at the grid level does not reach it until the column is rebuilt.
+    it('should NOT reach an already-built typed column when disabled after the fact', () => {
+      const metaManager = new MetaManager();
+
+      metaManager.updateColumnMeta(0, { type: 'numeric' });
+      metaManager.updateGlobalMeta({ editor: false });
+
+      expect(metaManager.getCellMeta(0, 0, { visualRow: 0, visualColumn: 0 }).editor)
+        .toBe(getCellType('numeric').editor);
+    });
+
+    it('should reach that column once it is rebuilt', () => {
+      const metaManager = new MetaManager();
+
+      metaManager.updateColumnMeta(0, { type: 'numeric' });
+      metaManager.updateGlobalMeta({ editor: false });
+      metaManager.clearCache();
+      metaManager.updateColumnMeta(0, { type: 'numeric' });
+
+      expect(metaManager.getCellMeta(0, 0, { visualRow: 0, visualColumn: 0 }).editor).toBe(false);
+    });
+  });
+
   describe('cell type `textEllipsis` default (DEV-28)', () => {
     it('should default `textEllipsis` to `true` for the autocomplete/dropdown/handsontable types', () => {
       const metaManager = new MetaManager();

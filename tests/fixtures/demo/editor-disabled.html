@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable `editor: false` e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } h2 { font-size: .9rem; } </style>
+</head>
+<body>
+  <!--
+    `editor: false` fixture. The option is reachable from every level of the
+    cascading configuration, and each level resolves through a different code
+    path, so the grid below disables editing once per level and keeps an
+    editable column and a `readOnly` column as controls:
+
+      col 0  editable (control)
+      col 1  column level      - columns[1].editor === false
+      col 2  readOnly          - parity control, the branch `editor: false` joins
+      col 3  hook level        - beforeGetCellMeta writes editor = false
+      col 4  single cell       - cell: [{ row: 1, col: 4, editor: false }]
+      col 5  single row        - cells(row) returns editor: false for row 4
+
+    A second grid carries the option at the grid level. Cells are stamped with
+    data-testid="<grid>-<row>-<col>" so specs hook in unambiguously.
+  -->
+  <h2>Per-level</h2>
+  <div id="levels" data-testid="levels"></div>
+
+  <h2>Grid level</h2>
+  <div id="global" data-testid="global"></div>
+
+  <h2>Grid level + typed columns</h2>
+  <div id="typed" data-testid="typed"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const DISABLED_ROW = 4;
+    const DISABLED_CELL = { row: 1, col: 4 };
+
+    const stamp = prefix => function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `${prefix}-${row}-${col}`);
+    };
+
+    const data = () => Handsontable.helper.createSpreadsheetData(6, 6);
+
+    const levels = document.querySelector('[data-testid="levels"]');
+    const global = document.querySelector('[data-testid="global"]');
+
+    levels.className = `ht-theme-${window.htTheme}`;
+    global.className = `ht-theme-${window.htTheme}`;
+
+    window.hotLevels = new Handsontable(levels, {
+      data: data(),
+      colHeaders: ['editable', 'column', 'readOnly', 'hook', 'cell', 'row'],
+      rowHeaders: true,
+      renderer: stamp('levels'),
+      columns: [
+        {},
+        { editor: false },
+        { readOnly: true },
+        {},
+        {},
+        {},
+      ],
+      cell: [{ row: DISABLED_CELL.row, col: DISABLED_CELL.col, editor: false }],
+      cells(row, col) {
+        if (col === 5 && row === DISABLED_ROW) {
+          return { editor: false };
+        }
+      },
+      beforeGetCellMeta(row, col, cellProperties) {
+        if (col === 3) {
+          cellProperties.editor = false;
+        }
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    window.hotGlobal = new Handsontable(global, {
+      data: data(),
+      colHeaders: true,
+      rowHeaders: true,
+      renderer: stamp('global'),
+      editor: false,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    // A grid-level `editor: false` under columns that declare a `type`. The type supplies an
+    // editor of its own, and it must not re-enable editing the grid level switched off — while
+    // everything else the type supplies (here the numeric renderer and its formatting) has to
+    // keep working. No `renderer` is set at grid level, so each column keeps its type's own.
+    const typed = document.querySelector('[data-testid="typed"]');
+
+    typed.className = `ht-theme-${window.htTheme}`;
+
+    window.hotTyped = new Handsontable(typed, {
+      data: [
+        { label: 'Alpha', amount: 1234.5, done: true },
+        { label: 'Beta', amount: 67.25, done: false },
+      ],
+      colHeaders: ['label', 'amount', 'done'],
+      rowHeaders: true,
+      editor: false,
+      columns: [
+        { data: 'label', type: 'text' },
+        { data: 'amount', type: 'numeric', numericFormat: { pattern: '0,0.00' } },
+        // A checkbox has no separate editing gesture - the click IS the edit - so with no
+        // editor it must be non-toggleable, and must say so rather than ignoring clicks.
+        { data: 'done', type: 'checkbox' },
+      ],
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>

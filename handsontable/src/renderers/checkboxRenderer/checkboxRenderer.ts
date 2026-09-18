@@ -121,6 +121,14 @@ export function checkboxRenderer(
       [ATTR_COLUMN, col],
     ]);
 
+    // A cell with no editor cannot be toggled, so the box says so rather than silently ignoring
+    // clicks. The native attribute is what carries it: the browser blocks the click and the label
+    // click, keeps the box out of the tab order, and announces it as disabled - none of which a
+    // class alone would do. It also matches `input:disabled` for theming.
+    if (!isCheckboxToggleable(cellProperties)) {
+      input.disabled = true;
+    }
+
     if (ariaEnabled) {
       setAttribute(input, [
         A11Y_LABEL(input.checked ?
@@ -307,7 +315,7 @@ export function checkboxRenderer(
           }
 
           /* eslint-disable no-continue */
-          if (cachedCellProperties.readOnly === true) {
+          if (cachedCellProperties.readOnly === true || !isCheckboxToggleable(cachedCellProperties)) {
             continue;
           }
 
@@ -417,7 +425,7 @@ export function checkboxRenderer(
           const cellMeta = hotInstance.getCellMetaTransient(visualRow, visualColumn);
 
           /* eslint-disable no-continue */
-          if (cellMeta.readOnly) {
+          if (cellMeta.readOnly || !isCheckboxToggleable(cellMeta)) {
             continue;
           }
 
@@ -463,6 +471,29 @@ function registerEvents(instance: HotInstance) {
   }
 
   return eventManager;
+}
+
+/**
+ * Checks whether a checkbox cell can be toggled by the user.
+ *
+ * A checkbox has no separate editing gesture: clicking the box, or pressing space over it, IS the
+ * edit. So a cell that names NO editor must not toggle, or `editor: false` would have no effect at
+ * all on a checkbox column. `readOnly` is answered by the caller's own checks and is deliberately
+ * left alone here.
+ *
+ * The meta is read directly rather than through `Core#getCellEditor()`, which would resolve the
+ * value against the editor registry. Two reasons, and the second is the load-bearing one: this runs
+ * for every checkbox cell on every draw, and `getEditor()` THROWS on a name it does not know - so
+ * resolving here would turn a misconfigured editor name into a render-time failure that takes the
+ * whole grid down, where today it surfaces only when the user tries to edit. The two falsy values
+ * below are exactly what `getCellEditor()` passes through unresolved; `undefined` means "not set"
+ * and keeps the default editor.
+ *
+ * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
+ * @returns {boolean}
+ */
+function isCheckboxToggleable(cellProperties: CellProperties): boolean {
+  return cellProperties.editor !== false && cellProperties.editor !== null;
 }
 
 /**
@@ -551,7 +582,7 @@ function onClick(event: Event, instance: HotInstance) {
   const col = Number.parseInt(target.getAttribute(ATTR_COLUMN)!, 10);
   const cellProperties = instance.getCellMetaTransient(row, col);
 
-  if (cellProperties.readOnly) {
+  if (cellProperties.readOnly || !isCheckboxToggleable(cellProperties)) {
     event.preventDefault();
   }
 }
@@ -577,7 +608,7 @@ function onChange(event: Event, instance: HotInstance) {
   const col = Number.parseInt(target.getAttribute(ATTR_COLUMN)!, 10);
   const cellProperties = instance.getCellMetaTransient(row, col);
 
-  if (!cellProperties.readOnly) {
+  if (!cellProperties.readOnly && isCheckboxToggleable(cellProperties)) {
     let newCheckboxValue = null;
 
     if (target.checked) {

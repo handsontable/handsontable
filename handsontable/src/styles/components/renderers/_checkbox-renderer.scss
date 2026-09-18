@@ -111,6 +111,13 @@
       &:disabled {
         cursor: initial;
 
+        // A disabled control swallows pointer events, and the box covers the middle of its cell -
+        // so without this the click never reaches the TD and the cell cannot be SELECTED by
+        // clicking it, only by clicking the padding around the box. The input is already
+        // non-interactive, so letting the click through costs nothing and keeps the cell
+        // reachable with the mouse.
+        pointer-events: none;
+
         // Box
         &::before {
           border-color: var(--ht-checkbox-disabled-border-color);

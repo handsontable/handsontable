@@ -33,10 +33,13 @@ Disabling a cell makes the cell read-only or non-editable. Both have similar out
 
 | Read-only cell<br>`readOnly: true`                                           | Non-editable cell<br>`editor: false`                                       |
 |------------------------------------------------------------------------------| -------------------------------------------------------------------------- |
-| Has an additional CSS class (`htDimmed`)                                     | Has no additional CSS class                                                |
+| Has an additional CSS class (`htDimmed`), unless you turn it off with [`readOnlyStyling`](@/api/options.md#readonlystyling) | Has no additional CSS class |
 | Copy works, paste doesn't work                                               | Copy-paste works                                                           |
 | Drag-to-fill doesn't work                                                    | Drag-to-fill works                                                         |
 | Can't be changed by [`populateFromArray()`](@/api/core.md#populatefromarray) | Can be changed by [`populateFromArray()`](@/api/core.md#populatefromarray) |
+| A [checkbox](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) ignores clicks, but still looks active | A [checkbox](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) is rendered as disabled |
+
+Pick `readOnly` when the user must not change the value at all. Pick `editor: false` when you only want to take away the editor, and still accept values from pasting, drag-to-fill, or the API.
 
 ## Make the grid read-only
 
@@ -324,6 +327,46 @@ To make specific cells non-editable, set `editor: false` in the cell configurati
 
 :::
 
+## Read-only cells that look editable
+
+By default, read-only cells carry the `htDimmed` CSS class, which greys them out. To keep a grid read-only while it still looks like a normal table, set [`readOnlyStyling`](@/api/options.md#readonlystyling) to `false`:
+
+```js
+readOnly: true,
+readOnlyStyling: false,
+```
+
+Only the appearance changes. The cells still reject edits, pasting, and drag-to-fill, and screen readers still announce them as read-only.
+
+Like [`readOnly`](@/api/options.md#readonly) itself, you can set [`readOnlyStyling`](@/api/options.md#readonlystyling) for the whole grid, a column, or a single cell.
+
+To change how read-only cells look, rather than to stop styling them, set [`readOnlyCellClassName`](@/api/options.md#readonlycellclassname) to a class name of your own and style that class.
+
+## Non-editable cells and cell types
+
+A [cell type](@/guides/cell-types/cell-type/cell-type.md) sets the [`editor`](@/api/options.md#editor), [`renderer`](@/api/options.md#renderer), and [`validator`](@/api/options.md#validator) options at once. A `type` set on a column does not re-enable editing that you disabled higher up, so this grid is non-editable throughout, and the second column still renders and validates as numeric:
+
+```js
+editor: false,
+columns: [
+  { type: 'text' },
+  { type: 'numeric' }
+]
+```
+
+To let one column opt back in, give it an [`editor`](@/api/options.md#editor) of its own, at the same configuration level as its `type`:
+
+```js
+editor: false,
+columns: [
+  { type: 'text' },
+  // editable, despite the grid-level `editor: false`
+  { type: 'numeric', editor: 'numeric' }
+]
+```
+
+A [checkbox](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) has no separate editing gesture -- clicking the box is the edit -- so a checkbox cell with no editor is rendered as a disabled checkbox. Neither a click nor the <kbd>**Space**</kbd> key toggles it. You can still select the cell.
+
 ## Block the entire grid
 
 The [`readOnly`](@/api/options.md#readonly) and [`editor`](@/api/options.md#editor) options control editing, but users can still navigate and select cells. To block all interaction with the grid temporarily -- for example, during a loading state or a blocking workflow step -- use the [Dialog](@/guides/dialog/dialog/dialog.md) plugin. An open dialog overlays the grid and moves keyboard input into its own [focus scope](@/guides/navigation/focus-scopes/focus-scopes.md), so users can't reach the cells until the dialog closes. The grid regains focus automatically.
@@ -336,7 +379,7 @@ For more accessibility features and testing guidance, see [Accessibility](@/guid
 
 ## Result
 
-Read-only cells display with the `htDimmed` CSS class and block paste and drag-to-fill operations. Non-editable cells block manual editing but allow copy-paste and drag-to-fill.
+Read-only cells display with the `htDimmed` CSS class -- unless you set [`readOnlyStyling`](@/api/options.md#readonlystyling) to `false` -- and block paste and drag-to-fill operations. Non-editable cells block manual editing but allow copy-paste and drag-to-fill.
 
 ## Related API reference
 
@@ -347,5 +390,6 @@ Read-only cells display with the `htDimmed` CSS class and block paste and drag-t
 - [ariaTags](@/api/options.md#ariatags)
 - [readOnly](@/api/options.md#readonly)
 - [readOnlyCellClassName](@/api/options.md#readonlycellclassname)
+- [readOnlyStyling](@/api/options.md#readonlystyling)
 
 </div>
