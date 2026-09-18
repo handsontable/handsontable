@@ -1171,9 +1171,19 @@ const FIXED_CONTAINING_BLOCK_CONTAIN = ['paint', 'layout', 'strict', 'content'];
 
 /**
  * The `will-change` hints that make an element the containing block for fixed descendants, even
- * while the property they name is still `none`.
+ * while the property they name is still `none`: one per property checked above, plus `contain`.
+ * `container-type` is left out on purpose - a hint naming it does not.
  */
-const FIXED_CONTAINING_BLOCK_WILL_CHANGE = ['transform', 'perspective', 'filter'];
+const FIXED_CONTAINING_BLOCK_WILL_CHANGE = [
+  'transform',
+  'translate',
+  'rotate',
+  'scale',
+  'perspective',
+  'filter',
+  'backdrop-filter',
+  'contain',
+];
 
 /**
  * Tells whether an element is the containing block for its `position: fixed` descendants.

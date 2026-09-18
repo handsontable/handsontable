@@ -2111,12 +2111,19 @@ describe('DomElement helper', () => {
     // the computed one comes back empty), so those three cannot be exercised here even though
     // every browser honours them and the helper checks them. `tests/e2e/dropdown-editor-clip.spec.ts`
     // covers the real behavior in a browser.
+    // Every `will-change` value below was measured to anchor a fixed child in Chrome.
+    // `will-change: container-type` was measured too, and does not.
     it.each([
       ['transform', 'translate(-50%, -50%)'],
       ['filter', 'saturate(1.2)'],
       ['willChange', 'transform'],
+      ['willChange', 'translate'],
+      ['willChange', 'rotate'],
+      ['willChange', 'scale'],
+      ['willChange', 'backdrop-filter'],
+      ['willChange', 'contain'],
       ['contain', 'paint'],
-    ])('should return the padding box of an ancestor with %s', (prop, value) => {
+    ])('should return the padding box of an ancestor with %s: %s', (prop, value) => {
       const ancestor = document.createElement('div');
       const child = document.createElement('div');
 
