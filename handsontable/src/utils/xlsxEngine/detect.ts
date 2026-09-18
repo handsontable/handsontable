@@ -44,9 +44,10 @@ function toDetected(injected: unknown): DetectedXlsxEngine | null {
 /**
  * Detects which xlsx engine was injected. Duck-typed, never version-based. Retries once on
  * `injected.default` for ESM/CJS interop and throws when neither shape matches. `optionName` names
- * the plugin option the error message tells the user to configure.
+ * the plugin option the error message tells the user to configure, and is required so this shared
+ * helper never carries one plugin's name as a default the other plugin inherits by accident.
  */
-export function detectXlsxEngine(injected: unknown, optionName: string = 'exportFile'): DetectedXlsxEngine {
+export function detectXlsxEngine(injected: unknown, optionName: string): DetectedXlsxEngine {
   const direct = toDetected(injected);
 
   if (direct) {

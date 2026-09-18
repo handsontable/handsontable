@@ -153,6 +153,7 @@ These are the keys the import can report, beyond `cellStyles`:
 | `comments` | The workbook carries cell comments and the `Comments` plugin is not enabled on the target grid. Set `comments: true` on the grid to import them. |
 | `layoutDirection` | The sheet's layout direction disagrees with the grid's. Handsontable resolves [`layoutDirection`](@/api/options.md#layoutdirection) at initialization and ignores it afterwards, so construct the grid with `layoutDirection: 'rtl'` to follow a right-to-left workbook. The direction is on `result.layoutDirection` either way. |
 | `dataValidation:<type>` | A non-list data validation, which has no grid equivalent. |
+| `conditionalFormatting:unparsedRef` | A conditional formatting range the plugin could not parse. The rule's other ranges still apply. |
 | `dataValidation:unresolvedList` | A list validation whose source cannot be read - a formula such as `INDIRECT()`, or a range on a sheet the workbook does not contain. An inline list and a range on the same or another sheet become a `dropdown` column. |
 | `numFmt:<pattern>` | A number format with no `Intl.NumberFormat` equivalent - scientific notation, a fraction, or more than the 100 fraction digits `Intl.NumberFormat` accepts. |
 | `formula:outOfRange` | A formula referencing a cell outside the imported window. Its cached value is imported instead. A reference to another sheet, such as `Rates!A1`, is kept as written. |
@@ -251,7 +252,8 @@ The workbook is untrusted input, and the plugin treats it that way:
 - **Column headers are escaped.** Handsontable renders `colHeaders` as HTML, so a promoted header row is markup unless something stops it. Every header the plugin promotes is HTML-escaped, which also keeps text such as `5 < 10` whole. If you replace the headers with your own unescaped markup after the import, you own that decision - configure the [`sanitizer`](@/api/options.md#sanitizer) option to police it.
 - **Cell values are rendered as text.** They are not projected through any HTML path, so they need no escaping and keep whatever the file wrote.
 - **Colors are validated before they reach a stylesheet.** A color that is not a plain hex value is skipped rather than turned into a CSS declaration.
-- **A sheet declaring more than 1,048,576 rows, 16,384 columns, or 5,000,000 cells is refused** before anything is allocated. A file can declare a size it does not hold, and reading it at face value exhausts the tab.
+- **Oversized input is refused.** A file above 128 MiB is rejected before the engine parses it. After the parse, a sheet declaring more than 1,048,576 rows, 16,384 columns, or 5,000,000 cells is refused before the plugin allocates anything for it, and a workbook whose sheets together declare more than 10,000,000 cells is refused too. A file can declare a size it does not hold, and reading it at face value exhausts the tab. The parse itself runs inside the engine you inject, so only the byte cap bounds it.
+- **References are bounded.** A list validation or conditional formatting range that reaches past the sheet limits is not read, and one that spans a whole column or row is clamped to the cells the sheet holds.
 
 ## Hooks
 

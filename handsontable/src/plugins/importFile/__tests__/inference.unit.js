@@ -431,6 +431,25 @@ describe('resolveListSource', () => {
     )).toEqual(['Computed', '2023-01-01']);
   });
 
+  it('should clamp a list range to the sheet it reads, so a sheet-sized range costs the sheet', () => {
+    const workbook = workbookWithHelper();
+    const [data] = workbook.sheets;
+
+    data.rows = [[cell({ value: 'Yes' })], [cell({ value: 'No' })]];
+
+    // Both forms describe a million rows; only the two that exist are visited.
+    expect(resolveListSource(
+      { type: 'list', allowBlank: true, formulae: ['$A$1:$A$1048576'] }, workbook, data
+    )).toEqual(['Yes', 'No']);
+    expect(resolveListSource(
+      { type: 'list', allowBlank: true, formulae: ['A:A'] }, workbook, data
+    )).toEqual(['Yes', 'No']);
+    // Past the sheet limits the reference is not one at all.
+    expect(resolveListSource(
+      { type: 'list', allowBlank: true, formulae: ['$A$1:$A$99999999999'] }, workbook, data
+    )).toBeNull();
+  });
+
   it('should return null for a reference it cannot resolve', () => {
     const workbook = workbookWithHelper();
     const [data] = workbook.sheets;

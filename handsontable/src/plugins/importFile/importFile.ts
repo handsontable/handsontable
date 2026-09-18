@@ -262,7 +262,7 @@ function tryDetectEngine(hot: HotInstance, override: object | undefined): Detect
   }
 
   try {
-    return detectXlsxEngine(injected);
+    return detectXlsxEngine(injected, PLUGIN_KEY);
   } catch {
     return null;
   }

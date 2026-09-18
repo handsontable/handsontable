@@ -12,7 +12,7 @@ import {
   type WorkbookSnapshot,
 } from '../model';
 import { parseRangeRef } from '../cellRef';
-import { MAX_SHEET_CELLS, MAX_SHEET_COLUMNS, MAX_SHEET_ROWS } from '../limits';
+import { MAX_INPUT_BYTES, MAX_SHEET_CELLS, MAX_SHEET_COLUMNS, MAX_SHEET_ROWS, MAX_WORKBOOK_CELLS } from '../limits';
 import type { XlsxEngineAdapter } from './types';
 
 /**
@@ -540,11 +540,17 @@ function trackMerge(cell: ExcelJsCell, merges: Map<string, MergeBounds>): void {
   const bounds = merges.get(key);
 
   if (bounds) {
+    // A well-formed file puts the master top-left; a hand-crafted one need not, so both corners grow.
+    bounds.top = Math.min(bounds.top, cell.row);
+    bounds.left = Math.min(bounds.left, cell.col);
     bounds.bottom = Math.max(bounds.bottom, cell.row);
     bounds.right = Math.max(bounds.right, cell.col);
   } else {
     merges.set(key, {
-      top: master.row, left: master.col, bottom: Math.max(master.row, cell.row), right: Math.max(master.col, cell.col),
+      top: Math.min(master.row, cell.row),
+      left: Math.min(master.col, cell.col),
+      bottom: Math.max(master.row, cell.row),
+      right: Math.max(master.col, cell.col),
     });
   }
 }
@@ -608,11 +614,23 @@ function readSheetLayout(
 }
 
 /**
- * Refuses a sheet whose declared size cannot be materialized, before a single row is allocated.
- * A workbook is an untrusted input: a file may declare a cell at `XFD1048576` and cost nothing to
- * parse while the reader that believes it allocates a 17-billion-cell rectangle.
+ * The cells the workbook has declared so far, summed across the sheets already checked, so the
+ * per-sheet cap cannot be sidestepped by declaring many sheets that each sit inside it.
  */
-function assertSheetFits(name: string, rowCount: number, cellColCount: number, layoutColCount: number): void {
+interface WorkbookBudget {
+  declaredCells: number;
+}
+
+/**
+ * Refuses a sheet whose declared size cannot be materialized, before a single row of the SNAPSHOT
+ * is allocated. A workbook is an untrusted input: a file may declare a cell at `XFD1048576` and
+ * cost nothing to parse while the reader that believes it allocates a 17-billion-cell rectangle.
+ * These caps run after the engine has parsed the file, so they bound this reader's copy, not the
+ * engine's own; the byte cap in `read()` is what bounds the parse.
+ */
+function assertSheetFits(
+  name: string, rowCount: number, cellColCount: number, layoutColCount: number, budget: WorkbookBudget
+): void {
   if (rowCount > MAX_SHEET_ROWS) {
     throwWithCause(
       `The sheet "${name}" declares ${rowCount} rows, above the ${MAX_SHEET_ROWS}-row limit this reader accepts.`
@@ -634,6 +652,16 @@ function assertSheetFits(name: string, rowCount: number, cellColCount: number, l
     throwWithCause(
       `The sheet "${name}" declares ${rowCount} × ${cellColCount} cells, ` +
       `above the ${MAX_SHEET_CELLS}-cell limit this reader accepts.`
+    );
+  }
+
+  // A sheet of rows with no cells still costs one array per row, so it counts one column wide.
+  budget.declaredCells += rowCount * Math.max(cellColCount, 1);
+
+  if (budget.declaredCells > MAX_WORKBOOK_CELLS) {
+    throwWithCause(
+      `The workbook declares ${budget.declaredCells} cells across its sheets, ` +
+      `above the ${MAX_WORKBOOK_CELLS}-cell limit this reader accepts.`
     );
   }
 }
@@ -715,7 +743,9 @@ function readColumnLayout(worksheet: ExcelJsWorksheet, sheet: SheetSnapshot, col
  * per workbook read: ExcelJS's `value` getter on a merge slave cell returns the master's value, so
  * the model has to identify a slave by its cell type rather than by an empty value.
  */
-function readSheet(worksheet: ExcelJsWorksheet, dropped: DroppedFeatures, mergeType: number): SheetSnapshot {
+function readSheet(
+  worksheet: ExcelJsWorksheet, dropped: DroppedFeatures, mergeType: number, budget: WorkbookBudget
+): SheetSnapshot {
   const sheet = createSheetSnapshot(worksheet.name);
   const state = worksheet.state as SheetSnapshot['state'];
 
@@ -730,7 +760,7 @@ function readSheet(worksheet: ExcelJsWorksheet, dropped: DroppedFeatures, mergeT
   const cellColCount = worksheet.columnCount;
   const layoutColCount = Math.max(cellColCount, worksheet.columns?.length ?? 0);
 
-  assertSheetFits(worksheet.name, rowCount, cellColCount, layoutColCount);
+  assertSheetFits(worksheet.name, rowCount, cellColCount, layoutColCount, budget);
 
   // A row's own `eachCell` only reaches that row's own last populated column, so a row shorter than
   // the sheet is padded up to `sheetWidth` — the widest of the cell column count and every row
@@ -785,6 +815,14 @@ export const excelJsAdapter: XlsxEngineAdapter = {
       throwWithCause('The ExcelJS adapter received a module without a `Workbook` constructor.');
     }
 
+    // The one guard that runs before the engine parses anything: every cap below is measured on
+    // the parsed workbook, and an archive inflates to far more than its own size.
+    if (buffer.byteLength > MAX_INPUT_BYTES) {
+      throwWithCause(
+        `The workbook is ${buffer.byteLength} bytes, above the ${MAX_INPUT_BYTES}-byte limit this reader accepts.`
+      );
+    }
+
     const workbook = new module.Workbook();
 
     try {
@@ -795,8 +833,11 @@ export const excelJsAdapter: XlsxEngineAdapter = {
 
     const mergeType = module.ValueType?.Merge ?? 1;
     const snapshot = createWorkbookSnapshot();
+    const budget: WorkbookBudget = { declaredCells: 0 };
 
-    workbook.worksheets.forEach(worksheet => snapshot.sheets.push(readSheet(worksheet, dropped, mergeType)));
+    workbook.worksheets.forEach((worksheet) => {
+      snapshot.sheets.push(readSheet(worksheet, dropped, mergeType, budget));
+    });
 
     return snapshot;
   },

@@ -185,15 +185,16 @@ export function normalizeFormula(
     // `$A$1` pinned to a grid cell has to follow it. The mapper never rejects a reference, so the
     // result is never `null`.
     formula = mapFormulaReferences(formula, ({ row, col }) => {
-      const hotPhysCol = col - 1; // 0-based physical HOT column
-      const hotPhysRow = row - 1; // 0-based physical HOT row
+      // An open axis (`null`, from a whole-column or whole-row span) stays open.
+      const hiddenColsBefore = (col !== null && hasColExclusions && excludedHiddenCols)
+        ? countBelow(excludedHiddenCols, col - 1) : 0;
+      const hiddenRowsBefore = (row !== null && hasRowExclusions && excludedHiddenRows)
+        ? countBelow(excludedHiddenRows, row - 1) : 0;
 
-      const hiddenColsBefore = (hasColExclusions && excludedHiddenCols)
-        ? countBelow(excludedHiddenCols, hotPhysCol) : 0;
-      const hiddenRowsBefore = (hasRowExclusions && excludedHiddenRows)
-        ? countBelow(excludedHiddenRows, hotPhysRow) : 0;
-
-      return { row: row + rowOffset - hiddenRowsBefore, col: col + colOffset - hiddenColsBefore };
+      return {
+        row: row === null ? null : row + rowOffset - hiddenRowsBefore,
+        col: col === null ? null : col + colOffset - hiddenColsBefore,
+      };
     }) ?? formula;
   }
 

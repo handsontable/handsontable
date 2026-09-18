@@ -540,13 +540,18 @@ export function toDisplayText(cell: CellSnapshot): string | null {
 }
 
 /**
- * Reads a resolved range from a sheet, column-first, skipping empty cells.
+ * Reads a resolved range from a sheet, column-first, skipping empty cells. The range is clamped to
+ * the sheet's real extent first: a reference comes verbatim from the file and may span the whole
+ * sheet (`A:A`, or a hand-written `$A$1:$A$1048576`), and walking the declared rectangle instead of
+ * the held one is a main-thread hang the file's author controls.
  */
 function readRangeValues(sheet: SheetSnapshot, range: RangeRef): string[] {
   const source: string[] = [];
+  const lastRow = Math.min(range.endRow, sheet.rows.length);
+  const lastCol = Math.min(range.endCol, sheet.rows.reduce((width, row) => Math.max(width, row.length), 0));
 
-  for (let col = range.startCol; col <= range.endCol; col++) {
-    for (let row = range.startRow; row <= range.endRow; row++) {
+  for (let col = range.startCol; col <= lastCol; col++) {
+    for (let row = range.startRow; row <= lastRow; row++) {
       const cell = sheet.rows[row - 1]?.[col - 1];
       const text = cell ? toDisplayText(cell) : null;
 

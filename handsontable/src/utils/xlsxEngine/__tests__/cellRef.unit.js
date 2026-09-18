@@ -1,4 +1,5 @@
 import { colIndexToLetter, colLetterToIndex, parseMultiRangeRef, parseRangeRef, toRangeRef } from '../cellRef';
+import { MAX_SHEET_COLUMNS, MAX_SHEET_ROWS } from '../limits';
 
 describe('cellRef', () => {
   it('should convert 1-based column indexes to letters and back', () => {
@@ -37,5 +38,32 @@ describe('cellRef', () => {
       { startRow: 1, startCol: 1, endRow: 1, endCol: 1 },
       { startRow: 2, startCol: 2, endRow: 2, endCol: 2 },
     ]);
+  });
+
+  it('should refuse a reference past the sheet limits, so a loop over it can never run away', () => {
+    // A list validation's range comes verbatim from the file; `$A$1:$A$99999999999` used to parse
+    // and drive a 10^11-iteration read.
+    expect(parseRangeRef('$A$1:$A$99999999999')).toBeNull();
+    expect(parseRangeRef('AAAA1')).toBeNull();
+    expect(parseRangeRef('XFE1')).toBeNull();
+    expect(parseRangeRef('A1048577')).toBeNull();
+    expect(parseRangeRef('XFD1048576')).toEqual({
+      startRow: MAX_SHEET_ROWS, startCol: MAX_SHEET_COLUMNS, endRow: MAX_SHEET_ROWS, endCol: MAX_SHEET_COLUMNS,
+    });
+  });
+
+  it('should parse whole-column and whole-row references, spanning the sheet on the open axis', () => {
+    expect(parseRangeRef('A:A')).toEqual({ startRow: 1, startCol: 1, endRow: MAX_SHEET_ROWS, endCol: 1 });
+    expect(parseRangeRef('$A:$C')).toEqual({ startRow: 1, startCol: 1, endRow: MAX_SHEET_ROWS, endCol: 3 });
+    expect(parseRangeRef('2:3')).toEqual({ startRow: 2, startCol: 1, endRow: 3, endCol: MAX_SHEET_COLUMNS });
+    expect(parseRangeRef('Sheet1!B:B')).toEqual({ startRow: 1, startCol: 2, endRow: MAX_SHEET_ROWS, endCol: 2 });
+    expect(parseMultiRangeRef('A:A D1')).toEqual([
+      { startRow: 1, startCol: 1, endRow: MAX_SHEET_ROWS, endCol: 1 },
+      { startRow: 1, startCol: 4, endRow: 1, endCol: 4 },
+    ]);
+  });
+
+  it('should normalize a range written end-first', () => {
+    expect(parseRangeRef('B2:A1')).toEqual({ startRow: 1, startCol: 1, endRow: 2, endCol: 2 });
   });
 });

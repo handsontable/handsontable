@@ -30,6 +30,15 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   `<col min="1" max="16384"/>` for any sheet-wide width or style and `Column.fromModel` expands it into
   16384 `Column` objects, so multiplying by the widened count refuses a 10 kB, 400-row, one-column file as
   "400 × 16384 cells" — and padding every row to it would be the blow-up the cap exists to prevent.
+  **Two more caps came out of review round 4.** `MAX_INPUT_BYTES` (128 MiB) is checked on the buffer BEFORE
+  `workbook.xlsx.load()` — every other cap is measured on the parsed workbook, so it bounds only this
+  reader's snapshot, never ExcelJS's own allocation. `MAX_WORKBOOK_CELLS` (10M) is a running budget
+  threaded through `readSheet` as `WorkbookBudget`, each sheet counted `rows × max(columns, 1)`, because a
+  file may declare many sheets that each sit inside the per-sheet cap. And `parseRangeRef` is bounded
+  (`{1,3}` letters, `{1,7}` digits, corners inside `MAX_SHEET_ROWS`/`MAX_SHEET_COLUMNS`, `null` past them)
+  and knows the open forms `A:A` and `2:3`, which span the whole sheet on the open axis — so every consumer
+  (`readRangeValues`, `mapConditionalFormatting`) MUST clamp to the extent it actually holds before looping.
+  A list validation of `$A$1:$A$99999999999` used to parse and drive a 10^11-iteration read.
   `wide-columns.xlsx` is that file.
 - **A snapshot row may be `[]`, and `rows[r][c]` is not safe to index blind.** The adapter walks rows with
   `worksheet.findRow()` rather than `eachRow({ includeEmpty: true })`, which calls `getRow()` and therefore
@@ -61,6 +70,10 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   List → range-on-this-sheet as a bare `$C$1:$C$10`; only a range on another sheet carries a `Sheet!`
   qualifier, and the export's own `_HotValidation` helper is the only shape the round-trip tests ever
   produced, which is how the bare form shipped as `dataValidation:unresolvedList` (Bugbot on #13551).
+- **A conditional formatting `ref` part the parser cannot read is recorded as
+  `conditionalFormatting:unparsedRef`.** The rules themselves stay out of `dropped` (they reach the caller
+  on the result), but a rectangle that silently vanished was a loss nothing named. Listed in the guide's
+  dropped-features table; add to both or neither.
   `resolveListSource` therefore takes the current `SheetSnapshot` as its third argument.
 - **Only strings are promoted to headers; the row-header column is discarded.** Handsontable generates
   row headers, so the values in the dropped column are not data anyone can get back.
@@ -178,7 +191,10 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   header and drop `=Data!A1` outright (Bugbot on #13551). The cell alternative is case-insensitive (`i`
   flag: HyperFormula accepts `=sum(a1)` and the export hands the source string over as typed) and guarded
   on the left by `(?<![\p{L}\p{N}_.$])`, so a defined name (`TOTAL1` → `AL1`) or a structured reference
-  (`TABLE1[Col]` → `BLE1`) never yields a reference. The sheet-name alternatives are deliberately
+  (`TABLE1[Col]` → `BLE1`) never yields a reference. Whole-column (`A:A`) and whole-row (`2:2`) spans are
+  their own alternatives, each end reaching the mapper with `null` on the open axis, so `=SUM(A:A)` follows
+  a prepended row-header column to `SUM(B:B)` instead of passing through and summing the header column.
+  The sheet-name alternatives are deliberately
   wide: `''` escapes an apostrophe inside a quoted name (`'O''Brien'!A1`) and a bare name is
   `[\p{L}\p{N}_.]+` under the `u` flag, because Excel leaves `Лист1` unquoted — an ASCII-only class
   shifted both (Bugbot round 2).

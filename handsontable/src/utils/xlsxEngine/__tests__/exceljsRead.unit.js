@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import ExcelJS from 'exceljs';
 import { excelJsAdapter } from '../adapters/exceljs';
 import { DroppedFeatures } from '../capabilities';
+import { MAX_INPUT_BYTES, MAX_WORKBOOK_CELLS } from '../limits';
 
 function load(name) {
   const bytes = readFileSync(join(__dirname, 'fixtures', `${name}.xlsx`));
@@ -219,6 +220,89 @@ describe('excelJsAdapter.read', () => {
     await expect(readWith(stubModule(0, 0))).resolves.toEqual(
       expect.objectContaining({ sheets: [expect.objectContaining({ name: 'Huge' })] }),
     );
+  });
+
+  it('should refuse an input buffer above the byte cap before handing it to the engine', async() => {
+    // The size caps below run after the engine has parsed the file; the byte cap is the only
+    // guard that runs before it.
+    const engine = { Workbook: class { constructor() { throw new Error('must not be constructed'); } } };
+
+    await expect(excelJsAdapter.read(new ArrayBuffer(MAX_INPUT_BYTES + 1), engine, new DroppedFeatures()))
+      .rejects.toThrow(/bytes, above the .*-byte limit/);
+  });
+
+  it('should refuse a workbook whose sheets together exceed the workbook cell budget', async() => {
+    // Each sheet sits inside the per-sheet caps; only their sum is out of bounds.
+    const perSheetRows = 1000000;
+    const sheetsNeeded = Math.floor(MAX_WORKBOOK_CELLS / perSheetRows) + 1;
+    const engine = {
+      Workbook: class {
+        constructor() {
+          this.worksheets = Array.from({ length: sheetsNeeded }, (_, index) => ({
+            name: `S${index}`,
+            state: 'visible',
+            rowCount: perSheetRows,
+            columnCount: 1,
+            findRow: () => undefined,
+            getColumn: () => ({}),
+            views: [],
+            conditionalFormattings: [],
+          }));
+          this.xlsx = { load: async() => {} };
+        }
+      },
+    };
+
+    await expect(excelJsAdapter.read(new ArrayBuffer(0), engine, new DroppedFeatures()))
+      .rejects.toThrow(/workbook declares .* cells across its sheets, above the .*-cell limit/);
+  });
+
+  it('should take a merge\'s extent from every cell in it, not only from the master downwards', async() => {
+    // A well-formed file puts the master top-left; a hand-crafted one need not.
+    const master = { row: 2, col: 2 };
+    const mergedCell = (row, col) => ({
+      row,
+      col,
+      value: null,
+      type: 1,
+      isMerged: true,
+      master,
+      formula: undefined,
+      numFmt: undefined,
+      font: undefined,
+      fill: undefined,
+      border: undefined,
+      alignment: undefined,
+      protection: undefined,
+      dataValidation: undefined,
+      note: undefined,
+    });
+    const rows = {
+      1: { eachCell: (_o, cb) => { cb(mergedCell(1, 1), 1); cb(mergedCell(1, 2), 2); }, cellCount: 2 },
+      2: { eachCell: (_o, cb) => { cb(mergedCell(2, 1), 1); cb({ ...mergedCell(2, 2), type: 2 }, 2); }, cellCount: 2 },
+    };
+    const engine = {
+      Workbook: class {
+        constructor() {
+          this.worksheets = [{
+            name: 'M',
+            state: 'visible',
+            rowCount: 2,
+            columnCount: 2,
+            findRow: n => rows[n],
+            getColumn: () => ({}),
+            views: [],
+            conditionalFormattings: [],
+          }];
+          this.xlsx = { load: async() => {} };
+        }
+      },
+      ValueType: { Merge: 1 },
+    };
+
+    const { sheets: [sheet] } = await excelJsAdapter.read(new ArrayBuffer(0), engine, new DroppedFeatures());
+
+    expect(sheet.merges).toEqual([{ row: 0, col: 0, rowspan: 2, colspan: 2 }]);
   });
 
   it('should reject a buffer that is not a workbook', async() => {

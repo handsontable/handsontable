@@ -57,6 +57,18 @@ describe('shiftFormulaReferences', () => {
     expect(shiftFormulaReferences('$A$1+$B2', 1, 1)).toBe('$B$2+$C3');
   });
 
+  it('should shift a whole-column or whole-row reference on its own axis only', () => {
+    // `=SUM(A:A)` used to pass through untouched, so with a row-header column prepended the sum
+    // silently named the header column.
+    expect(shiftFormulaReferences('SUM(A:A)', 1, 1)).toBe('SUM(B:B)');
+    expect(shiftFormulaReferences('SUM($A:$C)+A1', 1, 1)).toBe('SUM($B:$D)+B2');
+    expect(shiftFormulaReferences('SUM(A:A)', 5, 0)).toBe('SUM(A:A)');
+    expect(shiftFormulaReferences('SUM(1:1)', 1, 3)).toBe('SUM(2:2)');
+    expect(shiftFormulaReferences('SUM(A:A)', 0, -1)).toBeNull();
+    expect(shiftFormulaReferences('SUM(1:2)', -1, 0)).toBeNull();
+    expect(shiftFormulaReferences('SUM(Data!A:A)+SUM(\'S 1\'!2:2)', 1, 1)).toBe('SUM(Data!A:A)+SUM(\'S 1\'!2:2)');
+  });
+
   it('should not reject a qualified reference that would leave the sheet if it were shifted', () => {
     // `Data!A1` under a `firstRow` header window used to shift to row 0 and drop the whole formula.
     expect(shiftFormulaReferences('Data!A1', -1, -1)).toBe('Data!A1');
@@ -125,6 +137,23 @@ describe('mapFormulaReferences', () => {
 
     expect(seen).toEqual([{ row: 4, col: 4, rowAbsolute: false, colAbsolute: false }]);
     expect(result).toBe('Data!A1+\'Sheet 1\'!B2:C3+D5');
+  });
+
+  it('should hand an open reference to the mapper with null on its open axis', () => {
+    const seen = [];
+
+    mapFormulaReferences('A:B+3:3', (reference) => {
+      seen.push(reference);
+
+      return { row: reference.row, col: reference.col };
+    });
+
+    expect(seen).toEqual([
+      { row: null, col: 1, rowAbsolute: false, colAbsolute: false },
+      { row: null, col: 2, rowAbsolute: false, colAbsolute: false },
+      { row: 3, col: null, rowAbsolute: false, colAbsolute: false },
+      { row: 3, col: null, rowAbsolute: false, colAbsolute: false },
+    ]);
   });
 
   it('should return null as soon as the mapper rejects a reference', () => {

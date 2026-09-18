@@ -31,6 +31,13 @@ describe('normalizeFormula', () => {
     });
   });
 
+  describe('open references', () => {
+    it('should shift a whole-column reference by the column offset only', () => {
+      expect(normalizeFormula('=SUM(A:A)', ',', 1, 1)).toBe('SUM(B:B)');
+      expect(normalizeFormula('=SUM(2:2)', ',', 1, 1)).toBe('SUM(3:3)');
+    });
+  });
+
   describe('string literals', () => {
     it('should not offset cell-reference-like patterns inside double-quoted string literals', () => {
       // The "See A1" string constant must stay unchanged; only the A1 reference in the condition is shifted.

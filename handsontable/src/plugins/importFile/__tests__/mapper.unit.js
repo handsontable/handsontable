@@ -802,6 +802,24 @@ describe('registerStyleRule', () => {
 });
 
 describe('mapWorkbook – conditionalFormatting', () => {
+  it('should cover the window for a whole-column ref and report a part it cannot parse', () => {
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [[text('a'), text('b')], [text('c'), text('d')], [text('e'), text('f')]];
+    sheet.conditionalFormatting = [
+      { ref: 'A:A', rules: [] },
+      { ref: 'B1 nonsense', rules: [] },
+    ];
+
+    const { result, dropped } = map(workbook(sheet));
+
+    expect(result.conditionalFormatting).toEqual([
+      { rows: [0, 2], cols: [0, 0], rules: [] },
+      { rows: [0, 0], cols: [1, 1], rules: [] },
+    ]);
+    expect(dropped.list()).toContain('conditionalFormatting:unparsedRef');
+  });
+
   const rule = { type: 'cellIs', operator: 'greaterThan', formulae: ['100'] };
 
   function cfSheet() {

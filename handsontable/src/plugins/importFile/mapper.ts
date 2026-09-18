@@ -737,18 +737,26 @@ function mapLayout(sheet: SheetSnapshot, window: SheetWindow): Partial<ImportRes
  *
  * It is produced regardless of `importLayout`: conditional formatting is a statement about cells,
  * not about the sheet's layout, and `importLayout` is documented as merges, hidden rows and columns,
- * frozen panes, widths and heights. It is also NOT reported under `dropped` - the rules reach the
- * caller on the result, which is the same treatment a formula gets when the grid cannot evaluate it.
+ * frozen panes, widths and heights. The rules themselves are NOT reported under `dropped` - they
+ * reach the caller on the result, which is the same treatment a formula gets when the grid cannot
+ * evaluate it. A `ref` part the parser cannot read is a loss, though, and is recorded as
+ * `conditionalFormatting:unparsedRef` so it does not vanish silently.
  */
 function mapConditionalFormatting(
-  sheet: SheetSnapshot, window: SheetWindow
+  sheet: SheetSnapshot, window: SheetWindow, dropped: DroppedFeatures
 ): ImportedConditionalFormatting[] | undefined {
   const rowCount = window.lastRow - window.firstRow + 1;
   const colCount = window.lastCol - window.firstCol + 1;
   const descriptors: ImportedConditionalFormatting[] = [];
 
   sheet.conditionalFormatting.forEach(({ ref, rules }) => {
-    parseMultiRangeRef(ref).forEach((range) => {
+    const ranges = parseMultiRangeRef(ref);
+
+    if (ranges.length !== ref.split(/\s+/).filter(part => part !== '').length) {
+      dropped.record('conditionalFormatting:unparsedRef');
+    }
+
+    ranges.forEach((range) => {
       const startRow = Math.max(range.startRow - 1 - window.firstRow, 0);
       const startCol = Math.max(range.startCol - 1 - window.firstCol, 0);
       const endRow = Math.min(range.endRow - 1 - window.firstRow, rowCount - 1);
@@ -931,7 +939,7 @@ export function mapWorkbook(
     ...(options.importLayout ? mapLayout(sheet, window) : {}),
     formulas: pass.formulas.length > 0 ? pass.formulas : undefined,
     comments: pass.comments.length > 0 ? pass.comments : undefined,
-    conditionalFormatting: mapConditionalFormatting(sheet, window),
+    conditionalFormatting: mapConditionalFormatting(sheet, window, dropped),
     styles: pass.styles.size > 0 ? Object.fromEntries(pass.styles) : undefined,
     customBorders: pass.borders.length > 0 ? pass.borders : undefined,
     sheetNames: workbook.sheets.map(candidate => candidate.name),
