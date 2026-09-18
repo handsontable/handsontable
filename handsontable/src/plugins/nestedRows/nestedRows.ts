@@ -678,39 +678,30 @@ export class NestedRows extends BasePlugin {
    * across renders, so anything left inside one at this moment stays there for the rest of the
    * instance's life (DEV-2982).
    *
-   * A row header is rendered twice - in the master table and in the inline-start clone painted over
-   * it - and `getCell()` answers with one or the other depending on `topmost`, so both are stripped.
+   * Walks the DOM rather than resolving coordinates. A row header is painted in the master table and
+   * in every overlay that covers its row - up to four copies for a frozen row - and `getCell()` can
+   * name only two of them. The walk also has to work with no grid state at all: `#acceptsData()`
+   * disables the plugin from `beforeLoadData`, which at construction fires before the view exists and
+   * on a later `loadData()` fires after `replaceData()` destroyed the previous DataMap, so anything
+   * that reaches `countRows()` - `getCell()` does, through the `fixedRowsTop` setting - throws there.
    *
-   * Bounded by the rendered band, never by `countRows()`: `#acceptsData()` disables the plugin from
-   * `beforeLoadData`, which at construction fires before the view or the DataMap exist, and on a later
-   * `loadData()` fires after the previous DataMap was destroyed. Nothing is drawn in either case.
+   * Only this instance's own tables are touched, so a grid rendered inside a cell keeps its headers.
+   * Each table (`ht_master` and every `ht_clone_*`) carries the `handsontable` class, as does the
+   * root, and on a window-scrolled grid an overlay sits inside a rail element that carries neither -
+   * so ownership is "the nearest `handsontable` ancestor above the table is this root", not "the
+   * table is a direct child of it".
    */
   #removeRenderedLevelIndicators() {
-    const { view } = this.hot;
+    const { rootElement } = this.hot;
+    const rowHeaders = rootElement.querySelectorAll<HTMLTableCellElement>('tbody th');
 
-    if (!view) {
-      return;
-    }
+    rowHeaders.forEach((TH) => {
+      const table = TH.closest('.handsontable');
 
-    const firstRow = view.getFirstRenderedVisibleRow();
-    const lastRow = view.getLastRenderedVisibleRow();
-
-    if (firstRow === null || lastRow === null) {
-      return;
-    }
-
-    for (let row = firstRow; row <= lastRow; row++) {
-      const masterTH = this.hot.getCell(row, -1);
-      const cloneTH = this.hot.getCell(row, -1, true);
-
-      if (masterTH) {
-        this.headersUI!.removeLevelIndicators(masterTH);
+      if (table?.parentElement?.closest('.handsontable') === rootElement) {
+        this.headersUI!.removeLevelIndicators(TH);
       }
-
-      if (cloneTH && cloneTH !== masterTH) {
-        this.headersUI!.removeLevelIndicators(cloneTH);
-      }
-    }
+    });
   }
 
   /**

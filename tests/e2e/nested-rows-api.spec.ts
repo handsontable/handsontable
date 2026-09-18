@@ -371,9 +371,6 @@ test.describe('NestedRows collapsed state stability', () => {
 
     await nestedRows.updateSettings({ nestedRows: false });
 
-    // `afterGetRowHeader` is the only hook that ever stripped these nodes, and it goes with the
-    // plugin's other hooks. Walkontable recycles the `th` elements, so anything left inside one at
-    // that moment used to stay there for the life of the grid - a dead button included (DEV-2982).
     await expect(nestedRows.nestingIndicators()).toHaveCount(0);
     await expect(nestedRows.collapseButton(0)).toHaveCount(0);
   });
