@@ -268,6 +268,12 @@ Pass these options as the second argument to `downloadFileAsync('xlsx', options)
 
 Use the `sheets` option to export multiple Handsontable instances into a single workbook. Each entry specifies the `instance` to read from and a `name` for the sheet tab.
 
+::: tip Behavior note
+
+With `exportFormulas`, a formula reference that names another sheet, such as `=Rates!A1`, is written as typed. The referenced sheet is not shifted by the header row and row-header column the export prepends to it, so such a reference points one row up and one column left of the intended cell in the written file when that sheet is part of the same export and carries headers. Same-sheet references are shifted correctly. Cross-sheet formulas across exported sheets are a known limitation.
+
+:::
+
 ::: only-for javascript
 ::: example #example2 :hot-excel --html 1 --js 2 --ts 3
 

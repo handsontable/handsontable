@@ -310,6 +310,21 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   `../../utils/xlsxEngine/cellRef.ts#parseMultiRangeRef`, beside the single-range parser both directions
   already share; do not grow a second A1 parser in the plugin.
 
+## Deferred, with the reasoning
+
+- **Lazy per-sheet snapshots (review round 4, R16).** `excelJsAdapter.read` snapshots every worksheet while
+  `selectSheet` imports one; measured 2.7× time and 2.4× heap on a 3-sheet file, ~240 ms / ~200 MB of it the
+  snapshot build. The fix needs the selector at read time and a `materialize(name)` hook on
+  `WorkbookSnapshot`, because `resolveListSource` reaches other sheets. Ticketed, not in #13551.
+- **`MAX_SHEET_CELLS` stays at 5,000,000 (R18).** A file at the cap measured ~42 s frozen and 3.8 GB peak.
+  The cap is a security bound on a declared rectangle, not a comfort promise; the guide's Security section
+  says so. Lowering it would refuse legitimate files; a streaming read is the real fix and is out of scope.
+- **Cross-sheet references in a multi-sheet EXPORT (R23).** `normalizeFormula` leaves `Rates!A1` unshifted.
+  Right on import and for a sheet outside the export; wrong when `Rates` is also exported with headers,
+  because that sheet's data moved too. The fix resolves the qualifier against the export's sheet list (after
+  `sanitizeSheetName`) and shifts by THAT sheet's offsets. Documented as a limitation in the export guide's
+  multi-sheet section; ticketed.
+
 ## Where to look next
 
 - `../exportFile/AGENTS.md` for the write direction and the `_HotValidation` sheet.
