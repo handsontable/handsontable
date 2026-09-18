@@ -15,15 +15,18 @@ test.describe('DEV-133 — selection UI on print', () => {
     await grid.goto();
     await grid.selectRange(1, 1, 2, 2);
 
-    // Positive control: the transient selection UI is visible under screen media.
+    // Positive control: the fill handle, the area outline, and the current-cell outline are all
+    // visible under screen media.
     await grid.emulateScreen();
     await expect(grid.visibleFillHandle()).toHaveCount(1);
     await expect(grid.visibleAreaBorder().first()).toBeVisible();
+    await expect(grid.visibleCurrentBorder().first()).toBeVisible();
 
-    // Fix: it is hidden under print media, so no empty bordered square ("pit") is printed.
+    // Fix: all of them are hidden under print media, so no empty bordered square ("pit") is printed.
     await grid.emulatePrint();
     await expect(grid.visibleFillHandle()).toHaveCount(0);
     await expect(grid.visibleAreaBorder()).toHaveCount(0);
+    await expect(grid.visibleCurrentBorder()).toHaveCount(0);
   });
 
   test('the print rule does not hide a custom border', async({ page, theme, bundle }) => {
@@ -37,10 +40,12 @@ test.describe('DEV-133 — selection UI on print', () => {
     // print media — not real-print visibility: `emulateMedia({ media: 'print' })` activates @media
     // print but does not simulate the browser's own background drop (which this background-based
     // custom border would take on a real printout regardless, exactly like the grid's cell borders).
+    // The fixture draws exactly four magenta edges; pin the count so a future print rule that hides
+    // some (but not all) of them is caught, not just a total wipe.
     await grid.emulateScreen();
-    expect(await grid.visibleCustomBorderEdgeCount()).toBeGreaterThan(0);
+    expect(await grid.visibleCustomBorderEdgeCount()).toBe(4);
 
     await grid.emulatePrint();
-    expect(await grid.visibleCustomBorderEdgeCount()).toBeGreaterThan(0);
+    expect(await grid.visibleCustomBorderEdgeCount()).toBe(4);
   });
 });

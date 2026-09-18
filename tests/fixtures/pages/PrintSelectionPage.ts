@@ -30,6 +30,15 @@ export class PrintSelectionPage {
     await this.page.goto(
       `/tests/fixtures/demo/print-selection.html?theme=${this.theme}&bundle=${this.bundle}`);
     await awaitBundle(this.page);
+
+    // Surface a constructor throw the fixture captured, so a bad config fails with its real error
+    // rather than a distant cell-visibility timeout.
+    const initError = await this.page.evaluate(() => (window as any).__hotInitError);
+
+    if (initError) {
+      throw new Error(`Handsontable failed to initialize in the fixture: ${initError}`);
+    }
+
     await expect(this.page.getByTestId('cell-0-0')).toBeVisible();
   }
 
@@ -65,6 +74,11 @@ export class PrintSelectionPage {
   /** The visible area selection border edges in the master overlay. */
   visibleAreaBorder(): Locator {
     return this.page.locator('.ht_master .wtBorder.area:visible');
+  }
+
+  /** The visible current-cell selection border edges in the master overlay. */
+  visibleCurrentBorder(): Locator {
+    return this.page.locator('.ht_master .wtBorder.current:visible');
   }
 
   /**

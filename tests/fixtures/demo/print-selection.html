@@ -47,25 +47,32 @@
       td.setAttribute('data-testid', `cell-${row}-${col}`);
     };
 
-    window.hot = new Handsontable(container, {
-      data: Handsontable.helper.createSpreadsheetData(8, 8),
-      colHeaders: true,
-      rowHeaders: true,
-      // Small enough that every row renders in the master (no frozen panes), so a
-      // selection border, its fill handle, and the custom border all live in .ht_master.
-      width: 600,
-      height: 500,
-      renderer: testIdRenderer,
-      // A custom border on a cell OUTSIDE any selection the spec makes. It renders through the
-      // same `.wtBorder` element as the selection border but with a distinctive magenta fill and
-      // no selection class, so the spec can prove the print rule leaves it alone (DEV-133).
-      customBorders: [
-        { row: 6, col: 6,
-          top: { width: 3, color: 'rgb(255, 0, 255)' }, bottom: { width: 3, color: 'rgb(255, 0, 255)' },
-          left: { width: 3, color: 'rgb(255, 0, 255)' }, right: { width: 3, color: 'rgb(255, 0, 255)' } },
-      ],
-      licenseKey: 'non-commercial-and-evaluation',
-    });
+    // Fail loud: capture a constructor throw on `window` so a bad theme/bundle config surfaces as
+    // its real error in the page object's `goto()`, not as a distant `cell-0-0` visibility timeout
+    // (tests/AGENTS.md fixture contract).
+    try {
+      window.hot = new Handsontable(container, {
+        data: Handsontable.helper.createSpreadsheetData(8, 8),
+        colHeaders: true,
+        rowHeaders: true,
+        // Small enough that every row renders in the master (no frozen panes), so a
+        // selection border, its fill handle, and the custom border all live in .ht_master.
+        width: 600,
+        height: 500,
+        renderer: testIdRenderer,
+        // A custom border on a cell OUTSIDE any selection the spec makes. It renders through the
+        // same `.wtBorder` element as the selection border but with a distinctive magenta fill and
+        // no selection class, so the spec can prove the print rule leaves it alone (DEV-133).
+        customBorders: [
+          { row: 6, col: 6,
+            top: { width: 3, color: 'rgb(255, 0, 255)' }, bottom: { width: 3, color: 'rgb(255, 0, 255)' },
+            left: { width: 3, color: 'rgb(255, 0, 255)' }, right: { width: 3, color: 'rgb(255, 0, 255)' } },
+        ],
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      window.__hotInitError = String((error && error.stack) || error);
+    }
   </script>
 </body>
 </html>

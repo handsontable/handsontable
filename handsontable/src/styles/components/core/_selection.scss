@@ -239,22 +239,27 @@
 
     // Print: hide the transient selection UI so a printout shows a clean grid (DEV-133). Browsers
     // drop `background-color` when printing (to save ink) but keep real CSS `border`s, so the fill
-    // handle - `.wtBorder.corner`, which carries an inline `border` (border.ts) plus a
-    // `background-color` - prints as an empty bordered square ("pit"), while the background-only
-    // outline divs (`.current`/`.area`/`.fill`) vanish. Hiding the whole selection overlay set
-    // removes the mismatch. Custom borders must still appear on a printout, so never use a bare
-    // `.wtBorder` rule. The four EDGE classes below are selection-scoped (a custom border renders
-    // through the same `.wtBorder` element but with a different class - see `createBorders` /
-    // CUSTOM_SELECTION_TYPE in border.ts - never `current`/`area`/`fill`). `.corner` is NOT
-    // class-scoped: `createBorders` appends `corner` to the fifth div of EVERY Border, custom
-    // included; hiding it is safe only because a custom border never enables `cornerVisible`, so its
-    // corner is already `display: none`.
+    // handle (`.wtBorder.corner` - an inline `border` from `Border#createBorders` plus a
+    // `background-color`) printed as an empty bordered square (the "pit"), while the background-only
+    // outline divs (`.current`/`.area`/`.fill`) vanished. Hiding the whole set removes the mismatch.
+    // Scoping: NEVER use a bare `.wtBorder` - a user's custom border renders through the same element
+    // with a different class (`createBorders` / CUSTOM_SELECTION_TYPE in border.ts) and must still
+    // print. The three selection-layer classes (`current`/`area`/`fill`) are selection-only. `.corner`
+    // is NOT: `createBorders` appends it to the fifth div of EVERY Border, so this matches a custom
+    // border's corner too - which is intended, because a corner is the same border+background box and
+    // prints as the same "pit" whoever owns it. The handle classes are listed explicitly (not a
+    // `[class*="SelectionHandle"]` substring) so a custom cell renderer whose own class merely
+    // contains "SelectionHandle" is never hidden on print.
     @media print {
       .wtBorder.current,
       .wtBorder.area,
       .wtBorder.fill,
       .wtBorder.corner,
-      [class*="SelectionHandle"],
+      .wtSelectionHandle,
+      .topSelectionHandle,
+      .bottomSelectionHandle,
+      .topSelectionHandle-HitArea,
+      .bottomSelectionHandle-HitArea,
       .wtMoveZone {
         display: none !important;
       }

@@ -30,35 +30,6 @@ Self-contained rendering engine for viewport calculation, DOM rendering, scroll 
 
 `Border` in `src/selection/border/border.ts` has TWO distinct handle systems: `selectionHandles` (mobile touch handles, created by `createMultipleSelectorHandles()`, CSS classes `topSelectionHandle`/`bottomSelectionHandle`) and `adjustHandles` (desktop drag-to-resize handles added in 18.0.0, CSS class `.wtSelectionHandle`, controlled by the `selectionHandles` grid option). Do not conflate them.
 
-## Selection UI is hidden on print, custom borders are not (DEV-133)
-
-Core has a print styling layer now — an `@media print` block in
-`src/styles/components/core/_selection.scss`. Browsers drop `background-color` (and `box-shadow`)
-when printing but keep real CSS `border`s, so the fill handle (`.wtBorder.corner`, which carries an
-inline `border` from `Border#createBorders` **plus** a `background-color`) printed as an empty
-bordered square — the reported "pit" — while the background-only outline divs vanished. The rule
-hides the whole transient selection overlay set on print (`.wtBorder.current`/`.area`/`.fill`/`.corner`,
-every `SelectionHandle` element, `.wtMoveZone`, the `td.area::before` fill). It deliberately does NOT
-normalize the `td.area` border color: a real CSS border prints regardless (so the color-mixed
-selection border is unchanged from screen, as it was before this fix), and a `td.area` color override
-with the specificity needed to beat the screen rule also beats the grid's own outer-frame rules
-(`tr:first-child > td` etc. in `_base.scss`) on an edge selection like select-all — repainting the
-frame in the inner cell-border token, which is transparent in some themes (bugbot, PR #13574).
-
-Never widen the rule to a bare `.wtBorder`; that would hide user-configured borders on paper. The
-four EDGE classes (`current`/`area`/`fill`) are genuinely selection-scoped: a custom border renders
-through the same `.wtBorder` element (`createBorders`, `settings.selectionType ===
-CUSTOM_SELECTION_TYPE`) but never carries those classes. **`.corner` is the exception** — `createBorders`
-appends `corner` to the fifth div of EVERY Border, custom included, so `.wtBorder.corner` in the print
-rule DOES match a custom border's corner. That is safe not because of class scoping but because a
-custom border never enables `cornerVisible`, so `border.ts` has already forced its corner to
-`display: none`. Do not "tighten" the rule on the assumption `.corner` is selection-only.
-
-Header selection accents (`.ht__active_highlight`, the `-row-seam-*` colors) are deliberately out of
-scope: they are the active row/column header's own `border-*-color`, a colored accent rather than a
-broken box, so they print harmlessly and the HIDE decision was about the cell selection only. Pinned
-by `tests/e2e/print-selection.spec.ts` (fill handle hidden on print, custom border still visible).
-
 ## Custom border `width: 0` is a real value (DEV-1137)
 
 `getBorderSettingsProperty` in `src/selection/border/utils.ts` reads per-side settings with `??`, not a truthy check. `width: 0` must stay 0 so the edge paints at 0px. A truthy `posSettings[property] ? … : settings.border[property]` falls back to the default 1px and the zero-width border reappears. The same helper keeps an explicit empty `style: ''` rather than inheriting `settings.border.style`; `Border#createBorders` then takes the solid-fill `else` path (`if (borderStyle)` is false). Omitting the key, or setting `null`/`undefined`, still falls through. Do not special-case `style`; keep `??` for every property on this helper, because a truthy check would resurrect the width-0 bug.

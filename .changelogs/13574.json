@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed the cell selection borders and fill handle printing as broken artifacts when printing the grid.",
+  "title": "Stopped rendering the cell selection, fill handle, and cell highlight on printouts, where they previously appeared as broken artifacts (an empty box and missing borders).",
   "type": "fixed",
   "issueOrPR": 13574,
   "breaking": false,
