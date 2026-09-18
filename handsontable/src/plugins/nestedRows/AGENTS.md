@@ -296,7 +296,7 @@ They are written in different places and can drift. Keep this in mind:
   `hot.render()`, and `updatePlugin()` runs on every `updateSettings()` carrying the `nestedRows` key —
   every re-render in React. Pass `shouldRender: false` there; the Core draws right after the hook, and
   leaving the render in doubled every re-render's draw (measured: 2 draws per no-op re-send, now 1).
-  **Formulas is carried across the toggle by Formulas itself, not from here (DEV-2978).** That plugin
+  **Formulas is carried across the toggle by Formulas itself, not from here.** That plugin
   resyncs its sheet from `afterLoadData` / `afterUpdateData` and from `afterCellMetaReset`, which the
   Core fires *before* `afterUpdateSettings` — a toggle reaches none of them with the new layout, so
   the engine kept the pre-flatten one: measured, the grid showed four rows against a two-row

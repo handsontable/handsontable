@@ -105,11 +105,11 @@ registry.
 The sheet is rebuilt from the source data in `#onAfterCellMetaReset`, and the Core fires
 `afterCellMetaReset` in the **middle** of `updateSettings()` — before `afterUpdateSettings`, which is
 where every plugin's `onUpdateSettings` runs. So a setting that changes how many rows the grid holds
-is invisible to that pass. `nestedRows: true` is the measured case (DEV-2978): the plugin flattens a
-two-row tree into four rows, the engine kept the two-row sheet, `Root B`'s `=UPPER(A1)` rendered as
-its own raw text, and the computed value had slid onto another row — and a later edit then
-re-evaluated against the stale sheet, so the wrong row updated. It was unreachable before DEV-2938,
-which made the toggle work at all.
+is invisible to that pass. `nestedRows: true` is the measured case: the plugin flattens a two-row
+tree into four rows, the engine kept the two-row sheet, `Root B`'s `=UPPER(A1)` rendered as its own
+raw text, and the computed value had slid onto another row — and a later edit then re-evaluated
+against the stale sheet, so the wrong row updated. It was unreachable until the runtime toggle
+stopped throwing in `NestedRows`' own data manager.
 
 `#onAfterUpdateSettingsRowCount` is the repair: a second `afterUpdateSettings` listener registered
 with **`orderIndex: 1`**, which is what puts it after every default-order listener, the plugins'
