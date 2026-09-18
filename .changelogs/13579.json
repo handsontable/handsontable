@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed how the `Filters` plugin reads a column while filtering: the conditions now run over a columnar read that resolves cell meta only for the rows that need it, which makes filtering a large dataset faster.",
+  "type": "changed",
+  "issueOrPR": 13579,
+  "breaking": false,
+  "framework": "none"
+}
