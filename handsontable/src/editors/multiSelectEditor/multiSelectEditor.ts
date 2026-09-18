@@ -195,8 +195,8 @@ export class MultiSelectEditor extends BaseEditor {
     this.addHook('afterDestroy', () => this.destroy());
     this.addHook('afterChange',
       (changes: unknown[][], source: string) => this.#onAfterChange(changes, source));
-    this.addHook('afterScrollHorizontally', () => this.refreshDimensions());
-    this.addHook('afterScrollVertically', () => this.refreshDimensions());
+    this.addHook('afterScrollHorizontally', () => this.#followCell());
+    this.addHook('afterScrollVertically', () => this.#followCell());
 
     this.dropdownController!.getInputController()!.addLocalHook(
       'triggerFilter', (value: string) => this.#filterEntries(value));
@@ -482,14 +482,39 @@ export class MultiSelectEditor extends BaseEditor {
   }
 
   /**
+   * Re-clamps the list to the room around its cell, then moves it there. Runs on every scroll that
+   * moves the cell - the grid's own, the page's, an ancestor's - and on a resize: the cell moves
+   * relative to the containing block, so a list that fitted where it opened can stop fitting, and
+   * a list moved without a re-clamp keeps its opening height and hangs past the box's edge where
+   * nothing can reach its lower entries.
+   */
+  #followCell(): void {
+    // A closed editor has nothing to clamp, and a row scrolled out of the rendered range leaves
+    // no cell to measure - `refreshDimensions()` hides the list for that one.
+    if (this.isOpened() && this.getEditedCell()) {
+      const list = this.dropdownContainerElement!;
+      // `updateDimensions()` scrolls the list back to its first entry, which suits a new list, not
+      // one being scrolled: a wheel past its last entry scrolls the grid or the page, and the list
+      // would jump back to the top under the pointer.
+      const { scrollTop } = list;
+
+      // Clamp first: the horizontal flip in `refreshDimensions()` reads the clamped width.
+      this.dropdownController!.updateDimensions(this.#getAvailableSpace());
+      list.scrollTop = scrollTop;
+    }
+
+    this.refreshDimensions();
+  }
+
+  /**
    * Keeps the `fixed` container attached to its cell while something outside the grid scrolls:
-   * the page, or an ancestor of the grid. The grid's own scroll already reaches
-   * `refreshDimensions()` through the `afterScroll*` hooks. Capture phase, because `scroll` does
-   * not bubble. Bound once for the editor's life and gated on the editor being open, because
-   * `refreshDimensions()` also shows the container. Gated on the grid being alive too: tearing
-   * the grid down shrinks the document, the window's scroll position clamps, and the resulting
-   * `scroll` event reaches this listener before the event manager releases it - and
-   * `getEditedCell()` throws on a destroyed instance.
+   * the page, or an ancestor of the grid. The grid's own scroll already reaches `#followCell()`
+   * through the `afterScroll*` hooks. Capture phase, because `scroll` does not bubble. Bound once
+   * for the editor's life and gated on the editor being open, because `refreshDimensions()` also
+   * shows the container. Gated on the grid being alive too: tearing the grid down shrinks the
+   * document, the window's scroll position clamps, and the resulting `scroll` event reaches this
+   * listener before the event manager releases it - and `getEditedCell()` throws on a destroyed
+   * instance.
    */
   #bindScrollFollow(): void {
     if (this.#scrollFollowBound) {
@@ -497,7 +522,7 @@ export class MultiSelectEditor extends BaseEditor {
     }
 
     const follow = (event?: Event) => {
-      // The grid's own scroll already reaches `refreshDimensions()` through the `afterScroll*`
+      // The grid's own scroll already reaches `#followCell()` through the `afterScroll*`
       // hooks, and a capture listener runs BEFORE the target-phase handler that re-places the
       // grid, so acting on it would position from a stale rect and then do it again.
       // `isHTMLElement()`, not `instanceof Node`: the check has to hold for a node from another
@@ -514,13 +539,7 @@ export class MultiSelectEditor extends BaseEditor {
         return;
       }
 
-      // Re-clamp the height and the flip: the cell moves relative to the containing block as the
-      // page scrolls, so a list that fitted below its cell when it opened can stop fitting.
-      // Without this the container is moved but keeps a height sized for its opening position,
-      // and the lower entries end up past the box's edge where nothing can reach them. Clamp
-      // first: the horizontal flip in `refreshDimensions()` reads the clamped width.
-      this.dropdownController!.updateDimensions(this.#getAvailableSpace());
-      this.refreshDimensions();
+      this.#followCell();
     };
 
     this.eventManager.addEventListener(this.hot.rootDocument, 'scroll', follow, {

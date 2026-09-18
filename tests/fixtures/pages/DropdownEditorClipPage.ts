@@ -176,6 +176,62 @@ export class DropdownEditorClipPage {
     }, y);
   }
 
+  /**
+   * Scrolls the grid's own holder - not the page - so the given row is the first or the last one in
+   * view, and resolves once it is: a render-state probe, not a scroll position.
+   */
+  async scrollGridToRow(row: number, snap: 'top' | 'bottom'): Promise<void> {
+    await this.page.evaluate(([r, s]) => window.hot.scrollViewportTo({ row: r, verticalSnap: s }), [row, snap] as const);
+    await this.page.waitForFunction(
+      ([r, s]) => (s === 'top' ? window.hot.getFirstFullyVisibleRow() : window.hot.getLastFullyVisibleRow()) === r,
+      [row, snap] as const,
+      { polling: 100 }
+    );
+  }
+
+  /**
+   * Counts the `scroll` events the document hands to capture listeners from now on. Added after
+   * the editor's own listener, so a count of N means that listener has run N times too.
+   */
+  async startScrollCounter(): Promise<void> {
+    await this.page.evaluate(() => {
+      const probe = window as unknown as { htDocumentScrolls: number };
+
+      probe.htDocumentScrolls = 0;
+      document.addEventListener('scroll', () => {
+        probe.htDocumentScrolls += 1;
+      }, { capture: true, passive: true });
+    });
+  }
+
+  /** How many `scroll` events reached the document since `startScrollCounter()`. */
+  async scrollCount(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as { htDocumentScrolls: number }).htDocumentScrolls);
+  }
+
+  /** Scrolls the multiselect's option list inside its own box. */
+  async scrollListTo(top: number): Promise<void> {
+    await this.page.evaluate((t) => {
+      document.querySelector('.ht-multi-select-editor')!.scrollTop = t;
+    }, top);
+  }
+
+  /** The multiselect option list's own scroll offset. */
+  async listScrollTop(): Promise<number> {
+    return this.page.evaluate(() => document.querySelector('.ht-multi-select-editor')!.scrollTop);
+  }
+
+  /** Whether the list is on screen - its wrapper is `display: none` once the editor hides it. */
+  async isListShown(): Promise<boolean> {
+    return this.page.evaluate(() => {
+      // The specific selector first - see `reachableOptions()` for why document order bites here.
+      const list = document.querySelector('.ht-multi-select-editor')
+        ?? document.querySelector('.handsontableEditor');
+
+      return list !== null && list.getClientRects().length > 0;
+    });
+  }
+
   /** Whether the editor reports itself flipped above the edited cell. */
   async isFlippedVertically(): Promise<boolean> {
     return this.page.evaluate(() => {

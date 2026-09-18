@@ -162,5 +162,75 @@ test.describe('dropdown editor list escapes the grid clip (#8688)', () => {
       expect(list.top).toBeGreaterThanOrEqual(0);
       expect(await grid.reachableOptions()).toBe(await grid.optionCount());
     });
+
+    test('re-clamps a `multiselect` list when the grid\'s own scroll moves the cell', async ({ page }) => {
+      // A grid almost as tall as the viewport, scrolled so the edited row starts at its top: the
+      // list opens downwards with room to spare on every theme. Scrolling the grid's OWN holder then
+      // carries the cell to the grid's bottom edge, too close to the viewport's for the list to
+      // fit below it. The page does not scroll, so only the grid's scroll hooks can react.
+      await grid.rebuild({ height: 640, rows: 80, editorType: 'multiselect' });
+      await grid.scrollGridToRow(40, 'top');
+      await grid.openEditor(40, 1);
+
+      const options = await grid.optionCount();
+
+      expect(await grid.reachableOptions()).toBe(options);
+
+      await grid.scrollGridToRow(40, 'bottom');
+
+      // Without a re-clamp the list keeps its opening height and hangs past the viewport's bottom
+      // edge, where a `fixed` box adds nothing to scroll to.
+      await expect.poll(() => grid.reachableOptions()).toBe(options);
+
+      const { list } = await grid.boxes();
+
+      expect(list.bottom).toBeLessThanOrEqual(page.viewportSize()!.height + 1);
+    });
+
+    test('hides a `multiselect` list without throwing when a page scroll unrenders its row',
+      async ({ page }) => {
+        const errors: string[] = [];
+
+        page.on('pageerror', error => errors.push(error.message));
+
+        // `height: 'auto'`: the page scrolls the grid, so a row far above the viewport is not
+        // rendered and the editor has no cell left to measure.
+        await grid.rebuild({ height: 'auto', rows: 200, editorType: 'multiselect' });
+        await grid.openEditor(0, 1);
+
+        expect(await grid.isListShown()).toBe(true);
+
+        // The page-scroll listener runs before the grid redraws, so the scroll that unrenders the
+        // row still finds its cell. The grid's own scroll hook then hides the list.
+        await grid.scrollWindowBy(4000);
+        await expect.poll(() => grid.isListShown()).toBe(false);
+
+        // Every later scroll reaches the listener with no cell to measure.
+        await grid.startScrollCounter();
+        await grid.scrollWindowBy(100);
+
+        // The control for the check below: that scroll reached the document's listeners.
+        await expect.poll(() => grid.scrollCount()).toBeGreaterThan(0);
+        expect(errors).toEqual([]);
+      });
+
+    test('keeps a `multiselect` list\'s own scroll position when the grid scrolls', async () => {
+      // Too many options to fit, so the list is clamped and scrolls inside its own box.
+      const source = Array.from({ length: 40 }, (_, i) => `Option ${i + 1}`);
+
+      await grid.rebuild({ height: 640, rows: 80, columns: [{}, { type: 'multiselect', source }] });
+      await grid.scrollGridToRow(40, 'top');
+      await grid.openEditor(40, 1);
+      await grid.scrollListTo(200);
+
+      const before = await grid.boxes();
+
+      // Two rows up: the cell moves down, and stays in view.
+      await grid.scrollGridToRow(38, 'top');
+
+      // The control: the list followed the cell, so the re-clamp that resets its scroll has run.
+      await expect.poll(async () => (await grid.boxes()).list.top).toBeGreaterThan(before.list.top + 20);
+      expect(await grid.listScrollTop()).toBe(200);
+    });
   });
 });
