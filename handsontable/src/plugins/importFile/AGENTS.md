@@ -315,15 +315,16 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
 - **Lazy per-sheet snapshots (review round 4, R16).** `excelJsAdapter.read` snapshots every worksheet while
   `selectSheet` imports one; measured 2.7× time and 2.4× heap on a 3-sheet file, ~240 ms / ~200 MB of it the
   snapshot build. The fix needs the selector at read time and a `materialize(name)` hook on
-  `WorkbookSnapshot`, because `resolveListSource` reaches other sheets. Ticketed, not in #13551.
+  `WorkbookSnapshot`, because `resolveListSource` reaches other sheets. Decision on #13551: not for now, no ticket; revisit only if
+  multi-sheet import cost is reported.
 - **`MAX_SHEET_CELLS` stays at 5,000,000 (R18).** A file at the cap measured ~42 s frozen and 3.8 GB peak.
   The cap is a security bound on a declared rectangle, not a comfort promise; the guide's Security section
   says so. Lowering it would refuse legitimate files; a streaming read is the real fix and is out of scope.
 - **Cross-sheet references in a multi-sheet EXPORT (R23).** `normalizeFormula` leaves `Rates!A1` unshifted.
   Right on import and for a sheet outside the export; wrong when `Rates` is also exported with headers,
   because that sheet's data moved too. The fix resolves the qualifier against the export's sheet list (after
-  `sanitizeSheetName`) and shifts by THAT sheet's offsets. Documented as a limitation in the export guide's
-  multi-sheet section; ticketed.
+  `sanitizeSheetName`) and shifts by THAT sheet's offsets. Decision on #13551: not for now, no ticket; documented as a
+  limitation in the export guide's multi-sheet section.
 
 ## Where to look next
 
