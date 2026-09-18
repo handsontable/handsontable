@@ -183,11 +183,11 @@ that is the warning doing its job — and the earlier firing lives only in that
 push's own check run. Two facts about the API shape the recipe. The check run
 is named `Checks / test presence` (the job is called through `test.yml`), not
 `test presence`. And the recipe reads each pull request's `headRefOid`, never
-the squash commit on `develop`: that commit does carry check runs, a
-`Checks / test presence` run among them, but the `presence` job is PR-only
+the squash commit on `develop`. That commit does carry check runs — a
+`Checks / test presence` run among them — but the `presence` job is PR-only
 (`if: github.event_name == 'pull_request'` in `checks.yml`), so on a `develop`
-push that run is `skipped` and holds no annotations (measured 2026-09-18 on
-`06b74cfcd`: 49 check runs, the presence run skipped with zero annotations).
+push that run is `skipped` and holds no annotations. Measured 2026-09-18 on
+`06b74cfcd`: 49 check runs, the presence run skipped with zero annotations.
 The annotations live only on the runs against the pull request's head SHAs.
 
 **Coverage is a CI floor, not a hook** (it needs a full instrumented run, too slow
