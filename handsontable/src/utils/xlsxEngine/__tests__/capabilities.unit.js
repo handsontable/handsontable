@@ -44,11 +44,11 @@ describe('DroppedFeatures', () => {
 
     dropped.record('cellStyles');
     dropped.record('conditionalFormatting');
-    dropped.warn('sheetjs');
+    dropped.warn('exceljs');
 
     expect(warnSpy).toHaveBeenCalledTimes(1);
     expect(warnSpy.mock.calls[0][0]).toBe(
-      'The "sheetjs" xlsx engine dropped features it cannot write or read: cellStyles, conditionalFormatting.'
+      'The "exceljs" xlsx engine dropped features it cannot write or read: cellStyles, conditionalFormatting.'
     );
   });
 

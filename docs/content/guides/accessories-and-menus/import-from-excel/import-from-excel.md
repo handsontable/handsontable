@@ -35,7 +35,7 @@ Load an Excel (`.xlsx`) workbook into your grid. The `ImportFile` plugin reads t
 
 ## Engines
 
-XLSX import goes through an engine you inject, the same way the export does. ExcelJS is the only engine supported today; the per-feature table in the [export guide](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md#engines) covers both directions.
+XLSX import goes through an engine you inject, the same way the export does. ExcelJS is the only supported engine; the per-feature table in the [export guide](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md#engines) covers both directions.
 
 ## Steps
 

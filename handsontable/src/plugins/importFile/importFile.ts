@@ -321,9 +321,8 @@ function recordLayoutDirectionMismatch(
  * hidden rows and columns, frozen panes, column widths and row heights.
  *
  * XLSX import needs an engine passed through the `engines` option. [ExcelJS](https://github.com/exceljs/exceljs)
- * is the only engine supported today; support for [SheetJS](https://sheetjs.com/) is planned for a
- * future release. The plugin reports, in one console warning, anything the engine could not recover
- * from the file.
+ * is the only engine supported today. The plugin reports, in one console warning, anything the
+ * engine could not recover from the file.
  *
  * @example
  * ::: only-for javascript

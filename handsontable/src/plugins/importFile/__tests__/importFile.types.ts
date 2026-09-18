@@ -40,7 +40,7 @@ async function run(buffer: ArrayBuffer, blob: Blob) {
   const data: unknown[][] = fromBuffer.data;
   const headers: string[] | undefined = fromBlob.colHeaders;
   const dropped: string[] = fromBuffer.dropped;
-  const kind: 'exceljs' | 'sheetjs' = fromBuffer.engine.kind;
+  const kind: 'exceljs' = fromBuffer.engine.kind;
   const styles: Record<string, string> | undefined = fromBuffer.styles;
   const borders: ImportedBorder[] | undefined = fromBuffer.customBorders;
   const direction: 'rtl' | 'ltr' | undefined = fromBuffer.layoutDirection;

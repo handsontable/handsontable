@@ -265,9 +265,10 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
 ## Where to look next
 
 - `../exportFile/AGENTS.md` for the write direction and the `_HotValidation` sheet.
-- `../../utils/xlsxEngine/` for the model, detection, capabilities and adapters; step 2 of DEV-2135 adds
-  the SheetJS adapter beside the ExcelJS one — `capabilities.ts` already carries a `sheetjs` capability
-  row, but `detect.ts` only recognizes ExcelJS today, so passing a SheetJS module still throws.
+- `../../utils/xlsxEngine/` for the model, detection, capabilities and adapters. ExcelJS is the only
+  engine; a second one adds its kind to `XlsxEngineKind`, its row to `CAPABILITIES`, its duck-typing to
+  `detect.ts` and an adapter beside `adapters/exceljs.ts`. Nothing about any specific future engine is
+  kept in the tree — a SheetJS evaluation was done under DEV-2135 and deliberately not shipped.
 - `../base/AGENTS.md` for the plugin contract and the `PLUGIN_PRIORITY` table (this plugin is 245).
 
 ## Testing

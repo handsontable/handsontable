@@ -1,9 +1,10 @@
 import { warn } from '../../helpers/console';
 
 /**
- * The engines the xlsx code paths know how to drive.
+ * The engines the xlsx code paths know how to drive. ExcelJS is the only one today; a second engine
+ * adds its kind here and its row to `CAPABILITIES`.
  */
-export type XlsxEngineKind = 'exceljs' | 'sheetjs';
+export type XlsxEngineKind = 'exceljs';
 
 /**
  * What an engine can honor when writing or recover when reading.
@@ -21,7 +22,7 @@ export interface XlsxEngineCapabilities {
 }
 
 /**
- * Static capability table. The SheetJS row is filled in by step 2 from its probes.
+ * Static capability table, one row per engine kind.
  */
 export const CAPABILITIES: Record<XlsxEngineKind, XlsxEngineCapabilities> = {
   exceljs: {
@@ -34,17 +35,6 @@ export const CAPABILITIES: Record<XlsxEngineKind, XlsxEngineCapabilities> = {
     rtl: true,
     compressionLevel: true,
     readFormats: ['xlsx'],
-  },
-  sheetjs: {
-    styles: false,
-    conditionalFormatting: false,
-    dataValidation: false,
-    perCellProtection: false,
-    comments: false,
-    freezePanes: false,
-    rtl: false,
-    compressionLevel: false,
-    readFormats: ['xlsx', 'xls', 'xlsb', 'ods'],
   },
 };
 

@@ -94,18 +94,18 @@ const hotSettings = ref({
 
 ## Engines
 
-XLSX export goes through an engine you inject via the `engines` option. [ExcelJS](https://github.com/exceljs/exceljs) is the only engine supported today, and it writes every feature the plugin produces - it is the recommended default.
+XLSX export goes through an engine you inject via the `engines` option. [ExcelJS](https://github.com/exceljs/exceljs) is the only supported engine, and it writes every feature the plugin produces:
 
-| Feature | ExcelJS | SheetJS Community Edition |
-|---|---|---|
-| Values, number formats, formulas | Yes | Planned for a future release, not yet supported |
-| Merged cells, column widths, row heights | Yes | Planned for a future release, not yet supported |
-| Hidden rows and columns, multiple sheets | Yes | Planned for a future release, not yet supported |
-| Cell styling, `headerStyle` | Yes | Planned for a future release, not yet supported |
-| Conditional formatting | Yes | Planned for a future release, not yet supported |
-| List validation (dropdown sources) | Yes | Planned for a future release, not yet supported |
+| Feature | ExcelJS |
+|---|---|
+| Values, number formats, formulas | Yes |
+| Merged cells, column widths, row heights | Yes |
+| Hidden rows and columns, multiple sheets | Yes |
+| Cell styling, `headerStyle` | Yes |
+| Conditional formatting | Yes |
+| List validation (dropdown sources) | Yes |
 
-When an engine cannot write a feature the export requested, the plugin reports it in one console warning per export call, naming the engine and every dropped feature. ExcelJS writes everything the export produces, so it drops nothing and the warning never appears today. The mechanism is there for engines added later, and for the [import](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md) direction, where cell styling is dropped on every file that carries it.
+When an engine cannot write a feature the export requested, the plugin reports it in one console warning per export call, naming the engine and every dropped feature. ExcelJS writes everything the export produces, so it drops nothing and the warning never appears on export. The same mechanism serves the [import](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md) direction, where cell styling is dropped on every file that carries it.
 
 Pass a different engine for one call only with the `engine` option, without changing the plugin-level `engines` configuration:
 
