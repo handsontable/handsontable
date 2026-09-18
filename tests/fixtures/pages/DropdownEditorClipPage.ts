@@ -286,8 +286,15 @@ export class DropdownEditorClipPage {
   async startListHeightWriteRecorder(): Promise<void> {
     await this.page.evaluate(() => {
       const probe = window as unknown as { htListHeightWrites: number[] };
-      const editor = window.hot.getActiveEditor();
-      const subGrid = editor.htEditor;
+      const subGrid = window.hot.getActiveEditor()?.htEditor;
+
+      // Fail loudly rather than record nothing. A recorder that silently misses the sub-grid - a
+      // renamed field, a moved reference - leaves the write list empty for an unrelated reason, and
+      // a "no write repeats" assertion then passes forever while testing nothing.
+      if (!subGrid) {
+        throw new Error('startListHeightWriteRecorder: no open editor with a sub-grid to record');
+      }
+
       const original = subGrid.updateSettings.bind(subGrid);
 
       probe.htListHeightWrites = [];

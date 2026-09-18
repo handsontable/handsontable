@@ -148,8 +148,13 @@ export interface FixtureHotInstance {
     finishEditing(restoreOriginalValue?: boolean): void,
     /** The `<td>` currently being edited. Throws once the grid is destroyed. */
     getEditedCell(): HTMLTableCellElement,
-    /** The option list's container, on the `handsontable` / `autocomplete` / `dropdown` family. */
-    htContainer?: HTMLElement,
+    /**
+     * The list's own sub-grid, on the `handsontable` / `autocomplete` / `dropdown` family. Read by
+     * `DropdownEditorClipPage#startListHeightWriteRecorder()` to record its height writes.
+     */
+    htEditor?: {
+      updateSettings(settings: Record<string, unknown>, ...rest: unknown[]): void,
+    },
     /** Whether that family's list is rendered above the edited cell. */
     isFlippedVertically?: boolean,
     /** The multiselect editor keeps its own flip state on this controller instead. */

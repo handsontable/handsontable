@@ -69,6 +69,17 @@
       contain: paint;
       background: #fff;
     }
+    /* A container-query container, the everyday layout of a component-based page. It is NOT a
+       containing block for a fixed box in any current engine - measured in Chromium 148 and 151,
+       Firefox 153 and WebKit 26.5 - so the list must still be placed against the viewport. The
+       offset makes a wrong origin visible: treating this element as the box would move the list
+       by exactly its offset. */
+    #container.container-query {
+      container-type: inline-size;
+      margin-top: 120px;
+      margin-left: 60px;
+      width: 460px;
+    }
     /* Pushes the grid to the bottom of the viewport so the list has to flip upwards. */
     #container.at-viewport-bottom { margin-top: 78vh; }
     /* Leaves room above the grid so the page can be scrolled without the edited cell leaving

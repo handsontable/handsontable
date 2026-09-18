@@ -2095,6 +2095,9 @@ describe('DomElement helper', () => {
 
       parent.appendChild(child);
       document.body.appendChild(parent);
+      // A real box on the parent, or this cannot fail: jsdom reports the viewport AND an unstubbed
+      // rect as all zeros, so a helper that wrongly returned the parent would pass the checks below.
+      stubRect(parent, { top: 100, left: 200, width: 400, height: 300 });
 
       const rect = getFixedContainingBlockRect(child);
 
@@ -2106,13 +2109,13 @@ describe('DomElement helper', () => {
       parent.remove();
     });
 
-    // Only the properties jsdom carries through to `getComputedStyle`. It drops `perspective`,
-    // `backdrop-filter` and `container-type` from the cascade entirely (the inline value is kept,
-    // the computed one comes back empty), so those three cannot be exercised here even though
-    // every browser honours them and the helper checks them. `tests/e2e/dropdown-editor-clip.spec.ts`
-    // covers the real behavior in a browser.
+    // Only the properties jsdom carries through to `getComputedStyle`. It drops `perspective` and
+    // `backdrop-filter` from the cascade entirely (the inline value is kept, the computed one comes
+    // back empty), so those two cannot be exercised here even though every browser honours them and
+    // the helper checks them. `tests/e2e/dropdown-editor-clip.spec.ts` covers the real behavior.
     // Every `will-change` value below was measured to anchor a fixed child in Chrome.
-    // `will-change: container-type` was measured too, and does not.
+    // `container-type` is deliberately absent: no current engine makes it a containing block (see
+    // the helper), and jsdom drops it too, so the browser case in the clip spec is what pins that.
     it.each([
       ['transform', 'translate(-50%, -50%)'],
       ['filter', 'saturate(1.2)'],

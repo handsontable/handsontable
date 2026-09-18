@@ -144,6 +144,20 @@ test.describe('dropdown editor list escapes the grid clip (#8688)', () => {
     }
   });
 
+  test.describe('an ancestor that is NOT the containing block for a fixed box', () => {
+    test('places the list on its cell inside a container-query ancestor', async () => {
+      // `container-type` once implied layout containment, which would make the container the box
+      // a fixed list is laid out in. No current engine does that - measured in Chromium 148 and
+      // 151, Firefox 153 and WebKit 26.5 - so the list is still placed against the viewport, and
+      // treating the container as the box moves the list by exactly the container's offset.
+      await grid.rebuild({ height: 150 }, 'container-query');
+      await grid.openEditor(2, 1);
+
+      expectAnchoredToCell(await grid.boxes());
+      expect(await grid.reachableOptions()).toBe(await grid.optionCount());
+    });
+  });
+
   test.describe('following the cell', () => {
     test('stays on the cell when the page scrolls', async () => {
       // Room above the grid, so the scroll below moves the cell without taking it off screen -
@@ -228,11 +242,19 @@ test.describe('dropdown editor list escapes the grid clip (#8688)', () => {
       await grid.startListHeightWriteRecorder();
       await grid.startScrollCounter();
 
+      // Positive control for the RECORDER, not just for the scroll: a step of more than two rows
+      // on every theme must change the trimmed height, so it has to be captured. Without this, a
+      // recorder that stopped intercepting the sub-grid would leave the list empty and the
+      // no-repeat check below would pass having verified nothing.
+      await grid.scrollWindowBy(60);
+      await expect.poll(async () => (await grid.listHeightWrites()).length).toBeGreaterThanOrEqual(1);
+
+      // Then the steady state: steps well under a row, where the clamp keeps landing on the height
+      // it already applied.
       for (let step = 0; step < 6; step += 1) {
         await grid.scrollWindowBy(4);
       }
 
-      // Positive control: the scroll events really reached the editor's listener.
       expect(await grid.scrollCount()).toBeGreaterThan(0);
 
       const written = await grid.listHeightWrites();

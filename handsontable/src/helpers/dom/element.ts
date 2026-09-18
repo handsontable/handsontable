@@ -1210,14 +1210,12 @@ function establishesFixedContainingBlock(style: CSSStyleDeclaration): boolean {
 
   const willChange = style.willChange ?? '';
 
-  if (FIXED_CONTAINING_BLOCK_WILL_CHANGE.some(token => willChange.split(/[\s,]+/).includes(token))) {
-    return true;
-  }
-
-  // A container-query container contains its layout, which has the same effect.
-  const containerType = (style as unknown as Record<string, string>).containerType ?? '';
-
-  return containerType !== '' && containerType !== 'normal';
+  // `container-type` is deliberately NOT checked. It once implied layout containment, which does
+  // make an element the containing block, but the CSS working group dropped that: measured in
+  // Chromium 148 and 151, Firefox 153 and WebKit 26.5, no value of it (`size`, `inline-size`,
+  // `scroll-state`) anchors a fixed descendant. Checking it moved the list away from its cell by the
+  // container's offset in every container-query layout - measured 208px on the clip fixture.
+  return FIXED_CONTAINING_BLOCK_WILL_CHANGE.some(token => willChange.split(/[\s,]+/).includes(token));
 }
 
 /**
