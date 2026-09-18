@@ -4885,6 +4885,10 @@ export default (): Record<string, unknown> => {
      * Handsontable adds empty columns to the right.
      * - At runtime: for example, when removing columns.
      *
+     * When you lower the `minCols` value with [`updateSettings()`](@/api/core.md#updatesettings),
+     * Handsontable removes the empty columns it added that the new value no longer requires.
+     * It never removes a column that holds data, a column that came with your [`data`](#data), or a column you inserted.
+     *
      * The `minCols` option works only when your [`data`](#data) is an [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays).
      * When your [`data`](#data) is an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects),
      * you can only have as many columns as defined in:
@@ -4953,6 +4957,10 @@ export default (): Record<string, unknown> => {
      * Handsontable adds empty rows at the bottom.
      * - At runtime: for example, when removing rows.
      *
+     * When you lower the `minRows` value with [`updateSettings()`](@/api/core.md#updatesettings),
+     * Handsontable removes the empty rows it added that the new value no longer requires.
+     * It never removes a row that holds data, a row that came with your [`data`](#data), or a row you inserted.
+     *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
@@ -4976,6 +4984,10 @@ export default (): Record<string, unknown> => {
      *
      * If there already are other empty columns at the grid's right-hand end,
      * they are counted into the `minSpareCols` value.
+     *
+     * When you lower the `minSpareCols` value with [`updateSettings()`](@/api/core.md#updatesettings),
+     * Handsontable removes the empty columns it added that the new value no longer requires.
+     * It never removes a column that holds data, a column that came with your [`data`](#data), or a column you inserted.
      *
      * The total number of columns can't exceed the [`maxCols`](#maxCols) value.
      *
@@ -5009,6 +5021,10 @@ export default (): Record<string, unknown> => {
      *
      * If there already are other empty rows at the bottom,
      * they are counted into the `minSpareRows` value.
+     *
+     * When you lower the `minSpareRows` value with [`updateSettings()`](@/api/core.md#updatesettings),
+     * Handsontable removes the empty rows it added that the new value no longer requires.
+     * It never removes a row that holds data, a row that came with your [`data`](#data), or a row you inserted.
      *
      * The total number of rows can't exceed the [`maxRows`](#maxRows) value.
      *

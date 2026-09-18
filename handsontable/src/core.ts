@@ -48,6 +48,12 @@ import {
   Hooks,
   CellRangeToRenderableMapper,
 } from './core/index';
+import {
+  countSurplusTrailingItems,
+  countTrailingItems,
+  isSizeLowered,
+  type MinimumSizes,
+} from './core/minimumSizes';
 import type { HookCallback } from './core/hooks/bucket';
 import type { GridSettings } from './core/settings';
 import {
@@ -1281,6 +1287,48 @@ export default function Core(
     .addLocalHook('insertColRequire',
       (totalCols: number) => instance.alter('insert_col_start', totalCols, 1, 'auto'));
 
+  /**
+   * Removes the last rows or columns of the grid with the `auto` source, and keeps the editor and the selection
+   * on what is left.
+   *
+   * It is not `alter()`: the rows and columns it removes were created without it (`adjustRowsAndCols()` calls
+   * the data map directly), so `alter()`'s bookkeeping would be one-sided here - it lowers `fixedRowsBottom` and
+   * splices `colHeaders`, neither of which the creation raised or extended.
+   *
+   * @param {string} axis The axis to remove from, `'row'` or `'column'`.
+   * @param {number} index The visual index of the first removed row or column.
+   * @param {number} amount The number of rows or columns to remove.
+   */
+  const removeTrailingItems = (axis: 'row' | 'column', index: number, amount: number) => {
+    const activeRange = selection.isSelected() ? instance.getSelectedRangeActive() : undefined;
+    const highlightIndex = axis === 'row' ? activeRange?.highlight.row : activeRange?.highlight.col;
+
+    // Closed before the removal, and without saving: whatever the editor holds has not reached the data yet,
+    // which is why its row or column counts as empty, and it has nowhere to go once the cell is gone.
+    if (typeof highlightIndex === 'number' && highlightIndex >= index) {
+      editorManager.closeEditor(true);
+    }
+
+    const wasRemoved = axis === 'row'
+      ? datamap.removeRow(index, amount, 'auto')
+      : datamap.removeCol(index, amount, 'auto');
+
+    // `refresh()` clamps every layer to the new size and leaves the ones that did not reach the removed part as
+    // they were. `shiftRows()`/`shiftColumns()`, which `alter()` uses, move a layer by the removed amount, which
+    // is right for a removal in the middle and wrong at the end. It re-lays every layer and fires the selection
+    // hooks, so it runs only when a layer reached the removed part.
+    const reachesRemovedPart = wasRemoved && selection.isSelected() &&
+      selection.getSelectedRange().ranges.some((range) => {
+        const bottomEnd = range.getOuterBottomEndCorner();
+
+        return ((axis === 'row' ? bottomEnd.row : bottomEnd.col) ?? -1) >= index;
+      });
+
+    if (reachesRemovedPart) {
+      selection.refresh();
+    }
+  };
+
   grid = {
     /**
      * Inserts or removes rows and columns.
@@ -1685,6 +1733,70 @@ export default function Core(
           // The synchronization with cell meta is not desired here. For `minSpareCols` option,
           // we don't want to touch/shift cell meta objects.
           datamap.createCol(nrOfColumns, colsToCreate, { source: 'auto' });
+        }
+      }
+    },
+
+    /**
+     * Removes the empty rows and columns at the end of the grid that a lowered `minRows`, `minSpareRows`,
+     * `minCols` or `minSpareCols` no longer requires. `adjustRowsAndCols()` only ever adds them, so without this
+     * a lowered value changes nothing.
+     *
+     * A lowered value gives back at most the difference between what the previous and the new values require,
+     * the way raising a value adds at most that many, and only rows and columns those options created
+     * themselves (`DataMap#isAutoCreatedRow`, `DataMap#isAutoCreatedColumn`). An empty row or column that came
+     * with the data set, or that the user inserted, stays - so the grid ends up the way it would have been built
+     * with the lower value. A row or column that holds data is never removed.
+     *
+     * The removal uses the `auto` source, like the creation it reverses, so it leaves the cell meta in place and
+     * the plugins that skip auto-created rows and columns skip it too.
+     *
+     * @private
+     * @param {object} previous The four options as they were before the settings update.
+     */
+    removeSurplusRowsAndCols(previous: MinimumSizes) {
+      if (isSizeLowered(previous.minRows, tableMeta.minRows) ||
+          isSizeLowered(previous.minSpareRows, tableMeta.minSpareRows)) {
+        const rowsCount = instance.countRows();
+        const surplusRows = countSurplusTrailingItems({
+          count: rowsCount,
+          trailingEmpty: instance.countEmptyRows(true),
+          previousMinimum: previous.minRows,
+          previousSpare: previous.minSpareRows,
+          minimum: tableMeta.minRows,
+          spare: tableMeta.minSpareRows,
+        });
+
+        const removableRows = countTrailingItems(rowsCount, surplusRows,
+          visualRow => datamap.isAutoCreatedRow(instance.toPhysicalRow(visualRow)));
+
+        if (removableRows > 0) {
+          removeTrailingItems('row', rowsCount - removableRows, removableRows);
+        }
+      }
+
+      // The same guards `adjustRowsAndCols()` creates columns under, and `DataMap#removeCol` throws outside them.
+      if (tableMeta.columns || instance.dataType !== 'array') {
+        return;
+      }
+
+      if (isSizeLowered(previous.minCols, tableMeta.minCols) ||
+          isSizeLowered(previous.minSpareCols, tableMeta.minSpareCols)) {
+        const columnsCount = instance.countCols();
+        const surplusColumns = countSurplusTrailingItems({
+          count: columnsCount,
+          trailingEmpty: instance.countEmptyCols(true),
+          previousMinimum: previous.minCols,
+          previousSpare: previous.minSpareCols,
+          minimum: tableMeta.minCols,
+          spare: tableMeta.minSpareCols,
+        });
+
+        const removableColumns = countTrailingItems(columnsCount, surplusColumns,
+          visualColumn => datamap.isAutoCreatedColumn(instance.toPhysicalColumn(visualColumn)));
+
+        if (removableColumns > 0) {
+          removeTrailingItems('column', columnsCount - removableColumns, removableColumns);
         }
       }
     },
@@ -4252,6 +4364,15 @@ export default function Core(
     // getColHeader's index translation cache so it rebuilds against the updated settings.
     columnsSettingIndexes = null;
 
+    // Read before the loop below merges the payload into the table meta, so a lowered minimum can be
+    // compared with the value that sized the grid.
+    const previousMinimumSizes = {
+      minRows: tableMeta.minRows,
+      minSpareRows: tableMeta.minSpareRows,
+      minCols: tableMeta.minCols,
+      minSpareCols: tableMeta.minSpareCols,
+    };
+
     if (isDefined(settings.rowHeights) && isDefined(settings.minRowHeights)) {
       warn('Both `rowHeights` and `minRowHeights` are defined in your configuration. ' +
         'As one is the alias of the other, only one of them can be used at a time. ' +
@@ -4675,6 +4796,12 @@ export default function Core(
       selection.updateHighlightClassNames();
       instance.renderChangeTracker.markAllChanged();
       instance.runHooks('afterUpdateSettings', settings);
+    }
+
+    // Before `adjustRowsAndCols()`, which only ever adds. When this call replaced the data, nothing is removed:
+    // the new data map has not created a row or a column yet, and only those count as surplus.
+    if (!init) {
+      grid.removeSurplusRowsAndCols(previousMinimumSizes);
     }
 
     grid.adjustRowsAndCols();

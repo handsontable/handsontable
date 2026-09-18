@@ -124,6 +124,17 @@ class DataMap {
    * @type {Map}
    */
   declare propToColCache: Map<string | number | DataAccessorFn, number> | undefined;
+  /**
+   * The row objects the `auto` source created - the rows `minRows` and `minSpareRows` add. A lowered option
+   * removes only these, so an empty row that came with the data set is never taken. Keyed by identity, so a
+   * sort, a row move or an insert above does not lose track of them.
+   */
+  #autoCreatedRows = new WeakSet<object>();
+  /**
+   * The number of columns at the physical end of every row that the `auto` source appended and that no other
+   * column follows - the columns `minCols` and `minSpareCols` add. A lowered option removes only these.
+   */
+  #trailingAutoColumns = 0;
 
   /**
    * @param {object} hotInstance Instance of Handsontable.
@@ -412,6 +423,10 @@ class DataMap {
 
       rowsToAdd.push(row);
 
+      if (source === 'auto' && typeof row === 'object' && row !== null) {
+        this.#autoCreatedRows.add(row);
+      }
+
       numberOfCreatedRows += 1;
     }
 
@@ -491,6 +506,7 @@ class DataMap {
       0, Math.min(amount, (maxCols ?? Infinity) - numberOfVisualCols)
     );
 
+    this.#trackInsertedColumns(firstNewPhysicalColumnIndex, numberOfCreatedCols, numberOfSourceCols, source);
     this.#insertColumnsIntoDataSource(
       dataSource, firstNewPhysicalColumnIndex, visualColumnIndex, numberOfVisualCols,
       numberOfSourceRows, numberOfCreatedCols
@@ -588,6 +604,29 @@ class DataMap {
   }
 
   /**
+   * Keeps the count of trailing auto-created columns in step with a column insertion. Columns the `auto` source
+   * appends extend the trailing run. Any other insertion that lands inside the run leaves only the auto-created
+   * columns after it at the end.
+   *
+   * @param {number} firstPhysicalColumn The physical index the first inserted column takes.
+   * @param {number} amount The number of inserted columns.
+   * @param {number} numberOfSourceCols The number of source columns before the insertion.
+   * @param {string} [source] Source of the insertion.
+   */
+  #trackInsertedColumns(firstPhysicalColumn: number, amount: number, numberOfSourceCols: number, source?: string) {
+    if (amount <= 0) {
+      return;
+    }
+
+    if (source === 'auto' && firstPhysicalColumn >= numberOfSourceCols) {
+      this.#trailingAutoColumns += amount;
+
+    } else if (firstPhysicalColumn > numberOfSourceCols - this.#trailingAutoColumns) {
+      this.#trailingAutoColumns = Math.max(numberOfSourceCols - firstPhysicalColumn, 0);
+    }
+  }
+
+  /**
    * Removes row from the data array.
    *
    * @fires Hooks#beforeRemoveRow
@@ -629,11 +668,15 @@ class DataMap {
       }
     }
 
-    const descendingPhysicalRows = removedPhysicalIndexes.slice(0).sort((a, b) => b - a);
+    // Rows created with the `auto` source never shift the cell meta (see `createRow`), so removing them must
+    // not shift it either - otherwise lowering `minRows` and raising it back slides the meta by the difference.
+    if (source !== 'auto') {
+      const descendingPhysicalRows = removedPhysicalIndexes.slice(0).sort((a, b) => b - a);
 
-    this.#eachDescendingRun(descendingPhysicalRows, (start, runLength) => {
-      this.metaManager!.removeRow(start, runLength);
-    });
+      this.#eachDescendingRun(descendingPhysicalRows, (start, runLength) => {
+        this.metaManager!.removeRow(start, runLength);
+      });
+    }
 
     this.hot!.runHooks('afterRemoveRow', rowIndex, numberOfRemovedIndexes, removedPhysicalIndexes, source);
 
@@ -678,7 +721,11 @@ class DataMap {
       }
     }
 
-    this.#spliceRemovedColumns(data, isTableUniform, removedPhysicalIndexes, descendingPhysicalColumns, amount);
+    this.#trackRemovedColumns(removedPhysicalIndexes);
+
+    this.#spliceRemovedColumns(
+      data, isTableUniform, removedPhysicalIndexes, descendingPhysicalColumns, amount, source !== 'auto'
+    );
 
     if (columnIndex < this.hot!.countCols()) {
       this.hot!.columnIndexMapper.removeIndexes(removedPhysicalIndexes);
@@ -695,6 +742,30 @@ class DataMap {
   }
 
   /**
+   * Checks whether a row was created by the `auto` source, that is, added by `minRows` or `minSpareRows` rather
+   * than brought by the data set or inserted by the user.
+   *
+   * @param {number|null} physicalRow The physical row index.
+   * @returns {boolean}
+   */
+  isAutoCreatedRow(physicalRow: number | null): boolean {
+    const row = physicalRow === null ? undefined : this.dataSource?.[physicalRow];
+
+    return typeof row === 'object' && row !== null && this.#autoCreatedRows.has(row);
+  }
+
+  /**
+   * Checks whether a column is one of the auto-created columns at the end of the data set, that is, added by
+   * `minCols` or `minSpareCols` with no other column after it.
+   *
+   * @param {number|null} physicalColumn The physical column index.
+   * @returns {boolean}
+   */
+  isAutoCreatedColumn(physicalColumn: number | null): boolean {
+    return physicalColumn !== null && physicalColumn >= this.hot!.countSourceCols() - this.#trailingAutoColumns;
+  }
+
+  /**
    * Removes the given physical columns from each row in the data source and keeps
    * the meta manager in sync. Rows are mutated in place so external references to
    * the row arrays stay valid.
@@ -704,19 +775,22 @@ class DataMap {
    * @param {number[]} removedPhysicalIndexes Physical indexes of removed columns in ascending order.
    * @param {number[]} descendingPhysicalColumns Physical indexes of removed columns in descending order.
    * @param {number} amount The number of columns to remove.
+   * @param {boolean} shiftCellMeta Whether the cell meta follows the removal. It does not for `auto` columns,
+   * which never shift the cell meta when they are created either.
    */
   #spliceRemovedColumns(
     data: (Record<string, unknown> | unknown[])[],
     isTableUniform: boolean,
     removedPhysicalIndexes: number[],
     descendingPhysicalColumns: number[],
-    amount: number
+    amount: number,
+    shiftCellMeta: boolean
   ) {
     if (isTableUniform) {
       for (let r = 0, rlen = this.hot!.countSourceRows(); r < rlen; r++) {
         (data[r] as unknown[]).splice(removedPhysicalIndexes[0], amount);
 
-        if (r === 0) {
+        if (r === 0 && shiftCellMeta) {
           this.metaManager!.removeColumn(removedPhysicalIndexes[0], amount);
         }
       }
@@ -732,12 +806,31 @@ class DataMap {
         removeIndexesInPlace(data[r] as unknown[], removedColumns);
       }
 
-      if (numberOfSourceRows > 0) {
+      if (numberOfSourceRows > 0 && shiftCellMeta) {
         this.#eachDescendingRun(descendingPhysicalColumns, (start, runLength) => {
           this.metaManager!.removeColumn(start, runLength);
         });
       }
     }
+  }
+
+  /**
+   * Keeps the count of trailing auto-created columns in step with a column removal. Must run before the columns
+   * leave the data source, while the source column count still includes them.
+   *
+   * @param {number[]} removedPhysicalIndexes Physical indexes of the removed columns.
+   */
+  #trackRemovedColumns(removedPhysicalIndexes: number[]) {
+    const firstAutoColumn = this.hot!.countSourceCols() - this.#trailingAutoColumns;
+    let removedAutoColumns = 0;
+
+    removedPhysicalIndexes.forEach((physicalColumn) => {
+      if (physicalColumn >= firstAutoColumn) {
+        removedAutoColumns += 1;
+      }
+    });
+
+    this.#trailingAutoColumns = Math.max(this.#trailingAutoColumns - removedAutoColumns, 0);
   }
 
   /**
