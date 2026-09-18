@@ -99,8 +99,12 @@ export class HandsontableEditor extends TextEditor {
    * Compared against the value this editor WROTE, never against `getDropdownHeight()`: that reads
    * `offsetHeight`, which comes back a pixel or two off the height that was set, so a gate on it
    * would never match and every scroll event would pay a sub-grid render.
+   *
+   * `protected` rather than private because {@link AutocompleteEditor} writes the height through
+   * its own `setDropdownHeight()` and needs the same gate - without it a trimmed list re-wrote the
+   * identical height twice per scroll event.
    */
-  #appliedDropdownHeight = 0;
+  protected appliedDropdownHeight = 0;
 
   /**
    * The value the inner grid contributes to the commit, or `undefined` to leave the typed value
@@ -163,7 +167,7 @@ export class HandsontableEditor extends TextEditor {
     // previous open does not survive into this one (measured: the reading comes back uncapped),
     // so this is the list's true wanted height.
     this.#wantedDropdownHeight = this.getTargetDropdownHeight();
-    this.#appliedDropdownHeight = this.#wantedDropdownHeight;
+    this.appliedDropdownHeight = this.#wantedDropdownHeight;
 
     this.htEditor.updateSettings({
       width: this.getTargetDropdownWidth(),
@@ -476,11 +480,11 @@ export class HandsontableEditor extends TextEditor {
     const rowHeight = this.htEditor.stylesHandler.getDefaultRowHeight() ?? 0;
     const height = Math.max(Math.min(this.#wantedDropdownHeight, spaceAvailable), rowHeight || 1);
 
-    if (height === this.#appliedDropdownHeight) {
+    if (height === this.appliedDropdownHeight) {
       return;
     }
 
-    this.#appliedDropdownHeight = height;
+    this.appliedDropdownHeight = height;
     this.htEditor.updateSettings({ height });
     this.replaceDropdownVertically();
   }

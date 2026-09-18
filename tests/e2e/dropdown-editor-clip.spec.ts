@@ -208,6 +208,39 @@ test.describe('dropdown editor list escapes the grid clip (#8688)', () => {
       await expect.poll(() => grid.reachableOptions()).toBe(options);
     });
 
+    test('does not re-write a list height it has already applied', async ({ page }) => {
+      // A viewport too short for the list, so the clamp runs on every scroll event - the case the
+      // scroll follow exists for. The free space changes by less than a row between two events, so
+      // the clamp keeps arriving at the height already applied. Writing it again is a full
+      // sub-grid `updateSettings()` render that changes nothing: measured at 2 per scroll event
+      // before the gate, so 20 identical writes of `203` across 10 scrolls.
+      // 20 options, not the fixture's 8: on `classic` the shorter rows let 8 of them fit even in
+      // a 260px viewport, so the clamp never ran and the case passed without testing anything.
+      const options = Array.from({ length: 20 }, (_, i) => `Option ${i + 1}`);
+
+      await page.setViewportSize({ width: 1280, height: 260 });
+      await grid.rebuild({ height: 'auto', options }, 'pushed-down');
+      await grid.openEditor(2, 1);
+
+      // The list has to be trimmed here, or the clamp never runs and the case proves nothing.
+      expect(await grid.reachableOptions()).toBeLessThan(options.length);
+
+      await grid.startListHeightWriteRecorder();
+      await grid.startScrollCounter();
+
+      for (let step = 0; step < 6; step += 1) {
+        await grid.scrollWindowBy(4);
+      }
+
+      // Positive control: the scroll events really reached the editor's listener.
+      expect(await grid.scrollCount()).toBeGreaterThan(0);
+
+      const written = await grid.listHeightWrites();
+      const repeated = written.filter((height, index) => index > 0 && height === written[index - 1]);
+
+      expect(repeated, `heights written while scrolling: ${written.join(', ')}`).toEqual([]);
+    });
+
     test('re-clamps a `multiselect` list when the grid\'s own scroll moves the cell', async ({ page }) => {
       // A grid almost as tall as the viewport, scrolled so the edited row starts at its top: the
       // list opens downwards with room to spare on every theme. Scrolling the grid's OWN holder then

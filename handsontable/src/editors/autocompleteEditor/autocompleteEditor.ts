@@ -780,6 +780,10 @@ export class AutocompleteEditor extends HandsontableEditor {
     const targetWidth = this.getTargetEditorWidth() + fractionalScalingCompensation;
     const targetHeight = this.getTargetEditorHeight() + fractionalScalingCompensation;
 
+    // This is the other writer of the sub-grid's height, so it owns the gate's value too. Leaving
+    // it stale would make the next trim to that same number a no-op and skip a needed write.
+    this.appliedDropdownHeight = targetHeight;
+
     this.htEditor.updateSettings({
       width: targetWidth,
       height: targetHeight,
@@ -796,6 +800,16 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @param {number} height The new dropdown height.
    */
   setDropdownHeight(height: number): void {
+    // The scroll follow calls this on every scroll event while the list does not fit, and a trim
+    // that lands on the height already written is the common case - the free space usually changes
+    // by less than a row between two events. Without this gate a trimmed list paid two sub-grid
+    // `updateSettings()` renders per scroll event, both writing the same number.
+    if (height === this.appliedDropdownHeight) {
+      return;
+    }
+
+    this.appliedDropdownHeight = height;
+
     this.htEditor.updateSettings({
       height,
     });

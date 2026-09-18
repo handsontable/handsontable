@@ -275,6 +275,40 @@ export class DropdownEditorClipPage {
     return this.page.evaluate(() => (window as unknown as { htDocumentScrolls: number }).htDocumentScrolls);
   }
 
+  /**
+   * Records every height written to the list's own sub-grid from now on.
+   *
+   * The scroll follow re-clamps the list on every scroll event, and the free space usually changes
+   * by less than one row between two of them - so the clamp keeps landing on the height already
+   * applied. Each such write is a full sub-grid `updateSettings()` render that changes nothing,
+   * which is why the editors gate the write on the height they last wrote.
+   */
+  async startListHeightWriteRecorder(): Promise<void> {
+    await this.page.evaluate(() => {
+      const probe = window as unknown as { htListHeightWrites: number[] };
+      const editor = window.hot.getActiveEditor();
+      const subGrid = editor.htEditor;
+      const original = subGrid.updateSettings.bind(subGrid);
+
+      probe.htListHeightWrites = [];
+
+      subGrid.updateSettings = function record(settings: Record<string, unknown>, ...rest: unknown[]) {
+        if (settings && Object.prototype.hasOwnProperty.call(settings, 'height')) {
+          probe.htListHeightWrites.push(settings.height as number);
+        }
+
+        return original(settings, ...rest);
+      };
+    });
+  }
+
+  /** The heights written to the sub-grid since `startListHeightWriteRecorder()`. */
+  async listHeightWrites(): Promise<number[]> {
+    return this.page.evaluate(
+      () => (window as unknown as { htListHeightWrites: number[] }).htListHeightWrites
+    );
+  }
+
   /** Scrolls the multiselect's option list inside its own box. */
   async scrollListTo(top: number): Promise<void> {
     await this.page.evaluate((t) => {
