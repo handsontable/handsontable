@@ -59,7 +59,14 @@ export default function hideColumnItem(hiddenColumnsPlugin: Record<string, Funct
     },
     disabled: false,
     hidden(this: HotInstance) {
-      return !(this.selection.isSelectedByColumnHeader() || this.selection.isSelectedByCorner());
+      if (!(this.selection.isSelectedByColumnHeader() || this.selection.isSelectedByCorner())) {
+        return true;
+      }
+
+      // Nothing left to hide — every column is already hidden by this plugin (e.g. a corner
+      // select-all with all columns hidden). An empty or fully-trimmed grid keeps the item.
+      return this.columnIndexMapper.getRenderableIndexesLength() === 0 &&
+        hiddenColumnsPlugin.getHiddenColumns().length > 0;
     }
   };
 }

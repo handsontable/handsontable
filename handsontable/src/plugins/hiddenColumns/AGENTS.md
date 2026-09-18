@@ -198,6 +198,17 @@ duplicate trips Sonar CPD on new code.
 
 Non-adjacent hidden columns stay out of the item (hidden `[1]`, select column 3: no Show column).
 
+## Hide column suppresses itself when every column is already hidden
+
+`contextMenuItem/hideColumn.ts` `hidden()` used to key on the selection *type* alone
+(`isSelectedByColumnHeader() || isSelectedByCorner()`), so a corner (select-all) right-click kept showing
+"Hide columns" even with every column already hidden — a dead entry (DEV-164). It now also returns `true`
+when `columnIndexMapper.getRenderableIndexesLength() === 0 && getHiddenColumns().length > 0`. Both clauses
+are load-bearing: the `getHiddenColumns()` guard keeps the item on an **empty or fully-trimmed** grid
+(renderable length is also 0 there, but nothing is *hidden*), so the change is scoped to this plugin's own
+hidden state and is not a behavior change for those grids. `../hiddenRows/` `hideRow.ts` mirrors this, the
+way the Show items already base `hidden()` on real hidden-index state.
+
 ## Known concern
 
 `../../../.ai/CONCERNS.md` used to list `showColumn.ts`'s `arr.push(...largeArray)` as a stack-overflow

@@ -59,7 +59,14 @@ export default function hideRowItem(hiddenRowsPlugin: Record<string, Function>) 
     },
     disabled: false,
     hidden(this: HotInstance) {
-      return !(this.selection.isSelectedByRowHeader() || this.selection.isSelectedByCorner());
+      if (!(this.selection.isSelectedByRowHeader() || this.selection.isSelectedByCorner())) {
+        return true;
+      }
+
+      // Nothing left to hide — every row is already hidden by this plugin (e.g. a corner
+      // select-all with all rows hidden). An empty or fully-trimmed grid keeps the item.
+      return this.rowIndexMapper.getRenderableIndexesLength() === 0 &&
+        hiddenRowsPlugin.getHiddenRows().length > 0;
     }
   };
 }
