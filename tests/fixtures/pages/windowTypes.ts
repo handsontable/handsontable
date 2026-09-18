@@ -266,6 +266,13 @@ declare global {
     /** `afterScrollVertically` calls since the last rebuild (width-window-scroll fixture). */
     verticalScrollCount: number;
     /**
+     * Wheel events recorded by `WidthWindowScrollPage#watchWheelEvents()`, with the
+     * `defaultPrevented` each one carried once the grid's own handler had run.
+     */
+    wheelLog: { deltaX: number, deltaY: number, defaultPrevented: boolean }[];
+    /** Rebuilds the root-size-options fixture grid with setting overrides and a parent layout class. */
+    initRootSizeGrid(overrides?: Record<string, unknown>, containerClass?: string): boolean;
+    /**
      * Rebuilds the bottom-slot sizing fixture grid (DEV-2848): `variant` picks the CSS layout,
      * `plugin` the bottom-slot bar; both default to the page's query params. `overrides` are grid
      * options applied last.

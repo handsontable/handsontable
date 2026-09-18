@@ -21,7 +21,7 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 [[toc]]
 
-Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way. Section 12 concerns when a [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column marks a value invalid, and applies only if you set [`strict`](@/api/options.md#strict) to `false` on such a column. Section 13 concerns which row you land on when you leave a merged cell horizontally, and applies only if you use the [`MergeCells`](@/api/mergeCells.md) plugin. Section 14 concerns `tr` elements moving with their rows on a vertical scroll, and applies whether or not you set [`renderMode`](@/api/options.md#rendermode). Section 15 concerns how [`autoColumnSize`](@/api/autoColumnSize.md) measures [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), and [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) columns, and applies only if you leave that plugin on for those cell types and do not pin them with a column `width` or with [`colWidths`](@/api/options.md#colwidths). Section 16 concerns the new single-line default for those same three cell types, and applies only if you use one of them.
+Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way. Section 12 concerns when a [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column marks a value invalid, and applies only if you set [`strict`](@/api/options.md#strict) to `false` on such a column. Section 13 concerns which row you land on when you leave a merged cell horizontally, and applies only if you use the [`MergeCells`](@/api/mergeCells.md) plugin. Section 14 concerns `tr` elements moving with their rows on a vertical scroll, and applies whether or not you set [`renderMode`](@/api/options.md#rendermode). Section 15 concerns how [`autoColumnSize`](@/api/autoColumnSize.md) measures [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), and [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) columns, and applies only if you leave that plugin on for those cell types and do not pin them with a column `width` or with [`colWidths`](@/api/options.md#colwidths). Section 16 concerns the new single-line default for those same three cell types, and applies only if you use one of them. Section 17 concerns the [`width`](@/api/options.md#width) and [`height`](@/api/options.md#height) options, and applies if you set `height: 'auto'`, or pass a CSS keyword, a `var()`, or a container-query unit to either option.
 
 ## 1. `date` cells reach the formula engine the same way on every data path
 
@@ -732,3 +732,78 @@ columns: [
 ```
 
 Set it on the column, in [`cells`](@/api/options.md#cells), or with [`setCellMeta()`](@/api/core.md#setcellmeta) -- the layer that declares the `type`, or one below it. A grid-level `textEllipsis: false` does not reach a column that declares the type, because the type's own value shadows it.
+
+## 17. `height: 'auto'` no longer clips the grid
+
+`height: 'auto'` used to write `height: auto; overflow: clip;` on the grid's root element. The clip
+made the root the element the grid scrolled in, so every row rendered at once, and a dropdown editor
+on the last row was cut off at the grid's edge.
+
+`height: 'auto'` now writes `height: auto` and nothing else. The grid behaves like a plain block
+element: it grows to fit its rows, the nearest scrolling ancestor or the page scrolls it, and
+off-screen rows stay virtualized.
+
+### Who is affected
+
+Anyone using `height: 'auto'`, in particular with:
+
+- a fixed `width`, which now clips the horizontal axis only, so the grid scrolls its columns inside
+  that width while the page scrolls its rows
+- the [`EmptyDataState`](@/api/emptyDataState.md) or [`StretchColumns`](@/api/stretchColumns.md)
+  plugins, which read where the grid scrolls
+- code that reads `hot.view.isVerticallyScrollableByWindow()`, which now returns `true` for
+  `height: 'auto'`
+
+### How to migrate
+
+For the common case, nothing. The grid still grows to fit its rows and the page still scrolls it.
+
+To keep an internal vertical scrollbar, set a numeric `height`:
+
+```js
+// Before: the grid clipped itself and scrolled its rows inside.
+height: 'auto',
+
+// After: size the grid, and it scrolls its rows inside that box.
+height: 500,
+```
+
+Or place the grid inside a parent with a fixed height and `overflow: auto`. Inside such a parent, a
+grid with `height: 'auto'` fills the parent and scrolls inside it:
+
+```html
+<div style="height: 500px; overflow: auto;">
+  <div id="grid"></div>
+</div>
+```
+
+```js
+new Handsontable(document.querySelector('#grid'), {
+  height: 'auto',
+  // ...
+});
+```
+
+Three smaller changes ship with this one:
+
+- A `width` or `height` value the browser cannot read as a size (`'abc'`, `-100`, `true`) is ignored
+  with a one-time console warning, and so are these CSS keywords. It used to be written to the root
+  element as it was.
+  - `'inherit'`, `'initial'`, `'unset'`, `'revert'`, `'revert-layer'`, `'none'`, and `'normal'` do not
+    set a size.
+  - `'min-content'`, `'max-content'`, `'fit-content'`, and `fit-content()` size the grid to its full
+    content, so it cannot scroll inside its box and renders every row or column.
+  - `'stretch'`, `'-webkit-fill-available'`, and `'-moz-available'` fill the container but read as a
+    fixed size, so the grid would clip the columns past the container with no scrollbar.
+
+  If you used one of them, use `'auto'` or a length instead. For a grid that fills its container,
+  use `'100%'` or `'auto'`.
+- With a free height (`'auto'` or unset), a `width` that resolves against something outside the
+  grid, such as a `var()` (`'var(--grid-width)'`) or a container-query unit (`'50cqw'`), is no longer
+  clipped. It used to write `overflow-x: clip` like a fixed width, so the grid scrolled its columns
+  inside that width. It now leaves the horizontal overflow to the page, the way `'100%'` does, so the
+  page scrolls the columns. To keep the grid scrolling its own columns, give it a fixed width, such
+  as a number or a `px` or `em` length. A sized `height` still clips both axes, whatever the width.
+- `width: null` clears the inline width, the way `height: null` clears the height. It used to write
+  `width: nullpx`. Both resets restore their own property only, so `height: null` no longer removes a
+  `width` set through the option.
