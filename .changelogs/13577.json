@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed how the `ColumnSorting` and `MultiColumnSorting` plugins sort: each row's comparison key is now extracted once instead of on every comparison, each sorted column is read in one guarded bulk pass instead of cell by cell, and the sort reorders row positions rather than per-row tuples, roughly halving the time a large grid spends sorting. A grid that uses the `Formulas` or `NestedRows` plugin, a `dropdown`, `autocomplete`, or `multiSelect` column, a `columns[].data` accessor, or `dataDotNotation` keeps the per-cell read and gains from the comparator change only.",
+  "type": "changed",
+  "issueOrPR": 13577,
+  "breaking": false,
+  "framework": "none"
+}
