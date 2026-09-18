@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-18T11:01:28.432Z",
+  "generatedAt": "2026-09-18T11:09:20.444Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 30,
     "needsTicket": 5,
     "quarantined": 0,
-    "entries": 128
+    "entries": 129
   },
   "rows": [
     {
@@ -118,6 +118,39 @@
       "needsTicket": true
     },
     {
+      "key": "playwright|e2e/iframe-cross-realm-scroll.spec.ts|cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
+      "tier": "playwright",
+      "file": "e2e/iframe-cross-realm-scroll.spec.ts",
+      "line": 100,
+      "title": "cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
+      "count7": 2,
+      "count30": 3,
+      "countAll": 3,
+      "runs30": 3,
+      "flakyRuns30": 3,
+      "branches30": 3,
+      "legs": [
+        "e2e-classic-min",
+        "e2e-horizon-min",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-09-18T11:07:52Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/35335711478",
+        "branch": "feature/DEV-2825_Dropdown-editor-list-clipped-by-grid",
+        "leg": "e2e-main-min",
+        "status": "flaky",
+        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
       "key": "playwright|e2e/oversized-cell-mouse-scroll.spec.ts|oversized cell mouse scroll › last-partial row skip stays when only the column is oversized",
       "tier": "playwright",
       "file": "e2e/oversized-cell-mouse-scroll.spec.ts",
@@ -146,38 +179,6 @@
         "leg": "e2e-classic",
         "status": "flaky",
         "error": "Error: expect(received).toEqual(expected) // deep equality",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "playwright|e2e/iframe-cross-realm-scroll.spec.ts|cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
-      "tier": "playwright",
-      "file": "e2e/iframe-cross-realm-scroll.spec.ts",
-      "line": 100,
-      "title": "cross-realm width-only grid: the engine must agree with itself about the owner › keeps the top clone aligned while an arrow key scrolls the holder",
-      "count7": 1,
-      "count30": 2,
-      "countAll": 2,
-      "runs30": 2,
-      "flakyRuns30": 2,
-      "branches30": 2,
-      "legs": [
-        "e2e-classic-min",
-        "e2e-horizon-min"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-09-15T07:48:03Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/34941949393",
-        "branch": "develop",
-        "leg": "e2e-horizon-min",
-        "status": "flaky",
-        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
       },
       "needsTicket": true
