@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a bug where calling the internal `init()` method more than once on the same instance created a duplicate overlays DOM structure.",
+  "type": "fixed",
+  "issueOrPR": 13580,
+  "breaking": false,
+  "framework": "none"
+}
