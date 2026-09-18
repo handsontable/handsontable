@@ -167,6 +167,25 @@ describe('Core#updateSettings lowering the minimum sizes', () => {
       expect(hot.countRows()).toBe(5);
     });
 
+    it('should keep an open edit when a `beforeRemoveRow` listener cancels the removal', () => {
+      createGrid({ data: [['A1']], minRows: 5 });
+
+      hot.addHook('beforeRemoveRow', () => false);
+      hot.selectCell(4, 0);
+
+      const editor = hot.getActiveEditor();
+
+      editor.beginEditing();
+      editor.setValue('typed');
+
+      hot.updateSettings({ minRows: 2 });
+
+      // The row is still there, so the text typed into it must be too.
+      expect(hot.countRows()).toBe(5);
+      expect(hot.getActiveEditor().isOpened()).toBe(true);
+      expect(hot.getActiveEditor().getValue()).toBe('typed');
+    });
+
     it('should not remove rows from a data set passed in the same call', () => {
       createGrid({ data: [['A1']], minRows: 5 });
 
@@ -178,19 +197,83 @@ describe('Core#updateSettings lowering the minimum sizes', () => {
       expect(data.length).toBe(3);
     });
 
-    it('should leave the cell meta in place, the way adding the rows does', () => {
+    it('should keep the cell meta of the rows it does not remove', () => {
       createGrid({ data: [['A1']], minRows: 5 });
 
       hot.setCellMeta(0, 0, 'marker', 'first row');
-      // Beyond the grid: a removal that shifted the meta would move it up by the removed amount.
-      hot.setCellMeta(7, 0, 'marker', 'beyond the grid');
 
       hot.updateSettings({ minRows: 2 });
-      hot.updateSettings({ minRows: 8 });
 
       expect(hot.getCellMeta(0, 0).marker).toBe('first row');
-      expect(hot.getCellMeta(5, 0).marker).toBeUndefined();
-      expect(hot.getCellMeta(7, 0).marker).toBe('beyond the grid');
+      expect(hot.getCellMeta(1, 0).marker).toBeUndefined();
+    });
+
+    it('should keep the cell meta with its row when a sort put another row after the removed ones', () => {
+      createGrid({
+        data: [['b'], ['a']],
+        minRows: 5,
+        columnSorting: true,
+      });
+
+      // Physical row 4, so the two rows the removal takes (physical 2 and 3) sit above it.
+      hot.setDataAtCell(4, 0, 'c');
+      hot.setCellMeta(4, 0, 'marker', 'c-row');
+
+      hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+
+      expect(hot.getDataAtCol(0)).toEqual(['a', 'b', 'c', null, null]);
+
+      hot.updateSettings({ minRows: 2 });
+
+      expect(hot.getDataAtCol(0)).toEqual(['a', 'b', 'c']);
+      // The marker has to follow its row, whatever physical index the removal left it on.
+      expect(hot.getCellMeta(2, 0).marker).toBe('c-row');
+    });
+
+    it('should leave the data alone while `maxRows` hides part of the grid', () => {
+      createGrid({ data: [['A1']], minRows: 5 });
+
+      expect(hot.countSourceRows()).toBe(5);
+
+      // The removal cannot address a row the cap hides, so acting on the capped count would take a row out of
+      // the middle of the data set. The rows stay until the cap is lifted.
+      hot.updateSettings({ maxRows: 3, minRows: 2 });
+
+      expect(hot.countSourceRows()).toBe(5);
+      expect(hot.getSourceData()).toEqual([['A1'], [null], [null], [null], [null]]);
+    });
+
+    it('should not remove rows that a write past the last row created', () => {
+      createGrid({ data: [['A1']], minRows: 10 });
+
+      // Writing past the last row grows the grid through the same internal source as `minRows` does.
+      hot.setDataAtCell(14, 0, 'typed');
+
+      expect(hot.countRows()).toBe(15);
+
+      hot.setDataAtCell(14, 0, null);
+      hot.updateSettings({ minRows: 2 });
+
+      // Only the ten rows `minRows` itself created may go, and the walk stops at the first row it did not.
+      expect(hot.countRows()).toBe(15);
+    });
+
+    it('should give the rows back down to the new value, even after a blocked lowering', () => {
+      createGrid({ data: [['A1']], minRows: 10 });
+
+      const blockRemoval = () => false;
+
+      // A listener blocks the first lowering, so the grid keeps ten rows while `minRows` reads 5.
+      hot.addHook('beforeRemoveRow', blockRemoval);
+      hot.updateSettings({ minRows: 5 });
+
+      expect(hot.countRows()).toBe(10);
+
+      hot.removeHook('beforeRemoveRow', blockRemoval);
+      hot.updateSettings({ minRows: 2 });
+
+      // Down to the new value, not down by the size of this one step.
+      expect(hot.countRows()).toBe(2);
     });
 
     it('should not add an undo action', () => {
@@ -279,18 +362,19 @@ describe('Core#updateSettings lowering the minimum sizes', () => {
       expect(hot.getDataAtCell(0, 0)).toBe(2);
     });
 
-    it('should keep the borders of a removed row in step with its cell meta', () => {
-      createGrid({ data: [['A1']], minSpareRows: 3, customBorders: true });
+    it('should keep a border on a row it does not remove, in step with that row\'s cell meta', () => {
+      createGrid({ data: [['A1'], ['A2']], minSpareRows: 3, customBorders: true });
 
       const customBorders = hot.getPlugin('customBorders');
 
-      customBorders.setBorders([[2, 0, 2, 0]], { top: { width: 2, color: 'red' } });
+      // Row 1 holds data, so the removal stops above it and its border has to survive untouched.
+      customBorders.setBorders([[1, 0, 1, 0]], { top: { width: 2, color: 'red' } });
 
       hot.updateSettings({ minSpareRows: 0 });
-      hot.updateSettings({ minSpareRows: 3 });
 
-      expect(hot.getCellMeta(2, 0).borders).toBeDefined();
-      expect(customBorders.getBorders([[2, 0, 2, 0]]).length).toBe(1);
+      expect(hot.countRows()).toBe(2);
+      expect(hot.getCellMeta(1, 0).borders).toBeDefined();
+      expect(customBorders.getBorders([[1, 0, 1, 0]]).length).toBe(1);
     });
   });
 

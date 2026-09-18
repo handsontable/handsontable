@@ -80,12 +80,9 @@ split across batches still merge correctly. A plain synchronous call owns and cl
   mid-`alter()` render paints a header row the closing render then treats as up to date, so labels stay
   bound to their pre-insert columns while the new column is appended at the end — clicking a header then
   selects a different column than the label sits on (#11031).
-- **Skip the shift for auto-inserted rows and columns — and for auto-removed ones.** `minSpareRows` /
-  `minSpareCols` append at the end and do **not** shift cell meta in the core (`DataMap#createCol` skips
-  `metaManager.createColumn` when `source === 'auto'`), so shifting the model would diverge from the meta.
-  Lowering one of the four minimum sizes through `updateSettings` removes those rows and columns again with the
-  same `auto` source, and `DataMap#removeRow`/`#removeCol` leave the meta in place for it, so
-  `#onAfterRemoveRow`/`#onAfterRemoveCol` skip it too (DEV-2206).
+- **Skip the shift for auto-inserted rows and columns.** `minSpareRows` / `minSpareCols` append at the end
+  and do **not** shift cell meta in the core (`DataMap#createCol` skips `metaManager.createColumn` when
+  `source === 'auto'`), so shifting the model would diverge from the meta.
 
 ## `setCellMeta('borders', …)` written directly is supported
 

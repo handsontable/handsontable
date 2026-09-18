@@ -1303,15 +1303,16 @@ export default function Core(
     const activeRange = selection.isSelected() ? instance.getSelectedRangeActive() : undefined;
     const highlightIndex = axis === 'row' ? activeRange?.highlight.row : activeRange?.highlight.col;
 
-    // Closed before the removal, and without saving: whatever the editor holds has not reached the data yet,
-    // which is why its row or column counts as empty, and it has nowhere to go once the cell is gone.
-    if (typeof highlightIndex === 'number' && highlightIndex >= index) {
-      editorManager.closeEditor(true);
-    }
-
     const wasRemoved = axis === 'row'
       ? datamap.removeRow(index, amount, 'auto')
       : datamap.removeCol(index, amount, 'auto');
+
+    // Discarded only once the removal has happened, the way `alter()` does it: a `beforeRemoveRow`/
+    // `beforeRemoveCol` listener can veto it, and throwing away what the user is typing into a row that then
+    // stays would lose the text with no hook and no way back.
+    if (wasRemoved && typeof highlightIndex === 'number' && highlightIndex >= index) {
+      editorManager.closeEditor(true);
+    }
 
     // `refresh()` clamps every layer to the new size and leaves the ones that did not reach the removed part as
     // they were. `shiftRows()`/`shiftColumns()`, which `alter()` uses, move a layer by the removed amount, which
@@ -1335,6 +1336,52 @@ export default function Core(
       } finally {
         selection.markEndSource();
       }
+    }
+  };
+
+  /**
+   * Gives back the filler rows or columns at the end of one axis that its lowered minimum sizes no longer
+   * require. Does nothing when neither of that axis's two options was lowered.
+   *
+   * @param {object} axisState The axis, its current state, and its minimum sizes before and after the update.
+   * @param {string} axisState.axis The axis to shrink, `'row'` or `'column'`.
+   * @param {number} axisState.count The number of rows or columns on the axis.
+   * @param {boolean} axisState.isCapped Whether `maxRows`/`maxCols` hides part of the axis.
+   * @param {Function} axisState.isEmpty Answers whether the row or column at a visual index is empty.
+   * @param {Function} axisState.isRemovable Answers whether the row or column at a visual index is a filler.
+   * @param {number} axisState.previousMinimum The `minRows`/`minCols` value before the update.
+   * @param {number} axisState.previousSpare The `minSpareRows`/`minSpareCols` value before the update.
+   * @param {number} axisState.minimum The `minRows`/`minCols` value after the update.
+   * @param {number} axisState.spare The `minSpareRows`/`minSpareCols` value after the update.
+   */
+  const shrinkAxis = ({ axis, count, isCapped, isEmpty, isRemovable, previousMinimum, previousSpare,
+    minimum, spare }: {
+      axis: 'row' | 'column';
+      count: number;
+      isCapped: boolean;
+      isEmpty: (visualIndex: number) => boolean;
+      isRemovable: (visualIndex: number) => boolean;
+      previousMinimum: number;
+      previousSpare: number;
+      minimum: number;
+      spare: number;
+    }) => {
+    const wasLowered = isSizeLowered(previousMinimum, minimum) || isSizeLowered(previousSpare, spare);
+
+    if (!wasLowered || isCapped) {
+      return;
+    }
+
+    const surplus = countSurplusTrailingItems({
+      count,
+      trailingEmpty: countTrailingItems(count, count, isEmpty),
+      minimum,
+      spare,
+    });
+    const removable = countTrailingItems(count, surplus, isRemovable);
+
+    if (removable > 0) {
+      removeTrailingItems(axis, count - removable, removable);
     }
   };
 
@@ -1682,7 +1729,7 @@ export default function Core(
         if (nrOfRows < minRows) {
           // The synchronization with cell meta is not desired here. For `minRows` option,
           // we don't want to touch/shift cell meta objects.
-          datamap.createRow(nrOfRows, minRows - nrOfRows, { source: 'auto' });
+          datamap.createRow(nrOfRows, minRows - nrOfRows, { source: 'auto', fillsMinimumSize: true });
         }
       }
       if (minSpareRows) {
@@ -1695,7 +1742,7 @@ export default function Core(
 
           // The synchronization with cell meta is not desired here. For `minSpareRows` option,
           // we don't want to touch/shift cell meta objects.
-          datamap.createRow(instance.countRows(), rowsToCreate, { source: 'auto' });
+          datamap.createRow(instance.countRows(), rowsToCreate, { source: 'auto', fillsMinimumSize: true });
         }
       }
       {
@@ -1731,7 +1778,7 @@ export default function Core(
 
           emptyCols += colsToCreate;
 
-          datamap.createCol(nrOfColumns, colsToCreate, { source: 'auto' });
+          datamap.createCol(nrOfColumns, colsToCreate, { source: 'auto', fillsMinimumSize: true });
         }
         // should I add empty cols to meet minSpareCols?
         if (canCreateSpareCols && emptyCols < minSpareCols) {
@@ -1741,7 +1788,7 @@ export default function Core(
 
           // The synchronization with cell meta is not desired here. For `minSpareCols` option,
           // we don't want to touch/shift cell meta objects.
-          datamap.createCol(nrOfColumns, colsToCreate, { source: 'auto' });
+          datamap.createCol(nrOfColumns, colsToCreate, { source: 'auto', fillsMinimumSize: true });
         }
       }
     },
@@ -1751,63 +1798,52 @@ export default function Core(
      * `minCols` or `minSpareCols` no longer requires. `adjustRowsAndCols()` only ever adds them, so without this
      * a lowered value changes nothing.
      *
-     * A lowered value gives back at most the difference between what the previous and the new values require,
-     * the way raising a value adds at most that many, and only rows and columns those options created
-     * themselves (`DataMap#isAutoCreatedRow`, `DataMap#isAutoCreatedColumn`). An empty row or column that came
-     * with the data set, or that the user inserted, stays - so the grid ends up the way it would have been built
-     * with the lower value. A row or column that holds data is never removed.
+     * It gives back only the rows and columns those options appended themselves
+     * (`DataMap#isTrailingFillerRow`, `DataMap#isTrailingFillerColumn`), and only down to what the new values
+     * require. An empty row or column that came with the data set, that the user inserted, or that a write past
+     * the last one created, stays - so the grid ends up the way it would have been built with the lower value.
+     * A row or column that holds data is never removed: the surplus can never exceed the number of empty items
+     * at the end, because the requirement is never below the filled part.
      *
-     * The removal uses the `auto` source, like the creation it reverses, so it leaves the cell meta in place and
-     * the plugins that skip auto-created rows and columns skip it too.
+     * The removal is an ordinary one, so the cell meta follows it. It has to: the rows it takes are the last
+     * ones ON SCREEN, and a sort or a row move can leave a surviving row physically after them, whose meta
+     * would otherwise be left behind at an index the removal has renumbered.
      *
      * @private
      * @param {object} previous The four options as they were before the settings update.
      */
     removeSurplusRowsAndCols(previous: MinimumSizes) {
-      if (isSizeLowered(previous.minRows, tableMeta.minRows) ||
-          isSizeLowered(previous.minSpareRows, tableMeta.minSpareRows)) {
-        const rowsCount = instance.countRows();
-        const surplusRows = countSurplusTrailingItems({
-          count: rowsCount,
-          trailingEmpty: instance.countEmptyRows(true),
-          previousMinimum: previous.minRows,
-          previousSpare: previous.minSpareRows,
-          minimum: tableMeta.minRows,
-          spare: tableMeta.minSpareRows,
-        });
-
-        const removableRows = countTrailingItems(rowsCount, surplusRows,
-          visualRow => datamap.isAutoCreatedRow(instance.toPhysicalRow(visualRow)));
-
-        if (removableRows > 0) {
-          removeTrailingItems('row', rowsCount - removableRows, removableRows);
-        }
-      }
+      shrinkAxis({
+        axis: 'row',
+        count: instance.countRows(),
+        // `countRows()` is capped by `maxRows`, and so is the removal, which cannot address a row the cap
+        // hides. Under a cap the two disagree, and acting on the capped count removes a row out of the
+        // MIDDLE of the data set, so the axis is left alone until the cap is lifted.
+        isCapped: instance.countRows() < instance.rowIndexMapper.getNotTrimmedIndexesLength(),
+        isEmpty: visualRow => instance.isEmptyRow(visualRow),
+        isRemovable: visualRow => datamap.isTrailingFillerRow(instance.toPhysicalRow(visualRow)),
+        previousMinimum: previous.minRows,
+        previousSpare: previous.minSpareRows,
+        minimum: tableMeta.minRows,
+        spare: tableMeta.minSpareRows,
+      });
 
       // The same guards `adjustRowsAndCols()` creates columns under, and `DataMap#removeCol` throws outside them.
       if (tableMeta.columns || instance.dataType !== 'array') {
         return;
       }
 
-      if (isSizeLowered(previous.minCols, tableMeta.minCols) ||
-          isSizeLowered(previous.minSpareCols, tableMeta.minSpareCols)) {
-        const columnsCount = instance.countCols();
-        const surplusColumns = countSurplusTrailingItems({
-          count: columnsCount,
-          trailingEmpty: instance.countEmptyCols(true),
-          previousMinimum: previous.minCols,
-          previousSpare: previous.minSpareCols,
-          minimum: tableMeta.minCols,
-          spare: tableMeta.minSpareCols,
-        });
-
-        const removableColumns = countTrailingItems(columnsCount, surplusColumns,
-          visualColumn => datamap.isAutoCreatedColumn(instance.toPhysicalColumn(visualColumn)));
-
-        if (removableColumns > 0) {
-          removeTrailingItems('column', columnsCount - removableColumns, removableColumns);
-        }
-      }
+      shrinkAxis({
+        axis: 'column',
+        count: instance.countCols(),
+        isCapped: instance.countCols() < instance.columnIndexMapper.getNotTrimmedIndexesLength(),
+        isEmpty: visualColumn => instance.isEmptyCol(visualColumn),
+        isRemovable: visualColumn => datamap.isTrailingFillerColumn(instance.toPhysicalColumn(visualColumn)),
+        previousMinimum: previous.minCols,
+        previousSpare: previous.minSpareCols,
+        minimum: tableMeta.minCols,
+        spare: tableMeta.minSpareCols,
+      });
     },
 
     /**

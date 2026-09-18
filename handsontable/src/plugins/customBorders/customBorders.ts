@@ -1804,16 +1804,8 @@ The border style will be ignored.`);
    *
    * @param {number} index Visual index of the first removed row.
    * @param {number} amount Number of removed rows.
-   * @param {Array} physicalRows Physical indexes of the removed rows.
-   * @param {string} [source] Source that triggered the row removal.
    */
-  #onAfterRemoveRow = (index: number, amount: number, physicalRows: number[], source?: string) => {
-    // A lowered `minRows`/`minSpareRows` removes the rows it added with the same `auto` source, and the core
-    // leaves the cell meta in place for it (`DataMap#removeRow`) - so the model stays too, like on creation.
-    if (source === 'auto') {
-      return;
-    }
-
+  #onAfterRemoveRow = (index: number, amount: number) => {
     this.#shiftBorders('row', currentIndex => getShiftedIndexAfterRemove(currentIndex, index, amount));
   };
 
@@ -1841,15 +1833,8 @@ The border style will be ignored.`);
    *
    * @param {number} index Visual index of the first removed column.
    * @param {number} amount Number of removed columns.
-   * @param {Array} physicalColumns Physical indexes of the removed columns.
-   * @param {string} [source] Source that triggered the column removal.
    */
-  #onAfterRemoveCol = (index: number, amount: number, physicalColumns: number[], source?: string) => {
-    // Mirrors `#onAfterRemoveRow`: an `auto` removal leaves the cell meta in place, so the model stays too.
-    if (source === 'auto') {
-      return;
-    }
-
+  #onAfterRemoveCol = (index: number, amount: number) => {
     this.#shiftBorders('col', currentIndex => getShiftedIndexAfterRemove(currentIndex, index, amount));
   };
 

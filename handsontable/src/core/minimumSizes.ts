@@ -21,14 +21,6 @@ export interface SurplusTrailingItemsInput {
    */
   trailingEmpty: number;
   /**
-   * The previous `minRows` or `minCols` value.
-   */
-  previousMinimum: number;
-  /**
-   * The previous `minSpareRows` or `minSpareCols` value.
-   */
-  previousSpare: number;
-  /**
    * The new `minRows` or `minCols` value.
    */
   minimum: number;
@@ -39,13 +31,17 @@ export interface SurplusTrailingItemsInput {
 }
 
 /**
- * Normalizes a minimum size option to a count: anything but a positive number adds nothing.
+ * Normalizes a minimum size option to a count. The value is coerced the way the grid applies it - it compares
+ * and subtracts the raw option, so a numeric string such as `'5'` really does size the grid - and anything that
+ * does not resolve to a positive number adds nothing.
  *
  * @param {*} value The option value.
  * @returns {number}
  */
 function toSize(value: unknown): number {
-  return typeof value === 'number' && value > 0 ? value : 0;
+  const size = Number(value);
+
+  return Number.isFinite(size) && size > 0 ? size : 0;
 }
 
 /**
@@ -61,32 +57,28 @@ export function isSizeLowered(previous: unknown, current: unknown): boolean {
 }
 
 /**
- * Counts the empty rows or columns at the end of an axis that lowered minimum sizes no longer require.
+ * Counts the rows or columns at the end of an axis that its minimum sizes no longer require.
  *
  * An axis sized by a minimum and a spare count holds `max(minimum, filled + spare)` items, where `filled` is
- * everything up to the last item that is not empty. The surplus is what the previous sizes required beyond the
- * new ones, capped by what the axis actually holds beyond the new requirement, so lowering a value by some
- * amount removes at most that many items, the way raising it adds at most that many.
+ * everything up to the last item that is not empty. Anything past that is surplus.
  *
- * The result never reaches into the filled part, because the new requirement is never below `filled`. It does
- * not know which of the empty items the options added - the caller narrows it to those.
+ * The result never reaches into the filled part, because the requirement is never below `filled`, so it can
+ * never exceed `trailingEmpty`. It does not know which of those empty items the options added - the caller
+ * narrows it to those.
  *
- * @param {SurplusTrailingItemsInput} input The axis state and its previous and new minimum sizes.
+ * @param {SurplusTrailingItemsInput} input The axis state and its minimum sizes.
  * @returns {number} The number of items to remove from the end of the axis, `0` when there is nothing to remove.
  */
 export function countSurplusTrailingItems({
   count,
   trailingEmpty,
-  previousMinimum,
-  previousSpare,
   minimum,
   spare,
 }: SurplusTrailingItemsInput): number {
   const filled = count - trailingEmpty;
-  const previousRequired = Math.max(toSize(previousMinimum), filled + toSize(previousSpare));
   const required = Math.max(toSize(minimum), filled + toSize(spare));
 
-  return Math.max(0, Math.min(count - required, previousRequired - required));
+  return Math.max(0, count - required);
 }
 
 /**
