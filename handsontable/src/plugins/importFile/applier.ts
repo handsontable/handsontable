@@ -118,12 +118,26 @@ function toSettings(hot: HotInstance, result: ImportResult, options: ApplyOption
   // `columns` follows the same "an import describes the whole sheet" rule as the layout, and it is
   // not layout, so it resets regardless of `importLayout`: the previous file's types, locks and
   // classes, and the column count its array pinned, must not survive onto a workbook that has
-  // nothing to say at the column level.
+  // nothing to say at the column level. An own `undefined` would not do it: `updateSettings` writes
+  // the value but runs its column side effects (the column-meta cache reset, `initIndexMappers`)
+  // only for a defined `columns`, and `loadData` has already sized the grid from the old array. An
+  // explicit array of empty column settings, one per imported column, takes both paths.
   if (result.columns === undefined && current.columns !== undefined) {
-    settings.columns = undefined;
+    settings.columns = emptyColumns(result.data);
   }
 
   return settings;
+}
+
+/**
+ * One empty column setting per column of the imported data, the value that makes `updateSettings`
+ * rebuild the column meta layer and the column index mapper for a sheet with nothing to say at the
+ * column level.
+ */
+function emptyColumns(data: unknown[][]): Array<Record<string, never>> {
+  const width = data.reduce((max, row) => Math.max(max, row.length), 0);
+
+  return Array.from({ length: width }, () => ({}));
 }
 
 /**

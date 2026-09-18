@@ -126,9 +126,12 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   cleared (`mergeCells`/`hiddenRows`/`hiddenColumns` keep their options object with an empty list,
   `fixedRowsTop`/`fixedColumnsStart` go to `0`, `customBorders` to `[]`, `colWidths`/`rowHeights` to an OWN
   `undefined` — `updateSettings` writes every own property it is handed, `hasOwnProperty`, not `isDefined`,
-  so an explicit `undefined` restores the default where an absent key keeps the old value). `columns` resets
-  the same way whenever the result omits it, regardless of `importLayout`: types are not layout, and the
-  previous file's types, locks, classes and pinned column count must not survive (Bugbot round 5). A list the
+  so an explicit `undefined` restores the default where an absent key keeps the old value). `columns` is the
+  exception and must NOT be reset with `undefined`: `updateSettings` writes the value but runs the
+  column-meta cache reset and `initIndexMappers` only for a DEFINED `columns`, and `loadData` has already
+  sized the grid from the old array — so the previous file's types and pinned width survived (Bugbot round
+  6). `emptyColumns(result.data)` sends one `{}` per imported column instead, which takes both paths; it is
+  sent only when the grid already has a `columns` setting, regardless of `importLayout`. A list the
   result does carry is merged into an existing options object (`{ indicators: true }` on `hiddenRows`,
   `{ virtualized: true }` on `mergeCells`) rather than replacing it. `hiddenRows`/`hiddenColumns` are
   ALWAYS the object shape; only `mergeCells` may be a bare array.

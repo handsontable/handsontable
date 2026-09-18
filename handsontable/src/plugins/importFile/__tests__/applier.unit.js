@@ -358,19 +358,20 @@ describe('applyImportResult – layout across imports', () => {
     }]);
   });
 
-  it('should reset widths, heights and columns the previous import left, as own undefined properties', () => {
-    // `updateSettings` writes every own property it is handed, so an explicit `undefined` restores
-    // the default where an absent key would keep the previous file's value.
+  it('should reset widths and heights as own undefined properties, and columns as empty column settings', () => {
+    // `updateSettings` writes every own property it is handed, so an explicit `undefined` restores a
+    // width or height default. `columns` needs a defined value: the column-meta cache reset and
+    // `initIndexMappers` run only for one, so an empty setting per imported column is sent instead.
     const hot = fakeHot({
       gridSettings: { colWidths: [70, 90], rowHeights: [40], columns: [{ type: 'numeric', readOnly: true }] },
     });
 
-    applyImportResult(hot, { data: [['a']], sheetNames: ['Plain'], dropped: [] }, { importLayout: true });
+    applyImportResult(hot, { data: [['a', 'b'], ['c']], sheetNames: ['Plain'], dropped: [] }, { importLayout: true });
 
     const [, settings] = hot.calls[2];
 
     expect(Object.keys(settings).sort()).toEqual(['colWidths', 'columns', 'rowHeights']);
-    expect(settings).toEqual({ colWidths: undefined, rowHeights: undefined, columns: undefined });
+    expect(settings).toEqual({ colWidths: undefined, rowHeights: undefined, columns: [{}, {}] });
   });
 
   it('should reset columns even without importLayout, since types are not layout', () => {
@@ -378,7 +379,15 @@ describe('applyImportResult – layout across imports', () => {
 
     applyImportResult(hot, { data: [['a']], sheetNames: ['Plain'], dropped: [] }, { importLayout: false });
 
-    expect(hot.calls[2]).toEqual(['updateSettings', { columns: undefined }]);
+    expect(hot.calls[2]).toEqual(['updateSettings', { columns: [{}] }]);
+  });
+
+  it('should not send columns to a grid that never had any', () => {
+    const hot = fakeHot({ gridSettings: {} });
+
+    applyImportResult(hot, { data: [['a']], sheetNames: ['Plain'], dropped: [] });
+
+    expect(hot.calls.map(call => call[0])).toEqual(['batch:start', 'loadData', 'batch:end']);
   });
 
   it('should leave the grid layout alone when the result was produced without importLayout', () => {
