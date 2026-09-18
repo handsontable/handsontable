@@ -42,6 +42,11 @@ const configWithDefaultRefetch: DataProviderConfig = {
 
 void configWithDefaultRefetch.refetchAfterCreate;
 
+// @ts-expect-error `refetchAfterCreate` accepts only a boolean.
+const configWithWrongRefetchType: DataProviderConfig = { rowId: 'id', refetchAfterCreate: 'no' };
+
+void configWithWrongRefetchType;
+
 const hot = new Handsontable(document.createElement('div'), {
   dataProvider: minimalConfig,
 });

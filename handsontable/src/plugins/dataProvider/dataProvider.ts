@@ -183,6 +183,11 @@ export interface DataProviderConfig {
    * Whether a successful `onRowsCreate` is followed by an automatic `fetchRows` refetch of the current query.
    * Set to `false` to apply the server response yourself (for example inside `onRowsCreate`), which keeps a new
    * row visible on the current page when the grid is sorted. Defaults to `true`.
+   *
+   * With Pagination enabled, a skipped refetch leaves the row total and the page count stale until the next
+   * `fetchRows` call; reconcile them yourself. When a `fetchRows` request is still in flight when the create
+   * finishes (for example a sort or filter change made just before the insert), the plugin refetches anyway, so
+   * the pending response cannot overwrite the rows you applied.
    */
   refetchAfterCreate?: boolean;
 }
@@ -198,10 +203,10 @@ export {
  *
  * @description
  * A truthy {@link Options#dataProvider} value enables this plugin. Each key (`rowId`, `fetchRows`, `onRowsCreate`, `onRowsUpdate`, `onRowsRemove`, and the optional `refetchAfterCreate`) is validated like other plugin options.
- * When the object is a **complete** server-backed configuration (all of those keys present and valid), Handsontable loads rows via `fetchRows`, runs mutations through the callbacks, and the {@link Hooks#hasExternalDataSource} hook returns `true` so plugins such as Filters and Pagination can treat the grid as server-driven.
+ * When the object is a **complete** server-backed configuration (the five required keys `rowId`, `fetchRows`, `onRowsCreate`, `onRowsUpdate`, and `onRowsRemove` present and valid; `refetchAfterCreate` is optional), Handsontable loads rows via `fetchRows`, runs mutations through the callbacks, and the {@link Hooks#hasExternalDataSource} hook returns `true` so plugins such as Filters and Pagination can treat the grid as server-driven.
  * If required callbacks are missing or invalid, `fetchRows` and the affected mutation paths no-op until the configuration is valid.
  * Valid edits apply to the grid immediately; if `onRowsUpdate` fails, if validation fails later, or if `beforeRowsMutation` cancels, those cells revert to their previous values.
- * After a successful `onRowsCreate`, the plugin refetches the current query; set `refetchAfterCreate: false` to skip that refetch and apply the server response yourself.
+ * After a successful `onRowsCreate`, the plugin refetches the current query; set `refetchAfterCreate: false` to skip that refetch and apply the server response yourself. The refetch still runs when another `fetchRows` request is in flight at that moment, so its late response cannot drop the rows you applied.
  * When the {@link Options#notification} plugin is enabled, failed `fetchRows`, `onRowsCreate`, `onRowsUpdate`, or `onRowsRemove` requests (including a refetch after a successful mutation) show an error notification toast with the same translated titles and description text as before.
  *
  * If `trimRows`, `manualRowMove`, `manualColumnMove`, or `multiColumnSorting` is enabled, the DataProvider plugin does not enable. Handsontable logs a console warning when you still set a complete `dataProvider` configuration.
@@ -458,7 +463,10 @@ export class DataProvider extends BasePlugin {
   /**
    * Server create via `onRowsCreate`. Use `rowsAmount` to insert more than one row in one call.
    * After a successful `onRowsCreate`, refetches the current query unless `refetchAfterCreate` is `false`;
-   * {@link Hooks#afterRowsMutation} fires in both cases.
+   * {@link Hooks#afterRowsMutation} fires in both cases. With the refetch off, a `fetchRows` request that is
+   * still in flight when the create finishes (a sort or filter change made just before) would otherwise resolve
+   * later and `loadData()` the rows `onRowsCreate` applied out of the grid, so that one case refetches anyway
+   * (superseding the pending request, which fires {@link Hooks#afterDataProviderFetchAbort}).
    *
    * @param {object} [options] `position`, `referenceRowId`, `rowsAmount`.
    * @returns {Promise<void>}
@@ -482,7 +490,7 @@ export class DataProvider extends BasePlugin {
       payload,
       () => Promise.resolve(onRowsCreate(rowsCreatePayload)),
       async() => {
-        if (!this.#shouldRefetchAfterCreate()) {
+        if (!this.#shouldRefetchAfterCreate() && !this.#hasFetchInFlight()) {
           return;
         }
 
@@ -615,6 +623,17 @@ export class DataProvider extends BasePlugin {
    */
   #shouldRefetchAfterCreate(): boolean {
     return this.#getConfig()?.refetchAfterCreate !== false;
+  }
+
+  /**
+   * Whether a `fetchRows` request started by {@link DataProvider#fetchData} has not settled yet. The controller is
+   * created when the request starts and cleared in `fetchData`'s `finally`, so a non-null controller is exactly
+   * "a response can still arrive and call `loadData()`".
+   *
+   * @returns {boolean}
+   */
+  #hasFetchInFlight(): boolean {
+    return this.#abortController !== null;
   }
 
   /**
