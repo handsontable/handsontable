@@ -2,11 +2,14 @@ import { arrayEach, arrayMap } from '../../../helpers/array';
 import { hasOwnProperty } from '../../../helpers/object';
 import { hasClass } from '../../../helpers/dom/element';
 import { SEPARATOR } from './../predefinedItems';
+import { MENU_ITEM_MIXED, type MenuItemCheckedState } from '../utils';
 
 interface CellRangeLike {
   getTopStartCorner(): { row: number | null; col: number | null };
   getBottomEndCorner(): { row: number | null; col: number | null };
 }
+
+export { MENU_ITEM_MIXED, type MenuItemCheckedState };
 
 export interface MenuItemLike {
   name?: string;
@@ -15,7 +18,7 @@ export interface MenuItemLike {
   submenu?: Record<string, unknown>;
   hidden?: boolean | (() => boolean);
   checkable?: boolean;
-  checked?: boolean | (() => boolean);
+  checked?: MenuItemCheckedState | (() => MenuItemCheckedState);
   [key: string]: unknown;
 }
 
@@ -206,8 +209,13 @@ export function isItemCheckable(itemToTest: MenuItemLike) {
   // item carrying an unrelated property named `checked` (a string, say) would change role on
   // upgrade; by resolved value, an item would be a checkbox only while it happened to be checked,
   // so unchecking it would drop the `aria-checked="false"` that conveys the state.
+  //
+  // `MENU_ITEM_MIXED` is matched as that one literal rather than as "any string", which keeps the
+  // rule above intact while closing the hole it would otherwise leave: a static `checked: 'mixed'`
+  // draws a mark, and a mark on a plain `menuitem` is a mark a screen reader cannot explain.
   return itemToTest.checkable === true ||
          typeof checked === 'boolean' ||
+         checked === MENU_ITEM_MIXED ||
          typeof checked === 'function';
 }
 
@@ -219,6 +227,29 @@ export function isItemCheckable(itemToTest: MenuItemLike) {
  * @returns {boolean}
  */
 export function isItemChecked(itemToTest: MenuItemLike, hot: Record<string, unknown>) {
-  return itemToTest.checked === true ||
-         (typeof itemToTest.checked === 'function' && itemToTest.checked.call(hot) === true);
+  return getItemCheckedState(itemToTest, hot) === true;
+}
+
+/**
+ * Resolves the check-mark state of the provided menu item.
+ *
+ * Three states, not two: an item whose selection is partly on reports `MENU_ITEM_MIXED`, which the
+ * renderer draws as a dash and passes to `aria-checked` verbatim. Anything other than `true` or
+ * that one literal is `false`, so an item written against the two-state API is unaffected.
+ *
+ * @param {object} itemToTest Item element.
+ * @param {object} hot The context for the item function.
+ * @returns {boolean|string}
+ */
+export function getItemCheckedState(
+  itemToTest: MenuItemLike, hot: Record<string, unknown>
+): MenuItemCheckedState {
+  const { checked } = itemToTest;
+  const state = typeof checked === 'function' ? checked.call(hot) : checked;
+
+  if (state === MENU_ITEM_MIXED) {
+    return MENU_ITEM_MIXED;
+  }
+
+  return state === true;
 }

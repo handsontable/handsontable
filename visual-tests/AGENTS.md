@@ -278,6 +278,18 @@ Seven things about this pipeline are worth knowing before changing it.
   never restated, so only the two rewritten prefixes have this problem: `base/<branch>/` and
   `nightly/<branch>/`, whose `index.html` inlines this run's counts while every image pane can still be
   last night's for up to four hours.
+- **`visual-gate.mjs` and `seed-report.mjs` also serve the docs site's visual suite (DEV-2860).**
+  `.github/actions/docs-visual-run/action.yml` points `scripts/visual-gate.mjs` at
+  `docs/tests/test-artifacts` through `VISUAL_GATE_DIR` and relabels its output through
+  `VISUAL_GATE_TITLE`, `VISUAL_GATE_ENVIRONMENT` (`docs-visual-approval`), `VISUAL_GATE_ARTIFACT`
+  (`docs-visual-report`) and `VISUAL_GATE_REPORT_PATH` (`results/index.html`); `scripts/seed-report.mjs`
+  honors the same `VISUAL_GATE_DIR`, though the docs seed does not call it yet. The docs suite has no
+  reg-suit: `docs/tests/lib/visual-manifest.mjs` writes a reg-suit-shaped `out.json` from Playwright's JSON
+  report for the gate to read. So the `out.json` keys `lib/visual-gate.mjs` consumes (`failedItems`,
+  `newItems`, `deletedItems`, `passedItems`) and what the script emits (`comment.md`, the `verdict=` and
+  `report-url=` outputs) are a contract with the docs gate as well — changing either changes the docs gate
+  too. `docs/AGENTS.md` section 2.18 describes that side; `.github/scripts/__tests__/docs-visual-baseline.test.mjs`
+  pins the variables.
 
 ## Determinism
 

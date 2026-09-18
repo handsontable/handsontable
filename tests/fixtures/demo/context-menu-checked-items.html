@@ -73,6 +73,7 @@
         contextMenu: true,
         customBorders: true,
         comments: true,
+        mergeCells: true,
         licenseKey: 'non-commercial-and-evaluation',
       });
     } catch (error) {
@@ -93,6 +94,49 @@
       window.hot.getPlugin('comments').updateCommentMeta(0, 0, { readOnly: true });
       window.hot.setCellMeta(0, 0, 'readOnly', true);
       window.hot.render();
+    };
+
+    /**
+     * DEV-124. Give cell (0, 1) the opposite state to `markCellChecked()`: a comment that is NOT
+     * read-only, and writable cell meta. Selecting (0, 0) and (0, 1) together is then a selection
+     * that is only partly read-only. The comment is what makes it partly on for the comment item
+     * too - without one, (0, 1) would read as "not read-only" only because it has no comment.
+     */
+    window.markNeighborUnchecked = () => {
+      window.hot.getPlugin('comments').setCommentAtCell(0, 1, 'another note');
+      window.hot.setCellMeta(0, 1, 'readOnly', false);
+      window.hot.render();
+    };
+
+    /**
+     * Put cell (0, 1) into the same state as (0, 0), so a selection of both is fully on.
+     */
+    window.markNeighborChecked = () => {
+      window.hot.getPlugin('comments').setCommentAtCell(0, 1, 'another note');
+      window.hot.getPlugin('comments').updateCommentMeta(0, 1, { readOnly: true });
+      window.hot.setCellMeta(0, 1, 'readOnly', true);
+      window.hot.render();
+    };
+
+    /**
+     * Merge (2, 0) through (3, 1), and make only the top-left cell read-only, with a read-only
+     * comment - the shape the `cell` option or `setCellMeta` produces. Selecting the block selects
+     * all four cells, and the three hidden ones carry no read-only state of their own.
+     */
+    window.mergeReadOnlyBlock = () => {
+      window.hot.getPlugin('mergeCells').merge(2, 0, 3, 1);
+      window.hot.setCellMeta(2, 0, 'readOnly', true);
+      window.hot.getPlugin('comments').setCommentAtCell(2, 0, 'a note');
+      window.hot.getPlugin('comments').updateCommentMeta(2, 0, { readOnly: true });
+      window.hot.render();
+    };
+
+    /**
+     * Select (0, 0) through (0, 1). Through the API rather than a click, because a click on a cell
+     * holding a comment can open the comment editor, and that is not what these tests are about.
+     */
+    window.selectFirstTwoCells = () => {
+      window.hot.selectCell(0, 0, 0, 1);
     };
   </script>
 </body>
