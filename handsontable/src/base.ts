@@ -205,6 +205,7 @@ interface HandsontableFactory {
     Formulas: typeof import('./plugins/formulas').Formulas;
     HiddenColumns: typeof import('./plugins/hiddenColumns').HiddenColumns;
     HiddenRows: typeof import('./plugins/hiddenRows').HiddenRows;
+    ImportFile: typeof import('./plugins/importFile').ImportFile;
     Loading: typeof import('./plugins/loading').Loading;
     ManualColumnFreeze: typeof import('./plugins/manualColumnFreeze').ManualColumnFreeze;
     ManualColumnMove: typeof import('./plugins/manualColumnMove').ManualColumnMove;
@@ -428,6 +429,7 @@ declare namespace Handsontable {
     export type Formulas = import('./plugins/formulas').Formulas;
     export type HiddenColumns = import('./plugins/hiddenColumns').HiddenColumns;
     export type HiddenRows = import('./plugins/hiddenRows').HiddenRows;
+    export type ImportFile = import('./plugins/importFile').ImportFile;
     export type Loading = import('./plugins/loading').Loading;
     export type ManualColumnFreeze = import('./plugins/manualColumnFreeze').ManualColumnFreeze;
     export type ManualColumnMove = import('./plugins/manualColumnMove').ManualColumnMove;
