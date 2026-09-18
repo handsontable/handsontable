@@ -71,6 +71,21 @@ export const VISUAL_VARIANTS_ANNOTATION = 'visual-variants';
 const DECLARATION_KEYS = ['themes', 'browsers', 'wrappers', 'wrappersReason'];
 
 /**
+ * Prefixes a validation message with the spec it came from, when the caller knows it.
+ *
+ * The sweep validates 111 specs in one pass, so a message that states only the rule leaves the reader
+ * grepping the tree for whichever file broke it. `visualTest()` knows its own path and the sweep knows
+ * the file it is reading, so both can say. The prefix is omitted rather than faked when neither does —
+ * a unit test calling this module directly has no file, and an invented one would be worse than none.
+ *
+ * @param {string} [where] The spec path, when the caller knows it.
+ * @returns {string} The prefix to put in front of the message, or an empty string.
+ */
+function at(where) {
+  return where ? `${where}: ` : '';
+}
+
+/**
  * Validates one axis of a declaration and returns it as a plain array.
  *
  * Rejects a duplicate as well as an unknown name: a duplicated variant renders once but is counted twice by
@@ -79,16 +94,18 @@ const DECLARATION_KEYS = ['themes', 'browsers', 'wrappers', 'wrappersReason'];
  * @param {string} key The axis name, for the message.
  * @param {unknown} value What the spec declared for it.
  * @param {string[]} allowed Every name this axis accepts.
+ * @param {string} [where] The spec this declaration came from, for the message.
  * @returns {string[]} The declared names, in `allowed` order.
  */
-function parseAxis(key, value, allowed) {
+function parseAxis(key, value, allowed, where) {
   if (!Array.isArray(value)) {
-    throw new TypeError(`The visual declaration's "${key}" must be an array; got ${JSON.stringify(value)}.`);
+    throw new TypeError(`${at(where)}The visual declaration's "${key}" must be an array; `
+      + `got ${JSON.stringify(value)}.`);
   }
 
   value.forEach((name) => {
     if (!allowed.includes(name)) {
-      throw new Error(`Unknown ${key.replace(/s$/, '')} "${name}" in a visual declaration; `
+      throw new Error(`${at(where)}Unknown ${key.replace(/s$/, '')} "${name}" in a visual declaration; `
         + `expected any of ${allowed.join(', ')}.`);
     }
   });
@@ -96,7 +113,7 @@ function parseAxis(key, value, allowed) {
   const duplicate = value.find((name, index) => value.indexOf(name) !== index);
 
   if (duplicate !== undefined) {
-    throw new Error(`Duplicate ${key.replace(/s$/, '')} "${duplicate}" in a visual declaration; `
+    throw new Error(`${at(where)}Duplicate ${key.replace(/s$/, '')} "${duplicate}" in a visual declaration; `
       + 'a variant renders once but a duplicate is counted twice by anything that sums declarations.');
   }
 
@@ -123,51 +140,55 @@ function parseAxis(key, value, allowed) {
  *   no longer renders, and the audit greps reasons.
  *
  * @param {VisualDeclaration} input The declaration as the spec wrote it.
+ * @param {string} [where] The spec this declaration came from, so a failure names the file. The sweep
+ * validates 111 specs in one pass, where a message stating only the rule leaves the reader grepping.
  * @returns {VisualDeclaration} The frozen, defaulted, validated declaration.
  */
-export function normalizeDeclaration(input) {
+export function normalizeDeclaration(input, where) {
   if (input === null || typeof input !== 'object' || Array.isArray(input)) {
-    throw new TypeError('A visual declaration must be an object, for example '
+    throw new TypeError(`${at(where)}A visual declaration must be an object, for example `
       + `{ themes: ['main', 'main-dark'], browsers: ['chromium'], wrappers: [] }; got ${JSON.stringify(input)}.`);
   }
 
   const unknownKey = Object.keys(input).find(key => !DECLARATION_KEYS.includes(key));
 
   if (unknownKey !== undefined) {
-    throw new Error(`Unknown key "${unknownKey}" in a visual declaration; expected any of `
+    throw new Error(`${at(where)}Unknown key "${unknownKey}" in a visual declaration; expected any of `
       + `${DECLARATION_KEYS.join(', ')}. A misspelled key falls back to the default and silently changes `
       + 'what the spec renders.');
   }
 
-  const themes = parseAxis('themes', input.themes ?? DEFAULT_DECLARATION.themes, JS_VARIANTS);
-  const browsers = parseAxis('browsers', input.browsers ?? DEFAULT_DECLARATION.browsers, CROSS_BROWSERS);
-  const wrappers = parseAxis('wrappers', input.wrappers ?? DEFAULT_DECLARATION.wrappers, WRAPPERS);
+  const themes = parseAxis('themes', input.themes ?? DEFAULT_DECLARATION.themes, JS_VARIANTS, where);
+  const browsers = parseAxis('browsers', input.browsers ?? DEFAULT_DECLARATION.browsers, CROSS_BROWSERS, where);
+  const wrappers = parseAxis('wrappers', input.wrappers ?? DEFAULT_DECLARATION.wrappers, WRAPPERS, where);
   const wrappersReason = input.wrappersReason;
 
   if (themes.length === 0) {
-    throw new Error('A visual declaration needs at least one theme; an empty "themes" renders the spec '
-      + `nowhere and reads as a deleted golden. Use [${JS_VARIANTS.map(t => `'${t}'`).join(', ')}] or a subset.`);
+    throw new Error(`${at(where)}A visual declaration needs at least one theme; an empty "themes" renders `
+      + `the spec nowhere and reads as a deleted golden. Use [${JS_VARIANTS.map(t => `'${t}'`).join(', ')}] `
+      + 'or a subset.');
   }
 
   if (browsers.length === 0) {
-    throw new Error('A visual declaration needs at least one browser; an empty "browsers" renders the spec '
-      + `nowhere and reads as a deleted golden. Use [${CROSS_BROWSERS.map(b => `'${b}'`).join(', ')}] or a subset.`);
+    throw new Error(`${at(where)}A visual declaration needs at least one browser; an empty "browsers" `
+      + 'renders the spec nowhere and reads as a deleted golden. Use '
+      + `[${CROSS_BROWSERS.map(b => `'${b}'`).join(', ')}] or a subset.`);
   }
 
   if (wrappers.length > 0 && !themes.includes(CLASSIC)) {
-    throw new Error(`A visual declaration with wrappers must include the "${CLASSIC}" theme: a wrapper run `
-      + 'never sets HOT_THEME, and on the seed tier the wrapper goldens are the bare js render copied. '
-      + `Add '${CLASSIC}' to "themes" or empty "wrappers".`);
+    throw new Error(`${at(where)}A visual declaration with wrappers must include the "${CLASSIC}" theme: a `
+      + 'wrapper run never sets HOT_THEME, and on the seed tier the wrapper goldens are the bare js render '
+      + `copied. Add '${CLASSIC}' to "themes" or empty "wrappers".`);
   }
 
   if (wrappers.length > 0 && (typeof wrappersReason !== 'string' || wrappersReason.trim() === '')) {
-    throw new Error('A visual declaration with wrappers needs a "wrappersReason": each wrapper is one more '
-      + 'golden per capture, so say what the wrapper render proves that the js render does not.');
+    throw new Error(`${at(where)}A visual declaration with wrappers needs a "wrappersReason": each wrapper `
+      + 'is one more golden per capture, so say what the wrapper render proves that the js render does not.');
   }
 
   if (wrappers.length === 0 && wrappersReason !== undefined) {
-    throw new Error('A visual declaration has a "wrappersReason" but no wrappers; drop the reason, or '
-      + 'restore the wrappers it describes.');
+    throw new Error(`${at(where)}A visual declaration has a "wrappersReason" but no wrappers; drop the `
+      + 'reason, or restore the wrappers it describes.');
   }
 
   return Object.freeze({

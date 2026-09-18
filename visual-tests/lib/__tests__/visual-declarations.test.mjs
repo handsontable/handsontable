@@ -873,16 +873,16 @@ test('every spec holds one declaration, and its leg can render it', () => {
     assert.ok(declarations.length >= 1, `${relativePath}: no declaration found.`);
 
     const [first] = declarations;
-    const firstShape = JSON.stringify(normalizeDeclaration(first.declaration));
+    const firstShape = JSON.stringify(normalizeDeclaration(first.declaration, relativePath));
 
     declarations.slice(1).forEach(({ declaration }) => {
-      assert.equal(JSON.stringify(normalizeDeclaration(declaration)), firstShape,
+      assert.equal(JSON.stringify(normalizeDeclaration(declaration, relativePath)), firstShape,
         `${relativePath}: every visualTest() call in one file must declare the same variants. The two `
         + 'skips are file-scope modifiers, so the file would render only the variants both calls name.');
     });
 
     assertDeclarationFitsLeg(
-      normalizeDeclaration(first.declaration),
+      normalizeDeclaration(first.declaration, relativePath),
       { crossBrowser: relativePath.startsWith('cross-browser/') },
     );
     specsChecked += 1;
@@ -950,7 +950,7 @@ test('every spec declares a shape its own directory can host', () => {
 
     const directory = relativePath.split('/')[0];
     const allowed = allowedShapes[directory].map(shape => shapeOf(normalizeDeclaration(shape)));
-    const written = shapeOf(normalizeDeclaration(first.declaration));
+    const written = shapeOf(normalizeDeclaration(first.declaration, relativePath));
 
     assert.ok(allowed.includes(written), `${relativePath} declares ${written}, which this directory `
       + `cannot host. ${remedies[directory]} Another shape is a change to the golden set: add it to `
@@ -998,7 +998,7 @@ test('the declarations derive exactly the live golden set', () => {
     assert.ok(first, `${relativePath} declares no variants, so its goldens cannot be derived. `
       + 'Every live spec renders through visualTest(title, { themes, browsers, wrappers }, fn).');
 
-    const declaration = normalizeDeclaration(first.declaration);
+    const declaration = normalizeDeclaration(first.declaration, relativePath);
     const crossBrowser = relativePath.startsWith('cross-browser/');
     const stems = captureStems(source, relativePath);
 

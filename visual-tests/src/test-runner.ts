@@ -588,7 +588,11 @@ type VisualTestBody = Parameters<typeof test>[2];
  * @returns {void} Registers the test, the way `test()` does.
  */
 export function visualTest(title: string, variants: VisualDeclaration, body: VisualTestBody) {
-  const declaration = normalizeDeclaration(variants);
+  // The title doubles as the label a validation failure carries: it is `__filename` for every spec but
+  // the five looped cross-browser ones, and their plain titles are unique too, so whichever a spec used
+  // is enough to find it. Without it the message states the rule and leaves the author guessing which of
+  // the 112 specs broke it.
+  const declaration = normalizeDeclaration(variants, title);
   // `helpers.init()` ran at import, so both are already resolved. An unset HOT_THEME is the bare run, which
   // is what `CLASSIC` names; the token never travels back through the environment.
   const framework = helpers.hotWrapper;
