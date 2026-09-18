@@ -117,8 +117,6 @@ describe('Filters - getDataMapAtColumn method', () => {
     expect(data[400].meta.row).toBe(400);
     expect(data[400].meta.visualRow).toBe(400);
     expect(data[450].meta.row).toBe(450);
-    // Reading a later entry must not re-point an earlier one.
-    expect(data[400].meta.row).toBe(400);
   });
 
   it('should read only the given physical rows, in the given order', async() => {

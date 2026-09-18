@@ -217,7 +217,7 @@ export default class MetaManager {
    * stored meta object (because it carries user-defined or declarative `cell` overrides) that object
    * is returned; otherwise a transient object inheriting from the column layer is created and NOT
    * stored. This avoids permanently materializing one cell meta object per scanned cell when iterating
-   * the whole dataset (for example, filtering), where the eager `getCellMeta` would otherwise grow the
+   * the whole dataset (for example, a column read), where the eager `getCellMeta` would otherwise grow the
    * meta cache to O(rows × columns). The `afterGetCellMeta` extension is intentionally not run.
    *
    * @param {number} physicalRow The physical row index.

@@ -18,7 +18,7 @@ describe('DataFilter', () => {
     const rows = physicalRows ?? data[column].map((_, index) => index);
     const values = rows.map(row => data[column][row]);
 
-    return new ColumnDataMap(rows, values,
+    return new ColumnDataMap(rows, values, column,
       (index: number) => ({ row: rows[index] } as unknown as CellProperties));
   }
 
@@ -143,9 +143,9 @@ describe('DataFilter', () => {
       expect(seenRows.map(dataRow => Object.keys(dataRow as object)))
         .toEqual([['row', 'meta', 'value'], ['row', 'meta', 'value'], ['row', 'meta', 'value']]);
       expect(seenRows).toEqual([
-        { row: 2, meta: { row: 2 }, value: 3 },
-        { row: 3, meta: { row: 3 }, value: 4 },
-        { row: 4, meta: { row: 4 }, value: 5 },
+        { row: 2, meta: { row: 2, col: 0, visualRow: 2, visualCol: 0 }, value: 3 },
+        { row: 3, meta: { row: 3, col: 0, visualRow: 3, visualCol: 0 }, value: 4 },
+        { row: 4, meta: { row: 4, col: 0, visualRow: 4, visualCol: 0 }, value: 5 },
       ]);
     });
 

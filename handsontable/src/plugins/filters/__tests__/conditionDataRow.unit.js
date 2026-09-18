@@ -118,10 +118,10 @@ describe('Filters -> the dataRow a condition receives', () => {
   });
 
   it('should not materialize the column read while the scan runs', () => {
-    // The columnar read exists so that the scan resolves the value of every row and the cell meta
-    // of almost none. `toArray()` resolves one meta per row, so a single call from inside the scan
-    // puts back the whole cost the shape removes - and it does so invisibly, because the filter
-    // result stays correct either way.
+    // The scan resolves each row's meta inside its own loop and releases it after the row's
+    // condition call. `toArray()` builds every entry up front and keeps them all alive for the whole
+    // scan, so a single call from inside it puts back the cost the columnar read removes – and it
+    // does so invisibly, because the filter result stays correct either way.
     const filters = buildGrid().getPlugin('filters');
 
     // Two filtered columns, so the second read also goes through the `physicalRows` subset branch.
@@ -148,6 +148,35 @@ describe('Filters -> the dataRow a condition receives', () => {
     expect(hot.countRows()).toBe(11);
     expect(hot.getDataAtCol(0)[0]).toBe('A15');
     expect(hot.getDataAtCol(0)[10]).toBe('A159');
+  });
+
+  it('should materialize a full column at most once per condition update', () => {
+    // One update hands its consumers the same column twice: the filter-by-value list reads it
+    // through `filteredRowsFactory`, and pruning the selection reads it through
+    // `columnValuesFactory`. Both must share one materialized array, as they did before the read
+    // went columnar, or every update builds a full-column array per consumer.
+    const observer = buildGrid().getPlugin('filters').conditionUpdateObserver;
+    const toArraySpy = jest.spyOn(ColumnDataMap.prototype, 'toArray');
+    let materializedColumns = null;
+    let entriesRead = 0;
+
+    observer.addLocalHook('update', ({ editedConditionStack, filteredRowsFactory, columnValuesFactory }) => {
+      const { column } = editedConditionStack;
+
+      entriesRead = filteredRowsFactory(column, []).length + columnValuesFactory(column).length;
+    });
+
+    try {
+      observer.conditionCollection.addCondition(1, { name: 'contains', args: ['B1'] });
+      // Read BEFORE restoring – `mockRestore()` clears the call history.
+      materializedColumns = toArraySpy.mock.instances.map(read => read.column);
+    } finally {
+      toArraySpy.mockRestore();
+    }
+
+    // Both consumers got the whole column, so the single materialization served them both.
+    expect(entriesRead).toBe(ROWS_COUNT * 2);
+    expect(materializedColumns).toEqual([1]);
   });
 
   it('should keep the conditions working on the rows they were handed', () => {

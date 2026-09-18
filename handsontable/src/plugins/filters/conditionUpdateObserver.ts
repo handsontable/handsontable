@@ -69,6 +69,12 @@ class ConditionUpdateObserver {
    * data map walks every source row, and one update reads the same columns several times.
    */
   #columnDataCache: Map<number, ColumnDataMap> | null = null;
+  /**
+   * Memoized `{ row, meta, value }` arrays of the full-column reads in `#columnDataCache`, keyed by
+   * physical column index and active for the same scope. The update consumers take the column as
+   * that array, and several of them ask for the same column in one update.
+   */
+  #columnEntriesCache: Map<number, ColumnDataEntry[]> | null = null;
 
   /**
    * Initializes the observer with the Handsontable instance, a condition collection to watch, and an optional factory for column source data.
@@ -129,11 +135,13 @@ class ConditionUpdateObserver {
     }
 
     this.#columnDataCache = new Map();
+    this.#columnEntriesCache = new Map();
 
     try {
       callback();
     } finally {
       this.#columnDataCache = null;
+      this.#columnEntriesCache = null;
     }
   }
 
@@ -153,13 +161,36 @@ class ConditionUpdateObserver {
     let columnData = this.#columnDataCache.get(physicalColumn);
 
     if (!columnData) {
-      // The memo exists so that several passes over one column cost one read. Memoizing the meta
-      // too is what keeps that promise now that the read resolves it lazily.
+      // The memo exists so that several passes over one column cost one read. The read resolves
+      // each row's meta on demand, so the meta is memoized too – every pass must hand a row the
+      // same object, as the single materialized read did.
       columnData = this.columnDataFactory(physicalColumn).withMemoizedMeta();
       this.#columnDataCache.set(physicalColumn, columnData);
     }
 
     return columnData;
+  }
+
+  /**
+   * Reads a full column as `{ row, meta, value }` entries through the active memo, so every
+   * consumer of one update shares a single array per column.
+   *
+   * @param {number} physicalColumn The physical column index.
+   * @returns {Array} The column's entries, one per read row.
+   */
+  #getColumnEntries(physicalColumn: number): ColumnDataEntry[] {
+    if (this.#columnEntriesCache === null) {
+      return this.#getColumnData(physicalColumn).toArray();
+    }
+
+    let entries = this.#columnEntriesCache.get(physicalColumn);
+
+    if (!entries) {
+      entries = this.#getColumnData(physicalColumn).toArray();
+      this.#columnEntriesCache.set(physicalColumn, entries);
+    }
+
+    return entries;
   }
 
   /**
@@ -226,14 +257,15 @@ class ConditionUpdateObserver {
       // in the next conditions in the chain
       splitConditionCollection.importAllConditions(curriedConditionsBeforeArray);
 
-      const allRows: ColumnDataEntry[] = this.#getColumnData(Number(curriedColumn)).toArray();
+      const allRows = this.#getColumnEntries(Number(curriedColumn));
 
       if (splitConditionCollection.isEmpty()) {
         splitConditionCollection.destroy();
 
-        // No conditions at all, so every row survives - which is what the filtering branch below
-        // would return, without the n-sized assertion set it would build to say so.
-        return allRows;
+        // No conditions at all, so every row survives – which is what the filtering branch below
+        // would return, without the n-sized assertion set it would build to say so. A copy, like
+        // that branch returns, so a consumer never holds the memoized array itself.
+        return allRows.slice();
       }
 
       // Correlate rows through the immutable physical row index `DataFilter.filter()` returns. The
@@ -258,7 +290,7 @@ class ConditionUpdateObserver {
       // Every row of a column, ignoring every condition. Consumers need it to tell a value that is
       // merely hidden by another column's filter from one that has left the data for good. Shares
       // the same memo as `visibleDataFactory`, which already reads this column, so it costs nothing.
-      columnValuesFactory: (physicalColumn: number) => this.#getColumnData(physicalColumn).toArray()
+      columnValuesFactory: (physicalColumn: number) => this.#getColumnEntries(physicalColumn)
     });
   }
 

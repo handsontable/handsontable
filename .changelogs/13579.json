@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Changed how the `Filters` plugin reads a column while filtering: the conditions now run over a columnar read that resolves cell meta only for the rows that need it, which makes filtering a large dataset faster.",
+  "title": "Improved filtering performance on large datasets: the `Filters` plugin now reads each filtered column as plain lists of rows and values, and creates a row's cell meta only while that row's condition runs, instead of building the whole column's data up front.",
   "type": "changed",
   "issueOrPR": 13579,
   "breaking": false,

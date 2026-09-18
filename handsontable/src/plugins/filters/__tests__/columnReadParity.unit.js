@@ -480,5 +480,14 @@ describe('Filters -> column read parity', () => {
       expect(data.map(({ row }) => row)).toEqual([4, 1]);
       expect(data.map(({ value }) => value)).toEqual(['20', '9']);
     });
+
+    it('should return an empty array for a read with no rows, whatever the column index', () => {
+      const filters = buildBigGrid().getPlugin('filters');
+
+      // Nothing to read, so the column is never resolved – not even an index that names no column.
+      expect(filters.getDataMapAtColumn(0, [])).toEqual([]);
+      expect(filters.getDataMapAtColumn(-1, [])).toEqual([]);
+      expect(filters.getDataMapAtColumn(null, [])).toEqual([]);
+    });
   });
 });
