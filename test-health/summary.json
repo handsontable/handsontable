@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-18T15:36:57.282Z",
+  "generatedAt": "2026-09-18T19:09:46.181Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -94,7 +94,7 @@
       "file": "handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js",
       "line": null,
       "title": "AutocompleteEditor choices should not sort the choices list, when the `sortByRelevance` option is set to `true`",
-      "count7": 6,
+      "count7": 5,
       "count30": 7,
       "countAll": 7,
       "runs30": 6,
