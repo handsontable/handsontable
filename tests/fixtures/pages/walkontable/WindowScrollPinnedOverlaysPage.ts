@@ -4,7 +4,7 @@ import { type Page, type Locator, expect } from '@playwright/test';
  * Which pinned clone a scan looks at, and the unique color the fixture paints its row headers.
  */
 interface PinnedClone {
-  name: 'inlineStart' | 'topCorner' | 'bottomCorner';
+  name: 'inlineStart' | 'topCorner' | 'bottomCorner' | 'top' | 'bottom';
   rgb: [number, number, number];
 }
 
@@ -21,6 +21,14 @@ export interface PinnedFramesReport {
 const PINNED_CLONES: PinnedClone[] = [
   { name: 'inlineStart', rgb: [255, 0, 255] },
   { name: 'topCorner', rgb: [0, 255, 255] },
+  { name: 'bottomCorner', rgb: [255, 255, 0] },
+];
+
+/** The clones a VERTICAL page scroll must hold at the viewport's top and bottom edges (DEV-126). */
+const BLOCK_PINNED_CLONES: PinnedClone[] = [
+  { name: 'top', rgb: [0, 255, 0] },
+  { name: 'topCorner', rgb: [0, 255, 255] },
+  { name: 'bottom', rgb: [255, 128, 0] },
   { name: 'bottomCorner', rgb: [255, 255, 0] },
 ];
 
@@ -76,9 +84,10 @@ export class WindowScrollPinnedOverlaysPage {
   /**
    * Navigate and wait for the grid to render. `frozen` adds two frozen columns and two frozen bottom
    * rows, so both inline-start corners carry content; `rtl` renders the grid and the page
-   * right-to-left; `unpinned` is the positive control, where the clones stop following the page.
+   * right-to-left; `unpinned` is the positive control, where the clones stop following the page;
+   * `tall` builds a table the page scrolls up and down instead of sideways.
    */
-  async goto({ frozen = false, rtl = false, unpinned = false } = {}): Promise<void> {
+  async goto({ frozen = false, rtl = false, unpinned = false, tall = false } = {}): Promise<void> {
     const params = new URLSearchParams({ theme: this.theme, bundle: this.bundle });
 
     if (frozen) {
@@ -91,6 +100,10 @@ export class WindowScrollPinnedOverlaysPage {
 
     if (unpinned) {
       params.set('control', 'unpinned');
+    }
+
+    if (tall) {
+      params.set('tall', '1');
     }
 
     this.rtl = rtl;
@@ -115,6 +128,18 @@ export class WindowScrollPinnedOverlaysPage {
    */
   async windowScrollDistance(): Promise<number> {
     return this.page.evaluate(() => Math.abs(window.scrollX));
+  }
+
+  /** The window's vertical scroll distance from its resting place. */
+  async windowScrollDistanceY(): Promise<number> {
+    return this.page.evaluate(() => Math.round(window.scrollY));
+  }
+
+  /** The lowest row index the master actually renders. */
+  async masterFirstRenderedRow(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as {
+      hot: { view: { _wt: { wtTable: { getFirstRenderedRow(): number } } } }
+    }).hot.view._wt.wtTable.getFirstRenderedRow());
   }
 
   /** The lowest column index the master actually renders. */
@@ -159,6 +184,34 @@ export class WindowScrollPinnedOverlaysPage {
 
     await expect.poll(async() => {
       const state = `${await this.windowScrollDistance()}:${await this.masterFirstRenderedColumn()}`;
+      const settled = state === previous;
+
+      previous = state;
+
+      return settled;
+    }, { intervals: [100] }).toBe(true);
+  }
+
+  /**
+   * Scroll the page up and down with real wheel events, then wait until the engine has rendered a
+   * band starting past the one it started on AND the scroll and that band have both stopped moving.
+   * The vertical twin of {@link WindowScrollPinnedOverlaysPage#wheelScrollHorizontally}.
+   */
+  async wheelScrollVertically(deltaY: number, steps = 8): Promise<void> {
+    const rowBefore = await this.masterFirstRenderedRow();
+
+    await this.hoverGrid();
+
+    for (let i = 0; i < steps; i += 1) {
+      await this.page.mouse.wheel(0, deltaY);
+    }
+
+    await expect.poll(() => this.masterFirstRenderedRow()).toBeGreaterThan(rowBefore);
+
+    let previous = '';
+
+    await expect.poll(async() => {
+      const state = `${await this.windowScrollDistanceY()}:${await this.masterFirstRenderedRow()}`;
       const settled = state === previous;
 
       previous = state;
@@ -307,6 +360,14 @@ export class WindowScrollPinnedOverlaysPage {
       });
   }
 
+  /**
+   * A data cell of a frozen bottom row, as the bottom clone renders it, outside the frozen columns:
+   * the bottom-inline-start corner draws its own copy of those and covers this clone's.
+   */
+  frozenBottomRowCell(): Locator {
+    return this.grid.locator('.ht_clone_bottom tbody tr').first().locator('td').last();
+  }
+
   /** A data cell in a frozen column, as the inline-start clone renders it. */
   frozenColumnCell(row: number, col: number): Locator {
     return this.inlineStartClone.getByTestId(`cell-${row}-${col}`);
@@ -413,9 +474,9 @@ export class WindowScrollPinnedOverlaysPage {
     }, enabled);
   }
 
-  /** Whether a clone sits inside a rail (`div.htInlineStartRail`), the way the page pins it. */
+  /** Whether a clone sits inside a rail (`div.htOverlayRail`), the way the page pins it. */
   async isInRail(clone: Locator): Promise<boolean> {
-    return clone.evaluate(element => element.parentElement?.classList.contains('htInlineStartRail') ?? false);
+    return clone.evaluate(element => element.parentElement?.classList.contains('htOverlayRail') ?? false);
   }
 
   /** The viewport's size in CSS pixels. */
@@ -465,8 +526,174 @@ export class WindowScrollPinnedOverlaysPage {
         inlineStart: line('.ht_clone_inline_start tbody th'),
         topCorner: line('.ht_clone_top_inline_start_corner thead th'),
         bottomCorner: line('.ht_clone_bottom_inline_start_corner tbody th'),
+        top: null,
+        bottom: null,
         headerWidth: Math.round(header.getBoundingClientRect().width),
       };
     });
+  }
+
+  /**
+   * One scanline per clone the window holds on the block axis, in CSS pixels from the viewport top:
+   * through the column headers for the two top clones, and through the frozen bottom rows for the
+   * two bottom ones. `null` for a clone with nothing to scan.
+   */
+  async #blockPinnedScanlines(): Promise<Record<PinnedClone['name'], number | null>> {
+    return this.page.evaluate(() => {
+      const line = (selector: string) => {
+        const cell = document.querySelector(selector);
+
+        if (!cell) {
+          return null;
+        }
+
+        const rect = cell.getBoundingClientRect();
+
+        return Math.round(rect.top + (rect.height / 2));
+      };
+
+      return {
+        top: line('.ht_clone_top thead th'),
+        topCorner: line('.ht_clone_top_inline_start_corner thead th'),
+        bottom: line('.ht_clone_bottom tbody td'),
+        bottomCorner: line('.ht_clone_bottom_inline_start_corner tbody th'),
+        inlineStart: null,
+      };
+    });
+  }
+
+  /**
+   * Scroll the page up and down with real wheel events while recording every painted frame, then
+   * report, per clone the window holds on the block axis, how many frames with the page scrolled
+   * showed that clone anywhere but fully at its pinned edge (DEV-126).
+   *
+   * The twin of {@link WindowScrollPinnedOverlaysPage#recordHorizontalWheelScroll}: the same
+   * accelerating profile, and the same rule that the scroll must stay inside the table.
+   *
+   * `names` narrows the scan. The positive control needs that: with the clones unpinned they all
+   * stand at the table's top, where the top clone covers the bottom one, so a bottom clone's color
+   * is nowhere on the resting frame and the scan has nothing to compare against.
+   */
+  async recordVerticalWheelScroll(
+    names: PinnedClone['name'][] = BLOCK_PINNED_CLONES.map(clone => clone.name)
+  ): Promise<PinnedFramesReport> {
+    const clonesToScan = BLOCK_PINNED_CLONES.filter(clone => names.includes(clone.name));
+    const scanlines = await this.#blockPinnedScanlines();
+    const client = await this.page.context().newCDPSession(this.page);
+    const frames: { data: string, scrollOffsetY: number, deviceWidth: number }[] = [];
+
+    client.on('Page.screencastFrame', (frame) => {
+      frames.push({
+        data: frame.data,
+        scrollOffsetY: frame.metadata.scrollOffsetY ?? 0,
+        deviceWidth: frame.metadata.deviceWidth,
+      });
+      // Unacknowledged, the screencast stops after a few frames.
+      client.send('Page.screencastFrameAck', { sessionId: frame.sessionId }).catch(() => {});
+    });
+
+    const startDistance = await this.windowScrollDistanceY();
+
+    await this.hoverGrid();
+    await client.send('Page.startScreencast', { format: 'png', everyNthFrame: 1 });
+    // The first frame is the reference: it is taken at rest, with every clone where it belongs.
+    await expect.poll(() => frames.length).toBeGreaterThan(0);
+
+    const bursts = [
+      { delta: 60, times: 5 },
+      { delta: 160, times: 5 },
+      { delta: 320, times: 5 },
+      { delta: 160, times: 5 },
+      { delta: 60, times: 5 },
+    ];
+
+    for (const direction of [1, -1]) {
+      for (const burst of bursts) {
+        for (let i = 0; i < burst.times; i += 1) {
+          await this.page.mouse.wheel(0, direction * burst.delta);
+        }
+      }
+    }
+
+    await expect.poll(() => this.windowScrollDistanceY()).toBe(startDistance);
+    await client.send('Page.stopScreencast');
+    await client.detach();
+
+    const reference = frames[0];
+    const scrolled = frames.filter(frame => frame.scrollOffsetY !== reference.scrollOffsetY);
+
+    // A leg that never scrolled reads as perfectly pinned. It is a dead leg, not a result.
+    expect(scrolled.length, 'the page must actually scroll while the screencast records').toBeGreaterThan(20);
+
+    return this.page.evaluate(async({ reference: ref, scrolled: moving, lines, clones }) => {
+      const decode = async(data: string) => {
+        const blob = await (await fetch(`data:image/png;base64,${data}`)).blob();
+        const bitmap = await createImageBitmap(blob, { colorSpaceConversion: 'none' });
+        const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+        const context = canvas.getContext('2d', { willReadFrequently: true })!;
+
+        context.drawImage(bitmap, 0, 0);
+
+        return context.getImageData(0, 0, bitmap.width, bitmap.height);
+      };
+      // How many pixels of a scanline carry the clone's color, wherever they sit on it: a clone held
+      // at the viewport edge paints its own band there, and one painted a step behind does not. The
+      // run cannot be counted from an edge inwards as the inline scan does, because the corner sits
+      // at the inline-start end of the same line.
+      const painted = (image: ImageData, y: number, rgb: number[], scale: number) => {
+        const row = Math.round(y * scale);
+        let count = 0;
+
+        for (let x = 0; x < image.width; x += 1) {
+          const k = ((row * image.width) + x) * 4;
+
+          if (Math.abs(image.data[k] - rgb[0]) <= 8
+            && Math.abs(image.data[k + 1] - rgb[1]) <= 8
+            && Math.abs(image.data[k + 2] - rgb[2]) <= 8) {
+            count += 1;
+          }
+        }
+
+        return count;
+      };
+
+      const refImage = await decode(ref.data);
+      const scale = refImage.width / ref.deviceWidth;
+      const expected: Record<string, number> = {};
+
+      for (const clone of clones) {
+        const y = lines[clone.name];
+
+        expected[clone.name] = y === null ? 0 : painted(refImage, y, clone.rgb, scale);
+      }
+
+      const torn: Record<string, number> = { top: 0, topCorner: 0, bottom: 0, bottomCorner: 0 };
+
+      for (const frame of moving) {
+        const image = await decode(frame.data);
+
+        for (const clone of clones) {
+          const y = lines[clone.name];
+
+          if (y !== null && painted(image, y, clone.rgb, scale) < expected[clone.name] - 3) {
+            torn[clone.name] += 1;
+          }
+        }
+      }
+
+      return { scrolledFrames: moving.length, torn, expected };
+    }, { reference, scrolled, lines: scanlines, clones: clonesToScan })
+      .then(({ scrolledFrames, torn, expected }) => {
+        // The reference frame must show every scanned clone painting its band, or a zero below would
+        // mean nothing.
+        for (const clone of clonesToScan) {
+          if (scanlines[clone.name] !== null) {
+            expect(expected[clone.name], `${clone.name} must be painted on the resting frame`)
+              .toBeGreaterThan(20);
+          }
+        }
+
+        return { scrolledFrames, torn: torn as PinnedFramesReport['torn'] };
+      });
   }
 }

@@ -3,7 +3,7 @@ import { isSafariBefore261, isMobileOrIpadOS, isWindowsOS } from '../browser';
 import { throwWithCause } from '../../helpers/errors';
 import { warnOnce } from '../../helpers/console';
 import type { SanitizerContext, TrustedHTMLLike } from '../../core/settings';
-import { INLINE_START_RAIL_CLASS_NAME } from '../../3rdparty/walkontable/src/overlay/constants';
+import { OVERLAY_RAIL_CLASS_NAME } from '../../3rdparty/walkontable/src/overlay/constants';
 
 /**
  * Get the parent of the specified node in the DOM tree.
@@ -52,8 +52,8 @@ export function isInternalElement(element: HTMLElement, thisHotContainer: HTMLEl
   let owner = closestHandsontableContainer.parentNode;
 
   // An overlay clone pinned while the window scrolls the grid sideways sits one level deeper, inside
-  // its rail (`walkontable/src/overlay/inlineStartRail.ts`).
-  if (isHTMLElement(owner) && owner.classList.contains(INLINE_START_RAIL_CLASS_NAME)) {
+  // its rail (`walkontable/src/overlay/overlayRail.ts`).
+  if (isHTMLElement(owner) && owner.classList.contains(OVERLAY_RAIL_CLASS_NAME)) {
     owner = owner.parentNode;
   }
 

@@ -709,8 +709,10 @@ export class BaseEditor {
     // When the scrollable element is Window object then the editor position needs to be compensated
     // by the overlays' position (position relative to the table viewport). In other cases, the overlay's
     // position always returns 0.
+    // Only the part the offset chain cannot see: a clone pinned with `position: sticky` is already
+    // shifted in the layout `offset()` walks (DEV-126 on this axis).
     if (['top', 'top_inline_start_corner'].includes(overlayName)) {
-      topPos += wtOverlays.topOverlay?.getOverlayOffset() ?? 0;
+      topPos += wtOverlays.topOverlay?.getOverlayTransformOffset() ?? 0;
     }
 
     // Only the part the offset chain cannot see: a clone pinned with `position: sticky` is already

@@ -132,22 +132,33 @@ export class TopInlineStartCornerOverlay extends Overlay {
 
     const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
     const { rootWindow } = this.deps;
-    const rail = this.getInlineStartRail();
+    const wtTable = this.deps.getWtTable();
+    const rail = this.getRail();
+    const inlineOnWindow = this.inlineStartOverlay.trimmingContainer === rootWindow;
+    const blockOnWindow = this.topOverlay.trimmingContainer === rootWindow;
+    // This corner sits where the row headers and the column headers meet, so it travels on both axes
+    // the window owns (DEV-127 sideways, DEV-126 up and down). A corner that does not render stays
+    // out of the rail, as `reset()` left it.
+    const railed = this.needFullRender && (inlineOnWindow || blockOnWindow);
 
-    // The inline axis is held by the rail whenever the window owns it (DEV-127), like the row headers
-    // the corner sits above. A corner that does not render stays out of it, as `reset()` left it.
-    if (this.needFullRender && this.inlineStartOverlay.trimmingContainer === rootWindow) {
-      rail?.pin(this.deps.getWtTable().getTotalWidth(), this.isRtl(), { edge: 'top' });
+    if (railed) {
+      rail?.pin({
+        isRtl: this.isRtl(),
+        width: wtTable.getTotalWidth(),
+        height: wtTable.getTotalHeight(),
+        inline: inlineOnWindow,
+        block: blockOnWindow ? { pinned: true, edge: 'top' } : { pinned: false, edge: 'top' },
+      });
     } else {
       rail?.release();
     }
 
-    // The corner follows the window on whichever axis the window owns; a neighbor whose axis is
+    // Whatever the rail does not hold is still placed from the listener: a neighbor whose axis is
     // owned by an element reports a 0 offset on that axis, so the positioned form is right whenever
     // at least one axis scrolls with the window.
-    if (this.topOverlay.trimmingContainer === rootWindow || this.inlineStartOverlay.trimmingContainer === rootWindow) {
-      const left = rail?.isPinned() ? 0 : this.inlineStartOverlay.getOverlayOffset() * (this.isRtl() ? -1 : 1);
-      const top = this.topOverlay.getOverlayOffset();
+    if (blockOnWindow || inlineOnWindow) {
+      const left = rail?.pinsInline() ? 0 : this.inlineStartOverlay.getOverlayOffset() * (this.isRtl() ? -1 : 1);
+      const top = rail?.pinsBlock() ? 0 : this.topOverlay.getOverlayOffset();
 
       setOverlayPosition(overlayRoot, `${left}px`, `${top}px`);
     } else {

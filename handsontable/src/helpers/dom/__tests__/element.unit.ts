@@ -77,7 +77,7 @@ describe('DomElement helper', () => {
       if (railed) {
         const rail = document.createElement('div');
 
-        rail.className = 'htInlineStartRail';
+        rail.className = 'htOverlayRail';
         rail.appendChild(clone);
         root.appendChild(rail);
       } else {

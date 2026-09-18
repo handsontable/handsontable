@@ -26,7 +26,7 @@ import {
 import { A11Y_PRESENTATION } from '../../../../../helpers/a11y';
 import { throwWithCause } from '../../../../../helpers/errors';
 import { getSpreaderOffset } from '../spreaderOffset';
-import { InlineStartRail } from '../inlineStartRail';
+import { OverlayRail } from '../overlayRail';
 
 /**
  * Assembles the dependency set shared by every overlay (and its corner subclasses) from the engine
@@ -220,7 +220,7 @@ export abstract class Overlay {
   /**
    * The rail that pins this overlay's clone to the viewport's inline-start edge, once asked for.
    */
-  #inlineStartRail: InlineStartRail | null = null;
+  #rail: OverlayRail | null = null;
 
   /**
    * @param {OverlayDeps} deps The overlay module dependencies.
@@ -382,25 +382,35 @@ export abstract class Overlay {
   abstract scrollTo(sourceIndex: number, snapToEdge: boolean): boolean;
 
   /**
-   * The rail that pins this overlay's clone to the viewport's inline-start edge while the window
-   * scrolls the grid sideways (`overlay/inlineStartRail.ts`). Used by the three overlays that follow
-   * the page horizontally: the inline-start one and both inline-start corners.
+   * The rail that holds this overlay's clone at the viewport's edge while the window scrolls the grid
+   * (`overlay/overlayRail.ts`). Used by every overlay that follows the page: the inline-start one and
+   * both corners sideways, the top and bottom ones and both corners up and down.
    *
-   * @returns {InlineStartRail | null} `null` when the overlay has no clone.
+   * @returns {OverlayRail | null} `null` when the overlay has no clone.
    */
-  getInlineStartRail(): InlineStartRail | null {
+  getRail(): OverlayRail | null {
     if (!this.clone) {
       return null;
     }
 
-    if (this.#inlineStartRail === null) {
-      this.#inlineStartRail = new InlineStartRail(
+    if (this.#rail === null) {
+      this.#rail = new OverlayRail(
         this.clone.wtTable.holder.parentNode as HTMLElement,
         this.#deps.rootDocument
       );
     }
 
-    return this.#inlineStartRail;
+    return this.#rail;
+  }
+
+  /**
+   * The axis this overlay follows while the window owns it, which decides whether a rail already
+   * carries its offset. The corners follow both and are read by nobody, so they keep the default.
+   *
+   * @returns {'inline' | 'block' | null}
+   */
+  get railAxis(): 'inline' | 'block' | null {
+    return null;
   }
 
   /**
@@ -414,7 +424,10 @@ export abstract class Overlay {
    * @returns {number}
    */
   getOverlayTransformOffset(): number {
-    return this.#inlineStartRail?.isPinned() ? 0 : this.getOverlayOffset();
+    const rail = this.#rail;
+    const pinned = this.railAxis === 'inline' ? rail?.pinsInline() : rail?.pinsBlock();
+
+    return pinned ? 0 : this.getOverlayOffset();
   }
 
   /**
@@ -807,7 +820,7 @@ export abstract class Overlay {
 
     // Back out of the rail too: a clone in normal flow with its width cleared would stretch to the
     // rail's full width, where an absolutely positioned one shrinks to its empty table.
-    this.#inlineStartRail?.release();
+    this.#rail?.release();
 
     const holder = this.clone.wtTable.holder; // todo refactoring: DEMETER
     const hider = this.clone.wtTable.hider; // todo refactoring: DEMETER

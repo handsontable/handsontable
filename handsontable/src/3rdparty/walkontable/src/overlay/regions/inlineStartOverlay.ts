@@ -57,6 +57,13 @@ export class InlineStartOverlay extends Overlay {
   }
 
   /**
+   * @returns {'inline'} This overlay follows the page sideways.
+   */
+  get railAxis(): 'inline' {
+    return 'inline';
+  }
+
+  /**
    * Updates the left overlay position.
    *
    * @returns {boolean} Always `false` - this overlay's header-border classes shift no layout, so it
@@ -76,13 +83,20 @@ export class InlineStartOverlay extends Overlay {
 
     const { rootWindow } = this.deps;
     const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
-    const rail = this.getInlineStartRail();
+    const rail = this.getRail();
     let overlayPosition = 0;
 
     if (this.trimmingContainer === rootWindow) {
       overlayPosition = this.getOverlayOffset() * (this.isRtl() ? -1 : 1);
-      // Held at the viewport edge by the browser, never by this listener (DEV-127).
-      rail?.pin(wtTable.getTotalWidth(), this.isRtl(), { edge: 'top' });
+      // Held at the viewport's inline-start edge by the browser, never by this listener (DEV-127).
+      // The block axis is the page's: this clone mirrors the master's rows and scrolls with them.
+      rail?.pin({
+        isRtl: this.isRtl(),
+        width: wtTable.getTotalWidth(),
+        height: wtTable.getTotalHeight(),
+        inline: true,
+        block: { pinned: false, edge: 'top' },
+      });
 
     } else {
       rail?.release();

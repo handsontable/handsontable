@@ -90,13 +90,15 @@ export class BottomInlineStartCornerOverlay extends Overlay {
     }
 
     const overlayRoot = clone.wtTable.holder.parentNode as HTMLElement;
-    const rail = this.getInlineStartRail();
+    const rail = this.getRail();
     const inlineOnWindow = this.inlineStartOverlay.trimmingContainer === rootWindow;
-    // The inline axis is held by the rail whenever the window owns it (DEV-127). A corner that does
-    // not render stays out of it, as `reset()` left it, and keeps the inset below.
-    const pinnedInline = inlineOnWindow && this.needFullRender;
+    const blockOnWindow = this.bottomOverlay.trimmingContainer === rootWindow;
+    // This corner travels on both axes the window owns (DEV-127 sideways, DEV-126 up and down). A
+    // corner that does not render stays out of the rail, as `reset()` left it, and keeps the insets
+    // below.
+    const railed = this.needFullRender && (inlineOnWindow || blockOnWindow);
 
-    if (!pinnedInline) {
+    if (!railed) {
       // Before the insets below: releasing restores the clone's own top inset.
       rail?.release();
     }
@@ -113,9 +115,10 @@ export class BottomInlineStartCornerOverlay extends Overlay {
 
     // Same rule as the top corner: the positioned form whenever either neighbor's axis is owned by
     // the window; each neighbor reports a 0 offset on an element-owned axis.
-    const anyAxisOnWindow = this.bottomOverlay.trimmingContainer === rootWindow || inlineOnWindow;
+    const anyAxisOnWindow = blockOnWindow || inlineOnWindow;
 
     if (anyAxisOnWindow) {
+      const wtTable = this.deps.getWtTable();
       const inlineStartOffset = this.inlineStartOverlay.getOverlayOffset();
       // The fractional-zoom correction belongs to the VERTICAL axis, and only while the window owns
       // it - it is the same subtraction `BottomOverlay#resetFixedPosition` makes on its own window
@@ -124,15 +127,21 @@ export class BottomInlineStartCornerOverlay extends Overlay {
       // subtracting that overflow pushed this corner hundreds of pixels below the grid - reachable
       // in the reverse split (`preventOverflow: 'vertical'` over a root with a CSS height), where
       // the corner takes this branch on the strength of the horizontal axis alone.
-      const bottom = this.bottomOverlay.trimmingContainer === rootWindow
-        ? this.bottomOverlay.getOverlayOffset() - this.#masterTableOverflow()
-        : this.bottomOverlay.getOverlayOffset();
+      const overflow = blockOnWindow ? this.#masterTableOverflow() : 0;
+      const bottom = this.bottomOverlay.getOverlayOffset() - overflow;
 
-      if (pinnedInline && rail) {
-        rail.pin(this.deps.getWtTable().getTotalWidth(), this.isRtl(), {
-          edge: 'bottom',
-          offset: bottom,
-          height: tableHeight,
+      if (railed && rail) {
+        // A rail that spans the block axis reaches the table's painted bottom, so the clone rests
+        // there; one that does not hangs from its own bottom edge at the offset.
+        overlayRoot.style.bottom = '';
+        rail.pin({
+          isRtl: this.isRtl(),
+          width: wtTable.getTotalWidth(),
+          height: blockOnWindow ? wtTable.getTotalHeight() + overflow : tableHeight,
+          inline: inlineOnWindow,
+          block: blockOnWindow
+            ? { pinned: true, edge: 'bottom' }
+            : { pinned: false, edge: 'bottom', offset: bottom, height: tableHeight },
         });
       } else {
         overlayRoot.style[this.isRtl() ? 'right' : 'left'] = `${inlineStartOffset}px`;

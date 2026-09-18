@@ -168,6 +168,54 @@ test.describe('walkontable window-scroll pinned overlays', { tag: '@walkontable'
     expect(Math.abs(corner.x)).toBeLessThanOrEqual(PLACEMENT_TOLERANCE);
   });
 
+  test.describe('scrolling the page up and down', () => {
+    test('a clone left behind by the scroll reads as torn on the painted frames (positive control)', async() => {
+      await wt.goto({ frozen: true, tall: true, unpinned: true });
+
+      const report = await wt.recordVerticalWheelScroll(['top', 'topCorner']);
+
+      // Unpinned, the column headers leave the viewport with the first frame that moves. If the scan
+      // cannot see that, every zero below is worthless.
+      expect(report.torn.top).toBeGreaterThan(report.scrolledFrames * 0.8);
+      expect(report.torn.topCorner).toBeGreaterThan(report.scrolledFrames * 0.8);
+    });
+
+    test('the column headers stay pinned on every painted frame', async() => {
+      await wt.goto({ tall: true });
+
+      const report = await wt.recordVerticalWheelScroll();
+
+      expect(report.torn.top, `column headers torn on ${report.torn.top} of ${report.scrolledFrames} frames`)
+        .toBe(0);
+    });
+
+    test('frozen rows and both corners stay pinned on every painted frame', async() => {
+      await wt.goto({ frozen: true, tall: true });
+
+      const report = await wt.recordVerticalWheelScroll();
+
+      expect(report.torn.top, `column headers torn on ${report.torn.top} of ${report.scrolledFrames} frames`)
+        .toBe(0);
+      expect(report.torn.topCorner, `top corner torn on ${report.torn.topCorner} of ${report.scrolledFrames} frames`)
+        .toBe(0);
+      expect(report.torn.bottom, `frozen rows torn on ${report.torn.bottom} of ${report.scrolledFrames} frames`)
+        .toBe(0);
+      expect(report.torn.bottomCorner,
+        `bottom corner torn on ${report.torn.bottomCorner} of ${report.scrolledFrames} frames`).toBe(0);
+    });
+
+    test('the editor opens over a frozen-top-row cell after a vertical page scroll', async() => {
+      // The twin of the sideways case: a sticky clone is shifted in the layout the editor's offset
+      // chain walks, so adding the overlay offset on top would open the editor a scroll away.
+      await wt.goto({ frozen: true, tall: true });
+      await wt.wheelScrollVertically(400);
+
+      const cell = wt.frozenBottomRowCell();
+
+      await expectEditorOverCell(await wt.openEditor(cell), cell);
+    });
+  });
+
   test('a corner that stops rendering leaves its rail and stays out of it', async() => {
     // Every draw positions the corners, rendering or not; an idle corner put back into a rail would
     // stretch to the rail's width once its own width is cleared.

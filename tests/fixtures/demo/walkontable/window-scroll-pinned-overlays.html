@@ -31,9 +31,11 @@
     window.htFrozen = htParams.get('frozen') === '1';
     // RTL on request: the grid AND the page, as a real RTL app has it.
     window.htRtl = htParams.get('rtl') === '1';
-    // Positive control: the three clones stop following the page, which is exactly what a clone
-    // painted one step behind the scroll looks like, on every frame instead of some.
+    // Positive control: the clones stop following the page, which is exactly what a clone painted one
+    // step behind the scroll looks like, on every frame instead of some.
     window.htUnpinned = htParams.get('control') === 'unpinned';
+    // A table tall enough for the page to scroll vertically, for the column-header tests (DEV-126).
+    window.htTall = htParams.get('tall') === '1';
 
     if (window.htRtl) {
       document.documentElement.dir = 'rtl';
@@ -51,6 +53,8 @@
     .ht_clone_inline_start tbody th { background-color: #ff00ff !important; }
     .ht_clone_top_inline_start_corner thead th { background-color: #00ffff !important; }
     .ht_clone_bottom_inline_start_corner tbody th { background-color: #ffff00 !important; }
+    .ht_clone_top thead th { background-color: #00ff00 !important; }
+    .ht_clone_bottom tbody td { background-color: #ff8000 !important; }
   </style>
 </head>
 <body>
@@ -72,8 +76,10 @@
       const style = document.createElement('style');
 
       style.textContent = [
-        '.ht_clone_inline_start, .ht_clone_top_inline_start_corner, .ht_clone_bottom_inline_start_corner {',
-        '  position: absolute !important; inset-inline-start: 0 !important; transform: none !important;',
+        '.ht_clone_inline_start, .ht_clone_top, .ht_clone_bottom,',
+        '.ht_clone_top_inline_start_corner, .ht_clone_bottom_inline_start_corner {',
+        '  position: absolute !important; inset-inline-start: 0 !important; top: 0 !important;',
+        '  bottom: auto !important; margin-top: 0 !important; transform: none !important;',
         '}',
       ].join('\n');
       document.head.appendChild(style);
@@ -83,8 +89,10 @@
 
     container.className = `ht-theme-${window.htTheme}`;
 
-    const data = Array.from({ length: 12 }, (_, r) =>
-      Array.from({ length: 200 }, (_, c) => `R${r + 1}C${c + 1}`));
+    // Short and wide for the sideways tests, so a horizontal wheel moves one axis only; tall and
+    // narrow enough for the up-and-down ones, so a vertical wheel does the same.
+    const data = Array.from({ length: window.htTall ? 220 : 12 }, (_, r) =>
+      Array.from({ length: window.htTall ? 12 : 200 }, (_, c) => `R${r + 1}C${c + 1}`));
 
     const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
       Handsontable.renderers.TextRenderer.apply(this, arguments);
