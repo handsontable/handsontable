@@ -99,11 +99,20 @@ They are written in different places and can drift. Keep this in mind:
   measured, `updateSettings({ nestedRows: false })` left a dead button (its `beforeOnCellMouseDown`
   listener went with the hooks) and the spacers in every rendered header, whether the plugin had been on
   since construction or switched on at runtime (DEV-2982). `#removeRenderedLevelIndicators()` walks
-  `countRows()` through `Core#getCell(row, -1)` — `null` for a row outside the rendered band — and calls
-  `HeadersUI#removeLevelIndicators()` on each header. It has to run **before** the hooks go, and it has
-  to do so **twice per row**: a row header is rendered in the master table AND in the inline-start
-  clone painted over it, and `getCell()` answers with one or the other by `topmost`, so stripping only
-  the clone leaves the master copy stale.
+  the rendered band — `view.getFirstRenderedVisibleRow()` to `view.getLastRenderedVisibleRow()` — through
+  `Core#getCell(row, -1)` and calls `HeadersUI#removeLevelIndicators()` on each header. It has to run
+  **before** the hooks go, and it has to do so **twice per row**: a row header is rendered in the master
+  table AND in the inline-start clone painted over it, and `getCell()` answers with one or the other by
+  `topmost`, so stripping only the clone leaves the master copy stale. **Never bound that walk by
+  `countRows()`, and never assume a view exists.** `disablePlugin()` is also reached from
+  `#acceptsData()` inside `beforeLoadData`, and at construction that hook fires before `hot.view` and
+  before the first DataMap are built — `countRows()` there threw `Cannot read properties of undefined
+  (reading 'getLength')` and took down 7 specs across `initialization.spec.js`, `core/destroy.spec.js`
+  and the sorting a11y specs (every grid built with `nestedRows: true` and no or invalid data). A later
+  `loadData()` with invalid data is the mirror: `replaceData()` destroys the old DataMap *before* it
+  fires the hook. The rendered-band helpers read Walkontable only and answer `null` before the first
+  draw, which is exactly the "nothing to strip" case — and they keep the walk O(rendered rows) instead
+  of O(all rows) on a large grid.
 - **`toggleCollapsedRows()` returns `performed`, which is `false` for two different reasons** — a
   `before*` hook blocked the action, or there was simply nothing to do. Any caller that runs two
   passes must tell those apart, or "already in the right state" reads as "blocked". Use

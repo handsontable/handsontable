@@ -680,11 +680,26 @@ export class NestedRows extends BasePlugin {
    *
    * A row header is rendered twice - in the master table and in the inline-start clone painted over
    * it - and `getCell()` answers with one or the other depending on `topmost`, so both are stripped.
+   *
+   * Bounded by the rendered band, never by `countRows()`: `#acceptsData()` disables the plugin from
+   * `beforeLoadData`, which at construction fires before the view or the DataMap exist, and on a later
+   * `loadData()` fires after the previous DataMap was destroyed. Nothing is drawn in either case.
    */
   #removeRenderedLevelIndicators() {
-    const rowCount = this.hot.countRows();
+    const { view } = this.hot;
 
-    for (let row = 0; row < rowCount; row++) {
+    if (!view) {
+      return;
+    }
+
+    const firstRow = view.getFirstRenderedVisibleRow();
+    const lastRow = view.getLastRenderedVisibleRow();
+
+    if (firstRow === null || lastRow === null) {
+      return;
+    }
+
+    for (let row = firstRow; row <= lastRow; row++) {
       const masterTH = this.hot.getCell(row, -1);
       const cloneTH = this.hot.getCell(row, -1, true);
 
