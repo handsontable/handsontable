@@ -232,6 +232,20 @@ At first glance, it might seem that a data table, spreadsheet, and data grid are
 
 <br>
 
+## 🤖 AI & agent resources
+
+Handsontable and HyperFormula ship first-party resources for AI assistants and coding agents:
+
+- **Agent Skills** - official skills for Claude Code, Codex, and other coding agents, covering both products. Install in Claude Code with `/plugin marketplace add handsontable/handsontable-skills`.
+  → [github.com/handsontable/handsontable-skills](https://github.com/handsontable/handsontable-skills)
+- **AI Docs Assistant** - ask questions in English (or any other language) and get cited answers from the live docs, right in the [documentation header](https://handsontable.com/docs/javascript-data-grid/ai-docs-assistant/).
+- **Docs MCP server** - semantic search over the full Handsontable + HyperFormula knowledge base: docs guides, API reference, code recipes, release notes, blog posts, and GitHub issues, always current with the latest release.
+  `claude mcp add --transport http handsontable-docs https://docs-assistant.handsontable.com/mcp`
+- **Docs written for agents** - every docs page has a Markdown twin; start at [handsontable.com/docs/llms.txt](https://handsontable.com/docs/llms.txt).
+- **Already using Context7?** Handsontable and HyperFormula are indexed there too.
+
+<br>
+
 ## 🛟 Support
 
 **We're here to help!**
