@@ -7,9 +7,16 @@
  * the matching Handsontable example modules.
  */
 import Default from '@astrojs/starlight/components/Head.astro';
+import { AGENT_NOTE_HTML_COMMENT } from '../agent-note.mjs';
 ---
 
 <Default {...Astro.props} />
+
+{/* Invisible to readers; a pointer for AI agents that scrape the rendered HTML
+    instead of fetching the page's /docs/_md Markdown twin. set:html keeps the
+    comment in the output — a literal comment here would be an Astro template
+    comment and be stripped at build time. */}
+<Fragment set:html={AGENT_NOTE_HTML_COMMENT} />
 
 <link rel="icon" media="(prefers-color-scheme: light)" href="/docs/img/favicon.png" />
 <link rel="icon" media="(prefers-color-scheme: dark)" href="/docs/img/favicon-dark.png" />
