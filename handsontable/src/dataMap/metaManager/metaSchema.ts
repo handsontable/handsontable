@@ -3159,6 +3159,8 @@ export default (): Record<string, unknown> => {
      * | Setting     | Description                                                                                |
      * | ----------- | ------------------------------------------------------------------------------------------ |
      * | `undefined` | Use the [`ImportFile`](@/api/importFile.md) plugin with the default configuration          |
+     * | `true`      | Use the [`ImportFile`](@/api/importFile.md) plugin with the default configuration          |
+     * | `false`     | Disable the [`ImportFile`](@/api/importFile.md) plugin                                     |
      * | An object   | Enable the [`ImportFile`](@/api/importFile.md) plugin and modify the plugin options        |
      *
      * If you set the `importFile` option to an object, you can configure the following options:

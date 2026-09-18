@@ -257,6 +257,33 @@ describe('excelJsAdapter.read', () => {
       .rejects.toThrow(/workbook declares .* cells across its sheets, above the .*-cell limit/);
   });
 
+  it('should count a sheet\'s column layout against the workbook budget even with no rows', async() => {
+    // Each sheet declares `<col max="16384"/>` and no rows, so the cell matrix costs nothing while
+    // `readColumnLayout` allocates 16384 entries per sheet.
+    const sheetsNeeded = Math.floor(MAX_WORKBOOK_CELLS / 16384) + 1;
+    const engine = {
+      Workbook: class {
+        constructor() {
+          this.worksheets = Array.from({ length: sheetsNeeded }, (_, index) => ({
+            name: `L${index}`,
+            state: 'visible',
+            rowCount: 0,
+            columnCount: 0,
+            columns: new Array(16384),
+            findRow: () => undefined,
+            getColumn: () => ({}),
+            views: [],
+            conditionalFormattings: [],
+          }));
+          this.xlsx = { load: async() => {} };
+        }
+      },
+    };
+
+    await expect(excelJsAdapter.read(new ArrayBuffer(0), engine, new DroppedFeatures()))
+      .rejects.toThrow(/workbook declares .* cells across its sheets/);
+  });
+
   it('should take a merge\'s extent from every cell in it, not only from the master downwards', async() => {
     // A well-formed file puts the master top-left; a hand-crafted one need not.
     const master = { row: 2, col: 2 };

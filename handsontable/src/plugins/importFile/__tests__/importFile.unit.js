@@ -99,6 +99,11 @@ function pluginWithFakeHot(importFileSettings, { formulasEnabled = false, rtl = 
   };
   const plugin = new ImportFile(hot);
 
+  // Core enables a plugin whose `isEnabled()` answers true during init; the fake does the same.
+  if (plugin.isEnabled()) {
+    plugin.enablePlugin();
+  }
+
   return { plugin, calls, hooks, hot };
 }
 
@@ -251,6 +256,16 @@ describe('ImportFile#isEnabled', () => {
     expect(pluginWithFakeHot(false).plugin.isEnabled()).toBe(false);
     expect(pluginWithFakeHot(undefined).plugin.isEnabled()).toBe(true);
     expect(pluginWithFakeHot({ engines: {} }).plugin.isEnabled()).toBe(true);
+  });
+
+  it('should reject an import on a disabled plugin without firing hooks or touching the grid', async() => {
+    const { plugin, calls } = pluginWithFakeHot(false);
+
+    await expect(plugin.importFromArrayBuffer('xlsx', fixture('values'), { engine: ExcelJS }))
+      .rejects.toThrow(/plugin is disabled/);
+    await expect(plugin.importFromBlob('xlsx', new Blob([new Uint8Array(fixture('values'))]), { engine: ExcelJS }))
+      .rejects.toThrow(/plugin is disabled/);
+    expect(calls).toEqual([]);
   });
 });
 

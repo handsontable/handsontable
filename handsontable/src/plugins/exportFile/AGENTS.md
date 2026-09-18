@@ -120,7 +120,10 @@ Other rules:
   keyed by document, then by mount element (nested `WeakMap`s), so `clearStyleCaches(doc)` still drops every
   wrapper's entries at the start of an export and a per-wrapper probe is built once per class list. A `null`-element
   cell (outside the viewport) still gets the class-only probe diff, so a colour only a scoped rule sets is
-  exported for rendered cells only — the guide says so.
+  exported for rendered cells only — the guide and the changelog say so. **Decision (review round 8):** this
+  scroll-dependence is accepted; restoring determinism by probing rendered cells too would bring back the
+  18.x regression, and renderer-written colours cannot be probed at all. The guarantee is scoped to
+  class-based rules.
 - **A date `numFmt` follows the cell's `locale`.** `buildDatePattern(options, locale)` orders the components
   and takes the separators from `Intl.DateTimeFormat#formatToParts`, the same call the date renderer makes,
   so a `de-DE` cell showing `15.01.2024` writes `dd.mm.yyyy` and the default `en-US` cell writes

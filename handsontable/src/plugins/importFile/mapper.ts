@@ -2,7 +2,7 @@ import { throwWithCause } from '../../helpers/errors';
 import { escapeHtml } from '../../helpers/string';
 import type { DroppedFeatures } from '../../utils/xlsxEngine/capabilities';
 import type { CellSnapshot, MergeSnapshot, SheetSnapshot, WorkbookSnapshot } from '../../utils/xlsxEngine/model';
-import { parseMultiRangeRef } from '../../utils/xlsxEngine/cellRef';
+import { parseMultiRangeRef, parseRangeRef } from '../../utils/xlsxEngine/cellRef';
 import { shiftFormulaReferences } from '../../utils/xlsxEngine/formulaRefs';
 import {
   excelWidthToPx,
@@ -207,7 +207,19 @@ function computeWindow(sheet: SheetSnapshot, options: ResolvedImportOptions): Sh
  */
 function clampToSheet(sheet: SheetSnapshot, options: ResolvedImportOptions): ResolvedImportOptions {
   const lastSheetRow = Math.max(sheet.rows.length - 1, 0);
-  const [rangeStartRow, , rangeEndRow] = options.range ?? [0, 0, lastSheetRow, 0];
+  const lastSheetCol = Math.max(sheet.rows.reduce((max, row) => Math.max(max, row.length), 0) - 1, 0);
+  const [rangeStartRow, rangeStartCol, rangeEndRow] = options.range ?? [0, 0, lastSheetRow, 0];
+
+  // A start past the sheet is not a window at all: the collect loop would run zero times and the
+  // applier would hand `data: []` to `loadData`, wiping the grid with no error - the same failure a
+  // malformed `range` used to produce, reached through a well-formed one.
+  if (options.range !== null && (rangeStartRow > lastSheetRow || rangeStartCol > lastSheetCol)) {
+    throwWithCause(
+      `The "range" import option starts outside the sheet "${sheet.name}", which holds ` +
+      `${lastSheetRow + 1} rows and ${lastSheetCol + 1} columns. Received: ${JSON.stringify(options.range)}.`
+    );
+  }
+
   const rowsInRange = Math.min(rangeEndRow, lastSheetRow) - rangeStartRow + 1;
 
   return { ...options, headerRows: Math.max(Math.min(options.headerRows, rowsInRange), 1) };
@@ -743,7 +755,7 @@ function placeMeta(
       // formula then shares it, which is what keeps a wide sheet from allocating one per column.
       columns[c] = meta;
       outliers.forEach(([row, outlier]) => {
-        cellMetaEntryAt(cellsMeta, byCoords, row, c).meta = { ...outlier };
+        cellMetaEntryAt(cellsMeta, byCoords, row, c).meta = withResetKeys(outlier, meta);
       });
     }
   }
@@ -779,6 +791,25 @@ function placeMeta(
     columns: columns.some(column => Object.keys(column).length > 0) ? columns : undefined,
     cellsMeta: cellsMeta.length > 0 ? cellsMeta : undefined,
   };
+}
+
+/**
+ * The outlier's meta, with every key the column meta sets and the outlier does not reset to an own
+ * `undefined`. Column meta cascades to the cell first and `setCellMetaObject` merges key by key, so
+ * without this a `date` outlier over a `numeric` column kept the column's `numericFormat` and a text
+ * outlier over a dropdown column kept its `source` - inert for rendering, but `getCellMeta` reported
+ * keys the cell never had.
+ */
+function withResetKeys(outlier: ImportColumn, columnMeta: ImportColumn): Record<string, unknown> {
+  const reset: Record<string, unknown> = {};
+
+  Object.keys(columnMeta).forEach((key) => {
+    if (!(key in outlier)) {
+      reset[key] = undefined;
+    }
+  });
+
+  return { ...reset, ...outlier };
 }
 
 /**
@@ -908,9 +939,12 @@ function mapConditionalFormatting(
   const descriptors: ImportedConditionalFormatting[] = [];
 
   sheet.conditionalFormatting.forEach(({ ref, rules }) => {
+    const tokens = ref.split(/\s+/).filter(part => part !== '');
     const ranges = parseMultiRangeRef(ref);
 
-    if (ranges.length !== ref.split(/\s+/).filter(part => part !== '').length) {
+    // Flag a token the parser refused, not a difference in counts: a parser that one day coalesces
+    // duplicate rectangles must not read as a loss.
+    if (tokens.some(token => parseRangeRef(token) === null)) {
       dropped.record('conditionalFormatting:unparsedRef');
     }
 

@@ -411,8 +411,8 @@ export class ImportFile extends BasePlugin {
    * the class.
    */
   disablePlugin() {
-    removeImportedStyles(this.hot);
     super.disablePlugin();
+    removeImportedStyles(this.hot);
   }
 
   /**
@@ -430,6 +430,8 @@ export class ImportFile extends BasePlugin {
    * result to the grid unless `options.apply` is `false` or a `beforeImport` hook returns `false`.
    */
   async importFromArrayBuffer(format: string, buffer: ArrayBuffer, options: ImportOptions = {}): Promise<ImportResult> {
+    this.#assertEnabled();
+
     const detected = requireEngine(this.hot, format, options.engine);
     const resolved = resolveImportOptions(options);
     const dropped = new DroppedFeatures();
@@ -480,6 +482,8 @@ export class ImportFile extends BasePlugin {
    * `beforeImport` hook returns `false`.
    */
   async importFromBlob(format: string, blob: Blob, options: ImportOptions = {}): Promise<ImportResult> {
+    this.#assertEnabled();
+
     const buffer = await blob.arrayBuffer();
 
     if (!this.hot) {
@@ -487,6 +491,17 @@ export class ImportFile extends BasePlugin {
     }
 
     return this.importFromArrayBuffer(format, buffer, options);
+  }
+
+  /**
+   * Rejects a public call on a disabled plugin (`importFile: false`), the way every other plugin's
+   * public methods return early on `!this.enabled`. The methods return promises, so this throws a
+   * Handsontable error inside them rather than resolving with nothing.
+   */
+  #assertEnabled(): void {
+    if (!this.enabled) {
+      throwWithCause('ImportFile: the plugin is disabled (`importFile: false`), so nothing can be imported.');
+    }
   }
 
   /**

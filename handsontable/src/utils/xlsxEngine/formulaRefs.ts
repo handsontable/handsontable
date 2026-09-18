@@ -1,4 +1,5 @@
 import { colIndexToLetter, colLetterToIndex } from './cellRef';
+import { MAX_SHEET_COLUMNS, MAX_SHEET_ROWS } from './limits';
 
 /**
  * One A1-style reference found in a formula, in 1-based spreadsheet coordinates. `rowAbsolute` and
@@ -182,7 +183,7 @@ export function mapFormulaReferences(
  *
  * Returns `null` when a shifted reference would land above row 1 or left of column A - it pointed
  * into a band that does not exist in the target coordinate space, so the formula cannot be
- * expressed there at all.
+ * expressed there at all - or past the last row or column a sheet can hold.
  *
  * The formula is expected without its leading `=`.
  */
@@ -195,6 +196,11 @@ export function shiftFormulaReferences(formula: string, rowDelta: number, colDel
     const row = reference.row === null ? null : reference.row + rowDelta;
     const col = reference.col === null ? null : reference.col + colDelta;
 
-    return (row !== null && row < 1) || (col !== null && col < 1) ? null : { row, col };
+    // Symmetric with `parseRangeRef`: a reference the shift pushes off either edge of the sheet is
+    // one the target coordinate space cannot hold.
+    const rowOut = row !== null && (row < 1 || row > MAX_SHEET_ROWS);
+    const colOut = col !== null && (col < 1 || col > MAX_SHEET_COLUMNS);
+
+    return rowOut || colOut ? null : { row, col };
   });
 }

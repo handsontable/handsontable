@@ -119,8 +119,18 @@ describe('mapWorkbook', () => {
       type: 'numeric',
       numericFormat: { minimumFractionDigits: 0, maximumFractionDigits: 0, useGrouping: false },
     }]);
+    // The outlier resets the column keys it does not set, so the cell does not inherit a stale
+    // `numericFormat` through the cascade.
     expect(result.cellsMeta).toEqual([
-      { row: 1, col: 0, meta: { type: 'date', dateFormat: { month: '2-digit', day: '2-digit', year: '2-digit' } } },
+      {
+        row: 1,
+        col: 0,
+        meta: {
+          numericFormat: undefined,
+          type: 'date',
+          dateFormat: { month: '2-digit', day: '2-digit', year: '2-digit' },
+        },
+      },
     ]);
   });
 
@@ -272,6 +282,19 @@ describe('mapWorkbook', () => {
     const { result } = map(workbook(sheet), { range: [0, 0, 999, 999] });
 
     expect(result.data).toEqual([['a', 'b'], ['c', 'd']]);
+  });
+
+  it('should reject a range that starts outside the sheet instead of importing nothing', () => {
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [[text('a'), text('b')], [text('c'), text('d')], [text('e'), text('f')]];
+
+    // `[100, 0, 200, 0]` is well-formed and used to yield `data: []`, which wiped the target grid.
+    expect(() => map(workbook(sheet), { range: [100, 0, 200, 0] }))
+      .toThrow(/"range" import option starts outside the sheet "Data", which holds 3 rows and 2 columns/);
+    expect(() => map(workbook(sheet), { range: [0, 5, 0, 9] })).toThrow(/starts outside the sheet/);
+    // A start inside and an end beyond is still clamped, not rejected.
+    expect(map(workbook(sheet), { range: [2, 1, 200, 9] }).result.data).toEqual([['f']]);
   });
 
   it('should cap headerRows at the rows the sheet holds instead of looping past them', () => {
@@ -910,6 +933,10 @@ describe('mapWorkbook – conditionalFormatting', () => {
       { rows: [0, 0], cols: [1, 1], rules: [] },
     ]);
     expect(dropped.list()).toContain('conditionalFormatting:unparsedRef');
+
+    // Every token parsed: nothing is reported, whatever the parser did with the rectangles.
+    sheet.conditionalFormatting = [{ ref: 'A1 A1', rules: [] }];
+    expect(map(workbook(sheet)).dropped.list()).not.toContain('conditionalFormatting:unparsedRef');
   });
 
   const rule = { type: 'cellIs', operator: 'greaterThan', formulae: ['100'] };

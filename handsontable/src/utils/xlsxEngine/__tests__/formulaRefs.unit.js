@@ -91,6 +91,12 @@ describe('shiftFormulaReferences', () => {
     expect(shiftFormulaReferences('SUM(A1:B5)', -1, 0)).toBeNull();
   });
 
+  it('should reject a reference the shift pushes past the last row or column of a sheet', () => {
+    expect(shiftFormulaReferences('XFD1048576', 1, 0)).toBeNull();
+    expect(shiftFormulaReferences('XFD1048576', 0, 1)).toBeNull();
+    expect(shiftFormulaReferences('XFC1048575', 1, 1)).toBe('XFD1048576');
+  });
+
   it('should reject an absolute reference that would leave the sheet, like a relative one', () => {
     expect(shiftFormulaReferences('$A$1', -1, -1)).toBeNull();
     expect(shiftFormulaReferences('A1', -1, 0)).toBeNull();

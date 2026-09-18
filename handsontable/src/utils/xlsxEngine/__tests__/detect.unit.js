@@ -33,7 +33,7 @@ describe('detectXlsxEngine', () => {
     expect(() => detectXlsxEngine({ default: {} }, 'exportFile')).toThrow(expected);
   });
 
-  it('should name the exportFile option by default and the given option otherwise', () => {
+  it('should name the given plugin option in the error message', () => {
     expect(() => detectXlsxEngine({}, 'exportFile')).toThrow(/`exportFile: \{ engines: \{ xlsx: ExcelJS \} \}`/);
     expect(() => detectXlsxEngine({}, 'importFile')).toThrow(/`importFile: \{ engines: \{ xlsx: ExcelJS \} \}`/);
     expect(() => detectXlsxEngine({}, 'importFile')).toThrow(/^Missing or invalid ExcelJS engine\./);

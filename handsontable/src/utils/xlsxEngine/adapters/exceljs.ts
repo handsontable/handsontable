@@ -655,8 +655,10 @@ function assertSheetFits(
     );
   }
 
-  // A sheet of rows with no cells still costs one array per row, so it counts one column wide.
-  budget.declaredCells += rowCount * Math.max(cellColCount, 1);
+  // A sheet of rows with no cells still costs one array per row, so it counts one column wide; and
+  // its column layout (`readColumnLayout` allocates one width entry per declared column, up to
+  // 16384 for a sheet-wide `<col>`) counts on top, so many zero-row sheets cannot slip under it.
+  budget.declaredCells += (rowCount * Math.max(cellColCount, 1)) + layoutColCount;
 
   if (budget.declaredCells > MAX_WORKBOOK_CELLS) {
     throwWithCause(
