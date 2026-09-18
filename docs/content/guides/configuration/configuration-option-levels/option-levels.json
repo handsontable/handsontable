@@ -6,11 +6,11 @@
     "cells",
     "cell"
   ],
-  "total": 173,
+  "total": 174,
   "counts": {
     "grid": 106,
     "grid columns cells cell": 61,
-    "grid columns": 5,
+    "grid columns": 6,
     "columns": 1
   },
   "options": [
@@ -628,6 +628,16 @@
       ],
       "since": null,
       "note": null
+    },
+    {
+      "name": "filterValueComparator",
+      "category": "Filters",
+      "levels": [
+        "grid",
+        "columns"
+      ],
+      "since": "19.0.0",
+      "note": "Orders a column's \"Filter by value\" list, which is built once per column. Set it at the grid level or inside `columns`; a `cells` or `cell` value is not meaningful for a whole-column list."
     },
     {
       "name": "fixedColumnsLeft",

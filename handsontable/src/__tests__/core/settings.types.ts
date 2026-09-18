@@ -131,6 +131,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   filter: true,
   filteringCaseSensitive: true,
   filters: false,
+  filterValueComparator: (a: unknown, b: unknown) => String(a).localeCompare(String(b)),
   fixedColumnsLeft: 123,
   fixedColumnsStart: 123,
   fixedRowsBottom: 123,
