@@ -63,11 +63,10 @@ export default function hideColumnItem(hiddenColumnsPlugin: Record<string, Funct
         return true;
       }
 
-      // Nothing left to hide — every column is already hidden by this plugin (e.g. a corner
-      // select-all with all columns hidden). An empty grid keeps the item (renderable is 0 there
-      // too, but nothing is hidden).
-      return this.columnIndexMapper.getRenderableIndexesLength() === 0 &&
-        hiddenColumnsPlugin.getHiddenColumns().length > 0;
+      // Nothing to hide — no column is rendered. A corner select-all with every column already
+      // hidden is the reported case (DEV-164); an empty grid is the same dead entry
+      // (`hideColumns([])` hides nothing), so suppress the item whenever no column is visible.
+      return this.columnIndexMapper.getRenderableIndexesLength() === 0;
     }
   };
 }

@@ -198,18 +198,17 @@ duplicate trips Sonar CPD on new code.
 
 Non-adjacent hidden columns stay out of the item (hidden `[1]`, select column 3: no Show column).
 
-## Hide column suppresses itself when every column is already hidden
+## Hide column suppresses itself when no column is rendered
 
 `contextMenuItem/hideColumn.ts` `hidden()` used to key on the selection *type* alone
 (`isSelectedByColumnHeader() || isSelectedByCorner()`), so a corner (select-all) right-click kept showing
 "Hide columns" even with every column already hidden — a dead entry (DEV-164). It now also returns `true`
-when `columnIndexMapper.getRenderableIndexesLength() === 0 && getHiddenColumns().length > 0`. Both clauses
-are load-bearing: the `getHiddenColumns()` guard keeps the item on an **empty** grid (renderable length is
-also 0 there, but nothing is *hidden*), so the change is scoped to this plugin's own hidden state and is not
-a behavior change for that grid. There is **no built-in column-trimming plugin** (only `trimRows` on the
-row axis), so an empty dataset is the only way to reach `renderable === 0 && nothing hidden` here — the
-column axis has no trimmed-grid case to prove, unlike `../hiddenRows/`. `hideRow.ts` mirrors the fix, the
-way the Show items already base `hidden()` on real hidden-index state.
+when `columnIndexMapper.getRenderableIndexesLength() === 0`, i.e. whenever no column is rendered. That is
+the all-hidden corner case the ticket reported, and also an empty or fully-collapsed grid, where the item
+was equally dead: the callback would run `hideColumns([])` and hide nothing. Keying on *renderable* count
+rather than `getHiddenColumns().length` is deliberate — the latter still counts a column removed by a
+trimming map, so the two would disagree on a filtered grid; renderable count gives one answer for "nothing
+to hide" regardless of *why* the columns are gone. `hideRow.ts` mirrors the fix.
 
 ## Known concern
 

@@ -63,10 +63,10 @@ export default function hideRowItem(hiddenRowsPlugin: Record<string, Function>) 
         return true;
       }
 
-      // Nothing left to hide — every row is already hidden by this plugin (e.g. a corner
-      // select-all with all rows hidden). An empty or fully-trimmed grid keeps the item.
-      return this.rowIndexMapper.getRenderableIndexesLength() === 0 &&
-        hiddenRowsPlugin.getHiddenRows().length > 0;
+      // Nothing to hide — no row is rendered. A corner select-all with every row already hidden is
+      // the reported case (DEV-164), but an empty or fully-trimmed grid is the same dead entry
+      // (`hideRows([])` hides nothing), so suppress the item whenever no row is visible.
+      return this.rowIndexMapper.getRenderableIndexesLength() === 0;
     }
   };
 }

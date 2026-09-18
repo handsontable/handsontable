@@ -60,13 +60,15 @@ twin, which is the same defect on the horizontal axis. Covered by
 `tests/e2e/hidden-indicator-overhang.spec.ts`, whose third describe compares every marked row header
 byte for byte against the 18.1.0 rules.
 
-## Hide row suppresses itself when every row is already hidden
+## Hide row suppresses itself when no row is rendered
 
 `contextMenuItem/hideRow.ts` `hidden()` mirrors `../hiddenColumns/` `hideColumn.ts` (DEV-164): after the
-selection-type gate it returns `true` when
-`rowIndexMapper.getRenderableIndexesLength() === 0 && getHiddenRows().length > 0`, so a corner
-(select-all) right-click stops showing a dead "Hide rows" entry once all rows are hidden, while an empty or
-fully-trimmed grid keeps it. Full rationale in `../hiddenColumns/AGENTS.md`.
+selection-type gate it returns `true` when `rowIndexMapper.getRenderableIndexesLength() === 0`, so a corner
+(select-all) right-click stops showing a dead "Hide rows" entry whenever no row is visible — every row
+hidden (the reported case), an empty grid, or a fully-trimmed grid (a filter matching nothing). All three
+are the same no-op (`hideRows([])`). Using *renderable* count rather than `getHiddenRows().length` keeps the
+answer consistent whether the rows are gone by hiding or by trimming. Full rationale in
+`../hiddenColumns/AGENTS.md`.
 
 ## Known concern
 

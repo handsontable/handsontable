@@ -112,17 +112,26 @@ export class HiddenHideContextMenuPage {
   }
 
   /**
-   * How many non-separator menu entries match the given text (case-insensitive substring). "Hide
-   * row" also matches "Hide rows"; "Hide column" matches "Hide columns"; neither matches the Show
-   * items. Read once the menu is open.
+   * A retrying locator for the menu entry whose label matches `label` exactly. Anchored regexes
+   * (`/^Hide rows?$/`) match the singular and plural forms without matching a "Show" item or any
+   * future entry that merely contains the words. Assert with `toHaveCount()` so the check retries
+   * while the menu settles.
    *
-   * @param {string} needle Lowercased text the entry must contain, e.g. `'hide row'`.
-   * @returns {Promise<number>}
+   * @param {RegExp} label Exact-match pattern for the entry's text.
+   * @returns {Locator}
    */
-  async matchingItemCount(needle: string): Promise<number> {
-    const items = this.menu.locator('tbody td').filter({ hasNotText: /^$/ });
-    const texts = await items.allInnerTexts();
+  item(label: RegExp): Locator {
+    return this.menu.locator('td').filter({ hasText: label });
+  }
 
-    return texts.filter(text => text.toLowerCase().includes(needle)).length;
+  /**
+   * Whether the current selection is a whole-table corner select-all. A precondition for the
+   * corner tests: without it, a "Hide" item reading 0 could mean the right-click stopped producing
+   * a corner selection (the first `hidden()` gate), not the behavior under test.
+   *
+   * @returns {Promise<boolean>}
+   */
+  async isCornerSelected(): Promise<boolean> {
+    return this.page.evaluate(() => (window as any).hot.selection.isSelectedByCorner());
   }
 }
