@@ -18,6 +18,7 @@ import {
 import { extendArray, insertValuesInPlace, removeIndexesInPlace, to2dArray } from '../helpers/array';
 import { rangeEach, isUnsignedNumber } from '../helpers/number';
 import { isDefined } from '../helpers/mixed';
+import { isFunction } from '../helpers/function';
 import { getValueGetterValue } from '../utils/valueAccessors';
 import { throwWithCause } from '../helpers/errors';
 
@@ -949,6 +950,92 @@ class DataMap {
     }
 
     return value;
+  }
+
+  /**
+   * Reads one column's values for a block of consecutive visual rows in a single pass.
+   *
+   * `get()` resolves the column property, the visual and physical column, the settings and the hook
+   * answers once per cell, although every one of them is constant across the block. This resolves
+   * them once and then reads the source rows directly, which is what a full-column scan such as a
+   * sort needs.
+   *
+   * The fast loop runs no user code, so it is entered only when nothing that can transform a value
+   * is in play: no `columns[].data` accessor function, no `dataDotNotation` property path, no
+   * listener on `modifyRowData`, `modifyData` or `modifySourceData`, and no `valueGetter` resolved
+   * through the column meta layer (`autocomplete`, `dropdown` and `multiSelect` each ship one). Every
+   * probe is re-read per call - a host app can register a listener or retype a column at any time,
+   * so caching the answers across calls would read stale values.
+   *
+   * Stored cell meta is the one thing a column-layer probe cannot see: a `cells()` function and a
+   * `cell: [{ row, col, type }]` entry both land a `valueGetter` on a single cell, and a rendered
+   * grid stores meta for its viewport rows. Any row that carries stored meta therefore falls back to
+   * `get()`, so what the caller receives is what `getDataAtCell()` returns today.
+   *
+   * `physicalRows` is the only row source both paths read. `get()` takes a visual row, so a fallback
+   * translates the physical row back rather than assuming the block is a contiguous visual band -
+   * the rows read are the rows asked for, whatever order they arrive in.
+   *
+   * A `null` entry reads as an empty cell on either path, exactly as `get()` resolves an unmapped
+   * row. A physical row that exists but has no visual position - a trimmed one - is outside the
+   * contract: the fast loop reads its source value while a fallback reads it as empty. The sort
+   * gather loop cannot produce one, because every index it passes came out of `toPhysicalRow()`.
+   *
+   * @private
+   * @param {number} column Visual column index.
+   * @param {Array} physicalRows Physical row indexes to read, in the order the values are wanted.
+   * @returns {Array} Column values in the same order as `physicalRows`.
+   */
+  getAtColumnForRows(column: number, physicalRows: (number | null)[]): unknown[] {
+    const prop = this.colToProp(column);
+    const rowsLength = physicalRows.length;
+    const values: unknown[] = [];
+    const visualColumnIndex = this.propToCol(prop);
+    const physicalColumn = typeof visualColumnIndex === 'number'
+      ? this.hot!.toPhysicalColumn(visualColumnIndex)
+      : null;
+    // Mirrors the coordinate check `get()` makes before it consults the cell meta at all - when it
+    // fails, no `valueGetter` can reach the value and the meta layer needs no probing.
+    const isValueGetterReachable = typeof visualColumnIndex === 'number' && isUnsignedNumber(physicalColumn);
+    const { dataDotNotation } = this.hot!.getSettings();
+    // The column meta object IS the prototype the transient cell meta inherits from
+    // (`ColumnMeta#_createMeta()` returns the constructor's prototype), so reading `valueGetter` off
+    // it resolves exactly what `getCellMetaUncached()` would resolve for an unstored cell - without
+    // allocating one object per row to find that out.
+    const isBulkReadable = typeof prop !== 'function'
+      && !(dataDotNotation && typeof prop === 'string' && prop.indexOf('.') > -1)
+      && !this.hot!.hasHook('modifyRowData')
+      && !this.hot!.hasHook('modifyData')
+      && !this.hot!.hasHook('modifySourceData')
+      && !(isValueGetterReachable && isFunction(this.metaManager!.getColumnMeta(physicalColumn!).valueGetter));
+
+    if (!isBulkReadable) {
+      for (let i = 0; i < rowsLength; i++) {
+        values.push(this.get(this.hot!.toVisualRow(physicalRows[i] as number), prop));
+      }
+
+      return values;
+    }
+
+    const dataSource = this.dataSource!;
+    const plainProp = prop as string | number;
+
+    for (let i = 0; i < rowsLength; i++) {
+      const physicalRow = physicalRows[i];
+
+      if (isValueGetterReachable && isUnsignedNumber(physicalRow) &&
+          this.metaManager!.getCellMetaIfExists(physicalRow as number, physicalColumn as number) !== undefined) {
+        values.push(this.get(this.hot!.toVisualRow(physicalRow as number), prop));
+
+        continue;
+      }
+
+      const dataRow = dataSource[physicalRow as number] as Record<string | number, unknown>;
+
+      values.push(dataRow && hasOwnProperty(dataRow, plainProp) ? dataRow[plainProp] : null);
+    }
+
+    return values;
   }
 
   /**
