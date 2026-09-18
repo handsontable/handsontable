@@ -170,6 +170,7 @@ export class NestedRows extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    this.#removeRenderedLevelIndicators();
     this.hot.rowIndexMapper.unregisterMap('nestedRows');
 
     this.unregisterShortcuts();
@@ -668,6 +669,33 @@ export class NestedRows extends BasePlugin {
    */
   #isOperational(): boolean {
     return this.enabled && !!this.dataManager && !!this.collapsingUI;
+  }
+
+  /**
+   * Strips the level-indicator nodes `HeadersUI#appendLevelIndicators()` leaves behind from every
+   * currently rendered row header. Needed because `afterGetRowHeader` - the only hook that otherwise
+   * clears them - is unregistered right after this runs, and Walkontable recycles `<th>` elements
+   * across renders, so anything left inside one at this moment stays there for the rest of the
+   * instance's life (DEV-2982).
+   *
+   * A row header is rendered twice - in the master table and in the inline-start clone painted over
+   * it - and `getCell()` answers with one or the other depending on `topmost`, so both are stripped.
+   */
+  #removeRenderedLevelIndicators() {
+    const rowCount = this.hot.countRows();
+
+    for (let row = 0; row < rowCount; row++) {
+      const masterTH = this.hot.getCell(row, -1);
+      const cloneTH = this.hot.getCell(row, -1, true);
+
+      if (masterTH) {
+        this.headersUI!.removeLevelIndicators(masterTH);
+      }
+
+      if (cloneTH && cloneTH !== masterTH) {
+        this.headersUI!.removeLevelIndicators(cloneTH);
+      }
+    }
   }
 
   /**

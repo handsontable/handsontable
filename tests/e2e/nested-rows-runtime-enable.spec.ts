@@ -69,6 +69,24 @@ test.describe('NestedRows enabled at runtime', () => {
     expect(await nestedRows.consoleErrors()).toEqual([]);
   });
 
+  test('turning a runtime-enabled plugin off removes its header decoration', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsRuntimeEnablePage(page, theme, bundle);
+
+    await nestedRows.goto();
+    await expect(nestedRows.nestingIndicators()).toHaveCount(0);
+
+    await nestedRows.setNestedRows(true);
+    await expect(nestedRows.collapseButton(0)).toBeVisible();
+    expect(await nestedRows.nestingIndicators().count()).toBeGreaterThan(0);
+
+    await nestedRows.setNestedRows(false);
+
+    // The `th` elements are recycled across draws, so the button and the spacers drawn while the
+    // plugin was on used to survive the disable in every rendered header (DEV-2982).
+    await expect(nestedRows.nestingIndicators()).toHaveCount(0);
+    await expect(nestedRows.paintedNames()).toHaveText(FLAT_ROWS);
+  });
+
   test('re-sending the same setting leaves the rows and the collapsed state alone', async({ page, theme, bundle }) => {
     const nestedRows = new NestedRowsRuntimeEnablePage(page, theme, bundle);
 

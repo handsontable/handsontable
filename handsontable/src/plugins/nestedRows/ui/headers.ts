@@ -116,14 +116,9 @@ class HeadersUI extends BaseUI {
     const rowLevel = this.dataManager!.getRowLevel(rowIndex);
     const innerDiv = TH.getElementsByTagName('DIV')[0];
     const innerSpan = innerDiv.querySelector('span.rowHeader');
-    const previousIndicators = innerDiv.querySelectorAll('[class^="ht_nesting"]');
     const ariaEnabled = this.hot.getSettings().ariaTags;
 
-    arrayEach(previousIndicators, (elem) => {
-      if (elem) {
-        innerDiv.removeChild(elem as Node);
-      }
-    });
+    this.removeLevelIndicators(TH);
 
     addClass(TH, HeadersUI.CSS_CLASSES.indicatorContainer);
 
@@ -175,6 +170,29 @@ class HeadersUI extends BaseUI {
 
       innerDiv.appendChild(buttonsContainer);
     }
+  }
+
+  /**
+   * Removes the nesting-level indicator nodes (the collapse/expand button and the indent spacers)
+   * appended to a row header's inner container.
+   *
+   * @private
+   * @param {HTMLTableCellElement} TH TH element.
+   */
+  removeLevelIndicators(TH: HTMLTableCellElement) {
+    const innerDiv = TH.getElementsByTagName('DIV')[0];
+
+    if (!innerDiv) {
+      return;
+    }
+
+    const previousIndicators = innerDiv.querySelectorAll('[class^="ht_nesting"]');
+
+    arrayEach(previousIndicators, (elem) => {
+      if (elem) {
+        innerDiv.removeChild(elem as Node);
+      }
+    });
   }
 
   /**

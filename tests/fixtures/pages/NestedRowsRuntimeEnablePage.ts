@@ -63,6 +63,20 @@ export class NestedRowsRuntimeEnablePage {
     return this.page.locator('.ht_master tbody tr td:first-of-type');
   }
 
+  /**
+   * Every nesting indicator the plugin has drawn into a row header - the collapse/expand buttons and
+   * the indent spacers - across both copies of the headers: the master table and the inline-start
+   * clone painted over it.
+   */
+  nestingIndicators(): Locator {
+    return this.grid.locator('th [class^="ht_nesting"]');
+  }
+
+  /** The collapse/expand button in the visible row header, by visual row index. */
+  collapseButton(row: number): Locator {
+    return this.grid.locator('.ht_clone_inline_start tbody tr').nth(row).locator('.ht_nestingButton');
+  }
+
   /** Whether an editor is currently open over the grid. */
   isEditorOpen(): Promise<boolean> {
     return this.page.evaluate(() => {

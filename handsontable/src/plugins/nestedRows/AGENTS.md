@@ -91,6 +91,19 @@ They are written in different places and can drift. Keep this in mind:
   disabled plugin returns `true`, mutates `collapsedRows`, and fires `afterRowCollapse` with
   `successfullyCollapsed: true` while the grid hides nothing. `#isOperational()` is that gate; every
   public entry point goes through it. `CollapsibleColumns` checks `this.enabled` for the same reason.
+- **`disablePlugin()` has to strip the header decoration itself, because nothing else ever will.**
+  The only code that removes the `+`/`-` button and the `ht_nestingLevel_empty` spacers from a row
+  header's inner `div` is `HeadersUI#appendLevelIndicators()`, which runs from `afterGetRowHeader` —
+  a hook `disablePlugin()` unregisters. Walkontable recycles `<th>` elements across renders, so whatever
+  was inside one at the moment of the disable stayed there for the rest of the instance's life:
+  measured, `updateSettings({ nestedRows: false })` left a dead button (its `beforeOnCellMouseDown`
+  listener went with the hooks) and the spacers in every rendered header, whether the plugin had been on
+  since construction or switched on at runtime (DEV-2982). `#removeRenderedLevelIndicators()` walks
+  `countRows()` through `Core#getCell(row, -1)` — `null` for a row outside the rendered band — and calls
+  `HeadersUI#removeLevelIndicators()` on each header. It has to run **before** the hooks go, and it has
+  to do so **twice per row**: a row header is rendered in the master table AND in the inline-start
+  clone painted over it, and `getCell()` answers with one or the other by `topmost`, so stripping only
+  the clone leaves the master copy stale.
 - **`toggleCollapsedRows()` returns `performed`, which is `false` for two different reasons** — a
   `before*` hook blocked the action, or there was simply nothing to do. Any caller that runs two
   passes must tell those apart, or "already in the right state" reads as "blocked". Use
