@@ -223,31 +223,44 @@ describe('ColumnSummary reversedRowCoords with alter()', () => {
     warnSpy.mockRestore();
   });
 
-  it('keeps a sibling endpoint updating when another reversed anchor re-derives below zero', async() => {
+  it('clears a moved sibling anchor on a later alteration after another endpoint parked below zero', async() => {
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
-    // Endpoint A (column 0, offset 0) tracks the last row. Endpoint B (column 1, offset 3) re-derives
-    // below zero after a removal. B must not poison A: a negative index left on B would make the
-    // all-or-nothing bounds check in `resetAllEndpoints` skip clearing A too.
+    // Endpoint A (column 0, offset 0) tracks the last row. Endpoint B (column 1, offset 4) drops below
+    // zero after the first removal and stays parked with a negative destination. The poison this
+    // guards against only shows on a LATER alteration: if B's negative index were caught by the
+    // all-or-nothing bounds check in `resetAllEndpoints`, it would skip clearing every endpoint —
+    // including A's vacated cell when A re-anchors on the append below.
     hot = new Handsontable(container, {
       licenseKey: 'non-commercial-and-evaluation',
-      data: [[10, 1], [20, 2], [30, 3], [40, 4]],
+      data: [[1, 10], [2, 20], [3, 30], [4, 40], [5, 50], [6, 60]],
       columnSummary: [
-        { destinationColumn: 0, destinationRow: 0, reversedRowCoords: true, ranges: [[1, 1]], type: 'sum' },
-        { destinationColumn: 1, destinationRow: 3, reversedRowCoords: true, ranges: [[2, 2]], type: 'sum' },
+        { destinationColumn: 0, destinationRow: 0, reversedRowCoords: true, ranges: [[4, 4]], type: 'sum' },
+        { destinationColumn: 1, destinationRow: 4, reversedRowCoords: true, ranges: [[5, 5]], type: 'sum' },
       ],
     });
 
-    // A: last row of four = row 3, summing row 1 of column 0 (= 20).
-    expect(hot.getDataAtCell(3, 0)).toBe(20);
-
-    await hot.alter('remove_row', 0);
-
-    // Three rows now. A re-anchors to the new last row (row 2) and still updates — its range shifted
-    // to row 0 (was row 1, = 20). B re-derives to 3 - 3 - 1 = -1, so it warns and parks.
-    expect(hot.getDataAtCell(2, 0)).toBe(20);
-    expect(hot.getCellMeta(2, 0).className).toContain('columnSummaryResult');
+    // Step 1: shrink the table so B re-derives to 4 - 4 - 1 = -1 and parks (with a warning), while A
+    // stays valid on the new last row.
+    await hot.alter('remove_row', 0, 2);
     expect(warnSpy).toHaveBeenCalled();
+
+    const aRowBefore = hot.countRows() - 1;
+
+    // Step 2: append. A re-anchors from `aRowBefore` to the new last row; its old cell must be cleared.
+    // With the poison, B's parked negative would skip that clear and leave a stale summary behind.
+    warnSpy.mockClear();
+    await hot.alter('insert_row_below');
+
+    const aRowAfter = hot.countRows() - 1;
+
+    expect(aRowAfter).toBe(aRowBefore + 1);
+    expect(hot.getCellMeta(aRowAfter, 0).className).toContain('columnSummaryResult');
+
+    // The discriminator: A's previous cell holds no stale summary value.
+    const vacated = hot.getDataAtCell(aRowBefore, 0);
+
+    expect(vacated === '' || vacated === null).toBe(true);
 
     warnSpy.mockRestore();
   });
